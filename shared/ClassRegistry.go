@@ -39,10 +39,10 @@ func (registry ClassRegistry) Register(typeInstance interface{}) int {
 // Create an uninitialized object by class name.
 // The class name has to be "package.class" or "package/subpackage.class".
 // The gollum package is omitted from the package path.
-func (registry ClassRegistry) Create(typeName string) (interface{}, error) {
+func (registry ClassRegistry) Create(typeName string) (interface{}, reflect.Type, error) {
 	structType, exists := registry.namedType[typeName]
 	if exists {
-		return reflect.New(structType).Elem().Interface(), nil
+		return reflect.New(structType).Elem().Interface(), structType, nil
 	}
-	return nil, ClassRegistryError{"Unknown class: " + typeName}
+	return nil, nil, ClassRegistryError{"Unknown class: " + typeName}
 }

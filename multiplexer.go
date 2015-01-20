@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"gollum/shared"
 	"os"
@@ -13,11 +12,9 @@ type multiplexer struct {
 	producers []shared.Producer
 }
 
-func createMultiplexer() multiplexer {
-	configFilePtr := flag.String("c", "/etc/gollum.conf", "Configuration file")
-	flag.Parse()
-
-	conf, err := shared.ReadConfig(*configFilePtr)
+// Create a new multiplexer based on a given config file.
+func createMultiplexer(configFile string) multiplexer {
+	conf, err := shared.ReadConfig(configFile)
 	if err != nil {
 		fmt.Printf("Error: %s", err.Error())
 		os.Exit(-1)
@@ -32,12 +29,12 @@ func createMultiplexer() multiplexer {
 	for className, instanceConfigs := range conf.Settings {
 
 		for _, config := range instanceConfigs {
-			plugin, err := shared.Plugin.Create(className)
+			plugin, pluginType, err := shared.Plugin.Create(className)
 			if err != nil {
 				panic(err.Error())
 			}
 
-			pluginType := reflect.TypeOf(plugin)
+			// Register consumer plugins
 
 			if pluginType.Implements(consumerType) {
 				typedPlugin := plugin.(shared.Consumer)
@@ -51,7 +48,11 @@ func createMultiplexer() multiplexer {
 				plex.consumers = append(plex.consumers, instance)
 				fmt.Println("Added consumer", pluginType)
 
-			} else if pluginType.Implements(producerType) {
+			}
+
+			// Register producer plugins
+
+			if pluginType.Implements(producerType) {
 				typedPlugin := plugin.(shared.Producer)
 
 				instance, err := typedPlugin.Create(config)
@@ -69,6 +70,8 @@ func createMultiplexer() multiplexer {
 	return plex
 }
 
+// Run the multiplexer.
+// Fetch messags from the consumers and pass them to all producers.
 func (plex multiplexer) run() {
 
 	if len(plex.consumers) == 0 {
