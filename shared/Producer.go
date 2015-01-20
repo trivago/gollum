@@ -4,6 +4,9 @@ const (
 	// Event to pass to Producer.Control.
 	// Will cause the producer to halt and shutdown.
 	ProducerControlStop = 1
+
+	// Event set by the producer after Produce() has stopped
+	ProducerControlResponseDone = 1
 )
 
 // Producers are plugins that generate messages, i.e. read them from some source
@@ -25,6 +28,8 @@ type Producer interface {
 	// Returns write access to this producer's control channel.
 	// See ProducerControl* constants.
 	Control() chan<- int
+
+	ControlResponse() <-chan int
 
 	// Returns write access to the message channel this producer reads from.
 	Messages() chan<- Message

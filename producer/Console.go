@@ -11,6 +11,7 @@ import (
 type Console struct {
 	messages chan shared.Message
 	control  chan int
+	response chan int
 	channel  string
 	filter   *regexp.Regexp
 	console  *os.File
@@ -53,12 +54,17 @@ func (prod Console) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	}
 
 	prod.messages = make(chan shared.Message)
-	prod.control = make(chan int)
+	prod.control = make(chan int, 1)
+	prod.response = make(chan int, 1)
 
 	return prod, nil
 }
 
 func (prod Console) Produce() {
+	defer func() {
+		prod.response <- shared.ProducerControlResponseDone
+	}()
+
 	for {
 		select {
 		case message := <-prod.messages:
@@ -71,7 +77,7 @@ func (prod Console) Produce() {
 		case command := <-prod.control:
 			if command == shared.ProducerControlStop {
 				fmt.Println("Console producer recieved stop")
-				return // ### return ###
+				return // ### return, done ###
 			}
 		default:
 			// Don't block
@@ -89,6 +95,10 @@ func (prod Console) Accepts(message shared.Message) bool {
 
 func (prod Console) Control() chan<- int {
 	return prod.control
+}
+
+func (prod Console) ControlResponse() <-chan int {
+	return prod.response
 }
 
 func (prod Console) Messages() chan<- shared.Message {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gollum/shared"
 	"os"
+	"os/signal"
 	"reflect"
 )
 
@@ -51,7 +52,7 @@ func createMultiplexer(configFile string) multiplexer {
 				}
 
 				plex.consumers = append(plex.consumers, instance)
-				fmt.Println("Added consumer", pluginType)
+				//fmt.Println("Added consumer", pluginType)
 
 			}
 
@@ -67,7 +68,7 @@ func createMultiplexer(configFile string) multiplexer {
 				}
 
 				plex.producers = append(plex.producers, instance)
-				fmt.Println("Added producer", pluginType)
+				//fmt.Println("Added producer", pluginType)
 			}
 		}
 	}
@@ -88,13 +89,25 @@ func (plex multiplexer) run() {
 		return // ### return, nothing to do ###
 	}
 
-	// Launch plugins
+	fmt.Println("We be nice to them, if they be nice to us.")
 
-	listeners := make([]reflect.SelectCase, len(plex.consumers))
+	// Register signal handler
+
+	listeners := make([]reflect.SelectCase, len(plex.consumers)+1)
+
+	signalChannel := make(chan os.Signal, 1)
+	signalType := reflect.TypeOf(os.Interrupt)
+	signal.Notify(signalChannel, os.Interrupt)
+
+	listeners[0] = reflect.SelectCase{
+		Dir:  reflect.SelectRecv,
+		Chan: reflect.ValueOf(signalChannel)}
+
+	// Launch plugins
 
 	for i, consumer := range plex.consumers {
 		go consumer.Consume()
-		listeners[i] = reflect.SelectCase{
+		listeners[i+1] = reflect.SelectCase{
 			Dir:  reflect.SelectRecv,
 			Chan: reflect.ValueOf(consumer.Messages())}
 	}
@@ -106,8 +119,25 @@ func (plex multiplexer) run() {
 	// Main loop
 
 	for {
-		_, value, ok := reflect.Select(listeners)
-		if ok {
+		_, value, messageReviecved := reflect.Select(listeners)
+		if messageReviecved {
+
+			if reflect.TypeOf(value.Interface()) == signalType {
+				fmt.Println("signal recieved")
+
+				for _, consumer := range plex.consumers {
+					consumer.Control() <- shared.ConsumerControlStop
+					<-consumer.ControlResponse()
+				}
+
+				for _, producer := range plex.producers {
+					producer.Control() <- shared.ProducerControlStop
+					<-producer.ControlResponse()
+				}
+
+				break
+			}
+
 			message := value.Interface().(shared.Message)
 
 			for _, producer := range plex.producers {
@@ -117,4 +147,6 @@ func (plex multiplexer) run() {
 			}
 		}
 	}
+
+	fmt.Println("You're a liar and a thief!")
 }
