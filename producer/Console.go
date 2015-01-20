@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gollum/shared"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -11,6 +12,7 @@ type Console struct {
 	messages chan shared.Message
 	control  chan int
 	channel  string
+	filter   *regexp.Regexp
 	console  *os.File
 }
 
@@ -19,29 +21,39 @@ var ConsoleClassID = shared.Plugin.Register(Console{})
 func (prod Console) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	console, consoleSet := conf.Settings["Console"]
 	channel, channelSet := conf.Settings["Channel"]
-	var consoleFile *os.File
-
-	if !consoleSet {
-		console = "stdout"
-	}
+	filter, filterSet := conf.Settings["Filter"]
 
 	if !channelSet {
-		channel = console
+		prod.channel = ""
+	} else {
+		prod.channel = channel.(string)
 	}
 
-	switch strings.ToLower(console.(string)) {
-	default:
-		fallthrough
-	case "stdout":
-		consoleFile = os.Stdout
-	case "stderr":
-		consoleFile = os.Stderr
+	if !filterSet {
+		prod.filter = nil
+	} else {
+		var err error
+		prod.filter, err = regexp.Compile(filter.(string))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if !consoleSet {
+		prod.console = os.Stdout
+	} else {
+		switch strings.ToLower(console.(string)) {
+		default:
+			fallthrough
+		case "stdout":
+			prod.console = os.Stdout
+		case "stderr":
+			prod.console = os.Stderr
+		}
 	}
 
 	prod.messages = make(chan shared.Message)
 	prod.control = make(chan int)
-	prod.channel = channel.(string)
-	prod.console = consoleFile
 
 	return prod, nil
 }
@@ -50,7 +62,11 @@ func (prod Console) Produce() {
 	for {
 		select {
 		case message := <-prod.messages:
-			fmt.Fprintln(prod.console, prod.channel, message.Format())
+			if prod.channel == "" {
+				fmt.Fprintln(prod.console, message.Format())
+			} else {
+				fmt.Fprintf(prod.console, "%s %s: %s\n", message.GetDateString(), prod.channel, message.Text)
+			}
 
 		case command := <-prod.control:
 			if command == shared.ProducerControlStop {
@@ -61,6 +77,14 @@ func (prod Console) Produce() {
 			// Don't block
 		}
 	}
+}
+
+func (prod Console) Accepts(message shared.Message) bool {
+	if prod.filter == nil {
+		return true // ### return, pass everything ###
+	}
+
+	return prod.filter.MatchString(message.Text)
 }
 
 func (prod Console) Control() chan<- int {

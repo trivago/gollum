@@ -19,6 +19,9 @@ type Producer interface {
 	// service like the console.
 	Produce()
 
+	// Returns true if the message is allowed to be send to this producer.
+	Accepts(message Message) bool
+
 	// Returns write access to this producer's control channel.
 	// See ProducerControl* constants.
 	Control() chan<- int

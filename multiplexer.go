@@ -108,8 +108,12 @@ func (plex multiplexer) run() {
 	for {
 		_, value, ok := reflect.Select(listeners)
 		if ok {
+			message := value.Interface().(shared.Message)
+
 			for _, producer := range plex.producers {
-				producer.Messages() <- value.Interface().(shared.Message)
+				if producer.Accepts(message) {
+					producer.Messages() <- message
+				}
 			}
 		}
 	}
