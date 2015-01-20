@@ -5,17 +5,18 @@ import (
 	"fmt"
 	"gollum/shared"
 	"os"
+	"time"
 )
 
 type Console struct {
-	messages chan string
+	messages chan shared.Message
 	control  chan int
 }
 
 var ConsoleClassID = shared.Plugin.Register(Console{})
 
 func (cons Console) Create(conf shared.PluginConfig) (shared.Consumer, error) {
-	cons.messages = make(chan string)
+	cons.messages = make(chan shared.Message)
 	cons.control = make(chan int)
 	return cons, nil
 }
@@ -35,7 +36,7 @@ func (cons Console) Consume() {
 		}
 
 		message, _ := reader.ReadString('\n')
-		cons.messages <- message
+		cons.messages <- shared.Message{message[:len(message)-1], time.Now()}
 	}
 }
 
@@ -43,6 +44,6 @@ func (cons Console) Control() chan<- int {
 	return cons.control
 }
 
-func (cons Console) Messages() <-chan string {
+func (cons Console) Messages() <-chan shared.Message {
 	return cons.messages
 }

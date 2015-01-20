@@ -24,5 +24,5 @@ type Producer interface {
 	Control() chan<- int
 
 	// Returns write access to the message channel this producer reads from.
-	Messages() chan<- string
+	Messages() chan<- Message
 }

@@ -29,6 +29,11 @@ func createMultiplexer(configFile string) multiplexer {
 	for className, instanceConfigs := range conf.Settings {
 
 		for _, config := range instanceConfigs {
+
+			if !config.Enable {
+				continue // ### continue, disabld ###
+			}
+
 			plugin, pluginType, err := shared.Plugin.Create(className)
 			if err != nil {
 				panic(err.Error())
@@ -36,7 +41,7 @@ func createMultiplexer(configFile string) multiplexer {
 
 			// Register consumer plugins
 
-			if pluginType.Implements(consumerType) {
+			if reflect.PtrTo(pluginType).Implements(consumerType) {
 				typedPlugin := plugin.(shared.Consumer)
 
 				instance, err := typedPlugin.Create(config)
@@ -104,7 +109,7 @@ func (plex multiplexer) run() {
 		_, value, ok := reflect.Select(listeners)
 		if ok {
 			for _, producer := range plex.producers {
-				producer.Messages() <- value.String()
+				producer.Messages() <- value.Interface().(shared.Message)
 			}
 		}
 	}

@@ -24,5 +24,5 @@ type Consumer interface {
 	Control() chan<- int
 
 	// Returns read access to the message channel this consumer writes to.
-	Messages() <-chan string
+	Messages() <-chan Message
 }

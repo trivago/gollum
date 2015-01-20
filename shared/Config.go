@@ -1,6 +1,7 @@
 package shared
 
 import (
+	//"fmt"
 	"io/ioutil"
 	"launchpad.net/goyaml"
 )
@@ -19,26 +20,30 @@ type Config struct {
 // YAMLReader interface implementation to storing values to the internal
 // configuration format
 func (conf Config) SetYAML(tagType string, values interface{}) bool {
-	pluginMap := values.(map[interface{}]interface{})
+	pluginList := values.([]interface{})
 
-	// The first map contains the class name of plugin instances
-	// A plugin can be configured multiple times, where each configuration
-	// equals a new instance
+	// As there might be multiple instances of the same plugin class we iterate
+	// over an array here.
 
-	for pluginClass, pluginSettingInstances := range pluginMap {
-		instances := pluginSettingInstances.([]interface{})
-		var pluginInstances []PluginConfig
+	for _, pluginData := range pluginList {
+		pluginDataMap := pluginData.(map[interface{}]interface{})
 
-		for _, instance := range instances {
-			pluginSetting := instance.(map[interface{}]interface{})
+		// Each item in the array item is a map{class -> map{key -> value}}
+		// We "iterate" over the first map (one item only) to get the class.
+
+		for pluginClass, pluginSettings := range pluginDataMap {
+			pluginSettingsMap := pluginSettings.(map[interface{}]interface{})
+
+			//fmt.Println(pluginClass)
 			plugin := PluginConfig{false, make(map[string]interface{})}
 
-			// Parse the global settings from the map and set them directly at
-			// the PluginConfig member. All other settings go to the Settings
-			// map.
+			// Iterate over all key/value pairs.
+			// "Enable" is a special field as non-plugin logic is bound to it
 
-			for settingKey, settingValue := range pluginSetting {
+			for settingKey, settingValue := range pluginSettingsMap {
 				key := settingKey.(string)
+
+				//fmt.Printf("\t%s -> %v\n", key, settingValue)
 
 				switch key {
 				case "Enable":
@@ -48,10 +53,15 @@ func (conf Config) SetYAML(tagType string, values interface{}) bool {
 				}
 			}
 
-			pluginInstances = append(pluginInstances, plugin)
-		}
+			// Add instance of this plugin class config to the list
 
-		conf.Settings[pluginClass.(string)] = pluginInstances
+			list, listExists := conf.Settings[pluginClass.(string)]
+			if !listExists {
+				list = make([]PluginConfig, 0)
+			}
+
+			conf.Settings[pluginClass.(string)] = append(list, plugin)
+		}
 	}
 
 	return true
