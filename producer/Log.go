@@ -11,7 +11,7 @@ type Log struct {
 	file *os.File
 }
 
-var prodClassID = shared.Plugin.Register(Log{})
+var LogClassID = shared.Plugin.Register(Log{})
 
 func (prod Log) Create(conf shared.PluginConfig) (shared.Producer, error) {
 
