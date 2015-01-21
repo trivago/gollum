@@ -63,7 +63,7 @@ func (prod Console) Produce() {
 
 		case command := <-prod.control:
 			if command == shared.ProducerControlStop {
-				fmt.Println("Console producer recieved stop")
+				//fmt.Println("Console producer recieved stop")
 				return // ### return, done ###
 			}
 		default:
