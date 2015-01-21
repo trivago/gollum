@@ -19,7 +19,8 @@ import (
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
 type Socket struct {
 	standardConsumer
-	listen net.Listener
+	listen  net.Listener
+	forward bool
 }
 
 var SocketClassID = shared.Plugin.Register(Socket{})
@@ -52,12 +53,13 @@ func (cons Socket) Create(conf shared.PluginConfig) (shared.Consumer, error) {
 	return cons, err
 }
 
-func (cons Socket) postMessage(text string) {
+func (cons *Socket) postMessage(text string) {
 	for _, stream := range cons.stream {
 		postMessage := shared.Message{
 			Text:      text,
 			Stream:    stream,
 			Timestamp: time.Now(),
+			Forward:   cons.forward,
 		}
 
 		cons.messages <- postMessage
@@ -146,7 +148,6 @@ func (cons *Socket) accept() {
 }
 
 func (cons Socket) Consume() {
-
 	defer func() {
 		cons.listen.Close()
 	}()

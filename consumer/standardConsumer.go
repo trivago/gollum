@@ -10,6 +10,7 @@ import (
 // - "consumer.Something":
 //   Enable: true
 //   Buffer: 1024
+//   Forward: false
 //   Stream:
 //      - "error"
 //      - "default"
@@ -21,11 +22,14 @@ import (
 // message channels this consumer will produce. By default this is set to "*"
 // which means only producers set to consume "all streams" will get these
 // messages.
+// If forward is set to true, the message will be passed as-is, so date and
+// channel will not be added. The default value is false.
 type standardConsumer struct {
 	messages chan shared.Message
 	control  chan int
 	response chan int
 	stream   []string
+	forward  bool
 }
 
 func (cons *standardConsumer) configureStandardConsumer(conf shared.PluginConfig) error {
@@ -33,6 +37,13 @@ func (cons *standardConsumer) configureStandardConsumer(conf shared.PluginConfig
 	cons.control = make(chan int, 1)
 	cons.response = make(chan int, 1)
 	cons.stream = conf.Stream
+	cons.forward = false
+
+	forward, forwardSet := conf.Settings["Forward"]
+	if forwardSet {
+		cons.forward = forward.(bool)
+	}
+
 	return nil
 }
 

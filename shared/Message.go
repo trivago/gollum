@@ -10,10 +10,15 @@ type Message struct {
 	Text      string
 	Stream    string
 	Timestamp time.Time
+	Forward   bool
 }
 
 // Create a message in the default format.
 func (msg Message) Format() string {
+	if msg.Forward {
+		return msg.Text
+	}
+
 	return fmt.Sprintf("%s | %s | %s",
 		msg.GetDateString(),
 		msg.Stream,

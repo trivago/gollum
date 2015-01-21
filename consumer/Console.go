@@ -16,6 +16,7 @@ import (
 // This consumer does not define any options beside the standard ones.
 type Console struct {
 	standardConsumer
+	forward bool
 }
 
 var ConsoleClassID = shared.Plugin.Register(Console{})
@@ -46,6 +47,7 @@ func (cons Console) readFrom(stream *os.File) {
 				Text:      message[:len(message)-1],
 				Stream:    stream,
 				Timestamp: time.Now(),
+				Forward:   cons.forward,
 			}
 
 			cons.messages <- postMessage
