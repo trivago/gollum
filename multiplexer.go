@@ -11,6 +11,7 @@ import (
 type multiplexer struct {
 	consumers []shared.Consumer
 	producers []shared.Producer
+	stream    map[string][]*shared.Producer
 }
 
 // Create a new multiplexer based on a given config file.
@@ -26,6 +27,8 @@ func createMultiplexer(configFile string) multiplexer {
 	var plex multiplexer
 	consumerType := reflect.TypeOf((*shared.Consumer)(nil)).Elem()
 	producerType := reflect.TypeOf((*shared.Producer)(nil)).Elem()
+
+	plex.stream = make(map[string][]*shared.Producer)
 
 	for className, instanceConfigs := range conf.Settings {
 
@@ -65,6 +68,14 @@ func createMultiplexer(configFile string) multiplexer {
 				if err != nil {
 					fmt.Println("Error registering ", className, ":", err)
 					continue // ### continue ###
+				}
+
+				for _, stream := range config.Stream {
+					streamMap, exists := plex.stream[stream]
+					if !exists {
+						streamMap = make([]*shared.Producer, 0)
+					}
+					plex.stream[stream] = append(streamMap, &instance)
 				}
 
 				plex.producers = append(plex.producers, instance)
@@ -123,7 +134,7 @@ func (plex multiplexer) run() {
 		if messageReviecved {
 
 			if reflect.TypeOf(value.Interface()) == signalType {
-				fmt.Println("signal recieved")
+				fmt.Println("\nShutdown signal recieved")
 
 				for _, consumer := range plex.consumers {
 					consumer.Control() <- shared.ConsumerControlStop
@@ -140,9 +151,19 @@ func (plex multiplexer) run() {
 
 			message := value.Interface().(shared.Message)
 
-			for _, producer := range plex.producers {
-				if producer.Accepts(message) {
-					producer.Messages() <- message
+			// Send to "all stream" producers
+
+			for _, producer := range plex.stream["*"] {
+				if (*producer).Accepts(message) {
+					(*producer).Messages() <- message
+				}
+			}
+
+			// Send to specific stream producers
+
+			for _, producer := range plex.stream[message.Stream] {
+				if (*producer).Accepts(message) {
+					(*producer).Messages() <- message
 				}
 			}
 		}

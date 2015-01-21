@@ -1,14 +1,16 @@
 package shared
 
 import (
-	//"fmt"
 	"io/ioutil"
 	"launchpad.net/goyaml"
+	"reflect"
 )
 
 // Sub config for specific plugins
 type PluginConfig struct {
 	Enable   bool
+	Stream   []string
+	Buffer   int
 	Settings map[string]interface{}
 }
 
@@ -21,6 +23,7 @@ type Config struct {
 // configuration format
 func (conf Config) SetYAML(tagType string, values interface{}) bool {
 	pluginList := values.([]interface{})
+	stringType := reflect.TypeOf("")
 
 	// As there might be multiple instances of the same plugin class we iterate
 	// over an array here.
@@ -35,7 +38,7 @@ func (conf Config) SetYAML(tagType string, values interface{}) bool {
 			pluginSettingsMap := pluginSettings.(map[interface{}]interface{})
 
 			//fmt.Println(pluginClass)
-			plugin := PluginConfig{false, make(map[string]interface{})}
+			plugin := PluginConfig{false, make([]string, 0), 1024, make(map[string]interface{})}
 
 			// Iterate over all key/value pairs.
 			// "Enable" is a special field as non-plugin logic is bound to it
@@ -48,6 +51,19 @@ func (conf Config) SetYAML(tagType string, values interface{}) bool {
 				switch key {
 				case "Enable":
 					plugin.Enable = settingValue.(bool)
+
+				case "Buffer":
+					plugin.Buffer = settingValue.(int)
+
+				case "Stream":
+					if reflect.TypeOf(settingValue) == stringType {
+						plugin.Stream = append(plugin.Stream, settingValue.(string))
+					} else {
+						for _, value := range settingValue.([]interface{}) {
+							plugin.Stream = append(plugin.Stream, value.(string))
+						}
+					}
+
 				default:
 					plugin.Settings[key] = settingValue
 				}

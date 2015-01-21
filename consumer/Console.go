@@ -34,16 +34,14 @@ func (cons Console) readFrom(stream *os.File) {
 			return // ### return, stream error ###
 		}
 
-		postMessage := shared.Message{
-			Text:      message[:len(message)-1],
-			Timestamp: time.Now(),
-		}
+		for _, stream := range cons.stream {
+			postMessage := shared.Message{
+				Text:      message[:len(message)-1],
+				Stream:    stream,
+				Timestamp: time.Now(),
+			}
 
-		// Async positing of messages
-
-		select {
-		case cons.messages <- postMessage:
-		default:
+			cons.messages <- postMessage
 		}
 	}
 }

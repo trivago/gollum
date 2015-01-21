@@ -9,27 +9,18 @@ import (
 
 type Console struct {
 	standardProducer
-	channel string
 	console *os.File
 }
 
 var ConsoleClassID = shared.Plugin.Register(Console{})
 
 func (prod Console) Create(conf shared.PluginConfig) (shared.Producer, error) {
-
 	err := prod.configureStandardProducer(conf)
 	if err != nil {
 		return nil, err
 	}
 
 	console, consoleSet := conf.Settings["Console"]
-	channel, channelSet := conf.Settings["Channel"]
-
-	if !channelSet {
-		prod.channel = ""
-	} else {
-		prod.channel = channel.(string)
-	}
 
 	if !consoleSet {
 		prod.console = os.Stdout
@@ -55,11 +46,7 @@ func (prod Console) Produce() {
 	for {
 		select {
 		case message := <-prod.messages:
-			if prod.channel == "" {
-				fmt.Fprintln(prod.console, message.Format())
-			} else {
-				fmt.Fprintf(prod.console, "%s %s: %s\n", message.GetDateString(), prod.channel, message.Text)
-			}
+			fmt.Fprintln(prod.console, message.Format())
 
 		case command := <-prod.control:
 			if command == shared.ProducerControlStop {

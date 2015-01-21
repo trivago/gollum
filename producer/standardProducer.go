@@ -25,7 +25,7 @@ func (prod *standardProducer) configureStandardProducer(conf shared.PluginConfig
 		}
 	}
 
-	prod.messages = make(chan shared.Message)
+	prod.messages = make(chan shared.Message, conf.Buffer)
 	prod.control = make(chan int, 1)
 	prod.response = make(chan int, 1)
 
