@@ -6,14 +6,14 @@ import (
 	"os"
 )
 
-type Log struct {
+type File struct {
 	standardProducer
 	file *os.File
 }
 
-var LogClassID = shared.Plugin.Register(Log{})
+var FileClassID = shared.Plugin.Register(File{})
 
-func (prod Log) Create(conf shared.PluginConfig) (shared.Producer, error) {
+func (prod File) Create(conf shared.PluginConfig) (shared.Producer, error) {
 
 	err := prod.configureStandardProducer(conf)
 	if err != nil {
@@ -21,7 +21,6 @@ func (prod Log) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	}
 
 	file, fileSet := conf.Settings["File"]
-
 	if !fileSet {
 		file = "/var/prod/gollum.prod"
 	}
@@ -31,7 +30,7 @@ func (prod Log) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	return prod, nil
 }
 
-func (prod Log) Produce() {
+func (prod File) Produce() {
 	defer func() {
 		prod.file.Close()
 		prod.response <- shared.ProducerControlResponseDone
@@ -44,7 +43,6 @@ func (prod Log) Produce() {
 
 		case command := <-prod.control:
 			if command == shared.ProducerControlStop {
-				//fmt.Println("prod producer recieved stop")
 				return // ### return, done ###
 			}
 		default:

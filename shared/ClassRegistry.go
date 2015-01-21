@@ -22,7 +22,7 @@ type ClassRegistry struct {
 
 // The global ClassRegistry singleton.
 // Use this singleton to register plugins.
-var Plugin ClassRegistry = ClassRegistry{make(map[string]reflect.Type)}
+var Plugin = ClassRegistry{make(map[string]reflect.Type)}
 
 // Register a plugin to the ClassRegistry by passing an uninitialized object.
 // Example: var MyConsumerClassID = shared.Plugin.Register(MyConsumer{})

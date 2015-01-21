@@ -1,7 +1,6 @@
 package producer
 
 import (
-	"fmt"
 	"github.com/artyom/scribe"
 	"github.com/artyom/thrift"
 	"gollum/shared"
@@ -43,14 +42,14 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 
 	prod.socket, err = thrift.NewTSocket(host.(string) + ":" + strconv.Itoa(port.(int)))
 	if err != nil {
-		fmt.Println(err)
+		shared.Log.Error("Scribe socket error:", err)
 		return nil, err
 	}
 
 	prod.transport = thrift.NewTFramedTransport(prod.socket)
 	err = prod.transport.Open()
 	if err != nil {
-		fmt.Println(err)
+		shared.Log.Error("Scribe transport error:", err)
 		return nil, err
 	}
 
@@ -80,7 +79,16 @@ func (prod Scribe) Produce() {
 			scribeMessages[0] = &logEntry
 			result, err := prod.scribe.Log(scribeMessages)
 			if err != nil {
-				fmt.Println("scribe error", result, ":", err)
+				shared.Log.Error("Scribe log error", result, ":", err)
+
+				// Try to reopen the connection
+				if err.Error() == "EOF" {
+					prod.transport.Close()
+					err = prod.transport.Open()
+					if err != nil {
+						shared.Log.Error("Scribe connection error:", err)
+					}
+				}
 			}
 
 		case command := <-prod.control:

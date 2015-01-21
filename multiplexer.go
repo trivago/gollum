@@ -35,7 +35,7 @@ func createMultiplexer(configFile string) multiplexer {
 		for _, config := range instanceConfigs {
 
 			if !config.Enable {
-				continue // ### continue, disabld ###
+				continue // ### continue, disabled ###
 			}
 
 			plugin, pluginType, err := shared.Plugin.Create(className)
@@ -50,13 +50,11 @@ func createMultiplexer(configFile string) multiplexer {
 
 				instance, err := typedPlugin.Create(config)
 				if err != nil {
-					fmt.Println("Error registering ", className, ":", err)
+					shared.Log.Error("Failed registering consumer ", className, ":", err)
 					continue // ### continue ###
 				}
 
 				plex.consumers = append(plex.consumers, instance)
-				//fmt.Println("Added consumer", pluginType)
-
 			}
 
 			// Register producer plugins
@@ -66,7 +64,7 @@ func createMultiplexer(configFile string) multiplexer {
 
 				instance, err := typedPlugin.Create(config)
 				if err != nil {
-					fmt.Println("Error registering ", className, ":", err)
+					shared.Log.Error("Failed registering producer ", className, ":", err)
 					continue // ### continue ###
 				}
 
@@ -79,7 +77,6 @@ func createMultiplexer(configFile string) multiplexer {
 				}
 
 				plex.producers = append(plex.producers, instance)
-				//fmt.Println("Added producer", pluginType)
 			}
 		}
 	}
@@ -87,66 +84,111 @@ func createMultiplexer(configFile string) multiplexer {
 	return plex
 }
 
+// Shutdown all consumers and producers in a clean way.
+// The internal log is flushed after the consumers have been shut down so that
+// consumer related messages are still in the log.
+// Producers are flushed after flushing the log, so producer related shutdown
+// messages will be posted to stdout
+func (plex multiplexer) shutdown() {
+	shared.Log.Note("You're a liar and a thief!")
+
+	// Shutdown consumers
+
+	for _, consumer := range plex.consumers {
+		consumer.Control() <- shared.ConsumerControlStop
+		<-consumer.ControlResponse()
+	}
+
+	// Clear log (we still need a producer to write)
+loop:
+	for {
+		select {
+		case message := <-shared.Log.Messages:
+			for _, producer := range plex.stream[shared.LogInternalStream] {
+				if (*producer).Accepts(message) {
+					(*producer).Messages() <- message
+				}
+			}
+		default:
+			break loop
+		}
+	}
+
+	// Shutdown producers
+
+	for _, producer := range plex.producers {
+		producer.Control() <- shared.ProducerControlStop
+		<-producer.ControlResponse()
+	}
+
+	// Write remaining messages to stdout
+
+	for {
+		select {
+		case message := <-shared.Log.Messages:
+			fmt.Println(message.Text)
+		default:
+			return
+		}
+	}
+}
+
 // Run the multiplexer.
 // Fetch messags from the consumers and pass them to all producers.
 func (plex multiplexer) run() {
 
 	if len(plex.consumers) == 0 {
-		fmt.Println("No consumers configured. Done.")
+		fmt.Println("Error: No consumers configured.")
 		return // ### return, nothing to do ###
 	}
 	if len(plex.producers) == 0 {
-		fmt.Println("No producers configured. Done.")
+		fmt.Println("Error: No producers configured.")
 		return // ### return, nothing to do ###
 	}
-
-	fmt.Println("We be nice to them, if they be nice to us.")
-
-	// Register signal handler
-
-	listeners := make([]reflect.SelectCase, len(plex.consumers)+1)
 
 	signalChannel := make(chan os.Signal, 1)
 	signalType := reflect.TypeOf(os.Interrupt)
 	signal.Notify(signalChannel, os.Interrupt)
 
+	listeners := make([]reflect.SelectCase, len(plex.consumers)+2)
+
+	// Register signal handler
+
 	listeners[0] = reflect.SelectCase{
 		Dir:  reflect.SelectRecv,
 		Chan: reflect.ValueOf(signalChannel)}
 
-	// Launch plugins
+	// Register internal log
 
-	for i, consumer := range plex.consumers {
-		go consumer.Consume()
-		listeners[i+1] = reflect.SelectCase{
-			Dir:  reflect.SelectRecv,
-			Chan: reflect.ValueOf(consumer.Messages())}
-	}
+	listeners[1] = reflect.SelectCase{
+		Dir:  reflect.SelectRecv,
+		Chan: reflect.ValueOf(shared.Log.Messages)}
+
+	// Launch consumers and producers
 
 	for _, producer := range plex.producers {
 		go producer.Produce()
 	}
 
+	for i, consumer := range plex.consumers {
+		go consumer.Consume()
+		listeners[i+2] = reflect.SelectCase{
+			Dir:  reflect.SelectRecv,
+			Chan: reflect.ValueOf(consumer.Messages())}
+	}
+
 	// Main loop
+
+	defer plex.shutdown()
+	shared.Log.Note("We be nice to them, if they be nice to us.")
 
 	for {
 		_, value, messageReviecved := reflect.Select(listeners)
 		if messageReviecved {
 
 			if reflect.TypeOf(value.Interface()) == signalType {
-				fmt.Println("\nShutdown signal recieved")
-
-				for _, consumer := range plex.consumers {
-					consumer.Control() <- shared.ConsumerControlStop
-					<-consumer.ControlResponse()
-				}
-
-				for _, producer := range plex.producers {
-					producer.Control() <- shared.ProducerControlStop
-					<-producer.ControlResponse()
-				}
-
-				break
+				shared.Log.Note("Shutdown signal recieved")
+				return
 			}
 
 			message := value.Interface().(shared.Message)
@@ -168,6 +210,4 @@ func (plex multiplexer) run() {
 			}
 		}
 	}
-
-	fmt.Println("You're a liar and a thief!")
 }
