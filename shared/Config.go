@@ -9,8 +9,8 @@ import (
 // Sub config for specific plugins
 type PluginConfig struct {
 	Enable   bool
-	Stream   []string
 	Buffer   int
+	Stream   []string
 	Settings map[string]interface{}
 }
 
@@ -38,7 +38,12 @@ func (conf Config) SetYAML(tagType string, values interface{}) bool {
 			pluginSettingsMap := pluginSettings.(map[interface{}]interface{})
 
 			//fmt.Println(pluginClass)
-			plugin := PluginConfig{false, make([]string, 0), 1024, make(map[string]interface{})}
+			plugin := PluginConfig{
+				Enable:   false,
+				Buffer:   1024,
+				Stream:   make([]string, 0),
+				Settings: make(map[string]interface{}),
+			}
 
 			// Iterate over all key/value pairs.
 			// "Enable" is a special field as non-plugin logic is bound to it
@@ -67,6 +72,12 @@ func (conf Config) SetYAML(tagType string, values interface{}) bool {
 				default:
 					plugin.Settings[key] = settingValue
 				}
+			}
+
+			// Set wildcard stream if no stream is set
+
+			if len(plugin.Stream) == 0 {
+				plugin.Stream = append(plugin.Stream, "*")
 			}
 
 			// Add instance of this plugin class config to the list
