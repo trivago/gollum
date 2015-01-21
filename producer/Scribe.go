@@ -95,11 +95,24 @@ func (prod Scribe) Produce() {
 		prod.response <- shared.ProducerControlResponseDone
 	}()
 
+	var category string
+
 	for {
 		select {
 		case message := <-prod.messages:
+			wildcardCategory, categorySet := prod.category["*"]
+
+			if categorySet {
+				category = wildcardCategory
+			} else {
+				category, categorySet = prod.category[message.Stream]
+				if !categorySet {
+					category = "default"
+				}
+			}
+
 			logEntry := scribe.LogEntry{
-				Category: prod.category[message.Stream],
+				Category: category,
 				Message:  message.Format(),
 			}
 
