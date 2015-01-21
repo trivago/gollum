@@ -7,12 +7,30 @@ import (
 	"strconv"
 )
 
+// Scribe producer plugin
+// Configuration example
+//
+// - "producer.Scribe":
+//   Enable: true
+//   Host: "192.168.222.30"
+//   Port: 1463
+//   Stream:
+//     - "console"
+//     - "_GOLLUM_"
+//   Category:
+//     "console" : "default"
+//     "_GOLLUM_"  : "default"
+//
+// Host and Port should be clear
+// Stream is a standard configuration field and denotes all the streams this
+// producer will listen to.
+// Category maps a stream to a specific scribe category.
 type Scribe struct {
 	standardProducer
 	scribe    *scribe.ScribeClient
 	transport *thrift.TFramedTransport
 	socket    *thrift.TSocket
-	category  string
+	category  map[string]string
 }
 
 var ScribeClassID = shared.Plugin.Register(Scribe{})
@@ -36,9 +54,20 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 		port = 1463
 	}
 
+	prod.category = make(map[string]string, 0)
+
 	if !categorySet {
-		category = "default"
+		for _, stream := range conf.Stream {
+			prod.category[stream] = "default"
+		}
+	} else {
+		categoryMap := category.(map[interface{}]interface{})
+		for stream, category := range categoryMap {
+			prod.category[stream.(string)] = category.(string)
+		}
 	}
+
+	// Initialize scribe connection
 
 	prod.socket, err = thrift.NewTSocket(host.(string) + ":" + strconv.Itoa(port.(int)))
 	if err != nil {
@@ -56,7 +85,6 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	protocolFactory := thrift.NewTBinaryProtocolFactory(false, false)
 
 	prod.scribe = scribe.NewScribeClientFactory(prod.transport, protocolFactory)
-	prod.category = category.(string)
 	return prod, nil
 }
 
@@ -71,7 +99,7 @@ func (prod Scribe) Produce() {
 		select {
 		case message := <-prod.messages:
 			logEntry := scribe.LogEntry{
-				Category: prod.category,
+				Category: prod.category[message.Stream],
 				Message:  message.Format(),
 			}
 

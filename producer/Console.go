@@ -7,6 +7,14 @@ import (
 	"strings"
 )
 
+// Console producer plugin
+// Configuration example
+//
+// - "producer.Console":
+//   Enable: true
+//   Console: "stderr"
+//
+// Console may either be "stdout" or "stderr"
 type Console struct {
 	standardProducer
 	console *os.File

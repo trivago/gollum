@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"gollum/consumer"
 	"gollum/producer"
 )
@@ -13,8 +14,19 @@ func main() {
 	producer.Initialize()
 
 	// Command line parameter parsing
-	configFilePtr := flag.String("config", "/etc/gollum.conf", "Configuration file")
+	configFilePtr := flag.String("config", "", "Configuration file")
+	versionPtr := flag.Bool("v", false, "Show version and exit")
+
 	flag.Parse()
+
+	if *versionPtr {
+		fmt.Println("Gollum v0.0.0")
+	}
+
+	if *configFilePtr == "" {
+		fmt.Println("Nothing to do. We must go.")
+		return
+	}
 
 	// Start the gollum multiplexer
 	plex := createMultiplexer(*configFilePtr)

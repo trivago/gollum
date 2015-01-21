@@ -90,7 +90,7 @@ func createMultiplexer(configFile string) multiplexer {
 // Producers are flushed after flushing the log, so producer related shutdown
 // messages will be posted to stdout
 func (plex multiplexer) shutdown() {
-	shared.Log.Note("You're a liar and a thief!")
+	shared.Log.Note("Filthy little hobbites. They stole it from us. (shutdown)")
 
 	// Shutdown consumers
 
@@ -180,24 +180,26 @@ func (plex multiplexer) run() {
 	// Main loop
 
 	defer plex.shutdown()
-	shared.Log.Note("We be nice to them, if they be nice to us.")
+	shared.Log.Note("We be nice to them, if they be nice to us. (startup)")
 
 	for {
 		_, value, messageReviecved := reflect.Select(listeners)
 		if messageReviecved {
 
 			if reflect.TypeOf(value.Interface()) == signalType {
-				shared.Log.Note("Shutdown signal recieved")
+				shared.Log.Note("Master betrayed us. Wicked. Tricksy, False. (signal)")
 				return
 			}
 
 			message := value.Interface().(shared.Message)
 
-			// Send to "all stream" producers
+			// Send to wildcard stream producers (all streams except internal)
 
-			for _, producer := range plex.stream["*"] {
-				if (*producer).Accepts(message) {
-					(*producer).Messages() <- message
+			if message.Stream != shared.LogInternalStream {
+				for _, producer := range plex.stream["*"] {
+					if (*producer).Accepts(message) {
+						(*producer).Messages() <- message
+					}
 				}
 			}
 

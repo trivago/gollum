@@ -37,7 +37,6 @@ func (conf Config) SetYAML(tagType string, values interface{}) bool {
 		for pluginClass, pluginSettings := range pluginDataMap {
 			pluginSettingsMap := pluginSettings.(map[interface{}]interface{})
 
-			//fmt.Println(pluginClass)
 			plugin := PluginConfig{
 				Enable:   false,
 				Buffer:   1024,
@@ -50,8 +49,6 @@ func (conf Config) SetYAML(tagType string, values interface{}) bool {
 
 			for settingKey, settingValue := range pluginSettingsMap {
 				key := settingKey.(string)
-
-				//fmt.Printf("\t%s -> %v\n", key, settingValue)
 
 				switch key {
 				case "Enable":

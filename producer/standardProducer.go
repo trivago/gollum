@@ -5,6 +5,22 @@ import (
 	"regexp"
 )
 
+// Producer base class
+// All producers support a common subset of configuration options:
+//
+// - "producer.Something":
+//   Enable: true
+//   Buffer: 1024
+//   Stream:
+//      - "error"
+//      - "default"
+//
+// Enable switches the consumer on or off. By default this value is set to false.
+// Buffer set the size of the channel used to communicate messages. By default
+// this value is set to 1024.
+// Stream contains either a single string or a list of strings defining the
+// message channels this producer will consume. By default this is set to "*"
+// which means "all streams".
 type standardProducer struct {
 	messages chan shared.Message
 	control  chan int
