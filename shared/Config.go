@@ -40,7 +40,7 @@ func (conf Config) SetYAML(tagType string, values interface{}) bool {
 			plugin := PluginConfig{
 				Enable:   true,
 				Buffer:   1024,
-				Stream:   make([]string, 0),
+				Stream:   []string{},
 				Settings: make(map[string]interface{}),
 			}
 
@@ -81,7 +81,7 @@ func (conf Config) SetYAML(tagType string, values interface{}) bool {
 
 			list, listExists := conf.Settings[pluginClass.(string)]
 			if !listExists {
-				list = make([]PluginConfig, 0)
+				list = []PluginConfig{}
 			}
 
 			conf.Settings[pluginClass.(string)] = append(list, plugin)

@@ -26,8 +26,7 @@ const (
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
 type Socket struct {
 	standardConsumer
-	listen  net.Listener
-	forward bool
+	listen net.Listener
 }
 
 func init() {
