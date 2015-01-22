@@ -3,15 +3,21 @@ package main
 import (
 	"flag"
 	"fmt"
-	"gollum/consumer"
-	"gollum/producer"
+	_ "gollum/consumer"
+	_ "gollum/producer"
+)
+
+const (
+	gollumMajorVer = 0
+	gollumMinorVer = 1
+	gollumPatchVer = 0
 )
 
 func main() {
 	// Call some dummy function so that plugin packages are linked.
 	// If we don't do this the plugin packages won't be imported.
-	consumer.Initialize()
-	producer.Initialize()
+	//consumer.Initialize()
+	//producer.Initialize()
 
 	// Command line parameter parsing
 	configFilePtr := flag.String("config", "", "Configuration file")
@@ -20,7 +26,7 @@ func main() {
 	flag.Parse()
 
 	if *versionPtr {
-		fmt.Println("Gollum v0.0.0")
+		fmt.Printf("Gollum v%d.%d.%d", gollumMajorVer, gollumMinorVer, gollumPatchVer)
 	}
 
 	if *configFilePtr == "" {

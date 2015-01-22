@@ -20,7 +20,9 @@ type File struct {
 	file *os.File
 }
 
-var FileClassID = shared.Plugin.Register(File{})
+func init() {
+	shared.Plugin.Register(File{})
+}
 
 func (prod File) Create(conf shared.PluginConfig) (shared.Producer, error) {
 

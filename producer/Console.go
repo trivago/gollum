@@ -20,7 +20,9 @@ type Console struct {
 	console *os.File
 }
 
-var ConsoleClassID = shared.Plugin.Register(Console{})
+func init() {
+	shared.Plugin.Register(Console{})
+}
 
 func (prod Console) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	err := prod.configureStandardProducer(conf)

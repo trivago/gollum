@@ -8,6 +8,12 @@ import (
 	"time"
 )
 
+var fileSocketPrefix = "unix://"
+
+const (
+	BufferGrowSize = 1024
+)
+
 // Console consumer plugin
 // Configuration example
 //
@@ -24,12 +30,9 @@ type Socket struct {
 	forward bool
 }
 
-var SocketClassID = shared.Plugin.Register(Socket{})
-var fileSocketPrefix = "unix://"
-
-const (
-	BufferGrowSize = 1024
-)
+func init() {
+	shared.Plugin.Register(Socket{})
+}
 
 func (cons Socket) Create(conf shared.PluginConfig) (shared.Consumer, error) {
 	err := cons.configureStandardConsumer(conf)

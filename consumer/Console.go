@@ -19,7 +19,9 @@ type Console struct {
 	forward bool
 }
 
-var ConsoleClassID = shared.Plugin.Register(Console{})
+func init() {
+	shared.Plugin.Register(Console{})
+}
 
 func (cons Console) Create(conf shared.PluginConfig) (shared.Consumer, error) {
 	err := cons.configureStandardConsumer(conf)
@@ -66,7 +68,6 @@ func (cons Console) Consume() {
 	for {
 		command := <-cons.control
 		if command == shared.ConsumerControlStop {
-			//fmt.Println("Console consumer recieved stop")
 			return // ### return ###
 		}
 	}

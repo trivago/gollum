@@ -14,6 +14,7 @@ type Message struct {
 
 // Create a message in the default format.
 func (msg Message) Format(forward bool) string {
+
 	if forward {
 		return msg.Text
 	}

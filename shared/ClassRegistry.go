@@ -1,7 +1,6 @@
 package shared
 
 import (
-	"hash/fnv"
 	"reflect"
 )
 
@@ -26,14 +25,10 @@ var Plugin = ClassRegistry{make(map[string]reflect.Type)}
 
 // Register a plugin to the ClassRegistry by passing an uninitialized object.
 // Example: var MyConsumerClassID = shared.Plugin.Register(MyConsumer{})
-func (registry ClassRegistry) Register(typeInstance interface{}) int {
+func (registry ClassRegistry) Register(typeInstance interface{}) {
 	structType := reflect.TypeOf(typeInstance)
 	typeName := structType.PkgPath()[len("gollum/"):] + "." + structType.Name()
 	registry.namedType[typeName] = structType
-
-	nameHash := fnv.New32a()
-	nameHash.Write([]byte(typeName))
-	return int(nameHash.Sum32())
 }
 
 // Create an uninitialized object by class name.

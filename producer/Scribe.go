@@ -33,7 +33,9 @@ type Scribe struct {
 	category  map[string]string
 }
 
-var ScribeClassID = shared.Plugin.Register(Scribe{})
+func init() {
+	shared.Plugin.Register(Scribe{})
+}
 
 func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 
