@@ -86,6 +86,26 @@ func createMultiplexer(configFile string) multiplexer {
 	return plex
 }
 
+func (plex multiplexer) broadcastMessage(message shared.Message) {
+	// Send to wildcard stream producers (all streams except internal)
+
+	if message.Stream != shared.LogInternalStream {
+		for _, producer := range plex.stream["*"] {
+			if (*producer).Accepts(message) {
+				(*producer).Messages() <- message
+			}
+		}
+	}
+
+	// Send to specific stream producers
+
+	for _, producer := range plex.stream[message.Stream] {
+		if (*producer).Accepts(message) {
+			(*producer).Messages() <- message
+		}
+	}
+}
+
 // Shutdown all consumers and producers in a clean way.
 // The internal log is flushed after the consumers have been shut down so that
 // consumer related messages are still in the log.
@@ -106,11 +126,7 @@ loop:
 	for {
 		select {
 		case message := <-shared.Log.Messages:
-			for _, producer := range plex.stream[shared.LogInternalStream] {
-				if (*producer).Accepts(message) {
-					(*producer).Messages() <- message
-				}
-			}
+			plex.broadcastMessage(message)
 		default:
 			break loop
 		}
@@ -148,25 +164,14 @@ func (plex multiplexer) run() {
 		return // ### return, nothing to do ###
 	}
 
-	// Register internal log as first consumer
-
-	listeners := make([]reflect.SelectCase, len(plex.consumers)+1)
-
-	listeners[0] = reflect.SelectCase{
-		Dir:  reflect.SelectRecv,
-		Chan: reflect.ValueOf(shared.Log.Messages)}
-
 	// Launch consumers and producers
 
 	for _, producer := range plex.producers {
 		go producer.Produce()
 	}
 
-	for i, consumer := range plex.consumers {
+	for _, consumer := range plex.consumers {
 		go consumer.Consume()
-		listeners[i+1] = reflect.SelectCase{
-			Dir:  reflect.SelectRecv,
-			Chan: reflect.ValueOf(consumer.Messages())}
 	}
 
 	// React on signals
@@ -180,33 +185,29 @@ func (plex multiplexer) run() {
 	shared.Log.Note("We be nice to them, if they be nice to us. (startup)")
 
 	for {
+		// Check internal messages
+
 		select {
-		case <-signalChannel:
-			shared.Log.Note("Master betrayed us. Wicked. Tricksy, False. (signal)")
-			return
-
+		case message := <-shared.Log.Messages:
+			plex.broadcastMessage(message)
 		default:
-			_, value, messageReviecved := reflect.Select(listeners)
-			if messageReviecved {
-				message := value.Interface().(shared.Message)
+			// don't block
+		}
 
-				// Send to wildcard stream producers (all streams except internal)
+		// Go over all consumers in round-robin fashion
+		// Always check for signals
 
-				if message.Stream != shared.LogInternalStream {
-					for _, producer := range plex.stream["*"] {
-						if (*producer).Accepts(message) {
-							(*producer).Messages() <- message
-						}
-					}
-				}
+		for _, consumer := range plex.consumers {
+			select {
+			case <-signalChannel:
+				shared.Log.Note("Master betrayed us. Wicked. Tricksy, False. (signal)")
+				return
 
-				// Send to specific stream producers
+			case message := <-consumer.Messages():
+				plex.broadcastMessage(message)
 
-				for _, producer := range plex.stream[message.Stream] {
-					if (*producer).Accepts(message) {
-						(*producer).Messages() <- message
-					}
-				}
+			default:
+				// don't block
 			}
 		}
 	}

@@ -3,6 +3,7 @@ package consumer
 import (
 	"fmt"
 	"gollum/shared"
+	"math/rand"
 	"time"
 )
 
@@ -10,6 +11,7 @@ type Profiler struct {
 	standardConsumer
 	profileRuns int
 	batches     int
+	length      int
 }
 
 func init() {
@@ -21,15 +23,25 @@ func (cons Profiler) Create(conf shared.PluginConfig) (shared.Consumer, error) {
 
 	cons.profileRuns = conf.GetInt("Runs", 10000)
 	cons.batches = conf.GetInt("Batches", 10)
+	cons.length = conf.GetInt("Length", 256)
 
 	return cons, err
 }
 
+var stringBase = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 _.!?/&%$§'")
+
 func (cons Profiler) profile() {
+
+	randString := make([]rune, cons.length)
+	for i := 0; i < cons.length; i++ {
+		randString[i] = stringBase[rand.Intn(len(stringBase))]
+	}
+
 	for b := 0; b < cons.batches; b++ {
 		start := time.Now()
 		for i := 0; i < cons.profileRuns; i++ {
-			cons.postMessage(fmt.Sprintf("%d/%d", i, cons.profileRuns))
+			message := fmt.Sprintf("%d/%d %s", i, cons.profileRuns, string(randString))
+			cons.postMessage(message)
 		}
 		runTime := time.Since(start)
 
