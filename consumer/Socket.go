@@ -5,7 +5,6 @@ import (
 	"net"
 	"strings"
 	"sync/atomic"
-	"time"
 )
 
 var fileSocketPrefix = "unix://"
@@ -58,18 +57,6 @@ func (cons Socket) Create(conf shared.PluginConfig) (shared.Consumer, error) {
 	}
 
 	return cons, err
-}
-
-func (cons Socket) postMessage(text string) {
-	for _, stream := range cons.stream {
-		postMessage := shared.Message{
-			Text:      text,
-			Stream:    stream,
-			Timestamp: time.Now(),
-		}
-
-		cons.messages <- postMessage
-	}
 }
 
 func (cons Socket) readFromConnection(conn net.Conn, quit *atomic.Value) {

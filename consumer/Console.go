@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"gollum/shared"
 	"os"
-	"time"
 )
 
 // Console consumer plugin
@@ -16,7 +15,6 @@ import (
 // This consumer does not define any options beside the standard ones.
 type Console struct {
 	standardConsumer
-	forward bool
 }
 
 func init() {
@@ -44,15 +42,7 @@ func (cons Console) readFrom(stream *os.File) {
 			return // ### return, stream error ###
 		}
 
-		for _, stream := range cons.stream {
-			postMessage := shared.Message{
-				Text:      message[:len(message)-1],
-				Stream:    stream,
-				Timestamp: time.Now(),
-			}
-
-			cons.messages <- postMessage
-		}
+		cons.postMessage(message[:len(message)-1])
 	}
 }
 

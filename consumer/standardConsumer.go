@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"gollum/shared"
+	"time"
 )
 
 // Consumer base class
@@ -35,6 +36,17 @@ func (cons *standardConsumer) configureStandardConsumer(conf shared.PluginConfig
 	cons.stream = conf.Stream
 
 	return nil
+}
+
+func (cons standardConsumer) postMessage(text string) {
+	msg := shared.Message{
+		Text:      text,
+		Timestamp: time.Now(),
+	}
+	for _, stream := range cons.stream {
+		msg.Stream = stream
+		cons.messages <- msg
+	}
 }
 
 func (cons standardConsumer) Control() chan<- int {
