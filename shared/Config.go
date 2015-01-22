@@ -38,7 +38,7 @@ func (conf Config) SetYAML(tagType string, values interface{}) bool {
 			pluginSettingsMap := pluginSettings.(map[interface{}]interface{})
 
 			plugin := PluginConfig{
-				Enable:   false,
+				Enable:   true,
 				Buffer:   1024,
 				Stream:   make([]string, 0),
 				Settings: make(map[string]interface{}),

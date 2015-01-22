@@ -47,7 +47,6 @@ func (cons Console) readFrom(stream *os.File) {
 				Text:      message[:len(message)-1],
 				Stream:    stream,
 				Timestamp: time.Now(),
-				Forward:   cons.forward,
 			}
 
 			cons.messages <- postMessage

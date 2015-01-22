@@ -10,12 +10,11 @@ type Message struct {
 	Text      string
 	Stream    string
 	Timestamp time.Time
-	Forward   bool
 }
 
 // Create a message in the default format.
-func (msg Message) Format() string {
-	if msg.Forward {
+func (msg Message) Format(forward bool) string {
+	if forward {
 		return msg.Text
 	}
 

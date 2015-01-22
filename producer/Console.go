@@ -54,7 +54,7 @@ func (prod Console) Produce() {
 	for {
 		select {
 		case message := <-prod.messages:
-			fmt.Fprintln(prod.console, message.Format())
+			fmt.Fprintln(prod.console, message.Format(prod.forward))
 
 		case command := <-prod.control:
 			if command == shared.ProducerControlStop {

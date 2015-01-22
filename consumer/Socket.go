@@ -4,6 +4,7 @@ import (
 	"gollum/shared"
 	"net"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
@@ -25,6 +26,10 @@ type Socket struct {
 
 var SocketClassID = shared.Plugin.Register(Socket{})
 var fileSocketPrefix = "unix://"
+
+const (
+	BufferGrowSize = 1024
+)
 
 func (cons Socket) Create(conf shared.PluginConfig) (shared.Consumer, error) {
 	err := cons.configureStandardConsumer(conf)
@@ -53,29 +58,31 @@ func (cons Socket) Create(conf shared.PluginConfig) (shared.Consumer, error) {
 	return cons, err
 }
 
-func (cons *Socket) postMessage(text string) {
+func (cons Socket) postMessage(text string) {
 	for _, stream := range cons.stream {
 		postMessage := shared.Message{
 			Text:      text,
 			Stream:    stream,
 			Timestamp: time.Now(),
-			Forward:   cons.forward,
 		}
 
 		cons.messages <- postMessage
 	}
 }
 
-func (cons *Socket) readFromConnection(conn net.Conn) {
-	buffer := make([]byte, 10)
+func (cons Socket) readFromConnection(conn net.Conn, quit *atomic.Value) {
+	buffer := make([]byte, BufferGrowSize)
 	offset := 0
 
-	for {
+	for !quit.Load().(bool) {
 		// Read from stream
 
 		size, err := conn.Read(buffer[offset:])
 		if err != nil {
-			shared.Log.Error("Socket read failed:", err)
+			if !quit.Load().(bool) {
+				shared.Log.Error("Socket read failed:", err)
+			}
+
 			return // ### return ###
 		}
 
@@ -115,7 +122,7 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 			bufferSize := len(buffer)
 			if end == bufferSize {
 				temp := buffer
-				buffer = make([]byte, bufferSize+10)
+				buffer = make([]byte, bufferSize+BufferGrowSize)
 				copy(buffer, temp)
 			}
 			offset = end
@@ -134,25 +141,32 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 	}
 }
 
-func (cons *Socket) accept() {
-	for {
+func (cons Socket) accept(quit *atomic.Value) {
+	for !quit.Load().(bool) {
+
 		client, err := cons.listen.Accept()
 		if err != nil {
-			shared.Log.Error("Socket listen failed:", err)
+			if !quit.Load().(bool) {
+				shared.Log.Error("Socket listen failed:", err)
+			}
 			break // ### break ###
 		}
 
-		go cons.readFromConnection(client)
+		go cons.readFromConnection(client, quit)
 	}
+
 	cons.response <- shared.ConsumerControlResponseDone
 }
 
 func (cons Socket) Consume() {
+	var quit atomic.Value
+	quit.Store(false)
+	go cons.accept(&quit)
+
 	defer func() {
+		quit.Store(true)
 		cons.listen.Close()
 	}()
-
-	go cons.accept()
 
 	// Wait for control statements
 

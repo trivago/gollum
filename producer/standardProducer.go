@@ -11,30 +11,40 @@ import (
 // - "producer.Something":
 //   Enable: true
 //   Buffer: 1024
+//   Forward: false
 //   Stream:
 //      - "error"
 //      - "default"
 //
-// Enable switches the consumer on or off. By default this value is set to false.
+// Enable switches the consumer on or off. By default this value is set to true.
 // Buffer set the size of the channel used to communicate messages. By default
 // this value is set to 1024.
 // Stream contains either a single string or a list of strings defining the
 // message channels this producer will consume. By default this is set to "*"
 // which means "all streams".
+// If forward is set to true, the message will be passed as-is, so date and
+// channel will not be added. The default value is false.
 type standardProducer struct {
 	messages chan shared.Message
 	control  chan int
 	response chan int
 	filter   *regexp.Regexp
+	forward  bool
 }
 
 func (prod *standardProducer) configureStandardProducer(conf shared.PluginConfig) error {
-	var err error
-	filter, filterSet := conf.Settings["Filter"]
+	prod.forward = false
+	prod.filter = nil
 
-	if !filterSet {
-		prod.filter = nil
-	} else {
+	filter, filterSet := conf.Settings["Filter"]
+	forward, forwardSet := conf.Settings["Forward"]
+
+	if forwardSet {
+		prod.forward = forward.(bool)
+	}
+
+	if filterSet {
+		var err error
 		prod.filter, err = regexp.Compile(filter.(string))
 		if err != nil {
 			return err

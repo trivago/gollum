@@ -113,11 +113,11 @@ func (prod Scribe) Produce() {
 
 			logEntry := scribe.LogEntry{
 				Category: category,
-				Message:  message.Format(),
+				Message:  message.Format(prod.forward),
 			}
 
-			scribeMessages := make([]*scribe.LogEntry, 1)
-			scribeMessages[0] = &logEntry
+			scribeMessages := []*scribe.LogEntry{&logEntry}
+
 			result, err := prod.scribe.Log(scribeMessages)
 			if err != nil {
 				shared.Log.Error("Scribe log error", result, ":", err)

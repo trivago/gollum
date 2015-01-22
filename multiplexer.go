@@ -71,9 +71,10 @@ func createMultiplexer(configFile string) multiplexer {
 				for _, stream := range config.Stream {
 					streamMap, exists := plex.stream[stream]
 					if !exists {
-						streamMap = make([]*shared.Producer, 0)
+						streamMap = []*shared.Producer{&instance}
+					} else {
+						plex.stream[stream] = append(streamMap, &instance)
 					}
-					plex.stream[stream] = append(streamMap, &instance)
 				}
 
 				plex.producers = append(plex.producers, instance)
