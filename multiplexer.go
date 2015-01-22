@@ -148,21 +148,11 @@ func (plex multiplexer) run() {
 		return // ### return, nothing to do ###
 	}
 
-	signalChannel := make(chan os.Signal, 1)
-	signalType := reflect.TypeOf(os.Interrupt)
-	signal.Notify(signalChannel, os.Interrupt)
+	// Register internal log as first consumer
 
-	listeners := make([]reflect.SelectCase, len(plex.consumers)+2)
-
-	// Register signal handler
+	listeners := make([]reflect.SelectCase, len(plex.consumers)+1)
 
 	listeners[0] = reflect.SelectCase{
-		Dir:  reflect.SelectRecv,
-		Chan: reflect.ValueOf(signalChannel)}
-
-	// Register internal log
-
-	listeners[1] = reflect.SelectCase{
 		Dir:  reflect.SelectRecv,
 		Chan: reflect.ValueOf(shared.Log.Messages)}
 
@@ -174,10 +164,15 @@ func (plex multiplexer) run() {
 
 	for i, consumer := range plex.consumers {
 		go consumer.Consume()
-		listeners[i+2] = reflect.SelectCase{
+		listeners[i+1] = reflect.SelectCase{
 			Dir:  reflect.SelectRecv,
 			Chan: reflect.ValueOf(consumer.Messages())}
 	}
+
+	// React on signals
+
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, os.Interrupt)
 
 	// Main loop
 
@@ -185,31 +180,32 @@ func (plex multiplexer) run() {
 	shared.Log.Note("We be nice to them, if they be nice to us. (startup)")
 
 	for {
-		_, value, messageReviecved := reflect.Select(listeners)
-		if messageReviecved {
+		select {
+		case <-signalChannel:
+			shared.Log.Note("Master betrayed us. Wicked. Tricksy, False. (signal)")
+			return
 
-			if reflect.TypeOf(value.Interface()) == signalType {
-				shared.Log.Note("Master betrayed us. Wicked. Tricksy, False. (signal)")
-				return
-			}
+		default:
+			_, value, messageReviecved := reflect.Select(listeners)
+			if messageReviecved {
+				message := value.Interface().(shared.Message)
 
-			message := value.Interface().(shared.Message)
+				// Send to wildcard stream producers (all streams except internal)
 
-			// Send to wildcard stream producers (all streams except internal)
+				if message.Stream != shared.LogInternalStream {
+					for _, producer := range plex.stream["*"] {
+						if (*producer).Accepts(message) {
+							(*producer).Messages() <- message
+						}
+					}
+				}
 
-			if message.Stream != shared.LogInternalStream {
-				for _, producer := range plex.stream["*"] {
+				// Send to specific stream producers
+
+				for _, producer := range plex.stream[message.Stream] {
 					if (*producer).Accepts(message) {
 						(*producer).Messages() <- message
 					}
-				}
-			}
-
-			// Send to specific stream producers
-
-			for _, producer := range plex.stream[message.Stream] {
-				if (*producer).Accepts(message) {
-					(*producer).Messages() <- message
 				}
 			}
 		}

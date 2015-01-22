@@ -10,7 +10,7 @@ import (
 var fileSocketPrefix = "unix://"
 
 const (
-	BufferGrowSize = 1024
+	socketBufferGrowSize = 1024
 )
 
 // Console consumer plugin
@@ -55,7 +55,7 @@ func (cons Socket) Create(conf shared.PluginConfig) (shared.Consumer, error) {
 }
 
 func (cons Socket) readFromConnection(conn net.Conn, quit *atomic.Value) {
-	buffer := make([]byte, BufferGrowSize)
+	buffer := make([]byte, socketBufferGrowSize)
 	offset := 0
 
 	for !quit.Load().(bool) {
@@ -106,7 +106,7 @@ func (cons Socket) readFromConnection(conn net.Conn, quit *atomic.Value) {
 			bufferSize := len(buffer)
 			if end == bufferSize {
 				temp := buffer
-				buffer = make([]byte, bufferSize+BufferGrowSize)
+				buffer = make([]byte, bufferSize+socketBufferGrowSize)
 				copy(buffer, temp)
 			}
 			offset = end

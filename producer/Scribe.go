@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+const (
+	scribeBufferGrowSize = 1024
+)
+
 // Scribe producer plugin
 // Configuration example
 //
@@ -15,6 +19,9 @@ import (
 //   Enable: true
 //   Host: "192.168.222.30"
 //   Port: 1463
+//   BatchSize: 4096
+//   BatchSizeThreshold: 16777216
+//   BatchTimeoutSec: 2
 //   Stream:
 //     - "console"
 //     - "_GOLLUM_"
@@ -29,30 +36,31 @@ import (
 // mapping will go to this stream (including _GOLLUM_).
 // If no category mappings are set all messages will be send to "default".
 //
-// BatchSize defines the number of messages to store before a send is triggered.
-// If the connection is down the number of messages stored may exceed this
-// count. By default this is set to 100.
+// BatchSize defines the number of bytes to be buffered before they are written
+// to scribe. By default this is set to 8KB.
 //
-// BatchThreshold defines the maximum number of messages to store before
-// messages are dropped. By default this is set to 10000.
+// BatchSizeThreshold defines the maximum number of bytes to buffer before
+// messages get dropped. If a message crosses the threshold it is still buffered
+// but additional messages will be dropped. By default this is set to 8MB.
 //
 // BatchTimeoutSec defines the maximum number of seconds to wait after the last
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5.
 type Scribe struct {
 	standardProducer
-	scribe          *scribe.ScribeClient
-	transport       *thrift.TFramedTransport
-	socket          *thrift.TSocket
-	category        map[string]string
-	batchSize       int
-	batchThreshold  int
-	batchTimeoutSec int
-	defaultCategory string
+	scribe             *scribe.ScribeClient
+	transport          *thrift.TFramedTransport
+	socket             *thrift.TSocket
+	category           map[string]string
+	batchSize          int
+	batchSizeThreshold int
+	batchTimeoutSec    int
+	defaultCategory    string
 }
 
 type scribeMessageBuffer struct {
 	message     []*scribe.LogEntry
+	size        int
 	count       int
 	lastMessage time.Time
 }
@@ -72,8 +80,8 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	port := conf.GetInt("Port", 1463)
 
 	prod.category = make(map[string]string, 0)
-	prod.batchSize = conf.GetInt("BatchSize", 100)
-	prod.batchThreshold = conf.GetInt("BatchThreshold", 10000)
+	prod.batchSize = conf.GetInt("BatchSize", 8192)
+	prod.batchSizeThreshold = conf.GetInt("BatchSizeThreshold", 8388608)
 	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
 
 	// Read stream to category mapping
@@ -131,11 +139,12 @@ func (prod Scribe) sendBatch(batch *scribeMessageBuffer) {
 		}
 	} else {
 		batch.count = 0
+		batch.size = 0
 	}
 }
 
 func (prod Scribe) post(batch *scribeMessageBuffer, stream string, text string) {
-	if batch.count < prod.batchThreshold {
+	if batch.size < prod.batchSizeThreshold {
 
 		logEntry := new(scribe.LogEntry)
 		logEntry.Category = prod.defaultCategory
@@ -146,11 +155,18 @@ func (prod Scribe) post(batch *scribeMessageBuffer, stream string, text string) 
 			logEntry.Category = category
 		}
 
+		if batch.count == len(batch.message) {
+			temp := batch.message
+			batch.message = make([]*scribe.LogEntry, len(batch.message)+scribeBufferGrowSize)
+			copy(batch.message, temp)
+		}
+
 		batch.message[batch.count] = logEntry
 		batch.count++
+		batch.size += len(text) + len(category)
 		batch.lastMessage = time.Now()
 
-		if batch.count == prod.batchSize {
+		if batch.size >= prod.batchSize {
 			prod.sendBatch(batch)
 		}
 	}
@@ -164,8 +180,9 @@ func (prod Scribe) Produce() {
 	}()
 
 	batch := scribeMessageBuffer{
-		message:     make([]*scribe.LogEntry, prod.batchThreshold),
+		message:     make([]*scribe.LogEntry, scribeBufferGrowSize),
 		count:       0,
+		size:        0,
 		lastMessage: time.Now(),
 	}
 

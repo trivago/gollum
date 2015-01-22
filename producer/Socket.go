@@ -17,8 +17,8 @@ var fileSocketPrefix = "unix://"
 //   Enable: true
 //   Address: "unix:///var/gollum.socket"
 //   BufferSizeKB: 4096
-//   BatchSize: 200
-//   BatchThreshold: 10000
+//   BatchSize: 4096
+//   BatchSizeThreshold: 16777216
 //   BatchTimeoutSec: 5
 //
 // Address stores the identifier to connect to.
@@ -28,29 +28,29 @@ var fileSocketPrefix = "unix://"
 // BufferSize sets the connection buffer size in KB. By default this is set to
 // 1024, i.e. 1 MB buffer.
 //
-// BatchSize defines the number of messages to store before a send is triggered.
-// If the connection is down the number of messages stored may exceed this
-// count. By default this is set to 100.
+// BatchSize defines the number of bytes to be buffered before they are written
+// to scribe. By default this is set to 8KB.
 //
-// BatchThreshold defines the maximum number of messages to store before
-// messages are dropped. By default this is set to 10000.
+// BatchSizeThreshold defines the maximum number of bytes to buffer before
+// messages get dropped. If a message crosses the threshold it is still buffered
+// but additional messages will be dropped. By default this is set to 8MB.
 //
 // BatchTimeoutSec defines the maximum number of seconds to wait after the last
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5.
 type Socket struct {
 	standardProducer
-	connection      net.Conn
-	protocol        string
-	address         string
-	batchSize       int
-	batchThreshold  int
-	batchTimeoutSec int
+	connection         net.Conn
+	protocol           string
+	address            string
+	batchSize          int
+	batchSizeThreshold int
+	batchTimeoutSec    int
 }
 
 type socketMessageBuffer struct {
 	text        string
-	count       int
+	size        int
 	lastMessage time.Time
 }
 
@@ -70,8 +70,8 @@ func (prod Socket) Create(conf shared.PluginConfig) (shared.Producer, error) {
 
 	prod.protocol = "tcp"
 	prod.address = conf.GetString("Address", ":5880")
-	prod.batchSize = conf.GetInt("BatchSize", 100)
-	prod.batchThreshold = conf.GetInt("BatchThreshold", 10000)
+	prod.batchSize = conf.GetInt("BatchSize", 8192)
+	prod.batchSizeThreshold = conf.GetInt("BatchSizeThreshold", 8388608)
 	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
 	bufferSizeKB := conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
 
@@ -111,18 +111,18 @@ func (prod Socket) sendBatch(batch *socketMessageBuffer) {
 			prod.connection = nil
 		} else {
 			batch.text = ""
-			batch.count = 0
+			batch.size = 0
 		}
 	}
 }
 
 func (prod Socket) post(batch *socketMessageBuffer, text string) {
-	if batch.count < prod.batchThreshold {
+	if batch.size < prod.batchSizeThreshold {
 		batch.text += text + "\n"
-		batch.count++
+		batch.size += len(text) + 1
 		batch.lastMessage = time.Now()
 
-		if batch.count == prod.batchSize {
+		if batch.size >= prod.batchSize {
 			prod.sendBatch(batch)
 		}
 	}
@@ -138,7 +138,7 @@ func (prod Socket) Produce() {
 
 	batch := socketMessageBuffer{
 		text:        "",
-		count:       0,
+		size:        0,
 		lastMessage: time.Now(),
 	}
 
@@ -153,7 +153,7 @@ func (prod Socket) Produce() {
 			}
 
 		default:
-			if batch.count > 0 && time.Since(batch.lastMessage).Seconds() > float64(prod.batchTimeoutSec) {
+			if batch.size > 0 && time.Since(batch.lastMessage).Seconds() > float64(prod.batchTimeoutSec) {
 				prod.sendBatch(&batch)
 			}
 			// Don't block
