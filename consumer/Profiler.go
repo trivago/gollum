@@ -38,6 +38,7 @@ func (cons Profiler) profile() {
 	}
 
 	for b := 0; b < cons.batches; b++ {
+
 		start := time.Now()
 		for i := 0; i < cons.profileRuns; i++ {
 			message := fmt.Sprintf("%d/%d %s", i, cons.profileRuns, string(randString))
@@ -46,7 +47,7 @@ func (cons Profiler) profile() {
 		runTime := time.Since(start)
 
 		shared.Log.Note(fmt.Sprintf(
-			"Profile run #%d: %.4f sec = %4.f msg/sec\n",
+			"Profile run #%d: %.4f sec = %4.f msg/sec",
 			b, runTime.Seconds(),
 			float64(cons.profileRuns)/runTime.Seconds()))
 	}
