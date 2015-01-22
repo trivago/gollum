@@ -48,7 +48,7 @@ type Socket struct {
 	batchTimeoutSec int
 }
 
-type messageBuffer struct {
+type socketMessageBuffer struct {
 	text        string
 	count       int
 	lastMessage time.Time
@@ -68,52 +68,31 @@ func (prod Socket) Create(conf shared.PluginConfig) (shared.Producer, error) {
 		return nil, err
 	}
 
-	address, addressSet := conf.Settings["Address"]
-	bufferSize, bufferSizeSet := conf.Settings["BufferSizeKB"]
-	batchSize, batchSizeSet := conf.Settings["BatchSize"]
-	batchThreshold, batchThresholdSet := conf.Settings["BatchThreshold"]
-	batchTimeoutSec, batchTimeoutSecSet := conf.Settings["BatchTimeoutSec"]
-
 	prod.protocol = "tcp"
-	prod.address = ":5880"
-	prod.batchSize = 100
-	prod.batchThreshold = 10000
-	prod.batchTimeoutSec = 5
-	socketBuffer := 1 << 10 // 1 MB
+	prod.address = conf.GetString("Address", ":5880")
+	prod.batchSize = conf.GetInt("BatchSize", 100)
+	prod.batchThreshold = conf.GetInt("BatchThreshold", 10000)
+	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
+	bufferSizeKB := conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
 
-	if addressSet {
-		prod.address = address.(string)
-		if strings.HasPrefix(prod.address, fileSocketPrefix) {
-			prod.address = prod.address[len(fileSocketPrefix):]
-			prod.protocol = "unix"
-		}
-	}
-
-	if bufferSizeSet {
-		socketBuffer = bufferSize.(int)
-	}
-	if batchSizeSet {
-		prod.batchSize = batchSize.(int)
-	}
-	if batchThresholdSet {
-		prod.batchThreshold = batchThreshold.(int)
-	}
-	if batchTimeoutSecSet {
-		prod.batchTimeoutSec = batchTimeoutSec.(int)
+	if strings.HasPrefix(prod.address, fileSocketPrefix) {
+		prod.address = prod.address[len(fileSocketPrefix):]
+		prod.protocol = "unix"
 	}
 
 	prod.connection, err = net.Dial(prod.protocol, prod.address)
-
 	if err != nil {
 		shared.Log.Error("Socket connection error:", err)
 	} else {
-		prod.connection.(bufferedConn).SetWriteBuffer(socketBuffer << 10)
+		prod.connection.(bufferedConn).SetWriteBuffer(bufferSizeKB << 10)
 	}
 
 	return prod, nil
 }
 
-func (prod Socket) sendBatch(batch *messageBuffer) {
+func (prod Socket) sendBatch(batch *socketMessageBuffer) {
+	batch.lastMessage = time.Now()
+
 	if prod.connection == nil {
 		var err error
 		prod.connection, err = net.Dial(prod.protocol, prod.address)
@@ -137,7 +116,7 @@ func (prod Socket) sendBatch(batch *messageBuffer) {
 	}
 }
 
-func (prod Socket) post(batch *messageBuffer, text string) {
+func (prod Socket) post(batch *socketMessageBuffer, text string) {
 	if batch.count < prod.batchThreshold {
 		batch.text += text + "\n"
 		batch.count++
@@ -157,7 +136,11 @@ func (prod Socket) Produce() {
 		prod.response <- shared.ProducerControlResponseDone
 	}()
 
-	batch := messageBuffer{"", 0, time.Now()}
+	batch := socketMessageBuffer{
+		text:        "",
+		count:       0,
+		lastMessage: time.Now(),
+	}
 
 	for {
 		select {

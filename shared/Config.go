@@ -9,7 +9,7 @@ import (
 // Sub config for specific plugins
 type PluginConfig struct {
 	Enable   bool
-	Buffer   int
+	Channel  int
 	Stream   []string
 	Settings map[string]interface{}
 }
@@ -39,7 +39,7 @@ func (conf Config) SetYAML(tagType string, values interface{}) bool {
 
 			plugin := PluginConfig{
 				Enable:   true,
-				Buffer:   1024,
+				Channel:  4096,
 				Stream:   []string{},
 				Settings: make(map[string]interface{}),
 			}
@@ -54,8 +54,8 @@ func (conf Config) SetYAML(tagType string, values interface{}) bool {
 				case "Enable":
 					plugin.Enable = settingValue.(bool)
 
-				case "Buffer":
-					plugin.Buffer = settingValue.(int)
+				case "Channel":
+					plugin.Channel = settingValue.(int)
 
 				case "Stream":
 					if reflect.TypeOf(settingValue) == stringType {
@@ -89,6 +89,42 @@ func (conf Config) SetYAML(tagType string, values interface{}) bool {
 	}
 
 	return true
+}
+
+func (conf PluginConfig) GetString(key string, defaultValue string) string {
+	value, exists := conf.Settings[key]
+	if exists {
+		return value.(string)
+	}
+
+	return defaultValue
+}
+
+func (conf PluginConfig) GetInt(key string, defaultValue int) int {
+	value, exists := conf.Settings[key]
+	if exists {
+		return value.(int)
+	}
+
+	return defaultValue
+}
+
+func (conf PluginConfig) GetBool(key string, defaultValue bool) bool {
+	value, exists := conf.Settings[key]
+	if exists {
+		return value.(bool)
+	}
+
+	return defaultValue
+}
+
+func (conf PluginConfig) GetValue(key string, defaultValue interface{}) interface{} {
+	value, exists := conf.Settings[key]
+	if exists {
+		return value
+	}
+
+	return defaultValue
 }
 
 // Read the config file into a new config struct.

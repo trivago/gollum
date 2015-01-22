@@ -30,19 +30,15 @@ func (prod Console) Create(conf shared.PluginConfig) (shared.Producer, error) {
 		return nil, err
 	}
 
-	console, consoleSet := conf.Settings["Console"]
+	console := conf.GetString("Console", "stdout")
 
-	if !consoleSet {
+	switch strings.ToLower(console) {
+	default:
+		fallthrough
+	case "stdout":
 		prod.console = os.Stdout
-	} else {
-		switch strings.ToLower(console.(string)) {
-		default:
-			fallthrough
-		case "stdout":
-			prod.console = os.Stdout
-		case "stderr":
-			prod.console = os.Stderr
-		}
+	case "stderr":
+		prod.console = os.Stderr
 	}
 
 	return prod, nil

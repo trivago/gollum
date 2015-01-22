@@ -5,6 +5,7 @@ import (
 	"github.com/artyom/thrift"
 	"gollum/shared"
 	"strconv"
+	"time"
 )
 
 // Scribe producer plugin
@@ -22,15 +23,38 @@ import (
 //     "_GOLLUM_"  : "default"
 //
 // Host and Port should be clear
-// Stream is a standard configuration field and denotes all the streams this
-// producer will listen to.
-// Category maps a stream to a specific scribe category.
+//
+// Category maps a stream to a specific scribe category. You can define the
+// wildcard stream (*) here, too. All streams that do not have a specific
+// mapping will go to this stream (including _GOLLUM_).
+// If no category mappings are set all messages will be send to "default".
+//
+// BatchSize defines the number of messages to store before a send is triggered.
+// If the connection is down the number of messages stored may exceed this
+// count. By default this is set to 100.
+//
+// BatchThreshold defines the maximum number of messages to store before
+// messages are dropped. By default this is set to 10000.
+//
+// BatchTimeoutSec defines the maximum number of seconds to wait after the last
+// message arrived before a batch is flushed automatically. By default this is
+// set to 5.
 type Scribe struct {
 	standardProducer
-	scribe    *scribe.ScribeClient
-	transport *thrift.TFramedTransport
-	socket    *thrift.TSocket
-	category  map[string]string
+	scribe          *scribe.ScribeClient
+	transport       *thrift.TFramedTransport
+	socket          *thrift.TSocket
+	category        map[string]string
+	batchSize       int
+	batchThreshold  int
+	batchTimeoutSec int
+	defaultCategory string
+}
+
+type scribeMessageBuffer struct {
+	message     []*scribe.LogEntry
+	count       int
+	lastMessage time.Time
 }
 
 func init() {
@@ -44,34 +68,34 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 		return nil, err
 	}
 
-	host, hostSet := conf.Settings["Host"]
-	port, portSet := conf.Settings["Port"]
-	category, categorySet := conf.Settings["Category"]
-
-	if !hostSet {
-		host = "localhost"
-	}
-
-	if !portSet {
-		port = 1463
-	}
+	host := conf.GetString("Host", "localhost")
+	port := conf.GetInt("Port", 1463)
 
 	prod.category = make(map[string]string, 0)
+	prod.batchSize = conf.GetInt("BatchSize", 100)
+	prod.batchThreshold = conf.GetInt("BatchThreshold", 10000)
+	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
 
-	if !categorySet {
-		for _, stream := range conf.Stream {
-			prod.category[stream] = "default"
-		}
-	} else {
-		categoryMap := category.(map[interface{}]interface{})
-		for stream, category := range categoryMap {
-			prod.category[stream.(string)] = category.(string)
-		}
+	// Read stream to category mapping
+
+	defaultMapping := make(map[interface{}]interface{})
+	defaultMapping["*"] = "default"
+
+	categoryMap := conf.GetValue("Category", defaultMapping).(map[interface{}]interface{})
+	for stream, category := range categoryMap {
+		prod.category[stream.(string)] = category.(string)
+	}
+
+	prod.defaultCategory = "default"
+
+	wildcardCategory, wildcardCategorySet := prod.category["*"]
+	if wildcardCategorySet {
+		prod.defaultCategory = wildcardCategory
 	}
 
 	// Initialize scribe connection
 
-	prod.socket, err = thrift.NewTSocket(host.(string) + ":" + strconv.Itoa(port.(int)))
+	prod.socket, err = thrift.NewTSocket(host + ":" + strconv.Itoa(port))
 	if err != nil {
 		shared.Log.Error("Scribe socket error:", err)
 		return nil, err
@@ -90,6 +114,48 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	return prod, nil
 }
 
+func (prod Scribe) sendBatch(batch *scribeMessageBuffer) {
+	batch.lastMessage = time.Now()
+	result, err := prod.scribe.Log(batch.message[:batch.count])
+
+	if err != nil {
+		shared.Log.Error("Scribe log error", result, ":", err)
+
+		// Try to reopen the connection
+		if err.Error() == "EOF" {
+			prod.transport.Close()
+			err = prod.transport.Open()
+			if err != nil {
+				shared.Log.Error("Scribe connection error:", err)
+			}
+		}
+	} else {
+		batch.count = 0
+	}
+}
+
+func (prod Scribe) post(batch *scribeMessageBuffer, stream string, text string) {
+	if batch.count < prod.batchThreshold {
+
+		logEntry := new(scribe.LogEntry)
+		logEntry.Category = prod.defaultCategory
+		logEntry.Message = text
+
+		category, categorySet := prod.category[stream]
+		if categorySet {
+			logEntry.Category = category
+		}
+
+		batch.message[batch.count] = logEntry
+		batch.count++
+		batch.lastMessage = time.Now()
+
+		if batch.count == prod.batchSize {
+			prod.sendBatch(batch)
+		}
+	}
+}
+
 func (prod Scribe) Produce() {
 	defer func() {
 		prod.transport.Close()
@@ -97,49 +163,27 @@ func (prod Scribe) Produce() {
 		prod.response <- shared.ProducerControlResponseDone
 	}()
 
-	var category string
+	batch := scribeMessageBuffer{
+		message:     make([]*scribe.LogEntry, prod.batchThreshold),
+		count:       0,
+		lastMessage: time.Now(),
+	}
 
 	for {
 		select {
 		case message := <-prod.messages:
-			wildcardCategory, categorySet := prod.category["*"]
-
-			if categorySet {
-				category = wildcardCategory
-			} else {
-				category, categorySet = prod.category[message.Stream]
-				if !categorySet {
-					category = "default"
-				}
-			}
-
-			logEntry := scribe.LogEntry{
-				Category: category,
-				Message:  message.Format(prod.forward),
-			}
-
-			scribeMessages := []*scribe.LogEntry{&logEntry}
-
-			result, err := prod.scribe.Log(scribeMessages)
-			if err != nil {
-				shared.Log.Error("Scribe log error", result, ":", err)
-
-				// Try to reopen the connection
-				if err.Error() == "EOF" {
-					prod.transport.Close()
-					err = prod.transport.Open()
-					if err != nil {
-						shared.Log.Error("Scribe connection error:", err)
-					}
-				}
-			}
+			prod.post(&batch, message.Stream, message.Format(prod.forward))
 
 		case command := <-prod.control:
 			if command == shared.ProducerControlStop {
 				//fmt.Println("prod producer recieved stop")
 				return // ### return, done ###
 			}
+
 		default:
+			if batch.count > 0 && time.Since(batch.lastMessage).Seconds() > float64(prod.batchTimeoutSec) {
+				prod.sendBatch(&batch)
+			}
 			// Don't block
 		}
 	}

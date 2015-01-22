@@ -19,18 +19,8 @@ func init() {
 func (cons Profiler) Create(conf shared.PluginConfig) (shared.Consumer, error) {
 	err := cons.configureStandardConsumer(conf)
 
-	cons.profileRuns = 10000
-	cons.batches = 10
-	runs, runsSet := conf.Settings["Runs"]
-	batches, batchesSet := conf.Settings["Batches"]
-
-	if runsSet {
-		cons.profileRuns = runs.(int)
-	}
-
-	if batchesSet {
-		cons.batches = batches.(int)
-	}
+	cons.profileRuns = conf.GetInt("Runs", 10000)
+	cons.batches = conf.GetInt("Batches", 10)
 
 	return cons, err
 }

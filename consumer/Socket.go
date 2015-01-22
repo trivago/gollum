@@ -38,20 +38,15 @@ func (cons Socket) Create(conf shared.PluginConfig) (shared.Consumer, error) {
 		return nil, err
 	}
 
-	address, addressSet := conf.Settings["Address"]
-
+	address := conf.GetString("Address", ":5880")
 	protocol := "tcp"
-	addressValue := ":5880"
 
-	if addressSet {
-		addressValue = address.(string)
-		if strings.HasPrefix(addressValue, fileSocketPrefix) {
-			addressValue = addressValue[len(fileSocketPrefix):]
-			protocol = "unix"
-		}
+	if strings.HasPrefix(address, fileSocketPrefix) {
+		address = address[len(fileSocketPrefix):]
+		protocol = "unix"
 	}
 
-	cons.listen, err = net.Listen(protocol, addressValue)
+	cons.listen, err = net.Listen(protocol, address)
 	if err != nil {
 		return nil, err
 	}

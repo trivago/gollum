@@ -30,7 +30,7 @@ type standardConsumer struct {
 }
 
 func (cons *standardConsumer) configureStandardConsumer(conf shared.PluginConfig) error {
-	cons.messages = make(chan shared.Message, conf.Buffer)
+	cons.messages = make(chan shared.Message, conf.Channel)
 	cons.control = make(chan int, 1)
 	cons.response = make(chan int, 1)
 	cons.stream = conf.Stream

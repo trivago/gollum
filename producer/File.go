@@ -31,12 +31,9 @@ func (prod File) Create(conf shared.PluginConfig) (shared.Producer, error) {
 		return nil, err
 	}
 
-	file, fileSet := conf.Settings["File"]
-	if !fileSet {
-		file = "/var/prod/gollum.log"
-	}
+	logFile := conf.GetString("File", "/var/prod/gollum.log")
 
-	prod.file, err = os.OpenFile(file.(string), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+	prod.file, err = os.OpenFile(logFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 
 	return prod, nil
 }

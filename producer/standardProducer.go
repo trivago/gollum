@@ -33,27 +33,22 @@ type standardProducer struct {
 }
 
 func (prod *standardProducer) configureStandardProducer(conf shared.PluginConfig) error {
-	prod.forward = false
-	prod.filter = nil
 
-	filter, filterSet := conf.Settings["Filter"]
-	forward, forwardSet := conf.Settings["Forward"]
-
-	if forwardSet {
-		prod.forward = forward.(bool)
-	}
-
-	if filterSet {
-		var err error
-		prod.filter, err = regexp.Compile(filter.(string))
-		if err != nil {
-			return err
-		}
-	}
-
-	prod.messages = make(chan shared.Message, conf.Buffer)
+	prod.messages = make(chan shared.Message, conf.Channel)
 	prod.control = make(chan int, 1)
 	prod.response = make(chan int, 1)
+	prod.forward = conf.GetBool("Forward", false)
+	prod.filter = nil
+
+	filter := conf.GetString("Filter", "")
+
+	if filter != "" {
+		var err error
+		prod.filter, err = regexp.Compile(filter)
+		if err != nil {
+			shared.Log.Error("Regex error: ", err)
+		}
+	}
 
 	return nil
 }
