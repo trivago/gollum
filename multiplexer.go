@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"gollum/shared"
+	"github.com/trivago/gollum/shared"
 	"os"
 	"os/signal"
 	"reflect"

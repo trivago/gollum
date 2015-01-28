@@ -2,7 +2,7 @@ package producer
 
 import (
 	"fmt"
-	"gollum/shared"
+	"github.com/trivago/gollum/shared"
 	"net"
 	"strings"
 	"time"

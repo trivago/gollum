@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	_ "gollum/consumer"
-	_ "gollum/producer"
+	_ "github.com/trivago/gollum/consumer"
+	_ "github.com/trivago/gollum/producer"
 	"os"
 	"runtime/pprof"
 )

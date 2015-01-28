@@ -2,7 +2,7 @@ package consumer
 
 import (
 	"bufio"
-	"gollum/shared"
+	"github.com/trivago/gollum/shared"
 	"os"
 )
 
