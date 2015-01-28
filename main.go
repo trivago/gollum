@@ -24,7 +24,7 @@ func main() {
 	flag.Parse()
 
 	if *versionPtr {
-		fmt.Printf("Gollum v%d.%d.%d", gollumMajorVer, gollumMinorVer, gollumPatchVer)
+		fmt.Printf("Gollum v%d.%d.%d\n", gollumMajorVer, gollumMinorVer, gollumPatchVer)
 	}
 
 	if *configFilePtr == "" {
