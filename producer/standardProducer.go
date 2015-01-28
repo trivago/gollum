@@ -58,7 +58,7 @@ func (prod standardProducer) Accepts(message shared.Message) bool {
 		return true // ### return, pass everything ###
 	}
 
-	return prod.filter.MatchString(message.Text)
+	return prod.filter.MatchString(string(message.Data.Buffer[:message.Data.Length]))
 }
 
 func (prod standardProducer) Control() chan<- int {

@@ -18,8 +18,8 @@ func init() {
 	shared.Plugin.Register(Profiler{})
 }
 
-func (cons Profiler) Create(conf shared.PluginConfig) (shared.Consumer, error) {
-	err := cons.configureStandardConsumer(conf)
+func (cons Profiler) Create(conf shared.PluginConfig, pool *shared.BytePool) (shared.Consumer, error) {
+	err := cons.configureStandardConsumer(conf, pool)
 
 	cons.profileRuns = conf.GetInt("Runs", 10000)
 	cons.batches = conf.GetInt("Batches", 10)
@@ -37,12 +37,13 @@ func (cons Profiler) profile() {
 		randString[i] = stringBase[rand.Intn(len(stringBase))]
 	}
 
+	var msg string
 	for b := 0; b < cons.batches; b++ {
 
 		start := time.Now()
 		for i := 0; i < cons.profileRuns; i++ {
-			message := fmt.Sprintf("%d/%d %s", i, cons.profileRuns, string(randString))
-			cons.postMessage(message)
+			msg = fmt.Sprintf("%d/%d %s", i, cons.profileRuns, string(randString))
+			cons.postMessage(msg)
 		}
 		runTime := time.Since(start)
 

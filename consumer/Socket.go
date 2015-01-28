@@ -32,8 +32,8 @@ func init() {
 	shared.Plugin.Register(Socket{})
 }
 
-func (cons Socket) Create(conf shared.PluginConfig) (shared.Consumer, error) {
-	err := cons.configureStandardConsumer(conf)
+func (cons Socket) Create(conf shared.PluginConfig, pool *shared.BytePool) (shared.Consumer, error) {
+	err := cons.configureStandardConsumer(conf, pool)
 	if err != nil {
 		return nil, err
 	}
@@ -73,50 +73,41 @@ func (cons Socket) readFromConnection(conn net.Conn, quit *atomic.Value) {
 		// Go through the stream and look for line breaks (delimiter)
 		// Send one message per delimiter
 
-		end := offset + size
-		start := 0
+		endIdx := offset + size
+		startIdx := 0
 
-		for i := offset; i < end; i++ {
+		for i := offset; i < endIdx; i++ {
 			if buffer[i] == '\n' {
-				var message string
+				messageEndIdx := i
 				if i > 0 && buffer[i-1] == '\r' {
-					message = string(buffer[start : i-1]) // ...\r\n
-				} else {
-					message = string(buffer[start:i]) // ...\n
+					messageEndIdx-- // ...\r\n
 				}
 
-				// Telnet quit support
-
-				if message == "quit" {
-					conn.Close()
-					return // ### return, close requested ###
-				}
-
-				cons.postMessage(message)
-				start = i + 1
+				cons.postMessageFromSlice(buffer[startIdx:messageEndIdx])
+				startIdx = i + 1
 			}
 		}
 
 		// Manage the buffer remains
 
-		if start == 0 {
+		if startIdx == 0 {
 			// If we did not move at all continue reading. If we don't have any
 			// space left, resize the buffer by 1KB
 
 			bufferSize := len(buffer)
-			if end == bufferSize {
+			if endIdx == bufferSize {
 				temp := buffer
 				buffer = make([]byte, bufferSize+socketBufferGrowSize)
 				copy(buffer, temp)
 			}
-			offset = end
+			offset = endIdx
 
-		} else if start != end {
+		} else if startIdx != endIdx {
 			// If we did move but there are remains left in the buffer move them
 			// to the start of the buffer and read again
 
-			copy(buffer, buffer[start:end])
-			offset = end - start
+			copy(buffer, buffer[startIdx:endIdx])
+			offset = endIdx - startIdx
 		} else {
 			// Everything was written
 

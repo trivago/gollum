@@ -45,6 +45,7 @@ func main() {
 	}
 
 	// Start the gollum multiplexer
+
 	plex := createMultiplexer(*configFilePtr)
 	plex.run()
 }

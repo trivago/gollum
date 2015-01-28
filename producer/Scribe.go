@@ -5,11 +5,6 @@ import (
 	"github.com/artyom/thrift"
 	"gollum/shared"
 	"strconv"
-	"time"
-)
-
-const (
-	scribeBufferGrowSize = 1024
 )
 
 // Scribe producer plugin
@@ -48,21 +43,14 @@ const (
 // set to 5.
 type Scribe struct {
 	standardProducer
-	scribe             *scribe.ScribeClient
-	transport          *thrift.TFramedTransport
-	socket             *thrift.TSocket
-	category           map[string]string
-	batchSize          int
-	batchSizeThreshold int
-	batchTimeoutSec    int
-	defaultCategory    string
-}
-
-type scribeMessageBuffer struct {
-	message     []*scribe.LogEntry
-	size        int
-	count       int
-	lastMessage time.Time
+	scribe          *scribe.ScribeClient
+	transport       *thrift.TFramedTransport
+	socket          *thrift.TSocket
+	batch           *scribeMessageBuffer
+	category        map[shared.MessageStreamID]string
+	batchSize       int
+	batchTimeoutSec int
+	defaultCategory string
 }
 
 func init() {
@@ -78,25 +66,26 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 
 	host := conf.GetString("Host", "localhost")
 	port := conf.GetInt("Port", 1463)
+	batchSizeThreshold := conf.GetInt("BatchSizeThreshold", 8388608)
 
-	prod.category = make(map[string]string, 0)
+	prod.category = make(map[shared.MessageStreamID]string, 0)
 	prod.batchSize = conf.GetInt("BatchSize", 8192)
-	prod.batchSizeThreshold = conf.GetInt("BatchSizeThreshold", 8388608)
 	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
+	prod.batch = createScribeMessageBuffer(batchSizeThreshold)
 
 	// Read stream to category mapping
 
 	defaultMapping := make(map[interface{}]interface{})
-	defaultMapping["*"] = "default"
+	defaultMapping[shared.WildcardStreamID] = "default"
 
 	categoryMap := conf.GetValue("Category", defaultMapping).(map[interface{}]interface{})
 	for stream, category := range categoryMap {
-		prod.category[stream.(string)] = category.(string)
+		prod.category[shared.GetStreamID(stream.(string))] = category.(string)
 	}
 
 	prod.defaultCategory = "default"
 
-	wildcardCategory, wildcardCategorySet := prod.category["*"]
+	wildcardCategory, wildcardCategorySet := prod.category[shared.WildcardStreamID]
 	if wildcardCategorySet {
 		prod.defaultCategory = wildcardCategory
 	}
@@ -122,9 +111,8 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	return prod, nil
 }
 
-func (prod Scribe) sendBatch(batch *scribeMessageBuffer) {
-	batch.lastMessage = time.Now()
-	result, err := prod.scribe.Log(batch.message[:batch.count])
+func (prod Scribe) send() {
+	result, err := prod.scribe.Log(prod.batch.get())
 
 	if err != nil {
 		shared.Log.Error("Scribe log error", result, ":", err)
@@ -138,37 +126,7 @@ func (prod Scribe) sendBatch(batch *scribeMessageBuffer) {
 			}
 		}
 	} else {
-		batch.count = 0
-		batch.size = 0
-	}
-}
-
-func (prod Scribe) post(batch *scribeMessageBuffer, stream string, text string) {
-	if batch.size < prod.batchSizeThreshold {
-
-		logEntry := new(scribe.LogEntry)
-		logEntry.Category = prod.defaultCategory
-		logEntry.Message = text
-
-		category, categorySet := prod.category[stream]
-		if categorySet {
-			logEntry.Category = category
-		}
-
-		if batch.count == len(batch.message) {
-			temp := batch.message
-			batch.message = make([]*scribe.LogEntry, len(batch.message)+scribeBufferGrowSize)
-			copy(batch.message, temp)
-		}
-
-		batch.message[batch.count] = logEntry
-		batch.count++
-		batch.size += len(text) + len(category)
-		batch.lastMessage = time.Now()
-
-		if batch.size >= prod.batchSize {
-			prod.sendBatch(batch)
-		}
+		prod.batch.flush()
 	}
 }
 
@@ -179,17 +137,18 @@ func (prod Scribe) Produce() {
 		prod.response <- shared.ProducerControlResponseDone
 	}()
 
-	batch := scribeMessageBuffer{
-		message:     make([]*scribe.LogEntry, scribeBufferGrowSize),
-		count:       0,
-		size:        0,
-		lastMessage: time.Now(),
-	}
-
 	for {
 		select {
 		case message := <-prod.messages:
-			prod.post(&batch, message.Stream, message.Format(prod.forward))
+			category, exists := prod.category[message.StreamID]
+			if !exists {
+				category = prod.defaultCategory
+			}
+
+			prod.batch.appendAndRelease(message, category, prod.forward)
+			if prod.batch.reachedSizeThreshold(prod.batchSize) {
+				prod.send()
+			}
 
 		case command := <-prod.control:
 			if command == shared.ProducerControlStop {
@@ -198,8 +157,8 @@ func (prod Scribe) Produce() {
 			}
 
 		default:
-			if batch.count > 0 && time.Since(batch.lastMessage).Seconds() > float64(prod.batchTimeoutSec) {
-				prod.sendBatch(&batch)
+			if prod.batch.reachedTimeThreshold(prod.batchTimeoutSec) {
+				prod.send()
 			}
 			// Don't block
 		}

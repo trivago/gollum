@@ -2,59 +2,46 @@ package shared
 
 import (
 	"fmt"
-	"time"
-)
-
-const (
-	LogInternalStream = "_GOLLUM_"
 )
 
 // Internal logging channel
 type LogInternal struct {
 	Messages chan Message
+	Pool     *BytePool
 }
 
 // Internal gollum log
-var Log = LogInternal{make(chan Message, 1024)}
+var Log = LogInternal{
+	Messages: make(chan Message, 1024),
+	Pool:     nil,
+}
 
 // Write a note to the internal gollum log
 func (log LogInternal) Note(args ...interface{}) {
-	msg := Message{
-		Text:      fmt.Sprint(args...),
-		Stream:    LogInternalStream,
-		Timestamp: time.Now(),
-	}
+	msg := CreateMessageFromString(log.Pool, fmt.Sprint(args...), LogInternalStreamID)
 
 	select {
-	case log.Messages <- msg:
+	case log.Messages <- msg: // Transfer ownership to channel
 	default:
 	}
 }
 
 // Write a warning to the internal gollum log
 func (log LogInternal) Warning(args ...interface{}) {
-	msg := Message{
-		Text:      "WARNING:" + fmt.Sprint(args),
-		Stream:    LogInternalStream,
-		Timestamp: time.Now(),
-	}
+	msg := CreateMessageFromString(log.Pool, "WARNING:"+fmt.Sprint(args...), LogInternalStreamID)
 
 	select {
-	case log.Messages <- msg:
+	case log.Messages <- msg: // Transfer ownership to channel
 	default:
 	}
 }
 
 // Write an error to the internal gollum log
 func (log LogInternal) Error(text string, args ...interface{}) {
-	msg := Message{
-		Text:      "ERROR: " + fmt.Sprint(args...),
-		Stream:    LogInternalStream,
-		Timestamp: time.Now(),
-	}
+	msg := CreateMessageFromString(log.Pool, "ERROR:"+fmt.Sprint(args...), LogInternalStreamID)
 
 	select {
-	case log.Messages <- msg:
+	case log.Messages <- msg: // Transfer ownership to channel
 	default:
 	}
 }

@@ -1,10 +1,8 @@
 package producer
 
 import (
-	"fmt"
 	"gollum/shared"
 	"os"
-	"time"
 )
 
 // File producer plugin
@@ -24,24 +22,18 @@ import (
 // to disk. By default this is set to 8KB.
 //
 // BatchSizeThreshold defines the maximum number of bytes to buffer before
-// messages get dropped. If a message crosses the threshold it is still buffered
-// but additional messages will be dropped. By default this is set to 8MB.
+// messages get dropped. Any message that crosses the threshold is dropped.
+// By default this is set to 8MB.
 //
 // BatchTimeoutSec defines the maximum number of seconds to wait after the last
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5.
 type File struct {
 	standardProducer
-	file               *os.File
-	batchSize          int
-	batchSizeThreshold int
-	batchTimeoutSec    int
-}
-
-type fileMessageBuffer struct {
-	text        string
-	size        int
-	lastMessage time.Time
+	file            *os.File
+	batch           *shared.MessageBuffer
+	batchSize       int
+	batchTimeoutSec int
 }
 
 func init() {
@@ -49,39 +41,25 @@ func init() {
 }
 
 func (prod File) Create(conf shared.PluginConfig) (shared.Producer, error) {
-
 	err := prod.configureStandardProducer(conf)
 	if err != nil {
 		return nil, err
 	}
 
 	logFile := conf.GetString("File", "/var/prod/gollum.log")
-	prod.batchSize = conf.GetInt("BatchSize", 8192)
-	prod.batchSizeThreshold = conf.GetInt("BatchThreshold", 8388608)
+	batchSizeThreshold := conf.GetInt("BatchThreshold", 8388608)
 
+	prod.batchSize = conf.GetInt("BatchSize", 8192)
 	prod.file, err = os.OpenFile(logFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+	prod.batch = shared.CreateMessageBuffer(batchSizeThreshold)
 
 	return prod, nil
 }
 
-func (prod File) writeBatch(batch *fileMessageBuffer) {
-	batch.lastMessage = time.Now()
-
-	fmt.Fprintln(prod.file, batch.text)
-
-	batch.size = 0
-	batch.text = ""
-}
-
-func (prod File) post(batch *fileMessageBuffer, text string) {
-	if batch.size < prod.batchSizeThreshold {
-		batch.text += text + "\n"
-		batch.size += len(text) + 1
-		batch.lastMessage = time.Now()
-
-		if batch.size >= prod.batchSize {
-			prod.writeBatch(batch)
-		}
+func (prod File) write() {
+	err := prod.batch.Flush(prod.file)
+	if err != nil {
+		shared.Log.Error("File error:", err)
 	}
 }
 
@@ -91,24 +69,21 @@ func (prod File) Produce() {
 		prod.response <- shared.ProducerControlResponseDone
 	}()
 
-	batch := fileMessageBuffer{
-		text:        "",
-		size:        0,
-		lastMessage: time.Now(),
-	}
-
 	for {
 		select {
 		case message := <-prod.messages:
-			prod.post(&batch, message.Format(prod.forward))
+			prod.batch.AppendAndRelease(message, prod.forward)
+			if prod.batch.ReachedSizeThreshold(prod.batchSize) {
+				prod.write()
+			}
 
 		case command := <-prod.control:
 			if command == shared.ProducerControlStop {
 				return // ### return, done ###
 			}
 		default:
-			if batch.size > 0 && time.Since(batch.lastMessage).Seconds() > float64(prod.batchTimeoutSec) {
-				prod.writeBatch(&batch)
+			if prod.batch.ReachedTimeThreshold(prod.batchTimeoutSec) {
+				prod.write()
 			}
 			// Don't block
 		}

@@ -21,8 +21,8 @@ func init() {
 	shared.Plugin.Register(Console{})
 }
 
-func (cons Console) Create(conf shared.PluginConfig) (shared.Consumer, error) {
-	err := cons.configureStandardConsumer(conf)
+func (cons Console) Create(conf shared.PluginConfig, pool *shared.BytePool) (shared.Consumer, error) {
+	err := cons.configureStandardConsumer(conf, pool)
 	return cons, err
 }
 

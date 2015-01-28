@@ -2,7 +2,6 @@ package consumer
 
 import (
 	"gollum/shared"
-	"time"
 )
 
 // Consumer base class
@@ -26,27 +25,46 @@ type standardConsumer struct {
 	messages chan shared.Message
 	control  chan int
 	response chan int
-	stream   []string
+	stream   []shared.MessageStreamID
+	pool     *shared.BytePool
 }
 
-func (cons *standardConsumer) configureStandardConsumer(conf shared.PluginConfig) error {
+func (cons *standardConsumer) configureStandardConsumer(conf shared.PluginConfig, pool *shared.BytePool) error {
 	cons.messages = make(chan shared.Message, conf.Channel)
 	cons.control = make(chan int, 1)
 	cons.response = make(chan int, 1)
-	cons.stream = conf.Stream
+	cons.stream = make([]shared.MessageStreamID, len(conf.Stream))
+	cons.pool = pool
+
+	for i, stream := range conf.Stream {
+		cons.stream[i] = shared.GetStreamID(stream)
+	}
 
 	return nil
 }
 
 func (cons standardConsumer) postMessage(text string) {
-	msg := shared.Message{
-		Text:      text,
-		Timestamp: time.Now(),
-	}
+	msg := shared.CreateMessageFromString(cons.pool, text, 0)
+
 	for _, stream := range cons.stream {
-		msg.Stream = stream
+		msg.StreamID = stream
+		msg.Data.Acquire() // Acquire ownership for channel
 		cons.messages <- msg
 	}
+
+	msg.Data.Release() // Release ownership for this function
+}
+
+func (cons standardConsumer) postMessageFromSlice(data []byte) {
+	msg := shared.CreateMessage(cons.pool, data, 0)
+
+	for _, stream := range cons.stream {
+		msg.StreamID = stream
+		msg.Data.Acquire() // Acquire ownership for channel
+		cons.messages <- msg
+	}
+
+	msg.Data.Release() // Release ownership for this function
 }
 
 func (cons standardConsumer) Control() chan<- int {

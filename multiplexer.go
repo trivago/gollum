@@ -11,7 +11,8 @@ import (
 type multiplexer struct {
 	consumers []shared.Consumer
 	producers []shared.Producer
-	stream    map[string][]*shared.Producer
+	pool      shared.BytePool
+	stream    map[shared.MessageStreamID][]*shared.Producer
 }
 
 // Create a new multiplexer based on a given config file.
@@ -22,13 +23,18 @@ func createMultiplexer(configFile string) multiplexer {
 		os.Exit(-1)
 	}
 
-	// Initialize the plugins based on the config
+	// Configure the multiplexer, create a byte pool and assign it to the log
 
 	var plex multiplexer
+	plex.stream = make(map[shared.MessageStreamID][]*shared.Producer)
+	plex.pool = shared.CreateBytePool()
+
+	shared.Log.Pool = &plex.pool
+
+	// Initialize the plugins based on the config
+
 	consumerType := reflect.TypeOf((*shared.Consumer)(nil)).Elem()
 	producerType := reflect.TypeOf((*shared.Producer)(nil)).Elem()
-
-	plex.stream = make(map[string][]*shared.Producer)
 
 	for className, instanceConfigs := range conf.Settings {
 
@@ -48,7 +54,7 @@ func createMultiplexer(configFile string) multiplexer {
 			if reflect.PtrTo(pluginType).Implements(consumerType) {
 				typedPlugin := plugin.(shared.Consumer)
 
-				instance, err := typedPlugin.Create(config)
+				instance, err := typedPlugin.Create(config, &plex.pool)
 				if err != nil {
 					shared.Log.Error("Failed registering consumer ", className, ":", err)
 					continue // ### continue ###
@@ -69,12 +75,13 @@ func createMultiplexer(configFile string) multiplexer {
 				}
 
 				for _, stream := range config.Stream {
-					streamMap, exists := plex.stream[stream]
+					streamID := shared.GetStreamID(stream)
+					streamMap, exists := plex.stream[streamID]
 					if !exists {
 						streamMap = []*shared.Producer{&instance}
-						plex.stream[stream] = streamMap
+						plex.stream[streamID] = streamMap
 					} else {
-						plex.stream[stream] = append(streamMap, &instance)
+						plex.stream[streamID] = append(streamMap, &instance)
 					}
 				}
 
@@ -88,22 +95,24 @@ func createMultiplexer(configFile string) multiplexer {
 
 func (plex multiplexer) broadcastMessage(message shared.Message) {
 	// Send to wildcard stream producers (all streams except internal)
-
-	if message.Stream != shared.LogInternalStream {
-		for _, producer := range plex.stream["*"] {
+	if message.StreamID != shared.LogInternalStreamID {
+		for _, producer := range plex.stream[shared.WildcardStreamID] {
 			if (*producer).Accepts(message) {
+				message.Data.Acquire() // Add ownership for channel
 				(*producer).Messages() <- message
 			}
 		}
 	}
 
 	// Send to specific stream producers
-
-	for _, producer := range plex.stream[message.Stream] {
+	for _, producer := range plex.stream[message.StreamID] {
 		if (*producer).Accepts(message) {
+			message.Data.Acquire() // Add ownership for channel
 			(*producer).Messages() <- message
 		}
 	}
+
+	message.Data.Release() // Release channel ownership
 }
 
 // Shutdown all consumers and producers in a clean way.
@@ -144,7 +153,8 @@ loop:
 	for {
 		select {
 		case message := <-shared.Log.Messages:
-			fmt.Println(message.Text)
+			fmt.Println(message.Format(true))
+			message.Data.Release()
 		default:
 			return
 		}
@@ -205,7 +215,6 @@ func (plex multiplexer) run() {
 
 			case message := <-consumer.Messages():
 				plex.broadcastMessage(message)
-
 			default:
 				// don't block
 			}
