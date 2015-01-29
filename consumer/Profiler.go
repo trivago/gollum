@@ -38,6 +38,8 @@ func (cons Profiler) profile() {
 		randString[i] = stringBase[rand.Intn(len(stringBase))]
 	}
 
+	testStart := time.Now()
+
 	var msg string
 	for b := 0; b < cons.batches; b++ {
 
@@ -46,13 +48,19 @@ func (cons Profiler) profile() {
 			msg = fmt.Sprintf("%d/%d %s", i, cons.profileRuns, string(randString))
 			cons.postMessage(msg)
 		}
-		runTime := time.Since(start)
 
+		runTime := time.Since(start)
 		shared.Log.Note(fmt.Sprintf(
 			"Profile run #%d: %.4f sec = %4.f msg/sec",
 			b, runTime.Seconds(),
 			float64(cons.profileRuns)/runTime.Seconds()))
 	}
+
+	runTime := time.Since(testStart)
+	shared.Log.Note(fmt.Sprintf(
+		"Total: %.4f sec = %4.f msg/sec",
+		runTime.Seconds(),
+		float64(cons.profileRuns*cons.batches)/runTime.Seconds()))
 }
 
 func (cons Profiler) Consume(threads *sync.WaitGroup) {
