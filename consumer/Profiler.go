@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gollum/shared"
 	"math/rand"
+	"os"
 	"sync"
 	"time"
 )
@@ -61,6 +62,9 @@ func (cons Profiler) profile() {
 		"Total: %.4f sec = %4.f msg/sec",
 		runTime.Seconds(),
 		float64(cons.profileRuns*cons.batches)/runTime.Seconds()))
+
+	proc, _ := os.FindProcess(os.Getpid())
+	proc.Signal(os.Interrupt)
 }
 
 func (cons Profiler) Consume(threads *sync.WaitGroup) {
