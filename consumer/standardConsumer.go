@@ -42,7 +42,7 @@ func (cons *standardConsumer) configureStandardConsumer(conf shared.PluginConfig
 }
 
 func (cons standardConsumer) postMessage(text string) {
-	msg := shared.CreateMessageFromString(cons.pool, text, 0)
+	msg := shared.CreateMessageFromString(cons.pool, text, shared.WildcardStreamID)
 
 	for _, stream := range cons.stream {
 		msg.StreamID = stream

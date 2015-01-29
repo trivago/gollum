@@ -28,7 +28,7 @@ func (batch *MessageBuffer) Append(msg Message) bool {
 		return false
 	}
 
-	msg.CopyFormatted(batch.buffer, batch.flags)
+	msg.CopyFormatted(batch.buffer[batch.contentLen:], batch.flags)
 	batch.contentLen += messageLength
 
 	return true

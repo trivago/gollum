@@ -14,6 +14,7 @@ var WildcardStreamID = GetStreamID("*")
 
 const (
 	TimestampFormat      = "2006-01-02 15:04:05 MST"
+	MessageFormatDefault = MessageFormatFlag(0)
 	MessageFormatForward = MessageFormatFlag(1)
 	MessageFormatNewLine = MessageFormatFlag(2)
 )
@@ -44,27 +45,26 @@ func CreateMessage(pool *BytePool, data []byte, streamID MessageStreamID) Messag
 
 // CreateMessageFromString creates a new message from a given string
 func CreateMessageFromString(pool *BytePool, text string, streamID MessageStreamID) Message {
-	return Message{
+	msg := Message{
 		Data:      pool.AcquireString(text),
 		StreamID:  streamID,
 		Timestamp: time.Now(),
 	}
+	return msg
 }
 
 // Length calculates the length of the message returned by Format or FormatToCopy
 func (msg Message) Length(flags MessageFormatFlag) int {
-	var length int
+	length := 0
 
-	if (flags & MessageFormatNewLine) == 0 {
-		length = 0
-	} else {
+	if (flags & MessageFormatNewLine) != 0 {
 		length = 1
 	}
 
-	if (flags & MessageFormatForward) != 0 {
-		length += msg.Data.Length
-	} else {
+	if (flags & MessageFormatForward) == 0 {
 		length += len(TimestampFormat) + 3 + msg.Data.Length
+	} else {
+		length += msg.Data.Length
 	}
 
 	return length
@@ -100,6 +100,6 @@ func (msg Message) CopyFormatted(buffer []byte, flags MessageFormatFlag) {
 
 	case MessageFormatForward | MessageFormatNewLine:
 		copy(buffer, msg.Data.Buffer[:msg.Data.Length])
-		msg.Data.Buffer[msg.Data.Length] = '\n'
+		buffer[msg.Data.Length] = '\n'
 	}
 }

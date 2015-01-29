@@ -69,7 +69,7 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	port := conf.GetInt("Port", 1463)
 	batchSizeThreshold := conf.GetInt("BatchSizeThreshold", 8388608)
 
-	var flags shared.MessageFormatFlag
+	flags := shared.MessageFormatDefault
 	if prod.forward {
 		flags = shared.MessageFormatForward
 	}
