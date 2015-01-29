@@ -1,7 +1,6 @@
 package shared
 
 import (
-	"fmt"
 	"math"
 	"sync"
 	"sync/atomic"
@@ -47,24 +46,6 @@ func getSlabCount(slabSize uint32) uint32 {
 	return uint32(math.Max(float64((1<<20)/slabSize), 10.0))
 }
 
-// Create a slab line for a specific chunk
-// baseIdx must be set to the current number of slablines * linesize
-// An unused slab stores the index of the next element in the freelist
-// this is done by reinterpreting the byte array as an integer
-func (chunk *bytePoolChunk) createSlabLine() []byte {
-	slabIdx := 0
-	baseIdx := chunk.slabCount * uint32(len(chunk.slabs))
-	slab := make([]byte, chunk.slabSize*chunk.slabCount)
-
-	for i := uint32(1); i < chunk.slabCount; i++ {
-		*(*uint32)(unsafe.Pointer(&slab[slabIdx])) = baseIdx + i
-		slabIdx += int(chunk.slabSize)
-	}
-
-	*(*uint32)(unsafe.Pointer(&slab[slabIdx])) = math.MaxUint32
-	return slab
-}
-
 // createChunk initializes a new chunk for a given slab size and allocates a
 // first line of slabs
 func createChunk(slabSize uint32) *bytePoolChunk {
@@ -72,12 +53,32 @@ func createChunk(slabSize uint32) *bytePoolChunk {
 		slabs:       make([][]byte, 0),
 		slabSize:    slabSize,
 		slabCount:   getSlabCount(slabSize),
-		nextFreeIdx: 0,
+		nextFreeIdx: math.MaxUint32,
 		access:      sync.Mutex{},
 	}
 
 	chunk.slabs = append(chunk.slabs, chunk.createSlabLine())
 	return &chunk
+}
+
+// Create a slab line for a specific chunk
+// baseIdx must be set to the current number of slablines * linesize
+// An unused slab stores the index of the next element in the freelist
+// this is done by reinterpreting the byte array as an integer
+func (chunk *bytePoolChunk) createSlabLine() []byte {
+	lineSize := chunk.slabSize * chunk.slabCount
+	slabIdx := 0
+	baseIdx := uint32(len(chunk.slabs)) * chunk.slabCount
+	slab := make([]byte, lineSize)
+
+	for i := uint32(1); i < chunk.slabCount; i++ {
+		*(*uint32)(unsafe.Pointer(&slab[slabIdx])) = baseIdx + i
+		slabIdx += int(chunk.slabSize)
+	}
+
+	*(*uint32)(unsafe.Pointer(&slab[slabIdx])) = chunk.nextFreeIdx
+	chunk.nextFreeIdx = baseIdx
+	return slab
 }
 
 // acquire Returns a new slab from a given chunk.
@@ -96,11 +97,11 @@ func (chunk *bytePoolChunk) acquire() *SlabHandle {
 	slabStart := (slabIdx % chunk.slabCount) * chunk.slabSize
 	slabEnd := slabStart + chunk.slabSize
 
-	fmt.Printf("Getting slab %d [%d:%d]\n", slabIdx, slabStart, slabEnd)
+	//fmt.Printf("Getting slab %d [%d:%d]\n", slabIdx, slabStart, slabEnd)
 
 	chunk.nextFreeIdx = *(*uint32)(unsafe.Pointer(&chunk.slabs[lineIdx][slabStart]))
 
-	fmt.Printf("Next slab is %d\n", chunk.nextFreeIdx)
+	//fmt.Printf("Next slab is %d\n", chunk.nextFreeIdx)
 
 	handle := SlabHandle{
 		Buffer:   chunk.slabs[lineIdx][slabStart:slabEnd],
