@@ -3,6 +3,7 @@ package consumer
 import (
 	"fmt"
 	"gollum/shared"
+	"math"
 	"math/rand"
 	"os"
 	"sync"
@@ -42,6 +43,7 @@ func (cons Profiler) profile() {
 	testStart := time.Now()
 
 	var msg string
+	minTime := math.MaxFloat64
 	for b := 0; b < cons.batches; b++ {
 
 		start := time.Now()
@@ -51,6 +53,8 @@ func (cons Profiler) profile() {
 		}
 
 		runTime := time.Since(start)
+		minTime = math.Min(minTime, runTime.Seconds())
+
 		shared.Log.Note(fmt.Sprintf(
 			"Profile run #%d: %.4f sec = %4.f msg/sec",
 			b, runTime.Seconds(),
@@ -62,6 +66,11 @@ func (cons Profiler) profile() {
 		"Total: %.4f sec = %4.f msg/sec",
 		runTime.Seconds(),
 		float64(cons.profileRuns*cons.batches)/runTime.Seconds()))
+
+	shared.Log.Note(fmt.Sprintf(
+		"Best: %.4f sec = %4.f msg/sec",
+		minTime,
+		float64(cons.profileRuns)/minTime))
 
 	proc, _ := os.FindProcess(os.Getpid())
 	proc.Signal(os.Interrupt)

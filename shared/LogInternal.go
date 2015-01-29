@@ -28,7 +28,7 @@ func (log LogInternal) Note(args ...interface{}) {
 
 // Write a warning to the internal gollum log
 func (log LogInternal) Warning(args ...interface{}) {
-	msg := CreateMessageFromString(log.Pool, "WARNING:"+fmt.Sprint(args...), LogInternalStreamID)
+	msg := CreateMessageFromString(log.Pool, "WARNING: "+fmt.Sprint(args...), LogInternalStreamID)
 
 	select {
 	case log.Messages <- msg: // Transfer ownership to channel
@@ -38,7 +38,7 @@ func (log LogInternal) Warning(args ...interface{}) {
 
 // Write an error to the internal gollum log
 func (log LogInternal) Error(text string, args ...interface{}) {
-	msg := CreateMessageFromString(log.Pool, "ERROR:"+fmt.Sprint(args...), LogInternalStreamID)
+	msg := CreateMessageFromString(log.Pool, "ERROR: "+fmt.Sprint(args...), LogInternalStreamID)
 
 	select {
 	case log.Messages <- msg: // Transfer ownership to channel

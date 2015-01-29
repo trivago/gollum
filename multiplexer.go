@@ -10,12 +10,13 @@ import (
 )
 
 type multiplexer struct {
-	consumers       []shared.Consumer
-	producers       []shared.Producer
-	pool            *shared.BytePool
-	consumerThreads *sync.WaitGroup
-	producerThreads *sync.WaitGroup
-	stream          map[shared.MessageStreamID][]*shared.Producer
+	consumers        []shared.Consumer
+	producers        []shared.Producer
+	pool             *shared.BytePool
+	consumerThreads  *sync.WaitGroup
+	producerThreads  *sync.WaitGroup
+	stream           map[shared.MessageStreamID][]*shared.Producer
+	producersStarted bool
 }
 
 // Create a new multiplexer based on a given config file.
@@ -59,7 +60,7 @@ func createMultiplexer(configFile string, pool *shared.BytePool) multiplexer {
 
 				instance, err := typedPlugin.Create(config, plex.pool)
 				if err != nil {
-					shared.Log.Error("Failed registering consumer ", className, ":", err)
+					shared.Log.Error("Failed registering consumer ", className, ": ", err)
 					continue // ### continue ###
 				}
 
@@ -73,7 +74,7 @@ func createMultiplexer(configFile string, pool *shared.BytePool) multiplexer {
 
 				instance, err := typedPlugin.Create(config)
 				if err != nil {
-					shared.Log.Error("Failed registering producer ", className, ":", err)
+					shared.Log.Error("Failed registering producer ", className, ": ", err)
 					continue // ### continue ###
 				}
 
@@ -133,15 +134,15 @@ func (plex multiplexer) shutdown() {
 	}
 	plex.consumerThreads.Wait()
 
-	// Drain the log channel
+	// Drain the log channel if there are producers listening
 
-	logMessageQueued := true
-	for logMessageQueued {
+	processLog := len(plex.producers) > 0 && plex.producersStarted
+	for processLog {
 		select {
 		case message := <-shared.Log.Messages:
 			plex.broadcastMessage(message)
 		default:
-			logMessageQueued = false
+			processLog = false
 		}
 	}
 
@@ -157,7 +158,7 @@ func (plex multiplexer) shutdown() {
 	for {
 		select {
 		case message := <-shared.Log.Messages:
-			fmt.Fprintln(os.Stderr, message.Format(shared.MessageFormatNewLine|shared.MessageFormatForward))
+			fmt.Fprintln(os.Stdout, message.Format(shared.MessageFormatForward))
 			message.Data.Release()
 		default:
 			return
@@ -185,6 +186,7 @@ func (plex multiplexer) run() {
 	for _, producer := range plex.producers {
 		go producer.Produce(plex.producerThreads)
 	}
+	plex.producersStarted = true
 
 	for _, consumer := range plex.consumers {
 		go consumer.Consume(plex.consumerThreads)

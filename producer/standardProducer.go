@@ -28,15 +28,19 @@ type standardProducer struct {
 	messages chan shared.Message
 	control  chan shared.ProducerControl
 	filter   *regexp.Regexp
-	forward  bool
+	flags    shared.MessageFormatFlag
 }
 
 func (prod *standardProducer) configureStandardProducer(conf shared.PluginConfig) error {
 
 	prod.messages = make(chan shared.Message, conf.Channel)
 	prod.control = make(chan shared.ProducerControl, 1)
-	prod.forward = conf.GetBool("Forward", false)
 	prod.filter = nil
+	prod.flags = shared.MessageFormatDefault
+
+	if conf.GetBool("Forward", false) {
+		prod.flags = shared.MessageFormatForward
+	}
 
 	filter := conf.GetString("Filter", "")
 
