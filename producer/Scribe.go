@@ -3,7 +3,7 @@ package producer
 import (
 	"github.com/artyom/scribe"
 	"github.com/artyom/thrift"
-	"gollum/shared"
+	"github.com/trivago/gollum/shared"
 	"strconv"
 	"sync"
 )

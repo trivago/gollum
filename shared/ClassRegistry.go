@@ -2,6 +2,11 @@ package shared
 
 import (
 	"reflect"
+	"strings"
+)
+
+const (
+	gollumPackageName = "gollum/"
 )
 
 // Error returned by ClassRegistry functions
@@ -27,7 +32,9 @@ var Plugin = ClassRegistry{make(map[string]reflect.Type)}
 // Example: var MyConsumerClassID = shared.Plugin.Register(MyConsumer{})
 func (registry ClassRegistry) Register(typeInstance interface{}) {
 	structType := reflect.TypeOf(typeInstance)
-	typeName := structType.PkgPath()[len("gollum/"):] + "." + structType.Name()
+	pathIdx := strings.Index(structType.PkgPath(), gollumPackageName) + len(gollumPackageName)
+
+	typeName := structType.PkgPath()[pathIdx:] + "." + structType.Name()
 	registry.namedType[typeName] = structType
 }
 

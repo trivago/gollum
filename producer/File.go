@@ -1,7 +1,7 @@
 package producer
 
 import (
-	"gollum/shared"
+	"github.com/trivago/gollum/shared"
 	"os"
 	"sync"
 )

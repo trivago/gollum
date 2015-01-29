@@ -2,7 +2,7 @@ package producer
 
 import (
 	"github.com/artyom/scribe"
-	"gollum/shared"
+	"github.com/trivago/gollum/shared"
 	"time"
 )
 

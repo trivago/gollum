@@ -1,7 +1,7 @@
 package consumer
 
 import (
-	"gollum/shared"
+	"github.com/trivago/gollum/shared"
 )
 
 // Consumer base class

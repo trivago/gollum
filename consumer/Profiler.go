@@ -2,7 +2,7 @@ package consumer
 
 import (
 	"fmt"
-	"gollum/shared"
+	"github.com/trivago/gollum/shared"
 	"math"
 	"math/rand"
 	"os"

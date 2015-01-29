@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	_ "gollum/consumer"
-	_ "gollum/producer"
-	"gollum/shared"
+	_ "github.com/trivago/gollum/consumer"
+	_ "github.com/trivago/gollum/producer"
+	"github.com/trivago/gollum/shared"
 	"os"
 	"runtime/pprof"
 )
@@ -25,7 +25,7 @@ func main() {
 	flag.Parse()
 
 	if *versionPtr {
-		fmt.Printf("Gollum v%d.%d.%d", gollumMajorVer, gollumMinorVer, gollumPatchVer)
+		fmt.Printf("Gollum v%d.%d.%d\n", gollumMajorVer, gollumMinorVer, gollumPatchVer)
 	}
 
 	if *configFilePtr == "" {
