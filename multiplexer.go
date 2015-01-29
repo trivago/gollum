@@ -11,12 +11,12 @@ import (
 type multiplexer struct {
 	consumers []shared.Consumer
 	producers []shared.Producer
-	pool      shared.BytePool
+	pool      *shared.BytePool
 	stream    map[shared.MessageStreamID][]*shared.Producer
 }
 
 // Create a new multiplexer based on a given config file.
-func createMultiplexer(configFile string) multiplexer {
+func createMultiplexer(configFile string, pool *shared.BytePool) multiplexer {
 	conf, err := shared.ReadConfig(configFile)
 	if err != nil {
 		fmt.Printf("Error: %s", err.Error())
@@ -27,9 +27,7 @@ func createMultiplexer(configFile string) multiplexer {
 
 	var plex multiplexer
 	plex.stream = make(map[shared.MessageStreamID][]*shared.Producer)
-	plex.pool = shared.CreateBytePool()
-
-	shared.Log.Pool = &plex.pool
+	plex.pool = pool
 
 	// Initialize the plugins based on the config
 
@@ -54,7 +52,7 @@ func createMultiplexer(configFile string) multiplexer {
 			if reflect.PtrTo(pluginType).Implements(consumerType) {
 				typedPlugin := plugin.(shared.Consumer)
 
-				instance, err := typedPlugin.Create(config, &plex.pool)
+				instance, err := typedPlugin.Create(config, plex.pool)
 				if err != nil {
 					shared.Log.Error("Failed registering consumer ", className, ":", err)
 					continue // ### continue ###
@@ -164,11 +162,13 @@ loop:
 // Run the multiplexer.
 // Fetch messags from the consumers and pass them to all producers.
 func (plex multiplexer) run() {
+	defer plex.shutdown()
 
 	if len(plex.consumers) == 0 {
 		fmt.Println("Error: No consumers configured.")
 		return // ### return, nothing to do ###
 	}
+
 	if len(plex.producers) == 0 {
 		fmt.Println("Error: No producers configured.")
 		return // ### return, nothing to do ###
@@ -191,7 +191,6 @@ func (plex multiplexer) run() {
 
 	// Main loop
 
-	defer plex.shutdown()
 	shared.Log.Note("We be nice to them, if they be nice to us. (startup)")
 
 	for {

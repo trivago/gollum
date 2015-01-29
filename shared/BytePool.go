@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"fmt"
 	"math"
 	"sync"
 	"sync/atomic"
@@ -51,14 +52,16 @@ func getSlabCount(slabSize uint32) uint32 {
 // An unused slab stores the index of the next element in the freelist
 // this is done by reinterpreting the byte array as an integer
 func (chunk *bytePoolChunk) createSlabLine() []byte {
+	slabIdx := 0
 	baseIdx := chunk.slabCount * uint32(len(chunk.slabs))
 	slab := make([]byte, chunk.slabSize*chunk.slabCount)
 
 	for i := uint32(1); i < chunk.slabCount; i++ {
-		*(*uint32)(unsafe.Pointer(&slab[i-1])) = baseIdx + i
+		*(*uint32)(unsafe.Pointer(&slab[slabIdx])) = baseIdx + i
+		slabIdx += int(chunk.slabSize)
 	}
 
-	*(*uint32)(unsafe.Pointer(&slab[chunk.slabCount-1])) = math.MaxUint32
+	*(*uint32)(unsafe.Pointer(&slab[slabIdx])) = math.MaxUint32
 	return slab
 }
 
@@ -90,10 +93,15 @@ func (chunk *bytePoolChunk) acquire() *SlabHandle {
 
 	slabIdx := chunk.nextFreeIdx
 	lineIdx := slabIdx / chunk.slabCount
-	slabStart := slabIdx % chunk.slabCount
+	slabStart := (slabIdx % chunk.slabCount) * chunk.slabSize
 	slabEnd := slabStart + chunk.slabSize
 
+	fmt.Printf("Getting slab %d [%d:%d]\n", slabIdx, slabStart, slabEnd)
+
 	chunk.nextFreeIdx = *(*uint32)(unsafe.Pointer(&chunk.slabs[lineIdx][slabStart]))
+
+	fmt.Printf("Next slab is %d\n", chunk.nextFreeIdx)
+
 	handle := SlabHandle{
 		Buffer:   chunk.slabs[lineIdx][slabStart:slabEnd],
 		Length:   int(chunk.slabSize),
@@ -101,12 +109,13 @@ func (chunk *bytePoolChunk) acquire() *SlabHandle {
 		index:    slabIdx,
 		parent:   chunk,
 	}
+
 	return &handle
 }
 
 // release Pushes a slab back to the freelist.
 func (chunk *bytePoolChunk) release(slab *SlabHandle) {
-	*(*uint32)(unsafe.Pointer(&slab.Buffer)) = chunk.nextFreeIdx
+	*(*uint32)(unsafe.Pointer(&slab.Buffer[0])) = chunk.nextFreeIdx
 	chunk.nextFreeIdx = slab.index
 }
 
@@ -148,7 +157,8 @@ func (pool BytePool) Acquire(size int) *SlabHandle {
 
 	chunk, exists := pool.chunks[slabSize]
 	if !exists {
-		pool.chunks[slabSize] = createChunk(slabSize)
+		chunk = createChunk(slabSize)
+		pool.chunks[slabSize] = chunk
 	}
 
 	pool.access.Unlock()

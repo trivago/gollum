@@ -5,6 +5,7 @@ import (
 	"fmt"
 	_ "gollum/consumer"
 	_ "gollum/producer"
+	"gollum/shared"
 	"os"
 	"runtime/pprof"
 )
@@ -17,7 +18,7 @@ const (
 
 func main() {
 	// Command line parameter parsing
-	configFilePtr := flag.String("config", "", "Configuration file")
+	configFilePtr := flag.String("c", "", "Configuration file")
 	versionPtr := flag.Bool("v", false, "Show version and exit")
 	profilePtr := flag.String("cpuprofile", "", "Write profiler results to a given file")
 
@@ -44,8 +45,11 @@ func main() {
 		}()
 	}
 
+	stringPool := shared.CreateBytePool()
+	shared.Log.Pool = &stringPool
+
 	// Start the gollum multiplexer
 
-	plex := createMultiplexer(*configFilePtr)
+	plex := createMultiplexer(*configFilePtr, &stringPool)
 	plex.run()
 }
