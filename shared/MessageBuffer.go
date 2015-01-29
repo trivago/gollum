@@ -8,33 +8,34 @@ import (
 type MessageBuffer struct {
 	buffer     []byte
 	contentLen int
-	lastAppend time.Time
+	lastFlush  time.Time
+	flags      MessageFormatFlag
 }
 
-func CreateMessageBuffer(size int) *MessageBuffer {
+func CreateMessageBuffer(size int, flags MessageFormatFlag) *MessageBuffer {
 	return &MessageBuffer{
 		buffer:     make([]byte, size),
 		contentLen: 0,
-		lastAppend: time.Now(),
+		lastFlush:  time.Now(),
+		flags:      flags,
 	}
 }
 
-func (batch *MessageBuffer) Append(msg Message, forward bool) bool {
-	messageLength := msg.Length(forward)
+func (batch *MessageBuffer) Append(msg Message) bool {
+	messageLength := msg.Length(batch.flags)
 
 	if batch.contentLen+messageLength >= len(batch.buffer) {
 		return false
 	}
 
-	msg.CopyFormatted(batch.buffer, forward)
+	msg.CopyFormatted(batch.buffer, batch.flags)
 	batch.contentLen += messageLength
-	batch.lastAppend = time.Now()
 
 	return true
 }
 
-func (batch *MessageBuffer) AppendAndRelease(msg Message, forward bool) bool {
-	result := batch.Append(msg, forward)
+func (batch *MessageBuffer) AppendAndRelease(msg Message) bool {
+	result := batch.Append(msg)
 	msg.Data.Release()
 	return result
 }
@@ -45,7 +46,7 @@ func (batch *MessageBuffer) Flush(resource io.Writer) error {
 		return err
 	}
 	batch.contentLen = 0
-	batch.lastAppend = time.Now()
+	batch.lastFlush = time.Now()
 	return nil
 }
 
@@ -55,5 +56,5 @@ func (batch MessageBuffer) ReachedSizeThreshold(size int) bool {
 
 func (batch MessageBuffer) ReachedTimeThreshold(timeSec int) bool {
 	return batch.contentLen > 0 &&
-		time.Since(batch.lastAppend).Seconds() > float64(timeSec)
+		time.Since(batch.lastFlush).Seconds() > float64(timeSec)
 }

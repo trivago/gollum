@@ -69,10 +69,15 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	port := conf.GetInt("Port", 1463)
 	batchSizeThreshold := conf.GetInt("BatchSizeThreshold", 8388608)
 
+	var flags shared.MessageFormatFlag
+	if prod.forward {
+		flags = shared.MessageFormatForward
+	}
+
 	prod.category = make(map[shared.MessageStreamID]string, 0)
 	prod.batchSize = conf.GetInt("BatchSize", 8192)
 	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
-	prod.batch = createScribeMessageBuffer(batchSizeThreshold)
+	prod.batch = createScribeMessageBuffer(batchSizeThreshold, flags)
 
 	// Read stream to category mapping
 
@@ -137,7 +142,7 @@ func (prod Scribe) sendMessage(message shared.Message) {
 		category = prod.defaultCategory
 	}
 
-	prod.batch.appendAndRelease(message, category, prod.forward)
+	prod.batch.appendAndRelease(message, category)
 	if prod.batch.reachedSizeThreshold(prod.batchSize) {
 		prod.send()
 	}

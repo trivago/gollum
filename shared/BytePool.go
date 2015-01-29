@@ -2,7 +2,6 @@ package shared
 
 import (
 	"math"
-	"sync"
 	"sync/atomic"
 	"unsafe"
 )
@@ -26,7 +25,7 @@ type bytePoolChunk struct {
 	slabSize    uint32
 	slabCount   uint32
 	nextFreeIdx uint32
-	access      sync.Mutex
+	access      SpinLock
 }
 
 // BytePool implements a convenient way to work with reusable byte buffers that
@@ -36,7 +35,7 @@ type bytePoolChunk struct {
 // reference counted way of managing these resources.
 type BytePool struct {
 	chunks map[uint32]*bytePoolChunk
-	access *sync.Mutex
+	access *SpinLock
 }
 
 // Get the number of slabs per chunk line.
@@ -54,7 +53,7 @@ func createChunk(slabSize uint32) *bytePoolChunk {
 		slabSize:    slabSize,
 		slabCount:   getSlabCount(slabSize),
 		nextFreeIdx: math.MaxUint32,
-		access:      sync.Mutex{},
+		access:      SpinLock{},
 	}
 
 	chunk.slabs = append(chunk.slabs, chunk.createSlabLine())
@@ -97,11 +96,7 @@ func (chunk *bytePoolChunk) acquire() *SlabHandle {
 	slabStart := (slabIdx % chunk.slabCount) * chunk.slabSize
 	slabEnd := slabStart + chunk.slabSize
 
-	//fmt.Printf("Getting slab %d [%d:%d]\n", slabIdx, slabStart, slabEnd)
-
 	chunk.nextFreeIdx = *(*uint32)(unsafe.Pointer(&chunk.slabs[lineIdx][slabStart]))
-
-	//fmt.Printf("Next slab is %d\n", chunk.nextFreeIdx)
 
 	handle := SlabHandle{
 		Buffer:   chunk.slabs[lineIdx][slabStart:slabEnd],
@@ -116,6 +111,9 @@ func (chunk *bytePoolChunk) acquire() *SlabHandle {
 
 // release Pushes a slab back to the freelist.
 func (chunk *bytePoolChunk) release(slab *SlabHandle) {
+	chunk.access.Lock()
+	defer chunk.access.Unlock()
+
 	*(*uint32)(unsafe.Pointer(&slab.Buffer[0])) = chunk.nextFreeIdx
 	chunk.nextFreeIdx = slab.index
 }
@@ -140,8 +138,23 @@ func (slab *SlabHandle) Release() {
 func CreateBytePool() BytePool {
 	return BytePool{
 		chunks: make(map[uint32]*bytePoolChunk),
-		access: new(sync.Mutex),
+		access: new(SpinLock),
 	}
+}
+
+// getChunk retrieves the chunk for the given size and assures that it is
+// allocated if it is not there. This function is threadsafe
+func (pool BytePool) getChunk(slabSize uint32) *bytePoolChunk {
+	pool.access.Lock()
+	defer pool.access.Unlock()
+
+	chunk, exists := pool.chunks[slabSize]
+	if !exists {
+		chunk = createChunk(slabSize)
+		pool.chunks[slabSize] = chunk
+	}
+
+	return chunk
 }
 
 // Acquire returns a new handle to a slab. Use the member functions of
@@ -153,20 +166,11 @@ func (pool BytePool) Acquire(size int) *SlabHandle {
 		slabSize = (slabSize & 0xFFFFFF00) + 0x100
 	}
 
-	// Fetch the chunk to modify and be threadsafe
-	pool.access.Lock()
-
-	chunk, exists := pool.chunks[slabSize]
-	if !exists {
-		chunk = createChunk(slabSize)
-		pool.chunks[slabSize] = chunk
-	}
-
-	pool.access.Unlock()
-
 	// Fetch a free slab from the chunk and set the correct size
+	chunk := pool.getChunk(slabSize)
 	slab := chunk.acquire()
 	slab.Length = size
+
 	return slab
 }
 

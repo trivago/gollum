@@ -15,21 +15,23 @@ type scribeMessageBuffer struct {
 	messageIdx    int
 	contentLen    int
 	maxContentLen int
-	lastAppend    time.Time
+	lastFlush     time.Time
+	flags         shared.MessageFormatFlag
 }
 
-func createScribeMessageBuffer(maxContentLen int) *scribeMessageBuffer {
+func createScribeMessageBuffer(maxContentLen int, flags shared.MessageFormatFlag) *scribeMessageBuffer {
 	return &scribeMessageBuffer{
 		message:       make([]*scribe.LogEntry, scribeBufferGrowSize),
 		messageIdx:    0,
 		contentLen:    0,
 		maxContentLen: maxContentLen,
-		lastAppend:    time.Now(),
+		lastFlush:     time.Now(),
+		flags:         flags,
 	}
 }
 
-func (batch *scribeMessageBuffer) append(msg shared.Message, category string, forward bool) bool {
-	messageLength := msg.Length(forward)
+func (batch *scribeMessageBuffer) append(msg shared.Message, category string) bool {
+	messageLength := msg.Length(batch.flags)
 
 	if batch.contentLen+messageLength >= batch.maxContentLen {
 		return false
@@ -44,19 +46,18 @@ func (batch *scribeMessageBuffer) append(msg shared.Message, category string, fo
 
 	logEntry := scribe.LogEntry{
 		Category: category,
-		Message:  msg.Format(forward),
+		Message:  msg.Format(batch.flags),
 	}
 
 	batch.message[batch.messageIdx] = &logEntry
 	batch.contentLen += messageLength
-	batch.lastAppend = time.Now()
 	batch.messageIdx++
 
 	return true
 }
 
-func (batch *scribeMessageBuffer) appendAndRelease(msg shared.Message, category string, forward bool) bool {
-	result := batch.append(msg, category, forward)
+func (batch *scribeMessageBuffer) appendAndRelease(msg shared.Message, category string) bool {
+	result := batch.append(msg, category)
 	msg.Data.Release()
 	return result
 }
@@ -68,7 +69,7 @@ func (batch scribeMessageBuffer) get() []*scribe.LogEntry {
 func (batch *scribeMessageBuffer) flush() {
 	batch.contentLen = 0
 	batch.messageIdx = 0
-	batch.lastAppend = time.Now()
+	batch.lastFlush = time.Now()
 }
 
 func (batch scribeMessageBuffer) reachedSizeThreshold(size int) bool {
@@ -77,5 +78,5 @@ func (batch scribeMessageBuffer) reachedSizeThreshold(size int) bool {
 
 func (batch scribeMessageBuffer) reachedTimeThreshold(timeSec int) bool {
 	return batch.contentLen > 0 &&
-		time.Since(batch.lastAppend).Seconds() > float64(timeSec)
+		time.Since(batch.lastFlush).Seconds() > float64(timeSec)
 }

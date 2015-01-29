@@ -62,12 +62,16 @@ func (prod Socket) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	}
 
 	batchSizeThreshold := conf.GetInt("BatchSizeThreshold", 8388608)
+	bufferFlags := shared.MessageFormatNewLine
+	if prod.forward {
+		bufferFlags |= shared.MessageFormatForward
+	}
 
 	prod.protocol = "tcp"
 	prod.address = conf.GetString("Address", ":5880")
 	prod.batchSize = conf.GetInt("BatchSize", 8192)
 	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
-	prod.batch = shared.CreateMessageBuffer(batchSizeThreshold)
+	prod.batch = shared.CreateMessageBuffer(batchSizeThreshold, bufferFlags)
 	bufferSizeKB := conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
 
 	if strings.HasPrefix(prod.address, fileSocketPrefix) {
@@ -107,7 +111,7 @@ func (prod Socket) send() {
 }
 
 func (prod Socket) sendMessage(message shared.Message) {
-	prod.batch.AppendAndRelease(message, prod.forward)
+	prod.batch.AppendAndRelease(message)
 	if prod.batch.ReachedSizeThreshold(prod.batchSize) {
 		prod.send()
 	}
