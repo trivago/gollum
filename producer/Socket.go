@@ -9,7 +9,7 @@ import (
 
 var fileSocketPrefix = "unix://"
 
-// Console producer plugin
+// Socket producer plugin
 // Configuration example
 //
 // - "producer.Socket":
@@ -55,6 +55,7 @@ func init() {
 	shared.Plugin.Register(Socket{})
 }
 
+// Create creates a new producer based on the current socket producer.
 func (prod Socket) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	err := prod.configureStandardProducer(conf)
 	if err != nil {
@@ -125,6 +126,7 @@ func (prod Socket) flush() {
 	}
 }
 
+// Produce writes to a buffer that is sent to a given socket.
 func (prod Socket) Produce(threads *sync.WaitGroup) {
 	threads.Add(1)
 

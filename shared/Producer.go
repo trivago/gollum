@@ -19,17 +19,17 @@ type Producer interface {
 	// initialized.
 	Create(PluginConfig) (Producer, error)
 
-	// Main loop that passes messages from the message channel to some other
-	// service like the console.
+	// Produce should implement the main loop that passes messages from the
+	// message channel to some other service like the console.
 	Produce(*sync.WaitGroup)
 
-	// Returns true if the message is allowed to be send to this producer.
+	// Accepts returns true if the message is allowed to be send to this producer.
 	Accepts(message Message) bool
 
-	// Returns write access to this producer's control channel.
+	// Control returns write access to this producer's control channel.
 	// See ProducerControl* constants.
 	Control() chan<- ProducerControl
 
-	// Returns write access to the message channel this producer reads from.
+	// Messages returns write access to the message channel this producer reads from.
 	Messages() chan<- Message
 }

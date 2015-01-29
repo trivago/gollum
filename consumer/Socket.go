@@ -14,7 +14,7 @@ const (
 	socketBufferGrowSize = 1024
 )
 
-// Console consumer plugin
+// Socket consumer plugin
 // Configuration example
 //
 // - "consumer.Socket":
@@ -33,6 +33,7 @@ func init() {
 	shared.Plugin.Register(Socket{})
 }
 
+// Create creates a new consumer based on the current socket consumer.
 func (cons Socket) Create(conf shared.PluginConfig, pool *shared.BytePool) (shared.Consumer, error) {
 	err := cons.configureStandardConsumer(conf, pool)
 	if err != nil {
@@ -134,6 +135,8 @@ func (cons Socket) accept(quit *atomic.Value, threads *sync.WaitGroup) {
 	threads.Done()
 }
 
+// Consume listens to a given socket. Messages are expected to be separated by
+// either \n or \r\n.
 func (cons Socket) Consume(threads *sync.WaitGroup) {
 	var quit atomic.Value
 	quit.Store(false)

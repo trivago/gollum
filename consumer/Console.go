@@ -22,6 +22,7 @@ func init() {
 	shared.Plugin.Register(Console{})
 }
 
+// Create creates a new consumer based on the current console consumer.
 func (cons Console) Create(conf shared.PluginConfig, pool *shared.BytePool) (shared.Consumer, error) {
 	err := cons.configureStandardConsumer(conf, pool)
 	return cons, err
@@ -47,6 +48,7 @@ func (cons Console) readFrom(stream *os.File) {
 	}
 }
 
+// Consume listens to stdin.
 func (cons Console) Consume(threads *sync.WaitGroup) {
 	go cons.readFrom(os.Stdin)
 

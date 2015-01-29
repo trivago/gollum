@@ -5,6 +5,9 @@ import (
 	"time"
 )
 
+// MessageBuffer is a helper class for producers to store messages into a stream
+// that is flushed into an io.Writer. You can use the Reached* functions to
+// determine when a flush should be called.
 type MessageBuffer struct {
 	buffer     []byte
 	contentLen int
@@ -12,6 +15,8 @@ type MessageBuffer struct {
 	flags      MessageFormatFlag
 }
 
+// CreateMessageBuffer creates a new messagebuffer with a given size (in bytes)
+// and a given set of MessageFormatFlag.
 func CreateMessageBuffer(size int, flags MessageFormatFlag) *MessageBuffer {
 	return &MessageBuffer{
 		buffer:     make([]byte, size),
@@ -21,6 +26,8 @@ func CreateMessageBuffer(size int, flags MessageFormatFlag) *MessageBuffer {
 	}
 }
 
+// Append formats a message and adds it to the buffer.
+// If the message does not fit into the buffer this function returns false.
 func (batch *MessageBuffer) Append(msg Message) bool {
 	messageLength := msg.Length(batch.flags)
 
@@ -34,12 +41,16 @@ func (batch *MessageBuffer) Append(msg Message) bool {
 	return true
 }
 
+// AppendAndRelease is basically the same as Append but releases the message
+// when done.
 func (batch *MessageBuffer) AppendAndRelease(msg Message) bool {
 	result := batch.Append(msg)
 	msg.Data.Release()
 	return result
 }
 
+// Flush writes the content of the buffer to a given resource and resets the
+// internal state, i.e. the buffer is empty after a call to Flush
 func (batch *MessageBuffer) Flush(resource io.Writer) error {
 	_, err := resource.Write(batch.buffer[:batch.contentLen])
 	if err != nil {
@@ -50,10 +61,15 @@ func (batch *MessageBuffer) Flush(resource io.Writer) error {
 	return nil
 }
 
+// ReachedSizeThreshold returns true if the bytes stored in the buffer are
+// above or equal to the size given.
+// If there is no data this function returns false.
 func (batch MessageBuffer) ReachedSizeThreshold(size int) bool {
 	return batch.contentLen >= size
 }
 
+// ReachedTimeThreshold returns true if the last flush was more than timeSec ago.
+// If there is no data this function returns false.
 func (batch MessageBuffer) ReachedTimeThreshold(timeSec int) bool {
 	return batch.contentLen > 0 &&
 		time.Since(batch.lastFlush).Seconds() > float64(timeSec)

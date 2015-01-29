@@ -58,6 +58,7 @@ func init() {
 	shared.Plugin.Register(Scribe{})
 }
 
+// Create creates a new producer based on the current scribe producer.
 func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 
 	err := prod.configureStandardProducer(conf)
@@ -155,6 +156,7 @@ func (prod Scribe) flush() {
 	}
 }
 
+// Produce writes to a buffer that is sent to scribe.
 func (prod Scribe) Produce(threads *sync.WaitGroup) {
 	threads.Add(1)
 

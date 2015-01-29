@@ -19,14 +19,14 @@ type Consumer interface {
 	// initialized.
 	Create(PluginConfig, *BytePool) (Consumer, error)
 
-	// Main loop that fetches messages from a given source and pushes it to the
-	// message channel.
+	// Consume should implement to main loop that fetches messages from a given
+	// source and pushes it to the Message channel.
 	Consume(*sync.WaitGroup)
 
-	// Returns write access to this consumer's control channel.
+	// Control returns write access to this consumer's control channel.
 	// See ConsumerControl* constants.
 	Control() chan<- ConsumerControl
 
-	// Returns read access to the message channel this consumer writes to.
+	// Messages returns read access to the message channel this consumer writes to.
 	Messages() <-chan Message
 }

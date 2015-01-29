@@ -41,6 +41,7 @@ func init() {
 	shared.Plugin.Register(File{})
 }
 
+// Create creates a new producer based on the current file producer.
 func (prod File) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	err := prod.configureStandardProducer(conf)
 	if err != nil {
@@ -84,6 +85,7 @@ func (prod File) flush() {
 	}
 }
 
+// Produce writes to a buffer that is dumped to a file.
 func (prod File) Produce(threads *sync.WaitGroup) {
 	threads.Add(1)
 

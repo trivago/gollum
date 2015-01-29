@@ -9,22 +9,22 @@ const (
 	gollumPackageName = "gollum/"
 )
 
-// Error returned by ClassRegistry functions
+// ClassRegistryError is returned by ClassRegistry functions.
 type ClassRegistryError struct {
 	Message string
 }
 
-// Error interface implementation for ClassRegistryError
+// Error interface implementation for ClassRegistryError.
 func (err ClassRegistryError) Error() string {
 	return err.Message
 }
 
-// A name to type registry used to create objects by name
+// ClassRegistry is a name to type registry used to create objects by name.
 type ClassRegistry struct {
 	namedType map[string]reflect.Type
 }
 
-// The global ClassRegistry singleton.
+// Plugin is the global ClassRegistry singleton.
 // Use this singleton to register plugins.
 var Plugin = ClassRegistry{make(map[string]reflect.Type)}
 

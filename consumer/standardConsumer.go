@@ -41,6 +41,7 @@ func (cons *standardConsumer) configureStandardConsumer(conf shared.PluginConfig
 	return nil
 }
 
+// postMessage sends a message text to all configured streams.
 func (cons standardConsumer) postMessage(text string) {
 	msg := shared.CreateMessageFromString(cons.pool, text, shared.WildcardStreamID)
 
@@ -53,6 +54,7 @@ func (cons standardConsumer) postMessage(text string) {
 	msg.Data.Release() // Release ownership for this function
 }
 
+// postMessageFromSlice sends a buffered message to all configured streams.
 func (cons standardConsumer) postMessageFromSlice(data []byte) {
 	msg := shared.CreateMessage(cons.pool, data, 0)
 

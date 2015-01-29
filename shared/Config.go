@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-// Sub config for specific plugins
+// PluginConfig is a configuration for a specific plugin
 type PluginConfig struct {
 	Enable   bool
 	Channel  int
@@ -14,13 +14,13 @@ type PluginConfig struct {
 	Settings map[string]interface{}
 }
 
-// Main config containing all plugin clonfigs
+// Config represents the top level config containing all plugin clonfigs
 type Config struct {
 	Settings map[string][]PluginConfig
 }
 
-// YAMLReader interface implementation to storing values to the internal
-// configuration format
+// SetYAML is a YAMLReader interface implementation to convert values into the
+// internal configuration format
 func (conf Config) SetYAML(tagType string, values interface{}) bool {
 	pluginList := values.([]interface{})
 	stringType := reflect.TypeOf("")
@@ -91,6 +91,8 @@ func (conf Config) SetYAML(tagType string, values interface{}) bool {
 	return true
 }
 
+// GetString tries to read a non-predefined, string value from a PluginConfig.
+// If that value is not found defaultValue is returned.
 func (conf PluginConfig) GetString(key string, defaultValue string) string {
 	value, exists := conf.Settings[key]
 	if exists {
@@ -100,6 +102,8 @@ func (conf PluginConfig) GetString(key string, defaultValue string) string {
 	return defaultValue
 }
 
+// GetInt tries to read a non-predefined, integer value from a PluginConfig.
+// If that value is not found defaultValue is returned.
 func (conf PluginConfig) GetInt(key string, defaultValue int) int {
 	value, exists := conf.Settings[key]
 	if exists {
@@ -109,6 +113,8 @@ func (conf PluginConfig) GetInt(key string, defaultValue int) int {
 	return defaultValue
 }
 
+// GetBool tries to read a non-predefined, boolean value from a PluginConfig.
+// If that value is not found defaultValue is returned.
 func (conf PluginConfig) GetBool(key string, defaultValue bool) bool {
 	value, exists := conf.Settings[key]
 	if exists {
@@ -118,6 +124,8 @@ func (conf PluginConfig) GetBool(key string, defaultValue bool) bool {
 	return defaultValue
 }
 
+// GetValue tries to read a non-predefined, untyped value from a PluginConfig.
+// If that value is not found defaultValue is returned.
 func (conf PluginConfig) GetValue(key string, defaultValue interface{}) interface{} {
 	value, exists := conf.Settings[key]
 	if exists {
@@ -127,7 +135,7 @@ func (conf PluginConfig) GetValue(key string, defaultValue interface{}) interfac
 	return defaultValue
 }
 
-// Read the config file into a new config struct.
+// ReadConfig parses a YAML config file into a new Config struct.
 func ReadConfig(path string) (*Config, error) {
 	buffer, err := ioutil.ReadFile(path)
 	if err != nil {

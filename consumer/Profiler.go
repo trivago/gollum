@@ -10,6 +10,13 @@ import (
 	"time"
 )
 
+// Profiler consumer plugin
+// Configuration example
+//
+// - "consumer.Console":
+//   Enable: true
+//
+// This consumer does not define any options beside the standard ones.
 type Profiler struct {
 	standardConsumer
 	profileRuns int
@@ -21,6 +28,7 @@ func init() {
 	shared.Plugin.Register(Profiler{})
 }
 
+// Create creates a new consumer based on the current profiler consumer.
 func (cons Profiler) Create(conf shared.PluginConfig, pool *shared.BytePool) (shared.Consumer, error) {
 	err := cons.configureStandardConsumer(conf, pool)
 
@@ -76,6 +84,7 @@ func (cons Profiler) profile() {
 	proc.Signal(os.Interrupt)
 }
 
+// Consume starts a profile run and exits gollum when done
 func (cons Profiler) Consume(threads *sync.WaitGroup) {
 	go cons.profile()
 

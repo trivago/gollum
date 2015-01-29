@@ -6,16 +6,26 @@ import (
 	"time"
 )
 
+// MessageStreamID is the "compiled name" of a stream
 type MessageStreamID uint64
+
+// MessageFormatFlag is an enum that is used for formatting messages
 type MessageFormatFlag int
 
+// LogInternalStreamID is the ID of the "_GOLLUM_" stream
 var LogInternalStreamID = GetStreamID("_GOLLUM_")
+
+// WildcardStreamID is the ID of the "*" stream
 var WildcardStreamID = GetStreamID("*")
 
 const (
-	TimestampFormat      = "2006-01-02 15:04:05 MST"
+	// TimestampFormat is the timestamp format string used for messages
+	TimestampFormat = "2006-01-02 15:04:05 MST"
+	// MessageFormatDefault formats the messages with timestamp and without newline
 	MessageFormatDefault = MessageFormatFlag(0)
+	// MessageFormatForward formats the message as-is, i.e. without a timestamp
 	MessageFormatForward = MessageFormatFlag(1)
+	// MessageFormatNewLine adds a newline to the end of the message
 	MessageFormatNewLine = MessageFormatFlag(2)
 )
 

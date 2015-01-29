@@ -25,6 +25,7 @@ func init() {
 	shared.Plugin.Register(Console{})
 }
 
+// Create creates a new producer based on the current console producer.
 func (prod Console) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	err := prod.configureStandardProducer(conf)
 	if err != nil {
@@ -61,6 +62,7 @@ func (prod Console) flush() {
 	}
 }
 
+// Produce writes to stdout or stderr.
 func (prod Console) Produce(threads *sync.WaitGroup) {
 	threads.Add(1)
 	defer func() {
