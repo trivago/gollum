@@ -1,16 +1,17 @@
 package shared
 
-const (
-	// Event to pass to Producer.Control.
-	// Will cause the producer to halt and shutdown.
-	ProducerControlStop = 1
+import "sync"
 
-	// Event set by the producer after Produce() has stopped
-	ProducerControlResponseDone = 1
+// ProducerControl is an enumeration used by the Producer.Control() channel
+type ProducerControl int
+
+const (
+	// ProducerControlStop will cause the producer to halt and shutdown.
+	ProducerControlStop = ProducerControl(1)
 )
 
-// Producers are plugins that generate messages, i.e. read them from some source
-// and provide them for other plugins to consume.
+// Producer is an interface for plugins that pass Message objects to other
+// services, files or storages.
 type Producer interface {
 
 	// Create a new instance of the concrete plugin class implementing this
@@ -20,16 +21,14 @@ type Producer interface {
 
 	// Main loop that passes messages from the message channel to some other
 	// service like the console.
-	Produce()
+	Produce(*sync.WaitGroup)
 
 	// Returns true if the message is allowed to be send to this producer.
 	Accepts(message Message) bool
 
 	// Returns write access to this producer's control channel.
 	// See ProducerControl* constants.
-	Control() chan<- int
-
-	ControlResponse() <-chan int
+	Control() chan<- ProducerControl
 
 	// Returns write access to the message channel this producer reads from.
 	Messages() chan<- Message

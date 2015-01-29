@@ -4,6 +4,7 @@ import (
 	"gollum/shared"
 	"net"
 	"strings"
+	"sync"
 	"sync/atomic"
 )
 
@@ -116,7 +117,7 @@ func (cons Socket) readFromConnection(conn net.Conn, quit *atomic.Value) {
 	}
 }
 
-func (cons Socket) accept(quit *atomic.Value) {
+func (cons Socket) accept(quit *atomic.Value, threads *sync.WaitGroup) {
 	for !quit.Load().(bool) {
 
 		client, err := cons.listen.Accept()
@@ -130,13 +131,15 @@ func (cons Socket) accept(quit *atomic.Value) {
 		go cons.readFromConnection(client, quit)
 	}
 
-	cons.response <- shared.ConsumerControlResponseDone
+	threads.Done()
 }
 
-func (cons Socket) Consume() {
+func (cons Socket) Consume(threads *sync.WaitGroup) {
 	var quit atomic.Value
 	quit.Store(false)
-	go cons.accept(&quit)
+	threads.Add(1)
+
+	go cons.accept(&quit, threads)
 
 	defer func() {
 		quit.Store(true)

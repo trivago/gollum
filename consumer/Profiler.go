@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gollum/shared"
 	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -54,12 +55,8 @@ func (cons Profiler) profile() {
 	}
 }
 
-func (cons Profiler) Consume() {
+func (cons Profiler) Consume(threads *sync.WaitGroup) {
 	go cons.profile()
-
-	defer func() {
-		cons.response <- shared.ConsumerControlResponseDone
-	}()
 
 	// Wait for control statements
 

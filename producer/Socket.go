@@ -4,6 +4,7 @@ import (
 	"gollum/shared"
 	"net"
 	"strings"
+	"sync"
 )
 
 var fileSocketPrefix = "unix://"
@@ -105,21 +106,39 @@ func (prod Socket) send() {
 	}
 }
 
-func (prod Socket) Produce() {
+func (prod Socket) sendMessage(message shared.Message) {
+	prod.batch.AppendAndRelease(message, prod.forward)
+	if prod.batch.ReachedSizeThreshold(prod.batchSize) {
+		prod.send()
+	}
+}
+
+func (prod Socket) flush() {
+	for {
+		select {
+		case message := <-prod.messages:
+			prod.sendMessage(message)
+		default:
+			return
+		}
+	}
+}
+
+func (prod Socket) Produce(threads *sync.WaitGroup) {
+	threads.Add(1)
+
 	defer func() {
+		prod.flush()
 		if prod.connection != nil {
 			prod.connection.Close()
 		}
-		prod.response <- shared.ProducerControlResponseDone
+		threads.Done()
 	}()
 
 	for {
 		select {
 		case message := <-prod.messages:
-			prod.batch.AppendAndRelease(message, prod.forward)
-			if prod.batch.ReachedSizeThreshold(prod.batchSize) {
-				prod.send()
-			}
+			prod.sendMessage(message)
 
 		case command := <-prod.control:
 			if command == shared.ProducerControlStop {

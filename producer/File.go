@@ -3,6 +3,7 @@ package producer
 import (
 	"gollum/shared"
 	"os"
+	"sync"
 )
 
 // File producer plugin
@@ -63,19 +64,38 @@ func (prod File) write() {
 	}
 }
 
-func (prod File) Produce() {
+func (prod File) writeMessage(message shared.Message) {
+	prod.batch.AppendAndRelease(message, prod.forward)
+	if prod.batch.ReachedSizeThreshold(prod.batchSize) {
+		prod.write()
+	}
+}
+
+func (prod File) flush() {
+	for {
+		select {
+		case message := <-prod.messages:
+			prod.writeMessage(message)
+		default:
+			prod.write()
+			return
+		}
+	}
+}
+
+func (prod File) Produce(threads *sync.WaitGroup) {
+	threads.Add(1)
+
 	defer func() {
+		prod.flush()
 		prod.file.Close()
-		prod.response <- shared.ProducerControlResponseDone
+		threads.Done()
 	}()
 
 	for {
 		select {
 		case message := <-prod.messages:
-			prod.batch.AppendAndRelease(message, prod.forward)
-			if prod.batch.ReachedSizeThreshold(prod.batchSize) {
-				prod.write()
-			}
+			prod.writeMessage(message)
 
 		case command := <-prod.control:
 			if command == shared.ProducerControlStop {

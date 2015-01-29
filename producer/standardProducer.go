@@ -26,8 +26,7 @@ import (
 // channel will not be added. The default value is false.
 type standardProducer struct {
 	messages chan shared.Message
-	control  chan int
-	response chan int
+	control  chan shared.ProducerControl
 	filter   *regexp.Regexp
 	forward  bool
 }
@@ -35,8 +34,7 @@ type standardProducer struct {
 func (prod *standardProducer) configureStandardProducer(conf shared.PluginConfig) error {
 
 	prod.messages = make(chan shared.Message, conf.Channel)
-	prod.control = make(chan int, 1)
-	prod.response = make(chan int, 1)
+	prod.control = make(chan shared.ProducerControl, 1)
 	prod.forward = conf.GetBool("Forward", false)
 	prod.filter = nil
 
@@ -61,12 +59,8 @@ func (prod standardProducer) Accepts(message shared.Message) bool {
 	return prod.filter.MatchString(string(message.Data.Buffer[:message.Data.Length]))
 }
 
-func (prod standardProducer) Control() chan<- int {
+func (prod standardProducer) Control() chan<- shared.ProducerControl {
 	return prod.control
-}
-
-func (prod standardProducer) ControlResponse() <-chan int {
-	return prod.response
 }
 
 func (prod standardProducer) Messages() chan<- shared.Message {

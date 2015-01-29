@@ -5,6 +5,7 @@ import (
 	"gollum/shared"
 	"os"
 	"strings"
+	"sync"
 )
 
 // Console producer plugin
@@ -44,16 +45,33 @@ func (prod Console) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	return prod, nil
 }
 
-func (prod Console) Produce() {
+func (prod Console) printMessage(message shared.Message) {
+	fmt.Fprintln(prod.console, message.Format(prod.forward))
+	message.Data.Release()
+}
+
+func (prod Console) flush() {
+	for {
+		select {
+		case message := <-prod.messages:
+			prod.printMessage(message)
+		default:
+			return
+		}
+	}
+}
+
+func (prod Console) Produce(threads *sync.WaitGroup) {
+	threads.Add(1)
 	defer func() {
-		prod.response <- shared.ProducerControlResponseDone
+		prod.flush()
+		threads.Done()
 	}()
 
 	for {
 		select {
 		case message := <-prod.messages:
-			fmt.Fprintln(prod.console, message.Format(prod.forward))
-			message.Data.Release()
+			prod.printMessage(message)
 
 		case command := <-prod.control:
 			if command == shared.ProducerControlStop {

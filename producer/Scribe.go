@@ -5,6 +5,7 @@ import (
 	"github.com/artyom/thrift"
 	"gollum/shared"
 	"strconv"
+	"sync"
 )
 
 // Scribe producer plugin
@@ -130,29 +131,47 @@ func (prod Scribe) send() {
 	}
 }
 
-func (prod Scribe) Produce() {
+func (prod Scribe) sendMessage(message shared.Message) {
+	category, exists := prod.category[message.StreamID]
+	if !exists {
+		category = prod.defaultCategory
+	}
+
+	prod.batch.appendAndRelease(message, category, prod.forward)
+	if prod.batch.reachedSizeThreshold(prod.batchSize) {
+		prod.send()
+	}
+}
+
+func (prod Scribe) flush() {
+	for {
+		select {
+		case message := <-prod.messages:
+			prod.sendMessage(message)
+		default:
+			prod.send()
+			return
+		}
+	}
+}
+
+func (prod Scribe) Produce(threads *sync.WaitGroup) {
+	threads.Add(1)
+
 	defer func() {
+		prod.flush()
 		prod.transport.Close()
 		prod.socket.Close()
-		prod.response <- shared.ProducerControlResponseDone
+		threads.Done()
 	}()
 
 	for {
 		select {
 		case message := <-prod.messages:
-			category, exists := prod.category[message.StreamID]
-			if !exists {
-				category = prod.defaultCategory
-			}
-
-			prod.batch.appendAndRelease(message, category, prod.forward)
-			if prod.batch.reachedSizeThreshold(prod.batchSize) {
-				prod.send()
-			}
+			prod.sendMessage(message)
 
 		case command := <-prod.control:
 			if command == shared.ProducerControlStop {
-				//fmt.Println("prod producer recieved stop")
 				return // ### return, done ###
 			}
 

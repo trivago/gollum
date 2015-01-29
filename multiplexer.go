@@ -6,13 +6,16 @@ import (
 	"os"
 	"os/signal"
 	"reflect"
+	"sync"
 )
 
 type multiplexer struct {
-	consumers []shared.Consumer
-	producers []shared.Producer
-	pool      *shared.BytePool
-	stream    map[shared.MessageStreamID][]*shared.Producer
+	consumers       []shared.Consumer
+	producers       []shared.Producer
+	pool            *shared.BytePool
+	consumerThreads *sync.WaitGroup
+	producerThreads *sync.WaitGroup
+	stream          map[shared.MessageStreamID][]*shared.Producer
 }
 
 // Create a new multiplexer based on a given config file.
@@ -27,6 +30,8 @@ func createMultiplexer(configFile string, pool *shared.BytePool) multiplexer {
 
 	var plex multiplexer
 	plex.stream = make(map[shared.MessageStreamID][]*shared.Producer)
+	plex.consumerThreads = new(sync.WaitGroup)
+	plex.producerThreads = new(sync.WaitGroup)
 	plex.pool = pool
 
 	// Initialize the plugins based on the config
@@ -125,17 +130,18 @@ func (plex multiplexer) shutdown() {
 
 	for _, consumer := range plex.consumers {
 		consumer.Control() <- shared.ConsumerControlStop
-		<-consumer.ControlResponse()
 	}
+	plex.consumerThreads.Wait()
 
-	// Clear log (we still need a producer to write)
-loop:
-	for {
+	// Drain the log channel
+
+	logMessageQueued := true
+	for logMessageQueued {
 		select {
 		case message := <-shared.Log.Messages:
 			plex.broadcastMessage(message)
 		default:
-			break loop
+			logMessageQueued = false
 		}
 	}
 
@@ -143,15 +149,15 @@ loop:
 
 	for _, producer := range plex.producers {
 		producer.Control() <- shared.ProducerControlStop
-		<-producer.ControlResponse()
 	}
+	plex.producerThreads.Wait()
 
-	// Write remaining messages to stdout
+	// Write remaining messages to stderr
 
 	for {
 		select {
 		case message := <-shared.Log.Messages:
-			fmt.Println(message.Format(true))
+			fmt.Fprintln(os.Stderr, message.Format(true))
 			message.Data.Release()
 		default:
 			return
@@ -177,11 +183,11 @@ func (plex multiplexer) run() {
 	// Launch consumers and producers
 
 	for _, producer := range plex.producers {
-		go producer.Produce()
+		go producer.Produce(plex.producerThreads)
 	}
 
 	for _, consumer := range plex.consumers {
-		go consumer.Consume()
+		go consumer.Consume(plex.consumerThreads)
 	}
 
 	// React on signals
@@ -194,23 +200,18 @@ func (plex multiplexer) run() {
 	shared.Log.Note("We be nice to them, if they be nice to us. (startup)")
 
 	for {
-		// Check internal messages
-
-		select {
-		case message := <-shared.Log.Messages:
-			plex.broadcastMessage(message)
-		default:
-			// don't block
-		}
-
 		// Go over all consumers in round-robin fashion
 		// Always check for signals
+		// Always check for log messages
 
 		for _, consumer := range plex.consumers {
 			select {
 			case <-signalChannel:
 				shared.Log.Note("Master betrayed us. Wicked. Tricksy, False. (signal)")
 				return
+
+			case message := <-shared.Log.Messages:
+				plex.broadcastMessage(message)
 
 			case message := <-consumer.Messages():
 				plex.broadcastMessage(message)

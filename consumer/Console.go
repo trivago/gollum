@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"gollum/shared"
 	"os"
+	"sync"
 )
 
 // Console consumer plugin
@@ -46,12 +47,8 @@ func (cons Console) readFrom(stream *os.File) {
 	}
 }
 
-func (cons Console) Consume() {
-
+func (cons Console) Consume(threads *sync.WaitGroup) {
 	go cons.readFrom(os.Stdin)
-	defer func() {
-		cons.response <- shared.ConsumerControlResponseDone
-	}()
 
 	// Wait for control statements
 

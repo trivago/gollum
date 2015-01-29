@@ -23,16 +23,14 @@ import (
 // messages.
 type standardConsumer struct {
 	messages chan shared.Message
-	control  chan int
-	response chan int
+	control  chan shared.ConsumerControl
 	stream   []shared.MessageStreamID
 	pool     *shared.BytePool
 }
 
 func (cons *standardConsumer) configureStandardConsumer(conf shared.PluginConfig, pool *shared.BytePool) error {
 	cons.messages = make(chan shared.Message, conf.Channel)
-	cons.control = make(chan int, 1)
-	cons.response = make(chan int, 1)
+	cons.control = make(chan shared.ConsumerControl, 1)
 	cons.stream = make([]shared.MessageStreamID, len(conf.Stream))
 	cons.pool = pool
 
@@ -67,12 +65,8 @@ func (cons standardConsumer) postMessageFromSlice(data []byte) {
 	msg.Data.Release() // Release ownership for this function
 }
 
-func (cons standardConsumer) Control() chan<- int {
+func (cons standardConsumer) Control() chan<- shared.ConsumerControl {
 	return cons.control
-}
-
-func (cons standardConsumer) ControlResponse() <-chan int {
-	return cons.response
 }
 
 func (cons standardConsumer) Messages() <-chan shared.Message {
