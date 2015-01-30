@@ -1,8 +1,8 @@
 package main
 
 import (
-	"flag"
 	"fmt"
+	flag "github.com/docker/docker/pkg/mflag"
 	_ "github.com/trivago/gollum/consumer"
 	_ "github.com/trivago/gollum/producer"
 	"github.com/trivago/gollum/shared"
@@ -17,18 +17,16 @@ const (
 )
 
 func main() {
-	// Command line parameter parsing
-	configFilePtr := flag.String("c", "", "Configuration file")
-	versionPtr := flag.Bool("v", false, "Show version and exit")
-	profilePtr := flag.String("cpuprofile", "", "Write profiler results to a given file")
 
 	flag.Parse()
 
 	if *versionPtr {
 		fmt.Printf("Gollum v%d.%d.%d\n", gollumMajorVer, gollumMinorVer, gollumPatchVer)
+		return
 	}
 
-	if *configFilePtr == "" {
+	if *helpPtr || *configFilePtr == "" {
+		flag.Usage()
 		fmt.Println("Nothing to do. We must go.")
 		return
 	}
