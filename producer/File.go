@@ -54,6 +54,7 @@ func (prod File) Create(conf shared.PluginConfig) (shared.Producer, error) {
 
 	prod.flags |= shared.MessageFormatNewLine
 	prod.batchSize = conf.GetInt("BatchSize", 8192)
+	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
 	prod.file, err = os.OpenFile(logFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 	prod.batch = shared.CreateMessageBuffer(batchSizeThreshold, prod.flags)
 
@@ -96,7 +97,7 @@ func (prod File) Produce(threads *sync.WaitGroup) {
 		threads.Done()
 	}()
 
-	flushTimer := time.NewTimer(time.Duration(prod.batchTimeoutSec) * time.Second)
+	flushTicker := time.NewTicker(time.Duration(prod.batchTimeoutSec) * time.Second)
 
 	for {
 		select {
@@ -108,7 +109,7 @@ func (prod File) Produce(threads *sync.WaitGroup) {
 				return // ### return, done ###
 			}
 
-		case <-flushTimer.C:
+		case <-flushTicker.C:
 			if prod.batch.ReachedTimeThreshold(prod.batchTimeoutSec) {
 				prod.write()
 			}

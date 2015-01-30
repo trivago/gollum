@@ -10,7 +10,7 @@ import (
 var fileSocketPrefix = "unix://"
 
 const (
-	socketBufferGrowSize = 1024
+	socketBufferGrowSize = 256
 )
 
 // Socket consumer plugin
@@ -25,8 +25,10 @@ const (
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
 type Socket struct {
 	standardConsumer
-	listen net.Listener
-	quit   bool
+	listen   net.Listener
+	protocol string
+	address  string
+	quit     bool
 }
 
 func init() {
@@ -34,27 +36,21 @@ func init() {
 }
 
 // Create creates a new consumer based on the current socket consumer.
-func (cons Socket) Create(conf shared.PluginConfig, pool *shared.SlabPool) (shared.Consumer, error) {
-	err := cons.configureStandardConsumer(conf, pool)
+func (cons Socket) Create(conf shared.PluginConfig) (shared.Consumer, error) {
+	err := cons.configureStandardConsumer(conf)
 	if err != nil {
 		return nil, err
 	}
 
-	address := conf.GetString("Address", ":5880")
-	protocol := "tcp"
+	cons.address = conf.GetString("Address", ":5880")
+	cons.protocol = "tcp"
 
-	if strings.HasPrefix(address, fileSocketPrefix) {
-		address = address[len(fileSocketPrefix):]
-		protocol = "unix"
-	}
-
-	cons.listen, err = net.Listen(protocol, address)
-	if err != nil {
-		return nil, err
+	if strings.HasPrefix(cons.address, fileSocketPrefix) {
+		cons.address = cons.address[len(fileSocketPrefix):]
+		cons.protocol = "unix"
 	}
 
 	cons.quit = false
-
 	return cons, err
 }
 
@@ -63,7 +59,6 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 
 	for !cons.quit {
 		// Read from stream
-
 		err := buffer.Read(conn, "\n")
 		if err != nil {
 			if !cons.quit {
@@ -95,6 +90,15 @@ func (cons *Socket) accept(threads *sync.WaitGroup) {
 // Consume listens to a given socket. Messages are expected to be separated by
 // either \n or \r\n.
 func (cons Socket) Consume(threads *sync.WaitGroup) {
+	// Listen to socket
+
+	var err error
+	cons.listen, err = net.Listen(cons.protocol, cons.address)
+	if err != nil {
+		shared.Log.Error("Socket connection error: ", err)
+		return
+	}
+
 	threads.Add(1)
 
 	go cons.accept(threads)

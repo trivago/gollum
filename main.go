@@ -5,7 +5,6 @@ import (
 	flag "github.com/docker/docker/pkg/mflag"
 	_ "github.com/trivago/gollum/consumer"
 	_ "github.com/trivago/gollum/producer"
-	"github.com/trivago/gollum/shared"
 	"os"
 	"runtime/pprof"
 )
@@ -43,12 +42,9 @@ func main() {
 		}()
 	}
 
-	stringPool := shared.CreateSlabPool()
-	shared.Log.Pool = &stringPool
-
 	// Start the gollum multiplexer
 
-	plex := createMultiplexer(*configFilePtr, &stringPool)
+	plex := createMultiplexer(*configFilePtr)
 	plex.run()
 
 	// Memory profiling

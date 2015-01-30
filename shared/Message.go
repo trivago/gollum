@@ -12,11 +12,18 @@ type MessageStreamID uint64
 // MessageFormatFlag is an enum that is used for formatting messages
 type MessageFormatFlag int
 
+const (
+	// LogInternalStream is the name of the internal message channel (logs)
+	LogInternalStream = "_GOLLUM_"
+	// WildcardStream is the name of the "all streams" channel
+	WildcardStream = "*"
+)
+
 // LogInternalStreamID is the ID of the "_GOLLUM_" stream
-var LogInternalStreamID = GetStreamID("_GOLLUM_")
+var LogInternalStreamID = GetStreamID(LogInternalStream)
 
 // WildcardStreamID is the ID of the "*" stream
-var WildcardStreamID = GetStreamID("*")
+var WildcardStreamID = GetStreamID(WildcardStream)
 
 const (
 	// TimestampFormat is the timestamp format string used for messages
@@ -32,7 +39,7 @@ const (
 // Message is a container used for storing the internal state of messages.
 // This struct is passed between consumers and producers.
 type Message struct {
-	Data         *SlabHandle
+	Data         string
 	Streams      []MessageStreamID
 	PinnedStream MessageStreamID
 	Timestamp    time.Time
@@ -45,39 +52,33 @@ func GetStreamID(stream string) MessageStreamID {
 	return MessageStreamID(hash.Sum64())
 }
 
-// CreateMessage creates a new message from a given byte slice
-func CreateMessage(pool *SlabPool, data []byte, streams []MessageStreamID) Message {
-	return Message{
-		Data:         pool.AcquireBytes(data),
-		Streams:      streams,
-		PinnedStream: WildcardStreamID,
-		Timestamp:    time.Now(),
-	}
-}
-
-// CreateMessageFromString creates a new message from a given string
-func CreateMessageFromString(pool *SlabPool, text string, streams []MessageStreamID) Message {
+// CreateMessage creates a new message from a given string
+func CreateMessage(text string, streams []MessageStreamID) Message {
 	msg := Message{
-		Data:         pool.AcquireString(text),
+		Data:         text,
 		Streams:      streams,
 		PinnedStream: WildcardStreamID,
 		Timestamp:    time.Now(),
 	}
 	return msg
+}
+
+// CreateMessageFromSlice creates a new message from a given byte slice
+func CreateMessageFromSlice(data []byte, streams []MessageStreamID) Message {
+	return Message{
+		Data:         string(data),
+		Streams:      streams,
+		PinnedStream: WildcardStreamID,
+		Timestamp:    time.Now(),
+	}
 }
 
 // CloneAndPin creates a copy of the message and sets the PinnedStream member
 // to the given stream. In addition to that the reference counter is increased.
 func (msg Message) CloneAndPin(stream MessageStreamID) Message {
-	msg.Data.Acquire()
+	//msg.Data.Acquire()
 	msg.PinnedStream = stream
 	return msg
-}
-
-// Release has to be called whenever a producer "discards" a clone after
-// processing its contents.
-func (msg Message) Release() {
-	msg.Data.Release()
 }
 
 // IsInternal returns true if a message is posted only to internal streams
@@ -100,9 +101,9 @@ func (msg Message) Length(flags MessageFormatFlag) int {
 	}
 
 	if (flags & MessageFormatForward) == 0 {
-		length += len(TimestampFormat) + 3 + msg.Data.Length
+		length += len(TimestampFormat) + 3 + len(msg.Data)
 	} else {
-		length += msg.Data.Length
+		length += len(msg.Data)
 	}
 
 	return length
@@ -112,32 +113,22 @@ func (msg Message) Length(flags MessageFormatFlag) int {
 func (msg Message) Format(flags MessageFormatFlag) string {
 	switch flags {
 	default:
-		return fmt.Sprintf("%s | %s", msg.Timestamp.Format(TimestampFormat), msg.Data.Buffer[:msg.Data.Length])
+		return fmt.Sprintf("%s | %s", msg.Timestamp.Format(TimestampFormat), msg.Data)
 
 	case MessageFormatNewLine:
-		return fmt.Sprintf("%s | %s\n", msg.Timestamp.Format(TimestampFormat), msg.Data.Buffer[:msg.Data.Length])
+		return fmt.Sprintf("%s | %s\n", msg.Timestamp.Format(TimestampFormat), msg.Data)
 
 	case MessageFormatForward:
-		return string(msg.Data.Buffer[:msg.Data.Length])
+		return msg.Data
 
 	case MessageFormatForward | MessageFormatNewLine:
-		return fmt.Sprintf("%s\n", msg.Data.Buffer[:msg.Data.Length])
+		return fmt.Sprintf("%s\n", msg.Data)
 	}
 }
 
 // CopyFormatted does the same thing as Format but instead of creating a new string
 // it copies the result to the given byte slice
 func (msg Message) CopyFormatted(buffer []byte, flags MessageFormatFlag) {
-	switch flags {
-	default:
-		formattedString := msg.Format(flags)
-		copy(buffer, formattedString)
-
-	case MessageFormatForward:
-		copy(buffer, msg.Data.Buffer[:msg.Data.Length])
-
-	case MessageFormatForward | MessageFormatNewLine:
-		copy(buffer, msg.Data.Buffer[:msg.Data.Length])
-		buffer[msg.Data.Length] = '\n'
-	}
+	formattedString := msg.Format(flags)
+	copy(buffer, formattedString)
 }

@@ -46,6 +46,7 @@ type Socket struct {
 	address         string
 	batchSize       int
 	batchTimeoutSec int
+	bufferSizeKB    int
 }
 
 type bufferedConn interface {
@@ -71,36 +72,32 @@ func (prod Socket) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	prod.batchSize = conf.GetInt("BatchSize", 8192)
 	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
 	prod.batch = shared.CreateMessageBuffer(batchSizeThreshold, prod.flags)
-	bufferSizeKB := conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
+	prod.bufferSizeKB = conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
 
 	if strings.HasPrefix(prod.address, fileSocketPrefix) {
 		prod.address = prod.address[len(fileSocketPrefix):]
 		prod.protocol = "unix"
 	}
 
-	prod.connection, err = net.Dial(prod.protocol, prod.address)
-	if err != nil {
-		shared.Log.Error("Socket connection error:", err)
-	} else {
-		prod.connection.(bufferedConn).SetWriteBuffer(bufferSizeKB << 10)
-	}
-
 	return prod, nil
 }
 
-func (prod Socket) send() {
+func (prod *Socket) send() {
+	// If we have not yet connected or the connection dropped: connect.
 	if prod.connection == nil {
-		var err error
-		prod.connection, err = net.Dial(prod.protocol, prod.address)
+		conn, err := net.Dial(prod.protocol, prod.address)
 
 		if err != nil {
 			shared.Log.Error("Socket connection error:", err)
+		} else {
+			conn.(bufferedConn).SetWriteBuffer(prod.bufferSizeKB << 10)
+			prod.connection = conn
 		}
 	}
 
+	// Flush the buffer to the connection if it is active
 	if prod.connection != nil {
 		err := prod.batch.Flush(prod.connection)
-
 		if err != nil {
 			shared.Log.Error("Socket error:", err)
 			prod.connection.Close()
@@ -109,14 +106,14 @@ func (prod Socket) send() {
 	}
 }
 
-func (prod Socket) sendMessage(message shared.Message) {
+func (prod *Socket) sendMessage(message shared.Message) {
 	prod.batch.AppendAndRelease(message)
 	if prod.batch.ReachedSizeThreshold(prod.batchSize) {
 		prod.send()
 	}
 }
 
-func (prod Socket) flush() {
+func (prod *Socket) flush() {
 	for {
 		select {
 		case message := <-prod.messages:
@@ -139,7 +136,7 @@ func (prod Socket) Produce(threads *sync.WaitGroup) {
 		threads.Done()
 	}()
 
-	flushTimer := time.NewTimer(time.Duration(prod.batchTimeoutSec) * time.Second)
+	flushTick := time.NewTicker(time.Duration(prod.batchTimeoutSec) * time.Second)
 
 	for {
 		select {
@@ -151,7 +148,7 @@ func (prod Socket) Produce(threads *sync.WaitGroup) {
 				return // ### return, done ###
 			}
 
-		case <-flushTimer.C:
+		case <-flushTick.C:
 			if prod.batch.ReachedTimeThreshold(prod.batchTimeoutSec) {
 				prod.send()
 			}

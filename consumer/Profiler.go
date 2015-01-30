@@ -29,8 +29,8 @@ func init() {
 }
 
 // Create creates a new consumer based on the current profiler consumer.
-func (cons Profiler) Create(conf shared.PluginConfig, pool *shared.SlabPool) (shared.Consumer, error) {
-	err := cons.configureStandardConsumer(conf, pool)
+func (cons Profiler) Create(conf shared.PluginConfig) (shared.Consumer, error) {
+	err := cons.configureStandardConsumer(conf)
 
 	cons.profileRuns = conf.GetInt("Runs", 10000)
 	cons.batches = conf.GetInt("Batches", 10)

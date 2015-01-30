@@ -52,6 +52,7 @@ type Scribe struct {
 	category        map[shared.MessageStreamID]string
 	batchSize       int
 	batchTimeoutSec int
+	bufferSizeKB    int
 	defaultCategory string
 }
 
@@ -75,11 +76,12 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	prod.batchSize = conf.GetInt("BatchSize", 8192)
 	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
 	prod.batch = createScribeMessageBuffer(batchSizeThreshold, prod.flags)
+	prod.bufferSizeKB = conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
 
 	// Read stream to category mapping
 
 	defaultMapping := make(map[interface{}]interface{})
-	defaultMapping[shared.WildcardStreamID] = "default"
+	defaultMapping[shared.WildcardStream] = "default"
 
 	categoryMap := conf.GetValue("Category", defaultMapping).(map[interface{}]interface{})
 	for stream, category := range categoryMap {
@@ -102,12 +104,6 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	}
 
 	prod.transport = thrift.NewTFramedTransport(prod.socket)
-	err = prod.transport.Open()
-	if err != nil {
-		shared.Log.Error("Scribe transport error:", err)
-		return nil, err
-	}
-
 	protocolFactory := thrift.NewTBinaryProtocolFactory(false, false)
 
 	prod.scribe = scribe.NewScribeClientFactory(prod.transport, protocolFactory)
@@ -115,21 +111,25 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 }
 
 func (prod Scribe) send() {
-	result, err := prod.scribe.Log(prod.batch.get())
 
-	if err != nil {
-		shared.Log.Error("Scribe log error", result, ":", err)
-
-		// Try to reopen the connection
-		if err.Error() == "EOF" {
-			prod.transport.Close()
-			err = prod.transport.Open()
-			if err != nil {
-				shared.Log.Error("Scribe connection error:", err)
-			}
+	if !prod.transport.IsOpen() {
+		err := prod.transport.Open()
+		if err != nil {
+			shared.Log.Error("Scribe connection error:", err)
+		} else {
+			prod.socket.Conn().(bufferedConn).SetWriteBuffer(prod.bufferSizeKB << 10)
 		}
-	} else {
-		prod.batch.flush()
+	}
+
+	if prod.transport.IsOpen() {
+		result, err := prod.scribe.Log(prod.batch.get())
+
+		if err != nil {
+			shared.Log.Error("Scribe log error", result, ":", err)
+			prod.transport.Close()
+		} else {
+			prod.batch.flush()
+		}
 	}
 }
 
@@ -168,7 +168,7 @@ func (prod Scribe) Produce(threads *sync.WaitGroup) {
 		threads.Done()
 	}()
 
-	flushTimer := time.NewTimer(time.Duration(prod.batchTimeoutSec) * time.Second)
+	flushTicker := time.NewTicker(time.Duration(prod.batchTimeoutSec) * time.Second)
 
 	for {
 		select {
@@ -180,7 +180,7 @@ func (prod Scribe) Produce(threads *sync.WaitGroup) {
 				return // ### return, done ###
 			}
 
-		case <-flushTimer.C:
+		case <-flushTicker.C:
 			if prod.batch.reachedTimeThreshold(prod.batchTimeoutSec) {
 				prod.send()
 			}

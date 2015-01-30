@@ -7,7 +7,7 @@ import (
 
 type BufferedReader struct {
 	data     []byte
-	callback func([]byte)
+	write    func([]byte)
 	growSize int
 	offset   int
 }
@@ -15,7 +15,7 @@ type BufferedReader struct {
 func CreateBufferedReader(size int, callback func([]byte)) BufferedReader {
 	return BufferedReader{
 		data:     make([]byte, size),
-		callback: callback,
+		write:    callback,
 		growSize: size,
 		offset:   0,
 	}
@@ -23,10 +23,10 @@ func CreateBufferedReader(size int, callback func([]byte)) BufferedReader {
 
 func (buffer *BufferedReader) Read(reader io.Reader, delimiter string) error {
 	bytesRead, err := reader.Read(buffer.data[buffer.offset:])
-	if err != nil {
+
+	if err != nil && bytesRead == 0 {
 		return err
 	}
-
 	if bytesRead == 0 {
 		return nil
 	}
@@ -37,40 +37,45 @@ func (buffer *BufferedReader) Read(reader io.Reader, delimiter string) error {
 	// Go through the stream and look for delimiters
 	// Execute callback once per delimiter
 
-	endIdx := buffer.offset + bytesRead
-	startIdx := 0
-	partEndIdx := bytes.Index(buffer.data[buffer.offset:endIdx], delimiterBytes)
+	parseEndIdx := buffer.offset + bytesRead
+	parseStartIdx := buffer.offset
+	msgStartIdx := 0
 
-	for partEndIdx != -1 {
-		buffer.callback(buffer.data[startIdx:partEndIdx])
+	for parseEndIdx-parseStartIdx > delimiterLen {
+		msgEndIdx := bytes.Index(buffer.data[parseStartIdx:parseEndIdx], delimiterBytes)
+		if msgEndIdx == -1 {
+			break
+		}
 
-		startIdx = partEndIdx + delimiterLen
-		partEndIdx = bytes.Index(buffer.data[startIdx:endIdx], delimiterBytes)
+		// msgEndIdx is relativ to the slice we passed
+
+		msgEndIdx += parseStartIdx
+		buffer.write(buffer.data[msgStartIdx:msgEndIdx])
+
+		msgStartIdx = msgEndIdx + delimiterLen
+		parseStartIdx = msgStartIdx
 	}
 
 	// Manage the buffer remains
 
-	if startIdx == 0 {
+	if msgStartIdx == 0 {
 		// If we did not move at all continue reading. If we don't have any
 		// space left, resize the buffer by its original size.
-
 		bufferSize := len(buffer.data)
-		if endIdx == bufferSize {
+		if parseEndIdx == bufferSize {
 			temp := buffer.data
 			buffer.data = make([]byte, bufferSize+buffer.growSize)
 			copy(buffer.data, temp)
 		}
-		buffer.offset = endIdx
+		buffer.offset = parseEndIdx
 
-	} else if startIdx != endIdx {
+	} else if parseStartIdx != parseEndIdx {
 		// If we did move but there are remains left in the buffer move them
 		// to the start of the buffer and read again
-
-		copy(buffer.data, buffer.data[startIdx:endIdx])
-		buffer.offset = endIdx - startIdx
+		copy(buffer.data, buffer.data[parseStartIdx:parseEndIdx])
+		buffer.offset = parseEndIdx - parseStartIdx
 	} else {
 		// Everything was written
-
 		buffer.offset = 0
 	}
 
