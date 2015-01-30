@@ -97,26 +97,34 @@ func createMultiplexer(configFile string, pool *shared.BytePool) multiplexer {
 	return plex
 }
 
-func (plex multiplexer) broadcastMessage(message shared.Message) {
-	// Send to wildcard stream producers (all streams except internal)
-	if message.StreamID != shared.LogInternalStreamID {
-		for _, producer := range plex.stream[shared.WildcardStreamID] {
-			if (*producer).Accepts(message) {
-				message.Data.Acquire() // Add ownership for channel
-				(*producer).Messages() <- message
-			}
+// sendMessage sends a message to all producers listening to a given stream.
+// This method blocks as long as a producer message queue is full
+func (plex multiplexer) sendMessage(message shared.Message, streamID shared.MessageStreamID) {
+	msgClone := message.CloneAndPin(streamID)
+
+	for _, producer := range plex.stream[streamID] {
+		if (*producer).Accepts(msgClone) {
+			(*producer).Messages() <- msgClone
 		}
+	}
+}
+
+// broadcastMessage sends a message to all streams the message has been
+// addressed to.
+// This method blocks if sendMessage blocks.
+func (plex multiplexer) broadcastMessage(message shared.Message) {
+
+	// Send to wildcard stream producers if not purely internal
+	if !message.IsInternal() {
+		plex.sendMessage(message, shared.WildcardStreamID)
 	}
 
 	// Send to specific stream producers
-	for _, producer := range plex.stream[message.StreamID] {
-		if (*producer).Accepts(message) {
-			message.Data.Acquire() // Add ownership for channel
-			(*producer).Messages() <- message
-		}
+	for _, streamID := range message.Streams {
+		plex.sendMessage(message, streamID)
 	}
 
-	message.Data.Release() // Release channel ownership
+	message.Release()
 }
 
 // Shutdown all consumers and producers in a clean way.

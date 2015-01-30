@@ -32,9 +32,10 @@ const (
 // Message is a container used for storing the internal state of messages.
 // This struct is passed between consumers and producers.
 type Message struct {
-	Data      *SlabHandle
-	StreamID  MessageStreamID
-	Timestamp time.Time
+	Data         *SlabHandle
+	Streams      []MessageStreamID
+	PinnedStream MessageStreamID
+	Timestamp    time.Time
 }
 
 // GetStreamID returns the integer representation of a given stream name.
@@ -45,22 +46,49 @@ func GetStreamID(stream string) MessageStreamID {
 }
 
 // CreateMessage creates a new message from a given byte slice
-func CreateMessage(pool *BytePool, data []byte, streamID MessageStreamID) Message {
+func CreateMessage(pool *BytePool, data []byte, streams []MessageStreamID) Message {
 	return Message{
-		Data:      pool.AcquireBytes(data),
-		StreamID:  streamID,
-		Timestamp: time.Now(),
+		Data:         pool.AcquireBytes(data),
+		Streams:      streams,
+		PinnedStream: WildcardStreamID,
+		Timestamp:    time.Now(),
 	}
 }
 
 // CreateMessageFromString creates a new message from a given string
-func CreateMessageFromString(pool *BytePool, text string, streamID MessageStreamID) Message {
+func CreateMessageFromString(pool *BytePool, text string, streams []MessageStreamID) Message {
 	msg := Message{
-		Data:      pool.AcquireString(text),
-		StreamID:  streamID,
-		Timestamp: time.Now(),
+		Data:         pool.AcquireString(text),
+		Streams:      streams,
+		PinnedStream: WildcardStreamID,
+		Timestamp:    time.Now(),
 	}
 	return msg
+}
+
+// CloneAndPin creates a copy of the message and sets the PinnedStream member
+// to the given stream. In addition to that the reference counter is increased.
+func (msg Message) CloneAndPin(stream MessageStreamID) Message {
+	msg.Data.Acquire()
+	msg.PinnedStream = stream
+	return msg
+}
+
+// Release has to be called whenever a producer "discards" a clone after
+// processing its contents.
+func (msg Message) Release() {
+	msg.Data.Release()
+}
+
+// IsInternal returns true if a message is posted only to internal streams
+func (msg Message) IsInternal() bool {
+	for _, value := range msg.Streams {
+		if value != LogInternalStreamID {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Length calculates the length of the message returned by Format or FormatToCopy

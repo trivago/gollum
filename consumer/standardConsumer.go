@@ -24,47 +24,35 @@ import (
 type standardConsumer struct {
 	messages chan shared.Message
 	control  chan shared.ConsumerControl
-	stream   []shared.MessageStreamID
+	streams  []shared.MessageStreamID
 	pool     *shared.BytePool
 }
 
 func (cons *standardConsumer) configureStandardConsumer(conf shared.PluginConfig, pool *shared.BytePool) error {
 	cons.messages = make(chan shared.Message, conf.Channel)
 	cons.control = make(chan shared.ConsumerControl, 1)
-	cons.stream = make([]shared.MessageStreamID, len(conf.Stream))
+	cons.streams = make([]shared.MessageStreamID, len(conf.Stream))
 	cons.pool = pool
 
 	for i, stream := range conf.Stream {
-		cons.stream[i] = shared.GetStreamID(stream)
+		cons.streams[i] = shared.GetStreamID(stream)
 	}
 
 	return nil
 }
 
 // postMessage sends a message text to all configured streams.
+// This method blocks of the message queue is full.
 func (cons standardConsumer) postMessage(text string) {
-	msg := shared.CreateMessageFromString(cons.pool, text, shared.WildcardStreamID)
-
-	for _, stream := range cons.stream {
-		msg.StreamID = stream
-		msg.Data.Acquire() // Acquire ownership for channel
-		cons.messages <- msg
-	}
-
-	msg.Data.Release() // Release ownership for this function
+	msg := shared.CreateMessageFromString(cons.pool, text, cons.streams)
+	cons.messages <- msg
 }
 
 // postMessageFromSlice sends a buffered message to all configured streams.
+// This method blocks of the message queue is full.
 func (cons standardConsumer) postMessageFromSlice(data []byte) {
-	msg := shared.CreateMessage(cons.pool, data, 0)
-
-	for _, stream := range cons.stream {
-		msg.StreamID = stream
-		msg.Data.Acquire() // Acquire ownership for channel
-		cons.messages <- msg
-	}
-
-	msg.Data.Release() // Release ownership for this function
+	msg := shared.CreateMessage(cons.pool, data, cons.streams)
+	cons.messages <- msg
 }
 
 func (cons standardConsumer) Control() chan<- shared.ConsumerControl {

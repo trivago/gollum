@@ -58,7 +58,7 @@ func (batch *scribeMessageBuffer) append(msg shared.Message, category string) bo
 
 func (batch *scribeMessageBuffer) appendAndRelease(msg shared.Message, category string) bool {
 	result := batch.append(msg, category)
-	msg.Data.Release()
+	msg.Release()
 	return result
 }
 

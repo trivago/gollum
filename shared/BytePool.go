@@ -12,20 +12,20 @@ import (
 // this functionality.
 type SlabHandle struct {
 	Buffer   []byte
+	parent   *slabsHeader
 	Length   int
 	refcount int32
 	index    uint32
-	parent   *bytePoolChunk
 }
 
-// bytePoolChunk stores an array of slabs of a given size.
+// slabsHeader stores an array of slabs of a given size.
 // Slab allocation is handled by an index based freelist.
-type bytePoolChunk struct {
-	slabs       [][]byte
-	slabSize    uint32
-	slabCount   uint32
-	nextFreeIdx uint32
-	access      SpinLock
+type slabsHeader struct {
+	slabLine     [][]byte
+	slabSizeByte uint32
+	slabsPerLine uint32
+	nextFreeIdx  uint32
+	access       SpinLock
 }
 
 // BytePool implements a convenient way to work with reusable byte buffers that
@@ -34,88 +34,90 @@ type bytePoolChunk struct {
 // rounded up to fit. Slabs are returned as a SlabHandle which provides a
 // reference counted way of managing these resources.
 type BytePool struct {
-	chunks map[uint32]*bytePoolChunk
-	access *SpinLock
+	headers map[uint32]*slabsHeader
+	access  *SpinLock
 }
 
-// Get the number of slabs per chunk line.
+// Get the number of slabs per header line.
 // A line is currently limited to 1MB or 10 items of a slab.
 // So if a slab is 1MB of size a line will be 10MB each.
-func getSlabCount(slabSize uint32) uint32 {
-	return uint32(math.Max(float64((1<<20)/slabSize), 10.0))
+func getSlabsPerLine(slabSizeByte uint32) uint32 {
+	return uint32(math.Max(float64((1<<20)/slabSizeByte), 10.0))
 }
 
-// createChunk initializes a new chunk for a given slab size and allocates a
+// createSlabsHeader initializes a new header for a given slab size and allocates a
 // first line of slabs
-func createChunk(slabSize uint32) *bytePoolChunk {
-	chunk := bytePoolChunk{
-		slabs:       make([][]byte, 0),
-		slabSize:    slabSize,
-		slabCount:   getSlabCount(slabSize),
-		nextFreeIdx: math.MaxUint32,
-		access:      SpinLock{},
+func createSlabsHeader(slabSizeByte uint32) *slabsHeader {
+	header := slabsHeader{
+		slabLine:     make([][]byte, 0),
+		slabSizeByte: slabSizeByte,
+		slabsPerLine: getSlabsPerLine(slabSizeByte),
+		nextFreeIdx:  math.MaxUint32,
+		access:       SpinLock{},
 	}
 
-	chunk.slabs = append(chunk.slabs, chunk.createSlabLine())
-	return &chunk
+	header.slabLine = append(header.slabLine, header.createSlabLine())
+	return &header
 }
 
-// Create a slab line for a specific chunk
+// Create a slab line for a specific header
 // baseIdx must be set to the current number of slablines * linesize
 // An unused slab stores the index of the next element in the freelist
 // this is done by reinterpreting the byte array as an integer
-func (chunk *bytePoolChunk) createSlabLine() []byte {
-	lineSize := chunk.slabSize * chunk.slabCount
-	slabIdx := 0
-	baseIdx := uint32(len(chunk.slabs)) * chunk.slabCount
-	slab := make([]byte, lineSize)
+func (header *slabsHeader) createSlabLine() []byte {
+	lineSizeByte := header.slabSizeByte * header.slabsPerLine
+	slabLine := make([]byte, lineSizeByte)
 
-	for i := uint32(1); i < chunk.slabCount; i++ {
-		*(*uint32)(unsafe.Pointer(&slab[slabIdx])) = baseIdx + i
-		slabIdx += int(chunk.slabSize)
+	slabIdx := 0
+	globalIdx := uint32(len(header.slabLine)) * header.slabsPerLine
+
+	for i := uint32(1); i < header.slabsPerLine; i++ {
+		*(*uint32)(unsafe.Pointer(&slabLine[slabIdx])) = globalIdx + i
+		slabIdx += int(header.slabSizeByte)
 	}
 
-	*(*uint32)(unsafe.Pointer(&slab[slabIdx])) = chunk.nextFreeIdx
-	chunk.nextFreeIdx = baseIdx
-	return slab
+	*(*uint32)(unsafe.Pointer(&slabLine[slabIdx])) = header.nextFreeIdx
+	header.nextFreeIdx = globalIdx
+
+	return slabLine
 }
 
-// acquire Returns a new slab from a given chunk.
+// acquire Returns a new slab from a given header.
 // Chunks are taken from the front of a free list. If that list is full a new
 // slabline is allocated and all elements are pushed to the freelist beforehand.
-func (chunk *bytePoolChunk) acquire() *SlabHandle {
-	chunk.access.Lock()
-	defer chunk.access.Unlock()
+func (header *slabsHeader) acquire() *SlabHandle {
+	header.access.Lock()
+	defer header.access.Unlock()
 
-	if chunk.nextFreeIdx == math.MaxUint32 {
-		chunk.slabs = append(chunk.slabs, chunk.createSlabLine())
+	if header.nextFreeIdx == math.MaxUint32 {
+		header.slabLine = append(header.slabLine, header.createSlabLine())
 	}
 
-	slabIdx := chunk.nextFreeIdx
-	lineIdx := slabIdx / chunk.slabCount
-	slabStart := (slabIdx % chunk.slabCount) * chunk.slabSize
-	slabEnd := slabStart + chunk.slabSize
+	slabIdx := header.nextFreeIdx
+	lineIdx := slabIdx / header.slabsPerLine
+	slabStart := (slabIdx % header.slabsPerLine) * header.slabSizeByte
+	slabEnd := slabStart + header.slabSizeByte
 
-	chunk.nextFreeIdx = *(*uint32)(unsafe.Pointer(&chunk.slabs[lineIdx][slabStart]))
+	header.nextFreeIdx = *(*uint32)(unsafe.Pointer(&header.slabLine[lineIdx][slabStart]))
 
 	handle := SlabHandle{
-		Buffer:   chunk.slabs[lineIdx][slabStart:slabEnd],
-		Length:   int(chunk.slabSize),
+		Buffer:   header.slabLine[lineIdx][slabStart:slabEnd],
+		Length:   int(header.slabSizeByte),
 		refcount: 1,
 		index:    slabIdx,
-		parent:   chunk,
+		parent:   header,
 	}
 
 	return &handle
 }
 
 // release Pushes a slab back to the freelist.
-func (chunk *bytePoolChunk) release(slab *SlabHandle) {
-	chunk.access.Lock()
-	defer chunk.access.Unlock()
+func (header *slabsHeader) release(slab *SlabHandle) {
+	header.access.Lock()
+	defer header.access.Unlock()
 
-	*(*uint32)(unsafe.Pointer(&slab.Buffer[0])) = chunk.nextFreeIdx
-	chunk.nextFreeIdx = slab.index
+	*(*uint32)(unsafe.Pointer(&slab.Buffer[0])) = header.nextFreeIdx
+	header.nextFreeIdx = slab.index
 }
 
 // Acquire increments the internal reference counter and returns the handle
@@ -134,42 +136,42 @@ func (slab *SlabHandle) Release() {
 	}
 }
 
-// CreateBytePool creates a new, empty pool of chunks.
+// CreateBytePool creates a new, empty pool of headers.
 func CreateBytePool() BytePool {
 	return BytePool{
-		chunks: make(map[uint32]*bytePoolChunk),
-		access: new(SpinLock),
+		headers: make(map[uint32]*slabsHeader),
+		access:  new(SpinLock),
 	}
 }
 
-// getChunk retrieves the chunk for the given size and assures that it is
+// getHeader retrieves the header for the given size and assures that it is
 // allocated if it is not there. This function is threadsafe
-func (pool BytePool) getChunk(slabSize uint32) *bytePoolChunk {
+func (pool BytePool) getHeader(slabSizeByte uint32) *slabsHeader {
 	pool.access.Lock()
 	defer pool.access.Unlock()
 
-	chunk, exists := pool.chunks[slabSize]
+	header, exists := pool.headers[slabSizeByte]
 	if !exists {
-		chunk = createChunk(slabSize)
-		pool.chunks[slabSize] = chunk
+		header = createSlabsHeader(slabSizeByte)
+		pool.headers[slabSizeByte] = header
 	}
 
-	return chunk
+	return header
 }
 
 // Acquire returns a new handle to a slab. Use the member functions of
 // SlabHandle to create copies or return it to the pool
-func (pool BytePool) Acquire(size int) *SlabHandle {
+func (pool BytePool) Acquire(sizeByte int) *SlabHandle {
 	// Round to multiples of 256 byte
-	slabSize := uint32(size)
-	if slabSize&0xFF != 0 {
-		slabSize = (slabSize & 0xFFFFFF00) + 0x100
+	slabSizeByte := uint32(sizeByte)
+	if slabSizeByte&0xFF != 0 {
+		slabSizeByte = (slabSizeByte & 0xFFFFFF00) + 0x100
 	}
 
-	// Fetch a free slab from the chunk and set the correct size
-	chunk := pool.getChunk(slabSize)
-	slab := chunk.acquire()
-	slab.Length = size
+	// Fetch a free slab from the header and set the correct size
+	header := pool.getHeader(slabSizeByte)
+	slab := header.acquire()
+	slab.Length = sizeByte
 
 	return slab
 }

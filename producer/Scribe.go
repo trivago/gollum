@@ -133,7 +133,7 @@ func (prod Scribe) send() {
 }
 
 func (prod Scribe) sendMessage(message shared.Message) {
-	category, exists := prod.category[message.StreamID]
+	category, exists := prod.category[message.PinnedStream]
 	if !exists {
 		category = prod.defaultCategory
 	}

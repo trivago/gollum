@@ -52,7 +52,7 @@ func (buffer *BufferedReader) Read(reader io.Reader, delimiter string) error {
 
 	if startIdx == 0 {
 		// If we did not move at all continue reading. If we don't have any
-		// space left, resize the buffer by 1KB
+		// space left, resize the buffer by its original size.
 
 		bufferSize := len(buffer.data)
 		if endIdx == bufferSize {

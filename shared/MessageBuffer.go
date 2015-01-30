@@ -45,7 +45,7 @@ func (batch *MessageBuffer) Append(msg Message) bool {
 // when done.
 func (batch *MessageBuffer) AppendAndRelease(msg Message) bool {
 	result := batch.Append(msg)
-	msg.Data.Release()
+	msg.Release()
 	return result
 }
 

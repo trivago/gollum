@@ -37,7 +37,7 @@ func (prod Null) Produce(threads *sync.WaitGroup) {
 	for {
 		select {
 		case message := <-prod.messages:
-			message.Data.Release()
+			message.Release()
 			// Do nothing
 		case command := <-prod.control:
 			if command == shared.ProducerControlStop {
