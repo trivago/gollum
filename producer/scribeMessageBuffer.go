@@ -3,6 +3,7 @@ package producer
 import (
 	"github.com/artyom/scribe"
 	"github.com/trivago/gollum/shared"
+	"sync"
 	"time"
 )
 
@@ -17,6 +18,7 @@ type scribeMessageBuffer struct {
 	maxContentLen int
 	lastFlush     time.Time
 	flags         shared.MessageFormatFlag
+	access        *sync.Mutex
 }
 
 func createScribeMessageBuffer(maxContentLen int, flags shared.MessageFormatFlag) *scribeMessageBuffer {
@@ -27,10 +29,14 @@ func createScribeMessageBuffer(maxContentLen int, flags shared.MessageFormatFlag
 		maxContentLen: maxContentLen,
 		lastFlush:     time.Now(),
 		flags:         flags,
+		access:        new(sync.Mutex),
 	}
 }
 
 func (batch *scribeMessageBuffer) append(msg shared.Message, category string) bool {
+	batch.access.Lock()
+	defer batch.access.Unlock()
+
 	messageLength := msg.Length(batch.flags)
 
 	if batch.contentLen+messageLength >= batch.maxContentLen {
@@ -65,14 +71,28 @@ func (batch *scribeMessageBuffer) appendAndRelease(msg shared.Message, category 
 	return result
 }
 
-func (batch scribeMessageBuffer) get() []*scribe.LogEntry {
-	return batch.message[:batch.messageIdx]
+func (batch *scribeMessageBuffer) touch() {
+	batch.lastFlush = time.Now()
 }
 
-func (batch *scribeMessageBuffer) flush() {
-	batch.contentLen = 0
-	batch.messageIdx = 0
-	batch.lastFlush = time.Now()
+func (batch *scribeMessageBuffer) flush(scribe *scribe.ScribeClient) error {
+	batch.access.Lock()
+	defer batch.access.Unlock()
+
+	if !batch.isEmpty() {
+		_, err := scribe.Log(batch.message[:batch.messageIdx])
+		if err != nil {
+			return err
+		}
+		batch.contentLen = 0
+		batch.messageIdx = 0
+	}
+	batch.touch()
+	return nil
+}
+
+func (batch scribeMessageBuffer) isEmpty() bool {
+	return batch.messageIdx == 0
 }
 
 func (batch scribeMessageBuffer) reachedSizeThreshold(size int) bool {

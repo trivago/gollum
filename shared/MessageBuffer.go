@@ -2,6 +2,7 @@ package shared
 
 import (
 	"io"
+	"sync"
 	"time"
 )
 
@@ -13,6 +14,7 @@ type MessageBuffer struct {
 	contentLen int
 	lastFlush  time.Time
 	flags      MessageFormatFlag
+	access     *sync.Mutex
 }
 
 // CreateMessageBuffer creates a new messagebuffer with a given size (in bytes)
@@ -23,12 +25,16 @@ func CreateMessageBuffer(size int, flags MessageFormatFlag) *MessageBuffer {
 		contentLen: 0,
 		lastFlush:  time.Now(),
 		flags:      flags,
+		access:     new(sync.Mutex),
 	}
 }
 
 // Append formats a message and adds it to the buffer.
 // If the message does not fit into the buffer this function returns false.
 func (batch *MessageBuffer) Append(msg Message) bool {
+	batch.access.Lock()
+	defer batch.access.Unlock()
+
 	messageLength := msg.Length(batch.flags)
 
 	if batch.contentLen+messageLength >= len(batch.buffer) {
@@ -48,16 +54,32 @@ func (batch *MessageBuffer) AppendAndRelease(msg Message) bool {
 	return result
 }
 
+// Touch resets the timer queried by ReachedTimeThreshold, i.e. this resets the
+// automatic flush timeout
+func (batch *MessageBuffer) Touch() {
+	batch.lastFlush = time.Now()
+}
+
 // Flush writes the content of the buffer to a given resource and resets the
 // internal state, i.e. the buffer is empty after a call to Flush
 func (batch *MessageBuffer) Flush(resource io.Writer) error {
-	_, err := resource.Write(batch.buffer[:batch.contentLen])
-	if err != nil {
-		return err
+	batch.access.Lock()
+	defer batch.access.Unlock()
+
+	if !batch.IsEmpty() {
+		_, err := resource.Write(batch.buffer[:batch.contentLen])
+		if err != nil {
+			return err
+		}
+		batch.contentLen = 0
 	}
-	batch.contentLen = 0
-	batch.lastFlush = time.Now()
+	batch.Touch()
 	return nil
+}
+
+// IsEmpty returns true if no data is stored in the buffer
+func (batch MessageBuffer) IsEmpty() bool {
+	return batch.contentLen == 0
 }
 
 // ReachedSizeThreshold returns true if the bytes stored in the buffer are

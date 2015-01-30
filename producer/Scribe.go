@@ -54,6 +54,7 @@ type Scribe struct {
 	batchTimeoutSec int
 	bufferSizeKB    int
 	defaultCategory string
+	sendLock        *sync.Mutex
 }
 
 func init() {
@@ -77,6 +78,7 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
 	prod.batch = createScribeMessageBuffer(batchSizeThreshold, prod.flags)
 	prod.bufferSizeKB = conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
+	prod.sendLock = new(sync.Mutex)
 
 	// Read stream to category mapping
 
@@ -111,6 +113,8 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 }
 
 func (prod Scribe) send() {
+	prod.sendLock.Lock()
+	defer prod.sendLock.Unlock()
 
 	if !prod.transport.IsOpen() {
 		err := prod.transport.Open()
@@ -122,13 +126,11 @@ func (prod Scribe) send() {
 	}
 
 	if prod.transport.IsOpen() {
-		result, err := prod.scribe.Log(prod.batch.get())
+		err := prod.batch.flush(prod.scribe)
 
 		if err != nil {
-			shared.Log.Error("Scribe log error", result, ":", err)
+			shared.Log.Error("Scribe log error: ", err)
 			prod.transport.Close()
-		} else {
-			prod.batch.flush()
 		}
 	}
 }
