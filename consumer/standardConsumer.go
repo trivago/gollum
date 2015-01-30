@@ -25,14 +25,12 @@ type standardConsumer struct {
 	messages chan shared.Message
 	control  chan shared.ConsumerControl
 	streams  []shared.MessageStreamID
-	pool     *shared.SlabPool
 }
 
-func (cons *standardConsumer) configureStandardConsumer(conf shared.PluginConfig, pool *shared.SlabPool) error {
+func (cons *standardConsumer) configureStandardConsumer(conf shared.PluginConfig) error {
 	cons.messages = make(chan shared.Message, conf.Channel)
 	cons.control = make(chan shared.ConsumerControl, 1)
 	cons.streams = make([]shared.MessageStreamID, len(conf.Stream))
-	cons.pool = pool
 
 	for i, stream := range conf.Stream {
 		cons.streams[i] = shared.GetStreamID(stream)
@@ -44,14 +42,14 @@ func (cons *standardConsumer) configureStandardConsumer(conf shared.PluginConfig
 // postMessage sends a message text to all configured streams.
 // This method blocks of the message queue is full.
 func (cons standardConsumer) postMessage(text string) {
-	msg := shared.CreateMessageFromString(cons.pool, text, cons.streams)
+	msg := shared.CreateMessage(text, cons.streams)
 	cons.messages <- msg
 }
 
 // postMessageFromSlice sends a buffered message to all configured streams.
 // This method blocks of the message queue is full.
 func (cons standardConsumer) postMessageFromSlice(data []byte) {
-	msg := shared.CreateMessage(cons.pool, data, cons.streams)
+	msg := shared.CreateMessageFromSlice(data, cons.streams)
 	cons.messages <- msg
 }
 

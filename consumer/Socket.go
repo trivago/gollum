@@ -34,8 +34,8 @@ func init() {
 }
 
 // Create creates a new consumer based on the current socket consumer.
-func (cons Socket) Create(conf shared.PluginConfig, pool *shared.SlabPool) (shared.Consumer, error) {
-	err := cons.configureStandardConsumer(conf, pool)
+func (cons Socket) Create(conf shared.PluginConfig) (shared.Consumer, error) {
+	err := cons.configureStandardConsumer(conf)
 	if err != nil {
 		return nil, err
 	}

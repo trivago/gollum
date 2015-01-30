@@ -12,7 +12,6 @@ import (
 type multiplexer struct {
 	consumers        []shared.Consumer
 	producers        []shared.Producer
-	pool             *shared.SlabPool
 	consumerThreads  *sync.WaitGroup
 	producerThreads  *sync.WaitGroup
 	stream           map[shared.MessageStreamID][]*shared.Producer
@@ -20,7 +19,7 @@ type multiplexer struct {
 }
 
 // Create a new multiplexer based on a given config file.
-func createMultiplexer(configFile string, pool *shared.SlabPool) multiplexer {
+func createMultiplexer(configFile string) multiplexer {
 	conf, err := shared.ReadConfig(configFile)
 	if err != nil {
 		fmt.Printf("Error: %s", err.Error())
@@ -33,7 +32,6 @@ func createMultiplexer(configFile string, pool *shared.SlabPool) multiplexer {
 	plex.stream = make(map[shared.MessageStreamID][]*shared.Producer)
 	plex.consumerThreads = new(sync.WaitGroup)
 	plex.producerThreads = new(sync.WaitGroup)
-	plex.pool = pool
 
 	// Initialize the plugins based on the config
 
@@ -58,7 +56,7 @@ func createMultiplexer(configFile string, pool *shared.SlabPool) multiplexer {
 			if reflect.PtrTo(pluginType).Implements(consumerType) {
 				typedPlugin := plugin.(shared.Consumer)
 
-				instance, err := typedPlugin.Create(config, plex.pool)
+				instance, err := typedPlugin.Create(config)
 				if err != nil {
 					shared.Log.Error("Failed registering consumer ", className, ": ", err)
 					continue // ### continue ###

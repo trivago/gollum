@@ -45,18 +45,8 @@ func GetStreamID(stream string) MessageStreamID {
 	return MessageStreamID(hash.Sum64())
 }
 
-// CreateMessage creates a new message from a given byte slice
-func CreateMessage(pool *SlabPool, data []byte, streams []MessageStreamID) Message {
-	return Message{
-		Data:         string(data),
-		Streams:      streams,
-		PinnedStream: WildcardStreamID,
-		Timestamp:    time.Now(),
-	}
-}
-
-// CreateMessageFromString creates a new message from a given string
-func CreateMessageFromString(pool *SlabPool, text string, streams []MessageStreamID) Message {
+// CreateMessage creates a new message from a given string
+func CreateMessage(text string, streams []MessageStreamID) Message {
 	msg := Message{
 		Data:         text,
 		Streams:      streams,
@@ -64,6 +54,16 @@ func CreateMessageFromString(pool *SlabPool, text string, streams []MessageStrea
 		Timestamp:    time.Now(),
 	}
 	return msg
+}
+
+// CreateMessageFromSlice creates a new message from a given byte slice
+func CreateMessageFromSlice(data []byte, streams []MessageStreamID) Message {
+	return Message{
+		Data:         string(data),
+		Streams:      streams,
+		PinnedStream: WildcardStreamID,
+		Timestamp:    time.Now(),
+	}
 }
 
 // CloneAndPin creates a copy of the message and sets the PinnedStream member
