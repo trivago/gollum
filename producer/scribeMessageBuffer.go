@@ -3,7 +3,6 @@ package producer
 import (
 	"github.com/artyom/scribe"
 	"github.com/trivago/gollum/shared"
-	"sync"
 	"time"
 )
 
@@ -18,7 +17,7 @@ type scribeMessageBuffer struct {
 	maxContentLen int
 	lastFlush     time.Time
 	flags         shared.MessageFormatFlag
-	access        *sync.Mutex
+	access        *shared.SpinLock
 }
 
 func createScribeMessageBuffer(maxContentLen int, flags shared.MessageFormatFlag) *scribeMessageBuffer {
@@ -29,7 +28,7 @@ func createScribeMessageBuffer(maxContentLen int, flags shared.MessageFormatFlag
 		maxContentLen: maxContentLen,
 		lastFlush:     time.Now(),
 		flags:         flags,
-		access:        new(sync.Mutex),
+		access:        new(shared.SpinLock),
 	}
 }
 

@@ -2,7 +2,6 @@ package shared
 
 import (
 	"io"
-	"sync"
 	"time"
 )
 
@@ -14,7 +13,7 @@ type MessageBuffer struct {
 	contentLen int
 	lastFlush  time.Time
 	flags      MessageFormatFlag
-	access     *sync.Mutex
+	access     *SpinLock
 }
 
 // CreateMessageBuffer creates a new messagebuffer with a given size (in bytes)
@@ -25,7 +24,7 @@ func CreateMessageBuffer(size int, flags MessageFormatFlag) *MessageBuffer {
 		contentLen: 0,
 		lastFlush:  time.Now(),
 		flags:      flags,
-		access:     new(sync.Mutex),
+		access:     new(SpinLock),
 	}
 }
 
