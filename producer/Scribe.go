@@ -16,6 +16,7 @@ import (
 //   Enable: true
 //   Host: "192.168.222.30"
 //   Port: 1463
+//   BufferSizeKB: 4096
 //   BatchSize: 4096
 //   BatchSizeThreshold: 16777216
 //   BatchTimeoutSec: 2
@@ -32,6 +33,9 @@ import (
 // wildcard stream (*) here, too. All streams that do not have a specific
 // mapping will go to this stream (including _GOLLUM_).
 // If no category mappings are set all messages will be send to "default".
+//
+// BufferSizeKB sets the connection buffer size in KB. By default this is set to
+// 1024, i.e. 1 MB buffer.
 //
 // BatchSize defines the number of bytes to be buffered before they are written
 // to scribe. By default this is set to 8KB.
@@ -54,7 +58,6 @@ type Scribe struct {
 	batchTimeoutSec int
 	bufferSizeKB    int
 	defaultCategory string
-	sendLock        *sync.Mutex
 }
 
 func init() {
@@ -78,7 +81,6 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
 	prod.batch = createScribeMessageBuffer(batchSizeThreshold, prod.flags)
 	prod.bufferSizeKB = conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
-	prod.sendLock = new(sync.Mutex)
 
 	// Read stream to category mapping
 
@@ -113,9 +115,6 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 }
 
 func (prod Scribe) send() {
-	prod.sendLock.Lock()
-	defer prod.sendLock.Unlock()
-
 	if !prod.transport.IsOpen() {
 		err := prod.transport.Open()
 		if err != nil {
