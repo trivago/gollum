@@ -25,7 +25,7 @@ var fileSocketPrefix = "unix://"
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
 //
-// BufferSize sets the connection buffer size in KB. By default this is set to
+// BufferSizeKB sets the connection buffer size in KB. By default this is set to
 // 1024, i.e. 1 MB buffer.
 //
 // BatchSize defines the number of bytes to be buffered before they are written
