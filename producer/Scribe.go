@@ -168,7 +168,7 @@ func (prod Scribe) Produce(threads *sync.WaitGroup) {
 		threads.Done()
 	}()
 
-	flushTimer := time.NewTimer(time.Duration(prod.batchTimeoutSec) * time.Second)
+	flushTicker := time.NewTicker(time.Duration(prod.batchTimeoutSec) * time.Second)
 
 	for {
 		select {
@@ -180,7 +180,7 @@ func (prod Scribe) Produce(threads *sync.WaitGroup) {
 				return // ### return, done ###
 			}
 
-		case <-flushTimer.C:
+		case <-flushTicker.C:
 			if prod.batch.reachedTimeThreshold(prod.batchTimeoutSec) {
 				prod.send()
 			}
