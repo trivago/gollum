@@ -7,7 +7,7 @@ import (
 // LogInternal manages the internal gollum logging channel
 type LogInternal struct {
 	Messages chan Message
-	Pool     *BytePool
+	Pool     *SlabPool
 	streams  []MessageStreamID
 }
 

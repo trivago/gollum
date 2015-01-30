@@ -25,10 +25,10 @@ type standardConsumer struct {
 	messages chan shared.Message
 	control  chan shared.ConsumerControl
 	streams  []shared.MessageStreamID
-	pool     *shared.BytePool
+	pool     *shared.SlabPool
 }
 
-func (cons *standardConsumer) configureStandardConsumer(conf shared.PluginConfig, pool *shared.BytePool) error {
+func (cons *standardConsumer) configureStandardConsumer(conf shared.PluginConfig, pool *shared.SlabPool) error {
 	cons.messages = make(chan shared.Message, conf.Channel)
 	cons.control = make(chan shared.ConsumerControl, 1)
 	cons.streams = make([]shared.MessageStreamID, len(conf.Stream))

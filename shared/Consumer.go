@@ -17,7 +17,7 @@ type Consumer interface {
 	// Create a new instance of the concrete plugin class implementing this
 	// interface. Expect the instance passed to this function to not be
 	// initialized.
-	Create(PluginConfig, *BytePool) (Consumer, error)
+	Create(PluginConfig, *SlabPool) (Consumer, error)
 
 	// Consume should implement to main loop that fetches messages from a given
 	// source and pushes it to the Message channel.

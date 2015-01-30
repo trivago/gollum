@@ -46,7 +46,7 @@ func GetStreamID(stream string) MessageStreamID {
 }
 
 // CreateMessage creates a new message from a given byte slice
-func CreateMessage(pool *BytePool, data []byte, streams []MessageStreamID) Message {
+func CreateMessage(pool *SlabPool, data []byte, streams []MessageStreamID) Message {
 	return Message{
 		Data:         pool.AcquireBytes(data),
 		Streams:      streams,
@@ -56,7 +56,7 @@ func CreateMessage(pool *BytePool, data []byte, streams []MessageStreamID) Messa
 }
 
 // CreateMessageFromString creates a new message from a given string
-func CreateMessageFromString(pool *BytePool, text string, streams []MessageStreamID) Message {
+func CreateMessageFromString(pool *SlabPool, text string, streams []MessageStreamID) Message {
 	msg := Message{
 		Data:         pool.AcquireString(text),
 		Streams:      streams,

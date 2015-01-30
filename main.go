@@ -43,7 +43,7 @@ func main() {
 		}()
 	}
 
-	stringPool := shared.CreateBytePool()
+	stringPool := shared.CreateSlabPool()
 	shared.Log.Pool = &stringPool
 
 	// Start the gollum multiplexer

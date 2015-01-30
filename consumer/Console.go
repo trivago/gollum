@@ -27,7 +27,7 @@ func init() {
 }
 
 // Create creates a new consumer based on the current console consumer.
-func (cons Console) Create(conf shared.PluginConfig, pool *shared.BytePool) (shared.Consumer, error) {
+func (cons Console) Create(conf shared.PluginConfig, pool *shared.SlabPool) (shared.Consumer, error) {
 	err := cons.configureStandardConsumer(conf, pool)
 	return cons, err
 }

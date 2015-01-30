@@ -12,7 +12,7 @@ import (
 type multiplexer struct {
 	consumers        []shared.Consumer
 	producers        []shared.Producer
-	pool             *shared.BytePool
+	pool             *shared.SlabPool
 	consumerThreads  *sync.WaitGroup
 	producerThreads  *sync.WaitGroup
 	stream           map[shared.MessageStreamID][]*shared.Producer
@@ -20,7 +20,7 @@ type multiplexer struct {
 }
 
 // Create a new multiplexer based on a given config file.
-func createMultiplexer(configFile string, pool *shared.BytePool) multiplexer {
+func createMultiplexer(configFile string, pool *shared.SlabPool) multiplexer {
 	conf, err := shared.ReadConfig(configFile)
 	if err != nil {
 		fmt.Printf("Error: %s", err.Error())
