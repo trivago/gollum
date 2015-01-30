@@ -12,11 +12,18 @@ type MessageStreamID uint64
 // MessageFormatFlag is an enum that is used for formatting messages
 type MessageFormatFlag int
 
+const (
+	// LogInternalStream is the name of the internal message channel (logs)
+	LogInternalStream = "_GOLLUM_"
+	// WildcardStream is the name of the "all streams" channel
+	WildcardStream = "*"
+)
+
 // LogInternalStreamID is the ID of the "_GOLLUM_" stream
-var LogInternalStreamID = GetStreamID("_GOLLUM_")
+var LogInternalStreamID = GetStreamID(LogInternalStream)
 
 // WildcardStreamID is the ID of the "*" stream
-var WildcardStreamID = GetStreamID("*")
+var WildcardStreamID = GetStreamID(WildcardStream)
 
 const (
 	// TimestampFormat is the timestamp format string used for messages

@@ -44,12 +44,16 @@ func (batch *scribeMessageBuffer) append(msg shared.Message, category string) bo
 		copy(batch.message, temp)
 	}
 
-	logEntry := scribe.LogEntry{
-		Category: category,
-		Message:  msg.Format(batch.flags),
+	logEntry := batch.message[batch.messageIdx]
+
+	if logEntry == nil {
+		logEntry = new(scribe.LogEntry)
+		batch.message[batch.messageIdx] = logEntry
 	}
 
-	batch.message[batch.messageIdx] = &logEntry
+	logEntry.Category = category
+	logEntry.Message = msg.Format(batch.flags)
+
 	batch.contentLen += messageLength
 	batch.messageIdx++
 

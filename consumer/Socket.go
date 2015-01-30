@@ -10,7 +10,7 @@ import (
 var fileSocketPrefix = "unix://"
 
 const (
-	socketBufferGrowSize = 16
+	socketBufferGrowSize = 256
 )
 
 // Socket consumer plugin

@@ -79,7 +79,7 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	// Read stream to category mapping
 
 	defaultMapping := make(map[interface{}]interface{})
-	defaultMapping[shared.WildcardStreamID] = "default"
+	defaultMapping[shared.WildcardStream] = "default"
 
 	categoryMap := conf.GetValue("Category", defaultMapping).(map[interface{}]interface{})
 	for stream, category := range categoryMap {

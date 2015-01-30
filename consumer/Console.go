@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	consoleBufferGrowSize = 1024
+	consoleBufferGrowSize = 256
 )
 
 // Console consumer plugin
