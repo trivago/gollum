@@ -74,12 +74,6 @@ func (msg Message) CloneAndPin(stream MessageStreamID) Message {
 	return msg
 }
 
-// Release has to be called whenever a producer "discards" a clone after
-// processing its contents.
-func (msg Message) Release() {
-	//msg.Data.Release()
-}
-
 // IsInternal returns true if a message is posted only to internal streams
 func (msg Message) IsInternal() bool {
 	for _, value := range msg.Streams {
