@@ -5,6 +5,7 @@ import (
 	"net"
 	"strings"
 	"sync"
+	"time"
 )
 
 var fileSocketPrefix = "unix://"
@@ -138,6 +139,8 @@ func (prod Socket) Produce(threads *sync.WaitGroup) {
 		threads.Done()
 	}()
 
+	flushTimer := time.NewTimer(time.Duration(prod.batchTimeoutSec) * time.Second)
+
 	for {
 		select {
 		case message := <-prod.messages:
@@ -148,11 +151,10 @@ func (prod Socket) Produce(threads *sync.WaitGroup) {
 				return // ### return, done ###
 			}
 
-		default:
+		case <-flushTimer.C:
 			if prod.batch.ReachedTimeThreshold(prod.batchTimeoutSec) {
 				prod.send()
 			}
-			// Don't block
 		}
 	}
 }

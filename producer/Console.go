@@ -70,6 +70,9 @@ func (prod Console) Produce(threads *sync.WaitGroup) {
 		threads.Done()
 	}()
 
+	// Block until one of the channels contains data so we idle when there is
+	// nothing to do.
+
 	for {
 		select {
 		case message := <-prod.messages:
@@ -79,8 +82,6 @@ func (prod Console) Produce(threads *sync.WaitGroup) {
 			if command == shared.ProducerControlStop {
 				return // ### return, done ###
 			}
-		default:
-			// Don't block
 		}
 	}
 }

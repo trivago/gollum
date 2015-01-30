@@ -34,17 +34,18 @@ func (prod Null) Create(conf shared.PluginConfig) (shared.Producer, error) {
 
 // Produce writes to a buffer that is dumped to a file.
 func (prod Null) Produce(threads *sync.WaitGroup) {
+	// Block until one of the channels contains data so we idle when there is
+	// nothing to do.
+
 	for {
 		select {
 		case message := <-prod.messages:
 			message.Release()
-			// Do nothing
+
 		case command := <-prod.control:
 			if command == shared.ProducerControlStop {
 				return // ### return, done ###
 			}
-		default:
-			// Don't block
 		}
 	}
 }

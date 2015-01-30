@@ -4,6 +4,7 @@ import (
 	"github.com/trivago/gollum/shared"
 	"os"
 	"sync"
+	"time"
 )
 
 // File producer plugin
@@ -95,6 +96,8 @@ func (prod File) Produce(threads *sync.WaitGroup) {
 		threads.Done()
 	}()
 
+	flushTimer := time.NewTimer(time.Duration(prod.batchTimeoutSec) * time.Second)
+
 	for {
 		select {
 		case message := <-prod.messages:
@@ -104,11 +107,11 @@ func (prod File) Produce(threads *sync.WaitGroup) {
 			if command == shared.ProducerControlStop {
 				return // ### return, done ###
 			}
-		default:
+
+		case <-flushTimer.C:
 			if prod.batch.ReachedTimeThreshold(prod.batchTimeoutSec) {
 				prod.write()
 			}
-			// Don't block
 		}
 	}
 }

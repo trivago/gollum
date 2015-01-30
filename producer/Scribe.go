@@ -6,6 +6,7 @@ import (
 	"github.com/trivago/gollum/shared"
 	"strconv"
 	"sync"
+	"time"
 )
 
 // Scribe producer plugin
@@ -167,6 +168,8 @@ func (prod Scribe) Produce(threads *sync.WaitGroup) {
 		threads.Done()
 	}()
 
+	flushTimer := time.NewTimer(time.Duration(prod.batchTimeoutSec) * time.Second)
+
 	for {
 		select {
 		case message := <-prod.messages:
@@ -177,11 +180,10 @@ func (prod Scribe) Produce(threads *sync.WaitGroup) {
 				return // ### return, done ###
 			}
 
-		default:
+		case <-flushTimer.C:
 			if prod.batch.reachedTimeThreshold(prod.batchTimeoutSec) {
 				prod.send()
 			}
-			// Don't block
 		}
 	}
 }
