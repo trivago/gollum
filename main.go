@@ -31,8 +31,8 @@ func main() {
 		return
 	}
 
-	if *profilePtr != "" {
-		file, err := os.Create(*profilePtr)
+	if *cpuProfilePtr != "" {
+		file, err := os.Create(*cpuProfilePtr)
 		if err != nil {
 			panic(err)
 		}
@@ -50,4 +50,15 @@ func main() {
 
 	plex := createMultiplexer(*configFilePtr, &stringPool)
 	plex.run()
+
+	// Memory profiling
+
+	if *memProfilePtr != "" {
+		file, err := os.Create(*memProfilePtr)
+		if err != nil {
+			panic(err)
+		}
+		pprof.WriteHeapProfile(file)
+		file.Close()
+	}
 }
