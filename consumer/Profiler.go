@@ -52,6 +52,8 @@ func (cons Profiler) profile() {
 
 	var msg string
 	minTime := math.MaxFloat64
+	maxTime := 0.0
+
 	for b := 0; b < cons.batches; b++ {
 
 		start := time.Now()
@@ -62,6 +64,7 @@ func (cons Profiler) profile() {
 
 		runTime := time.Since(start)
 		minTime = math.Min(minTime, runTime.Seconds())
+		maxTime = math.Max(maxTime, runTime.Seconds())
 
 		shared.Log.Note(fmt.Sprintf(
 			"Profile run #%d: %.4f sec = %4.f msg/sec",
@@ -70,8 +73,9 @@ func (cons Profiler) profile() {
 	}
 
 	runTime := time.Since(testStart)
+
 	shared.Log.Note(fmt.Sprintf(
-		"Total: %.4f sec = %4.f msg/sec",
+		"Avg: %.4f sec = %4.f msg/sec",
 		runTime.Seconds(),
 		float64(cons.profileRuns*cons.batches)/runTime.Seconds()))
 
@@ -79,6 +83,11 @@ func (cons Profiler) profile() {
 		"Best: %.4f sec = %4.f msg/sec",
 		minTime,
 		float64(cons.profileRuns)/minTime))
+
+	shared.Log.Note(fmt.Sprintf(
+		"Worst: %.4f sec = %4.f msg/sec",
+		maxTime,
+		float64(cons.profileRuns)/maxTime))
 
 	proc, _ := os.FindProcess(os.Getpid())
 	proc.Signal(os.Interrupt)

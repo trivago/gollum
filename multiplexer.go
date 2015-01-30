@@ -202,19 +202,27 @@ func (plex multiplexer) run() {
 	shared.Log.Note("We be nice to them, if they be nice to us. (startup)")
 
 	for {
+		// Check signals and log first (once per loop)
+		// Don't block as the internal log (as well as the signals) are most
+		// probably empty.
+
+		select {
+		case <-signalChannel:
+			shared.Log.Note("Master betrayed us. Wicked. Tricksy, False. (signal)")
+			return
+
+		case message := <-shared.Log.Messages:
+			plex.broadcastMessage(message)
+
+		default:
+			// don't block
+		}
+
 		// Go over all consumers in round-robin fashion
-		// Always check for signals
-		// Always check for log messages
+		// Don't block here, too as a consumer might not contain new messages
 
 		for _, consumer := range plex.consumers {
 			select {
-			case <-signalChannel:
-				shared.Log.Note("Master betrayed us. Wicked. Tricksy, False. (signal)")
-				return
-
-			case message := <-shared.Log.Messages:
-				plex.broadcastMessage(message)
-
 			case message := <-consumer.Messages():
 				plex.broadcastMessage(message)
 			default:

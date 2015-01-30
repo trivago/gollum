@@ -1,10 +1,14 @@
 package consumer
 
 import (
-	"bufio"
 	"github.com/trivago/gollum/shared"
+	"io"
 	"os"
 	"sync"
+)
+
+const (
+	consoleBufferGrowSize = 1024
 )
 
 // Console consumer plugin
@@ -28,29 +32,20 @@ func (cons Console) Create(conf shared.PluginConfig, pool *shared.BytePool) (sha
 	return cons, err
 }
 
-func (cons Console) readFrom(stream *os.File) {
-	var err error
-	var message string
-
-	reader := bufio.NewReader(stream)
+func (cons *Console) readFrom(stream io.Reader, threads *sync.WaitGroup) {
+	buffer := shared.CreateBufferedReader(consoleBufferGrowSize, cons.postMessageFromSlice)
 
 	for {
-
-		// TODO: This call blocks and prevents this go routine from shutting
-		// 		 down properly
-
-		message, err = reader.ReadString('\n')
+		err := buffer.Read(os.Stdin, "\n")
 		if err != nil {
-			return // ### return, stream error ###
+			shared.Log.Error("Error reading stdin: ", err)
 		}
-
-		cons.postMessage(message[:len(message)-1])
 	}
 }
 
 // Consume listens to stdin.
 func (cons Console) Consume(threads *sync.WaitGroup) {
-	go cons.readFrom(os.Stdin)
+	go cons.readFrom(os.Stdin, threads)
 
 	// Wait for control statements
 

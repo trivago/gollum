@@ -5,7 +5,6 @@ import (
 	"net"
 	"strings"
 	"sync"
-	"sync/atomic"
 )
 
 var fileSocketPrefix = "unix://"
@@ -27,6 +26,7 @@ const (
 type Socket struct {
 	standardConsumer
 	listen net.Listener
+	quit   bool
 }
 
 func init() {
@@ -53,83 +53,40 @@ func (cons Socket) Create(conf shared.PluginConfig, pool *shared.BytePool) (shar
 		return nil, err
 	}
 
+	cons.quit = false
+
 	return cons, err
 }
 
-func (cons Socket) readFromConnection(conn net.Conn, quit *atomic.Value) {
-	buffer := make([]byte, socketBufferGrowSize)
-	offset := 0
+func (cons *Socket) readFromConnection(conn net.Conn) {
+	buffer := shared.CreateBufferedReader(socketBufferGrowSize, cons.postMessageFromSlice)
 
-	for !quit.Load().(bool) {
+	for !cons.quit {
 		// Read from stream
 
-		size, err := conn.Read(buffer[offset:])
+		err := buffer.Read(conn, "\n")
 		if err != nil {
-			if !quit.Load().(bool) {
+			if !cons.quit {
 				shared.Log.Error("Socket read failed:", err)
 			}
 
 			return // ### return ###
 		}
-
-		// Go through the stream and look for line breaks (delimiter)
-		// Send one message per delimiter
-
-		endIdx := offset + size
-		startIdx := 0
-
-		for i := offset; i < endIdx; i++ {
-			if buffer[i] == '\n' {
-				messageEndIdx := i
-				if i > 0 && buffer[i-1] == '\r' {
-					messageEndIdx-- // ...\r\n
-				}
-
-				cons.postMessageFromSlice(buffer[startIdx:messageEndIdx])
-				startIdx = i + 1
-			}
-		}
-
-		// Manage the buffer remains
-
-		if startIdx == 0 {
-			// If we did not move at all continue reading. If we don't have any
-			// space left, resize the buffer by 1KB
-
-			bufferSize := len(buffer)
-			if endIdx == bufferSize {
-				temp := buffer
-				buffer = make([]byte, bufferSize+socketBufferGrowSize)
-				copy(buffer, temp)
-			}
-			offset = endIdx
-
-		} else if startIdx != endIdx {
-			// If we did move but there are remains left in the buffer move them
-			// to the start of the buffer and read again
-
-			copy(buffer, buffer[startIdx:endIdx])
-			offset = endIdx - startIdx
-		} else {
-			// Everything was written
-
-			offset = 0
-		}
 	}
 }
 
-func (cons Socket) accept(quit *atomic.Value, threads *sync.WaitGroup) {
-	for !quit.Load().(bool) {
+func (cons *Socket) accept(threads *sync.WaitGroup) {
+	for !cons.quit {
 
 		client, err := cons.listen.Accept()
 		if err != nil {
-			if !quit.Load().(bool) {
+			if !cons.quit {
 				shared.Log.Error("Socket listen failed:", err)
 			}
 			break // ### break ###
 		}
 
-		go cons.readFromConnection(client, quit)
+		go cons.readFromConnection(client)
 	}
 
 	threads.Done()
@@ -138,14 +95,12 @@ func (cons Socket) accept(quit *atomic.Value, threads *sync.WaitGroup) {
 // Consume listens to a given socket. Messages are expected to be separated by
 // either \n or \r\n.
 func (cons Socket) Consume(threads *sync.WaitGroup) {
-	var quit atomic.Value
-	quit.Store(false)
 	threads.Add(1)
 
-	go cons.accept(&quit, threads)
+	go cons.accept(threads)
 
 	defer func() {
-		quit.Store(true)
+		cons.quit = true
 		cons.listen.Close()
 	}()
 
