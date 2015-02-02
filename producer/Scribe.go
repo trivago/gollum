@@ -108,9 +108,9 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	}
 
 	prod.transport = thrift.NewTFramedTransport(prod.socket)
-	protocolFactory := thrift.NewTBinaryProtocolFactory(false, false)
+	binProtocol := thrift.NewTBinaryProtocol(prod.transport, false, false)
+	prod.scribe = scribe.NewScribeClientProtocol(prod.transport, binProtocol, binProtocol)
 
-	prod.scribe = scribe.NewScribeClientFactory(prod.transport, protocolFactory)
 	return prod, nil
 }
 
@@ -125,12 +125,10 @@ func (prod Scribe) send() {
 	}
 
 	if prod.transport.IsOpen() {
-		err := prod.batch.flush(prod.scribe)
-
-		if err != nil {
+		prod.batch.flush(prod.scribe, func(err error) {
 			shared.Log.Error("Scribe log error: ", err)
 			prod.transport.Close()
-		}
+		})
 	}
 }
 
@@ -153,6 +151,7 @@ func (prod Scribe) flush() {
 			prod.sendMessage(message)
 		default:
 			prod.send()
+			prod.batch.waitForFlush()
 			return
 		}
 	}

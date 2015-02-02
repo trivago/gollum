@@ -97,12 +97,11 @@ func (prod *Socket) send() {
 
 	// Flush the buffer to the connection if it is active
 	if prod.connection != nil {
-		err := prod.batch.Flush(prod.connection)
-		if err != nil {
+		prod.batch.Flush(prod.connection, func(err error) {
 			shared.Log.Error("Socket error:", err)
 			prod.connection.Close()
 			prod.connection = nil
-		}
+		})
 	}
 }
 
@@ -119,6 +118,8 @@ func (prod *Socket) flush() {
 		case message := <-prod.messages:
 			prod.sendMessage(message)
 		default:
+			prod.send()
+			prod.batch.WaitForFlush()
 			return
 		}
 	}

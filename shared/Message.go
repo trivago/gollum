@@ -17,6 +17,7 @@ const (
 	LogInternalStream = "_GOLLUM_"
 	// WildcardStream is the name of the "all streams" channel
 	WildcardStream = "*"
+	logSeparator   = " | "
 )
 
 // LogInternalStreamID is the ID of the "_GOLLUM_" stream
@@ -129,6 +130,23 @@ func (msg Message) Format(flags MessageFormatFlag) string {
 // CopyFormatted does the same thing as Format but instead of creating a new string
 // it copies the result to the given byte slice
 func (msg Message) CopyFormatted(buffer []byte, flags MessageFormatFlag) {
-	formattedString := msg.Format(flags)
-	copy(buffer, formattedString)
+	switch flags {
+	default:
+		len := copy(buffer[:], msg.Timestamp.Format(TimestampFormat))
+		len += copy(buffer[len:], logSeparator)
+		copy(buffer[len:], msg.Data)
+
+	case MessageFormatNewLine:
+		len := copy(buffer[:], []byte(msg.Timestamp.Format(TimestampFormat)))
+		len += copy(buffer[len:], []byte(logSeparator))
+		len += copy(buffer[len:], msg.Data)
+		buffer[len] = '\n'
+
+	case MessageFormatForward:
+		copy(buffer, msg.Data)
+
+	case MessageFormatForward | MessageFormatNewLine:
+		len := copy(buffer, msg.Data)
+		buffer[len] = '\n'
+	}
 }

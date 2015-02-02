@@ -2,46 +2,64 @@ package shared
 
 import (
 	"io"
+	"sync"
+	"sync/atomic"
 	"time"
 )
+
+type messageQueue struct {
+	buffer     []byte
+	contentLen int
+	doneCount  uint32
+}
+
+func createMessageQueue(size int) messageQueue {
+	return messageQueue{
+		buffer:     make([]byte, size),
+		contentLen: 0,
+		doneCount:  uint32(0),
+	}
+}
 
 // MessageBuffer is a helper class for producers to store messages into a stream
 // that is flushed into an io.Writer. You can use the Reached* functions to
 // determine when a flush should be called.
 type MessageBuffer struct {
-	buffer     []byte
-	contentLen int
-	lastFlush  time.Time
-	flags      MessageFormatFlag
-	access     *SpinLock
+	queue     [2]messageQueue
+	flushing  *sync.Mutex
+	lastFlush time.Time
+	activeSet uint32
+	flags     MessageFormatFlag
 }
 
 // CreateMessageBuffer creates a new messagebuffer with a given size (in bytes)
 // and a given set of MessageFormatFlag.
 func CreateMessageBuffer(size int, flags MessageFormatFlag) *MessageBuffer {
 	return &MessageBuffer{
-		buffer:     make([]byte, size),
-		contentLen: 0,
-		lastFlush:  time.Now(),
-		flags:      flags,
-		access:     new(SpinLock),
+		queue:     [2]messageQueue{createMessageQueue(size), createMessageQueue(size)},
+		flushing:  new(sync.Mutex),
+		lastFlush: time.Now(),
+		activeSet: uint32(0),
+		flags:     flags,
 	}
 }
 
 // Append formats a message and adds it to the buffer.
 // If the message does not fit into the buffer this function returns false.
 func (batch *MessageBuffer) Append(msg Message) bool {
-	batch.access.Lock()
-	defer batch.access.Unlock()
+	activeSet := atomic.AddUint32(&batch.activeSet, 1)
+	activeIdx := activeSet >> 31
 
 	messageLength := msg.Length(batch.flags)
+	activeQueue := &batch.queue[activeIdx]
 
-	if batch.contentLen+messageLength >= len(batch.buffer) {
+	if activeQueue.contentLen+messageLength >= len(activeQueue.buffer) {
 		return false
 	}
 
-	msg.CopyFormatted(batch.buffer[batch.contentLen:], batch.flags)
-	batch.contentLen += messageLength
+	msg.CopyFormatted(activeQueue.buffer[activeQueue.contentLen:], batch.flags)
+	activeQueue.contentLen += messageLength
+	activeQueue.doneCount++
 
 	return true
 }
@@ -60,37 +78,74 @@ func (batch *MessageBuffer) Touch() {
 }
 
 // Flush writes the content of the buffer to a given resource and resets the
-// internal state, i.e. the buffer is empty after a call to Flush
-func (batch *MessageBuffer) Flush(resource io.Writer) error {
-	batch.access.Lock()
-	defer batch.access.Unlock()
-
-	if !batch.IsEmpty() {
-		_, err := resource.Write(batch.buffer[:batch.contentLen])
-		if err != nil {
-			return err
-		}
-		batch.contentLen = 0
+// internal state, i.e. the buffer is empty after a call to Flush.
+// Writing will be done in a separate go routine to be non-blocking.
+func (batch *MessageBuffer) Flush(resource io.Writer, onError func(error)) {
+	if batch.IsEmpty() {
+		return // ### return, nothing to do ###
 	}
-	batch.Touch()
-	return nil
+
+	// Only one flush at a time
+
+	batch.flushing.Lock()
+
+	// Switch the buffers so writers can go on writing
+
+	var flushSet uint32
+	if batch.activeSet&0x80000000 != 0 {
+		flushSet = atomic.SwapUint32(&batch.activeSet, 0)
+	} else {
+		flushSet = atomic.SwapUint32(&batch.activeSet, 0x80000000)
+	}
+
+	flushIdx := flushSet >> 31
+	writerCount := flushSet & 0x7FFFFFFF
+	flushQueue := &batch.queue[flushIdx]
+
+	// Wait for remaining writers to finish
+
+	for writerCount != flushQueue.doneCount {
+		// Spin
+	}
+
+	// Write data and reset buffer
+
+	go func() {
+		defer batch.flushing.Unlock()
+
+		_, err := resource.Write(flushQueue.buffer[:flushQueue.contentLen])
+		flushQueue.contentLen = 0
+		flushQueue.doneCount = 0
+		batch.Touch()
+
+		if err != nil {
+			onError(err)
+		}
+	}()
+}
+
+// WaitForFlush blocks until the current flush command returns
+func (batch *MessageBuffer) WaitForFlush() {
+	batch.flushing.Lock()
+	batch.flushing.Unlock()
 }
 
 // IsEmpty returns true if no data is stored in the buffer
 func (batch MessageBuffer) IsEmpty() bool {
-	return batch.contentLen == 0
+	return batch.activeSet&0x7FFFFFFF == 0
 }
 
 // ReachedSizeThreshold returns true if the bytes stored in the buffer are
 // above or equal to the size given.
 // If there is no data this function returns false.
 func (batch MessageBuffer) ReachedSizeThreshold(size int) bool {
-	return batch.contentLen >= size
+	activeIdx := batch.activeSet >> 31
+	return batch.queue[activeIdx].contentLen >= size
 }
 
 // ReachedTimeThreshold returns true if the last flush was more than timeSec ago.
 // If there is no data this function returns false.
 func (batch MessageBuffer) ReachedTimeThreshold(timeSec int) bool {
-	return batch.contentLen > 0 &&
+	return !batch.IsEmpty() &&
 		time.Since(batch.lastFlush).Seconds() > float64(timeSec)
 }

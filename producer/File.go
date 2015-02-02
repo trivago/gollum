@@ -62,10 +62,9 @@ func (prod File) Create(conf shared.PluginConfig) (shared.Producer, error) {
 }
 
 func (prod File) write() {
-	err := prod.batch.Flush(prod.file)
-	if err != nil {
+	prod.batch.Flush(prod.file, func(err error) {
 		shared.Log.Error("File error:", err)
-	}
+	})
 }
 
 func (prod File) writeMessage(message shared.Message) {
@@ -82,6 +81,7 @@ func (prod File) flush() {
 			prod.writeMessage(message)
 		default:
 			prod.write()
+			prod.batch.WaitForFlush()
 			return
 		}
 	}
