@@ -66,6 +66,10 @@ func init() {
 
 // Create creates a new producer based on the current scribe producer.
 func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
+	// If not defined, delimiter is not used (override default value)
+	if !conf.HasValue("Delimiter") {
+		conf.Override("Delimiter", "")
+	}
 
 	err := prod.configureStandardProducer(conf)
 	if err != nil {
@@ -79,20 +83,19 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	prod.category = make(map[shared.MessageStreamID]string, 0)
 	prod.batchSize = conf.GetInt("BatchSize", 8192)
 	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
-	prod.batch = createScribeMessageBuffer(batchSizeThreshold, prod.flags)
+	prod.batch = createScribeMessageBuffer(batchSizeThreshold, prod.format)
 	prod.bufferSizeKB = conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
+	prod.defaultCategory = "default"
 
 	// Read stream to category mapping
 
-	defaultMapping := make(map[interface{}]interface{})
-	defaultMapping[shared.WildcardStream] = "default"
+	defaultMapping := make(map[string]string)
+	defaultMapping[shared.WildcardStream] = prod.defaultCategory
 
-	categoryMap := conf.GetValue("Category", defaultMapping).(map[interface{}]interface{})
+	categoryMap := conf.GetStringMap("Category", defaultMapping)
 	for stream, category := range categoryMap {
-		prod.category[shared.GetStreamID(stream.(string))] = category.(string)
+		prod.category[shared.GetStreamID(stream)] = category
 	}
-
-	prod.defaultCategory = "default"
 
 	wildcardCategory, wildcardCategorySet := prod.category[shared.WildcardStreamID]
 	if wildcardCategorySet {

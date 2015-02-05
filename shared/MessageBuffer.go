@@ -25,22 +25,23 @@ func createMessageQueue(size int) messageQueue {
 // that is flushed into an io.Writer. You can use the Reached* functions to
 // determine when a flush should be called.
 type MessageBuffer struct {
+	delimiter string
 	queue     [2]messageQueue
 	flushing  *sync.Mutex
 	lastFlush time.Time
 	activeSet uint32
-	flags     MessageFormatFlag
+	format    MessageFormat
 }
 
 // CreateMessageBuffer creates a new messagebuffer with a given size (in bytes)
 // and a given set of MessageFormatFlag.
-func CreateMessageBuffer(size int, flags MessageFormatFlag) *MessageBuffer {
+func CreateMessageBuffer(size int, format MessageFormat) *MessageBuffer {
 	return &MessageBuffer{
 		queue:     [2]messageQueue{createMessageQueue(size), createMessageQueue(size)},
 		flushing:  new(sync.Mutex),
 		lastFlush: time.Now(),
 		activeSet: uint32(0),
-		flags:     flags,
+		format:    format,
 	}
 }
 
@@ -50,14 +51,14 @@ func (batch *MessageBuffer) Append(msg Message) bool {
 	activeSet := atomic.AddUint32(&batch.activeSet, 1)
 	activeIdx := activeSet >> 31
 
-	messageLength := msg.Length(batch.flags)
+	messageLength := batch.format.GetLength(msg)
 	activeQueue := &batch.queue[activeIdx]
 
 	if activeQueue.contentLen+messageLength >= len(activeQueue.buffer) {
 		return false
 	}
 
-	msg.CopyFormatted(activeQueue.buffer[activeQueue.contentLen:], batch.flags)
+	batch.format.ToBuffer(msg, activeQueue.buffer[activeQueue.contentLen:])
 	activeQueue.contentLen += messageLength
 	activeQueue.doneCount++
 

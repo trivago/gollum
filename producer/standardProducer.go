@@ -3,6 +3,7 @@ package producer
 import (
 	"github.com/trivago/gollum/shared"
 	"regexp"
+	"strings"
 )
 
 // Producer base class
@@ -28,7 +29,7 @@ type standardProducer struct {
 	messages chan shared.Message
 	control  chan shared.ProducerControl
 	filter   *regexp.Regexp
-	flags    shared.MessageFormatFlag
+	format   shared.MessageFormat
 }
 
 func (prod *standardProducer) configureStandardProducer(conf shared.PluginConfig) error {
@@ -36,10 +37,18 @@ func (prod *standardProducer) configureStandardProducer(conf shared.PluginConfig
 	prod.messages = make(chan shared.Message, conf.Channel)
 	prod.control = make(chan shared.ProducerControl, 1)
 	prod.filter = nil
-	prod.flags = shared.MessageFormatDefault
 
-	if conf.GetBool("Forward", false) {
-		prod.flags = shared.MessageFormatForward
+	specialChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
+	delimiter := specialChars.Replace(conf.GetString("Delimiter", shared.DefaultDelimiter))
+
+	if conf.GetBool("Forward", true) {
+		if conf.HasValue("Delimiter") {
+			prod.format = shared.CreateMessageFormatSimple(delimiter)
+		} else {
+			prod.format = shared.CreateMessageFormatForward()
+		}
+	} else {
+		prod.format = shared.CreateMessageFormatTimestamp(shared.DefaultTimestamp, delimiter)
 	}
 
 	filter := conf.GetString("Filter", "")

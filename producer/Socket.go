@@ -47,6 +47,7 @@ type Socket struct {
 	batchSize       int
 	batchTimeoutSec int
 	bufferSizeKB    int
+	runlength       bool
 }
 
 type bufferedConn interface {
@@ -66,13 +67,17 @@ func (prod Socket) Create(conf shared.PluginConfig) (shared.Producer, error) {
 
 	batchSizeThreshold := conf.GetInt("BatchSizeThreshold", 8388608)
 
-	prod.flags |= shared.MessageFormatNewLine
 	prod.protocol = "tcp"
 	prod.address = conf.GetString("Address", ":5880")
 	prod.batchSize = conf.GetInt("BatchSize", 8192)
 	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
-	prod.batch = shared.CreateMessageBuffer(batchSizeThreshold, prod.flags)
 	prod.bufferSizeKB = conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
+
+	if conf.GetBool("Runlength", false) {
+		prod.format = shared.CreateMessageFormatRLE(prod.format)
+	}
+
+	prod.batch = shared.CreateMessageBuffer(batchSizeThreshold, prod.format)
 
 	if strings.HasPrefix(prod.address, fileSocketPrefix) {
 		prod.address = prod.address[len(fileSocketPrefix):]

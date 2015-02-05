@@ -1,7 +1,6 @@
 package shared
 
 import (
-	"fmt"
 	"hash/fnv"
 	"time"
 )
@@ -9,15 +8,11 @@ import (
 // MessageStreamID is the "compiled name" of a stream
 type MessageStreamID uint64
 
-// MessageFormatFlag is an enum that is used for formatting messages
-type MessageFormatFlag int
-
 const (
 	// LogInternalStream is the name of the internal message channel (logs)
 	LogInternalStream = "_GOLLUM_"
 	// WildcardStream is the name of the "all streams" channel
 	WildcardStream = "*"
-	logSeparator   = " | "
 )
 
 // LogInternalStreamID is the ID of the "_GOLLUM_" stream
@@ -27,14 +22,10 @@ var LogInternalStreamID = GetStreamID(LogInternalStream)
 var WildcardStreamID = GetStreamID(WildcardStream)
 
 const (
-	// TimestampFormat is the timestamp format string used for messages
-	TimestampFormat = "2006-01-02 15:04:05 MST"
-	// MessageFormatDefault formats the messages with timestamp and without newline
-	MessageFormatDefault = MessageFormatFlag(0)
-	// MessageFormatForward formats the message as-is, i.e. without a timestamp
-	MessageFormatForward = MessageFormatFlag(1)
-	// MessageFormatNewLine adds a newline to the end of the message
-	MessageFormatNewLine = MessageFormatFlag(2)
+	// DefaultTimestamp is the timestamp format string used for messages
+	DefaultTimestamp = "2006-01-02 15:04:05 MST"
+	// DefaultDelimiter is the default end of message delimiter
+	DefaultDelimiter = "\n"
 )
 
 // Message is a container used for storing the internal state of messages.
@@ -44,6 +35,13 @@ type Message struct {
 	Streams      []MessageStreamID
 	PinnedStream MessageStreamID
 	Timestamp    time.Time
+}
+
+// MessageFormat is the interface definition for message formatters
+type MessageFormat interface {
+	GetLength(msg Message) int
+	ToString(msg Message) string
+	ToBuffer(msg Message, dest []byte)
 }
 
 // GetStreamID returns the integer representation of a given stream name.
@@ -91,62 +89,4 @@ func (msg Message) IsInternal() bool {
 	}
 
 	return true
-}
-
-// Length calculates the length of the message returned by Format or FormatToCopy
-func (msg Message) Length(flags MessageFormatFlag) int {
-	length := 0
-
-	if (flags & MessageFormatNewLine) != 0 {
-		length = 1
-	}
-
-	if (flags & MessageFormatForward) == 0 {
-		length += len(TimestampFormat) + 3 + len(msg.Data)
-	} else {
-		length += len(msg.Data)
-	}
-
-	return length
-}
-
-// Format converts a Message back to a standardized string format.
-func (msg Message) Format(flags MessageFormatFlag) string {
-	switch flags {
-	default:
-		return fmt.Sprintf("%s | %s", msg.Timestamp.Format(TimestampFormat), msg.Data)
-
-	case MessageFormatNewLine:
-		return fmt.Sprintf("%s | %s\n", msg.Timestamp.Format(TimestampFormat), msg.Data)
-
-	case MessageFormatForward:
-		return msg.Data
-
-	case MessageFormatForward | MessageFormatNewLine:
-		return fmt.Sprintf("%s\n", msg.Data)
-	}
-}
-
-// CopyFormatted does the same thing as Format but instead of creating a new string
-// it copies the result to the given byte slice
-func (msg Message) CopyFormatted(buffer []byte, flags MessageFormatFlag) {
-	switch flags {
-	default:
-		len := copy(buffer[:], msg.Timestamp.Format(TimestampFormat))
-		len += copy(buffer[len:], logSeparator)
-		copy(buffer[len:], msg.Data)
-
-	case MessageFormatNewLine:
-		len := copy(buffer[:], []byte(msg.Timestamp.Format(TimestampFormat)))
-		len += copy(buffer[len:], []byte(logSeparator))
-		len += copy(buffer[len:], msg.Data)
-		buffer[len] = '\n'
-
-	case MessageFormatForward:
-		copy(buffer, msg.Data)
-
-	case MessageFormatForward | MessageFormatNewLine:
-		len := copy(buffer, msg.Data)
-		buffer[len] = '\n'
-	}
 }

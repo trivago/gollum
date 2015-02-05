@@ -10,6 +10,8 @@ type BufferedReader struct {
 	write    func([]byte)
 	growSize int
 	offset   int
+	end      int
+	start    int
 }
 
 func CreateBufferedReader(size int, callback func([]byte)) BufferedReader {
@@ -18,7 +20,79 @@ func CreateBufferedReader(size int, callback func([]byte)) BufferedReader {
 		write:    callback,
 		growSize: size,
 		offset:   0,
+		end:      0,
+		start:    0,
 	}
+}
+
+func (buffer *BufferedReader) ReadRLE(reader io.Reader) error {
+	bytesRead, err := reader.Read(buffer.data[buffer.offset:])
+
+	if err != nil && bytesRead == 0 {
+		return err
+	}
+	if bytesRead == 0 {
+		return nil
+	}
+
+	// Read message, messages or part of a message
+	readEnd := bytesRead + buffer.offset
+	for {
+		if buffer.offset == 0 {
+			// New buffer, parse length
+			msgLength := 0
+			for buffer.data[buffer.offset] >= '0' && buffer.data[buffer.offset] <= '9' {
+				msgLength = msgLength*10 + int(buffer.data[buffer.offset]-'0')
+				buffer.offset++
+			}
+
+			if buffer.data[buffer.offset] == ':' {
+				buffer.offset++
+			} else {
+				// Search for next number before exiting, so the next call can
+				// pick up at the (hopefully) next message.
+				for buffer.data[buffer.offset] < '0' || buffer.data[buffer.offset] > '9' {
+					buffer.offset++
+				}
+
+				break // ### break, malformed message ###
+			}
+
+			// Set the correct offsets for value parsing
+			buffer.start = buffer.offset
+			buffer.end = buffer.offset + msgLength
+		}
+
+		// Messages might come in parts or be continued with the next read, so
+		// we need to test if we're done.
+
+		if readEnd < buffer.end {
+			buffer.offset = readEnd
+
+			// Grow if necessary
+			bufferSize := len(buffer.data)
+			if buffer.offset == bufferSize {
+				temp := buffer.data
+				buffer.data = make([]byte, bufferSize+buffer.growSize)
+				copy(buffer.data, temp)
+			}
+
+			break // ### break, Done processing this buffer ###
+		}
+
+		buffer.write(buffer.data[buffer.start:buffer.end])
+		buffer.offset = 0
+
+		if readEnd == buffer.end {
+			break // ### break, nothing left to read ###
+		}
+
+		// Resume loop with next message in buffer
+		copy(buffer.data, buffer.data[buffer.end:readEnd])
+		readEnd -= buffer.end
+	}
+
+	return nil
 }
 
 func (buffer *BufferedReader) Read(reader io.Reader, delimiter string) error {

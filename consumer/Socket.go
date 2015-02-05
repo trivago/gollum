@@ -25,10 +25,12 @@ const (
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
 type Socket struct {
 	standardConsumer
-	listen   net.Listener
-	protocol string
-	address  string
-	quit     bool
+	listen    net.Listener
+	protocol  string
+	address   string
+	delimiter string
+	runlength bool
+	quit      bool
 }
 
 func init() {
@@ -42,6 +44,10 @@ func (cons Socket) Create(conf shared.PluginConfig) (shared.Consumer, error) {
 		return nil, err
 	}
 
+	specialChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
+
+	cons.runlength = conf.GetBool("Runlength", false)
+	cons.delimiter = specialChars.Replace(conf.GetString("Delimiter", "\n"))
 	cons.address = conf.GetString("Address", ":5880")
 	cons.protocol = "tcp"
 
@@ -56,10 +62,16 @@ func (cons Socket) Create(conf shared.PluginConfig) (shared.Consumer, error) {
 
 func (cons *Socket) readFromConnection(conn net.Conn) {
 	buffer := shared.CreateBufferedReader(socketBufferGrowSize, cons.postMessageFromSlice)
+	var err error
 
 	for !cons.quit {
 		// Read from stream
-		err := buffer.Read(conn, "\n")
+		if cons.runlength {
+			err = buffer.ReadRLE(conn)
+		} else {
+			err = buffer.Read(conn, cons.delimiter)
+		}
+
 		if err != nil {
 			if !cons.quit {
 				shared.Log.Error("Socket read failed:", err)

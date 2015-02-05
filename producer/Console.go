@@ -46,8 +46,8 @@ func (prod Console) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	return prod, nil
 }
 
-func (prod Console) printMessage(message shared.Message) {
-	fmt.Fprintln(prod.console, message.Format(prod.flags))
+func (prod Console) printMessage(msg shared.Message) {
+	fmt.Fprintln(prod.console, prod.format.ToString(msg))
 }
 
 func (prod Console) flush() {

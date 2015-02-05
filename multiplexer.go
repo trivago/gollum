@@ -159,10 +159,12 @@ func (plex multiplexer) shutdown() {
 
 	// Write remaining messages to stderr
 
+	format := shared.CreateMessageFormatForward()
+
 	for {
 		select {
 		case message := <-shared.Log.Messages:
-			fmt.Fprintln(os.Stdout, message.Format(shared.MessageFormatForward))
+			fmt.Fprintln(os.Stdout, format.ToString(message))
 		default:
 			return
 		}

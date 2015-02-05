@@ -52,11 +52,10 @@ func (prod File) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	logFile := conf.GetString("File", "/var/prod/gollum.log")
 	batchSizeThreshold := conf.GetInt("BatchThreshold", 8388608)
 
-	prod.flags |= shared.MessageFormatNewLine
 	prod.batchSize = conf.GetInt("BatchSize", 8192)
 	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
 	prod.file, err = os.OpenFile(logFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
-	prod.batch = shared.CreateMessageBuffer(batchSizeThreshold, prod.flags)
+	prod.batch = shared.CreateMessageBuffer(batchSizeThreshold, prod.format)
 
 	return prod, nil
 }

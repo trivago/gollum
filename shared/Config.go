@@ -91,12 +91,46 @@ func (conf Config) SetYAML(tagType string, values interface{}) bool {
 	return true
 }
 
+// HasValue returns true if the given key has been set as a config option.
+// This function only takes non-predefined settings into account.
+func (conf PluginConfig) HasValue(key string) bool {
+	_, exists := conf.Settings[key]
+	return exists
+}
+
+// Override sets or override a configuration value for non-predefined options.
+func (conf PluginConfig) Override(key string, value interface{}) {
+	conf.Settings[key] = value
+}
+
 // GetString tries to read a non-predefined, string value from a PluginConfig.
 // If that value is not found defaultValue is returned.
 func (conf PluginConfig) GetString(key string, defaultValue string) string {
 	value, exists := conf.Settings[key]
 	if exists {
 		return value.(string)
+	}
+
+	return defaultValue
+}
+
+// GetStringArray tries to read a non-predefined, string array from a
+// PluginConfig. If that value is not found defaultValue is returned.
+func (conf PluginConfig) GetStringArray(key string, defaultValue []string) []string {
+	value, exists := conf.Settings[key]
+	if exists {
+		return value.([]string)
+	}
+
+	return defaultValue
+}
+
+// GetStringMap tries to read a non-predefined, string to string map from a
+// PluginConfig. If that value is not found defaultValue is returned.
+func (conf PluginConfig) GetStringMap(key string, defaultValue map[string]string) map[string]string {
+	value, exists := conf.Settings[key]
+	if exists {
+		return value.(map[string]string)
 	}
 
 	return defaultValue
