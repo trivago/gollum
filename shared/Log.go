@@ -28,10 +28,19 @@ func init() {
 }
 
 func (log logs) Write(message []byte) (int, error) {
+	length := len(message)
+	if length == 0 {
+		return 0, nil
+	}
+
+	if message[length-1] == '\n' {
+		message = message[:length-1]
+	}
+
 	msg := CreateMessageFromSlice(message, logStreamIDs)
 	log.messages <- msg
 
-	return len(message), nil
+	return length, nil
 }
 
 // LogMessages returns read-only access to the log messages currently queued
