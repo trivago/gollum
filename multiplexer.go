@@ -143,7 +143,7 @@ func (plex multiplexer) shutdown() {
 	processLog := len(plex.producers) > 0 && plex.producersStarted
 	for processLog {
 		select {
-		case message := <-shared.Log.Messages:
+		case message := <-shared.Log.Messages():
 			plex.broadcastMessage(message)
 		default:
 			processLog = false
@@ -163,7 +163,7 @@ func (plex multiplexer) shutdown() {
 
 	for {
 		select {
-		case message := <-shared.Log.Messages:
+		case message := <-shared.Log.Messages():
 			fmt.Fprintln(os.Stdout, format.ToString(message))
 		default:
 			return
@@ -216,7 +216,7 @@ func (plex multiplexer) run() {
 			shared.Log.Note("Master betrayed us. Wicked. Tricksy, False. (signal)")
 			return
 
-		case message := <-shared.Log.Messages:
+		case message := <-shared.Log.Messages():
 			plex.broadcastMessage(message)
 
 		default:
