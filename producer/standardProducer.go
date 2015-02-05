@@ -13,18 +13,27 @@ import (
 //   Enable: true
 //   Buffer: 1024
 //   Forward: false
+//   Delimiter: "\r\n"
 //   Stream:
 //      - "error"
 //      - "default"
 //
 // Enable switches the consumer on or off. By default this value is set to true.
+//
 // Buffer set the size of the channel used to communicate messages. By default
 // this value is set to 1024.
+//
 // Stream contains either a single string or a list of strings defining the
 // message channels this producer will consume. By default this is set to "*"
 // which means "all streams".
-// If forward is set to true, the message will be passed as-is, so date and
+//
+// If Forward is set to true, the message will be passed as-is, so date and
 // channel will not be added. The default value is false.
+//
+// If Delimiter is set another end-of-message delimiter will be appened to the
+// end of the message. If Forward is defined and Delimiter is not defined, no
+// end-of-line delimiter will be written. Besides this case delimiter is set to
+// "\n" by default.
 type standardProducer struct {
 	messages chan shared.Message
 	control  chan shared.ProducerControl
@@ -33,7 +42,6 @@ type standardProducer struct {
 }
 
 func (prod *standardProducer) configureStandardProducer(conf shared.PluginConfig) error {
-
 	prod.messages = make(chan shared.Message, conf.Channel)
 	prod.control = make(chan shared.ProducerControl, 1)
 	prod.filter = nil
@@ -41,7 +49,7 @@ func (prod *standardProducer) configureStandardProducer(conf shared.PluginConfig
 	specialChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
 	delimiter := specialChars.Replace(conf.GetString("Delimiter", shared.DefaultDelimiter))
 
-	if conf.GetBool("Forward", true) {
+	if conf.GetBool("Forward", false) {
 		if conf.HasValue("Delimiter") {
 			prod.format = shared.CreateMessageFormatSimple(delimiter)
 		} else {

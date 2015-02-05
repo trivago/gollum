@@ -44,6 +44,12 @@ type MessageFormat interface {
 	ToBuffer(msg Message, dest []byte)
 }
 
+// MessageProvider is the interface definition for anything that provides a
+// channel of messages
+type MessageProvider interface {
+	Messages() <-chan Message
+}
+
 // GetStreamID returns the integer representation of a given stream name.
 func GetStreamID(stream string) MessageStreamID {
 	hash := fnv.New64a()

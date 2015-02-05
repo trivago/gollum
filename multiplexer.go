@@ -186,6 +186,14 @@ func (plex multiplexer) run() {
 		return // ### return, nothing to do ###
 	}
 
+	// React on signals and setup the MessageProvider queue
+
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, os.Interrupt)
+
+	providers := make([]shared.MessageProvider, 0, len(plex.consumers)+1)
+	providers = append(providers, shared.Log)
+
 	// Launch consumers and producers
 
 	for _, producer := range plex.producers {
@@ -195,41 +203,26 @@ func (plex multiplexer) run() {
 
 	for _, consumer := range plex.consumers {
 		go consumer.Consume(plex.consumerThreads)
+		providers = append(providers, consumer)
 	}
-
-	// React on signals
-
-	signalChannel := make(chan os.Signal, 1)
-	signal.Notify(signalChannel, os.Interrupt)
 
 	// Main loop
 
 	shared.Log.Note("We be nice to them, if they be nice to us. (startup)")
 
 	for {
-		// Check signals and log first (once per loop)
-		// Don't block as the internal log (as well as the signals) are most
-		// probably empty.
-
-		select {
-		case <-signalChannel:
-			shared.Log.Note("Master betrayed us. Wicked. Tricksy, False. (signal)")
-			return
-
-		case message := <-shared.Log.Messages():
-			plex.broadcastMessage(message)
-
-		default:
-			// don't block
-		}
-
 		// Go over all consumers in round-robin fashion
 		// Don't block here, too as a consumer might not contain new messages
 
-		for _, consumer := range plex.consumers {
+		for _, provider := range providers {
 			select {
-			case message := <-consumer.Messages():
+			case <-signalChannel:
+				shared.Log.Note("Master betrayed us. Wicked. Tricksy, False. (signal)")
+				return
+
+			case message := <-provider.Messages():
 				plex.broadcastMessage(message)
+
 			default:
 				// don't block
 			}
