@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -29,6 +31,8 @@ const (
 //   Rotate: false
 //   RotateTimeoutMin: 1440
 //   RotateSizeMB: 1024
+//   RotateAt: "00:00"
+//   Compress: true
 //
 // File contains the path to the log file to write.
 // By default this is set to /var/prod/gollum.log.
@@ -50,9 +54,12 @@ const (
 // rotate. Can be set in parallel with RotateSizeMB. By default this is set to
 // 1440 (i.e. 1 Day).
 //
-// RotateAt defines specific timestamp as in "HHMM" when the log should be
-// rotated. When left empty this setting is ignored. By default this setting is
-// disabled.
+// RotateAt defines specific timestamp as in "HH:MM" when the log should be
+// rotated. Hours must be given in 24h format. When left empty this setting is
+// ignored. By default this setting is disabled.
+//
+// Compress defines if a rotated logfile is to be gzip compressed or not.
+// By default this is set to true.
 type File struct {
 	standardProducer
 	file             *os.File
@@ -61,12 +68,14 @@ type File struct {
 	fileName         string
 	fileExt          string
 	fileCreated      time.Time
-	rotateAt         string
 	rotateSizeByte   int64
 	batchSize        int
 	batchTimeoutSec  int
 	rotateTimeoutMin int
+	rotateAtHour     int
+	rotateAtMin      int
 	rotate           bool
+	compress         bool
 }
 
 func init() {
@@ -90,13 +99,25 @@ func (prod File) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	prod.rotate = conf.GetBool("Rotate", false)
 	prod.rotateTimeoutMin = conf.GetInt("RotateTimeoutMin", 1440)
 	prod.rotateSizeByte = int64(conf.GetInt("RotateSizeMB", 1024)) << 20
-	prod.rotateAt = conf.GetString("RotateAt", "")
-	prod.file = nil
+	prod.rotateAtHour = -1
+	prod.rotateAtMin = -1
+	prod.compress = conf.GetBool("Compress", true)
 
 	prod.fileDir = filepath.Dir(logFile)
 	prod.fileExt = filepath.Ext(logFile)
 	prod.fileName = filepath.Base(logFile)
 	prod.fileName = prod.fileName[:len(prod.fileName)-len(prod.fileExt)]
+	prod.file = nil
+
+	rotateAt := conf.GetString("RotateAt", "")
+	if rotateAt != "" {
+		parts := strings.Split(rotateAt, ":")
+		rotateAtHour, _ := strconv.ParseInt(parts[0], 10, 8)
+		rotateAtMin, _ := strconv.ParseInt(parts[1], 10, 8)
+
+		prod.rotateAtHour = int(rotateAtHour)
+		prod.rotateAtMin = int(rotateAtMin)
+	}
 
 	return prod, nil
 }
@@ -128,11 +149,27 @@ func (prod *File) needsRotate() (bool, error) {
 		return true, nil // ### return, too old ###
 	}
 
+	// RotateAt crossed?
+	if prod.rotateAtHour > -1 && prod.rotateAtMin > -1 {
+		now := time.Now()
+		rotateAt := time.Date(now.Year(), now.Month(), now.Day(), prod.rotateAtHour, prod.rotateAtMin, 0, 0, now.Location())
+
+		if prod.fileCreated.Sub(rotateAt).Minutes() < 0 {
+			return true, nil // ### return, too old ###
+		}
+	}
+
 	// nope, everything is ok
 	return false, nil
 }
 
 func (prod File) compressAndCloseLog(sourceFile *os.File) {
+	if !prod.compress {
+		shared.Log.Note("Rotated " + sourceFile.Name())
+		sourceFile.Close()
+		return
+	}
+
 	// Generate file to zip into
 	sourceFileName := sourceFile.Name()
 	sourceBase := filepath.Base(sourceFileName)
@@ -147,17 +184,23 @@ func (prod File) compressAndCloseLog(sourceFile *os.File) {
 		return
 	}
 
-	// Create zipfile
+	// Create zipfile and compress data
 	shared.Log.Note("Compressing " + sourceFileName)
+
 	sourceFile.Seek(0, 0)
 	targetWriter := gzip.NewWriter(targetFile)
-	_, err = io.Copy(targetWriter, sourceFile)
 
+	for err == nil {
+		_, err = io.CopyN(targetWriter, sourceFile, 1<<20) // 1 MB chunks
+		runtime.Gosched()                                  // By async!
+	}
+
+	// Cleanup
 	sourceFile.Close()
 	targetWriter.Close()
 	targetFile.Close()
 
-	if err != nil {
+	if err != nil && err != io.EOF {
 		shared.Log.Warning("Compression failed:", err)
 		err = os.Remove(targetFileName)
 		if err != nil {
@@ -204,9 +247,9 @@ func (prod *File) openLog() error {
 
 	// Close existing log
 	if prod.file != nil {
-		go prod.compressAndCloseLog(prod.file)
+		currentLog := prod.file
 		prod.file = nil
-		shared.Log.Note("Log rotated.")
+		go prod.compressAndCloseLog(currentLog)
 	}
 
 	// (Re)open logfile

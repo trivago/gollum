@@ -1,8 +1,8 @@
 package shared
 
 import (
+	"runtime"
 	"sync/atomic"
-	"time"
 )
 
 // SpinLock is a lightweight, non-recursive mutex implementation.
@@ -23,7 +23,7 @@ func (lock *SpinLock) Lock() {
 	for !lock.TryLock() {
 		spinCount++
 		if spinCount == 1024 {
-			time.Sleep(time.Duration(10) * time.Microsecond)
+			runtime.Gosched()
 			spinCount = 0
 		}
 	}
