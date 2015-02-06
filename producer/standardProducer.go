@@ -46,8 +46,8 @@ func (prod *standardProducer) configureStandardProducer(conf shared.PluginConfig
 	prod.control = make(chan shared.ProducerControl, 1)
 	prod.filter = nil
 
-	specialChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
-	delimiter := specialChars.Replace(conf.GetString("Delimiter", shared.DefaultDelimiter))
+	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
+	delimiter := escapeChars.Replace(conf.GetString("Delimiter", shared.DefaultDelimiter))
 
 	if conf.GetBool("Forward", false) {
 		if conf.HasValue("Delimiter") {

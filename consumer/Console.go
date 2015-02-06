@@ -36,7 +36,7 @@ func (cons *Console) readFrom(stream io.Reader, threads *sync.WaitGroup) {
 	buffer := shared.CreateBufferedReader(consoleBufferGrowSize, cons.postMessageFromSlice)
 
 	for {
-		err := buffer.Read(os.Stdin, "\n")
+		err := buffer.Read(stream, "\n")
 		if err != nil {
 			shared.Log.Error("Error reading stdin: ", err)
 		}

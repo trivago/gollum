@@ -192,7 +192,7 @@ func (prod File) compressAndCloseLog(sourceFile *os.File) {
 
 	for err == nil {
 		_, err = io.CopyN(targetWriter, sourceFile, 1<<20) // 1 MB chunks
-		runtime.Gosched()                                  // By async!
+		runtime.Gosched()                                  // Be async!
 	}
 
 	// Cleanup

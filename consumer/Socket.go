@@ -44,10 +44,10 @@ func (cons Socket) Create(conf shared.PluginConfig) (shared.Consumer, error) {
 		return nil, err
 	}
 
-	specialChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
+	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
 
 	cons.runlength = conf.GetBool("Runlength", false)
-	cons.delimiter = specialChars.Replace(conf.GetString("Delimiter", "\n"))
+	cons.delimiter = escapeChars.Replace(conf.GetString("Delimiter", "\n"))
 	cons.address = conf.GetString("Address", ":5880")
 	cons.protocol = "tcp"
 
