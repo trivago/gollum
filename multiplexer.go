@@ -216,15 +216,13 @@ func (plex multiplexer) run() {
 
 		for _, provider := range providers {
 			select {
+			default:
 			case <-signalChannel:
 				shared.Log.Note("Master betrayed us. Wicked. Tricksy, False. (signal)")
 				return
 
 			case message := <-provider.Messages():
 				plex.broadcastMessage(message)
-
-			default:
-				// don't block
 			}
 		}
 	}

@@ -1,16 +1,20 @@
 package producer
 
 import (
+	"compress/gzip"
 	"fmt"
 	"github.com/trivago/gollum/shared"
+	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 )
 
 const (
-	fileProducerTimestamp = "2006-01-02-150405.000"
+	fileProducerTimestamp = "2006-01-02_15"
 )
 
 // File producer plugin
@@ -39,6 +43,16 @@ const (
 // BatchTimeoutSec defines the maximum number of seconds to wait after the last
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5.
+//
+// Rotate if set to true the logs will rotate after reaching certain thresholds.
+//
+// RotateTimeoutMin defines a timeout in minutes that will cause the logs to
+// rotate. Can be set in parallel with RotateSizeMB. By default this is set to
+// 1440 (i.e. 1 Day).
+//
+// RotateAt defines specific timestamp as in "HHMM" when the log should be
+// rotated. When left empty this setting is ignored. By default this setting is
+// disabled.
 type File struct {
 	standardProducer
 	file             *os.File
@@ -47,6 +61,7 @@ type File struct {
 	fileName         string
 	fileExt          string
 	fileCreated      time.Time
+	rotateAt         string
 	rotateSizeByte   int64
 	batchSize        int
 	batchTimeoutSec  int
@@ -74,7 +89,8 @@ func (prod File) Create(conf shared.PluginConfig) (shared.Producer, error) {
 
 	prod.rotate = conf.GetBool("Rotate", false)
 	prod.rotateTimeoutMin = conf.GetInt("RotateTimeoutMin", 1440)
-	prod.rotateSizeByte = int64(conf.GetInt("RotateSizeMB", 128)) << 20
+	prod.rotateSizeByte = int64(conf.GetInt("RotateSizeMB", 1024)) << 20
+	prod.rotateAt = conf.GetString("RotateAt", "")
 	prod.file = nil
 
 	prod.fileDir = filepath.Dir(logFile)
@@ -85,7 +101,7 @@ func (prod File) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	return prod, nil
 }
 
-func (prod *File) needsRefresh() (bool, error) {
+func (prod *File) needsRotate() (bool, error) {
 	// File does not exist?
 	if prod.file == nil {
 		return true, nil
@@ -116,32 +132,102 @@ func (prod *File) needsRefresh() (bool, error) {
 	return false, nil
 }
 
+func (prod File) compressAndCloseLog(sourceFile *os.File) {
+	// Generate file to zip into
+	sourceFileName := sourceFile.Name()
+	sourceBase := filepath.Base(sourceFileName)
+	sourceBase = sourceBase[:len(sourceBase)-len(prod.fileExt)]
+
+	targetFileName := fmt.Sprintf("%s/%s.gz", prod.fileDir, sourceBase)
+
+	targetFile, err := os.OpenFile(targetFileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		shared.Log.Error("File compress error:", err)
+		sourceFile.Close()
+		return
+	}
+
+	// Create zipfile
+	shared.Log.Note("Compressing " + sourceFileName)
+	sourceFile.Seek(0, 0)
+	targetWriter := gzip.NewWriter(targetFile)
+	_, err = io.Copy(targetWriter, sourceFile)
+
+	sourceFile.Close()
+	targetWriter.Close()
+	targetFile.Close()
+
+	if err != nil {
+		shared.Log.Warning("Compression failed:", err)
+		err = os.Remove(targetFileName)
+		if err != nil {
+			shared.Log.Error("Compressed file remove failed:", err)
+		}
+		return
+	}
+
+	// Remove original log
+	err = os.Remove(sourceFileName)
+	if err != nil {
+		shared.Log.Error("Uncompressed file remove failed:", err)
+	}
+}
+
 func (prod *File) openLog() error {
-	refresh, err := prod.needsRefresh()
-	if !refresh {
+	if rotate, err := prod.needsRotate(); !rotate {
 		return err
 	}
 
+	// Generate the log filename based on rotation, existing files, etc.
 	var logFile string
-	if prod.rotate {
-		logFile = fmt.Sprintf("%s/%s_%s%s", prod.fileDir, prod.fileName, time.Now().Format(fileProducerTimestamp), prod.fileExt)
-	} else {
+
+	if !prod.rotate {
 		logFile = fmt.Sprintf("%s/%s%s", prod.fileDir, prod.fileName, prod.fileExt)
+	} else {
+		timestamp := time.Now().Format(fileProducerTimestamp)
+		signature := fmt.Sprintf("%s_%s", prod.fileName, timestamp)
+		counter := 0
+
+		files, _ := ioutil.ReadDir(prod.fileDir)
+		for _, file := range files {
+			if strings.Contains(file.Name(), signature) {
+				counter++
+			}
+		}
+
+		if counter == 0 {
+			logFile = fmt.Sprintf("%s/%s%s", prod.fileDir, signature, prod.fileExt)
+		} else {
+			logFile = fmt.Sprintf("%s/%s_%d%s", prod.fileDir, signature, counter, prod.fileExt)
+		}
 	}
 
+	// Close existing log
 	if prod.file != nil {
-		prod.file.Close()
+		go prod.compressAndCloseLog(prod.file)
 		prod.file = nil
+		shared.Log.Note("Log rotated.")
 	}
 
+	// (Re)open logfile
+	var err error
+	prod.file, err = os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		return err
+	}
+
+	// Create "current" symlink
 	prod.fileCreated = time.Now()
-	prod.file, err = os.OpenFile(logFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+	symLinkName := fmt.Sprintf("%s/%s_current", prod.fileDir, prod.fileName)
+
+	os.Remove(symLinkName)
+	os.Symlink(logFile, symLinkName)
+
 	return err
 }
 
 func (prod *File) write() {
-	err := prod.openLog()
-	if err != nil {
+	if err := prod.openLog(); err != nil {
 		shared.Log.Error("File rotate error:", err)
 		return
 	}
