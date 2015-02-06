@@ -1,7 +1,9 @@
 package consumer
 
 import (
+	"fmt"
 	"github.com/trivago/gollum/shared"
+	"io"
 	"net"
 	"strings"
 	"sync"
@@ -23,14 +25,19 @@ const (
 // Address stores the identifier to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
+//
+// Acknowledge can be set to true to inform the writer on success or error.
+// On success "OK\n" is send. Any error will close the connection.
+// This setting is disabled by default.
 type Socket struct {
 	standardConsumer
-	listen    net.Listener
-	protocol  string
-	address   string
-	delimiter string
-	runlength bool
-	quit      bool
+	listen      net.Listener
+	protocol    string
+	address     string
+	delimiter   string
+	runlength   bool
+	quit        bool
+	acknowledge bool
 }
 
 func init() {
@@ -50,6 +57,7 @@ func (cons Socket) Create(conf shared.PluginConfig) (shared.Consumer, error) {
 	cons.delimiter = escapeChars.Replace(conf.GetString("Delimiter", "\n"))
 	cons.address = conf.GetString("Address", ":5880")
 	cons.protocol = "tcp"
+	cons.acknowledge = conf.GetBool("Acknowledge", false)
 
 	if strings.HasPrefix(cons.address, fileSocketPrefix) {
 		cons.address = cons.address[len(fileSocketPrefix):]
@@ -61,8 +69,10 @@ func (cons Socket) Create(conf shared.PluginConfig) (shared.Consumer, error) {
 }
 
 func (cons *Socket) readFromConnection(conn net.Conn) {
-	buffer := shared.CreateBufferedReader(socketBufferGrowSize, cons.postMessageFromSlice)
+	defer conn.Close()
+
 	var err error
+	buffer := shared.CreateBufferedReader(socketBufferGrowSize, cons.postMessageFromSlice)
 
 	for !cons.quit {
 		// Read from stream
@@ -72,12 +82,15 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 			err = buffer.Read(conn, cons.delimiter)
 		}
 
-		if err != nil {
+		if err == nil || err == io.EOF {
+			if cons.acknowledge {
+				fmt.Fprint(conn, "OK")
+			}
+		} else {
 			if !cons.quit {
 				shared.Log.Error("Socket read failed:", err)
 			}
-
-			return // ### return ###
+			break // ### break, close connection ###
 		}
 	}
 }

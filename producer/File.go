@@ -275,9 +275,14 @@ func (prod *File) write() {
 		return
 	}
 
-	prod.batch.Flush(prod.file, func(err error) {
-		shared.Log.Error("File write error:", err)
-	})
+	prod.batch.Flush(
+		prod.file,
+		func() bool {
+			return true
+		},
+		func(err error) {
+			shared.Log.Error("File write error:", err)
+		})
 }
 
 func (prod *File) writeMessage(message shared.Message) {

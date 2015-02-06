@@ -48,6 +48,7 @@ type Socket struct {
 	batchTimeoutSec int
 	bufferSizeKB    int
 	runlength       bool
+	acknowledge     bool
 }
 
 type bufferedConn interface {
@@ -72,6 +73,7 @@ func (prod Socket) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
 	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
 	prod.bufferSizeKB = conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
+	prod.acknowledge = conf.GetBool("Acknowledge", false)
 
 	if conf.GetBool("Runlength", false) {
 		prod.format = shared.CreateMessageFormatRLE(prod.format)
@@ -85,6 +87,21 @@ func (prod Socket) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	}
 
 	return prod, nil
+}
+
+func (prod *Socket) validate() bool {
+	if !prod.acknowledge {
+		return true
+	}
+
+	response := make([]byte, 2)
+	_, err := prod.connection.Read(response)
+	if err != nil {
+		shared.Log.Error("Socket response error:", err)
+		return false
+	}
+
+	return string(response) == "OK"
 }
 
 func (prod *Socket) send() {
@@ -102,11 +119,14 @@ func (prod *Socket) send() {
 
 	// Flush the buffer to the connection if it is active
 	if prod.connection != nil {
-		prod.batch.Flush(prod.connection, func(err error) {
-			shared.Log.Error("Socket error:", err)
-			prod.connection.Close()
-			prod.connection = nil
-		})
+		prod.batch.Flush(
+			prod.connection,
+			prod.validate,
+			func(err error) {
+				shared.Log.Error("Socket error:", err)
+				prod.connection.Close()
+				prod.connection = nil
+			})
 	}
 }
 

@@ -2,6 +2,7 @@ package shared
 
 import (
 	"io"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -81,7 +82,7 @@ func (batch *MessageBuffer) Touch() {
 // Flush writes the content of the buffer to a given resource and resets the
 // internal state, i.e. the buffer is empty after a call to Flush.
 // Writing will be done in a separate go routine to be non-blocking.
-func (batch *MessageBuffer) Flush(resource io.Writer, onError func(error)) {
+func (batch *MessageBuffer) Flush(resource io.Writer, onSuccess func() bool, onError func(error)) {
 	if batch.IsEmpty() {
 		return // ### return, nothing to do ###
 	}
@@ -106,21 +107,22 @@ func (batch *MessageBuffer) Flush(resource io.Writer, onError func(error)) {
 	// Wait for remaining writers to finish
 
 	for writerCount != flushQueue.doneCount {
-		// Spin
+		runtime.Gosched()
 	}
 
 	// Write data and reset buffer
 
 	go func() {
 		defer batch.flushing.Unlock()
-
 		_, err := resource.Write(flushQueue.buffer[:flushQueue.contentLen])
-		flushQueue.contentLen = 0
-		flushQueue.doneCount = 0
-		batch.Touch()
 
-		if err != nil {
+		if err == nil && onSuccess() {
+			flushQueue.contentLen = 0
+			flushQueue.doneCount = 0
+			batch.Touch()
+		} else {
 			onError(err)
+			// This buffer will be retried during the next flush
 		}
 	}()
 }
