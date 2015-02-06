@@ -158,7 +158,6 @@ func (prod Kafka) Create(conf shared.PluginConfig) (shared.Producer, error) {
 
 	prod.producerConfig.MaxMessageBytes = conf.GetInt("MaxMessageBytes", 1<<20)
 	prod.producerConfig.MaxMessagesPerReq = conf.GetInt("MaxMessagesPerReq", 0)
-	prod.producerConfig.ChannelBufferSize = conf.Channel
 	prod.producerConfig.RetryBackoff = time.Duration(conf.GetInt("RetryBackoffMs", 250)) * time.Millisecond
 
 	prod.clientConfig.WaitForElection = prod.producerConfig.RetryBackoff
