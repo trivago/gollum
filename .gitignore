@@ -1,3 +1,4 @@
 gollum
 gollum*.log
 log*.log
+log_*

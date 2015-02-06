@@ -1,9 +1,19 @@
 package producer
 
 import (
-	"github.com/Shopify/sarama"
+	kafka "github.com/Shopify/sarama"
 	"github.com/trivago/gollum/shared"
 	"sync"
+	"time"
+)
+
+const (
+	partRandom     = "Random"
+	partRoundrobin = "Roundrobin"
+	partHash       = "Hash"
+	compressNone   = "None"
+	compressGZIP   = "Zip"
+	compressSnappy = "Snappy"
 )
 
 // Kafka producer plugin
@@ -11,6 +21,17 @@ import (
 //
 // - "producer.Kafka":
 //   Enable: true
+//   Partitioner: "Roundrobin"
+//   RequiredAcks: 0
+//   TimeoutMs: 0
+//   Compression: "Snappy"
+//   FlushMsgCount: 10
+//   FlushByteCount: 16384
+//   FlushFrequencySec: 5
+//   MaxMessageBytes: 524288
+//   MaxMessagesPerReq: 0
+//   RetryBackoffMs: 1000
+//   MetadataRefreshSec: 30
 //   Servers:
 //   	- "192.168.222.30:9092"
 //   Stream:
@@ -19,15 +40,56 @@ import (
 //   Topic:
 //     "console" : "default"
 //     "_GOLLUM_"  : "default"
+//
+// Partitioner sets the distribution algorithm to use. Valid values (case
+// sensitive) are: "Random","Roundrobin","Hash". By default "Hash" is set.
+//
+// RequiredAcks defines the acknowledgement level required by the broker.
+// 0 = No responses required. 1 = wait for the local commit. -1 = wait for
+// all replicas to commit. >1 = wait for a specific number of commits.
+// By default this is set to 1.
+//
+// TimeoutMs denotes the maximum time the broker will wait for acks. This
+// setting becomes active when RequiredAcks is set to wait for multiple commits.
+// By default this is set to 1500.
+//
+// Compression sets the method of compression to use. Valid values (case
+// sensitive) are: "None","Zip","Snappy". By default "None" is set.
+//
+// FlushMsgCount sets the minimum number of messages required to trigger a
+// flush. By default this is set to 1.
+//
+// FlushFrequencySec sets the minimum time in seconds to pass after wich a new
+// flush will be triggered. By default this is set to 3.
+//
+// FlushByteCount sets the mimimum number of bytes to collect before a new flush
+// is triggered. By default this is set to 8192.
+//
+// MaxMessageBytes defines the maximum allowed message size. By default this is
+// set to 1 MB.
+//
+// MaxMessagesPerReq defines the maximum number of messages processed per
+// request. By default this is set to 0 for "unlimited".
+//
+// RetryBackoffMs defines the number of milliseconds to wait for the cluster to
+// elect a new leader. Defaults to 250.
+//
+// MetadataRefreshSec set the interval in seconds for fetching cluster metadata.
+// By default this is set to 10.
+//
+// Topic maps a stream to a specific kafka topic. You can define the
+// wildcard stream (*) here, too. All streams that do not have a specific
+// mapping will go to this stream (including _GOLLUM_).
+// If no topic mappings are set all messages will be send to "default".
 type Kafka struct {
 	standardProducer
 	servers        []string
 	topic          map[shared.MessageStreamID]string
 	defaultTopic   string
-	client         *sarama.Client
-	clientConfig   *sarama.ClientConfig
-	producer       *sarama.Producer
-	producerConfig *sarama.ProducerConfig
+	client         *kafka.Client
+	clientConfig   *kafka.ClientConfig
+	producer       *kafka.Producer
+	producerConfig *kafka.ProducerConfig
 }
 
 func init() {
@@ -46,8 +108,8 @@ func (prod Kafka) Create(conf shared.PluginConfig) (shared.Producer, error) {
 		return nil, err
 	}
 
-	prod.clientConfig = sarama.NewClientConfig()
-	prod.producerConfig = sarama.NewProducerConfig()
+	prod.clientConfig = kafka.NewClientConfig()
+	prod.producerConfig = kafka.NewProducerConfig()
 	prod.servers = conf.GetStringArray("Servers", []string{})
 	prod.topic = make(map[shared.MessageStreamID]string)
 	prod.defaultTopic = "default"
@@ -65,6 +127,43 @@ func (prod Kafka) Create(conf shared.PluginConfig) (shared.Producer, error) {
 		prod.defaultTopic = wildcardTopic
 	}
 
+	switch conf.GetString("Partitioner", partRandom) {
+	case partRandom:
+		prod.producerConfig.Partitioner = kafka.NewRandomPartitioner
+	case partRoundrobin:
+		prod.producerConfig.Partitioner = kafka.NewRoundRobinPartitioner
+	default:
+		// Don't set == partHash
+	case partHash:
+		prod.producerConfig.Partitioner = kafka.NewHashPartitioner
+	}
+
+	prod.producerConfig.RequiredAcks = kafka.RequiredAcks(conf.GetInt("RequiredAcks", int(kafka.WaitForLocal)))
+	prod.producerConfig.Timeout = time.Duration(conf.GetInt("TimoutMs", 1500)) * time.Millisecond
+
+	switch conf.GetString("Compression", compressNone) {
+	default:
+		// Don't set == compressNome
+	case compressNone:
+		prod.producerConfig.Compression = kafka.CompressionNone
+	case compressGZIP:
+		prod.producerConfig.Compression = kafka.CompressionGZIP
+	case compressSnappy:
+		prod.producerConfig.Compression = kafka.CompressionSnappy
+	}
+
+	prod.producerConfig.FlushMsgCount = conf.GetInt("FlushMsgCount", 1)
+	prod.producerConfig.FlushFrequency = time.Duration(conf.GetInt("FlushFrequencySec", 3)) * time.Second
+	prod.producerConfig.FlushByteCount = conf.GetInt("FlushByteCount", 8192)
+
+	prod.producerConfig.MaxMessageBytes = conf.GetInt("MaxMessageBytes", 1<<20)
+	prod.producerConfig.MaxMessagesPerReq = conf.GetInt("MaxMessagesPerReq", 0)
+	prod.producerConfig.ChannelBufferSize = conf.Channel
+	prod.producerConfig.RetryBackoff = time.Duration(conf.GetInt("RetryBackoffMs", 250)) * time.Millisecond
+
+	prod.clientConfig.WaitForElection = prod.producerConfig.RetryBackoff
+	prod.clientConfig.BackgroundRefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshSec", 10)) * time.Second
+
 	return prod, nil
 }
 
@@ -78,7 +177,7 @@ func (prod *Kafka) send(msg shared.Message) {
 			prod.producer = nil
 		}
 
-		prod.client, err = sarama.NewClient("gollum", prod.servers, prod.clientConfig)
+		prod.client, err = kafka.NewClient("gollum", prod.servers, prod.clientConfig)
 		if err != nil {
 			shared.Log.Error("Kafka client error:", err)
 			return
@@ -87,7 +186,7 @@ func (prod *Kafka) send(msg shared.Message) {
 
 	// Make sure we have a producer up and running
 	if prod.producer == nil {
-		prod.producer, err = sarama.NewProducer(prod.client, prod.producerConfig)
+		prod.producer, err = kafka.NewProducer(prod.client, prod.producerConfig)
 		if err != nil {
 			shared.Log.Error("Kafka producer error:", err)
 			return
@@ -101,10 +200,10 @@ func (prod *Kafka) send(msg shared.Message) {
 			topic = prod.defaultTopic
 		}
 
-		prod.producer.Input() <- &sarama.MessageToSend{
+		prod.producer.Input() <- &kafka.MessageToSend{
 			Topic: topic,
 			Key:   nil,
-			Value: sarama.StringEncoder(prod.format.ToString(msg)),
+			Value: kafka.StringEncoder(prod.format.ToString(msg)),
 		}
 
 		// Check for errors
