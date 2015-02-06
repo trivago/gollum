@@ -17,8 +17,8 @@ var fileSocketPrefix = "unix://"
 //   Enable: true
 //   Address: "unix:///var/gollum.socket"
 //   BufferSizeKB: 4096
-//   BatchSize: 4096
-//   BatchSizeThreshold: 16777216
+//   BufferSizeMaxKB: 16384
+//   BatchSizeByte: 4096
 //   BatchTimeoutSec: 5
 //
 // Address stores the identifier to connect to.
@@ -28,12 +28,12 @@ var fileSocketPrefix = "unix://"
 // BufferSizeKB sets the connection buffer size in KB. By default this is set to
 // 1024, i.e. 1 MB buffer.
 //
-// BatchSize defines the number of bytes to be buffered before they are written
-// to scribe. By default this is set to 8KB.
-//
-// BatchSizeThreshold defines the maximum number of bytes to buffer before
+// BufferSizeMaxKB defines the maximum number of bytes to buffer before
 // messages get dropped. Any message that crosses the threshold is dropped.
-// By default this is set to 8MB.
+// By default this is set to 8192.
+//
+// BatchSizeByte defines the number of bytes to be buffered before they are written
+// to scribe. By default this is set to 8KB.
 //
 // BatchTimeoutSec defines the maximum number of seconds to wait after the last
 // message arrived before a batch is flushed automatically. By default this is
@@ -65,11 +65,11 @@ func (prod Socket) Create(conf shared.PluginConfig) (shared.Producer, error) {
 		return nil, err
 	}
 
-	batchSizeThreshold := conf.GetInt("BatchSizeThreshold", 8388608)
+	bufferSizeMax := conf.GetInt("BufferSizeMaxKB", 8<<10) << 10
 
 	prod.protocol = "tcp"
 	prod.address = conf.GetString("Address", ":5880")
-	prod.batchSize = conf.GetInt("BatchSize", 8192)
+	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
 	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
 	prod.bufferSizeKB = conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
 
@@ -77,7 +77,7 @@ func (prod Socket) Create(conf shared.PluginConfig) (shared.Producer, error) {
 		prod.format = shared.CreateMessageFormatRLE(prod.format)
 	}
 
-	prod.batch = shared.CreateMessageBuffer(batchSizeThreshold, prod.format)
+	prod.batch = shared.CreateMessageBuffer(bufferSizeMax, prod.format)
 
 	if strings.HasPrefix(prod.address, fileSocketPrefix) {
 		prod.address = prod.address[len(fileSocketPrefix):]

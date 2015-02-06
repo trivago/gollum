@@ -25,12 +25,12 @@ const (
 //   RequiredAcks: 0
 //   TimeoutMs: 0
 //   Compression: "Snappy"
-//   FlushMsgCount: 10
-//   FlushByteCount: 16384
-//   FlushFrequencySec: 5
-//   MaxMessageBytes: 524288
-//   MaxMessagesPerReq: 0
-//   RetryBackoffMs: 1000
+//   BatchMinCount: 10
+//   BatchSizeByte: 16384
+//   BatchTimeoutSec: 5
+//   BufferSizeMaxKB: 524288
+//   BatchMaxCount: 0
+//   ElectTimeoutMs: 1000
 //   MetadataRefreshSec: 30
 //   Servers:
 //   	- "192.168.222.30:9092"
@@ -56,22 +56,22 @@ const (
 // Compression sets the method of compression to use. Valid values (case
 // sensitive) are: "None","Zip","Snappy". By default "None" is set.
 //
-// FlushMsgCount sets the minimum number of messages required to trigger a
-// flush. By default this is set to 1.
-//
-// FlushFrequencySec sets the minimum time in seconds to pass after wich a new
-// flush will be triggered. By default this is set to 3.
-//
-// FlushByteCount sets the mimimum number of bytes to collect before a new flush
-// is triggered. By default this is set to 8192.
-//
-// MaxMessageBytes defines the maximum allowed message size. By default this is
+// BufferSizeMaxKB defines the maximum allowed message size. By default this is
 // set to 1 MB.
 //
-// MaxMessagesPerReq defines the maximum number of messages processed per
+// BatchSizeByte sets the mimimum number of bytes to collect before a new flush
+// is triggered. By default this is set to 8192.
+//
+// BatchMinCount sets the minimum number of messages required to trigger a
+// flush. By default this is set to 1.
+//
+// BatchMaxCount defines the maximum number of messages processed per
 // request. By default this is set to 0 for "unlimited".
 //
-// RetryBackoffMs defines the number of milliseconds to wait for the cluster to
+// BatchTimeoutSec sets the minimum time in seconds to pass after wich a new
+// flush will be triggered. By default this is set to 3.
+//
+// ElectTimeoutMs defines the number of milliseconds to wait for the cluster to
 // elect a new leader. Defaults to 250.
 //
 // MetadataRefreshSec set the interval in seconds for fetching cluster metadata.
@@ -152,13 +152,13 @@ func (prod Kafka) Create(conf shared.PluginConfig) (shared.Producer, error) {
 		prod.producerConfig.Compression = kafka.CompressionSnappy
 	}
 
-	prod.producerConfig.FlushMsgCount = conf.GetInt("FlushMsgCount", 1)
-	prod.producerConfig.FlushFrequency = time.Duration(conf.GetInt("FlushFrequencySec", 3)) * time.Second
-	prod.producerConfig.FlushByteCount = conf.GetInt("FlushByteCount", 8192)
+	prod.producerConfig.FlushMsgCount = conf.GetInt("BatchMinCount", 1)
+	prod.producerConfig.FlushFrequency = time.Duration(conf.GetInt("BatchTimeoutSec", 3)) * time.Second
+	prod.producerConfig.FlushByteCount = conf.GetInt("BatchSizeByte", 8192)
 
-	prod.producerConfig.MaxMessageBytes = conf.GetInt("MaxMessageBytes", 1<<20)
-	prod.producerConfig.MaxMessagesPerReq = conf.GetInt("MaxMessagesPerReq", 0)
-	prod.producerConfig.RetryBackoff = time.Duration(conf.GetInt("RetryBackoffMs", 250)) * time.Millisecond
+	prod.producerConfig.MaxMessageBytes = conf.GetInt("BufferSizeMaxKB", 1<<10) << 10
+	prod.producerConfig.MaxMessagesPerReq = conf.GetInt("BatchMaxCount", 0)
+	prod.producerConfig.RetryBackoff = time.Duration(conf.GetInt("ElectTimeoutMs", 250)) * time.Millisecond
 
 	prod.clientConfig.WaitForElection = prod.producerConfig.RetryBackoff
 	prod.clientConfig.BackgroundRefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshSec", 10)) * time.Second

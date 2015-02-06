@@ -25,8 +25,8 @@ const (
 // - "producer.File":
 //   Enable: true
 //   File: "/var/log/gollum.log"
-//   BatchSize: 4096
-//   BatchSizeThreshold: 16777216
+//   BufferSizeMaxKB: 16384
+//   BatchSizeByte: 4096
 //   BatchTimeoutSec: 2
 //   Rotate: false
 //   RotateTimeoutMin: 1440
@@ -37,16 +37,16 @@ const (
 // File contains the path to the log file to write.
 // By default this is set to /var/prod/gollum.log.
 //
-// BatchSize defines the number of bytes to be buffered before they are written
-// to disk. By default this is set to 8KB.
-//
-// BatchSizeThreshold defines the maximum number of bytes to buffer before
+// BufferSizeMaxKB defines the maximum number of bytes to buffer before
 // messages get dropped. Any message that crosses the threshold is dropped.
-// By default this is set to 8MB.
+// By default this is set to 8192
+//
+// BatchSizeByte defines the number of bytes to be buffered before they are written
+// to disk. By default this is set to 8KB.
 //
 // BatchTimeoutSec defines the maximum number of seconds to wait after the last
 // message arrived before a batch is flushed automatically. By default this is
-// set to 5.
+// set to 5..
 //
 // Rotate if set to true the logs will rotate after reaching certain thresholds.
 //
@@ -90,11 +90,11 @@ func (prod File) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	}
 
 	logFile := conf.GetString("File", "/var/prod/gollum.log")
-	batchSizeThreshold := conf.GetInt("BatchThreshold", 8388608)
+	bufferSizeMax := conf.GetInt("BufferSizeMaxKB", 8<<10) << 10 // 8 MB
 
-	prod.batchSize = conf.GetInt("BatchSize", 8192)
+	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
 	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
-	prod.batch = shared.CreateMessageBuffer(batchSizeThreshold, prod.format)
+	prod.batch = shared.CreateMessageBuffer(bufferSizeMax, prod.format)
 
 	prod.rotate = conf.GetBool("Rotate", false)
 	prod.rotateTimeoutMin = conf.GetInt("RotateTimeoutMin", 1440)

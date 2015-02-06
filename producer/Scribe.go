@@ -17,8 +17,8 @@ import (
 //   Host: "192.168.222.30"
 //   Port: 1463
 //   BufferSizeKB: 4096
-//   BatchSize: 4096
-//   BatchSizeThreshold: 16777216
+//   BufferSizeMaxKB: 16384
+//   BatchSizeByte: 4096
 //   BatchTimeoutSec: 2
 //   Stream:
 //     - "console"
@@ -37,12 +37,12 @@ import (
 // BufferSizeKB sets the connection buffer size in KB. By default this is set to
 // 1024, i.e. 1 MB buffer.
 //
-// BatchSize defines the number of bytes to be buffered before they are written
-// to scribe. By default this is set to 8KB.
-//
-// BatchSizeThreshold defines the maximum number of bytes to buffer before
+// BufferSizeMaxKB defines the maximum number of bytes to buffer before
 // messages get dropped. If a message crosses the threshold it is still buffered
-// but additional messages will be dropped. By default this is set to 8MB.
+// but additional messages will be dropped. By default this is set to 8192.
+//
+// BatchSizeByte defines the number of bytes to be buffered before they are written
+// to scribe. By default this is set to 8KB.
 //
 // BatchTimeoutSec defines the maximum number of seconds to wait after the last
 // message arrived before a batch is flushed automatically. By default this is
@@ -78,12 +78,12 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 
 	host := conf.GetString("Host", "localhost")
 	port := conf.GetInt("Port", 1463)
-	batchSizeThreshold := conf.GetInt("BatchSizeThreshold", 8388608)
+	bufferSizeMax := conf.GetInt("BufferSizeMaxKB", 8<<10) << 1 // 8 MB
 
 	prod.category = make(map[shared.MessageStreamID]string, 0)
-	prod.batchSize = conf.GetInt("BatchSize", 8192)
+	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
 	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
-	prod.batch = createScribeMessageBuffer(batchSizeThreshold, prod.format)
+	prod.batch = createScribeMessageBuffer(bufferSizeMax, prod.format)
 	prod.bufferSizeKB = conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
 	prod.defaultCategory = "default"
 
