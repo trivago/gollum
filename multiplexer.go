@@ -179,31 +179,26 @@ func (plex multiplexer) run() {
 	}
 
 	// React on signals and setup the MessageProvider queue
-
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt)
 
-	// If there are intenal log listeners switch to stream mode
-
-	if _, enableQueue := plex.stream[shared.LogInternalStreamID]; enableQueue {
-		Log.EnqueueMessages(true)
-	}
-
-	// Launch consumers and producers
-
+	// Launch producers
 	for _, producer := range plex.producers {
 		go producer.Produce(plex.producerThreads)
 	}
 
+	// If there are intenal log listeners switch to stream mode
+	if _, enableQueue := plex.stream[shared.LogInternalStreamID]; enableQueue {
+		Log.EnqueueMessages(true)
+	}
+
+	// Launch consumers
 	for _, consumer := range plex.consumers {
 		go consumer.Consume(plex.consumerThreads)
 	}
 
-	// Wait for at least one producer to come online
-
-	Log.Note.Print("We be nice to them, if they be nice to us. (startup)")
-
 	// Main loop
+	Log.Note.Print("We be nice to them, if they be nice to us. (startup)")
 
 	for {
 		// Go over all consumers in round-robin fashion
