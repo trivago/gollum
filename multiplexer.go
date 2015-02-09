@@ -2,24 +2,23 @@ package main
 
 import (
 	"fmt"
+	"github.com/trivago/gollum/consumer"
 	"github.com/trivago/gollum/shared"
 	"os"
 	"os/signal"
-	"reflect"
 	"sync"
 )
 
 type multiplexer struct {
-	consumers        []shared.Consumer
-	producers        []shared.Producer
-	consumerThreads  *sync.WaitGroup
-	producerThreads  *sync.WaitGroup
-	stream           map[shared.MessageStreamID][]*shared.Producer
-	producersStarted bool
+	consumers       []shared.Consumer
+	producers       []shared.Producer
+	consumerThreads *sync.WaitGroup
+	producerThreads *sync.WaitGroup
+	stream          map[shared.MessageStreamID][]shared.Producer
 }
 
 // Create a new multiplexer based on a given config file.
-func createMultiplexer(configFile string) multiplexer {
+func newMultiplexer(configFile string) multiplexer {
 	conf, err := shared.ReadConfig(configFile)
 	if err != nil {
 		fmt.Printf("Error: %s", err.Error())
@@ -28,66 +27,64 @@ func createMultiplexer(configFile string) multiplexer {
 
 	// Configure the multiplexer, create a byte pool and assign it to the log
 
-	var plex multiplexer
-	plex.stream = make(map[shared.MessageStreamID][]*shared.Producer)
-	plex.consumerThreads = new(sync.WaitGroup)
-	plex.producerThreads = new(sync.WaitGroup)
+	logConsumer := consumer.Log{}
+	logConsumer.Configure(shared.PluginConfig{})
+
+	plex := multiplexer{
+		stream:          make(map[shared.MessageStreamID][]shared.Producer),
+		consumerThreads: new(sync.WaitGroup),
+		producerThreads: new(sync.WaitGroup),
+		consumers:       []shared.Consumer{logConsumer},
+	}
 
 	// Initialize the plugins based on the config
 
-	consumerType := reflect.TypeOf((*shared.Consumer)(nil)).Elem()
-	producerType := reflect.TypeOf((*shared.Producer)(nil)).Elem()
-
 	for className, instanceConfigs := range conf.Settings {
-
 		for _, config := range instanceConfigs {
-
 			if !config.Enable {
 				continue // ### continue, disabled ###
 			}
 
-			plugin, pluginType, err := shared.Plugin.Create(className)
+			// Try to instantiate and configure the plugin
+
+			obj, err := shared.RuntimeType.New(className)
 			if err != nil {
-				panic(err.Error())
+				shared.Log.Error.Panic(err.Error())
+			}
+
+			plugin, isPlugin := obj.(shared.Plugin)
+			if !isPlugin {
+				shared.Log.Error.Panic(className, " is no plugin.")
+				continue // ### continue ###
+			}
+
+			err = plugin.Configure(config)
+			if err != nil {
+				shared.Log.Error.Print("Failed to configure plugin ", className, ": ", err)
+				continue // ### continue ###
 			}
 
 			// Register consumer plugins
 
-			if reflect.PtrTo(pluginType).Implements(consumerType) {
-				typedPlugin := plugin.(shared.Consumer)
-
-				instance, err := typedPlugin.Create(config)
-				if err != nil {
-					shared.Log.Error("Failed registering consumer ", className, ": ", err)
-					continue // ### continue ###
-				}
-
-				plex.consumers = append(plex.consumers, instance)
+			if consumer, isConsumer := obj.(shared.Consumer); isConsumer {
+				plex.consumers = append(plex.consumers, consumer)
 			}
 
 			// Register producer plugins
 
-			if pluginType.Implements(producerType) {
-				typedPlugin := plugin.(shared.Producer)
-
-				instance, err := typedPlugin.Create(config)
-				if err != nil {
-					shared.Log.Error("Failed registering producer ", className, ": ", err)
-					continue // ### continue ###
-				}
+			if producer, isProducer := obj.(shared.Producer); isProducer {
+				plex.producers = append(plex.producers, producer)
 
 				for _, stream := range config.Stream {
 					streamID := shared.GetStreamID(stream)
-					streamMap, exists := plex.stream[streamID]
-					if !exists {
-						streamMap = []*shared.Producer{&instance}
-						plex.stream[streamID] = streamMap
+					streamMap, mappingExists := plex.stream[streamID]
+
+					if !mappingExists {
+						plex.stream[streamID] = []shared.Producer{producer}
 					} else {
-						plex.stream[streamID] = append(streamMap, &instance)
+						plex.stream[streamID] = append(streamMap, producer)
 					}
 				}
-
-				plex.producers = append(plex.producers, instance)
 			}
 		}
 	}
@@ -97,12 +94,11 @@ func createMultiplexer(configFile string) multiplexer {
 
 // sendMessage sends a message to all producers listening to a given stream.
 // This method blocks as long as a producer message queue is full
-func (plex multiplexer) sendMessage(message shared.Message, streamID shared.MessageStreamID) {
+func (plex multiplexer) sendMessage(message shared.Message, streamID shared.MessageStreamID, enqueue bool) {
 	msgClone := message.CloneAndPin(streamID)
-
 	for _, producer := range plex.stream[streamID] {
-		if (*producer).Accepts(msgClone) {
-			(*producer).Messages() <- msgClone
+		if (producer.IsActive() || enqueue) && producer.Accepts(msgClone) {
+			producer.Messages() <- msgClone
 		}
 	}
 }
@@ -110,16 +106,14 @@ func (plex multiplexer) sendMessage(message shared.Message, streamID shared.Mess
 // broadcastMessage sends a message to all streams the message has been
 // addressed to.
 // This method blocks if sendMessage blocks.
-func (plex multiplexer) broadcastMessage(message shared.Message) {
-
+func (plex multiplexer) broadcastMessage(message shared.Message, enqueue bool) {
 	// Send to wildcard stream producers if not purely internal
 	if !message.IsInternal() {
-		plex.sendMessage(message, shared.WildcardStreamID)
+		plex.sendMessage(message, shared.WildcardStreamID, enqueue)
 	}
-
 	// Send to specific stream producers
 	for _, streamID := range message.Streams {
-		plex.sendMessage(message, streamID)
+		plex.sendMessage(message, streamID, enqueue)
 	}
 }
 
@@ -128,25 +122,29 @@ func (plex multiplexer) broadcastMessage(message shared.Message) {
 // consumer related messages are still in the log.
 // Producers are flushed after flushing the log, so producer related shutdown
 // messages will be posted to stdout
-func (plex multiplexer) shutdown() {
-	shared.Log.Note("Filthy little hobbites. They stole it from us. (shutdown)")
+func (plex *multiplexer) shutdown() {
+	shared.Log.Note.Print("Filthy little hobbites. They stole it from us. (shutdown)")
 
-	// Shutdown consumers
+	// Send shutdown to consumers
 
 	for _, consumer := range plex.consumers {
 		consumer.Control() <- shared.ConsumerControlStop
 	}
 	plex.consumerThreads.Wait()
 
-	// Drain the log channel if there are producers listening
+	// Make sure all remaining messages are flushed
 
-	processLog := len(plex.producers) > 0 && plex.producersStarted
-	for processLog {
-		select {
-		case message := <-shared.Log.Messages():
-			plex.broadcastMessage(message)
-		default:
-			processLog = false
+	shared.Log.Note.Print("Sending the hobbits to mount doom. (flushing)")
+
+	for _, consumer := range plex.consumers {
+	flushing:
+		for {
+			select {
+			case message := <-consumer.Messages():
+				plex.broadcastMessage(message, false)
+			default:
+				break flushing
+			}
 		}
 	}
 
@@ -177,12 +175,12 @@ func (plex multiplexer) run() {
 	defer plex.shutdown()
 
 	if len(plex.consumers) == 0 {
-		fmt.Println("Error: No consumers configured.")
+		shared.Log.Error.Print("No consumers configured.")
 		return // ### return, nothing to do ###
 	}
 
 	if len(plex.producers) == 0 {
-		fmt.Println("Error: No producers configured.")
+		shared.Log.Error.Print("No producers configured.")
 		return // ### return, nothing to do ###
 	}
 
@@ -191,38 +189,37 @@ func (plex multiplexer) run() {
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt)
 
-	providers := make([]shared.MessageProvider, 0, len(plex.consumers)+1)
-	providers = append(providers, shared.Log)
-
 	// Launch consumers and producers
 
 	for _, producer := range plex.producers {
 		go producer.Produce(plex.producerThreads)
 	}
-	plex.producersStarted = true
 
 	for _, consumer := range plex.consumers {
 		go consumer.Consume(plex.consumerThreads)
-		providers = append(providers, consumer)
 	}
 
-	// Main loop
+	// Wait for at least one producer to come online
 
-	shared.Log.Note("We be nice to them, if they be nice to us. (startup)")
+	shared.Log.Note.Print("We be nice to them, if they be nice to us. (startup)")
+
+	// Main loop
 
 	for {
 		// Go over all consumers in round-robin fashion
 		// Don't block here, too as a consumer might not contain new messages
 
-		for _, provider := range providers {
+		for _, consumer := range plex.consumers {
 			select {
 			default:
+				// do nothing
+
 			case <-signalChannel:
-				shared.Log.Note("Master betrayed us. Wicked. Tricksy, False. (signal)")
+				shared.Log.Note.Print("Master betrayed us. Wicked. Tricksy, False. (signal)")
 				return
 
-			case message := <-provider.Messages():
-				plex.broadcastMessage(message)
+			case message := <-consumer.Messages():
+				plex.broadcastMessage(message, true)
 			}
 		}
 	}

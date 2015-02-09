@@ -61,19 +61,19 @@ type Scribe struct {
 }
 
 func init() {
-	shared.Plugin.Register(Scribe{})
+	shared.RuntimeType.Register(Scribe{})
 }
 
-// Create creates a new producer based on the current scribe producer.
-func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
+// Configure initializes this producer with values from a plugin config.
+func (prod *Scribe) Configure(conf shared.PluginConfig) error {
 	// If not defined, delimiter is not used (override default value)
 	if !conf.HasValue("Delimiter") {
 		conf.Override("Delimiter", "")
 	}
 
-	err := prod.configureStandardProducer(conf)
+	err := prod.standardProducer.Configure(conf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	host := conf.GetString("Host", "localhost")
@@ -106,22 +106,22 @@ func (prod Scribe) Create(conf shared.PluginConfig) (shared.Producer, error) {
 
 	prod.socket, err = thrift.NewTSocket(host + ":" + strconv.Itoa(port))
 	if err != nil {
-		shared.Log.Error("Scribe socket error:", err)
-		return nil, err
+		shared.Log.Error.Print("Scribe socket error:", err)
+		return err
 	}
 
 	prod.transport = thrift.NewTFramedTransport(prod.socket)
 	binProtocol := thrift.NewTBinaryProtocol(prod.transport, false, false)
 	prod.scribe = scribe.NewScribeClientProtocol(prod.transport, binProtocol, binProtocol)
 
-	return prod, nil
+	return nil
 }
 
 func (prod Scribe) send() {
 	if !prod.transport.IsOpen() {
 		err := prod.transport.Open()
 		if err != nil {
-			shared.Log.Error("Scribe connection error:", err)
+			shared.Log.Error.Print("Scribe connection error:", err)
 		} else {
 			prod.socket.Conn().(bufferedConn).SetWriteBuffer(prod.bufferSizeKB << 10)
 		}
@@ -129,7 +129,7 @@ func (prod Scribe) send() {
 
 	if prod.transport.IsOpen() {
 		prod.batch.flush(prod.scribe, func(err error) {
-			shared.Log.Error("Scribe log error: ", err)
+			shared.Log.Error.Print("Scribe log error: ", err)
 			prod.transport.Close()
 		})
 	}
@@ -162,16 +162,15 @@ func (prod Scribe) flush() {
 
 // Produce writes to a buffer that is sent to scribe.
 func (prod Scribe) Produce(threads *sync.WaitGroup) {
-	threads.Add(1)
-
 	defer func() {
 		prod.flush()
 		prod.transport.Close()
 		prod.socket.Close()
-		threads.Done()
+		prod.markAsDone()
 	}()
 
 	flushTicker := time.NewTicker(time.Duration(prod.batchTimeoutSec) * time.Second)
+	prod.markAsActive(threads)
 
 	for {
 		select {

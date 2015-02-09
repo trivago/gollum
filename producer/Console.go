@@ -22,14 +22,14 @@ type Console struct {
 }
 
 func init() {
-	shared.Plugin.Register(Console{})
+	shared.RuntimeType.Register(Console{})
 }
 
-// Create creates a new producer based on the current console producer.
-func (prod Console) Create(conf shared.PluginConfig) (shared.Producer, error) {
-	err := prod.configureStandardProducer(conf)
+// Configure initializes this producer with values from a plugin config.
+func (prod *Console) Configure(conf shared.PluginConfig) error {
+	err := prod.standardProducer.Configure(conf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	console := conf.GetString("Console", "stdout")
@@ -43,7 +43,7 @@ func (prod Console) Create(conf shared.PluginConfig) (shared.Producer, error) {
 		prod.console = os.Stderr
 	}
 
-	return prod, nil
+	return nil
 }
 
 func (prod Console) printMessage(msg shared.Message) {
@@ -63,11 +63,12 @@ func (prod Console) flush() {
 
 // Produce writes to stdout or stderr.
 func (prod Console) Produce(threads *sync.WaitGroup) {
-	threads.Add(1)
 	defer func() {
 		prod.flush()
-		threads.Done()
+		prod.markAsDone()
 	}()
+
+	prod.markAsActive(threads)
 
 	// Block until one of the channels contains data so we idle when there is
 	// nothing to do.

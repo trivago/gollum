@@ -79,14 +79,14 @@ type File struct {
 }
 
 func init() {
-	shared.Plugin.Register(File{})
+	shared.RuntimeType.Register(File{})
 }
 
-// Create creates a new producer based on the current file producer.
-func (prod File) Create(conf shared.PluginConfig) (shared.Producer, error) {
-	err := prod.configureStandardProducer(conf)
+// Configure initializes this producer with values from a plugin config.
+func (prod *File) Configure(conf shared.PluginConfig) error {
+	err := prod.standardProducer.Configure(conf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	logFile := conf.GetString("File", "/var/prod/gollum.log")
@@ -119,7 +119,7 @@ func (prod File) Create(conf shared.PluginConfig) (shared.Producer, error) {
 		prod.rotateAtMin = int(rotateAtMin)
 	}
 
-	return prod, nil
+	return nil
 }
 
 func (prod *File) needsRotate() (bool, error) {
@@ -165,7 +165,7 @@ func (prod *File) needsRotate() (bool, error) {
 
 func (prod File) compressAndCloseLog(sourceFile *os.File) {
 	if !prod.compress {
-		shared.Log.Note("Rotated " + sourceFile.Name())
+		shared.Log.Note.Print("Rotated " + sourceFile.Name())
 		sourceFile.Close()
 		return
 	}
@@ -179,13 +179,13 @@ func (prod File) compressAndCloseLog(sourceFile *os.File) {
 
 	targetFile, err := os.OpenFile(targetFileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
-		shared.Log.Error("File compress error:", err)
+		shared.Log.Error.Print("File compress error:", err)
 		sourceFile.Close()
 		return
 	}
 
 	// Create zipfile and compress data
-	shared.Log.Note("Compressing " + sourceFileName)
+	shared.Log.Note.Print("Compressing " + sourceFileName)
 
 	sourceFile.Seek(0, 0)
 	targetWriter := gzip.NewWriter(targetFile)
@@ -201,10 +201,10 @@ func (prod File) compressAndCloseLog(sourceFile *os.File) {
 	targetFile.Close()
 
 	if err != nil && err != io.EOF {
-		shared.Log.Warning("Compression failed:", err)
+		shared.Log.Warning.Print("Compression failed:", err)
 		err = os.Remove(targetFileName)
 		if err != nil {
-			shared.Log.Error("Compressed file remove failed:", err)
+			shared.Log.Error.Print("Compressed file remove failed:", err)
 		}
 		return
 	}
@@ -212,7 +212,7 @@ func (prod File) compressAndCloseLog(sourceFile *os.File) {
 	// Remove original log
 	err = os.Remove(sourceFileName)
 	if err != nil {
-		shared.Log.Error("Uncompressed file remove failed:", err)
+		shared.Log.Error.Print("Uncompressed file remove failed:", err)
 	}
 }
 
@@ -271,7 +271,7 @@ func (prod *File) openLog() error {
 
 func (prod *File) write() {
 	if err := prod.openLog(); err != nil {
-		shared.Log.Error("File rotate error:", err)
+		shared.Log.Error.Print("File rotate error:", err)
 		return
 	}
 
@@ -281,7 +281,7 @@ func (prod *File) write() {
 			return true
 		},
 		func(err error) {
-			shared.Log.Error("File write error:", err)
+			shared.Log.Error.Print("File write error:", err)
 		})
 }
 
@@ -307,15 +307,14 @@ func (prod File) flush() {
 
 // Produce writes to a buffer that is dumped to a file.
 func (prod File) Produce(threads *sync.WaitGroup) {
-	threads.Add(1)
-
 	defer func() {
 		prod.flush()
 		prod.file.Close()
-		threads.Done()
+		prod.markAsDone()
 	}()
 
 	flushTicker := time.NewTicker(time.Duration(prod.batchTimeoutSec) * time.Second)
+	prod.markAsActive(threads)
 
 	for {
 		select {

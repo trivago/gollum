@@ -93,19 +93,19 @@ type Kafka struct {
 }
 
 func init() {
-	shared.Plugin.Register(Kafka{})
+	shared.RuntimeType.Register(Kafka{})
 }
 
-// Create creates a new producer based on the current file producer.
-func (prod Kafka) Create(conf shared.PluginConfig) (shared.Producer, error) {
+// Configure initializes this producer with values from a plugin config.
+func (prod *Kafka) Configure(conf shared.PluginConfig) error {
 	// If not defined, delimiter is not used (override default value)
 	if !conf.HasValue("Delimiter") {
 		conf.Override("Delimiter", "")
 	}
 
-	err := prod.configureStandardProducer(conf)
+	err := prod.standardProducer.Configure(conf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	prod.clientConfig = kafka.NewClientConfig()
@@ -163,7 +163,7 @@ func (prod Kafka) Create(conf shared.PluginConfig) (shared.Producer, error) {
 	prod.clientConfig.WaitForElection = prod.producerConfig.RetryBackoff
 	prod.clientConfig.BackgroundRefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshSec", 10)) * time.Second
 
-	return prod, nil
+	return nil
 }
 
 func (prod *Kafka) send(msg shared.Message) {
@@ -178,7 +178,7 @@ func (prod *Kafka) send(msg shared.Message) {
 
 		prod.client, err = kafka.NewClient("gollum", prod.servers, prod.clientConfig)
 		if err != nil {
-			shared.Log.Error("Kafka client error:", err)
+			shared.Log.Error.Print("Kafka client error:", err)
 			return
 		}
 	}
@@ -187,7 +187,7 @@ func (prod *Kafka) send(msg shared.Message) {
 	if prod.producer == nil {
 		prod.producer, err = kafka.NewProducer(prod.client, prod.producerConfig)
 		if err != nil {
-			shared.Log.Error("Kafka producer error:", err)
+			shared.Log.Error.Print("Kafka producer error:", err)
 			return
 		}
 	}
@@ -208,7 +208,7 @@ func (prod *Kafka) send(msg shared.Message) {
 		// Check for errors
 		select {
 		case err := <-prod.producer.Errors():
-			shared.Log.Error("Kafka message error:", err)
+			shared.Log.Error.Print("Kafka message error:", err)
 		default:
 		}
 	}
@@ -216,8 +216,6 @@ func (prod *Kafka) send(msg shared.Message) {
 
 // Produce writes to a buffer that is sent to a given socket.
 func (prod Kafka) Produce(threads *sync.WaitGroup) {
-	threads.Add(1)
-
 	defer func() {
 		if prod.producer != nil {
 			prod.producer.Close()
@@ -225,8 +223,10 @@ func (prod Kafka) Produce(threads *sync.WaitGroup) {
 		if prod.client != nil && !prod.client.Closed() {
 			prod.client.Close()
 		}
-		threads.Done()
+		prod.markAsDone()
 	}()
+
+	prod.markAsActive(threads)
 
 	for {
 		select {

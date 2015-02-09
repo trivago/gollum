@@ -4,6 +4,7 @@ import (
 	"github.com/trivago/gollum/shared"
 	"regexp"
 	"strings"
+	"sync"
 )
 
 // Producer base class
@@ -38,13 +39,15 @@ type standardProducer struct {
 	messages chan shared.Message
 	control  chan shared.ProducerControl
 	filter   *regexp.Regexp
+	state    *shared.PluginRunState
 	format   shared.MessageFormat
 }
 
-func (prod *standardProducer) configureStandardProducer(conf shared.PluginConfig) error {
+func (prod *standardProducer) Configure(conf shared.PluginConfig) error {
 	prod.messages = make(chan shared.Message, conf.Channel)
 	prod.control = make(chan shared.ProducerControl, 1)
 	prod.filter = nil
+	prod.state = new(shared.PluginRunState)
 
 	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
 	delimiter := escapeChars.Replace(conf.GetString("Delimiter", shared.DefaultDelimiter))
@@ -65,11 +68,26 @@ func (prod *standardProducer) configureStandardProducer(conf shared.PluginConfig
 		var err error
 		prod.filter, err = regexp.Compile(filter)
 		if err != nil {
-			shared.Log.Error("Regex error: ", err)
+			shared.Log.Error.Print("Regex error: ", err)
 		}
 	}
 
 	return nil
+}
+
+func (prod *standardProducer) markAsActive(threads *sync.WaitGroup) {
+	prod.state.WaitGroup = threads
+	prod.state.WaitGroup.Add(1)
+	prod.state.Active = true
+}
+
+func (prod standardProducer) markAsDone() {
+	prod.state.WaitGroup.Done()
+	prod.state.Active = false
+}
+
+func (prod standardProducer) IsActive() bool {
+	return prod.state.Active
 }
 
 func (prod standardProducer) Accepts(message shared.Message) bool {

@@ -41,14 +41,14 @@ type Socket struct {
 }
 
 func init() {
-	shared.Plugin.Register(Socket{})
+	shared.RuntimeType.Register(Socket{})
 }
 
-// Create creates a new consumer based on the current socket consumer.
-func (cons Socket) Create(conf shared.PluginConfig) (shared.Consumer, error) {
-	err := cons.configureStandardConsumer(conf)
+// Configure initializes this consumer with values from a plugin config.
+func (cons *Socket) Configure(conf shared.PluginConfig) error {
+	err := cons.standardConsumer.Configure(conf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
@@ -65,7 +65,7 @@ func (cons Socket) Create(conf shared.PluginConfig) (shared.Consumer, error) {
 	}
 
 	cons.quit = false
-	return cons, err
+	return err
 }
 
 func (cons *Socket) readFromConnection(conn net.Conn) {
@@ -88,7 +88,7 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 			}
 		} else {
 			if !cons.quit {
-				shared.Log.Error("Socket read failed:", err)
+				shared.Log.Error.Print("Socket read failed:", err)
 			}
 			break // ### break, close connection ###
 		}
@@ -101,7 +101,7 @@ func (cons *Socket) accept(threads *sync.WaitGroup) {
 		client, err := cons.listen.Accept()
 		if err != nil {
 			if !cons.quit {
-				shared.Log.Error("Socket listen failed:", err)
+				shared.Log.Error.Print("Socket listen failed:", err)
 			}
 			break // ### break ###
 		}
@@ -109,7 +109,7 @@ func (cons *Socket) accept(threads *sync.WaitGroup) {
 		go cons.readFromConnection(client)
 	}
 
-	threads.Done()
+	cons.markAsDone()
 }
 
 // Consume listens to a given socket. Messages are expected to be separated by
@@ -120,25 +120,15 @@ func (cons Socket) Consume(threads *sync.WaitGroup) {
 	var err error
 	cons.listen, err = net.Listen(cons.protocol, cons.address)
 	if err != nil {
-		shared.Log.Error("Socket connection error: ", err)
+		shared.Log.Error.Print("Socket connection error: ", err)
 		return
 	}
 
-	threads.Add(1)
-
 	go cons.accept(threads)
-
 	defer func() {
 		cons.quit = true
 		cons.listen.Close()
 	}()
 
-	// Wait for control statements
-
-	for {
-		command := <-cons.control
-		if command == shared.ConsumerControlStop {
-			return // ### return ###
-		}
-	}
+	cons.defaultControlLoop(threads)
 }

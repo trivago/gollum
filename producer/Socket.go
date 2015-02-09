@@ -56,14 +56,14 @@ type bufferedConn interface {
 }
 
 func init() {
-	shared.Plugin.Register(Socket{})
+	shared.RuntimeType.Register(Socket{})
 }
 
-// Create creates a new producer based on the current socket producer.
-func (prod Socket) Create(conf shared.PluginConfig) (shared.Producer, error) {
-	err := prod.configureStandardProducer(conf)
+// Configure initializes this producer with values from a plugin config.
+func (prod *Socket) Configure(conf shared.PluginConfig) error {
+	err := prod.standardProducer.Configure(conf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	bufferSizeMax := conf.GetInt("BufferSizeMaxKB", 8<<10) << 10
@@ -86,7 +86,7 @@ func (prod Socket) Create(conf shared.PluginConfig) (shared.Producer, error) {
 		prod.protocol = "unix"
 	}
 
-	return prod, nil
+	return nil
 }
 
 func (prod *Socket) validate() bool {
@@ -97,7 +97,7 @@ func (prod *Socket) validate() bool {
 	response := make([]byte, 2)
 	_, err := prod.connection.Read(response)
 	if err != nil {
-		shared.Log.Error("Socket response error:", err)
+		shared.Log.Error.Print("Socket response error:", err)
 		return false
 	}
 
@@ -110,7 +110,7 @@ func (prod *Socket) send() {
 		conn, err := net.Dial(prod.protocol, prod.address)
 
 		if err != nil {
-			shared.Log.Error("Socket connection error:", err)
+			shared.Log.Error.Print("Socket connection error:", err)
 		} else {
 			conn.(bufferedConn).SetWriteBuffer(prod.bufferSizeKB << 10)
 			prod.connection = conn
@@ -123,7 +123,7 @@ func (prod *Socket) send() {
 			prod.connection,
 			prod.validate,
 			func(err error) {
-				shared.Log.Error("Socket error:", err)
+				shared.Log.Error.Print("Socket error:", err)
 				prod.connection.Close()
 				prod.connection = nil
 			})
@@ -152,17 +152,16 @@ func (prod *Socket) flush() {
 
 // Produce writes to a buffer that is sent to a given socket.
 func (prod Socket) Produce(threads *sync.WaitGroup) {
-	threads.Add(1)
-
 	defer func() {
 		prod.flush()
 		if prod.connection != nil {
 			prod.connection.Close()
 		}
-		threads.Done()
+		prod.markAsDone()
 	}()
 
-	flushTick := time.NewTicker(time.Duration(prod.batchTimeoutSec) * time.Second)
+	flushTicker := time.NewTicker(time.Duration(prod.batchTimeoutSec) * time.Second)
+	prod.markAsActive(threads)
 
 	for {
 		select {
@@ -174,7 +173,7 @@ func (prod Socket) Produce(threads *sync.WaitGroup) {
 				return // ### return, done ###
 			}
 
-		case <-flushTick.C:
+		case <-flushTicker.C:
 			if prod.batch.ReachedTimeThreshold(prod.batchTimeoutSec) {
 				prod.send()
 			}

@@ -13,15 +13,12 @@ const (
 // Producer is an interface for plugins that pass Message objects to other
 // services, files or storages.
 type Producer interface {
-
-	// Create a new instance of the concrete plugin class implementing this
-	// interface. Expect the instance passed to this function to not be
-	// initialized.
-	Create(PluginConfig) (Producer, error)
-
 	// Produce should implement the main loop that passes messages from the
 	// message channel to some other service like the console.
 	Produce(*sync.WaitGroup)
+
+	// IsActive returns true if the producer is ready to accept new data.
+	IsActive() bool
 
 	// Accepts returns true if the message is allowed to be send to this producer.
 	Accepts(message Message) bool

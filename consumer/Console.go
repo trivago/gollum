@@ -23,13 +23,7 @@ type Console struct {
 }
 
 func init() {
-	shared.Plugin.Register(Console{})
-}
-
-// Create creates a new consumer based on the current console consumer.
-func (cons Console) Create(conf shared.PluginConfig) (shared.Consumer, error) {
-	err := cons.configureStandardConsumer(conf)
-	return cons, err
+	shared.RuntimeType.Register(Console{})
 }
 
 func (cons *Console) readFrom(stream io.Reader, threads *sync.WaitGroup) {
@@ -38,7 +32,7 @@ func (cons *Console) readFrom(stream io.Reader, threads *sync.WaitGroup) {
 	for {
 		err := buffer.Read(stream, "\n")
 		if err != nil {
-			shared.Log.Error("Error reading stdin: ", err)
+			shared.Log.Error.Print("Error reading stdin: ", err)
 		}
 	}
 }
@@ -47,12 +41,6 @@ func (cons *Console) readFrom(stream io.Reader, threads *sync.WaitGroup) {
 func (cons Console) Consume(threads *sync.WaitGroup) {
 	go cons.readFrom(os.Stdin, threads)
 
-	// Wait for control statements
-
-	for {
-		command := <-cons.control
-		if command == shared.ConsumerControlStop {
-			return // ### return ###
-		}
-	}
+	defer cons.markAsDone()
+	cons.defaultControlLoop(threads)
 }

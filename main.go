@@ -6,6 +6,7 @@ import (
 	_ "github.com/trivago/gollum/consumer"
 	_ "github.com/trivago/gollum/producer"
 	"os"
+	"runtime"
 	"runtime/pprof"
 )
 
@@ -22,6 +23,12 @@ func main() {
 	if *versionPtr {
 		fmt.Printf("Gollum v%d.%d.%d\n", gollumMajorVer, gollumMinorVer, gollumPatchVer)
 		return
+	}
+
+	if *numCPU == 0 {
+		runtime.GOMAXPROCS(runtime.NumCPU())
+	} else {
+		runtime.GOMAXPROCS(*numCPU)
 	}
 
 	if *helpPtr || *configFilePtr == "" {
@@ -44,7 +51,7 @@ func main() {
 
 	// Start the gollum multiplexer
 
-	plex := createMultiplexer(*configFilePtr)
+	plex := newMultiplexer(*configFilePtr)
 	plex.run()
 
 	// Memory profiling

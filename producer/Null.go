@@ -19,21 +19,13 @@ type Null struct {
 }
 
 func init() {
-	shared.Plugin.Register(Null{})
-}
-
-// Create creates a new producer based on the current Null producer.
-func (prod Null) Create(conf shared.PluginConfig) (shared.Producer, error) {
-	err := prod.configureStandardProducer(conf)
-	if err != nil {
-		return nil, err
-	}
-
-	return prod, nil
+	shared.RuntimeType.Register(Null{})
 }
 
 // Produce writes to a buffer that is dumped to a file.
 func (prod Null) Produce(threads *sync.WaitGroup) {
+	prod.state.Active = true
+
 	// Block until one of the channels contains data so we idle when there is
 	// nothing to do.
 

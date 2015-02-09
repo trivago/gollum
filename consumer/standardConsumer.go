@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"github.com/trivago/gollum/shared"
+	"sync"
 )
 
 // Consumer base class
@@ -27,18 +28,31 @@ type standardConsumer struct {
 	messages chan shared.Message
 	control  chan shared.ConsumerControl
 	streams  []shared.MessageStreamID
+	state    *shared.PluginRunState
 }
 
-func (cons *standardConsumer) configureStandardConsumer(conf shared.PluginConfig) error {
+func (cons *standardConsumer) Configure(conf shared.PluginConfig) error {
 	cons.messages = make(chan shared.Message, conf.Channel)
 	cons.control = make(chan shared.ConsumerControl, 1)
 	cons.streams = make([]shared.MessageStreamID, len(conf.Stream))
+	cons.state = new(shared.PluginRunState)
 
 	for i, stream := range conf.Stream {
 		cons.streams[i] = shared.GetStreamID(stream)
 	}
 
 	return nil
+}
+
+func (cons *standardConsumer) markAsActive(threads *sync.WaitGroup) {
+	cons.state.WaitGroup = threads
+	cons.state.WaitGroup.Add(1)
+	cons.state.Active = true
+}
+
+func (cons standardConsumer) markAsDone() {
+	cons.state.WaitGroup.Done()
+	cons.state.Active = false
 }
 
 // postMessage sends a message text to all configured streams.
@@ -55,10 +69,25 @@ func (cons standardConsumer) postMessageFromSlice(data []byte) {
 	cons.messages <- msg
 }
 
+func (cons standardConsumer) IsActive() bool {
+	return cons.state.Active
+}
+
 func (cons standardConsumer) Control() chan<- shared.ConsumerControl {
 	return cons.control
 }
 
 func (cons standardConsumer) Messages() <-chan shared.Message {
 	return cons.messages
+}
+
+func (cons standardConsumer) defaultControlLoop(threads *sync.WaitGroup) {
+	cons.markAsActive(threads)
+
+	for cons.IsActive() {
+		command := <-cons.control
+		if command == shared.ConsumerControlStop {
+			return // ### return ###
+		}
+	}
 }

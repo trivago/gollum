@@ -37,12 +37,15 @@ type File struct {
 }
 
 func init() {
-	shared.Plugin.Register(File{})
+	shared.RuntimeType.Register(File{})
 }
 
-// Create creates a new consumer based on the current File consumer.
-func (cons File) Create(conf shared.PluginConfig) (shared.Consumer, error) {
-	err := cons.configureStandardConsumer(conf)
+// Configure initializes this consumer with values from a plugin config.
+func (cons *File) Configure(conf shared.PluginConfig) error {
+	err := cons.standardConsumer.Configure(conf)
+	if err != nil {
+		return err
+	}
 
 	if !conf.HasValue("File") {
 		panic("No file configured for consumer.File")
@@ -54,7 +57,7 @@ func (cons File) Create(conf shared.PluginConfig) (shared.Consumer, error) {
 	cons.delimiter = escapeChars.Replace(conf.GetString("Delimiter", "\n"))
 	cons.quit = false
 
-	return cons, err
+	return nil
 }
 
 func (cons *File) readFrom(stream io.Reader, threads *sync.WaitGroup) {
@@ -64,35 +67,32 @@ func (cons *File) readFrom(stream io.Reader, threads *sync.WaitGroup) {
 		err := buffer.Read(cons.file, cons.delimiter)
 
 		if err != nil && err != io.EOF && !cons.quit {
-			shared.Log.Error("Error reading stdin: ", err)
+			shared.Log.Error.Print("Error reading stdin: ", err)
+			return
 		}
 
 		if err == io.EOF {
 			runtime.Gosched()
 		}
 	}
+
+	cons.markAsDone()
 }
 
 // Consume listens to stdin.
 func (cons File) Consume(threads *sync.WaitGroup) {
 	var err error
 	cons.file, err = os.OpenFile(cons.fileName, os.O_RDONLY, 0666)
-
 	if err != nil {
-		shared.Log.Error("File open error:", err)
-	} else {
-		go cons.readFrom(cons.file, threads)
-		defer func() {
-			cons.quit = true
-			cons.file.Close()
-		}()
+		shared.Log.Error.Print("File open error:", err)
+		return
 	}
-	// Wait for control statements
 
-	for {
-		command := <-cons.control
-		if command == shared.ConsumerControlStop {
-			return // ### return ###
-		}
-	}
+	go cons.readFrom(cons.file, threads)
+	defer func() {
+		cons.quit = true
+		cons.file.Close()
+	}()
+
+	cons.defaultControlLoop(threads)
 }
