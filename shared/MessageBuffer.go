@@ -14,7 +14,7 @@ type messageQueue struct {
 	doneCount  uint32
 }
 
-func createMessageQueue(size int) messageQueue {
+func NewMessageQueue(size int) messageQueue {
 	return messageQueue{
 		buffer:     make([]byte, size),
 		contentLen: 0,
@@ -34,11 +34,11 @@ type MessageBuffer struct {
 	format    MessageFormat
 }
 
-// CreateMessageBuffer creates a new messagebuffer with a given size (in bytes)
+// NewMessageBuffer creates a new messagebuffer with a given size (in bytes)
 // and a given set of MessageFormatFlag.
-func CreateMessageBuffer(size int, format MessageFormat) *MessageBuffer {
+func NewMessageBuffer(size int, format MessageFormat) *MessageBuffer {
 	return &MessageBuffer{
-		queue:     [2]messageQueue{createMessageQueue(size), createMessageQueue(size)},
+		queue:     [2]messageQueue{NewMessageQueue(size), NewMessageQueue(size)},
 		flushing:  new(sync.Mutex),
 		lastFlush: time.Now(),
 		activeSet: uint32(0),

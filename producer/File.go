@@ -95,7 +95,7 @@ func (prod *File) Configure(conf shared.PluginConfig) error {
 
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
 	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
-	prod.batch = shared.CreateMessageBuffer(bufferSizeMax, prod.format)
+	prod.batch = shared.NewMessageBuffer(bufferSizeMax, prod.format)
 
 	prod.rotate = conf.GetBool("Rotate", false)
 	prod.rotateTimeoutMin = conf.GetInt("RotateTimeoutMin", 1440)

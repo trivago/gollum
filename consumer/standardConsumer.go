@@ -58,14 +58,14 @@ func (cons standardConsumer) markAsDone() {
 // postMessage sends a message text to all configured streams.
 // This method blocks of the message queue is full.
 func (cons standardConsumer) postMessage(text string) {
-	msg := shared.CreateMessage(text, cons.streams)
+	msg := shared.NewMessage(text, cons.streams)
 	cons.messages <- msg
 }
 
 // postMessageFromSlice sends a buffered message to all configured streams.
 // This method blocks of the message queue is full.
 func (cons standardConsumer) postMessageFromSlice(data []byte) {
-	msg := shared.CreateMessageFromSlice(data, cons.streams)
+	msg := shared.NewMessageFromSlice(data, cons.streams)
 	cons.messages <- msg
 }
 

@@ -3,7 +3,7 @@ package shared
 type MessageFormatForward struct {
 }
 
-func CreateMessageFormatForward() MessageFormatForward {
+func NewMessageFormatForward() MessageFormatForward {
 	return MessageFormatForward{}
 }
 

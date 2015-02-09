@@ -76,10 +76,10 @@ func (prod *Socket) Configure(conf shared.PluginConfig) error {
 	prod.acknowledge = conf.GetBool("Acknowledge", false)
 
 	if conf.GetBool("Runlength", false) {
-		prod.format = shared.CreateMessageFormatRLE(prod.format)
+		prod.format = shared.NewMessageFormatRLE(prod.format)
 	}
 
-	prod.batch = shared.CreateMessageBuffer(bufferSizeMax, prod.format)
+	prod.batch = shared.NewMessageBuffer(bufferSizeMax, prod.format)
 
 	if strings.HasPrefix(prod.address, fileSocketPrefix) {
 		prod.address = prod.address[len(fileSocketPrefix):]

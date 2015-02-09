@@ -10,7 +10,7 @@ type MessageFormatRLE struct {
 	base MessageFormat
 }
 
-func CreateMessageFormatRLE(format MessageFormat) MessageFormatRLE {
+func NewMessageFormatRLE(format MessageFormat) MessageFormatRLE {
 	return MessageFormatRLE{
 		base: format,
 	}

@@ -18,7 +18,7 @@ type scribeMessageQueue struct {
 	doneCount  uint32
 }
 
-func createMessageQueue() scribeMessageQueue {
+func NewMessageQueue() scribeMessageQueue {
 	return scribeMessageQueue{
 		buffer:     make([]*scribe.LogEntry, scribeBufferGrowSize),
 		contentLen: 0,
@@ -37,7 +37,7 @@ type scribeMessageBuffer struct {
 
 func createScribeMessageBuffer(maxContentLen int, format shared.MessageFormat) *scribeMessageBuffer {
 	return &scribeMessageBuffer{
-		queue:         [2]scribeMessageQueue{createMessageQueue(), createMessageQueue()},
+		queue:         [2]scribeMessageQueue{NewMessageQueue(), NewMessageQueue()},
 		activeSet:     uint32(0),
 		maxContentLen: maxContentLen,
 		lastFlush:     time.Now(),

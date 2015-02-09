@@ -159,7 +159,7 @@ func (plex *multiplexer) shutdown() {
 
 	// Write remaining messages to stderr
 
-	format := shared.CreateMessageFormatForward()
+	format := shared.NewMessageFormatForward()
 
 	for {
 		select {

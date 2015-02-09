@@ -37,7 +37,7 @@ func (log logs) Write(message []byte) (int, error) {
 		message = message[:length-1]
 	}
 
-	msg := CreateMessageFromSlice(message, logStreamIDs)
+	msg := NewMessageFromSlice(message, logStreamIDs)
 	log.messages <- msg
 
 	return length, nil

@@ -11,7 +11,7 @@ type MessageFormatTimestamp struct {
 	delimiter       string
 }
 
-func CreateMessageFormatTimestamp(timestampFormat string, delimiter string) MessageFormatTimestamp {
+func NewMessageFormatTimestamp(timestampFormat string, delimiter string) MessageFormatTimestamp {
 	return MessageFormatTimestamp{
 		timestampFormat: timestampFormat,
 		delimiter:       delimiter,

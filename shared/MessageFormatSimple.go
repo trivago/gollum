@@ -8,7 +8,7 @@ type MessageFormatSimple struct {
 	delimiter string
 }
 
-func CreateMessageFormatSimple(delimiter string) MessageFormatSimple {
+func NewMessageFormatSimple(delimiter string) MessageFormatSimple {
 	return MessageFormatSimple{
 		delimiter: delimiter,
 	}

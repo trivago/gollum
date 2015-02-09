@@ -54,12 +54,12 @@ func (prod *standardProducer) Configure(conf shared.PluginConfig) error {
 
 	if conf.GetBool("Forward", false) {
 		if conf.HasValue("Delimiter") {
-			prod.format = shared.CreateMessageFormatSimple(delimiter)
+			prod.format = shared.NewMessageFormatSimple(delimiter)
 		} else {
-			prod.format = shared.CreateMessageFormatForward()
+			prod.format = shared.NewMessageFormatForward()
 		}
 	} else {
-		prod.format = shared.CreateMessageFormatTimestamp(shared.DefaultTimestamp, delimiter)
+		prod.format = shared.NewMessageFormatTimestamp(shared.DefaultTimestamp, delimiter)
 	}
 
 	filter := conf.GetString("Filter", "")
