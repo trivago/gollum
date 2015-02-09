@@ -64,6 +64,7 @@ type File struct {
 	standardProducer
 	file             *os.File
 	batch            *shared.MessageBuffer
+	bgWriter         *sync.WaitGroup
 	fileDir          string
 	fileName         string
 	fileExt          string
@@ -108,6 +109,7 @@ func (prod *File) Configure(conf shared.PluginConfig) error {
 	prod.fileName = filepath.Base(logFile)
 	prod.fileName = prod.fileName[:len(prod.fileName)-len(prod.fileExt)]
 	prod.file = nil
+	prod.bgWriter = new(sync.WaitGroup)
 
 	rotateAt := conf.GetString("RotateAt", "")
 	if rotateAt != "" {
@@ -169,6 +171,9 @@ func (prod File) compressAndCloseLog(sourceFile *os.File) {
 		sourceFile.Close()
 		return
 	}
+
+	prod.bgWriter.Add(1)
+	defer prod.bgWriter.Done()
 
 	// Generate file to zip into
 	sourceFileName := sourceFile.Name()
@@ -309,6 +314,7 @@ func (prod File) flush() {
 func (prod File) Produce(threads *sync.WaitGroup) {
 	defer func() {
 		prod.flush()
+		prod.bgWriter.Wait()
 		prod.file.Close()
 		prod.markAsDone()
 	}()

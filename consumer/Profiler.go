@@ -22,6 +22,7 @@ type Profiler struct {
 	profileRuns int
 	batches     int
 	length      int
+	quit        bool
 }
 
 func init() {
@@ -44,7 +45,7 @@ func (cons *Profiler) Configure(conf shared.PluginConfig) error {
 
 var stringBase = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 _.!?/&%$§'")
 
-func (cons Profiler) profile() {
+func (cons *Profiler) profile() {
 
 	randString := make([]rune, cons.length)
 	for i := 0; i < cons.length; i++ {
@@ -63,6 +64,11 @@ func (cons Profiler) profile() {
 		for i := 0; i < cons.profileRuns; i++ {
 			msg = fmt.Sprintf("%d/%d %s", i, cons.profileRuns, string(randString))
 			cons.postMessage(msg)
+
+			if cons.quit {
+				cons.markAsDone()
+				return
+			}
 		}
 
 		runTime := time.Since(start)
@@ -101,5 +107,9 @@ func (cons Profiler) profile() {
 // Consume starts a profile run and exits gollum when done
 func (cons Profiler) Consume(threads *sync.WaitGroup) {
 	go cons.profile()
+	defer func() {
+		cons.quit = true
+	}()
+
 	cons.defaultControlLoop(threads)
 }

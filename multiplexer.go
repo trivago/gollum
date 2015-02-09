@@ -93,7 +93,9 @@ func newMultiplexer(configFile string) multiplexer {
 }
 
 // sendMessage sends a message to all producers listening to a given stream.
-// This method blocks as long as a producer message queue is full
+// This method blocks as long as a producer message queue is full.
+// You can pass false to the enqueue parameter to ignore inactive plugins (i.e.
+// useful during shutdown)
 func (plex multiplexer) sendMessage(message shared.Message, streamID shared.MessageStreamID, enqueue bool) {
 	msgClone := message.CloneAndPin(streamID)
 	for _, producer := range plex.stream[streamID] {
