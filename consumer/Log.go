@@ -1,39 +1,40 @@
 package consumer
 
 import (
+	"github.com/trivago/gollum/log"
 	"github.com/trivago/gollum/shared"
 	"sync"
 )
 
-// Log consumer plugin
+// LogConsumer consumer plugin
 // This is an internal plugin to route go log messages into gollum
-type Log struct {
+type LogConsumer struct {
 	control chan shared.ConsumerControl
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Log) Configure(conf shared.PluginConfig) error {
+func (cons *LogConsumer) Configure(conf shared.PluginConfig) error {
 	cons.control = make(chan shared.ConsumerControl, 1)
 	return nil
 }
 
 // IsActive always returns true for this consumer
-func (cons Log) IsActive() bool {
+func (cons LogConsumer) IsActive() bool {
 	return true
 }
 
 // Control returns a handle to the control channel
-func (cons Log) Control() chan<- shared.ConsumerControl {
+func (cons LogConsumer) Control() chan<- shared.ConsumerControl {
 	return cons.control
 }
 
 // Messages reroutes Log.Messages()
-func (cons Log) Messages() <-chan shared.Message {
-	return shared.Log.Messages()
+func (cons LogConsumer) Messages() <-chan shared.Message {
+	return Log.Messages()
 }
 
 // Consume starts listening for control statements
-func (cons Log) Consume(threads *sync.WaitGroup) {
+func (cons LogConsumer) Consume(threads *sync.WaitGroup) {
 	// Wait for control statements
 	for {
 		command := <-cons.control

@@ -2,6 +2,7 @@ package producer
 
 import (
 	kafka "github.com/Shopify/sarama"
+	"github.com/trivago/gollum/log"
 	"github.com/trivago/gollum/shared"
 	"sync"
 	"time"
@@ -178,7 +179,7 @@ func (prod *Kafka) send(msg shared.Message) {
 
 		prod.client, err = kafka.NewClient("gollum", prod.servers, prod.clientConfig)
 		if err != nil {
-			shared.Log.Error.Print("Kafka client error:", err)
+			Log.Error.Print("Kafka client error:", err)
 			return
 		}
 	}
@@ -187,7 +188,7 @@ func (prod *Kafka) send(msg shared.Message) {
 	if prod.producer == nil {
 		prod.producer, err = kafka.NewProducer(prod.client, prod.producerConfig)
 		if err != nil {
-			shared.Log.Error.Print("Kafka producer error:", err)
+			Log.Error.Print("Kafka producer error:", err)
 			return
 		}
 	}
@@ -208,7 +209,7 @@ func (prod *Kafka) send(msg shared.Message) {
 		// Check for errors
 		select {
 		case err := <-prod.producer.Errors():
-			shared.Log.Error.Print("Kafka message error:", err)
+			Log.Error.Print("Kafka message error:", err)
 		default:
 		}
 	}

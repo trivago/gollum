@@ -1,6 +1,7 @@
 package producer
 
 import (
+	"github.com/trivago/gollum/log"
 	"github.com/trivago/gollum/shared"
 	"regexp"
 	"strings"
@@ -68,7 +69,7 @@ func (prod *standardProducer) Configure(conf shared.PluginConfig) error {
 		var err error
 		prod.filter, err = regexp.Compile(filter)
 		if err != nil {
-			shared.Log.Error.Print("Regex error: ", err)
+			Log.Error.Print("Regex error: ", err)
 		}
 	}
 

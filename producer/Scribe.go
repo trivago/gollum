@@ -3,6 +3,7 @@ package producer
 import (
 	"github.com/artyom/scribe"
 	"github.com/artyom/thrift"
+	"github.com/trivago/gollum/log"
 	"github.com/trivago/gollum/shared"
 	"strconv"
 	"sync"
@@ -106,7 +107,7 @@ func (prod *Scribe) Configure(conf shared.PluginConfig) error {
 
 	prod.socket, err = thrift.NewTSocket(host + ":" + strconv.Itoa(port))
 	if err != nil {
-		shared.Log.Error.Print("Scribe socket error:", err)
+		Log.Error.Print("Scribe socket error:", err)
 		return err
 	}
 
@@ -121,7 +122,7 @@ func (prod Scribe) send() {
 	if !prod.transport.IsOpen() {
 		err := prod.transport.Open()
 		if err != nil {
-			shared.Log.Error.Print("Scribe connection error:", err)
+			Log.Error.Print("Scribe connection error:", err)
 		} else {
 			prod.socket.Conn().(bufferedConn).SetWriteBuffer(prod.bufferSizeKB << 10)
 		}
@@ -129,7 +130,7 @@ func (prod Scribe) send() {
 
 	if prod.transport.IsOpen() {
 		prod.batch.flush(prod.scribe, func(err error) {
-			shared.Log.Error.Print("Scribe log error: ", err)
+			Log.Error.Print("Scribe log error: ", err)
 			prod.transport.Close()
 		})
 	}

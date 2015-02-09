@@ -1,6 +1,7 @@
 package consumer
 
 import (
+	"github.com/trivago/gollum/log"
 	"github.com/trivago/gollum/shared"
 	"io"
 	"os"
@@ -67,7 +68,7 @@ func (cons *File) readFrom(stream io.Reader, threads *sync.WaitGroup) {
 		err := buffer.Read(cons.file, cons.delimiter)
 
 		if err != nil && err != io.EOF && !cons.quit {
-			shared.Log.Error.Print("Error reading stdin: ", err)
+			Log.Error.Print("Error reading stdin: ", err)
 			return
 		}
 
@@ -84,7 +85,7 @@ func (cons File) Consume(threads *sync.WaitGroup) {
 	var err error
 	cons.file, err = os.OpenFile(cons.fileName, os.O_RDONLY, 0666)
 	if err != nil {
-		shared.Log.Error.Print("File open error:", err)
+		Log.Error.Print("File open error:", err)
 		return
 	}
 

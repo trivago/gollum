@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"fmt"
+	"github.com/trivago/gollum/log"
 	"github.com/trivago/gollum/shared"
 	"math"
 	"math/rand"
@@ -75,7 +76,7 @@ func (cons *Profiler) profile() {
 		minTime = math.Min(minTime, runTime.Seconds())
 		maxTime = math.Max(maxTime, runTime.Seconds())
 
-		shared.Log.Note.Print(fmt.Sprintf(
+		Log.Note.Print(fmt.Sprintf(
 			"Profile run #%d: %.4f sec = %4.f msg/sec",
 			b, runTime.Seconds(),
 			float64(cons.profileRuns)/runTime.Seconds()))
@@ -83,17 +84,17 @@ func (cons *Profiler) profile() {
 
 	runTime := time.Since(testStart)
 
-	shared.Log.Note.Print(fmt.Sprintf(
+	Log.Note.Print(fmt.Sprintf(
 		"Avg: %.4f sec = %4.f msg/sec",
 		runTime.Seconds(),
 		float64(cons.profileRuns*cons.batches)/runTime.Seconds()))
 
-	shared.Log.Note.Print(fmt.Sprintf(
+	Log.Note.Print(fmt.Sprintf(
 		"Best: %.4f sec = %4.f msg/sec",
 		minTime,
 		float64(cons.profileRuns)/minTime))
 
-	shared.Log.Note.Print(fmt.Sprintf(
+	Log.Note.Print(fmt.Sprintf(
 		"Worst: %.4f sec = %4.f msg/sec",
 		maxTime,
 		float64(cons.profileRuns)/maxTime))

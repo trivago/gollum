@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/trivago/gollum/consumer"
+	"github.com/trivago/gollum/log"
 	"github.com/trivago/gollum/shared"
 	"os"
 	"os/signal"
@@ -27,7 +28,7 @@ func newMultiplexer(configFile string) multiplexer {
 
 	// Configure the multiplexer, create a byte pool and assign it to the log
 
-	logConsumer := consumer.Log{}
+	logConsumer := consumer.LogConsumer{}
 	logConsumer.Configure(shared.PluginConfig{})
 
 	plex := multiplexer{
@@ -49,18 +50,18 @@ func newMultiplexer(configFile string) multiplexer {
 
 			obj, err := shared.RuntimeType.New(className)
 			if err != nil {
-				shared.Log.Error.Panic(err.Error())
+				Log.Error.Panic(err.Error())
 			}
 
 			plugin, isPlugin := obj.(shared.Plugin)
 			if !isPlugin {
-				shared.Log.Error.Panic(className, " is no plugin.")
+				Log.Error.Panic(className, " is no plugin.")
 				continue // ### continue ###
 			}
 
 			err = plugin.Configure(config)
 			if err != nil {
-				shared.Log.Error.Print("Failed to configure plugin ", className, ": ", err)
+				Log.Error.Print("Failed to configure plugin ", className, ": ", err)
 				continue // ### continue ###
 			}
 
@@ -125,7 +126,7 @@ func (plex multiplexer) broadcastMessage(message shared.Message, enqueue bool) {
 // Producers are flushed after flushing the log, so producer related shutdown
 // messages will be posted to stdout
 func (plex *multiplexer) shutdown() {
-	shared.Log.Note.Print("Filthy little hobbites. They stole it from us. (shutdown)")
+	Log.Note.Print("Filthy little hobbites. They stole it from us. (shutdown)")
 
 	// Send shutdown to consumers
 
@@ -136,7 +137,7 @@ func (plex *multiplexer) shutdown() {
 
 	// Make sure all remaining messages are flushed
 
-	shared.Log.Note.Print("Sending the hobbits to mount doom. (flushing)")
+	Log.Note.Print("Sending the hobbits to mount doom. (flushing)")
 
 	for _, consumer := range plex.consumers {
 	flushing:
@@ -163,7 +164,7 @@ func (plex *multiplexer) shutdown() {
 
 	for {
 		select {
-		case message := <-shared.Log.Messages():
+		case message := <-Log.Messages():
 			fmt.Fprintln(os.Stdout, format.ToString(message))
 		default:
 			return
@@ -177,12 +178,12 @@ func (plex multiplexer) run() {
 	defer plex.shutdown()
 
 	if len(plex.consumers) == 0 {
-		shared.Log.Error.Print("No consumers configured.")
+		Log.Error.Print("No consumers configured.")
 		return // ### return, nothing to do ###
 	}
 
 	if len(plex.producers) == 0 {
-		shared.Log.Error.Print("No producers configured.")
+		Log.Error.Print("No producers configured.")
 		return // ### return, nothing to do ###
 	}
 
@@ -203,7 +204,7 @@ func (plex multiplexer) run() {
 
 	// Wait for at least one producer to come online
 
-	shared.Log.Note.Print("We be nice to them, if they be nice to us. (startup)")
+	Log.Note.Print("We be nice to them, if they be nice to us. (startup)")
 
 	// Main loop
 
@@ -217,7 +218,7 @@ func (plex multiplexer) run() {
 				// do nothing
 
 			case <-signalChannel:
-				shared.Log.Note.Print("Master betrayed us. Wicked. Tricksy, False. (signal)")
+				Log.Note.Print("Master betrayed us. Wicked. Tricksy, False. (signal)")
 				return
 
 			case message := <-consumer.Messages():

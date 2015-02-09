@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"fmt"
+	"github.com/trivago/gollum/log"
 	"github.com/trivago/gollum/shared"
 	"io"
 	"net"
@@ -88,7 +89,7 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 			}
 		} else {
 			if !cons.quit {
-				shared.Log.Error.Print("Socket read failed:", err)
+				Log.Error.Print("Socket read failed:", err)
 			}
 			break // ### break, close connection ###
 		}
@@ -101,7 +102,7 @@ func (cons *Socket) accept(threads *sync.WaitGroup) {
 		client, err := cons.listen.Accept()
 		if err != nil {
 			if !cons.quit {
-				shared.Log.Error.Print("Socket listen failed:", err)
+				Log.Error.Print("Socket listen failed:", err)
 			}
 			break // ### break ###
 		}
@@ -120,7 +121,7 @@ func (cons Socket) Consume(threads *sync.WaitGroup) {
 	var err error
 	cons.listen, err = net.Listen(cons.protocol, cons.address)
 	if err != nil {
-		shared.Log.Error.Print("Socket connection error: ", err)
+		Log.Error.Print("Socket connection error: ", err)
 		return
 	}
 

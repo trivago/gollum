@@ -1,6 +1,7 @@
 package producer
 
 import (
+	"github.com/trivago/gollum/log"
 	"github.com/trivago/gollum/shared"
 	"net"
 	"strings"
@@ -97,7 +98,7 @@ func (prod *Socket) validate() bool {
 	response := make([]byte, 2)
 	_, err := prod.connection.Read(response)
 	if err != nil {
-		shared.Log.Error.Print("Socket response error:", err)
+		Log.Error.Print("Socket response error:", err)
 		return false
 	}
 
@@ -110,7 +111,7 @@ func (prod *Socket) send() {
 		conn, err := net.Dial(prod.protocol, prod.address)
 
 		if err != nil {
-			shared.Log.Error.Print("Socket connection error:", err)
+			Log.Error.Print("Socket connection error:", err)
 		} else {
 			conn.(bufferedConn).SetWriteBuffer(prod.bufferSizeKB << 10)
 			prod.connection = conn
@@ -123,7 +124,7 @@ func (prod *Socket) send() {
 			prod.connection,
 			prod.validate,
 			func(err error) {
-				shared.Log.Error.Print("Socket error:", err)
+				Log.Error.Print("Socket error:", err)
 				prod.connection.Close()
 				prod.connection = nil
 			})

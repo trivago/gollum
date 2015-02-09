@@ -3,6 +3,7 @@ package producer
 import (
 	"compress/gzip"
 	"fmt"
+	"github.com/trivago/gollum/log"
 	"github.com/trivago/gollum/shared"
 	"io"
 	"io/ioutil"
@@ -167,7 +168,7 @@ func (prod *File) needsRotate() (bool, error) {
 
 func (prod File) compressAndCloseLog(sourceFile *os.File) {
 	if !prod.compress {
-		shared.Log.Note.Print("Rotated " + sourceFile.Name())
+		Log.Note.Print("Rotated " + sourceFile.Name())
 		sourceFile.Close()
 		return
 	}
@@ -184,13 +185,13 @@ func (prod File) compressAndCloseLog(sourceFile *os.File) {
 
 	targetFile, err := os.OpenFile(targetFileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
-		shared.Log.Error.Print("File compress error:", err)
+		Log.Error.Print("File compress error:", err)
 		sourceFile.Close()
 		return
 	}
 
 	// Create zipfile and compress data
-	shared.Log.Note.Print("Compressing " + sourceFileName)
+	Log.Note.Print("Compressing " + sourceFileName)
 
 	sourceFile.Seek(0, 0)
 	targetWriter := gzip.NewWriter(targetFile)
@@ -206,10 +207,10 @@ func (prod File) compressAndCloseLog(sourceFile *os.File) {
 	targetFile.Close()
 
 	if err != nil && err != io.EOF {
-		shared.Log.Warning.Print("Compression failed:", err)
+		Log.Warning.Print("Compression failed:", err)
 		err = os.Remove(targetFileName)
 		if err != nil {
-			shared.Log.Error.Print("Compressed file remove failed:", err)
+			Log.Error.Print("Compressed file remove failed:", err)
 		}
 		return
 	}
@@ -217,7 +218,7 @@ func (prod File) compressAndCloseLog(sourceFile *os.File) {
 	// Remove original log
 	err = os.Remove(sourceFileName)
 	if err != nil {
-		shared.Log.Error.Print("Uncompressed file remove failed:", err)
+		Log.Error.Print("Uncompressed file remove failed:", err)
 	}
 }
 
@@ -276,7 +277,7 @@ func (prod *File) openLog() error {
 
 func (prod *File) write() {
 	if err := prod.openLog(); err != nil {
-		shared.Log.Error.Print("File rotate error:", err)
+		Log.Error.Print("File rotate error:", err)
 		return
 	}
 
@@ -286,7 +287,7 @@ func (prod *File) write() {
 			return true
 		},
 		func(err error) {
-			shared.Log.Error.Print("File write error:", err)
+			Log.Error.Print("File write error:", err)
 		})
 }
 

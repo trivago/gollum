@@ -1,6 +1,7 @@
 package consumer
 
 import (
+	"github.com/trivago/gollum/log"
 	"github.com/trivago/gollum/shared"
 	"io"
 	"os"
@@ -32,7 +33,7 @@ func (cons *Console) readFrom(stream io.Reader, threads *sync.WaitGroup) {
 	for {
 		err := buffer.Read(stream, "\n")
 		if err != nil {
-			shared.Log.Error.Print("Error reading stdin: ", err)
+			Log.Error.Print("Error reading stdin: ", err)
 		}
 	}
 }
