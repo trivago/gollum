@@ -1,16 +1,18 @@
 package Log
 
 import (
+	"fmt"
 	"github.com/trivago/gollum/shared"
 	"log"
 )
 
 type logMessages struct {
-	queue chan shared.Message
+	queue   chan shared.Message
+	enqueue bool
 }
 
 var logStreamIDs = []shared.MessageStreamID{shared.LogInternalStreamID}
-var logHelper = logMessages{make(chan shared.Message, 1024)}
+var logHelper = logMessages{make(chan shared.Message, 1024), false}
 
 // Error is a predefined log channel for errors. This log is backed by consumer.Log
 var Error *log.Logger
@@ -36,6 +38,11 @@ func (log logMessages) Write(message []byte) (int, error) {
 		return 0, nil
 	}
 
+	if !log.enqueue {
+		fmt.Print(string(message))
+		return length, nil
+	}
+
 	if message[length-1] == '\n' {
 		message = message[:length-1]
 	}
@@ -44,6 +51,12 @@ func (log logMessages) Write(message []byte) (int, error) {
 	log.queue <- msg
 
 	return length, nil
+}
+
+// EnqueueMessages can switch between pushing messages to stderr or the internal
+// log stream (false, true). By default messages are written to stderr.
+func EnqueueMessages(enable bool) {
+	logHelper.enqueue = enable
 }
 
 // Messages returns a read only access to queued log messages

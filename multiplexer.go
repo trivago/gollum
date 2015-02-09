@@ -135,20 +135,25 @@ func (plex *multiplexer) shutdown() {
 	plex.consumerThreads.Wait()
 
 	// Make sure all remaining messages are flushed
+	// A flush may happen before any producers are started. In that case we need
+	// to ignore these producers.
 
-	Log.Note.Print("Sending the hobbits to mount doom. (flushing)")
+	Log.Note.Print("It's the only way. Go in, or go back. (flushing)")
 
 	for _, consumer := range plex.consumers {
 	flushing:
 		for {
 			select {
 			case message := <-consumer.Messages():
-				plex.broadcastMessage(message, false)
+				plex.broadcastMessage(message, false) // Don't block if the producer is not active
 			default:
 				break flushing
 			}
 		}
 	}
+
+	// Make sure remaining warning / errors are written to stderr
+	Log.EnqueueMessages(false)
 
 	// Shutdown producers
 
@@ -156,19 +161,6 @@ func (plex *multiplexer) shutdown() {
 		producer.Control() <- shared.ProducerControlStop
 	}
 	plex.producerThreads.Wait()
-
-	// Write remaining messages to stderr
-
-	format := shared.NewMessageFormatForward()
-
-	for {
-		select {
-		case message := <-Log.Messages():
-			fmt.Fprintln(os.Stdout, format.ToString(message))
-		default:
-			return
-		}
-	}
 }
 
 // Run the multiplexer.
@@ -190,6 +182,12 @@ func (plex multiplexer) run() {
 
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt)
+
+	// If there are intenal log listeners switch to stream mode
+
+	if _, enableQueue := plex.stream[shared.LogInternalStreamID]; enableQueue {
+		Log.EnqueueMessages(true)
+	}
 
 	// Launch consumers and producers
 
