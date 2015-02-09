@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/trivago/gollum/consumer"
 	"github.com/trivago/gollum/log"
 	"github.com/trivago/gollum/shared"
 	"os"
@@ -28,7 +27,7 @@ func newMultiplexer(configFile string) multiplexer {
 
 	// Configure the multiplexer, create a byte pool and assign it to the log
 
-	logConsumer := consumer.LogConsumer{}
+	logConsumer := Log.Consumer{}
 	logConsumer.Configure(shared.PluginConfig{})
 
 	plex := multiplexer{
