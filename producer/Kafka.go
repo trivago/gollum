@@ -22,6 +22,7 @@ const (
 //
 // - "producer.Kafka":
 //   Enable: true
+//   ClientId: "weblog"
 //   Partitioner: "Roundrobin"
 //   RequiredAcks: 0
 //   TimeoutMs: 0
@@ -41,6 +42,8 @@ const (
 //   Topic:
 //     "console" : "default"
 //     "_GOLLUM_"  : "default"
+//
+// ClientId sets the client id of this producer. By default this is "gollum".
 //
 // Partitioner sets the distribution algorithm to use. Valid values (case
 // sensitive) are: "Random","Roundrobin","Hash". By default "Hash" is set.
@@ -87,6 +90,7 @@ type Kafka struct {
 	servers        []string
 	topic          map[shared.MessageStreamID]string
 	defaultTopic   string
+	clientID       string
 	client         *kafka.Client
 	clientConfig   *kafka.ClientConfig
 	producer       *kafka.Producer
@@ -114,6 +118,7 @@ func (prod *Kafka) Configure(conf shared.PluginConfig) error {
 	prod.servers = conf.GetStringArray("Servers", []string{})
 	prod.topic = make(map[shared.MessageStreamID]string)
 	prod.defaultTopic = "default"
+	prod.clientID = conf.GetString("ClientId", "gollum")
 
 	defaultMapping := make(map[string]string)
 	defaultMapping[shared.WildcardStream] = prod.defaultTopic
@@ -177,7 +182,7 @@ func (prod *Kafka) send(msg shared.Message) {
 			prod.producer = nil
 		}
 
-		prod.client, err = kafka.NewClient("gollum", prod.servers, prod.clientConfig)
+		prod.client, err = kafka.NewClient(prod.clientID, prod.servers, prod.clientConfig)
 		if err != nil {
 			Log.Error.Print("Kafka client error:", err)
 			return

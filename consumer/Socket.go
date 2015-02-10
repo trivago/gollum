@@ -125,6 +125,7 @@ func (cons Socket) Consume(threads *sync.WaitGroup) {
 		return
 	}
 
+	cons.quit = false
 	go cons.accept(threads)
 	defer func() {
 		cons.quit = true

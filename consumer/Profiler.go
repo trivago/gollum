@@ -107,6 +107,7 @@ func (cons *Profiler) profile() {
 
 // Consume starts a profile run and exits gollum when done
 func (cons Profiler) Consume(threads *sync.WaitGroup) {
+	cons.quit = false
 	go cons.profile()
 	defer func() {
 		cons.quit = true

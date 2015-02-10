@@ -89,6 +89,7 @@ func (cons File) Consume(threads *sync.WaitGroup) {
 		return
 	}
 
+	cons.quit = false
 	go cons.readFrom(cons.file, threads)
 	defer func() {
 		cons.quit = true
