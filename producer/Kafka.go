@@ -227,17 +227,5 @@ func (prod Kafka) Produce(threads *sync.WaitGroup) {
 		prod.markAsDone()
 	}()
 
-	prod.markAsActive(threads)
-
-	for {
-		select {
-		case message := <-prod.messages:
-			prod.send(message)
-
-		case command := <-prod.control:
-			if command == shared.ProducerControlStop {
-				return // ### return, done ###
-			}
-		}
-	}
+	prod.defaultControlLoop(threads, prod.send)
 }

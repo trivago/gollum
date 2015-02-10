@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 )
 
 // Producer base class
@@ -105,4 +106,40 @@ func (prod standardProducer) Control() chan<- shared.ProducerControl {
 
 func (prod standardProducer) Messages() chan<- shared.Message {
 	return prod.messages
+}
+
+func (prod standardProducer) defaultControlLoop(threads *sync.WaitGroup, onMessage func(msg shared.Message)) {
+	prod.markAsActive(threads)
+
+	for prod.IsActive() {
+		select {
+		case message := <-prod.messages:
+			onMessage(message)
+
+		case command := <-prod.control:
+			if command == shared.ProducerControlStop {
+				return // ### return, done ###
+			}
+		}
+	}
+}
+
+func (prod standardProducer) tickerControlLoop(threads *sync.WaitGroup, timeOutSec int, onMessage func(msg shared.Message), onTimeOut func()) {
+	flushTicker := time.NewTicker(time.Duration(timeOutSec) * time.Second)
+	prod.markAsActive(threads)
+
+	for prod.IsActive() {
+		select {
+		case message := <-prod.messages:
+			onMessage(message)
+
+		case command := <-prod.control:
+			if command == shared.ProducerControlStop {
+				return // ### return, done ###
+			}
+
+		case <-flushTicker.C:
+			onTimeOut()
+		}
+	}
 }

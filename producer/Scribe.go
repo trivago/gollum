@@ -7,7 +7,6 @@ import (
 	"github.com/trivago/gollum/shared"
 	"strconv"
 	"sync"
-	"time"
 )
 
 // Scribe producer plugin
@@ -118,7 +117,7 @@ func (prod *Scribe) Configure(conf shared.PluginConfig) error {
 	return nil
 }
 
-func (prod Scribe) send() {
+func (prod *Scribe) sendBatch() {
 	if !prod.transport.IsOpen() {
 		err := prod.transport.Open()
 		if err != nil {
@@ -136,7 +135,13 @@ func (prod Scribe) send() {
 	}
 }
 
-func (prod Scribe) sendMessage(message shared.Message) {
+func (prod *Scribe) sendBatchOnTimeOut() {
+	if prod.batch.reachedTimeThreshold(prod.batchTimeoutSec) {
+		prod.sendBatch()
+	}
+}
+
+func (prod *Scribe) sendMessage(message shared.Message) {
 	category, exists := prod.category[message.PinnedStream]
 	if !exists {
 		category = prod.defaultCategory
@@ -144,17 +149,17 @@ func (prod Scribe) sendMessage(message shared.Message) {
 
 	prod.batch.appendAndRelease(message, category)
 	if prod.batch.reachedSizeThreshold(prod.batchSize) {
-		prod.send()
+		prod.sendBatch()
 	}
 }
 
-func (prod Scribe) flush() {
+func (prod *Scribe) flush() {
 	for {
 		select {
 		case message := <-prod.messages:
 			prod.sendMessage(message)
 		default:
-			prod.send()
+			prod.sendBatch()
 			prod.batch.waitForFlush()
 			return
 		}
@@ -170,23 +175,5 @@ func (prod Scribe) Produce(threads *sync.WaitGroup) {
 		prod.markAsDone()
 	}()
 
-	flushTicker := time.NewTicker(time.Duration(prod.batchTimeoutSec) * time.Second)
-	prod.markAsActive(threads)
-
-	for {
-		select {
-		case message := <-prod.messages:
-			prod.sendMessage(message)
-
-		case command := <-prod.control:
-			if command == shared.ProducerControlStop {
-				return // ### return, done ###
-			}
-
-		case <-flushTicker.C:
-			if prod.batch.reachedTimeThreshold(prod.batchTimeoutSec) {
-				prod.send()
-			}
-		}
-	}
+	prod.tickerControlLoop(threads, prod.batchTimeoutSec, prod.sendMessage, prod.sendBatchOnTimeOut)
 }

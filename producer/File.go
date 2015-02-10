@@ -275,7 +275,7 @@ func (prod *File) openLog() error {
 	return err
 }
 
-func (prod *File) write() {
+func (prod *File) writeBatch() {
 	if err := prod.openLog(); err != nil {
 		Log.Error.Print("File rotate error:", err)
 		return
@@ -291,10 +291,16 @@ func (prod *File) write() {
 		})
 }
 
+func (prod *File) writeBatchOnTimeOut() {
+	if prod.batch.ReachedTimeThreshold(prod.batchTimeoutSec) {
+		prod.writeBatch()
+	}
+}
+
 func (prod *File) writeMessage(message shared.Message) {
 	prod.batch.AppendAndRelease(message)
 	if prod.batch.ReachedSizeThreshold(prod.batchSize) {
-		prod.write()
+		prod.writeBatch()
 	}
 }
 
@@ -304,7 +310,7 @@ func (prod File) flush() {
 		case message := <-prod.messages:
 			prod.writeMessage(message)
 		default:
-			prod.write()
+			prod.writeBatch()
 			prod.batch.WaitForFlush()
 			return
 		}
@@ -320,23 +326,5 @@ func (prod File) Produce(threads *sync.WaitGroup) {
 		prod.markAsDone()
 	}()
 
-	flushTicker := time.NewTicker(time.Duration(prod.batchTimeoutSec) * time.Second)
-	prod.markAsActive(threads)
-
-	for {
-		select {
-		case message := <-prod.messages:
-			prod.writeMessage(message)
-
-		case command := <-prod.control:
-			if command == shared.ProducerControlStop {
-				return // ### return, done ###
-			}
-
-		case <-flushTicker.C:
-			if prod.batch.ReachedTimeThreshold(prod.batchTimeoutSec) {
-				prod.write()
-			}
-		}
-	}
+	prod.tickerControlLoop(threads, prod.batchTimeoutSec, prod.writeMessage, prod.writeBatchOnTimeOut)
 }

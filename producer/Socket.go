@@ -6,7 +6,6 @@ import (
 	"net"
 	"strings"
 	"sync"
-	"time"
 )
 
 var fileSocketPrefix = "unix://"
@@ -105,7 +104,7 @@ func (prod *Socket) validate() bool {
 	return string(response) == "OK"
 }
 
-func (prod *Socket) send() {
+func (prod *Socket) sendBatch() {
 	// If we have not yet connected or the connection dropped: connect.
 	if prod.connection == nil {
 		conn, err := net.Dial(prod.protocol, prod.address)
@@ -131,10 +130,16 @@ func (prod *Socket) send() {
 	}
 }
 
+func (prod *Socket) sendBatchOnTimeOut() {
+	if prod.batch.ReachedTimeThreshold(prod.batchTimeoutSec) {
+		prod.sendBatch()
+	}
+}
+
 func (prod *Socket) sendMessage(message shared.Message) {
 	prod.batch.AppendAndRelease(message)
 	if prod.batch.ReachedSizeThreshold(prod.batchSize) {
-		prod.send()
+		prod.sendBatch()
 	}
 }
 
@@ -144,7 +149,7 @@ func (prod *Socket) flush() {
 		case message := <-prod.messages:
 			prod.sendMessage(message)
 		default:
-			prod.send()
+			prod.sendBatch()
 			prod.batch.WaitForFlush()
 			return
 		}
@@ -161,23 +166,5 @@ func (prod Socket) Produce(threads *sync.WaitGroup) {
 		prod.markAsDone()
 	}()
 
-	flushTicker := time.NewTicker(time.Duration(prod.batchTimeoutSec) * time.Second)
-	prod.markAsActive(threads)
-
-	for {
-		select {
-		case message := <-prod.messages:
-			prod.sendMessage(message)
-
-		case command := <-prod.control:
-			if command == shared.ProducerControlStop {
-				return // ### return, done ###
-			}
-
-		case <-flushTicker.C:
-			if prod.batch.ReachedTimeThreshold(prod.batchTimeoutSec) {
-				prod.send()
-			}
-		}
-	}
+	prod.tickerControlLoop(threads, prod.batchTimeoutSec, prod.sendMessage, prod.sendBatchOnTimeOut)
 }
