@@ -55,9 +55,9 @@ func (format JSON) String(msg shared.Message) string {
 
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
-func (format JSON) CopyTo(msg shared.Message, dest []byte) {
+func (format JSON) CopyTo(dest []byte, msg shared.Message) {
 	formattedMessage := format.base.String(msg)
-	encodedMessage := bytes.NewBuffer(make([]byte, len(formattedMessage)))
+	encodedMessage := new(bytes.Buffer)
 
 	encodedMessage.WriteString("{\"message\":\"")
 	json.HTMLEscape(encodedMessage, []byte(formattedMessage))

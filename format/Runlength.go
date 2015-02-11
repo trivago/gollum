@@ -27,7 +27,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Runlength) Configure(conf shared.PluginConfig) error {
-	plugin, err := shared.RuntimeType.NewPlugin(conf.GetString("RunlengthFormatter", "format.Forward"), conf)
+	plugin, err := shared.RuntimeType.NewPlugin(conf.GetString("RunlengthDataFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err
 	}
@@ -55,8 +55,8 @@ func (format Runlength) String(msg shared.Message) string {
 
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
-func (format Runlength) CopyTo(msg shared.Message, dest []byte) {
+func (format Runlength) CopyTo(dest []byte, msg shared.Message) {
 	len := copy(dest, strconv.Itoa(format.base.GetLength(msg)))
 	dest[len] = ':'
-	format.base.CopyTo(msg, dest[len+1:])
+	format.base.CopyTo(dest[len+1:], msg)
 }

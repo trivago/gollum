@@ -18,5 +18,5 @@ type Formatter interface {
 
 	// CopyTo copies the message into an existing buffer. It is assumed that
 	// dest has enough space to fit GetLength() bytes
-	CopyTo(msg Message, dest []byte)
+	CopyTo(dest []byte, msg Message)
 }

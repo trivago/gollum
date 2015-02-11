@@ -59,7 +59,7 @@ func (batch *MessageBuffer) Append(msg Message) bool {
 		return false
 	}
 
-	batch.format.CopyTo(msg, activeQueue.buffer[activeQueue.contentLen:])
+	batch.format.CopyTo(activeQueue.buffer[activeQueue.contentLen:], msg)
 	activeQueue.contentLen += messageLength
 	activeQueue.doneCount++
 

@@ -45,7 +45,7 @@ func (format Simple) String(msg shared.Message) string {
 
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
-func (format Simple) CopyTo(msg shared.Message, dest []byte) {
+func (format Simple) CopyTo(dest []byte, msg shared.Message) {
 	len := copy(dest, format.delimiter)
 	len += copy(dest[len:], msg.Data)
 }

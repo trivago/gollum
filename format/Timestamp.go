@@ -58,7 +58,7 @@ func (format Timestamp) String(msg shared.Message) string {
 
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
-func (format Timestamp) CopyTo(msg shared.Message, dest []byte) {
+func (format Timestamp) CopyTo(dest []byte, msg shared.Message) {
 	len := copy(dest[:], msg.Timestamp.Format(format.timestampFormat))
 	len += copy(dest[len:], messageFormatTimestampSeparator)
 	len += copy(dest[len:], msg.Data)

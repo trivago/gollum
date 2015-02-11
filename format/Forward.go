@@ -34,6 +34,6 @@ func (format Forward) String(msg shared.Message) string {
 
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
-func (format Forward) CopyTo(msg shared.Message, dest []byte) {
+func (format Forward) CopyTo(dest []byte, msg shared.Message) {
 	copy(dest, msg.Data)
 }

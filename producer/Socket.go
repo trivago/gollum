@@ -106,7 +106,8 @@ func (prod *Socket) sendBatch() {
 		conn, err := net.Dial(prod.protocol, prod.address)
 
 		if err != nil {
-			Log.Error.Print("Socket connection error:", err)
+			Log.Error.Print("Socket connection error - ", err)
+			prod.connection = nil
 		} else {
 			conn.(bufferedConn).SetWriteBuffer(prod.bufferSizeKB << 10)
 			prod.connection = conn
@@ -119,7 +120,7 @@ func (prod *Socket) sendBatch() {
 			prod.connection,
 			prod.validate,
 			func(err error) {
-				Log.Error.Print("Socket error:", err)
+				Log.Error.Print("Socket error - ", err)
 				prod.connection.Close()
 				prod.connection = nil
 			})
