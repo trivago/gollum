@@ -31,12 +31,12 @@ type MessageBuffer struct {
 	flushing  *sync.Mutex
 	lastFlush time.Time
 	activeSet uint32
-	format    MessageFormat
+	format    Formatter
 }
 
 // NewMessageBuffer creates a new messagebuffer with a given size (in bytes)
-// and a given set of MessageFormatFlag.
-func NewMessageBuffer(size int, format MessageFormat) *MessageBuffer {
+// and a given set of FormatterFlag.
+func NewMessageBuffer(size int, format Formatter) *MessageBuffer {
 	return &MessageBuffer{
 		queue:     [2]messageQueue{NewMessageQueue(size), NewMessageQueue(size)},
 		flushing:  new(sync.Mutex),
@@ -59,7 +59,7 @@ func (batch *MessageBuffer) Append(msg Message) bool {
 		return false
 	}
 
-	batch.format.ToBuffer(msg, activeQueue.buffer[activeQueue.contentLen:])
+	batch.format.CopyTo(msg, activeQueue.buffer[activeQueue.contentLen:])
 	activeQueue.contentLen += messageLength
 	activeQueue.doneCount++
 

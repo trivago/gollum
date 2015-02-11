@@ -47,7 +47,7 @@ func (prod *Console) Configure(conf shared.PluginConfig) error {
 }
 
 func (prod Console) printMessage(msg shared.Message) {
-	fmt.Fprint(prod.console, prod.format.ToString(msg))
+	fmt.Fprint(prod.console, prod.format.String(msg))
 }
 
 func (prod Console) flush() {

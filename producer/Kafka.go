@@ -201,7 +201,7 @@ func (prod *Kafka) send(msg shared.Message) {
 		prod.producer.Input() <- &kafka.MessageToSend{
 			Topic: topic,
 			Key:   nil,
-			Value: kafka.StringEncoder(prod.format.ToString(msg)),
+			Value: kafka.StringEncoder(prod.format.String(msg)),
 		}
 
 		// Check for errors

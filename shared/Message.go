@@ -21,13 +21,6 @@ var LogInternalStreamID = GetStreamID(LogInternalStream)
 // WildcardStreamID is the ID of the "*" stream
 var WildcardStreamID = GetStreamID(WildcardStream)
 
-const (
-	// DefaultTimestamp is the timestamp format string used for messages
-	DefaultTimestamp = "2006-01-02 15:04:05 MST"
-	// DefaultDelimiter is the default end of message delimiter
-	DefaultDelimiter = "\n"
-)
-
 // Message is a container used for storing the internal state of messages.
 // This struct is passed between consumers and producers.
 type Message struct {
@@ -35,13 +28,6 @@ type Message struct {
 	Streams      []MessageStreamID
 	PinnedStream MessageStreamID
 	Timestamp    time.Time
-}
-
-// MessageFormat is the interface definition for message formatters
-type MessageFormat interface {
-	GetLength(msg Message) int
-	ToString(msg Message) string
-	ToBuffer(msg Message, dest []byte)
 }
 
 // GetStreamID returns the integer representation of a given stream name.

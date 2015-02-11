@@ -75,10 +75,6 @@ func (prod *Socket) Configure(conf shared.PluginConfig) error {
 	prod.bufferSizeKB = conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
 	prod.acknowledge = conf.GetBool("Acknowledge", false)
 
-	if conf.GetBool("Runlength", false) {
-		prod.format = shared.NewMessageFormatRLE(prod.format)
-	}
-
 	prod.batch = shared.NewMessageBuffer(bufferSizeMax, prod.format)
 
 	if strings.HasPrefix(prod.address, fileSocketPrefix) {

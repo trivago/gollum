@@ -2,7 +2,6 @@ package producer
 
 import (
 	"bytes"
-	"encoding/json"
 	elastigo "github.com/mattbaird/elastigo/lib"
 	"github.com/trivago/gollum/log"
 	"github.com/trivago/gollum/shared"
@@ -147,12 +146,7 @@ func (prod *ElasticSearch) simpleMessage(msg shared.Message) {
 		msgType = prod.msgType[shared.WildcardStreamID]
 	}
 
-	msgString := prod.format.ToString(msg)
-	msgBuffer := bytes.NewBufferString("{\"message\":\"")
-	json.HTMLEscape(msgBuffer, []byte(msgString))
-	msgBuffer.WriteString("\"}")
-
-	err := prod.indexer.Index(index, msgType, "", prod.msgTTL, &msg.Timestamp, msgBuffer.String(), true)
+	err := prod.indexer.Index(index, msgType, "", prod.msgTTL, &msg.Timestamp, prod.format.String(msg), true)
 	if err != nil {
 		Log.Error.Print("ElasticSearch index error - ", err)
 	}

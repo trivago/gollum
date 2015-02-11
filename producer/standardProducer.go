@@ -4,7 +4,6 @@ import (
 	"github.com/trivago/gollum/log"
 	"github.com/trivago/gollum/shared"
 	"regexp"
-	"strings"
 	"sync"
 	"time"
 )
@@ -15,8 +14,7 @@ import (
 // - "producer.Something":
 //   Enable: true
 //   Channel: 1024
-//   Forward: false
-//   Delimiter: "\r\n"
+//   Formatter: "format.Timestamp"
 //   Stream:
 //      - "error"
 //      - "default"
@@ -30,19 +28,14 @@ import (
 // message channels this producer will consume. By default this is set to "*"
 // which means "all streams".
 //
-// If Forward is set to true, the message will be passed as-is, so date and
-// channel will not be added. The default value is false.
-//
-// If Delimiter is set another end-of-message delimiter will be appened to the
-// end of the message. If Forward is defined and Delimiter is not defined, no
-// end-of-line delimiter will be written. Besides this case delimiter is set to
-// "\n" by default.
+// Fromatter sets a formatter to use. Each formatter has its own set of options
+// which can be set here, too. By default this is set to format.Forward
 type standardProducer struct {
 	messages chan shared.Message
 	control  chan shared.ProducerControl
 	filter   *regexp.Regexp
 	state    *shared.PluginRunState
-	format   shared.MessageFormat
+	format   shared.Formatter
 }
 
 type producerError struct {
@@ -59,23 +52,16 @@ func (prod *standardProducer) Configure(conf shared.PluginConfig) error {
 	prod.filter = nil
 	prod.state = new(shared.PluginRunState)
 
-	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
-	delimiter := escapeChars.Replace(conf.GetString("Delimiter", shared.DefaultDelimiter))
-
-	if conf.GetBool("Forward", false) {
-		if conf.HasValue("Delimiter") {
-			prod.format = shared.NewMessageFormatSimple(delimiter)
-		} else {
-			prod.format = shared.NewMessageFormatForward()
-		}
-	} else {
-		prod.format = shared.NewMessageFormatTimestamp(shared.DefaultTimestamp, delimiter)
+	plugin, err := shared.RuntimeType.NewPlugin(conf.GetString("Formatter", "format.Forward"), conf)
+	if err != nil {
+		return err
 	}
+
+	prod.format = plugin.(shared.Formatter)
 
 	filter := conf.GetString("Filter", "")
 
 	if filter != "" {
-		var err error
 		prod.filter, err = regexp.Compile(filter)
 		if err != nil {
 			Log.Error.Print("Regex error: ", err)

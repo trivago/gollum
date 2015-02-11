@@ -50,32 +50,25 @@ func newMultiplexer(configFile string, profile bool) multiplexer {
 
 			// Try to instantiate and configure the plugin
 
-			obj, err := shared.RuntimeType.New(className)
+			plugin, err := shared.RuntimeType.NewPlugin(className, config)
 			if err != nil {
-				Log.Error.Panic(err.Error())
-			}
-
-			plugin, isPlugin := obj.(shared.Plugin)
-			if !isPlugin {
-				Log.Error.Panic(className, " is no plugin.")
-				continue // ### continue ###
-			}
-
-			err = plugin.Configure(config)
-			if err != nil {
-				Log.Error.Print("Failed to configure plugin ", className, ": ", err)
-				continue // ### continue ###
+				if plugin == nil {
+					Log.Error.Panic(err.Error())
+				} else {
+					Log.Error.Print("Failed to configure ", className, ": ", err)
+					continue // ### continue ###
+				}
 			}
 
 			// Register consumer plugins
 
-			if consumer, isConsumer := obj.(shared.Consumer); isConsumer {
+			if consumer, isConsumer := plugin.(shared.Consumer); isConsumer {
 				plex.consumers = append(plex.consumers, consumer)
 			}
 
 			// Register producer plugins
 
-			if producer, isProducer := obj.(shared.Producer); isProducer {
+			if producer, isProducer := plugin.(shared.Producer); isProducer {
 				plex.producers = append(plex.producers, producer)
 
 				for _, stream := range config.Stream {

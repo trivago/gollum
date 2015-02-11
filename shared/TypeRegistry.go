@@ -48,3 +48,21 @@ func (registry typeRegistry) New(typeName string) (interface{}, error) {
 	}
 	return nil, typeRegistryError{"Unknown class: " + typeName}
 }
+
+// NewPlugin creates a new plugin and initializes it with the given config.
+// If the plugin failed to configure the plugin and an error is returned.
+// If another error occured plugin will be nil.
+func (registry typeRegistry) NewPlugin(typeName string, config PluginConfig) (Plugin, error) {
+	obj, err := registry.New(typeName)
+	if err != nil {
+		return nil, err
+	}
+
+	plugin, isPlugin := obj.(Plugin)
+	if !isPlugin {
+		return nil, typeRegistryError{typeName + " is no plugin."}
+	}
+
+	err = plugin.Configure(config)
+	return plugin, err
+}

@@ -31,11 +31,11 @@ type scribeMessageBuffer struct {
 	activeSet     uint32
 	maxContentLen int
 	lastFlush     time.Time
-	format        shared.MessageFormat
+	format        shared.Formatter
 	flushing      *sync.Mutex
 }
 
-func createScribeMessageBuffer(maxContentLen int, format shared.MessageFormat) *scribeMessageBuffer {
+func createScribeMessageBuffer(maxContentLen int, format shared.Formatter) *scribeMessageBuffer {
 	return &scribeMessageBuffer{
 		queue:         [2]scribeMessageQueue{NewMessageQueue(), NewMessageQueue()},
 		activeSet:     uint32(0),
@@ -72,7 +72,7 @@ func (batch *scribeMessageBuffer) append(msg shared.Message, category string) bo
 	}
 
 	logEntry.Category = category
-	logEntry.Message = batch.format.ToString(msg)
+	logEntry.Message = batch.format.String(msg)
 
 	activeQueue.contentLen += messageLength
 	activeQueue.doneCount++
