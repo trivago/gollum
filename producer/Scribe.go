@@ -57,7 +57,6 @@ type Scribe struct {
 	batchSize       int
 	batchTimeoutSec int
 	bufferSizeKB    int
-	defaultCategory string
 }
 
 func init() {
@@ -85,22 +84,7 @@ func (prod *Scribe) Configure(conf shared.PluginConfig) error {
 	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
 	prod.batch = createScribeMessageBuffer(bufferSizeMax, prod.format)
 	prod.bufferSizeKB = conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
-	prod.defaultCategory = "default"
-
-	// Read stream to category mapping
-
-	defaultMapping := make(map[string]string)
-	defaultMapping[shared.WildcardStream] = prod.defaultCategory
-
-	categoryMap := conf.GetStringMap("Category", defaultMapping)
-	for stream, category := range categoryMap {
-		prod.category[shared.GetStreamID(stream)] = category
-	}
-
-	wildcardCategory, wildcardCategorySet := prod.category[shared.WildcardStreamID]
-	if wildcardCategorySet {
-		prod.defaultCategory = wildcardCategory
-	}
+	prod.category = conf.GetStreamMap("Category", "default")
 
 	// Initialize scribe connection
 
@@ -144,7 +128,7 @@ func (prod *Scribe) sendBatchOnTimeOut() {
 func (prod *Scribe) sendMessage(message shared.Message) {
 	category, exists := prod.category[message.PinnedStream]
 	if !exists {
-		category = prod.defaultCategory
+		category = prod.category[shared.WildcardStreamID]
 	}
 
 	prod.batch.appendAndRelease(message, category)

@@ -92,7 +92,6 @@ type Kafka struct {
 	standardProducer
 	servers        []string
 	topic          map[shared.MessageStreamID]string
-	defaultTopic   string
 	clientID       string
 	client         *kafka.Client
 	clientConfig   *kafka.ClientConfig
@@ -124,21 +123,8 @@ func (prod *Kafka) Configure(conf shared.PluginConfig) error {
 	prod.producerConfig = kafka.NewProducerConfig()
 	prod.servers = conf.GetStringArray("Servers", []string{})
 	prod.topic = make(map[shared.MessageStreamID]string)
-	prod.defaultTopic = "default"
+	prod.topic = conf.GetStreamMap("Topic", "default")
 	prod.clientID = conf.GetString("ClientId", "gollum")
-
-	defaultMapping := make(map[string]string)
-	defaultMapping[shared.WildcardStream] = prod.defaultTopic
-
-	topicMap := conf.GetStringMap("Topic", defaultMapping)
-	for stream, topic := range topicMap {
-		prod.topic[shared.GetStreamID(stream)] = topic
-	}
-
-	wildcardTopic, wildcardTopicSet := prod.topic[shared.WildcardStreamID]
-	if wildcardTopicSet {
-		prod.defaultTopic = wildcardTopic
-	}
 
 	switch conf.GetString("Partitioner", partRandom) {
 	case partRandom:
@@ -209,7 +195,7 @@ func (prod *Kafka) send(msg shared.Message) {
 		// Send message
 		topic, topicMapped := prod.topic[msg.PinnedStream]
 		if !topicMapped {
-			topic = prod.defaultTopic
+			topic = prod.topic[shared.WildcardStreamID]
 		}
 
 		prod.producer.Input() <- &kafka.MessageToSend{

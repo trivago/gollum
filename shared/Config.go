@@ -133,12 +133,36 @@ func (conf PluginConfig) GetStringArray(key string, defaultValue []string) []str
 // GetStringMap tries to read a non-predefined, string to string map from a
 // PluginConfig. If that value is not found defaultValue is returned.
 func (conf PluginConfig) GetStringMap(key string, defaultValue map[string]string) map[string]string {
-	value, exists := conf.Settings[key]
-	if exists {
-		return value.(map[string]string)
+	mapping, exists := conf.Settings[key]
+	if !exists {
+		return defaultValue
 	}
 
-	return defaultValue
+	result := make(map[string]string)
+	for key, value := range mapping.(map[interface{}]interface{}) {
+		result[key.(string)] = value.(string)
+	}
+
+	return result
+}
+
+// GetStreamMap tries to read a non-predefined, stream to string map from a
+// plugin config. A mapping on the wildcard stream is always returned.
+// The target is either defaultValue or a value defined by the config.
+func (conf PluginConfig) GetStreamMap(key string, defaultValue string) map[MessageStreamID]string {
+	streamMap := make(map[MessageStreamID]string)
+	streamMap[WildcardStreamID] = defaultValue
+
+	value, exists := conf.Settings[key]
+	if !exists {
+		return streamMap
+	}
+
+	for streamName, target := range value.(map[interface{}]interface{}) {
+		streamMap[GetStreamID(streamName.(string))] = target.(string)
+	}
+
+	return streamMap
 }
 
 // GetInt tries to read a non-predefined, integer value from a PluginConfig.
