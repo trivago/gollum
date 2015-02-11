@@ -49,7 +49,7 @@ func (cons *File) Configure(conf shared.PluginConfig) error {
 	}
 
 	if !conf.HasValue("File") {
-		panic("No file configured for consumer.File")
+		return consumerError{"No file configured for consumer.File"}
 	}
 
 	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")

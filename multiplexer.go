@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"time"
 )
 
 type multiplexer struct {
@@ -15,10 +16,11 @@ type multiplexer struct {
 	consumerThreads *sync.WaitGroup
 	producerThreads *sync.WaitGroup
 	stream          map[shared.MessageStreamID][]shared.Producer
+	profile         bool
 }
 
 // Create a new multiplexer based on a given config file.
-func newMultiplexer(configFile string) multiplexer {
+func newMultiplexer(configFile string, profile bool) multiplexer {
 	conf, err := shared.ReadConfig(configFile)
 	if err != nil {
 		fmt.Printf("Error: %s", err.Error())
@@ -35,6 +37,7 @@ func newMultiplexer(configFile string) multiplexer {
 		consumerThreads: new(sync.WaitGroup),
 		producerThreads: new(sync.WaitGroup),
 		consumers:       []shared.Consumer{logConsumer},
+		profile:         profile,
 	}
 
 	// Initialize the plugins based on the config
@@ -102,6 +105,7 @@ func (plex multiplexer) sendMessage(message shared.Message, streamID shared.Mess
 		if (producer.IsActive() || enqueue) && producer.Accepts(msgClone) {
 			producer.Messages() <- msgClone
 		}
+		producer.Messages()
 	}
 }
 
@@ -200,6 +204,9 @@ func (plex multiplexer) run() {
 	// Main loop
 	Log.Note.Print("We be nice to them, if they be nice to us. (startup)")
 
+	measure := time.Now()
+	messageCount := 0
+
 	for {
 		// Go over all consumers in round-robin fashion
 		// Don't block here, too as a consumer might not contain new messages
@@ -215,7 +222,16 @@ func (plex multiplexer) run() {
 
 			case message := <-consumer.Messages():
 				plex.broadcastMessage(message, true)
+				messageCount++
 			}
+		}
+
+		if plex.profile && messageCount >= 100000 {
+			duration := time.Since(measure)
+			Log.Note.Printf("Processed %.2f msg/sec", float64(messageCount)/duration.Seconds())
+
+			measure = time.Now()
+			messageCount = 0
 		}
 	}
 }

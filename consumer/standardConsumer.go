@@ -31,6 +31,14 @@ type standardConsumer struct {
 	state    *shared.PluginRunState
 }
 
+type consumerError struct {
+	message string
+}
+
+func (err consumerError) Error() string {
+	return err.message
+}
+
 func (cons *standardConsumer) Configure(conf shared.PluginConfig) error {
 	cons.messages = make(chan shared.Message, conf.Channel)
 	cons.control = make(chan shared.ConsumerControl, 1)

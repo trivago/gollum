@@ -13,6 +13,7 @@ var (
 	numCPU        = flag.Int([]string{"n", "-numcpu"}, 0, "Number of CPUs to use")
 	cpuProfilePtr = flag.String([]string{"cp", "-cpuprofile"}, "", "Write cpu profiler results to a given file")
 	memProfilePtr = flag.String([]string{"mp", "-memprofile"}, "", "Write heap profile to a given file")
+	msgProfilePtr = flag.Bool([]string{"t", "-throughput"}, false, "Write msg/sec measurements to log")
 )
 
 func init() {

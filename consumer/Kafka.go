@@ -35,6 +35,8 @@ const (
 //   MetadataRefreshSec: 30
 //   Offset: "File"
 //   OffsetFile: "/tmp/gollum_kafka.idx"
+//   Servers:
+//	   - "192.168.222.30:9092"
 //
 // ClientId sets the client id of this producer. By default this is "gollum".
 //
@@ -76,6 +78,9 @@ const (
 //
 // MetadataRefreshSec set the interval in seconds for fetching cluster metadata.
 // By default this is set to 10.
+//
+// Servers contains the list of all kafka servers to connect to. This setting
+// is mandatory and has no defaults.
 type Kafka struct {
 	standardConsumer
 	servers        []string
@@ -101,6 +106,10 @@ func (cons *Kafka) Configure(conf shared.PluginConfig) error {
 	err := cons.standardConsumer.Configure(conf)
 	if err != nil {
 		return err
+	}
+
+	if !conf.HasValue("Servers") {
+		return consumerError{"No servers configured for consumer.Kafka"}
 	}
 
 	cons.clientConfig = kafka.NewClientConfig()
@@ -151,20 +160,22 @@ func (cons *Kafka) Configure(conf shared.PluginConfig) error {
 
 // Restart the consumer after wating for offsetTimeout
 func (cons *Kafka) restart(err error, offsetIdx int, partition int32) {
-	Log.Error.Print("Kafka consumer error:", err)
+	Log.Error.Printf("Restarting kafka consumer (%s:%d) - %s", cons.topic, offsetIdx, err.Error())
 	time.Sleep(cons.offsetTimeout)
-	cons.fetch(offsetIdx, partition)
+
+	config := *cons.consumerConfig
+	config.OffsetMethod = kafka.OffsetMethodManual
+
+	cons.fetch(offsetIdx, partition, config)
 }
 
 // Main fetch loop for kafka events
-func (cons *Kafka) fetch(offsetIdx int, partition int32) {
-	config := *cons.consumerConfig
-
+func (cons *Kafka) fetch(offsetIdx int, partition int32, config kafka.ConsumerConfig) {
 	if len(cons.offsets) > offsetIdx {
 		config.OffsetValue = cons.offsets[offsetIdx]
 	} else {
 		if config.OffsetMethod == kafka.OffsetMethodManual {
-			config.OffsetMethod = kafka.OffsetMethodNewest
+			config.OffsetMethod = kafka.OffsetMethodOldest
 		}
 	}
 
@@ -189,7 +200,7 @@ func (cons *Kafka) fetch(offsetIdx int, partition int32) {
 		event := <-consumer.Events()
 		if event.Err != nil {
 			if !cons.quit {
-				go cons.restart(err, offsetIdx, partition)
+				go cons.restart(event.Err, offsetIdx, partition)
 			}
 			return // ### return, stop this consumer ###
 		}
@@ -213,8 +224,10 @@ func (cons *Kafka) startConsumers() error {
 		return err
 	}
 
+	cons.offsets = make([]int64, len(partitions))
+
 	for idx, partition := range partitions {
-		go cons.fetch(idx, partition)
+		go cons.fetch(idx, partition, *cons.consumerConfig)
 	}
 
 	return nil
@@ -222,19 +235,21 @@ func (cons *Kafka) startConsumers() error {
 
 // Write index file to disc
 func (cons *Kafka) dumpIndex() {
-	csvString := ""
-	for _, value := range cons.offsets {
-		csvString += fmt.Sprintf("%d,", value)
-	}
+	if len(cons.offsets) > 0 {
+		csvString := ""
+		for _, value := range cons.offsets {
+			csvString += fmt.Sprintf("%d,", value)
+		}
 
-	ioutil.WriteFile(cons.offsetFile, []byte(csvString), 0644)
+		ioutil.WriteFile(cons.offsetFile, []byte(csvString[:len(csvString)-1]), 0644)
+	}
 }
 
 // Consume starts a kafka consumer per partition for this topic
 func (cons Kafka) Consume(threads *sync.WaitGroup) {
 	err := cons.startConsumers()
 	if err != nil {
-		Log.Error.Print("Kafka client error:", err)
+		Log.Error.Print("Kafka client error - ", err)
 		return
 	}
 

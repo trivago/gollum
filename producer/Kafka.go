@@ -85,6 +85,9 @@ const (
 // wildcard stream (*) here, too. All streams that do not have a specific
 // mapping will go to this stream (including _GOLLUM_).
 // If no topic mappings are set all messages will be send to "default".
+//
+// Servers contains the list of all kafka servers to connect to. This setting
+// is mandatory and has no defaults.
 type Kafka struct {
 	standardProducer
 	servers        []string
@@ -111,6 +114,10 @@ func (prod *Kafka) Configure(conf shared.PluginConfig) error {
 	err := prod.standardProducer.Configure(conf)
 	if err != nil {
 		return err
+	}
+
+	if !conf.HasValue("Servers") {
+		return producerError{"No servers configured for producer.Kafka"}
 	}
 
 	prod.clientConfig = kafka.NewClientConfig()

@@ -51,7 +51,7 @@ func main() {
 
 	// Start the gollum multiplexer
 
-	plex := newMultiplexer(*configFilePtr)
+	plex := newMultiplexer(*configFilePtr, *msgProfilePtr)
 	plex.run()
 
 	// Memory profiling

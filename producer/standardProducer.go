@@ -45,6 +45,14 @@ type standardProducer struct {
 	format   shared.MessageFormat
 }
 
+type producerError struct {
+	message string
+}
+
+func (err producerError) Error() string {
+	return err.message
+}
+
 func (prod *standardProducer) Configure(conf shared.PluginConfig) error {
 	prod.messages = make(chan shared.Message, conf.Channel)
 	prod.control = make(chan shared.ProducerControl, 1)
