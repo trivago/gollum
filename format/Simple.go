@@ -19,7 +19,7 @@ import (
 // characters.
 type Simple struct {
 	delimiter    string
-	msg          *shared.Message
+	msg          shared.Message
 	delimiterLen int
 	length       int
 }
@@ -37,7 +37,7 @@ func (format *Simple) Configure(conf shared.PluginConfig) error {
 }
 
 // PrepareMessage sets the message to be formatted.
-func (format *Simple) PrepareMessage(msg *shared.Message) {
+func (format *Simple) PrepareMessage(msg shared.Message) {
 	format.msg = msg
 	format.length = len(format.msg.Data) + format.delimiterLen
 }

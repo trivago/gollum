@@ -52,7 +52,7 @@ func (batch *MessageBuffer) Append(msg Message) bool {
 	activeSet := atomic.AddUint32(&batch.activeSet, 1)
 	activeIdx := activeSet >> 31
 
-	batch.format.PrepareMessage(&msg)
+	batch.format.PrepareMessage(msg)
 	messageLength := batch.format.GetLength()
 	activeQueue := &batch.queue[activeIdx]
 

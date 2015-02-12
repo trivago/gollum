@@ -51,7 +51,7 @@ func (batch *scribeMessageBuffer) append(msg shared.Message, category string) bo
 	activeIdx := activeSet >> 31
 	messageIdx := (activeSet & 0x7FFFFFFF) - 1
 
-	batch.format.PrepareMessage(&msg)
+	batch.format.PrepareMessage(msg)
 	messageLength := batch.format.GetLength()
 	activeQueue := &batch.queue[activeIdx]
 

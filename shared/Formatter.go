@@ -11,7 +11,7 @@ const (
 type Formatter interface {
 	// PrepareMessage sets the message to be formatted. This allows the
 	// formatter to build up caches for subsequent method calls.
-	PrepareMessage(msg *Message)
+	PrepareMessage(msg Message)
 
 	// GetLength returns the length of a formatted message returned by String()
 	// or CopyTo().

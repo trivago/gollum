@@ -29,7 +29,7 @@ const (
 type Timestamp struct {
 	timestampFormat string
 	delimiter       string
-	msg             *shared.Message
+	msg             shared.Message
 	timestamp       string
 	formatLen       int
 	length          int
@@ -51,7 +51,7 @@ func (format *Timestamp) Configure(conf shared.PluginConfig) error {
 }
 
 // PrepareMessage sets the message to be formatted.
-func (format *Timestamp) PrepareMessage(msg *shared.Message) {
+func (format *Timestamp) PrepareMessage(msg shared.Message) {
 	format.msg = msg
 	format.length = len(format.msg.Data) + format.formatLen
 	format.timestamp = format.msg.Timestamp.Format(format.timestampFormat)

@@ -38,7 +38,7 @@ func (format *JSON) Configure(conf shared.PluginConfig) error {
 }
 
 // PrepareMessage sets the message to be formatted.
-func (format *JSON) PrepareMessage(msg *shared.Message) {
+func (format *JSON) PrepareMessage(msg shared.Message) {
 	format.base.PrepareMessage(msg)
 
 	formattedMessage := format.base.String()

@@ -10,7 +10,7 @@ import (
 // - producer.Console
 //	Formatter: "format.Forward"
 type Forward struct {
-	msg *shared.Message
+	msg shared.Message
 }
 
 func init() {
@@ -23,7 +23,7 @@ func (format *Forward) Configure(conf shared.PluginConfig) error {
 }
 
 // PrepareMessage sets the message to be formatted.
-func (format *Forward) PrepareMessage(msg *shared.Message) {
+func (format *Forward) PrepareMessage(msg shared.Message) {
 	format.msg = msg
 }
 

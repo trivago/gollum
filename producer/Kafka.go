@@ -198,7 +198,7 @@ func (prod *Kafka) send(msg shared.Message) {
 			topic = prod.topic[shared.WildcardStreamID]
 		}
 
-		prod.format.PrepareMessage(&msg)
+		prod.format.PrepareMessage(msg)
 		prod.producer.Input() <- &kafka.MessageToSend{
 			Topic: topic,
 			Key:   nil,
