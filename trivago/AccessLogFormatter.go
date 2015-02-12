@@ -15,8 +15,9 @@ const (
 	acclStateServerIP = iota
 	acclStateServerName
 	acclStateClientIP
+	acclStateClientIPappend
 	acclStateClientIP2
-	acclStateClientIP3
+	acclStateClientIP2append
 	acclStateTimestamp
 	acclStateMethod
 	acclStateRequest
@@ -25,7 +26,7 @@ const (
 	acclStateRequestSize
 	acclStateResponseSize
 	acclStateCommand
-	acclStateFlags
+	acclStateMetrics
 	acclStateReferrer
 	acclStateSession
 	acclStateAgent
@@ -35,8 +36,9 @@ var acclStateNames = []string{
 	"serverIP",
 	"serverName",
 	"clientIP",
+	"skip",
 	"clientIP2",
-	"clientIP3",
+	"skip2",
 	"@timestamp",
 	"method",
 	"request",
@@ -45,7 +47,7 @@ var acclStateNames = []string{
 	"requestSize",
 	"responseSize",
 	"command",
-	"flags",
+	"metrics",
 	"referrer",
 	"session",
 	"agent",
@@ -54,9 +56,10 @@ var acclStateNames = []string{
 var acclTransitions = [][]shared.Transition{
 	/* serverIP   */ {shared.NewTransition(" ", acclStateServerName, shared.ParserFlagDone)},
 	/* serverName */ {shared.NewTransition(" ", acclStateClientIP, shared.ParserFlagDone)},
-	/* clientIP   */ {shared.NewTransition(" ", acclStateClientIP3, shared.ParserFlagDone), shared.NewTransition(",", acclStateClientIP2, shared.ParserFlagDone)},
-	/* clientIP2  */ {shared.NewTransition(" ", acclStateClientIP3, shared.ParserFlagDone)},
-	/* clientIP3  */ {shared.NewTransition(" ", acclStateTimestamp, shared.ParserFlagDone)},
+	/* clientIP   */ {shared.NewTransition(" ", acclStateClientIP2, shared.ParserFlagDone), shared.NewTransition(",", acclStateClientIPappend, shared.ParserFlagNop)},
+	/* skip       */ {shared.NewTransition(" ", acclStateClientIP, shared.ParserFlagNop)},
+	/* clientIP2  */ {shared.NewTransition(" ", acclStateTimestamp, shared.ParserFlagDone), shared.NewTransition(",", acclStateClientIP2append, shared.ParserFlagNop)},
+	/* skip2      */ {shared.NewTransition(" ", acclStateClientIP2, shared.ParserFlagNop)},
 	/* timestamp  */ {shared.NewTransition("\"", acclStateMethod, shared.ParserFlagDone)},
 	/* method     */ {shared.NewTransition(" ", acclStateRequest, shared.ParserFlagDone)},
 	/* request    */ {shared.NewTransition(" ", acclStateProtocol, shared.ParserFlagDone)},
@@ -64,8 +67,8 @@ var acclTransitions = [][]shared.Transition{
 	/* resultCode */ {shared.NewTransition(" ", acclStateRequestSize, shared.ParserFlagDone)},
 	/* number1    */ {shared.NewTransition(" ", acclStateResponseSize, shared.ParserFlagDone)},
 	/* size       */ {shared.NewTransition(" ", acclStateCommand, shared.ParserFlagDone)},
-	/* command    */ {shared.NewTransition(" ", acclStateFlags, shared.ParserFlagDone)},
-	/* flags      */ {shared.NewTransition("\"", acclStateReferrer, shared.ParserFlagDone)},
+	/* command    */ {shared.NewTransition(" ", acclStateMetrics, shared.ParserFlagDone)},
+	/* metrics    */ {shared.NewTransition("\"", acclStateReferrer, shared.ParserFlagDone)},
 	/* referrer   */ {shared.NewTransition("\" \"", acclStateSession, shared.ParserFlagDone)},
 	/* session    */ {shared.NewTransition("\" \"", acclStateAgent, shared.ParserFlagDone)},
 	/* agent      */ {shared.NewTransition("\"", shared.ParserStateStop, shared.ParserFlagDone)},
