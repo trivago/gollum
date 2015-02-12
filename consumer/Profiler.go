@@ -113,5 +113,5 @@ func (cons Profiler) Consume(threads *sync.WaitGroup) {
 		cons.quit = true
 	}()
 
-	cons.defaultControlLoop(threads)
+	cons.defaultControlLoop(threads, nil)
 }

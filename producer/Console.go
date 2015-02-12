@@ -69,5 +69,5 @@ func (prod Console) Produce(threads *sync.WaitGroup) {
 		prod.markAsDone()
 	}()
 
-	prod.defaultControlLoop(threads, prod.printMessage)
+	prod.defaultControlLoop(threads, prod.printMessage, nil)
 }

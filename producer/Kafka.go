@@ -226,5 +226,5 @@ func (prod Kafka) Produce(threads *sync.WaitGroup) {
 		prod.markAsDone()
 	}()
 
-	prod.defaultControlLoop(threads, prod.send)
+	prod.defaultControlLoop(threads, prod.send, nil)
 }

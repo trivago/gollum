@@ -159,5 +159,5 @@ func (prod Scribe) Produce(threads *sync.WaitGroup) {
 		prod.markAsDone()
 	}()
 
-	prod.tickerControlLoop(threads, prod.batchTimeoutSec, prod.sendMessage, prod.sendBatchOnTimeOut)
+	prod.tickerControlLoop(threads, prod.batchTimeoutSec, prod.sendMessage, prod.sendBatchOnTimeOut, nil)
 }

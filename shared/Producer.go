@@ -8,6 +8,10 @@ type ProducerControl int
 const (
 	// ProducerControlStop will cause the producer to halt and shutdown.
 	ProducerControlStop = ProducerControl(1)
+
+	// ProducerControlRoll notifies the consumer about a log rotation or
+	// revalidation/reconnect of the write target
+	ProducerControlRoll = ProducerControl(2)
 )
 
 // Producer is an interface for plugins that pass Message objects to other

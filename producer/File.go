@@ -78,6 +78,7 @@ type File struct {
 	rotateAtMin      int
 	rotate           bool
 	compress         bool
+	forceRotate      bool
 }
 
 func init() {
@@ -97,6 +98,7 @@ func (prod *File) Configure(conf shared.PluginConfig) error {
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
 	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
 	prod.batch = shared.NewMessageBuffer(bufferSizeMax, prod.format)
+	prod.forceRotate = false
 
 	prod.rotate = conf.GetBool("Rotate", false)
 	prod.rotateTimeoutMin = conf.GetInt("RotateTimeoutMin", 1440)
@@ -134,6 +136,10 @@ func (prod *File) needsRotate() (bool, error) {
 	// File needs rotation?
 	if !prod.rotate {
 		return false, nil
+	}
+
+	if prod.forceRotate {
+		return true, nil
 	}
 
 	// File can be accessed?
@@ -227,6 +233,8 @@ func (prod *File) openLog() error {
 		return err
 	}
 
+	defer func() { prod.forceRotate = false }()
+
 	// Generate the log filename based on rotation, existing files, etc.
 	var logFile string
 
@@ -304,7 +312,7 @@ func (prod *File) writeMessage(message shared.Message) {
 	}
 }
 
-func (prod File) flush() {
+func (prod *File) flush() {
 	for {
 		select {
 		case message := <-prod.messages:
@@ -317,6 +325,13 @@ func (prod File) flush() {
 	}
 }
 
+func (prod *File) rotateLog() {
+	prod.forceRotate = true
+	if err := prod.openLog(); err != nil {
+		Log.Error.Print("File rotate error:", err)
+	}
+}
+
 // Produce writes to a buffer that is dumped to a file.
 func (prod File) Produce(threads *sync.WaitGroup) {
 	defer func() {
@@ -326,5 +341,5 @@ func (prod File) Produce(threads *sync.WaitGroup) {
 		prod.markAsDone()
 	}()
 
-	prod.tickerControlLoop(threads, prod.batchTimeoutSec, prod.writeMessage, prod.writeBatchOnTimeOut)
+	prod.tickerControlLoop(threads, prod.batchTimeoutSec, prod.writeMessage, prod.writeBatchOnTimeOut, prod.rotateLog)
 }

@@ -162,5 +162,5 @@ func (prod ElasticSearch) Produce(threads *sync.WaitGroup) {
 		prod.markAsDone()
 	}()
 
-	prod.defaultControlLoop(threads, prod.simpleMessage)
+	prod.defaultControlLoop(threads, prod.simpleMessage, nil)
 }

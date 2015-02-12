@@ -14,6 +14,7 @@ var (
 	cpuProfilePtr = flag.String([]string{"cp", "-cpuprofile"}, "", "Write cpu profiler results to a given file")
 	memProfilePtr = flag.String([]string{"mp", "-memprofile"}, "", "Write heap profile to a given file")
 	msgProfilePtr = flag.Bool([]string{"t", "-throughput"}, false, "Write msg/sec measurements to log")
+	pidFilePtr    = flag.String([]string{"p", "-pidfile"}, "", "Write the process id into a given file")
 )
 
 func init() {

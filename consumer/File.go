@@ -46,6 +46,7 @@ const (
 type File struct {
 	standardConsumer
 	file             *os.File
+	openMutex        *sync.Mutex
 	fileName         string
 	continueFileName string
 	delimiter        string
@@ -73,6 +74,7 @@ func (cons *File) Configure(conf shared.PluginConfig) error {
 	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
 
 	cons.file = nil
+	cons.openMutex = new(sync.Mutex)
 	cons.fileName = conf.GetString("File", "")
 	cons.delimiter = escapeChars.Replace(conf.GetString("Delimiter", "\n"))
 	cons.quit = false
@@ -94,28 +96,7 @@ func (cons *File) Configure(conf shared.PluginConfig) error {
 		cons.seekOffset = 0
 		cons.persistSeek = true
 
-		baseFileName, err := filepath.EvalSymlinks(cons.fileName)
-		if err != nil {
-			baseFileName = cons.fileName
-		}
-
-		baseFileName, err = filepath.Abs(baseFileName)
-		if err != nil {
-			baseFileName = cons.fileName
-		}
-
-		pathDelimiter := strings.NewReplacer("/", "_", ".", "_")
-		cons.continueFileName = "/tmp/gollum" + pathDelimiter.Replace(baseFileName) + ".idx"
-
-		fileContents, err := ioutil.ReadFile(cons.continueFileName)
-		if err != nil {
-			Log.Warning.Print(err)
-		} else {
-			cons.seekOffset, err = strconv.ParseInt(string(fileContents), 10, 64)
-			if err != nil {
-				cons.seekOffset = 0
-			}
-		}
+		cons.reopen()
 	}
 
 	return nil
@@ -125,6 +106,46 @@ func (cons *File) postAndPersist(data []byte) {
 	cons.postMessageFromSlice(data)
 	cons.seekOffset, _ = cons.file.Seek(0, 1)
 	ioutil.WriteFile(cons.continueFileName, []byte(strconv.FormatInt(cons.seekOffset, 10)), 0644)
+}
+
+func (cons *File) realFileName() string {
+	baseFileName, err := filepath.EvalSymlinks(cons.fileName)
+	if err != nil {
+		baseFileName = cons.fileName
+	}
+
+	baseFileName, err = filepath.Abs(baseFileName)
+	if err != nil {
+		baseFileName = cons.fileName
+	}
+
+	return baseFileName
+}
+
+func (cons *File) reopen() {
+	if !cons.persistSeek {
+		return
+	}
+
+	cons.openMutex.Lock()
+	defer cons.openMutex.Unlock()
+
+	if cons.file != nil {
+		cons.file.Close()
+		cons.file = nil
+	}
+
+	baseFileName := cons.realFileName()
+	pathDelimiter := strings.NewReplacer("/", "_", ".", "_")
+	cons.continueFileName = "/tmp/gollum" + pathDelimiter.Replace(baseFileName) + ".idx"
+
+	fileContents, err := ioutil.ReadFile(cons.continueFileName)
+	if err == nil {
+		cons.seekOffset, err = strconv.ParseInt(string(fileContents), 10, 64)
+	}
+	if err != nil {
+		cons.seekOffset = 0
+	}
 }
 
 func (cons *File) readFrom(threads *sync.WaitGroup) {
@@ -141,9 +162,11 @@ func (cons *File) readFrom(threads *sync.WaitGroup) {
 
 	for !cons.quit {
 		if cons.file == nil {
-			cons.file, err = os.OpenFile(cons.fileName, os.O_RDONLY, 0666)
+			cons.openMutex.Lock()
+			cons.file, err = os.OpenFile(cons.realFileName(), os.O_RDONLY, 0666)
 
 			if err != nil {
+				cons.openMutex.Unlock()
 				if printFileOpenError {
 					Log.Error.Print("File open error - ", err)
 					printFileOpenError = false
@@ -152,11 +175,15 @@ func (cons *File) readFrom(threads *sync.WaitGroup) {
 			} else {
 				cons.seekOffset, _ = cons.file.Seek(cons.seekOffset, cons.seek)
 				printFileOpenError = true
+				Log.Note.Print("open")
+				cons.openMutex.Unlock()
 			}
-		} else {
+		}
+
+		if cons.file != nil {
 			err = buffer.Read(cons.file, cons.delimiter)
 
-			if err != nil && !cons.quit {
+			if cons.file != nil && err != nil && !cons.quit {
 				if err == io.EOF {
 					runtime.Gosched()
 				} else {
@@ -182,5 +209,5 @@ func (cons File) Consume(threads *sync.WaitGroup) {
 		cons.file.Close()
 	}()
 
-	cons.defaultControlLoop(threads)
+	cons.defaultControlLoop(threads, cons.reopen)
 }

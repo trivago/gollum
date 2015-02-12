@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -177,7 +178,7 @@ func (plex multiplexer) run() {
 
 	// React on signals and setup the MessageProvider queue
 	signalChannel := make(chan os.Signal, 1)
-	signal.Notify(signalChannel, os.Interrupt)
+	signal.Notify(signalChannel, os.Interrupt, syscall.SIGHUP)
 
 	// Launch producers
 	for _, producer := range plex.producers {
@@ -209,9 +210,20 @@ func (plex multiplexer) run() {
 			default:
 				// do nothing
 
-			case <-signalChannel:
-				Log.Note.Print("Master betrayed us. Wicked. Tricksy, False. (signal)")
-				return
+			case sig := <-signalChannel:
+				switch sig {
+				case syscall.SIGINT:
+					Log.Note.Print("Master betrayed us. Wicked. Tricksy, False. (signal)")
+					return
+
+				case syscall.SIGHUP:
+					for _, consumer := range plex.consumers {
+						consumer.Control() <- shared.ConsumerControlRoll
+					}
+					for _, producer := range plex.producers {
+						producer.Control() <- shared.ProducerControlRoll
+					}
+				}
 
 			case message := <-consumer.Messages():
 				plex.broadcastMessage(message, true)

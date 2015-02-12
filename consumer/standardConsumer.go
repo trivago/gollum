@@ -89,12 +89,27 @@ func (cons standardConsumer) Messages() <-chan shared.Message {
 	return cons.messages
 }
 
-func (cons standardConsumer) defaultControlLoop(threads *sync.WaitGroup) {
+func (cons standardConsumer) processCommand(command shared.ConsumerControl, onRoll func()) bool {
+	switch command {
+	default:
+		// Do nothing
+	case shared.ConsumerControlStop:
+		return true // ### return ###
+	case shared.ConsumerControlRoll:
+		if onRoll != nil {
+			onRoll()
+		}
+	}
+
+	return false
+}
+
+func (cons standardConsumer) defaultControlLoop(threads *sync.WaitGroup, onRoll func()) {
 	cons.markAsActive(threads)
 
 	for cons.IsActive() {
 		command := <-cons.control
-		if command == shared.ConsumerControlStop {
+		if cons.processCommand(command, onRoll) {
 			return // ### return ###
 		}
 	}

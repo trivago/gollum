@@ -132,5 +132,5 @@ func (cons Socket) Consume(threads *sync.WaitGroup) {
 		cons.listen.Close()
 	}()
 
-	cons.defaultControlLoop(threads)
+	cons.defaultControlLoop(threads, nil)
 }

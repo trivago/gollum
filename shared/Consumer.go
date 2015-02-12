@@ -8,6 +8,9 @@ type ConsumerControl int
 const (
 	// ConsumerControlStop will cause the consumer to halt and shutdown.
 	ConsumerControlStop = ConsumerControl(1)
+
+	// ConsumerControlRoll notifies the consumer about a reconnect or reopen request
+	ConsumerControlRoll = ConsumerControl(2)
 )
 
 // Consumer is an interface for plugins that recieve data from outside sources

@@ -43,5 +43,5 @@ func (cons Console) Consume(threads *sync.WaitGroup) {
 	go cons.readFrom(os.Stdin, threads)
 
 	defer cons.markAsDone()
-	cons.defaultControlLoop(threads)
+	cons.defaultControlLoop(threads, nil)
 }

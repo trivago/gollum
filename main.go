@@ -6,9 +6,11 @@ import (
 	_ "github.com/trivago/gollum/consumer"
 	_ "github.com/trivago/gollum/format"
 	_ "github.com/trivago/gollum/producer"
+	"io/ioutil"
 	"os"
 	"runtime"
 	"runtime/pprof"
+	"strconv"
 )
 
 const (
@@ -50,6 +52,9 @@ func main() {
 		}()
 	}
 
+	if *pidFilePtr != "" {
+		ioutil.WriteFile(*pidFilePtr, []byte(strconv.Itoa(os.Getpid())), 0644)
+	}
 	// Start the gollum multiplexer
 
 	plex := newMultiplexer(*configFilePtr, *msgProfilePtr)

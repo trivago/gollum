@@ -102,7 +102,22 @@ func (prod standardProducer) Messages() chan<- shared.Message {
 	return prod.messages
 }
 
-func (prod standardProducer) defaultControlLoop(threads *sync.WaitGroup, onMessage func(msg shared.Message)) {
+func (prod standardProducer) processCommand(command shared.ProducerControl, onRoll func()) bool {
+	switch command {
+	default:
+		// Do nothing
+	case shared.ProducerControlStop:
+		return true // ### return ###
+	case shared.ProducerControlRoll:
+		if onRoll != nil {
+			onRoll()
+		}
+	}
+
+	return false
+}
+
+func (prod standardProducer) defaultControlLoop(threads *sync.WaitGroup, onMessage func(msg shared.Message), onRoll func()) {
 	prod.markAsActive(threads)
 
 	for prod.IsActive() {
@@ -111,14 +126,14 @@ func (prod standardProducer) defaultControlLoop(threads *sync.WaitGroup, onMessa
 			onMessage(message)
 
 		case command := <-prod.control:
-			if command == shared.ProducerControlStop {
-				return // ### return, done ###
+			if prod.processCommand(command, onRoll) {
+				return // ### return ###
 			}
 		}
 	}
 }
 
-func (prod standardProducer) tickerControlLoop(threads *sync.WaitGroup, timeOutSec int, onMessage func(msg shared.Message), onTimeOut func()) {
+func (prod standardProducer) tickerControlLoop(threads *sync.WaitGroup, timeOutSec int, onMessage func(msg shared.Message), onTimeOut func(), onRoll func()) {
 	flushTicker := time.NewTicker(time.Duration(timeOutSec) * time.Second)
 	prod.markAsActive(threads)
 
@@ -128,8 +143,8 @@ func (prod standardProducer) tickerControlLoop(threads *sync.WaitGroup, timeOutS
 			onMessage(message)
 
 		case command := <-prod.control:
-			if command == shared.ProducerControlStop {
-				return // ### return, done ###
+			if prod.processCommand(command, onRoll) {
+				return // ### return ###
 			}
 
 		case <-flushTicker.C:
