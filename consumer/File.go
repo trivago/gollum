@@ -131,8 +131,9 @@ func (cons *File) reopen() {
 	defer cons.openMutex.Unlock()
 
 	if cons.file != nil {
-		cons.file.Close()
+		fileHandle := cons.file
 		cons.file = nil
+		fileHandle.Close()
 	}
 
 	baseFileName := cons.realFileName()
@@ -175,7 +176,6 @@ func (cons *File) readFrom(threads *sync.WaitGroup) {
 			} else {
 				cons.seekOffset, _ = cons.file.Seek(cons.seekOffset, cons.seek)
 				printFileOpenError = true
-				Log.Note.Print("open")
 				cons.openMutex.Unlock()
 			}
 		}
@@ -183,7 +183,7 @@ func (cons *File) readFrom(threads *sync.WaitGroup) {
 		if cons.file != nil {
 			err = buffer.Read(cons.file, cons.delimiter)
 
-			if cons.file != nil && err != nil && !cons.quit {
+			if err != nil && cons.file != nil && !cons.quit {
 				if err == io.EOF {
 					runtime.Gosched()
 				} else {
