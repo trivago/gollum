@@ -18,7 +18,10 @@ import (
 // Special characters like \n \r \t will be transformed into the actual control
 // characters.
 type Simple struct {
-	delimiter string
+	delimiter    string
+	msg          *shared.Message
+	delimiterLen int
+	length       int
 }
 
 func init() {
@@ -29,23 +32,31 @@ func init() {
 func (format *Simple) Configure(conf shared.PluginConfig) error {
 	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
 	format.delimiter = escapeChars.Replace(conf.GetString("Delimiter", shared.DefaultDelimiter))
+	format.delimiterLen = len(format.delimiter)
 	return nil
+}
+
+// PrepareMessage sets the message to be formatted.
+func (format *Simple) PrepareMessage(msg *shared.Message) {
+	format.msg = msg
+	format.length = len(format.msg.Data) + format.delimiterLen
 }
 
 // GetLength returns the length of a formatted message returned by String()
 // or CopyTo().
-func (format Simple) GetLength(msg shared.Message) int {
-	return len(msg.Data) + len(format.delimiter)
+func (format *Simple) GetLength() int {
+	return format.length
 }
 
 // String returns the message as string
-func (format Simple) String(msg shared.Message) string {
-	return fmt.Sprintf("%s%s", msg.Data, format.delimiter)
+func (format *Simple) String() string {
+	return fmt.Sprintf("%s%s", format.msg.Data, format.delimiter)
 }
 
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
-func (format Simple) CopyTo(dest []byte, msg shared.Message) {
+func (format *Simple) CopyTo(dest []byte) int {
 	len := copy(dest, format.delimiter)
-	len += copy(dest[len:], msg.Data)
+	len += copy(dest[len:], format.msg.Data)
+	return len
 }

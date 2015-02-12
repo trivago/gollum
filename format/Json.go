@@ -18,7 +18,8 @@ import (
 // JSONDataFormatter defines the formatter for the data transferred as message.
 // By default this is set to "format.Forward"
 type JSON struct {
-	base shared.Formatter
+	base    shared.Formatter
+	message string
 }
 
 func init() {
@@ -36,32 +37,32 @@ func (format *JSON) Configure(conf shared.PluginConfig) error {
 	return nil
 }
 
-// GetLength returns the length of a formatted message returned by String()
-// or CopyTo().
-func (format JSON) GetLength(msg shared.Message) int {
-	return len(format.String(msg))
-}
+// PrepareMessage sets the message to be formatted.
+func (format *JSON) PrepareMessage(msg *shared.Message) {
+	format.base.PrepareMessage(msg)
 
-// String returns the message as string
-func (format JSON) String(msg shared.Message) string {
-	formattedMessage := format.base.String(msg)
+	formattedMessage := format.base.String()
 	encodedMessage := bytes.NewBufferString("{\"message\":\"")
 
 	json.HTMLEscape(encodedMessage, []byte(formattedMessage))
 	encodedMessage.WriteString("\"}")
 
-	return encodedMessage.String()
+	format.message = encodedMessage.String()
+}
+
+// GetLength returns the length of a formatted message returned by String()
+// or CopyTo().
+func (format *JSON) GetLength() int {
+	return len(format.message)
+}
+
+// String returns the message as string
+func (format *JSON) String() string {
+	return format.message
 }
 
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
-func (format JSON) CopyTo(dest []byte, msg shared.Message) {
-	formattedMessage := format.base.String(msg)
-	encodedMessage := new(bytes.Buffer)
-
-	encodedMessage.WriteString("{\"message\":\"")
-	json.HTMLEscape(encodedMessage, []byte(formattedMessage))
-	encodedMessage.WriteString("\"}")
-
-	copy(dest, encodedMessage.Bytes())
+func (format *JSON) CopyTo(dest []byte) int {
+	return copy(dest, []byte(format.message))
 }

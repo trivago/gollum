@@ -18,7 +18,9 @@ import (
 // RunlengthDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Runlength struct {
-	base shared.Formatter
+	base       shared.Formatter
+	baseLength int
+	length     int
 }
 
 func init() {
@@ -36,27 +38,34 @@ func (format *Runlength) Configure(conf shared.PluginConfig) error {
 	return nil
 }
 
+// PrepareMessage sets the message to be formatted.
+func (format *Runlength) PrepareMessage(msg *shared.Message) {
+	format.base.PrepareMessage(msg)
+	format.baseLength = format.base.GetLength()
+
+	if format.baseLength < 10 {
+		format.length = format.baseLength + 2
+	} else {
+		format.length = format.baseLength + int(math.Log10(float64(format.baseLength))+2)
+	}
+}
+
 // GetLength returns the length of a formatted message returned by String()
 // or CopyTo().
-func (format Runlength) GetLength(msg shared.Message) int {
-	msgLen := format.base.GetLength(msg)
-	if msgLen < 10 {
-		return 2 + msgLen
-	}
-
-	headerLen := int(math.Log10(float64(msgLen)) + 2)
-	return headerLen + msgLen
+func (format *Runlength) GetLength() int {
+	return format.length
 }
 
 // String returns the message as string
-func (format Runlength) String(msg shared.Message) string {
-	return fmt.Sprintf("%d:%s", format.base.GetLength(msg), format.base.String(msg))
+func (format *Runlength) String() string {
+	return fmt.Sprintf("%d:%s", format.baseLength, format.base.String())
 }
 
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
-func (format Runlength) CopyTo(dest []byte, msg shared.Message) {
-	len := copy(dest, strconv.Itoa(format.base.GetLength(msg)))
+func (format *Runlength) CopyTo(dest []byte) int {
+	len := copy(dest, strconv.Itoa(format.baseLength))
 	dest[len] = ':'
-	format.base.CopyTo(dest[len+1:], msg)
+	len++
+	return len + format.base.CopyTo(dest[len:])
 }

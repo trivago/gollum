@@ -52,14 +52,15 @@ func (batch *MessageBuffer) Append(msg Message) bool {
 	activeSet := atomic.AddUint32(&batch.activeSet, 1)
 	activeIdx := activeSet >> 31
 
-	messageLength := batch.format.GetLength(msg)
+	batch.format.PrepareMessage(&msg)
+	messageLength := batch.format.GetLength()
 	activeQueue := &batch.queue[activeIdx]
 
 	if activeQueue.contentLen+messageLength >= len(activeQueue.buffer) {
 		return false
 	}
 
-	batch.format.CopyTo(activeQueue.buffer[activeQueue.contentLen:], msg)
+	batch.format.CopyTo(activeQueue.buffer[activeQueue.contentLen:])
 	activeQueue.contentLen += messageLength
 	activeQueue.doneCount++
 

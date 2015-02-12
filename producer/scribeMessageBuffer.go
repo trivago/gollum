@@ -51,7 +51,8 @@ func (batch *scribeMessageBuffer) append(msg shared.Message, category string) bo
 	activeIdx := activeSet >> 31
 	messageIdx := (activeSet & 0x7FFFFFFF) - 1
 
-	messageLength := batch.format.GetLength(msg)
+	batch.format.PrepareMessage(&msg)
+	messageLength := batch.format.GetLength()
 	activeQueue := &batch.queue[activeIdx]
 
 	if activeQueue.contentLen+messageLength >= batch.maxContentLen {
@@ -72,7 +73,7 @@ func (batch *scribeMessageBuffer) append(msg shared.Message, category string) bo
 	}
 
 	logEntry.Category = category
-	logEntry.Message = batch.format.String(msg)
+	logEntry.Message = batch.format.String()
 
 	activeQueue.contentLen += messageLength
 	activeQueue.doneCount++
