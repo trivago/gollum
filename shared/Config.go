@@ -119,9 +119,14 @@ func (conf PluginConfig) GetString(key string, defaultValue string) string {
 func (conf PluginConfig) GetStringArray(key string, defaultValue []string) []string {
 	value, exists := conf.Settings[key]
 	if exists {
-		array := value.([]interface{})
-		config := make([]string, 0, len(array))
-		for _, value := range array {
+		stringValue, isSingleValue := value.(string)
+		if isSingleValue {
+			return []string{stringValue}
+		}
+
+		arrayValue := value.([]interface{})
+		config := make([]string, 0, len(arrayValue))
+		for _, value := range arrayValue {
 			config = append(config, value.(string))
 		}
 		return config

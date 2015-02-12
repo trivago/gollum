@@ -107,7 +107,6 @@ func (prod *Socket) sendBatch() {
 
 		if err != nil {
 			Log.Error.Print("Socket connection error - ", err)
-			prod.connection = nil
 		} else {
 			conn.(bufferedConn).SetWriteBuffer(prod.bufferSizeKB << 10)
 			prod.connection = conn

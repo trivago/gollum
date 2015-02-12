@@ -93,12 +93,13 @@ func (batch *MessageBuffer) Flush(resource io.Writer, onSuccess func() bool, onE
 	batch.flushing.Lock()
 
 	// Switch the buffers so writers can go on writing
+	// If a previous flush failed we need to continue where we stopped
 
 	var flushSet uint32
 	if batch.activeSet&0x80000000 != 0 {
-		flushSet = atomic.SwapUint32(&batch.activeSet, 0)
+		flushSet = atomic.SwapUint32(&batch.activeSet, 0|batch.queue[0].doneCount)
 	} else {
-		flushSet = atomic.SwapUint32(&batch.activeSet, 0x80000000)
+		flushSet = atomic.SwapUint32(&batch.activeSet, 0x80000000|batch.queue[1].doneCount)
 	}
 
 	flushIdx := flushSet >> 31
