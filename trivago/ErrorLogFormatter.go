@@ -2,7 +2,6 @@ package trivago
 
 import (
 	"bytes"
-	"encoding/json"
 	"github.com/trivago/gollum/shared"
 	"time"
 )
@@ -13,14 +12,24 @@ type errlTransition struct {
 }
 
 const (
-	errlStateServer  = 0
-	errlStateSearch  = 1
-	errlStateSection = 2
-	errlStateDate    = 3
-	errlStateStatus  = 4
-	errlStateClient  = 5
-	errlStateRemote  = 6
+	errlStateServer = iota
+	errlStateSearch
+	errlStateSection
+	errlStateDate
+	errlStateStatus
+	errlStateClient
+	errlStateRemote
 )
+
+var errlStateNames = []string{
+	"server",
+	"message",
+	"message",
+	"@timestamp",
+	"status",
+	"client",
+	"remote",
+}
 
 var errlSectionDoneTransition = shared.NewTransition("]", errlStateSearch, shared.ParserFlagDone)
 
@@ -38,8 +47,7 @@ var errlTransitions = [][]shared.Transition{
 }
 
 type ErrorLogFormatter struct {
-	parser  shared.Parser
-	message *bytes.Buffer
+	JSONLogFormatter
 }
 
 func init() {
@@ -51,56 +59,21 @@ func (format *ErrorLogFormatter) Configure(conf shared.PluginConfig) error {
 	return nil
 }
 
-func (format *ErrorLogFormatter) writeField(name string, data []byte, first *bool) {
-	if !*first {
-		format.message.WriteString(",\"")
-	} else {
-		format.message.WriteString("\"")
-		*first = false
-	}
-	format.message.WriteString(name)
-	format.message.WriteString("\":\"")
-	json.HTMLEscape(format.message, bytes.TrimSpace(data))
-	format.message.WriteString("\"")
-}
-
 func (format *ErrorLogFormatter) PrepareMessage(msg shared.Message) {
 	sections := format.parser.Parse([]byte(msg.Data))
 	isFirst := true
 	format.message = bytes.NewBufferString("{")
+
 	for _, section := range sections {
 		switch section.State {
-		case errlStateServer:
-			format.writeField("server", section.Data, &isFirst)
-
 		case errlStateDate:
-			timeStamp, _ := time.Parse("Mon Jan 2 15:04:05 2006", string(section.Data))
+			timeStamp, _ := time.Parse("Mon Jan 2 15:04:05 2006", string(bytes.TrimSpace(section.Data)))
 			format.writeField("@timestamp", []byte(timeStamp.Format(time.RFC3339)), &isFirst)
 
-		case errlStateStatus:
-			format.writeField("status", section.Data, &isFirst)
-
-		case errlStateClient:
-			format.writeField("client", section.Data, &isFirst)
-
-		case errlStateRemote:
-			format.writeField("remote", section.Data, &isFirst)
-
 		default:
-			format.writeField("message", section.Data, &isFirst)
+			format.writeField(errlStateNames[section.State], section.Data, &isFirst)
 		}
 	}
+
 	format.message.WriteString("}")
-}
-
-func (format *ErrorLogFormatter) GetLength() int {
-	return format.message.Len()
-}
-
-func (format *ErrorLogFormatter) String() string {
-	return format.message.String()
-}
-
-func (format *ErrorLogFormatter) CopyTo(dest []byte) int {
-	return copy(dest, format.message.Bytes())
 }

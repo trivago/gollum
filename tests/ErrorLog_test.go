@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func ExpectMapping(t *testing.T, data map[string]interface{}, key string, value string) {
+func expectMapping(t *testing.T, data map[string]interface{}, key string, value string) {
 	val, valSet := data[key]
 	if !valSet {
 		t.Errorf("Expected key \"%s\" not found", key)
@@ -31,10 +31,10 @@ func TestErrorLogFormat(t *testing.T) {
 		t.Error(err)
 	}
 
-	ExpectMapping(t, parsedMsg, "server", "www5-sfo.trivago.com")
-	ExpectMapping(t, parsedMsg, "@timestamp", "2015-02-12T11:57:27Z")
-	ExpectMapping(t, parsedMsg, "status", "error")
-	ExpectMapping(t, parsedMsg, "remote", "ip 10.11.2.52")
-	ExpectMapping(t, parsedMsg, "client", "62.159.86.18")
-	ExpectMapping(t, parsedMsg, "message", "File does not exist: /appdata/www/trivago/autodiscover")
+	expectMapping(t, parsedMsg, "server", "www5-sfo.trivago.com")
+	expectMapping(t, parsedMsg, "@timestamp", "2015-02-12T11:57:27Z")
+	expectMapping(t, parsedMsg, "status", "error")
+	expectMapping(t, parsedMsg, "remote", "ip 10.11.2.52")
+	expectMapping(t, parsedMsg, "client", "62.159.86.18")
+	expectMapping(t, parsedMsg, "message", "File does not exist: /appdata/www/trivago/autodiscover")
 }

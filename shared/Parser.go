@@ -2,15 +2,20 @@ package shared
 
 import (
 	"bytes"
+	"math"
 )
 
 type ParserFlag int
 
 const (
-	ParserFlagNop     = ParserFlag(0)
-	ParserFlagStart   = ParserFlag(1)
-	ParserFlagPersist = ParserFlag(2)
+	ParserFlagNop     = ParserFlag(iota)
+	ParserFlagStart   = ParserFlag(iota)
+	ParserFlagKeep    = ParserFlag(1 << iota)
+	ParserFlagPersist = ParserFlag(1 << iota)
 	ParserFlagDone    = ParserFlagPersist | ParserFlagStart
+	ParserFlagNext    = ParserFlagPersist | ParserFlagKeep
+
+	ParserStateStop = math.MaxInt32
 )
 
 type Transition struct {
@@ -53,6 +58,7 @@ func (parser Parser) Parse(message []byte) []StateData {
 	startIdx := 0
 	segmentLen := 0
 
+parsing:
 	for parseIdx := 1; parseIdx <= len(message); parseIdx++ {
 		segmentLen++
 
@@ -74,13 +80,16 @@ func (parser Parser) Parse(message []byte) []StateData {
 				if t.flags&ParserFlagStart != 0 {
 					startIdx = parseIdx
 					segmentLen = 0
-				}
-
-				if t.state >= len(parser.transitions) {
-					return result
+				} else if t.flags&ParserFlagKeep != 0 {
+					startIdx = cmpStartIdx
+					segmentLen = t.identLen
 				}
 
 				parser.state = t.state
+
+				if t.state >= len(parser.transitions) {
+					break parsing
+				}
 				break
 			}
 		}
