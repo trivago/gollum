@@ -6,6 +6,7 @@ import (
 	_ "github.com/trivago/gollum/consumer"
 	_ "github.com/trivago/gollum/format"
 	_ "github.com/trivago/gollum/producer"
+	_ "github.com/trivago/gollum/trivago"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -20,7 +21,6 @@ const (
 )
 
 func main() {
-
 	flag.Parse()
 
 	if *versionPtr {
