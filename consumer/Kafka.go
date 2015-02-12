@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	offsetNewset = "Newest"
-	offsetOldest = "Oldest"
-	offsetFile   = "File"
+	kafkaOffsetNewset = "Newest"
+	kafkaOffsetOldest = "Oldest"
+	kafkaOffsetFile   = "File"
 )
 
 // Kafka consumer plugin
@@ -128,16 +128,16 @@ func (cons *Kafka) Configure(conf shared.PluginConfig) error {
 	cons.consumerConfig.EventBufferSize = conf.GetInt("MessageBufferCount", 16)
 	cons.consumerConfig.OffsetValue = 0
 
-	switch conf.GetString("Offset", offsetNewset) {
+	switch conf.GetString("Offset", kafkaOffsetNewset) {
 	default:
 		fallthrough
-	case offsetNewset:
+	case kafkaOffsetNewset:
 		cons.consumerConfig.OffsetMethod = kafka.OffsetMethodNewest
 
-	case offsetOldest:
+	case kafkaOffsetOldest:
 		cons.consumerConfig.OffsetMethod = kafka.OffsetMethodOldest
 
-	case offsetFile:
+	case kafkaOffsetFile:
 		cons.consumerConfig.OffsetMethod = kafka.OffsetMethodManual
 		fileContents, err := ioutil.ReadFile(cons.offsetFile)
 		if err != nil {
@@ -147,7 +147,7 @@ func (cons *Kafka) Configure(conf shared.PluginConfig) error {
 			cons.offsets = make([]int64, len(offsets))
 
 			for idx, offset := range offsets {
-				cons.offsets[idx], _ = strconv.ParseInt(offset, 10, 32)
+				cons.offsets[idx], _ = strconv.ParseInt(offset, 10, 64)
 			}
 		}
 	}

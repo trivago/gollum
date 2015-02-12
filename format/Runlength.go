@@ -39,7 +39,7 @@ func (format *Runlength) Configure(conf shared.PluginConfig) error {
 }
 
 // PrepareMessage sets the message to be formatted.
-func (format *Runlength) PrepareMessage(msg *shared.Message) {
+func (format *Runlength) PrepareMessage(msg shared.Message) {
 	format.base.PrepareMessage(msg)
 	format.baseLength = format.base.GetLength()
 
