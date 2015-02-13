@@ -17,6 +17,7 @@ type multiplexer struct {
 	consumerThreads *sync.WaitGroup
 	producerThreads *sync.WaitGroup
 	stream          map[shared.MessageStreamID][]shared.Producer
+	managedStream   map[shared.MessageStreamID][]shared.Distributor
 	profile         bool
 }
 
@@ -35,6 +36,7 @@ func newMultiplexer(configFile string, profile bool) multiplexer {
 
 	plex := multiplexer{
 		stream:          make(map[shared.MessageStreamID][]shared.Producer),
+		managedStream:   make(map[shared.MessageStreamID][]shared.Distributor),
 		consumerThreads: new(sync.WaitGroup),
 		producerThreads: new(sync.WaitGroup),
 		consumers:       []shared.Consumer{logConsumer},
@@ -58,6 +60,21 @@ func newMultiplexer(configFile string, profile bool) multiplexer {
 				} else {
 					Log.Error.Print("Failed to configure ", className, ": ", err)
 					continue // ### continue ###
+				}
+			}
+
+			// Register dsitributor plugins
+
+			if distributor, isDistributor := plugin.(shared.Distributor); isDistributor {
+				for _, stream := range config.Stream {
+					streamID := shared.GetStreamID(stream)
+					streamMap, mappingExists := plex.managedStream[streamID]
+
+					if !mappingExists {
+						plex.managedStream[streamID] = []shared.Distributor{distributor}
+					} else {
+						plex.managedStream[streamID] = append(streamMap, distributor)
+					}
 				}
 			}
 
@@ -89,31 +106,44 @@ func newMultiplexer(configFile string, profile bool) multiplexer {
 	return plex
 }
 
-// sendMessage sends a message to all producers listening to a given stream.
-// This method blocks as long as a producer message queue is full.
-// You can pass false to the enqueue parameter to ignore inactive plugins (i.e.
-// useful during shutdown)
-func (plex multiplexer) sendMessage(message shared.Message, streamID shared.MessageStreamID, enqueue bool) {
-	msgClone := message.CloneAndPin(streamID)
-	for _, producer := range plex.stream[streamID] {
-		if (producer.IsActive() || enqueue) && producer.Accepts(msgClone) {
-			producer.Messages() <- msgClone
-		}
-		producer.Messages()
+// sendMessage is the default distributor which sends a pinned message to all
+// producers in the list.
+func (plex multiplexer) sendMessage(message shared.Message, producers []shared.Producer, sendToInactive bool) {
+	for _, producer := range producers {
+		shared.SingleDistribute(producer, message, sendToInactive)
 	}
 }
 
-// broadcastMessage sends a message to all streams the message has been
-// addressed to.
-// This method blocks if sendMessage blocks.
-func (plex multiplexer) broadcastMessage(message shared.Message, enqueue bool) {
+// distribute pinns the message to a specific stream and forwards it to either
+// all producers registered to that stream or to all distributors registered to
+// that stream.
+func (plex multiplexer) distribute(message shared.Message, streamID shared.MessageStreamID, sendToInactive bool) {
+	producers := plex.stream[streamID]
+	if len(producers) > 0 {
+		pinnedMsg := message.CloneAndPin(streamID)
+		distributors, isManaged := plex.managedStream[streamID]
+
+		if isManaged {
+			for _, distributor := range distributors {
+				distributor.Distribute(pinnedMsg, producers, sendToInactive)
+			}
+		} else {
+			plex.sendMessage(pinnedMsg, producers, sendToInactive)
+		}
+	}
+}
+
+// broadcastMessage does the initial distribution of the message, i.e. it takes
+// care of sending messages to the wildcardstream and to all other streams.
+func (plex multiplexer) broadcastMessage(message shared.Message, sendToInactive bool) {
 	// Send to wildcard stream producers if not purely internal
 	if !message.IsInternal() {
-		plex.sendMessage(message, shared.WildcardStreamID, enqueue)
+		plex.distribute(message, shared.WildcardStreamID, sendToInactive)
 	}
+
 	// Send to specific stream producers
 	for _, streamID := range message.Streams {
-		plex.sendMessage(message, streamID, enqueue)
+		plex.distribute(message, streamID, sendToInactive)
 	}
 }
 

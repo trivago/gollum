@@ -82,7 +82,7 @@ const (
 // Servers contains the list of all kafka servers to connect to. This setting
 // is mandatory and has no defaults.
 type Kafka struct {
-	standardConsumer
+	shared.ConsumerBase
 	servers        []string
 	topic          string
 	clientID       string
@@ -103,13 +103,13 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Kafka) Configure(conf shared.PluginConfig) error {
-	err := cons.standardConsumer.Configure(conf)
+	err := cons.ConsumerBase.Configure(conf)
 	if err != nil {
 		return err
 	}
 
 	if !conf.HasValue("Servers") {
-		return consumerError{"No servers configured for consumer.Kafka"}
+		return shared.NewConsumerError("No servers configured for consumer.Kafka")
 	}
 
 	cons.clientConfig = kafka.NewClientConfig()
@@ -189,11 +189,11 @@ func (cons *Kafka) fetch(offsetIdx int, partition int32, config kafka.ConsumerCo
 
 	// Make sure we wait for all consumers to end
 
-	cons.state.WaitGroup.Add(1)
+	cons.AddWorker()
 
 	defer func() {
 		consumer.Close()
-		cons.state.WaitGroup.Done()
+		cons.WorkerDone()
 	}()
 
 	for {
@@ -206,7 +206,7 @@ func (cons *Kafka) fetch(offsetIdx int, partition int32, config kafka.ConsumerCo
 		}
 
 		cons.offsets[offsetIdx] = int64(math.Max(float64(cons.offsets[offsetIdx]), float64(event.Offset)))
-		cons.postMessageFromSlice(event.Value)
+		cons.PostMessageFromSlice(event.Value)
 	}
 }
 
@@ -235,7 +235,7 @@ func (cons *Kafka) startConsumers() error {
 
 // Write index file to disc
 func (cons *Kafka) dumpIndex() {
-	if len(cons.offsets) > 0 {
+	if cons.offsetFile != "" && len(cons.offsets) > 0 {
 		csvString := ""
 		for _, value := range cons.offsets {
 			csvString += fmt.Sprintf("%d,", value)
@@ -247,6 +247,7 @@ func (cons *Kafka) dumpIndex() {
 
 // Consume starts a kafka consumer per partition for this topic
 func (cons Kafka) Consume(threads *sync.WaitGroup) {
+	cons.SetWaitGroup(threads)
 	err := cons.startConsumers()
 	if err != nil {
 		Log.Error.Print("Kafka client error - ", err)
@@ -254,27 +255,13 @@ func (cons Kafka) Consume(threads *sync.WaitGroup) {
 	}
 
 	cons.quit = false
-	dumpIndexTicker := time.NewTicker(cons.offsetTimeout)
 
 	defer func() {
 		cons.quit = true
 		cons.client.Close()
 		cons.dumpIndex()
-		cons.markAsDone()
+		cons.MarkAsDone()
 	}()
 
-	cons.markAsActive(threads)
-
-	for cons.IsActive() {
-		select {
-		case command := <-cons.control:
-			if command == shared.ConsumerControlStop {
-				return // ### return ###
-			}
-		case <-dumpIndexTicker.C:
-			if cons.offsetFile != "" {
-				cons.dumpIndex()
-			}
-		}
-	}
+	cons.TickerControlLoop(threads, cons.offsetTimeout, nil, cons.dumpIndex)
 }

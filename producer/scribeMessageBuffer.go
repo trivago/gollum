@@ -18,7 +18,7 @@ type scribeMessageQueue struct {
 	doneCount  uint32
 }
 
-func NewMessageQueue() scribeMessageQueue {
+func newMessageQueue() scribeMessageQueue {
 	return scribeMessageQueue{
 		buffer:     make([]*scribe.LogEntry, scribeBufferGrowSize),
 		contentLen: 0,
@@ -37,7 +37,7 @@ type scribeMessageBuffer struct {
 
 func createScribeMessageBuffer(maxContentLen int, format shared.Formatter) *scribeMessageBuffer {
 	return &scribeMessageBuffer{
-		queue:         [2]scribeMessageQueue{NewMessageQueue(), NewMessageQueue()},
+		queue:         [2]scribeMessageQueue{newMessageQueue(), newMessageQueue()},
 		activeSet:     uint32(0),
 		maxContentLen: maxContentLen,
 		lastFlush:     time.Now(),
@@ -146,7 +146,7 @@ func (batch scribeMessageBuffer) reachedSizeThreshold(size int) bool {
 	return batch.queue[activeIdx].contentLen >= size
 }
 
-func (batch scribeMessageBuffer) reachedTimeThreshold(timeSec int) bool {
+func (batch scribeMessageBuffer) reachedTimeThreshold(timeout time.Duration) bool {
 	return !batch.isEmpty() &&
-		time.Since(batch.lastFlush).Seconds() > float64(timeSec)
+		time.Since(batch.lastFlush) > timeout
 }

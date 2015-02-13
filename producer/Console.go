@@ -17,7 +17,7 @@ import (
 //
 // Console may either be "stdout" or "stderr"
 type Console struct {
-	standardProducer
+	shared.ProducerBase
 	console *os.File
 }
 
@@ -27,7 +27,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Console) Configure(conf shared.PluginConfig) error {
-	err := prod.standardProducer.Configure(conf)
+	err := prod.ProducerBase.Configure(conf)
 	if err != nil {
 		return err
 	}
@@ -47,16 +47,13 @@ func (prod *Console) Configure(conf shared.PluginConfig) error {
 }
 
 func (prod Console) printMessage(msg shared.Message) {
-	prod.format.PrepareMessage(msg)
-	fmt.Fprint(prod.console, prod.format.String())
+	prod.Formatter().PrepareMessage(msg)
+	fmt.Fprint(prod.console, prod.Formatter().String())
 }
 
 func (prod Console) flush() {
 	for {
-		select {
-		case message := <-prod.messages:
-			prod.printMessage(message)
-		default:
+		if !prod.NextNonBlocking(prod.printMessage) {
 			return
 		}
 	}
@@ -66,8 +63,8 @@ func (prod Console) flush() {
 func (prod Console) Produce(threads *sync.WaitGroup) {
 	defer func() {
 		prod.flush()
-		prod.markAsDone()
+		prod.MarkAsDone()
 	}()
 
-	prod.defaultControlLoop(threads, prod.printMessage, nil)
+	prod.DefaultControlLoop(threads, prod.printMessage, nil)
 }

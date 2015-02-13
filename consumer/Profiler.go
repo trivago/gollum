@@ -19,7 +19,7 @@ import (
 //
 // This consumer does not define any options beside the standard ones.
 type Profiler struct {
-	standardConsumer
+	shared.ConsumerBase
 	profileRuns int
 	batches     int
 	length      int
@@ -32,7 +32,7 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Profiler) Configure(conf shared.PluginConfig) error {
-	err := cons.standardConsumer.Configure(conf)
+	err := cons.ConsumerBase.Configure(conf)
 	if err != nil {
 		return err
 	}
@@ -64,10 +64,10 @@ func (cons *Profiler) profile() {
 		start := time.Now()
 		for i := 0; i < cons.profileRuns; i++ {
 			msg = fmt.Sprintf("%d/%d %s", i, cons.profileRuns, string(randString))
-			cons.postMessage(msg)
+			cons.PostMessage(msg)
 
 			if cons.quit {
-				cons.markAsDone()
+				cons.MarkAsDone()
 				return
 			}
 		}
@@ -99,7 +99,7 @@ func (cons *Profiler) profile() {
 		maxTime,
 		float64(cons.profileRuns)/maxTime))
 
-	cons.markAsDone()
+	cons.MarkAsDone()
 
 	proc, _ := os.FindProcess(os.Getpid())
 	proc.Signal(os.Interrupt)
@@ -113,5 +113,5 @@ func (cons Profiler) Consume(threads *sync.WaitGroup) {
 		cons.quit = true
 	}()
 
-	cons.defaultControlLoop(threads, nil)
+	cons.DefaultControlLoop(threads, nil)
 }

@@ -62,7 +62,7 @@ const (
 // Compress defines if a rotated logfile is to be gzip compressed or not.
 // By default this is set to true.
 type File struct {
-	standardProducer
+	shared.ProducerBase
 	file             *os.File
 	batch            *shared.MessageBuffer
 	bgWriter         *sync.WaitGroup
@@ -72,7 +72,7 @@ type File struct {
 	fileCreated      time.Time
 	rotateSizeByte   int64
 	batchSize        int
-	batchTimeoutSec  int
+	batchTimeout     time.Duration
 	rotateTimeoutMin int
 	rotateAtHour     int
 	rotateAtMin      int
@@ -87,7 +87,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *File) Configure(conf shared.PluginConfig) error {
-	err := prod.standardProducer.Configure(conf)
+	err := prod.ProducerBase.Configure(conf)
 	if err != nil {
 		return err
 	}
@@ -96,8 +96,8 @@ func (prod *File) Configure(conf shared.PluginConfig) error {
 	bufferSizeMax := conf.GetInt("BufferSizeMaxKB", 8<<10) << 10 // 8 MB
 
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
-	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
-	prod.batch = shared.NewMessageBuffer(bufferSizeMax, prod.format)
+	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
+	prod.batch = shared.NewMessageBuffer(bufferSizeMax, prod.Formatter())
 	prod.forceRotate = false
 
 	prod.rotate = conf.GetBool("Rotate", false)
@@ -300,7 +300,7 @@ func (prod *File) writeBatch() {
 }
 
 func (prod *File) writeBatchOnTimeOut() {
-	if prod.batch.ReachedTimeThreshold(prod.batchTimeoutSec) {
+	if prod.batch.ReachedTimeThreshold(prod.batchTimeout) {
 		prod.writeBatch()
 	}
 }
@@ -314,10 +314,7 @@ func (prod *File) writeMessage(message shared.Message) {
 
 func (prod *File) flush() {
 	for {
-		select {
-		case message := <-prod.messages:
-			prod.writeMessage(message)
-		default:
+		if !prod.NextNonBlocking(prod.writeMessage) {
 			prod.writeBatch()
 			prod.batch.WaitForFlush()
 			return
@@ -338,8 +335,8 @@ func (prod File) Produce(threads *sync.WaitGroup) {
 		prod.flush()
 		prod.bgWriter.Wait()
 		prod.file.Close()
-		prod.markAsDone()
+		prod.MarkAsDone()
 	}()
 
-	prod.tickerControlLoop(threads, prod.batchTimeoutSec, prod.writeMessage, prod.writeBatchOnTimeOut, prod.rotateLog)
+	prod.TickerControlLoop(threads, prod.batchTimeout, prod.writeMessage, prod.rotateLog, prod.writeBatchOnTimeOut)
 }

@@ -6,6 +6,7 @@ import (
 	"net"
 	"strings"
 	"sync"
+	"time"
 )
 
 var fileSocketPrefix = "unix://"
@@ -39,16 +40,16 @@ var fileSocketPrefix = "unix://"
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5.
 type Socket struct {
-	standardProducer
-	connection      net.Conn
-	batch           *shared.MessageBuffer
-	protocol        string
-	address         string
-	batchSize       int
-	batchTimeoutSec int
-	bufferSizeKB    int
-	runlength       bool
-	acknowledge     bool
+	shared.ProducerBase
+	connection   net.Conn
+	batch        *shared.MessageBuffer
+	protocol     string
+	address      string
+	batchSize    int
+	batchTimeout time.Duration
+	bufferSizeKB int
+	runlength    bool
+	acknowledge  bool
 }
 
 type bufferedConn interface {
@@ -61,7 +62,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Socket) Configure(conf shared.PluginConfig) error {
-	err := prod.standardProducer.Configure(conf)
+	err := prod.ProducerBase.Configure(conf)
 	if err != nil {
 		return err
 	}
@@ -71,11 +72,11 @@ func (prod *Socket) Configure(conf shared.PluginConfig) error {
 	prod.protocol = "tcp"
 	prod.address = conf.GetString("Address", ":5880")
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
-	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
+	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.bufferSizeKB = conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
 	prod.acknowledge = conf.GetBool("Acknowledge", false)
 
-	prod.batch = shared.NewMessageBuffer(bufferSizeMax, prod.format)
+	prod.batch = shared.NewMessageBuffer(bufferSizeMax, prod.Formatter())
 
 	if strings.HasPrefix(prod.address, fileSocketPrefix) {
 		prod.address = prod.address[len(fileSocketPrefix):]
@@ -127,7 +128,7 @@ func (prod *Socket) sendBatch() {
 }
 
 func (prod *Socket) sendBatchOnTimeOut() {
-	if prod.batch.ReachedTimeThreshold(prod.batchTimeoutSec) {
+	if prod.batch.ReachedTimeThreshold(prod.batchTimeout) {
 		prod.sendBatch()
 	}
 }
@@ -141,10 +142,7 @@ func (prod *Socket) sendMessage(message shared.Message) {
 
 func (prod *Socket) flush() {
 	for {
-		select {
-		case message := <-prod.messages:
-			prod.sendMessage(message)
-		default:
+		if !prod.NextNonBlocking(prod.sendMessage) {
 			prod.sendBatch()
 			prod.batch.WaitForFlush()
 			return
@@ -159,8 +157,8 @@ func (prod Socket) Produce(threads *sync.WaitGroup) {
 		if prod.connection != nil {
 			prod.connection.Close()
 		}
-		prod.markAsDone()
+		prod.MarkAsDone()
 	}()
 
-	prod.tickerControlLoop(threads, prod.batchTimeoutSec, prod.sendMessage, prod.sendBatchOnTimeOut, nil)
+	prod.TickerControlLoop(threads, prod.batchTimeout, prod.sendMessage, nil, prod.sendBatchOnTimeOut)
 }

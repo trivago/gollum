@@ -31,7 +31,7 @@ const (
 // On success "OK\n" is send. Any error will close the connection.
 // This setting is disabled by default.
 type Socket struct {
-	standardConsumer
+	shared.ConsumerBase
 	listen      net.Listener
 	protocol    string
 	address     string
@@ -47,7 +47,7 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Socket) Configure(conf shared.PluginConfig) error {
-	err := cons.standardConsumer.Configure(conf)
+	err := cons.ConsumerBase.Configure(conf)
 	if err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 	defer conn.Close()
 
 	var err error
-	buffer := shared.CreateBufferedReader(socketBufferGrowSize, cons.postMessageFromSlice)
+	buffer := shared.CreateBufferedReader(socketBufferGrowSize, cons.PostMessageFromSlice)
 
 	for !cons.quit {
 		// Read from stream
@@ -110,7 +110,7 @@ func (cons *Socket) accept(threads *sync.WaitGroup) {
 		go cons.readFromConnection(client)
 	}
 
-	cons.markAsDone()
+	cons.MarkAsDone()
 }
 
 // Consume listens to a given socket. Messages are expected to be separated by
@@ -132,5 +132,5 @@ func (cons Socket) Consume(threads *sync.WaitGroup) {
 		cons.listen.Close()
 	}()
 
-	cons.defaultControlLoop(threads, nil)
+	cons.DefaultControlLoop(threads, nil)
 }

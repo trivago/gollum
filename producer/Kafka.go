@@ -89,7 +89,7 @@ const (
 // Servers contains the list of all kafka servers to connect to. This setting
 // is mandatory and has no defaults.
 type Kafka struct {
-	standardProducer
+	shared.ProducerBase
 	servers        []string
 	topic          map[shared.MessageStreamID]string
 	clientID       string
@@ -110,13 +110,13 @@ func (prod *Kafka) Configure(conf shared.PluginConfig) error {
 		conf.Override("Delimiter", "")
 	}
 
-	err := prod.standardProducer.Configure(conf)
+	err := prod.ProducerBase.Configure(conf)
 	if err != nil {
 		return err
 	}
 
 	if !conf.HasValue("Servers") {
-		return producerError{"No servers configured for producer.Kafka"}
+		return shared.NewProducerError("No servers configured for producer.Kafka")
 	}
 
 	prod.clientConfig = kafka.NewClientConfig()
@@ -198,11 +198,11 @@ func (prod *Kafka) send(msg shared.Message) {
 			topic = prod.topic[shared.WildcardStreamID]
 		}
 
-		prod.format.PrepareMessage(msg)
+		prod.Formatter().PrepareMessage(msg)
 		prod.producer.Input() <- &kafka.MessageToSend{
 			Topic: topic,
 			Key:   nil,
-			Value: kafka.StringEncoder(prod.format.String()),
+			Value: kafka.StringEncoder(prod.Formatter().String()),
 		}
 
 		// Check for errors
@@ -223,8 +223,8 @@ func (prod Kafka) Produce(threads *sync.WaitGroup) {
 		if prod.client != nil && !prod.client.Closed() {
 			prod.client.Close()
 		}
-		prod.markAsDone()
+		prod.MarkAsDone()
 	}()
 
-	prod.defaultControlLoop(threads, prod.send, nil)
+	prod.DefaultControlLoop(threads, prod.send, nil)
 }

@@ -14,7 +14,7 @@ type messageQueue struct {
 	doneCount  uint32
 }
 
-func NewMessageQueue(size int) messageQueue {
+func newMessageQueue(size int) messageQueue {
 	return messageQueue{
 		buffer:     make([]byte, size),
 		contentLen: 0,
@@ -38,7 +38,7 @@ type MessageBuffer struct {
 // and a given set of FormatterFlag.
 func NewMessageBuffer(size int, format Formatter) *MessageBuffer {
 	return &MessageBuffer{
-		queue:     [2]messageQueue{NewMessageQueue(size), NewMessageQueue(size)},
+		queue:     [2]messageQueue{newMessageQueue(size), newMessageQueue(size)},
 		flushing:  new(sync.Mutex),
 		lastFlush: time.Now(),
 		activeSet: uint32(0),
@@ -148,9 +148,9 @@ func (batch MessageBuffer) ReachedSizeThreshold(size int) bool {
 	return batch.queue[activeIdx].contentLen >= size
 }
 
-// ReachedTimeThreshold returns true if the last flush was more than timeSec ago.
+// ReachedTimeThreshold returns true if the last flush was more than timeout ago.
 // If there is no data this function returns false.
-func (batch MessageBuffer) ReachedTimeThreshold(timeSec int) bool {
+func (batch MessageBuffer) ReachedTimeThreshold(timeout time.Duration) bool {
 	return !batch.IsEmpty() &&
-		time.Since(batch.lastFlush).Seconds() > float64(timeSec)
+		time.Since(batch.lastFlush) > timeout
 }

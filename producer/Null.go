@@ -15,7 +15,7 @@ import (
 // It shows the most basic producer who can exist.
 // In combination with the consumer "Profiler" this can act as a performance test
 type Null struct {
-	standardProducer
+	shared.ProducerBase
 }
 
 func init() {
@@ -24,20 +24,7 @@ func init() {
 
 // Produce writes to a buffer that is dumped to a file.
 func (prod Null) Produce(threads *sync.WaitGroup) {
-	prod.state.Active = true
+	defer prod.MarkAsDone()
 
-	// Block until one of the channels contains data so we idle when there is
-	// nothing to do.
-
-	for {
-		select {
-		case <-prod.messages:
-			// Nothing
-
-		case command := <-prod.control:
-			if command == shared.ProducerControlStop {
-				return // ### return, done ###
-			}
-		}
-	}
+	prod.DefaultControlLoop(threads, func(_ shared.Message) {}, nil)
 }

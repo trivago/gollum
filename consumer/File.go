@@ -44,7 +44,7 @@ const (
 // Delimiter defines the end of a message inside the file. By default this is
 // set to "\n".
 type File struct {
-	standardConsumer
+	shared.ConsumerBase
 	file             *os.File
 	openMutex        *sync.Mutex
 	fileName         string
@@ -62,13 +62,13 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *File) Configure(conf shared.PluginConfig) error {
-	err := cons.standardConsumer.Configure(conf)
+	err := cons.ConsumerBase.Configure(conf)
 	if err != nil {
 		return err
 	}
 
 	if !conf.HasValue("File") {
-		return consumerError{"No file configured for consumer.File"}
+		return shared.NewConsumerError("No file configured for consumer.File")
 	}
 
 	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
@@ -103,7 +103,7 @@ func (cons *File) Configure(conf shared.PluginConfig) error {
 }
 
 func (cons *File) postAndPersist(data []byte) {
-	cons.postMessageFromSlice(data)
+	cons.PostMessageFromSlice(data)
 	cons.seekOffset, _ = cons.file.Seek(0, 1)
 	ioutil.WriteFile(cons.continueFileName, []byte(strconv.FormatInt(cons.seekOffset, 10)), 0644)
 }
@@ -156,7 +156,7 @@ func (cons *File) readFrom(threads *sync.WaitGroup) {
 	if cons.persistSeek {
 		buffer = shared.CreateBufferedReader(fileBufferGrowSize, cons.postAndPersist)
 	} else {
-		buffer = shared.CreateBufferedReader(fileBufferGrowSize, cons.postMessageFromSlice)
+		buffer = shared.CreateBufferedReader(fileBufferGrowSize, cons.PostMessageFromSlice)
 	}
 
 	printFileOpenError := true
@@ -195,7 +195,7 @@ func (cons *File) readFrom(threads *sync.WaitGroup) {
 		}
 	}
 
-	cons.markAsDone()
+	cons.MarkAsDone()
 }
 
 // Consume listens to stdin.
@@ -209,5 +209,5 @@ func (cons File) Consume(threads *sync.WaitGroup) {
 		cons.file.Close()
 	}()
 
-	cons.defaultControlLoop(threads, cons.reopen)
+	cons.DefaultControlLoop(threads, cons.reopen)
 }

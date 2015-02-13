@@ -73,7 +73,7 @@ import (
 // TTL defines the TTL set in elasticsearch messages. By default this is set to
 // "" which means no TTL.
 type ElasticSearch struct {
-	standardProducer
+	shared.ProducerBase
 	conn          *elastigo.Conn
 	indexer       *elastigo.BulkIndexer
 	index         map[shared.MessageStreamID]string
@@ -93,7 +93,7 @@ func (prod *ElasticSearch) Configure(conf shared.PluginConfig) error {
 		conf.Override("Delimiter", "")
 	}
 
-	err := prod.standardProducer.Configure(conf)
+	err := prod.ProducerBase.Configure(conf)
 	if err != nil {
 		return err
 	}
@@ -146,8 +146,8 @@ func (prod *ElasticSearch) simpleMessage(msg shared.Message) {
 		msgType = prod.msgType[shared.WildcardStreamID]
 	}
 
-	prod.format.PrepareMessage(msg)
-	err := prod.indexer.Index(index, msgType, "", prod.msgTTL, &msg.Timestamp, prod.format.String(), true)
+	prod.Formatter().PrepareMessage(msg)
+	err := prod.indexer.Index(index, msgType, "", prod.msgTTL, &msg.Timestamp, prod.Formatter().String(), true)
 	if err != nil {
 		Log.Error.Print("ElasticSearch index error - ", err)
 	}
@@ -159,8 +159,8 @@ func (prod ElasticSearch) Produce(threads *sync.WaitGroup) {
 	defer func() {
 		prod.indexer.Flush()
 		prod.indexer.Stop()
-		prod.markAsDone()
+		prod.MarkAsDone()
 	}()
 
-	prod.defaultControlLoop(threads, prod.simpleMessage, nil)
+	prod.DefaultControlLoop(threads, prod.simpleMessage, nil)
 }

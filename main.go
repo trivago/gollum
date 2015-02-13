@@ -4,6 +4,7 @@ import (
 	"fmt"
 	flag "github.com/docker/docker/pkg/mflag"
 	_ "github.com/trivago/gollum/consumer"
+	_ "github.com/trivago/gollum/distributor"
 	_ "github.com/trivago/gollum/format"
 	_ "github.com/trivago/gollum/producer"
 	_ "github.com/trivago/gollum/trivago"

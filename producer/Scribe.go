@@ -7,6 +7,7 @@ import (
 	"github.com/trivago/gollum/shared"
 	"strconv"
 	"sync"
+	"time"
 )
 
 // Scribe producer plugin
@@ -48,15 +49,15 @@ import (
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5.
 type Scribe struct {
-	standardProducer
-	scribe          *scribe.ScribeClient
-	transport       *thrift.TFramedTransport
-	socket          *thrift.TSocket
-	batch           *scribeMessageBuffer
-	category        map[shared.MessageStreamID]string
-	batchSize       int
-	batchTimeoutSec int
-	bufferSizeKB    int
+	shared.ProducerBase
+	scribe       *scribe.ScribeClient
+	transport    *thrift.TFramedTransport
+	socket       *thrift.TSocket
+	batch        *scribeMessageBuffer
+	category     map[shared.MessageStreamID]string
+	batchSize    int
+	batchTimeout time.Duration
+	bufferSizeKB int
 }
 
 func init() {
@@ -70,7 +71,7 @@ func (prod *Scribe) Configure(conf shared.PluginConfig) error {
 		conf.Override("Delimiter", "")
 	}
 
-	err := prod.standardProducer.Configure(conf)
+	err := prod.ProducerBase.Configure(conf)
 	if err != nil {
 		return err
 	}
@@ -81,8 +82,8 @@ func (prod *Scribe) Configure(conf shared.PluginConfig) error {
 
 	prod.category = make(map[shared.MessageStreamID]string, 0)
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
-	prod.batchTimeoutSec = conf.GetInt("BatchTimeoutSec", 5)
-	prod.batch = createScribeMessageBuffer(bufferSizeMax, prod.format)
+	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
+	prod.batch = createScribeMessageBuffer(bufferSizeMax, prod.Formatter())
 	prod.bufferSizeKB = conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
 	prod.category = conf.GetStreamMap("Category", "default")
 
@@ -120,7 +121,7 @@ func (prod *Scribe) sendBatch() {
 }
 
 func (prod *Scribe) sendBatchOnTimeOut() {
-	if prod.batch.reachedTimeThreshold(prod.batchTimeoutSec) {
+	if prod.batch.reachedTimeThreshold(prod.batchTimeout) {
 		prod.sendBatch()
 	}
 }
@@ -139,10 +140,7 @@ func (prod *Scribe) sendMessage(message shared.Message) {
 
 func (prod *Scribe) flush() {
 	for {
-		select {
-		case message := <-prod.messages:
-			prod.sendMessage(message)
-		default:
+		if !prod.NextNonBlocking(prod.sendMessage) {
 			prod.sendBatch()
 			prod.batch.waitForFlush()
 			return
@@ -156,8 +154,8 @@ func (prod Scribe) Produce(threads *sync.WaitGroup) {
 		prod.flush()
 		prod.transport.Close()
 		prod.socket.Close()
-		prod.markAsDone()
+		prod.MarkAsDone()
 	}()
 
-	prod.tickerControlLoop(threads, prod.batchTimeoutSec, prod.sendMessage, prod.sendBatchOnTimeOut, nil)
+	prod.TickerControlLoop(threads, prod.batchTimeout, prod.sendMessage, nil, prod.sendBatchOnTimeOut)
 }

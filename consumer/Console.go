@@ -20,7 +20,7 @@ const (
 //
 // This consumer does not define any options beside the standard ones.
 type Console struct {
-	standardConsumer
+	shared.ConsumerBase
 }
 
 func init() {
@@ -28,7 +28,7 @@ func init() {
 }
 
 func (cons *Console) readFrom(stream io.Reader, threads *sync.WaitGroup) {
-	buffer := shared.CreateBufferedReader(consoleBufferGrowSize, cons.postMessageFromSlice)
+	buffer := shared.CreateBufferedReader(consoleBufferGrowSize, cons.PostMessageFromSlice)
 
 	for {
 		err := buffer.Read(stream, "\n")
@@ -42,6 +42,6 @@ func (cons *Console) readFrom(stream io.Reader, threads *sync.WaitGroup) {
 func (cons Console) Consume(threads *sync.WaitGroup) {
 	go cons.readFrom(os.Stdin, threads)
 
-	defer cons.markAsDone()
-	cons.defaultControlLoop(threads, nil)
+	defer cons.MarkAsDone()
+	cons.DefaultControlLoop(threads, nil)
 }
