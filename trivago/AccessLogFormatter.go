@@ -115,5 +115,5 @@ func (format *AccessLogFormatter) PrepareMessage(msg shared.Message) {
 		}
 	}
 
-	format.message.WriteString("}")
+	format.message.WriteString("}\n")
 }

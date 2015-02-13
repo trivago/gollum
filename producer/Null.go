@@ -22,9 +22,14 @@ func init() {
 	shared.RuntimeType.Register(Null{})
 }
 
+func (prod Null) testFormatter(msg shared.Message) {
+	prod.Formatter().PrepareMessage(msg)
+	prod.Formatter().String()
+}
+
 // Produce writes to a buffer that is dumped to a file.
 func (prod Null) Produce(threads *sync.WaitGroup) {
 	defer prod.MarkAsDone()
 
-	prod.DefaultControlLoop(threads, func(_ shared.Message) {}, nil)
+	prod.DefaultControlLoop(threads, prod.testFormatter, nil)
 }
