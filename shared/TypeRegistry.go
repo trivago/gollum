@@ -66,3 +66,14 @@ func (registry typeRegistry) NewPlugin(typeName string, config PluginConfig) (Pl
 	err = plugin.Configure(config)
 	return plugin, err
 }
+
+// GetRegistered returns the names of all registered types for a given package
+func (registry typeRegistry) GetRegistered(packageName string) []string {
+	var result []string
+	for key := range registry.namedType {
+		if strings.HasPrefix(key, packageName) {
+			result = append(result, key)
+		}
+	}
+	return result
+}

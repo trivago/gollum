@@ -1,15 +1,14 @@
 package trivago
 
 import (
-	"bytes"
+	"github.com/trivago/gollum/shared"
 	"testing"
 )
 
 func TestZap(t *testing.T) {
+	expect := shared.NewExpect(t)
 	testData := []byte("\n\"")
 	zapInvalidChars(testData)
 
-	if !bytes.Equal(testData, []byte("\t'")) {
-		t.Error("zapInvalidChars produced unexpected result.")
-	}
+	expect.BytesEq(testData, []byte("\t'"))
 }

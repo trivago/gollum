@@ -83,7 +83,7 @@ var acclTransitions = [][]shared.Transition{
 	/* metricRedis    */ {transWrite(" \"", acclStateReferrer), transSkip("- \"", acclStateReferrer)},
 	/* referrer       */ {transWrite("\" \"", acclStateHash), transSkip("-\" \"", acclStateHash)},
 	/* hash           */ {transWrite("\" \"", acclStateAgent)},
-	/* agent          */ {transWrite("\"", shared.ParserStateStop)},
+	/* agent          */ {transWrite("\"", shared.ParserStateStop), transSkip("-\"", shared.ParserStateStop)},
 }
 
 type AccessLogFormatter struct {

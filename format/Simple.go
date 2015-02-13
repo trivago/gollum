@@ -56,7 +56,7 @@ func (format *Simple) String() string {
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
 func (format *Simple) CopyTo(dest []byte) int {
-	len := copy(dest, format.delimiter)
-	len += copy(dest[len:], format.msg.Data)
+	len := copy(dest, format.msg.Data)
+	len += copy(dest[len:], format.delimiter)
 	return len
 }
