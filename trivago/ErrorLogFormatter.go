@@ -12,38 +12,42 @@ type errlTransition struct {
 }
 
 const (
-	errlStateServer = iota
-	errlStateSearch
+	errlStateSearch = iota
 	errlStateSection
+	errlStateServer
 	errlStateDate
 	errlStateStatus
-	errlStateClient
 	errlStateRemote
+	errlStateClient
+	errlStateMessage
 )
 
 var errlStateNames = []string{
+	"message",
+	"message",
 	"server",
-	"message",
-	"message",
 	"@timestamp",
 	"status",
-	"client",
 	"remote",
+	"client",
+	"message",
 }
 
-var errlSectionDoneTransition = shared.NewTransition("]", errlStateSearch, shared.ParserFlagDone)
+var errlSectionDoneTransition = transWrite("]", errlStateSearch)
 
 var errlTransitions = [][]shared.Transition{
-	/* server  */ {shared.NewTransition("[", errlStateDate, shared.ParserFlagDone)},
-	/* search  */ {shared.NewTransition("[", errlStateSection, shared.ParserFlagStart)},
-	/* section */ {shared.NewTransition("remote", errlStateRemote, shared.ParserFlagStart),
-		shared.NewTransition("client", errlStateClient, shared.ParserFlagStart),
-		shared.NewTransition("error", errlStateStatus, shared.ParserFlagNop),
-		shared.NewTransition("warning", errlStateStatus, shared.ParserFlagNop)},
+	/* search  */ {transSkip("[", errlStateSection)},
+	/* section */ {transSkip("remote ", errlStateRemote),
+		transSkip("client ", errlStateClient),
+		transIgnore("error", errlStateStatus),
+		transIgnore("warning", errlStateStatus)},
+
+	/* server  */ {transWrite(" [", errlStateDate)},
 	/* date    */ {errlSectionDoneTransition},
 	/* status  */ {errlSectionDoneTransition},
-	/* client  */ {errlSectionDoneTransition},
 	/* remote  */ {errlSectionDoneTransition},
+	/* client  */ {transWrite("] ", errlStateMessage)},
+	/* message */ {},
 }
 
 type ErrorLogFormatter struct {
@@ -60,14 +64,14 @@ func (format *ErrorLogFormatter) Configure(conf shared.PluginConfig) error {
 }
 
 func (format *ErrorLogFormatter) PrepareMessage(msg shared.Message) {
-	sections := format.parser.Parse([]byte(msg.Data))
+	sections := format.parser.Parse([]byte(msg.Data), errlStateServer)
 	isFirst := true
 	format.message = bytes.NewBufferString("{")
 
 	for _, section := range sections {
 		switch section.State {
 		case errlStateDate:
-			timeStamp, _ := time.Parse("Mon Jan 2 15:04:05 2006", string(bytes.TrimSpace(section.Data)))
+			timeStamp, _ := time.Parse("Mon Jan 2 15:04:05 2006", string(section.Data))
 			format.writeField("@timestamp", []byte(timeStamp.Format(time.RFC3339)), &isFirst)
 
 		default:

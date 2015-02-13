@@ -11,6 +11,20 @@ type JSONLogFormatter struct {
 	message *bytes.Buffer
 }
 
+func zapInvalidChars(data []byte) {
+	for idx, char := range data {
+		switch char {
+		case '\r':
+			fallthrough
+		case '\n':
+			data[idx] = '\t'
+		case '"':
+			data[idx] = '\''
+		default:
+		}
+	}
+}
+
 func (format *JSONLogFormatter) writeField(name string, data []byte, first *bool) {
 	if !*first {
 		format.message.WriteString(",\"")
@@ -18,9 +32,11 @@ func (format *JSONLogFormatter) writeField(name string, data []byte, first *bool
 		format.message.WriteString("\"")
 		*first = false
 	}
+
+	zapInvalidChars(data)
 	format.message.WriteString(name)
 	format.message.WriteString("\":\"")
-	json.HTMLEscape(format.message, bytes.TrimSpace(data))
+	json.HTMLEscape(format.message, data)
 	format.message.WriteString("\"")
 }
 
@@ -34,4 +50,16 @@ func (format *JSONLogFormatter) String() string {
 
 func (format *JSONLogFormatter) CopyTo(dest []byte) int {
 	return copy(dest, format.message.Bytes())
+}
+
+func transWrite(token string, state int) shared.Transition {
+	return shared.NewTransition(token, state, shared.ParserFlagDone)
+}
+
+func transSkip(token string, state int) shared.Transition {
+	return shared.NewTransition(token, state, shared.ParserFlagSkip)
+}
+
+func transIgnore(token string, state int) shared.Transition {
+	return shared.NewTransition(token, state, shared.ParserFlagIgnore)
 }

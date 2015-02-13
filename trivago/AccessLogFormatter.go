@@ -14,64 +14,76 @@ type acclTransition struct {
 const (
 	acclStateServerIP = iota
 	acclStateServerName
-	acclStateClientIP
-	acclStateClientIPappend
-	acclStateClientIP2
-	acclStateClientIP2append
+	acclStateForwardedFor
+	acclStateRemoteIP
 	acclStateTimestamp
 	acclStateMethod
 	acclStateRequest
 	acclStateProtocol
-	acclStateResultCode
-	acclStateRequestSize
+	acclStateStatus
 	acclStateResponseSize
-	acclStateCommand
-	acclStateMetrics
+	acclStateResponseTime
+	acclStatePageID
+	acclStateMetricDb
+	acclStateMetricJava
+	acclStateMetricMemcache
+	acclStateMetricXCache
+	acclStateMetricFTP
+	acclStateMetricSolr
+	acclStateMetricRedis
 	acclStateReferrer
-	acclStateSession
+	acclStateHash
 	acclStateAgent
 )
 
 var acclStateNames = []string{
 	"serverIP",
 	"serverName",
-	"clientIP",
-	"skip",
-	"clientIP2",
-	"skip2",
+	"forwardedFor",
+	"remoteIP",
 	"@timestamp",
 	"method",
 	"request",
 	"protocol",
-	"resultCode",
-	"requestSize",
+	"status",
 	"responseSize",
-	"command",
-	"metrics",
+	"responseTime",
+	"pageID",
+	"metricDb",
+	"metricJava",
+	"metricMemcache",
+	"metricXCache",
+	"metricFTP",
+	"metricSolr",
+	"metricRedis",
 	"referrer",
-	"session",
+	"hash",
 	"agent",
 }
 
 var acclTransitions = [][]shared.Transition{
-	/* serverIP   */ {shared.NewTransition(" ", acclStateServerName, shared.ParserFlagDone)},
-	/* serverName */ {shared.NewTransition(" ", acclStateClientIP, shared.ParserFlagDone)},
-	/* clientIP   */ {shared.NewTransition(" ", acclStateClientIP2, shared.ParserFlagDone), shared.NewTransition(",", acclStateClientIPappend, shared.ParserFlagNop)},
-	/* skip       */ {shared.NewTransition(" ", acclStateClientIP, shared.ParserFlagNop)},
-	/* clientIP2  */ {shared.NewTransition(" ", acclStateTimestamp, shared.ParserFlagDone), shared.NewTransition(",", acclStateClientIP2append, shared.ParserFlagNop)},
-	/* skip2      */ {shared.NewTransition(" ", acclStateClientIP2, shared.ParserFlagNop)},
-	/* timestamp  */ {shared.NewTransition("\"", acclStateMethod, shared.ParserFlagDone)},
-	/* method     */ {shared.NewTransition(" ", acclStateRequest, shared.ParserFlagDone)},
-	/* request    */ {shared.NewTransition(" ", acclStateProtocol, shared.ParserFlagDone)},
-	/* protocol   */ {shared.NewTransition("\" ", acclStateResultCode, shared.ParserFlagDone)},
-	/* resultCode */ {shared.NewTransition(" ", acclStateRequestSize, shared.ParserFlagDone)},
-	/* number1    */ {shared.NewTransition(" ", acclStateResponseSize, shared.ParserFlagDone)},
-	/* size       */ {shared.NewTransition(" ", acclStateCommand, shared.ParserFlagDone)},
-	/* command    */ {shared.NewTransition(" ", acclStateMetrics, shared.ParserFlagDone)},
-	/* metrics    */ {shared.NewTransition("\"", acclStateReferrer, shared.ParserFlagDone)},
-	/* referrer   */ {shared.NewTransition("\" \"", acclStateSession, shared.ParserFlagDone)},
-	/* session    */ {shared.NewTransition("\" \"", acclStateAgent, shared.ParserFlagDone)},
-	/* agent      */ {shared.NewTransition("\"", shared.ParserStateStop, shared.ParserFlagDone)},
+	/* serverIP       */ {transWrite(" ", acclStateServerName)},
+	/* serverName     */ {transWrite(" ", acclStateForwardedFor)},
+	/* ForwardedFor   */ {transIgnore(", ", acclStateForwardedFor), transWrite(" ", acclStateRemoteIP), transSkip("- ", acclStateRemoteIP)},
+	/* remoteIP       */ {transWrite(" ", acclStateTimestamp), transSkip("- ", acclStateTimestamp)},
+	/* timestamp      */ {transWrite(" \"", acclStateMethod)},
+	/* method         */ {transWrite(" ", acclStateRequest)},
+	/* request        */ {transWrite(" ", acclStateProtocol)},
+	/* protocol       */ {transWrite("\" ", acclStateStatus)},
+	/* status         */ {transWrite(" ", acclStateResponseSize)},
+	/* responseSize   */ {transWrite(" ", acclStateResponseTime)},
+	/* responseTime   */ {transWrite(" ", acclStatePageID)},
+	/* pageID         */ {transWrite(" ", acclStateMetricDb), transSkip("- ", acclStateMetricDb)},
+	/* metricDb       */ {transWrite(" ", acclStateMetricJava), transSkip("- ", acclStateMetricJava)},
+	/* metricJava     */ {transWrite(" ", acclStateMetricMemcache), transSkip("- ", acclStateMetricMemcache)},
+	/* metricMemcache */ {transWrite(" ", acclStateMetricXCache), transSkip("- ", acclStateMetricXCache)},
+	/* metricXCache   */ {transWrite(" ", acclStateMetricFTP), transSkip("- ", acclStateMetricFTP)},
+	/* metricFTP      */ {transWrite(" ", acclStateMetricSolr), transSkip("- ", acclStateMetricSolr)},
+	/* metricSolr     */ {transWrite(" ", acclStateMetricRedis), transSkip("- ", acclStateMetricRedis)},
+	/* metricRedis    */ {transWrite(" \"", acclStateReferrer), transSkip("- \"", acclStateReferrer)},
+	/* referrer       */ {transWrite("\" \"", acclStateHash), transSkip("-\" \"", acclStateHash)},
+	/* hash           */ {transWrite("\" \"", acclStateAgent)},
+	/* agent          */ {transWrite("\"", shared.ParserStateStop)},
 }
 
 type AccessLogFormatter struct {
@@ -88,7 +100,7 @@ func (format *AccessLogFormatter) Configure(conf shared.PluginConfig) error {
 }
 
 func (format *AccessLogFormatter) PrepareMessage(msg shared.Message) {
-	sections := format.parser.Parse([]byte(msg.Data))
+	sections := format.parser.Parse([]byte(msg.Data), acclStateServerIP)
 	isFirst := true
 	format.message = bytes.NewBufferString("{")
 

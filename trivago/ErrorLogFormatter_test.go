@@ -1,9 +1,8 @@
-package tests
+package trivago
 
 import (
 	"encoding/json"
 	"github.com/trivago/gollum/shared"
-	"github.com/trivago/gollum/trivago"
 	"testing"
 )
 
@@ -19,7 +18,7 @@ func expectMapping(t *testing.T, data map[string]interface{}, key string, value 
 }
 
 func TestErrorLogFormat(t *testing.T) {
-	test := trivago.ErrorLogFormatter{}
+	test := ErrorLogFormatter{}
 	test.Configure(shared.PluginConfig{})
 	msg := shared.NewMessage("www5-sfo.trivago.com [Thu Feb 12 11:57:27 2015] [error] [remote ip 10.11.2.52] [client 62.159.86.18] File does not exist: /appdata/www/trivago/autodiscover", []shared.MessageStreamID{})
 	test.PrepareMessage(msg)
