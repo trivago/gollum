@@ -60,6 +60,7 @@ func (cons *Profiler) profile() {
 	maxTime := 0.0
 
 	for b := 0; b < cons.batches; b++ {
+		Log.Note.Print(fmt.Sprintf("run %d/%d:", b, cons.batches))
 
 		start := time.Now()
 		for i := 0; i < cons.profileRuns; i++ {
@@ -75,11 +76,6 @@ func (cons *Profiler) profile() {
 		runTime := time.Since(start)
 		minTime = math.Min(minTime, runTime.Seconds())
 		maxTime = math.Max(maxTime, runTime.Seconds())
-
-		Log.Note.Print(fmt.Sprintf(
-			"Profile run #%d: %.4f sec = %4.f msg/sec",
-			b, runTime.Seconds(),
-			float64(cons.profileRuns)/runTime.Seconds()))
 	}
 
 	runTime := time.Since(testStart)
