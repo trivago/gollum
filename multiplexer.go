@@ -261,12 +261,14 @@ func (plex multiplexer) run() {
 			}
 		}
 
-		if plex.profile && messageCount >= 100000 {
+		if plex.profile {
 			duration := time.Since(measure)
-			Log.Note.Printf("Processed %.2f msg/sec", float64(messageCount)/duration.Seconds())
+			if messageCount >= 100000 || duration.Seconds() > 5 {
+				Log.Note.Printf("Processed %.2f msg/sec", float64(messageCount)/duration.Seconds())
 
-			measure = time.Now()
-			messageCount = 0
+				measure = time.Now()
+				messageCount = 0
+			}
 		}
 	}
 }
