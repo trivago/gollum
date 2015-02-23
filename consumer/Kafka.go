@@ -83,18 +83,18 @@ const (
 // is mandatory and has no defaults.
 type Kafka struct {
 	shared.ConsumerBase
-	servers        []string
-	topic          string
-	clientID       string
-	consumerGroup  string
-	client         *kafka.Client
-	clientConfig   *kafka.ClientConfig
-	consumer       *kafka.Consumer
-	consumerConfig *kafka.ConsumerConfig
-	offsetFile     string
-	offsets        []int64
-	offsetTimeout  time.Duration
-	quit           bool
+	servers         []string
+	topic           string
+	clientID        string
+	consumerGroup   string
+	client          *kafka.Client
+	clientConfig    *kafka.ClientConfig
+	consumer        *kafka.Consumer
+	consumerConfig  *kafka.ConsumerConfig
+	partitionConfig *kafka.PartitionConsumerConfig
+	offsetFile      string
+	offsets         []int64
+	offsetTimeout   time.Duration
 }
 
 func init() {
@@ -114,6 +114,7 @@ func (cons *Kafka) Configure(conf shared.PluginConfig) error {
 
 	cons.clientConfig = kafka.NewClientConfig()
 	cons.consumerConfig = kafka.NewConsumerConfig()
+	cons.partitionConfig = kafka.NewPartitionConsumerConfig()
 	cons.servers = conf.GetStringArray("Servers", []string{})
 	cons.topic = conf.GetString("Topic", "default")
 	cons.clientID = conf.GetString("ClientId", "gollum")
@@ -121,24 +122,25 @@ func (cons *Kafka) Configure(conf shared.PluginConfig) error {
 	cons.offsetFile = conf.GetString("OffsetFile", "")
 	cons.offsetTimeout = time.Duration(conf.GetInt("OffsetTimoutMs", 5000)) * time.Millisecond
 
-	cons.consumerConfig.DefaultFetchSize = int32(conf.GetInt("MaxFetchSizeByte", 32768))
 	cons.consumerConfig.MinFetchSize = int32(conf.GetInt("MinFetchSizeByte", 1))
-	cons.consumerConfig.MaxMessageSize = int32(conf.GetInt("MaxMessageSizeByte", 0))
 	cons.consumerConfig.MaxWaitTime = time.Duration(conf.GetInt("FetchTimeoutMs", 250)) * time.Millisecond
-	cons.consumerConfig.EventBufferSize = conf.GetInt("MessageBufferCount", 16)
-	cons.consumerConfig.OffsetValue = 0
+
+	cons.partitionConfig.DefaultFetchSize = int32(conf.GetInt("MaxFetchSizeByte", 32768))
+	cons.partitionConfig.MaxMessageSize = int32(conf.GetInt("MaxMessageSizeByte", 0))
+	cons.partitionConfig.EventBufferSize = conf.GetInt("MessageBufferCount", 16)
+	cons.partitionConfig.OffsetValue = 0
 
 	switch conf.GetString("Offset", kafkaOffsetNewset) {
 	default:
 		fallthrough
 	case kafkaOffsetNewset:
-		cons.consumerConfig.OffsetMethod = kafka.OffsetMethodNewest
+		cons.partitionConfig.OffsetMethod = kafka.OffsetMethodNewest
 
 	case kafkaOffsetOldest:
-		cons.consumerConfig.OffsetMethod = kafka.OffsetMethodOldest
+		cons.partitionConfig.OffsetMethod = kafka.OffsetMethodOldest
 
 	case kafkaOffsetFile:
-		cons.consumerConfig.OffsetMethod = kafka.OffsetMethodManual
+		cons.partitionConfig.OffsetMethod = kafka.OffsetMethodManual
 		fileContents, err := ioutil.ReadFile(cons.offsetFile)
 		if err != nil {
 			Log.Warning.Print(err)
@@ -163,14 +165,14 @@ func (cons *Kafka) restart(err error, offsetIdx int, partition int32) {
 	Log.Error.Printf("Restarting kafka consumer (%s:%d) - %s", cons.topic, offsetIdx, err.Error())
 	time.Sleep(cons.offsetTimeout)
 
-	config := *cons.consumerConfig
+	config := *cons.partitionConfig
 	config.OffsetMethod = kafka.OffsetMethodManual
 
 	cons.fetch(offsetIdx, partition, config)
 }
 
 // Main fetch loop for kafka events
-func (cons *Kafka) fetch(offsetIdx int, partition int32, config kafka.ConsumerConfig) {
+func (cons *Kafka) fetch(offsetIdx int, partition int32, config kafka.PartitionConsumerConfig) {
 	if len(cons.offsets) > offsetIdx {
 		config.OffsetValue = cons.offsets[offsetIdx]
 	} else {
@@ -179,9 +181,9 @@ func (cons *Kafka) fetch(offsetIdx int, partition int32, config kafka.ConsumerCo
 		}
 	}
 
-	consumer, err := kafka.NewConsumer(cons.client, cons.topic, partition, cons.consumerGroup, &config)
+	partCons, err := cons.consumer.ConsumePartition(cons.topic, partition, &config)
 	if err != nil {
-		if !cons.quit {
+		if !cons.client.Closed() {
 			go cons.restart(err, offsetIdx, partition)
 		}
 		return // ### return, stop this consumer ###
@@ -192,14 +194,16 @@ func (cons *Kafka) fetch(offsetIdx int, partition int32, config kafka.ConsumerCo
 	cons.AddWorker()
 
 	defer func() {
-		consumer.Close()
+		if !cons.client.Closed() {
+			partCons.Close()
+		}
 		cons.WorkerDone()
 	}()
 
 	for {
-		event := <-consumer.Events()
+		event := <-partCons.Events()
 		if event.Err != nil {
-			if !cons.quit {
+			if !cons.client.Closed() {
 				go cons.restart(event.Err, offsetIdx, partition)
 			}
 			return // ### return, stop this consumer ###
@@ -219,6 +223,11 @@ func (cons *Kafka) startConsumers() error {
 		return err
 	}
 
+	cons.consumer, err = kafka.NewConsumer(cons.client, cons.consumerConfig)
+	if err != nil {
+		return err
+	}
+
 	partitions, err := cons.client.Partitions(cons.topic)
 	if err != nil {
 		return err
@@ -227,7 +236,7 @@ func (cons *Kafka) startConsumers() error {
 	cons.offsets = make([]int64, len(partitions))
 
 	for idx, partition := range partitions {
-		go cons.fetch(idx, partition, *cons.consumerConfig)
+		go cons.fetch(idx, partition, *cons.partitionConfig)
 	}
 
 	return nil
@@ -254,10 +263,7 @@ func (cons Kafka) Consume(threads *sync.WaitGroup) {
 		return
 	}
 
-	cons.quit = false
-
 	defer func() {
-		cons.quit = true
 		cons.client.Close()
 		cons.dumpIndex()
 		cons.MarkAsDone()
