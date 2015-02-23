@@ -1,8 +1,8 @@
 package shared
 
 import (
+	"gopkg.in/yaml.v1"
 	"io/ioutil"
-	"launchpad.net/goyaml"
 	"reflect"
 )
 
@@ -211,7 +211,7 @@ func ReadConfig(path string) (*Config, error) {
 	}
 
 	conf := &Config{make(map[string][]PluginConfig)}
-	err = goyaml.Unmarshal(buffer, conf)
+	err = yaml.Unmarshal(buffer, conf)
 
 	return conf, err
 }
