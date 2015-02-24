@@ -1,7 +1,6 @@
 package shared
 
 import (
-	"bytes"
 	"math"
 )
 
@@ -43,6 +42,7 @@ const (
 type Transition struct {
 	token    []byte
 	tokenLen int
+	stride   int
 	state    int
 	flags    ParserFlag
 }
@@ -67,62 +67,119 @@ func NewParser(transitions [][]Transition) Parser {
 	}
 }
 
+func findStride(token string) int {
+	tokenLen := len(token)
+	firstChar := token[0]
+	for i := 1; i < tokenLen; i++ {
+		if token[i] == firstChar {
+			return i
+		}
+	}
+
+	return tokenLen
+}
+
 // NewTransition creates a new transition object to be used with NewParser.
 func NewTransition(token string, state int, flags ParserFlag) Transition {
 	return Transition{
 		token:    []byte(token),
 		tokenLen: len(token),
+		stride:   findStride(token),
 		state:    state,
 		flags:    flags,
 	}
 }
 
+// Do a state transition, i.e. set the next state, return the new transition
+// tokens and calculate the minimum safe stride.
+func (parser *Parser) setState(state int) ([]Transition, int, int) {
+	parser.state = state
+
+	trans := parser.transitions[parser.state]
+	num := len(trans)
+	stride := trans[0].stride
+
+	for i := 1; i < num; i++ {
+		if trans[i].stride < stride {
+			stride = trans[i].stride
+		}
+	}
+
+	return trans, num, stride
+}
+
 // Parse parses a string with the transition passed to the parser object.
 func (parser Parser) Parse(message []byte, initialState int) []StateData {
-	var result []StateData
+	result := make([]StateData, 0, len(parser.transitions))
+
+	if parser.state == ParserStateStop {
+		return result
+	}
 
 	startIdx := 0
-	parser.state = initialState
 	messageLen := len(message)
+	transitions, numTransitions, stride := parser.setState(initialState)
 
-	for parseIdx := 0; parseIdx < messageLen && parser.state != ParserStateStop; parseIdx++ {
+parsing:
+	// Iterate over the whole message
+	for parseIdx := 0; parseIdx < messageLen; {
 
-		// Note: If all compares fail we could move by the length of the smallest
-		//       non-repeating ident part, but this usually is one char anyway.
-		for _, t := range parser.transitions[parser.state] {
+	nextToken:
+		// Check all possible transitions
+		for tIdx := 0; tIdx < numTransitions; tIdx++ {
+			t := &transitions[tIdx]
 			cmpIdxEnd := parseIdx + t.tokenLen
+
+			// Bounds check
 			if cmpIdxEnd > messageLen {
-				continue
+				continue nextToken
 			}
 
-			if bytes.Equal(message[parseIdx:cmpIdxEnd], t.token) {
-				//fmt.Printf("[%s] %d %d [%s]", string(message[parseIdx:cmpIdxEnd]), startIdx, parseIdx, string(message[startIdx:parseIdx]))
-
-				if t.flags&ParserFlagPersist != 0 {
-					//fmt.Print(" w")
-					result = append(result, StateData{
-						Data:  message[startIdx:parseIdx],
-						State: parser.state,
-					})
+			// Check token match
+			for i := 0; i < t.tokenLen; i++ {
+				if message[parseIdx+i] != t.token[i] {
+					continue nextToken
 				}
-
-				// Move the iterator over the matched element (increment after loop)
-				if t.flags&ParserFlagSkip != 0 {
-					//fmt.Print(" s")
-					parseIdx += t.tokenLen - 1
-				}
-
-				// Restart the slice if continue is NOT set
-				if t.flags&ParserFlagContinue == 0 {
-					//fmt.Print(" n")
-					startIdx = parseIdx + 1
-				}
-
-				parser.state = t.state
-				//fmt.Print("\n")
-				break
 			}
+
+			//fmt.Printf("[%s] %d %d [%s]", string(message[parseIdx:cmpIdxEnd]), startIdx, parseIdx, string(message[startIdx:parseIdx]))
+
+			// Store the result
+			if t.flags&ParserFlagPersist != 0 {
+				//fmt.Print(" w")
+				result = append(result, StateData{
+					Data:  message[startIdx:parseIdx],
+					State: parser.state,
+				})
+			}
+
+			// Move the iterator over the matched element
+			if t.flags&ParserFlagSkip != 0 {
+				//fmt.Print(" s")
+				parseIdx += t.tokenLen
+			} else {
+				parseIdx++
+			}
+
+			// Restart the slice if continue is NOT set
+			if t.flags&ParserFlagContinue == 0 {
+				//fmt.Print(" n")
+				startIdx = parseIdx
+			}
+
+			//fmt.Print("\n")
+
+			// If the next state is "stop" stop here at once
+			if t.state == ParserStateStop {
+				return result
+			}
+
+			transitions, numTransitions, stride = parser.setState(t.state)
+			continue parsing
 		}
+
+		// Increment by minimum stride
+		parseIdx += stride
 	}
 
 	// Store the remaining data
