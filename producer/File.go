@@ -313,13 +313,11 @@ func (prod *File) writeMessage(message shared.Message) {
 }
 
 func (prod *File) flush() {
-	for {
-		if !prod.NextNonBlocking(prod.writeMessage) {
-			prod.writeBatch()
-			prod.batch.WaitForFlush()
-			return
-		}
+	for prod.NextNonBlocking(prod.writeMessage) {
 	}
+
+	prod.writeBatch()
+	prod.batch.WaitForFlush()
 }
 
 func (prod *File) rotateLog() {

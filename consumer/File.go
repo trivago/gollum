@@ -21,6 +21,14 @@ const (
 	fileOffsetContinue = "Current"
 )
 
+type fileState int32
+
+const (
+	fileStateOpen = fileState(iota)
+	fileStateRead = fileState(iota)
+	fileStateDone = fileState(iota)
+)
+
 // File consumer plugin
 // Configuration example
 //
@@ -46,14 +54,14 @@ const (
 type File struct {
 	shared.ConsumerBase
 	file             *os.File
-	openMutex        *sync.Mutex
 	fileName         string
 	continueFileName string
 	delimiter        string
 	seek             int
 	seekOffset       int64
-	quit             bool
 	persistSeek      bool
+	state            fileState
+	buffer           shared.BufferedReader
 }
 
 func init() {
@@ -74,10 +82,8 @@ func (cons *File) Configure(conf shared.PluginConfig) error {
 	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
 
 	cons.file = nil
-	cons.openMutex = new(sync.Mutex)
 	cons.fileName = conf.GetString("File", "")
 	cons.delimiter = escapeChars.Replace(conf.GetString("Delimiter", "\n"))
-	cons.quit = false
 	cons.persistSeek = false
 
 	switch conf.GetString("Offset", fileOffsetEnd) {
@@ -95,8 +101,6 @@ func (cons *File) Configure(conf shared.PluginConfig) error {
 		cons.seek = 1
 		cons.seekOffset = 0
 		cons.persistSeek = true
-
-		cons.reopen()
 	}
 
 	return nil
@@ -122,92 +126,93 @@ func (cons *File) realFileName() string {
 	return baseFileName
 }
 
-func (cons *File) reopen() {
-	if !cons.persistSeek {
-		return
-	}
+func (cons *File) setState(state fileState) {
+	cons.state = state
+}
 
-	cons.openMutex.Lock()
-	defer cons.openMutex.Unlock()
+func (cons *File) initFile() {
+	defer cons.setState(fileStateRead)
 
 	if cons.file != nil {
-		fileHandle := cons.file
+		cons.file.Close()
 		cons.file = nil
-		fileHandle.Close()
 	}
 
-	baseFileName := cons.realFileName()
-	pathDelimiter := strings.NewReplacer("/", "_", ".", "_")
-	cons.continueFileName = "/tmp/gollum" + pathDelimiter.Replace(baseFileName) + ".idx"
-
-	fileContents, err := ioutil.ReadFile(cons.continueFileName)
-	if err == nil {
-		cons.seekOffset, err = strconv.ParseInt(string(fileContents), 10, 64)
-	}
-	if err != nil {
+	if cons.persistSeek {
+		baseFileName := cons.realFileName()
+		pathDelimiter := strings.NewReplacer("/", "_", ".", "_")
+		cons.continueFileName = "/tmp/gollum" + pathDelimiter.Replace(baseFileName) + ".idx"
 		cons.seekOffset = 0
+
+		fileContents, err := ioutil.ReadFile(cons.continueFileName)
+		if err == nil {
+			cons.seekOffset, err = strconv.ParseInt(string(fileContents), 10, 64)
+		}
 	}
 }
 
-func (cons *File) readFrom(threads *sync.WaitGroup) {
-	var buffer shared.BufferedReader
-	var err error
+func (cons *File) read() {
+	defer func() {
+		if cons.file != nil {
+			cons.file.Close()
+		}
+		cons.MarkAsDone()
+	}()
 
 	if cons.persistSeek {
-		buffer = shared.CreateBufferedReader(fileBufferGrowSize, cons.postAndPersist)
+		cons.buffer = shared.CreateBufferedReader(fileBufferGrowSize, cons.postAndPersist)
 	} else {
-		buffer = shared.CreateBufferedReader(fileBufferGrowSize, cons.PostMessageFromSlice)
+		cons.buffer = shared.CreateBufferedReader(fileBufferGrowSize, cons.PostMessageFromSlice)
 	}
 
 	printFileOpenError := true
+	for cons.state != fileStateDone {
+		// Initialize the seek state if requested
+		if cons.state == fileStateOpen {
+			cons.initFile()
+		}
 
-	for !cons.quit {
-		if cons.file == nil {
-			cons.openMutex.Lock()
-			cons.file, err = os.OpenFile(cons.realFileName(), os.O_RDONLY, 0666)
+		// Try to open the file to read from
+		if cons.state == fileStateRead && cons.file == nil {
+			file, err := os.OpenFile(cons.realFileName(), os.O_RDONLY, 0666)
 
-			if err != nil {
-				cons.openMutex.Unlock()
+			switch {
+			case err != nil:
 				if printFileOpenError {
 					Log.Error.Print("File open error - ", err)
 					printFileOpenError = false
 				}
 				time.Sleep(3 * time.Second)
-			} else {
+				continue
+			default:
+				cons.file = file
 				cons.seekOffset, _ = cons.file.Seek(cons.seekOffset, cons.seek)
 				printFileOpenError = true
-				cons.openMutex.Unlock()
 			}
 		}
 
-		if cons.file != nil {
-			err = buffer.Read(cons.file, cons.delimiter)
+		// Try to read from the file
+		if cons.state == fileStateRead && cons.file != nil {
+			err := cons.buffer.Read(cons.file, cons.delimiter)
 
-			if err != nil && cons.file != nil && !cons.quit {
-				if err == io.EOF {
-					runtime.Gosched()
-				} else {
-					Log.Error.Print("Error reading file - ", err)
-					cons.file.Close()
-					cons.file = nil
-				}
+			switch {
+			case err == nil: // ok
+			case err == io.EOF:
+				runtime.Gosched()
+			case cons.state == fileStateRead:
+				Log.Error.Print("Error reading file - ", err)
+				cons.file.Close()
+				cons.file = nil
 			}
 		}
 	}
-
-	cons.MarkAsDone()
 }
 
 // Consume listens to stdin.
 func (cons File) Consume(threads *sync.WaitGroup) {
-	cons.quit = false
+	cons.setState(fileStateOpen)
+	defer cons.setState(fileStateDone)
 
-	go cons.readFrom(threads)
-
-	defer func() {
-		cons.quit = true
-		cons.file.Close()
-	}()
-
-	cons.DefaultControlLoop(threads, cons.reopen)
+	go cons.read()
+	cons.DefaultControlLoop(threads, func() { cons.setState(fileStateOpen) })
 }

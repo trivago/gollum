@@ -141,13 +141,11 @@ func (prod *Socket) sendMessage(message shared.Message) {
 }
 
 func (prod *Socket) flush() {
-	for {
-		if !prod.NextNonBlocking(prod.sendMessage) {
-			prod.sendBatch()
-			prod.batch.WaitForFlush()
-			return
-		}
+	for prod.NextNonBlocking(prod.sendMessage) {
 	}
+
+	prod.sendBatch()
+	prod.batch.WaitForFlush()
 }
 
 // Produce writes to a buffer that is sent to a given socket.

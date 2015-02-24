@@ -5,6 +5,8 @@ import (
 	"io"
 )
 
+// BufferedReader is a helper struct to read from any io.Reader into a byte
+// slice. The data can arrive "in pieces" and will be assembled.
 type BufferedReader struct {
 	data     []byte
 	write    func([]byte)
@@ -14,6 +16,8 @@ type BufferedReader struct {
 	start    int
 }
 
+// CreateBufferedReader creates a new buffered reader with a given initial size
+// and a callback that is called each time data is parsed as complete.
 func CreateBufferedReader(size int, callback func([]byte)) BufferedReader {
 	return BufferedReader{
 		data:     make([]byte, size),
@@ -25,6 +29,11 @@ func CreateBufferedReader(size int, callback func([]byte)) BufferedReader {
 	}
 }
 
+// ReadRLE reads from the given reader, expecting runlength encoding, i.e. each
+// data block has to be prepended with "length:".
+// After the parsing the given number of bytes the data is passed to the callback
+// passed to the BufferedReader. If the parsed data does not fit into the
+// allocated, internal buffer the buffer is resized.
 func (buffer *BufferedReader) ReadRLE(reader io.Reader) error {
 	bytesRead, err := reader.Read(buffer.data[buffer.offset:])
 
@@ -95,12 +104,17 @@ func (buffer *BufferedReader) ReadRLE(reader io.Reader) error {
 	return nil
 }
 
+// Read reads from the given io.Reader until delimiter is reached.
+// After the parsing of the delimiter string the data is passed to the callback
+// passed to the BufferedReader. If the parsed data does not fit into the
+// allocated, internal buffer the buffer is resized.
 func (buffer *BufferedReader) Read(reader io.Reader, delimiter string) error {
 	bytesRead, err := reader.Read(buffer.data[buffer.offset:])
 
 	if err != nil && bytesRead == 0 {
 		return err
 	}
+
 	if bytesRead == 0 {
 		return nil
 	}

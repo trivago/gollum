@@ -139,13 +139,11 @@ func (prod *Scribe) sendMessage(message shared.Message) {
 }
 
 func (prod *Scribe) flush() {
-	for {
-		if !prod.NextNonBlocking(prod.sendMessage) {
-			prod.sendBatch()
-			prod.batch.waitForFlush()
-			return
-		}
+	for prod.NextNonBlocking(prod.sendMessage) {
 	}
+
+	prod.sendBatch()
+	prod.batch.waitForFlush()
 }
 
 // Produce writes to a buffer that is sent to scribe.

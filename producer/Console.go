@@ -52,10 +52,7 @@ func (prod Console) printMessage(msg shared.Message) {
 }
 
 func (prod Console) flush() {
-	for {
-		if !prod.NextNonBlocking(prod.printMessage) {
-			return
-		}
+	for prod.NextNonBlocking(prod.printMessage) {
 	}
 }
 
