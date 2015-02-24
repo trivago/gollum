@@ -160,11 +160,10 @@ func (plex *multiplexer) shutdown() {
 	for _, consumer := range plex.consumers {
 		consumer.Control() <- shared.ConsumerControlStop
 	}
-	plex.consumerThreads.Wait()
 
-	// Make sure all remaining messages are flushed
-	// A flush may happen before any producers are started. In that case we need
-	// to ignore these producers.
+	// Make sure all remaining messages are flushed BEFORE waiting for all
+	// consumers to stop. This is necessary as consumers might be waiting in
+	// a push to channel.
 
 	Log.Note.Print("It's the only way. Go in, or go back. (flushing)")
 
@@ -173,12 +172,16 @@ func (plex *multiplexer) shutdown() {
 		for {
 			select {
 			case message := <-consumer.Messages():
-				plex.broadcastMessage(message, false) // Don't block if the producer is not active
+				// A flush may happen before any producers are started. In that
+				// case we need to ignore these producers.
+				plex.broadcastMessage(message, false)
 			default:
 				break flushing
 			}
 		}
 	}
+
+	plex.consumerThreads.Wait()
 
 	// Make sure remaining warning / errors are written to stderr
 	Log.EnqueueMessages(false)
