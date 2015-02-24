@@ -1,11 +1,12 @@
 # Gollum
 
 Gollum is a log multiplexer that gathers messages from different sources and broadcasts them to a set of listeners.
-There are three basic terms used throughout Gollum:
+There are a few basic terms used throughout Gollum:
 
 * A "consumer" is a plugin that reads from an external source
 * A "producer" is a plugin that writes to an external source
 * A "stream" is a message channel between consumer(s) and producer(s)
+* A "formatter" is a plugin that adds information to a message
 * A "distributor" is a plugin that routes/filters messages on a given stream
 
 ## Consumers

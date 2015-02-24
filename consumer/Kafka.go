@@ -173,12 +173,12 @@ func (cons *Kafka) restart(err error, offsetIdx int, partition int32) {
 
 // Main fetch loop for kafka events
 func (cons *Kafka) fetch(offsetIdx int, partition int32, config kafka.PartitionConsumerConfig) {
-	if len(cons.offsets) > offsetIdx {
+	switch {
+	case len(cons.offsets) > offsetIdx:
 		config.OffsetValue = cons.offsets[offsetIdx]
-	} else {
-		if config.OffsetMethod == kafka.OffsetMethodManual {
-			config.OffsetMethod = kafka.OffsetMethodOldest
-		}
+
+	case config.OffsetMethod == kafka.OffsetMethodManual:
+		config.OffsetMethod = kafka.OffsetMethodOldest
 	}
 
 	partCons, err := cons.consumer.ConsumePartition(cons.topic, partition, &config)
