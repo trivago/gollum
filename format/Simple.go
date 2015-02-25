@@ -50,7 +50,7 @@ func (format *Simple) GetLength() int {
 
 // String returns the message as string
 func (format *Simple) String() string {
-	return fmt.Sprintf("%s%s", format.msg.Data, format.delimiter)
+	return fmt.Sprintf("%s%s", string(format.msg.Data), format.delimiter)
 }
 
 // CopyTo copies the message into an existing buffer. It is assumed that

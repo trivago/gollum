@@ -73,7 +73,7 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 	defer conn.Close()
 
 	var err error
-	buffer := shared.CreateBufferedReader(socketBufferGrowSize, cons.PostMessageFromSlice)
+	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.PostMessageFromSlice)
 
 	for !cons.quit {
 		// Read from stream

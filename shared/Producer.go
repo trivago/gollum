@@ -152,7 +152,7 @@ func (prod ProducerBase) Accepts(message Message) bool {
 		return true // ### return, pass everything ###
 	}
 
-	return prod.filter.MatchString(message.Data)
+	return prod.filter.MatchString(string(message.Data))
 }
 
 // Formatter returns the formatter configured with this producer

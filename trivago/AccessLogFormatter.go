@@ -100,7 +100,7 @@ func (format *AccessLogFormatter) Configure(conf shared.PluginConfig) error {
 }
 
 func (format *AccessLogFormatter) PrepareMessage(msg shared.Message) {
-	sections := format.parser.Parse([]byte(msg.Data), acclStateServerIP)
+	sections := format.parser.Parse(msg.Data, acclStateServerIP)
 	isFirst := true
 	format.message = bytes.NewBufferString("{")
 

@@ -65,7 +65,7 @@ func (format *Timestamp) GetLength() int {
 
 // String returns the message as string
 func (format *Timestamp) String() string {
-	return fmt.Sprintf("%s%s%s%s", format.timestamp, messageFormatTimestampSeparator, format.msg.Data, format.delimiter)
+	return fmt.Sprintf("%s%s%s%s", format.timestamp, messageFormatTimestampSeparator, string(format.msg.Data), format.delimiter)
 }
 
 // CopyTo copies the message into an existing buffer. It is assumed that

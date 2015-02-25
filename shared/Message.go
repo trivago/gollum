@@ -24,7 +24,7 @@ var WildcardStreamID = GetStreamID(WildcardStream)
 // Message is a container used for storing the internal state of messages.
 // This struct is passed between consumers and producers.
 type Message struct {
-	Data         string
+	Data         []byte
 	Streams      []MessageStreamID
 	PinnedStream MessageStreamID
 	Timestamp    time.Time
@@ -40,7 +40,7 @@ func GetStreamID(stream string) MessageStreamID {
 // NewMessage creates a new message from a given string
 func NewMessage(text string, streams []MessageStreamID) Message {
 	msg := Message{
-		Data:         text,
+		Data:         []byte(text),
 		Streams:      streams,
 		PinnedStream: WildcardStreamID,
 		Timestamp:    time.Now(),
@@ -51,7 +51,7 @@ func NewMessage(text string, streams []MessageStreamID) Message {
 // NewMessageFromSlice creates a new message from a given byte slice
 func NewMessageFromSlice(data []byte, streams []MessageStreamID) Message {
 	return Message{
-		Data:         string(data),
+		Data:         data,
 		Streams:      streams,
 		PinnedStream: WildcardStreamID,
 		Timestamp:    time.Now(),

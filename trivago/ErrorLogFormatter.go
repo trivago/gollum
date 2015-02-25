@@ -64,7 +64,7 @@ func (format *ErrorLogFormatter) Configure(conf shared.PluginConfig) error {
 }
 
 func (format *ErrorLogFormatter) PrepareMessage(msg shared.Message) {
-	sections := format.parser.Parse([]byte(msg.Data), errlStateServer)
+	sections := format.parser.Parse(msg.Data, errlStateServer)
 	isFirst := true
 	format.message = bytes.NewBufferString("{")
 

@@ -35,7 +35,7 @@ func (format *Forward) GetLength() int {
 
 // String returns the message as string
 func (format *Forward) String() string {
-	return format.msg.Data
+	return string(format.msg.Data)
 }
 
 // CopyTo copies the message into an existing buffer. It is assumed that
