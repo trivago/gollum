@@ -193,7 +193,7 @@ func (prod *Kafka) send(msg shared.Message) {
 
 	if prod.client != nil && prod.producer != nil {
 		// Send message
-		topic, topicMapped := prod.topic[msg.PinnedStream]
+		topic, topicMapped := prod.topic[msg.CurrentStream]
 		if !topicMapped {
 			topic = prod.topic[shared.WildcardStreamID]
 		}

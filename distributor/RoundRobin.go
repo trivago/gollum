@@ -34,7 +34,7 @@ func (dist *RoundRobin) Distribute(message shared.Message, producers []shared.Pr
 
 	// As we might listen to different streams we have to keep the index for
 	// each stream separately
-	index, isSet := dist.index[message.PinnedStream]
+	index, isSet := dist.index[message.CurrentStream]
 	if !isSet {
 		index = 0
 	} else {
@@ -42,5 +42,5 @@ func (dist *RoundRobin) Distribute(message shared.Message, producers []shared.Pr
 	}
 
 	shared.SingleDistribute(producers[index], message, sendToInactive)
-	dist.index[message.PinnedStream] = index + 1
+	dist.index[message.CurrentStream] = index + 1
 }

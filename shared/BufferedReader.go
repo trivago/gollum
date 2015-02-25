@@ -135,7 +135,7 @@ func (buffer *BufferedReader) Read(reader io.Reader, delimiter string) error {
 			break
 		}
 
-		// msgEndIdx is relativ to the slice we passed
+		// msgEndIdx is relative to the slice we passed
 
 		msgEndIdx += parseStartIdx
 		buffer.write(buffer.data[msgStartIdx:msgEndIdx])

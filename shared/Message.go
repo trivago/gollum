@@ -24,10 +24,10 @@ var WildcardStreamID = GetStreamID(WildcardStream)
 // Message is a container used for storing the internal state of messages.
 // This struct is passed between consumers and producers.
 type Message struct {
-	Data         []byte
-	Streams      []MessageStreamID
-	PinnedStream MessageStreamID
-	Timestamp    time.Time
+	Data          []byte
+	streams       []MessageStreamID
+	CurrentStream MessageStreamID
+	Timestamp     time.Time
 }
 
 // GetStreamID returns the integer representation of a given stream name.
@@ -40,10 +40,10 @@ func GetStreamID(stream string) MessageStreamID {
 // NewMessage creates a new message from a given string
 func NewMessage(text string, streams []MessageStreamID) Message {
 	msg := Message{
-		Data:         []byte(text),
-		Streams:      streams,
-		PinnedStream: WildcardStreamID,
-		Timestamp:    time.Now(),
+		Data:          []byte(text),
+		streams:       streams,
+		CurrentStream: WildcardStreamID,
+		Timestamp:     time.Now(),
 	}
 	return msg
 }
@@ -51,28 +51,36 @@ func NewMessage(text string, streams []MessageStreamID) Message {
 // NewMessageFromSlice creates a new message from a given byte slice
 func NewMessageFromSlice(data []byte, streams []MessageStreamID) Message {
 	return Message{
-		Data:         data,
-		Streams:      streams,
-		PinnedStream: WildcardStreamID,
-		Timestamp:    time.Now(),
+		Data:          data,
+		streams:       streams,
+		CurrentStream: WildcardStreamID,
+		Timestamp:     time.Now(),
 	}
 }
 
-// CloneAndPin creates a copy of the message and sets the PinnedStream member
+// CopyAndPin creates a copy of the message and sets the CurrentStream member
 // to the given stream. In addition to that the reference counter is increased.
-func (msg Message) CloneAndPin(stream MessageStreamID) Message {
-	//msg.Data.Acquire()
-	msg.PinnedStream = stream
+func (msg Message) CopyAndPin(stream MessageStreamID) Message {
+	msg.CurrentStream = stream
 	return msg
 }
 
-// IsInternal returns true if a message is posted only to internal streams
-func (msg Message) IsInternal() bool {
-	for _, value := range msg.Streams {
+// ForEachStream iterates over all streams of this message and calls the given
+// callback. If the callback returns false the iteration will stop immediately.
+func (msg *Message) ForEachStream(callback func(stream MessageStreamID) bool) {
+	for _, value := range msg.streams {
+		if !callback(value) {
+			return
+		}
+	}
+}
+
+// IsInternalOnly returns true if a message is posted only to internal streams
+func (msg Message) IsInternalOnly() bool {
+	for _, value := range msg.streams {
 		if value != LogInternalStreamID {
 			return false
 		}
 	}
-
 	return true
 }

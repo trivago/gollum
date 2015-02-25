@@ -120,8 +120,8 @@ func (plex multiplexer) sendMessage(message shared.Message, producers []shared.P
 func (plex multiplexer) distribute(message shared.Message, streamID shared.MessageStreamID, sendToInactive bool) {
 	producers := plex.stream[streamID]
 	if len(producers) > 0 {
-		pinnedMsg := message.CloneAndPin(streamID)
 		distributors, isManaged := plex.managedStream[streamID]
+		pinnedMsg := message.CopyAndPin(streamID)
 
 		if isManaged {
 			for _, distributor := range distributors {
@@ -137,14 +137,15 @@ func (plex multiplexer) distribute(message shared.Message, streamID shared.Messa
 // care of sending messages to the wildcardstream and to all other streams.
 func (plex multiplexer) broadcastMessage(message shared.Message, sendToInactive bool) {
 	// Send to wildcard stream producers if not purely internal
-	if !message.IsInternal() {
+	if !message.IsInternalOnly() {
 		plex.distribute(message, shared.WildcardStreamID, sendToInactive)
 	}
 
 	// Send to specific stream producers
-	for _, streamID := range message.Streams {
+	message.ForEachStream(func(streamID shared.MessageStreamID) bool {
 		plex.distribute(message, streamID, sendToInactive)
-	}
+		return true
+	})
 }
 
 // Shutdown all consumers and producers in a clean way.

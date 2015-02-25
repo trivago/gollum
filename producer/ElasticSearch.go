@@ -132,7 +132,7 @@ func (prod *ElasticSearch) Configure(conf shared.PluginConfig) error {
 }
 
 func (prod *ElasticSearch) simpleMessage(msg shared.Message) {
-	index, indexMapped := prod.index[msg.PinnedStream]
+	index, indexMapped := prod.index[msg.CurrentStream]
 	if !indexMapped {
 		index = prod.index[shared.WildcardStreamID]
 	}
@@ -141,7 +141,7 @@ func (prod *ElasticSearch) simpleMessage(msg shared.Message) {
 		index = index + "_" + msg.Timestamp.Format("2006-01-02")
 	}
 
-	msgType, typeMapped := prod.msgType[msg.PinnedStream]
+	msgType, typeMapped := prod.msgType[msg.CurrentStream]
 	if !typeMapped {
 		msgType = prod.msgType[shared.WildcardStreamID]
 	}
