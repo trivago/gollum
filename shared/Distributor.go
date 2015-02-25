@@ -15,6 +15,6 @@ type Distributor interface {
 // single producer. This method should be used at the core of each Distributor.
 func SingleDistribute(prod Producer, message Message, sendToInactive bool) {
 	if (prod.IsActive() || sendToInactive) && prod.Accepts(message) {
-		prod.Messages() <- message
+		PostMessage(prod.Messages(), message, prod.GetTimeout())
 	}
 }

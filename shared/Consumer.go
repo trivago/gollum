@@ -1,7 +1,6 @@
 package shared
 
 import (
-	"runtime"
 	"sync"
 	"time"
 )
@@ -129,47 +128,16 @@ func (cons ConsumerBase) IsActive() bool {
 	return cons.state.Active
 }
 
-// Actual post to channel with taking a timeout into account
-func (cons *ConsumerBase) post(msg Message) {
-	var start *time.Time
-	for {
-		select {
-		case cons.messages <- msg:
-			return
-
-		default:
-			switch {
-			// Start timeout based retries
-			case start == nil:
-				if cons.timeout < 0 {
-					return
-				}
-				now := time.Now()
-				start = &now
-				fallthrough
-
-			// Yield and try again
-			default:
-				runtime.Gosched()
-
-			// Discard message after timeout
-			case time.Since(*start) > cons.timeout:
-				return
-			}
-		}
-	}
-}
-
 // PostMessage sends a message text to all configured streams.
 // This method blocks of the message queue is full.
 func (cons ConsumerBase) PostMessage(text string) {
-	cons.post(NewMessage(text, cons.streams))
+	PostMessage(cons.messages, NewMessage(text, cons.streams), cons.timeout)
 }
 
 // PostMessageFromSlice sends a buffered message to all configured streams.
 // This method blocks of the message queue is full.
 func (cons ConsumerBase) PostMessageFromSlice(data []byte) {
-	cons.post(NewMessageFromSlice(data, cons.streams))
+	PostMessage(cons.messages, NewMessageFromSlice(data, cons.streams), cons.timeout)
 }
 
 // Control returns write access to this consumer's control channel.

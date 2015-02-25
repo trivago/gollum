@@ -29,6 +29,11 @@ type Producer interface {
 	// IsActive returns true if the producer is ready to accept new data.
 	IsActive() bool
 
+	// GetTimeout returns the duration this producer will block before a message
+	// is dropped. A value of -1 will cause the message to drop. A value of 0
+	// will cause the producer to always block.
+	GetTimeout() time.Duration
+
 	// Accepts returns true if the message is allowed to be send to this producer.
 	Accepts(message Message) bool
 
@@ -68,6 +73,7 @@ type ProducerBase struct {
 	filter   *regexp.Regexp
 	state    *PluginRunState
 	format   Formatter
+	timeout  time.Duration
 }
 
 // ProducerError can be used to return consumer related errors e.g. during a
@@ -91,6 +97,7 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	prod.messages = make(chan Message, conf.Channel)
 	prod.control = make(chan ProducerControl, 1)
 	prod.filter = nil
+	prod.timeout = time.Duration(conf.GetInt("ChannelTimeout", 0)) * time.Millisecond
 	prod.state = new(PluginRunState)
 
 	plugin, err := RuntimeType.NewPlugin(conf.GetString("Formatter", "format.Forward"), conf)
@@ -143,6 +150,13 @@ func (prod ProducerBase) WorkerDone() {
 // IsActive returns true if the producer is ready to generate messages.
 func (prod ProducerBase) IsActive() bool {
 	return prod.state.Active
+}
+
+// GetTimeout returns the duration this producer will block before a message
+// is dropped. A value of -1 will cause the message to drop. A value of 0
+// will cause the producer to always block.
+func (prod ProducerBase) GetTimeout() time.Duration {
+	return prod.timeout
 }
 
 // Accepts returns true if the message matches a configured regexp or if no

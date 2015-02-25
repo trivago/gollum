@@ -2,6 +2,7 @@ package shared
 
 import (
 	"hash/fnv"
+	"runtime"
 	"time"
 )
 
@@ -83,4 +84,42 @@ func (msg Message) IsInternalOnly() bool {
 		}
 	}
 	return true
+}
+
+// PostMessage is a convenience function to push a message to a channel while
+// waiting for a timeout instead of just blocking.
+// Passing a timeout of -1 which will discard the message.
+// Passing a timout of 0 will always block.
+func PostMessage(channel chan<- Message, msg Message, timeout time.Duration) {
+	if timeout == 0 {
+		channel <- msg
+	} else {
+		var start *time.Time
+		for {
+			select {
+			case channel <- msg:
+				return
+
+			default:
+				switch {
+				// Start timeout based retries
+				case start == nil:
+					if timeout < 0 {
+						return
+					}
+					now := time.Now()
+					start = &now
+					fallthrough
+
+				// Yield and try again
+				default:
+					runtime.Gosched()
+
+				// Discard message after timeout
+				case time.Since(*start) > timeout:
+					return
+				}
+			}
+		}
+	}
 }
