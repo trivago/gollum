@@ -16,7 +16,7 @@ type BufferedReader struct {
 	start    int
 }
 
-// CreateBufferedReader creates a new buffered reader with a given initial size
+// NewBufferedReader creates a new buffered reader with a given initial size
 // and a callback that is called each time data is parsed as complete.
 func NewBufferedReader(size int, callback func([]byte)) BufferedReader {
 	return BufferedReader{

@@ -64,7 +64,6 @@ func newMultiplexer(configFile string, profile bool) multiplexer {
 			}
 
 			// Register dsitributor plugins
-
 			if distributor, isDistributor := plugin.(shared.Distributor); isDistributor {
 				for _, stream := range config.Stream {
 					streamID := shared.GetStreamID(stream)
@@ -79,13 +78,11 @@ func newMultiplexer(configFile string, profile bool) multiplexer {
 			}
 
 			// Register consumer plugins
-
 			if consumer, isConsumer := plugin.(shared.Consumer); isConsumer {
 				plex.consumers = append(plex.consumers, consumer)
 			}
 
 			// Register producer plugins
-
 			if producer, isProducer := plugin.(shared.Producer); isProducer {
 				plex.producers = append(plex.producers, producer)
 
@@ -106,29 +103,20 @@ func newMultiplexer(configFile string, profile bool) multiplexer {
 	return plex
 }
 
-// sendMessage is the default distributor which sends a pinned message to all
-// producers in the list.
-func (plex multiplexer) sendMessage(message shared.Message, producers []shared.Producer, sendToInactive bool) {
-	for _, producer := range producers {
-		shared.SingleDistribute(producer, message, sendToInactive)
-	}
-}
-
 // distribute pinns the message to a specific stream and forwards it to either
 // all producers registered to that stream or to all distributors registered to
 // that stream.
 func (plex multiplexer) distribute(message shared.Message, streamID shared.MessageStreamID, sendToInactive bool) {
 	producers := plex.stream[streamID]
-	if len(producers) > 0 {
-		distributors, isManaged := plex.managedStream[streamID]
-		pinnedMsg := message.CopyAndPin(streamID)
+	pinnedMsg := message.CopyAndPin(streamID)
 
-		if isManaged {
-			for _, distributor := range distributors {
-				distributor.Distribute(pinnedMsg, producers, sendToInactive)
-			}
-		} else {
-			plex.sendMessage(pinnedMsg, producers, sendToInactive)
+	if distributors, isManaged := plex.managedStream[streamID]; isManaged {
+		for _, distributor := range distributors {
+			distributor.Distribute(pinnedMsg, producers, sendToInactive)
+		}
+	} else {
+		for _, producer := range producers {
+			shared.SingleDistribute(producer, message, sendToInactive)
 		}
 	}
 }
@@ -157,7 +145,6 @@ func (plex *multiplexer) shutdown() {
 	Log.Note.Print("Filthy little hobbites. They stole it from us. (shutdown)")
 
 	// Send shutdown to consumers
-
 	for _, consumer := range plex.consumers {
 		consumer.Control() <- shared.ConsumerControlStop
 	}
@@ -165,7 +152,6 @@ func (plex *multiplexer) shutdown() {
 	// Make sure all remaining messages are flushed BEFORE waiting for all
 	// consumers to stop. This is necessary as consumers might be waiting in
 	// a push to channel.
-
 	Log.Note.Print("It's the only way. Go in, or go back. (flushing)")
 
 	for _, consumer := range plex.consumers {
@@ -188,7 +174,6 @@ func (plex *multiplexer) shutdown() {
 	Log.EnqueueMessages(false)
 
 	// Shutdown producers
-
 	for _, producer := range plex.producers {
 		producer.Control() <- shared.ProducerControlStop
 	}
