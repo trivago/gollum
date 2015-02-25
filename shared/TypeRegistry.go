@@ -5,10 +5,6 @@ import (
 	"strings"
 )
 
-const (
-	gollumPackageName = "gollum/"
-)
-
 // typeRegistryError is returned by typeRegistry functions.
 type typeRegistryError struct {
 	message string
@@ -32,7 +28,7 @@ var RuntimeType = typeRegistry{make(map[string]reflect.Type)}
 // Example: var MyConsumerClassID = shared.Plugin.Register(MyConsumer{})
 func (registry typeRegistry) Register(typeInstance interface{}) {
 	structType := reflect.TypeOf(typeInstance)
-	pathIdx := strings.Index(structType.PkgPath(), gollumPackageName) + len(gollumPackageName)
+	pathIdx := strings.LastIndex(structType.PkgPath(), "/") + 1
 
 	typeName := structType.PkgPath()[pathIdx:] + "." + structType.Name()
 	registry.namedType[typeName] = structType
