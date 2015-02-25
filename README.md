@@ -36,7 +36,7 @@ $ go get -u github.com/artyom/scribe
 $ go get -u github.com/artyom/thrift
 $ go get -u github.com/Shopify/sarama
 $ go get -u github.com/mattbaird/elastigo
-$ go get -u github.com/docker/docker/pkg/mflag
+$ go get -u gopkg.in/docker/docker.v1
 $ go get -u gopkg.in/yaml.v1
 ```
 

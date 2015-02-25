@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	flag "github.com/docker/docker/pkg/mflag"
+	flag "gopkg.in/docker/docker.v1/pkg/mflag"
 	"os"
 )
 
