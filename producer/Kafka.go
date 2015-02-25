@@ -166,8 +166,6 @@ func (prod *Kafka) Configure(conf shared.PluginConfig) error {
 }
 
 func (prod *Kafka) send(msg shared.Message) {
-	var err error
-
 	// If we have not yet connected or the connection dropped: connect.
 	if prod.client == nil || prod.client.Closed() {
 		if prod.producer != nil {
@@ -175,6 +173,7 @@ func (prod *Kafka) send(msg shared.Message) {
 			prod.producer = nil
 		}
 
+		var err error
 		prod.client, err = kafka.NewClient(prod.clientID, prod.servers, prod.clientConfig)
 		if err != nil {
 			Log.Error.Print("Kafka client error:", err)
@@ -184,6 +183,7 @@ func (prod *Kafka) send(msg shared.Message) {
 
 	// Make sure we have a producer up and running
 	if prod.producer == nil {
+		var err error
 		prod.producer, err = kafka.NewProducer(prod.client, prod.producerConfig)
 		if err != nil {
 			Log.Error.Print("Kafka producer error:", err)

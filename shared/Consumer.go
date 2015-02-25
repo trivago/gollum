@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"runtime"
 	"sync"
 	"time"
 )
@@ -59,6 +60,7 @@ type ConsumerBase struct {
 	control  chan ConsumerControl
 	streams  []MessageStreamID
 	state    *PluginRunState
+	timeout  time.Duration
 }
 
 // ConsumerError can be used to return consumer related errors e.g. during a
@@ -82,6 +84,7 @@ func (cons *ConsumerBase) Configure(conf PluginConfig) error {
 	cons.messages = make(chan Message, conf.Channel)
 	cons.control = make(chan ConsumerControl, 1)
 	cons.streams = make([]MessageStreamID, len(conf.Stream))
+	cons.timeout = time.Duration(conf.GetInt("ChannelTimeout", 1000)) * time.Millisecond
 	cons.state = new(PluginRunState)
 
 	for i, stream := range conf.Stream {
@@ -126,18 +129,47 @@ func (cons ConsumerBase) IsActive() bool {
 	return cons.state.Active
 }
 
+// Actual post to channel with taking a timeout into account
+func (cons *ConsumerBase) post(msg Message) {
+	var start *time.Time
+	for {
+		select {
+		case cons.messages <- msg:
+			return
+
+		default:
+			switch {
+			// Start timeout based retries
+			case start == nil:
+				if cons.timeout < 0 {
+					return
+				}
+				now := time.Now()
+				start = &now
+				fallthrough
+
+			// Yield and try again
+			default:
+				runtime.Gosched()
+
+			// Discard message after timeout
+			case time.Since(*start) > cons.timeout:
+				return
+			}
+		}
+	}
+}
+
 // PostMessage sends a message text to all configured streams.
 // This method blocks of the message queue is full.
 func (cons ConsumerBase) PostMessage(text string) {
-	msg := NewMessage(text, cons.streams)
-	cons.messages <- msg
+	cons.post(NewMessage(text, cons.streams))
 }
 
 // PostMessageFromSlice sends a buffered message to all configured streams.
 // This method blocks of the message queue is full.
 func (cons ConsumerBase) PostMessageFromSlice(data []byte) {
-	msg := NewMessageFromSlice(data, cons.streams)
-	cons.messages <- msg
+	cons.post(NewMessageFromSlice(data, cons.streams))
 }
 
 // Control returns write access to this consumer's control channel.

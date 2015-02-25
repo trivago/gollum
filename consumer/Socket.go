@@ -72,11 +72,12 @@ func (cons *Socket) Configure(conf shared.PluginConfig) error {
 func (cons *Socket) readFromConnection(conn net.Conn) {
 	defer conn.Close()
 
-	var err error
 	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.PostMessageFromSlice)
 
 	for !cons.quit {
 		// Read from stream
+
+		var err error
 		if cons.runlength {
 			err = buffer.ReadRLE(conn)
 		} else {
@@ -98,7 +99,6 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 
 func (cons *Socket) accept(threads *sync.WaitGroup) {
 	for !cons.quit {
-
 		client, err := cons.listen.Accept()
 		if err != nil {
 			if !cons.quit {
@@ -117,16 +117,15 @@ func (cons *Socket) accept(threads *sync.WaitGroup) {
 // either \n or \r\n.
 func (cons Socket) Consume(threads *sync.WaitGroup) {
 	// Listen to socket
-
 	var err error
-	cons.listen, err = net.Listen(cons.protocol, cons.address)
-	if err != nil {
+	if cons.listen, err = net.Listen(cons.protocol, cons.address); err != nil {
 		Log.Error.Print("Socket connection error: ", err)
 		return
 	}
 
 	cons.quit = false
 	go cons.accept(threads)
+
 	defer func() {
 		cons.quit = true
 		cons.listen.Close()
