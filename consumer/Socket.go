@@ -8,6 +8,7 @@ import (
 	"net"
 	"strings"
 	"sync"
+	"syscall"
 )
 
 var fileSocketPrefix = "unix://"
@@ -94,6 +95,23 @@ func (cons *Socket) Configure(conf shared.PluginConfig) error {
 	return err
 }
 
+func clientDisconnected(err error) bool {
+	netErr, isNetErr := err.(*net.OpError)
+	if isNetErr {
+
+		errno, isErrno := netErr.Err.(syscall.Errno)
+		if isErrno {
+			switch errno {
+			default:
+			case syscall.ECONNRESET:
+				return true // ### return, close connection ###
+			}
+		}
+	}
+
+	return false
+}
+
 func (cons *Socket) readFromConnection(conn net.Conn) {
 	defer conn.Close()
 	var buffer shared.BufferedReader
@@ -105,9 +123,9 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 	}
 
 	for !cons.quit {
-		// Read from stream
-
 		var err error
+
+		// Read from stream
 		switch {
 		case cons.runlength:
 			err = buffer.ReadRLE(conn)
@@ -115,15 +133,19 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 			err = buffer.Read(conn, cons.delimiter)
 		}
 
-		if err == nil || err == io.EOF {
-			if cons.acknowledge {
-				fmt.Fprint(conn, "OK")
+		// Handle errors
+		if err != nil && err != io.EOF {
+			if clientDisconnected(err) {
+				return // ### return, connection closed ###
 			}
-		} else {
-			if !cons.quit {
-				Log.Error.Print("Socket read failed:", err)
-			}
-			break // ### break, close connection ###
+
+			Log.Error.Print("Socket read failed: ", err)
+			continue // ### continue, keep open, try again ###
+		}
+
+		// Send ack if everything was ok
+		if cons.acknowledge {
+			fmt.Fprint(conn, "OK")
 		}
 	}
 }
@@ -139,7 +161,7 @@ func (cons *Socket) tcpAccept() {
 		client, err := listener.Accept()
 		if err != nil {
 			if !cons.quit {
-				Log.Error.Print("Socket listen failed:", err)
+				Log.Error.Print("Socket listen failed: ", err)
 			}
 			break // ### break ###
 		}
