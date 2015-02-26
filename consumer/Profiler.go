@@ -65,7 +65,7 @@ func (cons *Profiler) profile() {
 		start := time.Now()
 		for i := 0; i < cons.profileRuns; i++ {
 			msg = fmt.Sprintf("%d/%d %s", i, cons.profileRuns, string(randString))
-			cons.PostMessage(msg)
+			cons.PostMessage(msg, uint64(b*cons.profileRuns+i))
 
 			if cons.quit {
 				cons.MarkAsDone()

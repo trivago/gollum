@@ -130,14 +130,14 @@ func (cons ConsumerBase) IsActive() bool {
 
 // PostMessage sends a message text to all configured streams.
 // This method blocks of the message queue is full.
-func (cons ConsumerBase) PostMessage(text string) {
-	PostMessage(cons.messages, NewMessage(text, cons.streams), cons.timeout)
+func (cons ConsumerBase) PostMessage(text string, sequence uint64) {
+	PostMessage(cons.messages, NewMessage(text, cons.streams, sequence), cons.timeout)
 }
 
 // PostMessageFromSlice sends a buffered message to all configured streams.
 // This method blocks of the message queue is full.
-func (cons ConsumerBase) PostMessageFromSlice(data []byte) {
-	PostMessage(cons.messages, NewMessageFromSlice(data, cons.streams), cons.timeout)
+func (cons ConsumerBase) PostMessageFromSlice(data []byte, sequence uint64) {
+	PostMessage(cons.messages, NewMessageFromSlice(data, cons.streams, sequence), cons.timeout)
 }
 
 // Control returns write access to this consumer's control channel.

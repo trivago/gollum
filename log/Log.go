@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/shared"
 	"log"
+	"sync/atomic"
 )
 
 type logMessages struct {
-	queue   chan shared.Message
-	enqueue bool
+	queue    chan shared.Message
+	sequence uint64
+	enqueue  bool
 }
 
 var logStreamIDs = []shared.MessageStreamID{shared.LogInternalStreamID}
-var logHelper = logMessages{make(chan shared.Message, 1024), false}
+var logHelper = logMessages{make(chan shared.Message, 1024), 0, false}
 
 // Error is a predefined log channel for errors. This log is backed by consumer.Log
 var Error *log.Logger
@@ -47,7 +49,7 @@ func (log logMessages) Write(message []byte) (int, error) {
 		message = message[:length-1]
 	}
 
-	msg := shared.NewMessageFromSlice(message, logStreamIDs)
+	msg := shared.NewMessageFromSlice(message, logStreamIDs, atomic.AddUint64(&log.sequence, 1))
 	log.queue <- msg
 
 	return length, nil

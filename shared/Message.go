@@ -29,6 +29,7 @@ type Message struct {
 	streams       []MessageStreamID
 	CurrentStream MessageStreamID
 	Timestamp     time.Time
+	Sequence      uint64
 }
 
 // GetStreamID returns the integer representation of a given stream name.
@@ -39,23 +40,25 @@ func GetStreamID(stream string) MessageStreamID {
 }
 
 // NewMessage creates a new message from a given string
-func NewMessage(text string, streams []MessageStreamID) Message {
+func NewMessage(text string, streams []MessageStreamID, sequence uint64) Message {
 	msg := Message{
 		Data:          []byte(text),
 		streams:       streams,
 		CurrentStream: WildcardStreamID,
 		Timestamp:     time.Now(),
+		Sequence:      sequence,
 	}
 	return msg
 }
 
 // NewMessageFromSlice creates a new message from a given byte slice
-func NewMessageFromSlice(data []byte, streams []MessageStreamID) Message {
+func NewMessageFromSlice(data []byte, streams []MessageStreamID, sequence uint64) Message {
 	return Message{
 		Data:          data,
 		streams:       streams,
 		CurrentStream: WildcardStreamID,
 		Timestamp:     time.Now(),
+		Sequence:      sequence,
 	}
 }
 

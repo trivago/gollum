@@ -22,14 +22,32 @@ const (
 // - "consumer.Socket":
 //   Enable: true
 //   Address: "unix:///var/gollum.socket"
+//   Acknowledge: true
+//   Runlength: true
+//   Sequence: true
+//   Delimiter: "\n"
 //
 // Address stores the identifier to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
 //
+// Runlength should be set to true if the incoming messages are formatted with
+// the runlegth formatter, i.e. there is a "length:" prefix.
+// This option is disabled by default.
+//
+// Sequence should be used if the message is prefixed by a sequence number, i.e.
+// "sequence:" is prepended to the message.
+// In case that Runlength is set, too the Runlength prefix is expected first.
+// This option is disabled by default.
+//
+// Delimiter defines a string that marks the end of a message. If Runlength is
+// set this string is ignored.
+//
 // Acknowledge can be set to true to inform the writer on success or error.
 // On success "OK\n" is send. Any error will close the connection.
 // This setting is disabled by default.
+// If Acknowledge is set to true and a IP-Address is given to Address, TCP is
+// used to open the connection, otherwise UDP is used.
 type Socket struct {
 	shared.ConsumerBase
 	listen      net.Listener
@@ -37,6 +55,7 @@ type Socket struct {
 	address     string
 	delimiter   string
 	runlength   bool
+	sequence    bool
 	quit        bool
 	acknowledge bool
 }
@@ -54,11 +73,17 @@ func (cons *Socket) Configure(conf shared.PluginConfig) error {
 
 	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
 
-	cons.runlength = conf.GetBool("Runlength", false)
 	cons.delimiter = escapeChars.Replace(conf.GetString("Delimiter", "\n"))
 	cons.address = conf.GetString("Address", ":5880")
-	cons.protocol = "tcp"
 	cons.acknowledge = conf.GetBool("Acknowledge", false)
+	cons.runlength = conf.GetBool("Runlength", false)
+	cons.sequence = conf.GetBool("Sequence", false)
+
+	if cons.acknowledge {
+		cons.protocol = "tcp"
+	} else {
+		cons.protocol = "udp"
+	}
 
 	if strings.HasPrefix(cons.address, fileSocketPrefix) {
 		cons.address = cons.address[len(fileSocketPrefix):]
@@ -71,21 +96,27 @@ func (cons *Socket) Configure(conf shared.PluginConfig) error {
 
 func (cons *Socket) readFromConnection(conn net.Conn) {
 	defer conn.Close()
+	var buffer shared.BufferedReader
 
-	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.PostMessageFromSlice)
+	if cons.sequence {
+		buffer = shared.NewBufferedReaderSequence(socketBufferGrowSize, cons.PostMessageFromSlice)
+	} else {
+		buffer = shared.NewBufferedReader(socketBufferGrowSize, cons.PostMessageFromSlice, 0)
+	}
 
 	for !cons.quit {
 		// Read from stream
 
 		var err error
-		if cons.runlength {
+		switch {
+		case cons.runlength:
 			err = buffer.ReadRLE(conn)
-		} else {
+		default:
 			err = buffer.Read(conn, cons.delimiter)
 		}
 
 		if err == nil || err == io.EOF {
-			if cons.acknowledge {
+			if cons.acknowledge && cons.protocol == "tcp" {
 				fmt.Fprint(conn, "OK")
 			}
 		} else {

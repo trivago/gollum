@@ -24,3 +24,10 @@ type Formatter interface {
 	// dest has enough space to fit GetLength() bytes
 	CopyTo(dest []byte) int
 }
+
+// Uitob writes an unsigned integer to the end of a given byte buffer.
+func Uitob(target []byte, number uint64) {
+	for i := len(target) - 1; i >= 0; i-- {
+		target[i] = '0' + byte(number%10)
+	}
+}

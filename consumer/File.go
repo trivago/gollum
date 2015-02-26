@@ -61,7 +61,6 @@ type File struct {
 	seekOffset       int64
 	persistSeek      bool
 	state            fileState
-	buffer           shared.BufferedReader
 }
 
 func init() {
@@ -106,9 +105,9 @@ func (cons *File) Configure(conf shared.PluginConfig) error {
 	return nil
 }
 
-func (cons *File) postAndPersist(data []byte) {
-	cons.PostMessageFromSlice(data)
+func (cons *File) postAndPersist(data []byte, sequence uint64) {
 	cons.seekOffset, _ = cons.file.Seek(0, 1)
+	cons.PostMessageFromSlice(data, sequence)
 	ioutil.WriteFile(cons.continueFileName, []byte(strconv.FormatInt(cons.seekOffset, 10)), 0644)
 }
 
@@ -159,17 +158,23 @@ func (cons *File) read() {
 		cons.MarkAsDone()
 	}()
 
+	var buffer shared.BufferedReader
 	if cons.persistSeek {
-		cons.buffer = shared.NewBufferedReader(fileBufferGrowSize, cons.postAndPersist)
+		buffer = shared.NewBufferedReader(fileBufferGrowSize, cons.postAndPersist, uint64(cons.seekOffset))
 	} else {
-		cons.buffer = shared.NewBufferedReader(fileBufferGrowSize, cons.PostMessageFromSlice)
+		buffer = shared.NewBufferedReader(fileBufferGrowSize, cons.PostMessageFromSlice, uint64(cons.seekOffset))
 	}
 
 	printFileOpenError := true
 	for cons.state != fileStateDone {
 		// Initialize the seek state if requested
+		// Try to read the remains of the file first
 		if cons.state == fileStateOpen {
+			if cons.file != nil {
+				buffer.Read(cons.file, cons.delimiter)
+			}
 			cons.initFile()
+			buffer.Reset(uint64(cons.seekOffset))
 		}
 
 		// Try to open the file to read from
@@ -193,7 +198,7 @@ func (cons *File) read() {
 
 		// Try to read from the file
 		if cons.state == fileStateRead && cons.file != nil {
-			err := cons.buffer.Read(cons.file, cons.delimiter)
+			err := buffer.Read(cons.file, cons.delimiter)
 
 			switch {
 			case err == nil: // ok

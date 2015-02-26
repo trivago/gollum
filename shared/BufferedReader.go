@@ -9,16 +9,17 @@ import (
 // slice. The data can arrive "in pieces" and will be assembled.
 type BufferedReader struct {
 	data     []byte
-	write    func([]byte)
+	write    func([]byte, uint64)
 	growSize int
 	offset   int
 	end      int
 	start    int
+	sequence int64
 }
 
 // NewBufferedReader creates a new buffered reader with a given initial size
 // and a callback that is called each time data is parsed as complete.
-func NewBufferedReader(size int, callback func([]byte)) BufferedReader {
+func NewBufferedReader(size int, callback func([]byte, uint64), sequence uint64) BufferedReader {
 	return BufferedReader{
 		data:     make([]byte, size),
 		write:    callback,
@@ -26,6 +27,63 @@ func NewBufferedReader(size int, callback func([]byte)) BufferedReader {
 		offset:   0,
 		end:      0,
 		start:    0,
+		sequence: int64(sequence),
+	}
+}
+
+// NewBufferedReaderSequence creates a new buffered reader that expects the
+// sequence number to be encoded into the message, i.e. is prepended as
+// "sequence:".
+func NewBufferedReaderSequence(size int, callback func([]byte, uint64)) BufferedReader {
+	return BufferedReader{
+		data:     make([]byte, size),
+		write:    callback,
+		growSize: size,
+		offset:   0,
+		end:      0,
+		start:    0,
+		sequence: int64(-1),
+	}
+}
+
+// Reset clears the buffer by resetting its internal state
+func (buffer *BufferedReader) Reset(sequence uint64) {
+	if buffer.sequence >= 0 {
+		buffer.sequence = int64(sequence)
+	}
+	buffer.offset = 0
+	buffer.end = 0
+	buffer.start = 0
+}
+
+// Read "number:" from the data stream and return number as well as the length
+// of the matched string. If the string was not matched properly a size of -1
+// and the number 0 is returned.
+func readNumberPrefix(data []byte) (uint64, int) {
+	prefix := uint64(0)
+	index := 0
+
+	for data[index] >= '0' && data[index] <= '9' {
+		prefix = prefix*10 + uint64(data[index]-'0')
+		index++
+	}
+
+	if data[index] == ':' {
+		return prefix, index + 1
+	}
+
+	return 0, -1
+}
+
+// Write a slice of the internal buffer as message to the callback
+func (buffer *BufferedReader) post(start int, end int) {
+	message := buffer.data[start:end]
+	if buffer.sequence < 0 {
+		sequence, length := readNumberPrefix(message)
+		buffer.write(message[length:], sequence)
+	} else {
+		buffer.write(message, uint64(buffer.sequence))
+		buffer.sequence++
 	}
 }
 
@@ -49,15 +107,9 @@ func (buffer *BufferedReader) ReadRLE(reader io.Reader) error {
 	for {
 		if buffer.offset == 0 {
 			// New buffer, parse length
-			msgLength := 0
-			for buffer.data[buffer.offset] >= '0' && buffer.data[buffer.offset] <= '9' {
-				msgLength = msgLength*10 + int(buffer.data[buffer.offset]-'0')
-				buffer.offset++
-			}
+			msgLength, size := readNumberPrefix(buffer.data)
 
-			if buffer.data[buffer.offset] == ':' {
-				buffer.offset++
-			} else {
+			if size < 0 {
 				// Search for next number before exiting, so the next call can
 				// pick up at the (hopefully) next message.
 				for buffer.data[buffer.offset] < '0' || buffer.data[buffer.offset] > '9' {
@@ -68,8 +120,9 @@ func (buffer *BufferedReader) ReadRLE(reader io.Reader) error {
 			}
 
 			// Set the correct offsets for value parsing
+			buffer.offset += size
 			buffer.start = buffer.offset
-			buffer.end = buffer.offset + msgLength
+			buffer.end = buffer.offset + int(msgLength)
 		}
 
 		// Messages might come in parts or be continued with the next read, so
@@ -89,7 +142,7 @@ func (buffer *BufferedReader) ReadRLE(reader io.Reader) error {
 			break // ### break, Done processing this buffer ###
 		}
 
-		buffer.write(buffer.data[buffer.start:buffer.end])
+		buffer.post(buffer.start, buffer.end)
 		buffer.offset = 0
 
 		if readEnd == buffer.end {
@@ -136,9 +189,8 @@ func (buffer *BufferedReader) Read(reader io.Reader, delimiter string) error {
 		}
 
 		// msgEndIdx is relative to the slice we passed
-
 		msgEndIdx += parseStartIdx
-		buffer.write(buffer.data[msgStartIdx:msgEndIdx])
+		buffer.post(msgStartIdx, msgEndIdx)
 
 		msgStartIdx = msgEndIdx + delimiterLen
 		parseStartIdx = msgStartIdx

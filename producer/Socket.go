@@ -21,6 +21,7 @@ var fileSocketPrefix = "unix://"
 //   BufferSizeMaxKB: 16384
 //   BatchSizeByte: 4096
 //   BatchTimeoutSec: 5
+//   Acknowledge: true
 //
 // Address stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:5880" or a file
@@ -39,6 +40,11 @@ var fileSocketPrefix = "unix://"
 // BatchTimeoutSec defines the maximum number of seconds to wait after the last
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5.
+//
+// Acknowledge can be set to true to expect a response "OK\n" from the server
+// after a batch has been sent. This setting is disabled by default.
+// If Acknowledge is set to true and a IP-Address is given to Address, TCP is
+// used to open the connection, otherwise UDP is used.
 type Socket struct {
 	shared.ProducerBase
 	connection   net.Conn
@@ -69,12 +75,17 @@ func (prod *Socket) Configure(conf shared.PluginConfig) error {
 
 	bufferSizeMax := conf.GetInt("BufferSizeMaxKB", 8<<10) << 10
 
-	prod.protocol = "tcp"
 	prod.address = conf.GetString("Address", ":5880")
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.bufferSizeKB = conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
 	prod.acknowledge = conf.GetBool("Acknowledge", false)
+
+	if prod.acknowledge {
+		prod.protocol = "tcp"
+	} else {
+		prod.protocol = "udp"
+	}
 
 	prod.batch = shared.NewMessageBuffer(bufferSizeMax, prod.Formatter())
 
@@ -87,18 +98,16 @@ func (prod *Socket) Configure(conf shared.PluginConfig) error {
 }
 
 func (prod *Socket) validate() bool {
-	if !prod.acknowledge {
-		return true
+	if prod.acknowledge && prod.protocol == "tcp" {
+		response := make([]byte, 2)
+		_, err := prod.connection.Read(response)
+		if err != nil {
+			Log.Error.Print("Socket response error:", err)
+			return false
+		}
+		return string(response) == "OK"
 	}
-
-	response := make([]byte, 2)
-	_, err := prod.connection.Read(response)
-	if err != nil {
-		Log.Error.Print("Socket response error:", err)
-		return false
-	}
-
-	return string(response) == "OK"
+	return true
 }
 
 func (prod *Socket) sendBatch() {
