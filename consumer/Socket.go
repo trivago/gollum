@@ -101,7 +101,7 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 	if cons.sequence {
 		buffer = shared.NewBufferedReaderSequence(socketBufferGrowSize, cons.PostMessageFromSlice)
 	} else {
-		buffer = shared.NewBufferedReader(socketBufferGrowSize, cons.PostMessageFromSlice, 0)
+		buffer = shared.NewBufferedReader(socketBufferGrowSize, cons.PostMessageFromSlice)
 	}
 
 	for !cons.quit {

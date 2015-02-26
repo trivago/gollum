@@ -160,9 +160,9 @@ func (cons *File) read() {
 
 	var buffer shared.BufferedReader
 	if cons.persistSeek {
-		buffer = shared.NewBufferedReader(fileBufferGrowSize, cons.postAndPersist, uint64(cons.seekOffset))
+		buffer = shared.NewBufferedReader(fileBufferGrowSize, cons.postAndPersist)
 	} else {
-		buffer = shared.NewBufferedReader(fileBufferGrowSize, cons.PostMessageFromSlice, uint64(cons.seekOffset))
+		buffer = shared.NewBufferedReader(fileBufferGrowSize, cons.PostMessageFromSlice)
 	}
 
 	printFileOpenError := true

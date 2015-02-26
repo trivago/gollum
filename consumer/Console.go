@@ -28,7 +28,7 @@ func init() {
 }
 
 func (cons *Console) readFrom(stream io.Reader, threads *sync.WaitGroup) {
-	buffer := shared.NewBufferedReader(consoleBufferGrowSize, cons.PostMessageFromSlice, 0)
+	buffer := shared.NewBufferedReader(consoleBufferGrowSize, cons.PostMessageFromSlice)
 
 	for {
 		err := buffer.Read(stream, "\n")
