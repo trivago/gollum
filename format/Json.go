@@ -3,6 +3,7 @@ package format
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/trivago/gollum/shared"
 )
 
@@ -40,11 +41,9 @@ func (format *JSON) Configure(conf shared.PluginConfig) error {
 // PrepareMessage sets the message to be formatted.
 func (format *JSON) PrepareMessage(msg shared.Message) {
 	format.base.PrepareMessage(msg)
+	format.message = bytes.NewBufferString(fmt.Sprintf("{\"time\":\"%s\",\"seq\":%d,\"message\":\"", msg.Timestamp.Format(shared.DefaultTimestamp), msg.Sequence))
 
-	formattedMessage := format.base.String()
-	format.message = bytes.NewBufferString("{\"message\":\"")
-
-	json.HTMLEscape(format.message, []byte(formattedMessage))
+	json.HTMLEscape(format.message, []byte(format.base.String()))
 	format.message.WriteString("\"}")
 }
 
