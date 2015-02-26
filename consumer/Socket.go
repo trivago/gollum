@@ -55,8 +55,7 @@ type Socket struct {
 	protocol    string
 	address     string
 	delimiter   string
-	runlength   bool
-	sequence    bool
+	flags       shared.BufferedReaderFlags
 	quit        bool
 	acknowledge bool
 }
@@ -77,8 +76,14 @@ func (cons *Socket) Configure(conf shared.PluginConfig) error {
 	cons.delimiter = escapeChars.Replace(conf.GetString("Delimiter", "\n"))
 	cons.address = conf.GetString("Address", ":5880")
 	cons.acknowledge = conf.GetBool("Acknowledge", false)
-	cons.runlength = conf.GetBool("Runlength", false)
-	cons.sequence = conf.GetBool("Sequence", false)
+
+	if conf.GetBool("Runlength", false) {
+		cons.flags |= shared.BufferedReaderFlagRLE
+	}
+
+	if conf.GetBool("Sequence", false) {
+		cons.flags |= shared.BufferedReaderFlagSequence
+	}
 
 	if cons.acknowledge {
 		cons.protocol = "tcp"
@@ -116,22 +121,10 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 	defer conn.Close()
 	var buffer shared.BufferedReader
 
-	if cons.sequence {
-		buffer = shared.NewBufferedReaderSequence(socketBufferGrowSize, cons.PostMessageFromSlice)
-	} else {
-		buffer = shared.NewBufferedReader(socketBufferGrowSize, cons.PostMessageFromSlice)
-	}
+	buffer = shared.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.delimiter, cons.PostMessageFromSlice)
 
 	for !cons.quit {
-		var err error
-
-		// Read from stream
-		switch {
-		case cons.runlength:
-			err = buffer.ReadRLE(conn)
-		default:
-			err = buffer.Read(conn, cons.delimiter)
-		}
+		err := buffer.Read(conn)
 
 		// Handle errors
 		if err != nil && err != io.EOF {

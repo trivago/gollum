@@ -5,45 +5,57 @@ import (
 	"io"
 )
 
+// BufferedReaderFlags is an enum to configure a buffered reader
+type BufferedReaderFlags byte
+
+const (
+	// BufferedReaderFlagRLE enables runlength encoded message parsing
+	BufferedReaderFlagRLE = 1 << iota
+	// BufferedReaderFlagSequence enables sequence encoded message parsing
+	BufferedReaderFlagSequence = 1 << iota
+)
+
 // BufferedReader is a helper struct to read from any io.Reader into a byte
 // slice. The data can arrive "in pieces" and will be assembled.
 type BufferedReader struct {
-	data     []byte
-	write    func([]byte, uint64)
-	growSize int
-	offset   int
-	end      int
-	start    int
-	sequence int64
+	data      []byte
+	write     func([]byte, uint64)
+	Read      func(io.Reader) error
+	delimiter []byte
+	sequence  int64
+	growSize  int
+	offset    int
+	end       int
+	start     int
 }
 
 // NewBufferedReader creates a new buffered reader with a given initial size
 // and a callback that is called each time data is parsed as complete.
-func NewBufferedReader(size int, callback func([]byte, uint64)) BufferedReader {
-	return BufferedReader{
-		data:     make([]byte, size),
-		write:    callback,
-		growSize: size,
-		offset:   0,
-		end:      0,
-		start:    0,
-		sequence: 0,
+// The flags and delimiter passed to NewBufferedReader define how the message
+// is parsed from the reader passed to BufferedReader.Read.
+func NewBufferedReader(size int, flags BufferedReaderFlags, delimiter string, callback func([]byte, uint64)) BufferedReader {
+	buffer := BufferedReader{
+		data:      make([]byte, size),
+		write:     callback,
+		delimiter: []byte(delimiter),
+		sequence:  0,
+		growSize:  size,
+		offset:    0,
+		end:       0,
+		start:     0,
 	}
-}
 
-// NewBufferedReaderSequence creates a new buffered reader that expects the
-// sequence number to be encoded into the message, i.e. is prepended as
-// "sequence:".
-func NewBufferedReaderSequence(size int, callback func([]byte, uint64)) BufferedReader {
-	return BufferedReader{
-		data:     make([]byte, size),
-		write:    callback,
-		growSize: size,
-		offset:   0,
-		end:      0,
-		start:    0,
-		sequence: int64(-1),
+	if flags&BufferedReaderFlagSequence != 0 {
+		buffer.sequence = -1
 	}
+
+	if flags&BufferedReaderFlagRLE != 0 {
+		buffer.Read = buffer.readRLE
+	} else {
+		buffer.Read = buffer.read
+	}
+
+	return buffer
 }
 
 // Reset clears the buffer by resetting its internal state
@@ -78,21 +90,22 @@ func readNumberPrefix(data []byte) (uint64, int) {
 // Write a slice of the internal buffer as message to the callback
 func (buffer *BufferedReader) post(start int, end int) {
 	message := buffer.data[start:end]
-	if buffer.sequence < 0 {
-		sequence, length := readNumberPrefix(message)
-		buffer.write(message[length:], sequence)
-	} else {
+
+	if buffer.sequence >= 0 {
 		buffer.write(message, uint64(buffer.sequence))
 		buffer.sequence++
+	} else {
+		sequence, length := readNumberPrefix(message)
+		buffer.write(message[length:], sequence)
 	}
 }
 
-// ReadRLE reads from the given reader, expecting runlength encoding, i.e. each
+// readRLE reads from the given reader, expecting runlength encoding, i.e. each
 // data block has to be prepended with "length:".
 // After the parsing the given number of bytes the data is passed to the callback
 // passed to the BufferedReader. If the parsed data does not fit into the
 // allocated, internal buffer the buffer is resized.
-func (buffer *BufferedReader) ReadRLE(reader io.Reader) error {
+func (buffer *BufferedReader) readRLE(reader io.Reader) error {
 	bytesRead, err := reader.Read(buffer.data[buffer.offset:])
 
 	if err != nil && bytesRead == 0 {
@@ -157,11 +170,11 @@ func (buffer *BufferedReader) ReadRLE(reader io.Reader) error {
 	return nil
 }
 
-// Read reads from the given io.Reader until delimiter is reached.
+// read reads from the given io.Reader until delimiter is reached.
 // After the parsing of the delimiter string the data is passed to the callback
 // passed to the BufferedReader. If the parsed data does not fit into the
 // allocated, internal buffer the buffer is resized.
-func (buffer *BufferedReader) Read(reader io.Reader, delimiter string) error {
+func (buffer *BufferedReader) read(reader io.Reader) error {
 	bytesRead, err := reader.Read(buffer.data[buffer.offset:])
 
 	if err != nil && bytesRead == 0 {
@@ -172,8 +185,7 @@ func (buffer *BufferedReader) Read(reader io.Reader, delimiter string) error {
 		return nil
 	}
 
-	delimiterLen := len(delimiter)
-	delimiterBytes := []byte(delimiter)
+	delimiterLen := len(buffer.delimiter)
 
 	// Go through the stream and look for delimiters
 	// Execute callback once per delimiter
@@ -183,7 +195,7 @@ func (buffer *BufferedReader) Read(reader io.Reader, delimiter string) error {
 	msgStartIdx := 0
 
 	for parseEndIdx-parseStartIdx > delimiterLen {
-		msgEndIdx := bytes.Index(buffer.data[parseStartIdx:parseEndIdx], delimiterBytes)
+		msgEndIdx := bytes.Index(buffer.data[parseStartIdx:parseEndIdx], buffer.delimiter)
 		if msgEndIdx == -1 {
 			break
 		}

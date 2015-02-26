@@ -28,10 +28,10 @@ func init() {
 }
 
 func (cons *Console) readFrom(stream io.Reader, threads *sync.WaitGroup) {
-	buffer := shared.NewBufferedReader(consoleBufferGrowSize, cons.PostMessageFromSlice)
+	buffer := shared.NewBufferedReader(consoleBufferGrowSize, 0, "\n", cons.PostMessageFromSlice)
 
 	for {
-		err := buffer.Read(stream, "\n")
+		err := buffer.Read(stream)
 		if err != nil {
 			Log.Error.Print("Error reading stdin: ", err)
 		}

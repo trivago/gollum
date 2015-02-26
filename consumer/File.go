@@ -160,9 +160,9 @@ func (cons *File) read() {
 
 	var buffer shared.BufferedReader
 	if cons.persistSeek {
-		buffer = shared.NewBufferedReader(fileBufferGrowSize, cons.postAndPersist)
+		buffer = shared.NewBufferedReader(fileBufferGrowSize, 0, cons.delimiter, cons.postAndPersist)
 	} else {
-		buffer = shared.NewBufferedReader(fileBufferGrowSize, cons.PostMessageFromSlice)
+		buffer = shared.NewBufferedReader(fileBufferGrowSize, 0, cons.delimiter, cons.PostMessageFromSlice)
 	}
 
 	printFileOpenError := true
@@ -171,7 +171,7 @@ func (cons *File) read() {
 		// Try to read the remains of the file first
 		if cons.state == fileStateOpen {
 			if cons.file != nil {
-				buffer.Read(cons.file, cons.delimiter)
+				buffer.Read(cons.file)
 			}
 			cons.initFile()
 			buffer.Reset(uint64(cons.seekOffset))
@@ -198,7 +198,7 @@ func (cons *File) read() {
 
 		// Try to read from the file
 		if cons.state == fileStateRead && cons.file != nil {
-			err := buffer.Read(cons.file, cons.delimiter)
+			err := buffer.Read(cons.file)
 
 			switch {
 			case err == nil: // ok
