@@ -50,7 +50,7 @@ const (
 // used to open the connection, otherwise UDP is used.
 type Socket struct {
 	shared.ConsumerBase
-	listen      net.Listener
+	listen      io.Closer
 	protocol    string
 	address     string
 	delimiter   string
@@ -116,7 +116,7 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 		}
 
 		if err == nil || err == io.EOF {
-			if cons.acknowledge && cons.protocol == "tcp" {
+			if cons.acknowledge {
 				fmt.Fprint(conn, "OK")
 			}
 		} else {
@@ -128,9 +128,15 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 	}
 }
 
-func (cons *Socket) accept(threads *sync.WaitGroup) {
+func (cons *Socket) udpAccept() {
+	cons.readFromConnection(cons.listen.(*net.UDPConn))
+	cons.MarkAsDone()
+}
+
+func (cons *Socket) tcpAccept() {
+	listener := cons.listen.(net.Listener)
 	for !cons.quit {
-		client, err := cons.listen.Accept()
+		client, err := listener.Accept()
 		if err != nil {
 			if !cons.quit {
 				Log.Error.Print("Socket listen failed:", err)
@@ -147,15 +153,23 @@ func (cons *Socket) accept(threads *sync.WaitGroup) {
 // Consume listens to a given socket. Messages are expected to be separated by
 // either \n or \r\n.
 func (cons Socket) Consume(threads *sync.WaitGroup) {
-	// Listen to socket
 	var err error
-	if cons.listen, err = net.Listen(cons.protocol, cons.address); err != nil {
-		Log.Error.Print("Socket connection error: ", err)
-		return
-	}
-
 	cons.quit = false
-	go cons.accept(threads)
+
+	if cons.protocol == "udp" {
+		addr, _ := net.ResolveUDPAddr(cons.protocol, cons.address)
+		if cons.listen, err = net.ListenUDP(cons.protocol, addr); err != nil {
+			Log.Error.Print("Socket connection error: ", err)
+			return
+		}
+		go cons.udpAccept()
+	} else {
+		if cons.listen, err = net.Listen(cons.protocol, cons.address); err != nil {
+			Log.Error.Print("Socket connection error: ", err)
+			return
+		}
+		go cons.tcpAccept()
+	}
 
 	defer func() {
 		cons.quit = true

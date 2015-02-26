@@ -98,16 +98,17 @@ func (prod *Socket) Configure(conf shared.PluginConfig) error {
 }
 
 func (prod *Socket) validate() bool {
-	if prod.acknowledge && prod.protocol == "tcp" {
-		response := make([]byte, 2)
-		_, err := prod.connection.Read(response)
-		if err != nil {
-			Log.Error.Print("Socket response error:", err)
-			return false
-		}
-		return string(response) == "OK"
+	if !prod.acknowledge {
+		return true
 	}
-	return true
+
+	response := make([]byte, 2)
+	_, err := prod.connection.Read(response)
+	if err != nil {
+		Log.Error.Print("Socket response error:", err)
+		return false
+	}
+	return string(response) == "OK"
 }
 
 func (prod *Socket) sendBatch() {
