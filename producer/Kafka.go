@@ -213,7 +213,7 @@ func (prod *Kafka) send(msg shared.Message) {
 		}
 
 		prod.Formatter().PrepareMessage(msg)
-		prod.producer.Input() <- &kafka.MessageToSend{
+		prod.producer.Input() <- &kafka.ProducerMessage{
 			Topic: topic,
 			Key:   nil,
 			Value: kafka.StringEncoder(prod.Formatter().String()),

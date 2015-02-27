@@ -141,7 +141,7 @@ func (cons *Kafka) Configure(conf shared.PluginConfig) error {
 
 	cons.partitionConfig.DefaultFetchSize = int32(conf.GetInt("MaxFetchSizeByte", 32768))
 	cons.partitionConfig.MaxMessageSize = int32(conf.GetInt("MaxMessageSizeByte", 0))
-	cons.partitionConfig.EventBufferSize = conf.GetInt("MessageBufferCount", 16)
+	cons.partitionConfig.ChannelBufferSize = conf.GetInt("MessageBufferCount", 16)
 	cons.partitionConfig.OffsetValue = 0
 
 	switch conf.GetString("Offset", kafkaOffsetNewset) {
@@ -215,13 +215,7 @@ func (cons *Kafka) fetch(offsetIdx int, partition int32, config kafka.PartitionC
 	}()
 
 	for {
-		event := <-partCons.Events()
-		if event.Err != nil {
-			if !cons.client.Closed() {
-				go cons.restart(event.Err, offsetIdx, partition)
-			}
-			return // ### return, stop this consumer ###
-		}
+		event := <-partCons.Messages()
 
 		offset := int64(math.Max(float64(cons.offsets[offsetIdx]), float64(event.Offset)))
 		cons.offsets[offsetIdx] = offset
