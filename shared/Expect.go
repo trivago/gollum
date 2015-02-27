@@ -2,6 +2,7 @@ package shared
 
 import (
 	"bytes"
+	"fmt"
 	"runtime"
 	"testing"
 )
@@ -17,13 +18,13 @@ func NewExpect(t *testing.T) Expect {
 }
 
 func (e Expect) print(message string) {
-	_, file, line, _ := runtime.Caller(1)
+	_, file, line, _ := runtime.Caller(2)
 	e.t.Errorf("%s(%d): %s", file, line, message)
 }
 
 func (e Expect) printf(format string, args ...interface{}) {
-	_, file, line, _ := runtime.Caller(1)
-	e.t.Errorf("%s(%d): "+format, file, line, args)
+	_, file, line, _ := runtime.Caller(2)
+	e.t.Errorf(fmt.Sprintf("%s(%d): %s", file, line, format), args...)
 }
 
 // True tests if the given value is true
@@ -45,7 +46,7 @@ func (e Expect) False(val bool) bool {
 }
 
 // IntEq tests two integers on equality
-func (e Expect) IntEq(val1, val2 int) bool {
+func (e Expect) IntEq(val1 int, val2 int) bool {
 	if val1 != val2 {
 		e.printf("Expected \"%d\", got \"%d\"", val1, val2)
 		return false
@@ -54,7 +55,7 @@ func (e Expect) IntEq(val1, val2 int) bool {
 }
 
 // StringEq tests two strings on equality
-func (e Expect) StringEq(val1, val2 string) bool {
+func (e Expect) StringEq(val1 string, val2 string) bool {
 	if val1 != val2 {
 		e.printf("Expected \"%s\", got \"%s\"", val1, val2)
 		return false
@@ -63,7 +64,7 @@ func (e Expect) StringEq(val1, val2 string) bool {
 }
 
 // BytesEq tests two byte slices on equality
-func (e Expect) BytesEq(val1, val2 []byte) bool {
+func (e Expect) BytesEq(val1 []byte, val2 []byte) bool {
 	if !bytes.Equal(val1, val2) {
 		e.printf("Expected %v, got %v", val1, val2)
 		return false

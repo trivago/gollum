@@ -1,5 +1,10 @@
 package shared
 
+import (
+	"errors"
+	"math"
+)
+
 const (
 	// DefaultTimestamp is the timestamp format string used for messages
 	DefaultTimestamp = "2006-01-02 15:04:05 MST"
@@ -25,9 +30,61 @@ type Formatter interface {
 	CopyTo(dest []byte) int
 }
 
-// Uitob writes an unsigned integer to the end of a given byte buffer.
-func Uitob(target []byte, number uint64) {
-	for i := len(target) - 1; i >= 0; i-- {
-		target[i] = '0' + byte(number%10)
+// ItoLen returns the length of an unsingned integer when converted to a string
+func ItoLen(number uint64) int {
+	switch {
+	case number < 10:
+		return 1
+	default:
+		return int(math.Log10(float64(number)) + 1)
 	}
+}
+
+// Itob writes an unsigned integer to the start of a given byte buffer.
+func Itob(number uint64, buffer []byte) error {
+	numberLen := ItoLen(number)
+	bufferLen := len(buffer)
+
+	if numberLen > bufferLen {
+		return errors.New("Number too large for buffer")
+	}
+
+	for i := numberLen - 1; i >= 0; i-- {
+		buffer[i] = '0' + byte(number%10)
+		number /= 10
+	}
+
+	return nil
+}
+
+// Itobe writes an unsigned integer to the end of a given byte buffer.
+func Itobe(number uint64, buffer []byte) error {
+	for i := len(buffer) - 1; i >= 0; i-- {
+		buffer[i] = '0' + byte(number%10)
+		number /= 10
+
+		// Check here because the number 0 has to be written, too
+		if number == 0 {
+			return nil
+		}
+	}
+
+	return errors.New("Number too large for buffer")
+}
+
+// Btoi is a fast byte buffer to unsigned int parser that reads until the first
+// non-number character is found. It returns the number value as well as the
+// length of the number string encountered.
+// If a number could not be parsed the returned length will be 0
+func Btoi(buffer []byte) (uint64, int) {
+	number := uint64(0)
+	index := 0
+	bufferLen := len(buffer)
+
+	for index < bufferLen && buffer[index] >= '0' && buffer[index] <= '9' {
+		number = number*10 + uint64(buffer[index]-'0')
+		index++
+	}
+
+	return number, index
 }

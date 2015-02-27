@@ -3,7 +3,6 @@ package format
 import (
 	"fmt"
 	"github.com/trivago/gollum/shared"
-	"math"
 	"strconv"
 )
 
@@ -46,7 +45,7 @@ func (format *Runlength) PrepareMessage(msg shared.Message) {
 	if format.baseLength < 10 {
 		format.length = format.baseLength + 2
 	} else {
-		format.length = format.baseLength + int(math.Log10(float64(format.baseLength))+2)
+		format.length = format.baseLength + shared.ItoLen(uint64(format.baseLength)) + 1
 	}
 }
 

@@ -33,6 +33,10 @@ const (
 	// Same as ParserFlagContinue | ParserFlagSkip.
 	ParserFlagIgnore = ParserFlagContinue | ParserFlagSkip
 
+	// ParserFlagRestartAfter does not process the read bytes and start reading
+	// form the position after the match
+	ParserFlagRestartAfter = ParserFlagRestart | ParserFlagSkip
+
 	// ParserStateStop defines a state that causes the parsing to stop when
 	// transitioned into.
 	ParserStateStop = math.MaxInt32
@@ -59,14 +63,6 @@ type Parser struct {
 	transitions [][]Transition
 }
 
-// NewParser generates a new parser based on a set of given transitions
-func NewParser(transitions [][]Transition) Parser {
-	return Parser{
-		state:       0,
-		transitions: transitions,
-	}
-}
-
 func findStride(token string) int {
 	tokenLen := len(token)
 	firstChar := token[0]
@@ -87,6 +83,14 @@ func NewTransition(token string, state int, flags ParserFlag) Transition {
 		stride:   findStride(token),
 		state:    state,
 		flags:    flags,
+	}
+}
+
+// NewParser generates a new parser based on a set of given transitions
+func NewParser(transitions [][]Transition) Parser {
+	return Parser{
+		state:       0,
+		transitions: transitions,
 	}
 }
 

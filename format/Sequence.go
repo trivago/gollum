@@ -3,7 +3,6 @@ package format
 import (
 	"fmt"
 	"github.com/trivago/gollum/shared"
-	"math"
 )
 
 // Sequence is a formatter that allows prefixing a message with the message's
@@ -44,7 +43,7 @@ func (format *Sequence) PrepareMessage(msg shared.Message) {
 
 	format.prefixLength = 2
 	if msg.Sequence > 9 {
-		format.prefixLength += int(math.Log10(float64(msg.Sequence)))
+		format.prefixLength = shared.ItoLen(msg.Sequence) + 1
 	}
 
 	format.sequence = msg.Sequence
@@ -66,7 +65,7 @@ func (format *Sequence) String() string {
 // dest has enough space to fit GetLength() bytes
 func (format *Sequence) CopyTo(dest []byte) int {
 	colonIdx := format.prefixLength - 1
-	shared.Uitob(dest[:colonIdx], format.sequence)
+	shared.Itobe(format.sequence, dest[:colonIdx])
 	dest[colonIdx] = ':'
 
 	return format.prefixLength + format.base.CopyTo(dest[format.prefixLength:])
