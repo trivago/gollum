@@ -9,43 +9,30 @@ There are a few basic terms used throughout Gollum:
 * A "formatter" is a plugin that adds information to a message
 * A "distributor" is a plugin that routes/filters messages on a given stream
 
+Writing a custom plugin does not require you to change any additional code besides your new plugin file.
+
 ## Consumers
 
-* Console
-* File
-* Kafka
-* Socket
+* `Console` read from stdin.
+* `File` read from a file (like tail).
+* `Kafka` read from a Kafka topic using the Sarama Kafka library.
+* `Socket` read from a socket (gollum specfic protocol).
 
 ## Producers
 
-* Console
-* ElasticSearch
-* File
-* Kafka
-* Null
-* Facebook Scribe
-* Socket
+* `Console` write to stdin or stdout.
+* `ElasticSearch` write to elastic search via http/bulk.
+* `File` write to a file. Supports log rotation and compression.
+* `Kafka` write to a Kafka topic using the Sarama Kafka library.
+* `Null` like /dev/null.
+* `Facebook Scribe` send messages to a scribe server.
+* `Socket` send messages to a socket  (gollum specfic protocol).
 
-## Installation
+## Distributors
 
-### From source
-
-Install dependencies
-```
-$ go get -u github.com/artyom/scribe
-$ go get -u github.com/artyom/thrift
-$ go get -u github.com/Shopify/sarama
-$ go get -u github.com/mattbaird/elastigo
-$ go get -u gopkg.in/docker/docker.v1
-$ go get -u gopkg.in/yaml.v1
-```
-
-Get source and compile.
-Note that gollum has to be placed into $GOPATH/src/github.com/trivago if you did not fetch it directly from GitHub using go get.
-
-```
-$ go build
-```
+* `Broadcast` send to all producers in a stream.
+* `Random` send to a random roducers in a stream.
+* `RoundRobin` switch the producer after each send in a round robin fashion.
 
 ## Configuration
 
