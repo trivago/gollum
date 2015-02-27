@@ -36,9 +36,14 @@ Writing a custom plugin does not require you to change any additional code besid
 
 ## Installation
 
+### From source
+
+Installation from source requires the installation of the [Go toolchain](http://golang.org/).
+
 ```
 $ go get .
 $ go build .
+$ gollum --help
 ```
 
 ## Configuration
