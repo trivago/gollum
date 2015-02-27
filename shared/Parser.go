@@ -60,7 +60,6 @@ const (
 type Transition struct {
 	token    []byte
 	tokenLen int
-	stride   int
 	state    int
 	flags    ParserFlag
 }
@@ -77,24 +76,11 @@ type Parser struct {
 	transitions [][]Transition
 }
 
-func findStride(token string) int {
-	tokenLen := len(token)
-	firstChar := token[0]
-	for i := 1; i < tokenLen; i++ {
-		if token[i] == firstChar {
-			return i
-		}
-	}
-
-	return tokenLen
-}
-
 // NewTransition creates a new transition object to be used with NewParser.
 func NewTransition(token string, state int, flags ParserFlag) Transition {
 	return Transition{
 		token:    []byte(token),
 		tokenLen: len(token),
-		stride:   findStride(token),
 		state:    state,
 		flags:    flags,
 	}
@@ -109,21 +95,14 @@ func NewParser(transitions [][]Transition) Parser {
 }
 
 // Do a state transition, i.e. set the next state, return the new transition
-// tokens and calculate the minimum safe stride.
-func (parser *Parser) setState(state int) ([]Transition, int, int) {
+// tokens and the number of tokens in the returned array.
+func (parser *Parser) setState(state int) ([]Transition, int) {
 	parser.state = state
 
 	trans := parser.transitions[parser.state]
 	num := len(trans)
-	stride := trans[0].stride
 
-	for i := 1; i < num; i++ {
-		if trans[i].stride < stride {
-			stride = trans[i].stride
-		}
-	}
-
-	return trans, num, stride
+	return trans, num
 }
 
 // Parse parses a string with the transition passed to the parser object.
@@ -136,7 +115,7 @@ func (parser Parser) Parse(message []byte, initialState int) []StateData {
 
 	startIdx := 0
 	messageLen := len(message)
-	transitions, numTransitions, stride := parser.setState(initialState)
+	transitions, numTransitions := parser.setState(initialState)
 
 parsing:
 	// Iterate over the whole message
@@ -160,7 +139,7 @@ parsing:
 				}
 			}
 
-			//fmt.Printf("[%s] %d %d [%s]", string(message[parseIdx:cmpIdxEnd]), startIdx, parseIdx, string(message[startIdx:parseIdx]))
+			//fmt.Printf("[%s] s%d p%d e%d +%d [%s]", string(message[parseIdx:cmpIdxEnd]), startIdx, parseIdx, cmpIdxEnd, stride, string(message[startIdx:parseIdx]))
 
 			// Store the result
 			if t.flags&ParserFlagPersist != 0 {
@@ -192,12 +171,11 @@ parsing:
 				return result
 			}
 
-			transitions, numTransitions, stride = parser.setState(t.state)
+			transitions, numTransitions = parser.setState(t.state)
 			continue parsing
 		}
 
-		// Increment by minimum stride
-		parseIdx += stride
+		parseIdx++
 	}
 
 	// Store the remaining data

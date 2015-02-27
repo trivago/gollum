@@ -1,0 +1,16 @@
+#!/bin/bash
+
+RunTests()
+{
+  if ls $1/*_test.go 1> /dev/null 2>&1; then
+    go test $1
+  fi
+
+  for name in $1/* ; do
+    if [ -d $name ]; then
+      RunTests $name
+    fi
+  done
+}
+
+RunTests $1
