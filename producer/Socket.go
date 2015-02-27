@@ -14,14 +14,14 @@ var fileSocketPrefix = "unix://"
 // Socket producer plugin
 // Configuration example
 //
-// - "producer.Socket":
-//   Enable: true
-//   Address: "unix:///var/gollum.socket"
-//   BufferSizeKB: 4096
-//   BufferSizeMaxKB: 16384
-//   BatchSizeByte: 4096
-//   BatchTimeoutSec: 5
-//   Acknowledge: true
+//   - "producer.Socket":
+//     Enable: true
+//     Address: "unix:///var/gollum.socket"
+//     BufferSizeKB: 4096
+//     BufferSizeMaxKB: 16384
+//     BatchSizeByte: 4096
+//     BatchTimeoutSec: 5
+//     Acknowledge: true
 //
 // Address stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:5880" or a file

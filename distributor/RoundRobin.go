@@ -7,9 +7,9 @@ import (
 // RoundRobin distributor plugin
 // Configuration example
 //
-// - "distributor.RoundRobin":
-//   Enable: true
-//   Stream: "*"
+//   - "distributor.RoundRobin":
+//     Enable: true
+//     Stream: "*"
 //
 // This consumer does not define any options beside the standard ones.
 // Messages are send to one of the producers listening to the given stream.

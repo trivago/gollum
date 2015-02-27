@@ -13,20 +13,20 @@ import (
 // Scribe producer plugin
 // Configuration example
 //
-// - "producer.Scribe":
-//   Enable: true
-//   Host: "192.168.222.30"
-//   Port: 1463
-//   BufferSizeKB: 4096
-//   BufferSizeMaxKB: 16384
-//   BatchSizeByte: 4096
-//   BatchTimeoutSec: 2
-//   Stream:
-//     - "console"
-//     - "_GOLLUM_"
-//   Category:
-//     "console" : "default"
-//     "_GOLLUM_"  : "default"
+//   - "producer.Scribe":
+//     Enable: true
+//     Host: "192.168.222.30"
+//     Port: 1463
+//     BufferSizeKB: 4096
+//     BufferSizeMaxKB: 16384
+//     BatchSizeByte: 4096
+//     BatchTimeoutSec: 2
+//     Stream:
+//       - "console"
+//       - "_GOLLUM_"
+//     Category:
+//       "console" : "default"
+//       "_GOLLUM_"  : "default"
 //
 // Host and Port should be clear
 //

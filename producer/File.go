@@ -23,17 +23,17 @@ const (
 // File producer plugin
 // Configuration example
 //
-// - "producer.File":
-//   Enable: true
-//   File: "/var/log/gollum.log"
-//   BufferSizeMaxKB: 16384
-//   BatchSizeByte: 4096
-//   BatchTimeoutSec: 2
-//   Rotate: false
-//   RotateTimeoutMin: 1440
-//   RotateSizeMB: 1024
-//   RotateAt: "00:00"
-//   Compress: true
+//   - "producer.File":
+//     Enable: true
+//     File: "/var/log/gollum.log"
+//     BufferSizeMaxKB: 16384
+//     BatchSizeByte: 4096
+//     BatchTimeoutSec: 2
+//     Rotate: false
+//     RotateTimeoutMin: 1440
+//     RotateSizeMB: 1024
+//     RotateAt: "00:00"
+//     Compress: true
 //
 // File contains the path to the log file to write.
 // By default this is set to /var/prod/gollum.log.

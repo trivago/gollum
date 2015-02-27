@@ -12,9 +12,9 @@ import (
 // HTML escaped.
 // Configuration example
 //
-// - producer.Console
-//	Formatter: "format.JSON"
-//	JSONDataFormatter: "format.Timestamp"
+//   - producer.Console
+//     Formatter: "format.JSON"
+//     JSONDataFormatter: "format.Timestamp"
 //
 // JSONDataFormatter defines the formatter for the data transferred as message.
 // By default this is set to "format.Forward"

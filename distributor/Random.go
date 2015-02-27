@@ -8,9 +8,9 @@ import (
 // Random distributor plugin
 // Configuration example
 //
-// - "distributor.Random":
-//   Enable: true
-//   Stream: "*"
+//   - "distributor.Random":
+//     Enable: true
+//     Stream: "*"
 //
 // This consumer does not define any options beside the standard ones.
 // Messages are send to a random producer in the set of the producers listening

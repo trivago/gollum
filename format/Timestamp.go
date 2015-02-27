@@ -14,10 +14,10 @@ const (
 // (time of arrival at gollum) as well as postfixing it with a delimiter string.
 // Configuration example
 //
-// - producer.Console
-//	Formatter: "format.Timestamp"
-//	Timestamp: "2006-01-02T15:04:05.000 MST"
-//	Delimiter: "\r\n"
+//   - producer.Console
+//     Formatter: "format.Timestamp"
+//     Timestamp: "2006-01-02T15:04:05.000 MST"
+//     Delimiter: "\r\n"
 //
 // Timestamp defines a Go time format string that is used to format the actual
 // timestamp that prefixes the message.

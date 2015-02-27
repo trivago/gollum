@@ -15,8 +15,8 @@ const (
 // Console consumer plugin
 // Configuration example
 //
-// - "consumer.Console":
-//   Enable: true
+//   - "consumer.Console":
+//     Enable: true
 //
 // This consumer does not define any options beside the standard ones.
 type Console struct {

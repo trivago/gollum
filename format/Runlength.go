@@ -11,9 +11,9 @@ import (
 // a ":". The actual message is formatted by a nested formatter.
 // Configuration example
 //
-// - producer.Console
-//	Formatter: "format.Runlength"
-//	RunlengthDataFormatter: "format.Timestamp"
+//   - producer.Console
+//     Formatter: "format.Runlength"
+//     RunlengthDataFormatter: "format.Timestamp"
 //
 // RunlengthDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"

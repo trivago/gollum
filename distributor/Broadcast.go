@@ -7,9 +7,9 @@ import (
 // Broadcast distributor plugin
 // Configuration example
 //
-// - "distributor.Standard":
-//   Enable: true
-//   Stream: "*"
+//   - "distributor.Standard":
+//     Enable: true
+//     Stream: "*"
 //
 // This consumer does not define any options beside the standard ones.
 // Messages are send to all of the producers listening to the given stream.

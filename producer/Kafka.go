@@ -20,28 +20,28 @@ const (
 // Kafka producer plugin
 // Configuration example
 //
-// - "producer.Kafka":
-//   Enable: true
-//   ClientId: "weblog"
-//   Partitioner: "Roundrobin"
-//   RequiredAcks: 0
-//   TimeoutMs: 0
-//   Compression: "Snappy"
-//   BatchMinCount: 10
-//   BatchSizeByte: 16384
-//   BatchTimeoutSec: 5
-//   BufferSizeMaxKB: 524288
-//   BatchMaxCount: 0
-//   ElectTimeoutMs: 1000
-//   MetadataRefreshSec: 30
-//   Servers:
-//   	- "192.168.222.30:9092"
-//   Stream:
-//     - "console"
-//     - "_GOLLUM_"
-//   Topic:
-//     "console" : "default"
-//     "_GOLLUM_"  : "default"
+//   - "producer.Kafka":
+//     Enable: true
+//     ClientId: "weblog"
+//     Partitioner: "Roundrobin"
+//     RequiredAcks: 0
+//     TimeoutMs: 0
+//     Compression: "Snappy"
+//     BatchMinCount: 10
+//     BatchSizeByte: 16384
+//     BatchTimeoutSec: 5
+//     BufferSizeMaxKB: 524288
+//     BatchMaxCount: 0
+//     ElectTimeoutMs: 1000
+//     MetadataRefreshSec: 30
+//     Servers:
+//     	- "192.168.222.30:9092"
+//     Stream:
+//       - "console"
+//       - "_GOLLUM_"
+//     Topic:
+//       "console" : "default"
+//       "_GOLLUM_"  : "default"
 //
 // ClientId sets the client id of this producer. By default this is "gollum".
 //

@@ -32,11 +32,11 @@ const (
 // File consumer plugin
 // Configuration example
 //
-// - "consumer.File":
-//   Enable: true
-//   File: "test.txt"
-//   Offset: "Current"
-//	 Delimiter: "\n"
+//   - "consumer.File":
+//     Enable: true
+//     File: "test.txt"
+//     Offset: "Current"
+//     Delimiter: "\n"
 //
 // File is a mandatory setting and contains the file to read. The file will be
 // read from beginning to end and the reader will stay attached until the

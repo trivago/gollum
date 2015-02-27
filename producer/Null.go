@@ -8,8 +8,8 @@ import (
 // Null producer plugin
 // Configuration example
 //
-// - "producer.Null":
-//   Enable: true
+//   - "producer.Null":
+//     Enable: true
 //
 // This producer does nothing.
 // It shows the most basic producer who can exist.

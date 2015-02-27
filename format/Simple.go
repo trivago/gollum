@@ -10,9 +10,9 @@ import (
 // string.
 // Configuration example
 //
-// - producer.Console
-//	Formatter: "format.Simple"
-//	Delimiter: "\r\n"
+//   - producer.Console
+//     Formatter: "format.Simple"
+//     Delimiter: "\r\n"
 //
 // Delimiter defines the message postfix. By default this is set to "\n".
 // Special characters like \n \r \t will be transformed into the actual control

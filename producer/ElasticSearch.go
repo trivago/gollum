@@ -13,28 +13,28 @@ import (
 // ElasticSearch producer plugin
 // Configuration example
 //
-// - "producer.ElasticSearch":
-//   Enable: true
-//   Connections: 10
-//   Port: 9200
-//   User: "root"
-//   Password: "root"
-//   BatchSizeByte: 65535
-//   BatchMaxCount: 512
-//   BatchTimeoutSec: 5
-//   RetrySec: 5
-//   TTL: "1d"
-//   Stream:
-//     - "console"
-//     - "_GOLLUM_"
-//   Servers:
-//     - "localhost"
-//   Index:
-//     "console" : "default"
-//     "_GOLLUM_"  : "default"
-//   Type:
-//     "console" : "log"
-//     "_GOLLUM_"  : "gollum"
+//   - "producer.ElasticSearch":
+//     Enable: true
+//     Connections: 10
+//     Port: 9200
+//     User: "root"
+//     Password: "root"
+//     BatchSizeByte: 65535
+//     BatchMaxCount: 512
+//     BatchTimeoutSec: 5
+//     RetrySec: 5
+//     TTL: "1d"
+//     Stream:
+//       - "console"
+//       - "_GOLLUM_"
+//     Servers:
+//       - "localhost"
+//     Index:
+//       "console" : "default"
+//       "_GOLLUM_"  : "default"
+//     Type:
+//       "console" : "log"
+//       "_GOLLUM_"  : "gollum"
 //
 // Servers defines a list of servers to connect to. The first server in the list
 // is used as the server passed to the "Domain" setting. The Domain setting can
@@ -131,7 +131,7 @@ func (prod *ElasticSearch) Configure(conf shared.PluginConfig) error {
 	return nil
 }
 
-func (prod *ElasticSearch) simpleMessage(msg shared.Message) {
+func (prod *ElasticSearch) sendMessage(msg shared.Message) {
 	index, indexMapped := prod.index[msg.CurrentStream]
 	if !indexMapped {
 		index = prod.index[shared.WildcardStreamID]
@@ -162,5 +162,5 @@ func (prod ElasticSearch) Produce(threads *sync.WaitGroup) {
 		prod.MarkAsDone()
 	}()
 
-	prod.DefaultControlLoop(threads, prod.simpleMessage, nil)
+	prod.DefaultControlLoop(threads, prod.sendMessage, nil)
 }

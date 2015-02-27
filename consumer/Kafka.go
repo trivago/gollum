@@ -22,21 +22,21 @@ const (
 // Kafka consumer plugin
 // Configuration example
 //
-// - "consumer.Kafka":
-//   Enable: true
-//   ClientID: "logger"
-//   ConsumerGroup: "logreader"
-//   MaxFetchSizeByte: 8192
-//   MinFetchSizeByte: 0
-//   MaxMessageSizeByte: 0
-//   FetchTimeoutMs: 500
-//   MessageBufferCount: 32
-//   ElectTimeoutMs: 1000
-//   MetadataRefreshSec: 30
-//   Offset: "File"
-//   OffsetFile: "/tmp/gollum_kafka.idx"
-//   Servers:
-//	   - "192.168.222.30:9092"
+//   - "consumer.Kafka":
+//     Enable: true
+//     ClientID: "logger"
+//     ConsumerGroup: "logreader"
+//     MaxFetchSizeByte: 8192
+//     MinFetchSizeByte: 0
+//     MaxMessageSizeByte: 0
+//     FetchTimeoutMs: 500
+//     MessageBufferCount: 32
+//     ElectTimeoutMs: 1000
+//     MetadataRefreshSec: 30
+//     Offset: "File"
+//     OffsetFile: "/tmp/gollum_kafka.idx"
+//     Servers:
+//       - "192.168.222.30:9092"
 //
 // ClientId sets the client id of this producer. By default this is "gollum".
 //

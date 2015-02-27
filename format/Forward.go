@@ -7,8 +7,8 @@ import (
 // Forward is a formatter that passes a message as is
 // Configuration example
 //
-// - producer.Console
-//	Formatter: "format.Forward"
+//   - producer.Console
+//     Formatter: "format.Forward"
 type Forward struct {
 	msg shared.Message
 }

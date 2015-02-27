@@ -20,13 +20,13 @@ const (
 // Socket consumer plugin
 // Configuration example
 //
-// - "consumer.Socket":
-//   Enable: true
-//   Address: "unix:///var/gollum.socket"
-//   Acknowledge: true
-//   Runlength: true
-//   Sequence: true
-//   Delimiter: "\n"
+//   - "consumer.Socket":
+//     Enable: true
+//     Address: "unix:///var/gollum.socket"
+//     Acknowledge: true
+//     Runlength: true
+//     Sequence: true
+//     Delimiter: "\n"
 //
 // Address stores the identifier to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
