@@ -11,14 +11,14 @@ There are a few basic terms used throughout Gollum:
 
 Writing a custom plugin does not require you to change any additional code besides your new plugin file.
 
-## Consumers
+## Consumers (reading data)
 
 * `Console` read from stdin.
 * `File` read from a file (like tail).
 * `Kafka` read from a Kafka topic using the Sarama Kafka library.
 * `Socket` read from a socket (gollum specfic protocol).
 
-## Producers
+## Producers (writing data)
 
 * `Console` write to stdin or stdout.
 * `ElasticSearch` write to elastic search via http/bulk.
@@ -28,7 +28,7 @@ Writing a custom plugin does not require you to change any additional code besid
 * `Facebook Scribe` send messages to a scribe server.
 * `Socket` send messages to a socket  (gollum specfic protocol).
 
-## Distributors
+## Distributors (multiplexing)
 
 * `Broadcast` send to all producers in a stream.
 * `Random` send to a random roducers in a stream.
