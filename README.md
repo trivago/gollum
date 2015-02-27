@@ -36,9 +36,8 @@ Writing a custom plugin does not require you to change any additional code besid
 
 ## Configuration
 
-## Usage
-
-### Options
+Configuration files are written in the YAML format and have to be loaded via command line switch.
+Each plugin has a different set of configuration options which are currently described in the plugin itself, i.e. you can find examples in the GoDocs.
 
 #### `-c` or `--config` (file)
 
