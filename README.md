@@ -68,3 +68,5 @@ Write go CPU profiler results to a given file.
 Write go memory profiler results to a given file.
 
 ## License
+
+http://www.apache.org/licenses/LICENSE-2.0
