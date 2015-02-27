@@ -34,6 +34,13 @@ Writing a custom plugin does not require you to change any additional code besid
 * `Random` send to a random roducers in a stream.
 * `RoundRobin` switch the producer after each send in a round robin fashion.
 
+## Installation
+
+```
+$ go get .
+$ go build .
+```
+
 ## Configuration
 
 Configuration files are written in the YAML format and have to be loaded via command line switch.
