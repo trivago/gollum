@@ -72,8 +72,9 @@ type StateData struct {
 
 // Parser is the main struct for token based parsing
 type Parser struct {
-	state       int
-	transitions [][]Transition
+	state           int
+	transitions     [][]Transition
+	candidateBuffer []byte
 }
 
 // NewTransition creates a new transition object to be used with NewParser.
@@ -88,21 +89,45 @@ func NewTransition(token string, state int, flags ParserFlag) Transition {
 
 // NewParser generates a new parser based on a set of given transitions
 func NewParser(transitions [][]Transition) Parser {
+	maxNumTokens := 0
+	for _, state := range transitions {
+		numTokens := len(state)
+		if numTokens > maxNumTokens {
+			maxNumTokens = numTokens
+		}
+	}
+
 	return Parser{
-		state:       0,
-		transitions: transitions,
+		state:           0,
+		transitions:     transitions,
+		candidateBuffer: make([]byte, maxNumTokens),
 	}
 }
 
 // Do a state transition, i.e. set the next state, return the new transition
 // tokens and the number of tokens in the returned array.
-func (parser *Parser) setState(state int) ([]Transition, int) {
+func (parser *Parser) setState(state int) ([]Transition, int, int) {
 	parser.state = state
 
 	trans := parser.transitions[parser.state]
 	num := len(trans)
+	numCandidates := 0
 
-	return trans, num
+nextToken:
+	for tIdx := 0; tIdx < num; tIdx++ {
+		firstChar := trans[tIdx].token[0]
+
+		for cIdx := 0; cIdx < numCandidates; cIdx++ {
+			if firstChar == parser.candidateBuffer[cIdx] {
+				continue nextToken
+			}
+		}
+
+		parser.candidateBuffer[numCandidates] = firstChar
+		numCandidates++
+	}
+
+	return trans, num, numCandidates
 }
 
 // Parse parses a string with the transition passed to the parser object.
@@ -115,64 +140,72 @@ func (parser Parser) Parse(message []byte, initialState int) []StateData {
 
 	startIdx := 0
 	messageLen := len(message)
-	transitions, numTransitions := parser.setState(initialState)
+	transitions, numTransitions, numCandidates := parser.setState(initialState)
 
 parsing:
 	// Iterate over the whole message
 	for parseIdx := 0; parseIdx < messageLen; {
 
-	nextToken:
-		// Check all possible transitions
-		for tIdx := 0; tIdx < numTransitions; tIdx++ {
-			t := &transitions[tIdx]
-			cmpIdxEnd := parseIdx + t.tokenLen
+		// Fast test to check if we need to have a closer look at the tokens
+		candidate := false
+		for i := 0; i < numCandidates && !candidate; i++ {
+			candidate = message[parseIdx] == parser.candidateBuffer[i]
+		}
 
-			// Bounds check
-			if cmpIdxEnd > messageLen {
-				continue nextToken
-			}
+		if candidate {
+		nextToken:
+			// Check all possible transitions
+			for tIdx := 0; tIdx < numTransitions; tIdx++ {
+				t := &transitions[tIdx]
+				cmpIdxEnd := parseIdx + t.tokenLen
 
-			// Check token match
-			for i := 0; i < t.tokenLen; i++ {
-				if message[parseIdx+i] != t.token[i] {
+				// Bounds check
+				if cmpIdxEnd > messageLen {
 					continue nextToken
 				}
+
+				// Check token match
+				for i := 0; i < t.tokenLen; i++ {
+					if message[parseIdx+i] != t.token[i] {
+						continue nextToken
+					}
+				}
+
+				//fmt.Printf("[%s] s%d p%d e%d +%d [%s]", string(message[parseIdx:cmpIdxEnd]), startIdx, parseIdx, cmpIdxEnd, stride, string(message[startIdx:parseIdx]))
+
+				// Store the result
+				if t.flags&ParserFlagPersist != 0 {
+					//fmt.Print(" w")
+					result = append(result, StateData{
+						Data:  message[startIdx:parseIdx],
+						State: parser.state,
+					})
+				}
+
+				// Move the iterator over the matched element
+				if t.flags&ParserFlagSkip != 0 {
+					//fmt.Print(" s")
+					parseIdx += t.tokenLen
+				} else {
+					parseIdx++
+				}
+
+				// Restart the slice if continue is NOT set
+				if t.flags&ParserFlagContinue == 0 {
+					//fmt.Print(" n")
+					startIdx = parseIdx
+				}
+
+				//fmt.Print("\n")
+
+				// If the next state is "stop" stop here at once
+				if t.state == ParserStateStop {
+					return result
+				}
+
+				transitions, numTransitions, numCandidates = parser.setState(t.state)
+				continue parsing
 			}
-
-			//fmt.Printf("[%s] s%d p%d e%d +%d [%s]", string(message[parseIdx:cmpIdxEnd]), startIdx, parseIdx, cmpIdxEnd, stride, string(message[startIdx:parseIdx]))
-
-			// Store the result
-			if t.flags&ParserFlagPersist != 0 {
-				//fmt.Print(" w")
-				result = append(result, StateData{
-					Data:  message[startIdx:parseIdx],
-					State: parser.state,
-				})
-			}
-
-			// Move the iterator over the matched element
-			if t.flags&ParserFlagSkip != 0 {
-				//fmt.Print(" s")
-				parseIdx += t.tokenLen
-			} else {
-				parseIdx++
-			}
-
-			// Restart the slice if continue is NOT set
-			if t.flags&ParserFlagContinue == 0 {
-				//fmt.Print(" n")
-				startIdx = parseIdx
-			}
-
-			//fmt.Print("\n")
-
-			// If the next state is "stop" stop here at once
-			if t.state == ParserStateStop {
-				return result
-			}
-
-			transitions, numTransitions = parser.setState(t.state)
-			continue parsing
 		}
 
 		parseIdx++
