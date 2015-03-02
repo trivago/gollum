@@ -110,24 +110,22 @@ func (parser *Parser) setState(state int) ([]Transition, int, int) {
 	parser.state = state
 
 	trans := parser.transitions[parser.state]
-	num := len(trans)
+	numTrans := len(trans)
 	numCandidates := 0
 
 nextToken:
-	for tIdx := 0; tIdx < num; tIdx++ {
+	for tIdx := 0; tIdx < numTrans; tIdx++ {
 		firstChar := trans[tIdx].token[0]
-
 		for cIdx := 0; cIdx < numCandidates; cIdx++ {
 			if firstChar == parser.candidateBuffer[cIdx] {
 				continue nextToken
 			}
 		}
-
 		parser.candidateBuffer[numCandidates] = firstChar
 		numCandidates++
 	}
 
-	return trans, num, numCandidates
+	return trans, numTrans, numCandidates
 }
 
 // Parse parses a string with the transition passed to the parser object.
