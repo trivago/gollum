@@ -1,6 +1,7 @@
 # Gollum
 
-Gollum is a log multiplexer that gathers messages from different sources and broadcasts them to a set of listeners.
+Gollum is a n:m log multiplexer that gathers messages from different sources and broadcasts them to a set of listeners.
+
 There are a few basic terms used throughout Gollum:
 
 * A "consumer" is a plugin that reads from an external source
@@ -15,18 +16,22 @@ Writing a custom plugin does not require you to change any additional code besid
 
 * `Console` read from stdin.
 * `File` read from a file (like tail).
-* `Kafka` read from a Kafka topic using the Sarama Kafka library.
+* `Kafka` read from a [Kafka](http://kafka.apache.org/) topic.
 * `Socket` read from a socket (gollum specfic protocol).
 
 ## Producers (writing data)
 
 * `Console` write to stdin or stdout.
-* `ElasticSearch` write to elastic search via http/bulk.
+* `ElasticSearch` write to [elasticsearch](http://www.elasticsearch.org/) via http/bulk.
 * `File` write to a file. Supports log rotation and compression.
-* `Kafka` write to a Kafka topic using the Sarama Kafka library.
+* `Kafka` write to a [Kafka](http://kafka.apache.org/) topic.
 * `Null` like /dev/null.
-* `Facebook Scribe` send messages to a scribe server.
-* `Socket` send messages to a socket  (gollum specfic protocol).
+* `Facebook Scribe` send messages to a [scribe](https://github.com/facebookarchive/scribe) server.
+* `Socket` send messages to a socket (gollum specfic protocol).
+
+## Formatters (modifying data)
+
+TODO
 
 ## Distributors (multiplexing)
 
@@ -36,15 +41,32 @@ Writing a custom plugin does not require you to change any additional code besid
 
 ## Installation
 
+### From source
+
+Installation from source requires the installation of the [Go toolchain](http://golang.org/).
+
 ```
 $ go get .
 $ go build .
+$ gollum --help
 ```
+
+## Usage
+
+The simplest usage is to make a local profiler run with a predefined consiguration:
+
+```
+$ gollum -c gollum_profile.conf
+```
+
+This configuration generates random messages (via *consumer.Profiler*) and write this to a file called *log_profile.log* with file rotation after 512MB per file (via *producer.File*).
 
 ## Configuration
 
 Configuration files are written in the YAML format and have to be loaded via command line switch.
 Each plugin has a different set of configuration options which are currently described in the plugin itself, i.e. you can find examples in the GoDocs.
+
+### Commandline
 
 #### `-c` or `--config` (file)
 
@@ -52,7 +74,7 @@ Load a YAML config file. Example files can be found in the gollum directory.
 
 #### `-n` or `--numcpu` (number)
 
-Number of cores to use.
+Number of cpu cores to use.
 
 #### `-p` or `--pidfile` (file)
 
@@ -64,16 +86,36 @@ Show version and exit.
 
 #### `-t` or `--throughput`
 
-Write regular statistics about message / sec throughput.
+Write regular statistics about message / sec throughput to stdout.
 
-#### `-cp` or `--cpuprofile`
+#### `-cp` or `--cpuprofile` (file)
 
 Write go CPU profiler results to a given file.
 
-#### `-mp` or `--memprofile`
+#### `-mp` or `--memprofile` (file)
 
 Write go memory profiler results to a given file.
 
+### Configuration file
+
+TODO
+
+## Use cases
+
+TODO
+
+### Business logging (by PHP) to Kafka
+
+TODO
+
+### Accesslog parsing for Elasticsearch
+
+TODO
+
+### Log aggregation by many servers to files
+
+TODO
+
 ## License
 
-http://www.apache.org/licenses/LICENSE-2.0
+This project is released under the terms of the [Apache 2.0 license](http://www.apache.org/licenses/LICENSE-2.0).
