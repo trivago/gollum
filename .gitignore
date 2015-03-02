@@ -4,3 +4,4 @@ log*.log
 log_*
 gollum.pid
 test*.txt
+*.prof
