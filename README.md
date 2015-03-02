@@ -118,6 +118,8 @@ Configure a *Gollum* syslogd consumer like **
     Format: 3164
     Address: 0.0.0.0:5880
 ...
+
+# TODO Add Kafka producer
 ```
 This consumer will listen to 0.0.0.0:5880 and follow the [RFC 3164](http://tools.ietf.org/html/rfc3164) for the *profile* stream and a buffer of 1024 messages.
 
