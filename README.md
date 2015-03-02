@@ -104,10 +104,6 @@ TODO
 
 TODO
 
-### Nginx logs to Kafka
-
-TODO
-
 ### Business logging (by PHP) to Kafka
 
 TODO
