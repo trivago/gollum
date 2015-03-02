@@ -104,6 +104,38 @@ TODO
 
 TODO
 
+### Nginx logs to Kafka
+
+To aggregate logs by a [nginx](http://nginx.org/) web server *Gollum* can be used.
+Configure a *Gollum* syslogd consumer like **
+
+```
+...
+- "consumer.Syslogd":
+    Enable: true
+    Channel: 1024
+    Stream: "profile"
+    Format: 3164
+    Address: 0.0.0.0:5880
+...
+```
+This consumer will listen to 0.0.0.0:5880 and follow the [RFC 3164](http://tools.ietf.org/html/rfc3164) for the *profile* stream and a buffer of 1024 messages.
+
+An example *nginx.conf* can look like
+```
+http {
+  ...
+  log_format syslogd "$remote_addr - $remote_user [$time_local] '$request' $status $body_bytes_sent '$http_referer' '$http_user_agent'\n";
+  access_log syslog:server=192.168.7.52:5880 syslogd;
+  ...
+}
+```
+Important note: A syslog message will be delimited by a newline. The *\n* at the end of *log_format* is important here.
+
+References:
+* [Logging to syslog @ Nginx docs](http://nginx.org/en/docs/syslog.html)
+* [Module ngx_http_log_module @ Nginx docs](http://nginx.org/en/docs/http/ngx_http_log_module.html)
+
 ### Business logging (by PHP) to Kafka
 
 TODO
