@@ -15,7 +15,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/trivago/gollum/log"
 	"github.com/trivago/gollum/shared"
 	"os"
@@ -36,13 +35,7 @@ type multiplexer struct {
 }
 
 // Create a new multiplexer based on a given config file.
-func newMultiplexer(configFile string, profile bool) multiplexer {
-	conf, err := shared.ReadConfig(configFile)
-	if err != nil {
-		fmt.Printf("Error: %s", err.Error())
-		os.Exit(-1)
-	}
-
+func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 	// Configure the multiplexer, create a byte pool and assign it to the log
 
 	logConsumer := Log.Consumer{}

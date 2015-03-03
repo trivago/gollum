@@ -22,6 +22,7 @@ import (
 	_ "github.com/trivago/gollum/distributor"
 	_ "github.com/trivago/gollum/format"
 	_ "github.com/trivago/gollum/producer"
+	"github.com/trivago/gollum/shared"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -92,6 +93,12 @@ func main() {
 
 	// Start the gollum multiplexer
 
-	plex := newMultiplexer(*configFilePtr, *msgProfilePtr)
+	conf, err := shared.ReadConfig(*configFilePtr)
+	if err != nil {
+		fmt.Printf("Error: %s", err.Error())
+		os.Exit(-1)
+	}
+
+	plex := newMultiplexer(conf, *msgProfilePtr)
 	plex.run()
 }
