@@ -15,23 +15,22 @@
 package format
 
 import (
-	"fmt"
 	"github.com/trivago/gollum/shared"
 	"strings"
 )
 
-// Simple is a formatter that allows postfixing a message with a delimiter
+// Delimiter is a formatter that allows postfixing a message with a delimiter
 // string.
 // Configuration example
 //
 //   - producer.Console
-//     Formatter: "format.Simple"
+//     Formatter: "format.Delimiter"
 //     Delimiter: "\r\n"
 //
 // Delimiter defines the message postfix. By default this is set to "\n".
 // Special characters like \n \r \t will be transformed into the actual control
 // characters.
-type Simple struct {
+type Delimiter struct {
 	delimiter    string
 	msg          shared.Message
 	delimiterLen int
@@ -39,11 +38,11 @@ type Simple struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Simple{})
+	shared.RuntimeType.Register(Delimiter{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Simple) Configure(conf shared.PluginConfig) error {
+func (format *Delimiter) Configure(conf shared.PluginConfig) error {
 	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
 	format.delimiter = escapeChars.Replace(conf.GetString("Delimiter", shared.DefaultDelimiter))
 	format.delimiterLen = len(format.delimiter)
@@ -51,25 +50,25 @@ func (format *Simple) Configure(conf shared.PluginConfig) error {
 }
 
 // PrepareMessage sets the message to be formatted.
-func (format *Simple) PrepareMessage(msg shared.Message) {
+func (format *Delimiter) PrepareMessage(msg shared.Message) {
 	format.msg = msg
 	format.length = len(format.msg.Data) + format.delimiterLen
 }
 
 // GetLength returns the length of a formatted message returned by String()
 // or CopyTo().
-func (format *Simple) GetLength() int {
+func (format *Delimiter) GetLength() int {
 	return format.length
 }
 
 // String returns the message as string
-func (format *Simple) String() string {
-	return fmt.Sprintf("%s%s", string(format.msg.Data), format.delimiter)
+func (format *Delimiter) String() string {
+	return string(format.msg.Data) + format.delimiter
 }
 
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
-func (format *Simple) CopyTo(dest []byte) int {
+func (format *Delimiter) CopyTo(dest []byte) int {
 	len := copy(dest, format.msg.Data)
 	len += copy(dest[len:], format.delimiter)
 	return len

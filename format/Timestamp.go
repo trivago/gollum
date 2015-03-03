@@ -15,13 +15,7 @@
 package format
 
 import (
-	"fmt"
 	"github.com/trivago/gollum/shared"
-	"strings"
-)
-
-const (
-	messageFormatTimestampSeparator = " | "
 )
 
 // Timestamp is a formatter that allows prefixing a message with a timestamp
@@ -41,11 +35,10 @@ const (
 // Special characters like \n \r \t will be transformed into the actual control
 // characters.
 type Timestamp struct {
-	timestampFormat string
-	delimiter       string
+	base            shared.Formatter
 	msg             shared.Message
+	timestampFormat string
 	timestamp       string
-	formatLen       int
 	length          int
 }
 
@@ -55,19 +48,22 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Timestamp) Configure(conf shared.PluginConfig) error {
-	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
+	plugin, err := shared.RuntimeType.NewPlugin(conf.GetString("TimestampDataFormatter", "format.Delimiter"), conf)
+	if err != nil {
+		return err
+	}
 
-	format.delimiter = escapeChars.Replace(conf.GetString("Delimiter", shared.DefaultDelimiter))
+	format.base = plugin.(shared.Formatter)
 	format.timestampFormat = conf.GetString("Timestamp", shared.DefaultTimestamp)
-	format.formatLen = len(format.timestampFormat) + len(messageFormatTimestampSeparator) + len(format.delimiter)
 
 	return nil
 }
 
 // PrepareMessage sets the message to be formatted.
 func (format *Timestamp) PrepareMessage(msg shared.Message) {
+	format.base.PrepareMessage(msg)
 	format.msg = msg
-	format.length = len(format.msg.Data) + format.formatLen
+	format.length = format.base.GetLength() + len(format.timestampFormat)
 	format.timestamp = format.msg.Timestamp.Format(format.timestampFormat)
 }
 
@@ -79,15 +75,13 @@ func (format *Timestamp) GetLength() int {
 
 // String returns the message as string
 func (format *Timestamp) String() string {
-	return fmt.Sprintf("%s%s%s%s", format.timestamp, messageFormatTimestampSeparator, string(format.msg.Data), format.delimiter)
+	return format.timestamp + format.base.String()
 }
 
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
 func (format *Timestamp) CopyTo(dest []byte) int {
 	len := copy(dest[:], format.timestamp)
-	len += copy(dest[len:], messageFormatTimestampSeparator)
-	len += copy(dest[len:], format.msg.Data)
-	len += copy(dest[len:], format.delimiter)
+	len += format.base.CopyTo(dest[len:])
 	return len
 }

@@ -15,9 +15,11 @@ Writing a custom plugin does not require you to change any additional code besid
 ## Consumers (reading data)
 
 * `Console` read from stdin.
+* `Dropped` route messages that have been timed out.
 * `File` read from a file (like tail).
 * `Kafka` read from a [Kafka](http://kafka.apache.org/) topic.
 * `Socket` read from a socket (gollum specfic protocol).
+* `Syslogd` read from a socket (syslogd protocol).
 
 ## Producers (writing data)
 
@@ -31,7 +33,12 @@ Writing a custom plugin does not require you to change any additional code besid
 
 ## Formatters (modifying data)
 
-TODO
+* `Forward` write the message without modifying it.
+* `JSON` write the message (and gollum specific metadata) as a JSON object. Other formatters can be nested.
+* `Runlength` prepend the length of themessage. Other formatters can be nested.
+* `Sequence` prepend the sequence number of the message. Other formatters can be nested.
+* `Delimiter` add a delimiter string after the message.
+* `Timestamp` add a timestamp before the message. Other formatters can be nested.
 
 ## Distributors (multiplexing)
 
@@ -53,7 +60,7 @@ $ gollum --help
 
 ## Usage
 
-The simplest usage is to make a local profiler run with a predefined consiguration:
+The Delimiterst usage is to make a local profiler run with a predefined consiguration:
 
 ```
 $ gollum -c gollum_profile.conf

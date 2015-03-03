@@ -21,7 +21,7 @@ import (
 
 const (
 	// DefaultTimestamp is the timestamp format string used for messages
-	DefaultTimestamp = "2006-01-02 15:04:05 MST"
+	DefaultTimestamp = "2006-01-02 15:04:05 MST | "
 	// DefaultDelimiter is the default end of message delimiter
 	DefaultDelimiter = "\n"
 )

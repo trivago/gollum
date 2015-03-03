@@ -22,7 +22,7 @@ import (
 func testFormatter(t *testing.T, formatter shared.Formatter) bool {
 	expect := shared.NewExpect(t)
 
-	msgString := "formatter" //\ttest\r\n123 456\n"
+	msgString := "\ttest\r\n123 456\n"
 	msg := shared.NewMessage(msgString, []shared.MessageStreamID{}, 0)
 
 	formatter.PrepareMessage(msg)

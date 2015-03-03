@@ -31,7 +31,7 @@ func (br *bufferedReaderTestData) write(data []byte, seq uint64) {
 	br.parsed++
 }
 
-func TestBufferedReaderSimple(t *testing.T) {
+func TestBufferedReaderDelimiter(t *testing.T) {
 	data := bufferedReaderTestData{
 		expect: NewExpect(t),
 		tokens: []string{"test1", "test 2", "test\r3"},
