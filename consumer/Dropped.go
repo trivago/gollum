@@ -26,6 +26,9 @@ import (
 //     Enable: true
 //
 // This consumer does not define any options beside the standard ones.
+// This consumer collects _DROPPED_ messages and makes them available for all
+// producers. You can define multiple Dropped consumer but only one will
+// recieve messages, i.e. more than one Dropped consumer does not make sense.
 type Dropped struct {
 	shared.ConsumerBase
 }
@@ -40,8 +43,7 @@ func (cons *Dropped) Configure(conf shared.PluginConfig) error {
 	if err != nil {
 		return err
 	}
-	//cons.ConsumerBase.streams = []shared.MessageStreamID{shared.DroppedStreamID}
-	shared.RegisterDropConsumer(cons.ConsumerBase)
+	shared.RegisterDroppedConsumer(&cons.ConsumerBase)
 	return nil
 }
 

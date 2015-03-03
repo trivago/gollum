@@ -41,9 +41,8 @@ var WildcardStreamID = GetStreamID(WildcardStream)
 // DroppedStreamID is the ID of the "_DROPPED_" stream
 var DroppedStreamID = GetStreamID(DroppedStream)
 
-// dropConsumer contains the list of registered channels that recieve dropped
-// messages
-var dropConsumer = make([]chan<- Message, 0)
+// droppedQueue is a reference to the message queue of a Dropped consumer.
+var droppedQueue chan<- Message
 
 // Message is a container used for storing the internal state of messages.
 // This struct is passed between consumers and producers.
@@ -114,20 +113,20 @@ func (msg Message) IsInternalOnly() bool {
 	return true
 }
 
-// RegisterDropConsumer registers a consumer channel to the list of listeners
-// accepting dropped messages.
-func RegisterDropConsumer(cons ConsumerBase) {
-	dropConsumer = append(dropConsumer, cons.messages)
+// RegisterDroppedConsumer registers a consumer channel to the list of listeners
+// accepting dropped messages. In addition to that the array of streams is
+// replaced by only accepting the DroppedStream.
+func RegisterDroppedConsumer(cons *ConsumerBase) {
+	cons.streams = []MessageStreamID{DroppedStreamID}
+	droppedQueue = cons.messages
 }
 
-// Drop marks a message as dropped and pushes it into the dropped messages
-// channel. This channel may block.
-func Drop(msg Message) {
-	if len(dropConsumer) > 0 {
+// DropMessage marks a message as dropped and pushes it into the dropped
+// messages channel. This channel may block.
+func DropMessage(msg Message) {
+	if droppedQueue != nil {
 		msg.streams = []MessageStreamID{DroppedStreamID}
-		for _, ch := range dropConsumer {
-			ch <- msg
-		}
+		droppedQueue <- msg
 	}
 }
 
@@ -135,6 +134,8 @@ func Drop(msg Message) {
 // waiting for a timeout instead of just blocking.
 // Passing a timeout of -1 which will discard the message.
 // Passing a timout of 0 will always block.
+// Messages that time out will be passed to the dropped queue if a Dropped
+// consumer exists.
 func PostMessage(channel chan<- Message, msg Message, timeout time.Duration) {
 	if timeout == 0 {
 		channel <- msg
@@ -162,7 +163,7 @@ func PostMessage(channel chan<- Message, msg Message, timeout time.Duration) {
 
 				// Discard message after timeout
 				case time.Since(*start) > timeout:
-					Drop(msg)
+					go DropMessage(msg)
 					return
 				}
 			}
