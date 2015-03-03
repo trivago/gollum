@@ -122,11 +122,11 @@ func newMultiplexer(configFile string, profile bool) multiplexer {
 // that stream.
 func (plex multiplexer) distribute(message shared.Message, streamID shared.MessageStreamID, sendToInactive bool) {
 	producers := plex.stream[streamID]
-	pinnedMsg := message.CopyAndPin(streamID)
+	message.SetCurrentStream(streamID)
 
 	if distributors, isManaged := plex.managedStream[streamID]; isManaged {
 		for _, distributor := range distributors {
-			distributor.Distribute(pinnedMsg, producers, sendToInactive)
+			distributor.Distribute(message, producers, sendToInactive)
 		}
 	} else {
 		for _, producer := range producers {
