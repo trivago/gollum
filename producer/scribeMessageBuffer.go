@@ -95,7 +95,7 @@ func (batch *scribeMessageBuffer) append(msg shared.Message, category string) bo
 	return true
 }
 
-func (batch *scribeMessageBuffer) appendAndRelease(msg shared.Message, category string) bool {
+func (batch *scribeMessageBuffer) Append(msg shared.Message, category string) bool {
 	result := batch.append(msg, category)
 	return result
 }

@@ -320,7 +320,7 @@ func (prod *File) writeBatchOnTimeOut() {
 }
 
 func (prod *File) writeMessage(message shared.Message) {
-	prod.batch.AppendAndRelease(message)
+	prod.batch.Append(message)
 	if prod.batch.ReachedSizeThreshold(prod.batchSize) {
 		prod.writeBatch()
 	}

@@ -146,7 +146,7 @@ func (prod *Scribe) sendMessage(message shared.Message) {
 		category = prod.category[shared.WildcardStreamID]
 	}
 
-	prod.batch.appendAndRelease(message, category)
+	prod.batch.Append(message, category)
 	if prod.batch.reachedSizeThreshold(prod.batchSize) {
 		prod.sendBatch()
 	}

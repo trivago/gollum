@@ -81,13 +81,6 @@ func (batch *MessageBuffer) Append(msg Message) bool {
 	return true
 }
 
-// AppendAndRelease is basically the same as Append but releases the message
-// when done.
-func (batch *MessageBuffer) AppendAndRelease(msg Message) bool {
-	result := batch.Append(msg)
-	return result
-}
-
 // Touch resets the timer queried by ReachedTimeThreshold, i.e. this resets the
 // automatic flush timeout
 func (batch *MessageBuffer) Touch() {
