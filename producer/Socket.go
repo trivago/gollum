@@ -158,7 +158,7 @@ func (prod *Socket) sendBatchOnTimeOut() {
 }
 
 func (prod *Socket) sendMessage(message shared.Message) {
-	prod.batch.AppendAndRelease(message)
+	prod.batch.Append(message)
 	if prod.batch.ReachedSizeThreshold(prod.batchSize) {
 		prod.sendBatch()
 	}
