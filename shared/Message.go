@@ -116,8 +116,8 @@ func (msg Message) IsInternalOnly() bool {
 
 // RegisterDropConsumer registers a consumer channel to the list of listeners
 // accepting dropped messages.
-func RegisterDropConsumer(listener chan<- Message) {
-	dropConsumer = append(dropConsumer, listener)
+func RegisterDropConsumer(cons ConsumerBase) {
+	dropConsumer = append(dropConsumer, cons.messages)
 }
 
 // Drop marks a message as dropped and pushes it into the dropped messages
