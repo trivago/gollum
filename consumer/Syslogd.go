@@ -17,9 +17,9 @@ package consumer
 import (
 	"fmt"
 	"github.com/jeromer/syslogparser"
+	"github.com/mcuadros/go-syslog"
+	"github.com/mcuadros/go-syslog/format"
 	"github.com/trivago/gollum/shared"
-	"gopkg.in/arnecls/go-syslog.v2"
-	"gopkg.in/arnecls/go-syslog.v2/format"
 	"sync"
 )
 
@@ -28,9 +28,9 @@ import (
 //
 //   - "consumer.Syslogd":
 //     Enable: true
-//     Address: 0.0.0.0:5880
-//     Format: RFC3164
-//     Protocol: udp
+//     Address: "0.0.0.0:5880"
+//     Format: "RFC3164"
+//     Protocol: "udp"
 //
 // Address stores the identifier to bind to.
 // This must be a ip address and port like "127.0.0.1:5880"
