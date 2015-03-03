@@ -108,14 +108,15 @@ func (cons *Syslogd) recieve(channel syslog.LogPartsChannel) {
 	seq := uint64(0)
 
 	for {
-		logParts, closed := <-channel
-		if closed || logParts == nil {
+		logParts, ok := <-channel
+		if !ok || logParts == nil {
 			return
 		}
 
 		// TODO The complete message / map can be marshalled as json?
 		// TODO Maybe some message formatter can help?
 		// fmt.Println(logParts["content"])
+		fmt.Println(logParts)
 
 		cons.PostMessage((logParts["content"]).(string), seq)
 		seq++

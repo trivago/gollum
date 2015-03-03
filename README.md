@@ -115,7 +115,7 @@ Configure a *Gollum* syslogd consumer like **
     Enable: true
     Channel: 1024
     Stream: "profile"
-    Format: 3164
+    Format: "RFC3164"
     Address: 0.0.0.0:5880
 ...
 
