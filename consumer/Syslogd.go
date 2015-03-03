@@ -58,12 +58,8 @@ import (
 // By default this is set to "udp".
 type Syslogd struct {
 	shared.ConsumerBase
-
-	// RFC3164, RFC5424 or RFC6587?
-	format format.Format
-
-	// udp or tcp
-	protocol string
+	format   format.Format // RFC3164, RFC5424 or RFC6587?
+	protocol string        // udp or tcp
 	address  string
 }
 
@@ -107,6 +103,25 @@ func (cons *Syslogd) Configure(conf shared.PluginConfig) error {
 	return err
 }
 
+func (cons *Syslogd) recieve(channel syslog.LogPartsChannel) {
+	defer cons.MarkAsDone()
+	seq := uint64(0)
+
+	for {
+		logParts, closed := <-channel
+		if closed || logParts == nil {
+			return
+		}
+
+		// TODO The complete message / map can be marshalled as json?
+		// TODO Maybe some message formatter can help?
+		// fmt.Println(logParts["content"])
+
+		cons.PostMessage((logParts["content"]).(string), seq)
+		seq++
+	}
+}
+
 // Consume opens a new syslog socket.
 // Messages are expected to be separated by \n.
 func (cons Syslogd) Consume(threads *sync.WaitGroup) {
@@ -126,21 +141,11 @@ func (cons Syslogd) Consume(threads *sync.WaitGroup) {
 	}
 
 	server.Boot()
+	defer func() {
+		server.Wait()
+		close(channel)
+	}()
 
-	go func(channel syslog.LogPartsChannel) {
-		var i uint64
-		for logParts := range channel {
-			i++
-
-			// TODO The complete message / map can be marshalled as json?
-			// TODO Maybe some message formatter can help?
-			// fmt.Println(logParts["content"])
-			cons.PostMessage((logParts["content"]).(string), i)
-		}
-		cons.MarkAsDone()
-	}(channel)
-
-	server.Wait()
-
+	go cons.recieve(channel)
 	cons.DefaultControlLoop(threads, nil)
 }
