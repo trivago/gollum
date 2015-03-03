@@ -28,6 +28,8 @@ const (
 	LogInternalStream = "_GOLLUM_"
 	// WildcardStream is the name of the "all streams" channel
 	WildcardStream = "*"
+	// DroppedStream is the name of the stream used to store dropped messages
+	DroppedStream = "_DROPPED_"
 )
 
 // LogInternalStreamID is the ID of the "_GOLLUM_" stream
@@ -35,6 +37,12 @@ var LogInternalStreamID = GetStreamID(LogInternalStream)
 
 // WildcardStreamID is the ID of the "*" stream
 var WildcardStreamID = GetStreamID(WildcardStream)
+
+// DroppedStreamID is the ID of the "_DROPPED_" stream
+var DroppedStreamID = GetStreamID(DroppedStream)
+
+// droppedQueue is a reference to the message queue of a Dropped consumer.
+var droppedQueue chan<- Message
 
 // Message is a container used for storing the internal state of messages.
 // This struct is passed between consumers and producers.
@@ -76,11 +84,13 @@ func NewMessageFromSlice(data []byte, streams []MessageStreamID, sequence uint64
 	}
 }
 
-// CopyAndPin creates a copy of the message and sets the CurrentStream member
-// to the given stream. In addition to that the reference counter is increased.
-func (msg Message) CopyAndPin(stream MessageStreamID) Message {
-	msg.CurrentStream = stream
-	return msg
+// SetCurrentStream modifies the CurrentStream member if the stream is NOT
+// _DROPPED_. In that case the current stream member contains the stream that
+// caused the dropped.
+func (msg *Message) SetCurrentStream(stream MessageStreamID) {
+	if stream != DroppedStreamID {
+		msg.CurrentStream = stream
+	}
 }
 
 // ForEachStream iterates over all streams of this message and calls the given
@@ -96,17 +106,36 @@ func (msg *Message) ForEachStream(callback func(stream MessageStreamID) bool) {
 // IsInternalOnly returns true if a message is posted only to internal streams
 func (msg Message) IsInternalOnly() bool {
 	for _, value := range msg.streams {
-		if value != LogInternalStreamID {
+		if value != LogInternalStreamID && value != DroppedStreamID {
 			return false
 		}
 	}
 	return true
 }
 
+// RegisterDroppedConsumer registers a consumer channel to the list of listeners
+// accepting dropped messages. In addition to that the array of streams is
+// replaced by only accepting the DroppedStream.
+func RegisterDroppedConsumer(cons *ConsumerBase) {
+	cons.streams = []MessageStreamID{DroppedStreamID}
+	droppedQueue = cons.messages
+}
+
+// DropMessage marks a message as dropped and pushes it into the dropped
+// messages channel. This channel may block.
+func DropMessage(msg Message) {
+	if droppedQueue != nil {
+		msg.streams = []MessageStreamID{DroppedStreamID}
+		droppedQueue <- msg
+	}
+}
+
 // PostMessage is a convenience function to push a message to a channel while
 // waiting for a timeout instead of just blocking.
 // Passing a timeout of -1 which will discard the message.
 // Passing a timout of 0 will always block.
+// Messages that time out will be passed to the dropped queue if a Dropped
+// consumer exists.
 func PostMessage(channel chan<- Message, msg Message, timeout time.Duration) {
 	if timeout == 0 {
 		channel <- msg
@@ -134,6 +163,7 @@ func PostMessage(channel chan<- Message, msg Message, timeout time.Duration) {
 
 				// Discard message after timeout
 				case time.Since(*start) > timeout:
+					go DropMessage(msg)
 					return
 				}
 			}
