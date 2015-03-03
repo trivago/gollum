@@ -33,7 +33,7 @@ import (
 
 const (
 	gollumMajorVer = 0
-	gollumMinorVer = 1
+	gollumMinorVer = 2
 	gollumPatchVer = 0
 )
 
