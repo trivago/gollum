@@ -65,7 +65,7 @@ type Producer interface {
 // - "producer.Something":
 //   Enable: true
 //   Channel: 1024
-//   Formatter: "format.Timestamp"
+//   Formatter: "format.Delimiter"
 //   Stream:
 //      - "error"
 //      - "default"

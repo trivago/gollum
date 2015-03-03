@@ -24,16 +24,15 @@ import (
 //
 //   - producer.Console
 //     Formatter: "format.Timestamp"
-//     Timestamp: "2006-01-02T15:04:05.000 MST"
-//     Delimiter: "\r\n"
+//     TimestampDataFormatter: "format.Delimiter"
+//     Timestamp: "2006-01-02T15:04:05.000 MST | "
 //
 // Timestamp defines a Go time format string that is used to format the actual
 // timestamp that prefixes the message.
-// By default this is set to "2006-01-02 15:04:05 MST"
+// By default this is set to "2006-01-02 15:04:05 MST | "
 //
-// Delimiter defines the message postfix. By default this is set to "\n".
-// Special characters like \n \r \t will be transformed into the actual control
-// characters.
+// TimestampDataFormatter defines the formatter for the data transferred as
+// message. By default this is set to "format.Delimiter"
 type Timestamp struct {
 	base            shared.Formatter
 	msg             shared.Message
