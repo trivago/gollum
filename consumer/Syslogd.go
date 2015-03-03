@@ -16,9 +16,10 @@ package consumer
 
 import (
 	"fmt"
+	"github.com/jeromer/syslogparser"
 	"github.com/trivago/gollum/shared"
-	"gopkg.in/mcuadros/go-syslog.v2"
-	"gopkg.in/mcuadros/go-syslog.v2/format"
+	"gopkg.in/arnecls/go-syslog.v2"
+	"gopkg.in/arnecls/go-syslog.v2/format"
 	"sync"
 )
 
@@ -61,6 +62,7 @@ type Syslogd struct {
 	format   format.Format // RFC3164, RFC5424 or RFC6587?
 	protocol string        // udp or tcp
 	address  string
+	sequence *uint64
 }
 
 func init() {
@@ -97,42 +99,28 @@ func (cons *Syslogd) Configure(conf shared.PluginConfig) error {
 	// Port 514 is the standard port of syslog
 	// Port 5880 is the port mentioned by go-syslog package
 	cons.address = conf.GetString("Address", "0.0.0.0:5880")
+	cons.sequence = new(uint64)
 
 	// TODO Support unix domain socket (see Socket consumer)
 
 	return err
 }
 
-func (cons *Syslogd) recieve(channel syslog.LogPartsChannel) {
-	defer cons.MarkAsDone()
-	seq := uint64(0)
-
-	for {
-		logParts, ok := <-channel
-		if !ok || logParts == nil {
-			return
-		}
-
-		// TODO The complete message / map can be marshalled as json?
-		// TODO Maybe some message formatter can help?
-		// fmt.Println(logParts["content"])
-		fmt.Println(logParts)
-
-		cons.PostMessage((logParts["content"]).(string), seq)
-		seq++
+// Handle implements the syslog handle interface
+func (cons Syslogd) Handle(parts syslogparser.LogParts, code int64, err error) {
+	content, isString := parts["content"].(string)
+	if isString {
+		cons.PostMessage(content, *cons.sequence)
+		*cons.sequence++
 	}
 }
 
 // Consume opens a new syslog socket.
 // Messages are expected to be separated by \n.
 func (cons Syslogd) Consume(threads *sync.WaitGroup) {
-
-	channel := make(syslog.LogPartsChannel)
-	handler := syslog.NewChannelHandler(channel)
-
 	server := syslog.NewServer()
 	server.SetFormat(cons.format)
-	server.SetHandler(handler)
+	server.SetHandler(cons)
 
 	switch cons.protocol {
 	case "udp":
@@ -143,10 +131,9 @@ func (cons Syslogd) Consume(threads *sync.WaitGroup) {
 
 	server.Boot()
 	defer func() {
-		server.Wait()
-		close(channel)
+		server.Kill()
+		cons.MarkAsDone()
 	}()
 
-	go cons.recieve(channel)
 	cons.DefaultControlLoop(threads, nil)
 }
