@@ -37,9 +37,10 @@ func newMessageQueue(size int) messageQueue {
 	}
 }
 
-// MessageBuffer is a helper class for producers to store messages into a stream
-// that is flushed into an io.Writer. You can use the Reached* functions to
-// determine when a flush should be called.
+// MessageBuffer is a helper class for producers to format and store messages
+// into a single string that is flushed to an io.Writer.
+// You can use the Reached* functions to determine when a flush should be
+// called after either reaching a timeout or size threshold.
 type MessageBuffer struct {
 	delimiter string
 	queue     [2]messageQueue
@@ -50,7 +51,7 @@ type MessageBuffer struct {
 }
 
 // NewMessageBuffer creates a new messagebuffer with a given size (in bytes)
-// and a given set of FormatterFlag.
+// and a given formatter.
 func NewMessageBuffer(size int, format Formatter) *MessageBuffer {
 	return &MessageBuffer{
 		queue:     [2]messageQueue{newMessageQueue(size), newMessageQueue(size)},
@@ -61,8 +62,10 @@ func NewMessageBuffer(size int, format Formatter) *MessageBuffer {
 	}
 }
 
-// Append formats a message and adds it to the buffer.
+// Append formats a message and appends it to the internal buffer.
 // If the message does not fit into the buffer this function returns false.
+// If the message can never fit into the buffer (too large), true is returned
+// and an error is logged.
 func (batch *MessageBuffer) Append(msg Message) bool {
 	activeSet := atomic.AddUint32(&batch.activeSet, 1)
 	activeIdx := activeSet >> 31
@@ -127,13 +130,11 @@ func (batch *MessageBuffer) Flush(resource io.Writer, validate func() bool, onEr
 	flushQueue := &batch.queue[flushIdx]
 
 	// Wait for remaining writers to finish
-
 	for writerCount != flushQueue.doneCount {
 		runtime.Gosched()
 	}
 
-	// Write data and reset buffer
-
+	// Write data and reset buffer asynchronously
 	go func() {
 		defer batch.flushing.Unlock()
 		length, err := resource.Write(flushQueue.buffer[:flushQueue.contentLen])
