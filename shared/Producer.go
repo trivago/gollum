@@ -114,7 +114,7 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	prod.timeout = time.Duration(conf.GetInt("ChannelTimeout", 0)) * time.Millisecond
 	prod.state = new(PluginRunState)
 
-	plugin, err := RuntimeType.NewPlugin(conf.GetString("Formatter", "format.Forward"), conf)
+	plugin, err := RuntimeType.NewPluginWithType(conf.GetString("Formatter", "format.Forward"), conf)
 	if err != nil {
 		return err
 	}

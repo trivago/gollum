@@ -15,137 +15,26 @@
 package shared
 
 import (
-	"gopkg.in/yaml.v1"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
-	"reflect"
 )
+
+type configKeyValueMap map[string]interface{}
 
 // PluginConfig is a configuration for a specific plugin
 type PluginConfig struct {
+	TypeName string
 	Enable   bool
 	Channel  int
 	Stream   []string
-	Settings map[string]interface{}
+	Settings configKeyValueMap
 }
 
 // Config represents the top level config containing all plugin clonfigs
 type Config struct {
-	Settings map[string][]PluginConfig
-}
-
-func readBool(key string, val interface{}) bool {
-	boolValue, isBool := val.(bool)
-	if !isBool {
-		log.Fatalf("Config parser: \"%s\" is expected to be a boolean.", key)
-	}
-	return boolValue
-}
-
-func readInt(key string, val interface{}) int {
-	intValue, isInt := val.(int)
-	if !isInt {
-		log.Fatalf("Config parser: \"%s\" is expected to be an integer.", key)
-	}
-	return intValue
-}
-
-func readString(key string, val interface{}) string {
-	strValue, isString := val.(string)
-	if !isString {
-		log.Fatalf("Config parser: \"%s\" is expected to be a string.", key)
-	}
-	return strValue
-}
-
-func readArray(key string, val interface{}) []interface{} {
-	arrayValue, isArray := val.([]interface{})
-	if !isArray {
-		log.Fatalf("Config parser: \"%s\" is expected to be an array.", key)
-	}
-	return arrayValue
-}
-
-func readMap(key string, val interface{}) map[interface{}]interface{} {
-	mapValue, isMap := val.(map[interface{}]interface{})
-	if !isMap {
-		log.Fatalf("Config parser: \"%s\" is expected to be a key/value map.", key)
-	}
-	return mapValue
-}
-
-// SetYAML is a YAMLReader interface implementation to convert values into the
-// internal configuration format
-func (conf Config) SetYAML(tagType string, values interface{}) bool {
-	pluginList := values.([]interface{})
-	stringType := reflect.TypeOf("")
-
-	// As there might be multiple instances of the same plugin class we iterate
-	// over an array here.
-
-	for _, pluginData := range pluginList {
-		pluginDataMap := pluginData.(map[interface{}]interface{})
-
-		// Each item in the array item is a map{class -> map{key -> value}}
-		// We "iterate" over the first map (one item only) to get the class.
-
-		for pluginClass, pluginSettings := range pluginDataMap {
-			pluginSettingsMap := pluginSettings.(map[interface{}]interface{})
-
-			plugin := PluginConfig{
-				Enable:   true,
-				Channel:  4096,
-				Stream:   []string{},
-				Settings: make(map[string]interface{}),
-			}
-
-			// Iterate over all key/value pairs.
-			// "Enable" is a special field as non-plugin logic is bound to it
-
-			for settingKey, settingValue := range pluginSettingsMap {
-				key := settingKey.(string)
-
-				switch key {
-				case "Enable":
-					plugin.Enable = readBool("Enable", settingValue)
-
-				case "Channel":
-					plugin.Channel = readInt("Channel", settingValue)
-
-				case "Stream":
-					if reflect.TypeOf(settingValue) == stringType {
-						plugin.Stream = append(plugin.Stream, settingValue.(string))
-					} else {
-						arrayValue := readArray("Stream", settingValue)
-						for _, value := range arrayValue {
-							strValue := readString("An element of stream", value)
-							plugin.Stream = append(plugin.Stream, strValue)
-						}
-					}
-
-				default:
-					plugin.Settings[key] = settingValue
-				}
-			}
-
-			// Set wildcard stream if no stream is set
-
-			if len(plugin.Stream) == 0 {
-				plugin.Stream = append(plugin.Stream, "*")
-			}
-
-			// Add instance of this plugin class config to the list
-
-			list, listExists := conf.Settings[pluginClass.(string)]
-			if !listExists {
-				list = []PluginConfig{}
-			}
-
-			conf.Settings[pluginClass.(string)] = append(list, plugin)
-		}
-	}
-
-	return true
+	Values  []map[string]configKeyValueMap
+	Plugins []PluginConfig
 }
 
 // HasValue returns true if the given key has been set as a config option.
@@ -270,6 +159,107 @@ func (conf PluginConfig) GetValue(key string, defaultValue interface{}) interfac
 	return defaultValue
 }
 
+func readBool(key string, val interface{}) bool {
+	boolValue, isBool := val.(bool)
+	if !isBool {
+		log.Fatalf("Config parser: \"%s\" is expected to be a boolean.", key)
+	}
+	return boolValue
+}
+
+func readInt(key string, val interface{}) int {
+	intValue, isInt := val.(int)
+	if !isInt {
+		log.Fatalf("Config parser: \"%s\" is expected to be an integer.", key)
+	}
+	return intValue
+}
+
+func readString(key string, val interface{}) string {
+	strValue, isString := val.(string)
+	if !isString {
+		log.Fatalf("Config parser: \"%s\" is expected to be a string.", key)
+	}
+	return strValue
+}
+
+func readArray(key string, val interface{}) []interface{} {
+	arrayValue, isArray := val.([]interface{})
+	if !isArray {
+		log.Fatalf("Config parser: \"%s\" is expected to be an array.", key)
+	}
+	return arrayValue
+}
+
+func readMap(key string, val interface{}) map[interface{}]interface{} {
+	mapValue, isMap := val.(map[interface{}]interface{})
+	if !isMap {
+		log.Fatalf("Config parser: \"%s\" is expected to be a key/value map.", key)
+	}
+	return mapValue
+}
+
+func (conf *Config) read() error {
+	// As there might be multiple instances of the same plugin class we iterate
+	// over an array here.
+
+	for _, pluginData := range conf.Values {
+
+		// Each item in the array item is a map{class -> map{key -> value}}
+		// We "iterate" over the first map (one item only) to get the class.
+
+		for typeName, pluginSettings := range pluginData {
+
+			plugin := PluginConfig{
+				TypeName: typeName,
+				Enable:   true,
+				Channel:  4096,
+				Stream:   []string{},
+				Settings: make(configKeyValueMap),
+			}
+
+			// Iterate over all key/value pairs.
+			// "Enable" is a special field as non-plugin logic is bound to it
+
+			for key, settingValue := range pluginSettings {
+
+				switch key {
+				case "Enable":
+					plugin.Enable = readBool("Enable", settingValue)
+
+				case "Channel":
+					plugin.Channel = readInt("Channel", settingValue)
+
+				case "Stream":
+					switch settingValue.(type) {
+					case string:
+						plugin.Stream = append(plugin.Stream, settingValue.(string))
+					default:
+						arrayValue := readArray("Stream", settingValue)
+						for _, value := range arrayValue {
+							strValue := readString("An element of stream", value)
+							plugin.Stream = append(plugin.Stream, strValue)
+						}
+					}
+
+				default:
+					plugin.Settings[key] = settingValue
+				}
+			}
+
+			// Set wildcard stream if no stream is set
+
+			if len(plugin.Stream) == 0 {
+				plugin.Stream = append(plugin.Stream, "*")
+			}
+
+			conf.Plugins = append(conf.Plugins, plugin)
+		}
+	}
+
+	return nil
+}
+
 // ReadConfig parses a YAML config file into a new Config struct.
 func ReadConfig(path string) (*Config, error) {
 	buffer, err := ioutil.ReadFile(path)
@@ -277,8 +267,12 @@ func ReadConfig(path string) (*Config, error) {
 		return nil, err
 	}
 
-	conf := &Config{make(map[string][]PluginConfig)}
-	err = yaml.Unmarshal(buffer, conf)
+	config := new(Config)
+	err = yaml.Unmarshal(buffer, &config.Values)
+	if err != nil {
+		return nil, err
+	}
 
-	return conf, err
+	err = config.read()
+	return config, err
 }

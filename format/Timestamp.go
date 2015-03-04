@@ -47,7 +47,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Timestamp) Configure(conf shared.PluginConfig) error {
-	plugin, err := shared.RuntimeType.NewPlugin(conf.GetString("TimestampDataFormatter", "format.Delimiter"), conf)
+	plugin, err := shared.RuntimeType.NewPluginWithType(conf.GetString("TimestampDataFormatter", "format.Delimiter"), conf)
 	if err != nil {
 		return err
 	}

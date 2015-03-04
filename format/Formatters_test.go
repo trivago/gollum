@@ -45,7 +45,7 @@ func TestFormatters(t *testing.T) {
 	}
 
 	for _, name := range formatters {
-		plugin, err := shared.RuntimeType.NewPlugin(name, conf)
+		plugin, err := shared.RuntimeType.NewPluginWithType(name, conf)
 		if err != nil {
 			t.Errorf("Failed to create formatter %s", name)
 		} else {

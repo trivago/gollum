@@ -43,7 +43,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *JSON) Configure(conf shared.PluginConfig) error {
-	plugin, err := shared.RuntimeType.NewPlugin(conf.GetString("JSONDataFormatter", "format.Forward"), conf)
+	plugin, err := shared.RuntimeType.NewPluginWithType(conf.GetString("JSONDataFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err
 	}

@@ -42,7 +42,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Sequence) Configure(conf shared.PluginConfig) error {
-	plugin, err := shared.RuntimeType.NewPlugin(conf.GetString("SequenceDataFormatter", "format.Forward"), conf)
+	plugin, err := shared.RuntimeType.NewPluginWithType(conf.GetString("SequenceDataFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err
 	}

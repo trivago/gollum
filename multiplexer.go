@@ -52,56 +52,54 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 
 	// Initialize the plugins based on the config
 
-	for className, instanceConfigs := range conf.Settings {
-		for _, config := range instanceConfigs {
-			if !config.Enable {
-				continue // ### continue, disabled ###
+	for _, config := range conf.Plugins {
+		if !config.Enable {
+			continue // ### continue, disabled ###
+		}
+
+		// Try to instantiate and configure the plugin
+
+		plugin, err := shared.RuntimeType.NewPlugin(config)
+		if err != nil {
+			if plugin == nil {
+				Log.Error.Panic(err.Error())
+			} else {
+				Log.Error.Print("Failed to configure ", config.TypeName, ": ", err)
+				continue // ### continue ###
 			}
+		}
 
-			// Try to instantiate and configure the plugin
+		// Register dsitributor plugins
+		if distributor, isDistributor := plugin.(shared.Distributor); isDistributor {
+			for _, stream := range config.Stream {
+				streamID := shared.GetStreamID(stream)
+				streamMap, mappingExists := plex.managedStream[streamID]
 
-			plugin, err := shared.RuntimeType.NewPlugin(className, config)
-			if err != nil {
-				if plugin == nil {
-					Log.Error.Panic(err.Error())
+				if !mappingExists {
+					plex.managedStream[streamID] = []shared.Distributor{distributor}
 				} else {
-					Log.Error.Print("Failed to configure ", className, ": ", err)
-					continue // ### continue ###
+					plex.managedStream[streamID] = append(streamMap, distributor)
 				}
 			}
+		}
 
-			// Register dsitributor plugins
-			if distributor, isDistributor := plugin.(shared.Distributor); isDistributor {
-				for _, stream := range config.Stream {
-					streamID := shared.GetStreamID(stream)
-					streamMap, mappingExists := plex.managedStream[streamID]
+		// Register consumer plugins
+		if consumer, isConsumer := plugin.(shared.Consumer); isConsumer {
+			plex.consumers = append(plex.consumers, consumer)
+		}
 
-					if !mappingExists {
-						plex.managedStream[streamID] = []shared.Distributor{distributor}
-					} else {
-						plex.managedStream[streamID] = append(streamMap, distributor)
-					}
-				}
-			}
+		// Register producer plugins
+		if producer, isProducer := plugin.(shared.Producer); isProducer {
+			plex.producers = append(plex.producers, producer)
 
-			// Register consumer plugins
-			if consumer, isConsumer := plugin.(shared.Consumer); isConsumer {
-				plex.consumers = append(plex.consumers, consumer)
-			}
+			for _, stream := range config.Stream {
+				streamID := shared.GetStreamID(stream)
+				streamMap, mappingExists := plex.stream[streamID]
 
-			// Register producer plugins
-			if producer, isProducer := plugin.(shared.Producer); isProducer {
-				plex.producers = append(plex.producers, producer)
-
-				for _, stream := range config.Stream {
-					streamID := shared.GetStreamID(stream)
-					streamMap, mappingExists := plex.stream[streamID]
-
-					if !mappingExists {
-						plex.stream[streamID] = []shared.Producer{producer}
-					} else {
-						plex.stream[streamID] = append(streamMap, producer)
-					}
+				if !mappingExists {
+					plex.stream[streamID] = []shared.Producer{producer}
+				} else {
+					plex.stream[streamID] = append(streamMap, producer)
 				}
 			}
 		}

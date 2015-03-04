@@ -59,10 +59,13 @@ func (registry typeRegistry) New(typeName string) (interface{}, error) {
 	return nil, typeRegistryError{"Unknown class: " + typeName}
 }
 
-// NewPlugin creates a new plugin and initializes it with the given config.
-// If the plugin failed to configure the plugin and an error is returned.
-// If another error occured plugin will be nil.
-func (registry typeRegistry) NewPlugin(typeName string, config PluginConfig) (Plugin, error) {
+// NewPluginWithType creates a new plugin of a given type and initializes it
+// using the given config (i.e. passes that config to Configure). The type
+// passed to this function may differ from the type stored in the config.
+// If the type is meant to match use NewPlugin instead of NewPluginWithType.
+// This function returns nil, error if the plugin could not be instantiated or
+// plugin, error if Configure failed.
+func (registry typeRegistry) NewPluginWithType(typeName string, config PluginConfig) (Plugin, error) {
 	obj, err := registry.New(typeName)
 	if err != nil {
 		return nil, err
@@ -75,6 +78,12 @@ func (registry typeRegistry) NewPlugin(typeName string, config PluginConfig) (Pl
 
 	err = plugin.Configure(config)
 	return plugin, err
+}
+
+// NewPlugin creates a new plugin from the type information stored in its
+// config. This function internally calls NewPluginWithType.
+func (registry typeRegistry) NewPlugin(config PluginConfig) (Plugin, error) {
+	return registry.NewPluginWithType(config.TypeName, config)
 }
 
 // GetRegistered returns the names of all registered types for a given package
