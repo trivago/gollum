@@ -98,7 +98,13 @@ func (batch *MessageBuffer) Touch() {
 // Flush writes the content of the buffer to a given resource and resets the
 // internal state, i.e. the buffer is empty after a call to Flush.
 // Writing will be done in a separate go routine to be non-blocking.
-func (batch *MessageBuffer) Flush(resource io.Writer, onSuccess func() bool, onError func(error)) {
+// The validate callback will be called after messages have been written to
+// io.Writer. This method should return false if an external check shows that
+// no are not all messages arrived at the target.
+// The onError callback will be called if the writer returned an error or if
+// not all data was written by the writer (the returned length did not match).
+// Both callbacks can be nil.
+func (batch *MessageBuffer) Flush(resource io.Writer, validate func() bool, onError func(error)) {
 	if batch.IsEmpty() {
 		return // ### return, nothing to do ###
 	}
@@ -130,13 +136,13 @@ func (batch *MessageBuffer) Flush(resource io.Writer, onSuccess func() bool, onE
 
 	go func() {
 		defer batch.flushing.Unlock()
-		_, err := resource.Write(flushQueue.buffer[:flushQueue.contentLen])
+		length, err := resource.Write(flushQueue.buffer[:flushQueue.contentLen])
 
-		if err == nil && onSuccess() {
+		if err == nil && length == flushQueue.contentLen && (validate == nil || validate()) {
 			flushQueue.contentLen = 0
 			flushQueue.doneCount = 0
 			batch.Touch()
-		} else {
+		} else if onError != nil {
 			onError(err)
 			// This buffer will be retried during the next flush
 		}

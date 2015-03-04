@@ -303,11 +303,7 @@ func (prod *File) writeBatch() {
 		return
 	}
 
-	prod.batch.Flush(
-		prod.file,
-		func() bool {
-			return true
-		},
+	prod.batch.Flush(prod.file, nil,
 		func(err error) {
 			Log.Error.Print("File write error:", err)
 		})
