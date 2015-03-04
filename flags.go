@@ -23,12 +23,12 @@ import (
 var (
 	flagHelp           = flag.Bool([]string{"h", "-help"}, false, "Print this help message.")
 	flagVersion        = flag.Bool([]string{"v", "-version"}, false, "Print version information and quit.")
-	flagProfile        = flag.Bool([]string{"t", "-throughput"}, false, "Write msg/sec measurements to log.")
+	flagProfile        = flag.Bool([]string{"ps", "-profilespeed"}, false, "Write msg/sec measurements to log.")
 	flagNumCPU         = flag.Int([]string{"n", "-numcpu"}, 0, "Number of CPUs to use. Set 0 for all CPUs.")
 	flagConfigFile     = flag.String([]string{"c", "-config"}, "", "Use a given configuration file.")
 	flagTestConfigFile = flag.String([]string{"tc", "-testconfig"}, "", "Test a given configuration file and exit.")
-	flagCPUProfile     = flag.String([]string{"cp", "-cpuprofile"}, "", "Write CPU profiler results to a given file.")
-	flagMemProfile     = flag.String([]string{"mp", "-memprofile"}, "", "Write heap profile results to a given file.")
+	flagCPUProfile     = flag.String([]string{"pc", "-profilecpu"}, "", "Write CPU profiler results to a given file.")
+	flagMemProfile     = flag.String([]string{"pm", "-profilemem"}, "", "Write heap profile results to a given file.")
 	flagPidFile        = flag.String([]string{"p", "-pidfile"}, "", "Write the process id into a given file.")
 )
 
