@@ -20,7 +20,6 @@ import (
 	"github.com/trivago/gollum/shared"
 	"math"
 	"math/rand"
-	"os"
 	"sync"
 	"time"
 )
@@ -111,14 +110,17 @@ func (cons *Profiler) profile() {
 
 	cons.MarkAsDone()
 
-	proc, _ := os.FindProcess(os.Getpid())
-	proc.Signal(os.Interrupt)
+	panic("test")
 }
 
 // Consume starts a profile run and exits gollum when done
 func (cons Profiler) Consume(threads *sync.WaitGroup) {
 	cons.quit = false
-	go cons.profile()
+	go func() {
+		defer shared.RecoverShutdown()
+		cons.profile()
+	}()
+
 	defer func() {
 		cons.quit = true
 	}()

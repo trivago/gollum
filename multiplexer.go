@@ -17,6 +17,7 @@ package main
 import (
 	"github.com/trivago/gollum/log"
 	"github.com/trivago/gollum/shared"
+	"log"
 	"os"
 	"os/signal"
 	"sync"
@@ -188,7 +189,12 @@ func (plex *multiplexer) shutdown() {
 // Run the multiplexer.
 // Fetch messags from the consumers and pass them to all producers.
 func (plex multiplexer) run() {
-	defer plex.shutdown()
+	defer func() {
+		if r := recover(); r != nil {
+			log.Print("PANIC: ", r)
+		}
+		plex.shutdown()
+	}()
 
 	if len(plex.consumers) == 0 {
 		Log.Error.Print("No consumers configured.")
@@ -206,7 +212,11 @@ func (plex multiplexer) run() {
 
 	// Launch producers
 	for _, producer := range plex.producers {
-		go producer.Produce(plex.producerThreads)
+		producer := producer
+		go func() {
+			defer shared.RecoverShutdown()
+			producer.Produce(plex.producerThreads)
+		}()
 	}
 
 	// If there are intenal log listeners switch to stream mode
@@ -216,7 +226,11 @@ func (plex multiplexer) run() {
 
 	// Launch consumers
 	for _, consumer := range plex.consumers {
-		go consumer.Consume(plex.consumerThreads)
+		consumer := consumer
+		go func() {
+			defer shared.RecoverShutdown()
+			consumer.Consume(plex.consumerThreads)
+		}()
 	}
 
 	// Main loop

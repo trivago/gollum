@@ -198,7 +198,10 @@ func (cons *Kafka) fetch(offsetIdx int, partition int32, config kafka.PartitionC
 	partCons, err := cons.consumer.ConsumePartition(cons.topic, partition, &config)
 	if err != nil {
 		if !cons.client.Closed() {
-			go cons.restart(err, offsetIdx, partition)
+			go func() {
+				defer shared.RecoverShutdown()
+				cons.restart(err, offsetIdx, partition)
+			}()
 		}
 		return // ### return, stop this consumer ###
 	}
@@ -250,7 +253,13 @@ func (cons *Kafka) startConsumers() error {
 	cons.offsets = make([]int64, len(partitions))
 
 	for idx, partition := range partitions {
-		go cons.fetch(idx, partition, *cons.partitionConfig)
+		idx := idx
+		partition := partition
+
+		go func() {
+			defer shared.RecoverShutdown()
+			cons.fetch(idx, partition, *cons.partitionConfig)
+		}()
 	}
 
 	return nil

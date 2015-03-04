@@ -232,6 +232,9 @@ func (cons File) Consume(threads *sync.WaitGroup) {
 	cons.setState(fileStateOpen)
 	defer cons.setState(fileStateDone)
 
-	go cons.read()
+	go func() {
+		defer shared.RecoverShutdown()
+		cons.read()
+	}()
 	cons.DefaultControlLoop(threads, func() { cons.setState(fileStateOpen) })
 }

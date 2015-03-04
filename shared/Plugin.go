@@ -14,7 +14,12 @@
 
 package shared
 
-import "sync"
+import (
+	"log"
+	"os"
+	"runtime/debug"
+	"sync"
+)
 
 // PluginRunState is used in some plugins to store information about the
 // execution state of the plugin (i.e. if it is running or not) as well as
@@ -29,4 +34,17 @@ type PluginRunState struct {
 // instantiated during runtim.
 type Plugin interface {
 	Configure(conf PluginConfig) error
+}
+
+// RecoverShutdown will trigger a shutdown via interrupt if a panic was issued.
+// Typically used as "defer RecoverShutdown()".
+func RecoverShutdown() {
+	if r := recover(); r != nil {
+		log.Println("PANIC: ", r)
+		debug.PrintStack()
+
+		// Send interrupt = clean shutdown
+		proc, _ := os.FindProcess(os.Getpid())
+		proc.Signal(os.Interrupt)
+	}
 }

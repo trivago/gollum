@@ -173,7 +173,10 @@ func (cons *Socket) tcpAccept() {
 			break // ### break ###
 		}
 
-		go cons.readFromConnection(client)
+		go func() {
+			defer shared.RecoverShutdown()
+			cons.readFromConnection(client)
+		}()
 	}
 
 	cons.MarkAsDone()
@@ -191,13 +194,19 @@ func (cons Socket) Consume(threads *sync.WaitGroup) {
 			Log.Error.Print("Socket connection error: ", err)
 			return
 		}
-		go cons.udpAccept()
+		go func() {
+			defer shared.RecoverShutdown()
+			cons.udpAccept()
+		}()
 	} else {
 		if cons.listen, err = net.Listen(cons.protocol, cons.address); err != nil {
 			Log.Error.Print("Socket connection error: ", err)
 			return
 		}
-		go cons.tcpAccept()
+		go func() {
+			defer shared.RecoverShutdown()
+			cons.tcpAccept()
+		}()
 	}
 
 	defer func() {
