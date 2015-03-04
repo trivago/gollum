@@ -25,6 +25,7 @@ var (
 	flagVersion        = flag.Bool([]string{"v", "-version"}, false, "Print version information and quit.")
 	flagProfile        = flag.Bool([]string{"ps", "-profilespeed"}, false, "Write msg/sec measurements to log.")
 	flagNumCPU         = flag.Int([]string{"n", "-numcpu"}, 0, "Number of CPUs to use. Set 0 for all CPUs.")
+	flagMetricsPort    = flag.Int([]string{"m", "-metrics"}, 0, "Port to use for metric queries. Set 0 to disable.")
 	flagConfigFile     = flag.String([]string{"c", "-config"}, "", "Use a given configuration file.")
 	flagTestConfigFile = flag.String([]string{"tc", "-testconfig"}, "", "Test a given configuration file and exit.")
 	flagCPUProfile     = flag.String([]string{"pc", "-profilecpu"}, "", "Write CPU profiler results to a given file.")

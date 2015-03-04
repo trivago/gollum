@@ -25,6 +25,13 @@ import (
 	"time"
 )
 
+const (
+	metricMsgSec  = "MessagesPerSec"
+	metricCons    = "Consumers"
+	metricProds   = "Producers"
+	metricStreams = "ManagedStreams"
+)
+
 type multiplexer struct {
 	consumers       []shared.Consumer
 	producers       []shared.Producer
@@ -41,6 +48,11 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 
 	logConsumer := Log.Consumer{}
 	logConsumer.Configure(shared.PluginConfig{})
+
+	Log.Metric.New(metricMsgSec)
+	Log.Metric.New(metricCons)
+	Log.Metric.New(metricProds)
+	Log.Metric.New(metricStreams)
 
 	plex := multiplexer{
 		stream:          make(map[shared.MessageStreamID][]shared.Producer),
@@ -105,6 +117,10 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 			}
 		}
 	}
+
+	Log.Metric.SetI(metricCons, len(plex.consumers))
+	Log.Metric.SetI(metricProds, len(plex.producers))
+	Log.Metric.SetI(metricStreams, len(plex.managedStream))
 
 	return plex
 }
@@ -270,14 +286,15 @@ func (plex multiplexer) run() {
 			}
 		}
 
-		if plex.profile {
-			duration := time.Since(measure)
-			if messageCount >= 100000 || duration.Seconds() > 5 {
-				Log.Note.Printf("Processed %.2f msg/sec", float64(messageCount)/duration.Seconds())
-
-				measure = time.Now()
-				messageCount = 0
+		duration := time.Since(measure)
+		if messageCount >= 100000 || duration.Seconds() > 5 {
+			value := float64(messageCount) / duration.Seconds()
+			if plex.profile {
+				Log.Note.Printf("Processed %.2f msg/sec", value)
 			}
+			Log.Metric.SetF(metricMsgSec, value)
+			measure = time.Now()
+			messageCount = 0
 		}
 	}
 }

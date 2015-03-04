@@ -110,6 +110,12 @@ func main() {
 		}()
 	}
 
+	// Metrics server start
+
+	if *flagMetricsPort != 0 {
+		go startMetricServer(*flagMetricsPort)
+	}
+
 	// Start the multiplexer
 
 	plex := newMultiplexer(config, *flagProfile)
