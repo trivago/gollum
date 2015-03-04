@@ -189,13 +189,6 @@ func (plex *multiplexer) shutdown() {
 // Run the multiplexer.
 // Fetch messags from the consumers and pass them to all producers.
 func (plex multiplexer) run() {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Print("PANIC: ", r)
-		}
-		plex.shutdown()
-	}()
-
 	if len(plex.consumers) == 0 {
 		Log.Error.Print("No consumers configured.")
 		return // ### return, nothing to do ###
@@ -209,6 +202,14 @@ func (plex multiplexer) run() {
 	// React on signals and setup the MessageProvider queue
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGHUP)
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Print("PANIC: ", r)
+		}
+		signal.Stop(signalChannel)
+		plex.shutdown()
+	}()
 
 	// Launch producers
 	for _, producer := range plex.producers {
