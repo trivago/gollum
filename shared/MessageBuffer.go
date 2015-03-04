@@ -136,7 +136,9 @@ func (batch *MessageBuffer) Flush(resource io.Writer, validate func() bool, onEr
 
 	// Write data and reset buffer asynchronously
 	go func() {
+		defer RecoverShutdown()
 		defer batch.flushing.Unlock()
+
 		length, err := resource.Write(flushQueue.buffer[:flushQueue.contentLen])
 
 		if err == nil && length == flushQueue.contentLen && (validate == nil || validate()) {

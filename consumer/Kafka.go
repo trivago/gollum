@@ -21,6 +21,7 @@ import (
 	"github.com/trivago/gollum/shared"
 	"io/ioutil"
 	"math"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -209,7 +210,6 @@ func (cons *Kafka) fetch(offsetIdx int, partition int32, config kafka.PartitionC
 	// Make sure we wait for all consumers to end
 
 	cons.AddWorker()
-
 	defer func() {
 		if !cons.client.Closed() {
 			partCons.Close()
@@ -217,17 +217,19 @@ func (cons *Kafka) fetch(offsetIdx int, partition int32, config kafka.PartitionC
 		cons.WorkerDone()
 	}()
 
-	for {
-		event := <-partCons.Messages()
+	for !cons.client.Closed() {
+		select {
+		default:
+			runtime.Gosched()
+		case event := <-partCons.Messages():
+			offset := int64(math.Max(float64(cons.offsets[offsetIdx]), float64(event.Offset)))
+			cons.offsets[offsetIdx] = offset
 
-		offset := int64(math.Max(float64(cons.offsets[offsetIdx]), float64(event.Offset)))
-		cons.offsets[offsetIdx] = offset
-
-		// This tries to reconstruct the original message number when using a
-		// round robin distribution.
-		sequence := uint64(offset + offset*int64(len(cons.offsets)-1) + int64(partition))
-
-		cons.PostMessageFromSlice(event.Value, sequence)
+			// This tries to reconstruct the original message number when using a
+			// round robin distribution.
+			sequence := uint64(offset + offset*int64(len(cons.offsets)-1) + int64(partition))
+			cons.PostMessageFromSlice(event.Value, sequence)
+		}
 	}
 }
 
