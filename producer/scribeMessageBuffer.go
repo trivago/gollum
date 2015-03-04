@@ -16,6 +16,7 @@ package producer
 
 import (
 	"github.com/artyom/scribe"
+	"github.com/trivago/gollum/log"
 	"github.com/trivago/gollum/shared"
 	"sync"
 	"sync/atomic"
@@ -60,17 +61,25 @@ func createScribeMessageBuffer(maxContentLen int, format shared.Formatter) *scri
 	}
 }
 
-func (batch *scribeMessageBuffer) append(msg shared.Message, category string) bool {
+func (batch *scribeMessageBuffer) Append(msg shared.Message, category string) bool {
 	activeSet := atomic.AddUint32(&batch.activeSet, 1)
 	activeIdx := activeSet >> 31
 	messageIdx := (activeSet & 0x7FFFFFFF) - 1
+	activeQueue := &batch.queue[activeIdx]
+
+	// We mark the message as written even if the write fails so that flush
+	// does not block after a failed message.
+	defer func() { activeQueue.doneCount++ }()
 
 	batch.format.PrepareMessage(msg)
 	messageLength := batch.format.GetLength()
-	activeQueue := &batch.queue[activeIdx]
 
 	if activeQueue.contentLen+messageLength >= batch.maxContentLen {
-		return false
+		if messageLength > batch.maxContentLen {
+			Log.Error.Printf("Scribe message is too large (%d bytes).", messageLength)
+			return true // ### return, cannot be written ever ###
+		}
+		return false // ### return, cannot be written ###
 	}
 
 	// Grow scribe message array if necessary
@@ -88,16 +97,9 @@ func (batch *scribeMessageBuffer) append(msg shared.Message, category string) bo
 
 	logEntry.Category = category
 	logEntry.Message = batch.format.String()
-
 	activeQueue.contentLen += messageLength
-	activeQueue.doneCount++
 
 	return true
-}
-
-func (batch *scribeMessageBuffer) Append(msg shared.Message, category string) bool {
-	result := batch.append(msg, category)
-	return result
 }
 
 func (batch *scribeMessageBuffer) touch() {

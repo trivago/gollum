@@ -314,15 +314,15 @@ func (prod *File) writeBatch() {
 }
 
 func (prod *File) writeBatchOnTimeOut() {
-	if prod.batch.ReachedTimeThreshold(prod.batchTimeout) {
+	if prod.batch.ReachedTimeThreshold(prod.batchTimeout) || prod.batch.ReachedSizeThreshold(prod.batchSize) {
 		prod.writeBatch()
 	}
 }
 
 func (prod *File) writeMessage(message shared.Message) {
-	prod.batch.Append(message)
-	if prod.batch.ReachedSizeThreshold(prod.batchSize) {
+	if !prod.batch.Append(message) {
 		prod.writeBatch()
+		prod.batch.Append(message)
 	}
 }
 

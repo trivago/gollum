@@ -16,6 +16,7 @@ package shared
 
 import (
 	"io"
+	"log"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -65,18 +66,25 @@ func NewMessageBuffer(size int, format Formatter) *MessageBuffer {
 func (batch *MessageBuffer) Append(msg Message) bool {
 	activeSet := atomic.AddUint32(&batch.activeSet, 1)
 	activeIdx := activeSet >> 31
+	activeQueue := &batch.queue[activeIdx]
+
+	// We mark the message as written even if the write fails so that flush
+	// does not block after a failed message.
+	defer func() { activeQueue.doneCount++ }()
 
 	batch.format.PrepareMessage(msg)
 	messageLength := batch.format.GetLength()
-	activeQueue := &batch.queue[activeIdx]
 
 	if activeQueue.contentLen+messageLength >= len(activeQueue.buffer) {
-		return false
+		if messageLength > len(activeQueue.buffer) {
+			log.Printf("MessageBuffer: Message is too large (%d bytes).", messageLength)
+			return true // ### return, cannot be written ever ###
+		}
+		return false // ### return, cannot be written ###
 	}
 
 	batch.format.CopyTo(activeQueue.buffer[activeQueue.contentLen:])
 	activeQueue.contentLen += messageLength
-	activeQueue.doneCount++
 
 	return true
 }
@@ -96,7 +104,6 @@ func (batch *MessageBuffer) Flush(resource io.Writer, onSuccess func() bool, onE
 	}
 
 	// Only one flush at a time
-
 	batch.flushing.Lock()
 
 	// Switch the buffers so writers can go on writing

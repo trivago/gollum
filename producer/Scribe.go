@@ -135,7 +135,7 @@ func (prod *Scribe) sendBatch() {
 }
 
 func (prod *Scribe) sendBatchOnTimeOut() {
-	if prod.batch.reachedTimeThreshold(prod.batchTimeout) {
+	if prod.batch.reachedTimeThreshold(prod.batchTimeout) || prod.batch.reachedSizeThreshold(prod.batchSize) {
 		prod.sendBatch()
 	}
 }
@@ -146,9 +146,9 @@ func (prod *Scribe) sendMessage(message shared.Message) {
 		category = prod.category[shared.WildcardStreamID]
 	}
 
-	prod.batch.Append(message, category)
-	if prod.batch.reachedSizeThreshold(prod.batchSize) {
+	if !prod.batch.Append(message, category) {
 		prod.sendBatch()
+		prod.batch.Append(message, category)
 	}
 }
 
