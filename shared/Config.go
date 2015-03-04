@@ -17,6 +17,7 @@ package shared
 import (
 	"gopkg.in/yaml.v1"
 	"io/ioutil"
+	"log"
 	"reflect"
 )
 
@@ -31,6 +32,46 @@ type PluginConfig struct {
 // Config represents the top level config containing all plugin clonfigs
 type Config struct {
 	Settings map[string][]PluginConfig
+}
+
+func readBool(key string, val interface{}) bool {
+	boolValue, isBool := val.(bool)
+	if !isBool {
+		log.Fatalf("Config parser: \"%s\" is expected to be a boolean.", key)
+	}
+	return boolValue
+}
+
+func readInt(key string, val interface{}) int {
+	intValue, isInt := val.(int)
+	if !isInt {
+		log.Fatalf("Config parser: \"%s\" is expected to be an integer.", key)
+	}
+	return intValue
+}
+
+func readString(key string, val interface{}) string {
+	strValue, isString := val.(string)
+	if !isString {
+		log.Fatalf("Config parser: \"%s\" is expected to be a string.", key)
+	}
+	return strValue
+}
+
+func readArray(key string, val interface{}) []interface{} {
+	arrayValue, isArray := val.([]interface{})
+	if !isArray {
+		log.Fatalf("Config parser: \"%s\" is expected to be an array.", key)
+	}
+	return arrayValue
+}
+
+func readMap(key string, val interface{}) map[interface{}]interface{} {
+	mapValue, isMap := val.(map[interface{}]interface{})
+	if !isMap {
+		log.Fatalf("Config parser: \"%s\" is expected to be a key/value map.", key)
+	}
+	return mapValue
 }
 
 // SetYAML is a YAMLReader interface implementation to convert values into the
@@ -66,17 +107,19 @@ func (conf Config) SetYAML(tagType string, values interface{}) bool {
 
 				switch key {
 				case "Enable":
-					plugin.Enable = settingValue.(bool)
+					plugin.Enable = readBool("Enable", settingValue)
 
 				case "Channel":
-					plugin.Channel = settingValue.(int)
+					plugin.Channel = readInt("Channel", settingValue)
 
 				case "Stream":
 					if reflect.TypeOf(settingValue) == stringType {
 						plugin.Stream = append(plugin.Stream, settingValue.(string))
 					} else {
-						for _, value := range settingValue.([]interface{}) {
-							plugin.Stream = append(plugin.Stream, value.(string))
+						arrayValue := readArray("Stream", settingValue)
+						for _, value := range arrayValue {
+							strValue := readString("An element of stream", value)
+							plugin.Stream = append(plugin.Stream, strValue)
 						}
 					}
 
@@ -122,7 +165,7 @@ func (conf PluginConfig) Override(key string, value interface{}) {
 func (conf PluginConfig) GetString(key string, defaultValue string) string {
 	value, exists := conf.Settings[key]
 	if exists {
-		return value.(string)
+		return readString(key, value)
 	}
 
 	return defaultValue
@@ -133,15 +176,17 @@ func (conf PluginConfig) GetString(key string, defaultValue string) string {
 func (conf PluginConfig) GetStringArray(key string, defaultValue []string) []string {
 	value, exists := conf.Settings[key]
 	if exists {
-		stringValue, isSingleValue := value.(string)
-		if isSingleValue {
-			return []string{stringValue}
+		strValue, isString := value.(string)
+		if isString {
+			return []string{strValue}
 		}
 
-		arrayValue := value.([]interface{})
+		arrayValue := readArray(key, value)
 		config := make([]string, 0, len(arrayValue))
+
 		for _, value := range arrayValue {
-			config = append(config, value.(string))
+			strValue := readString("An element of "+key, value)
+			config = append(config, strValue)
 		}
 		return config
 	}
@@ -158,8 +203,12 @@ func (conf PluginConfig) GetStringMap(key string, defaultValue map[string]string
 	}
 
 	result := make(map[string]string)
-	for key, value := range mapping.(map[interface{}]interface{}) {
-		result[key.(string)] = value.(string)
+	mapValue := readMap(key, mapping)
+
+	for keyItem, valItem := range mapValue {
+		keyItemStr := readString("A key of "+key, keyItem)
+		valItemStr := readString("A value of "+key, valItem)
+		result[keyItemStr] = valItemStr
 	}
 
 	return result
@@ -172,13 +221,17 @@ func (conf PluginConfig) GetStreamMap(key string, defaultValue string) map[Messa
 	streamMap := make(map[MessageStreamID]string)
 	streamMap[WildcardStreamID] = defaultValue
 
-	value, exists := conf.Settings[key]
+	mapping, exists := conf.Settings[key]
 	if !exists {
 		return streamMap
 	}
 
-	for streamName, target := range value.(map[interface{}]interface{}) {
-		streamMap[GetStreamID(streamName.(string))] = target.(string)
+	mapValue := readMap(key, mapping)
+
+	for streamItem, targetItem := range mapValue {
+		streamItemStr := readString("A key of "+key, streamItem)
+		targetItemStr := readString("A value of "+key, targetItem)
+		streamMap[GetStreamID(streamItemStr)] = targetItemStr
 	}
 
 	return streamMap
@@ -189,7 +242,7 @@ func (conf PluginConfig) GetStreamMap(key string, defaultValue string) map[Messa
 func (conf PluginConfig) GetInt(key string, defaultValue int) int {
 	value, exists := conf.Settings[key]
 	if exists {
-		return value.(int)
+		return readInt(key, value)
 	}
 
 	return defaultValue
@@ -200,7 +253,7 @@ func (conf PluginConfig) GetInt(key string, defaultValue int) int {
 func (conf PluginConfig) GetBool(key string, defaultValue bool) bool {
 	value, exists := conf.Settings[key]
 	if exists {
-		return value.(bool)
+		return readBool(key, value)
 	}
 
 	return defaultValue

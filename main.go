@@ -99,6 +99,10 @@ func main() {
 		os.Exit(-1)
 	}
 
+	if *msgTestConfigPtr {
+		os.Exit(-1)
+	}
+
 	plex := newMultiplexer(conf, *msgProfilePtr)
 	plex.run()
 }
