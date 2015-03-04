@@ -162,7 +162,7 @@ func (conf PluginConfig) GetValue(key string, defaultValue interface{}) interfac
 func readBool(key string, val interface{}) bool {
 	boolValue, isBool := val.(bool)
 	if !isBool {
-		log.Fatalf("Config parser: \"%s\" is expected to be a boolean.", key)
+		log.Fatalf("Parser: \"%s\" is expected to be a boolean.", key)
 	}
 	return boolValue
 }
@@ -170,7 +170,7 @@ func readBool(key string, val interface{}) bool {
 func readInt(key string, val interface{}) int {
 	intValue, isInt := val.(int)
 	if !isInt {
-		log.Fatalf("Config parser: \"%s\" is expected to be an integer.", key)
+		log.Fatalf("Parser: \"%s\" is expected to be an integer.", key)
 	}
 	return intValue
 }
@@ -178,7 +178,7 @@ func readInt(key string, val interface{}) int {
 func readString(key string, val interface{}) string {
 	strValue, isString := val.(string)
 	if !isString {
-		log.Fatalf("Config parser: \"%s\" is expected to be a string.", key)
+		log.Fatalf("Parser: \"%s\" is expected to be a string.", key)
 	}
 	return strValue
 }
@@ -186,7 +186,7 @@ func readString(key string, val interface{}) string {
 func readArray(key string, val interface{}) []interface{} {
 	arrayValue, isArray := val.([]interface{})
 	if !isArray {
-		log.Fatalf("Config parser: \"%s\" is expected to be an array.", key)
+		log.Fatalf("Parser: \"%s\" is expected to be an array.", key)
 	}
 	return arrayValue
 }
@@ -194,7 +194,7 @@ func readArray(key string, val interface{}) []interface{} {
 func readMap(key string, val interface{}) map[interface{}]interface{} {
 	mapValue, isMap := val.(map[interface{}]interface{})
 	if !isMap {
-		log.Fatalf("Config parser: \"%s\" is expected to be a key/value map.", key)
+		log.Fatalf("Parser: \"%s\" is expected to be a key/value map.", key)
 	}
 	return mapValue
 }

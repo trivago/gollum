@@ -38,7 +38,7 @@ const (
 )
 
 func dumpMemoryProfile() {
-	if file, err := os.Create(*memProfilePtr); err != nil {
+	if file, err := os.Create(*flagMemProfile); err != nil {
 		panic(err)
 	} else {
 		defer file.Close()
@@ -49,29 +49,48 @@ func dumpMemoryProfile() {
 func main() {
 	flag.Parse()
 
-	if *helpPtr || *configFilePtr == "" {
-		flag.Usage()
-		fmt.Println("Nothing to do. We must go.")
-		return
-	}
-
-	if *versionPtr {
+	if *flagVersion {
 		fmt.Printf("Gollum v%d.%d.%d\n", gollumMajorVer, gollumMinorVer, gollumPatchVer)
-		return
+		return // ### return, version only ###
 	}
 
-	if *numCPU == 0 {
+	configFile := flagConfigFile
+	if *flagTestConfigFile != "" {
+		configFile = flagTestConfigFile
+	}
+
+	if *flagHelp || *configFile == "" {
+		flag.Usage()
+		return // ### return, nothing to do ###
+	}
+
+	// Read config
+
+	config, err := shared.ReadConfig(*configFile)
+	if err != nil {
+		fmt.Printf("Config: %s\n", err.Error())
+		return // ### return, config error ###
+	} else if *flagTestConfigFile != "" {
+		fmt.Printf("Config: %s parsed as ok.\n", *configFile)
+		return // ### return, only test config ###
+	}
+
+	// Configure runtime
+
+	if *flagPidFile != "" {
+		ioutil.WriteFile(*flagPidFile, []byte(strconv.Itoa(os.Getpid())), 0644)
+	}
+
+	if *flagNumCPU == 0 {
 		runtime.GOMAXPROCS(runtime.NumCPU())
 	} else {
-		runtime.GOMAXPROCS(*numCPU)
+		runtime.GOMAXPROCS(*flagNumCPU)
 	}
 
-	if *pidFilePtr != "" {
-		ioutil.WriteFile(*pidFilePtr, []byte(strconv.Itoa(os.Getpid())), 0644)
-	}
+	// Profiling flags
 
-	if *cpuProfilePtr != "" {
-		if file, err := os.Create(*cpuProfilePtr); err != nil {
+	if *flagCPUProfile != "" {
+		if file, err := os.Create(*flagCPUProfile); err != nil {
 			panic(err)
 		} else {
 			defer file.Close()
@@ -80,7 +99,7 @@ func main() {
 		}
 	}
 
-	if *memProfilePtr != "" {
+	if *flagMemProfile != "" {
 		ticker := time.NewTicker(time.Second)
 		defer ticker.Stop()
 		go func() {
@@ -91,18 +110,8 @@ func main() {
 		}()
 	}
 
-	// Start the gollum multiplexer
+	// Start the multiplexer
 
-	conf, err := shared.ReadConfig(*configFilePtr)
-	if err != nil {
-		fmt.Printf("Error: %s", err.Error())
-		os.Exit(-1)
-	}
-
-	if *msgTestConfigPtr {
-		os.Exit(-1)
-	}
-
-	plex := newMultiplexer(conf, *msgProfilePtr)
+	plex := newMultiplexer(config, *flagProfile)
 	plex.run()
 }
