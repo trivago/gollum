@@ -5,3 +5,6 @@ log_*
 gollum.pid
 test*.txt
 *.prof
+
+# Docs
+docs/_build
