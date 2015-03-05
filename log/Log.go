@@ -39,6 +39,9 @@ var Warning *log.Logger
 // Error is a predefined log channel for notes. This log is backed by consumer.Log
 var Note *log.Logger
 
+// Metric is an alias (reference) to shared.Metric
+var Metric = &shared.Metric
+
 func init() {
 	Error = log.New(logHelper, "ERROR: ", log.Lshortfile)
 	Warning = log.New(logHelper, "Warning: ", log.Lshortfile)

@@ -31,6 +31,8 @@ const (
 	// ProducerControlRoll notifies the consumer about a log rotation or
 	// revalidation/reconnect of the write target
 	ProducerControlRoll = ProducerControl(2)
+
+	metricActiveProducers = "ActiveProducers"
 )
 
 // Producer is an interface for plugins that pass Message objects to other
@@ -90,6 +92,10 @@ type ProducerBase struct {
 	timeout  time.Duration
 }
 
+func init() {
+	Metric.New(metricActiveProducers)
+}
+
 // ProducerError can be used to return consumer related errors e.g. during a
 // call to Configure
 type ProducerError struct {
@@ -142,12 +148,14 @@ func (prod *ProducerBase) MarkAsActive(threads *sync.WaitGroup) {
 	prod.state.WaitGroup = threads
 	prod.state.WaitGroup.Add(1)
 	prod.state.Active = true
+	Metric.Add(metricActiveProducers, 1)
 }
 
 // MarkAsDone removes the producer from the wait group and marks it as inactive
 func (prod ProducerBase) MarkAsDone() {
 	prod.state.WaitGroup.Done()
 	prod.state.Active = false
+	Metric.Sub(metricActiveProducers, 1)
 }
 
 // AddWorker adds an additional worker to the waitgroup. Assumes that either

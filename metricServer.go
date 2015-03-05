@@ -13,13 +13,15 @@ func startMetricServer(port int) {
 		return
 	}
 
-	client, err := listen.Accept()
-	if err != nil {
-		Log.Error.Print("Metrics: ", err)
-		return // ### break ###
-	}
+	for {
+		client, err := listen.Accept()
+		if err != nil {
+			Log.Error.Print("Metrics: ", err)
+			return // ### break ###
+		}
 
-	go handleMetricRequest(client)
+		go handleMetricRequest(client)
+	}
 }
 
 func handleMetricRequest(conn net.Conn) {
@@ -31,6 +33,5 @@ func handleMetricRequest(conn net.Conn) {
 	} else {
 		conn.Write(data)
 	}
-
 	conn.Close()
 }

@@ -26,10 +26,11 @@ import (
 )
 
 const (
-	metricMsgSec  = "MessagesPerSec"
-	metricCons    = "Consumers"
-	metricProds   = "Producers"
-	metricStreams = "ManagedStreams"
+	metricMsgSec   = "MessagesPerSec"
+	metricCons     = "Consumers"
+	metricProds    = "Producers"
+	metricStreams  = "ManagedStreams"
+	metricMessages = "Messages"
 )
 
 type multiplexer struct {
@@ -53,6 +54,7 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 	Log.Metric.New(metricCons)
 	Log.Metric.New(metricProds)
 	Log.Metric.New(metricStreams)
+	Log.Metric.New(metricMessages)
 
 	plex := multiplexer{
 		stream:          make(map[shared.MessageStreamID][]shared.Producer),
@@ -292,7 +294,10 @@ func (plex multiplexer) run() {
 			if plex.profile {
 				Log.Note.Printf("Processed %.2f msg/sec", value)
 			}
+
 			Log.Metric.SetF(metricMsgSec, value)
+			Log.Metric.AddI(metricMessages, messageCount)
+
 			measure = time.Now()
 			messageCount = 0
 		}

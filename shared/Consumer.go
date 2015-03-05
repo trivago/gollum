@@ -28,6 +28,8 @@ const (
 
 	// ConsumerControlRoll notifies the consumer about a reconnect or reopen request
 	ConsumerControlRoll = ConsumerControl(2)
+
+	metricActiveConsumers = "ActiveConsumers"
 )
 
 // Consumer is an interface for plugins that recieve data from outside sources
@@ -82,6 +84,10 @@ type ConsumerError struct {
 	message string
 }
 
+func init() {
+	Metric.New(metricActiveConsumers)
+}
+
 // NewConsumerError creates a new ConsumerError
 func NewConsumerError(message string) ConsumerError {
 	return ConsumerError{message}
@@ -118,12 +124,14 @@ func (cons *ConsumerBase) MarkAsActive(threads *sync.WaitGroup) {
 	cons.state.WaitGroup = threads
 	cons.state.WaitGroup.Add(1)
 	cons.state.Active = true
+	Metric.Add(metricActiveConsumers, 1)
 }
 
 // MarkAsDone removes the consumer from the wait group and marks it as inactive
 func (cons ConsumerBase) MarkAsDone() {
 	cons.state.WaitGroup.Done()
 	cons.state.Active = false
+	Metric.Sub(metricActiveConsumers, 1)
 }
 
 // AddWorker adds an additional worker to the waitgroup. Assumes that either

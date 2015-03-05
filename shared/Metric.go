@@ -1,4 +1,4 @@
-package Log
+package shared
 
 import (
 	"encoding/json"
@@ -41,9 +41,29 @@ func (met *metrics) Add(name string, value int64) {
 	atomic.AddInt64(met.store[name], value)
 }
 
+// AddI is Add for int values (conversion to int64)
+func (met *metrics) AddI(name string, value int) {
+	atomic.AddInt64(met.store[name], int64(value))
+}
+
+// AddF is Add for float64 values (conversion to int64)
+func (met *metrics) AddF(name string, value float64) {
+	atomic.AddInt64(met.store[name], int64(value))
+}
+
 // Sub subtracts a number to a given metric. This operation is atomic.
 func (met *metrics) Sub(name string, value int64) {
 	atomic.AddInt64(met.store[name], -value)
+}
+
+// SubI is SubI for int values (conversion to int64)
+func (met *metrics) SubI(name string, value int) {
+	atomic.AddInt64(met.store[name], int64(-value))
+}
+
+// SubF is Sub for float64 values (conversion to int64)
+func (met *metrics) SubF(name string, value float64) {
+	atomic.AddInt64(met.store[name], int64(-value))
 }
 
 // Get returns the value of a given metric. This operation is atomic.
@@ -56,6 +76,7 @@ func (met *metrics) Get(name string) (int64, error) {
 	return atomic.LoadInt64(val), nil
 }
 
+// Dump creates a JSON string from all stored metrics
 func (met *metrics) Dump() ([]byte, error) {
 	return json.Marshal(Metric.store)
 }
