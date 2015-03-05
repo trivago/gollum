@@ -75,33 +75,45 @@ Each plugin has a different set of configuration options which are currently des
 
 ### Commandline
 
-#### `-c` or `--config` (file)
+#### `-c` or `--config` [file]
 
-Load a YAML config file. Example files can be found in the gollum directory.
+Use a given configuration file.
 
-#### `-n` or `--numcpu` (number)
+#### `-h` or `--help`
 
-Number of cpu cores to use.
+Print this help message.
 
-#### `-p` or `--pidfile` (file)
+#### `-m` or `--metrics` [port]
 
-Generate a pid file at a given path.
+Port to use for metric queries. Set 0 to disable.
+
+#### `-n` or `--numcpu` [number]
+
+Number of CPUs to use. Set 0 for all CPUs.
+
+#### `-p` or `--pidfile` [file]
+
+Write the process id into a given file.
+
+#### `-pc` or `--profilecpu` [file]
+
+Write CPU profiler results to a given file.
+
+#### `-pm` or `--profilemem` [file]
+
+Write heap profile results to a given file.
+
+#### `-ps` or `--profilespeed`
+
+Write msg/sec measurements to log.
+
+#### `-tc` or `--testconfig` [file]
+
+Test a given configuration file and exit.
 
 #### `-v` or `--version`
 
-Show version and exit.
-
-#### `-t` or `--throughput`
-
-Write regular statistics about message / sec throughput to stdout.
-
-#### `-cp` or `--cpuprofile` (file)
-
-Write go CPU profiler results to a given file.
-
-#### `-mp` or `--memprofile` (file)
-
-Write go memory profiler results to a given file.
+Print version information and quit.
 
 ### Configuration file
 
