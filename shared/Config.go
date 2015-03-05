@@ -126,6 +126,29 @@ func (conf PluginConfig) GetStreamMap(key string, defaultValue string) map[Messa
 	return streamMap
 }
 
+// GetStreamRoute tries to read a non-predefined, stream to stream map from a
+// plugin config. A mapping on the wildcard stream is always returned.
+// The target is either defaultValue or a value defined by the config.
+func (conf PluginConfig) GetStreamRoute(key string, defaultValue MessageStreamID) map[MessageStreamID]MessageStreamID {
+	streamRoute := make(map[MessageStreamID]MessageStreamID)
+	streamRoute[WildcardStreamID] = defaultValue
+
+	mapping, exists := conf.Settings[key]
+	if !exists {
+		return streamRoute
+	}
+
+	mapValue := readMap(key, mapping)
+
+	for streamItem, targetItem := range mapValue {
+		streamItemStr := readString("A key of "+key, streamItem)
+		targetItemStr := readString("A value of "+key, targetItem)
+		streamRoute[GetStreamID(streamItemStr)] = GetStreamID(targetItemStr)
+	}
+
+	return streamRoute
+}
+
 // GetInt tries to read a non-predefined, integer value from a PluginConfig.
 // If that value is not found defaultValue is returned.
 func (conf PluginConfig) GetInt(key string, defaultValue int) int {

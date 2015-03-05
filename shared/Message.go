@@ -41,14 +41,11 @@ var WildcardStreamID = GetStreamID(WildcardStream)
 // DroppedStreamID is the ID of the "_DROPPED_" stream
 var DroppedStreamID = GetStreamID(DroppedStream)
 
-// droppedQueue is a reference to the message queue of a Dropped consumer.
-var droppedQueue chan<- Message
-
 // Message is a container used for storing the internal state of messages.
 // This struct is passed between consumers and producers.
 type Message struct {
 	Data          []byte
-	streams       []MessageStreamID
+	Streams       []MessageStreamID
 	CurrentStream MessageStreamID
 	Timestamp     time.Time
 	Sequence      uint64
@@ -65,7 +62,7 @@ func GetStreamID(stream string) MessageStreamID {
 func NewMessage(text string, streams []MessageStreamID, sequence uint64) Message {
 	msg := Message{
 		Data:          []byte(text),
-		streams:       streams,
+		Streams:       streams,
 		CurrentStream: WildcardStreamID,
 		Timestamp:     time.Now(),
 		Sequence:      sequence,
@@ -77,57 +74,21 @@ func NewMessage(text string, streams []MessageStreamID, sequence uint64) Message
 func NewMessageFromSlice(data []byte, streams []MessageStreamID, sequence uint64) Message {
 	return Message{
 		Data:          data,
-		streams:       streams,
+		Streams:       streams,
 		CurrentStream: WildcardStreamID,
 		Timestamp:     time.Now(),
 		Sequence:      sequence,
 	}
 }
 
-// SetCurrentStream modifies the CurrentStream member if the stream is NOT
-// _DROPPED_. In that case the current stream member contains the stream that
-// caused the dropped.
-func (msg *Message) SetCurrentStream(stream MessageStreamID) {
-	if stream != DroppedStreamID {
-		msg.CurrentStream = stream
-	}
-}
-
-// ForEachStream iterates over all streams of this message and calls the given
-// callback. If the callback returns false the iteration will stop immediately.
-func (msg *Message) ForEachStream(callback func(stream MessageStreamID) bool) {
-	for _, value := range msg.streams {
-		if !callback(value) {
-			return
-		}
-	}
-}
-
 // IsInternalOnly returns true if a message is posted only to internal streams
 func (msg Message) IsInternalOnly() bool {
-	for _, value := range msg.streams {
+	for _, value := range msg.Streams {
 		if value != LogInternalStreamID && value != DroppedStreamID {
 			return false
 		}
 	}
 	return true
-}
-
-// RegisterDroppedConsumer registers a consumer channel to the list of listeners
-// accepting dropped messages. In addition to that the array of streams is
-// replaced by only accepting the DroppedStream.
-func RegisterDroppedConsumer(cons *ConsumerBase) {
-	cons.streams = []MessageStreamID{DroppedStreamID}
-	droppedQueue = cons.messages
-}
-
-// DropMessage marks a message as dropped and pushes it into the dropped
-// messages channel. This channel may block.
-func DropMessage(msg Message) {
-	if droppedQueue != nil {
-		msg.streams = []MessageStreamID{DroppedStreamID}
-		droppedQueue <- msg
-	}
 }
 
 // PostMessage is a convenience function to push a message to a channel while

@@ -150,16 +150,24 @@ func (cons ConsumerBase) IsActive() bool {
 	return cons.state.Active
 }
 
-// PostMessage sends a message text to all configured streams.
+// PostMessage sends a message to the streams configured with the message.
+// If you want to send string or []byte values as message it is recommended to
+// use PostMessageString or PostMessageFromSlice instead of this function.
 // This method blocks of the message queue is full.
-func (cons ConsumerBase) PostMessage(text string, sequence uint64) {
-	PostMessage(cons.messages, NewMessage(text, cons.streams, sequence), cons.timeout)
+func (cons ConsumerBase) PostMessage(msg Message) {
+	PostMessage(cons.messages, msg, cons.timeout)
+}
+
+// PostMessageString sends a message text to all configured streams.
+// This method blocks of the message queue is full.
+func (cons ConsumerBase) PostMessageString(text string, sequence uint64) {
+	cons.PostMessage(NewMessage(text, cons.streams, sequence))
 }
 
 // PostMessageFromSlice sends a buffered message to all configured streams.
 // This method blocks of the message queue is full.
 func (cons ConsumerBase) PostMessageFromSlice(data []byte, sequence uint64) {
-	PostMessage(cons.messages, NewMessageFromSlice(data, cons.streams, sequence), cons.timeout)
+	cons.PostMessage(NewMessageFromSlice(data, cons.streams, sequence))
 }
 
 // Control returns write access to this consumer's control channel.

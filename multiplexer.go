@@ -131,7 +131,7 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 // that stream.
 func (plex multiplexer) distribute(message shared.Message, streamID shared.MessageStreamID, sendToInactive bool) {
 	producers := plex.stream[streamID]
-	message.SetCurrentStream(streamID)
+	message.CurrentStream = streamID
 
 	if distributors, isManaged := plex.managedStream[streamID]; isManaged {
 		for _, distributor := range distributors {
@@ -153,10 +153,9 @@ func (plex multiplexer) broadcastMessage(message shared.Message, sendToInactive 
 	}
 
 	// Send to specific stream producers
-	message.ForEachStream(func(streamID shared.MessageStreamID) bool {
+	for _, streamID := range message.Streams {
 		plex.distribute(message, streamID, sendToInactive)
-		return true
-	})
+	}
 }
 
 // Shutdown all consumers and producers in a clean way.
