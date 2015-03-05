@@ -148,14 +148,14 @@ func (prod *ProducerBase) MarkAsActive(threads *sync.WaitGroup) {
 	prod.state.WaitGroup = threads
 	prod.state.WaitGroup.Add(1)
 	prod.state.Active = true
-	Metric.Add(metricActiveProducers, 1)
+	Metric.Inc(metricActiveProducers)
 }
 
 // MarkAsDone removes the producer from the wait group and marks it as inactive
 func (prod ProducerBase) MarkAsDone() {
 	prod.state.WaitGroup.Done()
 	prod.state.Active = false
-	Metric.Sub(metricActiveProducers, 1)
+	Metric.Dec(metricActiveProducers)
 }
 
 // AddWorker adds an additional worker to the waitgroup. Assumes that either

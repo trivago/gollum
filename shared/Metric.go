@@ -36,6 +36,16 @@ func (met *metrics) SetF(name string, value float64) {
 	atomic.StoreInt64(met.store[name], int64(value))
 }
 
+// Inc adds 1 to a given metric. This operation is atomic.
+func (met *metrics) Inc(name string) {
+	atomic.AddInt64(met.store[name], 1)
+}
+
+// Inc subtracts 1 from a given metric. This operation is atomic.
+func (met *metrics) Dec(name string) {
+	atomic.AddInt64(met.store[name], -1)
+}
+
 // Add adds a number to a given metric. This operation is atomic.
 func (met *metrics) Add(name string, value int64) {
 	atomic.AddInt64(met.store[name], value)

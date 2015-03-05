@@ -92,6 +92,7 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 
 				if !mappingExists {
 					plex.managedStream[streamID] = []shared.Distributor{distributor}
+					Log.Metric.Inc(metricStreams)
 				} else {
 					plex.managedStream[streamID] = append(streamMap, distributor)
 				}
@@ -101,11 +102,13 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 		// Register consumer plugins
 		if consumer, isConsumer := plugin.(shared.Consumer); isConsumer {
 			plex.consumers = append(plex.consumers, consumer)
+			Log.Metric.Inc(metricCons)
 		}
 
 		// Register producer plugins
 		if producer, isProducer := plugin.(shared.Producer); isProducer {
 			plex.producers = append(plex.producers, producer)
+			Log.Metric.Inc(metricProds)
 
 			for _, stream := range config.Stream {
 				streamID := shared.GetStreamID(stream)
@@ -119,10 +122,6 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 			}
 		}
 	}
-
-	Log.Metric.SetI(metricCons, len(plex.consumers))
-	Log.Metric.SetI(metricProds, len(plex.producers))
-	Log.Metric.SetI(metricStreams, len(plex.managedStream))
 
 	return plex
 }

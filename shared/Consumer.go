@@ -124,14 +124,14 @@ func (cons *ConsumerBase) MarkAsActive(threads *sync.WaitGroup) {
 	cons.state.WaitGroup = threads
 	cons.state.WaitGroup.Add(1)
 	cons.state.Active = true
-	Metric.Add(metricActiveConsumers, 1)
+	Metric.Inc(metricActiveConsumers)
 }
 
 // MarkAsDone removes the consumer from the wait group and marks it as inactive
 func (cons ConsumerBase) MarkAsDone() {
 	cons.state.WaitGroup.Done()
 	cons.state.Active = false
-	Metric.Sub(metricActiveConsumers, 1)
+	Metric.Dec(metricActiveConsumers)
 }
 
 // AddWorker adds an additional worker to the waitgroup. Assumes that either
