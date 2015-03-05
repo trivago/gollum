@@ -35,6 +35,7 @@ const (
 )
 
 // Kafka consumer plugin
+// This consumer can be paused.
 // Configuration example
 //
 //   - "consumer.Kafka":
@@ -218,6 +219,11 @@ func (cons *Kafka) fetch(offsetIdx int, partition int32, config kafka.PartitionC
 	}()
 
 	for !cons.client.Closed() {
+		if cons.IsPaused() {
+			runtime.Gosched()
+			continue
+		}
+
 		select {
 		default:
 			runtime.Gosched()

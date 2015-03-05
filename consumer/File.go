@@ -44,6 +44,7 @@ const (
 )
 
 // File consumer plugin
+// This consumer can be paused.
 // Configuration example
 //
 //   - "consumer.File":
@@ -181,6 +182,11 @@ func (cons *File) read() {
 
 	printFileOpenError := true
 	for cons.state != fileStateDone {
+		if cons.IsPaused() {
+			runtime.Gosched()
+			continue
+		}
+
 		// Initialize the seek state if requested
 		// Try to read the remains of the file first
 		if cons.state == fileStateOpen {

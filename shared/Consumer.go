@@ -150,6 +150,11 @@ func (cons ConsumerBase) IsActive() bool {
 	return cons.state.Active
 }
 
+// IsPaused returns true of all streams of this consumer are marked as paused
+func (cons ConsumerBase) IsPaused() bool {
+	return AllStreamsPaused(cons.streams)
+}
+
 // PostMessage sends a message to the streams configured with the message.
 // If you want to send string or []byte values as message it is recommended to
 // use PostMessageString or PostMessageFromSlice instead of this function.

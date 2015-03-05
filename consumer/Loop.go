@@ -16,6 +16,7 @@ package consumer
 
 import (
 	"github.com/trivago/gollum/shared"
+	"runtime"
 	"sync"
 )
 
@@ -88,8 +89,12 @@ func (cons *Loop) processFeedbackQueue() {
 	defer cons.stop()
 
 	for !cons.quit {
-		msg := <-shared.GetFeedbackQueue()
-		cons.route(msg)
+		select {
+		default:
+			runtime.Gosched()
+		case msg := <-shared.GetFeedbackQueue():
+			cons.route(msg)
+		}
 	}
 }
 
