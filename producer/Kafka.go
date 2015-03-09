@@ -229,7 +229,7 @@ func (prod *Kafka) send(msg shared.Message) {
 }
 
 // Produce writes to a buffer that is sent to a given socket.
-func (prod Kafka) Produce(threads *sync.WaitGroup) {
+func (prod Kafka) Produce(workers *sync.WaitGroup) {
 	defer func() {
 		if prod.producer != nil {
 			prod.producer.Close()
@@ -237,8 +237,9 @@ func (prod Kafka) Produce(threads *sync.WaitGroup) {
 		if prod.client != nil && !prod.client.Closed() {
 			prod.client.Close()
 		}
-		prod.MarkAsDone()
+		prod.WorkerDone()
 	}()
 
-	prod.DefaultControlLoop(threads, prod.send, nil)
+	prod.AddMainWorker(workers)
+	prod.DefaultControlLoop(prod.send, nil)
 }

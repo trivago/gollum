@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/shared"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 )
@@ -67,15 +68,17 @@ func (prod Console) printMessage(msg shared.Message) {
 
 func (prod Console) flush() {
 	for prod.NextNonBlocking(prod.printMessage) {
+		runtime.Gosched()
 	}
 }
 
 // Produce writes to stdout or stderr.
-func (prod Console) Produce(threads *sync.WaitGroup) {
+func (prod Console) Produce(workers *sync.WaitGroup) {
 	defer func() {
 		prod.flush()
-		prod.MarkAsDone()
+		prod.WorkerDone()
 	}()
 
-	prod.DefaultControlLoop(threads, prod.printMessage, nil)
+	prod.AddMainWorker(workers)
+	prod.DefaultControlLoop(prod.printMessage, nil)
 }

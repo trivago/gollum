@@ -28,6 +28,7 @@ import (
 // This consumer does not define any options beside the standard ones.
 // Messages are send to all of the producers listening to the given stream.
 type Broadcast struct {
+	shared.DistributorBase
 }
 
 func init() {
@@ -40,8 +41,8 @@ func (dist *Broadcast) Configure(conf shared.PluginConfig) error {
 }
 
 // Distribute sends the given message to all of the given producers
-func (dist *Broadcast) Distribute(message shared.Message, producers []shared.Producer, sendToInactive bool) {
-	for _, producer := range producers {
-		shared.SingleDistribute(producer, message, sendToInactive)
+func (dist *Broadcast) Distribute(msg shared.Message) {
+	for _, producer := range dist.DistributorBase.Producers {
+		msg.SendTo(producer)
 	}
 }

@@ -43,7 +43,5 @@ func (prod Null) testFormatter(msg shared.Message) {
 
 // Produce writes to a buffer that is dumped to a file.
 func (prod Null) Produce(threads *sync.WaitGroup) {
-	defer prod.MarkAsDone()
-
-	prod.DefaultControlLoop(threads, prod.testFormatter, nil)
+	prod.DefaultControlLoop(prod.testFormatter, nil)
 }

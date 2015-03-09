@@ -41,12 +41,28 @@ var WildcardStreamID = GetStreamID(WildcardStream)
 // DroppedStreamID is the ID of the "_DROPPED_" stream
 var DroppedStreamID = GetStreamID(DroppedStream)
 
+var messageRetryQueue chan Message
+
+// MessageSource defines methods that can be called on types that generate
+// messages.
+type MessageSource interface {
+	// Pause instructs the source to stop sending messages.
+	Pause()
+
+	// IsPaused returns true if the source is currently in the paused state.
+	IsPaused() bool
+
+	// Resume instructs the source to start sending messages again.
+	Resume()
+}
+
 // Message is a container used for storing the internal state of messages.
 // This struct is passed between consumers and producers.
 type Message struct {
 	Data          []byte
 	Streams       []MessageStreamID
 	CurrentStream MessageStreamID
+	Source        MessageSource
 	Timestamp     time.Time
 	Sequence      uint64
 }
@@ -58,11 +74,24 @@ func GetStreamID(stream string) MessageStreamID {
 	return MessageStreamID(hash.Sum64())
 }
 
-// NewMessage creates a new message from a given string
-func NewMessage(text string, streams []MessageStreamID, sequence uint64) Message {
+// EnableRetryQueue creates a retried messages channel using the given size.
+func EnableRetryQueue(size int) {
+	if messageRetryQueue == nil {
+		messageRetryQueue = make(chan Message, size)
+	}
+}
+
+// GetRetryQueue returns read access to the retry queue.
+func GetRetryQueue() <-chan Message {
+	return messageRetryQueue
+}
+
+// NewMessage creates a new message from a given data stream
+func NewMessage(source MessageSource, data []byte, streams []MessageStreamID, sequence uint64) Message {
 	msg := Message{
-		Data:          []byte(text),
+		Data:          data,
 		Streams:       streams,
+		Source:        source,
 		CurrentStream: WildcardStreamID,
 		Timestamp:     time.Now(),
 		Sequence:      sequence,
@@ -70,34 +99,13 @@ func NewMessage(text string, streams []MessageStreamID, sequence uint64) Message
 	return msg
 }
 
-// NewMessageFromSlice creates a new message from a given byte slice
-func NewMessageFromSlice(data []byte, streams []MessageStreamID, sequence uint64) Message {
-	return Message{
-		Data:          data,
-		Streams:       streams,
-		CurrentStream: WildcardStreamID,
-		Timestamp:     time.Now(),
-		Sequence:      sequence,
-	}
-}
-
-// IsInternalOnly returns true if a message is posted only to internal streams
-func (msg Message) IsInternalOnly() bool {
-	for _, value := range msg.Streams {
-		if value != LogInternalStreamID && value != DroppedStreamID {
-			return false
-		}
-	}
-	return true
-}
-
-// PostMessage is a convenience function to push a message to a channel while
-// waiting for a timeout instead of just blocking.
+// Send is a convenience function to push a message to a channel while waiting
+// for a timeout instead of just blocking.
 // Passing a timeout of -1 which will discard the message.
 // Passing a timout of 0 will always block.
 // Messages that time out will be passed to the dropped queue if a Dropped
 // consumer exists.
-func PostMessage(channel chan<- Message, msg Message, timeout time.Duration) {
+func (msg Message) Send(channel chan<- Message, timeout time.Duration) {
 	if timeout == 0 {
 		channel <- msg
 	} else {
@@ -124,10 +132,38 @@ func PostMessage(channel chan<- Message, msg Message, timeout time.Duration) {
 
 				// Discard message after timeout
 				case time.Since(*start) > timeout:
-					go DropMessage(msg)
+					go msg.Drop(time.Duration(0))
 					return
 				}
 			}
 		}
+	}
+}
+
+// SendTo sends a message to the given producer.
+// This function returns true if the producer accepted the message.
+func (msg Message) SendTo(prod Producer) bool {
+	if prod.Accepts(msg) {
+		msg.Send(prod.Messages(), prod.GetTimeout())
+		return true
+	}
+	return false
+}
+
+// Retry pushes a message to the retry queue. This queue can be consumed by the
+// loopback consumer. If no such consumer has been configured, the message is
+// lost.
+func (msg Message) Retry(streamID MessageStreamID, timeout time.Duration) {
+	if messageRetryQueue != nil {
+		msg.CurrentStream = streamID
+		msg.Send(messageRetryQueue, timeout)
+	}
+}
+
+// Drop is a shortcut for msg.Retry(DroppedStreamID, timeout)
+func (msg Message) Drop(timeout time.Duration) {
+	if messageRetryQueue != nil {
+		msg.CurrentStream = DroppedStreamID
+		msg.Send(messageRetryQueue, timeout)
 	}
 }

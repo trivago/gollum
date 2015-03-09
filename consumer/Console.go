@@ -41,8 +41,8 @@ func init() {
 	shared.RuntimeType.Register(Console{})
 }
 
-func (cons *Console) readFrom(stream io.Reader, threads *sync.WaitGroup) {
-	buffer := shared.NewBufferedReader(consoleBufferGrowSize, 0, "\n", cons.PostMessageFromSlice)
+func (cons *Console) readFrom(stream io.Reader) {
+	buffer := shared.NewBufferedReader(consoleBufferGrowSize, 0, "\n", cons.SendData)
 
 	for {
 		err := buffer.Read(stream)
@@ -53,9 +53,7 @@ func (cons *Console) readFrom(stream io.Reader, threads *sync.WaitGroup) {
 }
 
 // Consume listens to stdin.
-func (cons Console) Consume(threads *sync.WaitGroup) {
-	go cons.readFrom(os.Stdin, threads)
-
-	defer cons.MarkAsDone()
-	cons.DefaultControlLoop(threads, nil)
+func (cons Console) Consume(workers *sync.WaitGroup) {
+	go cons.readFrom(os.Stdin)
+	cons.DefaultControlLoop(nil)
 }

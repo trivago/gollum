@@ -218,6 +218,8 @@ func (cons *Kafka) fetch(offsetIdx int, partition int32, config kafka.PartitionC
 		cons.WorkerDone()
 	}()
 
+	// Loop over worker
+
 	for !cons.client.Closed() {
 		if cons.IsPaused() {
 			runtime.Gosched()
@@ -234,7 +236,7 @@ func (cons *Kafka) fetch(offsetIdx int, partition int32, config kafka.PartitionC
 			// This tries to reconstruct the original message number when using a
 			// round robin distribution.
 			sequence := uint64(offset + offset*int64(len(cons.offsets)-1) + int64(partition))
-			cons.PostMessageFromSlice(event.Value, sequence)
+			cons.SendData(event.Value, sequence)
 		}
 	}
 }
@@ -286,8 +288,9 @@ func (cons *Kafka) dumpIndex() {
 }
 
 // Consume starts a kafka consumer per partition for this topic
-func (cons Kafka) Consume(threads *sync.WaitGroup) {
-	cons.SetWaitGroup(threads)
+func (cons Kafka) Consume(workers *sync.WaitGroup) {
+	cons.SetWorkerWaitGroup(workers)
+
 	err := cons.startConsumers()
 	if err != nil {
 		Log.Error.Print("Kafka client error - ", err)
@@ -297,8 +300,7 @@ func (cons Kafka) Consume(threads *sync.WaitGroup) {
 	defer func() {
 		cons.client.Close()
 		cons.dumpIndex()
-		cons.MarkAsDone()
 	}()
 
-	cons.TickerControlLoop(threads, cons.offsetTimeout, nil, cons.dumpIndex)
+	cons.TickerControlLoop(cons.offsetTimeout, nil, cons.dumpIndex)
 }

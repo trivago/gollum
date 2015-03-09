@@ -68,7 +68,7 @@ func (cons *Profiler) profile() {
 
 	testStart := time.Now()
 
-	var msg string
+	var msgData string
 	minTime := math.MaxFloat64
 	maxTime := 0.0
 
@@ -77,11 +77,10 @@ func (cons *Profiler) profile() {
 
 		start := time.Now()
 		for i := 0; i < cons.profileRuns; i++ {
-			msg = fmt.Sprintf("%d/%d %s", i, cons.profileRuns, string(randString))
-			cons.PostMessageString(msg, uint64(b*cons.profileRuns+i))
+			msgData = fmt.Sprintf("%d/%d %s", i, cons.profileRuns, string(randString))
+			cons.SendData([]byte(msgData), uint64(b*cons.profileRuns+i))
 
 			if cons.quit {
-				cons.MarkAsDone()
 				return
 			}
 		}
@@ -108,13 +107,11 @@ func (cons *Profiler) profile() {
 		maxTime,
 		float64(cons.profileRuns)/maxTime))
 
-	cons.MarkAsDone()
-
 	panic("test")
 }
 
 // Consume starts a profile run and exits gollum when done
-func (cons Profiler) Consume(threads *sync.WaitGroup) {
+func (cons Profiler) Consume(workers *sync.WaitGroup) {
 	cons.quit = false
 	go func() {
 		defer shared.RecoverShutdown()
@@ -125,5 +122,5 @@ func (cons Profiler) Consume(threads *sync.WaitGroup) {
 		cons.quit = true
 	}()
 
-	cons.DefaultControlLoop(threads, nil)
+	cons.DefaultControlLoop(nil)
 }

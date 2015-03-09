@@ -122,7 +122,7 @@ func (cons *File) Configure(conf shared.PluginConfig) error {
 
 func (cons *File) postAndPersist(data []byte, sequence uint64) {
 	cons.seekOffset, _ = cons.file.Seek(0, 1)
-	cons.PostMessageFromSlice(data, sequence)
+	cons.SendData(data, sequence)
 	ioutil.WriteFile(cons.continueFileName, []byte(strconv.FormatInt(cons.seekOffset, 10)), 0644)
 }
 
@@ -165,22 +165,25 @@ func (cons *File) initFile() {
 	}
 }
 
-func (cons *File) read() {
-	defer func() {
-		if cons.file != nil {
-			cons.file.Close()
-		}
-		cons.MarkAsDone()
-	}()
+func (cons *File) close() {
+	if cons.file != nil {
+		cons.file.Close()
+	}
+	cons.setState(fileStateDone)
+	cons.WorkerDone()
+}
 
-	var buffer shared.BufferedReader
+func (cons *File) read() {
+	defer cons.close()
+
+	sendFunction := cons.SendData
 	if cons.persistSeek {
-		buffer = shared.NewBufferedReader(fileBufferGrowSize, 0, cons.delimiter, cons.postAndPersist)
-	} else {
-		buffer = shared.NewBufferedReader(fileBufferGrowSize, 0, cons.delimiter, cons.PostMessageFromSlice)
+		sendFunction = cons.postAndPersist
 	}
 
+	buffer := shared.NewBufferedReader(fileBufferGrowSize, 0, cons.delimiter, sendFunction)
 	printFileOpenError := true
+
 	for cons.state != fileStateDone {
 		if cons.IsPaused() {
 			runtime.Gosched()
@@ -209,6 +212,7 @@ func (cons *File) read() {
 				}
 				time.Sleep(3 * time.Second)
 				continue
+
 			default:
 				cons.file = file
 				cons.seekOffset, _ = cons.file.Seek(cons.seekOffset, cons.seek)
@@ -233,14 +237,20 @@ func (cons *File) read() {
 	}
 }
 
-// Consume listens to stdin.
-func (cons File) Consume(threads *sync.WaitGroup) {
+func (cons File) onRoll() {
 	cons.setState(fileStateOpen)
-	defer cons.setState(fileStateDone)
+}
+
+// Consume listens to stdin.
+func (cons File) Consume(workers *sync.WaitGroup) {
+	cons.setState(fileStateOpen)
 
 	go func() {
+		defer cons.close()
 		defer shared.RecoverShutdown()
+		cons.AddMainWorker(workers)
 		cons.read()
 	}()
-	cons.DefaultControlLoop(threads, func() { cons.setState(fileStateOpen) })
+
+	cons.DefaultControlLoop(cons.onRoll)
 }

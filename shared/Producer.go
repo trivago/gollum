@@ -42,9 +42,6 @@ type Producer interface {
 	// message channel to some other service like the console.
 	Produce(*sync.WaitGroup)
 
-	// IsActive returns true if the producer is ready to accept new data.
-	IsActive() bool
-
 	// GetTimeout returns the duration this producer will block before a message
 	// is dropped. A value of -1 will cause the message to drop. A value of 0
 	// will cause the producer to always block.
@@ -52,6 +49,9 @@ type Producer interface {
 
 	// Accepts returns true if the message is allowed to be send to this producer.
 	Accepts(message Message) bool
+
+	// Streams returns the streams this producer is listening to.
+	Streams() []MessageStreamID
 
 	// Control returns write access to this producer's control channel.
 	// See ProducerControl* constants.
@@ -86,6 +86,7 @@ type Producer interface {
 type ProducerBase struct {
 	messages chan Message
 	control  chan ProducerControl
+	streams  []MessageStreamID
 	filter   *regexp.Regexp
 	state    *PluginRunState
 	format   Formatter
@@ -115,10 +116,15 @@ func (err ProducerError) Error() string {
 // Configure initializes the standard producer config values.
 func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	prod.messages = make(chan Message, conf.Channel)
+	prod.streams = make([]MessageStreamID, len(conf.Stream))
 	prod.control = make(chan ProducerControl, 1)
 	prod.filter = nil
 	prod.timeout = time.Duration(conf.GetInt("ChannelTimeout", 0)) * time.Millisecond
 	prod.state = new(PluginRunState)
+
+	for i, stream := range conf.Stream {
+		prod.streams[i] = GetStreamID(stream)
+	}
 
 	plugin, err := RuntimeType.NewPluginWithType(conf.GetString("Formatter", "format.Forward"), conf)
 	if err != nil {
@@ -137,41 +143,29 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	return nil
 }
 
-// SetWaitGroup sets the given waitgroup. This is also done by MarkAsActive so
-// it is only needed when AddWorker is called before MarkAsActive.
-func (prod *ProducerBase) SetWaitGroup(threads *sync.WaitGroup) {
-	prod.state.WaitGroup = threads
+// SetWorkerWaitGroup forwards to Plugin.SetWorkerWaitGroup for this consumer's
+// internal plugin state. This method is also called by AddMainWorker.
+func (prod ProducerBase) SetWorkerWaitGroup(workers *sync.WaitGroup) {
+	prod.state.SetWorkerWaitGroup(workers)
 }
 
-// MarkAsActive adds this producer to the wait group and marks it as active
-func (prod *ProducerBase) MarkAsActive(threads *sync.WaitGroup) {
-	prod.state.WaitGroup = threads
-	prod.state.WaitGroup.Add(1)
-	prod.state.Active = true
-	Metric.Inc(metricActiveProducers)
-}
-
-// MarkAsDone removes the producer from the wait group and marks it as inactive
-func (prod ProducerBase) MarkAsDone() {
-	prod.state.WaitGroup.Done()
-	prod.state.Active = false
-	Metric.Dec(metricActiveProducers)
+// AddMainWorker adds the first worker to the waitgroup
+func (prod ProducerBase) AddMainWorker(workers *sync.WaitGroup) {
+	prod.state.SetWorkerWaitGroup(workers)
+	prod.AddWorker()
 }
 
 // AddWorker adds an additional worker to the waitgroup. Assumes that either
 // MarkAsActive or SetWaitGroup has been called beforehand.
 func (prod ProducerBase) AddWorker() {
-	prod.state.WaitGroup.Add(1)
+	prod.state.AddWorker()
+	Metric.Inc(metricActiveWorkers)
 }
 
 // WorkerDone removes an additional worker to the waitgroup.
 func (prod ProducerBase) WorkerDone() {
-	prod.state.WaitGroup.Done()
-}
-
-// IsActive returns true if the producer is ready to generate messages.
-func (prod ProducerBase) IsActive() bool {
-	return prod.state.Active
+	prod.state.WorkerDone()
+	Metric.Dec(metricActiveWorkers)
 }
 
 // GetTimeout returns the duration this producer will block before a message
@@ -196,13 +190,9 @@ func (prod ProducerBase) Formatter() Formatter {
 	return prod.format
 }
 
-// Next returns the next message from the queue. Blocks if the queue is empty.
-func (prod ProducerBase) Next() Message {
-	return <-prod.messages
-}
-
-// NextClosed is like Next but also returns the closed state of the channel
-func (prod ProducerBase) NextClosed() (Message, bool) {
+// Next returns the latest message from the channel as well as the open state
+// of the channel. This function blocks if the channel is empty.
+func (prod ProducerBase) Next() (Message, bool) {
 	msg, ok := <-prod.messages
 	return msg, ok
 }
@@ -217,6 +207,11 @@ func (prod ProducerBase) NextNonBlocking(onMessage func(msg Message)) bool {
 	default:
 		return false
 	}
+}
+
+// Streams returns the streams this producer is listening to.
+func (prod ProducerBase) Streams() []MessageStreamID {
+	return prod.streams
 }
 
 // Control returns write access to this producer's control channel.
@@ -248,12 +243,9 @@ func (prod ProducerBase) ProcessCommand(command ProducerControl, onRoll func()) 
 }
 
 // DefaultControlLoop provides a producer mainloop that is sufficient for most
-// usecases. It marks this producer as active and loops over ProcessCommand
-// as long as the producer is marked as active.
-func (prod ProducerBase) DefaultControlLoop(threads *sync.WaitGroup, onMessage func(msg Message), onRoll func()) {
-	prod.MarkAsActive(threads)
-
-	for prod.IsActive() {
+// usecases.
+func (prod ProducerBase) DefaultControlLoop(onMessage func(msg Message), onRoll func()) {
+	for {
 		select {
 		case message := <-prod.messages:
 			onMessage(message)
@@ -268,11 +260,10 @@ func (prod ProducerBase) DefaultControlLoop(threads *sync.WaitGroup, onMessage f
 
 // TickerControlLoop is like DefaultControlLoop but executes a given function at
 // every given interval tick, too.
-func (prod ProducerBase) TickerControlLoop(threads *sync.WaitGroup, interval time.Duration, onMessage func(msg Message), onRoll func(), onTimeOut func()) {
+func (prod ProducerBase) TickerControlLoop(interval time.Duration, onMessage func(msg Message), onRoll func(), onTimeOut func()) {
 	flushTicker := time.NewTicker(interval)
-	prod.MarkAsActive(threads)
 
-	for prod.IsActive() {
+	for {
 		select {
 		case message := <-prod.messages:
 			onMessage(message)

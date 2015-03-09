@@ -338,13 +338,14 @@ func (prod *File) rotateLog() {
 }
 
 // Produce writes to a buffer that is dumped to a file.
-func (prod File) Produce(threads *sync.WaitGroup) {
+func (prod File) Produce(workers *sync.WaitGroup) {
 	defer func() {
 		prod.flush()
 		prod.bgWriter.Wait()
 		prod.file.Close()
-		prod.MarkAsDone()
+		prod.WorkerDone()
 	}()
 
-	prod.TickerControlLoop(threads, prod.batchTimeout, prod.writeMessage, prod.rotateLog, prod.writeBatchOnTimeOut)
+	prod.AddMainWorker(workers)
+	prod.TickerControlLoop(prod.batchTimeout, prod.writeMessage, prod.rotateLog, prod.writeBatchOnTimeOut)
 }

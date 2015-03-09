@@ -28,8 +28,6 @@ const (
 
 	// ConsumerControlRoll notifies the consumer about a reconnect or reopen request
 	ConsumerControlRoll = ConsumerControl(2)
-
-	metricActiveConsumers = "ActiveConsumers"
 )
 
 // Consumer is an interface for plugins that recieve data from outside sources
@@ -38,9 +36,6 @@ type Consumer interface {
 	// Consume should implement to main loop that fetches messages from a given
 	// source and pushes it to the Message channel.
 	Consume(*sync.WaitGroup)
-
-	// IsActive returns true if the consumer is ready to generate messages.
-	IsActive() bool
 
 	// Control returns write access to this consumer's control channel.
 	// See ConsumerControl* constants.
@@ -85,7 +80,7 @@ type ConsumerError struct {
 }
 
 func init() {
-	Metric.New(metricActiveConsumers)
+	Metric.New(metricActiveWorkers)
 }
 
 // NewConsumerError creates a new ConsumerError
@@ -113,66 +108,58 @@ func (cons *ConsumerBase) Configure(conf PluginConfig) error {
 	return nil
 }
 
-// SetWaitGroup sets the given waitgroup. This is also done by MarkAsActive so
-// it is only needed when AddWorker is called before MarkAsActive.
-func (cons *ConsumerBase) SetWaitGroup(threads *sync.WaitGroup) {
-	cons.state.WaitGroup = threads
+// SetWorkerWaitGroup forwards to Plugin.SetWorkerWaitGroup for this consumer's
+// internal plugin state. This method is also called by AddMainWorker.
+func (cons ConsumerBase) SetWorkerWaitGroup(workers *sync.WaitGroup) {
+	cons.state.SetWorkerWaitGroup(workers)
 }
 
-// MarkAsActive adds this consumer to the wait group and marks it as active
-func (cons *ConsumerBase) MarkAsActive(threads *sync.WaitGroup) {
-	cons.state.WaitGroup = threads
-	cons.state.WaitGroup.Add(1)
-	cons.state.Active = true
-	Metric.Inc(metricActiveConsumers)
-}
-
-// MarkAsDone removes the consumer from the wait group and marks it as inactive
-func (cons ConsumerBase) MarkAsDone() {
-	cons.state.WaitGroup.Done()
-	cons.state.Active = false
-	Metric.Dec(metricActiveConsumers)
+// AddMainWorker adds the first worker to the waitgroup
+func (cons ConsumerBase) AddMainWorker(workers *sync.WaitGroup) {
+	cons.state.SetWorkerWaitGroup(workers)
+	cons.AddWorker()
 }
 
 // AddWorker adds an additional worker to the waitgroup. Assumes that either
 // MarkAsActive or SetWaitGroup has been called beforehand.
 func (cons ConsumerBase) AddWorker() {
-	cons.state.WaitGroup.Add(1)
+	cons.state.AddWorker()
+	Metric.Inc(metricActiveWorkers)
 }
 
 // WorkerDone removes an additional worker to the waitgroup.
 func (cons ConsumerBase) WorkerDone() {
-	cons.state.WaitGroup.Done()
+	cons.state.WorkerDone()
+	Metric.Dec(metricActiveWorkers)
 }
 
-// IsActive returns true if the consumer is ready to generate messages.
-func (cons ConsumerBase) IsActive() bool {
-	return cons.state.Active
+// Pause implements the MessageSource interface
+func (cons ConsumerBase) Pause() {
+	cons.state.Pause()
 }
 
-// IsPaused returns true of all streams of this consumer are marked as paused
+// IsPaused implements the MessageSource interface
 func (cons ConsumerBase) IsPaused() bool {
-	return AllStreamsPaused(cons.streams)
+	return cons.state.IsPaused()
 }
 
-// PostMessage sends a message to the streams configured with the message.
-// If you want to send string or []byte values as message it is recommended to
-// use PostMessageString or PostMessageFromSlice instead of this function.
-// This method blocks of the message queue is full.
-func (cons ConsumerBase) PostMessage(msg Message) {
-	PostMessage(cons.messages, msg, cons.timeout)
+// Resume implements the MessageSource interface
+func (cons ConsumerBase) Resume() {
+	cons.state.Resume()
 }
 
-// PostMessageString sends a message text to all configured streams.
-// This method blocks of the message queue is full.
-func (cons ConsumerBase) PostMessageString(text string, sequence uint64) {
-	cons.PostMessage(NewMessage(text, cons.streams, sequence))
+// Send sends a message to the streams configured with the message.
+// This method blocks of the message queue is full, depending on the value set
+// for cons.timeout.
+func (cons ConsumerBase) Send(msg Message) {
+	msg.Source = cons
+	msg.Send(cons.messages, cons.timeout)
 }
 
-// PostMessageFromSlice sends a buffered message to all configured streams.
-// This method blocks of the message queue is full.
-func (cons ConsumerBase) PostMessageFromSlice(data []byte, sequence uint64) {
-	cons.PostMessage(NewMessageFromSlice(data, cons.streams, sequence))
+// SendData creates a new message from a given byte slice and passes it to
+// cons.Send.
+func (cons ConsumerBase) SendData(data []byte, sequence uint64) {
+	cons.Send(NewMessage(cons, data, cons.streams, sequence))
 }
 
 // Control returns write access to this consumer's control channel.
@@ -205,12 +192,9 @@ func (cons ConsumerBase) ProcessCommand(command ConsumerControl, onRoll func()) 
 }
 
 // DefaultControlLoop provides a consumer mainloop that is sufficient for most
-// usecases. It marks this consumer as active and loops over ProcessCommand
-// as long as the consumer is marked as active.
-func (cons ConsumerBase) DefaultControlLoop(threads *sync.WaitGroup, onRoll func()) {
-	cons.MarkAsActive(threads)
-
-	for cons.IsActive() {
+// usecases.
+func (cons ConsumerBase) DefaultControlLoop(onRoll func()) {
+	for {
 		command := <-cons.control
 		if cons.ProcessCommand(command, onRoll) {
 			return // ### return ###
@@ -220,11 +204,10 @@ func (cons ConsumerBase) DefaultControlLoop(threads *sync.WaitGroup, onRoll func
 
 // TickerControlLoop is like DefaultControlLoop but executes a given function at
 // every given interval tick, too.
-func (cons ConsumerBase) TickerControlLoop(threads *sync.WaitGroup, interval time.Duration, onRoll func(), onTick func()) {
+func (cons ConsumerBase) TickerControlLoop(interval time.Duration, onRoll func(), onTick func()) {
 	ticker := time.NewTicker(interval)
-	cons.MarkAsActive(threads)
 
-	for cons.IsActive() {
+	for {
 		select {
 		case command := <-cons.control:
 			if cons.ProcessCommand(command, onRoll) {

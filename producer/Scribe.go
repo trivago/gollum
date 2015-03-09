@@ -161,13 +161,14 @@ func (prod *Scribe) flush() {
 }
 
 // Produce writes to a buffer that is sent to scribe.
-func (prod Scribe) Produce(threads *sync.WaitGroup) {
+func (prod Scribe) Produce(workers *sync.WaitGroup) {
 	defer func() {
 		prod.flush()
 		prod.transport.Close()
 		prod.socket.Close()
-		prod.MarkAsDone()
+		prod.WorkerDone()
 	}()
 
-	prod.TickerControlLoop(threads, prod.batchTimeout, prod.sendMessage, nil, prod.sendBatchOnTimeOut)
+	prod.AddMainWorker(workers)
+	prod.TickerControlLoop(prod.batchTimeout, prod.sendMessage, nil, prod.sendBatchOnTimeOut)
 }

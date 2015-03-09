@@ -132,10 +132,12 @@ func clientDisconnected(err error) bool {
 }
 
 func (cons *Socket) readFromConnection(conn net.Conn) {
-	defer conn.Close()
-	var buffer shared.BufferedReader
+	defer func() {
+		conn.Close()
+		cons.WorkerDone()
+	}()
 
-	buffer = shared.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.delimiter, cons.PostMessageFromSlice)
+	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.delimiter, cons.SendData)
 
 	for !cons.quit {
 		err := buffer.Read(conn)
@@ -159,10 +161,11 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 
 func (cons *Socket) udpAccept() {
 	cons.readFromConnection(cons.listen.(*net.UDPConn))
-	cons.MarkAsDone()
 }
 
 func (cons *Socket) tcpAccept() {
+	defer cons.WorkerDone()
+
 	listener := cons.listen.(net.Listener)
 	for !cons.quit {
 		client, err := listener.Accept()
@@ -175,16 +178,15 @@ func (cons *Socket) tcpAccept() {
 
 		go func() {
 			defer shared.RecoverShutdown()
+			cons.AddWorker()
 			cons.readFromConnection(client)
 		}()
 	}
-
-	cons.MarkAsDone()
 }
 
 // Consume listens to a given socket. Messages are expected to be separated by
 // either \n or \r\n.
-func (cons Socket) Consume(threads *sync.WaitGroup) {
+func (cons Socket) Consume(workers *sync.WaitGroup) {
 	var err error
 	cons.quit = false
 
@@ -196,6 +198,7 @@ func (cons Socket) Consume(threads *sync.WaitGroup) {
 		}
 		go func() {
 			defer shared.RecoverShutdown()
+			cons.AddMainWorker(workers)
 			cons.udpAccept()
 		}()
 	} else {
@@ -205,6 +208,7 @@ func (cons Socket) Consume(threads *sync.WaitGroup) {
 		}
 		go func() {
 			defer shared.RecoverShutdown()
+			cons.AddMainWorker(workers)
 			cons.tcpAccept()
 		}()
 	}
@@ -214,5 +218,5 @@ func (cons Socket) Consume(threads *sync.WaitGroup) {
 		cons.listen.Close()
 	}()
 
-	cons.DefaultControlLoop(threads, nil)
+	cons.DefaultControlLoop(nil)
 }

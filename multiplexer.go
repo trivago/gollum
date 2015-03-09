@@ -33,14 +33,26 @@ const (
 	metricMessages = "Messages"
 )
 
+type multiplexerState byte
+
+const (
+	multiplexerStateConfigure      = multiplexerState(iota)
+	multiplexerStateStartProducers = multiplexerState(iota)
+	multiplexerStateStartConsumers = multiplexerState(iota)
+	multiplexerStateRunning        = multiplexerState(iota)
+	multiplexerStateStopConsumers  = multiplexerState(iota)
+	multiplexerStateStopProducers  = multiplexerState(iota)
+	multiplexerStateStopped        = multiplexerState(iota)
+)
+
 type multiplexer struct {
-	consumers       []shared.Consumer
-	producers       []shared.Producer
-	consumerThreads *sync.WaitGroup
-	producerThreads *sync.WaitGroup
-	stream          map[shared.MessageStreamID][]shared.Producer
-	managedStream   map[shared.MessageStreamID][]shared.Distributor
-	profile         bool
+	consumers      []shared.Consumer
+	producers      []shared.Producer
+	streams        map[shared.MessageStreamID][]shared.Distributor
+	consumerWorker *sync.WaitGroup
+	producerWorker *sync.WaitGroup
+	state          multiplexerState
+	profile        bool
 }
 
 // Create a new multiplexer based on a given config file.
@@ -57,12 +69,12 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 	Log.Metric.New(metricMessages)
 
 	plex := multiplexer{
-		stream:          make(map[shared.MessageStreamID][]shared.Producer),
-		managedStream:   make(map[shared.MessageStreamID][]shared.Distributor),
-		consumerThreads: new(sync.WaitGroup),
-		producerThreads: new(sync.WaitGroup),
-		consumers:       []shared.Consumer{logConsumer},
-		profile:         profile,
+		consumers:      []shared.Consumer{logConsumer},
+		streams:        make(map[shared.MessageStreamID][]shared.Distributor),
+		consumerWorker: new(sync.WaitGroup),
+		producerWorker: new(sync.WaitGroup),
+		profile:        profile,
+		state:          multiplexerStateConfigure,
 	}
 
 	// Initialize the plugins based on the config
@@ -84,21 +96,6 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 			}
 		}
 
-		// Register dsitributor plugins
-		if distributor, isDistributor := plugin.(shared.Distributor); isDistributor {
-			for _, stream := range config.Stream {
-				streamID := shared.GetStreamID(stream)
-				streamMap, mappingExists := plex.managedStream[streamID]
-
-				if !mappingExists {
-					plex.managedStream[streamID] = []shared.Distributor{distributor}
-					Log.Metric.Inc(metricStreams)
-				} else {
-					plex.managedStream[streamID] = append(streamMap, distributor)
-				}
-			}
-		}
-
 		// Register consumer plugins
 		if consumer, isConsumer := plugin.(shared.Consumer); isConsumer {
 			plex.consumers = append(plex.consumers, consumer)
@@ -109,53 +106,72 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 		if producer, isProducer := plugin.(shared.Producer); isProducer {
 			plex.producers = append(plex.producers, producer)
 			Log.Metric.Inc(metricProds)
+		}
 
+		// Register dsitributor plugins
+		if _, isDistributor := plugin.(shared.Distributor); isDistributor {
 			for _, stream := range config.Stream {
 				streamID := shared.GetStreamID(stream)
-				streamMap, mappingExists := plex.stream[streamID]
 
-				if !mappingExists {
-					plex.stream[streamID] = []shared.Producer{producer}
+				// New instance per stream
+				distributor, _ := shared.RuntimeType.NewPlugin(config)
+
+				if stream, isMapped := plex.streams[streamID]; isMapped {
+					plex.streams[streamID] = append(stream, distributor.(shared.Distributor))
 				} else {
-					plex.stream[streamID] = append(streamMap, producer)
+					plex.streams[streamID] = []shared.Distributor{distributor.(shared.Distributor)}
+				}
+			}
+		}
+	}
+
+	// Analyze all producers and add them to the corresponding distributors
+	// Wildcard streams will be handled after this so we have a fully configured
+	// map to add to.
+
+	var wildcardProducers []shared.Producer
+
+	for _, prod := range plex.producers {
+		// Check all streams for each producer
+		for _, streamID := range prod.Streams() {
+			if streamID == shared.WildcardStreamID {
+				// Wildcard stream handling
+				wildcardProducers = append(wildcardProducers, prod)
+			} else {
+				if distList, isMapped := plex.streams[streamID]; isMapped {
+					// Add to all distributors for this stream
+					for _, dist := range distList {
+						dist.AddProducer(prod)
+					}
+				} else {
+					// No distributor for this stream: Create broadcast
+					// distributor as a default.
+					defaultDistPlugin, _ := shared.RuntimeType.New("distributor.Broadcast")
+					defaultDist := defaultDistPlugin.(shared.Distributor)
+					defaultDist.AddProducer(prod)
+					plex.streams[streamID] = []shared.Distributor{defaultDist}
+				}
+			}
+		}
+	}
+
+	// Append wildcard producers to all streams
+
+	for _, prod := range wildcardProducers {
+		for streamID, distList := range plex.streams {
+			switch streamID {
+			case shared.WildcardStreamID:
+			case shared.DroppedStreamID:
+			case shared.LogInternalStreamID:
+			default:
+				for _, dist := range distList {
+					dist.AddProducer(prod)
 				}
 			}
 		}
 	}
 
 	return plex
-}
-
-// distribute pinns the message to a specific stream and forwards it to either
-// all producers registered to that stream or to all distributors registered to
-// that stream.
-func (plex multiplexer) distribute(message shared.Message, streamID shared.MessageStreamID, sendToInactive bool) {
-	producers := plex.stream[streamID]
-	message.CurrentStream = streamID
-
-	if distributors, isManaged := plex.managedStream[streamID]; isManaged {
-		for _, distributor := range distributors {
-			distributor.Distribute(message, producers, sendToInactive)
-		}
-	} else {
-		for _, producer := range producers {
-			shared.SingleDistribute(producer, message, sendToInactive)
-		}
-	}
-}
-
-// broadcastMessage does the initial distribution of the message, i.e. it takes
-// care of sending messages to the wildcardstream and to all other streams.
-func (plex multiplexer) broadcastMessage(message shared.Message, sendToInactive bool) {
-	// Send to wildcard stream producers if not purely internal
-	if !message.IsInternalOnly() {
-		plex.distribute(message, shared.WildcardStreamID, sendToInactive)
-	}
-
-	// Send to specific stream producers
-	for _, streamID := range message.Streams {
-		plex.distribute(message, streamID, sendToInactive)
-	}
 }
 
 // Shutdown all consumers and producers in a clean way.
@@ -166,40 +182,60 @@ func (plex multiplexer) broadcastMessage(message shared.Message, sendToInactive 
 func (plex *multiplexer) shutdown() {
 	Log.Note.Print("Filthy little hobbites. They stole it from us. (shutdown)")
 
-	// Send shutdown to consumers
-	for _, consumer := range plex.consumers {
-		consumer.Control() <- shared.ConsumerControlStop
-	}
+	stateAtShutdown := plex.state
 
-	// Make sure all remaining messages are flushed BEFORE waiting for all
-	// consumers to stop. This is necessary as consumers might be waiting in
-	// a push to channel.
-	Log.Note.Print("It's the only way. Go in, or go back. (flushing)")
+	// Shutdown consumers
+	plex.state = multiplexerStateStopConsumers
+	if stateAtShutdown >= multiplexerStateStartConsumers {
+		for _, consumer := range plex.consumers {
+			consumer.Control() <- shared.ConsumerControlStop
+		}
 
-	for _, consumer := range plex.consumers {
-	flushing:
-		for {
-			select {
-			case message := <-consumer.Messages():
-				// A flush may happen before any producers are started. In that
-				// case we need to ignore these producers.
-				plex.broadcastMessage(message, false)
-			default:
-				break flushing
+		// Make sure all remaining messages are flushed BEFORE waiting for all
+		// consumers to stop. This is necessary as consumers might be waiting in
+		// a push to channel.
+		Log.Note.Print("It's the only way. Go in, or go back. (flushing)")
+
+		for _, consumer := range plex.consumers {
+		flushing:
+			for {
+				select {
+				case message := <-consumer.Messages():
+					plex.distribute(message)
+				default:
+					break flushing
+				}
 			}
 		}
-	}
 
-	plex.consumerThreads.Wait()
+		plex.consumerWorker.Wait()
+	}
 
 	// Make sure remaining warning / errors are written to stderr
 	Log.EnqueueMessages(false)
 
 	// Shutdown producers
-	for _, producer := range plex.producers {
-		producer.Control() <- shared.ProducerControlStop
+	plex.state = multiplexerStateStopProducers
+	if stateAtShutdown >= multiplexerStateStartProducers {
+		for _, producer := range plex.producers {
+			producer.Control() <- shared.ProducerControlStop
+		}
+		plex.producerWorker.Wait()
 	}
-	plex.producerThreads.Wait()
+
+	// Done
+	plex.state = multiplexerStateStopped
+}
+
+func (plex multiplexer) distribute(msg shared.Message) {
+	for _, streamID := range msg.Streams {
+		distList := plex.streams[streamID]
+		msg.CurrentStream = streamID
+
+		for _, distributor := range distList {
+			distributor.Distribute(msg)
+		}
+	}
 }
 
 // Run the multiplexer.
@@ -228,29 +264,32 @@ func (plex multiplexer) run() {
 	}()
 
 	// Launch producers
+	plex.state = multiplexerStateStartProducers
 	for _, producer := range plex.producers {
 		producer := producer
 		go func() {
 			defer shared.RecoverShutdown()
-			producer.Produce(plex.producerThreads)
+			producer.Produce(plex.producerWorker)
 		}()
 	}
 
 	// If there are intenal log listeners switch to stream mode
-	if _, enableQueue := plex.stream[shared.LogInternalStreamID]; enableQueue {
+	if _, enableQueue := plex.streams[shared.LogInternalStreamID]; enableQueue {
 		Log.EnqueueMessages(true)
 	}
 
 	// Launch consumers
+	plex.state = multiplexerStateStartConsumers
 	for _, consumer := range plex.consumers {
 		consumer := consumer
 		go func() {
 			defer shared.RecoverShutdown()
-			consumer.Consume(plex.consumerThreads)
+			consumer.Consume(plex.consumerWorker)
 		}()
 	}
 
 	// Main loop
+	plex.state = multiplexerStateRunning
 	Log.Note.Print("We be nice to them, if they be nice to us. (startup)")
 
 	measure := time.Now()
@@ -281,7 +320,7 @@ func (plex multiplexer) run() {
 				}
 
 			case message := <-consumer.Messages():
-				plex.broadcastMessage(message, true)
+				plex.distribute(message)
 				messageCount++
 			}
 		}

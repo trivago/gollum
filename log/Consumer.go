@@ -31,11 +31,6 @@ func (cons *Consumer) Configure(conf shared.PluginConfig) error {
 	return nil
 }
 
-// IsActive always returns true for this consumer
-func (cons Consumer) IsActive() bool {
-	return true
-}
-
 // Control returns a handle to the control channel
 func (cons Consumer) Control() chan<- shared.ConsumerControl {
 	return cons.control

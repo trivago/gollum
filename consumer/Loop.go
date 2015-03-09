@@ -56,7 +56,7 @@ func (cons *Loop) Configure(conf shared.PluginConfig) error {
 	}
 
 	cons.routes = conf.GetStreamRoute("Routes", shared.DroppedStreamID)
-	shared.EnableFeedbackQueue(conf.Channel)
+	shared.EnableRetryQueue(conf.Channel)
 
 	return nil
 }
@@ -68,16 +68,16 @@ func (cons *Loop) route(msg shared.Message) {
 		msg.Streams = []shared.MessageStreamID{cons.routes[shared.WildcardStreamID]}
 	}
 
-	cons.PostMessage(msg)
+	cons.Send(msg)
 }
 
 func (cons *Loop) stop() {
-	defer cons.MarkAsDone()
+	defer cons.WorkerDone()
 
 	// Flush
 	for {
 		select {
-		case msg := <-shared.GetFeedbackQueue():
+		case msg := <-shared.GetRetryQueue():
 			cons.route(msg)
 		default:
 			return // ### return, done ###
@@ -92,18 +92,19 @@ func (cons *Loop) processFeedbackQueue() {
 		select {
 		default:
 			runtime.Gosched()
-		case msg := <-shared.GetFeedbackQueue():
+		case msg := <-shared.GetRetryQueue():
 			cons.route(msg)
 		}
 	}
 }
 
 // Consume is fetching and forwarding messages from the feedbackQueue
-func (cons Loop) Consume(threads *sync.WaitGroup) {
+func (cons Loop) Consume(workers *sync.WaitGroup) {
 	cons.quit = false
 
 	go func() {
 		defer shared.RecoverShutdown()
+		cons.AddMainWorker(workers)
 		cons.processFeedbackQueue()
 	}()
 
@@ -111,5 +112,5 @@ func (cons Loop) Consume(threads *sync.WaitGroup) {
 		cons.quit = true
 	}()
 
-	cons.DefaultControlLoop(threads, nil)
+	cons.DefaultControlLoop(nil)
 }

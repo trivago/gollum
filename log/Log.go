@@ -66,7 +66,7 @@ func (log logMessages) Write(message []byte) (int, error) {
 		message = message[:length-1]
 	}
 
-	msg := shared.NewMessageFromSlice(message, logStreamIDs, atomic.AddUint64(&log.sequence, 1))
+	msg := shared.NewMessage(nil, message, logStreamIDs, atomic.AddUint64(&log.sequence, 1))
 	log.queue <- msg
 
 	return length, nil

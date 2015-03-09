@@ -47,7 +47,7 @@ type BufferedReader struct {
 // and a callback that is called each time data is parsed as complete.
 // The flags and delimiter passed to NewBufferedReader define how the message
 // is parsed from the reader passed to BufferedReader.Read.
-func NewBufferedReader(size int, flags BufferedReaderFlags, delimiter string, callback func(data []byte, sequence uint64)) BufferedReader {
+func NewBufferedReader(size int, flags BufferedReaderFlags, delimiter string, callback func(msg []byte, sequence uint64)) BufferedReader {
 	buffer := BufferedReader{
 		data:      make([]byte, size),
 		write:     callback,

@@ -110,14 +110,14 @@ func (cons *Syslogd) Configure(conf shared.PluginConfig) error {
 func (cons Syslogd) Handle(parts syslogparser.LogParts, code int64, err error) {
 	content, isString := parts["content"].(string)
 	if isString {
-		cons.PostMessageString(content, *cons.sequence)
+		cons.SendData([]byte(content), *cons.sequence)
 		*cons.sequence++
 	}
 }
 
 // Consume opens a new syslog socket.
 // Messages are expected to be separated by \n.
-func (cons Syslogd) Consume(threads *sync.WaitGroup) {
+func (cons Syslogd) Consume(workers *sync.WaitGroup) {
 	server := syslog.NewServer()
 	server.SetFormat(cons.format)
 	server.SetHandler(cons)
@@ -130,10 +130,7 @@ func (cons Syslogd) Consume(threads *sync.WaitGroup) {
 	}
 
 	server.Boot()
-	defer func() {
-		server.Kill()
-		cons.MarkAsDone()
-	}()
+	defer server.Kill()
 
-	cons.DefaultControlLoop(threads, nil)
+	cons.DefaultControlLoop(nil)
 }

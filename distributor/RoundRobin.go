@@ -29,6 +29,7 @@ import (
 // Messages are send to one of the producers listening to the given stream.
 // The target producer changes after each send.
 type RoundRobin struct {
+	shared.DistributorBase
 	index map[shared.MessageStreamID]int
 }
 
@@ -44,17 +45,17 @@ func (dist *RoundRobin) Configure(conf shared.PluginConfig) error {
 
 // Distribute sends the given message to one of the given producers in a round
 // robin fashion.
-func (dist *RoundRobin) Distribute(message shared.Message, producers []shared.Producer, sendToInactive bool) {
+func (dist *RoundRobin) Distribute(msg shared.Message) {
 
 	// As we might listen to different streams we have to keep the index for
 	// each stream separately
-	index, isSet := dist.index[message.CurrentStream]
+	index, isSet := dist.index[msg.CurrentStream]
 	if !isSet {
 		index = 0
 	} else {
-		index %= len(producers)
+		index %= len(dist.DistributorBase.Producers)
 	}
 
-	shared.SingleDistribute(producers[index], message, sendToInactive)
-	dist.index[message.CurrentStream] = index + 1
+	msg.SendTo(dist.DistributorBase.Producers[index])
+	dist.index[msg.CurrentStream] = index + 1
 }
