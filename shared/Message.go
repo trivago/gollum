@@ -62,9 +62,9 @@ type Message struct {
 	Data          []byte
 	Streams       []MessageStreamID
 	CurrentStream MessageStreamID
-	//Source        MessageSource
-	Timestamp time.Time
-	Sequence  uint64
+	Source        MessageSource
+	Timestamp     time.Time
+	Sequence      uint64
 }
 
 // GetStreamID returns the integer representation of a given stream name.
@@ -89,9 +89,9 @@ func GetRetryQueue() <-chan Message {
 // NewMessage creates a new message from a given data stream
 func NewMessage(source MessageSource, data []byte, streams []MessageStreamID, sequence uint64) Message {
 	msg := Message{
-		Data:    data,
-		Streams: streams,
-		//Source:        source,
+		Data:          data,
+		Streams:       streams,
+		Source:        source,
 		CurrentStream: WildcardStreamID,
 		Timestamp:     time.Now(),
 		Sequence:      sequence,

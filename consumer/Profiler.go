@@ -20,6 +20,7 @@ import (
 	"github.com/trivago/gollum/shared"
 	"math"
 	"math/rand"
+	"os"
 	"sync"
 	"time"
 )
@@ -57,18 +58,24 @@ func (cons *Profiler) Configure(conf shared.PluginConfig) error {
 	return nil
 }
 
-var stringBase = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 _.!?/&%$§'")
+var stringBase = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 _.!?/&%$§'")
+
+type msgBuffer []byte
+
+func (buffer *msgBuffer) Write(data []byte) (int, error) {
+	return copy(*buffer, data), nil
+}
 
 func (cons *Profiler) profile() {
 
-	randString := make([]rune, cons.length)
+	randString := make([]byte, cons.length)
 	for i := 0; i < cons.length; i++ {
 		randString[i] = stringBase[rand.Intn(len(stringBase))]
 	}
 
 	testStart := time.Now()
 
-	var msgData string
+	msgData := make(msgBuffer, cons.length+64)
 	minTime := math.MaxFloat64
 	maxTime := 0.0
 
@@ -77,8 +84,8 @@ func (cons *Profiler) profile() {
 
 		start := time.Now()
 		for i := 0; i < cons.profileRuns; i++ {
-			msgData = fmt.Sprintf("%d/%d %s", i, cons.profileRuns, string(randString))
-			cons.SendData([]byte(msgData), uint64(b*cons.profileRuns+i))
+			fmt.Fprintf(&msgData, "%d/%d %s", i, cons.profileRuns, string(randString))
+			cons.SendData(msgData, uint64(b*cons.profileRuns+i))
 
 			if cons.quit {
 				return
@@ -107,7 +114,8 @@ func (cons *Profiler) profile() {
 		maxTime,
 		float64(cons.profileRuns)/maxTime))
 
-	panic("test")
+	proc, _ := os.FindProcess(os.Getpid())
+	proc.Signal(os.Interrupt)
 }
 
 // Consume starts a profile run and exits gollum when done
