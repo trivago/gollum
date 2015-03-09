@@ -38,6 +38,10 @@ type Plugin interface {
 	Configure(conf PluginConfig) error
 }
 
+func init() {
+	Metric.New(metricActiveWorkers)
+}
+
 // Pause implements the MessageSource interface
 func (state *PluginRunState) Pause() {
 	state.paused = true

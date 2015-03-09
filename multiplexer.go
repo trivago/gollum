@@ -26,11 +26,12 @@ import (
 )
 
 const (
-	metricMsgSec   = "MessagesPerSec"
-	metricCons     = "Consumers"
-	metricProds    = "Producers"
-	metricStreams  = "ManagedStreams"
-	metricMessages = "Messages"
+	metricMsgSec    = "MessagesPerSec"
+	metricMsgSecAvg = "MessagesPerSecAvg"
+	metricCons      = "Consumers"
+	metricProds     = "Producers"
+	metricStreams   = "ManagedStreams"
+	metricMessages  = "Messages"
 )
 
 type multiplexerState byte
@@ -63,6 +64,7 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 	logConsumer.Configure(shared.PluginConfig{})
 
 	Log.Metric.New(metricMsgSec)
+	Log.Metric.New(metricMsgSecAvg)
 	Log.Metric.New(metricCons)
 	Log.Metric.New(metricProds)
 	Log.Metric.New(metricStreams)
@@ -327,14 +329,23 @@ func (plex multiplexer) run() {
 
 		duration := time.Since(measure)
 		if messageCount >= 100000 || duration.Seconds() > 5 {
+			// Local values
 			value := float64(messageCount) / duration.Seconds()
+			Log.Metric.SetF(metricMsgSec, value)
+			Log.Metric.AddI(metricMessages, messageCount)
+
 			if plex.profile {
 				Log.Note.Printf("Processed %.2f msg/sec", value)
 			}
 
-			Log.Metric.SetF(metricMsgSec, value)
-			Log.Metric.AddI(metricMessages, messageCount)
+			// Global values
+			timeSinceStart := time.Since(metricStartTimeValue)
+			if totalMessages, err := Log.Metric.Get(metricMessages); err == nil {
+				value = float64(totalMessages) / timeSinceStart.Seconds()
+				Log.Metric.SetF(metricMsgSecAvg, value)
+			}
 
+			// Prepare next run
 			measure = time.Now()
 			messageCount = 0
 		}

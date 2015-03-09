@@ -79,10 +79,6 @@ type ConsumerError struct {
 	message string
 }
 
-func init() {
-	Metric.New(metricActiveWorkers)
-}
-
 // NewConsumerError creates a new ConsumerError
 func NewConsumerError(message string) ConsumerError {
 	return ConsumerError{message}
@@ -98,7 +94,7 @@ func (cons *ConsumerBase) Configure(conf PluginConfig) error {
 	cons.messages = make(chan Message, conf.Channel)
 	cons.control = make(chan ConsumerControl, 1)
 	cons.streams = make([]MessageStreamID, len(conf.Stream))
-	cons.timeout = time.Duration(conf.GetInt("ChannelTimeout", 1000)) * time.Millisecond
+	cons.timeout = time.Duration(conf.GetInt("ChannelTimeout", 0)) * time.Millisecond
 	cons.state = new(PluginRunState)
 
 	for i, stream := range conf.Stream {
@@ -152,14 +148,15 @@ func (cons ConsumerBase) Resume() {
 // This method blocks of the message queue is full, depending on the value set
 // for cons.timeout.
 func (cons ConsumerBase) Send(msg Message) {
-	msg.Source = cons
+	//msg.Source = cons
 	msg.Send(cons.messages, cons.timeout)
 }
 
 // SendData creates a new message from a given byte slice and passes it to
 // cons.Send.
 func (cons ConsumerBase) SendData(data []byte, sequence uint64) {
-	cons.Send(NewMessage(cons, data, cons.streams, sequence))
+	msg := NewMessage(cons, data, cons.streams, sequence)
+	msg.Send(cons.messages, cons.timeout)
 }
 
 // Control returns write access to this consumer's control channel.

@@ -62,9 +62,9 @@ type Message struct {
 	Data          []byte
 	Streams       []MessageStreamID
 	CurrentStream MessageStreamID
-	Source        MessageSource
-	Timestamp     time.Time
-	Sequence      uint64
+	//Source        MessageSource
+	Timestamp time.Time
+	Sequence  uint64
 }
 
 // GetStreamID returns the integer representation of a given stream name.
@@ -89,9 +89,9 @@ func GetRetryQueue() <-chan Message {
 // NewMessage creates a new message from a given data stream
 func NewMessage(source MessageSource, data []byte, streams []MessageStreamID, sequence uint64) Message {
 	msg := Message{
-		Data:          data,
-		Streams:       streams,
-		Source:        source,
+		Data:    data,
+		Streams: streams,
+		//Source:        source,
 		CurrentStream: WildcardStreamID,
 		Timestamp:     time.Now(),
 		Sequence:      sequence,
@@ -141,13 +141,10 @@ func (msg Message) Send(channel chan<- Message, timeout time.Duration) {
 }
 
 // SendTo sends a message to the given producer.
-// This function returns true if the producer accepted the message.
-func (msg Message) SendTo(prod Producer) bool {
+func (msg Message) SendTo(prod Producer) {
 	if prod.Accepts(msg) {
 		msg.Send(prod.Messages(), prod.GetTimeout())
-		return true
 	}
-	return false
 }
 
 // Retry pushes a message to the retry queue. This queue can be consumed by the

@@ -31,8 +31,6 @@ const (
 	// ProducerControlRoll notifies the consumer about a log rotation or
 	// revalidation/reconnect of the write target
 	ProducerControlRoll = ProducerControl(2)
-
-	metricActiveProducers = "ActiveProducers"
 )
 
 // Producer is an interface for plugins that pass Message objects to other
@@ -91,10 +89,6 @@ type ProducerBase struct {
 	state    *PluginRunState
 	format   Formatter
 	timeout  time.Duration
-}
-
-func init() {
-	Metric.New(metricActiveProducers)
 }
 
 // ProducerError can be used to return consumer related errors e.g. during a
