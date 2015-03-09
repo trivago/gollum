@@ -101,40 +101,39 @@ func NewMessage(source MessageSource, data []byte, streams []MessageStreamID, se
 
 // Send is a convenience function to push a message to a channel while waiting
 // for a timeout instead of just blocking.
-// Passing a timeout of -1 which will discard the message.
+// Passing a timeout of -1 will discard the message.
 // Passing a timout of 0 will always block.
 // Messages that time out will be passed to the dropped queue if a Dropped
 // consumer exists.
 func (msg Message) Send(channel chan<- Message, timeout time.Duration) {
 	if timeout == 0 {
 		channel <- msg
-	} else {
-		var start *time.Time
-		for {
-			select {
-			case channel <- msg:
-				return
+		return // ### return, done ###
+	}
 
-			default:
-				switch {
-				// Start timeout based retries
-				case start == nil:
-					if timeout < 0 {
-						return
-					}
-					now := time.Now()
-					start = &now
-					fallthrough
+	start := time.Time{}
+	for {
+		select {
+		case channel <- msg:
+			return // ### return, done ###
 
-				// Yield and try again
-				default:
-					runtime.Gosched()
-
-				// Discard message after timeout
-				case time.Since(*start) > timeout:
-					go msg.Drop(time.Duration(0))
-					return
+		default:
+			switch {
+			// Start timeout based retries
+			case start.IsZero():
+				if timeout < 0 {
+					return // ### return, drop and ignore ###
 				}
+				start = time.Now()
+
+			// Discard message after timeout
+			case time.Since(start) > timeout:
+				go msg.Drop(time.Duration(0))
+				return // ### return, drop and retry ###
+
+			// Yield and try again
+			default:
+				runtime.Gosched()
 			}
 		}
 	}
@@ -159,8 +158,5 @@ func (msg Message) Retry(streamID MessageStreamID, timeout time.Duration) {
 
 // Drop is a shortcut for msg.Retry(DroppedStreamID, timeout)
 func (msg Message) Drop(timeout time.Duration) {
-	if messageRetryQueue != nil {
-		msg.CurrentStream = DroppedStreamID
-		msg.Send(messageRetryQueue, timeout)
-	}
+	msg.Retry(DroppedStreamID, timeout)
 }

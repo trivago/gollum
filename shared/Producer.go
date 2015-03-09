@@ -46,7 +46,7 @@ type Producer interface {
 	GetTimeout() time.Duration
 
 	// Accepts returns true if the message is allowed to be send to this producer.
-	Accepts(message Message) bool
+	Accepts(msg Message) bool
 
 	// Streams returns the streams this producer is listening to.
 	Streams() []MessageStreamID
@@ -74,6 +74,14 @@ type Producer interface {
 //
 // Channel sets the size of the channel used to communicate messages. By default
 // this value is set to 1024.
+//
+// ChannelTimeout sets a timeout for messages to wait if this producer's queue
+// is full.
+// A timeout of -1 or lower will drop the message without notice.
+// A timeout of 0 will block until the queue is free. This is the default.
+// A timeout of 1 or higher will wait x milliseconds for the queues to become
+// available again. If this does not happen, the message will be send to the
+// retry channel.
 //
 // Stream contains either a single string or a list of strings defining the
 // message channels this producer will consume. By default this is set to "*"
@@ -171,12 +179,12 @@ func (prod ProducerBase) GetTimeout() time.Duration {
 
 // Accepts returns true if the message matches a configured regexp or if no
 // regexp is set in the config
-func (prod ProducerBase) Accepts(message Message) bool {
+func (prod ProducerBase) Accepts(msg Message) bool {
 	if prod.filter == nil {
 		return true // ### return, pass everything ###
 	}
 
-	return prod.filter.MatchString(string(message.Data))
+	return prod.filter.MatchString(string(msg.Data))
 }
 
 // Formatter returns the formatter configured with this producer

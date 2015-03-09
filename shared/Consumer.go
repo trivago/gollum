@@ -52,6 +52,7 @@ type Consumer interface {
 // - "consumer.Something":
 //   Enable: true
 //   Channel: 1024
+//   ChannelTimeout: 1500
 //   Stream:
 //      - "error"
 //      - "default"
@@ -60,6 +61,14 @@ type Consumer interface {
 //
 // Channel sets the size of the channel used to communicate messages. By default
 // this value is set to 1024
+//
+// ChannelTimeout sets a timeout for messages to wait if this consumer's queue
+// is full.
+// A timeout of -1 or lower will drop the message without notice.
+// A timeout of 0 will block until the queue is free. This is the default.
+// A timeout of 1 or higher will wait x milliseconds for the queues to become
+// available again. If this does not happen, the message will be send to the
+// retry channel.
 //
 // Stream contains either a single string or a list of strings defining the
 // message channels this consumer will produce. By default this is set to "*"
