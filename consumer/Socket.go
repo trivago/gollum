@@ -188,6 +188,8 @@ func (cons *Socket) tcpAccept() {
 // either \n or \r\n.
 func (cons Socket) Consume(workers *sync.WaitGroup) {
 	var err error
+	var listen func()
+
 	cons.quit = false
 
 	if cons.protocol == "udp" {
@@ -196,22 +198,20 @@ func (cons Socket) Consume(workers *sync.WaitGroup) {
 			Log.Error.Print("Socket connection error: ", err)
 			return
 		}
-		go func() {
-			defer shared.RecoverShutdown()
-			cons.AddMainWorker(workers)
-			cons.udpAccept()
-		}()
+		listen = cons.udpAccept
 	} else {
 		if cons.listen, err = net.Listen(cons.protocol, cons.address); err != nil {
 			Log.Error.Print("Socket connection error: ", err)
 			return
 		}
-		go func() {
-			defer shared.RecoverShutdown()
-			cons.AddMainWorker(workers)
-			cons.tcpAccept()
-		}()
+		listen = cons.tcpAccept
 	}
+
+	go func() {
+		defer shared.RecoverShutdown()
+		cons.AddMainWorker(workers)
+		listen()
+	}()
 
 	defer func() {
 		cons.quit = true

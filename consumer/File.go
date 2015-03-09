@@ -187,7 +187,7 @@ func (cons *File) read() {
 	for cons.state != fileStateDone {
 		if cons.IsPaused() {
 			runtime.Gosched()
-			continue
+			continue // ### continue, do nothing ###
 		}
 
 		// Initialize the seek state if requested
@@ -211,7 +211,7 @@ func (cons *File) read() {
 					printFileOpenError = false
 				}
 				time.Sleep(3 * time.Second)
-				continue
+				continue // ### continue, retry ###
 
 			default:
 				cons.file = file
@@ -244,9 +244,9 @@ func (cons File) onRoll() {
 // Consume listens to stdin.
 func (cons File) Consume(workers *sync.WaitGroup) {
 	cons.setState(fileStateOpen)
+	defer cons.setState(fileStateDone)
 
 	go func() {
-		defer cons.close()
 		defer shared.RecoverShutdown()
 		cons.AddMainWorker(workers)
 		cons.read()

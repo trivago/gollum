@@ -137,22 +137,21 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 		// Check all streams for each producer
 		for _, streamID := range prod.Streams() {
 			if streamID == shared.WildcardStreamID {
-				// Wildcard stream handling
 				wildcardProducers = append(wildcardProducers, prod)
-			} else {
-				if distList, isMapped := plex.streams[streamID]; isMapped {
-					// Add to all distributors for this stream
-					for _, dist := range distList {
-						dist.AddProducer(prod)
-					}
-				} else {
-					// No distributor for this stream: Create broadcast
-					// distributor as a default.
-					defaultDistPlugin, _ := shared.RuntimeType.New("distributor.Broadcast")
-					defaultDist := defaultDistPlugin.(shared.Distributor)
-					defaultDist.AddProducer(prod)
-					plex.streams[streamID] = []shared.Distributor{defaultDist}
+			}
+
+			if distList, isMapped := plex.streams[streamID]; isMapped {
+				// Add to all distributors for this stream
+				for _, dist := range distList {
+					dist.AddProducer(prod)
 				}
+			} else {
+				// No distributor for this stream: Create broadcast
+				// distributor as a default.
+				defaultDistPlugin, _ := shared.RuntimeType.New("distributor.Broadcast")
+				defaultDist := defaultDistPlugin.(shared.Distributor)
+				defaultDist.AddProducer(prod)
+				plex.streams[streamID] = []shared.Distributor{defaultDist}
 			}
 		}
 	}
@@ -231,8 +230,12 @@ func (plex *multiplexer) shutdown() {
 
 func (plex multiplexer) distribute(msg shared.Message) {
 	for _, streamID := range msg.Streams {
-		distList := plex.streams[streamID]
 		msg.CurrentStream = streamID
+
+		distList, isMapped := plex.streams[streamID]
+		if !isMapped {
+			distList = plex.streams[shared.WildcardStreamID]
+		}
 
 		for _, distributor := range distList {
 			distributor.Distribute(msg)
