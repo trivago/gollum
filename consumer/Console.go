@@ -46,7 +46,7 @@ func (cons *Console) readFrom(stream io.Reader) {
 
 	for {
 		err := buffer.Read(stream)
-		if err != nil {
+		if err != nil && err != io.EOF {
 			Log.Error.Print("Error reading stdin: ", err)
 		}
 	}
