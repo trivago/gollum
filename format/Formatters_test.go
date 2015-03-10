@@ -22,8 +22,8 @@ import (
 func testFormatter(t *testing.T, formatter shared.Formatter) bool {
 	expect := shared.NewExpect(t)
 
-	msgString := "\ttest\r\n123 456\n"
-	msg := shared.NewMessage(msgString, []shared.MessageStreamID{}, 0)
+	message := []byte("\ttest\r\n123 456\n")
+	msg := shared.NewMessage(nil, message, []shared.MessageStreamID{}, 0)
 
 	formatter.PrepareMessage(msg)
 	buffer := make([]byte, formatter.GetLength())

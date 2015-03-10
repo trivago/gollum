@@ -63,8 +63,8 @@ func TestStreamBuffer(t *testing.T) {
 	expect := NewExpect(t)
 	writer := StreamBufferWriter{expect, new(bool), new(bool), false, false}
 
-	test10 := NewMessage("1234567890", []MessageStreamID{WildcardStreamID}, 0)
-	test20 := NewMessage("12345678901234567890", []MessageStreamID{WildcardStreamID}, 1)
+	test10 := NewMessage(nil, []byte("1234567890"), []MessageStreamID{WildcardStreamID}, 0)
+	test20 := NewMessage(nil, []byte("12345678901234567890"), []MessageStreamID{WildcardStreamID}, 1)
 	buffer := NewStreamBuffer(15, new(mockFormatter))
 
 	// Test optionals
