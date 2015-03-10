@@ -41,6 +41,7 @@ const (
 	multiplexerStateStartProducers = multiplexerState(iota)
 	multiplexerStateStartConsumers = multiplexerState(iota)
 	multiplexerStateRunning        = multiplexerState(iota)
+	multiplexerStateShutdown       = multiplexerState(iota)
 	multiplexerStateStopConsumers  = multiplexerState(iota)
 	multiplexerStateStopProducers  = multiplexerState(iota)
 	multiplexerStateStopped        = multiplexerState(iota)
@@ -53,6 +54,7 @@ type multiplexer struct {
 	consumerWorker *sync.WaitGroup
 	producerWorker *sync.WaitGroup
 	state          multiplexerState
+	signal         chan os.Signal
 	profile        bool
 }
 
@@ -228,7 +230,7 @@ func (plex *multiplexer) shutdown() {
 	plex.state = multiplexerStateStopped
 }
 
-func (plex multiplexer) distribute(msg shared.Message) {
+func (plex *multiplexer) distribute(msg shared.Message) {
 	for _, streamID := range msg.Streams {
 		msg.CurrentStream = streamID
 
@@ -241,6 +243,39 @@ func (plex multiplexer) distribute(msg shared.Message) {
 			distributor.Distribute(msg)
 		}
 	}
+}
+
+func (plex *multiplexer) handleSignals() {
+	plex.signal = make(chan os.Signal, 1)
+	signal.Notify(plex.signal, os.Interrupt, syscall.SIGHUP)
+
+	for {
+		sig := <-plex.signal
+		switch sig {
+		case syscall.SIGINT:
+			Log.Note.Print("Master betrayed us. Wicked. Tricksy, False. (signal)")
+			plex.state = multiplexerStateShutdown
+			return // ### return, exit requested ###
+
+		case syscall.SIGHUP:
+			for _, consumer := range plex.consumers {
+				consumer.Control() <- shared.ConsumerControlRoll
+			}
+			for _, producer := range plex.producers {
+				producer.Control() <- shared.ProducerControlRoll
+			}
+		}
+	}
+}
+
+func (plex *multiplexer) handlePanics() {
+	if r := recover(); r != nil {
+		log.Println(r)
+	}
+	if plex.signal != nil {
+		signal.Stop(plex.signal)
+	}
+	plex.shutdown()
 }
 
 // Run the multiplexer.
@@ -256,17 +291,7 @@ func (plex multiplexer) run() {
 		return // ### return, nothing to do ###
 	}
 
-	// React on signals and setup the MessageProvider queue
-	signalChannel := make(chan os.Signal, 1)
-	signal.Notify(signalChannel, os.Interrupt, syscall.SIGHUP)
-
-	defer func() {
-		if r := recover(); r != nil {
-			log.Print("PANIC: ", r)
-		}
-		signal.Stop(signalChannel)
-		plex.shutdown()
-	}()
+	defer plex.handlePanics()
 
 	// Launch producers
 	plex.state = multiplexerStateStartProducers
@@ -294,41 +319,27 @@ func (plex multiplexer) run() {
 	}
 
 	// Main loop
-	plex.state = multiplexerStateRunning
+	go plex.handleSignals()
 	Log.Note.Print("We be nice to them, if they be nice to us. (startup)")
 
 	measure := time.Now()
 	messageCount := 0
+	plex.state = multiplexerStateRunning
 
-	for {
+	for plex.state != multiplexerStateShutdown {
 		// Go over all consumers in round-robin fashion
 		// Don't block here, too as a consumer might not contain new messages
 
 		for _, consumer := range plex.consumers {
 			select {
 			default:
-				// do nothing
-
-			case sig := <-signalChannel:
-				switch sig {
-				case syscall.SIGINT:
-					Log.Note.Print("Master betrayed us. Wicked. Tricksy, False. (signal)")
-					return
-
-				case syscall.SIGHUP:
-					for _, consumer := range plex.consumers {
-						consumer.Control() <- shared.ConsumerControlRoll
-					}
-					for _, producer := range plex.producers {
-						producer.Control() <- shared.ProducerControlRoll
-					}
-				}
-
 			case message := <-consumer.Messages():
 				plex.distribute(message)
 				messageCount++
 			}
 		}
+
+		// Profiling information
 
 		duration := time.Since(measure)
 		if messageCount >= 100000 || duration.Seconds() > 5 {

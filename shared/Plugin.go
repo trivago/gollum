@@ -17,7 +17,6 @@ package shared
 import (
 	"log"
 	"os"
-	"runtime/debug"
 	"sync"
 )
 
@@ -79,8 +78,7 @@ func (state *PluginRunState) WorkerDone() {
 // Typically used as "defer RecoverShutdown()".
 func RecoverShutdown() {
 	if r := recover(); r != nil {
-		log.Println("PANIC: ", r)
-		debug.PrintStack()
+		log.Println(r)
 
 		// Send interrupt = clean shutdown
 		proc, _ := os.FindProcess(os.Getpid())
