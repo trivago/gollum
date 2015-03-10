@@ -236,7 +236,7 @@ func (cons *Kafka) fetch(offsetIdx int, partition int32, config kafka.PartitionC
 			// This tries to reconstruct the original message number when using a
 			// round robin distribution.
 			sequence := uint64(offset + offset*int64(len(cons.offsets)-1) + int64(partition))
-			cons.SendData(event.Value, sequence)
+			cons.PostData(event.Value, sequence)
 		}
 	}
 }

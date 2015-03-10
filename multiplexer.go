@@ -183,8 +183,12 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 // Producers are flushed after flushing the log, so producer related shutdown
 // messages will be posted to stdout
 func (plex *multiplexer) shutdown() {
-	Log.Note.Print("Filthy little hobbites. They stole it from us. (shutdown)")
+	// Make Ctrl+C possible during shutdown sequence
+	if plex.signal != nil {
+		signal.Stop(plex.signal)
+	}
 
+	Log.Note.Print("Filthy little hobbites. They stole it from us. (shutdown)")
 	stateAtShutdown := plex.state
 
 	// Shutdown consumers
@@ -272,9 +276,7 @@ func (plex *multiplexer) handlePanics() {
 	if r := recover(); r != nil {
 		log.Println(r)
 	}
-	if plex.signal != nil {
-		signal.Stop(plex.signal)
-	}
+
 	plex.shutdown()
 }
 

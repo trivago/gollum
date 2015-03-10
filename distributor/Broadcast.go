@@ -42,7 +42,7 @@ func (dist *Broadcast) Configure(conf shared.PluginConfig) error {
 
 // Distribute sends the given message to all of the given producers
 func (dist *Broadcast) Distribute(msg shared.Message) {
-	for _, producer := range dist.DistributorBase.Producers {
-		msg.SendTo(producer)
+	for _, prod := range dist.DistributorBase.Producers {
+		prod.Post(msg)
 	}
 }

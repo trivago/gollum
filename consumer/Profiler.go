@@ -85,7 +85,7 @@ func (cons *Profiler) profile() {
 		start := time.Now()
 		for i := 0; i < cons.profileRuns; i++ {
 			fmt.Fprintf(&msgData, "%d/%d %s", i, cons.profileRuns, string(randString))
-			cons.SendData(msgData, uint64(b*cons.profileRuns+i))
+			cons.PostData(msgData, uint64(b*cons.profileRuns+i))
 
 			if cons.quit {
 				return

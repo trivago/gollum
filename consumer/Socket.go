@@ -137,7 +137,7 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 		cons.WorkerDone()
 	}()
 
-	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.delimiter, cons.SendData)
+	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.delimiter, cons.PostData)
 
 	for !cons.quit {
 		err := buffer.Read(conn)

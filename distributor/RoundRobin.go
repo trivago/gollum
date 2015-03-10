@@ -56,6 +56,6 @@ func (dist *RoundRobin) Distribute(msg shared.Message) {
 		index %= len(dist.DistributorBase.Producers)
 	}
 
-	msg.SendTo(dist.DistributorBase.Producers[index])
+	dist.DistributorBase.Producers[index].Post(msg)
 	dist.index[msg.CurrentStream] = index + 1
 }

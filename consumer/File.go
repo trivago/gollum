@@ -122,7 +122,7 @@ func (cons *File) Configure(conf shared.PluginConfig) error {
 
 func (cons *File) postAndPersist(data []byte, sequence uint64) {
 	cons.seekOffset, _ = cons.file.Seek(0, 1)
-	cons.SendData(data, sequence)
+	cons.PostData(data, sequence)
 	ioutil.WriteFile(cons.continueFileName, []byte(strconv.FormatInt(cons.seekOffset, 10)), 0644)
 }
 
@@ -176,7 +176,7 @@ func (cons *File) close() {
 func (cons *File) read() {
 	defer cons.close()
 
-	sendFunction := cons.SendData
+	sendFunction := cons.PostData
 	if cons.persistSeek {
 		sendFunction = cons.postAndPersist
 	}

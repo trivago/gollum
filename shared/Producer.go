@@ -57,6 +57,11 @@ type Producer interface {
 
 	// Messages returns write access to the message channel this producer reads from.
 	Messages() chan<- Message
+
+	// Post is the fast path to store a message in the produceres channel.
+	// This utilizes Message.Send to actually store the message.
+	// Accepts will be tested before enqueing.
+	Post(msg Message)
 }
 
 // ProducerBase base class
@@ -225,6 +230,15 @@ func (prod ProducerBase) Control() chan<- ProducerControl {
 // Messages returns write access to the message channel this producer reads from.
 func (prod ProducerBase) Messages() chan<- Message {
 	return prod.messages
+}
+
+// Post is the fast path to store a message in the produceres channel.
+// This utilizes Message.Send to actually store the message.
+// Accepts will be tested before enqueing.
+func (prod ProducerBase) Post(msg Message) {
+	if prod.Accepts(msg) {
+		msg.Enqueue(prod.messages, prod.timeout)
+	}
 }
 
 // ProcessCommand provides a callback based possibility to react on the

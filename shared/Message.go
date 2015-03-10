@@ -99,13 +99,13 @@ func NewMessage(source MessageSource, data []byte, streams []MessageStreamID, se
 	return msg
 }
 
-// Send is a convenience function to push a message to a channel while waiting
-// for a timeout instead of just blocking.
+// Enqueue is a convenience function to push a message to a channel while
+// waiting for a timeout instead of just blocking.
 // Passing a timeout of -1 will discard the message.
 // Passing a timout of 0 will always block.
 // Messages that time out will be passed to the dropped queue if a Dropped
 // consumer exists.
-func (msg Message) Send(channel chan<- Message, timeout time.Duration) {
+func (msg Message) Enqueue(channel chan<- Message, timeout time.Duration) {
 	if timeout == 0 {
 		channel <- msg
 		return // ### return, done ###
@@ -139,20 +139,13 @@ func (msg Message) Send(channel chan<- Message, timeout time.Duration) {
 	}
 }
 
-// SendTo sends a message to the given producer.
-func (msg Message) SendTo(prod Producer) {
-	if prod.Accepts(msg) {
-		msg.Send(prod.Messages(), prod.GetTimeout())
-	}
-}
-
 // Retry pushes a message to the retry queue. This queue can be consumed by the
 // loopback consumer. If no such consumer has been configured, the message is
 // lost.
 func (msg Message) Retry(streamID MessageStreamID, timeout time.Duration) {
 	if messageRetryQueue != nil {
 		msg.CurrentStream = streamID
-		msg.Send(messageRetryQueue, timeout)
+		msg.Enqueue(messageRetryQueue, timeout)
 	}
 }
 

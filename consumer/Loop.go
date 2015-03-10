@@ -68,7 +68,7 @@ func (cons *Loop) route(msg shared.Message) {
 		msg.Streams = []shared.MessageStreamID{cons.routes[shared.WildcardStreamID]}
 	}
 
-	cons.Send(msg)
+	cons.Post(msg)
 }
 
 func (cons *Loop) stop() {

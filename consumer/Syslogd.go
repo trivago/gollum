@@ -110,7 +110,7 @@ func (cons *Syslogd) Configure(conf shared.PluginConfig) error {
 func (cons Syslogd) Handle(parts syslogparser.LogParts, code int64, err error) {
 	content, isString := parts["content"].(string)
 	if isString {
-		cons.SendData([]byte(content), *cons.sequence)
+		cons.PostData([]byte(content), *cons.sequence)
 		*cons.sequence++
 	}
 }

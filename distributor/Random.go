@@ -46,5 +46,5 @@ func (dist *Random) Configure(conf shared.PluginConfig) error {
 // given producers.
 func (dist *Random) Distribute(msg shared.Message) {
 	index := rand.Intn(len(dist.DistributorBase.Producers))
-	msg.SendTo(dist.DistributorBase.Producers[index])
+	dist.DistributorBase.Producers[index].Post(msg)
 }

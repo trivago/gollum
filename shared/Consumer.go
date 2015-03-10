@@ -153,19 +153,19 @@ func (cons ConsumerBase) Resume() {
 	cons.state.Resume()
 }
 
-// Send sends a message to the streams configured with the message.
+// Post sends a message to the streams configured with the message.
 // This method blocks of the message queue is full, depending on the value set
 // for cons.timeout.
-func (cons ConsumerBase) Send(msg Message) {
-	//msg.Source = cons
-	msg.Send(cons.messages, cons.timeout)
+func (cons ConsumerBase) Post(msg Message) {
+	msg.Source = cons
+	msg.Enqueue(cons.messages, cons.timeout)
 }
 
-// SendData creates a new message from a given byte slice and passes it to
+// PostData creates a new message from a given byte slice and passes it to
 // cons.Send.
-func (cons ConsumerBase) SendData(data []byte, sequence uint64) {
+func (cons ConsumerBase) PostData(data []byte, sequence uint64) {
 	msg := NewMessage(cons, data, cons.streams, sequence)
-	msg.Send(cons.messages, cons.timeout)
+	msg.Enqueue(cons.messages, cons.timeout)
 }
 
 // Control returns write access to this consumer's control channel.
