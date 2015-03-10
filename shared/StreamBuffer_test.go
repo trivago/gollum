@@ -39,8 +39,9 @@ func (writer StreamBufferWriter) onSuccess() bool {
 	return true
 }
 
-func (writer StreamBufferWriter) onError(err error) {
+func (writer StreamBufferWriter) onError(err error) bool {
 	*writer.errorCalled = true
+	return false
 }
 
 func (mock *mockFormatter) PrepareMessage(msg Message) {

@@ -297,16 +297,18 @@ func (prod *File) openLog() error {
 	return err
 }
 
+func (prod *File) onWriterError(err error) bool {
+	Log.Error.Print("File write error:", err)
+	return false
+}
+
 func (prod *File) writeBatch() {
 	if err := prod.openLog(); err != nil {
 		Log.Error.Print("File rotate error:", err)
 		return
 	}
 
-	prod.batch.Flush(prod.file, nil,
-		func(err error) {
-			Log.Error.Print("File write error:", err)
-		})
+	prod.batch.Flush(prod.file, nil, prod.onWriterError)
 }
 
 func (prod *File) writeBatchOnTimeOut() {

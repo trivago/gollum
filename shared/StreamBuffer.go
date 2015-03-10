@@ -55,6 +55,11 @@ func newMessageQueue(size int) messageQueue {
 	}
 }
 
+func (queue *messageQueue) reset() {
+	queue.contentLen = 0
+	queue.doneCount = 0
+}
+
 // Write implements the io.Writer interface for ByteStream
 func (stream *ByteStream) Write(source []byte) (int, error) {
 	return copy(*stream, source), nil
@@ -116,13 +121,16 @@ func (batch *StreamBuffer) Touch() {
 // Flush writes the content of the buffer to a given resource and resets the
 // internal state, i.e. the buffer is empty after a call to Flush.
 // Writing will be done in a separate go routine to be non-blocking.
-// The validate callback will be called after messages have been written to
-// io.Writer. This method should return false if an external check shows that
-// no are not all messages arrived at the target.
-// The onError callback will be called if the writer returned an error or if
-// not all data was written by the writer (the returned length did not match).
-// Both callbacks can be nil.
-func (batch *StreamBuffer) Flush(resource io.Writer, validate func() bool, onError func(error)) {
+//
+// The validate callback will be called after messages have been successfully
+// written to the io.Writer.
+// If validate returns false the buffer will not be resetted (automatic retry).
+// If validate is nil a return value of true is assumed (buffer reset).
+//
+// The onError callback will be called if the io.Writer returned an error.
+// If onError returns false the buffer will not be resetted (automatic retry).
+// If onError is nil a return value of true is assumed (buffer reset).
+func (batch *StreamBuffer) Flush(resource io.Writer, validate func() bool, onError func(error) bool) {
 	if batch.IsEmpty() {
 		return // ### return, nothing to do ###
 	}
@@ -154,16 +162,19 @@ func (batch *StreamBuffer) Flush(resource io.Writer, validate func() bool, onErr
 		defer RecoverShutdown()
 		defer batch.flushing.Unlock()
 
-		length, err := resource.Write(flushQueue.buffer[:flushQueue.contentLen])
+		_, err := resource.Write(flushQueue.buffer[:flushQueue.contentLen])
 
-		if err == nil && length == flushQueue.contentLen && (validate == nil || validate()) {
-			flushQueue.contentLen = 0
-			flushQueue.doneCount = 0
-			batch.Touch()
-		} else if onError != nil {
-			onError(err)
-			// This buffer will be retried during the next flush
+		if err == nil {
+			if validate == nil || validate() {
+				flushQueue.reset()
+			}
+		} else {
+			if onError == nil || onError(err) {
+				flushQueue.reset()
+			}
 		}
+
+		batch.Touch()
 	}()
 }
 

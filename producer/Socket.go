@@ -125,6 +125,13 @@ func (prod *Socket) validate() bool {
 	return string(response) == "OK"
 }
 
+func (prod *Socket) onWriteError(err error) bool {
+	Log.Error.Print("Socket error - ", err)
+	prod.connection.Close()
+	prod.connection = nil
+	return false
+}
+
 func (prod *Socket) sendBatch() {
 	// If we have not yet connected or the connection dropped: connect.
 	if prod.connection == nil {
@@ -140,14 +147,7 @@ func (prod *Socket) sendBatch() {
 
 	// Flush the buffer to the connection if it is active
 	if prod.connection != nil {
-		prod.batch.Flush(
-			prod.connection,
-			prod.validate,
-			func(err error) {
-				Log.Error.Print("Socket error - ", err)
-				prod.connection.Close()
-				prod.connection = nil
-			})
+		prod.batch.Flush(prod.connection, prod.validate, prod.onWriteError)
 	}
 }
 
