@@ -27,25 +27,33 @@ type logMessages struct {
 	enqueue  bool
 }
 
-var logStreamIDs = []shared.MessageStreamID{shared.LogInternalStreamID}
-var logHelper = logMessages{make(chan shared.Message, 1024), 0, false}
+var (
+	logStreamIDs = []shared.MessageStreamID{shared.LogInternalStreamID}
+	logHelper    = logMessages{make(chan shared.Message, 1024), 0, false}
+)
 
-// Error is a predefined log channel for errors. This log is backed by consumer.Log
-var Error *log.Logger
+var (
+	// Error is a predefined log channel for errors. This log is backed by consumer.Log
+	Error *log.Logger
 
-// Error is a predefined log channel for warnings. This log is backed by consumer.Log
-var Warning *log.Logger
+	// Warning is a predefined log channel for warnings. This log is backed by consumer.Log
+	Warning *log.Logger
 
-// Error is a predefined log channel for notes. This log is backed by consumer.Log
-var Note *log.Logger
+	// Note is a predefined log channel for notes. This log is backed by consumer.Log
+	Note *log.Logger
 
-// Metric is an alias (reference) to shared.Metric
-var Metric = &shared.Metric
+	// Debug is a predefined log channel for debug messages. This log is backed by consumer.Log
+	Debug *log.Logger
+
+	// Metric is an alias (reference) to shared.Metric
+	Metric = &shared.Metric
+)
 
 func init() {
 	Error = log.New(logHelper, "ERROR: ", log.Lshortfile)
 	Warning = log.New(logHelper, "Warning: ", log.Lshortfile)
 	Note = log.New(logHelper, "", 0)
+	Debug = log.New(logHelper, "Debug: ", 0)
 
 	log.SetFlags(log.Lshortfile)
 	log.SetOutput(logHelper)
