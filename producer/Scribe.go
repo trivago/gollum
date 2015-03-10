@@ -67,7 +67,7 @@ type Scribe struct {
 	scribe       *scribe.ScribeClient
 	transport    *thrift.TFramedTransport
 	socket       *thrift.TSocket
-	batch        *scribeMessageBuffer
+	batch        *scribeStreamBuffer
 	category     map[shared.MessageStreamID]string
 	batchSize    int
 	batchTimeout time.Duration
@@ -97,7 +97,7 @@ func (prod *Scribe) Configure(conf shared.PluginConfig) error {
 	prod.category = make(map[shared.MessageStreamID]string, 0)
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
-	prod.batch = createScribeMessageBuffer(bufferSizeMax, prod.Formatter())
+	prod.batch = createScribeStreamBuffer(bufferSizeMax, prod.Formatter())
 	prod.bufferSizeKB = conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
 	prod.category = conf.GetStreamMap("Category", "default")
 

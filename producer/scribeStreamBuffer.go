@@ -41,7 +41,7 @@ func newMessageQueue() scribeMessageQueue {
 	}
 }
 
-type scribeMessageBuffer struct {
+type scribeStreamBuffer struct {
 	queue         [2]scribeMessageQueue
 	activeSet     uint32
 	maxContentLen int
@@ -50,8 +50,8 @@ type scribeMessageBuffer struct {
 	flushing      *sync.Mutex
 }
 
-func createScribeMessageBuffer(maxContentLen int, format shared.Formatter) *scribeMessageBuffer {
-	return &scribeMessageBuffer{
+func createScribeStreamBuffer(maxContentLen int, format shared.Formatter) *scribeStreamBuffer {
+	return &scribeStreamBuffer{
 		queue:         [2]scribeMessageQueue{newMessageQueue(), newMessageQueue()},
 		activeSet:     uint32(0),
 		maxContentLen: maxContentLen,
@@ -61,7 +61,7 @@ func createScribeMessageBuffer(maxContentLen int, format shared.Formatter) *scri
 	}
 }
 
-func (batch *scribeMessageBuffer) Append(msg shared.Message, category string) bool {
+func (batch *scribeStreamBuffer) Append(msg shared.Message, category string) bool {
 	activeSet := atomic.AddUint32(&batch.activeSet, 1)
 	activeIdx := activeSet >> 31
 	messageIdx := (activeSet & 0x7FFFFFFF) - 1
@@ -102,11 +102,11 @@ func (batch *scribeMessageBuffer) Append(msg shared.Message, category string) bo
 	return true
 }
 
-func (batch *scribeMessageBuffer) touch() {
+func (batch *scribeStreamBuffer) touch() {
 	batch.lastFlush = time.Now()
 }
 
-func (batch *scribeMessageBuffer) flush(scribe *scribe.ScribeClient, onError func(error)) {
+func (batch *scribeStreamBuffer) flush(scribe *scribe.ScribeClient, onError func(error)) {
 	if batch.isEmpty() {
 		return // ### return, nothing to do ###
 	}
@@ -148,21 +148,21 @@ func (batch *scribeMessageBuffer) flush(scribe *scribe.ScribeClient, onError fun
 	}()
 }
 
-func (batch *scribeMessageBuffer) waitForFlush() {
+func (batch *scribeStreamBuffer) waitForFlush() {
 	batch.flushing.Lock()
 	batch.flushing.Unlock()
 }
 
-func (batch scribeMessageBuffer) isEmpty() bool {
+func (batch scribeStreamBuffer) isEmpty() bool {
 	return batch.activeSet&0x7FFFFFFF == 0
 }
 
-func (batch scribeMessageBuffer) reachedSizeThreshold(size int) bool {
+func (batch scribeStreamBuffer) reachedSizeThreshold(size int) bool {
 	activeIdx := batch.activeSet >> 31
 	return batch.queue[activeIdx].contentLen >= size
 }
 
-func (batch scribeMessageBuffer) reachedTimeThreshold(timeout time.Duration) bool {
+func (batch scribeStreamBuffer) reachedTimeThreshold(timeout time.Duration) bool {
 	return !batch.isEmpty() &&
 		time.Since(batch.lastFlush) > timeout
 }

@@ -62,7 +62,7 @@ var fileSocketPrefix = "unix://"
 type Socket struct {
 	shared.ProducerBase
 	connection   net.Conn
-	batch        *shared.MessageBuffer
+	batch        *shared.StreamBuffer
 	protocol     string
 	address      string
 	batchSize    int
@@ -101,7 +101,7 @@ func (prod *Socket) Configure(conf shared.PluginConfig) error {
 		prod.protocol = "udp"
 	}
 
-	prod.batch = shared.NewMessageBuffer(bufferSizeMax, prod.Formatter())
+	prod.batch = shared.NewStreamBuffer(bufferSizeMax, prod.Formatter())
 
 	if strings.HasPrefix(prod.address, fileSocketPrefix) {
 		prod.address = prod.address[len(fileSocketPrefix):]

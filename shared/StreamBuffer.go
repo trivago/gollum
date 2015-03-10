@@ -37,11 +37,11 @@ func newMessageQueue(size int) messageQueue {
 	}
 }
 
-// MessageBuffer is a helper class for producers to format and store messages
+// StreamBuffer is a helper class for producers to format and store messages
 // into a single string that is flushed to an io.Writer.
 // You can use the Reached* functions to determine when a flush should be
 // called after either reaching a timeout or size threshold.
-type MessageBuffer struct {
+type StreamBuffer struct {
 	delimiter string
 	queue     [2]messageQueue
 	flushing  *sync.Mutex
@@ -50,10 +50,10 @@ type MessageBuffer struct {
 	format    Formatter
 }
 
-// NewMessageBuffer creates a new messagebuffer with a given size (in bytes)
+// NewStreamBuffer creates a new StreamBuffer with a given size (in bytes)
 // and a given formatter.
-func NewMessageBuffer(size int, format Formatter) *MessageBuffer {
-	return &MessageBuffer{
+func NewStreamBuffer(size int, format Formatter) *StreamBuffer {
+	return &StreamBuffer{
 		queue:     [2]messageQueue{newMessageQueue(size), newMessageQueue(size)},
 		flushing:  new(sync.Mutex),
 		lastFlush: time.Now(),
@@ -66,7 +66,7 @@ func NewMessageBuffer(size int, format Formatter) *MessageBuffer {
 // If the message does not fit into the buffer this function returns false.
 // If the message can never fit into the buffer (too large), true is returned
 // and an error is logged.
-func (batch *MessageBuffer) Append(msg Message) bool {
+func (batch *StreamBuffer) Append(msg Message) bool {
 	activeSet := atomic.AddUint32(&batch.activeSet, 1)
 	activeIdx := activeSet >> 31
 	activeQueue := &batch.queue[activeIdx]
@@ -80,7 +80,7 @@ func (batch *MessageBuffer) Append(msg Message) bool {
 
 	if activeQueue.contentLen+messageLength >= len(activeQueue.buffer) {
 		if messageLength > len(activeQueue.buffer) {
-			log.Printf("MessageBuffer: Message is too large (%d bytes).", messageLength)
+			log.Printf("StreamBuffer: Message is too large (%d bytes).", messageLength)
 			return true // ### return, cannot be written ever ###
 		}
 		return false // ### return, cannot be written ###
@@ -94,7 +94,7 @@ func (batch *MessageBuffer) Append(msg Message) bool {
 
 // Touch resets the timer queried by ReachedTimeThreshold, i.e. this resets the
 // automatic flush timeout
-func (batch *MessageBuffer) Touch() {
+func (batch *StreamBuffer) Touch() {
 	batch.lastFlush = time.Now()
 }
 
@@ -107,7 +107,7 @@ func (batch *MessageBuffer) Touch() {
 // The onError callback will be called if the writer returned an error or if
 // not all data was written by the writer (the returned length did not match).
 // Both callbacks can be nil.
-func (batch *MessageBuffer) Flush(resource io.Writer, validate func() bool, onError func(error)) {
+func (batch *StreamBuffer) Flush(resource io.Writer, validate func() bool, onError func(error)) {
 	if batch.IsEmpty() {
 		return // ### return, nothing to do ###
 	}
@@ -153,27 +153,27 @@ func (batch *MessageBuffer) Flush(resource io.Writer, validate func() bool, onEr
 }
 
 // WaitForFlush blocks until the current flush command returns
-func (batch *MessageBuffer) WaitForFlush() {
+func (batch *StreamBuffer) WaitForFlush() {
 	batch.flushing.Lock()
 	batch.flushing.Unlock()
 }
 
 // IsEmpty returns true if no data is stored in the buffer
-func (batch MessageBuffer) IsEmpty() bool {
+func (batch StreamBuffer) IsEmpty() bool {
 	return batch.activeSet&0x7FFFFFFF == 0
 }
 
 // ReachedSizeThreshold returns true if the bytes stored in the buffer are
 // above or equal to the size given.
 // If there is no data this function returns false.
-func (batch MessageBuffer) ReachedSizeThreshold(size int) bool {
+func (batch StreamBuffer) ReachedSizeThreshold(size int) bool {
 	activeIdx := batch.activeSet >> 31
 	return batch.queue[activeIdx].contentLen >= size
 }
 
 // ReachedTimeThreshold returns true if the last flush was more than timeout ago.
 // If there is no data this function returns false.
-func (batch MessageBuffer) ReachedTimeThreshold(timeout time.Duration) bool {
+func (batch StreamBuffer) ReachedTimeThreshold(timeout time.Duration) bool {
 	return !batch.IsEmpty() &&
 		time.Since(batch.lastFlush) > timeout
 }

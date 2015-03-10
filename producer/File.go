@@ -78,7 +78,7 @@ const (
 type File struct {
 	shared.ProducerBase
 	file             *os.File
-	batch            *shared.MessageBuffer
+	batch            *shared.StreamBuffer
 	bgWriter         *sync.WaitGroup
 	fileDir          string
 	fileName         string
@@ -111,7 +111,7 @@ func (prod *File) Configure(conf shared.PluginConfig) error {
 
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
-	prod.batch = shared.NewMessageBuffer(bufferSizeMax, prod.Formatter())
+	prod.batch = shared.NewStreamBuffer(bufferSizeMax, prod.Formatter())
 	prod.forceRotate = false
 
 	prod.rotate = conf.GetBool("Rotate", false)

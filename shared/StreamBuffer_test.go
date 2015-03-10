@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-type messageBufferWriter struct {
+type StreamBufferWriter struct {
 	expect          Expect
 	successCalled   *bool
 	errorCalled     *bool
@@ -17,7 +17,7 @@ type mockFormatter struct {
 	message string
 }
 
-func (writer messageBufferWriter) Write(data []byte) (int, error) {
+func (writer StreamBufferWriter) Write(data []byte) (int, error) {
 	defer func() {
 		*writer.successCalled = false
 		*writer.errorCalled = false
@@ -34,12 +34,12 @@ func (writer messageBufferWriter) Write(data []byte) (int, error) {
 	return len(data), nil
 }
 
-func (writer messageBufferWriter) onSuccess() bool {
+func (writer StreamBufferWriter) onSuccess() bool {
 	*writer.successCalled = true
 	return true
 }
 
-func (writer messageBufferWriter) onError(err error) {
+func (writer StreamBufferWriter) onError(err error) {
 	*writer.errorCalled = true
 }
 
@@ -59,13 +59,13 @@ func (mock *mockFormatter) CopyTo(dest []byte) int {
 	return copy(dest, []byte(mock.message))
 }
 
-func TestMessageBuffer(t *testing.T) {
+func TestStreamBuffer(t *testing.T) {
 	expect := NewExpect(t)
-	writer := messageBufferWriter{expect, new(bool), new(bool), false, false}
+	writer := StreamBufferWriter{expect, new(bool), new(bool), false, false}
 
 	test10 := NewMessage("1234567890", []MessageStreamID{WildcardStreamID}, 0)
 	test20 := NewMessage("12345678901234567890", []MessageStreamID{WildcardStreamID}, 1)
-	buffer := NewMessageBuffer(15, new(mockFormatter))
+	buffer := NewStreamBuffer(15, new(mockFormatter))
 
 	// Test optionals
 
