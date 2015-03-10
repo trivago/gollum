@@ -23,19 +23,16 @@ import (
 	"time"
 )
 
+// Internel helper type for frontbuffer/backbuffer storage
 type messageQueue struct {
 	buffer     []byte
 	contentLen int
 	doneCount  uint32
 }
 
-func newMessageQueue(size int) messageQueue {
-	return messageQueue{
-		buffer:     make([]byte, size),
-		contentLen: 0,
-		doneCount:  uint32(0),
-	}
-}
+// ByteStream is an alias to []byte and implements io.Reader as well as
+// io.Writer interfaces.
+type ByteStream []byte
 
 // StreamBuffer is a helper class for producers to format and store messages
 // into a single string that is flushed to an io.Writer.
@@ -48,6 +45,24 @@ type StreamBuffer struct {
 	lastFlush time.Time
 	activeSet uint32
 	format    Formatter
+}
+
+func newMessageQueue(size int) messageQueue {
+	return messageQueue{
+		buffer:     make([]byte, size),
+		contentLen: 0,
+		doneCount:  uint32(0),
+	}
+}
+
+// Write implements the io.Writer interface for ByteStream
+func (stream *ByteStream) Write(source []byte) (int, error) {
+	return copy(*stream, source), nil
+}
+
+// Read implements the io.Reader interface for ByteStream
+func (stream *ByteStream) Read(target []byte) (int, error) {
+	return copy(target, *stream), nil
 }
 
 // NewStreamBuffer creates a new StreamBuffer with a given size (in bytes)

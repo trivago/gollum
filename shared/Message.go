@@ -32,14 +32,16 @@ const (
 	DroppedStream = "_DROPPED_"
 )
 
-// LogInternalStreamID is the ID of the "_GOLLUM_" stream
-var LogInternalStreamID = GetStreamID(LogInternalStream)
+var (
+	// LogInternalStreamID is the ID of the "_GOLLUM_" stream
+	LogInternalStreamID = GetStreamID(LogInternalStream)
 
-// WildcardStreamID is the ID of the "*" stream
-var WildcardStreamID = GetStreamID(WildcardStream)
+	// WildcardStreamID is the ID of the "*" stream
+	WildcardStreamID = GetStreamID(WildcardStream)
 
-// DroppedStreamID is the ID of the "_DROPPED_" stream
-var DroppedStreamID = GetStreamID(DroppedStream)
+	// DroppedStreamID is the ID of the "_DROPPED_" stream
+	DroppedStreamID = GetStreamID(DroppedStream)
+)
 
 var messageRetryQueue chan Message
 

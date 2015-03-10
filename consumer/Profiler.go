@@ -60,12 +60,6 @@ func (cons *Profiler) Configure(conf shared.PluginConfig) error {
 
 var stringBase = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 _.!?/&%$§'")
 
-type msgBuffer []byte
-
-func (buffer *msgBuffer) Write(data []byte) (int, error) {
-	return copy(*buffer, data), nil
-}
-
 func (cons *Profiler) profile() {
 
 	randString := make([]byte, cons.length)
@@ -75,7 +69,7 @@ func (cons *Profiler) profile() {
 
 	testStart := time.Now()
 
-	msgData := make(msgBuffer, cons.length+64)
+	msgData := make(shared.ByteStream, cons.length+64)
 	minTime := math.MaxFloat64
 	maxTime := 0.0
 
