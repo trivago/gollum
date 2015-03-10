@@ -129,21 +129,35 @@ func (conf PluginConfig) GetStreamMap(key string, defaultValue string) map[Messa
 // GetStreamRoute tries to read a non-predefined, stream to stream map from a
 // plugin config. A mapping on the wildcard stream is always returned.
 // The target is either defaultValue or a value defined by the config.
-func (conf PluginConfig) GetStreamRoute(key string, defaultValue MessageStreamID) map[MessageStreamID]MessageStreamID {
-	streamRoute := make(map[MessageStreamID]MessageStreamID)
-	streamRoute[WildcardStreamID] = defaultValue
+func (conf PluginConfig) GetStreamRoute(key string, defaultValue MessageStreamID) map[MessageStreamID][]MessageStreamID {
+	streamRoute := make(map[MessageStreamID][]MessageStreamID)
 
 	mapping, exists := conf.Settings[key]
 	if !exists {
+		streamRoute[WildcardStreamID] = []MessageStreamID{defaultValue}
 		return streamRoute
 	}
 
 	mapValue := readMap(key, mapping)
+	for sourceItem, targetItem := range mapValue {
+		sourceItemStr := readString("A key of "+key, sourceItem)
+		targetItemArray := readArray("A value of "+key, targetItem)
+		sourceStream := GetStreamID(sourceItemStr)
 
-	for streamItem, targetItem := range mapValue {
-		streamItemStr := readString("A key of "+key, streamItem)
-		targetItemStr := readString("A value of "+key, targetItem)
-		streamRoute[GetStreamID(streamItemStr)] = GetStreamID(targetItemStr)
+		targetIds := []MessageStreamID{}
+		for _, targetName := range targetItemArray {
+			targetIds = append(targetIds, GetStreamID(targetName.(string)))
+		}
+
+		if _, exists := streamRoute[sourceStream]; exists {
+			streamRoute[sourceStream] = append(streamRoute[sourceStream], targetIds...)
+		} else {
+			streamRoute[sourceStream] = targetIds
+		}
+	}
+
+	if _, exists := streamRoute[WildcardStreamID]; !exists {
+		streamRoute[WildcardStreamID] = []MessageStreamID{defaultValue}
 	}
 
 	return streamRoute

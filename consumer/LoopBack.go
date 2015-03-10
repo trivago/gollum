@@ -20,36 +20,39 @@ import (
 	"sync"
 )
 
-// Loop consumer plugin for processing feedback messages
+// LoopBack consumer plugin for processing retried messages
 // Configuration example
 //
-//   - "consumer.Loop":
+//   - "consumer.LoopBack":
 //     Enable: true
 //     Routes:
-//        "myStream" : "myOtherStream"
-//        "_DROPPED_" : "myStream"
+//        "_DROPPED_": "_DROPPED_"
+//        "myStream":
+//			- "myOtherStream"
+//          - "myOtherStream2"
 //
 // This consumer ignores the "Stream" setting.
 //
-// Routes defines a 1:1 stream remapping. Messages reaching the Loop consumer
+// Routes defines a 1:1 stream remapping. Messages reaching the LoopBack consumer
 // over the feedback channel are rewritten to be sent to the given stream
 // mapping. Messages that have been dropped due to a timeout are automatically
 // sent to the "_DROPPED_" stream. If nothing is configured this stream will
 // be the routing target for all streams.
-// The default route is set to "*" : "_DROPPED_". Note that in this case "*"
-// includes internal streams, too.
-type Loop struct {
+// By default the route "*" is set to "_DROPPED_". I.e. if nothing else is
+// configured all retried messages are sent to the _DROPPED_ channel.
+// You can overwrite the default route by setting a custom route for "*".
+type LoopBack struct {
 	shared.ConsumerBase
 	quit   bool
-	routes map[shared.MessageStreamID]shared.MessageStreamID
+	routes map[shared.MessageStreamID][]shared.MessageStreamID
 }
 
 func init() {
-	shared.RuntimeType.Register(Loop{})
+	shared.RuntimeType.Register(LoopBack{})
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Loop) Configure(conf shared.PluginConfig) error {
+func (cons *LoopBack) Configure(conf shared.PluginConfig) error {
 	err := cons.ConsumerBase.Configure(conf)
 	if err != nil {
 		return err
@@ -61,17 +64,15 @@ func (cons *Loop) Configure(conf shared.PluginConfig) error {
 	return nil
 }
 
-func (cons *Loop) route(msg shared.Message) {
-	if route, exists := cons.routes[msg.CurrentStream]; exists {
-		msg.Streams = []shared.MessageStreamID{route}
-	} else {
-		msg.Streams = []shared.MessageStreamID{cons.routes[shared.WildcardStreamID]}
+func (cons *LoopBack) route(msg shared.Message) {
+	var routeExists bool
+	if msg.Streams, routeExists = cons.routes[msg.CurrentStream]; !routeExists {
+		msg.Streams = cons.routes[shared.WildcardStreamID]
 	}
-
 	cons.Post(msg)
 }
 
-func (cons *Loop) stop() {
+func (cons *LoopBack) stop() {
 	defer cons.WorkerDone()
 
 	// Flush
@@ -85,7 +86,7 @@ func (cons *Loop) stop() {
 	}
 }
 
-func (cons *Loop) processFeedbackQueue() {
+func (cons *LoopBack) processFeedbackQueue() {
 	defer cons.stop()
 
 	for !cons.quit {
@@ -99,7 +100,7 @@ func (cons *Loop) processFeedbackQueue() {
 }
 
 // Consume is fetching and forwarding messages from the feedbackQueue
-func (cons Loop) Consume(workers *sync.WaitGroup) {
+func (cons LoopBack) Consume(workers *sync.WaitGroup) {
 	cons.quit = false
 
 	go func() {
