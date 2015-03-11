@@ -19,7 +19,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/trivago/gollum/shared"
-	"io"
 )
 
 // JSON is a formatter that passes a message encapsulated as JSON in the form
@@ -77,9 +76,4 @@ func (format *JSON) String() string {
 // dest has enough space to fit GetLength() bytes
 func (format *JSON) CopyTo(dest []byte) int {
 	return copy(dest, format.message.Bytes())
-}
-
-// Write writes the message to the given io.Writer.
-func (format *JSON) Write(writer io.Writer) {
-	writer.Write(format.message.Bytes())
 }

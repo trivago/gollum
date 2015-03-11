@@ -17,7 +17,6 @@ package format
 import (
 	"fmt"
 	"github.com/trivago/gollum/shared"
-	"io"
 	"strconv"
 )
 
@@ -77,10 +76,4 @@ func (format *Runlength) String() string {
 func (format *Runlength) CopyTo(dest []byte) int {
 	len := copy(dest, []byte(format.lengthStr))
 	return len + format.base.CopyTo(dest[len:])
-}
-
-// Write writes the message to the given io.Writer.
-func (format *Runlength) Write(writer io.Writer) {
-	writer.Write([]byte(format.lengthStr))
-	format.base.Write(writer)
 }

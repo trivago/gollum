@@ -129,7 +129,6 @@ type Kafka struct {
 	client   *kafka.Client
 	config   *kafka.Config
 	producer kafka.Producer
-	buffer   shared.ByteStream
 }
 
 func init() {
@@ -150,7 +149,6 @@ func (prod *Kafka) Configure(conf shared.PluginConfig) error {
 	prod.servers = conf.GetStringArray("Servers", []string{})
 	prod.topic = conf.GetStreamMap("Topic", "default")
 	prod.clientID = conf.GetString("ClientId", "gollum")
-	prod.buffer = shared.NewByteStream(1024)
 
 	prod.config = kafka.NewConfig()
 	prod.config.ClientID = conf.GetString("ClientId", "gollum")
@@ -234,14 +232,14 @@ func (prod *Kafka) send(msg shared.Message) {
 			topic = prod.topic[shared.WildcardStreamID]
 		}
 
-		prod.buffer.Reset()
 		prod.Formatter().PrepareMessage(msg)
-		prod.Formatter().Write(&prod.buffer)
+		buffer := make([]byte, prod.Formatter().GetLength())
+		prod.Formatter().CopyTo(buffer)
 
 		prod.producer.Input() <- &kafka.ProducerMessage{
 			Topic: topic,
 			Key:   nil,
-			Value: kafka.ByteEncoder(prod.buffer.Bytes()),
+			Value: kafka.ByteEncoder(buffer),
 		}
 
 		// Check for errors
