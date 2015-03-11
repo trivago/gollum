@@ -30,10 +30,6 @@ type messageQueue struct {
 	doneCount  uint32
 }
 
-// ByteStream is an alias to []byte and implements io.Reader as well as
-// io.Writer interfaces.
-type ByteStream []byte
-
 // StreamBuffer is a helper class for producers to format and store messages
 // into a single string that is flushed to an io.Writer.
 // You can use the Reached* functions to determine when a flush should be
@@ -58,16 +54,6 @@ func newMessageQueue(size int) messageQueue {
 func (queue *messageQueue) reset() {
 	queue.contentLen = 0
 	queue.doneCount = 0
-}
-
-// Write implements the io.Writer interface for ByteStream
-func (stream *ByteStream) Write(source []byte) (int, error) {
-	return copy(*stream, source), nil
-}
-
-// Read implements the io.Reader interface for ByteStream
-func (stream *ByteStream) Read(target []byte) (int, error) {
-	return copy(target, *stream), nil
 }
 
 // NewStreamBuffer creates a new StreamBuffer with a given size (in bytes)

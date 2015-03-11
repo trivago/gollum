@@ -27,9 +27,27 @@ type logMessages struct {
 	enqueue  bool
 }
 
+type logNull struct {
+}
+
+// Verbosity defines an enumeration for log verbosity
+type Verbosity byte
+
 var (
 	logStreamIDs = []shared.MessageStreamID{shared.LogInternalStreamID}
 	logHelper    = logMessages{make(chan shared.Message, 1024), 0, false}
+	logDisabled  = logNull{}
+)
+
+const (
+	// VerbosityError shows only error messages
+	VerbosityError = Verbosity(iota)
+	// VerbosityWarning shows error and warning messages
+	VerbosityWarning = Verbosity(iota)
+	// VerbosityNote shows error, warning and note messages
+	VerbosityNote = Verbosity(iota)
+	// VerbosityDebug shows all messages
+	VerbosityDebug = Verbosity(iota)
 )
 
 var (
@@ -50,15 +68,47 @@ var (
 )
 
 func init() {
-	Error = log.New(logHelper, "ERROR: ", log.Lshortfile)
-	Warning = log.New(logHelper, "Warning: ", log.Lshortfile)
-	Note = log.New(logHelper, "", 0)
-	Debug = log.New(logHelper, "Debug: ", 0)
+	SetVerbosity(VerbosityError)
 
 	log.SetFlags(log.Lshortfile)
 	log.SetOutput(logHelper)
 }
 
+// SetVerbosity defines which messages are actually logged.
+// See Verbosity.
+func SetVerbosity(loglevel Verbosity) {
+	Error = log.New(logDisabled, "", 0)
+	Warning = log.New(logDisabled, "", 0)
+	Note = log.New(logDisabled, "", 0)
+	Debug = log.New(logDisabled, "", 0)
+
+	switch loglevel {
+	default:
+		fallthrough
+
+	case VerbosityDebug:
+		Debug = log.New(logHelper, "Debug: ", 0)
+		fallthrough
+
+	case VerbosityNote:
+		Note = log.New(logHelper, "", 0)
+		fallthrough
+
+	case VerbosityWarning:
+		Warning = log.New(logHelper, "Warning: ", log.Lshortfile)
+		fallthrough
+
+	case VerbosityError:
+		Error = log.New(logHelper, "ERROR: ", log.Lshortfile)
+	}
+}
+
+// Write Drops all messages
+func (log logNull) Write(message []byte) (int, error) {
+	return len(message), nil
+}
+
+// Write pushes messages to the log queue
 func (log logMessages) Write(message []byte) (int, error) {
 	length := len(message)
 	if length == 0 {

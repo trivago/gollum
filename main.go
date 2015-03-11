@@ -21,6 +21,7 @@ import (
 	_ "github.com/trivago/gollum/contrib"
 	_ "github.com/trivago/gollum/distributor"
 	_ "github.com/trivago/gollum/format"
+	"github.com/trivago/gollum/log"
 	_ "github.com/trivago/gollum/producer"
 	"github.com/trivago/gollum/shared"
 	"io/ioutil"
@@ -48,6 +49,7 @@ func dumpMemoryProfile() {
 
 func main() {
 	flag.Parse()
+	Log.SetVerbosity(Log.Verbosity(*flagLoglevel))
 
 	if *flagVersion {
 		fmt.Printf("Gollum v%d.%d.%d\n", gollumMajorVer, gollumMinorVer, gollumPatchVer)

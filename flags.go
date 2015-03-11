@@ -24,6 +24,7 @@ var (
 	flagHelp           = flag.Bool([]string{"h", "-help"}, false, "Print this help message.")
 	flagVersion        = flag.Bool([]string{"v", "-version"}, false, "Print version information and quit.")
 	flagProfile        = flag.Bool([]string{"ps", "-profilespeed"}, false, "Write msg/sec measurements to log.")
+	flagLoglevel       = flag.Int([]string{"ll", "-loglevel"}, 0, "Set the loglevel [0-3]. Higher levels produce more messages.")
 	flagNumCPU         = flag.Int([]string{"n", "-numcpu"}, 0, "Number of CPUs to use. Set 0 for all CPUs.")
 	flagMetricsPort    = flag.Int([]string{"m", "-metrics"}, 0, "Port to use for metric queries. Set 0 to disable.")
 	flagConfigFile     = flag.String([]string{"c", "-config"}, "", "Use a given configuration file.")
