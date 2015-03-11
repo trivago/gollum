@@ -68,8 +68,6 @@ func (cons *Profiler) profile() {
 	}
 
 	testStart := time.Now()
-
-	msgData := shared.NewByteStream(cons.length + 64)
 	minTime := math.MaxFloat64
 	maxTime := 0.0
 
@@ -78,10 +76,12 @@ func (cons *Profiler) profile() {
 
 		start := time.Now()
 		for i := 0; i < cons.profileRuns; i++ {
-			msgData.Reset()
-			fmt.Fprintf(&msgData, "%d/%d %s", i, cons.profileRuns, string(randString))
-			cons.PostData(msgData.Bytes(), uint64(b*cons.profileRuns+i))
+			buffer := shared.NewByteStream(cons.length + 64)
 
+			fmt.Fprintf(&buffer, "%d/%d ", i, cons.profileRuns)
+			buffer.Write(randString)
+
+			cons.PostData(buffer.Bytes(), uint64(b*cons.profileRuns+i))
 			if cons.quit {
 				return
 			}
