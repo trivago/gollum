@@ -12,7 +12,7 @@ type ByteStream struct {
 // NewByteStream creates a new byte stream of the desired capacity
 func NewByteStream(capacity int) ByteStream {
 	return ByteStream{
-		data:   make([]byte, 0, capacity),
+		data:   make([]byte, capacity),
 		offset: 0,
 	}
 }
@@ -20,9 +20,9 @@ func NewByteStream(capacity int) ByteStream {
 // SetCapacity assures that capacity bytes are available in the buffer, growing
 // the managed byte array if needed.
 func (stream *ByteStream) SetCapacity(capacity int) {
-	if cap(stream.data) < capacity {
+	if len(stream.data) < capacity {
 		current := stream.data
-		stream.data = make([]byte, 0, capacity)
+		stream.data = make([]byte, capacity)
 		copy(stream.data, current)
 	}
 }
@@ -32,8 +32,8 @@ func (stream *ByteStream) Reset() {
 	stream.offset = 0
 }
 
-// Len returns the number of bytes stored in the underlying array.
-// This is NOT necessarly equal to len(stream.Bytes()).
+// Len returns the length of the underlying array.
+// This is equal to len(stream.Bytes()).
 func (stream ByteStream) Len() int {
 	return stream.offset
 }
@@ -41,12 +41,13 @@ func (stream ByteStream) Len() int {
 // Cap returns the capacity of the underlying array.
 // This is equal to cap(stream.Bytes()).
 func (stream ByteStream) Cap() int {
-	return cap(stream.data)
+	return len(stream.data)
 }
 
-// Bytes returns the underlying byte array
+// Bytes returns a slice of the underlying byte array containing all written
+// data up to this point.
 func (stream ByteStream) Bytes() []byte {
-	return stream.data
+	return stream.data[:stream.offset]
 }
 
 // Write implements the io.Writer interface.
@@ -55,13 +56,14 @@ func (stream ByteStream) Bytes() []byte {
 // append to the end of the stream until Reset() is called.
 func (stream *ByteStream) Write(source []byte) (int, error) {
 	stream.SetCapacity(stream.offset + len(source))
-	len := copy(stream.data[stream.offset:], source)
-	stream.offset += len
-	return len, nil
+
+	bytesWritten := copy(stream.data[stream.offset:], source)
+	stream.offset += bytesWritten
+	return bytesWritten, nil
 }
 
 // Read implements the io.Reader interface.
 // The underlying byte array is always copied as a whole.
 func (stream *ByteStream) Read(target []byte) (int, error) {
-	return copy(target, stream.data[:stream.offset]), nil
+	return copy(target, stream.data), nil
 }
