@@ -16,6 +16,7 @@ package shared
 
 import (
 	"errors"
+	"io"
 	"math"
 )
 
@@ -42,6 +43,9 @@ type Formatter interface {
 	// CopyTo copies the message into an existing buffer. It is assumed that
 	// dest has enough space to fit GetLength() bytes
 	CopyTo(dest []byte) int
+
+	// Write copies the message to an io.Writer
+	Write(writer io.Writer)
 }
 
 // ItoLen returns the length of an unsingned integer when converted to a string

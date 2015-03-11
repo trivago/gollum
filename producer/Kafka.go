@@ -59,8 +59,17 @@ const (
 //
 // ClientId sets the client id of this producer. By default this is "gollum".
 //
-// Partitioner sets the distribution algorithm to use. Valid values (case
-// sensitive) are: "Random","Roundrobin","Hash". By default "Hash" is set.
+// MessageBufferCount sets the internal channel size for the kafka client.
+// By default this is set to 256.
+//
+// MaxOpenRequests defines the number of simultanious connections are allowed.
+// By default this is set to 5.
+//
+// ServerTimeoutSec defines the time after which a connection is set to timed
+// out. By default this is set to 30 seconds.
+//
+// BufferSizeMaxKB defines the maximum allowed message size. By default this is
+// set to 1 MB.
 //
 // RequiredAcks defines the acknowledgement level required by the broker.
 // 0 = No responses required. 1 = wait for the local commit. -1 = wait for
@@ -74,8 +83,8 @@ const (
 // Compression sets the method of compression to use. Valid values (case
 // sensitive) are: "None","Zip","Snappy". By default "None" is set.
 //
-// BufferSizeMaxKB defines the maximum allowed message size. By default this is
-// set to 1 MB.
+// Partitioner sets the distribution algorithm to use. Valid values (case
+// sensitive) are: "Random","Roundrobin","Hash". By default "Hash" is set.
 //
 // BatchSizeByte sets the mimimum number of bytes to collect before a new flush
 // is triggered. By default this is set to 8192.
@@ -83,34 +92,44 @@ const (
 // BatchMinCount sets the minimum number of messages required to trigger a
 // flush. By default this is set to 1.
 //
+// BatchTimeoutSec sets the minimum time in seconds to pass after wich a new
+// flush will be triggered. By default this is set to 3.
+//
 // BatchMaxCount defines the maximum number of messages processed per
 // request. By default this is set to 0 for "unlimited".
 //
-// BatchTimeoutSec sets the minimum time in seconds to pass after wich a new
-// flush will be triggered. By default this is set to 3.
+// SendRetries defines how many times to retry sending data before marking a
+// server as not reachable. By default this is set to 3.
+//
+// SendTimeoutMs defines the number of milliseconds to wait for a server to
+// resond before triggering a timeout. Defaults to 250.
+//
+// ElectRetries defines how many times to retry during a leader election.
+// By default this is set to 3.
 //
 // ElectTimeoutMs defines the number of milliseconds to wait for the cluster to
 // elect a new leader. Defaults to 250.
 //
-// MetadataRefreshSec set the interval in seconds for fetching cluster metadata.
-// By default this is set to 10.
+// MetadataRefreshMs set the interval in seconds for fetching cluster metadata.
+// By default this is set to 10000. This corresponds to the JVM setting
+// `topic.metadata.refresh.interval.ms`.
+//
+// Servers contains the list of all kafka servers to connect to. This setting
+// is mandatory and has no defaults.
 //
 // Topic maps a stream to a specific kafka topic. You can define the
 // wildcard stream (*) here, too. All streams that do not have a specific
 // mapping will go to this stream (including _GOLLUM_).
 // If no topic mappings are set all messages will be send to "default".
-//
-// Servers contains the list of all kafka servers to connect to. This setting
-// is mandatory and has no defaults.
 type Kafka struct {
 	shared.ProducerBase
-	servers        []string
-	topic          map[shared.MessageStreamID]string
-	clientID       string
-	client         *kafka.Client
-	clientConfig   *kafka.ClientConfig
-	producer       *kafka.Producer
-	producerConfig *kafka.ProducerConfig
+	servers  []string
+	topic    map[shared.MessageStreamID]string
+	clientID string
+	client   *kafka.Client
+	config   *kafka.Config
+	producer kafka.Producer
+	buffer   shared.ByteStream
 }
 
 func init() {
@@ -119,11 +138,6 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Kafka) Configure(conf shared.PluginConfig) error {
-	// If not defined, delimiter is not used (override default value)
-	if !conf.HasValue("Delimiter") {
-		conf.Override("Delimiter", "")
-	}
-
 	err := prod.ProducerBase.Configure(conf)
 	if err != nil {
 		return err
@@ -133,49 +147,57 @@ func (prod *Kafka) Configure(conf shared.PluginConfig) error {
 		return shared.NewProducerError("No servers configured for producer.Kafka")
 	}
 
-	prod.clientConfig = kafka.NewClientConfig()
-	prod.producerConfig = kafka.NewProducerConfig()
 	prod.servers = conf.GetStringArray("Servers", []string{})
-	prod.topic = make(map[shared.MessageStreamID]string)
 	prod.topic = conf.GetStreamMap("Topic", "default")
 	prod.clientID = conf.GetString("ClientId", "gollum")
+	prod.buffer = shared.NewByteStream(1024)
 
-	switch conf.GetString("Partitioner", partRandom) {
-	case partRandom:
-		prod.producerConfig.Partitioner = kafka.NewRandomPartitioner
-	case partRoundrobin:
-		prod.producerConfig.Partitioner = kafka.NewRoundRobinPartitioner
-	default:
-		// Don't set == partHash
-	case partHash:
-		prod.producerConfig.Partitioner = kafka.NewHashPartitioner
-	}
+	prod.config = kafka.NewConfig()
+	prod.config.ClientID = conf.GetString("ClientId", "gollum")
+	prod.config.ChannelBufferSize = conf.GetInt("MessageBufferCount", 256)
 
-	prod.producerConfig.RequiredAcks = kafka.RequiredAcks(conf.GetInt("RequiredAcks", int(kafka.WaitForLocal)))
-	prod.producerConfig.Timeout = time.Duration(conf.GetInt("TimoutMs", 1500)) * time.Millisecond
+	prod.config.Net.MaxOpenRequests = conf.GetInt("MaxOpenRequests", 5)
+	prod.config.Net.DialTimeout = time.Duration(conf.GetInt("ServerTimeoutSec", 30)) * time.Second
+	prod.config.Net.ReadTimeout = prod.config.Net.DialTimeout
+	prod.config.Net.WriteTimeout = prod.config.Net.DialTimeout
+
+	prod.config.Metadata.Retry.Max = conf.GetInt("ElectRetries", 3)
+	prod.config.Metadata.Retry.Backoff = time.Duration(conf.GetInt("ElectTimeoutMs", 250)) * time.Millisecond
+	prod.config.Metadata.RefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshMs", 10000)) * time.Millisecond
+
+	prod.config.Producer.MaxMessageBytes = conf.GetInt("BufferSizeMaxKB", 1<<10) << 10
+	prod.config.Producer.RequiredAcks = kafka.RequiredAcks(conf.GetInt("RequiredAcks", int(kafka.WaitForLocal)))
+	prod.config.Producer.Timeout = time.Duration(conf.GetInt("TimoutMs", 1500)) * time.Millisecond
+	prod.config.Producer.AckSuccesses = false
 
 	switch conf.GetString("Compression", compressNone) {
 	default:
-		// Don't set == compressNome
+		fallthrough
 	case compressNone:
-		prod.producerConfig.Compression = kafka.CompressionNone
+		prod.config.Producer.Compression = kafka.CompressionNone
 	case compressGZIP:
-		prod.producerConfig.Compression = kafka.CompressionGZIP
+		prod.config.Producer.Compression = kafka.CompressionGZIP
 	case compressSnappy:
-		prod.producerConfig.Compression = kafka.CompressionSnappy
+		prod.config.Producer.Compression = kafka.CompressionSnappy
 	}
 
-	prod.producerConfig.FlushMsgCount = conf.GetInt("BatchMinCount", 1)
-	prod.producerConfig.FlushFrequency = time.Duration(conf.GetInt("BatchTimeoutSec", 3)) * time.Second
-	prod.producerConfig.FlushByteCount = conf.GetInt("BatchSizeByte", 8192)
+	switch conf.GetString("Partitioner", partRandom) {
+	case partRandom:
+		prod.config.Producer.Partitioner = kafka.NewRandomPartitioner
+	case partRoundrobin:
+		prod.config.Producer.Partitioner = kafka.NewRoundRobinPartitioner
+	default:
+		fallthrough
+	case partHash:
+		prod.config.Producer.Partitioner = kafka.NewHashPartitioner
+	}
 
-	prod.producerConfig.MaxMessageBytes = conf.GetInt("BufferSizeMaxKB", 1<<10) << 10
-	prod.producerConfig.MaxMessagesPerReq = conf.GetInt("BatchMaxCount", 0)
-	prod.producerConfig.RetryBackoff = time.Duration(conf.GetInt("ElectTimeoutMs", 250)) * time.Millisecond
-
-	prod.clientConfig.WaitForElection = prod.producerConfig.RetryBackoff
-	prod.clientConfig.BackgroundRefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshSec", 10)) * time.Second
-
+	prod.config.Producer.Flush.Bytes = conf.GetInt("BatchSizeByte", 8192)
+	prod.config.Producer.Flush.Messages = conf.GetInt("BatchMinCount", 1)
+	prod.config.Producer.Flush.Frequency = time.Duration(conf.GetInt("BatchTimeoutSec", 3)) * time.Second
+	prod.config.Producer.Flush.MaxMessages = conf.GetInt("BatchMaxCount", 0)
+	prod.config.Producer.Retry.Max = conf.GetInt("SendRetries", 3)
+	prod.config.Producer.Retry.Backoff = time.Duration(conf.GetInt("SendTimeoutMs", 100)) * time.Millisecond
 	return nil
 }
 
@@ -188,20 +210,20 @@ func (prod *Kafka) send(msg shared.Message) {
 		}
 
 		var err error
-		prod.client, err = kafka.NewClient(prod.clientID, prod.servers, prod.clientConfig)
+		prod.client, err = kafka.NewClient(prod.servers, prod.config)
 		if err != nil {
 			Log.Error.Print("Kafka client error:", err)
-			return
+			return // ### return, connection failed ###
 		}
 	}
 
 	// Make sure we have a producer up and running
 	if prod.producer == nil {
 		var err error
-		prod.producer, err = kafka.NewProducer(prod.client, prod.producerConfig)
+		prod.producer, err = kafka.NewProducerFromClient(prod.client)
 		if err != nil {
 			Log.Error.Print("Kafka producer error:", err)
-			return
+			return // ### return, connection failed ###
 		}
 	}
 
@@ -212,17 +234,20 @@ func (prod *Kafka) send(msg shared.Message) {
 			topic = prod.topic[shared.WildcardStreamID]
 		}
 
+		prod.buffer.Reset()
 		prod.Formatter().PrepareMessage(msg)
+		prod.Formatter().Write(&prod.buffer)
+
 		prod.producer.Input() <- &kafka.ProducerMessage{
 			Topic: topic,
 			Key:   nil,
-			Value: kafka.StringEncoder(prod.Formatter().String()),
+			Value: kafka.ByteEncoder(prod.buffer.Bytes()),
 		}
 
 		// Check for errors
 		select {
 		case err := <-prod.producer.Errors():
-			Log.Error.Print("Kafka message error:", err)
+			Log.Error.Print("Kafka producer error:", err)
 		default:
 		}
 	}

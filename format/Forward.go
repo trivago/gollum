@@ -16,6 +16,7 @@ package format
 
 import (
 	"github.com/trivago/gollum/shared"
+	"io"
 )
 
 // Forward is a formatter that passes a message as is
@@ -56,4 +57,9 @@ func (format *Forward) String() string {
 // dest has enough space to fit GetLength() bytes
 func (format *Forward) CopyTo(dest []byte) int {
 	return copy(dest, format.msg.Data)
+}
+
+// Write writes the message to the given io.Writer.
+func (format *Forward) Write(writer io.Writer) {
+	writer.Write(format.msg.Data)
 }

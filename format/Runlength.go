@@ -17,6 +17,7 @@ package format
 import (
 	"fmt"
 	"github.com/trivago/gollum/shared"
+	"io"
 	"strconv"
 )
 
@@ -31,9 +32,9 @@ import (
 // RunlengthDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Runlength struct {
-	base       shared.Formatter
-	baseLength int
-	length     int
+	base      shared.Formatter
+	length    int
+	lengthStr string
 }
 
 func init() {
@@ -54,13 +55,10 @@ func (format *Runlength) Configure(conf shared.PluginConfig) error {
 // PrepareMessage sets the message to be formatted.
 func (format *Runlength) PrepareMessage(msg shared.Message) {
 	format.base.PrepareMessage(msg)
-	format.baseLength = format.base.GetLength()
+	baseLength := format.base.GetLength()
 
-	if format.baseLength < 10 {
-		format.length = format.baseLength + 2
-	} else {
-		format.length = format.baseLength + shared.ItoLen(uint64(format.baseLength)) + 1
-	}
+	format.lengthStr = strconv.Itoa(baseLength) + ":"
+	format.length = len(format.lengthStr) + baseLength
 }
 
 // GetLength returns the length of a formatted message returned by String()
@@ -71,14 +69,18 @@ func (format *Runlength) GetLength() int {
 
 // String returns the message as string
 func (format *Runlength) String() string {
-	return fmt.Sprintf("%d:%s", format.baseLength, format.base.String())
+	return fmt.Sprintf("%s%s", format.lengthStr, format.base.String())
 }
 
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
 func (format *Runlength) CopyTo(dest []byte) int {
-	len := copy(dest, strconv.Itoa(format.baseLength))
-	dest[len] = ':'
-	len++
+	len := copy(dest, []byte(format.lengthStr))
 	return len + format.base.CopyTo(dest[len:])
+}
+
+// Write writes the message to the given io.Writer.
+func (format *Runlength) Write(writer io.Writer) {
+	writer.Write([]byte(format.lengthStr))
+	format.base.Write(writer)
 }

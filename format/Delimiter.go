@@ -16,6 +16,7 @@ package format
 
 import (
 	"github.com/trivago/gollum/shared"
+	"io"
 	"strings"
 )
 
@@ -72,4 +73,10 @@ func (format *Delimiter) CopyTo(dest []byte) int {
 	len := copy(dest, format.msg.Data)
 	len += copy(dest[len:], format.delimiter)
 	return len
+}
+
+// Write writes the message to the given io.Writer.
+func (format *Delimiter) Write(writer io.Writer) {
+	writer.Write(format.msg.Data)
+	writer.Write([]byte(format.delimiter))
 }

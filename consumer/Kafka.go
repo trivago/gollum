@@ -15,15 +15,13 @@
 package consumer
 
 import (
-	"fmt"
+	"encoding/json"
 	kafka "github.com/Shopify/sarama"
 	"github.com/trivago/gollum/log"
 	"github.com/trivago/gollum/shared"
 	"io/ioutil"
-	"math"
 	"runtime"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -41,7 +39,6 @@ const (
 //   - "consumer.Kafka":
 //     Enable: true
 //     ClientID: "logger"
-//     ConsumerGroup: "logreader"
 //     MaxFetchSizeByte: 8192
 //     MinFetchSizeByte: 0
 //     MaxMessageSizeByte: 0
@@ -56,8 +53,11 @@ const (
 //
 // ClientId sets the client id of this producer. By default this is "gollum".
 //
-// ConsumerGroup sets the consumer group of this consumer. By default this is
-// set to "gollum".
+// MaxOpenRequests defines the number of simultanious connections are allowed.
+// By default this is set to 5.
+//
+// ServerTimeoutSec defines the time after which a connection is set to timed
+// out. By default this is set to 30 seconds.
 //
 // MaxFetchSizeByte the maximum amount of bytes to fetch from Kafka per request.
 // By default this is set to 32768.
@@ -66,51 +66,53 @@ const (
 // request. If less data is available the broker will wait. By default this is
 // set to 1.
 //
-// MaxMessageSizeByte sets the maximum size of a message to fetch. Larger messages
+// MaxFetchSizeByte sets the maximum size of a message to fetch. Larger messages
 // will be ignored. By default this is set to 0 (fetch all messages).
 //
 // FetchTimeoutMs defines the time in milliseconds the broker will wait for
 // MinFetchSizeByte to be reached before processing data anyway. By default this
 // is set to 250ms.
 //
-// MessageBufferCount defines the number of events to load in the background
-// while the consumer is processing messages. By default this is set to 16,
-// setting it to 0 disables background fetching
+// MessageBufferCount sets the internal channel size for the kafka client.
+// By default this is set to 256.
 //
-// Offset defines the message index to start reading from. Valid values are either
-// (case sensitive) "Newset", "Oldest", or "File". If "File" is used the
-// OffsetFile option must be set. The default value is "Newest"
+// DefaultOffset defines the message index to start reading from.
+// Valid values are either (case sensitive) "Newset", "Oldest", or a number.
+// DefaultOffset is mandatory. The default value is "Newest"
 //
 // OffsetFile defines a path to a file containing the current index per topic
-// partition. This file is used by Offset: "file" and is disabled by default.
-// If no file exists all partitions start at "Newest"
+// partition. If a file is given the index stored in this file will be used as
+// the default offset for a stored parition. If the partition is not stored in
+// this file DefaultOffset is used.
 //
-// OffsetTimeoutMs defines the time in milliseconds between writes to OffsetFile.
+// PresistTimoutMs defines the time in milliseconds between writes to OffsetFile.
 // By default this is set to 5000. Shorter durations reduce the amount of
 // duplicate messages after a fail but increases I/O.
+//
+// ElectRetries defines how many times to retry during a leader election.
+// By default this is set to 3.
 //
 // ElectTimeoutMs defines the number of milliseconds to wait for the cluster to
 // elect a new leader. Defaults to 250.
 //
-// MetadataRefreshSec set the interval in seconds for fetching cluster metadata.
-// By default this is set to 10.
+// MetadataRefreshMs set the interval in seconds for fetching cluster metadata.
+// By default this is set to 10000. This corresponds to the JVM setting
+// `topic.metadata.refresh.interval.ms`.
 //
 // Servers contains the list of all kafka servers to connect to. This setting
 // is mandatory and has no defaults.
 type Kafka struct {
 	shared.ConsumerBase
-	servers         []string
-	topic           string
-	clientID        string
-	consumerGroup   string
-	client          *kafka.Client
-	clientConfig    *kafka.ClientConfig
-	consumer        *kafka.Consumer
-	consumerConfig  *kafka.ConsumerConfig
-	partitionConfig *kafka.PartitionConsumerConfig
-	offsetFile      string
-	offsets         []int64
-	offsetTimeout   time.Duration
+	servers        []string
+	topic          string
+	client         *kafka.Client
+	config         *kafka.Config
+	consumer       kafka.Consumer
+	offsetFile     string
+	defaultOffset  int64
+	offsets        map[int32]int64
+	MaxPartitionID int32
+	persistTimeout time.Duration
 }
 
 func init() {
@@ -128,81 +130,71 @@ func (cons *Kafka) Configure(conf shared.PluginConfig) error {
 		return shared.NewConsumerError("No servers configured for consumer.Kafka")
 	}
 
-	cons.clientConfig = kafka.NewClientConfig()
-	cons.consumerConfig = kafka.NewConsumerConfig()
-	cons.partitionConfig = kafka.NewPartitionConsumerConfig()
 	cons.servers = conf.GetStringArray("Servers", []string{})
 	cons.topic = conf.GetString("Topic", "default")
-	cons.clientID = conf.GetString("ClientId", "gollum")
-	cons.consumerGroup = conf.GetString("ConsumerGroup", "gollum")
 	cons.offsetFile = conf.GetString("OffsetFile", "")
-	cons.offsetTimeout = time.Duration(conf.GetInt("OffsetTimoutMs", 5000)) * time.Millisecond
+	cons.persistTimeout = time.Duration(conf.GetInt("PresistTimoutMs", 5000)) * time.Millisecond
+	cons.offsets = make(map[int32]int64)
+	cons.MaxPartitionID = 0
 
-	cons.consumerConfig.MinFetchSize = int32(conf.GetInt("MinFetchSizeByte", 1))
-	cons.consumerConfig.MaxWaitTime = time.Duration(conf.GetInt("FetchTimeoutMs", 250)) * time.Millisecond
+	cons.config = kafka.NewConfig()
+	cons.config.ClientID = conf.GetString("ClientId", "gollum")
+	cons.config.ChannelBufferSize = conf.GetInt("MessageBufferCount", 256)
 
-	cons.partitionConfig.DefaultFetchSize = int32(conf.GetInt("MaxFetchSizeByte", 32768))
-	cons.partitionConfig.MaxMessageSize = int32(conf.GetInt("MaxMessageSizeByte", 0))
-	cons.partitionConfig.ChannelBufferSize = conf.GetInt("MessageBufferCount", 16)
-	cons.partitionConfig.OffsetValue = 0
+	cons.config.Net.MaxOpenRequests = conf.GetInt("MaxOpenRequests", 5)
+	cons.config.Net.DialTimeout = time.Duration(conf.GetInt("ServerTimeoutSec", 30)) * time.Second
+	cons.config.Net.ReadTimeout = cons.config.Net.DialTimeout
+	cons.config.Net.WriteTimeout = cons.config.Net.DialTimeout
 
-	switch conf.GetString("Offset", kafkaOffsetNewset) {
-	default:
-		fallthrough
+	cons.config.Metadata.Retry.Max = conf.GetInt("ElectRetries", 3)
+	cons.config.Metadata.Retry.Backoff = time.Duration(conf.GetInt("ElectTimeoutMs", 250)) * time.Millisecond
+	cons.config.Metadata.RefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshMs", 10000)) * time.Millisecond
+
+	cons.config.Consumer.Fetch.Min = int32(conf.GetInt("MinFetchSizeByte", 1))
+	cons.config.Consumer.Fetch.Max = int32(conf.GetInt("MaxFetchSizeByte", 0))
+	cons.config.Consumer.Fetch.Default = int32(conf.GetInt("MaxFetchSizeByte", 32768))
+	cons.config.Consumer.MaxWaitTime = time.Duration(conf.GetInt("FetchTimeoutMs", 250)) * time.Millisecond
+
+	offsetValue := conf.GetString("DefaultOffset", kafkaOffsetNewset)
+	switch offsetValue {
 	case kafkaOffsetNewset:
-		cons.partitionConfig.OffsetMethod = kafka.OffsetMethodNewest
+		cons.defaultOffset = kafka.OffsetNewest
 
 	case kafkaOffsetOldest:
-		cons.partitionConfig.OffsetMethod = kafka.OffsetMethodOldest
+		cons.defaultOffset = kafka.OffsetOldest
 
-	case kafkaOffsetFile:
-		cons.partitionConfig.OffsetMethod = kafka.OffsetMethodManual
+	default:
+		cons.defaultOffset, _ = strconv.ParseInt(offsetValue, 10, 64)
 		fileContents, err := ioutil.ReadFile(cons.offsetFile)
 		if err != nil {
-			Log.Warning.Print(err)
-		} else {
-			offsets := strings.Split(string(fileContents), ",")
-			cons.offsets = make([]int64, len(offsets))
+			return err
+		}
 
-			for idx, offset := range offsets {
-				cons.offsets[idx], _ = strconv.ParseInt(offset, 10, 64)
-			}
+		err = json.Unmarshal(fileContents, &cons.offsets)
+		if err != nil {
+			return err
 		}
 	}
-
-	cons.clientConfig.WaitForElection = time.Duration(conf.GetInt("ElectTimeoutMs", 250)) * time.Millisecond
-	cons.clientConfig.BackgroundRefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshSec", 10)) * time.Second
 
 	return nil
 }
 
-// Restart the consumer after wating for offsetTimeout
-func (cons *Kafka) restart(err error, offsetIdx int, partition int32) {
-	Log.Error.Printf("Restarting kafka consumer (%s:%d) - %s", cons.topic, offsetIdx, err.Error())
-	time.Sleep(cons.offsetTimeout)
+// Restart the consumer after wating for persistTimeout
+func (cons *Kafka) retry(partitionID int32, err error) {
+	Log.Error.Printf("Restarting kafka consumer (%s:%d) - %s", cons.topic, cons.offsets[partitionID], err.Error())
+	time.Sleep(cons.persistTimeout)
 
-	config := *cons.partitionConfig
-	config.OffsetMethod = kafka.OffsetMethodManual
-
-	cons.fetch(offsetIdx, partition, config)
+	cons.readFromPartition(partitionID)
 }
 
 // Main fetch loop for kafka events
-func (cons *Kafka) fetch(offsetIdx int, partition int32, config kafka.PartitionConsumerConfig) {
-	switch {
-	case len(cons.offsets) > offsetIdx:
-		config.OffsetValue = cons.offsets[offsetIdx]
-
-	case config.OffsetMethod == kafka.OffsetMethodManual:
-		config.OffsetMethod = kafka.OffsetMethodOldest
-	}
-
-	partCons, err := cons.consumer.ConsumePartition(cons.topic, partition, &config)
+func (cons *Kafka) readFromPartition(partitionID int32) {
+	partCons, err := cons.consumer.ConsumePartition(cons.topic, partitionID, cons.offsets[partitionID])
 	if err != nil {
 		if !cons.client.Closed() {
 			go func() {
 				defer shared.RecoverShutdown()
-				cons.restart(err, offsetIdx, partition)
+				cons.retry(partitionID, err)
 			}()
 		}
 		return // ### return, stop this consumer ###
@@ -227,16 +219,20 @@ func (cons *Kafka) fetch(offsetIdx int, partition int32, config kafka.PartitionC
 		}
 
 		select {
-		default:
-			runtime.Gosched()
 		case event := <-partCons.Messages():
-			offset := int64(math.Max(float64(cons.offsets[offsetIdx]), float64(event.Offset)))
-			cons.offsets[offsetIdx] = offset
+			cons.offsets[partitionID] = event.Offset
 
 			// This tries to reconstruct the original message number when using a
 			// round robin distribution.
-			sequence := uint64(offset + offset*int64(len(cons.offsets)-1) + int64(partition))
+
+			sequence := uint64(event.Offset + event.Offset*int64(cons.MaxPartitionID) + int64(partitionID))
 			cons.PostData(event.Value, sequence)
+
+		case err := <-partCons.Errors():
+			Log.Error.Print("Kafka consumer error:", err)
+
+		default:
+			runtime.Gosched()
 		}
 	}
 }
@@ -245,12 +241,12 @@ func (cons *Kafka) fetch(offsetIdx int, partition int32, config kafka.PartitionC
 func (cons *Kafka) startConsumers() error {
 	var err error
 
-	cons.client, err = kafka.NewClient(cons.clientID, cons.servers, cons.clientConfig)
+	cons.client, err = kafka.NewClient(cons.servers, cons.config)
 	if err != nil {
 		return err
 	}
 
-	cons.consumer, err = kafka.NewConsumer(cons.client, cons.consumerConfig)
+	cons.consumer, err = kafka.NewConsumerFromClient(cons.client)
 	if err != nil {
 		return err
 	}
@@ -260,15 +256,24 @@ func (cons *Kafka) startConsumers() error {
 		return err
 	}
 
-	cons.offsets = make([]int64, len(partitions))
+	for _, partition := range partitions {
+		if _, mapped := cons.offsets[partition]; !mapped {
+			cons.offsets[partition] = cons.defaultOffset
+		}
+		if partition > cons.MaxPartitionID {
+			cons.MaxPartitionID = partition
+		}
+	}
 
-	for idx, partition := range partitions {
-		idx := idx
+	for _, partition := range partitions {
 		partition := partition
+		if _, mapped := cons.offsets[partition]; !mapped {
+			cons.offsets[partition] = cons.defaultOffset
+		}
 
 		go func() {
 			defer shared.RecoverShutdown()
-			cons.fetch(idx, partition, *cons.partitionConfig)
+			cons.readFromPartition(partition)
 		}()
 	}
 
@@ -277,13 +282,13 @@ func (cons *Kafka) startConsumers() error {
 
 // Write index file to disc
 func (cons *Kafka) dumpIndex() {
-	if cons.offsetFile != "" && len(cons.offsets) > 0 {
-		csvString := ""
-		for _, value := range cons.offsets {
-			csvString += fmt.Sprintf("%d,", value)
+	if cons.offsetFile != "" {
+		data, err := json.Marshal(cons.offsets)
+		if err != nil {
+			Log.Error.Print("Kafka index file write error - ", err)
+		} else {
+			ioutil.WriteFile(cons.offsetFile, data, 0644)
 		}
-
-		ioutil.WriteFile(cons.offsetFile, []byte(csvString[:len(csvString)-1]), 0644)
 	}
 }
 
@@ -302,5 +307,5 @@ func (cons Kafka) Consume(workers *sync.WaitGroup) {
 		cons.dumpIndex()
 	}()
 
-	cons.TickerControlLoop(cons.offsetTimeout, nil, cons.dumpIndex)
+	cons.TickerControlLoop(cons.persistTimeout, nil, cons.dumpIndex)
 }

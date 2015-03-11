@@ -16,6 +16,7 @@ package format
 
 import (
 	"github.com/trivago/gollum/shared"
+	"io"
 )
 
 // Timestamp is a formatter that allows prefixing a message with a timestamp
@@ -83,4 +84,10 @@ func (format *Timestamp) CopyTo(dest []byte) int {
 	len := copy(dest[:], format.timestamp)
 	len += format.base.CopyTo(dest[len:])
 	return len
+}
+
+// Write writes the message to the given io.Writer.
+func (format *Timestamp) Write(writer io.Writer) {
+	writer.Write([]byte(format.timestamp))
+	format.base.Write(writer)
 }

@@ -2,6 +2,7 @@ package shared
 
 import (
 	"errors"
+	"io"
 	"testing"
 )
 
@@ -58,6 +59,10 @@ func (mock *mockFormatter) String() string {
 
 func (mock *mockFormatter) CopyTo(dest []byte) int {
 	return copy(dest, []byte(mock.message))
+}
+
+func (mock *mockFormatter) Write(writer io.Writer) {
+	writer.Write([]byte(mock.message))
 }
 
 func TestStreamBuffer(t *testing.T) {
