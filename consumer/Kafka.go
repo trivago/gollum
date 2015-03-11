@@ -222,10 +222,18 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 		case event := <-partCons.Messages():
 			cons.offsets[partitionID] = event.Offset
 
-			// This tries to reconstruct the original message number when using a
-			// round robin distribution.
+			// Offset is always relative to the partition, so we create "buckets"
+			// i.e. we are able to reconstruct partiton and local offset from
+			// the sequence number.
+			//
+			// To generate this we use:
+			// seq = offset * numPartition + partitionId
+			//
+			// Reading can be done via:
+			// seq % numPartition = partitionId
+			// seq / numPartition = offset
 
-			sequence := uint64(event.Offset + event.Offset*int64(cons.MaxPartitionID) + int64(partitionID))
+			sequence := uint64(event.Offset*int64(cons.MaxPartitionID) + int64(partitionID))
 			cons.PostData(event.Value, sequence)
 
 		case err := <-partCons.Errors():
