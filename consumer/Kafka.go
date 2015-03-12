@@ -170,9 +170,19 @@ func (cons *Kafka) Configure(conf shared.PluginConfig) error {
 			return err
 		}
 
-		err = json.Unmarshal(fileContents, &cons.offsets)
+		// Decode the JSON file into the partition -> offset map
+		encodedOffsets := make(map[string]int64)
+		err = json.Unmarshal(fileContents, &encodedOffsets)
 		if err != nil {
 			return err
+		}
+
+		for k, v := range encodedOffsets {
+			id, err := strconv.Atoi(k)
+			if err != nil {
+				return err
+			}
+			cons.offsets[int32(id)] = v
 		}
 	}
 
@@ -291,7 +301,12 @@ func (cons *Kafka) startConsumers() error {
 // Write index file to disc
 func (cons *Kafka) dumpIndex() {
 	if cons.offsetFile != "" {
-		data, err := json.Marshal(cons.offsets)
+		encodedOffsets := make(map[string]int64)
+		for k, v := range cons.offsets {
+			encodedOffsets[strconv.Itoa(int(k))] = v
+		}
+
+		data, err := json.Marshal(encodedOffsets)
 		if err != nil {
 			Log.Error.Print("Kafka index file write error - ", err)
 		} else {
