@@ -16,6 +16,7 @@ package format
 
 import (
 	"github.com/trivago/gollum/shared"
+	"io"
 )
 
 // Timestamp is a formatter that allows prefixing a message with a timestamp
@@ -35,7 +36,6 @@ import (
 // message. By default this is set to "format.Delimiter"
 type Timestamp struct {
 	base            shared.Formatter
-	msg             shared.Message
 	timestampFormat string
 	timestamp       string
 	length          int
@@ -61,9 +61,8 @@ func (format *Timestamp) Configure(conf shared.PluginConfig) error {
 // PrepareMessage sets the message to be formatted.
 func (format *Timestamp) PrepareMessage(msg shared.Message) {
 	format.base.PrepareMessage(msg)
-	format.msg = msg
 	format.length = format.base.GetLength() + len(format.timestampFormat)
-	format.timestamp = format.msg.Timestamp.Format(format.timestampFormat)
+	format.timestamp = msg.Timestamp.Format(format.timestampFormat)
 }
 
 // GetLength returns the length of a formatted message returned by String()
@@ -80,7 +79,20 @@ func (format *Timestamp) String() string {
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
 func (format *Timestamp) CopyTo(dest []byte) int {
-	len := copy(dest[:], format.timestamp)
+	len := copy(dest, format.timestamp)
 	len += format.base.CopyTo(dest[len:])
 	return len
+}
+
+// WriteTo implements the io.WriterTo interface.
+// Data will be written directly to a writer.
+func (format *Timestamp) WriteTo(writer io.Writer) (int64, error) {
+	len, err := writer.Write([]byte(format.timestamp))
+	if err != nil {
+		return int64(len), err
+	}
+
+	var baseLen int64
+	baseLen, err = format.base.WriteTo(writer)
+	return int64(len) + baseLen, err
 }

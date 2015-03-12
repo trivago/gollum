@@ -17,6 +17,7 @@ package format
 import (
 	"fmt"
 	"github.com/trivago/gollum/shared"
+	"io"
 	"strconv"
 )
 
@@ -76,4 +77,17 @@ func (format *Runlength) String() string {
 func (format *Runlength) CopyTo(dest []byte) int {
 	len := copy(dest, []byte(format.lengthStr))
 	return len + format.base.CopyTo(dest[len:])
+}
+
+// WriteTo implements the io.WriterTo interface.
+// Data will be written directly to a writer.
+func (format *Runlength) WriteTo(writer io.Writer) (int64, error) {
+	len, err := writer.Write([]byte(format.lengthStr))
+	if err != nil {
+		return int64(len), err
+	}
+
+	var baseLen int64
+	baseLen, err = format.base.WriteTo(writer)
+	return int64(len) + baseLen, err
 }

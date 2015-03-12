@@ -16,6 +16,7 @@ package format
 
 import (
 	"github.com/trivago/gollum/shared"
+	"io"
 	"strings"
 )
 
@@ -25,17 +26,23 @@ import (
 //
 //   - producer.Console
 //     Formatter: "format.Delimiter"
+//     DelimiterDataFormatter: "format.Forward"
 //     Delimiter: "\r\n"
 //
 // Delimiter defines the message postfix. By default this is set to "\n".
 // Special characters like \n \r \t will be transformed into the actual control
 // characters.
+//
+// DelimiterDataFormatter defines the formatter for the data transferred as
+// message. By default this is set to "format.Forward"
 type Delimiter struct {
-	delimiter    string
-	msg          shared.Message
-	delimiterLen int
-	length       int
+	base      shared.Formatter
+	delimiter string
+	msg       shared.Message
+	length    int
 }
+
+var delimiterEscapeChars = strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
 
 func init() {
 	shared.RuntimeType.Register(Delimiter{})
@@ -43,16 +50,20 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Delimiter) Configure(conf shared.PluginConfig) error {
-	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
-	format.delimiter = escapeChars.Replace(conf.GetString("Delimiter", shared.DefaultDelimiter))
-	format.delimiterLen = len(format.delimiter)
+	plugin, err := shared.RuntimeType.NewPluginWithType(conf.GetString("DelimiterDataFormatter", "format.Forward"), conf)
+	if err != nil {
+		return err
+	}
+
+	format.base = plugin.(shared.Formatter)
+	format.delimiter = delimiterEscapeChars.Replace(conf.GetString("Delimiter", shared.DefaultDelimiter))
 	return nil
 }
 
 // PrepareMessage sets the message to be formatted.
 func (format *Delimiter) PrepareMessage(msg shared.Message) {
-	format.msg = msg
-	format.length = len(format.msg.Data) + format.delimiterLen
+	format.base.PrepareMessage(msg)
+	format.length = format.base.GetLength() + len(format.delimiter)
 }
 
 // GetLength returns the length of a formatted message returned by String()
@@ -63,13 +74,26 @@ func (format *Delimiter) GetLength() int {
 
 // String returns the message as string
 func (format *Delimiter) String() string {
-	return string(format.msg.Data) + format.delimiter
+	return format.base.String() + format.delimiter
 }
 
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
 func (format *Delimiter) CopyTo(dest []byte) int {
-	len := copy(dest, format.msg.Data)
+	len := format.base.CopyTo(dest)
 	len += copy(dest[len:], format.delimiter)
 	return len
+}
+
+// WriteTo implements the io.WriterTo interface.
+// Data will be written directly to a writer.
+func (format *Delimiter) WriteTo(writer io.Writer) (int64, error) {
+	baseLen, err := format.base.WriteTo(writer)
+	if err != nil {
+		return baseLen, err
+	}
+
+	var len int
+	len, err = writer.Write([]byte(format.delimiter))
+	return baseLen + int64(len), err
 }

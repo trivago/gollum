@@ -17,6 +17,7 @@ package format
 import (
 	"fmt"
 	"github.com/trivago/gollum/shared"
+	"io"
 )
 
 // Sequence is a formatter that allows prefixing a message with the message's
@@ -73,4 +74,17 @@ func (format *Sequence) String() string {
 func (format *Sequence) CopyTo(dest []byte) int {
 	len := copy(dest, []byte(format.sequence))
 	return len + format.base.CopyTo(dest[len:])
+}
+
+// WriteTo implements the io.WriterTo interface.
+// Data will be written directly to a writer.
+func (format *Sequence) WriteTo(writer io.Writer) (int64, error) {
+	len, err := writer.Write([]byte(format.sequence))
+	if err != nil {
+		return int64(len), err
+	}
+
+	var baseLen int64
+	baseLen, err = format.base.WriteTo(writer)
+	return int64(len) + baseLen, err
 }

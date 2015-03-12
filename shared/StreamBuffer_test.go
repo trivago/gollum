@@ -61,8 +61,9 @@ func (mock *mockFormatter) CopyTo(dest []byte) int {
 	return copy(dest, []byte(mock.message))
 }
 
-func (mock *mockFormatter) Write(writer io.Writer) {
-	writer.Write([]byte(mock.message))
+func (mock *mockFormatter) WriteTo(writer io.Writer) (int64, error) {
+	len, err := writer.Write([]byte(mock.message))
+	return int64(len), err
 }
 
 func TestStreamBuffer(t *testing.T) {
