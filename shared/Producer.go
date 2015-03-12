@@ -40,14 +40,6 @@ type Producer interface {
 	// message channel to some other service like the console.
 	Produce(*sync.WaitGroup)
 
-	// GetTimeout returns the duration this producer will block before a message
-	// is dropped. A value of -1 will cause the message to drop. A value of 0
-	// will cause the producer to always block.
-	GetTimeout() time.Duration
-
-	// Accepts returns true if the message is allowed to be send to this producer.
-	Accepts(msg Message) bool
-
 	// Streams returns the streams this producer is listening to.
 	Streams() []MessageStreamID
 
@@ -55,12 +47,9 @@ type Producer interface {
 	// See ProducerControl* constants.
 	Control() chan<- ProducerControl
 
-	// Messages returns write access to the message channel this producer reads from.
-	Messages() chan<- Message
-
-	// Post is the fast path to store a message in the produceres channel.
-	// This utilizes Message.Send to actually store the message.
-	// Accepts will be tested before enqueing.
+	// Post tries to send a message to the producer. The producer may reject
+	// the message, may block or may drop the message after a given timeout.
+	// The actual behavior is specific to the producer implementation.
 	Post(msg Message)
 }
 
@@ -232,9 +221,8 @@ func (prod ProducerBase) Messages() chan<- Message {
 	return prod.messages
 }
 
-// Post is the fast path to store a message in the produceres channel.
-// This utilizes Message.Send to actually store the message.
-// Accepts will be tested before enqueing.
+// Post will try to filter the message by calling Accepts before enqueuing the
+// message using msg.Enqueue.
 func (prod ProducerBase) Post(msg Message) {
 	if prod.Accepts(msg) {
 		msg.Enqueue(prod.messages, prod.timeout)

@@ -25,23 +25,45 @@ import (
 //   - "producer.Null":
 //     Enable: true
 //
-// This producer does nothing.
-// It shows the most basic producer who can exist.
-// In combination with the consumer "Profiler" this can act as a performance test
+// This producer does nothing and provides only bare-bone configuration (i.e.
+// enabled, channel and streams).
+// Use this producer to test consumer performance.
 type Null struct {
-	shared.ProducerBase
+	control chan shared.ProducerControl
+	streams []shared.MessageStreamID
 }
 
 func init() {
 	shared.RuntimeType.Register(Null{})
 }
 
-func (prod Null) testFormatter(msg shared.Message) {
-	prod.Formatter().PrepareMessage(msg)
-	prod.Formatter().String()
+// Configure initializes the basic members
+func (prod *Null) Configure(conf shared.PluginConfig) error {
+	prod.control = make(chan shared.ProducerControl, 1)
+	prod.streams = make([]shared.MessageStreamID, len(conf.Stream))
+	return nil
+}
+
+// Streams returns the streams this producer is listening to.
+func (prod Null) Streams() []shared.MessageStreamID {
+	return prod.streams
+}
+
+// Control returns write access to this producer's control channel.
+func (prod Null) Control() chan<- shared.ProducerControl {
+	return prod.control
+}
+
+// Post simply ignores the message
+func (prod Null) Post(msg shared.Message) {
 }
 
 // Produce writes to a buffer that is dumped to a file.
 func (prod Null) Produce(threads *sync.WaitGroup) {
-	prod.DefaultControlLoop(prod.testFormatter, nil)
+	for {
+		command := <-prod.control
+		if command == shared.ProducerControlStop {
+			return // ### return ###
+		}
+	}
 }
