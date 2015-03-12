@@ -62,9 +62,8 @@ func (format *JSON) PrepareMessage(msg shared.Message) {
 	format.message.WriteString("\"}")
 }
 
-// GetLength returns the length of a formatted message returned by String()
-// or CopyTo().
-func (format *JSON) GetLength() int {
+// Len returns the length of a formatted message.
+func (format *JSON) Len() int {
 	return format.message.Len()
 }
 
@@ -75,8 +74,8 @@ func (format *JSON) String() string {
 
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
-func (format *JSON) CopyTo(dest []byte) int {
-	return copy(dest, format.message.Bytes())
+func (format *JSON) Read(dest []byte) (int, error) {
+	return copy(dest, format.message.Bytes()), nil
 }
 
 // WriteTo implements the io.WriterTo interface.

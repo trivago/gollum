@@ -233,8 +233,8 @@ func (prod *Kafka) send(msg shared.Message) {
 		}
 
 		prod.Formatter().PrepareMessage(msg)
-		buffer := make([]byte, prod.Formatter().GetLength())
-		prod.Formatter().CopyTo(buffer)
+		buffer := make([]byte, prod.Formatter().Len())
+		prod.Formatter().Read(buffer)
 
 		prod.producer.Input() <- &kafka.ProducerMessage{
 			Topic: topic,

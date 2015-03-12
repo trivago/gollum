@@ -42,9 +42,8 @@ func (format *Forward) PrepareMessage(msg shared.Message) {
 	format.message = msg.Data
 }
 
-// GetLength returns the length of a formatted message returned by String()
-// or CopyTo().
-func (format *Forward) GetLength() int {
+// Len returns the length of a formatted message.
+func (format *Forward) Len() int {
 	return len(format.message)
 }
 
@@ -53,10 +52,10 @@ func (format *Forward) String() string {
 	return string(format.message)
 }
 
-// CopyTo copies the message into an existing buffer. It is assumed that
+// Read copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
-func (format *Forward) CopyTo(dest []byte) int {
-	return copy(dest, format.message)
+func (format *Forward) Read(dest []byte) (int, error) {
+	return copy(dest, format.message), nil
 }
 
 // WriteTo implements the io.WriterTo interface.

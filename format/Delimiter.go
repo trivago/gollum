@@ -63,12 +63,11 @@ func (format *Delimiter) Configure(conf shared.PluginConfig) error {
 // PrepareMessage sets the message to be formatted.
 func (format *Delimiter) PrepareMessage(msg shared.Message) {
 	format.base.PrepareMessage(msg)
-	format.length = format.base.GetLength() + len(format.delimiter)
+	format.length = format.base.Len() + len(format.delimiter)
 }
 
-// GetLength returns the length of a formatted message returned by String()
-// or CopyTo().
-func (format *Delimiter) GetLength() int {
+// Len returns the length of a formatted message.
+func (format *Delimiter) Len() int {
 	return format.length
 }
 
@@ -79,10 +78,13 @@ func (format *Delimiter) String() string {
 
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
-func (format *Delimiter) CopyTo(dest []byte) int {
-	len := format.base.CopyTo(dest)
+func (format *Delimiter) Read(dest []byte) (int, error) {
+	len, err := format.base.Read(dest)
+	if err != nil {
+		return len, err
+	}
 	len += copy(dest[len:], format.delimiter)
-	return len
+	return len, nil
 }
 
 // WriteTo implements the io.WriterTo interface.

@@ -61,13 +61,12 @@ func (format *Timestamp) Configure(conf shared.PluginConfig) error {
 // PrepareMessage sets the message to be formatted.
 func (format *Timestamp) PrepareMessage(msg shared.Message) {
 	format.base.PrepareMessage(msg)
-	format.length = format.base.GetLength() + len(format.timestampFormat)
+	format.length = format.base.Len() + len(format.timestampFormat)
 	format.timestamp = msg.Timestamp.Format(format.timestampFormat)
 }
 
-// GetLength returns the length of a formatted message returned by String()
-// or CopyTo().
-func (format *Timestamp) GetLength() int {
+// Len returns the length of a formatted message.
+func (format *Timestamp) Len() int {
 	return format.length
 }
 
@@ -78,10 +77,10 @@ func (format *Timestamp) String() string {
 
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
-func (format *Timestamp) CopyTo(dest []byte) int {
+func (format *Timestamp) Read(dest []byte) (int, error) {
 	len := copy(dest, format.timestamp)
-	len += format.base.CopyTo(dest[len:])
-	return len
+	baseLen, err := format.base.Read(dest[len:])
+	return len + baseLen, err
 }
 
 // WriteTo implements the io.WriterTo interface.

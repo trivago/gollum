@@ -26,11 +26,12 @@ func testFormatter(t *testing.T, formatter shared.Formatter) bool {
 	msg := shared.NewMessage(nil, message, []shared.MessageStreamID{}, 0)
 
 	formatter.PrepareMessage(msg)
-	buffer := make([]byte, formatter.GetLength())
+	buffer := make([]byte, formatter.Len())
 	result := true
 
-	result = expect.IntEq(formatter.GetLength(), len(formatter.String())) && result
-	result = expect.IntEq(formatter.GetLength(), formatter.CopyTo(buffer)) && result
+	length, _ := formatter.Read(buffer)
+	result = expect.IntEq(formatter.Len(), length) && result
+	result = expect.IntEq(formatter.Len(), len(formatter.String())) && result
 	result = expect.StringEq(formatter.String(), string(buffer)) && result
 
 	return result

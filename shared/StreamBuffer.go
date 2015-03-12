@@ -82,7 +82,7 @@ func (batch *StreamBuffer) Append(msg Message) bool {
 	defer func() { activeQueue.doneCount++ }()
 
 	batch.format.PrepareMessage(msg)
-	messageLength := batch.format.GetLength()
+	messageLength := batch.format.Len()
 
 	if activeQueue.contentLen+messageLength >= len(activeQueue.buffer) {
 		if messageLength > len(activeQueue.buffer) {
@@ -92,7 +92,7 @@ func (batch *StreamBuffer) Append(msg Message) bool {
 		return false // ### return, cannot be written ###
 	}
 
-	batch.format.CopyTo(activeQueue.buffer[activeQueue.contentLen:])
+	batch.format.Read(activeQueue.buffer[activeQueue.contentLen:])
 	activeQueue.contentLen += messageLength
 
 	return true

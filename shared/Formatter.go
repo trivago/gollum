@@ -16,6 +16,7 @@ package shared
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"math"
 )
@@ -29,24 +30,16 @@ const (
 
 // Formatter is the interface definition for message formatters
 type Formatter interface {
+	fmt.Stringer // String() string
+	io.Reader    // Read([]byte) (int, error)
+	io.WriterTo  // WriteTo(io.Writer) (int64, error)
+
 	// PrepareMessage sets the message to be formatted. This allows the
 	// formatter to build up caches for subsequent method calls.
 	PrepareMessage(msg Message)
 
-	// GetLength returns the length of a formatted message returned by String()
-	// or CopyTo().
-	GetLength() int
-
-	// String returns the message as string
-	String() string
-
-	// CopyTo copies the message into an existing buffer. It is assumed that
-	// dest has enough space to fit GetLength() bytes
-	CopyTo(dest []byte) int
-
-	// WriteTo implements the io.WriterTo interface.
-	// Data will be written directly to a writer.
-	WriteTo(writer io.Writer) (int64, error)
+	// Len returns the length of a formatted message.
+	Len() int
 }
 
 // ItoLen returns the length of an unsingned integer when converted to a string

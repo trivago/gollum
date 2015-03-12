@@ -55,15 +55,14 @@ func (format *Runlength) Configure(conf shared.PluginConfig) error {
 // PrepareMessage sets the message to be formatted.
 func (format *Runlength) PrepareMessage(msg shared.Message) {
 	format.base.PrepareMessage(msg)
-	baseLength := format.base.GetLength()
+	baseLength := format.base.Len()
 
 	format.lengthStr = strconv.Itoa(baseLength) + ":"
 	format.length = len(format.lengthStr) + baseLength
 }
 
-// GetLength returns the length of a formatted message returned by String()
-// or CopyTo().
-func (format *Runlength) GetLength() int {
+// Len returns the length of a formatted message.
+func (format *Runlength) Len() int {
 	return format.length
 }
 
@@ -74,9 +73,10 @@ func (format *Runlength) String() string {
 
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
-func (format *Runlength) CopyTo(dest []byte) int {
+func (format *Runlength) Read(dest []byte) (int, error) {
 	len := copy(dest, []byte(format.lengthStr))
-	return len + format.base.CopyTo(dest[len:])
+	baseLen, err := format.base.Read(dest[len:])
+	return len + baseLen, err
 }
 
 // WriteTo implements the io.WriterTo interface.

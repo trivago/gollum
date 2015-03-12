@@ -55,12 +55,11 @@ func (format *Sequence) Configure(conf shared.PluginConfig) error {
 func (format *Sequence) PrepareMessage(msg shared.Message) {
 	format.base.PrepareMessage(msg)
 	format.sequence = fmt.Sprintf("%d:", msg.Sequence)
-	format.length = format.base.GetLength() + len(format.sequence)
+	format.length = format.base.Len() + len(format.sequence)
 }
 
-// GetLength returns the length of a formatted message returned by String()
-// or CopyTo().
-func (format *Sequence) GetLength() int {
+// Len returns the length of a formatted message.
+func (format *Sequence) Len() int {
 	return format.length
 }
 
@@ -71,9 +70,10 @@ func (format *Sequence) String() string {
 
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
-func (format *Sequence) CopyTo(dest []byte) int {
+func (format *Sequence) Read(dest []byte) (int, error) {
 	len := copy(dest, []byte(format.sequence))
-	return len + format.base.CopyTo(dest[len:])
+	baseLen, err := format.base.Read(dest[len:])
+	return len + baseLen, err
 }
 
 // WriteTo implements the io.WriterTo interface.

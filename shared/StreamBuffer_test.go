@@ -49,7 +49,7 @@ func (mock *mockFormatter) PrepareMessage(msg Message) {
 	mock.message = string(msg.Data)
 }
 
-func (mock *mockFormatter) GetLength() int {
+func (mock *mockFormatter) Len() int {
 	return len(mock.message)
 }
 
@@ -57,8 +57,8 @@ func (mock *mockFormatter) String() string {
 	return mock.message
 }
 
-func (mock *mockFormatter) CopyTo(dest []byte) int {
-	return copy(dest, []byte(mock.message))
+func (mock *mockFormatter) Read(dest []byte) (int, error) {
+	return copy(dest, []byte(mock.message)), nil
 }
 
 func (mock *mockFormatter) WriteTo(writer io.Writer) (int64, error) {

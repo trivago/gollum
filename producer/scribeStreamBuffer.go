@@ -72,7 +72,7 @@ func (batch *scribeStreamBuffer) Append(msg shared.Message, category string) boo
 	defer func() { activeQueue.doneCount++ }()
 
 	batch.format.PrepareMessage(msg)
-	messageLength := batch.format.GetLength()
+	messageLength := batch.format.Len()
 
 	if activeQueue.contentLen+messageLength >= batch.maxContentLen {
 		if messageLength > batch.maxContentLen {
