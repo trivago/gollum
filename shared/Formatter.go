@@ -15,7 +15,6 @@
 package shared
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -58,7 +57,7 @@ func Itob(number uint64, buffer []byte) error {
 	bufferLen := len(buffer)
 
 	if numberLen > bufferLen {
-		return errors.New("Number too large for buffer")
+		return fmt.Errorf("Number too large for buffer")
 	}
 
 	for i := numberLen - 1; i >= 0; i-- {
@@ -81,7 +80,7 @@ func Itobe(number uint64, buffer []byte) error {
 		}
 	}
 
-	return errors.New("Number too large for buffer")
+	return fmt.Errorf("Number too large for buffer")
 }
 
 // Btoi is a fast byte buffer to unsigned int parser that reads until the first

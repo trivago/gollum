@@ -65,12 +65,7 @@ func (conf PluginConfig) GetString(key string, defaultValue string) string {
 func (conf PluginConfig) GetStringArray(key string, defaultValue []string) []string {
 	value, exists := conf.Settings[key]
 	if exists {
-		strValue, isString := value.(string)
-		if isString {
-			return []string{strValue}
-		}
-
-		arrayValue := readArray(key, value)
+		arrayValue := readStringArray(key, value)
 		config := make([]string, 0, len(arrayValue))
 
 		for _, value := range arrayValue {
@@ -141,7 +136,7 @@ func (conf PluginConfig) GetStreamRoute(key string, defaultValue MessageStreamID
 	mapValue := readMap(key, mapping)
 	for sourceItem, targetItem := range mapValue {
 		sourceItemStr := readString("A key of "+key, sourceItem)
-		targetItemArray := readArray("A value of "+key, targetItem)
+		targetItemArray := readStringArray("A value of "+key, targetItem)
 		sourceStream := GetStreamID(sourceItemStr)
 
 		targetIds := []MessageStreamID{}
@@ -218,6 +213,15 @@ func readString(key string, val interface{}) string {
 		log.Fatalf("Parser: \"%s\" is expected to be a string.", key)
 	}
 	return strValue
+}
+
+func readStringArray(key string, val interface{}) []interface{} {
+	switch val.(type) {
+	case string:
+		return []interface{}{readString(key, val)}
+	default:
+		return readArray(key, val)
+	}
 }
 
 func readArray(key string, val interface{}) []interface{} {

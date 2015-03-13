@@ -17,6 +17,7 @@ package shared
 import (
 	"log"
 	"os"
+	"runtime/debug"
 	"sync"
 )
 
@@ -79,6 +80,7 @@ func (state *PluginRunState) WorkerDone() {
 func RecoverShutdown() {
 	if r := recover(); r != nil {
 		log.Println(r)
+		log.Println(string(debug.Stack()))
 
 		// Send interrupt = clean shutdown
 		proc, _ := os.FindProcess(os.Getpid())

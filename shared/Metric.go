@@ -2,7 +2,7 @@ package shared
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"sync"
 	"sync/atomic"
 )
@@ -81,7 +81,7 @@ func (met *metrics) SubF(name string, value float64) {
 func (met *metrics) Get(name string) (int64, error) {
 	val, exists := met.store[name]
 	if !exists {
-		return 0, errors.New("Metric " + name + " not found.")
+		return 0, fmt.Errorf("Metric %s not found.", name)
 	}
 	return atomic.LoadInt64(val), nil
 }

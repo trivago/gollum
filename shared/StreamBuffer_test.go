@@ -1,7 +1,7 @@
 package shared
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"testing"
 )
@@ -29,7 +29,7 @@ func (writer StreamBufferWriter) Write(data []byte) (int, error) {
 	}
 
 	if writer.returnError {
-		return len(data), errors.New("test")
+		return len(data), fmt.Errorf("test")
 	}
 
 	return len(data), nil

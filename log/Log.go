@@ -70,7 +70,7 @@ var (
 func init() {
 	SetVerbosity(VerbosityError)
 
-	log.SetFlags(log.Lshortfile)
+	log.SetFlags(0)
 	log.SetOutput(logHelper)
 }
 
