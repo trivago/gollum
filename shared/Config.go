@@ -24,11 +24,12 @@ type configKeyValueMap map[string]interface{}
 
 // PluginConfig is a configuration for a specific plugin
 type PluginConfig struct {
-	TypeName string
-	Enable   bool
-	Channel  int
-	Stream   []string
-	Settings configKeyValueMap
+	TypeName  string
+	Enable    bool
+	Channel   int
+	Instances int
+	Stream    []string
+	Settings  configKeyValueMap
 }
 
 // Config represents the top level config containing all plugin clonfigs
@@ -252,11 +253,12 @@ func (conf *Config) read() error {
 		for typeName, pluginSettings := range pluginData {
 
 			plugin := PluginConfig{
-				TypeName: typeName,
-				Enable:   true,
-				Channel:  4096,
-				Stream:   []string{},
-				Settings: make(configKeyValueMap),
+				TypeName:  typeName,
+				Enable:    true,
+				Channel:   4096,
+				Instances: 1,
+				Stream:    []string{},
+				Settings:  make(configKeyValueMap),
 			}
 
 			// Iterate over all key/value pairs.
@@ -270,6 +272,9 @@ func (conf *Config) read() error {
 
 				case "Channel":
 					plugin.Channel = readInt("Channel", settingValue)
+
+				case "Instances":
+					plugin.Instances = readInt("Instances", settingValue)
 
 				case "Stream":
 					switch settingValue.(type) {
@@ -286,6 +291,12 @@ func (conf *Config) read() error {
 				default:
 					plugin.Settings[key] = settingValue
 				}
+			}
+
+			// Sanity check for instances
+
+			if plugin.Instances == 0 {
+				plugin.Enable = false
 			}
 
 			// Set wildcard stream if no stream is set

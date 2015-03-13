@@ -104,12 +104,24 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 		if consumer, isConsumer := plugin.(shared.Consumer); isConsumer {
 			plex.consumers = append(plex.consumers, consumer)
 			Log.Metric.Inc(metricCons)
+
+			for i := 1; i < config.Instances; i++ {
+				clone, _ := shared.RuntimeType.NewPlugin(config)
+				plex.consumers = append(plex.consumers, clone.(shared.Consumer))
+				Log.Metric.Inc(metricCons)
+			}
 		}
 
 		// Register producer plugins
 		if producer, isProducer := plugin.(shared.Producer); isProducer {
 			plex.producers = append(plex.producers, producer)
 			Log.Metric.Inc(metricProds)
+
+			for i := 1; i < config.Instances; i++ {
+				clone, _ := shared.RuntimeType.NewPlugin(config)
+				plex.producers = append(plex.producers, clone.(shared.Producer))
+				Log.Metric.Inc(metricCons)
+			}
 		}
 
 		// Register dsitributor plugins

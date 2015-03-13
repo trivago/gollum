@@ -166,7 +166,9 @@ func (prod *Kafka) Configure(conf shared.PluginConfig) error {
 	prod.config.Producer.MaxMessageBytes = conf.GetInt("BufferSizeMaxKB", 1<<10) << 10
 	prod.config.Producer.RequiredAcks = kafka.RequiredAcks(conf.GetInt("RequiredAcks", int(kafka.WaitForLocal)))
 	prod.config.Producer.Timeout = time.Duration(conf.GetInt("TimoutMs", 1500)) * time.Millisecond
-	prod.config.Producer.AckSuccesses = false
+
+	prod.config.Producer.Return.Errors = true
+	prod.config.Producer.Return.Successes = false
 
 	switch conf.GetString("Compression", compressNone) {
 	default:
