@@ -154,13 +154,13 @@ func (parser TransitionParser) Parse(data []byte, state string) ([]byte, ParserS
 	readStartIdx := 0
 
 	for parseIdx := 0; parseIdx < len(data); parseIdx++ {
-		node, length := currentState.MatchStart(data[parseIdx:])
+		node := currentState.MatchStart(data[parseIdx:])
 		if node != nil {
 			t := node.Payload.(Transition)
 
 			if t.callback != nil {
 				if t.flags&ParserFlagInclude != 0 {
-					t.callback(data[readStartIdx:parseIdx+length], currentStateID)
+					t.callback(data[readStartIdx:parseIdx+node.PathLen], currentStateID)
 				} else {
 					t.callback(data[readStartIdx:parseIdx], currentStateID)
 				}
@@ -169,7 +169,7 @@ func (parser TransitionParser) Parse(data []byte, state string) ([]byte, ParserS
 			continueIdx := parseIdx
 
 			if t.flags&ParserFlagContinue == 0 {
-				parseIdx += length - 1
+				parseIdx += node.PathLen - 1
 				continueIdx = parseIdx + 1
 			}
 
@@ -192,122 +192,3 @@ func (parser TransitionParser) Parse(data []byte, state string) ([]byte, ParserS
 
 	return data[readStartIdx:], currentStateID
 }
-
-/*
-// Do a state transition, i.e. set the next state, return the new transition
-// tokens and the number of tokens in the returned array.
-func (parser *Parser) setState(state int) ([]Transition, int, int) {
-	parser.state = state
-
-	trans := parser.transitions[parser.state]
-	numTrans := len(trans)
-	numCandidates := 0
-
-nextToken:
-	for tIdx := 0; tIdx < numTrans; tIdx++ {
-		firstChar := trans[tIdx].token[0]
-		for cIdx := 0; cIdx < numCandidates; cIdx++ {
-			if firstChar == parser.candidateBuffer[cIdx] {
-				continue nextToken
-			}
-		}
-		parser.candidateBuffer[numCandidates] = firstChar
-		numCandidates++
-	}
-
-	return trans, numTrans, numCandidates
-}
-
-// Parse parses a string with the transition passed to the parser object.
-func (parser Parser) Parse(message []byte, initialState int) []StateData {
-	result := make([]StateData, 0, len(parser.transitions))
-
-	if parser.state == ParserStateStop {
-		return result
-	}
-
-	startIdx := 0
-	messageLen := len(message)
-	transitions, numTransitions, numCandidates := parser.setState(initialState)
-
-parsing:
-	// Iterate over the whole message
-	for parseIdx := 0; parseIdx < messageLen; {
-
-		// Fast test to check if we need to have a closer look at the tokens
-		candidate := false
-		for i := 0; i < numCandidates && !candidate; i++ {
-			candidate = message[parseIdx] == parser.candidateBuffer[i]
-		}
-
-		if candidate {
-		nextToken:
-			// Check all possible transitions
-			for tIdx := 0; tIdx < numTransitions; tIdx++ {
-				t := &transitions[tIdx]
-				cmpIdxEnd := parseIdx + t.tokenLen
-
-				// Bounds check
-				if cmpIdxEnd > messageLen {
-					continue nextToken
-				}
-
-				// Check token match
-				for i := 0; i < t.tokenLen; i++ {
-					if message[parseIdx+i] != t.token[i] {
-						continue nextToken
-					}
-				}
-
-				//fmt.Printf("[%s] s%d p%d e%d +%d [%s]", string(message[parseIdx:cmpIdxEnd]), startIdx, parseIdx, cmpIdxEnd, stride, string(message[startIdx:parseIdx]))
-
-				// Store the result
-				if t.flags&ParserFlagPersist != 0 {
-					//fmt.Print(" w")
-					result = append(result, StateData{
-						Data:  message[startIdx:parseIdx],
-						State: parser.state,
-					})
-				}
-
-				// Move the iterator over the matched element
-				if t.flags&ParserFlagSkip != 0 {
-					//fmt.Print(" s")
-					parseIdx += t.tokenLen
-				} else {
-					parseIdx++
-				}
-
-				// Restart the slice if continue is NOT set
-				if t.flags&ParserFlagContinue == 0 {
-					//fmt.Print(" n")
-					startIdx = parseIdx
-				}
-
-				//fmt.Print("\n")
-
-				// If the next state is "stop" stop here at once
-				if t.state == ParserStateStop {
-					return result
-				}
-
-				transitions, numTransitions, numCandidates = parser.setState(t.state)
-				continue parsing
-			}
-		}
-
-		parseIdx++
-	}
-
-	// Store the remaining data
-	if startIdx < messageLen {
-		//fmt.Printf("[end] %d %d [%s] w\n", startIdx, messageLen, string(message[startIdx:]))
-		result = append(result, StateData{
-			Data:  message[startIdx:],
-			State: parser.state,
-		})
-	}
-
-	return result
-}
-*/

@@ -59,30 +59,33 @@ func TestTrie(t *testing.T) {
 	root = root.Add([]byte("abd"), new(int))
 	root = root.Add([]byte("cde"), new(int))
 
-	node, length := root.Match([]byte("abcd"))
-	expect.True(node != nil)
-	expect.True(node.Payload != nil)
-	expect.IntEq(4, length)
+	node := root.Match([]byte("abcd"))
+	if expect.True(node != nil) {
+		expect.True(node.Payload != nil)
+		expect.IntEq(4, node.PathLen)
+	}
 
-	node, length = root.Match([]byte("ab"))
+	node = root.Match([]byte("ab"))
 	expect.True(node == nil)
 
-	node, length = root.MatchStart([]byte("abcdef"))
-	expect.True(node != nil)
-	expect.True(node.Payload != nil)
-	expect.IntEq(4, length)
+	node = root.MatchStart([]byte("abcdef"))
+	if expect.True(node != nil) {
+		expect.True(node.Payload != nil)
+		expect.IntEq(4, node.PathLen)
+	}
 
-	node, length = root.MatchStart([]byte("bcde"))
+	node = root.MatchStart([]byte("bcde"))
 	expect.True(node == nil)
 
 	root = NewTrie([]byte("a"), new(int))
 	root = root.Add([]byte("b"), new(int))
 	root = root.Add([]byte("c"), new(int))
 
-	node, length = root.Match([]byte("c"))
-	expect.True(node != nil)
-	expect.True(node.Payload != nil)
-	expect.IntEq(1, length)
+	node = root.Match([]byte("c"))
+	if expect.True(node != nil) {
+		expect.True(node.Payload != nil)
+		expect.IntEq(1, node.PathLen)
+	}
 }
 
 func TestParser(t *testing.T) {
