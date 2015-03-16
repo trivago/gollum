@@ -15,95 +15,171 @@
 package shared
 
 import (
-	"math"
+	"hash/fnv"
 )
 
 // ParserFlag is an enum type for flags used in parser transitions.
 type ParserFlag int
 
+// ParserStateID is used as an integer-based reference to a specific parser state.
+// You can use any number (e.g. a hash) as a parser state representative.
+type ParserStateID uint32
+
+// ParsedFunc defines a function that a token has been matched
+type ParsedFunc func(data []byte)
+
 const (
-	// ParserFlagRestart does not process the read bytes and starts reading from
-	// the start position of the match.
-	ParserFlagRestart = ParserFlag(iota)
-
-	// ParserFlagPersist creates an parsed entry for the current state from
-	// start of reading to the current parsing position (unless ParserFlagInclude)
-	// is set.
-	ParserFlagPersist = ParserFlag(iota)
-
-	// ParserFlagSkip continues parsing after the matched token.
-	ParserFlagSkip = ParserFlag(1 << iota)
-
-	// ParserFlagContinue prevents the read-start position to be reset after a
-	// token has been matched.
+	// ParserFlagContinue continues parsing at the position of the match.
+	// By default the matched token will be skipped. This flag prevents the
+	// default behavior. In addition to that the parser will add the parsed
+	// token to the value of the next match.
 	ParserFlagContinue = ParserFlag(1 << iota)
 
-	// ParserFlagDone is the standard flag used when a token has been matched.
-	// Same as ParserFlagPersist | ParserFlagSkip.
-	ParserFlagDone = ParserFlagPersist | ParserFlagSkip
+	// ParserFlagAppend causes the parser to keep the current value for the next
+	// match. By default a value will be restarted after each match. This flag
+	// prevents the default behavior.
+	ParserFlagAppend = ParserFlag(1 << iota)
 
-	// ParserFlagIgnore should be used for tokens the should be skipped during
-	// parsing but contain information that belong to the current state.
-	// Same as ParserFlagContinue | ParserFlagSkip.
-	ParserFlagIgnore = ParserFlagContinue | ParserFlagSkip
-
-	// ParserFlagRestartAfter does not process the read bytes and start reading
-	// form the position after the match
-	ParserFlagRestartAfter = ParserFlagRestart | ParserFlagSkip
+	// ParserFlagInclude includes the matched token in the read value.
+	// By default the value does not contain the matched token.
+	ParserFlagInclude = ParserFlag(1 << iota)
 
 	// ParserStateStop defines a state that causes the parsing to stop when
 	// transitioned into.
-	ParserStateStop = math.MaxInt32
+	ParserStateStop = ParserStateID(0xFFFFFFFF)
 )
 
 // Transition defines a token based state change
 type Transition struct {
-	token    []byte
-	tokenLen int
-	state    int
-	flags    ParserFlag
+	nextState ParserStateID
+	flags     ParserFlag
+	callback  ParsedFunc
 }
 
-// StateData contains the slice parsed for a given state
-type StateData struct {
-	Data  []byte
-	State int
+// TransitionDirective contains a transition description that can be passed to
+// the AddDirectives functions.
+type TransitionDirective struct {
+	State     string
+	NextState string
+	Token     string
+	Flags     ParserFlag
+	Callback  ParsedFunc
 }
 
-// Parser is the main struct for token based parsing
-type Parser struct {
-	state           int
-	transitions     [][]Transition
-	candidateBuffer []byte
+// TransitionParser defines the behavior of a parser by storing transitions from
+// one state to another.
+type TransitionParser map[ParserStateID]*TrieNode
+
+// GetParserStateID creates a hash from the given state name.
+// Empty state names will be translated to ParserStateStop.
+func GetParserStateID(state string) ParserStateID {
+	if state == "" {
+		return ParserStateStop
+	}
+	hasher := fnv.New32a()
+	hasher.Write([]byte(state))
+	return ParserStateID(hasher.Sum32())
 }
 
-// NewTransition creates a new transition object to be used with NewParser.
-func NewTransition(token string, state int, flags ParserFlag) Transition {
+// NewTransition creates a new transition to a given state.
+func NewTransition(nextState ParserStateID, flags ParserFlag, callback ParsedFunc) Transition {
 	return Transition{
-		token:    []byte(token),
-		tokenLen: len(token),
-		state:    state,
-		flags:    flags,
+		nextState: nextState,
+		flags:     flags,
+		callback:  callback,
 	}
 }
 
-// NewParser generates a new parser based on a set of given transitions
-func NewParser(transitions [][]Transition) Parser {
-	maxNumTokens := 0
-	for _, state := range transitions {
-		numTokens := len(state)
-		if numTokens > maxNumTokens {
-			maxNumTokens = numTokens
+// NewTransitionParser creates a new transition based parser
+func NewTransitionParser() TransitionParser {
+	return make(TransitionParser)
+}
+
+// AddDirectives is a convenience function to add multiple transitions in as a
+// batch.
+func (parser TransitionParser) AddDirectives(directives []TransitionDirective) {
+	for _, dir := range directives {
+		parser.Add(dir.State, dir.NextState, dir.Token, dir.Flags, dir.Callback)
+	}
+}
+
+// Add adds a new transition to a given parser state.
+func (parser TransitionParser) Add(stateName string, nextStateName string, token string, flags ParserFlag, callback ParsedFunc) {
+	nextStateID := GetParserStateID(nextStateName)
+	parser.AddTransition(stateName, NewTransition(nextStateID, flags, callback), token)
+}
+
+// Stop adds a stop transition to a given parser state.
+func (parser TransitionParser) Stop(stateName string, token string, flags ParserFlag, callback ParsedFunc) {
+	parser.AddTransition(stateName, NewTransition(ParserStateStop, flags, callback), token)
+}
+
+// AddTransition adds a transition from a given state to the map
+func (parser TransitionParser) AddTransition(stateName string, newTrans Transition, token string) {
+	stateID := GetParserStateID(stateName)
+
+	if state, exists := parser[stateID]; exists {
+		parser[stateID] = state.Add([]byte(token), newTrans)
+	} else {
+		parser[stateID] = NewTrie([]byte(token), newTrans)
+	}
+}
+
+// ParseNamed is a alias for Parse(data, GetParserStateID(state)
+func (parser TransitionParser) ParseNamed(data []byte, state string) ([]byte, ParserStateID) {
+	initialStateID := GetParserStateID(state)
+	return parser.Parse(data, initialStateID)
+}
+
+// Parse starts parsing at a given stateID.
+// This function returns the remaining parts of data that did not match a
+// transition as well as the last state the parser has been set to.
+func (parser TransitionParser) Parse(data []byte, state ParserStateID) ([]byte, ParserStateID) {
+	currentStateID := state
+	currentState := parser[currentStateID]
+	readStartIdx := 0
+
+	for parseIdx := 0; parseIdx < len(data); parseIdx++ {
+		node, length := currentState.MatchStart(data[parseIdx:])
+		if node != nil {
+			t := node.Payload.(Transition)
+
+			if t.callback != nil {
+				if t.flags&ParserFlagInclude != 0 {
+					t.callback(data[readStartIdx : parseIdx+length])
+				} else {
+					t.callback(data[readStartIdx:parseIdx])
+				}
+			}
+
+			continueIdx := parseIdx
+
+			if t.flags&ParserFlagContinue == 0 {
+				parseIdx += length - 1
+				continueIdx = parseIdx + 1
+			}
+
+			if t.flags&ParserFlagAppend == 0 {
+				readStartIdx = continueIdx
+			}
+
+			if t.nextState == ParserStateStop {
+				break // ### break, stop state ###
+			}
+
+			currentStateID = t.nextState
+			currentState = parser[currentStateID]
 		}
 	}
 
-	return Parser{
-		state:           0,
-		transitions:     transitions,
-		candidateBuffer: make([]byte, maxNumTokens),
+	if readStartIdx == len(data) {
+		return nil, currentStateID // ### return, everything parsed ###
 	}
+
+	return data[readStartIdx:], currentStateID
 }
 
+/*
 // Do a state transition, i.e. set the next state, return the new transition
 // tokens and the number of tokens in the returned array.
 func (parser *Parser) setState(state int) ([]Transition, int, int) {
@@ -220,3 +296,4 @@ parsing:
 
 	return result
 }
+*/

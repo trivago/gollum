@@ -16,86 +16,102 @@ package shared
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 )
 
 const (
-	testParserStateID = iota
-	testParserStateType
-	testParserStateTypeArray
-	testParserStateArraySize
-	testParserStateData
-	testParserStateDataArray
+	testStateSearchName  = ">name"
+	testStateName        = "name"
+	testStateSearchValue = ">value"
+	testStateValue       = "value"
+	testStateArray       = "array"
 )
 
-var testParserStateNames = []string{
-	"ID",
-	"Type",
-	"Data",
+type parserTestState struct {
+	currentName string
+	parsed      map[string]interface{}
 }
 
-var testParserTransitions = [][]Transition{
-	/* ID        */ {NewTransition(":", testParserStateType, ParserFlagDone)},
-	/* Type      */ {NewTransition("[", testParserStateArraySize, ParserFlagRestartAfter), NewTransition(":", testParserStateData, ParserFlagDone)},
-	/* TypeArray */ {NewTransition(":", testParserStateDataArray, ParserFlagDone)},
-	/* ArraySize */ {NewTransition("]", testParserStateTypeArray, ParserFlagDone)},
-	/* Data      */ {NewTransition(";", testParserStateID, ParserFlagDone)},
-	/* DataArray */ {NewTransition(",", testParserStateDataArray, ParserFlagDone), NewTransition(";", testParserStateID, ParserFlagDone)},
+func (t *parserTestState) parsedName(data []byte) {
+	fmt.Println("name: ", string(data))
+	t.currentName = string(data)
+}
+
+func (t *parserTestState) parsedValue(data []byte) {
+	fmt.Println("value: ", string(data))
+	t.parsed[t.currentName] = string(data)
+}
+
+func (t *parserTestState) parsedArray(data []byte) {
+	fmt.Println("array: ", string(data))
+	if value, exists := t.parsed[t.currentName]; !exists {
+		t.parsed[t.currentName] = []string{string(data)}
+	} else {
+		array := value.([]string)
+		t.parsed[t.currentName] = append(array, string(data))
+	}
+}
+
+func TestTrie(t *testing.T) {
+	expect := NewExpect(t)
+
+	root := NewTrie([]byte("abcd"), new(int))
+	root = root.Add([]byte("abd"), new(int))
+	root = root.Add([]byte("cde"), new(int))
+
+	node, length := root.Match([]byte("abcd"))
+	expect.True(node != nil)
+	expect.True(node.Payload != nil)
+	expect.IntEq(4, length)
+
+	node, length = root.Match([]byte("ab"))
+	expect.True(node == nil)
+
+	node, length = root.MatchStart([]byte("abcdef"))
+	expect.True(node != nil)
+	expect.True(node.Payload != nil)
+	expect.IntEq(4, length)
+
+	node, length = root.MatchStart([]byte("bcde"))
+	expect.True(node == nil)
+
+	root = NewTrie([]byte("a"), new(int))
+	root = root.Add([]byte("b"), new(int))
+	root = root.Add([]byte("c"), new(int))
+
+	node, length = root.Match([]byte("c"))
+	expect.True(node != nil)
+	expect.True(node.Payload != nil)
+	expect.IntEq(1, length)
 }
 
 func TestParser(t *testing.T) {
+	state := parserTestState{parsed: make(map[string]interface{})}
 	expect := NewExpect(t)
-	parser := NewParser(testParserTransitions)
 
-	ids := []string{"Value1", "Value2"}
-	types := []string{"[3]int", "string"}
-	data := []string{"1,2,3", "hello world"}
-
-	testString := ""
-	for i := 0; i < len(ids); i++ {
-		testString += fmt.Sprintf("%s:%s:%s;", ids[i], types[i], data[i])
+	dir := []TransitionDirective{
+		TransitionDirective{testStateSearchName, testStateName, "\"", 0, nil},
+		TransitionDirective{testStateSearchName, "", "}", 0, nil},
+		TransitionDirective{testStateName, testStateSearchValue, "\"", 0, state.parsedName},
+		TransitionDirective{testStateSearchValue, testStateValue, ":", 0, nil},
+		TransitionDirective{testStateValue, testStateArray, "[", 0, nil},
+		TransitionDirective{testStateValue, testStateSearchName, ",", 0, state.parsedValue},
+		TransitionDirective{testStateValue, "", "}", 0, state.parsedValue},
+		TransitionDirective{testStateArray, testStateArray, ",", 0, state.parsedArray},
+		TransitionDirective{testStateArray, testStateSearchName, "],", 0, state.parsedArray},
 	}
 
-	result := parser.Parse([]byte(testString), testParserStateID)
-	expect.IntEq(9, len(result))
+	parser := NewTransitionParser()
+	parser.AddDirectives(dir)
 
-	idx := 0
-	arraySize := uint64(0)
-	arrayData := ""
+	dataTest := `{"test":123,"array":[a,b,c],"end":456}`
+	parser.ParseNamed([]byte(dataTest), testStateSearchName)
 
-	for _, v := range result {
-		switch v.State {
-		case testParserStateID:
-			expect.StringEq(ids[idx], string(v.Data))
+	expect.MapSet(state.parsed, "test")
+	expect.MapSet(state.parsed, "array")
+	expect.MapSet(state.parsed, "end")
 
-		case testParserStateType:
-			expect.StringEq(types[idx], string(v.Data))
-
-		case testParserStateTypeArray:
-			typeNameStart := strings.Index(types[idx], "]") + 1
-			expect.StringEq(types[idx][typeNameStart:], string(v.Data))
-			arrayData = ""
-
-		case testParserStateArraySize:
-			expect.StringEq("3", string(v.Data))
-			arraySize, _ = Btoi(v.Data)
-
-		case testParserStateData:
-			expect.StringEq(data[idx], string(v.Data))
-			idx++
-
-		case testParserStateDataArray:
-			arrayData += string(v.Data)
-			arraySize--
-			if arraySize == 0 {
-				expect.StringEq(data[idx], arrayData)
-				idx++
-			} else {
-				arrayData += ","
-			}
-		}
-	}
-
-	expect.IntEq(2, idx)
+	expect.MapSetStrEq(state.parsed, "test", "123")
+	expect.MapSetStrArrayEq(state.parsed, "array", []string{"a", "b", "c"})
+	expect.MapSetStrEq(state.parsed, "end", "456")
 }

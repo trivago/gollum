@@ -86,17 +86,53 @@ func (e Expect) BytesEq(val1 []byte, val2 []byte) bool {
 	return true
 }
 
-// MapSetEq tests if a key/value pair is set in a given map and if value is of
-// an expected value
-func (e Expect) MapSetEq(data map[string]interface{}, key string, value string) bool {
+// MapSetStrEq tests if a key/value pair is set in a given map and if value is
+// of the expected string value
+func (e Expect) MapSetStrEq(data map[string]interface{}, key string, value string) bool {
 	val, valSet := data[key]
 	if !valSet {
 		e.printf("Expected key \"%s\" not found", key)
 		return false
 	}
-	if val != value {
-		e.printf("Expected \"%s\" for \"%s\" got \"%s\"", value, key, val)
+
+	stringVal, correctType := val.(string)
+	if !correctType {
+		e.printf("Key \"%s\" is not a string", key)
 		return false
+	}
+
+	if stringVal != value {
+		e.printf("Expected \"%s\" for \"%s\" got \"%s\"", value, key, stringVal)
+		return false
+	}
+	return true
+}
+
+// MapSetStrArrayEq tests if a key/value pair is set in a given map and if value
+// is matching the expected array value
+func (e Expect) MapSetStrArrayEq(data map[string]interface{}, key string, value []string) bool {
+	val, valSet := data[key]
+	if !valSet {
+		e.printf("Expected key \"%s\" not found", key)
+		return false
+	}
+
+	stringArrayVal, correctType := val.([]string)
+	if !correctType {
+		e.printf("Key \"%s\" is not an []string", key)
+		return false
+	}
+
+	if len(value) != len(stringArrayVal) {
+		e.printf("Expected \"%v\" for \"%s\" got \"%v\"", value, key, val)
+		return false
+	}
+
+	for i, element := range stringArrayVal {
+		if element != value[i] {
+			e.printf("Expected \"%s\" at for \"%s[%d]\" got \"%s\"", element, key, i, value[i])
+			return false
+		}
 	}
 	return true
 }
