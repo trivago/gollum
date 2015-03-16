@@ -105,7 +105,7 @@ type Kafka struct {
 	shared.ConsumerBase
 	servers        []string
 	topic          string
-	client         *kafka.Client
+	client         kafka.Client
 	config         *kafka.Config
 	consumer       kafka.Consumer
 	offsetFile     string

@@ -126,7 +126,7 @@ type Kafka struct {
 	servers  []string
 	topic    map[shared.MessageStreamID]string
 	clientID string
-	client   *kafka.Client
+	client   kafka.Client
 	config   *kafka.Config
 	producer kafka.Producer
 }
