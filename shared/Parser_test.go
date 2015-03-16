@@ -32,17 +32,17 @@ type parserTestState struct {
 	parsed      map[string]interface{}
 }
 
-func (t *parserTestState) parsedName(data []byte) {
+func (t *parserTestState) parsedName(data []byte, state ParserStateID) {
 	fmt.Println("name: ", string(data))
 	t.currentName = string(data)
 }
 
-func (t *parserTestState) parsedValue(data []byte) {
+func (t *parserTestState) parsedValue(data []byte, state ParserStateID) {
 	fmt.Println("value: ", string(data))
 	t.parsed[t.currentName] = string(data)
 }
 
-func (t *parserTestState) parsedArray(data []byte) {
+func (t *parserTestState) parsedArray(data []byte, state ParserStateID) {
 	fmt.Println("array: ", string(data))
 	if value, exists := t.parsed[t.currentName]; !exists {
 		t.parsed[t.currentName] = []string{string(data)}
@@ -90,22 +90,22 @@ func TestParser(t *testing.T) {
 	expect := NewExpect(t)
 
 	dir := []TransitionDirective{
-		TransitionDirective{testStateSearchName, testStateName, "\"", 0, nil},
-		TransitionDirective{testStateSearchName, "", "}", 0, nil},
-		TransitionDirective{testStateName, testStateSearchValue, "\"", 0, state.parsedName},
-		TransitionDirective{testStateSearchValue, testStateValue, ":", 0, nil},
-		TransitionDirective{testStateValue, testStateArray, "[", 0, nil},
-		TransitionDirective{testStateValue, testStateSearchName, ",", 0, state.parsedValue},
-		TransitionDirective{testStateValue, "", "}", 0, state.parsedValue},
-		TransitionDirective{testStateArray, testStateArray, ",", 0, state.parsedArray},
-		TransitionDirective{testStateArray, testStateSearchName, "],", 0, state.parsedArray},
+		TransitionDirective{testStateSearchName, `"`, testStateName, 0, nil},
+		TransitionDirective{testStateSearchName, `}`, "", 0, nil},
+		TransitionDirective{testStateName, `"`, testStateSearchValue, 0, state.parsedName},
+		TransitionDirective{testStateSearchValue, `:`, testStateValue, 0, nil},
+		TransitionDirective{testStateValue, `[`, testStateArray, 0, nil},
+		TransitionDirective{testStateValue, `,`, testStateSearchName, 0, state.parsedValue},
+		TransitionDirective{testStateValue, `}`, "", 0, state.parsedValue},
+		TransitionDirective{testStateArray, `,`, testStateArray, 0, state.parsedArray},
+		TransitionDirective{testStateArray, `],`, testStateSearchName, 0, state.parsedArray},
 	}
 
 	parser := NewTransitionParser()
 	parser.AddDirectives(dir)
 
 	dataTest := `{"test":123,"array":[a,b,c],"end":456}`
-	parser.ParseNamed([]byte(dataTest), testStateSearchName)
+	parser.Parse([]byte(dataTest), testStateSearchName)
 
 	expect.MapSet(state.parsed, "test")
 	expect.MapSet(state.parsed, "array")

@@ -26,7 +26,7 @@ type ParserFlag int
 type ParserStateID uint32
 
 // ParsedFunc defines a function that a token has been matched
-type ParsedFunc func(data []byte)
+type ParsedFunc func([]byte, ParserStateID)
 
 const (
 	// ParserFlagContinue continues parsing at the position of the match.
@@ -51,6 +51,7 @@ const (
 
 // Transition defines a token based state change
 type Transition struct {
+	name      string
 	nextState ParserStateID
 	flags     ParserFlag
 	callback  ParsedFunc
@@ -60,25 +61,17 @@ type Transition struct {
 // the AddDirectives functions.
 type TransitionDirective struct {
 	State     string
-	NextState string
 	Token     string
+	NextState string
 	Flags     ParserFlag
 	Callback  ParsedFunc
 }
 
 // TransitionParser defines the behavior of a parser by storing transitions from
 // one state to another.
-type TransitionParser map[ParserStateID]*TrieNode
-
-// GetParserStateID creates a hash from the given state name.
-// Empty state names will be translated to ParserStateStop.
-func GetParserStateID(state string) ParserStateID {
-	if state == "" {
-		return ParserStateStop
-	}
-	hasher := fnv.New32a()
-	hasher.Write([]byte(state))
-	return ParserStateID(hasher.Sum32())
+type TransitionParser struct {
+	lookup map[ParserStateID]string
+	tokens map[ParserStateID]*TrieNode
 }
 
 // NewTransition creates a new transition to a given state.
@@ -92,51 +85,72 @@ func NewTransition(nextState ParserStateID, flags ParserFlag, callback ParsedFun
 
 // NewTransitionParser creates a new transition based parser
 func NewTransitionParser() TransitionParser {
-	return make(TransitionParser)
+	return TransitionParser{
+		lookup: make(map[ParserStateID]string),
+		tokens: make(map[ParserStateID]*TrieNode),
+	}
+}
+
+// GetStateID creates a hash from the given state name.
+// Empty state names will be translated to ParserStateStop.
+func (parser *TransitionParser) GetStateID(stateName string) ParserStateID {
+	if len(stateName) == 0 {
+		return ParserStateStop
+	}
+	hasher := fnv.New32a()
+	hasher.Write([]byte(stateName))
+	id := ParserStateID(hasher.Sum32())
+
+	parser.lookup[id] = stateName
+	return id
+}
+
+// GetStateName returns the name for the given state id or an empty string if
+// the id could not be found.
+func (parser *TransitionParser) GetStateName(id ParserStateID) string {
+	if val, exists := parser.lookup[id]; exists {
+		return val
+	}
+	return ""
 }
 
 // AddDirectives is a convenience function to add multiple transitions in as a
 // batch.
-func (parser TransitionParser) AddDirectives(directives []TransitionDirective) {
+func (parser *TransitionParser) AddDirectives(directives []TransitionDirective) {
 	for _, dir := range directives {
-		parser.Add(dir.State, dir.NextState, dir.Token, dir.Flags, dir.Callback)
+		parser.Add(dir.State, dir.Token, dir.NextState, dir.Flags, dir.Callback)
 	}
 }
 
 // Add adds a new transition to a given parser state.
-func (parser TransitionParser) Add(stateName string, nextStateName string, token string, flags ParserFlag, callback ParsedFunc) {
-	nextStateID := GetParserStateID(nextStateName)
+func (parser *TransitionParser) Add(stateName string, token string, nextStateName string, flags ParserFlag, callback ParsedFunc) {
+	nextStateID := parser.GetStateID(nextStateName)
 	parser.AddTransition(stateName, NewTransition(nextStateID, flags, callback), token)
 }
 
 // Stop adds a stop transition to a given parser state.
-func (parser TransitionParser) Stop(stateName string, token string, flags ParserFlag, callback ParsedFunc) {
+func (parser *TransitionParser) Stop(stateName string, token string, flags ParserFlag, callback ParsedFunc) {
 	parser.AddTransition(stateName, NewTransition(ParserStateStop, flags, callback), token)
 }
 
 // AddTransition adds a transition from a given state to the map
-func (parser TransitionParser) AddTransition(stateName string, newTrans Transition, token string) {
-	stateID := GetParserStateID(stateName)
+func (parser *TransitionParser) AddTransition(stateName string, newTrans Transition, token string) {
+	stateID := parser.GetStateID(stateName)
 
-	if state, exists := parser[stateID]; exists {
-		parser[stateID] = state.Add([]byte(token), newTrans)
+	newTrans.name = stateName
+	if state, exists := parser.tokens[stateID]; exists {
+		parser.tokens[stateID] = state.Add([]byte(token), newTrans)
 	} else {
-		parser[stateID] = NewTrie([]byte(token), newTrans)
+		parser.tokens[stateID] = NewTrie([]byte(token), newTrans)
 	}
-}
-
-// ParseNamed is a alias for Parse(data, GetParserStateID(state)
-func (parser TransitionParser) ParseNamed(data []byte, state string) ([]byte, ParserStateID) {
-	initialStateID := GetParserStateID(state)
-	return parser.Parse(data, initialStateID)
 }
 
 // Parse starts parsing at a given stateID.
 // This function returns the remaining parts of data that did not match a
 // transition as well as the last state the parser has been set to.
-func (parser TransitionParser) Parse(data []byte, state ParserStateID) ([]byte, ParserStateID) {
-	currentStateID := state
-	currentState := parser[currentStateID]
+func (parser TransitionParser) Parse(data []byte, state string) ([]byte, ParserStateID) {
+	currentStateID := parser.GetStateID(state)
+	currentState := parser.tokens[currentStateID]
 	readStartIdx := 0
 
 	for parseIdx := 0; parseIdx < len(data); parseIdx++ {
@@ -146,9 +160,9 @@ func (parser TransitionParser) Parse(data []byte, state ParserStateID) ([]byte, 
 
 			if t.callback != nil {
 				if t.flags&ParserFlagInclude != 0 {
-					t.callback(data[readStartIdx : parseIdx+length])
+					t.callback(data[readStartIdx:parseIdx+length], currentStateID)
 				} else {
-					t.callback(data[readStartIdx:parseIdx])
+					t.callback(data[readStartIdx:parseIdx], currentStateID)
 				}
 			}
 
@@ -168,7 +182,7 @@ func (parser TransitionParser) Parse(data []byte, state ParserStateID) ([]byte, 
 			}
 
 			currentStateID = t.nextState
-			currentState = parser[currentStateID]
+			currentState = parser.tokens[currentStateID]
 		}
 	}
 
