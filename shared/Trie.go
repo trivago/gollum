@@ -47,9 +47,8 @@ func (node *TrieNode) Add(data []byte, payload interface{}) *TrieNode {
 }
 
 func (node *TrieNode) addPath(data []byte, payload interface{}, pathLen int) *TrieNode {
-	suffixLen := len(node.suffix)
 	dataLen := len(data)
-
+	suffixLen := len(node.suffix)
 	testLen := suffixLen
 	if dataLen < suffixLen {
 		testLen = dataLen
@@ -62,8 +61,7 @@ func (node *TrieNode) addPath(data []byte, payload interface{}, pathLen int) *Tr
 		}
 	}
 
-	switch {
-	case splitIdx == suffixLen:
+	if splitIdx == suffixLen {
 		// Continue down or stop here (full suffix match)
 
 		if splitIdx == dataLen {
@@ -83,8 +81,9 @@ func (node *TrieNode) addPath(data []byte, payload interface{}, pathLen int) *Tr
 
 		node.addNewChild(data, payload, pathLen)
 		return node // ### return, new leaf ###
+	}
 
-	case splitIdx == dataLen:
+	if splitIdx == dataLen {
 		// Make current node a subpath of new data node (full data match)
 		// This case implies that dataLen < suffixLen as splitIdx == suffixLen
 		// did not match.
@@ -100,24 +99,23 @@ func (node *TrieNode) addPath(data []byte, payload interface{}, pathLen int) *Tr
 		node.parent = newParent
 		node.suffix = node.suffix[splitIdx:]
 		return newParent // ### return, rotation ###
-
-	default:
-		// New parent required with both nodes as children (partial match)
-
-		newParent := NewTrie(data[:splitIdx], nil)
-		newParent.PathLen = 0
-		newParent.children = []*TrieNode{node}
-
-		newParent.addNewChild(data[splitIdx:], payload, pathLen)
-
-		if node.parent != nil {
-			node.parent.replace(node, newParent)
-		}
-
-		node.suffix = node.suffix[splitIdx:]
-		node.parent = newParent
-		return newParent // ### return, new parent ###
 	}
+
+	// New parent required with both nodes as children (partial match)
+
+	newParent := NewTrie(data[:splitIdx], nil)
+	newParent.PathLen = 0
+	newParent.children = []*TrieNode{node}
+
+	newParent.addNewChild(data[splitIdx:], payload, pathLen)
+
+	if node.parent != nil {
+		node.parent.replace(node, newParent)
+	}
+
+	node.suffix = node.suffix[splitIdx:]
+	node.parent = newParent
+	return newParent // ### return, new parent ###
 }
 
 // Match compares the trie to the given data stream.
