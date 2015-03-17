@@ -237,12 +237,12 @@ func (cons *File) read() {
 	}
 }
 
-func (cons File) onRoll() {
+func (cons *File) onRoll() {
 	cons.setState(fileStateOpen)
 }
 
 // Consume listens to stdin.
-func (cons File) Consume(workers *sync.WaitGroup) {
+func (cons *File) Consume(workers *sync.WaitGroup) {
 	cons.setState(fileStateOpen)
 	defer cons.setState(fileStateDone)
 
