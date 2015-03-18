@@ -15,7 +15,8 @@
 package producer
 
 import (
-	"github.com/trivago/gollum/log"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"net"
 	"strings"
@@ -60,9 +61,9 @@ var fileSocketPrefix = "unix://"
 // If Acknowledge is set to true and a IP-Address is given to Address, TCP is
 // used to open the connection, otherwise UDP is used.
 type Socket struct {
-	shared.ProducerBase
+	core.ProducerBase
 	connection   net.Conn
-	batch        *shared.StreamBuffer
+	batch        *core.MessageBatch
 	protocol     string
 	address      string
 	batchSize    int
@@ -81,7 +82,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Socket) Configure(conf shared.PluginConfig) error {
+func (prod *Socket) Configure(conf core.PluginConfig) error {
 	err := prod.ProducerBase.Configure(conf)
 	if err != nil {
 		return err
@@ -101,7 +102,7 @@ func (prod *Socket) Configure(conf shared.PluginConfig) error {
 		prod.protocol = "udp"
 	}
 
-	prod.batch = shared.NewStreamBuffer(bufferSizeMax, prod.Formatter())
+	prod.batch = core.NewMessageBatch(bufferSizeMax, prod.Formatter())
 
 	if strings.HasPrefix(prod.address, fileSocketPrefix) {
 		prod.address = prod.address[len(fileSocketPrefix):]
@@ -157,7 +158,7 @@ func (prod *Socket) sendBatchOnTimeOut() {
 	}
 }
 
-func (prod *Socket) sendMessage(message shared.Message) {
+func (prod *Socket) sendMessage(message core.Message) {
 	if !prod.batch.Append(message) {
 		prod.sendBatch()
 		prod.batch.Append(message)

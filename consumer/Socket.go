@@ -16,7 +16,8 @@ package consumer
 
 import (
 	"fmt"
-	"github.com/trivago/gollum/log"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"io"
 	"net"
@@ -64,7 +65,7 @@ const (
 // If Acknowledge is set to true and a IP-Address is given to Address, TCP is
 // used to open the connection, otherwise UDP is used.
 type Socket struct {
-	shared.ConsumerBase
+	core.ConsumerBase
 	listen      io.Closer
 	protocol    string
 	address     string
@@ -79,7 +80,7 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Socket) Configure(conf shared.PluginConfig) error {
+func (cons *Socket) Configure(conf core.PluginConfig) error {
 	err := cons.ConsumerBase.Configure(conf)
 	if err != nil {
 		return err

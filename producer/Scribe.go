@@ -17,7 +17,8 @@ package producer
 import (
 	"github.com/artyom/scribe"
 	"github.com/artyom/thrift"
-	"github.com/trivago/gollum/log"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"strconv"
 	"sync"
@@ -63,12 +64,12 @@ import (
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5.
 type Scribe struct {
-	shared.ProducerBase
+	core.ProducerBase
 	scribe       *scribe.ScribeClient
 	transport    *thrift.TFramedTransport
 	socket       *thrift.TSocket
-	batch        *scribeStreamBuffer
-	category     map[shared.MessageStreamID]string
+	batch        *scribeMessageBatch
+	category     map[core.MessageStreamID]string
 	batchSize    int
 	batchTimeout time.Duration
 	bufferSizeKB int
@@ -79,7 +80,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Scribe) Configure(conf shared.PluginConfig) error {
+func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	// If not defined, delimiter is not used (override default value)
 	if !conf.HasValue("Delimiter") {
 		conf.Override("Delimiter", "")
@@ -94,10 +95,10 @@ func (prod *Scribe) Configure(conf shared.PluginConfig) error {
 	port := conf.GetInt("Port", 1463)
 	bufferSizeMax := conf.GetInt("BufferSizeMaxKB", 8<<10) << 1 // 8 MB
 
-	prod.category = make(map[shared.MessageStreamID]string, 0)
+	prod.category = make(map[core.MessageStreamID]string, 0)
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
-	prod.batch = createScribeStreamBuffer(bufferSizeMax, prod.Formatter())
+	prod.batch = createScribeMessageBatch(bufferSizeMax, prod.Formatter())
 	prod.bufferSizeKB = conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
 	prod.category = conf.GetStreamMap("Category", "default")
 
@@ -140,10 +141,10 @@ func (prod *Scribe) sendBatchOnTimeOut() {
 	}
 }
 
-func (prod *Scribe) sendMessage(message shared.Message) {
+func (prod *Scribe) sendMessage(message core.Message) {
 	category, exists := prod.category[message.CurrentStream]
 	if !exists {
-		category = prod.category[shared.WildcardStreamID]
+		category = prod.category[core.WildcardStreamID]
 	}
 
 	if !prod.batch.Append(message, category) {

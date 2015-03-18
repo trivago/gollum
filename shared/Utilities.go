@@ -16,30 +16,11 @@ package shared
 
 import (
 	"fmt"
-	"io"
+	"log"
 	"math"
+	"os"
+	"runtime/debug"
 )
-
-const (
-	// DefaultTimestamp is the timestamp format string used for messages
-	DefaultTimestamp = "2006-01-02 15:04:05 MST | "
-	// DefaultDelimiter is the default end of message delimiter
-	DefaultDelimiter = "\n"
-)
-
-// Formatter is the interface definition for message formatters
-type Formatter interface {
-	fmt.Stringer // String() string
-	io.Reader    // Read([]byte) (int, error)
-	io.WriterTo  // WriteTo(io.Writer) (int64, error)
-
-	// PrepareMessage sets the message to be formatted. This allows the
-	// formatter to build up caches for subsequent method calls.
-	PrepareMessage(msg Message)
-
-	// Len returns the length of a formatted message.
-	Len() int
-}
 
 // ItoLen returns the length of an unsingned integer when converted to a string
 func ItoLen(number uint64) int {
@@ -98,4 +79,17 @@ func Btoi(buffer []byte) (uint64, int) {
 	}
 
 	return number, index
+}
+
+// RecoverShutdown will trigger a shutdown via interrupt if a panic was issued.
+// Typically used as "defer RecoverShutdown()".
+func RecoverShutdown() {
+	if r := recover(); r != nil {
+		log.Println(r)
+		log.Println(string(debug.Stack()))
+
+		// Send interrupt = clean shutdown
+		proc, _ := os.FindProcess(os.Getpid())
+		proc.Signal(os.Interrupt)
+	}
 }

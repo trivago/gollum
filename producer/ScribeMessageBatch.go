@@ -16,8 +16,8 @@ package producer
 
 import (
 	"github.com/artyom/scribe"
-	"github.com/trivago/gollum/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -41,17 +41,17 @@ func newMessageQueue() scribeMessageQueue {
 	}
 }
 
-type scribeStreamBuffer struct {
+type scribeMessageBatch struct {
 	queue         [2]scribeMessageQueue
 	activeSet     uint32
 	maxContentLen int
 	lastFlush     time.Time
-	format        shared.Formatter
+	format        core.Formatter
 	flushing      *sync.Mutex
 }
 
-func createScribeStreamBuffer(maxContentLen int, format shared.Formatter) *scribeStreamBuffer {
-	return &scribeStreamBuffer{
+func createScribeMessageBatch(maxContentLen int, format core.Formatter) *scribeMessageBatch {
+	return &scribeMessageBatch{
 		queue:         [2]scribeMessageQueue{newMessageQueue(), newMessageQueue()},
 		activeSet:     uint32(0),
 		maxContentLen: maxContentLen,
@@ -61,7 +61,7 @@ func createScribeStreamBuffer(maxContentLen int, format shared.Formatter) *scrib
 	}
 }
 
-func (batch *scribeStreamBuffer) Append(msg shared.Message, category string) bool {
+func (batch *scribeMessageBatch) Append(msg core.Message, category string) bool {
 	activeSet := atomic.AddUint32(&batch.activeSet, 1)
 	activeIdx := activeSet >> 31
 	messageIdx := (activeSet & 0x7FFFFFFF) - 1
@@ -102,11 +102,11 @@ func (batch *scribeStreamBuffer) Append(msg shared.Message, category string) boo
 	return true
 }
 
-func (batch *scribeStreamBuffer) touch() {
+func (batch *scribeMessageBatch) touch() {
 	batch.lastFlush = time.Now()
 }
 
-func (batch *scribeStreamBuffer) flush(scribe *scribe.ScribeClient, onError func(error)) {
+func (batch *scribeMessageBatch) flush(scribe *scribe.ScribeClient, onError func(error)) {
 	if batch.isEmpty() {
 		return // ### return, nothing to do ###
 	}
@@ -148,21 +148,21 @@ func (batch *scribeStreamBuffer) flush(scribe *scribe.ScribeClient, onError func
 	}()
 }
 
-func (batch *scribeStreamBuffer) waitForFlush() {
+func (batch *scribeMessageBatch) waitForFlush() {
 	batch.flushing.Lock()
 	batch.flushing.Unlock()
 }
 
-func (batch scribeStreamBuffer) isEmpty() bool {
+func (batch scribeMessageBatch) isEmpty() bool {
 	return batch.activeSet&0x7FFFFFFF == 0
 }
 
-func (batch scribeStreamBuffer) reachedSizeThreshold(size int) bool {
+func (batch scribeMessageBatch) reachedSizeThreshold(size int) bool {
 	activeIdx := batch.activeSet >> 31
 	return batch.queue[activeIdx].contentLen >= size
 }
 
-func (batch scribeStreamBuffer) reachedTimeThreshold(timeout time.Duration) bool {
+func (batch scribeMessageBatch) reachedTimeThreshold(timeout time.Duration) bool {
 	return !batch.isEmpty() &&
 		time.Since(batch.lastFlush) > timeout
 }

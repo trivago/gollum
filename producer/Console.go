@@ -16,6 +16,7 @@ package producer
 
 import (
 	"fmt"
+	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 	"os"
 	"runtime"
@@ -32,7 +33,7 @@ import (
 //
 // Console may either be "stdout" or "stderr"
 type Console struct {
-	shared.ProducerBase
+	core.ProducerBase
 	console *os.File
 }
 
@@ -41,7 +42,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Console) Configure(conf shared.PluginConfig) error {
+func (prod *Console) Configure(conf core.PluginConfig) error {
 	err := prod.ProducerBase.Configure(conf)
 	if err != nil {
 		return err
@@ -61,7 +62,7 @@ func (prod *Console) Configure(conf shared.PluginConfig) error {
 	return nil
 }
 
-func (prod Console) printMessage(msg shared.Message) {
+func (prod Console) printMessage(msg core.Message) {
 	prod.Formatter().PrepareMessage(msg)
 	fmt.Fprint(prod.console, prod.Formatter().String())
 }

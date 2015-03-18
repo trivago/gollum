@@ -17,7 +17,8 @@ package consumer
 import (
 	"encoding/json"
 	kafka "github.com/Shopify/sarama"
-	"github.com/trivago/gollum/log"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"io/ioutil"
 	"runtime"
@@ -102,7 +103,7 @@ const (
 // Servers contains the list of all kafka servers to connect to. This setting
 // is mandatory and has no defaults.
 type Kafka struct {
-	shared.ConsumerBase
+	core.ConsumerBase
 	servers        []string
 	topic          string
 	client         kafka.Client
@@ -120,14 +121,14 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Kafka) Configure(conf shared.PluginConfig) error {
+func (cons *Kafka) Configure(conf core.PluginConfig) error {
 	err := cons.ConsumerBase.Configure(conf)
 	if err != nil {
 		return err
 	}
 
 	if !conf.HasValue("Servers") {
-		return shared.NewConsumerError("No servers configured for consumer.Kafka")
+		return core.NewConsumerError("No servers configured for consumer.Kafka")
 	}
 
 	cons.servers = conf.GetStringArray("Servers", []string{})

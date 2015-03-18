@@ -16,7 +16,8 @@ package consumer
 
 import (
 	"fmt"
-	"github.com/trivago/gollum/log"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"math"
 	"math/rand"
@@ -33,7 +34,7 @@ import (
 //
 // This consumer does not define any options beside the standard ones.
 type Profiler struct {
-	shared.ConsumerBase
+	core.ConsumerBase
 	profileRuns int
 	batches     int
 	length      int
@@ -45,7 +46,7 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Profiler) Configure(conf shared.PluginConfig) error {
+func (cons *Profiler) Configure(conf core.PluginConfig) error {
 	err := cons.ConsumerBase.Configure(conf)
 	if err != nil {
 		return err

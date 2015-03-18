@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package shared
+package core
 
 import (
+	"github.com/trivago/gollum/shared"
 	"sync"
 	"time"
 )
@@ -129,13 +130,13 @@ func (cons ConsumerBase) AddMainWorker(workers *sync.WaitGroup) {
 // MarkAsActive or SetWaitGroup has been called beforehand.
 func (cons ConsumerBase) AddWorker() {
 	cons.state.AddWorker()
-	Metric.Inc(metricActiveWorkers)
+	shared.Metric.Inc(metricActiveWorkers)
 }
 
 // WorkerDone removes an additional worker to the waitgroup.
 func (cons ConsumerBase) WorkerDone() {
 	cons.state.WorkerDone()
-	Metric.Dec(metricActiveWorkers)
+	shared.Metric.Dec(metricActiveWorkers)
 }
 
 // Pause implements the MessageSource interface

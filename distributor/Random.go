@@ -15,6 +15,7 @@
 package distributor
 
 import (
+	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 	"math/rand"
 )
@@ -30,7 +31,7 @@ import (
 // Messages are send to a random producer in the set of the producers listening
 // to the given stream.
 type Random struct {
-	shared.DistributorBase
+	core.DistributorBase
 }
 
 func init() {
@@ -38,13 +39,13 @@ func init() {
 }
 
 // Configure initializes this distributor with values from a plugin config.
-func (dist *Random) Configure(conf shared.PluginConfig) error {
+func (dist *Random) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
 // Distribute sends the given message to one random producer in the set of
 // given producers.
-func (dist *Random) Distribute(msg shared.Message) {
+func (dist *Random) Distribute(msg core.Message) {
 	index := rand.Intn(len(dist.DistributorBase.Producers))
 	dist.DistributorBase.Producers[index].Post(msg)
 }

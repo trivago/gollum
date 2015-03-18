@@ -17,7 +17,8 @@ package producer
 import (
 	"compress/gzip"
 	"fmt"
-	"github.com/trivago/gollum/log"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"io"
 	"io/ioutil"
@@ -76,9 +77,9 @@ const (
 // Compress defines if a rotated logfile is to be gzip compressed or not.
 // By default this is set to true.
 type File struct {
-	shared.ProducerBase
+	core.ProducerBase
 	file             *os.File
-	batch            *shared.StreamBuffer
+	batch            *core.MessageBatch
 	bgWriter         *sync.WaitGroup
 	fileDir          string
 	fileName         string
@@ -100,7 +101,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *File) Configure(conf shared.PluginConfig) error {
+func (prod *File) Configure(conf core.PluginConfig) error {
 	err := prod.ProducerBase.Configure(conf)
 	if err != nil {
 		return err
@@ -111,7 +112,7 @@ func (prod *File) Configure(conf shared.PluginConfig) error {
 
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
-	prod.batch = shared.NewStreamBuffer(bufferSizeMax, prod.Formatter())
+	prod.batch = core.NewMessageBatch(bufferSizeMax, prod.Formatter())
 	prod.forceRotate = false
 
 	prod.rotate = conf.GetBool("Rotate", false)
@@ -317,7 +318,7 @@ func (prod *File) writeBatchOnTimeOut() {
 	}
 }
 
-func (prod *File) writeMessage(message shared.Message) {
+func (prod *File) writeMessage(message core.Message) {
 	if !prod.batch.Append(message) {
 		prod.writeBatch()
 		prod.batch.Append(message)

@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package shared
+package core
 
 import (
+	"github.com/trivago/gollum/core/log"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
 )
 
 type configKeyValueMap map[string]interface{}
@@ -195,7 +195,7 @@ func (conf PluginConfig) GetValue(key string, defaultValue interface{}) interfac
 func readBool(key string, val interface{}) bool {
 	boolValue, isBool := val.(bool)
 	if !isBool {
-		log.Fatalf("Parser: \"%s\" is expected to be a boolean.", key)
+		Log.Error.Fatalf("Parser: \"%s\" is expected to be a boolean.", key)
 	}
 	return boolValue
 }
@@ -203,7 +203,7 @@ func readBool(key string, val interface{}) bool {
 func readInt(key string, val interface{}) int {
 	intValue, isInt := val.(int)
 	if !isInt {
-		log.Fatalf("Parser: \"%s\" is expected to be an integer.", key)
+		Log.Error.Fatalf("Parser: \"%s\" is expected to be an integer.", key)
 	}
 	return intValue
 }
@@ -211,7 +211,7 @@ func readInt(key string, val interface{}) int {
 func readString(key string, val interface{}) string {
 	strValue, isString := val.(string)
 	if !isString {
-		log.Fatalf("Parser: \"%s\" is expected to be a string.", key)
+		Log.Error.Fatalf("Parser: \"%s\" is expected to be a string.", key)
 	}
 	return strValue
 }
@@ -228,7 +228,7 @@ func readStringArray(key string, val interface{}) []interface{} {
 func readArray(key string, val interface{}) []interface{} {
 	arrayValue, isArray := val.([]interface{})
 	if !isArray {
-		log.Fatalf("Parser: \"%s\" is expected to be an array.", key)
+		Log.Error.Fatalf("Parser: \"%s\" is expected to be an array.", key)
 	}
 	return arrayValue
 }
@@ -236,7 +236,7 @@ func readArray(key string, val interface{}) []interface{} {
 func readMap(key string, val interface{}) map[interface{}]interface{} {
 	mapValue, isMap := val.(map[interface{}]interface{})
 	if !isMap {
-		log.Fatalf("Parser: \"%s\" is expected to be a key/value map.", key)
+		Log.Error.Fatalf("Parser: \"%s\" is expected to be a key/value map.", key)
 	}
 	return mapValue
 }

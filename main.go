@@ -19,9 +19,10 @@ import (
 	flag "github.com/docker/docker/pkg/mflag"
 	_ "github.com/trivago/gollum/consumer"
 	_ "github.com/trivago/gollum/contrib"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
 	_ "github.com/trivago/gollum/distributor"
 	_ "github.com/trivago/gollum/format"
-	"github.com/trivago/gollum/log"
 	_ "github.com/trivago/gollum/producer"
 	"github.com/trivago/gollum/shared"
 	"io/ioutil"
@@ -68,7 +69,7 @@ func main() {
 
 	// Read config
 
-	config, err := shared.ReadConfig(*configFile)
+	config, err := core.ReadConfig(*configFile)
 	if err != nil {
 		fmt.Printf("Config: %s\n", err.Error())
 		return // ### return, config error ###
@@ -115,7 +116,9 @@ func main() {
 	// Metrics server start
 
 	if *flagMetricsPort != 0 {
-		go startMetricServer(*flagMetricsPort)
+		server := shared.NewMetricServer()
+		go server.Start(*flagMetricsPort)
+		defer server.Stop()
 	}
 
 	// Start the multiplexer

@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package shared
+package core
 
 import (
-	"log"
-	"os"
-	"runtime/debug"
+	"fmt"
+	"github.com/trivago/gollum/shared"
 	"sync"
 )
 
@@ -39,7 +38,7 @@ type Plugin interface {
 }
 
 func init() {
-	Metric.New(metricActiveWorkers)
+	shared.Metric.New(metricActiveWorkers)
 }
 
 // Pause implements the MessageSource interface
@@ -65,25 +64,39 @@ func (state *PluginRunState) SetWorkerWaitGroup(workers *sync.WaitGroup) {
 // AddWorker adds a worker to the waitgroup configured by SetWorkerWaitGroup.
 func (state *PluginRunState) AddWorker() {
 	state.workers.Add(1)
-	Metric.Inc(metricActiveWorkers)
+	shared.Metric.Inc(metricActiveWorkers)
 }
 
 // WorkerDone removes a worker from the waitgroup configured by
 // SetWorkerWaitGroup.
 func (state *PluginRunState) WorkerDone() {
 	state.workers.Done()
-	Metric.Dec(metricActiveWorkers)
+	shared.Metric.Dec(metricActiveWorkers)
 }
 
-// RecoverShutdown will trigger a shutdown via interrupt if a panic was issued.
-// Typically used as "defer RecoverShutdown()".
-func RecoverShutdown() {
-	if r := recover(); r != nil {
-		log.Println(r)
-		log.Println(string(debug.Stack()))
-
-		// Send interrupt = clean shutdown
-		proc, _ := os.FindProcess(os.Getpid())
-		proc.Signal(os.Interrupt)
+// NewPluginWithType creates a new plugin of a given type and initializes it
+// using the given config (i.e. passes that config to Configure). The type
+// passed to this function may differ from the type stored in the config.
+// If the type is meant to match use NewPlugin instead of NewPluginWithType.
+// This function returns nil, error if the plugin could not be instantiated or
+// plugin, error if Configure failed.
+func NewPluginWithType(typeName string, config PluginConfig) (Plugin, error) {
+	obj, err := shared.RuntimeType.New(typeName)
+	if err != nil {
+		return nil, err
 	}
+
+	plugin, isPlugin := obj.(Plugin)
+	if !isPlugin {
+		return nil, fmt.Errorf("%s is no plugin.", typeName)
+	}
+
+	err = plugin.Configure(config)
+	return plugin, err
+}
+
+// NewPlugin creates a new plugin from the type information stored in its
+// config. This function internally calls NewPluginWithType.
+func NewPlugin(config PluginConfig) (Plugin, error) {
+	return NewPluginWithType(config.TypeName, config)
 }

@@ -15,6 +15,7 @@
 package consumer
 
 import (
+	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 	"runtime"
 	"sync"
@@ -42,9 +43,9 @@ import (
 // configured all retried messages are sent to the _DROPPED_ channel.
 // You can overwrite the default route by setting a custom route for "*".
 type LoopBack struct {
-	shared.ConsumerBase
+	core.ConsumerBase
 	quit   bool
-	routes map[shared.MessageStreamID][]shared.MessageStreamID
+	routes map[core.MessageStreamID][]core.MessageStreamID
 }
 
 func init() {
@@ -52,22 +53,22 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *LoopBack) Configure(conf shared.PluginConfig) error {
+func (cons *LoopBack) Configure(conf core.PluginConfig) error {
 	err := cons.ConsumerBase.Configure(conf)
 	if err != nil {
 		return err
 	}
 
-	cons.routes = conf.GetStreamRoute("Routes", shared.DroppedStreamID)
-	shared.EnableRetryQueue(conf.Channel)
+	cons.routes = conf.GetStreamRoute("Routes", core.DroppedStreamID)
+	core.EnableRetryQueue(conf.Channel)
 
 	return nil
 }
 
-func (cons *LoopBack) route(msg shared.Message) {
+func (cons *LoopBack) route(msg core.Message) {
 	var routeExists bool
 	if msg.Streams, routeExists = cons.routes[msg.CurrentStream]; !routeExists {
-		msg.Streams = cons.routes[shared.WildcardStreamID]
+		msg.Streams = cons.routes[core.WildcardStreamID]
 	}
 	cons.Post(msg)
 }
@@ -78,7 +79,7 @@ func (cons *LoopBack) stop() {
 	// Flush
 	for {
 		select {
-		case msg := <-shared.GetRetryQueue():
+		case msg := <-core.GetRetryQueue():
 			cons.route(msg)
 		default:
 			return // ### return, done ###
@@ -93,7 +94,7 @@ func (cons *LoopBack) processFeedbackQueue() {
 		select {
 		default:
 			runtime.Gosched()
-		case msg := <-shared.GetRetryQueue():
+		case msg := <-core.GetRetryQueue():
 			cons.route(msg)
 		}
 	}

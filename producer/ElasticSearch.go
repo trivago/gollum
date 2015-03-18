@@ -17,7 +17,8 @@ package producer
 import (
 	"bytes"
 	elastigo "github.com/mattbaird/elastigo/lib"
-	"github.com/trivago/gollum/log"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"strconv"
 	"sync"
@@ -87,11 +88,11 @@ import (
 // TTL defines the TTL set in elasticsearch messages. By default this is set to
 // "" which means no TTL.
 type ElasticSearch struct {
-	shared.ProducerBase
+	core.ProducerBase
 	conn          *elastigo.Conn
 	indexer       *elastigo.BulkIndexer
-	index         map[shared.MessageStreamID]string
-	msgType       map[shared.MessageStreamID]string
+	index         map[core.MessageStreamID]string
+	msgType       map[core.MessageStreamID]string
 	msgTTL        string
 	dayBasedIndex bool
 }
@@ -101,7 +102,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *ElasticSearch) Configure(conf shared.PluginConfig) error {
+func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 	// If not defined, delimiter is not used (override default value)
 	if !conf.HasValue("Delimiter") {
 		conf.Override("Delimiter", "")
@@ -145,10 +146,10 @@ func (prod *ElasticSearch) Configure(conf shared.PluginConfig) error {
 	return nil
 }
 
-func (prod *ElasticSearch) sendMessage(msg shared.Message) {
+func (prod *ElasticSearch) sendMessage(msg core.Message) {
 	index, indexMapped := prod.index[msg.CurrentStream]
 	if !indexMapped {
-		index = prod.index[shared.WildcardStreamID]
+		index = prod.index[core.WildcardStreamID]
 	}
 
 	if prod.dayBasedIndex {
@@ -157,7 +158,7 @@ func (prod *ElasticSearch) sendMessage(msg shared.Message) {
 
 	msgType, typeMapped := prod.msgType[msg.CurrentStream]
 	if !typeMapped {
-		msgType = prod.msgType[shared.WildcardStreamID]
+		msgType = prod.msgType[core.WildcardStreamID]
 	}
 
 	prod.Formatter().PrepareMessage(msg)

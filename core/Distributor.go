@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package shared
+package core
 
 // Distributor a distributor plugin can hook on a certain stream and send
 // messages to all producers registered to that stream.

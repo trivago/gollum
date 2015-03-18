@@ -15,6 +15,7 @@
 package format
 
 import (
+	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 	"io"
 )
@@ -33,12 +34,12 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Forward) Configure(conf shared.PluginConfig) error {
+func (format *Forward) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
 // PrepareMessage sets the message to be formatted.
-func (format *Forward) PrepareMessage(msg shared.Message) {
+func (format *Forward) PrepareMessage(msg core.Message) {
 	format.message = msg.Data
 }
 

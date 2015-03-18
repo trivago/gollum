@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 	"io"
 )
@@ -34,7 +35,7 @@ import (
 // JSONDataFormatter defines the formatter for the data transferred as message.
 // By default this is set to "format.Forward"
 type JSON struct {
-	base    shared.Formatter
+	base    core.Formatter
 	message *bytes.Buffer
 }
 
@@ -43,20 +44,20 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *JSON) Configure(conf shared.PluginConfig) error {
-	plugin, err := shared.RuntimeType.NewPluginWithType(conf.GetString("JSONDataFormatter", "format.Forward"), conf)
+func (format *JSON) Configure(conf core.PluginConfig) error {
+	plugin, err := core.NewPluginWithType(conf.GetString("JSONDataFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err
 	}
 
-	format.base = plugin.(shared.Formatter)
+	format.base = plugin.(core.Formatter)
 	return nil
 }
 
 // PrepareMessage sets the message to be formatted.
-func (format *JSON) PrepareMessage(msg shared.Message) {
+func (format *JSON) PrepareMessage(msg core.Message) {
 	format.base.PrepareMessage(msg)
-	format.message = bytes.NewBufferString(fmt.Sprintf("{\"time\":\"%s\",\"seq\":%d,\"message\":\"", msg.Timestamp.Format(shared.DefaultTimestamp), msg.Sequence))
+	format.message = bytes.NewBufferString(fmt.Sprintf("{\"time\":\"%s\",\"seq\":%d,\"message\":\"", msg.Timestamp.Format(core.DefaultTimestamp), msg.Sequence))
 
 	json.HTMLEscape(format.message, []byte(format.base.String()))
 	format.message.WriteString("\"}")

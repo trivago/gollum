@@ -15,15 +15,15 @@
 package format
 
 import (
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/gollum/core"
 	"testing"
 )
 
-func testFormatter(t *testing.T, formatter shared.Formatter) bool {
-	expect := shared.NewExpect(t)
+func testFormatter(t *testing.T, formatter core.Formatter) bool {
+	expect := core.NewExpect(t)
 
 	message := []byte("\ttest\r\n123 456\n")
-	msg := shared.NewMessage(nil, message, []shared.MessageStreamID{}, 0)
+	msg := core.NewMessage(nil, message, []core.MessageStreamID{}, 0)
 
 	formatter.PrepareMessage(msg)
 	buffer := make([]byte, formatter.Len())
@@ -38,19 +38,19 @@ func testFormatter(t *testing.T, formatter shared.Formatter) bool {
 }
 
 func TestFormatters(t *testing.T) {
-	conf := shared.PluginConfig{}
-	formatters := shared.RuntimeType.GetRegistered("format.")
+	conf := core.PluginConfig{}
+	formatters := core.RuntimeType.GetRegistered("format.")
 
 	if len(formatters) == 0 {
 		t.Error("No formatters defined")
 	}
 
 	for _, name := range formatters {
-		plugin, err := shared.RuntimeType.NewPluginWithType(name, conf)
+		plugin, err := core.RuntimeType.NewPluginWithType(name, conf)
 		if err != nil {
 			t.Errorf("Failed to create formatter %s", name)
 		} else {
-			if !testFormatter(t, plugin.(shared.Formatter)) {
+			if !testFormatter(t, plugin.(core.Formatter)) {
 				t.Errorf("Formatter %s tests failed", name)
 			}
 		}

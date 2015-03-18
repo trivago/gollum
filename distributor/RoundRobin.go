@@ -15,6 +15,7 @@
 package distributor
 
 import (
+	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 )
 
@@ -29,8 +30,8 @@ import (
 // Messages are send to one of the producers listening to the given stream.
 // The target producer changes after each send.
 type RoundRobin struct {
-	shared.DistributorBase
-	index map[shared.MessageStreamID]int
+	core.DistributorBase
+	index map[core.MessageStreamID]int
 }
 
 func init() {
@@ -38,14 +39,14 @@ func init() {
 }
 
 // Configure initializes this distributor with values from a plugin config.
-func (dist *RoundRobin) Configure(conf shared.PluginConfig) error {
-	dist.index = make(map[shared.MessageStreamID]int)
+func (dist *RoundRobin) Configure(conf core.PluginConfig) error {
+	dist.index = make(map[core.MessageStreamID]int)
 	return nil
 }
 
 // Distribute sends the given message to one of the given producers in a round
 // robin fashion.
-func (dist *RoundRobin) Distribute(msg shared.Message) {
+func (dist *RoundRobin) Distribute(msg core.Message) {
 
 	// As we might listen to different streams we have to keep the index for
 	// each stream separately

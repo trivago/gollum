@@ -15,7 +15,8 @@
 package consumer
 
 import (
-	"github.com/trivago/gollum/log"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"io"
 	"io/ioutil"
@@ -67,7 +68,7 @@ const (
 // Delimiter defines the end of a message inside the file. By default this is
 // set to "\n".
 type File struct {
-	shared.ConsumerBase
+	core.ConsumerBase
 	file             *os.File
 	fileName         string
 	continueFileName string
@@ -83,14 +84,14 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *File) Configure(conf shared.PluginConfig) error {
+func (cons *File) Configure(conf core.PluginConfig) error {
 	err := cons.ConsumerBase.Configure(conf)
 	if err != nil {
 		return err
 	}
 
 	if !conf.HasValue("File") {
-		return shared.NewConsumerError("No file configured for consumer.File")
+		return core.NewConsumerError("No file configured for consumer.File")
 	}
 
 	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")

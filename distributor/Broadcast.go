@@ -15,6 +15,7 @@
 package distributor
 
 import (
+	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 )
 
@@ -28,7 +29,7 @@ import (
 // This consumer does not define any options beside the standard ones.
 // Messages are send to all of the producers listening to the given stream.
 type Broadcast struct {
-	shared.DistributorBase
+	core.DistributorBase
 }
 
 func init() {
@@ -36,12 +37,12 @@ func init() {
 }
 
 // Configure initializes this distributor with values from a plugin config.
-func (dist *Broadcast) Configure(conf shared.PluginConfig) error {
+func (dist *Broadcast) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
 // Distribute sends the given message to all of the given producers
-func (dist *Broadcast) Distribute(msg shared.Message) {
+func (dist *Broadcast) Distribute(msg core.Message) {
 	for _, prod := range dist.DistributorBase.Producers {
 		prod.Post(msg)
 	}

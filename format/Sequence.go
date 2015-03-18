@@ -16,6 +16,7 @@ package format
 
 import (
 	"fmt"
+	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 	"io"
 )
@@ -31,7 +32,7 @@ import (
 // SequenceDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Sequence struct {
-	base     shared.Formatter
+	base     core.Formatter
 	length   int
 	sequence string
 }
@@ -41,18 +42,18 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Sequence) Configure(conf shared.PluginConfig) error {
-	plugin, err := shared.RuntimeType.NewPluginWithType(conf.GetString("SequenceDataFormatter", "format.Forward"), conf)
+func (format *Sequence) Configure(conf core.PluginConfig) error {
+	plugin, err := core.NewPluginWithType(conf.GetString("SequenceDataFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err
 	}
 
-	format.base = plugin.(shared.Formatter)
+	format.base = plugin.(core.Formatter)
 	return nil
 }
 
 // PrepareMessage sets the message to be formatted.
-func (format *Sequence) PrepareMessage(msg shared.Message) {
+func (format *Sequence) PrepareMessage(msg core.Message) {
 	format.base.PrepareMessage(msg)
 	format.sequence = fmt.Sprintf("%d:", msg.Sequence)
 	format.length = format.base.Len() + len(format.sequence)

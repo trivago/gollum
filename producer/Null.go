@@ -15,6 +15,7 @@
 package producer
 
 import (
+	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 	"sync"
 )
@@ -29,8 +30,8 @@ import (
 // enabled, channel and streams).
 // Use this producer to test consumer performance.
 type Null struct {
-	control chan shared.ProducerControl
-	streams []shared.MessageStreamID
+	control chan core.ProducerControl
+	streams []core.MessageStreamID
 }
 
 func init() {
@@ -38,31 +39,31 @@ func init() {
 }
 
 // Configure initializes the basic members
-func (prod *Null) Configure(conf shared.PluginConfig) error {
-	prod.control = make(chan shared.ProducerControl, 1)
-	prod.streams = make([]shared.MessageStreamID, len(conf.Stream))
+func (prod *Null) Configure(conf core.PluginConfig) error {
+	prod.control = make(chan core.ProducerControl, 1)
+	prod.streams = make([]core.MessageStreamID, len(conf.Stream))
 	return nil
 }
 
 // Streams returns the streams this producer is listening to.
-func (prod Null) Streams() []shared.MessageStreamID {
+func (prod Null) Streams() []core.MessageStreamID {
 	return prod.streams
 }
 
 // Control returns write access to this producer's control channel.
-func (prod Null) Control() chan<- shared.ProducerControl {
+func (prod Null) Control() chan<- core.ProducerControl {
 	return prod.control
 }
 
 // Post simply ignores the message
-func (prod Null) Post(msg shared.Message) {
+func (prod Null) Post(msg core.Message) {
 }
 
 // Produce writes to a buffer that is dumped to a file.
 func (prod Null) Produce(threads *sync.WaitGroup) {
 	for {
 		command := <-prod.control
-		if command == shared.ProducerControlStop {
+		if command == core.ProducerControlStop {
 			return // ### return ###
 		}
 	}

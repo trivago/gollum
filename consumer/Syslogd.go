@@ -19,6 +19,7 @@ import (
 	"github.com/jeromer/syslogparser"
 	"github.com/mcuadros/go-syslog"
 	"github.com/mcuadros/go-syslog/format"
+	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 	"sync"
 )
@@ -58,7 +59,7 @@ import (
 // For format "RFC5424" the protocol can be chosen.
 // By default this is set to "udp".
 type Syslogd struct {
-	shared.ConsumerBase
+	core.ConsumerBase
 	format   format.Format // RFC3164, RFC5424 or RFC6587?
 	protocol string        // udp or tcp
 	address  string
@@ -70,7 +71,7 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Syslogd) Configure(conf shared.PluginConfig) error {
+func (cons *Syslogd) Configure(conf core.PluginConfig) error {
 	err := cons.ConsumerBase.Configure(conf)
 	if err != nil {
 		return err

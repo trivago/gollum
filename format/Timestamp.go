@@ -15,6 +15,7 @@
 package format
 
 import (
+	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 	"io"
 )
@@ -35,7 +36,7 @@ import (
 // TimestampDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Delimiter"
 type Timestamp struct {
-	base            shared.Formatter
+	base            core.Formatter
 	timestampFormat string
 	timestamp       string
 	length          int
@@ -46,20 +47,20 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Timestamp) Configure(conf shared.PluginConfig) error {
-	plugin, err := shared.RuntimeType.NewPluginWithType(conf.GetString("TimestampDataFormatter", "format.Delimiter"), conf)
+func (format *Timestamp) Configure(conf core.PluginConfig) error {
+	plugin, err := core.NewPluginWithType(conf.GetString("TimestampDataFormatter", "format.Delimiter"), conf)
 	if err != nil {
 		return err
 	}
 
-	format.base = plugin.(shared.Formatter)
-	format.timestampFormat = conf.GetString("Timestamp", shared.DefaultTimestamp)
+	format.base = plugin.(core.Formatter)
+	format.timestampFormat = conf.GetString("Timestamp", core.DefaultTimestamp)
 
 	return nil
 }
 
 // PrepareMessage sets the message to be formatted.
-func (format *Timestamp) PrepareMessage(msg shared.Message) {
+func (format *Timestamp) PrepareMessage(msg core.Message) {
 	format.base.PrepareMessage(msg)
 	format.length = format.base.Len() + len(format.timestampFormat)
 	format.timestamp = msg.Timestamp.Format(format.timestampFormat)

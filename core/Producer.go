@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package shared
+package core
 
 import (
-	"log"
+	"github.com/trivago/gollum/shared"
 	"regexp"
 	"sync"
 	"time"
@@ -82,7 +82,7 @@ type Producer interface {
 // which means "all streams".
 //
 // Fromatter sets a formatter to use. Each formatter has its own set of options
-// which can be set here, too. By default this is set to format.Forward
+// which can be set here, too. By default this is set to format.Delimiter
 type ProducerBase struct {
 	messages chan Message
 	control  chan ProducerControl
@@ -122,9 +122,9 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 		prod.streams[i] = GetStreamID(stream)
 	}
 
-	plugin, err := RuntimeType.NewPluginWithType(conf.GetString("Formatter", "format.Forward"), conf)
+	plugin, err := NewPluginWithType(conf.GetString("Formatter", "format.Delimiter"), conf)
 	if err != nil {
-		return err
+		return err // ### return, plugin load error ###
 	}
 	prod.format = plugin.(Formatter)
 
@@ -132,7 +132,7 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	if filter != "" {
 		prod.filter, err = regexp.Compile(filter)
 		if err != nil {
-			log.Print("Regex error: ", err)
+			return err // ### return, regex parser error ###
 		}
 	}
 
@@ -155,13 +155,13 @@ func (prod ProducerBase) AddMainWorker(workers *sync.WaitGroup) {
 // MarkAsActive or SetWaitGroup has been called beforehand.
 func (prod ProducerBase) AddWorker() {
 	prod.state.AddWorker()
-	Metric.Inc(metricActiveWorkers)
+	shared.Metric.Inc(metricActiveWorkers)
 }
 
 // WorkerDone removes an additional worker to the waitgroup.
 func (prod ProducerBase) WorkerDone() {
 	prod.state.WorkerDone()
-	Metric.Dec(metricActiveWorkers)
+	shared.Metric.Dec(metricActiveWorkers)
 }
 
 // GetTimeout returns the duration this producer will block before a message

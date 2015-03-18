@@ -16,6 +16,7 @@ package format
 
 import (
 	"fmt"
+	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 	"io"
 	"strconv"
@@ -32,7 +33,7 @@ import (
 // RunlengthDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Runlength struct {
-	base      shared.Formatter
+	base      core.Formatter
 	length    int
 	lengthStr string
 }
@@ -42,18 +43,18 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Runlength) Configure(conf shared.PluginConfig) error {
-	plugin, err := shared.RuntimeType.NewPluginWithType(conf.GetString("RunlengthDataFormatter", "format.Forward"), conf)
+func (format *Runlength) Configure(conf core.PluginConfig) error {
+	plugin, err := core.NewPluginWithType(conf.GetString("RunlengthDataFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err
 	}
 
-	format.base = plugin.(shared.Formatter)
+	format.base = plugin.(core.Formatter)
 	return nil
 }
 
 // PrepareMessage sets the message to be formatted.
-func (format *Runlength) PrepareMessage(msg shared.Message) {
+func (format *Runlength) PrepareMessage(msg core.Message) {
 	format.base.PrepareMessage(msg)
 	baseLength := format.base.Len()
 

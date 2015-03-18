@@ -16,7 +16,8 @@ package producer
 
 import (
 	kafka "github.com/Shopify/sarama"
-	"github.com/trivago/gollum/log"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"sync"
 	"time"
@@ -122,9 +123,9 @@ const (
 // mapping will go to this stream (including _GOLLUM_).
 // If no topic mappings are set all messages will be send to "default".
 type Kafka struct {
-	shared.ProducerBase
+	core.ProducerBase
 	servers  []string
-	topic    map[shared.MessageStreamID]string
+	topic    map[core.MessageStreamID]string
 	clientID string
 	client   kafka.Client
 	config   *kafka.Config
@@ -136,14 +137,14 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Kafka) Configure(conf shared.PluginConfig) error {
+func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	err := prod.ProducerBase.Configure(conf)
 	if err != nil {
 		return err
 	}
 
 	if !conf.HasValue("Servers") {
-		return shared.NewProducerError("No servers configured for producer.Kafka")
+		return core.NewProducerError("No servers configured for producer.Kafka")
 	}
 
 	prod.servers = conf.GetStringArray("Servers", []string{})
@@ -201,7 +202,7 @@ func (prod *Kafka) Configure(conf shared.PluginConfig) error {
 	return nil
 }
 
-func (prod *Kafka) send(msg shared.Message) {
+func (prod *Kafka) send(msg core.Message) {
 	// If we have not yet connected or the connection dropped: connect.
 	if prod.client == nil || prod.client.Closed() {
 		if prod.producer != nil {
@@ -231,7 +232,7 @@ func (prod *Kafka) send(msg shared.Message) {
 		// Send message
 		topic, topicMapped := prod.topic[msg.CurrentStream]
 		if !topicMapped {
-			topic = prod.topic[shared.WildcardStreamID]
+			topic = prod.topic[core.WildcardStreamID]
 		}
 
 		prod.Formatter().PrepareMessage(msg)

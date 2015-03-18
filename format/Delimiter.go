@@ -15,6 +15,7 @@
 package format
 
 import (
+	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 	"io"
 	"strings"
@@ -36,9 +37,9 @@ import (
 // DelimiterDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Delimiter struct {
-	base      shared.Formatter
+	base      core.Formatter
 	delimiter string
-	msg       shared.Message
+	msg       core.Message
 	length    int
 }
 
@@ -49,19 +50,19 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Delimiter) Configure(conf shared.PluginConfig) error {
-	plugin, err := shared.RuntimeType.NewPluginWithType(conf.GetString("DelimiterDataFormatter", "format.Forward"), conf)
+func (format *Delimiter) Configure(conf core.PluginConfig) error {
+	plugin, err := core.NewPluginWithType(conf.GetString("DelimiterDataFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err
 	}
 
-	format.base = plugin.(shared.Formatter)
-	format.delimiter = delimiterEscapeChars.Replace(conf.GetString("Delimiter", shared.DefaultDelimiter))
+	format.base = plugin.(core.Formatter)
+	format.delimiter = delimiterEscapeChars.Replace(conf.GetString("Delimiter", core.DefaultDelimiter))
 	return nil
 }
 
 // PrepareMessage sets the message to be formatted.
-func (format *Delimiter) PrepareMessage(msg shared.Message) {
+func (format *Delimiter) PrepareMessage(msg core.Message) {
 	format.base.PrepareMessage(msg)
 	format.length = format.base.Len() + len(format.delimiter)
 }

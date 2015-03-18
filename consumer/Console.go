@@ -15,7 +15,8 @@
 package consumer
 
 import (
-	"github.com/trivago/gollum/log"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"io"
 	"os"
@@ -34,7 +35,7 @@ const (
 //
 // This consumer does not define any options beside the standard ones.
 type Console struct {
-	shared.ConsumerBase
+	core.ConsumerBase
 }
 
 func init() {
