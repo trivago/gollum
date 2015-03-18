@@ -128,7 +128,7 @@ type Kafka struct {
 	clientID string
 	client   kafka.Client
 	config   *kafka.Config
-	producer kafka.Producer
+	producer kafka.AsyncProducer
 }
 
 func init() {
@@ -220,7 +220,7 @@ func (prod *Kafka) send(msg shared.Message) {
 	// Make sure we have a producer up and running
 	if prod.producer == nil {
 		var err error
-		prod.producer, err = kafka.NewProducerFromClient(prod.client)
+		prod.producer, err = kafka.NewAsyncProducerFromClient(prod.client)
 		if err != nil {
 			Log.Error.Print("Kafka producer error:", err)
 			return // ### return, connection failed ###
