@@ -45,6 +45,7 @@ type BufferedReader struct {
 
 // NewBufferedReader creates a new buffered reader with a given initial size
 // and a callback that is called each time data is parsed as complete.
+// The data passed to callback is a partial copy of the original stream.
 // The flags and delimiter passed to NewBufferedReader define how the message
 // is parsed from the reader passed to BufferedReader.Read.
 func NewBufferedReader(size int, flags BufferedReaderFlags, delimiter string, callback func(msg []byte, sequence uint64)) BufferedReader {

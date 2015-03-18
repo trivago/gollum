@@ -70,18 +70,18 @@ func (cons *Profiler) profile() {
 	testStart := time.Now()
 	minTime := math.MaxFloat64
 	maxTime := 0.0
+	buffer := shared.NewByteStream(cons.length + 64)
 
 	for b := 0; b < cons.batches; b++ {
 		Log.Note.Print(fmt.Sprintf("run %d/%d:", b, cons.batches))
 
 		start := time.Now()
 		for i := 0; i < cons.profileRuns; i++ {
-			buffer := shared.NewByteStream(cons.length + 64)
-
+			buffer.Reset()
 			fmt.Fprintf(&buffer, "%d/%d ", i, cons.profileRuns)
 			buffer.Write(randString)
 
-			cons.PostData(buffer.Bytes(), uint64(b*cons.profileRuns+i))
+			cons.PostCopy(buffer.Bytes(), uint64(b*cons.profileRuns+i))
 			if cons.quit {
 				return
 			}

@@ -162,9 +162,18 @@ func (cons ConsumerBase) Post(msg Message) {
 }
 
 // PostData creates a new message from a given byte slice and passes it to
-// cons.Send.
+// cons.Send. Note that data is not copied, just referenced by the message.
 func (cons ConsumerBase) PostData(data []byte, sequence uint64) {
 	msg := NewMessage(cons, data, cons.streams, sequence)
+	msg.Enqueue(cons.messages, cons.timeout)
+}
+
+// PostCopy behaves like PostData but creates a copy of data that is attached
+// to the message.
+func (cons ConsumerBase) PostCopy(data []byte, sequence uint64) {
+	dataCopy := make([]byte, len(data))
+	copy(dataCopy, data)
+	msg := NewMessage(cons, dataCopy, cons.streams, sequence)
 	msg.Enqueue(cons.messages, cons.timeout)
 }
 
