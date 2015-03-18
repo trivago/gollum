@@ -14,10 +14,6 @@
 
 package shared
 
-import (
-	"hash/fnv"
-)
-
 // ParserFlag is an enum type for flags used in parser transitions.
 type ParserFlag int
 
@@ -70,8 +66,8 @@ type TransitionDirective struct {
 // TransitionParser defines the behavior of a parser by storing transitions from
 // one state to another.
 type TransitionParser struct {
-	lookup map[ParserStateID]string
-	tokens map[ParserStateID]*TrieNode
+	lookup []string
+	tokens []*TrieNode
 }
 
 // NewTransition creates a new transition to a given state.
@@ -86,8 +82,8 @@ func NewTransition(nextState ParserStateID, flags ParserFlag, callback ParsedFun
 // NewTransitionParser creates a new transition based parser
 func NewTransitionParser() TransitionParser {
 	return TransitionParser{
-		lookup: make(map[ParserStateID]string),
-		tokens: make(map[ParserStateID]*TrieNode),
+		lookup: []string{},
+		tokens: []*TrieNode{},
 	}
 }
 
@@ -97,19 +93,24 @@ func (parser *TransitionParser) GetStateID(stateName string) ParserStateID {
 	if len(stateName) == 0 {
 		return ParserStateStop
 	}
-	hasher := fnv.New32a()
-	hasher.Write([]byte(stateName))
-	id := ParserStateID(hasher.Sum32())
 
-	parser.lookup[id] = stateName
+	for id, name := range parser.lookup {
+		if name == stateName {
+			return ParserStateID(id) // ### return, found ###
+		}
+	}
+
+	id := ParserStateID(len(parser.lookup))
+	parser.lookup = append(parser.lookup, stateName)
+	parser.tokens = append(parser.tokens, nil)
 	return id
 }
 
 // GetStateName returns the name for the given state id or an empty string if
 // the id could not be found.
 func (parser *TransitionParser) GetStateName(id ParserStateID) string {
-	if val, exists := parser.lookup[id]; exists {
-		return val
+	if id < ParserStateID(len(parser.lookup)) {
+		return parser.lookup[id]
 	}
 	return ""
 }
@@ -138,10 +139,10 @@ func (parser *TransitionParser) AddTransition(stateName string, newTrans Transit
 	stateID := parser.GetStateID(stateName)
 
 	newTrans.name = stateName
-	if state, exists := parser.tokens[stateID]; exists {
-		parser.tokens[stateID] = state.Add([]byte(token), newTrans)
-	} else {
+	if state := parser.tokens[stateID]; state == nil {
 		parser.tokens[stateID] = NewTrie([]byte(token), newTrans)
+	} else {
+		parser.tokens[stateID] = state.Add([]byte(token), newTrans)
 	}
 }
 
