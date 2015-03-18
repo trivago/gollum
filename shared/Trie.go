@@ -14,7 +14,9 @@
 
 package shared
 
-// TrieNode a node inside a suffix tree
+// TrieNode represents a single node inside a trie.
+// Each node can contain a payload which can be retrieved after a successfull
+// match. In addition to that PathLen will contain the length of the match.
 type TrieNode struct {
 	suffix   []byte
 	children []*TrieNode
@@ -51,8 +53,9 @@ func (node *TrieNode) replace(oldChild *TrieNode, newChild *TrieNode) {
 	}
 }
 
-// Add adds a new data path to the suffix tree.
-// The TrieNode returned is the (new) root node.
+// Add adds a new data path to the trie.
+// The TrieNode returned is the (new) root node so you should always reassign
+// the root with the return value of Add.
 func (node *TrieNode) Add(data []byte, payload interface{}) *TrieNode {
 	return node.addPath(data, payload, len(data), nil)
 }

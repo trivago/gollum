@@ -31,6 +31,13 @@ const (
 
 // BufferedReader is a helper struct to read from any io.Reader into a byte
 // slice. The data can arrive "in pieces" and will be assembled.
+// A data "piece" is considered complete if a delimiter or a certain runlength
+// has been reached. The latter has to be enabled by flag and will disable the
+// default behavior, which is looking for a delimiter.
+// In addition to that every data "piece" will recieve a sequence number. This
+// is either a simple incrementing counter or can be read from the stream.
+// The full stream format expected looks like this:
+// [Runlength:][Sequence:]Message[Delimiter]
 type BufferedReader struct {
 	data      []byte
 	write     func([]byte, uint64)
