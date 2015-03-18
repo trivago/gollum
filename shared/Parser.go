@@ -151,42 +151,45 @@ func (parser *TransitionParser) AddTransition(stateName string, newTrans Transit
 func (parser TransitionParser) Parse(data []byte, state string) ([]byte, ParserStateID) {
 	currentStateID := parser.GetStateID(state)
 	currentState := parser.tokens[currentStateID]
+	dataLen := len(data)
 	readStartIdx := 0
+	continueIdx := 0
 
-	for parseIdx := 0; parseIdx < len(data); parseIdx++ {
+	for parseIdx := 0; parseIdx < dataLen; parseIdx++ {
 		node := currentState.MatchStart(data[parseIdx:])
-		if node != nil {
-			t := node.Payload.(Transition)
-
-			if t.callback != nil {
-				if t.flags&ParserFlagInclude != 0 {
-					t.callback(data[readStartIdx:parseIdx+node.PathLen], currentStateID)
-				} else {
-					t.callback(data[readStartIdx:parseIdx], currentStateID)
-				}
-			}
-
-			continueIdx := parseIdx
-
-			if t.flags&ParserFlagContinue == 0 {
-				parseIdx += node.PathLen - 1
-				continueIdx = parseIdx + 1
-			}
-
-			if t.flags&ParserFlagAppend == 0 {
-				readStartIdx = continueIdx
-			}
-
-			if t.nextState == ParserStateStop {
-				break // ### break, stop state ###
-			}
-
-			currentStateID = t.nextState
-			currentState = parser.tokens[currentStateID]
+		if node == nil {
+			continue // ### continue, no match ###
 		}
+
+		t := node.Payload.(Transition)
+		if t.callback != nil {
+			if t.flags&ParserFlagInclude != 0 {
+				t.callback(data[readStartIdx:parseIdx+node.PathLen], currentStateID)
+			} else {
+				t.callback(data[readStartIdx:parseIdx], currentStateID)
+			}
+		}
+
+		if t.flags&ParserFlagContinue == 0 {
+			parseIdx += node.PathLen - 1
+			continueIdx = parseIdx + 1
+		} else {
+			continueIdx = parseIdx
+		}
+
+		if t.flags&ParserFlagAppend == 0 {
+			readStartIdx = continueIdx
+		}
+
+		currentStateID = t.nextState
+		if currentStateID == ParserStateStop {
+			break // ### break, stop state ###
+		}
+
+		currentState = parser.tokens[currentStateID]
 	}
 
-	if readStartIdx == len(data) {
+	if readStartIdx == dataLen {
 		return nil, currentStateID // ### return, everything parsed ###
 	}
 
