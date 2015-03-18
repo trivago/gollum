@@ -94,8 +94,9 @@ func readNumberPrefix(data []byte) (uint64, int) {
 }
 
 // Write a slice of the internal buffer as message to the callback
-func (buffer *BufferedReader) post(start int, end int) {
-	message := buffer.data[start:end]
+func (buffer *BufferedReader) post(data []byte) {
+	message := make([]byte, len(data))
+	copy(message, data)
 
 	if buffer.sequence >= 0 {
 		buffer.write(message, uint64(buffer.sequence))
@@ -161,7 +162,7 @@ func (buffer *BufferedReader) readRLE(reader io.Reader) error {
 			break // ### break, Done processing this buffer ###
 		}
 
-		buffer.post(buffer.start, buffer.end)
+		buffer.post(buffer.data[buffer.start:buffer.end])
 		buffer.offset = 0
 
 		if readEnd == buffer.end {
@@ -196,8 +197,8 @@ func (buffer *BufferedReader) read(reader io.Reader) error {
 	// Go through the stream and look for delimiters
 	// Execute callback once per delimiter
 
-	parseEndIdx := buffer.offset + bytesRead
 	parseStartIdx := buffer.offset
+	parseEndIdx := parseStartIdx + bytesRead
 	msgStartIdx := 0
 
 	for parseEndIdx-parseStartIdx > delimiterLen {
@@ -208,7 +209,7 @@ func (buffer *BufferedReader) read(reader io.Reader) error {
 
 		// msgEndIdx is relative to the slice we passed
 		msgEndIdx += parseStartIdx
-		buffer.post(msgStartIdx, msgEndIdx)
+		buffer.post(buffer.data[msgStartIdx:msgEndIdx])
 
 		msgStartIdx = msgEndIdx + delimiterLen
 		parseStartIdx = msgStartIdx

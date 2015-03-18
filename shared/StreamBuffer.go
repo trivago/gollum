@@ -26,7 +26,7 @@ import (
 // Internel helper type for frontbuffer/backbuffer storage
 type messageQueue struct {
 	buffer     []byte
-	contentLen int
+	contentLen int32
 	doneCount  uint32
 }
 
@@ -83,18 +83,28 @@ func (batch *StreamBuffer) Append(msg Message) bool {
 
 	batch.format.PrepareMessage(msg)
 	messageLength := batch.format.Len()
+	var currentOffset, nextOffset int
 
-	if activeQueue.contentLen+messageLength >= len(activeQueue.buffer) {
-		if messageLength > len(activeQueue.buffer) {
-			log.Printf("StreamBuffer: Message is too large (%d bytes).", messageLength)
-			return true // ### return, cannot be written ever ###
+	// There might be multiple threads writing to the queue, so try to get a
+	// write window (lockless)
+	for {
+		currentOffset = int(activeQueue.contentLen)
+		nextOffset = currentOffset + messageLength
+
+		if nextOffset > len(activeQueue.buffer) {
+			if messageLength > len(activeQueue.buffer) {
+				log.Printf("StreamBuffer: Message is too large (%d bytes).", messageLength)
+				return true // ### return, cannot be written ever ###
+			}
+			return false // ### return, queue is full ###
 		}
-		return false // ### return, cannot be written ###
+
+		if atomic.CompareAndSwapInt32(&activeQueue.contentLen, int32(currentOffset), int32(nextOffset)) {
+			break // break, got the window
+		}
 	}
 
-	batch.format.Read(activeQueue.buffer[activeQueue.contentLen:])
-	activeQueue.contentLen += messageLength
-
+	batch.format.Read(activeQueue.buffer[currentOffset:])
 	return true
 }
 
@@ -180,7 +190,7 @@ func (batch StreamBuffer) IsEmpty() bool {
 // If there is no data this function returns false.
 func (batch StreamBuffer) ReachedSizeThreshold(size int) bool {
 	activeIdx := batch.activeSet >> 31
-	return batch.queue[activeIdx].contentLen >= size
+	return batch.queue[activeIdx].contentLen >= int32(size)
 }
 
 // ReachedTimeThreshold returns true if the last flush was more than timeout ago.
