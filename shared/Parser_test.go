@@ -60,30 +60,30 @@ func TestTrie(t *testing.T) {
 	root = root.Add([]byte("cde"), new(int))
 
 	node := root.Match([]byte("abcd"))
-	if expect.True(node != nil) {
-		expect.True(node.Payload != nil)
+	if expect.NotNil(node) {
+		expect.NotNil(node.Payload)
 		expect.IntEq(4, node.PathLen)
 	}
 
 	node = root.Match([]byte("ab"))
-	expect.True(node == nil)
+	expect.Nil(node)
 
 	node = root.MatchStart([]byte("abcdef"))
-	if expect.True(node != nil) {
-		expect.True(node.Payload != nil)
+	if expect.NotNil(node) {
+		expect.NotNil(node.Payload)
 		expect.IntEq(4, node.PathLen)
 	}
 
 	node = root.MatchStart([]byte("bcde"))
-	expect.True(node == nil)
+	expect.Nil(node)
 
-	root = NewTrie([]byte("a"), new(int))
-	root = root.Add([]byte("b"), new(int))
-	root = root.Add([]byte("c"), new(int))
+	root2 := NewTrie([]byte("a"), new(int))
+	root2 = root.Add([]byte("b"), new(int))
+	root2 = root.Add([]byte("c"), new(int))
 
-	node = root.Match([]byte("c"))
-	if expect.True(node != nil) {
-		expect.True(node.Payload != nil)
+	node = root2.Match([]byte("c"))
+	if expect.NotNil(node) {
+		expect.NotNil(node.Payload)
 		expect.IntEq(1, node.PathLen)
 	}
 }

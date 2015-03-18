@@ -47,7 +47,6 @@ const (
 
 // Transition defines a token based state change
 type Transition struct {
-	name      string
 	nextState ParserStateID
 	flags     ParserFlag
 	callback  ParsedFunc
@@ -138,7 +137,6 @@ func (parser *TransitionParser) Stop(stateName string, token string, flags Parse
 func (parser *TransitionParser) AddTransition(stateName string, newTrans Transition, token string) {
 	stateID := parser.GetStateID(stateName)
 
-	newTrans.name = stateName
 	if state := parser.tokens[stateID]; state == nil {
 		parser.tokens[stateID] = NewTrie([]byte(token), newTrans)
 	} else {

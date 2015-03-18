@@ -17,6 +17,7 @@ package shared
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 	"runtime"
 	"testing"
 )
@@ -54,6 +55,26 @@ func (e Expect) True(val bool) bool {
 func (e Expect) False(val bool) bool {
 	if val {
 		e.print("Expected false")
+		return false
+	}
+	return true
+}
+
+// Nil tests if the given value is nil
+func (e Expect) Nil(val interface{}) bool {
+	rval := reflect.ValueOf(val)
+	if !rval.IsNil() {
+		e.print("Expected nil")
+		return false
+	}
+	return true
+}
+
+// NotNil tests if the given value is not nil
+func (e Expect) NotNil(val interface{}) bool {
+	rval := reflect.ValueOf(val)
+	if rval.IsNil() {
+		e.print("Expected not nil")
 		return false
 	}
 	return true

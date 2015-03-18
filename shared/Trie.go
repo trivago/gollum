@@ -4,7 +4,6 @@ package shared
 type TrieNode struct {
 	suffix   []byte
 	children []*TrieNode
-	parent   *TrieNode
 	Payload  interface{}
 	PathLen  int
 }
@@ -12,7 +11,6 @@ type TrieNode struct {
 // NewTrie creates a new root TrieNode
 func NewTrie(data []byte, payload interface{}) *TrieNode {
 	return &TrieNode{
-		parent:   nil,
 		suffix:   data,
 		children: []*TrieNode{},
 		Payload:  payload,
@@ -22,7 +20,6 @@ func NewTrie(data []byte, payload interface{}) *TrieNode {
 
 func (node *TrieNode) addNewChild(data []byte, payload interface{}, pathLen int) {
 	child := &TrieNode{
-		parent:   node,
 		suffix:   data,
 		children: []*TrieNode{},
 		Payload:  payload,
@@ -43,10 +40,10 @@ func (node *TrieNode) replace(oldChild *TrieNode, newChild *TrieNode) {
 // Add adds a new data path to the suffix tree.
 // The TrieNode returned is the (new) root node.
 func (node *TrieNode) Add(data []byte, payload interface{}) *TrieNode {
-	return node.addPath(data, payload, len(data))
+	return node.addPath(data, payload, len(data), nil)
 }
 
-func (node *TrieNode) addPath(data []byte, payload interface{}, pathLen int) *TrieNode {
+func (node *TrieNode) addPath(data []byte, payload interface{}, pathLen int, parent *TrieNode) *TrieNode {
 	dataLen := len(data)
 	suffixLen := len(node.suffix)
 	testLen := suffixLen
@@ -73,7 +70,7 @@ func (node *TrieNode) addPath(data []byte, payload interface{}, pathLen int) *Tr
 		if suffixLen > 0 {
 			for _, child := range node.children {
 				if child.suffix[0] == data[0] {
-					child.addPath(data, payload, pathLen)
+					child.addPath(data, payload, pathLen, node)
 					return node // ### return, continue on path ###
 				}
 			}
@@ -88,33 +85,30 @@ func (node *TrieNode) addPath(data []byte, payload interface{}, pathLen int) *Tr
 		// This case implies that dataLen < suffixLen as splitIdx == suffixLen
 		// did not match.
 
+		node.suffix = node.suffix[splitIdx:]
+
 		newParent := NewTrie(data, payload)
 		newParent.PathLen = pathLen
 		newParent.children = []*TrieNode{node}
 
-		if node.parent != nil {
-			node.parent.replace(node, newParent)
+		if parent != nil {
+			parent.replace(node, newParent)
 		}
-
-		node.parent = newParent
-		node.suffix = node.suffix[splitIdx:]
 		return newParent // ### return, rotation ###
 	}
 
 	// New parent required with both nodes as children (partial match)
 
+	node.suffix = node.suffix[splitIdx:]
+
 	newParent := NewTrie(data[:splitIdx], nil)
 	newParent.PathLen = 0
 	newParent.children = []*TrieNode{node}
-
 	newParent.addNewChild(data[splitIdx:], payload, pathLen)
 
-	if node.parent != nil {
-		node.parent.replace(node, newParent)
+	if parent != nil {
+		parent.replace(node, newParent)
 	}
-
-	node.suffix = node.suffix[splitIdx:]
-	node.parent = newParent
 	return newParent // ### return, new parent ###
 }
 
@@ -141,7 +135,8 @@ func (node *TrieNode) Match(data []byte) *TrieNode {
 	}
 
 	data = data[suffixLen:]
-	for i := 0; i < len(node.children); i++ {
+	numChildren := len(node.children)
+	for i := 0; i < numChildren; i++ {
 		matchedNode := node.children[i].Match(data)
 		if matchedNode != nil {
 			return matchedNode // ### return, match found ###
@@ -169,7 +164,8 @@ func (node *TrieNode) MatchStart(data []byte) *TrieNode {
 	// Match longest path first
 
 	data = data[suffixLen:]
-	for i := 0; i < len(node.children); i++ {
+	numChildren := len(node.children)
+	for i := 0; i < numChildren; i++ {
 		matchedNode := node.children[i].MatchStart(data)
 		if matchedNode != nil {
 			return matchedNode // ### return, match found ###
