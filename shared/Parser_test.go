@@ -118,3 +118,29 @@ func TestParser(t *testing.T) {
 	expect.MapSetStrArrayEq(state.parsed, "array", []string{"a", "b", "c"})
 	expect.MapSetStrEq(state.parsed, "end", "456")
 }
+
+func TestDirectiveParser(t *testing.T) {
+	expect := NewExpect(t)
+	callbacks := make(map[string]ParsedFunc)
+
+	callbacks["write"] = func(data []byte, state ParserStateID) {
+	}
+
+	directive, err := ParseTransitionDirective("start:>:::", callbacks)
+	if expect.Nil(err) {
+		expect.StringEq("start", directive.State)
+		expect.StringEq(">", directive.Token)
+		expect.StringEq("", directive.NextState)
+		expect.IntEq(0, int(directive.Flags))
+		expect.Nil(directive.Callback)
+	}
+
+	directive, err = ParseTransitionDirective(" start : \\:: next : continue : write", callbacks)
+	if expect.Nil(err) {
+		expect.StringEq("start", directive.State)
+		expect.StringEq(" :", directive.Token)
+		expect.StringEq("next", directive.NextState)
+		expect.IntEq(int(ParserFlagContinue), int(directive.Flags))
+		expect.NotNil(directive.Callback)
+	}
+}

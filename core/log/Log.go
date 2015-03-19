@@ -44,16 +44,16 @@ type logNull struct {
 
 var (
 	// Error is a predefined log channel for errors. This log is backed by consumer.Log
-	Error *log.Logger
+	Error = log.New(logEnabled, "ERROR: ", log.Lshortfile)
 
 	// Warning is a predefined log channel for warnings. This log is backed by consumer.Log
-	Warning *log.Logger
+	Warning = log.New(logDisabled, "", 0)
 
 	// Note is a predefined log channel for notes. This log is backed by consumer.Log
-	Note *log.Logger
+	Note = log.New(logDisabled, "", 0)
 
 	// Debug is a predefined log channel for debug messages. This log is backed by consumer.Log
-	Debug *log.Logger
+	Debug = log.New(logDisabled, "", 0)
 
 	logEnabled  = logReferrer{os.Stdout}
 	logDisabled = logNull{}

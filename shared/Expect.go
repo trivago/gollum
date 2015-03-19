@@ -63,7 +63,7 @@ func (e Expect) False(val bool) bool {
 // Nil tests if the given value is nil
 func (e Expect) Nil(val interface{}) bool {
 	rval := reflect.ValueOf(val)
-	if !rval.IsNil() {
+	if val != nil && !rval.IsNil() {
 		e.print("Expected nil")
 		return false
 	}
@@ -73,7 +73,7 @@ func (e Expect) Nil(val interface{}) bool {
 // NotNil tests if the given value is not nil
 func (e Expect) NotNil(val interface{}) bool {
 	rval := reflect.ValueOf(val)
-	if rval.IsNil() {
+	if val == nil || rval.IsNil() {
 		e.print("Expected not nil")
 		return false
 	}
@@ -118,12 +118,56 @@ func (e Expect) MapSetStrEq(data map[string]interface{}, key string, value strin
 
 	stringVal, correctType := val.(string)
 	if !correctType {
-		e.printf("Key \"%s\" is not a string", key)
+		e.printf("Key \"%s\" is not a string (%s)", key, reflect.TypeOf(val))
 		return false
 	}
 
 	if stringVal != value {
 		e.printf("Expected \"%s\" for \"%s\" got \"%s\"", value, key, stringVal)
+		return false
+	}
+	return true
+}
+
+// MapSetIntEq tests if a key/value pair is set in a given map and if value is
+// of the expected integer value
+func (e Expect) MapSetIntEq(data map[string]interface{}, key string, value int) bool {
+	val, valSet := data[key]
+	if !valSet {
+		e.printf("Expected key \"%s\" not found", key)
+		return false
+	}
+
+	intVal, correctType := val.(int)
+	if !correctType {
+		e.printf("Key \"%s\" is not an int (%s)", key, reflect.TypeOf(val))
+		return false
+	}
+
+	if intVal != value {
+		e.printf("Expected \"%d\" for \"%s\" got \"%d\"", value, key, intVal)
+		return false
+	}
+	return true
+}
+
+// MapSetFloat64Eq tests if a key/value pair is set in a given map and if value is
+// of the expected integer value
+func (e Expect) MapSetFloat64Eq(data map[string]interface{}, key string, value float64) bool {
+	val, valSet := data[key]
+	if !valSet {
+		e.printf("Expected key \"%s\" not found", key)
+		return false
+	}
+
+	floatVal, correctType := val.(float64)
+	if !correctType {
+		e.printf("Key \"%s\" is not a float64 (%s)", key, reflect.TypeOf(val))
+		return false
+	}
+
+	if floatVal != value {
+		e.printf("Expected \"%f\" for \"%s\" got \"%f\"", value, key, floatVal)
 		return false
 	}
 	return true

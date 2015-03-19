@@ -16,11 +16,12 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/shared"
 	"testing"
 )
 
 func testFormatter(t *testing.T, formatter core.Formatter) bool {
-	expect := core.NewExpect(t)
+	expect := shared.NewExpect(t)
 
 	message := []byte("\ttest\r\n123 456\n")
 	msg := core.NewMessage(nil, message, []core.MessageStreamID{}, 0)
@@ -39,16 +40,16 @@ func testFormatter(t *testing.T, formatter core.Formatter) bool {
 
 func TestFormatters(t *testing.T) {
 	conf := core.PluginConfig{}
-	formatters := core.RuntimeType.GetRegistered("format.")
+	formatters := shared.RuntimeType.GetRegistered("format.")
 
 	if len(formatters) == 0 {
 		t.Error("No formatters defined")
 	}
 
 	for _, name := range formatters {
-		plugin, err := core.RuntimeType.NewPluginWithType(name, conf)
+		plugin, err := core.NewPluginWithType(name, conf)
 		if err != nil {
-			t.Errorf("Failed to create formatter %s", name)
+			t.Errorf("Failed to create formatter %s: %s", name, err.Error())
 		} else {
 			if !testFormatter(t, plugin.(core.Formatter)) {
 				t.Errorf("Formatter %s tests failed", name)

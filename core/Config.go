@@ -20,7 +20,8 @@ import (
 	"io/ioutil"
 )
 
-type configKeyValueMap map[string]interface{}
+// ConfigKeyValueMap is used by PluginConfig to store setting->value mappings
+type ConfigKeyValueMap map[string]interface{}
 
 // PluginConfig is a configuration for a specific plugin
 type PluginConfig struct {
@@ -29,12 +30,12 @@ type PluginConfig struct {
 	Channel   int
 	Instances int
 	Stream    []string
-	Settings  configKeyValueMap
+	Settings  ConfigKeyValueMap
 }
 
 // Config represents the top level config containing all plugin clonfigs
 type Config struct {
-	Values  []map[string]configKeyValueMap
+	Values  []map[string]ConfigKeyValueMap
 	Plugins []PluginConfig
 }
 
@@ -258,7 +259,7 @@ func (conf *Config) read() error {
 				Channel:   4096,
 				Instances: 1,
 				Stream:    []string{},
-				Settings:  make(configKeyValueMap),
+				Settings:  make(ConfigKeyValueMap),
 			}
 
 			// Iterate over all key/value pairs.

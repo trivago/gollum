@@ -19,8 +19,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"io"
+)
+
+type jsonReaderState int
+
+const (
+	jsonReadArrayEnd    = jsonReaderState(iota)
+	jsonReadObjectEnd   = jsonReaderState(iota)
+	jsonReadObject      = jsonReaderState(iota)
+	jsonReadKey         = jsonReaderState(iota)
+	jsonReadValue       = jsonReaderState(iota)
+	jsonReadArray       = jsonReaderState(iota)
+	jsonReadArrayAppend = jsonReaderState(iota)
 )
 
 // JSON is a formatter that passes a message encapsulated as JSON in the form
@@ -30,13 +43,53 @@ import (
 //
 //   - producer.Console
 //     Formatter: "format.JSON"
-//     JSONDataFormatter: "format.Delimiter"
+//	   JSONStartState:
+//     JSONDirective:
+//	     - ""
 //
-// JSONDataFormatter defines the formatter for the data transferred as message.
-// By default this is set to "format.Forward"
+// JSONStartState defines the initial parser state when parsing a message.
+// By default this is set to "" which will fall back to the first state used in
+// the JSONDirectives array.
+//
+// JSONDirective defines an array of parser directives.
+// This setting is mandatory and has no default value.
+// Each string must be of the following format:
+//
+// State:Token:NextState:Flag,Flag,...:Function
+//
+// Spaces will be stripped from all fields but Token. If a fields requires a
+// colon it has to be escaped with a backslash. Other escape characters
+// supported are \n, \r and \t.
+// Flag can be a set of the following flags
+//
+//  * continue -> Prepend the token to the next match
+//  * append   -> Append the token to the current match and continue reading
+//  * include  -> Append the token to the current match
+//  * push     -> Push the current state to the stack
+//  * pop      -> Pop the stack and use the returned state if possible
+//
+// The following names are allowed in the Function field:
+//
+//  * key -> Write the current match as a key
+//  * num -> Write the current match as a number value (no quotes)
+//  * str -> Write the current match as a string value
+//  * arr -> Start a new array
+//  * obj -> Start a new object
+//  * end -> Close an array or object
+//
+// If num or str is written without a previous key write, a key will be auto
+// generated from the current parser state name. This does not happen when
+// inside an array.
+// If key is written without a previous value write, a null value will be
+// written. This does not happen after an object has been started.
+// A key write inside an array will cause the array to be closed. If the array
+// is nested, all arrays will be closed.
 type JSON struct {
-	base    core.Formatter
-	message *bytes.Buffer
+	message   *bytes.Buffer
+	parser    shared.TransitionParser
+	state     jsonReaderState
+	stack     []jsonReaderState
+	initState string
 }
 
 func init() {
@@ -45,22 +98,199 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *JSON) Configure(conf core.PluginConfig) error {
-	plugin, err := core.NewPluginWithType(conf.GetString("JSONDataFormatter", "format.Forward"), conf)
-	if err != nil {
-		return err
+	format.parser = shared.NewTransitionParser()
+	format.state = jsonReadObject
+	format.initState = conf.GetString("JSONStartState", "")
+
+	if !conf.HasValue("JSONDirectives") {
+		Log.Warning.Print("JSON formatter has no JSONDirectives setting")
+		return nil // ### return, no directives ###
 	}
 
-	format.base = plugin.(core.Formatter)
+	directiveStrings := conf.GetStringArray("JSONDirectives", []string{})
+	if len(directiveStrings) == 0 {
+		Log.Warning.Print("JSON formatter has no directives")
+		return nil // ### return, no directives ###
+	}
+
+	// Parse directives
+
+	parserFunctions := make(map[string]shared.ParsedFunc)
+	parserFunctions["key"] = format.readKey
+	parserFunctions["num"] = format.readNumberValue
+	parserFunctions["str"] = format.readStringValue
+	parserFunctions["arr"] = format.readBeginArray
+	parserFunctions["obj"] = format.readBeginObject
+	parserFunctions["end"] = format.readEnd
+	parserFunctions["num+end"] = format.readNumberValueEnd
+	parserFunctions["str+end"] = format.readStringValueEnd
+
+	directives := []shared.TransitionDirective{}
+	for _, dirString := range directiveStrings {
+		directive, err := shared.ParseTransitionDirective(dirString, parserFunctions)
+		if err != nil {
+			return fmt.Errorf("%s: %s", err.Error(), dirString) // ### return, malformed directive ###
+		}
+		if format.initState == "" {
+			format.initState = directive.State
+		}
+		directives = append(directives, directive)
+	}
+
+	format.parser.AddDirectives(directives)
 	return nil
+}
+
+func (format *JSON) writeKey(key []byte) {
+	// Make sure we are not in an array anymore
+	for format.state == jsonReadArray || format.state == jsonReadArrayAppend {
+		format.readEnd(nil, 0)
+	}
+
+	// If no value was written, write null
+	if format.state > jsonReadKey {
+		format.message.WriteString("null")
+	}
+
+	// Prepend a comma except after an object has started
+	if format.state != jsonReadObject {
+		format.message.WriteByte(',')
+	}
+
+	format.message.WriteByte('"')
+	json.HTMLEscape(format.message, key)
+	format.message.WriteString(`":`)
+}
+
+func (format *JSON) readKey(data []byte, state shared.ParserStateID) {
+	format.writeKey(data)
+	format.state = jsonReadValue
+}
+
+func (format *JSON) readNumberValue(data []byte, state shared.ParserStateID) {
+	switch format.state {
+	case jsonReadArrayEnd, jsonReadObjectEnd:
+		format.state = jsonReadKey
+
+	default:
+		format.writeKey([]byte(format.parser.GetStateName(state)))
+		fallthrough
+
+	case jsonReadValue:
+		format.message.Write(bytes.TrimSpace(data))
+		format.state = jsonReadKey
+
+	case jsonReadArray:
+		format.message.Write(bytes.TrimSpace(data))
+		format.state = jsonReadArrayAppend
+
+	case jsonReadArrayAppend:
+		format.message.WriteByte(',')
+		format.message.Write(bytes.TrimSpace(data))
+	}
+}
+
+func (format *JSON) readNumberValueEnd(data []byte, state shared.ParserStateID) {
+	formatState := format.state
+	format.readNumberValue(data, state)
+	format.state = formatState
+	format.readEnd(data, state)
+}
+
+func (format *JSON) readStringValue(data []byte, state shared.ParserStateID) {
+	switch format.state {
+	case jsonReadArrayEnd, jsonReadObjectEnd:
+		format.state = jsonReadKey
+
+	default:
+		format.writeKey([]byte(format.parser.GetStateName(state)))
+		fallthrough
+
+	case jsonReadValue:
+		format.message.WriteByte('"')
+		json.HTMLEscape(format.message, bytes.TrimSpace(data))
+		format.state = jsonReadKey
+
+	case jsonReadArray:
+		format.message.WriteByte('"')
+		json.HTMLEscape(format.message, bytes.TrimSpace(data))
+		format.state = jsonReadArrayAppend
+
+	case jsonReadArrayAppend:
+		format.message.WriteString(`,"`)
+		json.HTMLEscape(format.message, bytes.TrimSpace(data))
+	}
+	format.message.WriteByte('"')
+}
+
+func (format *JSON) readStringValueEnd(data []byte, state shared.ParserStateID) {
+	formatState := format.state
+	format.readStringValue(data, state)
+	format.state = formatState
+	format.readEnd(data, state)
+}
+
+func (format *JSON) readBeginArray(data []byte, state shared.ParserStateID) {
+	if format.state == jsonReadArrayAppend {
+		format.message.WriteString(",[")
+	} else {
+		format.message.WriteByte('[')
+	}
+	format.stack = append(format.stack, format.state)
+	format.state = jsonReadArray
+}
+
+func (format *JSON) readBeginObject(data []byte, state shared.ParserStateID) {
+	if format.state == jsonReadArrayAppend {
+		format.message.WriteString(",{")
+	} else {
+		format.message.WriteByte('{')
+	}
+	format.stack = append(format.stack, format.state)
+	format.state = jsonReadObject
+}
+
+func (format *JSON) readEnd(data []byte, state shared.ParserStateID) {
+	var fallbackState jsonReaderState
+
+	switch format.state {
+	case jsonReadArray, jsonReadArrayAppend, jsonReadArrayEnd:
+		format.message.WriteByte(']')
+		fallbackState = jsonReadArrayEnd
+	default:
+		format.message.WriteByte('}')
+		fallbackState = jsonReadObjectEnd
+	}
+
+	stackSize := len(format.stack)
+	if stackSize > 1 {
+		format.state = format.stack[stackSize-1]
+		format.stack = format.stack[:stackSize-1] // Pop the stack
+	} else {
+		format.stack = format.stack[:0] // Clear the stack
+		format.state = fallbackState
+	}
 }
 
 // PrepareMessage sets the message to be formatted.
 func (format *JSON) PrepareMessage(msg core.Message) {
-	format.base.PrepareMessage(msg)
-	format.message = bytes.NewBufferString(fmt.Sprintf("{\"time\":\"%s\",\"seq\":%d,\"message\":\"", msg.Timestamp.Format(core.DefaultTimestamp), msg.Sequence))
+	format.message = bytes.NewBufferString("{")
+	format.state = jsonReadObject
+	remains, state := format.parser.Parse(msg.Data, format.initState)
 
-	json.HTMLEscape(format.message, []byte(format.base.String()))
-	format.message.WriteString("\"}")
+	// Write remains as string value
+	if remains != nil {
+		format.readStringValue(remains, state)
+	}
+
+	// Close any open tags
+	if format.message.Len() > 1 {
+		for format.state == jsonReadArray || format.state == jsonReadArrayAppend || format.state == jsonReadObject {
+			format.readEnd(nil, 0)
+		}
+	}
+
+	format.message.WriteString("}\n")
 }
 
 // Len returns the length of a formatted message.
