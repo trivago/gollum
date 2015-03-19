@@ -115,6 +115,8 @@ func NewTransitionParser() TransitionParser {
 //  * continue -> ParserFlagContinue
 //  * append   -> ParserFlagAppend
 //  * include  -> ParserFlagInclude
+//  * push     -> ParserFlagPush
+//  * pop      -> ParserFlagPop
 //
 // The name passed to the function token must be in the callbacks map. If it is
 // not the data of the token will not be written. I.e. in empty string equals
