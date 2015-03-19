@@ -17,7 +17,6 @@ package format
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
-	"strings"
 	"testing"
 )
 
@@ -70,5 +69,5 @@ func TestJSONFormatter1(t *testing.T) {
 	}, "findKey")
 
 	test.PrepareMessage(msg)
-	expect.StringEq(testString, strings.TrimSpace(test.String()))
+	expect.StringEq(testString, test.String())
 }

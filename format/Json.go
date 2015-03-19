@@ -52,6 +52,12 @@ const (
 // By default this is set to "" which will fall back to the first state used in
 // the JSONDirectives array.
 //
+// JSONTimestampRead defines the go timestamp format expected from fields that
+// are parsed as "dat". By default this is set to "20060102150405"
+//
+// JSONTimestampWrite defines the go timestamp format that "dat" fields will be
+// converted to. By default this is set to "2006-01-02 15:04:05 MST"
+//
 // JSONDirective defines an array of parser directives.
 // This setting is mandatory and has no default value.
 // Each string must be of the following format:
@@ -221,27 +227,7 @@ func (format *JSON) readEscaped(data []byte, state shared.ParserStateID) {
 func (format *JSON) readDate(data []byte, state shared.ParserStateID) {
 	date, _ := time.Parse(format.timeRead, string(bytes.TrimSpace(data)))
 	formattedDate := date.Format(format.timeWrite)
-
-	switch format.state {
-	default:
-		format.writeKey([]byte(format.parser.GetStateName(state)))
-		fallthrough
-
-	case jsonReadValue:
-		format.message.WriteByte('"')
-		json.HTMLEscape(format.message, []byte(formattedDate))
-		format.state = jsonReadKey
-
-	case jsonReadArray:
-		format.message.WriteByte('"')
-		json.HTMLEscape(format.message, []byte(formattedDate))
-		format.state = jsonReadArrayAppend
-
-	case jsonReadArrayAppend:
-		format.message.WriteString(`,"`)
-		json.HTMLEscape(format.message, []byte(formattedDate))
-	}
-	format.message.WriteByte('"')
+	format.readEscaped([]byte(formattedDate), state)
 }
 
 func (format *JSON) readValueEnd(data []byte, state shared.ParserStateID) {
@@ -325,6 +311,7 @@ func (format *JSON) PrepareMessage(msg core.Message) {
 	}
 
 	format.message.WriteString("}\n")
+	format.message = bytes.NewBuffer(bytes.TrimSpace(format.message.Bytes()))
 }
 
 // Len returns the length of a formatted message.
