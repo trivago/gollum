@@ -22,6 +22,7 @@ import (
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"io"
+	"time"
 )
 
 type jsonReaderState int
@@ -71,8 +72,9 @@ const (
 // The following names are allowed in the Function field:
 //
 //  * key -> Write the current match as a key
-//  * num -> Write the current match as a number value (no quotes)
-//  * str -> Write the current match as a string value
+//  * val -> Write the current match as a value without quotes
+//  * esc -> Write the current match as a escaped string value
+//  * dat -> Write the current match as a timestamp value
 //  * arr -> Start a new array
 //  * obj -> Start a new object
 //  * end -> Close an array or object
@@ -90,6 +92,8 @@ type JSON struct {
 	state     jsonReaderState
 	stack     []jsonReaderState
 	initState string
+	timeRead  string
+	timeWrite string
 }
 
 func init() {
@@ -101,6 +105,8 @@ func (format *JSON) Configure(conf core.PluginConfig) error {
 	format.parser = shared.NewTransitionParser()
 	format.state = jsonReadObject
 	format.initState = conf.GetString("JSONStartState", "")
+	format.timeRead = conf.GetString("JSONTimestampRead", "20060102150405")
+	format.timeWrite = conf.GetString("JSONTimestampWrite", "2006-01-02 15:04:05 MST")
 
 	if !conf.HasValue("JSONDirectives") {
 		Log.Warning.Print("JSON formatter has no JSONDirectives setting")
@@ -117,13 +123,15 @@ func (format *JSON) Configure(conf core.PluginConfig) error {
 
 	parserFunctions := make(map[string]shared.ParsedFunc)
 	parserFunctions["key"] = format.readKey
-	parserFunctions["num"] = format.readNumberValue
-	parserFunctions["str"] = format.readStringValue
-	parserFunctions["arr"] = format.readBeginArray
-	parserFunctions["obj"] = format.readBeginObject
+	parserFunctions["val"] = format.readValue
+	parserFunctions["esc"] = format.readEscaped
+	parserFunctions["dat"] = format.readDate
+	parserFunctions["arr"] = format.readArray
+	parserFunctions["obj"] = format.readObject
 	parserFunctions["end"] = format.readEnd
-	parserFunctions["num+end"] = format.readNumberValueEnd
-	parserFunctions["str+end"] = format.readStringValueEnd
+	parserFunctions["val+end"] = format.readValueEnd
+	parserFunctions["esc+end"] = format.readEscapedEnd
+	parserFunctions["dat+end"] = format.readDateEnd
 
 	directives := []shared.TransitionDirective{}
 	for _, dirString := range directiveStrings {
@@ -167,7 +175,7 @@ func (format *JSON) readKey(data []byte, state shared.ParserStateID) {
 	format.state = jsonReadValue
 }
 
-func (format *JSON) readNumberValue(data []byte, state shared.ParserStateID) {
+func (format *JSON) readValue(data []byte, state shared.ParserStateID) {
 	switch format.state {
 	default:
 		format.writeKey([]byte(format.parser.GetStateName(state)))
@@ -187,14 +195,7 @@ func (format *JSON) readNumberValue(data []byte, state shared.ParserStateID) {
 	}
 }
 
-func (format *JSON) readNumberValueEnd(data []byte, state shared.ParserStateID) {
-	formatState := format.state
-	format.readNumberValue(data, state)
-	format.state = formatState
-	format.readEnd(data, state)
-}
-
-func (format *JSON) readStringValue(data []byte, state shared.ParserStateID) {
+func (format *JSON) readEscaped(data []byte, state shared.ParserStateID) {
 	switch format.state {
 	default:
 		format.writeKey([]byte(format.parser.GetStateName(state)))
@@ -217,14 +218,54 @@ func (format *JSON) readStringValue(data []byte, state shared.ParserStateID) {
 	format.message.WriteByte('"')
 }
 
-func (format *JSON) readStringValueEnd(data []byte, state shared.ParserStateID) {
+func (format *JSON) readDate(data []byte, state shared.ParserStateID) {
+	date, _ := time.Parse(format.timeRead, string(bytes.TrimSpace(data)))
+	formattedDate := date.Format(format.timeWrite)
+
+	switch format.state {
+	default:
+		format.writeKey([]byte(format.parser.GetStateName(state)))
+		fallthrough
+
+	case jsonReadValue:
+		format.message.WriteByte('"')
+		json.HTMLEscape(format.message, []byte(formattedDate))
+		format.state = jsonReadKey
+
+	case jsonReadArray:
+		format.message.WriteByte('"')
+		json.HTMLEscape(format.message, []byte(formattedDate))
+		format.state = jsonReadArrayAppend
+
+	case jsonReadArrayAppend:
+		format.message.WriteString(`,"`)
+		json.HTMLEscape(format.message, []byte(formattedDate))
+	}
+	format.message.WriteByte('"')
+}
+
+func (format *JSON) readValueEnd(data []byte, state shared.ParserStateID) {
 	formatState := format.state
-	format.readStringValue(data, state)
+	format.readValue(data, state)
 	format.state = formatState
 	format.readEnd(data, state)
 }
 
-func (format *JSON) readBeginArray(data []byte, state shared.ParserStateID) {
+func (format *JSON) readEscapedEnd(data []byte, state shared.ParserStateID) {
+	formatState := format.state
+	format.readEscaped(data, state)
+	format.state = formatState
+	format.readEnd(data, state)
+}
+
+func (format *JSON) readDateEnd(data []byte, state shared.ParserStateID) {
+	formatState := format.state
+	format.readDate(data, state)
+	format.state = formatState
+	format.readEnd(data, state)
+}
+
+func (format *JSON) readArray(data []byte, state shared.ParserStateID) {
 	if format.state == jsonReadArrayAppend {
 		format.message.WriteString(",[")
 	} else {
@@ -234,7 +275,7 @@ func (format *JSON) readBeginArray(data []byte, state shared.ParserStateID) {
 	format.state = jsonReadArray
 }
 
-func (format *JSON) readBeginObject(data []byte, state shared.ParserStateID) {
+func (format *JSON) readObject(data []byte, state shared.ParserStateID) {
 	if format.state == jsonReadArrayAppend {
 		format.message.WriteString(",{")
 	} else {
@@ -273,7 +314,7 @@ func (format *JSON) PrepareMessage(msg core.Message) {
 
 	// Write remains as string value
 	if remains != nil {
-		format.readStringValue(remains, state)
+		format.readEscaped(remains, state)
 	}
 
 	// Close any open tags
