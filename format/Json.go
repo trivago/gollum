@@ -169,9 +169,6 @@ func (format *JSON) readKey(data []byte, state shared.ParserStateID) {
 
 func (format *JSON) readNumberValue(data []byte, state shared.ParserStateID) {
 	switch format.state {
-	case jsonReadArrayEnd, jsonReadObjectEnd:
-		format.state = jsonReadKey
-
 	default:
 		format.writeKey([]byte(format.parser.GetStateName(state)))
 		fallthrough
@@ -199,9 +196,6 @@ func (format *JSON) readNumberValueEnd(data []byte, state shared.ParserStateID) 
 
 func (format *JSON) readStringValue(data []byte, state shared.ParserStateID) {
 	switch format.state {
-	case jsonReadArrayEnd, jsonReadObjectEnd:
-		format.state = jsonReadKey
-
 	default:
 		format.writeKey([]byte(format.parser.GetStateName(state)))
 		fallthrough
@@ -251,24 +245,23 @@ func (format *JSON) readBeginObject(data []byte, state shared.ParserStateID) {
 }
 
 func (format *JSON) readEnd(data []byte, state shared.ParserStateID) {
-	var fallbackState jsonReaderState
+	stackSize := len(format.stack)
 
-	switch format.state {
-	case jsonReadArray, jsonReadArrayAppend, jsonReadArrayEnd:
-		format.message.WriteByte(']')
-		fallbackState = jsonReadArrayEnd
-	default:
-		format.message.WriteByte('}')
-		fallbackState = jsonReadObjectEnd
+	if stackSize > 0 {
+		switch format.state {
+		case jsonReadArray, jsonReadArrayAppend:
+			format.message.WriteByte(']')
+		default:
+			format.message.WriteByte('}')
+		}
 	}
 
-	stackSize := len(format.stack)
 	if stackSize > 1 {
 		format.state = format.stack[stackSize-1]
 		format.stack = format.stack[:stackSize-1] // Pop the stack
 	} else {
 		format.stack = format.stack[:0] // Clear the stack
-		format.state = fallbackState
+		format.state = jsonReadValue
 	}
 }
 

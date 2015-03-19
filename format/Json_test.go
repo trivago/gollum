@@ -44,7 +44,7 @@ func newTestJSONFormatter(directives []interface{}, start string) *JSON {
 func TestJSONFormatter1(t *testing.T) {
 	expect := shared.NewExpect(t)
 
-	testString := `{"a":123,"b":"string","c":[1,2,3],"d":[{"a":1},{"b":2}],"e":[[1,2],[3,4]]}`
+	testString := `{"a":123,"b":"string","c":[1,2,3],"d":[{"a":1}],"e":[[1,2]],"f":[{"a":1},{"b":2}],"g":[[1,2],[3,4]]}`
 	msg := core.NewMessage(nil, []byte(testString), []core.MessageStreamID{}, 0)
 	test := newTestJSONFormatter([]interface{}{
 		`findKey    :":  key        ::`,
@@ -67,39 +67,6 @@ func TestJSONFormatter1(t *testing.T) {
 		`arrStrVal  :":  arrNextStr :      : str`,
 		`arrNextStr :":  arrStrVal  ::`,
 		`arrNextStr :]:             : pop  : end`,
-	}, "findKey")
-
-	test.PrepareMessage(msg)
-	expect.StringEq(testString, strings.TrimSpace(test.String()))
-}
-
-func TestJSONFormatter2(t *testing.T) {
-	expect := shared.NewExpect(t)
-
-	testString := `{ "a" : 123 , "b" : "string" , "c" : [ 1 , 2 , 3 ] , "d" : [ { "a" : 1 } , { "b" : 2 } ] , "e" : [ [ 1, 2 ] , [ 3 , 4 ] ] }`
-	msg := core.NewMessage(nil, []byte(testString), []core.MessageStreamID{}, 0)
-	test := newTestJSONFormatter([]interface{}{
-		`findKey     :":  key         ::`,
-		`findKey     :}:              : pop  : end`,
-		`key         :":  findVal     :      : key`,
-		`findVal     :\:: value       ::`,
-		`value       :":  string      ::`,
-		`value       :[:  array       : push : arr`,
-		`value       :{:  findKey     : push : obj`,
-		`value       :,:  findKey     :      : num`,
-		`value       :}:              : pop  : num+end`,
-		`string      :":  findKey     :      : str`,
-		`array       :[:  array       : push : arr`,
-		`array       :{:  findKey     : push : obj`,
-		`array       :]:              : pop  : end`,
-		`array       :,:  arrayNext   :      : num`,
-		`array       :":  arrayString ::`,
-		`arrayNext   :[:  array       : push : arr`,
-		`arrayNext   :{:  findKey     : push : obj`,
-		`arrayNext   :]:              : pop  : num+end`,
-		`arrayNext   :,:  arrayNext   :      : num`,
-		`arrayNext   :":  arrayString ::`,
-		`arrayString :":  arrayNext   :      : str`,
 	}, "findKey")
 
 	test.PrepareMessage(msg)
