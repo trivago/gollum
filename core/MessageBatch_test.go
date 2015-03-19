@@ -16,12 +16,13 @@ package core
 
 import (
 	"fmt"
+	"github.com/trivago/gollum/shared"
 	"io"
 	"testing"
 )
 
 type MessageBatchWriter struct {
-	expect          Expect
+	expect          shared.Expect
 	successCalled   *bool
 	errorCalled     *bool
 	returnError     bool
@@ -81,7 +82,7 @@ func (mock *mockFormatter) WriteTo(writer io.Writer) (int64, error) {
 }
 
 func TestMessageBatch(t *testing.T) {
-	expect := NewExpect(t)
+	expect := shared.NewExpect(t)
 	writer := MessageBatchWriter{expect, new(bool), new(bool), false, false}
 
 	test10 := NewMessage(nil, []byte("1234567890"), []MessageStreamID{WildcardStreamID}, 0)
