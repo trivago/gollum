@@ -16,7 +16,6 @@ package main
 
 import (
 	"fmt"
-	flag "github.com/docker/docker/pkg/mflag"
 	_ "github.com/trivago/gollum/consumer"
 	_ "github.com/trivago/gollum/contrib"
 	"github.com/trivago/gollum/core"
