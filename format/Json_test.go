@@ -15,6 +15,7 @@
 package format
 
 import (
+	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 	"testing"
@@ -70,4 +71,36 @@ func TestJSONFormatter1(t *testing.T) {
 
 	test.PrepareMessage(msg)
 	expect.StringEq(testString, test.String())
+}
+
+func BenchmarkJSONFormatter(b *testing.B) {
+
+	test := newTestJSONFormatter([]interface{}{
+		`findKey    :":  key        ::`,
+		`findKey    :}:             : pop  : end`,
+		`key        :":  findVal    :      : key`,
+		`findVal    :\:: value      ::`,
+		`value      :":  string     ::`,
+		`value      :[:  array      : push : arr`,
+		`value      :{:  findKey    : push : obj`,
+		`value      :,:  findKey    :      : val`,
+		`value      :}:             : pop  : val+end`,
+		`string     :":  findKey    :      : esc`,
+		`array      :[:  array      : push : arr`,
+		`array      :{:  findKey    : push : obj`,
+		`array      :]:             : pop  : end`,
+		`array      :,:  arrIntVal  :      : val`,
+		`array      :":  arrStrVal  ::`,
+		`arrIntVal  :,:  arrIntVal  :      : val`,
+		`arrIntVal  :]:             : pop  : val+end`,
+		`arrStrVal  :":  arrNextStr :      : esc`,
+		`arrNextStr :":  arrStrVal  ::`,
+		`arrNextStr :]:             : pop  : end`,
+	}, "findKey")
+
+	for i := 0; i < b.N; i++ {
+		testString := fmt.Sprintf(`{"a":%d23,"b":"string","c":[%d,2,3],"d":[{"a":%d}],"e":[[%d,2]],"f":[{"a":%d},{"b":2}],"g":[[%d,2],[3,4]]}`, i, i, i, i, i, i)
+		msg := core.NewMessage(nil, []byte(testString), []core.MessageStreamID{}, 0)
+		test.PrepareMessage(msg)
+	}
 }

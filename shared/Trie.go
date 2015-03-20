@@ -18,30 +18,48 @@ package shared
 // Each node can contain a payload which can be retrieved after a successfull
 // match. In addition to that PathLen will contain the length of the match.
 type TrieNode struct {
-	suffix   []byte
-	children []*TrieNode
-	Payload  interface{}
-	PathLen  int
+	suffix      []byte
+	children    []*TrieNode
+	Payload     interface{}
+	PathLen     int
+	LongestPath int
 }
 
 // NewTrie creates a new root TrieNode
 func NewTrie(data []byte, payload interface{}) *TrieNode {
 	return &TrieNode{
-		suffix:   data,
-		children: []*TrieNode{},
-		Payload:  payload,
-		PathLen:  len(data),
+		suffix:      data,
+		children:    []*TrieNode{},
+		Payload:     payload,
+		PathLen:     len(data),
+		LongestPath: len(data),
 	}
 }
 
 func (node *TrieNode) addNewChild(data []byte, payload interface{}, pathLen int) {
-	child := &TrieNode{
-		suffix:   data,
-		children: []*TrieNode{},
-		Payload:  payload,
-		PathLen:  pathLen,
+	if node.LongestPath < pathLen {
+		node.LongestPath = pathLen
 	}
-	node.children = append(node.children, child)
+
+	idx := len(node.children)
+	node.children = append(node.children, nil)
+
+	for idx > 0 {
+		nextIdx := idx - 1
+		if node.children[nextIdx].LongestPath > pathLen {
+			break
+		}
+		node.children[idx] = node.children[nextIdx]
+		idx = nextIdx
+	}
+
+	node.children[idx] = &TrieNode{
+		suffix:      data,
+		children:    []*TrieNode{},
+		Payload:     payload,
+		PathLen:     pathLen,
+		LongestPath: pathLen,
+	}
 }
 
 func (node *TrieNode) replace(oldChild *TrieNode, newChild *TrieNode) {
@@ -106,6 +124,7 @@ func (node *TrieNode) addPath(data []byte, payload interface{}, pathLen int, par
 
 		newParent := NewTrie(data, payload)
 		newParent.PathLen = pathLen
+		newParent.LongestPath = node.LongestPath
 		newParent.children = []*TrieNode{node}
 
 		if parent != nil {
@@ -120,6 +139,7 @@ func (node *TrieNode) addPath(data []byte, payload interface{}, pathLen int, par
 
 	newParent := NewTrie(data[:splitIdx], nil)
 	newParent.PathLen = 0
+	newParent.LongestPath = node.LongestPath
 	newParent.children = []*TrieNode{node}
 	newParent.addNewChild(data[splitIdx:], payload, pathLen)
 
