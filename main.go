@@ -49,7 +49,7 @@ func dumpMemoryProfile() {
 }
 
 func main() {
-	flag.Parse()
+	parseFlags()
 	Log.SetVerbosity(Log.Verbosity(*flagLoglevel))
 
 	if *flagVersion {
@@ -63,7 +63,7 @@ func main() {
 	}
 
 	if *flagHelp || *configFile == "" {
-		flag.Usage()
+		printFlags()
 		return // ### return, nothing to do ###
 	}
 

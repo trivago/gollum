@@ -20,9 +20,9 @@ package shared
 type TrieNode struct {
 	suffix      []byte
 	children    []*TrieNode
-	Payload     interface{}
+	longestPath int
 	PathLen     int
-	LongestPath int
+	Payload     interface{}
 }
 
 // NewTrie creates a new root TrieNode
@@ -30,15 +30,15 @@ func NewTrie(data []byte, payload interface{}) *TrieNode {
 	return &TrieNode{
 		suffix:      data,
 		children:    []*TrieNode{},
-		Payload:     payload,
+		longestPath: len(data),
 		PathLen:     len(data),
-		LongestPath: len(data),
+		Payload:     payload,
 	}
 }
 
 func (node *TrieNode) addNewChild(data []byte, payload interface{}, pathLen int) {
-	if node.LongestPath < pathLen {
-		node.LongestPath = pathLen
+	if node.longestPath < pathLen {
+		node.longestPath = pathLen
 	}
 
 	idx := len(node.children)
@@ -46,7 +46,7 @@ func (node *TrieNode) addNewChild(data []byte, payload interface{}, pathLen int)
 
 	for idx > 0 {
 		nextIdx := idx - 1
-		if node.children[nextIdx].LongestPath > pathLen {
+		if node.children[nextIdx].longestPath > pathLen {
 			break
 		}
 		node.children[idx] = node.children[nextIdx]
@@ -56,9 +56,9 @@ func (node *TrieNode) addNewChild(data []byte, payload interface{}, pathLen int)
 	node.children[idx] = &TrieNode{
 		suffix:      data,
 		children:    []*TrieNode{},
-		Payload:     payload,
+		longestPath: pathLen,
 		PathLen:     pathLen,
-		LongestPath: pathLen,
+		Payload:     payload,
 	}
 }
 
@@ -124,7 +124,7 @@ func (node *TrieNode) addPath(data []byte, payload interface{}, pathLen int, par
 
 		newParent := NewTrie(data, payload)
 		newParent.PathLen = pathLen
-		newParent.LongestPath = node.LongestPath
+		newParent.longestPath = node.longestPath
 		newParent.children = []*TrieNode{node}
 
 		if parent != nil {
@@ -139,7 +139,7 @@ func (node *TrieNode) addPath(data []byte, payload interface{}, pathLen int, par
 
 	newParent := NewTrie(data[:splitIdx], nil)
 	newParent.PathLen = 0
-	newParent.LongestPath = node.LongestPath
+	newParent.longestPath = node.longestPath
 	newParent.children = []*TrieNode{node}
 	newParent.addNewChild(data[splitIdx:], payload, pathLen)
 

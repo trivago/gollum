@@ -17,10 +17,10 @@ package consumer
 import (
 	"fmt"
 	"github.com/jeromer/syslogparser"
-	"github.com/mcuadros/go-syslog"
-	"github.com/mcuadros/go-syslog/format"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
+	"gopkg.in/mcuadros/go-syslog.v2"
+	"gopkg.in/mcuadros/go-syslog.v2/format"
 	"sync"
 )
 
