@@ -31,9 +31,9 @@ func testFormatter(t *testing.T, formatter core.Formatter) bool {
 	result := true
 
 	length, _ := formatter.Read(buffer)
-	result = expect.IntEq(formatter.Len(), length) && result
-	result = expect.IntEq(formatter.Len(), len(formatter.String())) && result
-	result = expect.StringEq(formatter.String(), string(buffer)) && result
+	result = expect.Equal(formatter.Len(), length) && result
+	result = expect.Equal(formatter.Len(), len(formatter.String())) && result
+	result = expect.Equal(formatter.String(), string(buffer)) && result
 
 	return result
 }

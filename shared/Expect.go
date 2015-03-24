@@ -15,37 +15,57 @@
 package shared
 
 import (
-	"bytes"
 	"fmt"
 	"reflect"
 	"runtime"
+	"strings"
 	"testing"
 )
 
+var expectBasePath string
+
+func init() {
+	pkgPath := reflect.TypeOf(Expect{}).PkgPath()
+	pathEndIdx := strings.LastIndex(pkgPath, "/") + 1
+	expectBasePath = pkgPath[:pathEndIdx]
+}
+
 // Expect is a helper construct for unittesting
 type Expect struct {
-	t *testing.T
+	scope string
+	t     *testing.T
 }
 
-// NewExpect returns a new Expect struct bound to a unittest object
+// NewExpect creates an Expect helper struct with scope set to the name of the
+// calling function.
 func NewExpect(t *testing.T) Expect {
-	return Expect{t}
+	pc, _, _, _ := runtime.Caller(1)
+	caller := runtime.FuncForPC(pc)
+	funcName := caller.Name()
+	return Expect{
+		scope: funcName[strings.LastIndex(funcName, ".")+1:],
+		t:     t,
+	}
 }
 
-func (e Expect) print(message string) {
+func (e Expect) error(message string) {
 	_, file, line, _ := runtime.Caller(2)
-	e.t.Errorf("%s(%d): %s", file, line, message)
+	file = file[strings.Index(file, expectBasePath)+len(expectBasePath):]
+
+	e.t.Errorf("%s(%d): %s -> %s", file, line, e.scope, message)
 }
 
-func (e Expect) printf(format string, args ...interface{}) {
+func (e Expect) errorf(format string, args ...interface{}) {
 	_, file, line, _ := runtime.Caller(2)
-	e.t.Errorf(fmt.Sprintf("%s(%d): %s", file, line, format), args...)
+	file = file[strings.Index(file, expectBasePath)+len(expectBasePath):]
+
+	e.t.Errorf(fmt.Sprintf("%s(%d): %s -> %s", file, line, e.scope, format), args...)
 }
 
 // True tests if the given value is true
 func (e Expect) True(val bool) bool {
 	if !val {
-		e.print("Expected true")
+		e.error("Expected true")
 		return false
 	}
 	return true
@@ -54,7 +74,7 @@ func (e Expect) True(val bool) bool {
 // False tests if the given value is false
 func (e Expect) False(val bool) bool {
 	if val {
-		e.print("Expected false")
+		e.error("Expected false")
 		return false
 	}
 	return true
@@ -64,7 +84,7 @@ func (e Expect) False(val bool) bool {
 func (e Expect) Nil(val interface{}) bool {
 	rval := reflect.ValueOf(val)
 	if val != nil && !rval.IsNil() {
-		e.print("Expected nil")
+		e.error("Expected nil")
 		return false
 	}
 	return true
@@ -74,150 +94,444 @@ func (e Expect) Nil(val interface{}) bool {
 func (e Expect) NotNil(val interface{}) bool {
 	rval := reflect.ValueOf(val)
 	if val == nil || rval.IsNil() {
-		e.print("Expected not nil")
+		e.error("Expected not nil")
 		return false
 	}
 	return true
 }
 
-// IntEq tests two integers on equality
-func (e Expect) IntEq(val1 int, val2 int) bool {
-	if val1 != val2 {
-		e.printf("Expected \"%d\", got \"%d\"", val1, val2)
+// Equal does a deep equality check on both values and returns true if that test
+// yielded true (val1 == val2)
+func (e Expect) Equal(val1, val2 interface{}) bool {
+	if !reflect.DeepEqual(val1, val2) {
+		e.errorf("Expected %T(%v), got %T(%v)", val1, val1, val2, val2)
 		return false
 	}
 	return true
 }
 
-// StringEq tests two strings on equality
-func (e Expect) StringEq(val1 string, val2 string) bool {
-	if val1 != val2 {
-		e.printf("Expected \"%s\", got \"%s\"", val1, val2)
+// Neq does a deep equality check on both values and returns true if that test
+// yielded false (val1 != val2)
+func (e Expect) Neq(val1, val2 interface{}) bool {
+	if reflect.DeepEqual(val1, val2) {
+		e.errorf("Expected not %T(%v)", val1, val1)
 		return false
 	}
 	return true
 }
 
-// BytesEq tests two byte slices on equality
-func (e Expect) BytesEq(val1 []byte, val2 []byte) bool {
-	if !bytes.Equal(val1, val2) {
-		e.printf("Expected %v, got %v", val1, val2)
-		return false
-	}
-	return true
-}
-
-// MapSetStrEq tests if a key/value pair is set in a given map and if value is
-// of the expected string value
-func (e Expect) MapSetStrEq(data map[string]interface{}, key string, value string) bool {
-	val, valSet := data[key]
-	if !valSet {
-		e.printf("Expected key \"%s\" not found", key)
+// Greater does a numeric greater than check on both values and returns true if
+// that test yielded true (val1 > val2)
+func (e Expect) Greater(val1, val2 interface{}) bool {
+	if reflect.TypeOf(val1) != reflect.TypeOf(val2) {
+		e.errorf("Expect.Greater requires both values to be of the same type. Got %T and %T.", val1, val2)
 		return false
 	}
 
-	stringVal, correctType := val.(string)
-	if !correctType {
-		e.printf("Key \"%s\" is not a string (%s)", key, reflect.TypeOf(val))
-		return false
-	}
-
-	if stringVal != value {
-		e.printf("Expected \"%s\" for \"%s\" got \"%s\"", value, key, stringVal)
-		return false
-	}
-	return true
-}
-
-// MapSetIntEq tests if a key/value pair is set in a given map and if value is
-// of the expected integer value
-func (e Expect) MapSetIntEq(data map[string]interface{}, key string, value int) bool {
-	val, valSet := data[key]
-	if !valSet {
-		e.printf("Expected key \"%s\" not found", key)
-		return false
-	}
-
-	intVal, correctType := val.(int)
-	if !correctType {
-		e.printf("Key \"%s\" is not an int (%s)", key, reflect.TypeOf(val))
-		return false
-	}
-
-	if intVal != value {
-		e.printf("Expected \"%d\" for \"%s\" got \"%d\"", value, key, intVal)
-		return false
-	}
-	return true
-}
-
-// MapSetFloat64Eq tests if a key/value pair is set in a given map and if value is
-// of the expected integer value
-func (e Expect) MapSetFloat64Eq(data map[string]interface{}, key string, value float64) bool {
-	val, valSet := data[key]
-	if !valSet {
-		e.printf("Expected key \"%s\" not found", key)
-		return false
-	}
-
-	floatVal, correctType := val.(float64)
-	if !correctType {
-		e.printf("Key \"%s\" is not a float64 (%s)", key, reflect.TypeOf(val))
-		return false
-	}
-
-	if floatVal != value {
-		e.printf("Expected \"%f\" for \"%s\" got \"%f\"", value, key, floatVal)
-		return false
-	}
-	return true
-}
-
-// MapSetStrArrayEq tests if a key/value pair is set in a given map and if value
-// is matching the expected array value
-func (e Expect) MapSetStrArrayEq(data map[string]interface{}, key string, value []string) bool {
-	val, valSet := data[key]
-	if !valSet {
-		e.printf("Expected key \"%s\" not found", key)
-		return false
-	}
-
-	stringArrayVal, correctType := val.([]string)
-	if !correctType {
-		e.printf("Key \"%s\" is not an []string", key)
-		return false
-	}
-
-	if len(value) != len(stringArrayVal) {
-		e.printf("Expected \"%v\" for \"%s\" got \"%v\"", value, key, val)
-		return false
-	}
-
-	for i, element := range stringArrayVal {
-		if element != value[i] {
-			e.printf("Expected \"%s\" at for \"%s[%d]\" got \"%s\"", element, key, i, value[i])
+	switch val1.(type) {
+	case int:
+		if val1.(int) <= val2.(int) {
+			e.errorf("%d <= %d.", val1.(int), val2.(int))
 			return false
 		}
+	case int8:
+		if val1.(int8) <= val2.(int8) {
+			e.errorf("%d <= %d.", val1.(int8), val2.(int8))
+			return false
+		}
+	case int16:
+		if val1.(int16) <= val2.(int16) {
+			e.errorf("%d <= %d.", val1.(int16), val2.(int16))
+			return false
+		}
+	case int32:
+		if val1.(int32) <= val2.(int32) {
+			e.errorf("%d <= %d.", val1.(int32), val2.(int32))
+			return false
+		}
+	case int64:
+		if val1.(int64) <= val2.(int64) {
+			e.errorf("%d <= %d.", val1.(int64), val2.(int64))
+			return false
+		}
+	case uint:
+		if val1.(uint) <= val2.(uint) {
+			e.errorf("%d <= %d.", val1.(uint), val2.(uint))
+			return false
+		}
+	case uint8:
+		if val1.(uint8) <= val2.(uint8) {
+			e.errorf("%d <= %d.", val1.(uint8), val2.(uint8))
+			return false
+		}
+	case uint16:
+		if val1.(uint16) <= val2.(uint16) {
+			e.errorf("%d <= %d.", val1.(uint16), val2.(uint16))
+			return false
+		}
+	case uint32:
+		if val1.(uint32) <= val2.(uint32) {
+			e.errorf("%d <= %d.", val1.(uint32), val2.(uint32))
+			return false
+		}
+	case uint64:
+		if val1.(uint64) <= val2.(uint64) {
+			e.errorf("%d <= %d.", val1.(uint64), val2.(uint64))
+			return false
+		}
+	case float32:
+		if val1.(float32) <= val2.(float32) {
+			e.errorf("%f <= %f.", val1.(float32), val2.(float32))
+			return false
+		}
+	case float64:
+		if val1.(float64) <= val2.(float64) {
+			e.errorf("%f <= %f.", val1.(float64), val2.(float64))
+			return false
+		}
+	default:
+		e.errorf("Cannot test %T for \"greater than\".", val1)
+		return false
 	}
+
 	return true
 }
 
-// MapSet tests if a given key exists in a map
-func (e Expect) MapSet(data map[string]interface{}, key string) bool {
-	_, valSet := data[key]
-	if !valSet {
-		e.printf("Expected key \"%s\" to be set", key)
+// Geq does a numeric greater or equal check on both values and returns true if
+// that test yielded true (val1 >= val2)
+func (e Expect) Geq(val1, val2 interface{}) bool {
+	if reflect.TypeOf(val1) != reflect.TypeOf(val2) {
+		e.errorf("Expect.Geq requires both values to be of the same type. Got %T and %T.", val1, val2)
+		return false
+	}
+
+	switch val1.(type) {
+	case int:
+		if val1.(int) < val2.(int) {
+			e.errorf("%d < %d.", val1.(int), val2.(int))
+			return false
+		}
+	case int8:
+		if val1.(int8) < val2.(int8) {
+			e.errorf("%d < %d.", val1.(int8), val2.(int8))
+			return false
+		}
+	case int16:
+		if val1.(int16) < val2.(int16) {
+			e.errorf("%d < %d.", val1.(int16), val2.(int16))
+			return false
+		}
+	case int32:
+		if val1.(int32) < val2.(int32) {
+			e.errorf("%d < %d.", val1.(int32), val2.(int32))
+			return false
+		}
+	case int64:
+		if val1.(int64) < val2.(int64) {
+			e.errorf("%d < %d.", val1.(int64), val2.(int64))
+			return false
+		}
+	case uint:
+		if val1.(uint) < val2.(uint) {
+			e.errorf("%d < %d.", val1.(uint), val2.(uint))
+			return false
+		}
+	case uint8:
+		if val1.(uint8) < val2.(uint8) {
+			e.errorf("%d < %d.", val1.(uint8), val2.(uint8))
+			return false
+		}
+	case uint16:
+		if val1.(uint16) < val2.(uint16) {
+			e.errorf("%d < %d.", val1.(uint16), val2.(uint16))
+			return false
+		}
+	case uint32:
+		if val1.(uint32) < val2.(uint32) {
+			e.errorf("%d < %d.", val1.(uint32), val2.(uint32))
+			return false
+		}
+	case uint64:
+		if val1.(uint64) < val2.(uint64) {
+			e.errorf("%d < %d.", val1.(uint64), val2.(uint64))
+			return false
+		}
+	case float32:
+		if val1.(float32) < val2.(float32) {
+			e.errorf("%f < %f.", val1.(float32), val2.(float32))
+			return false
+		}
+	case float64:
+		if val1.(float64) < val2.(float64) {
+			e.errorf("%f < %f.", val1.(float64), val2.(float64))
+			return false
+		}
+	default:
+		e.errorf("Cannot test %T for \"greater or equal\".", val1)
+		return false
+	}
+
+	return true
+}
+
+// Less does a numeric less than check on both values and returns true if
+// that test yielded true (val1 < val2)
+func (e Expect) Less(val1, val2 interface{}) bool {
+	if reflect.TypeOf(val1) != reflect.TypeOf(val2) {
+		e.errorf("Expect.Less requires both values to be of the same type. Got %T and %T.", val1, val2)
+		return false
+	}
+
+	switch val1.(type) {
+	case int:
+		if val1.(int) >= val2.(int) {
+			e.errorf("%d >= %d.", val1.(int), val2.(int))
+			return false
+		}
+	case int8:
+		if val1.(int8) >= val2.(int8) {
+			e.errorf("%d >= %d.", val1.(int8), val2.(int8))
+			return false
+		}
+	case int16:
+		if val1.(int16) >= val2.(int16) {
+			e.errorf("%d >= %d.", val1.(int16), val2.(int16))
+			return false
+		}
+	case int32:
+		if val1.(int32) >= val2.(int32) {
+			e.errorf("%d >= %d.", val1.(int32), val2.(int32))
+			return false
+		}
+	case int64:
+		if val1.(int64) >= val2.(int64) {
+			e.errorf("%d >= %d.", val1.(int64), val2.(int64))
+			return false
+		}
+	case uint:
+		if val1.(uint) >= val2.(uint) {
+			e.errorf("%d >= %d.", val1.(uint), val2.(uint))
+			return false
+		}
+	case uint8:
+		if val1.(uint8) >= val2.(uint8) {
+			e.errorf("%d >= %d.", val1.(uint8), val2.(uint8))
+			return false
+		}
+	case uint16:
+		if val1.(uint16) >= val2.(uint16) {
+			e.errorf("%d >= %d.", val1.(uint16), val2.(uint16))
+			return false
+		}
+	case uint32:
+		if val1.(uint32) >= val2.(uint32) {
+			e.errorf("%d >= %d.", val1.(uint32), val2.(uint32))
+			return false
+		}
+	case uint64:
+		if val1.(uint64) >= val2.(uint64) {
+			e.errorf("%d >= %d.", val1.(uint64), val2.(uint64))
+			return false
+		}
+	case float32:
+		if val1.(float32) >= val2.(float32) {
+			e.errorf("%f >= %f.", val1.(float32), val2.(float32))
+			return false
+		}
+	case float64:
+		if val1.(float64) >= val2.(float64) {
+			e.errorf("%f >= %f.", val1.(float64), val2.(float64))
+			return false
+		}
+	default:
+		e.errorf("Cannot test %T for \"less than\".", val1)
+		return false
+	}
+
+	return true
+}
+
+// Leq does a numeric less or euqal check on both values and returns true if
+// that test yielded true (val1 <= val2)
+func (e Expect) Leq(val1, val2 interface{}) bool {
+	if reflect.TypeOf(val1) != reflect.TypeOf(val2) {
+		e.errorf("Expect.Leq requires both values to be of the same type. Got %T and %T.", val1, val2)
+		return false
+	}
+
+	switch val1.(type) {
+	case int:
+		if val1.(int) > val2.(int) {
+			e.errorf("%d > %d.", val1.(int), val2.(int))
+			return false
+		}
+	case int8:
+		if val1.(int8) > val2.(int8) {
+			e.errorf("%d > %d.", val1.(int8), val2.(int8))
+			return false
+		}
+	case int16:
+		if val1.(int16) > val2.(int16) {
+			e.errorf("%d > %d.", val1.(int16), val2.(int16))
+			return false
+		}
+	case int32:
+		if val1.(int32) > val2.(int32) {
+			e.errorf("%d > %d.", val1.(int32), val2.(int32))
+			return false
+		}
+	case int64:
+		if val1.(int64) > val2.(int64) {
+			e.errorf("%d > %d.", val1.(int64), val2.(int64))
+			return false
+		}
+	case uint:
+		if val1.(uint) > val2.(uint) {
+			e.errorf("%d > %d.", val1.(uint), val2.(uint))
+			return false
+		}
+	case uint8:
+		if val1.(uint8) > val2.(uint8) {
+			e.errorf("%d > %d.", val1.(uint8), val2.(uint8))
+			return false
+		}
+	case uint16:
+		if val1.(uint16) > val2.(uint16) {
+			e.errorf("%d > %d.", val1.(uint16), val2.(uint16))
+			return false
+		}
+	case uint32:
+		if val1.(uint32) > val2.(uint32) {
+			e.errorf("%d > %d.", val1.(uint32), val2.(uint32))
+			return false
+		}
+	case uint64:
+		if val1.(uint64) > val2.(uint64) {
+			e.errorf("%d > %d.", val1.(uint64), val2.(uint64))
+			return false
+		}
+	case float32:
+		if val1.(float32) > val2.(float32) {
+			e.errorf("%f > %f.", val1.(float32), val2.(float32))
+			return false
+		}
+	case float64:
+		if val1.(float64) > val2.(float64) {
+			e.errorf("%f > %f.", val1.(float64), val2.(float64))
+			return false
+		}
+	default:
+		e.errorf("Cannot test %T for \"less or euqal\".", val1)
+		return false
+	}
+
+	return true
+}
+
+// MapSet returns true if the key is set in the given array
+func (e Expect) MapSet(data interface{}, key interface{}) bool {
+	mapVal := reflect.ValueOf(data)
+	keyVal := reflect.ValueOf(key)
+	value := mapVal.MapIndex(keyVal)
+	if !value.IsValid() {
+		e.errorf("Expected key \"%v\" to be set", key)
 		return false
 	}
 	return true
 }
 
-// MapNotSet tests if a given key does not exist in a map
-func (e Expect) MapNotSet(data map[string]interface{}, key string) bool {
-	_, valSet := data[key]
-	if valSet {
-		e.printf("Expected key \"%s\" not to be set", key)
+// MapNotSet returns true if the key is not set in the given array
+func (e Expect) MapNotSet(data interface{}, key interface{}) bool {
+	mapVal := reflect.ValueOf(data)
+	keyVal := reflect.ValueOf(key)
+	value := mapVal.MapIndex(keyVal)
+	if value.IsValid() {
+		e.errorf("Expected key \"%v\" not to be set", key)
 		return false
 	}
 	return true
+}
+
+// MapEqual returns true if MapSet equals true for the given key and Equal
+// returns true for the returned and given value.
+func (e Expect) MapEqual(data interface{}, key interface{}, value interface{}) bool {
+	mapVal := reflect.ValueOf(data)
+	keyVal := reflect.ValueOf(key)
+	valVal := mapVal.MapIndex(keyVal)
+	if !valVal.IsValid() {
+		e.errorf("Expected key \"%v\" to be set", key)
+		return false
+	}
+
+	return e.Equal(value, valVal.Interface())
+}
+
+// MapNeq returns true if MapSet equals true for the given key and Neq returns
+// true for the returned and given value.
+func (e Expect) MapNeq(data interface{}, key interface{}, value interface{}) bool {
+	mapVal := reflect.ValueOf(data)
+	keyVal := reflect.ValueOf(key)
+	valVal := mapVal.MapIndex(keyVal)
+	if !valVal.IsValid() {
+		e.errorf("Expected key \"%v\" to be set", key)
+		return false
+	}
+
+	return e.Neq(value, valVal.Interface())
+}
+
+// MapLess returns true if MapSet equals true for the given key and Less returns
+// true for the returned and given value.
+func (e Expect) MapLess(data interface{}, key interface{}, value interface{}) bool {
+	mapVal := reflect.ValueOf(data)
+	keyVal := reflect.ValueOf(key)
+	valVal := mapVal.MapIndex(keyVal)
+	if !valVal.IsValid() {
+		e.errorf("Expected key \"%v\" to be set", key)
+		return false
+	}
+
+	return e.Less(value, valVal.Interface())
+}
+
+// MapGreater returns true if MapSet equals true for the given key and Greater
+// returns true for the returned and given value.
+func (e Expect) MapGreater(data interface{}, key interface{}, value interface{}) bool {
+	mapVal := reflect.ValueOf(data)
+	keyVal := reflect.ValueOf(key)
+	valVal := mapVal.MapIndex(keyVal)
+	if !valVal.IsValid() {
+		e.errorf("Expected key \"%v\" to be set", key)
+		return false
+	}
+
+	return e.Greater(value, valVal.Interface())
+}
+
+// MapLeq returns true if MapSet equals true for the given key and Leq returns
+// true for the returned and given value.
+func (e Expect) MapLeq(data interface{}, key interface{}, value interface{}) bool {
+	mapVal := reflect.ValueOf(data)
+	keyVal := reflect.ValueOf(key)
+	valVal := mapVal.MapIndex(keyVal)
+	if !valVal.IsValid() {
+		e.errorf("Expected key \"%v\" to be set", key)
+		return false
+	}
+
+	return e.Leq(value, valVal.Interface())
+}
+
+// MapGeq returns true if MapSet equals true for the given key and Geq returns
+// true for the returned and given value.
+func (e Expect) MapGeq(data interface{}, key interface{}, value interface{}) bool {
+	mapVal := reflect.ValueOf(data)
+	keyVal := reflect.ValueOf(key)
+	valVal := mapVal.MapIndex(keyVal)
+	if !valVal.IsValid() {
+		e.errorf("Expected key \"%v\" to be set", key)
+		return false
+	}
+
+	return e.Geq(value, valVal.Interface())
 }

@@ -27,7 +27,7 @@ type bufferedReaderTestData struct {
 }
 
 func (br *bufferedReaderTestData) write(data []byte, seq uint64) {
-	br.expect.StringEq(br.tokens[seq], string(data))
+	br.expect.Equal(br.tokens[seq], string(data))
 	br.parsed++
 }
 
@@ -43,7 +43,7 @@ func TestBufferedReaderDelimiter(t *testing.T) {
 	reader := NewBufferedReader(1024, 0, "\n", data.write)
 
 	reader.Read(parseReader)
-	data.expect.IntEq(2, data.parsed)
+	data.expect.Equal(2, data.parsed)
 }
 
 func TestBufferedReaderRLE(t *testing.T) {
@@ -62,7 +62,7 @@ func TestBufferedReaderRLE(t *testing.T) {
 	reader := NewBufferedReader(1024, BufferedReaderFlagRLE, "", data.write)
 
 	reader.Read(parseReader)
-	data.expect.IntEq(3, data.parsed)
+	data.expect.Equal(3, data.parsed)
 }
 
 func TestBufferedReaderSeq(t *testing.T) {
@@ -81,7 +81,7 @@ func TestBufferedReaderSeq(t *testing.T) {
 	reader := NewBufferedReader(1024, BufferedReaderFlagSequence, "\n", data.write)
 
 	reader.Read(parseReader)
-	data.expect.IntEq(3, data.parsed)
+	data.expect.Equal(3, data.parsed)
 }
 
 func TestBufferedReaderRLESeq(t *testing.T) {
@@ -100,5 +100,5 @@ func TestBufferedReaderRLESeq(t *testing.T) {
 	reader := NewBufferedReader(1024, BufferedReaderFlagRLE|BufferedReaderFlagSequence, "", data.write)
 
 	reader.Read(parseReader)
-	data.expect.IntEq(3, data.parsed)
+	data.expect.Equal(3, data.parsed)
 }

@@ -70,7 +70,7 @@ func TestJSONFormatter1(t *testing.T) {
 	}, "findKey")
 
 	test.PrepareMessage(msg)
-	expect.StringEq(testString, test.String())
+	expect.Equal(testString, test.String())
 }
 
 func BenchmarkJSONFormatter(b *testing.B) {

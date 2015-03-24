@@ -15,7 +15,6 @@
 package shared
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -33,17 +32,14 @@ type parserTestState struct {
 }
 
 func (t *parserTestState) parsedName(data []byte, state ParserStateID) {
-	fmt.Println("name: ", string(data))
 	t.currentName = string(data)
 }
 
 func (t *parserTestState) parsedValue(data []byte, state ParserStateID) {
-	fmt.Println("value: ", string(data))
 	t.parsed[t.currentName] = string(data)
 }
 
 func (t *parserTestState) parsedArray(data []byte, state ParserStateID) {
-	fmt.Println("array: ", string(data))
 	if value, exists := t.parsed[t.currentName]; !exists {
 		t.parsed[t.currentName] = []string{string(data)}
 	} else {
@@ -62,7 +58,7 @@ func TestTrie(t *testing.T) {
 	node := root.Match([]byte("abcd"))
 	if expect.NotNil(node) {
 		expect.NotNil(node.Payload)
-		expect.IntEq(4, node.PathLen)
+		expect.Equal(4, node.PathLen)
 	}
 
 	node = root.Match([]byte("ab"))
@@ -71,7 +67,7 @@ func TestTrie(t *testing.T) {
 	node = root.MatchStart([]byte("abcdef"))
 	if expect.NotNil(node) {
 		expect.NotNil(node.Payload)
-		expect.IntEq(4, node.PathLen)
+		expect.Equal(4, node.PathLen)
 	}
 
 	node = root.MatchStart([]byte("bcde"))
@@ -84,7 +80,7 @@ func TestTrie(t *testing.T) {
 	node = root2.Match([]byte("c"))
 	if expect.NotNil(node) {
 		expect.NotNil(node.Payload)
-		expect.IntEq(1, node.PathLen)
+		expect.Equal(1, node.PathLen)
 	}
 }
 
@@ -114,9 +110,9 @@ func TestParser(t *testing.T) {
 	expect.MapSet(state.parsed, "array")
 	expect.MapSet(state.parsed, "end")
 
-	expect.MapSetStrEq(state.parsed, "test", "123")
-	expect.MapSetStrArrayEq(state.parsed, "array", []string{"a", "b", "c"})
-	expect.MapSetStrEq(state.parsed, "end", "456")
+	expect.MapEqual(state.parsed, "test", "123")
+	expect.MapEqual(state.parsed, "array", []string{"a", "b", "c"})
+	expect.MapEqual(state.parsed, "end", "456")
 }
 
 func TestDirectiveParser(t *testing.T) {
@@ -128,19 +124,19 @@ func TestDirectiveParser(t *testing.T) {
 
 	directive, err := ParseTransitionDirective("start:>:::", callbacks)
 	if expect.Nil(err) {
-		expect.StringEq("start", directive.State)
-		expect.StringEq(">", directive.Token)
-		expect.StringEq("", directive.NextState)
-		expect.IntEq(0, int(directive.Flags))
+		expect.Equal("start", directive.State)
+		expect.Equal(">", directive.Token)
+		expect.Equal("", directive.NextState)
+		expect.Equal(0, int(directive.Flags))
 		expect.Nil(directive.Callback)
 	}
 
 	directive, err = ParseTransitionDirective(" start : \\:: next : continue : write", callbacks)
 	if expect.Nil(err) {
-		expect.StringEq("start", directive.State)
-		expect.StringEq(" :", directive.Token)
-		expect.StringEq("next", directive.NextState)
-		expect.IntEq(int(ParserFlagContinue), int(directive.Flags))
+		expect.Equal("start", directive.State)
+		expect.Equal(" :", directive.Token)
+		expect.Equal("next", directive.NextState)
+		expect.Equal(int(ParserFlagContinue), int(directive.Flags))
 		expect.NotNil(directive.Callback)
 	}
 }
