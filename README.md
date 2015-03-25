@@ -1,6 +1,6 @@
 # Gollum
 
-Gollum is a n:m log multiplexer that gathers messages from different sources and broadcasts them to a set of listeners.
+Gollum is a n:m multiplexer that gathers messages from different sources and broadcasts them to a set of destinations.
 
 There are a few basic terms used throughout Gollum:
 
@@ -15,7 +15,7 @@ Writing a custom plugin does not require you to change any additional code besid
 ## Consumers (reading data)
 
 * `Console` read from stdin.
-* `Dropped` route messages that have been timed out.
+* `LoopBack` Process routed (e.g. dropped) messages.
 * `File` read from a file (like tail).
 * `Kafka` read from a [Kafka](http://kafka.apache.org/) topic.
 * `Socket` read from a socket (gollum specfic protocol).
@@ -28,13 +28,13 @@ Writing a custom plugin does not require you to change any additional code besid
 * `File` write to a file. Supports log rotation and compression.
 * `Kafka` write to a [Kafka](http://kafka.apache.org/) topic.
 * `Null` like /dev/null.
-* `Facebook Scribe` send messages to a [scribe](https://github.com/facebookarchive/scribe) server.
+* `Scribe` send messages to a [Facebook scribe](https://github.com/facebookarchive/scribe) server.
 * `Socket` send messages to a socket (gollum specfic protocol).
 
 ## Formatters (modifying data)
 
 * `Forward` write the message without modifying it.
-* `JSON` write the message (and gollum specific metadata) as a JSON object. Other formatters can be nested.
+* `JSON` write the message as a JSON object. Messages can be parsed to generate fields.
 * `Runlength` prepend the length of themessage. Other formatters can be nested.
 * `Sequence` prepend the sequence number of the message. Other formatters can be nested.
 * `Delimiter` add a delimiter string after the message.
@@ -50,23 +50,35 @@ Writing a custom plugin does not require you to change any additional code besid
 
 ### From source
 
-Installation from source requires the installation of the [Go toolchain](http://golang.org/).
+Installation from source requires the installation of the [Go toolchain](http://golang.org/).  
+Gollum has [Godeps](https://github.com/tools/godep) support but this is considered optional.
 
 ```
 $ go get .
-$ go build .
+$ go build
 $ gollum --help
 ```
 
+You can use the supplied make file to trigger cross platform builds.  
+Make will produce ready to deploy .tar.gz files with the corresponding platform builds.  
+This does require a cross platform golang build.  
+Valid make targets (besides all and clean) are:
+ * freebsd
+ * linux
+ * max
+ * pi
+ * win
+
 ## Usage
 
-The Delimiterst usage is to make a local profiler run with a predefined consiguration:
+To test gollum you can make a local profiler run with a predefined configuration:
 
 ```
-$ gollum -c gollum_profile.conf
+$ gollum -c gollum_profile.conf -ps -ll 3
 ```
 
-This configuration generates random messages (via *consumer.Profiler*) and write this to a file called *log_profile.log* with file rotation after 512MB per file (via *producer.File*).
+By default this test profiles the theoretic maximum throughput of 256 Byte messages.  
+You can enable different producers to test the write performance of these producers, too.
 
 ## Configuration
 
