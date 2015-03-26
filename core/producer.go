@@ -16,7 +16,6 @@ package core
 
 import (
 	"github.com/trivago/gollum/shared"
-	"regexp"
 	"sync"
 	"time"
 )
@@ -87,8 +86,8 @@ type ProducerBase struct {
 	messages chan Message
 	control  chan ProducerControl
 	streams  []MessageStreamID
-	filter   *regexp.Regexp
 	state    *PluginRunState
+	filter   Filter
 	format   Formatter
 	timeout  time.Duration
 }
@@ -128,13 +127,11 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	}
 	prod.format = plugin.(Formatter)
 
-	filter := conf.GetString("Filter", "")
-	if filter != "" {
-		prod.filter, err = regexp.Compile(filter)
-		if err != nil {
-			return err // ### return, regex parser error ###
-		}
+	plugin, err = NewPluginWithType(conf.GetString("Filter", "filter.All"), conf)
+	if err != nil {
+		return err // ### return, plugin load error ###
 	}
+	prod.filter = plugin.(Filter)
 
 	return nil
 }
@@ -169,16 +166,6 @@ func (prod ProducerBase) WorkerDone() {
 // will cause the producer to always block.
 func (prod ProducerBase) GetTimeout() time.Duration {
 	return prod.timeout
-}
-
-// Accepts returns true if the message matches a configured regexp or if no
-// regexp is set in the config
-func (prod ProducerBase) Accepts(msg Message) bool {
-	if prod.filter == nil {
-		return true // ### return, pass everything ###
-	}
-
-	return prod.filter.MatchString(string(msg.Data))
 }
 
 // Formatter returns the formatter configured with this producer
@@ -224,7 +211,7 @@ func (prod ProducerBase) Messages() chan<- Message {
 // Post will try to filter the message by calling Accepts before enqueuing the
 // message using msg.Enqueue.
 func (prod ProducerBase) Post(msg Message) {
-	if prod.Accepts(msg) {
+	if prod.filter.Accepts(msg) {
 		msg.Enqueue(prod.messages, prod.timeout)
 	}
 }
