@@ -73,7 +73,7 @@ func (cons *Httpd) requestHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	buffer := bytes.NewBuffer(make([]byte, int(r.ContentLength)))
+	buffer := bytes.NewBuffer(make([]byte, 0, int(r.ContentLength)))
 	n, err := buffer.ReadFrom(r.Body)
 	if err != nil || n <= 0 {
 		// Uuuuh, we can`t parse the request body. Thats bad.
