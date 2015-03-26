@@ -95,6 +95,10 @@ Use a given configuration file.
 
 Print this help message.
 
+#### `-ll` or `--loglevel` [0-3]
+
+Set the loglevel [0-3]. Higher levels produce more messages.
+
 #### `-m` or `--metrics` [port]
 
 Port to use for metric queries. Set 0 to disable.
