@@ -64,7 +64,7 @@ func (prod *Websocket) Configure(conf core.PluginConfig) error {
 
 	prod.addr = conf.GetString("Addr", ":5000")
 	prod.path = conf.GetString("Path", "/")
-	prod.channelSize = conf.GetInt("BatchMaxCount", 128)
+	prod.channelSize = conf.GetInt("ChannelSize", 1024)
 	prod.messages = make(chan string, prod.channelSize)
 
 	return nil
