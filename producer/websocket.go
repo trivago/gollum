@@ -25,15 +25,16 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
-// Console producer plugin
+// Websocket producer plugin
 // Configuration example
 //
 //   - "producer.Websocket":
-//     Enable: true
-//     Addr:   ":80"
-//     Path:   "/"
+//     Enable:      true
+//     Addr:        ":80"
+//     Path:        "/"
+//     ChannelSize: 1024
 //
-// Console may either be "stdout" or "stderr"
+//
 type Websocket struct {
 	core.ProducerBase
 	addr        string
