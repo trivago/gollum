@@ -15,17 +15,14 @@
 package core
 
 import (
-	"github.com/trivago/gollum/core/log"
+	"github.com/trivago/gollum/shared"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )
 
-// ConfigKeyValueMap is used by PluginConfig to store setting->value mappings
-type ConfigKeyValueMap map[string]interface{}
-
 // Config represents the top level config containing all plugin clonfigs
 type Config struct {
-	Values  []map[string]ConfigKeyValueMap
+	Values  []map[string]shared.MarshalMap
 	Plugins []PluginConfig
 }
 
@@ -56,53 +53,4 @@ func ReadConfig(path string) (*Config, error) {
 	}
 
 	return config, err
-}
-
-func configReadBool(key string, val interface{}) bool {
-	boolValue, isBool := val.(bool)
-	if !isBool {
-		Log.Error.Fatalf("Parser: \"%s\" is expected to be a boolean.", key)
-	}
-	return boolValue
-}
-
-func configReadInt(key string, val interface{}) int {
-	intValue, isInt := val.(int)
-	if !isInt {
-		Log.Error.Fatalf("Parser: \"%s\" is expected to be an integer.", key)
-	}
-	return intValue
-}
-
-func configReadString(key string, val interface{}) string {
-	strValue, isString := val.(string)
-	if !isString {
-		Log.Error.Fatalf("Parser: \"%s\" is expected to be a string.", key)
-	}
-	return strValue
-}
-
-func configReadStringArray(key string, val interface{}) []interface{} {
-	switch val.(type) {
-	case string:
-		return []interface{}{configReadString(key, val)}
-	default:
-		return configReadArray(key, val)
-	}
-}
-
-func configReadArray(key string, val interface{}) []interface{} {
-	arrayValue, isArray := val.([]interface{})
-	if !isArray {
-		Log.Error.Fatalf("Parser: \"%s\" is expected to be an array.", key)
-	}
-	return arrayValue
-}
-
-func configReadMap(key string, val interface{}) map[interface{}]interface{} {
-	mapValue, isMap := val.(map[interface{}]interface{})
-	if !isMap {
-		Log.Error.Fatalf("Parser: \"%s\" is expected to be a key/value map.", key)
-	}
-	return mapValue
 }

@@ -100,6 +100,16 @@ func (e Expect) NotNil(val interface{}) bool {
 	return true
 }
 
+// NoError tests if the given error is nil. If it is not the error will be
+// logged.
+func (e Expect) NoError(err error) bool {
+	if err != nil {
+		e.error("Expected no error, got " + err.Error())
+		return false
+	}
+	return true
+}
+
 // Equal does a deep equality check on both values and returns true if that test
 // yielded true (val1 == val2)
 func (e Expect) Equal(val1, val2 interface{}) bool {

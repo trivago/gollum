@@ -14,6 +14,11 @@
 
 package core
 
+import (
+	"github.com/trivago/gollum/core/log"
+	"github.com/trivago/gollum/shared"
+)
+
 // PluginConfig is a configuration for a specific plugin
 type PluginConfig struct {
 	TypeName  string
@@ -21,7 +26,7 @@ type PluginConfig struct {
 	Channel   int
 	Instances int
 	Stream    []string
-	Settings  ConfigKeyValueMap
+	Settings  shared.MarshalMap
 }
 
 // NewPluginConfig creates a new plugin config with default values.
@@ -34,38 +39,33 @@ func NewPluginConfig(pluginTypeName string) PluginConfig {
 		Channel:   4096,
 		Instances: 1,
 		Stream:    []string{},
-		Settings:  make(ConfigKeyValueMap),
+		Settings:  shared.NewMarshalMap(),
 	}
 }
 
 // Read analyzes a given key/value map to extract the configuration values valid
 // for each plugin. All non-default values are written to the Settings member.
-func (conf *PluginConfig) Read(values ConfigKeyValueMap) {
+func (conf *PluginConfig) Read(values shared.MarshalMap) {
+	var err error
 	for key, settingValue := range values {
 		switch key {
 		case "Enable":
-			conf.Enable = configReadBool("Enable", settingValue)
+			conf.Enable, err = values.Bool("Enable")
 
 		case "Channel":
-			conf.Channel = configReadInt("Channel", settingValue)
+			conf.Channel, err = values.Int("Channel")
 
 		case "Instances":
-			conf.Instances = configReadInt("Instances", settingValue)
+			conf.Instances, err = values.Int("Instances")
 
 		case "Stream":
-			switch settingValue.(type) {
-			case string:
-				conf.Stream = append(conf.Stream, settingValue.(string))
-			default:
-				arrayValue := configReadArray("Stream", settingValue)
-				for _, value := range arrayValue {
-					strValue := configReadString("An element of stream", value)
-					conf.Stream = append(conf.Stream, strValue)
-				}
-			}
+			conf.Stream, err = values.StringArray("Stream")
 
 		default:
 			conf.Settings[key] = settingValue
+		}
+		if err != nil {
+			Log.Error.Fatalf(err.Error())
 		}
 	}
 
@@ -93,9 +93,12 @@ func (conf PluginConfig) Override(key string, value interface{}) {
 // GetString tries to read a non-predefined, string value from a PluginConfig.
 // If that value is not found defaultValue is returned.
 func (conf PluginConfig) GetString(key string, defaultValue string) string {
-	value, exists := conf.Settings[key]
-	if exists {
-		return configReadString(key, value)
+	if conf.HasValue(key) {
+		if value, err := conf.Settings.String(key); err != nil {
+			Log.Error.Fatalf(err.Error())
+		} else {
+			return value
+		}
 	}
 
 	return defaultValue
@@ -104,39 +107,27 @@ func (conf PluginConfig) GetString(key string, defaultValue string) string {
 // GetStringArray tries to read a non-predefined, string array from a
 // PluginConfig. If that value is not found defaultValue is returned.
 func (conf PluginConfig) GetStringArray(key string, defaultValue []string) []string {
-	value, exists := conf.Settings[key]
-	if exists {
-		arrayValue := configReadStringArray(key, value)
-		config := make([]string, 0, len(arrayValue))
-
-		for _, value := range arrayValue {
-			strValue := configReadString("An element of "+key, value)
-			config = append(config, strValue)
+	if conf.HasValue(key) {
+		if value, err := conf.Settings.StringArray(key); err != nil {
+			Log.Error.Fatalf(err.Error())
+		} else {
+			return value
 		}
-		return config
 	}
-
 	return defaultValue
 }
 
 // GetStringMap tries to read a non-predefined, string to string map from a
 // PluginConfig. If that value is not found defaultValue is returned.
 func (conf PluginConfig) GetStringMap(key string, defaultValue map[string]string) map[string]string {
-	mapping, exists := conf.Settings[key]
-	if !exists {
-		return defaultValue
+	if conf.HasValue(key) {
+		if value, err := conf.Settings.StringMap(key); err != nil {
+			Log.Error.Fatalf(err.Error())
+		} else {
+			return value
+		}
 	}
-
-	result := make(map[string]string)
-	mapValue := configReadMap(key, mapping)
-
-	for keyItem, valItem := range mapValue {
-		keyItemStr := configReadString("A key of "+key, keyItem)
-		valItemStr := configReadString("A value of "+key, valItem)
-		result[keyItemStr] = valItemStr
-	}
-
-	return result
+	return defaultValue
 }
 
 // GetStreamMap tries to read a non-predefined, stream to string map from a
@@ -146,17 +137,14 @@ func (conf PluginConfig) GetStreamMap(key string, defaultValue string) map[Messa
 	streamMap := make(map[MessageStreamID]string)
 	streamMap[WildcardStreamID] = defaultValue
 
-	mapping, exists := conf.Settings[key]
-	if !exists {
-		return streamMap
-	}
-
-	mapValue := configReadMap(key, mapping)
-
-	for streamItem, targetItem := range mapValue {
-		streamItemStr := configReadString("A key of "+key, streamItem)
-		targetItemStr := configReadString("A value of "+key, targetItem)
-		streamMap[GetStreamID(streamItemStr)] = targetItemStr
+	if conf.HasValue(key) {
+		if value, err := conf.Settings.StringMap(key); err != nil {
+			Log.Error.Fatalf(err.Error())
+		} else {
+			for streamName, target := range value {
+				streamMap[GetStreamID(streamName)] = target
+			}
+		}
 	}
 
 	return streamMap
@@ -168,32 +156,32 @@ func (conf PluginConfig) GetStreamMap(key string, defaultValue string) map[Messa
 func (conf PluginConfig) GetStreamRoute(key string, defaultValue MessageStreamID) map[MessageStreamID][]MessageStreamID {
 	streamRoute := make(map[MessageStreamID][]MessageStreamID)
 
-	mapping, exists := conf.Settings[key]
-	if !exists {
+	if !conf.HasValue(key) {
 		streamRoute[WildcardStreamID] = []MessageStreamID{defaultValue}
 		return streamRoute
 	}
 
-	mapValue := configReadMap(key, mapping)
-	for sourceItem, targetItem := range mapValue {
-		sourceItemStr := configReadString("A key of "+key, sourceItem)
-		targetItemArray := configReadStringArray("A value of "+key, targetItem)
-		sourceStream := GetStreamID(sourceItemStr)
+	if value, err := conf.Settings.StringArrayMap(key); err != nil {
+		Log.Error.Fatalf(err.Error())
+	} else {
+		for sourceName, targets := range value {
+			sourceStream := GetStreamID(sourceName)
 
-		targetIds := []MessageStreamID{}
-		for _, targetName := range targetItemArray {
-			targetIds = append(targetIds, GetStreamID(targetName.(string)))
+			targetIds := []MessageStreamID{}
+			for _, targetName := range targets {
+				targetIds = append(targetIds, GetStreamID(targetName))
+			}
+
+			if _, exists := streamRoute[sourceStream]; exists {
+				streamRoute[sourceStream] = append(streamRoute[sourceStream], targetIds...)
+			} else {
+				streamRoute[sourceStream] = targetIds
+			}
 		}
 
-		if _, exists := streamRoute[sourceStream]; exists {
-			streamRoute[sourceStream] = append(streamRoute[sourceStream], targetIds...)
-		} else {
-			streamRoute[sourceStream] = targetIds
+		if _, exists := streamRoute[WildcardStreamID]; !exists {
+			streamRoute[WildcardStreamID] = []MessageStreamID{defaultValue}
 		}
-	}
-
-	if _, exists := streamRoute[WildcardStreamID]; !exists {
-		streamRoute[WildcardStreamID] = []MessageStreamID{defaultValue}
 	}
 
 	return streamRoute
@@ -202,22 +190,26 @@ func (conf PluginConfig) GetStreamRoute(key string, defaultValue MessageStreamID
 // GetInt tries to read a non-predefined, integer value from a PluginConfig.
 // If that value is not found defaultValue is returned.
 func (conf PluginConfig) GetInt(key string, defaultValue int) int {
-	value, exists := conf.Settings[key]
-	if exists {
-		return configReadInt(key, value)
+	if conf.HasValue(key) {
+		if value, err := conf.Settings.Int(key); err != nil {
+			Log.Error.Fatalf(err.Error())
+		} else {
+			return value
+		}
 	}
-
 	return defaultValue
 }
 
 // GetBool tries to read a non-predefined, boolean value from a PluginConfig.
 // If that value is not found defaultValue is returned.
 func (conf PluginConfig) GetBool(key string, defaultValue bool) bool {
-	value, exists := conf.Settings[key]
-	if exists {
-		return configReadBool(key, value)
+	if conf.HasValue(key) {
+		if value, err := conf.Settings.Bool(key); err != nil {
+			Log.Error.Fatalf(err.Error())
+		} else {
+			return value
+		}
 	}
-
 	return defaultValue
 }
 
@@ -228,6 +220,5 @@ func (conf PluginConfig) GetValue(key string, defaultValue interface{}) interfac
 	if exists {
 		return value
 	}
-
 	return defaultValue
 }
