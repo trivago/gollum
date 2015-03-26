@@ -20,6 +20,15 @@ import (
 	"regexp"
 )
 
+// RegExp allows filtering messages using regular expressions.
+// Configuration example
+//
+//   - producer.Console
+//     Filter: "filter.RegExp"
+//     FilterRegExp: "\d+-.*"
+//
+// FilterRegExp defines the regular expression used for matching the message
+// payload. If the expression matches, the message is passed.
 type RegExp struct {
 	exp *regexp.Regexp
 }
@@ -32,7 +41,7 @@ func init() {
 func (filter *RegExp) Configure(conf core.PluginConfig) error {
 	var err error
 
-	exp := conf.GetString("FilterExpression", "")
+	exp := conf.GetString("FilterRegExp", "")
 	if exp != "" {
 		filter.exp, err = regexp.Compile(exp)
 		if err != nil {
