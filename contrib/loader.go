@@ -19,6 +19,7 @@ package contrib
 
 import (
 	_ "github.com/trivago/gollum/contrib/trivago" // trivago specific plugins
+	_ "github.com/trivago/gollum/contrib/zup"     // zup specific plugins
 )
 
 func init() {

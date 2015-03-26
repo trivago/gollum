@@ -21,6 +21,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	_ "github.com/trivago/gollum/distributor"
+	_ "github.com/trivago/gollum/filter"
 	_ "github.com/trivago/gollum/format"
 	_ "github.com/trivago/gollum/producer"
 	"github.com/trivago/gollum/shared"
