@@ -33,6 +33,14 @@
 			"Rev": "6800482f2c813e689c88b7ed3282262385011890"
 		},
 		{
+			"ImportPath": "github.com/garyburd/redigo/internal",
+			"Rev": "535138d7bcd717d6531c701ef5933d98b1866257"
+		},
+		{
+			"ImportPath": "github.com/garyburd/redigo/redis",
+			"Rev": "535138d7bcd717d6531c701ef5933d98b1866257"
+		},
+		{
 			"ImportPath": "github.com/jeromer/syslogparser",
 			"Rev": "812866d0389ae7e1f5a0110d47dea20224fc776f"
 		},
@@ -40,6 +48,10 @@
 			"ImportPath": "github.com/mattbaird/elastigo/lib",
 			"Comment": "v1.0-139-gba038c1",
 			"Rev": "ba038c10f634af5e7f3bd27b81bd8c37af844edf"
+		},
+		{
+			"ImportPath": "golang.org/x/net/websocket",
+			"Rev": "7dbad50ab5b31073856416cdcfeb2796d682f844"
 		},
 		{
 			"ImportPath": "gopkg.in/Shopify/sarama.v1",
