@@ -59,7 +59,7 @@ func (cons *Profiler) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-var stringBase = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 _.!?/&%$§'")
+var stringBase = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 ")
 
 func (cons *Profiler) profile() {
 
@@ -79,7 +79,7 @@ func (cons *Profiler) profile() {
 		start := time.Now()
 		for i := 0; i < cons.profileRuns; i++ {
 			buffer.Reset()
-			fmt.Fprintf(&buffer, "%d/%d ", i, cons.profileRuns)
+			fmt.Fprintf(&buffer, "%d ", i)
 			buffer.Write(randString)
 
 			cons.PostCopy(buffer.Bytes(), uint64(b*cons.profileRuns+i))

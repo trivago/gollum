@@ -184,13 +184,19 @@ func TestMarshalMapPath(t *testing.T) {
 	nestedMap2["d"] = "ok"
 	nestedMap2["e"] = nestedMap1
 
-	nestedArray := []interface{}{
+	nestedArray1 := []interface{}{
 		"ok",
 		nestedMap2,
 	}
 
+	nestedArray2 := []interface{}{
+		"ok",
+		nestedMap2,
+		nestedArray1,
+	}
+
 	testMap["a"] = "ok"
-	testMap["b"] = nestedArray
+	testMap["b"] = nestedArray2
 	testMap["c"] = nestedMap2
 
 	val, valid := testMap.Path("a")
@@ -212,6 +218,18 @@ func TestMarshalMapPath(t *testing.T) {
 	expect.Equal("ok", val)
 
 	val, valid = testMap.Path("b[1]e/f")
+	expect.True(valid)
+	expect.Equal("ok", val)
+
+	val, valid = testMap.Path("b[2][0]")
+	expect.True(valid)
+	expect.Equal("ok", val)
+
+	val, valid = testMap.Path("b[2][1]d")
+	expect.True(valid)
+	expect.Equal("ok", val)
+
+	val, valid = testMap.Path("b[2][1]e/f")
 	expect.True(valid)
 	expect.Equal("ok", val)
 
