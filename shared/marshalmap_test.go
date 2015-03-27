@@ -172,3 +172,54 @@ func TestMarshalMapStringArrayMaps(t *testing.T) {
 	expect.NoError(err)
 	expect.Equal(m4c, ssaMap)
 }
+
+func TestMarshalMapPath(t *testing.T) {
+	expect := NewExpect(t)
+	testMap := NewMarshalMap()
+
+	nestedMap1 := make(map[string]interface{})
+	nestedMap1["f"] = "ok"
+
+	nestedMap2 := make(map[string]interface{})
+	nestedMap2["d"] = "ok"
+	nestedMap2["e"] = nestedMap1
+
+	nestedArray := []interface{}{
+		"ok",
+		nestedMap2,
+	}
+
+	testMap["a"] = "ok"
+	testMap["b"] = nestedArray
+	testMap["c"] = nestedMap2
+
+	val, valid := testMap.Path("a")
+	expect.True(valid)
+	expect.Equal("ok", val)
+
+	val, valid = testMap.Path("b")
+	expect.True(valid)
+
+	val, valid = testMap.Path("c")
+	expect.True(valid)
+
+	val, valid = testMap.Path("b[0]")
+	expect.True(valid)
+	expect.Equal("ok", val)
+
+	val, valid = testMap.Path("b[1]d")
+	expect.True(valid)
+	expect.Equal("ok", val)
+
+	val, valid = testMap.Path("b[1]e/f")
+	expect.True(valid)
+	expect.Equal("ok", val)
+
+	val, valid = testMap.Path("c/d")
+	expect.True(valid)
+	expect.Equal("ok", val)
+
+	val, valid = testMap.Path("c/e/f")
+	expect.True(valid)
+	expect.Equal("ok", val)
+}
