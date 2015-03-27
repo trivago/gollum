@@ -80,8 +80,6 @@ func (prod *Websocket) addConnection(conn *websocket.Conn) {
 	prod.clients[idx].doneCount++
 	buffer := make([]byte, 8)
 
-	Log.Debug.Print("New connection")
-
 	// Keep alive until connection is closed
 	for {
 		if _, err := conn.Read(buffer); err != nil {
@@ -89,8 +87,6 @@ func (prod *Websocket) addConnection(conn *websocket.Conn) {
 			break
 		}
 	}
-
-	Log.Debug.Print("Connection closed")
 }
 
 func (prod *Websocket) pushMessage(msg core.Message) {
@@ -128,7 +124,6 @@ func (prod *Websocket) pushMessage(msg core.Message) {
 	}
 
 	// Process the active connections
-
 	activeIdx := ((prod.clientIdx >> 31) + 1) & 1
 	activeConns := &prod.clients[activeIdx]
 
@@ -136,7 +131,9 @@ func (prod *Websocket) pushMessage(msg core.Message) {
 		client := activeConns.conns[i]
 		if _, err := client.Write([]byte(messageText)); err != nil {
 			activeConns.conns = append(activeConns.conns[:i], activeConns.conns[i+1:]...)
-			client.Close()
+			if closeErr := client.Close(); closeErr == nil {
+				Log.Error.Print("Websocket: ", err)
+			}
 			i--
 		}
 	}
