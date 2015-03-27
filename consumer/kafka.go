@@ -47,7 +47,7 @@ const (
 //     MessageBufferCount: 32
 //     ElectTimeoutMs: 1000
 //     MetadataRefreshSec: 30
-//     Offset: "File"
+//     DefaultOffset: "File"
 //     OffsetFile: "/tmp/gollum_kafka.idx"
 //     Servers:
 //       - "192.168.222.30:9092"
