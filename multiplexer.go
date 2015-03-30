@@ -356,6 +356,12 @@ func (plex multiplexer) run() {
 			}
 		}
 
+		// Sleep if there is nothing to do
+
+		if messageCount-messageCountBefore == 0 {
+			time.Sleep(time.Duration(100) * time.Millisecond)
+		}
+
 		// Profiling information
 
 		duration := time.Since(measure)
@@ -379,11 +385,6 @@ func (plex multiplexer) run() {
 			// Prepare next run
 			measure = time.Now()
 			messageCount = 0
-		}
-
-		// Sleep if there is nothing to do
-		if messageCount-messageCountBefore == 0 {
-			time.Sleep(time.Duration(1) * time.Second)
 		}
 	}
 }

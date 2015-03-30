@@ -42,9 +42,10 @@ import (
 // By default this is set to 10 seconds.
 type Httpd struct {
 	core.ConsumerBase
-	address     string
-	readTimeout int
-	sequence    uint64
+	listen         *shared.StopListener
+	address        string
+	readTimeoutSec time.Duration
+	sequence       uint64
 }
 
 func init() {
@@ -59,53 +60,57 @@ func (cons *Httpd) Configure(conf core.PluginConfig) error {
 	}
 
 	cons.address = conf.GetString("Address", ":80")
-	cons.readTimeout = conf.GetInt("ReadTimeout", 10)
-
+	cons.readTimeoutSec = time.Duration(conf.GetInt("ReadTimeout", 10)) * time.Second
 	return err
 }
 
 // requestHandler will handle a single web request.
-func (cons *Httpd) requestHandler(w http.ResponseWriter, r *http.Request) {
-	// We need a content length and a body.
-	// Without this information we won`t get out of the warm and cozy bed.
-	if r.ContentLength <= 0 {
-		w.WriteHeader(http.StatusLengthRequired)
-		return
+func (cons *Httpd) requestHandler(resp http.ResponseWriter, req *http.Request) {
+	if req.ContentLength <= 0 {
+		resp.WriteHeader(http.StatusLengthRequired)
+		return // ### return, missing content length ###
 	}
 
-	buffer := bytes.NewBuffer(make([]byte, 0, int(r.ContentLength)))
-	n, err := buffer.ReadFrom(r.Body)
+	body := bytes.NewBuffer(make([]byte, 0, int(req.ContentLength)))
+	n, err := body.ReadFrom(req.Body)
 	if err != nil || n <= 0 {
-		// Uuuuh, we can`t parse the request body. Thats bad.
-		// This is not our fault, right?
-		// The user must be the mistake, right master?
-		// So we are bad to the user.
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		resp.WriteHeader(http.StatusBadRequest)
+		return // ### return, missing body ###
 	}
 
-	cons.PostData(buffer.Bytes(), atomic.AddUint64(&cons.sequence, 1))
+	cons.PostData(body.Bytes(), atomic.AddUint64(&cons.sequence, 1))
+	resp.WriteHeader(http.StatusCreated)
+}
 
-	// Send message that everything is fine :)
-	w.WriteHeader(http.StatusCreated)
+func (cons *Httpd) serve() {
+	defer cons.WorkerDone()
+
+	srv := http.Server{
+		Addr:        cons.address,
+		Handler:     http.HandlerFunc(cons.requestHandler),
+		ReadTimeout: cons.readTimeoutSec,
+	}
+
+	err := srv.Serve(cons.listen)
+	_, isStopRequest := err.(shared.StopRequestError)
+	if err != nil && !isStopRequest {
+		Log.Error.Print("httpd: ", err)
+	}
 }
 
 // Consume opens a new http server listen on specified ip and port (address)
 func (cons Httpd) Consume(workers *sync.WaitGroup) {
-	s := &http.Server{
-		Addr:        cons.address,
-		Handler:     http.HandlerFunc(cons.requestHandler),
-		ReadTimeout: time.Duration(cons.readTimeout) * time.Second,
+	listen, err := shared.NewStopListener(cons.address)
+	if err != nil {
+		Log.Error.Print("httpd: ", err)
+		return // ### return, could not connect ###
 	}
 
-	// Sometimes we can`t bind on a specified port
-	// e.g. another process is using it or it is not allowed by OS
-	// In this case an error will be thrown
-	err := s.ListenAndServe()
-	if err != nil {
-		Log.Error.Print("HTTPd error: ", err)
-		return
-	}
+	cons.listen = listen
+	cons.AddMainWorker(workers)
+
+	go cons.serve()
+	defer cons.listen.Close()
 
 	cons.DefaultControlLoop(nil)
 }

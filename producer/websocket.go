@@ -15,7 +15,6 @@
 package producer
 
 import (
-	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
@@ -24,6 +23,7 @@ import (
 	"runtime"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 // Websocket producer plugin
@@ -36,12 +36,12 @@ import (
 //
 type Websocket struct {
 	core.ProducerBase
-	addr      string
-	path      string
-	server    websocket.Server
-	clients   [2]clientList
-	clientIdx uint32
-	shutdown  bool
+	address        string
+	path           string
+	listen         *shared.StopListener
+	clients        [2]clientList
+	clientIdx      uint32
+	readTimeoutSec time.Duration
 }
 
 type clientList struct {
@@ -60,25 +60,21 @@ func (prod *Websocket) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	prod.addr = conf.GetString("Address", ":5881")
+	prod.address = conf.GetString("Address", ":81")
 	prod.path = conf.GetString("Path", "/")
+	prod.readTimeoutSec = time.Duration(conf.GetInt("ReadTimeout", 10)) * time.Second
 
 	return nil
 }
 
-func (prod *Websocket) handshake(conf *websocket.Config, req *http.Request) error {
-	if prod.shutdown {
-		return fmt.Errorf("shutting down")
-	}
-	return nil
-}
-
-func (prod *Websocket) addConnection(conn *websocket.Conn) {
+func (prod *Websocket) handleConnection(conn *websocket.Conn) {
 	idx := atomic.AddUint32(&prod.clientIdx, 1) >> 31
 
 	prod.clients[idx].conns = append(prod.clients[idx].conns, conn)
 	prod.clients[idx].doneCount++
 	buffer := make([]byte, 8)
+
+	conn.SetDeadline(time.Time{})
 
 	// Keep alive until connection is closed
 	for {
@@ -139,8 +135,40 @@ func (prod *Websocket) pushMessage(msg core.Message) {
 	}
 }
 
+func (prod *Websocket) serve() {
+	defer prod.WorkerDone()
+
+	listen, err := shared.NewStopListener(prod.address)
+	if err != nil {
+		Log.Error.Print("Websocket: ", err)
+		return // ### return, could not connect ###
+	}
+
+	config, err := websocket.NewConfig(prod.address, prod.path)
+	if err != nil {
+		Log.Error.Print("Websocket: ", err)
+		return // ### return, could not connect ###
+	}
+
+	srv := http.Server{
+		Handler: websocket.Server{
+			Handler: prod.handleConnection,
+			Config:  *config,
+		},
+		ReadTimeout: prod.readTimeoutSec,
+	}
+
+	prod.listen = listen
+
+	err = srv.Serve(prod.listen)
+	_, isStopRequest := err.(shared.StopRequestError)
+	if err != nil && !isStopRequest {
+		Log.Error.Print("Websocket: ", err)
+	}
+}
+
 func (prod *Websocket) flush() {
-	prod.shutdown = true
+	prod.listen.Close()
 	for prod.NextNonBlocking(prod.pushMessage) {
 		runtime.Gosched()
 	}
@@ -155,24 +183,10 @@ func (prod *Websocket) flush() {
 
 // Produce writes to stdout or stderr.
 func (prod Websocket) Produce(workers *sync.WaitGroup) {
-	prod.shutdown = false
-	prod.server = websocket.Server{
-		Handshake: prod.handshake,
-		Handler:   prod.addConnection,
-	}
-
-	go func() {
-		http.Handle(prod.path, prod.server)
-		err := http.ListenAndServe(prod.addr, nil)
-		if err != nil {
-			Log.Error.Print("Websocket: ", err)
-		}
-	}()
-
 	prod.AddMainWorker(workers)
-	defer func() {
-		prod.flush()
-		prod.WorkerDone()
-	}()
+
+	go prod.serve()
+	defer prod.flush()
+
 	prod.DefaultControlLoop(prod.pushMessage, nil)
 }

@@ -24,6 +24,7 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 )
 
 var fileSocketPrefix = "unix://"
@@ -138,6 +139,7 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 		cons.WorkerDone()
 	}()
 
+	conn.SetDeadline(time.Time{})
 	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.delimiter, cons.PostData)
 
 	for !cons.quit {
