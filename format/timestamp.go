@@ -17,7 +17,6 @@ package format
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
-	"io"
 )
 
 // Timestamp is a formatter that allows prefixing a message with a timestamp
@@ -36,10 +35,9 @@ import (
 // TimestampDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Delimiter"
 type Timestamp struct {
+	core.FormatterBase
 	base            core.Formatter
 	timestampFormat string
-	timestamp       string
-	length          int
 }
 
 func init() {
@@ -62,37 +60,10 @@ func (format *Timestamp) Configure(conf core.PluginConfig) error {
 // PrepareMessage sets the message to be formatted.
 func (format *Timestamp) PrepareMessage(msg core.Message) {
 	format.base.PrepareMessage(msg)
-	format.length = format.base.Len() + len(format.timestampFormat)
-	format.timestamp = msg.Timestamp.Format(format.timestampFormat)
-}
+	baseLength := format.base.Len()
+	timestampStr := msg.Timestamp.Format(format.timestampFormat)
 
-// Len returns the length of a formatted message.
-func (format *Timestamp) Len() int {
-	return format.length
-}
-
-// String returns the message as string
-func (format *Timestamp) String() string {
-	return format.timestamp + format.base.String()
-}
-
-// CopyTo copies the message into an existing buffer. It is assumed that
-// dest has enough space to fit GetLength() bytes
-func (format *Timestamp) Read(dest []byte) (int, error) {
-	len := copy(dest, format.timestamp)
-	baseLen, err := format.base.Read(dest[len:])
-	return len + baseLen, err
-}
-
-// WriteTo implements the io.WriterTo interface.
-// Data will be written directly to a writer.
-func (format *Timestamp) WriteTo(writer io.Writer) (int64, error) {
-	len, err := writer.Write([]byte(format.timestamp))
-	if err != nil {
-		return int64(len), err
-	}
-
-	var baseLen int64
-	baseLen, err = format.base.WriteTo(writer)
-	return int64(len) + baseLen, err
+	format.FormatterBase.Message = make([]byte, len(timestampStr)+baseLength)
+	len := copy(format.FormatterBase.Message, []byte(timestampStr))
+	format.base.Read(format.FormatterBase.Message[len:])
 }

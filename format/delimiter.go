@@ -17,7 +17,6 @@ package format
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
-	"io"
 	"strings"
 )
 
@@ -37,10 +36,9 @@ import (
 // DelimiterDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Delimiter struct {
+	core.FormatterBase
 	base      core.Formatter
 	delimiter string
-	msg       core.Message
-	length    int
 }
 
 var delimiterEscapeChars = strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
@@ -58,45 +56,16 @@ func (format *Delimiter) Configure(conf core.PluginConfig) error {
 
 	format.base = plugin.(core.Formatter)
 	format.delimiter = delimiterEscapeChars.Replace(conf.GetString("Delimiter", core.DefaultDelimiter))
+
 	return nil
 }
 
 // PrepareMessage sets the message to be formatted.
 func (format *Delimiter) PrepareMessage(msg core.Message) {
 	format.base.PrepareMessage(msg)
-	format.length = format.base.Len() + len(format.delimiter)
-}
+	length := format.base.Len() + len(format.delimiter)
+	format.FormatterBase.Message = make([]byte, length)
 
-// Len returns the length of a formatted message.
-func (format *Delimiter) Len() int {
-	return format.length
-}
-
-// String returns the message as string
-func (format *Delimiter) String() string {
-	return format.base.String() + format.delimiter
-}
-
-// CopyTo copies the message into an existing buffer. It is assumed that
-// dest has enough space to fit GetLength() bytes
-func (format *Delimiter) Read(dest []byte) (int, error) {
-	len, err := format.base.Read(dest)
-	if err != nil {
-		return len, err
-	}
-	len += copy(dest[len:], format.delimiter)
-	return len, nil
-}
-
-// WriteTo implements the io.WriterTo interface.
-// Data will be written directly to a writer.
-func (format *Delimiter) WriteTo(writer io.Writer) (int64, error) {
-	baseLen, err := format.base.WriteTo(writer)
-	if err != nil {
-		return baseLen, err
-	}
-
-	var len int
-	len, err = writer.Write([]byte(format.delimiter))
-	return baseLen + int64(len), err
+	len, _ := format.base.Read(format.FormatterBase.Message)
+	copy(format.FormatterBase.Message[len:], format.delimiter)
 }

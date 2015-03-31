@@ -90,7 +90,7 @@ func GetRetryQueue() <-chan Message {
 
 // NewMessage creates a new message from a given data stream
 func NewMessage(source MessageSource, data []byte, streams []MessageStreamID, sequence uint64) Message {
-	msg := Message{
+	return Message{
 		Data:          data,
 		Streams:       streams,
 		Source:        source,
@@ -98,7 +98,6 @@ func NewMessage(source MessageSource, data []byte, streams []MessageStreamID, se
 		Timestamp:     time.Now(),
 		Sequence:      sequence,
 	}
-	return msg
 }
 
 // Enqueue is a convenience function to push a message to a channel while

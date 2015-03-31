@@ -33,21 +33,41 @@ import (
 //	   Database: 0
 //	   Key: "gollum"
 //     Storage: "hash"
+//     FieldFormat: "format.Identifier"
+//     FieldFromParsed: true
 //
-// Address defines the redis server to connect to.
-// This must be a ip address and port like "127.0.0.1:6379"
-// By default this is set to "127.0.0.1:6379".
+// Address stores the identifier to connect to.
+// This can either be any ip address and port like "localhost:6379" or a file
+// like "unix:///var/redis.socket". By default this is set to ":6379".
+//
+// Database defines the redis database to connect to.
+// By default this is set to 0.
+//
+// Key defines the redis key to store the values in.
+// By default this is set to "default".
+//
+// Storage defines the type of the storage to use. Valid values are: "hash",
+// "list", "set", "sortedset", "string". By default this is set to "hash".
+//
+// FieldFormat defines an extra formatter used to define an additional field or
+// score value if required by the storage type. If no field value is required
+// this value is ignored. By default this is set to "format.Identifier".
+//
+// FieldFromParsed will send the parsed message to the FieldFormatter if set
+// to true. If this is set to false the original message will be send to the
+// FieldFormatter. By default this is set to false.
 type Redis struct {
 	core.ProducerBase
-	address   string
-	protocol  string
-	password  string
-	database  int64
-	key       string
-	storage   string
-	client    *redis.Client
-	store     func(msg core.Message)
-	keyFormat core.Formatter
+	address         string
+	protocol        string
+	password        string
+	database        int64
+	key             string
+	storage         string
+	client          *redis.Client
+	store           func(msg core.Message)
+	fieldFormat     core.Formatter
+	fieldFromParsed bool
 }
 
 func init() {
@@ -61,29 +81,36 @@ func (prod *Redis) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	plugin, err := core.NewPluginWithType(conf.GetString("KeyFormatter", "format.Identifier"), conf)
+	plugin, err := core.NewPluginWithType(conf.GetString("FieldFormatter", "format.Identifier"), conf)
 	if err != nil {
 		return err // ### return, plugin load error ###
 	}
 
-	prod.keyFormat = plugin.(core.Formatter)
+	prod.fieldFormat = plugin.(core.Formatter)
 	prod.password = conf.GetString("Password", "")
 	prod.database = int64(conf.GetInt("Database", 0))
 	prod.key = conf.GetString("Key", "default")
-	prod.storage = strings.ToLower(conf.GetString("Storage", "string"))
+	prod.fieldFromParsed = conf.GetBool("FieldFromParsed", false)
+	prod.storage = strings.ToLower(conf.GetString("Storage", "hash"))
 	prod.address, prod.protocol = shared.ParseAddress(conf.GetString("Address", ":6379"))
 
 	return nil
 }
 
 func (prod *Redis) storeHash(msg core.Message) {
-	prod.keyFormat.PrepareMessage(msg)
 	prod.Formatter().PrepareMessage(msg)
+	if prod.fieldFromParsed {
+		fieldMsg := msg
+		fieldMsg.Data = prod.Formatter().Bytes()
+		prod.fieldFormat.PrepareMessage(fieldMsg)
+	} else {
+		prod.fieldFormat.PrepareMessage(msg)
+	}
 
-	key := prod.keyFormat.String()
+	field := prod.fieldFormat.String()
 	value := prod.Formatter().String()
 
-	result := prod.client.HSet(prod.key, key, value)
+	result := prod.client.HSet(prod.key, field, value)
 	if result.Err() != nil {
 		Log.Error.Print("Redis: ", result.Err())
 		msg.Drop(prod.GetTimeout())
@@ -113,17 +140,23 @@ func (prod *Redis) storeSet(msg core.Message) {
 }
 
 func (prod *Redis) storeSortedSet(msg core.Message) {
-	prod.keyFormat.PrepareMessage(msg)
 	prod.Formatter().PrepareMessage(msg)
+	if prod.fieldFromParsed {
+		scoreMsg := msg
+		scoreMsg.Data = prod.Formatter().Bytes()
+		prod.fieldFormat.PrepareMessage(scoreMsg)
+	} else {
+		prod.fieldFormat.PrepareMessage(msg)
+	}
 
-	scoreVal, err := strconv.ParseFloat(prod.keyFormat.String(), 64)
+	score, err := strconv.ParseFloat(prod.fieldFormat.String(), 64)
 	if err != nil {
 		Log.Error.Print("Redis: ", err)
 		return // ### return, no valid score ###
 	}
 
 	result := prod.client.ZAdd(prod.key, redis.Z{
-		Score:  scoreVal,
+		Score:  score,
 		Member: prod.Formatter().String(),
 	})
 

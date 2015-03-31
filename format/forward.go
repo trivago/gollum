@@ -17,7 +17,6 @@ package format
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
-	"io"
 )
 
 // Forward is a formatter that passes a message as is
@@ -26,7 +25,7 @@ import (
 //   - producer.Console
 //     Formatter: "format.Forward"
 type Forward struct {
-	message []byte
+	core.FormatterBase
 }
 
 func init() {
@@ -40,28 +39,5 @@ func (format *Forward) Configure(conf core.PluginConfig) error {
 
 // PrepareMessage sets the message to be formatted.
 func (format *Forward) PrepareMessage(msg core.Message) {
-	format.message = msg.Data
-}
-
-// Len returns the length of a formatted message.
-func (format *Forward) Len() int {
-	return len(format.message)
-}
-
-// String returns the message as string
-func (format *Forward) String() string {
-	return string(format.message)
-}
-
-// Read copies the message into an existing buffer. It is assumed that
-// dest has enough space to fit GetLength() bytes
-func (format *Forward) Read(dest []byte) (int, error) {
-	return copy(dest, format.message), nil
-}
-
-// WriteTo implements the io.WriterTo interface.
-// Data will be written directly to a writer.
-func (format *Forward) WriteTo(writer io.Writer) (int64, error) {
-	len, err := writer.Write(format.message)
-	return int64(len), err
+	format.FormatterBase.Message = msg.Data
 }

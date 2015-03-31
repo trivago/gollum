@@ -324,6 +324,11 @@ func (format *JSON) String() string {
 	return format.message.String()
 }
 
+// Bytes returns the message as a byte slice
+func (format *JSON) Bytes() []byte {
+	return format.message.Bytes()
+}
+
 // CopyTo copies the message into an existing buffer. It is assumed that
 // dest has enough space to fit GetLength() bytes
 func (format *JSON) Read(dest []byte) (int, error) {

@@ -18,7 +18,6 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 	"hash/fnv"
-	"io"
 	"strconv"
 	"strings"
 )
@@ -44,8 +43,8 @@ import (
 //  * When using "seqhex" the id will be returned as the hex representation of
 // the sequence number.
 type Identifier struct {
-	message string
-	hash    func(msg core.Message) string
+	core.FormatterBase
+	hash func(msg core.Message) string
 }
 
 func init() {
@@ -89,28 +88,5 @@ func (format *Identifier) idSeqHex(msg core.Message) string {
 
 // PrepareMessage sets the message to be formatted.
 func (format *Identifier) PrepareMessage(msg core.Message) {
-	format.message = format.hash(msg)
-}
-
-// Len returns the length of a formatted message.
-func (format *Identifier) Len() int {
-	return len(format.message)
-}
-
-// String returns the message as string
-func (format *Identifier) String() string {
-	return string(format.message)
-}
-
-// Read copies the message into an existing buffer. It is assumed that
-// dest has enough space to fit GetLength() bytes
-func (format *Identifier) Read(dest []byte) (int, error) {
-	return copy(dest, format.message), nil
-}
-
-// WriteTo implements the io.WriterTo interface.
-// Data will be written directly to a writer.
-func (format *Identifier) WriteTo(writer io.Writer) (int64, error) {
-	len, err := writer.Write([]byte(format.message))
-	return int64(len), err
+	format.FormatterBase.Message = []byte(format.hash(msg))
 }

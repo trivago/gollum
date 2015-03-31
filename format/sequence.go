@@ -15,10 +15,9 @@
 package format
 
 import (
-	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
-	"io"
+	"strconv"
 )
 
 // Sequence is a formatter that allows prefixing a message with the message's
@@ -32,6 +31,7 @@ import (
 // SequenceDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Sequence struct {
+	core.FormatterBase
 	base     core.Formatter
 	length   int
 	sequence string
@@ -55,37 +55,10 @@ func (format *Sequence) Configure(conf core.PluginConfig) error {
 // PrepareMessage sets the message to be formatted.
 func (format *Sequence) PrepareMessage(msg core.Message) {
 	format.base.PrepareMessage(msg)
-	format.sequence = fmt.Sprintf("%d:", msg.Sequence)
-	format.length = format.base.Len() + len(format.sequence)
-}
+	baseLength := format.base.Len()
+	sequenceStr := strconv.FormatUint(msg.Sequence, 10) + ":"
 
-// Len returns the length of a formatted message.
-func (format *Sequence) Len() int {
-	return format.length
-}
-
-// String returns the message as string
-func (format *Sequence) String() string {
-	return fmt.Sprintf("%s%s", format.sequence, format.base.String())
-}
-
-// CopyTo copies the message into an existing buffer. It is assumed that
-// dest has enough space to fit GetLength() bytes
-func (format *Sequence) Read(dest []byte) (int, error) {
-	len := copy(dest, []byte(format.sequence))
-	baseLen, err := format.base.Read(dest[len:])
-	return len + baseLen, err
-}
-
-// WriteTo implements the io.WriterTo interface.
-// Data will be written directly to a writer.
-func (format *Sequence) WriteTo(writer io.Writer) (int64, error) {
-	len, err := writer.Write([]byte(format.sequence))
-	if err != nil {
-		return int64(len), err
-	}
-
-	var baseLen int64
-	baseLen, err = format.base.WriteTo(writer)
-	return int64(len) + baseLen, err
+	format.FormatterBase.Message = make([]byte, len(sequenceStr)+baseLength)
+	len := copy(format.FormatterBase.Message, []byte(sequenceStr))
+	format.base.Read(format.FormatterBase.Message[len:])
 }

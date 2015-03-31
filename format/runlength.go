@@ -15,10 +15,8 @@
 package format
 
 import (
-	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
-	"io"
 	"strconv"
 )
 
@@ -33,9 +31,8 @@ import (
 // RunlengthDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Runlength struct {
-	base      core.Formatter
-	length    int
-	lengthStr string
+	core.FormatterBase
+	base core.Formatter
 }
 
 func init() {
@@ -57,38 +54,9 @@ func (format *Runlength) Configure(conf core.PluginConfig) error {
 func (format *Runlength) PrepareMessage(msg core.Message) {
 	format.base.PrepareMessage(msg)
 	baseLength := format.base.Len()
+	lengthStr := strconv.Itoa(baseLength) + ":"
 
-	format.lengthStr = strconv.Itoa(baseLength) + ":"
-	format.length = len(format.lengthStr) + baseLength
-}
-
-// Len returns the length of a formatted message.
-func (format *Runlength) Len() int {
-	return format.length
-}
-
-// String returns the message as string
-func (format *Runlength) String() string {
-	return fmt.Sprintf("%s%s", format.lengthStr, format.base.String())
-}
-
-// CopyTo copies the message into an existing buffer. It is assumed that
-// dest has enough space to fit GetLength() bytes
-func (format *Runlength) Read(dest []byte) (int, error) {
-	len := copy(dest, []byte(format.lengthStr))
-	baseLen, err := format.base.Read(dest[len:])
-	return len + baseLen, err
-}
-
-// WriteTo implements the io.WriterTo interface.
-// Data will be written directly to a writer.
-func (format *Runlength) WriteTo(writer io.Writer) (int64, error) {
-	len, err := writer.Write([]byte(format.lengthStr))
-	if err != nil {
-		return int64(len), err
-	}
-
-	var baseLen int64
-	baseLen, err = format.base.WriteTo(writer)
-	return int64(len) + baseLen, err
+	format.FormatterBase.Message = make([]byte, len(lengthStr)+baseLength)
+	len := copy(format.FormatterBase.Message, []byte(lengthStr))
+	format.base.Read(format.FormatterBase.Message[len:])
 }
