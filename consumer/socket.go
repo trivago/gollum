@@ -27,8 +27,6 @@ import (
 	"time"
 )
 
-var fileSocketPrefix = "unix://"
-
 const (
 	socketBufferGrowSize = 256
 )
@@ -90,7 +88,6 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
 
 	cons.delimiter = escapeChars.Replace(conf.GetString("Delimiter", "\n"))
-	cons.address = conf.GetString("Address", ":5880")
 	cons.acknowledge = conf.GetBool("Acknowledge", false)
 
 	if conf.GetBool("Runlength", false) {
@@ -101,15 +98,13 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 		cons.flags |= shared.BufferedReaderFlagSequence
 	}
 
-	if cons.acknowledge {
-		cons.protocol = "tcp"
-	} else {
-		cons.protocol = "udp"
-	}
-
-	if strings.HasPrefix(cons.address, fileSocketPrefix) {
-		cons.address = cons.address[len(fileSocketPrefix):]
-		cons.protocol = "unix"
+	cons.address, cons.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
+	if cons.protocol != "unix" {
+		if cons.acknowledge {
+			cons.protocol = "tcp"
+		} else {
+			cons.protocol = "udp"
+		}
 	}
 
 	cons.quit = false

@@ -33,6 +33,7 @@ func testFormatter(t *testing.T, formatter core.Formatter) bool {
 	length, _ := formatter.Read(buffer)
 	result = expect.Equal(formatter.Len(), length) && result
 	result = expect.Equal(formatter.Len(), len(formatter.String())) && result
+	result = expect.Equal(formatter.Len(), len(formatter.Bytes())) && result
 	result = expect.Equal(formatter.String(), string(buffer)) && result
 
 	return result

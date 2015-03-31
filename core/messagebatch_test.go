@@ -17,7 +17,6 @@ package core
 import (
 	"fmt"
 	"github.com/trivago/gollum/shared"
-	"io"
 	"testing"
 )
 
@@ -30,7 +29,7 @@ type MessageBatchWriter struct {
 }
 
 type mockFormatter struct {
-	message string
+	FormatterBase
 }
 
 func (writer MessageBatchWriter) Write(data []byte) (int, error) {
@@ -61,24 +60,7 @@ func (writer MessageBatchWriter) onError(err error) bool {
 }
 
 func (mock *mockFormatter) PrepareMessage(msg Message) {
-	mock.message = string(msg.Data)
-}
-
-func (mock *mockFormatter) Len() int {
-	return len(mock.message)
-}
-
-func (mock *mockFormatter) String() string {
-	return mock.message
-}
-
-func (mock *mockFormatter) Read(dest []byte) (int, error) {
-	return copy(dest, []byte(mock.message)), nil
-}
-
-func (mock *mockFormatter) WriteTo(writer io.Writer) (int64, error) {
-	len, err := writer.Write([]byte(mock.message))
-	return int64(len), err
+	mock.FormatterBase.Message = msg.Data
 }
 
 func TestMessageBatch(t *testing.T) {

@@ -29,7 +29,7 @@ func newTestJSONFormatter(directives []interface{}, start string) *JSON {
 		Channel:   1024,
 		Instances: 1,
 		Stream:    []string{core.LogInternalStream},
-		Settings:  make(core.ConfigKeyValueMap),
+		Settings:  make(shared.MarshalMap),
 	}
 
 	conf.Settings["JSONStartState"] = start
