@@ -1,0 +1,76 @@
+{
+	"ImportPath": "github.com/trivago/gollum",
+	"GoVersion": "go1.4.2",
+	"Deps": [
+		{
+			"ImportPath": "code.google.com/p/snappy-go/snappy",
+			"Comment": "null-20",
+			"Rev": "8850bd446ad6f18a271a08aae26bdf85bdf87c7f"
+		},
+		{
+			"ImportPath": "github.com/araddon/gou",
+			"Rev": "83835b52401515352c9234fecfa61e55aaab793b"
+		},
+		{
+			"ImportPath": "github.com/artyom/fb303",
+			"Rev": "fa4a241cefb113c4981dbac51a8cfcb047efa079"
+		},
+		{
+			"ImportPath": "github.com/artyom/scribe",
+			"Rev": "35c1da66e76d138c09c552b492bb341f8504ff40"
+		},
+		{
+			"ImportPath": "github.com/artyom/thrift",
+			"Rev": "388840a05deb9b7d85fdf6c225a2729fe1826cb7"
+		},
+		{
+			"ImportPath": "github.com/bitly/go-hostpool",
+			"Rev": "e83c9e8d24926d4897baaaac1c9428e07bacb377"
+		},
+		{
+			"ImportPath": "github.com/eapache/go-resiliency/breaker",
+			"Comment": "v1",
+			"Rev": "6800482f2c813e689c88b7ed3282262385011890"
+		},
+		{
+			"ImportPath": "github.com/garyburd/redigo/internal",
+			"Rev": "535138d7bcd717d6531c701ef5933d98b1866257"
+		},
+		{
+			"ImportPath": "github.com/garyburd/redigo/redis",
+			"Rev": "535138d7bcd717d6531c701ef5933d98b1866257"
+		},
+		{
+			"ImportPath": "github.com/jeromer/syslogparser",
+			"Rev": "812866d0389ae7e1f5a0110d47dea20224fc776f"
+		},
+		{
+			"ImportPath": "github.com/mattbaird/elastigo/lib",
+			"Comment": "v1.0-139-gba038c1",
+			"Rev": "ba038c10f634af5e7f3bd27b81bd8c37af844edf"
+		},
+		{
+			"ImportPath": "golang.org/x/net/websocket",
+			"Rev": "7dbad50ab5b31073856416cdcfeb2796d682f844"
+		},
+		{
+			"ImportPath": "gopkg.in/Shopify/sarama.v1",
+			"Comment": "v1.1.0",
+			"Rev": "3b6fa677e9395c3d7151999974d1b5b36f6ac091"
+		},
+		{
+			"ImportPath": "gopkg.in/docker/docker.v1/pkg/mflag",
+			"Comment": "v1.5.0",
+			"Rev": "a8a31eff10544860d2188dddabdee4d727545796"
+		},
+		{
+			"ImportPath": "gopkg.in/mcuadros/go-syslog.v2",
+			"Comment": "v2.0.0",
+			"Rev": "f22fa4cce7e718c50fe7adc6e98d703f39e285e0"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v2",
+			"Rev": "49c95bdc21843256fb6c4e0d370a05f24a0bf213"
+		}
+	]
+}

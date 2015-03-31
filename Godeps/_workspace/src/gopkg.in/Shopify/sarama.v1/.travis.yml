@@ -1,0 +1,36 @@
+language: go
+go:
+- 1.3
+- 1.4
+- tip
+
+env:
+  global:
+  - KAFKA_PEERS=localhost:6667,localhost:6668,localhost:6669,localhost:6670,localhost:6671
+  - KAFKA_INSTALL_ROOT=/home/travis/kafka
+  - KAFKA_HOSTNAME=localhost
+  matrix:
+  - KAFKA_VERSION=0.8.1.1
+  - KAFKA_VERSION=0.8.2.1
+
+before_install:
+- export REPOSITORY_ROOT=${TRAVIS_BUILD_DIR}
+- vagrant/install_cluster.sh
+- vagrant/boot_cluster.sh
+- vagrant/create_topics.sh
+
+
+install:
+- make install_dependencies
+
+script:
+- make test
+- make vet
+- make errcheck
+- make fmt
+
+matrix:
+  allow_failures:
+    - go: tip
+
+sudo: false

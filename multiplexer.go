@@ -15,7 +15,8 @@
 package main
 
 import (
-	"github.com/trivago/gollum/log"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"log"
 	"os"
@@ -48,9 +49,9 @@ const (
 )
 
 type multiplexer struct {
-	consumers      []shared.Consumer
-	producers      []shared.Producer
-	streams        map[shared.MessageStreamID][]shared.Distributor
+	consumers      []core.Consumer
+	producers      []core.Producer
+	streams        map[core.MessageStreamID][]core.Distributor
 	consumerWorker *sync.WaitGroup
 	producerWorker *sync.WaitGroup
 	state          multiplexerState
@@ -59,22 +60,22 @@ type multiplexer struct {
 }
 
 // Create a new multiplexer based on a given config file.
-func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
+func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	// Configure the multiplexer, create a byte pool and assign it to the log
 
-	logConsumer := Log.Consumer{}
-	logConsumer.Configure(shared.PluginConfig{})
+	logConsumer := core.LogConsumer{}
+	logConsumer.Configure(core.PluginConfig{})
 
-	Log.Metric.New(metricMsgSec)
-	Log.Metric.New(metricMsgSecAvg)
-	Log.Metric.New(metricCons)
-	Log.Metric.New(metricProds)
-	Log.Metric.New(metricStreams)
-	Log.Metric.New(metricMessages)
+	shared.Metric.New(metricMsgSec)
+	shared.Metric.New(metricMsgSecAvg)
+	shared.Metric.New(metricCons)
+	shared.Metric.New(metricProds)
+	shared.Metric.New(metricStreams)
+	shared.Metric.New(metricMessages)
 
 	plex := multiplexer{
-		consumers:      []shared.Consumer{logConsumer},
-		streams:        make(map[shared.MessageStreamID][]shared.Distributor),
+		consumers:      []core.Consumer{logConsumer},
+		streams:        make(map[core.MessageStreamID][]core.Distributor),
 		consumerWorker: new(sync.WaitGroup),
 		producerWorker: new(sync.WaitGroup),
 		profile:        profile,
@@ -90,7 +91,7 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 
 		// Try to instantiate and configure the plugin
 
-		plugin, err := shared.RuntimeType.NewPlugin(config)
+		plugin, err := core.NewPlugin(config)
 		if err != nil {
 			if plugin == nil {
 				Log.Error.Panic(err.Error())
@@ -101,41 +102,41 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 		}
 
 		// Register consumer plugins
-		if consumer, isConsumer := plugin.(shared.Consumer); isConsumer {
+		if consumer, isConsumer := plugin.(core.Consumer); isConsumer {
 			plex.consumers = append(plex.consumers, consumer)
-			Log.Metric.Inc(metricCons)
+			shared.Metric.Inc(metricCons)
 
 			for i := 1; i < config.Instances; i++ {
-				clone, _ := shared.RuntimeType.NewPlugin(config)
-				plex.consumers = append(plex.consumers, clone.(shared.Consumer))
-				Log.Metric.Inc(metricCons)
+				clone, _ := core.NewPlugin(config)
+				plex.consumers = append(plex.consumers, clone.(core.Consumer))
+				shared.Metric.Inc(metricCons)
 			}
 		}
 
 		// Register producer plugins
-		if producer, isProducer := plugin.(shared.Producer); isProducer {
+		if producer, isProducer := plugin.(core.Producer); isProducer {
 			plex.producers = append(plex.producers, producer)
-			Log.Metric.Inc(metricProds)
+			shared.Metric.Inc(metricProds)
 
 			for i := 1; i < config.Instances; i++ {
-				clone, _ := shared.RuntimeType.NewPlugin(config)
-				plex.producers = append(plex.producers, clone.(shared.Producer))
-				Log.Metric.Inc(metricCons)
+				clone, _ := core.NewPlugin(config)
+				plex.producers = append(plex.producers, clone.(core.Producer))
+				shared.Metric.Inc(metricCons)
 			}
 		}
 
 		// Register dsitributor plugins
-		if _, isDistributor := plugin.(shared.Distributor); isDistributor {
+		if _, isDistributor := plugin.(core.Distributor); isDistributor {
 			for _, stream := range config.Stream {
-				streamID := shared.GetStreamID(stream)
+				streamID := core.GetStreamID(stream)
 
 				// New instance per stream
-				distributor, _ := shared.RuntimeType.NewPlugin(config)
+				distributor, _ := core.NewPlugin(config)
 
 				if stream, isMapped := plex.streams[streamID]; isMapped {
-					plex.streams[streamID] = append(stream, distributor.(shared.Distributor))
+					plex.streams[streamID] = append(stream, distributor.(core.Distributor))
 				} else {
-					plex.streams[streamID] = []shared.Distributor{distributor.(shared.Distributor)}
+					plex.streams[streamID] = []core.Distributor{distributor.(core.Distributor)}
 				}
 			}
 		}
@@ -145,12 +146,12 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 	// Wildcard streams will be handled after this so we have a fully configured
 	// map to add to.
 
-	var wildcardProducers []shared.Producer
+	var wildcardProducers []core.Producer
 
 	for _, prod := range plex.producers {
 		// Check all streams for each producer
 		for _, streamID := range prod.Streams() {
-			if streamID == shared.WildcardStreamID {
+			if streamID == core.WildcardStreamID {
 				wildcardProducers = append(wildcardProducers, prod)
 			}
 
@@ -163,9 +164,9 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 				// No distributor for this stream: Create broadcast
 				// distributor as a default.
 				defaultDistPlugin, _ := shared.RuntimeType.New("distributor.Broadcast")
-				defaultDist := defaultDistPlugin.(shared.Distributor)
+				defaultDist := defaultDistPlugin.(core.Distributor)
 				defaultDist.AddProducer(prod)
-				plex.streams[streamID] = []shared.Distributor{defaultDist}
+				plex.streams[streamID] = []core.Distributor{defaultDist}
 			}
 		}
 	}
@@ -175,9 +176,9 @@ func newMultiplexer(conf *shared.Config, profile bool) multiplexer {
 	for _, prod := range wildcardProducers {
 		for streamID, distList := range plex.streams {
 			switch streamID {
-			case shared.WildcardStreamID:
-			case shared.DroppedStreamID:
-			case shared.LogInternalStreamID:
+			case core.WildcardStreamID:
+			case core.DroppedStreamID:
+			case core.LogInternalStreamID:
 			default:
 				for _, dist := range distList {
 					dist.AddProducer(prod)
@@ -207,7 +208,7 @@ func (plex *multiplexer) shutdown() {
 	plex.state = multiplexerStateStopConsumers
 	if stateAtShutdown >= multiplexerStateStartConsumers {
 		for _, consumer := range plex.consumers {
-			consumer.Control() <- shared.ConsumerControlStop
+			consumer.Control() <- core.ConsumerControlStop
 		}
 
 		// Make sure all remaining messages are flushed BEFORE waiting for all
@@ -231,13 +232,13 @@ func (plex *multiplexer) shutdown() {
 	}
 
 	// Make sure remaining warning / errors are written to stderr
-	Log.EnqueueMessages(false)
+	Log.SetWriter(os.Stdout)
 
 	// Shutdown producers
 	plex.state = multiplexerStateStopProducers
 	if stateAtShutdown >= multiplexerStateStartProducers {
 		for _, producer := range plex.producers {
-			producer.Control() <- shared.ProducerControlStop
+			producer.Control() <- core.ProducerControlStop
 		}
 		plex.producerWorker.Wait()
 	}
@@ -246,13 +247,13 @@ func (plex *multiplexer) shutdown() {
 	plex.state = multiplexerStateStopped
 }
 
-func (plex *multiplexer) distribute(msg shared.Message) {
+func (plex *multiplexer) distribute(msg core.Message) {
 	for _, streamID := range msg.Streams {
 		msg.CurrentStream = streamID
 
 		distList, isMapped := plex.streams[streamID]
 		if !isMapped {
-			distList = plex.streams[shared.WildcardStreamID]
+			distList = plex.streams[core.WildcardStreamID]
 		}
 
 		for _, distributor := range distList {
@@ -275,10 +276,10 @@ func (plex *multiplexer) handleSignals() {
 
 		case syscall.SIGHUP:
 			for _, consumer := range plex.consumers {
-				consumer.Control() <- shared.ConsumerControlRoll
+				consumer.Control() <- core.ConsumerControlRoll
 			}
 			for _, producer := range plex.producers {
-				producer.Control() <- shared.ProducerControlRoll
+				producer.Control() <- core.ProducerControlRoll
 			}
 		}
 	}
@@ -318,8 +319,8 @@ func (plex multiplexer) run() {
 	}
 
 	// If there are intenal log listeners switch to stream mode
-	if _, enableQueue := plex.streams[shared.LogInternalStreamID]; enableQueue {
-		Log.EnqueueMessages(true)
+	if _, enableQueue := plex.streams[core.LogInternalStreamID]; enableQueue {
+		Log.SetWriter(plex.consumers[0].(core.LogConsumer))
 	}
 
 	// Launch consumers
@@ -344,6 +345,8 @@ func (plex multiplexer) run() {
 		// Go over all consumers in round-robin fashion
 		// Don't block here, too as a consumer might not contain new messages
 
+		messageCountBefore := messageCount
+
 		for _, consumer := range plex.consumers {
 			select {
 			default:
@@ -353,24 +356,30 @@ func (plex multiplexer) run() {
 			}
 		}
 
+		// Sleep if there is nothing to do
+
+		if messageCount-messageCountBefore == 0 {
+			time.Sleep(time.Duration(100) * time.Millisecond)
+		}
+
 		// Profiling information
 
 		duration := time.Since(measure)
 		if messageCount >= 100000 || duration.Seconds() > 5 {
 			// Local values
 			value := float64(messageCount) / duration.Seconds()
-			Log.Metric.SetF(metricMsgSec, value)
-			Log.Metric.AddI(metricMessages, messageCount)
+			shared.Metric.SetF(metricMsgSec, value)
+			shared.Metric.AddI(metricMessages, messageCount)
 
 			if plex.profile {
 				Log.Note.Printf("Processed %.2f msg/sec", value)
 			}
 
 			// Global values
-			timeSinceStart := time.Since(metricStartTimeValue)
-			if totalMessages, err := Log.Metric.Get(metricMessages); err == nil {
+			timeSinceStart := time.Since(shared.ProcessStartTime)
+			if totalMessages, err := shared.Metric.Get(metricMessages); err == nil {
 				value = float64(totalMessages) / timeSinceStart.Seconds()
-				Log.Metric.SetF(metricMsgSecAvg, value)
+				shared.Metric.SetF(metricMsgSecAvg, value)
 			}
 
 			// Prepare next run

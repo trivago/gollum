@@ -10,12 +10,17 @@ RunTests()
   fi
 
   for name in $1/* ; do
-    if [ -d $name ]; then
+    if [ -d $name ] && [[ "$name" != *Godeps ]]; then
       RunTests $name
     fi
   done
 }
 
 errors=0
-RunTests $1
+if [ "$1" == "" ]; then
+  RunTests .
+else
+  RunTests $1
+fi
+
 exit $errors
