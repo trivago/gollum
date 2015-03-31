@@ -32,8 +32,18 @@ import (
 //   - "producer.Websocket":
 //     Enable:  true
 //     Address: ":80"
-//     Path:    "/"
+//     Path:    "/data"
+//	   ReadTimeoutSec: 5
 //
+// Address stores the identifier to bind to.
+// This is allowed be any ip address/dns and port like "localhost:5880".
+// By default this is set to ":81".
+//
+// Path defines the url path to listen for.
+// By default this is set to "/"
+//
+// ReadTimeoutSec specifies the maximum duration in seconds before timing out
+// read of the request. By default this is set to 3 seconds.
 type Websocket struct {
 	core.ProducerBase
 	address        string
@@ -62,7 +72,7 @@ func (prod *Websocket) Configure(conf core.PluginConfig) error {
 
 	prod.address = conf.GetString("Address", ":81")
 	prod.path = conf.GetString("Path", "/")
-	prod.readTimeoutSec = time.Duration(conf.GetInt("ReadTimeout", 10)) * time.Second
+	prod.readTimeoutSec = time.Duration(conf.GetInt("ReadTimeoutSec", 3)) * time.Second
 
 	return nil
 }

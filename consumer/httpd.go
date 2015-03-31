@@ -31,15 +31,14 @@ import (
 //   - "consumer.Httpd":
 //     Enable: true
 //     Address: ":80"
-//     ReadTimeout: 10
+//     ReadTimeoutSec: 5
 //
 // Address stores the identifier to bind to.
-// This must be a ip address and port like "127.0.0.1:80", ":80", "0.0.0.0:80", whatever
+// This is allowed be any ip address/dns and port like "localhost:5880".
 // By default this is set to ":80".
 //
-// ReadTimeout specifies the maximum duration before timing out read of the request.
-// The number is entered in seconds.
-// By default this is set to 10 seconds.
+// ReadTimeoutSec specifies the maximum duration in seconds before timing out
+// read of the request. By default this is set to 3 seconds.
 type Httpd struct {
 	core.ConsumerBase
 	listen         *shared.StopListener
@@ -60,7 +59,7 @@ func (cons *Httpd) Configure(conf core.PluginConfig) error {
 	}
 
 	cons.address = conf.GetString("Address", ":80")
-	cons.readTimeoutSec = time.Duration(conf.GetInt("ReadTimeout", 10)) * time.Second
+	cons.readTimeoutSec = time.Duration(conf.GetInt("ReadTimeoutSec", 3)) * time.Second
 	return err
 }
 

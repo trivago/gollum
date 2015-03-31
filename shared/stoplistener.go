@@ -53,10 +53,10 @@ func (err StopRequestError) Error() string {
 func (listen *StopListener) Accept() (net.Conn, error) {
 	conn, err := listen.TCPListener.Accept()
 	if !listen.active {
-		return nil, StopRequestError{}
+		return nil, StopRequestError{} // ### return, stop requested ###
 	}
 	if err != nil {
-		return nil, err
+		return nil, err // ### return, error ###
 	}
 
 	return conn, err
