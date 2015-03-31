@@ -59,6 +59,11 @@
 			"Rev": "3b6fa677e9395c3d7151999974d1b5b36f6ac091"
 		},
 		{
+			"ImportPath": "gopkg.in/bufio.v1",
+			"Comment": "v1",
+			"Rev": "567b2bfa514e796916c4747494d6ff5132a1dfce"
+		},
+		{
 			"ImportPath": "gopkg.in/docker/docker.v1/pkg/mflag",
 			"Comment": "v1.5.0",
 			"Rev": "a8a31eff10544860d2188dddabdee4d727545796"
@@ -67,6 +72,11 @@
 			"ImportPath": "gopkg.in/mcuadros/go-syslog.v2",
 			"Comment": "v2.0.0",
 			"Rev": "f22fa4cce7e718c50fe7adc6e98d703f39e285e0"
+		},
+		{
+			"ImportPath": "gopkg.in/redis.v2",
+			"Comment": "v2.3.2",
+			"Rev": "e6179049628164864e6e84e973cfb56335748dea"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
