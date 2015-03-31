@@ -42,9 +42,13 @@ import (
 // the sequence number.
 //  * When using "seqhex" the id will be returned as the hex representation of
 // the sequence number.
+//
+// IdentifierDataFormatter defines the formatter for the data that is used to
+// build the identifier from. By default this is set to "format.Forward"
 type Identifier struct {
 	core.FormatterBase
-	hash func(msg core.Message) string
+	base core.Formatter
+	hash func(msg core.Message) []byte
 }
 
 func init() {
@@ -53,6 +57,12 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Identifier) Configure(conf core.PluginConfig) error {
+	plugin, err := core.NewPluginWithType(conf.GetString("IdentifierDataFormatter", "format.Forward"), conf)
+	if err != nil {
+		return err
+	}
+	format.base = plugin.(core.Formatter)
+
 	switch strings.ToLower(conf.GetString("IdentifierType", "time")) {
 	case "hash":
 		format.hash = format.idHash
@@ -68,25 +78,28 @@ func (format *Identifier) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-func (format *Identifier) idHash(msg core.Message) string {
+func (format *Identifier) idHash(msg core.Message) []byte {
 	hasher := fnv.New64a()
 	hasher.Write(msg.Data)
-	return strconv.FormatUint(hasher.Sum64(), 16)
+	return []byte(strconv.FormatUint(hasher.Sum64(), 16))
 }
 
-func (format *Identifier) idTime(msg core.Message) string {
-	return msg.Timestamp.Format("060102150405") + strconv.FormatUint(msg.Sequence%10000000, 10)
+func (format *Identifier) idTime(msg core.Message) []byte {
+	return []byte(msg.Timestamp.Format("060102150405") + strconv.FormatUint(msg.Sequence%10000000, 10))
 }
 
-func (format *Identifier) idSeq(msg core.Message) string {
-	return strconv.FormatUint(msg.Sequence, 10)
+func (format *Identifier) idSeq(msg core.Message) []byte {
+	return []byte(strconv.FormatUint(msg.Sequence, 10))
 }
 
-func (format *Identifier) idSeqHex(msg core.Message) string {
-	return strconv.FormatUint(msg.Sequence, 16)
+func (format *Identifier) idSeqHex(msg core.Message) []byte {
+	return []byte(strconv.FormatUint(msg.Sequence, 16))
 }
 
 // PrepareMessage sets the message to be formatted.
 func (format *Identifier) PrepareMessage(msg core.Message) {
-	format.FormatterBase.Message = []byte(format.hash(msg))
+	format.base.PrepareMessage(msg)
+	dataMsg := msg
+	dataMsg.Data = format.base.Bytes()
+	format.FormatterBase.Message = format.hash(dataMsg)
 }

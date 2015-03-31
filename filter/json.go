@@ -29,9 +29,9 @@ import (
 //
 //   - producer.Console
 //     Filter: "zup.Message"
-//     FormatReject:
+//     FilterReject:
 //		 	"command" : "state\d\..*"
-//     FormatAccept:
+//     FilterAccept:
 //		 	"args/results[0]value" : "true"
 //		 	"args/results[1]" : "true"
 //		 	"command" : "state\d\..*"
@@ -54,8 +54,8 @@ func init() {
 
 // Configure initializes this filter with values from a plugin config.
 func (filter *JSON) Configure(conf core.PluginConfig) error {
-	rejectValues := conf.GetStringMap("FormatReject", make(map[string]string))
-	acceptValues := conf.GetStringMap("FormatAccept", make(map[string]string))
+	rejectValues := conf.GetStringMap("FilterReject", make(map[string]string))
+	acceptValues := conf.GetStringMap("FilterAccept", make(map[string]string))
 
 	// Compile regexp from map[string]string to map[string]*regexp.Regexp
 	filter.rejectValues = make(map[string]*regexp.Regexp)
