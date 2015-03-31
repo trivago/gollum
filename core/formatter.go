@@ -19,13 +19,6 @@ import (
 	"io"
 )
 
-const (
-	// DefaultTimestamp is the timestamp format string used for messages
-	DefaultTimestamp = "2006-01-02 15:04:05 MST | "
-	// DefaultDelimiter is the default end of message delimiter
-	DefaultDelimiter = "\n"
-)
-
 // Formatter is the interface definition for message formatters
 type Formatter interface {
 	fmt.Stringer // String() string

@@ -58,7 +58,7 @@ type Producer interface {
 // - "producer.Something":
 //   Enable: true
 //   Channel: 1024
-//   Formatter: "format.Delimiter"
+//   Formatter: "format.Envelope"
 //   Stream:
 //      - "error"
 //      - "default"
@@ -81,7 +81,7 @@ type Producer interface {
 // which means "all streams".
 //
 // Fromatter sets a formatter to use. Each formatter has its own set of options
-// which can be set here, too. By default this is set to format.Delimiter
+// which can be set here, too. By default this is set to format.Envelope
 type ProducerBase struct {
 	messages chan Message
 	control  chan ProducerControl
@@ -121,7 +121,7 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 		prod.streams[i] = GetStreamID(stream)
 	}
 
-	plugin, err := NewPluginWithType(conf.GetString("Formatter", "format.Delimiter"), conf)
+	plugin, err := NewPluginWithType(conf.GetString("Formatter", "format.Envelope"), conf)
 	if err != nil {
 		return err // ### return, plugin load error ###
 	}

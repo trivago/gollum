@@ -25,7 +25,7 @@ import (
 //
 //   - producer.Console
 //     Formatter: "format.Timestamp"
-//     TimestampDataFormatter: "format.Delimiter"
+//     TimestampDataFormatter: "format.Envelope"
 //     Timestamp: "2006-01-02T15:04:05.000 MST | "
 //
 // Timestamp defines a Go time format string that is used to format the actual
@@ -33,7 +33,7 @@ import (
 // By default this is set to "2006-01-02 15:04:05 MST | "
 //
 // TimestampDataFormatter defines the formatter for the data transferred as
-// message. By default this is set to "format.Delimiter"
+// message. By default this is set to "format.Envelope"
 type Timestamp struct {
 	core.FormatterBase
 	base            core.Formatter
@@ -46,13 +46,13 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Timestamp) Configure(conf core.PluginConfig) error {
-	plugin, err := core.NewPluginWithType(conf.GetString("TimestampDataFormatter", "format.Delimiter"), conf)
+	plugin, err := core.NewPluginWithType(conf.GetString("TimestampDataFormatter", "format.Envelope"), conf)
 	if err != nil {
 		return err
 	}
 
 	format.base = plugin.(core.Formatter)
-	format.timestampFormat = conf.GetString("Timestamp", core.DefaultTimestamp)
+	format.timestampFormat = conf.GetString("Timestamp", "2006-01-02 15:04:05 MST | ")
 
 	return nil
 }

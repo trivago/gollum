@@ -26,7 +26,7 @@ import (
 //
 //   - producer.Console
 //     Formatter: "format.Sequence"
-//     SequenceDataFormatter: "format.Delimiter"
+//     SequenceDataFormatter: "format.Envelope"
 //
 // SequenceDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"

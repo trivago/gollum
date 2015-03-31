@@ -26,7 +26,7 @@ import (
 //
 //   - producer.Console
 //     Formatter: "format.Runlength"
-//     RunlengthDataFormatter: "format.Delimiter"
+//     RunlengthDataFormatter: "format.Envelope"
 //
 // RunlengthDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
