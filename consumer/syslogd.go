@@ -108,7 +108,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfig) error {
 }
 
 // Handle implements the syslog handle interface
-func (cons Syslogd) Handle(parts syslogparser.LogParts, code int64, err error) {
+func (cons *Syslogd) Handle(parts syslogparser.LogParts, code int64, err error) {
 	content, isString := parts["content"].(string)
 	if isString {
 		cons.PostData([]byte(content), *cons.sequence)

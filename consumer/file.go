@@ -238,7 +238,7 @@ func (cons *File) read() {
 	}
 }
 
-func (cons File) onRoll() {
+func (cons *File) onRoll() {
 	cons.setState(fileStateOpen)
 }
 

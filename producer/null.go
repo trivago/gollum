@@ -46,7 +46,7 @@ func (prod *Null) Configure(conf core.PluginConfig) error {
 }
 
 // Streams returns the streams this producer is listening to.
-func (prod Null) Streams() []core.MessageStreamID {
+func (prod *Null) Streams() []core.MessageStreamID {
 	return prod.streams
 }
 

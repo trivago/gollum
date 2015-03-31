@@ -157,21 +157,21 @@ func (cons ConsumerBase) Resume() {
 // Post sends a message to the streams configured with the message.
 // This method blocks of the message queue is full, depending on the value set
 // for cons.timeout.
-func (cons ConsumerBase) Post(msg Message) {
+func (cons *ConsumerBase) Post(msg Message) {
 	msg.Source = cons
 	msg.Enqueue(cons.messages, cons.timeout)
 }
 
 // PostData creates a new message from a given byte slice and passes it to
 // cons.Send. Note that data is not copied, just referenced by the message.
-func (cons ConsumerBase) PostData(data []byte, sequence uint64) {
+func (cons *ConsumerBase) PostData(data []byte, sequence uint64) {
 	msg := NewMessage(cons, data, cons.streams, sequence)
 	msg.Enqueue(cons.messages, cons.timeout)
 }
 
 // PostCopy behaves like PostData but creates a copy of data that is attached
 // to the message.
-func (cons ConsumerBase) PostCopy(data []byte, sequence uint64) {
+func (cons *ConsumerBase) PostCopy(data []byte, sequence uint64) {
 	dataCopy := make([]byte, len(data))
 	copy(dataCopy, data)
 	msg := NewMessage(cons, dataCopy, cons.streams, sequence)
@@ -192,7 +192,7 @@ func (cons *ConsumerBase) Messages() <-chan Message {
 
 // ProcessCommand provides a callback based possibility to react on the
 // different consumer commands. Returns true if ConsumerControlStop was triggered.
-func (cons ConsumerBase) ProcessCommand(command ConsumerControl, onRoll func()) bool {
+func (cons *ConsumerBase) ProcessCommand(command ConsumerControl, onRoll func()) bool {
 	switch command {
 	default:
 		// Do nothing
@@ -209,7 +209,7 @@ func (cons ConsumerBase) ProcessCommand(command ConsumerControl, onRoll func()) 
 
 // DefaultControlLoop provides a consumer mainloop that is sufficient for most
 // usecases.
-func (cons ConsumerBase) DefaultControlLoop(onRoll func()) {
+func (cons *ConsumerBase) DefaultControlLoop(onRoll func()) {
 	for {
 		command := <-cons.control
 		if cons.ProcessCommand(command, onRoll) {
@@ -220,7 +220,7 @@ func (cons ConsumerBase) DefaultControlLoop(onRoll func()) {
 
 // TickerControlLoop is like DefaultControlLoop but executes a given function at
 // every given interval tick, too.
-func (cons ConsumerBase) TickerControlLoop(interval time.Duration, onRoll func(), onTick func()) {
+func (cons *ConsumerBase) TickerControlLoop(interval time.Duration, onRoll func(), onTick func()) {
 	ticker := time.NewTicker(interval)
 
 	for {

@@ -187,7 +187,7 @@ func (prod *File) needsRotate() (bool, error) {
 	return false, nil
 }
 
-func (prod File) compressAndCloseLog(sourceFile *os.File) {
+func (prod *File) compressAndCloseLog(sourceFile *os.File) {
 	if !prod.compress {
 		Log.Note.Print("Rotated " + sourceFile.Name())
 		sourceFile.Close()

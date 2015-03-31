@@ -193,7 +193,7 @@ func (prod ProducerBase) NextNonBlocking(onMessage func(msg Message)) bool {
 }
 
 // Streams returns the streams this producer is listening to.
-func (prod ProducerBase) Streams() []MessageStreamID {
+func (prod *ProducerBase) Streams() []MessageStreamID {
 	return prod.streams
 }
 
@@ -210,7 +210,7 @@ func (prod *ProducerBase) Messages() chan<- Message {
 
 // Post will try to filter the message by calling Accepts before enqueuing the
 // message using msg.Enqueue.
-func (prod ProducerBase) Post(msg Message) {
+func (prod *ProducerBase) Post(msg Message) {
 	if prod.filter.Accepts(msg) {
 		msg.Enqueue(prod.messages, prod.timeout)
 	}
@@ -218,7 +218,7 @@ func (prod ProducerBase) Post(msg Message) {
 
 // ProcessCommand provides a callback based possibility to react on the
 // different producer commands. Returns true if ProducerControlStop was triggered.
-func (prod ProducerBase) ProcessCommand(command ProducerControl, onRoll func()) bool {
+func (prod *ProducerBase) ProcessCommand(command ProducerControl, onRoll func()) bool {
 	switch command {
 	default:
 		// Do nothing
@@ -235,7 +235,7 @@ func (prod ProducerBase) ProcessCommand(command ProducerControl, onRoll func()) 
 
 // DefaultControlLoop provides a producer mainloop that is sufficient for most
 // usecases.
-func (prod ProducerBase) DefaultControlLoop(onMessage func(msg Message), onRoll func()) {
+func (prod *ProducerBase) DefaultControlLoop(onMessage func(msg Message), onRoll func()) {
 	for {
 		select {
 		case message := <-prod.messages:
@@ -251,7 +251,7 @@ func (prod ProducerBase) DefaultControlLoop(onMessage func(msg Message), onRoll 
 
 // TickerControlLoop is like DefaultControlLoop but executes a given function at
 // every given interval tick, too.
-func (prod ProducerBase) TickerControlLoop(interval time.Duration, onMessage func(msg Message), onRoll func(), onTimeOut func()) {
+func (prod *ProducerBase) TickerControlLoop(interval time.Duration, onMessage func(msg Message), onRoll func(), onTimeOut func()) {
 	flushTicker := time.NewTicker(interval)
 
 	for {

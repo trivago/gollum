@@ -62,12 +62,12 @@ func (prod *Console) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-func (prod Console) printMessage(msg core.Message) {
+func (prod *Console) printMessage(msg core.Message) {
 	prod.Formatter().PrepareMessage(msg)
 	fmt.Fprint(prod.console, prod.Formatter().String())
 }
 
-func (prod Console) flush() {
+func (prod *Console) flush() {
 	for prod.NextNonBlocking(prod.printMessage) {
 		runtime.Gosched()
 	}

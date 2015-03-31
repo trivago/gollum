@@ -111,7 +111,7 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 	return err
 }
 
-func clientDisconnected(err error) bool {
+func (cons *Socket) clientDisconnected(err error) bool {
 	netErr, isNetErr := err.(*net.OpError)
 	if isNetErr {
 
@@ -142,7 +142,7 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 
 		// Handle errors
 		if err != nil && err != io.EOF {
-			if clientDisconnected(err) {
+			if cons.clientDisconnected(err) {
 				return // ### return, connection closed ###
 			}
 
