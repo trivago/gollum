@@ -101,7 +101,7 @@ func (cons *LoopBack) processFeedbackQueue() {
 }
 
 // Consume is fetching and forwarding messages from the feedbackQueue
-func (cons LoopBack) Consume(workers *sync.WaitGroup) {
+func (cons *LoopBack) Consume(workers *sync.WaitGroup) {
 	cons.quit = false
 
 	go func() {

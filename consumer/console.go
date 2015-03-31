@@ -54,7 +54,7 @@ func (cons *Console) readFrom(stream io.Reader) {
 }
 
 // Consume listens to stdin.
-func (cons Console) Consume(workers *sync.WaitGroup) {
+func (cons *Console) Consume(workers *sync.WaitGroup) {
 	go cons.readFrom(os.Stdin)
 	cons.DefaultControlLoop(nil)
 }

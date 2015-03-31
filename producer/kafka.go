@@ -255,7 +255,7 @@ func (prod *Kafka) send(msg core.Message) {
 }
 
 // Produce writes to a buffer that is sent to a given socket.
-func (prod Kafka) Produce(workers *sync.WaitGroup) {
+func (prod *Kafka) Produce(workers *sync.WaitGroup) {
 	defer func() {
 		if prod.producer != nil {
 			prod.producer.Close()

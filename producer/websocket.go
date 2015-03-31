@@ -192,7 +192,7 @@ func (prod *Websocket) flush() {
 }
 
 // Produce writes to stdout or stderr.
-func (prod Websocket) Produce(workers *sync.WaitGroup) {
+func (prod *Websocket) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
 
 	go prod.serve()

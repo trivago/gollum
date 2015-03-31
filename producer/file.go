@@ -341,7 +341,7 @@ func (prod *File) rotateLog() {
 }
 
 // Produce writes to a buffer that is dumped to a file.
-func (prod File) Produce(workers *sync.WaitGroup) {
+func (prod *File) Produce(workers *sync.WaitGroup) {
 	defer func() {
 		prod.flush()
 		prod.bgWriter.Wait()

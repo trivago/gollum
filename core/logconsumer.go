@@ -55,17 +55,17 @@ func (cons LogConsumer) Resume() {
 }
 
 // Control returns a handle to the control channel
-func (cons LogConsumer) Control() chan<- ConsumerControl {
+func (cons *LogConsumer) Control() chan<- ConsumerControl {
 	return cons.control
 }
 
 // Messages reroutes Log.Messages()
-func (cons LogConsumer) Messages() <-chan Message {
+func (cons *LogConsumer) Messages() <-chan Message {
 	return cons.messages
 }
 
 // Consume starts listening for control statements
-func (cons LogConsumer) Consume(threads *sync.WaitGroup) {
+func (cons *LogConsumer) Consume(threads *sync.WaitGroup) {
 	// Wait for control statements
 	for {
 		command := <-cons.control

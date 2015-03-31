@@ -162,7 +162,7 @@ func (prod *Scribe) flush() {
 }
 
 // Produce writes to a buffer that is sent to scribe.
-func (prod Scribe) Produce(workers *sync.WaitGroup) {
+func (prod *Scribe) Produce(workers *sync.WaitGroup) {
 	defer func() {
 		prod.flush()
 		prod.transport.Close()

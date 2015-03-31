@@ -168,7 +168,7 @@ func (prod *Socket) flush() {
 }
 
 // Produce writes to a buffer that is sent to a given socket.
-func (prod Socket) Produce(workers *sync.WaitGroup) {
+func (prod *Socket) Produce(workers *sync.WaitGroup) {
 	defer func() {
 		prod.flush()
 		if prod.connection != nil {

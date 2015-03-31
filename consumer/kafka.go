@@ -317,7 +317,7 @@ func (cons *Kafka) dumpIndex() {
 }
 
 // Consume starts a kafka consumer per partition for this topic
-func (cons Kafka) Consume(workers *sync.WaitGroup) {
+func (cons *Kafka) Consume(workers *sync.WaitGroup) {
 	cons.SetWorkerWaitGroup(workers)
 
 	err := cons.startConsumers()

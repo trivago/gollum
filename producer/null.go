@@ -51,7 +51,7 @@ func (prod Null) Streams() []core.MessageStreamID {
 }
 
 // Control returns write access to this producer's control channel.
-func (prod Null) Control() chan<- core.ProducerControl {
+func (prod *Null) Control() chan<- core.ProducerControl {
 	return prod.control
 }
 
@@ -60,7 +60,7 @@ func (prod Null) Post(msg core.Message) {
 }
 
 // Produce writes to a buffer that is dumped to a file.
-func (prod Null) Produce(threads *sync.WaitGroup) {
+func (prod *Null) Produce(threads *sync.WaitGroup) {
 	for {
 		command := <-prod.control
 		if command == core.ProducerControlStop {

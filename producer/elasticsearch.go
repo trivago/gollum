@@ -169,7 +169,7 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 }
 
 // Produce starts a bluk indexer
-func (prod ElasticSearch) Produce(workers *sync.WaitGroup) {
+func (prod *ElasticSearch) Produce(workers *sync.WaitGroup) {
 	prod.indexer.Start()
 	defer func() {
 		prod.indexer.Flush()

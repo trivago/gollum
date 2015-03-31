@@ -98,7 +98,7 @@ func (cons *Httpd) serve() {
 }
 
 // Consume opens a new http server listen on specified ip and port (address)
-func (cons Httpd) Consume(workers *sync.WaitGroup) {
+func (cons *Httpd) Consume(workers *sync.WaitGroup) {
 	listen, err := shared.NewStopListener(cons.address)
 	if err != nil {
 		Log.Error.Print("httpd: ", err)

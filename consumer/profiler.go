@@ -115,7 +115,7 @@ func (cons *Profiler) profile() {
 }
 
 // Consume starts a profile run and exits gollum when done
-func (cons Profiler) Consume(workers *sync.WaitGroup) {
+func (cons *Profiler) Consume(workers *sync.WaitGroup) {
 	cons.quit = false
 	go func() {
 		defer shared.RecoverShutdown()

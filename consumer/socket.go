@@ -184,7 +184,7 @@ func (cons *Socket) tcpAccept() {
 
 // Consume listens to a given socket. Messages are expected to be separated by
 // either \n or \r\n.
-func (cons Socket) Consume(workers *sync.WaitGroup) {
+func (cons *Socket) Consume(workers *sync.WaitGroup) {
 	var err error
 	var listen func()
 

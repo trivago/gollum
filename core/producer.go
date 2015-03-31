@@ -199,12 +199,12 @@ func (prod ProducerBase) Streams() []MessageStreamID {
 
 // Control returns write access to this producer's control channel.
 // See ProducerControl* constants.
-func (prod ProducerBase) Control() chan<- ProducerControl {
+func (prod *ProducerBase) Control() chan<- ProducerControl {
 	return prod.control
 }
 
 // Messages returns write access to the message channel this producer reads from.
-func (prod ProducerBase) Messages() chan<- Message {
+func (prod *ProducerBase) Messages() chan<- Message {
 	return prod.messages
 }
 

@@ -118,7 +118,7 @@ func (cons Syslogd) Handle(parts syslogparser.LogParts, code int64, err error) {
 
 // Consume opens a new syslog socket.
 // Messages are expected to be separated by \n.
-func (cons Syslogd) Consume(workers *sync.WaitGroup) {
+func (cons *Syslogd) Consume(workers *sync.WaitGroup) {
 	server := syslog.NewServer()
 	server.SetFormat(cons.format)
 	server.SetHandler(cons)

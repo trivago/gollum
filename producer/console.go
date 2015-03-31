@@ -74,7 +74,7 @@ func (prod Console) flush() {
 }
 
 // Produce writes to stdout or stderr.
-func (prod Console) Produce(workers *sync.WaitGroup) {
+func (prod *Console) Produce(workers *sync.WaitGroup) {
 	defer func() {
 		prod.flush()
 		prod.WorkerDone()

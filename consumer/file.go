@@ -243,7 +243,7 @@ func (cons File) onRoll() {
 }
 
 // Consume listens to stdin.
-func (cons File) Consume(workers *sync.WaitGroup) {
+func (cons *File) Consume(workers *sync.WaitGroup) {
 	cons.setState(fileStateOpen)
 	defer cons.setState(fileStateDone)
 

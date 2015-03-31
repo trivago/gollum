@@ -74,7 +74,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	shared.Metric.New(metricMessages)
 
 	plex := multiplexer{
-		consumers:      []core.Consumer{logConsumer},
+		consumers:      []core.Consumer{&logConsumer},
 		streams:        make(map[core.MessageStreamID][]core.Distributor),
 		consumerWorker: new(sync.WaitGroup),
 		producerWorker: new(sync.WaitGroup),
@@ -320,7 +320,7 @@ func (plex multiplexer) run() {
 
 	// If there are intenal log listeners switch to stream mode
 	if _, enableQueue := plex.streams[core.LogInternalStreamID]; enableQueue {
-		Log.SetWriter(plex.consumers[0].(core.LogConsumer))
+		Log.SetWriter(plex.consumers[0].(*core.LogConsumer))
 	}
 
 	// Launch consumers
