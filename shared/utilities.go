@@ -20,6 +20,7 @@ import (
 	"math"
 	"os"
 	"runtime/debug"
+	"strings"
 )
 
 // ItoLen returns the length of an unsingned integer when converted to a string
@@ -92,4 +93,17 @@ func RecoverShutdown() {
 		proc, _ := os.FindProcess(os.Getpid())
 		proc.Signal(os.Interrupt)
 	}
+}
+
+// ParseAddress takes an address and tries to extract the protocol from it.
+// Protocols may be prepended by the "protocol://" notation.
+// If no protocol is given, "tcp" is assumed.
+// The first parameter returned is the address, the second denotes the protocol.
+func ParseAddress(addr string) (string, string) {
+	protocolIdx := strings.Index("://", addr)
+	if protocolIdx == -1 {
+		return addr, "tcp"
+	}
+
+	return addr[protocolIdx+3:], strings.ToLower(addr[:protocolIdx])
 }

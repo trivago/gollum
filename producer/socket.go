@@ -19,12 +19,9 @@ import (
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"net"
-	"strings"
 	"sync"
 	"time"
 )
-
-var fileSocketPrefix = "unix://"
 
 // Socket producer plugin
 // Configuration example
@@ -90,24 +87,21 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 
 	bufferSizeMax := conf.GetInt("BufferSizeMaxKB", 8<<10) << 10
 
-	prod.address = conf.GetString("Address", ":5880")
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.bufferSizeKB = conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
 	prod.acknowledge = conf.GetBool("Acknowledge", false)
 
-	if prod.acknowledge {
-		prod.protocol = "tcp"
-	} else {
-		prod.protocol = "udp"
+	prod.address, prod.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
+	if prod.protocol != "unix" {
+		if prod.acknowledge {
+			prod.protocol = "tcp"
+		} else {
+			prod.protocol = "udp"
+		}
 	}
 
 	prod.batch = core.NewMessageBatch(bufferSizeMax, prod.Formatter())
-
-	if strings.HasPrefix(prod.address, fileSocketPrefix) {
-		prod.address = prod.address[len(fileSocketPrefix):]
-		prod.protocol = "unix"
-	}
 
 	return nil
 }
