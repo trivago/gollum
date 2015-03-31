@@ -29,9 +29,9 @@ import (
 //
 //   - producer.Console
 //     Formatter: "format.Identifier"
-//     FormatterId: "hash"
+//     IdentifierType: "hash"
 //
-// FormatterIdType defines the algorithm used to generate the message id.
+// IdentifierType defines the algorithm used to generate the message id.
 // This my be one of the following: "hash", "time", "seq", "seqhex".
 // By default this is set to "time".
 //  * When using "hash" the message payload will be hashed using fnv1a and returned
@@ -54,7 +54,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Identifier) Configure(conf core.PluginConfig) error {
-	switch strings.ToLower(conf.GetString("FormatterId", "sequence")) {
+	switch strings.ToLower(conf.GetString("IdentifierType", "time")) {
 	case "hash":
 		format.hash = format.idHash
 	case "seq":

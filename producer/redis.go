@@ -44,6 +44,7 @@ type Redis struct {
 	password  string
 	database  int64
 	key       string
+	storage   string
 	client    *redis.Client
 	store     func(msg core.Message)
 	keyFormat core.Formatter
@@ -69,22 +70,8 @@ func (prod *Redis) Configure(conf core.PluginConfig) error {
 	prod.password = conf.GetString("Password", "")
 	prod.database = int64(conf.GetInt("Database", 0))
 	prod.key = conf.GetString("Key", "default")
+	prod.storage = strings.ToLower(conf.GetString("Storage", "string"))
 	prod.address, prod.protocol = shared.ParseAddress(conf.GetString("Address", ":6379"))
-
-	switch strings.ToLower(conf.GetString("Storage", "string")) {
-	case "hash":
-		prod.store = prod.storeHash
-	case "list":
-		prod.store = prod.storeList
-	case "set":
-		prod.store = prod.storeSet
-	case "sortedset":
-		prod.store = prod.storeSortedSet
-	default:
-		fallthrough
-	case "string":
-		prod.store = prod.storeString
-	}
 
 	return nil
 }
@@ -168,6 +155,21 @@ func (prod Redis) Produce(workers *sync.WaitGroup) {
 
 	if _, err := prod.client.Ping().Result(); err != nil {
 		Log.Error.Print("Redis: ", err)
+	}
+
+	switch prod.storage {
+	case "hash":
+		prod.store = prod.storeHash
+	case "list":
+		prod.store = prod.storeList
+	case "set":
+		prod.store = prod.storeSet
+	case "sortedset":
+		prod.store = prod.storeSortedSet
+	default:
+		fallthrough
+	case "string":
+		prod.store = prod.storeString
 	}
 
 	prod.AddMainWorker(workers)
