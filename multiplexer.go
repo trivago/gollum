@@ -345,8 +345,6 @@ func (plex multiplexer) run() {
 		// Go over all consumers in round-robin fashion
 		// Don't block here, too as a consumer might not contain new messages
 
-		messageCountBefore := messageCount
-
 		for _, consumer := range plex.consumers {
 			select {
 			default:
@@ -356,13 +354,7 @@ func (plex multiplexer) run() {
 			}
 		}
 
-		// Sleep if there is nothing to do
-
-		if messageCount-messageCountBefore == 0 {
-			time.Sleep(time.Duration(100) * time.Millisecond)
-		}
-
-		// Profiling information
+		// Profiling information and idle state
 
 		duration := time.Since(measure)
 		if messageCount >= 100000 || duration.Seconds() > 5 {
