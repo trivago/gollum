@@ -27,7 +27,7 @@ import (
 // Redis producer plugin
 // Configuration example
 //
-//   - "zup.Redis":
+//   - "producer.Redis":
 //     Enable: true
 //     Address: "127.0.0.1:6379"
 //	   Database: 0

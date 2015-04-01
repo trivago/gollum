@@ -56,7 +56,7 @@ func (prod *Null) Control() chan<- core.ProducerControl {
 }
 
 // Post simply ignores the message
-func (prod Null) Post(msg core.Message) {
+func (prod *Null) Post(msg core.Message) {
 }
 
 // Produce writes to a buffer that is dumped to a file.

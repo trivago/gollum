@@ -243,7 +243,6 @@ func (plex *multiplexer) shutdown() {
 		plex.producerWorker.Wait()
 	}
 
-	// Done
 	plex.state = multiplexerStateStopped
 }
 
@@ -354,7 +353,7 @@ func (plex multiplexer) run() {
 			}
 		}
 
-		// Profiling information and idle state
+		// Profiling information
 
 		duration := time.Since(measure)
 		if messageCount >= 100000 || duration.Seconds() > 5 {
