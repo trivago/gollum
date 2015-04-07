@@ -121,9 +121,9 @@ func (cons *File) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-func (cons *File) postAndPersist(data []byte, sequence uint64) {
+func (cons *File) enqueueAndPersist(data []byte, sequence uint64) {
 	cons.seekOffset, _ = cons.file.Seek(0, 1)
-	cons.PostData(data, sequence)
+	cons.Enqueue(data, sequence)
 	ioutil.WriteFile(cons.continueFileName, []byte(strconv.FormatInt(cons.seekOffset, 10)), 0644)
 }
 
@@ -177,9 +177,9 @@ func (cons *File) close() {
 func (cons *File) read() {
 	defer cons.close()
 
-	sendFunction := cons.PostData
+	sendFunction := cons.Enqueue
 	if cons.persistSeek {
-		sendFunction = cons.postAndPersist
+		sendFunction = cons.enqueueAndPersist
 	}
 
 	buffer := shared.NewBufferedReader(fileBufferGrowSize, 0, cons.delimiter, sendFunction)

@@ -15,7 +15,6 @@
 package core
 
 import (
-	"hash/fnv"
 	"runtime"
 	"time"
 )
@@ -61,19 +60,11 @@ type MessageSource interface {
 // Message is a container used for storing the internal state of messages.
 // This struct is passed between consumers and producers.
 type Message struct {
-	Data          []byte
-	Streams       []MessageStreamID
-	CurrentStream MessageStreamID
-	Source        MessageSource
-	Timestamp     time.Time
-	Sequence      uint64
-}
-
-// GetStreamID returns the integer representation of a given stream name.
-func GetStreamID(stream string) MessageStreamID {
-	hash := fnv.New64a()
-	hash.Write([]byte(stream))
-	return MessageStreamID(hash.Sum64())
+	Data      []byte
+	Stream    MessageStreamID
+	Source    MessageSource
+	Timestamp time.Time
+	Sequence  uint64
 }
 
 // EnableRetryQueue creates a retried messages channel using the given size.
@@ -89,14 +80,13 @@ func GetRetryQueue() <-chan Message {
 }
 
 // NewMessage creates a new message from a given data stream
-func NewMessage(source MessageSource, data []byte, streams []MessageStreamID, sequence uint64) Message {
+func NewMessage(source MessageSource, data []byte, sequence uint64) Message {
 	return Message{
-		Data:          data,
-		Streams:       streams,
-		Source:        source,
-		CurrentStream: WildcardStreamID,
-		Timestamp:     time.Now(),
-		Sequence:      sequence,
+		Data:      data,
+		Source:    source,
+		Stream:    WildcardStreamID,
+		Timestamp: time.Now(),
+		Sequence:  sequence,
 	}
 }
 
@@ -145,7 +135,7 @@ func (msg Message) Enqueue(channel chan<- Message, timeout time.Duration) {
 // lost.
 func (msg Message) Retry(streamID MessageStreamID, timeout time.Duration) {
 	if messageRetryQueue != nil {
-		msg.CurrentStream = streamID
+		msg.Stream = streamID
 		msg.Enqueue(messageRetryQueue, timeout)
 	}
 }

@@ -21,23 +21,33 @@ import (
 // LogConsumer is an internal consumer plugin used indirectly by the gollum log
 // package.
 type LogConsumer struct {
-	control  chan ConsumerControl
-	messages chan Message
-	sequence uint64
+	control   chan ConsumerControl
+	logStream Stream
+	sequence  uint64
 }
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *LogConsumer) Configure(conf PluginConfig) error {
 	cons.control = make(chan ConsumerControl, 1)
-	cons.messages = make(chan Message, 128)
+	cons.logStream = StreamTypes.GetStream(LogInternalStreamID)
 	return nil
+}
+
+// Link binds this consumer to the internal log stream
+func (cons *LogConsumer) Link() {
+	cons.logStream = StreamTypes.GetStream(LogInternalStreamID)
+}
+
+// Streams always returns an array with one member - the internal log stream
+func (cons *LogConsumer) Streams() []MessageStreamID {
+	return []MessageStreamID{LogInternalStreamID}
 }
 
 // Write fullfills the io.Writer interface
 func (cons LogConsumer) Write(data []byte) (int, error) {
 	dataCopy := make([]byte, len(data))
 	copy(dataCopy, data)
-	cons.messages <- NewMessage(cons, dataCopy, []MessageStreamID{LogInternalStreamID}, cons.sequence)
+	cons.logStream.Enqueue(NewMessage(cons, dataCopy, cons.sequence))
 	return len(data), nil
 }
 
@@ -57,11 +67,6 @@ func (cons LogConsumer) Resume() {
 // Control returns a handle to the control channel
 func (cons *LogConsumer) Control() chan<- ConsumerControl {
 	return cons.control
-}
-
-// Messages reroutes Log.Messages()
-func (cons *LogConsumer) Messages() <-chan Message {
-	return cons.messages
 }
 
 // Consume starts listening for control statements

@@ -23,7 +23,6 @@ import (
 type PluginConfig struct {
 	TypeName  string
 	Enable    bool
-	Channel   int
 	Instances int
 	Stream    []string
 	Settings  shared.MarshalMap
@@ -36,7 +35,6 @@ func NewPluginConfig(pluginTypeName string) PluginConfig {
 	return PluginConfig{
 		TypeName:  pluginTypeName,
 		Enable:    true,
-		Channel:   4096,
 		Instances: 1,
 		Stream:    []string{},
 		Settings:  shared.NewMarshalMap(),
@@ -51,9 +49,6 @@ func (conf *PluginConfig) Read(values shared.MarshalMap) {
 		switch key {
 		case "Enable":
 			conf.Enable, err = values.Bool("Enable")
-
-		case "Channel":
-			conf.Channel, err = values.Int("Channel")
 
 		case "Instances":
 			conf.Instances, err = values.Int("Instances")

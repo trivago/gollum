@@ -43,7 +43,7 @@ func init() {
 }
 
 func (cons *Console) readFrom(stream io.Reader) {
-	buffer := shared.NewBufferedReader(consoleBufferGrowSize, 0, "\n", cons.PostData)
+	buffer := shared.NewBufferedReader(consoleBufferGrowSize, 0, "\n", cons.Enqueue)
 
 	for {
 		err := buffer.Read(stream)

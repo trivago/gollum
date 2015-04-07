@@ -12,26 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package distributor
+package stream
 
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
+	"sync/atomic"
 )
 
-// RoundRobin distributor plugin
+// RoundRobin stream plugin
 // Configuration example
 //
-//   - "distributor.RoundRobin":
+//   - "stream.RoundRobin":
 //     Enable: true
-//     Stream: "*"
+//     Stream: "data"
 //
-// This consumer does not define any options beside the standard ones.
+// This stream does not define any options beside the standard ones.
 // Messages are send to one of the producers listening to the given stream.
 // The target producer changes after each send.
 type RoundRobin struct {
-	core.DistributorBase
-	index map[core.MessageStreamID]int
+	core.StreamBase
+	index map[core.MessageStreamID]*int32
 }
 
 func init() {
@@ -39,24 +40,25 @@ func init() {
 }
 
 // Configure initializes this distributor with values from a plugin config.
-func (dist *RoundRobin) Configure(conf core.PluginConfig) error {
-	dist.index = make(map[core.MessageStreamID]int)
+func (stream *RoundRobin) Configure(conf core.PluginConfig) error {
+	if err := stream.StreamBase.Configure(conf); err != nil {
+		return err // ### return, base stream error ###
+	}
+	stream.index = make(map[core.MessageStreamID]*int32)
+	stream.StreamBase.Distribute = stream.roundRobin
 	return nil
 }
 
-// Distribute sends the given message to one of the given producers in a round
-// robin fashion.
-func (dist *RoundRobin) Distribute(msg core.Message) {
+func (stream *RoundRobin) roundRobin(msg core.Message) {
 
 	// As we might listen to different streams we have to keep the index for
 	// each stream separately
-	index, isSet := dist.index[msg.CurrentStream]
-	if !isSet {
-		index = 0
-	} else {
-		index %= len(dist.DistributorBase.Producers)
+	if _, isSet := stream.index[msg.Stream]; !isSet {
+		stream.index[msg.Stream] = new(int32)
 	}
 
-	dist.DistributorBase.Producers[index].Post(msg)
-	dist.index[msg.CurrentStream] = index + 1
+	index := atomic.AddInt32(stream.index[msg.Stream], 1)
+	index = index % int32(len(stream.StreamBase.Producers))
+
+	stream.StreamBase.Producers[index].Enqueue(msg)
 }

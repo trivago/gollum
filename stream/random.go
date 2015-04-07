@@ -12,38 +12,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package distributor
+package stream
 
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
+	"math/rand"
 )
 
-// Broadcast distributor plugin
+// Random stream plugin
 // Configuration example
 //
-//   - "distributor.Standard":
+//   - "stream.Random":
 //     Enable: true
-//     Stream: "*"
+//     Stream: "data"
 //
-// This consumer does not define any options beside the standard ones.
-// Messages are send to all of the producers listening to the given stream.
-type Broadcast struct {
-	core.DistributorBase
+// This stream does not define any options beside the standard ones.
+// Messages are send to a random producer in the set of the producers listening
+// to the given stream.
+type Random struct {
+	core.StreamBase
 }
 
 func init() {
-	shared.RuntimeType.Register(Broadcast{})
+	shared.RuntimeType.Register(Random{})
 }
 
 // Configure initializes this distributor with values from a plugin config.
-func (dist *Broadcast) Configure(conf core.PluginConfig) error {
+func (stream *Random) Configure(conf core.PluginConfig) error {
+	if err := stream.StreamBase.Configure(conf); err != nil {
+		return err // ### return, base stream error ###
+	}
+	stream.StreamBase.Distribute = stream.random
 	return nil
 }
 
-// Distribute sends the given message to all of the given producers
-func (dist *Broadcast) Distribute(msg core.Message) {
-	for _, prod := range dist.DistributorBase.Producers {
-		prod.Post(msg)
-	}
+// Distribute sends the given message to one random producer in the set of
+// given producers.
+func (stream *Random) random(msg core.Message) {
+	index := rand.Intn(len(stream.StreamBase.Producers))
+	stream.StreamBase.Producers[index].Enqueue(msg)
 }

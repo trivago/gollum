@@ -60,17 +60,18 @@ func (cons *LoopBack) Configure(conf core.PluginConfig) error {
 	}
 
 	cons.routes = conf.GetStreamRoute("Routes", core.DroppedStreamID)
-	core.EnableRetryQueue(conf.Channel)
+	core.EnableRetryQueue(conf.GetInt("Channel", 8192))
 
 	return nil
 }
 
 func (cons *LoopBack) route(msg core.Message) {
-	var routeExists bool
-	if msg.Streams, routeExists = cons.routes[msg.CurrentStream]; !routeExists {
-		msg.Streams = cons.routes[core.WildcardStreamID]
+	if streams, routeExists := cons.routes[msg.Stream]; routeExists {
+		for _, streamID := range streams {
+			msg.Stream = streamID
+			cons.ReEnqueue(msg)
+		}
 	}
-	cons.Post(msg)
 }
 
 func (cons *LoopBack) stop() {

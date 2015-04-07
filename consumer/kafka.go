@@ -245,7 +245,7 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 			// seq / numPartition = offset
 
 			sequence := uint64(event.Offset*int64(cons.MaxPartitionID) + int64(partitionID))
-			cons.PostData(event.Value, sequence)
+			cons.Enqueue(event.Value, sequence)
 
 		case err := <-partCons.Errors():
 			Log.Error.Print("Kafka consumer error:", err)

@@ -15,6 +15,7 @@
 package core
 
 import (
+	"fmt"
 	"github.com/trivago/gollum/shared"
 	"sync"
 	"time"
@@ -35,6 +36,11 @@ const (
 // Producer is an interface for plugins that pass Message objects to other
 // services, files or storages.
 type Producer interface {
+	// Enqueue tries to send a message to the producer. The producer may reject
+	// the message, may block or may drop the message after a given timeout.
+	// The actual behavior is specific to the producer implementation.
+	Enqueue(msg Message)
+
 	// Produce should implement the main loop that passes messages from the
 	// message channel to some other service like the console.
 	Produce(*sync.WaitGroup)
@@ -45,11 +51,6 @@ type Producer interface {
 	// Control returns write access to this producer's control channel.
 	// See ProducerControl* constants.
 	Control() chan<- ProducerControl
-
-	// Post tries to send a message to the producer. The producer may reject
-	// the message, may block or may drop the message after a given timeout.
-	// The actual behavior is specific to the producer implementation.
-	Post(msg Message)
 }
 
 // ProducerBase base class
@@ -99,8 +100,8 @@ type ProducerError struct {
 }
 
 // NewProducerError creates a new ProducerError
-func NewProducerError(message string) ProducerError {
-	return ProducerError{message}
+func NewProducerError(args ...interface{}) ProducerError {
+	return ProducerError{fmt.Sprint(args...)}
 }
 
 // Error satisfies the error interface for the ProducerError struct
@@ -110,10 +111,9 @@ func (err ProducerError) Error() string {
 
 // Configure initializes the standard producer config values.
 func (prod *ProducerBase) Configure(conf PluginConfig) error {
-	prod.messages = make(chan Message, conf.Channel)
 	prod.streams = make([]MessageStreamID, len(conf.Stream))
 	prod.control = make(chan ProducerControl, 1)
-	prod.filter = nil
+	prod.messages = make(chan Message, conf.GetInt("Channel", 8192))
 	prod.timeout = time.Duration(conf.GetInt("ChannelTimeout", 0)) * time.Millisecond
 	prod.state = new(PluginRunState)
 
@@ -208,12 +208,10 @@ func (prod *ProducerBase) Messages() chan<- Message {
 	return prod.messages
 }
 
-// Post will try to filter the message by calling Accepts before enqueuing the
-// message using msg.Enqueue.
-func (prod *ProducerBase) Post(msg Message) {
-	if prod.filter.Accepts(msg) {
-		msg.Enqueue(prod.messages, prod.timeout)
-	}
+// Enqueue will add the message to the internal channel so it can be processed
+// by the producer main loop.
+func (prod *ProducerBase) Enqueue(msg Message) {
+	msg.Enqueue(prod.messages, prod.timeout)
 }
 
 // ProcessCommand provides a callback based possibility to react on the

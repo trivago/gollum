@@ -77,7 +77,7 @@ func (cons *Httpd) requestHandler(resp http.ResponseWriter, req *http.Request) {
 		return // ### return, missing body ###
 	}
 
-	cons.PostData(body.Bytes(), atomic.AddUint64(&cons.sequence, 1))
+	cons.Enqueue(body.Bytes(), atomic.AddUint64(&cons.sequence, 1))
 	resp.WriteHeader(http.StatusCreated)
 }
 

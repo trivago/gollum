@@ -82,7 +82,7 @@ func (cons *Profiler) profile() {
 			fmt.Fprintf(&buffer, "%d ", i)
 			buffer.Write(randString)
 
-			cons.PostCopy(buffer.Bytes(), uint64(b*cons.profileRuns+i))
+			cons.EnqueueCopy(buffer.Bytes(), uint64(b*cons.profileRuns+i))
 			if cons.quit {
 				return
 			}
