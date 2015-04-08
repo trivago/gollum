@@ -16,13 +16,26 @@ package core
 
 import "sync/atomic"
 
+// MessageCount holds the number of messages processed since the last call to
+// GetAndResetMessageCount.
 var MessageCount = uint32(0)
 
+// Stream defines the interface for all stream plugins
 type Stream interface {
+	// AddProducer adds one or more producers to this stream, i.e. the producers
+	// listening to messages on this stream.
 	AddProducer(producers ...Producer)
+
+	// Enqueue sends a given message to all registered producers
 	Enqueue(msg Message)
 }
 
+// StreamBase defines the standard stream implementation. New stream types
+// should derive from this class.
+// StreamBase allows streams to set and execute filters as well as format a
+// message. Types derived from StreamBase should set the Distribute member
+// instead of overloading the Enqueue method.
+// See stream.Broadcast for default configuration values and examples.
 type StreamBase struct {
 	Filter     Filter
 	Format     Formatter
@@ -30,14 +43,13 @@ type StreamBase struct {
 	Distribute func(msg Message)
 }
 
+// GetAndResetMessageCount returns the current message counter and resets it
+// to 0. This function is threadsafe.
 func GetAndResetMessageCount() uint32 {
 	return atomic.SwapUint32(&MessageCount, 0)
 }
 
-func GetMessageCount() uint32 {
-	return MessageCount
-}
-
+// Configure sets up all values requred by StreamBase
 func (stream *StreamBase) Configure(conf PluginConfig) error {
 	plugin, err := NewPluginWithType(conf.GetString("Formatter", "format.Forward"), conf)
 	if err != nil {
@@ -55,6 +67,8 @@ func (stream *StreamBase) Configure(conf PluginConfig) error {
 	return nil
 }
 
+// AddProducer adds all producers to the list of known producers.
+// Duplicates will be filtered.
 func (stream *StreamBase) AddProducer(producers ...Producer) {
 	for _, prod := range producers {
 		for _, inListProd := range stream.Producers {
@@ -72,6 +86,9 @@ func (stream *StreamBase) broadcast(msg Message) {
 	}
 }
 
+// Enqueue checks the filter, formats the message and sends it to all producers
+// registered. Functions deriving from StreamBase can set the Distribute member
+// to hook into this function.
 func (stream *StreamBase) Enqueue(msg Message) {
 	atomic.AddUint32(&MessageCount, 1)
 

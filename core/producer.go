@@ -59,6 +59,7 @@ type Producer interface {
 // - "producer.Something":
 //   Enable: true
 //   Channel: 1024
+//   ChannelTimeout: 200
 //   Formatter: "format.Envelope"
 //   Stream:
 //      - "error"

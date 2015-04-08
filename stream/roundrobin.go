@@ -26,13 +26,16 @@ import (
 //   - "stream.RoundRobin":
 //     Enable: true
 //     Stream: "data"
+//	   Formatter: "format.Envelope"
+//     Filter: "filter.All"
 //
-// This stream does not define any options beside the standard ones.
-// Messages are send to one of the producers listening to the given stream.
-// The target producer changes after each send.
+// Messages will be sent to one of the producers attached to this stream.
+// Producers will be switched one-by-one.
+//
+// This stream defines the same fields as stream.Broadcast.
 type RoundRobin struct {
 	core.StreamBase
-	index map[core.MessageStreamID]*int32
+	index int32
 }
 
 func init() {
@@ -44,21 +47,11 @@ func (stream *RoundRobin) Configure(conf core.PluginConfig) error {
 	if err := stream.StreamBase.Configure(conf); err != nil {
 		return err // ### return, base stream error ###
 	}
-	stream.index = make(map[core.MessageStreamID]*int32)
-	stream.StreamBase.Distribute = stream.roundRobin
+	stream.index = 0
 	return nil
 }
 
 func (stream *RoundRobin) roundRobin(msg core.Message) {
-
-	// As we might listen to different streams we have to keep the index for
-	// each stream separately
-	if _, isSet := stream.index[msg.Stream]; !isSet {
-		stream.index[msg.Stream] = new(int32)
-	}
-
-	index := atomic.AddInt32(stream.index[msg.Stream], 1)
-	index = index % int32(len(stream.StreamBase.Producers))
-
+	index := atomic.AddInt32(&stream.index, 1) % int32(len(stream.StreamBase.Producers))
 	stream.StreamBase.Producers[index].Enqueue(msg)
 }

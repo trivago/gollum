@@ -25,10 +25,20 @@ import (
 //   - "stream.Broadcast":
 //     Enable: true
 //     Stream: "data"
+//	   Formatter: "format.Envelope"
+//     Filter: "filter.All"
 //
-// This stream does not define any options beside the standard ones.
-// Messages are send to a all producers in the set of the producers listening
-// to the given stream.
+// Messages will be sent to all producers attached to this stream.
+//
+// Stream defines the streams this stream plugin binds to (i.e. the streams
+// affected by this config).
+//
+// Formatter defines a formatter that is applied to all messages sent to this
+// stream. This can be used to bring different streams to the same format
+// required by a producer formatter. By default this is set to format.Forward.
+//
+// Filter defines a filter function that removes or allows certain messages to
+// pass through this stream. By default this is set to filter.All.
 type Broadcast struct {
 	core.StreamBase
 }

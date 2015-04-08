@@ -26,10 +26,13 @@ import (
 //   - "stream.Random":
 //     Enable: true
 //     Stream: "data"
+//	   Formatter: "format.Envelope"
+//     Filter: "filter.All"
 //
-// This stream does not define any options beside the standard ones.
-// Messages are send to a random producer in the set of the producers listening
-// to the given stream.
+// Messages will be sent to one of the producers attached to this stream.
+// The producer used is defined randomly.
+//
+// This stream defines the same fields as stream.Broadcast.
 type Random struct {
 	core.StreamBase
 }
