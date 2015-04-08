@@ -14,8 +14,12 @@
 
 package core
 
+import "sync/atomic"
+
+var MessageCount = uint32(0)
+
 type Stream interface {
-	AddProducer(prod Producer)
+	AddProducer(producers ...Producer)
 	Enqueue(msg Message)
 }
 
@@ -24,6 +28,14 @@ type StreamBase struct {
 	Format     Formatter
 	Producers  []Producer
 	Distribute func(msg Message)
+}
+
+func GetAndResetMessageCount() uint32 {
+	return atomic.SwapUint32(&MessageCount, 0)
+}
+
+func GetMessageCount() uint32 {
+	return MessageCount
 }
 
 func (stream *StreamBase) Configure(conf PluginConfig) error {
@@ -40,19 +52,18 @@ func (stream *StreamBase) Configure(conf PluginConfig) error {
 	stream.Filter = plugin.(Filter)
 
 	stream.Distribute = stream.broadcast
-	for _, streamName := range conf.Stream {
-		StreamTypes.Register(stream, GetStreamID(streamName))
-	}
 	return nil
 }
 
-func (stream *StreamBase) AddProducer(prod Producer) {
-	for _, inListProd := range stream.Producers {
-		if inListProd == prod {
-			return // ### return, already in list ###
+func (stream *StreamBase) AddProducer(producers ...Producer) {
+	for _, prod := range producers {
+		for _, inListProd := range stream.Producers {
+			if inListProd == prod {
+				return // ### return, already in list ###
+			}
 		}
+		stream.Producers = append(stream.Producers, prod)
 	}
-	stream.Producers = append(stream.Producers, prod)
 }
 
 func (stream *StreamBase) broadcast(msg Message) {
@@ -62,6 +73,8 @@ func (stream *StreamBase) broadcast(msg Message) {
 }
 
 func (stream *StreamBase) Enqueue(msg Message) {
+	atomic.AddUint32(&MessageCount, 1)
+
 	if stream.Filter.Accepts(msg) {
 		stream.Format.PrepareMessage(msg)
 		msg.Data = stream.Format.Bytes()

@@ -88,9 +88,8 @@ type ProducerBase struct {
 	control  chan ProducerControl
 	streams  []MessageStreamID
 	state    *PluginRunState
-	filter   Filter
-	format   Formatter
 	timeout  time.Duration
+	Format   Formatter
 }
 
 // ProducerError can be used to return consumer related errors e.g. during a
@@ -111,6 +110,13 @@ func (err ProducerError) Error() string {
 
 // Configure initializes the standard producer config values.
 func (prod *ProducerBase) Configure(conf PluginConfig) error {
+
+	format, err := NewPluginWithType(conf.GetString("Formatter", "format.Forward"), conf)
+	if err != nil {
+		return err // ### return, plugin load error ###
+	}
+	prod.Format = format.(Formatter)
+
 	prod.streams = make([]MessageStreamID, len(conf.Stream))
 	prod.control = make(chan ProducerControl, 1)
 	prod.messages = make(chan Message, conf.GetInt("Channel", 8192))
@@ -120,18 +126,6 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	for i, stream := range conf.Stream {
 		prod.streams[i] = GetStreamID(stream)
 	}
-
-	plugin, err := NewPluginWithType(conf.GetString("Formatter", "format.Envelope"), conf)
-	if err != nil {
-		return err // ### return, plugin load error ###
-	}
-	prod.format = plugin.(Formatter)
-
-	plugin, err = NewPluginWithType(conf.GetString("Filter", "filter.All"), conf)
-	if err != nil {
-		return err // ### return, plugin load error ###
-	}
-	prod.filter = plugin.(Filter)
 
 	return nil
 }
@@ -166,11 +160,6 @@ func (prod ProducerBase) WorkerDone() {
 // will cause the producer to always block.
 func (prod ProducerBase) GetTimeout() time.Duration {
 	return prod.timeout
-}
-
-// Formatter returns the formatter configured with this producer
-func (prod ProducerBase) Formatter() Formatter {
-	return prod.format
 }
 
 // Next returns the latest message from the channel as well as the open state

@@ -130,6 +130,11 @@ func (msg Message) Enqueue(channel chan<- Message, timeout time.Duration) {
 	}
 }
 
+// String implements the stringer interface
+func (msg Message) String() string {
+	return string(msg.Data)
+}
+
 // Retry pushes a message to the retry queue. This queue can be consumed by the
 // loopback consumer. If no such consumer has been configured, the message is
 // lost.

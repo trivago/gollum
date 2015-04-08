@@ -35,11 +35,6 @@ const (
 // Consumer is an interface for plugins that recieve data from outside sources
 // and generate Message objects from this data.
 type Consumer interface {
-	// LinkStreams is called at the end of the configuration processes and is
-	// intended to be used to resolve references to other plugins such as
-	// streams.
-	Link()
-
 	// Consume should implement to main loop that fetches messages from a given
 	// source and pushes it to the Message channel.
 	Consume(*sync.WaitGroup)
@@ -109,26 +104,11 @@ func (cons *ConsumerBase) Configure(conf PluginConfig) error {
 	cons.state = new(PluginRunState)
 
 	for _, streamName := range conf.Stream {
-		cons.streams[GetStreamID(streamName)] = nil
+		streamID := GetStreamID(streamName)
+		cons.streams[streamID] = StreamTypes.GetStreamOrFallback(streamID)
 	}
 
 	return nil
-}
-
-// Link resolves references to stream plugins.
-func (cons *ConsumerBase) Link() {
-	for streamID := range cons.streams {
-		cons.streams[streamID] = StreamTypes.GetStream(streamID)
-	}
-}
-
-// Streams returns an array with all stream ids this consumer is writing to.
-func (cons *ConsumerBase) Streams() []MessageStreamID {
-	streamIDs := make([]MessageStreamID, 0, len(cons.streams))
-	for streamID := range cons.streams {
-		streamIDs = append(streamIDs, streamID)
-	}
-	return streamIDs
 }
 
 // SetWorkerWaitGroup forwards to Plugin.SetWorkerWaitGroup for this consumer's
@@ -172,7 +152,6 @@ func (cons ConsumerBase) Resume() {
 }
 
 // ReEnqueue resends a message to the stream assigned to the message.
-// Note that this function does an O(N) lookup to find the correct stream.
 func (cons *ConsumerBase) ReEnqueue(msg Message) {
 	if stream, exists := cons.streams[msg.Stream]; exists {
 		stream.Enqueue(msg)
@@ -195,6 +174,15 @@ func (cons *ConsumerBase) EnqueueCopy(data []byte, sequence uint64) {
 	dataCopy := make([]byte, len(data))
 	copy(dataCopy, data)
 	cons.Enqueue(dataCopy, sequence)
+}
+
+// Streams returns an array with all stream ids this consumer is writing to.
+func (cons *ConsumerBase) Streams() []MessageStreamID {
+	streamIDs := make([]MessageStreamID, 0, len(cons.streams))
+	for streamID := range cons.streams {
+		streamIDs = append(streamIDs, streamID)
+	}
+	return streamIDs
 }
 
 // Control returns write access to this consumer's control channel.

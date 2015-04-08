@@ -230,14 +230,14 @@ func (prod *Kafka) send(msg core.Message) {
 
 	if prod.client != nil && prod.producer != nil {
 		// Send message
-		topic, topicMapped := prod.topic[msg.CurrentStream]
+		topic, topicMapped := prod.topic[msg.Stream]
 		if !topicMapped {
 			topic = prod.topic[core.WildcardStreamID]
 		}
 
-		prod.Formatter().PrepareMessage(msg)
-		buffer := make([]byte, prod.Formatter().Len())
-		prod.Formatter().Read(buffer)
+		prod.ProducerBase.Format.PrepareMessage(msg)
+		buffer := make([]byte, prod.ProducerBase.Format.Len())
+		prod.ProducerBase.Format.Read(buffer)
 
 		prod.producer.Input() <- &kafka.ProducerMessage{
 			Topic: topic,

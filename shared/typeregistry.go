@@ -50,6 +50,16 @@ func (registry TypeRegistry) New(typeName string) (interface{}, error) {
 	return nil, fmt.Errorf("Unknown class: %s", typeName)
 }
 
+// GetTypeOf returns only the type asscociated with the given name.
+// If the name is not registered, nil is returned.
+// The type returned will be a pointer type.
+func (registry TypeRegistry) GetTypeOf(typeName string) reflect.Type {
+	if structType, exists := registry.namedType[typeName]; exists {
+		return reflect.PtrTo(structType)
+	}
+	return nil
+}
+
 // GetRegistered returns the names of all registered types for a given package
 func (registry TypeRegistry) GetRegistered(packageName string) []string {
 	var result []string

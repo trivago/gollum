@@ -33,11 +33,6 @@ func (cons *LogConsumer) Configure(conf PluginConfig) error {
 	return nil
 }
 
-// Link binds this consumer to the internal log stream
-func (cons *LogConsumer) Link() {
-	cons.logStream = StreamTypes.GetStream(LogInternalStreamID)
-}
-
 // Streams always returns an array with one member - the internal log stream
 func (cons *LogConsumer) Streams() []MessageStreamID {
 	return []MessageStreamID{LogInternalStreamID}

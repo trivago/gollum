@@ -59,9 +59,31 @@ func (registry *StreamRegistry) GetStream(id MessageStreamID) Stream {
 	return stream
 }
 
+func (registry *StreamRegistry) IsStreamRegistered(id MessageStreamID) bool {
+	_, exists := registry.streams[id]
+	return exists
+}
+
+func (registry *StreamRegistry) ForEachStream(callback func(streamID MessageStreamID, stream Stream)) {
+	for streamID, stream := range registry.streams {
+		callback(streamID, stream)
+	}
+}
+
 func (registry *StreamRegistry) Register(stream Stream, streamID MessageStreamID) {
 	if _, exists := registry.streams[streamID]; exists {
 		Log.Warning.Printf("%T attaches to an already occupied stream (%s)", stream, registry.GetStreamName(streamID))
 	}
 	registry.streams[streamID] = stream
+}
+
+func (registry *StreamRegistry) GetStreamOrFallback(streamID MessageStreamID) Stream {
+	if stream, exists := registry.streams[streamID]; exists {
+		return stream
+	}
+
+	defaultStream := new(StreamBase)
+	defaultStream.Configure(PluginConfig{})
+	registry.streams[streamID] = defaultStream
+	return defaultStream
 }
