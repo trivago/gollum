@@ -46,7 +46,10 @@ const (
 //     Formatter: "format.JSON"
 //	   JSONStartState:
 //     JSONDirective:
-//	     - ""
+//	     - 'findKey :":  key     ::'
+//	     - 'findKey :}:          : pop  : end'
+//	     - 'key     :":  findVal :      : key'
+//	     - 'findVal :\:: value   ::'
 //
 // JSONStartState defines the initial parser state when parsing a message.
 // By default this is set to "" which will fall back to the first state used in
