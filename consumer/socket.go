@@ -42,6 +42,10 @@ const (
 //     Sequence: true
 //     Delimiter: "\n"
 //
+// The socket consumer reads messages directly as-is from a given socket.
+// It does support a minimal protocol for sending messagelength and sequence
+// number. This consumer cannot be paused.
+//
 // Address stores the identifier to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
