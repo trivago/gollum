@@ -23,34 +23,50 @@ import (
 	"io/ioutil"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
 
 const (
-	kafkaOffsetNewset = "Newest"
-	kafkaOffsetOldest = "Oldest"
-	kafkaOffsetFile   = "File"
+	kafkaOffsetNewset = "newest"
+	kafkaOffsetOldest = "oldest"
 )
 
 // Kafka consumer plugin
-// This consumer can be paused.
 // Configuration example
 //
 //   - "consumer.Kafka":
 //     Enable: true
+//     DefaultOffset: "Newest"
+//     OffsetFile: "/tmp/gollum_kafka.idx"
 //     ClientID: "logger"
+//     MaxOpenRequests: 6
+//     ServerTimeoutSec: 10
 //     MaxFetchSizeByte: 8192
 //     MinFetchSizeByte: 0
-//     MaxMessageSizeByte: 0
 //     FetchTimeoutMs: 500
-//     MessageBufferCount: 32
-//     ElectTimeoutMs: 1000
-//     MetadataRefreshSec: 30
-//     DefaultOffset: "File"
-//     OffsetFile: "/tmp/gollum_kafka.idx"
+//     MessageBufferCount: 1024
+//     PresistTimoutMs: 1000
+//     ElectRetries: 5
+//     ElectTimeoutMs: 300
+//     MetadataRefreshMs: 3000
 //     Servers:
 //       - "192.168.222.30:9092"
+//       - "192.168.222.31:9092"
+//
+// The kafka consumer reads from a given kafka topic. This consumer is based on
+// the sarama library so most settings relate to the settings from this library.
+// This consumer can be paused.
+//
+// DefaultOffset defines the message index to start reading from.
+// Valid values are either "Newset", "Oldest", or a number.
+// The default value is "Newest".
+//
+// OffsetFile defines a path to a file containing the current index per topic
+// partition. If a file is given the index stored in this file will be used as
+// the default offset for a stored parition. If the partition is not stored in
+// this file DefaultOffset is used.
 //
 // ClientId sets the client id of this producer. By default this is "gollum".
 //
@@ -60,15 +76,12 @@ const (
 // ServerTimeoutSec defines the time after which a connection is set to timed
 // out. By default this is set to 30 seconds.
 //
-// MaxFetchSizeByte the maximum amount of bytes to fetch from Kafka per request.
-// By default this is set to 32768.
+// MaxFetchSizeByte sets the maximum size of a message to fetch. Larger messages
+// will be ignored. By default this is set to 0 (fetch all messages).
 //
 // MinFetchSizeByte defines the minimum amout of data to fetch from Kafka per
 // request. If less data is available the broker will wait. By default this is
 // set to 1.
-//
-// MaxFetchSizeByte sets the maximum size of a message to fetch. Larger messages
-// will be ignored. By default this is set to 0 (fetch all messages).
 //
 // FetchTimeoutMs defines the time in milliseconds the broker will wait for
 // MinFetchSizeByte to be reached before processing data anyway. By default this
@@ -76,15 +89,6 @@ const (
 //
 // MessageBufferCount sets the internal channel size for the kafka client.
 // By default this is set to 256.
-//
-// DefaultOffset defines the message index to start reading from.
-// Valid values are either (case sensitive) "Newset", "Oldest", or a number.
-// DefaultOffset is mandatory. The default value is "Newest"
-//
-// OffsetFile defines a path to a file containing the current index per topic
-// partition. If a file is given the index stored in this file will be used as
-// the default offset for a stored parition. If the partition is not stored in
-// this file DefaultOffset is used.
 //
 // PresistTimoutMs defines the time in milliseconds between writes to OffsetFile.
 // By default this is set to 5000. Shorter durations reduce the amount of
@@ -101,7 +105,7 @@ const (
 // `topic.metadata.refresh.interval.ms`.
 //
 // Servers contains the list of all kafka servers to connect to. This setting
-// is mandatory and has no defaults.
+// is mandatory and thus has no defaults.
 type Kafka struct {
 	core.ConsumerBase
 	servers        []string
@@ -156,7 +160,7 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 	cons.config.Consumer.Fetch.Default = int32(conf.GetInt("MaxFetchSizeByte", 32768))
 	cons.config.Consumer.MaxWaitTime = time.Duration(conf.GetInt("FetchTimeoutMs", 250)) * time.Millisecond
 
-	offsetValue := conf.GetString("DefaultOffset", kafkaOffsetNewset)
+	offsetValue := strings.ToLower(conf.GetString("DefaultOffset", kafkaOffsetNewset))
 	switch offsetValue {
 	case kafkaOffsetNewset:
 		cons.defaultOffset = kafka.OffsetNewest

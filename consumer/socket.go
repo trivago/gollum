@@ -47,11 +47,11 @@ const (
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
 //
 // Runlength should be set to true if the incoming messages are formatted with
-// the runlegth formatter, i.e. there is a "length:" prefix.
+// the runlegth formatter, i.e. there is a "<length>:" prefix.
 // This option is disabled by default.
 //
 // Sequence should be used if the message is prefixed by a sequence number, i.e.
-// "sequence:" is prepended to the message.
+// "<sequence>:" is prepended to the message.
 // In case that Runlength is set, too the Runlength prefix is expected first.
 // This option is disabled by default.
 //
