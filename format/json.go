@@ -42,7 +42,7 @@ const (
 // HTML escaped.
 // Configuration example
 //
-//   - producer.Console
+//   - "<producer|stream>":
 //     Formatter: "format.JSON"
 //	   JSONStartState:
 //     JSONDirective:

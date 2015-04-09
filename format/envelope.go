@@ -24,7 +24,7 @@ import (
 // with configurable strings.
 // Configuration example
 //
-//   - producer.Console
+//   - "<producer|stream>":
 //     Formatter: "format.Envelope"
 //     EnvelopeDataFormatter: "format.Forward"
 //     Prefix: "<data>"

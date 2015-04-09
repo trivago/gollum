@@ -23,7 +23,7 @@ import (
 // (time of arrival at gollum) as well as postfixing it with a delimiter string.
 // Configuration example
 //
-//   - producer.Console
+//   - "<producer|stream>":
 //     Formatter: "format.Timestamp"
 //     TimestampDataFormatter: "format.Envelope"
 //     Timestamp: "2006-01-02T15:04:05.000 MST | "

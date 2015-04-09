@@ -27,8 +27,8 @@ import (
 // testing of every message passing through it.
 // Configuration example
 //
-//   - producer.Console
-//     Filter: "zup.Message"
+//   - "stream.Broadcast":
+//     Filter: "filter.JSON"
 //     FilterReject:
 //		 	"command" : "state\d\..*"
 //     FilterAccept:

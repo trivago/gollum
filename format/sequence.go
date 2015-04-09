@@ -24,7 +24,7 @@ import (
 // sequence number
 // Configuration example
 //
-//   - producer.Console
+//   - "<producer|stream>":
 //     Formatter: "format.Sequence"
 //     SequenceDataFormatter: "format.Envelope"
 //

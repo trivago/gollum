@@ -22,7 +22,7 @@ import (
 // Forward is a formatter that passes a message as is
 // Configuration example
 //
-//   - producer.Console
+//   - "<producer|stream>":
 //     Formatter: "format.Forward"
 type Forward struct {
 	core.FormatterBase

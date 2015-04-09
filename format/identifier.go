@@ -26,7 +26,7 @@ import (
 // identifier number from the message timestamp and sequence number. The message
 // payload will not be encoded.
 //
-//   - producer.Console
+//   - "<producer|stream>":
 //     Formatter: "format.Identifier"
 //     IdentifierType: "hash"
 //

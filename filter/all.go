@@ -19,6 +19,11 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
+// All passes all messages.
+// Configuration example
+//
+//   - "stream.Broadcast":
+//     Filter: "filter.All"
 type All struct {
 }
 

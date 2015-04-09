@@ -24,7 +24,7 @@ import (
 // a ":". The actual message is formatted by a nested formatter.
 // Configuration example
 //
-//   - producer.Console
+//   - "<producer|stream>":
 //     Formatter: "format.Runlength"
 //     RunlengthDataFormatter: "format.Envelope"
 //

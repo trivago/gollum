@@ -23,7 +23,7 @@ import (
 // RegExp allows filtering messages using regular expressions.
 // Configuration example
 //
-//   - producer.Console
+//   - "stream.Broadcast":
 //     Filter: "filter.RegExp"
 //     FilterRegExp: "\d+-.*"
 //
