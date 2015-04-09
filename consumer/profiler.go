@@ -170,6 +170,7 @@ func (cons *Profiler) profile() {
 		for i := 0; i < cons.profileRuns && !cons.quit; i++ {
 			template := cons.templates[rand.Intn(len(cons.templates))]
 			cons.EnqueueCopy(template, uint64(b*cons.profileRuns+i))
+			cons.WaitIfPaused()
 		}
 
 		runTime := time.Since(start)

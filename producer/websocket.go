@@ -35,6 +35,8 @@ import (
 //     Path:    "/data"
 //	   ReadTimeoutSec: 5
 //
+// The websocket producer opens up a websocket.
+//
 // Address stores the identifier to bind to.
 // This is allowed be any ip address/dns and port like "localhost:5880".
 // By default this is set to ":81".

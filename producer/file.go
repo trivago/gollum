@@ -50,6 +50,9 @@ const (
 //     RotateAt: "00:00"
 //     Compress: true
 //
+// The file producer writes messages to a file. This producer also allows log
+// rotation and compression of the rotated logs.
+//
 // File contains the path to the log file to write.
 // By default this is set to /var/prod/gollum.log.
 //

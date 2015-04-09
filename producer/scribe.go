@@ -20,7 +20,6 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -30,8 +29,7 @@ import (
 //
 //   - "producer.Scribe":
 //     Enable: true
-//     Host: "192.168.222.30"
-//     Port: 1463
+//     Address: "192.168.222.30:1463"
 //     BufferSizeKB: 4096
 //     BufferSizeMaxKB: 16384
 //     BatchSizeByte: 4096
@@ -43,12 +41,10 @@ import (
 //       "console" : "default"
 //       "_GOLLUM_"  : "default"
 //
-// Host and Port should be clear
+// The scribe producer allows sending messages to Facebook's scribe.
 //
-// Category maps a stream to a specific scribe category. You can define the
-// wildcard stream (*) here, too. All streams that do not have a specific
-// mapping will go to this stream (including _GOLLUM_).
-// If no category mappings are set all messages will be send to "default".
+// Address defines the host and port to connect to.
+// By default this is set to "localhost:1463".
 //
 // BufferSizeKB sets the connection buffer size in KB. By default this is set to
 // 1024, i.e. 1 MB buffer.
@@ -63,6 +59,11 @@ import (
 // BatchTimeoutSec defines the maximum number of seconds to wait after the last
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5.
+//
+// Category maps a stream to a specific scribe category. You can define the
+// wildcard stream (*) here, too. All streams that do not have a specific
+// mapping will go to this stream (including _GOLLUM_).
+// If no category mappings are set all messages will be send to "default".
 type Scribe struct {
 	core.ProducerBase
 	scribe       *scribe.ScribeClient
@@ -81,18 +82,12 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Scribe) Configure(conf core.PluginConfig) error {
-	// If not defined, delimiter is not used (override default value)
-	if !conf.HasValue("Delimiter") {
-		conf.Override("Delimiter", "")
-	}
-
 	err := prod.ProducerBase.Configure(conf)
 	if err != nil {
 		return err
 	}
 
-	host := conf.GetString("Host", "localhost")
-	port := conf.GetInt("Port", 1463)
+	host := conf.GetString("Address", "localhost:1463")
 	bufferSizeMax := conf.GetInt("BufferSizeMaxKB", 8<<10) << 1 // 8 MB
 
 	prod.category = make(map[core.MessageStreamID]string, 0)
@@ -104,7 +99,7 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 
 	// Initialize scribe connection
 
-	prod.socket, err = thrift.NewTSocket(host + ":" + strconv.Itoa(port))
+	prod.socket, err = thrift.NewTSocket(host)
 	if err != nil {
 		Log.Error.Print("Scribe socket error:", err)
 		return err

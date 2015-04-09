@@ -17,6 +17,7 @@ package core
 import (
 	"fmt"
 	"github.com/trivago/gollum/shared"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -133,6 +134,14 @@ func (cons ConsumerBase) Pause() {
 // IsPaused implements the MessageSource interface
 func (cons ConsumerBase) IsPaused() bool {
 	return cons.state.IsPaused()
+}
+
+// WaitIfPaused spins until pause is disable. If the consumer is not paused
+// this function simply continues.
+func (cons ConsumerBase) WaitIfPaused() {
+	for cons.state.IsPaused() {
+		runtime.Gosched()
+	}
 }
 
 // Resume implements the MessageSource interface

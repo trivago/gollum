@@ -31,7 +31,9 @@ import (
 //     Enable: true
 //     Console: "stderr"
 //
-// Console may either be "stdout" or "stderr"
+// The console producer writes messages to the standard output streams.
+//
+// Console may either be "stdout" or "stderr". By default it is set to "stdout".
 type Console struct {
 	core.ProducerBase
 	console *os.File

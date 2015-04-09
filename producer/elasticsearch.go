@@ -31,17 +31,15 @@ import (
 //   - "producer.ElasticSearch":
 //     Enable: true
 //     Connections: 10
-//     Port: 9200
+//     RetrySec: 5
+//     TTL: "1d"
+//     DayBasedIndex: false
 //     User: "root"
 //     Password: "root"
 //     BatchSizeByte: 65535
 //     BatchMaxCount: 512
 //     BatchTimeoutSec: 5
-//     RetrySec: 5
-//     TTL: "1d"
-//     Stream:
-//       - "console"
-//       - "_GOLLUM_"
+//     Port: 9200
 //     Servers:
 //       - "localhost"
 //     Index:
@@ -50,6 +48,24 @@ import (
 //     Type:
 //       "console" : "log"
 //       "_GOLLUM_"  : "gollum"
+//     Stream:
+//       - "console"
+//       - "_GOLLUM_"
+//
+// The ElasticSearch producer sends messages to elastic search using the bulk
+// http API.
+//
+// RetrySec denotes the time in seconds after which a failed dataset will be
+// transmitted again. By default this is set to 5.
+//
+// Connections defines the number of simultaneous connections allowed to a
+// elasticsearch server. This is set to 6 by default.
+//
+// TTL defines the TTL set in elasticsearch messages. By default this is set to
+// "" which means no TTL.
+//
+// DayBasedIndex can be set to true to append the date of the message to the
+// index as in "<index>_YYYY-MM-DD". By default this is set to false.
 //
 // Servers defines a list of servers to connect to. The first server in the list
 // is used as the server passed to the "Domain" setting. The Domain setting can
@@ -67,7 +83,7 @@ import (
 // If no category mappings are set all messages will be send to "default".
 //
 // Type maps a stream to a specific type. This behaves like the index map and
-// is used to assign a _type to an elasticsearch message. By default the topic
+// is used to assign a _type to an elasticsearch message. By default the type
 // "log" is used.
 //
 // BatchSizeByte defines the size in bytes required to trigger a flush.
@@ -78,15 +94,6 @@ import (
 //
 // BatchTimeoutSec defines the time in seconds after which a flush will be
 // triggered. By default this is set to 5.
-//
-// RetrySec denotes the time in seconds after which a failed dataset will be
-// transmitted again. By default this is set to 5.
-//
-// Connections defines the number of simultaneous connections allowed to a
-// elasticsearch server. This is set to 6 by default.
-//
-// TTL defines the TTL set in elasticsearch messages. By default this is set to
-// "" which means no TTL.
 type ElasticSearch struct {
 	core.ProducerBase
 	conn          *elastigo.Conn

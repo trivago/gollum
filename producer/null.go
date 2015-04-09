@@ -27,7 +27,7 @@ import (
 //     Enable: true
 //
 // This producer does nothing and provides only bare-bone configuration (i.e.
-// enabled, channel and streams).
+// enabled and streams).
 // Use this producer to test consumer performance.
 type Null struct {
 	control chan core.ProducerControl

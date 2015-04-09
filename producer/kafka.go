@@ -41,12 +41,17 @@ const (
 //     Partitioner: "Roundrobin"
 //     RequiredAcks: 0
 //     TimeoutMs: 0
+//     SendRetries: 5
 //     Compression: "Snappy"
+//     MaxOpenRequests: 6
 //     BatchMinCount: 10
-//     BatchSizeByte: 16384
-//     BatchTimeoutSec: 5
-//     BufferSizeMaxKB: 524288
 //     BatchMaxCount: 0
+//     BatchSizeByte: 16384
+//     BufferSizeMaxKB: 524288
+//     BatchTimeoutSec: 5
+//     ServerTimeoutSec: 3
+//     SendTimeoutMs: 100
+//     ElectRetries: 3
 //     ElectTimeoutMs: 1000
 //     MetadataRefreshSec: 30
 //     Servers:
@@ -58,19 +63,13 @@ const (
 //       "console" : "default"
 //       "_GOLLUM_"  : "default"
 //
+// The kafka producer writes messages to a kafka cluster. This producer is
+// backed by the sarama library so most settings relate to that library.
+//
 // ClientId sets the client id of this producer. By default this is "gollum".
 //
-// MessageBufferCount sets the internal channel size for the kafka client.
-// By default this is set to 256.
-//
-// MaxOpenRequests defines the number of simultanious connections are allowed.
-// By default this is set to 5.
-//
-// ServerTimeoutSec defines the time after which a connection is set to timed
-// out. By default this is set to 30 seconds.
-//
-// BufferSizeMaxKB defines the maximum allowed message size. By default this is
-// set to 1 MB.
+// Partitioner sets the distribution algorithm to use. Valid values (case
+// sensitive) are: "Random","Roundrobin","Hash". By default "Hash" is set.
 //
 // RequiredAcks defines the acknowledgement level required by the broker.
 // 0 = No responses required. 1 = wait for the local commit. -1 = wait for
@@ -81,26 +80,35 @@ const (
 // setting becomes active when RequiredAcks is set to wait for multiple commits.
 // By default this is set to 1500.
 //
+// SendRetries defines how many times to retry sending data before marking a
+// server as not reachable. By default this is set to 3.
+//
 // Compression sets the method of compression to use. Valid values (case
 // sensitive) are: "None","Zip","Snappy". By default "None" is set.
 //
-// Partitioner sets the distribution algorithm to use. Valid values (case
-// sensitive) are: "Random","Roundrobin","Hash". By default "Hash" is set.
-//
-// BatchSizeByte sets the mimimum number of bytes to collect before a new flush
-// is triggered. By default this is set to 8192.
+// MaxOpenRequests defines the number of simultanious connections are allowed.
+// By default this is set to 5.
 //
 // BatchMinCount sets the minimum number of messages required to trigger a
 // flush. By default this is set to 1.
 //
-// BatchTimeoutSec sets the minimum time in seconds to pass after wich a new
-// flush will be triggered. By default this is set to 3.
-//
 // BatchMaxCount defines the maximum number of messages processed per
 // request. By default this is set to 0 for "unlimited".
 //
-// SendRetries defines how many times to retry sending data before marking a
-// server as not reachable. By default this is set to 3.
+// BatchSizeByte sets the mimimum number of bytes to collect before a new flush
+// is triggered. By default this is set to 8192.
+//
+// BufferSizeMaxKB defines the maximum allowed message size. By default this is
+// set to 1 MB.
+//
+// BatchTimeoutSec sets the minimum time in seconds to pass after wich a new
+// flush will be triggered. By default this is set to 3.
+//
+// MessageBufferCount sets the internal channel size for the kafka client.
+// By default this is set to 256.
+//
+// ServerTimeoutSec defines the time after which a connection is set to timed
+// out. By default this is set to 30 seconds.
 //
 // SendTimeoutMs defines the number of milliseconds to wait for a server to
 // resond before triggering a timeout. Defaults to 250.
