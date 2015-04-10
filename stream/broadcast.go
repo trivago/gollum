@@ -39,7 +39,9 @@ import (
 //
 // Filter defines a filter function that removes or allows certain messages to
 // pass through this stream. By default this is set to filter.All.
-type Broadcast core.StreamBase
+type Broadcast struct {
+	core.StreamBase
+}
 
 func init() {
 	shared.RuntimeType.Register(Broadcast{})

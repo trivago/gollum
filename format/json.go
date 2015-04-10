@@ -16,7 +16,6 @@ package format
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
@@ -44,8 +43,8 @@ const (
 //
 //   - "<producer|stream>":
 //     Formatter: "format.JSON"
-//	   JSONStartState:
-//     JSONDirective:
+//	   JSONStartState: "findKey"
+//     JSONDirectives:
 //	     - 'findKey :":  key     ::'
 //	     - 'findKey :}:          : pop  : end'
 //	     - 'key     :":  findVal :      : key'
@@ -61,7 +60,7 @@ const (
 // JSONTimestampWrite defines the go timestamp format that "dat" fields will be
 // converted to. By default this is set to "2006-01-02 15:04:05 MST"
 //
-// JSONDirective defines an array of parser directives.
+// JSONDirectives defines an array of parser directives.
 // This setting is mandatory and has no default value.
 // Each string must be of the following format:
 //
@@ -175,7 +174,7 @@ func (format *JSON) writeKey(key []byte) {
 	}
 
 	format.message.WriteByte('"')
-	json.HTMLEscape(format.message, key)
+	format.message.Write(key)
 	format.message.WriteString(`":`)
 }
 
@@ -212,17 +211,17 @@ func (format *JSON) readEscaped(data []byte, state shared.ParserStateID) {
 
 	case jsonReadValue:
 		format.message.WriteByte('"')
-		json.HTMLEscape(format.message, bytes.TrimSpace(data))
+		format.message.Write(bytes.TrimSpace(data))
 		format.state = jsonReadKey
 
 	case jsonReadArray:
 		format.message.WriteByte('"')
-		json.HTMLEscape(format.message, bytes.TrimSpace(data))
+		format.message.Write(bytes.TrimSpace(data))
 		format.state = jsonReadArrayAppend
 
 	case jsonReadArrayAppend:
 		format.message.WriteString(`,"`)
-		json.HTMLEscape(format.message, bytes.TrimSpace(data))
+		format.message.Write(bytes.TrimSpace(data))
 	}
 	format.message.WriteByte('"')
 }
@@ -297,8 +296,10 @@ func (format *JSON) readEnd(data []byte, state shared.ParserStateID) {
 
 // PrepareMessage sets the message to be formatted.
 func (format *JSON) PrepareMessage(msg core.Message) {
-	format.message = bytes.NewBufferString("{")
+	format.message = bytes.NewBuffer(nil)
 	format.state = jsonReadObject
+
+	format.message.WriteString("{")
 	remains, state := format.parser.Parse(msg.Data, format.initState)
 
 	// Write remains as string value
