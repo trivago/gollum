@@ -33,17 +33,18 @@ const (
 	ProducerControlRoll = ProducerControl(2)
 )
 
-// Producer is an interface for plugins that pass Message objects to other
-// services, files or storages.
+// Producer is an interface for plugins that pass messages to other services,
+// files or storages.
 type Producer interface {
-	// Enqueue tries to send a message to the producer. The producer may reject
-	// the message, may block or may drop the message after a given timeout.
-	// The actual behavior is specific to the producer implementation.
+	// Enqueue sends a message to the producer. The producer may reject
+	// the message or drop it after a given timeout. Enqueue can block.
 	Enqueue(msg Message)
 
-	// Produce should implement the main loop that passes messages from the
+	// Produce should implement a main loop that passes messages from the
 	// message channel to some other service like the console.
-	Produce(*sync.WaitGroup)
+	// This can be part of this function or a separate go routine.
+	// Produce is always called as a go routine.
+	Produce(workers *sync.WaitGroup)
 
 	// Streams returns the streams this producer is listening to.
 	Streams() []MessageStreamID
@@ -68,7 +69,7 @@ type Producer interface {
 // Enable switches the consumer on or off. By default this value is set to true.
 //
 // Channel sets the size of the channel used to communicate messages. By default
-// this value is set to 1024.
+// this value is set to 8192.
 //
 // ChannelTimeout sets a timeout for messages to wait if this producer's queue
 // is full.
@@ -80,10 +81,10 @@ type Producer interface {
 //
 // Stream contains either a single string or a list of strings defining the
 // message channels this producer will consume. By default this is set to "*"
-// which means "all streams".
+// which means "listen to all streams but the internal".
 //
-// Fromatter sets a formatter to use. Each formatter has its own set of options
-// which can be set here, too. By default this is set to format.Envelope
+// Formatter sets a formatter to use. Each formatter has its own set of options
+// which can be set here, too. By default this is set to format.Forward.
 type ProducerBase struct {
 	messages chan Message
 	control  chan ProducerControl

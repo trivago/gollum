@@ -32,9 +32,9 @@ type messageQueue struct {
 }
 
 // MessageBatch is a helper class for producers to format and store messages
-// into a single string that is flushed to an io.Writer.
-// You can use the Reached* functions to determine when a flush should be
-// called after either reaching a timeout or size threshold.
+// into a single buffer that is flushed to an io.Writer.
+// You can use the Reached* functions to determine whether a flush should be
+// called, i.e. if a timeout or size threshold has been reached.
 type MessageBatch struct {
 	delimiter string
 	queue     [2]messageQueue

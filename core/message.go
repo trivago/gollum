@@ -15,6 +15,7 @@
 package core
 
 import (
+	"github.com/trivago/gollum/shared"
 	"runtime"
 	"time"
 )
@@ -42,7 +43,7 @@ var (
 	DroppedStreamID = GetStreamID(DroppedStream)
 )
 
-var messageRetryQueue chan Message
+var retryQueue chan Message
 
 // MessageSource defines methods that can be called on types that generate
 // messages.
@@ -69,14 +70,14 @@ type Message struct {
 
 // EnableRetryQueue creates a retried messages channel using the given size.
 func EnableRetryQueue(size int) {
-	if messageRetryQueue == nil {
-		messageRetryQueue = make(chan Message, size)
+	if retryQueue == nil {
+		retryQueue = make(chan Message, size)
 	}
 }
 
 // GetRetryQueue returns read access to the retry queue.
 func GetRetryQueue() <-chan Message {
-	return messageRetryQueue
+	return retryQueue
 }
 
 // NewMessage creates a new message from a given data stream
@@ -85,9 +86,14 @@ func NewMessage(source MessageSource, data []byte, sequence uint64) Message {
 		Data:      data,
 		Source:    source,
 		StreamID:  WildcardStreamID,
-		Timestamp: time.Now(),
+		Timestamp: shared.LowResolutionTimeNow, //time.Now(),
 		Sequence:  sequence,
 	}
+}
+
+// String implements the stringer interface
+func (msg Message) String() string {
+	return string(msg.Data)
 }
 
 // Enqueue is a convenience function to push a message to a channel while
@@ -130,22 +136,21 @@ func (msg Message) Enqueue(channel chan<- Message, timeout time.Duration) {
 	}
 }
 
-// String implements the stringer interface
-func (msg Message) String() string {
-	return string(msg.Data)
-}
-
-// Retry pushes a message to the retry queue. This queue can be consumed by the
-// loopback consumer. If no such consumer has been configured, the message is
-// lost.
-func (msg Message) Retry(streamID MessageStreamID, timeout time.Duration) {
-	if messageRetryQueue != nil {
-		msg.StreamID = streamID
-		msg.Enqueue(messageRetryQueue, timeout)
+// Drop pushes a message to the retry queue and sets the stream to _DROPPED_.
+// This queue can be consumed by the loopback consumer. If no such consumer has
+// been configured, the message is lost.
+func (msg Message) Drop(timeout time.Duration) {
+	if retryQueue != nil {
+		msg.StreamID = DroppedStreamID
+		msg.Enqueue(retryQueue, timeout)
 	}
 }
 
-// Drop is a shortcut for msg.Retry(DroppedStreamID, timeout)
-func (msg Message) Drop(timeout time.Duration) {
-	msg.Retry(DroppedStreamID, timeout)
+// Retry pushes a message to the retry queue. This queue can be consumed by
+// the loopback consumer. If no such consumer has been configured, the message
+// is lost.
+func (msg Message) Retry(timeout time.Duration) {
+	if retryQueue != nil {
+		msg.Enqueue(retryQueue, timeout)
+	}
 }
