@@ -238,7 +238,7 @@ func (prod *Kafka) send(msg core.Message) {
 
 	if prod.client != nil && prod.producer != nil {
 		// Send message
-		topic, topicMapped := prod.topic[msg.Stream]
+		topic, topicMapped := prod.topic[msg.StreamID]
 		if !topicMapped {
 			topic = prod.topic[core.WildcardStreamID]
 		}

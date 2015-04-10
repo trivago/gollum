@@ -137,7 +137,7 @@ func (prod *Scribe) sendBatchOnTimeOut() {
 }
 
 func (prod *Scribe) sendMessage(message core.Message) {
-	category, exists := prod.category[message.Stream]
+	category, exists := prod.category[message.StreamID]
 	if !exists {
 		category = prod.category[core.WildcardStreamID]
 	}

@@ -154,7 +154,7 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 }
 
 func (prod *ElasticSearch) sendMessage(msg core.Message) {
-	index, indexMapped := prod.index[msg.Stream]
+	index, indexMapped := prod.index[msg.StreamID]
 	if !indexMapped {
 		index = prod.index[core.WildcardStreamID]
 	}
@@ -163,7 +163,7 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 		index = index + "_" + msg.Timestamp.Format("2006-01-02")
 	}
 
-	msgType, typeMapped := prod.msgType[msg.Stream]
+	msgType, typeMapped := prod.msgType[msg.StreamID]
 	if !typeMapped {
 		msgType = prod.msgType[core.WildcardStreamID]
 	}

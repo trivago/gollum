@@ -151,7 +151,7 @@ func (cons ConsumerBase) Resume() {
 
 // ReEnqueue resends a message to the stream assigned to the message.
 func (cons *ConsumerBase) ReEnqueue(msg Message) {
-	if stream, exists := cons.streams[msg.Stream]; exists {
+	if stream, exists := cons.streams[msg.StreamID]; exists {
 		stream.Enqueue(msg)
 	}
 }
@@ -161,7 +161,7 @@ func (cons *ConsumerBase) ReEnqueue(msg Message) {
 func (cons *ConsumerBase) Enqueue(data []byte, sequence uint64) {
 	msg := NewMessage(cons, data, sequence)
 	for streamID, stream := range cons.streams {
-		msg.Stream = streamID
+		msg.StreamID = streamID
 		stream.Enqueue(msg)
 	}
 }

@@ -84,14 +84,14 @@ func (cons *LoopBack) addRoute(sourceID core.MessageStreamID, targetID core.Mess
 }
 
 func (cons *LoopBack) route(msg core.Message) {
-	if streams, routeExists := cons.routes[msg.Stream]; routeExists {
+	if streams, routeExists := cons.routes[msg.StreamID]; routeExists {
 		for targetID, targetStream := range streams {
-			msg.Stream = targetID
+			msg.StreamID = targetID
 			targetStream.Enqueue(msg)
 		}
 	} else {
 		// Extend the cache
-		targetStream := cons.addRoute(msg.Stream, msg.Stream)
+		targetStream := cons.addRoute(msg.StreamID, msg.StreamID)
 		targetStream.Enqueue(msg)
 	}
 }

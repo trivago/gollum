@@ -61,7 +61,7 @@ type MessageSource interface {
 // This struct is passed between consumers and producers.
 type Message struct {
 	Data      []byte
-	Stream    MessageStreamID
+	StreamID  MessageStreamID
 	Source    MessageSource
 	Timestamp time.Time
 	Sequence  uint64
@@ -84,7 +84,7 @@ func NewMessage(source MessageSource, data []byte, sequence uint64) Message {
 	return Message{
 		Data:      data,
 		Source:    source,
-		Stream:    WildcardStreamID,
+		StreamID:  WildcardStreamID,
 		Timestamp: time.Now(),
 		Sequence:  sequence,
 	}
@@ -140,7 +140,7 @@ func (msg Message) String() string {
 // lost.
 func (msg Message) Retry(streamID MessageStreamID, timeout time.Duration) {
 	if messageRetryQueue != nil {
-		msg.Stream = streamID
+		msg.StreamID = streamID
 		msg.Enqueue(messageRetryQueue, timeout)
 	}
 }
