@@ -82,8 +82,8 @@ func (batch *MessageBatch) Append(msg Message) bool {
 	// does not block after a failed message.
 	defer func() { activeQueue.doneCount++ }()
 
-	batch.format.PrepareMessage(msg)
-	messageLength := batch.format.Len()
+	payload := batch.format.Format(msg)
+	messageLength := len(payload)
 	var currentOffset, nextOffset int
 
 	// There might be multiple threads writing to the queue, so try to get a
@@ -105,7 +105,7 @@ func (batch *MessageBatch) Append(msg Message) bool {
 		}
 	}
 
-	batch.format.Read(activeQueue.buffer[currentOffset:])
+	copy(activeQueue.buffer[currentOffset:], payload)
 	return true
 }
 

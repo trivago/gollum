@@ -31,7 +31,6 @@ import (
 // RunlengthDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Runlength struct {
-	core.FormatterBase
 	base core.Formatter
 }
 
@@ -50,13 +49,15 @@ func (format *Runlength) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-// PrepareMessage sets the message to be formatted.
-func (format *Runlength) PrepareMessage(msg core.Message) {
-	format.base.PrepareMessage(msg)
-	baseLength := format.base.Len()
+// Format prepends the length of the message (followed by ":") to the message.
+func (format *Runlength) Format(msg core.Message) []byte {
+	basePayload := format.base.Format(msg)
+	baseLength := len(basePayload)
 	lengthStr := strconv.Itoa(baseLength) + ":"
 
-	format.FormatterBase.Message = make([]byte, len(lengthStr)+baseLength)
-	len := copy(format.FormatterBase.Message, []byte(lengthStr))
-	format.base.Read(format.FormatterBase.Message[len:])
+	payload := make([]byte, len(lengthStr)+baseLength)
+	len := copy(payload, []byte(lengthStr))
+	copy(payload[len:], basePayload)
+
+	return payload
 }

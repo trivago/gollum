@@ -46,7 +46,6 @@ import (
 // IdentifierDataFormatter defines the formatter for the data that is used to
 // build the identifier from. By default this is set to "format.Forward"
 type Identifier struct {
-	core.FormatterBase
 	base core.Formatter
 	hash func(msg core.Message) []byte
 }
@@ -96,10 +95,9 @@ func (format *Identifier) idSeqHex(msg core.Message) []byte {
 	return []byte(strconv.FormatUint(msg.Sequence, 16))
 }
 
-// PrepareMessage sets the message to be formatted.
-func (format *Identifier) PrepareMessage(msg core.Message) {
-	format.base.PrepareMessage(msg)
+// Format generates a unique identifier from the message contents or metadata.
+func (format *Identifier) Format(msg core.Message) []byte {
 	dataMsg := msg
-	dataMsg.Data = format.base.Bytes()
-	format.FormatterBase.Message = format.hash(dataMsg)
+	dataMsg.Format(format.base)
+	return format.hash(dataMsg)
 }

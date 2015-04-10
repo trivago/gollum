@@ -41,7 +41,6 @@ import (
 // EnvelopeDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Envelope struct {
-	core.FormatterBase
 	base    core.Formatter
 	postfix string
 	prefix  string
@@ -67,23 +66,23 @@ func (format *Envelope) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-// PrepareMessage sets the message to be formatted.
-func (format *Envelope) PrepareMessage(msg core.Message) {
-	format.base.PrepareMessage(msg)
+// Format adds prefix and postfix to the message formatted by the base formatter
+func (format *Envelope) Format(msg core.Message) []byte {
+	basePayload := format.base.Format(msg)
 
 	prefixLen := len(format.prefix)
-	baseLen := format.base.Len()
+	baseLen := len(basePayload)
 	postfixLen := len(format.postfix)
 
-	format.FormatterBase.Message = make([]byte, prefixLen+baseLen+postfixLen)
+	payload := make([]byte, prefixLen+baseLen+postfixLen)
 
 	if prefixLen > 0 {
-		prefixLen = copy(format.FormatterBase.Message, format.prefix)
+		prefixLen = copy(payload, format.prefix)
 	}
-
-	baseLen, _ = format.base.Read(format.FormatterBase.Message[prefixLen:])
-
+	copy(payload, basePayload)
 	if postfixLen > 0 {
-		copy(format.FormatterBase.Message[prefixLen+baseLen:], format.postfix)
+		copy(payload[prefixLen+baseLen:], format.postfix)
 	}
+
+	return payload
 }

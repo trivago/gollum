@@ -65,8 +65,8 @@ func (prod *Console) Configure(conf core.PluginConfig) error {
 }
 
 func (prod *Console) printMessage(msg core.Message) {
-	prod.ProducerBase.Format.PrepareMessage(msg)
-	fmt.Fprint(prod.console, prod.ProducerBase.Format.String())
+	text := string(prod.ProducerBase.Format.Format(msg))
+	fmt.Fprint(prod.console, text)
 }
 
 func (prod *Console) flush() {

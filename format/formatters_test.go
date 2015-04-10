@@ -20,23 +20,12 @@ import (
 	"testing"
 )
 
-func testFormatter(t *testing.T, formatter core.Formatter) bool {
-	expect := shared.NewExpect(t)
-
+func testFormatter(formatter core.Formatter) bool {
 	message := []byte("\ttest\r\n123 456\n")
 	msg := core.NewMessage(nil, message, 0)
 
-	formatter.PrepareMessage(msg)
-	buffer := make([]byte, formatter.Len())
-	result := true
-
-	length, _ := formatter.Read(buffer)
-	result = expect.Equal(formatter.Len(), length) && result
-	result = expect.Equal(formatter.Len(), len(formatter.String())) && result
-	result = expect.Equal(formatter.Len(), len(formatter.Bytes())) && result
-	result = expect.Equal(formatter.String(), string(buffer)) && result
-
-	return result
+	formatter.Format(msg)
+	return true
 }
 
 func TestFormatters(t *testing.T) {
@@ -52,7 +41,7 @@ func TestFormatters(t *testing.T) {
 		if err != nil {
 			t.Errorf("Failed to create formatter %s: %s", name, err.Error())
 		} else {
-			if !testFormatter(t, plugin.(core.Formatter)) {
+			if !testFormatter(plugin.(core.Formatter)) {
 				t.Errorf("Formatter %s tests failed", name)
 			}
 		}

@@ -29,7 +29,6 @@ type MessageBatchWriter struct {
 }
 
 type mockFormatter struct {
-	FormatterBase
 }
 
 func (writer MessageBatchWriter) Write(data []byte) (int, error) {
@@ -59,8 +58,8 @@ func (writer MessageBatchWriter) onError(err error) bool {
 	return false
 }
 
-func (mock *mockFormatter) PrepareMessage(msg Message) {
-	mock.FormatterBase.Message = msg.Data
+func (mock *mockFormatter) Format(msg Message) []byte {
+	return msg.Data
 }
 
 func TestMessageBatch(t *testing.T) {

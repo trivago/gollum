@@ -15,7 +15,6 @@
 package core
 
 import (
-	"sync"
 	"sync/atomic"
 )
 
@@ -44,7 +43,6 @@ type StreamBase struct {
 	Format     Formatter
 	Producers  []Producer
 	Distribute func(msg Message)
-	queueLock  *sync.Mutex
 }
 
 // GetAndResetMessageCount returns the current message counter and resets it
@@ -68,7 +66,6 @@ func (stream *StreamBase) Configure(conf PluginConfig) error {
 	stream.Filter = plugin.(Filter)
 
 	stream.Distribute = stream.broadcast
-	stream.queueLock = new(sync.Mutex)
 	return nil
 }
 
@@ -97,14 +94,8 @@ func (stream *StreamBase) broadcast(msg Message) {
 func (stream *StreamBase) Enqueue(msg Message) {
 	atomic.AddUint32(&MessageCount, 1)
 
-	// As filters and/or formatter may store internal states we have to make
-	// sure that these are not modified by parallel calls to this method.
-	stream.queueLock.Lock()
-	defer stream.queueLock.Unlock()
-
 	if stream.Filter.Accepts(msg) {
-		stream.Format.PrepareMessage(msg)
-		msg.Data = stream.Format.Bytes()
+		msg.Format(stream.Format)
 		stream.Distribute(msg)
 	}
 }

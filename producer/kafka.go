@@ -243,14 +243,11 @@ func (prod *Kafka) send(msg core.Message) {
 			topic = prod.topic[core.WildcardStreamID]
 		}
 
-		prod.ProducerBase.Format.PrepareMessage(msg)
-		buffer := make([]byte, prod.ProducerBase.Format.Len())
-		prod.ProducerBase.Format.Read(buffer)
-
+		payload := prod.ProducerBase.Format.Format(msg)
 		prod.producer.Input() <- &kafka.ProducerMessage{
 			Topic: topic,
 			Key:   nil,
-			Value: kafka.ByteEncoder(buffer),
+			Value: kafka.ByteEncoder(payload),
 		}
 
 		// Check for errors

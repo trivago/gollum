@@ -68,8 +68,8 @@ func TestJSONFormatter1(t *testing.T) {
 		`arrNextStr :]:             : pop  : end`,
 	}, "findKey")
 
-	test.PrepareMessage(msg)
-	expect.Equal(testString, test.String())
+	result := test.Format(msg)
+	expect.Equal(testString, string(result))
 }
 
 func BenchmarkJSONFormatter(b *testing.B) {
@@ -100,6 +100,6 @@ func BenchmarkJSONFormatter(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		testString := fmt.Sprintf(`{"a":%d23,"b":"string","c":[%d,2,3],"d":[{"a":%d}],"e":[[%d,2]],"f":[{"a":%d},{"b":2}],"g":[[%d,2],[3,4]]}`, i, i, i, i, i, i)
 		msg := core.NewMessage(nil, []byte(testString), 0)
-		test.PrepareMessage(msg)
+		test.Format(msg)
 	}
 }

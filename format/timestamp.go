@@ -35,7 +35,6 @@ import (
 // TimestampDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Envelope"
 type Timestamp struct {
-	core.FormatterBase
 	base            core.Formatter
 	timestampFormat string
 }
@@ -57,13 +56,15 @@ func (format *Timestamp) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-// PrepareMessage sets the message to be formatted.
-func (format *Timestamp) PrepareMessage(msg core.Message) {
-	format.base.PrepareMessage(msg)
-	baseLength := format.base.Len()
+// Format prepends the timestamp of the message to the message.
+func (format *Timestamp) Format(msg core.Message) []byte {
+	basePayload := format.base.Format(msg)
+	baseLength := len(basePayload)
 	timestampStr := msg.Timestamp.Format(format.timestampFormat)
 
-	format.FormatterBase.Message = make([]byte, len(timestampStr)+baseLength)
-	len := copy(format.FormatterBase.Message, []byte(timestampStr))
-	format.base.Read(format.FormatterBase.Message[len:])
+	payload := make([]byte, len(timestampStr)+baseLength)
+	len := copy(payload, []byte(timestampStr))
+	copy(payload[len:], basePayload)
+
+	return payload
 }
