@@ -91,7 +91,7 @@ type ProducerBase struct {
 	streams  []MessageStreamID
 	state    *PluginRunState
 	timeout  time.Duration
-	Format   Formatter
+	format   Formatter
 }
 
 // ProducerError can be used to return consumer related errors e.g. during a
@@ -117,7 +117,7 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	if err != nil {
 		return err // ### return, plugin load error ###
 	}
-	prod.Format = format.(Formatter)
+	prod.format = format.(Formatter)
 
 	prod.streams = make([]MessageStreamID, len(conf.Stream))
 	prod.control = make(chan ProducerControl, 1)
@@ -181,6 +181,16 @@ func (prod ProducerBase) NextNonBlocking(onMessage func(msg Message)) bool {
 	default:
 		return false
 	}
+}
+
+// Format calls the formatters Format function
+func (prod *ProducerBase) Format(msg Message) []byte {
+	return prod.format.Format(msg)
+}
+
+// GetFormatter returns the formatter of this producer
+func (prod *ProducerBase) GetFormatter() Formatter {
+	return prod.format
 }
 
 // Streams returns the streams this producer is listening to.

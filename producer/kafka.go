@@ -243,7 +243,7 @@ func (prod *Kafka) send(msg core.Message) {
 			topic = prod.topic[core.WildcardStreamID]
 		}
 
-		payload := prod.ProducerBase.Format.Format(msg)
+		payload := prod.ProducerBase.Format(msg)
 		prod.producer.Input() <- &kafka.ProducerMessage{
 			Topic: topic,
 			Key:   nil,

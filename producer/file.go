@@ -115,7 +115,7 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
-	prod.batch = core.NewMessageBatch(bufferSizeMax, prod.ProducerBase.Format)
+	prod.batch = core.NewMessageBatch(bufferSizeMax, prod.ProducerBase.GetFormatter())
 	prod.forceRotate = false
 
 	prod.rotate = conf.GetBool("Rotate", false)

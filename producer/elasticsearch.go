@@ -168,7 +168,7 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 		msgType = prod.msgType[core.WildcardStreamID]
 	}
 
-	payload := string(prod.ProducerBase.Format.Format(msg))
+	payload := string(prod.ProducerBase.Format(msg))
 	err := prod.indexer.Index(index, msgType, "", prod.msgTTL, &msg.Timestamp, payload, true)
 	if err != nil {
 		Log.Error.Print("ElasticSearch index error - ", err)

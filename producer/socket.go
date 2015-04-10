@@ -101,7 +101,7 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 		}
 	}
 
-	prod.batch = core.NewMessageBatch(bufferSizeMax, prod.ProducerBase.Format)
+	prod.batch = core.NewMessageBatch(bufferSizeMax, prod.ProducerBase.GetFormatter())
 
 	return nil
 }
