@@ -1,5 +1,5 @@
 Filters
-############################
+##########################
 
 .. toctree::
 	:maxdepth: 2
@@ -7,4 +7,4 @@ Filters
 	all
 	json
 	none
-    regexp
+	regexp

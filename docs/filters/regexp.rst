@@ -1,4 +1,15 @@
 RegExp
 #############
 
-TODO: Fill me with content
+This filter tries to match a regular expression on text based messages.
+Messages that match the given expression will be passed, everything else is blocked.
+Documentation on the used regular expression dialect can be found here http://golang.org/pkg/regexp/
+
+Example
+-------
+
+::
+
+  - "stream.Broadcast":
+    Filter: "filter.RegExp"
+    FilterExpression: "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"

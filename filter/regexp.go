@@ -25,7 +25,7 @@ import (
 //
 //   - "stream.Broadcast":
 //     Filter: "filter.RegExp"
-//     FilterRegExp: "\d+-.*"
+//     FilterExpression: "\d+-.*"
 //
 // FilterRegExp defines the regular expression used for matching the message
 // payload. If the expression matches, the message is passed.
@@ -41,7 +41,7 @@ func init() {
 func (filter *RegExp) Configure(conf core.PluginConfig) error {
 	var err error
 
-	exp := conf.GetString("FilterRegExp", "")
+	exp := conf.GetString("FilterExpression", "")
 	if exp != "" {
 		filter.exp, err = regexp.Compile(exp)
 		if err != nil {
