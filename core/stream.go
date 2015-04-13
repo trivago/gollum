@@ -32,6 +32,12 @@ type Stream interface {
 	Enqueue(msg Message)
 }
 
+// MappedStream holds a stream and the id the stream is assgined to
+type MappedStream struct {
+	StreamID MessageStreamID
+	Stream   Stream
+}
+
 // StreamBase defines the standard stream implementation. New stream types
 // should derive from this class.
 // StreamBase allows streams to set and execute filters as well as format a

@@ -65,7 +65,7 @@ type Consumer interface {
 // messages.
 type ConsumerBase struct {
 	control chan ConsumerControl
-	streams map[MessageStreamID]Stream
+	streams []MappedStream
 	state   *PluginRunState
 	timeout time.Duration
 }
@@ -89,13 +89,15 @@ func (err ConsumerError) Error() string {
 // Configure initializes standard consumer values from a plugin config.
 func (cons *ConsumerBase) Configure(conf PluginConfig) error {
 	cons.control = make(chan ConsumerControl, 1)
-	cons.streams = make(map[MessageStreamID]Stream)
 	cons.timeout = time.Duration(conf.GetInt("ChannelTimeout", 0)) * time.Millisecond
 	cons.state = new(PluginRunState)
 
 	for _, streamName := range conf.Stream {
 		streamID := GetStreamID(streamName)
-		cons.streams[streamID] = StreamTypes.GetStreamOrFallback(streamID)
+		cons.streams = append(cons.streams, MappedStream{
+			StreamID: streamID,
+			Stream:   StreamTypes.GetStreamOrFallback(streamID),
+		})
 	}
 
 	return nil
@@ -149,20 +151,13 @@ func (cons ConsumerBase) Resume() {
 	cons.state.Resume()
 }
 
-// ReEnqueue resends a message to the stream assigned to the message.
-func (cons *ConsumerBase) ReEnqueue(msg Message) {
-	if stream, exists := cons.streams[msg.StreamID]; exists {
-		stream.Enqueue(msg)
-	}
-}
-
 // Enqueue creates a new message from a given byte slice and passes it to
 // cons.Send. Note that data is not copied, just referenced by the message.
 func (cons *ConsumerBase) Enqueue(data []byte, sequence uint64) {
 	msg := NewMessage(cons, data, sequence)
-	for streamID, stream := range cons.streams {
-		msg.StreamID = streamID
-		stream.Enqueue(msg)
+	for _, mapping := range cons.streams {
+		msg.StreamID = mapping.StreamID
+		mapping.Stream.Enqueue(msg)
 	}
 }
 
@@ -177,8 +172,8 @@ func (cons *ConsumerBase) EnqueueCopy(data []byte, sequence uint64) {
 // Streams returns an array with all stream ids this consumer is writing to.
 func (cons *ConsumerBase) Streams() []MessageStreamID {
 	streamIDs := make([]MessageStreamID, 0, len(cons.streams))
-	for streamID := range cons.streams {
-		streamIDs = append(streamIDs, streamID)
+	for _, mapping := range cons.streams {
+		streamIDs = append(streamIDs, mapping.StreamID)
 	}
 	return streamIDs
 }
