@@ -1,13 +1,14 @@
-Consumers (reading data)
+Consumers
 ##########################
 
 .. toctree::
 	:maxdepth: 2
 
 	console
-	dropped
 	file
+	httpd
 	kafka
+	loopback
 	profiler
 	socket
 	syslogd

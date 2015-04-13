@@ -1,4 +1,4 @@
-Streams (transferring data)
+Streams
 ############################
 
 .. toctree::

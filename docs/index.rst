@@ -6,8 +6,6 @@
 Welcome to gollum's documentation!
 ==================================
 
-Contents:
-
 .. toctree::
    :maxdepth: 2
 

@@ -1,4 +1,4 @@
-Filters (inspecting data)
+Filters
 ############################
 
 .. toctree::

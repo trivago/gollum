@@ -1,4 +1,4 @@
-Producers (writing data)
+Producers
 #########################
 
 .. toctree::
@@ -9,5 +9,7 @@ Producers (writing data)
 	file
 	kafka
 	null
+	redis
 	scribe
 	socket
+	websocket

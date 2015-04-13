@@ -1,11 +1,12 @@
-Formatters (modifying data)
+Formatters
 ############################
 
 .. toctree::
 	:maxdepth: 2
 
-	delimiter
+	envelope
 	forward
+	identifier
 	json
 	runlength
 	sequence
