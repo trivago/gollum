@@ -32,7 +32,6 @@ const (
 	metricMsgSecAvg = "MessagesPerSecAvg"
 	metricCons      = "Consumers"
 	metricProds     = "Producers"
-	metricStreams   = "ManagedStreams"
 	metricMessages  = "Messages"
 )
 
@@ -67,7 +66,6 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	shared.Metric.New(metricMsgSecAvg)
 	shared.Metric.New(metricCons)
 	shared.Metric.New(metricProds)
-	shared.Metric.New(metricStreams)
 	shared.Metric.New(metricMessages)
 
 	plex := multiplexer{

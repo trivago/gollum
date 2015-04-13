@@ -57,14 +57,14 @@ type Producer interface {
 // ProducerBase base class
 // All producers support a common subset of configuration options:
 //
-// - "producer.Something":
-//   Enable: true
-//   Channel: 1024
-//   ChannelTimeout: 200
-//   Formatter: "format.Envelope"
-//   Stream:
-//      - "error"
-//      - "default"
+//   - "producer.Something":
+//     Enable: true
+//     Channel: 1024
+//     ChannelTimeout: 200
+//     Formatter: "format.Envelope"
+//     Stream:
+//       - "error"
+//       - "default"
 //
 // Enable switches the consumer on or off. By default this value is set to true.
 //

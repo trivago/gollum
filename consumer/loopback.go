@@ -37,7 +37,7 @@ import (
 // timeout will arrive at the _DROPPED_ channel.
 // This consumer ignores the "Stream" setting and cannot be paused.
 //
-// Channel defines the size of the loopback queue.
+// Channel defines the size of the retry queue.
 // By default this is set to 8192.
 //
 // Routes defines a 1:n stream remapping. Messages reaching the LoopBack
