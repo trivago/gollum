@@ -12,9 +12,10 @@ Contents:
    :maxdepth: 2
 
    consumers/index
-   distributors/index
+   filters/index
    formatters/index
    producers/index
+   streams/index
    license/index
 
 Indices and tables
