@@ -193,6 +193,24 @@ func (prod *ProducerBase) GetFormatter() Formatter {
 	return prod.format
 }
 
+// PauseAllStreams sends the Pause() command to all streams this producer is
+// listening to.
+func (prod *ProducerBase) PauseAllStreams(capacity int) {
+	for _, streamID := range prod.streams {
+		stream := StreamTypes.GetStream(streamID)
+		stream.Pause(capacity)
+	}
+}
+
+// ResumeAllStreams sends the Resume() command to all streams this producer is
+// listening to.
+func (prod *ProducerBase) ResumeAllStreams() {
+	for _, streamID := range prod.streams {
+		stream := StreamTypes.GetStream(streamID)
+		stream.Resume()
+	}
+}
+
 // Streams returns the streams this producer is listening to.
 func (prod *ProducerBase) Streams() []MessageStreamID {
 	return prod.streams

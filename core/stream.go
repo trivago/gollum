@@ -24,6 +24,16 @@ var MessageCount = uint32(0)
 
 // Stream defines the interface for all stream plugins
 type Stream interface {
+	// Pause causes this stream to go silent. Messages should be queued or cause
+	// a blocking call. The passed capacity can be used to configure internal
+	// channel for buffering incoming messages while this stream is paused.
+	Pause(capacity int)
+
+	// Resume causes this stream to send messages again after Pause() had been
+	// called. Any buffered messages need to be sent by this method or by a
+	// separate go routine.
+	Resume()
+
 	// AddProducer adds one or more producers to this stream, i.e. the producers
 	// listening to messages on this stream.
 	AddProducer(producers ...Producer)
