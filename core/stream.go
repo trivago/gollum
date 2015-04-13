@@ -45,10 +45,12 @@ type MappedStream struct {
 // instead of overloading the Enqueue method.
 // See stream.Broadcast for default configuration values and examples.
 type StreamBase struct {
-	Filter     Filter
-	Format     Formatter
-	Producers  []Producer
-	Distribute func(msg Message)
+	Filter         Filter
+	Format         Formatter
+	Producers      []Producer
+	Distribute     func(msg Message)
+	prevDistribute func(msg Message)
+	paused         chan Message
 }
 
 // GetAndResetMessageCount returns the current message counter and resets it
@@ -70,7 +72,6 @@ func (stream *StreamBase) Configure(conf PluginConfig) error {
 		return err // ### return, plugin load error ###
 	}
 	stream.Filter = plugin.(Filter)
-
 	stream.Distribute = stream.broadcast
 	return nil
 }
@@ -86,6 +87,41 @@ func (stream *StreamBase) AddProducer(producers ...Producer) {
 		}
 		stream.Producers = append(stream.Producers, prod)
 	}
+}
+
+// Pause will cause this stream to go silent. Messages will be queued to an
+// internal channel that can be configured in size by setting the capacity
+// parameter. Pass a capacity of 0 to disable buffering.
+// Calling Pause on an already paused stream is ignored.
+func (stream *StreamBase) Pause(capacity int) {
+	if stream.paused == nil {
+		stream.paused = make(chan Message, capacity)
+		stream.prevDistribute = stream.Distribute
+		stream.Distribute = stream.stash
+	}
+}
+
+// Resume causes this stream to send messages again after Pause() had been
+// called. Any buffered messages will be sent by a separate go routine.
+// Calling Resume on a stream that is not paused is ignored.
+func (stream *StreamBase) Resume() {
+	if stream.paused != nil {
+		stream.Distribute = stream.prevDistribute
+
+		stashed := stream.paused
+		stream.paused = nil
+		close(stashed)
+
+		go func() {
+			for msg := range stashed {
+				stream.Distribute(msg)
+			}
+		}()
+	}
+}
+
+func (stream *StreamBase) stash(msg Message) {
+	stream.paused <- msg
 }
 
 func (stream *StreamBase) broadcast(msg Message) {

@@ -39,7 +39,6 @@ import (
 // The profiler plugin generates Runs x Batches messages and send them to the
 // configured streams as fast as possible. This consumer can be used to profile
 // producers and/or configurations.
-// This consumer can be paused.
 //
 // Runs defines the number of messages per batch. By default this is set to
 // 10000.
@@ -170,7 +169,6 @@ func (cons *Profiler) profile() {
 		for i := 0; i < cons.profileRuns && !cons.quit; i++ {
 			template := cons.templates[rand.Intn(len(cons.templates))]
 			cons.EnqueueCopy(template, uint64(b*cons.profileRuns+i))
-			cons.WaitIfPaused()
 		}
 
 		runTime := time.Since(start)

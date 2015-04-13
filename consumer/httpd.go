@@ -35,7 +35,6 @@ import (
 //
 // The Httpd consumer defines a simple http listener that will generate a
 // message from the body of each POST request.
-// This consumer cannot be paused.
 //
 // Address stores the identifier to bind to.
 // This is allowed be any ip address/dns and port like "localhost:5880".

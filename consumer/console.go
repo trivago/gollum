@@ -34,7 +34,7 @@ const (
 //     Enable: true
 //
 // This consumer reads from stdin. A message is generated after each newline
-// character. This consumer cannot be paused.
+// character.
 //
 // This consumer does not define any options beside the standard ones.
 type Console struct {

@@ -57,7 +57,6 @@ const (
 //
 // The kafka consumer reads from a given kafka topic. This consumer is based on
 // the sarama library so most settings relate to the settings from this library.
-// This consumer can be paused.
 //
 // DefaultOffset defines the message index to start reading from.
 // Valid values are either "Newset", "Oldest", or a number.
@@ -228,11 +227,6 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 	// Loop over worker
 
 	for !cons.client.Closed() {
-		if cons.IsPaused() {
-			runtime.Gosched()
-			continue
-		}
-
 		select {
 		case event := <-partCons.Messages():
 			cons.offsets[partitionID] = event.Offset

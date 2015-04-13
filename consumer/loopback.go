@@ -35,7 +35,7 @@ import (
 // The loopback consumer defines the configuration for the internal loopback or
 // dropped message stream. Messages that are dropped because of a channel
 // timeout will arrive at the _DROPPED_ channel.
-// This consumer ignores the "Stream" setting and cannot be paused.
+// This consumer ignores the "Stream" setting.
 //
 // Channel defines the size of the retry queue.
 // By default this is set to 8192.

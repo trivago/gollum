@@ -17,7 +17,6 @@ package core
 import (
 	"fmt"
 	"github.com/trivago/gollum/shared"
-	"runtime"
 	"sync"
 	"time"
 )
@@ -126,29 +125,6 @@ func (cons ConsumerBase) AddWorker() {
 func (cons ConsumerBase) WorkerDone() {
 	cons.state.WorkerDone()
 	shared.Metric.Dec(metricActiveWorkers)
-}
-
-// Pause implements the MessageSource interface
-func (cons ConsumerBase) Pause() {
-	cons.state.Pause()
-}
-
-// IsPaused implements the MessageSource interface
-func (cons ConsumerBase) IsPaused() bool {
-	return cons.state.IsPaused()
-}
-
-// WaitIfPaused spins until pause is disable. If the consumer is not paused
-// this function simply continues.
-func (cons ConsumerBase) WaitIfPaused() {
-	for cons.state.IsPaused() {
-		runtime.Gosched()
-	}
-}
-
-// Resume implements the MessageSource interface
-func (cons ConsumerBase) Resume() {
-	cons.state.Resume()
 }
 
 // Enqueue creates a new message from a given byte slice and passes it to

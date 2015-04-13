@@ -35,7 +35,6 @@ import (
 //     Protocol: "udp"
 //
 // The syslogd consumer accepts messages from a syslogd comaptible socket.
-// This consumer cannot be paused.
 //
 // Address stores the identifier to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file

@@ -44,7 +44,7 @@ const (
 //
 // The socket consumer reads messages directly as-is from a given socket.
 // It does support a minimal protocol for sending messagelength and sequence
-// number. This consumer cannot be paused.
+// number.
 //
 // Address stores the identifier to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file

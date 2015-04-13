@@ -45,17 +45,9 @@ var (
 
 var retryQueue chan Message
 
-// MessageSource defines methods that can be called on types that generate
-// messages.
+// MessageSource defines methods that are common to all message sources.
+// Currently this is only a placeholder.
 type MessageSource interface {
-	// Pause instructs the source to stop sending messages.
-	Pause()
-
-	// IsPaused returns true if the source is currently in the paused state.
-	IsPaused() bool
-
-	// Resume instructs the source to start sending messages again.
-	Resume()
 }
 
 // Message is a container used for storing the internal state of messages.

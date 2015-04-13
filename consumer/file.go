@@ -57,7 +57,6 @@ const (
 // that marks the end of a message. If the file is part of e.g. a log rotation
 // the file consumer can set to a symbolic link of the latest file and be told
 // to reopen the file by sending a SIGHUP.
-// This consumer can be paused.
 //
 // File is a mandatory setting and contains the file to read. The file will be
 // read from beginning to end and the reader will stay attached until the
@@ -186,10 +185,6 @@ func (cons *File) read() {
 	printFileOpenError := true
 
 	for cons.state != fileStateDone {
-		if cons.IsPaused() {
-			runtime.Gosched()
-			continue // ### continue, do nothing ###
-		}
 
 		// Initialize the seek state if requested
 		// Try to read the remains of the file first
