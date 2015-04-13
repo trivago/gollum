@@ -79,13 +79,16 @@ const (
 //
 // The following names are allowed in the Function field:
 //
-//  * key -> Write the current match as a key
-//  * val -> Write the current match as a value without quotes
-//  * esc -> Write the current match as a escaped string value
-//  * dat -> Write the current match as a timestamp value
-//  * arr -> Start a new array
-//  * obj -> Start a new object
-//  * end -> Close an array or object
+//  * key     -> Write the current match as a key
+//  * val     -> Write the current match as a value without quotes
+//  * esc     -> Write the current match as a escaped string value
+//  * dat     -> Write the current match as a timestamp value
+//  * arr     -> Start a new array
+//  * obj     -> Start a new object
+//  * end     -> Close an array or object
+//  * val+end -> val followed by end
+//  * esc+end -> esc followed by end
+//  * dat+end -> dat followed by end
 //
 // If num or str is written without a previous key write, a key will be auto
 // generated from the current parser state name. This does not happen when

@@ -1,4 +1,29 @@
 Envelope
 #############
 
-TODO: Fill me with content
+| Envelope allows to pre- or postfix messages with a given string.
+| This formatter allows a nested formatter to further modify the message between pre- and postfix.
+| Prefix and Postfix may contain standard escape characters, i.e. "\r", "\n" and "\t".
+
+Parameters
+----------
+
+**EnvelopeDataFormatter**
+  Defines an additional formatter applied before adding pre- and postfix. `Format.Forward <forward.html>`_ by default.
+
+**Prefix**
+  Defines a string to be prepended to the message. Empty by default.
+
+**Postfix**
+  Defines a string to be appended to the message. "\n" by default.
+
+Example
+-------
+
+::
+
+  - "stream.Broadcast":
+    Formatter: "format.Envelope"
+    EnvelopeDataFormatter: "format.Forward"
+    Prefix: "<data>"
+    Postfix: "</data>\n"

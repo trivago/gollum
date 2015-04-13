@@ -15,6 +15,15 @@ If multiple rules apply to one dataset all rules must pass for a message to get 
 | Array values can be accessed by using square brackets "[]", i.e. standard array notation.
 | If an array value contains a nested structure the path starts directly after the bracket without an additional forward slash.
 
+Parameters
+----------
+
+**FilterReject**
+  Blacklist filters that must match to block a message. Empty by default.
+  
+**FilterAccept**
+  Blacklist filters that must match to pass a message. Empty by default.
+
 Example
 -------
 
