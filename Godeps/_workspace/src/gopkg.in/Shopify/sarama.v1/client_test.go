@@ -2,6 +2,7 @@ package sarama
 
 import (
 	"io"
+	"sync"
 	"testing"
 )
 
@@ -199,6 +200,54 @@ func TestClientMetadata(t *testing.T) {
 	safeClose(t, client)
 }
 
+func TestClientGetOffset(t *testing.T) {
+	seedBroker := newMockBroker(t, 1)
+	leader := newMockBroker(t, 2)
+	leaderAddr := leader.Addr()
+
+	metadata := new(MetadataResponse)
+	metadata.AddTopicPartition("foo", 0, leader.BrokerID(), nil, nil, ErrNoError)
+	metadata.AddBroker(leaderAddr, leader.BrokerID())
+	seedBroker.Returns(metadata)
+
+	client, err := NewClient([]string{seedBroker.Addr()}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	offsetResponse := new(OffsetResponse)
+	offsetResponse.AddTopicPartition("foo", 0, 123)
+	leader.Returns(offsetResponse)
+
+	offset, err := client.GetOffset("foo", 0, OffsetNewest)
+	if err != nil {
+		t.Error(err)
+	}
+	if offset != 123 {
+		t.Error("Unexpected offset, got ", offset)
+	}
+
+	leader.Close()
+	seedBroker.Returns(metadata)
+
+	leader = newMockBrokerAddr(t, 2, leaderAddr)
+	offsetResponse = new(OffsetResponse)
+	offsetResponse.AddTopicPartition("foo", 0, 456)
+	leader.Returns(offsetResponse)
+
+	offset, err = client.GetOffset("foo", 0, OffsetNewest)
+	if err != nil {
+		t.Error(err)
+	}
+	if offset != 456 {
+		t.Error("Unexpected offset, got ", offset)
+	}
+
+	seedBroker.Close()
+	leader.Close()
+	safeClose(t, client)
+}
+
 func TestClientReceivingUnknownTopic(t *testing.T) {
 	seedBroker := newMockBroker(t, 1)
 
@@ -300,11 +349,10 @@ func TestClientRefreshBehaviour(t *testing.T) {
 	metadataResponse2.AddTopicPartition("my_topic", 0xb, leader.BrokerID(), nil, nil, ErrNoError)
 	seedBroker.Returns(metadataResponse2)
 
-	c, err := NewClient([]string{seedBroker.Addr()}, nil)
+	client, err := NewClient([]string{seedBroker.Addr()}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	client := c.(*client)
 
 	parts, err := client.Partitions("my_topic")
 	if err != nil {
@@ -323,4 +371,54 @@ func TestClientRefreshBehaviour(t *testing.T) {
 	leader.Close()
 	seedBroker.Close()
 	safeClose(t, client)
+}
+
+func TestClientResurrectDeadSeeds(t *testing.T) {
+	seed1 := newMockBroker(t, 1)
+	seed2 := newMockBroker(t, 2)
+	seed3 := newMockBroker(t, 3)
+	addr1 := seed1.Addr()
+	addr2 := seed2.Addr()
+	addr3 := seed3.Addr()
+
+	emptyMetadata := new(MetadataResponse)
+	seed1.Returns(emptyMetadata)
+
+	conf := NewConfig()
+	conf.Metadata.Retry.Backoff = 0
+	c, err := NewClient([]string{addr1, addr2, addr3}, conf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := c.(*client)
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		if err := client.RefreshMetadata(); err != nil {
+			t.Error(err)
+		}
+		wg.Done()
+	}()
+	seed1.Close()
+	seed2.Close()
+
+	seed1 = newMockBrokerAddr(t, 1, addr1)
+	seed2 = newMockBrokerAddr(t, 2, addr2)
+
+	seed3.Close()
+
+	seed1.Close()
+	seed2.Returns(emptyMetadata)
+
+	wg.Wait()
+
+	if len(client.seedBrokers) != 2 {
+		t.Error("incorrect number of live seeds")
+	}
+	if len(client.deadSeeds) != 1 {
+		t.Error("incorrect number of dead seeds")
+	}
+
+	safeClose(t, c)
 }

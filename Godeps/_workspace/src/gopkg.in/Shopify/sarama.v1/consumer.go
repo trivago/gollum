@@ -279,6 +279,7 @@ func (child *partitionConsumer) dispatcher() {
 				child.broker = nil
 			}
 
+			Logger.Printf("consumer/%s/%d finding new broker\n", child.topic, child.partition)
 			if err := child.dispatch(); err != nil {
 				child.sendError(err)
 				child.trigger <- none{}
@@ -366,6 +367,72 @@ func (child *partitionConsumer) Close() error {
 	return nil
 }
 
+func (child *partitionConsumer) handleResponse(response *FetchResponse) error {
+	block := response.GetBlock(child.topic, child.partition)
+	if block == nil {
+		return ErrIncompleteResponse
+	}
+
+	if block.Err != ErrNoError {
+		return block.Err
+	}
+
+	if len(block.MsgSet.Messages) == 0 {
+		// We got no messages. If we got a trailing one then we need to ask for more data.
+		// Otherwise we just poll again and wait for one to be produced...
+		if block.MsgSet.PartialTrailingMessage {
+			if child.conf.Consumer.Fetch.Max > 0 && child.fetchSize == child.conf.Consumer.Fetch.Max {
+				// we can't ask for more data, we've hit the configured limit
+				child.sendError(ErrMessageTooLarge)
+				child.offset++ // skip this one so we can keep processing future messages
+			} else {
+				child.fetchSize *= 2
+				if child.conf.Consumer.Fetch.Max > 0 && child.fetchSize > child.conf.Consumer.Fetch.Max {
+					child.fetchSize = child.conf.Consumer.Fetch.Max
+				}
+			}
+		}
+
+		return nil
+	}
+
+	// we got messages, reset our fetch size in case it was increased for a previous request
+	child.fetchSize = child.conf.Consumer.Fetch.Default
+
+	incomplete := false
+	atLeastOne := false
+	prelude := true
+	for _, msgBlock := range block.MsgSet.Messages {
+
+		for _, msg := range msgBlock.Messages() {
+			if prelude && msg.Offset < child.offset {
+				continue
+			}
+			prelude = false
+
+			if msg.Offset >= child.offset {
+				atLeastOne = true
+				child.messages <- &ConsumerMessage{
+					Topic:     child.topic,
+					Partition: child.partition,
+					Key:       msg.Msg.Key,
+					Value:     msg.Msg.Value,
+					Offset:    msg.Offset,
+				}
+				child.offset = msg.Offset + 1
+			} else {
+				incomplete = true
+			}
+		}
+
+	}
+
+	if incomplete || !atLeastOne {
+		return ErrIncompleteResponse
+	}
+	return nil
+}
+
 // brokerConsumer
 
 type brokerConsumer struct {
@@ -435,21 +502,24 @@ func (w *brokerConsumer) subscriptionConsumer() {
 		response, err := w.fetchNewMessages()
 
 		if err != nil {
-			Logger.Printf("Unexpected error processing FetchRequest; disconnecting from broker %s: %s\n", w.broker.addr, err)
+			Logger.Printf("consumer/broker/%d disconnecting due to error processing FetchRequest: %s\n", w.broker.ID(), err)
 			w.abort(err)
 			return
 		}
 
 		for child := range w.subscriptions {
-			block := response.GetBlock(child.topic, child.partition)
-			if block == nil {
-				child.sendError(ErrIncompleteResponse)
-				child.trigger <- none{}
-				delete(w.subscriptions, child)
-				continue
+			if err := child.handleResponse(response); err != nil {
+				switch err {
+				default:
+					child.sendError(err)
+					fallthrough
+				case ErrUnknownTopicOrPartition, ErrNotLeaderForPartition, ErrLeaderNotAvailable:
+					// these three are not fatal errors, but do require redispatching
+					child.trigger <- none{}
+					delete(w.subscriptions, child)
+					Logger.Printf("consumer/broker/%d abandoned subscription to %s/%d because %s\n", w.broker.ID(), child.topic, child.partition, err)
+				}
 			}
-
-			w.handleResponse(child, block)
 		}
 	}
 }
@@ -458,6 +528,7 @@ func (w *brokerConsumer) updateSubscriptionCache(newSubscriptions []*partitionCo
 	// take new subscriptions, and abandon subscriptions that have been closed
 	for _, child := range newSubscriptions {
 		w.subscriptions[child] = none{}
+		Logger.Printf("consumer/broker/%d added subscription to %s/%d\n", w.broker.ID(), child.topic, child.partition)
 	}
 
 	for child := range w.subscriptions {
@@ -465,6 +536,7 @@ func (w *brokerConsumer) updateSubscriptionCache(newSubscriptions []*partitionCo
 		case <-child.dying:
 			close(child.trigger)
 			delete(w.subscriptions, child)
+			Logger.Printf("consumer/broker/%d closed dead subscription to %s/%d\n", w.broker.ID(), child.topic, child.partition)
 		default:
 		}
 	}
@@ -498,75 +570,4 @@ func (w *brokerConsumer) fetchNewMessages() (*FetchResponse, error) {
 	}
 
 	return w.broker.Fetch(request)
-}
-
-func (w *brokerConsumer) handleResponse(child *partitionConsumer, block *FetchResponseBlock) {
-	switch block.Err {
-	case ErrNoError:
-		break
-	default:
-		child.sendError(block.Err)
-		fallthrough
-	case ErrUnknownTopicOrPartition, ErrNotLeaderForPartition, ErrLeaderNotAvailable:
-		// doesn't belong to us, redispatch it
-		child.trigger <- none{}
-		delete(w.subscriptions, child)
-		return
-	}
-
-	if len(block.MsgSet.Messages) == 0 {
-		// We got no messages. If we got a trailing one then we need to ask for more data.
-		// Otherwise we just poll again and wait for one to be produced...
-		if block.MsgSet.PartialTrailingMessage {
-			if child.conf.Consumer.Fetch.Max > 0 && child.fetchSize == child.conf.Consumer.Fetch.Max {
-				// we can't ask for more data, we've hit the configured limit
-				child.sendError(ErrMessageTooLarge)
-				child.offset++ // skip this one so we can keep processing future messages
-			} else {
-				child.fetchSize *= 2
-				if child.conf.Consumer.Fetch.Max > 0 && child.fetchSize > child.conf.Consumer.Fetch.Max {
-					child.fetchSize = child.conf.Consumer.Fetch.Max
-				}
-			}
-		}
-
-		return
-	}
-
-	// we got messages, reset our fetch size in case it was increased for a previous request
-	child.fetchSize = child.conf.Consumer.Fetch.Default
-
-	incomplete := false
-	atLeastOne := false
-	prelude := true
-	for _, msgBlock := range block.MsgSet.Messages {
-
-		for _, msg := range msgBlock.Messages() {
-			if prelude && msg.Offset < child.offset {
-				continue
-			}
-			prelude = false
-
-			if msg.Offset >= child.offset {
-				atLeastOne = true
-				child.messages <- &ConsumerMessage{
-					Topic:     child.topic,
-					Partition: child.partition,
-					Key:       msg.Msg.Key,
-					Value:     msg.Msg.Value,
-					Offset:    msg.Offset,
-				}
-				child.offset = msg.Offset + 1
-			} else {
-				incomplete = true
-			}
-		}
-
-	}
-
-	if incomplete || !atLeastOne {
-		child.sendError(ErrIncompleteResponse)
-		child.trigger <- none{}
-		delete(w.subscriptions, child)
-	}
 }
