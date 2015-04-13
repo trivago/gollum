@@ -47,6 +47,7 @@ func (stream *RoundRobin) Configure(conf core.PluginConfig) error {
 	if err := stream.StreamBase.Configure(conf); err != nil {
 		return err // ### return, base stream error ###
 	}
+	stream.StreamBase.Distribute = stream.roundRobin
 	stream.index = 0
 	return nil
 }
