@@ -9,7 +9,7 @@ Parameters
 ----------
 
 **TimestampDataFormatter**
-  Defines an additional formatter applied before adding the timestamp. `Format.Forward <forward.html>`_ by default.
+  Defines an additional formatter applied before adding the timestamp. :doc:`Format.Forward </formatters/forward>` by default.
 
 **Timestamp**
   Defines the format of the timestamp. "2006-01-02T15:04:05.000 MST | " by default.

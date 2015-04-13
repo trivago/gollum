@@ -9,7 +9,7 @@ Parameters
 ----------
 
 **SequenceDataFormatter**
-  Defines an additional formatter applied before adding the sequence number. `Format.Forward <forward.html>`_ by default.
+  Defines an additional formatter applied before adding the sequence number. :doc:`Format.Forward </formatters/forward>` by default.
 
 Example
 -------

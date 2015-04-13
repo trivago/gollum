@@ -9,7 +9,7 @@ Parameters
 ----------
 
 **EnvelopeDataFormatter**
-  Defines an additional formatter applied before adding pre- and postfix. `Format.Forward <forward.html>`_ by default.
+  Defines an additional formatter applied before adding pre- and postfix. :doc:`Format.Forward </formatters/forward>` by default.
 
 **Prefix**
   Defines a string to be prepended to the message. Empty by default.

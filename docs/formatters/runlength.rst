@@ -10,7 +10,7 @@ Parameters
 ----------
 
 **RunlengthDataFormatter**
-  Defines an additional formatter applied before calculating the length. `Format.Forward <forward.html>`_ by default.
+  Defines an additional formatter applied before calculating the length. :doc:`Format.Forward </formatters/forward>` by default.
 
 Example
 -------
