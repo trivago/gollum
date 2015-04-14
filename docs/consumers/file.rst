@@ -18,7 +18,7 @@ Parameters
 **DefaultOffset**
   Defines the offset inside the file to start reading from if no OffsetFile is defined or found. Valid values are "newest" and "oldest" while the former is the default value.
 **OffsetFile**
-  Defines a file to store the current offset to. The offset is updated in intervalls and is can be used to continue reading after a restart.
+  Defines a file to store the current offset to. The offset is updated in intervalls and can be used to continue reading after a restart.
 **Delimiter**
   Defines a string that marks the end of a message.
   Standard escape characters like "\r", "\n" and "\t" are allowed.

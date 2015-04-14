@@ -30,9 +30,8 @@ import (
 //
 //   - "consumer.Syslogd":
 //     Enable: true
-//     Address: "0.0.0.0:5880"
+//     Address: "udp://0.0.0.0:5880"
 //     Format: "RFC3164"
-//     Protocol: "udp"
 //
 // The syslogd consumer accepts messages from a syslogd comaptible socket.
 //

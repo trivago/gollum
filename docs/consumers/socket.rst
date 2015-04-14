@@ -34,7 +34,7 @@ Example
 
 ::
 
-  - "consumer.Console":
+  - "consumer.Socket":
     Enable: true
     Address: "unix:///var/gollum.socket"
     Acknowledge: true

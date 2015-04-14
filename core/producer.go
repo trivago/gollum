@@ -71,8 +71,8 @@ type Producer interface {
 // Channel sets the size of the channel used to communicate messages. By default
 // this value is set to 8192.
 //
-// ChannelTimeout sets a timeout for messages to wait if this producer's queue
-// is full.
+// ChannelTimeoutMs sets a timeout in milliseconds for messages to wait if this
+// producer's queue is full.
 // A timeout of -1 or lower will drop the message without notice.
 // A timeout of 0 will block until the queue is free. This is the default.
 // A timeout of 1 or higher will wait x milliseconds for the queues to become
@@ -122,7 +122,7 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	prod.streams = make([]MessageStreamID, len(conf.Stream))
 	prod.control = make(chan ProducerControl, 1)
 	prod.messages = make(chan Message, conf.GetInt("Channel", 8192))
-	prod.timeout = time.Duration(conf.GetInt("ChannelTimeout", 0)) * time.Millisecond
+	prod.timeout = time.Duration(conf.GetInt("ChannelTimeoutMs", 0)) * time.Millisecond
 	prod.state = new(PluginRunState)
 
 	for i, stream := range conf.Stream {

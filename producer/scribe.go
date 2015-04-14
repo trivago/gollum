@@ -30,8 +30,8 @@ import (
 //   - "producer.Scribe":
 //     Enable: true
 //     Address: "192.168.222.30:1463"
-//     BufferSizeKB: 4096
-//     BufferSizeMaxKB: 16384
+//     ConnectionBufferSizeKB: 4096
+//     BatchSizeMaxKB: 16384
 //     BatchSizeByte: 4096
 //     BatchTimeoutSec: 2
 //     Stream:
@@ -46,10 +46,10 @@ import (
 // Address defines the host and port to connect to.
 // By default this is set to "localhost:1463".
 //
-// BufferSizeKB sets the connection buffer size in KB. By default this is set to
-// 1024, i.e. 1 MB buffer.
+// ConnectionBufferSizeKB sets the connection buffer size in KB. By default this
+// is set to 1024, i.e. 1 MB buffer.
 //
-// BufferSizeMaxKB defines the maximum number of bytes to buffer before
+// BatchSizeMaxKB defines the maximum number of bytes to buffer before
 // messages get dropped. If a message crosses the threshold it is still buffered
 // but additional messages will be dropped. By default this is set to 8192.
 //
@@ -88,13 +88,13 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	}
 
 	host := conf.GetString("Address", "localhost:1463")
-	bufferSizeMax := conf.GetInt("BufferSizeMaxKB", 8<<10) << 1 // 8 MB
+	bufferSizeMax := conf.GetInt("BatchSizeMaxKB", 8<<10) << 1 // 8 MB
 
 	prod.category = make(map[core.MessageStreamID]string, 0)
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.batch = createScribeMessageBatch(bufferSizeMax, prod.ProducerBase.GetFormatter())
-	prod.bufferSizeKB = conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
+	prod.bufferSizeKB = conf.GetInt("ConnectionBufferSizeKB", 1<<10) // 1 MB
 	prod.category = conf.GetStreamMap("Category", "default")
 
 	// Initialize scribe connection

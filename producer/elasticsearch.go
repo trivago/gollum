@@ -110,11 +110,6 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
-	// If not defined, delimiter is not used (override default value)
-	if !conf.HasValue("Delimiter") {
-		conf.Override("Delimiter", "")
-	}
-
 	err := prod.ProducerBase.Configure(conf)
 	if err != nil {
 		return err

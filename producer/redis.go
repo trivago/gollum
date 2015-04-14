@@ -53,9 +53,9 @@ import (
 // score value if required by the storage type. If no field value is required
 // this value is ignored. By default this is set to "format.Identifier".
 //
-// FieldFromParsed will send the parsed message to the FieldFormatter if set
-// to true. If this is set to false the original message will be send to the
-// FieldFormatter. By default this is set to false.
+// FieldAfterFormat will send the formatted message to the FieldFormatter if set
+// to true. If this is set to false the message will be send to the FieldFormatter
+// before it has been formatted. By default this is set to false.
 type Redis struct {
 	core.ProducerBase
 	address         string
@@ -90,7 +90,7 @@ func (prod *Redis) Configure(conf core.PluginConfig) error {
 	prod.password = conf.GetString("Password", "")
 	prod.database = int64(conf.GetInt("Database", 0))
 	prod.key = conf.GetString("Key", "default")
-	prod.fieldFromParsed = conf.GetBool("FieldFromParsed", false)
+	prod.fieldFromParsed = conf.GetBool("FieldAfterFormat", false)
 	prod.address, prod.protocol = shared.ParseAddress(conf.GetString("Address", ":6379"))
 
 	switch strings.ToLower(conf.GetString("Storage", "hash")) {

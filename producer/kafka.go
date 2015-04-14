@@ -19,17 +19,18 @@ import (
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	kafka "gopkg.in/Shopify/sarama.v1"
+	"strings"
 	"sync"
 	"time"
 )
 
 const (
-	partRandom     = "Random"
-	partRoundrobin = "Roundrobin"
-	partHash       = "Hash"
-	compressNone   = "None"
-	compressGZIP   = "Zip"
-	compressSnappy = "Snappy"
+	partRandom     = "random"
+	partRoundrobin = "roundrobin"
+	partHash       = "hash"
+	compressNone   = "none"
+	compressGZIP   = "zip"
+	compressSnappy = "snappy"
 )
 
 // Kafka producer plugin
@@ -47,7 +48,7 @@ const (
 //     BatchMinCount: 10
 //     BatchMaxCount: 0
 //     BatchSizeByte: 16384
-//     BufferSizeMaxKB: 524288
+//     BatchSizeMaxKB: 524288
 //     BatchTimeoutSec: 5
 //     ServerTimeoutSec: 3
 //     SendTimeoutMs: 100
@@ -68,8 +69,8 @@ const (
 //
 // ClientId sets the client id of this producer. By default this is "gollum".
 //
-// Partitioner sets the distribution algorithm to use. Valid values (case
-// sensitive) are: "Random","Roundrobin","Hash". By default "Hash" is set.
+// Partitioner sets the distribution algorithm to use. Valid values are:
+// "Random","Roundrobin" and "Hash". By default "Hash" is set.
 //
 // RequiredAcks defines the acknowledgement level required by the broker.
 // 0 = No responses required. 1 = wait for the local commit. -1 = wait for
@@ -83,8 +84,8 @@ const (
 // SendRetries defines how many times to retry sending data before marking a
 // server as not reachable. By default this is set to 3.
 //
-// Compression sets the method of compression to use. Valid values (case
-// sensitive) are: "None","Zip","Snappy". By default "None" is set.
+// Compression sets the method of compression to use. Valid values are:
+// "None","Zip" and "Snappy". By default "None" is set.
 //
 // MaxOpenRequests defines the number of simultanious connections are allowed.
 // By default this is set to 5.
@@ -98,7 +99,7 @@ const (
 // BatchSizeByte sets the mimimum number of bytes to collect before a new flush
 // is triggered. By default this is set to 8192.
 //
-// BufferSizeMaxKB defines the maximum allowed message size. By default this is
+// BatchSizeMaxKB defines the maximum allowed message size. By default this is
 // set to 1 MB.
 //
 // BatchTimeoutSec sets the minimum time in seconds to pass after wich a new
@@ -172,14 +173,14 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.config.Metadata.Retry.Backoff = time.Duration(conf.GetInt("ElectTimeoutMs", 250)) * time.Millisecond
 	prod.config.Metadata.RefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshMs", 10000)) * time.Millisecond
 
-	prod.config.Producer.MaxMessageBytes = conf.GetInt("BufferSizeMaxKB", 1<<10) << 10
+	prod.config.Producer.MaxMessageBytes = conf.GetInt("BatchSizeMaxKB", 1<<10) << 10
 	prod.config.Producer.RequiredAcks = kafka.RequiredAcks(conf.GetInt("RequiredAcks", int(kafka.WaitForLocal)))
 	prod.config.Producer.Timeout = time.Duration(conf.GetInt("TimoutMs", 1500)) * time.Millisecond
 
 	prod.config.Producer.Return.Errors = true
 	prod.config.Producer.Return.Successes = false
 
-	switch conf.GetString("Compression", compressNone) {
+	switch strings.ToLower(conf.GetString("Compression", compressNone)) {
 	default:
 		fallthrough
 	case compressNone:
@@ -190,7 +191,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 		prod.config.Producer.Compression = kafka.CompressionSnappy
 	}
 
-	switch conf.GetString("Partitioner", partRandom) {
+	switch strings.ToLower(conf.GetString("Partitioner", partRandom)) {
 	case partRandom:
 		prod.config.Producer.Partitioner = kafka.NewRandomPartitioner
 	case partRoundrobin:

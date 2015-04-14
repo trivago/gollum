@@ -29,8 +29,8 @@ import (
 //   - "producer.Socket":
 //     Enable: true
 //     Address: "unix:///var/gollum.socket"
-//     BufferSizeKB: 4096
-//     BufferSizeMaxKB: 16384
+//     ConnectionBufferSizeKB: 4096
+//     BatchSizeMaxKB: 16384
 //     BatchSizeByte: 4096
 //     BatchTimeoutSec: 5
 //     Acknowledge: true
@@ -39,10 +39,10 @@ import (
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
 //
-// BufferSizeKB sets the connection buffer size in KB. By default this is set to
-// 1024, i.e. 1 MB buffer.
+// ConnectionBufferSizeKB sets the connection buffer size in KB. By default this
+// is set to 1024, i.e. 1 MB buffer.
 //
-// BufferSizeMaxKB defines the maximum number of bytes to buffer before
+// BatchSizeMaxKB defines the maximum number of bytes to buffer before
 // messages get dropped. Any message that crosses the threshold is dropped.
 // By default this is set to 8192.
 //
@@ -85,11 +85,11 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	bufferSizeMax := conf.GetInt("BufferSizeMaxKB", 8<<10) << 10
+	bufferSizeMax := conf.GetInt("BatchSizeMaxKB", 8<<10) << 10
 
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
-	prod.bufferSizeKB = conf.GetInt("BufferSizeKB", 1<<10) // 1 MB
+	prod.bufferSizeKB = conf.GetInt("ConnectionBufferSizeKB", 1<<10) // 1 MB
 	prod.acknowledge = conf.GetBool("Acknowledge", false)
 
 	prod.address, prod.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
