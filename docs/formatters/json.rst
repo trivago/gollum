@@ -1,8 +1,8 @@
 JSON
 #############
 
-| JSON uses Gollum's internal, state machine based parser to generate JSON messages from plain text.
-| The parser language uses a set of 5 values separated by a colon ":".
+JSON uses Gollum's internal, state machine based parser to generate JSON messages from plain text.
+The parser language uses a set of 5 values separated by a colon ":".
 
 - The first string names the state this directive belongs to (the "source").
 - The second string defines a token (one or more characters) that trigger a transition (the "border"). Whitespace will be considered part of the token.
@@ -10,8 +10,8 @@ JSON
 - The fourth string defines a set of flags, separated by a comma ",".
 - The last string defines a function to handle the string parsed up to this point.
 
-| So each parser directive is of the form "State:Token:NextState:Flag,Flag,...:Function".
-| Colons can be escaped by using a backslash "\".
+So each parser directive is of the form "State:Token:NextState:Flag,Flag,...:Function".
+Colons can be escaped by using a backslash "\".
 
 Flags
 -----

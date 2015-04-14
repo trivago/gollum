@@ -1,9 +1,9 @@
 File
 #############
 
-| This consumer reads from a file.
-| If the file is part of a log rotation the file can be reopened by sending a SIG_HUP.
-| You can use ``kill -1 $(cat gollum.pid)`` to achieve this. To create a pidfile you can start gollum with the -p option.
+This consumer reads from a file.
+If the file is part of a log rotation the file can be reopened by sending a SIG_HUP.
+You can use ``kill -1 $(cat gollum.pid)`` to achieve this. To create a pidfile you can start gollum with the -p option.
 
 
 Parameters

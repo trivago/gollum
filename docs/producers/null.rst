@@ -1,8 +1,8 @@
 Null
 #############
 
-| This producers discards all messages similar to a /dev/null.
-| Its main purpose is to profile consumers and/or streams.
+This producers discards all messages similar to a /dev/null.
+Its main purpose is to profile consumers and/or streams.
 
 Parameters
 ----------

@@ -7,7 +7,7 @@ Data arrives in the form of messages and can be converted by using a :doc:`forma
 Table of contents
 -----------------
 .. toctree::
-	:maxdepth: 2
+	:maxdepth: 1
 
 	console
 	elasticsearch

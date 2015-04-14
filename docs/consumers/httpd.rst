@@ -1,8 +1,8 @@
 Httpd
 #############
 
-| This consumer opens a http port that accepts POST requests.
-| Messages will be generated from the POST body.
+This consumer opens a http port that accepts POST requests.
+Messages will be generated from the POST body.
 
 Parameters
 ----------

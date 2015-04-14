@@ -1,9 +1,9 @@
 ElasticSearch
 #############
 
-| This producers writes messages to ElasticSearch.
-| ElasticSearch expects messages to be JSON encoded so the configuration should assure that messages are arriving as or are converted into a valid JSON format.
-| You can use the :doc:`JSON formatter </formatters/json>` to convert messages to valid JSON.
+This producers writes messages to ElasticSearch.
+ElasticSearch expects messages to be JSON encoded so the configuration should assure that messages are arriving as or are converted into a valid JSON format.
+You can use the :doc:`JSON formatter </formatters/json>` to convert messages to valid JSON.
 
 Parameters
 ----------

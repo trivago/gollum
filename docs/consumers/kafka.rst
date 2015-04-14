@@ -1,8 +1,8 @@
 Kafka
 #############
 
-| This consumer reads data from a kafka cluster using Shopify's `Sarama <https://github.com/Shopify/sarama>`_ library.
-| Any setting here reflects settings from this library.
+This consumer reads data from a kafka cluster using Shopify's `Sarama <https://github.com/Shopify/sarama>`_ library.
+Any setting here reflects settings from this library.
 
 
 Parameters

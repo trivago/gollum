@@ -1,9 +1,9 @@
 Envelope
 #############
 
-| Envelope allows to pre- or postfix messages with a given string.
-| This formatter allows a nested formatter to further modify the message between pre- and postfix.
-| Prefix and Postfix may contain standard escape characters, i.e. "\r", "\n" and "\t".
+Envelope allows to pre- or postfix messages with a given string.
+This formatter allows a nested formatter to further modify the message between pre- and postfix.
+Prefix and Postfix may contain standard escape characters, i.e. "\r", "\n" and "\t".
 
 Parameters
 ----------

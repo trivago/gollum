@@ -1,9 +1,9 @@
 File
 #############
 
-| This producers writes messages to a file or file based resource.
-| If configured, a log rotation can be triggered by sending a SIG_HUP.
-| You can use ``kill -1 $(cat gollum.pid)`` to achieve this. To create a pidfile you can start gollum with the -p option.
+This producers writes messages to a file or file based resource.
+If configured, a log rotation can be triggered by sending a SIG_HUP.
+You can use ``kill -1 $(cat gollum.pid)`` to achieve this. To create a pidfile you can start gollum with the -p option.
 
 
 Parameters

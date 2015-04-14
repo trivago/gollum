@@ -7,7 +7,7 @@ Formatters can convert messages into another format or append additional informa
 Table of contents
 -----------------
 .. toctree::
-	:maxdepth: 2
+	:maxdepth: 1
 
 	envelope
 	forward

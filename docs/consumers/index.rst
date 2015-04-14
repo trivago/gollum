@@ -8,7 +8,7 @@ Data is packed into messages and passed to a :doc:`stream </streams/index>`.
 Table of contents
 -----------------
 .. toctree::
-	:maxdepth: 2
+	:maxdepth: 1
 
 	console
 	file

@@ -1,9 +1,9 @@
 Socket
 #############
 
-| The socket consumer listens to an arbitrary port.
-| Messages are read from a minimalistic, ASCII based protocol that is compatible to the :doc:`Runlength </formatters/runlength>` and  :doc:`Sequence </formatters/sequence>` formatter.
-| In combination with the :doc:`Socket Producer </producers/socket>` this can be used to built Gollum based message networks.
+The socket consumer listens to an arbitrary port.
+Messages are read from a minimalistic, ASCII based protocol that is compatible to the :doc:`Runlength </formatters/runlength>` and  :doc:`Sequence </formatters/sequence>` formatter.
+In combination with the :doc:`Socket Producer </producers/socket>` this can be used to built Gollum based message networks.
 
 Parameters
 ----------

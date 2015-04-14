@@ -7,7 +7,7 @@ Filters can analyze messages and decide wether to let them pass to a :doc:`produ
 Table of contents
 -----------------
 .. toctree::
-	:maxdepth: 2
+	:maxdepth: 1
 
 	all
 	json
