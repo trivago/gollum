@@ -25,7 +25,7 @@ import (
 //
 //   - "<producer|stream>":
 //     Formatter: "format.Timestamp"
-//     TimestampDataFormatter: "format.Envelope"
+//     TimestampFormatter: "format.Envelope"
 //     Timestamp: "2006-01-02T15:04:05.000 MST | "
 //
 // Timestamp defines a Go time format string that is used to format the actual
@@ -45,7 +45,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Timestamp) Configure(conf core.PluginConfig) error {
-	plugin, err := core.NewPluginWithType(conf.GetString("TimestampDataFormatter", "format.Envelope"), conf)
+	plugin, err := core.NewPluginWithType(conf.GetString("TimestampFormatter", "format.Envelope"), conf)
 	if err != nil {
 		return err
 	}

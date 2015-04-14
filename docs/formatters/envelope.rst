@@ -8,7 +8,7 @@ Prefix and Postfix may contain standard escape characters, i.e. "\r", "\n" and "
 Parameters
 ----------
 
-**EnvelopeDataFormatter**
+**EnvelopeFormatter**
   Defines an additional formatter applied before adding pre- and postfix. :doc:`Format.Forward </formatters/forward>` by default.
 
 **Prefix**
@@ -24,6 +24,6 @@ Example
 
   - "stream.Broadcast":
     Formatter: "format.Envelope"
-    EnvelopeDataFormatter: "format.Forward"
+    EnvelopeFormatter: "format.Forward"
     Prefix: "<data>"
     Postfix: "</data>\n"

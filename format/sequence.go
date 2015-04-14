@@ -26,7 +26,7 @@ import (
 //
 //   - "<producer|stream>":
 //     Formatter: "format.Sequence"
-//     SequenceDataFormatter: "format.Envelope"
+//     SequenceFormatter: "format.Envelope"
 //
 // SequenceDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
@@ -42,7 +42,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Sequence) Configure(conf core.PluginConfig) error {
-	plugin, err := core.NewPluginWithType(conf.GetString("SequenceDataFormatter", "format.Forward"), conf)
+	plugin, err := core.NewPluginWithType(conf.GetString("SequenceFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err
 	}

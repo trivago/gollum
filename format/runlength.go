@@ -26,7 +26,7 @@ import (
 //
 //   - "<producer|stream>":
 //     Formatter: "format.Runlength"
-//     RunlengthDataFormatter: "format.Envelope"
+//     RunlengthFormatter: "format.Envelope"
 //
 // RunlengthDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
@@ -40,7 +40,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Runlength) Configure(conf core.PluginConfig) error {
-	plugin, err := core.NewPluginWithType(conf.GetString("RunlengthDataFormatter", "format.Forward"), conf)
+	plugin, err := core.NewPluginWithType(conf.GetString("RunlengthFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err
 	}

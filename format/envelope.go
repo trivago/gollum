@@ -26,7 +26,7 @@ import (
 //
 //   - "<producer|stream>":
 //     Formatter: "format.Envelope"
-//     EnvelopeDataFormatter: "format.Forward"
+//     EnvelopeFormatter: "format.Forward"
 //     Prefix: "<data>"
 //     Postfix: "</data>\n"
 //
@@ -54,7 +54,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Envelope) Configure(conf core.PluginConfig) error {
-	plugin, err := core.NewPluginWithType(conf.GetString("EnvelopeDataFormatter", "format.Forward"), conf)
+	plugin, err := core.NewPluginWithType(conf.GetString("EnvelopeFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err
 	}

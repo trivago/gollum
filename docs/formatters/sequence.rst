@@ -8,7 +8,7 @@ This formatter allows a nested formatter to further modify the message.
 Parameters
 ----------
 
-**SequenceDataFormatter**
+**SequenceFormatter**
   Defines an additional formatter applied before adding the sequence number. :doc:`Format.Forward </formatters/forward>` by default.
 
 Example
@@ -18,4 +18,4 @@ Example
 
   - "stream.Broadcast":
     Formatter: "format.Sequence"
-    SequenceDataFormatter: "format.Forward"
+    SequenceFormatter: "format.Forward"

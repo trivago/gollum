@@ -74,3 +74,47 @@ Make sure to start Gollum with `gollum -ll 3` to see all log messages.
       Stream:
           - "*"
           - "_GOLLUM_"
+
+Chat server
+-----------
+
+This example requires two Gollum instances to run.
+The first one acts as the "chat client" while the second one acts as the "chat server".
+Messages entered on the client will be sent to the server using runlength encoding where they are written to a log file and to console.
+The logfile will write a standard timestamp before each message while the console will just print the message.
+Both servers have a standard console producer attached to print log messages to console aswell.
+
+::
+
+  - "consumer.Console":
+      Stream: "client"
+
+  - "producer.Socket":
+      Address: ":5880"
+      Formatter: "format.Runlength"
+      Acknowledge: true
+      Stream: "client"
+
+  - "producer.Console":
+      Formatter: "format.Envelope"
+      Stream: "_GOLLUM_"
+
+::
+
+  - "consumer.Socket":
+      Runlength: true
+      Acknowledge: true
+      Address: ":5880"
+      Stream: "server"
+
+  - "producer.File":
+      Formatter: "format.Timestamp"
+      TimestampFormatter: "format.Envelope"
+      File: "chat.log"
+      Stream: "server"
+
+  - "producer.Console":
+      Formatter: "format.Envelope"
+      Stream:
+        - "*"
+        - "_GOLLUM_"

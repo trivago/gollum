@@ -8,7 +8,7 @@ This formatter allows a nested formatter to further modify the message.
 Parameters
 ----------
 
-**TimestampDataFormatter**
+**TimestampFormatter**
   Defines an additional formatter applied before adding the timestamp. :doc:`Format.Forward </formatters/forward>` by default.
 
 **Timestamp**
@@ -22,4 +22,4 @@ Example
   - "stream.Broadcast":
     Formatter: "format.Sequence"
     Timestamp: "[2006-01-02 15:04:05]"
-    TimestampDataFormatter: "format.Forward"
+    TimestampFormatter: "format.Forward"

@@ -9,7 +9,7 @@ This formatter allows a nested formatter to modify the message before calculatin
 Parameters
 ----------
 
-**RunlengthDataFormatter**
+**RunlengthFormatter**
   Defines an additional formatter applied before calculating the length. :doc:`Format.Forward </formatters/forward>` by default.
 
 Example
@@ -19,4 +19,4 @@ Example
 
   - "stream.Broadcast":
     Formatter: "format.Runlength"
-    RunlengthDataFormatter: "format.Forward"
+    RunlengthFormatter: "format.Forward"

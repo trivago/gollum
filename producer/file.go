@@ -295,10 +295,11 @@ func (prod *File) openLog() error {
 
 	// Create "current" symlink
 	prod.fileCreated = time.Now()
-	symLinkName := fmt.Sprintf("%s/%s_current", prod.fileDir, prod.fileName)
-
-	os.Remove(symLinkName)
-	os.Symlink(logFile, symLinkName)
+	if prod.rotate {
+		symLinkName := fmt.Sprintf("%s/%s_current", prod.fileDir, prod.fileName)
+		os.Remove(symLinkName)
+		os.Symlink(logFile, symLinkName)
+	}
 
 	return err
 }
