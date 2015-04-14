@@ -76,17 +76,10 @@ Table of contents
 .. toctree::
    :maxdepth: 1
 
-   examples
    consumers/index
+   streams/index
+   producers/index
    filters/index
    formatters/index
-   producers/index
-   streams/index
+   examples/index
    license/index
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

@@ -1,5 +1,5 @@
-Examples
-========
+Configuration
+=============
 
 Hello World
 -----------
