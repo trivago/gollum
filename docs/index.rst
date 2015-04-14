@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to gollum's documentation!
+Welcome to Gollum's documentation!
 ==================================
 
 What is Gollum?
@@ -23,7 +23,9 @@ The main components of Gollum are consumers, streams and producers. To explain t
 - A stream defines a path between one or more consumers and one or more producers.
 - A single set of data passing over a stream is called a message.
 
-These main components, consumers, producers and streams are called plugins and can be configured individually.
+.. image:: flow.png
+
+These main components, consumers, producers and streams are also called plugins and can be configured individually.
 Every plugin has a different sets of options.
 Streams for example can define filters that can inspect a message and decide wether to drop it or let it pass.
 Producers and streams may use formatters to modify a message's content to e.g. store a plain-text log in a JSON backed storage.
