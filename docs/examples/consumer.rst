@@ -1,27 +1,16 @@
 Writing consumers
 =================
 
-When starting to write a consumer its probably a good idea to have a look at already existing consumers.
-A good starting point is the console consumer as it is very lightweight.
-If you plan to write a special purpose consumer you should place it into "contrib/yourCompanyName".
-Consumers that can be used for general purpose should be placed into the "consumer" package.
-
-To enable a contrib plugin you will need to extend the file "contrib/loader.go".
-Add an anonymous import to the list of imports like this:
-
-.. code-block:: go
-
-  import (
-    _ "./yourCompanyName"                                 // this is ok for local extensions
-    _ "github.com/trivago/gollum/contrib/yourCompanyName" // if you plan to contribute
-  )
+When writing a new consumer it is advisable to have a look at existing consumers.
+A good starting point are the Console and File consumers.
 
 Requirements
 ------------
 
 All consumers have to implement the "core/Consumer" as well as the "core/Plugin" interface.
-The most convenient way to do this is to derive from the "core/ConsumerBase" type as this will provide common implementations of most methods required.
+The most convenient way to do this is to derive from the "core/ConsumerBase" type as it will provide implementations of the most common methods required.
 In addition to this, every plugin has to register at the plugin registry to be available as a config option.
+This is explained in the general :doc:`plugin section </examples/plugins>`.
 
 .. code-block:: go
 
@@ -49,8 +38,8 @@ The Consume() function will be called as a separate go routine and should do two
 1. Listen to the control channel
 2. Process incoming data
 
-As Consume() is called as a separate go routine you can decide wether to spawn additional go routines to handle one or both tasks.
-ConsumerBase gives you two convenience loop functions to handle:
+As Consume() is called as a separate go routine you can decide wether to spawn additional go routines to handle both tasks or to let Consume() handle everything.
+ConsumerBase gives you two convenience loop functions to handle control commands:
 
 **DefaultControlLoop**
   Will loop until a stop is recieved and can trigger a callback if a log rotation is requested (SIG_HUP is sent).
@@ -58,8 +47,8 @@ ConsumerBase gives you two convenience loop functions to handle:
 **TickerControlLoop**
   Gives you an additional callback that is triggered in regular intervals.
 
-Both loops only cover the handling of control messages and are blocking.
-As of their blocking nature you will probably spawn a separate go routine handling your messages when using these loops.
+Both loops only cover control message handling and are blocking calls.
+As of their blocking nature you will probably want to spawn a separate go routine handling incoming messages when using these loops.
 A typical consume function will look like this:
 
 .. code-block:: go
@@ -92,20 +81,7 @@ Configuration
 -------------
 
 If your consumer requires additonal configuration options you should implement the Configure method.
-If you derived from ConsumerBase It is advisable to call Configure() of ConsumerBase before checking your configuration options.
-There are several convenience functions in the PluginConfig type that makes it easy to obtain configuration values and setting default values.
-Please refer to Gollum's GoDoc API documentation for more details on this.
-
-.. code-block:: go
-
-  func (cons *MyConsumer) Configure(conf core.PluginConfig) error {
-    err := cons.ConsumerBase.Configure(conf)
-    if err != nil {
-      return err
-    }
-    // ... read custom options ...
-    return nil
-  }
+Please refer to the :doc:`Plugin documentation </examples/plugins>` for further details.
 
 Sending messages
 ----------------
@@ -131,5 +107,4 @@ Writing bare bone consumers
 ---------------------------
 
 Sometimes it might be useful not to derive from ConsumerBase.
-An example for this is the Null consumer which is extremely lightweight.
 If you decide to go this way please have a look at Gollum's GoDoc API documentation as well as the source of ConsumerBase.

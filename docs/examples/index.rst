@@ -6,3 +6,4 @@ Examples
 
 	config
 	consumer
+	producer
