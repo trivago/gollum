@@ -1,5 +1,5 @@
 Timestamp
-#############
+=========
 
 This formatter prepends a custom timestamp to the message.
 The timestamp format is based upon Go's timestamp formatter. See Go's `documentation <http://golang.org/pkg/time/#pkg-constants>`_.
@@ -17,7 +17,7 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "stream.Broadcast":
     Formatter: "format.Sequence"

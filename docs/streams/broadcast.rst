@@ -1,5 +1,5 @@
 Broadcast
-#############
+=========
 
 This stream passes messages to all producers listening to the streams defined with the stream parameter.
 
@@ -18,7 +18,7 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "stream.Broadcast":
     Enable: true

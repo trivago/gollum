@@ -1,5 +1,5 @@
 Kafka
-#############
+=====
 
 This producers sends messages to a Kafka cluster using Shopify's `Sarama <https://github.com/Shopify/sarama>`_ library.
 Any setting here reflects settings from this library.
@@ -98,9 +98,9 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
-  - "consumer.Kafka":
+  - "producer.Kafka":
     Enable: true
     ClientId: "weblog"
     Partitioner: "Roundrobin"

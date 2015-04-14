@@ -1,5 +1,5 @@
 Socket
-#############
+======
 
 Parameters
 ----------
@@ -51,9 +51,9 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
-  - "producer.File":
+  - "producer.Socket":
     Enable: true
     Channel: 8192
     ChannelTimeoutMs: 100

@@ -1,5 +1,5 @@
 JSON
-#############
+====
 
 This filter tries to parse a text based message as JSON.
 If the message is not valiud JSON, the message is blocked.
@@ -27,7 +27,7 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "stream.Broadcast":
     Filter: "filter.JSON"

@@ -14,7 +14,7 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "consumer.Console":
     Enable: true

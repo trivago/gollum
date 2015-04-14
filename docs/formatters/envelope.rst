@@ -1,5 +1,5 @@
 Envelope
-#############
+========
 
 Envelope allows to pre- or postfix messages with a given string.
 This formatter allows a nested formatter to further modify the message between pre- and postfix.
@@ -20,7 +20,7 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "stream.Broadcast":
     Formatter: "format.Envelope"

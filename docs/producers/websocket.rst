@@ -1,5 +1,5 @@
 Websocket
-#############
+=========
 
 This producers writes messages to a websocket.
 
@@ -37,9 +37,9 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
-  - "producer.Console":
+  - "producer.Websocket":
     Enable: true
     Channel: 8192
     ChannelTimeoutMs: 100

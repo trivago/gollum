@@ -1,5 +1,5 @@
 File
-#############
+====
 
 This consumer reads from a file.
 If the file is part of a log rotation the file can be reopened by sending a SIG_HUP.
@@ -35,7 +35,7 @@ Offsets
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "consumer.File":
     Enable: true

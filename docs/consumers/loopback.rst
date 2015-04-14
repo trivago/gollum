@@ -1,5 +1,5 @@
 Loopback
-#############
+========
 
 The loopback consumer feeds messages from the Gollum back into Gollum.
 These typically are messages dropped by a producer because they could not be delivered on first try.
@@ -18,7 +18,7 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "consumer.Loopback":
     Enable: true

@@ -1,5 +1,5 @@
 Socket
-#############
+======
 
 The socket consumer listens to an arbitrary port.
 Messages are read from a minimalistic, ASCII based protocol that is compatible to the :doc:`Runlength </formatters/runlength>` and  :doc:`Sequence </formatters/sequence>` formatter.
@@ -32,7 +32,7 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "consumer.Socket":
     Enable: true

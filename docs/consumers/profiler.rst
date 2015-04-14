@@ -1,5 +1,5 @@
 Profiler
-#############
+========
 
 The profile consumer generates messages to test producers or the general infrastructure.
 
@@ -26,7 +26,7 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "consumer.Profiler":
     Enable: true
@@ -35,6 +35,6 @@ Example
     Characters: "abcdefghijklmnopqrstuvwxyz .,!;:-_"
     TemplateCount: 20
     Message: "{name:\"%100s\", number: %2d, float: %4f}"
-    Stream: 
+    Stream:
       - "profile"
       - "dummy"

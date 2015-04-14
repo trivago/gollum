@@ -1,5 +1,5 @@
 RegExp
-#############
+======
 
 This filter tries to match a regular expression on text based messages.
 Messages that match the given expression will be passed, everything else is blocked.
@@ -14,7 +14,7 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "stream.Broadcast":
     Filter: "filter.RegExp"

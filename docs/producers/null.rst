@@ -1,5 +1,5 @@
 Null
-#############
+====
 
 This producers discards all messages similar to a /dev/null.
 Its main purpose is to profile consumers and/or streams.
@@ -15,7 +15,7 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "producer.Null":
     Enable: true

@@ -1,5 +1,5 @@
 Facebook Scribe
-################
+===============
 
 This producers sends messages to a scribe server (fb303).
 
@@ -52,9 +52,9 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
-  - "producer.Console":
+  - "producer.Scribe":
     Enable: true
     Channel: 8192
     ChannelTimeoutMs: 100

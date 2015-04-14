@@ -1,5 +1,5 @@
 Sequence
-#############
+========
 
 This formatter prepends the internal sequence number of the message as "number:" to the message.
 Note that "number" is the actual ASCII representation of a number, not a binary representation.
@@ -14,7 +14,7 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "stream.Broadcast":
     Formatter: "format.Sequence"

@@ -1,5 +1,5 @@
 Console
-#############
+=======
 
 This producers writes messages directly to stdout or stderr.
 
@@ -29,7 +29,7 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "producer.Console":
     Enable: true

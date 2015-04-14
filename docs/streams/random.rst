@@ -1,5 +1,5 @@
 Random
-#############
+======
 
 This stream passes a message to one random producer listening to the streams defined with the stream parameter.
 
@@ -18,7 +18,7 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "stream.Random":
     Enable: true

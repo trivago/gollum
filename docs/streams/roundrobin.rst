@@ -1,5 +1,5 @@
 Round Robin
-#############
+===========
 
 This stream passes a message to one producer listening to the streams defined with the stream parameter.
 The producers will be iterated in a round robin fashion.
@@ -19,7 +19,7 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "stream.RoundRobin":
     Enable: true

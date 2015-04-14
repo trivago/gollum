@@ -1,5 +1,5 @@
 JSON
-#############
+====
 
 JSON uses Gollum's internal, state machine based parser to generate JSON messages from plain text.
 The parser language uses a set of 5 values separated by a colon ":".
@@ -69,7 +69,7 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "stream.Broadcast":
     Formatter: "format.JSON"

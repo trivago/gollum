@@ -1,5 +1,5 @@
 Redis
-#############
+=====
 
 This producers stores messages on a redis server.
 
@@ -49,9 +49,9 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
-  - "producer.Console":
+  - "producer.Redis":
     Enable: true
     Channel: 8192
     ChannelTimeoutMs: 100

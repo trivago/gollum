@@ -1,5 +1,5 @@
 Kafka
-#############
+=====
 
 This consumer reads data from a kafka cluster using Shopify's `Sarama <https://github.com/Shopify/sarama>`_ library.
 Any setting here reflects settings from this library.
@@ -69,7 +69,7 @@ Offsets
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "consumer.Kafka":
     Enable: true

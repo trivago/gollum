@@ -1,5 +1,5 @@
 File
-#############
+====
 
 This producers writes messages to a file or file based resource.
 If configured, a log rotation can be triggered by sending a SIG_HUP.
@@ -60,7 +60,7 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "producer.File":
     Enable: true

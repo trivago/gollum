@@ -1,5 +1,5 @@
 Httpd
-#############
+=====
 
 This consumer opens a http port that accepts POST requests.
 Messages will be generated from the POST body.
@@ -19,7 +19,7 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "consumer.Httpd":
     Enable: true

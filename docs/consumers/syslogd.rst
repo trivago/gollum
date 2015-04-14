@@ -1,5 +1,5 @@
 Syslogd
-#############
+=======
 
 This consumer opens up a syslogd compatible socket.
 
@@ -25,7 +25,7 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "consumer.Syslogd":
     Enable: true

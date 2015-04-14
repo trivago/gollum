@@ -1,5 +1,5 @@
 Identifier
-#############
+==========
 
 Identifier generates a (mostly) unqiue ID from a message.
 
@@ -17,7 +17,7 @@ Parameters
 Example
 -------
 
-::
+.. code-block:: yaml
 
   - "stream.Broadcast":
     Formatter: "format.Identifier"
