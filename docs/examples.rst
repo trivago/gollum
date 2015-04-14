@@ -43,6 +43,30 @@ Make sure to start Gollum with `gollum -ll 3` to see all log messages.
           - "*"
           - "_GOLLUM_"
 
+Hello World filtered
+--------------------
+
+This example extends the previous exmaples by setting up a filter to only echo sentences that end with the word "gollum".
+A regular expression filter is used to achieve this.
+Note that this filter does not apply to standard log messages.
+Make sure to start Gollum with `gollum -ll 3` to see all log messages.
+
+::
+
+  - "consumer.Console":
+      Stream: "console"
+
+  - "stream.Broadcast":
+      Filter: "filter.RegExp"
+      FilterExpression: "gollum$"
+      Stream: "console"
+
+  - "producer.Console":
+      Formatter: "format.Envelope"
+      Stream:
+          - "*"
+          - "_GOLLUM_"
+
 Hello World splitter
 --------------------
 
@@ -83,7 +107,9 @@ The first one acts as the "chat client" while the second one acts as the "chat s
 Messages entered on the client will be sent to the server using runlength encoding where they are written to a log file and to console.
 The logfile will write a standard timestamp before each message while the console will just print the message.
 Both servers have a standard console producer attached to print log messages to console aswell.
+Make sure to start Gollum with `gollum -ll 3` to see all log messages.
 
+**Client**
 ::
 
   - "consumer.Console":
@@ -99,6 +125,7 @@ Both servers have a standard console producer attached to print log messages to 
       Formatter: "format.Envelope"
       Stream: "_GOLLUM_"
 
+**Server**
 ::
 
   - "consumer.Socket":
@@ -118,3 +145,26 @@ Both servers have a standard console producer attached to print log messages to 
       Stream:
         - "*"
         - "_GOLLUM_"
+
+Profiling
+---------
+
+This configuration will test Gollum for its theoretic maximum message throughput.
+You can of course modify this example to test e.g. file producer performance.
+Make sure to start Gollum with `gollum -ll 3 -ps` to see all log messages as well as intermediate profiling results.
+
+::
+
+  - "consumer.Profiler":
+      Runs: 100000
+      Batches: 100
+      Characters: "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUFVXYZ 0123456789 .,!;:-_"
+      Message: "%256s"
+      Stream: "profile"
+
+  - "producer.Null":
+      Stream: "profile"
+
+  - "producer.Console":
+      Formatter: "format.Envelope"
+      Stream: "_GOLLUM_"
