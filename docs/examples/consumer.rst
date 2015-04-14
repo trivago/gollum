@@ -12,22 +12,6 @@ The most convenient way to do this is to derive from the "core/ConsumerBase" typ
 In addition to this, every plugin has to register at the plugin registry to be available as a config option.
 This is explained in the general :doc:`plugin section </examples/plugins>`.
 
-.. code-block:: go
-
-  import (
-    "github.com/trivago/gollum/core"
-    "github.com/trivago/gollum/shared"
-  	"sync"                                    // Required for the Consume() implementation
-  )
-
-  type MyConsumer struct {
-    core.ConsumerBase                         // Derive from ConsumerBase
-  }
-
-  func init() {
-    shared.RuntimeType.Register(MyConsumer{}) // Register the new plugin type
-  }
-
 ConsumerBase
 ------------
 

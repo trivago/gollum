@@ -28,7 +28,7 @@ Every plugin has a different sets of options.
 Streams for example can define filters that can inspect a message and decide wether to drop it or let it pass.
 Producers and streams may use formatters to modify a message's content to e.g. store a plain-text log in a JSON backed storage.
 Filters and Formatters are plugins, too, but can only be configured in context of another plugin like a stream.
-As of this they are colled "dependent plugins". This plugins also have access to all configuration options of their "host" plugin.
+As of this they are called "nested plugins". This plugins also have access to all configuration options of their "host" plugin.
 
 
 Configuration

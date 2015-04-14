@@ -12,22 +12,6 @@ The most convenient way to do this is to derive from the "core/ProducerBase" typ
 In addition to this, every plugin has to register at the plugin registry to be available as a config option.
 This is explained in the general :doc:`plugin section </examples/plugins>`.
 
-.. code-block:: go
-
-  import (
-    "github.com/trivago/gollum/core"
-    "github.com/trivago/gollum/shared"
-  	"sync"                                    // Required for the Produce() implementation
-  )
-
-  type MyProducer struct {
-    core.ConsumerBase                         // Derive from ConsumerBase
-  }
-
-  func init() {
-    shared.RuntimeType.Register(MyProducer{}) // Register the new plugin type
-  }
-
 ProducerBase
 ------------
 
@@ -98,17 +82,24 @@ The following code illustrates how to use the MessageBatch type:
 
 .. code-block:: go
 
-	buffer := NewMessageBatch(8192, someFormatter) // 8 KB buffer
+  buffer := NewMessageBatch(8192, someFormatter) // 8 KB buffer
 
   for {
     buffer.Append(message)                       // Get a message from the channel
     // ...
 
-    if buffer.ReachedSizeThreshold(2048) {       // Check if 2 KB have been written
+    if buffer.ReachedSizeThreshold(2048) {       // Check if at least 2 KB have been written
       buffer.Flush(writer, onSuccess, onError)   // See API doc for success and error callbacks
       buffer.WaitForFlush()                      // Wait until done
     }
   }
+
+Formatting messages
+-------------------
+
+Messages are not automatically formatted when passed to the producer.
+If you wish to enable producer based formatting you need to call ProducerBase.Format() at an appropiate point inside your code.
+All producers deriving from ProducerBase - and that have called ProducerBase.Configure() - may have a formatter set and should thus provide this possibility.
 
 Writing bare bone producers
 ---------------------------

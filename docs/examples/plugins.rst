@@ -56,3 +56,20 @@ Please refer to Gollum's GoDoc API documentation for more details on this.
     // ... read custom options ...
     return nil
   }
+
+Configuring nested plugins
+--------------------------
+
+Some plugins may want to configure "nested" plugins such as a formatter or filter.
+The plugins can be instantiated by using the type registry and passing the config passed to the Configure method.
+
+.. code-block:: go
+
+  func (plugin *MyPlugin) Configure(conf core.PluginConfig) error {
+    formatter, err := core.NewPluginWithType(conf.GetString("Formatter", "format.Forward"), conf)
+    if err != nil {
+      return err // ### return, plugin load error ###
+    }
+    // ... do something with your formatter ...
+    return nil
+  }
