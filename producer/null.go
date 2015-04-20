@@ -27,7 +27,7 @@ import (
 //     Enable: true
 //
 // This producer does nothing and provides only bare-bone configuration (i.e.
-// enabled, channel and streams).
+// enabled and streams).
 // Use this producer to test consumer performance.
 type Null struct {
 	control chan core.ProducerControl
@@ -42,25 +42,28 @@ func init() {
 func (prod *Null) Configure(conf core.PluginConfig) error {
 	prod.control = make(chan core.ProducerControl, 1)
 	prod.streams = make([]core.MessageStreamID, len(conf.Stream))
+	for i, stream := range conf.Stream {
+		prod.streams[i] = core.GetStreamID(stream)
+	}
 	return nil
 }
 
 // Streams returns the streams this producer is listening to.
-func (prod Null) Streams() []core.MessageStreamID {
+func (prod *Null) Streams() []core.MessageStreamID {
 	return prod.streams
 }
 
 // Control returns write access to this producer's control channel.
-func (prod Null) Control() chan<- core.ProducerControl {
+func (prod *Null) Control() chan<- core.ProducerControl {
 	return prod.control
 }
 
-// Post simply ignores the message
-func (prod Null) Post(msg core.Message) {
+// Enqueue simply ignores the message
+func (prod *Null) Enqueue(msg core.Message) {
 }
 
 // Produce writes to a buffer that is dumped to a file.
-func (prod Null) Produce(threads *sync.WaitGroup) {
+func (prod *Null) Produce(threads *sync.WaitGroup) {
 	for {
 		command := <-prod.control
 		if command == core.ProducerControlStop {

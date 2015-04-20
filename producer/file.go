@@ -41,7 +41,7 @@ const (
 //   - "producer.File":
 //     Enable: true
 //     File: "/var/log/gollum.log"
-//     BufferSizeMaxKB: 16384
+//     BatchSizeMaxKB: 16384
 //     BatchSizeByte: 4096
 //     BatchTimeoutSec: 2
 //     Rotate: false
@@ -50,12 +50,17 @@ const (
 //     RotateAt: "00:00"
 //     Compress: true
 //
+// The file producer writes messages to a file. This producer also allows log
+// rotation and compression of the rotated logs.
+//
 // File contains the path to the log file to write.
 // By default this is set to /var/prod/gollum.log.
 //
-// BufferSizeMaxKB defines the maximum number of bytes to buffer before
-// messages get dropped. Any message that crosses the threshold is dropped.
-// By default this is set to 8192
+// BatchSizeMaxKB defines the internal file buffer size in KB.
+// This producers allocates a front- and a backbuffer of this size. If the
+// frontbuffer is filled up completely a flush is triggered and the frontbuffer
+// becomes available for writing again. Messages larger than BatchSizeMaxKB are
+// rejected.
 //
 // BatchSizeByte defines the number of bytes to be buffered before they are written
 // to disk. By default this is set to 8KB.
@@ -75,7 +80,7 @@ const (
 // ignored. By default this setting is disabled.
 //
 // Compress defines if a rotated logfile is to be gzip compressed or not.
-// By default this is set to true.
+// By default this is set to false.
 type File struct {
 	core.ProducerBase
 	file             *os.File
@@ -108,11 +113,11 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	}
 
 	logFile := conf.GetString("File", "/var/prod/gollum.log")
-	bufferSizeMax := conf.GetInt("BufferSizeMaxKB", 8<<10) << 10 // 8 MB
+	bufferSizeMax := conf.GetInt("BatchSizeMaxKB", 8<<10) << 10 // 8 MB
 
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
-	prod.batch = core.NewMessageBatch(bufferSizeMax, prod.Formatter())
+	prod.batch = core.NewMessageBatch(bufferSizeMax, prod.ProducerBase.GetFormatter())
 	prod.forceRotate = false
 
 	prod.rotate = conf.GetBool("Rotate", false)
@@ -120,7 +125,7 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	prod.rotateSizeByte = int64(conf.GetInt("RotateSizeMB", 1024)) << 20
 	prod.rotateAtHour = -1
 	prod.rotateAtMin = -1
-	prod.compress = conf.GetBool("Compress", true)
+	prod.compress = conf.GetBool("Compress", false)
 
 	prod.fileDir = filepath.Dir(logFile)
 	prod.fileExt = filepath.Ext(logFile)
@@ -187,7 +192,7 @@ func (prod *File) needsRotate() (bool, error) {
 	return false, nil
 }
 
-func (prod File) compressAndCloseLog(sourceFile *os.File) {
+func (prod *File) compressAndCloseLog(sourceFile *os.File) {
 	if !prod.compress {
 		Log.Note.Print("Rotated " + sourceFile.Name())
 		sourceFile.Close()
@@ -290,10 +295,11 @@ func (prod *File) openLog() error {
 
 	// Create "current" symlink
 	prod.fileCreated = time.Now()
-	symLinkName := fmt.Sprintf("%s/%s_current", prod.fileDir, prod.fileName)
-
-	os.Remove(symLinkName)
-	os.Symlink(logFile, symLinkName)
+	if prod.rotate {
+		symLinkName := fmt.Sprintf("%s/%s_current", prod.fileDir, prod.fileName)
+		os.Remove(symLinkName)
+		os.Symlink(logFile, symLinkName)
+	}
 
 	return err
 }
@@ -325,14 +331,6 @@ func (prod *File) writeMessage(message core.Message) {
 	}
 }
 
-func (prod *File) flush() {
-	for prod.NextNonBlocking(prod.writeMessage) {
-	}
-
-	prod.writeBatch()
-	prod.batch.WaitForFlush()
-}
-
 func (prod *File) rotateLog() {
 	prod.forceRotate = true
 	if err := prod.openLog(); err != nil {
@@ -340,14 +338,18 @@ func (prod *File) rotateLog() {
 	}
 }
 
+func (prod *File) flush() {
+	prod.writeBatch()
+	prod.batch.WaitForFlush()
+
+	prod.bgWriter.Wait()
+	prod.file.Close()
+	prod.WorkerDone()
+}
+
 // Produce writes to a buffer that is dumped to a file.
-func (prod File) Produce(workers *sync.WaitGroup) {
-	defer func() {
-		prod.flush()
-		prod.bgWriter.Wait()
-		prod.file.Close()
-		prod.WorkerDone()
-	}()
+func (prod *File) Produce(workers *sync.WaitGroup) {
+	defer prod.flush()
 
 	prod.AddMainWorker(workers)
 	prod.TickerControlLoop(prod.batchTimeout, prod.writeMessage, prod.rotateLog, prod.writeBatchOnTimeOut)

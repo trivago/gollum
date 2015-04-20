@@ -33,6 +33,9 @@ import (
 //     Address: ":80"
 //     ReadTimeoutSec: 5
 //
+// The Httpd consumer defines a simple http listener that will generate a
+// message from the body of each POST request.
+//
 // Address stores the identifier to bind to.
 // This is allowed be any ip address/dns and port like "localhost:5880".
 // By default this is set to ":80".
@@ -65,6 +68,11 @@ func (cons *Httpd) Configure(conf core.PluginConfig) error {
 
 // requestHandler will handle a single web request.
 func (cons *Httpd) requestHandler(resp http.ResponseWriter, req *http.Request) {
+	if req.Method != "POST" {
+		resp.WriteHeader(http.StatusMethodNotAllowed)
+		return // ### return, requires POST ###
+	}
+
 	if req.ContentLength <= 0 {
 		resp.WriteHeader(http.StatusLengthRequired)
 		return // ### return, missing content length ###
@@ -77,7 +85,7 @@ func (cons *Httpd) requestHandler(resp http.ResponseWriter, req *http.Request) {
 		return // ### return, missing body ###
 	}
 
-	cons.PostData(body.Bytes(), atomic.AddUint64(&cons.sequence, 1))
+	cons.Enqueue(body.Bytes(), atomic.AddUint64(&cons.sequence, 1))
 	resp.WriteHeader(http.StatusCreated)
 }
 
@@ -98,7 +106,7 @@ func (cons *Httpd) serve() {
 }
 
 // Consume opens a new http server listen on specified ip and port (address)
-func (cons Httpd) Consume(workers *sync.WaitGroup) {
+func (cons *Httpd) Consume(workers *sync.WaitGroup) {
 	listen, err := shared.NewStopListener(cons.address)
 	if err != nil {
 		Log.Error.Print("httpd: ", err)

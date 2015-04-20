@@ -9,7 +9,7 @@
 		},
 		{
 			"ImportPath": "github.com/araddon/gou",
-			"Rev": "83835b52401515352c9234fecfa61e55aaab793b"
+			"Rev": "2c3ebe13a9748b26bd2c1050a7933da9dab34e99"
 		},
 		{
 			"ImportPath": "github.com/artyom/fb303",
@@ -25,12 +25,17 @@
 		},
 		{
 			"ImportPath": "github.com/bitly/go-hostpool",
-			"Rev": "e83c9e8d24926d4897baaaac1c9428e07bacb377"
+			"Rev": "d0e59c22a56e8dadfed24f74f452cea5a52722d2"
 		},
 		{
 			"ImportPath": "github.com/eapache/go-resiliency/breaker",
 			"Comment": "v1",
 			"Rev": "6800482f2c813e689c88b7ed3282262385011890"
+		},
+		{
+			"ImportPath": "github.com/eapache/queue",
+			"Comment": "v1.0.1",
+			"Rev": "c0c762fac2fc60e07f19af79c19164ac588329de"
 		},
 		{
 			"ImportPath": "github.com/garyburd/redigo/internal",
@@ -46,17 +51,22 @@
 		},
 		{
 			"ImportPath": "github.com/mattbaird/elastigo/lib",
-			"Comment": "v1.0-139-gba038c1",
-			"Rev": "ba038c10f634af5e7f3bd27b81bd8c37af844edf"
+			"Comment": "v1.0-162-g7ea98ae",
+			"Rev": "7ea98aee9ffdf443c33c78c31f14568a16c6f8f2"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
-			"Rev": "7dbad50ab5b31073856416cdcfeb2796d682f844"
+			"Rev": "84ba27dd5b2d8135e9da1395277f2c9333a2ffda"
 		},
 		{
 			"ImportPath": "gopkg.in/Shopify/sarama.v1",
-			"Comment": "v1.1.0",
-			"Rev": "3b6fa677e9395c3d7151999974d1b5b36f6ac091"
+			"Comment": "v1.2.0",
+			"Rev": "fcf765a8b80c7b3a5ba1cb3bb9036261502b1ee8"
+		},
+		{
+			"ImportPath": "gopkg.in/bufio.v1",
+			"Comment": "v1",
+			"Rev": "567b2bfa514e796916c4747494d6ff5132a1dfce"
 		},
 		{
 			"ImportPath": "gopkg.in/docker/docker.v1/pkg/mflag",
@@ -67,6 +77,11 @@
 			"ImportPath": "gopkg.in/mcuadros/go-syslog.v2",
 			"Comment": "v2.0.0",
 			"Rev": "f22fa4cce7e718c50fe7adc6e98d703f39e285e0"
+		},
+		{
+			"ImportPath": "gopkg.in/redis.v2",
+			"Comment": "v2.3.2",
+			"Rev": "e6179049628164864e6e84e973cfb56335748dea"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",

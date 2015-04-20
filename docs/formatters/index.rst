@@ -1,12 +1,16 @@
-Formatters (modifying data)
+Formatters
 ############################
 
 .. toctree::
-	:maxdepth: 2
+	:maxdepth: 1
 
-	delimiter
+	envelope
 	forward
+	identifier
 	json
 	runlength
 	sequence
 	timestamp
+	
+Formatters are plugins that are embedded into :doc:`streams </streams/index>` or :doc:`producers </producers/index>`.
+Formatters can convert messages into another format or append additional information.

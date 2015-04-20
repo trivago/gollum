@@ -31,13 +31,25 @@ func NewByteStream(capacity int) ByteStream {
 	}
 }
 
+// NewByteStreamFrom creates a new byte stream that starts with the given
+// byte array.
+func NewByteStreamFrom(data []byte) ByteStream {
+	return ByteStream{
+		data:   data,
+		offset: len(data),
+	}
+}
+
 // SetCapacity assures that capacity bytes are available in the buffer, growing
-// the managed byte array if needed.
+// the managed byte array if needed. The buffer will grow by at least 64 bytes
+// if growing is required.
 func (stream *ByteStream) SetCapacity(capacity int) {
-	if len(stream.data) < capacity {
+	if stream.Cap() < capacity {
 		current := stream.data
 		stream.data = make([]byte, capacity)
-		copy(stream.data, current)
+		if stream.offset > 0 {
+			copy(stream.data, current[:stream.offset])
+		}
 	}
 }
 
@@ -64,16 +76,40 @@ func (stream ByteStream) Bytes() []byte {
 	return stream.data[:stream.offset]
 }
 
+// String returns a string of the underlying byte array containing all written
+// data up to this point.
+func (stream ByteStream) String() string {
+	return string(stream.data[:stream.offset])
+}
+
 // Write implements the io.Writer interface.
 // This function assures that the capacity of the underlying byte array is
 // enough to store the incoming amount of data. Subsequent writes will allways
 // append to the end of the stream until Reset() is called.
 func (stream *ByteStream) Write(source []byte) (int, error) {
-	stream.SetCapacity(stream.offset + len(source))
+	sourceLen := len(source)
+	if sourceLen == 0 {
+		return 0, nil
+	}
 
-	bytesWritten := copy(stream.data[stream.offset:], source)
-	stream.offset += bytesWritten
-	return bytesWritten, nil
+	stream.SetCapacity(stream.offset + sourceLen)
+	copy(stream.data[stream.offset:], source[:sourceLen])
+	stream.offset += sourceLen
+
+	return sourceLen, nil
+}
+
+// WriteString is a convenience wrapper for Write([]byte(source))
+func (stream *ByteStream) WriteString(source string) (int, error) {
+	return stream.Write([]byte(source))
+}
+
+// WriteByte writes a single byte to the stream. Capacity will be ensured.
+func (stream *ByteStream) WriteByte(source byte) error {
+	stream.SetCapacity(stream.offset + 1)
+	stream.data[stream.offset] = source
+	stream.offset++
+	return nil
 }
 
 // Read implements the io.Reader interface.

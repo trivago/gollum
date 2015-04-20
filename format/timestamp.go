@@ -23,9 +23,9 @@ import (
 // (time of arrival at gollum) as well as postfixing it with a delimiter string.
 // Configuration example
 //
-//   - producer.Console
+//   - "<producer|stream>":
 //     Formatter: "format.Timestamp"
-//     TimestampDataFormatter: "format.Delimiter"
+//     TimestampFormatter: "format.Envelope"
 //     Timestamp: "2006-01-02T15:04:05.000 MST | "
 //
 // Timestamp defines a Go time format string that is used to format the actual
@@ -33,9 +33,8 @@ import (
 // By default this is set to "2006-01-02 15:04:05 MST | "
 //
 // TimestampDataFormatter defines the formatter for the data transferred as
-// message. By default this is set to "format.Delimiter"
+// message. By default this is set to "format.Envelope"
 type Timestamp struct {
-	core.FormatterBase
 	base            core.Formatter
 	timestampFormat string
 }
@@ -46,24 +45,26 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Timestamp) Configure(conf core.PluginConfig) error {
-	plugin, err := core.NewPluginWithType(conf.GetString("TimestampDataFormatter", "format.Delimiter"), conf)
+	plugin, err := core.NewPluginWithType(conf.GetString("TimestampFormatter", "format.Envelope"), conf)
 	if err != nil {
 		return err
 	}
 
 	format.base = plugin.(core.Formatter)
-	format.timestampFormat = conf.GetString("Timestamp", core.DefaultTimestamp)
+	format.timestampFormat = conf.GetString("Timestamp", "2006-01-02 15:04:05 MST | ")
 
 	return nil
 }
 
-// PrepareMessage sets the message to be formatted.
-func (format *Timestamp) PrepareMessage(msg core.Message) {
-	format.base.PrepareMessage(msg)
-	baseLength := format.base.Len()
+// Format prepends the timestamp of the message to the message.
+func (format *Timestamp) Format(msg core.Message) []byte {
+	basePayload := format.base.Format(msg)
+	baseLength := len(basePayload)
 	timestampStr := msg.Timestamp.Format(format.timestampFormat)
 
-	format.FormatterBase.Message = make([]byte, len(timestampStr)+baseLength)
-	len := copy(format.FormatterBase.Message, []byte(timestampStr))
-	format.base.Read(format.FormatterBase.Message[len:])
+	payload := make([]byte, len(timestampStr)+baseLength)
+	len := copy(payload, []byte(timestampStr))
+	copy(payload[len:], basePayload)
+
+	return payload
 }

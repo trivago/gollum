@@ -33,6 +33,9 @@ const (
 //   - "consumer.Console":
 //     Enable: true
 //
+// This consumer reads from stdin. A message is generated after each newline
+// character.
+//
 // This consumer does not define any options beside the standard ones.
 type Console struct {
 	core.ConsumerBase
@@ -43,7 +46,7 @@ func init() {
 }
 
 func (cons *Console) readFrom(stream io.Reader) {
-	buffer := shared.NewBufferedReader(consoleBufferGrowSize, 0, "\n", cons.PostData)
+	buffer := shared.NewBufferedReader(consoleBufferGrowSize, 0, "\n", cons.Enqueue)
 
 	for {
 		err := buffer.Read(stream)
@@ -54,7 +57,7 @@ func (cons *Console) readFrom(stream io.Reader) {
 }
 
 // Consume listens to stdin.
-func (cons Console) Consume(workers *sync.WaitGroup) {
+func (cons *Console) Consume(workers *sync.WaitGroup) {
 	go cons.readFrom(os.Stdin)
 	cons.DefaultControlLoop(nil)
 }

@@ -49,8 +49,8 @@ func (c *Conn) DoCommand(method string, url string, args map[string]interface{},
 		}
 
 	}
-	httpStatusCode, body, err = req.Do(&response)
 
+	httpStatusCode, body, err = req.Do(&response)
 	if err != nil {
 		return body, err
 	}

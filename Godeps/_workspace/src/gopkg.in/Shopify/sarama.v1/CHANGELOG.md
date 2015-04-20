@@ -1,5 +1,26 @@
 # Changelog
 
+#### Version 1.2.0 (2015-04-07)
+
+Improvements:
+ - The producer's behaviour when `Flush.Frequency` is set is now more intuitive
+   ([#389](https://github.com/Shopify/sarama/pull/389)).
+ - The producer is now somewhat more memory-efficient during and after retrying
+   messages due to an improved queue implementation
+   ([#396](https://github.com/Shopify/sarama/pull/396)).
+ - The consumer produces much more useful logging output when leadership
+   changes ([#385](https://github.com/Shopify/sarama/pull/385)).
+ - The client's `GetOffset` method will now automatically refresh metadata and
+   retry once in the event of stale information or similar
+   ([#394](https://github.com/Shopify/sarama/pull/394)).
+ - Broker connections now have support for using TCP keepalives
+   ([#407](https://github.com/Shopify/sarama/issues/407)).
+
+Bug Fixes:
+ - The OffsetCommitRequest message now correctly implements all three possible
+   API versions ([#390](https://github.com/Shopify/sarama/pull/390),
+   [#400](https://github.com/Shopify/sarama/pull/400)).
+
 #### Version 1.1.0 (2015-03-20)
 
 Improvements:

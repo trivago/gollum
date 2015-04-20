@@ -24,14 +24,13 @@ import (
 // sequence number
 // Configuration example
 //
-//   - producer.Console
+//   - "<producer|stream>":
 //     Formatter: "format.Sequence"
-//     SequenceDataFormatter: "format.Delimiter"
+//     SequenceFormatter: "format.Envelope"
 //
 // SequenceDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Sequence struct {
-	core.FormatterBase
 	base     core.Formatter
 	length   int
 	sequence string
@@ -43,7 +42,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Sequence) Configure(conf core.PluginConfig) error {
-	plugin, err := core.NewPluginWithType(conf.GetString("SequenceDataFormatter", "format.Forward"), conf)
+	plugin, err := core.NewPluginWithType(conf.GetString("SequenceFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err
 	}
@@ -52,13 +51,16 @@ func (format *Sequence) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-// PrepareMessage sets the message to be formatted.
-func (format *Sequence) PrepareMessage(msg core.Message) {
-	format.base.PrepareMessage(msg)
-	baseLength := format.base.Len()
+// Format prepends the sequence number of the message (followed by ":") to the
+// message.
+func (format *Sequence) Format(msg core.Message) []byte {
+	basePayload := format.base.Format(msg)
+	baseLength := len(basePayload)
 	sequenceStr := strconv.FormatUint(msg.Sequence, 10) + ":"
 
-	format.FormatterBase.Message = make([]byte, len(sequenceStr)+baseLength)
-	len := copy(format.FormatterBase.Message, []byte(sequenceStr))
-	format.base.Read(format.FormatterBase.Message[len:])
+	payload := make([]byte, len(sequenceStr)+baseLength)
+	len := copy(payload, []byte(sequenceStr))
+	copy(payload[len:], basePayload)
+
+	return payload
 }

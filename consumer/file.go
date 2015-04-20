@@ -31,9 +31,8 @@ import (
 
 const (
 	fileBufferGrowSize = 1024
-	fileOffsetStart    = "Start"
-	fileOffsetEnd      = "End"
-	fileOffsetContinue = "Current"
+	fileOffsetStart    = "oldest"
+	fileOffsetEnd      = "newest"
 )
 
 type fileState int32
@@ -45,38 +44,47 @@ const (
 )
 
 // File consumer plugin
-// This consumer can be paused.
 // Configuration example
 //
 //   - "consumer.File":
 //     Enable: true
 //     File: "test.txt"
-//     Offset: "Current"
+//     DefaultOffset: "Oldest"
+//     OffsetFile: "/tmp/test.progress"
 //     Delimiter: "\n"
+//
+// The file consumer allows to read from files while looking for a delimiter
+// that marks the end of a message. If the file is part of e.g. a log rotation
+// the file consumer can set to a symbolic link of the latest file and be told
+// to reopen the file by sending a SIGHUP.
 //
 // File is a mandatory setting and contains the file to read. The file will be
 // read from beginning to end and the reader will stay attached until the
-// consumer is stopped. This means appends to the file will be recognized by
-// gollum. Symlinks are always resolved, i.e. changing the symlink target will
-// be ignored unless gollum is restarted.
+// consumer is stopped. This means appends to the file will be recognized.
+// Symlinks are always resolved, i.e. changing the symlink target will
+// be ignored unless gollum is restarted or a log rotation is triggered.
 //
-// Offset defines where to start reading the file. Valid values (case sensitive)
-// are "Start", "End", "Current". By default this is set to "End". If "Current"
-// is used a filed in /tmp will be created that contains the last position that
-// has been read.
+// DefaultOffset defines where to start reading the file. Valid values are
+// "oldest" and "newest". If OffsetFile is defined this setting will be used
+// only if the file does not exist. If OffsetFile is not defined this setting
+// will allways be used.
+// By default this is set to Newest.
+//
+// OffsetFile defines the path to a file that stores the current offset inside
+// the file. If the consumer is restarted that offset is used to continue
+// reading.
 //
 // Delimiter defines the end of a message inside the file. By default this is
 // set to "\n".
 type File struct {
 	core.ConsumerBase
-	file             *os.File
-	fileName         string
-	continueFileName string
-	delimiter        string
-	seek             int
-	seekOffset       int64
-	persistSeek      bool
-	state            fileState
+	file           *os.File
+	fileName       string
+	offsetFileName string
+	delimiter      string
+	seek           int
+	seekOffset     int64
+	state          fileState
 }
 
 func init() {
@@ -98,10 +106,10 @@ func (cons *File) Configure(conf core.PluginConfig) error {
 
 	cons.file = nil
 	cons.fileName = conf.GetString("File", "")
+	cons.offsetFileName = conf.GetString("OffsetFile", "")
 	cons.delimiter = escapeChars.Replace(conf.GetString("Delimiter", "\n"))
-	cons.persistSeek = false
 
-	switch conf.GetString("Offset", fileOffsetEnd) {
+	switch strings.ToLower(conf.GetString("DefaultOffset", fileOffsetEnd)) {
 	default:
 		fallthrough
 	case fileOffsetEnd:
@@ -111,20 +119,15 @@ func (cons *File) Configure(conf core.PluginConfig) error {
 	case fileOffsetStart:
 		cons.seek = 1
 		cons.seekOffset = 0
-
-	case fileOffsetContinue:
-		cons.seek = 1
-		cons.seekOffset = 0
-		cons.persistSeek = true
 	}
 
 	return nil
 }
 
-func (cons *File) postAndPersist(data []byte, sequence uint64) {
+func (cons *File) enqueueAndPersist(data []byte, sequence uint64) {
 	cons.seekOffset, _ = cons.file.Seek(0, 1)
-	cons.PostData(data, sequence)
-	ioutil.WriteFile(cons.continueFileName, []byte(strconv.FormatInt(cons.seekOffset, 10)), 0644)
+	cons.Enqueue(data, sequence)
+	ioutil.WriteFile(cons.offsetFileName, []byte(strconv.FormatInt(cons.seekOffset, 10)), 0644)
 }
 
 func (cons *File) realFileName() string {
@@ -153,14 +156,10 @@ func (cons *File) initFile() {
 		cons.file = nil
 	}
 
-	if cons.persistSeek {
-		baseFileName := cons.realFileName()
-		pathDelimiter := strings.NewReplacer("/", "_", ".", "_")
-		cons.continueFileName = "/tmp/gollum" + pathDelimiter.Replace(baseFileName) + ".idx"
-		cons.seekOffset = 0
-
-		fileContents, err := ioutil.ReadFile(cons.continueFileName)
+	if cons.offsetFileName != "" {
+		fileContents, err := ioutil.ReadFile(cons.offsetFileName)
 		if err == nil {
+			cons.seek = 1
 			cons.seekOffset, err = strconv.ParseInt(string(fileContents), 10, 64)
 		}
 	}
@@ -177,19 +176,15 @@ func (cons *File) close() {
 func (cons *File) read() {
 	defer cons.close()
 
-	sendFunction := cons.PostData
-	if cons.persistSeek {
-		sendFunction = cons.postAndPersist
+	sendFunction := cons.Enqueue
+	if cons.offsetFileName != "" {
+		sendFunction = cons.enqueueAndPersist
 	}
 
 	buffer := shared.NewBufferedReader(fileBufferGrowSize, 0, cons.delimiter, sendFunction)
 	printFileOpenError := true
 
 	for cons.state != fileStateDone {
-		if cons.IsPaused() {
-			runtime.Gosched()
-			continue // ### continue, do nothing ###
-		}
 
 		// Initialize the seek state if requested
 		// Try to read the remains of the file first

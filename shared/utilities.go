@@ -99,7 +99,8 @@ func RecoverShutdown() {
 // Protocols may be prepended by the "protocol://" notation.
 // If no protocol is given, "tcp" is assumed.
 // The first parameter returned is the address, the second denotes the protocol.
-func ParseAddress(addr string) (string, string) {
+// The protocol is allways returned as lowercase string.
+func ParseAddress(addr string) (address string, protocol string) {
 	protocolIdx := strings.Index("://", addr)
 	if protocolIdx == -1 {
 		return addr, "tcp"

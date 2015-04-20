@@ -71,6 +71,15 @@ func (node *TrieNode) replace(oldChild *TrieNode, newChild *TrieNode) {
 	}
 }
 
+// ForEach applies a function to each node in the tree including and below the
+// passed node.
+func (node *TrieNode) ForEach(callback func(*TrieNode)) {
+	callback(node)
+	for _, child := range node.children {
+		child.ForEach(callback)
+	}
+}
+
 // Add adds a new data path to the trie.
 // The TrieNode returned is the (new) root node so you should always reassign
 // the root with the return value of Add.

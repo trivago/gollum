@@ -22,10 +22,9 @@ import (
 // Forward is a formatter that passes a message as is
 // Configuration example
 //
-//   - producer.Console
+//   - "<producer|stream>":
 //     Formatter: "format.Forward"
 type Forward struct {
-	core.FormatterBase
 }
 
 func init() {
@@ -37,7 +36,7 @@ func (format *Forward) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-// PrepareMessage sets the message to be formatted.
-func (format *Forward) PrepareMessage(msg core.Message) {
-	format.FormatterBase.Message = msg.Data
+// Format returns the original message payload
+func (format *Forward) Format(msg core.Message) []byte {
+	return msg.Data
 }

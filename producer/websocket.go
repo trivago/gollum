@@ -35,6 +35,8 @@ import (
 //     Path:    "/data"
 //	   ReadTimeoutSec: 5
 //
+// The websocket producer opens up a websocket.
+//
 // Address stores the identifier to bind to.
 // This is allowed be any ip address/dns and port like "localhost:5880".
 // By default this is set to ":81".
@@ -96,8 +98,7 @@ func (prod *Websocket) handleConnection(conn *websocket.Conn) {
 }
 
 func (prod *Websocket) pushMessage(msg core.Message) {
-	prod.Formatter().PrepareMessage(msg)
-	messageText := prod.Formatter().String()
+	messageText := prod.ProducerBase.Format(msg)
 
 	if prod.clientIdx&0x7FFFFFFF > 0 {
 		// There are new clients available
@@ -135,7 +136,7 @@ func (prod *Websocket) pushMessage(msg core.Message) {
 
 	for i := 0; i < len(activeConns.conns); i++ {
 		client := activeConns.conns[i]
-		if _, err := client.Write([]byte(messageText)); err != nil {
+		if _, err := client.Write(messageText); err != nil {
 			activeConns.conns = append(activeConns.conns[:i], activeConns.conns[i+1:]...)
 			if closeErr := client.Close(); closeErr == nil {
 				Log.Error.Print("Websocket: ", err)
@@ -179,9 +180,6 @@ func (prod *Websocket) serve() {
 
 func (prod *Websocket) flush() {
 	prod.listen.Close()
-	for prod.NextNonBlocking(prod.pushMessage) {
-		runtime.Gosched()
-	}
 
 	for _, client := range prod.clients[0].conns {
 		client.Close()
@@ -192,7 +190,7 @@ func (prod *Websocket) flush() {
 }
 
 // Produce writes to stdout or stderr.
-func (prod Websocket) Produce(workers *sync.WaitGroup) {
+func (prod *Websocket) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
 
 	go prod.serve()

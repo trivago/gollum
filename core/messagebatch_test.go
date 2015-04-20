@@ -29,7 +29,6 @@ type MessageBatchWriter struct {
 }
 
 type mockFormatter struct {
-	FormatterBase
 }
 
 func (writer MessageBatchWriter) Write(data []byte) (int, error) {
@@ -59,16 +58,16 @@ func (writer MessageBatchWriter) onError(err error) bool {
 	return false
 }
 
-func (mock *mockFormatter) PrepareMessage(msg Message) {
-	mock.FormatterBase.Message = msg.Data
+func (mock *mockFormatter) Format(msg Message) []byte {
+	return msg.Data
 }
 
 func TestMessageBatch(t *testing.T) {
 	expect := shared.NewExpect(t)
 	writer := MessageBatchWriter{expect, new(bool), new(bool), false, false}
 
-	test10 := NewMessage(nil, []byte("1234567890"), []MessageStreamID{WildcardStreamID}, 0)
-	test20 := NewMessage(nil, []byte("12345678901234567890"), []MessageStreamID{WildcardStreamID}, 1)
+	test10 := NewMessage(nil, []byte("1234567890"), 0)
+	test20 := NewMessage(nil, []byte("12345678901234567890"), 1)
 	buffer := NewMessageBatch(15, new(mockFormatter))
 
 	// Test optionals

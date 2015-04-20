@@ -32,9 +32,9 @@ type messageQueue struct {
 }
 
 // MessageBatch is a helper class for producers to format and store messages
-// into a single string that is flushed to an io.Writer.
-// You can use the Reached* functions to determine when a flush should be
-// called after either reaching a timeout or size threshold.
+// into a single buffer that is flushed to an io.Writer.
+// You can use the Reached* functions to determine whether a flush should be
+// called, i.e. if a timeout or size threshold has been reached.
 type MessageBatch struct {
 	delimiter string
 	queue     [2]messageQueue
@@ -82,8 +82,8 @@ func (batch *MessageBatch) Append(msg Message) bool {
 	// does not block after a failed message.
 	defer func() { activeQueue.doneCount++ }()
 
-	batch.format.PrepareMessage(msg)
-	messageLength := batch.format.Len()
+	payload := batch.format.Format(msg)
+	messageLength := len(payload)
 	var currentOffset, nextOffset int
 
 	// There might be multiple threads writing to the queue, so try to get a
@@ -105,7 +105,7 @@ func (batch *MessageBatch) Append(msg Message) bool {
 		}
 	}
 
-	batch.format.Read(activeQueue.buffer[currentOffset:])
+	copy(activeQueue.buffer[currentOffset:], payload)
 	return true
 }
 

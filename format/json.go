@@ -16,12 +16,11 @@ package format
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
-	"io"
+	"sync"
 	"time"
 )
 
@@ -42,11 +41,14 @@ const (
 // HTML escaped.
 // Configuration example
 //
-//   - producer.Console
+//   - "<producer|stream>":
 //     Formatter: "format.JSON"
-//	   JSONStartState:
-//     JSONDirective:
-//	     - ""
+//	   JSONStartState: "findKey"
+//     JSONDirectives:
+//	     - 'findKey :":  key     ::'
+//	     - 'findKey :}:          : pop  : end'
+//	     - 'key     :":  findVal :      : key'
+//	     - 'findVal :\:: value   ::'
 //
 // JSONStartState defines the initial parser state when parsing a message.
 // By default this is set to "" which will fall back to the first state used in
@@ -58,7 +60,7 @@ const (
 // JSONTimestampWrite defines the go timestamp format that "dat" fields will be
 // converted to. By default this is set to "2006-01-02 15:04:05 MST"
 //
-// JSONDirective defines an array of parser directives.
+// JSONDirectives defines an array of parser directives.
 // This setting is mandatory and has no default value.
 // Each string must be of the following format:
 //
@@ -77,13 +79,16 @@ const (
 //
 // The following names are allowed in the Function field:
 //
-//  * key -> Write the current match as a key
-//  * val -> Write the current match as a value without quotes
-//  * esc -> Write the current match as a escaped string value
-//  * dat -> Write the current match as a timestamp value
-//  * arr -> Start a new array
-//  * obj -> Start a new object
-//  * end -> Close an array or object
+//  * key     -> Write the current match as a key
+//  * val     -> Write the current match as a value without quotes
+//  * esc     -> Write the current match as a escaped string value
+//  * dat     -> Write the current match as a timestamp value
+//  * arr     -> Start a new array
+//  * obj     -> Start a new object
+//  * end     -> Close an array or object
+//  * val+end -> val followed by end
+//  * esc+end -> esc followed by end
+//  * dat+end -> dat followed by end
 //
 // If num or str is written without a previous key write, a key will be auto
 // generated from the current parser state name. This does not happen when
@@ -97,6 +102,7 @@ type JSON struct {
 	parser    shared.TransitionParser
 	state     jsonReaderState
 	stack     []jsonReaderState
+	parseLock *sync.Mutex
 	initState string
 	timeRead  string
 	timeWrite string
@@ -113,6 +119,7 @@ func (format *JSON) Configure(conf core.PluginConfig) error {
 	format.initState = conf.GetString("JSONStartState", "")
 	format.timeRead = conf.GetString("JSONTimestampRead", "20060102150405")
 	format.timeWrite = conf.GetString("JSONTimestampWrite", "2006-01-02 15:04:05 MST")
+	format.parseLock = new(sync.Mutex)
 
 	if !conf.HasValue("JSONDirectives") {
 		Log.Warning.Print("JSON formatter has no JSONDirectives setting")
@@ -172,7 +179,7 @@ func (format *JSON) writeKey(key []byte) {
 	}
 
 	format.message.WriteByte('"')
-	json.HTMLEscape(format.message, key)
+	format.message.Write(key)
 	format.message.WriteString(`":`)
 }
 
@@ -209,17 +216,17 @@ func (format *JSON) readEscaped(data []byte, state shared.ParserStateID) {
 
 	case jsonReadValue:
 		format.message.WriteByte('"')
-		json.HTMLEscape(format.message, bytes.TrimSpace(data))
+		format.message.Write(bytes.TrimSpace(data))
 		format.state = jsonReadKey
 
 	case jsonReadArray:
 		format.message.WriteByte('"')
-		json.HTMLEscape(format.message, bytes.TrimSpace(data))
+		format.message.Write(bytes.TrimSpace(data))
 		format.state = jsonReadArrayAppend
 
 	case jsonReadArrayAppend:
 		format.message.WriteString(`,"`)
-		json.HTMLEscape(format.message, bytes.TrimSpace(data))
+		format.message.Write(bytes.TrimSpace(data))
 	}
 	format.message.WriteByte('"')
 }
@@ -292,10 +299,17 @@ func (format *JSON) readEnd(data []byte, state shared.ParserStateID) {
 	}
 }
 
-// PrepareMessage sets the message to be formatted.
-func (format *JSON) PrepareMessage(msg core.Message) {
-	format.message = bytes.NewBufferString("{")
+// Format parses the incoming message and generates JSON from it.
+// This function is mutex locked.
+func (format *JSON) Format(msg core.Message) []byte {
+	// The internal state is not threadsafe so we need to lock here
+	format.parseLock.Lock()
+	defer format.parseLock.Unlock()
+
+	format.message = bytes.NewBuffer(nil)
 	format.state = jsonReadObject
+
+	format.message.WriteString("{")
 	remains, state := format.parser.Parse(msg.Data, format.initState)
 
 	// Write remains as string value
@@ -311,33 +325,5 @@ func (format *JSON) PrepareMessage(msg core.Message) {
 	}
 
 	format.message.WriteString("}\n")
-	format.message = bytes.NewBuffer(bytes.TrimSpace(format.message.Bytes()))
-}
-
-// Len returns the length of a formatted message.
-func (format *JSON) Len() int {
-	return format.message.Len()
-}
-
-// String returns the message as string
-func (format *JSON) String() string {
-	return format.message.String()
-}
-
-// Bytes returns the message as a byte slice
-func (format *JSON) Bytes() []byte {
-	return format.message.Bytes()
-}
-
-// CopyTo copies the message into an existing buffer. It is assumed that
-// dest has enough space to fit GetLength() bytes
-func (format *JSON) Read(dest []byte) (int, error) {
-	return copy(dest, format.message.Bytes()), nil
-}
-
-// WriteTo implements the io.WriterTo interface.
-// Data will be written directly to a writer.
-func (format *JSON) WriteTo(writer io.Writer) (int64, error) {
-	len, err := writer.Write(format.message.Bytes())
-	return int64(len), err
+	return bytes.TrimSpace(format.message.Bytes())
 }

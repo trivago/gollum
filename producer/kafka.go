@@ -19,17 +19,18 @@ import (
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	kafka "gopkg.in/Shopify/sarama.v1"
+	"strings"
 	"sync"
 	"time"
 )
 
 const (
-	partRandom     = "Random"
-	partRoundrobin = "Roundrobin"
-	partHash       = "Hash"
-	compressNone   = "None"
-	compressGZIP   = "Zip"
-	compressSnappy = "Snappy"
+	partRandom     = "random"
+	partRoundrobin = "roundrobin"
+	partHash       = "hash"
+	compressNone   = "none"
+	compressGZIP   = "zip"
+	compressSnappy = "snappy"
 )
 
 // Kafka producer plugin
@@ -41,12 +42,17 @@ const (
 //     Partitioner: "Roundrobin"
 //     RequiredAcks: 0
 //     TimeoutMs: 0
+//     SendRetries: 5
 //     Compression: "Snappy"
+//     MaxOpenRequests: 6
 //     BatchMinCount: 10
-//     BatchSizeByte: 16384
-//     BatchTimeoutSec: 5
-//     BufferSizeMaxKB: 524288
 //     BatchMaxCount: 0
+//     BatchSizeByte: 16384
+//     BatchSizeMaxKB: 524288
+//     BatchTimeoutSec: 5
+//     ServerTimeoutSec: 3
+//     SendTimeoutMs: 100
+//     ElectRetries: 3
 //     ElectTimeoutMs: 1000
 //     MetadataRefreshSec: 30
 //     Servers:
@@ -58,19 +64,13 @@ const (
 //       "console" : "default"
 //       "_GOLLUM_"  : "default"
 //
+// The kafka producer writes messages to a kafka cluster. This producer is
+// backed by the sarama library so most settings relate to that library.
+//
 // ClientId sets the client id of this producer. By default this is "gollum".
 //
-// MessageBufferCount sets the internal channel size for the kafka client.
-// By default this is set to 256.
-//
-// MaxOpenRequests defines the number of simultanious connections are allowed.
-// By default this is set to 5.
-//
-// ServerTimeoutSec defines the time after which a connection is set to timed
-// out. By default this is set to 30 seconds.
-//
-// BufferSizeMaxKB defines the maximum allowed message size. By default this is
-// set to 1 MB.
+// Partitioner sets the distribution algorithm to use. Valid values are:
+// "Random","Roundrobin" and "Hash". By default "Hash" is set.
 //
 // RequiredAcks defines the acknowledgement level required by the broker.
 // 0 = No responses required. 1 = wait for the local commit. -1 = wait for
@@ -81,26 +81,35 @@ const (
 // setting becomes active when RequiredAcks is set to wait for multiple commits.
 // By default this is set to 1500.
 //
-// Compression sets the method of compression to use. Valid values (case
-// sensitive) are: "None","Zip","Snappy". By default "None" is set.
+// SendRetries defines how many times to retry sending data before marking a
+// server as not reachable. By default this is set to 3.
 //
-// Partitioner sets the distribution algorithm to use. Valid values (case
-// sensitive) are: "Random","Roundrobin","Hash". By default "Hash" is set.
+// Compression sets the method of compression to use. Valid values are:
+// "None","Zip" and "Snappy". By default "None" is set.
 //
-// BatchSizeByte sets the mimimum number of bytes to collect before a new flush
-// is triggered. By default this is set to 8192.
+// MaxOpenRequests defines the number of simultanious connections are allowed.
+// By default this is set to 5.
 //
 // BatchMinCount sets the minimum number of messages required to trigger a
 // flush. By default this is set to 1.
 //
-// BatchTimeoutSec sets the minimum time in seconds to pass after wich a new
-// flush will be triggered. By default this is set to 3.
-//
 // BatchMaxCount defines the maximum number of messages processed per
 // request. By default this is set to 0 for "unlimited".
 //
-// SendRetries defines how many times to retry sending data before marking a
-// server as not reachable. By default this is set to 3.
+// BatchSizeByte sets the mimimum number of bytes to collect before a new flush
+// is triggered. By default this is set to 8192.
+//
+// BatchSizeMaxKB defines the maximum allowed message size. By default this is
+// set to 1 MB.
+//
+// BatchTimeoutSec sets the minimum time in seconds to pass after wich a new
+// flush will be triggered. By default this is set to 3.
+//
+// MessageBufferCount sets the internal channel size for the kafka client.
+// By default this is set to 256.
+//
+// ServerTimeoutSec defines the time after which a connection is set to timed
+// out. By default this is set to 30 seconds.
 //
 // SendTimeoutMs defines the number of milliseconds to wait for a server to
 // resond before triggering a timeout. Defaults to 250.
@@ -164,14 +173,14 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.config.Metadata.Retry.Backoff = time.Duration(conf.GetInt("ElectTimeoutMs", 250)) * time.Millisecond
 	prod.config.Metadata.RefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshMs", 10000)) * time.Millisecond
 
-	prod.config.Producer.MaxMessageBytes = conf.GetInt("BufferSizeMaxKB", 1<<10) << 10
+	prod.config.Producer.MaxMessageBytes = conf.GetInt("BatchSizeMaxKB", 1<<10) << 10
 	prod.config.Producer.RequiredAcks = kafka.RequiredAcks(conf.GetInt("RequiredAcks", int(kafka.WaitForLocal)))
 	prod.config.Producer.Timeout = time.Duration(conf.GetInt("TimoutMs", 1500)) * time.Millisecond
 
 	prod.config.Producer.Return.Errors = true
 	prod.config.Producer.Return.Successes = false
 
-	switch conf.GetString("Compression", compressNone) {
+	switch strings.ToLower(conf.GetString("Compression", compressNone)) {
 	default:
 		fallthrough
 	case compressNone:
@@ -182,7 +191,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 		prod.config.Producer.Compression = kafka.CompressionSnappy
 	}
 
-	switch conf.GetString("Partitioner", partRandom) {
+	switch strings.ToLower(conf.GetString("Partitioner", partRandom)) {
 	case partRandom:
 		prod.config.Producer.Partitioner = kafka.NewRandomPartitioner
 	case partRoundrobin:
@@ -230,19 +239,16 @@ func (prod *Kafka) send(msg core.Message) {
 
 	if prod.client != nil && prod.producer != nil {
 		// Send message
-		topic, topicMapped := prod.topic[msg.CurrentStream]
+		topic, topicMapped := prod.topic[msg.StreamID]
 		if !topicMapped {
 			topic = prod.topic[core.WildcardStreamID]
 		}
 
-		prod.Formatter().PrepareMessage(msg)
-		buffer := make([]byte, prod.Formatter().Len())
-		prod.Formatter().Read(buffer)
-
+		payload := prod.ProducerBase.Format(msg)
 		prod.producer.Input() <- &kafka.ProducerMessage{
 			Topic: topic,
 			Key:   nil,
-			Value: kafka.ByteEncoder(buffer),
+			Value: kafka.ByteEncoder(payload),
 		}
 
 		// Check for errors
@@ -254,17 +260,19 @@ func (prod *Kafka) send(msg core.Message) {
 	}
 }
 
+func (prod *Kafka) flush() {
+	if prod.producer != nil {
+		prod.producer.Close()
+	}
+	if prod.client != nil && !prod.client.Closed() {
+		prod.client.Close()
+	}
+	prod.WorkerDone()
+}
+
 // Produce writes to a buffer that is sent to a given socket.
-func (prod Kafka) Produce(workers *sync.WaitGroup) {
-	defer func() {
-		if prod.producer != nil {
-			prod.producer.Close()
-		}
-		if prod.client != nil && !prod.client.Closed() {
-			prod.client.Close()
-		}
-		prod.WorkerDone()
-	}()
+func (prod *Kafka) Produce(workers *sync.WaitGroup) {
+	defer prod.flush()
 
 	prod.AddMainWorker(workers)
 	prod.DefaultControlLoop(prod.send, nil)

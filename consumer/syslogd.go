@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/jeromer/syslogparser"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"gopkg.in/mcuadros/go-syslog.v2"
 	"gopkg.in/mcuadros/go-syslog.v2/format"
@@ -29,39 +30,28 @@ import (
 //
 //   - "consumer.Syslogd":
 //     Enable: true
-//     Address: "0.0.0.0:5880"
+//     Address: "udp://0.0.0.0:5880"
 //     Format: "RFC3164"
-//     Protocol: "udp"
+//
+// The syslogd consumer accepts messages from a syslogd comaptible socket.
 //
 // Address stores the identifier to bind to.
-// This must be a ip address and port like "127.0.0.1:5880"
-// Unix domain sockets are not supported yet.
-// By default this is set to "0.0.0.0:5880".
+// This can either be any ip address and port like "localhost:5880" or a file
+// like "unix:///var/gollum.socket". By default this is set to "udp://0.0.0.0:514".
+// The protocol can be defined along with the address, e.g. "tcp://..." but
+// this may be ignored if a certain protocol format does not support the desired
+// transport protocol.
 //
 // Format define the used syslog standard.
 // Three standards are currently supported:
-// 	* RFC3164 (https://tools.ietf.org/html/rfc3164)
-// 	* RFC5424 (https://tools.ietf.org/html/rfc5424)
-// 	* RFC6587 (https://tools.ietf.org/html/rfc6587)
-// This format can make choices for the used protocol or message parts.
-// Please have a look at the application which will produce syslog messages
-// which format is supported.
-// By default this is set to "RFC5424".
-//
-// Protocol specifies the transport layer of syslog messages.
-// Supported protocols are:
-//	* udp
-//	* tcp
-// Depending on the chosen format (see above) a protocol will be set by Gollum,
-// because some RFCs describe their protocol:
-// 	* RFC3164: udp
-// 	* RFC6587: tcp
-// For format "RFC5424" the protocol can be chosen.
-// By default this is set to "udp".
+// 	* RFC3164 (https://tools.ietf.org/html/rfc3164) udp only
+// 	* RFC5424 (https://tools.ietf.org/html/rfc5424) udp only
+// 	* RFC6587 (https://tools.ietf.org/html/rfc6587) tcp or udp
+// By default this is set to "RFC6587".
 type Syslogd struct {
 	core.ConsumerBase
 	format   format.Format // RFC3164, RFC5424 or RFC6587?
-	protocol string        // udp or tcp
+	protocol string
 	address  string
 	sequence *uint64
 }
@@ -77,53 +67,63 @@ func (cons *Syslogd) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	format := conf.GetString("Format", "RFC5424")
+	cons.address, cons.protocol = shared.ParseAddress(conf.GetString("Address", "udp://0.0.0.0:514"))
+	format := conf.GetString("Format", "RFC6587")
+
+	switch cons.protocol {
+	case "udp", "tcp", "unix":
+	default:
+		return fmt.Errorf("Syslog: unknown protocol type %s", cons.protocol) // ### return, unknown protocol ###
+	}
+
 	switch format {
 	// http://www.ietf.org/rfc/rfc3164.txt
 	case "RFC3164":
 		cons.format = syslog.RFC3164
-		cons.protocol = "udp"
+		if cons.protocol == "tcp" {
+			Log.Warning.Print("Syslog: RFC3164 demands UDP")
+			cons.protocol = "udp"
+		}
 
 	// https://tools.ietf.org/html/rfc5424
 	case "RFC5424":
 		cons.format = syslog.RFC5424
-		cons.protocol = conf.GetString("Protocol", "udp")
+		if cons.protocol == "tcp" {
+			Log.Warning.Print("Syslog: RFC5424 demands UDP")
+			cons.protocol = "udp"
+		}
 
 	// https://tools.ietf.org/html/rfc6587
 	case "RFC6587":
 		cons.format = syslog.RFC6587
-		cons.protocol = "tcp"
+
 	default:
 		err = fmt.Errorf("Syslog: Format %s is not supported", format)
 	}
 
-	// Port 514 is the standard port of syslog
-	// Port 5880 is the port mentioned by go-syslog package
-	cons.address = conf.GetString("Address", "0.0.0.0:5880")
 	cons.sequence = new(uint64)
-
-	// TODO Support unix domain socket (see Socket consumer)
-
 	return err
 }
 
 // Handle implements the syslog handle interface
-func (cons Syslogd) Handle(parts syslogparser.LogParts, code int64, err error) {
+func (cons *Syslogd) Handle(parts syslogparser.LogParts, code int64, err error) {
 	content, isString := parts["content"].(string)
 	if isString {
-		cons.PostData([]byte(content), *cons.sequence)
+		cons.Enqueue([]byte(content), *cons.sequence)
 		*cons.sequence++
 	}
 }
 
 // Consume opens a new syslog socket.
 // Messages are expected to be separated by \n.
-func (cons Syslogd) Consume(workers *sync.WaitGroup) {
+func (cons *Syslogd) Consume(workers *sync.WaitGroup) {
 	server := syslog.NewServer()
 	server.SetFormat(cons.format)
 	server.SetHandler(cons)
 
 	switch cons.protocol {
+	case "unix":
+		server.ListenUnixgram(cons.address)
 	case "udp":
 		server.ListenUDP(cons.address)
 	case "tcp":

@@ -20,11 +20,11 @@ import (
 	_ "github.com/trivago/gollum/contrib"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	_ "github.com/trivago/gollum/distributor"
 	_ "github.com/trivago/gollum/filter"
 	_ "github.com/trivago/gollum/format"
 	_ "github.com/trivago/gollum/producer"
 	"github.com/trivago/gollum/shared"
+	_ "github.com/trivago/gollum/stream"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -35,8 +35,8 @@ import (
 
 const (
 	gollumMajorVer = 0
-	gollumMinorVer = 1
-	gollumPatchVer = 1
+	gollumMinorVer = 2
+	gollumPatchVer = 10
 )
 
 func dumpMemoryProfile() {

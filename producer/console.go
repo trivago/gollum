@@ -19,7 +19,6 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 	"os"
-	"runtime"
 	"strings"
 	"sync"
 )
@@ -31,7 +30,9 @@ import (
 //     Enable: true
 //     Console: "stderr"
 //
-// Console may either be "stdout" or "stderr"
+// The console producer writes messages to the standard output streams.
+//
+// Console may either be "stdout" or "stderr". By default it is set to "stdout".
 type Console struct {
 	core.ProducerBase
 	console *os.File
@@ -62,23 +63,14 @@ func (prod *Console) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-func (prod Console) printMessage(msg core.Message) {
-	prod.Formatter().PrepareMessage(msg)
-	fmt.Fprint(prod.console, prod.Formatter().String())
-}
-
-func (prod Console) flush() {
-	for prod.NextNonBlocking(prod.printMessage) {
-		runtime.Gosched()
-	}
+func (prod *Console) printMessage(msg core.Message) {
+	text := string(prod.ProducerBase.Format(msg))
+	fmt.Fprint(prod.console, text)
 }
 
 // Produce writes to stdout or stderr.
-func (prod Console) Produce(workers *sync.WaitGroup) {
-	defer func() {
-		prod.flush()
-		prod.WorkerDone()
-	}()
+func (prod *Console) Produce(workers *sync.WaitGroup) {
+	defer prod.WorkerDone()
 
 	prod.AddMainWorker(workers)
 	prod.DefaultControlLoop(prod.printMessage, nil)

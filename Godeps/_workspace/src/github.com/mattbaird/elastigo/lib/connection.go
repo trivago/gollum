@@ -61,7 +61,7 @@ func NewConn() *Conn {
 }
 
 func (c *Conn) SetPort(port string) {
-    c.Port = port
+	c.Port = port
 }
 
 func (c *Conn) SetHosts(newhosts []string) {
@@ -93,8 +93,15 @@ func (c *Conn) initializeHostPool() {
 	// stop the implicitly running request timer.
 	//
 	// A good overview of Epsilon Greedy is here http://stevehanov.ca/blog/index.php?id=132
+	if c.hp != nil {
+		c.hp.Close()
+	}
 	c.hp = hostpool.NewEpsilonGreedy(
 		c.Hosts, c.DecayDuration, &hostpool.LinearEpsilonValueCalculator{})
+}
+
+func (c *Conn) Close() {
+	c.hp.Close()
 }
 
 func (c *Conn) NewRequest(method, path, query string) (*Request, error) {
