@@ -1,5 +1,5 @@
 Console
-#############
+=======
 
 This consumer listens to stdin.
 
