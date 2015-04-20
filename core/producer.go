@@ -250,13 +250,24 @@ func (prod *ProducerBase) ProcessCommand(command ProducerControl, onRoll func())
 	return false
 }
 
+// Close closes the internal message channel and sends all remaining messages to
+// the given callback. This function is called by *ControlLoop after a quit
+// command has been recieved.
+func (prod *ProducerBase) Close(onMessage func(msg Message)) {
+	close(prod.messages)
+	for msg := range prod.messages {
+		onMessage(msg)
+	}
+}
+
 // DefaultControlLoop provides a producer mainloop that is sufficient for most
-// usecases.
+// usecases. Before this function exits Close will be called.
 func (prod *ProducerBase) DefaultControlLoop(onMessage func(msg Message), onRoll func()) {
+	defer prod.Close(onMessage)
 	for {
 		select {
-		case message := <-prod.messages:
-			onMessage(message)
+		case msg := <-prod.messages:
+			onMessage(msg)
 
 		case command := <-prod.control:
 			if prod.ProcessCommand(command, onRoll) {
@@ -267,14 +278,14 @@ func (prod *ProducerBase) DefaultControlLoop(onMessage func(msg Message), onRoll
 }
 
 // TickerControlLoop is like DefaultControlLoop but executes a given function at
-// every given interval tick, too.
+// every given interval tick, too. Before this function exits Close will be called.
 func (prod *ProducerBase) TickerControlLoop(interval time.Duration, onMessage func(msg Message), onRoll func(), onTimeOut func()) {
 	flushTicker := time.NewTicker(interval)
-
+	defer prod.Close(onMessage)
 	for {
 		select {
-		case message := <-prod.messages:
-			onMessage(message)
+		case msg := <-prod.messages:
+			onMessage(msg)
 
 		case command := <-prod.control:
 			if prod.ProcessCommand(command, onRoll) {

@@ -260,17 +260,19 @@ func (prod *Kafka) send(msg core.Message) {
 	}
 }
 
+func (prod *Kafka) flush() {
+	if prod.producer != nil {
+		prod.producer.Close()
+	}
+	if prod.client != nil && !prod.client.Closed() {
+		prod.client.Close()
+	}
+	prod.WorkerDone()
+}
+
 // Produce writes to a buffer that is sent to a given socket.
 func (prod *Kafka) Produce(workers *sync.WaitGroup) {
-	defer func() {
-		if prod.producer != nil {
-			prod.producer.Close()
-		}
-		if prod.client != nil && !prod.client.Closed() {
-			prod.client.Close()
-		}
-		prod.WorkerDone()
-	}()
+	defer prod.flush()
 
 	prod.AddMainWorker(workers)
 	prod.DefaultControlLoop(prod.send, nil)

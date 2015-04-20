@@ -331,14 +331,6 @@ func (prod *File) writeMessage(message core.Message) {
 	}
 }
 
-func (prod *File) flush() {
-	for prod.NextNonBlocking(prod.writeMessage) {
-	}
-
-	prod.writeBatch()
-	prod.batch.WaitForFlush()
-}
-
 func (prod *File) rotateLog() {
 	prod.forceRotate = true
 	if err := prod.openLog(); err != nil {
@@ -346,14 +338,18 @@ func (prod *File) rotateLog() {
 	}
 }
 
+func (prod *File) flush() {
+	prod.writeBatch()
+	prod.batch.WaitForFlush()
+
+	prod.bgWriter.Wait()
+	prod.file.Close()
+	prod.WorkerDone()
+}
+
 // Produce writes to a buffer that is dumped to a file.
 func (prod *File) Produce(workers *sync.WaitGroup) {
-	defer func() {
-		prod.flush()
-		prod.bgWriter.Wait()
-		prod.file.Close()
-		prod.WorkerDone()
-	}()
+	defer prod.flush()
 
 	prod.AddMainWorker(workers)
 	prod.TickerControlLoop(prod.batchTimeout, prod.writeMessage, prod.rotateLog, prod.writeBatchOnTimeOut)

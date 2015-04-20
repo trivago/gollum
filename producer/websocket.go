@@ -180,9 +180,6 @@ func (prod *Websocket) serve() {
 
 func (prod *Websocket) flush() {
 	prod.listen.Close()
-	for prod.NextNonBlocking(prod.pushMessage) {
-		runtime.Gosched()
-	}
 
 	for _, client := range prod.clients[0].conns {
 		client.Close()

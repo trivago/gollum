@@ -170,14 +170,16 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 	}
 }
 
+func (prod *ElasticSearch) flush() {
+	prod.indexer.Flush()
+	prod.indexer.Stop()
+	prod.WorkerDone()
+}
+
 // Produce starts a bluk indexer
 func (prod *ElasticSearch) Produce(workers *sync.WaitGroup) {
 	prod.indexer.Start()
-	defer func() {
-		prod.indexer.Flush()
-		prod.indexer.Stop()
-		prod.WorkerDone()
-	}()
+	defer prod.flush()
 
 	prod.AddMainWorker(workers)
 	prod.DefaultControlLoop(prod.sendMessage, nil)

@@ -160,22 +160,18 @@ func (prod *Socket) sendMessage(message core.Message) {
 }
 
 func (prod *Socket) flush() {
-	for prod.NextNonBlocking(prod.sendMessage) {
-	}
-
 	prod.sendBatch()
 	prod.batch.WaitForFlush()
+
+	if prod.connection != nil {
+		prod.connection.Close()
+	}
+	prod.WorkerDone()
 }
 
 // Produce writes to a buffer that is sent to a given socket.
 func (prod *Socket) Produce(workers *sync.WaitGroup) {
-	defer func() {
-		prod.flush()
-		if prod.connection != nil {
-			prod.connection.Close()
-		}
-		prod.WorkerDone()
-	}()
+	defer prod.flush()
 
 	prod.AddMainWorker(workers)
 	prod.TickerControlLoop(prod.batchTimeout, prod.sendMessage, nil, prod.sendBatchOnTimeOut)

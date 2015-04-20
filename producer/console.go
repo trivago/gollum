@@ -19,7 +19,6 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 	"os"
-	"runtime"
 	"strings"
 	"sync"
 )
@@ -69,18 +68,9 @@ func (prod *Console) printMessage(msg core.Message) {
 	fmt.Fprint(prod.console, text)
 }
 
-func (prod *Console) flush() {
-	for prod.NextNonBlocking(prod.printMessage) {
-		runtime.Gosched()
-	}
-}
-
 // Produce writes to stdout or stderr.
 func (prod *Console) Produce(workers *sync.WaitGroup) {
-	defer func() {
-		prod.flush()
-		prod.WorkerDone()
-	}()
+	defer prod.WorkerDone()
 
 	prod.AddMainWorker(workers)
 	prod.DefaultControlLoop(prod.printMessage, nil)

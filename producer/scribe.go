@@ -149,21 +149,17 @@ func (prod *Scribe) sendMessage(message core.Message) {
 }
 
 func (prod *Scribe) flush() {
-	for prod.NextNonBlocking(prod.sendMessage) {
-	}
-
 	prod.sendBatch()
 	prod.batch.waitForFlush()
+
+	prod.transport.Close()
+	prod.socket.Close()
+	prod.WorkerDone()
 }
 
 // Produce writes to a buffer that is sent to scribe.
 func (prod *Scribe) Produce(workers *sync.WaitGroup) {
-	defer func() {
-		prod.flush()
-		prod.transport.Close()
-		prod.socket.Close()
-		prod.WorkerDone()
-	}()
+	defer prod.flush()
 
 	prod.AddMainWorker(workers)
 	prod.TickerControlLoop(prod.batchTimeout, prod.sendMessage, nil, prod.sendBatchOnTimeOut)
