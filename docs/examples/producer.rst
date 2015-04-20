@@ -40,7 +40,7 @@ A typical produce function will look like this:
 .. code-block:: go
 
   func (prod *MyProducer) flush() {
-    // Wait for messages to be written, flush any bashes or whatever
+    // Flush any internal structures and/or wait for messages to be written
     prod.WorkerDone()
   }
 
