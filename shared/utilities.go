@@ -110,7 +110,10 @@ func ParseAddress(addr string) (address string, protocol string) {
 	return addr[protocolIdx+3:], strings.ToLower(addr[:protocolIdx])
 }
 
-// GetMissingMethods
+// GetMissingMethods checks if a given object implements all methods of a
+// given interface. It returns the interface coverage [0..1] as well as an array
+// of error messages. If the interface is correctly implemented the coverage is
+// 1 and the error message array is empty.
 func GetMissingMethods(objType reflect.Type, ifaceType reflect.Type) (float32, []interface{}) {
 	var missing []interface{}
 	if objType.Implements(ifaceType) {
