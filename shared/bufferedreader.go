@@ -182,7 +182,7 @@ func (buffer *BufferedReader) readRLE(reader io.Reader) error {
 		readEnd -= buffer.end
 	}
 
-	return nil
+	return err
 }
 
 // read reads from the given io.Reader until delimiter is reached.
@@ -246,5 +246,5 @@ func (buffer *BufferedReader) read(reader io.Reader) error {
 		buffer.offset = 0
 	}
 
-	return nil
+	return err
 }
