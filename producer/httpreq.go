@@ -16,6 +16,7 @@ package producer
 
 import (
 	"bufio"
+	"bytes"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
@@ -62,8 +63,8 @@ func (prod *HttpReq) Configure(conf core.PluginConfig) error {
 }
 
 func (prod *HttpReq) sendReq(msg core.Message) {
-	prod.Formatter().PrepareMessage(msg)
-	r, err := http.ReadRequest(bufio.NewReader(prod.Formatter()))
+	b := bytes.NewBuffer(prod.ProducerBase.Format(msg))
+	r, err := http.ReadRequest(bufio.NewReader(b))
 	if err != nil {
 		Log.Error.Print("HttpReq request error:", err)
 		return
