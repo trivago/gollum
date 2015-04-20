@@ -19,6 +19,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"reflect"
 	"runtime/debug"
 	"strings"
 )
@@ -107,4 +108,45 @@ func ParseAddress(addr string) (address string, protocol string) {
 	}
 
 	return addr[protocolIdx+3:], strings.ToLower(addr[:protocolIdx])
+}
+
+// GetMissingMethods
+func GetMissingMethods(objType reflect.Type, ifaceType reflect.Type) (float32, []interface{}) {
+	var missing []interface{}
+	if objType.Implements(ifaceType) {
+		return 1.0, missing
+	}
+
+	methodCount := ifaceType.NumMethod()
+	for mIdx := 0; mIdx < methodCount; mIdx++ {
+		ifaceMethod := ifaceType.Method(mIdx)
+		objMethod, exists := objType.MethodByName(ifaceMethod.Name)
+		signatureMismatch := false
+
+		switch {
+		case !exists:
+			missing = append(missing, fmt.Sprintf("Missing: \"%s\" %v", ifaceMethod.Name, ifaceMethod.Type))
+			continue // ### continue, error found ###
+
+		case ifaceMethod.Type.NumOut() != objMethod.Type.NumOut():
+			signatureMismatch = true
+
+		case ifaceMethod.Type.NumIn()+1 != objMethod.Type.NumIn():
+			signatureMismatch = true
+
+		default:
+			for oIdx := 0; !signatureMismatch && oIdx < ifaceMethod.Type.NumOut(); oIdx++ {
+				signatureMismatch = ifaceMethod.Type.Out(oIdx) != objMethod.Type.Out(oIdx)
+			}
+			for iIdx := 0; !signatureMismatch && iIdx < ifaceMethod.Type.NumIn(); iIdx++ {
+				signatureMismatch = ifaceMethod.Type.In(iIdx) != objMethod.Type.In(iIdx+1)
+			}
+		}
+
+		if signatureMismatch {
+			missing = append(missing, fmt.Sprintf("Invalid: \"%s\" %v is not %v", ifaceMethod.Name, objMethod.Type, ifaceMethod.Type))
+		}
+	}
+
+	return float32(methodCount-len(missing)) / float32(methodCount), missing
 }

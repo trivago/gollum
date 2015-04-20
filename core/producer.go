@@ -21,18 +21,6 @@ import (
 	"time"
 )
 
-// ProducerControl is an enumeration used by the Producer.Control() channel
-type ProducerControl int
-
-const (
-	// ProducerControlStop will cause the producer to halt and shutdown.
-	ProducerControlStop = ProducerControl(1)
-
-	// ProducerControlRoll notifies the consumer about a log rotation or
-	// revalidation/reconnect of the write target
-	ProducerControlRoll = ProducerControl(2)
-)
-
 // Producer is an interface for plugins that pass messages to other services,
 // files or storages.
 type Producer interface {
@@ -51,7 +39,7 @@ type Producer interface {
 
 	// Control returns write access to this producer's control channel.
 	// See ProducerControl* constants.
-	Control() chan<- ProducerControl
+	Control() chan<- PluginControl
 }
 
 // ProducerBase base class
@@ -87,7 +75,7 @@ type Producer interface {
 // which can be set here, too. By default this is set to format.Forward.
 type ProducerBase struct {
 	messages chan Message
-	control  chan ProducerControl
+	control  chan PluginControl
 	streams  []MessageStreamID
 	state    *PluginRunState
 	timeout  time.Duration
@@ -120,7 +108,7 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	prod.format = format.(Formatter)
 
 	prod.streams = make([]MessageStreamID, len(conf.Stream))
-	prod.control = make(chan ProducerControl, 1)
+	prod.control = make(chan PluginControl, 1)
 	prod.messages = make(chan Message, conf.GetInt("Channel", 8192))
 	prod.timeout = time.Duration(conf.GetInt("ChannelTimeoutMs", 0)) * time.Millisecond
 	prod.state = new(PluginRunState)
@@ -218,7 +206,7 @@ func (prod *ProducerBase) Streams() []MessageStreamID {
 
 // Control returns write access to this producer's control channel.
 // See ProducerControl* constants.
-func (prod *ProducerBase) Control() chan<- ProducerControl {
+func (prod *ProducerBase) Control() chan<- PluginControl {
 	return prod.control
 }
 
@@ -235,13 +223,13 @@ func (prod *ProducerBase) Enqueue(msg Message) {
 
 // ProcessCommand provides a callback based possibility to react on the
 // different producer commands. Returns true if ProducerControlStop was triggered.
-func (prod *ProducerBase) ProcessCommand(command ProducerControl, onRoll func()) bool {
+func (prod *ProducerBase) ProcessCommand(command PluginControl, onRoll func()) bool {
 	switch command {
 	default:
 		// Do nothing
-	case ProducerControlStop:
+	case PluginControlStop:
 		return true // ### return ###
-	case ProducerControlRoll:
+	case PluginControlRoll:
 		if onRoll != nil {
 			onRoll()
 		}

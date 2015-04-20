@@ -22,6 +22,17 @@ import (
 
 var metricActiveWorkers = "ActiveWorkers"
 
+// PluginControl is an enumeration used by the Producer.control() channel
+type PluginControl int
+
+const (
+	// PluginControlStop will cause the consumer to halt and shutdown.
+	PluginControlStop = PluginControl(1)
+
+	// PluginControlRoll notifies the consumer about a reconnect or reopen request
+	PluginControlRoll = PluginControl(2)
+)
+
 // PluginRunState is used in some plugins to store information about the
 // execution state of the plugin (i.e. if it is running or not) as well as
 // threading primitives that enable gollum to wait for a plugin top properly

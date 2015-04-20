@@ -30,7 +30,7 @@ import (
 // enabled and streams).
 // Use this producer to test consumer performance.
 type Null struct {
-	control chan core.ProducerControl
+	control chan core.PluginControl
 	streams []core.MessageStreamID
 }
 
@@ -40,7 +40,7 @@ func init() {
 
 // Configure initializes the basic members
 func (prod *Null) Configure(conf core.PluginConfig) error {
-	prod.control = make(chan core.ProducerControl, 1)
+	prod.control = make(chan core.PluginControl, 1)
 	prod.streams = make([]core.MessageStreamID, len(conf.Stream))
 	for i, stream := range conf.Stream {
 		prod.streams[i] = core.GetStreamID(stream)
@@ -54,7 +54,7 @@ func (prod *Null) Streams() []core.MessageStreamID {
 }
 
 // Control returns write access to this producer's control channel.
-func (prod *Null) Control() chan<- core.ProducerControl {
+func (prod *Null) Control() chan<- core.PluginControl {
 	return prod.control
 }
 
@@ -66,7 +66,7 @@ func (prod *Null) Enqueue(msg core.Message) {
 func (prod *Null) Produce(threads *sync.WaitGroup) {
 	for {
 		command := <-prod.control
-		if command == core.ProducerControlStop {
+		if command == core.PluginControlStop {
 			return // ### return ###
 		}
 	}
