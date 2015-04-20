@@ -34,12 +34,13 @@ ProducerBase gives you two convenience loop functions to handle control commands
 
 In contrast to the ConsumerBase loop methods these two method also handle the message loop.
 As of this you don't need to spawn additional go routines.
+In addition to that these two functions will automatically close and flush the message channel before they return.
 A typical produce function will look like this:
 
 .. code-block:: go
 
-  func (prod *MyProducer) close() {
-    // Flush all messages
+  func (prod *MyProducer) flush() {
+    // Wait for messages to be written, flush any bashes or whatever
     prod.WorkerDone()
   }
 
@@ -49,7 +50,7 @@ A typical produce function will look like this:
 
   func (prod *MyProducer) Produce(workers *sync.WaitGroup) {
     prod.AddMainWorker(workers)
-    defer prod.close()
+    defer prod.flush()
     prod.DefaultControlLoop(prod.processData, prod.rotate)
   }
 
