@@ -58,8 +58,8 @@ func (prod *Null) Control() chan<- core.ProducerControl {
 	return prod.control
 }
 
-// Post simply ignores the message
-func (prod *Null) Post(msg core.Message) {
+// Enqueue simply ignores the message
+func (prod *Null) Enqueue(msg core.Message) {
 }
 
 // Produce writes to a buffer that is dumped to a file.

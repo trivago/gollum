@@ -94,14 +94,22 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 			continue // ### continue ###
 		}
 
+		validPlugin := false
 		if pluginType.Implements(consumerInterface) {
 			consumerConfig = append(consumerConfig, config)
+			validPlugin = true
 		}
 		if pluginType.Implements(producerInterface) {
 			producerConfig = append(producerConfig, config)
+			validPlugin = true
 		}
 		if pluginType.Implements(streamInterface) {
 			streamConfig = append(streamConfig, config)
+			validPlugin = true
+		}
+
+		if !validPlugin {
+			Log.Error.Print("Failed to load plugin ", config.TypeName, ": Does not qualify for consumer, producer or stream interface")
 		}
 	}
 
