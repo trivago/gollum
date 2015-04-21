@@ -21,14 +21,14 @@ import (
 // LogConsumer is an internal consumer plugin used indirectly by the gollum log
 // package.
 type LogConsumer struct {
-	control   chan ConsumerControl
+	control   chan PluginControl
 	logStream Stream
 	sequence  uint64
 }
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *LogConsumer) Configure(conf PluginConfig) error {
-	cons.control = make(chan ConsumerControl, 1)
+	cons.control = make(chan PluginControl, 1)
 	cons.logStream = StreamTypes.GetStream(LogInternalStreamID)
 	return nil
 }
@@ -60,7 +60,7 @@ func (cons LogConsumer) Resume() {
 }
 
 // Control returns a handle to the control channel
-func (cons *LogConsumer) Control() chan<- ConsumerControl {
+func (cons *LogConsumer) Control() chan<- PluginControl {
 	return cons.control
 }
 
@@ -69,7 +69,7 @@ func (cons *LogConsumer) Consume(threads *sync.WaitGroup) {
 	// Wait for control statements
 	for {
 		command := <-cons.control
-		if command == ConsumerControlStop {
+		if command == PluginControlStop {
 			return // ### return ###
 		}
 	}

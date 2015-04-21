@@ -21,17 +21,6 @@ import (
 	"time"
 )
 
-// ConsumerControl is an enumeration used by the Producer.control() channel
-type ConsumerControl int
-
-const (
-	// ConsumerControlStop will cause the consumer to halt and shutdown.
-	ConsumerControlStop = ConsumerControl(1)
-
-	// ConsumerControlRoll notifies the consumer about a reconnect or reopen request
-	ConsumerControlRoll = ConsumerControl(2)
-)
-
 // Consumer is an interface for plugins that recieve data from outside sources
 // and generate Message objects from this data.
 type Consumer interface {
@@ -43,8 +32,8 @@ type Consumer interface {
 	Streams() []MessageStreamID
 
 	// Control returns write access to this consumer's control channel.
-	// See ConsumerControl* constants.
-	Control() chan<- ConsumerControl
+	// See PluginControl* constants.
+	Control() chan<- PluginControl
 }
 
 // ConsumerBase base class
@@ -63,7 +52,7 @@ type Consumer interface {
 // which means only producers set to consume "all streams" will get these
 // messages.
 type ConsumerBase struct {
-	control chan ConsumerControl
+	control chan PluginControl
 	streams []MappedStream
 	state   *PluginRunState
 	timeout time.Duration
@@ -87,7 +76,7 @@ func (err ConsumerError) Error() string {
 
 // Configure initializes standard consumer values from a plugin config.
 func (cons *ConsumerBase) Configure(conf PluginConfig) error {
-	cons.control = make(chan ConsumerControl, 1)
+	cons.control = make(chan PluginControl, 1)
 	cons.timeout = time.Duration(conf.GetInt("ChannelTimeout", 0)) * time.Millisecond
 	cons.state = new(PluginRunState)
 
@@ -156,19 +145,19 @@ func (cons *ConsumerBase) Streams() []MessageStreamID {
 
 // Control returns write access to this consumer's control channel.
 // See ConsumerControl* constants.
-func (cons *ConsumerBase) Control() chan<- ConsumerControl {
+func (cons *ConsumerBase) Control() chan<- PluginControl {
 	return cons.control
 }
 
 // ProcessCommand provides a callback based possibility to react on the
 // different consumer commands. Returns true if ConsumerControlStop was triggered.
-func (cons *ConsumerBase) ProcessCommand(command ConsumerControl, onRoll func()) bool {
+func (cons *ConsumerBase) ProcessCommand(command PluginControl, onRoll func()) bool {
 	switch command {
 	default:
 		// Do nothing
-	case ConsumerControlStop:
+	case PluginControlStop:
 		return true // ### return ###
-	case ConsumerControlRoll:
+	case PluginControlRoll:
 		if onRoll != nil {
 			onRoll()
 		}

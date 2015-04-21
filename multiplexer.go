@@ -110,6 +110,34 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 
 		if !validPlugin {
 			Log.Error.Print("Failed to load plugin ", config.TypeName, ": Does not qualify for consumer, producer or stream interface")
+
+			consumerMatch, consumerMissing := shared.GetMissingMethods(pluginType, consumerInterface)
+			producerMatch, producerMissing := shared.GetMissingMethods(pluginType, producerInterface)
+			streamMatch, streamMissing := shared.GetMissingMethods(pluginType, streamInterface)
+
+			if consumerMatch > producerMatch {
+				if consumerMatch > streamMatch {
+					Log.Error.Print("Plugin looks like a consumer:")
+					for _, message := range consumerMissing {
+						Log.Error.Print(message)
+					}
+				} else {
+					Log.Error.Print("Plugin looks like a stream:")
+					for _, message := range streamMissing {
+						Log.Error.Print(message)
+					}
+				}
+			} else if producerMatch > streamMatch {
+				Log.Error.Print("Plugin looks like a producer:")
+				for _, message := range producerMissing {
+					Log.Error.Print(message)
+				}
+			} else {
+				Log.Error.Print("Plugin looks like a stream:")
+				for _, message := range streamMissing {
+					Log.Error.Print(message)
+				}
+			}
 		}
 	}
 
@@ -233,7 +261,7 @@ func (plex *multiplexer) shutdown() {
 	plex.state = multiplexerStateStopConsumers
 	if stateAtShutdown >= multiplexerStateStartConsumers {
 		for _, consumer := range plex.consumers {
-			consumer.Control() <- core.ConsumerControlStop
+			consumer.Control() <- core.PluginControlStop
 		}
 
 		plex.consumerWorker.Wait()
@@ -247,7 +275,7 @@ func (plex *multiplexer) shutdown() {
 	plex.state = multiplexerStateStopProducers
 	if stateAtShutdown >= multiplexerStateStartProducers {
 		for _, producer := range plex.producers {
-			producer.Control() <- core.ProducerControlStop
+			producer.Control() <- core.PluginControlStop
 		}
 		plex.producerWorker.Wait()
 	}
@@ -336,10 +364,10 @@ func (plex multiplexer) run() {
 
 			case syscall.SIGHUP:
 				for _, consumer := range plex.consumers {
-					consumer.Control() <- core.ConsumerControlRoll
+					consumer.Control() <- core.PluginControlRoll
 				}
 				for _, producer := range plex.producers {
-					producer.Control() <- core.ProducerControlRoll
+					producer.Control() <- core.PluginControlRoll
 				}
 			}
 		}
