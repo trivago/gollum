@@ -24,6 +24,8 @@ import (
 	"github.com/trivago/gollum/shared"
 	"net/http"
 	"sort"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -50,7 +52,7 @@ func getKey(p *pcap.Packet) (string, error) {
 	if len(p.Headers) == 2 {
 		h0 := p.Headers[0].(*pcap.Iphdr)
 		h1 := p.Headers[1].(*pcap.Tcphdr)
-		s := fmt.Sprintf("%s%d%s%d", h0.SrcAddr(), h1.SrcPort, h0.DestAddr(), h1.DestPort)
+		s := fmt.Sprintf("%s:%d-%s:%d", h0.SrcAddr(), h1.SrcPort, h0.DestAddr(), h1.DestPort)
 		return s, nil
 	}
 	return "", errors.New("Invalid Packet")
@@ -61,6 +63,9 @@ func (s *Stream) reqsFromBuffer(b *bytes.Buffer) (rs []*bytes.Buffer, err error)
 	for !readerDone(r) {
 		req, err := http.ReadRequest(r)
 		if err == nil {
+			req.Header.Add("X-Timestamp", strconv.FormatInt(time.Now().Unix(), 10))
+			idx := strings.IndexRune(s.Key, ':')
+			req.Header.Add("X-Client-Ip", s.Key[:idx])
 			resBuf := bytes.NewBuffer(nil)
 			err = req.Write(resBuf)
 			if err != nil {
