@@ -86,6 +86,9 @@ const (
 //  * arr     -> Start a new array
 //  * obj     -> Start a new object
 //  * end     -> Close an array or object
+//  * arr+val -> arr followed by val
+//  * arr+esc -> arr followed by esc
+//  * arr+dat -> arr followed by dat
 //  * val+end -> val followed by end
 //  * esc+end -> esc followed by end
 //  * dat+end -> dat followed by end
@@ -142,6 +145,8 @@ func (format *JSON) Configure(conf core.PluginConfig) error {
 	parserFunctions["arr"] = format.readArray
 	parserFunctions["obj"] = format.readObject
 	parserFunctions["end"] = format.readEnd
+	parserFunctions["arr+val"] = format.readArrayValue
+	parserFunctions["arr+esc"] = format.readArrayEscaped
 	parserFunctions["val+end"] = format.readValueEnd
 	parserFunctions["esc+end"] = format.readEscapedEnd
 	parserFunctions["dat+end"] = format.readDateEnd
@@ -256,6 +261,21 @@ func (format *JSON) readDateEnd(data []byte, state shared.ParserStateID) {
 	format.readDate(data, state)
 	format.state = formatState
 	format.readEnd(data, state)
+}
+
+func (format *JSON) readArrayValue(data []byte, state shared.ParserStateID) {
+	format.readArray(data, state)
+	format.readValue(data, state)
+}
+
+func (format *JSON) readArrayEscaped(data []byte, state shared.ParserStateID) {
+	format.readArray(data, state)
+	format.readEscaped(data, state)
+}
+
+func (format *JSON) readArrayDate(data []byte, state shared.ParserStateID) {
+	format.readArray(data, state)
+	format.readDate(data, state)
 }
 
 func (format *JSON) readArray(data []byte, state shared.ParserStateID) {
