@@ -357,7 +357,7 @@ func (plex multiplexer) run() {
 
 		case sig := <-plex.signal:
 			switch sig {
-			case syscall.SIGINT:
+			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1:
 				Log.Note.Print("Master betrayed us. Wicked. Tricksy, False. (signal)")
 				plex.state = multiplexerStateShutdown
 				return // ### return, exit requested ###
