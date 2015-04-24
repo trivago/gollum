@@ -27,8 +27,9 @@ const (
 // StreamRegistry holds streams mapped by their MessageStreamID as well as a
 // reverse lookup of MessageStreamID to stream name.
 type StreamRegistry struct {
-	streams map[MessageStreamID]Stream
-	name    map[MessageStreamID]string
+	streams  map[MessageStreamID]Stream
+	name     map[MessageStreamID]string
+	wildcard []Producer
 }
 
 // StreamTypes is the global instance of StreamRegistry used to store the
@@ -90,6 +91,29 @@ func (registry StreamRegistry) ForEachStream(callback func(streamID MessageStrea
 	}
 }
 
+// RegisterWildcardProducer adds a new producer to the list of known wildcard
+// prodcuers. This list has to be added to new streams upon creation to send
+// messages to producers listening to *.
+// Duplicates will be filtered.
+// This state of this list is undefined during the configuration phase.
+func (registry *StreamRegistry) RegisterWildcardProducer(producers ...Producer) {
+nextProd:
+	for _, prod := range producers {
+		for _, existing := range registry.wildcard {
+			if existing == prod {
+				continue nextProd
+			}
+		}
+		registry.wildcard = append(registry.wildcard, prod)
+	}
+}
+
+// AddWildcardProducersToStream adds all registered wildcard producers to a
+// given stream.
+func (registry StreamRegistry) AddWildcardProducersToStream(stream Stream) {
+	stream.AddProducer(registry.wildcard...)
+}
+
 // Register registeres a stream plugin to a given stream id
 func (registry *StreamRegistry) Register(stream Stream, streamID MessageStreamID) {
 	if _, exists := registry.streams[streamID]; exists {
@@ -102,7 +126,8 @@ func (registry *StreamRegistry) Register(stream Stream, streamID MessageStreamID
 
 // GetStreamOrFallback returns the stream for the given id if it is registered.
 // If no stream is registered for the given id the default stream is used.
-// The default stream is equivalent to an unconfigured stream.Broadcast.
+// The default stream is equivalent to an unconfigured stream.Broadcast with
+// all wildcard producers allready added.
 func (registry *StreamRegistry) GetStreamOrFallback(streamID MessageStreamID) Stream {
 	if stream, exists := registry.streams[streamID]; exists {
 		return stream
@@ -110,6 +135,8 @@ func (registry *StreamRegistry) GetStreamOrFallback(streamID MessageStreamID) St
 
 	defaultStream := new(StreamBase)
 	defaultStream.Configure(PluginConfig{})
+	registry.AddWildcardProducersToStream(defaultStream)
+
 	registry.streams[streamID] = defaultStream
 	shared.Metric.Inc(metricStreams)
 	return defaultStream

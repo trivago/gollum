@@ -160,7 +160,6 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	// to add producers listening to all streams to all streams that are used.
 
 	wildcardStream := core.StreamTypes.GetStreamOrFallback(core.WildcardStreamID)
-	var wildcardProducer []core.Producer
 
 	for _, config := range producerConfig {
 		for i := 0; i < config.Instances; i++ {
@@ -180,7 +179,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 
 			for _, streamID := range streams {
 				if streamID == core.WildcardStreamID {
-					wildcardProducer = append(wildcardProducer, producer)
+					core.StreamTypes.RegisterWildcardProducer(producer)
 				} else {
 					stream := core.StreamTypes.GetStreamOrFallback(streamID)
 					stream.AddProducer(producer)
@@ -223,7 +222,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 
 	// As consumers might create new fallback streams this is the first position
 	// where we can add the wildcard producers to all streams. No new streams
-	// will be created beyond this point.
+	// created beyond this point must use StreamRegistry.AddWildcardProducersToStream.
 
 	core.StreamTypes.ForEachStream(
 		func(streamID core.MessageStreamID, stream core.Stream) {
@@ -231,7 +230,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 			case core.LogInternalStreamID, core.WildcardStreamID, core.DroppedStreamID:
 				// Internal streams are excluded for wildcard listeners
 			default:
-				stream.AddProducer(wildcardProducer...)
+				core.StreamTypes.AddWildcardProducersToStream(stream)
 			}
 		})
 
