@@ -50,8 +50,8 @@ func (format *Runlength) Configure(conf core.PluginConfig) error {
 }
 
 // Format prepends the length of the message (followed by ":") to the message.
-func (format *Runlength) Format(msg core.Message) []byte {
-	basePayload := format.base.Format(msg)
+func (format *Runlength) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+	basePayload, stream := format.base.Format(msg)
 	baseLength := len(basePayload)
 	lengthStr := strconv.Itoa(baseLength) + ":"
 
@@ -59,5 +59,5 @@ func (format *Runlength) Format(msg core.Message) []byte {
 	len := copy(payload, []byte(lengthStr))
 	copy(payload[len:], basePayload)
 
-	return payload
+	return payload, stream
 }

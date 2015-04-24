@@ -18,5 +18,6 @@ package core
 type Formatter interface {
 	// Format transfers the message payload into a new format. The payload may
 	// then be reassigned to the original or a new message.
-	Format(msg Message) []byte
+	// In addition to that the formatter may change the stream of the message.
+	Format(msg Message) ([]byte, MessageStreamID)
 }

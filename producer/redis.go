@@ -112,14 +112,14 @@ func (prod *Redis) Configure(conf core.PluginConfig) error {
 }
 
 func (prod *Redis) storeHash(msg core.Message) {
-	value := prod.format.Format(msg)
+	value, _ := prod.format.Format(msg)
 	var field []byte
 	if prod.fieldFromParsed {
 		fieldMsg := msg
 		fieldMsg.Data = value
-		field = prod.fieldFormat.Format(fieldMsg)
+		field, _ = prod.fieldFormat.Format(fieldMsg)
 	} else {
-		field = prod.fieldFormat.Format(msg)
+		field, _ = prod.fieldFormat.Format(msg)
 	}
 
 	result := prod.client.HSet(prod.key, string(field), string(value))
@@ -150,14 +150,14 @@ func (prod *Redis) storeSet(msg core.Message) {
 }
 
 func (prod *Redis) storeSortedSet(msg core.Message) {
-	value := prod.format.Format(msg)
+	value, _ := prod.format.Format(msg)
 	var scoreValue []byte
 	if prod.fieldFromParsed {
 		scoreMsg := msg
 		scoreMsg.Data = value
-		scoreValue = prod.fieldFormat.Format(scoreMsg)
+		scoreValue, _ = prod.fieldFormat.Format(scoreMsg)
 	} else {
-		scoreValue = prod.fieldFormat.Format(msg)
+		scoreValue, _ = prod.fieldFormat.Format(msg)
 	}
 
 	score, err := strconv.ParseFloat(string(scoreValue), 64)

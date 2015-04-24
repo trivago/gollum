@@ -58,8 +58,8 @@ func (writer MessageBatchWriter) onError(err error) bool {
 	return false
 }
 
-func (mock *mockFormatter) Format(msg Message) []byte {
-	return msg.Data
+func (mock *mockFormatter) Format(msg Message) ([]byte, MessageStreamID) {
+	return msg.Data, msg.StreamID
 }
 
 func TestMessageBatch(t *testing.T) {

@@ -321,7 +321,7 @@ func (format *JSON) readEnd(data []byte, state shared.ParserStateID) {
 
 // Format parses the incoming message and generates JSON from it.
 // This function is mutex locked.
-func (format *JSON) Format(msg core.Message) []byte {
+func (format *JSON) Format(msg core.Message) ([]byte, core.MessageStreamID) {
 	// The internal state is not threadsafe so we need to lock here
 	format.parseLock.Lock()
 	defer format.parseLock.Unlock()
@@ -345,5 +345,5 @@ func (format *JSON) Format(msg core.Message) []byte {
 	}
 
 	format.message.WriteString("}\n")
-	return bytes.TrimSpace(format.message.Bytes())
+	return bytes.TrimSpace(format.message.Bytes()), msg.StreamID
 }

@@ -57,8 +57,8 @@ func (format *Timestamp) Configure(conf core.PluginConfig) error {
 }
 
 // Format prepends the timestamp of the message to the message.
-func (format *Timestamp) Format(msg core.Message) []byte {
-	basePayload := format.base.Format(msg)
+func (format *Timestamp) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+	basePayload, stream := format.base.Format(msg)
 	baseLength := len(basePayload)
 	timestampStr := msg.Timestamp.Format(format.timestampFormat)
 
@@ -66,5 +66,5 @@ func (format *Timestamp) Format(msg core.Message) []byte {
 	len := copy(payload, []byte(timestampStr))
 	copy(payload[len:], basePayload)
 
-	return payload
+	return payload, stream
 }

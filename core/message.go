@@ -90,7 +90,7 @@ func (msg Message) String() string {
 
 // Format applies the formatter to this message
 func (msg *Message) Format(format Formatter) {
-	msg.Data = format.Format(*msg)
+	msg.Data, msg.StreamID = format.Format(*msg)
 }
 
 // Enqueue is a convenience function to push a message to a channel while

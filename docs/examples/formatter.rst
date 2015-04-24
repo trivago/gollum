@@ -17,12 +17,12 @@ Transforming messages
 ---------------------
 
 The Format method is fairly simple to implement.
-It accepts the message to modify and returns the new content.
+It accepts the message to modify and returns the new content plus the stream the message should be sent to.
 The message itself cannot be changed directly.
 The following example adds a newline to each message:
 
 .. code-block:: go
 
-  func (format *MyFormatter) Format(msg core.Message) []byte {
-    return append(msg.Data, '\n')
+  func (format *MyFormatter) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+    return append(msg.Data, '\n'), msg.StreamID
   }
