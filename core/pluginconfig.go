@@ -130,8 +130,9 @@ func (conf PluginConfig) GetStringMap(key string, defaultValue map[string]string
 // The target is either defaultValue or a value defined by the config.
 func (conf PluginConfig) GetStreamMap(key string, defaultValue string) map[MessageStreamID]string {
 	streamMap := make(map[MessageStreamID]string)
-	streamMap[WildcardStreamID] = defaultValue
-
+	if defaultValue != "" {
+		streamMap[WildcardStreamID] = defaultValue
+	}
 	if conf.HasValue(key) {
 		if value, err := conf.Settings.StringMap(key); err != nil {
 			Log.Error.Fatalf(err.Error())

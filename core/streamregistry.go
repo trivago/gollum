@@ -55,7 +55,7 @@ func GetStreamID(stream string) MessageStreamID {
 // GetStreamName does a reverse lookup for a given MessageStreamID and returns
 // the corresponding name. If the MessageStreamID is not registered, an empty
 // string is returned.
-func (registry *StreamRegistry) GetStreamName(streamID MessageStreamID) string {
+func (registry StreamRegistry) GetStreamName(streamID MessageStreamID) string {
 	if name, exists := registry.name[streamID]; exists {
 		return name // ### return, found ###
 	}
@@ -63,13 +63,13 @@ func (registry *StreamRegistry) GetStreamName(streamID MessageStreamID) string {
 }
 
 // GetStreamByName returns a registered stream by name. See GetStream.
-func (registry *StreamRegistry) GetStreamByName(name string) Stream {
+func (registry StreamRegistry) GetStreamByName(name string) Stream {
 	streamID := GetStreamID(name)
 	return registry.GetStream(streamID)
 }
 
 // GetStream returns a registered stream or nil
-func (registry *StreamRegistry) GetStream(id MessageStreamID) Stream {
+func (registry StreamRegistry) GetStream(id MessageStreamID) Stream {
 	stream, exists := registry.streams[id]
 	if !exists {
 		return nil
@@ -78,13 +78,13 @@ func (registry *StreamRegistry) GetStream(id MessageStreamID) Stream {
 }
 
 // IsStreamRegistered returns true if the stream for the given id is registered.
-func (registry *StreamRegistry) IsStreamRegistered(id MessageStreamID) bool {
+func (registry StreamRegistry) IsStreamRegistered(id MessageStreamID) bool {
 	_, exists := registry.streams[id]
 	return exists
 }
 
 // ForEachStream loops over all registered streams and calls the given function.
-func (registry *StreamRegistry) ForEachStream(callback func(streamID MessageStreamID, stream Stream)) {
+func (registry StreamRegistry) ForEachStream(callback func(streamID MessageStreamID, stream Stream)) {
 	for streamID, stream := range registry.streams {
 		callback(streamID, stream)
 	}
