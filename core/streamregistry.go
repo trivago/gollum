@@ -108,8 +108,9 @@ nextProd:
 	}
 }
 
-// AddWildcardProducersToStream adds all registered wildcard producers to a
-// given stream.
+// AddWildcardProducersToStream adds all known wildcard producers to a given
+// stream. The state of the wildcard list is undefined during the configuration
+// phase.
 func (registry StreamRegistry) AddWildcardProducersToStream(stream Stream) {
 	stream.AddProducer(registry.wildcard...)
 }
