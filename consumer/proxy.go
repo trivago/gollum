@@ -50,6 +50,9 @@ const (
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
 // UDP is not supported.
 //
+// ClientBuffer defines the number of message responses that may be buffered for
+// each client. By default this is set to 32.
+//
 // Partitioner defines the algorithm used to read messages from the stream.
 // The messages will be sent as a whole, no cropping or removal will take place.
 //  - "delimiter" separates messages by looking for a delimiter string. The
@@ -73,13 +76,14 @@ const (
 // For fixed this defines the size of a message. By default 1 is chosen.
 type Proxy struct {
 	core.ConsumerBase
-	listen    io.Closer
-	protocol  string
-	address   string
-	flags     shared.BufferedReaderFlags
-	delimiter string
-	offset    int
-	quit      bool
+	listen       io.Closer
+	protocol     string
+	address      string
+	flags        shared.BufferedReaderFlags
+	delimiter    string
+	offset       int
+	clientBuffer int
+	quit         bool
 }
 
 func init() {
@@ -101,6 +105,7 @@ func (cons *Proxy) Configure(conf core.PluginConfig) error {
 	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
 	cons.delimiter = escapeChars.Replace(conf.GetString("Delimiter", "\n"))
 	cons.offset = conf.GetInt("Offset", 0)
+	cons.clientBuffer = conf.GetInt("ClientBuffer", 32)
 	cons.flags = shared.BufferedReaderFlagEverything
 
 	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))

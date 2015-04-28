@@ -48,7 +48,7 @@ func TestBufferedReaderDelimiter(t *testing.T) {
 	data.expect.NoError(err)
 	data.expect.Equal(2, data.parsed)
 
-	msg, _, err := reader.ReadOne(parseReader)
+	msg, _, _, err := reader.ReadOne(parseReader)
 	data.expect.Equal(io.EOF, err)
 	data.expect.Nil(msg)
 }
@@ -72,7 +72,7 @@ func TestBufferedReaderMLEText(t *testing.T) {
 	data.expect.NoError(err)
 	data.expect.Equal(3, data.parsed)
 
-	msg, _, err := reader.ReadOne(parseReader)
+	msg, _, _, err := reader.ReadOne(parseReader)
 	data.expect.Equal(io.EOF, err)
 	data.expect.Nil(msg)
 }
@@ -96,7 +96,7 @@ func TestBufferedReaderFixed(t *testing.T) {
 	data.expect.NoError(err)
 	data.expect.Equal(3, data.parsed)
 
-	msg, _, err := reader.ReadOne(parseReader)
+	msg, _, _, err := reader.ReadOne(parseReader)
 	data.expect.Equal(io.EOF, err)
 	data.expect.Nil(msg)
 }
@@ -121,7 +121,7 @@ func TestBufferedReaderMLE8(t *testing.T) {
 	data.expect.NoError(err)
 	data.expect.Equal(3, data.parsed)
 
-	msg, _, err := reader.ReadOne(parseReader)
+	msg, _, _, err := reader.ReadOne(parseReader)
 	data.expect.Equal(io.EOF, err)
 	data.expect.Nil(msg)
 }
@@ -146,7 +146,7 @@ func TestBufferedReaderMLE16(t *testing.T) {
 	data.expect.NoError(err)
 	data.expect.Equal(3, data.parsed)
 
-	msg, _, err := reader.ReadOne(parseReader)
+	msg, _, _, err := reader.ReadOne(parseReader)
 	data.expect.Equal(io.EOF, err)
 	data.expect.Nil(msg)
 }
@@ -171,7 +171,7 @@ func TestBufferedReaderMLE32(t *testing.T) {
 	data.expect.NoError(err)
 	data.expect.Equal(3, data.parsed)
 
-	msg, _, err := reader.ReadOne(parseReader)
+	msg, _, _, err := reader.ReadOne(parseReader)
 	data.expect.Equal(io.EOF, err)
 	data.expect.Nil(msg)
 }
@@ -196,7 +196,7 @@ func TestBufferedReaderMLE64(t *testing.T) {
 	data.expect.NoError(err)
 	data.expect.Equal(3, data.parsed)
 
-	msg, _, err := reader.ReadOne(parseReader)
+	msg, _, _, err := reader.ReadOne(parseReader)
 	data.expect.Equal(io.EOF, err)
 	data.expect.Nil(msg)
 }
@@ -219,7 +219,7 @@ func TestBufferedReaderMLE8EO(t *testing.T) {
 
 	offset := 0
 	for _, s := range data.tokens {
-		msg, _, err := reader.ReadOne(parseReader)
+		msg, _, _, err := reader.ReadOne(parseReader)
 		data.expect.NoError(err)
 		nextOffset := offset + 3 + len(s)
 		data.expect.Equal(parseData[offset:nextOffset], msg)
@@ -243,7 +243,7 @@ func TestBufferedReaderMLETextEO(t *testing.T) {
 	reader := NewBufferedReader(1024, BufferedReaderFlagMLE|BufferedReaderFlagEverything, 2, ":")
 
 	for _, s := range data.tokens {
-		msg, _, err := reader.ReadOne(parseReader)
+		msg, _, _, err := reader.ReadOne(parseReader)
 		data.expect.NoError(err)
 		data.expect.Equal(fmt.Sprintf("  %d:%s", len(s), s), string(msg))
 	}
@@ -262,7 +262,7 @@ func TestBufferedReaderDelimiterE(t *testing.T) {
 	reader := NewBufferedReader(1024, BufferedReaderFlagEverything, 0, "\n")
 
 	for _, s := range data.tokens {
-		msg, _, err := reader.ReadOne(parseReader)
+		msg, _, _, err := reader.ReadOne(parseReader)
 		data.expect.NoError(err)
 		data.expect.Equal(fmt.Sprintf("%s\n", s), string(msg))
 	}

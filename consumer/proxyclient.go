@@ -20,6 +20,7 @@ import (
 	"github.com/trivago/gollum/shared"
 	"io"
 	"net"
+	"runtime"
 	"syscall"
 	"time"
 )
@@ -29,33 +30,38 @@ const (
 )
 
 type proxyClient struct {
-	proxy     *Proxy
-	conn      net.Conn
-	connected bool
-	response  chan core.Message
+	proxy           *Proxy
+	conn            net.Conn
+	connected       bool
+	responsePending bool
+	response        chan core.Message
 }
 
 func listenToProxyClient(conn net.Conn, proxy *Proxy) {
 	defer shared.RecoverShutdown()
-	defer proxy.WorkerDone()
+	//defer proxy.WorkerDone()
 	defer conn.Close()
 
-	proxy.AddWorker()
+	//proxy.AddWorker()
 	conn.SetDeadline(time.Time{})
 
 	client := proxyClient{
 		proxy:     proxy,
 		conn:      conn,
 		connected: true,
-		response:  make(chan core.Message, 1),
+		response:  make(chan core.Message, proxy.clientBuffer),
 	}
 
 	client.read()
 }
 
-func (client *proxyClient) Enqueue(msg core.Message) {
+func (client *proxyClient) EnqueueResponse(msg core.Message) {
 	defer func() { recover() }() // silently ignore messages written to a closed channel (client is offline)
 	client.response <- msg
+}
+
+func (client *proxyClient) ResponseDone() {
+	client.responsePending = false
 }
 
 func (client *proxyClient) hasDisconnected(err error) bool {
@@ -76,19 +82,29 @@ func (client *proxyClient) hasDisconnected(err error) bool {
 }
 
 func (client *proxyClient) sendMessage(data []byte, seq uint64) {
+	client.responsePending = true
 	msg := core.NewMessage(client, data, seq)
 	client.proxy.EnqueueMessage(msg)
 
-	// Wait for return
-	response := <-client.response
-	_, err := client.conn.Write(response.Data)
+	for {
+		select {
+		default:
+			if !client.responsePending {
+				return
+			}
+			runtime.Gosched()
 
-	// Handle write errors
-	if err != nil && err != io.EOF {
-		if client.hasDisconnected(err) {
-			client.connected = false // ### return, connection closed ###
+		case response := <-client.response:
+			_, err := client.conn.Write(response.Data)
+
+			// Handle write errors
+			if err != nil && err != io.EOF {
+				if client.hasDisconnected(err) {
+					client.connected = false // ### return, connection closed ###
+				}
+				Log.Error.Print("Proxy write failed: ", err)
+			}
 		}
-		Log.Error.Print("Proxy write failed: ", err)
 	}
 }
 

@@ -50,12 +50,15 @@ var retryQueue chan Message
 type MessageSource interface {
 }
 
-// EnqueueableMessageSource extends the MessageSource interface to allow a
-// backchannel for messages.
-type EnqueueableMessageSource interface {
+// SerialMessageSource extends the MessageSource interface to allow a
+// backchannel for messages that expects n messages to be returned for each
+// single message sent.
+type SerialMessageSource interface {
 	MessageSource
-	// Enqueue sends a message to the source of another message.
-	Enqueue(msg Message)
+	// EnqueueResponse sends a message to the source of another message.
+	EnqueueResponse(msg Message)
+	// Notify the end of the response stream
+	ResponseDone()
 }
 
 // Message is a container used for storing the internal state of messages.

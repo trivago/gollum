@@ -19,7 +19,6 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
-	"io"
 	"net"
 	"strings"
 	"sync"
@@ -40,6 +39,9 @@ import (
 //
 // ConnectionBufferSizeKB sets the connection buffer size in KB. By default this
 // is set to 1024, i.e. 1 MB buffer.
+//
+// TimeoutSec defines the maximum time in seconds a client is allowed to take
+// for a response. By default this is set to 1.
 //
 // Partitioner defines the algorithm used to read messages from the stream.
 // The messages will be sent as a whole, no cropping or removal will take place.
@@ -69,6 +71,7 @@ type Proxy struct {
 	address      string
 	bufferSizeKB int
 	reader       *shared.BufferedReader
+	timeout      time.Duration
 }
 
 func init() {
@@ -87,6 +90,8 @@ func (prod *Proxy) Configure(conf core.PluginConfig) error {
 	if prod.protocol == "udp" {
 		return fmt.Errorf("Proxy does not support UDP")
 	}
+
+	prod.timeout = time.Duration(conf.GetInt("TimeoutSec", 1)) * time.Second
 
 	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
 	delimiter := escapeChars.Replace(conf.GetString("Delimiter", "\n"))
@@ -152,21 +157,23 @@ func (prod *Proxy) sendMessage(msg core.Message) {
 		}
 	}
 
-	if _, err := prod.connection.Write(msg.Data); err == nil {
-		if eqSource, isWritable := msg.Source.(core.EnqueueableMessageSource); isWritable {
-			for {
-				data, seq, err := prod.reader.ReadOne(prod.connection)
-				switch {
-				case data == nil || err == io.EOF:
-					return // ### return, done ###
-				case err != nil:
-					Log.Error.Print("Proxy read error: ", err)
-					return // ### return, error ###
-				default:
-					response := core.NewMessage(nil, data, seq)
-					eqSource.Enqueue(response)
-				}
-			}
+	responder, writeResponse := msg.Source.(core.SerialMessageSource)
+	if writeResponse {
+		defer responder.ResponseDone()
+		fmt.Println("responding")
+	}
+
+	prod.connection.SetWriteDeadline(time.Now().Add(prod.timeout))
+	if _, err := prod.connection.Write(msg.Data); err == nil && writeResponse {
+
+		prod.connection.SetReadDeadline(time.Now().Add(prod.timeout))
+		err := prod.reader.ReadAll(prod.connection, func(data []byte, seq uint64) {
+			response := core.NewMessage(prod, data, seq)
+			responder.EnqueueResponse(response)
+		})
+
+		if err != nil {
+			Log.Error.Print("Proxy read error: ", err)
 		}
 	}
 

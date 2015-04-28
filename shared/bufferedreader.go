@@ -17,7 +17,6 @@ package shared
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"io"
 )
 
@@ -25,7 +24,6 @@ import (
 type BufferedReaderFlags byte
 
 const (
-
 	// BufferedReaderFlagDelimiter enables reading for a delimiter. This flag is
 	// ignored if an MLE flag is set.
 	BufferedReaderFlagDelimiter = BufferedReaderFlags(0)
@@ -70,6 +68,15 @@ const (
 	// building a message.
 	BufferedReaderFlagEverything = BufferedReaderFlags(16)
 )
+
+type bufferError string
+
+func (b bufferError) Error() string {
+	return string(b)
+}
+
+// BufferDataInvalid is returned when a parsing encounters an error
+var BufferDataInvalid = bufferError("Invalid data")
 
 // BufferedReader is a helper struct to read from any io.Reader into a byte
 // slice. The data can arrive "in pieces" and will be assembled.
@@ -254,34 +261,41 @@ func (buffer *BufferedReader) parseMLE64() ([]byte, int) {
 // Messages will be send to the given write callback.
 func (buffer *BufferedReader) ReadAll(reader io.Reader, callback func(msg []byte, sequence uint64)) error {
 	for {
-		data, seq, err := buffer.ReadOne(reader)
-		if err != nil && err != io.EOF {
-			return err // ### return, error ###
-		}
-		if data == nil {
-			return nil // ### return, no more messages ###
+		data, seq, more, err := buffer.ReadOne(reader)
+		if err != nil {
+			switch {
+			case err == io.EOF:
+				return nil // ### return, done ###
+			default:
+				return err // ### return, error ###
+			}
 		}
 
-		// Message complete, send
-		callback(data, seq)
+		if data != nil {
+			callback(data, seq)
+		}
+		if !more {
+			return nil // ### return, done ###
+		}
 	}
 }
 
 // ReadOne reads the next message from the given stream (if possible) and
 // generates a sequence number for this message. If no message could be
-// extracted the returned byte array will be nil.
+// extracted the returned byte array will be nil. If data was read but is
+// incomplete, data will be empty and the sequence number will be 0.
 // An error will be set if reading fails or a message was found to be
 // malformed. If the message was found to be incomplete no error will be set.
-func (buffer *BufferedReader) ReadOne(reader io.Reader) ([]byte, uint64, error) {
+func (buffer *BufferedReader) ReadOne(reader io.Reader) (data []byte, seq uint64, more bool, err error) {
 	if buffer.incomplete {
 		bytesRead, err := reader.Read(buffer.data[buffer.end:])
 
-		if err != nil && bytesRead == 0 {
-			return nil, 0, err // ### return, error reading ###
+		if err != nil {
+			return nil, 0, buffer.end > 0, err // ### return, error reading ###
 		}
 
 		if bytesRead == 0 {
-			return nil, 0, nil // ### return, no data ###
+			return nil, 0, buffer.end > 0, nil // ### return, no data ###
 		}
 
 		buffer.end += bytesRead
@@ -293,7 +307,7 @@ func (buffer *BufferedReader) ReadOne(reader io.Reader) ([]byte, uint64, error) 
 	if nextMsgIdx == -1 {
 		buffer.end = 0
 		buffer.incomplete = true
-		return nil, 0, fmt.Errorf("Invalid data") // ### return, invalid data ###
+		return nil, 0, true, BufferDataInvalid // ### return, invalid data ###
 	}
 
 	if msgData == nil {
@@ -304,7 +318,7 @@ func (buffer *BufferedReader) ReadOne(reader io.Reader) ([]byte, uint64, error) 
 			copy(buffer.data, temp)
 		}
 		buffer.incomplete = true
-		return nil, 0, nil // ### return, incomplete ###
+		return nil, 0, true, nil // ### return, incomplete ###
 	}
 
 	msgDataCopy := make([]byte, len(msgData))
@@ -318,7 +332,7 @@ func (buffer *BufferedReader) ReadOne(reader io.Reader) ([]byte, uint64, error) 
 		buffer.incomplete = true
 	}
 
-	seq := buffer.sequence
+	seqNum := buffer.sequence
 	buffer.sequence++
-	return msgDataCopy, seq, nil
+	return msgDataCopy, seqNum, buffer.end > 0, nil
 }
