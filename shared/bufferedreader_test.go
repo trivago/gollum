@@ -15,7 +15,9 @@
 package shared
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 )
@@ -34,19 +36,24 @@ func (br *bufferedReaderTestData) write(data []byte, seq uint64) {
 func TestBufferedReaderDelimiter(t *testing.T) {
 	data := bufferedReaderTestData{
 		expect: NewExpect(t),
-		tokens: []string{"test1", "test 2", "test\r3"},
+		tokens: []string{"test1", "test 2", "test\t3"},
 		parsed: 0,
 	}
 
 	parseData := strings.Join(data.tokens, "\n")
 	parseReader := strings.NewReader(parseData)
-	reader := NewBufferedReader(1024, 0, "\n", data.write)
+	reader := NewBufferedReader(1024, 0, 0, "\n")
 
-	reader.Read(parseReader)
+	err := reader.ReadAll(parseReader, data.write)
+	data.expect.NoError(err)
 	data.expect.Equal(2, data.parsed)
+
+	msg, _, err := reader.ReadOne(parseReader)
+	data.expect.Equal(io.EOF, err)
+	data.expect.Nil(msg)
 }
 
-func TestBufferedReaderRLE(t *testing.T) {
+func TestBufferedReaderMLEText(t *testing.T) {
 	data := bufferedReaderTestData{
 		expect: NewExpect(t),
 		tokens: []string{"test1", "test 2", "test\t3"},
@@ -59,13 +66,168 @@ func TestBufferedReaderRLE(t *testing.T) {
 	}
 
 	parseReader := strings.NewReader(parseData)
-	reader := NewBufferedReader(1024, BufferedReaderFlagRLE, "", data.write)
+	reader := NewBufferedReader(1024, BufferedReaderFlagMLE, 0, ":")
 
-	reader.Read(parseReader)
+	err := reader.ReadAll(parseReader, data.write)
+	data.expect.NoError(err)
 	data.expect.Equal(3, data.parsed)
+
+	msg, _, err := reader.ReadOne(parseReader)
+	data.expect.Equal(io.EOF, err)
+	data.expect.Nil(msg)
 }
 
-func TestBufferedReaderSeq(t *testing.T) {
+func TestBufferedReaderFixed(t *testing.T) {
+	data := bufferedReaderTestData{
+		expect: NewExpect(t),
+		tokens: []string{"test1", "test2", "test3"},
+		parsed: 0,
+	}
+
+	var parseData []byte
+	for _, s := range data.tokens {
+		parseData = append(parseData, s...)
+	}
+
+	parseReader := bytes.NewReader(parseData)
+	reader := NewBufferedReader(1024, BufferedReaderFlagMLEFixed, 5, "")
+
+	err := reader.ReadAll(parseReader, data.write)
+	data.expect.NoError(err)
+	data.expect.Equal(3, data.parsed)
+
+	msg, _, err := reader.ReadOne(parseReader)
+	data.expect.Equal(io.EOF, err)
+	data.expect.Nil(msg)
+}
+
+func TestBufferedReaderMLE8(t *testing.T) {
+	data := bufferedReaderTestData{
+		expect: NewExpect(t),
+		tokens: []string{"test1", "test 2", "test\t3"},
+		parsed: 0,
+	}
+
+	var parseData []byte
+	for _, s := range data.tokens {
+		parseData = append(parseData, byte(len(s)))
+		parseData = append(parseData, s...)
+	}
+
+	parseReader := bytes.NewReader(parseData)
+	reader := NewBufferedReader(1024, BufferedReaderFlagMLE8, 0, "")
+
+	err := reader.ReadAll(parseReader, data.write)
+	data.expect.NoError(err)
+	data.expect.Equal(3, data.parsed)
+
+	msg, _, err := reader.ReadOne(parseReader)
+	data.expect.Equal(io.EOF, err)
+	data.expect.Nil(msg)
+}
+
+func TestBufferedReaderMLE16(t *testing.T) {
+	data := bufferedReaderTestData{
+		expect: NewExpect(t),
+		tokens: []string{"test1", "test 2", "test\t3"},
+		parsed: 0,
+	}
+
+	var parseData []byte
+	for _, s := range data.tokens {
+		parseData = append(parseData, byte(len(s)), 0) // hacky but ok for little endian
+		parseData = append(parseData, s...)
+	}
+
+	parseReader := bytes.NewReader(parseData)
+	reader := NewBufferedReader(1024, BufferedReaderFlagMLE16, 0, "")
+
+	err := reader.ReadAll(parseReader, data.write)
+	data.expect.NoError(err)
+	data.expect.Equal(3, data.parsed)
+
+	msg, _, err := reader.ReadOne(parseReader)
+	data.expect.Equal(io.EOF, err)
+	data.expect.Nil(msg)
+}
+
+func TestBufferedReaderMLE32(t *testing.T) {
+	data := bufferedReaderTestData{
+		expect: NewExpect(t),
+		tokens: []string{"test1", "test 2", "test\t3"},
+		parsed: 0,
+	}
+
+	var parseData []byte
+	for _, s := range data.tokens {
+		parseData = append(parseData, byte(len(s)), 0, 0, 0) // hacky but ok for little endian
+		parseData = append(parseData, s...)
+	}
+
+	parseReader := bytes.NewReader(parseData)
+	reader := NewBufferedReader(1024, BufferedReaderFlagMLE32, 0, "")
+
+	err := reader.ReadAll(parseReader, data.write)
+	data.expect.NoError(err)
+	data.expect.Equal(3, data.parsed)
+
+	msg, _, err := reader.ReadOne(parseReader)
+	data.expect.Equal(io.EOF, err)
+	data.expect.Nil(msg)
+}
+
+func TestBufferedReaderMLE64(t *testing.T) {
+	data := bufferedReaderTestData{
+		expect: NewExpect(t),
+		tokens: []string{"test1", "test 2", "test\t3"},
+		parsed: 0,
+	}
+
+	var parseData []byte
+	for _, s := range data.tokens {
+		parseData = append(parseData, byte(len(s)), 0, 0, 0, 0, 0, 0, 0) // hacky but ok for little endian
+		parseData = append(parseData, s...)
+	}
+
+	parseReader := bytes.NewReader(parseData)
+	reader := NewBufferedReader(1024, BufferedReaderFlagMLE64, 0, "")
+
+	err := reader.ReadAll(parseReader, data.write)
+	data.expect.NoError(err)
+	data.expect.Equal(3, data.parsed)
+
+	msg, _, err := reader.ReadOne(parseReader)
+	data.expect.Equal(io.EOF, err)
+	data.expect.Nil(msg)
+}
+
+func TestBufferedReaderMLE8EO(t *testing.T) {
+	data := bufferedReaderTestData{
+		expect: NewExpect(t),
+		tokens: []string{"test1", "test 2", "test\t3"},
+		parsed: 0,
+	}
+
+	var parseData []byte
+	for _, s := range data.tokens {
+		parseData = append(parseData, 0, 0, byte(len(s)))
+		parseData = append(parseData, s...)
+	}
+
+	parseReader := bytes.NewReader(parseData)
+	reader := NewBufferedReader(1024, BufferedReaderFlagMLE8|BufferedReaderFlagEverything, 2, "")
+
+	offset := 0
+	for _, s := range data.tokens {
+		msg, _, err := reader.ReadOne(parseReader)
+		data.expect.NoError(err)
+		nextOffset := offset + 3 + len(s)
+		data.expect.Equal(parseData[offset:nextOffset], msg)
+		offset = nextOffset
+	}
+}
+
+func TestBufferedReaderMLETextEO(t *testing.T) {
 	data := bufferedReaderTestData{
 		expect: NewExpect(t),
 		tokens: []string{"test1", "test 2", "test\t3"},
@@ -73,32 +235,35 @@ func TestBufferedReaderSeq(t *testing.T) {
 	}
 
 	parseData := ""
-	for i, s := range data.tokens {
-		parseData += fmt.Sprintf("%d:%s\n", i, s)
+	for _, s := range data.tokens {
+		parseData += fmt.Sprintf("  %d:%s", len(s), s)
 	}
 
 	parseReader := strings.NewReader(parseData)
-	reader := NewBufferedReader(1024, BufferedReaderFlagSequence, "\n", data.write)
+	reader := NewBufferedReader(1024, BufferedReaderFlagMLE|BufferedReaderFlagEverything, 2, ":")
 
-	reader.Read(parseReader)
-	data.expect.Equal(3, data.parsed)
+	for _, s := range data.tokens {
+		msg, _, err := reader.ReadOne(parseReader)
+		data.expect.NoError(err)
+		data.expect.Equal(fmt.Sprintf("  %d:%s", len(s), s), string(msg))
+	}
 }
 
-func TestBufferedReaderRLESeq(t *testing.T) {
+func TestBufferedReaderDelimiterE(t *testing.T) {
 	data := bufferedReaderTestData{
 		expect: NewExpect(t),
 		tokens: []string{"test1", "test 2", "test\t3"},
 		parsed: 0,
 	}
 
-	parseData := ""
-	for i, s := range data.tokens {
-		parseData += fmt.Sprintf("%d:%d:%s", len(s)+2, i, s)
-	}
-
+	parseData := strings.Join(data.tokens, "\n")
+	parseData += "\n"
 	parseReader := strings.NewReader(parseData)
-	reader := NewBufferedReader(1024, BufferedReaderFlagRLE|BufferedReaderFlagSequence, "", data.write)
+	reader := NewBufferedReader(1024, BufferedReaderFlagEverything, 0, "\n")
 
-	reader.Read(parseReader)
-	data.expect.Equal(3, data.parsed)
+	for _, s := range data.tokens {
+		msg, _, err := reader.ReadOne(parseReader)
+		data.expect.NoError(err)
+		data.expect.Equal(fmt.Sprintf("%s\n", s), string(msg))
+	}
 }

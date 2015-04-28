@@ -39,7 +39,6 @@ const (
 //     Address: "unix:///var/gollum.socket"
 //     Acknowledge: true
 //     Runlength: true
-//     Sequence: true
 //     Delimiter: "\n"
 //
 // The socket consumer reads messages directly as-is from a given socket.
@@ -52,11 +51,6 @@ const (
 //
 // Runlength should be set to true if the incoming messages are formatted with
 // the runlegth formatter, i.e. there is a "<length>:" prefix.
-// This option is disabled by default.
-//
-// Sequence should be used if the message is prefixed by a sequence number, i.e.
-// "<sequence>:" is prepended to the message.
-// In case that Runlength is set, too the Runlength prefix is expected first.
 // This option is disabled by default.
 //
 // Delimiter defines a string that marks the end of a message. If Runlength is
@@ -95,11 +89,8 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 	cons.acknowledge = conf.GetBool("Acknowledge", false)
 
 	if conf.GetBool("Runlength", false) {
-		cons.flags |= shared.BufferedReaderFlagRLE
-	}
-
-	if conf.GetBool("Sequence", false) {
-		cons.flags |= shared.BufferedReaderFlagSequence
+		cons.flags |= shared.BufferedReaderFlagMLE
+		cons.delimiter = ":"
 	}
 
 	cons.address, cons.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
@@ -139,10 +130,10 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 	}()
 
 	conn.SetDeadline(time.Time{})
-	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.delimiter, cons.Enqueue)
+	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.flags, 0, cons.delimiter)
 
 	for !cons.quit {
-		err := buffer.Read(conn)
+		err := buffer.ReadAll(conn, cons.Enqueue)
 
 		// Handle errors
 		if err != nil && err != io.EOF {
@@ -186,8 +177,7 @@ func (cons *Socket) tcpAccept() {
 	}
 }
 
-// Consume listens to a given socket. Messages are expected to be separated by
-// either \n or \r\n.
+// Consume listens to a given socket.
 func (cons *Socket) Consume(workers *sync.WaitGroup) {
 	var err error
 	var listen func()

@@ -46,10 +46,10 @@ func init() {
 }
 
 func (cons *Console) readFrom(stream io.Reader) {
-	buffer := shared.NewBufferedReader(consoleBufferGrowSize, 0, "\n", cons.Enqueue)
+	buffer := shared.NewBufferedReader(consoleBufferGrowSize, 0, 0, "\n")
 
 	for {
-		err := buffer.Read(stream)
+		err := buffer.ReadAll(stream, cons.Enqueue)
 		if err != nil && err != io.EOF {
 			Log.Error.Print("Error reading stdin: ", err)
 		}

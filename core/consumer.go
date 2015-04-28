@@ -117,13 +117,10 @@ func (cons ConsumerBase) WorkerDone() {
 }
 
 // Enqueue creates a new message from a given byte slice and passes it to
-// cons.Send. Note that data is not copied, just referenced by the message.
+// EnqueueMessage. Note that data is not copied, just referenced by the message.
 func (cons *ConsumerBase) Enqueue(data []byte, sequence uint64) {
 	msg := NewMessage(cons, data, sequence)
-	for _, mapping := range cons.streams {
-		msg.StreamID = mapping.StreamID
-		mapping.Stream.Enqueue(msg)
-	}
+	cons.EnqueueMessage(msg)
 }
 
 // EnqueueCopy behaves like Enqueue but creates a copy of data that is attached
@@ -132,6 +129,15 @@ func (cons *ConsumerBase) EnqueueCopy(data []byte, sequence uint64) {
 	dataCopy := make([]byte, len(data))
 	copy(dataCopy, data)
 	cons.Enqueue(dataCopy, sequence)
+}
+
+// EnqueueMessage passes a given message  to all streams.
+// Only the StreamID of the message is modified, everything else is passed as-is.
+func (cons *ConsumerBase) EnqueueMessage(msg Message) {
+	for _, mapping := range cons.streams {
+		msg.StreamID = mapping.StreamID
+		mapping.Stream.Enqueue(msg)
+	}
 }
 
 // Streams returns an array with all stream ids this consumer is writing to.

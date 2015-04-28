@@ -66,7 +66,6 @@ type Socket struct {
 	batchSize    int
 	batchTimeout time.Duration
 	bufferSizeKB int
-	runlength    bool
 	acknowledge  bool
 }
 

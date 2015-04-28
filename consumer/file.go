@@ -181,7 +181,7 @@ func (cons *File) read() {
 		sendFunction = cons.enqueueAndPersist
 	}
 
-	buffer := shared.NewBufferedReader(fileBufferGrowSize, 0, cons.delimiter, sendFunction)
+	buffer := shared.NewBufferedReader(fileBufferGrowSize, 0, 0, cons.delimiter)
 	printFileOpenError := true
 
 	for cons.state != fileStateDone {
@@ -190,7 +190,7 @@ func (cons *File) read() {
 		// Try to read the remains of the file first
 		if cons.state == fileStateOpen {
 			if cons.file != nil {
-				buffer.Read(cons.file)
+				buffer.ReadAll(cons.file, sendFunction)
 			}
 			cons.initFile()
 			buffer.Reset(uint64(cons.seekOffset))
@@ -218,7 +218,7 @@ func (cons *File) read() {
 
 		// Try to read from the file
 		if cons.state == fileStateRead && cons.file != nil {
-			err := buffer.Read(cons.file)
+			err := buffer.ReadAll(cons.file, sendFunction)
 
 			switch {
 			case err == nil: // ok

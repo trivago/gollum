@@ -50,6 +50,14 @@ var retryQueue chan Message
 type MessageSource interface {
 }
 
+// EnqueueableMessageSource extends the MessageSource interface to allow a
+// backchannel for messages.
+type EnqueueableMessageSource interface {
+	MessageSource
+	// Enqueue sends a message to the source of another message.
+	Enqueue(msg Message)
+}
+
 // Message is a container used for storing the internal state of messages.
 // This struct is passed between consumers and producers.
 type Message struct {
