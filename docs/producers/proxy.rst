@@ -1,9 +1,10 @@
-Socket
-======
+Proxy
+=====
 
-The socket consumer listens to an arbitrary port.
-Messages are separated from the stream by using a specific paritioner method.
-In combination with the :doc:`Socket Producer </producers/socket>` this can be used to built Gollum based message networks.
+The proxy producer sends messages directly as-is to a given socket.
+Responses from this socket are read and separated by using a specific paritioner method.
+Response messages are sent back to a compatible message source like the :doc:`Proxy Consumer </consumers/proxy>`.
+This can be used to create a proxy style two-way communication over Gollum.
 
 Parameters
 ----------
@@ -14,11 +15,11 @@ Parameters
     Defines either one or an aray of stream names this consumer sends messages to.
 **Address**
   Defines the protocol, address/DNS and port to listen to.
-  The protocol can either be "socket://" for unix domain, "tcp://" for TCP or "udp://" for UDP sockets.
-  In addtion to that, any protocol supported by `net.Dial <http://golang.org/pkg/net/#Dial>`_ is possible here.
-**Acknowledge**
-  When set to true, the socket consumer will send "OK\n" after recieving a message or batch of messages.
-  Set to false by default.
+  The protocol can either be "socket://" for unix domain or "tcp://" for TCP. UDP sockets cannot be used.
+**ConnectionBufferSizeKB**
+  Sets the connection buffer size in KB. By default this is set to 1024, i.e. 1 MB buffer.
+**TimeoutSec**
+  Defines the maximum time in seconds a client is allowed to take for a response. By default this is set to 1.
 **Partitioner**
   The partitioner defines the algorithm used to separate messages from the stream.
   By default this is set to "delimiter".
@@ -43,10 +44,11 @@ Example
 
 .. code-block:: yaml
 
-  - "consumer.Socket":
+  - "producer.Proxy":
     Enable: true
     Address: "unix:///var/gollum.socket"
-    Acknowledge: true
+    ConnectionBufferSizeKB: 4096
+    TimeoutSec: 3
     Partitioner: "ascii"
     Delimiter: ":"
     Offset: 1
