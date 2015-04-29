@@ -132,15 +132,8 @@ func (prod *Proxy) Configure(conf core.PluginConfig) error {
 		return fmt.Errorf("Unknown partitioner: %s", partitioner)
 	}
 
-	prod.reader = shared.NewBufferedReader(256, flags, offset, delimiter)
+	prod.reader = shared.NewBufferedReader(4096, flags, offset, delimiter)
 	return nil
-}
-
-func (prod *Proxy) onWriteError(err error) bool {
-	Log.Error.Print("Proxy error - ", err)
-	prod.connection.Close()
-	prod.connection = nil
-	return false
 }
 
 func (prod *Proxy) sendMessage(msg core.Message) {
@@ -157,26 +150,40 @@ func (prod *Proxy) sendMessage(msg core.Message) {
 		}
 	}
 
-	responder, writeResponse := msg.Source.(core.SerialMessageSource)
-	if writeResponse {
-		defer responder.ResponseDone()
-		fmt.Println("responding")
-	}
-
-	prod.connection.SetWriteDeadline(time.Now().Add(prod.timeout))
-	if _, err := prod.connection.Write(msg.Data); err == nil && writeResponse {
-
-		prod.connection.SetReadDeadline(time.Now().Add(prod.timeout))
-		err := prod.reader.ReadAll(prod.connection, func(data []byte, seq uint64) {
-			response := core.NewMessage(prod, data, seq)
-			responder.EnqueueResponse(response)
-		})
-
-		if err != nil {
-			Log.Error.Print("Proxy read error: ", err)
+	// Check if and how to work with the message source
+	responder, processResponse := msg.Source.(core.AsyncMessageSource)
+	if processResponse {
+		if serialResponder, isSerial := msg.Source.(core.SerialMessageSource); isSerial {
+			defer serialResponder.ResponseDone()
 		}
 	}
 
+	// Write data
+	prod.connection.SetWriteDeadline(time.Now().Add(prod.timeout))
+	if _, err := prod.connection.Write(msg.Data); err != nil {
+		Log.Error.Print("Proxy write error: ", err)
+		prod.connection.Close()
+		prod.connection = nil
+		return // ### return, connection closed ###
+	}
+
+	// Prepare responder function
+	enqueueResponse := shared.BufferReadCallback(nil)
+	if processResponse {
+		enqueueResponse = func(data []byte, seq uint64) {
+			response := core.NewMessage(prod, data, seq)
+			responder.EnqueueResponse(response)
+		}
+	}
+
+	// Read response
+	prod.connection.SetReadDeadline(time.Now().Add(prod.timeout))
+	if err := prod.reader.ReadAll(prod.connection, enqueueResponse); err != nil {
+		Log.Error.Print("Proxy read error: ", err)
+		prod.connection.Close()
+		prod.connection = nil
+		return // ### return, connection closed ###
+	}
 }
 
 func (prod *Proxy) flush() {

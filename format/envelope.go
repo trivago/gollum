@@ -79,7 +79,9 @@ func (format *Envelope) Format(msg core.Message) ([]byte, core.MessageStreamID) 
 	if prefixLen > 0 {
 		prefixLen = copy(payload, format.prefix)
 	}
-	copy(payload[prefixLen:], basePayload)
+
+	baseLen = copy(payload[prefixLen:], basePayload)
+
 	if postfixLen > 0 {
 		copy(payload[prefixLen+baseLen:], format.postfix)
 	}

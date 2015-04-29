@@ -75,6 +75,10 @@ func (b bufferError) Error() string {
 	return string(b)
 }
 
+// BufferReadCallback defines the function signature for callbacks passed to
+// ReadAll.
+type BufferReadCallback func(msg []byte, sequence uint64)
+
 // BufferDataInvalid is returned when a parsing encounters an error
 var BufferDataInvalid = bufferError("Invalid data")
 
@@ -259,21 +263,18 @@ func (buffer *BufferedReader) parseMLE64() ([]byte, int) {
 
 // ReadAll calls ReadOne as long as there are messages in the stream.
 // Messages will be send to the given write callback.
-func (buffer *BufferedReader) ReadAll(reader io.Reader, callback func(msg []byte, sequence uint64)) error {
+// If callback is nil, data will be read and discarded.
+func (buffer *BufferedReader) ReadAll(reader io.Reader, callback BufferReadCallback) error {
 	for {
 		data, seq, more, err := buffer.ReadOne(reader)
-		if err != nil {
-			switch {
-			case err == io.EOF:
-				return nil // ### return, done ###
-			default:
-				return err // ### return, error ###
-			}
-		}
-
-		if data != nil {
+		if data != nil && callback != nil {
 			callback(data, seq)
 		}
+
+		if err != nil {
+			return err // ### return, error ###
+		}
+
 		if !more {
 			return nil // ### return, done ###
 		}
