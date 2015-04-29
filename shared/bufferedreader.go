@@ -282,11 +282,12 @@ func (buffer *BufferedReader) ReadAll(reader io.Reader, callback BufferReadCallb
 }
 
 // ReadOne reads the next message from the given stream (if possible) and
-// generates a sequence number for this message. If no message could be
-// extracted the returned byte array will be nil. If data was read but is
-// incomplete, data will be empty and the sequence number will be 0.
-// An error will be set if reading fails or a message was found to be
-// malformed. If the message was found to be incomplete no error will be set.
+// generates a sequence number for this message.
+// The more return parameter is set to true if there are still messages or parts
+// of messages in the stream. Data and seq is only set if a complete message
+// could be parsed.
+// Errors are returned if reading from the stream failed or the parser
+// encountered an error.
 func (buffer *BufferedReader) ReadOne(reader io.Reader) (data []byte, seq uint64, more bool, err error) {
 	if buffer.incomplete {
 		bytesRead, err := reader.Read(buffer.data[buffer.end:])

@@ -38,36 +38,51 @@ const (
 //     Enable: true
 //     Address: "unix:///var/gollum.socket"
 //     Acknowledge: true
-//     Runlength: true
-//     Delimiter: "\n"
+//     Partitioner: "text"
+//     Delimiter: ":"
+//     Offset: 1
 //
 // The socket consumer reads messages directly as-is from a given socket.
-// It does support a minimal protocol for sending messagelength and sequence
-// number.
 //
 // Address stores the identifier to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
-//
-// Runlength should be set to true if the incoming messages are formatted with
-// the runlegth formatter, i.e. there is a "<length>:" prefix.
-// This option is disabled by default.
-//
-// Delimiter defines a string that marks the end of a message. If Runlength is
-// set this string is ignored.
 //
 // Acknowledge can be set to true to inform the writer on success or error.
 // On success "OK\n" is send. Any error will close the connection.
 // This setting is disabled by default.
 // If Acknowledge is set to true and a IP-Address is given to Address, TCP is
 // used to open the connection, otherwise UDP is used.
+//
+// Partitioner defines the algorithm used to read messages from the stream.
+// The messages will be sent as a whole, no cropping or removal will take place.
+//  - "delimiter" separates messages by looking for a delimiter string. The
+//    delimiter is included into the left hand message.
+//  - "binary" reads a binary number at a given offset and size
+//  - "binary_le" is an alias for "binary"
+//  - "binary_be" is the same as "binary" but uses big endian encoding
+//  - "fixed" assumes fixed size messages
+//  - "text" reads an ASCII encoded number at a given offset until a given
+//    delimiter is found.
+// By default this is set to "delimiter".
+//
+// Delimiter defines the delimiter used by the text and delimiter partitioner.
+// By default this is set to "\n".
+//
+// Offset defines the offset used by the binary and text paritioner.
+// By default this is set to 0. This setting is ignored by the fixed partitioner.
+//
+// Size defines the size in bytes used by the binary or fixed partitioner.
+// For binary this can be set to 1,2,4 or 8. By default 4 is chosen.
+// For fixed this defines the size of a message. By default 1 is chosen.
 type Socket struct {
 	core.ConsumerBase
 	listen      io.Closer
 	protocol    string
 	address     string
-	delimiter   string
 	flags       shared.BufferedReaderFlags
+	delimiter   string
+	offset      int
 	quit        bool
 	acknowledge bool
 }
@@ -83,23 +98,54 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
-
-	cons.delimiter = escapeChars.Replace(conf.GetString("Delimiter", "\n"))
 	cons.acknowledge = conf.GetBool("Acknowledge", false)
-
-	if conf.GetBool("Runlength", false) {
-		cons.flags |= shared.BufferedReaderFlagMLE
-		cons.delimiter = ":"
-	}
-
 	cons.address, cons.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
+
 	if cons.protocol != "unix" {
 		if cons.acknowledge {
 			cons.protocol = "tcp"
 		} else {
 			cons.protocol = "udp"
 		}
+	}
+
+	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
+	cons.delimiter = escapeChars.Replace(conf.GetString("Delimiter", "\n"))
+	cons.offset = conf.GetInt("Offset", 0)
+	cons.flags = 0
+
+	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))
+	switch partitioner {
+	case "binary_be":
+		cons.flags |= shared.BufferedReaderFlagBigEndian
+		fallthrough
+
+	case "binary", "binary_le":
+		switch conf.GetInt("Size", 4) {
+		case 1:
+			cons.flags |= shared.BufferedReaderFlagMLE8
+		case 2:
+			cons.flags |= shared.BufferedReaderFlagMLE16
+		case 4:
+			cons.flags |= shared.BufferedReaderFlagMLE32
+		case 8:
+			cons.flags |= shared.BufferedReaderFlagMLE64
+		default:
+			return fmt.Errorf("Size only supports the value 1,2,4 and 8")
+		}
+
+	case "fixed":
+		cons.flags |= shared.BufferedReaderFlagMLEFixed
+		cons.offset = conf.GetInt("Size", 1)
+
+	case "text":
+		cons.flags |= shared.BufferedReaderFlagMLE
+
+	case "delimiter":
+		// Nothing to add
+
+	default:
+		return fmt.Errorf("Unknown partitioner: %s", partitioner)
 	}
 
 	cons.quit = false
@@ -130,7 +176,7 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 	}()
 
 	conn.SetDeadline(time.Time{})
-	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.flags, 0, cons.delimiter)
+	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.offset, cons.delimiter)
 
 	for !cons.quit {
 		err := buffer.ReadAll(conn, cons.Enqueue)

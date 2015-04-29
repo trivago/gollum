@@ -30,8 +30,17 @@ import (
 //
 //   - "producer.Proxy":
 //     Enable: true
-//     Address: "unix:///var/gollum.Proxy"
+//     Address: "127.0.0.1:8080"
 //     ConnectionBufferSizeKB: 4096
+//     TimeoutSec: 3
+//     Partitioner: "text"
+//     Delimiter: ":"
+//     Offset: 1
+//
+// This producer is compatible to consumer.proxy.
+// Responses to messages sent to the given address are sent back to the original
+// consumer of it is a compatible message source. As with consumer.proxy the
+// returned messages are partitioned by common message length algorithms.
 //
 // Address stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:5880" or a file

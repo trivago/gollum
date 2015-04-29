@@ -45,7 +45,7 @@ func TestBufferedReaderDelimiter(t *testing.T) {
 	reader := NewBufferedReader(1024, 0, 0, "\n")
 
 	err := reader.ReadAll(parseReader, data.write)
-	data.expect.NoError(err)
+	data.expect.Equal(io.EOF, err)
 	data.expect.Equal(2, data.parsed)
 
 	msg, _, _, err := reader.ReadOne(parseReader)

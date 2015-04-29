@@ -34,24 +34,24 @@ const (
 )
 
 // Proxy consumer plugin.
-// This plugin enables two-way communication when sending to a proxy producer.
 // Configuration example
 //
 //   - "consumer.Proxy":
 //     Enable: true
 //     Address: "unix:///var/gollum.socket"
+//     Partitioner: "text"
+//     Delimiter: ":"
+//     Offset: 1
 //
-// The socket consumer reads messages directly as-is from a given socket.
-// It does support a minimal protocol for sending messagelength and sequence
-// number.
+// The proxy consumer reads messages directly as-is from a given socket.
+// Messages are extracted by standard message size algorithms (see Parititioner).
+// This consumer can be used with any compatible proxy producer to establish
+// a two-way communication.
 //
 // Address stores the identifier to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
 // UDP is not supported.
-//
-// ClientBuffer defines the number of message responses that may be buffered for
-// each client. By default this is set to 32.
 //
 // Partitioner defines the algorithm used to read messages from the stream.
 // The messages will be sent as a whole, no cropping or removal will take place.
@@ -76,14 +76,13 @@ const (
 // For fixed this defines the size of a message. By default 1 is chosen.
 type Proxy struct {
 	core.ConsumerBase
-	listen       io.Closer
-	protocol     string
-	address      string
-	flags        shared.BufferedReaderFlags
-	delimiter    string
-	offset       int
-	clientBuffer int
-	quit         bool
+	listen    io.Closer
+	protocol  string
+	address   string
+	flags     shared.BufferedReaderFlags
+	delimiter string
+	offset    int
+	quit      bool
 }
 
 func init() {
@@ -105,7 +104,6 @@ func (cons *Proxy) Configure(conf core.PluginConfig) error {
 	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
 	cons.delimiter = escapeChars.Replace(conf.GetString("Delimiter", "\n"))
 	cons.offset = conf.GetInt("Offset", 0)
-	cons.clientBuffer = conf.GetInt("ClientBuffer", 32)
 	cons.flags = shared.BufferedReaderFlagEverything
 
 	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))
