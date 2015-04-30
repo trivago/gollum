@@ -18,6 +18,7 @@ Parameters
   The protocol can either be "socket://" for unix domain or "tcp://" for TCP. UDP sockets cannot be used.
 **ConnectionBufferSizeKB**
   Sets the connection buffer size in KB. By default this is set to 1024, i.e. 1 MB buffer.
+  This also defines the size of the buffer used by the message parser.
 **TimeoutSec**
   Defines the maximum time in seconds a client is allowed to take for a response. By default this is set to 1.
 **Partitioner**
@@ -47,7 +48,7 @@ Example
   - "producer.Proxy":
     Enable: true
     Address: "unix:///var/gollum.socket"
-    ConnectionBufferSizeKB: 4096
+    ConnectionBufferSizeKB: 64
     TimeoutSec: 3
     Partitioner: "ascii"
     Delimiter: ":"
