@@ -61,9 +61,9 @@ import (
 // set to 5.
 //
 // Category maps a stream to a specific scribe category. You can define the
-// wildcard stream (*) here, too. All streams that do not have a specific
-// mapping will go to this stream (including _GOLLUM_).
-// If no category mappings are set all messages will be send to "default".
+// wildcard stream (*) here, too. When set, all streams that do not have a
+// specific mapping will go to this category (including _GOLLUM_).
+// If no category mappings are set the stream name is used.
 type Scribe struct {
 	core.ProducerBase
 	scribe       *scribe.ScribeClient
@@ -95,7 +95,7 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.batch = createScribeMessageBatch(bufferSizeMax, prod.ProducerBase.GetFormatter())
 	prod.bufferSizeKB = conf.GetInt("ConnectionBufferSizeKB", 1<<10) // 1 MB
-	prod.category = conf.GetStreamMap("Category", "default")
+	prod.category = conf.GetStreamMap("Category", "")
 
 	// Initialize scribe connection
 
@@ -136,15 +136,18 @@ func (prod *Scribe) sendBatchOnTimeOut() {
 	}
 }
 
-func (prod *Scribe) sendMessage(message core.Message) {
-	category, exists := prod.category[message.StreamID]
+func (prod *Scribe) sendMessage(msg core.Message) {
+	category, exists := prod.category[msg.StreamID]
 	if !exists {
-		category = prod.category[core.WildcardStreamID]
+		category, exists = prod.category[core.WildcardStreamID]
+		if !exists {
+			category = core.StreamTypes.GetStreamName(msg.StreamID)
+		}
 	}
 
-	if !prod.batch.Append(message, category) {
+	if !prod.batch.Append(msg, category) {
 		prod.sendBatch()
-		prod.batch.Append(message, category)
+		prod.batch.Append(msg, category)
 	}
 }
 

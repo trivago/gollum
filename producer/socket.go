@@ -66,7 +66,6 @@ type Socket struct {
 	batchSize    int
 	batchTimeout time.Duration
 	bufferSizeKB int
-	runlength    bool
 	acknowledge  bool
 }
 
@@ -90,9 +89,10 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.bufferSizeKB = conf.GetInt("ConnectionBufferSizeKB", 1<<10) // 1 MB
-	prod.acknowledge = conf.GetBool("Acknowledge", false)
 
+	prod.acknowledge = conf.GetBool("Acknowledge", false)
 	prod.address, prod.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
+
 	if prod.protocol != "unix" {
 		if prod.acknowledge {
 			prod.protocol = "tcp"

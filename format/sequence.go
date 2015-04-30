@@ -53,8 +53,8 @@ func (format *Sequence) Configure(conf core.PluginConfig) error {
 
 // Format prepends the sequence number of the message (followed by ":") to the
 // message.
-func (format *Sequence) Format(msg core.Message) []byte {
-	basePayload := format.base.Format(msg)
+func (format *Sequence) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+	basePayload, stream := format.base.Format(msg)
 	baseLength := len(basePayload)
 	sequenceStr := strconv.FormatUint(msg.Sequence, 10) + ":"
 
@@ -62,5 +62,5 @@ func (format *Sequence) Format(msg core.Message) []byte {
 	len := copy(payload, []byte(sequenceStr))
 	copy(payload[len:], basePayload)
 
-	return payload
+	return payload, stream
 }

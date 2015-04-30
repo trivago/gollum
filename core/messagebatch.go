@@ -82,7 +82,7 @@ func (batch *MessageBatch) Append(msg Message) bool {
 	// does not block after a failed message.
 	defer func() { activeQueue.doneCount++ }()
 
-	payload := batch.format.Format(msg)
+	payload, _ := batch.format.Format(msg)
 	messageLength := len(payload)
 	var currentOffset, nextOffset int
 

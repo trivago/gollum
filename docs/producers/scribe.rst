@@ -46,8 +46,7 @@ Parameters
 **Category**
   Maps a stream to a specific scribe category.
   If you define a mapping on "*" all streams that do not have a specific mapping will go to this category (including internal streams).
-  By default a mapping "*" to "default" is used.
-  If no explicit mapping to "*" is set this mapping is preserved, i.e. streams without a mapping will use the "default" category.
+  If no mapping to "*" is set the stream name is used as category.
 
 Example
 -------

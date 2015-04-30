@@ -67,8 +67,8 @@ func (format *Envelope) Configure(conf core.PluginConfig) error {
 }
 
 // Format adds prefix and postfix to the message formatted by the base formatter
-func (format *Envelope) Format(msg core.Message) []byte {
-	basePayload := format.base.Format(msg)
+func (format *Envelope) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+	basePayload, streamID := format.base.Format(msg)
 
 	prefixLen := len(format.prefix)
 	baseLen := len(basePayload)
@@ -79,10 +79,12 @@ func (format *Envelope) Format(msg core.Message) []byte {
 	if prefixLen > 0 {
 		prefixLen = copy(payload, format.prefix)
 	}
-	copy(payload[prefixLen:], basePayload)
+
+	baseLen = copy(payload[prefixLen:], basePayload)
+
 	if postfixLen > 0 {
 		copy(payload[prefixLen+baseLen:], format.postfix)
 	}
 
-	return payload
+	return payload, streamID
 }

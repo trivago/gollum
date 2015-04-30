@@ -28,6 +28,16 @@
 			"Rev": "d0e59c22a56e8dadfed24f74f452cea5a52722d2"
 		},
 		{
+			"ImportPath": "github.com/docker/docker/pkg/homedir",
+			"Comment": "v1.4.1-2907-gfdc5aa2",
+			"Rev": "fdc5aa2043f947d0050e559d2c698481bec79e09"
+		},
+		{
+			"ImportPath": "github.com/docker/libcontainer/user",
+			"Comment": "v1.4.0-482-gb806655",
+			"Rev": "b806655f91eb096306a1d18f40b2f2939afe3872"
+		},
+		{
 			"ImportPath": "github.com/eapache/go-resiliency/breaker",
 			"Comment": "v1",
 			"Rev": "6800482f2c813e689c88b7ed3282262385011890"

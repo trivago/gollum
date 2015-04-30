@@ -68,7 +68,7 @@ func TestJSONFormatter1(t *testing.T) {
 		`arrNextStr :]:             : pop  : end`,
 	}, "findKey")
 
-	result := test.Format(msg)
+	result, _ := test.Format(msg)
 	expect.Equal(testString, string(result))
 }
 

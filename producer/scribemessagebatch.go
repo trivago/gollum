@@ -71,7 +71,7 @@ func (batch *scribeMessageBatch) Append(msg core.Message, category string) bool 
 	// does not block after a failed message.
 	defer func() { activeQueue.doneCount++ }()
 
-	payload := batch.format.Format(msg)
+	payload, _ := batch.format.Format(msg)
 	messageLength := len(payload)
 
 	if activeQueue.contentLen+messageLength >= batch.maxContentLen {

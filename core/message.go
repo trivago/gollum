@@ -50,6 +50,37 @@ var retryQueue chan Message
 type MessageSource interface {
 }
 
+// AsyncMessageSource extends the MessageSource interface to allow a backchannel
+// that simply forwards any message coming from the producer.
+type AsyncMessageSource interface {
+	MessageSource
+
+	// EnqueueResponse sends a message to the source of another message.
+	EnqueueResponse(msg Message)
+}
+
+// SerialMessageSource extends the AsyncMessageSource interface to allow waiting
+// for all parts of the response to be submitted.
+type SerialMessageSource interface {
+	AsyncMessageSource
+
+	// Notify the end of the response stream
+	ResponseDone()
+}
+
+// LinkableMessageSource extends the MessageSource interface to allow a pipe
+// like behaviour between two components that communicate messages.
+type LinkableMessageSource interface {
+	MessageSource
+	// Link the message source to the message reciever. This makes it possible
+	// to create stable "pipes" between e.g. a consumer and producer.
+	Link(pipe interface{})
+
+	// IsLinked has to return true if Link executed successfull and does not
+	// need to be called again.
+	IsLinked() bool
+}
+
 // Message is a container used for storing the internal state of messages.
 // This struct is passed between consumers and producers.
 type Message struct {
@@ -90,7 +121,7 @@ func (msg Message) String() string {
 
 // Format applies the formatter to this message
 func (msg *Message) Format(format Formatter) {
-	msg.Data = format.Format(*msg)
+	msg.Data, msg.StreamID = format.Format(*msg)
 }
 
 // Enqueue is a convenience function to push a message to a channel while

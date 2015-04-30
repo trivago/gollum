@@ -78,9 +78,9 @@ import (
 // By default both settings are empty.
 //
 // Index maps a stream to a specific index. You can define the
-// wildcard stream (*) here, too. All streams that do not have a specific
+// wildcard stream (*) here, too. If set all streams that do not have a specific
 // mapping will go to this stream (including _GOLLUM_).
-// If no category mappings are set all messages will be send to "default".
+// If no category mappings are set the stream name is used.
 //
 // Type maps a stream to a specific type. This behaves like the index map and
 // is used to assign a _type to an elasticsearch message. By default the type
@@ -140,7 +140,7 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	prod.index = conf.GetStreamMap("Index", "default")
+	prod.index = conf.GetStreamMap("Index", "")
 	prod.msgType = conf.GetStreamMap("Type", "log")
 	prod.msgTTL = conf.GetString("TTL", "")
 	prod.dayBasedIndex = conf.GetBool("DayBasedIndex", false)
@@ -151,7 +151,10 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 func (prod *ElasticSearch) sendMessage(msg core.Message) {
 	index, indexMapped := prod.index[msg.StreamID]
 	if !indexMapped {
-		index = prod.index[core.WildcardStreamID]
+		index, indexMapped = prod.index[core.WildcardStreamID]
+		if !indexMapped {
+			index = core.StreamTypes.GetStreamName(msg.StreamID)
+		}
 	}
 
 	if prod.dayBasedIndex {

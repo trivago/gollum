@@ -134,6 +134,10 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	prod.file = nil
 	prod.bgWriter = new(sync.WaitGroup)
 
+	if err := os.MkdirAll(prod.fileDir, 0755); err != nil {
+		return err
+	}
+
 	rotateAt := conf.GetString("RotateAt", "")
 	if rotateAt != "" {
 		parts := strings.Split(rotateAt, ":")
@@ -256,10 +260,9 @@ func (prod *File) openLog() error {
 	defer func() { prod.forceRotate = false }()
 
 	// Generate the log filename based on rotation, existing files, etc.
-	var logFile string
-
+	var logFileName string
 	if !prod.rotate {
-		logFile = fmt.Sprintf("%s/%s%s", prod.fileDir, prod.fileName, prod.fileExt)
+		logFileName = fmt.Sprintf("%s%s", prod.fileName, prod.fileExt)
 	} else {
 		timestamp := time.Now().Format(fileProducerTimestamp)
 		signature := fmt.Sprintf("%s_%s", prod.fileName, timestamp)
@@ -273,11 +276,13 @@ func (prod *File) openLog() error {
 		}
 
 		if counter == 0 {
-			logFile = fmt.Sprintf("%s/%s%s", prod.fileDir, signature, prod.fileExt)
+			logFileName = fmt.Sprintf("%s%s", signature, prod.fileExt)
 		} else {
-			logFile = fmt.Sprintf("%s/%s_%d%s", prod.fileDir, signature, counter, prod.fileExt)
+			logFileName = fmt.Sprintf("%s_%d%s", signature, counter, prod.fileExt)
 		}
 	}
+
+	logFile := fmt.Sprintf("%s/%s", prod.fileDir, logFileName)
 
 	// Close existing log
 	if prod.file != nil {
@@ -298,7 +303,7 @@ func (prod *File) openLog() error {
 	if prod.rotate {
 		symLinkName := fmt.Sprintf("%s/%s_current", prod.fileDir, prod.fileName)
 		os.Remove(symLinkName)
-		os.Symlink(logFile, symLinkName)
+		os.Symlink(logFileName, symLinkName)
 	}
 
 	return err

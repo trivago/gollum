@@ -37,6 +37,6 @@ func (format *Forward) Configure(conf core.PluginConfig) error {
 }
 
 // Format returns the original message payload
-func (format *Forward) Format(msg core.Message) []byte {
-	return msg.Data
+func (format *Forward) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+	return msg.Data, msg.StreamID
 }

@@ -128,9 +128,9 @@ const (
 // is mandatory and has no defaults.
 //
 // Topic maps a stream to a specific kafka topic. You can define the
-// wildcard stream (*) here, too. All streams that do not have a specific
-// mapping will go to this stream (including _GOLLUM_).
-// If no topic mappings are set all messages will be send to "default".
+// wildcard stream (*) here, too. If defined, all streams that do not have a
+// specific mapping will go to this topic (including _GOLLUM_).
+// If no topic mappings are set the stream names will be used as topic.
 type Kafka struct {
 	core.ProducerBase
 	servers  []string
@@ -157,7 +157,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	}
 
 	prod.servers = conf.GetStringArray("Servers", []string{})
-	prod.topic = conf.GetStreamMap("Topic", "default")
+	prod.topic = conf.GetStreamMap("Topic", "")
 	prod.clientID = conf.GetString("ClientId", "gollum")
 
 	prod.config = kafka.NewConfig()
@@ -241,7 +241,11 @@ func (prod *Kafka) send(msg core.Message) {
 		// Send message
 		topic, topicMapped := prod.topic[msg.StreamID]
 		if !topicMapped {
-			topic = prod.topic[core.WildcardStreamID]
+			// Use wildcard fallback or stream name if not set
+			topic, topicMapped = prod.topic[core.WildcardStreamID]
+			if !topicMapped {
+				topic = core.StreamTypes.GetStreamName(msg.StreamID)
+			}
 		}
 
 		payload := prod.ProducerBase.Format(msg)

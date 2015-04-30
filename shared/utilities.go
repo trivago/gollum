@@ -102,7 +102,7 @@ func RecoverShutdown() {
 // The first parameter returned is the address, the second denotes the protocol.
 // The protocol is allways returned as lowercase string.
 func ParseAddress(addr string) (address string, protocol string) {
-	protocolIdx := strings.Index("://", addr)
+	protocolIdx := strings.Index(addr, "://")
 	if protocolIdx == -1 {
 		return addr, "tcp"
 	}

@@ -86,6 +86,9 @@ const (
 //  * arr     -> Start a new array
 //  * obj     -> Start a new object
 //  * end     -> Close an array or object
+//  * arr+val -> arr followed by val
+//  * arr+esc -> arr followed by esc
+//  * arr+dat -> arr followed by dat
 //  * val+end -> val followed by end
 //  * esc+end -> esc followed by end
 //  * dat+end -> dat followed by end
@@ -142,6 +145,8 @@ func (format *JSON) Configure(conf core.PluginConfig) error {
 	parserFunctions["arr"] = format.readArray
 	parserFunctions["obj"] = format.readObject
 	parserFunctions["end"] = format.readEnd
+	parserFunctions["arr+val"] = format.readArrayValue
+	parserFunctions["arr+esc"] = format.readArrayEscaped
 	parserFunctions["val+end"] = format.readValueEnd
 	parserFunctions["esc+end"] = format.readEscapedEnd
 	parserFunctions["dat+end"] = format.readDateEnd
@@ -258,6 +263,21 @@ func (format *JSON) readDateEnd(data []byte, state shared.ParserStateID) {
 	format.readEnd(data, state)
 }
 
+func (format *JSON) readArrayValue(data []byte, state shared.ParserStateID) {
+	format.readArray(data, state)
+	format.readValue(data, state)
+}
+
+func (format *JSON) readArrayEscaped(data []byte, state shared.ParserStateID) {
+	format.readArray(data, state)
+	format.readEscaped(data, state)
+}
+
+func (format *JSON) readArrayDate(data []byte, state shared.ParserStateID) {
+	format.readArray(data, state)
+	format.readDate(data, state)
+}
+
 func (format *JSON) readArray(data []byte, state shared.ParserStateID) {
 	if format.state == jsonReadArrayAppend {
 		format.message.WriteString(",[")
@@ -301,7 +321,7 @@ func (format *JSON) readEnd(data []byte, state shared.ParserStateID) {
 
 // Format parses the incoming message and generates JSON from it.
 // This function is mutex locked.
-func (format *JSON) Format(msg core.Message) []byte {
+func (format *JSON) Format(msg core.Message) ([]byte, core.MessageStreamID) {
 	// The internal state is not threadsafe so we need to lock here
 	format.parseLock.Lock()
 	defer format.parseLock.Unlock()
@@ -325,5 +345,5 @@ func (format *JSON) Format(msg core.Message) []byte {
 	}
 
 	format.message.WriteString("}\n")
-	return bytes.TrimSpace(format.message.Bytes())
+	return bytes.TrimSpace(format.message.Bytes()), msg.StreamID
 }

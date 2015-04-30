@@ -23,45 +23,43 @@ import (
 	"net"
 	"strings"
 	"sync"
-	"syscall"
-	"time"
 )
+
+type proxyPartitioner int
 
 const (
-	socketBufferGrowSize = 256
+	proxyPartDelimiter = proxyPartitioner(iota)
+	proxyPartBinary    = proxyPartitioner(iota)
+	proxyPartText      = proxyPartitioner(iota)
 )
 
-// Socket consumer plugin
+// Proxy consumer plugin.
 // Configuration example
 //
-//   - "consumer.Socket":
+//   - "consumer.Proxy":
 //     Enable: true
 //     Address: "unix:///var/gollum.socket"
-//     Acknowledge: true
 //     Partitioner: "ascii"
 //     Delimiter: ":"
 //     Offset: 1
 //
-// The socket consumer reads messages directly as-is from a given socket.
-// Messages are separated from the stream by using a specific paritioner method.
+// The proxy consumer reads messages directly as-is from a given socket.
+// Messages are extracted by standard message size algorithms (see Parititioner).
+// This consumer can be used with any compatible proxy producer to establish
+// a two-way communication.
 //
 // Address stores the identifier to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
-//
-// Acknowledge can be set to true to inform the writer on success or error.
-// On success "OK\n" is send. Any error will close the connection.
-// This setting is disabled by default.
-// If Acknowledge is set to true and a IP-Address is given to Address, TCP is
-// used to open the connection, otherwise UDP is used.
+// UDP is not supported.
 //
 // Partitioner defines the algorithm used to read messages from the stream.
+// The messages will be sent as a whole, no cropping or removal will take place.
 // By default this is set to "delimiter".
 //  - "delimiter" separates messages by looking for a delimiter string. The
-//    delimiter is removed from the message.
+//    delimiter is included into the left hand message.
 //  - "ascii" reads an ASCII encoded number at a given offset until a given
-//    delimiter is found. Everything to the right of and including the delimiter
-//    is removed from the message.
+//    delimiter is found.
 //  - "binary" reads a binary number at a given offset and size
 //  - "binary_le" is an alias for "binary"
 //  - "binary_be" is the same as "binary" but uses big endian encoding
@@ -76,44 +74,37 @@ const (
 // Size defines the size in bytes used by the binary or fixed partitioner.
 // For binary this can be set to 1,2,4 or 8. By default 4 is chosen.
 // For fixed this defines the size of a message. By default 1 is chosen.
-type Socket struct {
+type Proxy struct {
 	core.ConsumerBase
-	listen      io.Closer
-	protocol    string
-	address     string
-	flags       shared.BufferedReaderFlags
-	delimiter   string
-	offset      int
-	quit        bool
-	acknowledge bool
+	listen    io.Closer
+	protocol  string
+	address   string
+	flags     shared.BufferedReaderFlags
+	delimiter string
+	offset    int
+	quit      bool
 }
 
 func init() {
-	shared.RuntimeType.Register(Socket{})
+	shared.RuntimeType.Register(Proxy{})
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Socket) Configure(conf core.PluginConfig) error {
+func (cons *Proxy) Configure(conf core.PluginConfig) error {
 	err := cons.ConsumerBase.Configure(conf)
 	if err != nil {
 		return err
 	}
 
-	cons.acknowledge = conf.GetBool("Acknowledge", false)
 	cons.address, cons.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
-
-	if cons.protocol != "unix" {
-		if cons.acknowledge {
-			cons.protocol = "tcp"
-		} else {
-			cons.protocol = "udp"
-		}
+	if cons.protocol == "udp" {
+		return fmt.Errorf("Proxy does not support UDP")
 	}
 
 	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
 	cons.delimiter = escapeChars.Replace(conf.GetString("Delimiter", "\n"))
 	cons.offset = conf.GetInt("Offset", 0)
-	cons.flags = 0
+	cons.flags = shared.BufferedReaderFlagEverything
 
 	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))
 	switch partitioner {
@@ -122,7 +113,6 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 		fallthrough
 
 	case "binary", "binary_le":
-		cons.flags |= shared.BufferedReaderFlagEverything
 		switch conf.GetInt("Size", 4) {
 		case 1:
 			cons.flags |= shared.BufferedReaderFlagMLE8
@@ -154,57 +144,7 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 	return err
 }
 
-func (cons *Socket) clientDisconnected(err error) bool {
-	netErr, isNetErr := err.(*net.OpError)
-	if isNetErr {
-
-		errno, isErrno := netErr.Err.(syscall.Errno)
-		if isErrno {
-			switch errno {
-			default:
-			case syscall.ECONNRESET:
-				return true // ### return, close connection ###
-			}
-		}
-	}
-
-	return false
-}
-
-func (cons *Socket) readFromConnection(conn net.Conn) {
-	defer func() {
-		conn.Close()
-		cons.WorkerDone()
-	}()
-
-	conn.SetDeadline(time.Time{})
-	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.offset, cons.delimiter)
-
-	for !cons.quit {
-		err := buffer.ReadAll(conn, cons.Enqueue)
-
-		// Handle errors
-		if err != nil && err != io.EOF {
-			if cons.clientDisconnected(err) {
-				return // ### return, connection closed ###
-			}
-
-			Log.Error.Print("Socket read failed: ", err)
-			continue // ### continue, keep open, try again ###
-		}
-
-		// Send ack if everything was ok
-		if cons.acknowledge {
-			fmt.Fprint(conn, "OK")
-		}
-	}
-}
-
-func (cons *Socket) udpAccept() {
-	cons.readFromConnection(cons.listen.(*net.UDPConn))
-}
-
-func (cons *Socket) tcpAccept() {
+func (cons *Proxy) accept() {
 	defer cons.WorkerDone()
 
 	listener := cons.listen.(net.Listener)
@@ -212,45 +152,29 @@ func (cons *Socket) tcpAccept() {
 		client, err := listener.Accept()
 		if err != nil {
 			if !cons.quit {
-				Log.Error.Print("Socket listen failed: ", err)
+				Log.Error.Print("Proxy listen failed: ", err)
 			}
 			break // ### break ###
 		}
 
-		go func() {
-			defer shared.RecoverShutdown()
-			cons.AddWorker()
-			cons.readFromConnection(client)
-		}()
+		go listenToProxyClient(client, cons)
 	}
 }
 
 // Consume listens to a given socket.
-func (cons *Socket) Consume(workers *sync.WaitGroup) {
+func (cons *Proxy) Consume(workers *sync.WaitGroup) {
 	var err error
-	var listen func()
-
 	cons.quit = false
 
-	if cons.protocol == "udp" {
-		addr, _ := net.ResolveUDPAddr(cons.protocol, cons.address)
-		if cons.listen, err = net.ListenUDP(cons.protocol, addr); err != nil {
-			Log.Error.Print("Socket connection error: ", err)
-			return
-		}
-		listen = cons.udpAccept
-	} else {
-		if cons.listen, err = net.Listen(cons.protocol, cons.address); err != nil {
-			Log.Error.Print("Socket connection error: ", err)
-			return
-		}
-		listen = cons.tcpAccept
+	if cons.listen, err = net.Listen(cons.protocol, cons.address); err != nil {
+		Log.Error.Print("Proxy connection error: ", err)
+		return
 	}
 
 	go func() {
 		defer shared.RecoverShutdown()
 		cons.AddMainWorker(workers)
-		listen()
+		cons.accept()
 	}()
 
 	defer func() {
