@@ -98,6 +98,6 @@ func (format *Identifier) idSeqHex(msg core.Message) []byte {
 // Format generates a unique identifier from the message contents or metadata.
 func (format *Identifier) Format(msg core.Message) ([]byte, core.MessageStreamID) {
 	dataMsg := msg
-	dataMsg.Format(format.base)
-	return format.hash(dataMsg), msg.StreamID
+	dataMsg.Data, dataMsg.StreamID = format.base.Format(msg)
+	return format.hash(dataMsg), dataMsg.StreamID
 }

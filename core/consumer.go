@@ -119,8 +119,7 @@ func (cons ConsumerBase) WorkerDone() {
 // Enqueue creates a new message from a given byte slice and passes it to
 // EnqueueMessage. Note that data is not copied, just referenced by the message.
 func (cons *ConsumerBase) Enqueue(data []byte, sequence uint64) {
-	msg := NewMessage(cons, data, sequence)
-	cons.EnqueueMessage(msg)
+	cons.EnqueueMessage(NewMessage(cons, data, sequence))
 }
 
 // EnqueueCopy behaves like Enqueue but creates a copy of data that is attached
@@ -128,7 +127,7 @@ func (cons *ConsumerBase) Enqueue(data []byte, sequence uint64) {
 func (cons *ConsumerBase) EnqueueCopy(data []byte, sequence uint64) {
 	dataCopy := make([]byte, len(data))
 	copy(dataCopy, data)
-	cons.Enqueue(dataCopy, sequence)
+	cons.EnqueueMessage(NewMessage(cons, dataCopy, sequence))
 }
 
 // EnqueueMessage passes a given message  to all streams.

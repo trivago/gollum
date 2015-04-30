@@ -147,13 +147,14 @@ func (stream *StreamBase) Enqueue(msg Message) {
 	atomic.AddUint32(&MessageCount, 1)
 
 	if stream.Filter.Accepts(msg) {
-		streamID := msg.StreamID
-		msg.Format(stream.Format)
+		var streamID MessageStreamID
+		msg.Data, streamID = stream.Format.Format(msg)
 
 		if msg.StreamID == streamID {
 			stream.Distribute(msg)
 		} else {
-			StreamTypes.GetStreamOrFallback(msg.StreamID).Enqueue(msg)
+			msg.StreamID = streamID
+			StreamTypes.GetStreamOrFallback(streamID).Enqueue(msg)
 		}
 	}
 }
