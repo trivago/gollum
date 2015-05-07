@@ -33,7 +33,7 @@ import (
 //     BatchSizeMaxKB: 16384
 //     BatchSizeByte: 4096
 //     BatchTimeoutSec: 5
-//     Acknowledge: true
+//     Acknowledge: "ACK\n"
 //
 // Address stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:5880" or a file
@@ -53,10 +53,11 @@ import (
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5.
 //
-// Acknowledge can be set to true to expect a response "OK\n" from the server
-// after a batch has been sent. This setting is disabled by default.
-// If Acknowledge is set to true and a IP-Address is given to Address, TCP is
-// used to open the connection, otherwise UDP is used.
+// Acknowledge can be set to a non-empty value to expect the given string as a
+// response from the server after a batch has been sent.
+// This setting is disabled by default, i.e. set to "".
+// If Acknowledge is enabled and a IP-Address is given to Address, TCP is used
+// to open the connection, otherwise UDP is used.
 type Socket struct {
 	core.ProducerBase
 	connection   net.Conn
@@ -66,7 +67,7 @@ type Socket struct {
 	batchSize    int
 	batchTimeout time.Duration
 	bufferSizeKB int
-	acknowledge  bool
+	acknowledge  string
 }
 
 type bufferedConn interface {
@@ -90,11 +91,11 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.bufferSizeKB = conf.GetInt("ConnectionBufferSizeKB", 1<<10) // 1 MB
 
-	prod.acknowledge = conf.GetBool("Acknowledge", false)
+	prod.acknowledge = shared.Unescape(conf.GetString("Acknowledge", ""))
 	prod.address, prod.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
 
 	if prod.protocol != "unix" {
-		if prod.acknowledge {
+		if prod.acknowledge != "" {
 			prod.protocol = "tcp"
 		} else {
 			prod.protocol = "udp"
@@ -107,17 +108,17 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 }
 
 func (prod *Socket) validate() bool {
-	if !prod.acknowledge {
+	if prod.acknowledge == "" {
 		return true
 	}
 
-	response := make([]byte, 2)
+	response := make([]byte, len(prod.acknowledge))
 	_, err := prod.connection.Read(response)
 	if err != nil {
 		Log.Error.Print("Socket response error:", err)
 		return false
 	}
-	return string(response) == "OK"
+	return string(response) == prod.acknowledge
 }
 
 func (prod *Socket) onWriteError(err error) bool {

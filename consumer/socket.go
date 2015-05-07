@@ -37,7 +37,7 @@ const (
 //   - "consumer.Socket":
 //     Enable: true
 //     Address: "unix:///var/gollum.socket"
-//     Acknowledge: true
+//     Acknowledge: "ACK\n"
 //     Partitioner: "ascii"
 //     Delimiter: ":"
 //     Offset: 1
@@ -49,10 +49,10 @@ const (
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
 //
-// Acknowledge can be set to true to inform the writer on success or error.
-// On success "OK\n" is send. Any error will close the connection.
-// This setting is disabled by default.
-// If Acknowledge is set to true and a IP-Address is given to Address, TCP is
+// Acknowledge can be set to a non-empty value to inform the writer on success
+// or error. On success the given string is send. Any error will close the
+// connection. This setting is disabled by default, i.e. set to "".
+// If Acknowledge is enabled and a IP-Address is given to Address, TCP is
 // used to open the connection, otherwise UDP is used.
 //
 // Partitioner defines the algorithm used to read messages from the stream.
@@ -85,7 +85,7 @@ type Socket struct {
 	delimiter   string
 	offset      int
 	quit        bool
-	acknowledge bool
+	acknowledge string
 }
 
 func init() {
@@ -99,19 +99,18 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	cons.acknowledge = conf.GetBool("Acknowledge", false)
+	cons.acknowledge = shared.Unescape(conf.GetString("Acknowledge", ""))
 	cons.address, cons.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
 
 	if cons.protocol != "unix" {
-		if cons.acknowledge {
+		if cons.acknowledge != "" {
 			cons.protocol = "tcp"
 		} else {
 			cons.protocol = "udp"
 		}
 	}
 
-	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
-	cons.delimiter = escapeChars.Replace(conf.GetString("Delimiter", "\n"))
+	cons.delimiter = shared.Unescape(conf.GetString("Delimiter", "\n"))
 	cons.offset = conf.GetInt("Offset", 0)
 	cons.flags = 0
 
@@ -194,8 +193,8 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 		}
 
 		// Send ack if everything was ok
-		if cons.acknowledge {
-			fmt.Fprint(conn, "OK")
+		if cons.acknowledge != "" {
+			fmt.Fprint(conn, cons.acknowledge)
 		}
 	}
 }

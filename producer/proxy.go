@@ -103,8 +103,7 @@ func (prod *Proxy) Configure(conf core.PluginConfig) error {
 
 	prod.timeout = time.Duration(conf.GetInt("TimeoutSec", 1)) * time.Second
 
-	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
-	delimiter := escapeChars.Replace(conf.GetString("Delimiter", "\n"))
+	delimiter := shared.Unescape(conf.GetString("Delimiter", "\n"))
 	offset := conf.GetInt("Offset", 0)
 	flags := shared.BufferedReaderFlagEverything // pass all messages as-is
 

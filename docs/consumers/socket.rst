@@ -17,8 +17,9 @@ Parameters
   The protocol can either be "socket://" for unix domain, "tcp://" for TCP or "udp://" for UDP sockets.
   In addtion to that, any protocol supported by `net.Dial <http://golang.org/pkg/net/#Dial>`_ is possible here.
 **Acknowledge**
-  When set to true, the socket consumer will send "OK\n" after recieving a message or batch of messages.
-  Set to false by default.
+  When set to a non-empty value, the socket consumer will send the given string after recieving a message or batch of messages.
+  Acknowledge is disabled by default, i.e. set to "".
+  If Acknowledge is enabled and a IP-Address is given to Address, TCP is enforced to open the connection.
 **Partitioner**
   The partitioner defines the algorithm used to separate messages from the stream.
   By default this is set to "delimiter".
@@ -46,7 +47,7 @@ Example
   - "consumer.Socket":
     Enable: true
     Address: "unix:///var/gollum.socket"
-    Acknowledge: true
+    Acknowledge: "OK"
     Partitioner: "ascii"
     Delimiter: ":"
     Offset: 1
