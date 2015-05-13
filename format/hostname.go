@@ -39,7 +39,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Hostname) Configure(conf core.PluginConfig) error {
-	plugin, err := core.NewPluginWithType(conf.GetString("HostnameFormatter", "format.Envelope"), conf)
+	plugin, err := core.NewPluginWithType(conf.GetString("HostnameFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err
 	}

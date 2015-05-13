@@ -33,7 +33,7 @@ import (
 // By default this is set to "2006-01-02 15:04:05 MST | "
 //
 // TimestampDataFormatter defines the formatter for the data transferred as
-// message. By default this is set to "format.Envelope"
+// message. By default this is set to "format.Forward"
 type Timestamp struct {
 	base            core.Formatter
 	timestampFormat string
@@ -45,7 +45,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Timestamp) Configure(conf core.PluginConfig) error {
-	plugin, err := core.NewPluginWithType(conf.GetString("TimestampFormatter", "format.Envelope"), conf)
+	plugin, err := core.NewPluginWithType(conf.GetString("TimestampFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err
 	}
