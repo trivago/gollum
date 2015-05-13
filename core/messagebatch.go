@@ -176,9 +176,18 @@ func (batch *MessageBatch) Flush(resource io.Writer, validate func() bool, onErr
 }
 
 // WaitForFlush blocks until the current flush command returns
-func (batch *MessageBatch) WaitForFlush() {
+func (batch *MessageBatch) WaitForFlush(timeout time.Duration) {
+	flushed := int32(0)
+	time.AfterFunc(timeout, func() {
+		if atomic.CompareAndSwapInt32(&flushed, 0, 1) {
+			batch.flushing.Unlock()
+		}
+	})
+
 	batch.flushing.Lock()
-	batch.flushing.Unlock()
+	if atomic.CompareAndSwapInt32(&flushed, 0, 1) {
+		batch.flushing.Unlock()
+	}
 }
 
 // IsEmpty returns true if no data is stored in the buffer

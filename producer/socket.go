@@ -162,7 +162,7 @@ func (prod *Socket) sendMessage(message core.Message) {
 
 func (prod *Socket) flush() {
 	prod.sendBatch()
-	prod.batch.WaitForFlush()
+	prod.batch.WaitForFlush(5 * time.Second)
 
 	if prod.connection != nil {
 		prod.connection.Close()
