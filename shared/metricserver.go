@@ -13,8 +13,8 @@ type MetricServer struct {
 }
 
 // NewMetricServer creates a new server state for a metric server
-func NewMetricServer() MetricServer {
-	return MetricServer{
+func NewMetricServer() *MetricServer {
+	return &MetricServer{
 		running: false,
 	}
 }
@@ -63,5 +63,9 @@ func (server *MetricServer) Start(port int) {
 // Stop notifies the metric server to halt.
 func (server *MetricServer) Stop() {
 	server.running = false
-	server.listen.Close()
+	if server.listen != nil {
+		if err := server.listen.Close(); err != nil {
+			log.Print("Metrics: ", err)
+		}
+	}
 }
