@@ -28,6 +28,7 @@ func (server *MetricServer) handleMetricRequest(conn net.Conn) {
 	} else {
 		conn.Write(data)
 	}
+	conn.Write([]byte("\n"))
 	conn.Close()
 }
 
