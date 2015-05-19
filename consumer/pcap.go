@@ -38,7 +38,6 @@ import (
 //     Intf: eth0
 //     Port: 80
 //
-// This consumer does not define any options beside the standard ones.
 type Stream struct {
 	Key     string
 	Timer   *time.Timer
@@ -61,7 +60,8 @@ func getKey(p *pcap.Packet) (string, error) {
 func (s *Stream) reqsFromBuffer(b *bytes.Buffer) (rs []*bytes.Buffer, err error) {
 	r := bufio.NewReader(b)
 	for !readerDone(r) {
-		req, err := http.ReadRequest(r)
+		var req *http.Request
+		req, err = http.ReadRequest(r)
 		if err == nil {
 			req.Header.Add("X-Timestamp", strconv.FormatInt(time.Now().Unix(), 10))
 			idx := strings.IndexRune(s.Key, ':')

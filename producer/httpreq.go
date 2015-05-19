@@ -63,21 +63,23 @@ func (prod *HttpReq) Configure(conf core.PluginConfig) error {
 }
 
 func (prod *HttpReq) sendReq(msg core.Message) {
-	b := bytes.NewBuffer(prod.ProducerBase.Format(msg))
-	r, err := http.ReadRequest(bufio.NewReader(b))
-	if err != nil {
-		Log.Error.Print("HttpReq request error:", err)
-		return
-	}
-	r.URL.Host = prod.host
-	r.RequestURI = ""
-	r.URL.Scheme = "http"
-	_, e := http.DefaultClient.Do(r)
-	if e != nil {
-		Log.Error.Print("HttpReq error sending request: ", e)
-	} else {
-		// Request Sent
-	}
+	go func() {
+		b := bytes.NewBuffer(prod.ProducerBase.Format(msg))
+		r, err := http.ReadRequest(bufio.NewReader(b))
+		if err != nil {
+			Log.Error.Print("HttpReq request error:", err)
+			return
+		}
+		r.URL.Host = prod.host
+		r.RequestURI = ""
+		r.URL.Scheme = "http"
+		_, e := http.DefaultClient.Do(r)
+		if e != nil {
+			Log.Error.Print("HttpReq error sending request: ", e)
+		} else {
+			// Request Sent
+		}
+	}()
 }
 
 // Produce writes to stdout or stderr.
