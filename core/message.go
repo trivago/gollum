@@ -119,11 +119,6 @@ func (msg Message) String() string {
 	return string(msg.Data)
 }
 
-// Format applies the formatter to this message
-func (msg *Message) Format(format Formatter) {
-	msg.Data, msg.StreamID = format.Format(*msg)
-}
-
 // Enqueue is a convenience function to push a message to a channel while
 // waiting for a timeout instead of just blocking.
 // Passing a timeout of -1 will discard the message.

@@ -102,12 +102,10 @@ func (cons *File) Configure(conf core.PluginConfig) error {
 		return core.NewConsumerError("No file configured for consumer.File")
 	}
 
-	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
-
 	cons.file = nil
 	cons.fileName = conf.GetString("File", "")
 	cons.offsetFileName = conf.GetString("OffsetFile", "")
-	cons.delimiter = escapeChars.Replace(conf.GetString("Delimiter", "\n"))
+	cons.delimiter = shared.Unescape(conf.GetString("Delimiter", "\n"))
 
 	switch strings.ToLower(conf.GetString("DefaultOffset", fileOffsetEnd)) {
 	default:

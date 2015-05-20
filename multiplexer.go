@@ -323,9 +323,11 @@ func (plex multiplexer) run() {
 	}
 
 	// Main loop - wait for exit
+	// Apache is using SIG_USR1 in some cases to signal child processes.
+	// This signal is not available on windows
 
 	plex.signal = make(chan os.Signal, 1)
-	signal.Notify(plex.signal, os.Interrupt, syscall.SIGHUP)
+	signal.Notify(plex.signal, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1, syscall.SIGHUP)
 
 	Log.Note.Print("We be nice to them, if they be nice to us. (startup)")
 	measure := time.Now()
@@ -368,6 +370,9 @@ func (plex multiplexer) run() {
 				for _, producer := range plex.producers {
 					producer.Control() <- core.PluginControlRoll
 				}
+
+			default:
+
 			}
 		}
 	}

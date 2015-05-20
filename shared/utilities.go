@@ -24,6 +24,13 @@ import (
 	"strings"
 )
 
+var simpleEscapeChars = strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
+
+// Unescape replaces occurences of \\n, \\r and \\t with real escape codes.
+func Unescape(text string) string {
+	return simpleEscapeChars.Replace(text)
+}
+
 // ItoLen returns the length of an unsingned integer when converted to a string
 func ItoLen(number uint64) int {
 	switch {

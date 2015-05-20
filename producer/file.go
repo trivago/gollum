@@ -345,7 +345,7 @@ func (prod *File) rotateLog() {
 
 func (prod *File) flush() {
 	prod.writeBatch()
-	prod.batch.WaitForFlush()
+	prod.batch.WaitForFlush(5 * time.Second)
 
 	prod.bgWriter.Wait()
 	prod.file.Close()

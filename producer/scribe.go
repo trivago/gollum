@@ -153,7 +153,8 @@ func (prod *Scribe) sendMessage(msg core.Message) {
 
 func (prod *Scribe) flush() {
 	prod.sendBatch()
-	prod.batch.waitForFlush()
+
+	prod.batch.waitForFlush(5 * time.Second)
 
 	prod.transport.Close()
 	prod.socket.Close()

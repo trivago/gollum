@@ -101,8 +101,7 @@ func (cons *Proxy) Configure(conf core.PluginConfig) error {
 		return fmt.Errorf("Proxy does not support UDP")
 	}
 
-	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
-	cons.delimiter = escapeChars.Replace(conf.GetString("Delimiter", "\n"))
+	cons.delimiter = shared.Unescape(conf.GetString("Delimiter", "\n"))
 	cons.offset = conf.GetInt("Offset", 0)
 	cons.flags = shared.BufferedReaderFlagEverything
 

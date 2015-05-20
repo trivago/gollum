@@ -42,11 +42,10 @@ Parameters
   The timer is reset after each new message.
   By default this is set to 5.
 **Acknowledge**
-  Set to true if a response "OK\n" is expected from the server after a batch has been sent.
-  This correspons to the behavior of the :doc:`Socket consumer </consumers/socket>`.
-  This setting is disabled by default.
-  If Acknowledge is set to true and a IP-Address is given to Address, TCP is
-  enforced to open the connection.
+  Set to a non-empty value if the given string is expected from the server after a batch has been sent.
+  This corresponds to the behavior of the :doc:`Socket consumer </consumers/socket>`.
+  Acknowledge is disabled by default, i.e. set to "".
+  If Acknowledge is enabled and a IP-Address is given to Address, TCP is enforced to open the connection.
 
 Example
 -------
@@ -62,7 +61,7 @@ Example
     BatchSizeMaxKB: 16384
     BatchSizeByte: 4096
     BatchTimeoutSec: 5
-    Acknowledge: true
+    Acknowledge: "OK"
     Stream:
         - "log"
         - "console"

@@ -129,8 +129,9 @@ Make sure to start Gollum with `gollum -ll 3` to see all log messages.
 ::
 
   - "consumer.Socket":
-      Runlength: true
       Acknowledge: true
+      Partitioner: "ascii"
+      Delimiter: ":"
       Address: ":5880"
       Stream: "server"
 
@@ -145,6 +146,32 @@ Make sure to start Gollum with `gollum -ll 3` to see all log messages.
       Stream:
         - "*"
         - "_GOLLUM_"
+
+Proxy
+-----
+
+This configuration will set up a simple proxy for protocols that separate messages by newlines.
+This works well for e.g. basic redis traffic.
+Make sure to start Gollum with `gollum -ll 3` to see all log messages.
+
+::
+
+  - "consumer.Proxy":
+      Address: "localhost:5880"
+      Partitioner: "delimiter"
+      Delimiter: "\r\n"
+      Stream: "redis"
+
+  - "producer.Proxy":
+      Address: "localhost:6379"
+      ConnectionBufferSizeKB: 64
+      Partitioner: "delimiter"
+      Delimiter: "\r\n"
+      Stream: "redis"
+
+Note that the standard proxy consumer and producer cannot react on details implied by a specific protocol.
+While this does work for simple protocols it will have problems with more complex protocols like http.
+In that case it is advisable to use or write a proxy plugin for this specific protocol.
 
 Profiling
 ---------

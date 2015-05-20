@@ -46,8 +46,9 @@ import (
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.Proxy". By default this is set to ":5880".
 //
-// ConnectionBufferSizeKB sets the connection buffer size in KB. By default this
-// is set to 1024, i.e. 1 MB buffer.
+// ConnectionBufferSizeKB sets the connection buffer size in KB.
+// This also defines the size of the buffer used by the message parser.
+// By default this is set to 1024, i.e. 1 MB buffer.
 //
 // TimeoutSec defines the maximum time in seconds a client is allowed to take
 // for a response. By default this is set to 1.
@@ -102,8 +103,7 @@ func (prod *Proxy) Configure(conf core.PluginConfig) error {
 
 	prod.timeout = time.Duration(conf.GetInt("TimeoutSec", 1)) * time.Second
 
-	escapeChars := strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
-	delimiter := escapeChars.Replace(conf.GetString("Delimiter", "\n"))
+	delimiter := shared.Unescape(conf.GetString("Delimiter", "\n"))
 	offset := conf.GetInt("Offset", 0)
 	flags := shared.BufferedReaderFlagEverything // pass all messages as-is
 
@@ -141,7 +141,7 @@ func (prod *Proxy) Configure(conf core.PluginConfig) error {
 		return fmt.Errorf("Unknown partitioner: %s", partitioner)
 	}
 
-	prod.reader = shared.NewBufferedReader(4096, flags, offset, delimiter)
+	prod.reader = shared.NewBufferedReader(prod.bufferSizeKB, flags, offset, delimiter)
 	return nil
 }
 

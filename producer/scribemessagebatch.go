@@ -148,9 +148,18 @@ func (batch *scribeMessageBatch) flush(scribe *scribe.ScribeClient, onError func
 	}()
 }
 
-func (batch *scribeMessageBatch) waitForFlush() {
+func (batch *scribeMessageBatch) waitForFlush(timeout time.Duration) {
+	flushed := int32(0)
+	time.AfterFunc(timeout, func() {
+		if atomic.CompareAndSwapInt32(&flushed, 0, 1) {
+			batch.flushing.Unlock()
+		}
+	})
+
 	batch.flushing.Lock()
-	batch.flushing.Unlock()
+	if atomic.CompareAndSwapInt32(&flushed, 0, 1) {
+		batch.flushing.Unlock()
+	}
 }
 
 func (batch scribeMessageBatch) isEmpty() bool {

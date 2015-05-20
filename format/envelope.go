@@ -17,7 +17,6 @@ package format
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
-	"strings"
 )
 
 // Envelope is a formatter that allows prefixing and/or postfixing a message
@@ -46,8 +45,6 @@ type Envelope struct {
 	prefix  string
 }
 
-var envelopeEscapeChars = strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
-
 func init() {
 	shared.RuntimeType.Register(Envelope{})
 }
@@ -60,8 +57,8 @@ func (format *Envelope) Configure(conf core.PluginConfig) error {
 	}
 
 	format.base = plugin.(core.Formatter)
-	format.prefix = envelopeEscapeChars.Replace(conf.GetString("Prefix", ""))
-	format.postfix = envelopeEscapeChars.Replace(conf.GetString("Postfix", "\n"))
+	format.prefix = shared.Unescape(conf.GetString("Prefix", ""))
+	format.postfix = shared.Unescape(conf.GetString("Postfix", "\n"))
 
 	return nil
 }

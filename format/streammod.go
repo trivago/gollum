@@ -22,19 +22,24 @@ import (
 
 // StreamMod is a formatter that modifies a message's stream by reading a prefix
 // from the message's data (and discarding it).
-// The prefix is defined by everything before the first colon ":" in the
-// message. If no colon is found or the prefix is empty the message stream is
-// not changed.
+// The prefix is defined by everything before a given delimiter in the
+// message. If no delimiter is found or the prefix is empty the message stream
+// is not changed.
 // Configuration example
 //
 //   - "<producer|stream>":
 //     Formatter: "format.StreamMod"
 //     StreamModFormatter: "format.Forward"
+//     StreamModDelimiter: "$"
 //
 // StreamModFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
+//
+// StreamModDelimiter defines the delimiter to search when extracting the stream
+// name. By default this is set to ":".
 type StreamMod struct {
-	base core.Formatter
+	base      core.Formatter
+	delimiter []byte
 }
 
 func init() {
@@ -48,6 +53,7 @@ func (format *StreamMod) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
+	format.delimiter = []byte(conf.GetString("StreamModDelimiter", ":"))
 	format.base = plugin.(core.Formatter)
 
 	return nil
@@ -56,7 +62,7 @@ func (format *StreamMod) Configure(conf core.PluginConfig) error {
 // Format adds prefix and postfix to the message formatted by the base formatter
 func (format *StreamMod) Format(msg core.Message) ([]byte, core.MessageStreamID) {
 	modMsg := msg
-	prefixEnd := bytes.IndexByte(msg.Data, ':')
+	prefixEnd := bytes.Index(msg.Data, format.delimiter)
 
 	switch prefixEnd {
 	case -1:
