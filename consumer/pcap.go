@@ -86,6 +86,14 @@ Error:
 func (s *Stream) processPacket(p *Pcap, pkt *pcap.Packet) {
 	// We only care about packets with content
 	if len(pkt.Payload) > 0 {
+		// DEBUG--->
+
+		tcpHeader := pkt.Headers[1].(*pcap.Tcphdr)
+		headerString := fmt.Sprintf("TCP: %#v", tcpHeader)
+		p.EnqueueMessage(core.NewMessage(p, []byte(headerString), 0))
+
+		// <---DEBUG
+
 		if len(s.Packets) == 0 {
 			b := bytes.NewBuffer(pkt.Payload)
 			rs, err := s.reqsFromBuffer(b)

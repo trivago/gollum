@@ -27,10 +27,11 @@ import (
 //     Filter: "filter.RegExp"
 //     FilterExpression: "\d+-.*"
 //
-// FilterRegExp defines the regular expression used for matching the message
+// FilterExpression defines the regular expression used for matching the message
 // payload. If the expression matches, the message is passed.
 type RegExp struct {
 	exp *regexp.Regexp
+	expNot *regexp.Regexp
 }
 
 func init() {
@@ -49,14 +50,27 @@ func (filter *RegExp) Configure(conf core.PluginConfig) error {
 		}
 	}
 
+	exp = conf.GetString("FilterExpressionNot", "")
+	if exp != "" {
+		filter.expNot, err = regexp.Compile(exp)
+		if err != nil {
+			return err // ### return, regex parser error ###
+		}
+	}
+
 	return nil
 }
 
 // Accepts allows all messages
 func (filter *RegExp) Accepts(msg core.Message) bool {
-	if filter.exp == nil {
-		return true // ### return, pass everything ###
+	if filter.exp != nil {
+		return filter.exp.MatchString(string(msg.Data))
 	}
 
-	return filter.exp.MatchString(string(msg.Data))
+	if filter.expNot != nil {
+		return !filter.expNot.MatchString(string(msg.Data))
+	}
+
+	return true // ### return, pass everything ###
+
 }
