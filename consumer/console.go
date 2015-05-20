@@ -32,25 +32,45 @@ const (
 //
 //   - "consumer.Console":
 //     Enable: true
+//	   ExitOnEOF: true
 //
 // This consumer reads from stdin. A message is generated after each newline
 // character.
 //
+// ExitOnEOF can be set to true to trigger an exit signal if StdIn is closed
+// (e.g. when a pipe is closed). This is set to false by default.
+//
 // This consumer does not define any options beside the standard ones.
 type Console struct {
 	core.ConsumerBase
+	autoexit bool
 }
 
 func init() {
 	shared.RuntimeType.Register(Console{})
 }
 
-func (cons *Console) readFrom(stream io.Reader) {
+// Configure initializes this consumer with values from a plugin config.
+func (cons *Console) Configure(conf core.PluginConfig) error {
+	cons.autoexit = conf.GetBool("ExitOnEOF", false)
+	return cons.ConsumerBase.Configure(conf)
+}
+
+func (cons *Console) readStdIn() {
 	buffer := shared.NewBufferedReader(consoleBufferGrowSize, 0, 0, "\n")
 
 	for {
-		err := buffer.ReadAll(stream, cons.Enqueue)
-		if err != nil && err != io.EOF {
+		err := buffer.ReadAll(os.Stdin, cons.Enqueue)
+		switch err {
+		case io.EOF:
+			if cons.autoexit {
+				proc, _ := os.FindProcess(os.Getpid())
+				proc.Signal(os.Interrupt)
+			}
+
+		case nil:
+			// ignore
+		default:
 			Log.Error.Print("Error reading stdin: ", err)
 		}
 	}
@@ -58,6 +78,6 @@ func (cons *Console) readFrom(stream io.Reader) {
 
 // Consume listens to stdin.
 func (cons *Console) Consume(workers *sync.WaitGroup) {
-	go cons.readFrom(os.Stdin)
+	go cons.readStdIn()
 	cons.DefaultControlLoop(nil)
 }
