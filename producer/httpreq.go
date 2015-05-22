@@ -22,7 +22,6 @@ import (
 	"github.com/trivago/gollum/shared"
 	"net/http"
 	"sync"
-	"time"
 )
 
 // HttpReq producer plugin
@@ -31,15 +30,11 @@ import (
 //   - "producer.HttpReq":
 //     Enable:  true
 //     Host:    "staging.trv:8080"
-//	   ReadTimeoutSec: 5
 //
-// ReadTimeoutSec specifies the maximum duration in seconds before timing out
-// read of the request. By default this is set to 3 seconds.
 type HttpReq struct {
 	core.ProducerBase
-	host           string
-	listen         *shared.StopListener
-	readTimeoutSec time.Duration
+	host   string
+	listen *shared.StopListener
 }
 
 func init() {
@@ -56,28 +51,26 @@ func (prod *HttpReq) Configure(conf core.PluginConfig) error {
 	if !conf.HasValue("Host") {
 		return core.NewProducerError("No Host configured for producer.HttpReq")
 	}
-	prod.host = conf.GetString("Host", "")
-	prod.readTimeoutSec = time.Duration(conf.GetInt("ReadTimeoutSec", 3)) * time.Second
 
+	prod.host = conf.GetString("Host", "localhost")
 	return nil
 }
 
 func (prod *HttpReq) sendReq(msg core.Message) {
+	requestData := bytes.NewBuffer(prod.ProducerBase.Format(msg))
+	req, err := http.ReadRequest(bufio.NewReader(requestData))
+	if err != nil {
+		Log.Error.Print("HttpReq invalid request", err)
+		return
+	}
+
+	req.URL.Host = prod.host
+	req.RequestURI = ""
+	req.URL.Scheme = "http"
+
 	go func() {
-		b := bytes.NewBuffer(prod.ProducerBase.Format(msg))
-		r, err := http.ReadRequest(bufio.NewReader(b))
-		if err != nil {
-			Log.Error.Print("HttpReq request error:", err)
-			return
-		}
-		r.URL.Host = prod.host
-		r.RequestURI = ""
-		r.URL.Scheme = "http"
-		_, e := http.DefaultClient.Do(r)
-		if e != nil {
-			Log.Error.Print("HttpReq error sending request: ", e)
-		} else {
-			// Request Sent
+		if _, err := http.DefaultClient.Do(req); err != nil {
+			Log.Error.Print("HttpReq send failed: ", err)
 		}
 	}()
 }
