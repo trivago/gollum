@@ -34,7 +34,7 @@ import (
 //     Interface: eth0
 //     Filter: "dst port 80 and dst host 127.0.0.1"
 //     Promiscuous: true
-//     TimeoutSec: 3
+//     TimeoutMs: 3000
 //     DebugTCP: false
 //
 type PcapHTTP struct {
@@ -50,7 +50,7 @@ type PcapHTTP struct {
 	sessionTimeout time.Duration
 }
 
-type pcapSessionMap map[uint64]*pcapSession
+type pcapSessionMap map[uint32]*pcapSession
 
 const (
 	pcapNextExEOF     = -2
@@ -75,7 +75,7 @@ func (cons *PcapHTTP) Configure(conf core.PluginConfig) error {
 	cons.filter = conf.GetString("Filter", "dst port 80 and dst host 127.0.0.1")
 	cons.capturing = true
 	cons.sessions = make(pcapSessionMap)
-	cons.sessionTimeout = time.Duration(conf.GetInt("TimeoutSec", 3)) * time.Second
+	cons.sessionTimeout = time.Duration(conf.GetInt("TimeoutSec", 3000)) * time.Millisecond
 
 	return nil
 }
@@ -85,7 +85,7 @@ func (cons *PcapHTTP) enqueueBuffer(data []byte) {
 	atomic.AddUint64(&cons.seqNum, 1)
 }
 
-func (cons *PcapHTTP) getStreamKey(pkt *pcap.Packet) (uint64, string, bool) {
+func (cons *PcapHTTP) getStreamKey(pkt *pcap.Packet) (uint32, string, bool) {
 	if len(pkt.Headers) != 2 {
 		Log.Debug.Printf("Invalid number of headers: %d", len(pkt.Headers))
 		Log.Debug.Printf("Not a TCP/IP packet: %#v", pkt)
@@ -101,10 +101,10 @@ func (cons *PcapHTTP) getStreamKey(pkt *pcap.Packet) (uint64, string, bool) {
 
 	clientID := fmt.Sprintf("%s:%d", ipHeader.SrcAddr(), tcpHeader.SrcPort)
 	key := fmt.Sprintf("%s-%s:%d", clientID, ipHeader.DestAddr(), tcpHeader.DestPort)
-	keyHash := fnv.New64a()
+	keyHash := fnv.New32a()
 	keyHash.Sum([]byte(key))
 
-	return keyHash.Sum64(), clientID, true
+	return keyHash.Sum32(), clientID, true
 }
 
 func (cons *PcapHTTP) readPackets() {
@@ -128,21 +128,28 @@ func (cons *PcapHTTP) readPackets() {
 		pkt.Decode()
 		key, client, validPacket := cons.getStreamKey(pkt)
 
+		if cons.debugTCP {
+			TCPHeader, _ := tcpFromPcap(pkt)
+			headerString := fmt.Sprintf("TCP: [%t] %#v", validPacket && len(pkt.Payload) > 0, TCPHeader)
+			cons.enqueueBuffer([]byte(headerString))
+		}
+
 		if validPacket {
 			session, sessionExists := cons.sessions[key]
 			if sessionExists {
 				session.timer.Reset(cons.sessionTimeout)
 			} else {
-				session = newPcapSession(key, client, cons.sessionTimeout, cons.sessions)
+				session = newPcapSession(client)
 				cons.sessions[key] = session
+
+				session.timer = time.AfterFunc(cons.sessionTimeout, func() {
+					if len(session.packets) > 0 {
+						Log.Debug.Print("PcapHTTP: Incomplete session timed out")
+					}
+					delete(cons.sessions, key)
+				})
 			}
 			session.addPacket(cons, pkt)
-		}
-
-		if cons.debugTCP {
-			TCPHeader, _ := tcpFromPcap(pkt)
-			headerString := fmt.Sprintf("TCP: [%t] %#v", validPacket, TCPHeader)
-			cons.enqueueBuffer([]byte(headerString))
 		}
 	}
 	cons.handle.Close()
