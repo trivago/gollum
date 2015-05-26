@@ -115,7 +115,15 @@ func (cons *PcapHTTP) getStreamKey(pkt *pcap.Packet) (uint32, string, bool) {
 func (cons *PcapHTTP) readPackets() {
 	defer func() {
 		cons.handle.Close()
-		cons.WorkerDone()
+		if panicMessage := recover(); panicMessage != nil {
+			// try again
+			Log.Error.Print("[PANIC] PcapHTTP: ", panicMessage)
+			cons.initPcap()
+			go cons.readPackets()
+		} else {
+			// done
+			cons.WorkerDone()
+		}
 	}()
 
 	for cons.capturing {
@@ -177,10 +185,11 @@ func (cons *PcapHTTP) close() {
 	cons.capturing = false
 }
 
-func (cons *PcapHTTP) Consume(workers *sync.WaitGroup) {
+func (cons *PcapHTTP) initPcap() {
+	var err error
+
 	// Start listening
 	// device, snaplen, promisc, read timeout ms
-	var err error
 	cons.handle, err = pcap.OpenLive(cons.netInterface, int32(1<<16), cons.promiscuous, 500)
 	if err != nil {
 		Log.Error.Print("PcapHTTP: ", err)
@@ -193,8 +202,12 @@ func (cons *PcapHTTP) Consume(workers *sync.WaitGroup) {
 		Log.Error.Print("PcapHTTP: ", err)
 		return
 	}
+}
 
+func (cons *PcapHTTP) Consume(workers *sync.WaitGroup) {
+	cons.initPcap()
 	cons.AddMainWorker(workers)
+
 	go cons.readPackets()
 	defer cons.close()
 
