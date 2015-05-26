@@ -17,6 +17,7 @@ package consumer
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"github.com/miekg/pcap"
 	"github.com/trivago/gollum/core/log"
 	"net/http"
@@ -210,10 +211,12 @@ func (session *pcapSession) dropPackets(size int) {
 // add a TCP packet to the session and try to generate a HTTP packet
 func (session *pcapSession) addPacket(cons *PcapHTTP, pkt *pcap.Packet) {
 	if len(pkt.Payload) == 0 {
+		fmt.Print("-")
 		return //  ### return, no payload  ###
 	}
 
 	session.packets = session.packets.insert(pkt)
+	fmt.Print(".")
 
 	if complete, size := session.packets.isComplete(); complete {
 		payload := bytes.NewBuffer(make([]byte, 0, size))
@@ -225,6 +228,7 @@ func (session *pcapSession) addPacket(cons *PcapHTTP, pkt *pcap.Packet) {
 		for {
 			request, err := http.ReadRequest(payloadReader)
 			if err != nil {
+				fmt.Print("+")
 				return // ### return, invalid request: packets pending? ###
 			}
 
@@ -237,12 +241,14 @@ func (session *pcapSession) addPacket(cons *PcapHTTP, pkt *pcap.Packet) {
 				Log.Error.Print("PcapHTTP request writer: ", err)
 			} else {
 				// Enqueue this request
+				fmt.Print("o")
 				cons.enqueueBuffer(extPayload.Bytes())
 			}
 
 			// Remove processed packets from list
 			if payload.Len() == 0 {
 				session.packets = session.packets[:0]
+				fmt.Print("x")
 				return // ### return, processed everything ###
 			}
 

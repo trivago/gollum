@@ -57,6 +57,7 @@ const (
 	pcapNextExError   = -1
 	pcapNextExTimeout = 0
 	pcapNextExOk      = 1
+	pcapFin           = 0x1
 )
 
 func init() {
@@ -128,14 +129,15 @@ func (cons *PcapHTTP) readPackets() {
 		pkt.Decode()
 		key, client, validPacket := cons.getStreamKey(pkt)
 
+		TCPHeader, _ := tcpFromPcap(pkt)
+		session, sessionExists := cons.sessions[key]
+
 		if cons.debugTCP {
-			TCPHeader, _ := tcpFromPcap(pkt)
-			headerString := fmt.Sprintf("TCP: [%t] %#v", validPacket && len(pkt.Payload) > 0, TCPHeader)
+			headerString := fmt.Sprintf("TCP: [%t] [%s] %#v", validPacket && len(pkt.Payload) > 0, client, TCPHeader)
 			cons.enqueueBuffer([]byte(headerString))
 		}
 
 		if validPacket {
-			session, sessionExists := cons.sessions[key]
 			if sessionExists {
 				session.timer.Reset(cons.sessionTimeout)
 			} else {
@@ -150,6 +152,14 @@ func (cons *PcapHTTP) readPackets() {
 				})
 			}
 			session.addPacket(cons, pkt)
+		}
+
+		if sessionExists && (TCPHeader.Flags&pcapFin != 0) {
+			closeString := fmt.Sprintf("TCP: [closed] [%s]", client)
+			cons.enqueueBuffer([]byte(closeString))
+
+			session.timer.Stop()
+			delete(cons.sessions, key)
 		}
 	}
 	cons.handle.Close()
