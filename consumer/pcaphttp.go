@@ -100,6 +100,10 @@ func (cons *PcapHTTP) getStreamKey(pkt *pcap.Packet) (uint32, string, bool) {
 		return 0, "", false
 	}
 
+	if len(pkt.Payload) == 0 {
+		return 0, "", false
+	}
+
 	clientID := fmt.Sprintf("%s:%d", ipHeader.SrcAddr(), tcpHeader.SrcPort)
 	key := fmt.Sprintf("%s-%s:%d", clientID, ipHeader.DestAddr(), tcpHeader.DestPort)
 	keyHash := fnv.New32a()
@@ -132,13 +136,13 @@ func (cons *PcapHTTP) readPackets() {
 		}
 
 		pkt.Decode()
-		key, client, validPacket := cons.getStreamKey(pkt)
-
 		TCPHeader, _ := tcpFromPcap(pkt)
+
+		key, client, validPacket := cons.getStreamKey(pkt)
 		session, sessionExists := cons.sessions[key]
 
 		if cons.debugTCP {
-			headerString := fmt.Sprintf("TCP: [%t] [%s] %#v", validPacket && len(pkt.Payload) > 0, client, TCPHeader)
+			headerString := fmt.Sprintf("TCP: [%t] [%s] %#v", validPacket, client, TCPHeader)
 			cons.enqueueBuffer([]byte(headerString))
 		}
 
