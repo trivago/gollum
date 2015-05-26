@@ -107,7 +107,7 @@ func (cons *PcapHTTP) getStreamKey(pkt *pcap.Packet) (uint32, string, bool) {
 	clientID := fmt.Sprintf("%s:%d", ipHeader.SrcAddr(), tcpHeader.SrcPort)
 	key := fmt.Sprintf("%s-%s:%d", clientID, ipHeader.DestAddr(), tcpHeader.DestPort)
 	keyHash := fnv.New32a()
-	keyHash.Sum([]byte(key))
+	keyHash.Write([]byte(key))
 
 	return keyHash.Sum32(), clientID, true
 }
@@ -155,7 +155,7 @@ func (cons *PcapHTTP) readPackets() {
 
 				session.timer = time.AfterFunc(cons.sessionTimeout, func() {
 					if len(session.packets) > 0 {
-						Log.Debug.Print("PcapHTTP: Incomplete session timed out")
+						Log.Debug.Printf("PcapHTTP: Incomplete session timed out: %s", session)
 					}
 					delete(cons.sessions, key)
 				})

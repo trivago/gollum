@@ -17,8 +17,10 @@ package consumer
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"github.com/miekg/pcap"
 	"github.com/trivago/gollum/core/log"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -169,11 +171,14 @@ func (list packetList) isComplete() (bool, int) {
 	case 1:
 		return true, len(list[0].Payload)
 	case 2:
-		TCPHeader1, _ := tcpFromPcap(list[0])
-		TCPHeader2, _ := tcpFromPcap(list[1])
-		if TCPHeader1.Seq+1 == TCPHeader2.Seq {
-			return true, len(list[0].Payload) + len(list[1].Payload)
+		TCPHeader0, _ := tcpFromPcap(list[0])
+		TCPHeader1, _ := tcpFromPcap(list[1])
+		size0 := len(list[0].Payload)
+
+		if TCPHeader0.Seq+uint32(size0) == TCPHeader1.Seq {
+			return true, size0 + len(list[1].Payload)
 		}
+
 		return false, 0
 	}
 
@@ -182,17 +187,30 @@ func (list packetList) isComplete() (bool, int) {
 	TCPHeader, _ := tcpFromPcap(list[0])
 	payloadSize := len(list[0].Payload)
 	prevSeq := TCPHeader.Seq
+	prevSize := len(list[0].Payload)
 
 	for i := 1; i < numPackets; i++ {
 		TCPHeader, _ = tcpFromPcap(list[i])
-		if prevSeq+1 != TCPHeader.Seq {
+
+		if prevSeq+uint32(prevSize) != TCPHeader.Seq {
 			return false, 0
 		}
+
 		prevSeq = TCPHeader.Seq
-		payloadSize += len(list[i].Payload)
+		prevSize = len(list[i].Payload)
+		payloadSize += prevSize
 	}
 
 	return true, payloadSize
+}
+
+func (session *pcapSession) String() string {
+	info := fmt.Sprintf("%d:{", len(session.packets))
+	for _, pkt := range session.packets {
+		tcpHeader, _ := tcpFromPcap(pkt)
+		info += fmt.Sprintf("[%d]", tcpHeader.Seq)
+	}
+	return info + "}"
 }
 
 // remove processed packets from the list.
@@ -233,6 +251,9 @@ func (session *pcapSession) addPacket(cons *PcapHTTP, pkt *pcap.Packet) {
 
 			extPayload := bytes.NewBuffer(nil)
 			if err := request.Write(extPayload); err != nil {
+				if err == io.ErrUnexpectedEOF {
+					return // ### return, invalid request: packets pending? ###
+				}
 				// Error: ignore this request
 				Log.Error.Print("PcapHTTP request writer: ", err)
 			} else {
