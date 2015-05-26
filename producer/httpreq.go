@@ -20,6 +20,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
+	"net"
 	"net/http"
 	"sync"
 )
@@ -33,8 +34,10 @@ import (
 //
 type HttpReq struct {
 	core.ProducerBase
-	host   string
-	listen *shared.StopListener
+	host    string
+	port    string
+	address string
+	listen  *shared.StopListener
 }
 
 func init() {
@@ -48,11 +51,21 @@ func (prod *HttpReq) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	if !conf.HasValue("Host") {
+	if !conf.HasValue("Address") {
 		return core.NewProducerError("No Host configured for producer.HttpReq")
 	}
 
-	prod.host = conf.GetString("Host", "localhost")
+	address := conf.GetString("Address", ":80")
+	prod.host, prod.port, err = net.SplitHostPort(address)
+	if err != nil {
+		return err
+	}
+
+	if prod.host == "" {
+		prod.host = "localhost"
+	}
+
+	prod.address = prod.host + ":" + prod.port
 	return nil
 }
 
@@ -64,7 +77,7 @@ func (prod *HttpReq) sendReq(msg core.Message) {
 		return
 	}
 
-	req.URL.Host = prod.host
+	req.URL.Host = prod.address
 	req.RequestURI = ""
 	req.URL.Scheme = "http"
 
