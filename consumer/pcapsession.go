@@ -53,7 +53,6 @@ func newPcapSession(client string) *pcapSession {
 }
 
 // binary search for an insertion point in the packet list
-// TODO: Unittest!
 func findPacketSlot(seq uint32, list packetList) (int, bool) {
 	offset := 0
 	partLen := len(list)
@@ -61,7 +60,6 @@ func findPacketSlot(seq uint32, list packetList) (int, bool) {
 	for partLen > 1 {
 		median := partLen / 2
 		TCPHeader, _ := tcpFromPcap(list[offset+median])
-
 		switch {
 		case seq < TCPHeader.Seq:
 			partLen = median
@@ -73,19 +71,19 @@ func findPacketSlot(seq uint32, list packetList) (int, bool) {
 		}
 	}
 
-	TCPHeader, _ := tcpFromPcap(list[offset])
-	switch {
-	case seq < TCPHeader.Seq:
-		return offset - 1, false
-	case seq > TCPHeader.Seq:
-		return offset + 1, false
-	default:
-		return offset, true // ### return, duplicate ###
+	if partLen == 0 {
+		return offset, false // ### return, out of range ###
 	}
+
+	TCPHeader, _ := tcpFromPcap(list[offset])
+	if seq > TCPHeader.Seq {
+		return offset + 1, false
+	}
+
+	return offset, seq == TCPHeader.Seq // ### return, duplicate ###
 }
 
 // insertion sort for new packages by sequence number
-// TODO: Unittest!
 func (list packetList) insert(newPkt *pcap.Packet) packetList {
 	if len(list) == 0 {
 		return packetList{newPkt}
@@ -97,9 +95,10 @@ func (list packetList) insert(newPkt *pcap.Packet) packetList {
 
 	TCPHeader, _ := tcpFromPcap(newPkt)
 	newPktSeq := TCPHeader.Seq
-	TCPHeader, _ = tcpFromPcap(list[0])
+	frontTCPHeader, _ := tcpFromPcap(list[0])
+	backTCPHeader, _ := tcpFromPcap(list[len(list)-1])
 
-	if newPktSeq < seqLow && TCPHeader.Seq > seqHigh {
+	if newPktSeq < seqLow && frontTCPHeader.Seq > seqHigh {
 		// Overflow: add low value segment packet
 		for i, pkt := range list {
 			TCPHeader, _ = tcpFromPcap(pkt)
@@ -107,19 +106,19 @@ func (list packetList) insert(newPkt *pcap.Packet) packetList {
 				continue // skip high value segment
 			}
 			if newPktSeq < TCPHeader.Seq {
-				return append(append(list[:i], newPkt), list[i:]...)
+				return append(list[:i], append(packetList{newPkt}, list[i:]...)...) // ### return insert ###
 			}
 			if newPktSeq == TCPHeader.Seq {
 				list[i] = newPkt
 				return list // ### return, replaced ###
 			}
 		}
-	} else if newPktSeq > seqHigh && TCPHeader.Seq < seqLow {
+	} else if newPktSeq > seqHigh && backTCPHeader.Seq < seqLow {
 		// Overflow: add high value segment packet
 		for i, pkt := range list {
 			TCPHeader, _ = tcpFromPcap(pkt)
 			if newPktSeq < TCPHeader.Seq || TCPHeader.Seq < seqLow {
-				return append(append(list[:i], newPkt), list[i:]...)
+				return append(list[:i], append(packetList{newPkt}, list[i:]...)...) // ### return insert ###
 			}
 			if newPktSeq == TCPHeader.Seq {
 				list[i] = newPkt
@@ -130,22 +129,26 @@ func (list packetList) insert(newPkt *pcap.Packet) packetList {
 		// Large package insert (binary search)
 		if len(list) > 10 {
 			i, duplicate := findPacketSlot(newPktSeq, list)
-			if duplicate {
+			switch {
+			case duplicate:
 				list[i] = newPkt
 				return list // ### return, replaced ###
+			case i < 0:
+				return append(packetList{newPkt}, list...) // ### return, prepend ###
+			case i < len(list):
+				return append(list[:i], append(packetList{newPkt}, list[i:]...)...) // ### return insert ###
 			}
-			return append(append(list[:i], newPkt), list[i:]...)
-		}
-
-		// Small package insert (linear Search)
-		for i, pkt := range list {
-			TCPHeader, _ = tcpFromPcap(pkt)
-			if newPktSeq < TCPHeader.Seq {
-				return append(append(list[:i], newPkt), list[i:]...)
-			}
-			if newPktSeq == TCPHeader.Seq {
-				list[i] = newPkt
-				return list // ### return, replaced ###
+		} else {
+			// Small package insert (linear Search)
+			for i, pkt := range list {
+				TCPHeader, _ = tcpFromPcap(pkt)
+				if newPktSeq < TCPHeader.Seq {
+					return append(list[:i], append(packetList{newPkt}, list[i:]...)...) // ### return insert ###
+				}
+				if newPktSeq == TCPHeader.Seq {
+					list[i] = newPkt
+					return list // ### return, replaced ###
+				}
 			}
 		}
 	}
@@ -155,8 +158,8 @@ func (list packetList) insert(newPkt *pcap.Packet) packetList {
 
 // check if all packets have consecutive sequence numbers and calculate the
 // buffer size required for processing
-func (session *pcapSession) isComplete() (bool, int) {
-	numPackets := len(session.packets)
+func (list packetList) isComplete() (bool, int) {
+	numPackets := len(list)
 
 	// Trivial cases
 
@@ -164,29 +167,29 @@ func (session *pcapSession) isComplete() (bool, int) {
 	case 0:
 		return false, 0
 	case 1:
-		return true, len(session.packets[0].Payload)
+		return true, len(list[0].Payload)
 	case 2:
-		TCPHeader1, _ := tcpFromPcap(session.packets[0])
-		TCPHeader2, _ := tcpFromPcap(session.packets[1])
+		TCPHeader1, _ := tcpFromPcap(list[0])
+		TCPHeader2, _ := tcpFromPcap(list[1])
 		if TCPHeader1.Seq+1 == TCPHeader2.Seq {
-			return true, len(session.packets[0].Payload) + len(session.packets[1].Payload)
+			return true, len(list[0].Payload) + len(list[1].Payload)
 		}
 		return false, 0
 	}
 
 	// More than 2 packets -> loop
 
-	TCPHeader, _ := tcpFromPcap(session.packets[0])
-	payloadSize := len(session.packets[0].Payload)
+	TCPHeader, _ := tcpFromPcap(list[0])
+	payloadSize := len(list[0].Payload)
 	prevSeq := TCPHeader.Seq
 
 	for i := 1; i < numPackets; i++ {
-		TCPHeader, _ = tcpFromPcap(session.packets[i])
+		TCPHeader, _ = tcpFromPcap(list[i])
 		if prevSeq+1 != TCPHeader.Seq {
 			return false, 0
 		}
 		prevSeq = TCPHeader.Seq
-		payloadSize += len(session.packets[i].Payload)
+		payloadSize += len(list[i].Payload)
 	}
 
 	return true, payloadSize
@@ -212,7 +215,7 @@ func (session *pcapSession) addPacket(cons *PcapHTTP, pkt *pcap.Packet) {
 
 	session.packets = session.packets.insert(pkt)
 
-	if complete, size := session.isComplete(); complete {
+	if complete, size := session.packets.isComplete(); complete {
 		payload := bytes.NewBuffer(make([]byte, 0, size))
 		for _, pkt := range session.packets {
 			payload.Write(pkt.Payload)
