@@ -109,6 +109,11 @@ func (cons *PcapHTTP) getStreamKey(pkt *pcap.Packet) (uint32, string, bool) {
 }
 
 func (cons *PcapHTTP) readPackets() {
+	defer func() {
+		cons.handle.Close()
+		cons.WorkerDone()
+	}()
+
 	for cons.capturing {
 		pkt, resultCode := cons.handle.NextEx()
 
@@ -154,7 +159,7 @@ func (cons *PcapHTTP) readPackets() {
 			session.addPacket(cons, pkt)
 		}
 
-		if sessionExists && (TCPHeader.Flags&pcapFin != 0) {
+		if sessionExists && validPacket && (TCPHeader.Flags&pcapFin != 0) {
 			closeString := fmt.Sprintf("TCP: [closed] [%s]", client)
 			cons.enqueueBuffer([]byte(closeString))
 
@@ -162,8 +167,6 @@ func (cons *PcapHTTP) readPackets() {
 			delete(cons.sessions, key)
 		}
 	}
-	cons.handle.Close()
-	cons.WorkerDone()
 }
 
 func (cons *PcapHTTP) close() {
