@@ -27,9 +27,10 @@ import (
 )
 
 type pcapSession struct {
-	client  string
-	timer   *time.Timer
-	packets packetList
+	client    string
+	timer     *time.Timer
+	packets   packetList
+	lastError error
 }
 
 type packetList []*pcap.Packet
@@ -243,6 +244,7 @@ func (session *pcapSession) addPacket(cons *PcapHTTP, pkt *pcap.Packet) {
 		for {
 			request, err := http.ReadRequest(payloadReader)
 			if err != nil {
+				session.lastError = err
 				return // ### return, invalid request: packets pending? ###
 			}
 

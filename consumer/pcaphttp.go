@@ -163,7 +163,12 @@ func (cons *PcapHTTP) readPackets() {
 
 				session.timer = time.AfterFunc(cons.sessionTimeout, func() {
 					if len(session.packets) > 0 {
-						Log.Debug.Printf("PcapHTTP: Incomplete session timed out: %s", session)
+						if session.lastError == nil {
+							session.lastError = fmt.Errorf("-")
+						}
+						// TODO: Try to recover io.ErrUnexpectedEOF by adding \r\n
+						//       Generate the missing package (seq + payload)
+						Log.Debug.Printf("PcapHTTP: Incomplete session timed out: \"%s\" %s", session.lastError, session)
 					}
 					delete(cons.sessions, key)
 				})
