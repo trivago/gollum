@@ -48,6 +48,7 @@ type PcapHTTP struct {
 	sessions       pcapSessionMap
 	seqNum         uint64
 	sessionTimeout time.Duration
+	sessionGuard   *sync.Mutex
 }
 
 type pcapSessionMap map[uint32]*pcapSession
@@ -77,6 +78,7 @@ func (cons *PcapHTTP) Configure(conf core.PluginConfig) error {
 	cons.capturing = true
 	cons.sessions = make(pcapSessionMap)
 	cons.sessionTimeout = time.Duration(conf.GetInt("TimeoutSec", 3000)) * time.Millisecond
+	cons.sessionGuard = new(sync.Mutex)
 
 	return nil
 }
@@ -147,7 +149,7 @@ func (cons *PcapHTTP) readPackets() {
 		TCPHeader, _ := tcpFromPcap(pkt)
 
 		key, client, validPacket := cons.getStreamKey(pkt)
-		session, sessionExists := cons.sessions[key]
+		session, sessionExists := cons.tryGetSession(key)
 
 		if cons.debugTCP {
 			headerString := fmt.Sprintf("TCP: [%t] [%s] %#v", validPacket, client, TCPHeader)
@@ -159,7 +161,7 @@ func (cons *PcapHTTP) readPackets() {
 				session.timer.Reset(cons.sessionTimeout)
 			} else {
 				session = newPcapSession(client)
-				cons.sessions[key] = session
+				cons.setSession(key, session)
 
 				session.timer = time.AfterFunc(cons.sessionTimeout, func() {
 					if len(session.packets) > 0 {
@@ -170,7 +172,7 @@ func (cons *PcapHTTP) readPackets() {
 						//       Generate the missing package (seq + payload)
 						Log.Debug.Printf("PcapHTTP: Incomplete session timed out: \"%s\" %s", session.lastError, session)
 					}
-					delete(cons.sessions, key)
+					cons.clearSession(key)
 				})
 			}
 			session.addPacket(cons, pkt)
@@ -181,9 +183,28 @@ func (cons *PcapHTTP) readPackets() {
 			cons.enqueueBuffer([]byte(closeString))
 
 			session.timer.Stop()
-			delete(cons.sessions, key)
+			cons.clearSession(key)
 		}
 	}
+}
+
+func (cons *PcapHTTP) tryGetSession(key uint32) (*pcapSession, bool) {
+	cons.sessionGuard.Lock()
+	defer cons.sessionGuard.Unlock()
+	session, exists := cons.sessions[key]
+	return session, exists
+}
+
+func (cons *PcapHTTP) setSession(key uint32, session *pcapSession) {
+	cons.sessionGuard.Lock()
+	defer cons.sessionGuard.Unlock()
+	cons.sessions[key] = session
+}
+
+func (cons *PcapHTTP) clearSession(key uint32) {
+	cons.sessionGuard.Lock()
+	defer cons.sessionGuard.Unlock()
+	delete(cons.sessions, key)
 }
 
 func (cons *PcapHTTP) close() {
