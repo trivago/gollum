@@ -88,9 +88,9 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 			continue // ### continue, disabled ###
 		}
 
-		pluginType := shared.RuntimeType.GetTypeOf(config.TypeName)
+		pluginType := shared.RuntimeType.GetTypeOf(config.Typename)
 		if pluginType == nil {
-			Log.Error.Print("Failed to load plugin ", config.TypeName, ": Type not found")
+			Log.Error.Print("Failed to load plugin ", config.Typename, ": Type not found")
 			continue // ### continue ###
 		}
 
@@ -109,7 +109,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 		}
 
 		if !validPlugin {
-			Log.Error.Print("Failed to load plugin ", config.TypeName, ": Does not qualify for consumer, producer or stream interface")
+			Log.Error.Print("Failed to load plugin ", config.Typename, ": Does not qualify for consumer, producer or stream interface")
 
 			consumerMatch, consumerMissing := shared.GetMissingMethods(pluginType, consumerInterface)
 			producerMatch, producerMissing := shared.GetMissingMethods(pluginType, producerInterface)
@@ -148,7 +148,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 		for _, streamName := range config.Stream {
 			plugin, err := core.NewPlugin(config)
 			if err != nil {
-				Log.Error.Print("Failed to configure stream plugin ", config.TypeName, ": ", err)
+				Log.Error.Print("Failed to configure stream plugin ", config.Typename, ": ", err)
 				continue // ### continue ###
 			}
 			core.StreamTypes.Register(plugin.(core.Stream), core.GetStreamID(streamName))
@@ -165,7 +165,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 		for i := 0; i < config.Instances; i++ {
 			plugin, err := core.NewPlugin(config)
 			if err != nil {
-				Log.Error.Print("Failed to configure producer plugin ", config.TypeName, ": ", err)
+				Log.Error.Print("Failed to configure producer plugin ", config.Typename, ": ", err)
 				continue // ### continue ###
 			}
 
@@ -173,7 +173,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 			streams := producer.Streams()
 
 			if len(streams) == 0 {
-				Log.Error.Print("Producer plugin ", config.TypeName, " has no streams set")
+				Log.Error.Print("Producer plugin ", config.Typename, " has no streams set")
 				continue // ### continue ###
 			}
 
@@ -204,13 +204,13 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	// built. This eliminates lookups when sending to specific streams.
 
 	logConsumer, _ := plex.consumers[0].(*core.LogConsumer)
-	logConsumer.Configure(core.PluginConfig{})
+	logConsumer.Configure(core.NewPluginConfig("core.LogConsumer"))
 
 	for _, config := range consumerConfig {
 		for i := 0; i < config.Instances; i++ {
 			plugin, err := core.NewPlugin(config)
 			if err != nil {
-				Log.Error.Print("Failed to configure consumer plugin ", config.TypeName, ": ", err)
+				Log.Error.Print("Failed to configure consumer plugin ", config.Typename, ": ", err)
 				continue // ### continue ###
 			}
 

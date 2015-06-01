@@ -91,23 +91,30 @@ func (state *PluginRunState) WorkerDone() {
 // If the type is meant to match use NewPlugin instead of NewPluginWithType.
 // This function returns nil, error if the plugin could not be instantiated or
 // plugin, error if Configure failed.
-func NewPluginWithType(typeName string, config PluginConfig) (Plugin, error) {
-	obj, err := shared.RuntimeType.New(typeName)
+func NewPluginWithType(typename string, config PluginConfig) (Plugin, error) {
+	obj, err := shared.RuntimeType.New(typename)
 	if err != nil {
 		return nil, err
 	}
 
 	plugin, isPlugin := obj.(Plugin)
 	if !isPlugin {
-		return nil, fmt.Errorf("%s is no plugin.", typeName)
+		return nil, fmt.Errorf("%s is no plugin", typename)
 	}
 
 	err = plugin.Configure(config)
+
+	// Nested plugins must not trigger a validation. Validation happens after
+	// all plugins are configured.
+	if typename == config.Typename {
+		config.Validate()
+	}
+
 	return plugin, err
 }
 
 // NewPlugin creates a new plugin from the type information stored in its
 // config. This function internally calls NewPluginWithType.
 func NewPlugin(config PluginConfig) (Plugin, error) {
-	return NewPluginWithType(config.TypeName, config)
+	return NewPluginWithType(config.Typename, config)
 }

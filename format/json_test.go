@@ -23,13 +23,8 @@ import (
 
 func newTestJSONFormatter(directives []interface{}, start string) *JSON {
 	format := JSON{}
-	conf := core.PluginConfig{
-		TypeName:  "format.JSON",
-		Enable:    true,
-		Instances: 1,
-		Stream:    []string{core.LogInternalStream},
-		Settings:  make(shared.MarshalMap),
-	}
+	conf := core.NewPluginConfig("format.JSON")
+	conf.Stream = []string{core.LogInternalStream}
 
 	conf.Settings["JSONStartState"] = start
 	conf.Settings["JSONDirectives"] = directives
