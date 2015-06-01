@@ -239,10 +239,10 @@ func (list packetList) isComplete() (bool, int) {
 }
 
 func (session *pcapSession) String() string {
-	info := fmt.Sprintf("%d:{", len(session.packets))
+	info := fmt.Sprintf("{")
 	for _, pkt := range session.packets {
 		tcpHeader, _ := tcpFromPcap(pkt)
-		info += fmt.Sprintf("[%d]", tcpHeader.Seq)
+		info += fmt.Sprintf("0x%X:0x%X, ", tcpHeader.Seq, tcpHeader.Seq+uint32(len(pkt.Payload)))
 	}
 	return info + "}"
 }
@@ -287,6 +287,7 @@ func (session *pcapSession) addPacket(cons *PcapHTTP, pkt *pcap.Packet) {
 			extPayload := bytes.NewBuffer(nil)
 			if err := request.Write(extPayload); err != nil {
 				if err == io.ErrUnexpectedEOF {
+					session.lastError = err
 					return // ### return, invalid request: packets pending? ###
 				}
 				// Error: ignore this request
