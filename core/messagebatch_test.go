@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/shared"
 	"testing"
+	"time"
 )
 
 type MessageBatchWriter struct {
@@ -73,12 +74,12 @@ func TestMessageBatch(t *testing.T) {
 	// Test optionals
 
 	buffer.Flush(writer, nil, nil)
-	buffer.WaitForFlush()
+	buffer.WaitForFlush(time.Duration(0))
 
 	// Test empty flush
 
 	buffer.Flush(writer, writer.onSuccess, writer.onError)
-	buffer.WaitForFlush()
+	buffer.WaitForFlush(time.Duration(0))
 
 	expect.False(*writer.successCalled)
 	expect.False(*writer.errorCalled)
@@ -92,7 +93,7 @@ func TestMessageBatch(t *testing.T) {
 	expect.False(result) // too large
 
 	buffer.Flush(writer, writer.onSuccess, writer.onError)
-	buffer.WaitForFlush()
+	buffer.WaitForFlush(time.Duration(0))
 
 	expect.True(*writer.successCalled)
 	expect.False(*writer.errorCalled)
@@ -109,7 +110,7 @@ func TestMessageBatch(t *testing.T) {
 
 	writer.returnError = true
 	buffer.Flush(writer, writer.onSuccess, writer.onError)
-	buffer.WaitForFlush()
+	buffer.WaitForFlush(time.Duration(0))
 
 	expect.False(*writer.successCalled)
 	expect.True(*writer.errorCalled)
@@ -118,7 +119,7 @@ func TestMessageBatch(t *testing.T) {
 
 	writer.returnWrongSize = true
 	buffer.Flush(writer, writer.onSuccess, writer.onError)
-	buffer.WaitForFlush()
+	buffer.WaitForFlush(time.Duration(0))
 
 	expect.False(*writer.successCalled)
 	expect.True(*writer.errorCalled)

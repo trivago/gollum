@@ -16,6 +16,7 @@ package format
 
 import (
 	"encoding/base64"
+	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 )
@@ -25,7 +26,16 @@ import (
 //
 //   - "<producer|stream>":
 //     Formatter: "format.Base64Encode"
+//     Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
+//
+// Dictionary defines the 64-character base64 lookup dictionary to use. When
+// left empty a dictionary as defined by RFC4648 is used. This is the default.
+//
+// Base64DataFormatter defines a formatter that is applied before the base64
+// encoding takes place. By default this is set to "format.Forward"
 type Base64Encode struct {
+	base       core.Formatter
+	dictionary *base64.Encoding
 }
 
 func init() {
@@ -34,12 +44,28 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Base64Encode) Configure(conf core.PluginConfig) error {
+	plugin, err := core.NewPluginWithType(conf.GetString("Base64DataFormatter", "format.Forward"), conf)
+	if err != nil {
+		return err
+	}
+	format.base = plugin.(core.Formatter)
+
+	dict := conf.GetString("Dictionary", "")
+	if dict == "" {
+		format.dictionary = base64.StdEncoding
+	} else {
+		if len(dict) != 64 {
+			return fmt.Errorf("Base64 dictionary must contain 64 characters.")
+		}
+		format.dictionary = base64.NewEncoding(dict)
+	}
 	return nil
 }
 
 // Format returns the original message payload
 func (format *Base64Encode) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	encoded := make([]byte, base64.StdEncoding.EncodedLen(len(msg.Data)))
-	base64.StdEncoding.Encode(encoded, msg.Data)
-	return encoded, msg.StreamID
+	data, streamID := format.base.Format(msg)
+	encoded := make([]byte, format.dictionary.EncodedLen(len(data)))
+	format.dictionary.Encode(encoded, data)
+	return encoded, streamID
 }

@@ -175,14 +175,18 @@ func (batch *MessageBatch) Flush(resource io.Writer, validate func() bool, onErr
 	}()
 }
 
-// WaitForFlush blocks until the current flush command returns
+// WaitForFlush blocks until the current flush command returns.
+// Passing a timeout > 0 will unblock this function after the given duration at
+// the latest.
 func (batch *MessageBatch) WaitForFlush(timeout time.Duration) {
 	flushed := int32(0)
-	time.AfterFunc(timeout, func() {
-		if atomic.CompareAndSwapInt32(&flushed, 0, 1) {
-			batch.flushing.Unlock()
-		}
-	})
+	if timeout > 0 {
+		time.AfterFunc(timeout, func() {
+			if atomic.CompareAndSwapInt32(&flushed, 0, 1) {
+				batch.flushing.Unlock()
+			}
+		})
+	}
 
 	batch.flushing.Lock()
 	if atomic.CompareAndSwapInt32(&flushed, 0, 1) {
