@@ -26,6 +26,7 @@ func newTcpPktMock(seq uint32) *pcap.Packet {
 			&pcap.Iphdr{},
 			&pcap.Tcphdr{Seq: seq},
 		},
+		Payload: make([]byte, 1),
 	}
 }
 

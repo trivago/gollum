@@ -36,8 +36,8 @@ type pcapSession struct {
 
 type packetList []*pcap.Packet
 
-const seqHigh = uint32(0xFFFF0000)
-const seqLow = uint32(0x0000FFFF)
+const seqHigh = uint32(0xFFFFFF00)
+const seqLow = uint32(0x00FFFFFF)
 
 func ipFromPcap(pkt *pcap.Packet) (*pcap.Iphdr, bool) {
 	header, isValid := pkt.Headers[0].(*pcap.Iphdr)
@@ -225,7 +225,6 @@ func (list packetList) isComplete() (bool, int) {
 
 	for i := 1; i < numPackets; i++ {
 		TCPHeader, _ = tcpFromPcap(list[i])
-
 		if prevSeq+uint32(prevSize) != TCPHeader.Seq {
 			return false, 0
 		}
