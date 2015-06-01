@@ -42,9 +42,9 @@ This should be done by adding a line to the init() method of the file.
     // ... read custom options ...
   }
 
-The configure method is also called when just testing the configuration via `gollum -tc ...`.
-As of this function should never open any sockets or other kind of resources.
-This should be done when a plugin is explicitly started.
+The configure method is also called when just testing the configuration via `gollum -tc`.
+As of this, this function should never open any sockets or other kind of resources.
+This should be done when a plugin is explicitly started so that proper closing of resources is assured, too.
 
 If your plugins derives from aother plugin it is advisable to call Configure() of the base type before checking your configuration options.
 There are several convenience functions in the PluginConfig type that makes it easy to obtain configuration values and setting default values.
