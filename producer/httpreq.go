@@ -30,8 +30,13 @@ import (
 //
 //   - "producer.HttpReq":
 //     Enable:  true
-//     Host:    "staging.trv:8080"
+//     Address: ":80"
 //
+// The HttpReq producers sends messages that already are valid http request to a
+//  given webserver.
+//
+// Address defines the webserver to send http requests to. Set to ":80", which
+// is equal to "localhost:80" by default.
 type HttpReq struct {
 	core.ProducerBase
 	host    string
