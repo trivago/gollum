@@ -135,7 +135,7 @@ func (registry *StreamRegistry) GetStreamOrFallback(streamID MessageStreamID) St
 	}
 
 	defaultStream := new(StreamBase)
-	defaultStream.Configure(PluginConfig{})
+	defaultStream.Configure(NewPluginConfig("StreamBase"))
 	registry.AddWildcardProducersToStream(defaultStream)
 
 	registry.streams[streamID] = defaultStream

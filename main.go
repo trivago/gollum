@@ -75,6 +75,7 @@ func main() {
 		return // ### return, config error ###
 	} else if *flagTestConfigFile != "" {
 		fmt.Printf("Config: %s parsed as ok.\n", *configFile)
+		newMultiplexer(config, false)
 		return // ### return, only test config ###
 	}
 

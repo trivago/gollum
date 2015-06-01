@@ -17,6 +17,7 @@ package format
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
+	"reflect"
 	"testing"
 )
 
@@ -29,7 +30,7 @@ func testFormatter(formatter core.Formatter) bool {
 }
 
 func TestFormatters(t *testing.T) {
-	conf := core.PluginConfig{}
+	conf := core.NewPluginConfig(reflect.TypeOf(t).Name())
 	formatters := shared.RuntimeType.GetRegistered("format.")
 
 	if len(formatters) == 0 {

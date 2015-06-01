@@ -26,11 +26,15 @@ import (
 //   - "stream.Broadcast":
 //     Filter: "filter.RegExp"
 //     FilterExpression: "\d+-.*"
+//     FilterExpressionNot: "\d+-.*"
 //
 // FilterExpression defines the regular expression used for matching the message
 // payload. If the expression matches, the message is passed.
+//
+// FilterExpressionNot defines a negated regular expression used for matching
+// the message payload. If the expression matches, the message is blocked.
 type RegExp struct {
-	exp *regexp.Regexp
+	exp    *regexp.Regexp
 	expNot *regexp.Regexp
 }
 
