@@ -185,7 +185,7 @@ func (cons *PcapHTTP) readPackets() {
 						}
 						// TODO: Try to recover io.ErrUnexpectedEOF by adding \r\n
 						//       Generate the missing package (seq + payload)
-						Log.Debug.Printf("PcapHTTP: Incomplete session timed out: \"%s\" %s", session.lastError, session)
+						Log.Debug.Printf("PcapHTTP: Incomplete session 0x%X timed out: \"%s\" %s", key, session.lastError, session)
 					}
 					cons.clearSession(key)
 				})

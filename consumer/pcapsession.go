@@ -206,10 +206,10 @@ func (list packetList) isComplete() (bool, int) {
 }
 
 func (session *pcapSession) String() string {
-	info := fmt.Sprintf("%d:{", len(session.packets))
+	info := fmt.Sprintf("{")
 	for _, pkt := range session.packets {
 		tcpHeader, _ := tcpFromPcap(pkt)
-		info += fmt.Sprintf("[%d]", tcpHeader.Seq)
+		info += fmt.Sprintf("0x%X,", tcpHeader.Seq)
 	}
 	return info + "}"
 }
