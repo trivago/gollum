@@ -25,16 +25,14 @@ import (
 	"time"
 )
 
-// Httpd consumer plugin
+// Http consumer plugin
 // Configuration example
 //
-//   - "consumer.Httpd":
+//   - "consumer.Http":
 //     Enable: true
 //     Address: ":80"
 //     ReadTimeoutSec: 5
-//
-// The Httpd consumer defines a simple http listener that will generate a
-// message from the body of each POST request.
+//     WithHeaders: false
 //
 // Address stores the identifier to bind to.
 // This is allowed be any ip address/dns and port like "localhost:5880".
@@ -42,20 +40,24 @@ import (
 //
 // ReadTimeoutSec specifies the maximum duration in seconds before timing out
 // read of the request. By default this is set to 3 seconds.
-type Httpd struct {
+//
+// WithHeaders can be set to false to only read the HTTP body instead of passing
+// the while HTTP message. By default this setting is set to true.
+type Http struct {
 	core.ConsumerBase
 	listen         *shared.StopListener
 	address        string
-	readTimeoutSec time.Duration
 	sequence       uint64
+	readTimeoutSec time.Duration
+	withHeaders    bool
 }
 
 func init() {
-	shared.RuntimeType.Register(Httpd{})
+	shared.RuntimeType.Register(Http{})
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Httpd) Configure(conf core.PluginConfig) error {
+func (cons *Http) Configure(conf core.PluginConfig) error {
 	err := cons.ConsumerBase.Configure(conf)
 	if err != nil {
 		return err
@@ -63,33 +65,42 @@ func (cons *Httpd) Configure(conf core.PluginConfig) error {
 
 	cons.address = conf.GetString("Address", ":80")
 	cons.readTimeoutSec = time.Duration(conf.GetInt("ReadTimeoutSec", 3)) * time.Second
+	cons.withHeaders = conf.GetBool("WithHeaders", true)
 	return err
 }
 
 // requestHandler will handle a single web request.
-func (cons *Httpd) requestHandler(resp http.ResponseWriter, req *http.Request) {
-	if req.Method != "POST" {
-		resp.WriteHeader(http.StatusMethodNotAllowed)
-		return // ### return, requires POST ###
-	}
+func (cons *Http) requestHandler(resp http.ResponseWriter, req *http.Request) {
+	if cons.withHeaders {
+		// Read the whole package
+		requestBuffer := bytes.NewBuffer(nil)
+		if err := req.Write(requestBuffer); err != nil {
+			resp.WriteHeader(http.StatusBadRequest)
+			return // ### return, missing body or bad write ###
+		}
 
-	if req.ContentLength <= 0 {
-		resp.WriteHeader(http.StatusLengthRequired)
-		return // ### return, missing content length ###
-	}
+		cons.Enqueue(requestBuffer.Bytes(), atomic.AddUint64(&cons.sequence, 1))
+		resp.WriteHeader(http.StatusCreated)
+	} else {
+		// Read only the message body
+		if req.Body == nil {
+			resp.WriteHeader(http.StatusBadRequest)
+			return // ### return, missing body ###
+		}
 
-	body := bytes.NewBuffer(make([]byte, 0, int(req.ContentLength)))
-	n, err := body.ReadFrom(req.Body)
-	if err != nil || n <= 0 {
-		resp.WriteHeader(http.StatusBadRequest)
-		return // ### return, missing body ###
-	}
+		body := make([]byte, req.ContentLength)
+		length, err := req.Body.Read(body)
+		if err != nil {
+			resp.WriteHeader(http.StatusBadRequest)
+			return // ### return, missing body or bad write ###
+		}
 
-	cons.Enqueue(body.Bytes(), atomic.AddUint64(&cons.sequence, 1))
-	resp.WriteHeader(http.StatusCreated)
+		cons.Enqueue(body[:length], atomic.AddUint64(&cons.sequence, 1))
+		resp.WriteHeader(http.StatusCreated)
+	}
 }
 
-func (cons *Httpd) serve() {
+func (cons *Http) serve() {
 	defer cons.WorkerDone()
 
 	srv := http.Server{
@@ -99,17 +110,16 @@ func (cons *Httpd) serve() {
 	}
 
 	err := srv.Serve(cons.listen)
-	_, isStopRequest := err.(shared.StopRequestError)
-	if err != nil && !isStopRequest {
+	if _, isStopRequest := err.(shared.StopRequestError); err != nil && !isStopRequest {
 		Log.Error.Print("httpd: ", err)
 	}
 }
 
 // Consume opens a new http server listen on specified ip and port (address)
-func (cons *Httpd) Consume(workers *sync.WaitGroup) {
+func (cons Http) Consume(workers *sync.WaitGroup) {
 	listen, err := shared.NewStopListener(cons.address)
 	if err != nil {
-		Log.Error.Print("httpd: ", err)
+		Log.Error.Print("Http: ", err)
 		return // ### return, could not connect ###
 	}
 
