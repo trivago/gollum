@@ -97,7 +97,7 @@ func (cons *PcapHTTP) Configure(conf core.PluginConfig) error {
 	cons.filter = conf.GetString("Filter", "dst port 80 and dst host 127.0.0.1")
 	cons.capturing = true
 	cons.sessions = make(pcapSessionMap)
-	cons.sessionTimeout = time.Duration(conf.GetInt("TimeoutSec", 3000)) * time.Millisecond
+	cons.sessionTimeout = time.Duration(conf.GetInt("TimeoutMs", 3000)) * time.Millisecond
 	cons.sessionGuard = new(sync.Mutex)
 
 	return nil
