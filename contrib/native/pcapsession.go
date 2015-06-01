@@ -12,15 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package consumer
+package native
 
 import (
 	"bufio"
 	"bytes"
-	"fmt"
-	// "github.com/miekg/pcap"
 	"encoding/binary"
-	"github.com/fmardini/pcap"
+	"fmt"
+	"github.com/miekg/pcap"
 	"github.com/trivago/gollum/core/log"
 	"io"
 	"net/http"
@@ -57,35 +56,36 @@ func newPcapSession(client string) *pcapSession {
 	}
 }
 
-func checksum(pkt *pcap.Packet) bool {
-	ipH, _ := ipFromPcap(pkt)
-	tcpH, _ := tcpFromPcap(pkt)
-	var res uint32
-	res += uint32(binary.BigEndian.Uint16(ipH.SrcIp[:2]))
-	res += uint32(binary.BigEndian.Uint16(ipH.SrcIp[2:]))
-	res += uint32(binary.BigEndian.Uint16(ipH.DestIp[:2]))
-	res += uint32(binary.BigEndian.Uint16(ipH.DestIp[2:]))
-	res += 6 // Protocol
-	var l uint32 = uint32(tcpH.DataOffset*4) + uint32(len(pkt.Payload))
-	res += l
+func validateChecksum(pkt *pcap.Packet) bool {
+	ipHeader, _ := ipFromPcap(pkt)
+	tcpHeader, _ := tcpFromPcap(pkt)
+	dataLength := uint32(tcpHeader.DataOffset*4) + uint32(len(pkt.Payload))
 
-	for i := uint32(0); i < l-1; i += 2 {
+	checksum := uint32(0)
+	checksum += uint32(binary.BigEndian.Uint16(ipHeader.SrcIp[:2]))
+	checksum += uint32(binary.BigEndian.Uint16(ipHeader.SrcIp[2:]))
+	checksum += uint32(binary.BigEndian.Uint16(ipHeader.DestIp[:2]))
+	checksum += uint32(binary.BigEndian.Uint16(ipHeader.DestIp[2:]))
+	checksum += 6 // Protocol is always TCP
+	checksum += dataLength
+
+	for i := uint32(0); i < dataLength-1; i += 2 {
 		if i == 16 {
 			continue
 		}
-		res += uint32(binary.BigEndian.Uint16(tcpH.Data[i : i+2]))
+		checksum += uint32(binary.BigEndian.Uint16(tcpHeader.Data[i : i+2]))
 	}
-	if l&0x01 != 0 {
-		tb := make([]byte, 2)
-		tb[0] = tcpH.Data[l-1]
-		res += uint32(binary.BigEndian.Uint16(tb))
+	if dataLength&0x01 != 0 {
+		paddedBuffer := make([]byte, 2)
+		paddedBuffer[0] = tcpHeader.Data[dataLength-1]
+		checksum += uint32(binary.BigEndian.Uint16(paddedBuffer))
 	}
-	for (res >> 16) > 0 {
-		res = (res & 0xFFFF) + (res >> 16)
+	for (checksum >> 16) > 0 {
+		checksum = (checksum & 0xFFFF) + (checksum >> 16)
 	}
-	cksum := uint16(^res & 0xFFFF)
 
-	return cksum == tcpH.Checksum
+	crc16 := uint16(^checksum & 0xFFFF)
+	return crc16 == tcpHeader.Checksum
 }
 
 // binary search for an insertion point in the packet list
@@ -260,7 +260,7 @@ func (session *pcapSession) dropPackets(size int) {
 }
 
 // add a TCP packet to the session and try to generate a HTTP packet
-func (session *pcapSession) addPacket(cons *PcapHTTP, pkt *pcap.Packet) {
+func (session *pcapSession) addPacket(cons *PcapHTTPConsumer, pkt *pcap.Packet) {
 	if len(pkt.Payload) == 0 {
 		return //  ### return, no payload  ###
 	}
@@ -291,7 +291,7 @@ func (session *pcapSession) addPacket(cons *PcapHTTP, pkt *pcap.Packet) {
 					return // ### return, invalid request: packets pending? ###
 				}
 				// Error: ignore this request
-				Log.Error.Print("PcapHTTP request writer: ", err)
+				Log.Error.Print("PcapHTTPConsumer request writer: ", err)
 			} else {
 				// Enqueue this request
 				cons.enqueueBuffer(extPayload.Bytes())

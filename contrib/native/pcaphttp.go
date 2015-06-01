@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package consumer
+package native
 
 import (
 	"fmt"
-	// "github.com/miekg/pcap"
-	"github.com/fmardini/pcap"
+	"github.com/miekg/pcap"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
@@ -27,10 +26,10 @@ import (
 	"time"
 )
 
-// PcapHTTP consumer plugin
+// PcapHTTPConsumer consumer plugin
 // Configuration example
 //
-//   - "consumer.PcapHTTP":
+//   - "consumer.PcapHTTPConsumer":
 //     Enable: true
 //     Interface: eth0
 //     Filter: "dst port 80 and dst host 127.0.0.1"
@@ -59,7 +58,7 @@ import (
 // dropped, i.e. the (remaining) packages will be discarded. Every incoming
 // packet will restart the timer for the specific client session.
 // By default this is set to 3000, i.e. 3 seconds.
-type PcapHTTP struct {
+type PcapHTTPConsumer struct {
 	core.ConsumerBase
 	netInterface   string
 	filter         string
@@ -83,11 +82,11 @@ const (
 )
 
 func init() {
-	shared.RuntimeType.Register(PcapHTTP{})
+	shared.RuntimeType.Register(PcapHTTPConsumer{})
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *PcapHTTP) Configure(conf core.PluginConfig) error {
+func (cons *PcapHTTPConsumer) Configure(conf core.PluginConfig) error {
 	err := cons.ConsumerBase.Configure(conf)
 	if err != nil {
 		return err
@@ -104,12 +103,12 @@ func (cons *PcapHTTP) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-func (cons *PcapHTTP) enqueueBuffer(data []byte) {
+func (cons *PcapHTTPConsumer) enqueueBuffer(data []byte) {
 	cons.Enqueue(data, cons.seqNum)
 	atomic.AddUint64(&cons.seqNum, 1)
 }
 
-func (cons *PcapHTTP) getStreamKey(pkt *pcap.Packet) (uint32, string, bool) {
+func (cons *PcapHTTPConsumer) getStreamKey(pkt *pcap.Packet) (uint32, string, bool) {
 	if len(pkt.Headers) != 2 {
 		Log.Debug.Printf("Invalid number of headers: %d", len(pkt.Headers))
 		Log.Debug.Printf("Not a TCP/IP packet: %#v", pkt)
@@ -135,12 +134,12 @@ func (cons *PcapHTTP) getStreamKey(pkt *pcap.Packet) (uint32, string, bool) {
 	return keyHash.Sum32(), clientID, true
 }
 
-func (cons *PcapHTTP) readPackets() {
+func (cons *PcapHTTPConsumer) readPackets() {
 	defer func() {
 		cons.handle.Close()
 		if panicMessage := recover(); panicMessage != nil {
 			// try again
-			Log.Error.Print("[PANIC] PcapHTTP: ", panicMessage)
+			Log.Error.Print("[PANIC] PcapHTTPConsumer: ", panicMessage)
 			cons.initPcap()
 			go cons.readPackets()
 		} else {
@@ -155,11 +154,11 @@ func (cons *PcapHTTP) readPackets() {
 		switch resultCode {
 		case pcapNextExEOF:
 			cons.capturing = false
-			Log.Note.Print("PcapHTTP: End of file, stopping.")
+			Log.Note.Print("PcapHTTPConsumer: End of file, stopping.")
 			continue
 
 		case pcapNextExError:
-			Log.Error.Print("PcapHTTP: ", cons.handle.Geterror())
+			Log.Error.Print("PcapHTTPConsumer: ", cons.handle.Geterror())
 			continue
 
 		case pcapNextExTimeout:
@@ -186,7 +185,7 @@ func (cons *PcapHTTP) readPackets() {
 						}
 						// TODO: Try to recover io.ErrUnexpectedEOF by adding \r\n
 						//       Generate the missing package (seq + payload)
-						Log.Debug.Printf("PcapHTTP: Incomplete session 0x%X timed out: \"%s\" %s", key, session.lastError, session)
+						Log.Debug.Printf("PcapHTTPConsumer: Incomplete session 0x%X timed out: \"%s\" %s", key, session.lastError, session)
 					}
 					cons.clearSession(key)
 				})
@@ -204,50 +203,50 @@ func (cons *PcapHTTP) readPackets() {
 	}
 }
 
-func (cons *PcapHTTP) tryGetSession(key uint32) (*pcapSession, bool) {
+func (cons *PcapHTTPConsumer) tryGetSession(key uint32) (*pcapSession, bool) {
 	cons.sessionGuard.Lock()
 	defer cons.sessionGuard.Unlock()
 	session, exists := cons.sessions[key]
 	return session, exists
 }
 
-func (cons *PcapHTTP) setSession(key uint32, session *pcapSession) {
+func (cons *PcapHTTPConsumer) setSession(key uint32, session *pcapSession) {
 	cons.sessionGuard.Lock()
 	defer cons.sessionGuard.Unlock()
 	cons.sessions[key] = session
 }
 
-func (cons *PcapHTTP) clearSession(key uint32) {
+func (cons *PcapHTTPConsumer) clearSession(key uint32) {
 	cons.sessionGuard.Lock()
 	defer cons.sessionGuard.Unlock()
 	delete(cons.sessions, key)
 }
 
-func (cons *PcapHTTP) close() {
+func (cons *PcapHTTPConsumer) close() {
 	cons.capturing = false
 }
 
-func (cons *PcapHTTP) initPcap() {
+func (cons *PcapHTTPConsumer) initPcap() {
 	var err error
 
 	// Start listening
 	// device, snaplen, promisc, read timeout ms
 	cons.handle, err = pcap.OpenLive(cons.netInterface, int32(1<<16), cons.promiscuous, 500)
 	if err != nil {
-		Log.Error.Print("PcapHTTP: ", err)
+		Log.Error.Print("PcapHTTPConsumer: ", err)
 		return
 	}
 
 	err = cons.handle.SetFilter(cons.filter)
 	if err != nil {
 		cons.handle.Close()
-		Log.Error.Print("PcapHTTP: ", err)
+		Log.Error.Print("PcapHTTPConsumer: ", err)
 		return
 	}
 }
 
 // Consume enables libpcap monitoring as configured.
-func (cons *PcapHTTP) Consume(workers *sync.WaitGroup) {
+func (cons *PcapHTTPConsumer) Consume(workers *sync.WaitGroup) {
 	cons.initPcap()
 	cons.AddMainWorker(workers)
 
