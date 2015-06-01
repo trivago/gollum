@@ -4,20 +4,23 @@ Gollum is a n:m multiplexer that gathers messages from different sources and bro
 
 There are a few basic terms used throughout Gollum:
 
-* A "consumer" is a plugin that reads from an external source
-* A "producer" is a plugin that writes to an external source
-* A "stream" is a message channel between consumer(s) and producer(s)
-* A "formatter" is a plugin that adds information to a message
-* A "distributor" is a plugin that routes/filters messages on a given stream
+* "Consumers" read data from other services
+* "Producers" write data to other services
+* "Streams" route data between consumers and producers
+* A "message" is a set of data passed between consumers and producers
+* "Formatters" can transform the content of messages
+* "Filters" can block/pass messages based on their content
 
 Writing a custom plugin does not require you to change any additional code besides your new plugin file.
 
 ## Consumers (reading data)
 
 * `Console` read from stdin.
-* `LoopBack` Process routed (e.g. dropped) messages.
 * `File` read from a file (like tail).
+* `Http` read http requests.
 * `Kafka` read from a [Kafka](http://kafka.apache.org/) topic.
+* `LoopBack` Process routed (e.g. dropped) messages.
+* `Proxy` use in combination with a proxy producer to enable two-way communication.
 * `Socket` read from a socket (gollum specfic protocol).
 * `Syslogd` read from a socket (syslogd protocol).
 
@@ -26,25 +29,40 @@ Writing a custom plugin does not require you to change any additional code besid
 * `Console` write to stdin or stdout.
 * `ElasticSearch` write to [elasticsearch](http://www.elasticsearch.org/) via http/bulk.
 * `File` write to a file. Supports log rotation and compression.
+* `HttpReq` HTTP request forwarder.
 * `Kafka` write to a [Kafka](http://kafka.apache.org/) topic.
 * `Null` like /dev/null.
+* `Proxy` two-way communication proxy for simple protocols.
 * `Scribe` send messages to a [Facebook scribe](https://github.com/facebookarchive/scribe) server.
 * `Socket` send messages to a socket (gollum specfic protocol).
+* `Websocket` send messages to a websocket.
 
-## Formatters (modifying data)
-
-* `Forward` write the message without modifying it.
-* `JSON` write the message as a JSON object. Messages can be parsed to generate fields.
-* `Runlength` prepend the length of themessage. Other formatters can be nested.
-* `Sequence` prepend the sequence number of the message. Other formatters can be nested.
-* `Delimiter` add a delimiter string after the message.
-* `Timestamp` add a timestamp before the message. Other formatters can be nested.
-
-## Distributors (multiplexing)
+## Streams (multiplexing)
 
 * `Broadcast` send to all producers in a stream.
 * `Random` send to a random roducers in a stream.
 * `RoundRobin` switch the producer after each send in a round robin fashion.
+
+## Formatters (modifying data)
+
+* `Base64Encode` encodes messages to base64.
+* `Base64Decode` decodes messages from base64.
+* `Envelope` add a prefix and/or postfix string to a message.
+* `Forward` write the message without modifying it.
+* `Hostname` prepends the current machine's hostname to a message.
+* `Identifier` hashes the message to generate a (mostly) unique id.
+* `JSON` write the message as a JSON object. Messages can be parsed to generate fields.
+* `Runlength` prepends the length of the message.
+* `Sequence` prepends the sequence number of the message.
+* `StreamMod` route a message to another stream by reading a prefix.
+* `Timestamp` prepends a timestamp to the message.
+
+## Filters (filtering data)
+
+* `All` lets all message pass.
+* `Json` blocks or lets json messages pass based on their content.
+* `None` blocks all messages.
+* `RegExp` blocks or lets messages pass based on a regular expression.
 
 ## Installation
 
@@ -65,7 +83,7 @@ This does require a cross platform golang build.
 Valid make targets (besides all and clean) are:
  * freebsd
  * linux
- * max
+ * mac
  * pi
  * win
 
@@ -74,7 +92,7 @@ Valid make targets (besides all and clean) are:
 To test gollum you can make a local profiler run with a predefined configuration:
 
 ```
-$ gollum -c gollum_profile.conf -ps -ll 3
+$ gollum -c config/profile.conf -ps -ll 3
 ```
 
 By default this test profiles the theoretic maximum throughput of 256 Byte messages.  
@@ -130,60 +148,6 @@ Test a given configuration file and exit.
 #### `-v` or `--version`
 
 Print version information and quit.
-
-### Configuration file
-
-TODO
-
-## Use cases
-
-TODO
-
-### Nginx logs to Kafka
-
-To aggregate logs by a [nginx](http://nginx.org/) web server *Gollum* can be used.
-Configure a *Gollum* syslogd consumer like **
-
-```
-...
-- "consumer.Syslogd":
-    Enable: true
-    Channel: 1024
-    Stream: "profile"
-    Format: "RFC3164"
-    Address: 0.0.0.0:5880
-...
-
-# TODO Add Kafka producer
-```
-This consumer will listen to 0.0.0.0:5880 and follow the [RFC 3164](http://tools.ietf.org/html/rfc3164) for the *profile* stream and a buffer of 1024 messages.
-
-An example *nginx.conf* can look like
-```
-http {
-  ...
-  log_format syslogd "$remote_addr - $remote_user [$time_local] '$request' $status $body_bytes_sent '$http_referer' '$http_user_agent'\n";
-  access_log syslog:server=192.168.7.52:5880 syslogd;
-  ...
-}
-```
-Important note: A syslog message will be delimited by a newline. The *\n* at the end of *log_format* is important here.
-
-References:
-* [Logging to syslog @ Nginx docs](http://nginx.org/en/docs/syslog.html)
-* [Module ngx_http_log_module @ Nginx docs](http://nginx.org/en/docs/http/ngx_http_log_module.html)
-
-### Business logging (by PHP) to Kafka
-
-TODO
-
-### Accesslog parsing for Elasticsearch
-
-TODO
-
-### Log aggregation by many servers to files
-
-TODO
 
 ## License
 

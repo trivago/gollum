@@ -9,7 +9,9 @@ Parameters
 ----------
 
 **FilterExpression**
-  Defines the expression to use when filtering messages. Empty string by default.
+  Defines the expression to use when filtering messages. Messages matching this pattern are passed. Empty string by default.
+**FilterExpressionNot**
+  Defines the expression to use when filtering messages. Messages not matching this pattern are passed. Empty string by default.
 
 Example
 -------
@@ -19,3 +21,4 @@ Example
   - "stream.Broadcast":
     Filter: "filter.RegExp"
     FilterExpression: "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+    FilterExpressionNot: "foo.bar$"

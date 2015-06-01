@@ -1,5 +1,5 @@
-Httpd
-=====
+Http
+====
 
 This consumer opens a http port that accepts POST requests.
 Messages will be generated from the POST body.
@@ -15,6 +15,8 @@ Parameters
   Defines the IP or DNS of the server to listen to, followed by a port. By default this is set to ":80" which listens to localhost, port 80.
 **ReadTimeoutSec**
   Defines a timeout in seconds when to stop reading from a failed connection.
+**WithHeaders**
+  Set to false to extract the body from the http request. When set to true the whole HTTP packet will be send. By default this is set to true.
 
 Example
 -------
@@ -25,6 +27,7 @@ Example
     Enable: true
     Address: ":80"
     ReadTimeoutSec: 5
+    WithHeaders: false
     Stream:
         - "stdin"
         - "console"
