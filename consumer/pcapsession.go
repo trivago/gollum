@@ -18,7 +18,9 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/miekg/pcap"
+	// "github.com/miekg/pcap"
+	"encoding/binary"
+	"github.com/fmardini/pcap"
 	"github.com/trivago/gollum/core/log"
 	"io"
 	"net/http"
@@ -53,6 +55,37 @@ func newPcapSession(client string) *pcapSession {
 	return &pcapSession{
 		client: client,
 	}
+}
+
+func checksum(pkt *pcap.Packet) bool {
+	ipH, _ := ipFromPcap(pkt)
+	tcpH, _ := tcpFromPcap(pkt)
+	var res uint32
+	res += uint32(binary.BigEndian.Uint16(ipH.SrcIp[:2]))
+	res += uint32(binary.BigEndian.Uint16(ipH.SrcIp[2:]))
+	res += uint32(binary.BigEndian.Uint16(ipH.DestIp[:2]))
+	res += uint32(binary.BigEndian.Uint16(ipH.DestIp[2:]))
+	res += 6 // Protocol
+	var l uint32 = uint32(tcpH.DataOffset*4) + uint32(len(pkt.Payload))
+	res += l
+
+	for i := uint32(0); i < l-1; i += 2 {
+		if i == 16 {
+			continue
+		}
+		res += uint32(binary.BigEndian.Uint16(tcpH.Data[i : i+2]))
+	}
+	if l&0x01 != 0 {
+		tb := make([]byte, 2)
+		tb[0] = tcpH.Data[l-1]
+		res += uint32(binary.BigEndian.Uint16(tb))
+	}
+	for (res >> 16) > 0 {
+		res = (res & 0xFFFF) + (res >> 16)
+	}
+	cksum := uint16(^res & 0xFFFF)
+
+	return cksum == tcpH.Checksum
 }
 
 // binary search for an insertion point in the packet list

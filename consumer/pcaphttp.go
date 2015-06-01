@@ -16,7 +16,8 @@ package consumer
 
 import (
 	"fmt"
-	"github.com/miekg/pcap"
+	// "github.com/miekg/pcap"
+	"github.com/fmardini/pcap"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
