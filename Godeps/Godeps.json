@@ -3,11 +3,6 @@
 	"GoVersion": "go1.4.2",
 	"Deps": [
 		{
-			"ImportPath": "code.google.com/p/snappy-go/snappy",
-			"Comment": "null-20",
-			"Rev": "8850bd446ad6f18a271a08aae26bdf85bdf87c7f"
-		},
-		{
 			"ImportPath": "github.com/araddon/gou",
 			"Rev": "2c3ebe13a9748b26bd2c1050a7933da9dab34e99"
 		},
@@ -56,6 +51,10 @@
 			"Rev": "535138d7bcd717d6531c701ef5933d98b1866257"
 		},
 		{
+			"ImportPath": "github.com/golang/snappy/snappy",
+			"Rev": "a911026e1ffa84898778ccb0363930485e0aa880"
+		},
+		{
 			"ImportPath": "github.com/jeromer/syslogparser",
 			"Rev": "812866d0389ae7e1f5a0110d47dea20224fc776f"
 		},
@@ -63,6 +62,10 @@
 			"ImportPath": "github.com/mattbaird/elastigo/lib",
 			"Comment": "v1.0-162-g7ea98ae",
 			"Rev": "7ea98aee9ffdf443c33c78c31f14568a16c6f8f2"
+		},
+		{
+			"ImportPath": "github.com/miekg/pcap",
+			"Rev": "4308318ab03edd21f486a5e934e213cb8d9594f3"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
