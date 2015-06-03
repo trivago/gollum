@@ -93,7 +93,7 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	prod.category = make(map[core.MessageStreamID]string, 0)
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
-	prod.batch = createScribeMessageBatch(bufferSizeMax, prod.ProducerBase.GetFormatter())
+	prod.batch = createScribeMessageBatch(bufferSizeMax)
 	prod.bufferSizeKB = conf.GetInt("ConnectionBufferSizeKB", 1<<10) // 1 MB
 	prod.category = conf.GetStreamMap("Category", "")
 
@@ -137,6 +137,8 @@ func (prod *Scribe) sendBatchOnTimeOut() {
 }
 
 func (prod *Scribe) sendMessage(msg core.Message) {
+	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
+
 	category, exists := prod.category[msg.StreamID]
 	if !exists {
 		category, exists = prod.category[core.WildcardStreamID]

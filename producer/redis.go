@@ -130,7 +130,7 @@ func (prod *Redis) storeHash(msg core.Message) {
 }
 
 func (prod *Redis) storeList(msg core.Message) {
-	value := prod.ProducerBase.Format(msg)
+	value, _ := prod.ProducerBase.Format(msg)
 
 	result := prod.client.RPush(prod.key, string(value))
 	if result.Err() != nil {
@@ -140,7 +140,7 @@ func (prod *Redis) storeList(msg core.Message) {
 }
 
 func (prod *Redis) storeSet(msg core.Message) {
-	value := prod.ProducerBase.Format(msg)
+	value, _ := prod.ProducerBase.Format(msg)
 
 	result := prod.client.SAdd(prod.key, string(value))
 	if result.Err() != nil {
@@ -178,7 +178,7 @@ func (prod *Redis) storeSortedSet(msg core.Message) {
 }
 
 func (prod *Redis) storeString(msg core.Message) {
-	value := prod.ProducerBase.Format(msg)
+	value, _ := prod.ProducerBase.Format(msg)
 
 	result := prod.client.Set(prod.key, string(value))
 	if result.Err() != nil {

@@ -172,9 +172,8 @@ func (prod ProducerBase) NextNonBlocking(onMessage func(msg Message)) bool {
 }
 
 // Format calls the formatters Format function
-func (prod *ProducerBase) Format(msg Message) []byte {
-	data, _ := prod.format.Format(msg)
-	return data
+func (prod *ProducerBase) Format(msg Message) ([]byte, MessageStreamID) {
+	return prod.format.Format(msg)
 }
 
 // GetFormatter returns the formatter of this producer

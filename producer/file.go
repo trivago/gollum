@@ -113,9 +113,9 @@ func init() {
 	shared.RuntimeType.Register(File{})
 }
 
-func newFileLogState(bufferSizeMax int, format core.Formatter) *fileLogState {
+func newFileLogState(bufferSizeMax int) *fileLogState {
 	return &fileLogState{
-		batch:    core.NewMessageBatch(bufferSizeMax, format),
+		batch:    core.NewMessageBatch(bufferSizeMax, nil),
 		bgWriter: new(sync.WaitGroup),
 	}
 }
@@ -312,7 +312,7 @@ func (prod *File) getFileLogState(streamID core.MessageStreamID, forceRotate boo
 	state, stateExists := prod.files[fileID]
 	if !stateExists {
 		// state does not yet exist: create and map it
-		state = newFileLogState(prod.bufferSizeMax, prod.ProducerBase.GetFormatter())
+		state = newFileLogState(prod.bufferSizeMax)
 		prod.files[fileID] = state
 		prod.filesByStream[streamID] = state
 	} else if _, mappingExists := prod.filesByStream[streamID]; !mappingExists {
@@ -323,6 +323,11 @@ func (prod *File) getFileLogState(streamID core.MessageStreamID, forceRotate boo
 		}
 	}
 
+	// Assure path is existing
+	if err := os.MkdirAll(fileDir, 0755); err != nil {
+		Log.Error.Print("Error creating directory " + fileDir)
+	}
+
 	// Generate the log filename based on rotation, existing files, etc.
 	if !prod.rotate {
 		logFileName = fmt.Sprintf("%s%s", fileName, fileExt)
@@ -330,10 +335,6 @@ func (prod *File) getFileLogState(streamID core.MessageStreamID, forceRotate boo
 		timestamp := time.Now().Format(fileProducerTimestamp)
 		signature := fmt.Sprintf("%s_%s", fileName, timestamp)
 		counter := 0
-
-		if err := os.MkdirAll(fileDir, 0755); err != nil {
-			Log.Error.Print("Error creating directory " + fileDir)
-		}
 
 		files, _ := ioutil.ReadDir(fileDir)
 		for _, file := range files {
@@ -391,6 +392,7 @@ func (prod *File) writeBatchOnTimeOut() {
 }
 
 func (prod *File) writeMessage(msg core.Message) {
+	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
 	state, err := prod.getFileLogState(msg.StreamID, false)
 	if err != nil {
 		Log.Error.Print("File log error:", err)

@@ -75,7 +75,8 @@ func (prod *HttpReq) Configure(conf core.PluginConfig) error {
 }
 
 func (prod *HttpReq) sendReq(msg core.Message) {
-	requestData := bytes.NewBuffer(prod.ProducerBase.Format(msg))
+	data, _ := prod.ProducerBase.Format(msg)
+	requestData := bytes.NewBuffer(data)
 	req, err := http.ReadRequest(bufio.NewReader(requestData))
 	if err != nil {
 		Log.Error.Print("HttpReq invalid request", err)

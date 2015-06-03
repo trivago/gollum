@@ -46,17 +46,15 @@ type scribeMessageBatch struct {
 	activeSet     uint32
 	maxContentLen int
 	lastFlush     time.Time
-	format        core.Formatter
 	flushing      *sync.Mutex
 }
 
-func createScribeMessageBatch(maxContentLen int, format core.Formatter) *scribeMessageBatch {
+func createScribeMessageBatch(maxContentLen int) *scribeMessageBatch {
 	return &scribeMessageBatch{
 		queue:         [2]scribeMessageQueue{newMessageQueue(), newMessageQueue()},
 		activeSet:     uint32(0),
 		maxContentLen: maxContentLen,
 		lastFlush:     time.Now(),
-		format:        format,
 		flushing:      new(sync.Mutex),
 	}
 }
@@ -71,8 +69,7 @@ func (batch *scribeMessageBatch) Append(msg core.Message, category string) bool 
 	// does not block after a failed message.
 	defer func() { activeQueue.doneCount++ }()
 
-	payload, _ := batch.format.Format(msg)
-	messageLength := len(payload)
+	messageLength := len(msg.Data)
 
 	if activeQueue.contentLen+messageLength >= batch.maxContentLen {
 		if messageLength > batch.maxContentLen {
@@ -96,7 +93,7 @@ func (batch *scribeMessageBatch) Append(msg core.Message, category string) bool 
 	}
 
 	logEntry.Category = category
-	logEntry.Message = string(payload)
+	logEntry.Message = string(msg.Data)
 	activeQueue.contentLen += messageLength
 
 	return true

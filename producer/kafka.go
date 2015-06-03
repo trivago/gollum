@@ -238,6 +238,8 @@ func (prod *Kafka) send(msg core.Message) {
 	}
 
 	if prod.client != nil && prod.producer != nil {
+		msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
+
 		// Send message
 		topic, topicMapped := prod.topic[msg.StreamID]
 		if !topicMapped {
@@ -248,11 +250,10 @@ func (prod *Kafka) send(msg core.Message) {
 			}
 		}
 
-		payload := prod.ProducerBase.Format(msg)
 		prod.producer.Input() <- &kafka.ProducerMessage{
 			Topic: topic,
 			Key:   nil,
-			Value: kafka.ByteEncoder(payload),
+			Value: kafka.ByteEncoder(msg.Data),
 		}
 
 		// Check for errors

@@ -64,8 +64,8 @@ func (prod *Console) Configure(conf core.PluginConfig) error {
 }
 
 func (prod *Console) printMessage(msg core.Message) {
-	text := string(prod.ProducerBase.Format(msg))
-	fmt.Fprint(prod.console, text)
+	text, _ := prod.ProducerBase.Format(msg)
+	fmt.Fprint(prod.console, string(text))
 }
 
 // Produce writes to stdout or stderr.
