@@ -374,7 +374,7 @@ func (prod *File) getFileLogState(streamID core.MessageStreamID, forceRotate boo
 	// Create "current" symlink
 	state.fileCreated = time.Now()
 	if prod.rotate {
-		symLinkName := fmt.Sprintf("%s/%s_current", fileDir, fileName)
+		symLinkName := fmt.Sprintf("%s/%s_current%s", fileDir, fileName, fileExt)
 		os.Remove(symLinkName)
 		os.Symlink(logFileName, symLinkName)
 	}
