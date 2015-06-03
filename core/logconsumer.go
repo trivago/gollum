@@ -42,7 +42,11 @@ func (cons *LogConsumer) Streams() []MessageStreamID {
 func (cons LogConsumer) Write(data []byte) (int, error) {
 	dataCopy := make([]byte, len(data))
 	copy(dataCopy, data)
-	cons.logStream.Enqueue(NewMessage(cons, dataCopy, cons.sequence))
+
+	msg := NewMessage(cons, dataCopy, cons.sequence)
+	msg.StreamID = LogInternalStreamID
+	cons.logStream.Enqueue(msg)
+
 	return len(data), nil
 }
 
