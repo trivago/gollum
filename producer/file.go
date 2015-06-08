@@ -15,25 +15,18 @@
 package producer
 
 import (
-	"compress/gzip"
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"hash/fnv"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
-)
-
-const (
-	fileProducerTimestamp = "2006-01-02_15"
 )
 
 // File producer plugin
@@ -45,10 +38,12 @@ const (
 //     BatchSizeMaxKB: 16384
 //     BatchSizeByte: 4096
 //     BatchTimeoutSec: 2
+//     FlushTimeoutSec: 10
 //     Rotate: false
 //     RotateTimeoutMin: 1440
 //     RotateSizeMB: 1024
 //     RotateAt: "00:00"
+//     RotateTimestamp: "2006-01-02_15"
 //     Compress: true
 //
 // The file producer writes messages to a file. This producer also allows log
@@ -71,6 +66,10 @@ const (
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5..
 //
+// FlushTimeoutSec sets the maximum number of seconds to wait after a flush is
+// aborted. This does only affect the flush triggered during shutdown.
+// By default this is set to 0, i.e. don't abort flushing.
+//
 // Rotate if set to true the logs will rotate after reaching certain thresholds.
 //
 // RotateTimeoutMin defines a timeout in minutes that will cause the logs to
@@ -81,43 +80,30 @@ const (
 // rotated. Hours must be given in 24h format. When left empty this setting is
 // ignored. By default this setting is disabled.
 //
+// RotateTimestamp sets the timestamp added to the filename when file rotation
+// is enabled. The format is based on Go's time.Format function and set to
+// "2006-01-02_15" by default.
+//
 // Compress defines if a rotated logfile is to be gzip compressed or not.
 // By default this is set to false.
 type File struct {
 	core.ProducerBase
-	filesByStream    map[core.MessageStreamID]*fileLogState
-	files            map[uint32]*fileLogState
-	fileDir          string
-	fileName         string
-	fileExt          string
-	wildcardPath     bool
-	rotateSizeByte   int64
-	bufferSizeMax    int
-	batchSize        int
-	batchTimeout     time.Duration
-	rotateTimeoutMin int
-	rotateAtHour     int
-	rotateAtMin      int
-	rotate           bool
-	compress         bool
-}
-
-type fileLogState struct {
-	file        *os.File
-	batch       *core.MessageBatch
-	bgWriter    *sync.WaitGroup
-	fileCreated time.Time
+	filesByStream map[core.MessageStreamID]*fileState
+	files         map[uint32]*fileState
+	rotate        fileRotateConfig
+	timestamp     string
+	fileDir       string
+	fileName      string
+	fileExt       string
+	batchTimeout  time.Duration
+	flushTimeout  time.Duration
+	bufferSizeMax int
+	batchSize     int
+	wildcardPath  bool
 }
 
 func init() {
 	shared.RuntimeType.Register(File{})
-}
-
-func newFileLogState(bufferSizeMax int) *fileLogState {
-	return &fileLogState{
-		batch:    core.NewMessageBatch(bufferSizeMax, nil),
-		bgWriter: new(sync.WaitGroup),
-	}
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -127,19 +113,12 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	prod.filesByStream = make(map[core.MessageStreamID]*fileLogState)
-	prod.files = make(map[uint32]*fileLogState)
+	prod.filesByStream = make(map[core.MessageStreamID]*fileState)
+	prod.files = make(map[uint32]*fileState)
 	prod.bufferSizeMax = conf.GetInt("BatchSizeMaxKB", 8<<10) << 10 // 8 MB
 
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
-
-	prod.rotate = conf.GetBool("Rotate", false)
-	prod.rotateTimeoutMin = conf.GetInt("RotateTimeoutMin", 1440)
-	prod.rotateSizeByte = int64(conf.GetInt("RotateSizeMB", 1024)) << 20
-	prod.rotateAtHour = -1
-	prod.rotateAtMin = -1
-	prod.compress = conf.GetBool("Compress", false)
 
 	logFile := conf.GetString("File", "/var/prod/gollum.log")
 	prod.wildcardPath = strings.IndexByte(logFile, '*') != -1
@@ -148,6 +127,15 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	prod.fileExt = filepath.Ext(logFile)
 	prod.fileName = filepath.Base(logFile)
 	prod.fileName = prod.fileName[:len(prod.fileName)-len(prod.fileExt)]
+	prod.timestamp = conf.GetString("RotateTimestamp", "2006-01-02_15")
+	prod.flushTimeout = time.Duration(conf.GetInt("FlushTimeoutSec", 5)) * time.Second
+
+	prod.rotate.enabled = conf.GetBool("Rotate", false)
+	prod.rotate.timeout = time.Duration(conf.GetInt("RotateTimeoutMin", 1440)) * time.Minute
+	prod.rotate.sizeByte = int64(conf.GetInt("RotateSizeMB", 1024)) << 20
+	prod.rotate.atHour = -1
+	prod.rotate.atMinute = -1
+	prod.rotate.compress = conf.GetBool("Compress", false)
 
 	rotateAt := conf.GetString("RotateAt", "")
 	if rotateAt != "" {
@@ -155,122 +143,16 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 		rotateAtHour, _ := strconv.ParseInt(parts[0], 10, 8)
 		rotateAtMin, _ := strconv.ParseInt(parts[1], 10, 8)
 
-		prod.rotateAtHour = int(rotateAtHour)
-		prod.rotateAtMin = int(rotateAtMin)
+		prod.rotate.atHour = int(rotateAtHour)
+		prod.rotate.atMinute = int(rotateAtMin)
 	}
 
 	return nil
 }
 
-func (state *fileLogState) compressAndCloseLog(sourceFile *os.File) {
-	state.bgWriter.Add(1)
-	defer state.bgWriter.Done()
-
-	// Generate file to zip into
-	sourceFileName := sourceFile.Name()
-	sourceDir := filepath.Dir(sourceFileName)
-	sourceExt := filepath.Ext(sourceFileName)
-	sourceBase := filepath.Base(sourceFileName)
-	sourceBase = sourceBase[:len(sourceBase)-len(sourceExt)]
-
-	targetFileName := fmt.Sprintf("%s/%s.gz", sourceDir, sourceBase)
-
-	targetFile, err := os.OpenFile(targetFileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
-	if err != nil {
-		Log.Error.Print("File compress error:", err)
-		sourceFile.Close()
-		return
-	}
-
-	// Create zipfile and compress data
-	Log.Note.Print("Compressing " + sourceFileName)
-
-	sourceFile.Seek(0, 0)
-	targetWriter := gzip.NewWriter(targetFile)
-
-	for err == nil {
-		_, err = io.CopyN(targetWriter, sourceFile, 1<<20) // 1 MB chunks
-		runtime.Gosched()                                  // Be async!
-	}
-
-	// Cleanup
-	sourceFile.Close()
-	targetWriter.Close()
-	targetFile.Close()
-
-	if err != nil && err != io.EOF {
-		Log.Warning.Print("Compression failed:", err)
-		err = os.Remove(targetFileName)
-		if err != nil {
-			Log.Error.Print("Compressed file remove failed:", err)
-		}
-		return
-	}
-
-	// Remove original log
-	err = os.Remove(sourceFileName)
-	if err != nil {
-		Log.Error.Print("Uncompressed file remove failed:", err)
-	}
-}
-
-func (state *fileLogState) onWriterError(err error) bool {
-	Log.Error.Print("File write error:", err)
-	return false
-}
-
-func (state *fileLogState) writeBatch() {
-	state.batch.Flush(state.file, nil, state.onWriterError)
-}
-
-func (state *fileLogState) needsRotate(prod *File, forceRotate bool) (bool, error) {
-	// File does not exist?
-	if state.file == nil {
-		return true, nil
-	}
-
-	// File can be accessed?
-	stats, err := state.file.Stat()
-	if err != nil {
-		return false, err
-	}
-
-	// File needs rotation?
-	if !prod.rotate {
-		return false, nil
-	}
-
-	if forceRotate {
-		return true, nil
-	}
-
-	// File is too large?
-	if stats.Size() >= prod.rotateSizeByte {
-		return true, nil // ### return, too large ###
-	}
-
-	// File is too old?
-	if time.Since(state.fileCreated).Minutes() >= float64(prod.rotateTimeoutMin) {
-		return true, nil // ### return, too old ###
-	}
-
-	// RotateAt crossed?
-	if prod.rotateAtHour > -1 && prod.rotateAtMin > -1 {
-		now := time.Now()
-		rotateAt := time.Date(now.Year(), now.Month(), now.Day(), prod.rotateAtHour, prod.rotateAtMin, 0, 0, now.Location())
-
-		if state.fileCreated.Sub(rotateAt).Minutes() < 0 {
-			return true, nil // ### return, too old ###
-		}
-	}
-
-	// nope, everything is ok
-	return false, nil
-}
-
-func (prod *File) getFileLogState(streamID core.MessageStreamID, forceRotate bool) (*fileLogState, error) {
+func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) (*fileState, error) {
 	if state, stateExists := prod.filesByStream[streamID]; stateExists {
-		if rotate, err := state.needsRotate(prod, forceRotate); !rotate {
+		if rotate, err := state.needsRotate(prod.rotate, forceRotate); !rotate {
 			return state, err // ### return, already open or error ###
 		}
 	}
@@ -312,13 +194,13 @@ func (prod *File) getFileLogState(streamID core.MessageStreamID, forceRotate boo
 	state, stateExists := prod.files[fileID]
 	if !stateExists {
 		// state does not yet exist: create and map it
-		state = newFileLogState(prod.bufferSizeMax)
+		state = newFileState(prod.bufferSizeMax, prod.flushTimeout)
 		prod.files[fileID] = state
 		prod.filesByStream[streamID] = state
 	} else if _, mappingExists := prod.filesByStream[streamID]; !mappingExists {
 		// state exists but is not mapped: map it and see if we need to rotate
 		prod.filesByStream[streamID] = state
-		if rotate, err := state.needsRotate(prod, forceRotate); !rotate {
+		if rotate, err := state.needsRotate(prod.rotate, forceRotate); !rotate {
 			return state, err // ### return, already open or error ###
 		}
 	}
@@ -329,10 +211,10 @@ func (prod *File) getFileLogState(streamID core.MessageStreamID, forceRotate boo
 	}
 
 	// Generate the log filename based on rotation, existing files, etc.
-	if !prod.rotate {
+	if !prod.rotate.enabled {
 		logFileName = fmt.Sprintf("%s%s", fileName, fileExt)
 	} else {
-		timestamp := time.Now().Format(fileProducerTimestamp)
+		timestamp := time.Now().Format(prod.timestamp)
 		signature := fmt.Sprintf("%s_%s", fileName, timestamp)
 		counter := 0
 
@@ -357,7 +239,7 @@ func (prod *File) getFileLogState(streamID core.MessageStreamID, forceRotate boo
 		currentLog := state.file
 		state.file = nil
 
-		if prod.compress {
+		if prod.rotate.compress {
 			go state.compressAndCloseLog(currentLog)
 		} else {
 			Log.Note.Print("Rotated " + currentLog.Name())
@@ -374,7 +256,7 @@ func (prod *File) getFileLogState(streamID core.MessageStreamID, forceRotate boo
 
 	// Create "current" symlink
 	state.fileCreated = time.Now()
-	if prod.rotate {
+	if prod.rotate.enabled {
 		symLinkName := fmt.Sprintf("%s/%s_current%s", fileDir, fileName, fileExt)
 		os.Remove(symLinkName)
 		os.Symlink(logFileName, symLinkName)
@@ -393,7 +275,7 @@ func (prod *File) writeBatchOnTimeOut() {
 
 func (prod *File) writeMessage(msg core.Message) {
 	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
-	state, err := prod.getFileLogState(msg.StreamID, false)
+	state, err := prod.getFileState(msg.StreamID, false)
 	if err != nil {
 		Log.Error.Print("File log error:", err)
 		msg.Drop(time.Duration(0))
@@ -408,7 +290,7 @@ func (prod *File) writeMessage(msg core.Message) {
 
 func (prod *File) rotateLog() {
 	for streamID := range prod.filesByStream {
-		if _, err := prod.getFileLogState(streamID, true); err != nil {
+		if _, err := prod.getFileState(streamID, true); err != nil {
 			Log.Error.Print("File rotate error:", err)
 		}
 	}
@@ -416,11 +298,7 @@ func (prod *File) rotateLog() {
 
 func (prod *File) flush() {
 	for _, state := range prod.files {
-		state.writeBatch()
-		state.batch.WaitForFlush(5 * time.Second)
-
-		state.bgWriter.Wait()
-		state.file.Close()
+		state.flush()
 	}
 	prod.WorkerDone()
 }
