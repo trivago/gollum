@@ -47,10 +47,11 @@ import (
 //     Compress: true
 //
 // The file producer writes messages to a file. This producer also allows log
-// rotation and compression of the rotated logs.
+// rotation and compression of the rotated logs. Folders in the file path will
+// be created if necessary.
 //
-// File contains the path to the log file to write. The wildcard "*" will be
-// replaced by the stream name.
+// File contains the path to the log file to write. The wildcard character "*"
+// can be used as a placeholder for the stream name.
 // By default this is set to /var/prod/gollum.log.
 //
 // BatchSizeMaxKB defines the internal file buffer size in KB.
@@ -66,9 +67,9 @@ import (
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5..
 //
-// FlushTimeoutSec sets the maximum number of seconds to wait after a flush is
-// aborted. This does only affect the flush triggered during shutdown.
-// By default this is set to 0, i.e. don't abort flushing.
+// FlushTimeoutSec sets the maximum number of seconds to wait before a flush is
+// aborted during shutdown. By default this is set to 0, which does not abort
+// the flushing procedure.
 //
 // Rotate if set to true the logs will rotate after reaching certain thresholds.
 //

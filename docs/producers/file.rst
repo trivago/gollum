@@ -2,6 +2,7 @@ File
 ====
 
 This producers writes messages to a file or file based resource.
+Folders in the file path will be created if necessary.
 If configured, a log rotation can be triggered by sending a SIG_HUP.
 You can use ``kill -1 $(cat gollum.pid)`` to achieve this. To create a pidfile you can start gollum with the -p option.
 
@@ -28,6 +29,7 @@ Parameters
   Defines a message formatter to use. :doc:`Format.Forward </formatters/forward>` by default.
 **File**
   Sets the path to the log file to write.
+  The wildcard character "*" can be used as a placeholder for the stream name.
   By default this is set to /var/prod/gollum.log.
 **BatchSizeMaxKB**
   Defines the internal file buffer size in KB.
@@ -42,6 +44,9 @@ Parameters
   Defines the number of seconds to wait after a message before a flush is triggered.
   The timer is reset after each new message.
   By default this is set to 5.
+ **FlushTimeoutSec**
+  Sets the maximum number of seconds to wait before a flush is aborted during shutdown.
+  By default this is set to 0, which does not abort the flushing procedure.
 **Rotate**
   Set to true to enable log rotation. Disabled by default.
 **RotateTimeoutMin**
@@ -53,6 +58,9 @@ Parameters
   Defines specific timestamp as in "HH:MM" when the log should be rotated.
   Hours must be given in 24h format.
   When left empty this setting is ignored. By default this setting is disabled.
+ **RotateTimestamp**
+  Sets the timestamp added to the filename when file rotation is enabled.
+  The format is based on Go's time.Format function and set to "2006-01-02_15" by default.
 **Compress**
   Set to true to gzip a file after rotation.
   By default this is set to false.
@@ -66,7 +74,7 @@ Example
     Enable: true
     Channel: 8192
     ChannelTimeoutMs: 100
-    File: "/var/log/gollum.log"
+    File: "/var/log/gollum/*/*.log"
     BatchSizeMaxKB: 16384
     BatchSizeByte: 4096
     BatchTimeoutSec: 2
@@ -75,6 +83,4 @@ Example
     RotateSizeMB: 1024
     RotateAt: "00:00"
     Compress: true
-    Stream:
-        - "log"
-        - "console"
+    Stream: "*"
