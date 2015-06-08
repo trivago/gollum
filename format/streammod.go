@@ -69,8 +69,11 @@ func (format *StreamMod) Format(msg core.Message) ([]byte, core.MessageStreamID)
 	case 0:
 		modMsg.Data = msg.Data[1:]
 	default:
-		modMsg.StreamID = core.GetStreamID(string(msg.Data[:prefixEnd]))
-		modMsg.Data = msg.Data[prefixEnd+1:]
+		firstSpaceIdx := bytes.IndexByte(msg.Data, ' ')
+		if (firstSpaceIdx < 0) || (firstSpaceIdx > prefixEnd) {
+			modMsg.StreamID = core.GetStreamID(string(msg.Data[:prefixEnd]))
+			modMsg.Data = msg.Data[prefixEnd+1:]
+		}
 	}
 
 	return format.base.Format(modMsg)
