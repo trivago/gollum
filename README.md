@@ -1,4 +1,6 @@
-# Gollum
+![Gollum](docs/gollum.png)
+
+## Gollum
 
 Gollum is a n:m multiplexer that gathers messages from different sources and broadcasts them to a set of destinations.
 

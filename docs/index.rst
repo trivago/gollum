@@ -6,6 +6,8 @@
 Welcome to Gollum's documentation!
 ==================================
 
+.. image:: gollum.png
+
 What is Gollum?
 ---------------
 
