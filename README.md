@@ -203,3 +203,8 @@ If you want to do cross platform builds use `make all` or specifiy one of the fo
 Please not that building for windows will give you errors, which can be solved by removing the lines reported.  
 If you want to use native plugins (contrib/native) you will have to enable the import in the file contrib/loader.go.
 Doing so will disable the possibility to do cross-platform builds for most users.
+
+### Solving dependency problems
+
+If you got any errors during build regarding external dependencies (i.e. the error message points to another repository than github.com/trivago) you can restore the last dependency snapshot using [godep](https://github.com/tools/godep).
+Install godep via `go get github.com/tools/godep` and restore the dependency via `godep restore` when inside the gollum base folder.
