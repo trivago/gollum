@@ -151,10 +151,6 @@ Test a given configuration file and exit.
 
 Print version information and quit.
 
-## License
-
-This project is released under the terms of the [Apache 2.0 license](http://www.apache.org/licenses/LICENSE-2.0).
-
 ## Building
 
 ### Mac OS X
@@ -208,3 +204,7 @@ Doing so will disable the possibility to do cross-platform builds for most users
 
 If you got any errors during build regarding external dependencies (i.e. the error message points to another repository than github.com/trivago) you can restore the last dependency snapshot using [godep](https://github.com/tools/godep).
 Install godep via `go get github.com/tools/godep` and restore the dependency via `godep restore` when inside the gollum base folder.
+
+## License
+
+This project is released under the terms of the [Apache 2.0 license](http://www.apache.org/licenses/LICENSE-2.0).
