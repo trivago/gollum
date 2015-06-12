@@ -154,3 +154,52 @@ Print version information and quit.
 ## License
 
 This project is released under the terms of the [Apache 2.0 license](http://www.apache.org/licenses/LICENSE-2.0).
+
+## Building
+
+### Mac OS X
+
+The easiest way to install go is by using homebrew:  
+`brew install go`
+
+If you want to do cross platform builds you need to specify an additional option:  
+`brew install go --with-cc-all`
+
+### Linux
+
+Download Go from the [golang website](https://golang.org/dl/) and unzip it to e.g. /usr/local/go.  
+You have to set the GOROOT environment variable to the folder you chose:  
+`export GOROOT=/usr/local/go`
+
+### Prerequisites
+
+If you do not already have a GOPATH set up you need to create one.  
+The location is free of choice, we prefer to put it into each users home folder:
+```
+mkdir -p ~/go
+export GOROOT=$(HOME)/go
+```
+
+You can download gollum via `go get github.com/trivago/gollum` or clone it directly into your GOPATH.  
+If you choose this way you need to download your dependencies directly from that folder
+```
+mkdir -p $(GOPATH)/src/github.com/trivago
+cd $(GOPATH)/src/github.com/trivago
+git clone https://github.com/trivago/gollum.git
+cd gollum
+go get -u .
+```
+
+### Build
+
+Building gollum is as easy as `go build`.  
+If you want to do cross platform builds use `make all` or specifiy one of the following platforms instead of "all":
+- freebsd
+- linux
+- mac
+- pi
+- win
+
+Please not that building for windows will give you errors, which can be solved by removing the lines reported.  
+If you want to use native plugins (contrib/native) you will have to enable the import in the file contrib/loader.go.
+Doing so will disable the possibility to do cross-platform builds for most users.
