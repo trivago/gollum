@@ -28,4 +28,12 @@ pi:
 	@GOOS=linux GOARCH=arm go build -o gollum
 	@tar czf gollum_pi.tar.gz gollum config
 
+current:
+	@go build
+
+test:
+	@go test -v ./...
+
 all: clean freebsd linux mac pi win
+
+.DEFAULT_GOAL := current
