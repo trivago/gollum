@@ -1,7 +1,7 @@
 .PHONY: all clean freebsd linux mac pi win current restore test
 clean:
 	@rm -f ./gollum
-	@rm -f ./gollum_*.tar.gz
+	@rm -f ./gollum_*.zip
 
 linux:
 	@echo "Building for Linux"
