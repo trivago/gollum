@@ -9,3 +9,4 @@ test*.txt
 # Docs
 docs/_build
 *.tar.gz
+*.zip
