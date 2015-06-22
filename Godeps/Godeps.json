@@ -47,6 +47,10 @@
 			"Rev": "7ea98aee9ffdf443c33c78c31f14568a16c6f8f2"
 		},
 		{
+			"ImportPath": "github.com/miekg/pcap",
+			"Rev": "4308318ab03edd21f486a5e934e213cb8d9594f3"
+		},
+		{
 			"ImportPath": "golang.org/x/net/websocket",
 			"Rev": "84ba27dd5b2d8135e9da1395277f2c9333a2ffda"
 		},
