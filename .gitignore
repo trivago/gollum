@@ -1,0 +1,11 @@
+gollum
+gollum*.log
+log*.log
+log_*
+gollum.pid
+test*.txt
+*.prof
+
+# Docs
+docs/_build
+*.tar.gz

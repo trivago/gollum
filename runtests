@@ -1,0 +1,26 @@
+#!/bin/bash
+
+RunTests()
+{
+  if ls $1/*_test.go 1> /dev/null 2>&1; then
+    go test -cover $1
+    if [ $? != 0 ]; then
+      errors=$((errors+1))
+    fi
+  fi
+
+  for name in $1/* ; do
+    if [ -d $name ] && [[ "$name" != *Godeps ]]; then
+      RunTests $name
+    fi
+  done
+}
+
+errors=0
+if [ "$1" == "" ]; then
+  RunTests .
+else
+  RunTests $1
+fi
+
+exit $errors
