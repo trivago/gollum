@@ -443,6 +443,16 @@ func (j JsonHelper) Uint64(n string) uint64 {
 	return 0
 }
 
+func (j JsonHelper) Uint64Safe(n string) (uint64, bool) {
+	v := j.Get(n)
+	if v != nil {
+		if uv, err := CoerceUint(v); err == nil {
+			return uv, true
+		}
+	}
+	return 0, false
+}
+
 func (j JsonHelper) BoolSafe(n string) (val bool, ok bool) {
 	v := j.Get(n)
 	if v != nil {

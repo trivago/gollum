@@ -189,6 +189,15 @@ func Errorf(format string, v ...interface{}) {
 	}
 }
 
+// Log this error, and return error object
+func LogErrorf(format string, v ...interface{}) error {
+	err := fmt.Errorf(format, v...)
+	if LogLevel >= 1 {
+		DoLog(3, ERROR, err.Error())
+	}
+	return err
+}
+
 // Log to logger if setup
 //    Log(ERROR, "message")
 func Log(logLvl int, v ...interface{}) {
