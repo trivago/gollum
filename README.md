@@ -2,7 +2,6 @@
 
 ## Gollum
 
-[![Build Status](https://travis-ci.org/trivago/gollum.svg)](https://travis-ci.org/trivago/gollum)
 [![GoDoc](https://godoc.org/github.com/trivago/gollum?status.svg)](https://godoc.org/github.com/trivago/gollum)
 [![Documentation Status](https://readthedocs.org/projects/gollum/badge/?version=latest)](https://readthedocs.org/projects/gollum/?badge=latest)
 
