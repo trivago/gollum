@@ -3,7 +3,7 @@
 ## Gollum
 
 [![GoDoc](https://godoc.org/github.com/trivago/gollum?status.svg)](https://godoc.org/github.com/trivago/gollum)
-[![Documentation Status](https://readthedocs.org/projects/gollum/badge/?version=latest)](https://readthedocs.org/projects/gollum/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/gollum/badge/?version=latest)](http://gollum.readthedocs.org/en/latest/)
 
 Gollum is a n:m multiplexer that gathers messages from different sources and broadcasts them to a set of destinations.
 
