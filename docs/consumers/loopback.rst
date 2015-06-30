@@ -20,7 +20,7 @@ Example
 
 .. code-block:: yaml
 
-  - "consumer.Loopback":
+  - "consumer.LoopBack":
     Enable: true
     Channel: 8192
     Routes:
