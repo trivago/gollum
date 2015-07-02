@@ -203,6 +203,21 @@ Please not that building for windows will give you errors, which can be solved b
 If you want to use native plugins (contrib/native) you will have to enable the import in the file contrib/loader.go.
 Doing so will disable the possibility to do cross-platform builds for most users.
 
+### Dockerfile
+
+The repository contains a `Dockerfile` which enables you to build and run gollum inside a Docker container.
+
+```
+$ docker build -t trivago/gollum .
+$ docker run -it --rm trivago/gollum -c config/profile.conf -ps -ll 3
+```
+
+To use your own configuration you could run:
+
+```
+$ docker run -it --rm -v /path/to/config.conf:/etc/gollum/gollum.conf:ro trivago/gollum -c /etc/gollum/gollum.conf
+```
+
 ### Solving dependency problems
 
 If you got any errors during build regarding external dependencies (i.e. the error message points to another repository than github.com/trivago) you can restore the last dependency snapshot using [godep](https://github.com/tools/godep).
