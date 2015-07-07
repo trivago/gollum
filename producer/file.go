@@ -19,7 +19,6 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
-	"hash/fnv"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -85,12 +84,22 @@ import (
 // is enabled. The format is based on Go's time.Format function and set to
 // "2006-01-02_15" by default.
 //
+// RotatePruneCount removes old logfiles upon rotate so that only the given
+// number of logfiles remain. Logfiles are located by the name defined by "File"
+// and are pruned by date (followed by name).
+// By default this is set to 0 which disables pruning.
+//
+// RotatePruneTotalSizeMB removes old logfiles upon rotate so that only the
+// given number of MBs are used by logfiles. Logfiles are located by the name
+// defined by "File" and are pruned by date (followed by name).
+// By default this is set to 0 which disables pruning.
+//
 // Compress defines if a rotated logfile is to be gzip compressed or not.
 // By default this is set to false.
 type File struct {
 	core.ProducerBase
 	filesByStream map[core.MessageStreamID]*fileState
-	files         map[uint32]*fileState
+	files         map[string]*fileState
 	rotate        fileRotateConfig
 	timestamp     string
 	fileDir       string
@@ -100,6 +109,8 @@ type File struct {
 	flushTimeout  time.Duration
 	bufferSizeMax int
 	batchSize     int
+	pruneCount    int
+	pruneSize     int64
 	wildcardPath  bool
 }
 
@@ -115,7 +126,7 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	}
 
 	prod.filesByStream = make(map[core.MessageStreamID]*fileState)
-	prod.files = make(map[uint32]*fileState)
+	prod.files = make(map[string]*fileState)
 	prod.bufferSizeMax = conf.GetInt("BatchSizeMaxKB", 8<<10) << 10 // 8 MB
 
 	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
@@ -138,6 +149,17 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	prod.rotate.atMinute = -1
 	prod.rotate.compress = conf.GetBool("Compress", false)
 
+	prod.pruneCount = conf.GetInt("RotatePruneCount", 0)
+	prod.pruneSize = int64(conf.GetInt("RotatePruneTotalSizeMB", 0)) << 20
+
+	if prod.pruneSize > 0 && prod.rotate.sizeByte > 0 {
+		prod.pruneSize -= prod.rotate.sizeByte >> 20
+		if prod.pruneSize <= 0 {
+			prod.pruneCount = 1
+			prod.pruneSize = 0
+		}
+	}
+
 	rotateAt := conf.GetString("RotateAt", "")
 	if rotateAt != "" {
 		parts := strings.Split(rotateAt, ":")
@@ -159,7 +181,6 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	}
 
 	var logFileName, fileDir, fileName, fileExt string
-	var fileID uint32
 
 	if prod.wildcardPath {
 		// Get state from filename (without timestamp, etc.)
@@ -178,25 +199,21 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		fileDir = strings.Replace(prod.fileDir, "*", streamName, -1)
 		fileName = strings.Replace(prod.fileName, "*", streamName, -1)
 		fileExt = strings.Replace(prod.fileExt, "*", streamName, -1)
-
-		// Hash the base name
-		hash := fnv.New32a()
-		hash.Write([]byte(fmt.Sprintf("%s/%s%s", fileDir, fileName, fileExt)))
-		fileID = hash.Sum32()
 	} else {
 		// Simple case: only one file used
 		fileDir = prod.fileDir
 		fileName = prod.fileName
 		fileExt = prod.fileExt
-		fileID = 0
 	}
 
+	logFileBasePath := fmt.Sprintf("%s/%s%s", fileDir, fileName, fileExt)
+
 	// Assure the file is correctly mapped
-	state, stateExists := prod.files[fileID]
+	state, stateExists := prod.files[logFileBasePath]
 	if !stateExists {
 		// state does not yet exist: create and map it
 		state = newFileState(prod.bufferSizeMax, prod.flushTimeout)
-		prod.files[fileID] = state
+		prod.files[logFileBasePath] = state
 		prod.filesByStream[streamID] = state
 	} else if _, mappingExists := prod.filesByStream[streamID]; !mappingExists {
 		// state exists but is not mapped: map it and see if we need to rotate
@@ -217,19 +234,22 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	} else {
 		timestamp := time.Now().Format(prod.timestamp)
 		signature := fmt.Sprintf("%s_%s", fileName, timestamp)
-		counter := 0
+		maxSuffix := uint64(0)
 
 		files, _ := ioutil.ReadDir(fileDir)
 		for _, file := range files {
-			if strings.Contains(file.Name(), signature) {
-				counter++
+			if strings.HasPrefix(file.Name(), signature) {
+				counter, _ := shared.Btoi([]byte(file.Name()[len(signature)+1:]))
+				if maxSuffix <= counter {
+					maxSuffix = counter + 1
+				}
 			}
 		}
 
-		if counter == 0 {
+		if maxSuffix == 0 {
 			logFileName = fmt.Sprintf("%s%s", signature, fileExt)
 		} else {
-			logFileName = fmt.Sprintf("%s_%d%s", signature, counter, fileExt)
+			logFileName = fmt.Sprintf("%s_%d%s", signature, int(maxSuffix), fileExt)
 		}
 	}
 
@@ -243,7 +263,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		if prod.rotate.compress {
 			go state.compressAndCloseLog(currentLog)
 		} else {
-			Log.Note.Print("Rotated " + currentLog.Name())
+			Log.Note.Print("Rotated ", currentLog.Name(), " -> ", logFile)
 			currentLog.Close()
 		}
 	}
@@ -261,6 +281,21 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		symLinkName := fmt.Sprintf("%s/%s_current%s", fileDir, fileName, fileExt)
 		os.Remove(symLinkName)
 		os.Symlink(logFileName, symLinkName)
+	}
+
+	// Prune old logs if requested
+	switch {
+	case prod.pruneCount > 0 && prod.pruneSize > 0:
+		go func() {
+			state.pruneByCount(logFileBasePath, prod.pruneCount)
+			state.pruneToSize(logFileBasePath, prod.pruneSize)
+		}()
+
+	case prod.pruneCount > 0:
+		go state.pruneByCount(logFileBasePath, prod.pruneCount)
+
+	case prod.pruneSize > 0:
+		go state.pruneToSize(logFileBasePath, prod.pruneSize)
 	}
 
 	return state, err

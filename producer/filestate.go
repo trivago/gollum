@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
+	"github.com/trivago/gollum/shared"
 	"io"
 	"os"
-	"path/filepath"
 	"runtime"
 	"sync"
 	"time"
@@ -65,10 +65,7 @@ func (state *fileState) compressAndCloseLog(sourceFile *os.File) {
 
 	// Generate file to zip into
 	sourceFileName := sourceFile.Name()
-	sourceDir := filepath.Dir(sourceFileName)
-	sourceExt := filepath.Ext(sourceFileName)
-	sourceBase := filepath.Base(sourceFileName)
-	sourceBase = sourceBase[:len(sourceBase)-len(sourceExt)]
+	sourceDir, sourceBase, _ := shared.SplitPath(sourceFileName)
 
 	targetFileName := fmt.Sprintf("%s/%s.gz", sourceDir, sourceBase)
 
@@ -108,6 +105,60 @@ func (state *fileState) compressAndCloseLog(sourceFile *os.File) {
 	err = os.Remove(sourceFileName)
 	if err != nil {
 		Log.Error.Print("Uncompressed file remove failed:", err)
+	}
+}
+
+func (state *fileState) pruneByCount(baseFilePath string, count int) {
+	state.bgWriter.Wait()
+	baseDir, baseName, _ := shared.SplitPath(baseFilePath)
+
+	files, err := shared.ListFilesByDateMatching(baseDir, baseName+".*")
+	if err != nil {
+		Log.Error.Print("Error pruning files: ", err)
+		return // ### return, error ###
+	}
+
+	numFilesToPrune := len(files) - count
+	if numFilesToPrune < 1 {
+		return // ## return, nothing to prune ###
+	}
+
+	for i := 0; i < numFilesToPrune; i++ {
+		filePath := fmt.Sprintf("%s/%s", baseDir, files[i].Name())
+		if err := os.Remove(filePath); err != nil {
+			Log.Error.Printf("Failed to prune \"%s\": %s", filePath, err.Error())
+		} else {
+			Log.Note.Printf("Pruned \"%s\"", filePath)
+		}
+	}
+}
+
+func (state *fileState) pruneToSize(baseFilePath string, maxSize int64) {
+	state.bgWriter.Wait()
+	baseDir, baseName, _ := shared.SplitPath(baseFilePath)
+
+	files, err := shared.ListFilesByDateMatching(baseDir, baseName+".*")
+	if err != nil {
+		Log.Error.Print("Error pruning files: ", err)
+		return // ### return, error ###
+	}
+
+	totalSize := int64(0)
+	for _, file := range files {
+		totalSize += file.Size()
+	}
+
+	for _, file := range files {
+		if totalSize <= maxSize {
+			return // ### return, done ###
+		}
+		filePath := fmt.Sprintf("%s/%s", baseDir, file.Name())
+		if err := os.Remove(filePath); err != nil {
+			Log.Error.Printf("Failed to prune \"%s\": %s", filePath, err.Error())
+		} else {
+			Log.Note.Printf("Pruned \"%s\"", filePath)
+			totalSize -= file.Size()
+		}
 	}
 }
 

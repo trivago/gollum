@@ -15,7 +15,10 @@
 package shared
 
 import (
+	"os"
+	"sort"
 	"testing"
+	"time"
 )
 
 func TestItoLen(t *testing.T) {
@@ -87,4 +90,98 @@ func TestBtoi(t *testing.T) {
 	result, length = Btoi([]byte("333"))
 	expect.Equal(333, int(result))
 	expect.Equal(3, length)
+}
+
+func TestListFilesByDateMatching(t *testing.T) {
+	expect := NewExpect(t)
+
+	files, err := ListFilesByDateMatching(".", "\\.go$")
+	expect.NoError(err)
+	expect.Greater(len(files), 1)
+
+	lastTime := int64(0)
+	diffCount := 0
+
+	for _, file := range files {
+		if expect.Leq(lastTime, file.ModTime().UnixNano()) {
+			if lastTime != file.ModTime().UnixNano() {
+				diffCount++
+			}
+		}
+		lastTime = file.ModTime().UnixNano()
+	}
+
+	expect.Greater(diffCount, 0)
+}
+
+type fileInfoMock struct {
+	os.FileInfo
+	name string
+	mod  time.Time
+}
+
+func (info fileInfoMock) Name() string {
+	return info.name
+}
+
+func (info fileInfoMock) Size() int64 {
+	return 0
+}
+
+func (info fileInfoMock) Mode() os.FileMode {
+	return os.FileMode(0)
+}
+
+func (info fileInfoMock) ModTime() time.Time {
+	return info.mod
+}
+
+func (info fileInfoMock) IsDir() bool {
+	return false
+}
+
+func (info fileInfoMock) Sys() interface{} {
+	return nil
+}
+
+func TestSplitPath(t *testing.T) {
+	expect := NewExpect(t)
+
+	dir, name, ext := SplitPath("a/b")
+
+	expect.Equal("a", dir)
+	expect.Equal("b", name)
+	expect.Equal("", ext)
+
+	dir, name, ext = SplitPath("a/b.c")
+
+	expect.Equal("a", dir)
+	expect.Equal("b", name)
+	expect.Equal(".c", ext)
+
+	dir, name, ext = SplitPath("b")
+
+	expect.Equal(".", dir)
+	expect.Equal("b", name)
+	expect.Equal("", ext)
+}
+
+func TestFilesByDate(t *testing.T) {
+	expect := NewExpect(t)
+
+	testData := FilesByDate{
+		fileInfoMock{name: "log1", mod: time.Unix(1, 0)},
+		fileInfoMock{name: "log3", mod: time.Unix(0, 0)},
+		fileInfoMock{name: "log2", mod: time.Unix(0, 0)},
+		fileInfoMock{name: "log4", mod: time.Unix(2, 0)},
+		fileInfoMock{name: "alog5", mod: time.Unix(0, 0)},
+	}
+
+	sort.Sort(testData)
+
+	expect.Equal("alog5", testData[0].Name())
+	expect.Equal("log2", testData[1].Name())
+	expect.Equal("log3", testData[2].Name())
+	expect.Equal("log1", testData[3].Name())
+	expect.Equal("log4", testData[4].Name())
 }
