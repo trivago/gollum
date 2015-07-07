@@ -253,7 +253,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		}
 	}
 
-	logFile := fmt.Sprintf("%s/%s", fileDir, logFileName)
+	logFilePath := fmt.Sprintf("%s/%s", fileDir, logFileName)
 
 	// Close existing log
 	if state.file != nil {
@@ -263,14 +263,14 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		if prod.rotate.compress {
 			go state.compressAndCloseLog(currentLog)
 		} else {
-			Log.Note.Print("Rotated ", currentLog.Name(), " -> ", logFile)
+			Log.Note.Print("Rotated ", currentLog.Name(), " -> ", logFilePath)
 			currentLog.Close()
 		}
 	}
 
 	// (Re)open logfile
 	var err error
-	state.file, err = os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+	state.file, err = os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		return state, err // ### return error ###
 	}
