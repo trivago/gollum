@@ -86,11 +86,14 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
 	"text/tabwriter"
 	"time"
+
+	"github.com/docker/docker/pkg/homedir"
 )
 
 // ErrHelp is the error returned if the flag -help is invoked but no such flag is defined.
@@ -286,7 +289,8 @@ type FlagSet struct {
 	// Usage is the function called when an error occurs while parsing flags.
 	// The field is a function (not a method) that may be changed to point to
 	// a custom error handler.
-	Usage func()
+	Usage      func()
+	ShortUsage func()
 
 	name             string
 	parsed           bool
@@ -483,8 +487,7 @@ func (f *FlagSet) Set(name, value string) error {
 	if !ok {
 		return fmt.Errorf("no such flag -%v", name)
 	}
-	err := flag.Value.Set(value)
-	if err != nil {
+	if err := flag.Value.Set(value); err != nil {
 		return err
 	}
 	if f.actual == nil {
@@ -503,12 +506,20 @@ func Set(name, value string) error {
 // otherwise, the default values of all defined flags in the set.
 func (f *FlagSet) PrintDefaults() {
 	writer := tabwriter.NewWriter(f.Out(), 20, 1, 3, ' ', 0)
+	home := homedir.Get()
+
+	// Don't substitute when HOME is /
+	if runtime.GOOS != "windows" && home == "/" {
+		home = ""
+	}
+
+	// Add a blank line between cmd description and list of options
+	if f.FlagCount() > 0 {
+		fmt.Fprintln(writer, "")
+	}
+
 	f.VisitAll(func(flag *Flag) {
 		format := "  -%s=%s"
-		if _, ok := flag.Value.(*stringValue); ok {
-			// put quotes on the value
-			format = "  -%s=%q"
-		}
 		names := []string{}
 		for _, name := range flag.Names {
 			if name[0] != '#' {
@@ -516,7 +527,13 @@ func (f *FlagSet) PrintDefaults() {
 			}
 		}
 		if len(names) > 0 {
-			fmt.Fprintf(writer, format, strings.Join(names, ", -"), flag.DefValue)
+			val := flag.DefValue
+
+			if home != "" && strings.HasPrefix(val, home) {
+				val = homedir.GetShortcutString() + val[len(home):]
+			}
+
+			fmt.Fprintf(writer, format, strings.Join(names, ", -"), val)
 			for i, line := range strings.Split(flag.Usage, "\n") {
 				if i != 0 {
 					line = "  " + line
@@ -550,8 +567,14 @@ func defaultUsage(f *FlagSet) {
 // Usage prints to standard error a usage message documenting all defined command-line flags.
 // The function is a variable that may be changed to point to a custom function.
 var Usage = func() {
-	fmt.Fprintf(CommandLine.output, "Usage of %s:\n", os.Args[0])
+	fmt.Fprintf(CommandLine.Out(), "Usage of %s:\n", os.Args[0])
 	PrintDefaults()
+}
+
+// Usage prints to standard error a usage message documenting the standard command layout
+// The function is a variable that may be changed to point to a custom function.
+var ShortUsage = func() {
+	fmt.Fprintf(CommandLine.output, "Usage of %s:\n", os.Args[0])
 }
 
 // FlagCount returns the number of flags that have been defined.
@@ -930,11 +953,11 @@ func (f *FlagSet) parseOne() (bool, string, error) {
 
 	// it's a flag. does it have an argument?
 	f.args = f.args[1:]
-	has_value := false
+	hasValue := false
 	value := ""
 	if i := strings.Index(name, "="); i != -1 {
 		value = trimQuotes(name[i+1:])
-		has_value = true
+		hasValue = true
 		name = name[:i]
 	}
 
@@ -951,7 +974,7 @@ func (f *FlagSet) parseOne() (bool, string, error) {
 		return false, name, ErrRetry
 	}
 	if fv, ok := flag.Value.(boolFlag); ok && fv.IsBoolFlag() { // special case: doesn't need an arg
-		if has_value {
+		if hasValue {
 			if err := fv.Set(value); err != nil {
 				return false, "", f.failf("invalid boolean value %q for  -%s: %v", value, name, err)
 			}
@@ -960,12 +983,12 @@ func (f *FlagSet) parseOne() (bool, string, error) {
 		}
 	} else {
 		// It must have a value, which might be the next argument.
-		if !has_value && len(f.args) > 0 {
+		if !hasValue && len(f.args) > 0 {
 			// value is the next arg
-			has_value = true
+			hasValue = true
 			value, f.args = f.args[0], f.args[1:]
 		}
-		if !has_value {
+		if !hasValue {
 			return false, "", f.failf("flag needs an argument: -%s", name)
 		}
 		if err := flag.Value.Set(value); err != nil {
@@ -1041,6 +1064,44 @@ func (f *FlagSet) Parse(arguments []string) error {
 		}
 	}
 	return nil
+}
+
+// ParseFlags is a utility function that adds a help flag if withHelp is true,
+// calls cmd.Parse(args) and prints a relevant error message if there are
+// incorrect number of arguments. It returns error only if error handling is
+// set to ContinueOnError and parsing fails. If error handling is set to
+// ExitOnError, it's safe to ignore the return value.
+func (cmd *FlagSet) ParseFlags(args []string, withHelp bool) error {
+	var help *bool
+	if withHelp {
+		help = cmd.Bool([]string{"#help", "-help"}, false, "Print usage")
+	}
+	if err := cmd.Parse(args); err != nil {
+		return err
+	}
+	if help != nil && *help {
+		cmd.SetOutput(os.Stdout)
+		cmd.Usage()
+		os.Exit(0)
+	}
+	if str := cmd.CheckArgs(); str != "" {
+		cmd.SetOutput(os.Stderr)
+		cmd.ReportError(str, withHelp)
+		cmd.ShortUsage()
+		os.Exit(1)
+	}
+	return nil
+}
+
+func (cmd *FlagSet) ReportError(str string, withHelp bool) {
+	if withHelp {
+		if os.Args[0] == cmd.Name() {
+			str += ".\nSee '" + os.Args[0] + " --help'"
+		} else {
+			str += ".\nSee '" + os.Args[0] + " " + cmd.Name() + " --help'"
+		}
+	}
+	fmt.Fprintf(cmd.Out(), "docker: %s.\n", str)
 }
 
 // Parsed reports whether f.Parse has been called.

@@ -30,7 +30,6 @@ import (
 	"runtime"
 	"runtime/pprof"
 	"strconv"
-	"time"
 )
 
 const (
@@ -104,14 +103,7 @@ func main() {
 	}
 
 	if *flagMemProfile != "" {
-		ticker := time.NewTicker(time.Second)
-		defer ticker.Stop()
-		go func() {
-			for {
-				<-ticker.C
-				dumpMemoryProfile()
-			}
-		}()
+		defer dumpMemoryProfile()
 	}
 
 	// Metrics server start

@@ -12,15 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package contrib
+// +build !windows
 
-// This is a stub file to enable registration of vendor specific plugins that
-// are placed in sub folders of this folder.
+package main
 
 import (
-//_ "github.com/trivago/gollum/contrib/native"  // plugins using cgo native bindings
-//_ "your/company/package"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
-func init() {
+func newSignalHandler() chan os.Signal {
+	signalHandler := make(chan os.Signal, 1)
+	signal.Notify(signalHandler, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1, syscall.SIGHUP)
+	return signalHandler
+}
+
+func translateSignal(sig os.Signal) signalType {
+	switch sig {
+	case syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1:
+		return signalExit
+
+	case syscall.SIGHUP:
+		return signalRoll
+	}
+
+	return signalNone
 }

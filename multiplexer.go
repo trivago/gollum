@@ -23,7 +23,6 @@ import (
 	"os/signal"
 	"reflect"
 	"sync"
-	"syscall"
 	"time"
 )
 
@@ -36,6 +35,7 @@ const (
 )
 
 type multiplexerState byte
+type signalType byte
 
 const (
 	multiplexerStateConfigure      = multiplexerState(iota)
@@ -46,6 +46,12 @@ const (
 	multiplexerStateStopConsumers  = multiplexerState(iota)
 	multiplexerStateStopProducers  = multiplexerState(iota)
 	multiplexerStateStopped        = multiplexerState(iota)
+)
+
+const (
+	signalNone = signalType(iota)
+	signalExit = signalType(iota)
+	signalRoll = signalType(iota)
 )
 
 type multiplexer struct {
@@ -326,8 +332,7 @@ func (plex multiplexer) run() {
 	// Apache is using SIG_USR1 in some cases to signal child processes.
 	// This signal is not available on windows
 
-	plex.signal = make(chan os.Signal, 1)
-	signal.Notify(plex.signal, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1, syscall.SIGHUP)
+	plex.signal = newSignalHandler()
 
 	Log.Note.Print("We be nice to them, if they be nice to us. (startup)")
 	measure := time.Now()
@@ -357,13 +362,13 @@ func (plex multiplexer) run() {
 			}
 
 		case sig := <-plex.signal:
-			switch sig {
-			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1:
+			switch translateSignal(sig) {
+			case signalExit:
 				Log.Note.Print("Master betrayed us. Wicked. Tricksy, False. (signal)")
 				plex.state = multiplexerStateShutdown
 				return // ### return, exit requested ###
 
-			case syscall.SIGHUP:
+			case signalRoll:
 				for _, consumer := range plex.consumers {
 					consumer.Control() <- core.PluginControlRoll
 				}
@@ -372,7 +377,6 @@ func (plex multiplexer) run() {
 				}
 
 			default:
-
 			}
 		}
 	}

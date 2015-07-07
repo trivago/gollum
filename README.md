@@ -2,6 +2,9 @@
 
 ## Gollum
 
+[![GoDoc](https://godoc.org/github.com/trivago/gollum?status.svg)](https://godoc.org/github.com/trivago/gollum)
+[![Documentation Status](https://readthedocs.org/projects/gollum/badge/?version=latest)](http://gollum.readthedocs.org/en/latest/)
+
 Gollum is a n:m multiplexer that gathers messages from different sources and broadcasts them to a set of destinations.
 
 There are a few basic terms used throughout Gollum:
@@ -199,6 +202,21 @@ If you want to do cross platform builds use `make all` or specifiy one of the fo
 Please not that building for windows will give you errors, which can be solved by removing the lines reported.  
 If you want to use native plugins (contrib/native) you will have to enable the import in the file contrib/loader.go.
 Doing so will disable the possibility to do cross-platform builds for most users.
+
+### Dockerfile
+
+The repository contains a `Dockerfile` which enables you to build and run gollum inside a Docker container.
+
+```
+$ docker build -t trivago/gollum .
+$ docker run -it --rm trivago/gollum -c config/profile.conf -ps -ll 3
+```
+
+To use your own configuration you could run:
+
+```
+$ docker run -it --rm -v /path/to/config.conf:/etc/gollum/gollum.conf:ro trivago/gollum -c /etc/gollum/gollum.conf
+```
 
 ### Solving dependency problems
 

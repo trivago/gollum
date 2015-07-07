@@ -39,6 +39,7 @@ type Conn struct {
 	Username       string
 	Password       string
 	Hosts          []string
+	RequestTracer  func(method, url, body string)
 	hp             hostpool.HostPool
 	once           sync.Once
 
