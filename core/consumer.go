@@ -24,6 +24,8 @@ import (
 // Consumer is an interface for plugins that recieve data from outside sources
 // and generate Message objects from this data.
 type Consumer interface {
+	Plugin
+
 	// Consume should implement to main loop that fetches messages from a given
 	// source and pushes it to the Message channel.
 	Consume(*sync.WaitGroup)
@@ -52,6 +54,7 @@ type Consumer interface {
 // which means only producers set to consume "all streams" will get these
 // messages.
 type ConsumerBase struct {
+	Consumer
 	control chan PluginControl
 	streams []MappedStream
 	state   *PluginRunState

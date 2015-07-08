@@ -22,6 +22,12 @@ import (
 
 const (
 	metricStreams = "Streams"
+	// MetricNoRoute counts messages that reached a stream without any producers
+	MetricNoRoute = "NoRoute"
+	// MetricDiscarded counts messages that were not delivered and are now lost
+	MetricDiscarded = "DiscardedMessages"
+	// MetricDropped counts messages that were not delivered and scheduled for a retry
+	MetricDropped = "DroppedMessages"
 )
 
 // StreamRegistry holds streams mapped by their MessageStreamID as well as a
@@ -41,6 +47,9 @@ var StreamTypes = StreamRegistry{
 
 func init() {
 	shared.Metric.New(metricStreams)
+	shared.Metric.New(MetricNoRoute)
+	shared.Metric.New(MetricDiscarded)
+	shared.Metric.New(MetricDropped)
 }
 
 // GetStreamID returns the integer representation of a given stream name.

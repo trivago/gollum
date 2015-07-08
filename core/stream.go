@@ -15,6 +15,7 @@
 package core
 
 import (
+	"github.com/trivago/gollum/shared"
 	"sync/atomic"
 )
 
@@ -24,6 +25,8 @@ var MessageCount = uint32(0)
 
 // Stream defines the interface for all stream plugins
 type Stream interface {
+	Plugin
+
 	// Pause causes this stream to go silent. Messages should be queued or cause
 	// a blocking call. The passed capacity can be used to configure internal
 	// channel for buffering incoming messages while this stream is paused.
@@ -55,12 +58,15 @@ type MappedStream struct {
 // instead of overloading the Enqueue method.
 // See stream.Broadcast for default configuration values and examples.
 type StreamBase struct {
-	Filter         Filter
-	Format         Formatter
-	Producers      []Producer
-	Distribute     func(msg Message)
-	prevDistribute func(msg Message)
-	paused         chan Message
+	Stream
+	Filter            Filter
+	Format            Formatter
+	Producers         []Producer
+	ProducersByStream map[MessageStreamID][]Producer
+	StickyStream      bool
+	Distribute        func(msg Message)
+	prevDistribute    func(msg Message)
+	paused            chan Message
 }
 
 // GetAndResetMessageCount returns the current message counter and resets it
@@ -82,7 +88,14 @@ func (stream *StreamBase) Configure(conf PluginConfig) error {
 		return err // ### return, plugin load error ###
 	}
 	stream.Filter = plugin.(Filter)
-	stream.Distribute = stream.broadcast
+	stream.ProducersByStream = make(map[MessageStreamID][]Producer)
+	stream.StickyStream = conf.GetBool("StickyStream", false)
+
+	if stream.StickyStream {
+		stream.Distribute = stream.broadcastOverStream
+	} else {
+		stream.Distribute = stream.broadcastOverAll
+	}
 	return nil
 }
 
@@ -90,6 +103,18 @@ func (stream *StreamBase) Configure(conf PluginConfig) error {
 // Duplicates will be filtered.
 func (stream *StreamBase) AddProducer(producers ...Producer) {
 	for _, prod := range producers {
+		// Fill the "producers by stream" list
+	streams:
+		for _, streamID := range prod.Streams() {
+			for _, inListProd := range stream.ProducersByStream[streamID] {
+				if inListProd == prod {
+					continue streams // ### continue, already in list ###
+				}
+			}
+			stream.ProducersByStream[streamID] = append(stream.ProducersByStream[streamID], prod)
+		}
+
+		// Fill the "all producers" list
 		for _, inListProd := range stream.Producers {
 			if inListProd == prod {
 				return // ### return, already in list ###
@@ -134,8 +159,19 @@ func (stream *StreamBase) stash(msg Message) {
 	stream.paused <- msg
 }
 
-func (stream *StreamBase) broadcast(msg Message) {
+func (stream *StreamBase) broadcastOverAll(msg Message) {
 	for _, prod := range stream.Producers {
+		prod.Enqueue(msg)
+	}
+}
+
+func (stream *StreamBase) broadcastOverStream(msg Message) {
+	producers, exists := stream.ProducersByStream[msg.StreamID]
+	if !exists {
+		shared.Metric.Inc(MetricNoRoute)
+		shared.Metric.Inc(MetricDiscarded)
+	}
+	for _, prod := range producers {
 		prod.Enqueue(msg)
 	}
 }
@@ -144,17 +180,29 @@ func (stream *StreamBase) broadcast(msg Message) {
 // registered. Functions deriving from StreamBase can set the Distribute member
 // to hook into this function.
 func (stream *StreamBase) Enqueue(msg Message) {
-	atomic.AddUint32(&MessageCount, 1)
-
 	if stream.Filter.Accepts(msg) {
 		var streamID MessageStreamID
 		msg.Data, streamID = stream.Format.Format(msg)
-
-		if msg.StreamID == streamID {
-			stream.Distribute(msg)
-		} else {
-			msg.StreamID = streamID
-			StreamTypes.GetStreamOrFallback(streamID).Enqueue(msg)
-		}
+		stream.Route(msg, streamID)
 	}
+}
+
+// Route is called by Enqueue after a message has been accepted and formatted.
+// This encapsulates the main logic of sending messages to producers or to
+// another stream if necessary.
+func (stream *StreamBase) Route(msg Message, targetID MessageStreamID) {
+	if msg.StreamID != targetID {
+		msg.StreamID = targetID
+		StreamTypes.GetStreamOrFallback(targetID).Enqueue(msg)
+		return // ### done, routed ###
+	}
+
+	if len(stream.Producers) == 0 {
+		shared.Metric.Inc(MetricNoRoute)
+		shared.Metric.Inc(MetricDiscarded)
+		return // ### return, no route to producer ###
+	}
+
+	atomic.AddUint32(&MessageCount, 1)
+	stream.Distribute(msg)
 }

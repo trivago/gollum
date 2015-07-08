@@ -314,7 +314,7 @@ func (prod *File) writeMessage(msg core.Message) {
 	state, err := prod.getFileState(msg.StreamID, false)
 	if err != nil {
 		Log.Error.Print("File log error:", err)
-		msg.Drop(time.Duration(0))
+		prod.Drop(msg)
 		return // ### return, dropped ###
 	}
 

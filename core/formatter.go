@@ -16,6 +16,7 @@ package core
 
 // Formatter is the interface definition for message formatters
 type Formatter interface {
+	Plugin
 	// Format transfers the message payload into a new format. The payload may
 	// then be reassigned to the original or a new message.
 	// In addition to that the formatter may change the stream of the message.

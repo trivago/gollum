@@ -21,6 +21,7 @@ import (
 // LogConsumer is an internal consumer plugin used indirectly by the gollum log
 // package.
 type LogConsumer struct {
+	Consumer
 	control   chan PluginControl
 	logStream Stream
 	sequence  uint64

@@ -24,6 +24,8 @@ import (
 // Producer is an interface for plugins that pass messages to other services,
 // files or storages.
 type Producer interface {
+	Plugin
+
 	// Enqueue sends a message to the producer. The producer may reject
 	// the message or drop it after a given timeout. Enqueue can block.
 	Enqueue(msg Message)
@@ -71,15 +73,20 @@ type Producer interface {
 // message channels this producer will consume. By default this is set to "*"
 // which means "listen to all streams but the internal".
 //
+// DroppedStream defines the stream used for messages that are dropped after
+// a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
+//
 // Formatter sets a formatter to use. Each formatter has its own set of options
 // which can be set here, too. By default this is set to format.Forward.
 type ProducerBase struct {
-	messages chan Message
-	control  chan PluginControl
-	streams  []MessageStreamID
-	state    *PluginRunState
-	timeout  time.Duration
-	format   Formatter
+	Producer
+	messages   chan Message
+	control    chan PluginControl
+	streams    []MessageStreamID
+	dropStream MessageStreamID
+	state      *PluginRunState
+	timeout    time.Duration
+	format     Formatter
 }
 
 // ProducerError can be used to return consumer related errors e.g. during a
@@ -112,6 +119,7 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	prod.messages = make(chan Message, conf.GetInt("Channel", 8192))
 	prod.timeout = time.Duration(conf.GetInt("ChannelTimeoutMs", 0)) * time.Millisecond
 	prod.state = new(PluginRunState)
+	prod.dropStream = GetStreamID(conf.GetString("DroppedStream", DroppedStream))
 
 	for i, stream := range conf.Stream {
 		prod.streams[i] = GetStreamID(stream)
@@ -218,7 +226,19 @@ func (prod *ProducerBase) Messages() chan<- Message {
 // Enqueue will add the message to the internal channel so it can be processed
 // by the producer main loop.
 func (prod *ProducerBase) Enqueue(msg Message) {
-	msg.Enqueue(prod.messages, prod.timeout)
+	switch msg.Enqueue(prod.messages, prod.timeout) {
+	case MessageStateTimeout:
+		prod.Drop(msg)
+
+	case MessageStateDiscard:
+		shared.Metric.Inc(MetricDiscarded)
+	}
+}
+
+// Drop routes the message to the configured drop stream.
+func (prod *ProducerBase) Drop(msg Message) {
+	shared.Metric.Inc(MetricDropped)
+	msg.Route(prod.dropStream)
 }
 
 // ProcessCommand provides a callback based possibility to react on the

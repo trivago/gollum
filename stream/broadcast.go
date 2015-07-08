@@ -39,6 +39,11 @@ import (
 //
 // Filter defines a filter function that removes or allows certain messages to
 // pass through this stream. By default this is set to filter.All.
+//
+// StickyStream will cause messages to stay in their original stream (true)
+// instead of being sent to all of the streams listed in "Stream" (false).
+// This is set to false by default as most stream plugins are managing only one
+// stream and this mode performs better.
 type Broadcast struct {
 	core.StreamBase
 }
