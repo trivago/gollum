@@ -64,7 +64,7 @@ func (stream *RoundRobin) Configure(conf core.PluginConfig) error {
 
 func (stream *RoundRobin) roundRobinOverAll(msg core.Message) {
 	index := atomic.AddInt32(&stream.index, 1) % int32(len(stream.StreamBase.Producers))
-	stream.StreamBase.Producers[index].Enqueue(msg)
+	stream.StreamBase.Producers[index].Enqueue(msg, stream.Timeout)
 }
 
 func (stream *RoundRobin) roundRobinOverStream(msg core.Message) {
@@ -86,5 +86,5 @@ func (stream *RoundRobin) roundRobinOverStream(msg core.Message) {
 	}
 
 	index := atomic.AddInt32(indexBase, 1) % int32(len(producers))
-	producers[index].Enqueue(msg)
+	producers[index].Enqueue(msg, stream.Timeout)
 }

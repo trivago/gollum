@@ -28,7 +28,7 @@ type Producer interface {
 
 	// Enqueue sends a message to the producer. The producer may reject
 	// the message or drop it after a given timeout. Enqueue can block.
-	Enqueue(msg Message)
+	Enqueue(msg Message, timeout *time.Duration)
 
 	// Produce should implement a main loop that passes messages from the
 	// message channel to some other service like the console.
@@ -225,8 +225,12 @@ func (prod *ProducerBase) Messages() chan<- Message {
 
 // Enqueue will add the message to the internal channel so it can be processed
 // by the producer main loop.
-func (prod *ProducerBase) Enqueue(msg Message) {
-	switch msg.Enqueue(prod.messages, prod.timeout) {
+func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
+	usedTimeout := prod.timeout
+	if timeout != nil {
+		usedTimeout = *timeout
+	}
+	switch msg.Enqueue(prod.messages, usedTimeout) {
 	case MessageStateTimeout:
 		prod.Drop(msg)
 

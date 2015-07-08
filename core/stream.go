@@ -17,6 +17,7 @@ package core
 import (
 	"github.com/trivago/gollum/shared"
 	"sync/atomic"
+	"time"
 )
 
 // MessageCount holds the number of messages processed since the last call to
@@ -64,6 +65,7 @@ type StreamBase struct {
 	Producers         []Producer
 	ProducersByStream map[MessageStreamID][]Producer
 	StickyStream      bool
+	Timeout           *time.Duration
 	Distribute        func(msg Message)
 	prevDistribute    func(msg Message)
 	paused            chan Message
@@ -90,6 +92,13 @@ func (stream *StreamBase) Configure(conf PluginConfig) error {
 	stream.Filter = plugin.(Filter)
 	stream.ProducersByStream = make(map[MessageStreamID][]Producer)
 	stream.StickyStream = conf.GetBool("StickyStream", false)
+
+	if conf.HasValue("Timeout") {
+		timeout := time.Duration(conf.GetInt("TimeoutMs", 0)) * time.Millisecond
+		stream.Timeout = &timeout
+	} else {
+		stream.Timeout = nil
+	}
 
 	if stream.StickyStream {
 		stream.Distribute = stream.broadcastOverStream
@@ -161,7 +170,7 @@ func (stream *StreamBase) stash(msg Message) {
 
 func (stream *StreamBase) broadcastOverAll(msg Message) {
 	for _, prod := range stream.Producers {
-		prod.Enqueue(msg)
+		prod.Enqueue(msg, stream.Timeout)
 	}
 }
 
@@ -172,7 +181,7 @@ func (stream *StreamBase) broadcastOverStream(msg Message) {
 		shared.Metric.Inc(MetricDiscarded)
 	}
 	for _, prod := range producers {
-		prod.Enqueue(msg)
+		prod.Enqueue(msg, stream.Timeout)
 	}
 }
 

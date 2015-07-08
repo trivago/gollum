@@ -61,7 +61,7 @@ func (stream *Random) Configure(conf core.PluginConfig) error {
 // all producers.
 func (stream *Random) randomOverAll(msg core.Message) {
 	index := rand.Intn(len(stream.StreamBase.Producers))
-	stream.StreamBase.Producers[index].Enqueue(msg)
+	stream.StreamBase.Producers[index].Enqueue(msg, stream.Timeout)
 }
 
 // randomOverStream sends the given message to one random producer in the set of
@@ -73,5 +73,5 @@ func (stream *Random) randomOverStream(msg core.Message) {
 		shared.Metric.Inc(core.MetricDiscarded)
 	}
 	index := rand.Intn(len(producers))
-	producers[index].Enqueue(msg)
+	producers[index].Enqueue(msg, stream.Timeout)
 }
