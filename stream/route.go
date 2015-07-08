@@ -38,7 +38,7 @@ import (
 //
 // Routes defines a 1:n stream remapping. Messages reaching the Route stream
 // are reassigned to the given stream(s). If no Route is set the message will
-// be broadcasted to all producers attached to this stream.
+// be send to all producers attached to this stream.
 //
 // This stream defines the same fields as stream.Broadcast.
 type Route struct {

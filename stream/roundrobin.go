@@ -78,7 +78,7 @@ func (stream *RoundRobin) roundRobinOverStream(msg core.Message) {
 	if !exists {
 		stream.mapInitLock.Lock()
 		// Check and get (!) again -- possible race
-		if indexBase, exists := stream.indexByStream[msg.StreamID]; !exists {
+		if indexBase, exists = stream.indexByStream[msg.StreamID]; !exists {
 			indexBase = new(int32)
 			stream.indexByStream[msg.StreamID] = indexBase
 		}

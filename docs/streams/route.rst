@@ -17,7 +17,10 @@ Parameters
 **Routes**
     Routes defines a 1:n stream remapping.
     Messages reaching the Route stream are reassigned to the given stream(s).
-    If no Route is set the message will be broadcasted to all producers attached to this stream.
+    If no Route is set the message will be send to all producers attached to this stream.
+**StickyStream**
+    This setting controls if messages to stay in their original stream (true) or get sent to all of the streams listed in "Stream" (false).
+    This is set to false by default as most stream plugins are managing only one stream and this mode performs better.
 
 Example
 -------
