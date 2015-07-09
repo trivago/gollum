@@ -37,6 +37,9 @@ type Stream interface {
 	// separate go routine.
 	Resume()
 
+	// Flush calls Resume and blocks until resume finishes
+	Flush()
+
 	// AddProducer adds one or more producers to this stream, i.e. the producers
 	// listening to messages on this stream.
 	AddProducer(producers ...Producer)

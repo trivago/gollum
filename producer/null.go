@@ -54,6 +54,11 @@ func (prod *Null) Streams() []core.MessageStreamID {
 	return prod.streams
 }
 
+// DropStream returns the id of the stream to drop messages to.
+func (prod *Null) DropStream() core.MessageStreamID {
+	return core.DroppedStreamID
+}
+
 // Control returns write access to this producer's control channel.
 func (prod *Null) Control() chan<- core.PluginControl {
 	return prod.control

@@ -40,6 +40,9 @@ type Producer interface {
 	// Control returns write access to this producer's control channel.
 	// See ProducerControl* constants.
 	Control() chan<- PluginControl
+
+	// DropStream returns the id of the stream to drop messages to.
+	DropStream() MessageStreamID
 }
 
 // ProducerBase base class
@@ -209,6 +212,11 @@ func (prod *ProducerBase) Streams() []MessageStreamID {
 	return prod.streams
 }
 
+// DropStream returns the id of the stream to drop messages to.
+func (prod *ProducerBase) DropStream() MessageStreamID {
+	return prod.dropStream
+}
+
 // Control returns write access to this producer's control channel.
 // See ProducerControl* constants.
 func (prod *ProducerBase) Control() chan<- PluginControl {
@@ -260,13 +268,46 @@ func (prod *ProducerBase) ProcessCommand(command PluginControl, onRoll func()) b
 	return false
 }
 
-// Close closes the internal message channel and sends all remaining messages to
-// the given callback. This function is called by *ControlLoop after a quit
-// command has been recieved.
+// Close closes and empties the internal channel with a timeout equal to the
+// channel timeout setting. If no channel timeout is set, one second is used.
+// If flushing messages runs into a timeout all remaining messages will be
+// dropped by using the Drop function.
+// This message returns once all messages have been processed.
 func (prod *ProducerBase) Close(onMessage func(msg Message)) {
 	close(prod.messages)
+
+	maxTimePerMessage := prod.timeout
+	if maxTimePerMessage <= 0 {
+		maxTimePerMessage = time.Second
+	}
+
+	dropWorker := new(sync.WaitGroup)
+	flushWorker := new(sync.WaitGroup)
+	defer dropWorker.Wait()
+
+	responseTest := time.AfterFunc(maxTimePerMessage, func() {
+		dropWorker.Add(1)
+		defer flushWorker.Done()
+		defer dropWorker.Done()
+		for msg := range prod.messages {
+			prod.Drop(msg)
+		}
+	})
+	defer responseTest.Stop()
+
 	for msg := range prod.messages {
-		onMessage(msg)
+		// onMessage may block. To be able to exit this method we need to call
+		// it async and wait for it to finish.
+		flushWorker.Add(1)
+		go func() {
+			onMessage(msg)
+			flushWorker.Done()
+		}()
+		flushWorker.Wait()
+
+		if !responseTest.Reset(maxTimePerMessage) {
+			break // ### break, timed out ###
+		}
 	}
 }
 
