@@ -17,6 +17,5 @@ package core
 // Filter allows custom message filtering for ProducerBase derived plugins.
 // Producers not deriving from ProducerBase might utilize this one, too.
 type Filter interface {
-	Plugin
 	Accepts(msg Message) bool
 }

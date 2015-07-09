@@ -24,26 +24,24 @@ import (
 //
 //   - "stream.Route":
 //     Enable: true
-//     Stream:
-//       - "data"
-//       - "_DROPPED_"
+//     Stream: "data"
 //     Routes:
-//        "_DROPPED_": "myStream"
-//        "data":
-//			- "db1"
-//          - "db2"
+//        - "db1"
+//        - "db2"
+//        - "data"
 //
 // Messages will be routed to the streams configured.
 // If no route is configured the message is discarded.
 //
-// Routes defines a 1:n stream remapping. Messages reaching the Route stream
-// are reassigned to the given stream(s). If no Route is set the message will
-// be send to all producers attached to this stream.
+// Routes defines a 1:n stream remapping.
+// Messages are reassigned to all of stream(s) in this list.
+// If no route is set messages are forwarded on the incoming stream.
+// When routing to multiple streams, the incoming stream has to be listed explicitly to be used.
 //
 // This stream defines the same fields as stream.Broadcast.
 type Route struct {
 	core.StreamBase
-	routes map[core.MessageStreamID][]streamWithID
+	routes []streamWithID
 }
 
 type streamWithID struct {
@@ -55,7 +53,8 @@ func init() {
 	shared.RuntimeType.Register(Route{})
 }
 
-func newStreamWithID(streamID core.MessageStreamID) streamWithID {
+func newStreamWithID(streamName string) streamWithID {
+	streamID := core.GetStreamID(streamName)
 	return streamWithID{
 		id:     streamID,
 		stream: core.StreamTypes.GetStream(streamID),
@@ -64,87 +63,63 @@ func newStreamWithID(streamID core.MessageStreamID) streamWithID {
 
 // Configure initializes this distributor with values from a plugin config.
 func (stream *Route) Configure(conf core.PluginConfig) error {
-	if err := stream.StreamBase.Configure(conf); err != nil {
+	if err := stream.StreamBase.ConfigureStream(conf, stream.Broadcast); err != nil {
 		return err // ### return, base stream error ###
 	}
 
-	routes := conf.GetStreamRoutes("Routes")
-	stream.routes = make(map[core.MessageStreamID][]streamWithID)
-
-	for sourceID, targetIDs := range routes {
-		for _, targetID := range targetIDs {
-			stream.addRoute(sourceID, targetID)
-		}
+	routes := conf.GetStringArray("Routes", []string{})
+	for _, streamName := range routes {
+		targetStream := newStreamWithID(streamName)
+		stream.routes = append(stream.routes, targetStream)
 	}
 
 	return nil
 }
 
-func (stream *Route) addRoute(sourceID core.MessageStreamID, targetID core.MessageStreamID) {
-	targetStream := newStreamWithID(targetID)
+func (stream *Route) routeMessage(msg core.Message) {
+	for i := 0; i < len(stream.routes); i++ {
+		target := stream.routes[i]
 
-	if _, exists := stream.routes[sourceID]; !exists {
-		stream.routes[sourceID] = []streamWithID{targetStream}
-	} else {
-		stream.routes[sourceID] = append(stream.routes[sourceID], targetStream)
-	}
-}
-
-func (stream *Route) removeRoute(sourceID core.MessageStreamID, targetID core.MessageStreamID) {
-	streams := stream.routes[sourceID]
-	if len(streams) == 1 {
-		delete(stream.routes, sourceID)
-		return // ### return, last entry ###
-	}
-
-	for idx, target := range streams {
-		if target.id == targetID {
-			switch {
-			case idx == 0:
-				stream.routes[sourceID] = streams[1:]
-			case idx == len(streams)-1:
-				stream.routes[sourceID] = streams[:idx]
-			default:
-				stream.routes[sourceID] = append(streams[:idx], streams[idx+1:]...)
+		// Stream might require late binding
+		if target.stream == nil {
+			if target.stream = core.StreamTypes.GetStream(target.id); target.stream == nil {
+				// Remove without preserving order allows us to continue iterating
+				lastIdx := len(stream.routes) - 1
+				stream.routes[i] = stream.routes[lastIdx]
+				stream.routes = stream.routes[:lastIdx]
+				i--
+				continue // ### continue, no route ###
 			}
-			return // ### return, removed entry ###
+		}
+
+		if target.id == stream.BoundStreamID {
+			stream.StreamBase.Route(msg, stream.BoundStreamID)
+		} else {
+			msg := msg // copy to allow streamId changes and multiple routes
+			msg.StreamID = target.id
+			target.stream.Enqueue(msg)
 		}
 	}
 }
 
-// Enqueue routes the given message to another stream.
+// Enqueue overloads the standard Enqueue method to allow direct routing to
+// explicit stream targets
 func (stream *Route) Enqueue(msg core.Message) {
-	// Do standard filtering and formatting
 	if stream.Filter.Accepts(msg) {
 		var streamID core.MessageStreamID
 		msg.Data, streamID = stream.Format.Format(msg)
-		routeSuccess := false
 
-		// Search for route targets and enqueue
-		if streams, routeExists := stream.routes[streamID]; routeExists {
-			for _, target := range streams {
-				// Stream might require late binding
-				if target.stream == nil {
-					if target.stream = core.StreamTypes.GetStream(target.id); target.stream == nil {
-						defer stream.removeRoute(streamID, target.id)
-						continue // ### continue, no route ###
-					}
-				}
-
-				if target.id == msg.StreamID {
-					stream.Route(msg, streamID) // Route to self
-				} else {
-					msg := msg // copy to allow streamId changes and multiple routes
-					msg.StreamID = target.id
-					target.stream.Enqueue(msg)
-				}
-				routeSuccess = true
-			}
+		if msg.StreamID != streamID {
+			stream.StreamBase.Route(msg, streamID)
+			return // ### return, routed by standard method ###
 		}
 
-		// If message could not be routed, try direct send
-		if !routeSuccess {
-			stream.Route(msg, streamID)
+		stream.routeMessage(msg)
+
+		if len(stream.routes) == 0 {
+			shared.Metric.Inc(core.MetricNoRoute)
+			shared.Metric.Inc(core.MetricDiscarded)
+			return // ### return, no route to producer ###
 		}
 	}
 }

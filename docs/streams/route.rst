@@ -13,14 +13,12 @@ Parameters
 **Format**
     Defines a message formatter to use. :doc:`Format.Forward </formatters/forward>` by default.
 **Stream**
-    Defines either one or an aray of stream names this configuration applies to.
+    Defines the stream to configure.
 **Routes**
     Routes defines a 1:n stream remapping.
-    Messages reaching the Route stream are reassigned to the given stream(s).
-    If no Route is set the message will be send to all producers attached to this stream.
-**StickyStream**
-    This setting controls if messages to stay in their original stream (true) or get sent to all of the streams listed in "Stream" (false).
-    This is set to false by default as most stream plugins are managing only one stream and this mode performs better.
+    Messages are reassigned to all of stream(s) in this list.
+    If no route is set messages are forwarded on the incoming stream.
+    When routing to multiple streams, the incoming stream has to be listed explicitly to be used.
 
 Example
 -------
@@ -31,11 +29,8 @@ Example
     Enable: true
     Filter: "filter.All"
     Formatter: "format.Forward"
-    Stream:
-      - "data"
-      - "_DROPPED_"
+    Stream: "data"
     Routes:
-      "_DROPPED_": "myStream"
-      "data":
         - "db1"
         - "db2"
+        - "data"

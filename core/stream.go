@@ -16,6 +16,7 @@ package core
 
 import (
 	"github.com/trivago/gollum/shared"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -26,8 +27,6 @@ var MessageCount = uint32(0)
 
 // Stream defines the interface for all stream plugins
 type Stream interface {
-	Plugin
-
 	// Pause causes this stream to go silent. Messages should be queued or cause
 	// a blocking call. The passed capacity can be used to configure internal
 	// channel for buffering incoming messages while this stream is paused.
@@ -59,17 +58,19 @@ type MappedStream struct {
 // instead of overloading the Enqueue method.
 // See stream.Broadcast for default configuration values and examples.
 type StreamBase struct {
-	Stream
-	Filter            Filter
-	Format            Formatter
-	Producers         []Producer
-	ProducersByStream map[MessageStreamID][]Producer
-	StickyStream      bool
-	Timeout           *time.Duration
-	Distribute        func(msg Message)
-	prevDistribute    func(msg Message)
-	paused            chan Message
+	Filter         Filter
+	Format         Formatter
+	Producers      []Producer
+	Timeout        *time.Duration
+	BoundStreamID  MessageStreamID
+	distribute     Distributor
+	prevDistribute Distributor
+	paused         chan Message
+	resumeWorker   *sync.WaitGroup
 }
+
+// Distributor is a callback typedef for methods processing messages
+type Distributor func(msg Message)
 
 // GetAndResetMessageCount returns the current message counter and resets it
 // to 0. This function is threadsafe.
@@ -77,8 +78,8 @@ func GetAndResetMessageCount() uint32 {
 	return atomic.SwapUint32(&MessageCount, 0)
 }
 
-// Configure sets up all values requred by StreamBase
-func (stream *StreamBase) Configure(conf PluginConfig) error {
+// ConfigureStream sets up all values requred by StreamBase.
+func (stream *StreamBase) ConfigureStream(conf PluginConfig, distribute Distributor) error {
 	plugin, err := NewPluginWithType(conf.GetString("Formatter", "format.Forward"), conf)
 	if err != nil {
 		return err // ### return, plugin load error ###
@@ -89,9 +90,11 @@ func (stream *StreamBase) Configure(conf PluginConfig) error {
 	if err != nil {
 		return err // ### return, plugin load error ###
 	}
+
 	stream.Filter = plugin.(Filter)
-	stream.ProducersByStream = make(map[MessageStreamID][]Producer)
-	stream.StickyStream = conf.GetBool("StickyStream", false)
+	stream.BoundStreamID = GetStreamID(conf.Stream[0])
+	stream.resumeWorker = new(sync.WaitGroup)
+	stream.distribute = distribute
 
 	if conf.HasValue("Timeout") {
 		timeout := time.Duration(conf.GetInt("TimeoutMs", 0)) * time.Millisecond
@@ -100,11 +103,6 @@ func (stream *StreamBase) Configure(conf PluginConfig) error {
 		stream.Timeout = nil
 	}
 
-	if stream.StickyStream {
-		stream.Distribute = stream.broadcastOverStream
-	} else {
-		stream.Distribute = stream.broadcastOverAll
-	}
 	return nil
 }
 
@@ -112,18 +110,6 @@ func (stream *StreamBase) Configure(conf PluginConfig) error {
 // Duplicates will be filtered.
 func (stream *StreamBase) AddProducer(producers ...Producer) {
 	for _, prod := range producers {
-		// Fill the "producers by stream" list
-	streams:
-		for _, streamID := range prod.Streams() {
-			for _, inListProd := range stream.ProducersByStream[streamID] {
-				if inListProd == prod {
-					continue streams // ### continue, already in list ###
-				}
-			}
-			stream.ProducersByStream[streamID] = append(stream.ProducersByStream[streamID], prod)
-		}
-
-		// Fill the "all producers" list
 		for _, inListProd := range stream.Producers {
 			if inListProd == prod {
 				return // ### return, already in list ###
@@ -140,8 +126,8 @@ func (stream *StreamBase) AddProducer(producers ...Producer) {
 func (stream *StreamBase) Pause(capacity int) {
 	if stream.paused == nil {
 		stream.paused = make(chan Message, capacity)
-		stream.prevDistribute = stream.Distribute
-		stream.Distribute = stream.stash
+		stream.prevDistribute = stream.distribute
+		stream.distribute = stream.stash
 	}
 }
 
@@ -150,7 +136,8 @@ func (stream *StreamBase) Pause(capacity int) {
 // Calling Resume on a stream that is not paused is ignored.
 func (stream *StreamBase) Resume() {
 	if stream.paused != nil {
-		stream.Distribute = stream.prevDistribute
+		stream.distribute = stream.prevDistribute
+		stream.resumeWorker.Add(1)
 
 		stashed := stream.paused
 		stream.paused = nil
@@ -158,29 +145,27 @@ func (stream *StreamBase) Resume() {
 
 		go func() {
 			for msg := range stashed {
-				stream.Distribute(msg)
+				stream.distribute(msg)
 			}
+			stream.resumeWorker.Done()
 		}()
 	}
 }
 
+// Flush calls Resume and blocks until resume finishes
+func (stream *StreamBase) Flush() {
+	stream.Resume()
+	stream.resumeWorker.Wait()
+}
+
+// stash is used as a distributor during pause
 func (stream *StreamBase) stash(msg Message) {
 	stream.paused <- msg
 }
 
-func (stream *StreamBase) broadcastOverAll(msg Message) {
+// Broadcast enqueues the given message to all producers attached to this stream.
+func (stream *StreamBase) Broadcast(msg Message) {
 	for _, prod := range stream.Producers {
-		prod.Enqueue(msg, stream.Timeout)
-	}
-}
-
-func (stream *StreamBase) broadcastOverStream(msg Message) {
-	producers, exists := stream.ProducersByStream[msg.StreamID]
-	if !exists {
-		shared.Metric.Inc(MetricNoRoute)
-		shared.Metric.Inc(MetricDiscarded)
-	}
-	for _, prod := range producers {
 		prod.Enqueue(msg, stream.Timeout)
 	}
 }
@@ -213,5 +198,5 @@ func (stream *StreamBase) Route(msg Message, targetID MessageStreamID) {
 	}
 
 	atomic.AddUint32(&MessageCount, 1)
-	stream.Distribute(msg)
+	stream.distribute(msg)
 }

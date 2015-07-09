@@ -151,14 +151,20 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	// match the order of reference between the different types.
 
 	for _, config := range streamConfig {
-		for _, streamName := range config.Stream {
-			plugin, err := core.NewPlugin(config)
-			if err != nil {
-				Log.Error.Print("Failed to configure stream plugin ", config.Typename, ": ", err)
-				continue // ### continue ###
-			}
-			core.StreamTypes.Register(plugin.(core.Stream), core.GetStreamID(streamName))
+		if len(config.Stream) == 0 {
+			Log.Error.Printf("Stream plugin %s has no streams set", config.Typename)
+			continue // ### continue ###
 		}
+		streamName := config.Stream[0]
+		if len(config.Stream) > 1 {
+			Log.Warning.Printf("Stream plugins may only bind to one stream. Plugin will bind to %s", streamName)
+		}
+		plugin, err := core.NewPlugin(config)
+		if err != nil {
+			Log.Error.Printf("Failed to configure stream %s: %s", streamName, err)
+			continue // ### continue ###
+		}
+		core.StreamTypes.Register(plugin.(core.Stream), core.GetStreamID(streamName))
 	}
 
 	// All producers are added to the wildcard stream so that consumers can send

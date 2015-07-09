@@ -24,8 +24,6 @@ import (
 // Producer is an interface for plugins that pass messages to other services,
 // files or storages.
 type Producer interface {
-	Plugin
-
 	// Enqueue sends a message to the producer. The producer may reject
 	// the message or drop it after a given timeout. Enqueue can block.
 	Enqueue(msg Message, timeout *time.Duration)
@@ -79,7 +77,6 @@ type Producer interface {
 // Formatter sets a formatter to use. Each formatter has its own set of options
 // which can be set here, too. By default this is set to format.Forward.
 type ProducerBase struct {
-	Producer
 	messages   chan Message
 	control    chan PluginControl
 	streams    []MessageStreamID
@@ -224,7 +221,8 @@ func (prod *ProducerBase) Messages() chan<- Message {
 }
 
 // Enqueue will add the message to the internal channel so it can be processed
-// by the producer main loop.
+// by the producer main loop. A timeout value != nil will overwrite the channel
+// timeout value for this call.
 func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
 	usedTimeout := prod.timeout
 	if timeout != nil {

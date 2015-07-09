@@ -44,34 +44,10 @@ func init() {
 
 // Configure initializes this distributor with values from a plugin config.
 func (stream *Random) Configure(conf core.PluginConfig) error {
-	if err := stream.StreamBase.Configure(conf); err != nil {
-		return err // ### return, base stream error ###
-	}
-
-	if stream.StickyStream {
-		stream.StreamBase.Distribute = stream.randomOverStream
-	} else {
-		stream.StreamBase.Distribute = stream.randomOverAll
-	}
-
-	return nil
+	return stream.StreamBase.ConfigureStream(conf, stream.random)
 }
 
-// randomOverAll sends the given message to one random producer in the set of
-// all producers.
-func (stream *Random) randomOverAll(msg core.Message) {
+func (stream *Random) random(msg core.Message) {
 	index := rand.Intn(len(stream.StreamBase.Producers))
 	stream.StreamBase.Producers[index].Enqueue(msg, stream.Timeout)
-}
-
-// randomOverStream sends the given message to one random producer in the set of
-// all producers for a specific stream.
-func (stream *Random) randomOverStream(msg core.Message) {
-	producers, exists := stream.StreamBase.ProducersByStream[msg.StreamID]
-	if !exists {
-		shared.Metric.Inc(core.MetricNoRoute)
-		shared.Metric.Inc(core.MetricDiscarded)
-	}
-	index := rand.Intn(len(producers))
-	producers[index].Enqueue(msg, stream.Timeout)
 }

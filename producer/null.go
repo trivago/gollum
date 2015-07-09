@@ -18,6 +18,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 	"sync"
+	"time"
 )
 
 // Null producer plugin
@@ -59,7 +60,7 @@ func (prod *Null) Control() chan<- core.PluginControl {
 }
 
 // Enqueue simply ignores the message
-func (prod *Null) Enqueue(msg core.Message) {
+func (prod *Null) Enqueue(msg core.Message, timeout *time.Duration) {
 }
 
 // Produce writes to a buffer that is dumped to a file.

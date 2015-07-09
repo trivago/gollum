@@ -47,44 +47,17 @@ func init() {
 
 // Configure initializes this distributor with values from a plugin config.
 func (stream *RoundRobin) Configure(conf core.PluginConfig) error {
-	if err := stream.StreamBase.Configure(conf); err != nil {
+	if err := stream.StreamBase.ConfigureStream(conf, stream.roundRobin); err != nil {
 		return err // ### return, base stream error ###
 	}
 
-	if stream.StickyStream {
-		stream.StreamBase.Distribute = stream.roundRobinOverStream
-	} else {
-		stream.StreamBase.Distribute = stream.roundRobinOverAll
-	}
 	stream.index = 0
 	stream.indexByStream = make(map[core.MessageStreamID]*int32)
 	stream.mapInitLock = new(sync.Mutex)
 	return nil
 }
 
-func (stream *RoundRobin) roundRobinOverAll(msg core.Message) {
+func (stream *RoundRobin) roundRobin(msg core.Message) {
 	index := atomic.AddInt32(&stream.index, 1) % int32(len(stream.StreamBase.Producers))
 	stream.StreamBase.Producers[index].Enqueue(msg, stream.Timeout)
-}
-
-func (stream *RoundRobin) roundRobinOverStream(msg core.Message) {
-	producers, exists := stream.StreamBase.ProducersByStream[msg.StreamID]
-	if !exists {
-		shared.Metric.Inc(core.MetricNoRoute)
-		shared.Metric.Inc(core.MetricDiscarded)
-	}
-
-	indexBase, exists := stream.indexByStream[msg.StreamID]
-	if !exists {
-		stream.mapInitLock.Lock()
-		// Check and get (!) again -- possible race
-		if indexBase, exists = stream.indexByStream[msg.StreamID]; !exists {
-			indexBase = new(int32)
-			stream.indexByStream[msg.StreamID] = indexBase
-		}
-		stream.mapInitLock.Unlock()
-	}
-
-	index := atomic.AddInt32(indexBase, 1) % int32(len(producers))
-	producers[index].Enqueue(msg, stream.Timeout)
 }
