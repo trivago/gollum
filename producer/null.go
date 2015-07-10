@@ -68,6 +68,10 @@ func (prod *Null) Control() chan<- core.PluginControl {
 func (prod *Null) Enqueue(msg core.Message, timeout *time.Duration) {
 }
 
+// Close gracefully
+func (prod *Null) Close() {
+}
+
 // Produce writes to a buffer that is dumped to a file.
 func (prod *Null) Produce(threads *sync.WaitGroup) {
 	for {

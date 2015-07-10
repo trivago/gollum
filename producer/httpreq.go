@@ -94,10 +94,14 @@ func (prod *HttpReq) sendReq(msg core.Message) {
 	}()
 }
 
-// Produce writes to stdout or stderr.
-func (prod HttpReq) Produce(workers *sync.WaitGroup) {
-	prod.AddMainWorker(workers)
-	defer prod.WorkerDone()
+// Close gracefully
+func (prod *HttpReq) Close() {
+	prod.CloseGracefully(prod.sendReq)
+	prod.WorkerDone()
+}
 
+// Produce writes to stdout or stderr.
+func (prod *HttpReq) Produce(workers *sync.WaitGroup) {
+	prod.AddMainWorker(workers)
 	prod.DefaultControlLoop(prod.sendReq, nil)
 }

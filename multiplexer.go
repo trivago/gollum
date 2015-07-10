@@ -359,8 +359,10 @@ func (plex *multiplexer) shutdown() {
 	// Shutdown producers
 	plex.state = multiplexerStateStopProducers
 	if stateAtShutdown >= multiplexerStateStartProducers {
-		for _, producer := range plex.producers {
-			producer.Control() <- core.PluginControlStop
+		for prodIter := plex.shutdownOrder.Front(); prodIter != nil; prodIter = prodIter.Next() {
+			prod := prodIter.Value.(core.Producer)
+			prod.Control() <- core.PluginControlStop
+			prod.Close()
 		}
 		plex.producerWorker.Wait()
 	}

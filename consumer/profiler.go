@@ -194,8 +194,11 @@ func (cons *Profiler) profile() {
 		maxTime,
 		float64(cons.profileRuns)/maxTime))
 
-	proc, _ := os.FindProcess(os.Getpid())
-	proc.Signal(os.Interrupt)
+	if !cons.quit {
+		// Automatically shut down when done
+		proc, _ := os.FindProcess(os.Getpid())
+		proc.Signal(os.Interrupt)
+	}
 }
 
 // Consume starts a profile run and exits gollum when done

@@ -16,6 +16,7 @@ package core
 
 import (
 	"fmt"
+	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"sync"
 	"time"
@@ -43,6 +44,10 @@ type Producer interface {
 
 	// DropStream returns the id of the stream to drop messages to.
 	DropStream() MessageStreamID
+
+	// Close closes and empties the internal channel and returns once all
+	// messages have been processed.
+	Close()
 }
 
 // ProducerBase base class
@@ -53,6 +58,7 @@ type Producer interface {
 //     Channel: 1024
 //     ChannelTimeout: 200
 //     Formatter: "format.Envelope"
+//     DroppedStream: "failed"
 //     Stream:
 //       - "error"
 //       - "default"
@@ -70,6 +76,11 @@ type Producer interface {
 // available again. If this does not happen, the message will be send to the
 // retry channel.
 //
+// ShutdownTimeoutMs sets a timeout in milliseconds that will be used to detect
+// a blocking producer during shutdown. By default this is set to 2 seconds.
+// If processing a message takes longer to process than this duration, messages
+// will be dropped during shutdown.
+//
 // Stream contains either a single string or a list of strings defining the
 // message channels this producer will consume. By default this is set to "*"
 // which means "listen to all streams but the internal".
@@ -80,13 +91,14 @@ type Producer interface {
 // Formatter sets a formatter to use. Each formatter has its own set of options
 // which can be set here, too. By default this is set to format.Forward.
 type ProducerBase struct {
-	messages   chan Message
-	control    chan PluginControl
-	streams    []MessageStreamID
-	dropStream MessageStreamID
-	state      *PluginRunState
-	timeout    time.Duration
-	format     Formatter
+	messages        chan Message
+	control         chan PluginControl
+	streams         []MessageStreamID
+	dropStream      MessageStreamID
+	state           *PluginRunState
+	timeout         time.Duration
+	shutdownTimeout time.Duration
+	format          Formatter
 }
 
 // ProducerError can be used to return consumer related errors e.g. during a
@@ -118,6 +130,7 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	prod.control = make(chan PluginControl, 1)
 	prod.messages = make(chan Message, conf.GetInt("Channel", 8192))
 	prod.timeout = time.Duration(conf.GetInt("ChannelTimeoutMs", 0)) * time.Millisecond
+	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 2000)) * time.Millisecond
 	prod.state = new(PluginRunState)
 	prod.dropStream = GetStreamID(conf.GetString("DroppedStream", DroppedStream))
 
@@ -268,24 +281,20 @@ func (prod *ProducerBase) ProcessCommand(command PluginControl, onRoll func()) b
 	return false
 }
 
-// Close closes and empties the internal channel with a timeout equal to the
-// channel timeout setting. If no channel timeout is set, one second is used.
-// If flushing messages runs into a timeout all remaining messages will be
-// dropped by using the Drop function.
-// This message returns once all messages have been processed.
-func (prod *ProducerBase) Close(onMessage func(msg Message)) {
+// CloseGracefully closes and empties the internal channel with a given timeout
+// per message. If flushing messages runs into this timeout all remaining
+// messages will be dropped by using the Drop function.
+// This method may be called from derived implementation's Close method.
+func (prod *ProducerBase) CloseGracefully(onMessage func(msg Message)) {
 	close(prod.messages)
 
-	maxTimePerMessage := prod.timeout
-	if maxTimePerMessage <= 0 {
-		maxTimePerMessage = time.Second
-	}
-
+	maxTimePerMessage := prod.shutdownTimeout
 	dropWorker := new(sync.WaitGroup)
 	flushWorker := new(sync.WaitGroup)
 	defer dropWorker.Wait()
 
 	responseTest := time.AfterFunc(maxTimePerMessage, func() {
+		Log.Warning.Printf("A producer listening to %s has found to be blocking during Close(). Dropping remaining messages.", StreamTypes.GetStreamName(prod.Streams()[0]))
 		dropWorker.Add(1)
 		defer flushWorker.Done()
 		defer dropWorker.Done()
@@ -314,7 +323,6 @@ func (prod *ProducerBase) Close(onMessage func(msg Message)) {
 // DefaultControlLoop provides a producer mainloop that is sufficient for most
 // usecases. Before this function exits Close will be called.
 func (prod *ProducerBase) DefaultControlLoop(onMessage func(msg Message), onRoll func()) {
-	defer prod.Close(onMessage)
 	for {
 		select {
 		case msg := <-prod.messages:
@@ -332,7 +340,6 @@ func (prod *ProducerBase) DefaultControlLoop(onMessage func(msg Message), onRoll
 // every given interval tick, too. Before this function exits Close will be called.
 func (prod *ProducerBase) TickerControlLoop(interval time.Duration, onMessage func(msg Message), onRoll func(), onTimeOut func()) {
 	flushTicker := time.NewTicker(interval)
-	defer prod.Close(onMessage)
 	for {
 		select {
 		case msg := <-prod.messages:

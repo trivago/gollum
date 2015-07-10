@@ -187,6 +187,12 @@ func (prod *Redis) storeString(msg core.Message) {
 	}
 }
 
+// Close gracefully
+func (prod *Redis) Close() {
+	prod.CloseGracefully(prod.store)
+	prod.WorkerDone()
+}
+
 // Produce writes to stdout or stderr.
 func (prod *Redis) Produce(workers *sync.WaitGroup) {
 	prod.client = redis.NewClient(&redis.Options{
@@ -201,7 +207,5 @@ func (prod *Redis) Produce(workers *sync.WaitGroup) {
 	}
 
 	prod.AddMainWorker(workers)
-	defer prod.WorkerDone()
-
 	prod.DefaultControlLoop(prod.store, nil)
 }

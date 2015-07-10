@@ -18,6 +18,7 @@ import (
 	"github.com/artyom/scribe"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -56,6 +57,13 @@ func createScribeMessageBatch(maxContentLen int) *scribeMessageBatch {
 		maxContentLen: maxContentLen,
 		lastFlush:     time.Now(),
 		flushing:      new(sync.Mutex),
+	}
+}
+
+// AppendOrBlock works like Append but will block until Append returns true.
+func (batch *scribeMessageBatch) AppendOrBlock(msg core.Message, category string) {
+	for !batch.Append(msg, category) {
+		runtime.Gosched()
 	}
 }
 

@@ -179,10 +179,15 @@ func (prod *ElasticSearch) flush() {
 	prod.WorkerDone()
 }
 
+// Close gracefully
+func (prod *ElasticSearch) Close() {
+	prod.CloseGracefully(prod.sendMessage)
+	prod.flush()
+}
+
 // Produce starts a bluk indexer
 func (prod *ElasticSearch) Produce(workers *sync.WaitGroup) {
 	prod.indexer.Start()
-	defer prod.flush()
 
 	prod.AddMainWorker(workers)
 	prod.DefaultControlLoop(prod.sendMessage, nil)

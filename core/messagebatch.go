@@ -69,6 +69,13 @@ func NewMessageBatch(size int, format Formatter) *MessageBatch {
 	}
 }
 
+// AppendOrBlock works like Append but will block until Append returns true.
+func (batch *MessageBatch) AppendOrBlock(msg Message) {
+	for !batch.Append(msg) {
+		runtime.Gosched()
+	}
+}
+
 // Append formats a message and appends it to the internal buffer.
 // If the message does not fit into the buffer this function returns false.
 // If the message can never fit into the buffer (too large), true is returned

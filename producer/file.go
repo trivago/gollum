@@ -320,7 +320,7 @@ func (prod *File) writeMessage(msg core.Message) {
 
 	if !state.batch.Append(msg) {
 		state.writeBatch()
-		state.batch.Append(msg)
+		state.batch.AppendOrBlock(msg)
 	}
 }
 
@@ -339,10 +339,14 @@ func (prod *File) flush() {
 	prod.WorkerDone()
 }
 
+// Close gracefully
+func (prod *File) Close() {
+	prod.CloseGracefully(prod.writeMessage)
+	prod.flush()
+}
+
 // Produce writes to a buffer that is dumped to a file.
 func (prod *File) Produce(workers *sync.WaitGroup) {
-	defer prod.flush()
-
 	prod.AddMainWorker(workers)
 	prod.TickerControlLoop(prod.batchTimeout, prod.writeMessage, prod.rotateLog, prod.writeBatchOnTimeOut)
 }

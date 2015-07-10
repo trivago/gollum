@@ -275,10 +275,14 @@ func (prod *Kafka) flush() {
 	prod.WorkerDone()
 }
 
+// Close gracefully
+func (prod *Kafka) Close() {
+	prod.CloseGracefully(prod.send)
+	prod.flush()
+}
+
 // Produce writes to a buffer that is sent to a given socket.
 func (prod *Kafka) Produce(workers *sync.WaitGroup) {
-	defer prod.flush()
-
 	prod.AddMainWorker(workers)
 	prod.DefaultControlLoop(prod.send, nil)
 }

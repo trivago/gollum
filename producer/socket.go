@@ -156,7 +156,7 @@ func (prod *Socket) sendBatchOnTimeOut() {
 func (prod *Socket) sendMessage(message core.Message) {
 	if !prod.batch.Append(message) {
 		prod.sendBatch()
-		prod.batch.Append(message)
+		prod.batch.AppendOrBlock(message)
 	}
 }
 
@@ -170,10 +170,14 @@ func (prod *Socket) flush() {
 	prod.WorkerDone()
 }
 
+// Close gracefully
+func (prod *Socket) Close() {
+	prod.CloseGracefully(prod.sendMessage)
+	prod.flush()
+}
+
 // Produce writes to a buffer that is sent to a given socket.
 func (prod *Socket) Produce(workers *sync.WaitGroup) {
-	defer prod.flush()
-
 	prod.AddMainWorker(workers)
 	prod.TickerControlLoop(prod.batchTimeout, prod.sendMessage, nil, prod.sendBatchOnTimeOut)
 }
