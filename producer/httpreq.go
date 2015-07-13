@@ -96,8 +96,8 @@ func (prod *HttpReq) sendReq(msg core.Message) {
 
 // Close gracefully
 func (prod *HttpReq) Close() {
+	defer prod.WorkerDone()
 	prod.CloseGracefully(prod.sendReq)
-	prod.WorkerDone()
 }
 
 // Produce writes to stdout or stderr.

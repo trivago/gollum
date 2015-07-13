@@ -153,19 +153,20 @@ func (prod *Scribe) sendMessage(msg core.Message) {
 	}
 }
 
-func (prod *Scribe) flush() {
-	prod.sendBatch()
-	prod.batch.waitForFlush(5 * time.Second)
-
-	prod.transport.Close()
-	prod.socket.Close()
-	prod.WorkerDone()
-}
-
 // Close gracefully
 func (prod *Scribe) Close() {
-	prod.CloseGracefully(prod.sendMessage)
-	prod.flush()
+	defer prod.WorkerDone()
+	if prod.CloseGracefully(prod.sendMessage) {
+		prod.sendBatch()
+		prod.batch.waitForFlush(prod.GetShutdownTimeout())
+
+		prod.transport.Close()
+		prod.socket.Close()
+	}
+
+	if !prod.batch.isEmpty() {
+		prod.batch.drop(prod)
+	}
 }
 
 // Produce writes to a buffer that is sent to scribe.

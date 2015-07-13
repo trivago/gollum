@@ -77,7 +77,7 @@ type Producer interface {
 // retry channel.
 //
 // ShutdownTimeoutMs sets a timeout in milliseconds that will be used to detect
-// a blocking producer during shutdown. By default this is set to 2 seconds.
+// a blocking producer during shutdown. By default this is set to 3 seconds.
 // If processing a message takes longer to process than this duration, messages
 // will be dropped during shutdown.
 //
@@ -107,6 +107,31 @@ type ProducerError struct {
 	message string
 }
 
+// DropWriter is a helper struct to enable io.Writers write their data to the
+// drop channel of a given producer
+type DropWriter struct {
+	prod Producer
+}
+
+// NewDropWriter creates a new DropWriter bound to a given producer
+func NewDropWriter(prod Producer) DropWriter {
+	return DropWriter{
+		prod: prod,
+	}
+}
+
+// Write copies the incoming data, generates a message from it and pushes it
+// to the bound producer's DropStream.
+func (drop DropWriter) Write(p []byte) (n int, err error) {
+	shared.Metric.Inc(MetricDropped)
+	var dataCopy []byte
+	size := copy(p, dataCopy)
+
+	msg := NewMessage(drop.prod, dataCopy, 0)
+	msg.Route(drop.prod.DropStream())
+	return size, nil
+}
+
 // NewProducerError creates a new ProducerError
 func NewProducerError(args ...interface{}) ProducerError {
 	return ProducerError{fmt.Sprint(args...)}
@@ -130,7 +155,7 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	prod.control = make(chan PluginControl, 1)
 	prod.messages = make(chan Message, conf.GetInt("Channel", 8192))
 	prod.timeout = time.Duration(conf.GetInt("ChannelTimeoutMs", 0)) * time.Millisecond
-	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 2000)) * time.Millisecond
+	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 3000)) * time.Millisecond
 	prod.state = new(PluginRunState)
 	prod.dropStream = GetStreamID(conf.GetString("DroppedStream", DroppedStream))
 
@@ -171,6 +196,12 @@ func (prod ProducerBase) WorkerDone() {
 // will cause the producer to always block.
 func (prod ProducerBase) GetTimeout() time.Duration {
 	return prod.timeout
+}
+
+// GetShutdownTimeout returns the duration this producer will wait during close
+// before messages get dropped.
+func (prod ProducerBase) GetShutdownTimeout() time.Duration {
+	return prod.shutdownTimeout
 }
 
 // Next returns the latest message from the channel as well as the open state
@@ -285,7 +316,8 @@ func (prod *ProducerBase) ProcessCommand(command PluginControl, onRoll func()) b
 // per message. If flushing messages runs into this timeout all remaining
 // messages will be dropped by using the Drop function.
 // This method may be called from derived implementation's Close method.
-func (prod *ProducerBase) CloseGracefully(onMessage func(msg Message)) {
+// If a timout has been detected, false is returned.
+func (prod *ProducerBase) CloseGracefully(onMessage func(msg Message)) bool {
 	close(prod.messages)
 
 	maxTimePerMessage := prod.shutdownTimeout
@@ -315,9 +347,11 @@ func (prod *ProducerBase) CloseGracefully(onMessage func(msg Message)) {
 		flushWorker.Wait()
 
 		if !responseTest.Reset(maxTimePerMessage) {
-			break // ### break, timed out ###
+			return false // ### return, timed out ###
 		}
 	}
+
+	return true
 }
 
 // DefaultControlLoop provides a producer mainloop that is sufficient for most

@@ -173,16 +173,12 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 	}
 }
 
-func (prod *ElasticSearch) flush() {
-	prod.indexer.Flush()
-	prod.indexer.Stop()
-	prod.WorkerDone()
-}
-
 // Close gracefully
 func (prod *ElasticSearch) Close() {
+	defer prod.WorkerDone()
 	prod.CloseGracefully(prod.sendMessage)
-	prod.flush()
+	prod.indexer.Flush()
+	prod.indexer.Stop()
 }
 
 // Produce starts a bluk indexer

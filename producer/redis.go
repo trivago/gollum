@@ -189,8 +189,8 @@ func (prod *Redis) storeString(msg core.Message) {
 
 // Close gracefully
 func (prod *Redis) Close() {
+	defer prod.WorkerDone()
 	prod.CloseGracefully(prod.store)
-	prod.WorkerDone()
 }
 
 // Produce writes to stdout or stderr.

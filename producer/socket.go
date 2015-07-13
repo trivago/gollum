@@ -160,20 +160,26 @@ func (prod *Socket) sendMessage(message core.Message) {
 	}
 }
 
-func (prod *Socket) flush() {
-	prod.sendBatch()
-	prod.batch.WaitForFlush(5 * time.Second)
-
-	if prod.connection != nil {
-		prod.connection.Close()
-	}
-	prod.WorkerDone()
-}
-
 // Close gracefully
 func (prod *Socket) Close() {
-	prod.CloseGracefully(prod.sendMessage)
-	prod.flush()
+	defer prod.WorkerDone()
+
+	// Flush buffer to regular socket
+	if prod.CloseGracefully(prod.sendMessage) {
+		prod.batch.Close()
+		prod.sendBatch()
+		prod.batch.WaitForFlush(prod.GetShutdownTimeout())
+		if prod.connection != nil {
+			prod.connection.Close()
+		}
+	}
+
+	// Drop all data that is still in the buffer
+	if !prod.batch.IsEmpty() {
+		dropAll := core.NewDropWriter(prod)
+		prod.batch.Flush(dropAll, nil, nil)
+		prod.batch.WaitForFlush(prod.GetShutdownTimeout())
+	}
 }
 
 // Produce writes to a buffer that is sent to a given socket.

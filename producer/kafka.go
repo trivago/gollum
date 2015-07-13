@@ -265,20 +265,17 @@ func (prod *Kafka) send(msg core.Message) {
 	}
 }
 
-func (prod *Kafka) flush() {
+// Close gracefully
+func (prod *Kafka) Close() {
+	defer prod.WorkerDone()
+	prod.CloseGracefully(prod.send)
+
 	if prod.producer != nil {
 		prod.producer.Close()
 	}
 	if prod.client != nil && !prod.client.Closed() {
 		prod.client.Close()
 	}
-	prod.WorkerDone()
-}
-
-// Close gracefully
-func (prod *Kafka) Close() {
-	prod.CloseGracefully(prod.send)
-	prod.flush()
 }
 
 // Produce writes to a buffer that is sent to a given socket.

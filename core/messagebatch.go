@@ -36,12 +36,14 @@ type messageQueue struct {
 // You can use the Reached* functions to determine whether a flush should be
 // called, i.e. if a timeout or size threshold has been reached.
 type MessageBatch struct {
-	delimiter string
 	queue     [2]messageQueue
+	format    Formatter
 	flushing  *sync.Mutex
+	assemble  *func()
+	delimiter string
 	lastFlush time.Time
 	activeSet uint32
-	format    Formatter
+	closed    bool
 }
 
 func newMessageQueue(size int) messageQueue {
@@ -66,6 +68,7 @@ func NewMessageBatch(size int, format Formatter) *MessageBatch {
 		lastFlush: time.Now(),
 		activeSet: uint32(0),
 		format:    format,
+		closed:    false,
 	}
 }
 
@@ -81,6 +84,10 @@ func (batch *MessageBatch) AppendOrBlock(msg Message) {
 // If the message can never fit into the buffer (too large), true is returned
 // and an error is logged.
 func (batch *MessageBatch) Append(msg Message) bool {
+	if batch.closed {
+		panic("Appending to closed batch.")
+	}
+
 	activeSet := atomic.AddUint32(&batch.activeSet, 1)
 	activeIdx := activeSet >> 31
 	activeQueue := &batch.queue[activeIdx]
@@ -128,6 +135,12 @@ func (batch *MessageBatch) Touch() {
 	batch.lastFlush = time.Now()
 }
 
+// Close disables Append and will cause the next call to flush to deplete front and backbuffer
+// buffer.
+func (batch *MessageBatch) Close() {
+	batch.closed = true
+}
+
 // Flush writes the content of the buffer to a given resource and resets the
 // internal state, i.e. the buffer is empty after a call to Flush.
 // Writing will be done in a separate go routine to be non-blocking.
@@ -141,51 +154,73 @@ func (batch *MessageBatch) Touch() {
 // If onError returns false the buffer will not be resetted (automatic retry).
 // If onError is nil a return value of true is assumed (buffer reset).
 func (batch *MessageBatch) Flush(resource io.Writer, validate func() bool, onError func(error) bool) {
-	if batch.IsEmpty() {
+	if !batch.closed && batch.IsFrontEmpty() {
 		return // ### return, nothing to do ###
 	}
 
 	// Only one flush at a time
 	batch.flushing.Lock()
 
-	// Switch the buffers so writers can go on writing
-	// If a previous flush failed we need to continue where we stopped
+	if batch.closed {
+		// As we are closed, flush front and back to make sure all data is sent.
+		// Do this asynchronously to be in-line with normal flush behaviour
+		go func() {
+			defer shared.RecoverShutdown()
+			defer batch.flushing.Unlock()
 
-	var flushSet uint32
-	if batch.activeSet&0x80000000 != 0 {
-		flushSet = atomic.SwapUint32(&batch.activeSet, 0|batch.queue[0].doneCount)
+			for _, flushQueue := range []*messageQueue{&batch.queue[0], &batch.queue[1]} {
+				_, err := resource.Write(flushQueue.buffer[:flushQueue.contentLen])
+				if err == nil {
+					if validate == nil || validate() {
+						flushQueue.reset()
+					}
+				} else {
+					if onError == nil || onError(err) {
+						flushQueue.reset()
+					}
+				}
+			}
+		}()
 	} else {
-		flushSet = atomic.SwapUint32(&batch.activeSet, 0x80000000|batch.queue[1].doneCount)
-	}
+		// Switch the buffers so writers can go on writing
+		// If a previous flush failed we need to continue where we stopped
 
-	flushIdx := flushSet >> 31
-	writerCount := flushSet & 0x7FFFFFFF
-	flushQueue := &batch.queue[flushIdx]
-
-	// Wait for remaining writers to finish
-	for writerCount != flushQueue.doneCount {
-		runtime.Gosched()
-	}
-
-	// Write data and reset buffer asynchronously
-	go func() {
-		defer shared.RecoverShutdown()
-		defer batch.flushing.Unlock()
-
-		_, err := resource.Write(flushQueue.buffer[:flushQueue.contentLen])
-
-		if err == nil {
-			if validate == nil || validate() {
-				flushQueue.reset()
-			}
+		var flushSet uint32
+		if batch.activeSet&0x80000000 != 0 {
+			flushSet = atomic.SwapUint32(&batch.activeSet, batch.queue[0].doneCount)
 		} else {
-			if onError == nil || onError(err) {
-				flushQueue.reset()
-			}
+			flushSet = atomic.SwapUint32(&batch.activeSet, 0x80000000|batch.queue[1].doneCount)
 		}
 
-		batch.Touch()
-	}()
+		flushIdx := flushSet >> 31
+		writerCount := flushSet & 0x7FFFFFFF
+		flushQueue := &batch.queue[flushIdx]
+
+		// Wait for remaining writers to finish
+		for writerCount != flushQueue.doneCount {
+			runtime.Gosched()
+		}
+
+		// Write data and reset buffer asynchronously
+		go func() {
+			defer shared.RecoverShutdown()
+			defer batch.flushing.Unlock()
+
+			_, err := resource.Write(flushQueue.buffer[:flushQueue.contentLen])
+
+			if err == nil {
+				if validate == nil || validate() {
+					flushQueue.reset()
+				}
+			} else {
+				if onError == nil || onError(err) {
+					flushQueue.reset()
+				}
+			}
+
+			batch.Touch()
+		}()
+	}
 }
 
 // WaitForFlush blocks until the current flush command returns.
@@ -207,8 +242,16 @@ func (batch *MessageBatch) WaitForFlush(timeout time.Duration) {
 	}
 }
 
-// IsEmpty returns true if no data is stored in the buffer
+// IsEmpty returns true if no data is stored in the buffer at all, i.e. no buffer is
+// scheduled for flushing and no data is currently being flushed or waiting to be flushed
+// again.
 func (batch MessageBatch) IsEmpty() bool {
+	return batch.queue[0].contentLen == 0 && batch.queue[1].contentLen == 0
+}
+
+// IsFrontEmpty returns true if no data is stored in the front buffer, i.e. if no data
+// is scheduled for flushing.
+func (batch MessageBatch) IsFrontEmpty() bool {
 	return batch.activeSet&0x7FFFFFFF == 0
 }
 
@@ -223,6 +266,6 @@ func (batch MessageBatch) ReachedSizeThreshold(size int) bool {
 // ReachedTimeThreshold returns true if the last flush was more than timeout ago.
 // If there is no data this function returns false.
 func (batch MessageBatch) ReachedTimeThreshold(timeout time.Duration) bool {
-	return !batch.IsEmpty() &&
+	return !batch.IsFrontEmpty() &&
 		time.Since(batch.lastFlush) > timeout
 }

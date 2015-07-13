@@ -59,6 +59,10 @@ func (state *fileState) flush() {
 	state.file.Close()
 }
 
+func (state *fileState) close() {
+	state.batch.Close()
+}
+
 func (state *fileState) compressAndCloseLog(sourceFile *os.File) {
 	state.bgWriter.Add(1)
 	defer state.bgWriter.Done()

@@ -18,6 +18,7 @@ import (
 	"github.com/artyom/scribe"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
+	"github.com/trivago/gollum/shared"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -44,10 +45,11 @@ func newMessageQueue() scribeMessageQueue {
 
 type scribeMessageBatch struct {
 	queue         [2]scribeMessageQueue
+	flushing      *sync.Mutex
+	lastFlush     time.Time
 	activeSet     uint32
 	maxContentLen int
-	lastFlush     time.Time
-	flushing      *sync.Mutex
+	closed        bool
 }
 
 func createScribeMessageBatch(maxContentLen int) *scribeMessageBatch {
@@ -57,6 +59,7 @@ func createScribeMessageBatch(maxContentLen int) *scribeMessageBatch {
 		maxContentLen: maxContentLen,
 		lastFlush:     time.Now(),
 		flushing:      new(sync.Mutex),
+		closed:        false,
 	}
 }
 
@@ -68,6 +71,10 @@ func (batch *scribeMessageBatch) AppendOrBlock(msg core.Message, category string
 }
 
 func (batch *scribeMessageBatch) Append(msg core.Message, category string) bool {
+	if batch.closed {
+		panic("Appending to closed batch.")
+	}
+
 	activeSet := atomic.AddUint32(&batch.activeSet, 1)
 	activeIdx := activeSet >> 31
 	messageIdx := (activeSet & 0x7FFFFFFF) - 1
@@ -112,45 +119,70 @@ func (batch *scribeMessageBatch) touch() {
 }
 
 func (batch *scribeMessageBatch) flush(scribe *scribe.ScribeClient, onError func(error)) {
-	if batch.isEmpty() {
+	if !batch.closed && batch.isFrontEmpty() {
 		return // ### return, nothing to do ###
 	}
 
 	// Only one flush at a time
-
 	batch.flushing.Lock()
 
-	// Switch the buffers so writers can go on writing
+	if batch.closed {
+		go func() {
+			defer shared.RecoverShutdown()
+			defer batch.flushing.Unlock()
 
-	var flushSet uint32
-	if batch.activeSet&0x80000000 != 0 {
-		flushSet = atomic.SwapUint32(&batch.activeSet, 0)
+			for _, flushQueue := range []*scribeMessageQueue{&batch.queue[0], &batch.queue[1]} {
+				_, err := scribe.Log(flushQueue.buffer[:flushQueue.doneCount])
+				if err == nil {
+					flushQueue.contentLen = 0
+					flushQueue.doneCount = 0
+					batch.touch()
+				} else {
+					onError(err)
+				}
+			}
+		}()
 	} else {
-		flushSet = atomic.SwapUint32(&batch.activeSet, 0x80000000)
-	}
+		// Switch the buffers so writers can go on writing
 
-	flushIdx := flushSet >> 31
-	writerCount := flushSet & 0x7FFFFFFF
-	flushQueue := &batch.queue[flushIdx]
-
-	// Wait for remaining writers to finish
-
-	for writerCount != flushQueue.doneCount {
-		// Spin
-	}
-
-	go func() {
-		defer batch.flushing.Unlock()
-
-		_, err := scribe.Log(flushQueue.buffer[:writerCount])
-		flushQueue.contentLen = 0
-		flushQueue.doneCount = 0
-		batch.touch()
-
-		if err != nil {
-			onError(err)
+		var flushSet uint32
+		if batch.activeSet&0x80000000 != 0 {
+			flushSet = atomic.SwapUint32(&batch.activeSet, 0)
+		} else {
+			flushSet = atomic.SwapUint32(&batch.activeSet, 0x80000000)
 		}
-	}()
+
+		flushIdx := flushSet >> 31
+		writerCount := flushSet & 0x7FFFFFFF
+		flushQueue := &batch.queue[flushIdx]
+
+		// Wait for remaining writers to finish
+		for writerCount != flushQueue.doneCount {
+			runtime.Gosched()
+		}
+
+		go func() {
+			defer batch.flushing.Unlock()
+
+			_, err := scribe.Log(flushQueue.buffer[:writerCount])
+			if err == nil {
+				flushQueue.contentLen = 0
+				flushQueue.doneCount = 0
+				batch.touch()
+			} else {
+				onError(err)
+			}
+		}()
+	}
+}
+
+func (batch *scribeMessageBatch) drop(prod core.Producer) {
+	writer := core.NewDropWriter(prod)
+	for _, flushQueue := range []*scribeMessageQueue{&batch.queue[0], &batch.queue[1]} {
+		for _, data := range flushQueue.buffer[:flushQueue.doneCount] {
+			writer.Write([]byte(data.String()))
+		}
+	}
 }
 
 func (batch *scribeMessageBatch) waitForFlush(timeout time.Duration) {
@@ -168,6 +200,10 @@ func (batch *scribeMessageBatch) waitForFlush(timeout time.Duration) {
 }
 
 func (batch scribeMessageBatch) isEmpty() bool {
+	return batch.queue[0].contentLen == 0 && batch.queue[1].contentLen == 0
+}
+
+func (batch scribeMessageBatch) isFrontEmpty() bool {
 	return batch.activeSet&0x7FFFFFFF == 0
 }
 
@@ -177,6 +213,6 @@ func (batch scribeMessageBatch) reachedSizeThreshold(size int) bool {
 }
 
 func (batch scribeMessageBatch) reachedTimeThreshold(timeout time.Duration) bool {
-	return !batch.isEmpty() &&
+	return !batch.isFrontEmpty() &&
 		time.Since(batch.lastFlush) > timeout
 }

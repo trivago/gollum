@@ -332,17 +332,26 @@ func (prod *File) rotateLog() {
 	}
 }
 
-func (prod *File) flush() {
-	for _, state := range prod.files {
-		state.flush()
-	}
-	prod.WorkerDone()
-}
-
 // Close gracefully
 func (prod *File) Close() {
-	prod.CloseGracefully(prod.writeMessage)
-	prod.flush()
+	defer prod.WorkerDone()
+
+	// Flush buffers
+	if prod.CloseGracefully(prod.writeMessage) {
+		for _, state := range prod.files {
+			state.close()
+			state.flush()
+		}
+	}
+
+	// Drop all data that is still in the buffer
+	for _, state := range prod.files {
+		if !state.batch.IsEmpty() {
+			dropAll := core.NewDropWriter(prod)
+			state.batch.Flush(dropAll, nil, nil)
+			state.batch.WaitForFlush(prod.GetShutdownTimeout())
+		}
+	}
 }
 
 // Produce writes to a buffer that is dumped to a file.

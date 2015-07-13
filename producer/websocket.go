@@ -178,7 +178,9 @@ func (prod *Websocket) serve() {
 	}
 }
 
-func (prod *Websocket) flush() {
+// Close gracefully
+func (prod *Websocket) Close() {
+	prod.CloseGracefully(prod.pushMessage)
 	prod.listen.Close()
 
 	for _, client := range prod.clients[0].conns {
@@ -187,12 +189,6 @@ func (prod *Websocket) flush() {
 	for _, client := range prod.clients[1].conns {
 		client.Close()
 	}
-}
-
-// Close gracefully
-func (prod *Websocket) Close() {
-	prod.CloseGracefully(prod.pushMessage)
-	prod.flush()
 }
 
 // Produce writes to stdout or stderr.
