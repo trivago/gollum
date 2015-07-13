@@ -359,13 +359,12 @@ func (prod *ProducerBase) CloseGracefully(onMessage func(msg Message)) bool {
 func (prod *ProducerBase) DefaultControlLoop(onMessage func(msg Message), onRoll func()) {
 	for {
 		select {
-		case msg := <-prod.messages:
-			onMessage(msg)
-
 		case command := <-prod.control:
 			if prod.ProcessCommand(command, onRoll) {
 				return // ### return ###
 			}
+		case msg := <-prod.messages:
+			onMessage(msg)
 		}
 	}
 }
@@ -376,13 +375,13 @@ func (prod *ProducerBase) TickerControlLoop(interval time.Duration, onMessage fu
 	flushTicker := time.NewTicker(interval)
 	for {
 		select {
-		case msg := <-prod.messages:
-			onMessage(msg)
-
 		case command := <-prod.control:
 			if prod.ProcessCommand(command, onRoll) {
 				return // ### return ###
 			}
+
+		case msg := <-prod.messages:
+			onMessage(msg)
 
 		case <-flushTicker.C:
 			onTimeOut()
