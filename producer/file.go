@@ -320,7 +320,9 @@ func (prod *File) writeMessage(msg core.Message) {
 
 	if !state.batch.Append(msg) {
 		state.writeBatch()
-		state.batch.AppendOrBlock(msg)
+		if !state.batch.AppendOrBlock(msg) {
+			prod.Drop(msg)
+		}
 	}
 }
 

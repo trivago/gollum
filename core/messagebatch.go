@@ -73,10 +73,16 @@ func NewMessageBatch(size int, format Formatter) *MessageBatch {
 }
 
 // AppendOrBlock works like Append but will block until Append returns true.
-func (batch *MessageBatch) AppendOrBlock(msg Message) {
-	for !batch.Append(msg) {
+// If the batch was closed during this call, false is returned.
+func (batch *MessageBatch) AppendOrBlock(msg Message) bool {
+	for !batch.closed {
+		if batch.Append(msg) {
+			return true // ### return, success ###
+		}
 		runtime.Gosched()
 	}
+
+	return false
 }
 
 // Append formats a message and appends it to the internal buffer.
@@ -207,7 +213,6 @@ func (batch *MessageBatch) Flush(resource io.Writer, validate func() bool, onErr
 			defer batch.flushing.Unlock()
 
 			_, err := resource.Write(flushQueue.buffer[:flushQueue.contentLen])
-
 			if err == nil {
 				if validate == nil || validate() {
 					flushQueue.reset()

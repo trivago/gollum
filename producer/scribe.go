@@ -149,7 +149,9 @@ func (prod *Scribe) sendMessage(msg core.Message) {
 
 	if !prod.batch.Append(msg, category) {
 		prod.sendBatch()
-		prod.batch.AppendOrBlock(msg, category)
+		if !prod.batch.AppendOrBlock(msg, category) {
+			prod.Drop(msg)
+		}
 	}
 }
 

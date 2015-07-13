@@ -156,7 +156,9 @@ func (prod *Socket) sendBatchOnTimeOut() {
 func (prod *Socket) sendMessage(message core.Message) {
 	if !prod.batch.Append(message) {
 		prod.sendBatch()
-		prod.batch.AppendOrBlock(message)
+		if !prod.batch.AppendOrBlock(message) {
+			prod.Drop(message)
+		}
 	}
 }
 
@@ -176,6 +178,7 @@ func (prod *Socket) Close() {
 
 	// Drop all data that is still in the buffer
 	if !prod.batch.IsEmpty() {
+		prod.batch.Close()
 		dropAll := core.NewDropWriter(prod)
 		prod.batch.Flush(dropAll, nil, nil)
 		prod.batch.WaitForFlush(prod.GetShutdownTimeout())

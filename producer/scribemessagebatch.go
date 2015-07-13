@@ -64,10 +64,16 @@ func createScribeMessageBatch(maxContentLen int) *scribeMessageBatch {
 }
 
 // AppendOrBlock works like Append but will block until Append returns true.
-func (batch *scribeMessageBatch) AppendOrBlock(msg core.Message, category string) {
-	for !batch.Append(msg, category) {
+// If the batch was closed during this call, false is returned
+func (batch *scribeMessageBatch) AppendOrBlock(msg core.Message, category string) bool {
+	for !batch.closed {
+		if batch.Append(msg, category) {
+			return true // ### return, appended ###
+		}
 		runtime.Gosched()
 	}
+
+	return false
 }
 
 func (batch *scribeMessageBatch) Append(msg core.Message, category string) bool {

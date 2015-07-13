@@ -321,13 +321,13 @@ func (prod *ProducerBase) CloseGracefully(onMessage func(msg Message)) bool {
 	close(prod.messages)
 
 	maxTimePerMessage := prod.shutdownTimeout
-	dropWorker := new(sync.WaitGroup)
-	flushWorker := new(sync.WaitGroup)
+	dropWorker := new(shared.WaitGroup)
+	flushWorker := new(shared.WaitGroup)
 	defer dropWorker.Wait()
 
 	responseTest := time.AfterFunc(maxTimePerMessage, func() {
+		dropWorker.Inc()
 		Log.Warning.Printf("A producer listening to %s has found to be blocking during Close(). Dropping remaining messages.", StreamTypes.GetStreamName(prod.Streams()[0]))
-		dropWorker.Add(1)
 		defer flushWorker.Done()
 		defer dropWorker.Done()
 		for msg := range prod.messages {
@@ -339,7 +339,7 @@ func (prod *ProducerBase) CloseGracefully(onMessage func(msg Message)) bool {
 	for msg := range prod.messages {
 		// onMessage may block. To be able to exit this method we need to call
 		// it async and wait for it to finish.
-		flushWorker.Add(1)
+		flushWorker.Inc()
 		go func() {
 			onMessage(msg)
 			flushWorker.Done()
