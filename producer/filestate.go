@@ -46,12 +46,12 @@ type fileRotateConfig struct {
 	compress bool
 }
 
-func newFileState(maxMessageCount int, formatter core.Formatter, dropStreamID core.MessageStreamID, timeout time.Duration) *fileState {
+func newFileState(maxMessageCount int, formatter core.Formatter, drop func(core.Message), timeout time.Duration) *fileState {
 	return &fileState{
 		batch:        core.NewMessageBatch(maxMessageCount),
 		bgWriter:     new(sync.WaitGroup),
 		flushTimeout: timeout,
-		assembly:     core.NewWriterAssembly(nil, formatter, dropStreamID),
+		assembly:     core.NewWriterAssembly(nil, drop, formatter),
 	}
 }
 
@@ -61,7 +61,7 @@ func (state *fileState) flush() {
 }
 
 func (state *fileState) flushAndDrop() {
-	state.batch.Flush(state.assembly.Drop)
+	state.batch.Flush(state.assembly.Flush)
 }
 
 func (state *fileState) waitForFlush() {

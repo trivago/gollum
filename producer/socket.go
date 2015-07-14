@@ -104,7 +104,7 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 	}
 
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
-	prod.assembly = core.NewWriterAssembly(prod.connection, prod.GetFormatter(), prod.GetDropStreamID())
+	prod.assembly = core.NewWriterAssembly(prod.connection, prod.Drop, prod.GetFormatter())
 	return nil
 }
 
@@ -182,7 +182,7 @@ func (prod *Socket) Close() {
 	// Drop all data that is still in the buffer
 	if !prod.batch.IsEmpty() {
 		prod.batch.Close()
-		prod.batch.Flush(prod.assembly.Drop)
+		prod.batch.Flush(prod.assembly.Flush)
 		prod.batch.WaitForFlush(prod.GetShutdownTimeout())
 	}
 }

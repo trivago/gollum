@@ -86,7 +86,7 @@ func (batch *MessageBatch) Append(msg Message) bool {
 	activeSet := atomic.AddUint32(&batch.activeSet, 1)
 	activeIdx := activeSet >> 31
 	activeQueue := &batch.queue[activeIdx]
-	ticketIdx := activeSet & 0x7FFFFFFF
+	ticketIdx := (activeSet & 0x7FFFFFFF) - 1
 
 	// We mark the message as written even if the write fails so that flush
 	// does not block after a failed message.

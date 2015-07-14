@@ -21,106 +21,98 @@ import (
 	"time"
 )
 
-type MessageBatchWriter struct {
-	expect          shared.Expect
-	successCalled   *bool
-	errorCalled     *bool
-	returnError     bool
-	returnWrongSize bool
+type messageBatchWriter struct {
+	expect  shared.Expect
+	counter int
 }
 
 type mockFormatter struct {
 }
 
-func (writer MessageBatchWriter) Write(data []byte) (int, error) {
-	defer func() {
-		*writer.successCalled = false
-		*writer.errorCalled = false
-	}()
+func (bw *messageBatchWriter) hasData(messages []Message) {
+	bw.expect.Greater(len(messages), 0)
+}
 
-	if writer.returnWrongSize {
-		return 0, nil
+func (bw *messageBatchWriter) checkOrder(messages []Message) {
+	for i, msg := range messages {
+		bw.expect.Equal(uint64(i), msg.Sequence)
 	}
+}
 
-	if writer.returnError {
-		return len(data), fmt.Errorf("test")
-	}
-
+func (bw messageBatchWriter) Write(data []byte) (int, error) {
+	bw.expect.Equal("0123456789", string(data))
 	return len(data), nil
 }
 
-func (writer MessageBatchWriter) onSuccess() bool {
-	*writer.successCalled = true
-	return true
+func (bw messageBatchWriter) Flush(msg Message) {
+	bw.expect.NotExecuted()
 }
 
-func (writer MessageBatchWriter) onError(err error) bool {
-	*writer.errorCalled = true
-	return false
+func (bw *messageBatchWriter) Count(msg Message) {
+	bw.counter++
 }
 
-func (mock *mockFormatter) Format(msg Message) ([]byte, MessageStreamID) {
+func (mock mockFormatter) Format(msg Message) ([]byte, MessageStreamID) {
 	return msg.Data, msg.StreamID
 }
 
 func TestMessageBatch(t *testing.T) {
 	expect := shared.NewExpect(t)
-	writer := MessageBatchWriter{expect, new(bool), new(bool), false, false}
+	writer := messageBatchWriter{expect, 0}
+	assembly := NewWriterAssembly(writer, writer.Flush, mockFormatter{})
 
-	test10 := NewMessage(nil, []byte("1234567890"), 0)
-	test20 := NewMessage(nil, []byte("12345678901234567890"), 1)
-	buffer := NewMessageBatch(15, new(mockFormatter))
+	batch := NewMessageBatch(10)
+	expect.False(batch.IsClosed())
+	expect.True(batch.IsEmpty())
 
-	// Test optionals
+	// Append adds an item
+	batch.Append(NewMessage(nil, []byte("test"), 0))
+	expect.False(batch.IsEmpty())
 
-	buffer.Flush(writer, nil, nil)
-	buffer.WaitForFlush(time.Duration(0))
+	// Flush removes all items
+	batch.Flush(writer.hasData)
+	batch.WaitForFlush(time.Second)
 
-	// Test empty flush
+	expect.True(batch.IsEmpty())
+	expect.False(batch.ReachedSizeThreshold(10))
 
-	buffer.Flush(writer, writer.onSuccess, writer.onError)
-	buffer.WaitForFlush(time.Duration(0))
+	// Append fails if buffer is full
+	for i := 0; i < 10; i++ {
+		expect.True(batch.Append(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), uint64(i))))
+	}
+	expect.False(batch.Append(NewMessage(nil, []byte("10"), 10)))
+	expect.True(batch.ReachedSizeThreshold(10))
 
-	expect.False(*writer.successCalled)
-	expect.False(*writer.errorCalled)
+	// Test writer assembly
+	batch.Flush(assembly.Write)
+	batch.WaitForFlush(time.Second)
+	expect.True(batch.IsEmpty())
 
-	// Test regular appends
+	for i := 0; i < 10; i++ {
+		expect.True(batch.Append(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), uint64(i))))
+	}
 
-	result := buffer.Append(test10)
-	expect.True(result)
+	writer.counter = 0
+	assembly.SetFlush(writer.Count)
 
-	result = buffer.Append(test10)
-	expect.False(result) // too large
+	batch.Flush(assembly.Flush)
+	batch.WaitForFlush(time.Second)
 
-	buffer.Flush(writer, writer.onSuccess, writer.onError)
-	buffer.WaitForFlush(time.Duration(0))
+	expect.True(batch.IsEmpty())
+	expect.Equal(10, writer.counter)
 
-	expect.True(*writer.successCalled)
-	expect.False(*writer.errorCalled)
+	// Flush removes all items, also if closed
+	for i := 0; i < 5; i++ {
+		expect.True(batch.Append(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), uint64(i))))
+	}
 
-	// Test oversize append
+	batch.Close()
+	expect.False(batch.Append(NewMessage(nil, []byte("6"), 6)))
 
-	result = buffer.Append(test20)
-	expect.True(result) // Too large -> ignored
+	batch.Flush(writer.checkOrder)
+	batch.WaitForFlush(time.Second)
+	expect.True(batch.IsEmpty())
 
-	// Test writer error
-
-	result = buffer.Append(test10)
-	expect.True(result)
-
-	writer.returnError = true
-	buffer.Flush(writer, writer.onSuccess, writer.onError)
-	buffer.WaitForFlush(time.Duration(0))
-
-	expect.False(*writer.successCalled)
-	expect.True(*writer.errorCalled)
-
-	// Test writer size mismatch
-
-	writer.returnWrongSize = true
-	buffer.Flush(writer, writer.onSuccess, writer.onError)
-	buffer.WaitForFlush(time.Duration(0))
-
-	expect.False(*writer.successCalled)
-	expect.True(*writer.errorCalled)
+	expect.False(batch.Append(NewMessage(nil, nil, 0)))
+	expect.False(batch.AppendOrBlock(NewMessage(nil, nil, 0)))
 }

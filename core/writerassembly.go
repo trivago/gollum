@@ -23,6 +23,7 @@ import (
 // messagebatch.
 type WriterAssembly struct {
 	writer       io.Writer
+	flush        func(Message)
 	formatter    Formatter
 	dropStreamID MessageStreamID
 	buffer       []byte
@@ -30,11 +31,11 @@ type WriterAssembly struct {
 
 // NewWriterAssembly creates a new adapter between io.Writer and the MessageBatch
 // AssemblyFunc function signature
-func NewWriterAssembly(writer io.Writer, formatter Formatter, dropStreamID MessageStreamID) WriterAssembly {
+func NewWriterAssembly(writer io.Writer, flush func(Message), formatter Formatter) WriterAssembly {
 	return WriterAssembly{
-		writer:       writer,
-		formatter:    formatter,
-		dropStreamID: dropStreamID,
+		writer:    writer,
+		formatter: formatter,
+		flush:     flush,
 	}
 }
 
@@ -43,34 +44,39 @@ func (asm *WriterAssembly) SetWriter(writer io.Writer) {
 	asm.writer = writer
 }
 
+// SetFlush changes the bound flush function
+func (asm *WriterAssembly) SetFlush(flush func(Message)) {
+	asm.flush = flush
+}
+
 // Write is an AssemblyFunc compatible implementation to pass all messages from
 // a MessageBatch to an io.Writer.
 // Messages are formatted using a given formatter. If the io.Writer fails to
-// write the assembled buffer all messages are routed to the given drop channel.
+// write the assembled buffer all messages are passed to the FLush() method.
 func (asm *WriterAssembly) Write(messages []Message) {
 	contentLen := 0
 	for _, msg := range messages {
 		payload, _ := asm.formatter.Format(msg)
-
 		if contentLen+len(payload) > len(asm.buffer) {
 			asm.buffer = append(asm.buffer[:contentLen], payload...)
 		} else {
 			copy(asm.buffer[contentLen:], payload)
-			contentLen += len(payload)
 		}
+		contentLen += len(payload)
 	}
 
-	// Drop all messages if they could not be written to disk
+	// Route all messages if they could not be written to disk
 	if _, err := asm.writer.Write(asm.buffer[:contentLen]); err != nil {
 		Log.Error.Print("Stream write error:", err)
-		asm.Drop(messages)
+		asm.Flush(messages)
 	}
 }
 
-// Drop is an AssemblyFunc compatible implementation to drop all messages from
-// a MessageBatch.
-func (asm *WriterAssembly) Drop(messages []Message) {
+// Flush is an AssemblyFunc compatible implementation to pass all messages from
+// a MessageBatch to e.g. the Drop function of a producer.
+// Flush will also be called by Write if the io.Writer reported an error.
+func (asm *WriterAssembly) Flush(messages []Message) {
 	for _, msg := range messages {
-		msg.Route(asm.dropStreamID)
+		asm.flush(msg)
 	}
 }

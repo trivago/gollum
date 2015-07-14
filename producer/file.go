@@ -207,7 +207,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	state, stateExists := prod.files[logFileBasePath]
 	if !stateExists {
 		// state does not yet exist: create and map it
-		state = newFileState(prod.batchMaxCount, prod.GetFormatter(), prod.GetDropStreamID(), prod.flushTimeout)
+		state = newFileState(prod.batchMaxCount, prod.GetFormatter(), prod.Drop, prod.flushTimeout)
 		prod.files[logFileBasePath] = state
 		prod.filesByStream[streamID] = state
 	} else if _, mappingExists := prod.filesByStream[streamID]; !mappingExists {
