@@ -15,6 +15,7 @@
 package consumer
 
 import (
+	"container/list"
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
@@ -79,13 +80,15 @@ const (
 type Socket struct {
 	core.ConsumerBase
 	listen      io.Closer
+	clientLock  *sync.Mutex
+	clients     *list.List
 	protocol    string
 	address     string
-	flags       shared.BufferedReaderFlags
 	delimiter   string
+	acknowledge string
+	flags       shared.BufferedReaderFlags
 	offset      int
 	quit        bool
-	acknowledge string
 }
 
 func init() {
@@ -99,6 +102,8 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
+	cons.clients = list.New()
+	cons.clientLock = new(sync.Mutex)
 	cons.acknowledge = shared.Unescape(conf.GetString("Acknowledge", ""))
 	cons.address, cons.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
 
@@ -170,12 +175,24 @@ func (cons *Socket) clientDisconnected(err error) bool {
 	return false
 }
 
-func (cons *Socket) readFromConnection(conn net.Conn) {
+func (cons *Socket) processClientConnection(clientElement *list.Element) {
+	defer shared.RecoverShutdown()
+	conn := clientElement.Value.(net.Conn)
+
 	defer func() {
+		cons.clientLock.Lock()
+		defer cons.clientLock.Unlock()
+
+		cons.clients.Remove(clientElement)
 		conn.Close()
 		cons.WorkerDone()
 	}()
 
+	cons.AddWorker()
+	cons.processConnection(conn)
+}
+
+func (cons *Socket) processConnection(conn net.Conn) {
 	conn.SetDeadline(time.Time{})
 	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.offset, cons.delimiter)
 
@@ -184,7 +201,7 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 
 		// Handle errors
 		if err != nil && err != io.EOF {
-			if cons.clientDisconnected(err) {
+			if cons.quit || cons.clientDisconnected(err) {
 				return // ### return, connection closed ###
 			}
 
@@ -200,7 +217,8 @@ func (cons *Socket) readFromConnection(conn net.Conn) {
 }
 
 func (cons *Socket) udpAccept() {
-	cons.readFromConnection(cons.listen.(*net.UDPConn))
+	conn := cons.listen.(*net.UDPConn)
+	cons.processConnection(conn)
 }
 
 func (cons *Socket) tcpAccept() {
@@ -216,11 +234,17 @@ func (cons *Socket) tcpAccept() {
 			break // ### break ###
 		}
 
-		go func() {
-			defer shared.RecoverShutdown()
-			cons.AddWorker()
-			cons.readFromConnection(client)
-		}()
+		cons.clientLock.Lock()
+		element := cons.clients.PushBack(client)
+		go cons.processClientConnection(element)
+		cons.clientLock.Unlock()
+	}
+
+	cons.clientLock.Lock()
+	defer cons.clientLock.Unlock()
+	for iter := cons.clients.Front(); iter != nil; iter = iter.Next() {
+		client := iter.Value.(net.Conn)
+		client.Close()
 	}
 }
 
@@ -230,7 +254,6 @@ func (cons *Socket) Consume(workers *sync.WaitGroup) {
 	var listen func()
 
 	cons.quit = false
-
 	if cons.protocol == "udp" {
 		addr, _ := net.ResolveUDPAddr(cons.protocol, cons.address)
 		if cons.listen, err = net.ListenUDP(cons.protocol, addr); err != nil {

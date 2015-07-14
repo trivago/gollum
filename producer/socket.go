@@ -139,6 +139,7 @@ func (prod *Socket) sendBatch() {
 		} else {
 			conn.(bufferedConn).SetWriteBuffer(prod.bufferSizeKB << 10)
 			prod.connection = conn
+			prod.assembly.SetWriter(conn)
 		}
 	}
 
