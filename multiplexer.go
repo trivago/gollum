@@ -272,7 +272,7 @@ func (plex *multiplexer) printShutdownOrder() {
 			streams += core.StreamTypes.GetStreamName(streamID) + ", "
 		}
 		Log.Debug.Print(streams)
-		Log.Debug.Print("< ", core.StreamTypes.GetStreamName(prod.DropStream()))
+		Log.Debug.Print("< ", core.StreamTypes.GetStreamName(prod.GetDropStreamID()))
 	}
 }
 
@@ -312,7 +312,7 @@ nextChild:
 			}
 			parent := parentIter.Value.(core.Producer)
 			for _, streamID := range child.Streams() {
-				if streamID == parent.DropStream() {
+				if streamID == parent.GetDropStreamID() {
 					nextIter := childIter.Prev()
 					plex.shutdownOrder.MoveToBack(childIter)
 					childIter = nextIter

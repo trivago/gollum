@@ -29,8 +29,10 @@ import (
 
 type fileState struct {
 	file         *os.File
-	batch        *core.MessageBatch
 	bgWriter     *sync.WaitGroup
+	batch        core.MessageBatch
+	buffer       []byte
+	assembly     core.WriterAssembly
 	fileCreated  time.Time
 	flushTimeout time.Duration
 }
@@ -44,16 +46,25 @@ type fileRotateConfig struct {
 	compress bool
 }
 
-func newFileState(bufferSizeMax int, timeout time.Duration) *fileState {
+func newFileState(maxMessageCount int, formatter core.Formatter, dropStreamID core.MessageStreamID, timeout time.Duration) *fileState {
 	return &fileState{
-		batch:        core.NewMessageBatch(bufferSizeMax, nil),
+		batch:        core.NewMessageBatch(maxMessageCount),
 		bgWriter:     new(sync.WaitGroup),
 		flushTimeout: timeout,
+		assembly:     core.NewWriterAssembly(nil, formatter, dropStreamID),
 	}
 }
 
 func (state *fileState) flush() {
-	state.writeBatch()
+	state.assembly.SetWriter(state.file)
+	state.batch.Flush(state.assembly.Write)
+}
+
+func (state *fileState) flushAndDrop() {
+	state.batch.Flush(state.assembly.Drop)
+}
+
+func (state *fileState) waitForFlush() {
 	state.batch.WaitForFlush(state.flushTimeout)
 	state.bgWriter.Wait()
 	state.file.Close()
@@ -164,15 +175,6 @@ func (state *fileState) pruneToSize(baseFilePath string, maxSize int64) {
 			totalSize -= file.Size()
 		}
 	}
-}
-
-func (state *fileState) onWriterError(err error) bool {
-	Log.Error.Print("File write error:", err)
-	return false
-}
-
-func (state *fileState) writeBatch() {
-	state.batch.Flush(state.file, nil, state.onWriterError)
 }
 
 func (state *fileState) needsRotate(rotate fileRotateConfig, forceRotate bool) (bool, error) {

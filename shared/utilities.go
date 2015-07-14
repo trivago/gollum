@@ -100,6 +100,14 @@ func Unescape(text string) string {
 	return simpleEscapeChars.Replace(text)
 }
 
+// MaxI returns the maximum out of two integers
+func MaxI(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 // ItoLen returns the length of an unsingned integer when converted to a string
 func ItoLen(number uint64) int {
 	switch {

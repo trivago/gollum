@@ -43,7 +43,7 @@ type Producer interface {
 	Control() chan<- PluginControl
 
 	// DropStream returns the id of the stream to drop messages to.
-	DropStream() MessageStreamID
+	GetDropStreamID() MessageStreamID
 
 	// Close closes and empties the internal channel and returns once all
 	// messages have been processed.
@@ -94,7 +94,7 @@ type ProducerBase struct {
 	messages        chan Message
 	control         chan PluginControl
 	streams         []MessageStreamID
-	dropStream      MessageStreamID
+	dropStreamID    MessageStreamID
 	state           *PluginRunState
 	timeout         time.Duration
 	shutdownTimeout time.Duration
@@ -105,31 +105,6 @@ type ProducerBase struct {
 // call to Configure
 type ProducerError struct {
 	message string
-}
-
-// DropWriter is a helper struct to enable io.Writers write their data to the
-// drop channel of a given producer
-type DropWriter struct {
-	prod Producer
-}
-
-// NewDropWriter creates a new DropWriter bound to a given producer
-func NewDropWriter(prod Producer) DropWriter {
-	return DropWriter{
-		prod: prod,
-	}
-}
-
-// Write copies the incoming data, generates a message from it and pushes it
-// to the bound producer's DropStream.
-func (drop DropWriter) Write(p []byte) (n int, err error) {
-	shared.Metric.Inc(MetricDropped)
-	var dataCopy []byte
-	size := copy(p, dataCopy)
-
-	msg := NewMessage(drop.prod, dataCopy, 0)
-	msg.Route(drop.prod.DropStream())
-	return size, nil
 }
 
 // NewProducerError creates a new ProducerError
@@ -157,7 +132,7 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	prod.timeout = time.Duration(conf.GetInt("ChannelTimeoutMs", 0)) * time.Millisecond
 	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 3000)) * time.Millisecond
 	prod.state = new(PluginRunState)
-	prod.dropStream = GetStreamID(conf.GetString("DroppedStream", DroppedStream))
+	prod.dropStreamID = GetStreamID(conf.GetString("DroppedStream", DroppedStream))
 
 	for i, stream := range conf.Stream {
 		prod.streams[i] = GetStreamID(stream)
@@ -256,9 +231,9 @@ func (prod *ProducerBase) Streams() []MessageStreamID {
 	return prod.streams
 }
 
-// DropStream returns the id of the stream to drop messages to.
-func (prod *ProducerBase) DropStream() MessageStreamID {
-	return prod.dropStream
+// GetDropStreamID returns the id of the stream to drop messages to.
+func (prod *ProducerBase) GetDropStreamID() MessageStreamID {
+	return prod.dropStreamID
 }
 
 // Control returns write access to this producer's control channel.
@@ -292,7 +267,7 @@ func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
 // Drop routes the message to the configured drop stream.
 func (prod *ProducerBase) Drop(msg Message) {
 	shared.Metric.Inc(MetricDropped)
-	msg.Route(prod.dropStream)
+	msg.Route(prod.dropStreamID)
 }
 
 // ProcessCommand provides a callback based possibility to react on the
@@ -319,34 +294,23 @@ func (prod *ProducerBase) ProcessCommand(command PluginControl, onRoll func()) b
 // If a timout has been detected, false is returned.
 func (prod *ProducerBase) CloseGracefully(onMessage func(msg Message)) bool {
 	close(prod.messages)
-
-	maxTimePerMessage := prod.shutdownTimeout
-	dropWorker := new(shared.WaitGroup)
 	flushWorker := new(shared.WaitGroup)
-	defer dropWorker.Wait()
-
-	responseTest := time.AfterFunc(maxTimePerMessage, func() {
-		dropWorker.Inc()
-		Log.Warning.Printf("A producer listening to %s has found to be blocking during Close(). Dropping remaining messages.", StreamTypes.GetStreamName(prod.Streams()[0]))
-		defer flushWorker.Done()
-		defer dropWorker.Done()
-		for msg := range prod.messages {
-			prod.Drop(msg)
-		}
-	})
-	defer responseTest.Stop()
 
 	for msg := range prod.messages {
 		// onMessage may block. To be able to exit this method we need to call
 		// it async and wait for it to finish.
+
 		flushWorker.Inc()
 		go func() {
+			defer flushWorker.Done()
 			onMessage(msg)
-			flushWorker.Done()
 		}()
-		flushWorker.Wait()
 
-		if !responseTest.Reset(maxTimePerMessage) {
+		if !flushWorker.WaitFor(prod.shutdownTimeout) {
+			Log.Warning.Printf("A producer listening to %s has found to be blocking during Close(). Dropping remaining messages.", StreamTypes.GetStreamName(prod.Streams()[0]))
+			for msg := range prod.messages {
+				prod.Drop(msg)
+			}
 			return false // ### return, timed out ###
 		}
 	}

@@ -15,21 +15,11 @@
 package core
 
 import (
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
-	"io"
 	"runtime"
-	"sync"
 	"sync/atomic"
 	"time"
 )
-
-// Internel helper type for frontbuffer/backbuffer storage
-type messageQueue struct {
-	buffer     []byte
-	contentLen int32
-	doneCount  uint32
-}
 
 // MessageBatch is a helper class for producers to format and store messages
 // into a single buffer that is flushed to an io.Writer.
@@ -37,38 +27,37 @@ type messageQueue struct {
 // called, i.e. if a timeout or size threshold has been reached.
 type MessageBatch struct {
 	queue     [2]messageQueue
-	format    Formatter
-	flushing  *sync.Mutex
-	assemble  *func()
-	delimiter string
+	flushing  *shared.WaitGroup
 	lastFlush time.Time
 	activeSet uint32
 	closed    bool
 }
 
-func newMessageQueue(size int) messageQueue {
-	return messageQueue{
-		buffer:     make([]byte, size),
-		contentLen: 0,
-		doneCount:  uint32(0),
-	}
+type messageQueue struct {
+	messages  []Message
+	doneCount uint32
 }
 
-func (queue *messageQueue) reset() {
-	queue.contentLen = 0
-	queue.doneCount = 0
-}
+// AssemblyFunc is the function signature for callbacks passed to the Flush
+// method.
+type AssemblyFunc func([]Message)
 
 // NewMessageBatch creates a new MessageBatch with a given size (in bytes)
 // and a given formatter.
-func NewMessageBatch(size int, format Formatter) *MessageBatch {
-	return &MessageBatch{
-		queue:     [2]messageQueue{newMessageQueue(size), newMessageQueue(size)},
-		flushing:  new(sync.Mutex),
+func NewMessageBatch(maxMessageCount int) MessageBatch {
+	return MessageBatch{
+		queue:     [2]messageQueue{newMessageQueue(maxMessageCount), newMessageQueue(maxMessageCount)},
+		flushing:  new(shared.WaitGroup),
 		lastFlush: time.Now(),
 		activeSet: uint32(0),
-		format:    format,
 		closed:    false,
+	}
+}
+
+func newMessageQueue(maxMessageCount int) messageQueue {
+	return messageQueue{
+		messages:  make([]Message, maxMessageCount),
+		doneCount: uint32(0),
 	}
 }
 
@@ -90,48 +79,24 @@ func (batch *MessageBatch) AppendOrBlock(msg Message) bool {
 // If the message can never fit into the buffer (too large), true is returned
 // and an error is logged.
 func (batch *MessageBatch) Append(msg Message) bool {
-	if batch.closed {
-		panic("Appending to closed batch.")
+	if batch.IsClosed() {
+		return false // ### return, closed ###
 	}
 
 	activeSet := atomic.AddUint32(&batch.activeSet, 1)
 	activeIdx := activeSet >> 31
 	activeQueue := &batch.queue[activeIdx]
+	ticketIdx := activeSet & 0x7FFFFFFF
 
 	// We mark the message as written even if the write fails so that flush
 	// does not block after a failed message.
-	defer func() { activeQueue.doneCount++ }()
+	defer func() { atomic.AddUint32(&activeQueue.doneCount, 1) }()
 
-	var payload []byte
-	if batch.format != nil {
-		payload, _ = batch.format.Format(msg)
-	} else {
-		payload = msg.Data
+	if ticketIdx >= uint32(len(activeQueue.messages)) {
+		return false // ### return, queue is full ###
 	}
 
-	messageLength := len(payload)
-	var currentOffset, nextOffset int
-
-	// There might be multiple threads writing to the queue, so try to get a
-	// write window (lockless)
-	for {
-		currentOffset = int(activeQueue.contentLen)
-		nextOffset = currentOffset + messageLength
-
-		if nextOffset > len(activeQueue.buffer) {
-			if messageLength > len(activeQueue.buffer) {
-				Log.Warning.Printf("MessageBatch: Message is too large (%d bytes).", messageLength)
-				return true // ### return, cannot be written ever ###
-			}
-			return false // ### return, queue is full ###
-		}
-
-		if atomic.CompareAndSwapInt32(&activeQueue.contentLen, int32(currentOffset), int32(nextOffset)) {
-			break // break, got the window
-		}
-	}
-
-	copy(activeQueue.buffer[currentOffset:], payload)
+	activeQueue.messages[ticketIdx] = msg
 	return true
 }
 
@@ -147,6 +112,11 @@ func (batch *MessageBatch) Close() {
 	batch.closed = true
 }
 
+// IsClosed returns true of Close has been called at least once.
+func (batch MessageBatch) IsClosed() bool {
+	return batch.closed
+}
+
 // Flush writes the content of the buffer to a given resource and resets the
 // internal state, i.e. the buffer is empty after a call to Flush.
 // Writing will be done in a separate go routine to be non-blocking.
@@ -159,104 +129,53 @@ func (batch *MessageBatch) Close() {
 // The onError callback will be called if the io.Writer returned an error.
 // If onError returns false the buffer will not be resetted (automatic retry).
 // If onError is nil a return value of true is assumed (buffer reset).
-func (batch *MessageBatch) Flush(resource io.Writer, validate func() bool, onError func(error) bool) {
-	if !batch.closed && batch.IsFrontEmpty() {
+func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
+	if !batch.closed && batch.IsEmpty() {
 		return // ### return, nothing to do ###
 	}
 
 	// Only one flush at a time
-	batch.flushing.Lock()
+	batch.flushing.IncWhenDone()
 
-	if batch.closed {
-		// As we are closed, flush front and back to make sure all data is sent.
-		// Do this asynchronously to be in-line with normal flush behaviour
-		go func() {
-			defer shared.RecoverShutdown()
-			defer batch.flushing.Unlock()
-
-			for _, flushQueue := range []*messageQueue{&batch.queue[0], &batch.queue[1]} {
-				_, err := resource.Write(flushQueue.buffer[:flushQueue.contentLen])
-				if err == nil {
-					if validate == nil || validate() {
-						flushQueue.reset()
-					}
-				} else {
-					if onError == nil || onError(err) {
-						flushQueue.reset()
-					}
-				}
-			}
-		}()
+	// Switch the buffers so writers can go on writing
+	var flushSet uint32
+	if batch.activeSet&0x80000000 != 0 {
+		flushSet = atomic.SwapUint32(&batch.activeSet, 0)
 	} else {
-		// Switch the buffers so writers can go on writing
-		// If a previous flush failed we need to continue where we stopped
-
-		var flushSet uint32
-		if batch.activeSet&0x80000000 != 0 {
-			flushSet = atomic.SwapUint32(&batch.activeSet, batch.queue[0].doneCount)
-		} else {
-			flushSet = atomic.SwapUint32(&batch.activeSet, 0x80000000|batch.queue[1].doneCount)
-		}
-
-		flushIdx := flushSet >> 31
-		writerCount := flushSet & 0x7FFFFFFF
-		flushQueue := &batch.queue[flushIdx]
-
-		// Wait for remaining writers to finish
-		for writerCount != flushQueue.doneCount {
-			runtime.Gosched()
-		}
-
-		// Write data and reset buffer asynchronously
-		go func() {
-			defer shared.RecoverShutdown()
-			defer batch.flushing.Unlock()
-
-			_, err := resource.Write(flushQueue.buffer[:flushQueue.contentLen])
-			if err == nil {
-				if validate == nil || validate() {
-					flushQueue.reset()
-				}
-			} else {
-				if onError == nil || onError(err) {
-					flushQueue.reset()
-				}
-			}
-
-			batch.Touch()
-		}()
+		flushSet = atomic.SwapUint32(&batch.activeSet, 0x80000000)
 	}
+
+	flushIdx := flushSet >> 31
+	writerCount := flushSet & 0x7FFFFFFF
+	flushQueue := &batch.queue[flushIdx]
+
+	// Wait for remaining writers to finish
+	for writerCount != flushQueue.doneCount {
+		runtime.Gosched()
+	}
+
+	// Write data and reset buffer asynchronously
+	go func() {
+		defer shared.RecoverShutdown()
+		defer batch.flushing.Done()
+
+		messageCount := shared.MaxI(int(flushQueue.doneCount), len(flushQueue.messages))
+		assemble(flushQueue.messages[:messageCount])
+		flushQueue.doneCount = 0
+		batch.Touch()
+	}()
 }
 
 // WaitForFlush blocks until the current flush command returns.
 // Passing a timeout > 0 will unblock this function after the given duration at
 // the latest.
 func (batch *MessageBatch) WaitForFlush(timeout time.Duration) {
-	flushed := int32(0)
-	if timeout > 0 {
-		time.AfterFunc(timeout, func() {
-			if atomic.CompareAndSwapInt32(&flushed, 0, 1) {
-				batch.flushing.Unlock()
-			}
-		})
-	}
-
-	batch.flushing.Lock()
-	if atomic.CompareAndSwapInt32(&flushed, 0, 1) {
-		batch.flushing.Unlock()
-	}
+	batch.flushing.WaitFor(timeout)
 }
 
-// IsEmpty returns true if no data is stored in the buffer at all, i.e. no buffer is
-// scheduled for flushing and no data is currently being flushed or waiting to be flushed
-// again.
-func (batch MessageBatch) IsEmpty() bool {
-	return batch.queue[0].contentLen == 0 && batch.queue[1].contentLen == 0
-}
-
-// IsFrontEmpty returns true if no data is stored in the front buffer, i.e. if no data
+// IsEmpty returns true if no data is stored in the front buffer, i.e. if no data
 // is scheduled for flushing.
-func (batch MessageBatch) IsFrontEmpty() bool {
+func (batch MessageBatch) IsEmpty() bool {
 	return batch.activeSet&0x7FFFFFFF == 0
 }
 
@@ -265,12 +184,12 @@ func (batch MessageBatch) IsFrontEmpty() bool {
 // If there is no data this function returns false.
 func (batch MessageBatch) ReachedSizeThreshold(size int) bool {
 	activeIdx := batch.activeSet >> 31
-	return batch.queue[activeIdx].contentLen >= int32(size)
+	threshold := uint32(shared.MaxI(size, len(batch.queue[activeIdx].messages)))
+	return batch.queue[activeIdx].doneCount >= threshold
 }
 
 // ReachedTimeThreshold returns true if the last flush was more than timeout ago.
 // If there is no data this function returns false.
 func (batch MessageBatch) ReachedTimeThreshold(timeout time.Duration) bool {
-	return !batch.IsFrontEmpty() &&
-		time.Since(batch.lastFlush) > timeout
+	return !batch.IsEmpty() && time.Since(batch.lastFlush) > timeout
 }

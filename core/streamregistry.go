@@ -66,8 +66,20 @@ func GetStreamID(stream string) MessageStreamID {
 // the corresponding name. If the MessageStreamID is not registered, an empty
 // string is returned.
 func (registry StreamRegistry) GetStreamName(streamID MessageStreamID) string {
-	if name, exists := registry.name[streamID]; exists {
-		return name // ### return, found ###
+	switch streamID {
+	case DroppedStreamID:
+		return DroppedStream
+
+	case LogInternalStreamID:
+		return LogInternalStream
+
+	case WildcardStreamID:
+		return WildcardStream
+
+	default:
+		if name, exists := registry.name[streamID]; exists {
+			return name // ### return, found ###
+		}
 	}
 	return ""
 }

@@ -17,6 +17,7 @@ package shared
 import (
 	"runtime"
 	"sync/atomic"
+	"time"
 )
 
 // WaitGroup is a replacement for sync/waitgroup that allows the internal counter
@@ -25,6 +26,11 @@ import (
 // Use only where needed.
 type WaitGroup struct {
 	counter int32
+}
+
+// Active returns true if the counter is > 0
+func (wg *WaitGroup) Active() bool {
+	return wg.counter > 0
 }
 
 // Inc is the shorthand version for Add(1)
@@ -43,9 +49,30 @@ func (wg *WaitGroup) Done() {
 	atomic.AddInt32(&wg.counter, -1)
 }
 
-// Wait blocks until the counter is 0 or less.
-func (wg *WaitGroup) Wait() {
-	for wg.counter > 0 {
+// IncWhenDone wait until the counter is exactly 0 and triggeres an increment
+// if this is found to be true
+func (wg *WaitGroup) IncWhenDone() {
+	for atomic.CompareAndSwapInt32(&wg.counter, 0, 1) {
 		runtime.Gosched()
 	}
+}
+
+// Wait blocks until the counter is 0 or less.
+func (wg *WaitGroup) Wait() {
+	for wg.Active() {
+		runtime.Gosched()
+	}
+}
+
+// WaitFor blocks until the counter is 0 or less. If the block takes longer than
+// the given timeout, WaitFor will return false.
+func (wg *WaitGroup) WaitFor(timeout time.Duration) bool {
+	start := time.Now()
+	for wg.Active() {
+		if time.Since(start) > timeout {
+			return false // ### return, timed out
+		}
+		runtime.Gosched()
+	}
+	return true
 }

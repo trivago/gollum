@@ -66,14 +66,16 @@ import (
 // If no category mappings are set the stream name is used.
 type Scribe struct {
 	core.ProducerBase
-	scribe       *scribe.ScribeClient
-	transport    *thrift.TFramedTransport
-	socket       *thrift.TSocket
-	batch        *scribeMessageBatch
-	category     map[core.MessageStreamID]string
-	batchSize    int
-	batchTimeout time.Duration
-	bufferSizeKB int
+	scribe          *scribe.ScribeClient
+	transport       *thrift.TFramedTransport
+	socket          *thrift.TSocket
+	category        map[core.MessageStreamID]string
+	logBuffer       []*scribe.LogEntry
+	batch           core.MessageBatch
+	batchTimeout    time.Duration
+	batchMaxCount   int
+	batchFlushCount int
+	bufferSizeKB    int
 }
 
 func init() {
@@ -88,12 +90,12 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	}
 
 	host := conf.GetString("Address", "localhost:1463")
-	bufferSizeMax := conf.GetInt("BatchSizeMaxKB", 8<<10) << 1 // 8 MB
 
-	prod.category = make(map[core.MessageStreamID]string, 0)
-	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
+	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
+	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
-	prod.batch = createScribeMessageBatch(bufferSizeMax)
+	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
+
 	prod.bufferSizeKB = conf.GetInt("ConnectionBufferSizeKB", 1<<10) // 1 MB
 	prod.category = conf.GetStreamMap("Category", "")
 
@@ -109,6 +111,11 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	binProtocol := thrift.NewTBinaryProtocol(prod.transport, false, false)
 	prod.scribe = scribe.NewScribeClientProtocol(prod.transport, binProtocol, binProtocol)
 
+	prod.logBuffer = make([]*scribe.LogEntry, prod.batchMaxCount)
+	for i := 0; i < prod.batchMaxCount; i++ {
+		prod.logBuffer[i] = new(scribe.LogEntry)
+	}
+
 	return nil
 }
 
@@ -123,33 +130,46 @@ func (prod *Scribe) sendBatch() {
 	}
 
 	if prod.transport.IsOpen() {
-		prod.batch.flush(prod.scribe, func(err error) {
-			Log.Error.Print("Scribe log error: ", err)
-			prod.transport.Close()
-		})
+		prod.batch.Flush(prod.transformMessages)
 	}
 }
 
 func (prod *Scribe) sendBatchOnTimeOut() {
-	if prod.batch.reachedTimeThreshold(prod.batchTimeout) || prod.batch.reachedSizeThreshold(prod.batchSize) {
+	if prod.batch.ReachedTimeThreshold(prod.batchTimeout) || prod.batch.ReachedSizeThreshold(prod.batchFlushCount) {
 		prod.sendBatch()
 	}
 }
 
 func (prod *Scribe) sendMessage(msg core.Message) {
-	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
-
-	category, exists := prod.category[msg.StreamID]
-	if !exists {
-		category, exists = prod.category[core.WildcardStreamID]
-		if !exists {
-			category = core.StreamTypes.GetStreamName(msg.StreamID)
+	if !prod.batch.Append(msg) {
+		prod.sendBatch()
+		if !prod.batch.AppendOrBlock(msg) {
+			prod.Drop(msg)
 		}
 	}
+}
 
-	if !prod.batch.Append(msg, category) {
-		prod.sendBatch()
-		if !prod.batch.AppendOrBlock(msg, category) {
+func (prod *Scribe) transformMessages(messages []core.Message) {
+	for idx, msg := range messages {
+		data, streamID := prod.ProducerBase.Format(msg)
+		category, exists := prod.category[streamID]
+		if !exists {
+			category, exists = prod.category[core.WildcardStreamID]
+			if !exists {
+				category = core.StreamTypes.GetStreamName(streamID)
+			}
+		}
+
+		logEntry := prod.logBuffer[idx]
+		logEntry.Category = category
+		logEntry.Message = string(data)
+	}
+
+	_, err := prod.scribe.Log(prod.logBuffer[:len(messages)])
+	if err != nil {
+		Log.Error.Print("Scribe log error: ", err)
+		prod.transport.Close()
+		for _, msg := range messages {
 			prod.Drop(msg)
 		}
 	}
@@ -160,15 +180,20 @@ func (prod *Scribe) Close() {
 	defer prod.WorkerDone()
 	if prod.CloseGracefully(prod.sendMessage) {
 		prod.sendBatch()
-		prod.batch.waitForFlush(prod.GetShutdownTimeout())
-
-		prod.transport.Close()
-		prod.socket.Close()
+		prod.batch.WaitForFlush(prod.GetShutdownTimeout())
 	}
 
-	if !prod.batch.isEmpty() {
-		prod.batch.drop(prod)
+	if !prod.batch.IsEmpty() {
+		prod.batch.Flush(func(messages []core.Message) {
+			for _, msg := range messages {
+				prod.Drop(msg)
+			}
+		})
+		prod.batch.WaitForFlush(prod.GetShutdownTimeout())
 	}
+
+	prod.transport.Close()
+	prod.socket.Close()
 }
 
 // Produce writes to a buffer that is sent to scribe.

@@ -54,8 +54,8 @@ func (prod *Null) Streams() []core.MessageStreamID {
 	return prod.streams
 }
 
-// DropStream returns the id of the stream to drop messages to.
-func (prod *Null) DropStream() core.MessageStreamID {
+// GetDropStreamID returns the id of the stream to drop messages to.
+func (prod *Null) GetDropStreamID() core.MessageStreamID {
 	return core.DroppedStreamID
 }
 
