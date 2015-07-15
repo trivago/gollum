@@ -52,7 +52,7 @@ func (wg *WaitGroup) Done() {
 // IncWhenDone wait until the counter is exactly 0 and triggeres an increment
 // if this is found to be true
 func (wg *WaitGroup) IncWhenDone() {
-	for atomic.CompareAndSwapInt32(&wg.counter, 0, 1) {
+	for !atomic.CompareAndSwapInt32(&wg.counter, 0, 1) {
 		runtime.Gosched()
 	}
 }
