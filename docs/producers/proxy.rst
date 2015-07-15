@@ -19,6 +19,17 @@ Parameters
 **ConnectionBufferSizeKB**
   Sets the connection buffer size in KB. By default this is set to 1024, i.e. 1 MB buffer.
   This also defines the size of the buffer used by the message parser.
+**ChannelTimeoutMs**
+  Defines a timeout in milliseconds for messages to wait if this producer's queue is full.
+
+  - A timeout of -1 or lower will discard the message without notice.
+  - A timeout of 0 will block until the queue is free. This is the default.
+  - A timeout of 1 or higher will wait n milliseconds for the queues to become available again.
+    If this does not happen, the message will be send to the _DROPPED_ stream that can be processed by the :doc:`Loopback </consumers/loopback>` consumer.
+
+**FlushTimeoutSec**
+  Sets the maximum number of seconds to wait before a flush is aborted during shutdown.
+  By default this is set to 0, which does not abort the flushing procedure.
 **TimeoutSec**
   Defines the maximum time in seconds a client is allowed to take for a response. By default this is set to 1.
 **Partitioner**

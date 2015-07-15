@@ -39,7 +39,7 @@ A typical produce function will look like this:
 
 .. code-block:: go
 
-  func (prod *MyProducer) flush() {
+  func (prod *MyProducer) Close() {
     // Flush any internal structures and/or wait for messages to be written
     prod.WorkerDone()
   }
@@ -50,15 +50,16 @@ A typical produce function will look like this:
 
   func (prod *MyProducer) Produce(workers *sync.WaitGroup) {
     prod.AddMainWorker(workers)
-    defer prod.flush()
     prod.DefaultControlLoop(prod.processData, prod.rotate)
   }
 
-This implementation will call the close() function when the default control loop exits, i.e. when a shutdown is requested.
+The framework will call the Close() function when the default control loop exits, i.e. after a shutdown signal was sent.
 As the shutdown procedure needs to wait until all messages from this producers have been sent (to avoid data loss) at least one worker should always be registered.
 The shutdown procedure will wait until all producer workers have finished before exiting.
 As of this you have to make sure that all AddWorker calls are followed by a WorkerDone() call during shutdown.
 If this does not happen the shutdown procedure will block.
+The Close() function is always called while the shutdown signal may not arrive due to a blocking message queue.
+As of this it may happen that Close() is already running while the shutdown signal is processed by the producer.
 
 A rotate() function passed as a callback to both loop functions.
 This enables the producer to listen for log rotation requests.
@@ -76,21 +77,27 @@ Working with slow services
 Messages are passed to the producer one-by-one.
 Certain services however might perform better when messages are not sent one-by-one but as a batch of messages.
 Gollum gives you several tools to handle these kind of message batches.
-A good example for this is the file producer.
+A good example for this is the socket producer.
 This producer takes advantage of the "core/MessageBatch" type.
-This allows storing formatted data into one long buffer and provides methods to decide when that buffer should be sent.
-The following code illustrates how to use the MessageBatch type:
+This allows storing messages in a double-buffered queue and provides callback based methods to flush the queue asynchronously.
+The following code illustrates a best practice approach on how to use the MessageBatch.
+You may of course change details if required.
 
 .. code-block:: go
 
-  buffer := NewMessageBatch(8192, someFormatter) // 8 KB buffer
+  buffer := NewMessageBatch(8192)                // Hold up to 8192*2 messages (front and backbuffer)
 
   for {
-    buffer.Append(message)                       // Get a message from the channel
+    if !buffer.Append(message)                   // Get a message from the channel and add it
+      buffer.Flush(yourSendMethod)               // We failed to append. Maybe the queue is full?
+      if !buffer.AppendOrBlock(message) {        // Try to append it and block while not possible
+        prod.Drop(Message)                       // The buffer has been closed, drop the message
+      }
+    }
     // ...
 
     if buffer.ReachedSizeThreshold(2048) {       // Check if at least 2 KB have been written
-      buffer.Flush(writer, onSuccess, onError)   // See API doc for success and error callbacks
+      buffer.Flush(yourSendMethod)               // See API doc for success and error callbacks
       buffer.WaitForFlush()                      // Wait until done
     }
   }

@@ -13,6 +13,9 @@ Parameters
 **Address**
   Defines the server address to connect to.
   This can be any ip address and port like "localhost:5880". By default this is set to ":80".
+**FlushTimeoutSec**
+  Sets the maximum number of seconds to wait before a flush is aborted during shutdown.
+  By default this is set to 0, which does not abort the flushing procedure.
 
 Example
 -------

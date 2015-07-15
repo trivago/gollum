@@ -19,6 +19,9 @@ Parameters
   - A timeout of 1 or higher will wait n milliseconds for the queues to become available again.
     If this does not happen, the message will be send to the _DROPPED_ stream that can be processed by the :doc:`Loopback </consumers/loopback>` consumer.
 
+**FlushTimeoutSec**
+  Sets the maximum number of seconds to wait before a flush is aborted during shutdown.
+  By default this is set to 0, which does not abort the flushing procedure.
 **Format**
   Defines a message formatter to use. :doc:`Format.Forward </formatters/forward>` by default.
 **Address**
@@ -28,15 +31,13 @@ Parameters
 **ConnectionBufferSizeKB**
   Sets the connection buffer size in KB.
   By default this is set to 1024, i.e. 1 MB buffer.
-**BatchSizeMaxKB**
-  Defines the internal file buffer size in KB.
-  This producers allocates a front- and a backbuffer of this size.
-  If the frontbuffer is filled up completely a flush is triggered and the frontbuffer becomes available for writing again.
-  Messages larger than BatchSizeMaxKB are rejected.
-  By default this is set to 8192 (8MB)
-**BatchSizeByte**
-  Defines the number of bytes to be buffered before a flush is triggered.
-  By default this is set to 8192 (8KB).
+**BatchMaxCount**
+  Defines the maximum number of messages that can be buffered before a flush is mandatory.
+  If the buffer is full and a flush is still underway or cannot be triggered out of other reasons, the producer will block.
+**BatchFlushCount**
+  Defines the number of messages to be buffered before they are written to disk.
+  This setting is clamped to BatchMaxCount.
+  By default this is set to BatchMaxCount / 2.
 **BatchTimeoutSec**
   Defines the number of seconds to wait after a message before a flush is triggered.
   The timer is reset after each new message.
