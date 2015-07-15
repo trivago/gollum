@@ -21,6 +21,9 @@ Parameters
   - A timeout of 1 or higher will wait n milliseconds for the queues to become available again.
     If this does not happen, the message will be send to the _DROPPED_ stream that can be processed by the :doc:`Loopback </consumers/loopback>` consumer.
 
+**FlushTimeoutSec**
+  Sets the maximum number of seconds to wait before a flush is aborted during shutdown.
+  By default this is set to 0, which does not abort the flushing procedure.
 **Format**
   Defines a message formatter to use. :doc:`Format.Forward </formatters/forward>` by default.
 **Console**

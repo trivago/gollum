@@ -23,6 +23,9 @@ import (
 // MessageStreamID is the "compiled name" of a stream
 type MessageStreamID uint64
 
+// MessageState is used as a return value for the Enqueu method
+type MessageState int
+
 const (
 	// LogInternalStream is the name of the internal message channel (logs)
 	LogInternalStream = "_GOLLUM_"
@@ -30,20 +33,22 @@ const (
 	WildcardStream = "*"
 	// DroppedStream is the name of the stream used to store dropped messages
 	DroppedStream = "_DROPPED_"
+	// MessageStateOk is returned if the message could be delivered
+	MessageStateOk = MessageState(iota)
+	// MessageStateTimeout is returned if a message timed out
+	MessageStateTimeout = MessageState(iota)
+	// MessageStateDiscard is returned if a message should be discarded
+	MessageStateDiscard = MessageState(iota)
 )
 
 var (
 	// LogInternalStreamID is the ID of the "_GOLLUM_" stream
 	LogInternalStreamID = GetStreamID(LogInternalStream)
-
 	// WildcardStreamID is the ID of the "*" stream
 	WildcardStreamID = GetStreamID(WildcardStream)
-
 	// DroppedStreamID is the ID of the "_DROPPED_" stream
 	DroppedStreamID = GetStreamID(DroppedStream)
 )
-
-var retryQueue chan Message
 
 // MessageSource defines methods that are common to all message sources.
 // Currently this is only a placeholder.
@@ -91,18 +96,6 @@ type Message struct {
 	Sequence  uint64
 }
 
-// EnableRetryQueue creates a retried messages channel using the given size.
-func EnableRetryQueue(size int) {
-	if retryQueue == nil {
-		retryQueue = make(chan Message, size)
-	}
-}
-
-// GetRetryQueue returns read access to the retry queue.
-func GetRetryQueue() <-chan Message {
-	return retryQueue
-}
-
 // NewMessage creates a new message from a given data stream
 func NewMessage(source MessageSource, data []byte, sequence uint64) Message {
 	return Message{
@@ -125,31 +118,32 @@ func (msg Message) String() string {
 // Passing a timout of 0 will always block.
 // Messages that time out will be passed to the dropped queue if a Dropped
 // consumer exists.
-func (msg Message) Enqueue(channel chan<- Message, timeout time.Duration) {
+// The source parameter is used when a message is dropped, i.e. it is passed
+// to the Drop function.
+func (msg Message) Enqueue(channel chan<- Message, timeout time.Duration) MessageState {
 	if timeout == 0 {
 		channel <- msg
-		return // ### return, done ###
+		return MessageStateOk // ### return, done ###
 	}
 
 	start := time.Time{}
 	for {
 		select {
 		case channel <- msg:
-			return // ### return, done ###
+			return MessageStateOk // ### return, done ###
 
 		default:
 			switch {
 			// Start timeout based retries
 			case start.IsZero():
 				if timeout < 0 {
-					return // ### return, drop and ignore ###
+					return MessageStateDiscard // ### return, discard and ignore ###
 				}
 				start = time.Now()
 
 			// Discard message after timeout
 			case time.Since(start) > timeout:
-				go msg.Drop(time.Duration(0))
-				return // ### return, drop and retry ###
+				return MessageStateTimeout // ### return, drop and retry ###
 
 			// Yield and try again
 			default:
@@ -159,21 +153,9 @@ func (msg Message) Enqueue(channel chan<- Message, timeout time.Duration) {
 	}
 }
 
-// Drop pushes a message to the retry queue and sets the stream to _DROPPED_.
-// This queue can be consumed by the loopback consumer. If no such consumer has
-// been configured, the message is lost.
-func (msg Message) Drop(timeout time.Duration) {
-	if retryQueue != nil {
-		msg.StreamID = DroppedStreamID
-		msg.Enqueue(retryQueue, timeout)
-	}
-}
-
-// Retry pushes a message to the retry queue. This queue can be consumed by
-// the loopback consumer. If no such consumer has been configured, the message
-// is lost.
-func (msg Message) Retry(timeout time.Duration) {
-	if retryQueue != nil {
-		msg.Enqueue(retryQueue, timeout)
-	}
+// Route enqueues this message to the given stream.
+// If the stream does not exist, a default stream (broadcast) is created.
+func (msg Message) Route(streamID MessageStreamID) {
+	targetStream := StreamTypes.GetStreamOrFallback(streamID)
+	targetStream.Enqueue(msg)
 }

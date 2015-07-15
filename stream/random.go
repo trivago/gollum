@@ -28,6 +28,7 @@ import (
 //     Stream: "data"
 //	   Formatter: "format.Envelope"
 //     Filter: "filter.All"
+//     StickyStream: true
 //
 // Messages will be sent to one of the producers attached to this stream.
 // The producer used is defined randomly.
@@ -43,16 +44,10 @@ func init() {
 
 // Configure initializes this distributor with values from a plugin config.
 func (stream *Random) Configure(conf core.PluginConfig) error {
-	if err := stream.StreamBase.Configure(conf); err != nil {
-		return err // ### return, base stream error ###
-	}
-	stream.StreamBase.Distribute = stream.random
-	return nil
+	return stream.StreamBase.ConfigureStream(conf, stream.random)
 }
 
-// Distribute sends the given message to one random producer in the set of
-// given producers.
 func (stream *Random) random(msg core.Message) {
 	index := rand.Intn(len(stream.StreamBase.Producers))
-	stream.StreamBase.Producers[index].Enqueue(msg)
+	stream.StreamBase.Producers[index].Enqueue(msg, stream.Timeout)
 }

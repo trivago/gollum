@@ -178,7 +178,9 @@ func (prod *Websocket) serve() {
 	}
 }
 
-func (prod *Websocket) flush() {
+// Close gracefully
+func (prod *Websocket) Close() {
+	prod.CloseGracefully(prod.pushMessage)
 	prod.listen.Close()
 
 	for _, client := range prod.clients[0].conns {
@@ -192,9 +194,6 @@ func (prod *Websocket) flush() {
 // Produce writes to stdout or stderr.
 func (prod *Websocket) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-
 	go prod.serve()
-	defer prod.flush()
-
 	prod.DefaultControlLoop(prod.pushMessage, nil)
 }

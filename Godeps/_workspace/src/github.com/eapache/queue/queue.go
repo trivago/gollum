@@ -35,8 +35,8 @@ func (q *Queue) resize() {
 	if q.tail > q.head {
 		copy(newBuf, q.buf[q.head:q.tail])
 	} else {
-		copy(newBuf, q.buf[q.head:len(q.buf)])
-		copy(newBuf[len(q.buf)-q.head:], q.buf[:q.tail])
+		n := copy(newBuf, q.buf[q.head:])
+		copy(newBuf[n:], q.buf[:q.tail])
 	}
 
 	q.head = 0

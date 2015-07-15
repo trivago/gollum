@@ -16,6 +16,7 @@ package core
 
 import (
 	"fmt"
+	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"sync"
 	"time"
@@ -26,7 +27,7 @@ import (
 type Producer interface {
 	// Enqueue sends a message to the producer. The producer may reject
 	// the message or drop it after a given timeout. Enqueue can block.
-	Enqueue(msg Message)
+	Enqueue(msg Message, timeout *time.Duration)
 
 	// Produce should implement a main loop that passes messages from the
 	// message channel to some other service like the console.
@@ -40,6 +41,13 @@ type Producer interface {
 	// Control returns write access to this producer's control channel.
 	// See ProducerControl* constants.
 	Control() chan<- PluginControl
+
+	// DropStream returns the id of the stream to drop messages to.
+	GetDropStreamID() MessageStreamID
+
+	// Close closes and empties the internal channel and returns once all
+	// messages have been processed.
+	Close()
 }
 
 // ProducerBase base class
@@ -50,6 +58,7 @@ type Producer interface {
 //     Channel: 1024
 //     ChannelTimeout: 200
 //     Formatter: "format.Envelope"
+//     DroppedStream: "failed"
 //     Stream:
 //       - "error"
 //       - "default"
@@ -67,19 +76,29 @@ type Producer interface {
 // available again. If this does not happen, the message will be send to the
 // retry channel.
 //
+// ShutdownTimeoutMs sets a timeout in milliseconds that will be used to detect
+// a blocking producer during shutdown. By default this is set to 3 seconds.
+// If processing a message takes longer to process than this duration, messages
+// will be dropped during shutdown.
+//
 // Stream contains either a single string or a list of strings defining the
 // message channels this producer will consume. By default this is set to "*"
 // which means "listen to all streams but the internal".
 //
+// DroppedStream defines the stream used for messages that are dropped after
+// a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
+//
 // Formatter sets a formatter to use. Each formatter has its own set of options
 // which can be set here, too. By default this is set to format.Forward.
 type ProducerBase struct {
-	messages chan Message
-	control  chan PluginControl
-	streams  []MessageStreamID
-	state    *PluginRunState
-	timeout  time.Duration
-	format   Formatter
+	messages        chan Message
+	control         chan PluginControl
+	streams         []MessageStreamID
+	dropStreamID    MessageStreamID
+	state           *PluginRunState
+	timeout         time.Duration
+	shutdownTimeout time.Duration
+	format          Formatter
 }
 
 // ProducerError can be used to return consumer related errors e.g. during a
@@ -111,7 +130,9 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	prod.control = make(chan PluginControl, 1)
 	prod.messages = make(chan Message, conf.GetInt("Channel", 8192))
 	prod.timeout = time.Duration(conf.GetInt("ChannelTimeoutMs", 0)) * time.Millisecond
+	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 3000)) * time.Millisecond
 	prod.state = new(PluginRunState)
+	prod.dropStreamID = GetStreamID(conf.GetString("DroppedStream", DroppedStream))
 
 	for i, stream := range conf.Stream {
 		prod.streams[i] = GetStreamID(stream)
@@ -150,6 +171,12 @@ func (prod ProducerBase) WorkerDone() {
 // will cause the producer to always block.
 func (prod ProducerBase) GetTimeout() time.Duration {
 	return prod.timeout
+}
+
+// GetShutdownTimeout returns the duration this producer will wait during close
+// before messages get dropped.
+func (prod ProducerBase) GetShutdownTimeout() time.Duration {
+	return prod.shutdownTimeout
 }
 
 // Next returns the latest message from the channel as well as the open state
@@ -204,6 +231,11 @@ func (prod *ProducerBase) Streams() []MessageStreamID {
 	return prod.streams
 }
 
+// GetDropStreamID returns the id of the stream to drop messages to.
+func (prod *ProducerBase) GetDropStreamID() MessageStreamID {
+	return prod.dropStreamID
+}
+
 // Control returns write access to this producer's control channel.
 // See ProducerControl* constants.
 func (prod *ProducerBase) Control() chan<- PluginControl {
@@ -216,9 +248,26 @@ func (prod *ProducerBase) Messages() chan<- Message {
 }
 
 // Enqueue will add the message to the internal channel so it can be processed
-// by the producer main loop.
-func (prod *ProducerBase) Enqueue(msg Message) {
-	msg.Enqueue(prod.messages, prod.timeout)
+// by the producer main loop. A timeout value != nil will overwrite the channel
+// timeout value for this call.
+func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
+	usedTimeout := prod.timeout
+	if timeout != nil {
+		usedTimeout = *timeout
+	}
+	switch msg.Enqueue(prod.messages, usedTimeout) {
+	case MessageStateTimeout:
+		prod.Drop(msg)
+
+	case MessageStateDiscard:
+		shared.Metric.Inc(MetricDiscarded)
+	}
+}
+
+// Drop routes the message to the configured drop stream.
+func (prod *ProducerBase) Drop(msg Message) {
+	shared.Metric.Inc(MetricDropped)
+	msg.Route(prod.dropStreamID)
 }
 
 // ProcessCommand provides a callback based possibility to react on the
@@ -238,29 +287,48 @@ func (prod *ProducerBase) ProcessCommand(command PluginControl, onRoll func()) b
 	return false
 }
 
-// Close closes the internal message channel and sends all remaining messages to
-// the given callback. This function is called by *ControlLoop after a quit
-// command has been recieved.
-func (prod *ProducerBase) Close(onMessage func(msg Message)) {
+// CloseGracefully closes and empties the internal channel with a given timeout
+// per message. If flushing messages runs into this timeout all remaining
+// messages will be dropped by using the Drop function.
+// This method may be called from derived implementation's Close method.
+// If a timout has been detected, false is returned.
+func (prod *ProducerBase) CloseGracefully(onMessage func(msg Message)) bool {
 	close(prod.messages)
+	flushWorker := new(shared.WaitGroup)
+
 	for msg := range prod.messages {
-		onMessage(msg)
+		// onMessage may block. To be able to exit this method we need to call
+		// it async and wait for it to finish.
+
+		flushWorker.Inc()
+		go func() {
+			defer flushWorker.Done()
+			onMessage(msg)
+		}()
+
+		if !flushWorker.WaitFor(prod.shutdownTimeout) {
+			Log.Warning.Printf("A producer listening to %s has found to be blocking during Close(). Dropping remaining messages.", StreamTypes.GetStreamName(prod.Streams()[0]))
+			for msg := range prod.messages {
+				prod.Drop(msg)
+			}
+			return false // ### return, timed out ###
+		}
 	}
+
+	return true
 }
 
 // DefaultControlLoop provides a producer mainloop that is sufficient for most
 // usecases. Before this function exits Close will be called.
 func (prod *ProducerBase) DefaultControlLoop(onMessage func(msg Message), onRoll func()) {
-	defer prod.Close(onMessage)
 	for {
 		select {
-		case msg := <-prod.messages:
-			onMessage(msg)
-
 		case command := <-prod.control:
 			if prod.ProcessCommand(command, onRoll) {
 				return // ### return ###
 			}
+		case msg := <-prod.messages:
+			onMessage(msg)
 		}
 	}
 }
@@ -269,16 +337,15 @@ func (prod *ProducerBase) DefaultControlLoop(onMessage func(msg Message), onRoll
 // every given interval tick, too. Before this function exits Close will be called.
 func (prod *ProducerBase) TickerControlLoop(interval time.Duration, onMessage func(msg Message), onRoll func(), onTimeOut func()) {
 	flushTicker := time.NewTicker(interval)
-	defer prod.Close(onMessage)
 	for {
 		select {
-		case msg := <-prod.messages:
-			onMessage(msg)
-
 		case command := <-prod.control:
 			if prod.ProcessCommand(command, onRoll) {
 				return // ### return ###
 			}
+
+		case msg := <-prod.messages:
+			onMessage(msg)
 
 		case <-flushTicker.C:
 			onTimeOut()

@@ -19,7 +19,6 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
-	"hash/fnv"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -35,8 +34,8 @@ import (
 //   - "producer.File":
 //     Enable: true
 //     File: "/var/log/gollum.log"
-//     BatchSizeMaxKB: 16384
-//     BatchSizeByte: 4096
+//     BatchMaxCount: 16384
+//     BatchFlushCount: 10000
 //     BatchTimeoutSec: 2
 //     FlushTimeoutSec: 10
 //     Rotate: false
@@ -54,14 +53,14 @@ import (
 // can be used as a placeholder for the stream name.
 // By default this is set to /var/prod/gollum.log.
 //
-// BatchSizeMaxKB defines the internal file buffer size in KB.
-// This producers allocates a front- and a backbuffer of this size. If the
-// frontbuffer is filled up completely a flush is triggered and the frontbuffer
-// becomes available for writing again. Messages larger than BatchSizeMaxKB are
-// rejected.
+// BatchMaxCount defines the maximum number of messages that can be buffered
+// before a flush is mandatory. If the buffer is full and a flush is still
+// underway or cannot be triggered out of other reasons, the producer will
+// block.
 //
-// BatchSizeByte defines the number of bytes to be buffered before they are written
-// to disk. By default this is set to 8KB.
+// BatchFlushCount defines the number of messages to be buffered before they are
+// written to disk. This setting is clamped to BatchMaxCount.
+// By default this is set to BatchMaxCount / 2.
 //
 // BatchTimeoutSec defines the maximum number of seconds to wait after the last
 // message arrived before a batch is flushed automatically. By default this is
@@ -85,22 +84,34 @@ import (
 // is enabled. The format is based on Go's time.Format function and set to
 // "2006-01-02_15" by default.
 //
+// RotatePruneCount removes old logfiles upon rotate so that only the given
+// number of logfiles remain. Logfiles are located by the name defined by "File"
+// and are pruned by date (followed by name).
+// By default this is set to 0 which disables pruning.
+//
+// RotatePruneTotalSizeMB removes old logfiles upon rotate so that only the
+// given number of MBs are used by logfiles. Logfiles are located by the name
+// defined by "File" and are pruned by date (followed by name).
+// By default this is set to 0 which disables pruning.
+//
 // Compress defines if a rotated logfile is to be gzip compressed or not.
 // By default this is set to false.
 type File struct {
 	core.ProducerBase
-	filesByStream map[core.MessageStreamID]*fileState
-	files         map[uint32]*fileState
-	rotate        fileRotateConfig
-	timestamp     string
-	fileDir       string
-	fileName      string
-	fileExt       string
-	batchTimeout  time.Duration
-	flushTimeout  time.Duration
-	bufferSizeMax int
-	batchSize     int
-	wildcardPath  bool
+	filesByStream   map[core.MessageStreamID]*fileState
+	files           map[string]*fileState
+	rotate          fileRotateConfig
+	timestamp       string
+	fileDir         string
+	fileName        string
+	fileExt         string
+	batchTimeout    time.Duration
+	flushTimeout    time.Duration
+	batchMaxCount   int
+	batchFlushCount int
+	pruneCount      int
+	pruneSize       int64
+	wildcardPath    bool
 }
 
 func init() {
@@ -115,10 +126,10 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	}
 
 	prod.filesByStream = make(map[core.MessageStreamID]*fileState)
-	prod.files = make(map[uint32]*fileState)
-	prod.bufferSizeMax = conf.GetInt("BatchSizeMaxKB", 8<<10) << 10 // 8 MB
-
-	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
+	prod.files = make(map[string]*fileState)
+	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
+	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
+	prod.batchFlushCount = shared.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 
 	logFile := conf.GetString("File", "/var/prod/gollum.log")
@@ -137,6 +148,17 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	prod.rotate.atHour = -1
 	prod.rotate.atMinute = -1
 	prod.rotate.compress = conf.GetBool("Compress", false)
+
+	prod.pruneCount = conf.GetInt("RotatePruneCount", 0)
+	prod.pruneSize = int64(conf.GetInt("RotatePruneTotalSizeMB", 0)) << 20
+
+	if prod.pruneSize > 0 && prod.rotate.sizeByte > 0 {
+		prod.pruneSize -= prod.rotate.sizeByte >> 20
+		if prod.pruneSize <= 0 {
+			prod.pruneCount = 1
+			prod.pruneSize = 0
+		}
+	}
 
 	rotateAt := conf.GetString("RotateAt", "")
 	if rotateAt != "" {
@@ -159,18 +181,13 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	}
 
 	var logFileName, fileDir, fileName, fileExt string
-	var fileID uint32
 
 	if prod.wildcardPath {
 		// Get state from filename (without timestamp, etc.)
 		var streamName string
 		switch streamID {
 		case core.WildcardStreamID:
-			streamName = "all"
-		case core.LogInternalStreamID:
-			streamName = "gollum"
-		case core.DroppedStreamID:
-			streamName = "dropped"
+			streamName = "ALL"
 		default:
 			streamName = core.StreamTypes.GetStreamName(streamID)
 		}
@@ -178,25 +195,21 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		fileDir = strings.Replace(prod.fileDir, "*", streamName, -1)
 		fileName = strings.Replace(prod.fileName, "*", streamName, -1)
 		fileExt = strings.Replace(prod.fileExt, "*", streamName, -1)
-
-		// Hash the base name
-		hash := fnv.New32a()
-		hash.Write([]byte(fmt.Sprintf("%s/%s%s", fileDir, fileName, fileExt)))
-		fileID = hash.Sum32()
 	} else {
 		// Simple case: only one file used
 		fileDir = prod.fileDir
 		fileName = prod.fileName
 		fileExt = prod.fileExt
-		fileID = 0
 	}
 
+	logFileBasePath := fmt.Sprintf("%s/%s%s", fileDir, fileName, fileExt)
+
 	// Assure the file is correctly mapped
-	state, stateExists := prod.files[fileID]
+	state, stateExists := prod.files[logFileBasePath]
 	if !stateExists {
 		// state does not yet exist: create and map it
-		state = newFileState(prod.bufferSizeMax, prod.flushTimeout)
-		prod.files[fileID] = state
+		state = newFileState(prod.batchMaxCount, prod.GetFormatter(), prod.Drop, prod.flushTimeout)
+		prod.files[logFileBasePath] = state
 		prod.filesByStream[streamID] = state
 	} else if _, mappingExists := prod.filesByStream[streamID]; !mappingExists {
 		// state exists but is not mapped: map it and see if we need to rotate
@@ -217,23 +230,26 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	} else {
 		timestamp := time.Now().Format(prod.timestamp)
 		signature := fmt.Sprintf("%s_%s", fileName, timestamp)
-		counter := 0
+		maxSuffix := uint64(0)
 
 		files, _ := ioutil.ReadDir(fileDir)
 		for _, file := range files {
-			if strings.Contains(file.Name(), signature) {
-				counter++
+			if strings.HasPrefix(file.Name(), signature) {
+				counter, _ := shared.Btoi([]byte(file.Name()[len(signature)+1:]))
+				if maxSuffix <= counter {
+					maxSuffix = counter + 1
+				}
 			}
 		}
 
-		if counter == 0 {
+		if maxSuffix == 0 {
 			logFileName = fmt.Sprintf("%s%s", signature, fileExt)
 		} else {
-			logFileName = fmt.Sprintf("%s_%d%s", signature, counter, fileExt)
+			logFileName = fmt.Sprintf("%s_%d%s", signature, int(maxSuffix), fileExt)
 		}
 	}
 
-	logFile := fmt.Sprintf("%s/%s", fileDir, logFileName)
+	logFilePath := fmt.Sprintf("%s/%s", fileDir, logFileName)
 
 	// Close existing log
 	if state.file != nil {
@@ -243,14 +259,14 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		if prod.rotate.compress {
 			go state.compressAndCloseLog(currentLog)
 		} else {
-			Log.Note.Print("Rotated " + currentLog.Name())
+			Log.Note.Print("Rotated ", currentLog.Name(), " -> ", logFilePath)
 			currentLog.Close()
 		}
 	}
 
 	// (Re)open logfile
 	var err error
-	state.file, err = os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+	state.file, err = os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		return state, err // ### return error ###
 	}
@@ -263,30 +279,22 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		os.Symlink(logFileName, symLinkName)
 	}
 
+	// Prune old logs if requested
+	switch {
+	case prod.pruneCount > 0 && prod.pruneSize > 0:
+		go func() {
+			state.pruneByCount(logFileBasePath, prod.pruneCount)
+			state.pruneToSize(logFileBasePath, prod.pruneSize)
+		}()
+
+	case prod.pruneCount > 0:
+		go state.pruneByCount(logFileBasePath, prod.pruneCount)
+
+	case prod.pruneSize > 0:
+		go state.pruneToSize(logFileBasePath, prod.pruneSize)
+	}
+
 	return state, err
-}
-
-func (prod *File) writeBatchOnTimeOut() {
-	for _, state := range prod.files {
-		if state.batch.ReachedTimeThreshold(prod.batchTimeout) || state.batch.ReachedSizeThreshold(prod.batchSize) {
-			state.writeBatch()
-		}
-	}
-}
-
-func (prod *File) writeMessage(msg core.Message) {
-	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
-	state, err := prod.getFileState(msg.StreamID, false)
-	if err != nil {
-		Log.Error.Print("File log error:", err)
-		msg.Drop(time.Duration(0))
-		return // ### return, dropped ###
-	}
-
-	if !state.batch.Append(msg) {
-		state.writeBatch()
-		state.batch.Append(msg)
-	}
 }
 
 func (prod *File) rotateLog() {
@@ -297,17 +305,60 @@ func (prod *File) rotateLog() {
 	}
 }
 
-func (prod *File) flush() {
+func (prod *File) writeBatchOnTimeOut() {
 	for _, state := range prod.files {
-		state.flush()
+		if state.batch.ReachedTimeThreshold(prod.batchTimeout) || state.batch.ReachedSizeThreshold(prod.batchFlushCount) {
+			state.flush()
+		}
 	}
-	prod.WorkerDone()
+}
+
+func (prod *File) writeMessage(msg core.Message) {
+	data, streamID := prod.ProducerBase.Format(msg)
+	state, err := prod.getFileState(streamID, false)
+	if err != nil {
+		Log.Error.Print("File log error:", err)
+		prod.Drop(msg)
+		return // ### return, dropped ###
+	}
+
+	formattedMsg := msg
+	formattedMsg.Data = data
+	formattedMsg.StreamID = streamID
+
+	if !state.batch.Append(formattedMsg) {
+		state.flush()
+		if !state.batch.AppendOrBlock(formattedMsg) {
+			prod.Drop(msg)
+		}
+	}
+}
+
+// Close gracefully
+func (prod *File) Close() {
+	defer prod.WorkerDone()
+
+	// Flush buffers
+	if prod.CloseGracefully(prod.writeMessage) {
+		for _, state := range prod.files {
+			state.close()
+			state.flush()
+			state.waitForFlush()
+		}
+	}
+
+	// Drop all data that is still in the buffer
+	for _, state := range prod.files {
+		state.close()
+		if !state.batch.IsEmpty() {
+			state.flushAndDrop()
+			state.waitForFlush()
+		}
+	}
 }
 
 // Produce writes to a buffer that is dumped to a file.
 func (prod *File) Produce(workers *sync.WaitGroup) {
-	defer prod.flush()
-
 	prod.AddMainWorker(workers)
 	prod.TickerControlLoop(prod.batchTimeout, prod.writeMessage, prod.rotateLog, prod.writeBatchOnTimeOut)
 }

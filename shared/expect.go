@@ -62,6 +62,11 @@ func (e Expect) errorf(format string, args ...interface{}) {
 	e.t.Errorf(fmt.Sprintf("%s(%d): %s -> %s", file, line, e.scope, format), args...)
 }
 
+// Always reports an error when called
+func (e Expect) NotExecuted() {
+	e.error("This was expected not to be called")
+}
+
 // True tests if the given value is true
 func (e Expect) True(val bool) bool {
 	if !val {

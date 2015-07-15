@@ -14,7 +14,7 @@ Parameters
 **Format**
     Defines a message formatter to use. :doc:`Format.Forward </formatters/forward>` by default.
 **Stream**
-    Defines either one or an aray of stream names this configuration applies to.
+    Defines the stream to configure.
 
 Example
 -------

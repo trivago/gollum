@@ -195,17 +195,18 @@ func (prod *Proxy) sendMessage(msg core.Message) {
 	}
 }
 
-func (prod *Proxy) flush() {
+// Close gracefully
+func (prod *Proxy) Close() {
+	defer prod.WorkerDone()
+	prod.CloseGracefully(prod.sendMessage)
+
 	if prod.connection != nil {
 		prod.connection.Close()
 	}
-	prod.WorkerDone()
 }
 
 // Produce writes to a buffer that is sent to a given Proxy.
 func (prod *Proxy) Produce(workers *sync.WaitGroup) {
-	defer prod.flush()
-
 	prod.AddMainWorker(workers)
 	prod.DefaultControlLoop(prod.sendMessage, nil)
 }

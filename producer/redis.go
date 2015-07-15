@@ -125,7 +125,7 @@ func (prod *Redis) storeHash(msg core.Message) {
 	result := prod.client.HSet(prod.key, string(field), string(value))
 	if result.Err() != nil {
 		Log.Error.Print("Redis: ", result.Err())
-		msg.Drop(prod.GetTimeout())
+		prod.Drop(msg)
 	}
 }
 
@@ -135,7 +135,7 @@ func (prod *Redis) storeList(msg core.Message) {
 	result := prod.client.RPush(prod.key, string(value))
 	if result.Err() != nil {
 		Log.Error.Print("Redis: ", result.Err())
-		msg.Drop(prod.GetTimeout())
+		prod.Drop(msg)
 	}
 }
 
@@ -145,7 +145,7 @@ func (prod *Redis) storeSet(msg core.Message) {
 	result := prod.client.SAdd(prod.key, string(value))
 	if result.Err() != nil {
 		Log.Error.Print("Redis: ", result.Err())
-		msg.Drop(prod.GetTimeout())
+		prod.Drop(msg)
 	}
 }
 
@@ -173,7 +173,7 @@ func (prod *Redis) storeSortedSet(msg core.Message) {
 
 	if result.Err() != nil {
 		Log.Error.Print("Redis: ", result.Err())
-		msg.Drop(prod.GetTimeout())
+		prod.Drop(msg)
 	}
 }
 
@@ -183,8 +183,14 @@ func (prod *Redis) storeString(msg core.Message) {
 	result := prod.client.Set(prod.key, string(value))
 	if result.Err() != nil {
 		Log.Error.Print("Redis: ", result.Err())
-		msg.Drop(prod.GetTimeout())
+		prod.Drop(msg)
 	}
+}
+
+// Close gracefully
+func (prod *Redis) Close() {
+	defer prod.WorkerDone()
+	prod.CloseGracefully(prod.store)
 }
 
 // Produce writes to stdout or stderr.
@@ -201,7 +207,5 @@ func (prod *Redis) Produce(workers *sync.WaitGroup) {
 	}
 
 	prod.AddMainWorker(workers)
-	defer prod.WorkerDone()
-
 	prod.DefaultControlLoop(prod.store, nil)
 }

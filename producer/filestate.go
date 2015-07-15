@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
+	"github.com/trivago/gollum/shared"
 	"io"
 	"os"
-	"path/filepath"
 	"runtime"
 	"sync"
 	"time"
@@ -29,8 +29,10 @@ import (
 
 type fileState struct {
 	file         *os.File
-	batch        *core.MessageBatch
 	bgWriter     *sync.WaitGroup
+	batch        core.MessageBatch
+	buffer       []byte
+	assembly     core.WriterAssembly
 	fileCreated  time.Time
 	flushTimeout time.Duration
 }
@@ -44,19 +46,32 @@ type fileRotateConfig struct {
 	compress bool
 }
 
-func newFileState(bufferSizeMax int, timeout time.Duration) *fileState {
+func newFileState(maxMessageCount int, formatter core.Formatter, drop func(core.Message), timeout time.Duration) *fileState {
 	return &fileState{
-		batch:        core.NewMessageBatch(bufferSizeMax, nil),
+		batch:        core.NewMessageBatch(maxMessageCount),
 		bgWriter:     new(sync.WaitGroup),
 		flushTimeout: timeout,
+		assembly:     core.NewWriterAssembly(nil, drop, formatter),
 	}
 }
 
 func (state *fileState) flush() {
-	state.writeBatch()
+	state.assembly.SetWriter(state.file)
+	state.batch.Flush(state.assembly.Write)
+}
+
+func (state *fileState) flushAndDrop() {
+	state.batch.Flush(state.assembly.Flush)
+}
+
+func (state *fileState) waitForFlush() {
 	state.batch.WaitForFlush(state.flushTimeout)
 	state.bgWriter.Wait()
 	state.file.Close()
+}
+
+func (state *fileState) close() {
+	state.batch.Close()
 }
 
 func (state *fileState) compressAndCloseLog(sourceFile *os.File) {
@@ -65,10 +80,7 @@ func (state *fileState) compressAndCloseLog(sourceFile *os.File) {
 
 	// Generate file to zip into
 	sourceFileName := sourceFile.Name()
-	sourceDir := filepath.Dir(sourceFileName)
-	sourceExt := filepath.Ext(sourceFileName)
-	sourceBase := filepath.Base(sourceFileName)
-	sourceBase = sourceBase[:len(sourceBase)-len(sourceExt)]
+	sourceDir, sourceBase, _ := shared.SplitPath(sourceFileName)
 
 	targetFileName := fmt.Sprintf("%s/%s.gz", sourceDir, sourceBase)
 
@@ -111,13 +123,58 @@ func (state *fileState) compressAndCloseLog(sourceFile *os.File) {
 	}
 }
 
-func (state *fileState) onWriterError(err error) bool {
-	Log.Error.Print("File write error:", err)
-	return false
+func (state *fileState) pruneByCount(baseFilePath string, count int) {
+	state.bgWriter.Wait()
+	baseDir, baseName, _ := shared.SplitPath(baseFilePath)
+
+	files, err := shared.ListFilesByDateMatching(baseDir, baseName+".*")
+	if err != nil {
+		Log.Error.Print("Error pruning files: ", err)
+		return // ### return, error ###
+	}
+
+	numFilesToPrune := len(files) - count
+	if numFilesToPrune < 1 {
+		return // ## return, nothing to prune ###
+	}
+
+	for i := 0; i < numFilesToPrune; i++ {
+		filePath := fmt.Sprintf("%s/%s", baseDir, files[i].Name())
+		if err := os.Remove(filePath); err != nil {
+			Log.Error.Printf("Failed to prune \"%s\": %s", filePath, err.Error())
+		} else {
+			Log.Note.Printf("Pruned \"%s\"", filePath)
+		}
+	}
 }
 
-func (state *fileState) writeBatch() {
-	state.batch.Flush(state.file, nil, state.onWriterError)
+func (state *fileState) pruneToSize(baseFilePath string, maxSize int64) {
+	state.bgWriter.Wait()
+	baseDir, baseName, _ := shared.SplitPath(baseFilePath)
+
+	files, err := shared.ListFilesByDateMatching(baseDir, baseName+".*")
+	if err != nil {
+		Log.Error.Print("Error pruning files: ", err)
+		return // ### return, error ###
+	}
+
+	totalSize := int64(0)
+	for _, file := range files {
+		totalSize += file.Size()
+	}
+
+	for _, file := range files {
+		if totalSize <= maxSize {
+			return // ### return, done ###
+		}
+		filePath := fmt.Sprintf("%s/%s", baseDir, file.Name())
+		if err := os.Remove(filePath); err != nil {
+			Log.Error.Printf("Failed to prune \"%s\": %s", filePath, err.Error())
+		} else {
+			Log.Note.Printf("Pruned \"%s\"", filePath)
+			totalSize -= file.Size()
+		}
+	}
 }
 
 func (state *fileState) needsRotate(rotate fileRotateConfig, forceRotate bool) (bool, error) {

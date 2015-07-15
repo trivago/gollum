@@ -30,8 +30,7 @@ import (
 //
 // Messages will be sent to all producers attached to this stream.
 //
-// Stream defines the streams this stream plugin binds to (i.e. the streams
-// affected by this config).
+// Stream defines the stream this stream plugin binds to.
 //
 // Formatter defines a formatter that is applied to all messages sent to this
 // stream. This can be used to bring different streams to the same format
@@ -39,10 +38,20 @@ import (
 //
 // Filter defines a filter function that removes or allows certain messages to
 // pass through this stream. By default this is set to filter.All.
+//
+// TimeoutMs sets a timeout in milliseconds for messages to wait if a producer's
+// queue is full. This will actually overwrite the ChannelTimeoutMs value for
+// any attached producer and follows the same rules.
+// If no value is set, the producer's timout value is used.
 type Broadcast struct {
 	core.StreamBase
 }
 
 func init() {
 	shared.RuntimeType.Register(Broadcast{})
+}
+
+// Configure initializes this distributor with values from a plugin config.
+func (stream *Broadcast) Configure(conf core.PluginConfig) error {
+	return stream.StreamBase.ConfigureStream(conf, stream.Broadcast)
 }

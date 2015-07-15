@@ -17,6 +17,7 @@ package stream
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
+	"sync"
 	"sync/atomic"
 )
 
@@ -35,7 +36,9 @@ import (
 // This stream defines the same fields as stream.Broadcast.
 type RoundRobin struct {
 	core.StreamBase
-	index int32
+	index         int32
+	indexByStream map[core.MessageStreamID]*int32
+	mapInitLock   *sync.Mutex
 }
 
 func init() {
@@ -44,15 +47,17 @@ func init() {
 
 // Configure initializes this distributor with values from a plugin config.
 func (stream *RoundRobin) Configure(conf core.PluginConfig) error {
-	if err := stream.StreamBase.Configure(conf); err != nil {
+	if err := stream.StreamBase.ConfigureStream(conf, stream.roundRobin); err != nil {
 		return err // ### return, base stream error ###
 	}
-	stream.StreamBase.Distribute = stream.roundRobin
+
 	stream.index = 0
+	stream.indexByStream = make(map[core.MessageStreamID]*int32)
+	stream.mapInitLock = new(sync.Mutex)
 	return nil
 }
 
 func (stream *RoundRobin) roundRobin(msg core.Message) {
 	index := atomic.AddInt32(&stream.index, 1) % int32(len(stream.StreamBase.Producers))
-	stream.StreamBase.Producers[index].Enqueue(msg)
+	stream.StreamBase.Producers[index].Enqueue(msg, stream.Timeout)
 }

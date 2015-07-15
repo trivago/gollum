@@ -30,8 +30,8 @@ import (
 //     Enable: true
 //     Address: "unix:///var/gollum.socket"
 //     ConnectionBufferSizeKB: 4096
-//     BatchSizeMaxKB: 16384
-//     BatchSizeByte: 4096
+//     BatchMaxCount: 16384
+//     BatchFlushCount: 10000
 //     BatchTimeoutSec: 5
 //     Acknowledge: "ACK\n"
 //
@@ -42,12 +42,14 @@ import (
 // ConnectionBufferSizeKB sets the connection buffer size in KB. By default this
 // is set to 1024, i.e. 1 MB buffer.
 //
-// BatchSizeMaxKB defines the maximum number of bytes to buffer before
-// messages get dropped. Any message that crosses the threshold is dropped.
-// By default this is set to 8192.
+// BatchMaxCount defines the maximum number of messages that can be buffered
+// before a flush is mandatory. If the buffer is full and a flush is still
+// underway or cannot be triggered out of other reasons, the producer will
+// block.
 //
-// BatchSizeByte defines the number of bytes to be buffered before they are written
-// to scribe. By default this is set to 8KB.
+// BatchFlushCount defines the number of messages to be buffered before they are
+// written to disk. This setting is clamped to BatchMaxCount.
+// By default this is set to BatchMaxCount / 2.
 //
 // BatchTimeoutSec defines the maximum number of seconds to wait after the last
 // message arrived before a batch is flushed automatically. By default this is
@@ -60,14 +62,16 @@ import (
 // to open the connection, otherwise UDP is used.
 type Socket struct {
 	core.ProducerBase
-	connection   net.Conn
-	batch        *core.MessageBatch
-	protocol     string
-	address      string
-	batchSize    int
-	batchTimeout time.Duration
-	bufferSizeKB int
-	acknowledge  string
+	connection      net.Conn
+	batch           core.MessageBatch
+	assembly        core.WriterAssembly
+	protocol        string
+	address         string
+	batchTimeout    time.Duration
+	batchMaxCount   int
+	batchFlushCount int
+	bufferSizeByte  int
+	acknowledge     string
 }
 
 type bufferedConn interface {
@@ -85,11 +89,11 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	bufferSizeMax := conf.GetInt("BatchSizeMaxKB", 8<<10) << 10
-
-	prod.batchSize = conf.GetInt("BatchSizeByte", 8192)
+	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
+	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
+	prod.batchFlushCount = shared.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
-	prod.bufferSizeKB = conf.GetInt("ConnectionBufferSizeKB", 1<<10) // 1 MB
+	prod.bufferSizeByte = conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10 // 1 MB
 
 	prod.acknowledge = shared.Unescape(conf.GetString("Acknowledge", ""))
 	prod.address, prod.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
@@ -102,8 +106,8 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 		}
 	}
 
-	prod.batch = core.NewMessageBatch(bufferSizeMax, prod.ProducerBase.GetFormatter())
-
+	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
+	prod.assembly = core.NewWriterAssembly(prod.connection, prod.Drop, prod.GetFormatter())
 	return nil
 }
 
@@ -136,19 +140,20 @@ func (prod *Socket) sendBatch() {
 		if err != nil {
 			Log.Error.Print("Socket connection error - ", err)
 		} else {
-			conn.(bufferedConn).SetWriteBuffer(prod.bufferSizeKB << 10)
+			conn.(bufferedConn).SetWriteBuffer(prod.bufferSizeByte)
 			prod.connection = conn
+			prod.assembly.SetWriter(conn)
 		}
 	}
 
 	// Flush the buffer to the connection if it is active
 	if prod.connection != nil {
-		prod.batch.Flush(prod.connection, prod.validate, prod.onWriteError)
+		prod.batch.Flush(prod.assembly.Write)
 	}
 }
 
 func (prod *Socket) sendBatchOnTimeOut() {
-	if prod.batch.ReachedTimeThreshold(prod.batchTimeout) || prod.batch.ReachedSizeThreshold(prod.batchSize) {
+	if prod.batch.ReachedTimeThreshold(prod.batchTimeout) || prod.batch.ReachedSizeThreshold(prod.batchFlushCount) {
 		prod.sendBatch()
 	}
 }
@@ -156,24 +161,38 @@ func (prod *Socket) sendBatchOnTimeOut() {
 func (prod *Socket) sendMessage(message core.Message) {
 	if !prod.batch.Append(message) {
 		prod.sendBatch()
-		prod.batch.Append(message)
+		if !prod.batch.AppendOrBlock(message) {
+			prod.Drop(message)
+		}
 	}
 }
 
-func (prod *Socket) flush() {
-	prod.sendBatch()
-	prod.batch.WaitForFlush(5 * time.Second)
+// Close gracefully
+func (prod *Socket) Close() {
+	defer func() {
+		if prod.connection != nil {
+			prod.connection.Close()
+		}
+		prod.WorkerDone()
+	}()
 
-	if prod.connection != nil {
-		prod.connection.Close()
+	// Flush buffer to regular socket
+	if prod.CloseGracefully(prod.sendMessage) {
+		prod.batch.Close()
+		prod.sendBatch()
+		prod.batch.WaitForFlush(prod.GetShutdownTimeout())
 	}
-	prod.WorkerDone()
+
+	// Drop all data that is still in the buffer
+	if !prod.batch.IsEmpty() {
+		prod.batch.Close()
+		prod.batch.Flush(prod.assembly.Flush)
+		prod.batch.WaitForFlush(prod.GetShutdownTimeout())
+	}
 }
 
 // Produce writes to a buffer that is sent to a given socket.
 func (prod *Socket) Produce(workers *sync.WaitGroup) {
-	defer prod.flush()
-
 	prod.AddMainWorker(workers)
 	prod.TickerControlLoop(prod.batchTimeout, prod.sendMessage, nil, prod.sendBatchOnTimeOut)
 }

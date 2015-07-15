@@ -25,19 +25,19 @@ import (
 	"sync"
 )
 
-// HttpReq producer plugin
+// HTTPRequest producer plugin
 // Configuration example
 //
-//   - "producer.HttpReq":
+//   - "producer.HTTPRequest":
 //     Enable:  true
 //     Address: ":80"
 //
-// The HttpReq producers sends messages that already are valid http request to a
+// The HTTPRequest producers sends messages that already are valid http request to a
 //  given webserver.
 //
 // Address defines the webserver to send http requests to. Set to ":80", which
 // is equal to "localhost:80" by default.
-type HttpReq struct {
+type HTTPRequest struct {
 	core.ProducerBase
 	host    string
 	port    string
@@ -46,18 +46,18 @@ type HttpReq struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(HttpReq{})
+	shared.RuntimeType.Register(HTTPRequest{})
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *HttpReq) Configure(conf core.PluginConfig) error {
+func (prod *HTTPRequest) Configure(conf core.PluginConfig) error {
 	err := prod.ProducerBase.Configure(conf)
 	if err != nil {
 		return err
 	}
 
 	if !conf.HasValue("Address") {
-		return core.NewProducerError("No Host configured for producer.HttpReq")
+		return core.NewProducerError("No Host configured for producer.HTTPRequest")
 	}
 
 	address := conf.GetString("Address", ":80")
@@ -74,13 +74,15 @@ func (prod *HttpReq) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-func (prod *HttpReq) sendReq(msg core.Message) {
+func (prod *HTTPRequest) sendReq(msg core.Message) {
 	data, _ := prod.ProducerBase.Format(msg)
 	requestData := bytes.NewBuffer(data)
+
 	req, err := http.ReadRequest(bufio.NewReader(requestData))
 	if err != nil {
-		Log.Error.Print("HttpReq invalid request", err)
-		return
+		Log.Error.Print("HTTPRequest invalid request", err)
+		prod.Drop(msg)
+		return // ### return, malformed request ###
 	}
 
 	req.URL.Host = prod.address
@@ -89,15 +91,20 @@ func (prod *HttpReq) sendReq(msg core.Message) {
 
 	go func() {
 		if _, err := http.DefaultClient.Do(req); err != nil {
-			Log.Error.Print("HttpReq send failed: ", err)
+			Log.Error.Print("HTTPRequest send failed: ", err)
+			prod.Drop(msg)
 		}
 	}()
 }
 
-// Produce writes to stdout or stderr.
-func (prod HttpReq) Produce(workers *sync.WaitGroup) {
-	prod.AddMainWorker(workers)
+// Close gracefully
+func (prod *HTTPRequest) Close() {
 	defer prod.WorkerDone()
+	prod.CloseGracefully(prod.sendReq)
+}
 
+// Produce writes to stdout or stderr.
+func (prod *HTTPRequest) Produce(workers *sync.WaitGroup) {
+	prod.AddMainWorker(workers)
 	prod.DefaultControlLoop(prod.sendReq, nil)
 }

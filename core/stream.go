@@ -15,7 +15,10 @@
 package core
 
 import (
+	"github.com/trivago/gollum/shared"
+	"sync"
 	"sync/atomic"
+	"time"
 )
 
 // MessageCount holds the number of messages processed since the last call to
@@ -33,6 +36,9 @@ type Stream interface {
 	// called. Any buffered messages need to be sent by this method or by a
 	// separate go routine.
 	Resume()
+
+	// Flush calls Resume and blocks until resume finishes
+	Flush()
 
 	// AddProducer adds one or more producers to this stream, i.e. the producers
 	// listening to messages on this stream.
@@ -58,10 +64,16 @@ type StreamBase struct {
 	Filter         Filter
 	Format         Formatter
 	Producers      []Producer
-	Distribute     func(msg Message)
-	prevDistribute func(msg Message)
+	Timeout        *time.Duration
+	BoundStreamID  MessageStreamID
+	distribute     Distributor
+	prevDistribute Distributor
 	paused         chan Message
+	resumeWorker   *sync.WaitGroup
 }
+
+// Distributor is a callback typedef for methods processing messages
+type Distributor func(msg Message)
 
 // GetAndResetMessageCount returns the current message counter and resets it
 // to 0. This function is threadsafe.
@@ -69,8 +81,8 @@ func GetAndResetMessageCount() uint32 {
 	return atomic.SwapUint32(&MessageCount, 0)
 }
 
-// Configure sets up all values requred by StreamBase
-func (stream *StreamBase) Configure(conf PluginConfig) error {
+// ConfigureStream sets up all values requred by StreamBase.
+func (stream *StreamBase) ConfigureStream(conf PluginConfig, distribute Distributor) error {
 	plugin, err := NewPluginWithType(conf.GetString("Formatter", "format.Forward"), conf)
 	if err != nil {
 		return err // ### return, plugin load error ###
@@ -81,8 +93,19 @@ func (stream *StreamBase) Configure(conf PluginConfig) error {
 	if err != nil {
 		return err // ### return, plugin load error ###
 	}
+
 	stream.Filter = plugin.(Filter)
-	stream.Distribute = stream.broadcast
+	stream.BoundStreamID = GetStreamID(conf.Stream[0])
+	stream.resumeWorker = new(sync.WaitGroup)
+	stream.distribute = distribute
+
+	if conf.HasValue("Timeout") {
+		timeout := time.Duration(conf.GetInt("TimeoutMs", 0)) * time.Millisecond
+		stream.Timeout = &timeout
+	} else {
+		stream.Timeout = nil
+	}
+
 	return nil
 }
 
@@ -106,8 +129,8 @@ func (stream *StreamBase) AddProducer(producers ...Producer) {
 func (stream *StreamBase) Pause(capacity int) {
 	if stream.paused == nil {
 		stream.paused = make(chan Message, capacity)
-		stream.prevDistribute = stream.Distribute
-		stream.Distribute = stream.stash
+		stream.prevDistribute = stream.distribute
+		stream.distribute = stream.stash
 	}
 }
 
@@ -116,7 +139,8 @@ func (stream *StreamBase) Pause(capacity int) {
 // Calling Resume on a stream that is not paused is ignored.
 func (stream *StreamBase) Resume() {
 	if stream.paused != nil {
-		stream.Distribute = stream.prevDistribute
+		stream.distribute = stream.prevDistribute
+		stream.resumeWorker.Add(1)
 
 		stashed := stream.paused
 		stream.paused = nil
@@ -124,19 +148,28 @@ func (stream *StreamBase) Resume() {
 
 		go func() {
 			for msg := range stashed {
-				stream.Distribute(msg)
+				stream.distribute(msg)
 			}
+			stream.resumeWorker.Done()
 		}()
 	}
 }
 
+// Flush calls Resume and blocks until resume finishes
+func (stream *StreamBase) Flush() {
+	stream.Resume()
+	stream.resumeWorker.Wait()
+}
+
+// stash is used as a distributor during pause
 func (stream *StreamBase) stash(msg Message) {
 	stream.paused <- msg
 }
 
-func (stream *StreamBase) broadcast(msg Message) {
+// Broadcast enqueues the given message to all producers attached to this stream.
+func (stream *StreamBase) Broadcast(msg Message) {
 	for _, prod := range stream.Producers {
-		prod.Enqueue(msg)
+		prod.Enqueue(msg, stream.Timeout)
 	}
 }
 
@@ -144,17 +177,29 @@ func (stream *StreamBase) broadcast(msg Message) {
 // registered. Functions deriving from StreamBase can set the Distribute member
 // to hook into this function.
 func (stream *StreamBase) Enqueue(msg Message) {
-	atomic.AddUint32(&MessageCount, 1)
-
 	if stream.Filter.Accepts(msg) {
 		var streamID MessageStreamID
 		msg.Data, streamID = stream.Format.Format(msg)
-
-		if msg.StreamID == streamID {
-			stream.Distribute(msg)
-		} else {
-			msg.StreamID = streamID
-			StreamTypes.GetStreamOrFallback(streamID).Enqueue(msg)
-		}
+		stream.Route(msg, streamID)
 	}
+}
+
+// Route is called by Enqueue after a message has been accepted and formatted.
+// This encapsulates the main logic of sending messages to producers or to
+// another stream if necessary.
+func (stream *StreamBase) Route(msg Message, targetID MessageStreamID) {
+	if msg.StreamID != targetID {
+		msg.StreamID = targetID
+		StreamTypes.GetStreamOrFallback(targetID).Enqueue(msg)
+		return // ### done, routed ###
+	}
+
+	if len(stream.Producers) == 0 {
+		shared.Metric.Inc(MetricNoRoute)
+		shared.Metric.Inc(MetricDiscarded)
+		return // ### return, no route to producer ###
+	}
+
+	atomic.AddUint32(&MessageCount, 1)
+	stream.distribute(msg)
 }

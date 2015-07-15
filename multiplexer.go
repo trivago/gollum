@@ -15,6 +15,7 @@
 package main
 
 import (
+	"container/list"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
@@ -23,7 +24,6 @@ import (
 	"os/signal"
 	"reflect"
 	"sync"
-	"syscall"
 	"time"
 )
 
@@ -34,8 +34,6 @@ const (
 	metricProds     = "Producers"
 	metricMessages  = "Messages"
 )
-
-type multiplexerState byte
 
 const (
 	multiplexerStateConfigure      = multiplexerState(iota)
@@ -48,9 +46,25 @@ const (
 	multiplexerStateStopped        = multiplexerState(iota)
 )
 
+const (
+	signalNone = signalType(iota)
+	signalExit = signalType(iota)
+	signalRoll = signalType(iota)
+)
+
+var (
+	consumerInterface = reflect.TypeOf((*core.Consumer)(nil)).Elem()
+	producerInterface = reflect.TypeOf((*core.Producer)(nil)).Elem()
+	streamInterface   = reflect.TypeOf((*core.Stream)(nil)).Elem()
+)
+
+type multiplexerState byte
+type signalType byte
+
 type multiplexer struct {
 	consumers      []core.Consumer
 	producers      []core.Producer
+	shutdownOrder  *list.List
 	consumerWorker *sync.WaitGroup
 	producerWorker *sync.WaitGroup
 	state          multiplexerState
@@ -72,6 +86,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 		consumers:      []core.Consumer{new(core.LogConsumer)},
 		consumerWorker: new(sync.WaitGroup),
 		producerWorker: new(sync.WaitGroup),
+		shutdownOrder:  list.New(),
 		profile:        profile,
 		state:          multiplexerStateConfigure,
 	}
@@ -79,9 +94,6 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	// Sort the plugins by interface type.
 
 	var consumerConfig, producerConfig, streamConfig []core.PluginConfig
-	consumerInterface := reflect.TypeOf((*core.Consumer)(nil)).Elem()
-	producerInterface := reflect.TypeOf((*core.Producer)(nil)).Elem()
-	streamInterface := reflect.TypeOf((*core.Stream)(nil)).Elem()
 
 	for _, config := range conf.Plugins {
 		if !config.Enable {
@@ -109,35 +121,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 		}
 
 		if !validPlugin {
-			Log.Error.Print("Failed to load plugin ", config.Typename, ": Does not qualify for consumer, producer or stream interface")
-
-			consumerMatch, consumerMissing := shared.GetMissingMethods(pluginType, consumerInterface)
-			producerMatch, producerMissing := shared.GetMissingMethods(pluginType, producerInterface)
-			streamMatch, streamMissing := shared.GetMissingMethods(pluginType, streamInterface)
-
-			if consumerMatch > producerMatch {
-				if consumerMatch > streamMatch {
-					Log.Error.Print("Plugin looks like a consumer:")
-					for _, message := range consumerMissing {
-						Log.Error.Print(message)
-					}
-				} else {
-					Log.Error.Print("Plugin looks like a stream:")
-					for _, message := range streamMissing {
-						Log.Error.Print(message)
-					}
-				}
-			} else if producerMatch > streamMatch {
-				Log.Error.Print("Plugin looks like a producer:")
-				for _, message := range producerMissing {
-					Log.Error.Print(message)
-				}
-			} else {
-				Log.Error.Print("Plugin looks like a stream:")
-				for _, message := range streamMissing {
-					Log.Error.Print(message)
-				}
-			}
+			dumpFaultyPlugin(config.Typename, pluginType)
 		}
 	}
 
@@ -145,14 +129,23 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	// match the order of reference between the different types.
 
 	for _, config := range streamConfig {
-		for _, streamName := range config.Stream {
-			plugin, err := core.NewPlugin(config)
-			if err != nil {
-				Log.Error.Print("Failed to configure stream plugin ", config.Typename, ": ", err)
-				continue // ### continue ###
-			}
-			core.StreamTypes.Register(plugin.(core.Stream), core.GetStreamID(streamName))
+		if len(config.Stream) == 0 {
+			Log.Error.Printf("Stream plugin %s has no streams set", config.Typename)
+			continue // ### continue ###
 		}
+
+		streamName := config.Stream[0]
+		if len(config.Stream) > 1 {
+			Log.Warning.Printf("Stream plugins may only bind to one stream. Plugin will bind to %s", streamName)
+		}
+
+		plugin, err := core.NewPlugin(config)
+		if err != nil {
+			Log.Error.Printf("Failed to configure stream %s: %s", streamName, err)
+			continue // ### continue ###
+		}
+
+		core.StreamTypes.Register(plugin.(core.Stream), core.GetStreamID(streamName))
 	}
 
 	// All producers are added to the wildcard stream so that consumers can send
@@ -200,6 +193,8 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 		}
 	}
 
+	plex.buildShutdownOrder()
+
 	// Consumers are registered last so that the stream reference list can be
 	// built. This eliminates lookups when sending to specific streams.
 
@@ -237,6 +232,98 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	return plex
 }
 
+func dumpFaultyPlugin(typeName string, pluginType reflect.Type) {
+	Log.Error.Print("Failed to load plugin ", typeName, ": Does not qualify for consumer, producer or stream interface")
+
+	consumerMatch, consumerMissing := shared.GetMissingMethods(pluginType, consumerInterface)
+	producerMatch, producerMissing := shared.GetMissingMethods(pluginType, producerInterface)
+	streamMatch, streamMissing := shared.GetMissingMethods(pluginType, streamInterface)
+
+	if consumerMatch > producerMatch {
+		if consumerMatch > streamMatch {
+			Log.Error.Print("Plugin looks like a consumer:")
+			for _, message := range consumerMissing {
+				Log.Error.Print(message)
+			}
+		} else {
+			Log.Error.Print("Plugin looks like a stream:")
+			for _, message := range streamMissing {
+				Log.Error.Print(message)
+			}
+		}
+	} else if producerMatch > streamMatch {
+		Log.Error.Print("Plugin looks like a producer:")
+		for _, message := range producerMissing {
+			Log.Error.Print(message)
+		}
+	} else {
+		Log.Error.Print("Plugin looks like a stream:")
+		for _, message := range streamMissing {
+			Log.Error.Print(message)
+		}
+	}
+}
+
+func (plex *multiplexer) printShutdownOrder() {
+	for prodIter := plex.shutdownOrder.Front(); prodIter != nil; prodIter = prodIter.Next() {
+		prod := prodIter.Value.(core.Producer)
+		streams := "> "
+		for _, streamID := range prod.Streams() {
+			streams += core.StreamTypes.GetStreamName(streamID) + ", "
+		}
+		Log.Debug.Print(streams)
+		Log.Debug.Print("< ", core.StreamTypes.GetStreamName(prod.GetDropStreamID()))
+	}
+}
+
+// This is a very basic approach to order producers so that messages generated
+// during shutdown are not routed to already shut down producers.
+// Currently this is based on the DroppedStream setting without taking
+// indirections or sideeffects (formatter, streams, read-back by consumer) into
+// account.
+func (plex *multiplexer) buildShutdownOrder() {
+	//defer plex.printShutdownOrder()
+
+	// Clear the list
+	for plex.shutdownOrder.Len() > 0 {
+		plex.shutdownOrder.Remove(plex.shutdownOrder.Front())
+	}
+
+	// Add all producers for proper searching
+	for _, prod := range plex.producers {
+		plex.shutdownOrder.PushBack(prod)
+	}
+
+	if plex.shutdownOrder.Len() < 2 {
+		return // ### return, nothing to do ###
+	}
+
+	// Go from back to front and move any dependent producer to the back.
+	// This way we can make sure that producers listening to drops will be
+	// shutdown after producers creating dropped messages
+	childIter := plex.shutdownOrder.Back().Prev()
+nextChild:
+	for childIter != nil {
+		child := childIter.Value.(core.Producer)
+		// Allways search the whole list
+		for parentIter := plex.shutdownOrder.Back(); parentIter != nil; parentIter = parentIter.Prev() {
+			if parentIter == childIter {
+				continue // ### continue, selftest ###
+			}
+			parent := parentIter.Value.(core.Producer)
+			for _, streamID := range child.Streams() {
+				if streamID == parent.GetDropStreamID() {
+					nextIter := childIter.Prev()
+					plex.shutdownOrder.MoveToBack(childIter)
+					childIter = nextIter
+					continue nextChild // ### continue, inserted ###
+				}
+			}
+		}
+		childIter = childIter.Prev()
+	}
+}
+
 // Shutdown all consumers and producers in a clean way.
 // The internal log is flushed after the consumers have been shut down so that
 // consumer related messages are still in the log.
@@ -262,7 +349,6 @@ func (plex *multiplexer) shutdown() {
 		for _, consumer := range plex.consumers {
 			consumer.Control() <- core.PluginControlStop
 		}
-
 		plex.consumerWorker.Wait()
 	}
 
@@ -273,8 +359,10 @@ func (plex *multiplexer) shutdown() {
 	// Shutdown producers
 	plex.state = multiplexerStateStopProducers
 	if stateAtShutdown >= multiplexerStateStartProducers {
-		for _, producer := range plex.producers {
-			producer.Control() <- core.PluginControlStop
+		for prodIter := plex.shutdownOrder.Front(); prodIter != nil; prodIter = prodIter.Next() {
+			prod := prodIter.Value.(core.Producer)
+			prod.Control() <- core.PluginControlStop
+			prod.Close()
 		}
 		plex.producerWorker.Wait()
 	}
@@ -326,8 +414,7 @@ func (plex multiplexer) run() {
 	// Apache is using SIG_USR1 in some cases to signal child processes.
 	// This signal is not available on windows
 
-	plex.signal = make(chan os.Signal, 1)
-	signal.Notify(plex.signal, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1, syscall.SIGHUP)
+	plex.signal = newSignalHandler()
 
 	Log.Note.Print("We be nice to them, if they be nice to us. (startup)")
 	measure := time.Now()
@@ -357,13 +444,13 @@ func (plex multiplexer) run() {
 			}
 
 		case sig := <-plex.signal:
-			switch sig {
-			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1:
+			switch translateSignal(sig) {
+			case signalExit:
 				Log.Note.Print("Master betrayed us. Wicked. Tricksy, False. (signal)")
 				plex.state = multiplexerStateShutdown
 				return // ### return, exit requested ###
 
-			case syscall.SIGHUP:
+			case signalRoll:
 				for _, consumer := range plex.consumers {
 					consumer.Control() <- core.PluginControlRoll
 				}
@@ -372,7 +459,6 @@ func (plex multiplexer) run() {
 				}
 
 			default:
-
 			}
 		}
 	}

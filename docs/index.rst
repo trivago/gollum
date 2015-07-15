@@ -27,12 +27,13 @@ The main components of Gollum are consumers, streams and producers. To explain t
 
 .. image:: flow.png
 
-These main components, consumers, producers and streams are also called plugins and can be configured individually.
+These main components, consumers, producers and streams are build upon a plugin architecture.
+This allows each component to be exchanged and configured individually.
 Every plugin has a different sets of options.
-Streams for example can define filters that can inspect a message and decide wether to drop it or let it pass.
-Producers and streams may use formatters to modify a message's content to e.g. store a plain-text log in a JSON backed storage.
+Streams for example may define filters that can inspect a message to decide wether to drop the message or to let it pass.
+Producers and streams may use formatters to modify a message's content and e.g. convert a plain-text log to JSON.
 Filters and Formatters are plugins, too, but can only be configured in context of another plugin like a stream.
-As of this they are called "nested plugins". This plugins also have access to all configuration options of their "host" plugin.
+As of this they are called "nested plugins". These plugins have access to all configuration options of their "host" plugin.
 
 
 Configuration

@@ -18,6 +18,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 	"sync"
+	"time"
 )
 
 // Null producer plugin
@@ -53,13 +54,22 @@ func (prod *Null) Streams() []core.MessageStreamID {
 	return prod.streams
 }
 
+// GetDropStreamID returns the id of the stream to drop messages to.
+func (prod *Null) GetDropStreamID() core.MessageStreamID {
+	return core.DroppedStreamID
+}
+
 // Control returns write access to this producer's control channel.
 func (prod *Null) Control() chan<- core.PluginControl {
 	return prod.control
 }
 
 // Enqueue simply ignores the message
-func (prod *Null) Enqueue(msg core.Message) {
+func (prod *Null) Enqueue(msg core.Message, timeout *time.Duration) {
+}
+
+// Close gracefully
+func (prod *Null) Close() {
 }
 
 // Produce writes to a buffer that is dumped to a file.

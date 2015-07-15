@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	kafkaOffsetNewset = "newest"
+	kafkaOffsetNewest = "newest"
 	kafkaOffsetOldest = "oldest"
 )
 
@@ -159,9 +159,9 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 	cons.config.Consumer.Fetch.Default = int32(conf.GetInt("MaxFetchSizeByte", 32768))
 	cons.config.Consumer.MaxWaitTime = time.Duration(conf.GetInt("FetchTimeoutMs", 250)) * time.Millisecond
 
-	offsetValue := strings.ToLower(conf.GetString("DefaultOffset", kafkaOffsetNewset))
+	offsetValue := strings.ToLower(conf.GetString("DefaultOffset", kafkaOffsetNewest))
 	switch offsetValue {
-	case kafkaOffsetNewset:
+	case kafkaOffsetNewest:
 		cons.defaultOffset = kafka.OffsetNewest
 
 	case kafkaOffsetOldest:

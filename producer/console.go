@@ -68,6 +68,11 @@ func (prod *Console) printMessage(msg core.Message) {
 	fmt.Fprint(prod.console, string(text))
 }
 
+// Close gracefully
+func (prod *Console) Close() {
+	prod.CloseGracefully(prod.printMessage)
+}
+
 // Produce writes to stdout or stderr.
 func (prod *Console) Produce(workers *sync.WaitGroup) {
 	defer prod.WorkerDone()

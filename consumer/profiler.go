@@ -155,6 +155,7 @@ func (cons *Profiler) generateTemplate() []byte {
 }
 
 func (cons *Profiler) profile() {
+	defer cons.WorkerDone()
 	for i := 0; i < len(cons.templates); i++ {
 		cons.templates[i] = cons.generateTemplate()
 	}
@@ -162,14 +163,15 @@ func (cons *Profiler) profile() {
 	testStart := time.Now()
 	minTime := math.MaxFloat64
 	maxTime := 0.0
+	batchIdx := 0
 
-	for b := 0; b < cons.batches && !cons.quit; b++ {
-		Log.Note.Print(fmt.Sprintf("run %d/%d:", b, cons.batches))
+	for batchIdx = 0; batchIdx < cons.batches && !cons.quit; batchIdx++ {
+		Log.Note.Print(fmt.Sprintf("run %d/%d:", batchIdx, cons.batches))
 		start := time.Now()
 
 		for i := 0; i < cons.profileRuns && !cons.quit; i++ {
 			template := cons.templates[rand.Intn(len(cons.templates))]
-			cons.EnqueueCopy(template, uint64(b*cons.profileRuns+i))
+			cons.EnqueueCopy(template, uint64(batchIdx*cons.profileRuns+i))
 		}
 
 		runTime := time.Since(start)
@@ -182,7 +184,7 @@ func (cons *Profiler) profile() {
 	Log.Note.Print(fmt.Sprintf(
 		"Avg: %.4f sec = %4.f msg/sec",
 		runTime.Seconds(),
-		float64(cons.profileRuns*cons.batches)/runTime.Seconds()))
+		float64(cons.profileRuns*batchIdx)/runTime.Seconds()))
 
 	Log.Note.Print(fmt.Sprintf(
 		"Best: %.4f sec = %4.f msg/sec",
@@ -194,8 +196,11 @@ func (cons *Profiler) profile() {
 		maxTime,
 		float64(cons.profileRuns)/maxTime))
 
-	proc, _ := os.FindProcess(os.Getpid())
-	proc.Signal(os.Interrupt)
+	if !cons.quit {
+		// Automatically shut down when done
+		proc, _ := os.FindProcess(os.Getpid())
+		proc.Signal(os.Interrupt)
+	}
 }
 
 // Consume starts a profile run and exits gollum when done
@@ -206,7 +211,6 @@ func (cons *Profiler) Consume(workers *sync.WaitGroup) {
 	go func() {
 		defer shared.RecoverShutdown()
 		cons.profile()
-		cons.WorkerDone()
 	}()
 
 	defer func() {
