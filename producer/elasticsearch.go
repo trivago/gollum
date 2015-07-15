@@ -149,11 +149,13 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 }
 
 func (prod *ElasticSearch) sendMessage(msg core.Message) {
-	index, indexMapped := prod.index[msg.StreamID]
+	data, streamID := prod.ProducerBase.Format(msg)
+
+	index, indexMapped := prod.index[streamID]
 	if !indexMapped {
 		index, indexMapped = prod.index[core.WildcardStreamID]
 		if !indexMapped {
-			index = core.StreamTypes.GetStreamName(msg.StreamID)
+			index = core.StreamTypes.GetStreamName(streamID)
 		}
 	}
 
@@ -161,15 +163,18 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 		index = index + "_" + msg.Timestamp.Format("2006-01-02")
 	}
 
-	msgType, typeMapped := prod.msgType[msg.StreamID]
+	msgType, typeMapped := prod.msgType[streamID]
 	if !typeMapped {
-		msgType = prod.msgType[core.WildcardStreamID]
+		msgType, typeMapped = prod.msgType[core.WildcardStreamID]
+		if !typeMapped {
+			msgType = core.StreamTypes.GetStreamName(streamID)
+		}
 	}
 
-	payload, _ := prod.ProducerBase.Format(msg)
-	err := prod.indexer.Index(index, msgType, "", prod.msgTTL, &msg.Timestamp, string(payload), true)
+	err := prod.indexer.Index(index, msgType, "", prod.msgTTL, &msg.Timestamp, string(data), true)
 	if err != nil {
 		Log.Error.Print("ElasticSearch index error - ", err)
+		prod.Drop(msg)
 	}
 }
 
@@ -184,7 +189,6 @@ func (prod *ElasticSearch) Close() {
 // Produce starts a bluk indexer
 func (prod *ElasticSearch) Produce(workers *sync.WaitGroup) {
 	prod.indexer.Start()
-
 	prod.AddMainWorker(workers)
 	prod.DefaultControlLoop(prod.sendMessage, nil)
 }

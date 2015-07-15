@@ -138,7 +138,7 @@ type Kafka struct {
 	clientID string
 	client   kafka.Client
 	config   *kafka.Config
-	producer kafka.AsyncProducer
+	producer kafka.SyncProducer
 }
 
 func init() {
@@ -212,6 +212,35 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 }
 
 func (prod *Kafka) send(msg core.Message) {
+	if !prod.tryOpenConnection() {
+		prod.Drop(msg)
+		return // ### return, disconnected ###
+	}
+
+	// Send message
+	data, streamID := prod.ProducerBase.Format(msg)
+	topic, topicMapped := prod.topic[streamID]
+	if !topicMapped {
+		// Use wildcard fallback or stream name if not set
+		topic, topicMapped = prod.topic[core.WildcardStreamID]
+		if !topicMapped {
+			topic = core.StreamTypes.GetStreamName(streamID)
+		}
+	}
+
+	kafkaMsg := &kafka.ProducerMessage{
+		Topic: topic,
+		Value: kafka.ByteEncoder(data),
+	}
+
+	if partition, offset, err := prod.producer.SendMessage(kafkaMsg); err != nil {
+		Log.Error.Printf("Kafka producer error: Partition %d, offset %d, %s", partition, offset, err.Error())
+		prod.Drop(msg)
+		prod.closeConnection()
+	}
+}
+
+func (prod *Kafka) tryOpenConnection() bool {
 	// If we have not yet connected or the connection dropped: connect.
 	if prod.client == nil || prod.client.Closed() {
 		if prod.producer != nil {
@@ -219,63 +248,45 @@ func (prod *Kafka) send(msg core.Message) {
 			prod.producer = nil
 		}
 
-		var err error
-		prod.client, err = kafka.NewClient(prod.servers, prod.config)
-		if err != nil {
+		if client, err := kafka.NewClient(prod.servers, prod.config); err == nil {
+			prod.client = client
+		} else {
 			Log.Error.Print("Kafka client error:", err)
-			return // ### return, connection failed ###
+			prod.closeConnection()
+			return false // ### return, connection failed ###
 		}
 	}
 
 	// Make sure we have a producer up and running
 	if prod.producer == nil {
-		var err error
-		prod.producer, err = kafka.NewAsyncProducerFromClient(prod.client)
-		if err != nil {
+		if producer, err := kafka.NewSyncProducerFromClient(prod.client); err == nil {
+			prod.producer = producer
+		} else {
 			Log.Error.Print("Kafka producer error:", err)
-			return // ### return, connection failed ###
+			prod.closeConnection()
+			return false // ### return, connection failed ###
 		}
 	}
 
-	if prod.client != nil && prod.producer != nil {
-		msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
-
-		// Send message
-		topic, topicMapped := prod.topic[msg.StreamID]
-		if !topicMapped {
-			// Use wildcard fallback or stream name if not set
-			topic, topicMapped = prod.topic[core.WildcardStreamID]
-			if !topicMapped {
-				topic = core.StreamTypes.GetStreamName(msg.StreamID)
-			}
-		}
-
-		prod.producer.Input() <- &kafka.ProducerMessage{
-			Topic: topic,
-			Key:   nil,
-			Value: kafka.ByteEncoder(msg.Data),
-		}
-
-		// Check for errors
-		select {
-		case err := <-prod.producer.Errors():
-			Log.Error.Print("Kafka producer error:", err)
-		default:
-		}
-	}
+	return true
 }
 
-// Close gracefully
-func (prod *Kafka) Close() {
-	defer prod.WorkerDone()
-	prod.CloseGracefully(prod.send)
-
+func (prod *Kafka) closeConnection() {
 	if prod.producer != nil {
 		prod.producer.Close()
 	}
 	if prod.client != nil && !prod.client.Closed() {
 		prod.client.Close()
 	}
+	prod.producer = nil
+	prod.client = nil
+}
+
+// Close gracefully
+func (prod *Kafka) Close() {
+	defer prod.WorkerDone()
+	prod.CloseGracefully(prod.send)
+	prod.closeConnection()
 }
 
 // Produce writes to a buffer that is sent to a given socket.

@@ -314,17 +314,21 @@ func (prod *File) writeBatchOnTimeOut() {
 }
 
 func (prod *File) writeMessage(msg core.Message) {
-	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
-	state, err := prod.getFileState(msg.StreamID, false)
+	data, streamID := prod.ProducerBase.Format(msg)
+	state, err := prod.getFileState(streamID, false)
 	if err != nil {
 		Log.Error.Print("File log error:", err)
 		prod.Drop(msg)
 		return // ### return, dropped ###
 	}
 
-	if !state.batch.Append(msg) {
+	formattedMsg := msg
+	formattedMsg.Data = data
+	formattedMsg.StreamID = streamID
+
+	if !state.batch.Append(formattedMsg) {
 		state.flush()
-		if !state.batch.AppendOrBlock(msg) {
+		if !state.batch.AppendOrBlock(formattedMsg) {
 			prod.Drop(msg)
 		}
 	}
