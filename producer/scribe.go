@@ -31,8 +31,8 @@ import (
 //     Enable: true
 //     Address: "192.168.222.30:1463"
 //     ConnectionBufferSizeKB: 4096
-//     BatchSizeMaxKB: 16384
-//     BatchSizeByte: 4096
+//     BatchMaxCount: 16384
+//     BatchFlushCount: 10000
 //     BatchTimeoutSec: 2
 //     Stream:
 //       - "console"
@@ -49,12 +49,14 @@ import (
 // ConnectionBufferSizeKB sets the connection buffer size in KB. By default this
 // is set to 1024, i.e. 1 MB buffer.
 //
-// BatchSizeMaxKB defines the maximum number of bytes to buffer before
-// messages get dropped. If a message crosses the threshold it is still buffered
-// but additional messages will be dropped. By default this is set to 8192.
+// BatchMaxCount defines the maximum number of messages that can be buffered
+// before a flush is mandatory. If the buffer is full and a flush is still
+// underway or cannot be triggered out of other reasons, the producer will
+// block.
 //
-// BatchSizeByte defines the number of bytes to be buffered before they are written
-// to scribe. By default this is set to 8KB.
+// BatchFlushCount defines the number of messages to be buffered before they are
+// written to disk. This setting is clamped to BatchMaxCount.
+// By default this is set to BatchMaxCount / 2.
 //
 // BatchTimeoutSec defines the maximum number of seconds to wait after the last
 // message arrived before a batch is flushed automatically. By default this is
@@ -92,6 +94,7 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
 	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
+	prod.batchFlushCount = shared.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
 

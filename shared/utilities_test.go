@@ -21,6 +21,16 @@ import (
 	"time"
 )
 
+func TestMath(t *testing.T) {
+	expect := NewExpect(t)
+
+	expect.Equal(1, MaxI(1, 0))
+	expect.Equal(0, MinI(0, 1))
+
+	expect.Equal(1, MaxI(-1, 1))
+	expect.Equal(-1, MinI(-1, 1))
+}
+
 func TestItoLen(t *testing.T) {
 	expect := NewExpect(t)
 

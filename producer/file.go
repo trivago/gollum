@@ -34,8 +34,8 @@ import (
 //   - "producer.File":
 //     Enable: true
 //     File: "/var/log/gollum.log"
-//     BatchSizeMaxKB: 16384
-//     BatchSizeByte: 4096
+//     BatchMaxCount: 16384
+//     BatchFlushCount: 10000
 //     BatchTimeoutSec: 2
 //     FlushTimeoutSec: 10
 //     Rotate: false
@@ -53,14 +53,14 @@ import (
 // can be used as a placeholder for the stream name.
 // By default this is set to /var/prod/gollum.log.
 //
-// BatchSizeMaxKB defines the internal file buffer size in KB.
-// This producers allocates a front- and a backbuffer of this size. If the
-// frontbuffer is filled up completely a flush is triggered and the frontbuffer
-// becomes available for writing again. Messages larger than BatchSizeMaxKB are
-// rejected.
+// BatchMaxCount defines the maximum number of messages that can be buffered
+// before a flush is mandatory. If the buffer is full and a flush is still
+// underway or cannot be triggered out of other reasons, the producer will
+// block.
 //
-// BatchSizeByte defines the number of bytes to be buffered before they are written
-// to disk. By default this is set to 8KB.
+// BatchFlushCount defines the number of messages to be buffered before they are
+// written to disk. This setting is clamped to BatchMaxCount.
+// By default this is set to BatchMaxCount / 2.
 //
 // BatchTimeoutSec defines the maximum number of seconds to wait after the last
 // message arrived before a batch is flushed automatically. By default this is
@@ -129,6 +129,7 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	prod.files = make(map[string]*fileState)
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
 	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
+	prod.batchFlushCount = shared.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 
 	logFile := conf.GetString("File", "/var/prod/gollum.log")

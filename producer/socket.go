@@ -30,8 +30,8 @@ import (
 //     Enable: true
 //     Address: "unix:///var/gollum.socket"
 //     ConnectionBufferSizeKB: 4096
-//     BatchSizeMaxKB: 16384
-//     BatchSizeByte: 4096
+//     BatchMaxCount: 16384
+//     BatchFlushCount: 10000
 //     BatchTimeoutSec: 5
 //     Acknowledge: "ACK\n"
 //
@@ -42,12 +42,14 @@ import (
 // ConnectionBufferSizeKB sets the connection buffer size in KB. By default this
 // is set to 1024, i.e. 1 MB buffer.
 //
-// BatchSizeMaxKB defines the maximum number of bytes to buffer before
-// messages get dropped. Any message that crosses the threshold is dropped.
-// By default this is set to 8192.
+// BatchMaxCount defines the maximum number of messages that can be buffered
+// before a flush is mandatory. If the buffer is full and a flush is still
+// underway or cannot be triggered out of other reasons, the producer will
+// block.
 //
-// BatchSizeByte defines the number of bytes to be buffered before they are written
-// to scribe. By default this is set to 8KB.
+// BatchFlushCount defines the number of messages to be buffered before they are
+// written to disk. This setting is clamped to BatchMaxCount.
+// By default this is set to BatchMaxCount / 2.
 //
 // BatchTimeoutSec defines the maximum number of seconds to wait after the last
 // message arrived before a batch is flushed automatically. By default this is
@@ -68,7 +70,7 @@ type Socket struct {
 	batchTimeout    time.Duration
 	batchMaxCount   int
 	batchFlushCount int
-	bufferSizeKB    int
+	bufferSizeByte  int
 	acknowledge     string
 }
 
@@ -89,8 +91,9 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
 	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
+	prod.batchFlushCount = shared.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
-	prod.bufferSizeKB = conf.GetInt("ConnectionBufferSizeKB", 1<<10) // 1 MB
+	prod.bufferSizeByte = conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10 // 1 MB
 
 	prod.acknowledge = shared.Unescape(conf.GetString("Acknowledge", ""))
 	prod.address, prod.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
@@ -137,7 +140,7 @@ func (prod *Socket) sendBatch() {
 		if err != nil {
 			Log.Error.Print("Socket connection error - ", err)
 		} else {
-			conn.(bufferedConn).SetWriteBuffer(prod.bufferSizeKB << 10)
+			conn.(bufferedConn).SetWriteBuffer(prod.bufferSizeByte)
 			prod.connection = conn
 			prod.assembly.SetWriter(conn)
 		}

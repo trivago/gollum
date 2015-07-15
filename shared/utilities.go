@@ -102,6 +102,14 @@ func Unescape(text string) string {
 
 // MaxI returns the maximum out of two integers
 func MaxI(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+// MinI returns the minimum out of two integers
+func MinI(a, b int) int {
 	if a < b {
 		return a
 	}

@@ -159,7 +159,7 @@ func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
 		defer shared.RecoverShutdown()
 		defer batch.flushing.Done()
 
-		messageCount := shared.MaxI(int(flushQueue.doneCount), len(flushQueue.messages))
+		messageCount := shared.MinI(int(flushQueue.doneCount), len(flushQueue.messages))
 		assemble(flushQueue.messages[:messageCount])
 		flushQueue.doneCount = 0
 		batch.Touch()
