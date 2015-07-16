@@ -56,6 +56,11 @@
 			"Rev": "09363f92cd44e47b5034719cdef78da73190d847"
 		},
 		{
+			"ImportPath": "github.com/shopify/sarama",
+			"Comment": "v1.4.2-15-gc1d582e",
+			"Rev": "c1d582ee1b8d46fc22431b467f398717b580b368"
+		},
+		{
 			"ImportPath": "golang.org/x/net/websocket",
 			"Rev": "38f3db3860bb1812858610029b0d8188517d8b74"
 		},
