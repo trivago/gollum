@@ -15,12 +15,16 @@ Custom producers and config files may have to be adjusted.
  * MessageBatch has been refactored to store messages instead of preformatted strings. This allows dropping messages from a batch.
  * Stream plugins may now bind to exactly and only one stream
  * Message.Drop has been removed, Message.Route can now be used instead
+ * Renamed HttpReq producer to HTTPRequest
 
 #### Fixed
 
  * Messages stored in channels or MessageBatches can now be flushed properly during shutdown
  * Several producers now properly block when their queue is full (messages could be lost before)
  * Producer control commands now have priority over processing messages
+ * Switched to sarama trunk version to get the latest broker connection fixes
+ * Fixed various message loss scenarios in file, kafka and http request producer
+ * Kafka producer is now reconnecting upon every error (intermediate fix)
 
 #### New
 
