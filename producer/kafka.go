@@ -15,10 +15,10 @@
 package producer
 
 import (
+	kafka "github.com/shopify/sarama" // "gopkg.in/Shopify/sarama.v1"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
-	kafka "gopkg.in/Shopify/sarama.v1"
 	"strings"
 	"sync"
 	"time"
