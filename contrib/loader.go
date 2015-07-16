@@ -20,7 +20,7 @@ package contrib
 import (
 	//_ "github.com/trivago/gollum/contrib/native"  // plugins using cgo native bindings
 	//_ "your/company/package"
-	"github.com/trivago/gollum/contrib/trivago"
+	_ "github.com/trivago/gollum/contrib/trivago"
 )
 
 func init() {
