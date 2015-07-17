@@ -133,12 +133,13 @@ const (
 // If no topic mappings are set the stream names will be used as topic.
 type Kafka struct {
 	core.ProducerBase
-	servers  []string
-	topic    map[core.MessageStreamID]string
-	clientID string
-	client   kafka.Client
-	config   *kafka.Config
-	producer kafka.SyncProducer
+	servers   []string
+	topic     map[core.MessageStreamID]string
+	clientID  string
+	client    kafka.Client
+	config    *kafka.Config
+	producer  kafka.AsyncProducer
+	keepAlive bool
 }
 
 func init() {
@@ -159,6 +160,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.servers = conf.GetStringArray("Servers", []string{})
 	prod.topic = conf.GetStreamMap("Topic", "")
 	prod.clientID = conf.GetString("ClientId", "gollum")
+	prod.keepAlive = true
 
 	prod.config = kafka.NewConfig()
 	prod.config.ClientID = conf.GetString("ClientId", "gollum")
@@ -178,7 +180,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.config.Producer.Timeout = time.Duration(conf.GetInt("TimoutMs", 1500)) * time.Millisecond
 
 	prod.config.Producer.Return.Errors = true
-	prod.config.Producer.Return.Successes = false
+	prod.config.Producer.Return.Successes = true
 
 	switch strings.ToLower(conf.GetString("Compression", compressNone)) {
 	default:
@@ -208,13 +210,19 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.config.Producer.Flush.MaxMessages = conf.GetInt("BatchMaxCount", 0)
 	prod.config.Producer.Retry.Max = conf.GetInt("SendRetries", 3)
 	prod.config.Producer.Retry.Backoff = time.Duration(conf.GetInt("SendTimeoutMs", 100)) * time.Millisecond
+
 	return nil
 }
 
 func (prod *Kafka) send(msg core.Message) {
-	if !prod.tryOpenConnection() {
+	// Store current client and producer to avoid races
+	client := prod.client
+	producer := prod.producer
+
+	// Check if connected
+	if client == nil || producer == nil {
 		prod.Drop(msg)
-		return // ### return, disconnected ###
+		return // ### return, not connected ###
 	}
 
 	// Send message
@@ -228,42 +236,32 @@ func (prod *Kafka) send(msg core.Message) {
 		}
 	}
 
-	kafkaMsg := &kafka.ProducerMessage{
-		Topic: topic,
-		Value: kafka.ByteEncoder(data),
-	}
-
-	if partition, offset, err := prod.producer.SendMessage(kafkaMsg); err != nil {
-		Log.Error.Printf("Kafka producer error: Partition %d, offset %d, %s", partition, offset, err.Error())
-		prod.Drop(msg)
-		prod.closeConnection()
+	producer.Input() <- &kafka.ProducerMessage{
+		Topic:    topic,
+		Value:    kafka.ByteEncoder(data),
+		Metadata: msg,
 	}
 }
 
 func (prod *Kafka) tryOpenConnection() bool {
-	// If we have not yet connected or the connection dropped: connect.
-	if prod.client == nil || prod.client.Closed() {
-		if prod.producer != nil {
-			prod.producer.Close()
-			prod.producer = nil
-		}
-
+	// Reconnect the client first
+	if prod.client == nil {
 		if client, err := kafka.NewClient(prod.servers, prod.config); err == nil {
 			prod.client = client
 		} else {
 			Log.Error.Print("Kafka client error:", err)
-			prod.closeConnection()
 			return false // ### return, connection failed ###
 		}
 	}
 
 	// Make sure we have a producer up and running
 	if prod.producer == nil {
-		if producer, err := kafka.NewSyncProducerFromClient(prod.client); err == nil {
+		if producer, err := kafka.NewAsyncProducerFromClient(prod.client); err == nil {
 			prod.producer = producer
 		} else {
 			Log.Error.Print("Kafka producer error:", err)
-			prod.closeConnection()
+			prod.client.Close()
+			prod.client = nil
 			return false // ### return, connection failed ###
 		}
 	}
@@ -271,26 +269,84 @@ func (prod *Kafka) tryOpenConnection() bool {
 	return true
 }
 
-func (prod *Kafka) closeConnection() {
-	if prod.producer != nil {
-		prod.producer.Close()
+func (prod *Kafka) connectionKeepAlive() {
+	defer prod.WorkerDone()
+	defer prod.closeConnection(true)
+
+	// Will be restarted if ever reaching 0
+	for prod.keepAlive {
+		if !prod.tryOpenConnection() {
+			continue
+		}
+
+		select {
+		case <-prod.producer.Successes():
+		case err := <-prod.producer.Errors():
+			Log.Error.Printf("Kafka producer error: %s", err.Error())
+			if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
+				prod.Drop(msg)
+			}
+			prod.closeConnection(false)
+		}
 	}
-	if prod.client != nil && !prod.client.Closed() {
-		prod.client.Close()
+
+	// Wait for the remaining errors / successes. Use a timeout to make sure
+	// that delayed returns are not missed.
+	retries := 0
+	for retries < 3 {
+		select {
+		case <-prod.producer.Successes():
+			retries = 0
+
+		case err := <-prod.producer.Errors():
+			retries = 0
+			Log.Error.Printf("Kafka producer error: %s", err.Error())
+			if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
+				prod.Drop(msg)
+			}
+
+		default:
+			time.Sleep(prod.config.Producer.Timeout / 2)
+			retries++
+		}
 	}
-	prod.producer = nil
+}
+
+func (prod *Kafka) closeConnection(immediate bool) {
+	producer := prod.producer
+	client := prod.client
+	closeFunc := func() {
+		if producer != nil {
+			producer.Close()
+		}
+		if client != nil && !client.Closed() {
+			client.Close()
+		}
+	}
+
 	prod.client = nil
+	prod.producer = nil
+
+	// Delay close so that active calls on the old producer may finish unless
+	// requested to be immediate
+	if immediate {
+		closeFunc()
+	} else {
+		time.AfterFunc(prod.config.Producer.Timeout*2, closeFunc)
+	}
 }
 
 // Close gracefully
 func (prod *Kafka) Close() {
 	defer prod.WorkerDone()
 	prod.CloseGracefully(prod.send)
-	prod.closeConnection()
+	prod.keepAlive = false
+	// Keep alive job will handle WorkerDone
 }
 
 // Produce writes to a buffer that is sent to a given socket.
 func (prod *Kafka) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
+	go prod.connectionKeepAlive()
 	prod.DefaultControlLoop(prod.send, nil)
 }
