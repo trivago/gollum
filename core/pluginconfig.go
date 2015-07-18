@@ -137,7 +137,7 @@ func (conf PluginConfig) GetStringArray(key string, defaultValue []string) []str
 }
 
 // GetStringMap tries to read a non-predefined, string to string map from a
-// PluginConfig. If that value is not found defaultValue is returned.
+// PluginConfig. If the key is not found defaultValue is returned.
 func (conf PluginConfig) GetStringMap(key string, defaultValue map[string]string) map[string]string {
 	conf.registerKey(key)
 	if conf.HasValue(key) {
@@ -147,6 +147,22 @@ func (conf PluginConfig) GetStringMap(key string, defaultValue map[string]string
 			return value
 		}
 	}
+	return defaultValue
+}
+
+// GetStreamArray tries to read a non-predefined string array from a pluginconfig
+// and translates all values to streamIds. If the key is not found defaultValue
+// is returned.
+func (conf PluginConfig) GetStreamArray(key string, defaultValue []MessageStreamID) []MessageStreamID {
+	conf.registerKey(key)
+	if conf.HasValue(key) {
+		value := conf.GetStringArray(key, []string{})
+		streamArray := []MessageStreamID{}
+		for _, streamName := range value {
+			streamArray = append(streamArray, GetStreamID(streamName))
+		}
+	}
+
 	return defaultValue
 }
 

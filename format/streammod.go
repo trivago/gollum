@@ -32,8 +32,9 @@ import (
 //     StreamModFormatter: "format.Forward"
 //     StreamModDelimiter: "$"
 //
-// StreamModFormatter defines the formatter for the data transferred as
-// message. By default this is set to "format.Forward"
+// StreamModFormatter defines the formatter applied after reading the stream.
+// This formatter is applied to the data after StreamModDelimiter.
+// By default this is set to "format.Forward"
 //
 // StreamModDelimiter defines the delimiter to search when extracting the stream
 // name. By default this is set to ":".
