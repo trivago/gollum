@@ -71,7 +71,7 @@ func (format *StreamMod) Format(msg core.Message) ([]byte, core.MessageStreamID)
 		modMsg.Data = msg.Data[1:]
 	default:
 		firstSpaceIdx := bytes.IndexByte(msg.Data, ' ')
-		if (firstSpaceIdx < 0) || (firstSpaceIdx > prefixEnd) {
+		if (firstSpaceIdx < 0) || (firstSpaceIdx >= prefixEnd) {
 			modMsg.StreamID = core.GetStreamID(string(msg.Data[:prefixEnd]))
 			modMsg.Data = msg.Data[prefixEnd+1:]
 		}
