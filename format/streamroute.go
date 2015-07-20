@@ -20,48 +20,48 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
-// StreamMod is a formatter that modifies a message's stream by reading a prefix
-// from the message's data (and discarding it).
+// StreamRoute is a formatter that modifies a message's stream by reading a
+// prefix from the message's data (and discarding it).
 // The prefix is defined by everything before a given delimiter in the
 // message. If no delimiter is found or the prefix is empty the message stream
 // is not changed.
 // Configuration example
 //
 //   - "<producer|stream>":
-//     Formatter: "format.StreamMod"
-//     StreamModFormatter: "format.Forward"
-//     StreamModDelimiter: "$"
+//     Formatter: "format.StreamRoute"
+//     StreamRouteFormatter: "format.Forward"
+//     StreamRouteDelimiter: "$"
 //
-// StreamModFormatter defines the formatter applied after reading the stream.
-// This formatter is applied to the data after StreamModDelimiter.
+// StreamRouteFormatter defines the formatter applied after reading the stream.
+// This formatter is applied to the data after StreamRouteDelimiter.
 // By default this is set to "format.Forward"
 //
-// StreamModDelimiter defines the delimiter to search when extracting the stream
+// StreamRouteDelimiter defines the delimiter to search when extracting the stream
 // name. By default this is set to ":".
-type StreamMod struct {
+type StreamRoute struct {
 	base      core.Formatter
 	delimiter []byte
 }
 
 func init() {
-	shared.RuntimeType.Register(StreamMod{})
+	shared.RuntimeType.Register(StreamRoute{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *StreamMod) Configure(conf core.PluginConfig) error {
-	plugin, err := core.NewPluginWithType(conf.GetString("StreamModFormatter", "format.Forward"), conf)
+func (format *StreamRoute) Configure(conf core.PluginConfig) error {
+	plugin, err := core.NewPluginWithType(conf.GetString("StreamRouteFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err
 	}
 
-	format.delimiter = []byte(conf.GetString("StreamModDelimiter", ":"))
+	format.delimiter = []byte(conf.GetString("StreamRouteDelimiter", ":"))
 	format.base = plugin.(core.Formatter)
 
 	return nil
 }
 
 // Format adds prefix and postfix to the message formatted by the base formatter
-func (format *StreamMod) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+func (format *StreamRoute) Format(msg core.Message) ([]byte, core.MessageStreamID) {
 	modMsg := msg
 	prefixEnd := bytes.Index(msg.Data, format.delimiter)
 

@@ -89,21 +89,23 @@ type LinkableMessageSource interface {
 // Message is a container used for storing the internal state of messages.
 // This struct is passed between consumers and producers.
 type Message struct {
-	Data      []byte
-	StreamID  MessageStreamID
-	Source    MessageSource
-	Timestamp time.Time
-	Sequence  uint64
+	Data         []byte
+	StreamID     MessageStreamID
+	PrevStreamID MessageStreamID
+	Source       MessageSource
+	Timestamp    time.Time
+	Sequence     uint64
 }
 
 // NewMessage creates a new message from a given data stream
 func NewMessage(source MessageSource, data []byte, sequence uint64) Message {
 	return Message{
-		Data:      data,
-		Source:    source,
-		StreamID:  WildcardStreamID,
-		Timestamp: shared.LowResolutionTimeNow, //time.Now(),
-		Sequence:  sequence,
+		Data:         data,
+		Source:       source,
+		StreamID:     WildcardStreamID,
+		PrevStreamID: WildcardStreamID,
+		Timestamp:    shared.LowResolutionTimeNow, //time.Now(),
+		Sequence:     sequence,
 	}
 }
 
@@ -155,7 +157,9 @@ func (msg Message) Enqueue(channel chan<- Message, timeout time.Duration) Messag
 
 // Route enqueues this message to the given stream.
 // If the stream does not exist, a default stream (broadcast) is created.
-func (msg Message) Route(streamID MessageStreamID) {
-	targetStream := StreamTypes.GetStreamOrFallback(streamID)
+func (msg Message) Route(targetID MessageStreamID) {
+	msg.PrevStreamID = msg.StreamID
+	msg.StreamID = targetID
+	targetStream := StreamTypes.GetStreamOrFallback(msg.StreamID)
 	targetStream.Enqueue(msg)
 }

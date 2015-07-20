@@ -189,6 +189,7 @@ func (stream *StreamBase) Enqueue(msg Message) {
 // another stream if necessary.
 func (stream *StreamBase) Route(msg Message, targetID MessageStreamID) {
 	if msg.StreamID != targetID {
+		msg.PrevStreamID = msg.StreamID
 		msg.StreamID = targetID
 		StreamTypes.GetStreamOrFallback(targetID).Enqueue(msg)
 		return // ### done, routed ###

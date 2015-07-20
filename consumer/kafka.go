@@ -103,8 +103,8 @@ const (
 // By default this is set to 10000. This corresponds to the JVM setting
 // `topic.metadata.refresh.interval.ms`.
 //
-// Servers contains the list of all kafka servers to connect to. This setting
-// is mandatory and thus has no defaults.
+// Servers contains the list of all kafka servers to connect to. By default this
+// is set to contain only "localhost:9092".
 type Kafka struct {
 	core.ConsumerBase
 	servers        []string
@@ -130,11 +130,7 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	if !conf.HasValue("Servers") {
-		return core.NewConsumerError("No servers configured for consumer.Kafka")
-	}
-
-	cons.servers = conf.GetStringArray("Servers", []string{})
+	cons.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	cons.topic = conf.GetString("Topic", "default")
 	cons.offsetFile = conf.GetString("OffsetFile", "")
 	cons.persistTimeout = time.Duration(conf.GetInt("PresistTimoutMs", 5000)) * time.Millisecond

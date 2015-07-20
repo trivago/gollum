@@ -124,8 +124,8 @@ const (
 // By default this is set to 10000. This corresponds to the JVM setting
 // `topic.metadata.refresh.interval.ms`.
 //
-// Servers contains the list of all kafka servers to connect to. This setting
-// is mandatory and has no defaults.
+// Servers contains the list of all kafka servers to connect to.  By default this
+// is set to contain only "localhost:9092".
 //
 // Topic maps a stream to a specific kafka topic. You can define the
 // wildcard stream (*) here, too. If defined, all streams that do not have a
@@ -153,11 +153,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	if !conf.HasValue("Servers") {
-		return core.NewProducerError("No servers configured for producer.Kafka")
-	}
-
-	prod.servers = conf.GetStringArray("Servers", []string{})
+	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.topic = conf.GetStreamMap("Topic", "")
 	prod.clientID = conf.GetString("ClientId", "gollum")
 	prod.keepAlive = true

@@ -135,6 +135,7 @@ func (cons *ConsumerBase) EnqueueCopy(data []byte, sequence uint64) {
 func (cons *ConsumerBase) EnqueueMessage(msg Message) {
 	for _, mapping := range cons.streams {
 		msg.StreamID = mapping.StreamID
+		msg.PrevStreamID = msg.StreamID
 		mapping.Stream.Enqueue(msg)
 	}
 }

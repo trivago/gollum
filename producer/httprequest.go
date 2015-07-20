@@ -35,8 +35,8 @@ import (
 // The HTTPRequest producers sends messages that already are valid http request to a
 //  given webserver.
 //
-// Address defines the webserver to send http requests to. Set to ":80", which
-// is equal to "localhost:80" by default.
+// Address defines the webserver to send http requests to. Set to
+// "localhost:80" by default.
 type HTTPRequest struct {
 	core.ProducerBase
 	host    string
@@ -56,11 +56,7 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	if !conf.HasValue("Address") {
-		return core.NewProducerError("No Host configured for producer.HTTPRequest")
-	}
-
-	address := conf.GetString("Address", ":80")
+	address := conf.GetString("Address", "localhost:80")
 	prod.host, prod.port, err = net.SplitHostPort(address)
 	if err != nil {
 		return err

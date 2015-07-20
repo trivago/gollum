@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package format
+package consumer
 
 import (
 	"github.com/trivago/gollum/core"
@@ -21,18 +21,18 @@ import (
 	"testing"
 )
 
-func TestFormatters(t *testing.T) {
+func TestConsumerInterface(t *testing.T) {
 	conf := core.NewPluginConfig(reflect.TypeOf(t).Name())
-	formatters := shared.RuntimeType.GetRegistered("format.")
+	consumers := shared.RuntimeType.GetRegistered("consumer.")
 
-	if len(formatters) == 0 {
-		t.Error("No formatters defined")
+	if len(consumers) == 0 {
+		t.Error("No consumers defined")
 	}
 
-	for _, name := range formatters {
+	for _, name := range consumers {
 		_, err := core.NewPluginWithType(name, conf)
 		if err != nil {
-			t.Errorf("Failed to create formatter %s: %s", name, err.Error())
+			t.Errorf("Failed to create consumer %s: %s", name, err.Error())
 		}
 	}
 }

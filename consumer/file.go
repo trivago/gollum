@@ -98,12 +98,8 @@ func (cons *File) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	if !conf.HasValue("File") {
-		return core.NewConsumerError("No file configured for consumer.File")
-	}
-
 	cons.file = nil
-	cons.fileName = conf.GetString("File", "")
+	cons.fileName = conf.GetString("File", "/var/run/system.log")
 	cons.offsetFileName = conf.GetString("OffsetFile", "")
 	cons.delimiter = shared.Unescape(conf.GetString("Delimiter", "\n"))
 

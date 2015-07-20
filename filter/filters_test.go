@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package format
+package filter
 
 import (
 	"github.com/trivago/gollum/core"
@@ -21,18 +21,18 @@ import (
 	"testing"
 )
 
-func TestFormatters(t *testing.T) {
+func TestFilterInterface(t *testing.T) {
 	conf := core.NewPluginConfig(reflect.TypeOf(t).Name())
-	formatters := shared.RuntimeType.GetRegistered("format.")
+	filters := shared.RuntimeType.GetRegistered("filter.")
 
-	if len(formatters) == 0 {
-		t.Error("No formatters defined")
+	if len(filters) == 0 {
+		t.Error("No filters defined")
 	}
 
-	for _, name := range formatters {
+	for _, name := range filters {
 		_, err := core.NewPluginWithType(name, conf)
 		if err != nil {
-			t.Errorf("Failed to create formatter %s: %s", name, err.Error())
+			t.Errorf("Failed to create filter %s: %s", name, err.Error())
 		}
 	}
 }
