@@ -290,6 +290,10 @@ func (prod *Kafka) connectionKeepAlive() {
 	// that delayed returns are not missed.
 	retries := 0
 	for retries < 3 {
+		if prod.producer == nil {
+			return // ### return, no producer to listen to ###
+		}
+
 		select {
 		case <-prod.producer.Successes():
 			retries = 0
@@ -344,5 +348,5 @@ func (prod *Kafka) Close() {
 func (prod *Kafka) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
 	go prod.connectionKeepAlive()
-	prod.DefaultControlLoop(prod.send, nil)
+	prod.DefaultControlLoop(prod.send)
 }

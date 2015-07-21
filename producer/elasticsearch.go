@@ -190,5 +190,5 @@ func (prod *ElasticSearch) Close() {
 func (prod *ElasticSearch) Produce(workers *sync.WaitGroup) {
 	prod.indexer.Start()
 	prod.AddMainWorker(workers)
-	prod.DefaultControlLoop(prod.sendMessage, nil)
+	prod.DefaultControlLoop(prod.sendMessage)
 }

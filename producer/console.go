@@ -78,5 +78,5 @@ func (prod *Console) Produce(workers *sync.WaitGroup) {
 	defer prod.WorkerDone()
 
 	prod.AddMainWorker(workers)
-	prod.DefaultControlLoop(prod.printMessage, nil)
+	prod.DefaultControlLoop(prod.printMessage)
 }

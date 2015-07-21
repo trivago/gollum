@@ -195,5 +195,5 @@ func (prod *Websocket) Close() {
 func (prod *Websocket) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
 	go prod.serve()
-	prod.DefaultControlLoop(prod.pushMessage, nil)
+	prod.DefaultControlLoop(prod.pushMessage)
 }

@@ -325,5 +325,5 @@ func (cons *Kafka) Consume(workers *sync.WaitGroup) {
 		cons.dumpIndex()
 	}()
 
-	cons.TickerControlLoop(cons.persistTimeout, nil, cons.dumpIndex)
+	cons.TickerControlLoop(cons.persistTimeout, cons.dumpIndex)
 }

@@ -194,5 +194,5 @@ func (prod *Socket) Close() {
 // Produce writes to a buffer that is sent to a given socket.
 func (prod *Socket) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.TickerControlLoop(prod.batchTimeout, prod.sendMessage, nil, prod.sendBatchOnTimeOut)
+	prod.TickerControlLoop(prod.batchTimeout, prod.sendMessage, prod.sendBatchOnTimeOut)
 }

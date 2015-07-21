@@ -343,6 +343,19 @@ func (plex *multiplexer) shutdown() {
 	Log.Note.Print("Filthy little hobbites. They stole it from us. (shutdown)")
 	stateAtShutdown := plex.state
 
+	// Notify consumers/producers that a shutdown is requested
+	if stateAtShutdown >= multiplexerStateStartConsumers {
+		for _, cons := range plex.consumers {
+			cons.Control() <- core.PluginControlPrepareStop
+		}
+	}
+
+	if stateAtShutdown >= multiplexerStateStartProducers {
+		for _, prod := range plex.producers {
+			prod.Control() <- core.PluginControlPrepareStop
+		}
+	}
+
 	// Shutdown consumers
 	plex.state = multiplexerStateStopConsumers
 	if stateAtShutdown >= multiplexerStateStartConsumers {

@@ -26,11 +26,14 @@ var metricActiveWorkers = "ActiveWorkers"
 type PluginControl int
 
 const (
-	// PluginControlStop will cause the consumer to halt and shutdown.
-	PluginControlStop = PluginControl(1)
+	// PluginControlPrepareStop is sent to all producers/consumers when a shutdown is imminent.
+	PluginControlPrepareStop = PluginControl(iota)
 
-	// PluginControlRoll notifies the consumer about a reconnect or reopen request
-	PluginControlRoll = PluginControl(2)
+	// PluginControlStop will cause the consumer/producer to halt and shutdown.
+	PluginControlStop = PluginControl(iota)
+
+	// PluginControlRoll notifies the consumer/producer about a reconnect or reopen request
+	PluginControlRoll = PluginControl(iota)
 )
 
 // PluginRunState is used in some plugins to store information about the

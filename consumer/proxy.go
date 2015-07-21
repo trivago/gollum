@@ -181,5 +181,5 @@ func (cons *Proxy) Consume(workers *sync.WaitGroup) {
 		cons.listen.Close()
 	}()
 
-	cons.DefaultControlLoop(nil)
+	cons.DefaultControlLoop()
 }

@@ -217,5 +217,5 @@ func (cons *Profiler) Consume(workers *sync.WaitGroup) {
 		cons.quit = true
 	}()
 
-	cons.DefaultControlLoop(nil)
+	cons.DefaultControlLoop()
 }

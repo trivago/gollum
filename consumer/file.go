@@ -98,6 +98,8 @@ func (cons *File) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
+	cons.SetRollCallback(cons.onRoll)
+
 	cons.file = nil
 	cons.fileName = conf.GetString("File", "/var/run/system.log")
 	cons.offsetFileName = conf.GetString("OffsetFile", "")
@@ -242,5 +244,5 @@ func (cons *File) Consume(workers *sync.WaitGroup) {
 		cons.read()
 	}()
 
-	cons.DefaultControlLoop(cons.onRoll)
+	cons.DefaultControlLoop()
 }

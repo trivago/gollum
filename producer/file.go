@@ -125,6 +125,8 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
+	prod.SetRollCallback(prod.rotateLog)
+
 	prod.filesByStream = make(map[core.MessageStreamID]*fileState)
 	prod.files = make(map[string]*fileState)
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
@@ -360,5 +362,5 @@ func (prod *File) Close() {
 // Produce writes to a buffer that is dumped to a file.
 func (prod *File) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.TickerControlLoop(prod.batchTimeout, prod.writeMessage, prod.rotateLog, prod.writeBatchOnTimeOut)
+	prod.TickerControlLoop(prod.batchTimeout, prod.writeMessage, prod.writeBatchOnTimeOut)
 }

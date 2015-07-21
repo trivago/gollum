@@ -56,7 +56,7 @@ type Producer interface {
 //   - "producer.Something":
 //     Enable: true
 //     Channel: 1024
-//     ChannelTimeout: 200
+//     ChannelTimeoutMs: 200
 //     Formatter: "format.Envelope"
 //     DroppedStream: "failed"
 //     Stream:
@@ -99,6 +99,9 @@ type ProducerBase struct {
 	timeout         time.Duration
 	shutdownTimeout time.Duration
 	format          Formatter
+	onRoll          func()
+	onStop          func()
+	onPrepareStop   func()
 }
 
 // ProducerError can be used to return consumer related errors e.g. during a
@@ -134,11 +137,30 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	prod.state = new(PluginRunState)
 	prod.dropStreamID = GetStreamID(conf.GetString("DroppedStream", DroppedStream))
 
+	prod.onRoll = nil
+	prod.onStop = nil
+	prod.onPrepareStop = nil
+
 	for i, stream := range conf.Stream {
 		prod.streams[i] = GetStreamID(stream)
 	}
 
 	return nil
+}
+
+// SetRollCallback sets the function to be called upon PluginControlRoll
+func (prod ProducerBase) SetRollCallback(onRoll func()) {
+	prod.onRoll = onRoll
+}
+
+// SetStopCallback sets the function to be called upon PluginControlStop
+func (prod ProducerBase) SetStopCallback(onStop func()) {
+	prod.onStop = onStop
+}
+
+// SetPrepareStopCallback sets the function to be called upon PluginControlPrepareStop
+func (prod ProducerBase) SetPrepareStopCallback(onPrepareStop func()) {
+	prod.onPrepareStop = onPrepareStop
 }
 
 // SetWorkerWaitGroup forwards to Plugin.SetWorkerWaitGroup for this consumer's
@@ -237,7 +259,7 @@ func (prod *ProducerBase) GetDropStreamID() MessageStreamID {
 }
 
 // Control returns write access to this producer's control channel.
-// See ProducerControl* constants.
+// See PluginControl* constants.
 func (prod *ProducerBase) Control() chan<- PluginControl {
 	return prod.control
 }
@@ -272,15 +294,25 @@ func (prod *ProducerBase) Drop(msg Message) {
 
 // ProcessCommand provides a callback based possibility to react on the
 // different producer commands. Returns true if ProducerControlStop was triggered.
-func (prod *ProducerBase) ProcessCommand(command PluginControl, onRoll func()) bool {
+func (prod *ProducerBase) processCommand(command PluginControl) bool {
 	switch command {
 	default:
 		// Do nothing
+
 	case PluginControlStop:
+		if prod.onStop != nil {
+			prod.onStop()
+		}
 		return true // ### return ###
+
 	case PluginControlRoll:
-		if onRoll != nil {
-			onRoll()
+		if prod.onRoll != nil {
+			prod.onRoll()
+		}
+
+	case PluginControlPrepareStop:
+		if prod.onPrepareStop != nil {
+			prod.onPrepareStop()
 		}
 	}
 
@@ -320,13 +352,14 @@ func (prod *ProducerBase) CloseGracefully(onMessage func(msg Message)) bool {
 
 // DefaultControlLoop provides a producer mainloop that is sufficient for most
 // usecases. Before this function exits Close will be called.
-func (prod *ProducerBase) DefaultControlLoop(onMessage func(msg Message), onRoll func()) {
+func (prod *ProducerBase) DefaultControlLoop(onMessage func(msg Message)) {
 	for {
 		select {
 		case command := <-prod.control:
-			if prod.ProcessCommand(command, onRoll) {
+			if prod.processCommand(command) {
 				return // ### return ###
 			}
+
 		case msg := <-prod.messages:
 			onMessage(msg)
 		}
@@ -335,12 +368,12 @@ func (prod *ProducerBase) DefaultControlLoop(onMessage func(msg Message), onRoll
 
 // TickerControlLoop is like DefaultControlLoop but executes a given function at
 // every given interval tick, too. Before this function exits Close will be called.
-func (prod *ProducerBase) TickerControlLoop(interval time.Duration, onMessage func(msg Message), onRoll func(), onTimeOut func()) {
+func (prod *ProducerBase) TickerControlLoop(interval time.Duration, onMessage func(msg Message), onTimeOut func()) {
 	flushTicker := time.NewTicker(interval)
 	for {
 		select {
 		case command := <-prod.control:
-			if prod.ProcessCommand(command, onRoll) {
+			if prod.processCommand(command) {
 				return // ### return ###
 			}
 

@@ -202,5 +202,5 @@ func (prod *Scribe) Close() {
 // Produce writes to a buffer that is sent to scribe.
 func (prod *Scribe) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.TickerControlLoop(prod.batchTimeout, prod.sendMessage, nil, prod.sendBatchOnTimeOut)
+	prod.TickerControlLoop(prod.batchTimeout, prod.sendMessage, prod.sendBatchOnTimeOut)
 }

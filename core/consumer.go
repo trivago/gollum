@@ -52,10 +52,13 @@ type Consumer interface {
 // which means only producers set to consume "all streams" will get these
 // messages.
 type ConsumerBase struct {
-	control chan PluginControl
-	streams []MappedStream
-	state   *PluginRunState
-	timeout time.Duration
+	control       chan PluginControl
+	streams       []MappedStream
+	state         *PluginRunState
+	timeout       time.Duration
+	onRoll        func()
+	onStop        func()
+	onPrepareStop func()
 }
 
 // ConsumerError can be used to return consumer related errors e.g. during a
@@ -79,6 +82,9 @@ func (cons *ConsumerBase) Configure(conf PluginConfig) error {
 	cons.control = make(chan PluginControl, 1)
 	cons.timeout = time.Duration(conf.GetInt("ChannelTimeout", 0)) * time.Millisecond
 	cons.state = new(PluginRunState)
+	cons.onRoll = nil
+	cons.onStop = nil
+	cons.onPrepareStop = nil
 
 	for _, streamName := range conf.Stream {
 		streamID := GetStreamID(streamName)
@@ -89,6 +95,21 @@ func (cons *ConsumerBase) Configure(conf PluginConfig) error {
 	}
 
 	return nil
+}
+
+// SetRollCallback sets the function to be called upon PluginControlRoll
+func (cons *ConsumerBase) SetRollCallback(onRoll func()) {
+	cons.onRoll = onRoll
+}
+
+// SetStopCallback sets the function to be called upon PluginControlStop
+func (cons *ConsumerBase) SetStopCallback(onStop func()) {
+	cons.onStop = onStop
+}
+
+// SetPrepareStopCallback sets the function to be called upon PluginControlPrepareStop
+func (cons *ConsumerBase) SetPrepareStopCallback(onPrepareStop func()) {
+	cons.onPrepareStop = onPrepareStop
 }
 
 // SetWorkerWaitGroup forwards to Plugin.SetWorkerWaitGroup for this consumer's
@@ -157,15 +178,25 @@ func (cons *ConsumerBase) Control() chan<- PluginControl {
 
 // ProcessCommand provides a callback based possibility to react on the
 // different consumer commands. Returns true if ConsumerControlStop was triggered.
-func (cons *ConsumerBase) ProcessCommand(command PluginControl, onRoll func()) bool {
+func (cons *ConsumerBase) processCommand(command PluginControl) bool {
 	switch command {
 	default:
 		// Do nothing
+
 	case PluginControlStop:
+		if cons.onStop != nil {
+			cons.onStop()
+		}
 		return true // ### return ###
+
 	case PluginControlRoll:
-		if onRoll != nil {
-			onRoll()
+		if cons.onRoll != nil {
+			cons.onRoll()
+		}
+
+	case PluginControlPrepareStop:
+		if cons.onPrepareStop != nil {
+			cons.onPrepareStop()
 		}
 	}
 
@@ -174,10 +205,10 @@ func (cons *ConsumerBase) ProcessCommand(command PluginControl, onRoll func()) b
 
 // DefaultControlLoop provides a consumer mainloop that is sufficient for most
 // usecases.
-func (cons *ConsumerBase) DefaultControlLoop(onRoll func()) {
+func (cons *ConsumerBase) DefaultControlLoop() {
 	for {
 		command := <-cons.control
-		if cons.ProcessCommand(command, onRoll) {
+		if cons.processCommand(command) {
 			return // ### return ###
 		}
 	}
@@ -185,13 +216,13 @@ func (cons *ConsumerBase) DefaultControlLoop(onRoll func()) {
 
 // TickerControlLoop is like DefaultControlLoop but executes a given function at
 // every given interval tick, too.
-func (cons *ConsumerBase) TickerControlLoop(interval time.Duration, onRoll func(), onTick func()) {
+func (cons *ConsumerBase) TickerControlLoop(interval time.Duration, onTick func()) {
 	ticker := time.NewTicker(interval)
 
 	for {
 		select {
 		case command := <-cons.control:
-			if cons.ProcessCommand(command, onRoll) {
+			if cons.processCommand(command) {
 				return // ### return ###
 			}
 		case <-ticker.C:

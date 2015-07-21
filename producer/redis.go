@@ -207,5 +207,5 @@ func (prod *Redis) Produce(workers *sync.WaitGroup) {
 	}
 
 	prod.AddMainWorker(workers)
-	prod.DefaultControlLoop(prod.store, nil)
+	prod.DefaultControlLoop(prod.store)
 }

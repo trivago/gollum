@@ -17,6 +17,7 @@ package producer
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -44,7 +45,7 @@ import (
 // messages are stored.
 type Spooling struct {
 	core.ProducerBase
-	retryTime       time.Duration
+	retryDuration   time.Duration
 	maxMessageCount int
 	bufferGuard     *sync.Mutex
 	messageBuffer   []scheduledMessage
@@ -67,7 +68,9 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	prod.retryTime = time.Duration(conf.GetInt("RetryDelayMs", 2000)) * time.Millisecond
+	prod.SetPrepareStopCallback(func() { prod.closing = true })
+
+	prod.retryDuration = time.Duration(conf.GetInt("RetryDelayMs", 2000)) * time.Millisecond
 	prod.maxMessageCount = conf.GetInt("MaxMessageCount", 0)
 	prod.bufferGuard = new(sync.Mutex)
 	prod.closing = false
@@ -82,7 +85,7 @@ func newScheduledMessage(msg core.Message) scheduledMessage {
 }
 
 func (prod *Spooling) storeMessage(msg core.Message) {
-	if msg.StreamID != msg.PrevStreamID && (prod.maxMessageCount <= 0 || len(prod.messageBuffer) < prod.maxMessageCount) {
+	if prod.maxMessageCount <= 0 || len(prod.messageBuffer) < prod.maxMessageCount {
 		prod.bufferGuard.Lock()
 		defer prod.bufferGuard.Unlock()
 		prod.messageBuffer = append(prod.messageBuffer, newScheduledMessage(msg))
@@ -91,47 +94,56 @@ func (prod *Spooling) storeMessage(msg core.Message) {
 	}
 }
 
-func (prod *Spooling) resendMessage(msg core.Message) {
-	if msg.StreamID != msg.PrevStreamID {
+func (prod *Spooling) sendMessage(msg core.Message) {
+	buffer := make([]byte, 1024)
+	runtime.Stack(buffer, false)
+
+	if !prod.closing && msg.StreamID != msg.PrevStreamID {
 		msg.Route(msg.PrevStreamID)
 	} else {
 		prod.Drop(msg)
 	}
 }
 
-func (prod *Spooling) flushTimedOut() {
-	defer func() {
-		if !prod.closing {
-			time.AfterFunc(prod.retryTime, prod.flushTimedOut)
-		}
-	}()
-	var sendList []core.Message
-
+func (prod *Spooling) buildFlushList() []core.Message {
 	prod.bufferGuard.Lock()
-	for idx, message := range prod.messageBuffer {
-		if time.Since(message.incoming) < prod.retryTime {
-			prod.messageBuffer = prod.messageBuffer[idx+1:]
+	defer prod.bufferGuard.Unlock()
+
+	flushList := []core.Message{}
+	sliceIdx := 0
+
+	for sliceIdx < len(prod.messageBuffer) {
+		message := prod.messageBuffer[sliceIdx]
+		if time.Since(message.incoming) < prod.retryDuration {
 			break // ### break, found all messages ###
 		}
-		sendList = append(sendList, message.message)
+		flushList = append(flushList, message.message)
+		sliceIdx++
 	}
-	prod.bufferGuard.Unlock()
+	prod.messageBuffer = prod.messageBuffer[sliceIdx:]
+	return flushList
+}
 
-	for _, msg := range sendList {
-		msg.Route(msg.PrevStreamID)
+func (prod *Spooling) startFlushWorker() {
+	if !prod.closing && prod.retryDuration > 0 {
+		time.AfterFunc(prod.retryDuration, prod.flushWorker)
+	}
+}
+
+func (prod *Spooling) flushWorker() {
+	defer prod.startFlushWorker() // because resend may block
+
+	flushList := prod.buildFlushList()
+	for _, msg := range flushList {
+		prod.sendMessage(msg)
 	}
 }
 
 // Close gracefully
 func (prod *Spooling) Close() {
 	defer prod.WorkerDone()
-	prod.CloseGracefully(prod.resendMessage)
-
-	// Stop the background worker
 	prod.closing = true
-	time.Sleep(prod.retryTime)
-
-	// Drop remaining messages
+	prod.CloseGracefully(prod.sendMessage)
 	for _, message := range prod.messageBuffer {
 		prod.Drop(message.message)
 	}
@@ -139,12 +151,12 @@ func (prod *Spooling) Close() {
 
 // Produce writes to stdout or stderr.
 func (prod *Spooling) Produce(workers *sync.WaitGroup) {
-	time.AfterFunc(prod.retryTime, prod.flushTimedOut)
-
 	prod.AddMainWorker(workers)
-	if prod.retryTime <= 0 {
-		prod.DefaultControlLoop(prod.storeMessage, nil)
+	prod.startFlushWorker()
+
+	if prod.retryDuration > 0 {
+		prod.DefaultControlLoop(prod.storeMessage)
 	} else {
-		prod.DefaultControlLoop(prod.resendMessage, nil)
+		prod.DefaultControlLoop(prod.sendMessage)
 	}
 }

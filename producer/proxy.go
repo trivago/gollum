@@ -208,5 +208,5 @@ func (prod *Proxy) Close() {
 // Produce writes to a buffer that is sent to a given Proxy.
 func (prod *Proxy) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.DefaultControlLoop(prod.sendMessage, nil)
+	prod.DefaultControlLoop(prod.sendMessage)
 }

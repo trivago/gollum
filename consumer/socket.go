@@ -280,5 +280,5 @@ func (cons *Socket) Consume(workers *sync.WaitGroup) {
 		cons.listen.Close()
 	}()
 
-	cons.DefaultControlLoop(nil)
+	cons.DefaultControlLoop()
 }

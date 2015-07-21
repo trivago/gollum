@@ -102,5 +102,5 @@ func (prod *HTTPRequest) Close() {
 // Produce writes to stdout or stderr.
 func (prod *HTTPRequest) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.DefaultControlLoop(prod.sendReq, nil)
+	prod.DefaultControlLoop(prod.sendReq)
 }
