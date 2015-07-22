@@ -24,6 +24,8 @@ import (
 
 func TestProducerInterface(t *testing.T) {
 	conf := core.NewPluginConfig(reflect.TypeOf(t).Name())
+
+	conf.Stream = []string{"test"}
 	producers := shared.RuntimeType.GetRegistered("producer.")
 
 	if len(producers) == 0 {

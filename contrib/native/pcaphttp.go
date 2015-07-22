@@ -253,5 +253,5 @@ func (cons *PcapHTTPConsumer) Consume(workers *sync.WaitGroup) {
 	go cons.readPackets()
 	defer cons.close()
 
-	cons.DefaultControlLoop(nil)
+	cons.DefaultControlLoop()
 }
