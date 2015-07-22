@@ -100,6 +100,8 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 			continue // ### continue, disabled ###
 		}
 
+		Log.Debug.Print("Loading ", config.Typename)
+
 		pluginType := shared.RuntimeType.GetTypeOf(config.Typename)
 		if pluginType == nil {
 			Log.Error.Print("Failed to load plugin ", config.Typename, ": Type not found")
@@ -145,6 +147,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 			continue // ### continue ###
 		}
 
+		Log.Debug.Print("Configuring ", config.Typename)
 		core.StreamTypes.Register(plugin.(core.Stream), core.GetStreamID(streamName))
 	}
 
@@ -156,7 +159,9 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 
 	for _, config := range producerConfig {
 		for i := 0; i < config.Instances; i++ {
+			Log.Debug.Print("Configuring ", config.Typename)
 			plugin, err := core.NewPlugin(config)
+
 			if err != nil {
 				Log.Error.Print("Failed to configure producer plugin ", config.Typename, ": ", err)
 				continue // ### continue ###
@@ -203,6 +208,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 
 	for _, config := range consumerConfig {
 		for i := 0; i < config.Instances; i++ {
+			Log.Debug.Print("Configuring ", config.Typename)
 			plugin, err := core.NewPlugin(config)
 			if err != nil {
 				Log.Error.Print("Failed to configure consumer plugin ", config.Typename, ": ", err)
@@ -260,14 +266,18 @@ func dumpFaultyPlugin(typeName string, pluginType reflect.Type) {
 }
 
 func (plex *multiplexer) printShutdownOrder() {
+	Log.Debug.Print("Shutdown order as follows")
 	for prodIter := plex.shutdownOrder.Front(); prodIter != nil; prodIter = prodIter.Next() {
 		prod := prodIter.Value.(core.Producer)
-		streams := "> "
-		for _, streamID := range prod.Streams() {
-			streams += core.StreamTypes.GetStreamName(streamID) + ", "
+		streams := "stream(s) {"
+		for i, streamID := range prod.Streams() {
+			if i > 0 {
+				streams += ","
+			}
+			streams += core.StreamTypes.GetStreamName(streamID)
 		}
+		streams += "} drop to " + core.StreamTypes.GetStreamName(prod.GetDropStreamID())
 		Log.Debug.Print(streams)
-		Log.Debug.Print("< ", core.StreamTypes.GetStreamName(prod.GetDropStreamID()))
 	}
 }
 
@@ -277,7 +287,7 @@ func (plex *multiplexer) printShutdownOrder() {
 // indirections or sideeffects (formatter, streams, read-back by consumer) into
 // account.
 func (plex *multiplexer) buildShutdownOrder() {
-	//defer plex.printShutdownOrder()
+	defer plex.printShutdownOrder()
 
 	// Clear the list
 	for plex.shutdownOrder.Len() > 0 {
@@ -355,9 +365,10 @@ func (plex *multiplexer) shutdown() {
 	plex.state = multiplexerStateStopConsumers
 	if stateAtShutdown >= multiplexerStateStartConsumers {
 		for _, cons := range plex.consumers {
-			Log.Debug.Printf("Consumer: %s", reflect.TypeOf(cons).String())
+			Log.Debug.Printf("Closing consumer %s", reflect.TypeOf(cons).String())
 			cons.Control() <- core.PluginControlStop
 		}
+		Log.Debug.Print("Waiting for consumers to close")
 		plex.consumerWorker.Wait()
 	}
 
@@ -370,10 +381,11 @@ func (plex *multiplexer) shutdown() {
 	if stateAtShutdown >= multiplexerStateStartProducers {
 		for prodIter := plex.shutdownOrder.Front(); prodIter != nil; prodIter = prodIter.Next() {
 			prod := prodIter.Value.(core.Producer)
-			Log.Debug.Printf("Producer: %s", reflect.TypeOf(prod).String())
+			Log.Debug.Printf("Closing producer %s", reflect.TypeOf(prod).String())
 			prod.Control() <- core.PluginControlStop
-			prod.Close()
+			go prod.Close() // Because this might block
 		}
+		Log.Debug.Print("Waiting for producers to close")
 		plex.producerWorker.Wait()
 	}
 
@@ -399,6 +411,7 @@ func (plex multiplexer) run() {
 	plex.state = multiplexerStateStartProducers
 	for _, producer := range plex.producers {
 		producer := producer
+		Log.Debug.Print("Starting ", reflect.TypeOf(producer))
 		go shared.DontPanic(func() {
 			producer.Produce(plex.producerWorker)
 		})
@@ -406,6 +419,7 @@ func (plex multiplexer) run() {
 
 	// If there are intenal log listeners switch to stream mode
 	if core.StreamTypes.IsStreamRegistered(core.LogInternalStreamID) {
+		Log.Debug.Print("Binding log to ", reflect.TypeOf(plex.consumers[0]))
 		Log.SetWriter(plex.consumers[0].(*core.LogConsumer))
 	}
 
@@ -413,6 +427,7 @@ func (plex multiplexer) run() {
 	plex.state = multiplexerStateStartConsumers
 	for _, consumer := range plex.consumers {
 		consumer := consumer
+		Log.Debug.Print("Starting ", reflect.TypeOf(consumer))
 		go shared.DontPanic(func() {
 			consumer.Consume(plex.consumerWorker)
 		})
