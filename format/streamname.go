@@ -26,10 +26,18 @@ import (
 //     Formatter: "format.StreamName"
 //     StreamNameFormatter: "format.Envelope"
 //
-// StreamNameDataFormatter defines the formatter for the data transferred as
+// StreamNameFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Envelope"
+//
+// StreamNameHistory can be set to true to not use the current but the previous
+// stream name. This can be usefull to e.g. get the name of the stream messages
+// were dropped from. By default this is set to false.
+//
+// StreamNameSeparator sets the separator character placed after the stream name.
+// This is set to " " by default.
 type StreamName struct {
 	base        core.Formatter
+	separator   string
 	usePrevious bool
 }
 
@@ -43,7 +51,8 @@ func (format *StreamName) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err
 	}
-	format.usePrevious = conf.GetBool("PreviousStreamName", false)
+	format.separator = conf.GetString("StreamNameSeparator", " ")
+	format.usePrevious = conf.GetBool("StreamNameHistory", false)
 	format.base = plugin.(core.Formatter)
 	return nil
 }
@@ -64,10 +73,10 @@ func (format *StreamName) Format(msg core.Message) ([]byte, core.MessageStreamID
 		streamName = core.StreamTypes.GetStreamName(msg.PrevStreamID)
 	}
 
-	payload := make([]byte, len(streamName)+len(data)+1)
+	payload := make([]byte, len(streamName)+len(format.separator)+len(data))
 	streamNameLen := copy(payload, []byte(streamName))
-	payload[streamNameLen] = ' '
-	copy(payload[streamNameLen+1:], data)
+	separatorLen := copy(payload[streamNameLen:], format.separator)
+	copy(payload[streamNameLen+separatorLen:], data)
 
 	return payload, streamID
 }

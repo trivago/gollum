@@ -26,11 +26,16 @@ import (
 //   - "<producer|stream>":
 //     Formatter: "format.Hostname"
 //     HostnameFormatter: "format.Envelope"
+//	   HostnameSeparator: " "
 //
 // HostnameDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Envelope"
+//
+// HostnameSeparator sets the separator character placed after the hostname.
+// This is set to " " by default.
 type Hostname struct {
-	base core.Formatter
+	base      core.Formatter
+	separator string
 }
 
 func init() {
@@ -44,6 +49,7 @@ func (format *Hostname) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
+	format.separator = conf.GetString("HostnameSeparator", " ")
 	format.base = plugin.(core.Formatter)
 	return nil
 }
@@ -57,7 +63,7 @@ func (format *Hostname) Format(msg core.Message) ([]byte, core.MessageStreamID) 
 	if err != nil {
 		hostnameStr = ""
 	} else {
-		hostnameStr += " "
+		hostnameStr += format.separator
 	}
 
 	payload := make([]byte, len(hostnameStr)+baseLength)
