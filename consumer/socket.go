@@ -22,6 +22,8 @@ import (
 	"github.com/trivago/gollum/shared"
 	"io"
 	"net"
+	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -50,6 +52,9 @@ const (
 // Address stores the identifier to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
+//
+// Permissions sets the file permissions for "unix://" based connections as an
+// four digit octal number string. By default this is set to "0777".
 //
 // Acknowledge can be set to a non-empty value to inform the writer on success
 // or error. On success the given string is send. Any error will close the
@@ -92,6 +97,7 @@ type Socket struct {
 	acknowledge   string
 	reconnectTime time.Duration
 	flags         shared.BufferedReaderFlags
+	fileFlags     os.FileMode
 	offset        int
 	quit          bool
 }
@@ -103,6 +109,12 @@ func init() {
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Socket) Configure(conf core.PluginConfig) error {
 	err := cons.ConsumerBase.Configure(conf)
+	if err != nil {
+		return err
+	}
+
+	flags, err := strconv.ParseInt(conf.GetString("Permissions", "0777"), 8, 32)
+	cons.fileFlags = os.FileMode(flags)
 	if err != nil {
 		return err
 	}
@@ -254,6 +266,9 @@ func (cons *Socket) tcpAccept() {
 
 	for !cons.quit {
 		if cons.listen, err = net.Listen(cons.protocol, cons.address); err == nil {
+			if cons.protocol == "unix" {
+				os.Chmod(cons.address, cons.fileFlags)
+			}
 			break // ### break, connected ###
 		}
 		Log.Error.Print("Socket connection error: ", err)
