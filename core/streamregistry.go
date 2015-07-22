@@ -112,6 +112,12 @@ func (registry StreamRegistry) ForEachStream(callback func(streamID MessageStrea
 	}
 }
 
+// WildcardProducersExist returns true if any producer is listening to the
+// wildcard stream.
+func (registry *StreamRegistry) WildcardProducersExist() bool {
+	return len(registry.wildcard) > 0
+}
+
 // RegisterWildcardProducer adds a new producer to the list of known wildcard
 // prodcuers. This list has to be added to new streams upon creation to send
 // messages to producers listening to *.
