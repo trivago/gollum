@@ -221,12 +221,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 
 	core.StreamTypes.ForEachStream(
 		func(streamID core.MessageStreamID, stream core.Stream) {
-			switch streamID {
-			case core.LogInternalStreamID, core.WildcardStreamID, core.DroppedStreamID:
-				// Internal streams are excluded for wildcard listeners
-			default:
-				core.StreamTypes.AddWildcardProducersToStream(stream)
-			}
+			core.StreamTypes.AddWildcardProducersToStream(stream)
 		})
 
 	return plex

@@ -139,7 +139,10 @@ nextProd:
 // stream. The state of the wildcard list is undefined during the configuration
 // phase.
 func (registry StreamRegistry) AddWildcardProducersToStream(stream Stream) {
-	stream.AddProducer(registry.wildcard...)
+	streamID := stream.GetBoundStreamID()
+	if streamID != LogInternalStreamID && streamID != DroppedStreamID {
+		stream.AddProducer(registry.wildcard...)
+	}
 }
 
 // Register registeres a stream plugin to a given stream id

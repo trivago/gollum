@@ -26,8 +26,8 @@ import (
 //   - "<producer|stream>":
 //     Formatter: "format.Envelope"
 //     EnvelopeFormatter: "format.Forward"
-//     Prefix: "<data>"
-//     Postfix: "</data>\n"
+//     EnvelopePrefix: "<data>"
+//     EnvelopePostfix: "</data>\n"
 //
 // Prefix defines the message prefix. By default this is set to "".
 // Special characters like \n \r \t will be transformed into the actual control
@@ -57,8 +57,8 @@ func (format *Envelope) Configure(conf core.PluginConfig) error {
 	}
 
 	format.base = plugin.(core.Formatter)
-	format.prefix = shared.Unescape(conf.GetString("Prefix", ""))
-	format.postfix = shared.Unescape(conf.GetString("Postfix", "\n"))
+	format.prefix = shared.Unescape(conf.GetString("EnvelopePrefix", ""))
+	format.postfix = shared.Unescape(conf.GetString("EnvelopePostfix", "\n"))
 
 	return nil
 }

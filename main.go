@@ -36,6 +36,7 @@ const (
 	gollumMajorVer = 0
 	gollumMinorVer = 4
 	gollumPatchVer = 0
+	gollumPostfix  = "dev"
 )
 
 func dumpMemoryProfile() {
@@ -52,7 +53,7 @@ func main() {
 	Log.SetVerbosity(Log.Verbosity(*flagLoglevel))
 
 	if *flagVersion {
-		fmt.Printf("Gollum v%d.%d.%d\n", gollumMajorVer, gollumMinorVer, gollumPatchVer)
+		fmt.Printf("Gollum v%d.%d.%d%s\n", gollumMajorVer, gollumMinorVer, gollumPatchVer, gollumPostfix)
 		return // ### return, version only ###
 	}
 

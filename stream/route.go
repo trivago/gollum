@@ -94,8 +94,8 @@ func (stream *Route) routeMessage(msg core.Message) {
 			}
 		}
 
-		if target.id == stream.BoundStreamID {
-			stream.StreamBase.Route(msg, stream.BoundStreamID)
+		if target.id == stream.GetBoundStreamID() {
+			stream.StreamBase.Route(msg, stream.GetBoundStreamID())
 		} else {
 			msg := msg // copy to allow streamId changes and multiple routes
 			msg.StreamID = target.id

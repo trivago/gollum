@@ -27,6 +27,9 @@ var MessageCount = uint32(0)
 
 // Stream defines the interface for all stream plugins
 type Stream interface {
+	// GetBoundStreamID returns the stream id this plugin is bound to.
+	GetBoundStreamID() MessageStreamID
+
 	// Pause causes this stream to go silent. Messages should be queued or cause
 	// a blocking call. The passed capacity can be used to configure internal
 	// channel for buffering incoming messages while this stream is paused.
@@ -65,7 +68,7 @@ type StreamBase struct {
 	Format         Formatter
 	Producers      []Producer
 	Timeout        *time.Duration
-	BoundStreamID  MessageStreamID
+	boundStreamID  MessageStreamID
 	distribute     Distributor
 	prevDistribute Distributor
 	paused         chan Message
@@ -95,7 +98,7 @@ func (stream *StreamBase) ConfigureStream(conf PluginConfig, distribute Distribu
 	}
 
 	stream.Filter = plugin.(Filter)
-	stream.BoundStreamID = GetStreamID(conf.Stream[0])
+	stream.boundStreamID = GetStreamID(conf.Stream[0])
 	stream.resumeWorker = new(sync.WaitGroup)
 	stream.distribute = distribute
 
@@ -132,6 +135,10 @@ func (stream *StreamBase) Pause(capacity int) {
 		stream.prevDistribute = stream.distribute
 		stream.distribute = stream.stash
 	}
+}
+
+func (stream *StreamBase) GetBoundStreamID() MessageStreamID {
+	return stream.boundStreamID
 }
 
 // Resume causes this stream to send messages again after Pause() had been

@@ -50,6 +50,7 @@ type Spooling struct {
 	bufferGuard     *sync.Mutex
 	messageBuffer   []scheduledMessage
 	closing         bool
+	metricName      string
 }
 
 type scheduledMessage struct {
@@ -74,6 +75,10 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 	prod.maxMessageCount = conf.GetInt("MaxMessageCount", 0)
 	prod.bufferGuard = new(sync.Mutex)
 	prod.closing = false
+	prod.metricName = "spoolsize_" + core.StreamTypes.GetStreamName(prod.Streams()[0])
+
+	shared.Metric.New(prod.metricName)
+
 	return nil
 }
 
@@ -89,6 +94,8 @@ func (prod *Spooling) storeMessage(msg core.Message) {
 		prod.bufferGuard.Lock()
 		defer prod.bufferGuard.Unlock()
 		prod.messageBuffer = append(prod.messageBuffer, newScheduledMessage(msg))
+
+		shared.Metric.SetI(prod.metricName, len(prod.messageBuffer))
 	} else {
 		prod.Drop(msg)
 	}

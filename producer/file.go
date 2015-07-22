@@ -223,7 +223,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 
 	// Assure path is existing
 	if err := os.MkdirAll(fileDir, 0755); err != nil {
-		Log.Error.Print("Error creating directory " + fileDir)
+		return nil, fmt.Errorf("Failed to create %s because of %s", fileDir, err.Error()) // ### return, missing directory ###
 	}
 
 	// Generate the log filename based on rotation, existing files, etc.
@@ -302,7 +302,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 func (prod *File) rotateLog() {
 	for streamID := range prod.filesByStream {
 		if _, err := prod.getFileState(streamID, true); err != nil {
-			Log.Error.Print("File rotate error:", err)
+			Log.Error.Print("File rotate error: ", err)
 		}
 	}
 }
@@ -319,7 +319,7 @@ func (prod *File) writeMessage(msg core.Message) {
 	data, streamID := prod.ProducerBase.Format(msg)
 	state, err := prod.getFileState(streamID, false)
 	if err != nil {
-		Log.Error.Print("File log error:", err)
+		Log.Error.Print("File log error: ", err)
 		prod.Drop(msg)
 		return // ### return, dropped ###
 	}
