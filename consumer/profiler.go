@@ -208,10 +208,7 @@ func (cons *Profiler) Consume(workers *sync.WaitGroup) {
 	cons.quit = false
 	cons.AddMainWorker(workers)
 
-	go func() {
-		defer shared.RecoverShutdown()
-		cons.profile()
-	}()
+	go shared.DontPanic(cons.profile)
 
 	defer func() {
 		cons.quit = true

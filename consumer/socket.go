@@ -42,6 +42,7 @@ const (
 //     Partitioner: "ascii"
 //     Delimiter: ":"
 //     Offset: 1
+//     ReconnectAfterSec: 2
 //
 // The socket consumer reads messages directly as-is from a given socket.
 // Messages are separated from the stream by using a specific paritioner method.
@@ -77,18 +78,22 @@ const (
 // Size defines the size in bytes used by the binary or fixed partitioner.
 // For binary this can be set to 1,2,4 or 8. By default 4 is chosen.
 // For fixed this defines the size of a message. By default 1 is chosen.
+//
+// ReconnectAfterSec defines the number of seconds to wait before a connection
+// is tried to be reopened again. By default this is set to 2.
 type Socket struct {
 	core.ConsumerBase
-	listen      io.Closer
-	clientLock  *sync.Mutex
-	clients     *list.List
-	protocol    string
-	address     string
-	delimiter   string
-	acknowledge string
-	flags       shared.BufferedReaderFlags
-	offset      int
-	quit        bool
+	listen        io.Closer
+	clientLock    *sync.Mutex
+	clients       *list.List
+	protocol      string
+	address       string
+	delimiter     string
+	acknowledge   string
+	reconnectTime time.Duration
+	flags         shared.BufferedReaderFlags
+	offset        int
+	quit          bool
 }
 
 func init() {
@@ -106,6 +111,7 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 	cons.clientLock = new(sync.Mutex)
 	cons.acknowledge = shared.Unescape(conf.GetString("Acknowledge", ""))
 	cons.address, cons.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
+	cons.reconnectTime = time.Duration(conf.GetInt("ReconnectAfterSec", 2)) * time.Second
 
 	if cons.protocol != "unix" {
 		if cons.acknowledge != "" {
@@ -217,29 +223,23 @@ func (cons *Socket) processConnection(conn net.Conn) {
 }
 
 func (cons *Socket) udpAccept() {
+	defer cons.WorkerDone()
+	var err error
+
+	for !cons.quit {
+		addr, _ := net.ResolveUDPAddr(cons.protocol, cons.address)
+		if cons.listen, err = net.ListenUDP(cons.protocol, addr); err != nil {
+			break // ### break, connected ###
+		}
+		Log.Error.Print("Socket connection error: ", err)
+		time.Sleep(cons.reconnectTime)
+	}
+
 	conn := cons.listen.(*net.UDPConn)
 	cons.processConnection(conn)
 }
 
-func (cons *Socket) tcpAccept() {
-	defer cons.WorkerDone()
-
-	listener := cons.listen.(net.Listener)
-	for !cons.quit {
-		client, err := listener.Accept()
-		if err != nil {
-			if !cons.quit {
-				Log.Error.Print("Socket listen failed: ", err)
-			}
-			break // ### break ###
-		}
-
-		cons.clientLock.Lock()
-		element := cons.clients.PushBack(client)
-		go cons.processClientConnection(element)
-		cons.clientLock.Unlock()
-	}
-
+func (cons *Socket) closeAllClients() {
 	cons.clientLock.Lock()
 	defer cons.clientLock.Unlock()
 	for iter := cons.clients.Front(); iter != nil; iter = iter.Next() {
@@ -248,36 +248,61 @@ func (cons *Socket) tcpAccept() {
 	}
 }
 
-// Consume listens to a given socket.
-func (cons *Socket) Consume(workers *sync.WaitGroup) {
+func (cons *Socket) tcpAccept() {
+	defer cons.WorkerDone()
 	var err error
-	var listen func()
 
-	cons.quit = false
-	if cons.protocol == "udp" {
-		addr, _ := net.ResolveUDPAddr(cons.protocol, cons.address)
-		if cons.listen, err = net.ListenUDP(cons.protocol, addr); err != nil {
-			Log.Error.Print("Socket connection error: ", err)
-			return
+	for !cons.quit {
+		if cons.listen, err = net.Listen(cons.protocol, cons.address); err == nil {
+			break // ### break, connected ###
 		}
-		listen = cons.udpAccept
-	} else {
-		if cons.listen, err = net.Listen(cons.protocol, cons.address); err != nil {
-			Log.Error.Print("Socket connection error: ", err)
-			return
-		}
-		listen = cons.tcpAccept
+		Log.Error.Print("Socket connection error: ", err)
+		time.Sleep(cons.reconnectTime)
 	}
 
-	go func() {
-		defer shared.RecoverShutdown()
-		cons.AddMainWorker(workers)
-		listen()
-	}()
+	if cons.listen != nil {
+		listener := cons.listen.(net.Listener)
+		for !cons.quit {
+			client, err := listener.Accept()
+			if err != nil {
+				if !cons.quit {
+					Log.Error.Print("Socket listen failed: ", err)
+					cons.listen.Close()
+				}
+				break // ### break, accept failed ###
+			}
+
+			cons.clientLock.Lock()
+			element := cons.clients.PushBack(client)
+			go cons.processClientConnection(element)
+			cons.clientLock.Unlock()
+		}
+	}
+
+	cons.closeAllClients()
+	if !cons.quit {
+		// Try reconnect
+		cons.AddWorker()
+		go cons.tcpAccept()
+	}
+}
+
+// Consume listens to a given socket.
+func (cons *Socket) Consume(workers *sync.WaitGroup) {
+	cons.quit = false
+	cons.AddMainWorker(workers)
+
+	if cons.protocol == "udp" {
+		go shared.DontPanic(cons.udpAccept)
+	} else {
+		go shared.DontPanic(cons.tcpAccept)
+	}
 
 	defer func() {
 		cons.quit = true
-		cons.listen.Close()
+		if cons.listen != nil {
+			cons.listen.Close()
+		}
 	}()
 
 	cons.DefaultControlLoop()

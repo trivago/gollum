@@ -155,15 +155,14 @@ func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
 	}
 
 	// Write data and reset buffer asynchronously
-	go func() {
-		defer shared.RecoverShutdown()
+	go shared.DontPanic(func() {
 		defer batch.flushing.Done()
 
 		messageCount := shared.MinI(int(flushQueue.doneCount), len(flushQueue.messages))
 		assemble(flushQueue.messages[:messageCount])
 		flushQueue.doneCount = 0
 		batch.Touch()
-	}()
+	})
 }
 
 // WaitForFlush blocks until the current flush command returns.

@@ -359,8 +359,9 @@ func (plex *multiplexer) shutdown() {
 	// Shutdown consumers
 	plex.state = multiplexerStateStopConsumers
 	if stateAtShutdown >= multiplexerStateStartConsumers {
-		for _, consumer := range plex.consumers {
-			consumer.Control() <- core.PluginControlStop
+		for _, cons := range plex.consumers {
+			Log.Debug.Printf("Consumer: %s", reflect.TypeOf(cons).String())
+			cons.Control() <- core.PluginControlStop
 		}
 		plex.consumerWorker.Wait()
 	}
@@ -374,6 +375,7 @@ func (plex *multiplexer) shutdown() {
 	if stateAtShutdown >= multiplexerStateStartProducers {
 		for prodIter := plex.shutdownOrder.Front(); prodIter != nil; prodIter = prodIter.Next() {
 			prod := prodIter.Value.(core.Producer)
+			Log.Debug.Printf("Producer: %s", reflect.TypeOf(prod).String())
 			prod.Control() <- core.PluginControlStop
 			prod.Close()
 		}
@@ -402,10 +404,9 @@ func (plex multiplexer) run() {
 	plex.state = multiplexerStateStartProducers
 	for _, producer := range plex.producers {
 		producer := producer
-		go func() {
-			defer shared.RecoverShutdown()
+		go shared.DontPanic(func() {
 			producer.Produce(plex.producerWorker)
-		}()
+		})
 	}
 
 	// If there are intenal log listeners switch to stream mode
@@ -417,10 +418,9 @@ func (plex multiplexer) run() {
 	plex.state = multiplexerStateStartConsumers
 	for _, consumer := range plex.consumers {
 		consumer := consumer
-		go func() {
-			defer shared.RecoverShutdown()
+		go shared.DontPanic(func() {
 			consumer.Consume(plex.consumerWorker)
-		}()
+		})
 	}
 
 	// Main loop - wait for exit

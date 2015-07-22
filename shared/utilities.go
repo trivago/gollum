@@ -189,6 +189,13 @@ func RecoverShutdown() {
 	}
 }
 
+// DontPanic can be used instead of RecoverShutdown when using a function
+// without any parameters. E.g. go DontPanic(myFunction)
+func DontPanic(callback func()) {
+	defer RecoverShutdown()
+	callback()
+}
+
 // ParseAddress takes an address and tries to extract the protocol from it.
 // Protocols may be prepended by the "protocol://" notation.
 // If no protocol is given, "tcp" is assumed.

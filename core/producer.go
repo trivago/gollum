@@ -58,7 +58,7 @@ type Producer interface {
 //     Channel: 1024
 //     ChannelTimeoutMs: 200
 //     Formatter: "format.Envelope"
-//     DroppedStream: "failed"
+//     DropToStream: "failed"
 //     Stream:
 //       - "error"
 //       - "default"
@@ -135,7 +135,7 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	prod.timeout = time.Duration(conf.GetInt("ChannelTimeoutMs", 0)) * time.Millisecond
 	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 3000)) * time.Millisecond
 	prod.state = new(PluginRunState)
-	prod.dropStreamID = GetStreamID(conf.GetString("DroppedStream", DroppedStream))
+	prod.dropStreamID = GetStreamID(conf.GetString("DropToStream", DroppedStream))
 
 	prod.onRoll = nil
 	prod.onStop = nil

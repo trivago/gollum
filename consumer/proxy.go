@@ -170,11 +170,10 @@ func (cons *Proxy) Consume(workers *sync.WaitGroup) {
 		return
 	}
 
-	go func() {
-		defer shared.RecoverShutdown()
+	go shared.DontPanic(func() {
 		cons.AddMainWorker(workers)
 		cons.accept()
-	}()
+	})
 
 	defer func() {
 		cons.quit = true

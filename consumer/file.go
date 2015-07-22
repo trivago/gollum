@@ -238,11 +238,10 @@ func (cons *File) Consume(workers *sync.WaitGroup) {
 	cons.setState(fileStateOpen)
 	defer cons.setState(fileStateDone)
 
-	go func() {
-		defer shared.RecoverShutdown()
+	go shared.DontPanic(func() {
 		cons.AddMainWorker(workers)
 		cons.read()
-	}()
+	})
 
 	cons.DefaultControlLoop()
 }
