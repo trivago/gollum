@@ -21,7 +21,6 @@ import (
 	"github.com/trivago/gollum/shared"
 	kafka "gopkg.in/Shopify/sarama.v1"
 	"io/ioutil"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -244,7 +243,7 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 			Log.Error.Print("Kafka consumer error:", err)
 
 		default:
-			runtime.Gosched()
+			time.Sleep(time.Duration(250) * time.Millisecond)
 		}
 	}
 }

@@ -68,7 +68,7 @@ func (batch *MessageBatch) AppendOrBlock(msg Message) bool {
 		if batch.Append(msg) {
 			return true // ### return, success ###
 		}
-		runtime.Gosched()
+		time.Sleep(time.Duration(10) * time.Millisecond)
 	}
 
 	return false
