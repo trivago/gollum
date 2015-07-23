@@ -30,24 +30,25 @@ import (
 //
 //   - "producer.ElasticSearch":
 //     Enable: true
-//     Connections: 10
+//     Connections: 6
 //     RetrySec: 5
-//     TTL: "1d"
+//     TTL: ""
 //     DayBasedIndex: false
-//     User: "root"
-//     Password: "root"
-//     BatchSizeByte: 65535
-//     BatchMaxCount: 512
+//     User: ""
+//     Password: ""
+//     BatchSizeByte: 32768
+//     BatchMaxCount: 256
 //     BatchTimeoutSec: 5
 //     Port: 9200
+//     Filter: "filter.All"
 //     Servers:
 //       - "localhost"
 //     Index:
-//       "console" : "default"
-//       "_GOLLUM_"  : "default"
+//       "console" : "console"
+//       "_GOLLUM_"  : "_GOLLUM_"
 //     Type:
-//       "console" : "log"
-//       "_GOLLUM_"  : "gollum"
+//       "console" : "console"
+//       "_GOLLUM_"  : "_GOLLUM_"
 //     Stream:
 //       - "console"
 //       - "_GOLLUM_"
@@ -77,6 +78,9 @@ import (
 // User and Password can be used to pass credentials to the elasticsearch server.
 // By default both settings are empty.
 //
+// Filter defines a filter function that removes or allows certain messages to
+// pass through to elastic. By default this is set to filter.All.
+//
 // Index maps a stream to a specific index. You can define the
 // wildcard stream (*) here, too. If set all streams that do not have a specific
 // mapping will go to this stream (including _GOLLUM_).
@@ -96,6 +100,7 @@ import (
 // triggered. By default this is set to 5.
 type ElasticSearch struct {
 	core.ProducerBase
+	Filter        core.Filter
 	conn          *elastigo.Conn
 	indexer       *elastigo.BulkIndexer
 	index         map[core.MessageStreamID]string
@@ -114,6 +119,13 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err
 	}
+
+	plugin, err := core.NewPluginWithType(conf.GetString("Filter", "filter.All"), conf)
+	if err != nil {
+		return err // ### return, plugin load error ###
+	}
+
+	prod.Filter = plugin.(core.Filter)
 
 	defaultServer := []string{"localhost"}
 	numConnections := conf.GetInt("Connections", 6)
@@ -149,13 +161,16 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 }
 
 func (prod *ElasticSearch) sendMessage(msg core.Message) {
-	data, streamID := prod.ProducerBase.Format(msg)
+	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
+	if !prod.Filter.Accepts(msg) {
+		return // ### return, filtered ###
+	}
 
-	index, indexMapped := prod.index[streamID]
+	index, indexMapped := prod.index[msg.StreamID]
 	if !indexMapped {
 		index, indexMapped = prod.index[core.WildcardStreamID]
 		if !indexMapped {
-			index = core.StreamTypes.GetStreamName(streamID)
+			index = core.StreamTypes.GetStreamName(msg.StreamID)
 		}
 	}
 
@@ -163,15 +178,15 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 		index = index + "_" + msg.Timestamp.Format("2006-01-02")
 	}
 
-	msgType, typeMapped := prod.msgType[streamID]
+	msgType, typeMapped := prod.msgType[msg.StreamID]
 	if !typeMapped {
 		msgType, typeMapped = prod.msgType[core.WildcardStreamID]
 		if !typeMapped {
-			msgType = core.StreamTypes.GetStreamName(streamID)
+			msgType = core.StreamTypes.GetStreamName(msg.StreamID)
 		}
 	}
 
-	err := prod.indexer.Index(index, msgType, "", prod.msgTTL, &msg.Timestamp, string(data), true)
+	err := prod.indexer.Index(index, msgType, "", prod.msgTTL, &msg.Timestamp, string(msg.Data), true)
 	if err != nil {
 		Log.Error.Print("ElasticSearch index error - ", err)
 		prod.Drop(msg)

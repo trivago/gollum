@@ -28,12 +28,12 @@ import (
 //
 //   - "producer.Socket":
 //     Enable: true
-//     Address: "unix:///var/gollum.socket"
-//     ConnectionBufferSizeKB: 4096
-//     BatchMaxCount: 16384
-//     BatchFlushCount: 10000
+//     Address: ":5880"
+//     ConnectionBufferSizeKB: 1024
+//     BatchMaxCount: 8192
+//     BatchFlushCount: 4096
 //     BatchTimeoutSec: 5
-//     Acknowledge: "ACK\n"
+//     Acknowledge: ""
 //
 // Address stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:5880" or a file
@@ -45,7 +45,7 @@ import (
 // BatchMaxCount defines the maximum number of messages that can be buffered
 // before a flush is mandatory. If the buffer is full and a flush is still
 // underway or cannot be triggered out of other reasons, the producer will
-// block.
+// block. By default this is set to 8192.
 //
 // BatchFlushCount defines the number of messages to be buffered before they are
 // written to disk. This setting is clamped to BatchMaxCount.

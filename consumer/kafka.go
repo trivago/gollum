@@ -38,21 +38,22 @@ const (
 //   - "consumer.Kafka":
 //     Enable: true
 //     DefaultOffset: "Newest"
-//     OffsetFile: "/tmp/gollum_kafka.idx"
-//     ClientID: "logger"
-//     MaxOpenRequests: 6
-//     ServerTimeoutSec: 10
-//     MaxFetchSizeByte: 8192
-//     MinFetchSizeByte: 0
-//     FetchTimeoutMs: 500
-//     MessageBufferCount: 1024
-//     PresistTimoutMs: 1000
-//     ElectRetries: 5
-//     ElectTimeoutMs: 300
-//     MetadataRefreshMs: 3000
+//     OffsetFile: ""
+//     ClientID: "gollum"
+//     MaxOpenRequests: 5
+//     ServerTimeoutSec: 30
+//     MaxFetchSizeByte: 0
+//     MinFetchSizeByte: 1
+//     FetchTimeoutMs: 250
+//     MessageBufferCount: 256
+//     PresistTimoutMs: 5000
+//     ElectRetries: 3
+//     ElectTimeoutMs: 250
+//     MetadataRefreshMs: 10000
 //     Servers:
-//       - "192.168.222.30:9092"
-//       - "192.168.222.31:9092"
+//       - "localhost:9092"
+//     Stream:
+//       - "kafka"
 //
 // The kafka consumer reads from a given kafka topic. This consumer is based on
 // the sarama library so most settings relate to the settings from this library.

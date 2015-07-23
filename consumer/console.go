@@ -32,7 +32,9 @@ const (
 //
 //   - "consumer.Console":
 //     Enable: true
-//	   ExitOnEOF: true
+//	   ExitOnEOF: false
+//     Stream:
+//       - "console"
 //
 // This consumer reads from stdin. A message is generated after each newline
 // character.

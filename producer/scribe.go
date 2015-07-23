@@ -29,17 +29,18 @@ import (
 //
 //   - "producer.Scribe":
 //     Enable: true
-//     Address: "192.168.222.30:1463"
-//     ConnectionBufferSizeKB: 4096
-//     BatchMaxCount: 16384
-//     BatchFlushCount: 10000
-//     BatchTimeoutSec: 2
+//     Address: "localhost:1463"
+//     ConnectionBufferSizeKB: 1024
+//     BatchMaxCount: 8192
+//     BatchFlushCount: 4096
+//     BatchTimeoutSec: 5
+//     Filter: "filter.All"
+//     Category:
+//       "console" : "console"
+//       "_GOLLUM_"  : "_GOLLUM_"
 //     Stream:
 //       - "console"
 //       - "_GOLLUM_"
-//     Category:
-//       "console" : "default"
-//       "_GOLLUM_"  : "default"
 //
 // The scribe producer allows sending messages to Facebook's scribe.
 //
@@ -52,7 +53,7 @@ import (
 // BatchMaxCount defines the maximum number of messages that can be buffered
 // before a flush is mandatory. If the buffer is full and a flush is still
 // underway or cannot be triggered out of other reasons, the producer will
-// block.
+// block. By default this is set to 8192.
 //
 // BatchFlushCount defines the number of messages to be buffered before they are
 // written to disk. This setting is clamped to BatchMaxCount.

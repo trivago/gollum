@@ -48,10 +48,12 @@ const (
 //
 //   - "consumer.File":
 //     Enable: true
-//     File: "test.txt"
-//     DefaultOffset: "Oldest"
-//     OffsetFile: "/tmp/test.progress"
+//     File: "/var/run/system.log"
+//     DefaultOffset: "Newest"
+//     OffsetFile: ""
 //     Delimiter: "\n"
+//     Stream:
+//       - "file"
 //
 // The file consumer allows to read from files while looking for a delimiter
 // that marks the end of a message. If the file is part of e.g. a log rotation
@@ -72,7 +74,7 @@ const (
 //
 // OffsetFile defines the path to a file that stores the current offset inside
 // the file. If the consumer is restarted that offset is used to continue
-// reading.
+// reading. By default this is set to "" which disables the offset file.
 //
 // Delimiter defines the end of a message inside the file. By default this is
 // set to "\n".

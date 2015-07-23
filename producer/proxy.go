@@ -30,12 +30,13 @@ import (
 //
 //   - "producer.Proxy":
 //     Enable: true
-//     Address: "127.0.0.1:8080"
-//     ConnectionBufferSizeKB: 4096
-//     TimeoutSec: 3
-//     Partitioner: "ascii"
-//     Delimiter: ":"
-//     Offset: 1
+//     Address: ":5880"
+//     ConnectionBufferSizeKB: 1024
+//     TimeoutSec: 1
+//     Partitioner: "delimiter"
+//     Delimiter: "\n"
+//     Offset: 0
+//     Size: 1
 //
 // This producer is compatible to consumer.proxy.
 // Responses to messages sent to the given address are sent back to the original

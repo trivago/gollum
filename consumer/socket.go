@@ -39,12 +39,15 @@ const (
 //
 //   - "consumer.Socket":
 //     Enable: true
-//     Address: "unix:///var/gollum.socket"
-//     Acknowledge: "ACK\n"
-//     Partitioner: "ascii"
-//     Delimiter: ":"
-//     Offset: 1
+//     Address: ":5880"
+//     Acknowledge: ""
+//     Partitioner: "delimiter"
+//     Delimiter: "\n"
+//     Offset: 0
+//     Size: 1
 //     ReconnectAfterSec: 2
+//     Stream:
+//       - "socket"
 //
 // The socket consumer reads messages directly as-is from a given socket.
 // Messages are separated from the stream by using a specific paritioner method.

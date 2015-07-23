@@ -30,7 +30,7 @@ import (
 //
 //   - "producer.HTTPRequest":
 //     Enable:  true
-//     Address: ":80"
+//     Address: "localhost:80"
 //
 // The HTTPRequest producers sends messages that already are valid http request to a
 //  given webserver.

@@ -34,16 +34,18 @@ import (
 //   - "producer.File":
 //     Enable: true
 //     File: "/var/log/gollum.log"
-//     BatchMaxCount: 16384
-//     BatchFlushCount: 10000
-//     BatchTimeoutSec: 2
-//     FlushTimeoutSec: 10
+//     BatchMaxCount: 8192
+//     BatchFlushCount: 4096
+//     BatchTimeoutSec: 5
+//     FlushTimeoutSec: 0
 //     Rotate: false
 //     RotateTimeoutMin: 1440
 //     RotateSizeMB: 1024
-//     RotateAt: "00:00"
+//     RotateAt: ""
 //     RotateTimestamp: "2006-01-02_15"
-//     Compress: true
+//     RotatePruneCount: 0
+//     RotatePruneTotalSizeMB: 0
+//     Compress: false
 //
 // The file producer writes messages to a file. This producer also allows log
 // rotation and compression of the rotated logs. Folders in the file path will
@@ -51,12 +53,12 @@ import (
 //
 // File contains the path to the log file to write. The wildcard character "*"
 // can be used as a placeholder for the stream name.
-// By default this is set to /var/prod/gollum.log.
+// By default this is set to /var/log/gollum.log.
 //
 // BatchMaxCount defines the maximum number of messages that can be buffered
 // before a flush is mandatory. If the buffer is full and a flush is still
 // underway or cannot be triggered out of other reasons, the producer will
-// block.
+// block. By default this is set to 8192.
 //
 // BatchFlushCount defines the number of messages to be buffered before they are
 // written to disk. This setting is clamped to BatchMaxCount.
@@ -64,13 +66,14 @@ import (
 //
 // BatchTimeoutSec defines the maximum number of seconds to wait after the last
 // message arrived before a batch is flushed automatically. By default this is
-// set to 5..
+// set to 5.
 //
 // FlushTimeoutSec sets the maximum number of seconds to wait before a flush is
 // aborted during shutdown. By default this is set to 0, which does not abort
 // the flushing procedure.
 //
 // Rotate if set to true the logs will rotate after reaching certain thresholds.
+// By default this is set to false.
 //
 // RotateTimeoutMin defines a timeout in minutes that will cause the logs to
 // rotate. Can be set in parallel with RotateSizeMB. By default this is set to
@@ -134,7 +137,7 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	prod.batchFlushCount = shared.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 
-	logFile := conf.GetString("File", "/var/prod/gollum.log")
+	logFile := conf.GetString("File", "/var/log/gollum.log")
 	prod.wildcardPath = strings.IndexByte(logFile, '*') != -1
 
 	prod.fileDir = filepath.Dir(logFile)

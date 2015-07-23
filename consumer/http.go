@@ -31,8 +31,10 @@ import (
 //   - "consumer.Http":
 //     Enable: true
 //     Address: ":80"
-//     ReadTimeoutSec: 5
-//     WithHeaders: false
+//     ReadTimeoutSec: 3
+//     WithHeaders: true
+//     Stream:
+//       - "http"
 //
 // Address stores the identifier to bind to.
 // This is allowed be any ip address/dns and port like "localhost:5880".

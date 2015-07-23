@@ -38,10 +38,13 @@ const (
 //
 //   - "consumer.Proxy":
 //     Enable: true
-//     Address: "unix:///var/gollum.socket"
-//     Partitioner: "ascii"
-//     Delimiter: ":"
-//     Offset: 1
+//     Address: ":5880"
+//     Partitioner: "delimiter"
+//     Delimiter: "\n"
+//     Offset: 0
+//     Size: 1
+//     Stream:
+//       - "proxy"
 //
 // The proxy consumer reads messages directly as-is from a given socket.
 // Messages are extracted by standard message size algorithms (see Parititioner).

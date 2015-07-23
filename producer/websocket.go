@@ -31,9 +31,9 @@ import (
 //
 //   - "producer.Websocket":
 //     Enable:  true
-//     Address: ":80"
-//     Path:    "/data"
-//	   ReadTimeoutSec: 5
+//     Address: ":81"
+//     Path:    "/"
+//	   ReadTimeoutSec: 3
 //
 // The websocket producer opens up a websocket.
 //

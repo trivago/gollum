@@ -40,29 +40,28 @@ const (
 //     Enable: true
 //     ClientId: "weblog"
 //     Partitioner: "Roundrobin"
-//     RequiredAcks: 0
-//     TimeoutMs: 0
-//     SendRetries: 5
-//     Compression: "Snappy"
-//     MaxOpenRequests: 6
+//     RequiredAcks: 1
+//     TimeoutMs: 1500
+//     SendRetries: 3
+//     Compression: "None"
+//     MaxOpenRequests: 5
 //     BatchMinCount: 10
-//     BatchMaxCount: 0
-//     BatchSizeByte: 16384
-//     BatchSizeMaxKB: 524288
-//     BatchTimeoutSec: 5
-//     ServerTimeoutSec: 3
-//     SendTimeoutMs: 100
+//     BatchMaxCount: 1
+//     BatchSizeByte: 8192
+//     BatchSizeMaxKB: 1024
+//     BatchTimeoutSec: 3
+//     ServerTimeoutSec: 30
+//     SendTimeoutMs: 250
 //     ElectRetries: 3
-//     ElectTimeoutMs: 1000
-//     MetadataRefreshSec: 30
+//     ElectTimeoutMs: 250
+//     MetadataRefreshMs: 10000
+//     Filter: "filter.All"
 //     Servers:
-//     	- "192.168.222.30:9092"
+//     	- "localhost:9092"
+//     Topic:
+//       "console" : "console"
 //     Stream:
 //       - "console"
-//       - "_GOLLUM_"
-//     Topic:
-//       "console" : "default"
-//       "_GOLLUM_"  : "default"
 //
 // The kafka producer writes messages to a kafka cluster. This producer is
 // backed by the sarama library so most settings relate to that library.
@@ -100,7 +99,7 @@ const (
 // is triggered. By default this is set to 8192.
 //
 // BatchSizeMaxKB defines the maximum allowed message size. By default this is
-// set to 1 MB.
+// set to 1024.
 //
 // BatchTimeoutSec sets the minimum time in seconds to pass after wich a new
 // flush will be triggered. By default this is set to 3.

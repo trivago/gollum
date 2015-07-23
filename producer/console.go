@@ -28,7 +28,7 @@ import (
 //
 //   - "producer.Console":
 //     Enable: true
-//     Console: "stderr"
+//     Console: "stdout"
 //
 // The console producer writes messages to the standard output streams.
 //

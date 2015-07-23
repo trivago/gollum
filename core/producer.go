@@ -55,13 +55,12 @@ type Producer interface {
 //
 //   - "producer.Something":
 //     Enable: true
-//     Channel: 1024
-//     ChannelTimeoutMs: 200
-//     Formatter: "format.Envelope"
-//     DropToStream: "failed"
+//     Channel: 8192
+//     ChannelTimeoutMs: 0
+//     Formatter: "format.Forward"
+//     DropToStream: "_DROPPED_"
 //     Stream:
-//       - "error"
-//       - "default"
+//       - "console"
 //
 // Enable switches the consumer on or off. By default this value is set to true.
 //

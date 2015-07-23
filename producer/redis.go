@@ -29,12 +29,12 @@ import (
 //
 //   - "producer.Redis":
 //     Enable: true
-//     Address: "127.0.0.1:6379"
+//     Address: ":6379"
 //	   Database: 0
-//	   Key: "gollum"
+//	   Key: "default"
 //     Storage: "hash"
 //     FieldFormat: "format.Identifier"
-//     FieldFromParsed: true
+//     FieldAfterFormat: false
 //
 // Address stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:6379" or a file

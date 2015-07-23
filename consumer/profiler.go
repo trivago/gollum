@@ -29,13 +29,15 @@ import (
 // Profiler consumer plugin
 // Configuration example
 //
-//   - "consumer.Console":
+//   - "consumer.Profile":
 //     Enable: true
-//     Runs: 100000
-//     Batches: 100
-//     TemplateCount: 20
-//     Characters: "abcdefghijklmnopqrstuvwxyz .,!;:-_"
-//     Message: "{name:\"%100s\", number: %2d, float: %4f}"
+//     Runs: 10000
+//     Batches: 10
+//     TemplateCount: 10
+//     Characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
+//     Message: "%256s"
+//     Stream:
+//       - "profile"
 //
 // The profiler plugin generates Runs x Batches messages and send them to the
 // configured streams as fast as possible. This consumer can be used to profile
