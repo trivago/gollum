@@ -127,12 +127,16 @@ const (
 // Servers contains the list of all kafka servers to connect to.  By default this
 // is set to contain only "localhost:9092".
 //
+// Filter defines a filter function that removes or allows certain messages to
+// pass through to kafka. By default this is set to filter.All.
+//
 // Topic maps a stream to a specific kafka topic. You can define the
 // wildcard stream (*) here, too. If defined, all streams that do not have a
 // specific mapping will go to this topic (including _GOLLUM_).
 // If no topic mappings are set the stream names will be used as topic.
 type Kafka struct {
 	core.ProducerBase
+	Filter    core.Filter
 	servers   []string
 	topic     map[core.MessageStreamID]string
 	clientID  string
@@ -153,6 +157,12 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
+	plugin, err := core.NewPluginWithType(conf.GetString("Filter", "filter.All"), conf)
+	if err != nil {
+		return err // ### return, plugin load error ###
+	}
+
+	prod.Filter = plugin.(core.Filter)
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.topic = conf.GetStreamMap("Topic", "")
 	prod.clientID = conf.GetString("ClientId", "gollum")
@@ -211,6 +221,12 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 }
 
 func (prod *Kafka) send(msg core.Message) {
+	originalMsg := msg
+	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
+	if !prod.Filter.Accepts(msg) {
+		return // ### return, filtered ###
+	}
+
 	// Store current client and producer to avoid races
 	client := prod.client
 	producer := prod.producer
@@ -222,20 +238,20 @@ func (prod *Kafka) send(msg core.Message) {
 	}
 
 	// Send message
-	data, streamID := prod.ProducerBase.Format(msg)
-	topic, topicMapped := prod.topic[streamID]
+
+	topic, topicMapped := prod.topic[msg.StreamID]
 	if !topicMapped {
 		// Use wildcard fallback or stream name if not set
 		topic, topicMapped = prod.topic[core.WildcardStreamID]
 		if !topicMapped {
-			topic = core.StreamTypes.GetStreamName(streamID)
+			topic = core.StreamTypes.GetStreamName(msg.StreamID)
 		}
 	}
 
 	producer.Input() <- &kafka.ProducerMessage{
 		Topic:    topic,
-		Value:    kafka.ByteEncoder(data),
-		Metadata: msg,
+		Value:    kafka.ByteEncoder(msg.Data),
+		Metadata: originalMsg,
 	}
 }
 

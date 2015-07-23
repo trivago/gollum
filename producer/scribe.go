@@ -62,6 +62,9 @@ import (
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5.
 //
+// Filter defines a filter function that removes or allows certain messages to
+// pass through to scribe. By default this is set to filter.All.
+//
 // Category maps a stream to a specific scribe category. You can define the
 // wildcard stream (*) here, too. When set, all streams that do not have a
 // specific mapping will go to this category (including _GOLLUM_).
@@ -72,6 +75,7 @@ type Scribe struct {
 	transport       *thrift.TFramedTransport
 	socket          *thrift.TSocket
 	category        map[core.MessageStreamID]string
+	Filter          core.Filter
 	batch           core.MessageBatch
 	batchTimeout    time.Duration
 	batchMaxCount   int
@@ -90,6 +94,12 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
+	plugin, err := core.NewPluginWithType(conf.GetString("Filter", "filter.All"), conf)
+	if err != nil {
+		return err // ### return, plugin load error ###
+	}
+
+	prod.Filter = plugin.(core.Filter)
 	host := conf.GetString("Address", "localhost:1463")
 
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
@@ -156,17 +166,21 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 	logBuffer := make([]*scribe.LogEntry, len(messages))
 
 	for idx, msg := range messages {
-		data, streamID := prod.Format(msg)
-		category, exists := prod.category[streamID]
+		msg.Data, msg.StreamID = prod.Format(msg)
+		if !prod.Filter.Accepts(msg) {
+			continue // ### continue, filtered ###
+		}
+
+		category, exists := prod.category[msg.StreamID]
 		if !exists {
 			if category, exists = prod.category[core.WildcardStreamID]; !exists {
-				category = core.StreamTypes.GetStreamName(streamID)
+				category = core.StreamTypes.GetStreamName(msg.StreamID)
 			}
 		}
 
 		logBuffer[idx] = &scribe.LogEntry{
 			Category: category,
-			Message:  string(data),
+			Message:  string(msg.Data),
 		}
 	}
 

@@ -25,19 +25,19 @@ import (
 //
 //   - "stream.Broadcast":
 //     Filter: "filter.Stream"
-//     BlockStreams:
+//     FilterBlockStreams:
 //       - "foo"
-//     OnlyStreams:
+//     FilterOnlyStreams:
 //       - "test1"
 //       - "test2"
 //
-// BlockStreams sets a list of streams that are blocked. If a message's stream
-// is not in that list, the OnlyStreams list is tested. This list ist empty by
-// default.
+// FilterBlockStreams sets a list of streams that are blocked. If a message's
+// stream is not in that list, the OnlyStreams list is tested. This list ist
+// empty by default.
 //
-// OnlyStreams sets a list of streams that may pass. Messages from streams that
-// are not in this list are blocked unless the list is empty. By default this
-// list is empty.
+// FilterOnlyStreams sets a list of streams that may pass. Messages from streams
+// that are not in this list are blocked unless the list is empty. By default
+// this list is empty.
 type Stream struct {
 	blacklist []core.MessageStreamID
 	whitelist []core.MessageStreamID
@@ -49,8 +49,8 @@ func init() {
 
 // Configure initializes this filter with values from a plugin config.
 func (filter *Stream) Configure(conf core.PluginConfig) error {
-	filter.blacklist = conf.GetStreamArray("BlockStreams", []core.MessageStreamID{})
-	filter.whitelist = conf.GetStreamArray("OnlyStreams", []core.MessageStreamID{})
+	filter.blacklist = conf.GetStreamArray("FilterBlockStreams", []core.MessageStreamID{})
+	filter.whitelist = conf.GetStreamArray("FilterOnlyStreams", []core.MessageStreamID{})
 	return nil
 }
 

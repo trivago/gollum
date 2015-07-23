@@ -54,7 +54,7 @@ const (
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
 //
 // Permissions sets the file permissions for "unix://" based connections as an
-// four digit octal number string. By default this is set to "0777".
+// four digit octal number string. By default this is set to "0770".
 //
 // Acknowledge can be set to a non-empty value to inform the writer on success
 // or error. On success the given string is send. Any error will close the
@@ -113,7 +113,7 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	flags, err := strconv.ParseInt(conf.GetString("Permissions", "0777"), 8, 32)
+	flags, err := strconv.ParseInt(conf.GetString("Permissions", "0770"), 8, 32)
 	cons.fileFlags = os.FileMode(flags)
 	if err != nil {
 		return err
