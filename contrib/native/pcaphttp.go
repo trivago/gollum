@@ -29,7 +29,7 @@ import (
 // PcapHTTPConsumer consumer plugin
 // Configuration example
 //
-//   - "consumer.PcapHTTPConsumer":
+//   - "native.PcapHTTPConsumer":
 //     Enable: true
 //     Interface: eth0
 //     Filter: "dst port 80 and dst host 127.0.0.1"
