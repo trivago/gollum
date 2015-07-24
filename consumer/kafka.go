@@ -220,9 +220,9 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 	}()
 
 	// Loop over worker
+	spin := shared.NewSpinner(shared.SpinPriorityLow)
 
 	for !cons.client.Closed() {
-		spin := shared.NewSpinner(shared.SpinPriorityLow)
 		select {
 		case event := <-partCons.Messages():
 			cons.offsets[partitionID] = event.Offset

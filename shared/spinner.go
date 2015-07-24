@@ -76,7 +76,6 @@ func (spin *Spinner) Yield() {
 		default:
 			runtime.Gosched()
 		}
-
 	} else {
 		spin.count++
 		runtime.Gosched()
