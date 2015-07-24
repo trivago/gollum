@@ -27,16 +27,30 @@ type TypeRegistry struct {
 
 // Plugin is the global typeRegistry singleton.
 // Use this singleton to register plugins.
-var RuntimeType = TypeRegistry{make(map[string]reflect.Type)}
+var RuntimeType = newTypeRegistry()
+
+func newTypeRegistry() TypeRegistry {
+	return TypeRegistry{
+		namedType: make(map[string]reflect.Type),
+	}
+}
 
 // Register a plugin to the typeRegistry by passing an uninitialized object.
 // Example: var MyConsumerClassID = shared.Plugin.Register(MyConsumer{})
 func (registry TypeRegistry) Register(typeInstance interface{}) {
 	structType := reflect.TypeOf(typeInstance)
-	pathIdx := strings.LastIndex(structType.PkgPath(), "/") + 1
+	packageName := structType.PkgPath()
+	typeName := structType.Name()
 
-	typeName := structType.PkgPath()[pathIdx:] + "." + structType.Name()
-	registry.namedType[typeName] = structType
+	for n := 1; n < 5; n++ {
+		pathIdx := LastIndexN(packageName, "/", n)
+		if pathIdx == -1 {
+			return // ### return, full path stored ###
+		}
+		shortPath := strings.Replace(packageName[pathIdx+1:], "/", ".", -1)
+		shortTypeName := shortPath + "." + typeName
+		registry.namedType[shortTypeName] = structType
+	}
 }
 
 // New creates an uninitialized object by class name.

@@ -195,3 +195,20 @@ func TestFilesByDate(t *testing.T) {
 	expect.Equal("log1", testData[3].Name())
 	expect.Equal("log4", testData[4].Name())
 }
+
+func TestIndexN(t *testing.T) {
+	expect := NewExpect(t)
+
+	testString := "a.b.c.d"
+	expect.Equal(-1, IndexN(testString, ".", 4))
+	expect.Equal(-1, IndexN(testString, ".", 0))
+	expect.Equal(1, IndexN(testString, ".", 1))
+	expect.Equal(3, IndexN(testString, ".", 2))
+	expect.Equal(5, IndexN(testString, ".", 3))
+
+	expect.Equal(-1, LastIndexN(testString, ".", 4))
+	expect.Equal(-1, LastIndexN(testString, ".", 0))
+	expect.Equal(5, LastIndexN(testString, ".", 1))
+	expect.Equal(3, LastIndexN(testString, ".", 2))
+	expect.Equal(1, LastIndexN(testString, ".", 3))
+}

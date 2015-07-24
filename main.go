@@ -52,8 +52,14 @@ func main() {
 	parseFlags()
 	Log.SetVerbosity(Log.Verbosity(*flagLoglevel))
 
+	contribModules := shared.RuntimeType.GetRegistered("contrib")
+	modules := ""
+	for _, typeName := range contribModules {
+		modules += " +" + typeName[shared.IndexN(typeName, ".", 1)+1:]
+	}
+
 	if *flagVersion {
-		fmt.Printf("Gollum v%d.%d.%d%s\n", gollumMajorVer, gollumMinorVer, gollumPatchVer, gollumPostfix)
+		fmt.Printf("Gollum v%d.%d.%d%s%s\n", gollumMajorVer, gollumMinorVer, gollumPatchVer, gollumPostfix, modules)
 		return // ### return, version only ###
 	}
 

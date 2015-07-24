@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package producer
+package stream
 
 import (
 	"github.com/trivago/gollum/core"
@@ -23,20 +23,19 @@ import (
 	"testing"
 )
 
-func TestProducerInterface(t *testing.T) {
+func TestStreamInterface(t *testing.T) {
 	conf := core.NewPluginConfig(reflect.TypeOf(t).Name())
-
 	conf.Stream = []string{"test"}
-	producers := shared.RuntimeType.GetRegistered("producer.")
+	streams := shared.RuntimeType.GetRegistered("stream.")
 
-	if len(producers) == 0 {
-		t.Error("No producers defined")
+	if len(streams) == 0 {
+		t.Error("No streams defined")
 	}
 
-	for _, name := range producers {
+	for _, name := range streams {
 		_, err := core.NewPluginWithType(name, conf)
 		if err != nil {
-			t.Errorf("Failed to create producer %s: %s", name, err.Error())
+			t.Errorf("Failed to create stream %s: %s", name, err.Error())
 		}
 	}
 }
