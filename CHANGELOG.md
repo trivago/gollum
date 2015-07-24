@@ -34,6 +34,8 @@ Custom producers and config files may have to be adjusted.
  * Socket consumer can now change access rights on unix domain sockets
  * The makfile now correctly includes the config folder
  * Thie file producer now behaves correctly when directory creation fails
+ * Spinning loops are now more CPU friendly
+ * Plugins can now be addressed by longer paths, too, e.g. "contrib.company.sth"
 
 #### New
 
@@ -49,3 +51,5 @@ Custom producers and config files may have to be adjusted.
  * New formatter to prepend stream names
  * It is now possible to add a custom string after the version number
  * Kafka and scribe producers can now use a filter
+ * Plugins compiled from the contrib folder are now listed in the version string
+ * Added unittests to check bundled producer, consumer, format, filter and stream for interface compatibility
