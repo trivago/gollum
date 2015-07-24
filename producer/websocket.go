@@ -20,7 +20,6 @@ import (
 	"github.com/trivago/gollum/shared"
 	"golang.org/x/net/websocket"
 	"net/http"
-	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -121,8 +120,10 @@ func (prod *Websocket) pushMessage(msg core.Message) {
 		// Wait for new list writer to finish
 		count := currentIdx & 0x7FFFFFFF
 		currentIdx = currentIdx >> 31
+		spin := shared.NewSpinner(shared.SpinPriorityHigh)
+
 		for prod.clients[currentIdx].doneCount != count {
-			runtime.Gosched()
+			spin.Yield()
 		}
 
 		// Add new connections to old connections

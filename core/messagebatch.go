@@ -16,7 +16,6 @@ package core
 
 import (
 	"github.com/trivago/gollum/shared"
-	"runtime"
 	"sync/atomic"
 	"time"
 )
@@ -64,11 +63,12 @@ func newMessageQueue(maxMessageCount int) messageQueue {
 // AppendOrBlock works like Append but will block until Append returns true.
 // If the batch was closed during this call, false is returned.
 func (batch *MessageBatch) AppendOrBlock(msg Message) bool {
+	spin := shared.NewSpinner(shared.SpinPriorityMedium)
 	for !batch.closed {
 		if batch.Append(msg) {
 			return true // ### return, success ###
 		}
-		time.Sleep(time.Duration(10) * time.Millisecond)
+		spin.Yield()
 	}
 
 	return false
@@ -148,10 +148,11 @@ func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
 	flushIdx := flushSet >> 31
 	writerCount := flushSet & 0x7FFFFFFF
 	flushQueue := &batch.queue[flushIdx]
+	spin := shared.NewSpinner(shared.SpinPriorityHigh)
 
 	// Wait for remaining writers to finish
 	for writerCount != flushQueue.doneCount {
-		runtime.Gosched()
+		spin.Yield()
 	}
 
 	// Write data and reset buffer asynchronously

@@ -22,7 +22,6 @@ import (
 	"github.com/trivago/gollum/shared"
 	"io"
 	"os"
-	"runtime"
 	"sync"
 	"time"
 )
@@ -96,10 +95,11 @@ func (state *fileState) compressAndCloseLog(sourceFile *os.File) {
 
 	sourceFile.Seek(0, 0)
 	targetWriter := gzip.NewWriter(targetFile)
+	spin := shared.NewSpinner(shared.SpinPriorityHigh)
 
 	for err == nil {
 		_, err = io.CopyN(targetWriter, sourceFile, 1<<20) // 1 MB chunks
-		runtime.Gosched()                                  // Be async!
+		spin.Yield()                                       // Be async!
 	}
 
 	// Cleanup

@@ -16,7 +16,6 @@ package core
 
 import (
 	"github.com/trivago/gollum/shared"
-	"runtime"
 	"time"
 )
 
@@ -129,6 +128,7 @@ func (msg Message) Enqueue(channel chan<- Message, timeout time.Duration) Messag
 	}
 
 	start := time.Time{}
+	spin := shared.Spinner{}
 	for {
 		select {
 		case channel <- msg:
@@ -142,6 +142,7 @@ func (msg Message) Enqueue(channel chan<- Message, timeout time.Duration) Messag
 					return MessageStateDiscard // ### return, discard and ignore ###
 				}
 				start = time.Now()
+				spin = shared.NewSpinner(shared.SpinPriorityHigh)
 
 			// Discard message after timeout
 			case time.Since(start) > timeout:
@@ -149,7 +150,7 @@ func (msg Message) Enqueue(channel chan<- Message, timeout time.Duration) Messag
 
 			// Yield and try again
 			default:
-				runtime.Gosched()
+				spin.Yield()
 			}
 		}
 	}

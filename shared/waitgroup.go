@@ -15,7 +15,6 @@
 package shared
 
 import (
-	"runtime"
 	"sync/atomic"
 	"time"
 )
@@ -52,15 +51,17 @@ func (wg *WaitGroup) Done() {
 // IncWhenDone wait until the counter is exactly 0 and triggeres an increment
 // if this is found to be true
 func (wg *WaitGroup) IncWhenDone() {
+	spin := NewSpinner(SpinPriorityHigh)
 	for !atomic.CompareAndSwapInt32(&wg.counter, 0, 1) {
-		runtime.Gosched()
+		spin.Yield()
 	}
 }
 
 // Wait blocks until the counter is 0 or less.
 func (wg *WaitGroup) Wait() {
+	spin := NewSpinner(SpinPriorityHigh)
 	for wg.Active() {
-		runtime.Gosched()
+		spin.Yield()
 	}
 }
 
@@ -68,11 +69,12 @@ func (wg *WaitGroup) Wait() {
 // the given timeout, WaitFor will return false.
 func (wg *WaitGroup) WaitFor(timeout time.Duration) bool {
 	start := time.Now()
+	spin := NewSpinner(SpinPriorityHigh)
 	for wg.Active() {
 		if time.Since(start) > timeout {
 			return false // ### return, timed out
 		}
-		runtime.Gosched()
+		spin.Yield()
 	}
 	return true
 }

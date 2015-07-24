@@ -222,6 +222,7 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 	// Loop over worker
 
 	for !cons.client.Closed() {
+		spin := shared.NewSpinner(shared.SpinPriorityLow)
 		select {
 		case event := <-partCons.Messages():
 			cons.offsets[partitionID] = event.Offset
@@ -244,7 +245,7 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 			Log.Error.Print("Kafka consumer error:", err)
 
 		default:
-			time.Sleep(time.Duration(250) * time.Millisecond)
+			spin.Yield()
 		}
 	}
 }

@@ -22,7 +22,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -179,6 +178,7 @@ func (cons *File) read() {
 		sendFunction = cons.enqueueAndPersist
 	}
 
+	spin := shared.NewSpinner(shared.SpinPriorityLow)
 	buffer := shared.NewBufferedReader(fileBufferGrowSize, 0, 0, cons.delimiter)
 	printFileOpenError := true
 
@@ -220,8 +220,9 @@ func (cons *File) read() {
 
 			switch {
 			case err == nil: // ok
+				spin.Reset()
 			case err == io.EOF:
-				runtime.Gosched()
+				spin.Yield()
 			case cons.state == fileStateRead:
 				Log.Error.Print("Error reading file - ", err)
 				cons.file.Close()
