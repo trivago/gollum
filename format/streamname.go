@@ -42,7 +42,7 @@ type StreamName struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(StreamName{})
+	shared.TypeRegistry.Register(StreamName{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
@@ -64,13 +64,13 @@ func (format *StreamName) Format(msg core.Message) ([]byte, core.MessageStreamID
 
 	switch {
 	case !format.usePrevious:
-		streamName = core.StreamTypes.GetStreamName(streamID)
+		streamName = core.StreamRegistry.GetStreamName(streamID)
 
 	case streamID != msg.StreamID:
-		streamName = core.StreamTypes.GetStreamName(msg.StreamID)
+		streamName = core.StreamRegistry.GetStreamName(msg.StreamID)
 
 	default:
-		streamName = core.StreamTypes.GetStreamName(msg.PrevStreamID)
+		streamName = core.StreamRegistry.GetStreamName(msg.PrevStreamID)
 	}
 
 	payload := make([]byte, len(streamName)+len(format.separator)+len(data))

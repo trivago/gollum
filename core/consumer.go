@@ -90,7 +90,7 @@ func (cons *ConsumerBase) Configure(conf PluginConfig) error {
 		streamID := GetStreamID(streamName)
 		cons.streams = append(cons.streams, MappedStream{
 			StreamID: streamID,
-			Stream:   StreamTypes.GetStreamOrFallback(streamID),
+			Stream:   StreamRegistry.GetStreamOrFallback(streamID),
 		})
 	}
 

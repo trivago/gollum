@@ -39,7 +39,7 @@ type RegExp struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(RegExp{})
+	shared.TypeRegistry.Register(RegExp{})
 }
 
 // Configure initializes this filter with values from a plugin config.

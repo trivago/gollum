@@ -30,7 +30,7 @@ type LogConsumer struct {
 // Configure initializes this consumer with values from a plugin config.
 func (cons *LogConsumer) Configure(conf PluginConfig) error {
 	cons.control = make(chan PluginControl, 1)
-	cons.logStream = StreamTypes.GetStream(LogInternalStreamID)
+	cons.logStream = StreamRegistry.GetStream(LogInternalStreamID)
 	return nil
 }
 

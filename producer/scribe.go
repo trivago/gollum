@@ -85,7 +85,7 @@ type Scribe struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Scribe{})
+	shared.TypeRegistry.Register(Scribe{})
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -175,7 +175,7 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 		category, exists := prod.category[msg.StreamID]
 		if !exists {
 			if category, exists = prod.category[core.WildcardStreamID]; !exists {
-				category = core.StreamTypes.GetStreamName(msg.StreamID)
+				category = core.StreamRegistry.GetStreamName(msg.StreamID)
 			}
 		}
 

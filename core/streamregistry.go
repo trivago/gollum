@@ -30,17 +30,17 @@ const (
 	MetricDropped = "DroppedMessages"
 )
 
-// StreamRegistry holds streams mapped by their MessageStreamID as well as a
+// streamRegistry holds streams mapped by their MessageStreamID as well as a
 // reverse lookup of MessageStreamID to stream name.
-type StreamRegistry struct {
+type streamRegistry struct {
 	streams  map[MessageStreamID]Stream
 	name     map[MessageStreamID]string
 	wildcard []Producer
 }
 
-// StreamTypes is the global instance of StreamRegistry used to store the
+// StreamRegistry is the global instance of streamRegistry used to store the
 // all registered streams.
-var StreamTypes = StreamRegistry{
+var StreamRegistry = streamRegistry{
 	streams: make(map[MessageStreamID]Stream),
 	name:    make(map[MessageStreamID]string),
 }
@@ -58,14 +58,14 @@ func GetStreamID(stream string) MessageStreamID {
 	hash.Write([]byte(stream))
 	streamID := MessageStreamID(hash.Sum64())
 
-	StreamTypes.name[streamID] = stream
+	StreamRegistry.name[streamID] = stream
 	return streamID
 }
 
 // GetStreamName does a reverse lookup for a given MessageStreamID and returns
 // the corresponding name. If the MessageStreamID is not registered, an empty
 // string is returned.
-func (registry StreamRegistry) GetStreamName(streamID MessageStreamID) string {
+func (registry streamRegistry) GetStreamName(streamID MessageStreamID) string {
 	switch streamID {
 	case DroppedStreamID:
 		return DroppedStream
@@ -85,13 +85,13 @@ func (registry StreamRegistry) GetStreamName(streamID MessageStreamID) string {
 }
 
 // GetStreamByName returns a registered stream by name. See GetStream.
-func (registry StreamRegistry) GetStreamByName(name string) Stream {
+func (registry streamRegistry) GetStreamByName(name string) Stream {
 	streamID := GetStreamID(name)
 	return registry.GetStream(streamID)
 }
 
 // GetStream returns a registered stream or nil
-func (registry StreamRegistry) GetStream(id MessageStreamID) Stream {
+func (registry streamRegistry) GetStream(id MessageStreamID) Stream {
 	stream, exists := registry.streams[id]
 	if !exists {
 		return nil
@@ -100,13 +100,13 @@ func (registry StreamRegistry) GetStream(id MessageStreamID) Stream {
 }
 
 // IsStreamRegistered returns true if the stream for the given id is registered.
-func (registry StreamRegistry) IsStreamRegistered(id MessageStreamID) bool {
+func (registry streamRegistry) IsStreamRegistered(id MessageStreamID) bool {
 	_, exists := registry.streams[id]
 	return exists
 }
 
 // ForEachStream loops over all registered streams and calls the given function.
-func (registry StreamRegistry) ForEachStream(callback func(streamID MessageStreamID, stream Stream)) {
+func (registry streamRegistry) ForEachStream(callback func(streamID MessageStreamID, stream Stream)) {
 	for streamID, stream := range registry.streams {
 		callback(streamID, stream)
 	}
@@ -114,7 +114,7 @@ func (registry StreamRegistry) ForEachStream(callback func(streamID MessageStrea
 
 // WildcardProducersExist returns true if any producer is listening to the
 // wildcard stream.
-func (registry *StreamRegistry) WildcardProducersExist() bool {
+func (registry *streamRegistry) WildcardProducersExist() bool {
 	return len(registry.wildcard) > 0
 }
 
@@ -123,7 +123,7 @@ func (registry *StreamRegistry) WildcardProducersExist() bool {
 // messages to producers listening to *.
 // Duplicates will be filtered.
 // This state of this list is undefined during the configuration phase.
-func (registry *StreamRegistry) RegisterWildcardProducer(producers ...Producer) {
+func (registry *streamRegistry) RegisterWildcardProducer(producers ...Producer) {
 nextProd:
 	for _, prod := range producers {
 		for _, existing := range registry.wildcard {
@@ -138,7 +138,7 @@ nextProd:
 // AddWildcardProducersToStream adds all known wildcard producers to a given
 // stream. The state of the wildcard list is undefined during the configuration
 // phase.
-func (registry StreamRegistry) AddWildcardProducersToStream(stream Stream) {
+func (registry streamRegistry) AddWildcardProducersToStream(stream Stream) {
 	streamID := stream.GetBoundStreamID()
 	if streamID != LogInternalStreamID && streamID != DroppedStreamID {
 		stream.AddProducer(registry.wildcard...)
@@ -146,7 +146,7 @@ func (registry StreamRegistry) AddWildcardProducersToStream(stream Stream) {
 }
 
 // Register registeres a stream plugin to a given stream id
-func (registry *StreamRegistry) Register(stream Stream, streamID MessageStreamID) {
+func (registry *streamRegistry) Register(stream Stream, streamID MessageStreamID) {
 	if _, exists := registry.streams[streamID]; exists {
 		Log.Warning.Printf("%T attaches to an already occupied stream (%s)", stream, registry.GetStreamName(streamID))
 	} else {
@@ -159,7 +159,7 @@ func (registry *StreamRegistry) Register(stream Stream, streamID MessageStreamID
 // If no stream is registered for the given id the default stream is used.
 // The default stream is equivalent to an unconfigured stream.Broadcast with
 // all wildcard producers allready added.
-func (registry *StreamRegistry) GetStreamOrFallback(streamID MessageStreamID) Stream {
+func (registry *streamRegistry) GetStreamOrFallback(streamID MessageStreamID) Stream {
 	if stream, exists := registry.streams[streamID]; exists {
 		return stream
 	}

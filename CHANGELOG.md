@@ -9,6 +9,8 @@ Custom producers and config files may have to be adjusted.
 
 #### Breaking changes
 
+ * shared.RuntimeType renamed to TypeRegistry
+ * core.StreamTypes renamed to StreamRegistry
  * Producers now have to implement a Close() method that is explicitly called during shutdown
  * The LoopBack consumer has been removed. Producers can now drop messages to any stream using DropToStream.
  * Producer.Enqueue now takes care of dropping messages and accepts a timeout overwrite value

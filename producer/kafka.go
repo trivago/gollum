@@ -146,7 +146,7 @@ type Kafka struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Kafka{})
+	shared.TypeRegistry.Register(Kafka{})
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -243,7 +243,7 @@ func (prod *Kafka) send(msg core.Message) {
 		// Use wildcard fallback or stream name if not set
 		topic, topicMapped = prod.topic[core.WildcardStreamID]
 		if !topicMapped {
-			topic = core.StreamTypes.GetStreamName(msg.StreamID)
+			topic = core.StreamRegistry.GetStreamName(msg.StreamID)
 		}
 	}
 

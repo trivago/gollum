@@ -44,7 +44,7 @@ type StreamRoute struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(StreamRoute{})
+	shared.TypeRegistry.Register(StreamRoute{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

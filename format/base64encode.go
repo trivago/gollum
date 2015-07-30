@@ -40,7 +40,7 @@ type Base64Encode struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Base64Encode{})
+	shared.TypeRegistry.Register(Base64Encode{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

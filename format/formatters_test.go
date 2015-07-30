@@ -23,7 +23,7 @@ import (
 
 func TestFormatters(t *testing.T) {
 	conf := core.NewPluginConfig(reflect.TypeOf(t).Name())
-	formatters := shared.RuntimeType.GetRegistered("format.")
+	formatters := shared.TypeRegistry.GetRegistered("format.")
 
 	if len(formatters) == 0 {
 		t.Error("No formatters defined")

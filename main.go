@@ -52,7 +52,7 @@ func main() {
 	parseFlags()
 	Log.SetVerbosity(Log.Verbosity(*flagLoglevel))
 
-	contribModules := shared.RuntimeType.GetRegistered("contrib")
+	contribModules := shared.TypeRegistry.GetRegistered("contrib")
 	modules := ""
 	for _, typeName := range contribModules {
 		modules += " +" + typeName[shared.IndexN(typeName, ".", 1)+1:]

@@ -71,7 +71,7 @@ type Redis struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Redis{})
+	shared.TypeRegistry.Register(Redis{})
 }
 
 // Configure initializes this producer with values from a plugin config.

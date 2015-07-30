@@ -49,7 +49,7 @@ type JSON struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(JSON{})
+	shared.TypeRegistry.Register(JSON{})
 }
 
 // Configure initializes this filter with values from a plugin config.

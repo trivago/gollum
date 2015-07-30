@@ -49,7 +49,7 @@ type Console struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Console{})
+	shared.TypeRegistry.Register(Console{})
 }
 
 // Configure initializes this consumer with values from a plugin config.

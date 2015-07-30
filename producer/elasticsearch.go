@@ -110,7 +110,7 @@ type ElasticSearch struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(ElasticSearch{})
+	shared.TypeRegistry.Register(ElasticSearch{})
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -170,7 +170,7 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 	if !indexMapped {
 		index, indexMapped = prod.index[core.WildcardStreamID]
 		if !indexMapped {
-			index = core.StreamTypes.GetStreamName(msg.StreamID)
+			index = core.StreamRegistry.GetStreamName(msg.StreamID)
 		}
 	}
 
@@ -182,7 +182,7 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 	if !typeMapped {
 		msgType, typeMapped = prod.msgType[core.WildcardStreamID]
 		if !typeMapped {
-			msgType = core.StreamTypes.GetStreamName(msg.StreamID)
+			msgType = core.StreamRegistry.GetStreamName(msg.StreamID)
 		}
 	}
 

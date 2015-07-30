@@ -20,24 +20,24 @@ import (
 	"strings"
 )
 
-// TypeRegistry is a name to type registry used to create objects by name.
-type TypeRegistry struct {
+// typeRegistry is a name to type registry used to create objects by name.
+type typeRegistry struct {
 	namedType map[string]reflect.Type
 }
 
 // Plugin is the global typeRegistry singleton.
 // Use this singleton to register plugins.
-var RuntimeType = newTypeRegistry()
+var TypeRegistry = newTypeRegistry()
 
-func newTypeRegistry() TypeRegistry {
-	return TypeRegistry{
+func newTypeRegistry() typeRegistry {
+	return typeRegistry{
 		namedType: make(map[string]reflect.Type),
 	}
 }
 
 // Register a plugin to the typeRegistry by passing an uninitialized object.
 // Example: var MyConsumerClassID = shared.Plugin.Register(MyConsumer{})
-func (registry TypeRegistry) Register(typeInstance interface{}) {
+func (registry typeRegistry) Register(typeInstance interface{}) {
 	structType := reflect.TypeOf(typeInstance)
 	packageName := structType.PkgPath()
 	typeName := structType.Name()
@@ -56,7 +56,7 @@ func (registry TypeRegistry) Register(typeInstance interface{}) {
 // New creates an uninitialized object by class name.
 // The class name has to be "package.class" or "package/subpackage.class".
 // The gollum package is omitted from the package path.
-func (registry TypeRegistry) New(typeName string) (interface{}, error) {
+func (registry typeRegistry) New(typeName string) (interface{}, error) {
 	structType, exists := registry.namedType[typeName]
 	if exists {
 		return reflect.New(structType).Interface(), nil
@@ -67,7 +67,7 @@ func (registry TypeRegistry) New(typeName string) (interface{}, error) {
 // GetTypeOf returns only the type asscociated with the given name.
 // If the name is not registered, nil is returned.
 // The type returned will be a pointer type.
-func (registry TypeRegistry) GetTypeOf(typeName string) reflect.Type {
+func (registry typeRegistry) GetTypeOf(typeName string) reflect.Type {
 	if structType, exists := registry.namedType[typeName]; exists {
 		return reflect.PtrTo(structType)
 	}
@@ -75,7 +75,7 @@ func (registry TypeRegistry) GetTypeOf(typeName string) reflect.Type {
 }
 
 // GetRegistered returns the names of all registered types for a given package
-func (registry TypeRegistry) GetRegistered(packageName string) []string {
+func (registry typeRegistry) GetRegistered(packageName string) []string {
 	var result []string
 	for key := range registry.namedType {
 		if strings.HasPrefix(key, packageName) {

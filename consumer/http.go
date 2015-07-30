@@ -55,7 +55,7 @@ type Http struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Http{})
+	shared.TypeRegistry.Register(Http{})
 }
 
 // Configure initializes this consumer with values from a plugin config.

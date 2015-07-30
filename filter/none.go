@@ -28,7 +28,7 @@ type None struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(None{})
+	shared.TypeRegistry.Register(None{})
 }
 
 // Configure initializes this filter with values from a plugin config.

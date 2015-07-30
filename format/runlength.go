@@ -35,7 +35,7 @@ type Runlength struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Runlength{})
+	shared.TypeRegistry.Register(Runlength{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

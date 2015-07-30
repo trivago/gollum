@@ -36,7 +36,7 @@ type Null struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Null{})
+	shared.TypeRegistry.Register(Null{})
 }
 
 // Configure initializes the basic members

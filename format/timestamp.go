@@ -40,7 +40,7 @@ type Timestamp struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Timestamp{})
+	shared.TypeRegistry.Register(Timestamp{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

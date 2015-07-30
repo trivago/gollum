@@ -82,7 +82,7 @@ const (
 )
 
 func init() {
-	shared.RuntimeType.Register(PcapHTTPConsumer{})
+	shared.TypeRegistry.Register(PcapHTTPConsumer{})
 }
 
 // Configure initializes this consumer with values from a plugin config.

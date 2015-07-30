@@ -200,14 +200,14 @@ func (stream *StreamBase) Route(msg Message, targetID MessageStreamID) {
 	if msg.StreamID != targetID {
 		msg.PrevStreamID = msg.StreamID
 		msg.StreamID = targetID
-		StreamTypes.GetStreamOrFallback(targetID).Enqueue(msg)
+		StreamRegistry.GetStreamOrFallback(targetID).Enqueue(msg)
 		return // ### done, routed ###
 	}
 
 	if len(stream.Producers) == 0 {
 		shared.Metric.Inc(MetricNoRoute)
 		shared.Metric.Inc(MetricDiscarded)
-		Log.Debug.Print("No producers for ", StreamTypes.GetStreamName(msg.StreamID))
+		Log.Debug.Print("No producers for ", StreamRegistry.GetStreamName(msg.StreamID))
 		return // ### return, no route to producer ###
 	}
 

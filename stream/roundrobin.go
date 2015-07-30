@@ -42,7 +42,7 @@ type RoundRobin struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(RoundRobin{})
+	shared.TypeRegistry.Register(RoundRobin{})
 }
 
 // Configure initializes this distributor with values from a plugin config.

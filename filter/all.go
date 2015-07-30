@@ -28,7 +28,7 @@ type All struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(All{})
+	shared.TypeRegistry.Register(All{})
 }
 
 // Configure initializes this filter with values from a plugin config.

@@ -106,7 +106,7 @@ type Socket struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Socket{})
+	shared.TypeRegistry.Register(Socket{})
 }
 
 // Configure initializes this consumer with values from a plugin config.

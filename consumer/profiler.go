@@ -79,7 +79,7 @@ type Profiler struct {
 var profilerDefaultCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 "
 
 func init() {
-	shared.RuntimeType.Register(Profiler{})
+	shared.TypeRegistry.Register(Profiler{})
 }
 
 // Configure initializes this consumer with values from a plugin config.

@@ -39,7 +39,7 @@ type Hostname struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Hostname{})
+	shared.TypeRegistry.Register(Hostname{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

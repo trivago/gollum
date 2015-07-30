@@ -48,7 +48,7 @@ type Broadcast struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Broadcast{})
+	shared.TypeRegistry.Register(Broadcast{})
 }
 
 // Configure initializes this distributor with values from a plugin config.

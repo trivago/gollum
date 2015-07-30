@@ -50,14 +50,14 @@ type streamWithID struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Route{})
+	shared.TypeRegistry.Register(Route{})
 }
 
 func newStreamWithID(streamName string) streamWithID {
 	streamID := core.GetStreamID(streamName)
 	return streamWithID{
 		id:     streamID,
-		stream: core.StreamTypes.GetStream(streamID),
+		stream: core.StreamRegistry.GetStream(streamID),
 	}
 }
 
@@ -82,9 +82,9 @@ func (stream *Route) routeMessage(msg core.Message) {
 
 		// Stream might require late binding
 		if target.stream == nil {
-			if core.StreamTypes.WildcardProducersExist() {
-				target.stream = core.StreamTypes.GetStreamOrFallback(target.id)
-			} else if target.stream = core.StreamTypes.GetStream(target.id); target.stream == nil {
+			if core.StreamRegistry.WildcardProducersExist() {
+				target.stream = core.StreamRegistry.GetStreamOrFallback(target.id)
+			} else if target.stream = core.StreamRegistry.GetStream(target.id); target.stream == nil {
 				// Remove without preserving order allows us to continue iterating
 				lastIdx := len(stream.routes) - 1
 				stream.routes[i] = stream.routes[lastIdx]

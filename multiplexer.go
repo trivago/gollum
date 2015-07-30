@@ -102,7 +102,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 
 		Log.Debug.Print("Loading ", config.Typename)
 
-		pluginType := shared.RuntimeType.GetTypeOf(config.Typename)
+		pluginType := shared.TypeRegistry.GetTypeOf(config.Typename)
 		if pluginType == nil {
 			Log.Error.Print("Failed to load plugin ", config.Typename, ": Type not found")
 			continue // ### continue ###
@@ -148,14 +148,14 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 		}
 
 		Log.Debug.Print("Configuring ", config.Typename)
-		core.StreamTypes.Register(plugin.(core.Stream), core.GetStreamID(streamName))
+		core.StreamRegistry.Register(plugin.(core.Stream), core.GetStreamID(streamName))
 	}
 
 	// All producers are added to the wildcard stream so that consumers can send
 	// to all producers if required. The wildcard producer list is required
 	// to add producers listening to all streams to all streams that are used.
 
-	wildcardStream := core.StreamTypes.GetStreamOrFallback(core.WildcardStreamID)
+	wildcardStream := core.StreamRegistry.GetStreamOrFallback(core.WildcardStreamID)
 
 	for _, config := range producerConfig {
 		for i := 0; i < config.Instances; i++ {
@@ -177,9 +177,9 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 
 			for _, streamID := range streams {
 				if streamID == core.WildcardStreamID {
-					core.StreamTypes.RegisterWildcardProducer(producer)
+					core.StreamRegistry.RegisterWildcardProducer(producer)
 				} else {
-					stream := core.StreamTypes.GetStreamOrFallback(streamID)
+					stream := core.StreamRegistry.GetStreamOrFallback(streamID)
 					stream.AddProducer(producer)
 				}
 			}
@@ -225,9 +225,9 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	// where we can add the wildcard producers to all streams. No new streams
 	// created beyond this point must use StreamRegistry.AddWildcardProducersToStream.
 
-	core.StreamTypes.ForEachStream(
+	core.StreamRegistry.ForEachStream(
 		func(streamID core.MessageStreamID, stream core.Stream) {
-			core.StreamTypes.AddWildcardProducersToStream(stream)
+			core.StreamRegistry.AddWildcardProducersToStream(stream)
 		})
 
 	return plex
@@ -274,9 +274,9 @@ func (plex *multiplexer) printShutdownOrder() {
 			if i > 0 {
 				streams += ","
 			}
-			streams += core.StreamTypes.GetStreamName(streamID)
+			streams += core.StreamRegistry.GetStreamName(streamID)
 		}
-		streams += "} drop to " + core.StreamTypes.GetStreamName(prod.GetDropStreamID())
+		streams += "} drop to " + core.StreamRegistry.GetStreamName(prod.GetDropStreamID())
 		Log.Debug.Print(streams)
 	}
 }
@@ -418,7 +418,7 @@ func (plex multiplexer) run() {
 	}
 
 	// If there are intenal log listeners switch to stream mode
-	if core.StreamTypes.IsStreamRegistered(core.LogInternalStreamID) {
+	if core.StreamRegistry.IsStreamRegistered(core.LogInternalStreamID) {
 		Log.Debug.Print("Binding log to ", reflect.TypeOf(plex.consumers[0]))
 		Log.SetWriter(plex.consumers[0].(*core.LogConsumer))
 	}

@@ -46,7 +46,7 @@ type HTTPRequest struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(HTTPRequest{})
+	shared.TypeRegistry.Register(HTTPRequest{})
 }
 
 // Configure initializes this producer with values from a plugin config.

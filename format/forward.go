@@ -28,7 +28,7 @@ type Forward struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Forward{})
+	shared.TypeRegistry.Register(Forward{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

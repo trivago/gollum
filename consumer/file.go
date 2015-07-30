@@ -89,7 +89,7 @@ type File struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(File{})
+	shared.TypeRegistry.Register(File{})
 }
 
 // Configure initializes this consumer with values from a plugin config.

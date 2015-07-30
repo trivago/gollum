@@ -79,7 +79,7 @@ type bufferedConn interface {
 }
 
 func init() {
-	shared.RuntimeType.Register(Socket{})
+	shared.TypeRegistry.Register(Socket{})
 }
 
 // Configure initializes this producer with values from a plugin config.

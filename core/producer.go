@@ -233,7 +233,7 @@ func (prod *ProducerBase) GetFormatter() Formatter {
 // listening to.
 func (prod *ProducerBase) PauseAllStreams(capacity int) {
 	for _, streamID := range prod.streams {
-		stream := StreamTypes.GetStream(streamID)
+		stream := StreamRegistry.GetStream(streamID)
 		stream.Pause(capacity)
 	}
 }
@@ -242,7 +242,7 @@ func (prod *ProducerBase) PauseAllStreams(capacity int) {
 // listening to.
 func (prod *ProducerBase) ResumeAllStreams() {
 	for _, streamID := range prod.streams {
-		stream := StreamTypes.GetStream(streamID)
+		stream := StreamRegistry.GetStream(streamID)
 		stream.Resume()
 	}
 }
@@ -288,7 +288,7 @@ func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
 // Drop routes the message to the configured drop stream.
 func (prod *ProducerBase) Drop(msg Message) {
 	shared.Metric.Inc(MetricDropped)
-	Log.Debug.Print("Dropping message from ", StreamTypes.GetStreamName(msg.StreamID))
+	Log.Debug.Print("Dropping message from ", StreamRegistry.GetStreamName(msg.StreamID))
 	msg.Route(prod.dropStreamID)
 }
 
@@ -339,7 +339,7 @@ func (prod *ProducerBase) CloseGracefully(onMessage func(msg Message)) bool {
 		}()
 
 		if !flushWorker.WaitFor(prod.shutdownTimeout) {
-			Log.Warning.Printf("A producer listening to %s has found to be blocking during Close(). Dropping remaining messages.", StreamTypes.GetStreamName(prod.Streams()[0]))
+			Log.Warning.Printf("A producer listening to %s has found to be blocking during Close(). Dropping remaining messages.", StreamRegistry.GetStreamName(prod.Streams()[0]))
 			for msg := range prod.messages {
 				prod.Drop(msg)
 			}

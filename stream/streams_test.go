@@ -26,7 +26,7 @@ import (
 func TestStreamInterface(t *testing.T) {
 	conf := core.NewPluginConfig(reflect.TypeOf(t).Name())
 	conf.Stream = []string{"test"}
-	streams := shared.RuntimeType.GetRegistered("stream.")
+	streams := shared.TypeRegistry.GetRegistered("stream.")
 
 	if len(streams) == 0 {
 		t.Error("No streams defined")

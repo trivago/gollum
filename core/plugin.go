@@ -95,7 +95,7 @@ func (state *PluginRunState) WorkerDone() {
 // This function returns nil, error if the plugin could not be instantiated or
 // plugin, error if Configure failed.
 func NewPluginWithType(typename string, config PluginConfig) (Plugin, error) {
-	obj, err := shared.RuntimeType.New(typename)
+	obj, err := shared.TypeRegistry.New(typename)
 	if err != nil {
 		return nil, err
 	}

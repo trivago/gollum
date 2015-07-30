@@ -39,7 +39,7 @@ type Random struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Random{})
+	shared.TypeRegistry.Register(Random{})
 }
 
 // Configure initializes this distributor with values from a plugin config.

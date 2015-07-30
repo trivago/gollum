@@ -46,7 +46,7 @@ type Envelope struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Envelope{})
+	shared.TypeRegistry.Register(Envelope{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

@@ -120,7 +120,7 @@ type Kafka struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Kafka{})
+	shared.TypeRegistry.Register(Kafka{})
 }
 
 // Configure initializes this consumer with values from a plugin config.

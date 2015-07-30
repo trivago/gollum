@@ -51,7 +51,7 @@ type Identifier struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Identifier{})
+	shared.TypeRegistry.Register(Identifier{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

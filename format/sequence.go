@@ -37,7 +37,7 @@ type Sequence struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Sequence{})
+	shared.TypeRegistry.Register(Sequence{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

@@ -59,7 +59,7 @@ type scheduledMessage struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Spooling{})
+	shared.TypeRegistry.Register(Spooling{})
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -75,7 +75,7 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 	prod.maxMessageCount = conf.GetInt("MaxMessageCount", 0)
 	prod.bufferGuard = new(sync.Mutex)
 	prod.closing = false
-	prod.metricName = "spoolsize_" + core.StreamTypes.GetStreamName(prod.Streams()[0])
+	prod.metricName = "spoolsize_" + core.StreamRegistry.GetStreamName(prod.Streams()[0])
 
 	shared.Metric.New(prod.metricName)
 

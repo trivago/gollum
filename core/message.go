@@ -161,6 +161,6 @@ func (msg Message) Enqueue(channel chan<- Message, timeout time.Duration) Messag
 func (msg Message) Route(targetID MessageStreamID) {
 	msg.PrevStreamID = msg.StreamID
 	msg.StreamID = targetID
-	targetStream := StreamTypes.GetStreamOrFallback(msg.StreamID)
+	targetStream := StreamRegistry.GetStreamOrFallback(msg.StreamID)
 	targetStream.Enqueue(msg)
 }

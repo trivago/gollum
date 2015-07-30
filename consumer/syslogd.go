@@ -59,7 +59,7 @@ type Syslogd struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Syslogd{})
+	shared.TypeRegistry.Register(Syslogd{})
 }
 
 // Configure initializes this consumer with values from a plugin config.

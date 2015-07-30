@@ -121,7 +121,7 @@ type File struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(File{})
+	shared.TypeRegistry.Register(File{})
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -197,7 +197,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		case core.WildcardStreamID:
 			streamName = "ALL"
 		default:
-			streamName = core.StreamTypes.GetStreamName(streamID)
+			streamName = core.StreamRegistry.GetStreamName(streamID)
 		}
 
 		fileDir = strings.Replace(prod.fileDir, "*", streamName, -1)

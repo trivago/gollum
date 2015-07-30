@@ -86,7 +86,7 @@ type Proxy struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Proxy{})
+	shared.TypeRegistry.Register(Proxy{})
 }
 
 // Configure initializes this producer with values from a plugin config.

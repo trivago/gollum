@@ -23,7 +23,7 @@ import (
 
 func TestFilterInterface(t *testing.T) {
 	conf := core.NewPluginConfig(reflect.TypeOf(t).Name())
-	filters := shared.RuntimeType.GetRegistered("filter.")
+	filters := shared.TypeRegistry.GetRegistered("filter.")
 
 	if len(filters) == 0 {
 		t.Error("No filters defined")

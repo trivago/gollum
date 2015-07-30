@@ -44,7 +44,7 @@ type Stream struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Stream{})
+	shared.TypeRegistry.Register(Stream{})
 }
 
 // Configure initializes this filter with values from a plugin config.

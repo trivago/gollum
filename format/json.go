@@ -112,7 +112,7 @@ type JSON struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(JSON{})
+	shared.TypeRegistry.Register(JSON{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

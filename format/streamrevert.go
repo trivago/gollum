@@ -37,7 +37,7 @@ type StreamRevert struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(StreamRevert{})
+	shared.TypeRegistry.Register(StreamRevert{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

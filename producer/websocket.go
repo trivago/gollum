@@ -61,7 +61,7 @@ type clientList struct {
 }
 
 func init() {
-	shared.RuntimeType.Register(Websocket{})
+	shared.TypeRegistry.Register(Websocket{})
 }
 
 // Configure initializes this producer with values from a plugin config.
