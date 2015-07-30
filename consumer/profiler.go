@@ -69,6 +69,7 @@ type Profiler struct {
 	chars       string
 	message     string
 	quit        bool
+	delay       time.Duration
 }
 
 var profilerDefaultCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 "
@@ -90,6 +91,7 @@ func (cons *Profiler) Configure(conf core.PluginConfig) error {
 	cons.chars = conf.GetString("Characters", profilerDefaultCharacters)
 	cons.message = conf.GetString("Message", "%# %256s")
 	cons.templates = make([][]byte, numTemplates)
+	cons.delay = time.Duration(conf.GetInt("Delay", 0)) * time.Millisecond
 
 	return nil
 }
@@ -174,6 +176,9 @@ func (cons *Profiler) profile() {
 		for i := 0; i < cons.profileRuns && !cons.quit; i++ {
 			template := cons.templates[rand.Intn(len(cons.templates))]
 			cons.EnqueueCopy(template, uint64(batchIdx*cons.profileRuns+i))
+			if cons.delay > 0 {
+				time.Sleep(cons.delay)
+			}
 		}
 
 		runTime := time.Since(start)

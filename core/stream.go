@@ -15,6 +15,7 @@
 package core
 
 import (
+	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"sync"
 	"sync/atomic"
@@ -137,6 +138,7 @@ func (stream *StreamBase) Pause(capacity int) {
 	}
 }
 
+// GetBoundStreamID returns the id of the stream this plugin is bound to.
 func (stream *StreamBase) GetBoundStreamID() MessageStreamID {
 	return stream.boundStreamID
 }
@@ -205,6 +207,7 @@ func (stream *StreamBase) Route(msg Message, targetID MessageStreamID) {
 	if len(stream.Producers) == 0 {
 		shared.Metric.Inc(MetricNoRoute)
 		shared.Metric.Inc(MetricDiscarded)
+		Log.Debug.Print("No producers for ", StreamTypes.GetStreamName(msg.StreamID))
 		return // ### return, no route to producer ###
 	}
 

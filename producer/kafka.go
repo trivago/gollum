@@ -232,7 +232,7 @@ func (prod *Kafka) send(msg core.Message) {
 
 	// Check if connected
 	if client == nil || producer == nil {
-		prod.Drop(msg)
+		prod.Drop(originalMsg)
 		return // ### return, not connected ###
 	}
 

@@ -288,6 +288,7 @@ func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
 // Drop routes the message to the configured drop stream.
 func (prod *ProducerBase) Drop(msg Message) {
 	shared.Metric.Inc(MetricDropped)
+	Log.Debug.Print("Dropping message from ", StreamTypes.GetStreamName(msg.StreamID))
 	msg.Route(prod.dropStreamID)
 }
 

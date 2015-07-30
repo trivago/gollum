@@ -110,6 +110,8 @@ func (prod *Spooling) sendMessage(msg core.Message) {
 	} else {
 		prod.Drop(msg)
 	}
+
+	shared.Metric.SetI(prod.metricName, len(prod.messageBuffer))
 }
 
 func (prod *Spooling) buildFlushList() []core.Message {
