@@ -25,6 +25,8 @@ import (
 // Producer is an interface for plugins that pass messages to other services,
 // files or storages.
 type Producer interface {
+	PluginWithState
+
 	// Enqueue sends a message to the producer. The producer may reject
 	// the message or drop it after a given timeout. Enqueue can block.
 	Enqueue(msg Message, timeout *time.Duration)
@@ -94,7 +96,7 @@ type ProducerBase struct {
 	control         chan PluginControl
 	streams         []MessageStreamID
 	dropStreamID    MessageStreamID
-	state           *PluginRunState
+	runState        *PluginRunState
 	timeout         time.Duration
 	shutdownTimeout time.Duration
 	format          Formatter
@@ -121,7 +123,7 @@ func (err ProducerError) Error() string {
 
 // Configure initializes the standard producer config values.
 func (prod *ProducerBase) Configure(conf PluginConfig) error {
-
+	prod.runState = NewPluginRunState()
 	format, err := NewPluginWithType(conf.GetString("Formatter", "format.Forward"), conf)
 	if err != nil {
 		return err // ### return, plugin load error ###
@@ -133,7 +135,6 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	prod.messages = make(chan Message, conf.GetInt("Channel", 8192))
 	prod.timeout = time.Duration(conf.GetInt("ChannelTimeoutMs", 0)) * time.Millisecond
 	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 3000)) * time.Millisecond
-	prod.state = new(PluginRunState)
 	prod.dropStreamID = GetStreamID(conf.GetString("DropToStream", DroppedStream))
 
 	prod.onRoll = nil
@@ -145,6 +146,16 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	}
 
 	return nil
+}
+
+// setState sets the runstate of this plugin
+func (prod *ProducerBase) setState(state PluginState) {
+	prod.runState.state = state
+}
+
+// GetState returns the state this plugin is currently in
+func (prod *ProducerBase) GetState() PluginState {
+	return prod.runState.state
 }
 
 // SetRollCallback sets the function to be called upon PluginControlRoll
@@ -165,26 +176,24 @@ func (prod ProducerBase) SetPrepareStopCallback(onPrepareStop func()) {
 // SetWorkerWaitGroup forwards to Plugin.SetWorkerWaitGroup for this consumer's
 // internal plugin state. This method is also called by AddMainWorker.
 func (prod ProducerBase) SetWorkerWaitGroup(workers *sync.WaitGroup) {
-	prod.state.SetWorkerWaitGroup(workers)
+	prod.runState.SetWorkerWaitGroup(workers)
 }
 
 // AddMainWorker adds the first worker to the waitgroup
 func (prod ProducerBase) AddMainWorker(workers *sync.WaitGroup) {
-	prod.state.SetWorkerWaitGroup(workers)
+	prod.runState.SetWorkerWaitGroup(workers)
 	prod.AddWorker()
 }
 
 // AddWorker adds an additional worker to the waitgroup. Assumes that either
 // MarkAsActive or SetWaitGroup has been called beforehand.
 func (prod ProducerBase) AddWorker() {
-	prod.state.AddWorker()
-	shared.Metric.Inc(metricActiveWorkers)
+	prod.runState.AddWorker()
 }
 
 // WorkerDone removes an additional worker to the waitgroup.
 func (prod ProducerBase) WorkerDone() {
-	prod.state.WorkerDone()
-	shared.Metric.Dec(metricActiveWorkers)
+	prod.runState.WorkerDone()
 }
 
 // GetTimeout returns the duration this producer will block before a message
@@ -279,9 +288,14 @@ func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
 	switch msg.Enqueue(prod.messages, usedTimeout) {
 	case MessageStateTimeout:
 		prod.Drop(msg)
+		prod.setState(PluginStateWaiting)
 
 	case MessageStateDiscard:
 		shared.Metric.Inc(MetricDiscarded)
+		prod.setState(PluginStateWaiting)
+
+	default:
+		prod.setState(PluginStateActive)
 	}
 }
 
@@ -325,6 +339,7 @@ func (prod *ProducerBase) processCommand(command PluginControl) bool {
 // This method may be called from derived implementation's Close method.
 // If a timout has been detected, false is returned.
 func (prod *ProducerBase) CloseGracefully(onMessage func(msg Message)) bool {
+	prod.setState(PluginStateDead)
 	close(prod.messages)
 	flushWorker := new(shared.WaitGroup)
 
@@ -353,6 +368,7 @@ func (prod *ProducerBase) CloseGracefully(onMessage func(msg Message)) bool {
 // DefaultControlLoop provides a producer mainloop that is sufficient for most
 // usecases. Before this function exits Close will be called.
 func (prod *ProducerBase) DefaultControlLoop(onMessage func(msg Message)) {
+	prod.setState(PluginStateActive)
 	for {
 		select {
 		case command := <-prod.control:
@@ -370,6 +386,7 @@ func (prod *ProducerBase) DefaultControlLoop(onMessage func(msg Message)) {
 // every given interval tick, too. Before this function exits Close will be called.
 func (prod *ProducerBase) TickerControlLoop(interval time.Duration, onMessage func(msg Message), onTimeOut func()) {
 	flushTicker := time.NewTicker(interval)
+	prod.setState(PluginStateActive)
 	for {
 		select {
 		case command := <-prod.control:

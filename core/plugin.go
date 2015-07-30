@@ -22,18 +22,28 @@ import (
 
 var metricActiveWorkers = "ActiveWorkers"
 
-// PluginControl is an enumeration used by the Producer.control() channel
+// PluginControl is an enumeration used to pass signals to plugins
 type PluginControl int
+
+// PluginState is an enumeration used to describe the current working state of a plugin
+type PluginState int
 
 const (
 	// PluginControlPrepareStop is sent to all producers/consumers when a shutdown is imminent.
 	PluginControlPrepareStop = PluginControl(iota)
-
 	// PluginControlStop will cause the consumer/producer to halt and shutdown.
 	PluginControlStop = PluginControl(iota)
-
 	// PluginControlRoll notifies the consumer/producer about a reconnect or reopen request
 	PluginControlRoll = PluginControl(iota)
+)
+
+const (
+	// PluginStateDead is set when a plugin is unable to process any data
+	PluginStateDead = PluginState(iota)
+	// PluginStateActive is set when a plugin is ready to process data
+	PluginStateActive = PluginState(iota)
+	// PluginStateWaiting is set when a plugin is active but currently unable to process data
+	PluginStateWaiting = PluginState(iota)
 )
 
 // PluginRunState is used in some plugins to store information about the
@@ -42,32 +52,32 @@ const (
 // shut down.
 type PluginRunState struct {
 	workers *sync.WaitGroup
-	paused  bool
+	state   PluginState
 }
 
 // Plugin is the base class for any runtime class that can be configured and
 // instantiated during runtim.
 type Plugin interface {
+	// Configure is called during NewPluginWithType
 	Configure(conf PluginConfig) error
+}
+
+// PluginWithState allows certain plugins to give information about their runstate
+type PluginWithState interface {
+	Plugin
+	GetState() PluginState
 }
 
 func init() {
 	shared.Metric.New(metricActiveWorkers)
 }
 
-// Pause implements the MessageSource interface
-func (state *PluginRunState) Pause() {
-	state.paused = true
-}
-
-// IsPaused implements the MessageSource interface
-func (state *PluginRunState) IsPaused() bool {
-	return state.paused
-}
-
-// Resume implements the MessageSource interface
-func (state *PluginRunState) Resume() {
-	state.paused = false
+// NewPluginRunState creates a new plugin state helper
+func NewPluginRunState() *PluginRunState {
+	return &PluginRunState{
+		workers: nil,
+		state:   PluginStateDead,
+	}
 }
 
 // SetWorkerWaitGroup sets the WaitGroup used to manage workers
@@ -111,6 +121,11 @@ func NewPluginWithType(typename string, config PluginConfig) (Plugin, error) {
 	// all plugins are configured.
 	if typename == config.Typename {
 		config.Validate()
+	}
+
+	// Register named plugins
+	if err != nil && config.ID != "" {
+		PluginRegistry.RegisterUnique(plugin, config.ID)
 	}
 
 	return plugin, err

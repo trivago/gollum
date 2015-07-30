@@ -34,6 +34,11 @@ func (cons *LogConsumer) Configure(conf PluginConfig) error {
 	return nil
 }
 
+// GetState always returns PluginStateActive
+func (cons *LogConsumer) GetState() PluginState {
+	return PluginStateActive
+}
+
 // Streams always returns an array with one member - the internal log stream
 func (cons *LogConsumer) Streams() []MessageStreamID {
 	return []MessageStreamID{LogInternalStreamID}
@@ -49,19 +54,6 @@ func (cons LogConsumer) Write(data []byte) (int, error) {
 	cons.logStream.Enqueue(msg)
 
 	return len(data), nil
-}
-
-// Pause is not implemented
-func (cons LogConsumer) Pause() {
-}
-
-// IsPaused returns false as Pause is not implemented
-func (cons LogConsumer) IsPaused() bool {
-	return false
-}
-
-// Resume is not implemented as Pause is not implemented.
-func (cons LogConsumer) Resume() {
 }
 
 // Control returns a handle to the control channel

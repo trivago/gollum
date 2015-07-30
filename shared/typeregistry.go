@@ -25,14 +25,10 @@ type typeRegistry struct {
 	namedType map[string]reflect.Type
 }
 
-// Plugin is the global typeRegistry singleton.
-// Use this singleton to register plugins.
-var TypeRegistry = newTypeRegistry()
-
-func newTypeRegistry() typeRegistry {
-	return typeRegistry{
-		namedType: make(map[string]reflect.Type),
-	}
+// TypeRegistry is the global typeRegistry instance.
+// Use this instance to register plugins.
+var TypeRegistry = typeRegistry{
+	namedType: make(map[string]reflect.Type),
 }
 
 // Register a plugin to the typeRegistry by passing an uninitialized object.

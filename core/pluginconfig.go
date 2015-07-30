@@ -21,6 +21,7 @@ import (
 
 // PluginConfig is a configuration for a specific plugin
 type PluginConfig struct {
+	ID        string
 	Typename  string
 	Enable    bool
 	Instances int
@@ -30,10 +31,11 @@ type PluginConfig struct {
 }
 
 // NewPluginConfig creates a new plugin config with default values.
-// By default the plugin is enabled, has a buffered channel with 4096 slots, has
-// one instance, is bound to no streams and has no additional settings.
+// By default the plugin is enabled, has one instance, is bound to no streams
+// and has no additional settings.
 func NewPluginConfig(typename string) PluginConfig {
 	return PluginConfig{
+		ID:        "",
 		Typename:  typename,
 		Enable:    true,
 		Instances: 1,
@@ -67,6 +69,9 @@ func (conf *PluginConfig) Read(values shared.MarshalMap) {
 	var err error
 	for key, settingValue := range values {
 		switch key {
+		case "ID":
+			conf.ID, err = values.String("ID")
+
 		case "Enable":
 			conf.Enable, err = values.Bool("Enable")
 

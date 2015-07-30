@@ -16,7 +16,6 @@ package core
 
 import (
 	"fmt"
-	"github.com/trivago/gollum/shared"
 	"sync"
 	"time"
 )
@@ -24,6 +23,8 @@ import (
 // Consumer is an interface for plugins that recieve data from outside sources
 // and generate Message objects from this data.
 type Consumer interface {
+	PluginWithState
+
 	// Consume should implement to main loop that fetches messages from a given
 	// source and pushes it to the Message channel.
 	Consume(*sync.WaitGroup)
@@ -54,8 +55,7 @@ type Consumer interface {
 type ConsumerBase struct {
 	control       chan PluginControl
 	streams       []MappedStream
-	state         *PluginRunState
-	timeout       time.Duration
+	runState      *PluginRunState
 	onRoll        func()
 	onStop        func()
 	onPrepareStop func()
@@ -79,9 +79,8 @@ func (err ConsumerError) Error() string {
 
 // Configure initializes standard consumer values from a plugin config.
 func (cons *ConsumerBase) Configure(conf PluginConfig) error {
+	cons.runState = NewPluginRunState()
 	cons.control = make(chan PluginControl, 1)
-	cons.timeout = time.Duration(conf.GetInt("ChannelTimeout", 0)) * time.Millisecond
-	cons.state = new(PluginRunState)
 	cons.onRoll = nil
 	cons.onStop = nil
 	cons.onPrepareStop = nil
@@ -95,6 +94,16 @@ func (cons *ConsumerBase) Configure(conf PluginConfig) error {
 	}
 
 	return nil
+}
+
+// setState sets the runstate of this plugin
+func (cons *ConsumerBase) setState(state PluginState) {
+	cons.runState.state = state
+}
+
+// GetState returns the state this plugin is currently in
+func (cons *ConsumerBase) GetState() PluginState {
+	return cons.runState.state
 }
 
 // SetRollCallback sets the function to be called upon PluginControlRoll
@@ -115,26 +124,24 @@ func (cons *ConsumerBase) SetPrepareStopCallback(onPrepareStop func()) {
 // SetWorkerWaitGroup forwards to Plugin.SetWorkerWaitGroup for this consumer's
 // internal plugin state. This method is also called by AddMainWorker.
 func (cons ConsumerBase) SetWorkerWaitGroup(workers *sync.WaitGroup) {
-	cons.state.SetWorkerWaitGroup(workers)
+	cons.runState.SetWorkerWaitGroup(workers)
 }
 
 // AddMainWorker adds the first worker to the waitgroup
 func (cons ConsumerBase) AddMainWorker(workers *sync.WaitGroup) {
-	cons.state.SetWorkerWaitGroup(workers)
+	cons.runState.SetWorkerWaitGroup(workers)
 	cons.AddWorker()
 }
 
 // AddWorker adds an additional worker to the waitgroup. Assumes that either
 // MarkAsActive or SetWaitGroup has been called beforehand.
 func (cons ConsumerBase) AddWorker() {
-	cons.state.AddWorker()
-	shared.Metric.Inc(metricActiveWorkers)
+	cons.runState.AddWorker()
 }
 
 // WorkerDone removes an additional worker to the waitgroup.
 func (cons ConsumerBase) WorkerDone() {
-	cons.state.WorkerDone()
-	shared.Metric.Dec(metricActiveWorkers)
+	cons.runState.WorkerDone()
 }
 
 // Enqueue creates a new message from a given byte slice and passes it to
@@ -184,6 +191,7 @@ func (cons *ConsumerBase) processCommand(command PluginControl) bool {
 		// Do nothing
 
 	case PluginControlStop:
+		cons.setState(PluginStateDead)
 		if cons.onStop != nil {
 			cons.onStop()
 		}
@@ -206,6 +214,7 @@ func (cons *ConsumerBase) processCommand(command PluginControl) bool {
 // DefaultControlLoop provides a consumer mainloop that is sufficient for most
 // usecases.
 func (cons *ConsumerBase) DefaultControlLoop() {
+	cons.setState(PluginStateActive)
 	for {
 		command := <-cons.control
 		if cons.processCommand(command) {
@@ -218,7 +227,7 @@ func (cons *ConsumerBase) DefaultControlLoop() {
 // every given interval tick, too.
 func (cons *ConsumerBase) TickerControlLoop(interval time.Duration, onTick func()) {
 	ticker := time.NewTicker(interval)
-
+	cons.setState(PluginStateActive)
 	for {
 		select {
 		case command := <-cons.control:

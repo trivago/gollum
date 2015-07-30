@@ -49,6 +49,11 @@ func (prod *Null) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
+// GetState always returns PluginStateActive
+func (prod *Null) GetState() core.PluginState {
+	return core.PluginStateActive
+}
+
 // Streams returns the streams this producer is listening to.
 func (prod *Null) Streams() []core.MessageStreamID {
 	return prod.streams
