@@ -19,6 +19,7 @@ Custom producers and config files may have to be adjusted.
  * Renamed format.StreamMod to format.StreamRoute
  * ControlLoop* callback parameters for command handling moved to member functions
  * For format.Envelope postfix and prefix configuration keys have been renamed to EnvelopePostifx and EnvelopePrefix
+ * Base64Encode and Base64Decode formatter parameters have been renamed to "Base64*"
 
 #### Fixed
 
