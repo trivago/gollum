@@ -36,6 +36,7 @@ import (
 //     TemplateCount: 10
 //     Characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
 //     Message: "%256s"
+//	   DelayMs: 0
 //     Stream:
 //       - "profile"
 //
@@ -61,6 +62,9 @@ import (
 // parameter. I.e. "%200d" will generate a digit between 0 and 200, "%10s" will
 // generate a string with 10 characters, etc..
 // By default this is set to "%256s".
+//
+// DelayMs defines the number of milliseconds of sleep between messages.
+// By default this is set to 0.
 type Profiler struct {
 	core.ConsumerBase
 	profileRuns int
@@ -91,7 +95,7 @@ func (cons *Profiler) Configure(conf core.PluginConfig) error {
 	cons.chars = conf.GetString("Characters", profilerDefaultCharacters)
 	cons.message = conf.GetString("Message", "%# %256s")
 	cons.templates = make([][]byte, numTemplates)
-	cons.delay = time.Duration(conf.GetInt("Delay", 0)) * time.Millisecond
+	cons.delay = time.Duration(conf.GetInt("DelayMs", 0)) * time.Millisecond
 
 	return nil
 }

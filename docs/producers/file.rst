@@ -14,6 +14,9 @@ Parameters
   Can either be true or false to enable or disable this producer.
 **Stream**
   Defines either one or an aray of stream names this producer recieves messages from.
+**DropToStream**
+  Defines the stream used for messages that are dropped after a timeout (see ChannelTimeoutMs).
+  By default this is _DROPPED_.
 **Channel**
   Defines the number of messages that can be buffered by the internal channel.
   By default this is set to 8192.
@@ -25,6 +28,9 @@ Parameters
   - A timeout of 1 or higher will wait n milliseconds for the queues to become available again.
     If this does not happen, the message will be send to the _DROPPED_ stream that can be processed by the :doc:`Loopback </consumers/loopback>` consumer.
 
+**FlushTimeoutSec**
+  Sets the maximum number of seconds to wait before a flush is aborted during shutdown.
+  By default this is set to 0, which does not abort the flushing procedure.
 **Format**
   Defines a message formatter to use. :doc:`Format.Forward </formatters/forward>` by default.
 **File**
@@ -56,9 +62,20 @@ Parameters
   Defines specific timestamp as in "HH:MM" when the log should be rotated.
   Hours must be given in 24h format.
   When left empty this setting is ignored. By default this setting is disabled.
- **RotateTimestamp**
+**RotateSizeMB**
+  Defines the maximum file size in MB that triggers a file rotate.
+  Files can get bigger than this size. By default this is set to 1024.
+**RotateTimestamp**
   Sets the timestamp added to the filename when file rotation is enabled.
   The format is based on Go's time.Format function and set to "2006-01-02_15" by default.
+**RotatePruneCount**
+  Removes old logfiles upon rotate so that only the given number of logfiles remain.
+  Logfiles are located by the name defined by "File" and are pruned by date (followed by name).
+  By default this is set to 0 which disables pruning.
+**RotatePruneTotalSizeMB**
+  Removes old logfiles upon rotate so that only the given number of MBs are used by logfiles.
+  Logfiles are located by the name defined by "File" and are pruned by date (followed by name).
+  By default this is set to 0 which disables pruning.
 **Compress**
   Set to true to gzip a file after rotation.
   By default this is set to false.
@@ -80,5 +97,7 @@ Example
     RotateTimeoutMin: 1440
     RotateSizeMB: 1024
     RotateAt: "00:00"
+    RotatePruneCount: 0
+    RotatePruneTotalSizeMB: 0
     Compress: true
     Stream: "*"

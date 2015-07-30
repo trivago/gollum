@@ -38,6 +38,9 @@ Parameters
   Size defines the size in bytes used by the binary or fixed partitioner.
   For binary this can be set to 1,2,4 or 8. By default 4 is chosen.
   For fixed this defines the size of a message. By default 1 is chosen.
+**ReconnectAfterSec**
+  Defines the number of seconds to wait before a connection is tried to be reopened again.
+  By default this is set to 2.
 
 Example
 -------

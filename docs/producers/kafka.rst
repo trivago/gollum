@@ -11,6 +11,9 @@ Parameters
   Can either be true or false to enable or disable this consumer.
 **Stream**
   Defines either one or an aray of stream names this consumer sends messages to.
+**DropToStream**
+  Defines the stream used for messages that are dropped after a timeout (see ChannelTimeoutMs).
+  By default this is _DROPPED_.
 **Channel**
   Defines the number of messages that can be buffered by the internal channel.
   By default this is set to 8192.

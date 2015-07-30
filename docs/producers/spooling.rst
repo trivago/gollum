@@ -1,7 +1,9 @@
-Websocket
-=========
+Spooling
+========
 
-This producers writes messages to a websocket.
+The Spooling producer buffers messages and sends them again to the previous stream stored in the message.
+This means the message must have been routed at least once before reaching the spooling producer.
+If the previous and current stream is identical the message is dropped.
 
 Parameters
 ----------
@@ -29,29 +31,23 @@ Parameters
   By default this is set to 0, which does not abort the flushing procedure.
 **Format**
   Defines a message formatter to use. :doc:`Format.Forward </formatters/forward>` by default.
-**Address**
-  Sets the address identifier to bind to.
-  This is allowed be any IP address/dns and port like "localhost:5880".
-  By default this is set to ":81".
-**Path**
-  Defines the URL to listen for.
-  By default this is set to "/".
-**ReadTimeoutSec**
-  Specifies the maximum duration in seconds before timing out a request.
-  By default this is set to 3 seconds.
+**RetryDelayMs**
+  Denotes the number of milliseconds before a message is send again.
+  The message is removed from the list after sending.
+  If the time is set to 0, messages are not buffered but resent directly.
+  By default this is set to 2000 (2 seconds).
+**MaxMessageCount**
+  Denotes the maximum number of messages to store before dropping new incoming messages.
+  By default this is set to 0 which means all messages are stored.
 
 Example
 -------
 
 .. code-block:: yaml
 
-  - "producer.Websocket":
+  - "producer.Spooling":
     Enable: true
-    Channel: 8192
-    ChannelTimeoutMs: 100
-    Address: ":80"
-    Path:    "/data"
-    ReadTimeoutSec: 5
+    RetryDelayMs: 2000
+    MaxMessageCount: 10000
     Stream:
-        - "log"
-        - "console"
+        - "spooling"

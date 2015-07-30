@@ -10,9 +10,12 @@ Parameters
 ----------
 
 **Enable**
-    Can either be true or false to enable or disable this consumer.
+  Can either be true or false to enable or disable this consumer.
 **Stream**
-    Defines either one or an aray of stream names this consumer sends messages to.
+  Defines either one or an aray of stream names this consumer sends messages to.
+**DropToStream**
+  Defines the stream used for messages that are dropped after a timeout (see ChannelTimeoutMs).
+  By default this is _DROPPED_.
 **Address**
   Defines the protocol, address/DNS and port to listen to.
   The protocol can either be "socket://" for unix domain or "tcp://" for TCP. UDP sockets cannot be used.
@@ -30,6 +33,8 @@ Parameters
 **FlushTimeoutSec**
   Sets the maximum number of seconds to wait before a flush is aborted during shutdown.
   By default this is set to 0, which does not abort the flushing procedure.
+**Format**
+  Defines a message formatter to use. :doc:`Format.Forward </formatters/forward>` by default.
 **TimeoutSec**
   Defines the maximum time in seconds a client is allowed to take for a response. By default this is set to 1.
 **Partitioner**

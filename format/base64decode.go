@@ -29,11 +29,16 @@ import (
 //
 //   - "<producer|stream>":
 //     Formatter: "format.Base64Decode"
-//     Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
+//     Base64Formatter: "format.Forward"
+//     Base64Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
 //
-// Dictionary defines the 64-character base64 lookup dictionary to use. When
+// Base64Dictionary defines the 64-character base64 lookup dictionary to use. When
 // left empty a dictionary as defined by RFC4648 is used. This is the default.
+//
+// Base64DataFormatter defines a formatter that is applied before the base64
+// decoding takes place. By default this is set to "format.Forward"
 type Base64Decode struct {
+	base       core.Formatter
 	dictionary *base64.Encoding
 }
 
@@ -43,7 +48,13 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Base64Decode) Configure(conf core.PluginConfig) error {
-	dict := conf.GetString("Dictionary", "")
+	plugin, err := core.NewPluginWithType(conf.GetString("Base64Formatter", "format.Forward"), conf)
+	if err != nil {
+		return err
+	}
+	format.base = plugin.(core.Formatter)
+
+	dict := conf.GetString("Base64Dictionary", "")
 	if dict == "" {
 		format.dictionary = base64.StdEncoding
 	} else {
@@ -57,10 +68,11 @@ func (format *Base64Decode) Configure(conf core.PluginConfig) error {
 
 // Format returns the original message payload
 func (format *Base64Decode) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	decoded := make([]byte, format.dictionary.DecodedLen(len(msg.Data)))
+	data, streamID := format.base.Format(msg)
+	decoded := make([]byte, format.dictionary.DecodedLen(len(data)))
 	size, err := format.dictionary.Decode(decoded, msg.Data)
 	if err != nil {
 		Log.Error.Print("Base64Decode: ", err)
 	}
-	return decoded[:size], msg.StreamID
+	return decoded[:size], streamID
 }

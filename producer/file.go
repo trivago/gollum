@@ -83,6 +83,9 @@ import (
 // rotated. Hours must be given in 24h format. When left empty this setting is
 // ignored. By default this setting is disabled.
 //
+// RotateSizeMB defines the maximum file size in MB that triggers a file rotate.
+// Files can get bigger than this size. By default this is set to 1024.
+//
 // RotateTimestamp sets the timestamp added to the filename when file rotation
 // is enabled. The format is based on Go's time.Format function and set to
 // "2006-01-02_15" by default.

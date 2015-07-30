@@ -11,10 +11,10 @@ Parameters
 **EnvelopeFormatter**
   Defines an additional formatter applied before adding pre- and postfix. :doc:`Format.Forward </formatters/forward>` by default.
 
-**Prefix**
+**EnvelopePrefix**
   Defines a string to be prepended to the message. Empty by default.
 
-**Postfix**
+**EnvelopePostfix**
   Defines a string to be appended to the message. "\n" by default.
 
 Example
@@ -25,5 +25,5 @@ Example
   - "stream.Broadcast":
     Formatter: "format.Envelope"
     EnvelopeFormatter: "format.Forward"
-    Prefix: "<data>"
-    Postfix: "</data>\n"
+    EnvelopePrefix: "<data>"
+    EnvelopePostfix: "</data>\n"

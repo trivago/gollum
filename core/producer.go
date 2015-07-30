@@ -84,7 +84,7 @@ type Producer interface {
 // message channels this producer will consume. By default this is set to "*"
 // which means "listen to all streams but the internal".
 //
-// DroppedStream defines the stream used for messages that are dropped after
+// DropToStream defines the stream used for messages that are dropped after
 // a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
 //
 // Formatter sets a formatter to use. Each formatter has its own set of options

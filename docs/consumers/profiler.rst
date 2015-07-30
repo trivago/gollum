@@ -22,6 +22,9 @@ Parameters
 **Message**
   Formatting string to generate messages from. This is compatible to standard fmt.Printf style formatters.
   The length attribute will be used to define the length of the data generated.
+**DelayMs**
+  Defines the number of milliseconds of sleep between messages.
+  By default this is set to 0.
 
 Example
 -------
