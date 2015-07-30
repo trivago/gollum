@@ -27,6 +27,8 @@ ConsumerBase gives you two convenience loop functions to handle control commands
 
 **DefaultControlLoop**
   Will loop until a stop is recieved and can trigger a callback if a log rotation is requested (SIG_HUP is sent).
+  The log rotation callback cane be set e.g. in the Configure method by using the SetRollBack function.
+  Other possible callbacks functions are SetPrepareStopCallback and SetStopCallback.
 
 **TickerControlLoop**
   Gives you an additional callback that is triggered in regular intervals.
@@ -41,11 +43,15 @@ A typical consume function will look like this:
     cons.WorkerDone()
   }
 
+  func (cons *MyConsumer) Configure(conf core.PluginConfig) error {
+	cons.SetRollCallback(cons.onRoll) // Define the callbacks triggered by the ControlLoops
+  }
+
   func (cons *MyConsumer) Consume(workers *sync.WaitGroup) {
-    cons.AddMainWorker(workers)          // New go routine = new worker
-    defer cons.close()                   // Make sure WorkerDone is called by using defer
-    go cons.readData()                   // Run until close is called
-    cons.DefaultControlLoop(cons.rotate) // Blocks
+    cons.AddMainWorker(workers) // New go routine = new worker
+    defer cons.close()          // Make sure WorkerDone is called by using defer
+    go cons.readData()          // Run until close is called
+    cons.DefaultControlLoop()   // Blocks
   }
 
 This function will call the close() function when the default control loop exits, i.e. when a shutdown is requested.

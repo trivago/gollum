@@ -33,8 +33,8 @@ Make sure to start Gollum with `gollum -ll 3` to see all log messages.
 
   - "stream.Broadcast":
       Formatter: "format.Envelope"
-      Prefix: "<message>"
-      Postfix: "</message>"
+      EnvelopePrefix: "<message>"
+      EnvelopePostfix: "</message>"
       Stream: "console"
 
   - "producer.Console":
@@ -83,14 +83,14 @@ Make sure to start Gollum with `gollum -ll 3` to see all log messages.
 
   - "stream.Broadcast":
       Formatter: "format.Envelope"
-      Prefix: "<message>"
-      Postfix: "</message>"
+      EnvelopePrefix: "<message>"
+      EnvelopePostfix: "</message>"
       Stream: "consoleXML"
 
   - "stream.Broadcast":
       Formatter: "format.Envelope"
-      Prefix: "{message:\""
-      Postfix: "\"}"
+      EnvelopePrefix: "{message:\""
+      EnvelopePostfix: "\"}"
       Stream: "consoleJSON"
 
   - "producer.Console":
@@ -118,7 +118,7 @@ Make sure to start Gollum with `gollum -ll 3` to see all log messages.
   - "producer.Socket":
       Address: ":5880"
       Formatter: "format.Runlength"
-      Acknowledge: true
+      Acknowledge: "OK"
       Stream: "client"
 
   - "producer.Console":
@@ -129,7 +129,7 @@ Make sure to start Gollum with `gollum -ll 3` to see all log messages.
 ::
 
   - "consumer.Socket":
-      Acknowledge: true
+      Acknowledge: "OK"
       Partitioner: "ascii"
       Delimiter: ":"
       Address: ":5880"

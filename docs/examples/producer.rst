@@ -28,6 +28,8 @@ ProducerBase gives you two convenience loop functions to handle control commands
 **DefaultControlLoop**
   Will loop until a stop is recieved and can trigger a callback if a log rotation is requested (SIG_HUP is sent).
   Messages from the internal message channel are passed to the given message handler.
+  The log rotation callback can be set e.g. in the Configure method by using the SetRollBack function.
+  Other possible callbacks functions are SetPrepareStopCallback and SetStopCallback.
 
 **TickerControlLoop**
   Gives you an additional callback that is triggered in regular intervals.
@@ -44,13 +46,17 @@ A typical produce function will look like this:
     prod.WorkerDone()
   }
 
+  func (prod *MyProducer) Configure(conf core.PluginConfig) error {
+    prod.SetRollCallback(prod.onRoll) // Define the callbacks triggered by the ControlLoops
+  }
+
   func (prod *MyProducer) processData(msg core.Message) {
     // Process message
   }
 
   func (prod *MyProducer) Produce(workers *sync.WaitGroup) {
     prod.AddMainWorker(workers)
-    prod.DefaultControlLoop(prod.processData, prod.rotate)
+    prod.DefaultControlLoop(prod.processData)
   }
 
 The framework will call the Close() function when the default control loop exits, i.e. after a shutdown signal was sent.
