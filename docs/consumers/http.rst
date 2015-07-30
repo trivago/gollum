@@ -9,6 +9,9 @@ Parameters
 
 **Enable**
   Can either be true or false to enable or disable this consumer.
+**ID**
+  Allows this consumer to be found by other plugins by name.
+  By default this is set to "" which does not register this consumer.
 **Stream**
   Defines either one or an aray of stream names this consumer sends messages to.
 **Address**

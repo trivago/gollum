@@ -57,14 +57,19 @@ type Producer interface {
 //
 //   - "producer.Something":
 //     Enable: true
+//	   ID: ""
 //     Channel: 8192
 //     ChannelTimeoutMs: 0
+//     ShutdownTimeoutMs: 3000
 //     Formatter: "format.Forward"
 //     DropToStream: "_DROPPED_"
 //     Stream:
 //       - "console"
 //
 // Enable switches the consumer on or off. By default this value is set to true.
+//
+// ID allows this producer to be found by other plugins by name. By default this
+// is set to "" which does not register this producer.
 //
 // Channel sets the size of the channel used to communicate messages. By default
 // this value is set to 8192.

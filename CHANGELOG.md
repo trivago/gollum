@@ -56,3 +56,4 @@ Custom producers and config files may have to be adjusted.
  * Kafka and scribe producers can now use a filter
  * Plugins compiled from the contrib folder are now listed in the version string
  * Added unittests to check bundled producer, consumer, format, filter and stream for interface compatibility
+ * Plugins can now be registered and queried by a string based ID via core.PluginRegistry

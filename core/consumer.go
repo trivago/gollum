@@ -42,11 +42,15 @@ type Consumer interface {
 //
 // - "consumer.Something":
 //   Enable: true
+//   ID: ""
 //   Stream:
 //      - "error"
 //      - "default"
 //
 // Enable switches the consumer on or off. By default this value is set to true.
+//
+// ID allows this consumer to be found by other plugins by name. By default this
+// is set to "" which does not register this consumer.
 //
 // Stream contains either a single string or a list of strings defining the
 // message channels this consumer will produce. By default this is set to "*"
