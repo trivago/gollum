@@ -31,6 +31,7 @@ import (
 //     User: ""
 //     Password: ""
 //     Database: "default"
+//     UseVersion08: false
 //     RetentionPolicy: ""
 //     BatchMaxCount: 8192
 //     BatchFlushCount: 4096
@@ -50,7 +51,7 @@ import (
 // RetentionPolicy correlates to the InfluxDB retention policy setting.
 // This is left empty by default (no retention policy used)
 //
-// WriteInflux08 has to be set to true when writing data to InfluxDB 0.8.x.
+// UseVersion08 has to be set to true when writing data to InfluxDB 0.8.x.
 // By default this is set to false.
 //
 // BatchMaxCount defines the maximum number of messages that can be buffered
@@ -59,7 +60,7 @@ import (
 // block. By default this is set to 8192.
 //
 // BatchFlushCount defines the number of messages to be buffered before they are
-// written to disk. This setting is clamped to BatchMaxCount.
+// written to InfluxDB. This setting is clamped to BatchMaxCount.
 // By default this is set to BatchMaxCount / 2.
 //
 // BatchTimeoutSec defines the maximum number of seconds to wait after the last
@@ -92,7 +93,7 @@ func (prod *InfluxDB) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	if conf.GetBool("WriteInflux08", false) {
+	if conf.GetBool("UseVersion08", false) {
 		prod.writer = new(influxDBWriter08)
 	} else {
 		prod.writer = new(influxDBWriter09)
