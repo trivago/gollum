@@ -108,12 +108,36 @@ func MaxI(a, b int) int {
 	return b
 }
 
+// Max3I returns the maximum out of three integers
+func Max3I(a, b, c int) int {
+	max := a
+	if b > max {
+		max = b
+	}
+	if c > max {
+		max = c
+	}
+	return max
+}
+
 // MinI returns the minimum out of two integers
 func MinI(a, b int) int {
 	if a < b {
 		return a
 	}
 	return b
+}
+
+// Min3I returns the minimum out of three integers
+func Min3I(a, b, c int) int {
+	min := a
+	if b < min {
+		min = b
+	}
+	if c < min {
+		min = c
+	}
+	return min
 }
 
 // ItoLen returns the length of an unsingned integer when converted to a string

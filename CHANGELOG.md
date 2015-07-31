@@ -58,3 +58,5 @@ Custom producers and config files may have to be adjusted.
  * Plugins compiled from the contrib folder are now listed in the version string
  * Added unittests to check bundled producer, consumer, format, filter and stream for interface compatibility
  * Plugins can now be registered and queried by a string based ID via core.PluginRegistry
+ * Added producer for InfluxDB data (0.8.x and 0.9.x)
+ * Added formatter to convert collectd to InfluxDB (0.8.x and 0.9.x)
