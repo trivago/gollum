@@ -22,10 +22,10 @@ import (
 	"time"
 )
 
-// InfluxDBProducer producer plugin
+// InfluxDB producer plugin
 // Configuration example
 //
-//   - "producer.InfluxDBProducer":
+//   - "producer.InfluxDB":
 //     Enable: true
 //     Host: "localhost:8086"
 //     User: ""
@@ -36,18 +36,18 @@ import (
 //     BatchFlushCount: 4096
 //     BatchTimeoutSec: 5
 //
-// Host defines the host (and port) of the InfluxDBProducer server.
+// Host defines the host (and port) of the InfluxDB server.
 // Defaults to "localhost:8086".
 //
-// User defines the InfluxDBProducer username to use to login. If this name is
+// User defines the InfluxDB username to use to login. If this name is
 // left empty credentials are assumed to be disabled. Defaults to empty.
 //
 // Password defines the user's password. Defaults to empty.
 //
-// Database sets the InfluxDBProducer database to write to. By default this is
+// Database sets the InfluxDB database to write to. By default this is
 // is set to "default".
 //
-// RetentionPolicy correlates to the InfluxDBProducer retention policy setting.
+// RetentionPolicy correlates to the InfluxDB retention policy setting.
 // This is left empty by default (no retention policy used)
 //
 // WriteInflux08 has to be set to true when writing data to InfluxDB 0.8.x.
@@ -65,7 +65,7 @@ import (
 // BatchTimeoutSec defines the maximum number of seconds to wait after the last
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5.
-type InfluxDBProducer struct {
+type InfluxDB struct {
 	core.ProducerBase
 	writer          influxDBWriter
 	assembly        core.WriterAssembly
@@ -83,11 +83,11 @@ type influxDBWriter interface {
 }
 
 func init() {
-	shared.TypeRegistry.Register(InfluxDBProducer{})
+	shared.TypeRegistry.Register(InfluxDB{})
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *InfluxDBProducer) Configure(conf core.PluginConfig) error {
+func (prod *InfluxDB) Configure(conf core.PluginConfig) error {
 	if err := prod.ProducerBase.Configure(conf); err != nil {
 		return err
 	}
@@ -114,20 +114,20 @@ func (prod *InfluxDBProducer) Configure(conf core.PluginConfig) error {
 }
 
 // Flush flushes the content of the buffer into the influxdb
-func (prod *InfluxDBProducer) sendBatch() {
+func (prod *InfluxDB) sendBatch() {
 	if prod.writer.isConnectionUp() {
 		prod.batch.Flush(prod.assembly.Write)
 	}
 }
 
 // Threshold based flushing
-func (prod *InfluxDBProducer) sendBatchOnTimeOut() {
+func (prod *InfluxDB) sendBatchOnTimeOut() {
 	if prod.batch.ReachedTimeThreshold(prod.batchTimeout) || prod.batch.ReachedSizeThreshold(prod.batchFlushCount) {
 		prod.sendBatch()
 	}
 }
 
-func (prod *InfluxDBProducer) sendMessage(msg core.Message) {
+func (prod *InfluxDB) sendMessage(msg core.Message) {
 	if !prod.batch.Append(msg) {
 		prod.sendBatch()
 		if !prod.batch.AppendOrBlock(msg) {
@@ -137,7 +137,7 @@ func (prod *InfluxDBProducer) sendMessage(msg core.Message) {
 }
 
 // Close gracefully
-func (prod *InfluxDBProducer) Close() {
+func (prod *InfluxDB) Close() {
 	defer prod.WorkerDone()
 
 	// Flush buffer to regular socket
@@ -158,7 +158,7 @@ func (prod *InfluxDBProducer) Close() {
 
 // Produce starts a bulk producer which will collect datapoints until either the buffer is full or a timeout has been reached.
 // The buffer limit does not describe the number of messages received from kafka but the size of the buffer content in KB.
-func (prod *InfluxDBProducer) Produce(workers *sync.WaitGroup) {
+func (prod *InfluxDB) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
 	prod.TickerControlLoop(prod.flushTimeout, prod.sendMessage, prod.sendBatchOnTimeOut)
 }
