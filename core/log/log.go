@@ -15,10 +15,8 @@
 package Log
 
 import (
-	"fmt"
 	"io"
 	"log"
-	"os"
 )
 
 // Verbosity defines an enumeration for log verbosity
@@ -35,16 +33,9 @@ const (
 	VerbosityDebug = Verbosity(iota)
 )
 
-type logReferrer struct {
-	writer io.Writer
-}
-
-type logNull struct {
-}
-
 var (
 	// Error is a predefined log channel for errors. This log is backed by consumer.Log
-	Error = log.New(logEnabled, "ERROR: ", log.Lshortfile)
+	Error = log.New(logDisabled, "", 0)
 
 	// Warning is a predefined log channel for warnings. This log is backed by consumer.Log
 	Warning = log.New(logDisabled, "", 0)
@@ -55,13 +46,14 @@ var (
 	// Debug is a predefined log channel for debug messages. This log is backed by consumer.Log
 	Debug = log.New(logDisabled, "", 0)
 
-	logEnabled  = logReferrer{os.Stdout}
+	logEnabled  = logReferrer{new(logCache)}
 	logDisabled = logNull{}
 )
 
 func init() {
 	log.SetFlags(0)
 	log.SetOutput(logEnabled)
+	SetVerbosity(VerbosityError)
 }
 
 // SetVerbosity defines the type of messages to be processed.
@@ -96,35 +88,9 @@ func SetVerbosity(loglevel Verbosity) {
 
 // SetWriter forces (enabled) logs to be written to the given writer.
 func SetWriter(writer io.Writer) {
+	oldWriter := logEnabled.writer
 	logEnabled.writer = writer
-}
-
-// Write Drops all messages
-func (log logNull) Write(message []byte) (int, error) {
-	return len(message), nil
-}
-
-// Write sends the message to the io.Writer passed to Configure
-func (log logReferrer) Write(message []byte) (int, error) {
-	length := len(message)
-	if length == 0 {
-		return 0, nil
-	}
-
-	if message[length-1] == '\n' {
-		message = message[:length-1]
-	}
-
-	switch {
-	case log.writer == nil:
-		fmt.Println(string(message))
-		return length, nil
-
-	case log.writer == os.Stdout || log.writer == os.Stderr:
-		fmt.Fprintln(log.writer, string(message))
-		return length, nil
-
-	default:
-		return log.writer.Write(message)
+	if cache, isCache := oldWriter.(*logCache); isCache {
+		cache.flush(logEnabled)
 	}
 }

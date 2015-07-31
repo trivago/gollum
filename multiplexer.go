@@ -74,8 +74,13 @@ type multiplexer struct {
 
 // Create a new multiplexer based on a given config file.
 func newMultiplexer(conf *core.Config, profile bool) multiplexer {
-	// Configure the multiplexer, create a byte pool and assign it to the log
+	// Make sure the log is printed to stdout if we are stuck here
+	logFallback := time.AfterFunc(time.Duration(3)*time.Second, func() {
+		Log.SetWriter(os.Stdout)
+	})
+	defer logFallback.Stop()
 
+	// Configure the multiplexer, create a byte pool and assign it to the log
 	shared.Metric.New(metricMsgSec)
 	shared.Metric.New(metricMsgSecAvg)
 	shared.Metric.New(metricCons)
@@ -335,6 +340,12 @@ nextChild:
 // Producers are flushed after flushing the log, so producer related shutdown
 // messages will be posted to stdout
 func (plex *multiplexer) shutdown() {
+	// Make sure the log is printed to stdout if we are stuck here
+	logFallback := time.AfterFunc(time.Duration(3)*time.Second, func() {
+		Log.SetWriter(os.Stdout)
+	})
+	defer logFallback.Stop()
+
 	// Handle panics if any
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -373,8 +384,9 @@ func (plex *multiplexer) shutdown() {
 	}
 
 	// Make sure remaining warning / errors are written to stderr
-	Log.SetWriter(os.Stdout)
 	Log.Note.Print("It's the only way. Go in, or go back. (flushing)")
+	logFallback.Stop()
+	Log.SetWriter(os.Stdout)
 
 	// Shutdown producers
 	plex.state = multiplexerStateStopProducers
@@ -397,11 +409,13 @@ func (plex *multiplexer) shutdown() {
 func (plex multiplexer) run() {
 	if len(plex.consumers) == 0 {
 		Log.Error.Print("No consumers configured.")
+		Log.SetWriter(os.Stdout)
 		return // ### return, nothing to do ###
 	}
 
 	if len(plex.producers) == 0 {
 		Log.Error.Print("No producers configured.")
+		Log.SetWriter(os.Stdout)
 		return // ### return, nothing to do ###
 	}
 
@@ -421,6 +435,8 @@ func (plex multiplexer) run() {
 	if core.StreamRegistry.IsStreamRegistered(core.LogInternalStreamID) {
 		Log.Debug.Print("Binding log to ", reflect.TypeOf(plex.consumers[0]))
 		Log.SetWriter(plex.consumers[0].(*core.LogConsumer))
+	} else {
+		Log.SetWriter(os.Stdout)
 	}
 
 	// Launch consumers

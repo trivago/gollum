@@ -12,14 +12,14 @@ Custom producers and config files may have to be adjusted.
  * shared.RuntimeType renamed to TypeRegistry
  * core.StreamTypes renamed to StreamRegistry
  * Producers now have to implement a Close() method that is explicitly called during shutdown
- * The LoopBack consumer has been removed. Producers can now drop messages to any stream using DropToStream.
+ * ControlLoop* callback parameters for command handling moved to member functions
  * Producer.Enqueue now takes care of dropping messages and accepts a timeout overwrite value
  * MessageBatch has been refactored to store messages instead of preformatted strings. This allows dropping messages from a batch.
- * Stream plugins may now bind to exactly and only one stream
  * Message.Drop has been removed, Message.Route can now be used instead
+ * The LoopBack consumer has been removed. Producers can now drop messages to any stream using DropToStream.
+ * Stream plugins are now allowed to bind only and exactly to one stream
  * Renamed producer.HttpReq to producer.HTTPRequest
  * Renamed format.StreamMod to format.StreamRoute
- * ControlLoop* callback parameters for command handling moved to member functions
  * For format.Envelope postfix and prefix configuration keys have been renamed to EnvelopePostifx and EnvelopePrefix
  * Base64Encode and Base64Decode formatter parameters have been renamed to "Base64*"
 
@@ -39,6 +39,7 @@ Custom producers and config files may have to be adjusted.
  * Thie file producer now behaves correctly when directory creation fails
  * Spinning loops are now more CPU friendly
  * Plugins can now be addressed by longer paths, too, e.g. "contrib.company.sth"
+ * Log messages that appear during startup are now written to the set log producer, too
 
 #### New
 
