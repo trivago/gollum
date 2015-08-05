@@ -142,6 +142,7 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	}
 
 	prod.SetRollCallback(prod.rotateLog)
+	prod.SetStopCallback(prod.close)
 
 	prod.filesByStream = make(map[core.MessageStreamID]*fileState)
 	prod.files = make(map[string]*fileState)
@@ -354,16 +355,10 @@ func (prod *File) writeMessage(msg core.Message) {
 		return // ### return, dropped ###
 	}
 
-	if !state.batch.Append(msg) {
-		state.flush()
-		if !state.batch.AppendOrBlock(msg) {
-			prod.Drop(msg)
-		}
-	}
+	state.batch.AppendRetry(msg, state.flush, prod.IsActive, prod.Drop)
 }
 
-// Close gracefully
-func (prod *File) Close() {
+func (prod *File) close() {
 	defer prod.WorkerDone()
 
 	// Flush buffers
@@ -388,5 +383,5 @@ func (prod *File) Close() {
 // Produce writes to a buffer that is dumped to a file.
 func (prod *File) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.TickerControlLoop(prod.batchTimeout, prod.writeMessage, prod.writeBatchOnTimeOut)
+	prod.TickerMessageControlLoop(prod.writeMessage, prod.batchTimeout, prod.writeBatchOnTimeOut)
 }

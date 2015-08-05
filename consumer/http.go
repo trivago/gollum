@@ -131,5 +131,5 @@ func (cons Http) Consume(workers *sync.WaitGroup) {
 	go cons.serve()
 	defer cons.listen.Close()
 
-	cons.DefaultControlLoop()
+	cons.ControlLoop()
 }

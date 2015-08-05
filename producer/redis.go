@@ -85,6 +85,7 @@ func (prod *Redis) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err // ### return, plugin load error ###
 	}
+	prod.SetStopCallback(prod.close)
 	prod.fieldFormat = fieldFormat.(core.Formatter)
 
 	prod.password = conf.GetString("Password", "")
@@ -187,8 +188,7 @@ func (prod *Redis) storeString(msg core.Message) {
 	}
 }
 
-// Close gracefully
-func (prod *Redis) Close() {
+func (prod *Redis) close() {
 	defer prod.WorkerDone()
 	prod.CloseGracefully(prod.store)
 }
@@ -207,5 +207,5 @@ func (prod *Redis) Produce(workers *sync.WaitGroup) {
 	}
 
 	prod.AddMainWorker(workers)
-	prod.DefaultControlLoop(prod.store)
+	prod.MessageControlLoop(prod.store)
 }

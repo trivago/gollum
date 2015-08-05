@@ -122,6 +122,8 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
+	prod.SetStopCallback(prod.close)
+
 	plugin, err := core.NewPluginWithType(conf.GetString("Filter", "filter.All"), conf)
 	if err != nil {
 		return err // ### return, plugin load error ###
@@ -197,8 +199,7 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 	}
 }
 
-// Close gracefully
-func (prod *ElasticSearch) Close() {
+func (prod *ElasticSearch) close() {
 	defer prod.WorkerDone()
 	prod.CloseGracefully(prod.sendMessage)
 	prod.indexer.Flush()
@@ -209,5 +210,5 @@ func (prod *ElasticSearch) Close() {
 func (prod *ElasticSearch) Produce(workers *sync.WaitGroup) {
 	prod.indexer.Start()
 	prod.AddMainWorker(workers)
-	prod.DefaultControlLoop(prod.sendMessage)
+	prod.MessageControlLoop(prod.sendMessage)
 }

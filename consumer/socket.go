@@ -103,7 +103,6 @@ type Socket struct {
 	flags         shared.BufferedReaderFlags
 	fileFlags     os.FileMode
 	offset        int
-	quit          bool
 }
 
 func init() {
@@ -176,7 +175,6 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 		return fmt.Errorf("Unknown partitioner: %s", partitioner)
 	}
 
-	cons.quit = false
 	return err
 }
 
@@ -218,12 +216,12 @@ func (cons *Socket) processConnection(conn net.Conn) {
 	conn.SetDeadline(time.Time{})
 	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.offset, cons.delimiter)
 
-	for !cons.quit {
+	for cons.IsActive() {
 		err := buffer.ReadAll(conn, cons.Enqueue)
 
 		// Handle errors
 		if err != nil && err != io.EOF {
-			if cons.quit || cons.clientDisconnected(err) {
+			if cons.GetState() != core.PluginStateActive || cons.clientDisconnected(err) {
 				return // ### return, connection closed ###
 			}
 
@@ -242,7 +240,7 @@ func (cons *Socket) udpAccept() {
 	defer cons.WorkerDone()
 	var err error
 
-	for !cons.quit {
+	for cons.IsActive() {
 		addr, _ := net.ResolveUDPAddr(cons.protocol, cons.address)
 		if cons.listen, err = net.ListenUDP(cons.protocol, addr); err != nil {
 			break // ### break, connected ###
@@ -268,7 +266,7 @@ func (cons *Socket) tcpAccept() {
 	defer cons.WorkerDone()
 	var err error
 
-	for !cons.quit {
+	for cons.IsActive() {
 		if cons.listen, err = net.Listen(cons.protocol, cons.address); err == nil {
 			if cons.protocol == "unix" {
 				os.Chmod(cons.address, cons.fileFlags)
@@ -281,10 +279,10 @@ func (cons *Socket) tcpAccept() {
 
 	if cons.listen != nil {
 		listener := cons.listen.(net.Listener)
-		for !cons.quit {
+		for cons.IsActive() {
 			client, err := listener.Accept()
 			if err != nil {
-				if !cons.quit {
+				if cons.IsActive() {
 					Log.Error.Print("Socket listen failed: ", err)
 					cons.listen.Close()
 				}
@@ -299,7 +297,7 @@ func (cons *Socket) tcpAccept() {
 	}
 
 	cons.closeAllClients()
-	if !cons.quit {
+	if cons.IsActive() {
 		// Try reconnect
 		cons.AddWorker()
 		go cons.tcpAccept()
@@ -308,7 +306,6 @@ func (cons *Socket) tcpAccept() {
 
 // Consume listens to a given socket.
 func (cons *Socket) Consume(workers *sync.WaitGroup) {
-	cons.quit = false
 	cons.AddMainWorker(workers)
 
 	if cons.protocol == "udp" {
@@ -318,11 +315,10 @@ func (cons *Socket) Consume(workers *sync.WaitGroup) {
 	}
 
 	defer func() {
-		cons.quit = true
 		if cons.listen != nil {
 			cons.listen.Close()
 		}
 	}()
 
-	cons.DefaultControlLoop()
+	cons.ControlLoop()
 }

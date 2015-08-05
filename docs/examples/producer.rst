@@ -25,13 +25,13 @@ The Produce() function will be called as a separate go routine and should do two
 As Produce() is called as a separate go routine you can decide wether to spawn additional go routines to handle both tasks or to let Produce() handle everything.
 ProducerBase gives you two convenience loop functions to handle control commands:
 
-**DefaultControlLoop**
+**MessageLoop**
   Will loop until a stop is recieved and can trigger a callback if a log rotation is requested (SIG_HUP is sent).
   Messages from the internal message channel are passed to the given message handler.
   The log rotation callback can be set e.g. in the Configure method by using the SetRollBack function.
   Other possible callbacks functions are SetPrepareStopCallback and SetStopCallback.
 
-**TickerControlLoop**
+**TickerMessageLoop**
   Gives you an additional callback that is triggered in regular intervals.
 
 In contrast to the ConsumerBase loop methods these two method also handle the message loop.
@@ -56,7 +56,7 @@ A typical produce function will look like this:
 
   func (prod *MyProducer) Produce(workers *sync.WaitGroup) {
     prod.AddMainWorker(workers)
-    prod.DefaultControlLoop(prod.processData)
+    prod.MessageLoop(prod.processData)
   }
 
 The framework will call the Close() function when the default control loop exits, i.e. after a shutdown signal was sent.

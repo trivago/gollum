@@ -62,7 +62,6 @@ type PcapHTTPConsumer struct {
 	core.ConsumerBase
 	netInterface   string
 	filter         string
-	capturing      bool
 	promiscuous    bool
 	handle         *pcap.Pcap
 	sessions       pcapSessionMap
@@ -95,7 +94,6 @@ func (cons *PcapHTTPConsumer) Configure(conf core.PluginConfig) error {
 	cons.netInterface = conf.GetString("Interface", "eth0")
 	cons.promiscuous = conf.GetBool("Promiscuous", true)
 	cons.filter = conf.GetString("Filter", "dst port 80 and dst host 127.0.0.1")
-	cons.capturing = true
 	cons.sessions = make(pcapSessionMap)
 	cons.sessionTimeout = time.Duration(conf.GetInt("TimeoutMs", 3000)) * time.Millisecond
 	cons.sessionGuard = new(sync.Mutex)
@@ -148,12 +146,12 @@ func (cons *PcapHTTPConsumer) readPackets() {
 		}
 	}()
 
-	for cons.capturing {
+	for cons.IsActive() {
 		pkt, resultCode := cons.handle.NextEx()
 
 		switch resultCode {
 		case pcapNextExEOF:
-			cons.capturing = false
+			cons.Control() <- core.PluginControlStopConsumer
 			Log.Note.Print("PcapHTTPConsumer: End of file, stopping.")
 			continue
 
@@ -222,10 +220,6 @@ func (cons *PcapHTTPConsumer) clearSession(key uint32) {
 	delete(cons.sessions, key)
 }
 
-func (cons *PcapHTTPConsumer) close() {
-	cons.capturing = false
-}
-
 func (cons *PcapHTTPConsumer) initPcap() {
 	var err error
 
@@ -251,7 +245,5 @@ func (cons *PcapHTTPConsumer) Consume(workers *sync.WaitGroup) {
 	cons.AddMainWorker(workers)
 
 	go cons.readPackets()
-	defer cons.close()
-
-	cons.DefaultControlLoop()
+	cons.ControlLoop()
 }

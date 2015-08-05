@@ -92,6 +92,7 @@ func (prod *InfluxDB) Configure(conf core.PluginConfig) error {
 	if err := prod.ProducerBase.Configure(conf); err != nil {
 		return err
 	}
+	prod.SetStopCallback(prod.close)
 
 	if conf.GetBool("UseVersion08", false) {
 		prod.writer = new(influxDBWriter08)
@@ -129,16 +130,10 @@ func (prod *InfluxDB) sendBatchOnTimeOut() {
 }
 
 func (prod *InfluxDB) sendMessage(msg core.Message) {
-	if !prod.batch.Append(msg) {
-		prod.sendBatch()
-		if !prod.batch.AppendOrBlock(msg) {
-			prod.Drop(msg)
-		}
-	}
+	prod.batch.AppendRetry(msg, prod.sendBatch, prod.IsActive, prod.Drop)
 }
 
-// Close gracefully
-func (prod *InfluxDB) Close() {
+func (prod *InfluxDB) close() {
 	defer prod.WorkerDone()
 
 	// Flush buffer to regular socket
@@ -161,5 +156,5 @@ func (prod *InfluxDB) Close() {
 // The buffer limit does not describe the number of messages received from kafka but the size of the buffer content in KB.
 func (prod *InfluxDB) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.TickerControlLoop(prod.flushTimeout, prod.sendMessage, prod.sendBatchOnTimeOut)
+	prod.TickerMessageControlLoop(prod.sendMessage, prod.flushTimeout, prod.sendBatchOnTimeOut)
 }

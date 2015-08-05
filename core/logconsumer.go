@@ -66,7 +66,7 @@ func (cons *LogConsumer) Consume(threads *sync.WaitGroup) {
 	// Wait for control statements
 	for {
 		command := <-cons.control
-		if command == PluginControlStop {
+		if command == PluginControlStopConsumer {
 			return // ### return ###
 		}
 	}

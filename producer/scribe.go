@@ -96,6 +96,7 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err
 	}
+	prod.SetStopCallback(prod.close)
 
 	plugin, err := core.NewPluginWithType(conf.GetString("Filter", "filter.All"), conf)
 	if err != nil {
@@ -151,12 +152,7 @@ func (prod *Scribe) sendBatchOnTimeOut() {
 }
 
 func (prod *Scribe) sendMessage(msg core.Message) {
-	if !prod.batch.Append(msg) {
-		prod.sendBatch()
-		if !prod.batch.AppendOrBlock(msg) {
-			prod.Drop(msg)
-		}
-	}
+	prod.batch.AppendRetry(msg, prod.sendBatch, prod.IsActive, prod.Drop)
 }
 
 func (prod *Scribe) dropMessages(messages []core.Message) {
@@ -198,8 +194,7 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 	}
 }
 
-// Close gracefully
-func (prod *Scribe) Close() {
+func (prod *Scribe) close() {
 	defer func() {
 		prod.transport.Close()
 		prod.socket.Close()
@@ -222,5 +217,5 @@ func (prod *Scribe) Close() {
 // Produce writes to a buffer that is sent to scribe.
 func (prod *Scribe) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.TickerControlLoop(prod.batchTimeout, prod.sendMessage, prod.sendBatchOnTimeOut)
+	prod.TickerMessageControlLoop(prod.sendMessage, prod.batchTimeout, prod.sendBatchOnTimeOut)
 }

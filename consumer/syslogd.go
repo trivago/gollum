@@ -135,5 +135,5 @@ func (cons *Syslogd) Consume(workers *sync.WaitGroup) {
 	server.Boot()
 	defer server.Kill()
 
-	cons.DefaultControlLoop()
+	cons.ControlLoop()
 }

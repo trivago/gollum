@@ -70,6 +70,7 @@ func (prod *Websocket) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err
 	}
+	prod.SetStopCallback(prod.close)
 
 	prod.address = conf.GetString("Address", ":81")
 	prod.path = conf.GetString("Path", "/")
@@ -179,8 +180,7 @@ func (prod *Websocket) serve() {
 	}
 }
 
-// Close gracefully
-func (prod *Websocket) Close() {
+func (prod *Websocket) close() {
 	prod.CloseGracefully(prod.pushMessage)
 	prod.listen.Close()
 
@@ -196,5 +196,5 @@ func (prod *Websocket) Close() {
 func (prod *Websocket) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
 	go prod.serve()
-	prod.DefaultControlLoop(prod.pushMessage)
+	prod.MessageControlLoop(prod.pushMessage)
 }

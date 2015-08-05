@@ -88,6 +88,7 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err
 	}
+	prod.SetStopCallback(prod.close)
 
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
 	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
@@ -160,17 +161,11 @@ func (prod *Socket) sendBatchOnTimeOut() {
 	}
 }
 
-func (prod *Socket) sendMessage(message core.Message) {
-	if !prod.batch.Append(message) {
-		prod.sendBatch()
-		if !prod.batch.AppendOrBlock(message) {
-			prod.Drop(message)
-		}
-	}
+func (prod *Socket) sendMessage(msg core.Message) {
+	prod.batch.AppendRetry(msg, prod.sendBatch, prod.IsActive, prod.Drop)
 }
 
-// Close gracefully
-func (prod *Socket) Close() {
+func (prod *Socket) close() {
 	defer func() {
 		if prod.connection != nil {
 			prod.connection.Close()
@@ -196,5 +191,5 @@ func (prod *Socket) Close() {
 // Produce writes to a buffer that is sent to a given socket.
 func (prod *Socket) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.TickerControlLoop(prod.batchTimeout, prod.sendMessage, prod.sendBatchOnTimeOut)
+	prod.TickerMessageControlLoop(prod.sendMessage, prod.batchTimeout, prod.sendBatchOnTimeOut)
 }

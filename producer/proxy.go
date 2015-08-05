@@ -95,6 +95,7 @@ func (prod *Proxy) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err
 	}
+	prod.SetStopCallback(prod.close)
 
 	prod.bufferSizeKB = conf.GetInt("ConnectionBufferSizeKB", 1<<10) // 1 MB
 	prod.address, prod.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
@@ -196,8 +197,7 @@ func (prod *Proxy) sendMessage(msg core.Message) {
 	}
 }
 
-// Close gracefully
-func (prod *Proxy) Close() {
+func (prod *Proxy) close() {
 	defer prod.WorkerDone()
 	prod.CloseGracefully(prod.sendMessage)
 
@@ -209,5 +209,5 @@ func (prod *Proxy) Close() {
 // Produce writes to a buffer that is sent to a given Proxy.
 func (prod *Proxy) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.DefaultControlLoop(prod.sendMessage)
+	prod.MessageControlLoop(prod.sendMessage)
 }

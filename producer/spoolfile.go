@@ -118,7 +118,7 @@ func (spool *spoolFile) read() {
 
 	path := spool.prod.path + "/" + spool.streamName
 
-	for !spool.prod.closing {
+	for spool.prod.IsActive() {
 		minSuffix, _ := spool.getFileNumbering(path)
 
 		spoolFileName := fmt.Sprintf(spoolFileFormatString, path, minSuffix)

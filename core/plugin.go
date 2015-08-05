@@ -29,9 +29,11 @@ type PluginControl int
 type PluginState int
 
 const (
-	// PluginControlPrepareStop is sent to all producers/consumers when a shutdown is imminent.
-	PluginControlPrepareStop = PluginControl(iota)
-	// PluginControlStop will cause the consumer/producer to halt and shutdown.
+	// PluginControlStopProducer will cause any producer to halt and shutdown.
+	PluginControlStopProducer = PluginControl(iota)
+	// PluginControlStopConsumer will cause any consumer to halt and shutdown.
+	PluginControlStopConsumer = PluginControl(iota)
+	// PluginControlStop will cause any plugin to halt and shutdown.
 	PluginControlStop = PluginControl(iota)
 	// PluginControlRoll notifies the consumer/producer about a reconnect or reopen request
 	PluginControlRoll = PluginControl(iota)
@@ -44,6 +46,8 @@ const (
 	PluginStateActive = PluginState(iota)
 	// PluginStateWaiting is set when a plugin is active but currently unable to process data
 	PluginStateWaiting = PluginState(iota)
+	// PluginStateStopping is set when a plugin is about to stop
+	PluginStateStopping = PluginState(iota)
 )
 
 // PluginRunState is used in some plugins to store information about the

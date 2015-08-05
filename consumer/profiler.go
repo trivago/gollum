@@ -72,7 +72,6 @@ type Profiler struct {
 	templates   [][]byte
 	chars       string
 	message     string
-	quit        bool
 	delay       time.Duration
 }
 
@@ -173,11 +172,11 @@ func (cons *Profiler) profile() {
 	maxTime := 0.0
 	batchIdx := 0
 
-	for batchIdx = 0; batchIdx < cons.batches && !cons.quit; batchIdx++ {
+	for batchIdx = 0; batchIdx < cons.batches && cons.IsActive(); batchIdx++ {
 		Log.Note.Print(fmt.Sprintf("run %d/%d:", batchIdx, cons.batches))
 		start := time.Now()
 
-		for i := 0; i < cons.profileRuns && !cons.quit; i++ {
+		for i := 0; i < cons.profileRuns && cons.IsActive(); i++ {
 			template := cons.templates[rand.Intn(len(cons.templates))]
 			cons.EnqueueCopy(template, uint64(batchIdx*cons.profileRuns+i))
 			if cons.delay > 0 {
@@ -207,7 +206,7 @@ func (cons *Profiler) profile() {
 		maxTime,
 		float64(cons.profileRuns)/maxTime))
 
-	if !cons.quit {
+	if cons.IsActive() {
 		// Automatically shut down when done
 		proc, _ := os.FindProcess(os.Getpid())
 		proc.Signal(os.Interrupt)
@@ -216,14 +215,8 @@ func (cons *Profiler) profile() {
 
 // Consume starts a profile run and exits gollum when done
 func (cons *Profiler) Consume(workers *sync.WaitGroup) {
-	cons.quit = false
 	cons.AddMainWorker(workers)
 
 	go shared.DontPanic(cons.profile)
-
-	defer func() {
-		cons.quit = true
-	}()
-
-	cons.DefaultControlLoop()
+	cons.ControlLoop()
 }

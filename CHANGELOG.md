@@ -11,8 +11,9 @@ Custom producers and config files may have to be adjusted.
 
  * shared.RuntimeType renamed to TypeRegistry
  * core.StreamTypes renamed to StreamRegistry
- * Producers now have to implement a Close() method that is explicitly called during shutdown
- * ControlLoop* callback parameters for command handling moved to member functions
+ * ?ControlLoop callback parameters for command handling moved to callback members
+ * ?ControlLoop renamed to ?Loop, where ? can be a combination of Control (handling of control messages), Message (handling of messages) or Ticker (handling of regular callbacks)
+ * PluginControlStop is now splitted into PluginControlStopConsumer and PluginControlStopProducer to allow plugins that are producer and consumers.
  * Producer.Enqueue now takes care of dropping messages and accepts a timeout overwrite value
  * MessageBatch has been refactored to store messages instead of preformatted strings. This allows dropping messages from a batch.
  * Message.Drop has been removed, Message.Route can now be used instead

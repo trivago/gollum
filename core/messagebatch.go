@@ -60,20 +60,6 @@ func newMessageQueue(maxMessageCount int) messageQueue {
 	}
 }
 
-// AppendOrBlock works like Append but will block until Append returns true.
-// If the batch was closed during this call, false is returned.
-func (batch *MessageBatch) AppendOrBlock(msg Message) bool {
-	spin := shared.NewSpinner(shared.SpinPriorityMedium)
-	for !batch.closed {
-		if batch.Append(msg) {
-			return true // ### return, success ###
-		}
-		spin.Yield()
-	}
-
-	return false
-}
-
 // Append formats a message and appends it to the internal buffer.
 // If the message does not fit into the buffer this function returns false.
 // If the message can never fit into the buffer (too large), true is returned
@@ -98,6 +84,33 @@ func (batch *MessageBatch) Append(msg Message) bool {
 
 	activeQueue.messages[ticketIdx] = msg
 	return true
+}
+
+// AppendOrBlock works like Append but will block until Append returns true.
+// If the batch was closed during this call, false is returned.
+func (batch *MessageBatch) AppendOrBlock(msg Message) bool {
+	spin := shared.NewSpinner(shared.SpinPriorityMedium)
+	for !batch.closed {
+		if batch.Append(msg) {
+			return true // ### return, success ###
+		}
+		spin.Yield()
+	}
+
+	return false
+}
+
+// AppendRetry is a common combinatorial pattern of Append and AppendOrBlock.
+// If append fails, flush is called, followed by AppendOrBlock if blocking is
+// allowed. If AppendOrBlock fails (or blocking is not allowed) the message is
+// dropped.
+func (batch *MessageBatch) AppendRetry(msg Message, flush func(), canBlock func() bool, drop func(Message)) {
+	if !batch.Append(msg) {
+		flush()
+		if !canBlock() || !batch.AppendOrBlock(msg) {
+			drop(msg)
+		}
+	}
 }
 
 // Touch resets the timer queried by ReachedTimeThreshold, i.e. this resets the

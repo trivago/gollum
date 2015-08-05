@@ -49,6 +49,7 @@ func (prod *Console) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
+	prod.SetStopCallback(prod.close)
 	console := conf.GetString("Console", "stdout")
 
 	switch strings.ToLower(console) {
@@ -68,8 +69,7 @@ func (prod *Console) printMessage(msg core.Message) {
 	fmt.Fprint(prod.console, string(text))
 }
 
-// Close gracefully
-func (prod *Console) Close() {
+func (prod *Console) close() {
 	prod.CloseGracefully(prod.printMessage)
 }
 
@@ -78,5 +78,5 @@ func (prod *Console) Produce(workers *sync.WaitGroup) {
 	defer prod.WorkerDone()
 
 	prod.AddMainWorker(workers)
-	prod.DefaultControlLoop(prod.printMessage)
+	prod.MessageControlLoop(prod.printMessage)
 }

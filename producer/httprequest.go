@@ -55,6 +55,7 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err
 	}
+	prod.SetStopCallback(prod.close)
 
 	address := conf.GetString("Address", "localhost:80")
 	prod.host, prod.port, err = net.SplitHostPort(address)
@@ -93,8 +94,7 @@ func (prod *HTTPRequest) sendReq(msg core.Message) {
 	}()
 }
 
-// Close gracefully
-func (prod *HTTPRequest) Close() {
+func (prod *HTTPRequest) close() {
 	defer prod.WorkerDone()
 	prod.CloseGracefully(prod.sendReq)
 }
@@ -102,5 +102,5 @@ func (prod *HTTPRequest) Close() {
 // Produce writes to stdout or stderr.
 func (prod *HTTPRequest) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.DefaultControlLoop(prod.sendReq)
+	prod.MessageControlLoop(prod.sendReq)
 }

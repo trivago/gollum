@@ -359,25 +359,12 @@ func (plex *multiplexer) shutdown() {
 	Log.Note.Print("Filthy little hobbites. They stole it from us. (shutdown)")
 	stateAtShutdown := plex.state
 
-	// Notify consumers/producers that a shutdown is requested
-	if stateAtShutdown >= multiplexerStateStartConsumers {
-		for _, cons := range plex.consumers {
-			cons.Control() <- core.PluginControlPrepareStop
-		}
-	}
-
-	if stateAtShutdown >= multiplexerStateStartProducers {
-		for _, prod := range plex.producers {
-			prod.Control() <- core.PluginControlPrepareStop
-		}
-	}
-
 	// Shutdown consumers
 	plex.state = multiplexerStateStopConsumers
 	if stateAtShutdown >= multiplexerStateStartConsumers {
 		for _, cons := range plex.consumers {
 			Log.Debug.Printf("Closing consumer %s", reflect.TypeOf(cons).String())
-			cons.Control() <- core.PluginControlStop
+			cons.Control() <- core.PluginControlStopConsumer
 		}
 		Log.Debug.Print("Waiting for consumers to close")
 		plex.consumerWorker.Wait()
@@ -394,8 +381,7 @@ func (plex *multiplexer) shutdown() {
 		for prodIter := plex.shutdownOrder.Front(); prodIter != nil; prodIter = prodIter.Next() {
 			prod := prodIter.Value.(core.Producer)
 			Log.Debug.Printf("Closing producer %s", reflect.TypeOf(prod).String())
-			prod.Control() <- core.PluginControlStop
-			go prod.Close() // Because this might block
+			prod.Control() <- core.PluginControlStopProducer
 		}
 		Log.Debug.Print("Waiting for producers to close")
 		plex.producerWorker.Wait()

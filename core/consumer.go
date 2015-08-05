@@ -16,6 +16,7 @@ package core
 
 import (
 	"fmt"
+	"github.com/trivago/gollum/core/log"
 	"sync"
 	"time"
 )
@@ -35,6 +36,12 @@ type Consumer interface {
 	// Control returns write access to this consumer's control channel.
 	// See PluginControl* constants.
 	Control() chan<- PluginControl
+
+	// IsActive returns true if GetState() returns active
+	IsActive() bool
+
+	// IsBlocked returns true if GetState() returns waiting
+	IsBlocked() bool
 }
 
 // ConsumerBase base class
@@ -57,12 +64,11 @@ type Consumer interface {
 // which means only producers set to consume "all streams" will get these
 // messages.
 type ConsumerBase struct {
-	control       chan PluginControl
-	streams       []MappedStream
-	runState      *PluginRunState
-	onRoll        func()
-	onStop        func()
-	onPrepareStop func()
+	control  chan PluginControl
+	streams  []MappedStream
+	runState *PluginRunState
+	onRoll   func()
+	onStop   func()
 }
 
 // ConsumerError can be used to return consumer related errors e.g. during a
@@ -87,7 +93,6 @@ func (cons *ConsumerBase) Configure(conf PluginConfig) error {
 	cons.control = make(chan PluginControl, 1)
 	cons.onRoll = nil
 	cons.onStop = nil
-	cons.onPrepareStop = nil
 
 	for _, streamName := range conf.Stream {
 		streamID := GetStreamID(streamName)
@@ -110,6 +115,16 @@ func (cons *ConsumerBase) GetState() PluginState {
 	return cons.runState.state
 }
 
+// IsActive returns true if GetState() returns active
+func (cons *ConsumerBase) IsActive() bool {
+	return cons.GetState() == PluginStateActive
+}
+
+// IsBlocked returns true if GetState() returns waiting
+func (cons *ConsumerBase) IsBlocked() bool {
+	return cons.GetState() == PluginStateWaiting
+}
+
 // SetRollCallback sets the function to be called upon PluginControlRoll
 func (cons *ConsumerBase) SetRollCallback(onRoll func()) {
 	cons.onRoll = onRoll
@@ -120,31 +135,26 @@ func (cons *ConsumerBase) SetStopCallback(onStop func()) {
 	cons.onStop = onStop
 }
 
-// SetPrepareStopCallback sets the function to be called upon PluginControlPrepareStop
-func (cons *ConsumerBase) SetPrepareStopCallback(onPrepareStop func()) {
-	cons.onPrepareStop = onPrepareStop
-}
-
 // SetWorkerWaitGroup forwards to Plugin.SetWorkerWaitGroup for this consumer's
 // internal plugin state. This method is also called by AddMainWorker.
-func (cons ConsumerBase) SetWorkerWaitGroup(workers *sync.WaitGroup) {
+func (cons *ConsumerBase) SetWorkerWaitGroup(workers *sync.WaitGroup) {
 	cons.runState.SetWorkerWaitGroup(workers)
 }
 
 // AddMainWorker adds the first worker to the waitgroup
-func (cons ConsumerBase) AddMainWorker(workers *sync.WaitGroup) {
+func (cons *ConsumerBase) AddMainWorker(workers *sync.WaitGroup) {
 	cons.runState.SetWorkerWaitGroup(workers)
 	cons.AddWorker()
 }
 
 // AddWorker adds an additional worker to the waitgroup. Assumes that either
 // MarkAsActive or SetWaitGroup has been called beforehand.
-func (cons ConsumerBase) AddWorker() {
+func (cons *ConsumerBase) AddWorker() {
 	cons.runState.AddWorker()
 }
 
 // WorkerDone removes an additional worker to the waitgroup.
-func (cons ConsumerBase) WorkerDone() {
+func (cons *ConsumerBase) WorkerDone() {
 	cons.runState.WorkerDone()
 }
 
@@ -187,59 +197,46 @@ func (cons *ConsumerBase) Control() chan<- PluginControl {
 	return cons.control
 }
 
-// ProcessCommand provides a callback based possibility to react on the
-// different consumer commands. Returns true if ConsumerControlStop was triggered.
-func (cons *ConsumerBase) processCommand(command PluginControl) bool {
-	switch command {
-	default:
-		// Do nothing
-
-	case PluginControlStop:
-		cons.setState(PluginStateDead)
-		if cons.onStop != nil {
-			cons.onStop()
-		}
-		return true // ### return ###
-
-	case PluginControlRoll:
-		if cons.onRoll != nil {
-			cons.onRoll()
-		}
-
-	case PluginControlPrepareStop:
-		if cons.onPrepareStop != nil {
-			cons.onPrepareStop()
-		}
+func (cons *ConsumerBase) tickerLoop(interval time.Duration, onTimeOut func()) {
+	flushTicker := time.NewTicker(interval)
+	for cons.IsActive() {
+		<-flushTicker.C
+		onTimeOut()
 	}
-
-	return false
 }
 
-// DefaultControlLoop provides a consumer mainloop that is sufficient for most
-// usecases.
-func (cons *ConsumerBase) DefaultControlLoop() {
+// ControlLoop listens to the control channel and triggers callbacks for these
+// messags. Upon stop control message doExit will be set to true.
+func (cons *ConsumerBase) ControlLoop() {
 	cons.setState(PluginStateActive)
+	defer cons.setState(PluginStateDead)
 	for {
 		command := <-cons.control
-		if cons.processCommand(command) {
+		switch command {
+		default:
+			Log.Debug.Print("Recieved untracked command")
+			// Do nothing
+
+		case PluginControlStopConsumer, PluginControlStop:
+			cons.setState(PluginStateStopping)
+			Log.Debug.Print("Recieved stop command")
+			if cons.onStop != nil {
+				cons.onStop()
+			}
 			return // ### return ###
+
+		case PluginControlRoll:
+			Log.Debug.Print("Recieved roll command")
+			if cons.onRoll != nil {
+				cons.onRoll()
+			}
 		}
 	}
 }
 
-// TickerControlLoop is like DefaultControlLoop but executes a given function at
+// TickerControlLoop is like MessageLoop but executes a given function at
 // every given interval tick, too.
 func (cons *ConsumerBase) TickerControlLoop(interval time.Duration, onTick func()) {
-	ticker := time.NewTicker(interval)
-	cons.setState(PluginStateActive)
-	for {
-		select {
-		case command := <-cons.control:
-			if cons.processCommand(command) {
-				return // ### return ###
-			}
-		case <-ticker.C:
-			onTick()
-		}
-	}
+	go cons.tickerLoop(interval, onTick)
+	cons.ControlLoop()
 }

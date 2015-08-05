@@ -246,5 +246,5 @@ func (cons *File) Consume(workers *sync.WaitGroup) {
 		cons.read()
 	})
 
-	cons.DefaultControlLoop()
+	cons.ControlLoop()
 }

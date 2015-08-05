@@ -81,5 +81,5 @@ func (cons *Console) readStdIn() {
 // Consume listens to stdin.
 func (cons *Console) Consume(workers *sync.WaitGroup) {
 	go cons.readStdIn()
-	cons.DefaultControlLoop()
+	cons.ControlLoop()
 }

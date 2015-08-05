@@ -58,7 +58,6 @@ type Spooling struct {
 	core.ProducerBase
 	outfile       map[core.MessageStreamID]*spoolFile
 	rotation      fileRotateConfig
-	closing       bool
 	path          string
 	maxFileSize   int64
 	maxFileAge    time.Duration
@@ -79,14 +78,13 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err
 	}
+	prod.SetStopCallback(prod.close)
 
 	prod.path = conf.GetString("Path", "/var/run/gollum/spooling/")
-	prod.SetPrepareStopCallback(func() { prod.closing = true })
 
 	prod.maxFileSize = int64(conf.GetInt("MaxFileSizeMB", 512)) << 20
 	prod.maxFileAge = time.Duration(conf.GetInt("MaxFileAgeMin", 1)) * time.Minute
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 100)
-	prod.closing = false
 	prod.outfile = make(map[core.MessageStreamID]*spoolFile)
 	prod.rotation = fileRotateConfig{
 		timeout:  prod.maxFileAge,
@@ -127,18 +125,12 @@ func (prod *Spooling) writeToFile(msg core.Message) {
 	}
 
 	// Append to buffer
-	if !spool.batch.Append(msg) {
-		spool.flush()
-		if !spool.batch.AppendOrBlock(msg) {
-			prod.Drop(msg)
-		}
-	}
-
+	spool.batch.AppendRetry(msg, spool.flush, prod.IsActive, prod.Drop)
 	shared.Metric.Inc(spoolingMetricName + spool.streamName)
 }
 
 func (prod *Spooling) routeToOrigin(msg core.Message) {
-	if !prod.closing {
+	if prod.IsActive() {
 		msg.Route(msg.PrevStreamID)
 	} else {
 		prod.Drop(msg)
@@ -149,10 +141,8 @@ func (prod *Spooling) routeToOrigin(msg core.Message) {
 	}
 }
 
-// Close gracefully
-func (prod *Spooling) Close() {
+func (prod *Spooling) close() {
 	defer prod.WorkerDone()
-	prod.closing = true
 
 	// Drop as the producer accepting these messages is already offline anyway
 	prod.CloseGracefully(prod.Drop)
@@ -164,5 +154,5 @@ func (prod *Spooling) Close() {
 // Produce writes to stdout or stderr.
 func (prod *Spooling) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.DefaultControlLoop(prod.writeToFile)
+	prod.MessageControlLoop(prod.writeToFile)
 }

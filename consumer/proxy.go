@@ -85,7 +85,6 @@ type Proxy struct {
 	flags     shared.BufferedReaderFlags
 	delimiter string
 	offset    int
-	quit      bool
 }
 
 func init() {
@@ -142,7 +141,6 @@ func (cons *Proxy) Configure(conf core.PluginConfig) error {
 		return fmt.Errorf("Unknown partitioner: %s", partitioner)
 	}
 
-	cons.quit = false
 	return err
 }
 
@@ -150,10 +148,10 @@ func (cons *Proxy) accept() {
 	defer cons.WorkerDone()
 
 	listener := cons.listen.(net.Listener)
-	for !cons.quit {
+	for cons.IsActive() {
 		client, err := listener.Accept()
 		if err != nil {
-			if !cons.quit {
+			if cons.IsActive() {
 				Log.Error.Print("Proxy listen failed: ", err)
 			}
 			break // ### break ###
@@ -166,7 +164,6 @@ func (cons *Proxy) accept() {
 // Consume listens to a given socket.
 func (cons *Proxy) Consume(workers *sync.WaitGroup) {
 	var err error
-	cons.quit = false
 
 	if cons.listen, err = net.Listen(cons.protocol, cons.address); err != nil {
 		Log.Error.Print("Proxy connection error: ", err)
@@ -178,10 +175,6 @@ func (cons *Proxy) Consume(workers *sync.WaitGroup) {
 		cons.accept()
 	})
 
-	defer func() {
-		cons.quit = true
-		cons.listen.Close()
-	}()
-
-	cons.DefaultControlLoop()
+	defer cons.listen.Close()
+	cons.ControlLoop()
 }

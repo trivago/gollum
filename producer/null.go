@@ -54,6 +54,16 @@ func (prod *Null) GetState() core.PluginState {
 	return core.PluginStateActive
 }
 
+// IsActive always returns true
+func (prod *Null) IsActive() bool {
+	return true
+}
+
+// IsBlocked always returns false
+func (prod *Null) IsBlocked() bool {
+	return false
+}
+
 // Streams returns the streams this producer is listening to.
 func (prod *Null) Streams() []core.MessageStreamID {
 	return prod.streams
@@ -73,15 +83,11 @@ func (prod *Null) Control() chan<- core.PluginControl {
 func (prod *Null) Enqueue(msg core.Message, timeout *time.Duration) {
 }
 
-// Close gracefully
-func (prod *Null) Close() {
-}
-
 // Produce writes to a buffer that is dumped to a file.
 func (prod *Null) Produce(threads *sync.WaitGroup) {
 	for {
 		command := <-prod.control
-		if command == core.PluginControlStop {
+		if command == core.PluginControlStopConsumer {
 			return // ### return ###
 		}
 	}

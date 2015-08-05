@@ -157,6 +157,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err
 	}
+	prod.SetStopCallback(prod.close)
 
 	plugin, err := core.NewPluginWithType(conf.GetString("Filter", "filter.All"), conf)
 	if err != nil {
@@ -355,8 +356,7 @@ func (prod *Kafka) closeConnection(immediate bool) {
 	}
 }
 
-// Close gracefully
-func (prod *Kafka) Close() {
+func (prod *Kafka) close() {
 	defer prod.WorkerDone()
 	prod.CloseGracefully(prod.send)
 	prod.keepAlive = false
@@ -367,5 +367,5 @@ func (prod *Kafka) Close() {
 func (prod *Kafka) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
 	go prod.connectionKeepAlive()
-	prod.DefaultControlLoop(prod.send)
+	prod.MessageControlLoop(prod.send)
 }
