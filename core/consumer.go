@@ -199,6 +199,7 @@ func (cons *ConsumerBase) Control() chan<- PluginControl {
 
 func (cons *ConsumerBase) tickerLoop(interval time.Duration, onTimeOut func()) {
 	flushTicker := time.NewTicker(interval)
+	defer flushTicker.Stop()
 	for cons.IsActive() {
 		<-flushTicker.C
 		onTimeOut()

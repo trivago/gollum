@@ -348,6 +348,7 @@ func (prod *ProducerBase) CloseGracefully(onMessage func(msg Message)) bool {
 
 func (prod *ProducerBase) tickerLoop(interval time.Duration, onTimeOut func()) {
 	flushTicker := time.NewTicker(interval)
+	defer flushTicker.Stop()
 	for prod.IsActive() {
 		<-flushTicker.C
 		onTimeOut()
