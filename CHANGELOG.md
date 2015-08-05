@@ -40,17 +40,19 @@ Custom producers and config files may have to be adjusted.
  * Spinning loops are now more CPU friendly
  * Plugins can now be addressed by longer paths, too, e.g. "contrib.company.sth"
  * Log messages that appear during startup are now written to the set log producer, too
+ * Fixed a problem where control messages could cause shutdown to get stucked
 
 #### New
 
  * Added a new stream plugin to route messages to one or more other streams
  * The file producer can now delete old files upon rotate (pruning)
+ * The file producer can now overwrite files and set file permissions
  * Added metrics for dropped, discarded and unroutable messages
  * Streams can now overwrite a producer's ChannelTimeoutMs setting (only for this stream)
  * Producers are now shut down in order based on DropStream dependencies
  * Messages now keep a one-step history of their StreamID
  * Added format.StreamRevert to go back to the last used stream (e.g. after a drop)
- * Added producer.Spooling that stores messages for a given time and resends it after this timeframe (usefull for drops)
+ * Added producer.Spooling that temporary stores messages to disk before trying them again (e.g. useful for disconnect scenarios)
  * New control message for consumers/producers before the shutdown starts
  * New formatter to prepend stream names
  * It is now possible to add a custom string after the version number
@@ -60,3 +62,5 @@ Custom producers and config files may have to be adjusted.
  * Plugins can now be registered and queried by a string based ID via core.PluginRegistry
  * Added producer for InfluxDB data (0.8.x and 0.9.x)
  * Added formatter to convert collectd to InfluxDB (0.8.x and 0.9.x)
+ * Added formatter to serialize messages
+ * Kafka, scribe and elastic search producers now have distinct metrics per topic/category/index

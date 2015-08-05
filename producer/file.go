@@ -34,6 +34,8 @@ import (
 //   - "producer.File":
 //     Enable: true
 //     File: "/var/log/gollum.log"
+//     FileOverwrite: false
+//     Permissions: "0664"
 //     BatchMaxCount: 8192
 //     BatchFlushCount: 4096
 //     BatchTimeoutSec: 5
@@ -54,6 +56,12 @@ import (
 // File contains the path to the log file to write. The wildcard character "*"
 // can be used as a placeholder for the stream name.
 // By default this is set to /var/log/gollum.log.
+//
+// FileOverwrite enables files to be overwritten instead of appending new data
+// to it. This is set to false by default.
+//
+// Permissions accepts an octal number string that contains the unix file
+// permissions used when creating a file. By default this is set to "0664".
 //
 // BatchMaxCount defines the maximum number of messages that can be buffered
 // before a flush is mandatory. If the buffer is full and a flush is still
@@ -118,6 +126,8 @@ type File struct {
 	pruneCount      int
 	pruneSize       int64
 	wildcardPath    bool
+	overwriteFile   bool
+	permissions     os.FileMode
 }
 
 func init() {
@@ -139,6 +149,13 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
 	prod.batchFlushCount = shared.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
+	prod.overwriteFile = conf.GetBool("FileOverwrite", false)
+
+	flags, err := strconv.ParseInt(conf.GetString("Permissions", "0664"), 8, 32)
+	prod.permissions = os.FileMode(flags)
+	if err != nil {
+		return err
+	}
 
 	logFile := conf.GetString("File", "/var/log/gollum.log")
 	prod.wildcardPath = strings.IndexByte(logFile, '*') != -1
@@ -274,7 +291,14 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 
 	// (Re)open logfile
 	var err error
-	state.file, err = os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+	openFlags := os.O_WRONLY | os.O_CREATE | os.O_APPEND
+	if prod.overwriteFile {
+		openFlags |= os.O_TRUNC
+	} else {
+		openFlags |= os.O_APPEND
+	}
+
+	state.file, err = os.OpenFile(logFilePath, openFlags, prod.permissions)
 	if err != nil {
 		return state, err // ### return error ###
 	}
