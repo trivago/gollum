@@ -84,6 +84,8 @@ type Scribe struct {
 	bufferSizeByte  int
 }
 
+const scribeMetricName = "ScribeMessages:"
+
 func init() {
 	shared.TypeRegistry.Register(Scribe{})
 }
@@ -177,12 +179,15 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 			if category, exists = prod.category[core.WildcardStreamID]; !exists {
 				category = core.StreamRegistry.GetStreamName(msg.StreamID)
 			}
+			shared.Metric.New(scribeMetricName + category)
 		}
 
 		logBuffer[idx] = &scribe.LogEntry{
 			Category: category,
 			Message:  string(msg.Data),
 		}
+
+		shared.Metric.Inc(scribeMetricName + category)
 	}
 
 	_, err := prod.scribe.Log(logBuffer)

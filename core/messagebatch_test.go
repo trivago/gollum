@@ -116,3 +116,28 @@ func TestMessageBatch(t *testing.T) {
 	expect.False(batch.Append(NewMessage(nil, nil, 0)))
 	expect.False(batch.AppendOrBlock(NewMessage(nil, nil, 0)))
 }
+
+func TestMessageSerialize(t *testing.T) {
+	expect := shared.NewExpect(t)
+	now := time.Now()
+
+	testMessage := Message{
+		StreamID:     1,
+		PrevStreamID: 2,
+		Timestamp:    now,
+		Sequence:     4,
+		Data:         []byte("This is a\nteststring"),
+	}
+
+	data := testMessage.Serialize()
+	expect.Greater(len(data), 0)
+
+	readMessage, err := DeserializeMessage(data)
+	expect.Nil(err)
+
+	expect.Equal(readMessage.StreamID, testMessage.StreamID)
+	expect.Equal(readMessage.PrevStreamID, testMessage.PrevStreamID)
+	expect.Equal(readMessage.Timestamp, testMessage.Timestamp)
+	expect.Equal(readMessage.Sequence, testMessage.Sequence)
+	expect.Equal(readMessage.Data, testMessage.Data)
+}

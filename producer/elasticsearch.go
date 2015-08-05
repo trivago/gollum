@@ -109,6 +109,8 @@ type ElasticSearch struct {
 	dayBasedIndex bool
 }
 
+const elasticMetricName = "ElasticMessages:"
+
 func init() {
 	shared.TypeRegistry.Register(ElasticSearch{})
 }
@@ -172,6 +174,7 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 		if !indexMapped {
 			index = core.StreamRegistry.GetStreamName(msg.StreamID)
 		}
+		shared.Metric.New(elasticMetricName + index)
 	}
 
 	if prod.dayBasedIndex {
@@ -186,6 +189,7 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 		}
 	}
 
+	shared.Metric.Inc(elasticMetricName + index)
 	err := prod.indexer.Index(index, msgType, "", prod.msgTTL, &msg.Timestamp, string(msg.Data), true)
 	if err != nil {
 		Log.Error.Print("ElasticSearch index error - ", err)

@@ -16,8 +16,9 @@ package producer
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
-	"runtime"
+	"os"
 	"sync"
 	"time"
 )
@@ -27,36 +28,45 @@ import (
 //
 //   - "producer.Spooling":
 //     Enable: true
-//     RetryDelayMs: 2000
-//     MaxMessageCount: 0
+//     Path: "/var/run/gollum/spooling"
+//     BatchMaxCount: 100
+//     MaxFileSizeMB: 512
+//     MaxFileAgeMin: 1
 //
 // The Spooling producer buffers messages and sends them again to the previous
 // stream stored in the message. This means the message must have been routed
 // at least once before reaching the spooling producer. If the previous and
 // current stream is identical the message is dropped.
+// The Formatter configuration value is forced to "format.Serialize" and
+// cannot be changed.
 //
-// RetryDelayMs denotes the number of milliseconds before a message is send
-// again. The message is removed from the list after sending.
-// If the time is set to 0, messages are not buffered but resent directly.
-// By default this is set to 2000 (2 seconds).
+// Path sets the output directory for spooling files. Spooling files will
+// Files will be stored as "<path>/<stream>/<number>.spl". By default this is
+// set to "/var/run/gollum/spooling".
 //
-// MaxMessageCount denotes the maximum number of messages to store before
-// dropping new incoming messages. By default this is set to 0 which means all
-// messages are stored.
+// BatchMaxCount defines the maximum number of messages stored in memory before
+// a write to file is triggered. Set to 100 by default.
+//
+// MaxFileSizeMB sets the size in MB when a spooling file is rotated. Reading
+// will start only after a file is rotated. Set to 512 MB by default.
+//
+// MaxFileAgeMin defines the time in minutes after a spooling file is rotated.
+// Reading will start only after a file is rotated. This setting divided by two
+// will be used to define the wait time for reading, too.
+// Set to 1 minute by default.
 type Spooling struct {
 	core.ProducerBase
-	retryDuration   time.Duration
-	maxMessageCount int
-	bufferGuard     *sync.Mutex
-	messageBuffer   []scheduledMessage
-	closing         bool
-	metricName      string
+	outfile       map[core.MessageStreamID]*spoolFile
+	rotation      fileRotateConfig
+	closing       bool
+	path          string
+	maxFileSize   int64
+	maxFileAge    time.Duration
+	batchMaxCount int
 }
 
-type scheduledMessage struct {
-	incoming time.Time
-	message  core.Message
-}
+const spoolingMetricName = "SpoolWrite:"
+const spooledMetricName = "SpoolRead:"
 
 func init() {
 	shared.TypeRegistry.Register(Spooling{})
@@ -64,87 +74,78 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Spooling) Configure(conf core.PluginConfig) error {
+	conf.Override("Formatter", "format.Serialize")
 	err := prod.ProducerBase.Configure(conf)
 	if err != nil {
 		return err
 	}
 
+	prod.path = conf.GetString("Path", "/var/run/gollum/spooling/")
 	prod.SetPrepareStopCallback(func() { prod.closing = true })
 
-	prod.retryDuration = time.Duration(conf.GetInt("RetryDelayMs", 2000)) * time.Millisecond
-	prod.maxMessageCount = conf.GetInt("MaxMessageCount", 0)
-	prod.bufferGuard = new(sync.Mutex)
+	prod.maxFileSize = int64(conf.GetInt("MaxFileSizeMB", 512)) << 20
+	prod.maxFileAge = time.Duration(conf.GetInt("MaxFileAgeMin", 1)) * time.Minute
+	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 100)
 	prod.closing = false
-	prod.metricName = "spoolsize_" + core.StreamRegistry.GetStreamName(prod.Streams()[0])
-
-	shared.Metric.New(prod.metricName)
+	prod.outfile = make(map[core.MessageStreamID]*spoolFile)
+	prod.rotation = fileRotateConfig{
+		timeout:  prod.maxFileAge,
+		sizeByte: prod.maxFileSize,
+		atHour:   -1,
+		atMinute: -1,
+		enabled:  true,
+		compress: false,
+	}
 
 	return nil
 }
 
-func newScheduledMessage(msg core.Message) scheduledMessage {
-	return scheduledMessage{
-		incoming: time.Now(),
-		message:  msg,
+func (prod *Spooling) writeToFile(msg core.Message) {
+	// Get the correct file state for this stream
+	spool, exists := prod.outfile[msg.PrevStreamID]
+	if !exists {
+		streamName := core.StreamRegistry.GetStreamName(msg.PrevStreamID)
+		if err := os.MkdirAll(prod.path+"/"+streamName, 0700); err != nil {
+			Log.Error.Printf("Failed to create %s because of %s", prod.path, err.Error())
+			prod.Drop(msg)
+			return // ### return, cannot write ###
+		}
+
+		spool = newSpoolFile(prod, streamName)
+		prod.outfile[msg.PrevStreamID] = spool
 	}
+
+	// Open/rotate file if nnecessary
+	if !spool.openOrRotate() {
+		prod.routeToOrigin(msg)
+		return // ### return, could not spool to disk ###
+	}
+
+	// Flush if limits are reached
+	if spool.batch.ReachedSizeThreshold(prod.batchMaxCount/2) || spool.batch.ReachedTimeThreshold(prod.maxFileAge) {
+		spool.flush()
+	}
+
+	// Append to buffer
+	if !spool.batch.Append(msg) {
+		spool.flush()
+		if !spool.batch.AppendOrBlock(msg) {
+			prod.Drop(msg)
+		}
+	}
+
+	shared.Metric.Inc(spoolingMetricName + spool.streamName)
 }
 
-func (prod *Spooling) storeMessage(msg core.Message) {
-	if prod.maxMessageCount <= 0 || len(prod.messageBuffer) < prod.maxMessageCount {
-		prod.bufferGuard.Lock()
-		defer prod.bufferGuard.Unlock()
-		prod.messageBuffer = append(prod.messageBuffer, newScheduledMessage(msg))
-
-		shared.Metric.SetI(prod.metricName, len(prod.messageBuffer))
-	} else {
-		prod.Drop(msg)
-	}
-}
-
-func (prod *Spooling) sendMessage(msg core.Message) {
-	buffer := make([]byte, 1024)
-	runtime.Stack(buffer, false)
-
-	if !prod.closing && msg.StreamID != msg.PrevStreamID {
+func (prod *Spooling) routeToOrigin(msg core.Message) {
+	if !prod.closing {
 		msg.Route(msg.PrevStreamID)
 	} else {
 		prod.Drop(msg)
 	}
 
-	shared.Metric.SetI(prod.metricName, len(prod.messageBuffer))
-}
-
-func (prod *Spooling) buildFlushList() []core.Message {
-	prod.bufferGuard.Lock()
-	defer prod.bufferGuard.Unlock()
-
-	flushList := []core.Message{}
-	sliceIdx := 0
-
-	for sliceIdx < len(prod.messageBuffer) {
-		message := prod.messageBuffer[sliceIdx]
-		if time.Since(message.incoming) < prod.retryDuration {
-			break // ### break, found all messages ###
-		}
-		flushList = append(flushList, message.message)
-		sliceIdx++
-	}
-	prod.messageBuffer = prod.messageBuffer[sliceIdx:]
-	return flushList
-}
-
-func (prod *Spooling) startFlushWorker() {
-	if !prod.closing && prod.retryDuration > 0 {
-		time.AfterFunc(prod.retryDuration, prod.flushWorker)
-	}
-}
-
-func (prod *Spooling) flushWorker() {
-	defer prod.startFlushWorker() // because resend may block
-
-	flushList := prod.buildFlushList()
-	for _, msg := range flushList {
-		prod.sendMessage(msg)
+	if spool, exists := prod.outfile[msg.PrevStreamID]; exists {
+		shared.Metric.Inc(spooledMetricName + spool.streamName)
 	}
 }
 
@@ -152,20 +153,16 @@ func (prod *Spooling) flushWorker() {
 func (prod *Spooling) Close() {
 	defer prod.WorkerDone()
 	prod.closing = true
-	prod.CloseGracefully(prod.sendMessage)
-	for _, message := range prod.messageBuffer {
-		prod.Drop(message.message)
+
+	// Drop as the producer accepting these messages is already offline anyway
+	prod.CloseGracefully(prod.Drop)
+	for _, spool := range prod.outfile {
+		spool.close()
 	}
 }
 
 // Produce writes to stdout or stderr.
 func (prod *Spooling) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.startFlushWorker()
-
-	if prod.retryDuration > 0 {
-		prod.DefaultControlLoop(prod.storeMessage)
-	} else {
-		prod.DefaultControlLoop(prod.sendMessage)
-	}
+	prod.DefaultControlLoop(prod.writeToFile)
 }

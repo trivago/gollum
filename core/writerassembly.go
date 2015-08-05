@@ -79,13 +79,17 @@ func (asm *WriterAssembly) Write(messages []Message) {
 		contentLen += len(payload)
 	}
 
-	// Route all messages if they could not be written
-	if _, err := asm.writer.Write(asm.buffer[:contentLen]); err != nil {
-		Log.Error.Print("Stream write error:", err)
-		if asm.handleError == nil || !asm.handleError(err) {
-			asm.Flush(messages)
+	if asm.writer != nil {
+		// Route all messages if they could not be written
+		if _, err := asm.writer.Write(asm.buffer[:contentLen]); err != nil {
+			Log.Error.Print("Stream write error:", err)
+			if asm.handleError == nil || !asm.handleError(err) {
+				asm.Flush(messages)
+			}
+			return // ### return, error handled ###
 		}
-		return // ### return, error handled ###
+	} else {
+		Log.Error.Print("No writer assigned to writer assembly")
 	}
 
 	if asm.validate != nil && !asm.validate() {

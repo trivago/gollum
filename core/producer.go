@@ -136,7 +136,7 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	prod.format = format.(Formatter)
 
 	prod.streams = make([]MessageStreamID, len(conf.Stream))
-	prod.control = make(chan PluginControl, 1)
+	prod.control = make(chan PluginControl, 10)
 	prod.messages = make(chan Message, conf.GetInt("Channel", 8192))
 	prod.timeout = time.Duration(conf.GetInt("ChannelTimeoutMs", 0)) * time.Millisecond
 	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 3000)) * time.Millisecond

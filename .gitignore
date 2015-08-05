@@ -11,3 +11,4 @@ test*.txt
 docs/_build
 *.tar.gz
 *.zip
+test

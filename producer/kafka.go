@@ -145,6 +145,8 @@ type Kafka struct {
 	keepAlive bool
 }
 
+const kafkaMetricName = "KafkaMessages:"
+
 func init() {
 	shared.TypeRegistry.Register(Kafka{})
 }
@@ -245,8 +247,10 @@ func (prod *Kafka) send(msg core.Message) {
 		if !topicMapped {
 			topic = core.StreamRegistry.GetStreamName(msg.StreamID)
 		}
+		shared.Metric.New(kafkaMetricName + topic)
 	}
 
+	shared.Metric.Inc(kafkaMetricName + topic)
 	producer.Input() <- &kafka.ProducerMessage{
 		Topic:    topic,
 		Value:    kafka.ByteEncoder(msg.Data),

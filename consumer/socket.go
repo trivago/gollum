@@ -40,6 +40,7 @@ const (
 //   - "consumer.Socket":
 //     Enable: true
 //     Address: ":5880"
+//     Permissions: "0770"
 //     Acknowledge: ""
 //     Partitioner: "delimiter"
 //     Delimiter: "\n"

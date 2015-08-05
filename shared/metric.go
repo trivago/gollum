@@ -49,7 +49,11 @@ var Metric = metrics{new(sync.Mutex), make(map[string]*int64)}
 
 // New creates a new metric under the given name with a value of 0
 func (met *metrics) New(name string) {
-	met.store[name] = new(int64)
+	met.mutex.Lock()
+	defer met.mutex.Unlock()
+	if _, exists := met.store[name]; !exists {
+		met.store[name] = new(int64)
+	}
 }
 
 // Set sets a given metric to a given value. This operation is atomic.
