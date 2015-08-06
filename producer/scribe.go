@@ -93,7 +93,6 @@ const (
 
 func init() {
 	shared.TypeRegistry.Register(Scribe{})
-	shared.Metric.New(scribeMetricRetry)
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -133,6 +132,7 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	binProtocol := thrift.NewTBinaryProtocol(prod.transport, false, false)
 	prod.scribe = scribe.NewScribeClientProtocol(prod.transport, binProtocol, binProtocol)
 
+	shared.Metric.New(scribeMetricRetry)
 	return nil
 }
 
