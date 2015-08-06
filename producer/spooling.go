@@ -109,7 +109,7 @@ func (prod *Spooling) writeToFile(msg core.Message) {
 			return // ### return, cannot write ###
 		}
 
-		spool = newSpoolFile(prod, streamName)
+		spool = newSpoolFile(prod, streamName, msg.Source)
 		prod.outfile[msg.PrevStreamID] = spool
 	}
 

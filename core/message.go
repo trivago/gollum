@@ -56,6 +56,11 @@ var (
 // MessageSource defines methods that are common to all message sources.
 // Currently this is only a placeholder.
 type MessageSource interface {
+	// IsActive returns true if the source can produce messages
+	IsActive() bool
+
+	// IsBlocked returns true if the source cannot produce messages
+	IsBlocked() bool
 }
 
 // AsyncMessageSource extends the MessageSource interface to allow a backchannel

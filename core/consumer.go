@@ -25,6 +25,7 @@ import (
 // and generate Message objects from this data.
 type Consumer interface {
 	PluginWithState
+	MessageSource
 
 	// Consume should implement to main loop that fetches messages from a given
 	// source and pushes it to the Message channel.
@@ -36,12 +37,6 @@ type Consumer interface {
 	// Control returns write access to this consumer's control channel.
 	// See PluginControl* constants.
 	Control() chan<- PluginControl
-
-	// IsActive returns true if GetState() returns active
-	IsActive() bool
-
-	// IsBlocked returns true if GetState() returns waiting
-	IsBlocked() bool
 }
 
 // ConsumerBase base class
@@ -238,6 +233,7 @@ func (cons *ConsumerBase) ControlLoop() {
 // TickerControlLoop is like MessageLoop but executes a given function at
 // every given interval tick, too.
 func (cons *ConsumerBase) TickerControlLoop(interval time.Duration, onTick func()) {
+	cons.setState(PluginStateActive)
 	go cons.tickerLoop(interval, onTick)
 	cons.ControlLoop()
 }

@@ -26,6 +26,7 @@ import (
 // files or storages.
 type Producer interface {
 	PluginWithState
+	MessageSource
 
 	// Enqueue sends a message to the producer. The producer may reject
 	// the message or drop it after a given timeout. Enqueue can block.
@@ -46,12 +47,6 @@ type Producer interface {
 
 	// DropStream returns the id of the stream to drop messages to.
 	GetDropStreamID() MessageStreamID
-
-	// IsActive returns true if GetState() returns active
-	IsActive() bool
-
-	// IsBlocked returns true if GetState() returns waiting
-	IsBlocked() bool
 }
 
 // ProducerBase base class
@@ -312,7 +307,8 @@ func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
 // Drop routes the message to the configured drop stream.
 func (prod *ProducerBase) Drop(msg Message) {
 	shared.Metric.Inc(MetricDropped)
-	//Log.Debug.Print("Dropping message from ", StreamRegistry.GetStreamName(msg.StreamID))
+	Log.Debug.Print("Dropping message from ", StreamRegistry.GetStreamName(msg.StreamID))
+	msg.Source = prod
 	msg.Route(prod.dropStreamID)
 }
 
@@ -395,6 +391,7 @@ func (prod *ProducerBase) ControlLoop() {
 // usecases. ControlLoop will be called in a separate go routine.
 // This function will block until a stop signal is recieved.
 func (prod *ProducerBase) MessageControlLoop(onMessage func(Message)) {
+	prod.setState(PluginStateActive)
 	go prod.ControlLoop()
 	prod.messageLoop(onMessage)
 }
@@ -402,6 +399,7 @@ func (prod *ProducerBase) MessageControlLoop(onMessage func(Message)) {
 // TickerMessageControlLoop is like MessageLoop but executes a given function at every
 // given interval tick, too.
 func (prod *ProducerBase) TickerMessageControlLoop(onMessage func(Message), interval time.Duration, onTimeOut func()) {
+	prod.setState(PluginStateActive)
 	go prod.ControlLoop()
 	go prod.tickerLoop(interval, onTimeOut)
 	prod.messageLoop(onMessage)

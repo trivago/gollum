@@ -34,12 +34,13 @@ type spoolFile struct {
 	fileCreated time.Time
 	streamName  string
 	prod        *Spooling
+	source      core.MessageSource
 }
 
 const maxSpoolFileNumber = 99999999 // maximum file number defined by %08d -> 8 digits
 const spoolFileFormatString = "%s/%08d.spl"
 
-func newSpoolFile(prod *Spooling, streamName string) *spoolFile {
+func newSpoolFile(prod *Spooling, streamName string, source core.MessageSource) *spoolFile {
 	spool := &spoolFile{
 		file:        nil,
 		batch:       core.NewMessageBatch(prod.batchMaxCount),
@@ -47,6 +48,7 @@ func newSpoolFile(prod *Spooling, streamName string) *spoolFile {
 		fileCreated: time.Now(),
 		streamName:  streamName,
 		prod:        prod,
+		source:      source,
 	}
 
 	shared.Metric.New(spoolingMetricName + streamName)
@@ -141,6 +143,12 @@ func (spool *spoolFile) read() {
 		Log.Debug.Print("Spooler opened ", spoolFileName, " for reading")
 		reader := bufio.NewReader(file)
 		for {
+			// Only spool back if target is not busy
+			if spool.source != nil && spool.source.IsBlocked() {
+				time.Sleep(time.Second)
+				continue // ### contine, busy source ###
+			}
+
 			// Read one line (might require multiple reads)
 			buffer, isPartial, err := reader.ReadLine()
 			for isPartial && err == nil {

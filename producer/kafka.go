@@ -302,6 +302,7 @@ func (prod *Kafka) connectionKeepAlive() {
 
 		select {
 		case <-prod.producer.Successes():
+			// all is fine
 		case err := <-prod.producer.Errors():
 			Log.Error.Printf("Kafka producer error: %s", err.Error())
 			if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
