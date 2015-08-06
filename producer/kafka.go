@@ -297,7 +297,7 @@ func (prod *Kafka) connectionKeepAlive() {
 	for prod.IsActive() {
 		if !prod.tryOpenConnection() {
 			spinner.Yield()
-			continue
+			continue // ### continue, try again ####
 		}
 
 		select {
@@ -371,6 +371,7 @@ func (prod *Kafka) close() {
 // Produce writes to a buffer that is sent to a given socket.
 func (prod *Kafka) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
+	prod.tryOpenConnection()
 	go prod.connectionKeepAlive()
 	prod.MessageControlLoop(prod.send)
 }

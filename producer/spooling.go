@@ -30,6 +30,7 @@ import (
 //     Enable: true
 //     Path: "/var/run/gollum/spooling"
 //     BatchMaxCount: 100
+//     BatchTimeoutSec: 5
 //     MaxFileSizeMB: 512
 //     MaxFileAgeMin: 1
 //
@@ -47,6 +48,10 @@ import (
 // BatchMaxCount defines the maximum number of messages stored in memory before
 // a write to file is triggered. Set to 100 by default.
 //
+// BatchTimeoutSec defines the maximum number of seconds to wait after the last
+// message arrived before a batch is flushed automatically. By default this is
+// set to 5.
+//
 // MaxFileSizeMB sets the size in MB when a spooling file is rotated. Reading
 // will start only after a file is rotated. Set to 512 MB by default.
 //
@@ -61,6 +66,7 @@ type Spooling struct {
 	path          string
 	maxFileSize   int64
 	maxFileAge    time.Duration
+	batchTimeout  time.Duration
 	batchMaxCount int
 }
 
@@ -80,11 +86,12 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 	}
 	prod.SetStopCallback(prod.close)
 
-	prod.path = conf.GetString("Path", "/var/run/gollum/spooling/")
+	prod.path = conf.GetString("Path", "/var/run/gollum/spooling")
 
 	prod.maxFileSize = int64(conf.GetInt("MaxFileSizeMB", 512)) << 20
 	prod.maxFileAge = time.Duration(conf.GetInt("MaxFileAgeMin", 1)) * time.Minute
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 100)
+	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.outfile = make(map[core.MessageStreamID]*spoolFile)
 	prod.rotation = fileRotateConfig{
 		timeout:  prod.maxFileAge,
@@ -98,30 +105,40 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
+func (prod *Spooling) writeBatchOnTimeOut() {
+	for _, spool := range prod.outfile {
+		if spool.batch.ReachedSizeThreshold(prod.batchMaxCount/2) || spool.batch.ReachedTimeThreshold(prod.batchTimeout) {
+			spool.flush()
+		}
+	}
+}
+
 func (prod *Spooling) writeToFile(msg core.Message) {
+	// Don't spool / create new files during shutdown
+	if !prod.IsActive() {
+		prod.Drop(msg)
+		return // ### return, shutting down ###
+	}
+
 	// Get the correct file state for this stream
-	spool, exists := prod.outfile[msg.PrevStreamID]
+	streamID := msg.PrevStreamID
+	spool, exists := prod.outfile[streamID]
 	if !exists {
-		streamName := core.StreamRegistry.GetStreamName(msg.PrevStreamID)
-		if err := os.MkdirAll(prod.path+"/"+streamName, 0700); err != nil {
-			Log.Error.Printf("Failed to create %s because of %s", prod.path, err.Error())
+		streamName := core.StreamRegistry.GetStreamName(streamID)
+		spool = newSpoolFile(prod, streamName, msg.Source)
+		prod.outfile[streamID] = spool
+
+		if err := os.MkdirAll(spool.basePath, 0700); err != nil {
+			Log.Error.Printf("Failed to create %s because of %s", spool.basePath, err.Error())
 			prod.Drop(msg)
 			return // ### return, cannot write ###
 		}
-
-		spool = newSpoolFile(prod, streamName, msg.Source)
-		prod.outfile[msg.PrevStreamID] = spool
 	}
 
 	// Open/rotate file if nnecessary
 	if !spool.openOrRotate() {
 		prod.routeToOrigin(msg)
 		return // ### return, could not spool to disk ###
-	}
-
-	// Flush if limits are reached
-	if spool.batch.ReachedSizeThreshold(prod.batchMaxCount/2) || spool.batch.ReachedTimeThreshold(prod.maxFileAge) {
-		spool.flush()
 	}
 
 	// Append to buffer
@@ -147,6 +164,7 @@ func (prod *Spooling) close() {
 	// Drop as the producer accepting these messages is already offline anyway
 	prod.CloseGracefully(prod.Drop)
 	for _, spool := range prod.outfile {
+		spool.openOrRotate()
 		spool.close()
 	}
 }
@@ -154,5 +172,5 @@ func (prod *Spooling) close() {
 // Produce writes to stdout or stderr.
 func (prod *Spooling) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.MessageControlLoop(prod.writeToFile)
+	prod.TickerMessageControlLoop(prod.writeToFile, prod.batchTimeout, prod.writeBatchOnTimeOut)
 }

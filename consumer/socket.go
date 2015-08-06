@@ -213,6 +213,9 @@ func (cons *Socket) processClientConnection(clientElement *list.Element) {
 }
 
 func (cons *Socket) processConnection(conn net.Conn) {
+	cons.AddWorker()
+	defer cons.WorkerDone()
+
 	conn.SetDeadline(time.Time{})
 	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.offset, cons.delimiter)
 

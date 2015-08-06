@@ -33,6 +33,7 @@ type spoolFile struct {
 	assembly    core.WriterAssembly
 	fileCreated time.Time
 	streamName  string
+	basePath    string
 	prod        *Spooling
 	source      core.MessageSource
 }
@@ -47,6 +48,7 @@ func newSpoolFile(prod *Spooling, streamName string, source core.MessageSource) 
 		assembly:    core.NewWriterAssembly(nil, prod.Drop, prod.GetFormatter()),
 		fileCreated: time.Now(),
 		streamName:  streamName,
+		basePath:    prod.path + "/" + streamName,
 		prod:        prod,
 		source:      source,
 	}
@@ -67,9 +69,9 @@ func (spool *spoolFile) close() {
 	spool.file.Close()
 }
 
-func (spool *spoolFile) getFileNumbering(path string) (min int, max int) {
+func (spool *spoolFile) getFileNumbering() (min int, max int) {
 	min, max = maxSpoolFileNumber+1, 0
-	files, _ := ioutil.ReadDir(path)
+	files, _ := ioutil.ReadDir(spool.basePath)
 	for _, file := range files {
 		base := filepath.Base(file.Name())
 		number, _ := shared.Btoi([]byte(base)) // Because we need leading zero support
@@ -87,13 +89,12 @@ func (spool *spoolFile) openOrRotate() bool {
 	}
 
 	if spool.file == nil || fileSize >= spool.prod.maxFileSize || time.Since(spool.fileCreated) > spool.prod.maxFileAge {
-		path := spool.prod.path + "/" + spool.streamName
-		_, maxSuffix := spool.getFileNumbering(path)
+		_, maxSuffix := spool.getFileNumbering()
 
 		// Reopen spooling file
 		var err error
 		oldFile := spool.file
-		spoolFileName := fmt.Sprintf(spoolFileFormatString, path, maxSuffix+1)
+		spoolFileName := fmt.Sprintf(spoolFileFormatString, spool.basePath, maxSuffix+1)
 		spool.file, err = os.OpenFile(spoolFileName, os.O_WRONLY|os.O_CREATE, 0600)
 
 		// Close current file
@@ -118,12 +119,10 @@ func (spool *spoolFile) read() {
 	spool.prod.AddWorker()
 	defer spool.prod.WorkerDone()
 
-	path := spool.prod.path + "/" + spool.streamName
-
 	for spool.prod.IsActive() {
-		minSuffix, _ := spool.getFileNumbering(path)
+		minSuffix, _ := spool.getFileNumbering()
 
-		spoolFileName := fmt.Sprintf(spoolFileFormatString, path, minSuffix)
+		spoolFileName := fmt.Sprintf(spoolFileFormatString, spool.basePath, minSuffix)
 		if minSuffix == 0 || minSuffix > maxSpoolFileNumber || (spool.file != nil && spool.file.Name() == spoolFileName) {
 			if minSuffix > maxSpoolFileNumber {
 				Log.Debug.Print("Spool read sleeps (no file)")
