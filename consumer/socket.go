@@ -220,8 +220,8 @@ func (cons *Socket) processConnection(conn net.Conn) {
 		err := buffer.ReadAll(conn, cons.Enqueue)
 
 		// Handle errors
-		if err != nil && err != io.EOF {
-			if cons.GetState() != core.PluginStateActive || cons.clientDisconnected(err) {
+		if err != nil {
+			if !cons.IsActive() || err == io.EOF || cons.clientDisconnected(err) {
 				return // ### return, connection closed ###
 			}
 

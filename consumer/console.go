@@ -61,11 +61,12 @@ func (cons *Console) Configure(conf core.PluginConfig) error {
 func (cons *Console) readStdIn() {
 	buffer := shared.NewBufferedReader(consoleBufferGrowSize, 0, 0, "\n")
 
-	for {
+	for cons.IsActive() {
 		err := buffer.ReadAll(os.Stdin, cons.Enqueue)
 		switch err {
 		case io.EOF:
 			if cons.autoexit {
+				// TODO: Hack
 				proc, _ := os.FindProcess(os.Getpid())
 				proc.Signal(os.Interrupt)
 			}
