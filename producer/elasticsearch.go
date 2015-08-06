@@ -161,6 +161,10 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 	prod.msgTTL = conf.GetString("TTL", "")
 	prod.dayBasedIndex = conf.GetBool("DayBasedIndex", false)
 
+	for _, index := range prod.index {
+		shared.Metric.New(elasticMetricName + index)
+	}
+
 	return nil
 }
 

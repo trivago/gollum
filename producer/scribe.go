@@ -133,6 +133,9 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	prod.scribe = scribe.NewScribeClientProtocol(prod.transport, binProtocol, binProtocol)
 
 	shared.Metric.New(scribeMetricRetry)
+	for _, category := range prod.category {
+		shared.Metric.New(scribeMetricName + category)
+	}
 	return nil
 }
 
@@ -210,7 +213,7 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 		time.Sleep(time.Duration(scribeMaxSleepTimeMs/scribeMaxRetries) * time.Millisecond)
 	}
 
-	Log.Warning.Printf("Scribe server seems to be busy")
+	Log.Error.Printf("Scribe server seems to be busy")
 	prod.dropMessages(messages)
 }
 

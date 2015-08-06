@@ -217,6 +217,10 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.config.Producer.Retry.Max = conf.GetInt("SendRetries", 3)
 	prod.config.Producer.Retry.Backoff = time.Duration(conf.GetInt("SendTimeoutMs", 100)) * time.Millisecond
 
+	for _, topic := range prod.topic {
+		shared.Metric.New(kafkaMetricName + topic)
+	}
+
 	return nil
 }
 
