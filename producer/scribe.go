@@ -84,10 +84,16 @@ type Scribe struct {
 	bufferSizeByte  int
 }
 
-const scribeMetricName = "ScribeMessages:"
+const (
+	scribeMetricName     = "Scribe:Messages-"
+	scribeMetricRetry    = "Scribe:Retries"
+	scribeMaxRetries     = 10
+	scribeMaxSleepTimeMs = 3000
+)
 
 func init() {
 	shared.TypeRegistry.Register(Scribe{})
+	shared.Metric.New(scribeMetricRetry)
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -186,12 +192,26 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 		shared.Metric.Inc(scribeMetricName + category)
 	}
 
-	_, err := prod.scribe.Log(logBuffer)
-	if err != nil {
-		Log.Error.Print("Scribe log error: ", err)
-		prod.transport.Close()
-		prod.dropMessages(messages)
+	// Retry messages
+	for retryCount := 0; retryCount < scribeMaxRetries; retryCount++ {
+		resultCode, err := prod.scribe.Log(logBuffer)
+		if resultCode == scribe.ResultCode_OK {
+			return // ### return, success ###
+		}
+
+		if err != nil || resultCode != scribe.ResultCode_TRY_LATER {
+			Log.Error.Printf("Scribe log error %d: %s", resultCode, err.Error())
+			prod.transport.Close() // reconnect
+			prod.dropMessages(messages)
+			return // ### return, failure ###
+		}
+
+		shared.Metric.Inc(scribeMetricRetry)
+		time.Sleep(time.Duration(scribeMaxSleepTimeMs/scribeMaxRetries) * time.Millisecond)
 	}
+
+	Log.Warning.Printf("Scribe server seems to be busy")
+	prod.dropMessages(messages)
 }
 
 func (prod *Scribe) close() {

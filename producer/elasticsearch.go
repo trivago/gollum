@@ -109,7 +109,7 @@ type ElasticSearch struct {
 	dayBasedIndex bool
 }
 
-const elasticMetricName = "ElasticMessages:"
+const elasticMetricName = "Elastic:Messages-"
 
 func init() {
 	shared.TypeRegistry.Register(ElasticSearch{})

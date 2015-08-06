@@ -135,17 +135,16 @@ const (
 // If no topic mappings are set the stream names will be used as topic.
 type Kafka struct {
 	core.ProducerBase
-	Filter    core.Filter
-	servers   []string
-	topic     map[core.MessageStreamID]string
-	clientID  string
-	client    kafka.Client
-	config    *kafka.Config
-	producer  kafka.AsyncProducer
-	keepAlive bool
+	Filter   core.Filter
+	servers  []string
+	topic    map[core.MessageStreamID]string
+	clientID string
+	client   kafka.Client
+	config   *kafka.Config
+	producer kafka.AsyncProducer
 }
 
-const kafkaMetricName = "KafkaMessages:"
+const kafkaMetricName = "Kafka:Messages-"
 
 func init() {
 	shared.TypeRegistry.Register(Kafka{})
@@ -168,7 +167,6 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.topic = conf.GetStreamMap("Topic", "")
 	prod.clientID = conf.GetString("ClientId", "gollum")
-	prod.keepAlive = true
 
 	prod.config = kafka.NewConfig()
 	prod.config.ClientID = conf.GetString("ClientId", "gollum")
@@ -289,9 +287,12 @@ func (prod *Kafka) connectionKeepAlive() {
 	defer prod.WorkerDone()
 	defer prod.closeConnection(true)
 
+	spinner := shared.NewSpinner(shared.SpinPriorityLow)
+
 	// Will be restarted if ever reaching 0
-	for prod.keepAlive {
+	for prod.IsActive() {
 		if !prod.tryOpenConnection() {
+			spinner.Yield()
 			continue
 		}
 
@@ -359,7 +360,6 @@ func (prod *Kafka) closeConnection(immediate bool) {
 func (prod *Kafka) close() {
 	defer prod.WorkerDone()
 	prod.CloseGracefully(prod.send)
-	prod.keepAlive = false
 	// Keep alive job will handle WorkerDone
 }
 

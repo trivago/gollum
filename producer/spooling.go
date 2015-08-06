@@ -64,8 +64,8 @@ type Spooling struct {
 	batchMaxCount int
 }
 
-const spoolingMetricName = "SpoolWrite:"
-const spooledMetricName = "SpoolRead:"
+const spoolingMetricName = "Spooling:Write-"
+const spooledMetricName = "Spooling:Read-"
 
 func init() {
 	shared.TypeRegistry.Register(Spooling{})
