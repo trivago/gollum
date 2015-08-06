@@ -142,9 +142,11 @@ func (spool *spoolFile) read() {
 
 		Log.Debug.Print("Spooler opened ", spoolFileName, " for reading")
 		reader := bufio.NewReader(file)
-		for {
+
+		for spool.prod.IsActive() {
 			// Only spool back if target is not busy
 			if spool.source != nil && spool.source.IsBlocked() {
+				Log.Debug.Print("Spool read sleeps on inactive source")
 				time.Sleep(time.Second)
 				continue // ### contine, busy source ###
 			}
