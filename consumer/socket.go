@@ -229,7 +229,10 @@ func (cons *Socket) processConnection(conn net.Conn) {
 			}
 
 			Log.Error.Print("Socket read failed: ", err)
-			continue // ### continue, keep open, try again ###
+			if _, isUDP := conn.(*net.UDPConn); isUDP {
+				continue // ### continue, keep open, try again ###
+			}
+			return // ### return, close TCP connections ###
 		}
 
 		// Send ack if everything was ok
