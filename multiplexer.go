@@ -28,11 +28,15 @@ import (
 )
 
 const (
-	metricMsgSec    = "MessagesPerSec"
-	metricMsgSecAvg = "MessagesPerSecAvg"
-	metricCons      = "Consumers"
-	metricProds     = "Producers"
-	metricMessages  = "Messages"
+	metricMessagesSec      = "MessagesPerSec"
+	metricCons             = "Consumers"
+	metricProds            = "Producers"
+	metricMessages         = "Messages"
+	metricDiscarded        = "DiscardedMessages"
+	metricDropped          = "DroppedMessages"
+	metricDiscardedSec     = "DiscardedMessagesSec"
+	metricDroppedSec       = "DroppedMessagesSec"
+	metricBlockedProducers = "BlockedProducers"
 )
 
 const (
@@ -81,11 +85,15 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	defer logFallback.Stop()
 
 	// Configure the multiplexer, create a byte pool and assign it to the log
-	shared.Metric.New(metricMsgSec)
-	shared.Metric.New(metricMsgSecAvg)
 	shared.Metric.New(metricCons)
 	shared.Metric.New(metricProds)
 	shared.Metric.New(metricMessages)
+	shared.Metric.New(metricDropped)
+	shared.Metric.New(metricDiscarded)
+	shared.Metric.New(metricMessagesSec)
+	shared.Metric.New(metricDroppedSec)
+	shared.Metric.New(metricDiscardedSec)
+	shared.Metric.New(metricBlockedProducers)
 
 	plex := multiplexer{
 		consumers:      []core.Consumer{new(core.LogConsumer)},
@@ -383,7 +391,7 @@ func (plex multiplexer) run() {
 
 	Log.Note.Print("We be nice to them, if they be nice to us. (startup)")
 	measure := time.Now()
-	timer := time.NewTicker(time.Duration(2) * time.Second)
+	timer := time.NewTicker(time.Second)
 
 	for {
 		select {
@@ -391,22 +399,30 @@ func (plex multiplexer) run() {
 			duration := time.Since(measure)
 			measure = time.Now()
 
-			// Sampling based values
-			messageCount := core.GetAndResetMessageCount()
-			value := float64(messageCount) / duration.Seconds()
-			shared.Metric.SetF(metricMsgSec, value)
+			// Sampling values
+			messageCount, droppedCount, discardedCount := core.GetAndResetMessageCount()
+			messageSec := float64(messageCount) / duration.Seconds()
+
+			shared.Metric.SetF(metricMessagesSec, messageSec)
+			shared.Metric.SetF(metricDroppedSec, float64(droppedCount)/duration.Seconds())
+			shared.Metric.SetF(metricDiscardedSec, float64(discardedCount)/duration.Seconds())
+
 			shared.Metric.Add(metricMessages, int64(messageCount))
+			shared.Metric.Add(metricDropped, int64(droppedCount))
+			shared.Metric.Add(metricDiscarded, int64(discardedCount))
 
 			if plex.profile {
-				Log.Note.Printf("Processed %.2f msg/sec", value)
+				Log.Note.Printf("Processed %.2f msg/sec", messageSec)
 			}
 
-			// Global values
-			timeSinceStart := time.Since(shared.ProcessStartTime)
-			if totalMessages, err := shared.Metric.Get(metricMessages); err == nil {
-				value = float64(totalMessages) / timeSinceStart.Seconds()
-				shared.Metric.SetF(metricMsgSecAvg, value)
+			// Blocked producers
+			numBlockedProducers := 0
+			for _, prod := range plex.producers {
+				if prod.IsBlocked() {
+					numBlockedProducers++
+				}
 			}
+			shared.Metric.SetI(metricBlockedProducers, numBlockedProducers)
 
 		case sig := <-plex.signal:
 			switch translateSignal(sig) {

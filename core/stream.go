@@ -22,9 +22,11 @@ import (
 	"time"
 )
 
-// MessageCount holds the number of messages processed since the last call to
-// GetAndResetMessageCount.
-var MessageCount = uint32(0)
+var (
+	messageCount   = uint32(0)
+	droppedCount   = uint32(0)
+	discardedCount = uint32(0)
+)
 
 // Stream defines the interface for all stream plugins
 type Stream interface {
@@ -82,10 +84,25 @@ type StreamBase struct {
 // Distributor is a callback typedef for methods processing messages
 type Distributor func(msg Message)
 
-// GetAndResetMessageCount returns the current message counter and resets it
+// GetAndResetMessageCount returns the current message counters and resets them
 // to 0. This function is threadsafe.
-func GetAndResetMessageCount() uint32 {
-	return atomic.SwapUint32(&MessageCount, 0)
+func GetAndResetMessageCount() (messages, dropped, discarded uint32) {
+	return atomic.SwapUint32(&messageCount, 0), atomic.SwapUint32(&droppedCount, 0), atomic.SwapUint32(&discardedCount, 0)
+}
+
+// CountProcessedMessage increases the messages counter by 1
+func CountProcessedMessage() {
+	atomic.AddUint32(&messageCount, 1)
+}
+
+// CountDroppedMessage increases the dropped messages counter by 1
+func CountDroppedMessage() {
+	atomic.AddUint32(&droppedCount, 1)
+}
+
+// CountDiscardedMessage increases the discarded messages counter by 1
+func CountDiscardedMessage() {
+	atomic.AddUint32(&discardedCount, 1)
 }
 
 // ConfigureStream sets up all values requred by StreamBase.
@@ -214,11 +231,11 @@ func (stream *StreamBase) Route(msg Message, targetID MessageStreamID) {
 
 	if len(stream.Producers) == 0 {
 		shared.Metric.Inc(MetricNoRoute)
-		shared.Metric.Inc(MetricDiscarded)
+		CountDiscardedMessage()
 		Log.Debug.Print("No producers for ", StreamRegistry.GetStreamName(msg.StreamID))
 		return // ### return, no route to producer ###
 	}
 
-	atomic.AddUint32(&MessageCount, 1)
+	CountProcessedMessage()
 	stream.distribute(msg)
 }

@@ -344,7 +344,7 @@ func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
 		prod.setState(PluginStateWaiting)
 
 	case MessageStateDiscard:
-		shared.Metric.Inc(MetricDiscarded)
+		CountDiscardedMessage()
 		prod.setState(PluginStateWaiting)
 
 	default:
@@ -354,7 +354,8 @@ func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
 
 // Drop routes the message to the configured drop stream.
 func (prod *ProducerBase) Drop(msg Message) {
-	shared.Metric.Inc(MetricDropped)
+	CountDroppedMessage()
+
 	Log.Debug.Print("Dropping message from ", StreamRegistry.GetStreamName(msg.StreamID))
 	msg.Source = prod
 	msg.Route(prod.dropStreamID)

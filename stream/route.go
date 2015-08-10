@@ -120,7 +120,7 @@ func (stream *Route) Enqueue(msg core.Message) {
 
 		if len(stream.routes) == 0 {
 			shared.Metric.Inc(core.MetricNoRoute)
-			shared.Metric.Inc(core.MetricDiscarded)
+			core.CountDiscardedMessage()
 			return // ### return, no route to producer ###
 		}
 	}
