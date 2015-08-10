@@ -356,7 +356,7 @@ func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
 func (prod *ProducerBase) Drop(msg Message) {
 	CountDroppedMessage()
 
-	Log.Debug.Print("Dropping message from ", StreamRegistry.GetStreamName(msg.StreamID))
+	//Log.Debug.Print("Dropping message from ", StreamRegistry.GetStreamName(msg.StreamID))
 	msg.Source = prod
 	msg.Route(prod.dropStreamID)
 }
