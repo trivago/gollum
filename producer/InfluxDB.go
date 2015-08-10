@@ -119,6 +119,8 @@ func (prod *InfluxDB) Configure(conf core.PluginConfig) error {
 func (prod *InfluxDB) sendBatch() {
 	if prod.writer.isConnectionUp() {
 		prod.batch.Flush(prod.assembly.Write)
+	} else {
+		prod.batch.Flush(prod.assembly.Flush)
 	}
 }
 
@@ -130,26 +132,15 @@ func (prod *InfluxDB) sendBatchOnTimeOut() {
 }
 
 func (prod *InfluxDB) sendMessage(msg core.Message) {
-	prod.batch.AppendRetry(msg, prod.sendBatch, prod.IsActive, prod.Drop)
+	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
 }
 
 func (prod *InfluxDB) close() {
 	defer prod.WorkerDone()
 
 	// Flush buffer to regular socket
-	if prod.CloseGracefully(prod.sendMessage) {
-		prod.batch.Close()
-		prod.sendBatch()
-		prod.batch.WaitForFlush(prod.GetShutdownTimeout())
-	}
-
-	// Drop all data that is still in the buffer
-	if !prod.batch.IsEmpty() {
-		prod.batch.Close()
-		prod.batch.Flush(prod.assembly.Flush)
-		prod.batch.WaitForFlush(prod.GetShutdownTimeout())
-	}
-
+	prod.CloseMessageChannel(prod.sendMessage)
+	prod.batch.Close(prod.assembly.Write, prod.GetShutdownTimeout())
 }
 
 // Produce starts a bulk producer which will collect datapoints until either the buffer is full or a timeout has been reached.

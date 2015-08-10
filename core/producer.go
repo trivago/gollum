@@ -47,6 +47,15 @@ type Producer interface {
 
 	// DropStream returns the id of the stream to drop messages to.
 	GetDropStreamID() MessageStreamID
+
+	// AddDependency is called whenever a producer is registered that sends
+	// messages to this producer. Dependencies are used to resolve shutdown
+	// conflicts.
+	AddDependency(Producer)
+
+	// DependsOn returns true if this plugin has a direct or indirect dependency
+	// on the given producer
+	DependsOn(Producer) bool
 }
 
 // ProducerBase base class
@@ -98,6 +107,7 @@ type ProducerBase struct {
 	control         chan PluginControl
 	streams         []MessageStreamID
 	dropStreamID    MessageStreamID
+	dependencies    []Producer
 	runState        *PluginRunState
 	timeout         time.Duration
 	shutdownTimeout time.Duration
@@ -163,6 +173,11 @@ func (prod *ProducerBase) IsActive() bool {
 	return prod.GetState() == PluginStateActive
 }
 
+// IsActiveOrStopping returns true if GetState() returns active or stopping
+func (prod *ProducerBase) IsActiveOrStopping() bool {
+	return prod.GetState() == PluginStateActive || prod.GetState() == PluginStateStopping
+}
+
 // IsBlocked returns true if GetState() returns waiting
 func (prod *ProducerBase) IsBlocked() bool {
 	return prod.GetState() == PluginStateWaiting
@@ -199,6 +214,32 @@ func (prod *ProducerBase) AddWorker() {
 // WorkerDone removes an additional worker to the waitgroup.
 func (prod *ProducerBase) WorkerDone() {
 	prod.runState.WorkerDone()
+}
+
+// AddDependency is called whenever a producer is registered that sends
+// messages to this producer. Dependencies are used to resolve shutdown
+// conflicts.
+func (prod *ProducerBase) AddDependency(dep Producer) {
+	for _, storedDep := range prod.dependencies {
+		if storedDep == dep {
+			return // ### return, duplicate ###
+		}
+	}
+	prod.dependencies = append(prod.dependencies, dep)
+}
+
+// DependsOn returns true if this plugin has a direct or indirect dependency
+// on the given producer
+func (prod *ProducerBase) DependsOn(dep Producer) bool {
+	for _, storedDep := range prod.dependencies {
+		if storedDep == dep {
+			return true // ### return, depends ###
+		}
+		if storedDep.DependsOn(dep) {
+			return true // ### return, nested dependency ###
+		}
+	}
+	return false
 }
 
 // GetTimeout returns the duration this producer will block before a message
@@ -290,6 +331,13 @@ func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
 	if timeout != nil {
 		usedTimeout = *timeout
 	}
+
+	// Don't accept messages if we are shutting down
+	if prod.GetState() >= PluginStateStopping {
+		prod.Drop(msg)
+		return // ### return, closing down ###
+	}
+
 	switch msg.Enqueue(prod.messages, usedTimeout) {
 	case MessageStateTimeout:
 		prod.Drop(msg)
@@ -312,22 +360,21 @@ func (prod *ProducerBase) Drop(msg Message) {
 	msg.Route(prod.dropStreamID)
 }
 
-// CloseGracefully closes and empties the internal channel with a given timeout
-// per message. If flushing messages runs into this timeout all remaining
-// messages will be dropped by using the Drop function.
+// CloseMessageChannel closes and empties the internal channel with a given
+// timeout per message. If flushing messages runs into this timeout all
+// remaining messages will be dropped by using the producer.Drop function.
 // If a timout has been detected, false is returned.
-func (prod *ProducerBase) CloseGracefully(onMessage func(msg Message)) bool {
+func (prod *ProducerBase) CloseMessageChannel(handleMessage func(msg Message)) bool {
 	close(prod.messages)
 	flushWorker := new(shared.WaitGroup)
 
 	for msg := range prod.messages {
-		// onMessage may block. To be able to exit this method we need to call
-		// it async and wait for it to finish.
-
+		// handleMessage may block. To be able to exit this method we need to
+		// call it async and wait for it to finish.
 		flushWorker.Inc()
 		go func() {
 			defer flushWorker.Done()
-			onMessage(msg)
+			handleMessage(msg)
 		}()
 
 		if !flushWorker.WaitFor(prod.shutdownTimeout) {
@@ -358,11 +405,28 @@ func (prod *ProducerBase) messageLoop(onMessage func(Message)) {
 	}
 }
 
+// WaitForDependencies waits until all dependencies reach the given runstate.
+// A timeout > 0 can be given to work around possible blocking situations.
+func (prod *ProducerBase) WaitForDependencies(waitForState PluginState, timeout time.Duration) {
+	spinner := shared.NewSpinner(shared.SpinPriorityMedium)
+	for _, dep := range prod.dependencies {
+		start := time.Now()
+		for dep.GetState() < waitForState {
+			spinner.Yield()
+			if timeout > 0 && time.Since(start) > timeout {
+				Log.Warning.Printf("WaitForDependencies call timed out for %T", dep)
+				break // ### break loop, timeout ###
+			}
+		}
+	}
+}
+
 // ControlLoop listens to the control channel and triggers callbacks for these
 // messags. Upon stop control message doExit will be set to true.
 func (prod *ProducerBase) ControlLoop() {
 	prod.setState(PluginStateActive)
 	defer prod.setState(PluginStateDead)
+
 	for {
 		command := <-prod.control
 		switch command {
@@ -372,7 +436,10 @@ func (prod *ProducerBase) ControlLoop() {
 
 		case PluginControlStopProducer, PluginControlStop:
 			Log.Debug.Print("Recieved stop command")
+			prod.WaitForDependencies(PluginStateDead, prod.GetShutdownTimeout())
 			prod.setState(PluginStateStopping)
+			Log.Debug.Print("All dependencies resolved")
+
 			if prod.onStop != nil {
 				prod.onStop()
 			}

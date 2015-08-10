@@ -114,12 +114,6 @@ func (prod *Spooling) writeBatchOnTimeOut() {
 }
 
 func (prod *Spooling) writeToFile(msg core.Message) {
-	// Don't spool / create new files during shutdown
-	if !prod.IsActive() {
-		prod.Drop(msg)
-		return // ### return, shutting down ###
-	}
-
 	// Get the correct file state for this stream
 	streamID := msg.PrevStreamID
 	spool, exists := prod.outfile[streamID]
@@ -142,16 +136,12 @@ func (prod *Spooling) writeToFile(msg core.Message) {
 	}
 
 	// Append to buffer
-	spool.batch.AppendRetry(msg, spool.flush, prod.IsActive, prod.Drop)
+	spool.batch.AppendOrFlush(msg, spool.flush, prod.IsActiveOrStopping, prod.Drop)
 	shared.Metric.Inc(spoolingMetricName + spool.streamName)
 }
 
 func (prod *Spooling) routeToOrigin(msg core.Message) {
-	if prod.IsActive() {
-		msg.Route(msg.PrevStreamID)
-	} else {
-		prod.Drop(msg)
-	}
+	msg.Route(msg.PrevStreamID)
 
 	if spool, exists := prod.outfile[msg.PrevStreamID]; exists {
 		shared.Metric.Inc(spooledMetricName + spool.streamName)
@@ -162,9 +152,8 @@ func (prod *Spooling) close() {
 	defer prod.WorkerDone()
 
 	// Drop as the producer accepting these messages is already offline anyway
-	prod.CloseGracefully(prod.Drop)
+	prod.CloseMessageChannel(prod.Drop)
 	for _, spool := range prod.outfile {
-		spool.openOrRotate()
 		spool.close()
 	}
 }

@@ -355,28 +355,16 @@ func (prod *File) writeMessage(msg core.Message) {
 		return // ### return, dropped ###
 	}
 
-	state.batch.AppendRetry(msg, state.flush, prod.IsActive, prod.Drop)
+	state.batch.AppendOrFlush(msg, state.flush, prod.IsActiveOrStopping, prod.Drop)
 }
 
 func (prod *File) close() {
 	defer prod.WorkerDone()
 
 	// Flush buffers
-	if prod.CloseGracefully(prod.writeMessage) {
-		for _, state := range prod.files {
-			state.close()
-			state.flush()
-			state.waitForFlush()
-		}
-	}
-
-	// Drop all data that is still in the buffer
+	prod.CloseMessageChannel(prod.writeMessage)
 	for _, state := range prod.files {
 		state.close()
-		if !state.batch.IsEmpty() {
-			state.flushAndDrop()
-			state.waitForFlush()
-		}
 	}
 }
 

@@ -181,7 +181,7 @@ func (prod *Websocket) serve() {
 }
 
 func (prod *Websocket) close() {
-	prod.CloseGracefully(prod.pushMessage)
+	prod.CloseMessageChannel(prod.pushMessage)
 	prod.listen.Close()
 
 	for _, client := range prod.clients[0].conns {

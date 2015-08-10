@@ -106,11 +106,9 @@ func TestMessageBatch(t *testing.T) {
 		expect.True(batch.Append(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), uint64(i))))
 	}
 
-	batch.Close()
+	batch.Close(writer.checkOrder, time.Second)
+	expect.True(batch.IsEmpty())
 	expect.False(batch.Append(NewMessage(nil, []byte("6"), 6)))
-
-	batch.Flush(writer.checkOrder)
-	batch.WaitForFlush(time.Second)
 	expect.True(batch.IsEmpty())
 
 	expect.False(batch.Append(NewMessage(nil, nil, 0)))

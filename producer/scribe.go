@@ -139,6 +139,16 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
+func (prod *Scribe) bufferMessage(msg core.Message) {
+	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
+}
+
+func (prod *Scribe) sendBatchOnTimeOut() {
+	if prod.batch.ReachedTimeThreshold(prod.batchTimeout) || prod.batch.ReachedSizeThreshold(prod.batchFlushCount) {
+		prod.sendBatch()
+	}
+}
+
 func (prod *Scribe) sendBatch() {
 	if !prod.transport.IsOpen() {
 		err := prod.transport.Open()
@@ -152,16 +162,6 @@ func (prod *Scribe) sendBatch() {
 	if prod.transport.IsOpen() {
 		prod.batch.Flush(prod.transformMessages)
 	}
-}
-
-func (prod *Scribe) sendBatchOnTimeOut() {
-	if prod.batch.ReachedTimeThreshold(prod.batchTimeout) || prod.batch.ReachedSizeThreshold(prod.batchFlushCount) {
-		prod.sendBatch()
-	}
-}
-
-func (prod *Scribe) sendMessage(msg core.Message) {
-	prod.batch.AppendRetry(msg, prod.sendBatch, prod.IsActive, prod.Drop)
 }
 
 func (prod *Scribe) dropMessages(messages []core.Message) {
@@ -224,21 +224,12 @@ func (prod *Scribe) close() {
 		prod.WorkerDone()
 	}()
 
-	if prod.CloseGracefully(prod.sendMessage) {
-		prod.batch.Close()
-		prod.sendBatch()
-		prod.batch.WaitForFlush(prod.GetShutdownTimeout())
-	}
-
-	if !prod.batch.IsEmpty() {
-		prod.batch.Close()
-		prod.batch.Flush(prod.dropMessages)
-		prod.batch.WaitForFlush(prod.GetShutdownTimeout())
-	}
+	prod.CloseMessageChannel(prod.bufferMessage)
+	prod.batch.Close(prod.transformMessages, prod.GetShutdownTimeout())
 }
 
 // Produce writes to a buffer that is sent to scribe.
 func (prod *Scribe) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.TickerMessageControlLoop(prod.sendMessage, prod.batchTimeout, prod.sendBatchOnTimeOut)
+	prod.TickerMessageControlLoop(prod.bufferMessage, prod.batchTimeout, prod.sendBatchOnTimeOut)
 }

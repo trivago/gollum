@@ -203,7 +203,23 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 		}
 	}
 
-	plex.buildShutdownOrder()
+	// Register dependencies by going over each producer and registering it to
+	// all producers listening to its DropStream
+
+	for _, prod := range plex.producers {
+		dropStreamID := prod.GetDropStreamID()
+		stream := core.StreamRegistry.GetStreamOrFallback(dropStreamID)
+		dependencies := stream.GetProducers()
+
+		for _, child := range dependencies {
+			if child.DependsOn(prod) {
+				Log.Error.Printf("Detected a circular dependecy between %T and %T", child, prod)
+			} else {
+				child.AddDependency(prod)
+				Log.Debug.Printf("%T depends on %T", child, prod)
+			}
+		}
+	}
 
 	// Consumers are registered last so that the stream reference list can be
 	// built. This eliminates lookups when sending to specific streams.
@@ -270,70 +286,6 @@ func dumpFaultyPlugin(typeName string, pluginType reflect.Type) {
 	}
 }
 
-func (plex *multiplexer) printShutdownOrder() {
-	Log.Debug.Print("Shutdown order as follows")
-	for prodIter := plex.shutdownOrder.Front(); prodIter != nil; prodIter = prodIter.Next() {
-		prod := prodIter.Value.(core.Producer)
-		streams := "stream(s) {"
-		for i, streamID := range prod.Streams() {
-			if i > 0 {
-				streams += ","
-			}
-			streams += core.StreamRegistry.GetStreamName(streamID)
-		}
-		streams += "} drop to " + core.StreamRegistry.GetStreamName(prod.GetDropStreamID())
-		Log.Debug.Print(streams)
-	}
-}
-
-// This is a very basic approach to order producers so that messages generated
-// during shutdown are not routed to already shut down producers.
-// Currently this is based on the DroppedStream setting without taking
-// indirections or sideeffects (formatter, streams, read-back by consumer) into
-// account.
-func (plex *multiplexer) buildShutdownOrder() {
-	defer plex.printShutdownOrder()
-
-	// Clear the list
-	for plex.shutdownOrder.Len() > 0 {
-		plex.shutdownOrder.Remove(plex.shutdownOrder.Front())
-	}
-
-	// Add all producers for proper searching
-	for _, prod := range plex.producers {
-		plex.shutdownOrder.PushBack(prod)
-	}
-
-	if plex.shutdownOrder.Len() < 2 {
-		return // ### return, nothing to do ###
-	}
-
-	// Go from back to front and move any dependent producer to the back.
-	// This way we can make sure that producers listening to drops will be
-	// shutdown after producers creating dropped messages
-	childIter := plex.shutdownOrder.Back().Prev()
-nextChild:
-	for childIter != nil {
-		child := childIter.Value.(core.Producer)
-		// Allways search the whole list
-		for parentIter := plex.shutdownOrder.Back(); parentIter != nil; parentIter = parentIter.Prev() {
-			if parentIter == childIter {
-				continue // ### continue, selftest ###
-			}
-			parent := parentIter.Value.(core.Producer)
-			for _, streamID := range child.Streams() {
-				if streamID == parent.GetDropStreamID() {
-					nextIter := childIter.Prev()
-					plex.shutdownOrder.MoveToBack(childIter)
-					childIter = nextIter
-					continue nextChild // ### continue, inserted ###
-				}
-			}
-		}
-		childIter = childIter.Prev()
-	}
-}
-
 // Shutdown all consumers and producers in a clean way.
 // The internal log is flushed after the consumers have been shut down so that
 // consumer related messages are still in the log.
@@ -378,8 +330,7 @@ func (plex *multiplexer) shutdown() {
 	// Shutdown producers
 	plex.state = multiplexerStateStopProducers
 	if stateAtShutdown >= multiplexerStateStartProducers {
-		for prodIter := plex.shutdownOrder.Front(); prodIter != nil; prodIter = prodIter.Next() {
-			prod := prodIter.Value.(core.Producer)
+		for _, prod := range plex.producers {
 			Log.Debug.Printf("Closing producer %s", reflect.TypeOf(prod).String())
 			prod.Control() <- core.PluginControlStopProducer
 		}

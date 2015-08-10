@@ -40,14 +40,19 @@ const (
 )
 
 const (
-	// PluginStateDead is set when a plugin is unable to process any data
-	PluginStateDead = PluginState(iota)
-	// PluginStateActive is set when a plugin is ready to process data
-	PluginStateActive = PluginState(iota)
+	// -------------------------------------------------------------------------
+	// The order of these constants is important and need to reflect the typical
+	// lifecycle of a plugin orderd by time.
+	// -------------------------------------------------------------------------
+
 	// PluginStateWaiting is set when a plugin is active but currently unable to process data
 	PluginStateWaiting = PluginState(iota)
+	// PluginStateActive is set when a plugin is ready to process data
+	PluginStateActive = PluginState(iota)
 	// PluginStateStopping is set when a plugin is about to stop
 	PluginStateStopping = PluginState(iota)
+	// PluginStateDead is set when a plugin is unable to process any data
+	PluginStateDead = PluginState(iota)
 )
 
 // PluginRunState is used in some plugins to store information about the

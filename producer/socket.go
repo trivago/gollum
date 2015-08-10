@@ -151,11 +151,9 @@ func (prod *Socket) sendBatch() {
 
 	// Flush the buffer to the connection if it is active
 	if prod.connection != nil {
-		if prod.IsActive() {
-			prod.batch.Flush(prod.assembly.Write)
-		} else {
-			prod.batch.Flush(prod.assembly.Flush)
-		}
+		prod.batch.Flush(prod.assembly.Write)
+	} else {
+		prod.batch.Flush(prod.assembly.Flush)
 	}
 }
 
@@ -166,7 +164,7 @@ func (prod *Socket) sendBatchOnTimeOut() {
 }
 
 func (prod *Socket) sendMessage(msg core.Message) {
-	prod.batch.AppendRetry(msg, prod.sendBatch, prod.IsActive, prod.Drop)
+	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
 }
 
 func (prod *Socket) close() {
@@ -178,18 +176,8 @@ func (prod *Socket) close() {
 	}()
 
 	// Flush buffer to regular socket
-	if prod.CloseGracefully(prod.sendMessage) {
-		prod.batch.Close()
-		prod.sendBatch()
-		prod.batch.WaitForFlush(prod.GetShutdownTimeout())
-	}
-
-	// Drop all data that is still in the buffer
-	if !prod.batch.IsEmpty() {
-		prod.batch.Close()
-		prod.batch.Flush(prod.assembly.Flush)
-		prod.batch.WaitForFlush(prod.GetShutdownTimeout())
-	}
+	prod.CloseMessageChannel(prod.sendMessage)
+	prod.batch.Close(prod.assembly.Write, prod.GetShutdownTimeout())
 }
 
 // Produce writes to a buffer that is sent to a given socket.

@@ -50,6 +50,9 @@ type Stream interface {
 
 	// Enqueue sends a given message to all registered producers
 	Enqueue(msg Message)
+
+	// GetProducers returns the producers bound to this stream
+	GetProducers() []Producer
 }
 
 // MappedStream holds a stream and the id the stream is assgined to
@@ -124,6 +127,11 @@ func (stream *StreamBase) AddProducer(producers ...Producer) {
 		}
 		stream.Producers = append(stream.Producers, prod)
 	}
+}
+
+// GetProducers returns the producers bound to this stream
+func (stream *StreamBase) GetProducers() []Producer {
+	return stream.Producers
 }
 
 // Pause will cause this stream to go silent. Messages will be queued to an

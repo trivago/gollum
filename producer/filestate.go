@@ -59,18 +59,9 @@ func (state *fileState) flush() {
 	state.batch.Flush(state.assembly.Write)
 }
 
-func (state *fileState) flushAndDrop() {
-	state.batch.Flush(state.assembly.Flush)
-}
-
-func (state *fileState) waitForFlush() {
-	state.batch.WaitForFlush(state.flushTimeout)
-	state.bgWriter.Wait()
-	state.file.Close()
-}
-
 func (state *fileState) close() {
-	state.batch.Close()
+	state.batch.Close(state.assembly.Write, state.flushTimeout)
+	state.bgWriter.Wait()
 }
 
 func (state *fileState) compressAndCloseLog(sourceFile *os.File) {

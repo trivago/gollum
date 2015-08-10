@@ -190,7 +190,7 @@ func (prod *Redis) storeString(msg core.Message) {
 
 func (prod *Redis) close() {
 	defer prod.WorkerDone()
-	prod.CloseGracefully(prod.store)
+	prod.CloseMessageChannel(prod.store)
 }
 
 // Produce writes to stdout or stderr.

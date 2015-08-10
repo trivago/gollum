@@ -64,8 +64,10 @@ func (spool *spoolFile) flush() {
 }
 
 func (spool *spoolFile) close() {
-	spool.batch.Flush(spool.assembly.Flush)
-	spool.batch.WaitForFlush(spool.prod.GetShutdownTimeout())
+	for !spool.batch.IsEmpty() {
+		spool.batch.Flush(spool.assembly.Write)
+		spool.batch.WaitForFlush(spool.prod.GetShutdownTimeout())
+	}
 	spool.file.Close()
 }
 

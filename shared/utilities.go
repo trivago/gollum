@@ -208,6 +208,7 @@ func RecoverShutdown() {
 		log.Println(string(debug.Stack()))
 
 		// Send interrupt = clean shutdown
+		// TODO: Hack
 		proc, _ := os.FindProcess(os.Getpid())
 		proc.Signal(os.Interrupt)
 	}

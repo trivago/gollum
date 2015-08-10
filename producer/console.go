@@ -70,7 +70,7 @@ func (prod *Console) printMessage(msg core.Message) {
 }
 
 func (prod *Console) close() {
-	prod.CloseGracefully(prod.printMessage)
+	prod.CloseMessageChannel(prod.printMessage)
 }
 
 // Produce writes to stdout or stderr.

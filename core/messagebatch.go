@@ -90,7 +90,7 @@ func (batch *MessageBatch) Append(msg Message) bool {
 // If the batch was closed during this call, false is returned.
 func (batch *MessageBatch) AppendOrBlock(msg Message) bool {
 	spin := shared.NewSpinner(shared.SpinPriorityMedium)
-	for !batch.closed {
+	for !batch.IsClosed() {
 		if batch.Append(msg) {
 			return true // ### return, success ###
 		}
@@ -100,13 +100,13 @@ func (batch *MessageBatch) AppendOrBlock(msg Message) bool {
 	return false
 }
 
-// AppendRetry is a common combinatorial pattern of Append and AppendOrBlock.
+// AppendOrFlush is a common combinatorial pattern of Append and AppendOrBlock.
 // If append fails, flush is called, followed by AppendOrBlock if blocking is
 // allowed. If AppendOrBlock fails (or blocking is not allowed) the message is
 // dropped.
-func (batch *MessageBatch) AppendRetry(msg Message, flush func(), canBlock func() bool, drop func(Message)) {
+func (batch *MessageBatch) AppendOrFlush(msg Message, flushBuffer func(), canBlock func() bool, drop func(Message)) {
 	if !batch.Append(msg) {
-		flush()
+		flushBuffer()
 		if !canBlock() || !batch.AppendOrBlock(msg) {
 			drop(msg)
 		}
@@ -119,10 +119,12 @@ func (batch *MessageBatch) Touch() {
 	batch.lastFlush = time.Now()
 }
 
-// Close disables Append and will cause the next call to flush to deplete front and backbuffer
-// buffer.
-func (batch *MessageBatch) Close() {
+// Close disables Append, calls flush and waits for this call to finish.
+// Timeout is passed to WaitForFlush.
+func (batch *MessageBatch) Close(assemble AssemblyFunc, timeout time.Duration) {
 	batch.closed = true
+	batch.Flush(assemble)
+	batch.WaitForFlush(timeout)
 }
 
 // IsClosed returns true of Close has been called at least once.
@@ -143,7 +145,7 @@ func (batch MessageBatch) IsClosed() bool {
 // If onError returns false the buffer will not be resetted (automatic retry).
 // If onError is nil a return value of true is assumed (buffer reset).
 func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
-	if !batch.closed && batch.IsEmpty() {
+	if batch.IsEmpty() {
 		return // ### return, nothing to do ###
 	}
 
