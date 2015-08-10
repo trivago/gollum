@@ -207,18 +207,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	// all producers listening to its DropStream
 
 	for _, prod := range plex.producers {
-		dropStreamID := prod.GetDropStreamID()
-		stream := core.StreamRegistry.GetStreamOrFallback(dropStreamID)
-		dependencies := stream.GetProducers()
-
-		for _, child := range dependencies {
-			if child.DependsOn(prod) {
-				Log.Error.Printf("Detected a circular dependecy between %T and %T", child, prod)
-			} else {
-				child.AddDependency(prod)
-				Log.Debug.Printf("%T depends on %T", child, prod)
-			}
-		}
+		core.StreamRegistry.LinkDependencies(prod, prod.GetDropStreamID())
 	}
 
 	// Consumers are registered last so that the stream reference list can be

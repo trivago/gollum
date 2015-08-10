@@ -175,3 +175,17 @@ func (registry *streamRegistry) GetStreamOrFallback(streamID MessageStreamID) St
 	shared.Metric.Inc(metricStreams)
 	return defaultStream
 }
+
+func (registry *streamRegistry) LinkDependencies(parent Producer, streamID MessageStreamID) {
+	stream := registry.GetStreamOrFallback(streamID)
+	dependencies := stream.GetProducers()
+
+	for _, child := range dependencies {
+		if child.DependsOn(parent) {
+			Log.Error.Printf("Detected a circular dependecy between %T and %T", child, parent)
+		} else {
+			child.AddDependency(parent)
+			Log.Debug.Printf("%T depends on %T", child, parent)
+		}
+	}
+}
