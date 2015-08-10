@@ -172,14 +172,28 @@ func (registry *streamRegistry) GetStreamOrFallback(streamID MessageStreamID) St
 
 func (registry *streamRegistry) LinkDependencies(parent Producer, streamID MessageStreamID) {
 	stream := registry.GetStreamOrFallback(streamID)
+	streamName := registry.GetStreamName(streamID)
 	dependencies := stream.GetProducers()
 
+	// Circular dependencies are not necessarily bad as messages might be blocked
+	// by the producers. That's why these are just warnings.
+	// It is important though that we do not create circular dependencies for
+	// the shutdown procedure. Otherwise we will hang.
+
 	for _, child := range dependencies {
-		if child.DependsOn(parent) {
-			Log.Error.Printf("Detected a circular dependecy between %T and %T", child, parent)
-		} else {
+		switch {
+		case parent == child:
+			Log.Warning.Printf("%T refers to itself via '%s'", parent, streamName)
+
+		case parent.DependsOn(child):
+			Log.Warning.Printf("Detected a circular dependecy between %T and %T via '%s'", parent, child, streamName)
+
+		case child.DependsOn(parent):
+			Log.Warning.Printf("Detected a circular dependecy between %T and %T via '%s'", child, parent, streamName)
+
+		default:
 			child.AddDependency(parent)
-			Log.Debug.Printf("%T depends on %T", child, parent)
+			Log.Debug.Printf("%T depends on %T via '%s'", child, parent, streamName)
 		}
 	}
 }
