@@ -18,14 +18,19 @@ import (
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"hash/fnv"
+	"sync/atomic"
 )
 
 const (
 	metricStreams = "Streams"
-	// MetricNoRoute counts messages that reached a stream without any producers
-	MetricNoRoute = "NoRoute"
-	// MetricFiltered counts messages that were filtered by stream plugins
-	MetricFiltered = "Filtered"
+)
+
+var (
+	messageCount   = uint32(0)
+	droppedCount   = uint32(0)
+	discardedCount = uint32(0)
+	filteredCount  = uint32(0)
+	noRouteCount   = uint32(0)
 )
 
 // streamRegistry holds streams mapped by their MessageStreamID as well as a
@@ -45,8 +50,31 @@ var StreamRegistry = streamRegistry{
 
 func init() {
 	shared.Metric.New(metricStreams)
-	shared.Metric.New(MetricNoRoute)
-	shared.Metric.New(MetricFiltered)
+}
+
+// CountProcessedMessage increases the messages counter by 1
+func CountProcessedMessage() {
+	atomic.AddUint32(&messageCount, 1)
+}
+
+// CountDroppedMessage increases the dropped messages counter by 1
+func CountDroppedMessage() {
+	atomic.AddUint32(&droppedCount, 1)
+}
+
+// CountDiscardedMessage increases the discarded messages counter by 1
+func CountDiscardedMessage() {
+	atomic.AddUint32(&discardedCount, 1)
+}
+
+// CountFilteredMessage increases the filtered messages counter by 1
+func CountFilteredMessage() {
+	atomic.AddUint32(&filteredCount, 1)
+}
+
+// CountNoRouteForMessage increases the "no route" counter by 1
+func CountNoRouteForMessage() {
+	atomic.AddUint32(&noRouteCount, 1)
 }
 
 // GetStreamID returns the integer representation of a given stream name.

@@ -16,16 +16,9 @@ package core
 
 import (
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
 	"sync"
 	"sync/atomic"
 	"time"
-)
-
-var (
-	messageCount   = uint32(0)
-	droppedCount   = uint32(0)
-	discardedCount = uint32(0)
 )
 
 // Stream defines the interface for all stream plugins
@@ -86,23 +79,12 @@ type Distributor func(msg Message)
 
 // GetAndResetMessageCount returns the current message counters and resets them
 // to 0. This function is threadsafe.
-func GetAndResetMessageCount() (messages, dropped, discarded uint32) {
-	return atomic.SwapUint32(&messageCount, 0), atomic.SwapUint32(&droppedCount, 0), atomic.SwapUint32(&discardedCount, 0)
-}
-
-// CountProcessedMessage increases the messages counter by 1
-func CountProcessedMessage() {
-	atomic.AddUint32(&messageCount, 1)
-}
-
-// CountDroppedMessage increases the dropped messages counter by 1
-func CountDroppedMessage() {
-	atomic.AddUint32(&droppedCount, 1)
-}
-
-// CountDiscardedMessage increases the discarded messages counter by 1
-func CountDiscardedMessage() {
-	atomic.AddUint32(&discardedCount, 1)
+func GetAndResetMessageCount() (messages, dropped, discarded, filtered, noroute uint32) {
+	return atomic.SwapUint32(&messageCount, 0),
+		atomic.SwapUint32(&droppedCount, 0),
+		atomic.SwapUint32(&discardedCount, 0),
+		atomic.SwapUint32(&filteredCount, 0),
+		atomic.SwapUint32(&noRouteCount, 0)
 }
 
 // ConfigureStream sets up all values requred by StreamBase.
@@ -216,7 +198,7 @@ func (stream *StreamBase) Enqueue(msg Message) {
 		msg.Data, streamID = stream.Format.Format(msg)
 		stream.Route(msg, streamID)
 	} else {
-		shared.Metric.Inc(MetricFiltered)
+		CountFilteredMessage()
 	}
 }
 
@@ -232,8 +214,7 @@ func (stream *StreamBase) Route(msg Message, targetID MessageStreamID) {
 	}
 
 	if len(stream.Producers) == 0 {
-		shared.Metric.Inc(MetricNoRoute)
-		CountDiscardedMessage()
+		CountNoRouteForMessage()
 		Log.Debug.Print("No producers for ", StreamRegistry.GetStreamName(msg.StreamID))
 		return // ### return, no route to producer ###
 	}

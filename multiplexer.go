@@ -34,8 +34,12 @@ const (
 	metricMessages         = "Messages"
 	metricDiscarded        = "DiscardedMessages"
 	metricDropped          = "DroppedMessages"
+	metricFiltered         = "Filtered"
+	metricNoRoute          = "DiscardedNoRoute"
 	metricDiscardedSec     = "DiscardedMessagesSec"
 	metricDroppedSec       = "DroppedMessagesSec"
+	metricFilteredSec      = "FilteredSec"
+	metricNoRouteSec       = "DiscardedNoRouteSec"
 	metricBlockedProducers = "BlockedProducers"
 )
 
@@ -90,9 +94,13 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	shared.Metric.New(metricMessages)
 	shared.Metric.New(metricDropped)
 	shared.Metric.New(metricDiscarded)
+	shared.Metric.New(metricNoRoute)
+	shared.Metric.New(metricFiltered)
 	shared.Metric.New(metricMessagesSec)
 	shared.Metric.New(metricDroppedSec)
 	shared.Metric.New(metricDiscardedSec)
+	shared.Metric.New(metricNoRouteSec)
+	shared.Metric.New(metricFilteredSec)
 	shared.Metric.New(metricBlockedProducers)
 
 	plex := multiplexer{
@@ -400,16 +408,20 @@ func (plex multiplexer) run() {
 			measure = time.Now()
 
 			// Sampling values
-			messageCount, droppedCount, discardedCount := core.GetAndResetMessageCount()
+			messageCount, droppedCount, discardedCount, filteredCount, noRouteCount := core.GetAndResetMessageCount()
 			messageSec := float64(messageCount) / duration.Seconds()
 
 			shared.Metric.SetF(metricMessagesSec, messageSec)
 			shared.Metric.SetF(metricDroppedSec, float64(droppedCount)/duration.Seconds())
 			shared.Metric.SetF(metricDiscardedSec, float64(discardedCount)/duration.Seconds())
+			shared.Metric.SetF(metricFilteredSec, float64(filteredCount)/duration.Seconds())
+			shared.Metric.SetF(metricNoRouteSec, float64(noRouteCount)/duration.Seconds())
 
 			shared.Metric.Add(metricMessages, int64(messageCount))
 			shared.Metric.Add(metricDropped, int64(droppedCount))
 			shared.Metric.Add(metricDiscarded, int64(discardedCount))
+			shared.Metric.Add(metricFiltered, int64(filteredCount))
+			shared.Metric.Add(metricNoRoute, int64(noRouteCount))
 
 			if plex.profile {
 				Log.Note.Printf("Processed %.2f msg/sec", messageSec)
