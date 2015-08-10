@@ -64,7 +64,8 @@ import (
 // set to 5.
 //
 // Filter defines a filter function that removes or allows certain messages to
-// pass through to scribe. By default this is set to filter.All.
+// pass through to scribe. By default this is set to filter.All. Filter will be
+// applied before and after Format.
 //
 // Category maps a stream to a specific scribe category. You can define the
 // wildcard stream (*) here, too. When set, all streams that do not have a
@@ -87,6 +88,7 @@ type Scribe struct {
 const (
 	scribeMetricName     = "Scribe:Messages-"
 	scribeMetricRetry    = "Scribe:Retries"
+	scribeMetricFiltered = "Scribe:Filtered"
 	scribeMaxRetries     = 10
 	scribeMaxSleepTimeMs = 3000
 )
@@ -140,6 +142,10 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 }
 
 func (prod *Scribe) bufferMessage(msg core.Message) {
+	if !prod.Filter.Accepts(msg) {
+		shared.Metric.Inc(scribeMetricFiltered)
+		return // ### return, filtered ###
+	}
 	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
 }
 

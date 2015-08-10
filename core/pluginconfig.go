@@ -161,11 +161,12 @@ func (conf PluginConfig) GetStringMap(key string, defaultValue map[string]string
 func (conf PluginConfig) GetStreamArray(key string, defaultValue []MessageStreamID) []MessageStreamID {
 	conf.registerKey(key)
 	if conf.HasValue(key) {
-		value := conf.GetStringArray(key, []string{})
+		values := conf.GetStringArray(key, []string{})
 		streamArray := []MessageStreamID{}
-		for _, streamName := range value {
+		for _, streamName := range values {
 			streamArray = append(streamArray, GetStreamID(streamName))
 		}
+		return streamArray
 	}
 
 	return defaultValue

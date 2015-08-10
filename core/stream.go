@@ -215,6 +215,8 @@ func (stream *StreamBase) Enqueue(msg Message) {
 		var streamID MessageStreamID
 		msg.Data, streamID = stream.Format.Format(msg)
 		stream.Route(msg, streamID)
+	} else {
+		shared.Metric.Inc(MetricFiltered)
 	}
 }
 

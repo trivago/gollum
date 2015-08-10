@@ -24,6 +24,8 @@ const (
 	metricStreams = "Streams"
 	// MetricNoRoute counts messages that reached a stream without any producers
 	MetricNoRoute = "NoRoute"
+	// MetricFiltered counts messages that were filtered by stream plugins
+	MetricFiltered = "Filtered"
 )
 
 // streamRegistry holds streams mapped by their MessageStreamID as well as a
@@ -44,6 +46,7 @@ var StreamRegistry = streamRegistry{
 func init() {
 	shared.Metric.New(metricStreams)
 	shared.Metric.New(MetricNoRoute)
+	shared.Metric.New(MetricFiltered)
 }
 
 // GetStreamID returns the integer representation of a given stream name.

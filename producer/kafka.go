@@ -127,7 +127,8 @@ const (
 // is set to contain only "localhost:9092".
 //
 // Filter defines a filter function that removes or allows certain messages to
-// pass through to kafka. By default this is set to filter.All.
+// pass through to kafka. By default this is set to filter.All. Filter will be
+// applied before and after Format.
 //
 // Topic maps a stream to a specific kafka topic. You can define the
 // wildcard stream (*) here, too. If defined, all streams that do not have a
@@ -146,7 +147,10 @@ type Kafka struct {
 	missCount int64
 }
 
-const kafkaMetricName = "Kafka:Messages-"
+const (
+	kafkaMetricName     = "Kafka:Messages-"
+	kafkaMetricFiltered = "Kafka:Filtered"
+)
 
 func init() {
 	shared.TypeRegistry.Register(Kafka{})
@@ -225,10 +229,16 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 		shared.Metric.New(kafkaMetricName + topic)
 	}
 
+	shared.Metric.New(kafkaMetricFiltered)
 	return nil
 }
 
 func (prod *Kafka) bufferMessage(msg core.Message) {
+	if !prod.Filter.Accepts(msg) {
+		shared.Metric.Inc(kafkaMetricFiltered)
+		return // ### return, filtered ###
+	}
+
 	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
 }
 
@@ -257,6 +267,7 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 		originalMsg := msg
 		msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
 		if !prod.Filter.Accepts(msg) {
+			shared.Metric.Inc(kafkaMetricFiltered)
 			continue // ### continue, filtered ###
 		}
 

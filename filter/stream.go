@@ -56,14 +56,14 @@ func (filter *Stream) Configure(conf core.PluginConfig) error {
 
 // Accepts filters by streamId using a black and whitelist
 func (filter *Stream) Accepts(msg core.Message) bool {
-	for _, blockID := range filter.blacklist {
-		if msg.StreamID == blockID {
+	for _, blockedID := range filter.blacklist {
+		if msg.StreamID == blockedID {
 			return false // ### return, explicitly blocked ###
 		}
 	}
 
-	for _, passID := range filter.whitelist {
-		if msg.StreamID == passID {
+	for _, allowedID := range filter.whitelist {
+		if msg.StreamID == allowedID {
 			return true // ### return, explicitly allowed ###
 		}
 	}
