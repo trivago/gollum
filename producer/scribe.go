@@ -139,6 +139,8 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 
 	shared.Metric.New(scribeMetricRetry)
 	shared.Metric.New(scribeMetricWindowSize)
+	shared.Metric.SetI(scribeMetricWindowSize, prod.windowSize)
+
 	for _, category := range prod.category {
 		shared.Metric.New(scribeMetricName + category)
 	}
@@ -211,7 +213,6 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 	// If this fails, reduce the number of items send until sending succeeds.
 
 	idxStart := 0
-
 	for retryCount := 0; retryCount < scribeMaxRetries; retryCount++ {
 		idxEnd := shared.MinI(len(logBuffer), idxStart+prod.windowSize)
 		resultCode, err := prod.scribe.Log(logBuffer[idxStart:idxEnd])
