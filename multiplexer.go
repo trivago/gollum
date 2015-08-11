@@ -399,7 +399,7 @@ func (plex multiplexer) run() {
 
 	Log.Note.Print("We be nice to them, if they be nice to us. (startup)")
 	measure := time.Now()
-	timer := time.NewTicker(time.Second)
+	timer := time.NewTicker(5 * time.Second)
 
 	for {
 		select {

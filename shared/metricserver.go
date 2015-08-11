@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 )
 
 // MetricServer contains state information about the metric server process
@@ -44,6 +45,7 @@ func (server *MetricServer) Start(port int) {
 	server.listen, err = net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Print("Metrics: ", err)
+		time.AfterFunc(time.Second*5, func() { server.Start(port) })
 		return
 	}
 

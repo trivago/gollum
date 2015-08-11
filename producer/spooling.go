@@ -119,11 +119,16 @@ func (prod *Spooling) writeToFile(msg core.Message) {
 	spool, exists := prod.outfile[streamID]
 	if !exists {
 		streamName := core.StreamRegistry.GetStreamName(streamID)
+		if streamName == "" {
+			Log.Error.Print("Spooling: Empty message detected")
+			return // ### return, invalid message ###
+		}
+
 		spool = newSpoolFile(prod, streamName, msg.Source)
 		prod.outfile[streamID] = spool
 
 		if err := os.MkdirAll(spool.basePath, 0700); err != nil {
-			Log.Error.Printf("Failed to create %s because of %s", spool.basePath, err.Error())
+			Log.Error.Printf("Spooling: Failed to create %s because of %s", spool.basePath, err.Error())
 			prod.Drop(msg)
 			return // ### return, cannot write ###
 		}

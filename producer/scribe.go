@@ -83,14 +83,16 @@ type Scribe struct {
 	batchMaxCount   int
 	batchFlushCount int
 	bufferSizeByte  int
+	windowSize      int
 }
 
 const (
-	scribeMetricName     = "Scribe:Messages-"
-	scribeMetricRetry    = "Scribe:Retries"
-	scribeMetricFiltered = "Scribe:Filtered"
-	scribeMaxRetries     = 10
-	scribeMaxSleepTimeMs = 3000
+	scribeMetricName       = "Scribe:Messages-"
+	scribeMetricRetry      = "Scribe:Retries"
+	scribeMetricFiltered   = "Scribe:Filtered"
+	scribeMetricWindowSize = "Scribe:WindowSize"
+	scribeMaxRetries       = 30
+	scribeMaxSleepTimeMs   = 3000
 )
 
 func init() {
@@ -114,6 +116,7 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	host := conf.GetString("Address", "localhost:1463")
 
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
+	prod.windowSize = prod.batchMaxCount
 	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
 	prod.batchFlushCount = shared.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
@@ -135,6 +138,7 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	prod.scribe = scribe.NewScribeClientProtocol(prod.transport, binProtocol, binProtocol)
 
 	shared.Metric.New(scribeMetricRetry)
+	shared.Metric.New(scribeMetricWindowSize)
 	for _, category := range prod.category {
 		shared.Metric.New(scribeMetricName + category)
 	}
@@ -203,26 +207,43 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 		shared.Metric.Inc(scribeMetricName + category)
 	}
 
-	// Retry messages
+	// Try to send the whole batch.
+	// If this fails, reduce the number of items send until sending succeeds.
+
+	idxStart := 0
+
 	for retryCount := 0; retryCount < scribeMaxRetries; retryCount++ {
-		resultCode, err := prod.scribe.Log(logBuffer)
+		idxEnd := shared.MinI(len(logBuffer), idxStart+prod.windowSize)
+		resultCode, err := prod.scribe.Log(logBuffer[idxStart:idxEnd])
+
 		if resultCode == scribe.ResultCode_OK {
+			idxStart = idxEnd
+			if idxStart < len(logBuffer) {
+				continue // ### continue, data left to send ###
+			}
+			// Grow the window on success so we don't get stuck at 1
+			if prod.windowSize < len(logBuffer) {
+				prod.windowSize += (len(logBuffer) - prod.windowSize) / 2
+			}
 			return // ### return, success ###
 		}
 
 		if err != nil || resultCode != scribe.ResultCode_TRY_LATER {
 			Log.Error.Printf("Scribe log error %d: %s", resultCode, err.Error())
 			prod.transport.Close() // reconnect
-			prod.dropMessages(messages)
+			prod.dropMessages(messages[idxStart:])
 			return // ### return, failure ###
 		}
+
+		prod.windowSize = shared.MaxI(1, prod.windowSize/2)
+		shared.Metric.SetI(scribeMetricWindowSize, prod.windowSize)
 
 		shared.Metric.Inc(scribeMetricRetry)
 		time.Sleep(time.Duration(scribeMaxSleepTimeMs/scribeMaxRetries) * time.Millisecond)
 	}
 
 	Log.Error.Printf("Scribe server seems to be busy")
-	prod.dropMessages(messages)
+	prod.dropMessages(messages[idxStart:])
 }
 
 func (prod *Scribe) close() {
