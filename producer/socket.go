@@ -152,7 +152,7 @@ func (prod *Socket) sendBatch() {
 	// Flush the buffer to the connection if it is active
 	if prod.connection != nil {
 		prod.batch.Flush(prod.assembly.Write)
-	} else {
+	} else if prod.IsStopping() {
 		prod.batch.Flush(prod.assembly.Flush)
 	}
 }

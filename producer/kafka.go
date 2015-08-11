@@ -223,7 +223,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.config.Producer.Retry.Max = conf.GetInt("SendRetries", 3)
 	prod.config.Producer.Retry.Backoff = time.Duration(conf.GetInt("SendTimeoutMs", 100)) * time.Millisecond
 
-	prod.batch = core.NewMessageBatch(1024)
+	prod.batch = core.NewMessageBatch(conf.GetInt("Channel", 8192))
 
 	for _, topic := range prod.topic {
 		shared.Metric.New(kafkaMetricName + topic)
@@ -243,15 +243,15 @@ func (prod *Kafka) bufferMessage(msg core.Message) {
 }
 
 func (prod *Kafka) sendBatchOnTimeOut() {
-	if prod.batch.ReachedTimeThreshold(prod.config.Producer.Flush.Frequency) || prod.batch.ReachedSizeThreshold(512) {
+	if prod.openConnection() && (prod.batch.ReachedTimeThreshold(prod.config.Producer.Flush.Frequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2)) {
 		prod.sendBatch()
 	}
 }
 
 func (prod *Kafka) sendBatch() {
-	if prod.tryOpenConnection() {
+	if prod.isConnectionOpen() {
 		prod.batch.Flush(prod.transformMessages)
-	} else {
+	} else if prod.IsStopping() {
 		prod.batch.Flush(prod.dropMessages)
 	}
 }
@@ -304,18 +304,20 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 
 	// Wait for errors to be returned
 
-	numErrors := 0
+	errors := make(map[string]bool)
 	for timeout := time.NewTimer(prod.config.Producer.Flush.Frequency); prod.missCount > 0; prod.missCount-- {
 		select {
 		case <-prod.producer.Successes():
 			// nothing
 
 		case err := <-prod.producer.Errors():
-			Log.Error.Printf("Kafka producer error: %s", err.Error())
+			if _, errorExists := errors[err.Error()]; !errorExists {
+				Log.Error.Printf("Kafka producer error: %s", err.Error())
+				errors[err.Error()] = true
+			}
 			if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
 				prod.Drop(msg)
 			}
-			numErrors++
 
 		case <-timeout.C:
 			Log.Warning.Printf("Kafka flush timed out with %d messages left", prod.missCount)
@@ -323,19 +325,25 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 		}
 	}
 
-	if numErrors > 0 {
-		Log.Error.Printf("%d errors for this batch. Triggering a reconnect", numErrors)
+	if len(errors) > 0 {
+		Log.Error.Printf("%d error type(s) for this batch. Triggering a reconnect", len(errors))
 		prod.closeConnection()
 	}
 }
 
-func (prod *Kafka) tryOpenConnection() bool {
+func (prod *Kafka) isConnectionOpen() bool {
+	return prod.client != nil && prod.producer != nil
+}
+
+func (prod *Kafka) openConnection() bool {
 	// Reconnect the client first
 	if prod.client == nil {
 		if client, err := kafka.NewClient(prod.servers, prod.config); err == nil {
 			prod.client = client
 		} else {
 			Log.Error.Print("Kafka client error:", err)
+			prod.client = nil
+			prod.producer = nil
 			return false // ### return, connection failed ###
 		}
 	}
@@ -348,6 +356,7 @@ func (prod *Kafka) tryOpenConnection() bool {
 			Log.Error.Print("Kafka producer error:", err)
 			prod.client.Close()
 			prod.client = nil
+			prod.producer = nil
 			return false // ### return, connection failed ###
 		}
 	}
@@ -376,5 +385,6 @@ func (prod *Kafka) close() {
 // Produce writes to a buffer that is sent to a given socket.
 func (prod *Kafka) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.TickerMessageControlLoop(prod.bufferMessage, prod.config.Producer.Flush.Frequency, prod.sendBatchOnTimeOut)
+	prod.openConnection()
+	prod.TickerMessageControlLoop(prod.bufferMessage, prod.config.Producer.Timeout, prod.sendBatchOnTimeOut)
 }

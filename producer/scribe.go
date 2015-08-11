@@ -167,6 +167,8 @@ func (prod *Scribe) sendBatch() {
 
 	if prod.transport.IsOpen() {
 		prod.batch.Flush(prod.transformMessages)
+	} else if prod.IsStopping() {
+		prod.batch.Flush(prod.dropMessages)
 	}
 }
 

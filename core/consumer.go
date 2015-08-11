@@ -110,14 +110,24 @@ func (cons *ConsumerBase) GetState() PluginState {
 	return cons.runState.state
 }
 
-// IsActive returns true if GetState() returns active
-func (cons *ConsumerBase) IsActive() bool {
-	return cons.GetState() == PluginStateActive
-}
-
 // IsBlocked returns true if GetState() returns waiting
 func (cons *ConsumerBase) IsBlocked() bool {
 	return cons.GetState() == PluginStateWaiting
+}
+
+// IsActive returns true if GetState() returns active
+func (cons *ConsumerBase) IsActive() bool {
+	return cons.GetState() <= PluginStateActive
+}
+
+// IsStopping returns true if GetState() returns stopping
+func (cons *ConsumerBase) IsStopping() bool {
+	return cons.GetState() == PluginStateStopping
+}
+
+// IsActiveOrStopping is a shortcut for prod.IsActive() || prod.IsStopping()
+func (cons *ConsumerBase) IsActiveOrStopping() bool {
+	return cons.IsActive() || cons.IsStopping()
 }
 
 // SetRollCallback sets the function to be called upon PluginControlRoll

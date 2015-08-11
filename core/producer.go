@@ -168,19 +168,24 @@ func (prod *ProducerBase) GetState() PluginState {
 	return prod.runState.state
 }
 
-// IsActive returns true if GetState() returns active
-func (prod *ProducerBase) IsActive() bool {
-	return prod.GetState() == PluginStateActive
-}
-
-// IsActiveOrStopping returns true if GetState() returns active or stopping
-func (prod *ProducerBase) IsActiveOrStopping() bool {
-	return prod.GetState() == PluginStateActive || prod.GetState() == PluginStateStopping
-}
-
 // IsBlocked returns true if GetState() returns waiting
 func (prod *ProducerBase) IsBlocked() bool {
 	return prod.GetState() == PluginStateWaiting
+}
+
+// IsActive returns true if GetState() returns active or waiting
+func (prod *ProducerBase) IsActive() bool {
+	return prod.GetState() <= PluginStateActive
+}
+
+// IsStopping returns true if GetState() returns stopping
+func (prod *ProducerBase) IsStopping() bool {
+	return prod.GetState() == PluginStateStopping
+}
+
+// IsActiveOrStopping is a shortcut for prod.IsActive() || prod.IsStopping()
+func (prod *ProducerBase) IsActiveOrStopping() bool {
+	return prod.IsActive() || prod.IsStopping()
 }
 
 // SetRollCallback sets the function to be called upon PluginControlRoll
@@ -327,6 +332,14 @@ func (prod *ProducerBase) Messages() chan<- Message {
 // by the producer main loop. A timeout value != nil will overwrite the channel
 // timeout value for this call.
 func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
+	defer func() {
+		if r := recover(); r != nil {
+			Log.Error.Print("Recovered a panic during producer enqueue: ", r)
+			Log.Error.Print("State: ", prod.GetState(), ", Stream: ", StreamRegistry.GetStreamName(msg.StreamID))
+			prod.Drop(msg)
+		}
+	}()
+
 	usedTimeout := prod.timeout
 	if timeout != nil {
 		usedTimeout = *timeout

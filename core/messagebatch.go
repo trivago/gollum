@@ -60,6 +60,11 @@ func newMessageQueue(maxMessageCount int) messageQueue {
 	}
 }
 
+// Len returns the length of one buffer
+func (batch *MessageBatch) Len() int {
+	return len(batch.queue[0].messages)
+}
+
 // Append formats a message and appends it to the internal buffer.
 // If the message does not fit into the buffer this function returns false.
 // If the message can never fit into the buffer (too large), true is returned

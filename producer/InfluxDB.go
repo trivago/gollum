@@ -119,7 +119,7 @@ func (prod *InfluxDB) Configure(conf core.PluginConfig) error {
 func (prod *InfluxDB) sendBatch() {
 	if prod.writer.isConnectionUp() {
 		prod.batch.Flush(prod.assembly.Write)
-	} else {
+	} else if prod.IsStopping() {
 		prod.batch.Flush(prod.assembly.Flush)
 	}
 }
@@ -131,7 +131,7 @@ func (prod *InfluxDB) sendBatchOnTimeOut() {
 	}
 }
 
-func (prod *InfluxDB) sendMessage(msg core.Message) {
+func (prod *InfluxDB) bufferMessage(msg core.Message) {
 	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
 }
 
@@ -139,7 +139,7 @@ func (prod *InfluxDB) close() {
 	defer prod.WorkerDone()
 
 	// Flush buffer to regular socket
-	prod.CloseMessageChannel(prod.sendMessage)
+	prod.CloseMessageChannel(prod.bufferMessage)
 	prod.batch.Close(prod.assembly.Write, prod.GetShutdownTimeout())
 }
 
@@ -147,5 +147,5 @@ func (prod *InfluxDB) close() {
 // The buffer limit does not describe the number of messages received from kafka but the size of the buffer content in KB.
 func (prod *InfluxDB) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.TickerMessageControlLoop(prod.sendMessage, prod.flushTimeout, prod.sendBatchOnTimeOut)
+	prod.TickerMessageControlLoop(prod.bufferMessage, prod.flushTimeout, prod.sendBatchOnTimeOut)
 }

@@ -15,7 +15,7 @@
 package core
 
 import (
-	"github.com/trivago/gollum/core/log"
+	//"github.com/trivago/gollum/core/log"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -215,7 +215,7 @@ func (stream *StreamBase) Route(msg Message, targetID MessageStreamID) {
 
 	if len(stream.Producers) == 0 {
 		CountNoRouteForMessage()
-		Log.Debug.Print("No producers for ", StreamRegistry.GetStreamName(msg.StreamID))
+		//Log.Debug.Print("No producers for ", StreamRegistry.GetStreamName(msg.StreamID))
 		return // ### return, no route to producer ###
 	}
 
