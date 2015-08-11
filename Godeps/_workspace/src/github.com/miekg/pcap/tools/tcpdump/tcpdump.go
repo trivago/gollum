@@ -32,7 +32,7 @@ func main() {
 	expr := ""
 
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "usage: %s [ -i interface ] [ -s snaplen ] [ -X ] [ -w file ] [ -h show usage] [ expression ] \n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "usage: %s [ -i interface ] [ -s snaplen ] [ -X hexdump ] [ -w file ] [ -h show usage] [ expression ] \n", os.Args[0])
 		os.Exit(1)
 	}
 

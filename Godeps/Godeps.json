@@ -4,7 +4,7 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/araddon/gou",
-			"Rev": "101410571bd5319d93372a54c775b4728a46be71"
+			"Rev": "8737e2ed351a696edd9ad013c36e56c13fc1d718"
 		},
 		{
 			"ImportPath": "github.com/artyom/fb303",
@@ -24,13 +24,8 @@
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/homedir",
-			"Comment": "v1.4.1-4218-gabb85f8",
-			"Rev": "abb85f822d057791afe0f5f883b267fb8bfe2691"
-		},
-		{
-			"ImportPath": "github.com/docker/libcontainer/user",
-			"Comment": "v2.2.1-19-g0ec0638",
-			"Rev": "0ec063848c588506fcb57b932d1ce57c77560c1a"
+			"Comment": "v1.4.1-5501-gbeab255",
+			"Rev": "beab255cc02da5e95e30334c1b71348b279fbbfd"
 		},
 		{
 			"ImportPath": "github.com/eapache/go-resiliency/breaker",
@@ -43,31 +38,40 @@
 			"Rev": "ded5959c0d4e360646dc9e9908cff48666781367"
 		},
 		{
-			"ImportPath": "github.com/golang/snappy/snappy",
-			"Rev": "eaa750b9bf4dcb7cb20454be850613b66cda3273"
+			"ImportPath": "github.com/golang/snappy",
+			"Rev": "723cc1e459b8eea2dea4583200fd60757d40097a"
 		},
 		{
 			"ImportPath": "github.com/jeromer/syslogparser",
-			"Rev": "812866d0389ae7e1f5a0110d47dea20224fc776f"
+			"Rev": "ff71fe7a7d5279df4b964b31f7ee4adf117277f6"
 		},
 		{
 			"ImportPath": "github.com/mattbaird/elastigo/lib",
-			"Comment": "v1.0-179-g09363f9",
-			"Rev": "09363f92cd44e47b5034719cdef78da73190d847"
+			"Comment": "v1.0-183-g10db87f",
+			"Rev": "10db87fb8a41cc5a4f53d68e292bc876181860fd"
+		},
+		{
+			"ImportPath": "github.com/miekg/pcap",
+			"Rev": "fbfcc463715f6206524a6b1fcc8ed1b9e7567ba5"
+		},
+		{
+			"ImportPath": "github.com/opencontainers/runc/libcontainer/user",
+			"Comment": "v0.0.3-20-g15c709e",
+			"Rev": "15c709ed739f29cc6c67546ebe82948dc5935a11"
 		},
 		{
 			"ImportPath": "github.com/shopify/sarama",
-			"Comment": "v1.4.2-15-gc1d582e",
-			"Rev": "c1d582ee1b8d46fc22431b467f398717b580b368"
+			"Comment": "v1.4.3-33-g8f2b0fb",
+			"Rev": "8f2b0fbf383f798dccadd39ae31c4e5fcaa64563"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
-			"Rev": "38f3db3860bb1812858610029b0d8188517d8b74"
+			"Rev": "4a71d182556e05375344f3da665304f3d5784ab4"
 		},
 		{
 			"ImportPath": "gopkg.in/Shopify/sarama.v1",
-			"Comment": "v1.4.2",
-			"Rev": "d546818f24718ecca1fe4c84c2b834109746da86"
+			"Comment": "v1.4.3",
+			"Rev": "2b0d726b296a33715f7f970f006a80c7bfc8a2e8"
 		},
 		{
 			"ImportPath": "gopkg.in/bufio.v1",
@@ -76,13 +80,13 @@
 		},
 		{
 			"ImportPath": "gopkg.in/docker/docker.v1/pkg/mflag",
-			"Comment": "v1.7.0",
-			"Rev": "0baf60984522744eed290348f33f396c046b2f3a"
+			"Comment": "v1.7.1",
+			"Rev": "786b29d4db80a6175e72b47a794ee044918ba734"
 		},
 		{
 			"ImportPath": "gopkg.in/mcuadros/go-syslog.v2",
-			"Comment": "v2.0.0",
-			"Rev": "f22fa4cce7e718c50fe7adc6e98d703f39e285e0"
+			"Comment": "v2.1.0",
+			"Rev": "6cba2bfcf64a025c899aa3be061161d2b89d8b54"
 		},
 		{
 			"ImportPath": "gopkg.in/redis.v2",
@@ -91,7 +95,7 @@
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
-			"Rev": "c1cd2254a6dd314c9d73c338c12688c9325d85c6"
+			"Rev": "7ad95dd0798a40da1ccdff6dff35fd177b5edf40"
 		}
 	]
 }

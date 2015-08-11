@@ -12,9 +12,11 @@
 package elastigo
 
 import (
+	"errors"
 	"fmt"
 	hostpool "github.com/bitly/go-hostpool"
 	"net/http"
+	"net/url"
 	"runtime"
 	"strings"
 	"sync"
@@ -59,6 +61,32 @@ func NewConn() *Conn {
 		Port:           DefaultPort,
 		DecayDuration:  time.Duration(DefaultDecayDuration * time.Second),
 	}
+}
+
+func (c *Conn) SetFromUrl(u string) error {
+	if u == "" {
+		return errors.New("Url is empty")
+	}
+
+	parsedUrl, err := url.Parse(u)
+	if err != nil {
+		return err
+	}
+
+	c.Protocol = parsedUrl.Scheme
+	host, portNum := splitHostnamePartsFromHost(parsedUrl.Host, c.Port)
+	c.Port = portNum
+	c.Domain = host
+
+	if parsedUrl.User != nil {
+		c.Username = parsedUrl.User.Username()
+		password, passwordIsSet := parsedUrl.User.Password()
+		if passwordIsSet {
+			c.Password = password
+		}
+	}
+
+	return nil
 }
 
 func (c *Conn) SetPort(port string) {

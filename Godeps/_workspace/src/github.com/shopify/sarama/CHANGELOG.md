@@ -1,5 +1,34 @@
 # Changelog
 
+#### Version 1.5.0 (unreleased)
+
+New Features:
+ - TLS-encrypted network connections are now supported. This feature is subject
+   to change when Kafka releases built-in TLS support, but for now this is
+   enough to work with TLS-terminating proxies
+   ([#154](https://github.com/Shopify/sarama/pull/154)).
+
+Improvements:
+ - The consumer will not block if a single partition is not drained by the user;
+   all other partitions will continue to consume normally
+   ([#485](https://github.com/Shopify/sarama/pull/485)).
+ - Formatting of error strings has been much improved
+   ([#495](https://github.com/Shopify/sarama/pull/495)).
+
+Bug Fixes:
+ - Fix a potential deadlock in the consumer on shutdown
+   ([#475](https://github.com/Shopify/sarama/pull/475)).
+
+#### Version 1.4.3 (2015-07-21)
+
+Bug Fixes:
+ - Don't include the partitioner in the producer's "fetch partitions"
+   circuit-breaker ([#466](https://github.com/Shopify/sarama/pull/466)).
+ - Don't retry messages until the broker is closed when abandoning a broker in
+   the producer ([#468](https://github.com/Shopify/sarama/pull/468)).
+ - Update the import path for snappy-go, it has moved again and the API has
+   changed slightly ([#486](https://github.com/Shopify/sarama/pull/486)).
+
 #### Version 1.4.2 (2015-05-27)
 
 Bug Fixes:

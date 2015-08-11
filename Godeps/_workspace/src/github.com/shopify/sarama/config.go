@@ -1,6 +1,9 @@
 package sarama
 
-import "time"
+import (
+	"crypto/tls"
+	"time"
+)
 
 // Config is used to pass multiple configuration options to Sarama's constructors.
 type Config struct {
@@ -12,6 +15,13 @@ type Config struct {
 		DialTimeout  time.Duration // How long to wait for the initial connection to succeed before timing out and returning an error (default 30s).
 		ReadTimeout  time.Duration // How long to wait for a response before timing out and returning an error (default 30s).
 		WriteTimeout time.Duration // How long to wait for a transmit to succeed before timing out and returning an error (default 30s).
+
+		// NOTE: these config values have no compatibility guarantees; they may change when Kafka releases its
+		// official TLS support in version 0.9.
+		TLS struct {
+			Enable bool        // Whether or not to use TLS when connecting to the broker (defaults to false).
+			Config *tls.Config // The TLS configuration to use for secure connections if enabled (defaults to nil).
+		}
 
 		// KeepAlive specifies the keep-alive period for an active network connection.
 		// If zero, keep-alives are disabled. (default is 0: disabled).
@@ -105,6 +115,11 @@ type Config struct {
 		// Equivalent to the JVM's `fetch.wait.max.ms`.
 		MaxWaitTime time.Duration
 
+		// The maximum amount of time the consumer expects a message takes to process for the user. If writing to the Messages channel
+		// takes longer than this, that partition will stop fetching more messages until it can proceed again. Note that, since the
+		// Messages channel is buffered, the actual grace time is (MaxProcessingTime * ChanneBufferSize). Defaults to 100ms.
+		MaxProcessingTime time.Duration
+
 		// Return specifies what channels will be populated. If they are set to true, you must read from
 		// them to prevent deadlock.
 		Return struct {
@@ -147,6 +162,7 @@ func NewConfig() *Config {
 	c.Consumer.Fetch.Default = 32768
 	c.Consumer.Retry.Backoff = 2 * time.Second
 	c.Consumer.MaxWaitTime = 250 * time.Millisecond
+	c.Consumer.MaxProcessingTime = 100 * time.Millisecond
 	c.Consumer.Return.Errors = false
 
 	c.ChannelBufferSize = 256
@@ -158,6 +174,9 @@ func NewConfig() *Config {
 // ConfigurationError if the specified values don't make sense.
 func (c *Config) Validate() error {
 	// some configuration values should be warned on but not fail completely, do those first
+	if c.Net.TLS.Enable == false && c.Net.TLS.Config != nil {
+		Logger.Println("Net.TLS is disabled but a non-nil configuration was provided.")
+	}
 	if c.Producer.RequiredAcks > 1 {
 		Logger.Println("Producer.RequiredAcks > 1 is deprecated and will raise an exception with kafka >= 0.8.2.0.")
 	}
@@ -183,71 +202,73 @@ func (c *Config) Validate() error {
 	// validate Net values
 	switch {
 	case c.Net.MaxOpenRequests <= 0:
-		return ConfigurationError("Invalid Net.MaxOpenRequests, must be > 0")
+		return ConfigurationError("Net.MaxOpenRequests must be > 0")
 	case c.Net.DialTimeout <= 0:
-		return ConfigurationError("Invalid Net.DialTimeout, must be > 0")
+		return ConfigurationError("Net.DialTimeout must be > 0")
 	case c.Net.ReadTimeout <= 0:
-		return ConfigurationError("Invalid Net.ReadTimeout, must be > 0")
+		return ConfigurationError("Net.ReadTimeout must be > 0")
 	case c.Net.WriteTimeout <= 0:
-		return ConfigurationError("Invalid Net.WriteTimeout, must be > 0")
+		return ConfigurationError("Net.WriteTimeout must be > 0")
 	case c.Net.KeepAlive < 0:
-		return ConfigurationError("Invalid Net.KeepAlive, must be >= 0")
+		return ConfigurationError("Net.KeepAlive must be >= 0")
 	}
 
 	// validate the Metadata values
 	switch {
 	case c.Metadata.Retry.Max < 0:
-		return ConfigurationError("Invalid Metadata.Retry.Max, must be >= 0")
+		return ConfigurationError("Metadata.Retry.Max must be >= 0")
 	case c.Metadata.Retry.Backoff < 0:
-		return ConfigurationError("Invalid Metadata.Retry.Backoff, must be >= 0")
+		return ConfigurationError("Metadata.Retry.Backoff must be >= 0")
 	case c.Metadata.RefreshFrequency < 0:
-		return ConfigurationError("Invalid Metadata.RefreshFrequency, must be >= 0")
+		return ConfigurationError("Metadata.RefreshFrequency must be >= 0")
 	}
 
 	// validate the Producer values
 	switch {
 	case c.Producer.MaxMessageBytes <= 0:
-		return ConfigurationError("Invalid Producer.MaxMessageBytes, must be > 0")
+		return ConfigurationError("Producer.MaxMessageBytes must be > 0")
 	case c.Producer.RequiredAcks < -1:
-		return ConfigurationError("Invalid Producer.RequiredAcks, must be >= -1")
+		return ConfigurationError("Producer.RequiredAcks must be >= -1")
 	case c.Producer.Timeout <= 0:
-		return ConfigurationError("Invalid Producer.Timeout, must be > 0")
+		return ConfigurationError("Producer.Timeout must be > 0")
 	case c.Producer.Partitioner == nil:
-		return ConfigurationError("Invalid Producer.Partitioner, must not be nil")
+		return ConfigurationError("Producer.Partitioner must not be nil")
 	case c.Producer.Flush.Bytes < 0:
-		return ConfigurationError("Invalid Producer.Flush.Bytes, must be >= 0")
+		return ConfigurationError("Producer.Flush.Bytes must be >= 0")
 	case c.Producer.Flush.Messages < 0:
-		return ConfigurationError("Invalid Producer.Flush.Messages, must be >= 0")
+		return ConfigurationError("Producer.Flush.Messages must be >= 0")
 	case c.Producer.Flush.Frequency < 0:
-		return ConfigurationError("Invalid Producer.Flush.Frequency, must be >= 0")
+		return ConfigurationError("Producer.Flush.Frequency must be >= 0")
 	case c.Producer.Flush.MaxMessages < 0:
-		return ConfigurationError("Invalid Producer.Flush.MaxMessages, must be >= 0")
+		return ConfigurationError("Producer.Flush.MaxMessages must be >= 0")
 	case c.Producer.Flush.MaxMessages > 0 && c.Producer.Flush.MaxMessages < c.Producer.Flush.Messages:
-		return ConfigurationError("Invalid Producer.Flush.MaxMessages, must be >= Producer.Flush.Messages when set")
+		return ConfigurationError("Producer.Flush.MaxMessages must be >= Producer.Flush.Messages when set")
 	case c.Producer.Retry.Max < 0:
-		return ConfigurationError("Invalid Producer.Retry.Max, must be >= 0")
+		return ConfigurationError("Producer.Retry.Max must be >= 0")
 	case c.Producer.Retry.Backoff < 0:
-		return ConfigurationError("Invalid Producer.Retry.Backoff, must be >= 0")
+		return ConfigurationError("Producer.Retry.Backoff must be >= 0")
 	}
 
 	// validate the Consumer values
 	switch {
 	case c.Consumer.Fetch.Min <= 0:
-		return ConfigurationError("Invalid Consumer.Fetch.Min, must be > 0")
+		return ConfigurationError("Consumer.Fetch.Min must be > 0")
 	case c.Consumer.Fetch.Default <= 0:
-		return ConfigurationError("Invalid Consumer.Fetch.Default, must be > 0")
+		return ConfigurationError("Consumer.Fetch.Default must be > 0")
 	case c.Consumer.Fetch.Max < 0:
-		return ConfigurationError("Invalid Consumer.Fetch.Max, must be >= 0")
+		return ConfigurationError("Consumer.Fetch.Max must be >= 0")
 	case c.Consumer.MaxWaitTime < 1*time.Millisecond:
-		return ConfigurationError("Invalid Consumer.MaxWaitTime, must be > 1ms")
+		return ConfigurationError("Consumer.MaxWaitTime must be >= 1ms")
+	case c.Consumer.MaxProcessingTime <= 0:
+		return ConfigurationError("Consumer.MaxProcessingTime must be > 0")
 	case c.Consumer.Retry.Backoff < 0:
-		return ConfigurationError("Invalid Consumer.Retry.Backoff, must be >= 0")
+		return ConfigurationError("Consumer.Retry.Backoff must be >= 0")
 	}
 
 	// validate misc shared values
 	switch {
 	case c.ChannelBufferSize < 0:
-		return ConfigurationError("Invalid ChannelBufferSize, must be >= 0")
+		return ConfigurationError("ChannelBufferSize must be >= 0")
 	}
 
 	return nil

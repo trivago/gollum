@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 )
 
 // Convert a slice of bytes into an array by ensuring it is wrapped
@@ -29,6 +30,61 @@ func JsonString(v interface{}) string {
 		return `""`
 	}
 	return string(b)
+}
+
+func firstNonWsRune(by []byte) (r rune, ok bool) {
+	for {
+		if len(by) == 0 {
+			return 0, false
+		}
+		r, numBytes := utf8.DecodeRune(by)
+		switch r {
+		case '\t', '\n', '\r', ' ':
+			by = by[numBytes:] // advance past the current whitespace rune and continue
+			continue
+		case utf8.RuneError: // This is returned when invalid UTF8 is found
+			return 0, false
+		}
+		return r, true
+	}
+	return 0, false
+}
+
+// Determines if the bytes is a json array, only looks at prefix
+//  not parsing the entire thing
+func IsJson(by []byte) bool {
+	firstRune, ok := firstNonWsRune(by)
+	if !ok {
+		return false
+	}
+	if firstRune == '[' || firstRune == '{' {
+		return true
+	}
+	return false
+}
+
+// Determines if the bytes is a json array, only looks at prefix
+//  not parsing the entire thing
+func IsJsonArray(by []byte) bool {
+	firstRune, ok := firstNonWsRune(by)
+	if !ok {
+		return false
+	}
+	if firstRune == '[' {
+		return true
+	}
+	return false
+}
+
+func IsJsonObject(by []byte) bool {
+	firstRune, ok := firstNonWsRune(by)
+	if !ok {
+		return false
+	}
+	if firstRune == '{' {
+		return true
+	}
+	return false
 }
 
 type JsonRawWriter struct {
@@ -513,6 +569,12 @@ func (j JsonHelper) Keys() []string {
 		keys = append(keys, key)
 	}
 	return keys
+}
+func (j JsonHelper) HasKey(name string) bool {
+	if val := j.Get(name); val != nil {
+		return true
+	}
+	return false
 }
 
 // The following consts are from http://code.google.com/p/go-bit/ (Apache licensed). It
