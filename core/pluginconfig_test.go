@@ -19,7 +19,7 @@ import (
 	"testing"
 )
 
-// returns a bogusPluginType
+// returns a mockPluginType
 func getMockPluginConfig() PluginConfig {
 	return NewPluginConfig("mockPluginType")
 }
