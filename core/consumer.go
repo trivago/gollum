@@ -223,7 +223,7 @@ func (cons *ConsumerBase) ControlLoop() {
 			Log.Debug.Print("Recieved untracked command")
 			// Do nothing
 
-		case PluginControlStopConsumer, PluginControlStop:
+		case PluginControlStopConsumer:
 			cons.setState(PluginStateStopping)
 			Log.Debug.Print("Recieved stop command")
 			if cons.onStop != nil {

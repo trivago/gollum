@@ -33,8 +33,6 @@ const (
 	PluginControlStopProducer = PluginControl(iota)
 	// PluginControlStopConsumer will cause any consumer to halt and shutdown.
 	PluginControlStopConsumer = PluginControl(iota)
-	// PluginControlStop will cause any plugin to halt and shutdown.
-	PluginControlStop = PluginControl(iota)
 	// PluginControlRoll notifies the consumer/producer about a reconnect or reopen request
 	PluginControlRoll = PluginControl(iota)
 )

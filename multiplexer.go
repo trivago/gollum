@@ -41,6 +41,7 @@ const (
 	metricFilteredSec      = "FilteredSec"
 	metricNoRouteSec       = "DiscardedNoRouteSec"
 	metricBlockedProducers = "BlockedProducers"
+	metricVersion          = "Version"
 )
 
 const (
@@ -102,6 +103,9 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	shared.Metric.New(metricNoRouteSec)
 	shared.Metric.New(metricFilteredSec)
 	shared.Metric.New(metricBlockedProducers)
+	shared.Metric.New(metricVersion)
+
+	shared.Metric.Set(metricVersion, gollumMajorVer*10000+gollumMinorVer*100+gollumPatchVer)
 
 	plex := multiplexer{
 		consumers:      []core.Consumer{new(core.LogConsumer)},

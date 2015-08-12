@@ -448,7 +448,7 @@ func (prod *ProducerBase) ControlLoop() {
 			Log.Debug.Print("Recieved untracked command")
 			// Do nothing
 
-		case PluginControlStopProducer, PluginControlStop:
+		case PluginControlStopProducer:
 			Log.Debug.Print("Recieved stop command")
 			prod.WaitForDependencies(PluginStateDead, prod.GetShutdownTimeout())
 			prod.setState(PluginStateStopping)
