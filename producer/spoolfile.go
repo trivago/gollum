@@ -16,6 +16,7 @@ package producer
 
 import (
 	"bufio"
+	"encoding/base64"
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
@@ -166,9 +167,12 @@ func (spool *spoolFile) read() {
 				}
 				break // ### break, read error or EOF ###
 			}
-			// Deserialize from string
-			msg, err := core.DeserializeMessage(string(buffer))
-			if err != nil {
+
+			// Base64 decode, than deserialize
+			decoded := make([]byte, base64.StdEncoding.DecodedLen(len(buffer)))
+			if size, err := base64.StdEncoding.Decode(decoded, buffer); err != nil {
+				Log.Error.Print("Spool file read: ", err)
+			} else if msg, err := core.DeserializeMessage(decoded[:size]); err != nil {
 				Log.Error.Print("Spool file read: ", err)
 			} else {
 				spool.prod.routeToOrigin(msg)

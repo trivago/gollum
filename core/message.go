@@ -15,11 +15,8 @@
 package core
 
 import (
-	"encoding/base64"
-	"fmt"
+	"github.com/golang/protobuf/proto"
 	"github.com/trivago/gollum/shared"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -176,62 +173,31 @@ func (msg Message) Route(targetID MessageStreamID) {
 
 // Serialize generates a string containing all data that can be preserved over
 // shutdown (i.e. no data directly referencing runtime components).
-func (msg Message) Serialize() string {
-	return fmt.Sprintf("%d:%d:%d:%d:%s",
-		msg.StreamID,
-		msg.PrevStreamID,
-		msg.Timestamp.UnixNano(),
-		msg.Sequence,
-		base64.StdEncoding.EncodeToString(msg.Data))
+func (msg Message) Serialize() ([]byte, error) {
+	serializable := &SerializedMessage{
+		StreamID:     proto.Uint64(uint64(msg.StreamID)),
+		PrevStreamID: proto.Uint64(uint64(msg.PrevStreamID)),
+		Timestamp:    proto.Int64(msg.Timestamp.UnixNano()),
+		Sequence:     proto.Uint64(msg.Sequence),
+		Data:         msg.Data,
+	}
+
+	return proto.Marshal(serializable)
 }
 
 // DeserializeMessage generates a message from a string produced by
 // Message.Serialize.
-func DeserializeMessage(data string) (Message, error) {
-	var (
-		err       error
-		msg       Message
-		streamID  uint64
-		timestamp int64
-	)
+func DeserializeMessage(data []byte) (Message, error) {
+	serializable := new(SerializedMessage)
+	err := proto.Unmarshal(data, serializable)
 
-	fields := strings.Split(data, ":")
-	if len(fields) != 5 {
-		return msg, fmt.Errorf("Message serialization format requires exactly 5 fields, %d given.", len(fields))
+	msg := Message{
+		StreamID:     MessageStreamID(serializable.GetStreamID()),
+		PrevStreamID: MessageStreamID(serializable.GetPrevStreamID()),
+		Timestamp:    time.Unix(0, serializable.GetTimestamp()),
+		Sequence:     serializable.GetSequence(),
+		Data:         serializable.GetData(),
 	}
 
-	// StreamID
-	streamID, err = strconv.ParseUint(fields[0], 10, 64)
-	if err != nil {
-		return msg, fmt.Errorf("Message stream decoding error: %s", err.Error())
-	}
-	msg.StreamID = MessageStreamID(streamID)
-
-	// PrevStreamID
-	streamID, err = strconv.ParseUint(fields[1], 10, 64)
-	if err != nil {
-		return msg, fmt.Errorf("Message previous stream decoding error: %s", err.Error())
-	}
-	msg.PrevStreamID = MessageStreamID(streamID)
-
-	// Timestamp
-	timestamp, err = strconv.ParseInt(fields[2], 10, 64)
-	if err != nil {
-		return msg, fmt.Errorf("Message timestamp decoding error: %s", err.Error())
-	}
-	msg.Timestamp = time.Unix(0, timestamp)
-
-	// Sequence number
-	msg.Sequence, err = strconv.ParseUint(fields[3], 10, 64)
-	if err != nil {
-		return msg, fmt.Errorf("Message sequence decoding error: %s", err.Error())
-	}
-
-	// Payload
-	msg.Data, err = base64.StdEncoding.DecodeString(fields[4])
-	if err != nil {
-		return msg, fmt.Errorf("Message data decoding error: %s", err.Error())
-	}
-
-	return msg, nil
+	return msg, err
 }

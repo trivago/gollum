@@ -15,7 +15,9 @@
 package format
 
 import (
+	"encoding/base64"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 )
 
@@ -25,11 +27,16 @@ import (
 //   - "<producer|stream>":
 //     Formatter: "format.Serialize"
 //     SerializeFormatter: "format.Envelope"
+//     SerializeStringEncode: true
 //
 // SerializeFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
+//
+// SerializeStringEncode causes the serialized data to be base64 encoded and
+// newline separated. This is enabled by default.
 type Serialize struct {
-	base core.Formatter
+	base   core.Formatter
+	encode bool
 }
 
 func init() {
@@ -43,6 +50,7 @@ func (format *Serialize) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
+	format.encode = conf.GetBool("SerializeStringEncode", true)
 	format.base = plugin.(core.Formatter)
 	return nil
 }
@@ -50,7 +58,21 @@ func (format *Serialize) Configure(conf core.PluginConfig) error {
 // Format prepends the sequence number of the message (followed by ":") to the
 // message.
 func (format *Serialize) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	var stream core.MessageStreamID
-	msg.Data, stream = format.base.Format(msg)
-	return []byte(msg.Serialize() + "\n"), stream
+	msg.Data, msg.StreamID = format.base.Format(msg)
+	data, err := msg.Serialize()
+	if err != nil {
+		Log.Error.Print("Serialize: ", err)
+		return msg.Data, msg.StreamID
+	}
+
+	if !format.encode {
+		return data, msg.StreamID // ### return, raw data ###
+	}
+
+	encodedSize := base64.StdEncoding.EncodedLen(len(data))
+	encoded := make([]byte, encodedSize+1)
+	base64.StdEncoding.Encode(encoded, data)
+	encoded[encodedSize] = '\n'
+
+	return encoded, msg.StreamID
 }
