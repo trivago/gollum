@@ -18,8 +18,8 @@ package contrib
 // are placed in sub folders of this folder.
 
 import (
-	_ "github.com/trivago/gollum/contrib/native" // plugins using cgo native bindings
-	//_ "your/company/package"
+//_ "github.com/trivago/gollum/contrib/native" // plugins using cgo native bindings
+//_ "your/company/package"
 )
 
 func init() {
