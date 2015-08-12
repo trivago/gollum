@@ -207,7 +207,9 @@ func (cons *Profiler) profile() {
 		float64(cons.profileRuns)/maxTime))
 
 	if cons.IsActive() {
+		Log.Debug.Print("Profiler done.")
 		// Automatically shut down when done
+		// TODO: Hack
 		proc, _ := os.FindProcess(os.Getpid())
 		proc.Signal(os.Interrupt)
 	}

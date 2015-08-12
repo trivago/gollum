@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/shared"
 	"sync"
+	"sync/atomic"
 )
 
 var metricActiveWorkers = "ActiveWorkers"
@@ -26,7 +27,7 @@ var metricActiveWorkers = "ActiveWorkers"
 type PluginControl int
 
 // PluginState is an enumeration used to describe the current working state of a plugin
-type PluginState int
+type PluginState int32
 
 const (
 	// PluginControlStopProducer will cause any producer to halt and shutdown.
@@ -59,7 +60,7 @@ const (
 // shut down.
 type PluginRunState struct {
 	workers *sync.WaitGroup
-	state   PluginState
+	state   int32 // Pluginstate
 }
 
 // Plugin is the base class for any runtime class that can be configured and
@@ -83,8 +84,16 @@ func init() {
 func NewPluginRunState() *PluginRunState {
 	return &PluginRunState{
 		workers: nil,
-		state:   PluginStateDead,
+		state:   int32(PluginStateDead),
 	}
+}
+
+func (state *PluginRunState) GetState() PluginState {
+	return PluginState(state.state)
+}
+
+func (state *PluginRunState) SetState(nextState PluginState) {
+	atomic.SwapInt32(&state.state, int32(nextState))
 }
 
 // SetWorkerWaitGroup sets the WaitGroup used to manage workers

@@ -102,12 +102,12 @@ func (cons *ConsumerBase) Configure(conf PluginConfig) error {
 
 // setState sets the runstate of this plugin
 func (cons *ConsumerBase) setState(state PluginState) {
-	cons.runState.state = state
+	cons.runState.SetState(state)
 }
 
 // GetState returns the state this plugin is currently in
 func (cons *ConsumerBase) GetState() PluginState {
-	return cons.runState.state
+	return cons.runState.GetState()
 }
 
 // IsBlocked returns true if GetState() returns waiting

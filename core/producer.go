@@ -160,12 +160,12 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 
 // setState sets the runstate of this plugin
 func (prod *ProducerBase) setState(state PluginState) {
-	prod.runState.state = state
+	prod.runState.SetState(state)
 }
 
 // GetState returns the state this plugin is currently in
 func (prod *ProducerBase) GetState() PluginState {
-	return prod.runState.state
+	return prod.runState.GetState()
 }
 
 // IsBlocked returns true if GetState() returns waiting

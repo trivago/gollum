@@ -65,6 +65,7 @@ const (
 // connection. This setting is disabled by default, i.e. set to "".
 // If Acknowledge is enabled and a IP-Address is given to Address, TCP is
 // used to open the connection, otherwise UDP is used.
+// If an error occurs during write "NOT <Acknowledge>" is returned.
 //
 // Partitioner defines the algorithm used to read messages from the stream.
 // By default this is set to "delimiter".
@@ -212,6 +213,16 @@ func (cons *Socket) processClientConnection(clientElement *list.Element) {
 	cons.processConnection(conn)
 }
 
+func (cons *Socket) sendAck(conn net.Conn, success bool) {
+	if cons.acknowledge != "" {
+		if success {
+			fmt.Fprint(conn, cons.acknowledge)
+		} else {
+			fmt.Fprint(conn, "NOT "+cons.acknowledge)
+		}
+	}
+}
+
 func (cons *Socket) processConnection(conn net.Conn) {
 	cons.AddWorker()
 	defer cons.WorkerDone()
@@ -224,6 +235,7 @@ func (cons *Socket) processConnection(conn net.Conn) {
 
 		// Handle errors
 		if err != nil {
+			cons.sendAck(conn, false)
 			if !cons.IsActive() || err == io.EOF || cons.clientDisconnected(err) {
 				return // ### return, connection closed ###
 			}
@@ -236,9 +248,7 @@ func (cons *Socket) processConnection(conn net.Conn) {
 		}
 
 		// Send ack if everything was ok
-		if cons.acknowledge != "" {
-			fmt.Fprint(conn, cons.acknowledge)
-		}
+		cons.sendAck(conn, true)
 	}
 }
 

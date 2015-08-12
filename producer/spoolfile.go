@@ -25,18 +25,22 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sync/atomic"
 	"time"
 )
 
 type spoolFile struct {
-	file        *os.File
-	batch       core.MessageBatch
-	assembly    core.WriterAssembly
-	fileCreated time.Time
-	streamName  string
-	basePath    string
-	prod        *Spooling
-	source      core.MessageSource
+	file             *os.File
+	batch            core.MessageBatch
+	assembly         core.WriterAssembly
+	fileCreated      time.Time
+	streamName       string
+	basePath         string
+	prod             *Spooling
+	source           core.MessageSource
+	readCount        int64
+	writeCount       int64
+	lastMetricUpdate time.Time
 }
 
 const maxSpoolFileNumber = 99999999 // maximum file number defined by %08d -> 8 digits
@@ -44,18 +48,21 @@ const spoolFileFormatString = "%s/%08d.spl"
 
 func newSpoolFile(prod *Spooling, streamName string, source core.MessageSource) *spoolFile {
 	spool := &spoolFile{
-		file:        nil,
-		batch:       core.NewMessageBatch(prod.batchMaxCount),
-		assembly:    core.NewWriterAssembly(nil, prod.Drop, prod.GetFormatter()),
-		fileCreated: time.Now(),
-		streamName:  streamName,
-		basePath:    prod.path + "/" + streamName,
-		prod:        prod,
-		source:      source,
+		file:             nil,
+		batch:            core.NewMessageBatch(prod.batchMaxCount),
+		assembly:         core.NewWriterAssembly(nil, prod.Drop, prod.GetFormatter()),
+		fileCreated:      time.Now(),
+		streamName:       streamName,
+		basePath:         prod.path + "/" + streamName,
+		prod:             prod,
+		source:           source,
+		lastMetricUpdate: time.Now(),
 	}
 
-	shared.Metric.New(spoolingMetricName + streamName)
-	shared.Metric.New(spooledMetricName + streamName)
+	shared.Metric.New(spoolingMetricWrite + streamName)
+	shared.Metric.New(spoolingMetricWriteSec + streamName)
+	shared.Metric.New(spoolingMetricRead + streamName)
+	shared.Metric.New(spoolingMetricReadSec + streamName)
 	go spool.read()
 	return spool
 }
@@ -70,6 +77,18 @@ func (spool *spoolFile) close() {
 		spool.batch.WaitForFlush(spool.prod.GetShutdownTimeout())
 	}
 	spool.file.Close()
+}
+
+func (spool *spoolFile) getAndResetCounts() (read int64, write int64) {
+	return atomic.SwapInt64(&spool.readCount, 0), atomic.SwapInt64(&spool.writeCount, 0)
+}
+
+func (spool *spoolFile) countRead() {
+	atomic.AddInt64(&spool.readCount, 1)
+}
+
+func (spool *spoolFile) countWrite() {
+	atomic.AddInt64(&spool.writeCount, 1)
 }
 
 func (spool *spoolFile) getFileNumbering() (min int, max int) {
@@ -148,11 +167,9 @@ func (spool *spoolFile) read() {
 		for spool.prod.IsActive() {
 			// Only spool back if target is not busy
 			if spool.source != nil && spool.source.IsBlocked() {
-				Log.Debug.Print("Spool read sleeps on inactive source")
-				time.Sleep(time.Second)
+				time.Sleep(time.Millisecond * 100)
 				continue // ### contine, busy source ###
 			}
-
 			// Read one line (might require multiple reads)
 			buffer, isPartial, err := reader.ReadLine()
 			for isPartial && err == nil {

@@ -108,7 +108,7 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 	}
 
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
-	prod.assembly = core.NewWriterAssembly(prod.connection, prod.Drop, prod.GetFormatter())
+	prod.assembly = core.NewWriterAssembly(nil, prod.Drop, prod.GetFormatter())
 	prod.assembly.SetValidator(prod.validate)
 	prod.assembly.SetErrorHandler(prod.onWriteError)
 	return nil
@@ -120,6 +120,7 @@ func (prod *Socket) validate() bool {
 	}
 
 	response := make([]byte, len(prod.acknowledge))
+	prod.connection.SetReadDeadline(time.Now().Add(3 * time.Second))
 	_, err := prod.connection.Read(response)
 	if err != nil {
 		Log.Error.Print("Socket response error:", err)
@@ -130,23 +131,28 @@ func (prod *Socket) validate() bool {
 
 func (prod *Socket) onWriteError(err error) bool {
 	Log.Error.Print("Socket error - ", err)
+	prod.assembly.SetWriter(nil)
 	prod.connection.Close()
 	prod.connection = nil
 	return false
 }
 
+func (prod *Socket) connect() {
+	conn, err := net.Dial(prod.protocol, prod.address)
+
+	if err != nil {
+		Log.Error.Print("Socket connection error - ", err)
+	} else {
+		conn.(bufferedConn).SetWriteBuffer(prod.bufferSizeByte)
+		prod.connection = conn
+		prod.assembly.SetWriter(conn)
+	}
+}
+
 func (prod *Socket) sendBatch() {
 	// If we have not yet connected or the connection dropped: connect.
 	if prod.connection == nil {
-		conn, err := net.Dial(prod.protocol, prod.address)
-
-		if err != nil {
-			Log.Error.Print("Socket connection error - ", err)
-		} else {
-			conn.(bufferedConn).SetWriteBuffer(prod.bufferSizeByte)
-			prod.connection = conn
-			prod.assembly.SetWriter(conn)
-		}
+		prod.connect()
 	}
 
 	// Flush the buffer to the connection if it is active
@@ -170,7 +176,9 @@ func (prod *Socket) sendMessage(msg core.Message) {
 func (prod *Socket) close() {
 	defer func() {
 		if prod.connection != nil {
+			prod.assembly.SetWriter(nil)
 			prod.connection.Close()
+			prod.connection = nil
 		}
 		prod.WorkerDone()
 	}()

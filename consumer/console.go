@@ -67,6 +67,7 @@ func (cons *Console) readStdIn() {
 		case io.EOF:
 			if cons.autoexit {
 				// TODO: Hack
+				Log.Debug.Print("Console triggered exit.")
 				proc, _ := os.FindProcess(os.Getpid())
 				proc.Signal(os.Interrupt)
 			}

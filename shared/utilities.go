@@ -204,8 +204,8 @@ func Btoi(buffer []byte) (uint64, int) {
 // Typically used as "defer RecoverShutdown()".
 func RecoverShutdown() {
 	if r := recover(); r != nil {
-		log.Println(r)
-		log.Println(string(debug.Stack()))
+		log.Print("Panic triggered shutdown: ", r)
+		log.Print(string(debug.Stack()))
 
 		// Send interrupt = clean shutdown
 		// TODO: Hack

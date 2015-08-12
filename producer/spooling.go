@@ -70,8 +70,12 @@ type Spooling struct {
 	batchMaxCount int
 }
 
-const spoolingMetricName = "Spooling:Write-"
-const spooledMetricName = "Spooling:Read-"
+const (
+	spoolingMetricWrite    = "Spooling:Write-"
+	spoolingMetricRead     = "Spooling:Read-"
+	spoolingMetricWriteSec = "Spooling:WriteSec-"
+	spoolingMetricReadSec  = "Spooling:ReadSec-"
+)
 
 func init() {
 	shared.TypeRegistry.Register(Spooling{})
@@ -107,6 +111,15 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 
 func (prod *Spooling) writeBatchOnTimeOut() {
 	for _, spool := range prod.outfile {
+		read, write := spool.getAndResetCounts()
+		durationSec := int64(time.Since(spool.lastMetricUpdate).Seconds())
+		spool.lastMetricUpdate = time.Now()
+
+		shared.Metric.Add(spoolingMetricRead+spool.streamName, read)
+		shared.Metric.Add(spoolingMetricWrite+spool.streamName, write)
+		shared.Metric.Set(spoolingMetricReadSec+spool.streamName, read/durationSec)
+		shared.Metric.Set(spoolingMetricWriteSec+spool.streamName, write/durationSec)
+
 		if spool.batch.ReachedSizeThreshold(prod.batchMaxCount/2) || spool.batch.ReachedTimeThreshold(prod.batchTimeout) {
 			spool.flush()
 		}
@@ -142,14 +155,14 @@ func (prod *Spooling) writeToFile(msg core.Message) {
 
 	// Append to buffer
 	spool.batch.AppendOrFlush(msg, spool.flush, prod.IsActiveOrStopping, prod.Drop)
-	shared.Metric.Inc(spoolingMetricName + spool.streamName)
+	spool.countWrite()
 }
 
 func (prod *Spooling) routeToOrigin(msg core.Message) {
 	msg.Route(msg.PrevStreamID)
 
 	if spool, exists := prod.outfile[msg.PrevStreamID]; exists {
-		shared.Metric.Inc(spooledMetricName + spool.streamName)
+		spool.countRead()
 	}
 }
 

@@ -21,6 +21,7 @@ import (
 	"github.com/trivago/gollum/shared"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -136,20 +137,26 @@ const (
 // If no topic mappings are set the stream names will be used as topic.
 type Kafka struct {
 	core.ProducerBase
-	Filter    core.Filter
-	servers   []string
-	topic     map[core.MessageStreamID]string
-	clientID  string
-	client    kafka.Client
-	config    *kafka.Config
-	batch     core.MessageBatch
-	producer  kafka.AsyncProducer
-	missCount int64
+	Filter           core.Filter
+	servers          []string
+	topic            map[core.MessageStreamID]string
+	clientID         string
+	client           kafka.Client
+	config           *kafka.Config
+	batch            core.MessageBatch
+	producer         kafka.AsyncProducer
+	counters         map[string]*int64
+	missCount        int64
+	filterCount      int64
+	lastMetricUpdate time.Time
 }
 
 const (
-	kafkaMetricName     = "Kafka:Messages-"
-	kafkaMetricFiltered = "Kafka:Filtered"
+	kafkaMetricMessages    = "Kafka:Messages-"
+	kafkaMetricMessagesSec = "Kafka:MessagesSec-"
+	kafkaMetricFiltered    = "Kafka:Filtered"
+	kafkaMetricFilteredSec = "Kafka:FilteredSec"
+	kafkaMetricMissCount   = "Kafka:ResponsesQueued"
 )
 
 func init() {
@@ -173,6 +180,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.topic = conf.GetStreamMap("Topic", "")
 	prod.clientID = conf.GetString("ClientId", "gollum")
+	prod.lastMetricUpdate = time.Now()
 
 	prod.config = kafka.NewConfig()
 	prod.config.ClientID = conf.GetString("ClientId", "gollum")
@@ -224,18 +232,23 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.config.Producer.Retry.Backoff = time.Duration(conf.GetInt("SendTimeoutMs", 100)) * time.Millisecond
 
 	prod.batch = core.NewMessageBatch(conf.GetInt("Channel", 8192))
+	prod.counters = make(map[string]*int64)
 
 	for _, topic := range prod.topic {
-		shared.Metric.New(kafkaMetricName + topic)
+		shared.Metric.New(kafkaMetricMessages + topic)
+		shared.Metric.New(kafkaMetricMessagesSec + topic)
+		prod.counters[topic] = new(int64)
 	}
 
 	shared.Metric.New(kafkaMetricFiltered)
+	shared.Metric.New(kafkaMetricFilteredSec)
+	shared.Metric.New(kafkaMetricMissCount)
 	return nil
 }
 
 func (prod *Kafka) bufferMessage(msg core.Message) {
 	if !prod.Filter.Accepts(msg) {
-		shared.Metric.Inc(kafkaMetricFiltered)
+		atomic.AddInt64(&prod.filterCount, 1)
 		return // ### return, filtered ###
 	}
 
@@ -243,6 +256,21 @@ func (prod *Kafka) bufferMessage(msg core.Message) {
 }
 
 func (prod *Kafka) sendBatchOnTimeOut() {
+	// Update metrics
+	seconds := int64(time.Since(prod.lastMetricUpdate).Seconds())
+	filtered := atomic.SwapInt64(&prod.filterCount, 0)
+	prod.lastMetricUpdate = time.Now()
+
+	shared.Metric.Add(kafkaMetricFiltered, filtered)
+	shared.Metric.Set(kafkaMetricFilteredSec, filtered/seconds)
+
+	for category, counter := range prod.counters {
+		count := atomic.SwapInt64(counter, 0)
+		shared.Metric.Add(kafkaMetricMessages+category, count)
+		shared.Metric.Set(kafkaMetricMessagesSec+category, count/seconds)
+	}
+
+	// Flush if necessary
 	if prod.openConnection() && (prod.batch.ReachedTimeThreshold(prod.config.Producer.Flush.Frequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2)) {
 		prod.sendBatch()
 	}
@@ -263,11 +291,12 @@ func (prod *Kafka) dropMessages(messages []core.Message) {
 }
 
 func (prod *Kafka) transformMessages(messages []core.Message) {
+	defer func() { shared.Metric.Set(kafkaMetricMissCount, prod.missCount) }()
 	for _, msg := range messages {
 		originalMsg := msg
 		msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
 		if !prod.Filter.Accepts(msg) {
-			shared.Metric.Inc(kafkaMetricFiltered)
+			atomic.AddInt64(&prod.filterCount, 1)
 			continue // ### continue, filtered ###
 		}
 
@@ -290,15 +319,18 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 			if !topicMapped {
 				topic = core.StreamRegistry.GetStreamName(msg.StreamID)
 			}
-			shared.Metric.New(kafkaMetricName + topic)
+
+			shared.Metric.New(kafkaMetricMessages + topic)
+			shared.Metric.New(kafkaMetricMessagesSec + topic)
+			prod.counters[topic] = new(int64)
 		}
 
-		shared.Metric.Inc(kafkaMetricName + topic)
 		producer.Input() <- &kafka.ProducerMessage{
 			Topic:    topic,
 			Value:    kafka.ByteEncoder(msg.Data),
 			Metadata: originalMsg,
 		}
+		atomic.AddInt64(prod.counters[topic], 1)
 		prod.missCount++
 	}
 

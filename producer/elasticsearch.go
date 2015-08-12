@@ -22,6 +22,7 @@ import (
 	"github.com/trivago/gollum/shared"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -100,16 +101,21 @@ import (
 // triggered. By default this is set to 5.
 type ElasticSearch struct {
 	core.ProducerBase
-	Filter        core.Filter
-	conn          *elastigo.Conn
-	indexer       *elastigo.BulkIndexer
-	index         map[core.MessageStreamID]string
-	msgType       map[core.MessageStreamID]string
-	msgTTL        string
-	dayBasedIndex bool
+	Filter           core.Filter
+	conn             *elastigo.Conn
+	indexer          *elastigo.BulkIndexer
+	index            map[core.MessageStreamID]string
+	msgType          map[core.MessageStreamID]string
+	msgTTL           string
+	dayBasedIndex    bool
+	counters         map[string]*int64
+	lastMetricUpdate time.Time
 }
 
-const elasticMetricName = "Elastic:Messages-"
+const (
+	elasticMetricMessages    = "Elastic:Messages-"
+	elasticMetricMessagesSec = "Elastic:MessagesSec-"
+)
 
 func init() {
 	shared.TypeRegistry.Register(ElasticSearch{})
@@ -161,11 +167,27 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 	prod.msgTTL = conf.GetString("TTL", "")
 	prod.dayBasedIndex = conf.GetBool("DayBasedIndex", false)
 
+	prod.counters = make(map[string]*int64)
+	prod.lastMetricUpdate = time.Now()
+
 	for _, index := range prod.index {
-		shared.Metric.New(elasticMetricName + index)
+		shared.Metric.New(elasticMetricMessages + index)
+		shared.Metric.New(elasticMetricMessagesSec + index)
+		prod.counters[index] = new(int64)
 	}
 
 	return nil
+}
+
+func (prod *ElasticSearch) updateMetrics() {
+	seconds := int64(time.Since(prod.lastMetricUpdate).Seconds())
+	prod.lastMetricUpdate = time.Now()
+
+	for index, counter := range prod.counters {
+		count := atomic.SwapInt64(counter, 0)
+		shared.Metric.Add(elasticMetricMessages+index, count)
+		shared.Metric.Set(elasticMetricMessagesSec+index, count/seconds)
+	}
 }
 
 func (prod *ElasticSearch) sendMessage(msg core.Message) {
@@ -180,7 +202,9 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 		if !indexMapped {
 			index = core.StreamRegistry.GetStreamName(msg.StreamID)
 		}
-		shared.Metric.New(elasticMetricName + index)
+		shared.Metric.New(elasticMetricMessages + index)
+		shared.Metric.New(elasticMetricMessagesSec + index)
+		prod.counters[index] = new(int64)
 	}
 
 	if prod.dayBasedIndex {
@@ -195,7 +219,7 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 		}
 	}
 
-	shared.Metric.Inc(elasticMetricName + index)
+	atomic.AddInt64(prod.counters[index], 1)
 	err := prod.indexer.Index(index, msgType, "", prod.msgTTL, &msg.Timestamp, string(msg.Data), true)
 	if err != nil {
 		Log.Error.Print("ElasticSearch index error - ", err)
@@ -214,5 +238,5 @@ func (prod *ElasticSearch) close() {
 func (prod *ElasticSearch) Produce(workers *sync.WaitGroup) {
 	prod.indexer.Start()
 	prod.AddMainWorker(workers)
-	prod.MessageControlLoop(prod.sendMessage)
+	prod.TickerMessageControlLoop(prod.sendMessage, time.Second*5, prod.updateMetrics)
 }

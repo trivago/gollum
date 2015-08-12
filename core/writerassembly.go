@@ -17,6 +17,7 @@ package core
 import (
 	"github.com/trivago/gollum/core/log"
 	"io"
+	"sync"
 )
 
 // WriterAssembly is a helper struct for io.Writer compatible classes that use
@@ -29,15 +30,17 @@ type WriterAssembly struct {
 	buffer       []byte
 	validate     func() bool
 	handleError  func(error) bool
+	writerGuard  *sync.Mutex
 }
 
 // NewWriterAssembly creates a new adapter between io.Writer and the MessageBatch
 // AssemblyFunc function signature
 func NewWriterAssembly(writer io.Writer, flush func(Message), formatter Formatter) WriterAssembly {
 	return WriterAssembly{
-		writer:    writer,
-		formatter: formatter,
-		flush:     flush,
+		writer:      writer,
+		formatter:   formatter,
+		flush:       flush,
+		writerGuard: new(sync.Mutex),
 	}
 }
 
@@ -55,6 +58,8 @@ func (asm *WriterAssembly) SetErrorHandler(handleError func(error) bool) {
 
 // SetWriter changes the writer interface used during Assemble
 func (asm *WriterAssembly) SetWriter(writer io.Writer) {
+	asm.writerGuard.Lock()
+	defer asm.writerGuard.Unlock()
 	asm.writer = writer
 }
 
@@ -68,6 +73,16 @@ func (asm *WriterAssembly) SetFlush(flush func(Message)) {
 // Messages are formatted using a given formatter. If the io.Writer fails to
 // write the assembled buffer all messages are passed to the FLush() method.
 func (asm *WriterAssembly) Write(messages []Message) {
+	asm.writerGuard.Lock()
+	defer asm.writerGuard.Unlock()
+
+	if asm.writer == nil {
+		Log.Error.Print("No writer assigned to writer assembly")
+		asm.Flush(messages)
+		return // ### return, cannot write ###
+	}
+
+	// Format all messages
 	contentLen := 0
 	for _, msg := range messages {
 		payload, _ := asm.formatter.Format(msg)
@@ -79,19 +94,19 @@ func (asm *WriterAssembly) Write(messages []Message) {
 		contentLen += len(payload)
 	}
 
-	if asm.writer != nil {
-		// Route all messages if they could not be written
-		if _, err := asm.writer.Write(asm.buffer[:contentLen]); err != nil {
-			Log.Error.Print("Stream write error:", err)
-			if asm.handleError == nil || !asm.handleError(err) {
+	// Route all messages if they could not be written
+	if _, err := asm.writer.Write(asm.buffer[:contentLen]); err != nil {
+		if asm.handleError != nil {
+			if !asm.handleError(err) {
 				asm.Flush(messages)
 			}
-			return // ### return, error handled ###
+		} else {
+			Log.Error.Print("Stream write error:", err)
 		}
-	} else {
-		Log.Error.Print("No writer assigned to writer assembly")
+		return // ### return, error handled ###
 	}
 
+	// Data sent, flush if validation is required and fails
 	if asm.validate != nil && !asm.validate() {
 		asm.Flush(messages)
 	}
