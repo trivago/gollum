@@ -92,7 +92,7 @@ type Scribe struct {
 
 const (
 	scribeMetricMessages    = "Scribe:Messages-"
-	scribeMetricMessagesSec = "Scribe:Messages-"
+	scribeMetricMessagesSec = "Scribe:MessagesSec-"
 	scribeMetricFiltered    = "Scribe:Filtered"
 	scribeMetricFilteredSec = "Scribe:FilteredSec"
 	scribeMetricWindowSize  = "Scribe:WindowSize"
