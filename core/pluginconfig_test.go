@@ -60,6 +60,16 @@ func TestPluginConfigRead(t *testing.T) {
 
 	// create a mock MarshalMap
 	testMarshalMap := shared.NewMarshalMap()
+	testMarshalMap["Instances"] = 0
+
+	mockPluginCfg.Read(testMarshalMap)
+	// with 0 instance, plugin should be disabled
+	expect.False(mockPluginCfg.Enable)
+	// if there is no stream, then array with wildcard should be returned
+	expect.Equal(mockPluginCfg.Stream, []string{"*"})
+
+	//reset mockPluginCfg
+	mockPluginCfg = getMockPluginConfig()
 	testMarshalMap["ID"] = "mockId"
 	testMarshalMap["Enable"] = true
 	testMarshalMap["Instances"] = 2
