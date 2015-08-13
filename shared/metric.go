@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -27,6 +28,9 @@ const (
 	// MetricProcessStart is the metric name storing the time when this process
 	// has been started.
 	MetricProcessStart = "ProcessStart"
+	// MetricGoRoutines is the metric name storing the number of active go
+	// routines.
+	MetricGoRoutines = "GoRoutines"
 )
 
 // ProcessStartTime stores the time this process has started.
@@ -36,6 +40,7 @@ var ProcessStartTime time.Time
 func init() {
 	ProcessStartTime = time.Now()
 	Metric.New(MetricProcessStart)
+	Metric.New(MetricGoRoutines)
 	Metric.Set(MetricProcessStart, ProcessStartTime.Unix())
 }
 
@@ -125,7 +130,14 @@ func (met *metrics) Get(name string) (int64, error) {
 	return atomic.LoadInt64(val), nil
 }
 
-// Dump creates a JSON string from all stored metrics
+// UpdateSystemMetrics update all metrics that can be retrieved from the system
+func (met *metrics) UpdateSystemMetrics() {
+	met.SetI(MetricGoRoutines, runtime.NumGoroutine())
+}
+
+// Dump creates a JSON string from all stored metrics.
+// This alos calls UpdateSystemMetrics
 func (met *metrics) Dump() ([]byte, error) {
+	met.UpdateSystemMetrics()
 	return json.Marshal(Metric.store)
 }
