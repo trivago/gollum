@@ -397,8 +397,10 @@ func (prod *ProducerBase) tickerLoop(interval time.Duration, onTimeOut func()) {
 
 func (prod *ProducerBase) messageLoop(onMessage func(Message)) {
 	for prod.IsActive() {
-		msg := <-prod.messages
-		onMessage(msg)
+		msg, more := <-prod.messages
+		if more {
+			onMessage(msg)
+		}
 	}
 }
 
