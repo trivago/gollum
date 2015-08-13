@@ -93,13 +93,12 @@ func (stream *StreamBase) ConfigureStream(conf PluginConfig, distribute Distribu
 	stream.resumeWorker = new(sync.WaitGroup)
 	stream.distribute = distribute
 
-	if conf.HasValue("Timeout") {
+	if conf.HasValue("TimeoutMs") {
 		timeout := time.Duration(conf.GetInt("TimeoutMs", 0)) * time.Millisecond
 		stream.Timeout = &timeout
 	} else {
 		stream.Timeout = nil
 	}
-
 	return nil
 }
 

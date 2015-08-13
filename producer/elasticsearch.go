@@ -41,7 +41,6 @@ import (
 //     BatchMaxCount: 256
 //     BatchTimeoutSec: 5
 //     Port: 9200
-//     Filter: "filter.All"
 //     Servers:
 //       - "localhost"
 //     Index:
@@ -79,9 +78,6 @@ import (
 // User and Password can be used to pass credentials to the elasticsearch server.
 // By default both settings are empty.
 //
-// Filter defines a filter function that removes or allows certain messages to
-// pass through to elastic. By default this is set to filter.All.
-//
 // Index maps a stream to a specific index. You can define the
 // wildcard stream (*) here, too. If set all streams that do not have a specific
 // mapping will go to this stream (including _GOLLUM_).
@@ -101,7 +97,6 @@ import (
 // triggered. By default this is set to 5.
 type ElasticSearch struct {
 	core.ProducerBase
-	Filter           core.Filter
 	conn             *elastigo.Conn
 	indexer          *elastigo.BulkIndexer
 	index            map[core.MessageStreamID]string
@@ -129,13 +124,6 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 	}
 
 	prod.SetStopCallback(prod.close)
-
-	plugin, err := core.NewPluginWithType(conf.GetString("Filter", "filter.All"), conf)
-	if err != nil {
-		return err // ### return, plugin load error ###
-	}
-
-	prod.Filter = plugin.(core.Filter)
 
 	defaultServer := []string{"localhost"}
 	numConnections := conf.GetInt("Connections", 6)
@@ -192,9 +180,6 @@ func (prod *ElasticSearch) updateMetrics() {
 
 func (prod *ElasticSearch) sendMessage(msg core.Message) {
 	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
-	if !prod.Filter.Accepts(msg) {
-		return // ### return, filtered ###
-	}
 
 	index, indexMapped := prod.index[msg.StreamID]
 	if !indexMapped {

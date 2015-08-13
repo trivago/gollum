@@ -199,9 +199,12 @@ func (registry *streamRegistry) GetStreamOrFallback(streamID MessageStreamID) St
 		return stream
 	}
 
+	streamName := registry.GetStreamName(streamID)
+	Log.Debug.Print("Using fallback stream for ", streamName)
+
 	defaultStream := new(StreamBase)
 	defaultConfig := NewPluginConfig("StreamBase")
-	defaultConfig.Stream = []string{registry.GetStreamName(streamID)}
+	defaultConfig.Stream = []string{streamName}
 
 	defaultStream.ConfigureStream(defaultConfig, defaultStream.Broadcast)
 	registry.AddWildcardProducersToStream(defaultStream)
@@ -211,6 +214,8 @@ func (registry *streamRegistry) GetStreamOrFallback(streamID MessageStreamID) St
 	return defaultStream
 }
 
+// LinkDependencies adds a dependency to parent for every producer listening on
+// the given stream. Circular dependencies are detected and discarded.
 func (registry *streamRegistry) LinkDependencies(parent Producer, streamID MessageStreamID) {
 	stream := registry.GetStreamOrFallback(streamID)
 	streamName := registry.GetStreamName(streamID)

@@ -35,7 +35,6 @@ import (
 //     BatchMaxCount: 8192
 //     BatchFlushCount: 4096
 //     BatchTimeoutSec: 5
-//     Filter: "filter.All"
 //     Category:
 //       "console" : "console"
 //       "_GOLLUM_"  : "_GOLLUM_"
@@ -64,10 +63,6 @@ import (
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5.
 //
-// Filter defines a filter function that removes or allows certain messages to
-// pass through to scribe. By default this is set to filter.All. Filter will be
-// applied before and after Format.
-//
 // Category maps a stream to a specific scribe category. You can define the
 // wildcard stream (*) here, too. When set, all streams that do not have a
 // specific mapping will go to this category (including _GOLLUM_).
@@ -78,7 +73,6 @@ type Scribe struct {
 	transport        *thrift.TFramedTransport
 	socket           *thrift.TSocket
 	category         map[core.MessageStreamID]string
-	Filter           core.Filter
 	batch            core.MessageBatch
 	batchTimeout     time.Duration
 	batchMaxCount    int
@@ -86,15 +80,12 @@ type Scribe struct {
 	bufferSizeByte   int
 	windowSize       int
 	counters         map[string]*int64
-	filterCount      int64
 	lastMetricUpdate time.Time
 }
 
 const (
 	scribeMetricMessages    = "Scribe:Messages-"
 	scribeMetricMessagesSec = "Scribe:MessagesSec-"
-	scribeMetricFiltered    = "Scribe:Filtered"
-	scribeMetricFilteredSec = "Scribe:FilteredSec"
 	scribeMetricWindowSize  = "Scribe:WindowSize"
 	scribeMaxRetries        = 30
 	scribeMaxSleepTimeMs    = 3000
@@ -111,13 +102,6 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 		return err
 	}
 	prod.SetStopCallback(prod.close)
-
-	plugin, err := core.NewPluginWithType(conf.GetString("Filter", "filter.All"), conf)
-	if err != nil {
-		return err // ### return, plugin load error ###
-	}
-
-	prod.Filter = plugin.(core.Filter)
 	host := conf.GetString("Address", "localhost:1463")
 
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
@@ -145,8 +129,6 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	prod.counters = make(map[string]*int64)
 
 	shared.Metric.New(scribeMetricWindowSize)
-	shared.Metric.New(scribeMetricFiltered)
-	shared.Metric.New(scribeMetricFilteredSec)
 	shared.Metric.SetI(scribeMetricWindowSize, prod.windowSize)
 
 	for _, category := range prod.category {
@@ -158,21 +140,13 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 }
 
 func (prod *Scribe) bufferMessage(msg core.Message) {
-	if !prod.Filter.Accepts(msg) {
-		atomic.AddInt64(&prod.filterCount, 1)
-		return // ### return, filtered ###
-	}
 	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
 }
 
 func (prod *Scribe) sendBatchOnTimeOut() {
 	// Update metrics
 	duration := time.Since(prod.lastMetricUpdate)
-	filtered := atomic.SwapInt64(&prod.filterCount, 0)
 	prod.lastMetricUpdate = time.Now()
-
-	shared.Metric.Add(scribeMetricFiltered, filtered)
-	shared.Metric.SetF(scribeMetricFilteredSec, float64(filtered)/duration.Seconds())
 
 	for category, counter := range prod.counters {
 		count := atomic.SwapInt64(counter, 0)
@@ -214,10 +188,6 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 
 	for idx, msg := range messages {
 		msg.Data, msg.StreamID = prod.Format(msg)
-		if !prod.Filter.Accepts(msg) {
-			atomic.AddInt64(&prod.filterCount, 1)
-			continue // ### continue, filtered ###
-		}
 
 		category, exists := prod.category[msg.StreamID]
 		if !exists {

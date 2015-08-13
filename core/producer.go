@@ -67,6 +67,7 @@ type Producer interface {
 //     ChannelTimeoutMs: 0
 //     ShutdownTimeoutMs: 3000
 //     Formatter: "format.Forward"
+//     Filter: "filter.All"
 //     DropToStream: "_DROPPED_"
 //     Stream:
 //       - "console"
@@ -101,6 +102,12 @@ type Producer interface {
 //
 // Formatter sets a formatter to use. Each formatter has its own set of options
 // which can be set here, too. By default this is set to format.Forward.
+// Each producer decides if and when to use a Formatter.
+//
+// Filter sets a filter that is applied before formatting, i.e. before a message
+// is send to the message queue. If a producer requires filtering after
+// formatting it has to define a separate filter as the producer decides if
+// and where to format.
 type ProducerBase struct {
 	messages        chan Message
 	control         chan PluginControl
@@ -111,6 +118,7 @@ type ProducerBase struct {
 	timeout         time.Duration
 	shutdownTimeout time.Duration
 	format          Formatter
+	filter          Filter
 	onRoll          func()
 	onStop          func()
 }
@@ -123,6 +131,12 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 		return err // ### return, plugin load error ###
 	}
 	prod.format = format.(Formatter)
+
+	filter, err := NewPluginWithType(conf.GetString("Filter", "filter.All"), conf)
+	if err != nil {
+		return err // ### return, plugin load error ###
+	}
+	prod.filter = filter.(Filter)
 
 	prod.streams = make([]MessageStreamID, len(conf.Stream))
 	prod.control = make(chan PluginControl, 1)
@@ -272,6 +286,16 @@ func (prod *ProducerBase) GetFormatter() Formatter {
 	return prod.format
 }
 
+// Accepts calls the filters Accepts function
+func (prod *ProducerBase) Accepts(msg Message) bool {
+	return prod.filter.Accepts(msg)
+}
+
+// GetFilter returns the filter of this producer
+func (prod *ProducerBase) GetFilter() Filter {
+	return prod.filter
+}
+
 // PauseAllStreams sends the Pause() command to all streams this producer is
 // listening to.
 func (prod *ProducerBase) PauseAllStreams(capacity int) {
@@ -323,15 +347,23 @@ func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
 		}
 	}()
 
-	usedTimeout := prod.timeout
-	if timeout != nil {
-		usedTimeout = *timeout
+	// Filtering happens before formatting. If fitering AFTER formatting is
+	// required, the producer has to do so as it decides where to format.
+	if !prod.filter.Accepts(msg) {
+		CountFilteredMessage()
+		return // ### return, filtered ###
 	}
 
 	// Don't accept messages if we are shutting down
 	if prod.GetState() >= PluginStateStopping {
 		prod.Drop(msg)
 		return // ### return, closing down ###
+	}
+
+	// Allow timeout overwrite
+	usedTimeout := prod.timeout
+	if timeout != nil {
+		usedTimeout = *timeout
 	}
 
 	switch msg.Enqueue(prod.messages, usedTimeout) {

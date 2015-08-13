@@ -56,7 +56,6 @@ const (
 //     ElectRetries: 3
 //     ElectTimeoutMs: 250
 //     MetadataRefreshMs: 10000
-//     Filter: "filter.All"
 //     Servers:
 //     	- "localhost:9092"
 //     Topic:
@@ -127,17 +126,12 @@ const (
 // Servers contains the list of all kafka servers to connect to.  By default this
 // is set to contain only "localhost:9092".
 //
-// Filter defines a filter function that removes or allows certain messages to
-// pass through to kafka. By default this is set to filter.All. Filter will be
-// applied before and after Format.
-//
 // Topic maps a stream to a specific kafka topic. You can define the
 // wildcard stream (*) here, too. If defined, all streams that do not have a
 // specific mapping will go to this topic (including _GOLLUM_).
 // If no topic mappings are set the stream names will be used as topic.
 type Kafka struct {
 	core.ProducerBase
-	Filter           core.Filter
 	servers          []string
 	topic            map[core.MessageStreamID]string
 	clientID         string
@@ -147,15 +141,12 @@ type Kafka struct {
 	producer         kafka.AsyncProducer
 	counters         map[string]*int64
 	missCount        int64
-	filterCount      int64
 	lastMetricUpdate time.Time
 }
 
 const (
 	kafkaMetricMessages    = "Kafka:Messages-"
 	kafkaMetricMessagesSec = "Kafka:MessagesSec-"
-	kafkaMetricFiltered    = "Kafka:Filtered"
-	kafkaMetricFilteredSec = "Kafka:FilteredSec"
 	kafkaMetricMissCount   = "Kafka:ResponsesQueued"
 )
 
@@ -171,12 +162,6 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	}
 	prod.SetStopCallback(prod.close)
 
-	plugin, err := core.NewPluginWithType(conf.GetString("Filter", "filter.All"), conf)
-	if err != nil {
-		return err // ### return, plugin load error ###
-	}
-
-	prod.Filter = plugin.(core.Filter)
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.topic = conf.GetStreamMap("Topic", "")
 	prod.clientID = conf.GetString("ClientId", "gollum")
@@ -240,29 +225,18 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 		prod.counters[topic] = new(int64)
 	}
 
-	shared.Metric.New(kafkaMetricFiltered)
-	shared.Metric.New(kafkaMetricFilteredSec)
 	shared.Metric.New(kafkaMetricMissCount)
 	return nil
 }
 
 func (prod *Kafka) bufferMessage(msg core.Message) {
-	if !prod.Filter.Accepts(msg) {
-		atomic.AddInt64(&prod.filterCount, 1)
-		return // ### return, filtered ###
-	}
-
 	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
 }
 
 func (prod *Kafka) sendBatchOnTimeOut() {
 	// Update metrics
 	duration := time.Since(prod.lastMetricUpdate)
-	filtered := atomic.SwapInt64(&prod.filterCount, 0)
 	prod.lastMetricUpdate = time.Now()
-
-	shared.Metric.Add(kafkaMetricFiltered, filtered)
-	shared.Metric.SetF(kafkaMetricFilteredSec, float64(filtered)/duration.Seconds())
 
 	for category, counter := range prod.counters {
 		count := atomic.SwapInt64(counter, 0)
@@ -295,10 +269,6 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 	for _, msg := range messages {
 		originalMsg := msg
 		msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
-		if !prod.Filter.Accepts(msg) {
-			atomic.AddInt64(&prod.filterCount, 1)
-			continue // ### continue, filtered ###
-		}
 
 		// Store current client and producer to avoid races
 		client := prod.client
