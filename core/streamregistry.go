@@ -77,6 +77,16 @@ func CountNoRouteForMessage() {
 	atomic.AddUint32(&noRouteCount, 1)
 }
 
+// GetAndResetMessageCount returns the current message counters and resets them
+// to 0. This function is threadsafe.
+func GetAndResetMessageCount() (messages, dropped, discarded, filtered, noroute uint32) {
+	return atomic.SwapUint32(&messageCount, 0),
+		atomic.SwapUint32(&droppedCount, 0),
+		atomic.SwapUint32(&discardedCount, 0),
+		atomic.SwapUint32(&filteredCount, 0),
+		atomic.SwapUint32(&noRouteCount, 0)
+}
+
 // GetStreamID returns the integer representation of a given stream name.
 func GetStreamID(stream string) MessageStreamID {
 	hash := fnv.New64a()

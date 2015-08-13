@@ -46,6 +46,8 @@ const (
 //     Offset: 0
 //     Size: 1
 //     ReconnectAfterSec: 2
+//     AckTimoutSec: 2
+//     ReadTimeoutSec: 5
 //     Stream:
 //       - "socket"
 //
@@ -90,6 +92,12 @@ const (
 //
 // ReconnectAfterSec defines the number of seconds to wait before a connection
 // is tried to be reopened again. By default this is set to 2.
+//
+// AckTimoutSec defines the number of seconds waited for an acknowledge to
+// succeed. Set to 2 by default.
+//
+// ReadTimoutSec defines the number of seconds that waited for data to be
+// recieved. Set to 5 by default.
 type Socket struct {
 	core.ConsumerBase
 	listen        io.Closer
@@ -100,6 +108,8 @@ type Socket struct {
 	delimiter     string
 	acknowledge   string
 	reconnectTime time.Duration
+	ackTimeout    time.Duration
+	readTimeout   time.Duration
 	flags         shared.BufferedReaderFlags
 	fileFlags     os.FileMode
 	offset        int
@@ -127,6 +137,8 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 	cons.acknowledge = shared.Unescape(conf.GetString("Acknowledge", ""))
 	cons.address, cons.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
 	cons.reconnectTime = time.Duration(conf.GetInt("ReconnectAfterSec", 2)) * time.Second
+	cons.ackTimeout = time.Duration(conf.GetInt("AckTimoutSec", 2)) * time.Second
+	cons.readTimeout = time.Duration(conf.GetInt("ReadTimoutSec", 5)) * time.Second
 
 	if cons.protocol != "unix" {
 		if cons.acknowledge != "" {
@@ -178,31 +190,53 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 	return err
 }
 
+func (cons *Socket) sendAck(conn net.Conn, success bool) error {
+	if cons.acknowledge != "" {
+		var err error
+		conn.SetWriteDeadline(time.Now().Add(cons.ackTimeout))
+		if success {
+			_, err = fmt.Fprint(conn, cons.acknowledge)
+		} else {
+			_, err = fmt.Fprint(conn, "NOT "+cons.acknowledge)
+		}
+		return err
+	}
+	return nil
+}
+
 func (cons *Socket) processConnection(conn net.Conn) {
 	cons.AddWorker()
 	defer cons.WorkerDone()
 	defer conn.Close()
 
-	conn.SetDeadline(time.Time{})
 	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.offset, cons.delimiter)
 
 	for cons.IsActive() {
+		conn.SetReadDeadline(time.Now().Add(cons.readTimeout))
 		err := buffer.ReadAll(conn, cons.Enqueue)
-
-		// Handle errors
-		if err != nil {
-			// Silently exit on disconnect/close
-			if !cons.IsActive() || shared.IsDisconnectedError(err) {
-				return // ### return, connection closed ###
+		if err == nil {
+			if err = cons.sendAck(conn, true); err == nil {
+				continue // ### continue, all is well ###
 			}
-
-			Log.Error.Print("Socket read failed: ", err)
-			cons.sendAck(conn, false)
-			return // ### return, close connections ###
 		}
 
-		// Send ack if everything was ok
-		cons.sendAck(conn, true)
+		// Silently exit on disconnect/close
+		if !cons.IsActive() || shared.IsDisconnectedError(err) {
+			return // ### return, connection closed ###
+		}
+
+		// Ignore timeout related errors
+		if netErr, isNetErr := err.(net.Error); isNetErr && netErr.Timeout() {
+			continue // ### return, ignore timeouts ###
+		}
+
+		Log.Error.Print("Socket transfer failed: ", err)
+		cons.sendAck(conn, false)
+
+		// Parser errors do not drop the connection
+		if err != shared.BufferDataInvalid {
+			return // ### return, close connections ###
+		}
 	}
 }
 
@@ -270,16 +304,6 @@ func (cons *Socket) tcpAccept() {
 			element := cons.clients.PushBack(client)
 			cons.clientLock.Unlock()
 			go cons.processClientConnection(element)
-		}
-	}
-}
-
-func (cons *Socket) sendAck(conn net.Conn, success bool) {
-	if cons.acknowledge != "" {
-		if success {
-			fmt.Fprint(conn, cons.acknowledge)
-		} else {
-			fmt.Fprint(conn, "NOT "+cons.acknowledge)
 		}
 	}
 }
