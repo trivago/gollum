@@ -60,6 +60,9 @@ import (
 // This setting is disabled by default, i.e. set to "".
 // If Acknowledge is enabled and a IP-Address is given to Address, TCP is used
 // to open the connection, otherwise UDP is used.
+//
+// AckTimeoutMs defines the time in milliseconds to wait for a response from the
+// server. After this timeout the send is marked as failed. Defaults to 2000.
 type Socket struct {
 	core.ProducerBase
 	connection      net.Conn
@@ -68,6 +71,7 @@ type Socket struct {
 	protocol        string
 	address         string
 	batchTimeout    time.Duration
+	ackTimeout      time.Duration
 	batchMaxCount   int
 	batchFlushCount int
 	bufferSizeByte  int
@@ -97,6 +101,7 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 	prod.bufferSizeByte = conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10 // 1 MB
 
 	prod.acknowledge = shared.Unescape(conf.GetString("Acknowledge", ""))
+	prod.ackTimeout = time.Duration(conf.GetInt("AckTimeoutMs", 2000)) * time.Millisecond
 	prod.address, prod.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
 
 	if prod.protocol != "unix" {
@@ -114,49 +119,63 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
+func (prod *Socket) tryConnect() bool {
+	if prod.connection != nil {
+		return true // ### return, connection active ###
+	}
+
+	conn, err := net.DialTimeout(prod.protocol, prod.address, prod.ackTimeout)
+	if err != nil {
+		Log.Error.Print("Socket connection error - ", err)
+		prod.closeConnection()
+		return false // ### return, connection failed ###
+	}
+
+	conn.(bufferedConn).SetWriteBuffer(prod.bufferSizeByte)
+	prod.assembly.SetWriter(conn)
+	prod.connection = conn
+	return true
+}
+
+func (prod *Socket) closeConnection() {
+	prod.assembly.SetWriter(nil)
+	if prod.connection != nil {
+		prod.connection.Close()
+		prod.connection = nil
+	}
+}
+
 func (prod *Socket) validate() bool {
 	if prod.acknowledge == "" {
 		return true
 	}
 
 	response := make([]byte, len(prod.acknowledge))
-	prod.connection.SetReadDeadline(time.Now().Add(3 * time.Second))
+	prod.connection.SetReadDeadline(time.Now().Add(prod.ackTimeout))
 	_, err := prod.connection.Read(response)
 	if err != nil {
-		Log.Error.Print("Socket response error:", err)
+		Log.Error.Print("Socket response error: ", err)
+		if shared.IsDisconnectedError(err) {
+			prod.closeConnection()
+		}
 		return false
 	}
 	return string(response) == prod.acknowledge
 }
 
 func (prod *Socket) onWriteError(err error) bool {
-	Log.Error.Print("Socket error - ", err)
-	prod.assembly.SetWriter(nil)
-	prod.connection.Close()
-	prod.connection = nil
+	Log.Error.Print("Socket write error - ", err)
+	prod.closeConnection()
 	return false
 }
 
-func (prod *Socket) connect() {
-	conn, err := net.Dial(prod.protocol, prod.address)
-
-	if err != nil {
-		Log.Error.Print("Socket connection error - ", err)
-	} else {
-		conn.(bufferedConn).SetWriteBuffer(prod.bufferSizeByte)
-		prod.connection = conn
-		prod.assembly.SetWriter(conn)
-	}
+func (prod *Socket) sendMessage(msg core.Message) {
+	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
 }
 
 func (prod *Socket) sendBatch() {
-	// If we have not yet connected or the connection dropped: connect.
-	if prod.connection == nil {
-		prod.connect()
-	}
-
 	// Flush the buffer to the connection if it is active
-	if prod.connection != nil {
+	if prod.tryConnect() {
 		prod.batch.Flush(prod.assembly.Write)
 	} else if prod.IsStopping() {
 		prod.batch.Flush(prod.assembly.Flush)
@@ -169,17 +188,9 @@ func (prod *Socket) sendBatchOnTimeOut() {
 	}
 }
 
-func (prod *Socket) sendMessage(msg core.Message) {
-	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
-}
-
 func (prod *Socket) close() {
 	defer func() {
-		if prod.connection != nil {
-			prod.assembly.SetWriter(nil)
-			prod.connection.Close()
-			prod.connection = nil
-		}
+		prod.closeConnection()
 		prod.WorkerDone()
 	}()
 

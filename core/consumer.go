@@ -15,7 +15,6 @@
 package core
 
 import (
-	"fmt"
 	"github.com/trivago/gollum/core/log"
 	"sync"
 	"time"
@@ -64,22 +63,6 @@ type ConsumerBase struct {
 	runState *PluginRunState
 	onRoll   func()
 	onStop   func()
-}
-
-// ConsumerError can be used to return consumer related errors e.g. during a
-// call to Configure
-type ConsumerError struct {
-	message string
-}
-
-// NewConsumerError creates a new ConsumerError
-func NewConsumerError(args ...interface{}) ConsumerError {
-	return ConsumerError{fmt.Sprint(args...)}
-}
-
-// Error satisfies the error interface for the ConsumerError struct
-func (err ConsumerError) Error() string {
-	return err.message
 }
 
 // Configure initializes standard consumer values from a plugin config.

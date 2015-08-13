@@ -15,7 +15,6 @@
 package core
 
 import (
-	"fmt"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"sync"
@@ -114,22 +113,6 @@ type ProducerBase struct {
 	format          Formatter
 	onRoll          func()
 	onStop          func()
-}
-
-// ProducerError can be used to return consumer related errors e.g. during a
-// call to Configure
-type ProducerError struct {
-	message string
-}
-
-// NewProducerError creates a new ProducerError
-func NewProducerError(args ...interface{}) ProducerError {
-	return ProducerError{fmt.Sprint(args...)}
-}
-
-// Error satisfies the error interface for the ProducerError struct
-func (err ProducerError) Error() string {
-	return err.message
 }
 
 // Configure initializes the standard producer config values.

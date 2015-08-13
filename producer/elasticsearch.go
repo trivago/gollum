@@ -180,13 +180,13 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 }
 
 func (prod *ElasticSearch) updateMetrics() {
-	seconds := int64(time.Since(prod.lastMetricUpdate).Seconds())
+	duration := time.Since(prod.lastMetricUpdate)
 	prod.lastMetricUpdate = time.Now()
 
 	for index, counter := range prod.counters {
 		count := atomic.SwapInt64(counter, 0)
 		shared.Metric.Add(elasticMetricMessages+index, count)
-		shared.Metric.Set(elasticMetricMessagesSec+index, count/seconds)
+		shared.Metric.SetF(elasticMetricMessagesSec+index, float64(count)/duration.Seconds())
 	}
 }
 

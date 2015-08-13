@@ -257,17 +257,17 @@ func (prod *Kafka) bufferMessage(msg core.Message) {
 
 func (prod *Kafka) sendBatchOnTimeOut() {
 	// Update metrics
-	seconds := int64(time.Since(prod.lastMetricUpdate).Seconds())
+	duration := time.Since(prod.lastMetricUpdate)
 	filtered := atomic.SwapInt64(&prod.filterCount, 0)
 	prod.lastMetricUpdate = time.Now()
 
 	shared.Metric.Add(kafkaMetricFiltered, filtered)
-	shared.Metric.Set(kafkaMetricFilteredSec, filtered/seconds)
+	shared.Metric.SetF(kafkaMetricFilteredSec, float64(filtered)/duration.Seconds())
 
 	for category, counter := range prod.counters {
 		count := atomic.SwapInt64(counter, 0)
 		shared.Metric.Add(kafkaMetricMessages+category, count)
-		shared.Metric.Set(kafkaMetricMessagesSec+category, count/seconds)
+		shared.Metric.SetF(kafkaMetricMessagesSec+category, float64(count)/duration.Seconds())
 	}
 
 	// Flush if necessary

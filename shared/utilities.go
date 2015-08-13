@@ -16,9 +16,11 @@ package shared
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"math"
+	"net"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -26,6 +28,7 @@ import (
 	"runtime/debug"
 	"sort"
 	"strings"
+	"syscall"
 )
 
 var simpleEscapeChars = strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
@@ -307,4 +310,26 @@ func LastIndexN(s, sep string, n int) int {
 		}
 	}
 	return sepIdx
+}
+
+// IsDisconnectedError returns true if the given error is related to a
+// disconnected socket.
+func IsDisconnectedError(err error) bool {
+	if err == io.EOF {
+		return true // ### return, closed stream ###
+	}
+
+	netErr, isNetErr := err.(*net.OpError)
+	if isNetErr {
+		errno, isErrno := netErr.Err.(syscall.Errno)
+		if isErrno {
+			switch errno {
+			default:
+			case syscall.ECONNRESET:
+				return true // ### return, close connection ###
+			}
+		}
+	}
+
+	return false
 }

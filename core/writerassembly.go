@@ -68,15 +68,20 @@ func (asm *WriterAssembly) SetFlush(flush func(Message)) {
 	asm.flush = flush
 }
 
+func (asm *WriterAssembly) getWriter() io.Writer {
+	asm.writerGuard.Lock()
+	defer asm.writerGuard.Unlock()
+	return asm.writer
+}
+
 // Write is an AssemblyFunc compatible implementation to pass all messages from
 // a MessageBatch to an io.Writer.
 // Messages are formatted using a given formatter. If the io.Writer fails to
 // write the assembled buffer all messages are passed to the FLush() method.
 func (asm *WriterAssembly) Write(messages []Message) {
-	asm.writerGuard.Lock()
-	defer asm.writerGuard.Unlock()
+	writer := asm.getWriter()
 
-	if asm.writer == nil {
+	if writer == nil {
 		Log.Error.Print("No writer assigned to writer assembly")
 		asm.Flush(messages)
 		return // ### return, cannot write ###
@@ -95,7 +100,7 @@ func (asm *WriterAssembly) Write(messages []Message) {
 	}
 
 	// Route all messages if they could not be written
-	if _, err := asm.writer.Write(asm.buffer[:contentLen]); err != nil {
+	if _, err := writer.Write(asm.buffer[:contentLen]); err != nil {
 		if asm.handleError != nil {
 			if !asm.handleError(err) {
 				asm.Flush(messages)

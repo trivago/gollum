@@ -112,13 +112,13 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 func (prod *Spooling) writeBatchOnTimeOut() {
 	for _, spool := range prod.outfile {
 		read, write := spool.getAndResetCounts()
-		durationSec := int64(time.Since(spool.lastMetricUpdate).Seconds())
+		duration := time.Since(spool.lastMetricUpdate)
 		spool.lastMetricUpdate = time.Now()
 
 		shared.Metric.Add(spoolingMetricRead+spool.streamName, read)
 		shared.Metric.Add(spoolingMetricWrite+spool.streamName, write)
-		shared.Metric.Set(spoolingMetricReadSec+spool.streamName, read/durationSec)
-		shared.Metric.Set(spoolingMetricWriteSec+spool.streamName, write/durationSec)
+		shared.Metric.SetF(spoolingMetricReadSec+spool.streamName, float64(read)/duration.Seconds())
+		shared.Metric.SetF(spoolingMetricWriteSec+spool.streamName, float64(write)/duration.Seconds())
 
 		if spool.batch.ReachedSizeThreshold(prod.batchMaxCount/2) || spool.batch.ReachedTimeThreshold(prod.batchTimeout) {
 			spool.flush()

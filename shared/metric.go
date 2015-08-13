@@ -17,6 +17,7 @@ package shared
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -68,7 +69,8 @@ func (met *metrics) SetI(name string, value int) {
 
 // SetF is Set for float64 values (conversion to int64)
 func (met *metrics) SetF(name string, value float64) {
-	atomic.StoreInt64(met.store[name], int64(value))
+	rounded := math.Floor(value + 0.5)
+	atomic.StoreInt64(met.store[name], int64(rounded))
 }
 
 // Inc adds 1 to a given metric. This operation is atomic.
@@ -93,7 +95,8 @@ func (met *metrics) AddI(name string, value int) {
 
 // AddF is Add for float64 values (conversion to int64)
 func (met *metrics) AddF(name string, value float64) {
-	atomic.AddInt64(met.store[name], int64(value))
+	rounded := math.Floor(value + 0.5)
+	atomic.AddInt64(met.store[name], int64(rounded))
 }
 
 // Sub subtracts a number to a given metric. This operation is atomic.
@@ -108,7 +111,8 @@ func (met *metrics) SubI(name string, value int) {
 
 // SubF is Sub for float64 values (conversion to int64)
 func (met *metrics) SubF(name string, value float64) {
-	atomic.AddInt64(met.store[name], int64(-value))
+	rounded := math.Floor(value + 0.5)
+	atomic.AddInt64(met.store[name], int64(-rounded))
 }
 
 // Get returns the value of a given metric. This operation is atomic.

@@ -26,7 +26,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 )
 
@@ -179,38 +178,100 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 	return err
 }
 
-func (cons *Socket) clientDisconnected(err error) bool {
-	netErr, isNetErr := err.(*net.OpError)
-	if isNetErr {
+func (cons *Socket) processConnection(conn net.Conn) {
+	cons.AddWorker()
+	defer cons.WorkerDone()
+	defer conn.Close()
 
-		errno, isErrno := netErr.Err.(syscall.Errno)
-		if isErrno {
-			switch errno {
-			default:
-			case syscall.ECONNRESET:
-				return true // ### return, close connection ###
+	conn.SetDeadline(time.Time{})
+	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.offset, cons.delimiter)
+
+	for cons.IsActive() {
+		err := buffer.ReadAll(conn, cons.Enqueue)
+
+		// Handle errors
+		if err != nil {
+			// Silently exit on disconnect/close
+			if !cons.IsActive() || shared.IsDisconnectedError(err) {
+				return // ### return, connection closed ###
 			}
-		}
-	}
 
-	return false
+			Log.Error.Print("Socket read failed: ", err)
+			cons.sendAck(conn, false)
+			return // ### return, close connections ###
+		}
+
+		// Send ack if everything was ok
+		cons.sendAck(conn, true)
+	}
 }
 
 func (cons *Socket) processClientConnection(clientElement *list.Element) {
-	defer shared.RecoverShutdown()
-	conn := clientElement.Value.(net.Conn)
-
 	defer func() {
 		cons.clientLock.Lock()
-		defer cons.clientLock.Unlock()
-
 		cons.clients.Remove(clientElement)
-		conn.Close()
-		cons.WorkerDone()
+		cons.clientLock.Unlock()
 	}()
 
-	cons.AddWorker()
+	conn := clientElement.Value.(net.Conn)
 	cons.processConnection(conn)
+}
+
+func (cons *Socket) udpAccept() {
+	defer cons.WorkerDone()
+	defer cons.closeConnection()
+	addr, _ := net.ResolveUDPAddr(cons.protocol, cons.address)
+
+	for cons.IsActive() {
+		// (re)open a tcp connection
+		for cons.listen == nil {
+			if listener, err := net.ListenUDP(cons.protocol, addr); err == nil {
+				cons.listen = listener
+			} else {
+				Log.Error.Print("Socket connection error: ", err)
+				time.Sleep(cons.reconnectTime)
+			}
+		}
+
+		conn := cons.listen.(*net.UDPConn)
+		cons.processConnection(conn)
+		cons.listen = nil
+	}
+}
+
+func (cons *Socket) tcpAccept() {
+	defer cons.WorkerDone()
+	defer cons.closeTCPConnection()
+
+	for cons.IsActive() {
+		// (re)open a tcp connection
+		for cons.listen == nil {
+			if listener, err := net.Listen(cons.protocol, cons.address); err == nil {
+				cons.listen = listener
+				if cons.protocol == "unix" {
+					os.Chmod(cons.address, cons.fileFlags)
+				}
+			} else {
+				Log.Error.Print("Socket connection error: ", err)
+				time.Sleep(cons.reconnectTime)
+			}
+		}
+
+		listener := cons.listen.(net.Listener)
+		if client, err := listener.Accept(); err != nil {
+			// Trigger full reconnect (suppress errors during shutdown)
+			if cons.IsActive() {
+				Log.Error.Print("Socket accept failed: ", err)
+			}
+			cons.closeTCPConnection()
+		} else {
+			// Handle client connection
+			cons.clientLock.Lock()
+			element := cons.clients.PushBack(client)
+			cons.clientLock.Unlock()
+			go cons.processClientConnection(element)
+		}
+	}
 }
 
 func (cons *Socket) sendAck(conn net.Conn, success bool) {
@@ -223,100 +284,27 @@ func (cons *Socket) sendAck(conn net.Conn, success bool) {
 	}
 }
 
-func (cons *Socket) processConnection(conn net.Conn) {
-	cons.AddWorker()
-	defer cons.WorkerDone()
-
-	conn.SetDeadline(time.Time{})
-	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.offset, cons.delimiter)
-
-	for cons.IsActive() {
-		err := buffer.ReadAll(conn, cons.Enqueue)
-
-		// Handle errors
-		if err != nil {
-			cons.sendAck(conn, false)
-			if !cons.IsActive() || err == io.EOF || cons.clientDisconnected(err) {
-				return // ### return, connection closed ###
-			}
-
-			Log.Error.Print("Socket read failed: ", err)
-			if _, isUDP := conn.(*net.UDPConn); isUDP {
-				continue // ### continue, keep open, try again ###
-			}
-			return // ### return, close TCP connections ###
-		}
-
-		// Send ack if everything was ok
-		cons.sendAck(conn, true)
+func (cons *Socket) closeConnection() {
+	if cons.listen != nil {
+		cons.listen.Close()
+		cons.listen = nil
 	}
 }
 
-func (cons *Socket) udpAccept() {
-	defer cons.WorkerDone()
-	var err error
-
-	for cons.IsActive() {
-		addr, _ := net.ResolveUDPAddr(cons.protocol, cons.address)
-		if cons.listen, err = net.ListenUDP(cons.protocol, addr); err != nil {
-			break // ### break, connected ###
-		}
-		Log.Error.Print("Socket connection error: ", err)
-		time.Sleep(cons.reconnectTime)
-	}
-
-	conn := cons.listen.(*net.UDPConn)
-	cons.processConnection(conn)
+func (cons *Socket) closeTCPConnection() {
+	cons.closeConnection()
+	cons.closeAllClients()
 }
 
 func (cons *Socket) closeAllClients() {
 	cons.clientLock.Lock()
 	defer cons.clientLock.Unlock()
-	for iter := cons.clients.Front(); iter != nil; iter = iter.Next() {
-		client := iter.Value.(net.Conn)
-		client.Close()
-	}
-}
 
-func (cons *Socket) tcpAccept() {
-	defer cons.WorkerDone()
-	var err error
-
-	for cons.IsActive() {
-		if cons.listen, err = net.Listen(cons.protocol, cons.address); err == nil {
-			if cons.protocol == "unix" {
-				os.Chmod(cons.address, cons.fileFlags)
-			}
-			break // ### break, connected ###
-		}
-		Log.Error.Print("Socket connection error: ", err)
-		time.Sleep(cons.reconnectTime)
-	}
-
-	if cons.listen != nil {
-		listener := cons.listen.(net.Listener)
-		for cons.IsActive() {
-			client, err := listener.Accept()
-			if err != nil {
-				if cons.IsActive() {
-					Log.Error.Print("Socket listen failed: ", err)
-					cons.listen.Close()
-				}
-				break // ### break, accept failed ###
-			}
-
-			cons.clientLock.Lock()
-			element := cons.clients.PushBack(client)
-			go cons.processClientConnection(element)
-			cons.clientLock.Unlock()
-		}
-	}
-
-	cons.closeAllClients()
-	if cons.IsActive() {
-		// Try reconnect
-		cons.AddWorker()
-		go cons.tcpAccept()
+	for cons.clients.Len() > 0 {
+		client := cons.clients.Front()
+		conn := client.Value.(net.Conn)
+		cons.clients.Remove(client)
+		conn.Close()
 	}
 }
 
@@ -326,15 +314,11 @@ func (cons *Socket) Consume(workers *sync.WaitGroup) {
 
 	if cons.protocol == "udp" {
 		go shared.DontPanic(cons.udpAccept)
+		defer cons.closeConnection()
 	} else {
 		go shared.DontPanic(cons.tcpAccept)
+		defer cons.closeTCPConnection()
 	}
-
-	defer func() {
-		if cons.listen != nil {
-			cons.listen.Close()
-		}
-	}()
 
 	cons.ControlLoop()
 }

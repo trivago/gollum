@@ -167,17 +167,17 @@ func (prod *Scribe) bufferMessage(msg core.Message) {
 
 func (prod *Scribe) sendBatchOnTimeOut() {
 	// Update metrics
-	seconds := int64(time.Since(prod.lastMetricUpdate).Seconds())
+	duration := time.Since(prod.lastMetricUpdate)
 	filtered := atomic.SwapInt64(&prod.filterCount, 0)
 	prod.lastMetricUpdate = time.Now()
 
 	shared.Metric.Add(scribeMetricFiltered, filtered)
-	shared.Metric.Set(scribeMetricFilteredSec, filtered/seconds)
+	shared.Metric.SetF(scribeMetricFilteredSec, float64(filtered)/duration.Seconds())
 
 	for category, counter := range prod.counters {
 		count := atomic.SwapInt64(counter, 0)
 		shared.Metric.Add(scribeMetricMessages+category, count)
-		shared.Metric.Set(scribeMetricMessagesSec+category, count/seconds)
+		shared.Metric.SetF(scribeMetricMessagesSec+category, float64(count)/duration.Seconds())
 	}
 
 	// Flush if necessary

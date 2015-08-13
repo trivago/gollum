@@ -150,7 +150,7 @@ func (prod *Proxy) Configure(conf core.PluginConfig) error {
 func (prod *Proxy) sendMessage(msg core.Message) {
 	// If we have not yet connected or the connection dropped: connect.
 	for prod.connection == nil {
-		conn, err := net.Dial(prod.protocol, prod.address)
+		conn, err := net.DialTimeout(prod.protocol, prod.address, prod.timeout)
 
 		if err != nil {
 			Log.Error.Print("Proxy connection error - ", err)
