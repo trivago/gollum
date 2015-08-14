@@ -65,6 +65,11 @@ func (batch *MessageBatch) Len() int {
 	return len(batch.queue[0].messages)
 }
 
+// The number of elements in the active buffer
+func (batch *MessageBatch) getActiveBufferCount() int {
+	return int(batch.activeSet & 0x7FFFFFFF)
+}
+
 // Append formats a message and appends it to the internal buffer.
 // If the message does not fit into the buffer this function returns false.
 // If the message can never fit into the buffer (too large), true is returned

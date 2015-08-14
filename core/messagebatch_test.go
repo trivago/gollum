@@ -57,6 +57,44 @@ func (mock mockFormatter) Format(msg Message) ([]byte, MessageStreamID) {
 	return msg.Data, msg.StreamID
 }
 
+func TestMessageBatchAppendOrFlush(t *testing.T) {
+	expect := shared.NewExpect(t)
+	writer := messageBatchWriter{expect, 0}
+	batch := NewMessageBatch(10)
+	assembly := NewWriterAssembly(writer, writer.Flush, mockFormatter{})
+
+	flushBuffer := func() {
+		batch.Flush(assembly.Write)
+		batch.WaitForFlush(time.Second)
+		expect.True(batch.IsEmpty())
+	}
+
+	doBlock := func() bool {
+		return true
+	}
+
+	dontBlock := func() bool {
+		return false
+	}
+	//dropMsg a stub
+	dropMsg := func(msg Message) {
+	}
+
+	for i := 0; i < 10; i++ {
+		batch.AppendOrFlush(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), uint64(i)),
+			flushBuffer,
+			dontBlock,
+			dropMsg)
+	}
+	// the buffer is full so it should be flushed and the new message queued
+	batch.AppendOrFlush(NewMessage(nil, []byte(fmt.Sprintf("%d", 10)), uint64(0)),
+		flushBuffer,
+		doBlock,
+		dropMsg)
+	expect.Equal(batch.getActiveBufferCount(), int(1))
+
+}
+
 func TestMessageBatch(t *testing.T) {
 	expect := shared.NewExpect(t)
 	writer := messageBatchWriter{expect, 0}
@@ -65,6 +103,9 @@ func TestMessageBatch(t *testing.T) {
 	batch := NewMessageBatch(10)
 	expect.False(batch.IsClosed())
 	expect.True(batch.IsEmpty())
+
+	// length of buffer should be 10
+	expect.Equal(batch.Len(), 10)
 
 	// Append adds an item
 	batch.Append(NewMessage(nil, []byte("test"), 0))
@@ -107,6 +148,22 @@ func TestMessageBatch(t *testing.T) {
 		expect.True(batch.Append(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), uint64(i))))
 	}
 
+	batch.Flush(assembly.Flush)
+	batch.WaitForFlush(time.Second)
+	// batch is not closed and message is appended
+
+	for i := 0; i < 10; i++ {
+		expect.True(batch.AppendOrBlock(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), uint64(i))))
+	}
+	go func() {
+		expect.False(batch.AppendOrBlock(NewMessage(nil, []byte("10"), 10)))
+	}()
+	//let above goroutine run so that spin can Yield atleast once
+	time.Sleep(1 * time.Second)
+
+	expect.True(batch.ReachedTimeThreshold(100 * time.Millisecond))
+
+	//closing now will close the messageBatch and the goroutine will return false
 	batch.Close(writer.checkOrder, time.Second)
 	expect.True(batch.IsEmpty())
 	expect.False(batch.Append(NewMessage(nil, []byte("6"), 6)))
