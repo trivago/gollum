@@ -186,11 +186,19 @@ func (cons *ConsumerBase) Control() chan<- PluginControl {
 }
 
 func (cons *ConsumerBase) tickerLoop(interval time.Duration, onTimeOut func()) {
-	flushTicker := time.NewTicker(interval)
-	defer flushTicker.Stop()
-	for cons.IsActive() {
-		<-flushTicker.C
+	if cons.IsActive() {
+		start := time.Now()
 		onTimeOut()
+
+		// Delay the next call so that interval is approximated. If the timeout
+		// call took longer than expected, the next function will be called
+		// immediately.
+		nextDelay := interval - time.Since(start)
+		if nextDelay < 0 {
+			go cons.tickerLoop(interval, onTimeOut)
+		} else {
+			time.AfterFunc(nextDelay, func() { cons.tickerLoop(interval, onTimeOut) })
+		}
 	}
 }
 
@@ -224,7 +232,9 @@ func (cons *ConsumerBase) ControlLoop() {
 }
 
 // TickerControlLoop is like MessageLoop but executes a given function at
-// every given interval tick, too.
+// every given interval tick, too. Note that the interval is not exact. If the
+// onTick function takes longer than interval, the next tick will be delayed
+// until onTick finishes.
 func (cons *ConsumerBase) TickerControlLoop(interval time.Duration, onTick func()) {
 	cons.setState(PluginStateActive)
 	go cons.tickerLoop(interval, onTick)

@@ -239,7 +239,9 @@ func (prod *Kafka) sendBatchOnTimeOut() {
 	prod.lastMetricUpdate = time.Now()
 
 	for category, counter := range prod.counters {
+		Log.Debug.Printf("%s: %d", category, *counter)
 		count := atomic.SwapInt64(counter, 0)
+
 		shared.Metric.Add(kafkaMetricMessages+category, count)
 		shared.Metric.SetF(kafkaMetricMessagesSec+category, float64(count)/duration.Seconds())
 	}
@@ -281,7 +283,6 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 		}
 
 		// Send message
-
 		topic, topicMapped := prod.topic[msg.StreamID]
 		if !topicMapped {
 			// Use wildcard fallback or stream name if not set
@@ -293,6 +294,7 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 			shared.Metric.New(kafkaMetricMessages + topic)
 			shared.Metric.New(kafkaMetricMessagesSec + topic)
 			prod.counters[topic] = new(int64)
+			prod.topic[msg.StreamID] = topic
 		}
 
 		producer.Input() <- &kafka.ProducerMessage{
@@ -300,6 +302,7 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 			Value:    kafka.ByteEncoder(msg.Data),
 			Metadata: originalMsg,
 		}
+
 		atomic.AddInt64(prod.counters[topic], 1)
 		prod.missCount++
 	}

@@ -190,6 +190,7 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 		shared.Metric.New(elasticMetricMessages + index)
 		shared.Metric.New(elasticMetricMessagesSec + index)
 		prod.counters[index] = new(int64)
+		prod.index[msg.StreamID] = index
 	}
 
 	if prod.dayBasedIndex {

@@ -419,11 +419,19 @@ func (prod *ProducerBase) CloseMessageChannel(handleMessage func(msg Message)) b
 }
 
 func (prod *ProducerBase) tickerLoop(interval time.Duration, onTimeOut func()) {
-	flushTicker := time.NewTicker(interval)
-	defer flushTicker.Stop()
-	for prod.IsActive() {
-		<-flushTicker.C
+	if prod.IsActive() {
+		start := time.Now()
 		onTimeOut()
+
+		// Delay the next call so that interval is approximated. If the timeout
+		// call took longer than expected, the next function will be called
+		// immediately.
+		nextDelay := interval - time.Since(start)
+		if nextDelay < 0 {
+			go prod.tickerLoop(interval, onTimeOut)
+		} else {
+			time.AfterFunc(nextDelay, func() { prod.tickerLoop(interval, onTimeOut) })
+		}
 	}
 }
 
@@ -494,8 +502,9 @@ func (prod *ProducerBase) MessageControlLoop(onMessage func(Message)) {
 	prod.messageLoop(onMessage)
 }
 
-// TickerMessageControlLoop is like MessageLoop but executes a given function at every
-// given interval tick, too.
+// TickerMessageControlLoop is like MessageLoop but executes a given function at
+// every given interval tick, too. If the onTick function takes longer than
+// interval, the next tick will be delayed until onTick finishes.
 func (prod *ProducerBase) TickerMessageControlLoop(onMessage func(Message), interval time.Duration, onTimeOut func()) {
 	prod.setState(PluginStateActive)
 	go prod.ControlLoop()

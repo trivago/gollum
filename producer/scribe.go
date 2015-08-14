@@ -197,6 +197,7 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 			shared.Metric.New(scribeMetricMessages + category)
 			shared.Metric.New(scribeMetricMessagesSec + category)
 			prod.counters[category] = new(int64)
+			prod.category[msg.StreamID] = category
 		}
 
 		logBuffer[idx] = &scribe.LogEntry{
