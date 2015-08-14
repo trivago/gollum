@@ -98,6 +98,9 @@ const (
 //
 // ReadTimoutSec defines the number of seconds that waited for data to be
 // recieved. Set to 5 by default.
+//
+// RemoveOldSocket toggles removing exisiting files with the same name as the
+// socket (unix://<path>) prior to connecting. Enabled by default.
 type Socket struct {
 	core.ConsumerBase
 	listen        io.Closer
@@ -113,6 +116,7 @@ type Socket struct {
 	flags         shared.BufferedReaderFlags
 	fileFlags     os.FileMode
 	offset        int
+	clearSocket   bool
 }
 
 func init() {
@@ -139,19 +143,13 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 	cons.reconnectTime = time.Duration(conf.GetInt("ReconnectAfterSec", 2)) * time.Second
 	cons.ackTimeout = time.Duration(conf.GetInt("AckTimoutSec", 2)) * time.Second
 	cons.readTimeout = time.Duration(conf.GetInt("ReadTimoutSec", 5)) * time.Second
+	cons.clearSocket = conf.GetBool("RemoveOldSocket", true)
 
 	if cons.protocol != "unix" {
 		if cons.acknowledge != "" {
 			cons.protocol = "tcp"
 		} else {
 			cons.protocol = "udp"
-		}
-	} else {
-		if _, err := os.Stat(cons.address); err == nil {
-			Log.Warning.Print("Found existing socket ", cons.address, ". Removing.")
-			if err := os.Remove(cons.address); err != nil {
-				Log.Error.Print("Could not remove already existing socket ", cons.address)
-			}
 		}
 	}
 
@@ -287,13 +285,26 @@ func (cons *Socket) tcpAccept() {
 	for cons.IsActive() {
 		// (re)open a tcp connection
 		for cons.listen == nil {
-			if listener, err := net.Listen(cons.protocol, cons.address); err == nil {
+			listener, err := net.Listen(cons.protocol, cons.address)
+			if cons.protocol == "unix" && err == nil {
+				err = os.Chmod(cons.address, cons.fileFlags)
+			}
+
+			if err == nil {
 				cons.listen = listener
-				if cons.protocol == "unix" {
-					os.Chmod(cons.address, cons.fileFlags)
-				}
 			} else {
 				Log.Error.Print("Socket connection error: ", err)
+
+				// Clear socket if necessary
+				if cons.protocol == "unix" && cons.clearSocket {
+					if _, err := os.Stat(cons.address); err == nil {
+						Log.Warning.Print("Found existing socket ", cons.address, ". Removing.")
+						if err := os.Remove(cons.address); err != nil {
+							Log.Error.Print("Could not remove existing socket ", cons.address)
+						}
+					}
+				}
+
 				time.Sleep(cons.reconnectTime)
 			}
 		}
