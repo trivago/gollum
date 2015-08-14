@@ -146,6 +146,13 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 		} else {
 			cons.protocol = "udp"
 		}
+	} else {
+		if _, err := os.Stat(cons.address); err == nil {
+			Log.Warning.Print("Found existing socket ", cons.address, ". Removing.")
+			if err := os.Remove(cons.address); err != nil {
+				Log.Error.Print("Could not remove already existing socket ", cons.address)
+			}
+		}
 	}
 
 	cons.delimiter = shared.Unescape(conf.GetString("Delimiter", "\n"))
