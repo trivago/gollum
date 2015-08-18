@@ -172,7 +172,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 			continue // ### continue ###
 		}
 
-		Log.Debug.Print("Configuring ", config.Typename)
+		Log.Debug.Print("Configuring ", config.Typename, " for ", streamName)
 		core.StreamRegistry.Register(plugin.(core.Stream), core.GetStreamID(streamName))
 	}
 

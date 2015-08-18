@@ -132,11 +132,6 @@ func (prod *Spooling) writeToFile(msg core.Message) {
 	spool, exists := prod.outfile[streamID]
 	if !exists {
 		streamName := core.StreamRegistry.GetStreamName(streamID)
-		if streamName == "" {
-			Log.Error.Print("Spooling: Empty message detected")
-			return // ### return, invalid message ###
-		}
-
 		spool = newSpoolFile(prod, streamName, msg.Source)
 		prod.outfile[streamID] = spool
 

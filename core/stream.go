@@ -15,9 +15,7 @@
 package core
 
 import (
-	//"github.com/trivago/gollum/core/log"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -77,16 +75,6 @@ type StreamBase struct {
 // Distributor is a callback typedef for methods processing messages
 type Distributor func(msg Message)
 
-// GetAndResetMessageCount returns the current message counters and resets them
-// to 0. This function is threadsafe.
-func GetAndResetMessageCount() (messages, dropped, discarded, filtered, noroute uint32) {
-	return atomic.SwapUint32(&messageCount, 0),
-		atomic.SwapUint32(&droppedCount, 0),
-		atomic.SwapUint32(&discardedCount, 0),
-		atomic.SwapUint32(&filteredCount, 0),
-		atomic.SwapUint32(&noRouteCount, 0)
-}
-
 // ConfigureStream sets up all values requred by StreamBase.
 func (stream *StreamBase) ConfigureStream(conf PluginConfig, distribute Distributor) error {
 	plugin, err := NewPluginWithType(conf.GetString("Formatter", "format.Forward"), conf)
@@ -105,13 +93,12 @@ func (stream *StreamBase) ConfigureStream(conf PluginConfig, distribute Distribu
 	stream.resumeWorker = new(sync.WaitGroup)
 	stream.distribute = distribute
 
-	if conf.HasValue("Timeout") {
+	if conf.HasValue("TimeoutMs") {
 		timeout := time.Duration(conf.GetInt("TimeoutMs", 0)) * time.Millisecond
 		stream.Timeout = &timeout
 	} else {
 		stream.Timeout = nil
 	}
-
 	return nil
 }
 

@@ -77,6 +77,16 @@ func CountNoRouteForMessage() {
 	atomic.AddUint32(&noRouteCount, 1)
 }
 
+// GetAndResetMessageCount returns the current message counters and resets them
+// to 0. This function is threadsafe.
+func GetAndResetMessageCount() (messages, dropped, discarded, filtered, noroute uint32) {
+	return atomic.SwapUint32(&messageCount, 0),
+		atomic.SwapUint32(&droppedCount, 0),
+		atomic.SwapUint32(&discardedCount, 0),
+		atomic.SwapUint32(&filteredCount, 0),
+		atomic.SwapUint32(&noRouteCount, 0)
+}
+
 // GetStreamID returns the integer representation of a given stream name.
 func GetStreamID(stream string) MessageStreamID {
 	hash := fnv.New64a()
@@ -189,9 +199,12 @@ func (registry *streamRegistry) GetStreamOrFallback(streamID MessageStreamID) St
 		return stream
 	}
 
+	streamName := registry.GetStreamName(streamID)
+	Log.Debug.Print("Using fallback stream for ", streamName)
+
 	defaultStream := new(StreamBase)
 	defaultConfig := NewPluginConfig("StreamBase")
-	defaultConfig.Stream = []string{registry.GetStreamName(streamID)}
+	defaultConfig.Stream = []string{streamName}
 
 	defaultStream.ConfigureStream(defaultConfig, defaultStream.Broadcast)
 	registry.AddWildcardProducersToStream(defaultStream)
@@ -201,6 +214,8 @@ func (registry *streamRegistry) GetStreamOrFallback(streamID MessageStreamID) St
 	return defaultStream
 }
 
+// LinkDependencies adds a dependency to parent for every producer listening on
+// the given stream. Circular dependencies are detected and discarded.
 func (registry *streamRegistry) LinkDependencies(parent Producer, streamID MessageStreamID) {
 	stream := registry.GetStreamOrFallback(streamID)
 	streamName := registry.GetStreamName(streamID)
