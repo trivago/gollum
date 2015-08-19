@@ -29,10 +29,7 @@ type mockFilter struct {
 }
 
 func (mf *mockFilter) Accepts(msg Message) bool {
-	if msg.String() == "abc" {
-		return true
-	}
-	return false
+	return true
 }
 
 func (prod *mockProducer) Produce(workers *sync.WaitGroup) {
@@ -69,8 +66,18 @@ func getMockStream() StreamBase {
 	}
 }
 
+func resetStreamRegistryCounts() {
+	messageCount = 0
+	droppedCount = 0
+	discardedCount = 0
+	filteredCount = 0
+	noRouteCount = 0
+}
+
 func TestStreamRegistryAtomicOperations(t *testing.T) {
 	expect := shared.NewExpect(t)
+	// Tests run in one go, so the counts might already be affected. Reset here.
+	resetStreamRegistryCounts()
 
 	expect.Equal(messageCount, uint32(0))
 	CountProcessedMessage()
