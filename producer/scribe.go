@@ -219,7 +219,8 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 		if resultCode == scribe.ResultCode_OK {
 			idxStart = idxEnd
 			if idxStart < len(logBuffer) {
-				continue // ### continue, data left to send ###
+				retryCount = -1 // incremented to 0 after continue
+				continue        // ### continue, data left to send ###
 			}
 			// Grow the window on success so we don't get stuck at 1
 			if prod.windowSize < len(logBuffer) {
