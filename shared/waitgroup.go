@@ -48,6 +48,11 @@ func (wg *WaitGroup) Done() {
 	atomic.AddInt32(&wg.counter, -1)
 }
 
+// Reset sets the counter to 0
+func (wg *WaitGroup) Reset() {
+	atomic.StoreInt32(&wg.counter, 0)
+}
+
 // IncWhenDone wait until the counter is exactly 0 and triggeres an increment
 // if this is found to be true
 func (wg *WaitGroup) IncWhenDone() {

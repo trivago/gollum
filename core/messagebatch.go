@@ -158,12 +158,7 @@ func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
 	batch.flushing.IncWhenDone()
 
 	// Switch the buffers so writers can go on writing
-	var flushSet uint32
-	if batch.activeSet&0x80000000 != 0 {
-		flushSet = atomic.SwapUint32(&batch.activeSet, 0)
-	} else {
-		flushSet = atomic.SwapUint32(&batch.activeSet, 0x80000000)
-	}
+	flushSet := atomic.SwapUint32(&batch.activeSet, (batch.activeSet&0x80000000)^0x80000000)
 
 	flushIdx := flushSet >> 31
 	writerCount := flushSet & 0x7FFFFFFF
@@ -181,7 +176,7 @@ func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
 
 		messageCount := shared.MinI(int(flushQueue.doneCount), len(flushQueue.messages))
 		assemble(flushQueue.messages[:messageCount])
-		flushQueue.doneCount = 0
+		atomic.StoreUint32(&flushQueue.doneCount, 0)
 		batch.Touch()
 	})
 }
