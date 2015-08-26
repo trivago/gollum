@@ -28,6 +28,7 @@ type MappingOptions struct {
 	Routing    *RoutingOptions        `json:"_routing,omitempty"`
 	Size       *SizeOptions           `json:"_size,omitempty"`
 	Source     *SourceOptions         `json:"_source,omitempty"`
+	TTL        *TTLOptions            `json:"_ttl,omitempty"`
 	Type       *TypeOptions           `json:"_type,omitempty"`
 	Properties map[string]interface{} `json:"properties"`
 }
@@ -64,6 +65,11 @@ type SourceOptions struct {
 type TypeOptions struct {
 	Store bool   `json:"store,omitempty"`
 	Index string `json:"index,omitempty"`
+}
+
+type TTLOptions struct {
+	Enabled bool `json:"enabled"`
+	Default string `json:"default,omitempty"`
 }
 
 type IdOptions struct {

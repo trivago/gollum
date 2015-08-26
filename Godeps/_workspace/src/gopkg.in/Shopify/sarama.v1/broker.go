@@ -1,6 +1,7 @@
 package sarama
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net"
@@ -73,7 +74,11 @@ func (b *Broker) Open(conf *Config) error {
 			KeepAlive: conf.Net.KeepAlive,
 		}
 
-		b.conn, b.connErr = dialer.Dial("tcp", b.addr)
+		if conf.Net.TLS.Enable {
+			b.conn, b.connErr = tls.DialWithDialer(&dialer, "tcp", b.addr, conf.Net.TLS.Config)
+		} else {
+			b.conn, b.connErr = dialer.Dial("tcp", b.addr)
+		}
 		if b.connErr != nil {
 			b.conn = nil
 			atomic.StoreInt32(&b.opened, 0)
@@ -359,7 +364,7 @@ func (b *Broker) responseReceiver() {
 		if decodedHeader.correlationID != response.correlationID {
 			// TODO if decoded ID < cur ID, discard until we catch up
 			// TODO if decoded ID > cur ID, save it so when cur ID catches up we have a response
-			response.errors <- PacketDecodingError{fmt.Sprintf("CorrelationID didn't match, wanted %d, got %d", response.correlationID, decodedHeader.correlationID)}
+			response.errors <- PacketDecodingError{fmt.Sprintf("correlation ID didn't match, wanted %d, got %d", response.correlationID, decodedHeader.correlationID)}
 			continue
 		}
 

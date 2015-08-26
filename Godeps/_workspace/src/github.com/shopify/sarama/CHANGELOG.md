@@ -1,6 +1,15 @@
 # Changelog
 
-#### Version 1.5.0 (unreleased)
+#### Version 1.6.0 (unreleased)
+
+New Features:
+ - Implementation of a consumer offset manager using the APIs introduced in
+   Kafka 0.8.2. The API is designed mainly for integration into a future
+   high-level consumer, not for direct use, although it is *possible* to use it
+   directly.
+   ([#461](https://github.com/Shopify/sarama/pull/461)).
+
+#### Version 1.5.0 (2015-08-17)
 
 New Features:
  - TLS-encrypted network connections are now supported. This feature is subject
@@ -14,6 +23,8 @@ Improvements:
    ([#485](https://github.com/Shopify/sarama/pull/485)).
  - Formatting of error strings has been much improved
    ([#495](https://github.com/Shopify/sarama/pull/495)).
+ - Internal refactoring of the producer for code cleanliness and to enable
+   future work ([#300](https://github.com/Shopify/sarama/pull/300)).
 
 Bug Fixes:
  - Fix a potential deadlock in the consumer on shutdown
