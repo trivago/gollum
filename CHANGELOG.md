@@ -26,6 +26,7 @@ Custom producers and config files may have to be adjusted.
  * Base64Encode and Base64Decode formatter parameters have been renamed to "Base64*"
  * Removed the MessagesPerSecAvg metric
  * Two functions were added to the MessageSource interface to allow blocked/active state query
+ * The low resolution timer has been removed
 
 #### Fixed
 
