@@ -29,7 +29,7 @@ type WaitGroup struct {
 
 // Active returns true if the counter is > 0
 func (wg *WaitGroup) Active() bool {
-	return wg.counter > 0
+	return atomic.LoadInt32(&wg.counter) > 0
 }
 
 // Inc is the shorthand version for Add(1)
