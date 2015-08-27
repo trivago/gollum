@@ -27,9 +27,6 @@ type messageBatchWriter struct {
 	counter int
 }
 
-type mockFormatter struct {
-}
-
 func (bw *messageBatchWriter) hasData(messages []Message) {
 	bw.expect.Greater(len(messages), 0)
 }
@@ -53,15 +50,11 @@ func (bw *messageBatchWriter) Count(msg Message) {
 	bw.counter++
 }
 
-func (mock mockFormatter) Format(msg Message) ([]byte, MessageStreamID) {
-	return msg.Data, msg.StreamID
-}
-
 func TestMessageBatchAppendOrFlush(t *testing.T) {
 	expect := shared.NewExpect(t)
 	writer := messageBatchWriter{expect, 0}
 	batch := NewMessageBatch(10)
-	assembly := NewWriterAssembly(writer, writer.Flush, mockFormatter{})
+	assembly := NewWriterAssembly(writer, writer.Flush, &mockFormatter{})
 
 	flushBuffer := func() {
 		batch.Flush(assembly.Write)
@@ -98,7 +91,7 @@ func TestMessageBatchAppendOrFlush(t *testing.T) {
 func TestMessageBatch(t *testing.T) {
 	expect := shared.NewExpect(t)
 	writer := messageBatchWriter{expect, 0}
-	assembly := NewWriterAssembly(writer, writer.Flush, mockFormatter{})
+	assembly := NewWriterAssembly(writer, writer.Flush, &mockFormatter{})
 
 	batch := NewMessageBatch(10)
 	expect.False(batch.IsClosed())

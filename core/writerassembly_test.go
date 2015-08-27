@@ -43,7 +43,7 @@ func (iw mockIoWrite) mockFlush(m Message) {
 func TestWriterAssemblySetValidator(t *testing.T) {
 	expect := shared.NewExpect(t)
 	mockIo := mockIoWrite{expect}
-	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, mockFormatter{})
+	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, &mockFormatter{})
 	validator := func() bool {
 		return true
 	}
@@ -54,7 +54,7 @@ func TestWriterAssemblySetValidator(t *testing.T) {
 func TestWriterAssemblySetErrorHandler(t *testing.T) {
 	expect := shared.NewExpect(t)
 	mockIo := mockIoWrite{expect}
-	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, mockFormatter{})
+	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, &mockFormatter{})
 	handler := func(e error) bool {
 		if e.Error() == "abc" {
 			return true
@@ -69,7 +69,7 @@ func TestWriterAssemblySetErrorHandler(t *testing.T) {
 func TestWriterAssemblySetWriter(t *testing.T) {
 	expect := shared.NewExpect(t)
 	mockIo := mockIoWrite{expect}
-	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, mockFormatter{})
+	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, &mockFormatter{})
 
 	wa.SetWriter(secondMockIoWrite{})
 	length, _ := wa.writer.Write([]byte("abcde"))
@@ -79,7 +79,7 @@ func TestWriterAssemblySetWriter(t *testing.T) {
 func TestWriterAssemblyWrite(t *testing.T) {
 	expect := shared.NewExpect(t)
 	mockIo := mockIoWrite{expect}
-	wa := NewWriterAssembly(nil, mockIo.mockFlush, mockFormatter{})
+	wa := NewWriterAssembly(nil, mockIo.mockFlush, &mockFormatter{})
 
 	msg1 := NewMessage(nil, []byte("abcde"), 0)
 

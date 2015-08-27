@@ -18,18 +18,10 @@ import (
 	"github.com/trivago/gollum/shared"
 	"sync"
 	"testing"
-	"time"
 )
 
 type mockProducer struct {
 	ProducerBase
-}
-
-type mockFilter struct {
-}
-
-func (mf *mockFilter) Accepts(msg Message) bool {
-	return true
 }
 
 func (prod *mockProducer) Produce(workers *sync.WaitGroup) {
@@ -49,21 +41,6 @@ func mockDistributer(msg Message) {
 
 func mockPrevDistributer(msg Message) {
 
-}
-
-func getMockStream() StreamBase {
-	timeout := time.Second
-	return StreamBase{
-		Filter:         &mockFilter{},
-		Format:         mockFormatter{},
-		Timeout:        &timeout,
-		Producers:      []Producer{},
-		boundStreamID:  GetStreamID("testBoundStream"),
-		distribute:     mockDistributer,
-		prevDistribute: mockPrevDistributer,
-		paused:         make(chan Message),
-		resumeWorker:   new(sync.WaitGroup),
-	}
 }
 
 func resetStreamRegistryCounts() {
