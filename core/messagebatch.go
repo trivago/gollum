@@ -166,7 +166,7 @@ func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
 	spin := shared.NewSpinner(shared.SpinPriorityHigh)
 
 	// Wait for remaining writers to finish
-	for writerCount != flushQueue.doneCount {
+	for writerCount != atomic.LoadUint32(&flushQueue.doneCount) {
 		spin.Yield()
 	}
 
@@ -174,7 +174,7 @@ func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
 	go shared.DontPanic(func() {
 		defer batch.flushing.Done()
 
-		messageCount := shared.MinI(int(flushQueue.doneCount), len(flushQueue.messages))
+		messageCount := shared.MinI(int(writerCount), len(flushQueue.messages))
 		assemble(flushQueue.messages[:messageCount])
 		atomic.StoreUint32(&flushQueue.doneCount, 0)
 		batch.Touch()
