@@ -89,6 +89,10 @@ func (stream *StreamBase) ConfigureStream(conf PluginConfig, distribute Distribu
 	}
 
 	stream.Filter = plugin.(Filter)
+	if len(conf.Stream) == 0 {
+		panic("No source stream configured.")
+	}
+
 	stream.boundStreamID = GetStreamID(conf.Stream[0])
 	stream.resumeWorker = new(sync.WaitGroup)
 	stream.distribute = distribute

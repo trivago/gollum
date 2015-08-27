@@ -2,6 +2,7 @@ package elastigo
 
 type CatIndexInfo struct {
 	Health   string
+	Status   string
 	Name     string
 	Shards   int
 	Replicas int

@@ -88,10 +88,12 @@ func NewPluginRunState() *PluginRunState {
 	}
 }
 
+// GetState returns the current plugin state casted to the correct type
 func (state *PluginRunState) GetState() PluginState {
-	return PluginState(state.state)
+	return PluginState(atomic.LoadInt32(&state.state))
 }
 
+// SetState sets a new plugin state casted to the correct type
 func (state *PluginRunState) SetState(nextState PluginState) {
 	atomic.SwapInt32(&state.state, int32(nextState))
 }

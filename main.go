@@ -36,7 +36,7 @@ const (
 	gollumMajorVer = 0
 	gollumMinorVer = 4
 	gollumPatchVer = 0
-	gollumPostfix  = "dev"
+	gollumPostfix  = ""
 )
 
 func dumpMemoryProfile() {

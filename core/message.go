@@ -109,7 +109,7 @@ func NewMessage(source MessageSource, data []byte, sequence uint64) Message {
 		Source:       source,
 		StreamID:     WildcardStreamID,
 		PrevStreamID: WildcardStreamID,
-		Timestamp:    shared.LowResolutionTimeNow, //time.Now(),
+		Timestamp:    time.Now(),
 		Sequence:     sequence,
 	}
 }

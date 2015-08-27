@@ -29,13 +29,19 @@ type MessageBatch struct {
 	flushing  *shared.WaitGroup
 	lastFlush time.Time
 	activeSet uint32
-	closed    bool
+	closed    int32
 }
 
 type messageQueue struct {
 	messages  []Message
 	doneCount uint32
 }
+
+const (
+	messageBatchIndexShift = 31
+	messageBatchCountMask  = 0x7FFFFFFF
+	messageBatchIndexMask  = 0x80000000
+)
 
 // AssemblyFunc is the function signature for callbacks passed to the Flush
 // method.
@@ -49,7 +55,7 @@ func NewMessageBatch(maxMessageCount int) MessageBatch {
 		flushing:  new(shared.WaitGroup),
 		lastFlush: time.Now(),
 		activeSet: uint32(0),
-		closed:    false,
+		closed:    0,
 	}
 }
 
@@ -80,9 +86,9 @@ func (batch *MessageBatch) Append(msg Message) bool {
 	}
 
 	activeSet := atomic.AddUint32(&batch.activeSet, 1)
-	activeIdx := activeSet >> 31
+	activeIdx := activeSet >> messageBatchIndexShift
 	activeQueue := &batch.queue[activeIdx]
-	ticketIdx := (activeSet & 0x7FFFFFFF) - 1
+	ticketIdx := (activeSet & messageBatchCountMask) - 1
 
 	// We mark the message as written even if the write fails so that flush
 	// does not block after a failed message.
@@ -132,14 +138,14 @@ func (batch *MessageBatch) Touch() {
 // Close disables Append, calls flush and waits for this call to finish.
 // Timeout is passed to WaitForFlush.
 func (batch *MessageBatch) Close(assemble AssemblyFunc, timeout time.Duration) {
-	batch.closed = true
+	atomic.StoreInt32(&batch.closed, 1)
 	batch.Flush(assemble)
 	batch.WaitForFlush(timeout)
 }
 
 // IsClosed returns true of Close has been called at least once.
 func (batch MessageBatch) IsClosed() bool {
-	return batch.closed
+	return atomic.LoadInt32(&batch.closed) != 0
 }
 
 // Flush writes the content of the buffer to a given resource and resets the
@@ -163,20 +169,15 @@ func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
 	batch.flushing.IncWhenDone()
 
 	// Switch the buffers so writers can go on writing
-	var flushSet uint32
-	if batch.activeSet&0x80000000 != 0 {
-		flushSet = atomic.SwapUint32(&batch.activeSet, 0)
-	} else {
-		flushSet = atomic.SwapUint32(&batch.activeSet, 0x80000000)
-	}
+	flushSet := atomic.SwapUint32(&batch.activeSet, (batch.activeSet&messageBatchIndexMask)^messageBatchIndexMask)
 
-	flushIdx := flushSet >> 31
-	writerCount := flushSet & 0x7FFFFFFF
+	flushIdx := flushSet >> messageBatchIndexShift
+	writerCount := flushSet & messageBatchCountMask
 	flushQueue := &batch.queue[flushIdx]
 	spin := shared.NewSpinner(shared.SpinPriorityHigh)
 
 	// Wait for remaining writers to finish
-	for writerCount != flushQueue.doneCount {
+	for writerCount != atomic.LoadUint32(&flushQueue.doneCount) {
 		spin.Yield()
 	}
 
@@ -184,9 +185,9 @@ func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
 	go shared.DontPanic(func() {
 		defer batch.flushing.Done()
 
-		messageCount := shared.MinI(int(flushQueue.doneCount), len(flushQueue.messages))
+		messageCount := shared.MinI(int(writerCount), len(flushQueue.messages))
 		assemble(flushQueue.messages[:messageCount])
-		flushQueue.doneCount = 0
+		atomic.StoreUint32(&flushQueue.doneCount, 0)
 		batch.Touch()
 	})
 }
@@ -201,14 +202,14 @@ func (batch *MessageBatch) WaitForFlush(timeout time.Duration) {
 // IsEmpty returns true if no data is stored in the front buffer, i.e. if no data
 // is scheduled for flushing.
 func (batch MessageBatch) IsEmpty() bool {
-	return batch.activeSet&0x7FFFFFFF == 0
+	return atomic.LoadUint32(&batch.activeSet)&messageBatchCountMask == 0
 }
 
 // ReachedSizeThreshold returns true if the bytes stored in the buffer are
 // above or equal to the size given.
 // If there is no data this function returns false.
 func (batch MessageBatch) ReachedSizeThreshold(size int) bool {
-	activeIdx := batch.activeSet >> 31
+	activeIdx := atomic.LoadUint32(&batch.activeSet) >> messageBatchIndexShift
 	threshold := uint32(shared.MaxI(size, len(batch.queue[activeIdx].messages)))
 	return batch.queue[activeIdx].doneCount >= threshold
 }
