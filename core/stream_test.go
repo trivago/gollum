@@ -83,3 +83,30 @@ func TestStreamPauseFlush(t *testing.T) {
 	mockStream.Enqueue(msgToSend)
 	mockStream.Flush()
 }
+
+func TestStreamBroadcast(t *testing.T) {
+	// TODO: complete after mockProducer
+
+}
+
+func TestStreamRoute(t *testing.T) {
+	expect := shared.NewExpect(t)
+	mockStream := getMockStream()
+
+	mockDistributer := func(msg Message) {
+		expect.Equal("abc", msg.String())
+	}
+	targetMockStream := getMockStream()
+	targetMockStream.AddProducer(&mockProducer{})
+	targetMockStream.distribute = mockDistributer
+	StreamRegistry.streams[2] = &targetMockStream
+
+	msgToSend := Message{
+		Data:     []byte("abc"),
+		StreamID: 1,
+	}
+
+	mockStream.AddProducer(&mockProducer{})
+	mockStream.Route(msgToSend, 2)
+
+}

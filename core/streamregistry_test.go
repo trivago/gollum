@@ -16,17 +16,8 @@ package core
 
 import (
 	"github.com/trivago/gollum/shared"
-	"sync"
 	"testing"
 )
-
-type mockProducer struct {
-	ProducerBase
-}
-
-func (prod *mockProducer) Produce(workers *sync.WaitGroup) {
-	// does something.
-}
 
 func getMockStreamRegistry() streamRegistry {
 	return streamRegistry{map[MessageStreamID]Stream{},
