@@ -281,9 +281,9 @@ func (b *BulkIndexer) shutdown() {
 // The index bulk API adds or updates a typed JSON document to a specific index, making it searchable.
 // it operates by buffering requests, and ocassionally flushing to elasticsearch
 // http://www.elasticsearch.org/guide/reference/api/bulk.html
-func (b *BulkIndexer) Index(index string, _type string, id, ttl string, date *time.Time, data interface{}, refresh bool) error {
+func (b *BulkIndexer) Index(index string, _type string, id, parent, ttl string, date *time.Time, data interface{}, refresh bool) error {
 	//{ "index" : { "_index" : "test", "_type" : "type1", "_id" : "1" } }
-	by, err := WriteBulkBytes("index", index, _type, id, ttl, date, data, refresh)
+	by, err := WriteBulkBytes("index", index, _type, id, parent, ttl, date, data, refresh)
 	if err != nil {
 		return err
 	}
@@ -291,9 +291,9 @@ func (b *BulkIndexer) Index(index string, _type string, id, ttl string, date *ti
 	return nil
 }
 
-func (b *BulkIndexer) Update(index string, _type string, id, ttl string, date *time.Time, data interface{}, refresh bool) error {
+func (b *BulkIndexer) Update(index string, _type string, id, parent, ttl string, date *time.Time, data interface{}, refresh bool) error {
 	//{ "index" : { "_index" : "test", "_type" : "type1", "_id" : "1" } }
-	by, err := WriteBulkBytes("update", index, _type, id, ttl, date, data, refresh)
+	by, err := WriteBulkBytes("update", index, _type, id, parent, ttl, date, data, refresh)
 	if err != nil {
 		return err
 	}
@@ -307,14 +307,14 @@ func (b *BulkIndexer) Delete(index, _type, id string, refresh bool) {
 	return
 }
 
-func (b *BulkIndexer) UpdateWithWithScript(index string, _type string, id, ttl string, date *time.Time, script string, refresh bool) error {
+func (b *BulkIndexer) UpdateWithWithScript(index string, _type string, id, parent, ttl string, date *time.Time, script string, refresh bool) error {
 
 	var data map[string]interface{} = make(map[string]interface{})
 	data["script"] = script
-	return b.Update(index, _type, id, ttl, date, data, refresh)
+	return b.Update(index, _type, id, parent, ttl, date, data, refresh)
 }
 
-func (b *BulkIndexer) UpdateWithPartialDoc(index string, _type string, id, ttl string, date *time.Time, partialDoc interface{}, upsert bool, refresh bool) error {
+func (b *BulkIndexer) UpdateWithPartialDoc(index string, _type string, id, parent, ttl string, date *time.Time, partialDoc interface{}, upsert bool, refresh bool) error {
 
 	var data map[string]interface{} = make(map[string]interface{})
 
@@ -322,7 +322,7 @@ func (b *BulkIndexer) UpdateWithPartialDoc(index string, _type string, id, ttl s
 	if upsert {
 		data["doc_as_upsert"] = true
 	}
-	return b.Update(index, _type, id, ttl, date, data, refresh)
+	return b.Update(index, _type, id, parent, ttl, date, data, refresh)
 }
 
 // This does the actual send of a buffer, which has already been formatted
@@ -355,7 +355,7 @@ func (b *BulkIndexer) Send(buf *bytes.Buffer) error {
 
 // Given a set of arguments for index, type, id, data create a set of bytes that is formatted for bulkd index
 // http://www.elasticsearch.org/guide/reference/api/bulk.html
-func WriteBulkBytes(op string, index string, _type string, id, ttl string, date *time.Time, data interface{}, refresh bool) ([]byte, error) {
+func WriteBulkBytes(op string, index string, _type string, id, parent, ttl string, date *time.Time, data interface{}, refresh bool) ([]byte, error) {
 	// only index and update are currently supported
 	if op != "index" && op != "update" {
 		return nil, errors.New(fmt.Sprintf("Operation '%s' is not yet supported", op))
@@ -374,8 +374,14 @@ func WriteBulkBytes(op string, index string, _type string, id, ttl string, date 
 		buf.WriteString(`"`)
 	}
 
+	if len(parent) > 0 {
+		buf.WriteString(`,"_parent":"`)
+		buf.WriteString(parent)
+		buf.WriteString(`"`)
+	}
+
 	if op == "update" {
-		buf.WriteString(`,"retry_on_conflict":3`)
+		buf.WriteString(`,"_retry_on_conflict":3`)
 	}
 
 	if len(ttl) > 0 {

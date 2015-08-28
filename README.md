@@ -35,6 +35,7 @@ Writing a custom plugin does not require you to change any additional code besid
 * `ElasticSearch` write to [elasticsearch](http://www.elasticsearch.org/) via http/bulk.
 * `File` write to a file. Supports log rotation and compression.
 * `HttpReq` HTTP request forwarder.
+* `InfluxDB` send data to an [InfluxDB](https://influxdb.com) server.
 * `Kafka` write to a [Kafka](http://kafka.apache.org/) topic.
 * `Null` like /dev/null.
 * `Proxy` two-way communication proxy for simple protocols.
@@ -47,11 +48,13 @@ Writing a custom plugin does not require you to change any additional code besid
 * `Broadcast` send to all producers in a stream.
 * `Random` send to a random roducers in a stream.
 * `RoundRobin` switch the producer after each send in a round robin fashion.
+* `Route` convert streams to one or multiple others
 
 ## Formatters (modifying data)
 
 * `Base64Encode` encodes messages to base64.
 * `Base64Decode` decodes messages from base64.
+* `CollectdToInflux` converts [CollectD](https://collectd.org) data to [InfluxDB](https://influxdb.com) compatible values.
 * `Envelope` add a prefix and/or postfix string to a message.
 * `Forward` write the message without modifying it.
 * `Hostname` prepends the current machine's hostname to a message.
@@ -59,7 +62,9 @@ Writing a custom plugin does not require you to change any additional code besid
 * `JSON` write the message as a JSON object. Messages can be parsed to generate fields.
 * `Runlength` prepends the length of the message.
 * `Sequence` prepends the sequence number of the message.
-* `StreamMod` route a message to another stream by reading a prefix.
+* `StreamName` prepend the name of a stream to the payload.
+* `StreamRevert` route a message to the previous stream (e.g. after it has been routed).
+* `StreamRoute` route a message to another stream by reading a prefix.
 * `Timestamp` prepends a timestamp to the message.
 
 ## Filters (filtering data)
@@ -68,6 +73,7 @@ Writing a custom plugin does not require you to change any additional code besid
 * `Json` blocks or lets json messages pass based on their content.
 * `None` blocks all messages.
 * `RegExp` blocks or lets messages pass based on a regular expression.
+* `Stream` blocks or lets messages pass based on their stream name.
 
 ## Installation
 
@@ -161,7 +167,7 @@ Print version information and quit.
 The easiest way to install go is by using homebrew:  
 `brew install go`
 
-If you want to do cross platform builds you need to specify an additional option:  
+If you want to do cross platform builds you need to specify an additional option (Go 1.5 does not require this anymore):  
 `brew install go --with-cc-all`
 
 ### Linux

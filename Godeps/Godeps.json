@@ -1,10 +1,10 @@
 {
 	"ImportPath": "github.com/trivago/gollum",
-	"GoVersion": "go1.4.2",
+	"GoVersion": "go1.5",
 	"Deps": [
 		{
 			"ImportPath": "github.com/araddon/gou",
-			"Rev": "8737e2ed351a696edd9ad013c36e56c13fc1d718"
+			"Rev": "dc855b3278e170447f71402abf90609da4016dc4"
 		},
 		{
 			"ImportPath": "github.com/artyom/fb303",
@@ -24,8 +24,8 @@
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/homedir",
-			"Comment": "v1.4.1-5501-gbeab255",
-			"Rev": "beab255cc02da5e95e30334c1b71348b279fbbfd"
+			"Comment": "v1.4.1-5815-g2cec06f",
+			"Rev": "2cec06fbcd0b4cb6107ae432d92c3997075a4035"
 		},
 		{
 			"ImportPath": "github.com/eapache/go-resiliency/breaker",
@@ -39,7 +39,7 @@
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
-			"Rev": "73aaaa9eb61d74fbf7e256ca586a3a565b308eea"
+			"Rev": "59b73b37c1e45995477aae817e4a653c89a858db"
 		},
 		{
 			"ImportPath": "github.com/golang/snappy",
@@ -51,8 +51,8 @@
 		},
 		{
 			"ImportPath": "github.com/mattbaird/elastigo/lib",
-			"Comment": "v1.0-183-g10db87f",
-			"Rev": "10db87fb8a41cc5a4f53d68e292bc876181860fd"
+			"Comment": "v1.0-215-g8f8c8e8",
+			"Rev": "8f8c8e8cd26082435601a46b826c09e28f50d5ae"
 		},
 		{
 			"ImportPath": "github.com/miekg/pcap",
@@ -60,22 +60,22 @@
 		},
 		{
 			"ImportPath": "github.com/opencontainers/runc/libcontainer/user",
-			"Comment": "v0.0.3-20-g15c709e",
-			"Rev": "15c709ed739f29cc6c67546ebe82948dc5935a11"
+			"Comment": "v0.0.3-59-g7291a52",
+			"Rev": "7291a52148da731e2b938eee5137133ae35cd18e"
 		},
 		{
 			"ImportPath": "github.com/shopify/sarama",
-			"Comment": "v1.4.3-33-g8f2b0fb",
-			"Rev": "8f2b0fbf383f798dccadd39ae31c4e5fcaa64563"
+			"Comment": "v1.5.0-32-g9dd45b2",
+			"Rev": "9dd45b2fbad462ea03e5dfef5e4fd9acca9e0f49"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
-			"Rev": "4a71d182556e05375344f3da665304f3d5784ab4"
+			"Rev": "7654728e381988afd88e58cabfd6363a5ea91810"
 		},
 		{
 			"ImportPath": "gopkg.in/Shopify/sarama.v1",
-			"Comment": "v1.4.3",
-			"Rev": "2b0d726b296a33715f7f970f006a80c7bfc8a2e8"
+			"Comment": "v1.5.0",
+			"Rev": "16b518acd0f9c96a8789f74a760828a0b98e9f40"
 		},
 		{
 			"ImportPath": "gopkg.in/bufio.v1",
@@ -84,8 +84,8 @@
 		},
 		{
 			"ImportPath": "gopkg.in/docker/docker.v1/pkg/mflag",
-			"Comment": "v1.7.1",
-			"Rev": "786b29d4db80a6175e72b47a794ee044918ba734"
+			"Comment": "v1.8.1",
+			"Rev": "d12ea79c9de6d144ce6bc7ccfe41c507cca6fd35"
 		},
 		{
 			"ImportPath": "gopkg.in/mcuadros/go-syslog.v2",

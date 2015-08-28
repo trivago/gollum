@@ -99,6 +99,7 @@ func TestPutMapping(t *testing.T) {
 		Timestamp: TimestampOptions{Enabled: true},
 		Id:        IdOptions{Index: "analyzed", Path: "id"},
 		Parent:    &ParentOptions{Type: "testParent"},
+		TTL:       &TTLOptions{Enabled: true, Default: "1w"},
 		Properties: map[string]interface{}{
 			// special properties that can't be expressed as tags
 			"multi_analyze": map[string]interface{}{
@@ -114,6 +115,7 @@ func TestPutMapping(t *testing.T) {
 		Timestamp: TimestampOptions{Enabled: true},
 		Id:        IdOptions{Index: "analyzed", Path: "id"},
 		Parent:    &ParentOptions{Type: "testParent"},
+		TTL:       &TTLOptions{Enabled: true, Default: "1w"},
 		Properties: map[string]interface{}{
 			"NoJson":        map[string]string{"type": "string"},
 			"dontIndex":     map[string]string{"index": "no"},

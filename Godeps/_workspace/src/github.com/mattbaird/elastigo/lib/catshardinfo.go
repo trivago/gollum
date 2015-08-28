@@ -90,7 +90,8 @@ func (s *CatShardInfo) String() string {
 // Get all the shards, even the bad ones
 func (c *Conn) GetCatShards() (shards CatShards) {
 	shards = make(CatShards, 0)
-	args := map[string]interface{}{"bytes": "b"}
+	//force it to only respond with the columns we know about and in a forced order
+	args := map[string]interface{}{"bytes": "b", "h": "index,shard,prirep,state,docs,store,ip,node"}
 	s, err := c.DoCommand("GET", "/_cat/shards", args, nil)
 	if err == nil {
 		catShardLines := strings.Split(string(s[:]), "\n")

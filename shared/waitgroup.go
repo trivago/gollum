@@ -29,7 +29,7 @@ type WaitGroup struct {
 
 // Active returns true if the counter is > 0
 func (wg *WaitGroup) Active() bool {
-	return wg.counter > 0
+	return atomic.LoadInt32(&wg.counter) > 0
 }
 
 // Inc is the shorthand version for Add(1)
@@ -46,6 +46,11 @@ func (wg *WaitGroup) Add(delta int) {
 // Done is the shorthand version for Add(-1)
 func (wg *WaitGroup) Done() {
 	atomic.AddInt32(&wg.counter, -1)
+}
+
+// Reset sets the counter to 0
+func (wg *WaitGroup) Reset() {
+	atomic.StoreInt32(&wg.counter, 0)
 }
 
 // IncWhenDone wait until the counter is exactly 0 and triggeres an increment

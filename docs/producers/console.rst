@@ -32,6 +32,8 @@ Parameters
   By default this is set to 0, which does not abort the flushing procedure.
 **Format**
   Defines a message formatter to use. :doc:`Format.Forward </formatters/forward>` by default.
+**Filter**
+  Defines a message filter to apply before formatting. :doc:`Filter.All </filters/all>` by default.
 **Console**
   Either "stdout" or "stderr".
 

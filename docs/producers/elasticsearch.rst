@@ -34,6 +34,8 @@ Parameters
   By default this is set to 0, which does not abort the flushing procedure.
 **Format**
   Defines a message formatter to use. :doc:`Format.Forward </formatters/forward>` by default.
+**Filter**
+  Defines a message filter to apply before formatting. :doc:`Filter.All </filters/all>` by default.
 **Connections**
   Defines the number of simultaneous connections allowed to an ElasticSearch server.
   This is set to 6 by default.

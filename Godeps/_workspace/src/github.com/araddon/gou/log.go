@@ -224,7 +224,7 @@ func LogTracef(logLvl int, format string, v ...interface{}) {
 		if len(parts) > 1 {
 			v = append(v, strings.Join(parts[3:len(parts)], "\n"))
 		}
-		DoLog(4, logLvl, fmt.Sprintf(format+"\n%v", v...))
+		DoLog(3, logLvl, fmt.Sprintf(format+"\n%v", v...))
 	}
 }
 
@@ -246,7 +246,7 @@ func LogThrottleKey(logLvl, limit int, key, format string, v ...interface{}) {
 			return
 		}
 		throttleMu.Unlock()
-		DoLog(4, logLvl, fmt.Sprintf(format, v...))
+		DoLog(3, logLvl, fmt.Sprintf(format, v...))
 	}
 }
 
@@ -268,7 +268,7 @@ func LogThrottle(logLvl, limit int, format string, v ...interface{}) {
 			return
 		}
 		throttleMu.Unlock()
-		DoLog(4, logLvl, fmt.Sprintf(format, v...))
+		DoLog(3, logLvl, fmt.Sprintf(format, v...))
 	}
 }
 
