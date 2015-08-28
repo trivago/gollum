@@ -92,6 +92,19 @@ func TestStreamRegistryAtomicOperations(t *testing.T) {
 	CountNoRouteForMessage()
 	expect.Equal(noRouteCount, uint32(1))
 
+	messages, dropped, discarded, filtered, noroute := GetAndResetMessageCount()
+
+	expect.Equal(messages, uint32(1))
+	expect.Equal(dropped, uint32(1))
+	expect.Equal(discarded, uint32(1))
+	expect.Equal(filtered, uint32(1))
+	expect.Equal(noroute, uint32(1))
+
+	expect.Equal(messageCount, uint32(0))
+	expect.Equal(droppedCount, uint32(0))
+	expect.Equal(discardedCount, uint32(0))
+	expect.Equal(filteredCount, uint32(0))
+	expect.Equal(noRouteCount, uint32(0))
 }
 
 func TestStreamRegistryGetStreamName(t *testing.T) {
