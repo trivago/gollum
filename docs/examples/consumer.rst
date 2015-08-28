@@ -25,47 +25,48 @@ The Consume() function will be called as a separate go routine and should do two
 As Consume() is called as a separate go routine you can decide wether to spawn additional go routines to handle both tasks or to let Consume() handle everything.
 ConsumerBase gives you two convenience loop functions to handle control commands:
 
-**MessageLoop**
+**ControlLoop**
   Will loop until a stop is recieved and can trigger a callback if a log rotation is requested (SIG_HUP is sent).
   The log rotation callback cane be set e.g. in the Configure method by using the SetRollBack function.
   Other possible callbacks functions are SetPrepareStopCallback and SetStopCallback.
 
-**TickerMessageLoop**
+**TickerControlLoop**
   Gives you an additional callback that is triggered in regular intervals.
 
 Both loops only cover control message handling and are blocking calls.
 As of their blocking nature you will probably want to spawn a separate go routine handling incoming messages when using these loops.
+
+It is highly recommended to use at least one of these functions in your plugin implementation.
+By doing this you can be sure that changes to message streaming and control handling are automatically used by your plugin after a Gollum update.
+
 A typical consume function will look like this:
 
 .. code-block:: go
+
+  func (cons *MyConsumer) Configure(conf core.PluginConfig) error {
+	cons.SetStopCallback(cons.close) // Register close to the control message handler
+  }
 
   func (cons *MyConsumer) close() {
     cons.WorkerDone()
   }
 
-  func (cons *MyConsumer) Configure(conf core.PluginConfig) error {
-	cons.SetRollCallback(cons.onRoll) // Define the callbacks triggered by the ControlLoops
-  }
-
   func (cons *MyConsumer) Consume(workers *sync.WaitGroup) {
     cons.AddMainWorker(workers) // New go routine = new worker
-    defer cons.close()          // Make sure WorkerDone is called by using defer
     go cons.readData()          // Run until close is called
-    cons.MessageLoop()   // Blocks
+    cons.ControlLoop()          // Blocks
   }
 
-This function will call the close() function when the default control loop exits, i.e. when a shutdown is requested.
 As we want to run a new go routine we also add a new worker. As this is the first worker we use AddMainWorker().
 Additional workers can be added by using AddWorker().
 This enables the shutdown routine to wait until all consumers have properly stopped.
 However - to avoid a hang during shutdown, make sure that all workers added are properly closed during the shutdown sequence.
 
 After we made sure all workers are registered, the core function readData() is called as a separate go routine.
-This is necessary as the MessageLoop will block Consume() until a shutdown is requested.
-Last but not least the rotate() function passed as a callback to MessageLoop().
-This enables the consumer to listen for log rotation requests.
-If your consumer does not need this you can pass nil instead.
-
+This is necessary as the ControlLoop will block Consume() until a shutdown is requested.
+When a stop control message is received, the StopCallback is executed.
+You can use this callback to signal your readData function to stop or you can check the pluginState inside your readData function.
+The pluginState will switch to PluginStateStopping after a stop control has been triggered.
 
 Configuration
 -------------
@@ -88,9 +89,12 @@ The most common sequence number is an incrementing 64-bit integer.
 .. code-block:: go
 
   func (cons *MyConsumer) readData() {
-    var data []byte                   // read data into this from somewhere
-    cons.Enqueue(data, cons.sequence) // this call may block
-    cons.sequence++                   // Or use atomic.AddUint64(cons.sequence, 1) to avoid races
+    var data []byte
+    for cons.IsActive() {
+      // ... read data
+      cons.Enqueue(data, cons.sequence) // This call may block
+      cons.sequence++                   // Increment your sequence number
+    }
   }
 
 Writing bare bone consumers

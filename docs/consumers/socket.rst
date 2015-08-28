@@ -19,10 +19,14 @@ Parameters
   Defines the protocol, address/DNS and port to listen to.
   The protocol can either be "socket://" for unix domain, "tcp://" for TCP or "udp://" for UDP sockets.
   In addtion to that, any protocol supported by `net.Dial <http://golang.org/pkg/net/#Dial>`_ is possible here.
+**Permissions**
+  Sets the file permissions for "unix://" based connections as an four digit octal number string.
+  By default this is set to "0770".
 **Acknowledge**
   When set to a non-empty value, the socket consumer will send the given string after recieving a message or batch of messages.
   Acknowledge is disabled by default, i.e. set to "".
   If Acknowledge is enabled and a IP-Address is given to Address, TCP is enforced to open the connection.
+  If an error occurs during write "NOT <Acknowledge>" is returned.
 **Partitioner**
   The partitioner defines the algorithm used to separate messages from the stream.
   By default this is set to "delimiter".
@@ -44,6 +48,15 @@ Parameters
 **ReconnectAfterSec**
   Defines the number of seconds to wait before a connection is tried to be reopened again.
   By default this is set to 2.
+**AckTimoutSec**
+  Defines the number of seconds waited for an acknowledge to succeed.
+  Set to 2 by default.
+**ReadTimoutSec**
+  Defines the number of seconds that waited for data to be recieved.
+  Set to 5 by default.
+**RemoveOldSocket**
+  Toggles removing exisiting files with the same name as the socket (unix://<path>) prior to connecting.
+  Enabled by default.
 
 Example
 -------
