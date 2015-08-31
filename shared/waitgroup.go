@@ -71,13 +71,18 @@ func (wg *WaitGroup) Wait() {
 }
 
 // WaitFor blocks until the counter is 0 or less. If the block takes longer than
-// the given timeout, WaitFor will return false.
+// the given timeout, WaitFor will return false. If duration is 0, Wait is called.
 func (wg *WaitGroup) WaitFor(timeout time.Duration) bool {
+	if timeout == time.Duration(0) {
+		wg.Wait()
+		return true // ### return, always true ###
+	}
+
 	start := time.Now()
 	spin := NewSpinner(SpinPriorityHigh)
 	for wg.Active() {
 		if time.Since(start) > timeout {
-			return false // ### return, timed out
+			return false // ### return, timed out ###
 		}
 		spin.Yield()
 	}
