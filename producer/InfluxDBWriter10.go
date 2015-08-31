@@ -132,6 +132,7 @@ func (writer *influxDBWriter10) post() (int, error) {
 				return 0, err // ### return, failed to create database ###
 			}
 
+			writer.buffer.ResetRead()
 			return writer.post() // ### return, retry ###
 		}
 		fallthrough

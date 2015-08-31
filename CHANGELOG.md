@@ -1,3 +1,13 @@
+# 0.4.1
+
+This is a patch release
+
+#### Fixed
+
+ * InfluxDB JSON and line protocol fixed
+ * shared.WaitGroup.WaitFor with duration 0 falls back to shared.WaitGroup.Wait
+ * proper io.EOF handling for shared.BufferedReader and shared.ByteStream 
+
 # 0.4.0
 
 This release includes several reliability fixes that prevent messages from being lost during shutdown.

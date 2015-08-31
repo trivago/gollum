@@ -89,7 +89,7 @@ func (writer *influxDBWriter09) isConnectionUp() bool {
 		case "200", "204":
 			if _, hasInfluxHeader := response.Header["X-Influxdb-Version"]; hasInfluxHeader {
 				writer.connectionUp = true
-				Log.Debug.Print("Connected to " + writer.host)
+				Log.Note.Print("Connected to " + writer.host)
 			}
 		}
 	}
@@ -97,8 +97,7 @@ func (writer *influxDBWriter09) isConnectionUp() bool {
 }
 
 func (writer *influxDBWriter09) createDatabase(database string) error {
-	url := fmt.Sprintf("%s%cq=%s", writer.queryURL, writer.separator, url.QueryEscape(fmt.Sprintf("CREATE DATABASE %s", database)))
-	Log.Debug.Print(url)
+	url := fmt.Sprintf("%s%cq=%s", writer.queryURL, writer.separator, url.QueryEscape("CREATE DATABASE \""+database+"\""))
 
 	response, err := writer.client.Get(url)
 	if err != nil {
@@ -107,7 +106,7 @@ func (writer *influxDBWriter09) createDatabase(database string) error {
 
 	defer response.Body.Close()
 	switch response.Status[:3] {
-	case "200", "201": // 201 = created
+	case "200", "201":
 		Log.Note.Printf("Created database %s", database)
 		return nil
 
@@ -136,6 +135,7 @@ func (writer *influxDBWriter09) post(databaseName string) (int, error) {
 			if err != nil {
 				return 0, err // ### return, failed to create database ###
 			}
+			writer.buffer.ResetRead()
 			return writer.post(databaseName) // ### return, retry ###
 		}
 		fallthrough
