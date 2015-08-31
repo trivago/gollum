@@ -292,12 +292,12 @@ func (buffer *BufferedReader) ReadOne(reader io.Reader) (data []byte, seq uint64
 	if buffer.incomplete {
 		bytesRead, err := reader.Read(buffer.data[buffer.end:])
 
-		if err != nil {
+		if err != nil && err != io.EOF {
 			return nil, 0, buffer.end > 0, err // ### return, error reading ###
 		}
 
 		if bytesRead == 0 {
-			return nil, 0, buffer.end > 0, nil // ### return, no data ###
+			return nil, 0, buffer.end > 0, err // ### return, no data ###
 		}
 
 		buffer.end += bytesRead
@@ -320,7 +320,7 @@ func (buffer *BufferedReader) ReadOne(reader io.Reader) (data []byte, seq uint64
 			copy(buffer.data, temp)
 		}
 		buffer.incomplete = true
-		return nil, 0, true, nil // ### return, incomplete ###
+		return nil, 0, true, err // ### return, incomplete ###
 	}
 
 	msgDataCopy := make([]byte, len(msgData))
@@ -336,5 +336,5 @@ func (buffer *BufferedReader) ReadOne(reader io.Reader) (data []byte, seq uint64
 
 	seqNum := buffer.sequence
 	buffer.sequence++
-	return msgDataCopy, seqNum, buffer.end > 0, nil
+	return msgDataCopy, seqNum, buffer.end > 0, err
 }

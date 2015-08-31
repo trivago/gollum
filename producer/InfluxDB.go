@@ -16,6 +16,7 @@ package producer
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"io"
 	"sync"
@@ -32,6 +33,7 @@ import (
 //     Password: ""
 //     Database: "default"
 //     UseVersion08: false
+//     Version: 100
 //     RetentionPolicy: ""
 //     BatchMaxCount: 8192
 //     BatchFlushCount: 4096
@@ -52,7 +54,11 @@ import (
 // This is left empty by default (no retention policy used)
 //
 // UseVersion08 has to be set to true when writing data to InfluxDB 0.8.x.
-// By default this is set to false.
+// By default this is set to false. DEPRECATED. Use Version instead.
+//
+// Version defines the InfluxDB version to use as in Mmp (Major, minor, patch).
+// For version 0.8.x use 80, for version 0.9.0 use 90, for version 1.0.0 use
+// use 100 and so on. Defaults to 100.
 //
 // BatchMaxCount defines the maximum number of messages that can be buffered
 // before a flush is mandatory. If the buffer is full and a flush is still
@@ -72,7 +78,6 @@ type InfluxDB struct {
 	assembly        core.WriterAssembly
 	batch           core.MessageBatch
 	batchTimeout    time.Duration
-	flushTimeout    time.Duration
 	batchMaxCount   int
 	batchFlushCount int
 }
@@ -94,17 +99,27 @@ func (prod *InfluxDB) Configure(conf core.PluginConfig) error {
 	}
 	prod.SetStopCallback(prod.close)
 
+	version := conf.GetInt("Version", 100)
 	if conf.GetBool("UseVersion08", false) {
+		version = 80
+	}
+
+	switch {
+	case version < 90:
+		Log.Debug.Print("Using InfluxDB 0.8.x format")
 		prod.writer = new(influxDBWriter08)
-	} else {
+	case version == 90:
+		Log.Debug.Print("Using InfluxDB 0.9.0 format")
 		prod.writer = new(influxDBWriter09)
+	default:
+		Log.Debug.Print("Using InfluxDB 0.9.1+ format")
+		prod.writer = new(influxDBWriter10)
 	}
 
 	if err := prod.writer.configure(conf); err != nil {
 		return err
 	}
 
-	prod.flushTimeout = time.Duration(conf.GetInt("BatchTimeoutSeconds", 30)) * time.Second
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
 	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
 	prod.batchFlushCount = shared.MinI(prod.batchFlushCount, prod.batchMaxCount)
@@ -147,5 +162,5 @@ func (prod *InfluxDB) close() {
 // The buffer limit does not describe the number of messages received from kafka but the size of the buffer content in KB.
 func (prod *InfluxDB) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.TickerMessageControlLoop(prod.bufferMessage, prod.flushTimeout, prod.sendBatchOnTimeOut)
+	prod.TickerMessageControlLoop(prod.bufferMessage, prod.batchTimeout, prod.sendBatchOnTimeOut)
 }
