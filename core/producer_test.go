@@ -29,6 +29,22 @@ func (prod *mockProducer) Produce(workers *sync.WaitGroup) {
 	// does something.
 }
 
+func getMockProducer() mockProducer {
+	return mockProducer{
+		ProducerBase{
+			messages:        make(chan Message, 2),
+			control:         make(chan PluginControl),
+			streams:         []MessageStreamID{},
+			dropStreamID:    2,
+			runState:        new(PluginRunState),
+			timeout:         500 * time.Millisecond,
+			filter:          &mockFilter{},
+			format:          &mockFormatter{},
+			shutdownTimeout: 10 * time.Millisecond,
+		},
+	}
+}
+
 func TestProducerConfigure(t *testing.T) {
 	expect := shared.NewExpect(t)
 
@@ -123,20 +139,9 @@ func TestProducerDependency(t *testing.T) {
 }
 
 func TestProducerEnqueue(t *testing.T) {
-	// Fuck this. distribute for drop route not called! Dont know why :(
+	// TODO: distribute for drop route not called. Probably streams array contains soln
 	expect := shared.NewExpect(t)
-	mockP := mockProducer{
-		ProducerBase{
-			messages:     make(chan Message),
-			control:      make(chan PluginControl),
-			streams:      []MessageStreamID{},
-			dropStreamID: 2,
-			runState:     new(PluginRunState),
-			timeout:      500 * time.Millisecond,
-			filter:       &mockFilter{},
-			format:       &mockFormatter{},
-		},
-	}
+	mockP := getMockProducer()
 	mockDistribute := func(msg Message) {
 		expect.Equal("ProdEanqueueTest", msg.String())
 	}
@@ -173,32 +178,45 @@ func TestProducerEnqueue(t *testing.T) {
 
 func TestProducerCloseMessageChannel(t *testing.T) {
 	expect := shared.NewExpect(t)
-	mockP := mockProducer{
-		ProducerBase{
-			messages:        make(chan Message, 10),
-			control:         make(chan PluginControl),
-			streams:         []MessageStreamID{},
-			dropStreamID:    2,
-			runState:        new(PluginRunState),
-			timeout:         500 * time.Millisecond,
-			filter:          &mockFilter{},
-			format:          &mockFormatter{},
-			shutdownTimeout: 10 * time.Millisecond,
-		},
-	}
+	mockP := getMockProducer()
 
 	mockP.setState(PluginStateActive)
+
+	handleMessageFail := func(msg Message) {
+		time.Sleep(20 * time.Millisecond)
+	}
 
 	handleMessage := func(msg Message) {
 		expect.Equal("closeMessageChannel", msg.String())
 	}
 
+	mockDistribute := func(msg Message) {
+		expect.Equal("closeMessageChannel", msg.String())
+	}
+	mockDropStream := getMockStream()
+	mockDropStream.distribute = mockDistribute
+	mockDropStream.AddProducer(&mockProducer{})
+
+	StreamRegistry.name[2] = "testStream"
+	StreamRegistry.Register(&mockDropStream, 2)
+
+	mockP.streams = []MessageStreamID{2}
 	msgToSend := Message{
 		Data:     []byte("closeMessageChannel"),
 		StreamID: 1,
 	}
 	mockP.messages <- msgToSend
+	mockP.messages <- msgToSend
+	ret := mockP.CloseMessageChannel(handleMessageFail)
+	expect.False(ret)
 
-	mockP.CloseMessageChannel(handleMessage)
+	mockP.messages = make(chan Message, 2)
+	mockP.messages <- msgToSend
+	ret = mockP.CloseMessageChannel(handleMessage)
+	expect.True(ret)
+
+}
+
+func TestProducerTicketLoop(t *testing.T) {
 
 }
