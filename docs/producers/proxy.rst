@@ -38,6 +38,8 @@ Parameters
   By default this is set to 0, which does not abort the flushing procedure.
 **Format**
   Defines a message formatter to use. :doc:`Format.Forward </formatters/forward>` by default.
+**Filter**
+  Defines a message filter to apply before formatting. :doc:`Filter.All </filters/all>` by default.
 **TimeoutSec**
   Defines the maximum time in seconds a client is allowed to take for a response. By default this is set to 1.
 **Partitioner**
