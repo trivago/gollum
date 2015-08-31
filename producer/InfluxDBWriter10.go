@@ -74,9 +74,12 @@ func (writer *influxDBWriter10) isConnectionUp() bool {
 
 	if response, err := http.Get(writer.pingURL); err == nil && response != nil {
 		defer response.Body.Close()
-		if _, hasInfluxHeader := response.Header["X-Influxdb-Version"]; response.Status[:3] == "204" && hasInfluxHeader {
-			writer.connectionUp = true
-			Log.Debug.Print("Connected to " + writer.host)
+		switch response.Status[:3] {
+		case "200", "204":
+			if _, hasInfluxHeader := response.Header["X-Influxdb-Version"]; hasInfluxHeader {
+				writer.connectionUp = true
+				Log.Debug.Print("Connected to " + writer.host)
+			}
 		}
 	}
 
