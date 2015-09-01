@@ -45,6 +45,7 @@ type influxDBWriter09 struct {
 	password         string
 	separator        rune
 	connectionUp     bool
+	timeBasedDBName  bool
 	buffer           shared.ByteStream
 }
 
@@ -61,6 +62,7 @@ func (writer *influxDBWriter09) configure(conf core.PluginConfig) error {
 	writer.queryURL = fmt.Sprintf("http://%s/query", writer.host)
 	writer.pingURL = fmt.Sprintf("http://%s/ping", writer.host)
 	writer.separator = '?'
+	writer.timeBasedDBName = conf.GetBool("TimeBasedName", true)
 
 	if writer.username != "" {
 		credentials := fmt.Sprintf("?u=%s&p=%s", url.QueryEscape(writer.username), url.QueryEscape(writer.password))
@@ -150,7 +152,11 @@ func (writer *influxDBWriter09) post(databaseName string) (int, error) {
 func (writer *influxDBWriter09) Write(data []byte) (int, error) {
 	writer.buffer.Reset()
 
-	database := time.Now().Format(writer.databaseTemplate) // Allow timestamping the database with the current time
+	database := writer.databaseTemplate
+	if writer.timeBasedDBName {
+		database = time.Now().Format(database)
+	}
+
 	fmt.Fprintf(&writer.buffer, writer.messageHeader, database)
 
 	data = bytes.TrimRight(data, " \t,") // remove the last comma

@@ -39,6 +39,7 @@ type influxDBWriter10 struct {
 	password         string
 	separator        rune
 	connectionUp     bool
+	timeBasedDBName  bool
 	buffer           shared.ByteStream
 }
 
@@ -50,6 +51,7 @@ func (writer *influxDBWriter10) configure(conf core.PluginConfig) error {
 	writer.databaseTemplate = conf.GetString("Database", "default")
 	writer.buffer = shared.NewByteStream(4096)
 	writer.connectionUp = false
+	writer.timeBasedDBName = conf.GetBool("TimeBasedName", true)
 
 	writer.writeURL = fmt.Sprintf("http://%s/write", writer.host)
 	writer.queryURL = fmt.Sprintf("http://%s/query", writer.host)
@@ -107,7 +109,10 @@ func (writer *influxDBWriter10) createDatabase(database string) error {
 }
 
 func (writer *influxDBWriter10) post() (int, error) {
-	databaseName := time.Now().Format(writer.databaseTemplate)
+	databaseName := writer.databaseTemplate
+	if writer.timeBasedDBName {
+		databaseName = time.Now().Format(databaseName)
+	}
 	writeURL := fmt.Sprintf("%s&db=%s", writer.writeURL, url.QueryEscape(databaseName)) // Allow timestamping the database with the current time
 
 	response, err := writer.client.Post(writeURL, "text/plain; charset=utf-8", &writer.buffer)

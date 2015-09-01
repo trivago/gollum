@@ -32,6 +32,7 @@ import (
 //     User: ""
 //     Password: ""
 //     Database: "default"
+//     TimeBasedName: true
 //     UseVersion08: false
 //     Version: 100
 //     RetentionPolicy: ""
@@ -49,6 +50,10 @@ import (
 //
 // Database sets the InfluxDB database to write to. By default this is
 // is set to "default".
+//
+// TimeBasedName enables using time.Format based formatting of databse names.
+// I.e. you can use something like "metrics-2006-01-02" to switch databases for
+// each day. This setting is enabled by default.
 //
 // RetentionPolicy correlates to the InfluxDB retention policy setting.
 // This is left empty by default (no retention policy used)
