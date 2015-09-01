@@ -23,8 +23,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"regexp"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -39,8 +37,8 @@ type influxDBWriter08 struct {
 	writeURL         string
 	testURL          string
 	databaseTemplate string
+	timeBasedDBName  bool
 	buffer           shared.ByteStream
-	db404Pattern     *regexp.Regexp
 }
 
 // Configure sets the database connection values
@@ -49,18 +47,18 @@ func (writer *influxDBWriter08) configure(conf core.PluginConfig) error {
 	writer.username = conf.GetString("User", "")
 	writer.password = conf.GetString("Password", "")
 	writer.databaseTemplate = conf.GetString("Database", "default")
-	writer.db404Pattern, _ = regexp.Compile("Database (.*?) doesn't exist")
 	writer.buffer = shared.NewByteStream(4096)
 	writer.connectionUp = false
+	writer.timeBasedDBName = conf.GetBool("TimeBasedName", true)
 
-	writer.writeURL = fmt.Sprintf("http://%s/db/%%s/series?time_precision=s", writer.host) //   curl -X POST -d ''  'http://10.1.3.220:8086/db/annotations/series?u=root&p=root&time_precision=s'
-	writer.testURL = fmt.Sprintf("http://%s/db/", writer.host)
+	writer.writeURL = fmt.Sprintf("http://%s/db/%%s/series?time_precision=ms", writer.host)
+	writer.testURL = fmt.Sprintf("http://%s/db", writer.host)
+
 	if writer.username != "" {
-		credentials := fmt.Sprintf("&u=%s&p=%s", writer.username, writer.password)
-		writer.writeURL += credentials
-		writer.testURL += credentials
+		credentials := fmt.Sprintf("u=%s&p=%s", url.QueryEscape(writer.username), url.QueryEscape(writer.password))
+		writer.writeURL += "&" + credentials
+		writer.testURL += "?" + credentials
 	}
-	writer.testURL = url.QueryEscape(writer.testURL)
 
 	return nil
 }
@@ -69,19 +67,21 @@ func (writer *influxDBWriter08) isConnectionUp() bool {
 	if writer.connectionUp {
 		return true // ### return, connection not reported to be down ###
 	}
-	if response, err := http.Get(writer.testURL); err != nil {
-		if status, err := strconv.Atoi(response.Status[:3]); err != nil && status == 200 {
+
+	if response, err := http.Get(writer.testURL); err == nil && response != nil {
+		defer response.Body.Close()
+		switch response.Status[:3] {
+		case "200":
 			writer.connectionUp = true
+			Log.Note.Print("Connected to " + writer.host)
 		}
 	}
 	return writer.connectionUp
 }
 
 func (writer *influxDBWriter08) createDatabase(database string) error {
-	url := url.QueryEscape(fmt.Sprintf("http://%s/db?u=%s&p=%s", writer.host, writer.username, writer.password))
+	url := fmt.Sprintf("http://%s/db?u=%s&p=%s", writer.host, url.QueryEscape(writer.username), url.QueryEscape(writer.password))
 	body := fmt.Sprintf(`{"name": "%s"}`, database)
-	Log.Debug.Print(url)
-	Log.Debug.Print(body)
 
 	response, err := writer.client.Post(url, "application/json", strings.NewReader(body))
 	if err != nil {
@@ -89,22 +89,24 @@ func (writer *influxDBWriter08) createDatabase(database string) error {
 	}
 
 	defer response.Body.Close()
-	status, _ := strconv.Atoi(response.Status[:3])
-
-	switch status {
-	case 201: // 201 = created
+	switch response.Status[:3] {
+	case "201":
+		Log.Note.Printf("Created database %s", database)
 		return nil
 
 	default:
 		body, _ := ioutil.ReadAll(response.Body)
-		return fmt.Errorf("Could not create database %s with status code %d and error %s", database, status, body)
+		return fmt.Errorf("Could not create database %s with status code \"%s\" and error \"%s\"", database, response.Status[:3], body)
 	}
 }
 
 func (writer *influxDBWriter08) post() (int, error) {
-	database := time.Now().Format(writer.databaseTemplate) // Allow timestamping the database with the current time
-	writeURL := url.QueryEscape(fmt.Sprintf(writer.writeURL, database))
+	databaseName := writer.databaseTemplate
+	if writer.timeBasedDBName {
+		databaseName = time.Now().Format(databaseName)
+	}
 
+	writeURL := fmt.Sprintf(writer.writeURL, url.QueryEscape(databaseName))
 	response, err := writer.client.Post(writeURL, "application/json", &writer.buffer)
 	if err != nil {
 		writer.connectionUp = false
@@ -114,24 +116,20 @@ func (writer *influxDBWriter08) post() (int, error) {
 	defer response.Body.Close()
 
 	// Check status codes
-	status, _ := strconv.Atoi(response.Status[:3])
-	switch status {
-	case 200:
+	switch response.Status[:3] {
+	case "200":
 		return writer.buffer.Len(), nil // ### return, OK ###
 
-	case 400:
+	case "400":
 		body, _ := ioutil.ReadAll(response.Body)
 		// 400 Bad Request: Database foobar doesn't exist
-		if matches := writer.db404Pattern.FindStringSubmatch(string(body)); matches != nil {
-			databaseName := matches[1]
-			if databaseName != "" {
-				Log.Debug.Printf("Creating database %s", databaseName)
-				err := writer.createDatabase(databaseName)
-				if err != nil {
-					return 0, err // ### return, failed to create database ###
-				}
-				return writer.post() // ### return, retry ###
+		if strings.Contains(string(body), databaseName) {
+			err := writer.createDatabase(databaseName)
+			if err != nil {
+				return 0, err // ### return, failed to create database ###
 			}
+			writer.buffer.ResetRead()
+			return writer.post() // ### return, retry ###
 		}
 		fallthrough
 

@@ -14,20 +14,23 @@
 
 package shared
 
+import "io"
+
 // ByteStream is a more lightweight variant of bytes.Buffer.
 // The managed byte array is increased to the exact required size and never
 // shrinks. Writing moves an internal offset (for appends) but reading always
 // starts at offset 0.
 type ByteStream struct {
-	data   []byte
-	offset int
+	data        []byte
+	writeOffset int
+	readOffset  int
 }
 
 // NewByteStream creates a new byte stream of the desired capacity
 func NewByteStream(capacity int) ByteStream {
 	return ByteStream{
-		data:   make([]byte, capacity),
-		offset: 0,
+		data:        make([]byte, capacity),
+		writeOffset: 0,
 	}
 }
 
@@ -35,8 +38,8 @@ func NewByteStream(capacity int) ByteStream {
 // byte array.
 func NewByteStreamFrom(data []byte) ByteStream {
 	return ByteStream{
-		data:   data,
-		offset: len(data),
+		data:        data,
+		writeOffset: len(data),
 	}
 }
 
@@ -47,21 +50,28 @@ func (stream *ByteStream) SetCapacity(capacity int) {
 	if stream.Cap() < capacity {
 		current := stream.data
 		stream.data = make([]byte, capacity)
-		if stream.offset > 0 {
-			copy(stream.data, current[:stream.offset])
+		if stream.writeOffset > 0 {
+			copy(stream.data, current[:stream.writeOffset])
 		}
 	}
 }
 
-// Reset sets the internal write offset to 0
+// Reset sets the internal write offset to 0 and calls ResetRead
 func (stream *ByteStream) Reset() {
-	stream.offset = 0
+	stream.writeOffset = 0
+	stream.ResetRead()
+}
+
+// ResetRead sets the internal read offset to 0. The read offset is only used
+// within the Read function to assure io.Reader compatibility
+func (stream *ByteStream) ResetRead() {
+	stream.readOffset = 0
 }
 
 // Len returns the length of the underlying array.
 // This is equal to len(stream.Bytes()).
 func (stream ByteStream) Len() int {
-	return stream.offset
+	return stream.writeOffset
 }
 
 // Cap returns the capacity of the underlying array.
@@ -73,13 +83,13 @@ func (stream ByteStream) Cap() int {
 // Bytes returns a slice of the underlying byte array containing all written
 // data up to this point.
 func (stream ByteStream) Bytes() []byte {
-	return stream.data[:stream.offset]
+	return stream.data[:stream.writeOffset]
 }
 
 // String returns a string of the underlying byte array containing all written
 // data up to this point.
 func (stream ByteStream) String() string {
-	return string(stream.data[:stream.offset])
+	return string(stream.data[:stream.writeOffset])
 }
 
 // Write implements the io.Writer interface.
@@ -92,9 +102,9 @@ func (stream *ByteStream) Write(source []byte) (int, error) {
 		return 0, nil
 	}
 
-	stream.SetCapacity(stream.offset + sourceLen)
-	copy(stream.data[stream.offset:], source[:sourceLen])
-	stream.offset += sourceLen
+	stream.SetCapacity(stream.writeOffset + sourceLen)
+	copy(stream.data[stream.writeOffset:], source[:sourceLen])
+	stream.writeOffset += sourceLen
 
 	return sourceLen, nil
 }
@@ -106,14 +116,26 @@ func (stream *ByteStream) WriteString(source string) (int, error) {
 
 // WriteByte writes a single byte to the stream. Capacity will be ensured.
 func (stream *ByteStream) WriteByte(source byte) error {
-	stream.SetCapacity(stream.offset + 1)
-	stream.data[stream.offset] = source
-	stream.offset++
+	stream.SetCapacity(stream.writeOffset + 1)
+	stream.data[stream.writeOffset] = source
+	stream.writeOffset++
 	return nil
 }
 
 // Read implements the io.Reader interface.
-// The underlying byte array is always copied as a whole.
+// The underlying array is copied to target and io.EOF is returned once no data
+// is left to be read. Please note that ResetRead can rewind the internal read
+// index for this operation.
 func (stream *ByteStream) Read(target []byte) (int, error) {
-	return copy(target, stream.data), nil
+	if stream.readOffset >= stream.writeOffset {
+		return 0, io.EOF // ### return, no new data to read ###
+	}
+
+	bytesCopied := copy(target, stream.data[stream.readOffset:stream.writeOffset])
+	stream.readOffset += bytesCopied
+
+	if stream.readOffset >= stream.writeOffset {
+		return bytesCopied, io.EOF
+	}
+	return bytesCopied, nil
 }
