@@ -16,6 +16,7 @@ package core
 
 import (
 	"github.com/trivago/gollum/shared"
+	"math"
 	"sync"
 	"testing"
 	"time"
@@ -143,7 +144,7 @@ func TestProducerEnqueue(t *testing.T) {
 	expect := shared.NewExpect(t)
 	mockP := getMockProducer()
 	mockDistribute := func(msg Message) {
-		expect.Equal("ProdEanqueueTest", msg.String())
+		expect.Equal("ProdEnqueueTest", msg.String())
 	}
 	mockDropStream := getMockStream()
 	StreamRegistry.Register(&mockDropStream, 2)
@@ -217,6 +218,125 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 
 }
 
-func TestProducerTicketLoop(t *testing.T) {
+func TestProducerTickerLoop(t *testing.T) {
+	expect := shared.NewExpect(t)
+	mockP := getMockProducer()
+	mockP.setState(PluginStateActive)
+	// accept timeroff by abs( 8 ms)
+	delta := float64(8 * time.Millisecond)
+	var counter = 0
+	tickerLoopTimeout := 20 * time.Millisecond
+	var timeRecorded time.Time
+	onTimeOut := func() {
+		if counter > 3 {
+			mockP.setState(PluginStateDead)
+			return
+		}
+		//this was fired as soon as the ticker started. So ignore but save the time
+		if counter == 0 {
+			timeRecorded = time.Now()
+			counter++
+			return
+		}
+		diff := time.Now().Sub(timeRecorded)
+		deltaDiff := math.Abs(float64(tickerLoopTimeout - diff))
+		expect.True(deltaDiff < delta)
+		timeRecorded = time.Now()
+		counter++
+		return
+	}
+
+	mockP.tickerLoop(tickerLoopTimeout, onTimeOut)
+	time.Sleep(2 * time.Second)
+	// in anycase, the callback has to be called atleast once
+	expect.True(counter > 1)
+}
+
+func TestProducerMessageLoop(t *testing.T) {
+	expect := shared.NewExpect(t)
+	mockP := getMockProducer()
+	mockP.setState(PluginStateActive)
+	mockP.messages = make(chan Message, 10)
+	msgData := "test Message loop"
+	msg := Message{
+		Data: []byte(msgData),
+	}
+
+	for i := 0; i < 9; i++ {
+		mockP.messages <- msg
+	}
+	counter := 0
+	onMessage := func(msg Message) {
+		expect.Equal(msgData, msg.String())
+		counter++
+		if counter == 9 {
+			mockP.setState(PluginStateDead)
+		}
+	}
+
+	mockP.messageLoop(onMessage)
+	expect.Equal(9, counter)
+}
+
+func TestProducerWaitForDependencies(t *testing.T) {
+	expect := shared.NewExpect(t)
+	mockP := getMockProducer()
+
+	for i := 0; i < 5; i++ {
+		dep := getMockProducer()
+		dep.setState(PluginStateActive)
+		mockP.AddDependency(&dep)
+	}
+	var depNotFinished bool
+	go func() {
+		depNotFinished = true
+		mockP.WaitForDependencies(PluginStateStopping, 50*time.Millisecond)
+		depNotFinished = false
+	}()
+
+	// time to let go routine start. Should start within 50 ms
+	time.Sleep(50 * time.Millisecond)
+	expect.True(depNotFinished)
+
+	for _, dep := range mockP.dependencies {
+		ped := dep.(*mockProducer)
+		ped.setState(PluginStateDead)
+	}
+
+	// time to let WaitForDependencies to return and go routine to set depNotFinished
+	time.Sleep(50 * time.Millisecond)
+	expect.False(depNotFinished)
+}
+
+func TestProducerControlLoop(t *testing.T) {
+	expect := shared.NewExpect(t)
+	mockP := getMockProducer()
+
+	var stop bool
+	var roll bool
+	mockP.onStop = func() {
+		stop = true
+	}
+
+	mockP.onRoll = func() {
+		roll = true
+	}
+
+	controlLoop := func() {
+		mockP.ControlLoop()
+	}
+
+	go controlLoop()
+	// let the go routine start
+	time.Sleep(50 * time.Millisecond)
+	mockP.control <- PluginControlStopProducer
+	time.Sleep(50 * time.Millisecond)
+	expect.True(stop)
+
+	go controlLoop()
+	time.Sleep(50 * time.Millisecond)
+	mockP.control <- PluginControlRoll
+	time.Sleep(50 * time.Millisecond)
+	expect.True(roll)
 
 }
