@@ -6,7 +6,12 @@ This is a patch release
 
  * InfluxDB JSON and line protocol fixed
  * shared.WaitGroup.WaitFor with duration 0 falls back to shared.WaitGroup.Wait
- * proper io.EOF handling for shared.BufferedReader and shared.ByteStream 
+ * proper io.EOF handling for shared.BufferedReader and shared.ByteStream
+
+#### New
+
+ * Support for InfluxDB line protocol
+ * New setting to enable/disable InfluxDB time based database names
 
 # 0.4.0
 
