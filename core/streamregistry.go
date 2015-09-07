@@ -18,6 +18,7 @@ import (
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"hash/fnv"
+	"sync"
 	"sync/atomic"
 )
 
@@ -36,16 +37,20 @@ var (
 // streamRegistry holds streams mapped by their MessageStreamID as well as a
 // reverse lookup of MessageStreamID to stream name.
 type streamRegistry struct {
-	streams  map[MessageStreamID]Stream
-	name     map[MessageStreamID]string
-	wildcard []Producer
+	streams   map[MessageStreamID]Stream
+	name      map[MessageStreamID]string
+	fuses     map[string]*shared.Fuse
+	fuseGuard *sync.Mutex
+	wildcard  []Producer
 }
 
 // StreamRegistry is the global instance of streamRegistry used to store the
 // all registered streams.
 var StreamRegistry = streamRegistry{
-	streams: make(map[MessageStreamID]Stream),
-	name:    make(map[MessageStreamID]string),
+	streams:   make(map[MessageStreamID]Stream),
+	name:      make(map[MessageStreamID]string),
+	fuses:     make(map[string]*shared.Fuse),
+	fuseGuard: new(sync.Mutex),
 }
 
 func init() {
@@ -242,4 +247,19 @@ func (registry *streamRegistry) LinkDependencies(parent Producer, streamID Messa
 			Log.Debug.Printf("%T depends on %T via '%s'", child, parent, streamName)
 		}
 	}
+}
+
+// GetFuse returns a fuse object by name. This function will always return a
+// valid fuse (creates fuses if they have not yet been created).
+// This function is threadsafe.
+func (registry *streamRegistry) GetFuse(name string) *shared.Fuse {
+	registry.fuseGuard.Lock()
+	defer registry.fuseGuard.Unlock()
+
+	fuse, exists := registry.fuses[name]
+	if !exists {
+		fuse := shared.NewFuse()
+		registry.fuses[name] = fuse
+	}
+	return fuse
 }
