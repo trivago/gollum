@@ -29,6 +29,11 @@ type Spinner struct {
 type SpinPriority uint32
 
 const (
+	// SpinPrioritySuspend should be used for spinning loops that are expected
+	// to wait for very long periods of time. The loop will sleep for 1 second
+	// after each iteration.
+	SpinPrioritySuspend = SpinPriority(1)
+
 	// SpinPriorityLow should be used for spinning loops that are expected to
 	// spin for a rather long time before being able to exit.
 	// After 100 loops the caller waits for 200 milliseconds.
@@ -48,9 +53,10 @@ const (
 	// always spin. This priority will increase CPU load
 	SpinPriorityRealtime = SpinPriority(0xFFFFFFFF)
 
-	spinTimeLow    = 200 * time.Millisecond
-	spinTimeMedium = 100 * time.Millisecond
-	spinTimeHigh   = 10 * time.Millisecond
+	spinTimeSuspend = time.Second
+	spinTimeLow     = 200 * time.Millisecond
+	spinTimeMedium  = 100 * time.Millisecond
+	spinTimeHigh    = 10 * time.Millisecond
 )
 
 // NewSpinner creates a new helper for spinning loops
@@ -64,9 +70,11 @@ func NewSpinner(priority SpinPriority) Spinner {
 // Yield should be called in spinning loops and will assure correct
 // spin/wait/schedule behavior according to the set priority.
 func (spin *Spinner) Yield() {
-	if spin.count > uint32(spin.priority) {
+	if spin.count >= uint32(spin.priority) {
 		spin.count = 0
 		switch spin.priority {
+		case SpinPrioritySuspend:
+			time.Sleep(spinTimeSuspend)
 		case SpinPriorityLow:
 			time.Sleep(spinTimeLow)
 		case SpinPriorityMedium:

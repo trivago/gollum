@@ -554,17 +554,15 @@ func (e Expect) MapGeq(data interface{}, key interface{}, value interface{}) boo
 
 // NonBlocking waits for the given timeout for the routine to return. If
 // timed out it is an error.
-func (e Expect) NonBlocking(t time.Duration, routine func() bool) bool {
+func (e Expect) NonBlocking(t time.Duration, routine func()) bool {
 	cmd := make(chan struct{})
-	var finished bool
 	go func() {
-		finished = routine()
+		routine()
 		close(cmd)
 	}()
 
 	select {
 	case <-cmd:
-		e.True(finished)
 		return true
 	case <-time.After(t):
 		e.errorf("Evaluation timed out.")
