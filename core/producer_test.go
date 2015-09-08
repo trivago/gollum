@@ -287,25 +287,17 @@ func TestProducerWaitForDependencies(t *testing.T) {
 		dep.setState(PluginStateActive)
 		mockP.AddDependency(&dep)
 	}
-	var depNotFinished bool
-	go func() {
-		depNotFinished = true
+	routine := func() bool {
 		mockP.WaitForDependencies(PluginStateStopping, 50*time.Millisecond)
-		depNotFinished = false
-	}()
+		return true
+	}
 
-	// time to let go routine start. Should start within 50 ms
-	time.Sleep(50 * time.Millisecond)
-	expect.True(depNotFinished)
+	go expect.ExecuteWithTimeout(2*time.Second, routine)
 
 	for _, dep := range mockP.dependencies {
 		ped := dep.(*mockProducer)
 		ped.setState(PluginStateDead)
 	}
-
-	// time to let WaitForDependencies to return and go routine to set depNotFinished
-	time.Sleep(50 * time.Millisecond)
-	expect.False(depNotFinished)
 }
 
 func TestProducerControlLoop(t *testing.T) {
@@ -322,18 +314,23 @@ func TestProducerControlLoop(t *testing.T) {
 		roll = true
 	}
 
-	controlLoop := func() {
+	stopLoop := func() bool {
 		mockP.ControlLoop()
+		return true
 	}
 
-	go controlLoop()
-	// let the go routine start
+	go expect.ExecuteWithTimeout(2*time.Second, stopLoop)
 	time.Sleep(50 * time.Millisecond)
 	mockP.control <- PluginControlStopProducer
 	time.Sleep(50 * time.Millisecond)
 	expect.True(stop)
 
-	go controlLoop()
+	rollLoop := func() bool {
+		mockP.ControlLoop()
+		return true
+	}
+
+	go expect.ExecuteWithTimeout(2*time.Second, rollLoop)
 	time.Sleep(50 * time.Millisecond)
 	mockP.control <- PluginControlRoll
 	time.Sleep(50 * time.Millisecond)
