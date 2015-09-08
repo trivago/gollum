@@ -18,6 +18,15 @@ import (
 	"testing"
 )
 
+func TestByteWriteByte(t *testing.T) {
+	expect := NewExpect(t)
+	stream := NewByteStream(1)
+
+	data := []byte("a")
+	stream.WriteByte(data[0])
+	expect.Equal("a", stream.String())
+}
+
 func TestByteStream(t *testing.T) {
 	expect := NewExpect(t)
 

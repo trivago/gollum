@@ -215,11 +215,7 @@ func (conf PluginConfig) GetStreamRoutes(key string) map[MessageStreamID][]Messa
 				targetIds = append(targetIds, GetStreamID(targetName))
 			}
 
-			if _, exists := streamRoute[sourceStream]; exists {
-				streamRoute[sourceStream] = append(streamRoute[sourceStream], targetIds...)
-			} else {
-				streamRoute[sourceStream] = targetIds
-			}
+			streamRoute[sourceStream] = targetIds
 		}
 	}
 

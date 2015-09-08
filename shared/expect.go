@@ -20,6 +20,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 )
 
 var expectBasePath string
@@ -549,4 +550,24 @@ func (e Expect) MapGeq(data interface{}, key interface{}, value interface{}) boo
 	}
 
 	return e.Geq(value, valVal.Interface())
+}
+
+// ExecuteWithTimeout waits for the given timeout for the routine to return. If
+// timed out it is an error.
+func (e Expect) ExecuteWithTimeout(t time.Duration, routine func() bool) bool {
+	cmd := make(chan struct{})
+	var finished bool
+	go func() {
+		finished = routine()
+		close(cmd)
+	}()
+
+	select {
+	case <-cmd:
+		e.True(finished)
+		return true
+	case <-time.After(t):
+		e.errorf("Evaluation timed out.")
+		return false
+	}
 }
