@@ -36,7 +36,7 @@ restore:
 	@godep restore
 
 test:
-	@go test -v ./...
+	@go test -cover -v -timeout 10s ./...
 
 all: clean freebsd linux mac pi win current
 

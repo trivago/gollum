@@ -63,7 +63,7 @@ func (e Expect) errorf(format string, args ...interface{}) {
 	e.t.Errorf(fmt.Sprintf("%s(%d): %s -> %s", file, line, e.scope, format), args...)
 }
 
-// Always reports an error when called
+// NotExecuted always reports an error when called
 func (e Expect) NotExecuted() {
 	e.error("This was expected not to be called")
 }
@@ -552,9 +552,9 @@ func (e Expect) MapGeq(data interface{}, key interface{}, value interface{}) boo
 	return e.Geq(value, valVal.Interface())
 }
 
-// ExecuteWithTimeout waits for the given timeout for the routine to return. If
+// NonBlocking waits for the given timeout for the routine to return. If
 // timed out it is an error.
-func (e Expect) ExecuteWithTimeout(t time.Duration, routine func() bool) bool {
+func (e Expect) NonBlocking(t time.Duration, routine func() bool) bool {
 	cmd := make(chan struct{})
 	var finished bool
 	go func() {

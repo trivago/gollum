@@ -292,8 +292,9 @@ func TestProducerWaitForDependencies(t *testing.T) {
 		return true
 	}
 
-	go expect.ExecuteWithTimeout(2*time.Second, routine)
+	go expect.NonBlocking(2*time.Second, routine)
 
+	// Resolve states so that expect.NonBlocking returns
 	for _, dep := range mockP.dependencies {
 		ped := dep.(*mockProducer)
 		ped.setState(PluginStateDead)
@@ -319,9 +320,9 @@ func TestProducerControlLoop(t *testing.T) {
 		return true
 	}
 
-	go expect.ExecuteWithTimeout(2*time.Second, stopLoop)
+	go expect.NonBlocking(2*time.Second, stopLoop)
 	time.Sleep(50 * time.Millisecond)
-	mockP.control <- PluginControlStopProducer
+	mockP.control <- PluginControlStopProducer // trigger stopLoop (stop expect.NonBlocking)
 	time.Sleep(50 * time.Millisecond)
 	expect.True(stop)
 
@@ -330,9 +331,9 @@ func TestProducerControlLoop(t *testing.T) {
 		return true
 	}
 
-	go expect.ExecuteWithTimeout(2*time.Second, rollLoop)
+	go expect.NonBlocking(2*time.Second, rollLoop)
 	time.Sleep(50 * time.Millisecond)
-	mockP.control <- PluginControlRoll
+	mockP.control <- PluginControlRoll // trigger rollLoop (stop expect.NonBlocking)
 	time.Sleep(50 * time.Millisecond)
 	expect.True(roll)
 
