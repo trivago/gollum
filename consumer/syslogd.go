@@ -135,5 +135,9 @@ func (cons *Syslogd) Consume(workers *sync.WaitGroup) {
 	server.Boot()
 	defer server.Kill()
 
+	cons.SetFuseBurnedCallback(func() { server.Kill() })
+	cons.SetFuseActiveCallback(func() { server.Boot() })
 	cons.ControlLoop()
+
+	server.Wait()
 }

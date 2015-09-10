@@ -263,3 +263,13 @@ func (registry *streamRegistry) GetFuse(name string) *shared.Fuse {
 	}
 	return fuse
 }
+
+// ActivateAllFuses calls Activate on all registered fuses.
+func (registry *streamRegistry) ActivateAllFuses() {
+	registry.fuseGuard.Lock()
+	defer registry.fuseGuard.Unlock()
+
+	for _, fuse := range registry.fuses {
+		fuse.Activate()
+	}
+}

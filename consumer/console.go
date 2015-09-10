@@ -63,6 +63,7 @@ func (cons *Console) readStdIn() {
 
 	for cons.IsActive() {
 		err := buffer.ReadAll(os.Stdin, cons.Enqueue)
+		cons.WaitOnFuse()
 		switch err {
 		case io.EOF:
 			if cons.autoexit {

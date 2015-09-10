@@ -16,6 +16,7 @@ package core
 
 import (
 	"github.com/trivago/gollum/core/log"
+	"github.com/trivago/gollum/shared"
 	"sync"
 	"time"
 )
@@ -44,6 +45,7 @@ type Consumer interface {
 // - "consumer.Something":
 //   Enable: true
 //   ID: ""
+//   Fuse: ""
 //   Stream:
 //      - "error"
 //      - "default"
@@ -57,12 +59,22 @@ type Consumer interface {
 // message channels this consumer will produce. By default this is set to "*"
 // which means only producers set to consume "all streams" will get these
 // messages.
+//
+// Fuse defines the name of a fuse to observe for this consumer. Producer may
+// "burn" the fuse when they encounter errors. Consumers may react on this by
+// e.g. closing connections to notify any writing services of the problem.
+// Set to "" by default which disables the fuse feature for this consumer.
+// It is up to the consumer implementation to react on a broken fuse in an
+// appropriate manner.
 type ConsumerBase struct {
-	control  chan PluginControl
-	streams  []MappedStream
-	runState *PluginRunState
-	onRoll   func()
-	onStop   func()
+	control      chan PluginControl
+	streams      []MappedStream
+	runState     *PluginRunState
+	fuse         *shared.Fuse
+	onRoll       func()
+	onStop       func()
+	onFuseBurned func()
+	onFuseActive func()
 }
 
 // Configure initializes standard consumer values from a plugin config.
@@ -80,6 +92,11 @@ func (cons *ConsumerBase) Configure(conf PluginConfig) error {
 		})
 	}
 
+	fuseName := conf.GetString("Fuse", "")
+	if fuseName != "" {
+		cons.fuse = StreamRegistry.GetFuse(fuseName)
+	}
+
 	return nil
 }
 
@@ -91,6 +108,23 @@ func (cons *ConsumerBase) setState(state PluginState) {
 // GetState returns the state this plugin is currently in
 func (cons *ConsumerBase) GetState() PluginState {
 	return cons.runState.GetState()
+}
+
+// WaitOnFuse blocks if the fuse linked to this consumer has been burned.
+// If no fuse is bound this function does nothing.
+func (cons *ConsumerBase) WaitOnFuse() {
+	if cons.fuse != nil {
+		cons.fuse.Wait()
+	}
+}
+
+// IsFuseBurned returns true if the fuse linked to this consumer has been
+// burned. If no fuse is attached, false is returned.
+func (cons *ConsumerBase) IsFuseBurned() bool {
+	if cons.fuse == nil {
+		return false
+	}
+	return cons.fuse.IsBurned()
 }
 
 // IsBlocked returns true if GetState() returns waiting
@@ -121,6 +155,16 @@ func (cons *ConsumerBase) SetRollCallback(onRoll func()) {
 // SetStopCallback sets the function to be called upon PluginControlStop
 func (cons *ConsumerBase) SetStopCallback(onStop func()) {
 	cons.onStop = onStop
+}
+
+// SetFuseBurnedCallback sets the function to be called upon PluginControlFuseBurned
+func (cons *ConsumerBase) SetFuseBurnedCallback(onFuseBurned func()) {
+	cons.onFuseBurned = onFuseBurned
+}
+
+// SetFuseActiveCallback sets the function to be called upon PluginControlFuseActive
+func (cons *ConsumerBase) SetFuseActiveCallback(onFuseActive func()) {
+	cons.onFuseActive = onFuseActive
 }
 
 // SetWorkerWaitGroup forwards to Plugin.SetWorkerWaitGroup for this consumer's
@@ -202,11 +246,30 @@ func (cons *ConsumerBase) tickerLoop(interval time.Duration, onTimeOut func()) {
 	}
 }
 
+func (cons *ConsumerBase) fuseControlLoop() {
+	if cons.fuse == nil {
+		return // ### return, no fuse attached ###
+	}
+	spin := shared.NewSpinner(shared.SpinPrioritySuspend)
+	for cons.IsActive() {
+		// If the fuse is burned: callback, wait, callback
+		if cons.IsFuseBurned() {
+			cons.Control() <- PluginControlFuseBurned
+			cons.WaitOnFuse()
+			cons.Control() <- PluginControlFuseActive
+		} else {
+			spin.Yield()
+		}
+	}
+}
+
 // ControlLoop listens to the control channel and triggers callbacks for these
 // messags. Upon stop control message doExit will be set to true.
 func (cons *ConsumerBase) ControlLoop() {
 	cons.setState(PluginStateActive)
 	defer cons.setState(PluginStateDead)
+	go cons.fuseControlLoop()
+
 	for {
 		command := <-cons.control
 		switch command {
@@ -226,6 +289,18 @@ func (cons *ConsumerBase) ControlLoop() {
 			Log.Debug.Print("Recieved roll command")
 			if cons.onRoll != nil {
 				cons.onRoll()
+			}
+
+		case PluginControlFuseBurned:
+			Log.Debug.Print("Recieved fuse burned command")
+			if cons.onFuseBurned != nil {
+				cons.onFuseBurned()
+			}
+
+		case PluginControlFuseActive:
+			Log.Debug.Print("Recieved fuse active command")
+			if cons.onFuseActive != nil {
+				cons.onFuseActive()
 			}
 		}
 	}

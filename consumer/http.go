@@ -73,6 +73,11 @@ func (cons *Http) Configure(conf core.PluginConfig) error {
 
 // requestHandler will handle a single web request.
 func (cons *Http) requestHandler(resp http.ResponseWriter, req *http.Request) {
+	if cons.IsFuseBurned() {
+		resp.WriteHeader(http.StatusServiceUnavailable)
+		return // ### return, service is down ###
+	}
+
 	if cons.withHeaders {
 		// Read the whole package
 		requestBuffer := bytes.NewBuffer(nil)

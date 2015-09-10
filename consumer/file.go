@@ -217,6 +217,7 @@ func (cons *File) read() {
 		// Try to read from the file
 		if cons.state == fileStateRead && cons.file != nil {
 			err := buffer.ReadAll(cons.file, sendFunction)
+			cons.WaitOnFuse()
 
 			switch {
 			case err == nil: // ok

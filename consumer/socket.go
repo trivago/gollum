@@ -216,7 +216,7 @@ func (cons *Socket) processConnection(conn net.Conn) {
 
 	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.offset, cons.delimiter)
 
-	for cons.IsActive() {
+	for cons.IsActive() && !cons.IsFuseBurned() {
 		conn.SetReadDeadline(time.Now().Add(cons.readTimeout))
 		err := buffer.ReadAll(conn, cons.Enqueue)
 		if err == nil {
@@ -262,6 +262,8 @@ func (cons *Socket) udpAccept() {
 	addr, _ := net.ResolveUDPAddr(cons.protocol, cons.address)
 
 	for cons.IsActive() {
+		cons.WaitOnFuse()
+
 		// (re)open a tcp connection
 		for cons.listen == nil {
 			if listener, err := net.ListenUDP(cons.protocol, addr); err == nil {
@@ -283,6 +285,7 @@ func (cons *Socket) tcpAccept() {
 	defer cons.closeTCPConnection()
 
 	for cons.IsActive() {
+
 		// (re)open a tcp connection
 		for cons.listen == nil {
 			listener, err := net.Listen(cons.protocol, cons.address)
@@ -317,11 +320,16 @@ func (cons *Socket) tcpAccept() {
 			}
 			cons.closeTCPConnection()
 		} else {
-			// Handle client connection
-			cons.clientLock.Lock()
-			element := cons.clients.PushBack(client)
-			cons.clientLock.Unlock()
-			go cons.processClientConnection(element)
+			if cons.IsFuseBurned() {
+				// Burned fuse: directly close connection
+				client.Close()
+			} else {
+				// Handle client connection
+				cons.clientLock.Lock()
+				element := cons.clients.PushBack(client)
+				cons.clientLock.Unlock()
+				go cons.processClientConnection(element)
+			}
 		}
 	}
 }

@@ -327,6 +327,7 @@ func (plex *multiplexer) shutdown() {
 			Log.Debug.Printf("Closing consumer %s", reflect.TypeOf(cons).String())
 			cons.Control() <- core.PluginControlStopConsumer
 		}
+		core.StreamRegistry.ActivateAllFuses()
 		Log.Debug.Print("Waiting for consumers to close")
 		plex.consumerWorker.Wait()
 	}

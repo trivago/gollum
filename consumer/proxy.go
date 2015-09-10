@@ -149,6 +149,8 @@ func (cons *Proxy) accept() {
 
 	listener := cons.listen.(net.Listener)
 	for cons.IsActive() {
+		cons.WaitOnFuse()
+
 		client, err := listener.Accept()
 		if err != nil {
 			if cons.IsActive() {

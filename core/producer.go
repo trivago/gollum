@@ -69,6 +69,8 @@ type Producer interface {
 //     Formatter: "format.Forward"
 //     Filter: "filter.All"
 //     DropToStream: "_DROPPED_"
+//	   Fuse: ""
+//     FuseTimeoutSec: 5
 //     Stream:
 //       - "console"
 //
@@ -108,6 +110,15 @@ type Producer interface {
 // is send to the message queue. If a producer requires filtering after
 // formatting it has to define a separate filter as the producer decides if
 // and where to format.
+//
+// Fuse defines the name of a fuse to burn if e.g. the producer stays in the
+// waiting state for longer than FuseTimeoutSec. Disable by setting an empty
+// name or a FuseTimeoutSec <= 0. By default this is set to "".
+//
+// FuseTimeoutSec defines the time after which the fuse defined by Fuse is
+// burned when the producer is in a waiting state. By default this is set to 10.
+// When the fuse is burned a fuse control signal is sent every FuseTimeoutSec/2
+// seconds.
 type ProducerBase struct {
 	messages        chan Message
 	control         chan PluginControl
@@ -117,10 +128,15 @@ type ProducerBase struct {
 	runState        *PluginRunState
 	timeout         time.Duration
 	shutdownTimeout time.Duration
+	fuseTimeout     time.Duration
+	fuseBreaker     *time.Timer
+	fuseControl     *time.Timer
+	fuseName        string
 	format          Formatter
 	filter          Filter
 	onRoll          func()
 	onStop          func()
+	onCheckFuse     func() bool
 }
 
 // Configure initializes the standard producer config values.
@@ -143,6 +159,8 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	prod.messages = make(chan Message, conf.GetInt("Channel", 8192))
 	prod.timeout = time.Duration(conf.GetInt("ChannelTimeoutMs", 0)) * time.Millisecond
 	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 3000)) * time.Millisecond
+	prod.fuseTimeout = time.Duration(conf.GetInt("FuseTimeoutSec", 10)) * time.Second
+	prod.fuseName = conf.GetString("Fuse", "")
 	prod.dropStreamID = GetStreamID(conf.GetString("DropToStream", DroppedStream))
 
 	prod.onRoll = nil
@@ -157,7 +175,38 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 
 // setState sets the runstate of this plugin
 func (prod *ProducerBase) setState(state PluginState) {
+	if state == prod.GetState() {
+		return // ### return, no change ###
+	}
+
 	prod.runState.SetState(state)
+
+	if fuse := prod.GetFuse(); fuse != nil {
+		switch state {
+		case PluginStateWaiting:
+			Log.Debug.Print("Fuse breaker active")
+			prod.fuseBreaker = time.AfterFunc(prod.fuseTimeout, func() {
+				Log.Debug.Print("Fuse breaker triggered")
+				prod.Control() <- PluginControlBurnFuse
+			})
+
+		default:
+			fuseBreaker := prod.fuseBreaker
+			if fuseBreaker != nil {
+				Log.Debug.Print("Fuse breaker stopped")
+				fuseBreaker.Stop()
+			}
+		}
+	}
+}
+
+// GetFuse returns the fuse bound to this producer or nil if no fuse name has
+// been set.
+func (prod *ProducerBase) GetFuse() *shared.Fuse {
+	if prod.fuseName == "" || prod.fuseTimeout <= 0 {
+		return nil
+	}
+	return StreamRegistry.GetFuse(prod.fuseName)
 }
 
 // GetState returns the state this plugin is currently in
@@ -193,6 +242,14 @@ func (prod *ProducerBase) SetRollCallback(onRoll func()) {
 // SetStopCallback sets the function to be called upon PluginControlStop
 func (prod *ProducerBase) SetStopCallback(onStop func()) {
 	prod.onStop = onStop
+}
+
+// SetCheckFuseCallback sets the function to be called upon PluginControlCheckFuse.
+// The callback has to return true to trigger a fuse reactivation.
+// If nil is passed as a callback PluginControlCheckFuse will reactivate the
+// fuse immediately.
+func (prod *ProducerBase) SetCheckFuseCallback(onCheckFuse func() bool) {
+	prod.onCheckFuse = onCheckFuse
 }
 
 // SetWorkerWaitGroup forwards to Plugin.SetWorkerWaitGroup for this consumer's
@@ -460,6 +517,12 @@ func (prod *ProducerBase) WaitForDependencies(waitForState PluginState, timeout 
 	}
 }
 
+func (prod *ProducerBase) triggerCheckFuse() {
+	if prod.onCheckFuse != nil {
+		prod.fuseControl = time.AfterFunc(prod.fuseTimeout/2, func() { prod.Control() <- PluginControlCheckFuse })
+	}
+}
+
 // ControlLoop listens to the control channel and triggers callbacks for these
 // messags. Upon stop control message doExit will be set to true.
 func (prod *ProducerBase) ControlLoop() {
@@ -488,6 +551,26 @@ func (prod *ProducerBase) ControlLoop() {
 			Log.Debug.Print("Recieved roll command")
 			if prod.onRoll != nil {
 				prod.onRoll()
+			}
+
+		case PluginControlBurnFuse:
+			if fuse := prod.GetFuse(); fuse != nil && !fuse.IsBurned() {
+				fuse.Burn()
+				prod.triggerCheckFuse()
+				Log.Note.Print("Fuse burned")
+			}
+
+		case PluginControlCheckFuse:
+			if fuse := prod.GetFuse(); fuse != nil && fuse.IsBurned() {
+				if prod.onCheckFuse == nil || prod.onCheckFuse() {
+					if prod.fuseControl != nil {
+						prod.fuseControl.Stop()
+					}
+					fuse.Activate()
+					Log.Note.Print("Fuse reactivated")
+				} else {
+					prod.triggerCheckFuse()
+				}
 			}
 		}
 	}
