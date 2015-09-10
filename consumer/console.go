@@ -37,7 +37,8 @@ const (
 //       - "console"
 //
 // This consumer reads from stdin. A message is generated after each newline
-// character.
+// character. Attaching and burning a fuse for a console consumer will put the
+// imput processing on hold, i.e. the consumer will block.
 //
 // ExitOnEOF can be set to true to trigger an exit signal if StdIn is closed
 // (e.g. when a pipe is closed). This is set to false by default.

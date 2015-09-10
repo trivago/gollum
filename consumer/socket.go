@@ -53,6 +53,9 @@ const (
 //
 // The socket consumer reads messages directly as-is from a given socket.
 // Messages are separated from the stream by using a specific paritioner method.
+// An attached fuse will cause different behavior for UDP and TCP connections.
+// Burning a fuse for a UDP based socket will close the UDP connection. For TCP
+// based sockets connections will be accepted but closed immediately.
 //
 // Address stores the identifier to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file

@@ -57,6 +57,8 @@ const (
 //
 // The kafka consumer reads from a given kafka topic. This consumer is based on
 // the sarama library so most settings relate to the settings from this library.
+// Attaching and burning a fuse for a kafka consumer will cause it to stop
+// processing messages and continue once the fuse is activated again.
 //
 // DefaultOffset defines the message index to start reading from.
 // Valid values are either "Newset", "Oldest", or a number.

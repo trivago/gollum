@@ -50,6 +50,9 @@ const (
 // Messages are extracted by standard message size algorithms (see Parititioner).
 // This consumer can be used with any compatible proxy producer to establish
 // a two-way communication.
+// Attaching and burning a fuse for a proxy consumer will cause the connection
+// to stop accepting new connections. Existing connections will be closed.
+// Connection will be accepted again after the fuse has been reactivated.
 //
 // Address stores the identifier to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file

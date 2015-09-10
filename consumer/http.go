@@ -39,6 +39,8 @@ import (
 // Address stores the identifier to bind to.
 // This is allowed be any ip address/dns and port like "localhost:5880".
 // By default this is set to ":80".
+// Attaching and burning a fuse for a http consumer will cause Error 503 to be
+// returned while the fuse is burned.
 //
 // ReadTimeoutSec specifies the maximum duration in seconds before timing out
 // read of the request. By default this is set to 3 seconds.
