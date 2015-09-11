@@ -165,20 +165,74 @@ func TestConsumerControlLoop(t *testing.T) {
 		roll = true
 	})
 
-	controlLoop := func() {
-		mockC.ControlLoop()
-	}
-
-	go controlLoop()
+	go mockC.ControlLoop()
 	// let the go routine start
 	time.Sleep(50 * time.Millisecond)
 	mockC.control <- PluginControlStopConsumer
 	time.Sleep(50 * time.Millisecond)
 	expect.True(stop)
 
-	go controlLoop()
+	go mockC.ControlLoop()
 	time.Sleep(50 * time.Millisecond)
 	mockC.control <- PluginControlRoll
 	time.Sleep(50 * time.Millisecond)
 	expect.True(roll)
+}
+
+func TestConsumerFuse(t *testing.T) {
+	expect := shared.NewExpect(t)
+	mockC := getMockConsumer()
+
+	conf := getMockPluginConfig()
+	conf.Override("Fuse", "test")
+
+	mockC.Configure(conf)
+	expect.NotNil(mockC.fuse)
+
+	burnedCallback := false
+	activeCallback := false
+
+	mockC.SetFuseBurnedCallback(func() { burnedCallback = true })
+	mockC.SetFuseActiveCallback(func() { activeCallback = true })
+
+	go mockC.ControlLoop()
+
+	expect.False(mockC.fuse.IsBurned())
+	expect.False(burnedCallback)
+	expect.False(activeCallback)
+
+	// Check manual fuse trigger
+
+	burnedCallback = false
+	activeCallback = false
+
+	mockC.Control() <- PluginControlFuseBurn
+	time.Sleep(10 * time.Millisecond)
+	expect.True(burnedCallback)
+	expect.False(activeCallback)
+
+	burnedCallback = false
+	mockC.Control() <- PluginControlFuseActive
+	time.Sleep(10 * time.Millisecond)
+	expect.False(burnedCallback)
+	expect.True(activeCallback)
+
+	// Check automatic burn callback
+
+	burnedCallback = false
+	activeCallback = false
+
+	mockC.fuse.Burn()
+	time.Sleep(shared.SpinTimeSuspend + 100*time.Millisecond)
+
+	expect.True(burnedCallback)
+	expect.False(activeCallback)
+
+	// Check automatic activate callback
+
+	burnedCallback = false
+	mockC.fuse.Activate()
+	time.Sleep(10 * time.Millisecond)
+	expect.False(burnedCallback)
+	expect.True(activeCallback)
 }

@@ -258,7 +258,7 @@ func (registry *streamRegistry) GetFuse(name string) *shared.Fuse {
 
 	fuse, exists := registry.fuses[name]
 	if !exists {
-		fuse := shared.NewFuse()
+		fuse = shared.NewFuse()
 		registry.fuses[name] = fuse
 	}
 	return fuse

@@ -53,10 +53,14 @@ const (
 	// always spin. This priority will increase CPU load
 	SpinPriorityRealtime = SpinPriority(0xFFFFFFFF)
 
-	spinTimeSuspend = time.Second
-	spinTimeLow     = 200 * time.Millisecond
-	spinTimeMedium  = 100 * time.Millisecond
-	spinTimeHigh    = 10 * time.Millisecond
+	// SpinTimeSuspend holds the sleep time for SpinPrioritySuspend
+	SpinTimeSuspend = time.Second
+	// SpinTimeLow holds the sleep time for SpinPriorityLow
+	SpinTimeLow = 200 * time.Millisecond
+	// SpinTimeMedium holds the sleep time for SpinPriorityMedium
+	SpinTimeMedium = 100 * time.Millisecond
+	// SpinTimeHigh holds the sleep time for SpinPriorityHigh
+	SpinTimeHigh = 10 * time.Millisecond
 )
 
 // NewSpinner creates a new helper for spinning loops
@@ -74,13 +78,13 @@ func (spin *Spinner) Yield() {
 		spin.count = 0
 		switch spin.priority {
 		case SpinPrioritySuspend:
-			time.Sleep(spinTimeSuspend)
+			time.Sleep(SpinTimeSuspend)
 		case SpinPriorityLow:
-			time.Sleep(spinTimeLow)
+			time.Sleep(SpinTimeLow)
 		case SpinPriorityMedium:
-			time.Sleep(spinTimeMedium)
+			time.Sleep(SpinTimeMedium)
 		case SpinPriorityHigh:
-			time.Sleep(spinTimeHigh)
+			time.Sleep(SpinTimeHigh)
 		default:
 			runtime.Gosched()
 		}
