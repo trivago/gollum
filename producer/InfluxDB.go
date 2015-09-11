@@ -89,7 +89,7 @@ type InfluxDB struct {
 
 type influxDBWriter interface {
 	io.Writer
-	configure(core.PluginConfig) error
+	configure(core.PluginConfig, *InfluxDB) error
 	isConnectionUp() bool
 }
 
@@ -121,7 +121,7 @@ func (prod *InfluxDB) Configure(conf core.PluginConfig) error {
 		prod.writer = new(influxDBWriter10)
 	}
 
-	if err := prod.writer.configure(conf); err != nil {
+	if err := prod.writer.configure(conf, prod); err != nil {
 		return err
 	}
 

@@ -366,6 +366,7 @@ func (prod *Kafka) openConnection() bool {
 		}
 	}
 
+	prod.Control() <- core.PluginControlFuseActive
 	return true
 }
 
@@ -377,6 +378,10 @@ func (prod *Kafka) closeConnection() {
 	if prod.client != nil && !prod.client.Closed() {
 		prod.client.Close()
 		prod.client = nil
+
+		if !prod.IsStopping() {
+			prod.Control() <- core.PluginControlFuseBurn
+		}
 	}
 }
 

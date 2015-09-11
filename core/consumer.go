@@ -254,7 +254,7 @@ func (cons *ConsumerBase) fuseControlLoop() {
 	for cons.IsActive() {
 		// If the fuse is burned: callback, wait, callback
 		if cons.IsFuseBurned() {
-			cons.Control() <- PluginControlFuseBurned
+			cons.Control() <- PluginControlFuseBurn
 			cons.WaitOnFuse()
 			cons.Control() <- PluginControlFuseActive
 		} else {
@@ -291,7 +291,7 @@ func (cons *ConsumerBase) ControlLoop() {
 				cons.onRoll()
 			}
 
-		case PluginControlFuseBurned:
+		case PluginControlFuseBurn:
 			Log.Debug.Print("Recieved fuse burned command")
 			if cons.onFuseBurned != nil {
 				cons.onFuseBurned()

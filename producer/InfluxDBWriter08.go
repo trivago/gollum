@@ -38,11 +38,12 @@ type influxDBWriter08 struct {
 	testURL          string
 	databaseTemplate string
 	timeBasedDBName  bool
+	Control          func() chan<- core.PluginControl
 	buffer           shared.ByteStream
 }
 
 // Configure sets the database connection values
-func (writer *influxDBWriter08) configure(conf core.PluginConfig) error {
+func (writer *influxDBWriter08) configure(conf core.PluginConfig, prod *InfluxDB) error {
 	writer.host = conf.GetString("Host", "localhost:8086")
 	writer.username = conf.GetString("User", "")
 	writer.password = conf.GetString("Password", "")
@@ -50,6 +51,7 @@ func (writer *influxDBWriter08) configure(conf core.PluginConfig) error {
 	writer.buffer = shared.NewByteStream(4096)
 	writer.connectionUp = false
 	writer.timeBasedDBName = conf.GetBool("TimeBasedName", true)
+	writer.Control = prod.Control
 
 	writer.writeURL = fmt.Sprintf("http://%s/db/%%s/series?time_precision=ms", writer.host)
 	writer.testURL = fmt.Sprintf("http://%s/db", writer.host)
@@ -76,6 +78,8 @@ func (writer *influxDBWriter08) isConnectionUp() bool {
 			Log.Note.Print("Connected to " + writer.host)
 		}
 	}
+
+	writer.Control() <- core.PluginControlFuseActive
 	return writer.connectionUp
 }
 
@@ -110,6 +114,7 @@ func (writer *influxDBWriter08) post() (int, error) {
 	response, err := writer.client.Post(writeURL, "application/json", &writer.buffer)
 	if err != nil {
 		writer.connectionUp = false
+		writer.Control() <- core.PluginControlFuseBurn
 		return 0, err // ### return, failed to connect ###
 	}
 

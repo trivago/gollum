@@ -186,8 +186,7 @@ func (prod *ProducerBase) setState(state PluginState) {
 		case PluginStateWaiting:
 			Log.Debug.Print("Fuse breaker active")
 			prod.fuseBreaker = time.AfterFunc(prod.fuseTimeout, func() {
-				Log.Debug.Print("Fuse breaker triggered")
-				prod.Control() <- PluginControlBurnFuse
+				prod.Control() <- PluginControlFuseBurn
 			})
 
 		default:
@@ -518,8 +517,12 @@ func (prod *ProducerBase) WaitForDependencies(waitForState PluginState, timeout 
 }
 
 func (prod *ProducerBase) triggerCheckFuse() {
-	if prod.onCheckFuse != nil {
-		prod.fuseControl = time.AfterFunc(prod.fuseTimeout/2, func() { prod.Control() <- PluginControlCheckFuse })
+	if fuse := prod.GetFuse(); prod.onCheckFuse != nil && fuse.IsBurned() {
+		if prod.onCheckFuse() {
+			prod.Control() <- PluginControlFuseActive
+		} else {
+			prod.fuseControl = time.AfterFunc(prod.fuseTimeout/2, prod.triggerCheckFuse)
+		}
 	}
 }
 
@@ -553,24 +556,20 @@ func (prod *ProducerBase) ControlLoop() {
 				prod.onRoll()
 			}
 
-		case PluginControlBurnFuse:
+		case PluginControlFuseBurn:
 			if fuse := prod.GetFuse(); fuse != nil && !fuse.IsBurned() {
 				fuse.Burn()
-				prod.triggerCheckFuse()
+				go prod.triggerCheckFuse()
 				Log.Note.Print("Fuse burned")
 			}
 
-		case PluginControlCheckFuse:
+		case PluginControlFuseActive:
 			if fuse := prod.GetFuse(); fuse != nil && fuse.IsBurned() {
-				if prod.onCheckFuse == nil || prod.onCheckFuse() {
-					if prod.fuseControl != nil {
-						prod.fuseControl.Stop()
-					}
-					fuse.Activate()
-					Log.Note.Print("Fuse reactivated")
-				} else {
-					prod.triggerCheckFuse()
+				if prod.fuseControl != nil {
+					prod.fuseControl.Stop()
 				}
+				fuse.Activate()
+				Log.Note.Print("Fuse reactivated")
 			}
 		}
 	}

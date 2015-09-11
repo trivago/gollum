@@ -53,9 +53,9 @@ const (
 //
 // The socket consumer reads messages directly as-is from a given socket.
 // Messages are separated from the stream by using a specific paritioner method.
-// An attached fuse will cause different behavior for UDP and TCP connections.
-// Burning a fuse for a UDP based socket will close the UDP connection. For TCP
-// based sockets connections will be accepted but closed immediately.
+// Attaching and burning a fuse for a socket consumer will cause all connections
+// to be closed. Connection will be reopened again after the fuse has been
+// reactivated.
 //
 // Address stores the identifier to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
@@ -265,6 +265,7 @@ func (cons *Socket) udpAccept() {
 	addr, _ := net.ResolveUDPAddr(cons.protocol, cons.address)
 
 	for cons.IsActive() {
+		// Prevent reconnection until fuse is active again
 		cons.WaitOnFuse()
 
 		// (re)open a tcp connection
@@ -288,6 +289,8 @@ func (cons *Socket) tcpAccept() {
 	defer cons.closeTCPConnection()
 
 	for cons.IsActive() {
+		// Prevent reconnection until fuse is active again
+		cons.WaitOnFuse()
 
 		// (re)open a tcp connection
 		for cons.listen == nil {
@@ -323,16 +326,11 @@ func (cons *Socket) tcpAccept() {
 			}
 			cons.closeTCPConnection()
 		} else {
-			if cons.IsFuseBurned() {
-				// Burned fuse: directly close connection
-				client.Close()
-			} else {
-				// Handle client connection
-				cons.clientLock.Lock()
-				element := cons.clients.PushBack(client)
-				cons.clientLock.Unlock()
-				go cons.processClientConnection(element)
-			}
+			// Handle client connection
+			cons.clientLock.Lock()
+			element := cons.clients.PushBack(client)
+			cons.clientLock.Unlock()
+			go cons.processClientConnection(element)
 		}
 	}
 }
@@ -367,9 +365,11 @@ func (cons *Socket) Consume(workers *sync.WaitGroup) {
 
 	if cons.protocol == "udp" {
 		go shared.DontPanic(cons.udpAccept)
+		cons.SetFuseBurnedCallback(cons.closeConnection)
 		defer cons.closeConnection()
 	} else {
 		go shared.DontPanic(cons.tcpAccept)
+		cons.SetFuseBurnedCallback(cons.closeTCPConnection)
 		defer cons.closeTCPConnection()
 	}
 

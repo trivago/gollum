@@ -89,7 +89,10 @@ func (prod *HTTPRequest) sendReq(msg core.Message) {
 	go func() {
 		if _, err := http.DefaultClient.Do(req); err != nil {
 			Log.Error.Print("HTTPRequest send failed: ", err)
+			prod.Control() <- core.PluginControlFuseBurn
 			prod.Drop(msg)
+		} else {
+			prod.Control() <- core.PluginControlFuseActive
 		}
 	}()
 }

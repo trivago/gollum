@@ -42,6 +42,8 @@ func getMockProducer() mockProducer {
 			filter:          &mockFilter{},
 			format:          &mockFormatter{},
 			shutdownTimeout: 10 * time.Millisecond,
+			fuseName:        "test",
+			fuseTimeout:     100 * time.Millisecond,
 		},
 	}
 }
@@ -287,9 +289,8 @@ func TestProducerWaitForDependencies(t *testing.T) {
 		dep.setState(PluginStateActive)
 		mockP.AddDependency(&dep)
 	}
-	routine := func() bool {
+	routine := func() {
 		mockP.WaitForDependencies(PluginStateStopping, 50*time.Millisecond)
-		return true
 	}
 
 	go expect.NonBlocking(2*time.Second, routine)
@@ -315,26 +316,67 @@ func TestProducerControlLoop(t *testing.T) {
 		roll = true
 	}
 
-	stopLoop := func() bool {
-		mockP.ControlLoop()
-		return true
-	}
-
-	go expect.NonBlocking(2*time.Second, stopLoop)
+	go expect.NonBlocking(2*time.Second, mockP.ControlLoop)
 	time.Sleep(50 * time.Millisecond)
 	mockP.control <- PluginControlStopProducer // trigger stopLoop (stop expect.NonBlocking)
 	time.Sleep(50 * time.Millisecond)
 	expect.True(stop)
 
-	rollLoop := func() bool {
-		mockP.ControlLoop()
-		return true
-	}
-
-	go expect.NonBlocking(2*time.Second, rollLoop)
+	go expect.NonBlocking(2*time.Second, mockP.ControlLoop)
 	time.Sleep(50 * time.Millisecond)
 	mockP.control <- PluginControlRoll // trigger rollLoop (stop expect.NonBlocking)
 	time.Sleep(50 * time.Millisecond)
 	expect.True(roll)
 
+}
+
+func TestProducerFuse(t *testing.T) {
+	expect := shared.NewExpect(t)
+	activateFuse := false
+	checkCounter := 0
+
+	mockP := getMockProducer()
+	mockP.SetCheckFuseCallback(func() bool {
+		checkCounter++
+		return activateFuse
+	})
+
+	fuse := StreamRegistry.GetFuse(mockP.fuseName)
+	expect.False(fuse.IsBurned())
+
+	go mockP.ControlLoop()
+
+	// Check basic functionality
+
+	expect.NonBlocking(time.Second, func() { mockP.Control() <- PluginControlFuseBurn })
+	expect.True(fuse.IsBurned())
+
+	time.Sleep(mockP.fuseTimeout * 2)
+	expect.True(fuse.IsBurned())
+	expect.Greater(checkCounter, 0)
+
+	activateFuse = true
+	time.Sleep(mockP.fuseTimeout * 2)
+	expect.False(fuse.IsBurned())
+
+	// Check double calls
+
+	activateFuse = false
+	expect.NonBlocking(time.Second, func() { mockP.Control() <- PluginControlFuseBurn })
+	expect.NonBlocking(time.Second, func() { mockP.Control() <- PluginControlFuseBurn })
+	expect.True(fuse.IsBurned())
+
+	expect.NonBlocking(time.Second, func() { mockP.Control() <- PluginControlFuseActive })
+	expect.NonBlocking(time.Second, func() { mockP.Control() <- PluginControlFuseActive })
+	expect.False(fuse.IsBurned())
+
+	// Check fuse breaker
+
+	mockP.setState(PluginStateWaiting)
+	time.Sleep(mockP.fuseTimeout * 2)
+	expect.True(fuse.IsBurned())
+
+	activateFuse = true
+	time.Sleep(mockP.fuseTimeout * 2)
+	expect.False(fuse.IsBurned())
 }

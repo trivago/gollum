@@ -167,6 +167,7 @@ func (prod *Scribe) sendBatch() {
 			Log.Error.Print("Scribe connection error:", err)
 		} else {
 			prod.socket.Conn().(bufferedConn).SetWriteBuffer(prod.bufferSizeByte)
+			prod.Control() <- core.PluginControlFuseActive
 		}
 	}
 
@@ -255,6 +256,10 @@ func (prod *Scribe) close() {
 
 	prod.CloseMessageChannel(prod.bufferMessage)
 	prod.batch.Close(prod.transformMessages, prod.GetShutdownTimeout())
+
+	if !prod.IsStopping() {
+		prod.Control() <- core.PluginControlFuseBurn
+	}
 }
 
 // Produce writes to a buffer that is sent to scribe.

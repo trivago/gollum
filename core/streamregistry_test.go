@@ -20,9 +20,11 @@ import (
 )
 
 func getMockStreamRegistry() streamRegistry {
-	return streamRegistry{map[MessageStreamID]Stream{},
-		map[MessageStreamID]string{},
-		[]Producer{},
+	return streamRegistry{
+		streams:  map[MessageStreamID]Stream{},
+		name:     map[MessageStreamID]string{},
+		fuses:    map[string]*shared.Fuse{},
+		wildcard: []Producer{},
 	}
 }
 

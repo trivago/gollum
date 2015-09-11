@@ -134,6 +134,7 @@ func (prod *Socket) tryConnect() bool {
 	conn.(bufferedConn).SetWriteBuffer(prod.bufferSizeByte)
 	prod.assembly.SetWriter(conn)
 	prod.connection = conn
+	prod.Control() <- core.PluginControlFuseActive
 	return true
 }
 
@@ -142,6 +143,10 @@ func (prod *Socket) closeConnection() {
 	if prod.connection != nil {
 		prod.connection.Close()
 		prod.connection = nil
+
+		if !prod.IsStopping() {
+			prod.Control() <- core.PluginControlFuseBurn
+		}
 	}
 }
 
