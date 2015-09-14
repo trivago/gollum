@@ -116,6 +116,8 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 	prod.assembly = core.NewWriterAssembly(nil, prod.Drop, prod.GetFormatter())
 	prod.assembly.SetValidator(prod.validate)
 	prod.assembly.SetErrorHandler(prod.onWriteError)
+
+	prod.SetCheckFuseCallback(prod.tryConnect)
 	return nil
 }
 

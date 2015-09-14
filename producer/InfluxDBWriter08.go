@@ -62,6 +62,7 @@ func (writer *influxDBWriter08) configure(conf core.PluginConfig, prod *InfluxDB
 		writer.testURL += "?" + credentials
 	}
 
+	prod.SetCheckFuseCallback(writer.isConnectionUp)
 	return nil
 }
 

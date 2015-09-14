@@ -226,6 +226,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	}
 
 	shared.Metric.New(kafkaMetricMissCount)
+	prod.SetCheckFuseCallback(prod.tryOpenConnection)
 	return nil
 }
 
@@ -247,7 +248,7 @@ func (prod *Kafka) sendBatchOnTimeOut() {
 	}
 
 	// Flush if necessary
-	if prod.openConnection() && (prod.batch.ReachedTimeThreshold(prod.config.Producer.Flush.Frequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2)) {
+	if prod.tryOpenConnection() && (prod.batch.ReachedTimeThreshold(prod.config.Producer.Flush.Frequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2)) {
 		prod.sendBatch()
 	}
 }
@@ -340,7 +341,7 @@ func (prod *Kafka) isConnectionOpen() bool {
 	return prod.client != nil && prod.producer != nil
 }
 
-func (prod *Kafka) openConnection() bool {
+func (prod *Kafka) tryOpenConnection() bool {
 	// Reconnect the client first
 	if prod.client == nil {
 		if client, err := kafka.NewClient(prod.servers, prod.config); err == nil {
@@ -395,6 +396,6 @@ func (prod *Kafka) close() {
 // Produce writes to a buffer that is sent to a given socket.
 func (prod *Kafka) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.openConnection()
+	prod.tryOpenConnection()
 	prod.TickerMessageControlLoop(prod.bufferMessage, prod.config.Producer.Timeout, prod.sendBatchOnTimeOut)
 }

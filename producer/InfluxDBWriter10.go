@@ -68,6 +68,7 @@ func (writer *influxDBWriter10) configure(conf core.PluginConfig, prod *InfluxDB
 	}
 
 	writer.writeURL = fmt.Sprintf("%s%cprecision=ms", writer.writeURL, writer.separator)
+	prod.SetCheckFuseCallback(writer.isConnectionUp)
 	return nil
 }
 

@@ -79,6 +79,7 @@ func (writer *influxDBWriter09) configure(conf core.PluginConfig, prod *InfluxDB
 		writer.messageHeader = "{\"database\":\"%s\",\"points\":["
 	}
 
+	prod.SetCheckFuseCallback(writer.isConnectionUp)
 	return nil
 }
 

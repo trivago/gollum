@@ -136,6 +136,8 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 		shared.Metric.New(scribeMetricMessagesSec + category)
 		prod.counters[category] = new(int64)
 	}
+
+	prod.SetCheckFuseCallback(prod.tryOpenConnection)
 	return nil
 }
 
@@ -160,18 +162,24 @@ func (prod *Scribe) sendBatchOnTimeOut() {
 	}
 }
 
-func (prod *Scribe) sendBatch() {
-	if !prod.transport.IsOpen() {
-		err := prod.transport.Open()
-		if err != nil {
-			Log.Error.Print("Scribe connection error:", err)
-		} else {
-			prod.socket.Conn().(bufferedConn).SetWriteBuffer(prod.bufferSizeByte)
-			prod.Control() <- core.PluginControlFuseActive
-		}
+func (prod *Scribe) tryOpenConnection() bool {
+	if prod.transport.IsOpen() {
+		return true
 	}
 
-	if prod.transport.IsOpen() {
+	err := prod.transport.Open()
+	if err != nil {
+		Log.Error.Print("Scribe connection error:", err)
+		return false
+	}
+
+	prod.socket.Conn().(bufferedConn).SetWriteBuffer(prod.bufferSizeByte)
+	prod.Control() <- core.PluginControlFuseActive
+	return true
+}
+
+func (prod *Scribe) sendBatch() {
+	if prod.tryOpenConnection() {
 		prod.batch.Flush(prod.transformMessages)
 	} else if prod.IsStopping() {
 		prod.batch.Flush(prod.dropMessages)
