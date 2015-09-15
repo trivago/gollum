@@ -229,13 +229,30 @@ func DontPanic(callback func()) {
 // If no protocol is given, "tcp" is assumed.
 // The first parameter returned is the address, the second denotes the protocol.
 // The protocol is allways returned as lowercase string.
-func ParseAddress(addr string) (address string, protocol string) {
-	protocolIdx := strings.Index(addr, "://")
+func ParseAddress(addressString string) (address, protocol string) {
+	protocolIdx := strings.Index(addressString, "://")
 	if protocolIdx == -1 {
-		return addr, "tcp"
+		return addressString, "tcp"
 	}
 
-	return addr[protocolIdx+3:], strings.ToLower(addr[:protocolIdx])
+	return addressString[protocolIdx+3:], strings.ToLower(addressString[:protocolIdx])
+}
+
+// SplitAddress splits an address of the form "protocol://host:port" into its
+// components. If no protocol is given, the default protocol is used.
+// This function uses net.SplitHostPort.
+func SplitAddress(addressString string, defaultProtocol string) (protocol, host, port string, err error) {
+	protocol = defaultProtocol
+	address := addressString
+	protocolIdx := strings.Index(addressString, "://")
+
+	if protocolIdx > -1 {
+		protocol = addressString[:protocolIdx]
+		address = addressString[protocolIdx+3:]
+	}
+
+	host, port, err = net.SplitHostPort(address)
+	return strings.ToLower(protocol), host, port, err
 }
 
 // GetMissingMethods checks if a given object implements all methods of a

@@ -16,9 +16,12 @@ package consumer
 
 import (
 	"bytes"
+	"crypto/tls"
+	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
+	"io"
 	"net/http"
 	"sync"
 	"sync/atomic"
@@ -33,6 +36,8 @@ import (
 //     Address: ":80"
 //     ReadTimeoutSec: 3
 //     WithHeaders: true
+//     Certificate: ""
+//     Keyfile: ""
 //     Stream:
 //       - "http"
 //
@@ -47,6 +52,14 @@ import (
 //
 // WithHeaders can be set to false to only read the HTTP body instead of passing
 // the while HTTP message. By default this setting is set to true.
+//
+// Certificate defines a path to a root certificate file if this consumer is to
+// handle https connections. Left empty by default (disabled).
+// If a Certificate is given, a PrivatKey must be given, too.
+//
+// PrivateKey defines a path to the private key used for https connections.
+// Left empty by default (disabled).
+// If a Certificate is given, a PrivatKey must be given, too.
 type Http struct {
 	core.ConsumerBase
 	listen         *shared.StopListener
@@ -54,6 +67,7 @@ type Http struct {
 	sequence       uint64
 	readTimeoutSec time.Duration
 	withHeaders    bool
+	certificate    *tls.Config
 }
 
 func init() {
@@ -70,6 +84,26 @@ func (cons *Http) Configure(conf core.PluginConfig) error {
 	cons.address = conf.GetString("Address", ":80")
 	cons.readTimeoutSec = time.Duration(conf.GetInt("ReadTimeoutSec", 3)) * time.Second
 	cons.withHeaders = conf.GetBool("WithHeaders", true)
+
+	certificateFile := conf.GetString("Certificate", "")
+	keyFile := conf.GetString("PrivateKey", "")
+
+	if certificateFile != "" || keyFile != "" {
+		if certificateFile == "" || keyFile == "" {
+			return fmt.Errorf("There must always be a certificate and a private key or none of both")
+		}
+
+		cons.certificate = new(tls.Config)
+		cons.certificate.NextProtos = []string{"http/1.1"}
+
+		keypair, err := tls.LoadX509KeyPair(certificateFile, keyFile)
+		if err != nil {
+			return err
+		}
+
+		cons.certificate.Certificates = []tls.Certificate{keypair}
+	}
+
 	return err
 }
 
@@ -85,11 +119,12 @@ func (cons *Http) requestHandler(resp http.ResponseWriter, req *http.Request) {
 		requestBuffer := bytes.NewBuffer(nil)
 		if err := req.Write(requestBuffer); err != nil {
 			resp.WriteHeader(http.StatusBadRequest)
+			Log.Error.Print("HttpRequest: ", err.Error())
 			return // ### return, missing body or bad write ###
 		}
 
 		cons.Enqueue(requestBuffer.Bytes(), atomic.AddUint64(&cons.sequence, 1))
-		resp.WriteHeader(http.StatusCreated)
+		resp.WriteHeader(http.StatusOK)
 	} else {
 		// Read only the message body
 		if req.Body == nil {
@@ -99,13 +134,14 @@ func (cons *Http) requestHandler(resp http.ResponseWriter, req *http.Request) {
 
 		body := make([]byte, req.ContentLength)
 		length, err := req.Body.Read(body)
-		if err != nil {
+		if err != nil && err != io.EOF {
 			resp.WriteHeader(http.StatusBadRequest)
+			Log.Error.Print("HttpRequest: ", err.Error())
 			return // ### return, missing body or bad write ###
 		}
 
 		cons.Enqueue(body[:length], atomic.AddUint64(&cons.sequence, 1))
-		resp.WriteHeader(http.StatusCreated)
+		resp.WriteHeader(http.StatusOK)
 	}
 }
 
@@ -116,6 +152,7 @@ func (cons *Http) serve() {
 		Addr:        cons.address,
 		Handler:     http.HandlerFunc(cons.requestHandler),
 		ReadTimeout: cons.readTimeoutSec,
+		TLSConfig:   cons.certificate,
 	}
 
 	err := srv.Serve(cons.listen)
