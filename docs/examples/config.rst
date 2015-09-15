@@ -173,6 +173,31 @@ Note that the standard proxy consumer and producer cannot react on details impli
 While this does work for simple protocols it will have problems with more complex protocols like http.
 In that case it is advisable to use or write a proxy plugin for this specific protocol.
 
+Fuse
+----
+
+This configuration introduces a fuse to close the consumer connection if something goes wrong on the producer side.
+Fuses work in a broadcasting manner, i.e. one producer "breaks" a fuse and multiple consumers may react on this.
+The reasons for breaking a fuse may either be a dropped connection or a blocking consumer.
+Different consumers may react differently on "broken" fuses, depending on their context.
+In our case the incoming socket will be closed.
+
+::
+
+  - "consumer.Socket":
+      Stream: "forward"
+      Fuse: "socket"
+      Address: "127.0.0.1:5880"
+      Acknowledge: "OK"
+
+  - "producer.Socket":
+      Stream: "forward"
+      Fuse: "socket"
+      Address: "unix://test/test.socket"
+      BatchTimeoutSec: 1
+      Acknowledge: "OK"
+
+
 Profiling
 ---------
 

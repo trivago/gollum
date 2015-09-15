@@ -4,6 +4,8 @@ Proxy
 The proxy consumer reads messages directly as-is from a given socket.
 Messages are separated from the stream by using a specific paritioner method.
 In combination with a compatible proxy producer like the :doc:`Proxy Producer </producers/proxy>` this can be used to create a proxy style two-way communication over Gollum.
+When attached to a fuse, this consumer will stop accepting new connections and close all existing connections in case that fuse is burned.
+See the `API documentation <http://gollum.readthedocs.org/en/latest/consumers/proxy.html>`_ for additional details.
 
 Parameters
 ----------
@@ -13,6 +15,9 @@ Parameters
 **ID**
   Allows this consumer to be found by other plugins by name.
   By default this is set to "" which does not register this consumer.
+**Fuse**
+  Defines the name of the fuse this consumer is attached to.
+  When left empty no fuse is attached. This is the default value.
 **Stream**
   Defines either one or an aray of stream names this consumer sends messages to.
 **Address**

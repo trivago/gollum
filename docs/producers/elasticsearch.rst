@@ -4,6 +4,8 @@ ElasticSearch
 This producers writes messages to ElasticSearch.
 ElasticSearch expects messages to be JSON encoded so the configuration should assure that messages are arriving as or are converted into a valid JSON format.
 You can use the :doc:`JSON formatter </formatters/json>` to convert messages to valid JSON.
+This producer uses a fuse breaker when cluster health reports a "red" status or the connection is down.
+See the `API documentation <http://gollum.readthedocs.org/en/latest/producers/elasticsearch.html>`_ for additional details.
 
 Parameters
 ----------
@@ -13,6 +15,9 @@ Parameters
 **ID**
   Allows this producer to be found by other plugins by name.
   By default this is set to "" which does not register this producer.
+**Fuse**
+  Defines the name of the fuse this producer is attached to.
+  When left empty no fuse is attached. This is the default value.
 **Stream**
   Defines either one or an aray of stream names this producer recieves messages from.
 **DropToStream**

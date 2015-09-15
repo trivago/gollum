@@ -54,7 +54,8 @@ import (
 //       - "_GOLLUM_"
 //
 // The ElasticSearch producer sends messages to elastic search using the bulk
-// http API.
+// http API. This producer uses a fuse breaker when cluster health reports a
+// "red" status or the connection is down.
 //
 // RetrySec denotes the time in seconds after which a failed dataset will be
 // transmitted again. By default this is set to 5.
@@ -164,6 +165,7 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 		prod.counters[index] = new(int64)
 	}
 
+	prod.SetCheckFuseCallback(prod.isClusterUp)
 	return nil
 }
 
@@ -178,7 +180,17 @@ func (prod *ElasticSearch) updateMetrics() {
 	}
 }
 
+func (prod *ElasticSearch) isClusterUp() bool {
+	cluster, err := prod.conn.Health()
+	if err != nil {
+		return false
+	}
+
+	return !cluster.TimedOut && cluster.Status != "red"
+}
+
 func (prod *ElasticSearch) sendMessage(msg core.Message) {
+	originalMsg := msg
 	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
 
 	index, indexMapped := prod.index[msg.StreamID]
@@ -209,7 +221,12 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 	err := prod.indexer.Index(index, msgType, "", "", prod.msgTTL, &msg.Timestamp, string(msg.Data), true)
 	if err != nil {
 		Log.Error.Print("ElasticSearch index error - ", err)
-		prod.Drop(msg)
+		if !prod.isClusterUp() {
+			prod.Control() <- core.PluginControlFuseBurn
+		}
+		prod.Drop(originalMsg)
+	} else {
+		prod.Control() <- core.PluginControlFuseActive
 	}
 }
 

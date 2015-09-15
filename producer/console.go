@@ -31,6 +31,7 @@ import (
 //     Console: "stdout"
 //
 // The console producer writes messages to the standard output streams.
+// This producer does not implement a fuse breaker.
 //
 // Console may either be "stdout" or "stderr". By default it is set to "stdout".
 type Console struct {

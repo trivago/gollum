@@ -3,6 +3,8 @@ Null
 
 This producers discards all messages similar to a /dev/null.
 Its main purpose is to profile consumers and/or streams.
+This producer does not implement a fuse breaker.
+See the `API documentation <http://gollum.readthedocs.org/en/latest/producers/null.html>`_ for additional details.
 
 Parameters
 ----------

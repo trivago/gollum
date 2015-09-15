@@ -52,6 +52,7 @@ import (
 // The file producer writes messages to a file. This producer also allows log
 // rotation and compression of the rotated logs. Folders in the file path will
 // be created if necessary.
+// This producer does not implement a fuse breaker.
 //
 // File contains the path to the log file to write. The wildcard character "*"
 // can be used as a placeholder for the stream name.

@@ -2,6 +2,8 @@ Facebook Scribe
 ===============
 
 This producers sends messages to a scribe server (fb303).
+This producer uses a fuse breaker if the connection to the scribe server is lost.
+See the `API documentation <http://gollum.readthedocs.org/en/latest/producers/scribe.html>`_ for additional details.
 
 Parameters
 ----------
@@ -11,6 +13,9 @@ Parameters
 **ID**
   Allows this producer to be found by other plugins by name.
   By default this is set to "" which does not register this producer.
+**Fuse**
+  Defines the name of the fuse this producer is attached to.
+  When left empty no fuse is attached. This is the default value.
 **Stream**
   Defines either one or an aray of stream names this producer recieves messages from.
 **DropToStream**

@@ -2,6 +2,8 @@ Redis
 =====
 
 This producers stores messages on a redis server.
+This producer does not implement a fuse breaker.
+See the `API documentation <http://gollum.readthedocs.org/en/latest/producers/redis.html>`_ for additional details.
 
 Parameters
 ----------

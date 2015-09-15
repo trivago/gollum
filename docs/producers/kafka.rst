@@ -3,6 +3,8 @@ Kafka
 
 This producers sends messages to a Kafka cluster using Shopify's `Sarama <https://github.com/Shopify/sarama>`_ library.
 Any setting here reflects settings from this library.
+This producer uses a fuse breaker if the connection reports an error.
+See the `API documentation <http://gollum.readthedocs.org/en/latest/producers/kafka.html>`_ for additional details.
 
 Parameters
 ----------
@@ -12,6 +14,9 @@ Parameters
 **ID**
   Allows this producer to be found by other plugins by name.
   By default this is set to "" which does not register this producer.
+**Fuse**
+  Defines the name of the fuse this producer is attached to.
+  When left empty no fuse is attached. This is the default value.
 **Stream**
   Defines either one or an aray of stream names this consumer sends messages to.
 **DropToStream**

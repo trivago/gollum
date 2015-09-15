@@ -65,6 +65,7 @@ const (
 //
 // The kafka producer writes messages to a kafka cluster. This producer is
 // backed by the sarama library so most settings relate to that library.
+// This producer uses a fuse breaker if the connection reports an error.
 //
 // ClientId sets the client id of this producer. By default this is "gollum".
 //

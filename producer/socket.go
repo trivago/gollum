@@ -35,6 +35,10 @@ import (
 //     BatchTimeoutSec: 5
 //     Acknowledge: ""
 //
+// The socket producer connects to a service over a TCP, UDP or unix domain
+// socket based connection.
+// This producer uses a fuse breaker when the service to connect to goes down.
+//
 // Address stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.socket". By default this is set to ":5880".

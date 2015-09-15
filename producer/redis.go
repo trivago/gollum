@@ -39,6 +39,7 @@ import (
 // Address stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:6379" or a file
 // like "unix:///var/redis.socket". By default this is set to ":6379".
+// This producer does not implement a fuse breaker.
 //
 // Database defines the redis database to connect to.
 // By default this is set to 0.

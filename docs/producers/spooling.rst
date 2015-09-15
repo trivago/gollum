@@ -4,6 +4,8 @@ Spooling
 The Spooling producer buffers messages and sends them again to the previous stream stored in the message.
 This means the message must have been routed at least once before reaching the spooling producer.
 If the previous and current stream is identical the message is dropped.
+This producer does not implement a fuse breaker.
+See the `API documentation <http://gollum.readthedocs.org/en/latest/producers/spooling.html>`_ for additional details.
 
 Parameters
 ----------

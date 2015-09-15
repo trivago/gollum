@@ -43,8 +43,8 @@ import (
 // The profiler plugin generates Runs x Batches messages and send them to the
 // configured streams as fast as possible. This consumer can be used to profile
 // producers and/or configurations.
-// Attaching and burning a fuse for a profiler consumer will stop the message
-// generation and continue once the fuse has been activated again.
+// When attached to a fuse, this consumer will stop processing messages in case
+// that fuse is burned.
 //
 // Runs defines the number of messages per batch. By default this is set to
 // 10000.

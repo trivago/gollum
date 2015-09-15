@@ -58,8 +58,8 @@ const (
 // that marks the end of a message. If the file is part of e.g. a log rotation
 // the file consumer can set to a symbolic link of the latest file and be told
 // to reopen the file by sending a SIGHUP.
-// Attaching and burning a fuse for a file consumer will stop the file reading
-// and continue once the fuse has been activated again.
+// When attached to a fuse, this consumer will stop accepting messages in case
+// that fuse is burned.
 //
 // File is a mandatory setting and contains the file to read. The file will be
 // read from beginning to end and the reader will stay attached until the

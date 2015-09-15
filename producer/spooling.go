@@ -40,6 +40,7 @@ import (
 // current stream is identical the message is dropped.
 // The Formatter configuration value is forced to "format.Serialize" and
 // cannot be changed.
+// This producer does not implement a fuse breaker.
 //
 // Path sets the output directory for spooling files. Spooling files will
 // Files will be stored as "<path>/<stream>/<number>.spl". By default this is

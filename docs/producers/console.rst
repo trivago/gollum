@@ -2,6 +2,8 @@ Console
 =======
 
 This producers writes messages directly to stdout or stderr.
+This producer does not implement a fuse breaker.
+See the `API documentation <http://gollum.readthedocs.org/en/latest/producers/console.html>`_ for additional details.
 
 Parameters
 ----------

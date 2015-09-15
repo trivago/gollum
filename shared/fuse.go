@@ -5,11 +5,11 @@ import (
 	"sync/atomic"
 )
 
-// Fuse is a decentralized control mechanism that is ment to be used to manage
-// the state of a certain resource. If the resource is not available the fuse is
-// "burned" and a ticker function is provided that may be used to reactivate the
-// fuse. Components depending on the resource guarded by the fuse may wait for
-// the fuse until it becomes active again.
+// Fuse is a local curcuit breaker implementation that is ment to be used to
+// manage the state of a given resource between different threads of execution
+// (consumer/producer). If the resource is not available the fuse is "burned".
+// Components may now wait on that fuse and are woken as soon as the resource
+// becomes available again (the fuse is "activated" again).
 type Fuse struct {
 	signal *sync.Cond
 	burned *int32

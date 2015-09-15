@@ -32,8 +32,9 @@ import (
 //     Enable:  true
 //     Address: "localhost:80"
 //
-// The HTTPRequest producers sends messages that already are valid http request to a
-//  given webserver.
+// The HTTPRequest producers sends messages that already are valid http request
+// to a given webserver. This producer uses a fuse breaker when a request fails
+// with an error code > 400 or the connection is down.
 //
 // Address defines the webserver to send http requests to. Set to
 // "localhost:80" by default.
@@ -68,7 +69,13 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfig) error {
 	}
 
 	prod.address = prod.host + ":" + prod.port
+	prod.SetCheckFuseCallback(prod.isHostUp)
 	return nil
+}
+
+func (prod *HTTPRequest) isHostUp() bool {
+	resp, err := http.Get(prod.address)
+	return err != nil && resp.StatusCode < 400
 }
 
 func (prod *HTTPRequest) sendReq(msg core.Message) {
@@ -89,7 +96,9 @@ func (prod *HTTPRequest) sendReq(msg core.Message) {
 	go func() {
 		if _, err := http.DefaultClient.Do(req); err != nil {
 			Log.Error.Print("HTTPRequest send failed: ", err)
-			prod.Control() <- core.PluginControlFuseBurn
+			if !prod.isHostUp() {
+				prod.Control() <- core.PluginControlFuseBurn
+			}
 			prod.Drop(msg)
 		} else {
 			prod.Control() <- core.PluginControlFuseActive

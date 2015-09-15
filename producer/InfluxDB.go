@@ -40,6 +40,14 @@ import (
 //     BatchFlushCount: 4096
 //     BatchTimeoutSec: 5
 //
+// This producer writes data to an influxDB cluster. The data is expected to be
+// of a valid influxDB format. As the data format changed between influxDB
+// versions it is advisable to use a formatter for the specific influxDB version
+// you want to write to. There are collectd to influxDB formatters available
+// that can be used (as an example).
+// This producer uses a fuse breaker if the connection to the influxDB cluster
+// is lost.
+//
 // Host defines the host (and port) of the InfluxDB server.
 // Defaults to "localhost:8086".
 //

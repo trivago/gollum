@@ -2,6 +2,8 @@ Websocket
 =========
 
 This producers writes messages to a websocket.
+This producer does not implement a fuse breaker.
+See the `API documentation <http://gollum.readthedocs.org/en/latest/producers/websocket.html>`_ for additional details.
 
 Parameters
 ----------

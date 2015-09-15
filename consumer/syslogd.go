@@ -36,9 +36,8 @@ import (
 //       - "syslog"
 //
 // The syslogd consumer accepts messages from a syslogd comaptible socket.
-// Attaching and burning a fuse for a syslogd consumer will close the connection
-// (the server is killed). The connection will become available again after the
-// fuse has been reactivated.
+// When attached to a fuse, this consumer will stop the syslogd service in case
+// that fuse is burned.
 //
 // Address stores the identifier to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file

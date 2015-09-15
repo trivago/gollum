@@ -111,14 +111,14 @@ type Producer interface {
 // formatting it has to define a separate filter as the producer decides if
 // and where to format.
 //
-// Fuse defines the name of a fuse to burn if e.g. the producer stays in the
-// waiting state for longer than FuseTimeoutSec. Disable by setting an empty
-// name or a FuseTimeoutSec <= 0. By default this is set to "".
+// Fuse defines the name of a fuse to burn if e.g. the producer encounteres a
+// lost connection. Each producer defines its own fuse breaking logic if
+// necessary / applyable. Disable fuse behavior for a producer by setting an
+// empty  name or a FuseTimeoutSec <= 0. By default this is set to "".
 //
-// FuseTimeoutSec defines the time after which the fuse defined by Fuse is
-// burned when the producer is in a waiting state. By default this is set to 10.
-// When the fuse is burned a fuse control signal is sent every FuseTimeoutSec/2
-// seconds.
+// FuseTimeoutSec defines the interval in seconds used to check if the fuse can
+// be recovered. Note that automatic fuse recovery logic depends on each
+// producer's implementation. By default this setting is set to 10.
 type ProducerBase struct {
 	messages        chan Message
 	control         chan PluginControl
@@ -129,7 +129,6 @@ type ProducerBase struct {
 	timeout         time.Duration
 	shutdownTimeout time.Duration
 	fuseTimeout     time.Duration
-	fuseBreaker     *time.Timer
 	fuseControl     *time.Timer
 	fuseName        string
 	format          Formatter
@@ -180,23 +179,6 @@ func (prod *ProducerBase) setState(state PluginState) {
 	}
 
 	prod.runState.SetState(state)
-
-	if fuse := prod.GetFuse(); fuse != nil {
-		switch state {
-		case PluginStateWaiting:
-			Log.Debug.Print("Fuse breaker active")
-			prod.fuseBreaker = time.AfterFunc(prod.fuseTimeout, func() {
-				prod.Control() <- PluginControlFuseBurn
-			})
-
-		default:
-			fuseBreaker := prod.fuseBreaker
-			if fuseBreaker != nil {
-				Log.Debug.Print("Fuse breaker stopped")
-				fuseBreaker.Stop()
-			}
-		}
-	}
 }
 
 // GetFuse returns the fuse bound to this producer or nil if no fuse name has
@@ -521,7 +503,7 @@ func (prod *ProducerBase) triggerCheckFuse() {
 		if prod.onCheckFuse() {
 			prod.Control() <- PluginControlFuseActive
 		} else {
-			prod.fuseControl = time.AfterFunc(prod.fuseTimeout/2, prod.triggerCheckFuse)
+			prod.fuseControl = time.AfterFunc(prod.fuseTimeout, prod.triggerCheckFuse)
 		}
 	}
 }

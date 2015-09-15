@@ -2,6 +2,8 @@ HTTPRequest
 ===========
 
 This producer sends messages that already are valid http request to a given webserver.
+This producer uses a fuse breaker when a request fails with an error code > 400 or the connection is down.
+See the `API documentation <http://gollum.readthedocs.org/en/latest/producers/httpreq.html>`_ for additional details.
 
 Parameters
 ----------
@@ -11,6 +13,9 @@ Parameters
 **ID**
   Allows this producer to be found by other plugins by name.
   By default this is set to "" which does not register this producer.
+**Fuse**
+  Defines the name of the fuse this producer is attached to.
+  When left empty no fuse is attached. This is the default value.
 **Stream**
   Defines either one or an aray of stream names this producer recieves messages from.
 **DropToStream**

@@ -53,9 +53,9 @@ const (
 //
 // The socket consumer reads messages directly as-is from a given socket.
 // Messages are separated from the stream by using a specific paritioner method.
-// Attaching and burning a fuse for a socket consumer will cause all connections
-// to be closed. Connection will be reopened again after the fuse has been
-// reactivated.
+// When attached to a fuse, this consumer will stop accepting new connections
+// (closing the socket) and close all existing connections in case that fuse is
+// burned.
 //
 // Address stores the identifier to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file

@@ -369,14 +369,4 @@ func TestProducerFuse(t *testing.T) {
 	expect.NonBlocking(time.Second, func() { mockP.Control() <- PluginControlFuseActive })
 	expect.NonBlocking(time.Second, func() { mockP.Control() <- PluginControlFuseActive })
 	expect.False(fuse.IsBurned())
-
-	// Check fuse breaker
-
-	mockP.setState(PluginStateWaiting)
-	time.Sleep(mockP.fuseTimeout * 2)
-	expect.True(fuse.IsBurned())
-
-	activateFuse = true
-	time.Sleep(mockP.fuseTimeout * 2)
-	expect.False(fuse.IsBurned())
 }

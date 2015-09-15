@@ -5,6 +5,8 @@ The proxy producer sends messages directly as-is to a given socket.
 Responses from this socket are read and separated by using a specific paritioner method.
 Response messages are sent back to a compatible message source like the :doc:`Proxy Consumer </consumers/proxy>`.
 This can be used to create a proxy style two-way communication over Gollum.
+This producer does not implement a fuse breaker.
+See the `API documentation <http://gollum.readthedocs.org/en/latest/producers/proxy.html>`_ for additional details.
 
 Parameters
 ----------
@@ -14,6 +16,9 @@ Parameters
 **ID**
   Allows this producer to be found by other plugins by name.
   By default this is set to "" which does not register this producer.
+**Fuse**
+  Defines the name of the fuse this producer is attached to.
+  When left empty no fuse is attached. This is the default value.
 **Stream**
   Defines either one or an aray of stream names this consumer sends messages to.
 **DropToStream**
