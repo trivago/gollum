@@ -25,6 +25,13 @@ Parameters
   Defines a timeout in seconds when to stop reading from a failed connection.
 **WithHeaders**
   Set to false to extract the body from the http request. When set to true the whole HTTP packet will be send. By default this is set to true.
+**Certificate**
+  Defines a path to a root certificate file if this consumer is to handle https connections. Left empty by default (disabled).
+  If a Certificate is given, a PrivatKey must be given, too.
+**PrivateKey**
+  Defines a path to the private key used for https connections.
+  Left empty by default (disabled).
+  If a Certificate is given, a PrivatKey must be given, too.
 
 Example
 -------
@@ -36,6 +43,8 @@ Example
     Address: ":80"
     ReadTimeoutSec: 5
     WithHeaders: false
+    Certificate: ""
+    PrivateKey: ""
     Stream:
         - "stdin"
         - "console"

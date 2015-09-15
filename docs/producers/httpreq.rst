@@ -26,6 +26,12 @@ Parameters
   By default this is set to 8192.
 **ChannelTimeoutMs**
   Defines a timeout in milliseconds for messages to wait if this producer's queue is full.
+**RawData**
+  Switches between creating POST data from the incoming message (false) and passing the message as HTTP request without changes (true).
+  This setting is enabled by default.
+**Encoding**
+  Defines the payload encoding when RawData is set to false.
+  Set to "text/plain; charset=utf-8" by default.
 
 - A timeout of -1 or lower will discard the message without notice.
 - A timeout of 0 will block until the queue is free. This is the default.
@@ -51,4 +57,6 @@ Example
   - "producer.HTTPRequest":
     Enable: true
     Address: "testing:80"
+    RawData: true
+    Encoding: "text/plain; charset=utf-8"
     Stream: "http"

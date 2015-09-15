@@ -37,7 +37,7 @@ import (
 //     ReadTimeoutSec: 3
 //     WithHeaders: true
 //     Certificate: ""
-//     Keyfile: ""
+//     PrivateKey: ""
 //     Stream:
 //       - "http"
 //
