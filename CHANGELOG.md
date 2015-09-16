@@ -1,6 +1,6 @@
 # 0.4.1
 
-This is a patch release
+This is a patch / minor features release
 
 #### Fixed
 
@@ -8,10 +8,19 @@ This is a patch release
  * shared.WaitGroup.WaitFor with duration 0 falls back to shared.WaitGroup.Wait
  * proper io.EOF handling for shared.BufferedReader and shared.ByteStream
 
+### Fixed
+
+ * HTTP consumer now responds with 200 instead of 203
+ * HTTP consumer properly handles EOF
+ * Increased test coverage
+
 #### New
 
  * Support for InfluxDB line protocol
  * New setting to enable/disable InfluxDB time based database names
+ * Introduction of "fuses" (circuit breaker pattern)
+ * Added HTTPs support for HTTP consumer
+ * Added POST data support to HTTPRequest producer
 
 # 0.4.0
 
