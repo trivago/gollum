@@ -218,7 +218,7 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 	}
 
 	atomic.AddInt64(prod.counters[index], 1)
-	err := prod.indexer.Index(index, msgType, "", "", prod.msgTTL, &msg.Timestamp, string(msg.Data), true)
+	err := prod.indexer.Index(index, msgType, "", "", prod.msgTTL, &msg.Timestamp, string(msg.Data))
 	if err != nil {
 		Log.Error.Print("ElasticSearch index error - ", err)
 		if !prod.isClusterUp() {
