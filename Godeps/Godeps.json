@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/trivago/gollum",
-	"GoVersion": "go1.5",
+	"GoVersion": "go1.5.1",
 	"Deps": [
 		{
 			"ImportPath": "github.com/araddon/gou",
@@ -48,6 +48,10 @@
 		{
 			"ImportPath": "github.com/jeromer/syslogparser",
 			"Rev": "ff71fe7a7d5279df4b964b31f7ee4adf117277f6"
+		},
+		{
+			"ImportPath": "github.com/klauspost/crc32",
+			"Rev": "f8d2e12057f7ef26ae42ecfa42697f4bdc32d7eb"
 		},
 		{
 			"ImportPath": "github.com/mattbaird/elastigo/lib",
