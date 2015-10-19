@@ -303,7 +303,7 @@ func (prod *ProducerBase) Next() (Message, bool) {
 }
 
 // NextNonBlocking calls a given callback if a message is queued or returns.
-// Returns false if no message was recieved.
+// Returns false if no message was received.
 func (prod *ProducerBase) NextNonBlocking(onMessage func(msg Message)) bool {
 	select {
 	case msg := <-prod.messages:
@@ -559,7 +559,7 @@ func (prod *ProducerBase) ControlLoop() {
 
 // MessageControlLoop provides a producer mainloop that is sufficient for most
 // usecases. ControlLoop will be called in a separate go routine.
-// This function will block until a stop signal is recieved.
+// This function will block until a stop signal is received.
 func (prod *ProducerBase) MessageControlLoop(onMessage func(Message)) {
 	prod.setState(PluginStateActive)
 	go prod.ControlLoop()

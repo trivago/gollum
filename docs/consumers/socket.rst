@@ -57,7 +57,7 @@ Parameters
   Defines the number of seconds waited for an acknowledge to succeed.
   Set to 2 by default.
 **ReadTimoutSec**
-  Defines the number of seconds that waited for data to be recieved.
+  Defines the number of seconds that waited for data to be received.
   Set to 5 by default.
 **RemoveOldSocket**
   Toggles removing exisiting files with the same name as the socket (unix://<path>) prior to connecting.

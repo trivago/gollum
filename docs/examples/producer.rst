@@ -63,7 +63,7 @@ A typical produce function will look like this:
     prod.MessageControlLoop(prod.processData)
   }
 
-The framework will call the registered StopCallback function when the control loop recieves a stop.
+The framework will call the registered StopCallback function when the control loop receives a stop.
 As the shutdown procedure needs to wait until all messages from this producers have been sent (to avoid data loss) at least one worker should always be registered.
 The shutdown procedure will wait until all producer workers have finished before exiting.
 As of this you have to make sure that all AddWorker calls are followed by a WorkerDone() call during shutdown.

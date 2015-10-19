@@ -136,7 +136,7 @@ func XXXTestBulkUpdate(t *testing.T) {
 	}
 	err = indexer.Update("users", "user", "5", "", "", &date, data, true)
 	// So here's the deal. Flushing does seem to work, you just have to give the
-	// channel a moment to recieve the message ...
+	// channel a moment to receive the message ...
 	//	<- time.After(time.Millisecond * 20)
 	//	indexer.Flush()
 

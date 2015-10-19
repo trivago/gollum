@@ -19,7 +19,7 @@ Parameters
   Defines the name of the fuse this producer is attached to.
   When left empty no fuse is attached. This is the default value.
 **Stream**
-  Defines either one or an aray of stream names this producer recieves messages from.
+  Defines either one or an aray of stream names this producer receives messages from.
 **DropToStream**
   Defines the stream used for messages that are dropped after a timeout (see ChannelTimeoutMs).
   By default this is _DROPPED_.
