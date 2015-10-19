@@ -87,7 +87,7 @@ var BufferDataInvalid = bufferError("Invalid data")
 // A data "piece" is considered complete if a delimiter or a certain runlength
 // has been reached. The latter has to be enabled by flag and will disable the
 // default behavior, which is looking for a delimiter string.
-// In addition to that every data "piece" will recieve an incrementing sequence
+// In addition to that every data "piece" will receive an incrementing sequence
 // number.
 type BufferedReader struct {
 	data       []byte

@@ -82,7 +82,7 @@ type SerialMessageSource interface {
 // like behaviour between two components that communicate messages.
 type LinkableMessageSource interface {
 	MessageSource
-	// Link the message source to the message reciever. This makes it possible
+	// Link the message source to the message receiver. This makes it possible
 	// to create stable "pipes" between e.g. a consumer and producer.
 	Link(pipe interface{})
 

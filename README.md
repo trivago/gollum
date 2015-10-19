@@ -53,20 +53,20 @@ Writing a custom plugin does not require you to change any additional code besid
 
 ## Formatters (modifying data)
 
-* `Base64Encode` encodes messages to base64.
-* `Base64Decode` decodes messages from base64.
-* `CollectdToInflux` converts [CollectD](https://collectd.org) data to [InfluxDB](https://influxdb.com) compatible values.
+* `Base64Encode` encode messages to base64.
+* `Base64Decode` decode messages from base64.
+* `CollectdToInflux` convert [CollectD](https://collectd.org) data to [InfluxDB](https://influxdb.com) compatible values.
 * `Envelope` add a prefix and/or postfix string to a message.
 * `Forward` write the message without modifying it.
-* `Hostname` prepends the current machine's hostname to a message.
-* `Identifier` hashes the message to generate a (mostly) unique id.
+* `Hostname` prepend the current machine's hostname to a message.
+* `Identifier` hash the message to generate a (mostly) unique id.
 * `JSON` write the message as a JSON object. Messages can be parsed to generate fields.
-* `Runlength` prepends the length of the message.
-* `Sequence` prepends the sequence number of the message.
+* `Runlength` prepend the length of the message.
+* `Sequence` prepend the sequence number of the message.
 * `StreamName` prepend the name of a stream to the payload.
 * `StreamRevert` route a message to the previous stream (e.g. after it has been routed).
 * `StreamRoute` route a message to another stream by reading a prefix.
-* `Timestamp` prepends a timestamp to the message.
+* `Timestamp` prepend a timestamp to the message.
 
 ## Filters (filtering data)
 

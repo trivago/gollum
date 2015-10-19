@@ -21,7 +21,7 @@ import (
 	"time"
 )
 
-// Consumer is an interface for plugins that recieve data from outside sources
+// Consumer is an interface for plugins that receive data from outside sources
 // and generate Message objects from this data.
 type Consumer interface {
 	PluginWithState

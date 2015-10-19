@@ -192,7 +192,7 @@ func TestPluginConfigGetStringMap(t *testing.T) {
 //  Create a new PluginConfig
 //  Add an array of streams with mocked values in Settings
 //  get the streamArray
-//  Check the hash recieved hash with manual generation from streamregistery.getStreamID
+//  Check the hash received hash with manual generation from streamregistery.getStreamID
 func TestPluginConfigGetStreamArray(t *testing.T) {
 	expect := shared.NewExpect(t)
 	mockPluginCfg := getMockPluginConfig()

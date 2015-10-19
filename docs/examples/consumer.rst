@@ -26,7 +26,7 @@ As Consume() is called as a separate go routine you can decide wether to spawn a
 ConsumerBase gives you two convenience loop functions to handle control commands:
 
 **ControlLoop**
-  Will loop until a stop is recieved and can trigger a callback if a log rotation is requested (SIG_HUP is sent).
+  Will loop until a stop is received and can trigger a callback if a log rotation is requested (SIG_HUP is sent).
   The log rotation callback cane be set e.g. in the Configure method by using the SetRollBack function.
   Other possible callbacks functions are SetPrepareStopCallback and SetStopCallback.
 

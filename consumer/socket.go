@@ -100,7 +100,7 @@ const (
 // succeed. Set to 2 by default.
 //
 // ReadTimoutSec defines the number of seconds that waited for data to be
-// recieved. Set to 5 by default.
+// received. Set to 5 by default.
 //
 // RemoveOldSocket toggles removing exisiting files with the same name as the
 // socket (unix://<path>) prior to connecting. Enabled by default.
