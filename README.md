@@ -183,7 +183,7 @@ If you do not already have a GOPATH set up you need to create one.
 The location is free of choice, we prefer to put it into each users home folder:
 ```
 mkdir -p ~/go
-export GOROOT=$(HOME)/go
+export GOPATH=$(HOME)/go
 ```
 
 You can download gollum via `go get github.com/trivago/gollum` or clone it directly into your GOPATH.  
