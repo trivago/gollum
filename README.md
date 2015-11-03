@@ -47,7 +47,7 @@ Writing a custom plugin does not require you to change any additional code besid
 ## Streams (multiplexing)
 
 * `Broadcast` send to all producers in a stream.
-* `Random` send to a random roducers in a stream.
+* `Random` send to a random producer in a stream.
 * `RoundRobin` switch the producer after each send in a round robin fashion.
 * `Route` convert streams to one or multiple others
 
