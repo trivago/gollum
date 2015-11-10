@@ -7,9 +7,6 @@ This is a patch / minor features release
  * InfluxDB JSON and line protocol fixed
  * shared.WaitGroup.WaitFor with duration 0 falls back to shared.WaitGroup.Wait
  * proper io.EOF handling for shared.BufferedReader and shared.ByteStream
-
-### Fixed
-
  * HTTP consumer now responds with 200 instead of 203
  * HTTP consumer properly handles EOF
  * Increased test coverage
