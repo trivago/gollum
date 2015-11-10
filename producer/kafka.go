@@ -241,7 +241,7 @@ func (prod *Kafka) sendBatchOnTimeOut() {
 	prod.lastMetricUpdate = time.Now()
 
 	for category, counter := range prod.counters {
-		Log.Debug.Printf("%s: %d", category, *counter)
+		//Log.Debug.Printf("%s: %d", category, *counter)
 		count := atomic.SwapInt64(counter, 0)
 
 		shared.Metric.Add(kafkaMetricMessages+category, count)
