@@ -15,13 +15,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	hostpool "github.com/bitly/go-hostpool"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strconv"
 	"strings"
+
+	hostpool "github.com/bitly/go-hostpool"
 )
 
 type Request struct {
@@ -54,16 +56,7 @@ func (r *Request) SetBody(body io.Reader) {
 		rc = ioutil.NopCloser(body)
 	}
 	r.Body = rc
-	if body != nil {
-		switch v := body.(type) {
-		case *strings.Reader:
-			r.ContentLength = int64(v.Len())
-		case *bytes.Reader:
-			r.ContentLength = int64(v.Len())
-		case *bytes.Buffer:
-			r.ContentLength = int64(v.Len())
-		}
-	}
+	r.ContentLength = -1
 }
 
 func (r *Request) Do(v interface{}) (int, []byte, error) {
@@ -101,7 +94,7 @@ func (r *Request) DoResponse(v interface{}) (*http.Response, []byte, error) {
 	if res.StatusCode > 304 && v != nil {
 		jsonErr := json.Unmarshal(bodyBytes, v)
 		if jsonErr != nil {
-			return nil, nil, jsonErr
+			return nil, nil, fmt.Errorf("Json response unmarshal error: [%s], response content: [%s]", jsonErr.Error(), string(bodyBytes))
 		}
 	}
 	return res, bodyBytes, err
@@ -116,9 +109,11 @@ func Escape(args map[string]interface{}) (s string, err error) {
 		case bool:
 			vals.Add(key, strconv.FormatBool(v))
 		case int, int32, int64:
-			vals.Add(key, strconv.Itoa(v.(int)))
+			vInt := reflect.ValueOf(v).Int()
+			vals.Add(key, strconv.FormatInt(vInt, 10))
 		case float32, float64:
-			vals.Add(key, strconv.FormatFloat(v.(float64), 'f', -1, 64))
+			vFloat := reflect.ValueOf(v).Float()
+			vals.Add(key, strconv.FormatFloat(vFloat, 'f', -1, 32))
 		case []string:
 			vals.Add(key, strings.Join(v, ","))
 		default:

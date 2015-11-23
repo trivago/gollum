@@ -577,6 +577,23 @@ func (j JsonHelper) HasKey(name string) bool {
 	return false
 }
 
+// GobDecode overwrites the receiver, which must be a pointer,
+// with the value represented by the byte slice, which was written
+// by GobEncode, usually for the same concrete type.
+// GobDecode([]byte) error
+func (j *JsonHelper) GobDecode(data []byte) error {
+	var mv map[string]interface{}
+	if err := json.Unmarshal(data, &mv); err != nil {
+		return err
+	}
+	*j = JsonHelper(mv)
+	return nil
+}
+func (j *JsonHelper) GobEncode() ([]byte, error) {
+	by, err := json.Marshal(j)
+	return by, err
+}
+
 // The following consts are from http://code.google.com/p/go-bit/ (Apache licensed). It
 // lets us figure out how wide go ints are, and determine their max and min values.
 

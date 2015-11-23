@@ -57,10 +57,11 @@ var (
 		INFO:  "[INFO] ",
 		DEBUG: "[DEBUG] ",
 	}
-	postFix                      = "" //\033[0m
-	LogLevelWords map[string]int = map[string]int{"fatal": 0, "error": 1, "warn": 2, "info": 3, "debug": 4, "none": -1}
-	logThrottles                 = make(map[string]*Throttler)
-	throttleMu    sync.Mutex
+	escapeNewlines bool           = false
+	postFix                       = "" //\033[0m
+	LogLevelWords  map[string]int = map[string]int{"fatal": 0, "error": 1, "warn": 2, "info": 3, "debug": 4, "none": -1}
+	logThrottles                  = make(map[string]*Throttler)
+	throttleMu     sync.Mutex
 )
 
 // Setup default logging to Stderr, equivalent to:
@@ -90,6 +91,11 @@ func SetColorOutput() {
 		LogPrefix[lvl] = color
 	}
 	postFix = "\033[0m"
+}
+
+//Set whether to escape newline characters in log messages
+func SetEscapeNewlines(en bool) {
+	escapeNewlines = en
 }
 
 // Setup default log output to go to a dev/null
@@ -272,6 +278,28 @@ func LogThrottle(logLvl, limit int, format string, v ...interface{}) {
 	}
 }
 
+// Throttle logging based on @format as a key, such that key would never occur more than
+//   @limit times per hour
+//
+//    LogThrottleD(5, u.ERROR, 1, "message %s", varx)
+//
+func LogThrottleD(depth, logLvl, limit int, format string, v ...interface{}) {
+	if LogLevel >= logLvl {
+		throttleMu.Lock()
+		th, ok := logThrottles[format]
+		if !ok {
+			th = NewThrottler(limit, 3600*time.Second)
+			logThrottles[format] = th
+		}
+		if th.Throttle() {
+			throttleMu.Unlock()
+			return
+		}
+		throttleMu.Unlock()
+		DoLog(depth, logLvl, fmt.Sprintf(format, v...))
+	}
+}
+
 // Log to logger if setup
 //    Logf(ERROR, "message %d", 20)
 func Logf(logLvl int, format string, v ...interface{}) {
@@ -320,6 +348,9 @@ func LogD(depth int, logLvl int, v ...interface{}) {
 
 // Low level log with depth , level, message and logger
 func DoLog(depth, logLvl int, msg string) {
+	if escapeNewlines {
+		msg = EscapeNewlines(msg)
+	}
 	if ErrLogLevel >= logLvl && loggerErr != nil {
 		loggerErr.Output(depth, LogPrefix[logLvl]+msg+postFix)
 	} else if LogLevel >= logLvl && logger != nil {
@@ -344,4 +375,10 @@ type DevNull struct{}
 
 func (DevNull) Write(p []byte) (int, error) {
 	return len(p), nil
+}
+
+//Replace standard newline characters with escaped newlines so long msgs will
+//remain one line.
+func EscapeNewlines(str string) string {
+	return strings.Replace(str, "\n", "\\n", -1)
 }

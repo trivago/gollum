@@ -19,7 +19,7 @@ func (rd *realDecoder) getInt8() (int8, error) {
 		return -1, ErrInsufficientData
 	}
 	tmp := int8(rd.raw[rd.off])
-	rd.off += 1
+	rd.off++
 	return tmp, nil
 }
 
@@ -188,7 +188,9 @@ func (rd *realDecoder) remaining() int {
 }
 
 func (rd *realDecoder) getSubset(length int) (packetDecoder, error) {
-	if length > rd.remaining() {
+	if length < 0 {
+		return nil, PacketDecodingError{"invalid subset size"}
+	} else if length > rd.remaining() {
 		rd.off = len(rd.raw)
 		return nil, ErrInsufficientData
 	}

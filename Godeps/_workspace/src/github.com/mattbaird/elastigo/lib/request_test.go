@@ -28,12 +28,27 @@ func TestQueryString(t *testing.T) {
 	assert.T(t, s == exp && err == nil, fmt.Sprintf("Expected %s, got: %s", exp, s))
 
 	// Test single int argument
-	s, err = Escape(map[string]interface{}{"foo": 1})
+	s, err = Escape(map[string]interface{}{"foo": int(1)})
 	exp = "foo=1"
 	assert.T(t, s == exp && err == nil, fmt.Sprintf("Expected %s, got: %s", exp, s))
 
-	// Test single float argument
-	s, err = Escape(map[string]interface{}{"foo": 3.141592})
+	// Test single int64 argument
+	s, err = Escape(map[string]interface{}{"foo": int64(1)})
+	exp = "foo=1"
+	assert.T(t, s == exp && err == nil, fmt.Sprintf("Expected %s, got: %s", exp, s))
+
+	// Test single int32 argument
+	s, err = Escape(map[string]interface{}{"foo": int32(1)})
+	exp = "foo=1"
+	assert.T(t, s == exp && err == nil, fmt.Sprintf("Expected %s, got: %s", exp, s))
+
+	// Test single float64 argument
+	s, err = Escape(map[string]interface{}{"foo": float64(3.141592)})
+	exp = "foo=3.141592"
+	assert.T(t, s == exp && err == nil, fmt.Sprintf("Expected %s, got: %s", exp, s))
+
+	// Test single float32 argument
+	s, err = Escape(map[string]interface{}{"foo": float32(3.141592)})
 	exp = "foo=3.141592"
 	assert.T(t, s == exp && err == nil, fmt.Sprintf("Expected %s, got: %s", exp, s))
 

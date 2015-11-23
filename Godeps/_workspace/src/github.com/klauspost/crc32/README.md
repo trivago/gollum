@@ -7,13 +7,13 @@ This package is a drop-in replacement for the standard library `hash/crc32` pack
 
 # usage
 
-Install using `go get github.com/klauspost/crc32`. This library is based on Go 1.4.2 code and requires Go 1.3 or newer.
+Install using `go get github.com/klauspost/crc32`. This library is based on Go 1.5 code and requires Go 1.3 or newer.
 
 Replace `import "hash/crc32"` with `import "github.com/klauspost/crc32"` and you are good to go.
 
 # performance
 
-For IEEE tables (the most common), there is approximately a factor 10 speedup with SSE 4.2:
+For IEEE tables (the most common), there is approximately a factor 10 speedup with "CLMUL" (Carryless multiplication) instruction:
 ```
 benchmark            old ns/op     new ns/op     delta
 BenchmarkCrc32KB     99955         10258         -89.74%
@@ -22,7 +22,9 @@ benchmark            old MB/s     new MB/s     speedup
 BenchmarkCrc32KB     327.83       3194.20      9.74x
 ```
 
-For other tables and non-SSE 4.2 the peformance is the same as the standard library.
+For other tables and "CLMUL"  capable machines the performance is the same as the standard library.
+
+This has been submitted and will be part of the Go 1.6 standard library.
 
 # license
 

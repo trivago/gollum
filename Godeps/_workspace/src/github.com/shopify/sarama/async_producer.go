@@ -17,10 +17,11 @@ import (
 // scope.
 type AsyncProducer interface {
 
-	// AsyncClose triggers a shutdown of the producer, flushing any messages it may have
-	// buffered. The shutdown has completed when both the Errors and Successes channels
-	// have been closed. When calling AsyncClose, you *must* continue to read from those
-	// channels in order to drain the results of any messages in flight.
+	// AsyncClose triggers a shutdown of the producer, flushing any messages it may
+	// have buffered. The shutdown has completed when both the Errors and Successes
+	// channels have been closed. When calling AsyncClose, you *must* continue to
+	// read from those channels in order to drain the results of any messages in
+	// flight.
 	AsyncClose()
 
 	// Close shuts down the producer and flushes any messages it may have buffered.
@@ -29,17 +30,20 @@ type AsyncProducer interface {
 	// underlying client.
 	Close() error
 
-	// Input is the input channel for the user to write messages to that they wish to send.
+	// Input is the input channel for the user to write messages to that they
+	// wish to send.
 	Input() chan<- *ProducerMessage
 
-	// Successes is the success output channel back to the user when AckSuccesses is enabled.
-	// If Return.Successes is true, you MUST read from this channel or the Producer will deadlock.
-	// It is suggested that you send and read messages together in a single select statement.
+	// Successes is the success output channel back to the user when AckSuccesses is
+	// enabled. If Return.Successes is true, you MUST read from this channel or the
+	// Producer will deadlock. It is suggested that you send and read messages
+	// together in a single select statement.
 	Successes() <-chan *ProducerMessage
 
-	// Errors is the error output channel back to the user. You MUST read from this channel
-	// or the Producer will deadlock when the channel is full. Alternatively, you can set
-	// Producer.Return.Errors in your config to false, which prevents errors to be returned.
+	// Errors is the error output channel back to the user. You MUST read from this
+	// channel or the Producer will deadlock when the channel is full. Alternatively,
+	// you can set Producer.Return.Errors in your config to false, which prevents
+	// errors to be returned.
 	Errors() <-chan *ProducerError
 }
 
@@ -107,22 +111,38 @@ const (
 
 // ProducerMessage is the collection of elements passed to the Producer in order to send a message.
 type ProducerMessage struct {
-	Topic string  // The Kafka topic for this message.
-	Key   Encoder // The partitioning key for this message. It must implement the Encoder interface. Pre-existing Encoders include StringEncoder and ByteEncoder.
-	Value Encoder // The actual message to store in Kafka. It must implement the Encoder interface. Pre-existing Encoders include StringEncoder and ByteEncoder.
+	Topic string // The Kafka topic for this message.
+	// The partitioning key for this message. Pre-existing Encoders include
+	// StringEncoder and ByteEncoder.
+	Key Encoder
+	// The actual message to store in Kafka. Pre-existing Encoders include
+	// StringEncoder and ByteEncoder.
+	Value Encoder
 
-	// These are filled in by the producer as the message is processed
-	Offset    int64 // Offset is the offset of the message stored on the broker. This is only guaranteed to be defined if the message was successfully delivered and RequiredAcks is not NoResponse.
-	Partition int32 // Partition is the partition that the message was sent to. This is only guaranteed to be defined if the message was successfully delivered.
+	// This field is used to hold arbitrary data you wish to include so it
+	// will be available when receiving on the Successes and Errors channels.
+	// Sarama completely ignores this field and is only to be used for
+	// pass-through data.
+	Metadata interface{}
 
-	Metadata interface{} // This field is used to hold arbitrary data you wish to include so it will be available when receiving on the Successes and Errors channels.  Sarama completely ignores this field and is only to be used for pass-through data.
+	// Below this point are filled in by the producer as the message is processed
+
+	// Offset is the offset of the message stored on the broker. This is only
+	// guaranteed to be defined if the message was successfully delivered and
+	// RequiredAcks is not NoResponse.
+	Offset int64
+	// Partition is the partition that the message was sent to. This is only
+	// guaranteed to be defined if the message was successfully delivered.
+	Partition int32
 
 	retries int
 	flags   flagSet
 }
 
+const producerMessageOverhead = 26 // the metadata overhead of CRC, flags, etc.
+
 func (m *ProducerMessage) byteSize() int {
-	size := 26 // the metadata overhead of CRC, flags, etc.
+	size := producerMessageOverhead
 	if m.Key != nil {
 		size += m.Key.Length()
 	}
@@ -227,9 +247,7 @@ func (p *asyncProducer) dispatcher() {
 			p.inFlight.Add(1)
 		}
 
-		if (p.conf.Producer.Compression == CompressionNone && msg.Value != nil && msg.Value.Length() > p.conf.Producer.MaxMessageBytes) ||
-			(msg.byteSize() > p.conf.Producer.MaxMessageBytes) {
-
+		if msg.byteSize() > p.conf.Producer.MaxMessageBytes {
 			p.returnError(msg, ErrMessageSizeTooLarge)
 			continue
 		}
@@ -487,243 +505,248 @@ func (pp *partitionProducer) updateLeader() error {
 	})
 }
 
-// one per broker, constructs both an aggregator and a flusher
+// one per broker; also constructs an associated flusher
 func (p *asyncProducer) newBrokerProducer(broker *Broker) chan<- *ProducerMessage {
-	input := make(chan *ProducerMessage)
-	bridge := make(chan []*ProducerMessage)
+	var (
+		input     = make(chan *ProducerMessage)
+		bridge    = make(chan *produceSet)
+		responses = make(chan *brokerProducerResponse)
+	)
 
-	a := &aggregator{
-		parent: p,
-		broker: broker,
-		input:  input,
-		output: bridge,
-	}
-	go withRecover(a.run)
-
-	f := &flusher{
+	bp := &brokerProducer{
 		parent:         p,
 		broker:         broker,
-		input:          bridge,
+		input:          input,
+		output:         bridge,
+		responses:      responses,
+		buffer:         newProduceSet(p),
 		currentRetries: make(map[string]map[int32]error),
 	}
-	go withRecover(f.run)
+	go withRecover(bp.run)
+
+	// minimal bridge to make the network response `select`able
+	go withRecover(func() {
+		for set := range bridge {
+			request := set.buildRequest()
+
+			response, err := broker.Produce(request)
+
+			responses <- &brokerProducerResponse{
+				set: set,
+				err: err,
+				res: response,
+			}
+		}
+		close(responses)
+	})
 
 	return input
 }
 
-// groups messages together into appropriately-sized batches for sending to the broker
-// based on https://godoc.org/github.com/eapache/channels#BatchingChannel
-type aggregator struct {
-	parent *asyncProducer
-	broker *Broker
-	input  <-chan *ProducerMessage
-	output chan<- []*ProducerMessage
-
-	buffer      []*ProducerMessage
-	bufferBytes int
-	timer       <-chan time.Time
+type brokerProducerResponse struct {
+	set *produceSet
+	err error
+	res *ProduceResponse
 }
 
-func (a *aggregator) run() {
-	var output chan<- []*ProducerMessage
+// groups messages together into appropriately-sized batches for sending to the broker
+// handles state related to retries etc
+type brokerProducer struct {
+	parent *asyncProducer
+	broker *Broker
+
+	input     <-chan *ProducerMessage
+	output    chan<- *produceSet
+	responses <-chan *brokerProducerResponse
+
+	buffer     *produceSet
+	timer      <-chan time.Time
+	timerFired bool
+
+	closing        error
+	currentRetries map[string]map[int32]error
+}
+
+func (bp *brokerProducer) run() {
+	var output chan<- *produceSet
+	Logger.Printf("producer/broker/%d starting up\n", bp.broker.ID())
 
 	for {
 		select {
-		case msg := <-a.input:
+		case msg := <-bp.input:
 			if msg == nil {
 				goto shutdown
 			}
 
-			if a.wouldOverflow(msg) {
-				Logger.Printf("producer/aggregator/%d maximum request accumulated, forcing blocking flush\n", a.broker.ID())
-				a.output <- a.buffer
-				a.reset()
-				output = nil
+			if reason := bp.needsRetry(msg); reason != nil {
+				bp.parent.retryMessage(msg, reason)
+
+				if bp.closing == nil && msg.flags&chaser == chaser {
+					// we were retrying this partition but we can start processing again
+					delete(bp.currentRetries[msg.Topic], msg.Partition)
+					Logger.Printf("producer/broker/%d state change to [normal] on %s/%d\n",
+						bp.broker.ID(), msg.Topic, msg.Partition)
+				}
+
+				continue
 			}
 
-			a.buffer = append(a.buffer, msg)
-			a.bufferBytes += msg.byteSize()
-
-			if a.readyToFlush(msg) {
-				output = a.output
-			} else if a.parent.conf.Producer.Flush.Frequency > 0 && a.timer == nil {
-				a.timer = time.After(a.parent.conf.Producer.Flush.Frequency)
+			if bp.buffer.wouldOverflow(msg) {
+				if err := bp.waitForSpace(msg); err != nil {
+					bp.parent.retryMessage(msg, err)
+					continue
+				}
 			}
-		case <-a.timer:
-			output = a.output
-		case output <- a.buffer:
-			a.reset()
+
+			if err := bp.buffer.add(msg); err != nil {
+				bp.parent.returnError(msg, err)
+				continue
+			}
+
+			if bp.parent.conf.Producer.Flush.Frequency > 0 && bp.timer == nil {
+				bp.timer = time.After(bp.parent.conf.Producer.Flush.Frequency)
+			}
+		case <-bp.timer:
+			bp.timerFired = true
+		case output <- bp.buffer:
+			bp.rollOver()
+		case response := <-bp.responses:
+			bp.handleResponse(response)
+		}
+
+		if bp.timerFired || bp.buffer.readyToFlush() {
+			output = bp.output
+		} else {
 			output = nil
 		}
 	}
 
 shutdown:
-	if len(a.buffer) > 0 {
-		a.output <- a.buffer
-	}
-	close(a.output)
-}
-
-func (a *aggregator) wouldOverflow(msg *ProducerMessage) bool {
-	switch {
-	// Would we overflow our maximum possible size-on-the-wire? 10KiB is arbitrary overhead for safety.
-	case a.bufferBytes+msg.byteSize() >= int(MaxRequestSize-(10*1024)):
-		return true
-	// Would we overflow the size-limit of a compressed message-batch?
-	case a.parent.conf.Producer.Compression != CompressionNone && a.bufferBytes+msg.byteSize() >= a.parent.conf.Producer.MaxMessageBytes:
-		return true
-	// Would we overflow simply in number of messages?
-	case a.parent.conf.Producer.Flush.MaxMessages > 0 && len(a.buffer) >= a.parent.conf.Producer.Flush.MaxMessages:
-		return true
-	default:
-		return false
-	}
-}
-
-func (a *aggregator) readyToFlush(msg *ProducerMessage) bool {
-	switch {
-	// If all three config values are 0, we always flush as-fast-as-possible
-	case a.parent.conf.Producer.Flush.Frequency == 0 && a.parent.conf.Producer.Flush.Bytes == 0 && a.parent.conf.Producer.Flush.Messages == 0:
-		return true
-	// If the messages is a chaser we must flush to maintain the state-machine
-	case msg.flags&chaser == chaser:
-		return true
-	// If we've  passed the message trigger-point
-	case a.parent.conf.Producer.Flush.Messages > 0 && len(a.buffer) >= a.parent.conf.Producer.Flush.Messages:
-		return true
-	// If we've  passed the byte trigger-point
-	case a.parent.conf.Producer.Flush.Bytes > 0 && a.bufferBytes >= a.parent.conf.Producer.Flush.Bytes:
-		return true
-	default:
-		return false
-	}
-}
-
-func (a *aggregator) reset() {
-	a.timer = nil
-	a.buffer = nil
-	a.bufferBytes = 0
-}
-
-// takes a batch at a time from the aggregator and sends to the broker
-type flusher struct {
-	parent *asyncProducer
-	broker *Broker
-	input  <-chan []*ProducerMessage
-
-	currentRetries map[string]map[int32]error
-}
-
-func (f *flusher) run() {
-	var closing error
-
-	Logger.Printf("producer/flusher/%d starting up\n", f.broker.ID())
-
-	for batch := range f.input {
-		if closing != nil {
-			f.parent.retryMessages(batch, closing)
-			continue
+	for !bp.buffer.empty() {
+		select {
+		case response := <-bp.responses:
+			bp.handleResponse(response)
+		case bp.output <- bp.buffer:
+			bp.rollOver()
 		}
-
-		msgSets := f.groupAndFilter(batch)
-		request := f.parent.buildRequest(msgSets)
-		if request == nil {
-			continue
-		}
-
-		response, err := f.broker.Produce(request)
-
-		switch err.(type) {
-		case nil:
-			break
-		case PacketEncodingError:
-			f.parent.returnErrors(batch, err)
-			continue
-		default:
-			Logger.Printf("producer/flusher/%d state change to [closing] because %s\n", f.broker.ID(), err)
-			f.parent.abandonBrokerConnection(f.broker)
-			_ = f.broker.Close()
-			closing = err
-			f.parent.retryMessages(batch, err)
-			continue
-		}
-
-		if response == nil {
-			// this only happens when RequiredAcks is NoResponse, so we have to assume success
-			f.parent.returnSuccesses(batch)
-			continue
-		}
-
-		f.parseResponse(msgSets, response)
 	}
-	Logger.Printf("producer/flusher/%d shut down\n", f.broker.ID())
+	close(bp.output)
+	for response := range bp.responses {
+		bp.handleResponse(response)
+	}
+
+	Logger.Printf("producer/broker/%d shut down\n", bp.broker.ID())
 }
 
-func (f *flusher) groupAndFilter(batch []*ProducerMessage) map[string]map[int32][]*ProducerMessage {
-	msgSets := make(map[string]map[int32][]*ProducerMessage)
+func (bp *brokerProducer) needsRetry(msg *ProducerMessage) error {
+	if bp.closing != nil {
+		return bp.closing
+	}
 
-	for i, msg := range batch {
+	if bp.currentRetries[msg.Topic] == nil {
+		return nil
+	}
 
-		if f.currentRetries[msg.Topic] != nil && f.currentRetries[msg.Topic][msg.Partition] != nil {
-			// we're currently retrying this partition so we need to filter out this message
-			f.parent.retryMessages([]*ProducerMessage{msg}, f.currentRetries[msg.Topic][msg.Partition])
-			batch[i] = nil
+	return bp.currentRetries[msg.Topic][msg.Partition]
+}
 
-			if msg.flags&chaser == chaser {
-				// ...but now we can start processing future messages again
-				Logger.Printf("producer/flusher/%d state change to [normal] on %s/%d\n",
-					f.broker.ID(), msg.Topic, msg.Partition)
-				delete(f.currentRetries[msg.Topic], msg.Partition)
+func (bp *brokerProducer) waitForSpace(msg *ProducerMessage) error {
+	Logger.Printf("producer/broker/%d maximum request accumulated, waiting for space\n", bp.broker.ID())
+
+	for {
+		select {
+		case response := <-bp.responses:
+			bp.handleResponse(response)
+			// handling a response can change our state, so re-check some things
+			if reason := bp.needsRetry(msg); reason != nil {
+				return reason
+			} else if !bp.buffer.wouldOverflow(msg) {
+				return nil
 			}
-
-			continue
+		case bp.output <- bp.buffer:
+			bp.rollOver()
+			return nil
 		}
-
-		partitionSet := msgSets[msg.Topic]
-		if partitionSet == nil {
-			partitionSet = make(map[int32][]*ProducerMessage)
-			msgSets[msg.Topic] = partitionSet
-		}
-
-		partitionSet[msg.Partition] = append(partitionSet[msg.Partition], msg)
 	}
-
-	return msgSets
 }
 
-func (f *flusher) parseResponse(msgSets map[string]map[int32][]*ProducerMessage, response *ProduceResponse) {
+func (bp *brokerProducer) rollOver() {
+	bp.timer = nil
+	bp.timerFired = false
+	bp.buffer = newProduceSet(bp.parent)
+}
+
+func (bp *brokerProducer) handleResponse(response *brokerProducerResponse) {
+	if response.err != nil {
+		bp.handleError(response.set, response.err)
+	} else {
+		bp.handleSuccess(response.set, response.res)
+	}
+
+	if bp.buffer.empty() {
+		bp.rollOver() // this can happen if the response invalidated our buffer
+	}
+}
+
+func (bp *brokerProducer) handleSuccess(sent *produceSet, response *ProduceResponse) {
 	// we iterate through the blocks in the request set, not the response, so that we notice
 	// if the response is missing a block completely
-	for topic, partitionSet := range msgSets {
-		for partition, msgs := range partitionSet {
-			block := response.GetBlock(topic, partition)
-			if block == nil {
-				f.parent.returnErrors(msgs, ErrIncompleteResponse)
-				continue
-			}
-
-			switch block.Err {
-			// Success
-			case ErrNoError:
-				for i := range msgs {
-					msgs[i].Offset = block.Offset + int64(i)
-				}
-				f.parent.returnSuccesses(msgs)
-			// Retriable errors
-			case ErrUnknownTopicOrPartition, ErrNotLeaderForPartition, ErrLeaderNotAvailable,
-				ErrRequestTimedOut, ErrNotEnoughReplicas, ErrNotEnoughReplicasAfterAppend:
-				Logger.Printf("producer/flusher/%d state change to [retrying] on %s/%d because %v\n",
-					f.broker.ID(), topic, partition, block.Err)
-				if f.currentRetries[topic] == nil {
-					f.currentRetries[topic] = make(map[int32]error)
-				}
-				f.currentRetries[topic][partition] = block.Err
-				f.parent.retryMessages(msgs, block.Err)
-			// Other non-retriable errors
-			default:
-				f.parent.returnErrors(msgs, block.Err)
-			}
+	sent.eachPartition(func(topic string, partition int32, msgs []*ProducerMessage) {
+		if response == nil {
+			// this only happens when RequiredAcks is NoResponse, so we have to assume success
+			bp.parent.returnSuccesses(msgs)
+			return
 		}
+
+		block := response.GetBlock(topic, partition)
+		if block == nil {
+			bp.parent.returnErrors(msgs, ErrIncompleteResponse)
+			return
+		}
+
+		switch block.Err {
+		// Success
+		case ErrNoError:
+			for i, msg := range msgs {
+				msg.Offset = block.Offset + int64(i)
+			}
+			bp.parent.returnSuccesses(msgs)
+		// Retriable errors
+		case ErrUnknownTopicOrPartition, ErrNotLeaderForPartition, ErrLeaderNotAvailable,
+			ErrRequestTimedOut, ErrNotEnoughReplicas, ErrNotEnoughReplicasAfterAppend:
+			Logger.Printf("producer/broker/%d state change to [retrying] on %s/%d because %v\n",
+				bp.broker.ID(), topic, partition, block.Err)
+			if bp.currentRetries[topic] == nil {
+				bp.currentRetries[topic] = make(map[int32]error)
+			}
+			bp.currentRetries[topic][partition] = block.Err
+			bp.parent.retryMessages(msgs, block.Err)
+			bp.parent.retryMessages(bp.buffer.dropPartition(topic, partition), block.Err)
+		// Other non-retriable errors
+		default:
+			bp.parent.returnErrors(msgs, block.Err)
+		}
+	})
+}
+
+func (bp *brokerProducer) handleError(sent *produceSet, err error) {
+	switch err.(type) {
+	case PacketEncodingError:
+		sent.eachPartition(func(topic string, partition int32, msgs []*ProducerMessage) {
+			bp.parent.returnErrors(msgs, err)
+		})
+	default:
+		Logger.Printf("producer/broker/%d state change to [closing] because %s\n", bp.broker.ID(), err)
+		bp.parent.abandonBrokerConnection(bp.broker)
+		_ = bp.broker.Close()
+		bp.closing = err
+		sent.eachPartition(func(topic string, partition int32, msgs []*ProducerMessage) {
+			bp.parent.retryMessages(msgs, err)
+		})
+		bp.buffer.eachPartition(func(topic string, partition int32, msgs []*ProducerMessage) {
+			bp.parent.retryMessages(msgs, err)
+		})
+		bp.rollOver()
 	}
 }
 
@@ -776,68 +799,6 @@ func (p *asyncProducer) shutdown() {
 	close(p.successes)
 }
 
-func (p *asyncProducer) buildRequest(batch map[string]map[int32][]*ProducerMessage) *ProduceRequest {
-
-	req := &ProduceRequest{RequiredAcks: p.conf.Producer.RequiredAcks, Timeout: int32(p.conf.Producer.Timeout / time.Millisecond)}
-	empty := true
-
-	for topic, partitionSet := range batch {
-		for partition, msgSet := range partitionSet {
-			setToSend := new(MessageSet)
-			setSize := 0
-			for _, msg := range msgSet {
-				var keyBytes, valBytes []byte
-				var err error
-				if msg.Key != nil {
-					if keyBytes, err = msg.Key.Encode(); err != nil {
-						p.returnError(msg, err)
-						continue
-					}
-				}
-				if msg.Value != nil {
-					if valBytes, err = msg.Value.Encode(); err != nil {
-						p.returnError(msg, err)
-						continue
-					}
-				}
-
-				if p.conf.Producer.Compression != CompressionNone && setSize+msg.byteSize() > p.conf.Producer.MaxMessageBytes {
-					// compression causes message-sets to be wrapped as single messages, which have tighter
-					// size requirements, so we have to respect those limits
-					valBytes, err := encode(setToSend)
-					if err != nil {
-						Logger.Println(err) // if this happens, it's basically our fault.
-						panic(err)
-					}
-					req.AddMessage(topic, partition, &Message{Codec: p.conf.Producer.Compression, Key: nil, Value: valBytes})
-					setToSend = new(MessageSet)
-					setSize = 0
-				}
-				setSize += msg.byteSize()
-
-				setToSend.addMessage(&Message{Codec: CompressionNone, Key: keyBytes, Value: valBytes})
-				empty = false
-			}
-
-			if p.conf.Producer.Compression == CompressionNone {
-				req.AddSet(topic, partition, setToSend)
-			} else {
-				valBytes, err := encode(setToSend)
-				if err != nil {
-					Logger.Println(err) // if this happens, it's basically our fault.
-					panic(err)
-				}
-				req.AddMessage(topic, partition, &Message{Codec: p.conf.Producer.Compression, Key: nil, Value: valBytes})
-			}
-		}
-	}
-
-	if empty {
-		return nil
-	}
-	return req
-}
-
 func (p *asyncProducer) returnError(msg *ProducerMessage, err error) {
 	msg.clear()
 	pErr := &ProducerError{Msg: msg, Err: err}
@@ -851,17 +812,12 @@ func (p *asyncProducer) returnError(msg *ProducerMessage, err error) {
 
 func (p *asyncProducer) returnErrors(batch []*ProducerMessage, err error) {
 	for _, msg := range batch {
-		if msg != nil {
-			p.returnError(msg, err)
-		}
+		p.returnError(msg, err)
 	}
 }
 
 func (p *asyncProducer) returnSuccesses(batch []*ProducerMessage) {
 	for _, msg := range batch {
-		if msg == nil {
-			continue
-		}
 		if p.conf.Producer.Return.Successes {
 			msg.clear()
 			p.successes <- msg
@@ -870,17 +826,18 @@ func (p *asyncProducer) returnSuccesses(batch []*ProducerMessage) {
 	}
 }
 
+func (p *asyncProducer) retryMessage(msg *ProducerMessage, err error) {
+	if msg.retries >= p.conf.Producer.Retry.Max {
+		p.returnError(msg, err)
+	} else {
+		msg.retries++
+		p.retries <- msg
+	}
+}
+
 func (p *asyncProducer) retryMessages(batch []*ProducerMessage, err error) {
 	for _, msg := range batch {
-		if msg == nil {
-			continue
-		}
-		if msg.retries >= p.conf.Producer.Retry.Max {
-			p.returnError(msg, err)
-		} else {
-			msg.retries++
-			p.retries <- msg
-		}
+		p.retryMessage(msg, err)
 	}
 }
 

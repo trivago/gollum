@@ -17,10 +17,11 @@ import (
 // scope.
 type AsyncProducer interface {
 
-	// AsyncClose triggers a shutdown of the producer, flushing any messages it may have
-	// buffered. The shutdown has completed when both the Errors and Successes channels
-	// have been closed. When calling AsyncClose, you *must* continue to read from those
-	// channels in order to drain the results of any messages in flight.
+	// AsyncClose triggers a shutdown of the producer, flushing any messages it may
+	// have buffered. The shutdown has completed when both the Errors and Successes
+	// channels have been closed. When calling AsyncClose, you *must* continue to
+	// read from those channels in order to drain the results of any messages in
+	// flight.
 	AsyncClose()
 
 	// Close shuts down the producer and flushes any messages it may have buffered.
@@ -29,17 +30,20 @@ type AsyncProducer interface {
 	// underlying client.
 	Close() error
 
-	// Input is the input channel for the user to write messages to that they wish to send.
+	// Input is the input channel for the user to write messages to that they
+	// wish to send.
 	Input() chan<- *ProducerMessage
 
-	// Successes is the success output channel back to the user when AckSuccesses is enabled.
-	// If Return.Successes is true, you MUST read from this channel or the Producer will deadlock.
-	// It is suggested that you send and read messages together in a single select statement.
+	// Successes is the success output channel back to the user when AckSuccesses is
+	// enabled. If Return.Successes is true, you MUST read from this channel or the
+	// Producer will deadlock. It is suggested that you send and read messages
+	// together in a single select statement.
 	Successes() <-chan *ProducerMessage
 
-	// Errors is the error output channel back to the user. You MUST read from this channel
-	// or the Producer will deadlock when the channel is full. Alternatively, you can set
-	// Producer.Return.Errors in your config to false, which prevents errors to be returned.
+	// Errors is the error output channel back to the user. You MUST read from this
+	// channel or the Producer will deadlock when the channel is full. Alternatively,
+	// you can set Producer.Return.Errors in your config to false, which prevents
+	// errors to be returned.
 	Errors() <-chan *ProducerError
 }
 
@@ -107,18 +111,34 @@ const (
 
 // ProducerMessage is the collection of elements passed to the Producer in order to send a message.
 type ProducerMessage struct {
-	Topic string  // The Kafka topic for this message.
-	Key   Encoder // The partitioning key for this message. It must implement the Encoder interface. Pre-existing Encoders include StringEncoder and ByteEncoder.
-	Value Encoder // The actual message to store in Kafka. It must implement the Encoder interface. Pre-existing Encoders include StringEncoder and ByteEncoder.
+	Topic string // The Kafka topic for this message.
+	// The partitioning key for this message. Pre-existing Encoders include
+	// StringEncoder and ByteEncoder.
+	Key Encoder
+	// The actual message to store in Kafka. Pre-existing Encoders include
+	// StringEncoder and ByteEncoder.
+	Value Encoder
 
-	// These are filled in by the producer as the message is processed
-	Offset    int64 // Offset is the offset of the message stored on the broker. This is only guaranteed to be defined if the message was successfully delivered and RequiredAcks is not NoResponse.
-	Partition int32 // Partition is the partition that the message was sent to. This is only guaranteed to be defined if the message was successfully delivered.
+	// This field is used to hold arbitrary data you wish to include so it
+	// will be available when receiving on the Successes and Errors channels.
+	// Sarama completely ignores this field and is only to be used for
+	// pass-through data.
+	Metadata interface{}
 
-	Metadata interface{} // This field is used to hold arbitrary data you wish to include so it will be available when receiving on the Successes and Errors channels.  Sarama completely ignores this field and is only to be used for pass-through data.
+	// Below this point are filled in by the producer as the message is processed
+
+	// Offset is the offset of the message stored on the broker. This is only
+	// guaranteed to be defined if the message was successfully delivered and
+	// RequiredAcks is not NoResponse.
+	Offset int64
+	// Partition is the partition that the message was sent to. This is only
+	// guaranteed to be defined if the message was successfully delivered.
+	Partition int32
 
 	retries int
 	flags   flagSet
+
+	keyCache, valueCache []byte
 }
 
 func (m *ProducerMessage) byteSize() int {
@@ -135,6 +155,8 @@ func (m *ProducerMessage) byteSize() int {
 func (m *ProducerMessage) clear() {
 	m.flags = 0
 	m.retries = 0
+	m.keyCache = nil
+	m.valueCache = nil
 }
 
 // ProducerError is the type of error generated when the producer fails to deliver a message.
@@ -660,6 +682,7 @@ func (f *flusher) run() {
 }
 
 func (f *flusher) groupAndFilter(batch []*ProducerMessage) map[string]map[int32][]*ProducerMessage {
+	var err error
 	msgSets := make(map[string]map[int32][]*ProducerMessage)
 
 	for i, msg := range batch {
@@ -677,6 +700,22 @@ func (f *flusher) groupAndFilter(batch []*ProducerMessage) map[string]map[int32]
 			}
 
 			continue
+		}
+
+		if msg.Key != nil {
+			if msg.keyCache, err = msg.Key.Encode(); err != nil {
+				f.parent.returnError(msg, err)
+				batch[i] = nil
+				continue
+			}
+		}
+
+		if msg.Value != nil {
+			if msg.valueCache, err = msg.Value.Encode(); err != nil {
+				f.parent.returnError(msg, err)
+				batch[i] = nil
+				continue
+			}
 		}
 
 		partitionSet := msgSets[msg.Topic]
@@ -786,21 +825,6 @@ func (p *asyncProducer) buildRequest(batch map[string]map[int32][]*ProducerMessa
 			setToSend := new(MessageSet)
 			setSize := 0
 			for _, msg := range msgSet {
-				var keyBytes, valBytes []byte
-				var err error
-				if msg.Key != nil {
-					if keyBytes, err = msg.Key.Encode(); err != nil {
-						p.returnError(msg, err)
-						continue
-					}
-				}
-				if msg.Value != nil {
-					if valBytes, err = msg.Value.Encode(); err != nil {
-						p.returnError(msg, err)
-						continue
-					}
-				}
-
 				if p.conf.Producer.Compression != CompressionNone && setSize+msg.byteSize() > p.conf.Producer.MaxMessageBytes {
 					// compression causes message-sets to be wrapped as single messages, which have tighter
 					// size requirements, so we have to respect those limits
@@ -815,7 +839,7 @@ func (p *asyncProducer) buildRequest(batch map[string]map[int32][]*ProducerMessa
 				}
 				setSize += msg.byteSize()
 
-				setToSend.addMessage(&Message{Codec: CompressionNone, Key: keyBytes, Value: valBytes})
+				setToSend.addMessage(&Message{Codec: CompressionNone, Key: msg.keyCache, Value: msg.valueCache})
 				empty = false
 			}
 

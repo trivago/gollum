@@ -12,352 +12,280 @@
 package elastigo
 
 import (
-	"fmt"
 	"github.com/araddon/gou"
-	"github.com/bmizerany/assert"
+	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
 
-func TestSearchRequest(t *testing.T) {
+func TestSearch(t *testing.T) {
+
 	c := NewTestConn()
+	PopulateTestDB(t, c)
+	defer TearDownTestDB(c)
 
-	qry := map[string]interface{}{
-		"query": map[string]interface{}{
-			"wildcard": map[string]string{"actor": "a*"},
-		},
-	}
-	out, err := c.Search("github", "", nil, qry)
-	//log.Println(out)
-	assert.T(t, &out != nil && err == nil, t, "Should get docs")
-	expectedDocs := 10
-	expectedHits := 621
-	assert.T(t, out.Hits.Len() == expectedDocs, t, fmt.Sprintf("Should have %v docs but was %v", expectedDocs, out.Hits.Len()))
-	assert.T(t, out.Hits.Total == expectedHits, t, fmt.Sprintf("Should have %v hits but was %v", expectedHits, out.Hits.Total))
-}
+	Convey("Wildcard request query", t, func() {
 
-func TestSearchSimple(t *testing.T) {
-	c := NewTestConn()
+		qry := map[string]interface{}{
+			"query": map[string]interface{}{
+				"wildcard": map[string]string{"name": "*hu*"},
+			},
+		}
+		out, err := c.Search("oilers", "", nil, qry)
 
-	// searching without faceting
-	qry := Search("github").Pretty().Query(
-		Query().Search("add"),
-	)
-	out, _ := qry.Result(c)
-	// how many different docs used the word "add"
-	expectedDocs := 10
-	expectedHits := 494
-	assert.T(t, out.Hits.Len() == expectedDocs, fmt.Sprintf("Should have %v docs %v", expectedDocs, out.Hits.Len()))
-	assert.T(t, out.Hits.Total == expectedHits, fmt.Sprintf("Should have %v total= %v", expectedHits, out.Hits.Total))
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+		So(out.Hits, ShouldNotBeNil)
+		So(out.Hits.Total, ShouldEqual, 3)
+	})
 
-	// now the same result from a "Simple" search
-	out, _ = Search("github").Search("add").Result(c)
-	assert.T(t, out.Hits.Len() == expectedDocs, fmt.Sprintf("Should have %v docs %v", expectedDocs, out.Hits.Len()))
-	assert.T(t, out.Hits.Total == expectedHits, fmt.Sprintf("Should have %v total= %v", expectedHits, out.Hits.Total))
-}
+	Convey("Simple search", t, func() {
 
-func TestSearchRequestQueryString(t *testing.T) {
-	c := NewTestConn()
+		// searching without faceting
+		qry := Search("oilers").Pretty().Query(
+			Query().Search("dave"),
+		)
 
-	out, err := c.SearchUri("github", "", map[string]interface{}{"q": "actor:a*"})
-	expectedHits := 621
-	assert.T(t, &out != nil && err == nil, "Should get docs")
-	assert.T(t, out.Hits.Total == expectedHits, fmt.Sprintf("Should have %v hits but was %v", expectedHits, out.Hits.Total))
-}
+		// how many different docs used the word "dave"
+		out, err := qry.Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+		So(out.Hits, ShouldNotBeNil)
+		So(out.Hits.Total, ShouldEqual, 2)
 
-func TestSearchFacetOne(t *testing.T) {
-	/*
-		A faceted search for what "type" of events there are
-		- since we are not specifying an elasticsearch type it searches all ()
+		out, _ = Search("oilers").Search("dave").Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+		So(out.Hits, ShouldNotBeNil)
+		So(out.Hits.Total, ShouldEqual, 2)
+	})
 
-		{
-		    "terms" : {
-		      "_type" : "terms",
-		      "missing" : 0,
-		      "total" : 7561,
-		      "other" : 0,
-		      "terms" : [ {
-		        "term" : "pushevent",
-		        "count" : 4185
-		      }, {
-		        "term" : "createevent",
-		        "count" : 786
-		      }.....]
-		    }
-		 }
+	Convey("URL Request query string", t, func() {
 
-	*/
-	c := NewTestConn()
+		out, err := c.SearchUri("oilers", "", map[string]interface{}{"q": "pos:LW"})
 
-	qry := Search("github").Pretty().Facet(
-		Facet().Fields("type").Size("25"),
-	).Query(
-		Query().All(),
-	).Size("1")
-	out, err := qry.Result(c)
-	//log.Println(string(out.Facets))
-	//gou.Debug(out)
-	assert.T(t, out != nil && err == nil, "Should have output")
-	if out == nil {
-		t.Fail()
-		return
-	}
-	h := gou.NewJsonHelper(out.Facets)
-	expectedTotal := 8084
-	expectedTerms := 16
-	assert.T(t, h.Int("type.total") == expectedTotal, fmt.Sprintf("Should have %v results %v", expectedTotal, h.Int("type.total")))
-	assert.T(t, len(h.List("type.terms")) == expectedTerms, fmt.Sprintf("Should have %v event types, %v", expectedTerms, len(h.List("type.terms"))))
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+		So(out.Hits, ShouldNotBeNil)
+		So(out.Hits.Total, ShouldEqual, 3)
+	})
 
-	// Now, lets try changing size to 10
-	qry.FacetVal.Size("10")
-	out, err = qry.Result(c)
-	h = gou.NewJsonHelper(out.Facets)
 
-	// still same doc count
-	assert.T(t, h.Int("type.total") == expectedTotal, fmt.Sprintf("Should have %v results %v", expectedTotal, h.Int("type.total")))
-	// make sure size worked
-	expectedTerms = 10
-	assert.T(t, len(h.List("type.terms")) == expectedTerms, fmt.Sprintf("Should have %v event types, got %v", expectedTerms, len(h.List("type.terms"))))
+	//	A faceted search for what "type" of events there are
+	//	- since we are not specifying an elasticsearch type it searches all ()
+	//
+	//	{
+	//	    "terms" : {
+	//	      "_type" : "terms",
+	//	      "missing" : 0,
+	//	      "total" : 7561,
+	//	      "other" : 0,
+	//	      "terms" : [ {
+	//	        "term" : "pushevent",
+	//	        "count" : 4185
+	//	      }, {
+	//	        "term" : "createevent",
+	//	        "count" : 786
+	//	      }.....]
+	//	    }
+	//	 }
 
-	// now, lets add a type (out of the 16)
-	out, _ = Search("github").Type("IssueCommentEvent").Pretty().Facet(
-		Facet().Fields("type").Size("25"),
-	).Query(
-		Query().All(),
-	).Result(c)
-	h = gou.NewJsonHelper(out.Facets)
-	//log.Println(string(out.Facets))
-	// still same doc count
-	expectedTotal = 685
-	assert.T(t, h.Int("type.total") == expectedTotal, fmt.Sprintf("Should have %v results %v", expectedTotal, h.Int("type.total")))
-	// we should only have one facettype because we limited to one type
-	assert.T(t, len(h.List("type.terms")) == 1, fmt.Sprintf("Should have 1 event types, %v", len(h.List("type.terms"))))
+	Convey("Facet search simple", t, func() {
 
-	// now, add a second type (chained)
-	out, _ = Search("github").Type("IssueCommentEvent").Type("PushEvent").Pretty().Facet(
-		Facet().Fields("type").Size("25"),
-	).Query(
-		Query().All(),
-	).Result(c)
-	h = gou.NewJsonHelper(out.Facets)
-	// still same doc count
-	expectedTotal = 4941
-	expectedTerms = 2
-	assert.T(t, h.Int("type.total") == expectedTotal, fmt.Sprintf("Should have %v results %v", expectedTotal, h.Int("type.total")))
-	// make sure we now have 2 types
-	assert.T(t, len(h.List("type.terms")) == expectedTerms, fmt.Sprintf("Should have %v event types, %v", expectedTerms, len(h.List("type.terms"))))
+		qry := Search("oilers").Pretty().Facet(
+			Facet().Fields("teams").Size("4"),
+		).Query(
+			Query().All(),
+		).Size("1")
+		out, err := qry.Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
 
-	//and instead of faceting on type, facet on userid
-	// now, add a second type (chained)
-	out, _ = Search("github").Type("IssueCommentEvent,PushEvent").Pretty().Facet(
-		Facet().Fields("actor").Size("500"),
-	).Query(
-		Query().All(),
-	).Result(c)
-	h = gou.NewJsonHelper(out.Facets)
-	// still same doc count
-	expectedTotal = 5168
-	expectedTerms = 500
-	assert.T(t, h.Int("actor.total") == expectedTotal, t, fmt.Sprintf("Should have %v results %v", expectedTotal, h.Int("actor.total")))
-	// make sure size worked
-	assert.T(t, len(h.List("actor.terms")) == expectedTerms, t, fmt.Sprintf("Should have %v users, %v", expectedTerms, len(h.List("actor.terms"))))
+		h := gou.NewJsonHelper(out.Facets)
+		So(h.Int("teams.total"), ShouldEqual, 37)
+		So(h.Int("teams.missing"), ShouldEqual, 0)
+		So(len(h.List("teams.terms")), ShouldEqual, 4)
 
-}
+		// change the size
+		qry.FacetVal.Size("20")
+		out, err = qry.Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
 
-func TestSearchFacetRange(t *testing.T) {
-	c := NewTestConn()
+		h = gou.NewJsonHelper(out.Facets)
+		So(h.Int("teams.total"), ShouldEqual, 37)
+		So(len(h.List("teams.terms")), ShouldEqual, 11)
 
-	// ok, now lets try facet but on actor field with a range
-	qry := Search("github").Pretty().Facet(
-		Facet().Fields("actor").Size("500"),
-	).Query(
-		Query().Search("add"),
-	)
-	out, err := qry.Result(c)
-	assert.T(t, out != nil && err == nil, t, "Should have output")
+	})
 
-	if out == nil {
-		t.Fail()
-		return
-	}
-	//log.Println(string(out.Facets))
-	h := gou.NewJsonHelper(out.Facets)
-	expectedActorTotal := 521
-	// how many different docs used the word "add", during entire time range
-	assert.T(t, h.Int("actor.total") == expectedActorTotal, fmt.Sprintf("Should have %v results %v", expectedActorTotal, h.Int("actor.total")))
-	// make sure size worked
-	expectedTerms := 366
-	assert.T(t, len(h.List("actor.terms")) == expectedTerms,
-		fmt.Sprintf("Should have %v unique userids, %v", expectedTerms, len(h.List("actor.terms"))))
+	Convey("Facet search with type", t, func() {
 
-	// ok, repeat but with a range showing different results
-	qry = Search("github").Pretty().Facet(
-		Facet().Fields("actor").Size("500"),
-	).Query(
-		Query().Range(
-			Range().Field("created_at").From("2012-12-10T15:00:00-08:00").To("2012-12-10T15:10:00-08:00"),
-		).Search("add"),
-	)
-	out, err = qry.Result(c)
-	assert.T(t, out != nil && err == nil, t, "Should have output")
+		out, err := Search("oilers").Type("heyday").Pretty().Facet(
+			Facet().Fields("teams").Size("4"),
+		).Query(
+			Query().All(),
+		).Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
 
-	if out == nil {
-		t.Fail()
-		return
-	}
-	//log.Println(string(out.Facets))
-	h = gou.NewJsonHelper(out.Facets)
-	// how many different events used the word "add", during time range?
-	expectedActorTotal = 97
-	expectedTerms = 71
-	assert.T(t, h.Int("actor.total") == expectedActorTotal, fmt.Sprintf("Should have %v results %v", expectedActorTotal, h.Int("actor.total")))
-	// make sure size worked
-	assert.T(t, len(h.List("actor.terms")) == expectedTerms,
-		fmt.Sprintf("Should have %v event types, %v", expectedTerms, len(h.List("actor.terms"))))
+		h := gou.NewJsonHelper(out.Facets)
+		So(h.Int("teams.total"), ShouldEqual, 37)
+		So(len(h.List("teams.terms")), ShouldEqual, 4)
+	})
 
-}
 
-func TestSearchTerm(t *testing.T) {
-	c := NewTestConn()
+	Convey("Facet search with wildcard", t, func() {
 
-	// ok, now lets try searching with term query (specific field/term)
-	qry := Search("github").Query(
-		Query().Term("repository.name", "jasmine"),
-	)
-	out, _ := qry.Result(c)
-	// how many different docs have jasmine in repository.name?
-	expectedDocs := 4
-	expectedHits := 4
-	assert.T(t, out.Hits.Len() == expectedDocs, fmt.Sprintf("Should have %v docs %v", expectedDocs, out.Hits.Len()))
-	assert.T(t, out.Hits.Total == expectedHits, fmt.Sprintf("Should have %v total= %v", expectedHits, out.Hits.Total))
-}
+		qry := Search("oilers").Pretty().Facet(
+			Facet().Fields("teams").Size("20"),
+		).Query(
+			Query().Search("*w*"),
+		)
+		out, err := qry.Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
 
-func TestSearchFields(t *testing.T) {
-	c := NewTestConn()
+		h := gou.NewJsonHelper(out.Facets)
+		So(h.Int("teams.total"), ShouldEqual, 20)
+		So(len(h.List("teams.terms")), ShouldEqual, 7)
+	})
 
-	// same as terms, search using fields:
-	//    how many different docs have jasmine in repository.name?
-	qry := Search("github").Query(
-		Query().Fields("repository.name", "jasmine", "", ""),
-	)
-	out, _ := qry.Result(c)
-	expectedDocs := 4
-	expectedHits := 4
-	assert.T(t, out.Hits.Len() == expectedDocs, fmt.Sprintf("Should have %v docs %v", expectedDocs, out.Hits.Len()))
-	assert.T(t, out.Hits.Total == expectedHits, fmt.Sprintf("Should have %v total= %v", expectedHits, out.Hits.Total))
-}
+	Convey("Facet search with range", t, func() {
 
-func TestSearchMissingExists(t *testing.T) {
-	c := NewTestConn()
+		qry := Search("oilers").Pretty().Facet(
+			Facet().Fields("teams").Size("20"),
+		).Query(
+			Query().Range(
+				Range().Field("dob").From("19600101").To("19621231"),
+			).Search("*w*"),
+		)
+		out, err := qry.Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
 
-	// search for docs that are missing repository.name
-	qry := Search("github").Filter(
-		Filter().Exists("repository.name"),
-	)
-	out, _ := qry.Result(c)
-	expectedDocs := 10
-	expectedTotal := 7695
-	assert.T(t, out.Hits.Len() == expectedDocs, fmt.Sprintf("Should have %v docs %v", expectedDocs, out.Hits.Len()))
-	assert.T(t, out.Hits.Total == expectedTotal, fmt.Sprintf("Should have %v total= %v", expectedTotal, out.Hits.Total))
+		h := gou.NewJsonHelper(out.Facets)
+		So(h.Int("teams.total"), ShouldEqual, 12)
+		So(len(h.List("teams.terms")), ShouldEqual, 5)
+	})
 
-	qry = Search("github").Filter(
-		Filter().Missing("repository.name"),
-	)
-	out, _ = qry.Result(c)
-	expectedDocs = 10
-	expectedTotal = 390
-	assert.T(t, out.Hits.Len() == expectedDocs, fmt.Sprintf("Should have %v docs %v", expectedDocs, out.Hits.Len()))
-	assert.T(t, out.Hits.Total == expectedTotal, fmt.Sprintf("Should have %v total= %v", expectedTotal, out.Hits.Total))
-}
+	Convey("Search query with terms", t, func() {
 
-func TestSearchFilterQuery(t *testing.T) {
-	c := NewTestConn()
+		qry := Search("oilers").Query(
+			Query().Term("teams", "NYR"),
+		)
+		out, err := qry.Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+		So(out.Hits.Len(), ShouldEqual, 4)
+		So(out.Hits.Total, ShouldEqual, 4)
+	})
 
-	// compound query + filter with query being wildcard
-	out, _ := Search("github").Size("25").Query(
-		Query().Fields("repository.name", "jas*", "", ""),
-	).Filter(
-		Filter().Terms("repository.has_wiki", true),
-	).Result(c)
-	if out == nil || &out.Hits == nil {
-		t.Fail()
-		return
-	}
+	Convey("Search query with fields", t, func() {
 
-	expectedDocs := 7
-	expectedTotal := 7
-	assert.T(t, out.Hits.Len() == expectedDocs, fmt.Sprintf("Should have %v docs %v", expectedDocs, out.Hits.Len()))
-	assert.T(t, out.Hits.Total == expectedTotal, fmt.Sprintf("Should have %v total= %v", expectedTotal, out.Hits.Total))
-}
+		qry := Search("oilers").Query(
+			Query().Fields("teams", "NYR", "", ""),
+		)
+		out, err := qry.Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+		So(out.Hits.Len(), ShouldEqual, 4)
+		So(out.Hits.Total, ShouldEqual, 4)
+	})
 
-func TestSearchRange(t *testing.T) {
-	c := NewTestConn()
+	Convey("Search query with fields exist and missing", t, func() {
 
-	// now lets filter by a subset of the total time
-	out, _ := Search("github").Size("25").Query(
-		Query().Range(
-			Range().Field("created_at").From("2012-12-10T15:00:00-08:00").To("2012-12-10T15:10:00-08:00"),
-		).Search("add"),
-	).Result(c)
-	assert.T(t, out != nil && &out.Hits != nil, "Must not have nil results, or hits")
-	assert.T(t, out.Hits.Len() == 25, fmt.Sprintf("Should have 25 docs %v", out.Hits.Len()))
-	assert.T(t, out.Hits.Total == 92, fmt.Sprintf("Should have total=92 but was %v", out.Hits.Total))
-}
+		qry := Search("oilers").Filter(
+			Filter().Exists("PIM"),
+		)
+		out, err := qry.Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+		So(out.Hits.Len(), ShouldEqual, 2)
+		So(out.Hits.Total, ShouldEqual, 2)
 
-func TestSearchSortOrder(t *testing.T) {
-	c := NewTestConn()
+		qry = Search("oilers").Filter(
+			Filter().Missing("PIM"),
+		)
+		out, err = qry.Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+		So(out.Hits.Len(), ShouldEqual, 10)
+		So(out.Hits.Total, ShouldEqual, 12)
+	})
 
-	// ok, now lets try sorting by repository watchers descending
-	qry := Search("github").Pretty().Query(
-		Query().All(),
-	).Sort(
-		Sort("repository.watchers").Desc(),
-	)
-	out, _ := qry.Result(c)
+	Convey("Search with query and filter", t, func() {
 
-	// how many different docs used the word "add", during entire time range
-	expectedDocs := 10
-	expectedTotal := 8085
-	assert.T(t, out.Hits.Len() == expectedDocs, fmt.Sprintf("Should have %v docs %v", expectedDocs, out.Hits.Len()))
-	assert.T(t, out.Hits.Total == expectedTotal, fmt.Sprintf("Should have %v total= %v", expectedTotal, out.Hits.Total))
-	b, err := out.Hits.Hits[0].Source.MarshalJSON()
-	assert.T(t, err == nil, fmt.Sprintf("Should not have returned an error: %v", err))
-	h1 := gou.NewJsonHelper(b)
-	assert.T(t, h1.Int("repository.watchers") == 41377,
-		fmt.Sprintf("Should have 41377 watchers= %v", h1.Int("repository.watchers")))
+		out, err := Search("oilers").Size("25").Query(
+			Query().Fields("name", "*d*", "", ""),
+		).Filter(
+			Filter().Terms("teams", "STL"),
+		).Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+		So(out.Hits.Len(), ShouldEqual, 2)
+		So(out.Hits.Total, ShouldEqual, 2)
+	})
 
-	// ascending
-	out, _ = Search("github").Pretty().Query(
-		Query().All(),
-	).Sort(
-		Sort("repository.watchers"),
-	).Result(c)
-	// how many different docs used the word "add", during entire time range
-	assert.T(t, out.Hits.Len() == expectedDocs, fmt.Sprintf("Should have %v docs %v", expectedDocs, out.Hits.Len()))
-	assert.T(t, out.Hits.Total == expectedTotal, fmt.Sprintf("Should have %v total got %v", expectedTotal, out.Hits.Total))
-	b, err = out.Hits.Hits[0].Source.MarshalJSON()
-	assert.T(t, err == nil, fmt.Sprintf("Should not have returned an error: %v", err))
-	h2 := gou.NewJsonHelper(b)
-	assert.T(t, h2.Int("repository.watchers") == 0,
-		fmt.Sprintf("Should have 0 watchers= %v", h2.Int("repository.watchers")))
+	Convey("Search with range", t, func() {
 
-	// sort descending with search
-	out, _ = Search("github").Pretty().Size("5").Query(
-		Query().Search("python"),
-	).Sort(
-		Sort("repository.watchers").Desc(),
-	).Result(c)
-	// how many different docs used the word "add", during entire time range
-	expectedDocs = 5
-	expectedTotal = 734
+		out, err := Search("oilers").Size("25").Query(
+			Query().Range(
+				Range().Field("dob").From("19600101").To("19621231"),
+			).Search("*w*"),
+		).Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+		So(out.Hits.Len(), ShouldEqual, 4)
+		So(out.Hits.Total, ShouldEqual, 4)
+	})
 
-	assert.T(t, out.Hits.Len() == expectedDocs, fmt.Sprintf("Should have %v docs %v", expectedDocs, out.Hits.Len()))
-	assert.T(t, out.Hits.Total == expectedTotal, fmt.Sprintf("Should have %v total got %v", expectedTotal, out.Hits.Total))
+	Convey("Search with sorting desc", t, func() {
 
-	b, err = out.Hits.Hits[0].Source.MarshalJSON()
-	assert.T(t, err == nil, fmt.Sprintf("Should not have returned an error: %v", err))
-	h3 := gou.NewJsonHelper(b)
-	watchers := 8659
-	assert.T(t, h3.Int("repository.watchers") == watchers,
-		fmt.Sprintf("Should have %v watchers, got %v", watchers, h3.Int("repository.watchers")))
+		out, err := Search("oilers").Pretty().Query(
+			Query().All(),
+		).Sort(
+			Sort("dob").Desc(),
+		).Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+		So(out.Hits.Len(), ShouldEqual, 10)
+		So(out.Hits.Total, ShouldEqual, 14)
 
+		b, err := out.Hits.Hits[0].Source.MarshalJSON()
+		h1 := gou.NewJsonHelper(b)
+		So(h1.String("name"), ShouldEqual, "Grant Fuhr")
+	})
+
+	Convey("Search with sorting asc", t, func() {
+
+		out, err := Search("oilers").Pretty().Query(
+			Query().All(),
+		).Sort(
+			Sort("dob"),
+		).Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+		So(out.Hits.Len(), ShouldEqual, 10)
+		So(out.Hits.Total, ShouldEqual, 14)
+
+		b, err := out.Hits.Hits[0].Source.MarshalJSON()
+		h1 := gou.NewJsonHelper(b)
+		So(h1.String("name"), ShouldEqual, "Pat Hughes")
+	})
+
+	Convey("Search with sorting desc with query", t, func() {
+
+		out, err := Search("oilers").Pretty().Query(
+			Query().Search("*w*"),
+		).Sort(
+			Sort("dob").Desc(),
+		).Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+		So(out.Hits.Len(), ShouldEqual, 8)
+		So(out.Hits.Total, ShouldEqual, 8)
+
+		b, err := out.Hits.Hits[0].Source.MarshalJSON()
+		h1 := gou.NewJsonHelper(b)
+		So(h1.String("name"), ShouldEqual, "Wayne Gretzky")
+	})
 }

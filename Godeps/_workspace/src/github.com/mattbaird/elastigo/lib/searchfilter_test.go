@@ -12,96 +12,86 @@
 package elastigo
 
 import (
-	"fmt"
-	//"github.com/araddon/gou"
-	"github.com/bmizerany/assert"
+	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
 
 func TestFilters(t *testing.T) {
+
 	c := NewTestConn()
+	PopulateTestDB(t, c)
+	defer TearDownTestDB(c)
 
-	// search for docs that are missing repository.name
-	qry := Search("github").Filter(
-		Filter().Exists("repository.name"),
-	)
-	out, err := qry.Result(c)
-	assert.T(t, err == nil, t, "should not have error")
-	expectedDocs := 10
-	expectedHits := 7695
-	assert.T(t, out.Hits.Len() == expectedDocs, fmt.Sprintf("Should have %v docs got %v", expectedDocs, out.Hits.Len()))
-	assert.T(t, out.Hits.Total == expectedHits, fmt.Sprintf("Should have %v total got %v", expectedHits, out.Hits.Total))
-	qry = Search("github").Filter(
-		Filter().Missing("repository.name"),
-	)
-	expectedHits = 390
-	out, _ = qry.Result(c)
-	assert.T(t, out.Hits.Len() == expectedDocs, fmt.Sprintf("Should have %v docs got %v", expectedDocs, out.Hits.Len()))
-	assert.T(t, out.Hits.Total == expectedHits, fmt.Sprintf("Should have %v total got %v", expectedHits, out.Hits.Total))
+	Convey("Exists filter", t, func() {
+		qry := Search("oilers").Filter(
+			Filter().Exists("goals"),
+		)
+		out, err := qry.Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+		So(out.Hits, ShouldNotBeNil)
+		So(out.Hits.Len(), ShouldEqual, 10)
+		So(out.Hits.Total, ShouldEqual, 12)
+	})
 
-	//actor_attributes: {type: "User",
-	qry = Search("github").Filter(
-		Filter().Terms("actor_attributes.location", "portland"),
-	)
-	out, _ = qry.Result(c)
-	expectedDocs = 10
-	expectedHits = 71
-	assert.T(t, out.Hits.Len() == expectedDocs, fmt.Sprintf("Should have %v docs got %v", expectedDocs, out.Hits.Len()))
-	assert.T(t, out.Hits.Total == expectedHits, fmt.Sprintf("Should have %v total got %v", expectedHits, out.Hits.Total))
+	Convey("Missing filter", t, func() {
+		qry := Search("oilers").Filter(
+			Filter().Missing("goals"),
+		)
+		out, err := qry.Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+		So(out.Hits, ShouldNotBeNil)
+		So(out.Hits.Total, ShouldEqual, 2)
+	})
 
-	/*
-		Should this be an AND by default?
-	*/
-	qry = Search("github").Filter(
-		Filter().Terms("actor_attributes.location", "portland"),
-		Filter().Terms("repository.has_wiki", true),
-	)
-	out, err = qry.Result(c)
-	expectedDocs = 10
-	expectedHits = 44
-	assert.T(t, err == nil, t, "should not have error")
-	assert.T(t, out.Hits.Len() == expectedDocs, fmt.Sprintf("Should have %v docs got %v", expectedDocs, out.Hits.Len()))
-	assert.T(t, out.Hits.Total == expectedHits, fmt.Sprintf("Should have %v total got %v", expectedHits, out.Hits.Total))
+	Convey("Terms filter", t, func() {
+		qry := Search("oilers").Filter(
+			Filter().Terms("pos", "RW", "LW"),
+		)
+		out, err := qry.Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+		So(out.Hits, ShouldNotBeNil)
+		So(out.Hits.Total, ShouldEqual, 6)
+	})
 
-	// NOW, lets try with two query calls instead of one
-	qry = Search("github").Filter(
-		Filter().Terms("actor_attributes.location", "portland"),
-	)
-	qry.Filter(
-		Filter().Terms("repository.has_wiki", true),
-	)
-	out, err = qry.Result(c)
-	//gou.Debug(out)
-	assert.T(t, err == nil, t, "should not have error")
-	assert.T(t, out.Hits.Len() == expectedDocs, fmt.Sprintf("Should have %v docs got %v", expectedDocs, out.Hits.Len()))
-	assert.T(t, out.Hits.Total == expectedHits, fmt.Sprintf("Should have %v total got %v", expectedHits, out.Hits.Total))
+	Convey("Filter involving an AND", t, func() {
+		qry := Search("oilers").Filter(
+			Filter().Terms("pos", "LW"),
+			Filter().Exists("PIM"),
+		)
+		out, err := qry.Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+		So(out.Hits, ShouldNotBeNil)
+		So(out.Hits.Total, ShouldEqual, 2)
+	})
 
-	qry = Search("github").Filter(
-		"or",
-		Filter().Terms("actor_attributes.location", "portland"),
-		Filter().Terms("repository.has_wiki", true),
-	)
-	out, err = qry.Result(c)
-	expectedHits = 6676
-	assert.T(t, err == nil, t, "should not have error")
-	assert.T(t, out.Hits.Len() == expectedDocs, fmt.Sprintf("Should have %v docs got %v", expectedDocs, out.Hits.Len()))
-	assert.T(t, out.Hits.Total == expectedHits, fmt.Sprintf("Should have %v total got %v", expectedHits, out.Hits.Total))
-}
+	Convey("Filterng filter results", t, func() {
+		qry := Search("oilers").Filter(
+			Filter().Terms("pos", "LW"),
+		)
+		qry.Filter(
+			Filter().Exists("PIM"),
+		)
+		out, err := qry.Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+		So(out.Hits, ShouldNotBeNil)
+		So(out.Hits.Total, ShouldEqual, 2)
+	})
 
-func TestFilterRange(t *testing.T) {
-	c := NewTestConn()
-
-	// now lets filter range for repositories with more than 100 forks
-	out, _ := Search("github").Size("25").Filter(
-		Range().Field("repository.forks").From("100"),
-	).Result(c)
-	if out == nil || &out.Hits == nil {
-		t.Fail()
-		return
-	}
-	expectedDocs := 25
-	expectedHits := 725
-
-	assert.T(t, out.Hits.Len() == expectedDocs, fmt.Sprintf("Should have %v docs got %v", expectedDocs, out.Hits.Len()))
-	assert.T(t, out.Hits.Total == expectedHits, fmt.Sprintf("Should have total %v got %v", expectedHits, out.Hits.Total))
+	Convey("Filter involving OR", t, func() {
+		qry := Search("oilers").Filter(
+			"or",
+			Filter().Terms("pos", "G"),
+			Range().Field("goals").Gt(80),
+		)
+		out, err := qry.Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+		So(out.Hits, ShouldNotBeNil)
+		So(out.Hits.Total, ShouldEqual, 3)
+	})
 }

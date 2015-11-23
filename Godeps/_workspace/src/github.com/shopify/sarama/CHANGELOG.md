@@ -1,6 +1,30 @@
 # Changelog
 
-#### Version 1.6.0 (unreleased)
+#### Version 1.7.0 (trunk)
+
+Improvements:
+ - Don't wait for request timeouts on dead brokers, greatly speeding recovery
+   when the TCP connection is left hanging
+   ([#548](https://github.com/Shopify/sarama/pull/548)).
+ - Refactored part of the producer. The new version provides a much more elegant
+   solution to [#449](https://github.com/Shopify/sarama/pull/449). It is also
+   slightly more efficient, and much more precise in calculating batch sizes
+   when compression is used
+   ([#549](https://github.com/Shopify/sarama/pull/549),
+   [#550](https://github.com/Shopify/sarama/pull/550),
+   [#551](https://github.com/Shopify/sarama/pull/551)).
+
+Bug Fixes:
+ - Fix race condition in consumer test mock
+   ([#553](https://github.com/Shopify/sarama/pull/553)).
+
+#### Version 1.6.1 (2015-09-25)
+
+Bug Fixes:
+ - Fix panic that could occur if a user-supplied message value failed to encode
+   ([#449](https://github.com/Shopify/sarama/pull/449)).
+
+#### Version 1.6.0 (2015-09-04)
 
 New Features:
  - Implementation of a consumer offset manager using the APIs introduced in
@@ -8,6 +32,19 @@ New Features:
    high-level consumer, not for direct use, although it is *possible* to use it
    directly.
    ([#461](https://github.com/Shopify/sarama/pull/461)).
+
+Improvements:
+ - CRC32 calculation is much faster on machines with SSE4.2 instructions,
+   removing a major hotspot from most profiles
+   ([#255](https://github.com/Shopify/sarama/pull/255)).
+
+Bug Fixes:
+ - Make protocol decoding more robust against some malformed packets generated
+   by go-fuzz ([#523](https://github.com/Shopify/sarama/pull/523),
+   [#525](https://github.com/Shopify/sarama/pull/525)) or found in other ways
+   ([#528](https://github.com/Shopify/sarama/pull/528)).
+ - Fix a potential race condition panic in the consumer on shutdown
+   ([#529](https://github.com/Shopify/sarama/pull/529)).
 
 #### Version 1.5.0 (2015-08-17)
 

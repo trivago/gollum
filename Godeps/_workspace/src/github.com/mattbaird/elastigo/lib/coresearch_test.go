@@ -13,32 +13,9 @@ package elastigo
 
 import (
 	"encoding/json"
-	"fmt"
-	"github.com/bmizerany/assert"
+	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
-
-func ok(t *testing.T, err error) {
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestSearchResultToJSON(t *testing.T) {
-	c := NewTestConn()
-
-	qry := map[string]interface{}{
-		"query": map[string]interface{}{
-			"wildcard": map[string]string{"actor": "a*"},
-		},
-	}
-	var args map[string]interface{}
-	out, err := c.Search("github", "", args, qry)
-	ok(t, err)
-
-	_, err = json.Marshal(out.Hits.Hits)
-	ok(t, err)
-}
 
 type SuggestTest struct {
 	Completion string `json:"completion"`
@@ -46,38 +23,61 @@ type SuggestTest struct {
 
 type hash map[string]interface{}
 
-func TestSuggest(t *testing.T) {
+func TestCoreSearch(t *testing.T) {
+
 	c := NewTestConn()
-	mappingOpts := MappingOptions{Properties: hash{
-		"completion": hash{
-			"type": "completion",
-		},
-	}}
-	err := c.PutMapping("github", "SuggestTest", SuggestTest{}, mappingOpts)
-	ok(t, err)
+	c.CreateIndex("github")
+	waitFor(func() bool { return false }, 5)
 
-	_, err = c.UpdateWithPartialDoc("github", "SuggestTest", "1", nil, SuggestTest{"foobar"}, true)
-	ok(t, err)
+	defer func() {
+		c.DeleteIndex("github")
+	}()
 
-	query := hash{"completion_completion": hash{
-		"text": "foo",
-		"completion": hash{
-			"size":  10,
-			"field": "completion",
-		},
-	}}
+	Convey("Convert a search result to JSON", t, func() {
 
-	_, err = c.Refresh("github")
-	ok(t, err)
+		qry := map[string]interface{}{
+			"query": map[string]interface{}{
+				"wildcard": map[string]string{"actor": "a*"},
+			},
+		}
+		var args map[string]interface{}
+		out, err := c.Search("github", "", args, qry)
+		So(err, ShouldBeNil)
 
-	res, err := c.Suggest("github", nil, query)
-	ok(t, err)
+		_, err = json.Marshal(out.Hits.Hits)
+		So(err, ShouldBeNil)
+	})
 
-	opts, err := res.Result("completion_completion")
-	ok(t, err)
+	Convey("Update a document and verify that it is reflected", t, func() {
+		mappingOpts := MappingOptions{Properties: hash{
+			"completion": hash{
+				"type": "completion",
+			},
+		}}
+		err := c.PutMapping("github", "SuggestTest", SuggestTest{}, mappingOpts)
+		So(err, ShouldBeNil)
 
-	first := opts[0]
-	assert.T(t, len(first.Options) > 0, "Length of first.Options was 0.")
-	text := first.Options[0].Text
-	assert.T(t, text == "foobar", fmt.Sprintf("Expected foobar, got: %s", text))
+		_, err = c.UpdateWithPartialDoc("github", "SuggestTest", "1", nil, SuggestTest{"foobar"}, true)
+		So(err, ShouldBeNil)
+
+		query := hash{"completion_completion": hash{
+			"text": "foo",
+			"completion": hash{
+				"size":  10,
+				"field": "completion",
+			},
+		}}
+
+		_, err = c.Refresh("github")
+		So(err, ShouldBeNil)
+
+		res, err := c.Suggest("github", nil, query)
+		So(err, ShouldBeNil)
+
+		opts, err := res.Result("completion_completion")
+		So(err, ShouldBeNil)
+
+		So(len(opts[0].Options), ShouldBeGreaterThan, 0)
+		So(opts[0].Options[0].Text, ShouldEqual, "foobar")
+	})
 }

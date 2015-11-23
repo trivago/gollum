@@ -12,29 +12,31 @@
 package elastigo
 
 import (
-	//"encoding/json"
-	"fmt"
 	"github.com/araddon/gou"
-	"github.com/bmizerany/assert"
+	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
 
 func TestFacetRegex(t *testing.T) {
-	c := NewTestConn()
 
-	// This is a possible solution for auto-complete
-	out, _ := Search("github").Size("0").Facet(
-		Facet().Regex("repository.name", "no.*").Size("8"),
-	).Result(c)
-	if out == nil || &out.Hits == nil {
-		t.Fail()
-		return
-	}
-	//Debug(string(out.Facets))
-	fh := gou.NewJsonHelper([]byte(out.Facets))
-	facets := fh.Helpers("/repository.name/terms")
-	assert.T(t, len(facets) == 8, fmt.Sprintf("Should have 8? but was %v", len(facets)))
-	// for _, f := range facets {
-	// 	Debug(f)
-	// }
+	c := NewTestConn()
+	PopulateTestDB(t, c)
+	defer TearDownTestDB(c)
+
+	Convey("Facted regex query", t, func() {
+
+		// This is a possible solution for auto-complete
+		out, err := Search("oilers").Size("0").Facet(
+			Facet().Regex("name", "[jk].*").Size("8"),
+		).Result(c)
+		So(err, ShouldBeNil)
+		So(out, ShouldNotBeNil)
+
+		// Debug(string(out.Facets))
+		fh := gou.NewJsonHelper([]byte(out.Facets))
+		facets := fh.Helpers("/name/terms")
+		So(err, ShouldBeNil)
+		So(facets, ShouldNotBeNil)
+		So(len(facets), ShouldEqual, 4)
+	})
 }
