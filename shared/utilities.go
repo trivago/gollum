@@ -32,6 +32,7 @@ import (
 )
 
 var simpleEscapeChars = strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
+var jsonEscapeChars = strings.NewReplacer("\\", "\\\\", "\"", "\\\"")
 
 // FilesByDate implements the Sort interface by Date for os.FileInfo arrays
 type FilesByDate []os.FileInfo
@@ -101,6 +102,11 @@ func SplitPath(filePath string) (dir string, base string, ext string) {
 // Unescape replaces occurences of \\n, \\r and \\t with real escape codes.
 func Unescape(text string) string {
 	return simpleEscapeChars.Replace(text)
+}
+
+// EscapeJSON replaces occurences of \ and " with escaped versions.
+func EscapeJSON(text string) string {
+	return jsonEscapeChars.Replace(text)
 }
 
 // MaxI returns the maximum out of two integers
