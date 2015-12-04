@@ -20,6 +20,7 @@ import (
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"strings"
+	"time"
 )
 
 // ProcessJSON is a formatter that allows modifications to fields of a given
@@ -30,29 +31,41 @@ import (
 //     Formatter: "format.processJSON"
 //     ProcessJSONDataFormatter: "format.Forward"
 //     ProcessJSONDirectives:
-//       "host": "split: :host:@timestamp"
-//       "error": "replace:°:\n"
-//       "text": "trim:a:b:c"
+//       - "host:split: :host:@timestamp"
+//       - "@timestamp:time:20060102150405:2006-01-02 15\\:04\\:05"
+//       - "error:replace:°:\n"
+//       - "text:trim: \t"
+//		 - "foo:rename:bar"
 //	   ProcessJSONTrimFields: true
 //
 // ProcessJSONDataFormatter formatter that will be applied before
 // ProcessJSONDirectives are processed.
 //
-// ProcessJSONDirectives defines the action to be applied to a given member.
-// The directives have to be given in the form of field:operation, where
+// ProcessJSONDirectives defines the action to be applied to the json payload.
+// Directives are processed in order of appearance.
+// The directives have to be given in the form of key:operation:parameters, where
 // operation can be one of the following:
-// - split:<string>:[<key>:<key>:...] Split the value by a string and set the
+// - split:<string>:{<key>:<key>:...} Split the value by a string and set the
 // resulting array elements to the given fields in order of appearance.
 // - replace:<old>:<new> replace a given string in the value with a new one
 // - trim:<characters> remove the given characters (not string!) from the start
 // and end of the value
+// - rename:<old>:<new> rename a given field
+// - timestamp:<read>:<write> read a timestamp and transform it into another
+// format
 //
 // ProcessJSONTrimValues will trim whitspaces from all values if enabled.
 // Enabled by default.
 type ProcessJSON struct {
 	base       core.Formatter
-	directives map[string][]string
+	directives []transformDirective
 	trimValues bool
+}
+
+type transformDirective struct {
+	key        string
+	operation  string
+	parameters []string
 }
 
 type valueMap map[string]string
@@ -67,34 +80,63 @@ func (format *ProcessJSON) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err
 	}
+	directives := conf.GetStringArray("ProcessJSONDirectives", []string{})
+
 	format.base = plugin.(core.Formatter)
-	format.directives = make(map[string][]string)
+	format.directives = make([]transformDirective, 0, len(directives))
 	format.trimValues = conf.GetBool("ProcessJSONTrimValues", true)
 
-	directives := conf.GetStringMap("ProcessJSONDirectives", make(map[string]string))
-	for key, directive := range directives {
+	for _, directive := range directives {
 		directive := strings.Replace(directive, "\\:", "\r", -1)
 		parts := strings.Split(directive, ":")
-		for i, part := range parts {
-			parts[i] = strings.Replace(part, "\r", ":", -1)
+		for i, value := range parts {
+			parts[i] = strings.Replace(value, "\r", ":", -1)
 		}
-		format.directives[key] = parts
 
+		if len(parts) >= 2 {
+			newDirective := transformDirective{
+				key:       parts[0],
+				operation: strings.ToLower(parts[1]),
+			}
+
+			for i := 2; i < len(parts); i++ {
+				newDirective.parameters = append(newDirective.parameters, shared.Unescape(parts[i]))
+			}
+
+			format.directives = append(format.directives, newDirective)
+		}
 	}
+
 	return nil
 }
 
-func (values *valueMap) processDirective(key string, parameters []string) {
-	if value, keyExists := (*values)[key]; keyExists {
+func (values *valueMap) processDirective(directive transformDirective) {
+	if value, keyExists := (*values)[directive.key]; keyExists {
 
-		numParameters := len(parameters)
-		switch strings.ToLower(parameters[0]) {
+		numParameters := len(directive.parameters)
+		switch directive.operation {
+		case "rename":
+			if numParameters == 1 {
+				(*values)[shared.Unescape(directive.parameters[0])] = value
+				delete(*values, directive.key)
+			}
+
+		case "time":
+			if numParameters == 2 {
+
+				if timestamp, err := time.Parse(directive.parameters[0], value[:len(directive.parameters[0])]); err != nil {
+					Log.Warning.Print("ProcessJSON failed to parse a timestamp: ", err)
+				} else {
+					(*values)[directive.key] = timestamp.Format(directive.parameters[1])
+				}
+			}
+
 		case "split":
 			if numParameters > 1 {
-				token := shared.Unescape(parameters[1])
+				token := shared.Unescape(directive.parameters[0])
 				if strings.Contains(value, token) {
 					elements := strings.Split(value, token)
-					mapping := parameters[2:]
+					mapping := directive.parameters[1:]
 					maxItems := shared.MinI(len(elements), len(mapping))
 
 					for i := 0; i < maxItems; i++ {
@@ -104,16 +146,16 @@ func (values *valueMap) processDirective(key string, parameters []string) {
 			}
 
 		case "replace":
-			if numParameters == 3 {
-				(*values)[key] = strings.Replace(value, shared.Unescape(parameters[1]), shared.Unescape(parameters[2]), -1)
+			if numParameters == 2 {
+				(*values)[directive.key] = strings.Replace(value, shared.Unescape(directive.parameters[0]), shared.Unescape(directive.parameters[1]), -1)
 			}
 
 		case "trim":
 			switch {
+			case numParameters == 0:
+				(*values)[directive.key] = strings.Trim(value, " \t")
 			case numParameters == 1:
-				(*values)[key] = strings.Trim(value, " \t")
-			case numParameters == 2:
-				(*values)[key] = strings.Trim(value, shared.Unescape(parameters[1]))
+				(*values)[directive.key] = strings.Trim(value, shared.Unescape(directive.parameters[0]))
 			}
 		}
 	}
@@ -133,8 +175,8 @@ func (format *ProcessJSON) Format(msg core.Message) ([]byte, core.MessageStreamI
 		return data, streamID // ### return, malformed data ###
 	}
 
-	for key, parameters := range format.directives {
-		values.processDirective(key, parameters)
+	for _, directive := range format.directives {
+		values.processDirective(directive)
 	}
 
 	if format.trimValues {
