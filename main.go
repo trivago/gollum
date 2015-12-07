@@ -35,7 +35,7 @@ import (
 const (
 	gollumMajorVer = 0
 	gollumMinorVer = 4
-	gollumPatchVer = 1
+	gollumPatchVer = 2
 	gollumPostfix  = "dev"
 )
 
