@@ -51,7 +51,7 @@ func (files FilesByDate) Swap(a, b int) {
 // "[a] modified < [b] modified". If both files were created in the same second
 // the file names are compared by using a lexicographic string compare.
 func (files FilesByDate) Less(a, b int) bool {
-	timeA, timeB := files[a].ModTime().Unix(), files[b].ModTime().Unix()
+	timeA, timeB := files[a].ModTime().UnixNano(), files[b].ModTime().UnixNano()
 	if timeA == timeB {
 		return files[a].Name() < files[b].Name()
 	}
