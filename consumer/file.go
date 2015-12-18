@@ -86,6 +86,7 @@ type File struct {
 	offsetFileName string
 	delimiter      string
 	seek           int
+	seekOnRotate   int
 	seekOffset     int64
 	state          fileState
 }
@@ -113,20 +114,26 @@ func (cons *File) Configure(conf core.PluginConfig) error {
 		fallthrough
 	case fileOffsetEnd:
 		cons.seek = 2
+		cons.seekOnRotate = 2
 		cons.seekOffset = 0
 
 	case fileOffsetStart:
 		cons.seek = 1
+		cons.seekOnRotate = 1
 		cons.seekOffset = 0
 	}
 
 	return nil
 }
 
+func (cons *File) storeOffset() {
+	ioutil.WriteFile(cons.offsetFileName, []byte(strconv.FormatInt(cons.seekOffset, 10)), 0644)
+}
+
 func (cons *File) enqueueAndPersist(data []byte, sequence uint64) {
 	cons.seekOffset, _ = cons.file.Seek(0, 1)
 	cons.Enqueue(data, sequence)
-	ioutil.WriteFile(cons.offsetFileName, []byte(strconv.FormatInt(cons.seekOffset, 10)), 0644)
+	cons.storeOffset()
 }
 
 func (cons *File) realFileName() string {
@@ -203,7 +210,7 @@ func (cons *File) read() {
 			switch {
 			case err != nil:
 				if printFileOpenError {
-					Log.Error.Print("File open error - ", err)
+					Log.Warning.Print("File open failed - ", err)
 					printFileOpenError = false
 				}
 				time.Sleep(3 * time.Second)
@@ -225,6 +232,16 @@ func (cons *File) read() {
 			case err == nil: // ok
 				spin.Reset()
 			case err == io.EOF:
+				if cons.file.Name() != cons.realFileName() {
+					Log.Note.Print("File rotation detected")
+					cons.file.Close()
+					cons.file = nil
+					cons.seek = cons.seekOnRotate
+					cons.seekOffset = 0
+					if cons.offsetFileName != "" {
+						cons.storeOffset()
+					}
+				}
 				spin.Yield()
 			case cons.state == fileStateRead:
 				Log.Error.Print("Error reading file - ", err)

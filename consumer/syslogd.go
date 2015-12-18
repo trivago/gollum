@@ -127,11 +127,17 @@ func (cons *Syslogd) Consume(workers *sync.WaitGroup) {
 
 	switch cons.protocol {
 	case "unix":
-		server.ListenUnixgram(cons.address)
+		if err := server.ListenUnixgram(cons.address); err != nil {
+			Log.Error.Print("Syslog: Failed to open unix://", cons.address)
+		}
 	case "udp":
-		server.ListenUDP(cons.address)
+		if err := server.ListenUDP(cons.address); err != nil {
+			Log.Error.Print("Syslog: Failed to open udp://", cons.address)
+		}
 	case "tcp":
-		server.ListenTCP(cons.address)
+		if err := server.ListenTCP(cons.address); err != nil {
+			Log.Error.Print("Syslog: Failed to open tcp://", cons.address)
+		}
 	}
 
 	server.Boot()
