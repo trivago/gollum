@@ -36,6 +36,7 @@ import (
 //     File: "/var/log/gollum.log"
 //     FileOverwrite: false
 //     Permissions: "0664"
+//     FolderPermissions: "0755"
 //     BatchMaxCount: 8192
 //     BatchFlushCount: 4096
 //     BatchTimeoutSec: 5
@@ -63,6 +64,9 @@ import (
 //
 // Permissions accepts an octal number string that contains the unix file
 // permissions used when creating a file. By default this is set to "0664".
+//
+// FolderPermissions accepts an octal number string that contains the unix file
+// permissions used when creating a folder. By default this is set to "0755".
 //
 // BatchMaxCount defines the maximum number of messages that can be buffered
 // before a flush is mandatory. If the buffer is full and a flush is still
@@ -113,22 +117,23 @@ import (
 // By default this is set to false.
 type File struct {
 	core.ProducerBase
-	filesByStream   map[core.MessageStreamID]*fileState
-	files           map[string]*fileState
-	rotate          fileRotateConfig
-	timestamp       string
-	fileDir         string
-	fileName        string
-	fileExt         string
-	batchTimeout    time.Duration
-	flushTimeout    time.Duration
-	batchMaxCount   int
-	batchFlushCount int
-	pruneCount      int
-	pruneSize       int64
-	wildcardPath    bool
-	overwriteFile   bool
-	permissions     os.FileMode
+	filesByStream     map[core.MessageStreamID]*fileState
+	files             map[string]*fileState
+	rotate            fileRotateConfig
+	timestamp         string
+	fileDir           string
+	fileName          string
+	fileExt           string
+	batchTimeout      time.Duration
+	flushTimeout      time.Duration
+	batchMaxCount     int
+	batchFlushCount   int
+	pruneCount        int
+	pruneSize         int64
+	wildcardPath      bool
+	overwriteFile     bool
+	filePermissions   os.FileMode
+	folderPermissions os.FileMode
 }
 
 func init() {
@@ -153,8 +158,14 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.overwriteFile = conf.GetBool("FileOverwrite", false)
 
-	flags, err := strconv.ParseInt(conf.GetString("Permissions", "0664"), 8, 32)
-	prod.permissions = os.FileMode(flags)
+	fileFlags, err := strconv.ParseInt(conf.GetString("Permissions", "0664"), 8, 32)
+	prod.filePermissions = os.FileMode(fileFlags)
+	if err != nil {
+		return err
+	}
+
+	folderFlags, err := strconv.ParseInt(conf.GetString("FolderPermissions", "0755"), 8, 32)
+	prod.folderPermissions = os.FileMode(folderFlags)
 	if err != nil {
 		return err
 	}
@@ -247,7 +258,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	}
 
 	// Assure path is existing
-	if err := os.MkdirAll(fileDir, 0755); err != nil {
+	if err := os.MkdirAll(fileDir, prod.folderPermissions); err != nil {
 		return nil, fmt.Errorf("Failed to create %s because of %s", fileDir, err.Error()) // ### return, missing directory ###
 	}
 
@@ -300,7 +311,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		openFlags |= os.O_APPEND
 	}
 
-	state.file, err = os.OpenFile(logFilePath, openFlags, prod.permissions)
+	state.file, err = os.OpenFile(logFilePath, openFlags, prod.filePermissions)
 	if err != nil {
 		return state, err // ### return error ###
 	}
