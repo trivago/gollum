@@ -33,7 +33,7 @@ current:
 
 update:
 	@go get -u github.com/tools/godep
-	@GO15VENDOREXPERIMENT=1 godep save ./...
+	@godep save ./...
 
 restore:
 	@go get -u github.com/tools/godep

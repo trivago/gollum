@@ -6,16 +6,92 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/araddon/gou",
+			"Rev": "0c2ab7394d785afff14c983fedce4be70ccc431f"
+		},
+		{
+			"ImportPath": "github.com/artyom/fb303",
+			"Rev": "fa4a241cefb113c4981dbac51a8cfcb047efa079"
+		},
+		{
+			"ImportPath": "github.com/artyom/scribe",
+			"Rev": "35c1da66e76d138c09c552b492bb341f8504ff40"
+		},
+		{
+			"ImportPath": "github.com/artyom/thrift",
+			"Rev": "388840a05deb9b7d85fdf6c225a2729fe1826cb7"
+		},
+		{
+			"ImportPath": "github.com/bitly/go-hostpool",
+			"Rev": "d0e59c22a56e8dadfed24f74f452cea5a52722d2"
+		},
+		{
+			"ImportPath": "github.com/eapache/go-resiliency/breaker",
+			"Comment": "v1.0.0-3-gf341fb4",
+			"Rev": "f341fb4dca45128e4aa86389fa6a675d55fe25e1"
+		},
+		{
+			"ImportPath": "github.com/eapache/queue",
+			"Comment": "v1.0.2",
+			"Rev": "ded5959c0d4e360646dc9e9908cff48666781367"
+		},
+		{
 			"ImportPath": "github.com/golang/protobuf/proto",
 			"Rev": "68415e7123da32b07eab49c96d2c4d6158360e9b"
+		},
+		{
+			"ImportPath": "github.com/golang/snappy",
+			"Rev": "723cc1e459b8eea2dea4583200fd60757d40097a"
+		},
+		{
+			"ImportPath": "github.com/jeromer/syslogparser",
+			"Rev": "ff71fe7a7d5279df4b964b31f7ee4adf117277f6"
+		},
+		{
+			"ImportPath": "github.com/klauspost/crc32",
+			"Rev": "41b6596e004cf56ede13d98d16f50cf2742ab559"
+		},
+		{
+			"ImportPath": "github.com/mattbaird/elastigo/lib",
+			"Comment": "v1.0-293-gbd9e895",
+			"Rev": "bd9e895823b8d2159b9a3dcf8ef17498eb886769"
 		},
 		{
 			"ImportPath": "github.com/miekg/pcap",
 			"Rev": "fbfcc463715f6206524a6b1fcc8ed1b9e7567ba5"
 		},
 		{
+			"ImportPath": "github.com/shopify/sarama",
+			"Comment": "v1.7.0-9-gbb163bf",
+			"Rev": "bb163bfb128eff45c8770a6eaa5930940ac5b71c"
+		},
+		{
 			"ImportPath": "github.com/trivago/tgo",
-			"Rev": "dfae28cf242ee2df413760ccb7351c3dc0930b67"
+			"Rev": "ef625d2f7e6e57a1453b3e345fea4ddabee0cbfd"
+		},
+		{
+			"ImportPath": "golang.org/x/net/websocket",
+			"Rev": "6c89489cafabcbc76df9dbf84ebf07204673fecf"
+		},
+		{
+			"ImportPath": "gopkg.in/Shopify/sarama.v1",
+			"Comment": "v1.7.0",
+			"Rev": "87ec8d76e89cc002ff5673ee7598ae1db2f32424"
+		},
+		{
+			"ImportPath": "gopkg.in/bufio.v1",
+			"Comment": "v1",
+			"Rev": "567b2bfa514e796916c4747494d6ff5132a1dfce"
+		},
+		{
+			"ImportPath": "gopkg.in/mcuadros/go-syslog.v2",
+			"Comment": "v2.1.0",
+			"Rev": "6cba2bfcf64a025c899aa3be061161d2b89d8b54"
+		},
+		{
+			"ImportPath": "gopkg.in/redis.v2",
+			"Comment": "v2.3.2",
+			"Rev": "e6179049628164864e6e84e973cfb56335748dea"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
