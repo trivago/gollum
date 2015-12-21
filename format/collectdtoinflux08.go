@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 )
 
 // CollectdToInflux08 provides a transformation from collectd JSON data to
@@ -37,7 +37,7 @@ type CollectdToInflux08 struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(CollectdToInflux08{})
+	tgo.TypeRegistry.Register(CollectdToInflux08{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
@@ -70,7 +70,7 @@ func (format *CollectdToInflux08) Format(msg core.Message) ([]byte, core.Message
 	}
 
 	// Manually convert to JSON lines
-	influxData := shared.NewByteStream(len(data))
+	influxData := tgo.NewByteStream(len(data))
 	name := format.createMetricName(collectdData.Plugin,
 		collectdData.PluginInstance,
 		collectdData.PluginType,

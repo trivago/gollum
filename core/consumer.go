@@ -16,7 +16,7 @@ package core
 
 import (
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"sync"
 	"time"
 )
@@ -70,7 +70,7 @@ type ConsumerBase struct {
 	control      chan PluginControl
 	streams      []MappedStream
 	runState     *PluginRunState
-	fuse         *shared.Fuse
+	fuse         *tgo.Fuse
 	onRoll       func()
 	onStop       func()
 	onFuseBurned func()
@@ -250,7 +250,7 @@ func (cons *ConsumerBase) fuseControlLoop() {
 	if cons.fuse == nil {
 		return // ### return, no fuse attached ###
 	}
-	spin := shared.NewSpinner(shared.SpinPrioritySuspend)
+	spin := tgo.NewSpinner(tgo.SpinPrioritySuspend)
 	for cons.IsActive() {
 		// If the fuse is burned: callback, wait, callback
 		if cons.IsFuseBurned() {

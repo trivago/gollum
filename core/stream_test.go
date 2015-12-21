@@ -15,7 +15,7 @@
 package core
 
 import (
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"sync"
 	"testing"
 	"time"
@@ -37,10 +37,10 @@ func getMockStream() StreamBase {
 }
 
 func TestStreamConfigureStream(t *testing.T) {
-	expect := shared.NewExpect(t)
-	shared.TypeRegistry.Register(mockPlugin{})
-	shared.TypeRegistry.Register(mockFormatter{})
-	shared.TypeRegistry.Register(mockFilter{})
+	expect := tgo.NewExpect(t)
+	tgo.TypeRegistry.Register(mockPlugin{})
+	tgo.TypeRegistry.Register(mockFormatter{})
+	tgo.TypeRegistry.Register(mockFilter{})
 	mockConf := NewPluginConfig("core.mockPlugin")
 	mockConf.ID = "testPluginConf"
 	mockConf.Stream = []string{"testBoundStream"}
@@ -62,7 +62,7 @@ func TestStreamConfigureStream(t *testing.T) {
 }
 
 func TestStreamPauseFlush(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 
 	mockStream := getMockStream()
 
@@ -90,7 +90,7 @@ func TestStreamBroadcast(t *testing.T) {
 }
 
 func TestStreamRoute(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 	mockStream := getMockStream()
 
 	mockDistributer := func(msg Message) {

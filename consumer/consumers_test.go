@@ -16,14 +16,14 @@ package consumer
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"reflect"
 	"testing"
 )
 
 func TestConsumerInterface(t *testing.T) {
 	conf := core.NewPluginConfig(reflect.TypeOf(t).Name())
-	consumers := shared.TypeRegistry.GetRegistered("consumer.")
+	consumers := tgo.TypeRegistry.GetRegistered("consumer.")
 
 	if len(consumers) == 0 {
 		t.Error("No consumers defined")

@@ -16,7 +16,7 @@ package stream
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"math/rand"
 )
 
@@ -39,7 +39,7 @@ type Random struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(Random{})
+	tgo.TypeRegistry.Register(Random{})
 }
 
 // Configure initializes this distributor with values from a plugin config.

@@ -18,7 +18,7 @@ import (
 	"encoding/base64"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 )
 
 // Serialize is a formatter that serializes a message for later retrieval.
@@ -40,7 +40,7 @@ type Serialize struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(Serialize{})
+	tgo.TypeRegistry.Register(Serialize{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

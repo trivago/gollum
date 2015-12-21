@@ -16,7 +16,7 @@ package core
 
 import (
 	"fmt"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"sync"
 	"sync/atomic"
 )
@@ -81,7 +81,7 @@ type PluginWithState interface {
 }
 
 func init() {
-	shared.Metric.New(metricActiveWorkers)
+	tgo.Metric.New(metricActiveWorkers)
 }
 
 // NewPluginRunState creates a new plugin state helper
@@ -110,14 +110,14 @@ func (state *PluginRunState) SetWorkerWaitGroup(workers *sync.WaitGroup) {
 // AddWorker adds a worker to the waitgroup configured by SetWorkerWaitGroup.
 func (state *PluginRunState) AddWorker() {
 	state.workers.Add(1)
-	shared.Metric.Inc(metricActiveWorkers)
+	tgo.Metric.Inc(metricActiveWorkers)
 }
 
 // WorkerDone removes a worker from the waitgroup configured by
 // SetWorkerWaitGroup.
 func (state *PluginRunState) WorkerDone() {
 	state.workers.Done()
-	shared.Metric.Dec(metricActiveWorkers)
+	tgo.Metric.Dec(metricActiveWorkers)
 }
 
 // NewPluginWithType creates a new plugin of a given type and initializes it
@@ -127,7 +127,7 @@ func (state *PluginRunState) WorkerDone() {
 // This function returns nil, error if the plugin could not be instantiated or
 // plugin, error if Configure failed.
 func NewPluginWithType(typename string, config PluginConfig) (Plugin, error) {
-	obj, err := shared.TypeRegistry.New(typename)
+	obj, err := tgo.TypeRegistry.New(typename)
 	if err != nil {
 		return nil, err
 	}

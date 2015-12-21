@@ -17,7 +17,7 @@ package producer
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"net"
 	"sync"
 	"time"
@@ -87,7 +87,7 @@ type bufferedConn interface {
 }
 
 func init() {
-	shared.TypeRegistry.Register(Socket{})
+	tgo.TypeRegistry.Register(Socket{})
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -100,13 +100,13 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
 	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
-	prod.batchFlushCount = shared.MinI(prod.batchFlushCount, prod.batchMaxCount)
+	prod.batchFlushCount = tgo.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.bufferSizeByte = conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10 // 1 MB
 
-	prod.acknowledge = shared.Unescape(conf.GetString("Acknowledge", ""))
+	prod.acknowledge = tgo.Unescape(conf.GetString("Acknowledge", ""))
 	prod.ackTimeout = time.Duration(conf.GetInt("AckTimeoutMs", 2000)) * time.Millisecond
-	prod.address, prod.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
+	prod.address, prod.protocol = tgo.ParseAddress(conf.GetString("Address", ":5880"))
 
 	if prod.protocol != "unix" {
 		if prod.acknowledge != "" {
@@ -166,7 +166,7 @@ func (prod *Socket) validate() bool {
 	_, err := prod.connection.Read(response)
 	if err != nil {
 		Log.Error.Print("Socket response error: ", err)
-		if shared.IsDisconnectedError(err) {
+		if tgo.IsDisconnectedError(err) {
 			prod.closeConnection()
 		}
 		return false

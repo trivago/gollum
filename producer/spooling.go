@@ -17,7 +17,7 @@ package producer
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"os"
 	"sync"
 	"time"
@@ -79,7 +79,7 @@ const (
 )
 
 func init() {
-	shared.TypeRegistry.Register(Spooling{})
+	tgo.TypeRegistry.Register(Spooling{})
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -116,10 +116,10 @@ func (prod *Spooling) writeBatchOnTimeOut() {
 		duration := time.Since(spool.lastMetricUpdate)
 		spool.lastMetricUpdate = time.Now()
 
-		shared.Metric.Add(spoolingMetricRead+spool.streamName, read)
-		shared.Metric.Add(spoolingMetricWrite+spool.streamName, write)
-		shared.Metric.SetF(spoolingMetricReadSec+spool.streamName, float64(read)/duration.Seconds())
-		shared.Metric.SetF(spoolingMetricWriteSec+spool.streamName, float64(write)/duration.Seconds())
+		tgo.Metric.Add(spoolingMetricRead+spool.streamName, read)
+		tgo.Metric.Add(spoolingMetricWrite+spool.streamName, write)
+		tgo.Metric.SetF(spoolingMetricReadSec+spool.streamName, float64(read)/duration.Seconds())
+		tgo.Metric.SetF(spoolingMetricWriteSec+spool.streamName, float64(write)/duration.Seconds())
 
 		if spool.batch.ReachedSizeThreshold(prod.batchMaxCount/2) || spool.batch.ReachedTimeThreshold(prod.batchTimeout) {
 			spool.flush()

@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"io"
 	"net"
 	"strings"
@@ -85,13 +85,13 @@ type Proxy struct {
 	listen    io.Closer
 	protocol  string
 	address   string
-	flags     shared.BufferedReaderFlags
+	flags     tgo.BufferedReaderFlags
 	delimiter string
 	offset    int
 }
 
 func init() {
-	shared.TypeRegistry.Register(Proxy{})
+	tgo.TypeRegistry.Register(Proxy{})
 }
 
 // Configure initializes this consumer with values from a plugin config.
@@ -101,41 +101,41 @@ func (cons *Proxy) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	cons.address, cons.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
+	cons.address, cons.protocol = tgo.ParseAddress(conf.GetString("Address", ":5880"))
 	if cons.protocol == "udp" {
 		return fmt.Errorf("Proxy does not support UDP")
 	}
 
-	cons.delimiter = shared.Unescape(conf.GetString("Delimiter", "\n"))
+	cons.delimiter = tgo.Unescape(conf.GetString("Delimiter", "\n"))
 	cons.offset = conf.GetInt("Offset", 0)
-	cons.flags = shared.BufferedReaderFlagEverything
+	cons.flags = tgo.BufferedReaderFlagEverything
 
 	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))
 	switch partitioner {
 	case "binary_be":
-		cons.flags |= shared.BufferedReaderFlagBigEndian
+		cons.flags |= tgo.BufferedReaderFlagBigEndian
 		fallthrough
 
 	case "binary", "binary_le":
 		switch conf.GetInt("Size", 4) {
 		case 1:
-			cons.flags |= shared.BufferedReaderFlagMLE8
+			cons.flags |= tgo.BufferedReaderFlagMLE8
 		case 2:
-			cons.flags |= shared.BufferedReaderFlagMLE16
+			cons.flags |= tgo.BufferedReaderFlagMLE16
 		case 4:
-			cons.flags |= shared.BufferedReaderFlagMLE32
+			cons.flags |= tgo.BufferedReaderFlagMLE32
 		case 8:
-			cons.flags |= shared.BufferedReaderFlagMLE64
+			cons.flags |= tgo.BufferedReaderFlagMLE64
 		default:
 			return fmt.Errorf("Size only supports the value 1,2,4 and 8")
 		}
 
 	case "fixed":
-		cons.flags |= shared.BufferedReaderFlagMLEFixed
+		cons.flags |= tgo.BufferedReaderFlagMLEFixed
 		cons.offset = conf.GetInt("Size", 1)
 
 	case "ascii":
-		cons.flags |= shared.BufferedReaderFlagMLE
+		cons.flags |= tgo.BufferedReaderFlagMLE
 
 	case "delimiter":
 		// Nothing to add
@@ -175,7 +175,7 @@ func (cons *Proxy) Consume(workers *sync.WaitGroup) {
 		return
 	}
 
-	go shared.DontPanic(func() {
+	go tgo.DontPanic(func() {
 		cons.AddMainWorker(workers)
 		cons.accept()
 	})

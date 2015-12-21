@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	kafka "gopkg.in/Shopify/sarama.v1"
 	"io/ioutil"
 	"strconv"
@@ -122,7 +122,7 @@ type Kafka struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(Kafka{})
+	tgo.TypeRegistry.Register(Kafka{})
 }
 
 // Configure initializes this consumer with values from a plugin config.
@@ -204,7 +204,7 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 	partCons, err := cons.consumer.ConsumePartition(cons.topic, partitionID, cons.offsets[partitionID])
 	if err != nil {
 		if !cons.client.Closed() {
-			go shared.DontPanic(func() {
+			go tgo.DontPanic(func() {
 				cons.retry(partitionID, err)
 			})
 		}
@@ -222,7 +222,7 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 	}()
 
 	// Loop over worker
-	spin := shared.NewSpinner(shared.SpinPriorityLow)
+	spin := tgo.NewSpinner(tgo.SpinPriorityLow)
 
 	for !cons.client.Closed() {
 		cons.WaitOnFuse()
@@ -287,7 +287,7 @@ func (cons *Kafka) startConsumers() error {
 			cons.offsets[partition] = cons.defaultOffset
 		}
 
-		go shared.DontPanic(func() {
+		go tgo.DontPanic(func() {
 			cons.readFromPartition(partition)
 		})
 	}

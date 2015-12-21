@@ -16,7 +16,7 @@ package core
 
 import (
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"sync"
 	"time"
 )
@@ -183,7 +183,7 @@ func (prod *ProducerBase) setState(state PluginState) {
 
 // GetFuse returns the fuse bound to this producer or nil if no fuse name has
 // been set.
-func (prod *ProducerBase) GetFuse() *shared.Fuse {
+func (prod *ProducerBase) GetFuse() *tgo.Fuse {
 	if prod.fuseName == "" || prod.fuseTimeout <= 0 {
 		return nil
 	}
@@ -433,7 +433,7 @@ func (prod *ProducerBase) Drop(msg Message) {
 // If a timout has been detected, false is returned.
 func (prod *ProducerBase) CloseMessageChannel(handleMessage func(msg Message)) bool {
 	close(prod.messages)
-	flushWorker := new(shared.WaitGroup)
+	flushWorker := new(tgo.WaitGroup)
 
 	for msg := range prod.messages {
 		// handleMessage may block. To be able to exit this method we need to
@@ -485,7 +485,7 @@ func (prod *ProducerBase) messageLoop(onMessage func(Message)) {
 // WaitForDependencies waits until all dependencies reach the given runstate.
 // A timeout > 0 can be given to work around possible blocking situations.
 func (prod *ProducerBase) WaitForDependencies(waitForState PluginState, timeout time.Duration) {
-	spinner := shared.NewSpinner(shared.SpinPriorityMedium)
+	spinner := tgo.NewSpinner(tgo.SpinPriorityMedium)
 	for _, dep := range prod.dependencies {
 		start := time.Now()
 		for dep.GetState() < waitForState {

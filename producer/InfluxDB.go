@@ -17,7 +17,7 @@ package producer
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"io"
 	"sync"
 	"time"
@@ -102,7 +102,7 @@ type influxDBWriter interface {
 }
 
 func init() {
-	shared.TypeRegistry.Register(InfluxDB{})
+	tgo.TypeRegistry.Register(InfluxDB{})
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -135,7 +135,7 @@ func (prod *InfluxDB) Configure(conf core.PluginConfig) error {
 
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
 	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
-	prod.batchFlushCount = shared.MinI(prod.batchFlushCount, prod.batchMaxCount)
+	prod.batchFlushCount = tgo.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)

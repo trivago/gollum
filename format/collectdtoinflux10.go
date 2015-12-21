@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"strings"
 )
 
@@ -40,7 +40,7 @@ type CollectdToInflux10 struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(CollectdToInflux10{})
+	tgo.TypeRegistry.Register(CollectdToInflux10{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
@@ -73,7 +73,7 @@ func (format *CollectdToInflux10) Format(msg core.Message) ([]byte, core.Message
 	}
 
 	// Manually convert to line protocol
-	influxData := shared.NewByteStream(len(data))
+	influxData := tgo.NewByteStream(len(data))
 	timestamp := int64(collectdData.Time * 1000)
 	fixedPart := fmt.Sprintf(
 		`%s,plugin_instance=%s,type=%s,type_instance=%s,host=%s`,
@@ -83,7 +83,7 @@ func (format *CollectdToInflux10) Format(msg core.Message) ([]byte, core.Message
 		format.escapeTag(collectdData.TypeInstance),
 		format.escapeTag(collectdData.Host))
 
-	setSize := shared.Min3I(len(collectdData.Dstypes), len(collectdData.Dsnames), len(collectdData.Values))
+	setSize := tgo.Min3I(len(collectdData.Dstypes), len(collectdData.Dsnames), len(collectdData.Values))
 	for i := 0; i < setSize; i++ {
 		fmt.Fprintf(&influxData,
 			`%s,dstype=%s,dsname=%s value=%f %d\n`,

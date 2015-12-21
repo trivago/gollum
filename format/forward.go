@@ -16,7 +16,7 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 )
 
 // Forward is a formatter that passes a message as is
@@ -28,7 +28,7 @@ type Forward struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(Forward{})
+	tgo.TypeRegistry.Register(Forward{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

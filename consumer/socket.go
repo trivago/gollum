@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"io"
 	"net"
 	"os"
@@ -116,14 +116,14 @@ type Socket struct {
 	reconnectTime time.Duration
 	ackTimeout    time.Duration
 	readTimeout   time.Duration
-	flags         shared.BufferedReaderFlags
+	flags         tgo.BufferedReaderFlags
 	fileFlags     os.FileMode
 	offset        int
 	clearSocket   bool
 }
 
 func init() {
-	shared.TypeRegistry.Register(Socket{})
+	tgo.TypeRegistry.Register(Socket{})
 }
 
 // Configure initializes this consumer with values from a plugin config.
@@ -141,8 +141,8 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 
 	cons.clients = list.New()
 	cons.clientLock = new(sync.Mutex)
-	cons.acknowledge = shared.Unescape(conf.GetString("Acknowledge", ""))
-	cons.address, cons.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
+	cons.acknowledge = tgo.Unescape(conf.GetString("Acknowledge", ""))
+	cons.address, cons.protocol = tgo.ParseAddress(conf.GetString("Address", ":5880"))
 	cons.reconnectTime = time.Duration(conf.GetInt("ReconnectAfterSec", 2)) * time.Second
 	cons.ackTimeout = time.Duration(conf.GetInt("AckTimoutSec", 2)) * time.Second
 	cons.readTimeout = time.Duration(conf.GetInt("ReadTimoutSec", 5)) * time.Second
@@ -156,37 +156,37 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 		}
 	}
 
-	cons.delimiter = shared.Unescape(conf.GetString("Delimiter", "\n"))
+	cons.delimiter = tgo.Unescape(conf.GetString("Delimiter", "\n"))
 	cons.offset = conf.GetInt("Offset", 0)
 	cons.flags = 0
 
 	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))
 	switch partitioner {
 	case "binary_be":
-		cons.flags |= shared.BufferedReaderFlagBigEndian
+		cons.flags |= tgo.BufferedReaderFlagBigEndian
 		fallthrough
 
 	case "binary", "binary_le":
-		cons.flags |= shared.BufferedReaderFlagEverything
+		cons.flags |= tgo.BufferedReaderFlagEverything
 		switch conf.GetInt("Size", 4) {
 		case 1:
-			cons.flags |= shared.BufferedReaderFlagMLE8
+			cons.flags |= tgo.BufferedReaderFlagMLE8
 		case 2:
-			cons.flags |= shared.BufferedReaderFlagMLE16
+			cons.flags |= tgo.BufferedReaderFlagMLE16
 		case 4:
-			cons.flags |= shared.BufferedReaderFlagMLE32
+			cons.flags |= tgo.BufferedReaderFlagMLE32
 		case 8:
-			cons.flags |= shared.BufferedReaderFlagMLE64
+			cons.flags |= tgo.BufferedReaderFlagMLE64
 		default:
 			return fmt.Errorf("Size only supports the value 1,2,4 and 8")
 		}
 
 	case "fixed":
-		cons.flags |= shared.BufferedReaderFlagMLEFixed
+		cons.flags |= tgo.BufferedReaderFlagMLEFixed
 		cons.offset = conf.GetInt("Size", 1)
 
 	case "ascii":
-		cons.flags |= shared.BufferedReaderFlagMLE
+		cons.flags |= tgo.BufferedReaderFlagMLE
 
 	case "delimiter":
 		// Nothing to add
@@ -217,7 +217,7 @@ func (cons *Socket) processConnection(conn net.Conn) {
 	defer cons.WorkerDone()
 	defer conn.Close()
 
-	buffer := shared.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.offset, cons.delimiter)
+	buffer := tgo.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.offset, cons.delimiter)
 
 	for cons.IsActive() && !cons.IsFuseBurned() {
 		conn.SetReadDeadline(time.Now().Add(cons.readTimeout))
@@ -229,7 +229,7 @@ func (cons *Socket) processConnection(conn net.Conn) {
 		}
 
 		// Silently exit on disconnect/close
-		if !cons.IsActive() || shared.IsDisconnectedError(err) {
+		if !cons.IsActive() || tgo.IsDisconnectedError(err) {
 			return // ### return, connection closed ###
 		}
 
@@ -242,7 +242,7 @@ func (cons *Socket) processConnection(conn net.Conn) {
 		cons.sendAck(conn, false)
 
 		// Parser errors do not drop the connection
-		if err != shared.BufferDataInvalid {
+		if err != tgo.BufferDataInvalid {
 			return // ### return, close connections ###
 		}
 	}
@@ -364,11 +364,11 @@ func (cons *Socket) Consume(workers *sync.WaitGroup) {
 	cons.AddMainWorker(workers)
 
 	if cons.protocol == "udp" {
-		go shared.DontPanic(cons.udpAccept)
+		go tgo.DontPanic(cons.udpAccept)
 		cons.SetFuseBurnedCallback(cons.closeConnection)
 		defer cons.closeConnection()
 	} else {
-		go shared.DontPanic(cons.tcpAccept)
+		go tgo.DontPanic(cons.tcpAccept)
 		cons.SetFuseBurnedCallback(cons.closeTCPConnection)
 		defer cons.closeTCPConnection()
 	}

@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"net/http"
 	"sync"
 )
@@ -55,11 +55,11 @@ type HTTPRequest struct {
 	address    string
 	encoding   string
 	rawPackets bool
-	listen     *shared.StopListener
+	listen     *tgo.StopListener
 }
 
 func init() {
-	shared.TypeRegistry.Register(HTTPRequest{})
+	tgo.TypeRegistry.Register(HTTPRequest{})
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -71,7 +71,7 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfig) error {
 	prod.SetStopCallback(prod.close)
 
 	address := conf.GetString("Address", "localhost:80")
-	prod.protocol, prod.host, prod.port, err = shared.SplitAddress(address, "http")
+	prod.protocol, prod.host, prod.port, err = tgo.SplitAddress(address, "http")
 	if err != nil {
 		return err
 	}

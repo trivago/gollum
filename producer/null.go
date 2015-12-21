@@ -16,7 +16,7 @@ package producer
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"sync"
 	"time"
 )
@@ -36,7 +36,7 @@ type Null struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(Null{})
+	tgo.TypeRegistry.Register(Null{})
 }
 
 // Configure initializes the basic members

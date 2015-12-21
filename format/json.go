@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"sync"
 	"time"
 )
@@ -102,7 +102,7 @@ const (
 // is nested, all arrays will be closed.
 type JSON struct {
 	message   *bytes.Buffer
-	parser    shared.TransitionParser
+	parser    tgo.TransitionParser
 	state     jsonReaderState
 	stack     []jsonReaderState
 	parseLock *sync.Mutex
@@ -112,12 +112,12 @@ type JSON struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(JSON{})
+	tgo.TypeRegistry.Register(JSON{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *JSON) Configure(conf core.PluginConfig) error {
-	format.parser = shared.NewTransitionParser()
+	format.parser = tgo.NewTransitionParser()
 	format.state = jsonReadObject
 	format.initState = conf.GetString("JSONStartState", "")
 	format.timeRead = conf.GetString("JSONTimestampRead", "20060102150405")
@@ -137,7 +137,7 @@ func (format *JSON) Configure(conf core.PluginConfig) error {
 
 	// Parse directives
 
-	parserFunctions := make(map[string]shared.ParsedFunc)
+	parserFunctions := make(map[string]tgo.ParsedFunc)
 	parserFunctions["key"] = format.readKey
 	parserFunctions["val"] = format.readValue
 	parserFunctions["esc"] = format.readEscaped
@@ -151,9 +151,9 @@ func (format *JSON) Configure(conf core.PluginConfig) error {
 	parserFunctions["esc+end"] = format.readEscapedEnd
 	parserFunctions["dat+end"] = format.readDateEnd
 
-	directives := []shared.TransitionDirective{}
+	directives := []tgo.TransitionDirective{}
 	for _, dirString := range directiveStrings {
-		directive, err := shared.ParseTransitionDirective(dirString, parserFunctions)
+		directive, err := tgo.ParseTransitionDirective(dirString, parserFunctions)
 		if err != nil {
 			return fmt.Errorf("%s: %s", err.Error(), dirString) // ### return, malformed directive ###
 		}
@@ -188,12 +188,12 @@ func (format *JSON) writeKey(key []byte) {
 	format.message.WriteString(`":`)
 }
 
-func (format *JSON) readKey(data []byte, state shared.ParserStateID) {
+func (format *JSON) readKey(data []byte, state tgo.ParserStateID) {
 	format.writeKey(data)
 	format.state = jsonReadValue
 }
 
-func (format *JSON) readValue(data []byte, state shared.ParserStateID) {
+func (format *JSON) readValue(data []byte, state tgo.ParserStateID) {
 	switch format.state {
 	default:
 		format.writeKey([]byte(format.parser.GetStateName(state)))
@@ -213,7 +213,7 @@ func (format *JSON) readValue(data []byte, state shared.ParserStateID) {
 	}
 }
 
-func (format *JSON) readEscaped(data []byte, state shared.ParserStateID) {
+func (format *JSON) readEscaped(data []byte, state tgo.ParserStateID) {
 	switch format.state {
 	default:
 		format.writeKey([]byte(format.parser.GetStateName(state)))
@@ -236,49 +236,49 @@ func (format *JSON) readEscaped(data []byte, state shared.ParserStateID) {
 	format.message.WriteByte('"')
 }
 
-func (format *JSON) readDate(data []byte, state shared.ParserStateID) {
+func (format *JSON) readDate(data []byte, state tgo.ParserStateID) {
 	date, _ := time.Parse(format.timeRead, string(bytes.TrimSpace(data)))
 	formattedDate := date.Format(format.timeWrite)
 	format.readEscaped([]byte(formattedDate), state)
 }
 
-func (format *JSON) readValueEnd(data []byte, state shared.ParserStateID) {
+func (format *JSON) readValueEnd(data []byte, state tgo.ParserStateID) {
 	formatState := format.state
 	format.readValue(data, state)
 	format.state = formatState
 	format.readEnd(data, state)
 }
 
-func (format *JSON) readEscapedEnd(data []byte, state shared.ParserStateID) {
+func (format *JSON) readEscapedEnd(data []byte, state tgo.ParserStateID) {
 	formatState := format.state
 	format.readEscaped(data, state)
 	format.state = formatState
 	format.readEnd(data, state)
 }
 
-func (format *JSON) readDateEnd(data []byte, state shared.ParserStateID) {
+func (format *JSON) readDateEnd(data []byte, state tgo.ParserStateID) {
 	formatState := format.state
 	format.readDate(data, state)
 	format.state = formatState
 	format.readEnd(data, state)
 }
 
-func (format *JSON) readArrayValue(data []byte, state shared.ParserStateID) {
+func (format *JSON) readArrayValue(data []byte, state tgo.ParserStateID) {
 	format.readArray(data, state)
 	format.readValue(data, state)
 }
 
-func (format *JSON) readArrayEscaped(data []byte, state shared.ParserStateID) {
+func (format *JSON) readArrayEscaped(data []byte, state tgo.ParserStateID) {
 	format.readArray(data, state)
 	format.readEscaped(data, state)
 }
 
-func (format *JSON) readArrayDate(data []byte, state shared.ParserStateID) {
+func (format *JSON) readArrayDate(data []byte, state tgo.ParserStateID) {
 	format.readArray(data, state)
 	format.readDate(data, state)
 }
 
-func (format *JSON) readArray(data []byte, state shared.ParserStateID) {
+func (format *JSON) readArray(data []byte, state tgo.ParserStateID) {
 	if format.state == jsonReadArrayAppend {
 		format.message.WriteString(",[")
 	} else {
@@ -288,7 +288,7 @@ func (format *JSON) readArray(data []byte, state shared.ParserStateID) {
 	format.state = jsonReadArray
 }
 
-func (format *JSON) readObject(data []byte, state shared.ParserStateID) {
+func (format *JSON) readObject(data []byte, state tgo.ParserStateID) {
 	if format.state == jsonReadArrayAppend {
 		format.message.WriteString(",{")
 	} else {
@@ -298,7 +298,7 @@ func (format *JSON) readObject(data []byte, state shared.ParserStateID) {
 	format.state = jsonReadObject
 }
 
-func (format *JSON) readEnd(data []byte, state shared.ParserStateID) {
+func (format *JSON) readEnd(data []byte, state tgo.ParserStateID) {
 	stackSize := len(format.stack)
 
 	if stackSize > 0 {

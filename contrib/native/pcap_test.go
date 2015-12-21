@@ -16,7 +16,7 @@ package native
 
 import (
 	"github.com/miekg/pcap"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"testing"
 )
 
@@ -31,7 +31,7 @@ func newTcpPktMock(seq uint32) *pcap.Packet {
 }
 
 func TestFindPacketSlot(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 
 	listMock := packetList{
 		newTcpPktMock(1),
@@ -74,7 +74,7 @@ func TestFindPacketSlot(t *testing.T) {
 }
 
 func TestInsert(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 
 	listMock := packetList{
 		newTcpPktMock(1),

@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -137,7 +137,7 @@ type File struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(File{})
+	tgo.TypeRegistry.Register(File{})
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -154,7 +154,7 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	prod.files = make(map[string]*fileState)
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
 	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
-	prod.batchFlushCount = shared.MinI(prod.batchFlushCount, prod.batchMaxCount)
+	prod.batchFlushCount = tgo.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.overwriteFile = conf.GetBool("FileOverwrite", false)
 
@@ -273,7 +273,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		files, _ := ioutil.ReadDir(fileDir)
 		for _, file := range files {
 			if strings.HasPrefix(file.Name(), signature) {
-				counter, _ := shared.Btoi([]byte(file.Name()[len(signature)+1:]))
+				counter, _ := tgo.Btoi([]byte(file.Name()[len(signature)+1:]))
 				if maxSuffix <= counter {
 					maxSuffix = counter + 1
 				}

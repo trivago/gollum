@@ -16,7 +16,7 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 )
 
 // Timestamp is a formatter that allows prefixing a message with a timestamp
@@ -40,7 +40,7 @@ type Timestamp struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(Timestamp{})
+	tgo.TypeRegistry.Register(Timestamp{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

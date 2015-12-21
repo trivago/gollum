@@ -15,14 +15,14 @@
 package core
 
 import (
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )
 
 // Config represents the top level config containing all plugin clonfigs
 type Config struct {
-	Values  []map[string]shared.MarshalMap
+	Values  []map[string]tgo.MarshalMap
 	Plugins []PluginConfig
 }
 

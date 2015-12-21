@@ -23,8 +23,8 @@ import (
 	_ "github.com/trivago/gollum/filter"
 	_ "github.com/trivago/gollum/format"
 	_ "github.com/trivago/gollum/producer"
-	"github.com/trivago/gollum/shared"
 	_ "github.com/trivago/gollum/stream"
+	"github.com/trivago/tgo"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -34,8 +34,8 @@ import (
 
 const (
 	gollumMajorVer = 0
-	gollumMinorVer = 4
-	gollumPatchVer = 2
+	gollumMinorVer = 5
+	gollumPatchVer = 0
 	gollumPostfix  = "dev"
 )
 
@@ -52,10 +52,10 @@ func main() {
 	parseFlags()
 	Log.SetVerbosity(Log.Verbosity(*flagLoglevel))
 
-	contribModules := shared.TypeRegistry.GetRegistered("contrib")
+	contribModules := tgo.TypeRegistry.GetRegistered("contrib")
 	modules := ""
 	for _, typeName := range contribModules {
-		modules += " +" + typeName[shared.IndexN(typeName, ".", 1)+1:]
+		modules += " +" + typeName[tgo.IndexN(typeName, ".", 1)+1:]
 	}
 
 	if *flagVersion {
@@ -116,7 +116,7 @@ func main() {
 	// Metrics server start
 
 	if *flagMetricsPort != 0 {
-		server := shared.NewMetricServer()
+		server := tgo.NewMetricServer()
 		go server.Start(*flagMetricsPort)
 		defer server.Stop()
 	}

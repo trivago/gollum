@@ -19,7 +19,7 @@ import (
 	"github.com/jeromer/syslogparser"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"gopkg.in/mcuadros/go-syslog.v2"
 	"gopkg.in/mcuadros/go-syslog.v2/format"
 	"sync"
@@ -61,7 +61,7 @@ type Syslogd struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(Syslogd{})
+	tgo.TypeRegistry.Register(Syslogd{})
 }
 
 // Configure initializes this consumer with values from a plugin config.
@@ -71,7 +71,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	cons.address, cons.protocol = shared.ParseAddress(conf.GetString("Address", "udp://0.0.0.0:514"))
+	cons.address, cons.protocol = tgo.ParseAddress(conf.GetString("Address", "udp://0.0.0.0:514"))
 	format := conf.GetString("Format", "RFC6587")
 
 	switch cons.protocol {

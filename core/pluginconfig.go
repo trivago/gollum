@@ -16,7 +16,7 @@ package core
 
 import (
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 )
 
 // PluginConfig is a configuration for a specific plugin
@@ -26,7 +26,7 @@ type PluginConfig struct {
 	Enable    bool
 	Instances int
 	Stream    []string
-	Settings  shared.MarshalMap
+	Settings  tgo.MarshalMap
 	validKeys map[string]bool
 }
 
@@ -40,7 +40,7 @@ func NewPluginConfig(typename string) PluginConfig {
 		Enable:    true,
 		Instances: 1,
 		Stream:    []string{},
-		Settings:  shared.NewMarshalMap(),
+		Settings:  tgo.NewMarshalMap(),
 		validKeys: make(map[string]bool),
 	}
 }
@@ -65,7 +65,7 @@ func (conf PluginConfig) Validate() bool {
 
 // Read analyzes a given key/value map to extract the configuration values valid
 // for each plugin. All non-default values are written to the Settings member.
-func (conf *PluginConfig) Read(values shared.MarshalMap) {
+func (conf *PluginConfig) Read(values tgo.MarshalMap) {
 	var err error
 	for key, settingValue := range values {
 		switch key {

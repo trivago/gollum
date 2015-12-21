@@ -16,7 +16,7 @@ package core
 
 import (
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"hash/fnv"
 	"sync"
 	"sync/atomic"
@@ -39,7 +39,7 @@ var (
 type streamRegistry struct {
 	streams   map[MessageStreamID]Stream
 	name      map[MessageStreamID]string
-	fuses     map[string]*shared.Fuse
+	fuses     map[string]*tgo.Fuse
 	fuseGuard *sync.Mutex
 	wildcard  []Producer
 }
@@ -49,12 +49,12 @@ type streamRegistry struct {
 var StreamRegistry = streamRegistry{
 	streams:   make(map[MessageStreamID]Stream),
 	name:      make(map[MessageStreamID]string),
-	fuses:     make(map[string]*shared.Fuse),
+	fuses:     make(map[string]*tgo.Fuse),
 	fuseGuard: new(sync.Mutex),
 }
 
 func init() {
-	shared.Metric.New(metricStreams)
+	tgo.Metric.New(metricStreams)
 }
 
 // CountProcessedMessage increases the messages counter by 1
@@ -190,7 +190,7 @@ func (registry *streamRegistry) Register(stream Stream, streamID MessageStreamID
 	if _, exists := registry.streams[streamID]; exists {
 		Log.Warning.Printf("%T attaches to an already occupied stream (%s)", stream, registry.GetStreamName(streamID))
 	} else {
-		shared.Metric.Inc(metricStreams)
+		tgo.Metric.Inc(metricStreams)
 	}
 	registry.streams[streamID] = stream
 }
@@ -215,7 +215,7 @@ func (registry *streamRegistry) GetStreamOrFallback(streamID MessageStreamID) St
 	registry.AddWildcardProducersToStream(defaultStream)
 
 	registry.streams[streamID] = defaultStream
-	shared.Metric.Inc(metricStreams)
+	tgo.Metric.Inc(metricStreams)
 	return defaultStream
 }
 
@@ -252,13 +252,13 @@ func (registry *streamRegistry) LinkDependencies(parent Producer, streamID Messa
 // GetFuse returns a fuse object by name. This function will always return a
 // valid fuse (creates fuses if they have not yet been created).
 // This function is threadsafe.
-func (registry *streamRegistry) GetFuse(name string) *shared.Fuse {
+func (registry *streamRegistry) GetFuse(name string) *tgo.Fuse {
 	registry.fuseGuard.Lock()
 	defer registry.fuseGuard.Unlock()
 
 	fuse, exists := registry.fuses[name]
 	if !exists {
-		fuse = shared.NewFuse()
+		fuse = tgo.NewFuse()
 		registry.fuses[name] = fuse
 	}
 	return fuse

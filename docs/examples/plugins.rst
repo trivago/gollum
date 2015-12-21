@@ -28,14 +28,14 @@ This should be done by adding a line to the init() method of the file.
 
   import (
     "github.com/trivago/gollum/core"
-    "github.com/trivago/gollum/shared"
+    "github.com/trivago/tgo"
   )
 
   struct MyPlugin type {
   }
 
   func init() {
-    shared.TypeRegistry.Register(MyPlugin{}) // Register the new plugin type
+    tgo.TypeRegistry.Register(MyPlugin{}) // Register the new plugin type
   }
 
   func (cons *MyPlugin) Configure(conf core.PluginConfig) error {

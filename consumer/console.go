@@ -17,7 +17,7 @@ package consumer
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"io"
 	"os"
 	"sync"
@@ -50,7 +50,7 @@ type Console struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(Console{})
+	tgo.TypeRegistry.Register(Console{})
 }
 
 // Configure initializes this consumer with values from a plugin config.
@@ -60,7 +60,7 @@ func (cons *Console) Configure(conf core.PluginConfig) error {
 }
 
 func (cons *Console) readStdIn() {
-	buffer := shared.NewBufferedReader(consoleBufferGrowSize, 0, 0, "\n")
+	buffer := tgo.NewBufferedReader(consoleBufferGrowSize, 0, 0, "\n")
 
 	for cons.IsActive() {
 		err := buffer.ReadAll(os.Stdin, cons.Enqueue)

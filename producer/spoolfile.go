@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"io"
 	"io/ioutil"
 	"os"
@@ -59,10 +59,10 @@ func newSpoolFile(prod *Spooling, streamName string, source core.MessageSource) 
 		lastMetricUpdate: time.Now(),
 	}
 
-	shared.Metric.New(spoolingMetricWrite + streamName)
-	shared.Metric.New(spoolingMetricWriteSec + streamName)
-	shared.Metric.New(spoolingMetricRead + streamName)
-	shared.Metric.New(spoolingMetricReadSec + streamName)
+	tgo.Metric.New(spoolingMetricWrite + streamName)
+	tgo.Metric.New(spoolingMetricWriteSec + streamName)
+	tgo.Metric.New(spoolingMetricRead + streamName)
+	tgo.Metric.New(spoolingMetricReadSec + streamName)
 	go spool.read()
 	return spool
 }
@@ -96,9 +96,9 @@ func (spool *spoolFile) getFileNumbering() (min int, max int) {
 	files, _ := ioutil.ReadDir(spool.basePath)
 	for _, file := range files {
 		base := filepath.Base(file.Name())
-		number, _ := shared.Btoi([]byte(base)) // Because we need leading zero support
-		min = shared.MinI(min, int(number))
-		max = shared.MaxI(max, int(number))
+		number, _ := tgo.Btoi([]byte(base)) // Because we need leading zero support
+		min = tgo.MinI(min, int(number))
+		max = tgo.MaxI(max, int(number))
 	}
 	return min, max
 }

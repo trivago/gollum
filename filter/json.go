@@ -17,7 +17,7 @@ package filter
 import (
 	"encoding/json"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"regexp"
 	"strconv"
 )
@@ -38,18 +38,18 @@ import (
 //
 // FormatReject defines fields that will cause a message to be rejected if the
 // given regular expression matches. Rejects are checked before Accepts.
-// Field paths can be defined in a format accepted by shared.MarshalMap.Path.
+// Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
 //
 // FormatAccept defines fields that will cause a message to be rejected if the
 // given regular expression does not match.
-// Field paths can be defined in a format accepted by shared.MarshalMap.Path.
+// Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
 type JSON struct {
 	rejectValues map[string]*regexp.Regexp
 	acceptValues map[string]*regexp.Regexp
 }
 
 func init() {
-	shared.TypeRegistry.Register(JSON{})
+	tgo.TypeRegistry.Register(JSON{})
 }
 
 // Configure initializes this filter with values from a plugin config.
@@ -80,7 +80,7 @@ func (filter *JSON) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-func (filter *JSON) getValue(key string, values shared.MarshalMap) (string, bool) {
+func (filter *JSON) getValue(key string, values tgo.MarshalMap) (string, bool) {
 	if value, found := values.Path(key); found {
 		switch value.(type) {
 		case string:
@@ -100,7 +100,7 @@ func (filter *JSON) getValue(key string, values shared.MarshalMap) (string, bool
 // Accepts checks JSON field values and rejects messages after testing a
 // blacklist and a whitelist.
 func (filter *JSON) Accepts(msg core.Message) bool {
-	values := shared.NewMarshalMap()
+	values := tgo.NewMarshalMap()
 	if err := json.Unmarshal(msg.Data, &values); err != nil {
 		return false
 	}

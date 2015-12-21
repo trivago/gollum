@@ -19,7 +19,7 @@ import (
 	"github.com/artyom/thrift"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -94,7 +94,7 @@ const (
 )
 
 func init() {
-	shared.TypeRegistry.Register(Scribe{})
+	tgo.TypeRegistry.Register(Scribe{})
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -109,7 +109,7 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
 	prod.windowSize = prod.batchMaxCount
 	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
-	prod.batchFlushCount = shared.MinI(prod.batchFlushCount, prod.batchMaxCount)
+	prod.batchFlushCount = tgo.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
 
@@ -130,12 +130,12 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	prod.lastMetricUpdate = time.Now()
 	prod.counters = make(map[string]*int64)
 
-	shared.Metric.New(scribeMetricWindowSize)
-	shared.Metric.SetI(scribeMetricWindowSize, prod.windowSize)
+	tgo.Metric.New(scribeMetricWindowSize)
+	tgo.Metric.SetI(scribeMetricWindowSize, prod.windowSize)
 
 	for _, category := range prod.category {
-		shared.Metric.New(scribeMetricMessages + category)
-		shared.Metric.New(scribeMetricMessagesSec + category)
+		tgo.Metric.New(scribeMetricMessages + category)
+		tgo.Metric.New(scribeMetricMessagesSec + category)
 		prod.counters[category] = new(int64)
 	}
 
@@ -154,8 +154,8 @@ func (prod *Scribe) sendBatchOnTimeOut() {
 
 	for category, counter := range prod.counters {
 		count := atomic.SwapInt64(counter, 0)
-		shared.Metric.Add(scribeMetricMessages+category, count)
-		shared.Metric.SetF(scribeMetricMessagesSec+category, float64(count)/duration.Seconds())
+		tgo.Metric.Add(scribeMetricMessages+category, count)
+		tgo.Metric.SetF(scribeMetricMessagesSec+category, float64(count)/duration.Seconds())
 	}
 
 	// Flush if necessary
@@ -205,8 +205,8 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 			if category, exists = prod.category[core.WildcardStreamID]; !exists {
 				category = core.StreamRegistry.GetStreamName(msg.StreamID)
 			}
-			shared.Metric.New(scribeMetricMessages + category)
-			shared.Metric.New(scribeMetricMessagesSec + category)
+			tgo.Metric.New(scribeMetricMessages + category)
+			tgo.Metric.New(scribeMetricMessagesSec + category)
 			prod.counters[category] = new(int64)
 			prod.category[msg.StreamID] = category
 		}
@@ -224,7 +224,7 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 
 	idxStart := 0
 	for retryCount := 0; retryCount < scribeMaxRetries; retryCount++ {
-		idxEnd := shared.MinI(len(logBuffer), idxStart+prod.windowSize)
+		idxEnd := tgo.MinI(len(logBuffer), idxStart+prod.windowSize)
 		resultCode, err := prod.scribe.Log(logBuffer[idxStart:idxEnd])
 
 		if resultCode == scribe.ResultCode_OK {
@@ -247,8 +247,8 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 			return // ### return, failure ###
 		}
 
-		prod.windowSize = shared.MaxI(1, prod.windowSize/2)
-		shared.Metric.SetI(scribeMetricWindowSize, prod.windowSize)
+		prod.windowSize = tgo.MaxI(1, prod.windowSize/2)
+		tgo.Metric.SetI(scribeMetricWindowSize, prod.windowSize)
 
 		time.Sleep(time.Duration(scribeMaxSleepTimeMs/scribeMaxRetries) * time.Millisecond)
 	}

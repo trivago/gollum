@@ -18,7 +18,7 @@ import (
 	kafka "github.com/shopify/sarama" // "gopkg.in/Shopify/sarama.v1"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -152,7 +152,7 @@ const (
 )
 
 func init() {
-	shared.TypeRegistry.Register(Kafka{})
+	tgo.TypeRegistry.Register(Kafka{})
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -221,12 +221,12 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.counters = make(map[string]*int64)
 
 	for _, topic := range prod.topic {
-		shared.Metric.New(kafkaMetricMessages + topic)
-		shared.Metric.New(kafkaMetricMessagesSec + topic)
+		tgo.Metric.New(kafkaMetricMessages + topic)
+		tgo.Metric.New(kafkaMetricMessagesSec + topic)
 		prod.counters[topic] = new(int64)
 	}
 
-	shared.Metric.New(kafkaMetricMissCount)
+	tgo.Metric.New(kafkaMetricMissCount)
 	prod.SetCheckFuseCallback(prod.tryOpenConnection)
 	return nil
 }
@@ -244,8 +244,8 @@ func (prod *Kafka) sendBatchOnTimeOut() {
 		//Log.Debug.Printf("%s: %d", category, *counter)
 		count := atomic.SwapInt64(counter, 0)
 
-		shared.Metric.Add(kafkaMetricMessages+category, count)
-		shared.Metric.SetF(kafkaMetricMessagesSec+category, float64(count)/duration.Seconds())
+		tgo.Metric.Add(kafkaMetricMessages+category, count)
+		tgo.Metric.SetF(kafkaMetricMessagesSec+category, float64(count)/duration.Seconds())
 	}
 
 	// Flush if necessary
@@ -269,7 +269,7 @@ func (prod *Kafka) dropMessages(messages []core.Message) {
 }
 
 func (prod *Kafka) transformMessages(messages []core.Message) {
-	defer func() { shared.Metric.Set(kafkaMetricMissCount, prod.missCount) }()
+	defer func() { tgo.Metric.Set(kafkaMetricMissCount, prod.missCount) }()
 	for _, msg := range messages {
 		originalMsg := msg
 		msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
@@ -293,8 +293,8 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 				topic = core.StreamRegistry.GetStreamName(msg.StreamID)
 			}
 
-			shared.Metric.New(kafkaMetricMessages + topic)
-			shared.Metric.New(kafkaMetricMessagesSec + topic)
+			tgo.Metric.New(kafkaMetricMessages + topic)
+			tgo.Metric.New(kafkaMetricMessagesSec + topic)
 			prod.counters[topic] = new(int64)
 			prod.topic[msg.StreamID] = topic
 		}

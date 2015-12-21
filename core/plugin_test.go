@@ -16,7 +16,7 @@ package core
 
 import (
 	"fmt"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"sync"
 	"testing"
 	"time"
@@ -32,7 +32,7 @@ func (m *mockPlugin) Configure(config PluginConfig) error {
 }
 
 func TestPluginRunState(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 	pluginState := NewPluginRunState()
 
 	expect.Equal(PluginStateDead, pluginState.GetState())
@@ -64,19 +64,19 @@ func TestPluginRunState(t *testing.T) {
 }
 
 func TestPluginNewPluginWithType(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 
 	_, err := NewPlugin(NewPluginConfig("randomPlugin"))
 	expect.NotNil(err)
 	type notPlugin struct {
 	}
 	// for not a plugin, there should be error.
-	shared.TypeRegistry.Register(notPlugin{})
+	tgo.TypeRegistry.Register(notPlugin{})
 	_, err = NewPluginWithType("core.notPlugin", NewPluginConfig("core.notPlugin"))
 	expect.NotNil(err)
 
 	// for valid pluginConfig, there shouldn't be any error
-	shared.TypeRegistry.Register(mockPlugin{})
+	tgo.TypeRegistry.Register(mockPlugin{})
 	pluginConfig := NewPluginConfig("core.mockPlugin")
 	pluginConfig.ID = "testPluginConfig"
 	_, err = NewPlugin(pluginConfig)

@@ -17,7 +17,7 @@ package producer
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"gopkg.in/redis.v2"
 	"strconv"
 	"strings"
@@ -72,7 +72,7 @@ type Redis struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(Redis{})
+	tgo.TypeRegistry.Register(Redis{})
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -93,7 +93,7 @@ func (prod *Redis) Configure(conf core.PluginConfig) error {
 	prod.database = int64(conf.GetInt("Database", 0))
 	prod.key = conf.GetString("Key", "default")
 	prod.fieldFromParsed = conf.GetBool("FieldAfterFormat", false)
-	prod.address, prod.protocol = shared.ParseAddress(conf.GetString("Address", ":6379"))
+	prod.address, prod.protocol = tgo.ParseAddress(conf.GetString("Address", ":6379"))
 
 	switch strings.ToLower(conf.GetString("Storage", "hash")) {
 	case "hash":

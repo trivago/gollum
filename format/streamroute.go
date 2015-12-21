@@ -17,7 +17,7 @@ package format
 import (
 	"bytes"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 )
 
 // StreamRoute is a formatter that modifies a message's stream by reading a
@@ -54,7 +54,7 @@ type StreamRoute struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(StreamRoute{})
+	tgo.TypeRegistry.Register(StreamRoute{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

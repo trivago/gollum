@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 )
 
 // SplitToJSON is a formatter that splits a message by a given token and puts
@@ -40,7 +40,7 @@ type SplitToJSON struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(SplitToJSON{})
+	tgo.TypeRegistry.Register(SplitToJSON{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
@@ -60,7 +60,7 @@ func (format *SplitToJSON) Format(msg core.Message) ([]byte, core.MessageStreamI
 	data, streamID := format.base.Format(msg)
 
 	components := bytes.Split(data, format.token)
-	maxIdx := shared.MinI(len(format.keys), len(components))
+	maxIdx := tgo.MinI(len(format.keys), len(components))
 	jsonData := ""
 
 	switch {
@@ -69,8 +69,8 @@ func (format *SplitToJSON) Format(msg core.Message) ([]byte, core.MessageStreamI
 		jsonData = fmt.Sprintf("{%s:\"%s\"}", format.keys[0], components[0])
 	default:
 		for i := 0; i < maxIdx; i++ {
-			key := shared.EscapeJSON(format.keys[i])
-			value := shared.EscapeJSON(string(components[i]))
+			key := tgo.EscapeJSON(format.keys[i])
+			value := tgo.EscapeJSON(string(components[i]))
 			switch {
 			case i == 0:
 				jsonData = fmt.Sprintf("{\"%s\":\"%s\"", key, value)

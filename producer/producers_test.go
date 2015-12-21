@@ -18,7 +18,7 @@ import (
 	"github.com/trivago/gollum/core"
 	_ "github.com/trivago/gollum/filter"
 	_ "github.com/trivago/gollum/format"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"reflect"
 	"testing"
 )
@@ -27,7 +27,7 @@ func TestProducerInterface(t *testing.T) {
 	conf := core.NewPluginConfig(reflect.TypeOf(t).Name())
 
 	conf.Stream = []string{"test"}
-	producers := shared.TypeRegistry.GetRegistered("producer.")
+	producers := tgo.TypeRegistry.GetRegistered("producer.")
 
 	if len(producers) == 0 {
 		t.Error("No producers defined")

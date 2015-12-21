@@ -15,7 +15,7 @@
 package core
 
 import (
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"testing"
 )
 
@@ -23,7 +23,7 @@ func getMockStreamRegistry() streamRegistry {
 	return streamRegistry{
 		streams:  map[MessageStreamID]Stream{},
 		name:     map[MessageStreamID]string{},
-		fuses:    map[string]*shared.Fuse{},
+		fuses:    map[string]*tgo.Fuse{},
 		wildcard: []Producer{},
 	}
 }
@@ -45,7 +45,7 @@ func resetStreamRegistryCounts() {
 }
 
 func TestStreamRegistryAtomicOperations(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 	// Tests run in one go, so the counts might already be affected. Reset here.
 	resetStreamRegistryCounts()
 
@@ -85,7 +85,7 @@ func TestStreamRegistryAtomicOperations(t *testing.T) {
 }
 
 func TestStreamRegistryGetStreamName(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 	mockSRegistry := getMockStreamRegistry()
 
 	expect.Equal(mockSRegistry.GetStreamName(DroppedStreamID), DroppedStream)
@@ -100,7 +100,7 @@ func TestStreamRegistryGetStreamName(t *testing.T) {
 }
 
 func TestStreamRegistryGetStreamByName(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 	mockSRegistry := getMockStreamRegistry()
 
 	streamName := mockSRegistry.GetStreamByName("testStream")
@@ -113,7 +113,7 @@ func TestStreamRegistryGetStreamByName(t *testing.T) {
 }
 
 func TestStreamRegistryIsStreamRegistered(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 	mockSRegistry := getMockStreamRegistry()
 
 	mockStreamID := GetStreamID("testStream")
@@ -125,7 +125,7 @@ func TestStreamRegistryIsStreamRegistered(t *testing.T) {
 }
 
 func TestStreamRegistryForEachStream(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 	mockSRegistry := getMockStreamRegistry()
 
 	callback := func(streamID MessageStreamID, stream Stream) {
@@ -137,7 +137,7 @@ func TestStreamRegistryForEachStream(t *testing.T) {
 }
 
 func TestStreamRegistryWildcardProducer(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 	mockSRegistry := getMockStreamRegistry()
 	// WildcardProducersExist()
 	expect.False(mockSRegistry.WildcardProducersExist())
@@ -151,7 +151,7 @@ func TestStreamRegistryWildcardProducer(t *testing.T) {
 }
 
 func TestStreamRegistryAddWildcardProducersToStream(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 	mockSRegistry := getMockStreamRegistry()
 
 	// create stream to which wildcardProducer is to be added
@@ -172,7 +172,7 @@ func TestStreamRegistryAddWildcardProducersToStream(t *testing.T) {
 }
 
 func TestStreamRegistryRegister(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 	mockSRegistry := getMockStreamRegistry()
 
 	streamName := "testStream"
@@ -183,7 +183,7 @@ func TestStreamRegistryRegister(t *testing.T) {
 }
 
 func TestStreamRegistryGetStreamOrFallback(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 	mockSRegistry := getMockStreamRegistry()
 
 	expect.Equal(len(mockSRegistry.streams), 0)
@@ -208,7 +208,7 @@ func TestStreamRegistryLinkDependencies(t *testing.T) {
 		producer2 -> none
 		producer4 -> none
 	*/
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 	mockSRegistry := getMockStreamRegistry()
 
 	streamName := "testStream"

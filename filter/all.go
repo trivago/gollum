@@ -16,7 +16,7 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 )
 
 // All passes all messages.
@@ -28,7 +28,7 @@ type All struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(All{})
+	tgo.TypeRegistry.Register(All{})
 }
 
 // Configure initializes this filter with values from a plugin config.

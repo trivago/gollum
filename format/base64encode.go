@@ -18,7 +18,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 )
 
 // Base64Encode is a formatter that encodes a message as base64.
@@ -40,7 +40,7 @@ type Base64Encode struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(Base64Encode{})
+	tgo.TypeRegistry.Register(Base64Encode{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

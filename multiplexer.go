@@ -18,7 +18,7 @@ import (
 	"container/list"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"log"
 	"os"
 	"os/signal"
@@ -90,22 +90,22 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	defer logFallback.Stop()
 
 	// Configure the multiplexer, create a byte pool and assign it to the log
-	shared.Metric.New(metricCons)
-	shared.Metric.New(metricProds)
-	shared.Metric.New(metricMessages)
-	shared.Metric.New(metricDropped)
-	shared.Metric.New(metricDiscarded)
-	shared.Metric.New(metricNoRoute)
-	shared.Metric.New(metricFiltered)
-	shared.Metric.New(metricMessagesSec)
-	shared.Metric.New(metricDroppedSec)
-	shared.Metric.New(metricDiscardedSec)
-	shared.Metric.New(metricNoRouteSec)
-	shared.Metric.New(metricFilteredSec)
-	shared.Metric.New(metricBlockedProducers)
-	shared.Metric.New(metricVersion)
+	tgo.Metric.New(metricCons)
+	tgo.Metric.New(metricProds)
+	tgo.Metric.New(metricMessages)
+	tgo.Metric.New(metricDropped)
+	tgo.Metric.New(metricDiscarded)
+	tgo.Metric.New(metricNoRoute)
+	tgo.Metric.New(metricFiltered)
+	tgo.Metric.New(metricMessagesSec)
+	tgo.Metric.New(metricDroppedSec)
+	tgo.Metric.New(metricDiscardedSec)
+	tgo.Metric.New(metricNoRouteSec)
+	tgo.Metric.New(metricFilteredSec)
+	tgo.Metric.New(metricBlockedProducers)
+	tgo.Metric.New(metricVersion)
 
-	shared.Metric.Set(metricVersion, gollumMajorVer*10000+gollumMinorVer*100+gollumPatchVer)
+	tgo.Metric.Set(metricVersion, gollumMajorVer*10000+gollumMinorVer*100+gollumPatchVer)
 
 	plex := multiplexer{
 		consumers:      []core.Consumer{new(core.LogConsumer)},
@@ -127,7 +127,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 
 		Log.Debug.Print("Loading ", config.Typename)
 
-		pluginType := shared.TypeRegistry.GetTypeOf(config.Typename)
+		pluginType := tgo.TypeRegistry.GetTypeOf(config.Typename)
 		if pluginType == nil {
 			Log.Error.Print("Failed to load plugin ", config.Typename, ": Type not found")
 			continue // ### continue ###
@@ -219,7 +219,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 			}
 
 			plex.producers = append(plex.producers, producer)
-			shared.Metric.Inc(metricProds)
+			tgo.Metric.Inc(metricProds)
 		}
 	}
 
@@ -247,7 +247,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 
 			consumer, _ := plugin.(core.Consumer)
 			plex.consumers = append(plex.consumers, consumer)
-			shared.Metric.Inc(metricCons)
+			tgo.Metric.Inc(metricCons)
 		}
 	}
 
@@ -266,9 +266,9 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 func dumpFaultyPlugin(typeName string, pluginType reflect.Type) {
 	Log.Error.Print("Failed to load plugin ", typeName, ": Does not qualify for consumer, producer or stream interface")
 
-	consumerMatch, consumerMissing := shared.GetMissingMethods(pluginType, consumerInterface)
-	producerMatch, producerMissing := shared.GetMissingMethods(pluginType, producerInterface)
-	streamMatch, streamMissing := shared.GetMissingMethods(pluginType, streamInterface)
+	consumerMatch, consumerMissing := tgo.GetMissingMethods(pluginType, consumerInterface)
+	producerMatch, producerMissing := tgo.GetMissingMethods(pluginType, producerInterface)
+	streamMatch, streamMissing := tgo.GetMissingMethods(pluginType, streamInterface)
 
 	if consumerMatch > producerMatch {
 		if consumerMatch > streamMatch {
@@ -373,7 +373,7 @@ func (plex multiplexer) run() {
 	for _, producer := range plex.producers {
 		producer := producer
 		Log.Debug.Print("Starting ", reflect.TypeOf(producer))
-		go shared.DontPanic(func() {
+		go tgo.DontPanic(func() {
 			producer.Produce(plex.producerWorker)
 		})
 	}
@@ -391,7 +391,7 @@ func (plex multiplexer) run() {
 	for _, consumer := range plex.consumers {
 		consumer := consumer
 		Log.Debug.Print("Starting ", reflect.TypeOf(consumer))
-		go shared.DontPanic(func() {
+		go tgo.DontPanic(func() {
 			consumer.Consume(plex.consumerWorker)
 		})
 	}
@@ -416,17 +416,17 @@ func (plex multiplexer) run() {
 			messageCount, droppedCount, discardedCount, filteredCount, noRouteCount := core.GetAndResetMessageCount()
 			messageSec := float64(messageCount) / duration.Seconds()
 
-			shared.Metric.SetF(metricMessagesSec, messageSec)
-			shared.Metric.SetF(metricDroppedSec, float64(droppedCount)/duration.Seconds())
-			shared.Metric.SetF(metricDiscardedSec, float64(discardedCount)/duration.Seconds())
-			shared.Metric.SetF(metricFilteredSec, float64(filteredCount)/duration.Seconds())
-			shared.Metric.SetF(metricNoRouteSec, float64(noRouteCount)/duration.Seconds())
+			tgo.Metric.SetF(metricMessagesSec, messageSec)
+			tgo.Metric.SetF(metricDroppedSec, float64(droppedCount)/duration.Seconds())
+			tgo.Metric.SetF(metricDiscardedSec, float64(discardedCount)/duration.Seconds())
+			tgo.Metric.SetF(metricFilteredSec, float64(filteredCount)/duration.Seconds())
+			tgo.Metric.SetF(metricNoRouteSec, float64(noRouteCount)/duration.Seconds())
 
-			shared.Metric.Add(metricMessages, int64(messageCount))
-			shared.Metric.Add(metricDropped, int64(droppedCount))
-			shared.Metric.Add(metricDiscarded, int64(discardedCount))
-			shared.Metric.Add(metricFiltered, int64(filteredCount))
-			shared.Metric.Add(metricNoRoute, int64(noRouteCount))
+			tgo.Metric.Add(metricMessages, int64(messageCount))
+			tgo.Metric.Add(metricDropped, int64(droppedCount))
+			tgo.Metric.Add(metricDiscarded, int64(discardedCount))
+			tgo.Metric.Add(metricFiltered, int64(filteredCount))
+			tgo.Metric.Add(metricNoRoute, int64(noRouteCount))
 
 			if plex.profile {
 				Log.Note.Printf("Processed %.2f msg/sec", messageSec)
@@ -439,7 +439,7 @@ func (plex multiplexer) run() {
 					numBlockedProducers++
 				}
 			}
-			shared.Metric.SetI(metricBlockedProducers, numBlockedProducers)
+			tgo.Metric.SetI(metricBlockedProducers, numBlockedProducers)
 
 		case sig := <-plex.signal:
 			switch translateSignal(sig) {

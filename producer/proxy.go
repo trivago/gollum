@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"net"
 	"strings"
 	"sync"
@@ -82,12 +82,12 @@ type Proxy struct {
 	protocol     string
 	address      string
 	bufferSizeKB int
-	reader       *shared.BufferedReader
+	reader       *tgo.BufferedReader
 	timeout      time.Duration
 }
 
 func init() {
-	shared.TypeRegistry.Register(Proxy{})
+	tgo.TypeRegistry.Register(Proxy{})
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -99,43 +99,43 @@ func (prod *Proxy) Configure(conf core.PluginConfig) error {
 	prod.SetStopCallback(prod.close)
 
 	prod.bufferSizeKB = conf.GetInt("ConnectionBufferSizeKB", 1<<10) // 1 MB
-	prod.address, prod.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
+	prod.address, prod.protocol = tgo.ParseAddress(conf.GetString("Address", ":5880"))
 	if prod.protocol == "udp" {
 		return fmt.Errorf("Proxy does not support UDP")
 	}
 
 	prod.timeout = time.Duration(conf.GetInt("TimeoutSec", 1)) * time.Second
 
-	delimiter := shared.Unescape(conf.GetString("Delimiter", "\n"))
+	delimiter := tgo.Unescape(conf.GetString("Delimiter", "\n"))
 	offset := conf.GetInt("Offset", 0)
-	flags := shared.BufferedReaderFlagEverything // pass all messages as-is
+	flags := tgo.BufferedReaderFlagEverything // pass all messages as-is
 
 	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))
 	switch partitioner {
 	case "binary_be":
-		flags |= shared.BufferedReaderFlagBigEndian
+		flags |= tgo.BufferedReaderFlagBigEndian
 		fallthrough
 
 	case "binary", "binary_le":
 		switch conf.GetInt("Size", 4) {
 		case 1:
-			flags |= shared.BufferedReaderFlagMLE8
+			flags |= tgo.BufferedReaderFlagMLE8
 		case 2:
-			flags |= shared.BufferedReaderFlagMLE16
+			flags |= tgo.BufferedReaderFlagMLE16
 		case 4:
-			flags |= shared.BufferedReaderFlagMLE32
+			flags |= tgo.BufferedReaderFlagMLE32
 		case 8:
-			flags |= shared.BufferedReaderFlagMLE64
+			flags |= tgo.BufferedReaderFlagMLE64
 		default:
 			return fmt.Errorf("Size only supports the value 1,2,4 and 8")
 		}
 
 	case "fixed":
-		flags |= shared.BufferedReaderFlagMLEFixed
+		flags |= tgo.BufferedReaderFlagMLEFixed
 		offset = conf.GetInt("Size", 1)
 
 	case "ascii":
-		flags |= shared.BufferedReaderFlagMLE
+		flags |= tgo.BufferedReaderFlagMLE
 
 	case "delimiter":
 		// Nothing to add
@@ -144,7 +144,7 @@ func (prod *Proxy) Configure(conf core.PluginConfig) error {
 		return fmt.Errorf("Unknown partitioner: %s", partitioner)
 	}
 
-	prod.reader = shared.NewBufferedReader(prod.bufferSizeKB, flags, offset, delimiter)
+	prod.reader = tgo.NewBufferedReader(prod.bufferSizeKB, flags, offset, delimiter)
 	return nil
 }
 
@@ -180,7 +180,7 @@ func (prod *Proxy) sendMessage(msg core.Message) {
 	}
 
 	// Prepare responder function
-	enqueueResponse := shared.BufferReadCallback(nil)
+	enqueueResponse := tgo.BufferReadCallback(nil)
 	if processResponse {
 		enqueueResponse = func(data []byte, seq uint64) {
 			response := core.NewMessage(prod, data, seq)

@@ -16,7 +16,7 @@ package core
 
 import (
 	"github.com/golang/protobuf/proto"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"time"
 )
 
@@ -134,7 +134,7 @@ func (msg Message) Enqueue(channel chan<- Message, timeout time.Duration) Messag
 	}
 
 	start := time.Time{}
-	spin := shared.Spinner{}
+	spin := tgo.Spinner{}
 	for {
 		select {
 		case channel <- msg:
@@ -148,7 +148,7 @@ func (msg Message) Enqueue(channel chan<- Message, timeout time.Duration) Messag
 					return MessageStateDiscard // ### return, discard and ignore ###
 				}
 				start = time.Now()
-				spin = shared.NewSpinner(shared.SpinPriorityHigh)
+				spin = tgo.NewSpinner(tgo.SpinPriorityHigh)
 
 			// Discard message after timeout
 			case time.Since(start) > timeout:

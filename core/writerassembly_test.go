@@ -16,12 +16,12 @@ package core
 
 import (
 	"errors"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"testing"
 )
 
 type mockIoWrite struct {
-	e shared.Expect
+	e tgo.Expect
 }
 
 // created to check the change of writer
@@ -41,7 +41,7 @@ func (iw mockIoWrite) mockFlush(m Message) {
 }
 
 func TestWriterAssemblySetValidator(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 	mockIo := mockIoWrite{expect}
 	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, &mockFormatter{})
 	validator := func() bool {
@@ -52,7 +52,7 @@ func TestWriterAssemblySetValidator(t *testing.T) {
 }
 
 func TestWriterAssemblySetErrorHandler(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 	mockIo := mockIoWrite{expect}
 	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, &mockFormatter{})
 	handler := func(e error) bool {
@@ -67,7 +67,7 @@ func TestWriterAssemblySetErrorHandler(t *testing.T) {
 }
 
 func TestWriterAssemblySetWriter(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 	mockIo := mockIoWrite{expect}
 	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, &mockFormatter{})
 
@@ -77,7 +77,7 @@ func TestWriterAssemblySetWriter(t *testing.T) {
 }
 
 func TestWriterAssemblyWrite(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := tgo.NewExpect(t)
 	mockIo := mockIoWrite{expect}
 	wa := NewWriterAssembly(nil, mockIo.mockFlush, &mockFormatter{})
 

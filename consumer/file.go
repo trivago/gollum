@@ -17,7 +17,7 @@ package consumer
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"io"
 	"io/ioutil"
 	"os"
@@ -92,7 +92,7 @@ type File struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(File{})
+	tgo.TypeRegistry.Register(File{})
 }
 
 // Configure initializes this consumer with values from a plugin config.
@@ -107,7 +107,7 @@ func (cons *File) Configure(conf core.PluginConfig) error {
 	cons.file = nil
 	cons.fileName = conf.GetString("File", "/var/run/system.log")
 	cons.offsetFileName = conf.GetString("OffsetFile", "")
-	cons.delimiter = shared.Unescape(conf.GetString("Delimiter", "\n"))
+	cons.delimiter = tgo.Unescape(conf.GetString("Delimiter", "\n"))
 
 	switch strings.ToLower(conf.GetString("DefaultOffset", fileOffsetEnd)) {
 	default:
@@ -187,8 +187,8 @@ func (cons *File) read() {
 		sendFunction = cons.enqueueAndPersist
 	}
 
-	spin := shared.NewSpinner(shared.SpinPriorityLow)
-	buffer := shared.NewBufferedReader(fileBufferGrowSize, 0, 0, cons.delimiter)
+	spin := tgo.NewSpinner(tgo.SpinPriorityLow)
+	buffer := tgo.NewBufferedReader(fileBufferGrowSize, 0, 0, cons.delimiter)
 	printFileOpenError := true
 
 	for cons.state != fileStateDone {
@@ -261,7 +261,7 @@ func (cons *File) Consume(workers *sync.WaitGroup) {
 	cons.setState(fileStateOpen)
 	defer cons.setState(fileStateDone)
 
-	go shared.DontPanic(func() {
+	go tgo.DontPanic(func() {
 		cons.AddMainWorker(workers)
 		cons.read()
 	})

@@ -16,14 +16,14 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"reflect"
 	"testing"
 )
 
 func TestFilterInterface(t *testing.T) {
 	conf := core.NewPluginConfig(reflect.TypeOf(t).Name())
-	filters := shared.TypeRegistry.GetRegistered("filter.")
+	filters := tgo.TypeRegistry.GetRegistered("filter.")
 
 	if len(filters) == 0 {
 		t.Error("No filters defined")

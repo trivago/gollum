@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 )
 
 // CollectdToInflux09 provides a transformation from collectd JSON data to
@@ -37,7 +37,7 @@ type CollectdToInflux09 struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(CollectdToInflux09{})
+	tgo.TypeRegistry.Register(CollectdToInflux09{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
@@ -60,7 +60,7 @@ func (format *CollectdToInflux09) Format(msg core.Message) ([]byte, core.Message
 	}
 
 	// Manually convert to JSON lines
-	influxData := shared.NewByteStream(len(data))
+	influxData := tgo.NewByteStream(len(data))
 	fixedPart := fmt.Sprintf(
 		`{"name": "%s", "timestamp": %d, "precision": "ms", "tags": {"plugin_instance": "%s", "type": "%s", "type_instance": "%s", "host": "%s"`,
 		collectdData.Plugin,
@@ -70,7 +70,7 @@ func (format *CollectdToInflux09) Format(msg core.Message) ([]byte, core.Message
 		collectdData.TypeInstance,
 		collectdData.Host)
 
-	setSize := shared.Min3I(len(collectdData.Dstypes), len(collectdData.Dsnames), len(collectdData.Values))
+	setSize := tgo.Min3I(len(collectdData.Dstypes), len(collectdData.Dsnames), len(collectdData.Values))
 	for i := 0; i < setSize; i++ {
 		fmt.Fprintf(&influxData,
 			`%s, "dstype": "%s", "dsname": "%s"}, "fields": {"value": %f} },`,

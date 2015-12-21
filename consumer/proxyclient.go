@@ -17,7 +17,7 @@ package consumer
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"io"
 	"net"
 	"syscall"
@@ -37,7 +37,7 @@ type proxyClient struct {
 }
 
 func listenToProxyClient(conn net.Conn, proxy *Proxy) {
-	defer shared.RecoverShutdown()
+	defer tgo.RecoverShutdown()
 	defer conn.Close()
 
 	conn.SetDeadline(time.Time{})
@@ -84,7 +84,7 @@ func (client *proxyClient) sendMessage(data []byte, seq uint64) {
 }
 
 func (client *proxyClient) read() {
-	buffer := shared.NewBufferedReader(proxyClientBufferGrowSize, client.proxy.flags, client.proxy.offset, client.proxy.delimiter)
+	buffer := tgo.NewBufferedReader(proxyClientBufferGrowSize, client.proxy.flags, client.proxy.offset, client.proxy.delimiter)
 
 	for client.proxy.IsActive() && client.connected && !client.proxy.IsFuseBurned() {
 		err := buffer.ReadAll(client.conn, client.sendMessage)

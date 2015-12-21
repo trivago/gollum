@@ -19,7 +19,7 @@ import (
 	elastigo "github.com/mattbaird/elastigo/lib"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -114,7 +114,7 @@ const (
 )
 
 func init() {
-	shared.TypeRegistry.Register(ElasticSearch{})
+	tgo.TypeRegistry.Register(ElasticSearch{})
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -160,8 +160,8 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 	prod.lastMetricUpdate = time.Now()
 
 	for _, index := range prod.index {
-		shared.Metric.New(elasticMetricMessages + index)
-		shared.Metric.New(elasticMetricMessagesSec + index)
+		tgo.Metric.New(elasticMetricMessages + index)
+		tgo.Metric.New(elasticMetricMessagesSec + index)
 		prod.counters[index] = new(int64)
 	}
 
@@ -175,8 +175,8 @@ func (prod *ElasticSearch) updateMetrics() {
 
 	for index, counter := range prod.counters {
 		count := atomic.SwapInt64(counter, 0)
-		shared.Metric.Add(elasticMetricMessages+index, count)
-		shared.Metric.SetF(elasticMetricMessagesSec+index, float64(count)/duration.Seconds())
+		tgo.Metric.Add(elasticMetricMessages+index, count)
+		tgo.Metric.SetF(elasticMetricMessagesSec+index, float64(count)/duration.Seconds())
 	}
 }
 
@@ -199,8 +199,8 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 		if !indexMapped {
 			index = core.StreamRegistry.GetStreamName(msg.StreamID)
 		}
-		shared.Metric.New(elasticMetricMessages + index)
-		shared.Metric.New(elasticMetricMessagesSec + index)
+		tgo.Metric.New(elasticMetricMessages + index)
+		tgo.Metric.New(elasticMetricMessagesSec + index)
 		prod.counters[index] = new(int64)
 		prod.index[msg.StreamID] = index
 	}

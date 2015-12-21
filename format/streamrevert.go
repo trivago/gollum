@@ -16,7 +16,7 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 )
 
 // StreamRevert is a formatter that recovers the last used stream from a message
@@ -37,7 +37,7 @@ type StreamRevert struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(StreamRevert{})
+	tgo.TypeRegistry.Register(StreamRevert{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

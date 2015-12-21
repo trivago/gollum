@@ -15,7 +15,7 @@
 package core
 
 import (
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"sync/atomic"
 	"time"
 )
@@ -26,7 +26,7 @@ import (
 // called, i.e. if a timeout or size threshold has been reached.
 type MessageBatch struct {
 	queue     [2]messageQueue
-	flushing  *shared.WaitGroup
+	flushing  *tgo.WaitGroup
 	lastFlush time.Time
 	activeSet uint32
 	closed    int32
@@ -52,7 +52,7 @@ type AssemblyFunc func([]Message)
 func NewMessageBatch(maxMessageCount int) MessageBatch {
 	return MessageBatch{
 		queue:     [2]messageQueue{newMessageQueue(maxMessageCount), newMessageQueue(maxMessageCount)},
-		flushing:  new(shared.WaitGroup),
+		flushing:  new(tgo.WaitGroup),
 		lastFlush: time.Now(),
 		activeSet: uint32(0),
 		closed:    0,
@@ -105,7 +105,7 @@ func (batch *MessageBatch) Append(msg Message) bool {
 // AppendOrBlock works like Append but will block until Append returns true.
 // If the batch was closed during this call, false is returned.
 func (batch *MessageBatch) AppendOrBlock(msg Message) bool {
-	spin := shared.NewSpinner(shared.SpinPriorityMedium)
+	spin := tgo.NewSpinner(tgo.SpinPriorityMedium)
 	for !batch.IsClosed() {
 		if batch.Append(msg) {
 			return true // ### return, success ###
@@ -174,7 +174,7 @@ func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
 	flushIdx := flushSet >> messageBatchIndexShift
 	writerCount := flushSet & messageBatchCountMask
 	flushQueue := &batch.queue[flushIdx]
-	spin := shared.NewSpinner(shared.SpinPriorityHigh)
+	spin := tgo.NewSpinner(tgo.SpinPriorityHigh)
 
 	// Wait for remaining writers to finish
 	for writerCount != atomic.LoadUint32(&flushQueue.doneCount) {
@@ -182,10 +182,10 @@ func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
 	}
 
 	// Write data and reset buffer asynchronously
-	go shared.DontPanic(func() {
+	go tgo.DontPanic(func() {
 		defer batch.flushing.Done()
 
-		messageCount := shared.MinI(int(writerCount), len(flushQueue.messages))
+		messageCount := tgo.MinI(int(writerCount), len(flushQueue.messages))
 		assemble(flushQueue.messages[:messageCount])
 		atomic.StoreUint32(&flushQueue.doneCount, 0)
 		batch.Touch()
@@ -210,7 +210,7 @@ func (batch MessageBatch) IsEmpty() bool {
 // If there is no data this function returns false.
 func (batch MessageBatch) ReachedSizeThreshold(size int) bool {
 	activeIdx := atomic.LoadUint32(&batch.activeSet) >> messageBatchIndexShift
-	threshold := uint32(shared.MaxI(size, len(batch.queue[activeIdx].messages)))
+	threshold := uint32(tgo.MaxI(size, len(batch.queue[activeIdx].messages)))
 	return batch.queue[activeIdx].doneCount >= threshold
 }
 

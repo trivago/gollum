@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"io"
 	"os"
 	"sync"
@@ -70,7 +70,7 @@ func (state *fileState) compressAndCloseLog(sourceFile *os.File) {
 
 	// Generate file to zip into
 	sourceFileName := sourceFile.Name()
-	sourceDir, sourceBase, _ := shared.SplitPath(sourceFileName)
+	sourceDir, sourceBase, _ := tgo.SplitPath(sourceFileName)
 
 	targetFileName := fmt.Sprintf("%s/%s.gz", sourceDir, sourceBase)
 
@@ -86,7 +86,7 @@ func (state *fileState) compressAndCloseLog(sourceFile *os.File) {
 
 	sourceFile.Seek(0, 0)
 	targetWriter := gzip.NewWriter(targetFile)
-	spin := shared.NewSpinner(shared.SpinPriorityHigh)
+	spin := tgo.NewSpinner(tgo.SpinPriorityHigh)
 
 	for err == nil {
 		_, err = io.CopyN(targetWriter, sourceFile, 1<<20) // 1 MB chunks
@@ -116,9 +116,9 @@ func (state *fileState) compressAndCloseLog(sourceFile *os.File) {
 
 func (state *fileState) pruneByCount(baseFilePath string, count int) {
 	state.bgWriter.Wait()
-	baseDir, baseName, _ := shared.SplitPath(baseFilePath)
+	baseDir, baseName, _ := tgo.SplitPath(baseFilePath)
 
-	files, err := shared.ListFilesByDateMatching(baseDir, baseName+".*")
+	files, err := tgo.ListFilesByDateMatching(baseDir, baseName+".*")
 	if err != nil {
 		Log.Error.Print("Error pruning files: ", err)
 		return // ### return, error ###
@@ -141,9 +141,9 @@ func (state *fileState) pruneByCount(baseFilePath string, count int) {
 
 func (state *fileState) pruneToSize(baseFilePath string, maxSize int64) {
 	state.bgWriter.Wait()
-	baseDir, baseName, _ := shared.SplitPath(baseFilePath)
+	baseDir, baseName, _ := tgo.SplitPath(baseFilePath)
 
-	files, err := shared.ListFilesByDateMatching(baseDir, baseName+".*")
+	files, err := tgo.ListFilesByDateMatching(baseDir, baseName+".*")
 	if err != nil {
 		Log.Error.Print("Error pruning files: ", err)
 		return // ### return, error ###

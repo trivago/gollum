@@ -16,7 +16,7 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 )
 
 // Envelope is a formatter that allows prefixing and/or postfixing a message
@@ -46,7 +46,7 @@ type Envelope struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(Envelope{})
+	tgo.TypeRegistry.Register(Envelope{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
@@ -57,8 +57,8 @@ func (format *Envelope) Configure(conf core.PluginConfig) error {
 	}
 
 	format.base = plugin.(core.Formatter)
-	format.prefix = shared.Unescape(conf.GetString("EnvelopePrefix", ""))
-	format.postfix = shared.Unescape(conf.GetString("EnvelopePostfix", "\n"))
+	format.prefix = tgo.Unescape(conf.GetString("EnvelopePrefix", ""))
+	format.postfix = tgo.Unescape(conf.GetString("EnvelopePostfix", "\n"))
 
 	return nil
 }

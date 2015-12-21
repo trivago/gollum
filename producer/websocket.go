@@ -17,7 +17,7 @@ package producer
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"golang.org/x/net/websocket"
 	"net/http"
 	"sync"
@@ -50,7 +50,7 @@ type Websocket struct {
 	core.ProducerBase
 	address        string
 	path           string
-	listen         *shared.StopListener
+	listen         *tgo.StopListener
 	clients        [2]clientList
 	clientIdx      uint32
 	readTimeoutSec time.Duration
@@ -62,7 +62,7 @@ type clientList struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(Websocket{})
+	tgo.TypeRegistry.Register(Websocket{})
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -122,7 +122,7 @@ func (prod *Websocket) pushMessage(msg core.Message) {
 		// Wait for new list writer to finish
 		count := currentIdx & 0x7FFFFFFF
 		currentIdx = currentIdx >> 31
-		spin := shared.NewSpinner(shared.SpinPriorityHigh)
+		spin := tgo.NewSpinner(tgo.SpinPriorityHigh)
 
 		for prod.clients[currentIdx].doneCount != count {
 			spin.Yield()
@@ -152,7 +152,7 @@ func (prod *Websocket) pushMessage(msg core.Message) {
 func (prod *Websocket) serve() {
 	defer prod.WorkerDone()
 
-	listen, err := shared.NewStopListener(prod.address)
+	listen, err := tgo.NewStopListener(prod.address)
 	if err != nil {
 		Log.Error.Print("Websocket: ", err)
 		return // ### return, could not connect ###
@@ -175,7 +175,7 @@ func (prod *Websocket) serve() {
 	prod.listen = listen
 
 	err = srv.Serve(prod.listen)
-	_, isStopRequest := err.(shared.StopRequestError)
+	_, isStopRequest := err.(tgo.StopRequestError)
 	if err != nil && !isStopRequest {
 		Log.Error.Print("Websocket: ", err)
 	}

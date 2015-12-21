@@ -19,7 +19,7 @@ import (
 	"github.com/miekg/pcap"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"hash/fnv"
 	"sync"
 	"sync/atomic"
@@ -81,7 +81,7 @@ const (
 )
 
 func init() {
-	shared.TypeRegistry.Register(PcapHTTPConsumer{})
+	tgo.TypeRegistry.Register(PcapHTTPConsumer{})
 }
 
 // Configure initializes this consumer with values from a plugin config.

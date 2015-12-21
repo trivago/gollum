@@ -5,8 +5,8 @@ This is a patch / minor features release
 #### Fixed
 
  * InfluxDB JSON and line protocol fixed
- * shared.WaitGroup.WaitFor with duration 0 falls back to shared.WaitGroup.Wait
- * proper io.EOF handling for shared.BufferedReader and shared.ByteStream
+ * tgo.WaitGroup.WaitFor with duration 0 falls back to tgo.WaitGroup.Wait
+ * proper io.EOF handling for tgo.BufferedReader and tgo.ByteStream
  * HTTP consumer now responds with 200 instead of 203
  * HTTP consumer properly handles EOF
  * Increased test coverage
@@ -31,7 +31,7 @@ Custom producers and config files may have to be adjusted.
 
 #### Breaking changes
 
- * shared.RuntimeType renamed to TypeRegistry
+ * tgo.RuntimeType renamed to TypeRegistry
  * core.StreamTypes renamed to StreamRegistry
  * ?ControlLoop callback parameters for command handling moved to callback members
  * ?ControlLoop renamed to ?Loop, where ? can be a combination of Control (handling of control messages), Message (handling of messages) or Ticker (handling of regular callbacks)

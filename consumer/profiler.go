@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"math"
 	"math/rand"
 	"os"
@@ -80,7 +80,7 @@ type Profiler struct {
 var profilerDefaultCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 "
 
 func init() {
-	shared.TypeRegistry.Register(Profiler{})
+	tgo.TypeRegistry.Register(Profiler{})
 }
 
 // Configure initializes this consumer with values from a plugin config.
@@ -222,6 +222,6 @@ func (cons *Profiler) profile() {
 func (cons *Profiler) Consume(workers *sync.WaitGroup) {
 	cons.AddMainWorker(workers)
 
-	go shared.DontPanic(cons.profile)
+	go tgo.DontPanic(cons.profile)
 	cons.ControlLoop()
 }
