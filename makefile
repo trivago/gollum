@@ -31,8 +31,12 @@ pi:
 current:
 	@go build
 
+update:
+	@go get -u github.com/tools/godep
+	@GO15VENDOREXPERIMENT=1 godep save ./...
+
 restore:
-	@go get github.com/tools/godep
+	@go get -u github.com/tools/godep
 	@godep restore
 
 test:
