@@ -63,24 +63,19 @@ func main() {
 		return // ### return, version only ###
 	}
 
-	configFile := flagConfigFile
-	if *flagTestConfigFile != "" {
-		configFile = flagTestConfigFile
-	}
-
-	if *flagHelp || *configFile == "" {
+	if *flagHelp || *flagConfigFile == "" {
 		printFlags()
 		return // ### return, nothing to do ###
 	}
 
 	// Read config
 
-	config, err := core.ReadConfig(*configFile)
+	config, err := core.ReadConfig(*flagConfigFile)
 	if err != nil {
 		fmt.Printf("Config: %s\n", err.Error())
 		return // ### return, config error ###
-	} else if *flagTestConfigFile != "" {
-		fmt.Printf("Config: %s parsed as ok.\n", *configFile)
+	} else if *flagTestConfigFile {
+		fmt.Printf("Config: %s parsed as ok.\n", *flagConfigFile)
 		newMultiplexer(config, false)
 		return // ### return, only test config ###
 	}

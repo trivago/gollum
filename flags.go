@@ -15,38 +15,27 @@
 package main
 
 import (
-	"fmt"
-	flag "gopkg.in/docker/docker.v1/pkg/mflag"
-	"os"
+	"github.com/trivago/tgo/flag"
 )
 
 var (
-	flagHelp           = flag.Bool([]string{"h", "-help"}, false, "Print this help message.")
-	flagVersion        = flag.Bool([]string{"v", "-version"}, false, "Print version information and quit.")
-	flagProfile        = flag.Bool([]string{"ps", "-profilespeed"}, false, "Write msg/sec measurements to log.")
-	flagLoglevel       = flag.Int([]string{"ll", "-loglevel"}, 0, "Set the loglevel [0-3]. Higher levels produce more messages.")
-	flagNumCPU         = flag.Int([]string{"n", "-numcpu"}, 0, "Number of CPUs to use. Set 0 for all CPUs.")
-	flagMetricsPort    = flag.Int([]string{"m", "-metrics"}, 0, "Port to use for metric queries. Set 0 to disable.")
-	flagConfigFile     = flag.String([]string{"c", "-config"}, "", "Use a given configuration file.")
-	flagTestConfigFile = flag.String([]string{"tc", "-testconfig"}, "", "Test a given configuration file and exit.")
-	flagCPUProfile     = flag.String([]string{"pc", "-profilecpu"}, "", "Write CPU profiler results to a given file.")
-	flagMemProfile     = flag.String([]string{"pm", "-profilemem"}, "", "Write heap profile results to a given file.")
-	flagPidFile        = flag.String([]string{"p", "-pidfile"}, "", "Write the process id into a given file.")
+	flagHelp           = flag.Switch("h", "help", "Print this help message.")
+	flagVersion        = flag.Switch("v", "version", "Print version information and quit.")
+	flagConfigFile     = flag.String("c", "config", "", "Use a given configuration file.")
+	flagTestConfigFile = flag.Switch("tc", "testconfig", "Test the given configuration file and exit.")
+	flagLoglevel       = flag.Int("ll", "loglevel", 1, "Set the loglevel [0-3] as in {0=Errors, 1=+Warnings, 2=+Notes, 3=+Debug}.")
+	flagNumCPU         = flag.Int("n", "numcpu", 0, "Number of CPUs to use. Set 0 for all CPUs.")
+	flagPidFile        = flag.String("p", "pidfile", "", "Write the process id into a given file.")
+	flagMetricsPort    = flag.Int("m", "metrics", 0, "Port to use for metric queries. Set 0 to disable.")
+	flagCPUProfile     = flag.String("pc", "profilecpu", "", "Write CPU profiler results to a given file.")
+	flagMemProfile     = flag.String("pm", "profilemem", "", "Write heap profile results to a given file.")
+	flagProfile        = flag.Switch("ps", "profilespeed", "Write msg/sec measurements to log.")
 )
-
-func init() {
-	flag.Usage = func() {
-		fmt.Println("Usage: gollum [OPTIONS]\n\nGollum - A n:m message multiplexer.\n\nOptions:")
-		flag.CommandLine.SetOutput(os.Stdout)
-		flag.PrintDefaults()
-		fmt.Print("\n")
-	}
-}
 
 func parseFlags() {
 	flag.Parse()
 }
 
 func printFlags() {
-	flag.Usage()
+	flag.PrintFlags("Usage: gollum [OPTIONS]\n\nGollum - A n:m message multiplexer.\n\nOptions:")
 }
