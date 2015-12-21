@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/trivago/gollum",
-	"GoVersion": "go1.5.1",
+	"GoVersion": "go1.5",
 	"Deps": [
 		{
 			"ImportPath": "github.com/araddon/gou",
@@ -78,7 +78,7 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
-			"Rev": "4f2fc6c1e69d41baf187332ee08fbd2b296f21ed"
+			"Rev": "d5cd7348bfebdf7dbb6dbb18fa488525f9024293"
 		},
 		{
 			"ImportPath": "gopkg.in/Shopify/sarama.v1",
