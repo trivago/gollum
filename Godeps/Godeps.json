@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/trivago/gollum",
-	"GoVersion": "go1.5.1",
+	"GoVersion": "go1.5",
 	"Deps": [
 		{
 			"ImportPath": "github.com/araddon/gou",
@@ -39,7 +39,7 @@
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
-			"Rev": "57346232f21afd1b0138cc10fbdd43c4d17e6c16"
+			"Rev": "68415e7123da32b07eab49c96d2c4d6158360e9b"
 		},
 		{
 			"ImportPath": "github.com/golang/snappy",
@@ -51,12 +51,12 @@
 		},
 		{
 			"ImportPath": "github.com/klauspost/crc32",
-			"Rev": "3e5c38b8b170916b332a5ccb25f921314b98ba01"
+			"Rev": "41b6596e004cf56ede13d98d16f50cf2742ab559"
 		},
 		{
 			"ImportPath": "github.com/mattbaird/elastigo/lib",
-			"Comment": "v1.0-260-gd519ca3",
-			"Rev": "d519ca3a9c607c77ce27818bd11b0ee73ac41d10"
+			"Comment": "v1.0-293-gbd9e895",
+			"Rev": "bd9e895823b8d2159b9a3dcf8ef17498eb886769"
 		},
 		{
 			"ImportPath": "github.com/miekg/pcap",
@@ -69,17 +69,17 @@
 		},
 		{
 			"ImportPath": "github.com/shopify/sarama",
-			"Comment": "v1.6.1-32-g7cdfc5b",
-			"Rev": "7cdfc5b3e054fe72ad79af2a2984bbffcfcf3c64"
+			"Comment": "v1.7.0-9-gbb163bf",
+			"Rev": "bb163bfb128eff45c8770a6eaa5930940ac5b71c"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
-			"Rev": "4f2fc6c1e69d41baf187332ee08fbd2b296f21ed"
+			"Rev": "6c89489cafabcbc76df9dbf84ebf07204673fecf"
 		},
 		{
 			"ImportPath": "gopkg.in/Shopify/sarama.v1",
-			"Comment": "v1.6.1",
-			"Rev": "35093741160a61deca1a9b08fb5f508c6cece9c8"
+			"Comment": "v1.7.0",
+			"Rev": "87ec8d76e89cc002ff5673ee7598ae1db2f32424"
 		},
 		{
 			"ImportPath": "gopkg.in/bufio.v1",
@@ -103,7 +103,7 @@
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
-			"Rev": "53feefa2559fb8dfa8d81baad31be332c97d6c77"
+			"Rev": "f7716cbe52baa25d2e9b0d0da546fcf909fc16b4"
 		}
 	]
 }

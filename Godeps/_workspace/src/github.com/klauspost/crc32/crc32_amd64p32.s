@@ -6,47 +6,47 @@
 #define RODATA 8
 
 // func castagnoliSSE42(crc uint32, p []byte) uint32
-TEXT ·castagnoliSSE42(SB),NOSPLIT,$0
-	MOVL crc+0(FP), AX  // CRC value
-	MOVL p+4(FP), SI  // data pointer
-	MOVL p_len+8(FP), CX  // len(p)
+TEXT ·castagnoliSSE42(SB), NOSPLIT, $0
+	MOVL crc+0(FP), AX   // CRC value
+	MOVL p+4(FP), SI     // data pointer
+	MOVL p_len+8(FP), CX // len(p)
 
 	NOTL AX
 
-	/* If there's less than 8 bytes to process, we do it byte-by-byte. */
+	// If there's less than 8 bytes to process, we do it byte-by-byte.
 	CMPQ CX, $8
-	JL cleanup
+	JL   cleanup
 
-	/* Process individual bytes until the input is 8-byte aligned. */
+	// Process individual bytes until the input is 8-byte aligned.
 startup:
 	MOVQ SI, BX
 	ANDQ $7, BX
-	JZ aligned
+	JZ   aligned
 
 	CRC32B (SI), AX
-	DECQ CX
-	INCQ SI
-	JMP startup
+	DECQ   CX
+	INCQ   SI
+	JMP    startup
 
 aligned:
-	/* The input is now 8-byte aligned and we can process 8-byte chunks. */
+	// The input is now 8-byte aligned and we can process 8-byte chunks.
 	CMPQ CX, $8
-	JL cleanup
+	JL   cleanup
 
 	CRC32Q (SI), AX
-	ADDQ $8, SI
-	SUBQ $8, CX
-	JMP aligned
+	ADDQ   $8, SI
+	SUBQ   $8, CX
+	JMP    aligned
 
 cleanup:
-	/* We may have some bytes left over that we process one at a time. */
+	// We may have some bytes left over that we process one at a time.
 	CMPQ CX, $0
-	JE done
+	JE   done
 
 	CRC32B (SI), AX
-	INCQ SI
-	DECQ CX
-	JMP cleanup
+	INCQ   SI
+	DECQ   CX
+	JMP    cleanup
 
 done:
 	NOTL AX
@@ -54,7 +54,7 @@ done:
 	RET
 
 // func haveSSE42() bool
-TEXT ·haveSSE42(SB),NOSPLIT,$0
+TEXT ·haveSSE42(SB), NOSPLIT, $0
 	XORQ AX, AX
 	INCL AX
 	CPUID

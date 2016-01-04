@@ -236,18 +236,6 @@ func (prod *Kafka) bufferMessage(msg core.Message) {
 }
 
 func (prod *Kafka) sendBatchOnTimeOut() {
-	// Update metrics
-	duration := time.Since(prod.lastMetricUpdate)
-	prod.lastMetricUpdate = time.Now()
-
-	for category, counter := range prod.counters {
-		//Log.Debug.Printf("%s: %d", category, *counter)
-		count := atomic.SwapInt64(counter, 0)
-
-		shared.Metric.Add(kafkaMetricMessages+category, count)
-		shared.Metric.SetF(kafkaMetricMessagesSec+category, float64(count)/duration.Seconds())
-	}
-
 	// Flush if necessary
 	if prod.tryOpenConnection() && (prod.batch.ReachedTimeThreshold(prod.config.Producer.Flush.Frequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2)) {
 		prod.sendBatch()
@@ -259,6 +247,19 @@ func (prod *Kafka) sendBatch() {
 		prod.batch.Flush(prod.transformMessages)
 	} else if prod.IsStopping() {
 		prod.batch.Flush(prod.dropMessages)
+	} else {
+		return // ### return, do not update metrics ###
+	}
+
+	// Update metrics
+	duration := time.Since(prod.lastMetricUpdate)
+	prod.lastMetricUpdate = time.Now()
+
+	for category, counter := range prod.counters {
+		count := atomic.SwapInt64(counter, 0)
+
+		shared.Metric.Add(kafkaMetricMessages+category, count)
+		shared.Metric.SetF(kafkaMetricMessagesSec+category, float64(count)/duration.Seconds())
 	}
 }
 

@@ -1,6 +1,33 @@
 # Changelog
 
-#### Version 1.7.0 (trunk)
+#### Version 1.8.0 (trunk)
+
+New Features:
+ - Add a missing protocol constant, `GroupGenerationUndefined`
+   ([#586](https://github.com/Shopify/sarama/pull/586)).
+
+Improvements:
+ - Optimize for fewer system calls when reading from the network
+   ([#584](https://github.com/Shopify/sarama/pull/584)).
+
+Bug Fixes:
+ - Fix the OffsetManager to be compatible with Kafka 0.9
+   ([#585](https://github.com/Shopify/sarama/pull/585)).
+
+#### Version 1.7.0 (2015-12-11)
+
+New Features:
+ - Preliminary support for Kafka 0.9
+   ([#572](https://github.com/Shopify/sarama/pull/572)). This comes with several
+   caveats:
+   - Protocol-layer support is mostly in place
+     ([#577](https://github.com/Shopify/sarama/pull/577)), however Kafka 0.9
+     renamed some messages and fields, which we did not in order to preserve API
+     compatibility.
+   - The producer and consumer work against 0.9, but the offset manager does
+     not ([#573](https://github.com/Shopify/sarama/pull/573)).
+   - TLS support may or may not work
+     ([#581](https://github.com/Shopify/sarama/pull/581)).
 
 Improvements:
  - Don't wait for request timeouts on dead brokers, greatly speeding recovery
