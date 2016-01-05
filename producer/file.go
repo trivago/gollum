@@ -273,7 +273,15 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		files, _ := ioutil.ReadDir(fileDir)
 		for _, file := range files {
 			if strings.HasPrefix(file.Name(), signature) {
-				counter, _ := shared.Btoi([]byte(file.Name()[len(signature)+1:]))
+				// Special case.
+				// If there is no extension, counter stays at 0
+				// If there is an extension (and no count), parsing the "." will yield a counter of 0
+				// If there is a count, parsing it will work as intended
+				counter := uint64(0)
+				if len(file.Name()) > len(signature) {
+					counter, _ = shared.Btoi([]byte(file.Name()[len(signature)+1:]))
+				}
+
 				if maxSuffix <= counter {
 					maxSuffix = counter + 1
 				}
