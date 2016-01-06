@@ -20,6 +20,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tmath"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -109,7 +110,7 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
 	prod.windowSize = prod.batchMaxCount
 	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
-	prod.batchFlushCount = tgo.MinI(prod.batchFlushCount, prod.batchMaxCount)
+	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
 
@@ -226,7 +227,7 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 
 	idxStart := 0
 	for retryCount := 0; retryCount < scribeMaxRetries; retryCount++ {
-		idxEnd := tgo.MinI(len(logBuffer), idxStart+prod.windowSize)
+		idxEnd := tmath.MinI(len(logBuffer), idxStart+prod.windowSize)
 		resultCode, err := prod.scribe.Log(logBuffer[idxStart:idxEnd])
 
 		if resultCode == scribe.ResultCode_OK {
@@ -249,7 +250,7 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 			return // ### return, failure ###
 		}
 
-		prod.windowSize = tgo.MaxI(1, prod.windowSize/2)
+		prod.windowSize = tmath.MaxI(1, prod.windowSize/2)
 		tgo.Metric.SetI(scribeMetricWindowSize, prod.windowSize)
 
 		time.Sleep(time.Duration(scribeMaxSleepTimeMs/scribeMaxRetries) * time.Millisecond)

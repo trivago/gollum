@@ -22,6 +22,7 @@ import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tnet"
+	"github.com/trivago/tgo/tstrings"
 	"io"
 	"net"
 	"os"
@@ -143,7 +144,7 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 
 	cons.clients = list.New()
 	cons.clientLock = new(sync.Mutex)
-	cons.acknowledge = tgo.Unescape(conf.GetString("Acknowledge", ""))
+	cons.acknowledge = tstrings.Unescape(conf.GetString("Acknowledge", ""))
 	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"))
 	cons.reconnectTime = time.Duration(conf.GetInt("ReconnectAfterSec", 2)) * time.Second
 	cons.ackTimeout = time.Duration(conf.GetInt("AckTimoutSec", 2)) * time.Second
@@ -158,7 +159,7 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 		}
 	}
 
-	cons.delimiter = tgo.Unescape(conf.GetString("Delimiter", "\n"))
+	cons.delimiter = tstrings.Unescape(conf.GetString("Delimiter", "\n"))
 	cons.offset = conf.GetInt("Offset", 0)
 	cons.flags = 0
 

@@ -17,13 +17,13 @@ package core
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/ttesting"
 	"testing"
 	"time"
 )
 
 type messageBatchWriter struct {
-	expect  tgo.Expect
+	expect  ttesting.Expect
 	counter int
 }
 
@@ -51,7 +51,7 @@ func (bw *messageBatchWriter) Count(msg Message) {
 }
 
 func TestMessageBatchAppendOrFlush(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	writer := messageBatchWriter{expect, 0}
 	batch := NewMessageBatch(10)
 	assembly := NewWriterAssembly(writer, writer.Flush, &mockFormatter{})
@@ -89,7 +89,7 @@ func TestMessageBatchAppendOrFlush(t *testing.T) {
 }
 
 func TestMessageBatch(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	writer := messageBatchWriter{expect, 0}
 	assembly := NewWriterAssembly(writer, writer.Flush, &mockFormatter{})
 
@@ -167,7 +167,7 @@ func TestMessageBatch(t *testing.T) {
 }
 
 func TestMessageSerialize(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	now := time.Now()
 
 	testMessage := Message{

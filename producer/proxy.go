@@ -21,6 +21,7 @@ import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tnet"
+	"github.com/trivago/tgo/tstrings"
 	"net"
 	"strings"
 	"sync"
@@ -108,7 +109,7 @@ func (prod *Proxy) Configure(conf core.PluginConfig) error {
 
 	prod.timeout = time.Duration(conf.GetInt("TimeoutSec", 1)) * time.Second
 
-	delimiter := tgo.Unescape(conf.GetString("Delimiter", "\n"))
+	delimiter := tstrings.Unescape(conf.GetString("Delimiter", "\n"))
 	offset := conf.GetInt("Offset", 0)
 	flags := tio.BufferedReaderFlagEverything // pass all messages as-is
 

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package tgo
+package tcontainer
 
 // TrieNode represents a single node inside a trie.
 // Each node can contain a payload which can be retrieved after a successfull

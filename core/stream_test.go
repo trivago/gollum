@@ -16,6 +16,7 @@ package core
 
 import (
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/ttesting"
 	"sync"
 	"testing"
 	"time"
@@ -37,7 +38,7 @@ func getMockStream() StreamBase {
 }
 
 func TestStreamConfigureStream(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	tgo.TypeRegistry.Register(mockPlugin{})
 	tgo.TypeRegistry.Register(mockFormatter{})
 	tgo.TypeRegistry.Register(mockFilter{})
@@ -62,7 +63,7 @@ func TestStreamConfigureStream(t *testing.T) {
 }
 
 func TestStreamPauseFlush(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 
 	mockStream := getMockStream()
 
@@ -90,7 +91,7 @@ func TestStreamBroadcast(t *testing.T) {
 }
 
 func TestStreamRoute(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockStream := getMockStream()
 
 	mockDistributer := func(msg Message) {

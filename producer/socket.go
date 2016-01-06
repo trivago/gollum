@@ -18,7 +18,9 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tnet"
+	"github.com/trivago/tgo/tstrings"
 	"net"
 	"sync"
 	"time"
@@ -101,11 +103,11 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
 	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
-	prod.batchFlushCount = tgo.MinI(prod.batchFlushCount, prod.batchMaxCount)
+	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.bufferSizeByte = conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10 // 1 MB
 
-	prod.acknowledge = tgo.Unescape(conf.GetString("Acknowledge", ""))
+	prod.acknowledge = tstrings.Unescape(conf.GetString("Acknowledge", ""))
 	prod.ackTimeout = time.Duration(conf.GetInt("AckTimeoutMs", 2000)) * time.Millisecond
 	prod.address, prod.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"))
 

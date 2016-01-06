@@ -15,12 +15,12 @@
 package core
 
 import (
-	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/ttesting"
 	"testing"
 )
 
 func TestPluginRegistry(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	plugin, err := NewPlugin(NewPluginConfig("randomPlugin"))
 	expect.NotNil(err)
 

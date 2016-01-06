@@ -19,6 +19,8 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tmath"
+	"github.com/trivago/tgo/tstrings"
 	"strings"
 	"time"
 )
@@ -100,7 +102,7 @@ func (format *ProcessJSON) Configure(conf core.PluginConfig) error {
 			}
 
 			for i := 2; i < len(parts); i++ {
-				newDirective.parameters = append(newDirective.parameters, tgo.Unescape(parts[i]))
+				newDirective.parameters = append(newDirective.parameters, tstrings.Unescape(parts[i]))
 			}
 
 			format.directives = append(format.directives, newDirective)
@@ -117,7 +119,7 @@ func (values *valueMap) processDirective(directive transformDirective) {
 		switch directive.operation {
 		case "rename":
 			if numParameters == 1 {
-				(*values)[tgo.Unescape(directive.parameters[0])] = value
+				(*values)[tstrings.Unescape(directive.parameters[0])] = value
 				delete(*values, directive.key)
 			}
 
@@ -133,11 +135,11 @@ func (values *valueMap) processDirective(directive transformDirective) {
 
 		case "split":
 			if numParameters > 1 {
-				token := tgo.Unescape(directive.parameters[0])
+				token := tstrings.Unescape(directive.parameters[0])
 				if strings.Contains(value, token) {
 					elements := strings.Split(value, token)
 					mapping := directive.parameters[1:]
-					maxItems := tgo.MinI(len(elements), len(mapping))
+					maxItems := tmath.MinI(len(elements), len(mapping))
 
 					for i := 0; i < maxItems; i++ {
 						(*values)[mapping[i]] = elements[i]
@@ -147,7 +149,7 @@ func (values *valueMap) processDirective(directive transformDirective) {
 
 		case "replace":
 			if numParameters == 2 {
-				(*values)[directive.key] = strings.Replace(value, tgo.Unescape(directive.parameters[0]), tgo.Unescape(directive.parameters[1]), -1)
+				(*values)[directive.key] = strings.Replace(value, tstrings.Unescape(directive.parameters[0]), tstrings.Unescape(directive.parameters[1]), -1)
 			}
 
 		case "trim":
@@ -155,7 +157,7 @@ func (values *valueMap) processDirective(directive transformDirective) {
 			case numParameters == 0:
 				(*values)[directive.key] = strings.Trim(value, " \t")
 			case numParameters == 1:
-				(*values)[directive.key] = strings.Trim(value, tgo.Unescape(directive.parameters[0]))
+				(*values)[directive.key] = strings.Trim(value, tstrings.Unescape(directive.parameters[0]))
 			}
 		}
 	}

@@ -15,8 +15,8 @@
 package core
 
 import (
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tsync"
+	"github.com/trivago/tgo/ttesting"
 	"math"
 	"sync"
 	"testing"
@@ -40,7 +40,7 @@ func getMockConsumer() ConsumerBase {
 }
 
 func TestConsumerConfigure(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockC := getMockConsumer()
 
 	pluginCfg := getMockPluginConfig()
@@ -56,7 +56,7 @@ func TestConsumerConfigure(t *testing.T) {
 }
 
 func TestConsumerEnqueueCopy(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockC := getMockConsumer()
 
 	dataToSend := "Consumer Enqueue Data"
@@ -83,7 +83,7 @@ func TestConsumerEnqueueCopy(t *testing.T) {
 }
 
 func TestConsumerStreams(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockC := getMockConsumer()
 
 	mockStream := getMockStream()
@@ -104,7 +104,7 @@ func TestConsumerStreams(t *testing.T) {
 }
 
 func TestConsumerControl(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockC := getMockConsumer()
 	mockC.control = make(chan PluginControl, 2)
 
@@ -118,7 +118,7 @@ func TestConsumerControl(t *testing.T) {
 
 // For completeness' sake. This is exactly the same as Producer's ticket loop
 func TestConsumerTickerLoop(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockC := getMockConsumer()
 	mockC.setState(PluginStateActive)
 	// accept timeroff by abs( 8 ms)
@@ -153,7 +153,7 @@ func TestConsumerTickerLoop(t *testing.T) {
 
 // For completeness' sake. This is exactly the same as Producer's control loop
 func TestConsumerControlLoop(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockC := getMockConsumer()
 
 	var stop bool
@@ -181,7 +181,7 @@ func TestConsumerControlLoop(t *testing.T) {
 }
 
 func TestConsumerFuse(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockC := getMockConsumer()
 
 	conf := getMockPluginConfig()

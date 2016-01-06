@@ -17,6 +17,7 @@ package core
 import (
 	"fmt"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/ttesting"
 	"sync"
 	"testing"
 	"time"
@@ -32,7 +33,7 @@ func (m *mockPlugin) Configure(config PluginConfig) error {
 }
 
 func TestPluginRunState(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	pluginState := NewPluginRunState()
 
 	expect.Equal(PluginStateDead, pluginState.GetState())
@@ -64,7 +65,7 @@ func TestPluginRunState(t *testing.T) {
 }
 
 func TestPluginNewPluginWithType(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 
 	_, err := NewPlugin(NewPluginConfig("randomPlugin"))
 	expect.NotNil(err)

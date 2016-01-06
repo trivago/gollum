@@ -21,6 +21,8 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tmath"
+	"github.com/trivago/tgo/tstrings"
 	"io"
 	"io/ioutil"
 	"os"
@@ -96,9 +98,9 @@ func (spool *spoolFile) getFileNumbering() (min int, max int) {
 	files, _ := ioutil.ReadDir(spool.basePath)
 	for _, file := range files {
 		base := filepath.Base(file.Name())
-		number, _ := tgo.Btoi([]byte(base)) // Because we need leading zero support
-		min = tgo.MinI(min, int(number))
-		max = tgo.MaxI(max, int(number))
+		number, _ := tstrings.Btoi([]byte(base)) // Because we need leading zero support
+		min = tmath.MinI(min, int(number))
+		max = tmath.MaxI(max, int(number))
 	}
 	return min, max
 }

@@ -16,6 +16,7 @@ package core
 
 import (
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/ttesting"
 	"math"
 	"sync"
 	"testing"
@@ -49,7 +50,7 @@ func getMockProducer() mockProducer {
 }
 
 func TestProducerConfigure(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 
 	mockProducer := mockProducer{}
 
@@ -73,7 +74,7 @@ func TestProducerConfigure(t *testing.T) {
 }
 
 func TestProducerState(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 
 	mockProducer := mockProducer{}
 	mockProducer.runState = new(PluginRunState)
@@ -91,7 +92,7 @@ func TestProducerState(t *testing.T) {
 }
 
 func TestProducerCallback(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 
 	mockProducer := mockProducer{}
 	rollBackCalled := false
@@ -119,7 +120,7 @@ func TestProducerWaitgroup(t *testing.T) {
 }
 
 func TestProducerDependency(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockP := mockProducer{}
 
 	secondMockP := mockProducer{}
@@ -143,7 +144,7 @@ func TestProducerDependency(t *testing.T) {
 
 func TestProducerEnqueue(t *testing.T) {
 	// TODO: distribute for drop route not called. Probably streams array contains soln
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockP := getMockProducer()
 	mockDistribute := func(msg Message) {
 		expect.Equal("ProdEnqueueTest", msg.String())
@@ -180,7 +181,7 @@ func TestProducerEnqueue(t *testing.T) {
 }
 
 func TestProducerCloseMessageChannel(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockP := getMockProducer()
 
 	mockP.setState(PluginStateActive)
@@ -221,7 +222,7 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 }
 
 func TestProducerTickerLoop(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockP := getMockProducer()
 	mockP.setState(PluginStateActive)
 	// accept timeroff by abs( 8 ms)
@@ -255,7 +256,7 @@ func TestProducerTickerLoop(t *testing.T) {
 }
 
 func TestProducerMessageLoop(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockP := getMockProducer()
 	mockP.setState(PluginStateActive)
 	mockP.messages = make(chan Message, 10)
@@ -281,7 +282,7 @@ func TestProducerMessageLoop(t *testing.T) {
 }
 
 func TestProducerWaitForDependencies(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockP := getMockProducer()
 
 	for i := 0; i < 5; i++ {
@@ -303,7 +304,7 @@ func TestProducerWaitForDependencies(t *testing.T) {
 }
 
 func TestProducerControlLoop(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockP := getMockProducer()
 
 	var stop bool
@@ -331,7 +332,7 @@ func TestProducerControlLoop(t *testing.T) {
 }
 
 func TestProducerFuse(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	activateFuse := false
 	checkCounter := 0
 

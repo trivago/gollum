@@ -19,6 +19,7 @@ import (
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
+	"github.com/trivago/tgo/tstrings"
 	"github.com/trivago/tgo/tsync"
 	"io"
 	"io/ioutil"
@@ -109,7 +110,7 @@ func (cons *File) Configure(conf core.PluginConfig) error {
 	cons.file = nil
 	cons.fileName = conf.GetString("File", "/var/run/system.log")
 	cons.offsetFileName = conf.GetString("OffsetFile", "")
-	cons.delimiter = tgo.Unescape(conf.GetString("Delimiter", "\n"))
+	cons.delimiter = tstrings.Unescape(conf.GetString("Delimiter", "\n"))
 
 	switch strings.ToLower(conf.GetString("DefaultOffset", fileOffsetEnd)) {
 	default:

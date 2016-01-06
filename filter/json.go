@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tcontainer"
 	"regexp"
 	"strconv"
 )
@@ -80,7 +81,7 @@ func (filter *JSON) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-func (filter *JSON) getValue(key string, values tgo.MarshalMap) (string, bool) {
+func (filter *JSON) getValue(key string, values tcontainer.MarshalMap) (string, bool) {
 	if value, found := values.Path(key); found {
 		switch value.(type) {
 		case string:
@@ -100,7 +101,7 @@ func (filter *JSON) getValue(key string, values tgo.MarshalMap) (string, bool) {
 // Accepts checks JSON field values and rejects messages after testing a
 // blacklist and a whitelist.
 func (filter *JSON) Accepts(msg core.Message) bool {
-	values := tgo.NewMarshalMap()
+	values := tcontainer.NewMarshalMap()
 	if err := json.Unmarshal(msg.Data, &values); err != nil {
 		return false
 	}

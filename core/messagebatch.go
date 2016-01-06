@@ -16,6 +16,7 @@ package core
 
 import (
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tsync"
 	"sync/atomic"
 	"time"
@@ -186,7 +187,7 @@ func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
 	go tgo.DontPanic(func() {
 		defer batch.flushing.Done()
 
-		messageCount := tgo.MinI(int(writerCount), len(flushQueue.messages))
+		messageCount := tmath.MinI(int(writerCount), len(flushQueue.messages))
 		assemble(flushQueue.messages[:messageCount])
 		atomic.StoreUint32(&flushQueue.doneCount, 0)
 		batch.Touch()
@@ -211,7 +212,7 @@ func (batch MessageBatch) IsEmpty() bool {
 // If there is no data this function returns false.
 func (batch MessageBatch) ReachedSizeThreshold(size int) bool {
 	activeIdx := atomic.LoadUint32(&batch.activeSet) >> messageBatchIndexShift
-	threshold := uint32(tgo.MaxI(size, len(batch.queue[activeIdx].messages)))
+	threshold := uint32(tmath.MaxI(size, len(batch.queue[activeIdx].messages)))
 	return batch.queue[activeIdx].doneCount >= threshold
 }
 

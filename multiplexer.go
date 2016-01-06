@@ -19,6 +19,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/treflect"
 	"log"
 	"os"
 	"os/signal"
@@ -266,9 +267,9 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 func dumpFaultyPlugin(typeName string, pluginType reflect.Type) {
 	Log.Error.Print("Failed to load plugin ", typeName, ": Does not qualify for consumer, producer or stream interface")
 
-	consumerMatch, consumerMissing := tgo.GetMissingMethods(pluginType, consumerInterface)
-	producerMatch, producerMissing := tgo.GetMissingMethods(pluginType, producerInterface)
-	streamMatch, streamMissing := tgo.GetMissingMethods(pluginType, streamInterface)
+	consumerMatch, consumerMissing := treflect.GetMissingMethods(pluginType, consumerInterface)
+	producerMatch, producerMissing := treflect.GetMissingMethods(pluginType, producerInterface)
+	streamMatch, streamMissing := treflect.GetMissingMethods(pluginType, streamInterface)
 
 	if consumerMatch > producerMatch {
 		if consumerMatch > streamMatch {

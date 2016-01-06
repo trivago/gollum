@@ -12,44 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package tgo
+package tlog
 
-// MaxI returns the maximum out of two integers
-func MaxI(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
+import (
+	"fmt"
+	"io"
+	"os"
+)
+
+type logReferrer struct {
+	writer io.Writer
 }
 
-// Max3I returns the maximum out of three integers
-func Max3I(a, b, c int) int {
-	max := a
-	if b > max {
-		max = b
+// Write sends the message to the io.Writer passed to Configure
+func (log logReferrer) Write(message []byte) (int, error) {
+	length := len(message)
+	if length == 0 {
+		return 0, nil
 	}
-	if c > max {
-		max = c
-	}
-	return max
-}
 
-// MinI returns the minimum out of two integers
-func MinI(a, b int) int {
-	if a < b {
-		return a
+	if message[length-1] == '\n' {
+		message = message[:length-1]
 	}
-	return b
-}
 
-// Min3I returns the minimum out of three integers
-func Min3I(a, b, c int) int {
-	min := a
-	if b < min {
-		min = b
+	switch {
+	case log.writer == nil:
+		fmt.Println(string(message))
+		return length, nil
+
+	case log.writer == os.Stdout || log.writer == os.Stderr:
+		fmt.Fprintln(log.writer, string(message))
+		return length, nil
+
+	default:
+		return log.writer.Write(message)
 	}
-	if c < min {
-		min = c
-	}
-	return min
 }

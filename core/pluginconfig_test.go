@@ -15,7 +15,8 @@
 package core
 
 import (
-	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tcontainer"
+	"github.com/trivago/tgo/ttesting"
 	"testing"
 )
 
@@ -31,7 +32,7 @@ func getMockPluginConfig() PluginConfig {
 //  check True for existing & accessed keys and false otherwise
 //
 func TestPluginConfigValidate(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockPluginCfg := getMockPluginConfig()
 	mockPluginCfg.Settings["stringKey"] = "value"
 	mockPluginCfg.Settings["number"] = 1
@@ -55,11 +56,11 @@ func TestPluginConfigValidate(t *testing.T) {
 //  Create a new tgo.MarshalMap with mock key values
 //  Check if they are actually added, if they are, assert the key-value correctness
 func TestPluginConfigRead(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockPluginCfg := getMockPluginConfig()
 
 	// create a mock MarshalMap
-	testMarshalMap := tgo.NewMarshalMap()
+	testMarshalMap := tcontainer.NewMarshalMap()
 	testMarshalMap["Instances"] = 0
 
 	mockPluginCfg.Read(testMarshalMap)
@@ -96,7 +97,7 @@ func TestPluginConfigRead(t *testing.T) {
 //  Add non-predefined Values
 //  Check if added ones return true, and others false
 func TestPluginConfigHasValue(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockPluginCfg := getMockPluginConfig()
 
 	expect.False(mockPluginCfg.HasValue("aKey"))
@@ -114,7 +115,7 @@ func TestPluginConfigHasValue(t *testing.T) {
 //  Override the value to something else
 //  Assert new value took effect
 func TestPluginConfigOverride(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockPluginCfg := getMockPluginConfig()
 
 	mockPluginCfg.Settings["aKey"] = "aValue"
@@ -142,7 +143,7 @@ func TestPluginConfigOverride(t *testing.T) {
 //  Add a key with a value
 //  Asserts the string returned for the key is correct
 func TestPluginConfigGetString(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockPluginCfg := getMockPluginConfig()
 
 	//check for non-existant key
@@ -155,7 +156,7 @@ func TestPluginConfigGetString(t *testing.T) {
 // Function gets the string array for a key or default value if non existant
 // Plan: Similart to TestPluginConfigGetString
 func TestPluginConfigGetStringArray(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockPluginCfg := getMockPluginConfig()
 
 	mockStringArray := []string{"el1", "el2", "el3"}
@@ -172,7 +173,7 @@ func TestPluginConfigGetStringArray(t *testing.T) {
 // Function gets the stringMap for a key or default value if not existant
 // Plan: Similar to TestPluginConfigGetString but the Map structure needs assertion
 func TestPluginConfigGetStringMap(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockPluginCfg := getMockPluginConfig()
 
 	mockStringMap := map[string]string{
@@ -194,7 +195,7 @@ func TestPluginConfigGetStringMap(t *testing.T) {
 //  get the streamArray
 //  Check the hash received hash with manual generation from streamregistery.getStreamID
 func TestPluginConfigGetStreamArray(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockPluginCfg := getMockPluginConfig()
 
 	mockStreamArray := []string{
@@ -223,7 +224,7 @@ func TestPluginConfigGetStreamArray(t *testing.T) {
 //  get the streamMap without defaultValue
 //  verify the hash values
 func TestPluginConfigGetStreamMap(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockPluginCfg := getMockPluginConfig()
 	defaultValue := "v0"
 
@@ -267,7 +268,7 @@ func TestPluginConfigGetStreamMap(t *testing.T) {
 // Function gets streamRoutes where key is a string and value is a streamID
 // Plan: similar to TestPluginConfigGetStreamMap with streamId and value swapped
 func TestPluginConfigGetStreamRoutes(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockPluginCfg := getMockPluginConfig()
 
 	mockStreamRoute := map[string][]string{
@@ -291,7 +292,7 @@ func TestPluginConfigGetStreamRoutes(t *testing.T) {
 //  add a key and an int value in the Settings
 //  get the value back and Assert
 func TestPluginConfigGetInt(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockPluginCfg := getMockPluginConfig()
 
 	expect.Equal(mockPluginCfg.GetInt("intKey", 0), 0)
@@ -303,7 +304,7 @@ func TestPluginConfigGetInt(t *testing.T) {
 // Function gets an bool value for a key or default if non-existant
 // Plan: similar to TestPluginConfigGetInt
 func TestPluginConfigGetBool(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockPluginCfg := getMockPluginConfig()
 
 	expect.Equal(mockPluginCfg.GetBool("boolKey", false), false)
@@ -314,7 +315,7 @@ func TestPluginConfigGetBool(t *testing.T) {
 // Function gets a value for a key which is neither int or bool. Value encapsulated by interface
 // Plan: similart to TestPluginConfigGetInt
 func TestPluginConfigGetValue(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	mockPluginCfg := getMockPluginConfig()
 
 	// get string value

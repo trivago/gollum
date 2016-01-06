@@ -20,6 +20,7 @@ import (
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
+	"github.com/trivago/tgo/tmath"
 )
 
 // CollectdToInflux09 provides a transformation from collectd JSON data to
@@ -71,7 +72,7 @@ func (format *CollectdToInflux09) Format(msg core.Message) ([]byte, core.Message
 		collectdData.TypeInstance,
 		collectdData.Host)
 
-	setSize := tgo.Min3I(len(collectdData.Dstypes), len(collectdData.Dsnames), len(collectdData.Values))
+	setSize := tmath.Min3I(len(collectdData.Dstypes), len(collectdData.Dsnames), len(collectdData.Values))
 	for i := 0; i < setSize; i++ {
 		fmt.Fprintf(&influxData,
 			`%s, "dstype": "%s", "dsname": "%s"}, "fields": {"value": %f} },`,

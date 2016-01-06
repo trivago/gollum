@@ -12,36 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package tgo
+package treflect
 
 import (
 	"fmt"
-	"log"
-	"os"
 	"reflect"
-	"runtime/debug"
 )
-
-// RecoverShutdown will trigger a shutdown via interrupt if a panic was issued.
-// Typically used as "defer RecoverShutdown()".
-func RecoverShutdown() {
-	if r := recover(); r != nil {
-		log.Print("Panic triggered shutdown: ", r)
-		log.Print(string(debug.Stack()))
-
-		// Send interrupt = clean shutdown
-		// TODO: Hack
-		proc, _ := os.FindProcess(os.Getpid())
-		proc.Signal(os.Interrupt)
-	}
-}
-
-// DontPanic can be used instead of RecoverShutdown when using a function
-// without any parameters. E.g. go DontPanic(myFunction)
-func DontPanic(callback func()) {
-	defer RecoverShutdown()
-	callback()
-}
 
 // GetMissingMethods checks if a given object implements all methods of a
 // given interface. It returns the interface coverage [0..1] as well as an array

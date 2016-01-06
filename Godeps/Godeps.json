@@ -1,6 +1,9 @@
 {
 	"ImportPath": "github.com/trivago/gollum",
 	"GoVersion": "go1.5",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/araddon/gou",
@@ -64,7 +67,7 @@
 		},
 		{
 			"ImportPath": "github.com/trivago/tgo",
-			"Rev": "44f123854351bba92a80081a0a2577503e85da71"
+			"Rev": "c9e5d22eb02ecddb989a5ee247c5c6e02b87dbc6"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",

@@ -21,6 +21,7 @@ import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tnet"
+	"github.com/trivago/tgo/tstrings"
 	"io"
 	"net"
 	"strings"
@@ -108,7 +109,7 @@ func (cons *Proxy) Configure(conf core.PluginConfig) error {
 		return fmt.Errorf("Proxy does not support UDP")
 	}
 
-	cons.delimiter = tgo.Unescape(conf.GetString("Delimiter", "\n"))
+	cons.delimiter = tstrings.Unescape(conf.GetString("Delimiter", "\n"))
 	cons.offset = conf.GetInt("Offset", 0)
 	cons.flags = tio.BufferedReaderFlagEverything
 

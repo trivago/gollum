@@ -15,7 +15,7 @@
 package core
 
 import (
-	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/ttesting"
 	"testing"
 	"time"
 )
@@ -31,7 +31,7 @@ func getMockMessage(data string) Message {
 }
 
 func TestMessageEnqueue(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	msgString := "Test for Enqueue()"
 	msg := getMockMessage(msgString)
 	ch := make(chan Message)
@@ -56,7 +56,7 @@ func TestMessageEnqueue(t *testing.T) {
 }
 
 func TestMessageRoute(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 	msgString := "Test for Route()"
 	msg := getMockMessage(msgString)
 

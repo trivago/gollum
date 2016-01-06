@@ -20,6 +20,7 @@ import (
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
+	"github.com/trivago/tgo/tmath"
 	"strings"
 )
 
@@ -84,7 +85,7 @@ func (format *CollectdToInflux10) Format(msg core.Message) ([]byte, core.Message
 		format.escapeTag(collectdData.TypeInstance),
 		format.escapeTag(collectdData.Host))
 
-	setSize := tgo.Min3I(len(collectdData.Dstypes), len(collectdData.Dsnames), len(collectdData.Values))
+	setSize := tmath.Min3I(len(collectdData.Dstypes), len(collectdData.Dsnames), len(collectdData.Values))
 	for i := 0; i < setSize; i++ {
 		fmt.Fprintf(&influxData,
 			`%s,dstype=%s,dsname=%s value=%f %d\n`,

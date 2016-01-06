@@ -19,6 +19,8 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tmath"
+	"github.com/trivago/tgo/tstrings"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -154,7 +156,7 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	prod.files = make(map[string]*fileState)
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
 	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
-	prod.batchFlushCount = tgo.MinI(prod.batchFlushCount, prod.batchMaxCount)
+	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.overwriteFile = conf.GetBool("FileOverwrite", false)
 
@@ -273,7 +275,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		files, _ := ioutil.ReadDir(fileDir)
 		for _, file := range files {
 			if strings.HasPrefix(file.Name(), signature) {
-				counter, _ := tgo.Btoi([]byte(file.Name()[len(signature)+1:]))
+				counter, _ := tstrings.Btoi([]byte(file.Name()[len(signature)+1:]))
 				if maxSuffix <= counter {
 					maxSuffix = counter + 1
 				}

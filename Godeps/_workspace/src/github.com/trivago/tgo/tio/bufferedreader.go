@@ -17,7 +17,7 @@ package tio
 import (
 	"bytes"
 	"encoding/binary"
-	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tstrings"
 	"io"
 )
 
@@ -198,7 +198,7 @@ func (buffer *BufferedReader) parseDelimiter() ([]byte, int) {
 // messages are separeated length encoded by ASCII number and (an optional)
 // delimiter.
 func (buffer *BufferedReader) parseMLEText() ([]byte, int) {
-	messageLen, msgStartIdx := tgo.Btoi(buffer.data[buffer.paramMLE:buffer.end])
+	messageLen, msgStartIdx := tstrings.Btoi(buffer.data[buffer.paramMLE:buffer.end])
 	if msgStartIdx == 0 {
 		return nil, -1 // ### return, malformed ###
 	}

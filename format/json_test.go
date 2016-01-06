@@ -17,7 +17,7 @@ package format
 import (
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/ttesting"
 	"testing"
 )
 
@@ -36,7 +36,7 @@ func newTestJSONFormatter(directives []interface{}, start string) *JSON {
 }
 
 func TestJSONFormatter1(t *testing.T) {
-	expect := tgo.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 
 	testString := `{"a":123,"b":"string","c":[1,2,3],"d":[{"a":1}],"e":[[1,2]],"f":[{"a":1},{"b":2}],"g":[[1,2],[3,4]]}`
 	msg := core.NewMessage(nil, []byte(testString), 0)

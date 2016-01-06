@@ -25,6 +25,7 @@ import (
 	_ "github.com/trivago/gollum/producer"
 	_ "github.com/trivago/gollum/stream"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tstrings"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -55,7 +56,7 @@ func main() {
 	contribModules := tgo.TypeRegistry.GetRegistered("contrib")
 	modules := ""
 	for _, typeName := range contribModules {
-		modules += " +" + typeName[tgo.IndexN(typeName, ".", 1)+1:]
+		modules += " +" + typeName[tstrings.IndexN(typeName, ".", 1)+1:]
 	}
 
 	if *flagVersion {

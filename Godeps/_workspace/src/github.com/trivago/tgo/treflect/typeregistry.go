@@ -12,34 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package tgo
+package treflect
 
 import (
 	"fmt"
+	"github.com/trivago/tgo/tstrings"
 	"reflect"
 	"strings"
 )
 
-// typeRegistry is a name to type registry used to create objects by name.
-type typeRegistry struct {
+// TypeRegistry is a name to type registry used to create objects by name.
+type TypeRegistry struct {
 	namedType map[string]reflect.Type
 }
 
-// TypeRegistry is the global typeRegistry instance.
-// Use this instance to register plugins.
-var TypeRegistry = typeRegistry{
-	namedType: make(map[string]reflect.Type),
+// NewTypeRegistry creates a new TypeRegistry. Note that there is a global type
+// registry available in the main tgo package (tgo.TypeRegistry).
+func NewTypeRegistry() TypeRegistry {
+	return TypeRegistry{
+		namedType: make(map[string]reflect.Type),
+	}
 }
 
-// Register a plugin to the typeRegistry by passing an uninitialized object.
+// Register a plugin to the TypeRegistry by passing an uninitialized object.
 // Example: var MyConsumerClassID = shared.Plugin.Register(MyConsumer{})
-func (registry typeRegistry) Register(typeInstance interface{}) {
+func (registry TypeRegistry) Register(typeInstance interface{}) {
 	structType := reflect.TypeOf(typeInstance)
 	packageName := structType.PkgPath()
 	typeName := structType.Name()
 
 	for n := 1; n < 5; n++ {
-		pathIdx := LastIndexN(packageName, "/", n)
+		pathIdx := tstrings.LastIndexN(packageName, "/", n)
 		if pathIdx == -1 {
 			return // ### return, full path stored ###
 		}
@@ -52,7 +55,7 @@ func (registry typeRegistry) Register(typeInstance interface{}) {
 // New creates an uninitialized object by class name.
 // The class name has to be "package.class" or "package/subpackage.class".
 // The gollum package is omitted from the package path.
-func (registry typeRegistry) New(typeName string) (interface{}, error) {
+func (registry TypeRegistry) New(typeName string) (interface{}, error) {
 	structType, exists := registry.namedType[typeName]
 	if exists {
 		return reflect.New(structType).Interface(), nil
@@ -63,7 +66,7 @@ func (registry typeRegistry) New(typeName string) (interface{}, error) {
 // GetTypeOf returns only the type asscociated with the given name.
 // If the name is not registered, nil is returned.
 // The type returned will be a pointer type.
-func (registry typeRegistry) GetTypeOf(typeName string) reflect.Type {
+func (registry TypeRegistry) GetTypeOf(typeName string) reflect.Type {
 	if structType, exists := registry.namedType[typeName]; exists {
 		return reflect.PtrTo(structType)
 	}
@@ -71,7 +74,7 @@ func (registry typeRegistry) GetTypeOf(typeName string) reflect.Type {
 }
 
 // GetRegistered returns the names of all registered types for a given package
-func (registry typeRegistry) GetRegistered(packageName string) []string {
+func (registry TypeRegistry) GetRegistered(packageName string) []string {
 	var result []string
 	for key := range registry.namedType {
 		if strings.HasPrefix(key, packageName) {

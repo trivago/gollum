@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package tgo
+package tstrings
 
 import (
 	"fmt"
+	"github.com/trivago/tgo/tcontainer"
 	"strings"
 )
 
@@ -79,7 +80,7 @@ type TransitionDirective struct {
 // one state to another.
 type TransitionParser struct {
 	lookup []string
-	tokens []*TrieNode
+	tokens []*tcontainer.TrieNode
 	stack  []ParserStateID
 }
 
@@ -96,7 +97,7 @@ func NewTransition(nextState ParserStateID, flags ParserFlag, callback ParsedFun
 func NewTransitionParser() TransitionParser {
 	return TransitionParser{
 		lookup: []string{},
-		tokens: []*TrieNode{},
+		tokens: []*tcontainer.TrieNode{},
 		stack:  []ParserStateID{},
 	}
 }
@@ -218,7 +219,7 @@ func (parser *TransitionParser) AddTransition(stateName string, newTrans Transit
 	stateID := parser.GetStateID(stateName)
 
 	if state := parser.tokens[stateID]; state == nil {
-		parser.tokens[stateID] = NewTrie([]byte(token), newTrans)
+		parser.tokens[stateID] = tcontainer.NewTrie([]byte(token), newTrans)
 	} else {
 		parser.tokens[stateID] = state.Add([]byte(token), newTrans)
 	}

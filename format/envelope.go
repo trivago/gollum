@@ -17,6 +17,7 @@ package format
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tstrings"
 )
 
 // Envelope is a formatter that allows prefixing and/or postfixing a message
@@ -57,8 +58,8 @@ func (format *Envelope) Configure(conf core.PluginConfig) error {
 	}
 
 	format.base = plugin.(core.Formatter)
-	format.prefix = tgo.Unescape(conf.GetString("EnvelopePrefix", ""))
-	format.postfix = tgo.Unescape(conf.GetString("EnvelopePostfix", "\n"))
+	format.prefix = tstrings.Unescape(conf.GetString("EnvelopePrefix", ""))
+	format.postfix = tstrings.Unescape(conf.GetString("EnvelopePostfix", "\n"))
 
 	return nil
 }
