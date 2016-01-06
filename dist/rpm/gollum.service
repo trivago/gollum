@@ -1,0 +1,13 @@
+[Unit]
+Description=Gollum message multiplexer
+Documentation=http://gollum.readthedocs.org/
+After=network.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/sysconfig/gollum
+Environment=GOTRACEBACK=crash
+ExecStart=/usr/bin/gollum -c $CONFIG $ARGUMENTS
+
+[Install]
+WantedBy=multi-user.target
