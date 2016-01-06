@@ -17,6 +17,7 @@ package core
 import (
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tsync"
 	"hash/fnv"
 	"sync"
 	"sync/atomic"
@@ -39,7 +40,7 @@ var (
 type streamRegistry struct {
 	streams   map[MessageStreamID]Stream
 	name      map[MessageStreamID]string
-	fuses     map[string]*tgo.Fuse
+	fuses     map[string]*tsync.Fuse
 	fuseGuard *sync.Mutex
 	wildcard  []Producer
 }
@@ -49,7 +50,7 @@ type streamRegistry struct {
 var StreamRegistry = streamRegistry{
 	streams:   make(map[MessageStreamID]Stream),
 	name:      make(map[MessageStreamID]string),
-	fuses:     make(map[string]*tgo.Fuse),
+	fuses:     make(map[string]*tsync.Fuse),
 	fuseGuard: new(sync.Mutex),
 }
 
@@ -252,13 +253,13 @@ func (registry *streamRegistry) LinkDependencies(parent Producer, streamID Messa
 // GetFuse returns a fuse object by name. This function will always return a
 // valid fuse (creates fuses if they have not yet been created).
 // This function is threadsafe.
-func (registry *streamRegistry) GetFuse(name string) *tgo.Fuse {
+func (registry *streamRegistry) GetFuse(name string) *tsync.Fuse {
 	registry.fuseGuard.Lock()
 	defer registry.fuseGuard.Unlock()
 
 	fuse, exists := registry.fuses[name]
 	if !exists {
-		fuse = tgo.NewFuse()
+		fuse = tsync.NewFuse()
 		registry.fuses[name] = fuse
 	}
 	return fuse

@@ -19,6 +19,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tio"
 )
 
 // CollectdToInflux09 provides a transformation from collectd JSON data to
@@ -60,7 +61,7 @@ func (format *CollectdToInflux09) Format(msg core.Message) ([]byte, core.Message
 	}
 
 	// Manually convert to JSON lines
-	influxData := tgo.NewByteStream(len(data))
+	influxData := tio.NewByteStream(len(data))
 	fixedPart := fmt.Sprintf(
 		`{"name": "%s", "timestamp": %d, "precision": "ms", "tags": {"plugin_instance": "%s", "type": "%s", "type_instance": "%s", "host": "%s"`,
 		collectdData.Plugin,

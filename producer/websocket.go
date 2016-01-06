@@ -18,6 +18,8 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tnet"
+	"github.com/trivago/tgo/tsync"
 	"golang.org/x/net/websocket"
 	"net/http"
 	"sync"
@@ -50,7 +52,7 @@ type Websocket struct {
 	core.ProducerBase
 	address        string
 	path           string
-	listen         *tgo.StopListener
+	listen         *tnet.StopListener
 	clients        [2]clientList
 	clientIdx      uint32
 	readTimeoutSec time.Duration
@@ -122,7 +124,7 @@ func (prod *Websocket) pushMessage(msg core.Message) {
 		// Wait for new list writer to finish
 		count := currentIdx & 0x7FFFFFFF
 		currentIdx = currentIdx >> 31
-		spin := tgo.NewSpinner(tgo.SpinPriorityHigh)
+		spin := tsync.NewSpinner(tsync.SpinPriorityHigh)
 
 		for prod.clients[currentIdx].doneCount != count {
 			spin.Yield()
@@ -152,7 +154,7 @@ func (prod *Websocket) pushMessage(msg core.Message) {
 func (prod *Websocket) serve() {
 	defer prod.WorkerDone()
 
-	listen, err := tgo.NewStopListener(prod.address)
+	listen, err := tnet.NewStopListener(prod.address)
 	if err != nil {
 		Log.Error.Print("Websocket: ", err)
 		return // ### return, could not connect ###
@@ -175,7 +177,7 @@ func (prod *Websocket) serve() {
 	prod.listen = listen
 
 	err = srv.Serve(prod.listen)
-	_, isStopRequest := err.(tgo.StopRequestError)
+	_, isStopRequest := err.(tnet.StopRequestError)
 	if err != nil && !isStopRequest {
 		Log.Error.Print("Websocket: ", err)
 	}

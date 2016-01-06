@@ -21,6 +21,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tnet"
 	"io"
 	"net/http"
 	"sync"
@@ -62,7 +63,7 @@ import (
 // If a Certificate is given, a PrivatKey must be given, too.
 type Http struct {
 	core.ConsumerBase
-	listen         *tgo.StopListener
+	listen         *tnet.StopListener
 	address        string
 	sequence       uint64
 	readTimeoutSec time.Duration
@@ -156,14 +157,14 @@ func (cons *Http) serve() {
 	}
 
 	err := srv.Serve(cons.listen)
-	if _, isStopRequest := err.(tgo.StopRequestError); err != nil && !isStopRequest {
+	if _, isStopRequest := err.(tnet.StopRequestError); err != nil && !isStopRequest {
 		Log.Error.Print("httpd: ", err)
 	}
 }
 
 // Consume opens a new http server listen on specified ip and port (address)
 func (cons Http) Consume(workers *sync.WaitGroup) {
-	listen, err := tgo.NewStopListener(cons.address)
+	listen, err := tnet.NewStopListener(cons.address)
 	if err != nil {
 		Log.Error.Print("Http: ", err)
 		return // ### return, could not connect ###

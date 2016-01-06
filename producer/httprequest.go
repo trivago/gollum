@@ -21,6 +21,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tnet"
 	"net/http"
 	"sync"
 )
@@ -55,7 +56,7 @@ type HTTPRequest struct {
 	address    string
 	encoding   string
 	rawPackets bool
-	listen     *tgo.StopListener
+	listen     *tnet.StopListener
 }
 
 func init() {
@@ -71,7 +72,7 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfig) error {
 	prod.SetStopCallback(prod.close)
 
 	address := conf.GetString("Address", "localhost:80")
-	prod.protocol, prod.host, prod.port, err = tgo.SplitAddress(address, "http")
+	prod.protocol, prod.host, prod.port, err = tnet.SplitAddress(address, "http")
 	if err != nil {
 		return err
 	}

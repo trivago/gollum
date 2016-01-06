@@ -18,6 +18,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tio"
 	"io"
 	"net"
 	"syscall"
@@ -84,7 +85,7 @@ func (client *proxyClient) sendMessage(data []byte, seq uint64) {
 }
 
 func (client *proxyClient) read() {
-	buffer := tgo.NewBufferedReader(proxyClientBufferGrowSize, client.proxy.flags, client.proxy.offset, client.proxy.delimiter)
+	buffer := tio.NewBufferedReader(proxyClientBufferGrowSize, client.proxy.flags, client.proxy.offset, client.proxy.delimiter)
 
 	for client.proxy.IsActive() && client.connected && !client.proxy.IsFuseBurned() {
 		err := buffer.ReadAll(client.conn, client.sendMessage)

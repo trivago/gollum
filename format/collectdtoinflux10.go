@@ -19,6 +19,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tio"
 	"strings"
 )
 
@@ -73,7 +74,7 @@ func (format *CollectdToInflux10) Format(msg core.Message) ([]byte, core.Message
 	}
 
 	// Manually convert to line protocol
-	influxData := tgo.NewByteStream(len(data))
+	influxData := tio.NewByteStream(len(data))
 	timestamp := int64(collectdData.Time * 1000)
 	fixedPart := fmt.Sprintf(
 		`%s,plugin_instance=%s,type=%s,type_instance=%s,host=%s`,

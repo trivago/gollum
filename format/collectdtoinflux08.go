@@ -19,6 +19,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tio"
 )
 
 // CollectdToInflux08 provides a transformation from collectd JSON data to
@@ -70,7 +71,7 @@ func (format *CollectdToInflux08) Format(msg core.Message) ([]byte, core.Message
 	}
 
 	// Manually convert to JSON lines
-	influxData := tgo.NewByteStream(len(data))
+	influxData := tio.NewByteStream(len(data))
 	name := format.createMetricName(collectdData.Plugin,
 		collectdData.PluginInstance,
 		collectdData.PluginType,

@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tio"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -41,7 +41,7 @@ type influxDBWriter10 struct {
 	connectionUp     bool
 	timeBasedDBName  bool
 	Control          func() chan<- core.PluginControl
-	buffer           tgo.ByteStream
+	buffer           tio.ByteStream
 }
 
 // Configure sets the database connection values
@@ -50,7 +50,7 @@ func (writer *influxDBWriter10) configure(conf core.PluginConfig, prod *InfluxDB
 	writer.username = conf.GetString("User", "")
 	writer.password = conf.GetString("Password", "")
 	writer.databaseTemplate = conf.GetString("Database", "default")
-	writer.buffer = tgo.NewByteStream(4096)
+	writer.buffer = tio.NewByteStream(4096)
 	writer.connectionUp = false
 	writer.timeBasedDBName = conf.GetBool("TimeBasedName", true)
 	writer.Control = prod.Control

@@ -18,6 +18,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tnet"
 	"gopkg.in/redis.v2"
 	"strconv"
 	"strings"
@@ -93,7 +94,7 @@ func (prod *Redis) Configure(conf core.PluginConfig) error {
 	prod.database = int64(conf.GetInt("Database", 0))
 	prod.key = conf.GetString("Key", "default")
 	prod.fieldFromParsed = conf.GetBool("FieldAfterFormat", false)
-	prod.address, prod.protocol = tgo.ParseAddress(conf.GetString("Address", ":6379"))
+	prod.address, prod.protocol = tnet.ParseAddress(conf.GetString("Address", ":6379"))
 
 	switch strings.ToLower(conf.GetString("Storage", "hash")) {
 	case "hash":

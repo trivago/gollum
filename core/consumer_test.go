@@ -16,6 +16,7 @@ package core
 
 import (
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tsync"
 	"math"
 	"sync"
 	"testing"
@@ -223,7 +224,7 @@ func TestConsumerFuse(t *testing.T) {
 	activeCallback = false
 
 	mockC.fuse.Burn()
-	time.Sleep(tgo.SpinTimeSuspend + 100*time.Millisecond)
+	time.Sleep(tsync.SpinTimeSuspend + 100*time.Millisecond)
 
 	expect.True(burnedCallback)
 	expect.False(activeCallback)

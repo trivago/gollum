@@ -19,6 +19,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tsync"
 	kafka "gopkg.in/Shopify/sarama.v1"
 	"io/ioutil"
 	"strconv"
@@ -222,7 +223,7 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 	}()
 
 	// Loop over worker
-	spin := tgo.NewSpinner(tgo.SpinPriorityLow)
+	spin := tsync.NewSpinner(tsync.SpinPriorityLow)
 
 	for !cons.client.Closed() {
 		cons.WaitOnFuse()

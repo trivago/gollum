@@ -20,6 +20,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tnet"
 	"gopkg.in/mcuadros/go-syslog.v2"
 	"gopkg.in/mcuadros/go-syslog.v2/format"
 	"sync"
@@ -71,7 +72,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	cons.address, cons.protocol = tgo.ParseAddress(conf.GetString("Address", "udp://0.0.0.0:514"))
+	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", "udp://0.0.0.0:514"))
 	format := conf.GetString("Format", "RFC6587")
 
 	switch cons.protocol {

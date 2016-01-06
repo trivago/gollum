@@ -18,6 +18,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tnet"
 	"net"
 	"sync"
 	"time"
@@ -106,7 +107,7 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 
 	prod.acknowledge = tgo.Unescape(conf.GetString("Acknowledge", ""))
 	prod.ackTimeout = time.Duration(conf.GetInt("AckTimeoutMs", 2000)) * time.Millisecond
-	prod.address, prod.protocol = tgo.ParseAddress(conf.GetString("Address", ":5880"))
+	prod.address, prod.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"))
 
 	if prod.protocol != "unix" {
 		if prod.acknowledge != "" {
@@ -166,7 +167,7 @@ func (prod *Socket) validate() bool {
 	_, err := prod.connection.Read(response)
 	if err != nil {
 		Log.Error.Print("Socket response error: ", err)
-		if tgo.IsDisconnectedError(err) {
+		if tnet.IsDisconnectedError(err) {
 			prod.closeConnection()
 		}
 		return false

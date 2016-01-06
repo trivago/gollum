@@ -16,6 +16,7 @@ package core
 
 import (
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tsync"
 	"sync/atomic"
 	"time"
 )
@@ -26,7 +27,7 @@ import (
 // called, i.e. if a timeout or size threshold has been reached.
 type MessageBatch struct {
 	queue     [2]messageQueue
-	flushing  *tgo.WaitGroup
+	flushing  *tsync.WaitGroup
 	lastFlush time.Time
 	activeSet uint32
 	closed    int32
@@ -52,7 +53,7 @@ type AssemblyFunc func([]Message)
 func NewMessageBatch(maxMessageCount int) MessageBatch {
 	return MessageBatch{
 		queue:     [2]messageQueue{newMessageQueue(maxMessageCount), newMessageQueue(maxMessageCount)},
-		flushing:  new(tgo.WaitGroup),
+		flushing:  new(tsync.WaitGroup),
 		lastFlush: time.Now(),
 		activeSet: uint32(0),
 		closed:    0,
@@ -105,7 +106,7 @@ func (batch *MessageBatch) Append(msg Message) bool {
 // AppendOrBlock works like Append but will block until Append returns true.
 // If the batch was closed during this call, false is returned.
 func (batch *MessageBatch) AppendOrBlock(msg Message) bool {
-	spin := tgo.NewSpinner(tgo.SpinPriorityMedium)
+	spin := tsync.NewSpinner(tsync.SpinPriorityMedium)
 	for !batch.IsClosed() {
 		if batch.Append(msg) {
 			return true // ### return, success ###
@@ -174,7 +175,7 @@ func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
 	flushIdx := flushSet >> messageBatchIndexShift
 	writerCount := flushSet & messageBatchCountMask
 	flushQueue := &batch.queue[flushIdx]
-	spin := tgo.NewSpinner(tgo.SpinPriorityHigh)
+	spin := tsync.NewSpinner(tsync.SpinPriorityHigh)
 
 	// Wait for remaining writers to finish
 	for writerCount != atomic.LoadUint32(&flushQueue.doneCount) {

@@ -18,6 +18,8 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tio"
+	"github.com/trivago/tgo/tsync"
 	"io"
 	"io/ioutil"
 	"os"
@@ -187,8 +189,8 @@ func (cons *File) read() {
 		sendFunction = cons.enqueueAndPersist
 	}
 
-	spin := tgo.NewSpinner(tgo.SpinPriorityLow)
-	buffer := tgo.NewBufferedReader(fileBufferGrowSize, 0, 0, cons.delimiter)
+	spin := tsync.NewSpinner(tsync.SpinPriorityLow)
+	buffer := tio.NewBufferedReader(fileBufferGrowSize, 0, 0, cons.delimiter)
 	printFileOpenError := true
 
 	for cons.state != fileStateDone {

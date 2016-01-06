@@ -19,6 +19,8 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tio"
+	"github.com/trivago/tgo/tnet"
 	"io"
 	"net"
 	"strings"
@@ -85,7 +87,7 @@ type Proxy struct {
 	listen    io.Closer
 	protocol  string
 	address   string
-	flags     tgo.BufferedReaderFlags
+	flags     tio.BufferedReaderFlags
 	delimiter string
 	offset    int
 }
@@ -101,41 +103,41 @@ func (cons *Proxy) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	cons.address, cons.protocol = tgo.ParseAddress(conf.GetString("Address", ":5880"))
+	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"))
 	if cons.protocol == "udp" {
 		return fmt.Errorf("Proxy does not support UDP")
 	}
 
 	cons.delimiter = tgo.Unescape(conf.GetString("Delimiter", "\n"))
 	cons.offset = conf.GetInt("Offset", 0)
-	cons.flags = tgo.BufferedReaderFlagEverything
+	cons.flags = tio.BufferedReaderFlagEverything
 
 	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))
 	switch partitioner {
 	case "binary_be":
-		cons.flags |= tgo.BufferedReaderFlagBigEndian
+		cons.flags |= tio.BufferedReaderFlagBigEndian
 		fallthrough
 
 	case "binary", "binary_le":
 		switch conf.GetInt("Size", 4) {
 		case 1:
-			cons.flags |= tgo.BufferedReaderFlagMLE8
+			cons.flags |= tio.BufferedReaderFlagMLE8
 		case 2:
-			cons.flags |= tgo.BufferedReaderFlagMLE16
+			cons.flags |= tio.BufferedReaderFlagMLE16
 		case 4:
-			cons.flags |= tgo.BufferedReaderFlagMLE32
+			cons.flags |= tio.BufferedReaderFlagMLE32
 		case 8:
-			cons.flags |= tgo.BufferedReaderFlagMLE64
+			cons.flags |= tio.BufferedReaderFlagMLE64
 		default:
 			return fmt.Errorf("Size only supports the value 1,2,4 and 8")
 		}
 
 	case "fixed":
-		cons.flags |= tgo.BufferedReaderFlagMLEFixed
+		cons.flags |= tio.BufferedReaderFlagMLEFixed
 		cons.offset = conf.GetInt("Size", 1)
 
 	case "ascii":
-		cons.flags |= tgo.BufferedReaderFlagMLE
+		cons.flags |= tio.BufferedReaderFlagMLE
 
 	case "delimiter":
 		// Nothing to add

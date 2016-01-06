@@ -16,6 +16,7 @@ package core
 
 import (
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tsync"
 	"testing"
 )
 
@@ -23,7 +24,7 @@ func getMockStreamRegistry() streamRegistry {
 	return streamRegistry{
 		streams:  map[MessageStreamID]Stream{},
 		name:     map[MessageStreamID]string{},
-		fuses:    map[string]*tgo.Fuse{},
+		fuses:    map[string]*tsync.Fuse{},
 		wildcard: []Producer{},
 	}
 }

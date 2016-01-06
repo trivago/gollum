@@ -20,6 +20,8 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tio"
+	"github.com/trivago/tgo/tnet"
 	"io"
 	"net"
 	"os"
@@ -116,7 +118,7 @@ type Socket struct {
 	reconnectTime time.Duration
 	ackTimeout    time.Duration
 	readTimeout   time.Duration
-	flags         tgo.BufferedReaderFlags
+	flags         tio.BufferedReaderFlags
 	fileFlags     os.FileMode
 	offset        int
 	clearSocket   bool
@@ -142,7 +144,7 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 	cons.clients = list.New()
 	cons.clientLock = new(sync.Mutex)
 	cons.acknowledge = tgo.Unescape(conf.GetString("Acknowledge", ""))
-	cons.address, cons.protocol = tgo.ParseAddress(conf.GetString("Address", ":5880"))
+	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"))
 	cons.reconnectTime = time.Duration(conf.GetInt("ReconnectAfterSec", 2)) * time.Second
 	cons.ackTimeout = time.Duration(conf.GetInt("AckTimoutSec", 2)) * time.Second
 	cons.readTimeout = time.Duration(conf.GetInt("ReadTimoutSec", 5)) * time.Second
@@ -163,30 +165,30 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))
 	switch partitioner {
 	case "binary_be":
-		cons.flags |= tgo.BufferedReaderFlagBigEndian
+		cons.flags |= tio.BufferedReaderFlagBigEndian
 		fallthrough
 
 	case "binary", "binary_le":
-		cons.flags |= tgo.BufferedReaderFlagEverything
+		cons.flags |= tio.BufferedReaderFlagEverything
 		switch conf.GetInt("Size", 4) {
 		case 1:
-			cons.flags |= tgo.BufferedReaderFlagMLE8
+			cons.flags |= tio.BufferedReaderFlagMLE8
 		case 2:
-			cons.flags |= tgo.BufferedReaderFlagMLE16
+			cons.flags |= tio.BufferedReaderFlagMLE16
 		case 4:
-			cons.flags |= tgo.BufferedReaderFlagMLE32
+			cons.flags |= tio.BufferedReaderFlagMLE32
 		case 8:
-			cons.flags |= tgo.BufferedReaderFlagMLE64
+			cons.flags |= tio.BufferedReaderFlagMLE64
 		default:
 			return fmt.Errorf("Size only supports the value 1,2,4 and 8")
 		}
 
 	case "fixed":
-		cons.flags |= tgo.BufferedReaderFlagMLEFixed
+		cons.flags |= tio.BufferedReaderFlagMLEFixed
 		cons.offset = conf.GetInt("Size", 1)
 
 	case "ascii":
-		cons.flags |= tgo.BufferedReaderFlagMLE
+		cons.flags |= tio.BufferedReaderFlagMLE
 
 	case "delimiter":
 		// Nothing to add
@@ -217,7 +219,7 @@ func (cons *Socket) processConnection(conn net.Conn) {
 	defer cons.WorkerDone()
 	defer conn.Close()
 
-	buffer := tgo.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.offset, cons.delimiter)
+	buffer := tio.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.offset, cons.delimiter)
 
 	for cons.IsActive() && !cons.IsFuseBurned() {
 		conn.SetReadDeadline(time.Now().Add(cons.readTimeout))
@@ -229,7 +231,7 @@ func (cons *Socket) processConnection(conn net.Conn) {
 		}
 
 		// Silently exit on disconnect/close
-		if !cons.IsActive() || tgo.IsDisconnectedError(err) {
+		if !cons.IsActive() || tnet.IsDisconnectedError(err) {
 			return // ### return, connection closed ###
 		}
 
@@ -242,7 +244,7 @@ func (cons *Socket) processConnection(conn net.Conn) {
 		cons.sendAck(conn, false)
 
 		// Parser errors do not drop the connection
-		if err != tgo.BufferDataInvalid {
+		if err != tio.BufferDataInvalid {
 			return // ### return, close connections ###
 		}
 	}

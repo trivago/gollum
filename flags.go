@@ -15,27 +15,27 @@
 package main
 
 import (
-	"github.com/trivago/tgo/flag"
+	"github.com/trivago/tgo/tflag"
 )
 
 var (
-	flagHelp           = flag.Switch("h", "help", "Print this help message.")
-	flagVersion        = flag.Switch("v", "version", "Print version information and quit.")
-	flagConfigFile     = flag.String("c", "config", "", "Use a given configuration file.")
-	flagTestConfigFile = flag.Switch("tc", "testconfig", "Test the given configuration file and exit.")
-	flagLoglevel       = flag.Int("ll", "loglevel", 1, "Set the loglevel [0-3] as in {0=Errors, 1=+Warnings, 2=+Notes, 3=+Debug}.")
-	flagNumCPU         = flag.Int("n", "numcpu", 0, "Number of CPUs to use. Set 0 for all CPUs.")
-	flagPidFile        = flag.String("p", "pidfile", "", "Write the process id into a given file.")
-	flagMetricsPort    = flag.Int("m", "metrics", 0, "Port to use for metric queries. Set 0 to disable.")
-	flagCPUProfile     = flag.String("pc", "profilecpu", "", "Write CPU profiler results to a given file.")
-	flagMemProfile     = flag.String("pm", "profilemem", "", "Write heap profile results to a given file.")
-	flagProfile        = flag.Switch("ps", "profilespeed", "Write msg/sec measurements to log.")
+	flagHelp           = tflag.Switch("h", "help", "Print this help message.")
+	flagVersion        = tflag.Switch("v", "version", "Print version information and quit.")
+	flagConfigFile     = tflag.String("c", "config", "", "Use a given configuration file.")
+	flagTestConfigFile = tflag.Switch("tc", "testconfig", "Test the given configuration file and exit.")
+	flagLoglevel       = tflag.Int("ll", "loglevel", 1, "Set the loglevel [0-3] as in {0=Errors, 1=+Warnings, 2=+Notes, 3=+Debug}.")
+	flagNumCPU         = tflag.Int("n", "numcpu", 0, "Number of CPUs to use. Set 0 for all CPUs.")
+	flagPidFile        = tflag.String("p", "pidfile", "", "Write the process id into a given file.")
+	flagMetricsPort    = tflag.Int("m", "metrics", 0, "Port to use for metric queries. Set 0 to disable.")
+	flagCPUProfile     = tflag.String("pc", "profilecpu", "", "Write CPU profiler results to a given file.")
+	flagMemProfile     = tflag.String("pm", "profilemem", "", "Write heap profile results to a given file.")
+	flagProfile        = tflag.Switch("ps", "profilespeed", "Write msg/sec measurements to log.")
 )
 
 func parseFlags() {
-	flag.Parse()
+	tflag.Parse()
 }
 
 func printFlags() {
-	flag.PrintFlags("Usage: gollum [OPTIONS]\n\nGollum - A n:m message multiplexer.\n\nOptions:")
+	tflag.PrintFlags("Usage: gollum [OPTIONS]\n\nGollum - A n:m message multiplexer.\n\nOptions:")
 }

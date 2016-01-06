@@ -18,6 +18,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tio"
 	"io"
 	"os"
 	"sync"
@@ -60,7 +61,7 @@ func (cons *Console) Configure(conf core.PluginConfig) error {
 }
 
 func (cons *Console) readStdIn() {
-	buffer := tgo.NewBufferedReader(consoleBufferGrowSize, 0, 0, "\n")
+	buffer := tio.NewBufferedReader(consoleBufferGrowSize, 0, 0, "\n")
 
 	for cons.IsActive() {
 		err := buffer.ReadAll(os.Stdin, cons.Enqueue)
