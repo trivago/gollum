@@ -1,0 +1,4 @@
+# /etc/sysconfig/gollum
+
+CONFIG="/etc/gollum/gollum.conf"
+ARGUMENTS=""
