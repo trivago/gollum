@@ -89,18 +89,18 @@ TEXT ·haveSSE41(SB), NOSPLIT, $0
 // Linux kernel, since they avoid the costly
 // PSHUFB 16 byte reversal proposed in the
 // original Intel paper.
-DATA r2r1<>+0(SB)/8, $0x154442bd4
-DATA r2r1<>+8(SB)/8, $0x1c6e41596
-DATA r4r3<>+0(SB)/8, $0x1751997d0
-DATA r4r3<>+8(SB)/8, $0x0ccaa009e
-DATA rupoly<>+0(SB)/8, $0x1db710641
-DATA rupoly<>+8(SB)/8, $0x1f7011641
-DATA r5<>+0(SB)/8, $0x163cd6124
+DATA r2r1kp<>+0(SB)/8, $0x154442bd4
+DATA r2r1kp<>+8(SB)/8, $0x1c6e41596
+DATA r4r3kp<>+0(SB)/8, $0x1751997d0
+DATA r4r3kp<>+8(SB)/8, $0x0ccaa009e
+DATA rupolykp<>+0(SB)/8, $0x1db710641
+DATA rupolykp<>+8(SB)/8, $0x1f7011641
+DATA r5kp<>+0(SB)/8, $0x163cd6124
 
-GLOBL r2r1<>(SB), RODATA, $16
-GLOBL r4r3<>(SB), RODATA, $16
-GLOBL rupoly<>(SB), RODATA, $16
-GLOBL r5<>(SB), RODATA, $8
+GLOBL r2r1kp<>(SB), RODATA, $16
+GLOBL r4r3kp<>(SB), RODATA, $16
+GLOBL rupolykp<>(SB), RODATA, $16
+GLOBL r5kp<>(SB), RODATA, $8
 
 // Based on http://www.intel.com/content/dam/www/public/us/en/documents/white-papers/fast-crc-computation-generic-polynomials-pclmulqdq-paper.pdf
 // len(p) must be at least 64, and must be a multiple of 16.
@@ -121,7 +121,7 @@ TEXT ·ieeeCLMUL(SB), NOSPLIT, $0
 	CMPQ  CX, $64    // Less than 64 bytes left
 	JB    remain64
 
-	MOVOU r2r1<>+0(SB), X0
+	MOVOU r2r1kp<>+0(SB), X0
 
 loopback64:
 	MOVOA X1, X5
@@ -163,7 +163,7 @@ loopback64:
 
 	// Fold result into a single register (X1)
 remain64:
-	MOVOU r4r3<>+0(SB), X0
+	MOVOU r4r3kp<>+0(SB), X0
 
 	MOVOA     X1, X5
 	PCLMULQDQ $0, X0, X1
@@ -208,7 +208,7 @@ finish:
 	PXOR      X0, X1
 
 	MOVOA X1, X2
-	MOVQ  r5<>+0(SB), X0
+	MOVQ  r5kp<>+0(SB), X0
 
 	// Creates 32 bit mask. Note that we don't care about upper half.
 	PSRLQ $32, X3
@@ -218,7 +218,7 @@ finish:
 	PCLMULQDQ $0, X0, X1
 	PXOR      X2, X1
 
-	MOVOU rupoly<>+0(SB), X0
+	MOVOU rupolykp<>+0(SB), X0
 
 	MOVOA     X1, X2
 	PAND      X3, X1

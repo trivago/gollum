@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package tgo
+package tio
 
 import (
 	"bytes"
 	"encoding/binary"
+	"github.com/trivago/tgo"
 	"io"
 )
 
@@ -197,7 +198,7 @@ func (buffer *BufferedReader) parseDelimiter() ([]byte, int) {
 // messages are separeated length encoded by ASCII number and (an optional)
 // delimiter.
 func (buffer *BufferedReader) parseMLEText() ([]byte, int) {
-	messageLen, msgStartIdx := Btoi(buffer.data[buffer.paramMLE:buffer.end])
+	messageLen, msgStartIdx := tgo.Btoi(buffer.data[buffer.paramMLE:buffer.end])
 	if msgStartIdx == 0 {
 		return nil, -1 // ### return, malformed ###
 	}

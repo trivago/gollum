@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package flag
+package tflag
 
 import (
 	"flag"
@@ -34,9 +34,13 @@ const (
 	tabValue = iota
 )
 
+func init() {
+	flag.CommandLine.Usage = func() {}
+}
+
 func addKeyDescription(short string, long string, value interface{}, usage string) {
 	desc := flagKeyDescription{
-		flagKey: fmt.Sprintf("-%s, --%s", short, long),
+		flagKey: fmt.Sprintf("-%s, -%s", short, long),
 		usage:   usage,
 		value:   fmt.Sprintf("%v", value),
 	}
@@ -64,7 +68,7 @@ func SwitchVar(flagVar *bool, short string, long string, usage string) *bool {
 // flag package internally.
 func BoolVar(flagVar *bool, short string, long string, value bool, usage string) *bool {
 	flag.BoolVar(flagVar, short, value, usage)
-	flag.BoolVar(flagVar, "-"+long, value, usage)
+	flag.BoolVar(flagVar, long, value, usage)
 	addKeyDescription(short, long, value, usage)
 	return flagVar
 }
@@ -73,7 +77,7 @@ func BoolVar(flagVar *bool, short string, long string, value bool, usage string)
 // flag package internally.
 func IntVar(flagVar *int, short string, long string, value int, usage string) *int {
 	flag.IntVar(flagVar, short, value, usage)
-	flag.IntVar(flagVar, "-"+long, value, usage)
+	flag.IntVar(flagVar, long, value, usage)
 	addKeyDescription(short, long, value, usage)
 	return flagVar
 }
@@ -82,7 +86,7 @@ func IntVar(flagVar *int, short string, long string, value int, usage string) *i
 // flag package internally.
 func Int64Var(flagVar *int64, short string, long string, value int64, usage string) *int64 {
 	flag.Int64Var(flagVar, short, value, usage)
-	flag.Int64Var(flagVar, "-"+long, value, usage)
+	flag.Int64Var(flagVar, long, value, usage)
 	addKeyDescription(short, long, value, usage)
 	return flagVar
 }
@@ -91,7 +95,7 @@ func Int64Var(flagVar *int64, short string, long string, value int64, usage stri
 // flag package internally.
 func Float64Var(flagVar *float64, short string, long string, value float64, usage string) *float64 {
 	flag.Float64Var(flagVar, short, value, usage)
-	flag.Float64Var(flagVar, "-"+long, value, usage)
+	flag.Float64Var(flagVar, long, value, usage)
 	addKeyDescription(short, long, value, usage)
 	return flagVar
 }
@@ -100,7 +104,7 @@ func Float64Var(flagVar *float64, short string, long string, value float64, usag
 // flag package internally.
 func StringVar(flagVar *string, short string, long string, value string, usage string) *string {
 	flag.StringVar(flagVar, short, value, usage)
-	flag.StringVar(flagVar, "-"+long, value, usage)
+	flag.StringVar(flagVar, long, value, usage)
 	addKeyDescription(short, long, value, usage)
 	return flagVar
 }

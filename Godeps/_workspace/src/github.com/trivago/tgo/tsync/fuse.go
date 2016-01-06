@@ -1,4 +1,4 @@
-package tgo
+package tsync
 
 import (
 	"sync"
