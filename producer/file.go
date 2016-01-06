@@ -113,6 +113,11 @@ import (
 // defined by "File" and are pruned by date (followed by name).
 // By default this is set to 0 which disables pruning.
 //
+// RotateZeroPadding sets the number of leading zeros when rotating files with
+// an existing name. Setting this setting to 0 won't add zeros, every other
+// number defines the number of leading zeros to be used. By default this is
+// set to 0.
+//
 // Compress defines if a rotated logfile is to be gzip compressed or not.
 // By default this is set to false.
 type File struct {
@@ -186,6 +191,7 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	prod.rotate.atHour = -1
 	prod.rotate.atMinute = -1
 	prod.rotate.compress = conf.GetBool("Compress", false)
+	prod.rotate.zeroPad = conf.GetInt("RotateZeroPadding", 0)
 
 	prod.pruneCount = conf.GetInt("RotatePruneCount", 0)
 	prod.pruneSize = int64(conf.GetInt("RotatePruneTotalSizeMB", 0)) << 20
@@ -291,7 +297,11 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		if maxSuffix == 0 {
 			logFileName = fmt.Sprintf("%s%s", signature, fileExt)
 		} else {
-			logFileName = fmt.Sprintf("%s_%d%s", signature, int(maxSuffix), fileExt)
+			formatString := "%s_%d%s"
+			if prod.rotate.zeroPad > 0 {
+				formatString = fmt.Sprintf("%%s_%%0%dd%%s", prod.rotate.zeroPad)
+			}
+			logFileName = fmt.Sprintf(formatString, signature, int(maxSuffix), fileExt)
 		}
 	}
 
@@ -312,7 +322,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 
 	// (Re)open logfile
 	var err error
-	openFlags := os.O_WRONLY | os.O_CREATE | os.O_APPEND
+	openFlags := os.O_RDWR | os.O_CREATE | os.O_APPEND
 	if prod.overwriteFile {
 		openFlags |= os.O_TRUNC
 	} else {

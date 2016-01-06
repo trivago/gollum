@@ -41,6 +41,7 @@ type fileRotateConfig struct {
 	sizeByte int64
 	atHour   int
 	atMinute int
+	zeroPad  int
 	enabled  bool
 	compress bool
 }
