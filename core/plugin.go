@@ -93,7 +93,7 @@ func init() {
 // NewPluginLogScope creates a new tlog.LogScope for the plugin contained in this
 // config.
 func NewPluginLogScope(conf PluginConfig) tlog.LogScope {
-	if conf.ID != "" {
+	if conf.ID == "" {
 		return tlog.NewLogScope(conf.Typename)
 	}
 	return tlog.NewLogScope(conf.Typename + ":" + conf.ID)
@@ -102,7 +102,7 @@ func NewPluginLogScope(conf PluginConfig) tlog.LogScope {
 // NewSubPluginLogScope creates a new sub scope tlog.LogScope for the plugin contained
 // in this config.
 func NewSubPluginLogScope(conf PluginConfig, subScope string) tlog.LogScope {
-	if conf.ID != "" {
+	if conf.ID == "" {
 		return tlog.NewLogScope(conf.Typename + ":" + subScope)
 	}
 	return tlog.NewLogScope(conf.Typename + ":" + conf.ID + ":" + subScope)
