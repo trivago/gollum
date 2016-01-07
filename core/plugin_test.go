@@ -16,7 +16,6 @@ package core
 
 import (
 	"fmt"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/ttesting"
 	"sync"
 	"testing"
@@ -72,12 +71,12 @@ func TestPluginNewPluginWithType(t *testing.T) {
 	type notPlugin struct {
 	}
 	// for not a plugin, there should be error.
-	core.TypeRegistry.Register(notPlugin{})
+	TypeRegistry.Register(notPlugin{})
 	_, err = NewPluginWithType("core.notPlugin", NewPluginConfig("core.notPlugin"))
 	expect.NotNil(err)
 
 	// for valid pluginConfig, there shouldn't be any error
-	core.TypeRegistry.Register(mockPlugin{})
+	TypeRegistry.Register(mockPlugin{})
 	pluginConfig := NewPluginConfig("core.mockPlugin")
 	pluginConfig.ID = "testPluginConfig"
 	_, err = NewPlugin(pluginConfig)

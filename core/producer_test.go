@@ -15,7 +15,6 @@
 package core
 
 import (
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/ttesting"
 	"math"
 	"sync"
@@ -54,9 +53,9 @@ func TestProducerConfigure(t *testing.T) {
 
 	mockProducer := mockProducer{}
 
-	core.TypeRegistry.Register(mockPlugin{})
-	core.TypeRegistry.Register(mockFormatter{})
-	core.TypeRegistry.Register(mockFilter{})
+	TypeRegistry.Register(mockPlugin{})
+	TypeRegistry.Register(mockFormatter{})
+	TypeRegistry.Register(mockFilter{})
 	mockConf := NewPluginConfig("core.mockPlugin")
 	mockConf.ID = "testPluginConf"
 	mockConf.Stream = []string{"testBoundStream"}

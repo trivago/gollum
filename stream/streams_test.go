@@ -18,7 +18,6 @@ import (
 	"github.com/trivago/gollum/core"
 	_ "github.com/trivago/gollum/filter"
 	_ "github.com/trivago/gollum/format"
-	"github.com/trivago/tgo"
 	"reflect"
 	"testing"
 )
