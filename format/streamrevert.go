@@ -31,6 +31,7 @@ import (
 // This formatter is applied to the data after StreamRevertDelimiter.
 // By default this is set to "format.Forward"
 type StreamRevert struct {
+	core.FormatterBase
 	base      core.Formatter
 	delimiter []byte
 }
@@ -41,6 +42,11 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *StreamRevert) Configure(conf core.PluginConfig) error {
+	err := format.FormatterBase.Configure(conf)
+	if err != nil {
+		return err
+	}
+
 	plugin, err := core.NewPluginWithType(conf.GetString("StreamRevertFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err

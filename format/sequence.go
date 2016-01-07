@@ -30,6 +30,7 @@ import (
 // SequenceDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Sequence struct {
+	core.FormatterBase
 	base     core.Formatter
 	length   int
 	sequence string
@@ -41,6 +42,11 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Sequence) Configure(conf core.PluginConfig) error {
+	err := format.FormatterBase.Configure(conf)
+	if err != nil {
+		return err
+	}
+
 	plugin, err := core.NewPluginWithType(conf.GetString("SequenceFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err

@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo/tstrings"
 	"sync"
 	"time"
@@ -101,6 +100,7 @@ const (
 // A key write inside an array will cause the array to be closed. If the array
 // is nested, all arrays will be closed.
 type JSON struct {
+	core.FormatterBase
 	message   *bytes.Buffer
 	parser    tstrings.TransitionParser
 	state     jsonReaderState
@@ -117,6 +117,11 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *JSON) Configure(conf core.PluginConfig) error {
+	err := format.FormatterBase.Configure(conf)
+	if err != nil {
+		return err
+	}
+
 	format.parser = tstrings.NewTransitionParser()
 	format.state = jsonReadObject
 	format.initState = conf.GetString("JSONStartState", "")
@@ -125,13 +130,13 @@ func (format *JSON) Configure(conf core.PluginConfig) error {
 	format.parseLock = new(sync.Mutex)
 
 	if !conf.HasValue("JSONDirectives") {
-		Log.Warning.Print("JSON formatter has no JSONDirectives setting")
+		format.Log.Warning.Print("JSON formatter has no JSONDirectives setting")
 		return nil // ### return, no directives ###
 	}
 
 	directiveStrings := conf.GetStringArray("JSONDirectives", []string{})
 	if len(directiveStrings) == 0 {
-		Log.Warning.Print("JSON formatter has no directives")
+		format.Log.Warning.Print("JSON formatter has no directives")
 		return nil // ### return, no directives ###
 	}
 

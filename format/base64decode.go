@@ -18,7 +18,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 )
 
 // Base64Decode is a formatter that decodes a base64 message.
@@ -37,6 +36,7 @@ import (
 // Base64DataFormatter defines a formatter that is applied before the base64
 // decoding takes place. By default this is set to "format.Forward"
 type Base64Decode struct {
+	core.FormatterBase
 	base       core.Formatter
 	dictionary *base64.Encoding
 }
@@ -47,6 +47,11 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Base64Decode) Configure(conf core.PluginConfig) error {
+	err := format.FormatterBase.Configure(conf)
+	if err != nil {
+		return err
+	}
+
 	plugin, err := core.NewPluginWithType(conf.GetString("Base64Formatter", "format.Forward"), conf)
 	if err != nil {
 		return err
@@ -71,7 +76,7 @@ func (format *Base64Decode) Format(msg core.Message) ([]byte, core.MessageStream
 	decoded := make([]byte, format.dictionary.DecodedLen(len(data)))
 	size, err := format.dictionary.Decode(decoded, msg.Data)
 	if err != nil {
-		Log.Error.Print("Base64Decode: ", err)
+		format.Log.Error.Print(err)
 	}
 	return decoded[:size], streamID
 }

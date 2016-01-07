@@ -35,6 +35,7 @@ import (
 //       - "server"
 //       - "error"
 type SplitToJSON struct {
+	core.FormatterBase
 	base  core.Formatter
 	token []byte
 	keys  []string
@@ -46,6 +47,11 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *SplitToJSON) Configure(conf core.PluginConfig) error {
+	err := format.FormatterBase.Configure(conf)
+	if err != nil {
+		return err
+	}
+
 	plugin, err := core.NewPluginWithType(conf.GetString("SplitToJSONDataFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err

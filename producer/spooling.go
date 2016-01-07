@@ -16,7 +16,6 @@ package producer
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
 	"os"
 	"sync"
@@ -137,7 +136,7 @@ func (prod *Spooling) writeToFile(msg core.Message) {
 		prod.outfile[streamID] = spool
 
 		if err := os.MkdirAll(spool.basePath, 0700); err != nil {
-			Log.Error.Printf("Spooling: Failed to create %s because of %s", spool.basePath, err.Error())
+			prod.Log.Error.Printf("Spooling: Failed to create %s because of %s", spool.basePath, err.Error())
 			prod.Drop(msg)
 			return // ### return, cannot write ###
 		}

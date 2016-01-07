@@ -15,7 +15,7 @@
 package core
 
 import (
-	"github.com/trivago/gollum/core/log"
+	"github.com/trivago/tgo/tlog"
 	"io"
 	"sync"
 )
@@ -82,7 +82,7 @@ func (asm *WriterAssembly) Write(messages []Message) {
 	writer := asm.getWriter()
 
 	if writer == nil {
-		Log.Error.Print("No writer assigned to writer assembly")
+		tlog.Error.Print("No writer assigned to writer assembly")
 		asm.Flush(messages)
 		return // ### return, cannot write ###
 	}
@@ -106,7 +106,7 @@ func (asm *WriterAssembly) Write(messages []Message) {
 				asm.Flush(messages)
 			}
 		} else {
-			Log.Error.Print("Stream write error:", err)
+			tlog.Error.Print("Stream write error:", err)
 		}
 		return // ### return, error handled ###
 	}

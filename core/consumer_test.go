@@ -15,6 +15,7 @@
 package core
 
 import (
+	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tsync"
 	"github.com/trivago/tgo/ttesting"
 	"math"
@@ -36,6 +37,7 @@ func getMockConsumer() ConsumerBase {
 		control:  make(chan PluginControl),
 		streams:  make([]MappedStream, 5),
 		runState: NewPluginRunState(),
+		Log:      tlog.NewLogScope("test"),
 	}
 }
 

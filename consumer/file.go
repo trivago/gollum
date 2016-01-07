@@ -16,7 +16,6 @@ package consumer
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tstrings"
@@ -213,7 +212,7 @@ func (cons *File) read() {
 			switch {
 			case err != nil:
 				if printFileOpenError {
-					Log.Warning.Print("File open failed - ", err)
+					cons.Log.Warning.Print("File open failed - ", err)
 					printFileOpenError = false
 				}
 				time.Sleep(3 * time.Second)
@@ -236,7 +235,7 @@ func (cons *File) read() {
 				spin.Reset()
 			case err == io.EOF:
 				if cons.file.Name() != cons.realFileName() {
-					Log.Note.Print("File rotation detected")
+					cons.Log.Note.Print("File rotation detected")
 					cons.file.Close()
 					cons.file = nil
 					cons.seek = cons.seekOnRotate
@@ -247,7 +246,7 @@ func (cons *File) read() {
 				}
 				spin.Yield()
 			case cons.state == fileStateRead:
-				Log.Error.Print("Error reading file - ", err)
+				cons.Log.Error.Print("Error reading file - ", err)
 				cons.file.Close()
 				cons.file = nil
 			}

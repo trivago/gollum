@@ -34,6 +34,7 @@ import (
 // TimestampDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Timestamp struct {
+	core.FormatterBase
 	base            core.Formatter
 	timestampFormat string
 }
@@ -44,6 +45,11 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Timestamp) Configure(conf core.PluginConfig) error {
+	err := format.FormatterBase.Configure(conf)
+	if err != nil {
+		return err
+	}
+
 	plugin, err := core.NewPluginWithType(conf.GetString("TimestampFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err

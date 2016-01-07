@@ -17,7 +17,6 @@ package format
 import (
 	"encoding/base64"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 )
 
 // Serialize is a formatter that serializes a message for later retrieval.
@@ -34,6 +33,7 @@ import (
 // SerializeStringEncode causes the serialized data to be base64 encoded and
 // newline separated. This is enabled by default.
 type Serialize struct {
+	core.FormatterBase
 	base   core.Formatter
 	encode bool
 }
@@ -44,6 +44,11 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Serialize) Configure(conf core.PluginConfig) error {
+	err := format.FormatterBase.Configure(conf)
+	if err != nil {
+		return err
+	}
+
 	plugin, err := core.NewPluginWithType(conf.GetString("SerializeFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err
@@ -60,7 +65,7 @@ func (format *Serialize) Format(msg core.Message) ([]byte, core.MessageStreamID)
 	msg.Data, msg.StreamID = format.base.Format(msg)
 	data, err := msg.Serialize()
 	if err != nil {
-		Log.Error.Print("Serialize: ", err)
+		format.Log.Error.Print("Serialize: ", err)
 		return msg.Data, msg.StreamID
 	}
 

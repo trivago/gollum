@@ -19,12 +19,12 @@ import (
 	_ "github.com/trivago/gollum/consumer"
 	_ "github.com/trivago/gollum/contrib"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	_ "github.com/trivago/gollum/filter"
 	_ "github.com/trivago/gollum/format"
 	_ "github.com/trivago/gollum/producer"
 	_ "github.com/trivago/gollum/stream"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tstrings"
 	"io/ioutil"
 	"os"
@@ -51,7 +51,7 @@ func dumpMemoryProfile() {
 
 func main() {
 	parseFlags()
-	Log.SetVerbosity(Log.Verbosity(*flagLoglevel))
+	tlog.SetVerbosity(tlog.Verbosity(*flagLoglevel))
 
 	contribModules := core.TypeRegistry.GetRegistered("contrib")
 	modules := ""

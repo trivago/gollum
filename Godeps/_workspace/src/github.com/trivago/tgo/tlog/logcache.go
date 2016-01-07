@@ -16,21 +16,34 @@ package tlog
 
 import (
 	"io"
+	"sync"
 )
 
 type logCache struct {
-	messages []string
+	flushing sync.Mutex
+	messages [][]byte
 }
 
-// Write caches the message as string
+// Write caches the passed message. Blocked by flush function.
 func (log *logCache) Write(message []byte) (int, error) {
-	log.messages = append(log.messages, string(message))
-	return len(message), nil
+	log.flushing.Lock()
+	defer log.flushing.Unlock()
+
+	length := len(message)
+	if length > 0 {
+		log.messages = append(log.messages, message)
+	}
+	return length, nil
 }
 
-func (log *logCache) flush(writer io.Writer) {
+// Flush writes all messages to the given writer and clears the list
+// of stored messages. Blocks Write function.
+func (log *logCache) Flush(writer io.Writer) {
+	log.flushing.Lock()
+	defer log.flushing.Unlock()
+
 	for _, message := range log.messages {
-		writer.Write([]byte(message))
+		writer.Write(message)
 	}
-	log.messages = []string{}
+	log.messages = [][]byte{}
 }

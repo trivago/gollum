@@ -15,8 +15,8 @@
 package core
 
 import (
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo/tcontainer"
+	"github.com/trivago/tgo/tlog"
 )
 
 // PluginConfig is a configuration for a specific plugin
@@ -57,7 +57,7 @@ func (conf PluginConfig) Validate() bool {
 	for key := range conf.Settings {
 		if _, exists := conf.validKeys[key]; !exists {
 			valid = false
-			Log.Warning.Printf("Unknown configuration key in %s: %s", conf.Typename, key)
+			tlog.Warning.Printf("Unknown configuration key in %s: %s", conf.Typename, key)
 		}
 	}
 	return valid
@@ -85,7 +85,7 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) {
 			conf.Settings[key] = settingValue
 		}
 		if err != nil {
-			Log.Error.Fatalf(err.Error())
+			tlog.Error.Fatalf(err.Error())
 		}
 	}
 
@@ -118,7 +118,7 @@ func (conf PluginConfig) GetString(key string, defaultValue string) string {
 	conf.registerKey(key)
 	if conf.HasValue(key) {
 		if value, err := conf.Settings.String(key); err != nil {
-			Log.Error.Fatalf(err.Error())
+			tlog.Error.Fatalf(err.Error())
 		} else {
 			return value
 		}
@@ -133,7 +133,7 @@ func (conf PluginConfig) GetStringArray(key string, defaultValue []string) []str
 	conf.registerKey(key)
 	if conf.HasValue(key) {
 		if value, err := conf.Settings.StringArray(key); err != nil {
-			Log.Error.Fatalf(err.Error())
+			tlog.Error.Fatalf(err.Error())
 		} else {
 			return value
 		}
@@ -147,7 +147,7 @@ func (conf PluginConfig) GetStringMap(key string, defaultValue map[string]string
 	conf.registerKey(key)
 	if conf.HasValue(key) {
 		if value, err := conf.Settings.StringMap(key); err != nil {
-			Log.Error.Fatalf(err.Error())
+			tlog.Error.Fatalf(err.Error())
 		} else {
 			return value
 		}
@@ -183,7 +183,7 @@ func (conf PluginConfig) GetStreamMap(key string, defaultValue string) map[Messa
 	conf.registerKey(key)
 	if conf.HasValue(key) {
 		if value, err := conf.Settings.StringMap(key); err != nil {
-			Log.Error.Fatalf(err.Error())
+			tlog.Error.Fatalf(err.Error())
 		} else {
 			for streamName, target := range value {
 				streamMap[GetStreamID(streamName)] = target
@@ -205,7 +205,7 @@ func (conf PluginConfig) GetStreamRoutes(key string) map[MessageStreamID][]Messa
 	}
 
 	if value, err := conf.Settings.StringArrayMap(key); err != nil {
-		Log.Error.Fatalf(err.Error())
+		tlog.Error.Fatalf(err.Error())
 	} else {
 		for sourceName, targets := range value {
 			sourceStream := GetStreamID(sourceName)
@@ -228,7 +228,7 @@ func (conf PluginConfig) GetInt(key string, defaultValue int) int {
 	conf.registerKey(key)
 	if conf.HasValue(key) {
 		if value, err := conf.Settings.Int(key); err != nil {
-			Log.Error.Fatalf(err.Error())
+			tlog.Error.Fatalf(err.Error())
 		} else {
 			return value
 		}
@@ -242,7 +242,7 @@ func (conf PluginConfig) GetBool(key string, defaultValue bool) bool {
 	conf.registerKey(key)
 	if conf.HasValue(key) {
 		if value, err := conf.Settings.Bool(key); err != nil {
-			Log.Error.Fatalf(err.Error())
+			tlog.Error.Fatalf(err.Error())
 		} else {
 			return value
 		}

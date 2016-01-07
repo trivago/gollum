@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"github.com/jeromer/syslogparser"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo/tnet"
 	"gopkg.in/mcuadros/go-syslog.v2"
 	"gopkg.in/mcuadros/go-syslog.v2/format"
@@ -85,7 +84,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfig) error {
 	case "RFC3164":
 		cons.format = syslog.RFC3164
 		if cons.protocol == "tcp" {
-			Log.Warning.Print("Syslog: RFC3164 demands UDP")
+			cons.Log.Warning.Print("Syslog: RFC3164 demands UDP")
 			cons.protocol = "udp"
 		}
 
@@ -93,7 +92,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfig) error {
 	case "RFC5424":
 		cons.format = syslog.RFC5424
 		if cons.protocol == "tcp" {
-			Log.Warning.Print("Syslog: RFC5424 demands UDP")
+			cons.Log.Warning.Print("Syslog: RFC5424 demands UDP")
 			cons.protocol = "udp"
 		}
 
@@ -128,15 +127,15 @@ func (cons *Syslogd) Consume(workers *sync.WaitGroup) {
 	switch cons.protocol {
 	case "unix":
 		if err := server.ListenUnixgram(cons.address); err != nil {
-			Log.Error.Print("Syslog: Failed to open unix://", cons.address)
+			cons.Log.Error.Print("Syslog: Failed to open unix://", cons.address)
 		}
 	case "udp":
 		if err := server.ListenUDP(cons.address); err != nil {
-			Log.Error.Print("Syslog: Failed to open udp://", cons.address)
+			cons.Log.Error.Print("Syslog: Failed to open udp://", cons.address)
 		}
 	case "tcp":
 		if err := server.ListenTCP(cons.address); err != nil {
-			Log.Error.Print("Syslog: Failed to open tcp://", cons.address)
+			cons.Log.Error.Print("Syslog: Failed to open tcp://", cons.address)
 		}
 	}
 

@@ -18,7 +18,6 @@ import (
 	"container/list"
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tnet"
@@ -241,7 +240,7 @@ func (cons *Socket) processConnection(conn net.Conn) {
 			continue // ### return, ignore timeouts ###
 		}
 
-		Log.Error.Print("Socket transfer failed: ", err)
+		cons.Log.Error.Print("Socket transfer failed: ", err)
 		cons.sendAck(conn, false)
 
 		// Parser errors do not drop the connection
@@ -276,7 +275,7 @@ func (cons *Socket) udpAccept() {
 			if listener, err := net.ListenUDP(cons.protocol, addr); err == nil {
 				cons.listen = listener
 			} else {
-				Log.Error.Print("Socket connection error: ", err)
+				cons.Log.Error.Print("Socket connection error: ", err)
 				time.Sleep(cons.reconnectTime)
 			}
 		}
@@ -305,14 +304,14 @@ func (cons *Socket) tcpAccept() {
 			if err == nil {
 				cons.listen = listener
 			} else {
-				Log.Error.Print("Socket connection error: ", err)
+				cons.Log.Error.Print("Socket connection error: ", err)
 
 				// Clear socket if necessary
 				if cons.protocol == "unix" && cons.clearSocket {
 					if _, err := os.Stat(cons.address); err == nil {
-						Log.Warning.Print("Found existing socket ", cons.address, ". Removing.")
+						cons.Log.Warning.Print("Found existing socket ", cons.address, ". Removing.")
 						if err := os.Remove(cons.address); err != nil {
-							Log.Error.Print("Could not remove existing socket ", cons.address)
+							cons.Log.Error.Print("Could not remove existing socket ", cons.address)
 						}
 					}
 				}
@@ -325,7 +324,7 @@ func (cons *Socket) tcpAccept() {
 		if client, err := listener.Accept(); err != nil {
 			// Trigger full reconnect (suppress errors during shutdown)
 			if cons.IsActive() {
-				Log.Error.Print("Socket accept failed: ", err)
+				cons.Log.Error.Print("Socket accept failed: ", err)
 			}
 			cons.closeTCPConnection()
 		} else {

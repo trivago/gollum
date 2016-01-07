@@ -17,7 +17,6 @@ package producer
 import (
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"
 	"io/ioutil"
@@ -247,7 +246,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	state, stateExists := prod.files[logFileBasePath]
 	if !stateExists {
 		// state does not yet exist: create and map it
-		state = newFileState(prod.batchMaxCount, prod.GetFormatter(), prod.Drop, prod.flushTimeout)
+		state = newFileState(prod.batchMaxCount, prod.GetFormatter(), prod.Drop, prod.flushTimeout, prod.Log)
 		prod.files[logFileBasePath] = state
 		prod.filesByStream[streamID] = state
 	} else if _, mappingExists := prod.filesByStream[streamID]; !mappingExists {
@@ -298,7 +297,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		if prod.rotate.compress {
 			go state.compressAndCloseLog(currentLog)
 		} else {
-			Log.Note.Print("Rotated ", currentLog.Name(), " -> ", logFilePath)
+			prod.Log.Note.Print("Rotated ", currentLog.Name(), " -> ", logFilePath)
 			currentLog.Close()
 		}
 	}
@@ -346,7 +345,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 func (prod *File) rotateLog() {
 	for streamID := range prod.filesByStream {
 		if _, err := prod.getFileState(streamID, true); err != nil {
-			Log.Error.Print("File rotate error: ", err)
+			prod.Log.Error.Print("File rotate error: ", err)
 		}
 	}
 }
@@ -363,7 +362,7 @@ func (prod *File) writeMessage(msg core.Message) {
 	_, streamID := prod.ProducerBase.Format(msg)
 	state, err := prod.getFileState(streamID, false)
 	if err != nil {
-		Log.Error.Print("File log error: ", err)
+		prod.Log.Error.Print("File log error: ", err)
 		prod.Drop(msg)
 		return // ### return, dropped ###
 	}

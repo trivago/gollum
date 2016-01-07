@@ -15,6 +15,7 @@
 package core
 
 import (
+	"github.com/trivago/tgo/tlog"
 	"sync"
 	"time"
 )
@@ -70,6 +71,7 @@ type StreamBase struct {
 	prevDistribute Distributor
 	paused         chan Message
 	resumeWorker   *sync.WaitGroup
+	Log            tlog.LogScope
 }
 
 // Distributor is a callback typedef for methods processing messages
@@ -77,6 +79,7 @@ type Distributor func(msg Message)
 
 // ConfigureStream sets up all values requred by StreamBase.
 func (stream *StreamBase) ConfigureStream(conf PluginConfig, distribute Distributor) error {
+	stream.Log = NewPluginLogScope(conf)
 	plugin, err := NewPluginWithType(conf.GetString("Formatter", "format.Forward"), conf)
 	if err != nil {
 		return err // ### return, plugin load error ###

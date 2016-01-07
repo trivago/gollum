@@ -17,7 +17,6 @@ package consumer
 import (
 	"encoding/json"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tsync"
 	kafka "gopkg.in/Shopify/sarama.v1"
@@ -194,7 +193,7 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 
 // Restart the consumer after wating for persistTimeout
 func (cons *Kafka) retry(partitionID int32, err error) {
-	Log.Error.Printf("Restarting kafka consumer (%s:%d) - %s", cons.topic, cons.offsets[partitionID], err.Error())
+	cons.Log.Error.Printf("Restarting kafka consumer (%s:%d) - %s", cons.topic, cons.offsets[partitionID], err.Error())
 	time.Sleep(cons.persistTimeout)
 
 	cons.readFromPartition(partitionID)
@@ -246,7 +245,7 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 			cons.Enqueue(event.Value, sequence)
 
 		case err := <-partCons.Errors():
-			Log.Error.Print("Kafka consumer error:", err)
+			cons.Log.Error.Print("Kafka consumer error:", err)
 
 		default:
 			spin.Yield()
@@ -306,7 +305,7 @@ func (cons *Kafka) dumpIndex() {
 
 		data, err := json.Marshal(encodedOffsets)
 		if err != nil {
-			Log.Error.Print("Kafka index file write error - ", err)
+			cons.Log.Error.Print("Kafka index file write error - ", err)
 		} else {
 			ioutil.WriteFile(cons.offsetFile, data, 0644)
 		}
@@ -319,7 +318,7 @@ func (cons *Kafka) Consume(workers *sync.WaitGroup) {
 
 	err := cons.startConsumers()
 	if err != nil {
-		Log.Error.Print("Kafka client error - ", err)
+		cons.Log.Error.Print("Kafka client error - ", err)
 		return
 	}
 

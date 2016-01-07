@@ -19,7 +19,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo/tnet"
 	"net/http"
 	"sync"
@@ -119,14 +118,14 @@ func (prod *HTTPRequest) sendReq(msg core.Message) {
 	}
 
 	if err != nil {
-		Log.Error.Print("HTTPRequest invalid request", err)
+		prod.Log.Error.Print("HTTPRequest invalid request", err)
 		prod.Drop(msg)
 		return // ### return, malformed request ###
 	}
 
 	go func() {
 		if _, err := http.DefaultClient.Do(req); err != nil {
-			Log.Error.Print("HTTPRequest send failed: ", err)
+			prod.Log.Error.Print("HTTPRequest send failed: ", err)
 			if !prod.isHostUp() {
 				prod.Control() <- core.PluginControlFuseBurn
 			}

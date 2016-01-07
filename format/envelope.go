@@ -40,6 +40,7 @@ import (
 // EnvelopeDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Envelope struct {
+	core.FormatterBase
 	base    core.Formatter
 	postfix string
 	prefix  string
@@ -51,6 +52,11 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Envelope) Configure(conf core.PluginConfig) error {
+	err := format.FormatterBase.Configure(conf)
+	if err != nil {
+		return err
+	}
+
 	plugin, err := core.NewPluginWithType(conf.GetString("EnvelopeFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err

@@ -15,15 +15,10 @@
 package tgo
 
 import (
-	"github.com/trivago/tgo/treflect"
 	"log"
 	"os"
 	"runtime/debug"
 )
-
-// TypeRegistry is the global typeRegistry instance.
-// Use this instance to register plugins.
-var TypeRegistry = treflect.NewTypeRegistry()
 
 // RecoverShutdown will trigger a shutdown via interrupt if a panic was issued.
 // Typically used as "defer RecoverShutdown()".

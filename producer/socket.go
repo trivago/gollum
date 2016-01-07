@@ -16,7 +16,6 @@ package producer
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tnet"
 	"github.com/trivago/tgo/tstrings"
@@ -134,7 +133,7 @@ func (prod *Socket) tryConnect() bool {
 
 	conn, err := net.DialTimeout(prod.protocol, prod.address, prod.ackTimeout)
 	if err != nil {
-		Log.Error.Print("Socket connection error - ", err)
+		prod.Log.Error.Print("Socket connection error - ", err)
 		prod.closeConnection()
 		return false // ### return, connection failed ###
 	}
@@ -167,7 +166,7 @@ func (prod *Socket) validate() bool {
 	prod.connection.SetReadDeadline(time.Now().Add(prod.ackTimeout))
 	_, err := prod.connection.Read(response)
 	if err != nil {
-		Log.Error.Print("Socket response error: ", err)
+		prod.Log.Error.Print("Socket response error: ", err)
 		if tnet.IsDisconnectedError(err) {
 			prod.closeConnection()
 		}
@@ -177,7 +176,7 @@ func (prod *Socket) validate() bool {
 }
 
 func (prod *Socket) onWriteError(err error) bool {
-	Log.Error.Print("Socket write error - ", err)
+	prod.Log.Error.Print("Socket write error - ", err)
 	prod.closeConnection()
 	return false
 }

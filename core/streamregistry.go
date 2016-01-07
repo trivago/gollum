@@ -15,8 +15,8 @@
 package core
 
 import (
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tsync"
 	"hash/fnv"
 	"sync"
@@ -189,7 +189,7 @@ func (registry streamRegistry) AddWildcardProducersToStream(stream Stream) {
 // Register registeres a stream plugin to a given stream id
 func (registry *streamRegistry) Register(stream Stream, streamID MessageStreamID) {
 	if _, exists := registry.streams[streamID]; exists {
-		Log.Warning.Printf("%T attaches to an already occupied stream (%s)", stream, registry.GetStreamName(streamID))
+		tlog.Warning.Printf("%T attaches to an already occupied stream (%s)", stream, registry.GetStreamName(streamID))
 	} else {
 		tgo.Metric.Inc(metricStreams)
 	}
@@ -206,7 +206,7 @@ func (registry *streamRegistry) GetStreamOrFallback(streamID MessageStreamID) St
 	}
 
 	streamName := registry.GetStreamName(streamID)
-	Log.Debug.Print("Using fallback stream for ", streamName)
+	tlog.Debug.Print("Using fallback stream for ", streamName)
 
 	defaultStream := new(StreamBase)
 	defaultConfig := NewPluginConfig("StreamBase")
@@ -235,17 +235,17 @@ func (registry *streamRegistry) LinkDependencies(parent Producer, streamID Messa
 	for _, child := range dependencies {
 		switch {
 		case parent == child:
-			Log.Warning.Printf("%T refers to itself via '%s'", parent, streamName)
+			tlog.Warning.Printf("%T refers to itself via '%s'", parent, streamName)
 
 		case parent.DependsOn(child):
-			Log.Warning.Printf("Detected a circular dependecy between %T and %T via '%s'", parent, child, streamName)
+			tlog.Warning.Printf("Detected a circular dependecy between %T and %T via '%s'", parent, child, streamName)
 
 		case child.DependsOn(parent):
-			Log.Warning.Printf("Detected a circular dependecy between %T and %T via '%s'", child, parent, streamName)
+			tlog.Warning.Printf("Detected a circular dependecy between %T and %T via '%s'", child, parent, streamName)
 
 		default:
 			child.AddDependency(parent)
-			Log.Debug.Printf("%T depends on %T via '%s'", child, parent, streamName)
+			tlog.Debug.Printf("%T depends on %T via '%s'", child, parent, streamName)
 		}
 	}
 }

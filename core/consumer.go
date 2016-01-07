@@ -15,7 +15,7 @@
 package core
 
 import (
-	"github.com/trivago/gollum/core/log"
+	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tsync"
 	"sync"
 	"time"
@@ -75,10 +75,12 @@ type ConsumerBase struct {
 	onStop       func()
 	onFuseBurned func()
 	onFuseActive func()
+	Log          tlog.LogScope
 }
 
 // Configure initializes standard consumer values from a plugin config.
 func (cons *ConsumerBase) Configure(conf PluginConfig) error {
+	cons.Log = NewPluginLogScope(conf)
 	cons.runState = NewPluginRunState()
 	cons.control = make(chan PluginControl, 1)
 	cons.onRoll = nil
@@ -274,31 +276,31 @@ func (cons *ConsumerBase) ControlLoop() {
 		command := <-cons.control
 		switch command {
 		default:
-			Log.Debug.Print("Recieved untracked command")
+			cons.Log.Debug.Print("Recieved untracked command")
 			// Do nothing
 
 		case PluginControlStopConsumer:
 			cons.setState(PluginStateStopping)
-			Log.Debug.Print("Recieved stop command")
+			cons.Log.Debug.Print("Recieved stop command")
 			if cons.onStop != nil {
 				cons.onStop()
 			}
 			return // ### return ###
 
 		case PluginControlRoll:
-			Log.Debug.Print("Recieved roll command")
+			cons.Log.Debug.Print("Recieved roll command")
 			if cons.onRoll != nil {
 				cons.onRoll()
 			}
 
 		case PluginControlFuseBurn:
-			Log.Debug.Print("Recieved fuse burned command")
+			cons.Log.Debug.Print("Recieved fuse burned command")
 			if cons.onFuseBurned != nil {
 				cons.onFuseBurned()
 			}
 
 		case PluginControlFuseActive:
-			Log.Debug.Print("Recieved fuse active command")
+			cons.Log.Debug.Print("Recieved fuse active command")
 			if cons.onFuseActive != nil {
 				cons.onFuseActive()
 			}

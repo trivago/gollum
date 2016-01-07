@@ -30,6 +30,7 @@ import (
 // RunlengthDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Runlength struct {
+	core.FormatterBase
 	base core.Formatter
 }
 
@@ -39,6 +40,11 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Runlength) Configure(conf core.PluginConfig) error {
+	err := format.FormatterBase.Configure(conf)
+	if err != nil {
+		return err
+	}
+
 	plugin, err := core.NewPluginWithType(conf.GetString("RunlengthFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err

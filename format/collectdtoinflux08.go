@@ -17,7 +17,6 @@ package format
 import (
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo/tio"
 )
 
@@ -33,6 +32,7 @@ import (
 // CollectdToInfluxFormatter defines the formatter applied before the conversion
 // from Collectd to InfluxDB. By default this is set to format.Forward.
 type CollectdToInflux08 struct {
+	core.FormatterBase
 	base core.Formatter
 }
 
@@ -42,6 +42,11 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *CollectdToInflux08) Configure(conf core.PluginConfig) error {
+	err := format.FormatterBase.Configure(conf)
+	if err != nil {
+		return err
+	}
+
 	plugin, err := core.NewPluginWithType(conf.GetString("CollectdToInfluxFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err
@@ -65,7 +70,7 @@ func (format *CollectdToInflux08) Format(msg core.Message) ([]byte, core.Message
 	data, streamID := format.base.Format(msg)
 	collectdData, err := parseCollectdPacket(data)
 	if err != nil {
-		Log.Error.Print("Collectd parser error: ", err)
+		format.Log.Error.Print("Collectd parser error: ", err)
 		return []byte{}, streamID // ### return, error ###
 	}
 

@@ -46,6 +46,7 @@ import (
 // StreamRouteFormatStream can be set to true to apply StreamRouteFormatter to both
 // parts of the message (stream and data). Set to false by default.
 type StreamRoute struct {
+	core.FormatterBase
 	base         core.Formatter
 	streamFormat core.Formatter
 	delimiter    []byte
@@ -58,6 +59,11 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *StreamRoute) Configure(conf core.PluginConfig) error {
+	err := format.FormatterBase.Configure(conf)
+	if err != nil {
+		return err
+	}
+
 	baseFormatter := conf.GetString("StreamRouteFormatter", "format.Forward")
 	plugin, err := core.NewPluginWithType(baseFormatter, conf)
 	if err != nil {

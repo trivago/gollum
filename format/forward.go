@@ -24,6 +24,7 @@ import (
 //   - "<producer|stream>":
 //     Formatter: "format.Forward"
 type Forward struct {
+	core.FormatterBase
 }
 
 func init() {
@@ -32,6 +33,11 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Forward) Configure(conf core.PluginConfig) error {
+	err := format.FormatterBase.Configure(conf)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

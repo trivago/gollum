@@ -16,6 +16,7 @@ package core
 
 import (
 	"github.com/trivago/tgo/tcontainer"
+	"github.com/trivago/tgo/tlog"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )
@@ -24,6 +25,16 @@ import (
 type Config struct {
 	Values  []map[string]tcontainer.MarshalMap
 	Plugins []PluginConfig
+}
+
+// NewLogScope creates a new tlog.LogScope for the plugin contained in this
+// config.
+func NewLogScope(conf *PluginConfig) tlog.LogScope {
+	if conf.ID != "" {
+		return tlog.NewLogScope(conf.Typename)
+	}
+
+	return tlog.NewLogScope(conf.Typename + ":" + conf.ID)
 }
 
 // ReadConfig parses a YAML config file into a new Config struct.

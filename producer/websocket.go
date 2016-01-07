@@ -16,7 +16,6 @@ package producer
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo/tnet"
 	"github.com/trivago/tgo/tsync"
 	"golang.org/x/net/websocket"
@@ -143,7 +142,7 @@ func (prod *Websocket) pushMessage(msg core.Message) {
 		if _, err := client.Write(messageText); err != nil {
 			activeConns.conns = append(activeConns.conns[:i], activeConns.conns[i+1:]...)
 			if closeErr := client.Close(); closeErr == nil {
-				Log.Error.Print("Websocket: ", err)
+				prod.Log.Error.Print("Websocket: ", err)
 			}
 			i--
 		}
@@ -155,13 +154,13 @@ func (prod *Websocket) serve() {
 
 	listen, err := tnet.NewStopListener(prod.address)
 	if err != nil {
-		Log.Error.Print("Websocket: ", err)
+		prod.Log.Error.Print("Websocket: ", err)
 		return // ### return, could not connect ###
 	}
 
 	config, err := websocket.NewConfig(prod.address, prod.path)
 	if err != nil {
-		Log.Error.Print("Websocket: ", err)
+		prod.Log.Error.Print("Websocket: ", err)
 		return // ### return, could not connect ###
 	}
 
@@ -178,7 +177,7 @@ func (prod *Websocket) serve() {
 	err = srv.Serve(prod.listen)
 	_, isStopRequest := err.(tnet.StopRequestError)
 	if err != nil && !isStopRequest {
-		Log.Error.Print("Websocket: ", err)
+		prod.Log.Error.Print("Websocket: ", err)
 	}
 }
 

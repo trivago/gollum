@@ -27,7 +27,7 @@ type TypeRegistry struct {
 }
 
 // NewTypeRegistry creates a new TypeRegistry. Note that there is a global type
-// registry available in the main tgo package (core.TypeRegistry).
+// registry available in the main tgo package (tgo.TypeRegistry).
 func NewTypeRegistry() TypeRegistry {
 	return TypeRegistry{
 		namedType: make(map[string]reflect.Type),

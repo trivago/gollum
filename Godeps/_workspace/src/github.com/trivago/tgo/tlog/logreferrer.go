@@ -15,6 +15,7 @@
 package tlog
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -31,9 +32,7 @@ func (log logReferrer) Write(message []byte) (int, error) {
 		return 0, nil
 	}
 
-	if message[length-1] == '\n' {
-		message = message[:length-1]
-	}
+	message = bytes.TrimRight(message, "\r\n\t ")
 
 	switch {
 	case log.writer == nil:
@@ -41,7 +40,7 @@ func (log logReferrer) Write(message []byte) (int, error) {
 		return length, nil
 
 	case log.writer == os.Stdout || log.writer == os.Stderr:
-		fmt.Fprintln(log.writer, string(message))
+		fmt.Fprintln(log.writer, message)
 		return length, nil
 
 	default:

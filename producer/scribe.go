@@ -18,7 +18,6 @@ import (
 	"github.com/artyom/scribe"
 	"github.com/artyom/thrift"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tmath"
 	"sync"
@@ -121,7 +120,7 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 
 	prod.socket, err = thrift.NewTSocket(host)
 	if err != nil {
-		Log.Error.Print("Scribe socket error:", err)
+		prod.Log.Error.Print("Scribe socket error:", err)
 		return err
 	}
 
@@ -162,7 +161,7 @@ func (prod *Scribe) tryOpenConnection() bool {
 
 	err := prod.transport.Open()
 	if err != nil {
-		Log.Error.Print("Scribe connection error:", err)
+		prod.Log.Error.Print("Scribe connection error:", err)
 		return false
 	}
 
@@ -244,7 +243,7 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 		}
 
 		if err != nil || resultCode != scribe.ResultCode_TRY_LATER {
-			Log.Error.Printf("Scribe log error %d: %s", resultCode, err.Error())
+			prod.Log.Error.Printf("Scribe log error %d: %s", resultCode, err.Error())
 			prod.transport.Close() // reconnect
 			prod.dropMessages(messages[idxStart:])
 			return // ### return, failure ###
@@ -256,7 +255,7 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 		time.Sleep(time.Duration(scribeMaxSleepTimeMs/scribeMaxRetries) * time.Millisecond)
 	}
 
-	Log.Error.Printf("Scribe server seems to be busy")
+	prod.Log.Error.Printf("Scribe server seems to be busy")
 	prod.dropMessages(messages[idxStart:])
 }
 

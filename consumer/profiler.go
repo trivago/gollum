@@ -17,7 +17,6 @@ package consumer
 import (
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
 	"math"
 	"math/rand"
@@ -175,7 +174,7 @@ func (cons *Profiler) profile() {
 	batchIdx := 0
 
 	for batchIdx = 0; batchIdx < cons.batches && cons.IsActive(); batchIdx++ {
-		Log.Note.Print(fmt.Sprintf("run %d/%d:", batchIdx, cons.batches))
+		cons.Log.Note.Print(fmt.Sprintf("run %d/%d:", batchIdx, cons.batches))
 		start := time.Now()
 
 		for i := 0; i < cons.profileRuns && cons.IsActive(); i++ {
@@ -194,23 +193,23 @@ func (cons *Profiler) profile() {
 
 	runTime := time.Since(testStart)
 
-	Log.Note.Print(fmt.Sprintf(
+	cons.Log.Note.Print(fmt.Sprintf(
 		"Avg: %.4f sec = %4.f msg/sec",
 		runTime.Seconds(),
 		float64(cons.profileRuns*batchIdx)/runTime.Seconds()))
 
-	Log.Note.Print(fmt.Sprintf(
+	cons.Log.Note.Print(fmt.Sprintf(
 		"Best: %.4f sec = %4.f msg/sec",
 		minTime,
 		float64(cons.profileRuns)/minTime))
 
-	Log.Note.Print(fmt.Sprintf(
+	cons.Log.Note.Print(fmt.Sprintf(
 		"Worst: %.4f sec = %4.f msg/sec",
 		maxTime,
 		float64(cons.profileRuns)/maxTime))
 
 	if cons.IsActive() {
-		Log.Debug.Print("Profiler done.")
+		cons.Log.Debug.Print("Profiler done.")
 		// Automatically shut down when done
 		// TODO: Hack
 		proc, _ := os.FindProcess(os.Getpid())

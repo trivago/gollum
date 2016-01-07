@@ -17,10 +17,9 @@ package main
 import (
 	"container/list"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/treflect"
-	"log"
 	"os"
 	"os/signal"
 	"reflect"
@@ -86,7 +85,7 @@ type multiplexer struct {
 func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	// Make sure the log is printed to stdout if we are stuck here
 	logFallback := time.AfterFunc(time.Duration(3)*time.Second, func() {
-		Log.SetWriter(os.Stdout)
+		tlog.SetWriter(os.Stdout)
 	})
 	defer logFallback.Stop()
 
@@ -126,11 +125,11 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 			continue // ### continue, disabled ###
 		}
 
-		Log.Debug.Print("Loading ", config.Typename)
+		tlog.Debug.Print("Loading ", config.Typename)
 
 		pluginType := core.TypeRegistry.GetTypeOf(config.Typename)
 		if pluginType == nil {
-			Log.Error.Print("Failed to load plugin ", config.Typename, ": Type not found")
+			tlog.Error.Print("Failed to load plugin ", config.Typename, ": Type not found")
 			continue // ### continue ###
 		}
 
@@ -158,22 +157,22 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 
 	for _, config := range streamConfig {
 		if len(config.Stream) == 0 {
-			Log.Error.Printf("Stream plugin %s has no streams set", config.Typename)
+			tlog.Error.Printf("Stream plugin %s has no streams set", config.Typename)
 			continue // ### continue ###
 		}
 
 		streamName := config.Stream[0]
 		if len(config.Stream) > 1 {
-			Log.Warning.Printf("Stream plugins may only bind to one stream. Plugin will bind to %s", streamName)
+			tlog.Warning.Printf("Stream plugins may only bind to one stream. Plugin will bind to %s", streamName)
 		}
 
 		plugin, err := core.NewPlugin(config)
 		if err != nil {
-			Log.Error.Printf("Failed to configure stream %s: %s", streamName, err)
+			tlog.Error.Printf("Failed to configure stream %s: %s", streamName, err)
 			continue // ### continue ###
 		}
 
-		Log.Debug.Print("Configuring ", config.Typename, " for ", streamName)
+		tlog.Debug.Print("Configuring ", config.Typename, " for ", streamName)
 		core.StreamRegistry.Register(plugin.(core.Stream), core.GetStreamID(streamName))
 	}
 
@@ -185,11 +184,11 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 
 	for _, config := range producerConfig {
 		for i := 0; i < config.Instances; i++ {
-			Log.Debug.Print("Configuring ", config.Typename)
+			tlog.Debug.Print("Configuring ", config.Typename)
 			plugin, err := core.NewPlugin(config)
 
 			if err != nil {
-				Log.Error.Print("Failed to configure producer plugin ", config.Typename, ": ", err)
+				tlog.Error.Print("Failed to configure producer plugin ", config.Typename, ": ", err)
 				continue // ### continue ###
 			}
 
@@ -197,7 +196,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 			streams := producer.Streams()
 
 			if len(streams) == 0 {
-				Log.Error.Print("Producer plugin ", config.Typename, " has no streams set")
+				tlog.Error.Print("Producer plugin ", config.Typename, " has no streams set")
 				continue // ### continue ###
 			}
 
@@ -239,10 +238,10 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 
 	for _, config := range consumerConfig {
 		for i := 0; i < config.Instances; i++ {
-			Log.Debug.Print("Configuring ", config.Typename)
+			tlog.Debug.Print("Configuring ", config.Typename)
 			plugin, err := core.NewPlugin(config)
 			if err != nil {
-				Log.Error.Print("Failed to configure consumer plugin ", config.Typename, ": ", err)
+				tlog.Error.Print("Failed to configure consumer plugin ", config.Typename, ": ", err)
 				continue // ### continue ###
 			}
 
@@ -265,7 +264,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 }
 
 func dumpFaultyPlugin(typeName string, pluginType reflect.Type) {
-	Log.Error.Print("Failed to load plugin ", typeName, ": Does not qualify for consumer, producer or stream interface")
+	tlog.Error.Print("Failed to load plugin ", typeName, ": Does not qualify for consumer, producer or stream interface")
 
 	consumerMatch, consumerMissing := treflect.GetMissingMethods(pluginType, consumerInterface)
 	producerMatch, producerMissing := treflect.GetMissingMethods(pluginType, producerInterface)
@@ -273,44 +272,44 @@ func dumpFaultyPlugin(typeName string, pluginType reflect.Type) {
 
 	if consumerMatch > producerMatch {
 		if consumerMatch > streamMatch {
-			Log.Error.Print("Plugin looks like a consumer:")
+			tlog.Error.Print("Plugin looks like a consumer:")
 			for _, message := range consumerMissing {
-				Log.Error.Print(message)
+				tlog.Error.Print(message)
 			}
 		} else {
-			Log.Error.Print("Plugin looks like a stream:")
+			tlog.Error.Print("Plugin looks like a stream:")
 			for _, message := range streamMissing {
-				Log.Error.Print(message)
+				tlog.Error.Print(message)
 			}
 		}
 	} else if producerMatch > streamMatch {
-		Log.Error.Print("Plugin looks like a producer:")
+		tlog.Error.Print("Plugin looks like a producer:")
 		for _, message := range producerMissing {
-			Log.Error.Print(message)
+			tlog.Error.Print(message)
 		}
 	} else {
-		Log.Error.Print("Plugin looks like a stream:")
+		tlog.Error.Print("Plugin looks like a stream:")
 		for _, message := range streamMissing {
-			Log.Error.Print(message)
+			tlog.Error.Print(message)
 		}
 	}
 }
 
 // Shutdown all consumers and producers in a clean way.
 // The internal log is flushed after the consumers have been shut down so that
-// consumer related messages are still in the log.
+// consumer related messages are still in the tlog.
 // Producers are flushed after flushing the log, so producer related shutdown
 // messages will be posted to stdout
 func (plex *multiplexer) shutdown() {
 	// Make sure the log is printed to stdout if we are stuck here
 	logFallback := time.AfterFunc(time.Duration(3)*time.Second, func() {
-		Log.SetWriter(os.Stdout)
+		tlog.SetWriter(os.Stdout)
 	})
 	defer logFallback.Stop()
 
 	// Handle panics if any
 	if r := recover(); r != nil {
-		log.Println(r)
+		tlog.Error.Println(r)
 	}
 
 	// Make Ctrl+C possible during shutdown sequence
@@ -318,34 +317,34 @@ func (plex *multiplexer) shutdown() {
 		signal.Stop(plex.signal)
 	}
 
-	Log.Note.Print("Filthy little hobbites. They stole it from us. (shutdown)")
+	tlog.Note.Print("Filthy little hobbites. They stole it from us. (shutdown)")
 	stateAtShutdown := plex.state
 
 	// Shutdown consumers
 	plex.state = multiplexerStateStopConsumers
 	if stateAtShutdown >= multiplexerStateStartConsumers {
 		for _, cons := range plex.consumers {
-			Log.Debug.Printf("Closing consumer %s", reflect.TypeOf(cons).String())
+			tlog.Debug.Printf("Closing consumer %s", reflect.TypeOf(cons).String())
 			cons.Control() <- core.PluginControlStopConsumer
 		}
 		core.StreamRegistry.ActivateAllFuses()
-		Log.Debug.Print("Waiting for consumers to close")
+		tlog.Debug.Print("Waiting for consumers to close")
 		plex.consumerWorker.Wait()
 	}
 
 	// Make sure remaining warning / errors are written to stderr
-	Log.Note.Print("It's the only way. Go in, or go back. (flushing)")
+	tlog.Note.Print("It's the only way. Go in, or go back. (flushing)")
 	logFallback.Stop()
-	Log.SetWriter(os.Stdout)
+	tlog.SetWriter(os.Stdout)
 
 	// Shutdown producers
 	plex.state = multiplexerStateStopProducers
 	if stateAtShutdown >= multiplexerStateStartProducers {
 		for _, prod := range plex.producers {
-			Log.Debug.Printf("Closing producer %s", reflect.TypeOf(prod).String())
+			tlog.Debug.Printf("Closing producer %s", reflect.TypeOf(prod).String())
 			prod.Control() <- core.PluginControlStopProducer
 		}
-		Log.Debug.Print("Waiting for producers to close")
+		tlog.Debug.Print("Waiting for producers to close")
 		plex.producerWorker.Wait()
 	}
 
@@ -356,14 +355,14 @@ func (plex *multiplexer) shutdown() {
 // Fetch messags from the consumers and pass them to all producers.
 func (plex multiplexer) run() {
 	if len(plex.consumers) == 0 {
-		Log.Error.Print("No consumers configured.")
-		Log.SetWriter(os.Stdout)
+		tlog.Error.Print("No consumers configured.")
+		tlog.SetWriter(os.Stdout)
 		return // ### return, nothing to do ###
 	}
 
 	if len(plex.producers) == 0 {
-		Log.Error.Print("No producers configured.")
-		Log.SetWriter(os.Stdout)
+		tlog.Error.Print("No producers configured.")
+		tlog.SetWriter(os.Stdout)
 		return // ### return, nothing to do ###
 	}
 
@@ -373,7 +372,7 @@ func (plex multiplexer) run() {
 	plex.state = multiplexerStateStartProducers
 	for _, producer := range plex.producers {
 		producer := producer
-		Log.Debug.Print("Starting ", reflect.TypeOf(producer))
+		tlog.Debug.Print("Starting ", reflect.TypeOf(producer))
 		go tgo.DontPanic(func() {
 			producer.Produce(plex.producerWorker)
 		})
@@ -381,17 +380,17 @@ func (plex multiplexer) run() {
 
 	// If there are intenal log listeners switch to stream mode
 	if core.StreamRegistry.IsStreamRegistered(core.LogInternalStreamID) {
-		Log.Debug.Print("Binding log to ", reflect.TypeOf(plex.consumers[0]))
-		Log.SetWriter(plex.consumers[0].(*core.LogConsumer))
+		tlog.Debug.Print("Binding log to ", reflect.TypeOf(plex.consumers[0]))
+		tlog.SetWriter(plex.consumers[0].(*core.LogConsumer))
 	} else {
-		Log.SetWriter(os.Stdout)
+		tlog.SetWriter(os.Stdout)
 	}
 
 	// Launch consumers
 	plex.state = multiplexerStateStartConsumers
 	for _, consumer := range plex.consumers {
 		consumer := consumer
-		Log.Debug.Print("Starting ", reflect.TypeOf(consumer))
+		tlog.Debug.Print("Starting ", reflect.TypeOf(consumer))
 		go tgo.DontPanic(func() {
 			consumer.Consume(plex.consumerWorker)
 		})
@@ -403,7 +402,7 @@ func (plex multiplexer) run() {
 
 	plex.signal = newSignalHandler()
 
-	Log.Note.Print("We be nice to them, if they be nice to us. (startup)")
+	tlog.Note.Print("We be nice to them, if they be nice to us. (startup)")
 	measure := time.Now()
 	timer := time.NewTicker(5 * time.Second)
 
@@ -430,7 +429,7 @@ func (plex multiplexer) run() {
 			tgo.Metric.Add(metricNoRoute, int64(noRouteCount))
 
 			if plex.profile {
-				Log.Note.Printf("Processed %.2f msg/sec", messageSec)
+				tlog.Note.Printf("Processed %.2f msg/sec", messageSec)
 			}
 
 			// Blocked producers
@@ -445,7 +444,7 @@ func (plex multiplexer) run() {
 		case sig := <-plex.signal:
 			switch translateSignal(sig) {
 			case signalExit:
-				Log.Note.Print("Master betrayed us. Wicked. Tricksy, False. (signal)")
+				tlog.Note.Print("Master betrayed us. Wicked. Tricksy, False. (signal)")
 				plex.state = multiplexerStateShutdown
 				return // ### return, exit requested ###
 

@@ -15,6 +15,7 @@
 package core
 
 import (
+	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/ttesting"
 	"math"
 	"sync"
@@ -44,6 +45,7 @@ func getMockProducer() mockProducer {
 			shutdownTimeout: 10 * time.Millisecond,
 			fuseName:        "test",
 			fuseTimeout:     100 * time.Millisecond,
+			Log:             tlog.NewLogScope("test"),
 		},
 	}
 }

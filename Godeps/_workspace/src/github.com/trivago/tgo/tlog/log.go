@@ -15,6 +15,7 @@
 package tlog
 
 import (
+	"fmt"
 	"io"
 	"log"
 )
@@ -45,10 +46,33 @@ var (
 
 	// Debug is a predefined log channel for debug messages. This log is backed by consumer.Log
 	Debug = log.New(logDisabled, "", 0)
+)
 
+var (
 	logEnabled  = logReferrer{new(logCache)}
 	logDisabled = logNull{}
 )
+
+// LogScope allows to wrap the standard Error, Warning, Note and Debug loggers
+// into a scope, i.e. all messages written to this logger are prefixed.
+type LogScope struct {
+	Error   *log.Logger
+	Warning *log.Logger
+	Note    *log.Logger
+	Debug   *log.Logger
+}
+
+// NewLogScope creates a new LogScope with the given prefix string.
+func NewLogScope(scope string) LogScope {
+	scopeMarker := fmt.Sprintf("[%s] ", scope)
+
+	return LogScope{
+		Error:   log.New(logLogger{Error}, scopeMarker, 0),
+		Warning: log.New(logLogger{Warning}, scopeMarker, 0),
+		Note:    log.New(logLogger{Note}, scopeMarker, 0),
+		Debug:   log.New(logLogger{Debug}, scopeMarker, 0),
+	}
+}
 
 func init() {
 	log.SetFlags(0)
@@ -91,6 +115,6 @@ func SetWriter(writer io.Writer) {
 	oldWriter := logEnabled.writer
 	logEnabled.writer = writer
 	if cache, isCache := oldWriter.(*logCache); isCache {
-		cache.flush(logEnabled)
+		cache.Flush(logEnabled)
 	}
 }

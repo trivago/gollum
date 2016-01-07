@@ -12,12 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package Log
+package tlog
 
-type logNull struct {
+import (
+	"log"
+)
+
+type logLogger struct {
+	logger *log.Logger
 }
 
-// Write Drops all messages
-func (log logNull) Write(message []byte) (int, error) {
-	return len(message), nil
+// Write sends the message to the io.Writer passed to Configure
+func (lg logLogger) Write(message []byte) (int, error) {
+	length := len(message)
+	if length > 0 {
+		lg.logger.Output(2, string(message))
+	}
+	return length, nil
 }

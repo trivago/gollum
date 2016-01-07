@@ -17,6 +17,7 @@ package core
 import (
 	"fmt"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/treflect"
 	"sync"
 	"sync/atomic"
@@ -87,6 +88,24 @@ type PluginWithState interface {
 
 func init() {
 	tgo.Metric.New(metricActiveWorkers)
+}
+
+// NewPluginLogScope creates a new tlog.LogScope for the plugin contained in this
+// config.
+func NewPluginLogScope(conf PluginConfig) tlog.LogScope {
+	if conf.ID != "" {
+		return tlog.NewLogScope(conf.Typename)
+	}
+	return tlog.NewLogScope(conf.Typename + ":" + conf.ID)
+}
+
+// NewSubPluginLogScope creates a new sub scope tlog.LogScope for the plugin contained
+// in this config.
+func NewSubPluginLogScope(conf PluginConfig, subScope string) tlog.LogScope {
+	if conf.ID != "" {
+		return tlog.NewLogScope(conf.Typename + ":" + subScope)
+	}
+	return tlog.NewLogScope(conf.Typename + ":" + conf.ID + ":" + subScope)
 }
 
 // NewPluginRunState creates a new plugin state helper

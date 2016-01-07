@@ -16,7 +16,6 @@ package producer
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo/tmath"
 	"io"
 	"sync"
@@ -119,13 +118,13 @@ func (prod *InfluxDB) Configure(conf core.PluginConfig) error {
 
 	switch {
 	case version < 90:
-		Log.Debug.Print("Using InfluxDB 0.8.x format")
+		prod.Log.Debug.Print("Using InfluxDB 0.8.x format")
 		prod.writer = new(influxDBWriter08)
 	case version == 90:
-		Log.Debug.Print("Using InfluxDB 0.9.0 format")
+		prod.Log.Debug.Print("Using InfluxDB 0.9.0 format")
 		prod.writer = new(influxDBWriter09)
 	default:
-		Log.Debug.Print("Using InfluxDB 0.9.1+ format")
+		prod.Log.Debug.Print("Using InfluxDB 0.9.1+ format")
 		prod.writer = new(influxDBWriter10)
 	}
 

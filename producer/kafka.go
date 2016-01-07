@@ -17,7 +17,6 @@ package producer
 import (
 	kafka "github.com/shopify/sarama" // "gopkg.in/Shopify/sarama.v1"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
 	"strings"
 	"sync"
@@ -256,7 +255,7 @@ func (prod *Kafka) sendBatch() {
 	prod.lastMetricUpdate = time.Now()
 
 	for category, counter := range prod.counters {
-		//Log.Debug.Printf("%s: %d", category, *counter)
+		//prod.Log.Debug.Printf("%s: %d", category, *counter)
 		count := atomic.SwapInt64(counter, 0)
 
 		tgo.Metric.Add(kafkaMetricMessages+category, count)
@@ -321,7 +320,7 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 
 		case err := <-prod.producer.Errors():
 			if _, errorExists := errors[err.Error()]; !errorExists {
-				Log.Error.Printf("Kafka producer error: %s", err.Error())
+				prod.Log.Error.Printf("Kafka producer error: %s", err.Error())
 				errors[err.Error()] = true
 			}
 			if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
@@ -329,13 +328,13 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 			}
 
 		case <-timeout.C:
-			Log.Warning.Printf("Kafka flush timed out with %d messages left", prod.missCount)
+			prod.Log.Warning.Printf("Kafka flush timed out with %d messages left", prod.missCount)
 			break // ### break, took too long ###
 		}
 	}
 
 	if len(errors) > 0 {
-		Log.Error.Printf("%d error type(s) for this batch. Triggering a reconnect", len(errors))
+		prod.Log.Error.Printf("%d error type(s) for this batch. Triggering a reconnect", len(errors))
 		prod.closeConnection()
 	}
 }
@@ -350,7 +349,7 @@ func (prod *Kafka) tryOpenConnection() bool {
 		if client, err := kafka.NewClient(prod.servers, prod.config); err == nil {
 			prod.client = client
 		} else {
-			Log.Error.Print("Kafka client error:", err)
+			prod.Log.Error.Print("Kafka client error:", err)
 			prod.client = nil
 			prod.producer = nil
 			return false // ### return, connection failed ###
@@ -362,7 +361,7 @@ func (prod *Kafka) tryOpenConnection() bool {
 		if producer, err := kafka.NewAsyncProducerFromClient(prod.client); err == nil {
 			prod.producer = producer
 		} else {
-			Log.Error.Print("Kafka producer error:", err)
+			prod.Log.Error.Print("Kafka producer error:", err)
 			prod.client.Close()
 			prod.client = nil
 			prod.producer = nil

@@ -17,7 +17,6 @@ package format
 import (
 	"encoding/json"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"
 	"strings"
@@ -58,6 +57,7 @@ import (
 // ProcessJSONTrimValues will trim whitspaces from all values if enabled.
 // Enabled by default.
 type ProcessJSON struct {
+	core.FormatterBase
 	base       core.Formatter
 	directives []transformDirective
 	trimValues bool
@@ -77,6 +77,11 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *ProcessJSON) Configure(conf core.PluginConfig) error {
+	err := format.FormatterBase.Configure(conf)
+	if err != nil {
+		return err
+	}
+
 	plugin, err := core.NewPluginWithType(conf.GetString("ProcessJSONDataFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err
@@ -111,7 +116,7 @@ func (format *ProcessJSON) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-func (values *valueMap) processDirective(directive transformDirective) {
+func (values *valueMap) processDirective(directive transformDirective, format *ProcessJSON) {
 	if value, keyExists := (*values)[directive.key]; keyExists {
 
 		numParameters := len(directive.parameters)
@@ -126,7 +131,7 @@ func (values *valueMap) processDirective(directive transformDirective) {
 			if numParameters == 2 {
 
 				if timestamp, err := time.Parse(directive.parameters[0], value[:len(directive.parameters[0])]); err != nil {
-					Log.Warning.Print("ProcessJSON failed to parse a timestamp: ", err)
+					format.Log.Warning.Print("ProcessJSON failed to parse a timestamp: ", err)
 				} else {
 					(*values)[directive.key] = timestamp.Format(directive.parameters[1])
 				}
@@ -172,12 +177,12 @@ func (format *ProcessJSON) Format(msg core.Message) ([]byte, core.MessageStreamI
 	values := make(valueMap)
 	err := json.Unmarshal(data, &values)
 	if err != nil {
-		Log.Warning.Print("ProcessJSON failed to unmarshal a message: ", err)
+		format.Log.Warning.Print("ProcessJSON failed to unmarshal a message: ", err)
 		return data, streamID // ### return, malformed data ###
 	}
 
 	for _, directive := range format.directives {
-		values.processDirective(directive)
+		values.processDirective(directive, format)
 	}
 
 	if format.trimValues {
@@ -190,6 +195,6 @@ func (format *ProcessJSON) Format(msg core.Message) ([]byte, core.MessageStreamI
 		return jsonData, streamID // ### return, ok ###
 	}
 
-	Log.Warning.Print("ProcessJSON failed to marshal a message: ", err)
+	format.Log.Warning.Print("ProcessJSON failed to marshal a message: ", err)
 	return data, streamID
 }

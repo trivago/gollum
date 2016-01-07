@@ -14,10 +14,25 @@
 
 package core
 
+import (
+	"github.com/trivago/tgo/tlog"
+)
+
 // Formatter is the interface definition for message formatters
 type Formatter interface {
 	// Format transfers the message payload into a new format. The payload may
 	// then be reassigned to the original or a new message.
 	// In addition to that the formatter may change the stream of the message.
 	Format(msg Message) ([]byte, MessageStreamID)
+}
+
+// FormatterBase defines the standard formatter implementation.
+type FormatterBase struct {
+	Log tlog.LogScope
+}
+
+// Configure sets up all values requred by FormatterBase.
+func (format *FormatterBase) Configure(conf PluginConfig) error {
+	format.Log = NewSubPluginLogScope(conf, "Formatter")
+	return nil
 }

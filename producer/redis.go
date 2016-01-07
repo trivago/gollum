@@ -16,7 +16,6 @@ package producer
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo/tnet"
 	"gopkg.in/redis.v2"
 	"strconv"
@@ -126,7 +125,7 @@ func (prod *Redis) storeHash(msg core.Message) {
 
 	result := prod.client.HSet(prod.key, string(field), string(value))
 	if result.Err() != nil {
-		Log.Error.Print("Redis: ", result.Err())
+		prod.Log.Error.Print("Redis: ", result.Err())
 		prod.Drop(msg)
 	}
 }
@@ -136,7 +135,7 @@ func (prod *Redis) storeList(msg core.Message) {
 
 	result := prod.client.RPush(prod.key, string(value))
 	if result.Err() != nil {
-		Log.Error.Print("Redis: ", result.Err())
+		prod.Log.Error.Print("Redis: ", result.Err())
 		prod.Drop(msg)
 	}
 }
@@ -146,7 +145,7 @@ func (prod *Redis) storeSet(msg core.Message) {
 
 	result := prod.client.SAdd(prod.key, string(value))
 	if result.Err() != nil {
-		Log.Error.Print("Redis: ", result.Err())
+		prod.Log.Error.Print("Redis: ", result.Err())
 		prod.Drop(msg)
 	}
 }
@@ -164,7 +163,7 @@ func (prod *Redis) storeSortedSet(msg core.Message) {
 
 	score, err := strconv.ParseFloat(string(scoreValue), 64)
 	if err != nil {
-		Log.Error.Print("Redis: ", err)
+		prod.Log.Error.Print("Redis: ", err)
 		return // ### return, no valid score ###
 	}
 
@@ -174,7 +173,7 @@ func (prod *Redis) storeSortedSet(msg core.Message) {
 	})
 
 	if result.Err() != nil {
-		Log.Error.Print("Redis: ", result.Err())
+		prod.Log.Error.Print("Redis: ", result.Err())
 		prod.Drop(msg)
 	}
 }
@@ -184,7 +183,7 @@ func (prod *Redis) storeString(msg core.Message) {
 
 	result := prod.client.Set(prod.key, string(value))
 	if result.Err() != nil {
-		Log.Error.Print("Redis: ", result.Err())
+		prod.Log.Error.Print("Redis: ", result.Err())
 		prod.Drop(msg)
 	}
 }
@@ -204,7 +203,7 @@ func (prod *Redis) Produce(workers *sync.WaitGroup) {
 	})
 
 	if _, err := prod.client.Ping().Result(); err != nil {
-		Log.Error.Print("Redis: ", err)
+		prod.Log.Error.Print("Redis: ", err)
 	}
 
 	prod.AddMainWorker(workers)

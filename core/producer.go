@@ -15,7 +15,7 @@
 package core
 
 import (
-	"github.com/trivago/gollum/core/log"
+	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tsync"
 	"sync"
 	"time"
@@ -136,10 +136,12 @@ type ProducerBase struct {
 	onRoll          func()
 	onStop          func()
 	onCheckFuse     func() bool
+	Log             tlog.LogScope
 }
 
 // Configure initializes the standard producer config values.
 func (prod *ProducerBase) Configure(conf PluginConfig) error {
+	prod.Log = NewPluginLogScope(conf)
 	prod.runState = NewPluginRunState()
 	format, err := NewPluginWithType(conf.GetString("Formatter", "format.Forward"), conf)
 	if err != nil {
@@ -379,8 +381,8 @@ func (prod *ProducerBase) Messages() chan<- Message {
 func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
 	defer func() {
 		if r := recover(); r != nil {
-			Log.Error.Print("Recovered a panic during producer enqueue: ", r)
-			Log.Error.Print("State: ", prod.GetState(), ", Stream: ", StreamRegistry.GetStreamName(msg.StreamID))
+			prod.Log.Error.Print("Recovered a panic during producer enqueue: ", r)
+			prod.Log.Error.Print("State: ", prod.GetState(), ", Stream: ", StreamRegistry.GetStreamName(msg.StreamID))
 			prod.Drop(msg)
 		}
 	}()
@@ -445,7 +447,7 @@ func (prod *ProducerBase) CloseMessageChannel(handleMessage func(msg Message)) b
 		}()
 
 		if !flushWorker.WaitFor(prod.shutdownTimeout) {
-			Log.Warning.Printf("A producer listening to %s has found to be blocking during close. Dropping remaining messages.", StreamRegistry.GetStreamName(prod.Streams()[0]))
+			prod.Log.Warning.Printf("A producer listening to %s has found to be blocking during close. Dropping remaining messages.", StreamRegistry.GetStreamName(prod.Streams()[0]))
 			for msg := range prod.messages {
 				prod.Drop(msg)
 			}
@@ -491,7 +493,7 @@ func (prod *ProducerBase) WaitForDependencies(waitForState PluginState, timeout 
 		for dep.GetState() < waitForState {
 			spinner.Yield()
 			if timeout > 0 && time.Since(start) > timeout {
-				Log.Warning.Printf("WaitForDependencies call timed out for %T", dep)
+				prod.Log.Warning.Printf("WaitForDependencies call timed out for %T", dep)
 				break // ### break loop, timeout ###
 			}
 		}
@@ -518,14 +520,14 @@ func (prod *ProducerBase) ControlLoop() {
 		command := <-prod.control
 		switch command {
 		default:
-			Log.Debug.Print("Recieved untracked command")
+			prod.Log.Debug.Print("Recieved untracked command")
 			// Do nothing
 
 		case PluginControlStopProducer:
-			Log.Debug.Print("Recieved stop command")
+			prod.Log.Debug.Print("Recieved stop command")
 			prod.WaitForDependencies(PluginStateDead, prod.GetShutdownTimeout())
 			prod.setState(PluginStateStopping)
-			Log.Debug.Print("All dependencies resolved")
+			prod.Log.Debug.Print("All dependencies resolved")
 
 			if prod.onStop != nil {
 				prod.onStop()
@@ -533,7 +535,7 @@ func (prod *ProducerBase) ControlLoop() {
 			return // ### return ###
 
 		case PluginControlRoll:
-			Log.Debug.Print("Recieved roll command")
+			prod.Log.Debug.Print("Recieved roll command")
 			if prod.onRoll != nil {
 				prod.onRoll()
 			}
@@ -542,7 +544,7 @@ func (prod *ProducerBase) ControlLoop() {
 			if fuse := prod.GetFuse(); fuse != nil && !fuse.IsBurned() {
 				fuse.Burn()
 				go prod.triggerCheckFuse()
-				Log.Note.Print("Fuse burned")
+				prod.Log.Note.Print("Fuse burned")
 			}
 
 		case PluginControlFuseActive:
@@ -551,7 +553,7 @@ func (prod *ProducerBase) ControlLoop() {
 					prod.fuseControl.Stop()
 				}
 				fuse.Activate()
-				Log.Note.Print("Fuse reactivated")
+				prod.Log.Note.Print("Fuse reactivated")
 			}
 		}
 	}

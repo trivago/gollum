@@ -16,9 +16,9 @@ package consumer
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
+	"github.com/trivago/tgo/tlog"
 	"io"
 	"net"
 	"syscall"
@@ -35,6 +35,7 @@ type proxyClient struct {
 	proxy     *Proxy
 	conn      net.Conn
 	connected bool
+	log       tlog.LogScope
 }
 
 func listenToProxyClient(conn net.Conn, proxy *Proxy) {
@@ -47,6 +48,7 @@ func listenToProxyClient(conn net.Conn, proxy *Proxy) {
 		proxy:     proxy,
 		conn:      conn,
 		connected: true,
+		log:       proxy.Log,
 	}
 
 	client.read()
@@ -75,7 +77,7 @@ func (client *proxyClient) EnqueueResponse(msg core.Message) {
 		if client.hasDisconnected(err) {
 			client.connected = false // ### return, connection closed ###
 		}
-		Log.Error.Print("Proxy write failed: ", err)
+		client.log.Error.Print("Proxy write failed: ", err)
 	}
 }
 
@@ -95,7 +97,7 @@ func (client *proxyClient) read() {
 			if client.hasDisconnected(err) {
 				return // ### return, connection closed ###
 			}
-			Log.Error.Print("Proxy read failed: ", err)
+			client.log.Error.Print("Proxy read failed: ", err)
 		}
 	}
 }

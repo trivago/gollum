@@ -17,7 +17,6 @@ package consumer
 import (
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tnet"
@@ -160,7 +159,7 @@ func (cons *Proxy) accept() {
 		client, err := listener.Accept()
 		if err != nil {
 			if cons.IsActive() {
-				Log.Error.Print("Proxy listen failed: ", err)
+				cons.Log.Error.Print("Proxy listen failed: ", err)
 			}
 			break // ### break ###
 		}
@@ -174,7 +173,7 @@ func (cons *Proxy) Consume(workers *sync.WaitGroup) {
 	var err error
 
 	if cons.listen, err = net.Listen(cons.protocol, cons.address); err != nil {
-		Log.Error.Print("Proxy connection error: ", err)
+		cons.Log.Error.Print("Proxy connection error: ", err)
 		return
 	}
 

@@ -18,8 +18,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo/tio"
+	"github.com/trivago/tgo/tlog"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -40,6 +40,7 @@ type influxDBWriter08 struct {
 	timeBasedDBName  bool
 	Control          func() chan<- core.PluginControl
 	buffer           tio.ByteStream
+	log              tlog.LogScope
 }
 
 // Configure sets the database connection values
@@ -52,6 +53,7 @@ func (writer *influxDBWriter08) configure(conf core.PluginConfig, prod *InfluxDB
 	writer.connectionUp = false
 	writer.timeBasedDBName = conf.GetBool("TimeBasedName", true)
 	writer.Control = prod.Control
+	writer.log = prod.Log
 
 	writer.writeURL = fmt.Sprintf("http://%s/db/%%s/series?time_precision=ms", writer.host)
 	writer.testURL = fmt.Sprintf("http://%s/db", writer.host)
@@ -76,7 +78,7 @@ func (writer *influxDBWriter08) isConnectionUp() bool {
 		switch response.Status[:3] {
 		case "200":
 			writer.connectionUp = true
-			Log.Note.Print("Connected to " + writer.host)
+			writer.log.Note.Print("Connected to " + writer.host)
 		}
 	}
 
@@ -96,7 +98,7 @@ func (writer *influxDBWriter08) createDatabase(database string) error {
 	defer response.Body.Close()
 	switch response.Status[:3] {
 	case "201":
-		Log.Note.Printf("Created database %s", database)
+		writer.log.Note.Printf("Created database %s", database)
 		return nil
 
 	default:

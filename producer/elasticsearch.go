@@ -18,7 +18,6 @@ import (
 	"bytes"
 	elastigo "github.com/mattbaird/elastigo/lib"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/tgo"
 	"strconv"
 	"sync"
@@ -146,7 +145,7 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 	prod.indexer.Sender = func(buf *bytes.Buffer) error {
 		_, err := prod.conn.DoCommand("POST", "/_bulk", nil, buf)
 		if err != nil {
-			Log.Error.Print("ElasticSearch response error - ", err)
+			prod.Log.Error.Print("ElasticSearch response error - ", err)
 		}
 		return err
 	}
@@ -220,7 +219,7 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 	atomic.AddInt64(prod.counters[index], 1)
 	err := prod.indexer.Index(index, msgType, "", "", prod.msgTTL, &msg.Timestamp, string(msg.Data))
 	if err != nil {
-		Log.Error.Print("ElasticSearch index error - ", err)
+		prod.Log.Error.Print("ElasticSearch index error - ", err)
 		if !prod.isClusterUp() {
 			prod.Control() <- core.PluginControlFuseBurn
 		}

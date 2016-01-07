@@ -45,6 +45,7 @@ import (
 // IdentifierDataFormatter defines the formatter for the data that is used to
 // build the identifier from. By default this is set to "format.Forward"
 type Identifier struct {
+	core.FormatterBase
 	base core.Formatter
 	hash func(msg core.Message) []byte
 }
@@ -55,6 +56,11 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Identifier) Configure(conf core.PluginConfig) error {
+	err := format.FormatterBase.Configure(conf)
+	if err != nil {
+		return err
+	}
+
 	plugin, err := core.NewPluginWithType(conf.GetString("IdentifierDataFormatter", "format.Forward"), conf)
 	if err != nil {
 		return err
