@@ -16,7 +16,6 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"strconv"
 )
 
@@ -37,7 +36,7 @@ type Sequence struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(Sequence{})
+	core.TypeRegistry.Register(Sequence{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

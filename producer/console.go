@@ -17,7 +17,6 @@ package producer
 import (
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"os"
 	"strings"
 	"sync"
@@ -40,7 +39,7 @@ type Console struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(Console{})
+	core.TypeRegistry.Register(Console{})
 }
 
 // Configure initializes this producer with values from a plugin config.

@@ -17,7 +17,6 @@ package producer
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tnet"
 	"gopkg.in/redis.v2"
 	"strconv"
@@ -73,7 +72,7 @@ type Redis struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(Redis{})
+	core.TypeRegistry.Register(Redis{})
 }
 
 // Configure initializes this producer with values from a plugin config.

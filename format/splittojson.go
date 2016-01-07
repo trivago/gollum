@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"
 )
@@ -42,7 +41,7 @@ type SplitToJSON struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(SplitToJSON{})
+	core.TypeRegistry.Register(SplitToJSON{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

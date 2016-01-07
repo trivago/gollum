@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 )
 
@@ -38,7 +37,7 @@ type CollectdToInflux08 struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(CollectdToInflux08{})
+	core.TypeRegistry.Register(CollectdToInflux08{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

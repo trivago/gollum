@@ -152,7 +152,7 @@ const (
 )
 
 func init() {
-	tgo.TypeRegistry.Register(Kafka{})
+	core.TypeRegistry.Register(Kafka{})
 }
 
 // Configure initializes this producer with values from a plugin config.

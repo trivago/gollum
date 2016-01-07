@@ -114,7 +114,7 @@ const (
 )
 
 func init() {
-	tgo.TypeRegistry.Register(ElasticSearch{})
+	core.TypeRegistry.Register(ElasticSearch{})
 }
 
 // Configure initializes this producer with values from a plugin config.

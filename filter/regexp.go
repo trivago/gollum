@@ -16,7 +16,6 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"regexp"
 )
 
@@ -39,7 +38,7 @@ type RegExp struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(RegExp{})
+	core.TypeRegistry.Register(RegExp{})
 }
 
 // Configure initializes this filter with values from a plugin config.

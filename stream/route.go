@@ -16,7 +16,6 @@ package stream
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 )
 
 // Route stream plugin
@@ -50,7 +49,7 @@ type streamWithID struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(Route{})
+	core.TypeRegistry.Register(Route{})
 }
 
 func newStreamWithID(streamName string) streamWithID {

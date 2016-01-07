@@ -16,7 +16,6 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 )
 
 // Stream filters messages by stream based on a black and a whitelist.
@@ -44,7 +43,7 @@ type Stream struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(Stream{})
+	core.TypeRegistry.Register(Stream{})
 }
 
 // Configure initializes this filter with values from a plugin config.

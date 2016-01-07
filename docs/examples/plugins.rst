@@ -35,7 +35,7 @@ This should be done by adding a line to the init() method of the file.
   }
 
   func init() {
-    tgo.TypeRegistry.Register(MyPlugin{}) // Register the new plugin type
+    core.TypeRegistry.Register(MyPlugin{}) // Register the new plugin type
   }
 
   func (cons *MyPlugin) Configure(conf core.PluginConfig) error {

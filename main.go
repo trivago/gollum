@@ -53,7 +53,7 @@ func main() {
 	parseFlags()
 	Log.SetVerbosity(Log.Verbosity(*flagLoglevel))
 
-	contribModules := tgo.TypeRegistry.GetRegistered("contrib")
+	contribModules := core.TypeRegistry.GetRegistered("contrib")
 	modules := ""
 	for _, typeName := range contribModules {
 		modules += " +" + typeName[tstrings.IndexN(typeName, ".", 1)+1:]

@@ -16,7 +16,6 @@ package producer
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"sync"
 	"time"
 )
@@ -36,7 +35,7 @@ type Null struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(Null{})
+	core.TypeRegistry.Register(Null{})
 }
 
 // Configure initializes the basic members

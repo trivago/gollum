@@ -17,7 +17,6 @@ package filter
 import (
 	"encoding/json"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 	"regexp"
 	"strconv"
@@ -50,7 +49,7 @@ type JSON struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(JSON{})
+	core.TypeRegistry.Register(JSON{})
 }
 
 // Configure initializes this filter with values from a plugin config.

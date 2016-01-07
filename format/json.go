@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tstrings"
 	"sync"
 	"time"
@@ -113,7 +112,7 @@ type JSON struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(JSON{})
+	core.TypeRegistry.Register(JSON{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

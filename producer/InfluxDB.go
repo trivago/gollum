@@ -17,7 +17,6 @@ package producer
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tmath"
 	"io"
 	"sync"
@@ -103,7 +102,7 @@ type influxDBWriter interface {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(InfluxDB{})
+	core.TypeRegistry.Register(InfluxDB{})
 }
 
 // Configure initializes this producer with values from a plugin config.

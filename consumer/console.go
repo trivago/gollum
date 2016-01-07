@@ -17,7 +17,6 @@ package consumer
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"io"
 	"os"
@@ -51,7 +50,7 @@ type Console struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(Console{})
+	core.TypeRegistry.Register(Console{})
 }
 
 // Configure initializes this consumer with values from a plugin config.

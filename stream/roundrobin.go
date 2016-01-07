@@ -16,7 +16,6 @@ package stream
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"sync"
 	"sync/atomic"
 )
@@ -42,7 +41,7 @@ type RoundRobin struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(RoundRobin{})
+	core.TypeRegistry.Register(RoundRobin{})
 }
 
 // Configure initializes this distributor with values from a plugin config.

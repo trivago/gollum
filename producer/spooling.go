@@ -79,7 +79,7 @@ const (
 )
 
 func init() {
-	tgo.TypeRegistry.Register(Spooling{})
+	core.TypeRegistry.Register(Spooling{})
 }
 
 // Configure initializes this producer with values from a plugin config.

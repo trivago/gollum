@@ -126,7 +126,7 @@ type Socket struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(Socket{})
+	core.TypeRegistry.Register(Socket{})
 }
 
 // Configure initializes this consumer with values from a plugin config.

@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/tgo"
 )
 
 // Base64Decode is a formatter that decodes a base64 message.
@@ -43,7 +42,7 @@ type Base64Decode struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(Base64Decode{})
+	core.TypeRegistry.Register(Base64Decode{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

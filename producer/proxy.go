@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tnet"
 	"github.com/trivago/tgo/tstrings"
@@ -90,7 +89,7 @@ type Proxy struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(Proxy{})
+	core.TypeRegistry.Register(Proxy{})
 }
 
 // Configure initializes this producer with values from a plugin config.

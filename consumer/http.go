@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tnet"
 	"io"
 	"net/http"
@@ -72,7 +71,7 @@ type Http struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(Http{})
+	core.TypeRegistry.Register(Http{})
 }
 
 // Configure initializes this consumer with values from a plugin config.

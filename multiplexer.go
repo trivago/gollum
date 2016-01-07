@@ -128,7 +128,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 
 		Log.Debug.Print("Loading ", config.Typename)
 
-		pluginType := tgo.TypeRegistry.GetTypeOf(config.Typename)
+		pluginType := core.TypeRegistry.GetTypeOf(config.Typename)
 		if pluginType == nil {
 			Log.Error.Print("Failed to load plugin ", config.Typename, ": Type not found")
 			continue // ### continue ###

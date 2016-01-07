@@ -16,7 +16,6 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"strconv"
 )
 
@@ -35,7 +34,7 @@ type Runlength struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(Runlength{})
+	core.TypeRegistry.Register(Runlength{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

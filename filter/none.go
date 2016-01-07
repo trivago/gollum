@@ -16,7 +16,6 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 )
 
 // None blocks all messages.
@@ -28,7 +27,7 @@ type None struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(None{})
+	core.TypeRegistry.Register(None{})
 }
 
 // Configure initializes this filter with values from a plugin config.

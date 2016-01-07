@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"
 	"io/ioutil"
@@ -139,7 +138,7 @@ type File struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(File{})
+	core.TypeRegistry.Register(File{})
 }
 
 // Configure initializes this producer with values from a plugin config.

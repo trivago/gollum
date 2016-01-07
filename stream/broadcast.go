@@ -16,7 +16,6 @@ package stream
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 )
 
 // Broadcast stream plugin
@@ -48,7 +47,7 @@ type Broadcast struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(Broadcast{})
+	core.TypeRegistry.Register(Broadcast{})
 }
 
 // Configure initializes this distributor with values from a plugin config.

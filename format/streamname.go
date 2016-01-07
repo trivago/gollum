@@ -16,7 +16,6 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 )
 
 // StreamName is a formatter that prefixes a message with the StreamName.
@@ -42,7 +41,7 @@ type StreamName struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(StreamName{})
+	core.TypeRegistry.Register(StreamName{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

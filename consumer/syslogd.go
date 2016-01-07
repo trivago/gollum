@@ -19,7 +19,6 @@ import (
 	"github.com/jeromer/syslogparser"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tnet"
 	"gopkg.in/mcuadros/go-syslog.v2"
 	"gopkg.in/mcuadros/go-syslog.v2/format"
@@ -62,7 +61,7 @@ type Syslogd struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(Syslogd{})
+	core.TypeRegistry.Register(Syslogd{})
 }
 
 // Configure initializes this consumer with values from a plugin config.

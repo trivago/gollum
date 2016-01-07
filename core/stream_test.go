@@ -39,9 +39,9 @@ func getMockStream() StreamBase {
 
 func TestStreamConfigureStream(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	tgo.TypeRegistry.Register(mockPlugin{})
-	tgo.TypeRegistry.Register(mockFormatter{})
-	tgo.TypeRegistry.Register(mockFilter{})
+	core.TypeRegistry.Register(mockPlugin{})
+	core.TypeRegistry.Register(mockFormatter{})
+	core.TypeRegistry.Register(mockFilter{})
 	mockConf := NewPluginConfig("core.mockPlugin")
 	mockConf.ID = "testPluginConf"
 	mockConf.Stream = []string{"testBoundStream"}

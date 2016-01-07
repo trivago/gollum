@@ -95,7 +95,7 @@ type File struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(File{})
+	core.TypeRegistry.Register(File{})
 }
 
 // Configure initializes this consumer with values from a plugin config.

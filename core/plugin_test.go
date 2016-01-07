@@ -72,12 +72,12 @@ func TestPluginNewPluginWithType(t *testing.T) {
 	type notPlugin struct {
 	}
 	// for not a plugin, there should be error.
-	tgo.TypeRegistry.Register(notPlugin{})
+	core.TypeRegistry.Register(notPlugin{})
 	_, err = NewPluginWithType("core.notPlugin", NewPluginConfig("core.notPlugin"))
 	expect.NotNil(err)
 
 	// for valid pluginConfig, there shouldn't be any error
-	tgo.TypeRegistry.Register(mockPlugin{})
+	core.TypeRegistry.Register(mockPlugin{})
 	pluginConfig := NewPluginConfig("core.mockPlugin")
 	pluginConfig.ID = "testPluginConfig"
 	_, err = NewPlugin(pluginConfig)

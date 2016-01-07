@@ -17,7 +17,6 @@ package producer
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tnet"
 	"github.com/trivago/tgo/tsync"
 	"golang.org/x/net/websocket"
@@ -64,7 +63,7 @@ type clientList struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(Websocket{})
+	core.TypeRegistry.Register(Websocket{})
 }
 
 // Configure initializes this producer with values from a plugin config.

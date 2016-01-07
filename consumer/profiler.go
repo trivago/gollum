@@ -80,7 +80,7 @@ type Profiler struct {
 var profilerDefaultCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 "
 
 func init() {
-	tgo.TypeRegistry.Register(Profiler{})
+	core.TypeRegistry.Register(Profiler{})
 }
 
 // Configure initializes this consumer with values from a plugin config.

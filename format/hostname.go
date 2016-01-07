@@ -16,7 +16,6 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"os"
 )
 
@@ -39,7 +38,7 @@ type Hostname struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(Hostname{})
+	core.TypeRegistry.Register(Hostname{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

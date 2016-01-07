@@ -23,7 +23,7 @@ import (
 
 func TestConsumerInterface(t *testing.T) {
 	conf := core.NewPluginConfig(reflect.TypeOf(t).Name())
-	consumers := tgo.TypeRegistry.GetRegistered("consumer.")
+	consumers := core.TypeRegistry.GetRegistered("consumer.")
 
 	if len(consumers) == 0 {
 		t.Error("No consumers defined")

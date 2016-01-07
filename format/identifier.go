@@ -16,7 +16,6 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"hash/fnv"
 	"strconv"
 	"strings"
@@ -51,7 +50,7 @@ type Identifier struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(Identifier{})
+	core.TypeRegistry.Register(Identifier{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

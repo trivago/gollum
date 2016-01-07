@@ -16,7 +16,6 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tstrings"
 )
 
@@ -47,7 +46,7 @@ type Envelope struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(Envelope{})
+	core.TypeRegistry.Register(Envelope{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

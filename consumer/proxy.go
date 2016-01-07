@@ -94,7 +94,7 @@ type Proxy struct {
 }
 
 func init() {
-	tgo.TypeRegistry.Register(Proxy{})
+	core.TypeRegistry.Register(Proxy{})
 }
 
 // Configure initializes this consumer with values from a plugin config.

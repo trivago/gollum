@@ -27,7 +27,7 @@ func TestProducerInterface(t *testing.T) {
 	conf := core.NewPluginConfig(reflect.TypeOf(t).Name())
 
 	conf.Stream = []string{"test"}
-	producers := tgo.TypeRegistry.GetRegistered("producer.")
+	producers := core.TypeRegistry.GetRegistered("producer.")
 
 	if len(producers) == 0 {
 		t.Error("No producers defined")

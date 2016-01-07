@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"
 	"strings"
@@ -73,7 +72,7 @@ type transformDirective struct {
 type valueMap map[string]string
 
 func init() {
-	tgo.TypeRegistry.Register(ProcessJSON{})
+	core.TypeRegistry.Register(ProcessJSON{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

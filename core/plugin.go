@@ -17,9 +17,14 @@ package core
 import (
 	"fmt"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/treflect"
 	"sync"
 	"sync/atomic"
 )
+
+// TypeRegistry is the global typeRegistry instance.
+// Use this instance to register plugins.
+var TypeRegistry = treflect.NewTypeRegistry()
 
 var metricActiveWorkers = "ActiveWorkers"
 
@@ -127,7 +132,7 @@ func (state *PluginRunState) WorkerDone() {
 // This function returns nil, error if the plugin could not be instantiated or
 // plugin, error if Configure failed.
 func NewPluginWithType(typename string, config PluginConfig) (Plugin, error) {
-	obj, err := tgo.TypeRegistry.New(typename)
+	obj, err := TypeRegistry.New(typename)
 	if err != nil {
 		return nil, err
 	}
