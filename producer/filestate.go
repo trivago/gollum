@@ -115,6 +115,28 @@ func (state *fileState) compressAndCloseLog(sourceFile *os.File) {
 	}
 }
 
+func (state *fileState) pruneByHour(baseFilePath string, hours int) {
+	state.bgWriter.Wait()
+	baseDir, baseName, _ := shared.SplitPath(baseFilePath)
+
+	files, err := shared.ListFilesByDateMatching(baseDir, baseName+".*")
+	if err != nil {
+		Log.Error.Print("Error pruning files: ", err)
+		return // ### return, error ###
+	}
+
+	pruneDate := time.Now().Add(time.Duration(-hours) * time.Hour)
+
+	for i := 0; i < len(files) && files[i].ModTime().Before(pruneDate); i++ {
+		filePath := fmt.Sprintf("%s/%s", baseDir, files[i].Name())
+		if err := os.Remove(filePath); err != nil {
+			Log.Error.Printf("Failed to prune \"%s\": %s", filePath, err.Error())
+		} else {
+			Log.Note.Printf("Pruned \"%s\"", filePath)
+		}
+	}
+}
+
 func (state *fileState) pruneByCount(baseFilePath string, count int) {
 	state.bgWriter.Wait()
 	baseDir, baseName, _ := shared.SplitPath(baseFilePath)

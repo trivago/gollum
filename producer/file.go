@@ -47,6 +47,7 @@ import (
 //     RotateAt: ""
 //     RotateTimestamp: "2006-01-02_15"
 //     RotatePruneCount: 0
+//     RotatePruneAfterHours: 0
 //     RotatePruneTotalSizeMB: 0
 //     Compress: false
 //
@@ -108,6 +109,9 @@ import (
 // and are pruned by date (followed by name).
 // By default this is set to 0 which disables pruning.
 //
+// RotatePruneAfterHours removes old logfiles that are older than a given number
+// of hours. By default this is set to 0 which disables pruning.
+//
 // RotatePruneTotalSizeMB removes old logfiles upon rotate so that only the
 // given number of MBs are used by logfiles. Logfiles are located by the name
 // defined by "File" and are pruned by date (followed by name).
@@ -134,6 +138,7 @@ type File struct {
 	batchMaxCount     int
 	batchFlushCount   int
 	pruneCount        int
+	pruneHours        int
 	pruneSize         int64
 	wildcardPath      bool
 	overwriteFile     bool
@@ -343,19 +348,17 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	}
 
 	// Prune old logs if requested
-	switch {
-	case prod.pruneCount > 0 && prod.pruneSize > 0:
-		go func() {
+	go func() {
+		if prod.pruneHours > 0 {
+			state.pruneByHour(logFileBasePath, prod.pruneHours)
+		}
+		if prod.pruneCount > 0 {
 			state.pruneByCount(logFileBasePath, prod.pruneCount)
+		}
+		if prod.pruneSize > 0 {
 			state.pruneToSize(logFileBasePath, prod.pruneSize)
-		}()
-
-	case prod.pruneCount > 0:
-		go state.pruneByCount(logFileBasePath, prod.pruneCount)
-
-	case prod.pruneSize > 0:
-		go state.pruneToSize(logFileBasePath, prod.pruneSize)
-	}
+		}
+	}()
 
 	return state, err
 }
