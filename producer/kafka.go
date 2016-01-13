@@ -312,19 +312,21 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 
 	// Wait for errors to be returned
 	errors := make(map[string]bool)
-	topicState := make(map[string]bool)
+	topicsBad := make(map[string]bool)
 
 	for timeout := time.NewTimer(prod.config.Producer.Flush.Frequency); prod.missCount > 0; prod.missCount-- {
 		select {
 		case succ := <-prod.producer.Successes():
-			topicState[succ.Topic] = true // overwrite negative states
+			topicsBad[succ.Topic] = false // ok overwrites bad
 
 		case err := <-prod.producer.Errors():
 			if _, errorExists := errors[err.Error()]; !errorExists {
 				Log.Error.Printf("Kafka producer error: %s", err.Error())
 				errors[err.Error()] = true
-				if _, stateSet := topicState[err.Msg.Topic]; !stateSet {
-					topicState[err.Msg.Topic] = false
+
+				// Do not overwrite ok states (one ok = server reachable)
+				if _, stateSet := topicsBad[err.Msg.Topic]; !stateSet {
+					topicsBad[err.Msg.Topic] = true
 				}
 			}
 			if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
@@ -338,11 +340,11 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 	}
 
 	if len(errors) > 0 {
-		allTopicsOk := true
-		for _, state := range topicState {
-			allTopicsOk = state && allTopicsOk
+		allTopicsBad := true
+		for _, topicBad := range topicsBad {
+			allTopicsBad = topicBad && allTopicsBad
 		}
-		if !allTopicsOk {
+		if allTopicsBad {
 			// Only restart if all topics report an error
 			// This is done to separate topic related errors from server related errors
 			Log.Error.Printf("%d error type(s) for this batch. Triggering a reconnect", len(errors))
