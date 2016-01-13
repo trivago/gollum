@@ -35,6 +35,7 @@ import (
 //     BatchTimeoutSec: 5
 //     MaxFileSizeMB: 512
 //     MaxFileAgeMin: 1
+//     RespoolDelaySec: 10
 //
 // The Spooling producer buffers messages and sends them again to the previous
 // stream stored in the message. This means the message must have been routed
@@ -62,15 +63,20 @@ import (
 // Reading will start only after a file is rotated. This setting divided by two
 // will be used to define the wait time for reading, too.
 // Set to 1 minute by default.
+//
+// RespoolDelaySec sets the number of seconds to wait before trying to load
+// existing spool files after a restart. This is useful for configurations that
+// contain dynamic streams. By default this is set to 10.
 type Spooling struct {
 	core.ProducerBase
-	outfile       map[core.MessageStreamID]*spoolFile
-	rotation      fileRotateConfig
-	path          string
-	maxFileSize   int64
-	maxFileAge    time.Duration
-	batchTimeout  time.Duration
-	batchMaxCount int
+	outfile         map[core.MessageStreamID]*spoolFile
+	rotation        fileRotateConfig
+	path            string
+	maxFileSize     int64
+	RespoolDuration time.Duration
+	maxFileAge      time.Duration
+	batchTimeout    time.Duration
+	batchMaxCount   int
 }
 
 const (
@@ -100,6 +106,7 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 100)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.outfile = make(map[core.MessageStreamID]*spoolFile)
+	prod.RespoolDuration = time.Duration(conf.GetInt("RespoolDelaySec", 10)) * time.Second
 	prod.rotation = fileRotateConfig{
 		timeout:  prod.maxFileAge,
 		sizeByte: prod.maxFileSize,
@@ -175,6 +182,7 @@ func (prod *Spooling) close() {
 }
 
 func (prod *Spooling) openExistingFiles() {
+	Log.Debug.Print("Looking for spool files to read")
 	files, _ := ioutil.ReadDir(prod.path)
 	for _, file := range files {
 		if file.IsDir() {
@@ -193,6 +201,6 @@ func (prod *Spooling) openExistingFiles() {
 // Produce writes to stdout or stderr.
 func (prod *Spooling) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.openExistingFiles()
+	time.AfterFunc(prod.RespoolDuration, prod.openExistingFiles)
 	prod.TickerMessageControlLoop(prod.writeToFile, prod.batchTimeout, prod.writeBatchOnTimeOut)
 }
