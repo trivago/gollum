@@ -237,13 +237,13 @@ func (prod *Kafka) bufferMessage(msg core.Message) {
 
 func (prod *Kafka) sendBatchOnTimeOut() {
 	// Flush if necessary
-	if prod.tryOpenConnection() && (prod.batch.ReachedTimeThreshold(prod.config.Producer.Flush.Frequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2)) {
+	if prod.batch.ReachedTimeThreshold(prod.config.Producer.Flush.Frequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2) {
 		prod.sendBatch()
 	}
 }
 
 func (prod *Kafka) sendBatch() {
-	if prod.isConnectionOpen() {
+	if prod.tryOpenConnection() {
 		prod.batch.Flush(prod.transformMessages)
 	} else if prod.IsStopping() {
 		prod.batch.Flush(prod.dropMessages)
@@ -311,17 +311,21 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 	}
 
 	// Wait for errors to be returned
-
 	errors := make(map[string]bool)
+	topicState := make(map[string]bool)
+
 	for timeout := time.NewTimer(prod.config.Producer.Flush.Frequency); prod.missCount > 0; prod.missCount-- {
 		select {
-		case <-prod.producer.Successes():
-			// nothing
+		case succ := <-prod.producer.Successes():
+			topicState[succ.Topic] = true // overwrite negative states
 
 		case err := <-prod.producer.Errors():
 			if _, errorExists := errors[err.Error()]; !errorExists {
 				Log.Error.Printf("Kafka producer error: %s", err.Error())
 				errors[err.Error()] = true
+				if _, stateSet := topicState[err.Msg.Topic]; !stateSet {
+					topicState[err.Msg.Topic] = false
+				}
 			}
 			if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
 				prod.Drop(msg)
@@ -334,13 +338,17 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 	}
 
 	if len(errors) > 0 {
-		Log.Error.Printf("%d error type(s) for this batch. Triggering a reconnect", len(errors))
-		prod.closeConnection()
+		allTopicsOk := true
+		for _, state := range topicState {
+			allTopicsOk = state && allTopicsOk
+		}
+		if !allTopicsOk {
+			// Only restart if all topics report an error
+			// This is done to separate topic related errors from server related errors
+			Log.Error.Printf("%d error type(s) for this batch. Triggering a reconnect", len(errors))
+			prod.closeConnection()
+		}
 	}
-}
-
-func (prod *Kafka) isConnectionOpen() bool {
-	return prod.client != nil && prod.producer != nil
 }
 
 func (prod *Kafka) tryOpenConnection() bool {
