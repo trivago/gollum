@@ -15,7 +15,6 @@
 package producer
 
 import (
-	"bufio"
 	"encoding/base64"
 	"fmt"
 	"github.com/trivago/gollum/core"
@@ -41,6 +40,7 @@ type spoolFile struct {
 	readCount        int64
 	writeCount       int64
 	lastMetricUpdate time.Time
+	reader           *shared.BufferedReader
 }
 
 const maxSpoolFileNumber = 99999999 // maximum file number defined by %08d -> 8 digits
@@ -57,6 +57,7 @@ func newSpoolFile(prod *Spooling, streamName string, source core.MessageSource) 
 		prod:             prod,
 		source:           source,
 		lastMetricUpdate: time.Now(),
+		reader:           shared.NewBufferedReader(prod.bufferSizeByte, shared.BufferedReaderFlagDelimiter, 0, "\n"),
 	}
 
 	shared.Metric.New(spoolingMetricWrite + streamName)
@@ -137,6 +138,19 @@ func (spool *spoolFile) openOrRotate() bool {
 	return true
 }
 
+func (spool *spoolFile) decode(data []byte, sequence uint64) {
+	// Base64 decode, than deserialize
+	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(data)))
+
+	if size, err := base64.StdEncoding.Decode(decoded, data); err != nil {
+		Log.Error.Print("Spool file read: ", err)
+	} else if msg, err := core.DeserializeMessage(decoded[:size]); err != nil {
+		Log.Error.Print("Spool file read: ", err)
+	} else {
+		spool.prod.routeToOrigin(msg)
+	}
+}
+
 func (spool *spoolFile) read() {
 	spool.prod.AddWorker()
 	defer spool.prod.WorkerDone()
@@ -162,7 +176,7 @@ func (spool *spoolFile) read() {
 		}
 
 		Log.Debug.Print("Spooler opened ", spoolFileName, " for reading")
-		reader := bufio.NewReader(file)
+		spool.reader.Reset(0)
 
 		for spool.prod.IsActive() {
 			// Only spool back if target is not busy
@@ -170,29 +184,13 @@ func (spool *spoolFile) read() {
 				time.Sleep(time.Millisecond * 100)
 				continue // ### contine, busy source ###
 			}
-			// Read one line (might require multiple reads)
-			buffer, isPartial, err := reader.ReadLine()
-			for isPartial && err == nil {
-				var appendix []byte
-				appendix, isPartial, err = reader.ReadLine()
-				buffer = append(buffer, appendix...)
-			}
+
 			// Any error cancels the loop
-			if err != nil {
+			if err := spool.reader.ReadAll(file, spool.decode); err != nil {
 				if err != io.EOF {
 					Log.Error.Print("Spool read error: ", err)
 				}
 				break // ### break, read error or EOF ###
-			}
-
-			// Base64 decode, than deserialize
-			decoded := make([]byte, base64.StdEncoding.DecodedLen(len(buffer)))
-			if size, err := base64.StdEncoding.Decode(decoded, buffer); err != nil {
-				Log.Error.Print("Spool file read: ", err)
-			} else if msg, err := core.DeserializeMessage(decoded[:size]); err != nil {
-				Log.Error.Print("Spool file read: ", err)
-			} else {
-				spool.prod.routeToOrigin(msg)
 			}
 		}
 

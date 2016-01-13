@@ -14,6 +14,7 @@ It has these top-level messages:
 package core
 
 import proto "github.com/golang/protobuf/proto"
+import "github.com/trivago/gollum/shared"
 import math "math"
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -66,4 +67,8 @@ func (m *SerializedMessage) GetData() []byte {
 		return m.Data
 	}
 	return nil
+}
+
+func init() {
+	shared.TypeRegistry.Register(SerializedMessage{})
 }

@@ -35,6 +35,7 @@ import (
 //     BatchTimeoutSec: 5
 //     MaxFileSizeMB: 512
 //     MaxFileAgeMin: 1
+//     MessageSizeByte: 8192
 //     RespoolDelaySec: 10
 //
 // The Spooling producer buffers messages and sends them again to the previous
@@ -64,6 +65,10 @@ import (
 // will be used to define the wait time for reading, too.
 // Set to 1 minute by default.
 //
+// BufferSizeByte defines the initial size of the buffer that is used to parse
+// messages from a spool file. If a message is larger than this size, the buffer
+// will be resized. By default this is set to 8192.
+//
 // RespoolDelaySec sets the number of seconds to wait before trying to load
 // existing spool files after a restart. This is useful for configurations that
 // contain dynamic streams. By default this is set to 10.
@@ -77,6 +82,7 @@ type Spooling struct {
 	maxFileAge      time.Duration
 	batchTimeout    time.Duration
 	batchMaxCount   int
+	bufferSizeByte  int
 }
 
 const (
@@ -107,6 +113,7 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.outfile = make(map[core.MessageStreamID]*spoolFile)
 	prod.RespoolDuration = time.Duration(conf.GetInt("RespoolDelaySec", 10)) * time.Second
+	prod.bufferSizeByte = conf.GetInt("BufferSizeByte", 8192)
 	prod.rotation = fileRotateConfig{
 		timeout:  prod.maxFileAge,
 		sizeByte: prod.maxFileSize,
