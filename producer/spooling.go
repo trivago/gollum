@@ -18,7 +18,9 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 )
@@ -172,8 +174,25 @@ func (prod *Spooling) close() {
 	}
 }
 
+func (prod *Spooling) openExistingFiles() {
+	files, _ := ioutil.ReadDir(prod.path)
+	for _, file := range files {
+		if file.IsDir() {
+			streamName := filepath.Base(file.Name())
+			streamID := core.GetStreamID(streamName)
+
+			// Only create a new spooler if the stream is registered by this instance
+			if _, exists := prod.outfile[streamID]; !exists && core.StreamRegistry.IsStreamRegistered(streamID) {
+				Log.Note.Printf("Found existing spooling folders for %s", streamName)
+				prod.outfile[streamID] = newSpoolFile(prod, streamName, nil)
+			}
+		}
+	}
+}
+
 // Produce writes to stdout or stderr.
 func (prod *Spooling) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
+	prod.openExistingFiles()
 	prod.TickerMessageControlLoop(prod.writeToFile, prod.batchTimeout, prod.writeBatchOnTimeOut)
 }
