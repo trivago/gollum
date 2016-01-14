@@ -35,7 +35,6 @@ import (
 // encoding takes place. By default this is set to "format.Forward"
 type Base64Encode struct {
 	core.FormatterBase
-	base       core.Formatter
 	dictionary *base64.Encoding
 }
 
@@ -50,13 +49,7 @@ func (format *Base64Encode) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	plugin, err := core.NewPluginWithType(conf.GetString("Base64DataFormatter", "format.Forward"), conf)
-	if err != nil {
-		return err
-	}
-	format.base = plugin.(core.Formatter)
-
-	dict := conf.GetString("Base64Formatter", "")
+	dict := conf.GetString("Dictionary", "")
 	if dict == "" {
 		format.dictionary = base64.StdEncoding
 	} else {
@@ -70,8 +63,7 @@ func (format *Base64Encode) Configure(conf core.PluginConfig) error {
 
 // Format returns the original message payload
 func (format *Base64Encode) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	data, streamID := format.base.Format(msg)
-	encoded := make([]byte, format.dictionary.EncodedLen(len(data)))
-	format.dictionary.Encode(encoded, data)
-	return encoded, streamID
+	encoded := make([]byte, format.dictionary.EncodedLen(len(msg.Data)))
+	format.dictionary.Encode(encoded, msg.Data)
+	return encoded, msg.StreamID
 }

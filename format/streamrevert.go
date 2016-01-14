@@ -32,7 +32,6 @@ import (
 // By default this is set to "format.Forward"
 type StreamRevert struct {
 	core.FormatterBase
-	base      core.Formatter
 	delimiter []byte
 }
 
@@ -46,18 +45,10 @@ func (format *StreamRevert) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err
 	}
-
-	plugin, err := core.NewPluginWithType(conf.GetString("StreamRevertFormatter", "format.Forward"), conf)
-	if err != nil {
-		return err
-	}
-
-	format.base = plugin.(core.Formatter)
 	return nil
 }
 
 // Format adds prefix and postfix to the message formatted by the base formatter
 func (format *StreamRevert) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	data, _ := format.base.Format(msg)
-	return data, msg.PrevStreamID
+	return msg.Data, msg.PrevStreamID
 }

@@ -58,7 +58,6 @@ import (
 // Enabled by default.
 type ProcessJSON struct {
 	core.FormatterBase
-	base       core.Formatter
 	directives []transformDirective
 	trimValues bool
 }
@@ -82,13 +81,8 @@ func (format *ProcessJSON) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	plugin, err := core.NewPluginWithType(conf.GetString("ProcessJSONDataFormatter", "format.Forward"), conf)
-	if err != nil {
-		return err
-	}
 	directives := conf.GetStringArray("ProcessJSONDirectives", []string{})
 
-	format.base = plugin.(core.Formatter)
 	format.directives = make([]transformDirective, 0, len(directives))
 	format.trimValues = conf.GetBool("ProcessJSONTrimValues", true)
 
@@ -169,16 +163,15 @@ func (values *valueMap) processDirective(directive transformDirective, format *P
 
 // Format modifies the JSON payload of this message
 func (format *ProcessJSON) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	data, streamID := format.base.Format(msg)
 	if len(format.directives) == 0 {
-		return data, streamID // ### return, no directives ###
+		return msg.Data, msg.StreamID // ### return, no directives ###
 	}
 
 	values := make(valueMap)
-	err := json.Unmarshal(data, &values)
+	err := json.Unmarshal(msg.Data, &values)
 	if err != nil {
 		format.Log.Warning.Print("ProcessJSON failed to unmarshal a message: ", err)
-		return data, streamID // ### return, malformed data ###
+		return msg.Data, msg.StreamID // ### return, malformed data ###
 	}
 
 	for _, directive := range format.directives {
@@ -192,9 +185,9 @@ func (format *ProcessJSON) Format(msg core.Message) ([]byte, core.MessageStreamI
 	}
 
 	if jsonData, err := json.Marshal(values); err == nil {
-		return jsonData, streamID // ### return, ok ###
+		return jsonData, msg.StreamID // ### return, ok ###
 	}
 
 	format.Log.Warning.Print("ProcessJSON failed to marshal a message: ", err)
-	return data, streamID
+	return msg.Data, msg.StreamID
 }

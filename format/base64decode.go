@@ -37,7 +37,6 @@ import (
 // decoding takes place. By default this is set to "format.Forward"
 type Base64Decode struct {
 	core.FormatterBase
-	base       core.Formatter
 	dictionary *base64.Encoding
 }
 
@@ -52,13 +51,7 @@ func (format *Base64Decode) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	plugin, err := core.NewPluginWithType(conf.GetString("Base64Formatter", "format.Forward"), conf)
-	if err != nil {
-		return err
-	}
-	format.base = plugin.(core.Formatter)
-
-	dict := conf.GetString("Base64Dictionary", "")
+	dict := conf.GetString("Dictionary", "")
 	if dict == "" {
 		format.dictionary = base64.StdEncoding
 	} else {
@@ -72,11 +65,10 @@ func (format *Base64Decode) Configure(conf core.PluginConfig) error {
 
 // Format returns the original message payload
 func (format *Base64Decode) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	data, streamID := format.base.Format(msg)
-	decoded := make([]byte, format.dictionary.DecodedLen(len(data)))
+	decoded := make([]byte, format.dictionary.DecodedLen(len(msg.Data)))
 	size, err := format.dictionary.Decode(decoded, msg.Data)
 	if err != nil {
 		format.Log.Error.Print(err)
 	}
-	return decoded[:size], streamID
+	return decoded[:size], msg.StreamID
 }

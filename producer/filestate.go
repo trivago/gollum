@@ -43,11 +43,12 @@ type fileRotateConfig struct {
 	sizeByte int64
 	atHour   int
 	atMinute int
+	zeroPad  int
 	enabled  bool
 	compress bool
 }
 
-func newFileState(maxMessageCount int, formatter core.Formatter, drop func(core.Message), timeout time.Duration, logScope tlog.LogScope) *fileState {
+func newFileState(maxMessageCount int, formatter core.FormatterFunc, drop func(core.Message), timeout time.Duration, logScope tlog.LogScope) *fileState {
 	return &fileState{
 		batch:        core.NewMessageBatch(maxMessageCount),
 		bgWriter:     new(sync.WaitGroup),
@@ -114,6 +115,28 @@ func (state *fileState) compressAndCloseLog(sourceFile *os.File) {
 	err = os.Remove(sourceFileName)
 	if err != nil {
 		state.log.Error.Print("Uncompressed file remove failed:", err)
+	}
+}
+
+func (state *fileState) pruneByHour(baseFilePath string, hours int) {
+	state.bgWriter.Wait()
+	baseDir, baseName, _ := tio.SplitPath(baseFilePath)
+
+	files, err := tio.ListFilesByDateMatching(baseDir, baseName+".*")
+	if err != nil {
+		state.log.Error.Print("Error pruning files: ", err)
+		return // ### return, error ###
+	}
+
+	pruneDate := time.Now().Add(time.Duration(-hours) * time.Hour)
+
+	for i := 0; i < len(files) && files[i].ModTime().Before(pruneDate); i++ {
+		filePath := fmt.Sprintf("%s/%s", baseDir, files[i].Name())
+		if err := os.Remove(filePath); err != nil {
+			state.log.Error.Printf("Failed to prune \"%s\": %s", filePath, err.Error())
+		} else {
+			state.log.Note.Printf("Pruned \"%s\"", filePath)
+		}
 	}
 }
 

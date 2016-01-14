@@ -26,6 +26,9 @@ type Formatter interface {
 	Format(msg Message) ([]byte, MessageStreamID)
 }
 
+// FormatterFunc is the function signature type used by all formating functions.
+type FormatterFunc func(msg Message) ([]byte, MessageStreamID)
+
 // FormatterBase defines the standard formatter implementation.
 type FormatterBase struct {
 	Log tlog.LogScope

@@ -36,7 +36,6 @@ import (
 // This is set to " " by default.
 type StreamName struct {
 	core.FormatterBase
-	base        core.Formatter
 	separator   string
 	usePrevious bool
 }
@@ -51,37 +50,27 @@ func (format *StreamName) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err
 	}
-
-	plugin, err := core.NewPluginWithType(conf.GetString("StreamNameFormatter", "format.Forward"), conf)
-	if err != nil {
-		return err
-	}
-	format.separator = conf.GetString("StreamNameSeparator", " ")
-	format.usePrevious = conf.GetBool("StreamNameHistory", false)
-	format.base = plugin.(core.Formatter)
+	format.separator = conf.GetString("Separator", ":")
+	format.usePrevious = conf.GetBool("UseHistory", false)
 	return nil
 }
 
 // Format prepends the StreamName of the message to the message.
 func (format *StreamName) Format(msg core.Message) ([]byte, core.MessageStreamID) {
 	var streamName string
-	data, streamID := format.base.Format(msg)
 
 	switch {
 	case !format.usePrevious:
-		streamName = core.StreamRegistry.GetStreamName(streamID)
-
-	case streamID != msg.StreamID:
 		streamName = core.StreamRegistry.GetStreamName(msg.StreamID)
 
 	default:
 		streamName = core.StreamRegistry.GetStreamName(msg.PrevStreamID)
 	}
 
-	payload := make([]byte, len(streamName)+len(format.separator)+len(data))
+	payload := make([]byte, len(streamName)+len(format.separator)+len(msg.Data))
 	streamNameLen := copy(payload, []byte(streamName))
 	separatorLen := copy(payload[streamNameLen:], format.separator)
-	copy(payload[streamNameLen+separatorLen:], data)
+	copy(payload[streamNameLen+separatorLen:], msg.Data)
 
-	return payload, streamID
+	return payload, msg.StreamID
 }

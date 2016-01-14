@@ -15,6 +15,7 @@
 package core
 
 import (
+	"fmt"
 	"github.com/trivago/tgo/tlog"
 	"sync"
 	"time"
@@ -63,7 +64,7 @@ type MappedStream struct {
 // See stream.Broadcast for default configuration values and examples.
 type StreamBase struct {
 	Filter         Filter
-	Format         Formatter
+	formatters     []Formatter
 	Producers      []Producer
 	Timeout        *time.Duration
 	boundStreamID  MessageStreamID
@@ -80,23 +81,31 @@ type Distributor func(msg Message)
 // ConfigureStream sets up all values requred by StreamBase.
 func (stream *StreamBase) ConfigureStream(conf PluginConfig, distribute Distributor) error {
 	stream.Log = NewPluginLogScope(conf)
-	plugin, err := NewPluginWithType(conf.GetString("Formatter", "format.Forward"), conf)
+
+	plugins := conf.GetPluginArray("Formatters", []Plugin{})
+	for _, plugin := range plugins {
+		formatter, isFormatter := plugin.(Formatter)
+		if !isFormatter {
+			return fmt.Errorf("Plugin is not a valid formatter")
+		}
+		stream.formatters = append(stream.formatters, formatter)
+	}
+
+	plugin, err := NewPluginWithType(conf.GetString("Filter", "filter.All"), conf)
 	if err != nil {
 		return err // ### return, plugin load error ###
 	}
-	stream.Format = plugin.(Formatter)
-
-	plugin, err = NewPluginWithType(conf.GetString("Filter", "filter.All"), conf)
-	if err != nil {
-		return err // ### return, plugin load error ###
-	}
-
 	stream.Filter = plugin.(Filter)
+
 	if len(conf.Stream) == 0 {
-		panic("No source stream configured.")
+		return fmt.Errorf("No source stream configured.")
 	}
 
 	stream.boundStreamID = GetStreamID(conf.Stream[0])
+	if stream.boundStreamID == WildcardStreamID {
+		stream.Log.Note.Print("A wildcard stream configuration only affects the wildcard stream, not all streams")
+	}
+
 	stream.resumeWorker = new(sync.WaitGroup)
 	stream.distribute = distribute
 
@@ -183,13 +192,21 @@ func (stream *StreamBase) Broadcast(msg Message) {
 	}
 }
 
+// Format calls all formatters in their order of definition
+func (stream *StreamBase) Format(msg Message) ([]byte, MessageStreamID) {
+	for _, formatter := range stream.formatters {
+		msg.Data, msg.StreamID = formatter.Format(msg)
+	}
+	return msg.Data, msg.StreamID
+}
+
 // Enqueue checks the filter, formats the message and sends it to all producers
 // registered. Functions deriving from StreamBase can set the Distribute member
 // to hook into this function.
 func (stream *StreamBase) Enqueue(msg Message) {
 	if stream.Filter.Accepts(msg) {
 		var streamID MessageStreamID
-		msg.Data, streamID = stream.Format.Format(msg)
+		msg.Data, streamID = stream.Format(msg)
 		stream.Route(msg, streamID)
 	} else {
 		CountFilteredMessage()

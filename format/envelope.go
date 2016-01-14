@@ -41,7 +41,6 @@ import (
 // message. By default this is set to "format.Forward"
 type Envelope struct {
 	core.FormatterBase
-	base    core.Formatter
 	postfix string
 	prefix  string
 }
@@ -56,25 +55,15 @@ func (format *Envelope) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err
 	}
-
-	plugin, err := core.NewPluginWithType(conf.GetString("EnvelopeFormatter", "format.Forward"), conf)
-	if err != nil {
-		return err
-	}
-
-	format.base = plugin.(core.Formatter)
-	format.prefix = tstrings.Unescape(conf.GetString("EnvelopePrefix", ""))
-	format.postfix = tstrings.Unescape(conf.GetString("EnvelopePostfix", "\n"))
-
+	format.prefix = tstrings.Unescape(conf.GetString("Prefix", ""))
+	format.postfix = tstrings.Unescape(conf.GetString("Postfix", "\n"))
 	return nil
 }
 
 // Format adds prefix and postfix to the message formatted by the base formatter
 func (format *Envelope) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	basePayload, streamID := format.base.Format(msg)
-
 	prefixLen := len(format.prefix)
-	baseLen := len(basePayload)
+	baseLen := len(msg.Data)
 	postfixLen := len(format.postfix)
 
 	payload := make([]byte, prefixLen+baseLen+postfixLen)
@@ -83,11 +72,11 @@ func (format *Envelope) Format(msg core.Message) ([]byte, core.MessageStreamID) 
 		prefixLen = copy(payload, format.prefix)
 	}
 
-	baseLen = copy(payload[prefixLen:], basePayload)
+	baseLen = copy(payload[prefixLen:], msg.Data)
 
 	if postfixLen > 0 {
 		copy(payload[prefixLen+baseLen:], format.postfix)
 	}
 
-	return payload, streamID
+	return payload, msg.StreamID
 }

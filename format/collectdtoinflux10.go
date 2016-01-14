@@ -35,7 +35,6 @@ import (
 // from Collectd to InfluxDB. By default this is set to format.Forward.
 type CollectdToInflux10 struct {
 	core.FormatterBase
-	base         core.Formatter
 	tagString    *strings.Replacer
 	stringString *strings.Replacer
 }
@@ -50,12 +49,6 @@ func (format *CollectdToInflux10) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err
 	}
-
-	plugin, err := core.NewPluginWithType(conf.GetString("CollectdToInflux1009", "format.Forward"), conf)
-	if err != nil {
-		return err
-	}
-	format.base = plugin.(core.Formatter)
 	format.tagString = strings.NewReplacer(",", "\\,", " ", "\\ ")
 	format.stringString = strings.NewReplacer("\"", "\\\"")
 	return nil
@@ -71,15 +64,14 @@ func (format *CollectdToInflux10) escapeString(value string) string {
 
 // Format transforms collectd data to influx 0.9.x data
 func (format *CollectdToInflux10) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	data, streamID := format.base.Format(msg)
-	collectdData, err := parseCollectdPacket(data)
+	collectdData, err := parseCollectdPacket(msg.Data)
 	if err != nil {
 		format.Log.Error.Print("Collectd parser error: ", err)
-		return []byte{}, streamID // ### return, error ###
+		return []byte{}, msg.StreamID // ### return, error ###
 	}
 
 	// Manually convert to line protocol
-	influxData := tio.NewByteStream(len(data))
+	influxData := tio.NewByteStream(len(msg.Data))
 	timestamp := int64(collectdData.Time * 1000)
 	fixedPart := fmt.Sprintf(
 		`%s,plugin_instance=%s,type=%s,type_instance=%s,host=%s`,
@@ -100,5 +92,5 @@ func (format *CollectdToInflux10) Format(msg core.Message) ([]byte, core.Message
 			timestamp)
 	}
 
-	return influxData.Bytes(), streamID
+	return influxData.Bytes(), msg.StreamID
 }

@@ -15,11 +15,11 @@
 package producer
 
 import (
-	"bufio"
 	"encoding/base64"
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"
@@ -44,6 +44,7 @@ type spoolFile struct {
 	writeCount       int64
 	lastMetricUpdate time.Time
 	log              tlog.LogScope
+	reader           *tio.BufferedReader
 }
 
 const maxSpoolFileNumber = 99999999 // maximum file number defined by %08d -> 8 digits
@@ -53,7 +54,7 @@ func newSpoolFile(prod *Spooling, streamName string, source core.MessageSource) 
 	spool := &spoolFile{
 		file:             nil,
 		batch:            core.NewMessageBatch(prod.batchMaxCount),
-		assembly:         core.NewWriterAssembly(nil, prod.Drop, prod.GetFormatter()),
+		assembly:         core.NewWriterAssembly(nil, prod.Drop, prod.Format),
 		fileCreated:      time.Now(),
 		streamName:       streamName,
 		basePath:         prod.path + "/" + streamName,
@@ -61,6 +62,7 @@ func newSpoolFile(prod *Spooling, streamName string, source core.MessageSource) 
 		source:           source,
 		lastMetricUpdate: time.Now(),
 		log:              prod.Log,
+		reader:           tio.NewBufferedReader(prod.bufferSizeByte, tio.BufferedReaderFlagDelimiter, 0, "\n"),
 	}
 
 	tgo.Metric.New(spoolingMetricWrite + streamName)
@@ -99,10 +101,12 @@ func (spool *spoolFile) getFileNumbering() (min int, max int) {
 	min, max = maxSpoolFileNumber+1, 0
 	files, _ := ioutil.ReadDir(spool.basePath)
 	for _, file := range files {
-		base := filepath.Base(file.Name())
-		number, _ := tstrings.Btoi([]byte(base)) // Because we need leading zero support
-		min = tmath.MinI(min, int(number))
-		max = tmath.MaxI(max, int(number))
+		if filepath.Ext(file.Name()) == ".spl" {
+			base := filepath.Base(file.Name())
+			number, _ := tstrings.Btoi([]byte(base)) // Because we need leading zero support
+			min = tmath.MinI(min, int(number))
+			max = tmath.MaxI(max, int(number))
+		}
 	}
 	return min, max
 }
@@ -141,6 +145,19 @@ func (spool *spoolFile) openOrRotate() bool {
 	return true
 }
 
+func (spool *spoolFile) decode(data []byte, sequence uint64) {
+	// Base64 decode, than deserialize
+	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(data)))
+
+	if size, err := base64.StdEncoding.Decode(decoded, data); err != nil {
+		spool.log.Error.Print("Spool file read: ", err)
+	} else if msg, err := core.DeserializeMessage(decoded[:size]); err != nil {
+		spool.log.Error.Print("Spool file read: ", err)
+	} else {
+		spool.prod.routeToOrigin(msg)
+	}
+}
+
 func (spool *spoolFile) read() {
 	spool.prod.AddWorker()
 	defer spool.prod.WorkerDone()
@@ -166,43 +183,37 @@ func (spool *spoolFile) read() {
 		}
 
 		spool.log.Debug.Print("Spooler opened ", spoolFileName, " for reading")
-		reader := bufio.NewReader(file)
+		spool.reader.Reset(0)
+		readFailed := false
 
 		for spool.prod.IsActive() {
 			// Only spool back if target is not busy
 			if spool.source != nil && spool.source.IsBlocked() {
 				time.Sleep(time.Millisecond * 100)
 				continue // ### contine, busy source ###
-			}
-			// Read one line (might require multiple reads)
-			buffer, isPartial, err := reader.ReadLine()
-			for isPartial && err == nil {
-				var appendix []byte
-				appendix, isPartial, err = reader.ReadLine()
-				buffer = append(buffer, appendix...)
+
 			}
 			// Any error cancels the loop
-			if err != nil {
+			if err := spool.reader.ReadAll(file, spool.decode); err != nil {
 				if err != io.EOF {
+					readFailed = true
 					spool.log.Error.Print("Spool read error: ", err)
 				}
 				break // ### break, read error or EOF ###
-			}
-
-			// Base64 decode, than deserialize
-			decoded := make([]byte, base64.StdEncoding.DecodedLen(len(buffer)))
-			if size, err := base64.StdEncoding.Decode(decoded, buffer); err != nil {
-				spool.log.Error.Print("Spool file read: ", err)
-			} else if msg, err := core.DeserializeMessage(decoded[:size]); err != nil {
-				spool.log.Error.Print("Spool file read: ", err)
-			} else {
-				spool.prod.routeToOrigin(msg)
 			}
 		}
 
 		// Close and remove file
 		spool.log.Debug.Print("Spooler removes ", spoolFileName)
 		file.Close()
-		os.Remove(spoolFileName)
+		if readFailed {
+			// Rename file for future processing
+			spool.log.Debug.Print("Spooler renamed ", spoolFileName)
+			os.Rename(spoolFileName, spoolFileName+".failed")
+		} else {
+			// Delete file
+			spool.log.Debug.Print("Spooler removes ", spoolFileName)
+			os.Remove(spoolFileName)
+		}
 	}
 }

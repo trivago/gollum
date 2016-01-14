@@ -35,7 +35,6 @@ import (
 // message. By default this is set to "format.Forward"
 type Timestamp struct {
 	core.FormatterBase
-	base            core.Formatter
 	timestampFormat string
 }
 
@@ -50,26 +49,18 @@ func (format *Timestamp) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	plugin, err := core.NewPluginWithType(conf.GetString("TimestampFormatter", "format.Forward"), conf)
-	if err != nil {
-		return err
-	}
-
-	format.base = plugin.(core.Formatter)
 	format.timestampFormat = conf.GetString("Timestamp", "2006-01-02 15:04:05 MST | ")
-
 	return nil
 }
 
 // Format prepends the timestamp of the message to the message.
 func (format *Timestamp) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	basePayload, stream := format.base.Format(msg)
-	baseLength := len(basePayload)
+
 	timestampStr := msg.Timestamp.Format(format.timestampFormat)
 
-	payload := make([]byte, len(timestampStr)+baseLength)
+	payload := make([]byte, len(timestampStr)+len(msg.Data))
 	len := copy(payload, []byte(timestampStr))
-	copy(payload[len:], basePayload)
+	copy(payload[len:], msg.Data)
 
-	return payload, stream
+	return payload, msg.StreamID
 }

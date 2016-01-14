@@ -25,7 +25,7 @@ import (
 type WriterAssembly struct {
 	writer       io.Writer
 	flush        func(Message)
-	formatter    Formatter
+	formatter    FormatterFunc
 	dropStreamID MessageStreamID
 	buffer       []byte
 	validate     func() bool
@@ -35,7 +35,7 @@ type WriterAssembly struct {
 
 // NewWriterAssembly creates a new adapter between io.Writer and the MessageBatch
 // AssemblyFunc function signature
-func NewWriterAssembly(writer io.Writer, flush func(Message), formatter Formatter) WriterAssembly {
+func NewWriterAssembly(writer io.Writer, flush func(Message), formatter FormatterFunc) WriterAssembly {
 	return WriterAssembly{
 		writer:      writer,
 		formatter:   formatter,
@@ -90,7 +90,7 @@ func (asm *WriterAssembly) Write(messages []Message) {
 	// Format all messages
 	contentLen := 0
 	for _, msg := range messages {
-		payload, _ := asm.formatter.Format(msg)
+		payload, _ := asm.formatter(msg)
 		if contentLen+len(payload) > len(asm.buffer) {
 			asm.buffer = append(asm.buffer[:contentLen], payload...)
 		} else {

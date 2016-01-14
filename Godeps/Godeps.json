@@ -1,13 +1,10 @@
 {
 	"ImportPath": "github.com/trivago/gollum",
 	"GoVersion": "go1.5",
-	"Packages": [
-		"./..."
-	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/araddon/gou",
-			"Rev": "184d6adaf0db6f4d4bb5515928701eea9b607a4f"
+			"Rev": "0c2ab7394d785afff14c983fedce4be70ccc431f"
 		},
 		{
 			"ImportPath": "github.com/artyom/fb303",
@@ -26,9 +23,14 @@
 			"Rev": "d0e59c22a56e8dadfed24f74f452cea5a52722d2"
 		},
 		{
+			"ImportPath": "github.com/docker/docker/pkg/homedir",
+			"Comment": "v1.4.1-7418-g05a4cb2",
+			"Rev": "05a4cb22211063adbe68f63b61a19e39ebda8302"
+		},
+		{
 			"ImportPath": "github.com/eapache/go-resiliency/breaker",
-			"Comment": "v1.0.0-4-gb86b1ec",
-			"Rev": "b86b1ec0dd4209a588dc1285cdd471e73525c0b3"
+			"Comment": "v1.0.0-3-gf341fb4",
+			"Rev": "f341fb4dca45128e4aa86389fa6a675d55fe25e1"
 		},
 		{
 			"ImportPath": "github.com/eapache/queue",
@@ -37,7 +39,7 @@
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
-			"Rev": "04eac41517df87aa1adec44b1c032a027b546f05"
+			"Rev": "68415e7123da32b07eab49c96d2c4d6158360e9b"
 		},
 		{
 			"ImportPath": "github.com/golang/snappy",
@@ -49,7 +51,7 @@
 		},
 		{
 			"ImportPath": "github.com/klauspost/crc32",
-			"Rev": "a3b15ae34567abb20a22992b989cd76f48d09c47"
+			"Rev": "41b6596e004cf56ede13d98d16f50cf2742ab559"
 		},
 		{
 			"ImportPath": "github.com/mattbaird/elastigo/lib",
@@ -61,17 +63,18 @@
 			"Rev": "fbfcc463715f6206524a6b1fcc8ed1b9e7567ba5"
 		},
 		{
-			"ImportPath": "github.com/shopify/sarama",
-			"Comment": "v1.7.0-22-gc68fea7",
-			"Rev": "c68fea7c711d386b09295428ad51de11f9b2078a"
+			"ImportPath": "github.com/opencontainers/runc/libcontainer/user",
+			"Comment": "v0.0.4-157-g83d7331",
+			"Rev": "83d7331acc55222717ea24d294ad891dc6a1a3e9"
 		},
 		{
-			"ImportPath": "github.com/trivago/tgo",
-			"Rev": "6b122641e4d1780bd73cc9b7469279c9c5b9b9ad"
+			"ImportPath": "github.com/shopify/sarama",
+			"Comment": "v1.7.0-9-gbb163bf",
+			"Rev": "bb163bfb128eff45c8770a6eaa5930940ac5b71c"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
-			"Rev": "3b90a77d2885fb0429e8a21ab72fc73ca6f8b401"
+			"Rev": "6c89489cafabcbc76df9dbf84ebf07204673fecf"
 		},
 		{
 			"ImportPath": "gopkg.in/Shopify/sarama.v1",
@@ -82,6 +85,11 @@
 			"ImportPath": "gopkg.in/bufio.v1",
 			"Comment": "v1",
 			"Rev": "567b2bfa514e796916c4747494d6ff5132a1dfce"
+		},
+		{
+			"ImportPath": "gopkg.in/docker/docker.v1/pkg/mflag",
+			"Comment": "v1.8.3",
+			"Rev": "f4bf5c7026816785d9f63c07e87f9450a49f2403"
 		},
 		{
 			"ImportPath": "gopkg.in/mcuadros/go-syslog.v2",

@@ -67,3 +67,7 @@ func (m *SerializedMessage) GetData() []byte {
 	}
 	return nil
 }
+
+func init() {
+	TypeRegistry.Register(SerializedMessage{})
+}

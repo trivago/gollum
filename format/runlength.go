@@ -31,7 +31,7 @@ import (
 // message. By default this is set to "format.Forward"
 type Runlength struct {
 	core.FormatterBase
-	base core.Formatter
+	separator string
 }
 
 func init() {
@@ -45,24 +45,18 @@ func (format *Runlength) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	plugin, err := core.NewPluginWithType(conf.GetString("RunlengthFormatter", "format.Forward"), conf)
-	if err != nil {
-		return err
-	}
-
-	format.base = plugin.(core.Formatter)
+	format.separator = conf.GetString("Separator", ":")
 	return nil
 }
 
 // Format prepends the length of the message (followed by ":") to the message.
 func (format *Runlength) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	basePayload, stream := format.base.Format(msg)
-	baseLength := len(basePayload)
-	lengthStr := strconv.Itoa(baseLength) + ":"
+	lengthStr := strconv.Itoa(len(msg.Data))
 
-	payload := make([]byte, len(lengthStr)+baseLength)
+	payload := make([]byte, len(lengthStr)+len(format.separator)+len(msg.Data))
 	len := copy(payload, []byte(lengthStr))
-	copy(payload[len:], basePayload)
+	len += copy(payload[len:], []byte(format.separator))
 
-	return payload, stream
+	copy(payload[len:], msg.Data)
+	return payload, msg.StreamID
 }

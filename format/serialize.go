@@ -34,7 +34,6 @@ import (
 // newline separated. This is enabled by default.
 type Serialize struct {
 	core.FormatterBase
-	base   core.Formatter
 	encode bool
 }
 
@@ -49,23 +48,16 @@ func (format *Serialize) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	plugin, err := core.NewPluginWithType(conf.GetString("SerializeFormatter", "format.Forward"), conf)
-	if err != nil {
-		return err
-	}
-
-	format.encode = conf.GetBool("SerializeStringEncode", true)
-	format.base = plugin.(core.Formatter)
+	format.encode = conf.GetBool("Encode", true)
 	return nil
 }
 
 // Format prepends the sequence number of the message (followed by ":") to the
 // message.
 func (format *Serialize) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	msg.Data, msg.StreamID = format.base.Format(msg)
 	data, err := msg.Serialize()
 	if err != nil {
-		format.Log.Error.Print("Serialize: ", err)
+		format.Log.Error.Print(err)
 		return msg.Data, msg.StreamID
 	}
 

@@ -124,17 +124,17 @@ func (format *JSON) Configure(conf core.PluginConfig) error {
 
 	format.parser = tstrings.NewTransitionParser()
 	format.state = jsonReadObject
-	format.initState = conf.GetString("JSONStartState", "")
-	format.timeRead = conf.GetString("JSONTimestampRead", "20060102150405")
-	format.timeWrite = conf.GetString("JSONTimestampWrite", "2006-01-02 15:04:05 MST")
+	format.initState = conf.GetString("StartState", "")
+	format.timeRead = conf.GetString("TimestampRead", "20060102150405")
+	format.timeWrite = conf.GetString("TimestampWrite", "2006-01-02 15:04:05 MST")
 	format.parseLock = new(sync.Mutex)
 
-	if !conf.HasValue("JSONDirectives") {
-		format.Log.Warning.Print("JSON formatter has no JSONDirectives setting")
+	if !conf.HasValue("Directives") {
+		format.Log.Warning.Print("JSON formatter has no directives setting")
 		return nil // ### return, no directives ###
 	}
 
-	directiveStrings := conf.GetStringArray("JSONDirectives", []string{})
+	directiveStrings := conf.GetStringArray("Directives", []string{})
 	if len(directiveStrings) == 0 {
 		format.Log.Warning.Print("JSON formatter has no directives")
 		return nil // ### return, no directives ###

@@ -46,7 +46,6 @@ import (
 // build the identifier from. By default this is set to "format.Forward"
 type Identifier struct {
 	core.FormatterBase
-	base core.Formatter
 	hash func(msg core.Message) []byte
 }
 
@@ -60,12 +59,6 @@ func (format *Identifier) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err
 	}
-
-	plugin, err := core.NewPluginWithType(conf.GetString("IdentifierDataFormatter", "format.Forward"), conf)
-	if err != nil {
-		return err
-	}
-	format.base = plugin.(core.Formatter)
 
 	switch strings.ToLower(conf.GetString("IdentifierType", "time")) {
 	case "hash":
@@ -102,7 +95,5 @@ func (format *Identifier) idSeqHex(msg core.Message) []byte {
 
 // Format generates a unique identifier from the message contents or metadata.
 func (format *Identifier) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	dataMsg := msg
-	dataMsg.Data, dataMsg.StreamID = format.base.Format(msg)
-	return format.hash(dataMsg), dataMsg.StreamID
+	return format.hash(msg), msg.StreamID
 }

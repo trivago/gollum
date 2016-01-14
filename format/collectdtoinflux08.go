@@ -33,7 +33,6 @@ import (
 // from Collectd to InfluxDB. By default this is set to format.Forward.
 type CollectdToInflux08 struct {
 	core.FormatterBase
-	base core.Formatter
 }
 
 func init() {
@@ -47,11 +46,6 @@ func (format *CollectdToInflux08) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	plugin, err := core.NewPluginWithType(conf.GetString("CollectdToInfluxFormatter", "format.Forward"), conf)
-	if err != nil {
-		return err
-	}
-	format.base = plugin.(core.Formatter)
 	return nil
 }
 
@@ -67,15 +61,14 @@ func (format *CollectdToInflux08) createMetricName(plugin string, pluginInstance
 
 // Format transforms collectd data to influx 0.8.x data
 func (format *CollectdToInflux08) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	data, streamID := format.base.Format(msg)
-	collectdData, err := parseCollectdPacket(data)
+	collectdData, err := parseCollectdPacket(msg.Data)
 	if err != nil {
 		format.Log.Error.Print("Collectd parser error: ", err)
-		return []byte{}, streamID // ### return, error ###
+		return []byte{}, msg.StreamID // ### return, error ###
 	}
 
 	// Manually convert to JSON lines
-	influxData := tio.NewByteStream(len(data))
+	influxData := tio.NewByteStream(len(msg.Data))
 	name := format.createMetricName(collectdData.Plugin,
 		collectdData.PluginInstance,
 		collectdData.PluginType,
@@ -86,5 +79,5 @@ func (format *CollectdToInflux08) Format(msg core.Message) ([]byte, core.Message
 		fmt.Fprintf(&influxData, `{"name": "%s", "columns": ["time", "value"], "points":[[%d, %f]]},`, name, int32(collectdData.Time), value)
 	}
 
-	return influxData.Bytes(), streamID
+	return influxData.Bytes(), msg.StreamID
 }

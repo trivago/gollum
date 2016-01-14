@@ -47,6 +47,7 @@ import (
 //     RotateAt: ""
 //     RotateTimestamp: "2006-01-02_15"
 //     RotatePruneCount: 0
+//     RotatePruneAfterHours: 0
 //     RotatePruneTotalSizeMB: 0
 //     Compress: false
 //
@@ -108,10 +109,18 @@ import (
 // and are pruned by date (followed by name).
 // By default this is set to 0 which disables pruning.
 //
+// RotatePruneAfterHours removes old logfiles that are older than a given number
+// of hours. By default this is set to 0 which disables pruning.
+//
 // RotatePruneTotalSizeMB removes old logfiles upon rotate so that only the
 // given number of MBs are used by logfiles. Logfiles are located by the name
 // defined by "File" and are pruned by date (followed by name).
 // By default this is set to 0 which disables pruning.
+//
+// RotateZeroPadding sets the number of leading zeros when rotating files with
+// an existing name. Setting this setting to 0 won't add zeros, every other
+// number defines the number of leading zeros to be used. By default this is
+// set to 0.
 //
 // Compress defines if a rotated logfile is to be gzip compressed or not.
 // By default this is set to false.
@@ -129,6 +138,7 @@ type File struct {
 	batchMaxCount     int
 	batchFlushCount   int
 	pruneCount        int
+	pruneHours        int
 	pruneSize         int64
 	wildcardPath      bool
 	overwriteFile     bool
@@ -186,6 +196,7 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	prod.rotate.atHour = -1
 	prod.rotate.atMinute = -1
 	prod.rotate.compress = conf.GetBool("Compress", false)
+	prod.rotate.zeroPad = conf.GetInt("RotateZeroPadding", 0)
 
 	prod.pruneCount = conf.GetInt("RotatePruneCount", 0)
 	prod.pruneSize = int64(conf.GetInt("RotatePruneTotalSizeMB", 0)) << 20
@@ -246,7 +257,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	state, stateExists := prod.files[logFileBasePath]
 	if !stateExists {
 		// state does not yet exist: create and map it
-		state = newFileState(prod.batchMaxCount, prod.GetFormatter(), prod.Drop, prod.flushTimeout, prod.Log)
+		state = newFileState(prod.batchMaxCount, prod.Format, prod.Drop, prod.flushTimeout, prod.Log)
 		prod.files[logFileBasePath] = state
 		prod.filesByStream[streamID] = state
 	} else if _, mappingExists := prod.filesByStream[streamID]; !mappingExists {
@@ -273,7 +284,15 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		files, _ := ioutil.ReadDir(fileDir)
 		for _, file := range files {
 			if strings.HasPrefix(file.Name(), signature) {
-				counter, _ := tstrings.Btoi([]byte(file.Name()[len(signature)+1:]))
+				// Special case.
+				// If there is no extension, counter stays at 0
+				// If there is an extension (and no count), parsing the "." will yield a counter of 0
+				// If there is a count, parsing it will work as intended
+				counter := uint64(0)
+				if len(file.Name()) > len(signature) {
+					counter, _ = tstrings.Btoi([]byte(file.Name()[len(signature)+1:]))
+				}
+
 				if maxSuffix <= counter {
 					maxSuffix = counter + 1
 				}
@@ -283,7 +302,11 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		if maxSuffix == 0 {
 			logFileName = fmt.Sprintf("%s%s", signature, fileExt)
 		} else {
-			logFileName = fmt.Sprintf("%s_%d%s", signature, int(maxSuffix), fileExt)
+			formatString := "%s_%d%s"
+			if prod.rotate.zeroPad > 0 {
+				formatString = fmt.Sprintf("%%s_%%0%dd%%s", prod.rotate.zeroPad)
+			}
+			logFileName = fmt.Sprintf(formatString, signature, int(maxSuffix), fileExt)
 		}
 	}
 
@@ -304,7 +327,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 
 	// (Re)open logfile
 	var err error
-	openFlags := os.O_WRONLY | os.O_CREATE | os.O_APPEND
+	openFlags := os.O_RDWR | os.O_CREATE | os.O_APPEND
 	if prod.overwriteFile {
 		openFlags |= os.O_TRUNC
 	} else {
@@ -325,19 +348,17 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	}
 
 	// Prune old logs if requested
-	switch {
-	case prod.pruneCount > 0 && prod.pruneSize > 0:
-		go func() {
+	go func() {
+		if prod.pruneHours > 0 {
+			state.pruneByHour(logFileBasePath, prod.pruneHours)
+		}
+		if prod.pruneCount > 0 {
 			state.pruneByCount(logFileBasePath, prod.pruneCount)
+		}
+		if prod.pruneSize > 0 {
 			state.pruneToSize(logFileBasePath, prod.pruneSize)
-		}()
-
-	case prod.pruneCount > 0:
-		go state.pruneByCount(logFileBasePath, prod.pruneCount)
-
-	case prod.pruneSize > 0:
-		go state.pruneToSize(logFileBasePath, prod.pruneSize)
-	}
+		}
+	}()
 
 	return state, err
 }

@@ -16,6 +16,7 @@ package format
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/trivago/gollum/core"
 )
 
@@ -47,10 +48,8 @@ import (
 // parts of the message (stream and data). Set to false by default.
 type StreamRoute struct {
 	core.FormatterBase
-	base         core.Formatter
-	streamFormat core.Formatter
-	delimiter    []byte
-	formatBoth   bool
+	streamFormatters []core.Formatter
+	delimiter        []byte
 }
 
 func init() {
@@ -64,48 +63,39 @@ func (format *StreamRoute) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	baseFormatter := conf.GetString("StreamRouteFormatter", "format.Forward")
-	plugin, err := core.NewPluginWithType(baseFormatter, conf)
-	if err != nil {
-		return err
+	format.delimiter = []byte(conf.GetString("Delimiter", ":"))
+	plugins := conf.GetPluginArray("StreamFormatters", []core.Plugin{})
+	for _, plugin := range plugins {
+		formatter, isFormatter := plugin.(core.Formatter)
+		if !isFormatter {
+			return fmt.Errorf("Plugin is not a valid formatter")
+		}
+		format.streamFormatters = append(format.streamFormatters, formatter)
 	}
-
-	streamPlugin, err := core.NewPluginWithType(conf.GetString("StreamRouteStreamFormatter", baseFormatter), conf)
-	if err != nil {
-		return err
-	}
-
-	format.delimiter = []byte(conf.GetString("StreamRouteDelimiter", ":"))
-	format.base = plugin.(core.Formatter)
-	format.streamFormat = streamPlugin.(core.Formatter)
-	format.formatBoth = conf.GetBool("StreamRouteFormatStream", false)
 
 	return nil
 }
 
 // Format adds prefix and postfix to the message formatted by the base formatter
 func (format *StreamRoute) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	modMsg := msg
-	prefixEnd := bytes.Index(msg.Data, format.delimiter)
+	delimiterIdx := bytes.Index(msg.Data, format.delimiter)
 
-	switch prefixEnd {
+	switch delimiterIdx {
 	case -1:
+		return msg.Data, msg.StreamID
+
 	case 0:
-		modMsg.Data = msg.Data[1:]
+		return msg.Data[1:], msg.StreamID
+
 	default:
-		firstSpaceIdx := bytes.IndexByte(msg.Data, ' ')
-		if (firstSpaceIdx < 0) || (firstSpaceIdx >= prefixEnd) {
-			streamName := msg.Data[:prefixEnd]
+		streamName := msg.Data[:delimiterIdx]
+		data := msg.Data[delimiterIdx+1:]
 
-			if format.formatBoth {
-				streamMessage := core.NewMessage(nil, streamName, 0)
-				streamName, _ = format.streamFormat.Format(streamMessage)
-			}
-
-			modMsg.StreamID = core.GetStreamID(string(streamName))
-			modMsg.Data = msg.Data[prefixEnd+1:]
+		nameMessage := core.NewMessage(nil, streamName, 0)
+		for _, formatter := range format.streamFormatters {
+			nameMessage.Data, _ = formatter.Format(nameMessage)
 		}
-	}
 
-	return format.base.Format(modMsg)
+		return data, core.GetStreamID(string(nameMessage.Data))
+	}
 }

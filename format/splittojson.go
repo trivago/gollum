@@ -36,7 +36,6 @@ import (
 //       - "error"
 type SplitToJSON struct {
 	core.FormatterBase
-	base  core.Formatter
 	token []byte
 	keys  []string
 }
@@ -52,21 +51,14 @@ func (format *SplitToJSON) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	plugin, err := core.NewPluginWithType(conf.GetString("SplitToJSONDataFormatter", "format.Forward"), conf)
-	if err != nil {
-		return err
-	}
-	format.base = plugin.(core.Formatter)
-	format.token = []byte(conf.GetString("SplitToJSONToken", "|"))
-	format.keys = conf.GetStringArray("SplitToJSONKeys", []string{})
+	format.token = []byte(conf.GetString("SplitBy", "|"))
+	format.keys = conf.GetStringArray("Keys", []string{})
 	return nil
 }
 
 // Format returns the splitted message payload as json
 func (format *SplitToJSON) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	data, streamID := format.base.Format(msg)
-
-	components := bytes.Split(data, format.token)
+	components := bytes.Split(msg.Data, format.token)
 	maxIdx := tmath.MinI(len(format.keys), len(components))
 	jsonData := ""
 
@@ -89,5 +81,5 @@ func (format *SplitToJSON) Format(msg core.Message) ([]byte, core.MessageStreamI
 		}
 	}
 
-	return []byte(jsonData), streamID
+	return []byte(jsonData), msg.StreamID
 }

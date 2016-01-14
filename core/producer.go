@@ -15,6 +15,7 @@
 package core
 
 import (
+	"fmt"
 	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tsync"
 	"sync"
@@ -131,7 +132,7 @@ type ProducerBase struct {
 	fuseTimeout     time.Duration
 	fuseControl     *time.Timer
 	fuseName        string
-	format          Formatter
+	formatters      []Formatter
 	filter          Filter
 	onRoll          func()
 	onStop          func()
@@ -143,11 +144,15 @@ type ProducerBase struct {
 func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	prod.Log = NewPluginLogScope(conf)
 	prod.runState = NewPluginRunState()
-	format, err := NewPluginWithType(conf.GetString("Formatter", "format.Forward"), conf)
-	if err != nil {
-		return err // ### return, plugin load error ###
+
+	plugins := conf.GetPluginArray("Formatters", []Plugin{})
+	for _, plugin := range plugins {
+		formatter, isFormatter := plugin.(Formatter)
+		if !isFormatter {
+			return fmt.Errorf("Plugin is not a valid formatter")
+		}
+		prod.formatters = append(prod.formatters, formatter)
 	}
-	prod.format = format.(Formatter)
 
 	filter, err := NewPluginWithType(conf.GetString("Filter", "filter.All"), conf)
 	if err != nil {
@@ -316,14 +321,12 @@ func (prod *ProducerBase) NextNonBlocking(onMessage func(msg Message)) bool {
 	}
 }
 
-// Format calls the formatters Format function
+// Format calls all formatters in their order of definition
 func (prod *ProducerBase) Format(msg Message) ([]byte, MessageStreamID) {
-	return prod.format.Format(msg)
-}
-
-// GetFormatter returns the formatter of this producer
-func (prod *ProducerBase) GetFormatter() Formatter {
-	return prod.format
+	for _, formatter := range prod.formatters {
+		msg.Data, msg.StreamID = formatter.Format(msg)
+	}
+	return msg.Data, msg.StreamID
 }
 
 // Accepts calls the filters Accepts function

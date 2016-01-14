@@ -236,13 +236,13 @@ func (prod *Kafka) bufferMessage(msg core.Message) {
 
 func (prod *Kafka) sendBatchOnTimeOut() {
 	// Flush if necessary
-	if prod.tryOpenConnection() && (prod.batch.ReachedTimeThreshold(prod.config.Producer.Flush.Frequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2)) {
+	if prod.batch.ReachedTimeThreshold(prod.config.Producer.Flush.Frequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2) {
 		prod.sendBatch()
 	}
 }
 
 func (prod *Kafka) sendBatch() {
-	if prod.isConnectionOpen() {
+	if prod.tryOpenConnection() {
 		prod.batch.Flush(prod.transformMessages)
 	} else if prod.IsStopping() {
 		prod.batch.Flush(prod.dropMessages)
@@ -255,7 +255,6 @@ func (prod *Kafka) sendBatch() {
 	prod.lastMetricUpdate = time.Now()
 
 	for category, counter := range prod.counters {
-		//prod.Log.Debug.Printf("%s: %d", category, *counter)
 		count := atomic.SwapInt64(counter, 0)
 
 		tgo.Metric.Add(kafkaMetricMessages+category, count)
@@ -311,17 +310,23 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 	}
 
 	// Wait for errors to be returned
-
 	errors := make(map[string]bool)
+	topicsBad := make(map[string]bool)
+
 	for timeout := time.NewTimer(prod.config.Producer.Flush.Frequency); prod.missCount > 0; prod.missCount-- {
 		select {
-		case <-prod.producer.Successes():
-			// nothing
+		case succ := <-prod.producer.Successes():
+			topicsBad[succ.Topic] = false // ok overwrites bad
 
 		case err := <-prod.producer.Errors():
 			if _, errorExists := errors[err.Error()]; !errorExists {
 				prod.Log.Error.Printf("Kafka producer error: %s", err.Error())
 				errors[err.Error()] = true
+
+				// Do not overwrite ok states (one ok = server reachable)
+				if _, stateSet := topicsBad[err.Msg.Topic]; !stateSet {
+					topicsBad[err.Msg.Topic] = true
+				}
 			}
 			if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
 				prod.Drop(msg)
@@ -334,13 +339,17 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 	}
 
 	if len(errors) > 0 {
+		allTopicsBad := true
+		for _, topicBad := range topicsBad {
+			allTopicsBad = topicBad && allTopicsBad
+		}
+		if allTopicsBad {
+			// Only restart if all topics report an error
+			// This is done to separate topic related errors from server related errors
 		prod.Log.Error.Printf("%d error type(s) for this batch. Triggering a reconnect", len(errors))
 		prod.closeConnection()
 	}
 }
-
-func (prod *Kafka) isConnectionOpen() bool {
-	return prod.client != nil && prod.producer != nil
 }
 
 func (prod *Kafka) tryOpenConnection() bool {

@@ -118,7 +118,7 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 	}
 
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
-	prod.assembly = core.NewWriterAssembly(nil, prod.Drop, prod.GetFormatter())
+	prod.assembly = core.NewWriterAssembly(nil, prod.Drop, prod.Format)
 	prod.assembly.SetValidator(prod.validate)
 	prod.assembly.SetErrorHandler(prod.onWriteError)
 

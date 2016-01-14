@@ -108,7 +108,7 @@ func (stream *Route) routeMessage(msg core.Message) {
 func (stream *Route) Enqueue(msg core.Message) {
 	if stream.Filter.Accepts(msg) {
 		var streamID core.MessageStreamID
-		msg.Data, streamID = stream.Format.Format(msg)
+		msg.Data, streamID = stream.Format(msg)
 
 		if msg.StreamID != streamID {
 			stream.StreamBase.Route(msg, streamID)

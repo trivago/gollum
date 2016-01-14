@@ -81,7 +81,7 @@ func (filter *JSON) Configure(conf core.PluginConfig) error {
 }
 
 func (filter *JSON) getValue(key string, values tcontainer.MarshalMap) (string, bool) {
-	if value, found := values.Path(key); found {
+	if value, found := values.Value(key); found {
 		switch value.(type) {
 		case string:
 			return value.(string), true

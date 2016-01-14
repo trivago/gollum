@@ -56,8 +56,8 @@ func ReadConfig(path string) (*Config, error) {
 
 		// Each item in the array item is a map{class -> map{key -> value}}
 		// We "iterate" over the first map (one item only) to get the class.
-		for typeName, pluginSettings := range pluginData {
-			plugin := NewPluginConfig(typeName)
+		for pluginID, pluginSettings := range pluginData {
+			plugin := NewPluginConfig(pluginID)
 			plugin.Read(pluginSettings)
 			config.Plugins = append(config.Plugins, plugin)
 		}

@@ -17,7 +17,9 @@ package producer
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 )
@@ -32,6 +34,8 @@ import (
 //     BatchTimeoutSec: 5
 //     MaxFileSizeMB: 512
 //     MaxFileAgeMin: 1
+//     MessageSizeByte: 8192
+//     RespoolDelaySec: 10
 //
 // The Spooling producer buffers messages and sends them again to the previous
 // stream stored in the message. This means the message must have been routed
@@ -59,15 +63,25 @@ import (
 // Reading will start only after a file is rotated. This setting divided by two
 // will be used to define the wait time for reading, too.
 // Set to 1 minute by default.
+//
+// BufferSizeByte defines the initial size of the buffer that is used to parse
+// messages from a spool file. If a message is larger than this size, the buffer
+// will be resized. By default this is set to 8192.
+//
+// RespoolDelaySec sets the number of seconds to wait before trying to load
+// existing spool files after a restart. This is useful for configurations that
+// contain dynamic streams. By default this is set to 10.
 type Spooling struct {
 	core.ProducerBase
-	outfile       map[core.MessageStreamID]*spoolFile
-	rotation      fileRotateConfig
-	path          string
-	maxFileSize   int64
-	maxFileAge    time.Duration
-	batchTimeout  time.Duration
-	batchMaxCount int
+	outfile         map[core.MessageStreamID]*spoolFile
+	rotation        fileRotateConfig
+	path            string
+	maxFileSize     int64
+	RespoolDuration time.Duration
+	maxFileAge      time.Duration
+	batchTimeout    time.Duration
+	batchMaxCount   int
+	bufferSizeByte  int
 }
 
 const (
@@ -97,6 +111,8 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 100)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.outfile = make(map[core.MessageStreamID]*spoolFile)
+	prod.RespoolDuration = time.Duration(conf.GetInt("RespoolDelaySec", 10)) * time.Second
+	prod.bufferSizeByte = conf.GetInt("BufferSizeByte", 8192)
 	prod.rotation = fileRotateConfig{
 		timeout:  prod.maxFileAge,
 		sizeByte: prod.maxFileSize,
@@ -171,8 +187,26 @@ func (prod *Spooling) close() {
 	}
 }
 
+func (prod *Spooling) openExistingFiles() {
+	prod.Log.Debug.Print("Looking for spool files to read")
+	files, _ := ioutil.ReadDir(prod.path)
+	for _, file := range files {
+		if file.IsDir() {
+			streamName := filepath.Base(file.Name())
+			streamID := core.GetStreamID(streamName)
+
+			// Only create a new spooler if the stream is registered by this instance
+			if _, exists := prod.outfile[streamID]; !exists && core.StreamRegistry.IsStreamRegistered(streamID) {
+				prod.Log.Note.Printf("Found existing spooling folders for %s", streamName)
+				prod.outfile[streamID] = newSpoolFile(prod, streamName, nil)
+			}
+		}
+	}
+}
+
 // Produce writes to stdout or stderr.
 func (prod *Spooling) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
+	time.AfterFunc(prod.RespoolDuration, prod.openExistingFiles)
 	prod.TickerMessageControlLoop(prod.writeToFile, prod.batchTimeout, prod.writeBatchOnTimeOut)
 }
