@@ -96,10 +96,12 @@ func (spool *spoolFile) getFileNumbering() (min int, max int) {
 	min, max = maxSpoolFileNumber+1, 0
 	files, _ := ioutil.ReadDir(spool.basePath)
 	for _, file := range files {
-		base := filepath.Base(file.Name())
-		number, _ := shared.Btoi([]byte(base)) // Because we need leading zero support
-		min = shared.MinI(min, int(number))
-		max = shared.MaxI(max, int(number))
+		if filepath.Ext(file.Name()) == ".spl" {
+			base := filepath.Base(file.Name())
+			number, _ := shared.Btoi([]byte(base)) // Because we need leading zero support
+			min = shared.MinI(min, int(number))
+			max = shared.MaxI(max, int(number))
+		}
 	}
 	return min, max
 }
@@ -177,6 +179,7 @@ func (spool *spoolFile) read() {
 
 		Log.Debug.Print("Spooler opened ", spoolFileName, " for reading")
 		spool.reader.Reset(0)
+		readFailed := false
 
 		for spool.prod.IsActive() {
 			// Only spool back if target is not busy
@@ -188,15 +191,22 @@ func (spool *spoolFile) read() {
 			// Any error cancels the loop
 			if err := spool.reader.ReadAll(file, spool.decode); err != nil {
 				if err != io.EOF {
+					readFailed = true
 					Log.Error.Print("Spool read error: ", err)
 				}
 				break // ### break, read error or EOF ###
 			}
 		}
 
-		// Close and remove file
-		Log.Debug.Print("Spooler removes ", spoolFileName)
 		file.Close()
-		os.Remove(spoolFileName)
+		if readFailed {
+			// Rename file for future processing
+			Log.Debug.Print("Spooler renamed ", spoolFileName)
+			os.Rename(spoolFileName, spoolFileName+".failed")
+		} else {
+			// Delete file
+			Log.Debug.Print("Spooler removes ", spoolFileName)
+			os.Remove(spoolFileName)
+		}
 	}
 }
