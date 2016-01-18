@@ -119,6 +119,14 @@ func (msg Message) String() string {
 	return string(msg.Data)
 }
 
+// Clone returns a copy of this message, i.e. the payload is duplicated
+func (msg *Message) Clone() Message {
+	clone := *msg
+	clone.Data = make([]byte, len(msg.Data))
+	copy(clone.Data, msg.Data)
+	return clone
+}
+
 // Enqueue is a convenience function to push a message to a channel while
 // waiting for a timeout instead of just blocking.
 // Passing a timeout of -1 will discard the message.
