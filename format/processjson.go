@@ -81,10 +81,10 @@ func (format *ProcessJSON) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	directives := conf.GetStringArray("ProcessJSONDirectives", []string{})
+	directives := conf.GetStringArray("Directives", []string{})
 
 	format.directives = make([]transformDirective, 0, len(directives))
-	format.trimValues = conf.GetBool("ProcessJSONTrimValues", true)
+	format.trimValues = conf.GetBool("TrimValues", true)
 
 	for _, directive := range directives {
 		directive := strings.Replace(directive, "\\:", "\r", -1)

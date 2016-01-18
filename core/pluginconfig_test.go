@@ -22,7 +22,9 @@ import (
 
 // returns a mockPluginType
 func getMockPluginConfig() PluginConfig {
-	return NewPluginConfig("mockPluginType")
+	config := NewPluginConfig("mockPluginConfig")
+	config.Typename = "core.mockPlugin"
+	return config
 }
 
 // Function checks if non-predefined exists and has been accessed or not
@@ -34,7 +36,8 @@ func getMockPluginConfig() PluginConfig {
 func TestPluginConfigValidate(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockPluginCfg := getMockPluginConfig()
-	mockPluginCfg.Settings["stringKey"] = "value"
+	// Note that thes values have to be lowercase
+	mockPluginCfg.Settings["stringkey"] = "value"
 	mockPluginCfg.Settings["number"] = 1
 
 	// access one field
@@ -46,7 +49,6 @@ func TestPluginConfigValidate(t *testing.T) {
 	iValue := mockPluginCfg.GetInt("number", 0)
 	expect.Equal(iValue, 1)
 	expect.True(mockPluginCfg.Validate())
-
 }
 
 // Function reads initializes pluginConfig with predefined values and

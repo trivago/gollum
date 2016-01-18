@@ -25,10 +25,10 @@ import (
 type mockPlugin struct{}
 
 func (m *mockPlugin) Configure(config PluginConfig) error {
-	if config.ID == "testPluginConfig" {
+	if config.ID == "mockPluginConfig" {
 		return nil
 	}
-	return fmt.Errorf("Plugin config differs")
+	return fmt.Errorf("Plugin config id differs")
 }
 
 func TestPluginRunState(t *testing.T) {
@@ -77,10 +77,8 @@ func TestPluginNewPluginWithType(t *testing.T) {
 
 	// for valid pluginConfig, there shouldn't be any error
 	TypeRegistry.Register(mockPlugin{})
-	pluginConfig := NewPluginConfig("core.mockPlugin")
-	pluginConfig.ID = "testPluginConfig"
+	pluginConfig := getMockPluginConfig()
 	_, err = NewPlugin(pluginConfig)
 
-	expect.Nil(err)
-
+	expect.NoError(err)
 }

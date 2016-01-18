@@ -41,7 +41,7 @@ func getMockProducer() mockProducer {
 			runState:        new(PluginRunState),
 			timeout:         500 * time.Millisecond,
 			filter:          &mockFilter{},
-			format:          &mockFormatter{},
+			formatters:      []Formatter{mockFormatter{}},
 			shutdownTimeout: 10 * time.Millisecond,
 			fuseName:        "test",
 			fuseTimeout:     100 * time.Millisecond,

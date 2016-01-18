@@ -60,7 +60,7 @@ func (format *Identifier) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	switch strings.ToLower(conf.GetString("IdentifierType", "time")) {
+	switch strings.ToLower(conf.GetString("Type", "time")) {
 	case "hash":
 		format.hash = format.idHash
 	case "seq":

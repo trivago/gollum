@@ -38,6 +38,7 @@ func NewPluginConfig(pluginID string) PluginConfig {
 	return PluginConfig{
 		Enable:    true,
 		Instances: 1,
+		ID:        pluginID,
 		Stream:    []string{},
 		Settings:  tcontainer.NewMarshalMap(),
 		validKeys: make(map[string]bool),

@@ -17,10 +17,14 @@ package core
 type mockFormatter struct {
 }
 
-func (mock *mockFormatter) Format(msg Message) ([]byte, MessageStreamID) {
-	return msg.Data, msg.StreamID
+func (mock mockFormatter) Format(msg Message) ([]byte, MessageStreamID) {
+	return mockFormatFunc(msg)
 }
 
-func (mock *mockFormatter) Configure(conf PluginConfig) error {
+func (mock mockFormatter) Configure(conf PluginConfig) error {
 	return nil
+}
+
+func mockFormatFunc(msg Message) ([]byte, MessageStreamID) {
+	return msg.Data, msg.StreamID
 }

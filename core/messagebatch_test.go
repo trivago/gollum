@@ -54,7 +54,7 @@ func TestMessageBatchAppendOrFlush(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	writer := messageBatchWriter{expect, 0}
 	batch := NewMessageBatch(10)
-	assembly := NewWriterAssembly(writer, writer.Flush, &mockFormatter{})
+	assembly := NewWriterAssembly(writer, writer.Flush, mockFormatFunc)
 
 	flushBuffer := func() {
 		batch.Flush(assembly.Write)
@@ -91,7 +91,7 @@ func TestMessageBatchAppendOrFlush(t *testing.T) {
 func TestMessageBatch(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	writer := messageBatchWriter{expect, 0}
-	assembly := NewWriterAssembly(writer, writer.Flush, &mockFormatter{})
+	assembly := NewWriterAssembly(writer, writer.Flush, mockFormatFunc)
 
 	batch := NewMessageBatch(10)
 	expect.False(batch.IsClosed())

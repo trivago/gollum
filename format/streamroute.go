@@ -64,7 +64,7 @@ func (format *StreamRoute) Configure(conf core.PluginConfig) error {
 	}
 
 	format.delimiter = []byte(conf.GetString("Delimiter", ":"))
-	plugins := conf.GetPluginArray("StreamFormatters", []core.Plugin{})
+	plugins := conf.GetPluginArray("NameFormatters", []core.Plugin{})
 	for _, plugin := range plugins {
 		formatter, isFormatter := plugin.(core.Formatter)
 		if !isFormatter {

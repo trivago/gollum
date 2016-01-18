@@ -25,7 +25,7 @@ func getMockStream() StreamBase {
 	timeout := time.Second
 	return StreamBase{
 		Filter:         &mockFilter{},
-		Format:         &mockFormatter{},
+		formatters:     []Formatter{mockFormatter{}},
 		Timeout:        &timeout,
 		Producers:      []Producer{},
 		boundStreamID:  GetStreamID("testBoundStream"),
