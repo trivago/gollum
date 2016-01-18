@@ -23,11 +23,12 @@ import (
 
 func newTestJSONFormatter(directives []interface{}, start string) *JSON {
 	format := JSON{}
-	conf := core.NewPluginConfig("format.JSON")
+	conf := core.NewPluginConfig("mockJSONFormatter")
+	conf.Typename = "format.JSON"
 	conf.Stream = []string{core.LogInternalStream}
 
-	conf.Settings["StartState"] = start
-	conf.Settings["Directives"] = directives
+	conf.Settings["startstate"] = start
+	conf.Settings["directives"] = directives
 
 	if err := format.Configure(conf); err != nil {
 		panic(err)

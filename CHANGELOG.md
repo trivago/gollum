@@ -1,3 +1,9 @@
+# 0.5.0
+
+#### Breaking changes
+
+ * If no stream is set a plugin will use a stream named like the plugin by default (formerly *)
+
 # 0.4.2
 
 This is a patch / minor features release.

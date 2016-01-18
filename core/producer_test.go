@@ -58,20 +58,13 @@ func TestProducerConfigure(t *testing.T) {
 	TypeRegistry.Register(mockPlugin{})
 	TypeRegistry.Register(mockFormatter{})
 	TypeRegistry.Register(mockFilter{})
-	mockConf := NewPluginConfig("core.mockPlugin")
-	mockConf.ID = "testPluginConf"
+	mockConf := NewPluginConfig("testPluginConf")
+	mockConf.Typename = "core.mockPlugin"
 	mockConf.Stream = []string{"testBoundStream"}
+	mockConf.Settings["filter"] = "core.mockFilter"
 
 	err := mockProducer.Configure(mockConf)
-	expect.NotNil(err)
-	mockConf.Settings["Formatter"] = "core.mockFormatter"
-
-	err = mockProducer.Configure(mockConf)
-	expect.NotNil(err)
-	mockConf.Settings["Filter"] = "core.mockFilter"
-
-	err = mockProducer.Configure(mockConf)
-	expect.Nil(err)
+	expect.NoError(err)
 }
 
 func TestProducerState(t *testing.T) {
