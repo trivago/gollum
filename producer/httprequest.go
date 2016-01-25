@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tnet"
 	"net/http"
 	"sync"
@@ -63,27 +64,26 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *HTTPRequest) Configure(conf core.PluginConfig) error {
-	err := prod.ProducerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	var err error
+	errors := tgo.NewErrorStack()
+	errors.Push(prod.ProducerBase.Configure(conf))
+
 	prod.SetStopCallback(prod.close)
 
-	address := conf.GetString("Address", "localhost:80")
+	address := errors.Str(conf.GetString("Address", "localhost:80"))
 	prod.protocol, prod.host, prod.port, err = tnet.SplitAddress(address, "http")
-	if err != nil {
-		return err
-	}
+	errors.Push(err)
 
 	if prod.host == "" {
 		prod.host = "localhost"
 	}
 
 	prod.address = fmt.Sprintf("%s://%s:%s", prod.protocol, prod.host, prod.port)
-	prod.encoding = conf.GetString("Encoding", "text/plain; charset=utf-8")
-	prod.rawPackets = conf.GetBool("RawData", true)
+	prod.encoding = errors.Str(conf.GetString("Encoding", "text/plain; charset=utf-8"))
+	prod.rawPackets = errors.Bool(conf.GetBool("RawData", true))
 	prod.SetCheckFuseCallback(prod.isHostUp)
-	return nil
+
+	return errors.ErrorOrNil()
 }
 
 func (prod *HTTPRequest) isHostUp() bool {

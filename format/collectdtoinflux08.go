@@ -41,12 +41,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *CollectdToInflux08) Configure(conf core.PluginConfig) error {
-	err := format.FormatterBase.Configure(conf)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return format.FormatterBase.Configure(conf)
 }
 
 func (format *CollectdToInflux08) createMetricName(plugin string, pluginInstance string, pluginType string, pluginTypeInstance string, host string) string {

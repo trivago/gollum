@@ -144,41 +144,29 @@ func (state *PluginRunState) WorkerDone() {
 	tgo.Metric.Dec(metricActiveWorkers)
 }
 
-// NewPluginWithType creates a new plugin of a given type and initializes it
-// using the given config (i.e. passes that config to Configure). The type
-// passed to this function may differ from the type stored in the config.
-// If the type is meant to match use NewPlugin instead of NewPluginWithType.
-// This function returns nil, error if the plugin could not be instantiated or
-// plugin, error if Configure failed.
-func NewPluginWithType(typename string, config PluginConfig) (Plugin, error) {
-	obj, err := TypeRegistry.New(typename)
+// NewPlugin creates a new plugin from the type information stored in its
+// config. This function internally calls NewPluginWithType.
+func NewPlugin(config PluginConfig) (Plugin, error) {
+	obj, err := TypeRegistry.New(config.Typename)
 	if err != nil {
 		return nil, err
 	}
 
 	plugin, isPlugin := obj.(Plugin)
 	if !isPlugin {
-		return nil, fmt.Errorf("%s is no plugin", typename)
+		return nil, fmt.Errorf("%s is not a plugin type", config.Typename)
 	}
 
 	err = plugin.Configure(config)
 
-	// Nested plugins must not trigger a validation. Validation happens after
-	// all plugins are configured.
-	if typename == config.Typename {
+	if err != nil {
+		if config.ID != "" {
+			// If an id is set it must be unique
+			PluginRegistry.RegisterUnique(plugin, config.ID)
+		}
+		// Check for errors (log as warning)
 		config.Validate()
 	}
 
-	// Register named plugins
-	if err != nil && config.ID != "" {
-		PluginRegistry.RegisterUnique(plugin, config.ID)
-	}
-
 	return plugin, err
-}
-
-// NewPlugin creates a new plugin from the type information stored in its
-// config. This function internally calls NewPluginWithType.
-func NewPlugin(config PluginConfig) (Plugin, error) {
-	return NewPluginWithType(config.Typename, config)
 }

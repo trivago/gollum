@@ -16,6 +16,7 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"strconv"
 )
 
@@ -40,13 +41,11 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Runlength) Configure(conf core.PluginConfig) error {
-	err := format.FormatterBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(format.FormatterBase.Configure(conf))
 
-	format.separator = conf.GetString("Separator", ":")
-	return nil
+	format.separator = errors.Str(conf.GetString("Separator", ":"))
+	return errors.ErrorOrNil()
 }
 
 // Format prepends the length of the message (followed by ":") to the message.

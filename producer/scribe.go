@@ -99,30 +99,28 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Scribe) Configure(conf core.PluginConfig) error {
-	err := prod.ProducerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
-	prod.SetStopCallback(prod.close)
-	host := conf.GetString("Address", "localhost:1463")
+	var err error
+	errors := tgo.NewErrorStack()
+	errors.Push(prod.ProducerBase.Configure(conf))
 
-	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
+	prod.SetStopCallback(prod.close)
+	host := errors.Str(conf.GetString("Address", "localhost:1463"))
+
+	prod.batchMaxCount = errors.Int(conf.GetInt("BatchMaxCount", 8192))
 	prod.windowSize = prod.batchMaxCount
-	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
+	prod.batchFlushCount = errors.Int(conf.GetInt("BatchFlushCount", prod.batchMaxCount/2))
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
-	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
+	prod.batchTimeout = time.Duration(errors.Int(conf.GetInt("BatchTimeoutSec", 5))) * time.Second
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
 
-	prod.bufferSizeByte = conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10 // 1 MB
-	prod.category = conf.GetStreamMap("Category", "")
+	prod.bufferSizeByte = errors.Int(conf.GetInt("ConnectionBufferSizeKB", 1<<10)) << 10 // 1 MB
+	prod.category, err = conf.GetStreamMap("Category", "")
+	errors.Push(err)
 
 	// Initialize scribe connection
 
 	prod.socket, err = thrift.NewTSocket(host)
-	if err != nil {
-		prod.Log.Error.Print("Scribe socket error:", err)
-		return err
-	}
+	errors.Push(err)
 
 	prod.transport = thrift.NewTFramedTransport(prod.socket)
 	binProtocol := thrift.NewTBinaryProtocol(prod.transport, false, false)
@@ -140,7 +138,7 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	}
 
 	prod.SetCheckFuseCallback(prod.tryOpenConnection)
-	return nil
+	return errors.ErrorOrNil()
 }
 
 func (prod *Scribe) bufferMessage(msg core.Message) {

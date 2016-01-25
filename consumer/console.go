@@ -16,6 +16,7 @@ package consumer
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"io"
 	"os"
@@ -54,8 +55,13 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Console) Configure(conf core.PluginConfig) error {
-	cons.autoexit = conf.GetBool("ExitOnEOF", false)
-	return cons.ConsumerBase.Configure(conf)
+	errors := tgo.NewErrorStack()
+
+	cons.autoexit = errors.Bool(conf.GetBool("ExitOnEOF", false))
+	err := cons.ConsumerBase.Configure(conf)
+	errors.Push(err)
+
+	return errors.ErrorOrNil()
 }
 
 func (cons *Console) readStdIn() {

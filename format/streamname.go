@@ -16,6 +16,7 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 )
 
 // StreamName is a formatter that prefixes a message with the StreamName.
@@ -46,13 +47,12 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *StreamName) Configure(conf core.PluginConfig) error {
-	err := format.FormatterBase.Configure(conf)
-	if err != nil {
-		return err
-	}
-	format.separator = conf.GetString("Separator", ":")
-	format.usePrevious = conf.GetBool("UseHistory", false)
-	return nil
+	errors := tgo.NewErrorStack()
+	errors.Push(format.FormatterBase.Configure(conf))
+
+	format.separator = errors.Str(conf.GetString("Separator", ":"))
+	format.usePrevious = errors.Bool(conf.GetBool("UseHistory", false))
+	return errors.ErrorOrNil()
 }
 
 // Format prepends the StreamName of the message to the message.

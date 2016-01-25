@@ -16,6 +16,7 @@ package producer
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tnet"
 	"github.com/trivago/tgo/tstrings"
@@ -93,21 +94,20 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Socket) Configure(conf core.PluginConfig) error {
-	err := prod.ProducerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(prod.ProducerBase.Configure(conf))
+
 	prod.SetStopCallback(prod.close)
 
-	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
-	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
+	prod.batchMaxCount = errors.Int(conf.GetInt("BatchMaxCount", 8192))
+	prod.batchFlushCount = errors.Int(conf.GetInt("BatchFlushCount", prod.batchMaxCount/2))
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
-	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
-	prod.bufferSizeByte = conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10 // 1 MB
+	prod.batchTimeout = time.Duration(errors.Int(conf.GetInt("BatchTimeoutSec", 5))) * time.Second
+	prod.bufferSizeByte = errors.Int(conf.GetInt("ConnectionBufferSizeKB", 1<<10)) << 10 // 1 MB
 
-	prod.acknowledge = tstrings.Unescape(conf.GetString("Acknowledge", ""))
-	prod.ackTimeout = time.Duration(conf.GetInt("AckTimeoutMs", 2000)) * time.Millisecond
-	prod.address, prod.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"))
+	prod.acknowledge = tstrings.Unescape(errors.Str(conf.GetString("Acknowledge", "")))
+	prod.ackTimeout = time.Duration(errors.Int(conf.GetInt("AckTimeoutMs", 2000))) * time.Millisecond
+	prod.address, prod.protocol = tnet.ParseAddress(errors.Str(conf.GetString("Address", ":5880")))
 
 	if prod.protocol != "unix" {
 		if prod.acknowledge != "" {
@@ -123,7 +123,7 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 	prod.assembly.SetErrorHandler(prod.onWriteError)
 
 	prod.SetCheckFuseCallback(prod.tryConnect)
-	return nil
+	return errors.ErrorOrNil()
 }
 
 func (prod *Socket) tryConnect() bool {

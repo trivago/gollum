@@ -15,8 +15,8 @@
 package format
 
 import (
-	"fmt"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 )
 
 // Double is a formatter that doubles the message and glues both parts
@@ -51,32 +51,34 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Double) Configure(conf core.PluginConfig) error {
-	err := format.FormatterBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(format.FormatterBase.Configure(conf))
 
-	leftPlugins := conf.GetPluginArray("Left", []core.Plugin{})
-	for _, plugin := range leftPlugins {
-		formatter, isFormatter := plugin.(core.Formatter)
-		if !isFormatter {
-			return fmt.Errorf("Plugin is not a valid formatter")
+	leftPlugins, err := conf.GetPluginArray("Left", []core.Plugin{})
+	if !errors.Push(err) {
+		for _, plugin := range leftPlugins {
+			formatter, isFormatter := plugin.(core.Formatter)
+			if !isFormatter {
+				errors.Pushf("Plugin is not a valid formatter")
+			}
+			format.left = append(format.left, formatter)
 		}
-		format.left = append(format.left, formatter)
 	}
 
-	rightPlugins := conf.GetPluginArray("Right", []core.Plugin{})
-	for _, plugin := range rightPlugins {
-		formatter, isFormatter := plugin.(core.Formatter)
-		if !isFormatter {
-			return fmt.Errorf("Plugin is not a valid formatter")
+	rightPlugins, err := conf.GetPluginArray("Right", []core.Plugin{})
+	if !errors.Push(err) {
+		for _, plugin := range rightPlugins {
+			formatter, isFormatter := plugin.(core.Formatter)
+			if !isFormatter {
+				errors.Pushf("Plugin is not a valid formatter")
+			}
+			format.right = append(format.right, formatter)
 		}
-		format.right = append(format.right, formatter)
 	}
 
-	format.separator = conf.GetString("Separator", ":")
-	format.leftStreamID = conf.GetBool("LeftStreamID", false)
-	return nil
+	format.separator = errors.Str(conf.GetString("Separator", ":"))
+	format.leftStreamID = errors.Bool(conf.GetBool("LeftStreamID", false))
+	return errors.ErrorOrNil()
 }
 
 // Format prepends the Hostname of the message to the message.

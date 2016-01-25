@@ -16,6 +16,7 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 )
 
 // Stream filters messages by stream based on a black and a whitelist.
@@ -38,6 +39,7 @@ import (
 // that are not in this list are blocked unless the list is empty. By default
 // this list is empty.
 type Stream struct {
+	core.FilterBase
 	blacklist []core.MessageStreamID
 	whitelist []core.MessageStreamID
 }
@@ -48,9 +50,16 @@ func init() {
 
 // Configure initializes this filter with values from a plugin config.
 func (filter *Stream) Configure(conf core.PluginConfig) error {
-	filter.blacklist = conf.GetStreamArray("FilterBlockStreams", []core.MessageStreamID{})
-	filter.whitelist = conf.GetStreamArray("FilterOnlyStreams", []core.MessageStreamID{})
-	return nil
+	var err error
+	errors := tgo.NewErrorStack()
+	errors.Push(filter.FilterBase.Configure(conf))
+
+	filter.blacklist, err = conf.GetStreamArray("FilterBlockStreams", []core.MessageStreamID{})
+	errors.Push(err)
+	filter.whitelist, err = conf.GetStreamArray("FilterOnlyStreams", []core.MessageStreamID{})
+	errors.Push(err)
+
+	return errors.ErrorOrNil()
 }
 
 // Accepts filters by streamId using a black and whitelist

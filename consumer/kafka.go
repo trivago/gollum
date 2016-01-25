@@ -127,37 +127,38 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Kafka) Configure(conf core.PluginConfig) error {
-	err := cons.ConsumerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	var err error
+	errors := tgo.NewErrorStack()
+	errors.Push(cons.ConsumerBase.Configure(conf))
 
-	cons.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
-	cons.topic = conf.GetString("Topic", "default")
-	cons.offsetFile = conf.GetString("OffsetFile", "")
-	cons.persistTimeout = time.Duration(conf.GetInt("PresistTimoutMs", 5000)) * time.Millisecond
+	cons.servers, err = conf.GetStringArray("Servers", []string{"localhost:9092"})
+	errors.Push(err)
+
+	cons.topic = errors.Str(conf.GetString("Topic", "default"))
+	cons.offsetFile = errors.Str(conf.GetString("OffsetFile", ""))
+	cons.persistTimeout = time.Duration(errors.Int(conf.GetInt("PresistTimoutMs", 5000))) * time.Millisecond
 	cons.offsets = make(map[int32]int64)
 	cons.MaxPartitionID = 0
 
 	cons.config = kafka.NewConfig()
-	cons.config.ClientID = conf.GetString("ClientId", "gollum")
-	cons.config.ChannelBufferSize = conf.GetInt("MessageBufferCount", 256)
+	cons.config.ClientID = errors.Str(conf.GetString("ClientId", "gollum"))
+	cons.config.ChannelBufferSize = errors.Int(conf.GetInt("MessageBufferCount", 256))
 
-	cons.config.Net.MaxOpenRequests = conf.GetInt("MaxOpenRequests", 5)
-	cons.config.Net.DialTimeout = time.Duration(conf.GetInt("ServerTimeoutSec", 30)) * time.Second
+	cons.config.Net.MaxOpenRequests = errors.Int(conf.GetInt("MaxOpenRequests", 5))
+	cons.config.Net.DialTimeout = time.Duration(errors.Int(conf.GetInt("ServerTimeoutSec", 30))) * time.Second
 	cons.config.Net.ReadTimeout = cons.config.Net.DialTimeout
 	cons.config.Net.WriteTimeout = cons.config.Net.DialTimeout
 
-	cons.config.Metadata.Retry.Max = conf.GetInt("ElectRetries", 3)
-	cons.config.Metadata.Retry.Backoff = time.Duration(conf.GetInt("ElectTimeoutMs", 250)) * time.Millisecond
-	cons.config.Metadata.RefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshMs", 10000)) * time.Millisecond
+	cons.config.Metadata.Retry.Max = errors.Int(conf.GetInt("ElectRetries", 3))
+	cons.config.Metadata.Retry.Backoff = time.Duration(errors.Int(conf.GetInt("ElectTimeoutMs", 250))) * time.Millisecond
+	cons.config.Metadata.RefreshFrequency = time.Duration(errors.Int(conf.GetInt("MetadataRefreshMs", 10000))) * time.Millisecond
 
-	cons.config.Consumer.Fetch.Min = int32(conf.GetInt("MinFetchSizeByte", 1))
-	cons.config.Consumer.Fetch.Max = int32(conf.GetInt("MaxFetchSizeByte", 0))
-	cons.config.Consumer.Fetch.Default = int32(conf.GetInt("MaxFetchSizeByte", 32768))
-	cons.config.Consumer.MaxWaitTime = time.Duration(conf.GetInt("FetchTimeoutMs", 250)) * time.Millisecond
+	cons.config.Consumer.Fetch.Min = int32(errors.Int(conf.GetInt("MinFetchSizeByte", 1)))
+	cons.config.Consumer.Fetch.Max = int32(errors.Int(conf.GetInt("MaxFetchSizeByte", 0)))
+	cons.config.Consumer.Fetch.Default = int32(errors.Int(conf.GetInt("MaxFetchSizeByte", 32768)))
+	cons.config.Consumer.MaxWaitTime = time.Duration(errors.Int(conf.GetInt("FetchTimeoutMs", 250))) * time.Millisecond
 
-	offsetValue := strings.ToLower(conf.GetString("DefaultOffset", kafkaOffsetNewest))
+	offsetValue := strings.ToLower(errors.Str(conf.GetString("DefaultOffset", kafkaOffsetNewest)))
 	switch offsetValue {
 	case kafkaOffsetNewest:
 		cons.defaultOffset = kafka.OffsetNewest
@@ -168,27 +169,23 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 	default:
 		cons.defaultOffset, _ = strconv.ParseInt(offsetValue, 10, 64)
 		fileContents, err := ioutil.ReadFile(cons.offsetFile)
-		if err != nil {
-			return err
-		}
-
-		// Decode the JSON file into the partition -> offset map
-		encodedOffsets := make(map[string]int64)
-		err = json.Unmarshal(fileContents, &encodedOffsets)
-		if err != nil {
-			return err
-		}
-
-		for k, v := range encodedOffsets {
-			id, err := strconv.Atoi(k)
-			if err != nil {
-				return err
+		if !errors.Push(err) {
+			// Decode the JSON file into the partition -> offset map
+			encodedOffsets := make(map[string]int64)
+			err = json.Unmarshal(fileContents, &encodedOffsets)
+			if !errors.Push(err) {
+				for k, v := range encodedOffsets {
+					id, err := strconv.Atoi(k)
+					if err != nil {
+						return err
+					}
+					cons.offsets[int32(id)] = v
+				}
 			}
-			cons.offsets[int32(id)] = v
 		}
 	}
 
-	return nil
+	return errors.ErrorOrNil()
 }
 
 // Restart the consumer after wating for persistTimeout

@@ -17,6 +17,7 @@ package format
 import (
 	"fmt"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tmath"
 	"strings"
@@ -45,13 +46,12 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *CollectdToInflux10) Configure(conf core.PluginConfig) error {
-	err := format.FormatterBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(format.FormatterBase.Configure(conf))
+
 	format.tagString = strings.NewReplacer(",", "\\,", " ", "\\ ")
 	format.stringString = strings.NewReplacer("\"", "\\\"")
-	return nil
+	return errors.ErrorOrNil()
 }
 
 func (format *CollectdToInflux10) escapeTag(value string) string {

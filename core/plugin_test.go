@@ -16,6 +16,7 @@ package core
 
 import (
 	"fmt"
+	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/ttesting"
 	"sync"
 	"testing"
@@ -63,22 +64,22 @@ func TestPluginRunState(t *testing.T) {
 
 }
 
-func TestPluginNewPluginWithType(t *testing.T) {
+func TestNewPlugin(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	_, err := NewPlugin(NewPluginConfig("randomPlugin"))
-	expect.NotNil(err)
+	// Check no type given
+	_, err := NewPlugin(NewNestedPluginConfig("", tcontainer.NewMarshalMap()))
+	expect.NotNil(err) // No type used
+
+	// Check inavlid type given
 	type notPlugin struct {
 	}
-	// for not a plugin, there should be error.
 	TypeRegistry.Register(notPlugin{})
-	_, err = NewPluginWithType("core.notPlugin", NewPluginConfig("core.notPlugin"))
+	_, err = NewPlugin(NewNestedPluginConfig("core.notPlugin", tcontainer.NewMarshalMap()))
 	expect.NotNil(err)
 
-	// for valid pluginConfig, there shouldn't be any error
+	// Check valid type and config
 	TypeRegistry.Register(mockPlugin{})
-	pluginConfig := getMockPluginConfig()
-	_, err = NewPlugin(pluginConfig)
-
+	_, err = NewPlugin(NewPluginConfig("", "mockPlugin"))
 	expect.NoError(err)
 }

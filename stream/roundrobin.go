@@ -16,6 +16,7 @@ package stream
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"sync"
 	"sync/atomic"
 )
@@ -46,14 +47,13 @@ func init() {
 
 // Configure initializes this distributor with values from a plugin config.
 func (stream *RoundRobin) Configure(conf core.PluginConfig) error {
-	if err := stream.StreamBase.ConfigureStream(conf, stream.roundRobin); err != nil {
-		return err // ### return, base stream error ###
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(stream.StreamBase.ConfigureStream(conf, stream.roundRobin))
 
 	stream.index = 0
 	stream.indexByStream = make(map[core.MessageStreamID]*int32)
 	stream.mapInitLock = new(sync.Mutex)
-	return nil
+	return errors.ErrorOrNil()
 }
 
 func (stream *RoundRobin) roundRobin(msg core.Message) {

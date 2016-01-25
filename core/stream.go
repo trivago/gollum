@@ -15,7 +15,8 @@
 package core
 
 import (
-	"fmt"
+	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/tlog"
 	"sync"
 	"time"
@@ -80,28 +81,28 @@ type Distributor func(msg Message)
 
 // ConfigureStream sets up all values requred by StreamBase.
 func (stream *StreamBase) ConfigureStream(conf PluginConfig, distribute Distributor) error {
+	errors := tgo.NewErrorStack()
 	stream.Log = NewPluginLogScope(conf)
 
-	plugins := conf.GetPluginArray("Formatters", []Plugin{})
-	for _, plugin := range plugins {
-		formatter, isFormatter := plugin.(Formatter)
-		if !isFormatter {
-			return fmt.Errorf("Plugin is not a valid formatter")
+	plugins, err := conf.GetPluginArray("Formatters", []Plugin{})
+	if !errors.Push(err) {
+		for _, plugin := range plugins {
+			formatter, isFormatter := plugin.(Formatter)
+			if !isFormatter {
+				errors.Pushf("Plugin is not a valid formatter")
+			}
+			stream.formatters = append(stream.formatters, formatter)
 		}
-		stream.formatters = append(stream.formatters, formatter)
 	}
 
-	plugin, err := NewPluginWithType(conf.GetString("Filter", "filter.All"), conf)
-	if err != nil {
-		return err // ### return, plugin load error ###
-	}
-	stream.Filter = plugin.(Filter)
-
-	if len(conf.Stream) == 0 {
-		return fmt.Errorf("No source stream configured.")
+	plugin, err := conf.GetPlugin("Filter", "filter.All", tcontainer.NewMarshalMap())
+	if !errors.Push(err) {
+		stream.Filter = plugin.(Filter)
 	}
 
-	stream.boundStreamID = GetStreamID(conf.Stream[0])
+	stream.boundStreamID, err = conf.GetStreamID("Stream", GetStreamID(conf.ID))
+	errors.Push(err)
+
 	if stream.boundStreamID == WildcardStreamID {
 		stream.Log.Note.Print("A wildcard stream configuration only affects the wildcard stream, not all streams")
 	}
@@ -110,12 +111,13 @@ func (stream *StreamBase) ConfigureStream(conf PluginConfig, distribute Distribu
 	stream.distribute = distribute
 
 	if conf.HasValue("TimeoutMs") {
-		timeout := time.Duration(conf.GetInt("TimeoutMs", 0)) * time.Millisecond
+		timeout := time.Duration(errors.Int(conf.GetInt("TimeoutMs", 0))) * time.Millisecond
 		stream.Timeout = &timeout
 	} else {
 		stream.Timeout = nil
 	}
-	return nil
+
+	return errors.ErrorOrNil()
 }
 
 // AddProducer adds all producers to the list of known producers.

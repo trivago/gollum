@@ -118,42 +118,41 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
-	err := prod.ProducerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	var err error
+	errors := tgo.NewErrorStack()
+	errors.Push(prod.ProducerBase.Configure(conf))
 
 	prod.SetStopCallback(prod.close)
 
 	defaultServer := []string{"localhost"}
-	numConnections := conf.GetInt("Connections", 6)
-	retrySec := conf.GetInt("RetrySec", 5)
+	numConnections := errors.Int(conf.GetInt("Connections", 6))
+	retrySec := errors.Int(conf.GetInt("RetrySec", 5))
 
 	prod.conn = elastigo.NewConn()
-	prod.conn.Hosts = conf.GetStringArray("Servers", defaultServer)
-	prod.conn.Domain = conf.GetString("Domain", prod.conn.Hosts[0])
+	prod.conn.Hosts, err = conf.GetStringArray("Servers", defaultServer)
+	errors.Push(err)
+	prod.conn.Domain = errors.Str(conf.GetString("Domain", prod.conn.Hosts[0]))
 	prod.conn.ClusterDomains = prod.conn.Hosts
-	prod.conn.Port = strconv.Itoa(conf.GetInt("Port", 9200))
-	prod.conn.Username = conf.GetString("User", "")
-	prod.conn.Password = conf.GetString("Password", "")
+	prod.conn.Port = strconv.Itoa(errors.Int(conf.GetInt("Port", 9200)))
+	prod.conn.Username = errors.Str(conf.GetString("User", ""))
+	prod.conn.Password = errors.Str(conf.GetString("Password", ""))
 
 	prod.indexer = prod.conn.NewBulkIndexerErrors(numConnections, retrySec)
-	prod.indexer.BufferDelayMax = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
-	prod.indexer.BulkMaxBuffer = conf.GetInt("BatchSizeByte", 32768)
-	prod.indexer.BulkMaxDocs = conf.GetInt("BatchMaxCount", 128)
+	prod.indexer.BufferDelayMax = time.Duration(errors.Int(conf.GetInt("BatchTimeoutSec", 5))) * time.Second
+	prod.indexer.BulkMaxBuffer = errors.Int(conf.GetInt("BatchSizeByte", 32768))
+	prod.indexer.BulkMaxDocs = errors.Int(conf.GetInt("BatchMaxCount", 128))
 
 	prod.indexer.Sender = func(buf *bytes.Buffer) error {
 		_, err := prod.conn.DoCommand("POST", "/_bulk", nil, buf)
-		if err != nil {
-			prod.Log.Error.Print("ElasticSearch response error - ", err)
-		}
 		return err
 	}
 
-	prod.index = conf.GetStreamMap("Index", "")
-	prod.msgType = conf.GetStreamMap("Type", "log")
-	prod.msgTTL = conf.GetString("TTL", "")
-	prod.dayBasedIndex = conf.GetBool("DayBasedIndex", false)
+	prod.index, err = conf.GetStreamMap("Index", "")
+	errors.Push(err)
+	prod.msgType, err = conf.GetStreamMap("Type", "log")
+	errors.Push(err)
+	prod.msgTTL = errors.Str(conf.GetString("TTL", ""))
+	prod.dayBasedIndex = errors.Bool(conf.GetBool("DayBasedIndex", false))
 
 	prod.counters = make(map[string]*int64)
 	prod.lastMetricUpdate = time.Now()
@@ -165,7 +164,7 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 	}
 
 	prod.SetCheckFuseCallback(prod.isClusterUp)
-	return nil
+	return errors.ErrorOrNil()
 }
 
 func (prod *ElasticSearch) updateMetrics() {

@@ -17,6 +17,7 @@ package producer
 import (
 	"fmt"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tnet"
 	"github.com/trivago/tgo/tstrings"
@@ -93,32 +94,30 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Proxy) Configure(conf core.PluginConfig) error {
-	err := prod.ProducerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(prod.ProducerBase.Configure(conf))
 	prod.SetStopCallback(prod.close)
 
-	prod.bufferSizeKB = conf.GetInt("ConnectionBufferSizeKB", 1<<10) // 1 MB
-	prod.address, prod.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"))
+	prod.bufferSizeKB = errors.Int(conf.GetInt("ConnectionBufferSizeKB", 1<<10)) // 1 MB
+	prod.address, prod.protocol = tnet.ParseAddress(errors.Str(conf.GetString("Address", ":5880")))
 	if prod.protocol == "udp" {
 		return fmt.Errorf("Proxy does not support UDP")
 	}
 
-	prod.timeout = time.Duration(conf.GetInt("TimeoutSec", 1)) * time.Second
+	prod.timeout = time.Duration(errors.Int(conf.GetInt("TimeoutSec", 1))) * time.Second
 
-	delimiter := tstrings.Unescape(conf.GetString("Delimiter", "\n"))
-	offset := conf.GetInt("Offset", 0)
+	delimiter := tstrings.Unescape(errors.Str(conf.GetString("Delimiter", "\n")))
+	offset := errors.Int(conf.GetInt("Offset", 0))
 	flags := tio.BufferedReaderFlagEverything // pass all messages as-is
 
-	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))
+	partitioner := strings.ToLower(errors.Str(conf.GetString("Partitioner", "delimiter")))
 	switch partitioner {
 	case "binary_be":
 		flags |= tio.BufferedReaderFlagBigEndian
 		fallthrough
 
 	case "binary", "binary_le":
-		switch conf.GetInt("Size", 4) {
+		switch errors.Int(conf.GetInt("Size", 4)) {
 		case 1:
 			flags |= tio.BufferedReaderFlagMLE8
 		case 2:
@@ -128,12 +127,12 @@ func (prod *Proxy) Configure(conf core.PluginConfig) error {
 		case 8:
 			flags |= tio.BufferedReaderFlagMLE64
 		default:
-			return fmt.Errorf("Size only supports the value 1,2,4 and 8")
+			errors.Pushf("Size only supports the value 1,2,4 and 8")
 		}
 
 	case "fixed":
 		flags |= tio.BufferedReaderFlagMLEFixed
-		offset = conf.GetInt("Size", 1)
+		offset = errors.Int(conf.GetInt("Size", 1))
 
 	case "ascii":
 		flags |= tio.BufferedReaderFlagMLE
@@ -142,11 +141,11 @@ func (prod *Proxy) Configure(conf core.PluginConfig) error {
 		// Nothing to add
 
 	default:
-		return fmt.Errorf("Unknown partitioner: %s", partitioner)
+		errors.Pushf("Unknown partitioner: %s", partitioner)
 	}
 
 	prod.reader = tio.NewBufferedReader(prod.bufferSizeKB, flags, offset, delimiter)
-	return nil
+	return errors.ErrorOrNil()
 }
 
 func (prod *Proxy) sendMessage(msg core.Message) {

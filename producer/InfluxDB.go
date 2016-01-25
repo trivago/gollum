@@ -16,6 +16,7 @@ package producer
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tmath"
 	"io"
 	"sync"
@@ -106,13 +107,12 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *InfluxDB) Configure(conf core.PluginConfig) error {
-	if err := prod.ProducerBase.Configure(conf); err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(prod.ProducerBase.Configure(conf))
 	prod.SetStopCallback(prod.close)
 
-	version := conf.GetInt("Version", 100)
-	if conf.GetBool("UseVersion08", false) {
+	version := errors.Int(conf.GetInt("Version", 100))
+	if errors.Bool(conf.GetBool("UseVersion08", false)) {
 		version = 80
 	}
 
@@ -132,14 +132,14 @@ func (prod *InfluxDB) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
-	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
+	prod.batchMaxCount = errors.Int(conf.GetInt("BatchMaxCount", 8192))
+	prod.batchFlushCount = errors.Int(conf.GetInt("BatchFlushCount", prod.batchMaxCount/2))
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
-	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
+	prod.batchTimeout = time.Duration(errors.Int(conf.GetInt("BatchTimeoutSec", 5))) * time.Second
 
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
 	prod.assembly = core.NewWriterAssembly(prod.writer, prod.Drop, prod.Format)
-	return nil
+	return errors.ErrorOrNil()
 }
 
 // Flush flushes the content of the buffer into the influxdb

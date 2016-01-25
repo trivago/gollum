@@ -17,6 +17,7 @@ package producer
 import (
 	"fmt"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"os"
 	"strings"
 	"sync"
@@ -44,13 +45,11 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Console) Configure(conf core.PluginConfig) error {
-	err := prod.ProducerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(prod.ProducerBase.Configure(conf))
 
 	prod.SetStopCallback(prod.close)
-	console := conf.GetString("Console", "stdout")
+	console := errors.Str(conf.GetString("Console", "stdout"))
 
 	switch strings.ToLower(console) {
 	default:
@@ -61,7 +60,7 @@ func (prod *Console) Configure(conf core.PluginConfig) error {
 		prod.console = os.Stderr
 	}
 
-	return nil
+	return errors.ErrorOrNil()
 }
 
 func (prod *Console) printMessage(msg core.Message) {

@@ -156,24 +156,16 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	// match the order of reference between the different types.
 
 	for _, config := range streamConfig {
-		if len(config.Stream) == 0 {
-			tlog.Error.Printf("Stream plugin %s has no streams set", config.Typename)
-			continue // ### continue ###
-		}
-
-		streamName := config.Stream[0]
-		if len(config.Stream) > 1 {
-			tlog.Warning.Printf("Stream plugins may only bind to one stream. Plugin will bind to %s", streamName)
-		}
-
 		plugin, err := core.NewPlugin(config)
 		if err != nil {
-			tlog.Error.Printf("Failed to configure stream %s: %s", streamName, err)
+			tlog.Error.Printf("Failed to configure stream %s: %s", config.ID, err)
 			continue // ### continue ###
 		}
 
-		tlog.Debug.Print("Configuring ", config.Typename, " for ", streamName)
-		core.StreamRegistry.Register(plugin.(core.Stream), core.GetStreamID(streamName))
+		streamPlugin := plugin.(core.Stream)
+
+		tlog.Debug.Printf("Configuring %s (%s) as %s", config.ID, core.StreamRegistry.GetStreamName(streamPlugin.GetBoundStreamID()), config.Typename)
+		core.StreamRegistry.Register(streamPlugin, streamPlugin.GetBoundStreamID())
 	}
 
 	// All producers are added to the wildcard stream so that consumers can send
@@ -234,7 +226,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	// built. This eliminates lookups when sending to specific streams.
 
 	logConsumer, _ := plex.consumers[0].(*core.LogConsumer)
-	logConsumer.Configure(core.NewPluginConfig("core.LogConsumer"))
+	logConsumer.Configure(core.NewPluginConfig("", "core.LogConsumer"))
 
 	for _, config := range consumerConfig {
 		for i := 0; i < config.Instances; i++ {

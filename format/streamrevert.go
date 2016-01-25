@@ -41,11 +41,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *StreamRevert) Configure(conf core.PluginConfig) error {
-	err := format.FormatterBase.Configure(conf)
-	if err != nil {
-		return err
-	}
-	return nil
+	return format.FormatterBase.Configure(conf)
 }
 
 // Format adds prefix and postfix to the message formatted by the base formatter

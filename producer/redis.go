@@ -16,6 +16,7 @@ package producer
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tnet"
 	"gopkg.in/redis.v2"
 	"strconv"
@@ -65,8 +66,7 @@ type Redis struct {
 	key             string
 	client          *redis.Client
 	store           func(msg core.Message)
-	format          core.Formatter
-	fieldFormat     core.Formatter
+	fieldFormatters []core.Formatter
 	fieldFromParsed bool
 }
 
@@ -76,25 +76,29 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Redis) Configure(conf core.PluginConfig) error {
-	err := prod.ProducerBase.Configure(conf)
-	if err != nil {
-		return err
+	errors := tgo.NewErrorStack()
+	errors.Push(prod.ProducerBase.Configure(conf))
+
+	plugins, err := conf.GetPluginArray("FieldFormatters", []core.Plugin{})
+	if !errors.Push(err) {
+		for _, plugin := range plugins {
+			formatter, isFormatter := plugin.(core.Formatter)
+			if !isFormatter {
+				errors.Pushf("Plugin is not a valid formatter")
+			}
+			prod.fieldFormatters = append(prod.fieldFormatters, formatter)
+		}
 	}
 
-	fieldFormat, err := core.NewPluginWithType(conf.GetString("FieldFormatter", "format.Identifier"), conf)
-	if err != nil {
-		return err // ### return, plugin load error ###
-	}
 	prod.SetStopCallback(prod.close)
-	prod.fieldFormat = fieldFormat.(core.Formatter)
 
-	prod.password = conf.GetString("Password", "")
-	prod.database = int64(conf.GetInt("Database", 0))
-	prod.key = conf.GetString("Key", "default")
-	prod.fieldFromParsed = conf.GetBool("FieldAfterFormat", false)
-	prod.address, prod.protocol = tnet.ParseAddress(conf.GetString("Address", ":6379"))
+	prod.password = errors.Str(conf.GetString("Password", ""))
+	prod.database = int64(errors.Int(conf.GetInt("Database", 0)))
+	prod.key = errors.Str(conf.GetString("Key", "default"))
+	prod.fieldFromParsed = errors.Bool(conf.GetBool("FieldAfterFormat", false))
+	prod.address, prod.protocol = tnet.ParseAddress(errors.Str(conf.GetString("Address", ":6379")))
 
-	switch strings.ToLower(conf.GetString("Storage", "hash")) {
+	switch strings.ToLower(errors.Str(conf.GetString("Storage", "hash"))) {
 	case "hash":
 		prod.store = prod.storeHash
 	case "list":
@@ -109,18 +113,25 @@ func (prod *Redis) Configure(conf core.PluginConfig) error {
 		prod.store = prod.storeString
 	}
 
-	return nil
+	return errors.ErrorOrNil()
+}
+
+func (prod *Redis) formatField(msg core.Message) []byte {
+	for _, formatter := range prod.fieldFormatters {
+		msg.Data, _ = formatter.Format(msg)
+	}
+	return msg.Data
 }
 
 func (prod *Redis) storeHash(msg core.Message) {
-	value, _ := prod.format.Format(msg)
+	value, _ := prod.Format(msg)
 	var field []byte
 	if prod.fieldFromParsed {
 		fieldMsg := msg
 		fieldMsg.Data = value
-		field, _ = prod.fieldFormat.Format(fieldMsg)
+		field = prod.formatField(fieldMsg)
 	} else {
-		field, _ = prod.fieldFormat.Format(msg)
+		field = prod.formatField(msg)
 	}
 
 	result := prod.client.HSet(prod.key, string(field), string(value))
@@ -151,14 +162,14 @@ func (prod *Redis) storeSet(msg core.Message) {
 }
 
 func (prod *Redis) storeSortedSet(msg core.Message) {
-	value, _ := prod.format.Format(msg)
+	value, _ := prod.Format(msg)
 	var scoreValue []byte
 	if prod.fieldFromParsed {
 		scoreMsg := msg
 		scoreMsg.Data = value
-		scoreValue, _ = prod.fieldFormat.Format(scoreMsg)
+		scoreValue = prod.formatField(scoreMsg)
 	} else {
-		scoreValue, _ = prod.fieldFormat.Format(msg)
+		scoreValue = prod.formatField(msg)
 	}
 
 	score, err := strconv.ParseFloat(string(scoreValue), 64)

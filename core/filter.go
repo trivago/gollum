@@ -14,8 +14,26 @@
 
 package core
 
+import (
+	"github.com/trivago/tgo/tlog"
+)
+
 // Filter allows custom message filtering for ProducerBase derived plugins.
 // Producers not deriving from ProducerBase might utilize this one, too.
 type Filter interface {
 	Accepts(msg Message) bool
+}
+
+// FilterFunc is the function signature type used by all filter functions.
+type FilterFunc func(msg Message) bool
+
+// FilterBase defines the standard filter implementation.
+type FilterBase struct {
+	Log tlog.LogScope
+}
+
+// Configure sets up all values requred by FormatterBase.
+func (filter *FilterBase) Configure(conf PluginConfig) error {
+	filter.Log = NewSubPluginLogScope(conf, "Filter")
+	return nil
 }

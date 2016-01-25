@@ -40,12 +40,11 @@ func init() {
 
 // Configure initializes the basic members
 func (prod *Null) Configure(conf core.PluginConfig) error {
+	var err error
 	prod.control = make(chan core.PluginControl, 1)
-	prod.streams = make([]core.MessageStreamID, len(conf.Stream))
-	for i, stream := range conf.Stream {
-		prod.streams[i] = core.GetStreamID(stream)
-	}
-	return nil
+	prod.streams, err = conf.GetStreamArray("Streams", []core.MessageStreamID{core.GetStreamID("conf.ID")})
+
+	return err
 }
 
 // GetState always returns PluginStateActive

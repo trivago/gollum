@@ -84,20 +84,19 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Profiler) Configure(conf core.PluginConfig) error {
-	err := cons.ConsumerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
-	numTemplates := conf.GetInt("TemplateCount", 10)
+	errors := tgo.NewErrorStack()
+	errors.Push(cons.ConsumerBase.Configure(conf))
 
-	cons.profileRuns = conf.GetInt("Runs", 10000)
-	cons.batches = conf.GetInt("Batches", 10)
-	cons.chars = conf.GetString("Characters", profilerDefaultCharacters)
-	cons.message = conf.GetString("Message", "%# %256s")
+	numTemplates := errors.Int(conf.GetInt("TemplateCount", 10))
+
+	cons.profileRuns = errors.Int(conf.GetInt("Runs", 10000))
+	cons.batches = errors.Int(conf.GetInt("Batches", 10))
+	cons.chars = errors.Str(conf.GetString("Characters", profilerDefaultCharacters))
+	cons.message = errors.Str(conf.GetString("Message", "%# %256s"))
 	cons.templates = make([][]byte, numTemplates)
-	cons.delay = time.Duration(conf.GetInt("DelayMs", 0)) * time.Millisecond
+	cons.delay = time.Duration(errors.Int(conf.GetInt("DelayMs", 0))) * time.Millisecond
 
-	return nil
+	return errors.ErrorOrNil()
 }
 
 func (cons *Profiler) generateString(size int) string {

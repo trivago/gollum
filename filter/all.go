@@ -24,6 +24,7 @@ import (
 //   - "stream.Broadcast":
 //     Filter: "filter.All"
 type All struct {
+	core.FilterBase
 }
 
 func init() {
@@ -32,7 +33,7 @@ func init() {
 
 // Configure initializes this filter with values from a plugin config.
 func (filter *All) Configure(conf core.PluginConfig) error {
-	return nil
+	return filter.FilterBase.Configure(conf)
 }
 
 // Accepts allows all messages

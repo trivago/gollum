@@ -16,6 +16,7 @@ package producer
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tnet"
 	"github.com/trivago/tgo/tsync"
 	"golang.org/x/net/websocket"
@@ -67,17 +68,16 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Websocket) Configure(conf core.PluginConfig) error {
-	err := prod.ProducerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(prod.ProducerBase.Configure(conf))
+
 	prod.SetStopCallback(prod.close)
 
-	prod.address = conf.GetString("Address", ":81")
-	prod.path = conf.GetString("Path", "/")
-	prod.readTimeoutSec = time.Duration(conf.GetInt("ReadTimeoutSec", 3)) * time.Second
+	prod.address = errors.Str(conf.GetString("Address", ":81"))
+	prod.path = errors.Str(conf.GetString("Path", "/"))
+	prod.readTimeoutSec = time.Duration(errors.Int(conf.GetInt("ReadTimeoutSec", 3))) * time.Second
 
-	return nil
+	return errors.ErrorOrNil()
 }
 
 func (prod *Websocket) handleConnection(conn *websocket.Conn) {

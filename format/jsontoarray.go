@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 )
 
@@ -41,15 +42,15 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *JSONToArray) Configure(conf core.PluginConfig) error {
-	err := format.FormatterBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	var err error
+	errors := tgo.NewErrorStack()
+	errors.Push(format.FormatterBase.Configure(conf))
 
-	format.separator = conf.GetString("Separator", ",")
-	format.fields = conf.GetStringArray("Fields", []string{})
+	format.separator = errors.Str(conf.GetString("Separator", ","))
+	format.fields, err = conf.GetStringArray("Fields", []string{})
+	errors.Push(err)
 
-	return nil
+	return errors.ErrorOrNil()
 }
 
 // Format prepends the timestamp of the message to the message.

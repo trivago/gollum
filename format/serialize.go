@@ -17,6 +17,7 @@ package format
 import (
 	"encoding/base64"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 )
 
 // Serialize is a formatter that serializes a message for later retrieval.
@@ -43,13 +44,11 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Serialize) Configure(conf core.PluginConfig) error {
-	err := format.FormatterBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(format.FormatterBase.Configure(conf))
 
-	format.encode = conf.GetBool("Encode", true)
-	return nil
+	format.encode = errors.Bool(conf.GetBool("Encode", true))
+	return errors.ErrorOrNil()
 }
 
 // Format prepends the sequence number of the message (followed by ":") to the

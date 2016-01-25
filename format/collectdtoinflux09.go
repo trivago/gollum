@@ -42,11 +42,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *CollectdToInflux09) Configure(conf core.PluginConfig) error {
-	err := format.FormatterBase.Configure(conf)
-	if err != nil {
-		return err
-	}
-	return nil
+	return format.FormatterBase.Configure(conf)
 }
 
 // Format transforms collectd data to influx 0.9.x data

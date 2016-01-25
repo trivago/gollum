@@ -16,6 +16,7 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"regexp"
 )
 
@@ -33,6 +34,7 @@ import (
 // FilterExpressionNot defines a negated regular expression used for matching
 // the message payload. If the expression matches, the message is blocked.
 type RegExp struct {
+	core.FilterBase
 	exp    *regexp.Regexp
 	expNot *regexp.Regexp
 }
@@ -44,24 +46,22 @@ func init() {
 // Configure initializes this filter with values from a plugin config.
 func (filter *RegExp) Configure(conf core.PluginConfig) error {
 	var err error
+	errors := tgo.NewErrorStack()
+	errors.Push(filter.FilterBase.Configure(conf))
 
-	exp := conf.GetString("FilterExpression", "")
+	exp := errors.Str(conf.GetString("FilterExpression", ""))
 	if exp != "" {
 		filter.exp, err = regexp.Compile(exp)
-		if err != nil {
-			return err // ### return, regex parser error ###
-		}
+		errors.Push(err)
 	}
 
-	exp = conf.GetString("FilterExpressionNot", "")
+	exp = errors.Str(conf.GetString("FilterExpressionNot", ""))
 	if exp != "" {
 		filter.expNot, err = regexp.Compile(exp)
-		if err != nil {
-			return err // ### return, regex parser error ###
-		}
+		errors.Push(err)
 	}
 
-	return nil
+	return errors.ErrorOrNil()
 }
 
 // Accepts allows all messages

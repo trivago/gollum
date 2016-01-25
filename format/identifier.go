@@ -16,6 +16,7 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"hash/fnv"
 	"strconv"
 	"strings"
@@ -55,12 +56,10 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Identifier) Configure(conf core.PluginConfig) error {
-	err := format.FormatterBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(format.FormatterBase.Configure(conf))
 
-	switch strings.ToLower(conf.GetString("Type", "time")) {
+	switch strings.ToLower(errors.Str(conf.GetString("Type", "time"))) {
 	case "hash":
 		format.hash = format.idHash
 	case "seq":
@@ -72,7 +71,8 @@ func (format *Identifier) Configure(conf core.PluginConfig) error {
 	case "time":
 		format.hash = format.idTime
 	}
-	return nil
+
+	return errors.ErrorOrNil()
 }
 
 func (format *Identifier) idHash(msg core.Message) []byte {

@@ -35,7 +35,6 @@ func (mc *mockConsumer) Consume(wg *sync.WaitGroup) {
 func getMockConsumer() ConsumerBase {
 	return ConsumerBase{
 		control:  make(chan PluginControl),
-		streams:  make([]MappedStream, 5),
 		runState: NewPluginRunState(),
 		Log:      tlog.NewLogScope("test"),
 	}
@@ -44,17 +43,13 @@ func getMockConsumer() ConsumerBase {
 func TestConsumerConfigure(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockC := getMockConsumer()
+	pluginCfg := NewPluginConfig("mockConsumer", "mockConsumer")
 
-	pluginCfg := getMockPluginConfig()
-
-	mockStream := getMockStream()
-	mockStreamID := GetStreamID("mockStream")
-	StreamRegistry.Register(&mockStream, mockStreamID)
-
-	pluginCfg.Stream = []string{"mockStream"}
+	// Stream needs to be configured to avoid unknown class errors
+	registerMockStream("mockConsumer")
 
 	err := mockC.Configure(pluginCfg)
-	expect.Nil(err)
+	expect.NoError(err)
 }
 
 func TestConsumerEnqueueCopy(t *testing.T) {
@@ -81,7 +76,6 @@ func TestConsumerEnqueueCopy(t *testing.T) {
 	}
 
 	mockC.EnqueueCopy([]byte(dataToSend), 2)
-
 }
 
 func TestConsumerStreams(t *testing.T) {
@@ -186,7 +180,7 @@ func TestConsumerFuse(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockC := getMockConsumer()
 
-	conf := getMockPluginConfig()
+	conf := NewPluginConfig("mockConsumer", "mockConsumer")
 	conf.Override("Fuse", "test")
 
 	mockC.Configure(conf)

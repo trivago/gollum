@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"
 )
@@ -46,14 +47,15 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *SplitToJSON) Configure(conf core.PluginConfig) error {
-	err := format.FormatterBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	var err error
+	errors := tgo.NewErrorStack()
+	errors.Push(format.FormatterBase.Configure(conf))
 
-	format.token = []byte(conf.GetString("SplitBy", "|"))
-	format.keys = conf.GetStringArray("Keys", []string{})
-	return nil
+	format.token = []byte(errors.Str(conf.GetString("SplitBy", "|")))
+	format.keys, err = conf.GetStringArray("Keys", []string{})
+	errors.Push(err)
+
+	return errors.ErrorOrNil()
 }
 
 // Format returns the splitted message payload as json

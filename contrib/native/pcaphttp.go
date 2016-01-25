@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/miekg/pcap"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"hash/fnv"
 	"sync"
 	"sync/atomic"
@@ -84,19 +85,17 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *PcapHTTPConsumer) Configure(conf core.PluginConfig) error {
-	err := cons.ConsumerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(cons.ConsumerBase.Configure(conf))
 
-	cons.netInterface = conf.GetString("Interface", "eth0")
-	cons.promiscuous = conf.GetBool("Promiscuous", true)
-	cons.filter = conf.GetString("Filter", "dst port 80 and dst host 127.0.0.1")
+	cons.netInterface = errors.Str(conf.GetString("Interface", "eth0"))
+	cons.promiscuous = errors.Bool(conf.GetBool("Promiscuous", true))
+	cons.filter = errors.Str(conf.GetString("Filter", "dst port 80 and dst host 127.0.0.1"))
 	cons.sessions = make(pcapSessionMap)
-	cons.sessionTimeout = time.Duration(conf.GetInt("TimeoutMs", 3000)) * time.Millisecond
+	cons.sessionTimeout = time.Duration(errors.Int(conf.GetInt("TimeoutMs", 3000))) * time.Millisecond
 	cons.sessionGuard = new(sync.Mutex)
 
-	return nil
+	return errors.ErrorOrNil()
 }
 
 func (cons *PcapHTTPConsumer) enqueueBuffer(data []byte) {

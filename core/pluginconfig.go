@@ -15,6 +15,7 @@
 package core
 
 import (
+	"fmt"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/tlog"
 	"strings"
@@ -26,30 +27,32 @@ type PluginConfig struct {
 	Typename  string
 	Enable    bool
 	Instances int
-	Stream    []string
 	Settings  tcontainer.MarshalMap
 	validKeys map[string]bool
 }
 
 // NewPluginConfig creates a new plugin config with default values.
-// By default the plugin is enabled, has one instance, is bound to no streams
-// and has no additional settings.
-func NewPluginConfig(pluginID string) PluginConfig {
+// By default the plugin is enabled, has one instance and has no additional settings.
+// Passing an empty pluginID makes the plugin anonymous.
+// The defaultTypename may be overridden by a later call to read.
+func NewPluginConfig(pluginID string, defaultTypename string) PluginConfig {
 	return PluginConfig{
 		Enable:    true,
 		Instances: 1,
 		ID:        pluginID,
-		Stream:    []string{},
+		Typename:  defaultTypename,
 		Settings:  tcontainer.NewMarshalMap(),
 		validKeys: make(map[string]bool),
 	}
 }
 
-// NewPluginConfigFromMap combines NewPluginConfig and the Read function
-func NewPluginConfigFromMap(pluginID string, values tcontainer.MarshalMap) PluginConfig {
-	conf := NewPluginConfig(pluginID)
-	conf.Read(values)
-	return conf
+// NewNestedPluginConfig creates a pluginconfig based on a given set of config
+// values. The plugin created does not have an id, i.e. it is considered
+// anonymous.
+func NewNestedPluginConfig(defaultTypename string, values tcontainer.MarshalMap) (PluginConfig, error) {
+	conf := NewPluginConfig("", defaultTypename)
+	err := conf.Read(values)
+	return conf, err
 }
 
 // registerKey registeres a key to the validKeys map as lowercase and returns
@@ -77,10 +80,11 @@ func (conf PluginConfig) Validate() bool {
 // Read analyzes a given key/value map to extract the configuration values valid
 // for each plugin. All non-default values are written to the Settings member.
 // All keys will be converted to lowercase.
-func (conf *PluginConfig) Read(values tcontainer.MarshalMap) {
-	var err error
+func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
 	for key, settingValue := range values {
 		lowerCaseKey := strings.ToLower(key)
+
+		var err error
 		switch lowerCaseKey {
 		case "type":
 			conf.Typename, err = values.String("type")
@@ -91,25 +95,22 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) {
 		case "instances":
 			conf.Instances, err = values.Int("instances")
 
-		case "stream":
-			conf.Stream, err = values.StringArray("stream")
-
 		default:
 			conf.Settings[lowerCaseKey] = settingValue
 		}
 
 		if err != nil {
-			tlog.Error.Fatalf("Plugin %s config contains an error: %s", conf.ID, err.Error())
+			return err // ### return, conversion error ###
 		}
 	}
 
 	// Sanity checks and informal messages
 	if conf.Typename == "" {
-		tlog.Error.Fatalf("Plugin %s does not define a type", conf.ID)
+		return fmt.Errorf("Plugin %s does not define a type", conf.ID)
 	}
 
 	if !TypeRegistry.IsTypeRegistered(conf.Typename) {
-		tlog.Error.Fatalf("Plugin %s defines an unkown type %s", conf.ID, conf.Typename)
+		return fmt.Errorf("Plugin %s is using an unkown type %s", conf.ID, conf.Typename)
 	}
 
 	if conf.Instances == 0 {
@@ -121,10 +122,7 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) {
 		tlog.Note.Printf("Plugin %s has been disabled", conf.ID)
 	}
 
-	if len(conf.Stream) == 0 {
-		conf.Stream = append(conf.Stream, conf.ID)
-		tlog.Note.Printf("Plugin %s is using default stream name %s", conf.ID, conf.ID)
-	}
+	return nil
 }
 
 // HasValue returns true if the given key has been set as a config option.
@@ -143,45 +141,32 @@ func (conf PluginConfig) Override(key string, value interface{}) {
 
 // GetString tries to read a non-predefined, string value from a PluginConfig.
 // If that value is not found defaultValue is returned.
-func (conf PluginConfig) GetString(key string, defaultValue string) string {
+func (conf PluginConfig) GetString(key string, defaultValue string) (string, error) {
 	key = conf.registerKey(key)
 	if conf.HasValue(key) {
-		if value, err := conf.Settings.String(key); err != nil {
-			tlog.Error.Fatalf(err.Error())
-		} else {
-			return value
-		}
+		return conf.Settings.String(key)
 	}
-
-	return defaultValue
+	return defaultValue, nil
 }
 
 // GetInt tries to read a non-predefined, integer value from a PluginConfig.
 // If that value is not found defaultValue is returned.
-func (conf PluginConfig) GetInt(key string, defaultValue int) int {
+func (conf PluginConfig) GetInt(key string, defaultValue int) (int, error) {
 	key = conf.registerKey(key)
 	if conf.HasValue(key) {
-		if value, err := conf.Settings.Int(key); err != nil {
-			tlog.Error.Fatalf(err.Error())
-		} else {
-			return value
-		}
+		return conf.Settings.Int(key)
 	}
-	return defaultValue
+	return defaultValue, nil
 }
 
 // GetBool tries to read a non-predefined, boolean value from a PluginConfig.
 // If that value is not found defaultValue is returned.
-func (conf PluginConfig) GetBool(key string, defaultValue bool) bool {
+func (conf PluginConfig) GetBool(key string, defaultValue bool) (bool, error) {
 	key = conf.registerKey(key)
 	if conf.HasValue(key) {
-		if value, err := conf.Settings.Bool(key); err != nil {
-			tlog.Error.Fatalf(err.Error())
-		} else {
-			return value
-		}
+		return conf.Settings.Bool(key)
 	}
-	return defaultValue
+	return defaultValue, nil
 }
 
 // GetValue tries to read a non-predefined, untyped value from a PluginConfig.
@@ -195,42 +180,78 @@ func (conf PluginConfig) GetValue(key string, defaultValue interface{}) interfac
 	return defaultValue
 }
 
-// GetArray tries to read a non-predefined, untyped array from a PluginConfig.
+// GetStreamID tries to read a non-predefined, StreamID value from a PluginConfig.
 // If that value is not found defaultValue is returned.
-func (conf PluginConfig) GetArray(key string, defaultValue []interface{}) []interface{} {
+func (conf PluginConfig) GetStreamID(key string, defaultValue MessageStreamID) (MessageStreamID, error) {
 	key = conf.registerKey(key)
 	if conf.HasValue(key) {
-		if value, err := conf.Settings.Array(key); err != nil {
-			tlog.Error.Fatalf(err.Error())
+		value, err := conf.Settings.String(key)
+		if err != nil {
+			return InvalidStreamID, err
+		}
+		return GetStreamID(value), nil
+	}
+	return defaultValue, nil
+}
+
+// GetPlugin creates a nested plugin from a config map. The default type has
+// to be passed and is overriden if the config specifies a type.
+// The value stored in the config can either be a string or a map. If a map
+// is found it is used to override defaultConfig. If a string is found it is
+// used to override defaultType.
+func (conf PluginConfig) GetPlugin(key string, defaultType string, defaultConfig tcontainer.MarshalMap) (Plugin, error) {
+	key = conf.registerKey(key)
+	configMap := defaultConfig
+
+	if conf.HasValue(key) {
+		if value, err := conf.Settings.String(key); err == nil {
+			defaultType = value
 		} else {
-			return value
+			configMap, err = conf.GetMap(key, defaultConfig)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
-	return defaultValue
+
+	config, err := NewNestedPluginConfig(defaultType, configMap)
+	if err != nil {
+		return nil, err
+	}
+	return NewPlugin(config)
+}
+
+// GetArray tries to read a non-predefined, untyped array from a PluginConfig.
+// If that value is not found defaultValue is returned.
+func (conf PluginConfig) GetArray(key string, defaultValue []interface{}) ([]interface{}, error) {
+	key = conf.registerKey(key)
+	if conf.HasValue(key) {
+		return conf.Settings.Array(key)
+	}
+	return defaultValue, nil
 }
 
 // GetMap tries to read a non-predefined, MarshalMap from a PluginConfig.
 // If that value is not found defaultValue is returned.
-func (conf PluginConfig) GetMap(key string, defaultValue tcontainer.MarshalMap) tcontainer.MarshalMap {
+func (conf PluginConfig) GetMap(key string, defaultValue tcontainer.MarshalMap) (tcontainer.MarshalMap, error) {
 	key = conf.registerKey(key)
 	if conf.HasValue(key) {
-		if value, err := conf.Settings.MarshalMap(key); err != nil {
-			tlog.Error.Fatalf(err.Error())
-		} else {
-			return value
-		}
+		return conf.Settings.MarshalMap(key)
 	}
-	return defaultValue
+	return defaultValue, nil
 }
 
 // GetPluginArray tries to read a non-predefined, array of plugins (type to config) from a PluginConfig.
 // If that value is not found defaultValue is returned.
-func (conf PluginConfig) GetPluginArray(key string, defaultValue []Plugin) []Plugin {
+func (conf PluginConfig) GetPluginArray(key string, defaultValue []Plugin) ([]Plugin, error) {
 	key = conf.registerKey(key)
-	namedConfigs := conf.GetArray(key, []interface{}{})
+	namedConfigs, err := conf.GetArray(key, []interface{}{})
+	if err != nil {
+		return defaultValue, err
+	}
 
 	if len(namedConfigs) == 0 {
-		return defaultValue
+		return defaultValue, nil
 	}
 
 	pluginArray := make([]Plugin, 0, len(namedConfigs))
@@ -238,71 +259,66 @@ func (conf PluginConfig) GetPluginArray(key string, defaultValue []Plugin) []Plu
 	for _, typedConfigInterface := range namedConfigs {
 		typedConfig, isMap := typedConfigInterface.(map[string]tcontainer.MarshalMap)
 		if !isMap {
-			tlog.Error.Fatalf("%s section is malformed", key)
+			return nil, fmt.Errorf("%s section is malformed", key)
 		}
 
-		for typeName, config := range typedConfig {
-			pluginConfig := NewPluginConfigFromMap(typeName, config)
-			plugin, err := NewPluginWithType(typeName, pluginConfig)
+		for typename, config := range typedConfig {
+			pluginConfig, err := NewNestedPluginConfig(typename, config)
+			plugin, err := NewPlugin(pluginConfig)
 			if err != nil {
-				tlog.Error.Fatalf("Plugin %s could not be instantiated: %s", typeName, err.Error())
+				return pluginArray, err
 			}
 			pluginArray = append(pluginArray, plugin)
 		}
 	}
 
-	return pluginArray
+	return pluginArray, nil
 }
 
 // GetStringArray tries to read a non-predefined, string array from a
 // PluginConfig. If that value is not found defaultValue is returned.
-func (conf PluginConfig) GetStringArray(key string, defaultValue []string) []string {
+func (conf PluginConfig) GetStringArray(key string, defaultValue []string) ([]string, error) {
 	key = conf.registerKey(key)
 	if conf.HasValue(key) {
-		if value, err := conf.Settings.StringArray(key); err != nil {
-			tlog.Error.Fatalf(err.Error())
-		} else {
-			return value
-		}
+		return conf.Settings.StringArray(key)
 	}
-	return defaultValue
+	return defaultValue, nil
 }
 
 // GetStringMap tries to read a non-predefined, string to string map from a
 // PluginConfig. If the key is not found defaultValue is returned.
-func (conf PluginConfig) GetStringMap(key string, defaultValue map[string]string) map[string]string {
+func (conf PluginConfig) GetStringMap(key string, defaultValue map[string]string) (map[string]string, error) {
 	key = conf.registerKey(key)
 	if conf.HasValue(key) {
-		if value, err := conf.Settings.StringMap(key); err != nil {
-			tlog.Error.Fatalf(err.Error())
-		} else {
-			return value
-		}
+		return conf.Settings.StringMap(key)
 	}
-	return defaultValue
+	return defaultValue, nil
 }
 
 // GetStreamArray tries to read a non-predefined string array from a pluginconfig
 // and translates all values to streamIds. If the key is not found defaultValue
 // is returned.
-func (conf PluginConfig) GetStreamArray(key string, defaultValue []MessageStreamID) []MessageStreamID {
+func (conf PluginConfig) GetStreamArray(key string, defaultValue []MessageStreamID) ([]MessageStreamID, error) {
 	key = conf.registerKey(key)
 	if conf.HasValue(key) {
-		values := conf.GetStringArray(key, []string{})
+		values, err := conf.GetStringArray(key, []string{})
+		if err != nil {
+			return nil, err
+		}
 		streamArray := []MessageStreamID{}
 		for _, streamName := range values {
 			streamArray = append(streamArray, GetStreamID(streamName))
 		}
-		return streamArray
+		return streamArray, nil
 	}
 
-	return defaultValue
+	return defaultValue, nil
 }
 
 // GetStreamMap tries to read a non-predefined, stream to string map from a
 // plugin config. A mapping on the wildcard stream is always returned.
 // The target is either defaultValue or a value defined by the config.
-func (conf PluginConfig) GetStreamMap(key string, defaultValue string) map[MessageStreamID]string {
+func (conf PluginConfig) GetStreamMap(key string, defaultValue string) (map[MessageStreamID]string, error) {
 	key = conf.registerKey(key)
 	streamMap := make(map[MessageStreamID]string)
 	if defaultValue != "" {
@@ -310,41 +326,42 @@ func (conf PluginConfig) GetStreamMap(key string, defaultValue string) map[Messa
 	}
 
 	if conf.HasValue(key) {
-		if value, err := conf.Settings.StringMap(key); err != nil {
-			tlog.Error.Fatalf(err.Error())
-		} else {
-			for streamName, target := range value {
-				streamMap[GetStreamID(streamName)] = target
-			}
+		value, err := conf.Settings.StringMap(key)
+		if err != nil {
+			return nil, err
+		}
+
+		for streamName, target := range value {
+			streamMap[GetStreamID(streamName)] = target
 		}
 	}
 
-	return streamMap
+	return streamMap, nil
 }
 
 // GetStreamRoutes tries to read a non-predefined, stream to stream map from a
 // plugin config. If no routes are defined an empty map is returned
-func (conf PluginConfig) GetStreamRoutes(key string) map[MessageStreamID][]MessageStreamID {
+func (conf PluginConfig) GetStreamRoutes(key string) (map[MessageStreamID][]MessageStreamID, error) {
 	key = conf.registerKey(key)
 	streamRoute := make(map[MessageStreamID][]MessageStreamID)
 	if !conf.HasValue(key) {
-		return streamRoute
+		return streamRoute, nil
 	}
 
-	if value, err := conf.Settings.StringArrayMap(key); err != nil {
-		tlog.Error.Fatalf(err.Error())
-	} else {
-		for sourceName, targets := range value {
-			sourceStream := GetStreamID(sourceName)
+	value, err := conf.Settings.StringArrayMap(key)
+	if err != nil {
+		return nil, err
+	}
 
-			targetIds := []MessageStreamID{}
-			for _, targetName := range targets {
-				targetIds = append(targetIds, GetStreamID(targetName))
-			}
-
-			streamRoute[sourceStream] = targetIds
+	for sourceName, targets := range value {
+		sourceStream := GetStreamID(sourceName)
+		targetIds := []MessageStreamID{}
+		for _, targetName := range targets {
+			targetIds = append(targetIds, GetStreamID(targetName))
 		}
+
+		streamRoute[sourceStream] = targetIds
 	}
 
-	return streamRoute
+	return streamRoute, nil
 }

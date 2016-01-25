@@ -17,6 +17,7 @@ package format
 import (
 	"encoding/json"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"
 	"strings"
@@ -76,38 +77,38 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *ProcessJSON) Configure(conf core.PluginConfig) error {
-	err := format.FormatterBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(format.FormatterBase.Configure(conf))
 
-	directives := conf.GetStringArray("Directives", []string{})
+	format.trimValues = errors.Bool(conf.GetBool("TrimValues", true))
+	directives, err := conf.GetStringArray("Directives", []string{})
+	errors.Push(err)
 
-	format.directives = make([]transformDirective, 0, len(directives))
-	format.trimValues = conf.GetBool("TrimValues", true)
-
-	for _, directive := range directives {
-		directive := strings.Replace(directive, "\\:", "\r", -1)
-		parts := strings.Split(directive, ":")
-		for i, value := range parts {
-			parts[i] = strings.Replace(value, "\r", ":", -1)
-		}
-
-		if len(parts) >= 2 {
-			newDirective := transformDirective{
-				key:       parts[0],
-				operation: strings.ToLower(parts[1]),
+	if len(directives) > 0 {
+		format.directives = make([]transformDirective, 0, len(directives))
+		for _, directive := range directives {
+			directive := strings.Replace(directive, "\\:", "\r", -1)
+			parts := strings.Split(directive, ":")
+			for i, value := range parts {
+				parts[i] = strings.Replace(value, "\r", ":", -1)
 			}
 
-			for i := 2; i < len(parts); i++ {
-				newDirective.parameters = append(newDirective.parameters, tstrings.Unescape(parts[i]))
-			}
+			if len(parts) >= 2 {
+				newDirective := transformDirective{
+					key:       parts[0],
+					operation: strings.ToLower(parts[1]),
+				}
 
-			format.directives = append(format.directives, newDirective)
+				for i := 2; i < len(parts); i++ {
+					newDirective.parameters = append(newDirective.parameters, tstrings.Unescape(parts[i]))
+				}
+
+				format.directives = append(format.directives, newDirective)
+			}
 		}
 	}
 
-	return nil
+	return errors.ErrorOrNil()
 }
 
 func (values *valueMap) processDirective(directive transformDirective, format *ProcessJSON) {

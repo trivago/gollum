@@ -27,6 +27,8 @@ type MessageStreamID uint64
 type MessageState int
 
 const (
+	// InvalidStream is used for invalid stream handling and maps to ""
+	InvalidStream = ""
 	// LogInternalStream is the name of the internal message channel (logs)
 	LogInternalStream = "_GOLLUM_"
 	// WildcardStream is the name of the "all streams" channel
@@ -42,6 +44,8 @@ const (
 )
 
 var (
+	// InvalidStreamID denotes an invalid stream for function returing stream IDs
+	InvalidStreamID = GetStreamID(InvalidStream)
 	// LogInternalStreamID is the ID of the "_GOLLUM_" stream
 	LogInternalStreamID = GetStreamID(LogInternalStream)
 	// WildcardStreamID is the ID of the "*" stream

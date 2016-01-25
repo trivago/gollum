@@ -99,6 +99,7 @@ func GetStreamID(stream string) MessageStreamID {
 	hash.Write([]byte(stream))
 	streamID := MessageStreamID(hash.Sum64())
 
+	// Register for reverse lookup
 	StreamRegistry.name[streamID] = stream
 	return streamID
 }
@@ -209,8 +210,8 @@ func (registry *streamRegistry) GetStreamOrFallback(streamID MessageStreamID) St
 	tlog.Debug.Print("Using fallback stream for ", streamName)
 
 	defaultStream := new(StreamBase)
-	defaultConfig := NewPluginConfig("StreamBase")
-	defaultConfig.Stream = []string{streamName}
+	defaultConfig := NewPluginConfig("", "core.StreamBase")
+	defaultConfig.Override("stream", streamName)
 
 	defaultStream.ConfigureStream(defaultConfig, defaultStream.Broadcast)
 	registry.AddWildcardProducersToStream(defaultStream)

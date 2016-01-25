@@ -16,8 +16,8 @@ package format
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tstrings"
 	"sync"
 	"time"
@@ -117,16 +117,14 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *JSON) Configure(conf core.PluginConfig) error {
-	err := format.FormatterBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(format.FormatterBase.Configure(conf))
 
 	format.parser = tstrings.NewTransitionParser()
 	format.state = jsonReadObject
-	format.initState = conf.GetString("StartState", "")
-	format.timeRead = conf.GetString("TimestampRead", "20060102150405")
-	format.timeWrite = conf.GetString("TimestampWrite", "2006-01-02 15:04:05 MST")
+	format.initState = errors.Str(conf.GetString("StartState", ""))
+	format.timeRead = errors.Str(conf.GetString("TimestampRead", "20060102150405"))
+	format.timeWrite = errors.Str(conf.GetString("TimestampWrite", "2006-01-02 15:04:05 MST"))
 	format.parseLock = new(sync.Mutex)
 
 	if !conf.HasValue("Directives") {
@@ -134,42 +132,43 @@ func (format *JSON) Configure(conf core.PluginConfig) error {
 		return nil // ### return, no directives ###
 	}
 
-	directiveStrings := conf.GetStringArray("Directives", []string{})
+	directiveStrings, err := conf.GetStringArray("Directives", []string{})
+	errors.Push(err)
 	if len(directiveStrings) == 0 {
-		format.Log.Warning.Print("JSON formatter has no directives")
-		return nil // ### return, no directives ###
-	}
+		errors.Pushf("JSON formatter has no directives")
+	} else {
+		// Parse directives
+		parserFunctions := make(map[string]tstrings.ParsedFunc)
+		parserFunctions["key"] = format.readKey
+		parserFunctions["val"] = format.readValue
+		parserFunctions["esc"] = format.readEscaped
+		parserFunctions["dat"] = format.readDate
+		parserFunctions["arr"] = format.readArray
+		parserFunctions["obj"] = format.readObject
+		parserFunctions["end"] = format.readEnd
+		parserFunctions["arr+val"] = format.readArrayValue
+		parserFunctions["arr+esc"] = format.readArrayEscaped
+		parserFunctions["val+end"] = format.readValueEnd
+		parserFunctions["esc+end"] = format.readEscapedEnd
+		parserFunctions["dat+end"] = format.readDateEnd
 
-	// Parse directives
+		directives := []tstrings.TransitionDirective{}
+		for _, dirString := range directiveStrings {
+			directive, err := tstrings.ParseTransitionDirective(dirString, parserFunctions)
+			if err != nil {
+				errors.Pushf("%s: %s", err.Error(), dirString)
+				continue // ### continue, malformed directive ###
+			}
 
-	parserFunctions := make(map[string]tstrings.ParsedFunc)
-	parserFunctions["key"] = format.readKey
-	parserFunctions["val"] = format.readValue
-	parserFunctions["esc"] = format.readEscaped
-	parserFunctions["dat"] = format.readDate
-	parserFunctions["arr"] = format.readArray
-	parserFunctions["obj"] = format.readObject
-	parserFunctions["end"] = format.readEnd
-	parserFunctions["arr+val"] = format.readArrayValue
-	parserFunctions["arr+esc"] = format.readArrayEscaped
-	parserFunctions["val+end"] = format.readValueEnd
-	parserFunctions["esc+end"] = format.readEscapedEnd
-	parserFunctions["dat+end"] = format.readDateEnd
-
-	directives := []tstrings.TransitionDirective{}
-	for _, dirString := range directiveStrings {
-		directive, err := tstrings.ParseTransitionDirective(dirString, parserFunctions)
-		if err != nil {
-			return fmt.Errorf("%s: %s", err.Error(), dirString) // ### return, malformed directive ###
+			if format.initState == "" {
+				format.initState = directive.State
+			}
+			directives = append(directives, directive)
 		}
-		if format.initState == "" {
-			format.initState = directive.State
-		}
-		directives = append(directives, directive)
-	}
 
-	format.parser.AddDirectives(directives)
-	return nil
+		format.parser.AddDirectives(directives)
+	}
+	return errors.ErrorOrNil()
 }
 
 func (format *JSON) writeKey(key []byte) {

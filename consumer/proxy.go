@@ -15,7 +15,6 @@
 package consumer
 
 import (
-	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
@@ -98,28 +97,26 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Proxy) Configure(conf core.PluginConfig) error {
-	err := cons.ConsumerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(cons.ConsumerBase.Configure(conf))
 
-	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"))
+	cons.address, cons.protocol = tnet.ParseAddress(errors.Str(conf.GetString("Address", ":5880")))
 	if cons.protocol == "udp" {
-		return fmt.Errorf("Proxy does not support UDP")
+		errors.Pushf("Proxy does not support UDP")
 	}
 
-	cons.delimiter = tstrings.Unescape(conf.GetString("Delimiter", "\n"))
-	cons.offset = conf.GetInt("Offset", 0)
+	cons.delimiter = tstrings.Unescape(errors.Str(conf.GetString("Delimiter", "\n")))
+	cons.offset = errors.Int(conf.GetInt("Offset", 0))
 	cons.flags = tio.BufferedReaderFlagEverything
 
-	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))
+	partitioner := strings.ToLower(errors.Str(conf.GetString("Partitioner", "delimiter")))
 	switch partitioner {
 	case "binary_be":
 		cons.flags |= tio.BufferedReaderFlagBigEndian
 		fallthrough
 
 	case "binary", "binary_le":
-		switch conf.GetInt("Size", 4) {
+		switch errors.Int(conf.GetInt("Size", 4)) {
 		case 1:
 			cons.flags |= tio.BufferedReaderFlagMLE8
 		case 2:
@@ -129,12 +126,12 @@ func (cons *Proxy) Configure(conf core.PluginConfig) error {
 		case 8:
 			cons.flags |= tio.BufferedReaderFlagMLE64
 		default:
-			return fmt.Errorf("Size only supports the value 1,2,4 and 8")
+			errors.Pushf("Size only supports the value 1,2,4 and 8")
 		}
 
 	case "fixed":
 		cons.flags |= tio.BufferedReaderFlagMLEFixed
-		cons.offset = conf.GetInt("Size", 1)
+		cons.offset = errors.Int(conf.GetInt("Size", 1))
 
 	case "ascii":
 		cons.flags |= tio.BufferedReaderFlagMLE
@@ -143,10 +140,10 @@ func (cons *Proxy) Configure(conf core.PluginConfig) error {
 		// Nothing to add
 
 	default:
-		return fmt.Errorf("Unknown partitioner: %s", partitioner)
+		errors.Pushf("Unknown partitioner: %s", partitioner)
 	}
 
-	return err
+	return errors.ErrorOrNil()
 }
 
 func (cons *Proxy) accept() {

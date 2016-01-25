@@ -16,8 +16,8 @@ package format
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 )
 
 // StreamRoute is a formatter that modifies a message's stream by reading a
@@ -58,22 +58,23 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *StreamRoute) Configure(conf core.PluginConfig) error {
-	err := format.FormatterBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(format.FormatterBase.Configure(conf))
 
-	format.delimiter = []byte(conf.GetString("Delimiter", ":"))
-	plugins := conf.GetPluginArray("NameFormatters", []core.Plugin{})
+	format.delimiter = []byte(errors.Str(conf.GetString("Delimiter", ":")))
+	plugins, err := conf.GetPluginArray("NameFormatters", []core.Plugin{})
+	errors.Push(err)
+
 	for _, plugin := range plugins {
 		formatter, isFormatter := plugin.(core.Formatter)
 		if !isFormatter {
-			return fmt.Errorf("Plugin is not a valid formatter")
+			errors.Pushf("Plugin is not a valid formatter")
+		} else {
+			format.streamFormatters = append(format.streamFormatters, formatter)
 		}
-		format.streamFormatters = append(format.streamFormatters, formatter)
 	}
 
-	return nil
+	return errors.ErrorOrNil()
 }
 
 // Format adds prefix and postfix to the message formatted by the base formatter

@@ -17,8 +17,8 @@ package consumer
 import (
 	"bytes"
 	"crypto/tls"
-	"fmt"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tnet"
 	"io"
 	"net/http"
@@ -75,35 +75,32 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Http) Configure(conf core.PluginConfig) error {
-	err := cons.ConsumerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(cons.ConsumerBase.Configure(conf))
 
-	cons.address = conf.GetString("Address", ":80")
-	cons.readTimeoutSec = time.Duration(conf.GetInt("ReadTimeoutSec", 3)) * time.Second
-	cons.withHeaders = conf.GetBool("WithHeaders", true)
+	cons.address = errors.Str(conf.GetString("Address", ":80"))
+	cons.readTimeoutSec = time.Duration(errors.Int(conf.GetInt("ReadTimeoutSec", 3))) * time.Second
+	cons.withHeaders = errors.Bool(conf.GetBool("WithHeaders", true))
 
-	certificateFile := conf.GetString("Certificate", "")
-	keyFile := conf.GetString("PrivateKey", "")
+	certificateFile := errors.Str(conf.GetString("Certificate", ""))
+	keyFile := errors.Str(conf.GetString("PrivateKey", ""))
 
 	if certificateFile != "" || keyFile != "" {
 		if certificateFile == "" || keyFile == "" {
-			return fmt.Errorf("There must always be a certificate and a private key or none of both")
+			errors.Pushf("There must always be a certificate and a private key or none of both")
+		} else {
+
+			cons.certificate = new(tls.Config)
+			cons.certificate.NextProtos = []string{"http/1.1"}
+
+			keypair, err := tls.LoadX509KeyPair(certificateFile, keyFile)
+			if !errors.Push(err) {
+				cons.certificate.Certificates = []tls.Certificate{keypair}
+			}
 		}
-
-		cons.certificate = new(tls.Config)
-		cons.certificate.NextProtos = []string{"http/1.1"}
-
-		keypair, err := tls.LoadX509KeyPair(certificateFile, keyFile)
-		if err != nil {
-			return err
-		}
-
-		cons.certificate.Certificates = []tls.Certificate{keypair}
 	}
 
-	return err
+	return errors.ErrorOrNil()
 }
 
 // requestHandler will handle a single web request.

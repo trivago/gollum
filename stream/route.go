@@ -16,6 +16,7 @@ package stream
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 )
 
 // Route stream plugin
@@ -62,17 +63,18 @@ func newStreamWithID(streamName string) streamWithID {
 
 // Configure initializes this distributor with values from a plugin config.
 func (stream *Route) Configure(conf core.PluginConfig) error {
-	if err := stream.StreamBase.ConfigureStream(conf, stream.Broadcast); err != nil {
-		return err // ### return, base stream error ###
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(stream.StreamBase.ConfigureStream(conf, stream.Broadcast))
 
-	routes := conf.GetStringArray("Routes", []string{})
+	routes, err := conf.GetStringArray("Routes", []string{})
+	errors.Push(err)
+
 	for _, streamName := range routes {
 		targetStream := newStreamWithID(streamName)
 		stream.routes = append(stream.routes, targetStream)
 	}
 
-	return nil
+	return errors.ErrorOrNil()
 }
 
 func (stream *Route) routeMessage(msg core.Message) {

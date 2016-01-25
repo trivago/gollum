@@ -130,25 +130,20 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Socket) Configure(conf core.PluginConfig) error {
-	err := cons.ConsumerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(cons.ConsumerBase.Configure(conf))
 
-	flags, err := strconv.ParseInt(conf.GetString("Permissions", "0770"), 8, 32)
+	flags := errors.Int64(strconv.ParseInt(errors.Str(conf.GetString("Permissions", "0770")), 8, 32))
 	cons.fileFlags = os.FileMode(flags)
-	if err != nil {
-		return err
-	}
 
 	cons.clients = list.New()
 	cons.clientLock = new(sync.Mutex)
-	cons.acknowledge = tstrings.Unescape(conf.GetString("Acknowledge", ""))
-	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"))
-	cons.reconnectTime = time.Duration(conf.GetInt("ReconnectAfterSec", 2)) * time.Second
-	cons.ackTimeout = time.Duration(conf.GetInt("AckTimoutSec", 2)) * time.Second
-	cons.readTimeout = time.Duration(conf.GetInt("ReadTimoutSec", 5)) * time.Second
-	cons.clearSocket = conf.GetBool("RemoveOldSocket", true)
+	cons.acknowledge = tstrings.Unescape(errors.Str(conf.GetString("Acknowledge", "")))
+	cons.address, cons.protocol = tnet.ParseAddress(errors.Str(conf.GetString("Address", ":5880")))
+	cons.reconnectTime = time.Duration(errors.Int(conf.GetInt("ReconnectAfterSec", 2))) * time.Second
+	cons.ackTimeout = time.Duration(errors.Int(conf.GetInt("AckTimoutSec", 2))) * time.Second
+	cons.readTimeout = time.Duration(errors.Int(conf.GetInt("ReadTimoutSec", 5))) * time.Second
+	cons.clearSocket = errors.Bool(conf.GetBool("RemoveOldSocket", true))
 
 	if cons.protocol != "unix" {
 		if cons.acknowledge != "" {
@@ -158,11 +153,11 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 		}
 	}
 
-	cons.delimiter = tstrings.Unescape(conf.GetString("Delimiter", "\n"))
-	cons.offset = conf.GetInt("Offset", 0)
+	cons.delimiter = tstrings.Unescape(errors.Str(conf.GetString("Delimiter", "\n")))
+	cons.offset = errors.Int(conf.GetInt("Offset", 0))
 	cons.flags = 0
 
-	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))
+	partitioner := strings.ToLower(errors.Str(conf.GetString("Partitioner", "delimiter")))
 	switch partitioner {
 	case "binary_be":
 		cons.flags |= tio.BufferedReaderFlagBigEndian
@@ -170,7 +165,7 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 
 	case "binary", "binary_le":
 		cons.flags |= tio.BufferedReaderFlagEverything
-		switch conf.GetInt("Size", 4) {
+		switch errors.Int(conf.GetInt("Size", 4)) {
 		case 1:
 			cons.flags |= tio.BufferedReaderFlagMLE8
 		case 2:
@@ -185,7 +180,7 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 
 	case "fixed":
 		cons.flags |= tio.BufferedReaderFlagMLEFixed
-		cons.offset = conf.GetInt("Size", 1)
+		cons.offset = errors.Int(conf.GetInt("Size", 1))
 
 	case "ascii":
 		cons.flags |= tio.BufferedReaderFlagMLE
@@ -194,10 +189,10 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 		// Nothing to add
 
 	default:
-		return fmt.Errorf("Unknown partitioner: %s", partitioner)
+		errors.Pushf("Unknown partitioner: %s", partitioner)
 	}
 
-	return err
+	return errors.ErrorOrNil()
 }
 
 func (cons *Socket) sendAck(conn net.Conn, success bool) error {

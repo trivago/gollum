@@ -15,6 +15,7 @@
 package core
 
 import (
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tsync"
 	"sync"
@@ -80,26 +81,30 @@ type ConsumerBase struct {
 
 // Configure initializes standard consumer values from a plugin config.
 func (cons *ConsumerBase) Configure(conf PluginConfig) error {
+	errors := tgo.NewErrorStack()
+
 	cons.Log = NewPluginLogScope(conf)
 	cons.runState = NewPluginRunState()
 	cons.control = make(chan PluginControl, 1)
 	cons.onRoll = nil
 	cons.onStop = nil
 
-	for _, streamName := range conf.Stream {
-		streamID := GetStreamID(streamName)
+	streamIDs, err := conf.GetStreamArray("Streams", []MessageStreamID{GetStreamID(conf.ID)})
+	errors.Push(err)
+
+	for _, streamID := range streamIDs {
 		cons.streams = append(cons.streams, MappedStream{
 			StreamID: streamID,
 			Stream:   StreamRegistry.GetStreamOrFallback(streamID),
 		})
 	}
 
-	fuseName := conf.GetString("Fuse", "")
-	if fuseName != "" {
+	fuseName, err := conf.GetString("Fuse", "")
+	if !errors.Push(err) && fuseName != "" {
 		cons.fuse = StreamRegistry.GetFuse(fuseName)
 	}
 
-	return nil
+	return errors.ErrorOrNil()
 }
 
 // setState sets the runstate of this plugin

@@ -15,6 +15,7 @@
 package core
 
 import (
+	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/ttesting"
 	"sync"
 	"testing"
@@ -36,29 +37,39 @@ func getMockStream() StreamBase {
 	}
 }
 
+func registerMockStream(streamName string) {
+	TypeRegistry.Register(mockPlugin{})
+	TypeRegistry.Register(mockFormatter{})
+	TypeRegistry.Register(mockFilter{})
+
+	mockStream := getMockStream()
+	mockConf := NewPluginConfig("", "core.mockPlugin")
+	mockConf.Override("Stream", streamName)
+	mockConf.Override("Formatters", []interface{}{map[string]tcontainer.MarshalMap{"core.mockFormatter": tcontainer.NewMarshalMap()}})
+	mockConf.Override("Filter", "core.mockFilter")
+
+	mockStream.ConfigureStream(mockConf, func(msg Message) {})
+	StreamRegistry.Register(&mockStream, mockStream.GetBoundStreamID())
+}
+
 func TestStreamConfigureStream(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	TypeRegistry.Register(mockPlugin{})
 	TypeRegistry.Register(mockFormatter{})
 	TypeRegistry.Register(mockFilter{})
-	mockConf := NewPluginConfig("core.mockPlugin")
-	mockConf.ID = "testPluginConf"
-	mockConf.Stream = []string{"testBoundStream"}
-	mockConf.Settings["Formatter"] = "core.mockFormatter"
 
-	mockConf.Settings["Filter"] = "core.mockFilter"
-
-	timeout := 100
-	mockConf.Settings["TimeoutMs"] = timeout
+	mockConf := NewPluginConfig("", "core.mockPlugin")
+	mockConf.Override("Stream", "testBoundStream")
+	mockConf.Override("Formatters", []interface{}{map[string]tcontainer.MarshalMap{"core.mockFormatter": tcontainer.NewMarshalMap()}})
+	mockConf.Override("Filter", "core.mockFilter")
+	mockConf.Override("TimeoutMs", 100)
 
 	mockDistributer := func(msg Message) {
 		expect.True(true)
 	}
 
 	mockStream := getMockStream()
-
 	mockStream.ConfigureStream(mockConf, mockDistributer)
-
 }
 
 func TestStreamPauseFlush(t *testing.T) {

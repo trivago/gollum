@@ -16,8 +16,8 @@ package format
 
 import (
 	"encoding/base64"
-	"fmt"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 )
 
 // Base64Encode is a formatter that encodes a message as base64.
@@ -44,21 +44,19 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Base64Encode) Configure(conf core.PluginConfig) error {
-	err := format.FormatterBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(format.FormatterBase.Configure(conf))
 
-	dict := conf.GetString("Dictionary", "")
+	dict := errors.Str(conf.GetString("Dictionary", ""))
 	if dict == "" {
 		format.dictionary = base64.StdEncoding
 	} else {
 		if len(dict) != 64 {
-			return fmt.Errorf("Base64 dictionary must contain 64 characters.")
+			errors.Pushf("Base64 dictionary must contain 64 characters.")
 		}
 		format.dictionary = base64.NewEncoding(dict)
 	}
-	return nil
+	return errors.ErrorOrNil()
 }
 
 // Format returns the original message payload

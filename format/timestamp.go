@@ -16,6 +16,7 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 )
 
 // Timestamp is a formatter that allows prefixing a message with a timestamp
@@ -44,13 +45,11 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Timestamp) Configure(conf core.PluginConfig) error {
-	err := format.FormatterBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(format.FormatterBase.Configure(conf))
 
-	format.timestampFormat = conf.GetString("Timestamp", "2006-01-02 15:04:05 MST | ")
-	return nil
+	format.timestampFormat = errors.Str(conf.GetString("Timestamp", "2006-01-02 15:04:05 MST | "))
+	return errors.ErrorOrNil()
 }
 
 // Format prepends the timestamp of the message to the message.

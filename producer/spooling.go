@@ -97,22 +97,28 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Spooling) Configure(conf core.PluginConfig) error {
-	conf.Override("Formatter", "format.Serialize")
-	err := prod.ProducerBase.Configure(conf)
-	if err != nil {
-		return err
+	errors := tgo.NewErrorStack()
+	errors.Push(prod.ProducerBase.Configure(conf))
+
+	serializePlugin, err := core.NewPlugin(core.NewPluginConfig("", "format.Serialize"))
+	errors.Push(err)
+	if serializeFormatter, isFormatter := serializePlugin.(core.Formatter); isFormatter {
+		prod.PrependFormatter(serializeFormatter)
+	} else {
+		errors.Pushf("Failed to instantiate format.Serialize")
 	}
+
 	prod.SetStopCallback(prod.close)
 
-	prod.path = conf.GetString("Path", "/var/run/gollum/spooling")
+	prod.path = errors.Str(conf.GetString("Path", "/var/run/gollum/spooling"))
 
-	prod.maxFileSize = int64(conf.GetInt("MaxFileSizeMB", 512)) << 20
-	prod.maxFileAge = time.Duration(conf.GetInt("MaxFileAgeMin", 1)) * time.Minute
-	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 100)
-	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
+	prod.maxFileSize = int64(errors.Int(conf.GetInt("MaxFileSizeMB", 512))) << 20
+	prod.maxFileAge = time.Duration(errors.Int(conf.GetInt("MaxFileAgeMin", 1))) * time.Minute
+	prod.batchMaxCount = errors.Int(conf.GetInt("BatchMaxCount", 100))
+	prod.batchTimeout = time.Duration(errors.Int(conf.GetInt("BatchTimeoutSec", 5))) * time.Second
 	prod.outfile = make(map[core.MessageStreamID]*spoolFile)
-	prod.RespoolDuration = time.Duration(conf.GetInt("RespoolDelaySec", 10)) * time.Second
-	prod.bufferSizeByte = conf.GetInt("BufferSizeByte", 8192)
+	prod.RespoolDuration = time.Duration(errors.Int(conf.GetInt("RespoolDelaySec", 10))) * time.Second
+	prod.bufferSizeByte = errors.Int(conf.GetInt("BufferSizeByte", 8192))
 	prod.rotation = fileRotateConfig{
 		timeout:  prod.maxFileAge,
 		sizeByte: prod.maxFileSize,
@@ -122,7 +128,7 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 		compress: false,
 	}
 
-	return nil
+	return errors.ErrorOrNil()
 }
 
 func (prod *Spooling) writeBatchOnTimeOut() {

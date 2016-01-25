@@ -17,6 +17,7 @@ package filter
 import (
 	"encoding/json"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 	"regexp"
 	"strconv"
@@ -44,6 +45,7 @@ import (
 // given regular expression does not match.
 // Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
 type JSON struct {
+	core.FilterBase
 	rejectValues map[string]*regexp.Regexp
 	acceptValues map[string]*regexp.Regexp
 }
@@ -54,8 +56,14 @@ func init() {
 
 // Configure initializes this filter with values from a plugin config.
 func (filter *JSON) Configure(conf core.PluginConfig) error {
-	rejectValues := conf.GetStringMap("FilterReject", make(map[string]string))
-	acceptValues := conf.GetStringMap("FilterAccept", make(map[string]string))
+	errors := tgo.NewErrorStack()
+	errors.Push(filter.FilterBase.Configure(conf))
+
+	rejectValues, err := conf.GetStringMap("FilterReject", make(map[string]string))
+	errors.Push(err)
+
+	acceptValues, err := conf.GetStringMap("FilterAccept", make(map[string]string))
+	errors.Push(err)
 
 	// Compile regexp from map[string]string to map[string]*regexp.Regexp
 	filter.rejectValues = make(map[string]*regexp.Regexp)
@@ -63,21 +71,20 @@ func (filter *JSON) Configure(conf core.PluginConfig) error {
 
 	for key, val := range rejectValues {
 		exp, err := regexp.Compile(val)
-		if err != nil {
-			return err
+		if !errors.Push(err) {
+			filter.rejectValues[key] = exp
 		}
-		filter.rejectValues[key] = exp
+
 	}
 
 	for key, val := range acceptValues {
 		exp, err := regexp.Compile(val)
-		if err != nil {
-			return err
+		if !errors.Push(err) {
+			filter.acceptValues[key] = exp
 		}
-		filter.acceptValues[key] = exp
 	}
 
-	return nil
+	return errors.ErrorOrNil()
 }
 
 func (filter *JSON) getValue(key string, values tcontainer.MarshalMap) (string, bool) {

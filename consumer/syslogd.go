@@ -15,9 +15,9 @@
 package consumer
 
 import (
-	"fmt"
 	"github.com/jeromer/syslogparser"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tnet"
 	"gopkg.in/mcuadros/go-syslog.v2"
 	"gopkg.in/mcuadros/go-syslog.v2/format"
@@ -65,18 +65,16 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Syslogd) Configure(conf core.PluginConfig) error {
-	err := cons.ConsumerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(cons.ConsumerBase.Configure(conf))
 
-	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", "udp://0.0.0.0:514"))
-	format := conf.GetString("Format", "RFC6587")
+	cons.address, cons.protocol = tnet.ParseAddress(errors.Str(conf.GetString("Address", "udp://0.0.0.0:514")))
+	format := errors.Str(conf.GetString("Format", "RFC6587"))
 
 	switch cons.protocol {
 	case "udp", "tcp", "unix":
 	default:
-		return fmt.Errorf("Syslog: unknown protocol type %s", cons.protocol) // ### return, unknown protocol ###
+		errors.Pushf("Syslog: unknown protocol type %s", cons.protocol) // ### return, unknown protocol ###
 	}
 
 	switch format {
@@ -101,11 +99,11 @@ func (cons *Syslogd) Configure(conf core.PluginConfig) error {
 		cons.format = syslog.RFC6587
 
 	default:
-		err = fmt.Errorf("Syslog: Format %s is not supported", format)
+		errors.Pushf("Syslog: Format %s is not supported", format)
 	}
 
 	cons.sequence = new(uint64)
-	return err
+	return errors.ErrorOrNil()
 }
 
 // Handle implements the syslog handle interface

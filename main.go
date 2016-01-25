@@ -50,6 +50,7 @@ func dumpMemoryProfile() {
 }
 
 func main() {
+	tlog.CacheWrites()
 	parseFlags()
 	tlog.SetVerbosity(tlog.Verbosity(*flagLoglevel))
 

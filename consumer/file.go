@@ -99,19 +99,17 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *File) Configure(conf core.PluginConfig) error {
-	err := cons.ConsumerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+	errors := tgo.NewErrorStack()
+	errors.Push(cons.ConsumerBase.Configure(conf))
 
 	cons.SetRollCallback(cons.onRoll)
 
 	cons.file = nil
-	cons.fileName = conf.GetString("File", "/var/run/system.log")
-	cons.offsetFileName = conf.GetString("OffsetFile", "")
-	cons.delimiter = tstrings.Unescape(conf.GetString("Delimiter", "\n"))
+	cons.fileName = errors.Str(conf.GetString("File", "/var/run/system.log"))
+	cons.offsetFileName = errors.Str(conf.GetString("OffsetFile", ""))
+	cons.delimiter = tstrings.Unescape(errors.Str(conf.GetString("Delimiter", "\n")))
 
-	switch strings.ToLower(conf.GetString("DefaultOffset", fileOffsetEnd)) {
+	switch strings.ToLower(errors.Str(conf.GetString("DefaultOffset", fileOffsetEnd))) {
 	default:
 		fallthrough
 	case fileOffsetEnd:
@@ -125,7 +123,7 @@ func (cons *File) Configure(conf core.PluginConfig) error {
 		cons.seekOffset = 0
 	}
 
-	return nil
+	return errors.ErrorOrNil()
 }
 
 func (cons *File) storeOffset() {

@@ -21,7 +21,7 @@ import (
 
 func TestPluginRegistry(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	plugin, err := NewPlugin(NewPluginConfig("randomPlugin"))
+	plugin, err := NewPlugin(NewPluginConfig("", "randomPlugin"))
 	expect.NotNil(err)
 
 	// Test for Register

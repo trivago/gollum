@@ -15,7 +15,8 @@
 package core
 
 import (
-	"fmt"
+	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tsync"
 	"sync"
@@ -142,41 +143,41 @@ type ProducerBase struct {
 
 // Configure initializes the standard producer config values.
 func (prod *ProducerBase) Configure(conf PluginConfig) error {
+	errors := tgo.NewErrorStack()
+
 	prod.Log = NewPluginLogScope(conf)
 	prod.runState = NewPluginRunState()
 
-	plugins := conf.GetPluginArray("Formatters", []Plugin{})
+	plugins, err := conf.GetPluginArray("Formatters", []Plugin{})
+	errors.Push(err)
+
 	for _, plugin := range plugins {
 		formatter, isFormatter := plugin.(Formatter)
 		if !isFormatter {
-			return fmt.Errorf("Plugin is not a valid formatter")
+			errors.Pushf("Plugin is not a valid formatter")
+		} else {
+			prod.formatters = append(prod.formatters, formatter)
 		}
-		prod.formatters = append(prod.formatters, formatter)
 	}
 
-	filter, err := NewPluginWithType(conf.GetString("Filter", "filter.All"), conf)
-	if err != nil {
-		return err // ### return, plugin load error ###
-	}
+	filter, err := conf.GetPlugin("Filter", "filter.All", tcontainer.NewMarshalMap())
+	errors.Push(err)
+
 	prod.filter = filter.(Filter)
-
-	prod.streams = make([]MessageStreamID, len(conf.Stream))
 	prod.control = make(chan PluginControl, 1)
-	prod.messages = make(chan Message, conf.GetInt("Channel", 8192))
-	prod.timeout = time.Duration(conf.GetInt("ChannelTimeoutMs", 0)) * time.Millisecond
-	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 3000)) * time.Millisecond
-	prod.fuseTimeout = time.Duration(conf.GetInt("FuseTimeoutSec", 10)) * time.Second
-	prod.fuseName = conf.GetString("Fuse", "")
-	prod.dropStreamID = GetStreamID(conf.GetString("DropToStream", DroppedStream))
+	prod.streams, err = conf.GetStreamArray("Streams", []MessageStreamID{WildcardStreamID})
+	errors.Push(err)
+	prod.messages = make(chan Message, errors.Int(conf.GetInt("Channel", 8192)))
+	prod.timeout = time.Duration(errors.Int(conf.GetInt("ChannelTimeoutMs", 0))) * time.Millisecond
+	prod.shutdownTimeout = time.Duration(errors.Int(conf.GetInt("ShutdownTimeoutMs", 3000))) * time.Millisecond
+	prod.fuseTimeout = time.Duration(errors.Int(conf.GetInt("FuseTimeoutSec", 10))) * time.Second
+	prod.fuseName = errors.Str(conf.GetString("Fuse", ""))
+	prod.dropStreamID = GetStreamID(errors.Str(conf.GetString("DropToStream", DroppedStream)))
 
 	prod.onRoll = nil
 	prod.onStop = nil
 
-	for i, stream := range conf.Stream {
-		prod.streams[i] = GetStreamID(stream)
-	}
-
-	return nil
+	return errors.ErrorOrNil()
 }
 
 // setState sets the runstate of this plugin
@@ -327,6 +328,16 @@ func (prod *ProducerBase) Format(msg Message) ([]byte, MessageStreamID) {
 		msg.Data, msg.StreamID = formatter.Format(msg)
 	}
 	return msg.Data, msg.StreamID
+}
+
+// AppendFormatter adds a given formatter to the end of the list of formatters
+func (prod *ProducerBase) AppendFormatter(format Formatter) {
+	prod.formatters = append(prod.formatters, format)
+}
+
+// PrependFormatter adds a given formatter to the start of the list of formatters
+func (prod *ProducerBase) PrependFormatter(format Formatter) {
+	prod.formatters = append([]Formatter{format}, prod.formatters...)
 }
 
 // Accepts calls the filters Accepts function
