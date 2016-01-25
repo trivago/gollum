@@ -48,7 +48,7 @@ func (format *Serialize) Configure(conf core.PluginConfig) error {
 	errors.Push(format.FormatterBase.Configure(conf))
 
 	format.encode = errors.Bool(conf.GetBool("Encode", true))
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 // Format prepends the sequence number of the message (followed by ":") to the

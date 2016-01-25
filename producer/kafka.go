@@ -166,11 +166,11 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	errors.Push(err)
 	prod.topic, err = conf.GetStreamMap("Topic", "")
 	errors.Push(err)
-	prod.clientID = errors.Str(conf.GetString("ClientId", "gollum"))
+	prod.clientID = errors.String(conf.GetString("ClientId", "gollum"))
 	prod.lastMetricUpdate = time.Now()
 
 	prod.config = kafka.NewConfig()
-	prod.config.ClientID = errors.Str(conf.GetString("ClientId", "gollum"))
+	prod.config.ClientID = errors.String(conf.GetString("ClientId", "gollum"))
 	prod.config.ChannelBufferSize = errors.Int(conf.GetInt("MessageBufferCount", 256))
 
 	prod.config.Net.MaxOpenRequests = errors.Int(conf.GetInt("MaxOpenRequests", 5))
@@ -189,7 +189,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.config.Producer.Return.Errors = true
 	prod.config.Producer.Return.Successes = true
 
-	switch strings.ToLower(errors.Str(conf.GetString("Compression", compressNone))) {
+	switch strings.ToLower(errors.String(conf.GetString("Compression", compressNone))) {
 	default:
 		fallthrough
 	case compressNone:
@@ -200,7 +200,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 		prod.config.Producer.Compression = kafka.CompressionSnappy
 	}
 
-	switch strings.ToLower(errors.Str(conf.GetString("Partitioner", partRandom))) {
+	switch strings.ToLower(errors.String(conf.GetString("Partitioner", partRandom))) {
 	case partRandom:
 		prod.config.Producer.Partitioner = kafka.NewRandomPartitioner
 	case partRoundrobin:
@@ -229,7 +229,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 
 	tgo.Metric.New(kafkaMetricMissCount)
 	prod.SetCheckFuseCallback(prod.tryOpenConnection)
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (prod *Kafka) bufferMessage(msg core.Message) {

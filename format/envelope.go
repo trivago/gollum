@@ -55,9 +55,9 @@ func (format *Envelope) Configure(conf core.PluginConfig) error {
 	errors := tgo.NewErrorStack()
 	errors.Push(format.FormatterBase.Configure(conf))
 
-	format.prefix = tstrings.Unescape(errors.Str(conf.GetString("Prefix", "")))
-	format.postfix = tstrings.Unescape(errors.Str(conf.GetString("Postfix", "\n")))
-	return errors.ErrorOrNil()
+	format.prefix = tstrings.Unescape(errors.String(conf.GetString("Prefix", "")))
+	format.postfix = tstrings.Unescape(errors.String(conf.GetString("Postfix", "\n")))
+	return errors.OrNil()
 }
 
 // Format adds prefix and postfix to the message formatted by the base formatter

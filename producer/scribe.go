@@ -104,7 +104,7 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	errors.Push(prod.ProducerBase.Configure(conf))
 
 	prod.SetStopCallback(prod.close)
-	host := errors.Str(conf.GetString("Address", "localhost:1463"))
+	host := errors.String(conf.GetString("Address", "localhost:1463"))
 
 	prod.batchMaxCount = errors.Int(conf.GetInt("BatchMaxCount", 8192))
 	prod.windowSize = prod.batchMaxCount
@@ -138,7 +138,7 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	}
 
 	prod.SetCheckFuseCallback(prod.tryOpenConnection)
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (prod *Scribe) bufferMessage(msg core.Message) {

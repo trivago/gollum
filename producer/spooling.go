@@ -110,7 +110,7 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 
 	prod.SetStopCallback(prod.close)
 
-	prod.path = errors.Str(conf.GetString("Path", "/var/run/gollum/spooling"))
+	prod.path = errors.String(conf.GetString("Path", "/var/run/gollum/spooling"))
 
 	prod.maxFileSize = int64(errors.Int(conf.GetInt("MaxFileSizeMB", 512))) << 20
 	prod.maxFileAge = time.Duration(errors.Int(conf.GetInt("MaxFileAgeMin", 1))) * time.Minute
@@ -128,7 +128,7 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 		compress: false,
 	}
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (prod *Spooling) writeBatchOnTimeOut() {

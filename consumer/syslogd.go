@@ -68,8 +68,8 @@ func (cons *Syslogd) Configure(conf core.PluginConfig) error {
 	errors := tgo.NewErrorStack()
 	errors.Push(cons.ConsumerBase.Configure(conf))
 
-	cons.address, cons.protocol = tnet.ParseAddress(errors.Str(conf.GetString("Address", "udp://0.0.0.0:514")))
-	format := errors.Str(conf.GetString("Format", "RFC6587"))
+	cons.address, cons.protocol = tnet.ParseAddress(errors.String(conf.GetString("Address", "udp://0.0.0.0:514")))
+	format := errors.String(conf.GetString("Format", "RFC6587"))
 
 	switch cons.protocol {
 	case "udp", "tcp", "unix":
@@ -103,7 +103,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfig) error {
 	}
 
 	cons.sequence = new(uint64)
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 // Handle implements the syslog handle interface

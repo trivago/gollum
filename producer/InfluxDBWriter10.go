@@ -49,10 +49,10 @@ type influxDBWriter10 struct {
 // Configure sets the database connection values
 func (writer *influxDBWriter10) configure(conf core.PluginConfig, prod *InfluxDB) error {
 	errors := tgo.NewErrorStack()
-	writer.host = errors.Str(conf.GetString("Host", "localhost:8086"))
-	writer.username = errors.Str(conf.GetString("User", ""))
-	writer.password = errors.Str(conf.GetString("Password", ""))
-	writer.databaseTemplate = errors.Str(conf.GetString("Database", "default"))
+	writer.host = errors.String(conf.GetString("Host", "localhost:8086"))
+	writer.username = errors.String(conf.GetString("User", ""))
+	writer.password = errors.String(conf.GetString("Password", ""))
+	writer.databaseTemplate = errors.String(conf.GetString("Database", "default"))
 	writer.buffer = tio.NewByteStream(4096)
 	writer.connectionUp = false
 	writer.timeBasedDBName = errors.Bool(conf.GetBool("TimeBasedName", true))
@@ -73,7 +73,7 @@ func (writer *influxDBWriter10) configure(conf core.PluginConfig, prod *InfluxDB
 
 	writer.writeURL = fmt.Sprintf("%s%cprecision=ms", writer.writeURL, writer.separator)
 	prod.SetCheckFuseCallback(writer.isConnectionUp)
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (writer *influxDBWriter10) isConnectionUp() bool {

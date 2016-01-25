@@ -117,7 +117,7 @@ func (stream *StreamBase) ConfigureStream(conf PluginConfig, distribute Distribu
 		stream.Timeout = nil
 	}
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 // AddProducer adds all producers to the list of known producers.

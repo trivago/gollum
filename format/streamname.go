@@ -50,9 +50,9 @@ func (format *StreamName) Configure(conf core.PluginConfig) error {
 	errors := tgo.NewErrorStack()
 	errors.Push(format.FormatterBase.Configure(conf))
 
-	format.separator = errors.Str(conf.GetString("Separator", ":"))
+	format.separator = errors.String(conf.GetString("Separator", ":"))
 	format.usePrevious = errors.Bool(conf.GetBool("UseHistory", false))
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 // Format prepends the StreamName of the message to the message.

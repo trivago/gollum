@@ -104,7 +104,7 @@ func (cons *ConsumerBase) Configure(conf PluginConfig) error {
 		cons.fuse = StreamRegistry.GetFuse(fuseName)
 	}
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 // setState sets the runstate of this plugin

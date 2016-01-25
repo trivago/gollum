@@ -51,7 +51,7 @@ func (format *CollectdToInflux10) Configure(conf core.PluginConfig) error {
 
 	format.tagString = strings.NewReplacer(",", "\\,", " ", "\\ ")
 	format.stringString = strings.NewReplacer("\"", "\\\"")
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (format *CollectdToInflux10) escapeTag(value string) string {

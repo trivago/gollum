@@ -45,15 +45,15 @@ func (format *RegExp) Configure(conf core.PluginConfig) error {
 	errors.Push(format.FormatterBase.Configure(conf))
 
 	if errors.Bool(conf.GetBool("Posix", true)) {
-		format.expression, err = regexp.CompilePOSIX(errors.Str(conf.GetString("Expression", "(.*)")))
+		format.expression, err = regexp.CompilePOSIX(errors.String(conf.GetString("Expression", "(.*)")))
 	} else {
-		format.expression, err = regexp.Compile(errors.Str(conf.GetString("Expression", "(.*)")))
+		format.expression, err = regexp.Compile(errors.String(conf.GetString("Expression", "(.*)")))
 	}
 
 	errors.Push(err)
-	format.template = []byte(errors.Str(conf.GetString("Template", "${1}")))
+	format.template = []byte(errors.String(conf.GetString("Template", "${1}")))
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 // Format prepends the timestamp of the message to the message.

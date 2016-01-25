@@ -92,13 +92,13 @@ func (prod *Redis) Configure(conf core.PluginConfig) error {
 
 	prod.SetStopCallback(prod.close)
 
-	prod.password = errors.Str(conf.GetString("Password", ""))
+	prod.password = errors.String(conf.GetString("Password", ""))
 	prod.database = int64(errors.Int(conf.GetInt("Database", 0)))
-	prod.key = errors.Str(conf.GetString("Key", "default"))
+	prod.key = errors.String(conf.GetString("Key", "default"))
 	prod.fieldFromParsed = errors.Bool(conf.GetBool("FieldAfterFormat", false))
-	prod.address, prod.protocol = tnet.ParseAddress(errors.Str(conf.GetString("Address", ":6379")))
+	prod.address, prod.protocol = tnet.ParseAddress(errors.String(conf.GetString("Address", ":6379")))
 
-	switch strings.ToLower(errors.Str(conf.GetString("Storage", "hash"))) {
+	switch strings.ToLower(errors.String(conf.GetString("Storage", "hash"))) {
 	case "hash":
 		prod.store = prod.storeHash
 	case "list":
@@ -113,7 +113,7 @@ func (prod *Redis) Configure(conf core.PluginConfig) error {
 		prod.store = prod.storeString
 	}
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (prod *Redis) formatField(msg core.Message) []byte {

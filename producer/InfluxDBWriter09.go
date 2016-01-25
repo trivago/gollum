@@ -55,10 +55,10 @@ type influxDBWriter09 struct {
 // Configure sets the database connection values
 func (writer *influxDBWriter09) configure(conf core.PluginConfig, prod *InfluxDB) error {
 	errors := tgo.NewErrorStack()
-	writer.host = errors.Str(conf.GetString("Host", "localhost:8086"))
-	writer.username = errors.Str(conf.GetString("User", ""))
-	writer.password = errors.Str(conf.GetString("Password", ""))
-	writer.databaseTemplate = errors.Str(conf.GetString("Database", "default"))
+	writer.host = errors.String(conf.GetString("Host", "localhost:8086"))
+	writer.username = errors.String(conf.GetString("User", ""))
+	writer.password = errors.String(conf.GetString("Password", ""))
+	writer.databaseTemplate = errors.String(conf.GetString("Database", "default"))
 	writer.buffer = tio.NewByteStream(4096)
 	writer.connectionUp = false
 	writer.Control = prod.Control
@@ -77,14 +77,14 @@ func (writer *influxDBWriter09) configure(conf core.PluginConfig, prod *InfluxDB
 		writer.separator = '&'
 	}
 
-	if retentionPolicy := errors.Str(conf.GetString("RetentionPolicy", "")); retentionPolicy != "" {
+	if retentionPolicy := errors.String(conf.GetString("RetentionPolicy", "")); retentionPolicy != "" {
 		writer.messageHeader = fmt.Sprintf("{\"database\":\"%%s\",\"retentionPolicy\":\"%s\",\"points\":[", retentionPolicy)
 	} else {
 		writer.messageHeader = "{\"database\":\"%s\",\"points\":["
 	}
 
 	prod.SetCheckFuseCallback(writer.isConnectionUp)
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (writer *influxDBWriter09) isConnectionUp() bool {

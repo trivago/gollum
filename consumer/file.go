@@ -105,11 +105,11 @@ func (cons *File) Configure(conf core.PluginConfig) error {
 	cons.SetRollCallback(cons.onRoll)
 
 	cons.file = nil
-	cons.fileName = errors.Str(conf.GetString("File", "/var/run/system.log"))
-	cons.offsetFileName = errors.Str(conf.GetString("OffsetFile", ""))
-	cons.delimiter = tstrings.Unescape(errors.Str(conf.GetString("Delimiter", "\n")))
+	cons.fileName = errors.String(conf.GetString("File", "/var/run/system.log"))
+	cons.offsetFileName = errors.String(conf.GetString("OffsetFile", ""))
+	cons.delimiter = tstrings.Unescape(errors.String(conf.GetString("Delimiter", "\n")))
 
-	switch strings.ToLower(errors.Str(conf.GetString("DefaultOffset", fileOffsetEnd))) {
+	switch strings.ToLower(errors.String(conf.GetString("DefaultOffset", fileOffsetEnd))) {
 	default:
 		fallthrough
 	case fileOffsetEnd:
@@ -123,7 +123,7 @@ func (cons *File) Configure(conf core.PluginConfig) error {
 		cons.seekOffset = 0
 	}
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (cons *File) storeOffset() {

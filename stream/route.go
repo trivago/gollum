@@ -74,7 +74,7 @@ func (stream *Route) Configure(conf core.PluginConfig) error {
 		stream.routes = append(stream.routes, targetStream)
 	}
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (stream *Route) routeMessage(msg core.Message) {

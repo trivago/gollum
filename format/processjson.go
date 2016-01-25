@@ -108,7 +108,7 @@ func (format *ProcessJSON) Configure(conf core.PluginConfig) error {
 		}
 	}
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (values *valueMap) processDirective(directive transformDirective, format *ProcessJSON) {

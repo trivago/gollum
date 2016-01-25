@@ -61,7 +61,7 @@ func (cons *Console) Configure(conf core.PluginConfig) error {
 	err := cons.ConsumerBase.Configure(conf)
 	errors.Push(err)
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (cons *Console) readStdIn() {

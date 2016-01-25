@@ -88,14 +88,14 @@ func (cons *PcapHTTPConsumer) Configure(conf core.PluginConfig) error {
 	errors := tgo.NewErrorStack()
 	errors.Push(cons.ConsumerBase.Configure(conf))
 
-	cons.netInterface = errors.Str(conf.GetString("Interface", "eth0"))
+	cons.netInterface = errors.String(conf.GetString("Interface", "eth0"))
 	cons.promiscuous = errors.Bool(conf.GetBool("Promiscuous", true))
-	cons.filter = errors.Str(conf.GetString("Filter", "dst port 80 and dst host 127.0.0.1"))
+	cons.filter = errors.String(conf.GetString("Filter", "dst port 80 and dst host 127.0.0.1"))
 	cons.sessions = make(pcapSessionMap)
 	cons.sessionTimeout = time.Duration(errors.Int(conf.GetInt("TimeoutMs", 3000))) * time.Millisecond
 	cons.sessionGuard = new(sync.Mutex)
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (cons *PcapHTTPConsumer) enqueueBuffer(data []byte) {

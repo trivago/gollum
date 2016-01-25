@@ -105,9 +105,9 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 	prod.batchTimeout = time.Duration(errors.Int(conf.GetInt("BatchTimeoutSec", 5))) * time.Second
 	prod.bufferSizeByte = errors.Int(conf.GetInt("ConnectionBufferSizeKB", 1<<10)) << 10 // 1 MB
 
-	prod.acknowledge = tstrings.Unescape(errors.Str(conf.GetString("Acknowledge", "")))
+	prod.acknowledge = tstrings.Unescape(errors.String(conf.GetString("Acknowledge", "")))
 	prod.ackTimeout = time.Duration(errors.Int(conf.GetInt("AckTimeoutMs", 2000))) * time.Millisecond
-	prod.address, prod.protocol = tnet.ParseAddress(errors.Str(conf.GetString("Address", ":5880")))
+	prod.address, prod.protocol = tnet.ParseAddress(errors.String(conf.GetString("Address", ":5880")))
 
 	if prod.protocol != "unix" {
 		if prod.acknowledge != "" {
@@ -123,7 +123,7 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 	prod.assembly.SetErrorHandler(prod.onWriteError)
 
 	prod.SetCheckFuseCallback(prod.tryConnect)
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (prod *Socket) tryConnect() bool {

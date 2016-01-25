@@ -49,7 +49,7 @@ func (format *Base64Decode) Configure(conf core.PluginConfig) error {
 	errors := tgo.NewErrorStack()
 	errors.Push(format.FormatterBase.Configure(conf))
 
-	dict := errors.Str(conf.GetString("Dictionary", ""))
+	dict := errors.String(conf.GetString("Dictionary", ""))
 	if dict == "" {
 		format.dictionary = base64.StdEncoding
 	} else {
@@ -58,7 +58,7 @@ func (format *Base64Decode) Configure(conf core.PluginConfig) error {
 		}
 		format.dictionary = base64.NewEncoding(dict)
 	}
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 // Format returns the original message payload

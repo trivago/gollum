@@ -44,8 +44,8 @@ func (format *Sequence) Configure(conf core.PluginConfig) error {
 	errors := tgo.NewErrorStack()
 	errors.Push(format.FormatterBase.Configure(conf))
 
-	format.separator = errors.Str(conf.GetString("Separator", ":"))
-	return errors.ErrorOrNil()
+	format.separator = errors.String(conf.GetString("Separator", ":"))
+	return errors.OrNil()
 }
 
 // Format prepends the sequence number of the message (followed by ":") to the

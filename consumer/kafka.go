@@ -134,14 +134,14 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 	cons.servers, err = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	errors.Push(err)
 
-	cons.topic = errors.Str(conf.GetString("Topic", "default"))
-	cons.offsetFile = errors.Str(conf.GetString("OffsetFile", ""))
+	cons.topic = errors.String(conf.GetString("Topic", "default"))
+	cons.offsetFile = errors.String(conf.GetString("OffsetFile", ""))
 	cons.persistTimeout = time.Duration(errors.Int(conf.GetInt("PresistTimoutMs", 5000))) * time.Millisecond
 	cons.offsets = make(map[int32]int64)
 	cons.MaxPartitionID = 0
 
 	cons.config = kafka.NewConfig()
-	cons.config.ClientID = errors.Str(conf.GetString("ClientId", "gollum"))
+	cons.config.ClientID = errors.String(conf.GetString("ClientId", "gollum"))
 	cons.config.ChannelBufferSize = errors.Int(conf.GetInt("MessageBufferCount", 256))
 
 	cons.config.Net.MaxOpenRequests = errors.Int(conf.GetInt("MaxOpenRequests", 5))
@@ -158,7 +158,7 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 	cons.config.Consumer.Fetch.Default = int32(errors.Int(conf.GetInt("MaxFetchSizeByte", 32768)))
 	cons.config.Consumer.MaxWaitTime = time.Duration(errors.Int(conf.GetInt("FetchTimeoutMs", 250))) * time.Millisecond
 
-	offsetValue := strings.ToLower(errors.Str(conf.GetString("DefaultOffset", kafkaOffsetNewest)))
+	offsetValue := strings.ToLower(errors.String(conf.GetString("DefaultOffset", kafkaOffsetNewest)))
 	switch offsetValue {
 	case kafkaOffsetNewest:
 		cons.defaultOffset = kafka.OffsetNewest
@@ -185,7 +185,7 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 		}
 	}
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 // Restart the consumer after wating for persistTimeout

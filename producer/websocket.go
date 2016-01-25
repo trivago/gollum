@@ -73,11 +73,11 @@ func (prod *Websocket) Configure(conf core.PluginConfig) error {
 
 	prod.SetStopCallback(prod.close)
 
-	prod.address = errors.Str(conf.GetString("Address", ":81"))
-	prod.path = errors.Str(conf.GetString("Path", "/"))
+	prod.address = errors.String(conf.GetString("Address", ":81"))
+	prod.path = errors.String(conf.GetString("Path", "/"))
 	prod.readTimeoutSec = time.Duration(errors.Int(conf.GetInt("ReadTimeoutSec", 3))) * time.Second
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (prod *Websocket) handleConnection(conn *websocket.Conn) {

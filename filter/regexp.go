@@ -49,19 +49,19 @@ func (filter *RegExp) Configure(conf core.PluginConfig) error {
 	errors := tgo.NewErrorStack()
 	errors.Push(filter.FilterBase.Configure(conf))
 
-	exp := errors.Str(conf.GetString("FilterExpression", ""))
+	exp := errors.String(conf.GetString("FilterExpression", ""))
 	if exp != "" {
 		filter.exp, err = regexp.Compile(exp)
 		errors.Push(err)
 	}
 
-	exp = errors.Str(conf.GetString("FilterExpressionNot", ""))
+	exp = errors.String(conf.GetString("FilterExpressionNot", ""))
 	if exp != "" {
 		filter.expNot, err = regexp.Compile(exp)
 		errors.Push(err)
 	}
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 // Accepts allows all messages

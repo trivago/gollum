@@ -46,11 +46,11 @@ func (format *JSONToArray) Configure(conf core.PluginConfig) error {
 	errors := tgo.NewErrorStack()
 	errors.Push(format.FormatterBase.Configure(conf))
 
-	format.separator = errors.Str(conf.GetString("Separator", ","))
+	format.separator = errors.String(conf.GetString("Separator", ","))
 	format.fields, err = conf.GetStringArray("Fields", []string{})
 	errors.Push(err)
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 // Format prepends the timestamp of the message to the message.

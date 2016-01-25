@@ -99,18 +99,18 @@ func (prod *Proxy) Configure(conf core.PluginConfig) error {
 	prod.SetStopCallback(prod.close)
 
 	prod.bufferSizeKB = errors.Int(conf.GetInt("ConnectionBufferSizeKB", 1<<10)) // 1 MB
-	prod.address, prod.protocol = tnet.ParseAddress(errors.Str(conf.GetString("Address", ":5880")))
+	prod.address, prod.protocol = tnet.ParseAddress(errors.String(conf.GetString("Address", ":5880")))
 	if prod.protocol == "udp" {
 		return fmt.Errorf("Proxy does not support UDP")
 	}
 
 	prod.timeout = time.Duration(errors.Int(conf.GetInt("TimeoutSec", 1))) * time.Second
 
-	delimiter := tstrings.Unescape(errors.Str(conf.GetString("Delimiter", "\n")))
+	delimiter := tstrings.Unescape(errors.String(conf.GetString("Delimiter", "\n")))
 	offset := errors.Int(conf.GetInt("Offset", 0))
 	flags := tio.BufferedReaderFlagEverything // pass all messages as-is
 
-	partitioner := strings.ToLower(errors.Str(conf.GetString("Partitioner", "delimiter")))
+	partitioner := strings.ToLower(errors.String(conf.GetString("Partitioner", "delimiter")))
 	switch partitioner {
 	case "binary_be":
 		flags |= tio.BufferedReaderFlagBigEndian
@@ -145,7 +145,7 @@ func (prod *Proxy) Configure(conf core.PluginConfig) error {
 	}
 
 	prod.reader = tio.NewBufferedReader(prod.bufferSizeKB, flags, offset, delimiter)
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (prod *Proxy) sendMessage(msg core.Message) {

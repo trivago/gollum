@@ -131,11 +131,11 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 	prod.conn = elastigo.NewConn()
 	prod.conn.Hosts, err = conf.GetStringArray("Servers", defaultServer)
 	errors.Push(err)
-	prod.conn.Domain = errors.Str(conf.GetString("Domain", prod.conn.Hosts[0]))
+	prod.conn.Domain = errors.String(conf.GetString("Domain", prod.conn.Hosts[0]))
 	prod.conn.ClusterDomains = prod.conn.Hosts
 	prod.conn.Port = strconv.Itoa(errors.Int(conf.GetInt("Port", 9200)))
-	prod.conn.Username = errors.Str(conf.GetString("User", ""))
-	prod.conn.Password = errors.Str(conf.GetString("Password", ""))
+	prod.conn.Username = errors.String(conf.GetString("User", ""))
+	prod.conn.Password = errors.String(conf.GetString("Password", ""))
 
 	prod.indexer = prod.conn.NewBulkIndexerErrors(numConnections, retrySec)
 	prod.indexer.BufferDelayMax = time.Duration(errors.Int(conf.GetInt("BatchTimeoutSec", 5))) * time.Second
@@ -151,7 +151,7 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 	errors.Push(err)
 	prod.msgType, err = conf.GetStreamMap("Type", "log")
 	errors.Push(err)
-	prod.msgTTL = errors.Str(conf.GetString("TTL", ""))
+	prod.msgTTL = errors.String(conf.GetString("TTL", ""))
 	prod.dayBasedIndex = errors.Bool(conf.GetBool("DayBasedIndex", false))
 
 	prod.counters = make(map[string]*int64)
@@ -164,7 +164,7 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 	}
 
 	prod.SetCheckFuseCallback(prod.isClusterUp)
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (prod *ElasticSearch) updateMetrics() {

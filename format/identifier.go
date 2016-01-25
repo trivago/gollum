@@ -59,7 +59,7 @@ func (format *Identifier) Configure(conf core.PluginConfig) error {
 	errors := tgo.NewErrorStack()
 	errors.Push(format.FormatterBase.Configure(conf))
 
-	switch strings.ToLower(errors.Str(conf.GetString("Type", "time"))) {
+	switch strings.ToLower(errors.String(conf.GetString("Type", "time"))) {
 	case "hash":
 		format.hash = format.idHash
 	case "seq":
@@ -72,7 +72,7 @@ func (format *Identifier) Configure(conf core.PluginConfig) error {
 		format.hash = format.idTime
 	}
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (format *Identifier) idHash(msg core.Message) []byte {

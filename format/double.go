@@ -76,9 +76,9 @@ func (format *Double) Configure(conf core.PluginConfig) error {
 		}
 	}
 
-	format.separator = errors.Str(conf.GetString("Separator", ":"))
+	format.separator = errors.String(conf.GetString("Separator", ":"))
 	format.leftStreamID = errors.Bool(conf.GetBool("LeftStreamID", false))
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 // Format prepends the Hostname of the message to the message.

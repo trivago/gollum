@@ -59,7 +59,7 @@ func (filter *Stream) Configure(conf core.PluginConfig) error {
 	filter.whitelist, err = conf.GetStreamArray("FilterOnlyStreams", []core.MessageStreamID{})
 	errors.Push(err)
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 // Accepts filters by streamId using a black and whitelist

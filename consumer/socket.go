@@ -133,13 +133,13 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 	errors := tgo.NewErrorStack()
 	errors.Push(cons.ConsumerBase.Configure(conf))
 
-	flags := errors.Int64(strconv.ParseInt(errors.Str(conf.GetString("Permissions", "0770")), 8, 32))
+	flags := errors.Int64(strconv.ParseInt(errors.String(conf.GetString("Permissions", "0770")), 8, 32))
 	cons.fileFlags = os.FileMode(flags)
 
 	cons.clients = list.New()
 	cons.clientLock = new(sync.Mutex)
-	cons.acknowledge = tstrings.Unescape(errors.Str(conf.GetString("Acknowledge", "")))
-	cons.address, cons.protocol = tnet.ParseAddress(errors.Str(conf.GetString("Address", ":5880")))
+	cons.acknowledge = tstrings.Unescape(errors.String(conf.GetString("Acknowledge", "")))
+	cons.address, cons.protocol = tnet.ParseAddress(errors.String(conf.GetString("Address", ":5880")))
 	cons.reconnectTime = time.Duration(errors.Int(conf.GetInt("ReconnectAfterSec", 2))) * time.Second
 	cons.ackTimeout = time.Duration(errors.Int(conf.GetInt("AckTimoutSec", 2))) * time.Second
 	cons.readTimeout = time.Duration(errors.Int(conf.GetInt("ReadTimoutSec", 5))) * time.Second
@@ -153,11 +153,11 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 		}
 	}
 
-	cons.delimiter = tstrings.Unescape(errors.Str(conf.GetString("Delimiter", "\n")))
+	cons.delimiter = tstrings.Unescape(errors.String(conf.GetString("Delimiter", "\n")))
 	cons.offset = errors.Int(conf.GetInt("Offset", 0))
 	cons.flags = 0
 
-	partitioner := strings.ToLower(errors.Str(conf.GetString("Partitioner", "delimiter")))
+	partitioner := strings.ToLower(errors.String(conf.GetString("Partitioner", "delimiter")))
 	switch partitioner {
 	case "binary_be":
 		cons.flags |= tio.BufferedReaderFlagBigEndian
@@ -192,7 +192,7 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 		errors.Pushf("Unknown partitioner: %s", partitioner)
 	}
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (cons *Socket) sendAck(conn net.Conn, success bool) error {

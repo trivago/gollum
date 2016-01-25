@@ -70,7 +70,7 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfig) error {
 
 	prod.SetStopCallback(prod.close)
 
-	address := errors.Str(conf.GetString("Address", "localhost:80"))
+	address := errors.String(conf.GetString("Address", "localhost:80"))
 	prod.protocol, prod.host, prod.port, err = tnet.SplitAddress(address, "http")
 	errors.Push(err)
 
@@ -79,11 +79,11 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfig) error {
 	}
 
 	prod.address = fmt.Sprintf("%s://%s:%s", prod.protocol, prod.host, prod.port)
-	prod.encoding = errors.Str(conf.GetString("Encoding", "text/plain; charset=utf-8"))
+	prod.encoding = errors.String(conf.GetString("Encoding", "text/plain; charset=utf-8"))
 	prod.rawPackets = errors.Bool(conf.GetBool("RawData", true))
 	prod.SetCheckFuseCallback(prod.isHostUp)
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (prod *HTTPRequest) isHostUp() bool {

@@ -100,16 +100,16 @@ func (cons *Proxy) Configure(conf core.PluginConfig) error {
 	errors := tgo.NewErrorStack()
 	errors.Push(cons.ConsumerBase.Configure(conf))
 
-	cons.address, cons.protocol = tnet.ParseAddress(errors.Str(conf.GetString("Address", ":5880")))
+	cons.address, cons.protocol = tnet.ParseAddress(errors.String(conf.GetString("Address", ":5880")))
 	if cons.protocol == "udp" {
 		errors.Pushf("Proxy does not support UDP")
 	}
 
-	cons.delimiter = tstrings.Unescape(errors.Str(conf.GetString("Delimiter", "\n")))
+	cons.delimiter = tstrings.Unescape(errors.String(conf.GetString("Delimiter", "\n")))
 	cons.offset = errors.Int(conf.GetInt("Offset", 0))
 	cons.flags = tio.BufferedReaderFlagEverything
 
-	partitioner := strings.ToLower(errors.Str(conf.GetString("Partitioner", "delimiter")))
+	partitioner := strings.ToLower(errors.String(conf.GetString("Partitioner", "delimiter")))
 	switch partitioner {
 	case "binary_be":
 		cons.flags |= tio.BufferedReaderFlagBigEndian
@@ -143,7 +143,7 @@ func (cons *Proxy) Configure(conf core.PluginConfig) error {
 		errors.Pushf("Unknown partitioner: %s", partitioner)
 	}
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (cons *Proxy) accept() {

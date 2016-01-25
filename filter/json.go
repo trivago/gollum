@@ -84,7 +84,7 @@ func (filter *JSON) Configure(conf core.PluginConfig) error {
 		}
 	}
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (filter *JSON) getValue(key string, values tcontainer.MarshalMap) (string, bool) {

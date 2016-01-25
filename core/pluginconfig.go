@@ -88,7 +88,7 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
 
 		switch lowerCaseKey {
 		case "type":
-			conf.Typename = errors.Str(values.String(key))
+			conf.Typename = errors.String(values.String(key))
 
 		case "enable":
 			conf.Enable = errors.Bool(values.Bool(key))
@@ -119,7 +119,7 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
 		tlog.Note.Printf("Plugin %s has been disabled", conf.ID)
 	}
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 // HasValue returns true if the given key has been set as a config option.

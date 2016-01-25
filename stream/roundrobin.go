@@ -53,7 +53,7 @@ func (stream *RoundRobin) Configure(conf core.PluginConfig) error {
 	stream.index = 0
 	stream.indexByStream = make(map[core.MessageStreamID]*int32)
 	stream.mapInitLock = new(sync.Mutex)
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (stream *RoundRobin) roundRobin(msg core.Message) {

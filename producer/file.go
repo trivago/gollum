@@ -167,20 +167,20 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	prod.batchTimeout = time.Duration(errors.Int(conf.GetInt("BatchTimeoutSec", 5))) * time.Second
 	prod.overwriteFile = errors.Bool(conf.GetBool("FileOverwrite", false))
 
-	fileFlags := errors.Int64(strconv.ParseInt(errors.Str(conf.GetString("Permissions", "0664")), 8, 32))
+	fileFlags := errors.Int64(strconv.ParseInt(errors.String(conf.GetString("Permissions", "0664")), 8, 32))
 	prod.filePermissions = os.FileMode(fileFlags)
 
-	folderFlags := errors.Int64(strconv.ParseInt(errors.Str(conf.GetString("FolderPermissions", "0755")), 8, 32))
+	folderFlags := errors.Int64(strconv.ParseInt(errors.String(conf.GetString("FolderPermissions", "0755")), 8, 32))
 	prod.folderPermissions = os.FileMode(folderFlags)
 
-	logFile := errors.Str(conf.GetString("File", "/var/log/gollum.log"))
+	logFile := errors.String(conf.GetString("File", "/var/log/gollum.log"))
 	prod.wildcardPath = strings.IndexByte(logFile, '*') != -1
 
 	prod.fileDir = filepath.Dir(logFile)
 	prod.fileExt = filepath.Ext(logFile)
 	prod.fileName = filepath.Base(logFile)
 	prod.fileName = prod.fileName[:len(prod.fileName)-len(prod.fileExt)]
-	prod.timestamp = errors.Str(conf.GetString("RotateTimestamp", "2006-01-02_15"))
+	prod.timestamp = errors.String(conf.GetString("RotateTimestamp", "2006-01-02_15"))
 	prod.flushTimeout = time.Duration(errors.Int(conf.GetInt("FlushTimeoutSec", 5))) * time.Second
 
 	prod.rotate.enabled = errors.Bool(conf.GetBool("Rotate", false))
@@ -202,7 +202,7 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 		}
 	}
 
-	rotateAt := errors.Str(conf.GetString("RotateAt", ""))
+	rotateAt := errors.String(conf.GetString("RotateAt", ""))
 	if rotateAt != "" {
 		parts := strings.Split(rotateAt, ":")
 		rotateAtHour, _ := strconv.ParseInt(parts[0], 10, 8)
@@ -212,7 +212,7 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 		prod.rotate.atMinute = int(rotateAtMin)
 	}
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) (*fileState, error) {

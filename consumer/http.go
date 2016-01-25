@@ -78,12 +78,12 @@ func (cons *Http) Configure(conf core.PluginConfig) error {
 	errors := tgo.NewErrorStack()
 	errors.Push(cons.ConsumerBase.Configure(conf))
 
-	cons.address = errors.Str(conf.GetString("Address", ":80"))
+	cons.address = errors.String(conf.GetString("Address", ":80"))
 	cons.readTimeoutSec = time.Duration(errors.Int(conf.GetInt("ReadTimeoutSec", 3))) * time.Second
 	cons.withHeaders = errors.Bool(conf.GetBool("WithHeaders", true))
 
-	certificateFile := errors.Str(conf.GetString("Certificate", ""))
-	keyFile := errors.Str(conf.GetString("PrivateKey", ""))
+	certificateFile := errors.String(conf.GetString("Certificate", ""))
+	keyFile := errors.String(conf.GetString("PrivateKey", ""))
 
 	if certificateFile != "" || keyFile != "" {
 		if certificateFile == "" || keyFile == "" {
@@ -100,7 +100,7 @@ func (cons *Http) Configure(conf core.PluginConfig) error {
 		}
 	}
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 // requestHandler will handle a single web request.

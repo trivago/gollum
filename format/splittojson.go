@@ -51,11 +51,11 @@ func (format *SplitToJSON) Configure(conf core.PluginConfig) error {
 	errors := tgo.NewErrorStack()
 	errors.Push(format.FormatterBase.Configure(conf))
 
-	format.token = []byte(errors.Str(conf.GetString("SplitBy", "|")))
+	format.token = []byte(errors.String(conf.GetString("SplitBy", "|")))
 	format.keys, err = conf.GetStringArray("Keys", []string{})
 	errors.Push(err)
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 // Format returns the splitted message payload as json

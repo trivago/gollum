@@ -91,12 +91,12 @@ func (cons *Profiler) Configure(conf core.PluginConfig) error {
 
 	cons.profileRuns = errors.Int(conf.GetInt("Runs", 10000))
 	cons.batches = errors.Int(conf.GetInt("Batches", 10))
-	cons.chars = errors.Str(conf.GetString("Characters", profilerDefaultCharacters))
-	cons.message = errors.Str(conf.GetString("Message", "%# %256s"))
+	cons.chars = errors.String(conf.GetString("Characters", profilerDefaultCharacters))
+	cons.message = errors.String(conf.GetString("Message", "%# %256s"))
 	cons.templates = make([][]byte, numTemplates)
 	cons.delay = time.Duration(errors.Int(conf.GetInt("DelayMs", 0))) * time.Millisecond
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (cons *Profiler) generateString(size int) string {

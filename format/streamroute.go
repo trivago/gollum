@@ -61,7 +61,7 @@ func (format *StreamRoute) Configure(conf core.PluginConfig) error {
 	errors := tgo.NewErrorStack()
 	errors.Push(format.FormatterBase.Configure(conf))
 
-	format.delimiter = []byte(errors.Str(conf.GetString("Delimiter", ":")))
+	format.delimiter = []byte(errors.String(conf.GetString("Delimiter", ":")))
 	plugins, err := conf.GetPluginArray("NameFormatters", []core.Plugin{})
 	errors.Push(err)
 
@@ -74,7 +74,7 @@ func (format *StreamRoute) Configure(conf core.PluginConfig) error {
 		}
 	}
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 // Format adds prefix and postfix to the message formatted by the base formatter

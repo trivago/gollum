@@ -139,7 +139,7 @@ func (prod *InfluxDB) Configure(conf core.PluginConfig) error {
 
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
 	prod.assembly = core.NewWriterAssembly(prod.writer, prod.Drop, prod.Format)
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 // Flush flushes the content of the buffer into the influxdb

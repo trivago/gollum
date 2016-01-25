@@ -49,7 +49,7 @@ func (prod *Console) Configure(conf core.PluginConfig) error {
 	errors.Push(prod.ProducerBase.Configure(conf))
 
 	prod.SetStopCallback(prod.close)
-	console := errors.Str(conf.GetString("Console", "stdout"))
+	console := errors.String(conf.GetString("Console", "stdout"))
 
 	switch strings.ToLower(console) {
 	default:
@@ -60,7 +60,7 @@ func (prod *Console) Configure(conf core.PluginConfig) error {
 		prod.console = os.Stderr
 	}
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (prod *Console) printMessage(msg core.Message) {

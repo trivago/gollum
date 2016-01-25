@@ -171,13 +171,13 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	prod.timeout = time.Duration(errors.Int(conf.GetInt("ChannelTimeoutMs", 0))) * time.Millisecond
 	prod.shutdownTimeout = time.Duration(errors.Int(conf.GetInt("ShutdownTimeoutMs", 3000))) * time.Millisecond
 	prod.fuseTimeout = time.Duration(errors.Int(conf.GetInt("FuseTimeoutSec", 10))) * time.Second
-	prod.fuseName = errors.Str(conf.GetString("Fuse", ""))
-	prod.dropStreamID = GetStreamID(errors.Str(conf.GetString("DropToStream", DroppedStream)))
+	prod.fuseName = errors.String(conf.GetString("Fuse", ""))
+	prod.dropStreamID = GetStreamID(errors.String(conf.GetString("DropToStream", DroppedStream)))
 
 	prod.onRoll = nil
 	prod.onStop = nil
 
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 // setState sets the runstate of this plugin

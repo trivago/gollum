@@ -122,9 +122,9 @@ func (format *JSON) Configure(conf core.PluginConfig) error {
 
 	format.parser = tstrings.NewTransitionParser()
 	format.state = jsonReadObject
-	format.initState = errors.Str(conf.GetString("StartState", ""))
-	format.timeRead = errors.Str(conf.GetString("TimestampRead", "20060102150405"))
-	format.timeWrite = errors.Str(conf.GetString("TimestampWrite", "2006-01-02 15:04:05 MST"))
+	format.initState = errors.String(conf.GetString("StartState", ""))
+	format.timeRead = errors.String(conf.GetString("TimestampRead", "20060102150405"))
+	format.timeWrite = errors.String(conf.GetString("TimestampWrite", "2006-01-02 15:04:05 MST"))
 	format.parseLock = new(sync.Mutex)
 
 	if !conf.HasValue("Directives") {
@@ -168,7 +168,7 @@ func (format *JSON) Configure(conf core.PluginConfig) error {
 
 		format.parser.AddDirectives(directives)
 	}
-	return errors.ErrorOrNil()
+	return errors.OrNil()
 }
 
 func (format *JSON) writeKey(key []byte) {

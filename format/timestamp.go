@@ -48,8 +48,8 @@ func (format *Timestamp) Configure(conf core.PluginConfig) error {
 	errors := tgo.NewErrorStack()
 	errors.Push(format.FormatterBase.Configure(conf))
 
-	format.timestampFormat = errors.Str(conf.GetString("Timestamp", "2006-01-02 15:04:05 MST | "))
-	return errors.ErrorOrNil()
+	format.timestampFormat = errors.String(conf.GetString("Timestamp", "2006-01-02 15:04:05 MST | "))
+	return errors.OrNil()
 }
 
 // Format prepends the timestamp of the message to the message.
