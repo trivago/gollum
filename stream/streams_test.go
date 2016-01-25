@@ -18,13 +18,10 @@ import (
 	"github.com/trivago/gollum/core"
 	_ "github.com/trivago/gollum/filter"
 	_ "github.com/trivago/gollum/format"
-	"reflect"
 	"testing"
 )
 
 func TestStreamInterface(t *testing.T) {
-	conf := core.NewPluginConfig(reflect.TypeOf(t).Name())
-	conf.Stream = []string{"test"}
 	streams := core.TypeRegistry.GetRegistered("stream.")
 
 	if len(streams) == 0 {
@@ -32,7 +29,8 @@ func TestStreamInterface(t *testing.T) {
 	}
 
 	for _, name := range streams {
-		_, err := core.NewPluginWithType(name, conf)
+		conf := core.NewPluginConfig("", name)
+		_, err := core.NewPlugin(conf)
 		if err != nil {
 			t.Errorf("Failed to create stream %s: %s", name, err.Error())
 		}

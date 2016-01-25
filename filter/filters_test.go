@@ -16,12 +16,10 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
-	"reflect"
 	"testing"
 )
 
 func TestFilterInterface(t *testing.T) {
-	conf := core.NewPluginConfig(reflect.TypeOf(t).Name())
 	filters := core.TypeRegistry.GetRegistered("filter.")
 
 	if len(filters) == 0 {
@@ -29,7 +27,8 @@ func TestFilterInterface(t *testing.T) {
 	}
 
 	for _, name := range filters {
-		_, err := core.NewPluginWithType(name, conf)
+		conf := core.NewPluginConfig("", name)
+		_, err := core.NewPlugin(conf)
 		if err != nil {
 			t.Errorf("Failed to create filter %s: %s", name, err.Error())
 		}

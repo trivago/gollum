@@ -16,12 +16,10 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"reflect"
 	"testing"
 )
 
 func TestFormatters(t *testing.T) {
-	conf := core.NewPluginConfig(reflect.TypeOf(t).Name())
 	formatters := core.TypeRegistry.GetRegistered("format.")
 
 	if len(formatters) == 0 {
@@ -29,7 +27,8 @@ func TestFormatters(t *testing.T) {
 	}
 
 	for _, name := range formatters {
-		_, err := core.NewPluginWithType(name, conf)
+		conf := core.NewPluginConfig("", name)
+		_, err := core.NewPlugin(conf)
 		if err != nil {
 			t.Errorf("Failed to create formatter %s: %s", name, err.Error())
 		}

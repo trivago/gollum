@@ -15,7 +15,6 @@
 package core
 
 import (
-	"fmt"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/ttesting"
 	"sync"
@@ -26,10 +25,7 @@ import (
 type mockPlugin struct{}
 
 func (m *mockPlugin) Configure(config PluginConfig) error {
-	if config.ID == "mockPluginConfig" {
-		return nil
-	}
-	return fmt.Errorf("Plugin config id differs")
+	return nil
 }
 
 func TestPluginRunState(t *testing.T) {
@@ -68,18 +64,21 @@ func TestNewPlugin(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	// Check no type given
-	_, err := NewPlugin(NewNestedPluginConfig("", tcontainer.NewMarshalMap()))
+	config, _ := NewNestedPluginConfig("", tcontainer.NewMarshalMap())
+	_, err := NewPlugin(config)
 	expect.NotNil(err) // No type used
 
 	// Check inavlid type given
 	type notPlugin struct {
 	}
 	TypeRegistry.Register(notPlugin{})
-	_, err = NewPlugin(NewNestedPluginConfig("core.notPlugin", tcontainer.NewMarshalMap()))
+
+	config, _ = NewNestedPluginConfig("core.notPlugin", tcontainer.NewMarshalMap())
+	_, err = NewPlugin(config)
 	expect.NotNil(err)
 
 	// Check valid type and config
 	TypeRegistry.Register(mockPlugin{})
-	_, err = NewPlugin(NewPluginConfig("", "mockPlugin"))
+	_, err = NewPlugin(NewPluginConfig("mockPluginConfig", "core.mockPlugin"))
 	expect.NoError(err)
 }

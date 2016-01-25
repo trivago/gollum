@@ -18,14 +18,10 @@ import (
 	"github.com/trivago/gollum/core"
 	_ "github.com/trivago/gollum/filter"
 	_ "github.com/trivago/gollum/format"
-	"reflect"
 	"testing"
 )
 
 func TestProducerInterface(t *testing.T) {
-	conf := core.NewPluginConfig(reflect.TypeOf(t).Name())
-
-	conf.Stream = []string{"test"}
 	producers := core.TypeRegistry.GetRegistered("producer.")
 
 	if len(producers) == 0 {
@@ -33,7 +29,8 @@ func TestProducerInterface(t *testing.T) {
 	}
 
 	for _, name := range producers {
-		_, err := core.NewPluginWithType(name, conf)
+		conf := core.NewPluginConfig("", name)
+		_, err := core.NewPlugin(conf)
 		if err != nil {
 			t.Errorf("Failed to create producer %s: %s", name, err.Error())
 		}

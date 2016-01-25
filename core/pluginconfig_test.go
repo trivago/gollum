@@ -34,12 +34,14 @@ func TestPluginConfigValidate(t *testing.T) {
 	mockPluginCfg.Override("number", 1)
 
 	// access one field
-	sValue := mockPluginCfg.GetString("stringKey", "")
+	sValue, err := mockPluginCfg.GetString("stringKey", "")
+	expect.NoError(err)
 	expect.Equal(sValue, "value")
-	expect.False(mockPluginCfg.Validate())
+	expect.True(mockPluginCfg.Validate())
 
 	// access second one
-	iValue := mockPluginCfg.GetInt("number", 0)
+	iValue, err := mockPluginCfg.GetInt("number", 0)
+	expect.NoError(err)
 	expect.Equal(iValue, 1)
 	expect.True(mockPluginCfg.Validate())
 }
@@ -52,13 +54,15 @@ func TestPluginConfigValidate(t *testing.T) {
 //  Check if they are actually added, if they are, assert the key-value correctness
 func TestPluginConfigRead(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	mockPluginCfg := NewPluginConfig("", "mockPlugin")
+	mockPluginCfg := NewPluginConfig("", "core.mockPlugin")
 
 	// create a mock MarshalMap
 	testMarshalMap := tcontainer.NewMarshalMap()
-	testMarshalMap["instances"] = 0
+	testMarshalMap["Instances"] = 0
 
-	mockPluginCfg.Read(testMarshalMap)
+	err := mockPluginCfg.Read(testMarshalMap)
+	expect.NoError(err)
+
 	// with 0 instance, plugin should be disabled
 	expect.False(mockPluginCfg.Enable)
 
@@ -76,8 +80,13 @@ func TestPluginConfigRead(t *testing.T) {
 	expect.Equal(mockPluginCfg.Instances, 2)
 
 	// check for the miscelleneous settings key added
-	expect.Equal(mockPluginCfg.GetString("host", ""), "someHost")
-	expect.Equal(mockPluginCfg.GetString("database", ""), "someDatabase")
+	host, err := mockPluginCfg.GetString("host", "")
+	expect.NoError(err)
+	expect.Equal(host, "someHost")
+
+	db, err := mockPluginCfg.GetString("database", "")
+	expect.NoError(err)
+	expect.Equal(db, "someDatabase")
 }
 
 // Function checks if predefined value exists or not
@@ -113,13 +122,17 @@ func TestPluginConfigOverride(t *testing.T) {
 
 	// TODO: maybe check for the validate here. Since the value is already checked
 
-	expect.Equal(mockPluginCfg.GetString("akey", ""), "aValue")
+	value, err := mockPluginCfg.GetString("akey", "")
+	expect.NoError(err)
+	expect.Equal(value, "aValue")
 
 	// override
 	mockPluginCfg.Override("akey", "newValue")
 
 	//check for new value
-	expect.Equal(mockPluginCfg.GetString("akey", ""), "newValue")
+	value, err = mockPluginCfg.GetString("akey", "")
+	expect.NoError(err)
+	expect.Equal(value, "newValue")
 
 	// TODO: another test with marshalMap
 }
@@ -136,10 +149,14 @@ func TestPluginConfigGetString(t *testing.T) {
 	mockPluginCfg := NewPluginConfig("", "mockPlugin")
 
 	//check for non-existant key
-	expect.Equal(mockPluginCfg.GetString("akey", "default"), "default")
+	value, err := mockPluginCfg.GetString("akey", "default")
+	expect.NoError(err)
+	expect.Equal(value, "default")
 
 	mockPluginCfg.Override("aKey", "aValue")
-	expect.Equal(mockPluginCfg.GetString("akey", "default"), "aValue")
+	value, err = mockPluginCfg.GetString("akey", "default")
+	expect.NoError(err)
+	expect.Equal(value, "aValue")
 }
 
 // Function gets the string array for a key or default value if non existant
@@ -151,11 +168,15 @@ func TestPluginConfigGetStringArray(t *testing.T) {
 	mockStringArray := []string{"el1", "el2", "el3"}
 
 	// default value is returned
-	expect.Equal(len(mockPluginCfg.GetStringArray("arrkey", []string{})), 0)
+	value, err := mockPluginCfg.GetStringArray("arrkey", []string{})
+	expect.NoError(err)
+	expect.Equal(len(value), 0)
 
 	mockPluginCfg.Override("arrKey", mockStringArray)
 	//since expect.Equal is doing reflect.deepValueEqual, arrays should be properly compared
-	expect.Equal(mockPluginCfg.GetStringArray("arrkey", []string{}), mockStringArray)
+	value, err = mockPluginCfg.GetStringArray("arrkey", []string{})
+	expect.NoError(err)
+	expect.Equal(value, mockStringArray)
 
 }
 
@@ -171,10 +192,15 @@ func TestPluginConfigGetStringMap(t *testing.T) {
 		"k3": "v3",
 	}
 
-	expect.Equal(len(mockPluginCfg.GetStringMap("strmapkey", map[string]string{})), 0)
+	value, err := mockPluginCfg.GetStringMap("strmapkey", map[string]string{})
+	expect.NoError(err)
+	expect.Equal(len(value), 0)
 
 	mockPluginCfg.Override("strmapkey", mockStringMap)
-	expect.Equal(mockPluginCfg.GetStringMap("strmapkey", map[string]string{}), mockStringMap)
+
+	value, err = mockPluginCfg.GetStringMap("strmapkey", map[string]string{})
+	expect.NoError(err)
+	expect.Equal(value, mockStringMap)
 }
 
 // Function gets an array of MessageStreamID for a given key
@@ -197,11 +223,15 @@ func TestPluginConfigGetStreamArray(t *testing.T) {
 		GetStreamID("stream2"),
 	}
 
-	expect.Equal(len(mockPluginCfg.GetStreamArray("mockstream", []MessageStreamID{})), 0)
+	value, err := mockPluginCfg.GetStreamArray("mockstream", []MessageStreamID{})
+	expect.NoError(err)
+	expect.Equal(len(value), 0)
 
 	mockPluginCfg.Override("mockstream", mockStreamArray)
-	expect.Equal(mockPluginCfg.GetStreamArray("mockstream", []MessageStreamID{}), mockStreamHashed)
 
+	value, err = mockPluginCfg.GetStreamArray("mockstream", []MessageStreamID{})
+	expect.NoError(err)
+	expect.Equal(value, mockStreamHashed)
 }
 
 // Function gets a streamMap where key is a streamID and value is a a string
@@ -241,16 +271,25 @@ func TestPluginConfigGetStreamMap(t *testing.T) {
 	}
 
 	// should be empty because default value is empty, wildcard returned and the key doesn't exist
-	expect.Equal(mockPluginCfg.GetStreamMap("streammap", ""), map[MessageStreamID]string{})
+	value, err := mockPluginCfg.GetStreamMap("streammap", "")
+	expect.NoError(err)
+	expect.Equal(value, map[MessageStreamID]string{})
 
 	// should return wildcard stream when default value not empty and the key doesn't exist
-	expect.Equal(mockPluginCfg.GetStreamMap("streammap", defaultValue), expectedMapOnlyWildCard)
+	value, err = mockPluginCfg.GetStreamMap("streammap", defaultValue)
+	expect.NoError(err)
+	expect.Equal(value, expectedMapOnlyWildCard)
 
 	mockPluginCfg.Override("streammap", mockStringMap)
 	// without default value, hashed map without wildcard should be returned
-	expect.Equal(mockPluginCfg.GetStreamMap("streammap", ""), expectedMapWithoutWildcard)
+	value, err = mockPluginCfg.GetStreamMap("streammap", "")
+	expect.NoError(err)
+	expect.Equal(value, expectedMapWithoutWildcard)
+
 	// with default value, hashed map with wildcard should be returned
-	expect.Equal(mockPluginCfg.GetStreamMap("streammap", defaultValue), expectedMapWithWildcard)
+	value, err = mockPluginCfg.GetStreamMap("streammap", defaultValue)
+	expect.NoError(err)
+	expect.Equal(value, expectedMapWithWildcard)
 
 }
 
@@ -270,9 +309,14 @@ func TestPluginConfigGetStreamRoutes(t *testing.T) {
 		GetStreamID("k2"): []MessageStreamID{GetStreamID("v2"), GetStreamID("v3")},
 	}
 
-	expect.Equal(mockPluginCfg.GetStreamRoutes("routes"), map[MessageStreamID][]MessageStreamID{})
+	value, err := mockPluginCfg.GetStreamRoutes("routes")
+	expect.NoError(err)
+	expect.Equal(value, map[MessageStreamID][]MessageStreamID{})
+
 	mockPluginCfg.Override("routes", mockStreamRoute)
-	expect.Equal(mockPluginCfg.GetStreamRoutes("routes"), expectedMockStreamRoute)
+	value, err = mockPluginCfg.GetStreamRoutes("routes")
+	expect.NoError(err)
+	expect.Equal(value, expectedMockStreamRoute)
 }
 
 // Function gets an int value for a key or default value if non-existant
@@ -284,9 +328,14 @@ func TestPluginConfigGetInt(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockPluginCfg := NewPluginConfig("", "mockPlugin")
 
-	expect.Equal(mockPluginCfg.GetInt("intkey", 0), 0)
+	value, err := mockPluginCfg.GetInt("intkey", 0)
+	expect.NoError(err)
+	expect.Equal(value, 0)
+
 	mockPluginCfg.Override("intkey", 2)
-	expect.Equal(mockPluginCfg.GetInt("intkey", 0), 2)
+	value, err = mockPluginCfg.GetInt("intkey", 0)
+	expect.NoError(err)
+	expect.Equal(value, 2)
 }
 
 // Function gets an bool value for a key or default if non-existant
@@ -295,9 +344,14 @@ func TestPluginConfigGetBool(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockPluginCfg := NewPluginConfig("", "mockPlugin")
 
-	expect.Equal(mockPluginCfg.GetBool("boolkey", false), false)
+	value, err := mockPluginCfg.GetBool("boolkey", false)
+	expect.NoError(err)
+	expect.Equal(value, false)
+
 	mockPluginCfg.Override("boolkey", true)
-	expect.Equal(mockPluginCfg.GetBool("boolkey", false), true)
+	value, err = mockPluginCfg.GetBool("boolkey", false)
+	expect.NoError(err)
+	expect.Equal(value, true)
 }
 
 // Function gets a value for a key which is neither int or bool. Value encapsulated by interface
@@ -353,7 +407,7 @@ func TestPluginConfigGetValue(t *testing.T) {
 
 func TestPluginConfigGetPlugin(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	mockPluginCfg := NewPluginConfig("", "mockPlugin")
+	mockPluginCfg := NewPluginConfig("mockPluginConfig", "core.mockPlugin")
 
 	_, err := mockPluginCfg.GetPlugin("pluginkey", "", tcontainer.NewMarshalMap())
 	expect.NotNil(err)

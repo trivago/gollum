@@ -16,12 +16,10 @@ package consumer
 
 import (
 	"github.com/trivago/gollum/core"
-	"reflect"
 	"testing"
 )
 
 func TestConsumerInterface(t *testing.T) {
-	conf := core.NewPluginConfig(reflect.TypeOf(t).Name())
 	consumers := core.TypeRegistry.GetRegistered("consumer.")
 
 	if len(consumers) == 0 {
@@ -29,7 +27,8 @@ func TestConsumerInterface(t *testing.T) {
 	}
 
 	for _, name := range consumers {
-		_, err := core.NewPluginWithType(name, conf)
+		conf := core.NewPluginConfig("", name)
+		_, err := core.NewPlugin(conf)
 		if err != nil {
 			t.Errorf("Failed to create consumer %s: %s", name, err.Error())
 		}

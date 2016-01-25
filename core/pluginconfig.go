@@ -16,6 +16,7 @@ package core
 
 import (
 	"fmt"
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/tlog"
 	"strings"
@@ -81,39 +82,35 @@ func (conf PluginConfig) Validate() bool {
 // for each plugin. All non-default values are written to the Settings member.
 // All keys will be converted to lowercase.
 func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
+	errors := tgo.NewErrorStack()
 	for key, settingValue := range values {
 		lowerCaseKey := strings.ToLower(key)
 
-		var err error
 		switch lowerCaseKey {
 		case "type":
-			conf.Typename, err = values.String("type")
+			conf.Typename = errors.Str(values.String(key))
 
 		case "enable":
-			conf.Enable, err = values.Bool("enable")
+			conf.Enable = errors.Bool(values.Bool(key))
 
 		case "instances":
-			conf.Instances, err = values.Int("instances")
+			conf.Instances = errors.Int(values.Int(key))
 
 		default:
 			conf.Settings[lowerCaseKey] = settingValue
-		}
-
-		if err != nil {
-			return err // ### return, conversion error ###
 		}
 	}
 
 	// Sanity checks and informal messages
 	if conf.Typename == "" {
-		return fmt.Errorf("Plugin %s does not define a type", conf.ID)
+		errors.Pushf("Plugin %s does not define a type", conf.ID)
 	}
 
 	if !TypeRegistry.IsTypeRegistered(conf.Typename) {
-		return fmt.Errorf("Plugin %s is using an unkown type %s", conf.ID, conf.Typename)
+		errors.Pushf("Plugin %s is using an unkown type %s", conf.ID, conf.Typename)
 	}
 
-	if conf.Instances == 0 {
+	if conf.Instances <= 0 {
 		conf.Enable = false
 		tlog.Warning.Printf("Plugin %s has been disabled (0 instances)", conf.ID)
 	}
@@ -122,7 +119,7 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
 		tlog.Note.Printf("Plugin %s has been disabled", conf.ID)
 	}
 
-	return nil
+	return errors.ErrorOrNil()
 }
 
 // HasValue returns true if the given key has been set as a config option.
