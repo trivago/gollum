@@ -1,6 +1,9 @@
 {
 	"ImportPath": "github.com/trivago/gollum",
 	"GoVersion": "go1.5",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/araddon/gou",
@@ -21,11 +24,6 @@
 		{
 			"ImportPath": "github.com/bitly/go-hostpool",
 			"Rev": "d0e59c22a56e8dadfed24f74f452cea5a52722d2"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/pkg/homedir",
-			"Comment": "v1.4.1-7418-g05a4cb2",
-			"Rev": "05a4cb22211063adbe68f63b61a19e39ebda8302"
 		},
 		{
 			"ImportPath": "github.com/eapache/go-resiliency/breaker",
@@ -63,14 +61,13 @@
 			"Rev": "fbfcc463715f6206524a6b1fcc8ed1b9e7567ba5"
 		},
 		{
-			"ImportPath": "github.com/opencontainers/runc/libcontainer/user",
-			"Comment": "v0.0.4-157-g83d7331",
-			"Rev": "83d7331acc55222717ea24d294ad891dc6a1a3e9"
-		},
-		{
 			"ImportPath": "github.com/shopify/sarama",
 			"Comment": "v1.7.0-9-gbb163bf",
 			"Rev": "bb163bfb128eff45c8770a6eaa5930940ac5b71c"
+		},
+		{
+			"ImportPath": "github.com/trivago/tgo",
+			"Rev": "6870feec549b2e7e07021a97358aea443a3145e4"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
@@ -85,11 +82,6 @@
 			"ImportPath": "gopkg.in/bufio.v1",
 			"Comment": "v1",
 			"Rev": "567b2bfa514e796916c4747494d6ff5132a1dfce"
-		},
-		{
-			"ImportPath": "gopkg.in/docker/docker.v1/pkg/mflag",
-			"Comment": "v1.8.3",
-			"Rev": "f4bf5c7026816785d9f63c07e87f9450a49f2403"
 		},
 		{
 			"ImportPath": "gopkg.in/mcuadros/go-syslog.v2",

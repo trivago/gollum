@@ -73,6 +73,14 @@ func (registry TypeRegistry) GetTypeOf(typeName string) reflect.Type {
 	return nil
 }
 
+// IsTypeRegistered returns true if a type is registered to this registry.
+// Note that GetTypeOf can do the same thing by checking for nil but also
+// returns the type, so in many cases you will want to call this function.
+func (registry TypeRegistry) IsTypeRegistered(typeName string) bool {
+	_, exists := registry.namedType[typeName]
+	return exists
+}
+
 // GetRegistered returns the names of all registered types for a given package
 func (registry TypeRegistry) GetRegistered(packageName string) []string {
 	var result []string

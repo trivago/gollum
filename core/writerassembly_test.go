@@ -16,6 +16,7 @@ package core
 
 import (
 	"errors"
+	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/ttesting"
 	"testing"
 )
@@ -54,6 +55,7 @@ func TestWriterAssemblySetValidator(t *testing.T) {
 func TestWriterAssemblySetErrorHandler(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockIo := mockIoWrite{expect}
+	tlog.CacheWrites()
 	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, mockFormatFunc)
 	handler := func(e error) bool {
 		if e.Error() == "abc" {

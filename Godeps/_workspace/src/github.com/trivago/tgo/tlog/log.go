@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 )
 
 // Verbosity defines an enumeration for log verbosity
@@ -36,7 +37,7 @@ const (
 
 var (
 	// Error is a predefined log channel for errors. This log is backed by consumer.Log
-	Error = log.New(logDisabled, "", 0)
+	Error = log.New(logDisabled, "", log.Lshortfile)
 
 	// Warning is a predefined log channel for warnings. This log is backed by consumer.Log
 	Warning = log.New(logDisabled, "", 0)
@@ -49,7 +50,7 @@ var (
 )
 
 var (
-	logEnabled  = logReferrer{new(logCache)}
+	logEnabled  = logReferrer{os.Stderr}
 	logDisabled = logNull{}
 )
 
@@ -102,11 +103,18 @@ func SetVerbosity(loglevel Verbosity) {
 		fallthrough
 
 	case VerbosityWarning:
-		Warning = log.New(&logEnabled, "Warning: ", log.Lshortfile)
+		Warning = log.New(&logEnabled, "Warning: ", 0)
 		fallthrough
 
 	case VerbosityError:
 		Error = log.New(&logEnabled, "ERROR: ", log.Lshortfile)
+	}
+}
+
+// CacheWrites will force all logs to be cached until another writer is set
+func CacheWrites() {
+	if _, isCache := logEnabled.writer.(*logCache); !isCache {
+		logEnabled.writer = new(logCache)
 	}
 }
 

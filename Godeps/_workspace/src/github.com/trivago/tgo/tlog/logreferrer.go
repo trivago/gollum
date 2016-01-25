@@ -32,18 +32,17 @@ func (log logReferrer) Write(message []byte) (int, error) {
 		return 0, nil
 	}
 
-	message = bytes.TrimRight(message, "\r\n\t ")
-
+	logMessage := bytes.TrimRight(message, "\r\n\t ")
 	switch {
 	case log.writer == nil:
-		fmt.Println(string(message))
+		fmt.Println(string(logMessage))
 		return length, nil
 
 	case log.writer == os.Stdout || log.writer == os.Stderr:
-		fmt.Fprintln(log.writer, message)
+		fmt.Fprintln(log.writer, string(logMessage))
 		return length, nil
 
 	default:
-		return log.writer.Write(message)
+		return log.writer.Write(logMessage)
 	}
 }

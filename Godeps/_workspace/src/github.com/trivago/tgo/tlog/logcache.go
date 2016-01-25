@@ -29,11 +29,12 @@ func (log *logCache) Write(message []byte) (int, error) {
 	log.flushing.Lock()
 	defer log.flushing.Unlock()
 
-	length := len(message)
-	if length > 0 {
-		log.messages = append(log.messages, message)
+	if len(message) > 0 {
+		messageCopy := make([]byte, len(message))
+		copy(messageCopy, message)
+		log.messages = append(log.messages, messageCopy)
 	}
-	return length, nil
+	return len(message), nil
 }
 
 // Flush writes all messages to the given writer and clears the list

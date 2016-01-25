@@ -13,6 +13,11 @@ import (
 // map.
 type MarshalMap map[string]interface{}
 
+const (
+	// MarshalMapSeparator defines the separator used for nested keys
+	MarshalMapSeparator = "/"
+)
+
 // NewMarshalMap creates a new marshal map (string -> interface{})
 func NewMarshalMap() MarshalMap {
 	return make(map[string]interface{})
@@ -20,7 +25,7 @@ func NewMarshalMap() MarshalMap {
 
 // Bool returns a value at key that is expected to be a boolean
 func (mmap MarshalMap) Bool(key string) (bool, error) {
-	val, exists := mmap[key]
+	val, exists := mmap.Value(key)
 	if !exists {
 		return false, fmt.Errorf(`"%s" is not set`, key)
 	}
@@ -34,7 +39,7 @@ func (mmap MarshalMap) Bool(key string) (bool, error) {
 
 // Int returns a value at key that is expected to be an int
 func (mmap MarshalMap) Int(key string) (int, error) {
-	val, exists := mmap[key]
+	val, exists := mmap.Value(key)
 	if !exists {
 		return 0, fmt.Errorf(`"%s" is not set`, key)
 	}
@@ -48,7 +53,7 @@ func (mmap MarshalMap) Int(key string) (int, error) {
 
 // Uint64 returns a value at key that is expected to be an uint64
 func (mmap MarshalMap) Uint64(key string) (uint64, error) {
-	val, exists := mmap[key]
+	val, exists := mmap.Value(key)
 	if !exists {
 		return 0, fmt.Errorf(`"%s" is not set`, key)
 	}
@@ -62,7 +67,7 @@ func (mmap MarshalMap) Uint64(key string) (uint64, error) {
 
 // Int64 returns a value at key that is expected to be an int64
 func (mmap MarshalMap) Int64(key string) (int64, error) {
-	val, exists := mmap[key]
+	val, exists := mmap.Value(key)
 	if !exists {
 		return 0, fmt.Errorf(`"%s" is not set`, key)
 	}
@@ -76,7 +81,7 @@ func (mmap MarshalMap) Int64(key string) (int64, error) {
 
 // Float64 returns a value at key that is expected to be a float64
 func (mmap MarshalMap) Float64(key string) (float64, error) {
-	val, exists := mmap[key]
+	val, exists := mmap.Value(key)
 	if !exists {
 		return 0, fmt.Errorf(`"%s" is not set`, key)
 	}
@@ -90,7 +95,7 @@ func (mmap MarshalMap) Float64(key string) (float64, error) {
 
 // Array returns a value at key that is expected to be a string
 func (mmap MarshalMap) String(key string) (string, error) {
-	val, exists := mmap[key]
+	val, exists := mmap.Value(key)
 	if !exists {
 		return "", fmt.Errorf(`"%s" is not set`, key)
 	}
@@ -104,7 +109,7 @@ func (mmap MarshalMap) String(key string) (string, error) {
 
 // Array returns a value at key that is expected to be a []interface{}
 func (mmap MarshalMap) Array(key string) ([]interface{}, error) {
-	val, exists := mmap[key]
+	val, exists := mmap.Value(key)
 	if !exists {
 		return nil, fmt.Errorf(`"%s" is not set`, key)
 	}
@@ -114,6 +119,21 @@ func (mmap MarshalMap) Array(key string) ([]interface{}, error) {
 		return nil, fmt.Errorf(`"%s" is expected to be an array`, key)
 	}
 	return arrayValue, nil
+}
+
+// Map returns a value at key that is expected to be a
+// map[interface{}]interface{}.
+func (mmap MarshalMap) Map(key string) (map[interface{}]interface{}, error) {
+	val, exists := mmap.Value(key)
+	if !exists {
+		return nil, fmt.Errorf(`"%s" is not set`, key)
+	}
+
+	mapValue, isMap := val.(map[interface{}]interface{})
+	if !isMap {
+		return nil, fmt.Errorf(`"%s" is expected to be a map`, key)
+	}
+	return mapValue, nil
 }
 
 func castToStringArray(key string, value interface{}) ([]string, error) {
@@ -146,7 +166,7 @@ func castToStringArray(key string, value interface{}) ([]string, error) {
 // This function supports conversion (by copy) from
 //  * []interface{}
 func (mmap MarshalMap) StringArray(key string) ([]string, error) {
-	val, exists := mmap[key]
+	val, exists := mmap.Value(key)
 	if !exists {
 		return nil, fmt.Errorf(`"%s" is not set`, key)
 	}
@@ -154,27 +174,12 @@ func (mmap MarshalMap) StringArray(key string) ([]string, error) {
 	return castToStringArray(key, val)
 }
 
-// Map returns a value at key that is expected to be a
-// map[interface{}]interface{}.
-func (mmap MarshalMap) Map(key string) (map[interface{}]interface{}, error) {
-	val, exists := mmap[key]
-	if !exists {
-		return nil, fmt.Errorf(`"%s" is not set`, key)
-	}
-
-	mapValue, isMap := val.(map[interface{}]interface{})
-	if !isMap {
-		return nil, fmt.Errorf(`"%s" is expected to be a map`, key)
-	}
-	return mapValue, nil
-}
-
 // StringMap returns a value at key that is expected to be a map[string]string.
 // This function supports conversion (by copy) from
 //  * map[interface{}]interface{}
 //  * map[string]interface{}
 func (mmap MarshalMap) StringMap(key string) (map[string]string, error) {
-	val, exists := mmap[key]
+	val, exists := mmap.Value(key)
 	if !exists {
 		return nil, fmt.Errorf(`"%s" is not set`, key)
 	}
@@ -224,7 +229,7 @@ func (mmap MarshalMap) StringMap(key string) (map[string]string, error) {
 //  * map[interface{}]interface{}
 //  * map[string]interface{}
 func (mmap MarshalMap) StringArrayMap(key string) (map[string][]string, error) {
-	val, exists := mmap[key]
+	val, exists := mmap.Value(key)
 	if !exists {
 		return nil, fmt.Errorf(`"%s" is not set`, key)
 	}
@@ -289,7 +294,7 @@ func (mmap MarshalMap) StringArrayMap(key string) (map[string][]string, error) {
 // This function supports conversion (by copy) from
 //  * map[interface{}]interface{}
 func (mmap MarshalMap) MarshalMap(key string) (MarshalMap, error) {
-	val, exists := mmap[key]
+	val, exists := mmap.Value(key)
 	if !exists {
 		return nil, fmt.Errorf(`"%s" is not set`, key)
 	}
@@ -319,7 +324,7 @@ func (mmap MarshalMap) MarshalMap(key string) (MarshalMap, error) {
 	}
 }
 
-// Path returns a value from a given value path.
+// Value returns a value from a given value path.
 // Fields can be accessed by their name. Nested fields can be accessed by using
 // "/" as a separator. Arrays can be addressed using the standard array
 // notation "[<index>]".
@@ -328,14 +333,14 @@ func (mmap MarshalMap) MarshalMap(key string) (MarshalMap, error) {
 // "key1/key2"   -> mmap["key1"]["key2"]     nested map
 // "key1[0]"     -> mmap["key1"][0]          nested array
 // "key1[0]key2" -> mmap["key1"][0]["key2"]  nested array, nested map
-func (mmap MarshalMap) Path(key string) (interface{}, bool) {
+func (mmap MarshalMap) Value(key string) (interface{}, bool) {
 	return mmap.resolvePath(key, mmap)
 }
 
 func (mmap MarshalMap) resolvePathKey(key string) (int, int) {
 	keyEnd := len(key)
 	nextKeyStart := keyEnd
-	pathIdx := strings.Index(key, "/")
+	pathIdx := strings.Index(key, MarshalMapSeparator)
 	arrayIdx := strings.Index(key, "[")
 
 	if pathIdx > -1 && pathIdx < keyEnd {
@@ -365,6 +370,10 @@ func (mmap MarshalMap) resolvePath(key string, value interface{}) (interface{}, 
 		startIdx := strings.Index(key, "[") + 1 // Must be first char, otherwise malformed
 		endIdx := strings.Index(key, "]")       // Must be > startIdx, otherwise malformed
 
+		if startIdx == -1 || endIdx == -1 {
+			return nil, false
+		}
+
 		if startIdx == 1 && endIdx > startIdx {
 			arrayValue := value.([]interface{})
 			index, err := strconv.Atoi(key[startIdx:endIdx])
@@ -381,16 +390,24 @@ func (mmap MarshalMap) resolvePath(key string, value interface{}) (interface{}, 
 		}
 
 	case MarshalMap:
-		keyEnd, nextKeyStart := mmap.resolvePathKey(key)
 		mapValue := value.(MarshalMap)
+		if value, exists := mapValue[key]; exists {
+			return value, true
+		}
+
+		keyEnd, nextKeyStart := mmap.resolvePathKey(key)
 		if value, exists := mapValue[key[:keyEnd]]; exists {
 			remain := key[nextKeyStart:]
 			return mmap.resolvePath(remain, value) // ### return, nested map ###
 		}
 
 	case map[string]interface{}:
-		keyEnd, nextKeyStart := mmap.resolvePathKey(key)
 		mapValue := value.(map[string]interface{})
+		if value, exists := mapValue[key]; exists {
+			return value, true
+		}
+
+		keyEnd, nextKeyStart := mmap.resolvePathKey(key)
 		if value, exists := mapValue[key[:keyEnd]]; exists {
 			remain := key[nextKeyStart:]
 			return mmap.resolvePath(remain, value) // ### return, nested map ###
