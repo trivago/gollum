@@ -55,7 +55,7 @@ func TestWriterAssemblySetValidator(t *testing.T) {
 func TestWriterAssemblySetErrorHandler(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockIo := mockIoWrite{expect}
-	tlog.CacheWrites()
+	tlog.SetCacheWriter()
 	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, mockFormatFunc)
 	handler := func(e error) bool {
 		if e.Error() == "abc" {
