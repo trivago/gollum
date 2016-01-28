@@ -21,16 +21,19 @@ import (
 
 func TestPluginRegistry(t *testing.T) {
 	expect := ttesting.NewExpect(t)
+	registered := len(PluginRegistry.plugins)
+
 	plugin, err := NewPlugin(NewPluginConfig("", "randomPlugin"))
 	expect.NotNil(err)
+	expect.Equal(registered, len(PluginRegistry.plugins))
 
 	// Test for Register
 	PluginRegistry.Register(plugin, "aPlugin")
-	expect.Equal(1, len(PluginRegistry.plugins))
+	expect.Equal(registered+1, len(PluginRegistry.plugins))
 
 	// Test for RegisterUnique
 	PluginRegistry.RegisterUnique(plugin, "aPlugin")
-	expect.Equal(1, len(PluginRegistry.plugins))
+	expect.Equal(registered+1, len(PluginRegistry.plugins))
 
 	// Test for GetPlugin
 	ret := PluginRegistry.GetPlugin("nonExistentPlugin")
