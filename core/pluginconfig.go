@@ -60,7 +60,36 @@ func NewNestedPluginConfig(defaultTypename string, values tcontainer.MarshalMap)
 // the lowercase key
 func (conf *PluginConfig) registerKey(key string) string {
 	lowerCaseKey := strings.ToLower(key)
-	conf.validKeys[lowerCaseKey] = true
+	if _, exists := conf.validKeys[lowerCaseKey]; exists {
+		return lowerCaseKey // ### return, already registered ###
+	}
+
+	// Remove array notation from path
+	path := lowerCaseKey
+	startIdx := strings.IndexRune(path, tcontainer.MarshalMapArrayBegin)
+	for startIdx > -1 {
+		if endIdx := strings.IndexRune(path[startIdx:], tcontainer.MarshalMapArrayEnd); endIdx > -1 {
+			path = path[0:startIdx] + path[startIdx+endIdx+1:]
+			startIdx = strings.IndexRune(path, tcontainer.MarshalMapArrayBegin)
+		} else {
+			startIdx = -1
+		}
+	}
+
+	if _, exists := conf.validKeys[path]; exists {
+		return lowerCaseKey // ### return, already registered (without array notation) ###
+	}
+
+	// Register all parts of the path
+	startIdx = strings.IndexRune(path, tcontainer.MarshalMapSeparator)
+	cutIdx := startIdx
+	for startIdx > -1 {
+		conf.validKeys[path[:cutIdx]] = true
+		startIdx = strings.IndexRune(path[startIdx+1:], tcontainer.MarshalMapSeparator)
+		cutIdx += startIdx
+	}
+
+	conf.validKeys[path] = true
 	return lowerCaseKey
 }
 
@@ -97,7 +126,17 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
 			conf.Instances = errors.Int(values.Int(key))
 
 		default:
-			conf.Settings[lowerCaseKey] = settingValue
+			// If the value is a marshalmap candidate -> convert it
+			switch settingValue.(type) {
+			case map[interface{}]interface{}, map[string]interface{}, tcontainer.MarshalMap:
+				mmap, err := tcontainer.ConvertToMarshalMap(settingValue, strings.ToLower)
+				if !errors.Push(err) {
+					conf.Settings[lowerCaseKey] = mmap
+				}
+
+			default:
+				conf.Settings[lowerCaseKey] = settingValue
+			}
 		}
 	}
 
@@ -126,7 +165,7 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
 // This function only takes non-predefined settings into account.
 func (conf PluginConfig) HasValue(key string) bool {
 	key = conf.registerKey(key)
-	_, exists := conf.Settings[key]
+	_, exists := conf.Settings.Value(key)
 	return exists
 }
 
@@ -253,14 +292,39 @@ func (conf PluginConfig) GetPluginArray(key string, defaultValue []Plugin) ([]Pl
 
 	pluginArray := make([]Plugin, 0, len(namedConfigs))
 
+	// Iterate over all entries in the array.
+	// An entry can either be a string or a string -> map[string]interface{}
 	for _, typedConfigInterface := range namedConfigs {
-		typedConfig, isMap := typedConfigInterface.(map[string]tcontainer.MarshalMap)
+		typedConfig, isMap := typedConfigInterface.(map[interface{}]interface{})
 		if !isMap {
-			return nil, fmt.Errorf("%s section is malformed", key)
+			typeNameStr, isString := typedConfigInterface.(string)
+			if !isString {
+				return nil, fmt.Errorf("%s section is malformed (entry does not contain a config)", key)
+			}
+
+			// Only string given, initialize with empty config
+			pluginConfig, _ := NewNestedPluginConfig(typeNameStr, tcontainer.NewMarshalMap())
+			plugin, err := NewPlugin(pluginConfig)
+			if err != nil {
+				return nil, err
+			}
+			pluginArray = append(pluginArray, plugin)
 		}
 
+		// string -> map[string]interface{}
+		// This is actually a map with just one entry
 		for typename, config := range typedConfig {
-			pluginConfig, err := NewNestedPluginConfig(typename, config)
+			typeNameStr, isString := typename.(string)
+			if !isString {
+				return nil, fmt.Errorf("%s section is malformed (entry is not type:config)", key)
+			}
+
+			configMap, err := tcontainer.ConvertToMarshalMap(config, nil)
+			if err != nil {
+				return nil, fmt.Errorf("%s section is malformed (config for %s is not a map but %T)", key, typeNameStr, config)
+			}
+
+			pluginConfig, err := NewNestedPluginConfig(typeNameStr, configMap)
 			plugin, err := NewPlugin(pluginConfig)
 			if err != nil {
 				return pluginArray, err

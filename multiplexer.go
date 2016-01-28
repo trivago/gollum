@@ -125,13 +125,18 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 			continue // ### continue, disabled ###
 		}
 
-		tlog.Debug.Print("Loading ", config.Typename)
+		if config.Typename == "" {
+			tlog.Error.Printf("Failed to load plugin %s. Type not set", config.ID)
+			continue // ### continue ###
+		}
 
 		pluginType := core.TypeRegistry.GetTypeOf(config.Typename)
 		if pluginType == nil {
-			tlog.Error.Print("Failed to load plugin ", config.Typename, ": Type not found")
+			tlog.Error.Printf("Failed to load plugin %s. Type %s not found", config.ID, config.Typename)
 			continue // ### continue ###
 		}
+
+		tlog.Debug.Print("Loading plugin ", config.ID)
 
 		validPlugin := false
 		if pluginType.Implements(consumerInterface) {
@@ -346,6 +351,7 @@ func (plex *multiplexer) shutdown() {
 // Run the multiplexer.
 // Fetch messags from the consumers and pass them to all producers.
 func (plex multiplexer) run() {
+	// Log consumer is always active
 	if len(plex.consumers) == 0 {
 		tlog.Error.Print("No consumers configured.")
 		tlog.SetWriter(os.Stdout)

@@ -180,19 +180,19 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	prod.fileExt = filepath.Ext(logFile)
 	prod.fileName = filepath.Base(logFile)
 	prod.fileName = prod.fileName[:len(prod.fileName)-len(prod.fileExt)]
-	prod.timestamp = errors.String(conf.GetString("RotateTimestamp", "2006-01-02_15"))
 	prod.flushTimeout = time.Duration(errors.Int(conf.GetInt("FlushTimeoutSec", 5))) * time.Second
 
-	prod.rotate.enabled = errors.Bool(conf.GetBool("Rotate", false))
-	prod.rotate.timeout = time.Duration(errors.Int(conf.GetInt("RotateTimeoutMin", 1440))) * time.Minute
-	prod.rotate.sizeByte = int64(errors.Int(conf.GetInt("RotateSizeMB", 1024))) << 20
+	prod.timestamp = errors.String(conf.GetString("Rotation/Timestamp", "2006-01-02_15"))
+	prod.rotate.enabled = errors.Bool(conf.GetBool("Rotation/Enable", false))
+	prod.rotate.timeout = time.Duration(errors.Int(conf.GetInt("Rotation/TimeoutMin", 1440))) * time.Minute
+	prod.rotate.sizeByte = int64(errors.Int(conf.GetInt("Rotation/SizeMB", 1024))) << 20
 	prod.rotate.atHour = -1
 	prod.rotate.atMinute = -1
-	prod.rotate.compress = errors.Bool(conf.GetBool("Compress", false))
-	prod.rotate.zeroPad = errors.Int(conf.GetInt("RotateZeroPadding", 0))
+	prod.rotate.compress = errors.Bool(conf.GetBool("Rotation/Compress", false))
+	prod.rotate.zeroPad = errors.Int(conf.GetInt("Rotation/ZeroPadding", 0))
 
-	prod.pruneCount = errors.Int(conf.GetInt("RotatePruneCount", 0))
-	prod.pruneSize = int64(errors.Int(conf.GetInt("RotatePruneTotalSizeMB", 0))) << 20
+	prod.pruneCount = errors.Int(conf.GetInt("Rotation/PruneCount", 0))
+	prod.pruneSize = int64(errors.Int(conf.GetInt("Rotation/PruneTotalSizeMB", 0))) << 20
 
 	if prod.pruneSize > 0 && prod.rotate.sizeByte > 0 {
 		prod.pruneSize -= prod.rotate.sizeByte >> 20
@@ -202,7 +202,7 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 		}
 	}
 
-	rotateAt := errors.String(conf.GetString("RotateAt", ""))
+	rotateAt := errors.String(conf.GetString("Rotation/At", ""))
 	if rotateAt != "" {
 		parts := strings.Split(rotateAt, ":")
 		rotateAtHour, _ := strconv.ParseInt(parts[0], 10, 8)

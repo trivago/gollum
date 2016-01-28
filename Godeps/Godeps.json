@@ -57,6 +57,10 @@
 			"Rev": "bd9e895823b8d2159b9a3dcf8ef17498eb886769"
 		},
 		{
+			"ImportPath": "github.com/mgutz/ansi",
+			"Rev": "c286dcecd19ff979eeb73ea444e479b903f2cfcb"
+		},
+		{
 			"ImportPath": "github.com/miekg/pcap",
 			"Rev": "fbfcc463715f6206524a6b1fcc8ed1b9e7567ba5"
 		},

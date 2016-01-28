@@ -167,6 +167,8 @@ func (cons *Profiler) profile() {
 		cons.templates[i] = cons.generateTemplate()
 	}
 
+	cons.Log.Debug.Printf("Started profiling with %d byte messages", len(cons.templates[0]))
+
 	testStart := time.Now()
 	minTime := math.MaxFloat64
 	maxTime := 0.0

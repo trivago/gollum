@@ -23,7 +23,7 @@ import (
 
 // Config represents the top level config containing all plugin clonfigs
 type Config struct {
-	Values  []map[string]tcontainer.MarshalMap
+	Values  map[string]tcontainer.MarshalMap
 	Plugins []PluginConfig
 }
 
@@ -52,15 +52,10 @@ func ReadConfig(path string) (*Config, error) {
 
 	// As there might be multiple instances of the same plugin class we iterate
 	// over an array here.
-	for _, pluginData := range config.Values {
-
-		// Each item in the array item is a map{class -> map{key -> value}}
-		// We "iterate" over the first map (one item only) to get the class.
-		for pluginID, pluginSettings := range pluginData {
-			plugin := NewPluginConfig(pluginID, "")
-			plugin.Read(pluginSettings)
-			config.Plugins = append(config.Plugins, plugin)
-		}
+	for pluginID, configValues := range config.Values {
+		pluginConfig := NewPluginConfig(pluginID, "")
+		pluginConfig.Read(configValues)
+		config.Plugins = append(config.Plugins, pluginConfig)
 	}
 
 	return config, err

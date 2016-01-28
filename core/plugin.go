@@ -158,14 +158,15 @@ func NewPlugin(config PluginConfig) (Plugin, error) {
 	}
 
 	err = plugin.Configure(config)
-
-	if err != nil {
+	if err == nil {
 		if config.ID != "" {
 			// If an id is set it must be unique
 			PluginRegistry.RegisterUnique(plugin, config.ID)
 		}
 		// Check for errors (log as warning)
-		config.Validate()
+		if config.Validate() {
+			//tlog.Debug.Printf("%#v", plugin)
+		}
 	}
 
 	return plugin, err
