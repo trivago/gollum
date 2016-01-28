@@ -234,6 +234,34 @@ func LogTracef(logLvl int, format string, v ...interface{}) {
 	}
 }
 
+// Log to logger if setup, grab a stack trace and add that as well
+//
+//    u.LogTracef(u.ERROR, "message %s", varx)
+//
+func LogTraceDf(logLvl, lineCt int, format string, v ...interface{}) {
+	if LogLevel >= logLvl {
+		// grab a stack trace
+		stackBuf := make([]byte, 6000)
+		stackBufLen := runtime.Stack(stackBuf, false)
+		stackTraceStr := string(stackBuf[0:stackBufLen])
+		parts := strings.Split(stackTraceStr, "\n")
+		if len(parts) > 1 {
+			if (len(parts) - 3) > lineCt {
+				parts = parts[3 : 3+lineCt]
+				parts2 := make([]string, 0, len(parts)/2)
+				for i := 1; i < len(parts); i = i + 2 {
+					parts2 = append(parts2, parts[i])
+				}
+				v = append(v, strings.Join(parts2, "\n"))
+				//v = append(v, strings.Join(parts[3:3+lineCt], "\n"))
+			} else {
+				v = append(v, strings.Join(parts[3:len(parts)], "\n"))
+			}
+		}
+		DoLog(3, logLvl, fmt.Sprintf(format+"\n%v", v...))
+	}
+}
+
 // Throttle logging based on key, such that key would never occur more than
 //   @limit times per hour
 //

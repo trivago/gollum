@@ -1,10 +1,13 @@
 {
 	"ImportPath": "github.com/trivago/gollum",
 	"GoVersion": "go1.5",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/araddon/gou",
-			"Rev": "0c2ab7394d785afff14c983fedce4be70ccc431f"
+			"Rev": "5e9110908156ae10fe90dd01d6c9fcbe058a6c9e"
 		},
 		{
 			"ImportPath": "github.com/artyom/fb303",
@@ -29,8 +32,8 @@
 		},
 		{
 			"ImportPath": "github.com/eapache/go-resiliency/breaker",
-			"Comment": "v1.0.0-3-gf341fb4",
-			"Rev": "f341fb4dca45128e4aa86389fa6a675d55fe25e1"
+			"Comment": "v1.0.0-4-gb86b1ec",
+			"Rev": "b86b1ec0dd4209a588dc1285cdd471e73525c0b3"
 		},
 		{
 			"ImportPath": "github.com/eapache/queue",
@@ -39,7 +42,7 @@
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
-			"Rev": "68415e7123da32b07eab49c96d2c4d6158360e9b"
+			"Rev": "6aaa8d47701fa6cf07e914ec01fde3d4a1fe79c3"
 		},
 		{
 			"ImportPath": "github.com/golang/snappy",
@@ -51,7 +54,7 @@
 		},
 		{
 			"ImportPath": "github.com/klauspost/crc32",
-			"Rev": "41b6596e004cf56ede13d98d16f50cf2742ab559"
+			"Rev": "999f3125931f6557b991b2f8472172bdfa578d38"
 		},
 		{
 			"ImportPath": "github.com/mattbaird/elastigo/lib",
@@ -69,12 +72,12 @@
 		},
 		{
 			"ImportPath": "github.com/shopify/sarama",
-			"Comment": "v1.7.0-9-gbb163bf",
-			"Rev": "bb163bfb128eff45c8770a6eaa5930940ac5b71c"
+			"Comment": "v1.7.0-23-gd37c73f",
+			"Rev": "d37c73f2b2bce85f7fa16b6a550d26c5372892ef"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
-			"Rev": "6c89489cafabcbc76df9dbf84ebf07204673fecf"
+			"Rev": "04b9de9b512f58addf28c9853d50ebef61c3953e"
 		},
 		{
 			"ImportPath": "gopkg.in/Shopify/sarama.v1",
