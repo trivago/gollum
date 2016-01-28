@@ -271,6 +271,8 @@ func (prod *Kafka) dropMessages(messages []core.Message) {
 
 func (prod *Kafka) transformMessages(messages []core.Message) {
 	defer func() { shared.Metric.Set(kafkaMetricMissCount, prod.missCount) }()
+	topicsBad := make(map[string]bool)
+
 	for _, msg := range messages {
 		originalMsg := msg
 		msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
@@ -300,20 +302,39 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 			prod.topic[msg.StreamID] = topic
 		}
 
-		producer.Input() <- &kafka.ProducerMessage{
+		retryCount := 0
+		kafkaMsg := kafka.ProducerMessage{
 			Topic:    topic,
 			Value:    kafka.ByteEncoder(msg.Data),
 			Metadata: originalMsg,
 		}
 
-		atomic.AddInt64(prod.counters[topic], 1)
-		prod.missCount++
+	retry:
+		select {
+		case producer.Input() <- &kafkaMsg:
+			atomic.AddInt64(prod.counters[topic], 1)
+			topicsBad[topic] = false
+			prod.missCount++
+
+		default:
+			if retryCount < 5 {
+				retryCount++
+				time.Sleep(time.Millisecond)
+				goto retry // ### goto, try again ###
+			}
+
+			// Sarama channels are definitely full -> drop
+			prod.Drop(msg)
+			if _, stateSet := topicsBad[topic]; !stateSet {
+				topicsBad[topic] = true
+			}
+		}
 	}
 
 	// Wait for errors to be returned
 	errors := make(map[string]bool)
-	topicsBad := make(map[string]bool)
 
+resultLoop:
 	for timeout := time.NewTimer(prod.config.Producer.Flush.Frequency); prod.missCount > 0; prod.missCount-- {
 		select {
 		case succ := <-prod.producer.Successes():
@@ -335,7 +356,7 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 
 		case <-timeout.C:
 			Log.Warning.Printf("Kafka flush timed out with %d messages left", prod.missCount)
-			break // ### break, took too long ###
+			break resultLoop // ### break, took too long ###
 		}
 	}
 
