@@ -229,6 +229,8 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 
 	tgo.Metric.New(kafkaMetricMissCount)
 	prod.SetCheckFuseCallback(prod.tryOpenConnection)
+
+	kafka.Logger = Log.Note
 	return errors.OrNil()
 }
 
@@ -272,6 +274,9 @@ func (prod *Kafka) dropMessages(messages []core.Message) {
 
 func (prod *Kafka) transformMessages(messages []core.Message) {
 	defer func() { tgo.Metric.Set(kafkaMetricMissCount, prod.missCount) }()
+	topicsBad := make(map[string]bool)
+	errors := make(map[string]bool)
+
 	for _, msg := range messages {
 		originalMsg := msg
 		msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
@@ -301,20 +306,34 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 			prod.topic[msg.StreamID] = topic
 		}
 
-		producer.Input() <- &kafka.ProducerMessage{
+		kafkaMsg := &kafka.ProducerMessage{
 			Topic:    topic,
 			Value:    kafka.ByteEncoder(msg.Data),
 			Metadata: originalMsg,
 		}
 
+		// Sarama can block on single messages if all buffers are full.
+		// So we stop trying after a few milliseconds
+		timeout := time.NewTimer(2 * time.Millisecond)
+		select {
+		case producer.Input() <- kafkaMsg:
+			// Message send, wait for result later
+			timeout.Stop()
 		atomic.AddInt64(prod.counters[topic], 1)
+			topicsBad[topic] = false
 		prod.missCount++
+
+		case <-timeout.C:
+			// Sarama channels are full -> drop
+			prod.Drop(originalMsg)
+			if _, stateSet := topicsBad[topic]; !stateSet {
+				topicsBad[topic] = true
+			}
+	}
 	}
 
 	// Wait for errors to be returned
-	errors := make(map[string]bool)
-	topicsBad := make(map[string]bool)
-
+resultLoop:
 	for timeout := time.NewTimer(prod.config.Producer.Flush.Frequency); prod.missCount > 0; prod.missCount-- {
 		select {
 		case succ := <-prod.producer.Successes():
@@ -335,11 +354,12 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 			}
 
 		case <-timeout.C:
-			prod.Log.Warning.Printf("Kafka flush timed out with %d messages left", prod.missCount)
-			break // ### break, took too long ###
+			Log.Warning.Printf("Kafka flush timed out with %d messages left", prod.missCount)
+			break resultLoop // ### break, took too long ###
 		}
 	}
 
+	// Check for a reconnect
 	if len(errors) > 0 {
 		allTopicsBad := true
 		for _, topicBad := range topicsBad {
