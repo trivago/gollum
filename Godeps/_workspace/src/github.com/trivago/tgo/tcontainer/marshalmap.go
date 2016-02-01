@@ -323,11 +323,24 @@ func (mmap MarshalMap) StringMap(key string) (map[string]string, error) {
 		}
 		return result, nil
 
+	case MarshalMap:
+		result := make(map[string]string)
+		interfaceMap, _ := val.(MarshalMap)
+
+		for key, value := range interfaceMap {
+			stringValue, isString := value.(string)
+			if !isString {
+				return nil, fmt.Errorf(`"%s" is expected to be a map[string]string. Value is not a string`, key)
+			}
+			result[key] = stringValue
+		}
+		return result, nil
+
 	case map[string]string:
 		return val.(map[string]string), nil
 
 	default:
-		return nil, fmt.Errorf(`"%s" is expected to be a map[string]string`, key)
+		return nil, fmt.Errorf(`"%s" is expected to be a map[string]string but is %T`, key, val)
 	}
 }
 

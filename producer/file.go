@@ -42,15 +42,18 @@ import (
 //     BatchFlushCount: 4096
 //     BatchTimeoutSec: 5
 //     FlushTimeoutSec: 0
-//     Rotate: false
-//     RotateTimeoutMin: 1440
-//     RotateSizeMB: 1024
-//     RotateAt: ""
-//     RotateTimestamp: "2006-01-02_15"
-//     RotatePruneCount: 0
-//     RotatePruneAfterHours: 0
-//     RotatePruneTotalSizeMB: 0
-//     Compress: false
+//     Rotation:
+//        Enable: false
+//        TimeoutMin: 1440
+//        SizeMB: 1024
+//        At: ""
+//        Timestamp: "2006-01-02_15"
+//        ZeroPadding: 0
+//        Compress: false
+//     Prune:
+//        Count: 0
+//        AfterHours: 0
+//        TotalSizeMB: 0
 //
 // The file producer writes messages to a file. This producer also allows log
 // rotation and compression of the rotated logs. Folders in the file path will
@@ -191,8 +194,9 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	prod.rotate.compress = errors.Bool(conf.GetBool("Rotation/Compress", false))
 	prod.rotate.zeroPad = errors.Int(conf.GetInt("Rotation/ZeroPadding", 0))
 
-	prod.pruneCount = errors.Int(conf.GetInt("Rotation/PruneCount", 0))
-	prod.pruneSize = int64(errors.Int(conf.GetInt("Rotation/PruneTotalSizeMB", 0))) << 20
+	prod.pruneCount = errors.Int(conf.GetInt("Prune/Count", 0))
+	prod.pruneHours = errors.Int(conf.GetInt("Prune/AfterHours", 0))
+	prod.pruneSize = int64(errors.Int(conf.GetInt("Prune/TotalSizeMB", 0))) << 20
 
 	if prod.pruneSize > 0 && prod.rotate.sizeByte > 0 {
 		prod.pruneSize -= prod.rotate.sizeByte >> 20

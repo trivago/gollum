@@ -42,7 +42,7 @@ func init() {
 func (prod *Null) Configure(conf core.PluginConfig) error {
 	var err error
 	prod.control = make(chan core.PluginControl, 1)
-	prod.streams, err = conf.GetStreamArray("Streams", []core.MessageStreamID{core.GetStreamID("conf.ID")})
+	prod.streams, err = conf.GetStreamArray("Stream", []core.MessageStreamID{core.GetStreamID("conf.ID")})
 
 	return err
 }

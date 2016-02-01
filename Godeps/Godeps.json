@@ -71,7 +71,7 @@
 		},
 		{
 			"ImportPath": "github.com/trivago/tgo",
-			"Rev": "eea99d40b512104d511a79cbc07407bf9404b8fc"
+			"Rev": "2807b786139c4633f43ad9417fa062b99c108b40"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
