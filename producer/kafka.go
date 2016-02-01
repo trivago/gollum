@@ -230,7 +230,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	tgo.Metric.New(kafkaMetricMissCount)
 	prod.SetCheckFuseCallback(prod.tryOpenConnection)
 
-	kafka.Logger = Log.Note
+	kafka.Logger = prod.Log.Note
 	return errors.OrNil()
 }
 
@@ -319,9 +319,9 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 		case producer.Input() <- kafkaMsg:
 			// Message send, wait for result later
 			timeout.Stop()
-		atomic.AddInt64(prod.counters[topic], 1)
+			atomic.AddInt64(prod.counters[topic], 1)
 			topicsBad[topic] = false
-		prod.missCount++
+			prod.missCount++
 
 		case <-timeout.C:
 			// Sarama channels are full -> drop
@@ -329,7 +329,7 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 			if _, stateSet := topicsBad[topic]; !stateSet {
 				topicsBad[topic] = true
 			}
-	}
+		}
 	}
 
 	// Wait for errors to be returned
@@ -354,7 +354,7 @@ resultLoop:
 			}
 
 		case <-timeout.C:
-			Log.Warning.Printf("Kafka flush timed out with %d messages left", prod.missCount)
+			prod.Log.Warning.Printf("Kafka flush timed out with %d messages left", prod.missCount)
 			break resultLoop // ### break, took too long ###
 		}
 	}

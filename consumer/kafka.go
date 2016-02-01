@@ -185,7 +185,7 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 		}
 	}
 
-	kafka.Logger = Log.Note
+	kafka.Logger = cons.Log.Note
 	return errors.OrNil()
 }
 
