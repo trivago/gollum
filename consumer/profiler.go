@@ -222,6 +222,6 @@ func (cons *Profiler) profile() {
 func (cons *Profiler) Consume(workers *sync.WaitGroup) {
 	cons.AddMainWorker(workers)
 
-	go tgo.DontPanic(cons.profile)
+	go tgo.WithRecoverShutdown(cons.profile)
 	cons.ControlLoop()
 }

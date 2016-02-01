@@ -174,7 +174,7 @@ func (cons *Proxy) Consume(workers *sync.WaitGroup) {
 		return
 	}
 
-	go tgo.DontPanic(func() {
+	go tgo.WithRecoverShutdown(func() {
 		cons.AddMainWorker(workers)
 		cons.accept()
 	})

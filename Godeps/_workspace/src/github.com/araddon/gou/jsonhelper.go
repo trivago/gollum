@@ -242,7 +242,7 @@ func jsonEntry(name string, v interface{}) (interface{}, bool) {
 			return nil, false
 		}
 	case JsonHelper:
-		return v.(JsonHelper).Get(name), true
+		return val.Get(name), true
 	case []interface{}:
 		return v, true
 	default:
@@ -475,14 +475,17 @@ func (j JsonHelper) Int64Safe(n string) (int64, bool) {
 
 func (j JsonHelper) Float64(n string) float64 {
 	v := j.Get(n)
-	f64, _ := CoerceFloat(v)
+	f64, err := CoerceFloat(v)
+	if err != nil {
+		return math.NaN()
+	}
 	return f64
 }
 
 func (j JsonHelper) Float64Safe(n string) (float64, bool) {
 	v := j.Get(n)
 	if v == nil {
-		return math.NaN(), false
+		return math.NaN(), true
 	}
 	fv, err := CoerceFloat(v)
 	if err != nil {

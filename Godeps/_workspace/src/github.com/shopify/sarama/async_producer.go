@@ -596,17 +596,6 @@ func (bp *brokerProducer) run() {
 				continue
 			}
 
-			if msg.flags&syn == syn {
-				Logger.Printf("producer/broker/%d state change to [open] on %s/%d\n",
-					bp.broker.ID(), msg.Topic, msg.Partition)
-				if bp.currentRetries[msg.Topic] == nil {
-					bp.currentRetries[msg.Topic] = make(map[int32]error)
-				}
-				bp.currentRetries[msg.Topic][msg.Partition] = nil
-				bp.parent.inFlight.Done()
-				continue
-			}
-
 			if reason := bp.needsRetry(msg); reason != nil {
 				bp.parent.retryMessage(msg, reason)
 

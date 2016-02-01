@@ -361,11 +361,11 @@ func (cons *Socket) Consume(workers *sync.WaitGroup) {
 	cons.AddMainWorker(workers)
 
 	if cons.protocol == "udp" {
-		go tgo.DontPanic(cons.udpAccept)
+		go tgo.WithRecoverShutdown(cons.udpAccept)
 		cons.SetFuseBurnedCallback(cons.closeConnection)
 		defer cons.closeConnection()
 	} else {
-		go tgo.DontPanic(cons.tcpAccept)
+		go tgo.WithRecoverShutdown(cons.tcpAccept)
 		cons.SetFuseBurnedCallback(cons.closeTCPConnection)
 		defer cons.closeTCPConnection()
 	}

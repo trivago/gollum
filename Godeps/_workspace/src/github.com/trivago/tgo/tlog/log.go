@@ -16,6 +16,7 @@ package tlog
 
 import (
 	"fmt"
+	"github.com/mgutz/ansi"
 	"io"
 	"log"
 	"os"
@@ -65,7 +66,8 @@ type LogScope struct {
 
 // NewLogScope creates a new LogScope with the given prefix string.
 func NewLogScope(scope string) LogScope {
-	scopeMarker := fmt.Sprintf("[%s] ", scope)
+	black := ansi.ColorFunc("black+h")
+	scopeMarker := black(fmt.Sprintf("[%s] ", scope))
 
 	return LogScope{
 		Error:   log.New(logLogger{Error}, scopeMarker, 0),
@@ -90,12 +92,16 @@ func SetVerbosity(loglevel Verbosity) {
 	Note = log.New(logDisabled, "", 0)
 	Debug = log.New(logDisabled, "", 0)
 
+	red := ansi.ColorFunc("red+b")
+	yellow := ansi.ColorFunc("yellow")
+	blue := ansi.ColorFunc("cyan")
+
 	switch loglevel {
 	default:
 		fallthrough
 
 	case VerbosityDebug:
-		Debug = log.New(&logEnabled, "Debug: ", 0)
+		Debug = log.New(&logEnabled, blue("Debug: "), 0)
 		fallthrough
 
 	case VerbosityNote:
@@ -103,16 +109,16 @@ func SetVerbosity(loglevel Verbosity) {
 		fallthrough
 
 	case VerbosityWarning:
-		Warning = log.New(&logEnabled, "Warning: ", 0)
+		Warning = log.New(&logEnabled, yellow("Warning: "), 0)
 		fallthrough
 
 	case VerbosityError:
-		Error = log.New(&logEnabled, "ERROR: ", log.Lshortfile)
+		Error = log.New(&logEnabled, red("ERROR: "), log.Lshortfile)
 	}
 }
 
-// CacheWrites will force all logs to be cached until another writer is set
-func CacheWrites() {
+// SetCacheWriter will force all logs to be cached until another writer is set
+func SetCacheWriter() {
 	if _, isCache := logEnabled.writer.(*logCache); !isCache {
 		logEnabled.writer = new(logCache)
 	}

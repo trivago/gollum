@@ -201,7 +201,7 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 	partCons, err := cons.consumer.ConsumePartition(cons.topic, partitionID, cons.offsets[partitionID])
 	if err != nil {
 		if !cons.client.Closed() {
-			go tgo.DontPanic(func() {
+			go tgo.WithRecoverShutdown(func() {
 				cons.retry(partitionID, err)
 			})
 		}
@@ -284,7 +284,7 @@ func (cons *Kafka) startConsumers() error {
 			cons.offsets[partition] = cons.defaultOffset
 		}
 
-		go tgo.DontPanic(func() {
+		go tgo.WithRecoverShutdown(func() {
 			cons.readFromPartition(partition)
 		})
 	}

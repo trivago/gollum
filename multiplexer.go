@@ -371,7 +371,7 @@ func (plex multiplexer) run() {
 	for _, producer := range plex.producers {
 		producer := producer
 		tlog.Debug.Print("Starting ", reflect.TypeOf(producer))
-		go tgo.DontPanic(func() {
+		go tgo.WithRecoverShutdown(func() {
 			producer.Produce(plex.producerWorker)
 		})
 	}
@@ -389,7 +389,7 @@ func (plex multiplexer) run() {
 	for _, consumer := range plex.consumers {
 		consumer := consumer
 		tlog.Debug.Print("Starting ", reflect.TypeOf(consumer))
-		go tgo.DontPanic(func() {
+		go tgo.WithRecoverShutdown(func() {
 			consumer.Consume(plex.consumerWorker)
 		})
 	}

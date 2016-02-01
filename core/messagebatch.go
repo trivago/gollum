@@ -184,7 +184,7 @@ func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
 	}
 
 	// Write data and reset buffer asynchronously
-	go tgo.DontPanic(func() {
+	go tgo.WithRecoverShutdown(func() {
 		defer batch.flushing.Done()
 
 		messageCount := tmath.MinI(int(writerCount), len(flushQueue.messages))

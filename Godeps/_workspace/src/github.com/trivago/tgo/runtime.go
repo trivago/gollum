@@ -20,7 +20,8 @@ import (
 	"runtime/debug"
 )
 
-// RecoverShutdown will trigger a shutdown via interrupt if a panic was issued.
+// RecoverShutdown will trigger a shutdown via os.Interrupt if a panic was issued.
+// A callstack will be printed like with RecoverTrace().
 // Typically used as "defer RecoverShutdown()".
 func RecoverShutdown() {
 	if r := recover(); r != nil {
@@ -34,9 +35,25 @@ func RecoverShutdown() {
 	}
 }
 
-// DontPanic can be used instead of RecoverShutdown when using a function
-// without any parameters. E.g. go DontPanic(myFunction)
-func DontPanic(callback func()) {
+// RecoverTrace will trigger a stack trace when a panic was recovered by this
+// function. Typically used as "defer RecoverTrace()".
+func RecoverTrace() {
+	if r := recover(); r != nil {
+		log.Print("Panic ignored: ", r)
+		log.Print(string(debug.Stack()))
+	}
+}
+
+// WithRecover can be used instead of RecoverTrace when using a function
+// without any parameters. E.g. "go WithRecover(myFunction)"
+func WithRecover(callback func()) {
+	defer RecoverTrace()
+	callback()
+}
+
+// WithRecoverShutdown can be used instead of RecoverShutdown when using a function
+// without any parameters. E.g. "go WithRecoverShutdown(myFunction)"
+func WithRecoverShutdown(callback func()) {
 	defer RecoverShutdown()
 	callback()
 }

@@ -54,7 +54,6 @@ func (format *Timestamp) Configure(conf core.PluginConfig) error {
 
 // Format prepends the timestamp of the message to the message.
 func (format *Timestamp) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-
 	timestampStr := msg.Timestamp.Format(format.timestampFormat)
 
 	payload := make([]byte, len(timestampStr)+len(msg.Data))

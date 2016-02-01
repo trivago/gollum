@@ -261,7 +261,7 @@ func (cons *File) Consume(workers *sync.WaitGroup) {
 	cons.setState(fileStateOpen)
 	defer cons.setState(fileStateDone)
 
-	go tgo.DontPanic(func() {
+	go tgo.WithRecoverShutdown(func() {
 		cons.AddMainWorker(workers)
 		cons.read()
 	})

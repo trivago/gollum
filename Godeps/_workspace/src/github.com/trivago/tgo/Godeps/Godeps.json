@@ -1,0 +1,13 @@
+{
+	"ImportPath": "github.com/trivago/tgo",
+	"GoVersion": "go1.5",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/mgutz/ansi",
+			"Rev": "c286dcecd19ff979eeb73ea444e479b903f2cfcb"
+		}
+	]
+}
