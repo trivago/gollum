@@ -146,9 +146,10 @@ type Kafka struct {
 }
 
 const (
-	kafkaMetricMessages    = "Kafka:Messages-"
-	kafkaMetricMessagesSec = "Kafka:MessagesSec-"
-	kafkaMetricMissCount   = "Kafka:ResponsesQueued"
+	kafkaMetricMessages     = "Kafka:Messages-"
+	kafkaMetricMessagesSec  = "Kafka:MessagesSec-"
+	kafkaMetricUnresponsive = "Kafka:Unresponsive-"
+	kafkaMetricMissCount    = "Kafka:ResponsesQueued"
 )
 
 func init() {
@@ -223,6 +224,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	for _, topic := range prod.topic {
 		shared.Metric.New(kafkaMetricMessages + topic)
 		shared.Metric.New(kafkaMetricMessagesSec + topic)
+		shared.Metric.New(kafkaMetricUnresponsive + topic)
 		prod.counters[topic] = new(int64)
 	}
 
@@ -257,11 +259,11 @@ func (prod *Kafka) sendBatch() {
 	duration := time.Since(prod.lastMetricUpdate)
 	prod.lastMetricUpdate = time.Now()
 
-	for category, counter := range prod.counters {
+	for topic, counter := range prod.counters {
 		count := atomic.SwapInt64(counter, 0)
 
-		shared.Metric.Add(kafkaMetricMessages+category, count)
-		shared.Metric.SetF(kafkaMetricMessagesSec+category, float64(count)/duration.Seconds())
+		shared.Metric.Add(kafkaMetricMessages+topic, count)
+		shared.Metric.SetF(kafkaMetricMessagesSec+topic, float64(count)/duration.Seconds())
 	}
 }
 
@@ -301,6 +303,7 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 
 			shared.Metric.New(kafkaMetricMessages + topic)
 			shared.Metric.New(kafkaMetricMessagesSec + topic)
+			shared.Metric.New(kafkaMetricUnresponsive + topic)
 			prod.counters[topic] = new(int64)
 			prod.topic[msg.StreamID] = topic
 		}
@@ -325,6 +328,7 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 		case <-timeout.C:
 			// Sarama channels are full -> drop
 			prod.Drop(originalMsg)
+			shared.Metric.Inc(kafkaMetricUnresponsive + topic)
 			if _, stateSet := topicsBad[topic]; !stateSet {
 				topicsBad[topic] = true
 			}

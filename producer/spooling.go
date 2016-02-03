@@ -72,6 +72,10 @@ import (
 // RespoolDelaySec sets the number of seconds to wait before trying to load
 // existing spool files after a restart. This is useful for configurations that
 // contain dynamic streams. By default this is set to 10.
+//
+// MaxMessagesSec sets the maximum number of messages that can be respooled per
+// second. By default this is set to 100. Setting this value to 0 will cause
+// respooling to work as fast as possible.
 type Spooling struct {
 	core.ProducerBase
 	outfile         map[core.MessageStreamID]*spoolFile
@@ -81,6 +85,7 @@ type Spooling struct {
 	RespoolDuration time.Duration
 	maxFileAge      time.Duration
 	batchTimeout    time.Duration
+	readDelay       time.Duration
 	batchMaxCount   int
 	bufferSizeByte  int
 }
@@ -114,6 +119,13 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 	prod.outfile = make(map[core.MessageStreamID]*spoolFile)
 	prod.RespoolDuration = time.Duration(conf.GetInt("RespoolDelaySec", 10)) * time.Second
 	prod.bufferSizeByte = conf.GetInt("BufferSizeByte", 8192)
+
+	if maxMsgSec := time.Duration(conf.GetInt("MaxMessagesSec", 100)); maxMsgSec > 0 {
+		prod.readDelay = time.Second / maxMsgSec
+	} else {
+		prod.readDelay = 0
+	}
+
 	prod.rotation = fileRotateConfig{
 		timeout:  prod.maxFileAge,
 		sizeByte: prod.maxFileSize,
