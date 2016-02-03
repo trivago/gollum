@@ -105,8 +105,11 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	shared.Metric.New(metricBlockedProducers)
 	shared.Metric.New(metricVersion)
 
-	shared.Metric.Set(metricVersion, gollumMajorVer*10000+gollumMinorVer*100+gollumPatchVer)
-
+	if gollumDevVer > 0 {
+		shared.Metric.Set(metricVersion, gollumMajorVer*1000000+gollumMinorVer*10000+gollumPatchVer*100+gollumDevVer)
+	} else {
+		shared.Metric.Set(metricVersion, gollumMajorVer*10000+gollumMinorVer*100+gollumPatchVer)
+	}
 	plex := multiplexer{
 		consumers:      []core.Consumer{new(core.LogConsumer)},
 		consumerWorker: new(sync.WaitGroup),
