@@ -163,17 +163,17 @@ func (prod *Spooling) writeToFile(msg core.Message) {
 		streamName := core.StreamRegistry.GetStreamName(streamID)
 		spool = newSpoolFile(prod, streamName, msg.Source)
 		prod.outfile[streamID] = spool
+	}
 
-		if err := os.MkdirAll(spool.basePath, 0700); err != nil {
-			Log.Error.Printf("Spooling: Failed to create %s because of %s", spool.basePath, err.Error())
-			prod.Drop(msg)
-			return // ### return, cannot write ###
-		}
+	if err := os.MkdirAll(spool.basePath, 0700); err != nil && !os.IsExist(err) {
+		Log.Error.Printf("Spooling: Failed to create %s because of %s", spool.basePath, err.Error())
+		prod.Drop(msg)
+		return // ### return, cannot write ###
 	}
 
 	// Open/rotate file if nnecessary
 	if !spool.openOrRotate() {
-		prod.routeToOrigin(msg)
+		prod.Drop(msg)
 		return // ### return, could not spool to disk ###
 	}
 
@@ -183,11 +183,18 @@ func (prod *Spooling) writeToFile(msg core.Message) {
 }
 
 func (prod *Spooling) routeToOrigin(msg core.Message) {
+	routeStart := time.Now()
+
 	msg.StreamID = msg.PrevStreamID // Force PrevStreamID to be preserved in case message gets spooled again
 	msg.Route(msg.PrevStreamID)
 
 	if spool, exists := prod.outfile[msg.PrevStreamID]; exists {
 		spool.countRead()
+	}
+
+	delay := prod.readDelay - time.Now().Sub(routeStart)
+	if delay > 0 {
+		time.Sleep(delay)
 	}
 }
 

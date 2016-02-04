@@ -150,9 +150,6 @@ func (spool *spoolFile) decode(data []byte, sequence uint64) {
 		Log.Error.Print("Spool file read: ", err)
 	} else {
 		spool.prod.routeToOrigin(msg)
-		if spool.prod.readDelay > 0 {
-			time.Sleep(spool.prod.readDelay)
-		}
 	}
 }
 
