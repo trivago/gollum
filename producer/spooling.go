@@ -183,6 +183,7 @@ func (prod *Spooling) writeToFile(msg core.Message) {
 }
 
 func (prod *Spooling) routeToOrigin(msg core.Message) {
+	msg.StreamID = msg.PrevStreamID // Force PrevStreamID to be preserved in case message gets spooled again
 	msg.Route(msg.PrevStreamID)
 
 	if spool, exists := prod.outfile[msg.PrevStreamID]; exists {
