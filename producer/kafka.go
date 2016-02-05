@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -145,9 +145,10 @@ type Kafka struct {
 }
 
 const (
-	kafkaMetricMessages    = "Kafka:Messages-"
-	kafkaMetricMessagesSec = "Kafka:MessagesSec-"
-	kafkaMetricMissCount   = "Kafka:ResponsesQueued"
+	kafkaMetricMessages     = "Kafka:Messages-"
+	kafkaMetricMessagesSec  = "Kafka:MessagesSec-"
+	kafkaMetricUnresponsive = "Kafka:Unresponsive-"
+	kafkaMetricMissCount    = "Kafka:ResponsesQueued"
 )
 
 func init() {
@@ -224,6 +225,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	for _, topic := range prod.topic {
 		tgo.Metric.New(kafkaMetricMessages + topic)
 		tgo.Metric.New(kafkaMetricMessagesSec + topic)
+		tgo.Metric.New(kafkaMetricUnresponsive + topic)
 		prod.counters[topic] = new(int64)
 	}
 
@@ -258,11 +260,11 @@ func (prod *Kafka) sendBatch() {
 	duration := time.Since(prod.lastMetricUpdate)
 	prod.lastMetricUpdate = time.Now()
 
-	for category, counter := range prod.counters {
+	for topic, counter := range prod.counters {
 		count := atomic.SwapInt64(counter, 0)
 
-		tgo.Metric.Add(kafkaMetricMessages+category, count)
-		tgo.Metric.SetF(kafkaMetricMessagesSec+category, float64(count)/duration.Seconds())
+		tgo.Metric.Add(kafkaMetricMessages+topic, count)
+		tgo.Metric.SetF(kafkaMetricMessagesSec+topic, float64(count)/duration.Seconds())
 	}
 }
 
@@ -302,6 +304,7 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 
 			tgo.Metric.New(kafkaMetricMessages + topic)
 			tgo.Metric.New(kafkaMetricMessagesSec + topic)
+			tgo.Metric.New(kafkaMetricUnresponsive + topic)
 			prod.counters[topic] = new(int64)
 			prod.topic[msg.StreamID] = topic
 		}
@@ -326,6 +329,7 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 		case <-timeout.C:
 			// Sarama channels are full -> drop
 			prod.Drop(originalMsg)
+			tgo.Metric.Inc(kafkaMetricUnresponsive + topic)
 			if _, stateSet := topicsBad[topic]; !stateSet {
 				topicsBad[topic] = true
 			}

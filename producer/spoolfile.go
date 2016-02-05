@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -112,34 +112,46 @@ func (spool *spoolFile) getFileNumbering() (min int, max int) {
 }
 
 func (spool *spoolFile) openOrRotate() bool {
-	fileSize := int64(0)
-	if spool.file != nil {
-		fileInfo, _ := spool.file.Stat()
-		fileSize = fileInfo.Size()
-	}
+	err := spool.batch.AfterFlushDo(func() error {
+		fileSize := int64(0)
 
-	if spool.file == nil || fileSize >= spool.prod.maxFileSize || time.Since(spool.fileCreated) > spool.prod.maxFileAge {
-		_, maxSuffix := spool.getFileNumbering()
-
-		// Reopen spooling file
-		var err error
-		oldFile := spool.file
-		spoolFileName := fmt.Sprintf(spoolFileFormatString, spool.basePath, maxSuffix+1)
-		spool.file, err = os.OpenFile(spoolFileName, os.O_WRONLY|os.O_CREATE, 0600)
-
-		// Close current file
-		if oldFile != nil {
-			spool.batch.WaitForFlush(time.Duration(0))
-			oldFile.Close()
+		if spool.file != nil {
+			fileInfo, err := spool.file.Stat()
+			if err != nil {
+				return err // ### return, filestat error ###
+			}
+			fileSize = fileInfo.Size()
 		}
 
-		spool.assembly.SetWriter(spool.file)
-		spool.fileCreated = time.Now()
-		if err != nil {
-			spool.log.Error.Print("Spooling: ", err)
-			return false // ### return, could not open file ###
+		if spool.file == nil ||
+			fileSize >= spool.prod.maxFileSize ||
+			(fileSize > 0 && time.Since(spool.fileCreated) > spool.prod.maxFileAge) {
+
+			_, maxSuffix := spool.getFileNumbering()
+			spoolFileName := fmt.Sprintf(spoolFileFormatString, spool.basePath, maxSuffix+1)
+			newFile, err := os.OpenFile(spoolFileName, os.O_WRONLY|os.O_CREATE, 0600)
+			if err != nil {
+				return err // ### return, could not open file ###
+			}
+
+			// Set writer and update internal state
+			spool.assembly.SetWriter(newFile)
+
+			if spool.file != nil {
+				spool.file.Close()
+			}
+
+			spool.file = newFile
+			spool.fileCreated = time.Now()
+			spool.log.Debug.Print("Spooler opened ", spoolFileName, " for writing")
 		}
-		spool.log.Debug.Print("Spooler opened ", spoolFileName, " for writing")
+
+		return nil
+	})
+
+	if err != nil {
+		spool.log.Error.Print("Spooling: ", err)
+		return false // ### return, could not open file ###
 	}
 
 	return true
@@ -191,8 +203,8 @@ func (spool *spoolFile) read() {
 			if spool.source != nil && spool.source.IsBlocked() {
 				time.Sleep(time.Millisecond * 100)
 				continue // ### contine, busy source ###
-
 			}
+
 			// Any error cancels the loop
 			if err := spool.reader.ReadAll(file, spool.decode); err != nil {
 				if err != io.EOF {

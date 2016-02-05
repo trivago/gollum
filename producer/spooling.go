@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -71,6 +71,10 @@ import (
 // RespoolDelaySec sets the number of seconds to wait before trying to load
 // existing spool files after a restart. This is useful for configurations that
 // contain dynamic streams. By default this is set to 10.
+//
+// MaxMessagesSec sets the maximum number of messages that can be respooled per
+// second. By default this is set to 100. Setting this value to 0 will cause
+// respooling to work as fast as possible.
 type Spooling struct {
 	core.ProducerBase
 	outfile         map[core.MessageStreamID]*spoolFile
@@ -80,6 +84,7 @@ type Spooling struct {
 	RespoolDuration time.Duration
 	maxFileAge      time.Duration
 	batchTimeout    time.Duration
+	readDelay       time.Duration
 	batchMaxCount   int
 	bufferSizeByte  int
 }
@@ -119,6 +124,13 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 	prod.outfile = make(map[core.MessageStreamID]*spoolFile)
 	prod.RespoolDuration = time.Duration(errors.Int(conf.GetInt("RespoolDelaySec", 10))) * time.Second
 	prod.bufferSizeByte = errors.Int(conf.GetInt("BufferSizeByte", 8192))
+
+	if maxMsgSec := time.Duration(errors.Int(conf.GetInt("MaxMessagesSec", 100))); maxMsgSec > 0 {
+		prod.readDelay = time.Second / maxMsgSec
+	} else {
+		prod.readDelay = 0
+	}
+
 	prod.rotation = fileRotateConfig{
 		timeout:  prod.maxFileAge,
 		sizeByte: prod.maxFileSize,
@@ -145,6 +157,7 @@ func (prod *Spooling) writeBatchOnTimeOut() {
 		if spool.batch.ReachedSizeThreshold(prod.batchMaxCount/2) || spool.batch.ReachedTimeThreshold(prod.batchTimeout) {
 			spool.flush()
 		}
+		spool.openOrRotate()
 	}
 }
 
@@ -156,17 +169,17 @@ func (prod *Spooling) writeToFile(msg core.Message) {
 		streamName := core.StreamRegistry.GetStreamName(streamID)
 		spool = newSpoolFile(prod, streamName, msg.Source)
 		prod.outfile[streamID] = spool
+	}
 
-		if err := os.MkdirAll(spool.basePath, 0700); err != nil {
-			prod.Log.Error.Printf("Spooling: Failed to create %s because of %s", spool.basePath, err.Error())
-			prod.Drop(msg)
-			return // ### return, cannot write ###
-		}
+	if err := os.MkdirAll(spool.basePath, 0700); err != nil && !os.IsExist(err) {
+		prod.Log.Error.Printf("Spooling: Failed to create %s because of %s", spool.basePath, err.Error())
+		prod.Drop(msg)
+		return // ### return, cannot write ###
 	}
 
 	// Open/rotate file if nnecessary
 	if !spool.openOrRotate() {
-		prod.routeToOrigin(msg)
+		prod.Drop(msg)
 		return // ### return, could not spool to disk ###
 	}
 
@@ -176,10 +189,18 @@ func (prod *Spooling) writeToFile(msg core.Message) {
 }
 
 func (prod *Spooling) routeToOrigin(msg core.Message) {
+	routeStart := time.Now()
+
+	msg.StreamID = msg.PrevStreamID // Force PrevStreamID to be preserved in case message gets spooled again
 	msg.Route(msg.PrevStreamID)
 
 	if spool, exists := prod.outfile[msg.PrevStreamID]; exists {
 		spool.countRead()
+	}
+
+	delay := prod.readDelay - time.Now().Sub(routeStart)
+	if delay > 0 {
+		time.Sleep(delay)
 	}
 }
 

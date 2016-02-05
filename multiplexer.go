@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -105,8 +105,11 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	tgo.Metric.New(metricBlockedProducers)
 	tgo.Metric.New(metricVersion)
 
-	tgo.Metric.Set(metricVersion, gollumMajorVer*10000+gollumMinorVer*100+gollumPatchVer)
-
+	if gollumDevVer > 0 {
+		tgo.Metric.Set(metricVersion, gollumMajorVer*1000000+gollumMinorVer*10000+gollumPatchVer*100+gollumDevVer)
+	} else {
+		tgo.Metric.Set(metricVersion, gollumMajorVer*10000+gollumMinorVer*100+gollumPatchVer)
+	}
 	plex := multiplexer{
 		consumers:      []core.Consumer{new(core.LogConsumer)},
 		consumerWorker: new(sync.WaitGroup),

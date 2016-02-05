@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -192,6 +192,15 @@ func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
 		atomic.StoreUint32(&flushQueue.doneCount, 0)
 		batch.Touch()
 	})
+}
+
+// AfterFlushDo calls a function after a currently running flush is done.
+// It also blocks any flush during the execution of callback.
+// Returns the error returned by callback
+func (batch *MessageBatch) AfterFlushDo(callback func() error) error {
+	batch.flushing.IncWhenDone()
+	defer batch.flushing.Done()
+	return callback()
 }
 
 // WaitForFlush blocks until the current flush command returns.

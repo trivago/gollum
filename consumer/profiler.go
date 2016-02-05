@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -74,6 +74,7 @@ type Profiler struct {
 	chars       string
 	message     string
 	delay       time.Duration
+	keepRunning bool
 }
 
 var profilerDefaultCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 "
@@ -94,6 +95,7 @@ func (cons *Profiler) Configure(conf core.PluginConfig) error {
 	cons.chars = errors.String(conf.GetString("Characters", profilerDefaultCharacters))
 	cons.message = errors.String(conf.GetString("Message", "%# %256s"))
 	cons.templates = make([][]byte, numTemplates)
+	cons.keepRunning = errors.Bool(conf.GetBool("KeepRunning", false))
 	cons.delay = time.Duration(errors.Int(conf.GetInt("DelayMs", 0))) * time.Millisecond
 
 	return errors.OrNil()
@@ -213,8 +215,10 @@ func (cons *Profiler) profile() {
 		cons.Log.Debug.Print("Profiler done.")
 		// Automatically shut down when done
 		// TODO: Hack
-		proc, _ := os.FindProcess(os.Getpid())
-		proc.Signal(os.Interrupt)
+		if !cons.keepRunning {
+			proc, _ := os.FindProcess(os.Getpid())
+			proc.Signal(os.Interrupt)
+		}
 	}
 }
 

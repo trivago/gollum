@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ const (
 	gollumMajorVer = 0
 	gollumMinorVer = 5
 	gollumPatchVer = 0
-	gollumPostfix  = "dev"
+	gollumDevVer   = 0
 )
 
 func dumpMemoryProfile() {
@@ -57,11 +57,15 @@ func main() {
 	contribModules := core.TypeRegistry.GetRegistered("contrib")
 	modules := ""
 	for _, typeName := range contribModules {
-		modules += " +" + typeName[tstrings.IndexN(typeName, ".", 1)+1:]
+		modules += " + " + typeName[tstrings.IndexN(typeName, ".", 1)+1:] + "\n"
 	}
 
 	if *flagVersion {
-		fmt.Printf("Gollum v%d.%d.%d%s%s\n", gollumMajorVer, gollumMinorVer, gollumPatchVer, gollumPostfix, modules)
+		if gollumDevVer > 0 {
+			fmt.Printf("Gollum v%d.%d.%d.%d dev\n%s", gollumMajorVer, gollumMinorVer, gollumPatchVer, gollumDevVer, modules)
+		} else {
+			fmt.Printf("Gollum v%d.%d.%d\n%s", gollumMajorVer, gollumMinorVer, gollumPatchVer, modules)
+		}
 		return // ### return, version only ###
 	}
 
