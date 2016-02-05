@@ -192,6 +192,15 @@ func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
 	})
 }
 
+// AfterFlushDo calls a function after a currently running flush is done.
+// It also blocks any flush during the execution of callback.
+// Returns the error returned by callback
+func (batch *MessageBatch) AfterFlushDo(callback func() error) error {
+	batch.flushing.IncWhenDone()
+	defer batch.flushing.Done()
+	return callback()
+}
+
 // WaitForFlush blocks until the current flush command returns.
 // Passing a timeout > 0 will unblock this function after the given duration at
 // the latest.

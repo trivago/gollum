@@ -75,6 +75,7 @@ type Profiler struct {
 	chars       string
 	message     string
 	delay       time.Duration
+	keepRunning bool
 }
 
 var profilerDefaultCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 "
@@ -96,6 +97,7 @@ func (cons *Profiler) Configure(conf core.PluginConfig) error {
 	cons.chars = conf.GetString("Characters", profilerDefaultCharacters)
 	cons.message = conf.GetString("Message", "%# %256s")
 	cons.templates = make([][]byte, numTemplates)
+	cons.keepRunning = conf.GetBool("KeepRunning", false)
 	cons.delay = time.Duration(conf.GetInt("DelayMs", 0)) * time.Millisecond
 
 	return nil
@@ -213,8 +215,10 @@ func (cons *Profiler) profile() {
 		Log.Debug.Print("Profiler done.")
 		// Automatically shut down when done
 		// TODO: Hack
-		proc, _ := os.FindProcess(os.Getpid())
-		proc.Signal(os.Interrupt)
+		if !cons.keepRunning {
+			proc, _ := os.FindProcess(os.Getpid())
+			proc.Signal(os.Interrupt)
+		}
 	}
 }
 

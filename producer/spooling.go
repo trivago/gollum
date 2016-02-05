@@ -152,6 +152,7 @@ func (prod *Spooling) writeBatchOnTimeOut() {
 		if spool.batch.ReachedSizeThreshold(prod.batchMaxCount/2) || spool.batch.ReachedTimeThreshold(prod.batchTimeout) {
 			spool.flush()
 		}
+		spool.openOrRotate()
 	}
 }
 
