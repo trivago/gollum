@@ -5,7 +5,7 @@ This project is released under the terms of the `Apache 2.0 license`_.
 
 .. code::
 
-    Copyright 2015 trivago GmbH
+    Copyright 2015-2016 trivago GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

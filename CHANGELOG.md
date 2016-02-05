@@ -13,7 +13,12 @@ This is a patch / minor features release.
  * producer.Spool now properly respools long messages
  * producer.Spool will not delete a file if a message in it could not be processed
  * producer.Spool will try to automatically respool files after a restart
-
+ * producer.Spool will rotate non-empty files even if no new messages come in
+ * producer.Spool will recreate folders when removed during runtime
+ * producer.Spool will drop messages if rotation failes (not reroute)
+ * Messages that are spooled twice now retain their original stream
+ * Better handling of situations where Sarama (Kafka) writes become blocking
+ 
 #### New
 
  * New formatter format.SplitToJSON to convert CSV data to JSON
@@ -22,6 +27,8 @@ This is a patch / minor features release.
  * RPM spec file added
  * producer.File can now add zero padding to rotated file numbering
  * producer.File can now prune logfiles by file age
+ * producer.Spool can now be rate limited
+ * Dev version (major.minor.patch.dev) is now part of the metrics
 
 # 0.4.1
 
