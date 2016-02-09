@@ -108,7 +108,7 @@ func (stream *Route) routeMessage(msg core.Message) {
 // Enqueue overloads the standard Enqueue method to allow direct routing to
 // explicit stream targets
 func (stream *Route) Enqueue(msg core.Message) {
-	if stream.Filter.Accepts(msg) {
+	if stream.Accepts(msg) {
 		var streamID core.MessageStreamID
 		msg.Data, streamID = stream.Format(msg)
 

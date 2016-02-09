@@ -16,7 +16,6 @@ package core
 
 import (
 	"github.com/trivago/tgo"
-	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/tlog"
 	"sync"
 	"time"
@@ -64,7 +63,7 @@ type MappedStream struct {
 // instead of overloading the Enqueue method.
 // See stream.Broadcast for default configuration values and examples.
 type StreamBase struct {
-	Filter         Filter
+	filters        []Filter
 	formatters     []Formatter
 	Producers      []Producer
 	Timeout        *time.Duration
@@ -84,20 +83,28 @@ func (stream *StreamBase) ConfigureStream(conf PluginConfig, distribute Distribu
 	errors := tgo.NewErrorStack()
 	stream.Log = NewPluginLogScope(conf)
 
-	plugins, err := conf.GetPluginArray("Formatters", []Plugin{})
-	if !errors.Push(err) {
-		for _, plugin := range plugins {
-			formatter, isFormatter := plugin.(Formatter)
-			if !isFormatter {
-				errors.Pushf("Plugin is not a valid formatter")
-			}
+	formatPlugins, err := conf.GetPluginArray("Formatters", []Plugin{})
+	errors.Push(err)
+
+	for _, plugin := range formatPlugins {
+		formatter, isFormatter := plugin.(Formatter)
+		if !isFormatter {
+			errors.Pushf("Plugin is not a valid formatter")
+		} else {
 			stream.formatters = append(stream.formatters, formatter)
 		}
 	}
 
-	plugin, err := conf.GetPlugin("Filter", "filter.All", tcontainer.NewMarshalMap())
-	if !errors.Push(err) {
-		stream.Filter = plugin.(Filter)
+	filterPlugins, err := conf.GetPluginArray("Filters", []Plugin{})
+	errors.Push(err)
+
+	for _, plugin := range filterPlugins {
+		filter, isFilter := plugin.(Filter)
+		if !isFilter {
+			errors.Pushf("Plugin is not a valid filter")
+		} else {
+			stream.filters = append(stream.filters, filter)
+		}
 	}
 
 	stream.boundStreamID, err = conf.GetStreamID("Stream", GetStreamID(conf.ID))
@@ -202,11 +209,22 @@ func (stream *StreamBase) Format(msg Message) ([]byte, MessageStreamID) {
 	return msg.Data, msg.StreamID
 }
 
+// Accepts calls applys all filters to the given message and returns true when
+// all filters pass.
+func (stream *StreamBase) Accepts(msg Message) bool {
+	for _, filter := range stream.filters {
+		if !filter.Accepts(msg) {
+			return false // ### return, false if one filter failed ###
+		}
+	}
+	return true
+}
+
 // Enqueue checks the filter, formats the message and sends it to all producers
 // registered. Functions deriving from StreamBase can set the Distribute member
 // to hook into this function.
 func (stream *StreamBase) Enqueue(msg Message) {
-	if stream.Filter.Accepts(msg) {
+	if stream.Accepts(msg) {
 		var streamID MessageStreamID
 		msg.Data, streamID = stream.Format(msg)
 		stream.Route(msg, streamID)

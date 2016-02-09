@@ -32,7 +32,7 @@ func TestPluginRunState(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	pluginState := NewPluginRunState()
 
-	expect.Equal(PluginStateDead, pluginState.GetState())
+	expect.Equal(PluginStateInitializing, pluginState.GetState())
 
 	pluginState.SetState(PluginStateWaiting)
 	expect.Equal(PluginStateWaiting, pluginState.GetState())
