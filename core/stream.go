@@ -91,6 +91,7 @@ func (stream *StreamBase) ConfigureStream(conf PluginConfig, distribute Distribu
 		if !isFormatter {
 			errors.Pushf("Plugin is not a valid formatter")
 		} else {
+			formatter.SetLogScope(stream.Log)
 			stream.formatters = append(stream.formatters, formatter)
 		}
 	}
@@ -103,6 +104,7 @@ func (stream *StreamBase) ConfigureStream(conf PluginConfig, distribute Distribu
 		if !isFilter {
 			errors.Pushf("Plugin is not a valid filter")
 		} else {
+			filter.SetLogScope(stream.Log)
 			stream.filters = append(stream.filters, filter)
 		}
 	}

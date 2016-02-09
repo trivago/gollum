@@ -14,14 +14,21 @@
 
 package core
 
+import (
+	"github.com/trivago/tgo/tlog"
+)
+
 type mockFormatter struct {
 }
 
-func (mock mockFormatter) Format(msg Message) ([]byte, MessageStreamID) {
+func (mock *mockFormatter) SetLogScope(log tlog.LogScope) {
+}
+
+func (mock *mockFormatter) Format(msg Message) ([]byte, MessageStreamID) {
 	return mockFormatFunc(msg)
 }
 
-func (mock mockFormatter) Configure(conf PluginConfig) error {
+func (mock *mockFormatter) Configure(conf PluginConfig) error {
 	return nil
 }
 

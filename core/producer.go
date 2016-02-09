@@ -155,6 +155,7 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 		if !isFormatter {
 			errors.Pushf("Plugin is not a valid formatter")
 		} else {
+			formatter.SetLogScope(prod.Log)
 			prod.formatters = append(prod.formatters, formatter)
 		}
 	}
@@ -167,6 +168,7 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 		if !isFilter {
 			errors.Pushf("Plugin is not a valid filter")
 		} else {
+			filter.SetLogScope(prod.Log)
 			prod.filters = append(prod.filters, filter)
 		}
 	}

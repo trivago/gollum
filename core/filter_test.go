@@ -14,7 +14,14 @@
 
 package core
 
+import (
+	"github.com/trivago/tgo/tlog"
+)
+
 type mockFilter struct {
+}
+
+func (mf *mockFilter) SetLogScope(log tlog.LogScope) {
 }
 
 func (mf *mockFilter) Accepts(msg Message) bool {

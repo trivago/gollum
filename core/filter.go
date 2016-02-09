@@ -21,7 +21,11 @@ import (
 // Filter allows custom message filtering for ProducerBase derived plugins.
 // Producers not deriving from ProducerBase might utilize this one, too.
 type Filter interface {
+	// Accepts returns true if this filter validated the given message (pass)
 	Accepts(msg Message) bool
+
+	// SetLogScope sets the log scope to be used for this filter
+	SetLogScope(log tlog.LogScope)
 }
 
 // FilterFunc is the function signature type used by all filter functions.
@@ -30,6 +34,11 @@ type FilterFunc func(msg Message) bool
 // FilterBase defines the standard filter implementation.
 type FilterBase struct {
 	Log tlog.LogScope
+}
+
+// SetLogScope sets the log scope to be used for this filter
+func (filter *FilterBase) SetLogScope(log tlog.LogScope) {
+	filter.Log = log
 }
 
 // Configure sets up all values requred by FormatterBase.

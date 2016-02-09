@@ -59,10 +59,10 @@ func (filter *JSON) Configure(conf core.PluginConfig) error {
 	errors := tgo.NewErrorStack()
 	errors.Push(filter.FilterBase.Configure(conf))
 
-	rejectValues, err := conf.GetStringMap("FilterReject", make(map[string]string))
+	rejectValues, err := conf.GetStringMap("Reject", make(map[string]string))
 	errors.Push(err)
 
-	acceptValues, err := conf.GetStringMap("FilterAccept", make(map[string]string))
+	acceptValues, err := conf.GetStringMap("Accept", make(map[string]string))
 	errors.Push(err)
 
 	// Compile regexp from map[string]string to map[string]*regexp.Regexp

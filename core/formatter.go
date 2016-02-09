@@ -24,6 +24,9 @@ type Formatter interface {
 	// then be reassigned to the original or a new message.
 	// In addition to that the formatter may change the stream of the message.
 	Format(msg Message) ([]byte, MessageStreamID)
+
+	// SetLogScope sets the log scope to be used for this formatter
+	SetLogScope(log tlog.LogScope)
 }
 
 // FormatterFunc is the function signature type used by all formating functions.
@@ -32,6 +35,11 @@ type FormatterFunc func(msg Message) ([]byte, MessageStreamID)
 // FormatterBase defines the standard formatter implementation.
 type FormatterBase struct {
 	Log tlog.LogScope
+}
+
+// SetLogScope sets the log scope to be used for this formatter
+func (format *FormatterBase) SetLogScope(log tlog.LogScope) {
+	format.Log = log
 }
 
 // Configure sets up all values requred by FormatterBase.

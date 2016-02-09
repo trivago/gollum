@@ -65,9 +65,9 @@ func TestMessageRoute(t *testing.T) {
 	}
 
 	mockStream := StreamBase{}
-	mockStream.Filter = &mockFilter{}
+	mockStream.filters = []Filter{&mockFilter{}}
 	mockStream.distribute = mockDistributer
-	mockStream.formatters = []Formatter{mockFormatter{}}
+	mockStream.formatters = []Formatter{&mockFormatter{}}
 	mockStream.AddProducer(&mockProducer{})
 	StreamRegistry.Register(&mockStream, 1)
 
