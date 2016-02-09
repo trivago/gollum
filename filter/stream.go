@@ -54,9 +54,9 @@ func (filter *Stream) Configure(conf core.PluginConfig) error {
 	errors := tgo.NewErrorStack()
 	errors.Push(filter.FilterBase.Configure(conf))
 
-	filter.blacklist, err = conf.GetStreamArray("FilterBlockStreams", []core.MessageStreamID{})
+	filter.blacklist, err = conf.GetStreamArray("BlockStreams", []core.MessageStreamID{})
 	errors.Push(err)
-	filter.whitelist, err = conf.GetStreamArray("FilterOnlyStreams", []core.MessageStreamID{})
+	filter.whitelist, err = conf.GetStreamArray("OnlyStreams", []core.MessageStreamID{})
 	errors.Push(err)
 
 	return errors.OrNil()

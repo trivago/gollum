@@ -16,7 +16,6 @@ package core
 
 import (
 	"github.com/trivago/tgo"
-	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tsync"
 	"sync"
@@ -134,7 +133,7 @@ type ProducerBase struct {
 	fuseControl     *time.Timer
 	fuseName        string
 	formatters      []Formatter
-	filter          Filter
+	filters         []Filter
 	onRoll          func()
 	onStop          func()
 	onCheckFuse     func() bool
@@ -148,10 +147,10 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	prod.Log = NewPluginLogScope(conf)
 	prod.runState = NewPluginRunState()
 
-	plugins, err := conf.GetPluginArray("Formatters", []Plugin{})
+	formatPlugins, err := conf.GetPluginArray("Formatters", []Plugin{})
 	errors.Push(err)
 
-	for _, plugin := range plugins {
+	for _, plugin := range formatPlugins {
 		formatter, isFormatter := plugin.(Formatter)
 		if !isFormatter {
 			errors.Pushf("Plugin is not a valid formatter")
@@ -160,10 +159,18 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 		}
 	}
 
-	filter, err := conf.GetPlugin("Filter", "filter.All", tcontainer.NewMarshalMap())
+	filterPlugins, err := conf.GetPluginArray("Filters", []Plugin{})
 	errors.Push(err)
 
-	prod.filter = filter.(Filter)
+	for _, plugin := range filterPlugins {
+		filter, isFilter := plugin.(Filter)
+		if !isFilter {
+			errors.Pushf("Plugin is not a valid filter")
+		} else {
+			prod.filters = append(prod.filters, filter)
+		}
+	}
+
 	prod.control = make(chan PluginControl, 1)
 	prod.streams, err = conf.GetStreamArray("Streams", []MessageStreamID{WildcardStreamID})
 	errors.Push(err)
@@ -342,12 +349,22 @@ func (prod *ProducerBase) PrependFormatter(format Formatter) {
 
 // Accepts calls the filters Accepts function
 func (prod *ProducerBase) Accepts(msg Message) bool {
-	return prod.filter.Accepts(msg)
+	for _, filter := range prod.filters {
+		if !filter.Accepts(msg) {
+			return false // ### return, false if one filter failed ###
+		}
+	}
+	return true
 }
 
-// GetFilter returns the filter of this producer
-func (prod *ProducerBase) GetFilter() Filter {
-	return prod.filter
+// AppendFilter adds a given filter to the end of the list of filters
+func (prod *ProducerBase) AppendFilter(filter Filter) {
+	prod.filters = append(prod.filters, filter)
+}
+
+// PrependFilter adds a given filter to the start of the list of filters
+func (prod *ProducerBase) PrependFilter(filter Filter) {
+	prod.filters = append([]Filter{filter}, prod.filters...)
 }
 
 // PauseAllStreams sends the Pause() command to all streams this producer is
@@ -403,7 +420,7 @@ func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
 
 	// Filtering happens before formatting. If fitering AFTER formatting is
 	// required, the producer has to do so as it decides where to format.
-	if !prod.filter.Accepts(msg) {
+	if !prod.Accepts(msg) {
 		CountFilteredMessage()
 		return // ### return, filtered ###
 	}
