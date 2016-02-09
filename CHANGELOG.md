@@ -18,6 +18,7 @@ This is a patch / minor features release.
  * producer.Spool will drop messages if rotation failes (not reroute)
  * Messages that are spooled twice now retain their original stream
  * Better handling of situations where Sarama (Kafka) writes become blocking
+ * Plugins now start up as "initializing" not as "dead" preventing dropped messages during startup
  
 #### New
 

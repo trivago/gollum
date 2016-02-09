@@ -48,6 +48,8 @@ const (
 	// lifecycle of a plugin orderd by time.
 	// -------------------------------------------------------------------------
 
+	// PluginStateInitializing is set when a plugin is not yet configured
+	PluginStateInitializing = PluginState(iota)
 	// PluginStateWaiting is set when a plugin is active but currently unable to process data
 	PluginStateWaiting = PluginState(iota)
 	// PluginStateActive is set when a plugin is ready to process data
@@ -88,7 +90,7 @@ func init() {
 func NewPluginRunState() *PluginRunState {
 	return &PluginRunState{
 		workers: nil,
-		state:   int32(PluginStateDead),
+		state:   int32(PluginStateInitializing),
 	}
 }
 
