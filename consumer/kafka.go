@@ -192,11 +192,8 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-// Restart the consumer after wating for persistTimeout
-func (cons *Kafka) retry(partitionID int32, err error) {
-	Log.Error.Printf("Restarting kafka consumer (%s:%d) - %s", cons.topic, cons.offsets[partitionID], err.Error())
+func (cons *Kafka) restartPartition(partitionID int32) {
 	time.Sleep(cons.persistTimeout)
-
 	cons.readFromPartition(partitionID)
 }
 
@@ -204,12 +201,9 @@ func (cons *Kafka) retry(partitionID int32, err error) {
 func (cons *Kafka) readFromPartition(partitionID int32) {
 	partCons, err := cons.consumer.ConsumePartition(cons.topic, partitionID, cons.offsets[partitionID])
 	if err != nil {
-		if !cons.client.Closed() {
-			go shared.DontPanic(func() {
-				cons.retry(partitionID, err)
-			})
-		}
-		return // ### return, stop this consumer ###
+		defer cons.restartPartition(partitionID)
+		Log.Error.Printf("Restarting kafka consumer (%s:%d) - %s", cons.topic, cons.offsets[partitionID], err.Error())
+		return // ### return, stop and retry ###
 	}
 
 	// Make sure we wait for all consumers to end
@@ -246,7 +240,9 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 			cons.Enqueue(event.Value, sequence)
 
 		case err := <-partCons.Errors():
+			defer cons.restartPartition(partitionID)
 			Log.Error.Print("Kafka consumer error:", err)
+			return // ### return, try reconnect ###
 
 		default:
 			spin.Yield()
@@ -288,9 +284,7 @@ func (cons *Kafka) startConsumers() error {
 			cons.offsets[partition] = cons.defaultOffset
 		}
 
-		go shared.DontPanic(func() {
-			cons.readFromPartition(partition)
-		})
+		go cons.readFromPartition(partition)
 	}
 
 	return nil
@@ -317,8 +311,7 @@ func (cons *Kafka) dumpIndex() {
 func (cons *Kafka) Consume(workers *sync.WaitGroup) {
 	cons.SetWorkerWaitGroup(workers)
 
-	err := cons.startConsumers()
-	if err != nil {
+	if err := cons.startConsumers(); err != nil {
 		Log.Error.Print("Kafka client error - ", err)
 		return
 	}
