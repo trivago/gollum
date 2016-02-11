@@ -49,8 +49,11 @@ const (
 //     DefaultOffset: "Newest"
 //     OffsetFile: ""
 //     RecordsPerQuery: 100
-//     NoRecordsSleepMs: 1000
-//     CredentialType: "environment"
+//     QuerySleepTimeMs: 1000
+//     RetrySleepTimeSec: 4
+//     Region: "eu-west-1"
+//     Endpoint: "kinesis.eu-west-1.amazonaws.com"
+//     CredentialType: "none"
 //     CredentialId: ""
 //     CredentialToken: ""
 //     CredentialSecret: ""
@@ -73,13 +76,13 @@ const (
 // CredentialSecretm shared enables the parameters CredentialFile and
 // CredentialProfile. None will not use any credentials and environment
 // will pull the credentials from environmental settings.
-// By default this is set to environmental.
+// By default this is set to none.
 //
-// NoRecordsSleepMs defines the number of milliseconds to sleep before
+// QuerySleepTimeMs defines the number of milliseconds to sleep before
 // trying to pull new records from a shard that did not return any records.
 // By default this is set to 1000.
 //
-// RetrySleepSec defines the number of seconds to wait after trying to
+// RetrySleepTimeSec defines the number of seconds to wait after trying to
 // reconnect to a shard. By default this is set to 4.
 //
 // RecordsPerQuery defines the number of records to pull per query.
@@ -112,21 +115,21 @@ func (cons *Kinesis) Configure(conf core.PluginConfig) error {
 	cons.stream = conf.GetString("KinesisStream", "default")
 	cons.offsetFile = conf.GetString("OffsetFile", "")
 	cons.recordsPerQuery = int64(conf.GetInt("RecordsPerQuery", 1000))
-	cons.sleepTime = time.Duration(conf.GetInt("NoRecordsSleepMs", 1000)) * time.Millisecond
-	cons.retryTime = time.Duration(conf.GetInt("RetrySleepSec", 4)) * time.Second
+	cons.sleepTime = time.Duration(conf.GetInt("QuerySleepTimeMs", 1000)) * time.Millisecond
+	cons.retryTime = time.Duration(conf.GetInt("RetrySleepTimeSec", 4)) * time.Second
 
 	// Config
 	cons.config = aws.NewConfig()
-	if endpoint := conf.GetString("Endpoint", ""); endpoint != "" {
+	if endpoint := conf.GetString("Endpoint", "kinesis.eu-west-1.amazonaws.com"); endpoint != "" {
 		cons.config.WithEndpoint(endpoint)
 	}
 
-	if region := conf.GetString("Region", ""); region != "" {
+	if region := conf.GetString("Region", "eu-west-1"); region != "" {
 		cons.config.WithRegion(region)
 	}
 
 	// Credentials
-	credentialType := strings.ToLower(conf.GetString("CredentialType", kinesisCredentialEnv))
+	credentialType := strings.ToLower(conf.GetString("CredentialType", kinesisCredentialNone))
 	switch credentialType {
 	case kinesisCredentialEnv:
 		cons.config.WithCredentials(credentials.NewEnvCredentials())
@@ -220,9 +223,7 @@ func (cons *Kinesis) processShard(iteratorConfig *kinesis.GetShardIteratorInput)
 		}
 
 		recordConfig.ShardIterator = result.NextShardIterator
-		if len(result.Records) == 0 {
-			time.Sleep(cons.sleepTime)
-		}
+		time.Sleep(cons.sleepTime)
 	}
 }
 
