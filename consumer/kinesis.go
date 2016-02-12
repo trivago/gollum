@@ -46,13 +46,13 @@ const (
 //   - "consumer.Kinesis":
 //     Enable: true
 //     KinesisStream: "default"
+//     Region: "eu-west-1"
+//     Endpoint: "kinesis.eu-west-1.amazonaws.com"
 //     DefaultOffset: "Newest"
 //     OffsetFile: ""
 //     RecordsPerQuery: 100
 //     QuerySleepTimeMs: 1000
 //     RetrySleepTimeSec: 4
-//     Region: "eu-west-1"
-//     Endpoint: "kinesis.eu-west-1.amazonaws.com"
 //     CredentialType: "none"
 //     CredentialId: ""
 //     CredentialToken: ""
@@ -62,12 +62,14 @@ const (
 //     Stream:
 //       - "kinesis"
 //
-// DefaultOffset defines the message index to start reading from.
-// Valid values are either "Newset", "Oldest", or a number.
-// The default value is "Newest".
-//
 // KinesisStream defines the stream to read from.
 // By default this is set to "default"
+//
+// Region defines the amazon region of your kinesis stream.
+// By default this is set to "eu-west-1".
+//
+// Endpoint defines the amazon endpoint for your kinesis stream.
+// By default this is et to "kinesis.eu-west-1.amazonaws.com"
 //
 // CredentialType defines the credentials that are to be used when
 // connectiong to kensis. This can be one of the following: environment,
@@ -78,15 +80,24 @@ const (
 // will pull the credentials from environmental settings.
 // By default this is set to none.
 //
+// DefaultOffset defines the message index to start reading from.
+// Valid values are either "Newset", "Oldest", or a number.
+// The default value is "Newest".
+//
+// OffsetFile defines a file to store the current offset per shard.
+// By default this is set to "", i.e. it is disabled.
+// If a file is set and found consuming will start after the stored
+// offset.
+//
+// RecordsPerQuery defines the number of records to pull per query.
+// By default this is set to 100.
+//
 // QuerySleepTimeMs defines the number of milliseconds to sleep before
 // trying to pull new records from a shard that did not return any records.
 // By default this is set to 1000.
 //
 // RetrySleepTimeSec defines the number of seconds to wait after trying to
 // reconnect to a shard. By default this is set to 4.
-//
-// RecordsPerQuery defines the number of records to pull per query.
-// By default this is set to 100.
 type Kinesis struct {
 	core.ConsumerBase
 	client          *kinesis.Kinesis
@@ -217,8 +228,6 @@ func (cons *Kinesis) processShard(shardID string) {
 	cons.AddWorker()
 	defer cons.WorkerDone()
 
-	Log.Debug.Printf("Started shard iterator %s:%s", *iteratorConfig.StreamName, *iteratorConfig.ShardId)
-
 	for cons.running {
 		result, err := cons.client.GetRecords(&recordConfig)
 		if err != nil {
@@ -232,7 +241,6 @@ func (cons *Kinesis) processShard(shardID string) {
 
 			for _, record := range result.Records {
 				if record == nil {
-					Log.Debug.Printf("Empty record detected")
 					continue // ### continue ###
 				}
 
@@ -264,8 +272,6 @@ func (cons *Kinesis) connect() error {
 		return fmt.Errorf("StreamDescription could not be retrieved.")
 	}
 
-	Log.Debug.Printf("Iterating streams ...")
-
 	cons.running = true
 	for _, shard := range streamInfo.StreamDescription.Shards {
 		if shard.ShardId == nil {
@@ -273,7 +279,7 @@ func (cons *Kinesis) connect() error {
 		}
 
 		shardID := *shard.ShardId
-		Log.Debug.Printf("Starting consumer for %s:%s", cons.stream, shardID)
+		Log.Debug.Printf("Starting kinesis consumer for %s:%s", cons.stream, shardID)
 
 		if _, offsetStored := cons.offsets[shardID]; !offsetStored {
 			cons.offsets[shardID] = cons.defaultOffset

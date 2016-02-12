@@ -36,6 +36,54 @@ const (
 )
 
 // Kinesis producer plugin
+// Configuration example
+//
+//   - "producer.Kinesis":
+//     Enable: true
+//     Region: "eu-west-1"
+//     Endpoint: "kinesis.eu-west-1.amazonaws.com"
+//     CredentialType: "none"
+//     CredentialId: ""
+//     CredentialToken: ""
+//     CredentialSecret: ""
+//     CredentialFile: ""
+//     CredentialProfile: ""
+//     BatchMaxMessages: 500
+//     SendTimeframeSec: 1
+//     BatchTimeoutSec: 3
+//     TimoutMs: 1500
+//     StreamMap:
+//        "*" : "default"
+//     Stream:
+//       - "kinesis"
+//
+// KinesisStream defines the stream to read from.
+// By default this is set to "default"
+//
+// Region defines the amazon region of your kinesis stream.
+// By default this is set to "eu-west-1".
+//
+// Endpoint defines the amazon endpoint for your kinesis stream.
+// By default this is et to "kinesis.eu-west-1.amazonaws.com"
+//
+// CredentialType defines the credentials that are to be used when
+// connectiong to kensis. This can be one of the following: environment,
+// static, shared, none.
+// Static enables the parameters CredentialId, CredentialToken and
+// CredentialSecretm shared enables the parameters CredentialFile and
+// CredentialProfile. None will not use any credentials and environment
+// will pull the credentials from environmental settings.
+// By default this is set to none.
+//
+// BatchMaxMessages defines the maximum number of messages to send per
+// batch. By default this is set to 500.
+//
+// SendTimeframeMs defines the timeframe in milliseconds in which a second
+// batch send can be triggered. By default this is set to 1000, i.e. one
+// send operation per second.
+//
+// BatchTimeoutSec defines the number of seconds after which a batch is
+// flushed automatically. By default this is set to 3.
 type Kinesis struct {
 	core.ProducerBase
 	client         *kinesis.Kinesis
@@ -43,7 +91,13 @@ type Kinesis struct {
 	streamMap      map[core.MessageStreamID]string
 	batch          core.MessageBatch
 	flushFrequency time.Duration
-	timeout        time.Duration
+	lastSendTime   time.Time
+	sendTimeLimit  time.Duration
+}
+
+type streamData struct {
+	content  *kinesis.PutRecordsInput
+	original []*core.Message
 }
 
 func init() {
@@ -58,10 +112,11 @@ func (prod *Kinesis) Configure(conf core.PluginConfig) error {
 	}
 	prod.SetStopCallback(prod.close)
 
-	prod.streamMap = conf.GetStreamMap("StreamMapping", "")
+	prod.streamMap = conf.GetStreamMap("StreamMapping", "default")
 	prod.batch = core.NewMessageBatch(conf.GetInt("BatchMaxMessages", 500))
 	prod.flushFrequency = time.Duration(conf.GetInt("BatchTimeoutSec", 3)) * time.Second
-	prod.timeout = time.Duration(conf.GetInt("TimoutMs", 1500)) * time.Millisecond
+	prod.sendTimeLimit = time.Duration(conf.GetInt("SendTimeframeMs", 1000)) * time.Millisecond
+	prod.lastSendTime = time.Now()
 
 	// Config
 	prod.config = aws.NewConfig()
@@ -94,7 +149,7 @@ func (prod *Kinesis) Configure(conf core.PluginConfig) error {
 		// Nothing
 
 	default:
-		return fmt.Errorf("Unknwon CredentialType: %s", credentialType)
+		return fmt.Errorf("Unknown CredentialType: %s", credentialType)
 	}
 
 	return nil
@@ -119,11 +174,6 @@ func (prod *Kinesis) dropMessages(messages []core.Message) {
 	for _, msg := range messages {
 		prod.Drop(msg)
 	}
-}
-
-type streamData struct {
-	content  *kinesis.PutRecordsInput
-	original []*core.Message
 }
 
 func (prod *Kinesis) transformMessages(messages []core.Message) {
@@ -165,6 +215,11 @@ func (prod *Kinesis) transformMessages(messages []core.Message) {
 		records.original = append(records.original, &messages[idx])
 	}
 
+	sleepDuration := prod.sendTimeLimit - time.Since(prod.lastSendTime)
+	if sleepDuration > 0 {
+		time.Sleep(sleepDuration)
+	}
+
 	// Send to Kinesis
 	for _, records := range streamRecords {
 		result, err := prod.client.PutRecords(records.content)
@@ -197,5 +252,5 @@ func (prod *Kinesis) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
 
 	prod.client = kinesis.New(session.New(prod.config))
-	prod.TickerMessageControlLoop(prod.bufferMessage, prod.timeout, prod.sendBatchOnTimeOut)
+	prod.TickerMessageControlLoop(prod.bufferMessage, prod.flushFrequency, prod.sendBatchOnTimeOut)
 }
