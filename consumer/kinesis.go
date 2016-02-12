@@ -91,14 +91,15 @@ type Kinesis struct {
 	core.ConsumerBase
 	client          *kinesis.Kinesis
 	config          *aws.Config
-	offsets         map[string]int64
+	offsets         map[string]string
 	stream          string
 	offsetType      string
 	offsetFile      string
-	defaultOffset   int64
+	defaultOffset   string
 	recordsPerQuery int64
 	sleepTime       time.Duration
 	retryTime       time.Duration
+	running         bool
 }
 
 func init() {
@@ -112,6 +113,7 @@ func (cons *Kinesis) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
+	cons.offsets = make(map[string]string)
 	cons.stream = conf.GetString("KinesisStream", "default")
 	cons.offsetFile = conf.GetString("OffsetFile", "")
 	cons.recordsPerQuery = int64(conf.GetInt("RecordsPerQuery", 1000))
@@ -157,15 +159,15 @@ func (cons *Kinesis) Configure(conf core.PluginConfig) error {
 	switch offsetValue {
 	case kinesisOffsetNewest:
 		cons.offsetType = kinesis.ShardIteratorTypeLatest
-		cons.defaultOffset = 0
+		cons.defaultOffset = ""
 
 	case kinesisOffsetOldest:
-		cons.offsetType = kinesis.ShardIteratorTypeAtSequenceNumber
-		cons.defaultOffset = 0
+		cons.offsetType = kinesis.ShardIteratorTypeTrimHorizon
+		cons.defaultOffset = ""
 
 	default:
 		cons.offsetType = kinesis.ShardIteratorTypeAtSequenceNumber
-		cons.defaultOffset, _ = strconv.ParseInt(offsetValue, 10, 64)
+		cons.defaultOffset = offsetValue
 	}
 
 	if cons.offsetFile != "" {
@@ -182,15 +184,27 @@ func (cons *Kinesis) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-func (cons *Kinesis) processShard(iteratorConfig *kinesis.GetShardIteratorInput) {
-	iterator, err := cons.client.GetShardIterator(iteratorConfig)
+func (cons *Kinesis) processShard(shardID string) {
+	iteratorConfig := kinesis.GetShardIteratorInput{
+		ShardId:                aws.String(shardID),
+		ShardIteratorType:      aws.String(cons.offsetType),
+		StreamName:             aws.String(cons.stream),
+		StartingSequenceNumber: aws.String(cons.offsets[shardID]),
+	}
+	if *iteratorConfig.StartingSequenceNumber == "" {
+		iteratorConfig.StartingSequenceNumber = nil
+	}
+
+	iterator, err := cons.client.GetShardIterator(&iteratorConfig)
 	if err != nil || iterator.ShardIterator == nil {
-		Log.Error.Printf("Failed to iterate shard %s/%s", *iteratorConfig.StreamName, *iteratorConfig.ShardId)
-		time.AfterFunc(cons.retryTime, func() { cons.processShard(iteratorConfig) })
+		Log.Error.Printf("Failed to iterate shard %s:%s - %s", *iteratorConfig.StreamName, *iteratorConfig.ShardId, err.Error())
+		if cons.running {
+			time.AfterFunc(cons.retryTime, func() { cons.processShard(shardID) })
+		}
 		return // ### return, retry ###
 	}
 
-	recordConfig := &kinesis.GetRecordsInput{
+	recordConfig := kinesis.GetRecordsInput{
 		ShardIterator: iterator.ShardIterator,
 		Limit:         aws.Int64(cons.recordsPerQuery),
 	}
@@ -198,37 +212,37 @@ func (cons *Kinesis) processShard(iteratorConfig *kinesis.GetShardIteratorInput)
 	cons.AddWorker()
 	defer cons.WorkerDone()
 
-	for {
-		result, err := cons.client.GetRecords(recordConfig)
-		if err != nil || iterator.ShardIterator == nil {
-			Log.Error.Printf("Failed to get records from shard %s/%s", *iteratorConfig.StreamName, *iteratorConfig.ShardId)
-			time.AfterFunc(cons.retryTime, func() { cons.processShard(iteratorConfig) })
-			return // ### return, retry ###
-		}
+	Log.Debug.Printf("Started shard iterator %s:%s", *iteratorConfig.StreamName, *iteratorConfig.ShardId)
 
-		if result.NextShardIterator == nil {
-			Log.Warning.Printf("Shard %s/%s has been closed", *iteratorConfig.StreamName, *iteratorConfig.ShardId)
-			return // ### return, closed ###
-		}
+	for cons.running {
+		result, err := cons.client.GetRecords(&recordConfig)
+		if err != nil {
+			Log.Error.Printf("Failed to get records from shard %s:%s - %s", *iteratorConfig.StreamName, *iteratorConfig.ShardId, err.Error())
+		} else {
 
-		for _, record := range result.Records {
-			if record == nil {
-				Log.Debug.Printf("Empty record detected")
-				continue // ### continue ###
+			if result.NextShardIterator == nil {
+				Log.Warning.Printf("Shard %s:%s has been closed", *iteratorConfig.StreamName, *iteratorConfig.ShardId)
+				return // ### return, closed ###
 			}
 
-			seq, _ := strconv.ParseInt(*(*record).SequenceNumber, 10, 64)
-			cons.Enqueue((*record).Data, uint64(seq))
-			cons.offsets[*iteratorConfig.ShardId] = seq
-		}
+			for _, record := range result.Records {
+				if record == nil {
+					Log.Debug.Printf("Empty record detected")
+					continue // ### continue ###
+				}
 
-		recordConfig.ShardIterator = result.NextShardIterator
+				seq, _ := strconv.ParseInt(*record.SequenceNumber, 10, 64)
+				cons.Enqueue(record.Data, uint64(seq))
+				cons.offsets[*iteratorConfig.ShardId] = *record.SequenceNumber
+			}
+
+			recordConfig.ShardIterator = result.NextShardIterator
+		}
 		time.Sleep(cons.sleepTime)
 	}
 }
 
 func (cons *Kinesis) connect() error {
-	defer cons.WorkerDone() // main worker done
 	cons.client = kinesis.New(session.New(cons.config))
 
 	// Get shard ids for stream
@@ -245,35 +259,39 @@ func (cons *Kinesis) connect() error {
 		return fmt.Errorf("StreamDescription could not be retrieved.")
 	}
 
+	Log.Debug.Printf("Iterating streams ...")
+
+	cons.running = true
 	for _, shard := range streamInfo.StreamDescription.Shards {
 		if shard.ShardId == nil {
 			return fmt.Errorf("ShardId could not be retrieved.")
 		}
 
-		offset, offsetStored := cons.offsets[*shard.ShardId]
-		if !offsetStored {
-			offset = cons.defaultOffset
-			cons.offsets[*shard.ShardId] = 0
+		shardID := *shard.ShardId
+		Log.Debug.Printf("Starting consumer for %s:%s", cons.stream, shardID)
+
+		if _, offsetStored := cons.offsets[shardID]; !offsetStored {
+			cons.offsets[shardID] = cons.defaultOffset
 		}
 
-		iteratorConfig := &kinesis.GetShardIteratorInput{
-			ShardId:                aws.String(*shard.ShardId),
-			ShardIteratorType:      aws.String(cons.offsetType),
-			StreamName:             aws.String(cons.stream),
-			StartingSequenceNumber: aws.String(fmt.Sprintf("%d", offset)),
-		}
-
-		go cons.processShard(iteratorConfig)
+		go cons.processShard(shardID)
 	}
 	return nil
+}
+
+func (cons *Kinesis) close() {
+	cons.running = false
+	cons.WorkerDone()
 }
 
 // Consume listens to stdin.
 func (cons *Kinesis) Consume(workers *sync.WaitGroup) {
 	cons.AddMainWorker(workers)
+	defer cons.close()
+
 	if err := cons.connect(); err != nil {
 		Log.Error.Print("Kinesis connection error: ", err)
-		return
+	} else {
+		cons.ControlLoop()
 	}
-	cons.ControlLoop()
 }

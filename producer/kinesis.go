@@ -120,50 +120,53 @@ func (prod *Kinesis) dropMessages(messages []core.Message) {
 	}
 }
 
-type inputData struct {
-	data     kinesis.PutRecordsInput
+type streamData struct {
+	content  *kinesis.PutRecordsInput
 	original []*core.Message
 }
 
 func (prod *Kinesis) transformMessages(messages []core.Message) {
-	streamRecords := make(map[core.MessageStreamID]inputData)
+	streamRecords := make(map[core.MessageStreamID]*streamData)
 
 	// Format and sort
-	for _, msg := range messages {
+	for idx, msg := range messages {
 		msgData, streamID := prod.ProducerBase.Format(msg)
+		messageHash := fmt.Sprintf("%X-%d", streamID, msg.Sequence)
 
 		// Fetch buffer for this stream
-		recordsInput, recordsExists := streamRecords[streamID]
+		records, recordsExists := streamRecords[streamID]
 		if !recordsExists {
 			// Select the correct kinesis stream
 			streamName, streamMapped := prod.streamMap[streamID]
 			if !streamMapped {
 				streamName = core.StreamRegistry.GetStreamName(streamID)
+				prod.streamMap[streamID] = streamName
 			}
 
 			// Create buffers for this kinesis stream
-			recordsInput = inputData{
-				data: kinesis.PutRecordsInput{
+			records = &streamData{
+				content: &kinesis.PutRecordsInput{
 					Records:    make([]*kinesis.PutRecordsRequestEntry, 0, len(messages)),
 					StreamName: aws.String(streamName),
 				},
 				original: make([]*core.Message, 0, len(messages)),
 			}
-			streamRecords[streamID] = recordsInput
+			streamRecords[streamID] = records
 		}
 
 		// Append record to stream
 		record := &kinesis.PutRecordsRequestEntry{
 			Data:         msgData,
-			PartitionKey: aws.String(fmt.Sprintf("%X-%d", streamID, msg.Sequence)),
+			PartitionKey: aws.String(messageHash),
 		}
-		recordsInput.data.Records = append(recordsInput.data.Records, record)
-		recordsInput.original = append(recordsInput.original, &msg)
+
+		records.content.Records = append(records.content.Records, record)
+		records.original = append(records.original, &messages[idx])
 	}
 
 	// Send to Kinesis
 	for _, records := range streamRecords {
-		result, err := prod.client.PutRecords(&records.data)
+		result, err := prod.client.PutRecords(records.content)
 		if err != nil {
 			// Batch failed, drop all
 			Log.Error.Print("Kinesis write error: ", err)
@@ -173,15 +176,13 @@ func (prod *Kinesis) transformMessages(messages []core.Message) {
 		} else {
 			// Check each message for errors
 			for msgIdx, record := range result.Records {
-				if record.ErrorMessage == nil {
+				if record.ErrorMessage != nil {
 					Log.Error.Print("Kinesis message write error: ", *record.ErrorMessage)
 					prod.Drop(*records.original[msgIdx])
 				}
 			}
 		}
 	}
-
-	time.Sleep(500)
 }
 
 // Produce writes to stdout or stderr.
