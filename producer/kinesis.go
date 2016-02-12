@@ -56,6 +56,7 @@ func (prod *Kinesis) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err
 	}
+	prod.SetStopCallback(prod.close)
 
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "")
 	prod.batch = core.NewMessageBatch(conf.GetInt("BatchMaxMessages", 500))
@@ -185,9 +186,14 @@ func (prod *Kinesis) transformMessages(messages []core.Message) {
 	}
 }
 
+func (prod *Kinesis) close() {
+	defer prod.WorkerDone()
+	prod.CloseMessageChannel(prod.bufferMessage)
+	prod.batch.Close(prod.transformMessages, prod.GetShutdownTimeout())
+}
+
 // Produce writes to stdout or stderr.
 func (prod *Kinesis) Produce(workers *sync.WaitGroup) {
-	defer prod.WorkerDone()
 	prod.AddMainWorker(workers)
 
 	prod.client = kinesis.New(session.New(prod.config))

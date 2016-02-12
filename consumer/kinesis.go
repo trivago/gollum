@@ -167,6 +167,11 @@ func (cons *Kinesis) Configure(conf core.PluginConfig) error {
 
 	default:
 		cons.offsetType = kinesis.ShardIteratorTypeAtSequenceNumber
+		_, err := strconv.ParseUint(offsetValue, 10, 64)
+		if err != nil {
+			Log.Error.Printf("Default offset must be \"%s\", \"%s\" or a number. %s given", kinesisOffsetNewest, kinesisOffsetOldest, offsetValue)
+			offsetValue = "0"
+		}
 		cons.defaultOffset = offsetValue
 	}
 
