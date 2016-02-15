@@ -52,7 +52,7 @@ const (
 //       - "socket"
 //
 // The socket consumer reads messages directly as-is from a given socket.
-// Messages are separated from the stream by using a specific paritioner method.
+// Messages are separated from the stream by using a specific partitioner method.
 // When attached to a fuse, this consumer will stop accepting new connections
 // (closing the socket) and close all existing connections in case that fuse is
 // burned.
@@ -86,7 +86,7 @@ const (
 // Delimiter defines the delimiter used by the text and delimiter partitioner.
 // By default this is set to "\n".
 //
-// Offset defines the offset used by the binary and text paritioner.
+// Offset defines the offset used by the binary and text partitioner.
 // By default this is set to 0. This setting is ignored by the fixed partitioner.
 //
 // Size defines the size in bytes used by the binary or fixed partitioner.

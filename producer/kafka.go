@@ -72,7 +72,7 @@ const (
 // Partitioner sets the distribution algorithm to use. Valid values are:
 // "Random","Roundrobin" and "Hash". By default "Hash" is set.
 //
-// RequiredAcks defines the acknowledgement level required by the broker.
+// RequiredAcks defines the acknowledgment level required by the broker.
 // 0 = No responses required. 1 = wait for the local commit. -1 = wait for
 // all replicas to commit. >1 = wait for a specific number of commits.
 // By default this is set to 1.

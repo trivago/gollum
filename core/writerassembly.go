@@ -50,7 +50,7 @@ func (asm *WriterAssembly) SetValidator(validate func() bool) {
 	asm.validate = validate
 }
 
-// SetErrorHandler sets a callback that is called if an error occured.
+// SetErrorHandler sets a callback that is called if an error occurred.
 // HandleError needs to return true to prevent messages to be flushed.
 func (asm *WriterAssembly) SetErrorHandler(handleError func(error) bool) {
 	asm.handleError = handleError

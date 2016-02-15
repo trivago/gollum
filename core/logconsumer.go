@@ -44,7 +44,7 @@ func (cons *LogConsumer) Streams() []MessageStreamID {
 	return []MessageStreamID{LogInternalStreamID}
 }
 
-// Write fullfills the io.Writer interface
+// Write fulfills the io.Writer interface
 func (cons LogConsumer) Write(data []byte) (int, error) {
 	dataCopy := make([]byte, len(data))
 	copy(dataCopy, data)

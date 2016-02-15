@@ -68,6 +68,6 @@ func (filter *Stream) Accepts(msg core.Message) bool {
 		}
 	}
 
-	// Return true if no whitlist is given, false otherwise (must fullfill whitelist)
+	// Return true if no whitlist is given, false otherwise (must fulfill whitelist)
 	return len(filter.whitelist) == 0
 }

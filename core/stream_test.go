@@ -69,7 +69,7 @@ func TestStreamPauseFlush(t *testing.T) {
 	mockDistributer := func(msg Message) {
 		expect.Equal("abc", msg.String())
 	}
-	// rewrite paused as nil to check if properly asigned by Pause(capacity).
+	// rewrite paused as nil to check if properly assigned by Pause(capacity).
 	mockStream.paused = nil
 	mockStream.distribute = mockDistributer
 

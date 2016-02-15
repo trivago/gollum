@@ -23,6 +23,7 @@ import (
 	"os"
 	"os/signal"
 	"reflect"
+	"runtime/debug"
 	"sync"
 	"time"
 )
@@ -308,12 +309,14 @@ func (plex *multiplexer) shutdown() {
 	logFallback := time.AfterFunc(time.Duration(3)*time.Second, func() {
 		Log.SetWriter(os.Stdout)
 	})
-	defer logFallback.Stop()
 
-	// Handle panics if any
-	if r := recover(); r != nil {
-		log.Println(r)
-	}
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println(r)
+			log.Print(string(debug.Stack()))
+		}
+		logFallback.Stop()
+	}()
 
 	// Make Ctrl+C possible during shutdown sequence
 	if plex.signal != nil {

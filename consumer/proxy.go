@@ -47,12 +47,11 @@ const (
 //       - "proxy"
 //
 // The proxy consumer reads messages directly as-is from a given socket.
-// Messages are extracted by standard message size algorithms (see Parititioner).
+// Messages are extracted by standard message size algorithms (see Partitioner).
 // This consumer can be used with any compatible proxy producer to establish
 // a two-way communication.
 // When attached to a fuse, this consumer will stop accepting new connections
 // and close all existing connections in case that fuse is burned.
-//
 //
 // Address stores the identifier to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
@@ -74,7 +73,7 @@ const (
 // Delimiter defines the delimiter used by the text and delimiter partitioner.
 // By default this is set to "\n".
 //
-// Offset defines the offset used by the binary and text paritioner.
+// Offset defines the offset used by the binary and text partitioner.
 // By default this is set to 0. This setting is ignored by the fixed partitioner.
 //
 // Size defines the size in bytes used by the binary or fixed partitioner.

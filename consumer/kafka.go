@@ -66,7 +66,7 @@ const (
 //
 // OffsetFile defines a path to a file containing the current index per topic
 // partition. If a file is given the index stored in this file will be used as
-// the default offset for a stored parition. If the partition is not stored in
+// the default offset for a stored partition. If the partition is not stored in
 // this file DefaultOffset is used.
 //
 // ClientId sets the client id of this producer. By default this is "gollum".
