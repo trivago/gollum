@@ -37,10 +37,10 @@ const (
 )
 
 // Kinesis producer plugin
+// This producer sends data to an AWS kinesis stream.
 // Configuration example
 //
 //   - "producer.Kinesis":
-//     Enable: true
 //     Region: "eu-west-1"
 //     Endpoint: "kinesis.eu-west-1.amazonaws.com"
 //     CredentialType: "none"
@@ -55,8 +55,6 @@ const (
 //     TimoutMs: 1500
 //     StreamMap:
 //        "*" : "default"
-//     Stream:
-//       - "kinesis"
 //
 // KinesisStream defines the stream to read from.
 // By default this is set to "default"
@@ -71,7 +69,7 @@ const (
 // connectiong to kensis. This can be one of the following: environment,
 // static, shared, none.
 // Static enables the parameters CredentialId, CredentialToken and
-// CredentialSecretm shared enables the parameters CredentialFile and
+// CredentialSecret shared enables the parameters CredentialFile and
 // CredentialProfile. None will not use any credentials and environment
 // will pull the credentials from environmental settings.
 // By default this is set to none.

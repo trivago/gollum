@@ -22,18 +22,8 @@ import (
 )
 
 // RoundRobin stream plugin
-// Configuration example
-//
-//   - "stream.RoundRobin":
-//     Enable: true
-//     Stream: "data"
-//	   Formatter: "format.Envelope"
-//     Filter: "filter.All"
-//
 // Messages will be sent to one of the producers attached to this stream.
 // Producers will be switched one-by-one.
-//
-// This stream defines the same fields as stream.Broadcast.
 type RoundRobin struct {
 	core.StreamBase
 	index         int32

@@ -20,11 +20,12 @@ import (
 	"strconv"
 )
 
+// Sequence formatter plugin
 // Sequence is a formatter that allows prefixing a message with the message's
 // sequence number
 // Configuration example
 //
-//   - "<producer|stream>":
+//   - "stream.Broadcast":
 //     Formatter: "format.Sequence"
 //     SequenceFormatter: "format.Envelope"
 //

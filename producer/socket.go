@@ -24,6 +24,9 @@ import (
 )
 
 // Socket producer plugin
+// The socket producer connects to a service over a TCP, UDP or unix domain
+// socket based connection.
+// This producer uses a fuse breaker when the service to connect to goes down.
 // Configuration example
 //
 //   - "producer.Socket":
@@ -34,10 +37,6 @@ import (
 //     BatchFlushCount: 4096
 //     BatchTimeoutSec: 5
 //     Acknowledge: ""
-//
-// The socket producer connects to a service over a TCP, UDP or unix domain
-// socket based connection.
-// This producer uses a fuse breaker when the service to connect to goes down.
 //
 // Address stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:5880" or a file

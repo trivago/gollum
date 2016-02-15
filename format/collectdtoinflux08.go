@@ -26,7 +26,7 @@ import (
 // from the Collectd message beforehand.
 // Configuration example
 //
-//   - "<producer|stream>":
+//   - "stream.Broadcast":
 //     Formatter: "format.CollectdToInflux08"
 //     CollectdToInfluxFormatter: "format.Forward"
 //

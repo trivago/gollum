@@ -20,25 +20,21 @@ import (
 )
 
 // Route stream plugin
+// Messages will be routed to all streams configured. Each target stream can
+// hold another stream configuration, too, so this is not directly sending to
+// the producers attached to the target streams.
 // Configuration example
 //
 //   - "stream.Route":
-//     Enable: true
-//     Stream: "data"
 //     Routes:
 //        - "db1"
 //        - "db2"
 //        - "data"
 //
-// Messages will be routed to the streams configured.
-// If no route is configured the message is discarded.
-//
 // Routes defines a 1:n stream remapping.
 // Messages are reassigned to all of stream(s) in this list.
 // If no route is set messages are forwarded on the incoming stream.
 // When routing to multiple streams, the incoming stream has to be listed explicitly to be used.
-//
-// This stream defines the same fields as stream.Broadcast.
 type Route struct {
 	core.StreamBase
 	routes []streamWithID

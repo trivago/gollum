@@ -19,11 +19,12 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
+// Timestamp formatter plugin
 // Timestamp is a formatter that allows prefixing a message with a timestamp
 // (time of arrival at gollum) as well as postfixing it with a delimiter string.
 // Configuration example
 //
-//   - "<producer|stream>":
+//   - "stream.Broadcast":
 //     Formatter: "format.Timestamp"
 //     TimestampFormatter: "format.Envelope"
 //     Timestamp: "2006-01-02T15:04:05.000 MST | "

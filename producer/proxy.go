@@ -26,10 +26,14 @@ import (
 )
 
 // Proxy producer plugin
+// This producer is compatible to consumer.proxy.
+// Responses to messages sent to the given address are sent back to the original
+// consumer of it is a compatible message source. As with consumer.proxy the
+// returned messages are partitioned by common message length algorithms.
+// This producer does not implement a fuse breaker.
 // Configuration example
 //
 //   - "producer.Proxy":
-//     Enable: true
 //     Address: ":5880"
 //     ConnectionBufferSizeKB: 1024
 //     TimeoutSec: 1
@@ -37,12 +41,6 @@ import (
 //     Delimiter: "\n"
 //     Offset: 0
 //     Size: 1
-//
-// This producer is compatible to consumer.proxy.
-// Responses to messages sent to the given address are sent back to the original
-// consumer of it is a compatible message source. As with consumer.proxy the
-// returned messages are partitioned by common message length algorithms.
-// This producer does not implement a fuse breaker.
 //
 // Address stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:5880" or a file

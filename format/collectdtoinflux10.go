@@ -22,12 +22,13 @@ import (
 	"strings"
 )
 
+// CollectdToInflux10 formatter plugin
 // CollectdToInflux10 provides a transformation from collectd JSON data to
 // InfluxDB 0.9.1+ compatible line protocol data. Trailing and leading commas
 // are removed from the Collectd message beforehand.
 // Configuration example
 //
-//   - "<producer|stream>":
+//   - "stream.Broadcast":
 //     Formatter: "format.CollectdToInflux10"
 //     CollectdToInflux10Formatter: "format.Forward"
 //

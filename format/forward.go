@@ -19,10 +19,11 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
+// Forward formatter plugin
 // Forward is a formatter that passes a message as is
 // Configuration example
 //
-//   - "<producer|stream>":
+//   - "stream.Broadcast":
 //     Formatter: "format.Forward"
 type Forward struct {
 }

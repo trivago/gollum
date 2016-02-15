@@ -20,6 +20,7 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
+// StreamRoute formatter plugin
 // StreamRoute is a formatter that modifies a message's stream by reading a
 // prefix from the message's data (and discarding it).
 // The prefix is defined by everything before a given delimiter in the
@@ -27,7 +28,7 @@ import (
 // is not changed.
 // Configuration example
 //
-//   - "<producer|stream>":
+//   - "stream.Broadcast":
 //     Formatter: "format.StreamRoute"
 //     StreamRouteFormatter: "format.Forward"
 //     StreamRouteStreamFormatter: "format.Forward"

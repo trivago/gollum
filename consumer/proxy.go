@@ -34,26 +34,22 @@ const (
 )
 
 // Proxy consumer plugin.
-// Configuration example
-//
-//   - "consumer.Proxy":
-//     Enable: true
-//     Address: ":5880"
-//     Partitioner: "delimiter"
-//     Delimiter: "\n"
-//     Offset: 0
-//     Size: 1
-//     Stream:
-//       - "proxy"
-//
 // The proxy consumer reads messages directly as-is from a given socket.
 // Messages are extracted by standard message size algorithms (see Partitioner).
 // This consumer can be used with any compatible proxy producer to establish
 // a two-way communication.
 // When attached to a fuse, this consumer will stop accepting new connections
 // and close all existing connections in case that fuse is burned.
+// Configuration example
 //
-// Address stores the identifier to bind to.
+//   - "consumer.Proxy":
+//     Address: ":5880"
+//     Partitioner: "delimiter"
+//     Delimiter: "\n"
+//     Offset: 0
+//     Size: 1
+//
+// Address defines the protocol, host and port or socket to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
 // UDP is not supported.

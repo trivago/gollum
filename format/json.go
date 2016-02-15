@@ -36,12 +36,13 @@ const (
 	jsonReadArrayAppend = jsonReaderState(iota)
 )
 
+// JSON formatter plugin
 // JSON is a formatter that passes a message encapsulated as JSON in the form
 // {"message":"..."}. The actual message is formatted by a nested formatter and
 // HTML escaped.
 // Configuration example
 //
-//   - "<producer|stream>":
+//   - "stream.Broadcast":
 //     Formatter: "format.JSON"
 //	   JSONStartState: "findKey"
 //     JSONDirectives:

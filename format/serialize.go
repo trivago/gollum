@@ -21,10 +21,11 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
+// Serialize formatter plugin
 // Serialize is a formatter that serializes a message for later retrieval.
 // Configuration example
 //
-//   - "<producer|stream>":
+//   - "stream.Broadcast":
 //     Formatter: "format.Serialize"
 //     SerializeFormatter: "format.Envelope"
 //     SerializeStringEncode: true

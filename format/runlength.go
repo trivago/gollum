@@ -20,11 +20,12 @@ import (
 	"strconv"
 )
 
+// Runlength formatter plugin
 // Runlength is a formatter that prepends the length of the message, followed by
 // a ":". The actual message is formatted by a nested formatter.
 // Configuration example
 //
-//   - "<producer|stream>":
+//   - "stream.Broadcast":
 //     Formatter: "format.Runlength"
 //     RunlengthFormatter: "format.Envelope"
 //

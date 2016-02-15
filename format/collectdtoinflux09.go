@@ -21,12 +21,13 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
+// CollectdToInflux09 formatter plugin
 // CollectdToInflux09 provides a transformation from collectd JSON data to
 // InfluxDB 0.9.x compatible JSON data. Trailing and leading commas are removed
 // from the Collectd message beforehand.
 // Configuration example
 //
-//   - "<producer|stream>":
+//   - "stream.Broadcast":
 //     Formatter: "format.CollectdToInflux09"
 //     CollectdToInfluxFormatter: "format.Forward"
 //

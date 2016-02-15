@@ -19,11 +19,12 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
+// Envelope formatter plugin
 // Envelope is a formatter that allows prefixing and/or postfixing a message
 // with configurable strings.
 // Configuration example
 //
-//   - "<producer|stream>":
+//   - "stream.Broadcast":
 //     Formatter: "format.Envelope"
 //     EnvelopeFormatter: "format.Forward"
 //     EnvelopePrefix: "<data>"

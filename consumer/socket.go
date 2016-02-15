@@ -34,10 +34,14 @@ const (
 )
 
 // Socket consumer plugin
+// The socket consumer reads messages directly as-is from a given socket.
+// Messages are separated from the stream by using a specific partitioner method.
+// When attached to a fuse, this consumer will stop accepting new connections
+// (closing the socket) and close all existing connections in case that fuse is
+// burned.
 // Configuration example
 //
 //   - "consumer.Socket":
-//     Enable: true
 //     Address: ":5880"
 //     Permissions: "0770"
 //     Acknowledge: ""
@@ -48,16 +52,8 @@ const (
 //     ReconnectAfterSec: 2
 //     AckTimoutSec: 2
 //     ReadTimeoutSec: 5
-//     Stream:
-//       - "socket"
 //
-// The socket consumer reads messages directly as-is from a given socket.
-// Messages are separated from the stream by using a specific partitioner method.
-// When attached to a fuse, this consumer will stop accepting new connections
-// (closing the socket) and close all existing connections in case that fuse is
-// burned.
-//
-// Address stores the identifier to bind to.
+// Address defines the protocol, host and port or socket to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
 //

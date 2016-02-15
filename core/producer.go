@@ -57,10 +57,11 @@ type Producer interface {
 	DependsOn(Producer) bool
 }
 
-// ProducerBase base class
-// All producers support a common subset of configuration options:
+// ProducerBase defines a common baseclass for producers. All producers should
+// derive from this class, but not necessarily need to.
+// Configuration example:
 //
-//   - "producer.Something":
+//   - "producer.Console":
 //     Enable: true
 //	   ID: ""
 //     Channel: 8192

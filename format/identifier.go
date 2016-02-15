@@ -22,11 +22,12 @@ import (
 	"strings"
 )
 
+// Identifier formatter plugin
 // Identifier is a formatter that will generate a (mostly) unique 64 bit
 // identifier number from the message timestamp and sequence number. The message
 // payload will not be encoded.
 //
-//   - "<producer|stream>":
+//   - "stream.Broadcast":
 //     Formatter: "format.Identifier"
 //     IdentifierType: "hash"
 //

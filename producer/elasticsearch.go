@@ -27,10 +27,12 @@ import (
 )
 
 // ElasticSearch producer plugin
+// The ElasticSearch producer sends messages to elastic search using the bulk
+// http API. This producer uses a fuse breaker when cluster health reports a
+// "red" status or the connection is down.
 // Configuration example
 //
 //   - "producer.ElasticSearch":
-//     Enable: true
 //     Connections: 6
 //     RetrySec: 5
 //     TTL: ""
@@ -49,13 +51,6 @@ import (
 //     Type:
 //       "console" : "console"
 //       "_GOLLUM_"  : "_GOLLUM_"
-//     Stream:
-//       - "console"
-//       - "_GOLLUM_"
-//
-// The ElasticSearch producer sends messages to elastic search using the bulk
-// http API. This producer uses a fuse breaker when cluster health reports a
-// "red" status or the connection is down.
 //
 // RetrySec denotes the time in seconds after which a failed dataset will be
 // transmitted again. By default this is set to 5.

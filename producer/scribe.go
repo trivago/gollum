@@ -26,10 +26,12 @@ import (
 )
 
 // Scribe producer plugin
+// The scribe producer allows sending messages to Facebook's scribe.
+// This producer uses a fuse breaker if the connection to the scribe server is
+// lost.
 // Configuration example
 //
 //   - "producer.Scribe":
-//     Enable: true
 //     Address: "localhost:1463"
 //     ConnectionBufferSizeKB: 1024
 //     BatchMaxCount: 8192
@@ -38,13 +40,6 @@ import (
 //     Category:
 //       "console" : "console"
 //       "_GOLLUM_"  : "_GOLLUM_"
-//     Stream:
-//       - "console"
-//       - "_GOLLUM_"
-//
-// The scribe producer allows sending messages to Facebook's scribe.
-// This producer uses a fuse breaker if the connection to the scribe server is
-// lost.
 //
 // Address defines the host and port to connect to.
 // By default this is set to "localhost:1463".

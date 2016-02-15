@@ -26,18 +26,6 @@ import (
 )
 
 // Spooling producer plugin
-// Configuration example
-//
-//   - "producer.Spooling":
-//     Enable: true
-//     Path: "/var/run/gollum/spooling"
-//     BatchMaxCount: 100
-//     BatchTimeoutSec: 5
-//     MaxFileSizeMB: 512
-//     MaxFileAgeMin: 1
-//     MessageSizeByte: 8192
-//     RespoolDelaySec: 10
-//
 // The Spooling producer buffers messages and sends them again to the previous
 // stream stored in the message. This means the message must have been routed
 // at least once before reaching the spooling producer. If the previous and
@@ -45,6 +33,17 @@ import (
 // The Formatter configuration value is forced to "format.Serialize" and
 // cannot be changed.
 // This producer does not implement a fuse breaker.
+// Configuration example
+//
+//   - "producer.Spooling":
+//     Path: "/var/run/gollum/spooling"
+//     BatchMaxCount: 100
+//     BatchTimeoutSec: 5
+//     MaxFileSizeMB: 512
+//     MaxFileAgeMin: 1
+//     MessageSizeByte: 8192
+//     RespoolDelaySec: 10
+//     MaxMessagesSec: 100
 //
 // Path sets the output directory for spooling files. Spooling files will
 // Files will be stored as "<path>/<stream>/<number>.spl". By default this is

@@ -25,10 +25,12 @@ import (
 )
 
 // Redis producer plugin
+// This producer sends data to a redis server. Different redis storage types
+// and database indexes are supported. This producer does not implement support
+// for redis 3.0 cluster.
 // Configuration example
 //
 //   - "producer.Redis":
-//     Enable: true
 //     Address: ":6379"
 //	   Database: 0
 //	   Key: "default"

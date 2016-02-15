@@ -21,10 +21,11 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
+// Base64Encode formatter plugin
 // Base64Encode is a formatter that encodes a message as base64.
 // Configuration example
 //
-//   - "<producer|stream>":
+//   - "stream.Broadcast":
 //     Formatter: "format.Base64Encode"
 //     Base64Formatter: "format.Forward"
 //     Base64Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"

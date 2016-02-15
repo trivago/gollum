@@ -33,13 +33,16 @@ const (
 )
 
 // Kafka consumer plugin
+// Thes consumer reads data from a given kafka topic. It is based on the sarama
+// library so most settings are mapped to the settings from this library.
+// When attached to a fuse, this consumer will stop processing messages in case
+// that fuse is burned.
 // Configuration example
 //
 //   - "consumer.Kafka":
-//     Enable: true
-//     DefaultOffset: "Newest"
+//     Topic: "default"
+//     DefaultOffset: "newest"
 //     OffsetFile: ""
-//     ClientID: "gollum"
 //     MaxOpenRequests: 5
 //     ServerTimeoutSec: 30
 //     MaxFetchSizeByte: 0
@@ -52,24 +55,17 @@ const (
 //     MetadataRefreshMs: 10000
 //     Servers:
 //       - "localhost:9092"
-//     Stream:
-//       - "kafka"
 //
-// The kafka consumer reads from a given kafka topic. This consumer is based on
-// the sarama library so most settings relate to the settings from this library.
-// When attached to a fuse, this consumer will stop processing messages in case
-// that fuse is burned.
+// Topic defines the kafka topic to read from. By default this is set to "default".
 //
-// DefaultOffset defines the message index to start reading from.
-// Valid values are either "Newset", "Oldest", or a number.
-// The default value is "Newest".
+// DefaultOffset defines where to start reading the topic. Valid values are
+// "oldest" and "newest". If OffsetFile is defined the DefaultOffset setting
+// will be ignored unless the file does not exist.
+// By default this is set to "newest".
 //
-// OffsetFile defines a path to a file containing the current index per topic
-// partition. If a file is given the index stored in this file will be used as
-// the default offset for a stored partition. If the partition is not stored in
-// this file DefaultOffset is used.
-//
-// ClientId sets the client id of this producer. By default this is "gollum".
+// OffsetFile defines the path to a file that stores the current offset inside
+// a given partition. If the consumer is restarted that offset is used to continue
+// reading. By default this is set to "" which disables the offset file.
 //
 // MaxOpenRequests defines the number of simultanious connections are allowed.
 // By default this is set to 5.
@@ -140,7 +136,6 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 	cons.MaxPartitionID = 0
 
 	cons.config = kafka.NewConfig()
-	cons.config.ClientID = conf.GetString("ClientId", "gollum")
 	cons.config.ChannelBufferSize = conf.GetInt("MessageBufferCount", 256)
 
 	cons.config.Net.MaxOpenRequests = conf.GetInt("MaxOpenRequests", 5)

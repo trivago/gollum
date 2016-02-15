@@ -21,11 +21,12 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
+// SplitToJSON formatter plugin
 // SplitToJSON is a formatter that splits a message by a given token and puts
 // the result into a JSON object by using an array based mapping
 // Configuration example
 //
-//   - "<producer|stream>":
+//   - "stream.Broadcast":
 //     Formatter: "format.SplitToJSON"
 //     SplitToJSONDataFormatter: "format.Forward"
 //     SplitToJSONToken: "|"

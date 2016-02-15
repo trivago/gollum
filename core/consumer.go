@@ -39,10 +39,11 @@ type Consumer interface {
 	Control() chan<- PluginControl
 }
 
-// ConsumerBase base class
-// All consumers support a common subset of configuration options:
+// ConsumerBase defines a common baseclass for all consumers. All consumer plugins
+// should derive from this class but don't necessarily need to.
+// Configuration example:
 //
-// - "consumer.Something":
+// - "consumer.Console":
 //   Enable: true
 //   ID: ""
 //   Fuse: ""

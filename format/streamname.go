@@ -19,10 +19,11 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
+// StreamName formatter plugin
 // StreamName is a formatter that prefixes a message with the StreamName.
 // Configuration example
 //
-//   - "<producer|stream>":
+//   - "stream.Broadcast":
 //     Formatter: "format.StreamName"
 //     StreamNameFormatter: "format.Envelope"
 //

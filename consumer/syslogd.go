@@ -26,27 +26,23 @@ import (
 )
 
 // Syslogd consumer plugin
-// Configuration example
-//
-//   - "consumer.Syslogd":
-//     Enable: true
-//     Address: "udp://0.0.0.0:514"
-//     Format: "RFC6587"
-//     Stream:
-//       - "syslog"
-//
 // The syslogd consumer accepts messages from a syslogd comaptible socket.
 // When attached to a fuse, this consumer will stop the syslogd service in case
 // that fuse is burned.
+// Configuration example
 //
-// Address stores the identifier to bind to.
+//   - "consumer.Syslogd":
+//     Address: "udp://0.0.0.0:514"
+//     Format: "RFC6587"
+//
+// Address defines the protocol, host and port or socket to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.socket". By default this is set to "udp://0.0.0.0:514".
 // The protocol can be defined along with the address, e.g. "tcp://..." but
 // this may be ignored if a certain protocol format does not support the desired
 // transport protocol.
 //
-// Format define the used syslog standard.
+// Format defines the syslog standard to expect for message encoding.
 // Three standards are currently supported:
 // 	* RFC3164 (https://tools.ietf.org/html/rfc3164) udp only
 // 	* RFC5424 (https://tools.ietf.org/html/rfc5424) udp only

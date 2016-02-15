@@ -22,12 +22,13 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
+// Base64Decode formatter plugin
 // Base64Decode is a formatter that decodes a base64 message.
 // If a message is not or only partly base64 encoded an error will be logged
 // and the decoded part is returned. RFC 4648 is expected.
 // Configuration example
 //
-//   - "<producer|stream>":
+//   - "stream.Broadcast":
 //     Formatter: "format.Base64Decode"
 //     Base64Formatter: "format.Forward"
 //     Base64Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"

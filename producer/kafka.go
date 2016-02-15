@@ -35,10 +35,12 @@ const (
 )
 
 // Kafka producer plugin
+// The kafka producer writes messages to a kafka cluster. This producer is
+// backed by the sarama library so most settings relate to that library.
+// This producer uses a fuse breaker if the connection reports an error.
 // Configuration example
 //
 //   - "producer.Kafka":
-//     Enable: true
 //     ClientId: "weblog"
 //     Partitioner: "Roundrobin"
 //     RequiredAcks: 1
@@ -46,6 +48,7 @@ const (
 //     SendRetries: 3
 //     Compression: "None"
 //     MaxOpenRequests: 5
+//     MessageBufferCount: 256
 //     BatchMinCount: 10
 //     BatchMaxCount: 1
 //     BatchSizeByte: 8192
@@ -60,12 +63,6 @@ const (
 //     	- "localhost:9092"
 //     Topic:
 //       "console" : "console"
-//     Stream:
-//       - "console"
-//
-// The kafka producer writes messages to a kafka cluster. This producer is
-// backed by the sarama library so most settings relate to that library.
-// This producer uses a fuse breaker if the connection reports an error.
 //
 // ClientId sets the client id of this producer. By default this is "gollum".
 //

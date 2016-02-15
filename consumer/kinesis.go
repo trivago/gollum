@@ -42,10 +42,12 @@ const (
 )
 
 // Kinesis consumer plugin
+// This consumer reads message from an AWS Kinesis stream.
+// When attached to a fuse, this consumer will stop processing messages in case
+// that fuse is burned.
 // Configuration example
 //
 //   - "consumer.Kinesis":
-//     Enable: true
 //     KinesisStream: "default"
 //     Region: "eu-west-1"
 //     Endpoint: "kinesis.eu-west-1.amazonaws.com"
@@ -60,8 +62,6 @@ const (
 //     CredentialSecret: ""
 //     CredentialFile: ""
 //     CredentialProfile: ""
-//     Stream:
-//       - "kinesis"
 //
 // KinesisStream defines the stream to read from.
 // By default this is set to "default"
@@ -230,6 +230,7 @@ func (cons *Kinesis) processShard(shardID string) {
 	defer cons.WorkerDone()
 
 	for cons.running {
+		cons.WaitOnFuse()
 		result, err := cons.client.GetRecords(&recordConfig)
 		if err != nil {
 			Log.Error.Printf("Failed to get records from shard %s:%s - %s", *iteratorConfig.StreamName, *iteratorConfig.ShardId, err.Error())

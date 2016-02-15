@@ -22,11 +22,6 @@ import (
 )
 
 // Null producer plugin
-// Configuration example
-//
-//   - "producer.Null":
-//     Enable: true
-//
 // This producer does nothing and provides only bare-bone configuration (i.e.
 // enabled and streams). Use this producer to test consumer performance.
 // This producer does not implement a fuse breaker.

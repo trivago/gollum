@@ -23,11 +23,12 @@ import (
 	"time"
 )
 
+// ProcessJSON formatter plugin
 // ProcessJSON is a formatter that allows modifications to fields of a given
 // JSON message. The message is modified and returned again as JSON.
 // Configuration example
 //
-//   - "<producer|stream>":
+//   - "stream.Broadcast":
 //     Formatter: "format.processJSON"
 //     ProcessJSONDataFormatter: "format.Forward"
 //     ProcessJSONDirectives:

@@ -20,29 +20,8 @@ import (
 )
 
 // Broadcast stream plugin
-// Configuration example
-//
-//   - "stream.Broadcast":
-//     Enable: true
-//     Stream: "data"
-//	   Formatter: "format.Envelope"
-//     Filter: "filter.All"
-//
 // Messages will be sent to all producers attached to this stream.
-//
-// Stream defines the stream this stream plugin binds to.
-//
-// Formatter defines a formatter that is applied to all messages sent to this
-// stream. This can be used to bring different streams to the same format
-// required by a producer formatter. By default this is set to format.Forward.
-//
-// Filter defines a filter function that removes or allows certain messages to
-// pass through this stream. By default this is set to filter.All.
-//
-// TimeoutMs sets a timeout in milliseconds for messages to wait if a producer's
-// queue is full. This will actually overwrite the ChannelTimeoutMs value for
-// any attached producer and follows the same rules.
-// If no value is set, the producer's timout value is used.
+
 type Broadcast struct {
 	core.StreamBase
 }

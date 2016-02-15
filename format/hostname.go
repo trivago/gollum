@@ -20,10 +20,11 @@ import (
 	"os"
 )
 
+// Hostname formatter plugin
 // Hostname is a formatter that prefixes a message with the hostname.
 // Configuration example
 //
-//   - "<producer|stream>":
+//   - "stream.Broadcast":
 //     Formatter: "format.Hostname"
 //     HostnameFormatter: "format.Envelope"
 //	   HostnameSeparator: " "

@@ -27,24 +27,21 @@ import (
 )
 
 // Profiler consumer plugin
+// The profiler plugin generates Runs x Batches messages and send them to the
+// configured streams as fast as possible. This consumer can be used to profile
+// producers and/or configurations.
+// When attached to a fuse, this consumer will stop processing messages in case
+// that fuse is burned.
 // Configuration example
 //
 //   - "consumer.Profile":
-//     Enable: true
 //     Runs: 10000
 //     Batches: 10
 //     TemplateCount: 10
 //     Characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
 //     Message: "%256s"
 //	   DelayMs: 0
-//     Stream:
-//       - "profile"
-//
-// The profiler plugin generates Runs x Batches messages and send them to the
-// configured streams as fast as possible. This consumer can be used to profile
-// producers and/or configurations.
-// When attached to a fuse, this consumer will stop processing messages in case
-// that fuse is burned.
+//     KeepRunning: false
 //
 // Runs defines the number of messages per batch. By default this is set to
 // 10000.
@@ -67,6 +64,10 @@ import (
 //
 // DelayMs defines the number of milliseconds of sleep between messages.
 // By default this is set to 0.
+//
+// KeepRunning can be set to true to disable automatic shutdown of gollum after
+// profiling is done. This can be used to e.g. read metrics after a profile run.
+// By default this is set to false.
 type Profiler struct {
 	core.ConsumerBase
 	profileRuns int
