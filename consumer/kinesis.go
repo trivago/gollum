@@ -232,8 +232,8 @@ func (cons *Kinesis) processShard(shardID string) {
 		result, err := cons.client.GetRecords(&recordConfig)
 		if err != nil {
 			Log.Error.Printf("Failed to get records from shard %s:%s - %s", *iteratorConfig.StreamName, *iteratorConfig.ShardId, err.Error())
+			// TODO: The go counterpart of ProvisionedThroughputExceededException has to be handled here (sleep 5s)
 		} else {
-
 			if result.NextShardIterator == nil {
 				Log.Warning.Printf("Shard %s:%s has been closed", *iteratorConfig.StreamName, *iteratorConfig.ShardId)
 				return // ### return, closed ###

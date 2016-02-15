@@ -25,6 +25,7 @@ import (
 	"github.com/trivago/gollum/shared"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -86,14 +87,21 @@ const (
 // flushed automatically. By default this is set to 3.
 type Kinesis struct {
 	core.ProducerBase
-	client         *kinesis.Kinesis
-	config         *aws.Config
-	streamMap      map[core.MessageStreamID]string
-	batch          core.MessageBatch
-	flushFrequency time.Duration
-	lastSendTime   time.Time
-	sendTimeLimit  time.Duration
+	client           *kinesis.Kinesis
+	config           *aws.Config
+	streamMap        map[core.MessageStreamID]string
+	batch            core.MessageBatch
+	flushFrequency   time.Duration
+	lastSendTime     time.Time
+	sendTimeLimit    time.Duration
+	counters         map[string]*int64
+	lastMetricUpdate time.Time
 }
+
+const (
+	kinesisMetricMessages    = "Kinesis:Messages-"
+	kinesisMetricMessagesSec = "Kinesis:MessagesSec-"
+)
 
 type streamData struct {
 	content  *kinesis.PutRecordsInput
@@ -117,6 +125,8 @@ func (prod *Kinesis) Configure(conf core.PluginConfig) error {
 	prod.flushFrequency = time.Duration(conf.GetInt("BatchTimeoutSec", 3)) * time.Second
 	prod.sendTimeLimit = time.Duration(conf.GetInt("SendTimeframeMs", 1000)) * time.Millisecond
 	prod.lastSendTime = time.Now()
+	prod.counters = make(map[string]*int64)
+	prod.lastMetricUpdate = time.Now()
 
 	// Config
 	prod.config = aws.NewConfig()
@@ -152,6 +162,12 @@ func (prod *Kinesis) Configure(conf core.PluginConfig) error {
 		return fmt.Errorf("Unknown CredentialType: %s", credentialType)
 	}
 
+	for _, streamName := range prod.streamMap {
+		shared.Metric.New(kinesisMetricMessages + streamName)
+		shared.Metric.New(kinesisMetricMessagesSec + streamName)
+		prod.counters[streamName] = new(int64)
+	}
+
 	return nil
 }
 
@@ -163,6 +179,16 @@ func (prod *Kinesis) sendBatchOnTimeOut() {
 	// Flush if necessary
 	if prod.batch.ReachedTimeThreshold(prod.flushFrequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2) {
 		prod.sendBatch()
+	}
+
+	duration := time.Since(prod.lastMetricUpdate)
+	prod.lastMetricUpdate = time.Now()
+
+	for streamName, counter := range prod.counters {
+		count := atomic.SwapInt64(counter, 0)
+
+		shared.Metric.Add(kinesisMetricMessages+streamName, count)
+		shared.Metric.SetF(kinesisMetricMessagesSec+streamName, float64(count)/duration.Seconds())
 	}
 }
 
@@ -192,6 +218,10 @@ func (prod *Kinesis) transformMessages(messages []core.Message) {
 			if !streamMapped {
 				streamName = core.StreamRegistry.GetStreamName(streamID)
 				prod.streamMap[streamID] = streamName
+
+				shared.Metric.New(kinesisMetricMessages + streamName)
+				shared.Metric.New(kinesisMetricMessagesSec + streamName)
+				prod.counters[streamName] = new(int64)
 			}
 
 			// Create buffers for this kinesis stream
@@ -223,6 +253,8 @@ func (prod *Kinesis) transformMessages(messages []core.Message) {
 	// Send to Kinesis
 	for _, records := range streamRecords {
 		result, err := prod.client.PutRecords(records.content)
+		atomic.AddInt64(prod.counters[*records.content.StreamName], int64(len(records.content.Records)))
+
 		if err != nil {
 			// Batch failed, drop all
 			Log.Error.Print("Kinesis write error: ", err)
