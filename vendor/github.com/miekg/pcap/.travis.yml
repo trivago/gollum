@@ -1,0 +1,12 @@
+language: go
+
+go:
+  - 1.3
+
+install:
+  - sudo apt-get install libpcap-dev
+
+# running tcpdump inside travis does not really work as a good test.
+script:
+  - go build
+  #- sudo $GOROOT/bin/go test

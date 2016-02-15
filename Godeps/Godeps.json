@@ -1,141 +1,17 @@
 {
 	"ImportPath": "github.com/trivago/gollum",
 	"GoVersion": "go1.5",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
-		{
-			"ImportPath": "github.com/araddon/gou",
-			"Rev": "5e9110908156ae10fe90dd01d6c9fcbe058a6c9e"
-		},
-		{
-			"ImportPath": "github.com/artyom/fb303",
-			"Rev": "fa4a241cefb113c4981dbac51a8cfcb047efa079"
-		},
-		{
-			"ImportPath": "github.com/artyom/scribe",
-			"Rev": "35c1da66e76d138c09c552b492bb341f8504ff40"
-		},
-		{
-			"ImportPath": "github.com/artyom/thrift",
-			"Rev": "388840a05deb9b7d85fdf6c225a2729fe1826cb7"
-		},
-		{
-			"ImportPath": "github.com/aws/aws-sdk-go/aws",
-			"Comment": "v1.1.1",
-			"Rev": "0d8e5fdff6a7f73e2c8b84c02330c3c030650b82"
-		},
-		{
-			"ImportPath": "github.com/aws/aws-sdk-go/private/endpoints",
-			"Comment": "v1.1.1",
-			"Rev": "0d8e5fdff6a7f73e2c8b84c02330c3c030650b82"
-		},
-		{
-			"ImportPath": "github.com/aws/aws-sdk-go/private/protocol",
-			"Comment": "v1.1.1",
-			"Rev": "0d8e5fdff6a7f73e2c8b84c02330c3c030650b82"
-		},
-		{
-			"ImportPath": "github.com/aws/aws-sdk-go/private/signer/v4",
-			"Comment": "v1.1.1",
-			"Rev": "0d8e5fdff6a7f73e2c8b84c02330c3c030650b82"
-		},
-		{
-			"ImportPath": "github.com/aws/aws-sdk-go/private/waiter",
-			"Comment": "v1.1.1",
-			"Rev": "0d8e5fdff6a7f73e2c8b84c02330c3c030650b82"
-		},
-		{
-			"ImportPath": "github.com/aws/aws-sdk-go/service/kinesis",
-			"Comment": "v1.1.1",
-			"Rev": "0d8e5fdff6a7f73e2c8b84c02330c3c030650b82"
-		},
-		{
-			"ImportPath": "github.com/bitly/go-hostpool",
-			"Rev": "d0e59c22a56e8dadfed24f74f452cea5a52722d2"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/pkg/homedir",
-			"Comment": "v1.4.1-7418-g05a4cb2",
-			"Rev": "05a4cb22211063adbe68f63b61a19e39ebda8302"
-		},
-		{
-			"ImportPath": "github.com/eapache/go-resiliency/breaker",
-			"Comment": "v1.0.0-4-gb86b1ec",
-			"Rev": "b86b1ec0dd4209a588dc1285cdd471e73525c0b3"
-		},
-		{
-			"ImportPath": "github.com/eapache/queue",
-			"Comment": "v1.0.2",
-			"Rev": "ded5959c0d4e360646dc9e9908cff48666781367"
-		},
-		{
-			"ImportPath": "github.com/go-ini/ini",
-			"Comment": "v1.9.0",
-			"Rev": "193d1ecb466bf97aae8b454a5cfc192941c64809"
-		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
 			"Rev": "6aaa8d47701fa6cf07e914ec01fde3d4a1fe79c3"
 		},
 		{
-			"ImportPath": "github.com/golang/snappy",
-			"Rev": "723cc1e459b8eea2dea4583200fd60757d40097a"
-		},
-		{
-			"ImportPath": "github.com/jeromer/syslogparser",
-			"Rev": "ff71fe7a7d5279df4b964b31f7ee4adf117277f6"
-		},
-		{
-			"ImportPath": "github.com/jmespath/go-jmespath",
-			"Comment": "0.2.2-12-g0b12d6b",
-			"Rev": "0b12d6b521d83fc7f755e7cfc1b1fbdd35a01a74"
-		},
-		{
-			"ImportPath": "github.com/klauspost/crc32",
-			"Rev": "999f3125931f6557b991b2f8472172bdfa578d38"
-		},
-		{
-			"ImportPath": "github.com/mattbaird/elastigo/lib",
-			"Comment": "v1.0-293-gbd9e895",
-			"Rev": "bd9e895823b8d2159b9a3dcf8ef17498eb886769"
-		},
-		{
-			"ImportPath": "github.com/opencontainers/runc/libcontainer/user",
-			"Comment": "v0.0.4-157-g83d7331",
-			"Rev": "83d7331acc55222717ea24d294ad891dc6a1a3e9"
-		},
-		{
-			"ImportPath": "github.com/shopify/sarama",
-			"Comment": "v1.7.0-23-gd37c73f",
-			"Rev": "d37c73f2b2bce85f7fa16b6a550d26c5372892ef"
-		},
-		{
-			"ImportPath": "golang.org/x/net/websocket",
-			"Rev": "04b9de9b512f58addf28c9853d50ebef61c3953e"
-		},
-		{
-			"ImportPath": "gopkg.in/Shopify/sarama.v1",
-			"Comment": "v1.7.0",
-			"Rev": "87ec8d76e89cc002ff5673ee7598ae1db2f32424"
-		},
-		{
-			"ImportPath": "gopkg.in/bufio.v1",
-			"Comment": "v1",
-			"Rev": "567b2bfa514e796916c4747494d6ff5132a1dfce"
-		},
-		{
-			"ImportPath": "gopkg.in/docker/docker.v1/pkg/mflag",
-			"Comment": "v1.8.3",
-			"Rev": "f4bf5c7026816785d9f63c07e87f9450a49f2403"
-		},
-		{
-			"ImportPath": "gopkg.in/mcuadros/go-syslog.v2",
-			"Comment": "v2.1.0",
-			"Rev": "6cba2bfcf64a025c899aa3be061161d2b89d8b54"
-		},
-		{
-			"ImportPath": "gopkg.in/redis.v2",
-			"Comment": "v2.3.2",
-			"Rev": "e6179049628164864e6e84e973cfb56335748dea"
+			"ImportPath": "github.com/miekg/pcap",
+			"Rev": "fbfcc463715f6206524a6b1fcc8ed1b9e7567ba5"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",

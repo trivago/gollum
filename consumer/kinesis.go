@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kinesis"
@@ -232,7 +233,12 @@ func (cons *Kinesis) processShard(shardID string) {
 		result, err := cons.client.GetRecords(&recordConfig)
 		if err != nil {
 			Log.Error.Printf("Failed to get records from shard %s:%s - %s", *iteratorConfig.StreamName, *iteratorConfig.ShardId, err.Error())
-			// TODO: The go counterpart of ProvisionedThroughputExceededException has to be handled here (sleep 5s)
+			// Check if we reached throughput limit
+			if AWSerr, isAWSerr := err.(awserr.Error); isAWSerr {
+				if AWSerr.Code() == "ProvisionedThroughputExceededException" {
+					time.Sleep(5 * time.Second)
+				}
+			}
 		} else {
 			if result.NextShardIterator == nil {
 				Log.Warning.Printf("Shard %s:%s has been closed", *iteratorConfig.StreamName, *iteratorConfig.ShardId)

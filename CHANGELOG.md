@@ -30,6 +30,7 @@ This is a patch / minor features release.
  * producer.File can now prune logfiles by file age
  * producer.Spool can now be rate limited
  * Dev version (major.minor.patch.dev) is now part of the metrics
+ * New AWS Kinesis producer and consumer
 
 # 0.4.1
 
