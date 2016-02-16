@@ -5,7 +5,6 @@
 [![GoDoc](https://godoc.org/github.com/trivago/gollum?status.svg)](https://godoc.org/github.com/trivago/gollum)
 [![Documentation Status](https://readthedocs.org/projects/gollum/badge/?version=latest)](http://gollum.readthedocs.org/en/latest/)
 [![Go Report Card](http://goreportcard.com/badge/trivago/gollum)](http://goreportcard.com/report/trivago/gollum)
-[![Go Report Card](http://goreportcard.com/badge/trivago/gollum)](http://goreportcard.com/report/trivago/gollum)
 [![Build Status](https://drone.io/github.com/trivago/gollum/status.png)](https://drone.io/github.com/trivago/gollum/latest)
 
 
