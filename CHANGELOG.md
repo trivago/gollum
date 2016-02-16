@@ -1,3 +1,9 @@
+# 0.4.3
+
+This is a patch / minor features release.
+
+#### Nothing changed, yet
+
 # 0.4.2
 
 This is a patch / minor features release.
