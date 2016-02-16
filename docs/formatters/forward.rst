@@ -1,17 +1,6 @@
 Forward
 =======
 
-Forward passes a message as-is. This is the default formatter.
+Forward is a formatter that passes a message as is .
 
-Parameters
-----------
 
-No parameters defined.
-
-Example
--------
-
-.. code-block:: yaml
-
-  - "stream.Broadcast":
-    Formatter: "format.Forward"

@@ -19,17 +19,18 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
-// Stream filters messages by stream based on a black and a whitelist.
+// Stream filter plugin
+// This plugin filters messages by stream based on a black and a whitelist.
 // The blacklist is checked first.
 // Configuration example
 //
-//   - "stream.Broadcast":
-//     Filter: "filter.Stream"
-//     FilterBlockStreams:
-//       - "foo"
-//     FilterOnlyStreams:
-//       - "test1"
-//       - "test2"
+//  - "stream.Broadcast":
+//    Filter: "filter.Stream"
+//    FilterBlockStreams:
+//      - "foo"
+//    FilterOnlyStreams:
+//      - "test1"
+//      - "test2"
 //
 // FilterBlockStreams sets a list of streams that are blocked. If a message's
 // stream is not in that list, the OnlyStreams list is tested. This list ist

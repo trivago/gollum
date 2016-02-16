@@ -20,13 +20,14 @@ import (
 	"regexp"
 )
 
-// RegExp allows filtering messages using regular expressions.
+// RegExp filter plugin
+// This plugin allows filtering messages using regular expressions.
 // Configuration example
 //
-//   - "stream.Broadcast":
-//     Filter: "filter.RegExp"
-//     FilterExpression: "\d+-.*"
-//     FilterExpressionNot: "\d+-.*"
+//  - "stream.Broadcast":
+//    Filter: "filter.RegExp"
+//    FilterExpression: "\d+-.*"
+//    FilterExpressionNot: "\d+-.*"
 //
 // FilterExpression defines the regular expression used for matching the message
 // payload. If the expression matches, the message is passed.

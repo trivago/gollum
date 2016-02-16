@@ -19,7 +19,8 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
-// All passes all messages.
+// All filter plugin
+// This filter passes all messages.
 // Configuration example
 //
 //   - "stream.Broadcast":

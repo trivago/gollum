@@ -1,8 +1,7 @@
-Scribe
-======
+Kinesis
+=======
 
-The scribe producer allows sending messages to Facebook's scribe.
-This producer uses a fuse breaker if the connection to the scribe server is lost.
+This producer sends data to an AWS kinesis stream.
 
 
 Parameters
@@ -62,40 +61,43 @@ Parameters
   Note that automatic fuse recovery logic depends on each producer's implementation.
   By default this setting is set to 10.
 
-**Address**
-  Address defines the host and port to connect to.
-  By default this is set to "localhost:1463".
+**KinesisStream**
+  KinesisStream defines the stream to read from.
+  By default this is set to "default".
 
-**ConnectionBufferSizeKB**
-  ConnectionBufferSizeKB sets the connection buffer size in KB.
-  By default this is set to 1024, i.e. 1 MB buffer.
+**Region**
+  Region defines the amazon region of your kinesis stream.
+  By default this is set to "eu-west-1".
 
-**BatchMaxCount**
-  BatchMaxCount defines the maximum number of messages that can be buffered before a flush is mandatory.
-  If the buffer is full and a flush is still underway or cannot be triggered out of other reasons, the producer will block.
-  By default this is set to 8192.
+**Endpoint**
+  Endpoint defines the amazon endpoint for your kinesis stream.
+  By default this is et to "kinesis.eu-west-1.amazonaws.com".
 
-**BatchFlushCount**
-  BatchFlushCount defines the number of messages to be buffered before they are written to disk.
-  This setting is clamped to BatchMaxCount.
-  By default this is set to BatchMaxCount / 2.
+**CredentialType**
+  CredentialType defines the credentials that are to be used when connectiong to kensis.
+  This can be one of the following: environment, static, shared, none.
+  Static enables the parameters CredentialId, CredentialToken and CredentialSecret shared enables the parameters CredentialFile and CredentialProfile.
+  None will not use any credentials and environment will pull the credentials from environmental settings.
+  By default this is set to none.
+
+**BatchMaxMessages**
+  BatchMaxMessages defines the maximum number of messages to send per batch.
+  By default this is set to 500.
+
+**SendTimeframeMs**
+  SendTimeframeMs defines the timeframe in milliseconds in which a second batch send can be triggered.
+  By default this is set to 1000, i.e. one send operation per second.
 
 **BatchTimeoutSec**
-  BatchTimeoutSec defines the maximum number of seconds to wait after the last message arrived before a batch is flushed automatically.
-  By default this is set to 5.
-
-**Category**
-  Category maps a stream to a specific scribe category.
-  You can define the wildcard stream (*) here, too.
-  When set, all streams that do not have a specific mapping will go to this category (including _GOLLUM_).
-  If no category mappings are set the stream name is used.
+  BatchTimeoutSec defines the number of seconds after which a batch is flushed automatically.
+  By default this is set to 3.
 
 Example
 -------
 
 .. code-block:: yaml
 
-- "producer.Scribe":
+- "producer.Kinesis":
     Enable: true
     ID: ""
     Channel: 8192
@@ -109,11 +111,17 @@ Example
     Stream:
         - "foo"
         - "bar"
-    Address: "localhost:1463"
-    ConnectionBufferSizeKB: 1024
-    BatchMaxCount: 8192
-    BatchFlushCount: 4096
-    BatchTimeoutSec: 5
-    Category:
-        "console" : "console"
-        "_GOLLUM_"  : "_GOLLUM_"
+    Region: "eu-west-1"
+    Endpoint: "kinesis.eu-west-1.amazonaws.com"
+    CredentialType: "none"
+    CredentialId: ""
+    CredentialToken: ""
+    CredentialSecret: ""
+    CredentialFile: ""
+    CredentialProfile: ""
+    BatchMaxMessages: 500
+    SendTimeframeSec: 1
+    BatchTimeoutSec: 3
+    TimoutMs: 1500
+    StreamMap:
+        "*" : "default"

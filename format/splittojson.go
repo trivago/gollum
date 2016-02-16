@@ -26,14 +26,25 @@ import (
 // the result into a JSON object by using an array based mapping
 // Configuration example
 //
-//   - "stream.Broadcast":
-//     Formatter: "format.SplitToJSON"
-//     SplitToJSONDataFormatter: "format.Forward"
-//     SplitToJSONToken: "|"
-//     SplitToJSONKeys:
-//       - "timestamp"
-//       - "server"
-//       - "error"
+//  - "stream.Broadcast":
+//    Formatter: "format.SplitToJSON"
+//    SplitToJSONDataFormatter: "format.Forward"
+//    SplitToJSONToken: "|"
+//    SplitToJSONKeys:
+//      - "timestamp"
+//      - "server"
+//      - "error"
+//
+// SplitToJSONDataFormatter defines the formatter to apply before executing
+// this formatter. Set to "format.Forward" by default.
+//
+// SplitToJSONToken defines the separator character to use when processing a
+// message. By default this is set to "|".
+//
+// SplitToJSONKeys defines an array of keys to apply to the tokens generated
+// by splitting a message by SplitToJSONToken. The keys listed here are
+// applied to the resulting token array by index.
+// This list is empty by default.
 type SplitToJSON struct {
 	base  core.Formatter
 	token []byte

@@ -8,6 +8,7 @@ Consumers
 	file
 	http
 	kafka
+    kinesis
 	profiler
 	proxy
 	socket

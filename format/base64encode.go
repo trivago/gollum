@@ -25,10 +25,10 @@ import (
 // Base64Encode is a formatter that encodes a message as base64.
 // Configuration example
 //
-//   - "stream.Broadcast":
-//     Formatter: "format.Base64Encode"
-//     Base64Formatter: "format.Forward"
-//     Base64Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
+//  - "stream.Broadcast":
+//    Formatter: "format.Base64Encode"
+//    Base64Formatter: "format.Forward"
+//    Base64Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
 //
 // Base64Dictionary defines the 64-character base64 lookup dictionary to use.
 // When left empty a dictionary as defined by RFC4648 is used. This is the default.

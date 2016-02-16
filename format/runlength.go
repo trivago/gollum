@@ -25,9 +25,9 @@ import (
 // a ":". The actual message is formatted by a nested formatter.
 // Configuration example
 //
-//   - "stream.Broadcast":
-//     Formatter: "format.Runlength"
-//     RunlengthFormatter: "format.Envelope"
+//  - "stream.Broadcast":
+//    Formatter: "format.Runlength"
+//    RunlengthFormatter: "format.Envelope"
 //
 // RunlengthDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"

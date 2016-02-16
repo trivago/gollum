@@ -8,6 +8,7 @@ Formatters
 	base64encode
 	collectdtoinflux08
 	collectdtoinflux09
+	collectdtoinflux10
 	envelope
 	forward
 	hostname
@@ -15,6 +16,9 @@ Formatters
 	json
 	runlength
 	sequence
+    serialize
+    splittojson
+    streamname
 	streamrevert
 	streamroute
 	timestamp

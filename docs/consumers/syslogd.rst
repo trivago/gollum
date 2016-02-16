@@ -1,42 +1,56 @@
 Syslogd
 =======
 
-This consumer opens up a syslogd compatible socket.
+The syslogd consumer accepts messages from a syslogd comaptible socket.
 When attached to a fuse, this consumer will stop the syslogd service in case that fuse is burned.
-See the `API documentation <http://gollum.readthedocs.org/en/latest/consumers/syslogd.html>`_ for additional details.
+
 
 Parameters
 ----------
 
 **Enable**
-  Can either be true or false to enable or disable this consumer.
-**ID**
-  Allows this consumer to be found by other plugins by name.
-  By default this is set to "" which does not register this consumer.
-**Fuse**
-  Defines the name of the fuse this consumer is attached to.
-  When left empty no fuse is attached. This is the default value.
-**Stream**
-  Defines either one or an aray of stream names this consumer sends messages to.
-**Address**
-  Defines the protocol, address/DNS and port to listen to.
-  The protocol can either be "socket://" for unix domain, "tcp://" for TCP or "udp://" for UDP sockets.
-  Please note that the format used may overwrite this setting if a certain protocol is enforced by it.
-  Set to "udp://0.0.0.0:514" by default.
-**Format**
-  Supports one of three formats ("RFC6587" by default):
+  Enable switches the consumer on or off.
+  By default this value is set to true.
 
-  - `RFC3164 <https://tools.ietf.org/html/rfc3164>`_ udp only
-  - `RFC5424 <https://tools.ietf.org/html/rfc5424>`_ udp only
-  - `RFC6587 <https://tools.ietf.org/html/rfc6587>`_ tcp or udp
+**ID**
+  ID allows this consumer to be found by other plugins by name.
+  By default this is set to "" which does not register this consumer.
+
+**Stream**
+  Stream contains either a single string or a list of strings defining the message channels this consumer will produce.
+  By default this is set to "*" which means only producers set to consume "all streams" will get these messages.
+
+**Fuse**
+  Fuse defines the name of a fuse to observe for this consumer.
+  Producer may "burn" the fuse when they encounter errors.
+  Consumers may react on this by e.g. closing connections to notify any writing services of the problem.
+  Set to "" by default which disables the fuse feature for this consumer.
+  It is up to the consumer implementation to react on a broken fuse in an appropriate manner.
+
+**Address**
+  Address defines the protocol, host and port or socket to bind to.
+  This can either be any ip address and port like "localhost:5880" or a file like "unix:///var/gollum.socket".
+  By default this is set to "udp://0.0.0.0:514".
+  The protocol can be defined along with the address, e.g. "tcp://..." but this may be ignored if a certain protocol format does not support the desired transport protocol.
+
+**Format**
+  Format defines the syslog standard to expect for message encoding.
+  Three standards are currently supported, by default this is set to "RFC6587".
+   * RFC3164 (https://tools.ietf.org/html/rfc3164) udp only. 
+   * RFC5424 (https://tools.ietf.org/html/rfc5424) udp only. 
+   * RFC6587 (https://tools.ietf.org/html/rfc6587) tcp or udp. 
 
 Example
 -------
 
 .. code-block:: yaml
 
-  - "consumer.Syslogd":
+- "consumer.Syslogd":
     Enable: true
-    Address: "socket://var/run/gollum_syslogd.socket"
+    ID: ""
+    Fuse: ""
+    Stream:
+        - "foo"
+        - "bar"
+    Address: "udp://0.0.0.0:514"
     Format: "RFC6587"
-    Stream: "log"

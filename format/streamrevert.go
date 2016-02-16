@@ -25,9 +25,9 @@ import (
 // or Message.Route function is used. This e.g. happens after a Drop call.
 // Configuration example
 //
-//   - "stream.Broadcast":
-//     Formatter: "format.StreamRevert"
-//     StreamRevertFormatter: "format.Forward"
+//  - "stream.Broadcast":
+//    Formatter: "format.StreamRevert"
+//    StreamRevertFormatter: "format.Forward"
 //
 // StreamRevertFormatter defines the formatter applied after reading the stream.
 // This formatter is applied to the data after StreamRevertDelimiter.

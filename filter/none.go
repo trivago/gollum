@@ -19,7 +19,8 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
-// None blocks all messages.
+// None filter plugin
+// This plugin blocks all messages.
 // Configuration example
 //
 //   - "stream.Broadcast":

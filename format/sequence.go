@@ -25,9 +25,9 @@ import (
 // sequence number
 // Configuration example
 //
-//   - "stream.Broadcast":
-//     Formatter: "format.Sequence"
-//     SequenceFormatter: "format.Envelope"
+//  - "stream.Broadcast":
+//    Formatter: "format.Sequence"
+//    SequenceFormatter: "format.Envelope"
 //
 // SequenceDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"

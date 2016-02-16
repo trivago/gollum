@@ -23,8 +23,8 @@ import (
 // Forward is a formatter that passes a message as is
 // Configuration example
 //
-//   - "stream.Broadcast":
-//     Formatter: "format.Forward"
+//  - "stream.Broadcast":
+//    Formatter: "format.Forward"
 type Forward struct {
 }
 

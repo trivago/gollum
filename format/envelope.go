@@ -24,11 +24,11 @@ import (
 // with configurable strings.
 // Configuration example
 //
-//   - "stream.Broadcast":
-//     Formatter: "format.Envelope"
-//     EnvelopeFormatter: "format.Forward"
-//     EnvelopePrefix: "<data>"
-//     EnvelopePostfix: "</data>\n"
+//  - "stream.Broadcast":
+//    Formatter: "format.Envelope"
+//    EnvelopeFormatter: "format.Forward"
+//    EnvelopePrefix: "<data>"
+//    EnvelopePostfix: "</data>\n"
 //
 // Prefix defines the message prefix. By default this is set to "".
 // Special characters like \n \r \t will be transformed into the actual control

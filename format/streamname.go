@@ -23,9 +23,9 @@ import (
 // StreamName is a formatter that prefixes a message with the StreamName.
 // Configuration example
 //
-//   - "stream.Broadcast":
-//     Formatter: "format.StreamName"
-//     StreamNameFormatter: "format.Envelope"
+//  - "stream.Broadcast":
+//    Formatter: "format.StreamName"
+//    StreamNameFormatter: "format.Envelope"
 //
 // StreamNameFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Envelope"

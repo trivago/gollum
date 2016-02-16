@@ -28,12 +28,12 @@ import (
 // is not changed.
 // Configuration example
 //
-//   - "stream.Broadcast":
-//     Formatter: "format.StreamRoute"
-//     StreamRouteFormatter: "format.Forward"
-//     StreamRouteStreamFormatter: "format.Forward"
-//     StreamRouteDelimiter: "$"
-//	   StreamRouteFormatBoth: false
+//  - "stream.Broadcast":
+//    Formatter: "format.StreamRoute"
+//    StreamRouteFormatter: "format.Forward"
+//    StreamRouteStreamFormatter: "format.Forward"
+//    StreamRouteDelimiter: "$"
+//    StreamRouteFormatBoth: false
 //
 // StreamRouteFormatter defines the formatter applied after reading the stream.
 // This formatter is applied to the data after StreamRouteDelimiter.

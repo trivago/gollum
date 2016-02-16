@@ -3,81 +3,121 @@ Socket
 
 The socket producer connects to a service over a TCP, UDP or unix domain socket based connection.
 This producer uses a fuse breaker when the service to connect to goes down.
-See the `API documentation <http://gollum.readthedocs.org/en/latest/producers/socket.html>`_ for additional details.
+
 
 Parameters
 ----------
 
 **Enable**
-  Can either be true or false to enable or disable this producer.
+  Enable switches the consumer on or off.
+  By default this value is set to true.
+
 **ID**
-  Allows this producer to be found by other plugins by name.
+  ID allows this producer to be found by other plugins by name.
   By default this is set to "" which does not register this producer.
-**Fuse**
-  Defines the name of the fuse this producer is attached to.
-  When left empty no fuse is attached. This is the default value.
-**Stream**
-  Defines either one or an aray of stream names this producer receives messages from.
-**DropToStream**
-  Defines the stream used for messages that are dropped after a timeout (see ChannelTimeoutMs).
-  By default this is _DROPPED_.
+
 **Channel**
-  Defines the number of messages that can be buffered by the internal channel.
-  By default this is set to 8192.
+  Channel sets the size of the channel used to communicate messages.
+  By default this value is set to 8192.
+
 **ChannelTimeoutMs**
-  Defines a timeout in milliseconds for messages to wait if this producer's queue is full.
+  ChannelTimeoutMs sets a timeout in milliseconds for messages to wait if this producer's queue is full.
+  A timeout of -1 or lower will drop the message without notice.
+  A timeout of 0 will block until the queue is free.
+  This is the default.
+  A timeout of 1 or higher will wait x milliseconds for the queues to become available again.
+  If this does not happen, the message will be send to the retry channel.
 
-  - A timeout of -1 or lower will discard the message without notice.
-  - A timeout of 0 will block until the queue is free. This is the default.
-  - A timeout of 1 or higher will wait n milliseconds for the queues to become available again.
-    If this does not happen, the message will be send to the _DROPPED_ stream that can be processed by the :doc:`Loopback </consumers/loopback>` consumer.
+**ShutdownTimeoutMs**
+  ShutdownTimeoutMs sets a timeout in milliseconds that will be used to detect a blocking producer during shutdown.
+  By default this is set to 3 seconds.
+  If processing a message takes longer to process than this duration, messages will be dropped during shutdown.
 
-**FlushTimeoutSec**
-  Sets the maximum number of seconds to wait before a flush is aborted during shutdown.
-  By default this is set to 0, which does not abort the flushing procedure.
-**Format**
-  Defines a message formatter to use. :doc:`Format.Forward </formatters/forward>` by default.
+**Stream**
+  Stream contains either a single string or a list of strings defining the message channels this producer will consume.
+  By default this is set to "*" which means "listen to all streams but the internal".
+
+**DropToStream**
+  DropToStream defines the stream used for messages that are dropped after a timeout (see ChannelTimeoutMs).
+  By default this is _DROPPED_.
+
+**Formatter**
+  Formatter sets a formatter to use.
+  Each formatter has its own set of options which can be set here, too.
+  By default this is set to format.Forward.
+  Each producer decides if and when to use a Formatter.
+
 **Filter**
-  Defines a message filter to apply before formatting. :doc:`Filter.All </filters/all>` by default.
+  Filter sets a filter that is applied before formatting, i.e. before a message is send to the message queue.
+  If a producer requires filtering after formatting it has to define a separate filter as the producer decides if and where to format.
+
+**Fuse**
+  Fuse defines the name of a fuse to burn if e.g. the producer encounteres a lost connection.
+  Each producer defines its own fuse breaking logic if necessary / applyable.
+  Disable fuse behavior for a producer by setting an empty  name or a FuseTimeoutSec <= 0.
+  By default this is set to "".
+
+**FuseTimeoutSec**
+  FuseTimeoutSec defines the interval in seconds used to check if the fuse can be recovered.
+  Note that automatic fuse recovery logic depends on each producer's implementation.
+  By default this setting is set to 10.
+
 **Address**
-  Defines the server address to connect to.
-  This can either be any ip address and port like "localhost:5880" or a file
-  like "unix:///var/gollum.socket". By default this is set to ":5880".
+  Address stores the identifier to connect to.
+  This can either be any ip address and port like "localhost:5880" or a file like "unix:///var/gollum.socket".
+  By default this is set to ":5880".
+
 **ConnectionBufferSizeKB**
-  Sets the connection buffer size in KB.
+  ConnectionBufferSizeKB sets the connection buffer size in KB.
   By default this is set to 1024, i.e. 1 MB buffer.
+
 **BatchMaxCount**
-  Defines the maximum number of messages that can be buffered before a flush is mandatory.
+  BatchMaxCount defines the maximum number of messages that can be buffered before a flush is mandatory.
   If the buffer is full and a flush is still underway or cannot be triggered out of other reasons, the producer will block.
+  By default this is set to 8192.
+
 **BatchFlushCount**
-  Defines the number of messages to be buffered before they are written to disk.
+  BatchFlushCount defines the number of messages to be buffered before they are written to disk.
   This setting is clamped to BatchMaxCount.
   By default this is set to BatchMaxCount / 2.
+
 **BatchTimeoutSec**
-  Defines the number of seconds to wait after a message before a flush is triggered.
-  The timer is reset after each new message.
+  BatchTimeoutSec defines the maximum number of seconds to wait after the last message arrived before a batch is flushed automatically.
   By default this is set to 5.
+
 **Acknowledge**
-  Set to a non-empty value if the given string is expected from the server after a batch has been sent.
-  This corresponds to the behavior of the :doc:`Socket consumer </consumers/socket>`.
-  Acknowledge is disabled by default, i.e. set to "".
-  If Acknowledge is enabled and a IP-Address is given to Address, TCP is enforced to open the connection.
+  Acknowledge can be set to a non-empty value to expect the given string as a response from the server after a batch has been sent.
+  This setting is disabled by default, i.e. set to "".
+  If Acknowledge is enabled and a IP-Address is given to Address, TCP is used to open the connection, otherwise UDP is used.
+
+**AckTimeoutMs**
+  AckTimeoutMs defines the time in milliseconds to wait for a response from the server.
+  After this timeout the send is marked as failed.
+  Defaults to 2000.
 
 Example
 -------
 
 .. code-block:: yaml
 
-  - "producer.Socket":
+- "producer.Socket":
     Enable: true
+    ID: ""
     Channel: 8192
-    ChannelTimeoutMs: 100
-    Address: "unix:///var/gollum.socket"
-    ConnectionBufferSizeKB: 4096
-    BatchSizeMaxKB: 16384
-    BatchSizeByte: 4096
-    BatchTimeoutSec: 5
-    Acknowledge: "OK"
+    ChannelTimeoutMs: 0
+    ShutdownTimeoutMs: 3000
+    Formatter: "format.Forward"
+    Filter: "filter.All"
+    DropToStream: "_DROPPED_"
+    Fuse: ""
+    FuseTimeoutSec: 5
     Stream:
-        - "log"
-        - "console"
+        - "foo"
+        - "bar"
+    Enable: true
+    Address: ":5880"
+    ConnectionBufferSizeKB: 1024
+    BatchMaxCount: 8192
+    BatchFlushCount: 4096
+    BatchTimeoutSec: 5
+    Acknowledge: ""

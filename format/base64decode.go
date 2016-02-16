@@ -28,10 +28,10 @@ import (
 // and the decoded part is returned. RFC 4648 is expected.
 // Configuration example
 //
-//   - "stream.Broadcast":
-//     Formatter: "format.Base64Decode"
-//     Base64Formatter: "format.Forward"
-//     Base64Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
+//  - "stream.Broadcast":
+//    Formatter: "format.Base64Decode"
+//    Base64Formatter: "format.Forward"
+//    Base64Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
 //
 // Base64Dictionary defines the 64-character base64 lookup dictionary to use. When
 // left empty a dictionary as defined by RFC4648 is used. This is the default.

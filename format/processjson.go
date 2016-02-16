@@ -28,16 +28,16 @@ import (
 // JSON message. The message is modified and returned again as JSON.
 // Configuration example
 //
-//   - "stream.Broadcast":
-//     Formatter: "format.processJSON"
-//     ProcessJSONDataFormatter: "format.Forward"
-//     ProcessJSONDirectives:
-//       - "host:split: :host:@timestamp"
-//       - "@timestamp:time:20060102150405:2006-01-02 15\\:04\\:05"
-//       - "error:replace:°:\n"
-//       - "text:trim: \t"
-//		 - "foo:rename:bar"
-//	   ProcessJSONTrimFields: true
+//  - "stream.Broadcast":
+//    Formatter: "format.processJSON"
+//    ProcessJSONDataFormatter: "format.Forward"
+//    ProcessJSONDirectives:
+//      - "host:split: :host:@timestamp"
+//      - "@timestamp:time:20060102150405:2006-01-02 15\\:04\\:05"
+//      - "error:replace:°:\n"
+//      - "text:trim: \t"
+//      - "foo:rename:bar"
+//    ProcessJSONTrimFields: true
 //
 // ProcessJSONDataFormatter formatter that will be applied before
 // ProcessJSONDirectives are processed.

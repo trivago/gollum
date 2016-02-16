@@ -28,9 +28,9 @@ import (
 // are removed from the Collectd message beforehand.
 // Configuration example
 //
-//   - "stream.Broadcast":
-//     Formatter: "format.CollectdToInflux10"
-//     CollectdToInflux10Formatter: "format.Forward"
+//  - "stream.Broadcast":
+//    Formatter: "format.CollectdToInflux10"
+//    CollectdToInflux10Formatter: "format.Forward"
 //
 // CollectdToInfluxFormatter defines the formatter applied before the conversion
 // from Collectd to InfluxDB. By default this is set to format.Forward.

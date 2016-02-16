@@ -25,10 +25,10 @@ import (
 // Serialize is a formatter that serializes a message for later retrieval.
 // Configuration example
 //
-//   - "stream.Broadcast":
-//     Formatter: "format.Serialize"
-//     SerializeFormatter: "format.Envelope"
-//     SerializeStringEncode: true
+//  - "stream.Broadcast":
+//    Formatter: "format.Serialize"
+//    SerializeFormatter: "format.Envelope"
+//    SerializeStringEncode: true
 //
 // SerializeFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
