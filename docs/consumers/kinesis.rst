@@ -73,24 +73,24 @@ Example
 
 .. code-block:: yaml
 
-- "consumer.Kinesis":
-    Enable: true
-    ID: ""
-    Fuse: ""
-    Stream:
-        - "foo"
-        - "bar"
-    KinesisStream: "default"
-    Region: "eu-west-1"
-    Endpoint: "kinesis.eu-west-1.amazonaws.com"
-    DefaultOffset: "Newest"
-    OffsetFile: ""
-    RecordsPerQuery: 100
-    QuerySleepTimeMs: 1000
-    RetrySleepTimeSec: 4
-    CredentialType: "none"
-    CredentialId: ""
-    CredentialToken: ""
-    CredentialSecret: ""
-    CredentialFile: ""
-    CredentialProfile: ""
+	- "consumer.Kinesis":
+	    Enable: true
+	    ID: ""
+	    Fuse: ""
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    KinesisStream: "default"
+	    Region: "eu-west-1"
+	    Endpoint: "kinesis.eu-west-1.amazonaws.com"
+	    DefaultOffset: "Newest"
+	    OffsetFile: ""
+	    RecordsPerQuery: 100
+	    QuerySleepTimeMs: 1000
+	    RetrySleepTimeSec: 4
+	    CredentialType: "none"
+	    CredentialId: ""
+	    CredentialToken: ""
+	    CredentialSecret: ""
+	    CredentialFile: ""
+	    CredentialProfile: ""

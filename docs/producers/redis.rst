@@ -97,23 +97,23 @@ Example
 
 .. code-block:: yaml
 
-- "producer.Redis":
-    Enable: true
-    ID: ""
-    Channel: 8192
-    ChannelTimeoutMs: 0
-    ShutdownTimeoutMs: 3000
-    Formatter: "format.Forward"
-    Filter: "filter.All"
-    DropToStream: "_DROPPED_"
-    Fuse: ""
-    FuseTimeoutSec: 5
-    Stream:
-        - "foo"
-        - "bar"
-    Address: ":6379"
-    Database: 0
-    Key: "default"
-    Storage: "hash"
-    FieldFormat: "format.Identifier"
-    FieldAfterFormat: false
+	- "producer.Redis":
+	    Enable: true
+	    ID: ""
+	    Channel: 8192
+	    ChannelTimeoutMs: 0
+	    ShutdownTimeoutMs: 3000
+	    Formatter: "format.Forward"
+	    Filter: "filter.All"
+	    DropToStream: "_DROPPED_"
+	    Fuse: ""
+	    FuseTimeoutSec: 5
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    Address: ":6379"
+	    Database: 0
+	    Key: "default"
+	    Storage: "hash"
+	    FieldFormat: "format.Identifier"
+	    FieldAfterFormat: false

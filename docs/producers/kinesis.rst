@@ -97,31 +97,31 @@ Example
 
 .. code-block:: yaml
 
-- "producer.Kinesis":
-    Enable: true
-    ID: ""
-    Channel: 8192
-    ChannelTimeoutMs: 0
-    ShutdownTimeoutMs: 3000
-    Formatter: "format.Forward"
-    Filter: "filter.All"
-    DropToStream: "_DROPPED_"
-    Fuse: ""
-    FuseTimeoutSec: 5
-    Stream:
-        - "foo"
-        - "bar"
-    Region: "eu-west-1"
-    Endpoint: "kinesis.eu-west-1.amazonaws.com"
-    CredentialType: "none"
-    CredentialId: ""
-    CredentialToken: ""
-    CredentialSecret: ""
-    CredentialFile: ""
-    CredentialProfile: ""
-    BatchMaxMessages: 500
-    SendTimeframeSec: 1
-    BatchTimeoutSec: 3
-    TimoutMs: 1500
-    StreamMap:
-        "*" : "default"
+	- "producer.Kinesis":
+	    Enable: true
+	    ID: ""
+	    Channel: 8192
+	    ChannelTimeoutMs: 0
+	    ShutdownTimeoutMs: 3000
+	    Formatter: "format.Forward"
+	    Filter: "filter.All"
+	    DropToStream: "_DROPPED_"
+	    Fuse: ""
+	    FuseTimeoutSec: 5
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    Region: "eu-west-1"
+	    Endpoint: "kinesis.eu-west-1.amazonaws.com"
+	    CredentialType: "none"
+	    CredentialId: ""
+	    CredentialToken: ""
+	    CredentialSecret: ""
+	    CredentialFile: ""
+	    CredentialProfile: ""
+	    BatchMaxMessages: 500
+	    SendTimeframeSec: 1
+	    BatchTimeoutSec: 3
+	    TimoutMs: 1500
+	    StreamMap:
+	        "*" : "default"

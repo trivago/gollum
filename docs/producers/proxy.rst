@@ -108,24 +108,24 @@ Example
 
 .. code-block:: yaml
 
-- "producer.Proxy":
-    Enable: true
-    ID: ""
-    Channel: 8192
-    ChannelTimeoutMs: 0
-    ShutdownTimeoutMs: 3000
-    Formatter: "format.Forward"
-    Filter: "filter.All"
-    DropToStream: "_DROPPED_"
-    Fuse: ""
-    FuseTimeoutSec: 5
-    Stream:
-        - "foo"
-        - "bar"
-    Address: ":5880"
-    ConnectionBufferSizeKB: 1024
-    TimeoutSec: 1
-    Partitioner: "delimiter"
-    Delimiter: "\n"
-    Offset: 0
-    Size: 1
+	- "producer.Proxy":
+	    Enable: true
+	    ID: ""
+	    Channel: 8192
+	    ChannelTimeoutMs: 0
+	    ShutdownTimeoutMs: 3000
+	    Formatter: "format.Forward"
+	    Filter: "filter.All"
+	    DropToStream: "_DROPPED_"
+	    Fuse: ""
+	    FuseTimeoutSec: 5
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    Address: ":5880"
+	    ConnectionBufferSizeKB: 1024
+	    TimeoutSec: 1
+	    Partitioner: "delimiter"
+	    Delimiter: "\n"
+	    Offset: 0
+	    Size: 1

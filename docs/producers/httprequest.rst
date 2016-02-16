@@ -79,20 +79,20 @@ Example
 
 .. code-block:: yaml
 
-- "producer.HTTPRequest":
-    Enable: true
-    ID: ""
-    Channel: 8192
-    ChannelTimeoutMs: 0
-    ShutdownTimeoutMs: 3000
-    Formatter: "format.Forward"
-    Filter: "filter.All"
-    DropToStream: "_DROPPED_"
-    Fuse: ""
-    FuseTimeoutSec: 5
-    Stream:
-        - "foo"
-        - "bar"
-    RawData: true
-    Encoding: "text/plain; charset=utf-8"
-    Address: "localhost:80"
+	- "producer.HTTPRequest":
+	    Enable: true
+	    ID: ""
+	    Channel: 8192
+	    ChannelTimeoutMs: 0
+	    ShutdownTimeoutMs: 3000
+	    Formatter: "format.Forward"
+	    Filter: "filter.All"
+	    DropToStream: "_DROPPED_"
+	    Fuse: ""
+	    FuseTimeoutSec: 5
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    RawData: true
+	    Encoding: "text/plain; charset=utf-8"
+	    Address: "localhost:80"

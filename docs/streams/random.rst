@@ -33,9 +33,9 @@ Example
 
 .. code-block:: yaml
 
-- "stream.Foobar"
-    Enable: true
-    Stream: "streamToConfigure"
-    Formatter: "format.Forward"
-    Filter: "filter.All"
-    TimeoutMs: 0
+	- "stream.Foobar"
+	    Enable: true
+	    Stream: "streamToConfigure"
+	    Formatter: "format.Forward"
+	    Filter: "filter.All"
+	    TimeoutMs: 0

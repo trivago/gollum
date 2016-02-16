@@ -17,6 +17,6 @@ Example
 
 .. code-block:: yaml
 
-- "stream.Broadcast":
-    Formatter: "format.Runlength"
-    RunlengthFormatter: "format.Envelope"
+	    - "stream.Broadcast":
+	        Formatter: "format.Runlength"
+	        RunlengthFormatter: "format.Envelope"

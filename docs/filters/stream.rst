@@ -1,7 +1,6 @@
 Stream
 ======
 
-This plugin filters messages by stream based on a black and a whitelist.
 The blacklist is checked first.
 
 
@@ -23,10 +22,10 @@ Example
 
 .. code-block:: yaml
 
-- "stream.Broadcast":
-    Filter: "filter.Stream"
-    FilterBlockStreams:
-        - "foo"
-    FilterOnlyStreams:
-        - "test1"
-        - "test2"
+	    - "stream.Broadcast":
+	        Filter: "filter.Stream"
+	        FilterBlockStreams:
+	            - "foo"
+	        FilterOnlyStreams:
+	            - "test1"
+	            - "test2"

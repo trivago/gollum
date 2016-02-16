@@ -37,11 +37,11 @@ Example
 
 .. code-block:: yaml
 
-- "consumer.Console":
-    Enable: true
-    ID: ""
-    Fuse: ""
-    Stream:
-        - "foo"
-        - "bar"
-    ExitOnEOF: false
+	- "consumer.Console":
+	    Enable: true
+	    ID: ""
+	    Fuse: ""
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    ExitOnEOF: false

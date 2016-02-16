@@ -80,20 +80,20 @@ Example
 
 .. code-block:: yaml
 
-- "producer.Websocket":
-    Enable: true
-    ID: ""
-    Channel: 8192
-    ChannelTimeoutMs: 0
-    ShutdownTimeoutMs: 3000
-    Formatter: "format.Forward"
-    Filter: "filter.All"
-    DropToStream: "_DROPPED_"
-    Fuse: ""
-    FuseTimeoutSec: 5
-    Stream:
-        - "foo"
-        - "bar"
-    Address: ":81"
-    Path:    "/"
-    ReadTimeoutSec: 3
+	- "producer.Websocket":
+	    Enable: true
+	    ID: ""
+	    Channel: 8192
+	    ChannelTimeoutMs: 0
+	    ShutdownTimeoutMs: 3000
+	    Formatter: "format.Forward"
+	    Filter: "filter.All"
+	    DropToStream: "_DROPPED_"
+	    Fuse: ""
+	    FuseTimeoutSec: 5
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    Address: ":81"
+	    Path:    "/"
+	    ReadTimeoutSec: 3

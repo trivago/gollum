@@ -54,14 +54,14 @@ Example
 
 .. code-block:: yaml
 
-- "consumer.File":
-    Enable: true
-    ID: ""
-    Fuse: ""
-    Stream:
-        - "foo"
-        - "bar"
-    File: "/var/run/system.log"
-    DefaultOffset: "Newest"
-    OffsetFile: ""
-    Delimiter: "\n"
+	- "consumer.File":
+	    Enable: true
+	    ID: ""
+	    Fuse: ""
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    File: "/var/run/system.log"
+	    DefaultOffset: "Newest"
+	    OffsetFile: ""
+	    Delimiter: "\n"

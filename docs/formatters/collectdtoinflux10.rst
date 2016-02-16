@@ -17,6 +17,6 @@ Example
 
 .. code-block:: yaml
 
-- "stream.Broadcast":
-    Formatter: "format.CollectdToInflux10"
-    CollectdToInflux10Formatter: "format.Forward"
+	    - "stream.Broadcast":
+	        Formatter: "format.CollectdToInflux10"
+	        CollectdToInflux10Formatter: "format.Forward"

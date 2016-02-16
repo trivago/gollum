@@ -151,34 +151,34 @@ Example
 
 .. code-block:: yaml
 
-- "producer.File":
-    Enable: true
-    ID: ""
-    Channel: 8192
-    ChannelTimeoutMs: 0
-    ShutdownTimeoutMs: 3000
-    Formatter: "format.Forward"
-    Filter: "filter.All"
-    DropToStream: "_DROPPED_"
-    Fuse: ""
-    FuseTimeoutSec: 5
-    Stream:
-        - "foo"
-        - "bar"
-    File: "/var/log/gollum.log"
-    FileOverwrite: false
-    Permissions: "0664"
-    FolderPermissions: "0755"
-    BatchMaxCount: 8192
-    BatchFlushCount: 4096
-    BatchTimeoutSec: 5
-    FlushTimeoutSec: 0
-    Rotate: false
-    RotateTimeoutMin: 1440
-    RotateSizeMB: 1024
-    RotateAt: ""
-    RotateTimestamp: "2006-01-02_15"
-    RotatePruneCount: 0
-    RotatePruneAfterHours: 0
-    RotatePruneTotalSizeMB: 0
-    Compress: false
+	- "producer.File":
+	    Enable: true
+	    ID: ""
+	    Channel: 8192
+	    ChannelTimeoutMs: 0
+	    ShutdownTimeoutMs: 3000
+	    Formatter: "format.Forward"
+	    Filter: "filter.All"
+	    DropToStream: "_DROPPED_"
+	    Fuse: ""
+	    FuseTimeoutSec: 5
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    File: "/var/log/gollum.log"
+	    FileOverwrite: false
+	    Permissions: "0664"
+	    FolderPermissions: "0755"
+	    BatchMaxCount: 8192
+	    BatchFlushCount: 4096
+	    BatchTimeoutSec: 5
+	    FlushTimeoutSec: 0
+	    Rotate: false
+	    RotateTimeoutMin: 1440
+	    RotateSizeMB: 1024
+	    RotateAt: ""
+	    RotateTimestamp: "2006-01-02_15"
+	    RotatePruneCount: 0
+	    RotatePruneAfterHours: 0
+	    RotatePruneTotalSizeMB: 0
+	    Compress: false

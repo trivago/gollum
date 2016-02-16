@@ -100,24 +100,24 @@ Example
 
 .. code-block:: yaml
 
-- "producer.Socket":
-    Enable: true
-    ID: ""
-    Channel: 8192
-    ChannelTimeoutMs: 0
-    ShutdownTimeoutMs: 3000
-    Formatter: "format.Forward"
-    Filter: "filter.All"
-    DropToStream: "_DROPPED_"
-    Fuse: ""
-    FuseTimeoutSec: 5
-    Stream:
-        - "foo"
-        - "bar"
-    Enable: true
-    Address: ":5880"
-    ConnectionBufferSizeKB: 1024
-    BatchMaxCount: 8192
-    BatchFlushCount: 4096
-    BatchTimeoutSec: 5
-    Acknowledge: ""
+	- "producer.Socket":
+	    Enable: true
+	    ID: ""
+	    Channel: 8192
+	    ChannelTimeoutMs: 0
+	    ShutdownTimeoutMs: 3000
+	    Formatter: "format.Forward"
+	    Filter: "filter.All"
+	    DropToStream: "_DROPPED_"
+	    Fuse: ""
+	    FuseTimeoutSec: 5
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    Enable: true
+	    Address: ":5880"
+	    ConnectionBufferSizeKB: 1024
+	    BatchMaxCount: 8192
+	    BatchFlushCount: 4096
+	    BatchTimeoutSec: 5
+	    Acknowledge: ""

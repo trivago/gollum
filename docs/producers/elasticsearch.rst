@@ -119,35 +119,35 @@ Example
 
 .. code-block:: yaml
 
-- "producer.ElasticSearch":
-    Enable: true
-    ID: ""
-    Channel: 8192
-    ChannelTimeoutMs: 0
-    ShutdownTimeoutMs: 3000
-    Formatter: "format.Forward"
-    Filter: "filter.All"
-    DropToStream: "_DROPPED_"
-    Fuse: ""
-    FuseTimeoutSec: 5
-    Stream:
-        - "foo"
-        - "bar"
-    Connections: 6
-    RetrySec: 5
-    TTL: ""
-    DayBasedIndex: false
-    User: ""
-    Password: ""
-    BatchSizeByte: 32768
-    BatchMaxCount: 256
-    BatchTimeoutSec: 5
-    Port: 9200
-    Servers:
-        - "localhost"
-    Index:
-        "console" : "console"
-        "_GOLLUM_"  : "_GOLLUM_"
-    Type:
-        "console" : "console"
-        "_GOLLUM_"  : "_GOLLUM_"
+	- "producer.ElasticSearch":
+	    Enable: true
+	    ID: ""
+	    Channel: 8192
+	    ChannelTimeoutMs: 0
+	    ShutdownTimeoutMs: 3000
+	    Formatter: "format.Forward"
+	    Filter: "filter.All"
+	    DropToStream: "_DROPPED_"
+	    Fuse: ""
+	    FuseTimeoutSec: 5
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    Connections: 6
+	    RetrySec: 5
+	    TTL: ""
+	    DayBasedIndex: false
+	    User: ""
+	    Password: ""
+	    BatchSizeByte: 32768
+	    BatchMaxCount: 256
+	    BatchTimeoutSec: 5
+	    Port: 9200
+	    Servers:
+	        - "localhost"
+	    Index:
+	        "console" : "console"
+	        "_GOLLUM_"  : "_GOLLUM_"
+	    Type:
+	        "console" : "console"
+	        "_GOLLUM_"  : "_GOLLUM_"

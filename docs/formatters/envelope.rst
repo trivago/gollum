@@ -26,8 +26,8 @@ Example
 
 .. code-block:: yaml
 
-- "stream.Broadcast":
-    Formatter: "format.Envelope"
-    EnvelopeFormatter: "format.Forward"
-    EnvelopePrefix: "<data>"
-    EnvelopePostfix: "</data>\n"
+	    - "stream.Broadcast":
+	        Formatter: "format.Envelope"
+	        EnvelopeFormatter: "format.Forward"
+	        EnvelopePrefix: "<data>"
+	        EnvelopePostfix: "</data>\n"

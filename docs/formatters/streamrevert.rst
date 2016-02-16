@@ -19,6 +19,6 @@ Example
 
 .. code-block:: yaml
 
-- "stream.Broadcast":
-    Formatter: "format.StreamRevert"
-    StreamRevertFormatter: "format.Forward"
+	    - "stream.Broadcast":
+	        Formatter: "format.StreamRevert"
+	        StreamRevertFormatter: "format.Forward"

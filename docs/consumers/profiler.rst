@@ -66,17 +66,17 @@ Example
 
 .. code-block:: yaml
 
-- "consumer.Profile":
-    Enable: true
-    ID: ""
-    Fuse: ""
-    Stream:
-        - "foo"
-        - "bar"
-    Runs: 10000
-    Batches: 10
-    TemplateCount: 10
-    Characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
-    Message: "%256s"
-        DelayMs: 0
-    KeepRunning: false
+	- "consumer.Profile":
+	    Enable: true
+	    ID: ""
+	    Fuse: ""
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    Runs: 10000
+	    Batches: 10
+	    TemplateCount: 10
+	    Characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
+	    Message: "%256s"
+	        DelayMs: 0
+	    KeepRunning: false

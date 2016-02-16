@@ -92,20 +92,20 @@ Example
 
 .. code-block:: yaml
 
-- "consumer.Socket":
-    Enable: true
-    ID: ""
-    Fuse: ""
-    Stream:
-        - "foo"
-        - "bar"
-    Address: ":5880"
-    Permissions: "0770"
-    Acknowledge: ""
-    Partitioner: "delimiter"
-    Delimiter: "\n"
-    Offset: 0
-    Size: 1
-    ReconnectAfterSec: 2
-    AckTimoutSec: 2
-    ReadTimeoutSec: 5
+	- "consumer.Socket":
+	    Enable: true
+	    ID: ""
+	    Fuse: ""
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    Address: ":5880"
+	    Permissions: "0770"
+	    Acknowledge: ""
+	    Partitioner: "delimiter"
+	    Delimiter: "\n"
+	    Offset: 0
+	    Size: 1
+	    ReconnectAfterSec: 2
+	    AckTimoutSec: 2
+	    ReadTimeoutSec: 5

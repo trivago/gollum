@@ -55,15 +55,15 @@ Example
 
 .. code-block:: yaml
 
-- "consumer.Http":
-    Enable: true
-    ID: ""
-    Fuse: ""
-    Stream:
-        - "foo"
-        - "bar"
-    Address: ":80"
-    ReadTimeoutSec: 3
-    WithHeaders: true
-    Certificate: ""
-    PrivateKey: ""
+	- "consumer.Http":
+	    Enable: true
+	    ID: ""
+	    Fuse: ""
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    Address: ":80"
+	    ReadTimeoutSec: 3
+	    WithHeaders: true
+	    Certificate: ""
+	    PrivateKey: ""

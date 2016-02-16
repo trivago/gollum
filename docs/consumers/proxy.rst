@@ -67,15 +67,15 @@ Example
 
 .. code-block:: yaml
 
-- "consumer.Proxy":
-    Enable: true
-    ID: ""
-    Fuse: ""
-    Stream:
-        - "foo"
-        - "bar"
-    Address: ":5880"
-    Partitioner: "delimiter"
-    Delimiter: "\n"
-    Offset: 0
-    Size: 1
+	- "consumer.Proxy":
+	    Enable: true
+	    ID: ""
+	    Fuse: ""
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    Address: ":5880"
+	    Partitioner: "delimiter"
+	    Delimiter: "\n"
+	    Offset: 0
+	    Size: 1

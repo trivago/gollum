@@ -96,25 +96,25 @@ Example
 
 .. code-block:: yaml
 
-- "consumer.Kafka":
-    Enable: true
-    ID: ""
-    Fuse: ""
-    Stream:
-        - "foo"
-        - "bar"
-    Topic: "default"
-    DefaultOffset: "newest"
-    OffsetFile: ""
-    MaxOpenRequests: 5
-    ServerTimeoutSec: 30
-    MaxFetchSizeByte: 0
-    MinFetchSizeByte: 1
-    FetchTimeoutMs: 250
-    MessageBufferCount: 256
-    PresistTimoutMs: 5000
-    ElectRetries: 3
-    ElectTimeoutMs: 250
-    MetadataRefreshMs: 10000
-    Servers:
-        - "localhost:9092"
+	- "consumer.Kafka":
+	    Enable: true
+	    ID: ""
+	    Fuse: ""
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    Topic: "default"
+	    DefaultOffset: "newest"
+	    OffsetFile: ""
+	    MaxOpenRequests: 5
+	    ServerTimeoutSec: 30
+	    MaxFetchSizeByte: 0
+	    MinFetchSizeByte: 1
+	    FetchTimeoutMs: 250
+	    MessageBufferCount: 256
+	    PresistTimoutMs: 5000
+	    ElectRetries: 3
+	    ElectTimeoutMs: 250
+	    MetadataRefreshMs: 10000
+	    Servers:
+	        - "localhost:9092"

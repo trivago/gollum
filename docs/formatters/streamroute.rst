@@ -31,9 +31,9 @@ Example
 
 .. code-block:: yaml
 
-- "stream.Broadcast":
-    Formatter: "format.StreamRoute"
-    StreamRouteFormatter: "format.Forward"
-    StreamRouteStreamFormatter: "format.Forward"
-    StreamRouteDelimiter: "$"
-    StreamRouteFormatBoth: false
+	    - "stream.Broadcast":
+	        Formatter: "format.StreamRoute"
+	        StreamRouteFormatter: "format.Forward"
+	        StreamRouteStreamFormatter: "format.Forward"
+	        StreamRouteDelimiter: "$"
+	        StreamRouteFormatBoth: false

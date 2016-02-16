@@ -109,25 +109,25 @@ Example
 
 .. code-block:: yaml
 
-- "producer.Spooling":
-    Enable: true
-    ID: ""
-    Channel: 8192
-    ChannelTimeoutMs: 0
-    ShutdownTimeoutMs: 3000
-    Formatter: "format.Forward"
-    Filter: "filter.All"
-    DropToStream: "_DROPPED_"
-    Fuse: ""
-    FuseTimeoutSec: 5
-    Stream:
-        - "foo"
-        - "bar"
-    Path: "/var/run/gollum/spooling"
-    BatchMaxCount: 100
-    BatchTimeoutSec: 5
-    MaxFileSizeMB: 512
-    MaxFileAgeMin: 1
-    MessageSizeByte: 8192
-    RespoolDelaySec: 10
-    MaxMessagesSec: 100
+	- "producer.Spooling":
+	    Enable: true
+	    ID: ""
+	    Channel: 8192
+	    ChannelTimeoutMs: 0
+	    ShutdownTimeoutMs: 3000
+	    Formatter: "format.Forward"
+	    Filter: "filter.All"
+	    DropToStream: "_DROPPED_"
+	    Fuse: ""
+	    FuseTimeoutSec: 5
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    Path: "/var/run/gollum/spooling"
+	    BatchMaxCount: 100
+	    BatchTimeoutSec: 5
+	    MaxFileSizeMB: 512
+	    MaxFileAgeMin: 1
+	    MessageSizeByte: 8192
+	    RespoolDelaySec: 10
+	    MaxMessagesSec: 100

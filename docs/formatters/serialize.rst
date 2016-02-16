@@ -20,7 +20,7 @@ Example
 
 .. code-block:: yaml
 
-- "stream.Broadcast":
-    Formatter: "format.Serialize"
-    SerializeFormatter: "format.Envelope"
-    SerializeStringEncode: true
+	    - "stream.Broadcast":
+	        Formatter: "format.Serialize"
+	        SerializeFormatter: "format.Envelope"
+	        SerializeStringEncode: true

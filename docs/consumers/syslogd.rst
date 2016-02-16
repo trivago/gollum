@@ -45,12 +45,12 @@ Example
 
 .. code-block:: yaml
 
-- "consumer.Syslogd":
-    Enable: true
-    ID: ""
-    Fuse: ""
-    Stream:
-        - "foo"
-        - "bar"
-    Address: "udp://0.0.0.0:514"
-    Format: "RFC6587"
+	- "consumer.Syslogd":
+	    Enable: true
+	    ID: ""
+	    Fuse: ""
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    Address: "udp://0.0.0.0:514"
+	    Format: "RFC6587"

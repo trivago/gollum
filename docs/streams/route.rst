@@ -39,12 +39,12 @@ Example
 
 .. code-block:: yaml
 
-- "stream.Route":
-    Enable: true
-    Stream: "streamToConfigure"
-    Formatter: "format.Forward"
-    Filter: "filter.All"
-    TimeoutMs: 0
-    Routes:
-        - "foo"
-        - "bar"
+	- "stream.Route":
+	    Enable: true
+	    Stream: "streamToConfigure"
+	    Formatter: "format.Forward"
+	    Filter: "filter.All"
+	    TimeoutMs: 0
+	    Routes:
+	        - "foo"
+	        - "bar"

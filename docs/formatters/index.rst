@@ -16,9 +16,9 @@ Formatters
 	json
 	runlength
 	sequence
-    serialize
-    splittojson
-    streamname
+	serialize
+	splittojson
+	streamname
 	streamrevert
 	streamroute
 	timestamp

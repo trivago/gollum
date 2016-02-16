@@ -158,39 +158,39 @@ Example
 
 .. code-block:: yaml
 
-- "producer.Kafka":
-    Enable: true
-    ID: ""
-    Channel: 8192
-    ChannelTimeoutMs: 0
-    ShutdownTimeoutMs: 3000
-    Formatter: "format.Forward"
-    Filter: "filter.All"
-    DropToStream: "_DROPPED_"
-    Fuse: ""
-    FuseTimeoutSec: 5
-    Stream:
-        - "foo"
-        - "bar"
-    ClientId: "weblog"
-    Partitioner: "Roundrobin"
-    RequiredAcks: 1
-    TimeoutMs: 1500
-    SendRetries: 3
-    Compression: "None"
-    MaxOpenRequests: 5
-    MessageBufferCount: 256
-    BatchMinCount: 10
-    BatchMaxCount: 1
-    BatchSizeByte: 8192
-    BatchSizeMaxKB: 1024
-    BatchTimeoutSec: 3
-    ServerTimeoutSec: 30
-    SendTimeoutMs: 250
-    ElectRetries: 3
-    ElectTimeoutMs: 250
-    MetadataRefreshMs: 10000
-    Servers:
-        - "localhost:9092"
-    Topic:
-        "console" : "console"
+	- "producer.Kafka":
+	    Enable: true
+	    ID: ""
+	    Channel: 8192
+	    ChannelTimeoutMs: 0
+	    ShutdownTimeoutMs: 3000
+	    Formatter: "format.Forward"
+	    Filter: "filter.All"
+	    DropToStream: "_DROPPED_"
+	    Fuse: ""
+	    FuseTimeoutSec: 5
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    ClientId: "weblog"
+	    Partitioner: "Roundrobin"
+	    RequiredAcks: 1
+	    TimeoutMs: 1500
+	    SendRetries: 3
+	    Compression: "None"
+	    MaxOpenRequests: 5
+	    MessageBufferCount: 256
+	    BatchMinCount: 10
+	    BatchMaxCount: 1
+	    BatchSizeByte: 8192
+	    BatchSizeMaxKB: 1024
+	    BatchTimeoutSec: 3
+	    ServerTimeoutSec: 30
+	    SendTimeoutMs: 250
+	    ElectRetries: 3
+	    ElectTimeoutMs: 250
+	    MetadataRefreshMs: 10000
+	    Servers:
+	        - "localhost:9092"
+	    Topic:
+	        "console" : "console"
