@@ -25,6 +25,7 @@ import (
 //
 //   - "stream.Broadcast":
 //     Filter: "filter.None"
+//
 type None struct {
 }
 

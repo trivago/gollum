@@ -25,6 +25,7 @@ import (
 //
 //   - "stream.Broadcast":
 //     Filter: "filter.All"
+//
 type All struct {
 }
 
