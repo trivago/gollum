@@ -47,21 +47,21 @@ const (
 // that fuse is burned.
 // Configuration example
 //
-//   - "consumer.Kinesis":
-//     KinesisStream: "default"
-//     Region: "eu-west-1"
-//     Endpoint: "kinesis.eu-west-1.amazonaws.com"
-//     DefaultOffset: "Newest"
-//     OffsetFile: ""
-//     RecordsPerQuery: 100
-//     QuerySleepTimeMs: 1000
-//     RetrySleepTimeSec: 4
-//     CredentialType: "none"
-//     CredentialId: ""
-//     CredentialToken: ""
-//     CredentialSecret: ""
-//     CredentialFile: ""
-//     CredentialProfile: ""
+//  - "consumer.Kinesis":
+//    KinesisStream: "default"
+//    Region: "eu-west-1"
+//    Endpoint: "kinesis.eu-west-1.amazonaws.com"
+//    DefaultOffset: "Newest"
+//    OffsetFile: ""
+//    RecordsPerQuery: 100
+//    QuerySleepTimeMs: 1000
+//    RetrySleepTimeSec: 4
+//    CredentialType: "none"
+//    CredentialId: ""
+//    CredentialToken: ""
+//    CredentialSecret: ""
+//    CredentialFile: ""
+//    CredentialProfile: ""
 //
 // KinesisStream defines the stream to read from.
 // By default this is set to "default"

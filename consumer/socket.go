@@ -41,17 +41,17 @@ const (
 // burned.
 // Configuration example
 //
-//   - "consumer.Socket":
-//     Address: ":5880"
-//     Permissions: "0770"
-//     Acknowledge: ""
-//     Partitioner: "delimiter"
-//     Delimiter: "\n"
-//     Offset: 0
-//     Size: 1
-//     ReconnectAfterSec: 2
-//     AckTimoutSec: 2
-//     ReadTimeoutSec: 5
+//  - "consumer.Socket":
+//    Address: ":5880"
+//    Permissions: "0770"
+//    Acknowledge: ""
+//    Partitioner: "delimiter"
+//    Delimiter: "\n"
+//    Offset: 0
+//    Size: 1
+//    ReconnectAfterSec: 2
+//    AckTimoutSec: 2
+//    ReadTimeoutSec: 5
 //
 // Address defines the protocol, host and port or socket to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
@@ -69,15 +69,14 @@ const (
 //
 // Partitioner defines the algorithm used to read messages from the stream.
 // By default this is set to "delimiter".
-//  - "delimiter" separates messages by looking for a delimiter string. The
-//    delimiter is removed from the message.
-//  - "ascii" reads an ASCII encoded number at a given offset until a given
-//    delimiter is found. Everything to the right of and including the delimiter
-//    is removed from the message.
-//  - "binary" reads a binary number at a given offset and size
-//  - "binary_le" is an alias for "binary"
-//  - "binary_be" is the same as "binary" but uses big endian encoding
-//  - "fixed" assumes fixed size messages
+//  * "delimiter" separates messages by looking for a delimiter string.
+//    The delimiter is removed from the message.
+//  * "ascii" reads an ASCII number at a given offset until a given delimiter is found.
+//    Everything to the right of and including the delimiter is removed from the message.
+//  * "binary" reads a binary number at a given offset and size.
+//  * "binary_le" is an alias for "binary".
+//  * "binary_be" is the same as "binary" but uses big endian encoding.
+//  * "fixed" assumes fixed size messages.
 //
 // Delimiter defines the delimiter used by the text and delimiter partitioner.
 // By default this is set to "\n".

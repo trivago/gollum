@@ -31,15 +31,15 @@ import (
 // lost.
 // Configuration example
 //
-//   - "producer.Scribe":
-//     Address: "localhost:1463"
-//     ConnectionBufferSizeKB: 1024
-//     BatchMaxCount: 8192
-//     BatchFlushCount: 4096
-//     BatchTimeoutSec: 5
-//     Category:
-//       "console" : "console"
-//       "_GOLLUM_"  : "_GOLLUM_"
+//  - "producer.Scribe":
+//    Address: "localhost:1463"
+//    ConnectionBufferSizeKB: 1024
+//    BatchMaxCount: 8192
+//    BatchFlushCount: 4096
+//    BatchTimeoutSec: 5
+//    Category:
+//      "console" : "console"
+//      "_GOLLUM_"  : "_GOLLUM_"
 //
 // Address defines the host and port to connect to.
 // By default this is set to "localhost:1463".

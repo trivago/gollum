@@ -40,21 +40,21 @@ const (
 // This producer sends data to an AWS kinesis stream.
 // Configuration example
 //
-//   - "producer.Kinesis":
-//     Region: "eu-west-1"
-//     Endpoint: "kinesis.eu-west-1.amazonaws.com"
-//     CredentialType: "none"
-//     CredentialId: ""
-//     CredentialToken: ""
-//     CredentialSecret: ""
-//     CredentialFile: ""
-//     CredentialProfile: ""
-//     BatchMaxMessages: 500
-//     SendTimeframeSec: 1
-//     BatchTimeoutSec: 3
-//     TimoutMs: 1500
-//     StreamMap:
-//        "*" : "default"
+//  - "producer.Kinesis":
+//    Region: "eu-west-1"
+//    Endpoint: "kinesis.eu-west-1.amazonaws.com"
+//    CredentialType: "none"
+//    CredentialId: ""
+//    CredentialToken: ""
+//    CredentialSecret: ""
+//    CredentialFile: ""
+//    CredentialProfile: ""
+//    BatchMaxMessages: 500
+//    SendTimeframeSec: 1
+//    BatchTimeoutSec: 3
+//    TimoutMs: 1500
+//    StreamMap:
+//      "*" : "default"
 //
 // KinesisStream defines the stream to read from.
 // By default this is set to "default"

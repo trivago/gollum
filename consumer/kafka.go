@@ -39,22 +39,22 @@ const (
 // that fuse is burned.
 // Configuration example
 //
-//   - "consumer.Kafka":
-//     Topic: "default"
-//     DefaultOffset: "newest"
-//     OffsetFile: ""
-//     MaxOpenRequests: 5
-//     ServerTimeoutSec: 30
-//     MaxFetchSizeByte: 0
-//     MinFetchSizeByte: 1
-//     FetchTimeoutMs: 250
-//     MessageBufferCount: 256
-//     PresistTimoutMs: 5000
-//     ElectRetries: 3
-//     ElectTimeoutMs: 250
-//     MetadataRefreshMs: 10000
-//     Servers:
-//       - "localhost:9092"
+//  - "consumer.Kafka":
+//    Topic: "default"
+//    DefaultOffset: "newest"
+//    OffsetFile: ""
+//    MaxOpenRequests: 5
+//    ServerTimeoutSec: 30
+//    MaxFetchSizeByte: 0
+//    MinFetchSizeByte: 1
+//    FetchTimeoutMs: 250
+//    MessageBufferCount: 256
+//    PresistTimoutMs: 5000
+//    ElectRetries: 3
+//    ElectTimeoutMs: 250
+//    MetadataRefreshMs: 10000
+//    Servers:
+//      - "localhost:9092"
 //
 // Topic defines the kafka topic to read from. By default this is set to "default".
 //

@@ -31,9 +31,9 @@ import (
 // that fuse is burned.
 // Configuration example
 //
-//   - "consumer.Syslogd":
-//     Address: "udp://0.0.0.0:514"
-//     Format: "RFC6587"
+//  - "consumer.Syslogd":
+//    Address: "udp://0.0.0.0:514"
+//    Format: "RFC6587"
 //
 // Address defines the protocol, host and port or socket to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
@@ -43,11 +43,10 @@ import (
 // transport protocol.
 //
 // Format defines the syslog standard to expect for message encoding.
-// Three standards are currently supported:
-// 	* RFC3164 (https://tools.ietf.org/html/rfc3164) udp only
-// 	* RFC5424 (https://tools.ietf.org/html/rfc5424) udp only
-// 	* RFC6587 (https://tools.ietf.org/html/rfc6587) tcp or udp
-// By default this is set to "RFC6587".
+// Three standards are currently supported, by default this is set to "RFC6587".
+//  * RFC3164 (https://tools.ietf.org/html/rfc3164) udp only.
+//  * RFC5424 (https://tools.ietf.org/html/rfc5424) udp only.
+//  * RFC6587 (https://tools.ietf.org/html/rfc6587) tcp or udp.
 type Syslogd struct {
 	core.ConsumerBase
 	format   format.Format // RFC3164, RFC5424 or RFC6587?

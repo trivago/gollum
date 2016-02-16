@@ -21,7 +21,6 @@ import (
 
 // Broadcast stream plugin
 // Messages will be sent to all producers attached to this stream.
-
 type Broadcast struct {
 	core.StreamBase
 }

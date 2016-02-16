@@ -30,13 +30,13 @@ import (
 // for redis 3.0 cluster.
 // Configuration example
 //
-//   - "producer.Redis":
-//     Address: ":6379"
-//	   Database: 0
-//	   Key: "default"
-//     Storage: "hash"
-//     FieldFormat: "format.Identifier"
-//     FieldAfterFormat: false
+//  - "producer.Redis":
+//    Address: ":6379"
+//    Database: 0
+//    Key: "default"
+//    Storage: "hash"
+//    FieldFormat: "format.Identifier"
+//    FieldAfterFormat: false
 //
 // Address stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:6379" or a file

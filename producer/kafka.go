@@ -40,29 +40,29 @@ const (
 // This producer uses a fuse breaker if the connection reports an error.
 // Configuration example
 //
-//   - "producer.Kafka":
-//     ClientId: "weblog"
-//     Partitioner: "Roundrobin"
-//     RequiredAcks: 1
-//     TimeoutMs: 1500
-//     SendRetries: 3
-//     Compression: "None"
-//     MaxOpenRequests: 5
-//     MessageBufferCount: 256
-//     BatchMinCount: 10
-//     BatchMaxCount: 1
-//     BatchSizeByte: 8192
-//     BatchSizeMaxKB: 1024
-//     BatchTimeoutSec: 3
-//     ServerTimeoutSec: 30
-//     SendTimeoutMs: 250
-//     ElectRetries: 3
-//     ElectTimeoutMs: 250
-//     MetadataRefreshMs: 10000
-//     Servers:
-//     	- "localhost:9092"
-//     Topic:
-//       "console" : "console"
+//  - "producer.Kafka":
+//    ClientId: "weblog"
+//    Partitioner: "Roundrobin"
+//    RequiredAcks: 1
+//    TimeoutMs: 1500
+//    SendRetries: 3
+//    Compression: "None"
+//    MaxOpenRequests: 5
+//    MessageBufferCount: 256
+//    BatchMinCount: 10
+//    BatchMaxCount: 1
+//    BatchSizeByte: 8192
+//    BatchSizeMaxKB: 1024
+//    BatchTimeoutSec: 3
+//    ServerTimeoutSec: 30
+//    SendTimeoutMs: 250
+//    ElectRetries: 3
+//    ElectTimeoutMs: 250
+//    MetadataRefreshMs: 10000
+//    Servers:
+//    	- "localhost:9092"
+//    Topic:
+//      "console" : "console"
 //
 // ClientId sets the client id of this producer. By default this is "gollum".
 //

@@ -35,15 +35,15 @@ import (
 // This producer does not implement a fuse breaker.
 // Configuration example
 //
-//   - "producer.Spooling":
-//     Path: "/var/run/gollum/spooling"
-//     BatchMaxCount: 100
-//     BatchTimeoutSec: 5
-//     MaxFileSizeMB: 512
-//     MaxFileAgeMin: 1
-//     MessageSizeByte: 8192
-//     RespoolDelaySec: 10
-//     MaxMessagesSec: 100
+//  - "producer.Spooling":
+//    Path: "/var/run/gollum/spooling"
+//    BatchMaxCount: 100
+//    BatchTimeoutSec: 5
+//    MaxFileSizeMB: 512
+//    MaxFileAgeMin: 1
+//    MessageSizeByte: 8192
+//    RespoolDelaySec: 10
+//    MaxMessagesSec: 100
 //
 // Path sets the output directory for spooling files. Spooling files will
 // Files will be stored as "<path>/<stream>/<number>.spl". By default this is

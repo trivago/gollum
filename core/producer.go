@@ -57,23 +57,25 @@ type Producer interface {
 	DependsOn(Producer) bool
 }
 
-// ProducerBase defines a common baseclass for producers. All producers should
+// ProducerBase plugin base type
+// This type defines a common baseclass for producers. All producers should
 // derive from this class, but not necessarily need to.
 // Configuration example:
 //
-//   - "producer.Console":
-//     Enable: true
-//	   ID: ""
-//     Channel: 8192
-//     ChannelTimeoutMs: 0
-//     ShutdownTimeoutMs: 3000
-//     Formatter: "format.Forward"
-//     Filter: "filter.All"
-//     DropToStream: "_DROPPED_"
-//	   Fuse: ""
-//     FuseTimeoutSec: 5
-//     Stream:
-//       - "console"
+//  - "producer.Foobar":
+//    Enable: true
+//    ID: ""
+//    Channel: 8192
+//    ChannelTimeoutMs: 0
+//    ShutdownTimeoutMs: 3000
+//    Formatter: "format.Forward"
+//    Filter: "filter.All"
+//    DropToStream: "_DROPPED_"
+//    Fuse: ""
+//    FuseTimeoutSec: 5
+//    Stream:
+//      - "foo"
+//      - "bar"
 //
 // Enable switches the consumer on or off. By default this value is set to true.
 //

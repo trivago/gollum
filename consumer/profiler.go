@@ -34,14 +34,14 @@ import (
 // that fuse is burned.
 // Configuration example
 //
-//   - "consumer.Profile":
-//     Runs: 10000
-//     Batches: 10
-//     TemplateCount: 10
-//     Characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
-//     Message: "%256s"
-//	   DelayMs: 0
-//     KeepRunning: false
+//  - "consumer.Profile":
+//    Runs: 10000
+//    Batches: 10
+//    TemplateCount: 10
+//    Characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
+//    Message: "%256s"
+//	  DelayMs: 0
+//    KeepRunning: false
 //
 // Runs defines the number of messages per batch. By default this is set to
 // 10000.

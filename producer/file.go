@@ -35,24 +35,24 @@ import (
 // This producer does not implement a fuse breaker.
 // Configuration example
 //
-//   - "producer.File":
-//     File: "/var/log/gollum.log"
-//     FileOverwrite: false
-//     Permissions: "0664"
-//     FolderPermissions: "0755"
-//     BatchMaxCount: 8192
-//     BatchFlushCount: 4096
-//     BatchTimeoutSec: 5
-//     FlushTimeoutSec: 0
-//     Rotate: false
-//     RotateTimeoutMin: 1440
-//     RotateSizeMB: 1024
-//     RotateAt: ""
-//     RotateTimestamp: "2006-01-02_15"
-//     RotatePruneCount: 0
-//     RotatePruneAfterHours: 0
-//     RotatePruneTotalSizeMB: 0
-//     Compress: false
+//  - "producer.File":
+//    File: "/var/log/gollum.log"
+//    FileOverwrite: false
+//    Permissions: "0664"
+//    FolderPermissions: "0755"
+//    BatchMaxCount: 8192
+//    BatchFlushCount: 4096
+//    BatchTimeoutSec: 5
+//    FlushTimeoutSec: 0
+//    Rotate: false
+//    RotateTimeoutMin: 1440
+//    RotateSizeMB: 1024
+//    RotateAt: ""
+//    RotateTimestamp: "2006-01-02_15"
+//    RotatePruneCount: 0
+//    RotatePruneAfterHours: 0
+//    RotatePruneTotalSizeMB: 0
+//    Compress: false
 //
 // File contains the path to the log file to write. The wildcard character "*"
 // can be used as a placeholder for the stream name.

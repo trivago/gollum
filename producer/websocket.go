@@ -30,10 +30,10 @@ import (
 // This producer does not implement a fuse breaker.
 // Configuration example
 //
-//   - "producer.Websocket":
-//     Address: ":81"
-//     Path:    "/"
-//	   ReadTimeoutSec: 3
+//  - "producer.Websocket":
+//    Address: ":81"
+//    Path:    "/"
+//    ReadTimeoutSec: 3
 //
 // Address defines the host and port to bind to.
 // This is allowed be any ip address/dns and port like "localhost:5880".

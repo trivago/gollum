@@ -54,19 +54,20 @@ type MappedStream struct {
 	Stream   Stream
 }
 
-// StreamBase defines the standard stream implementation. New stream types
+// StreamBase plugin base type
+// This type defines the standard stream implementation. New stream types
 // should derive from this class.
 // StreamBase allows streams to set and execute filters as well as format a
 // message. Types derived from StreamBase should set the Distribute member
 // instead of overloading the Enqueue method.
 // Configuration Example
 //
-// - "stream.Broadcast"
-//   Enable: true
-//   Stream: "streamToConfigure"
-//   Formatter: "format.Forward"
-//   Filter: "filter.All"
-//   TimeoutMs: 0
+//  - "stream.Foobar"
+//    Enable: true
+//    Stream: "streamToConfigure"
+//    Formatter: "format.Forward"
+//    Filter: "filter.All"
+//    TimeoutMs: 0
 //
 // Enable can be set to false to disable this stream configuration but leave
 // it in the config for future use. Set to true by default.

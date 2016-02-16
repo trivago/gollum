@@ -32,25 +32,25 @@ import (
 // "red" status or the connection is down.
 // Configuration example
 //
-//   - "producer.ElasticSearch":
-//     Connections: 6
-//     RetrySec: 5
-//     TTL: ""
-//     DayBasedIndex: false
-//     User: ""
-//     Password: ""
-//     BatchSizeByte: 32768
-//     BatchMaxCount: 256
-//     BatchTimeoutSec: 5
-//     Port: 9200
-//     Servers:
-//       - "localhost"
-//     Index:
-//       "console" : "console"
-//       "_GOLLUM_"  : "_GOLLUM_"
-//     Type:
-//       "console" : "console"
-//       "_GOLLUM_"  : "_GOLLUM_"
+//  - "producer.ElasticSearch":
+//    Connections: 6
+//    RetrySec: 5
+//    TTL: ""
+//    DayBasedIndex: false
+//    User: ""
+//    Password: ""
+//    BatchSizeByte: 32768
+//    BatchMaxCount: 256
+//    BatchTimeoutSec: 5
+//    Port: 9200
+//    Servers:
+//      - "localhost"
+//    Index:
+//      "console" : "console"
+//      "_GOLLUM_"  : "_GOLLUM_"
+//    Type:
+//      "console" : "console"
+//      "_GOLLUM_"  : "_GOLLUM_"
 //
 // RetrySec denotes the time in seconds after which a failed dataset will be
 // transmitted again. By default this is set to 5.

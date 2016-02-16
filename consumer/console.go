@@ -33,8 +33,8 @@ const (
 // messages in case that fuse is burned.
 // Configuration example
 //
-//   - "consumer.Console":
-//	   ExitOnEOF: false
+//  - "consumer.Console":
+//    ExitOnEOF: false
 //
 // ExitOnEOF can be set to true to trigger an exit signal if StdIn is closed
 // (e.g. when a pipe is closed). This is set to false by default.

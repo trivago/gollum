@@ -52,11 +52,11 @@ const (
 // that fuse is burned.
 // Configuration example
 //
-//   - "consumer.File":
-//     File: "/var/run/system.log"
-//     DefaultOffset: "Newest"
-//     OffsetFile: ""
-//     Delimiter: "\n"
+//  - "consumer.File":
+//    File: "/var/run/system.log"
+//    DefaultOffset: "Newest"
+//    OffsetFile: ""
+//    Delimiter: "\n"
 //
 // File is a mandatory setting and contains the file to read. The file will be
 // read from beginning to end and the reader will stay attached until the

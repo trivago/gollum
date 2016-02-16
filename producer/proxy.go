@@ -33,14 +33,14 @@ import (
 // This producer does not implement a fuse breaker.
 // Configuration example
 //
-//   - "producer.Proxy":
-//     Address: ":5880"
-//     ConnectionBufferSizeKB: 1024
-//     TimeoutSec: 1
-//     Partitioner: "delimiter"
-//     Delimiter: "\n"
-//     Offset: 0
-//     Size: 1
+//  - "producer.Proxy":
+//    Address: ":5880"
+//    ConnectionBufferSizeKB: 1024
+//    TimeoutSec: 1
+//    Partitioner: "delimiter"
+//    Delimiter: "\n"
+//    Offset: 0
+//    Size: 1
 //
 // Address stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:5880" or a file

@@ -33,18 +33,18 @@ import (
 // is lost.
 // Configuration example
 //
-//   - "producer.InfluxDB":
-//     Host: "localhost:8086"
-//     User: ""
-//     Password: ""
-//     Database: "default"
-//     TimeBasedName: true
-//     UseVersion08: false
-//     Version: 100
-//     RetentionPolicy: ""
-//     BatchMaxCount: 8192
-//     BatchFlushCount: 4096
-//     BatchTimeoutSec: 5
+//  - "producer.InfluxDB":
+//    Host: "localhost:8086"
+//    User: ""
+//    Password: ""
+//    Database: "default"
+//    TimeBasedName: true
+//    UseVersion08: false
+//    Version: 100
+//    RetentionPolicy: ""
+//    BatchMaxCount: 8192
+//    BatchFlushCount: 4096
+//    BatchTimeoutSec: 5
 //
 // Host defines the host (and port) of the InfluxDB server.
 // Defaults to "localhost:8086".

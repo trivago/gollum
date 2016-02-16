@@ -28,8 +28,8 @@ import (
 // This producer does not implement a fuse breaker.
 // Configuration example
 //
-//   - "producer.Console":
-//     Console: "stdout"
+//  - "producer.Console":
+//    Console: "stdout"
 //
 // Console may either be "stdout" or "stderr". By default it is set to "stdout".
 type Console struct {

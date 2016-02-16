@@ -25,11 +25,10 @@ import (
 // the producers attached to the target streams.
 // Configuration example
 //
-//   - "stream.Route":
-//     Routes:
-//        - "db1"
-//        - "db2"
-//        - "data"
+//  - "stream.Route":
+//    Routes:
+//      - "foo"
+//      - "bar"
 //
 // Routes defines a 1:n stream remapping.
 // Messages are reassigned to all of stream(s) in this list.

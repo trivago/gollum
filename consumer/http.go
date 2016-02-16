@@ -35,12 +35,12 @@ import (
 // fuse is burned.
 // Configuration example
 //
-//   - "consumer.Http":
-//     Address: ":80"
-//     ReadTimeoutSec: 3
-//     WithHeaders: true
-//     Certificate: ""
-//     PrivateKey: ""
+//  - "consumer.Http":
+//    Address: ":80"
+//    ReadTimeoutSec: 3
+//    WithHeaders: true
+//    Certificate: ""
+//    PrivateKey: ""
 //
 // Address stores the host and port to bind to.
 // This is allowed be any ip address/dns and port like "localhost:5880".

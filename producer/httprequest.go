@@ -31,10 +31,10 @@ import (
 // code > 400 or the connection is down.
 // Configuration example
 //
-//   - "producer.HTTPRequest":
-//     RawData: true
-//     Encoding: "text/plain; charset=utf-8"
-//     Address: "localhost:80"
+//  - "producer.HTTPRequest":
+//    RawData: true
+//    Encoding: "text/plain; charset=utf-8"
+//    Address: "localhost:80"
 //
 // Address defines the webserver to send http requests to. Set to "localhost:80"
 // by default.

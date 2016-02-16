@@ -9,18 +9,26 @@ Parameters
 ----------
 
 **Enable**
-  Can either be true or false to enable or disable this consumer.
-**ID**
-  Allows this consumer to be found by other plugins by name.
-  By default this is set to "" which does not register this consumer.
-**Fuse**
-  Defines the name of the fuse this consumer is attached to.
-  When left empty no fuse is attached. This is the default value.
+    Enable switches the consumer on or off. By default this value is set to true.
+
+**ID** 
+    ID allows this consumer to be found by other plugins by name. 
+    By default this is set to "" which does not register this consumer.
+
 **Stream**
-  Defines either one or an aray of stream names this consumer sends messages to.
+    Stream contains either a single string or a list of strings defining the message channels this consumer will produce. 
+    By default this is set to "*" which means only producers set to consume "all streams" will get these messages.
+
+**Fuse**
+    Fuse defines the name of a fuse to observe for this consumer. 
+    Producer may "burn" the fuse when they encounter errors. 
+    Consumers may react on this by e.g. closing connections to notify any writing services of the problem.
+    Set to "" by default which disables the fuse feature for this consumer.
+    It is up to the consumer implementation to react on a broken fuse in an appropriate manner.
+
 **ExitOnEOF**
-  Set to true to trigger an exit signal if StdIn is closed (e.g. happens when a pipe is closed).
-  This is set to false by default.
+    ExitOnEOF can be set to true to trigger an exit signal if StdIn is closed (e.g. when a pipe is closed).
+    This is set to false by default.
 
 Example
 -------
@@ -29,6 +37,9 @@ Example
 
   - "consumer.Console":
     Enable: true
+    ID: ""
     Stream:
         - "stdin"
         - "console"
+    Fuse: ""
+    ExitOnEof: false

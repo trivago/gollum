@@ -29,14 +29,14 @@ import (
 // This producer uses a fuse breaker when the service to connect to goes down.
 // Configuration example
 //
-//   - "producer.Socket":
-//     Enable: true
-//     Address: ":5880"
-//     ConnectionBufferSizeKB: 1024
-//     BatchMaxCount: 8192
-//     BatchFlushCount: 4096
-//     BatchTimeoutSec: 5
-//     Acknowledge: ""
+//  - "producer.Socket":
+//    Enable: true
+//    Address: ":5880"
+//    ConnectionBufferSizeKB: 1024
+//    BatchMaxCount: 8192
+//    BatchFlushCount: 4096
+//    BatchTimeoutSec: 5
+//    Acknowledge: ""
 //
 // Address stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:5880" or a file
