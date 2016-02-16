@@ -25,7 +25,8 @@ Writing a custom plugin does not require you to change any additional code besid
 * `File` read from a file (like tail).
 * `Http` read http requests.
 * `Kafka` read from a [Kafka](http://kafka.apache.org/) topic.
-* `LoopBack` Process routed (e.g. dropped) messages.
+* `Kinesis` read from a [Kinesis](https://aws.amazon.com/de/kinesis/) stream.
+* `Profiler` Generate profiling messages.
 * `Proxy` use in combination with a proxy producer to enable two-way communication.
 * `Socket` read from a socket (gollum specfic protocol).
 * `Syslogd` read from a socket (syslogd protocol).
@@ -35,13 +36,15 @@ Writing a custom plugin does not require you to change any additional code besid
 * `Console` write to stdin or stdout.
 * `ElasticSearch` write to [elasticsearch](http://www.elasticsearch.org/) via http/bulk.
 * `File` write to a file. Supports log rotation and compression.
-* `HttpReq` HTTP request forwarder.
+* `HTTPRequest` HTTP request forwarder.
 * `InfluxDB` send data to an [InfluxDB](https://influxdb.com) server.
 * `Kafka` write to a [Kafka](http://kafka.apache.org/) topic.
+* `Kinesis` write data to a [Kinesis](https://aws.amazon.com/de/kinesis/) stream.
 * `Null` like /dev/null.
 * `Proxy` two-way communication proxy for simple protocols.
 * `Scribe` send messages to a [Facebook scribe](https://github.com/facebookarchive/scribe) server.
 * `Socket` send messages to a socket (gollum specfic protocol).
+* `Spooling` write messages to disk and retry them later.
 * `Websocket` send messages to a websocket.
 
 ## Streams (multiplexing)
@@ -55,14 +58,18 @@ Writing a custom plugin does not require you to change any additional code besid
 
 * `Base64Encode` encode messages to base64.
 * `Base64Decode` decode messages from base64.
-* `CollectdToInflux` convert [CollectD](https://collectd.org) data to [InfluxDB](https://influxdb.com) compatible values.
+* `CollectdToInflux08` convert [CollectD](https://collectd.org) 0.8 data to [InfluxDB](https://influxdb.com) compatible values.
+* `CollectdToInflux09` convert [CollectD](https://collectd.org) 0.9 data to [InfluxDB](https://influxdb.com) compatible values.
+* `CollectdToInflux10` convert [CollectD](https://collectd.org) 0.10 data to [InfluxDB](https://influxdb.com) compatible values.
 * `Envelope` add a prefix and/or postfix string to a message.
 * `Forward` write the message without modifying it.
 * `Hostname` prepend the current machine's hostname to a message.
 * `Identifier` hash the message to generate a (mostly) unique id.
 * `JSON` write the message as a JSON object. Messages can be parsed to generate fields.
+* `ProcessJSON` Modify fields of a JSON object.
 * `Runlength` prepend the length of the message.
 * `Sequence` prepend the sequence number of the message.
+* `SplitToJSON` tokenize a message and put the values into JSON fields.
 * `StreamName` prepend the name of a stream to the payload.
 * `StreamRevert` route a message to the previous stream (e.g. after it has been routed).
 * `StreamRoute` route a message to another stream by reading a prefix.
@@ -71,7 +78,7 @@ Writing a custom plugin does not require you to change any additional code besid
 ## Filters (filtering data)
 
 * `All` lets all message pass.
-* `Json` blocks or lets json messages pass based on their content.
+* `JSON` blocks or lets json messages pass based on their content.
 * `None` blocks all messages.
 * `RegExp` blocks or lets messages pass based on a regular expression.
 * `Stream` blocks or lets messages pass based on their stream name.
@@ -91,13 +98,7 @@ $ gollum --help
 
 You can use the supplied make file to trigger cross platform builds.  
 Make will produce ready to deploy .tar.gz files with the corresponding platform builds.  
-This does require a cross platform golang build.  
-Valid make targets (besides all and clean) are:
- * freebsd
- * linux
- * mac
- * pi
- * win
+This does require a cross platform golang build. For details see the "build" section below.
 
 ## Usage
 
@@ -127,7 +128,7 @@ Print this help message.
 
 #### `-ll` or `--loglevel` [0-3]
 
-Set the loglevel [0-3]. Higher levels produce more messages.
+Set the loglevel [0-3]. Higher levels produce more messages as in 0=Errors, 1=Warnings, 2=Notes, 3=Debug.
 
 #### `-m` or `--metrics` [port]
 
@@ -200,14 +201,20 @@ go get -u .
 
 Building gollum is as easy as `go build`.  
 If you want to do cross platform builds use `make all` or specifiy one of the following platforms instead of "all":
-- freebsd
-- linux
-- mac
-- pi
-- win
-
-Please not that building for windows will give you errors, which can be solved by removing the lines reported.  
-If you want to use native plugins (contrib/native) you will have to enable the import in the file contrib/loader.go.
+ * `current` build for current OS (default)
+ * `freebsd` build for FreeBSD 
+ * `linux` build for Linux x64
+ * `mac` build for MacOS X
+ * `pi` build for Linux ARM
+ * `win` build for Windows
+ 
+ There are also supplementary targets for make:
+ * `clean` clean all artifacts created by the build process
+ * `test` run unittests
+ * `restore` install godep and restore all dependencies
+ * `aws` build for Linux x64 and generate an [Elastic Beanstalk](https://aws.amazon.com/de/elasticbeanstalk/) package
+ 
+If you want to use native plugins (contrib/native) you will have to enable the corresponding imports in the file contrib/loader.go.
 Doing so will disable the possibility to do cross-platform builds for most users.
 
 ### Dockerfile
