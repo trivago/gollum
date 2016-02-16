@@ -305,8 +305,8 @@ func GetMissingMethods(objType reflect.Type, ifaceType reflect.Type) (float32, [
 	return float32(methodCount-len(missing)) / float32(methodCount), missing
 }
 
-// IndexN returns the nth occurance of sep in s or -1 if there is no nth
-// occurance of sep.
+// IndexN returns the nth occurrence of sep in s or -1 if there is no nth
+// occurrence of sep.
 func IndexN(s, sep string, n int) int {
 	sepIdx := 0
 	for i := 0; i < n; i++ {
@@ -319,8 +319,8 @@ func IndexN(s, sep string, n int) int {
 	return sepIdx - 1
 }
 
-// LastIndexN returns the nth occurance of sep in s or -1 if there is no nth
-// occurance of sep. Searching is going from the end of the string to the start.
+// LastIndexN returns the nth occurrence of sep in s or -1 if there is no nth
+// occurrence of sep. Searching is going from the end of the string to the start.
 func LastIndexN(s, sep string, n int) int {
 	if n == 0 {
 		return -1 // ### return, nonsense ###

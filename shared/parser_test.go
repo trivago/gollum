@@ -89,15 +89,15 @@ func TestParser(t *testing.T) {
 	expect := NewExpect(t)
 
 	dir := []TransitionDirective{
-		TransitionDirective{testStateSearchName, `"`, testStateName, 0, nil},
-		TransitionDirective{testStateSearchName, `}`, "", 0, nil},
-		TransitionDirective{testStateName, `"`, testStateSearchValue, 0, state.parsedName},
-		TransitionDirective{testStateSearchValue, `:`, testStateValue, 0, nil},
-		TransitionDirective{testStateValue, `[`, testStateArray, 0, nil},
-		TransitionDirective{testStateValue, `,`, testStateSearchName, 0, state.parsedValue},
-		TransitionDirective{testStateValue, `}`, "", 0, state.parsedValue},
-		TransitionDirective{testStateArray, `,`, testStateArray, 0, state.parsedArray},
-		TransitionDirective{testStateArray, `],`, testStateSearchName, 0, state.parsedArray},
+		{testStateSearchName, `"`, testStateName, 0, nil},
+		{testStateSearchName, `}`, "", 0, nil},
+		{testStateName, `"`, testStateSearchValue, 0, state.parsedName},
+		{testStateSearchValue, `:`, testStateValue, 0, nil},
+		{testStateValue, `[`, testStateArray, 0, nil},
+		{testStateValue, `,`, testStateSearchName, 0, state.parsedValue},
+		{testStateValue, `}`, "", 0, state.parsedValue},
+		{testStateArray, `,`, testStateArray, 0, state.parsedArray},
+		{testStateArray, `],`, testStateSearchName, 0, state.parsedArray},
 	}
 
 	parser := NewTransitionParser()

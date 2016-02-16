@@ -271,13 +271,13 @@ func TestPluginConfigGetStreamRoutes(t *testing.T) {
 	mockPluginCfg := getMockPluginConfig()
 
 	mockStreamRoute := map[string][]string{
-		"k1": []string{"v1"},
-		"k2": []string{"v2", "v3"},
+		"k1": {"v1"},
+		"k2": {"v2", "v3"},
 	}
 
 	expectedMockStreamRoute := map[MessageStreamID][]MessageStreamID{
-		GetStreamID("k1"): []MessageStreamID{GetStreamID("v1")},
-		GetStreamID("k2"): []MessageStreamID{GetStreamID("v2"), GetStreamID("v3")},
+		GetStreamID("k1"): {GetStreamID("v1")},
+		GetStreamID("k2"): {GetStreamID("v2"), GetStreamID("v3")},
 	}
 
 	expect.Equal(mockPluginCfg.GetStreamRoutes("routes"), map[MessageStreamID][]MessageStreamID{})

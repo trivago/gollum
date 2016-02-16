@@ -71,7 +71,7 @@ func TestConsumerEnqueueCopy(t *testing.T) {
 	StreamRegistry.Register(&mockStream, mockStreamID)
 
 	mockC.streams = []MappedStream{
-		MappedStream{
+		{
 			StreamID: mockStreamID,
 			Stream:   &mockStream,
 		},
@@ -92,7 +92,7 @@ func TestConsumerStreams(t *testing.T) {
 	StreamRegistry.Register(&mockStream, mockStreamID)
 
 	mockC.streams = []MappedStream{
-		MappedStream{
+		{
 			StreamID: mockStreamID,
 			Stream:   &mockStream,
 		},
