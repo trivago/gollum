@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 )
 
-// Fuse is a local curcuit breaker implementation that is ment to be used to
+// Fuse is a local circuit breaker implementation that is ment to be used to
 // manage the state of a given resource between different threads of execution
 // (consumer/producer). If the resource is not available the fuse is "burned".
 // Components may now wait on that fuse and are woken as soon as the resource

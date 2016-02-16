@@ -99,12 +99,12 @@ func SplitPath(filePath string) (dir string, base string, ext string) {
 	return dir, base, ext
 }
 
-// Unescape replaces occurences of \\n, \\r and \\t with real escape codes.
+// Unescape replaces occurrences of \\n, \\r and \\t with real escape codes.
 func Unescape(text string) string {
 	return simpleEscapeChars.Replace(text)
 }
 
-// EscapeJSON replaces occurences of \ and " with escaped versions.
+// EscapeJSON replaces occurrences of \ and " with escaped versions.
 func EscapeJSON(text string) string {
 	return jsonEscapeChars.Replace(text)
 }

@@ -100,7 +100,7 @@ func (e ESError) Error() string {
 	return fmt.Sprintf("%v: %v [%v]", e.When, e.What, e.Code)
 }
 
-// Exists allows the caller to check for the existance of a document using HEAD
+// Exists allows the caller to check for the existence of a document using HEAD
 // This appears to be broken in the current version of elasticsearch 0.19.10, currently
 // returning nothing
 func (c *Conn) Exists(index string, _type string, id string, args map[string]interface{}) (BaseResponse, error) {

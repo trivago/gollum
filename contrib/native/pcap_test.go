@@ -20,7 +20,7 @@ import (
 	"testing"
 )
 
-func newTcpPktMock(seq uint32) *pcap.Packet {
+func newTCPPktMock(seq uint32) *pcap.Packet {
 	return &pcap.Packet{
 		Headers: []interface{}{
 			&pcap.Iphdr{},
@@ -34,17 +34,17 @@ func TestFindPacketSlot(t *testing.T) {
 	expect := shared.NewExpect(t)
 
 	listMock := packetList{
-		newTcpPktMock(1),
-		newTcpPktMock(2),
-		newTcpPktMock(3),
-		newTcpPktMock(4),
-		newTcpPktMock(6),
-		newTcpPktMock(7),
-		newTcpPktMock(8),
-		newTcpPktMock(9),
-		newTcpPktMock(11),
-		newTcpPktMock(12),
-		newTcpPktMock(15),
+		newTCPPktMock(1),
+		newTCPPktMock(2),
+		newTCPPktMock(3),
+		newTCPPktMock(4),
+		newTCPPktMock(6),
+		newTCPPktMock(7),
+		newTCPPktMock(8),
+		newTCPPktMock(9),
+		newTCPPktMock(11),
+		newTCPPktMock(12),
+		newTCPPktMock(15),
 	}
 
 	// Duplicate
@@ -77,31 +77,31 @@ func TestInsert(t *testing.T) {
 	expect := shared.NewExpect(t)
 
 	listMock := packetList{
-		newTcpPktMock(1),
-		newTcpPktMock(2),
-		newTcpPktMock(3),
-		newTcpPktMock(4),
-		newTcpPktMock(6),
-		newTcpPktMock(7),
-		newTcpPktMock(8),
-		newTcpPktMock(9),
-		newTcpPktMock(11),
-		newTcpPktMock(12),
-		newTcpPktMock(14),
+		newTCPPktMock(1),
+		newTCPPktMock(2),
+		newTCPPktMock(3),
+		newTCPPktMock(4),
+		newTCPPktMock(6),
+		newTCPPktMock(7),
+		newTCPPktMock(8),
+		newTCPPktMock(9),
+		newTCPPktMock(11),
+		newTCPPktMock(12),
+		newTCPPktMock(14),
 	}
 
-	listMock = listMock.insert(newTcpPktMock(0))
-	listMock = listMock.insert(newTcpPktMock(13))
-	listMock = listMock.insert(newTcpPktMock(15))
-	listMock = listMock.insert(newTcpPktMock(5))
-	listMock = listMock.insert(newTcpPktMock(10))
+	listMock = listMock.insert(newTCPPktMock(0))
+	listMock = listMock.insert(newTCPPktMock(13))
+	listMock = listMock.insert(newTCPPktMock(15))
+	listMock = listMock.insert(newTCPPktMock(5))
+	listMock = listMock.insert(newTCPPktMock(10))
 
 	complete, _ := listMock.isComplete()
 	expect.True(complete)
 
-	listMock = listMock.insert(newTcpPktMock(0xFFFFFFFF))
-	listMock = listMock.insert(newTcpPktMock(0xFFFFFFFE))
-	listMock = listMock.insert(newTcpPktMock(16))
+	listMock = listMock.insert(newTCPPktMock(0xFFFFFFFF))
+	listMock = listMock.insert(newTCPPktMock(0xFFFFFFFE))
+	listMock = listMock.insert(newTCPPktMock(16))
 
 	tcpHeader, _ := tcpFromPcap(listMock[0])
 	expect.Equal(uint32(0xFFFFFFFE), tcpHeader.Seq)

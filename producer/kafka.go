@@ -93,7 +93,7 @@ const (
 // BatchMaxCount defines the maximum number of messages processed per
 // request. By default this is set to 0 for "unlimited".
 //
-// BatchSizeByte sets the mimimum number of bytes to collect before a new flush
+// BatchSizeByte sets the minimum number of bytes to collect before a new flush
 // is triggered. By default this is set to 8192.
 //
 // BatchSizeMaxKB defines the maximum allowed message size. By default this is

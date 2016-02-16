@@ -28,7 +28,7 @@ import (
 	"time"
 )
 
-// HTTP consumer plugin
+// Http consumer plugin
 // This consumer opens up an HTTP 1.1 server and processes the contents of any
 // incoming HTTP request.
 // When attached to a fuse, this consumer will return error 503 in case that
