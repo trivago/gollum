@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,22 +24,6 @@ import (
 )
 
 // InfluxDB producer plugin
-// Configuration example
-//
-//   - "producer.InfluxDB":
-//     Enable: true
-//     Host: "localhost:8086"
-//     User: ""
-//     Password: ""
-//     Database: "default"
-//     TimeBasedName: true
-//     UseVersion08: false
-//     Version: 100
-//     RetentionPolicy: ""
-//     BatchMaxCount: 8192
-//     BatchFlushCount: 4096
-//     BatchTimeoutSec: 5
-//
 // This producer writes data to an influxDB cluster. The data is expected to be
 // of a valid influxDB format. As the data format changed between influxDB
 // versions it is advisable to use a formatter for the specific influxDB version
@@ -47,6 +31,20 @@ import (
 // that can be used (as an example).
 // This producer uses a fuse breaker if the connection to the influxDB cluster
 // is lost.
+// Configuration example
+//
+//  - "producer.InfluxDB":
+//    Host: "localhost:8086"
+//    User: ""
+//    Password: ""
+//    Database: "default"
+//    TimeBasedName: true
+//    UseVersion08: false
+//    Version: 100
+//    RetentionPolicy: ""
+//    BatchMaxCount: 8192
+//    BatchFlushCount: 4096
+//    BatchTimeoutSec: 5
 //
 // Host defines the host (and port) of the InfluxDB server.
 // Defaults to "localhost:8086".

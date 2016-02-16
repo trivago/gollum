@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,13 +21,14 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
+// Base64Encode formatter plugin
 // Base64Encode is a formatter that encodes a message as base64.
 // Configuration example
 //
-//   - "<producer|stream>":
-//     Formatter: "format.Base64Encode"
-//     Base64Formatter: "format.Forward"
-//     Base64Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
+//  - "stream.Broadcast":
+//    Formatter: "format.Base64Encode"
+//    Base64Formatter: "format.Forward"
+//    Base64Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
 //
 // Base64Dictionary defines the 64-character base64 lookup dictionary to use.
 // When left empty a dictionary as defined by RFC4648 is used. This is the default.

@@ -1,84 +1,131 @@
 Proxy
 =====
 
-The proxy producer sends messages directly as-is to a given socket.
-Responses from this socket are read and separated by using a specific paritioner method.
-Response messages are sent back to a compatible message source like the :doc:`Proxy Consumer </consumers/proxy>`.
-This can be used to create a proxy style two-way communication over Gollum.
+This producer is compatible to consumer.proxy.
+Responses to messages sent to the given address are sent back to the original consumer of it is a compatible message source.
+As with consumer.proxy the returned messages are partitioned by common message length algorithms.
 This producer does not implement a fuse breaker.
-See the `API documentation <http://gollum.readthedocs.org/en/latest/producers/proxy.html>`_ for additional details.
+
 
 Parameters
 ----------
 
 **Enable**
-  Can either be true or false to enable or disable this consumer.
+  Enable switches the consumer on or off.
+  By default this value is set to true.
+
 **ID**
-  Allows this producer to be found by other plugins by name.
+  ID allows this producer to be found by other plugins by name.
   By default this is set to "" which does not register this producer.
-**Fuse**
-  Defines the name of the fuse this producer is attached to.
-  When left empty no fuse is attached. This is the default value.
-**Stream**
-  Defines either one or an aray of stream names this consumer sends messages to.
-**DropToStream**
-  Defines the stream used for messages that are dropped after a timeout (see ChannelTimeoutMs).
-  By default this is _DROPPED_.
-**Address**
-  Defines the protocol, address/DNS and port to listen to.
-  The protocol can either be "socket://" for unix domain or "tcp://" for TCP. UDP sockets cannot be used.
-**ConnectionBufferSizeKB**
-  Sets the connection buffer size in KB. By default this is set to 1024, i.e. 1 MB buffer.
-  This also defines the size of the buffer used by the message parser.
+
+**Channel**
+  Channel sets the size of the channel used to communicate messages.
+  By default this value is set to 8192.
+
 **ChannelTimeoutMs**
-  Defines a timeout in milliseconds for messages to wait if this producer's queue is full.
+  ChannelTimeoutMs sets a timeout in milliseconds for messages to wait if this producer's queue is full.
+  A timeout of -1 or lower will drop the message without notice.
+  A timeout of 0 will block until the queue is free.
+  This is the default.
+  A timeout of 1 or higher will wait x milliseconds for the queues to become available again.
+  If this does not happen, the message will be send to the retry channel.
 
-  - A timeout of -1 or lower will discard the message without notice.
-  - A timeout of 0 will block until the queue is free. This is the default.
-  - A timeout of 1 or higher will wait n milliseconds for the queues to become available again.
-    If this does not happen, the message will be send to the _DROPPED_ stream that can be processed by the :doc:`Loopback </consumers/loopback>` consumer.
+**ShutdownTimeoutMs**
+  ShutdownTimeoutMs sets a timeout in milliseconds that will be used to detect a blocking producer during shutdown.
+  By default this is set to 3 seconds.
+  If processing a message takes longer to process than this duration, messages will be dropped during shutdown.
 
-**FlushTimeoutSec**
-  Sets the maximum number of seconds to wait before a flush is aborted during shutdown.
-  By default this is set to 0, which does not abort the flushing procedure.
-**Format**
-  Defines a message formatter to use. :doc:`Format.Forward </formatters/forward>` by default.
+**Stream**
+  Stream contains either a single string or a list of strings defining the message channels this producer will consume.
+  By default this is set to "*" which means "listen to all streams but the internal".
+
+**DropToStream**
+  DropToStream defines the stream used for messages that are dropped after a timeout (see ChannelTimeoutMs).
+  By default this is _DROPPED_.
+
+**Formatter**
+  Formatter sets a formatter to use.
+  Each formatter has its own set of options which can be set here, too.
+  By default this is set to format.Forward.
+  Each producer decides if and when to use a Formatter.
+
 **Filter**
-  Defines a message filter to apply before formatting. :doc:`Filter.All </filters/all>` by default.
+  Filter sets a filter that is applied before formatting, i.e. before a message is send to the message queue.
+  If a producer requires filtering after formatting it has to define a separate filter as the producer decides if and where to format.
+
+**Fuse**
+  Fuse defines the name of a fuse to burn if e.g. the producer encounteres a lost connection.
+  Each producer defines its own fuse breaking logic if necessary / applyable.
+  Disable fuse behavior for a producer by setting an empty  name or a FuseTimeoutSec <= 0.
+  By default this is set to "".
+
+**FuseTimeoutSec**
+  FuseTimeoutSec defines the interval in seconds used to check if the fuse can be recovered.
+  Note that automatic fuse recovery logic depends on each producer's implementation.
+  By default this setting is set to 10.
+
+**Address**
+  Address stores the identifier to connect to.
+  This can either be any ip address and port like "localhost:5880" or a file like "unix:///var/gollum.Proxy".
+  By default this is set to ":5880".
+
+**ConnectionBufferSizeKB**
+  ConnectionBufferSizeKB sets the connection buffer size in KB.
+  This also defines the size of the buffer used by the message parser.
+  By default this is set to 1024, i.e. 1 MB buffer.
+
 **TimeoutSec**
-  Defines the maximum time in seconds a client is allowed to take for a response. By default this is set to 1.
+  TimeoutSec defines the maximum time in seconds a client is allowed to take for a response.
+  By default this is set to 1.
+
 **Partitioner**
-  The partitioner defines the algorithm used to separate messages from the stream.
+  Partitioner defines the algorithm used to read messages from the stream.
+  The messages will be sent as a whole, no cropping or removal will take place.
   By default this is set to "delimiter".
-   - "delimiter" separates messages by looking for a delimiter string. Thedelimiter is removed from the message.
-   - "ascii" reads an ASCII encoded number at a given offset until a given delimiter is found. Everything left from and including the delimiter is removed from the message.
-   - "binary" reads a binary number at a given offset and size
-   - "binary_le" is an alias for "binary"
-   - "binary_be" is the same as "binary" but uses big endian encoding
-   - "fixed" assumes fixed size messages
+   - "delimiter" separates messages by looking for a delimiter string.
+  The    delimiter is included into the left hand message.
+   - "ascii" reads an ASCII encoded number at a given offset until a given    delimiter is found.
+   - "binary" reads a binary number at a given offset and size  - "binary_le" is an alias for "binary"  - "binary_be" is the same as "binary" but uses big endian encoding  - "fixed" assumes fixed size messages.
+
 **Delimiter**
-  Defines the delimiter used by the "text" and "delimiter" partitioner.
+  Delimiter defines the delimiter used by the text and delimiter partitioner.
   By default this is set to "\n".
+
 **Offset**
-  Defines the offset in bytes used by the binary and text paritioner.
+  Offset defines the offset used by the binary and text partitioner.
+  By default this is set to 0.
+  This setting is ignored by the fixed partitioner.
+
 **Size**
   Size defines the size in bytes used by the binary or fixed partitioner.
-  For binary this can be set to 1,2,4 or 8. By default 4 is chosen.
-  For fixed this defines the size of a message. By default 1 is chosen.
+  For binary this can be set to 1,2,4 or 8.
+  By default 4 is chosen.
+  For fixed this defines the size of a message.
+  By default 1 is chosen.
 
 Example
 -------
 
 .. code-block:: yaml
 
-  - "producer.Proxy":
-    Enable: true
-    Address: "unix:///var/gollum.socket"
-    ConnectionBufferSizeKB: 64
-    TimeoutSec: 3
-    Partitioner: "ascii"
-    Delimiter: ":"
-    Offset: 1
-    Stream:
-      - "external"
-      - "socket"
+	- "producer.Proxy":
+	    Enable: true
+	    ID: ""
+	    Channel: 8192
+	    ChannelTimeoutMs: 0
+	    ShutdownTimeoutMs: 3000
+	    Formatter: "format.Forward"
+	    Filter: "filter.All"
+	    DropToStream: "_DROPPED_"
+	    Fuse: ""
+	    FuseTimeoutSec: 5
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    Address: ":5880"
+	    ConnectionBufferSizeKB: 1024
+	    TimeoutSec: 1
+	    Partitioner: "delimiter"
+	    Delimiter: "\n"
+	    Offset: 0
+	    Size: 1

@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import (
 )
 
 var simpleEscapeChars = strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
+var jsonEscapeChars = strings.NewReplacer("\\", "\\\\", "\"", "\\\"")
 
 // FilesByDate implements the Sort interface by Date for os.FileInfo arrays
 type FilesByDate []os.FileInfo
@@ -50,7 +51,7 @@ func (files FilesByDate) Swap(a, b int) {
 // "[a] modified < [b] modified". If both files were created in the same second
 // the file names are compared by using a lexicographic string compare.
 func (files FilesByDate) Less(a, b int) bool {
-	timeA, timeB := files[a].ModTime().Unix(), files[b].ModTime().Unix()
+	timeA, timeB := files[a].ModTime().UnixNano(), files[b].ModTime().UnixNano()
 	if timeA == timeB {
 		return files[a].Name() < files[b].Name()
 	}
@@ -101,6 +102,11 @@ func SplitPath(filePath string) (dir string, base string, ext string) {
 // Unescape replaces occurences of \\n, \\r and \\t with real escape codes.
 func Unescape(text string) string {
 	return simpleEscapeChars.Replace(text)
+}
+
+// EscapeJSON replaces occurences of \ and " with escaped versions.
+func EscapeJSON(text string) string {
+	return jsonEscapeChars.Replace(text)
 }
 
 // MaxI returns the maximum out of two integers

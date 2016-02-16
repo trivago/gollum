@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,25 +26,20 @@ import (
 )
 
 // Scribe producer plugin
-// Configuration example
-//
-//   - "producer.Scribe":
-//     Enable: true
-//     Address: "localhost:1463"
-//     ConnectionBufferSizeKB: 1024
-//     BatchMaxCount: 8192
-//     BatchFlushCount: 4096
-//     BatchTimeoutSec: 5
-//     Category:
-//       "console" : "console"
-//       "_GOLLUM_"  : "_GOLLUM_"
-//     Stream:
-//       - "console"
-//       - "_GOLLUM_"
-//
 // The scribe producer allows sending messages to Facebook's scribe.
 // This producer uses a fuse breaker if the connection to the scribe server is
 // lost.
+// Configuration example
+//
+//  - "producer.Scribe":
+//    Address: "localhost:1463"
+//    ConnectionBufferSizeKB: 1024
+//    BatchMaxCount: 8192
+//    BatchFlushCount: 4096
+//    BatchTimeoutSec: 5
+//    Category:
+//      "console" : "console"
+//      "_GOLLUM_"  : "_GOLLUM_"
 //
 // Address defines the host and port to connect to.
 // By default this is set to "localhost:1463".
@@ -148,16 +143,6 @@ func (prod *Scribe) bufferMessage(msg core.Message) {
 }
 
 func (prod *Scribe) sendBatchOnTimeOut() {
-	// Update metrics
-	duration := time.Since(prod.lastMetricUpdate)
-	prod.lastMetricUpdate = time.Now()
-
-	for category, counter := range prod.counters {
-		count := atomic.SwapInt64(counter, 0)
-		shared.Metric.Add(scribeMetricMessages+category, count)
-		shared.Metric.SetF(scribeMetricMessagesSec+category, float64(count)/duration.Seconds())
-	}
-
 	// Flush if necessary
 	if prod.batch.ReachedTimeThreshold(prod.batchTimeout) || prod.batch.ReachedSizeThreshold(prod.batchFlushCount) {
 		prod.sendBatch()
@@ -185,6 +170,18 @@ func (prod *Scribe) sendBatch() {
 		prod.batch.Flush(prod.transformMessages)
 	} else if prod.IsStopping() {
 		prod.batch.Flush(prod.dropMessages)
+	} else {
+		return // ### return, do not update metrics ###
+	}
+
+	// Update metrics
+	duration := time.Since(prod.lastMetricUpdate)
+	prod.lastMetricUpdate = time.Now()
+
+	for category, counter := range prod.counters {
+		count := atomic.SwapInt64(counter, 0)
+		shared.Metric.Add(scribeMetricMessages+category, count)
+		shared.Metric.SetF(scribeMetricMessagesSec+category, float64(count)/duration.Seconds())
 	}
 }
 

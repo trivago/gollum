@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 package producer
 
 import (
-	"bufio"
 	"encoding/base64"
 	"fmt"
 	"github.com/trivago/gollum/core"
@@ -41,6 +40,7 @@ type spoolFile struct {
 	readCount        int64
 	writeCount       int64
 	lastMetricUpdate time.Time
+	reader           *shared.BufferedReader
 }
 
 const maxSpoolFileNumber = 99999999 // maximum file number defined by %08d -> 8 digits
@@ -57,6 +57,7 @@ func newSpoolFile(prod *Spooling, streamName string, source core.MessageSource) 
 		prod:             prod,
 		source:           source,
 		lastMetricUpdate: time.Now(),
+		reader:           shared.NewBufferedReader(prod.bufferSizeByte, shared.BufferedReaderFlagDelimiter, 0, "\n"),
 	}
 
 	shared.Metric.New(spoolingMetricWrite + streamName)
@@ -95,46 +96,73 @@ func (spool *spoolFile) getFileNumbering() (min int, max int) {
 	min, max = maxSpoolFileNumber+1, 0
 	files, _ := ioutil.ReadDir(spool.basePath)
 	for _, file := range files {
-		base := filepath.Base(file.Name())
-		number, _ := shared.Btoi([]byte(base)) // Because we need leading zero support
-		min = shared.MinI(min, int(number))
-		max = shared.MaxI(max, int(number))
+		if filepath.Ext(file.Name()) == ".spl" {
+			base := filepath.Base(file.Name())
+			number, _ := shared.Btoi([]byte(base)) // Because we need leading zero support
+			min = shared.MinI(min, int(number))
+			max = shared.MaxI(max, int(number))
+		}
 	}
 	return min, max
 }
 
 func (spool *spoolFile) openOrRotate() bool {
-	fileSize := int64(0)
-	if spool.file != nil {
-		fileInfo, _ := spool.file.Stat()
-		fileSize = fileInfo.Size()
-	}
+	err := spool.batch.AfterFlushDo(func() error {
+		fileSize := int64(0)
 
-	if spool.file == nil || fileSize >= spool.prod.maxFileSize || time.Since(spool.fileCreated) > spool.prod.maxFileAge {
-		_, maxSuffix := spool.getFileNumbering()
-
-		// Reopen spooling file
-		var err error
-		oldFile := spool.file
-		spoolFileName := fmt.Sprintf(spoolFileFormatString, spool.basePath, maxSuffix+1)
-		spool.file, err = os.OpenFile(spoolFileName, os.O_WRONLY|os.O_CREATE, 0600)
-
-		// Close current file
-		if oldFile != nil {
-			spool.batch.WaitForFlush(time.Duration(0))
-			oldFile.Close()
+		if spool.file != nil {
+			fileInfo, err := spool.file.Stat()
+			if err != nil {
+				return err // ### return, filestat error ###
+			}
+			fileSize = fileInfo.Size()
 		}
 
-		spool.assembly.SetWriter(spool.file)
-		spool.fileCreated = time.Now()
-		if err != nil {
-			Log.Error.Print("Spooling: ", err)
-			return false // ### return, could not open file ###
+		if spool.file == nil ||
+			fileSize >= spool.prod.maxFileSize ||
+			(fileSize > 0 && time.Since(spool.fileCreated) > spool.prod.maxFileAge) {
+
+			_, maxSuffix := spool.getFileNumbering()
+			spoolFileName := fmt.Sprintf(spoolFileFormatString, spool.basePath, maxSuffix+1)
+			newFile, err := os.OpenFile(spoolFileName, os.O_WRONLY|os.O_CREATE, 0600)
+			if err != nil {
+				return err // ### return, could not open file ###
+			}
+
+			// Set writer and update internal state
+			spool.assembly.SetWriter(newFile)
+
+			if spool.file != nil {
+				spool.file.Close()
+			}
+
+			spool.file = newFile
+			spool.fileCreated = time.Now()
+			Log.Debug.Print("Spooler opened ", spoolFileName, " for writing")
 		}
-		Log.Debug.Print("Spooler opened ", spoolFileName, " for writing")
+
+		return nil
+	})
+
+	if err != nil {
+		Log.Error.Print("Spooling: ", err)
+		return false
 	}
 
 	return true
+}
+
+func (spool *spoolFile) decode(data []byte, sequence uint64) {
+	// Base64 decode, than deserialize
+	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(data)))
+
+	if size, err := base64.StdEncoding.Decode(decoded, data); err != nil {
+		Log.Error.Print("Spool file read: ", err)
+	} else if msg, err := core.DeserializeMessage(decoded[:size]); err != nil {
+		Log.Error.Print("Spool file read: ", err)
+	} else {
+		spool.prod.routeToOrigin(msg)
+	}
 }
 
 func (spool *spoolFile) read() {
@@ -162,7 +190,8 @@ func (spool *spoolFile) read() {
 		}
 
 		Log.Debug.Print("Spooler opened ", spoolFileName, " for reading")
-		reader := bufio.NewReader(file)
+		spool.reader.Reset(0)
+		readFailed := false
 
 		for spool.prod.IsActive() {
 			// Only spool back if target is not busy
@@ -170,35 +199,26 @@ func (spool *spoolFile) read() {
 				time.Sleep(time.Millisecond * 100)
 				continue // ### contine, busy source ###
 			}
-			// Read one line (might require multiple reads)
-			buffer, isPartial, err := reader.ReadLine()
-			for isPartial && err == nil {
-				var appendix []byte
-				appendix, isPartial, err = reader.ReadLine()
-				buffer = append(buffer, appendix...)
-			}
+
 			// Any error cancels the loop
-			if err != nil {
+			if err := spool.reader.ReadAll(file, spool.decode); err != nil {
 				if err != io.EOF {
+					readFailed = true
 					Log.Error.Print("Spool read error: ", err)
 				}
 				break // ### break, read error or EOF ###
 			}
-
-			// Base64 decode, than deserialize
-			decoded := make([]byte, base64.StdEncoding.DecodedLen(len(buffer)))
-			if size, err := base64.StdEncoding.Decode(decoded, buffer); err != nil {
-				Log.Error.Print("Spool file read: ", err)
-			} else if msg, err := core.DeserializeMessage(decoded[:size]); err != nil {
-				Log.Error.Print("Spool file read: ", err)
-			} else {
-				spool.prod.routeToOrigin(msg)
-			}
 		}
 
-		// Close and remove file
-		Log.Debug.Print("Spooler removes ", spoolFileName)
 		file.Close()
-		os.Remove(spoolFileName)
+		if readFailed {
+			// Rename file for future processing
+			Log.Debug.Print("Spooler renamed ", spoolFileName)
+			os.Rename(spoolFileName, spoolFileName+".failed")
+		} else {
+			// Delete file
+			Log.Debug.Print("Spooler removes ", spoolFileName)
+			os.Remove(spoolFileName)
+		}
 	}
 }

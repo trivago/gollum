@@ -12,7 +12,7 @@ type prepEncoder struct {
 // primitives
 
 func (pe *prepEncoder) putInt8(in int8) {
-	pe.length += 1
+	pe.length++
 }
 
 func (pe *prepEncoder) putInt16(in int16) {
@@ -63,6 +63,21 @@ func (pe *prepEncoder) putString(in string) error {
 		return PacketEncodingError{fmt.Sprintf("string too long (%d)", len(in))}
 	}
 	pe.length += len(in)
+	return nil
+}
+
+func (pe *prepEncoder) putStringArray(in []string) error {
+	err := pe.putArrayLength(len(in))
+	if err != nil {
+		return err
+	}
+
+	for _, str := range in {
+		if err := pe.putString(str); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

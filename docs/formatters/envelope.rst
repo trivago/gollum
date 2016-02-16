@@ -1,29 +1,33 @@
 Envelope
 ========
 
-Envelope allows to pre- or postfix messages with a given string.
-This formatter allows a nested formatter to further modify the message between pre- and postfix.
-Prefix and Postfix may contain standard escape characters, i.e. "\r", "\n" and "\t".
+Envelope is a formatter that allows prefixing and/or postfixing a message with configurable strings.
+
 
 Parameters
 ----------
 
-**EnvelopeFormatter**
-  Defines an additional formatter applied before adding pre- and postfix. :doc:`Format.Forward </formatters/forward>` by default.
+**Prefix**
+  Prefix defines the message prefix.
+  By default this is set to "".
+  Special characters like \n \r \t will be transformed into the actual control characters.
 
-**EnvelopePrefix**
-  Defines a string to be prepended to the message. Empty by default.
+**Postfix**
+  Postfix defines the message postfix.
+  By default this is set to "\n".
+  Special characters like \n \r \t will be transformed into the actual control characters.
 
-**EnvelopePostfix**
-  Defines a string to be appended to the message. "\n" by default.
+**EnvelopeDataFormatter**
+  EnvelopeDataFormatter defines the formatter for the data transferred as message.
+  By default this is set to "format.Forward" .
 
 Example
 -------
 
 .. code-block:: yaml
 
-  - "stream.Broadcast":
-    Formatter: "format.Envelope"
-    EnvelopeFormatter: "format.Forward"
-    EnvelopePrefix: "<data>"
-    EnvelopePostfix: "</data>\n"
+	    - "stream.Broadcast":
+	        Formatter: "format.Envelope"
+	        EnvelopeFormatter: "format.Forward"
+	        EnvelopePrefix: "<data>"
+	        EnvelopePostfix: "</data>\n"

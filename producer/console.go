@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,14 +24,12 @@ import (
 )
 
 // Console producer plugin
-// Configuration example
-//
-//   - "producer.Console":
-//     Enable: true
-//     Console: "stdout"
-//
 // The console producer writes messages to the standard output streams.
 // This producer does not implement a fuse breaker.
+// Configuration example
+//
+//  - "producer.Console":
+//    Console: "stdout"
 //
 // Console may either be "stdout" or "stderr". By default it is set to "stdout".
 type Console struct {

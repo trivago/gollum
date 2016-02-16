@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,11 +22,6 @@ import (
 )
 
 // Null producer plugin
-// Configuration example
-//
-//   - "producer.Null":
-//     Enable: true
-//
 // This producer does nothing and provides only bare-bone configuration (i.e.
 // enabled and streams). Use this producer to test consumer performance.
 // This producer does not implement a fuse breaker.

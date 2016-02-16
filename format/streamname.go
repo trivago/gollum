@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,12 +19,13 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
+// StreamName formatter plugin
 // StreamName is a formatter that prefixes a message with the StreamName.
 // Configuration example
 //
-//   - "<producer|stream>":
-//     Formatter: "format.StreamName"
-//     StreamNameFormatter: "format.Envelope"
+//  - "stream.Broadcast":
+//    Formatter: "format.StreamName"
+//    StreamNameFormatter: "format.Envelope"
 //
 // StreamNameFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Envelope"

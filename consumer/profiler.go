@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,24 +27,21 @@ import (
 )
 
 // Profiler consumer plugin
-// Configuration example
-//
-//   - "consumer.Profile":
-//     Enable: true
-//     Runs: 10000
-//     Batches: 10
-//     TemplateCount: 10
-//     Characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
-//     Message: "%256s"
-//	   DelayMs: 0
-//     Stream:
-//       - "profile"
-//
 // The profiler plugin generates Runs x Batches messages and send them to the
 // configured streams as fast as possible. This consumer can be used to profile
 // producers and/or configurations.
 // When attached to a fuse, this consumer will stop processing messages in case
 // that fuse is burned.
+// Configuration example
+//
+//  - "consumer.Profile":
+//    Runs: 10000
+//    Batches: 10
+//    TemplateCount: 10
+//    Characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
+//    Message: "%256s"
+//	  DelayMs: 0
+//    KeepRunning: false
 //
 // Runs defines the number of messages per batch. By default this is set to
 // 10000.
@@ -67,6 +64,10 @@ import (
 //
 // DelayMs defines the number of milliseconds of sleep between messages.
 // By default this is set to 0.
+//
+// KeepRunning can be set to true to disable automatic shutdown of gollum after
+// profiling is done. This can be used to e.g. read metrics after a profile run.
+// By default this is set to false.
 type Profiler struct {
 	core.ConsumerBase
 	profileRuns int
@@ -75,6 +76,7 @@ type Profiler struct {
 	chars       string
 	message     string
 	delay       time.Duration
+	keepRunning bool
 }
 
 var profilerDefaultCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 "
@@ -96,6 +98,7 @@ func (cons *Profiler) Configure(conf core.PluginConfig) error {
 	cons.chars = conf.GetString("Characters", profilerDefaultCharacters)
 	cons.message = conf.GetString("Message", "%# %256s")
 	cons.templates = make([][]byte, numTemplates)
+	cons.keepRunning = conf.GetBool("KeepRunning", false)
 	cons.delay = time.Duration(conf.GetInt("DelayMs", 0)) * time.Millisecond
 
 	return nil
@@ -213,8 +216,10 @@ func (cons *Profiler) profile() {
 		Log.Debug.Print("Profiler done.")
 		// Automatically shut down when done
 		// TODO: Hack
-		proc, _ := os.FindProcess(os.Getpid())
-		proc.Signal(os.Interrupt)
+		if !cons.keepRunning {
+			proc, _ := os.FindProcess(os.Getpid())
+			proc.Signal(os.Interrupt)
+		}
 	}
 }
 

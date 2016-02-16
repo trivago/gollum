@@ -2,57 +2,80 @@ Proxy
 =====
 
 The proxy consumer reads messages directly as-is from a given socket.
-Messages are separated from the stream by using a specific paritioner method.
-In combination with a compatible proxy producer like the :doc:`Proxy Producer </producers/proxy>` this can be used to create a proxy style two-way communication over Gollum.
+Messages are extracted by standard message size algorithms (see Partitioner).
+This consumer can be used with any compatible proxy producer to establish a two-way communication.
 When attached to a fuse, this consumer will stop accepting new connections and close all existing connections in case that fuse is burned.
-See the `API documentation <http://gollum.readthedocs.org/en/latest/consumers/proxy.html>`_ for additional details.
+
 
 Parameters
 ----------
 
 **Enable**
-  Can either be true or false to enable or disable this consumer.
+  Enable switches the consumer on or off.
+  By default this value is set to true.
+
 **ID**
-  Allows this consumer to be found by other plugins by name.
+  ID allows this consumer to be found by other plugins by name.
   By default this is set to "" which does not register this consumer.
-**Fuse**
-  Defines the name of the fuse this consumer is attached to.
-  When left empty no fuse is attached. This is the default value.
+
 **Stream**
-  Defines either one or an aray of stream names this consumer sends messages to.
+  Stream contains either a single string or a list of strings defining the message channels this consumer will produce.
+  By default this is set to "*" which means only producers set to consume "all streams" will get these messages.
+
+**Fuse**
+  Fuse defines the name of a fuse to observe for this consumer.
+  Producer may "burn" the fuse when they encounter errors.
+  Consumers may react on this by e.g. closing connections to notify any writing services of the problem.
+  Set to "" by default which disables the fuse feature for this consumer.
+  It is up to the consumer implementation to react on a broken fuse in an appropriate manner.
+
 **Address**
-  Defines the protocol, address/DNS and port to listen to.
-  The protocol can either be "socket://" for unix domain or "tcp://" for TCP. UDP sockets cannot be used.
+  Address defines the protocol, host and port or socket to bind to.
+  This can either be any ip address and port like "localhost:5880" or a file like "unix:///var/gollum.socket".
+  By default this is set to ":5880".
+  UDP is not supported.
+
 **Partitioner**
-  The partitioner defines the algorithm used to separate messages from the stream.
+  Partitioner defines the algorithm used to read messages from the stream.
+  The messages will be sent as a whole, no cropping or removal will take place.
   By default this is set to "delimiter".
-   - "delimiter" separates messages by looking for a delimiter string. Thedelimiter is removed from the message.
-   - "ascii" reads an ASCII encoded number at a given offset until a given delimiter is found. Everything left from and including the delimiter is removed from the message.
-   - "binary" reads a binary number at a given offset and size
-   - "binary_le" is an alias for "binary"
-   - "binary_be" is the same as "binary" but uses big endian encoding
-   - "fixed" assumes fixed size messages
+   * "delimiter" separates messages by looking for a delimiter string. The delimiter is included into the left hand message. 
+   * "ascii" reads an ASCII number at a given offset until a given delimiter is found. Everything to the right of and including the delimiter is removed from the message. 
+   * "binary" reads a binary number at a given offset and size. 
+   * "binary_le" is an alias for "binary". 
+   * "binary_be" is the same as "binary" but uses big endian encoding. 
+   * "fixed" assumes fixed size messages. 
+
 **Delimiter**
-  Defines the delimiter used by the "text" and "delimiter" partitioner.
+  Delimiter defines the delimiter used by the text and delimiter partitioner.
   By default this is set to "\n".
+
 **Offset**
-  Defines the offset in bytes used by the binary and text paritioner.
+  Offset defines the offset used by the binary and text partitioner.
+  By default this is set to 0.
+  This setting is ignored by the fixed partitioner.
+
 **Size**
   Size defines the size in bytes used by the binary or fixed partitioner.
-  For binary this can be set to 1,2,4 or 8. By default 4 is chosen.
-  For fixed this defines the size of a message. By default 1 is chosen.
+  For binary this can be set to 1,2,4 or 8.
+  By default 4 is chosen.
+  For fixed this defines the size of a message.
+  By default 1 is chosen.
 
 Example
 -------
 
 .. code-block:: yaml
 
-  - "consumer.Proxy":
-    Enable: true
-    Address: "unix:///var/gollum.socket"
-    Partitioner: "ascii"
-    Delimiter: ":"
-    Offset: 1
-    Stream:
-      - "external"
-      - "socket"
+	- "consumer.Proxy":
+	    Enable: true
+	    ID: ""
+	    Fuse: ""
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    Address: ":5880"
+	    Partitioner: "delimiter"
+	    Delimiter: "\n"
+	    Offset: 0
+	    Size: 1

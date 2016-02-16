@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,44 +35,41 @@ const (
 )
 
 // Kafka producer plugin
-// Configuration example
-//
-//   - "producer.Kafka":
-//     Enable: true
-//     ClientId: "weblog"
-//     Partitioner: "Roundrobin"
-//     RequiredAcks: 1
-//     TimeoutMs: 1500
-//     SendRetries: 3
-//     Compression: "None"
-//     MaxOpenRequests: 5
-//     BatchMinCount: 10
-//     BatchMaxCount: 1
-//     BatchSizeByte: 8192
-//     BatchSizeMaxKB: 1024
-//     BatchTimeoutSec: 3
-//     ServerTimeoutSec: 30
-//     SendTimeoutMs: 250
-//     ElectRetries: 3
-//     ElectTimeoutMs: 250
-//     MetadataRefreshMs: 10000
-//     Servers:
-//     	- "localhost:9092"
-//     Topic:
-//       "console" : "console"
-//     Stream:
-//       - "console"
-//
 // The kafka producer writes messages to a kafka cluster. This producer is
 // backed by the sarama library so most settings relate to that library.
 // This producer uses a fuse breaker if the connection reports an error.
+// Configuration example
+//
+//  - "producer.Kafka":
+//    ClientId: "weblog"
+//    Partitioner: "Roundrobin"
+//    RequiredAcks: 1
+//    TimeoutMs: 1500
+//    SendRetries: 3
+//    Compression: "None"
+//    MaxOpenRequests: 5
+//    MessageBufferCount: 256
+//    BatchMinCount: 10
+//    BatchMaxCount: 1
+//    BatchSizeByte: 8192
+//    BatchSizeMaxKB: 1024
+//    BatchTimeoutSec: 3
+//    ServerTimeoutSec: 30
+//    SendTimeoutMs: 250
+//    ElectRetries: 3
+//    ElectTimeoutMs: 250
+//    MetadataRefreshMs: 10000
+//    Servers:
+//    	- "localhost:9092"
+//    Topic:
+//      "console" : "console"
 //
 // ClientId sets the client id of this producer. By default this is "gollum".
 //
 // Partitioner sets the distribution algorithm to use. Valid values are:
 // "Random","Roundrobin" and "Hash". By default "Hash" is set.
 //
-// RequiredAcks defines the acknowledgement level required by the broker.
+// RequiredAcks defines the acknowledgment level required by the broker.
 // 0 = No responses required. 1 = wait for the local commit. -1 = wait for
 // all replicas to commit. >1 = wait for a specific number of commits.
 // By default this is set to 1.
@@ -146,9 +143,10 @@ type Kafka struct {
 }
 
 const (
-	kafkaMetricMessages    = "Kafka:Messages-"
-	kafkaMetricMessagesSec = "Kafka:MessagesSec-"
-	kafkaMetricMissCount   = "Kafka:ResponsesQueued"
+	kafkaMetricMessages     = "Kafka:Messages-"
+	kafkaMetricMessagesSec  = "Kafka:MessagesSec-"
+	kafkaMetricUnresponsive = "Kafka:Unresponsive-"
+	kafkaMetricMissCount    = "Kafka:ResponsesQueued"
 )
 
 func init() {
@@ -223,11 +221,14 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	for _, topic := range prod.topic {
 		shared.Metric.New(kafkaMetricMessages + topic)
 		shared.Metric.New(kafkaMetricMessagesSec + topic)
+		shared.Metric.New(kafkaMetricUnresponsive + topic)
 		prod.counters[topic] = new(int64)
 	}
 
 	shared.Metric.New(kafkaMetricMissCount)
 	prod.SetCheckFuseCallback(prod.tryOpenConnection)
+
+	kafka.Logger = Log.Note
 	return nil
 }
 
@@ -236,29 +237,30 @@ func (prod *Kafka) bufferMessage(msg core.Message) {
 }
 
 func (prod *Kafka) sendBatchOnTimeOut() {
-	// Update metrics
-	duration := time.Since(prod.lastMetricUpdate)
-	prod.lastMetricUpdate = time.Now()
-
-	for category, counter := range prod.counters {
-		//Log.Debug.Printf("%s: %d", category, *counter)
-		count := atomic.SwapInt64(counter, 0)
-
-		shared.Metric.Add(kafkaMetricMessages+category, count)
-		shared.Metric.SetF(kafkaMetricMessagesSec+category, float64(count)/duration.Seconds())
-	}
-
 	// Flush if necessary
-	if prod.tryOpenConnection() && (prod.batch.ReachedTimeThreshold(prod.config.Producer.Flush.Frequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2)) {
+	if prod.batch.ReachedTimeThreshold(prod.config.Producer.Flush.Frequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2) {
 		prod.sendBatch()
 	}
 }
 
 func (prod *Kafka) sendBatch() {
-	if prod.isConnectionOpen() {
+	if prod.tryOpenConnection() {
 		prod.batch.Flush(prod.transformMessages)
 	} else if prod.IsStopping() {
 		prod.batch.Flush(prod.dropMessages)
+	} else {
+		return // ### return, do not update metrics ###
+	}
+
+	// Update metrics
+	duration := time.Since(prod.lastMetricUpdate)
+	prod.lastMetricUpdate = time.Now()
+
+	for topic, counter := range prod.counters {
+		count := atomic.SwapInt64(counter, 0)
+
+		shared.Metric.Add(kafkaMetricMessages+topic, count)
+		shared.Metric.SetF(kafkaMetricMessagesSec+topic, float64(count)/duration.Seconds())
 	}
 }
 
@@ -270,6 +272,9 @@ func (prod *Kafka) dropMessages(messages []core.Message) {
 
 func (prod *Kafka) transformMessages(messages []core.Message) {
 	defer func() { shared.Metric.Set(kafkaMetricMissCount, prod.missCount) }()
+	topicsBad := make(map[string]bool)
+	errors := make(map[string]bool)
+
 	for _, msg := range messages {
 		originalMsg := msg
 		msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
@@ -295,32 +300,54 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 
 			shared.Metric.New(kafkaMetricMessages + topic)
 			shared.Metric.New(kafkaMetricMessagesSec + topic)
+			shared.Metric.New(kafkaMetricUnresponsive + topic)
 			prod.counters[topic] = new(int64)
 			prod.topic[msg.StreamID] = topic
 		}
 
-		producer.Input() <- &kafka.ProducerMessage{
+		kafkaMsg := &kafka.ProducerMessage{
 			Topic:    topic,
 			Value:    kafka.ByteEncoder(msg.Data),
 			Metadata: originalMsg,
 		}
 
-		atomic.AddInt64(prod.counters[topic], 1)
-		prod.missCount++
+		// Sarama can block on single messages if all buffers are full.
+		// So we stop trying after a few milliseconds
+		timeout := time.NewTimer(2 * time.Millisecond)
+		select {
+		case producer.Input() <- kafkaMsg:
+			// Message send, wait for result later
+			timeout.Stop()
+			atomic.AddInt64(prod.counters[topic], 1)
+			topicsBad[topic] = false
+			prod.missCount++
+
+		case <-timeout.C:
+			// Sarama channels are full -> drop
+			prod.Drop(originalMsg)
+			shared.Metric.Inc(kafkaMetricUnresponsive + topic)
+			if _, stateSet := topicsBad[topic]; !stateSet {
+				topicsBad[topic] = true
+			}
+		}
 	}
 
 	// Wait for errors to be returned
-
-	errors := make(map[string]bool)
+resultLoop:
 	for timeout := time.NewTimer(prod.config.Producer.Flush.Frequency); prod.missCount > 0; prod.missCount-- {
 		select {
-		case <-prod.producer.Successes():
-			// nothing
+		case succ := <-prod.producer.Successes():
+			topicsBad[succ.Topic] = false // ok overwrites bad
 
 		case err := <-prod.producer.Errors():
 			if _, errorExists := errors[err.Error()]; !errorExists {
 				Log.Error.Printf("Kafka producer error: %s", err.Error())
 				errors[err.Error()] = true
+
+				// Do not overwrite ok states (one ok = server reachable)
+				if _, stateSet := topicsBad[err.Msg.Topic]; !stateSet {
+					topicsBad[err.Msg.Topic] = true
+				}
 			}
 			if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
 				prod.Drop(msg)
@@ -328,18 +355,23 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 
 		case <-timeout.C:
 			Log.Warning.Printf("Kafka flush timed out with %d messages left", prod.missCount)
-			break // ### break, took too long ###
+			break resultLoop // ### break, took too long ###
 		}
 	}
 
+	// Check for a reconnect
 	if len(errors) > 0 {
-		Log.Error.Printf("%d error type(s) for this batch. Triggering a reconnect", len(errors))
-		prod.closeConnection()
+		allTopicsBad := true
+		for _, topicBad := range topicsBad {
+			allTopicsBad = topicBad && allTopicsBad
+		}
+		if allTopicsBad {
+			// Only restart if all topics report an error
+			// This is done to separate topic related errors from server related errors
+			Log.Error.Printf("%d error type(s) for this batch. Triggering a reconnect", len(errors))
+			prod.closeConnection()
+		}
 	}
-}
-
-func (prod *Kafka) isConnectionOpen() bool {
-	return prod.client != nil && prod.producer != nil
 }
 
 func (prod *Kafka) tryOpenConnection() bool {

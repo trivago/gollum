@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,17 +26,15 @@ import (
 )
 
 // HTTPRequest producer plugin
-// Configuration example
-//
-//   - "producer.HTTPRequest":
-//     Enable:  true
-//     RawData: true
-//     Encoding: "text/plain; charset=utf-8"
-//     Address: "localhost:80"
-//
 // The HTTPRequest producers sends messages as HTTP packet to a given webserver.
 // This producer uses a fuse breaker when a request fails with an error
 // code > 400 or the connection is down.
+// Configuration example
+//
+//  - "producer.HTTPRequest":
+//    RawData: true
+//    Encoding: "text/plain; charset=utf-8"
+//    Address: "localhost:80"
 //
 // Address defines the webserver to send http requests to. Set to "localhost:80"
 // by default.

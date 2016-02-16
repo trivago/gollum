@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,30 +34,26 @@ const (
 )
 
 // Socket consumer plugin
-// Configuration example
-//
-//   - "consumer.Socket":
-//     Enable: true
-//     Address: ":5880"
-//     Permissions: "0770"
-//     Acknowledge: ""
-//     Partitioner: "delimiter"
-//     Delimiter: "\n"
-//     Offset: 0
-//     Size: 1
-//     ReconnectAfterSec: 2
-//     AckTimoutSec: 2
-//     ReadTimeoutSec: 5
-//     Stream:
-//       - "socket"
-//
 // The socket consumer reads messages directly as-is from a given socket.
-// Messages are separated from the stream by using a specific paritioner method.
+// Messages are separated from the stream by using a specific partitioner method.
 // When attached to a fuse, this consumer will stop accepting new connections
 // (closing the socket) and close all existing connections in case that fuse is
 // burned.
+// Configuration example
 //
-// Address stores the identifier to bind to.
+//  - "consumer.Socket":
+//    Address: ":5880"
+//    Permissions: "0770"
+//    Acknowledge: ""
+//    Partitioner: "delimiter"
+//    Delimiter: "\n"
+//    Offset: 0
+//    Size: 1
+//    ReconnectAfterSec: 2
+//    AckTimoutSec: 2
+//    ReadTimeoutSec: 5
+//
+// Address defines the protocol, host and port or socket to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
 //
@@ -73,20 +69,19 @@ const (
 //
 // Partitioner defines the algorithm used to read messages from the stream.
 // By default this is set to "delimiter".
-//  - "delimiter" separates messages by looking for a delimiter string. The
-//    delimiter is removed from the message.
-//  - "ascii" reads an ASCII encoded number at a given offset until a given
-//    delimiter is found. Everything to the right of and including the delimiter
-//    is removed from the message.
-//  - "binary" reads a binary number at a given offset and size
-//  - "binary_le" is an alias for "binary"
-//  - "binary_be" is the same as "binary" but uses big endian encoding
-//  - "fixed" assumes fixed size messages
+//  * "delimiter" separates messages by looking for a delimiter string.
+//    The delimiter is removed from the message.
+//  * "ascii" reads an ASCII number at a given offset until a given delimiter is found.
+//    Everything to the right of and including the delimiter is removed from the message.
+//  * "binary" reads a binary number at a given offset and size.
+//  * "binary_le" is an alias for "binary".
+//  * "binary_be" is the same as "binary" but uses big endian encoding.
+//  * "fixed" assumes fixed size messages.
 //
 // Delimiter defines the delimiter used by the text and delimiter partitioner.
 // By default this is set to "\n".
 //
-// Offset defines the offset used by the binary and text paritioner.
+// Offset defines the offset used by the binary and text partitioner.
 // By default this is set to 0. This setting is ignored by the fixed partitioner.
 //
 // Size defines the size in bytes used by the binary or fixed partitioner.

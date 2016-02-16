@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,11 +19,13 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
-// All passes all messages.
+// All filter plugin
+// This filter passes all messages.
 // Configuration example
 //
 //   - "stream.Broadcast":
 //     Filter: "filter.All"
+//
 type All struct {
 }
 

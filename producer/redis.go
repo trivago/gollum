@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,16 +25,18 @@ import (
 )
 
 // Redis producer plugin
+// This producer sends data to a redis server. Different redis storage types
+// and database indexes are supported. This producer does not implement support
+// for redis 3.0 cluster.
 // Configuration example
 //
-//   - "producer.Redis":
-//     Enable: true
-//     Address: ":6379"
-//	   Database: 0
-//	   Key: "default"
-//     Storage: "hash"
-//     FieldFormat: "format.Identifier"
-//     FieldAfterFormat: false
+//  - "producer.Redis":
+//    Address: ":6379"
+//    Database: 0
+//    Key: "default"
+//    Storage: "hash"
+//    FieldFormat: "format.Identifier"
+//    FieldAfterFormat: false
 //
 // Address stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:6379" or a file

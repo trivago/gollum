@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,18 +26,16 @@ import (
 )
 
 // Websocket producer plugin
-// Configuration example
-//
-//   - "producer.Websocket":
-//     Enable:  true
-//     Address: ":81"
-//     Path:    "/"
-//	   ReadTimeoutSec: 3
-//
 // The websocket producer opens up a websocket.
 // This producer does not implement a fuse breaker.
+// Configuration example
 //
-// Address stores the identifier to bind to.
+//  - "producer.Websocket":
+//    Address: ":81"
+//    Path:    "/"
+//    ReadTimeoutSec: 3
+//
+// Address defines the host and port to bind to.
 // This is allowed be any ip address/dns and port like "localhost:5880".
 // By default this is set to ":81".
 //

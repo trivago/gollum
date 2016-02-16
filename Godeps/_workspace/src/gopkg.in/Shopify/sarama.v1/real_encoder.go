@@ -12,7 +12,7 @@ type realEncoder struct {
 
 func (re *realEncoder) putInt8(in int8) {
 	re.raw[re.off] = byte(in)
-	re.off += 1
+	re.off++
 }
 
 func (re *realEncoder) putInt16(in int16) {
@@ -58,6 +58,21 @@ func (re *realEncoder) putString(in string) error {
 	re.putInt16(int16(len(in)))
 	copy(re.raw[re.off:], in)
 	re.off += len(in)
+	return nil
+}
+
+func (re *realEncoder) putStringArray(in []string) error {
+	err := re.putArrayLength(len(in))
+	if err != nil {
+		return err
+	}
+
+	for _, val := range in {
+		if err := re.putString(val); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

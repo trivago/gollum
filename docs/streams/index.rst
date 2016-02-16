@@ -5,8 +5,8 @@ Streams
 	:maxdepth: 1
 
 	broadcast
-	roundrobin
 	random
+	roundrobin
 	route
 
 Streams manage the transfer of messages between  :doc:`consumers </consumers/index>` and :doc:`producers </producers/index>`.

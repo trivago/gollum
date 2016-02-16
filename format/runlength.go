@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,13 +20,14 @@ import (
 	"strconv"
 )
 
+// Runlength formatter plugin
 // Runlength is a formatter that prepends the length of the message, followed by
 // a ":". The actual message is formatted by a nested formatter.
 // Configuration example
 //
-//   - "<producer|stream>":
-//     Formatter: "format.Runlength"
-//     RunlengthFormatter: "format.Envelope"
+//  - "stream.Broadcast":
+//    Formatter: "format.Runlength"
+//    RunlengthFormatter: "format.Envelope"
 //
 // RunlengthDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"

@@ -1,3 +1,37 @@
+# 0.4.2
+
+This is a patch / minor features release.
+
+#### Fixed
+
+ * consumer.SysLogD now has more meaningful errormessages
+ * consumer.File now properly supports file rotation if the file to read is a symlink
+ * Scribe and Kafka metrics are now only updated upon successful send
+ * Fixed an out of bounds panic when producer.File was rotating logfiles without an extension
+ * Compression of files after rotation by produer.File now works (again)
+ * producer.Kafka now only reconnects if all topics report an error
+ * producer.Spool now properly respools long messages
+ * producer.Spool will not delete a file if a message in it could not be processed
+ * producer.Spool will try to automatically respool files after a restart
+ * producer.Spool will rotate non-empty files even if no new messages come in
+ * producer.Spool will recreate folders when removed during runtime
+ * producer.Spool will drop messages if rotation failes (not reroute)
+ * Messages that are spooled twice now retain their original stream
+ * Better handling of situations where Sarama (Kafka) writes become blocking
+ * Plugins now start up as "initializing" not as "dead" preventing dropped messages during startup
+ 
+#### New
+
+ * New formatter format.SplitToJSON to convert CSV data to JSON
+ * New formatter format.ProcessJSON to modify JSON data
+ * producer.File can now set permissions for any folders created
+ * RPM spec file added
+ * producer.File can now add zero padding to rotated file numbering
+ * producer.File can now prune logfiles by file age
+ * producer.Spool can now be rate limited
+ * Dev version (major.minor.patch.dev) is now part of the metrics
+ * New AWS Kinesis producer and consumer
+
 # 0.4.1
 
 This is a patch / minor features release

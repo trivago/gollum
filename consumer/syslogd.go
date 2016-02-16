@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,32 +26,27 @@ import (
 )
 
 // Syslogd consumer plugin
-// Configuration example
-//
-//   - "consumer.Syslogd":
-//     Enable: true
-//     Address: "udp://0.0.0.0:514"
-//     Format: "RFC6587"
-//     Stream:
-//       - "syslog"
-//
 // The syslogd consumer accepts messages from a syslogd comaptible socket.
 // When attached to a fuse, this consumer will stop the syslogd service in case
 // that fuse is burned.
+// Configuration example
 //
-// Address stores the identifier to bind to.
+//  - "consumer.Syslogd":
+//    Address: "udp://0.0.0.0:514"
+//    Format: "RFC6587"
+//
+// Address defines the protocol, host and port or socket to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.socket". By default this is set to "udp://0.0.0.0:514".
 // The protocol can be defined along with the address, e.g. "tcp://..." but
 // this may be ignored if a certain protocol format does not support the desired
 // transport protocol.
 //
-// Format define the used syslog standard.
-// Three standards are currently supported:
-// 	* RFC3164 (https://tools.ietf.org/html/rfc3164) udp only
-// 	* RFC5424 (https://tools.ietf.org/html/rfc5424) udp only
-// 	* RFC6587 (https://tools.ietf.org/html/rfc6587) tcp or udp
-// By default this is set to "RFC6587".
+// Format defines the syslog standard to expect for message encoding.
+// Three standards are currently supported, by default this is set to "RFC6587".
+//  * RFC3164 (https://tools.ietf.org/html/rfc3164) udp only.
+//  * RFC5424 (https://tools.ietf.org/html/rfc5424) udp only.
+//  * RFC6587 (https://tools.ietf.org/html/rfc6587) tcp or udp.
 type Syslogd struct {
 	core.ConsumerBase
 	format   format.Format // RFC3164, RFC5424 or RFC6587?
@@ -127,11 +122,17 @@ func (cons *Syslogd) Consume(workers *sync.WaitGroup) {
 
 	switch cons.protocol {
 	case "unix":
-		server.ListenUnixgram(cons.address)
+		if err := server.ListenUnixgram(cons.address); err != nil {
+			Log.Error.Print("Syslog: Failed to open unix://", cons.address)
+		}
 	case "udp":
-		server.ListenUDP(cons.address)
+		if err := server.ListenUDP(cons.address); err != nil {
+			Log.Error.Print("Syslog: Failed to open udp://", cons.address)
+		}
 	case "tcp":
-		server.ListenTCP(cons.address)
+		if err := server.ListenTCP(cons.address); err != nil {
+			Log.Error.Print("Syslog: Failed to open tcp://", cons.address)
+		}
 	}
 
 	server.Boot()

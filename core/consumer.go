@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,16 +39,18 @@ type Consumer interface {
 	Control() chan<- PluginControl
 }
 
-// ConsumerBase base class
-// All consumers support a common subset of configuration options:
+// ConsumerBase plugin base type
+// This type defines a common baseclass for all consumers. All consumer plugins
+// should derive from this class but don't necessarily need to.
+// Configuration example:
 //
-// - "consumer.Something":
-//   Enable: true
-//   ID: ""
-//   Fuse: ""
-//   Stream:
-//      - "error"
-//      - "default"
+//  - "consumer.Foobar":
+//    Enable: true
+//    ID: ""
+//    Fuse: ""
+//    Stream:
+//      - "foo"
+//      - "bar"
 //
 // Enable switches the consumer on or off. By default this value is set to true.
 //

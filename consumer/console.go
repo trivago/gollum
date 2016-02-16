@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,22 +28,16 @@ const (
 )
 
 // Console consumer plugin
-// Configuration example
-//
-//   - "consumer.Console":
-//     Enable: true
-//	   ExitOnEOF: false
-//     Stream:
-//       - "console"
-//
 // This consumer reads from stdin. A message is generated after each newline
 // character. When attached to a fuse, this consumer will stop accepting
 // messages in case that fuse is burned.
+// Configuration example
+//
+//  - "consumer.Console":
+//    ExitOnEOF: false
 //
 // ExitOnEOF can be set to true to trigger an exit signal if StdIn is closed
 // (e.g. when a pipe is closed). This is set to false by default.
-//
-// This consumer does not define any options beside the standard ones.
 type Console struct {
 	core.ConsumerBase
 	autoexit bool

@@ -1,145 +1,196 @@
 Kafka
 =====
 
-This producers sends messages to a Kafka cluster using Shopify's `Sarama <https://github.com/Shopify/sarama>`_ library.
-Any setting here reflects settings from this library.
+The kafka producer writes messages to a kafka cluster.
+This producer is backed by the sarama library so most settings relate to that library.
 This producer uses a fuse breaker if the connection reports an error.
-See the `API documentation <http://gollum.readthedocs.org/en/latest/producers/kafka.html>`_ for additional details.
+
 
 Parameters
 ----------
 
 **Enable**
-  Can either be true or false to enable or disable this consumer.
+  Enable switches the consumer on or off.
+  By default this value is set to true.
+
 **ID**
-  Allows this producer to be found by other plugins by name.
+  ID allows this producer to be found by other plugins by name.
   By default this is set to "" which does not register this producer.
-**Fuse**
-  Defines the name of the fuse this producer is attached to.
-  When left empty no fuse is attached. This is the default value.
-**Stream**
-  Defines either one or an aray of stream names this consumer sends messages to.
-**DropToStream**
-  Defines the stream used for messages that are dropped after a timeout (see ChannelTimeoutMs).
-  By default this is _DROPPED_.
+
 **Channel**
-  Defines the number of messages that can be buffered by the internal channel.
-  By default this is set to 8192.
+  Channel sets the size of the channel used to communicate messages.
+  By default this value is set to 8192.
+
 **ChannelTimeoutMs**
-  Defines a timeout in milliseconds for messages to wait if this producer's queue is full.
+  ChannelTimeoutMs sets a timeout in milliseconds for messages to wait if this producer's queue is full.
+  A timeout of -1 or lower will drop the message without notice.
+  A timeout of 0 will block until the queue is free.
+  This is the default.
+  A timeout of 1 or higher will wait x milliseconds for the queues to become available again.
+  If this does not happen, the message will be send to the retry channel.
 
-- A timeout of -1 or lower will discard the message without notice.
-- A timeout of 0 will block until the queue is free. This is the default.
-- A timeout of 1 or higher will wait n milliseconds for the queues to become available again.
-  If this does not happen, the message will be send to the _DROPPED_ stream that can be processed by the :doc:`Loopback </consumers/loopback>` consumer.
+**ShutdownTimeoutMs**
+  ShutdownTimeoutMs sets a timeout in milliseconds that will be used to detect a blocking producer during shutdown.
+  By default this is set to 3 seconds.
+  If processing a message takes longer to process than this duration, messages will be dropped during shutdown.
 
-**FlushTimeoutSec**
-  Sets the maximum number of seconds to wait before a flush is aborted during shutdown.
-  By default this is set to 0, which does not abort the flushing procedure.
-**Format**
-  Defines a message formatter to use. :doc:`Format.Forward </formatters/forward>` by default.
+**Stream**
+  Stream contains either a single string or a list of strings defining the message channels this producer will consume.
+  By default this is set to "*" which means "listen to all streams but the internal".
+
+**DropToStream**
+  DropToStream defines the stream used for messages that are dropped after a timeout (see ChannelTimeoutMs).
+  By default this is _DROPPED_.
+
+**Formatter**
+  Formatter sets a formatter to use.
+  Each formatter has its own set of options which can be set here, too.
+  By default this is set to format.Forward.
+  Each producer decides if and when to use a Formatter.
+
 **Filter**
-  Defines a message filter to apply before formatting. :doc:`Filter.All </filters/all>` by default.
-**ClientID**
-  Set the id of this client. "gollum" by default.
-**Partitioner**
-  Defines the distribution algorithm to use.
-  Valid values are: "random", "roundrobin" and "hash".
-  By default "Hash" is used.
-**RequiredAcks**
-  Sets the acknowledgement level required by the broker. By default this is set to 1.
+  Filter sets a filter that is applied before formatting, i.e. before a message is send to the message queue.
+  If a producer requires filtering after formatting it has to define a separate filter as the producer decides if and where to format.
 
-  - **0**: no responses required.
-  - **1**: wait for the local commit.
-  - **1**:  wait for all replicas to commit.
-  - **>1**: wait for a specific number of commits.
+**Fuse**
+  Fuse defines the name of a fuse to burn if e.g. the producer encounteres a lost connection.
+  Each producer defines its own fuse breaking logic if necessary / applyable.
+  Disable fuse behavior for a producer by setting an empty  name or a FuseTimeoutSec <= 0.
+  By default this is set to "".
+
+**FuseTimeoutSec**
+  FuseTimeoutSec defines the interval in seconds used to check if the fuse can be recovered.
+  Note that automatic fuse recovery logic depends on each producer's implementation.
+  By default this setting is set to 10.
+
+**ClientId**
+  ClientId sets the client id of this producer.
+  By default this is "gollum".
+
+**Partitioner**
+  Partitioner sets the distribution algorithm to use.
+  Valid values are: "Random","Roundrobin" and "Hash".
+  By default "Hash" is set.
+
+**RequiredAcks**
+  RequiredAcks defines the acknowledgment level required by the broker.
+  0 = No responses required.
+  1 = wait for the local commit.
+  -1 = wait for all replicas to commit.
+  >1 = wait for a specific number of commits.
+  By default this is set to 1.
 
 **TimeoutMs**
-  Defines the maximum time the broker will wait for acks.
+  TimeoutMs denotes the maximum time the broker will wait for acks.
   This setting becomes active when RequiredAcks is set to wait for multiple commits.
   By default this is set to 1500.
+
 **SendRetries**
-  Defines how many times to retry sending data before marking a server as not reachable.
+  SendRetries defines how many times to retry sending data before marking a server as not reachable.
   By default this is set to 3.
+
 **Compression**
-  Sets the method of compression to use.
-  Valid values are: "None","Zip","Snappy".
+  Compression sets the method of compression to use.
+  Valid values are: "None","Zip" and "Snappy".
   By default "None" is set.
+
 **MaxOpenRequests**
-  Defines the number of simultanious connections are allowed.
+  MaxOpenRequests defines the number of simultanious connections are allowed.
   By default this is set to 5.
+
 **BatchMinCount**
-  Sets the minimum number of messages required to trigger a flush.
+  BatchMinCount sets the minimum number of messages required to trigger a flush.
   By default this is set to 1.
+
 **BatchMaxCount**
-  Defines the maximum number of messages processed per request.
+  BatchMaxCount defines the maximum number of messages processed per request.
   By default this is set to 0 for "unlimited".
+
 **BatchSizeByte**
-  Sets the mimimum number of bytes to collect before a new flush is triggered.
+  BatchSizeByte sets the mimimum number of bytes to collect before a new flush is triggered.
   By default this is set to 8192.
+
 **BatchSizeMaxKB**
-  Defines the maximum allowed message size.
-  By default this is set to 1 MB.
+  BatchSizeMaxKB defines the maximum allowed message size.
+  By default this is set to 1024.
+
 **BatchTimeoutSec**
-  Sets the minimum time in seconds to pass after wich a new flush will be triggered.
+  BatchTimeoutSec sets the minimum time in seconds to pass after wich a new flush will be triggered.
   By default this is set to 3.
+
 **MessageBufferCount**
-  Sets the internal channel size for the kafka client.
+  MessageBufferCount sets the internal channel size for the kafka client.
   By default this is set to 256.
+
 **ServerTimeoutSec**
-  Defines the time after which a connection is set to timed out.
+  ServerTimeoutSec defines the time after which a connection is set to timed out.
   By default this is set to 30 seconds.
+
 **SendTimeoutMs**
-  Defines the number of milliseconds to wait for a server to resond before triggering a timeout.
+  SendTimeoutMs defines the number of milliseconds to wait for a server to resond before triggering a timeout.
   Defaults to 250.
+
 **ElectRetries**
-  Defines how many times to retry during a leader election.
+  ElectRetries defines how many times to retry during a leader election.
   By default this is set to 3.
+
 **ElectTimeoutMs**
-  Defines the number of milliseconds to wait for the cluster to elect a new leader.
+  ElectTimeoutMs defines the number of milliseconds to wait for the cluster to elect a new leader.
   Defaults to 250.
+
 **MetadataRefreshMs**
-  Set the interval in seconds for fetching cluster metadata.
+  MetadataRefreshMs set the interval in seconds for fetching cluster metadata.
   By default this is set to 10000.
   This corresponds to the JVM setting `topic.metadata.refresh.interval.ms`.
+
 **Servers**
-  Defines the list of all kafka servers to connect to.
-  Expects the IP or DNS of the server to listen to, followed by a port.
+  Servers contains the list of all kafka servers to connect to.
+   By default this is set to contain only "localhost:9092".
+
 **Topic**
-  Maps a stream to a specific Kafka topic.
-  If you define a mapping on "*" all streams that do not have a specific mapping will go to this topic (including internal streams).
-  If no mapping to "*" is set the stream name is used as topic.
+  Topic maps a stream to a specific kafka topic.
+  You can define the wildcard stream (*) here, too.
+  If defined, all streams that do not have a specific mapping will go to this topic (including _GOLLUM_).
+  If no topic mappings are set the stream names will be used as topic.
 
 Example
 -------
 
 .. code-block:: yaml
 
-  - "producer.Kafka":
-    Enable: true
-    ClientId: "weblog"
-    Partitioner: "Roundrobin"
-    RequiredAcks: 0
-    TimeoutMs: 0
-    SendRetries: 5
-    Compression: "Snappy"
-    MaxOpenRequests: 6
-    BatchMinCount: 10
-    BatchMaxCount: 0
-    BatchSizeByte: 16384
-    BatchSizeMaxKB: 524288
-    BatchTimeoutSec: 5
-    ServerTimeoutSec: 3
-    SendTimeoutMs: 100
-    ElectRetries: 3
-    ElectTimeoutMs: 1000
-    MetadataRefreshSec: 30
-    Servers:
-    	- "192.168.222.30:9092"
-      - "192.168.222.31:9092"
-    Topic:
-      "*" : "server_log"
-      "_GOLLUM_"  : "gollum_log"
-    Stream:
-      - "console"
-      - "_GOLLUM_"
+	- "producer.Kafka":
+	    Enable: true
+	    ID: ""
+	    Channel: 8192
+	    ChannelTimeoutMs: 0
+	    ShutdownTimeoutMs: 3000
+	    Formatter: "format.Forward"
+	    Filter: "filter.All"
+	    DropToStream: "_DROPPED_"
+	    Fuse: ""
+	    FuseTimeoutSec: 5
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    ClientId: "weblog"
+	    Partitioner: "Roundrobin"
+	    RequiredAcks: 1
+	    TimeoutMs: 1500
+	    SendRetries: 3
+	    Compression: "None"
+	    MaxOpenRequests: 5
+	    MessageBufferCount: 256
+	    BatchMinCount: 10
+	    BatchMaxCount: 1
+	    BatchSizeByte: 8192
+	    BatchSizeMaxKB: 1024
+	    BatchTimeoutSec: 3
+	    ServerTimeoutSec: 30
+	    SendTimeoutMs: 250
+	    ElectRetries: 3
+	    ElectTimeoutMs: 250
+	    MetadataRefreshMs: 10000
+	    Servers:
+	        - "localhost:9092"
+	    Topic:
+	        "console" : "console"

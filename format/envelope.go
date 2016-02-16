@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,15 +19,16 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
+// Envelope formatter plugin
 // Envelope is a formatter that allows prefixing and/or postfixing a message
 // with configurable strings.
 // Configuration example
 //
-//   - "<producer|stream>":
-//     Formatter: "format.Envelope"
-//     EnvelopeFormatter: "format.Forward"
-//     EnvelopePrefix: "<data>"
-//     EnvelopePostfix: "</data>\n"
+//  - "stream.Broadcast":
+//    Formatter: "format.Envelope"
+//    EnvelopeFormatter: "format.Forward"
+//    EnvelopePrefix: "<data>"
+//    EnvelopePostfix: "</data>\n"
 //
 // Prefix defines the message prefix. By default this is set to "".
 // Special characters like \n \r \t will be transformed into the actual control

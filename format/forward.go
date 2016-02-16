@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,11 +19,12 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
+// Forward formatter plugin
 // Forward is a formatter that passes a message as is
 // Configuration example
 //
-//   - "<producer|stream>":
-//     Formatter: "format.Forward"
+//  - "stream.Broadcast":
+//    Formatter: "format.Forward"
 type Forward struct {
 }
 

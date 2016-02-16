@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ func TestPluginRunState(t *testing.T) {
 	expect := shared.NewExpect(t)
 	pluginState := NewPluginRunState()
 
-	expect.Equal(PluginStateDead, pluginState.GetState())
+	expect.Equal(PluginStateInitializing, pluginState.GetState())
 
 	pluginState.SetState(PluginStateWaiting)
 	expect.Equal(PluginStateWaiting, pluginState.GetState())

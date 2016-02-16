@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,22 +18,14 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 )
 
 // Spooling producer plugin
-// Configuration example
-//
-//   - "producer.Spooling":
-//     Enable: true
-//     Path: "/var/run/gollum/spooling"
-//     BatchMaxCount: 100
-//     BatchTimeoutSec: 5
-//     MaxFileSizeMB: 512
-//     MaxFileAgeMin: 1
-//
 // The Spooling producer buffers messages and sends them again to the previous
 // stream stored in the message. This means the message must have been routed
 // at least once before reaching the spooling producer. If the previous and
@@ -41,6 +33,17 @@ import (
 // The Formatter configuration value is forced to "format.Serialize" and
 // cannot be changed.
 // This producer does not implement a fuse breaker.
+// Configuration example
+//
+//  - "producer.Spooling":
+//    Path: "/var/run/gollum/spooling"
+//    BatchMaxCount: 100
+//    BatchTimeoutSec: 5
+//    MaxFileSizeMB: 512
+//    MaxFileAgeMin: 1
+//    MessageSizeByte: 8192
+//    RespoolDelaySec: 10
+//    MaxMessagesSec: 100
 //
 // Path sets the output directory for spooling files. Spooling files will
 // Files will be stored as "<path>/<stream>/<number>.spl". By default this is
@@ -60,15 +63,30 @@ import (
 // Reading will start only after a file is rotated. This setting divided by two
 // will be used to define the wait time for reading, too.
 // Set to 1 minute by default.
+//
+// BufferSizeByte defines the initial size of the buffer that is used to parse
+// messages from a spool file. If a message is larger than this size, the buffer
+// will be resized. By default this is set to 8192.
+//
+// RespoolDelaySec sets the number of seconds to wait before trying to load
+// existing spool files after a restart. This is useful for configurations that
+// contain dynamic streams. By default this is set to 10.
+//
+// MaxMessagesSec sets the maximum number of messages that can be respooled per
+// second. By default this is set to 100. Setting this value to 0 will cause
+// respooling to work as fast as possible.
 type Spooling struct {
 	core.ProducerBase
-	outfile       map[core.MessageStreamID]*spoolFile
-	rotation      fileRotateConfig
-	path          string
-	maxFileSize   int64
-	maxFileAge    time.Duration
-	batchTimeout  time.Duration
-	batchMaxCount int
+	outfile         map[core.MessageStreamID]*spoolFile
+	rotation        fileRotateConfig
+	path            string
+	maxFileSize     int64
+	RespoolDuration time.Duration
+	maxFileAge      time.Duration
+	batchTimeout    time.Duration
+	readDelay       time.Duration
+	batchMaxCount   int
+	bufferSizeByte  int
 }
 
 const (
@@ -98,6 +116,15 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 100)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.outfile = make(map[core.MessageStreamID]*spoolFile)
+	prod.RespoolDuration = time.Duration(conf.GetInt("RespoolDelaySec", 10)) * time.Second
+	prod.bufferSizeByte = conf.GetInt("BufferSizeByte", 8192)
+
+	if maxMsgSec := time.Duration(conf.GetInt("MaxMessagesSec", 100)); maxMsgSec > 0 {
+		prod.readDelay = time.Second / maxMsgSec
+	} else {
+		prod.readDelay = 0
+	}
+
 	prod.rotation = fileRotateConfig{
 		timeout:  prod.maxFileAge,
 		sizeByte: prod.maxFileSize,
@@ -124,6 +151,7 @@ func (prod *Spooling) writeBatchOnTimeOut() {
 		if spool.batch.ReachedSizeThreshold(prod.batchMaxCount/2) || spool.batch.ReachedTimeThreshold(prod.batchTimeout) {
 			spool.flush()
 		}
+		spool.openOrRotate()
 	}
 }
 
@@ -135,17 +163,17 @@ func (prod *Spooling) writeToFile(msg core.Message) {
 		streamName := core.StreamRegistry.GetStreamName(streamID)
 		spool = newSpoolFile(prod, streamName, msg.Source)
 		prod.outfile[streamID] = spool
+	}
 
-		if err := os.MkdirAll(spool.basePath, 0700); err != nil {
-			Log.Error.Printf("Spooling: Failed to create %s because of %s", spool.basePath, err.Error())
-			prod.Drop(msg)
-			return // ### return, cannot write ###
-		}
+	if err := os.MkdirAll(spool.basePath, 0700); err != nil && !os.IsExist(err) {
+		Log.Error.Printf("Spooling: Failed to create %s because of %s", spool.basePath, err.Error())
+		prod.Drop(msg)
+		return // ### return, cannot write ###
 	}
 
 	// Open/rotate file if nnecessary
 	if !spool.openOrRotate() {
-		prod.routeToOrigin(msg)
+		prod.Drop(msg)
 		return // ### return, could not spool to disk ###
 	}
 
@@ -155,10 +183,18 @@ func (prod *Spooling) writeToFile(msg core.Message) {
 }
 
 func (prod *Spooling) routeToOrigin(msg core.Message) {
+	routeStart := time.Now()
+
+	msg.StreamID = msg.PrevStreamID // Force PrevStreamID to be preserved in case message gets spooled again
 	msg.Route(msg.PrevStreamID)
 
 	if spool, exists := prod.outfile[msg.PrevStreamID]; exists {
 		spool.countRead()
+	}
+
+	delay := prod.readDelay - time.Now().Sub(routeStart)
+	if delay > 0 {
+		time.Sleep(delay)
 	}
 }
 
@@ -172,8 +208,26 @@ func (prod *Spooling) close() {
 	}
 }
 
+func (prod *Spooling) openExistingFiles() {
+	Log.Debug.Print("Looking for spool files to read")
+	files, _ := ioutil.ReadDir(prod.path)
+	for _, file := range files {
+		if file.IsDir() {
+			streamName := filepath.Base(file.Name())
+			streamID := core.GetStreamID(streamName)
+
+			// Only create a new spooler if the stream is registered by this instance
+			if _, exists := prod.outfile[streamID]; !exists && core.StreamRegistry.IsStreamRegistered(streamID) {
+				Log.Note.Printf("Found existing spooling folders for %s", streamName)
+				prod.outfile[streamID] = newSpoolFile(prod, streamName, nil)
+			}
+		}
+	}
+}
+
 // Produce writes to stdout or stderr.
 func (prod *Spooling) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
+	time.AfterFunc(prod.RespoolDuration, prod.openExistingFiles)
 	prod.TickerMessageControlLoop(prod.writeToFile, prod.batchTimeout, prod.writeBatchOnTimeOut)
 }

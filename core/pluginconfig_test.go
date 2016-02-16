@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -145,14 +145,14 @@ func TestPluginConfigGetString(t *testing.T) {
 	expect := shared.NewExpect(t)
 	mockPluginCfg := getMockPluginConfig()
 
-	//check for non-existant key
+	//check for non-existent key
 	expect.Equal(mockPluginCfg.GetString("aKey", "default"), "default")
 
 	mockPluginCfg.Settings["aKey"] = "aValue"
 	expect.Equal(mockPluginCfg.GetString("aKey", "default"), "aValue")
 }
 
-// Function gets the string array for a key or default value if non existant
+// Function gets the string array for a key or default value if non existent
 // Plan: Similart to TestPluginConfigGetString
 func TestPluginConfigGetStringArray(t *testing.T) {
 	expect := shared.NewExpect(t)
@@ -169,7 +169,7 @@ func TestPluginConfigGetStringArray(t *testing.T) {
 
 }
 
-// Function gets the stringMap for a key or default value if not existant
+// Function gets the stringMap for a key or default value if not existent
 // Plan: Similar to TestPluginConfigGetString but the Map structure needs assertion
 func TestPluginConfigGetStringMap(t *testing.T) {
 	expect := shared.NewExpect(t)
@@ -285,7 +285,7 @@ func TestPluginConfigGetStreamRoutes(t *testing.T) {
 	expect.Equal(mockPluginCfg.GetStreamRoutes("routes"), expectedMockStreamRoute)
 }
 
-// Function gets an int value for a key or default value if non-existant
+// Function gets an int value for a key or default value if non-existent
 // Plan:
 //  Create a new PluginConfig
 //  add a key and an int value in the Settings
@@ -300,7 +300,7 @@ func TestPluginConfigGetInt(t *testing.T) {
 
 }
 
-// Function gets an bool value for a key or default if non-existant
+// Function gets an bool value for a key or default if non-existent
 // Plan: similar to TestPluginConfigGetInt
 func TestPluginConfigGetBool(t *testing.T) {
 	expect := shared.NewExpect(t)

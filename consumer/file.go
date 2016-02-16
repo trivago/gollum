@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -43,38 +43,33 @@ const (
 )
 
 // File consumer plugin
-// Configuration example
-//
-//   - "consumer.File":
-//     Enable: true
-//     File: "/var/run/system.log"
-//     DefaultOffset: "Newest"
-//     OffsetFile: ""
-//     Delimiter: "\n"
-//     Stream:
-//       - "file"
-//
 // The file consumer allows to read from files while looking for a delimiter
 // that marks the end of a message. If the file is part of e.g. a log rotation
-// the file consumer can set to a symbolic link of the latest file and be told
-// to reopen the file by sending a SIGHUP.
+// the file consumer can be set to a symbolic link of the latest file and
+// (optionally) be told to reopen the file by sending a SIGHUP. A symlink to
+// a file will automatically be reopened if the underlying file is changed.
 // When attached to a fuse, this consumer will stop accepting messages in case
 // that fuse is burned.
+// Configuration example
+//
+//  - "consumer.File":
+//    File: "/var/run/system.log"
+//    DefaultOffset: "Newest"
+//    OffsetFile: ""
+//    Delimiter: "\n"
 //
 // File is a mandatory setting and contains the file to read. The file will be
 // read from beginning to end and the reader will stay attached until the
-// consumer is stopped. This means appends to the file will be recognized.
-// Symlinks are always resolved, i.e. changing the symlink target will
-// be ignored unless gollum is restarted or a log rotation is triggered.
+// consumer is stopped. I.e. appends to the attached file will be recognized
+// automatically.
 //
 // DefaultOffset defines where to start reading the file. Valid values are
-// "oldest" and "newest". If OffsetFile is defined this setting will be used
-// only if the file does not exist. If OffsetFile is not defined this setting
-// will allways be used.
-// By default this is set to Newest.
+// "oldest" and "newest". If OffsetFile is defined the DefaultOffset setting
+// will be ignored unless the file does not exist.
+// By default this is set to "newest".
 //
 // OffsetFile defines the path to a file that stores the current offset inside
-// the file. If the consumer is restarted that offset is used to continue
+// the given file. If the consumer is restarted that offset is used to continue
 // reading. By default this is set to "" which disables the offset file.
 //
 // Delimiter defines the end of a message inside the file. By default this is
@@ -86,6 +81,7 @@ type File struct {
 	offsetFileName string
 	delimiter      string
 	seek           int
+	seekOnRotate   int
 	seekOffset     int64
 	state          fileState
 }
@@ -113,20 +109,26 @@ func (cons *File) Configure(conf core.PluginConfig) error {
 		fallthrough
 	case fileOffsetEnd:
 		cons.seek = 2
+		cons.seekOnRotate = 2
 		cons.seekOffset = 0
 
 	case fileOffsetStart:
 		cons.seek = 1
+		cons.seekOnRotate = 1
 		cons.seekOffset = 0
 	}
 
 	return nil
 }
 
+func (cons *File) storeOffset() {
+	ioutil.WriteFile(cons.offsetFileName, []byte(strconv.FormatInt(cons.seekOffset, 10)), 0644)
+}
+
 func (cons *File) enqueueAndPersist(data []byte, sequence uint64) {
 	cons.seekOffset, _ = cons.file.Seek(0, 1)
 	cons.Enqueue(data, sequence)
-	ioutil.WriteFile(cons.offsetFileName, []byte(strconv.FormatInt(cons.seekOffset, 10)), 0644)
+	cons.storeOffset()
 }
 
 func (cons *File) realFileName() string {
@@ -203,7 +205,7 @@ func (cons *File) read() {
 			switch {
 			case err != nil:
 				if printFileOpenError {
-					Log.Error.Print("File open error - ", err)
+					Log.Warning.Print("File open failed - ", err)
 					printFileOpenError = false
 				}
 				time.Sleep(3 * time.Second)
@@ -225,6 +227,16 @@ func (cons *File) read() {
 			case err == nil: // ok
 				spin.Reset()
 			case err == io.EOF:
+				if cons.file.Name() != cons.realFileName() {
+					Log.Note.Print("File rotation detected")
+					cons.file.Close()
+					cons.file = nil
+					cons.seek = cons.seekOnRotate
+					cons.seekOffset = 0
+					if cons.offsetFileName != "" {
+						cons.storeOffset()
+					}
+				}
 				spin.Yield()
 			case cons.state == fileStateRead:
 				Log.Error.Print("Error reading file - ", err)

@@ -81,6 +81,8 @@ func CoerceFloat(v interface{}) (float64, error) {
 				return iv, nil
 			}
 		}
+	case nil:
+		return math.NaN(), nil
 	}
 	return 0, fmt.Errorf("Could not Coerce Value: %v", v)
 }

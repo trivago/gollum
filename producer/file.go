@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,30 +29,30 @@ import (
 )
 
 // File producer plugin
-// Configuration example
-//
-//   - "producer.File":
-//     Enable: true
-//     File: "/var/log/gollum.log"
-//     FileOverwrite: false
-//     Permissions: "0664"
-//     BatchMaxCount: 8192
-//     BatchFlushCount: 4096
-//     BatchTimeoutSec: 5
-//     FlushTimeoutSec: 0
-//     Rotate: false
-//     RotateTimeoutMin: 1440
-//     RotateSizeMB: 1024
-//     RotateAt: ""
-//     RotateTimestamp: "2006-01-02_15"
-//     RotatePruneCount: 0
-//     RotatePruneTotalSizeMB: 0
-//     Compress: false
-//
 // The file producer writes messages to a file. This producer also allows log
 // rotation and compression of the rotated logs. Folders in the file path will
 // be created if necessary.
 // This producer does not implement a fuse breaker.
+// Configuration example
+//
+//  - "producer.File":
+//    File: "/var/log/gollum.log"
+//    FileOverwrite: false
+//    Permissions: "0664"
+//    FolderPermissions: "0755"
+//    BatchMaxCount: 8192
+//    BatchFlushCount: 4096
+//    BatchTimeoutSec: 5
+//    FlushTimeoutSec: 0
+//    Rotate: false
+//    RotateTimeoutMin: 1440
+//    RotateSizeMB: 1024
+//    RotateAt: ""
+//    RotateTimestamp: "2006-01-02_15"
+//    RotatePruneCount: 0
+//    RotatePruneAfterHours: 0
+//    RotatePruneTotalSizeMB: 0
+//    Compress: false
 //
 // File contains the path to the log file to write. The wildcard character "*"
 // can be used as a placeholder for the stream name.
@@ -63,6 +63,9 @@ import (
 //
 // Permissions accepts an octal number string that contains the unix file
 // permissions used when creating a file. By default this is set to "0664".
+//
+// FolderPermissions accepts an octal number string that contains the unix file
+// permissions used when creating a folder. By default this is set to "0755".
 //
 // BatchMaxCount defines the maximum number of messages that can be buffered
 // before a flush is mandatory. If the buffer is full and a flush is still
@@ -104,31 +107,41 @@ import (
 // and are pruned by date (followed by name).
 // By default this is set to 0 which disables pruning.
 //
+// RotatePruneAfterHours removes old logfiles that are older than a given number
+// of hours. By default this is set to 0 which disables pruning.
+//
 // RotatePruneTotalSizeMB removes old logfiles upon rotate so that only the
 // given number of MBs are used by logfiles. Logfiles are located by the name
 // defined by "File" and are pruned by date (followed by name).
 // By default this is set to 0 which disables pruning.
 //
+// RotateZeroPadding sets the number of leading zeros when rotating files with
+// an existing name. Setting this setting to 0 won't add zeros, every other
+// number defines the number of leading zeros to be used. By default this is
+// set to 0.
+//
 // Compress defines if a rotated logfile is to be gzip compressed or not.
 // By default this is set to false.
 type File struct {
 	core.ProducerBase
-	filesByStream   map[core.MessageStreamID]*fileState
-	files           map[string]*fileState
-	rotate          fileRotateConfig
-	timestamp       string
-	fileDir         string
-	fileName        string
-	fileExt         string
-	batchTimeout    time.Duration
-	flushTimeout    time.Duration
-	batchMaxCount   int
-	batchFlushCount int
-	pruneCount      int
-	pruneSize       int64
-	wildcardPath    bool
-	overwriteFile   bool
-	permissions     os.FileMode
+	filesByStream     map[core.MessageStreamID]*fileState
+	files             map[string]*fileState
+	rotate            fileRotateConfig
+	timestamp         string
+	fileDir           string
+	fileName          string
+	fileExt           string
+	batchTimeout      time.Duration
+	flushTimeout      time.Duration
+	batchMaxCount     int
+	batchFlushCount   int
+	pruneCount        int
+	pruneHours        int
+	pruneSize         int64
+	wildcardPath      bool
+	overwriteFile     bool
+	filePermissions   os.FileMode
+	folderPermissions os.FileMode
 }
 
 func init() {
@@ -153,8 +166,14 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.overwriteFile = conf.GetBool("FileOverwrite", false)
 
-	flags, err := strconv.ParseInt(conf.GetString("Permissions", "0664"), 8, 32)
-	prod.permissions = os.FileMode(flags)
+	fileFlags, err := strconv.ParseInt(conf.GetString("Permissions", "0664"), 8, 32)
+	prod.filePermissions = os.FileMode(fileFlags)
+	if err != nil {
+		return err
+	}
+
+	folderFlags, err := strconv.ParseInt(conf.GetString("FolderPermissions", "0755"), 8, 32)
+	prod.folderPermissions = os.FileMode(folderFlags)
 	if err != nil {
 		return err
 	}
@@ -175,6 +194,7 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 	prod.rotate.atHour = -1
 	prod.rotate.atMinute = -1
 	prod.rotate.compress = conf.GetBool("Compress", false)
+	prod.rotate.zeroPad = conf.GetInt("RotateZeroPadding", 0)
 
 	prod.pruneCount = conf.GetInt("RotatePruneCount", 0)
 	prod.pruneSize = int64(conf.GetInt("RotatePruneTotalSizeMB", 0)) << 20
@@ -247,7 +267,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	}
 
 	// Assure path is existing
-	if err := os.MkdirAll(fileDir, 0755); err != nil {
+	if err := os.MkdirAll(fileDir, prod.folderPermissions); err != nil {
 		return nil, fmt.Errorf("Failed to create %s because of %s", fileDir, err.Error()) // ### return, missing directory ###
 	}
 
@@ -262,7 +282,15 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		files, _ := ioutil.ReadDir(fileDir)
 		for _, file := range files {
 			if strings.HasPrefix(file.Name(), signature) {
-				counter, _ := shared.Btoi([]byte(file.Name()[len(signature)+1:]))
+				// Special case.
+				// If there is no extension, counter stays at 0
+				// If there is an extension (and no count), parsing the "." will yield a counter of 0
+				// If there is a count, parsing it will work as intended
+				counter := uint64(0)
+				if len(file.Name()) > len(signature) {
+					counter, _ = shared.Btoi([]byte(file.Name()[len(signature)+1:]))
+				}
+
 				if maxSuffix <= counter {
 					maxSuffix = counter + 1
 				}
@@ -272,7 +300,11 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		if maxSuffix == 0 {
 			logFileName = fmt.Sprintf("%s%s", signature, fileExt)
 		} else {
-			logFileName = fmt.Sprintf("%s_%d%s", signature, int(maxSuffix), fileExt)
+			formatString := "%s_%d%s"
+			if prod.rotate.zeroPad > 0 {
+				formatString = fmt.Sprintf("%%s_%%0%dd%%s", prod.rotate.zeroPad)
+			}
+			logFileName = fmt.Sprintf(formatString, signature, int(maxSuffix), fileExt)
 		}
 	}
 
@@ -293,14 +325,14 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 
 	// (Re)open logfile
 	var err error
-	openFlags := os.O_WRONLY | os.O_CREATE | os.O_APPEND
+	openFlags := os.O_RDWR | os.O_CREATE | os.O_APPEND
 	if prod.overwriteFile {
 		openFlags |= os.O_TRUNC
 	} else {
 		openFlags |= os.O_APPEND
 	}
 
-	state.file, err = os.OpenFile(logFilePath, openFlags, prod.permissions)
+	state.file, err = os.OpenFile(logFilePath, openFlags, prod.filePermissions)
 	if err != nil {
 		return state, err // ### return error ###
 	}
@@ -314,19 +346,17 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	}
 
 	// Prune old logs if requested
-	switch {
-	case prod.pruneCount > 0 && prod.pruneSize > 0:
-		go func() {
+	go func() {
+		if prod.pruneHours > 0 {
+			state.pruneByHour(logFileBasePath, prod.pruneHours)
+		}
+		if prod.pruneCount > 0 {
 			state.pruneByCount(logFileBasePath, prod.pruneCount)
+		}
+		if prod.pruneSize > 0 {
 			state.pruneToSize(logFileBasePath, prod.pruneSize)
-		}()
-
-	case prod.pruneCount > 0:
-		go state.pruneByCount(logFileBasePath, prod.pruneCount)
-
-	case prod.pruneSize > 0:
-		go state.pruneToSize(logFileBasePath, prod.pruneSize)
-	}
+		}
+	}()
 
 	return state, err
 }

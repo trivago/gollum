@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -57,22 +57,25 @@ type Producer interface {
 	DependsOn(Producer) bool
 }
 
-// ProducerBase base class
-// All producers support a common subset of configuration options:
+// ProducerBase plugin base type
+// This type defines a common baseclass for producers. All producers should
+// derive from this class, but not necessarily need to.
+// Configuration example:
 //
-//   - "producer.Something":
-//     Enable: true
-//	   ID: ""
-//     Channel: 8192
-//     ChannelTimeoutMs: 0
-//     ShutdownTimeoutMs: 3000
-//     Formatter: "format.Forward"
-//     Filter: "filter.All"
-//     DropToStream: "_DROPPED_"
-//	   Fuse: ""
-//     FuseTimeoutSec: 5
-//     Stream:
-//       - "console"
+//  - "producer.Foobar":
+//    Enable: true
+//    ID: ""
+//    Channel: 8192
+//    ChannelTimeoutMs: 0
+//    ShutdownTimeoutMs: 3000
+//    Formatter: "format.Forward"
+//    Filter: "filter.All"
+//    DropToStream: "_DROPPED_"
+//    Fuse: ""
+//    FuseTimeoutSec: 5
+//    Stream:
+//      - "foo"
+//      - "bar"
 //
 // Enable switches the consumer on or off. By default this value is set to true.
 //

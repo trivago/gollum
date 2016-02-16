@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ func (cons *LogConsumer) Streams() []MessageStreamID {
 	return []MessageStreamID{LogInternalStreamID}
 }
 
-// Write fullfills the io.Writer interface
+// Write fulfills the io.Writer interface
 func (cons LogConsumer) Write(data []byte) (int, error) {
 	dataCopy := make([]byte, len(data))
 	copy(dataCopy, data)

@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -48,6 +48,8 @@ const (
 	// lifecycle of a plugin orderd by time.
 	// -------------------------------------------------------------------------
 
+	// PluginStateInitializing is set when a plugin is not yet configured
+	PluginStateInitializing = PluginState(iota)
 	// PluginStateWaiting is set when a plugin is active but currently unable to process data
 	PluginStateWaiting = PluginState(iota)
 	// PluginStateActive is set when a plugin is ready to process data
@@ -88,7 +90,7 @@ func init() {
 func NewPluginRunState() *PluginRunState {
 	return &PluginRunState{
 		workers: nil,
-		state:   int32(PluginStateDead),
+		state:   int32(PluginStateInitializing),
 	}
 }
 

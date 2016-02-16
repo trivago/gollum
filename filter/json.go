@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@ import (
 	"strconv"
 )
 
-// JSON allows filtering of JSON messages by looking at certain fields.
+// JSON filter plugin
+// This plugin allows filtering of JSON messages by looking at certain fields.
 // Note that this filter is quite expensive due to JSON marshaling and regexp
 // testing of every message passing through it.
 // Configuration example
@@ -32,15 +33,15 @@ import (
 //    FilterReject:
 //      "command" : "state\d\..*"
 //    FilterAccept:
-//	    "args/results[0]value" : "true"
+//      "args/results[0]value" : "true"
 //      "args/results[1]" : "true"
 //      "command" : "state\d\..*"
 //
-// FormatReject defines fields that will cause a message to be rejected if the
+// FilterReject defines fields that will cause a message to be rejected if the
 // given regular expression matches. Rejects are checked before Accepts.
 // Field paths can be defined in a format accepted by shared.MarshalMap.Path.
 //
-// FormatAccept defines fields that will cause a message to be rejected if the
+// FilterAccept defines fields that will cause a message to be rejected if the
 // given regular expression does not match.
 // Field paths can be defined in a format accepted by shared.MarshalMap.Path.
 type JSON struct {

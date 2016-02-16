@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -198,7 +198,7 @@ func (registry *streamRegistry) Register(stream Stream, streamID MessageStreamID
 // GetStreamOrFallback returns the stream for the given id if it is registered.
 // If no stream is registered for the given id the default stream is used.
 // The default stream is equivalent to an unconfigured stream.Broadcast with
-// all wildcard producers allready added.
+// all wildcard producers already added.
 func (registry *streamRegistry) GetStreamOrFallback(streamID MessageStreamID) Stream {
 	if stream, exists := registry.streams[streamID]; exists {
 		return stream

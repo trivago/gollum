@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,13 +20,14 @@ import (
 	"regexp"
 )
 
-// RegExp allows filtering messages using regular expressions.
+// RegExp filter plugin
+// This plugin allows filtering messages using regular expressions.
 // Configuration example
 //
-//   - "stream.Broadcast":
-//     Filter: "filter.RegExp"
-//     FilterExpression: "\d+-.*"
-//     FilterExpressionNot: "\d+-.*"
+//  - "stream.Broadcast":
+//    Filter: "filter.RegExp"
+//    FilterExpression: "\d+-.*"
+//    FilterExpressionNot: "\d+-.*"
 //
 // FilterExpression defines the regular expression used for matching the message
 // payload. If the expression matches, the message is passed.

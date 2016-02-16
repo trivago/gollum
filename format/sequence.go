@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,13 +20,14 @@ import (
 	"strconv"
 )
 
+// Sequence formatter plugin
 // Sequence is a formatter that allows prefixing a message with the message's
 // sequence number
 // Configuration example
 //
-//   - "<producer|stream>":
-//     Formatter: "format.Sequence"
-//     SequenceFormatter: "format.Envelope"
+//  - "stream.Broadcast":
+//    Formatter: "format.Sequence"
+//    SequenceFormatter: "format.Envelope"
 //
 // SequenceDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"

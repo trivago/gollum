@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,23 +26,21 @@ import (
 )
 
 // Proxy producer plugin
-// Configuration example
-//
-//   - "producer.Proxy":
-//     Enable: true
-//     Address: ":5880"
-//     ConnectionBufferSizeKB: 1024
-//     TimeoutSec: 1
-//     Partitioner: "delimiter"
-//     Delimiter: "\n"
-//     Offset: 0
-//     Size: 1
-//
 // This producer is compatible to consumer.proxy.
 // Responses to messages sent to the given address are sent back to the original
 // consumer of it is a compatible message source. As with consumer.proxy the
 // returned messages are partitioned by common message length algorithms.
 // This producer does not implement a fuse breaker.
+// Configuration example
+//
+//  - "producer.Proxy":
+//    Address: ":5880"
+//    ConnectionBufferSizeKB: 1024
+//    TimeoutSec: 1
+//    Partitioner: "delimiter"
+//    Delimiter: "\n"
+//    Offset: 0
+//    Size: 1
 //
 // Address stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:5880" or a file
@@ -70,7 +68,7 @@ import (
 // Delimiter defines the delimiter used by the text and delimiter partitioner.
 // By default this is set to "\n".
 //
-// Offset defines the offset used by the binary and text paritioner.
+// Offset defines the offset used by the binary and text partitioner.
 // By default this is set to 0. This setting is ignored by the fixed partitioner.
 //
 // Size defines the size in bytes used by the binary or fixed partitioner.

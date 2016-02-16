@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,17 +19,18 @@ import (
 	"github.com/trivago/gollum/shared"
 )
 
-// Stream filters messages by stream based on a black and a whitelist.
+// Stream filter plugin
+// This plugin filters messages by stream based on a black and a whitelist.
 // The blacklist is checked first.
 // Configuration example
 //
-//   - "stream.Broadcast":
-//     Filter: "filter.Stream"
-//     FilterBlockStreams:
-//       - "foo"
-//     FilterOnlyStreams:
-//       - "test1"
-//       - "test2"
+//  - "stream.Broadcast":
+//    Filter: "filter.Stream"
+//    FilterBlockStreams:
+//      - "foo"
+//    FilterOnlyStreams:
+//      - "test1"
+//      - "test2"
 //
 // FilterBlockStreams sets a list of streams that are blocked. If a message's
 // stream is not in that list, the OnlyStreams list is tested. This list ist
@@ -68,6 +69,6 @@ func (filter *Stream) Accepts(msg core.Message) bool {
 		}
 	}
 
-	// Return true if no whitlist is given, false otherwise (must fullfill whitelist)
+	// Return true if no whitlist is given, false otherwise (must fulfill whitelist)
 	return len(filter.whitelist) == 0
 }

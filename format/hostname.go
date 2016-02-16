@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,13 +20,14 @@ import (
 	"os"
 )
 
+// Hostname formatter plugin
 // Hostname is a formatter that prefixes a message with the hostname.
 // Configuration example
 //
-//   - "<producer|stream>":
-//     Formatter: "format.Hostname"
-//     HostnameFormatter: "format.Envelope"
-//	   HostnameSeparator: " "
+//  - "stream.Broadcast":
+//    Formatter: "format.Hostname"
+//    HostnameFormatter: "format.Envelope"
+//    HostnameSeparator: " "
 //
 // HostnameDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Envelope"
