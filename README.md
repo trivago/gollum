@@ -210,7 +210,7 @@ If you want to do cross platform builds use `make all` or specifiy one of the fo
  * `pi` build for Linux ARM
  * `win` build for Windows
  
- There are also supplementary targets for make:
+There are also supplementary targets for make:
  * `clean` clean all artifacts created by the build process
  * `test` run unittests
  * `restore` install godep and restore all dependencies
