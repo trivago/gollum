@@ -36,14 +36,10 @@ aws:
 current:
 	@go build
 
-update:
-	@go get -u github.com/tools/godep
-	@godep save ./...
-
-restore:
-	@go get -u github.com/tools/godep
-	@godep restore
-
+vendor:
+	@go get -u github.com/govend/govend
+	@govend -v -u -l
+    
 test:
 	@go test -cover -v -timeout 10s ./...
 

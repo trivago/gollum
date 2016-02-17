@@ -16,7 +16,7 @@ package consumer
 
 import (
 	"encoding/json"
-	kafka "github.com/shopify/sarama"
+	kafka "github.com/Shopify/sarama"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tsync"
 	"io/ioutil"

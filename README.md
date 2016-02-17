@@ -5,8 +5,7 @@
 [![GoDoc](https://godoc.org/github.com/trivago/gollum?status.svg)](https://godoc.org/github.com/trivago/gollum)
 [![Documentation Status](https://readthedocs.org/projects/gollum/badge/?version=latest)](http://gollum.readthedocs.org/en/latest/)
 [![Go Report Card](http://goreportcard.com/badge/trivago/gollum)](http://goreportcard.com/report/trivago/gollum)
-[![Build Status](https://drone.io/github.com/trivago/gollum/status.png)](https://drone.io/github.com/trivago/gollum/latest)
-
+[![Build Status](https://travis-ci.org/trivago/gollum.svg?branch=master)](https://travis-ci.org/trivago/gollum)
 
 Gollum is a n:m multiplexer that gathers messages from different sources and broadcasts them to a set of destinations.
 
@@ -90,10 +89,11 @@ Writing a custom plugin does not require you to change any additional code besid
 ### From source
 
 Installation from source requires the installation of the [Go toolchain](http://golang.org/).  
-Gollum has [Godeps](https://github.com/tools/godep) support but this is considered optional.
+Gollum supports the Go 1.5 vendor experiment. The vendor folder is managed using govend.
+You can update dependencies by using `make vendor`.
 
 ```
-$ go get .
+$ go get
 $ go build
 $ gollum --help
 ```
@@ -213,7 +213,7 @@ If you want to do cross platform builds use `make all` or specifiy one of the fo
 There are also supplementary targets for make:
  * `clean` clean all artifacts created by the build process
  * `test` run unittests
- * `restore` install godep and restore all dependencies
+ * `vendor` update all dependencies
  * `aws` build for Linux x64 and generate an [Elastic Beanstalk](https://aws.amazon.com/de/elasticbeanstalk/) package
  
 If you want to use native plugins (contrib/native) you will have to enable the corresponding imports in the file contrib/loader.go.
@@ -233,11 +233,6 @@ To use your own configuration you could run:
 ```
 $ docker run -it --rm -v /path/to/config.conf:/etc/gollum/gollum.conf:ro trivago/gollum -c /etc/gollum/gollum.conf
 ```
-
-### Solving dependency problems
-
-If you got any errors during build regarding external dependencies (i.e. the error message points to another repository than github.com/trivago) you can restore the last dependency snapshot using [godep](https://github.com/tools/godep).
-Install godep via `go get github.com/tools/godep` and restore the dependency via `godep restore` when inside the gollum base folder.
 
 ## License
 

@@ -1,0 +1,15 @@
+language: go
+sudo: false
+
+go:
+  - 1.5
+  - tip
+
+env:
+  - GO15VENDOREXPERIMENT=1
+
+script:
+  - go build
+  - go vet -v $(go list ./...|grep -v vendor)
+  - go test -v $(go list ./...|grep -v vendor)
+  

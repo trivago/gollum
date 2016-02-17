@@ -15,7 +15,7 @@
 package producer
 
 import (
-	kafka "github.com/shopify/sarama"
+	kafka "github.com/Shopify/sarama"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
 	"strings"
