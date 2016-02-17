@@ -182,11 +182,13 @@ You have to set the GOROOT environment variable to the folder you chose:
 
 ### Prerequisites
 
-If you do not already have a GOPATH set up you need to create one.  
+If you do not already have a GOPATH set up you need to create one.
+You should also enable the Go 1.5 vendor experiment when building with Go 1.5.  
 The location is free of choice, we prefer to put it into each users home folder:
 ```
 mkdir -p ~/go
 export GOPATH=$(HOME)/go
+export GO15VENDOREXPERIMENT=1
 ```
 
 You can download gollum via `go get github.com/trivago/gollum` or clone it directly into your GOPATH.  

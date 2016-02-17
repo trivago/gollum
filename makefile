@@ -1,4 +1,4 @@
-.PHONY: all clean freebsd linux mac pi win current restore test
+.PHONY: all clean freebsd linux mac pi win aws current vendor test
 clean:
 	@rm -f ./gollum
 	@rm -f ./dist/gollum_*.zip

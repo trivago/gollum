@@ -28,11 +28,6 @@
 			"revisionTime": "2013-09-02T14:33:59+04:00"
 		},
 		{
-			"path": "github.com/aws/aws-sdk-go",
-			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
-			"revisionTime": "2016-02-11T16:23:28-08:00"
-		},
-		{
 			"path": "github.com/aws/aws-sdk-go/aws",
 			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
 			"revisionTime": "2016-02-11T16:23:28-08:00"
@@ -272,151 +267,7 @@
 			"revisionTime": "2016-02-17T15:26:58+01:00"
 		},
 		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/context",
-			"path": "golang.org/x/net/context",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/context/ctxhttp",
-			"path": "golang.org/x/net/context/ctxhttp",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/dict",
-			"path": "golang.org/x/net/dict",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/html",
-			"path": "golang.org/x/net/html",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/html/atom",
-			"path": "golang.org/x/net/html/atom",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/html/charset",
-			"path": "golang.org/x/net/html/charset",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/http2",
-			"path": "golang.org/x/net/http2",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/http2/h2demo",
-			"path": "golang.org/x/net/http2/h2demo",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/http2/h2i",
-			"path": "golang.org/x/net/http2/h2i",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/http2/hpack",
-			"path": "golang.org/x/net/http2/hpack",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/icmp",
-			"path": "golang.org/x/net/icmp",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/idna",
-			"path": "golang.org/x/net/idna",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/internal/iana",
-			"path": "golang.org/x/net/internal/iana",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/internal/nettest",
-			"path": "golang.org/x/net/internal/nettest",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/internal/timeseries",
-			"path": "golang.org/x/net/internal/timeseries",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/ipv4",
-			"path": "golang.org/x/net/ipv4",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/ipv6",
-			"path": "golang.org/x/net/ipv6",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/netutil",
-			"path": "golang.org/x/net/netutil",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/proxy",
-			"path": "golang.org/x/net/proxy",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/publicsuffix",
-			"path": "golang.org/x/net/publicsuffix",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/trace",
-			"path": "golang.org/x/net/trace",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/webdav",
-			"path": "golang.org/x/net/webdav",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/webdav/internal/xml",
-			"path": "golang.org/x/net/webdav/internal/xml",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
 			"path": "golang.org/x/net/websocket",
-			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
-			"revisionTime": "2016-02-13T01:55:36Z"
-		},
-		{
-			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/xsrftoken",
-			"path": "golang.org/x/net/xsrftoken",
 			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
 			"revisionTime": "2016-02-13T01:55:36Z"
 		},
@@ -424,11 +275,6 @@
 			"path": "gopkg.in/bsm/ratelimit.v1",
 			"revision": "f14ad9c78b155f69b480cfa41cb655259baac260",
 			"revisionTime": "2015-12-10T17:49:14Z"
-		},
-		{
-			"path": "gopkg.in/mcuadros/go-syslog.v2",
-			"revision": "6cba2bfcf64a025c899aa3be061161d2b89d8b54",
-			"revisionTime": "2015-07-16T15:34:00+02:00"
 		},
 		{
 			"path": "gopkg.in/mcuadros/go-syslog.v2/format",
