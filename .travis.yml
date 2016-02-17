@@ -8,6 +8,9 @@ go:
 env:
   - GO15VENDOREXPERIMENT=1
 
+before_install:
+  - sudo apt-get install libpcap-dev
+
 script:
   - go build
   - go vet -v $(go list ./...|grep -v vendor)
