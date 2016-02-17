@@ -17,10 +17,11 @@ package producer
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tnet"
-	"gopkg.in/redis.v2"
+	"gopkg.in/redis.v3"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 // Redis producer plugin
@@ -192,7 +193,7 @@ func (prod *Redis) storeSortedSet(msg core.Message) {
 func (prod *Redis) storeString(msg core.Message) {
 	value, _ := prod.ProducerBase.Format(msg)
 
-	result := prod.client.Set(prod.key, string(value))
+	result := prod.client.Set(prod.key, string(value), time.Duration(0))
 	if result.Err() != nil {
 		prod.Log.Error.Print("Redis: ", result.Err())
 		prod.Drop(msg)
