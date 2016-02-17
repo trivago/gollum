@@ -1,20 +1,19 @@
 language: go
 sudo: false
-
 go:
-  - 1.5
-  - tip
-
+- 1.5
+- tip
 env:
-  - GO15VENDOREXPERIMENT=1
-
+- GO15VENDOREXPERIMENT=1
 addons:
   apt:
     packages:
-      - libpcap-dev
-
+    - libpcap-dev
 script:
-  - go build
-  - go vet -v $(go list ./...|grep -v vendor)
-  - go test -v $(go list ./...|grep -v vendor)
-  
+- go build
+- go vet -v $(go list ./...|grep -v vendor)
+- go test -v $(go list ./...|grep -v vendor)
+notifications:
+  slack:
+    rooms:
+      secure: IjUoYSCrheV5lA/LALquo+/DlVplyxLMUXzcQKueMvDfl3ZsbUR1K7zb+spoZoXAXjd7mBIgJ1TS/UHbeownFzKZq5hKKkFB2g2Wxc2unP8fllefbIXG2qjdmG/pnIJF4jwR/bypx2St/KrfX314ITKpxi41A/zQxZL3OvVvsClF3KwtpaHFLSjV023k/DezT9dboFANcokeG+pIN6GzuzPWYwL8XHpAxmBWsMh78D3PSpKHUmduI6W03G0WR8b7SuOxTML5hwgUeSWCMu7IbIlAwIzYedyjrkuJKX1QG5ztZRPfkQPkso1tuoemv8rkB9zmD4X8aE0MnxAiBb+G21BpIS2ybBV53Wcq98jiyicePOfHi92FtqR8xKAjfTIbQZhMIzqc2qv1sX3l1fkBXoSQ/Jb9XV3eAW+9bv97XOgmWIXuDJgXPy+Ltnd+ty+fiRI1IA2q6Z+a5RCJ5FgogA888p7avFKid7Lpj7EkCqIkhcfXma67OgbvmqydsDEjqZC1unQKwwG6eqtBGCaAzHhaNkaApPxBY3ME2CFexPSk/SV+om+hukIhFiADI40lHP6Lpbgnn8bB2lmU5H53vkGgMt90k2NQquEj82WPYuWjl0mChTqi+U1OSlD5ZyuKOgWZfnDvKbbv3+aqWnKM68viFGaaCtT3iSDjcXuSrX8=
