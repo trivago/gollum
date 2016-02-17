@@ -17,7 +17,6 @@ package consumer
 import (
 	"encoding/json"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tsync"
 	kafka "gopkg.in/Shopify/sarama.v1"
 	"io/ioutil"
@@ -33,43 +32,39 @@ const (
 )
 
 // Kafka consumer plugin
-// Configuration example
-//
-//   - "consumer.Kafka":
-//     Enable: true
-//     DefaultOffset: "Newest"
-//     OffsetFile: ""
-//     ClientID: "gollum"
-//     MaxOpenRequests: 5
-//     ServerTimeoutSec: 30
-//     MaxFetchSizeByte: 0
-//     MinFetchSizeByte: 1
-//     FetchTimeoutMs: 250
-//     MessageBufferCount: 256
-//     PresistTimoutMs: 5000
-//     ElectRetries: 3
-//     ElectTimeoutMs: 250
-//     MetadataRefreshMs: 10000
-//     Servers:
-//       - "localhost:9092"
-//     Stream:
-//       - "kafka"
-//
-// The kafka consumer reads from a given kafka topic. This consumer is based on
-// the sarama library so most settings relate to the settings from this library.
+// Thes consumer reads data from a given kafka topic. It is based on the sarama
+// library so most settings are mapped to the settings from this library.
 // When attached to a fuse, this consumer will stop processing messages in case
 // that fuse is burned.
+// Configuration example
 //
-// DefaultOffset defines the message index to start reading from.
-// Valid values are either "Newset", "Oldest", or a number.
-// The default value is "Newest".
+//  - "consumer.Kafka":
+//    Topic: "default"
+//    DefaultOffset: "newest"
+//    OffsetFile: ""
+//    MaxOpenRequests: 5
+//    ServerTimeoutSec: 30
+//    MaxFetchSizeByte: 0
+//    MinFetchSizeByte: 1
+//    FetchTimeoutMs: 250
+//    MessageBufferCount: 256
+//    PresistTimoutMs: 5000
+//    ElectRetries: 3
+//    ElectTimeoutMs: 250
+//    MetadataRefreshMs: 10000
+//    Servers:
+//      - "localhost:9092"
 //
-// OffsetFile defines a path to a file containing the current index per topic
-// partition. If a file is given the index stored in this file will be used as
-// the default offset for a stored parition. If the partition is not stored in
-// this file DefaultOffset is used.
+// Topic defines the kafka topic to read from. By default this is set to "default".
 //
-// ClientId sets the client id of this producer. By default this is "gollum".
+// DefaultOffset defines where to start reading the topic. Valid values are
+// "oldest" and "newest". If OffsetFile is defined the DefaultOffset setting
+// will be ignored unless the file does not exist.
+// By default this is set to "newest".
+//
+// OffsetFile defines the path to a file that stores the current offset inside
+// a given partition. If the consumer is restarted that offset is used to continue
+// reading. By default this is set to "" which disables the offset file.
 //
 // MaxOpenRequests defines the number of simultanious connections are allowed.
 // By default this is set to 5.
@@ -126,39 +121,35 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Kafka) Configure(conf core.PluginConfig) error {
-	var err error
-	errors := tgo.NewErrorStack()
-	errors.Push(cons.ConsumerBase.Configure(conf))
+func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
+	cons.ConsumerBase.Configure(conf)
+	kafka.Logger = cons.Log.Note
 
-	cons.servers, err = conf.GetStringArray("Servers", []string{"localhost:9092"})
-	errors.Push(err)
-
-	cons.topic = errors.String(conf.GetString("Topic", "default"))
-	cons.offsetFile = errors.String(conf.GetString("OffsetFile", ""))
-	cons.persistTimeout = time.Duration(errors.Int(conf.GetInt("PresistTimoutMs", 5000))) * time.Millisecond
+	cons.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
+	cons.topic = conf.GetString("Topic", "default")
+	cons.offsetFile = conf.GetString("OffsetFile", "")
+	cons.persistTimeout = time.Duration(conf.GetInt("PresistTimoutMs", 5000)) * time.Millisecond
 	cons.offsets = make(map[int32]int64)
 	cons.MaxPartitionID = 0
 
 	cons.config = kafka.NewConfig()
-	cons.config.ClientID = errors.String(conf.GetString("ClientId", "gollum"))
-	cons.config.ChannelBufferSize = errors.Int(conf.GetInt("MessageBufferCount", 256))
+	cons.config.ChannelBufferSize = conf.GetInt("MessageBufferCount", 256)
 
-	cons.config.Net.MaxOpenRequests = errors.Int(conf.GetInt("MaxOpenRequests", 5))
-	cons.config.Net.DialTimeout = time.Duration(errors.Int(conf.GetInt("ServerTimeoutSec", 30))) * time.Second
+	cons.config.Net.MaxOpenRequests = conf.GetInt("MaxOpenRequests", 5)
+	cons.config.Net.DialTimeout = time.Duration(conf.GetInt("ServerTimeoutSec", 30)) * time.Second
 	cons.config.Net.ReadTimeout = cons.config.Net.DialTimeout
 	cons.config.Net.WriteTimeout = cons.config.Net.DialTimeout
 
-	cons.config.Metadata.Retry.Max = errors.Int(conf.GetInt("ElectRetries", 3))
-	cons.config.Metadata.Retry.Backoff = time.Duration(errors.Int(conf.GetInt("ElectTimeoutMs", 250))) * time.Millisecond
-	cons.config.Metadata.RefreshFrequency = time.Duration(errors.Int(conf.GetInt("MetadataRefreshMs", 10000))) * time.Millisecond
+	cons.config.Metadata.Retry.Max = conf.GetInt("ElectRetries", 3)
+	cons.config.Metadata.Retry.Backoff = time.Duration(conf.GetInt("ElectTimeoutMs", 250)) * time.Millisecond
+	cons.config.Metadata.RefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshMs", 10000)) * time.Millisecond
 
-	cons.config.Consumer.Fetch.Min = int32(errors.Int(conf.GetInt("MinFetchSizeByte", 1)))
-	cons.config.Consumer.Fetch.Max = int32(errors.Int(conf.GetInt("MaxFetchSizeByte", 0)))
-	cons.config.Consumer.Fetch.Default = int32(errors.Int(conf.GetInt("MaxFetchSizeByte", 32768)))
-	cons.config.Consumer.MaxWaitTime = time.Duration(errors.Int(conf.GetInt("FetchTimeoutMs", 250))) * time.Millisecond
+	cons.config.Consumer.Fetch.Min = int32(conf.GetInt("MinFetchSizeByte", 1))
+	cons.config.Consumer.Fetch.Max = int32(conf.GetInt("MaxFetchSizeByte", 0))
+	cons.config.Consumer.Fetch.Default = int32(conf.GetInt("MaxFetchSizeByte", 32768))
+	cons.config.Consumer.MaxWaitTime = time.Duration(conf.GetInt("FetchTimeoutMs", 250)) * time.Millisecond
 
-	offsetValue := strings.ToLower(errors.String(conf.GetString("DefaultOffset", kafkaOffsetNewest)))
+	offsetValue := strings.ToLower(conf.GetString("DefaultOffset", kafkaOffsetNewest))
 	switch offsetValue {
 	case kafkaOffsetNewest:
 		cons.defaultOffset = kafka.OffsetNewest
@@ -169,31 +160,25 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 	default:
 		cons.defaultOffset, _ = strconv.ParseInt(offsetValue, 10, 64)
 		fileContents, err := ioutil.ReadFile(cons.offsetFile)
-		if !errors.Push(err) {
+		if !conf.Errors.Push(err) {
 			// Decode the JSON file into the partition -> offset map
 			encodedOffsets := make(map[string]int64)
-			err = json.Unmarshal(fileContents, &encodedOffsets)
-			if !errors.Push(err) {
+			if !conf.Errors.Push(json.Unmarshal(fileContents, &encodedOffsets)) {
 				for k, v := range encodedOffsets {
 					id, err := strconv.Atoi(k)
-					if err != nil {
-						return err
+					if !conf.Errors.Push(err) {
+						cons.offsets[int32(id)] = v
 					}
-					cons.offsets[int32(id)] = v
 				}
 			}
 		}
 	}
 
-	kafka.Logger = cons.Log.Note
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
-// Restart the consumer after wating for persistTimeout
-func (cons *Kafka) retry(partitionID int32, err error) {
-	cons.Log.Error.Printf("Restarting kafka consumer (%s:%d) - %s", cons.topic, cons.offsets[partitionID], err.Error())
+func (cons *Kafka) restartPartition(partitionID int32) {
 	time.Sleep(cons.persistTimeout)
-
 	cons.readFromPartition(partitionID)
 }
 
@@ -201,12 +186,9 @@ func (cons *Kafka) retry(partitionID int32, err error) {
 func (cons *Kafka) readFromPartition(partitionID int32) {
 	partCons, err := cons.consumer.ConsumePartition(cons.topic, partitionID, cons.offsets[partitionID])
 	if err != nil {
-		if !cons.client.Closed() {
-			go tgo.WithRecoverShutdown(func() {
-				cons.retry(partitionID, err)
-			})
-		}
-		return // ### return, stop this consumer ###
+		defer cons.restartPartition(partitionID)
+		cons.Log.Error.Printf("Restarting kafka consumer (%s:%d) - %s", cons.topic, cons.offsets[partitionID], err.Error())
+		return // ### return, stop and retry ###
 	}
 
 	// Make sure we wait for all consumers to end
@@ -243,7 +225,9 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 			cons.Enqueue(event.Value, sequence)
 
 		case err := <-partCons.Errors():
+			defer cons.restartPartition(partitionID)
 			cons.Log.Error.Print("Kafka consumer error:", err)
+			return // ### return, try reconnect ###
 
 		default:
 			spin.Yield()
@@ -285,9 +269,7 @@ func (cons *Kafka) startConsumers() error {
 			cons.offsets[partition] = cons.defaultOffset
 		}
 
-		go tgo.WithRecoverShutdown(func() {
-			cons.readFromPartition(partition)
-		})
+		go cons.readFromPartition(partition)
 	}
 
 	return nil
@@ -314,8 +296,7 @@ func (cons *Kafka) dumpIndex() {
 func (cons *Kafka) Consume(workers *sync.WaitGroup) {
 	cons.SetWorkerWaitGroup(workers)
 
-	err := cons.startConsumers()
-	if err != nil {
+	if err := cons.startConsumers(); err != nil {
 		cons.Log.Error.Print("Kafka client error - ", err)
 		return
 	}

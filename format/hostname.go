@@ -16,17 +16,17 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"os"
 )
 
+// Hostname formatter plugin
 // Hostname is a formatter that prefixes a message with the hostname.
 // Configuration example
 //
-//   - "<producer|stream>":
-//     Formatter: "format.Hostname"
-//     HostnameFormatter: "format.Envelope"
-//	   HostnameSeparator: " "
+//  - "stream.Broadcast":
+//    Formatter: "format.Hostname"
+//    HostnameFormatter: "format.Envelope"
+//    HostnameSeparator: " "
 //
 // HostnameDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Envelope"
@@ -43,12 +43,11 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Hostname) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(format.FormatterBase.Configure(conf))
+func (format *Hostname) Configure(conf core.PluginConfigReader) error {
+	format.FormatterBase.Configure(conf)
 
-	format.separator = errors.String(conf.GetString("Separator", ":"))
-	return errors.OrNil()
+	format.separator = conf.GetString("Separator", ":")
+	return conf.Errors.OrNil()
 }
 
 // Format prepends the Hostname of the message to the message.

@@ -1,51 +1,82 @@
 Profiler
 ========
 
-The profile consumer generates messages to test producers or the general infrastructure.
+The profiler plugin generates Runs x Batches messages and send them to the configured streams as fast as possible.
+This consumer can be used to profile producers and/or configurations.
 When attached to a fuse, this consumer will stop processing messages in case that fuse is burned.
-See the `API documentation <http://gollum.readthedocs.org/en/latest/consumers/profiler.html>`_ for additional details.
+
 
 Parameters
 ----------
 
 **Enable**
-  Can either be true or false to enable or disable this consumer.
+  Enable switches the consumer on or off.
+  By default this value is set to true.
+
 **ID**
-  Allows this consumer to be found by other plugins by name.
+  ID allows this consumer to be found by other plugins by name.
   By default this is set to "" which does not register this consumer.
-**Fuse**
-  Defines the name of the fuse this consumer is attached to.
-  When left empty no fuse is attached. This is the default value.
+
 **Stream**
-  Defines either one or an aray of stream names this consumer sends messages to.
+  Stream contains either a single string or a list of strings defining the message channels this consumer will produce.
+  By default this is set to "*" which means only producers set to consume "all streams" will get these messages.
+
+**Fuse**
+  Fuse defines the name of a fuse to observe for this consumer.
+  Producer may "burn" the fuse when they encounter errors.
+  Consumers may react on this by e.g. closing connections to notify any writing services of the problem.
+  Set to "" by default which disables the fuse feature for this consumer.
+  It is up to the consumer implementation to react on a broken fuse in an appropriate manner.
+
 **Runs**
-  Defines the number of messages to send per batch.
+  Runs defines the number of messages per batch.
+  By default this is set to 10000.
+
 **Batches**
-  Defines the number of profiling runs before automatically stopping Gollum.
-**Characters**
-  Defines a set of allowed characters when generating dummy strings.
-  Characters are chosen randomly from this string.
+  Batches defines the number of measurement runs to do.
+  By default this is set to 10.
+
 **TemplateCount**
-  The number of different message templates to generate.
+  TemplateCount defines the number of message templates to be generated.
+  A random message template will be chosen when a message is sent.
+  Templates are generated in advance.
+  By default this is set to 10.
+
+**Characters**
+  Characters defines the characters to be used in generated strings.
+  By default these are "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 ".
+
 **Message**
-  Formatting string to generate messages from. This is compatible to standard fmt.Printf style formatters.
-  The length attribute will be used to define the length of the data generated.
+  Message defines a go format string to be used to generate the message payloads.
+  The length of the values generated will be deducted from the format size parameter.
+  I.e. "%200d" will generate a digit between 0 and 200, "%10s" will generate a string with 10 characters, etc.
+  By default this is set to "%256s".
+
 **DelayMs**
-  Defines the number of milliseconds of sleep between messages.
+  DelayMs defines the number of milliseconds of sleep between messages.
   By default this is set to 0.
+
+**KeepRunning**
+  KeepRunning can be set to true to disable automatic shutdown of gollum after profiling is done.
+  This can be used to e.g. read metrics after a profile run.
+  By default this is set to false.
 
 Example
 -------
 
 .. code-block:: yaml
 
-  - "consumer.Profiler":
-    Enable: true
-    Runs: 100000
-    Batches: 100
-    Characters: "abcdefghijklmnopqrstuvwxyz .,!;:-_"
-    TemplateCount: 20
-    Message: "{name:\"%100s\", number: %2d, float: %4f}"
-    Stream:
-      - "profile"
-      - "dummy"
+	- "consumer.Profile":
+	    Enable: true
+	    ID: ""
+	    Fuse: ""
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    Runs: 10000
+	    Batches: 10
+	    TemplateCount: 10
+	    Characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
+	    Message: "%256s"
+	        DelayMs: 0
+	    KeepRunning: false

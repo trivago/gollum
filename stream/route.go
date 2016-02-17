@@ -16,29 +16,23 @@ package stream
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 )
 
 // Route stream plugin
+// Messages will be routed to all streams configured. Each target stream can
+// hold another stream configuration, too, so this is not directly sending to
+// the producers attached to the target streams.
 // Configuration example
 //
-//   - "stream.Route":
-//     Enable: true
-//     Stream: "data"
-//     Routes:
-//        - "db1"
-//        - "db2"
-//        - "data"
-//
-// Messages will be routed to the streams configured.
-// If no route is configured the message is discarded.
+//  - "stream.Route":
+//    Routes:
+//      - "foo"
+//      - "bar"
 //
 // Routes defines a 1:n stream remapping.
 // Messages are reassigned to all of stream(s) in this list.
 // If no route is set messages are forwarded on the incoming stream.
 // When routing to multiple streams, the incoming stream has to be listed explicitly to be used.
-//
-// This stream defines the same fields as stream.Broadcast.
 type Route struct {
 	core.StreamBase
 	routes []streamWithID
@@ -62,19 +56,16 @@ func newStreamWithID(streamName string) streamWithID {
 }
 
 // Configure initializes this distributor with values from a plugin config.
-func (stream *Route) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(stream.StreamBase.ConfigureStream(conf, stream.Broadcast))
+func (stream *Route) Configure(conf core.PluginConfigReader) error {
+	stream.StreamBase.ConfigureStream(conf, stream.Broadcast)
 
-	routes, err := conf.GetStringArray("Routes", []string{})
-	errors.Push(err)
-
+	routes := conf.GetStringArray("Routes", []string{})
 	for _, streamName := range routes {
 		targetStream := newStreamWithID(streamName)
 		stream.routes = append(stream.routes, targetStream)
 	}
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 func (stream *Route) routeMessage(msg core.Message) {

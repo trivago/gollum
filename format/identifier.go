@@ -16,32 +16,29 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"hash/fnv"
 	"strconv"
 	"strings"
 )
 
+// Identifier formatter plugin
 // Identifier is a formatter that will generate a (mostly) unique 64 bit
 // identifier number from the message timestamp and sequence number. The message
 // payload will not be encoded.
+// Configuration example
 //
-//   - "<producer|stream>":
-//     Formatter: "format.Identifier"
-//     IdentifierType: "hash"
+//  - "stream.Broadcast":
+//    Formatter: "format.Identifier"
+//    IdentifierType: "hash"
 //
 // IdentifierType defines the algorithm used to generate the message id.
 // This my be one of the following: "hash", "time", "seq", "seqhex".
 // By default this is set to "time".
-//  * When using "hash" the message payload will be hashed using fnv1a and returned
-// as hex.
-//  * When using "time" the id will be formatted YYMMDDHHmmSSxxxxxxx where x
-// denotes the sequence number modulo 10.000.000. I.e. 10mil messages per second
-// are possible before there is a collision.
-//  * When using "seq" the id will be returned as the integer representation of
-// the sequence number.
-//  * When using "seqhex" the id will be returned as the hex representation of
-// the sequence number.
+//  * When using "hash" the message payload will be hashed using fnv1a and returned as hex.
+//  * When using "time" the id will be formatted YYMMDDHHmmSSxxxxxxx where x denotes the sequence number modulo 10000000.
+//    I.e. 10mil messages per second are possible before there is a collision.
+//  * When using "seq" the id will be returned as the integer representation of the sequence number.
+//  * When using "seqhex" the id will be returned as the hex representation of the sequence number.
 //
 // IdentifierDataFormatter defines the formatter for the data that is used to
 // build the identifier from. By default this is set to "format.Forward"
@@ -55,11 +52,10 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Identifier) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(format.FormatterBase.Configure(conf))
+func (format *Identifier) Configure(conf core.PluginConfigReader) error {
+	format.FormatterBase.Configure(conf)
 
-	switch strings.ToLower(errors.String(conf.GetString("Type", "time"))) {
+	switch strings.ToLower(conf.GetString("Type", "time")) {
 	case "hash":
 		format.hash = format.idHash
 	case "seq":
@@ -72,7 +68,7 @@ func (format *Identifier) Configure(conf core.PluginConfig) error {
 		format.hash = format.idTime
 	}
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 func (format *Identifier) idHash(msg core.Message) []byte {

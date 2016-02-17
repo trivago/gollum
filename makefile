@@ -27,6 +27,11 @@ pi:
 	@echo "Building for Raspberry Pi"
 	@GOOS=linux GOARCH=arm go build -o gollum
 	@zip dist/gollum_pi.zip gollum config/*.conf
+    
+aws:
+	@echo "Building for AWS"
+	@GOOS=linux GOARCH=amd64 go build -o gollum
+	@zip -j dist/gollum_aws.zip gollum config/kinesis.conf dist/Procfile
 
 current:
 	@go build

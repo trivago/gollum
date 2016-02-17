@@ -17,9 +17,9 @@ package format
 import (
 	"bytes"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 )
 
+// StreamRoute formatter plugin
 // StreamRoute is a formatter that modifies a message's stream by reading a
 // prefix from the message's data (and discarding it).
 // The prefix is defined by everything before a given delimiter in the
@@ -27,12 +27,12 @@ import (
 // is not changed.
 // Configuration example
 //
-//   - "<producer|stream>":
-//     Formatter: "format.StreamRoute"
-//     StreamRouteFormatter: "format.Forward"
-//     StreamRouteStreamFormatter: "format.Forward"
-//     StreamRouteDelimiter: "$"
-//	   StreamRouteFormatBoth: false
+//  - "stream.Broadcast":
+//    Formatter: "format.StreamRoute"
+//    StreamRouteFormatter: "format.Forward"
+//    StreamRouteStreamFormatter: "format.Forward"
+//    StreamRouteDelimiter: "$"
+//    StreamRouteFormatBoth: false
 //
 // StreamRouteFormatter defines the formatter applied after reading the stream.
 // This formatter is applied to the data after StreamRouteDelimiter.
@@ -57,24 +57,22 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *StreamRoute) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(format.FormatterBase.Configure(conf))
+func (format *StreamRoute) Configure(conf core.PluginConfigReader) error {
+	format.FormatterBase.Configure(conf)
 
-	format.delimiter = []byte(errors.String(conf.GetString("Delimiter", ":")))
-	plugins, err := conf.GetPluginArray("NameFormatters", []core.Plugin{})
-	errors.Push(err)
+	format.delimiter = []byte(conf.GetString("Delimiter", ":"))
+	plugins := conf.GetPluginArray("NameFormatters", []core.Plugin{})
 
 	for _, plugin := range plugins {
 		formatter, isFormatter := plugin.(core.Formatter)
 		if !isFormatter {
-			errors.Pushf("Plugin is not a valid formatter")
+			conf.Errors.Pushf("Plugin is not a valid formatter")
 		} else {
 			format.streamFormatters = append(format.streamFormatters, formatter)
 		}
 	}
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 // Format adds prefix and postfix to the message formatted by the base formatter

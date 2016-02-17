@@ -28,7 +28,7 @@ type LogConsumer struct {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *LogConsumer) Configure(conf PluginConfig) error {
+func (cons *LogConsumer) Configure(conf PluginConfigReader) error {
 	cons.control = make(chan PluginControl, 1)
 	cons.logStream = StreamRegistry.GetStream(LogInternalStreamID)
 	return nil
@@ -44,7 +44,7 @@ func (cons *LogConsumer) Streams() []MessageStreamID {
 	return []MessageStreamID{LogInternalStreamID}
 }
 
-// Write fullfills the io.Writer interface
+// Write fulfills the io.Writer interface
 func (cons LogConsumer) Write(data []byte) (int, error) {
 	dataCopy := make([]byte, len(data))
 	copy(dataCopy, data)

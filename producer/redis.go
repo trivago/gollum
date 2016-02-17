@@ -16,7 +16,6 @@ package producer
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tnet"
 	"gopkg.in/redis.v2"
 	"strconv"
@@ -25,16 +24,18 @@ import (
 )
 
 // Redis producer plugin
+// This producer sends data to a redis server. Different redis storage types
+// and database indexes are supported. This producer does not implement support
+// for redis 3.0 cluster.
 // Configuration example
 //
-//   - "producer.Redis":
-//     Enable: true
-//     Address: ":6379"
-//	   Database: 0
-//	   Key: "default"
-//     Storage: "hash"
-//     FieldFormat: "format.Identifier"
-//     FieldAfterFormat: false
+//  - "producer.Redis":
+//    Address: ":6379"
+//    Database: 0
+//    Key: "default"
+//    Storage: "hash"
+//    FieldFormat: "format.Identifier"
+//    FieldAfterFormat: false
 //
 // Address stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:6379" or a file
@@ -75,16 +76,15 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Redis) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(prod.ProducerBase.Configure(conf))
+func (prod *Redis) Configure(conf core.PluginConfigReader) error {
+	prod.ProducerBase.Configure(conf)
 
-	plugins, err := conf.GetPluginArray("FieldFormatters", []core.Plugin{})
-	if !errors.Push(err) {
+	plugins, err := conf.WithError.GetPluginArray("FieldFormatters", []core.Plugin{})
+	if !conf.Errors.Push(err) {
 		for _, plugin := range plugins {
 			formatter, isFormatter := plugin.(core.Formatter)
 			if !isFormatter {
-				errors.Pushf("Plugin is not a valid formatter")
+				conf.Errors.Pushf("Plugin is not a valid formatter")
 			}
 			prod.fieldFormatters = append(prod.fieldFormatters, formatter)
 		}
@@ -92,13 +92,13 @@ func (prod *Redis) Configure(conf core.PluginConfig) error {
 
 	prod.SetStopCallback(prod.close)
 
-	prod.password = errors.String(conf.GetString("Password", ""))
-	prod.database = int64(errors.Int(conf.GetInt("Database", 0)))
-	prod.key = errors.String(conf.GetString("Key", "default"))
-	prod.fieldFromParsed = errors.Bool(conf.GetBool("FieldAfterFormat", false))
-	prod.address, prod.protocol = tnet.ParseAddress(errors.String(conf.GetString("Address", ":6379")))
+	prod.password = conf.GetString("Password", "")
+	prod.database = int64(conf.GetInt("Database", 0))
+	prod.key = conf.GetString("Key", "default")
+	prod.fieldFromParsed = conf.GetBool("FieldAfterFormat", false)
+	prod.address, prod.protocol = tnet.ParseAddress(conf.GetString("Address", ":6379"))
 
-	switch strings.ToLower(errors.String(conf.GetString("Storage", "hash"))) {
+	switch strings.ToLower(conf.GetString("Storage", "hash")) {
 	case "hash":
 		prod.store = prod.storeHash
 	case "list":
@@ -113,7 +113,7 @@ func (prod *Redis) Configure(conf core.PluginConfig) error {
 		prod.store = prod.storeString
 	}
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 func (prod *Redis) formatField(msg core.Message) []byte {

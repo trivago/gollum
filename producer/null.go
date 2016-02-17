@@ -21,11 +21,6 @@ import (
 )
 
 // Null producer plugin
-// Configuration example
-//
-//   - "producer.Null":
-//     Enable: true
-//
 // This producer does nothing and provides only bare-bone configuration (i.e.
 // enabled and streams). Use this producer to test consumer performance.
 // This producer does not implement a fuse breaker.
@@ -39,12 +34,11 @@ func init() {
 }
 
 // Configure initializes the basic members
-func (prod *Null) Configure(conf core.PluginConfig) error {
-	var err error
+func (prod *Null) Configure(conf core.PluginConfigReader) error {
 	prod.control = make(chan core.PluginControl, 1)
-	prod.streams, err = conf.GetStreamArray("Stream", []core.MessageStreamID{core.GetStreamID("conf.ID")})
+	prod.streams = conf.GetStreamArray("Stream", []core.MessageStreamID{core.GetStreamID("conf.ID")})
 
-	return err
+	return conf.Errors.OrNil()
 }
 
 // GetState always returns PluginStateActive

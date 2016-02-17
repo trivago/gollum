@@ -16,17 +16,17 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"regexp"
 )
 
-// RegExp allows filtering messages using regular expressions.
+// RegExp filter plugin
+// This plugin allows filtering messages using regular expressions.
 // Configuration example
 //
-//   - "stream.Broadcast":
-//     Filter: "filter.RegExp"
-//     FilterExpression: "\d+-.*"
-//     FilterExpressionNot: "\d+-.*"
+//  - "stream.Broadcast":
+//    Filter: "filter.RegExp"
+//    FilterExpression: "\d+-.*"
+//    FilterExpressionNot: "\d+-.*"
 //
 // FilterExpression defines the regular expression used for matching the message
 // payload. If the expression matches, the message is passed.
@@ -44,24 +44,23 @@ func init() {
 }
 
 // Configure initializes this filter with values from a plugin config.
-func (filter *RegExp) Configure(conf core.PluginConfig) error {
+func (filter *RegExp) Configure(conf core.PluginConfigReader) error {
 	var err error
-	errors := tgo.NewErrorStack()
-	errors.Push(filter.FilterBase.Configure(conf))
+	filter.FilterBase.Configure(conf)
 
-	exp := errors.String(conf.GetString("Expression", ""))
+	exp := conf.GetString("Expression", "")
 	if exp != "" {
 		filter.exp, err = regexp.Compile(exp)
-		errors.Push(err)
+		conf.Errors.Push(err)
 	}
 
-	exp = errors.String(conf.GetString("ExpressionNot", ""))
+	exp = conf.GetString("ExpressionNot", "")
 	if exp != "" {
 		filter.expNot, err = regexp.Compile(exp)
-		errors.Push(err)
+		conf.Errors.Push(err)
 	}
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 // Accepts allows all messages

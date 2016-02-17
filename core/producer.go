@@ -15,7 +15,6 @@
 package core
 
 import (
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tsync"
 	"sync"
@@ -58,22 +57,25 @@ type Producer interface {
 	DependsOn(Producer) bool
 }
 
-// ProducerBase base class
-// All producers support a common subset of configuration options:
+// ProducerBase plugin base type
+// This type defines a common baseclass for producers. All producers should
+// derive from this class, but not necessarily need to.
+// Configuration example:
 //
-//   - "producer.Something":
-//     Enable: true
-//	   ID: ""
-//     Channel: 8192
-//     ChannelTimeoutMs: 0
-//     ShutdownTimeoutMs: 3000
-//     Formatter: "format.Forward"
-//     Filter: "filter.All"
-//     DropToStream: "_DROPPED_"
-//	   Fuse: ""
-//     FuseTimeoutSec: 5
-//     Stream:
-//       - "console"
+//  - "producer.Foobar":
+//    Enable: true
+//    ID: ""
+//    Channel: 8192
+//    ChannelTimeoutMs: 0
+//    ShutdownTimeoutMs: 3000
+//    Formatter: "format.Forward"
+//    Filter: "filter.All"
+//    DropToStream: "_DROPPED_"
+//    Fuse: ""
+//    FuseTimeoutSec: 5
+//    Stream:
+//      - "foo"
+//      - "bar"
 //
 // Enable switches the consumer on or off. By default this value is set to true.
 //
@@ -141,32 +143,28 @@ type ProducerBase struct {
 }
 
 // Configure initializes the standard producer config values.
-func (prod *ProducerBase) Configure(conf PluginConfig) error {
-	errors := tgo.NewErrorStack()
-
-	prod.Log = NewPluginLogScope(conf)
+func (prod *ProducerBase) Configure(conf PluginConfigReader) error {
+	prod.Log = conf.GetLogScope()
 	prod.runState = NewPluginRunState()
 
-	formatPlugins, err := conf.GetPluginArray("Formatters", []Plugin{})
-	errors.Push(err)
+	formatPlugins := conf.GetPluginArray("Formatters", []Plugin{})
 
 	for _, plugin := range formatPlugins {
 		formatter, isFormatter := plugin.(Formatter)
 		if !isFormatter {
-			errors.Pushf("Plugin is not a valid formatter")
+			conf.Errors.Pushf("Plugin is not a valid formatter")
 		} else {
 			formatter.SetLogScope(prod.Log)
 			prod.formatters = append(prod.formatters, formatter)
 		}
 	}
 
-	filterPlugins, err := conf.GetPluginArray("Filters", []Plugin{})
-	errors.Push(err)
+	filterPlugins := conf.GetPluginArray("Filters", []Plugin{})
 
 	for _, plugin := range filterPlugins {
 		filter, isFilter := plugin.(Filter)
 		if !isFilter {
-			errors.Pushf("Plugin is not a valid filter")
+			conf.Errors.Pushf("Plugin is not a valid filter")
 		} else {
 			filter.SetLogScope(prod.Log)
 			prod.filters = append(prod.filters, filter)
@@ -174,19 +172,18 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	}
 
 	prod.control = make(chan PluginControl, 1)
-	prod.streams, err = conf.GetStreamArray("Streams", []MessageStreamID{WildcardStreamID})
-	errors.Push(err)
-	prod.messages = make(chan Message, errors.Int(conf.GetInt("Channel", 8192)))
-	prod.timeout = time.Duration(errors.Int(conf.GetInt("ChannelTimeoutMs", 0))) * time.Millisecond
-	prod.shutdownTimeout = time.Duration(errors.Int(conf.GetInt("ShutdownTimeoutMs", 3000))) * time.Millisecond
-	prod.fuseTimeout = time.Duration(errors.Int(conf.GetInt("FuseTimeoutSec", 10))) * time.Second
-	prod.fuseName = errors.String(conf.GetString("Fuse", ""))
-	prod.dropStreamID = GetStreamID(errors.String(conf.GetString("DropToStream", DroppedStream)))
+	prod.streams = conf.GetStreamArray("Streams", []MessageStreamID{WildcardStreamID})
+	prod.messages = make(chan Message, conf.GetInt("Channel", 8192))
+	prod.timeout = time.Duration(conf.GetInt("ChannelTimeoutMs", 0)) * time.Millisecond
+	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 3000)) * time.Millisecond
+	prod.fuseTimeout = time.Duration(conf.GetInt("FuseTimeoutSec", 10)) * time.Second
+	prod.fuseName = conf.GetString("Fuse", "")
+	prod.dropStreamID = GetStreamID(conf.GetString("DropToStream", DroppedStream))
 
 	prod.onRoll = nil
 	prod.onStop = nil
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 // setState sets the runstate of this plugin

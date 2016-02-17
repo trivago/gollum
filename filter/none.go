@@ -18,11 +18,13 @@ import (
 	"github.com/trivago/gollum/core"
 )
 
-// None blocks all messages.
+// None filter plugin
+// This plugin blocks all messages.
 // Configuration example
 //
 //   - "stream.Broadcast":
 //     Filter: "filter.None"
+//
 type None struct {
 	core.FilterBase
 }
@@ -32,7 +34,7 @@ func init() {
 }
 
 // Configure initializes this filter with values from a plugin config.
-func (filter *None) Configure(conf core.PluginConfig) error {
+func (filter *None) Configure(conf core.PluginConfigReader) error {
 	return filter.FilterBase.Configure(conf)
 }
 

@@ -43,7 +43,7 @@ func (format *FormatterBase) SetLogScope(log tlog.LogScope) {
 }
 
 // Configure sets up all values requred by FormatterBase.
-func (format *FormatterBase) Configure(conf PluginConfig) error {
-	format.Log = NewSubPluginLogScope(conf, "Formatter")
+func (format *FormatterBase) Configure(conf PluginConfigReader) error {
+	format.Log = conf.GetSubLogScope("Formatter")
 	return nil
 }

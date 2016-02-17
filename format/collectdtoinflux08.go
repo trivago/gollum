@@ -20,14 +20,15 @@ import (
 	"github.com/trivago/tgo/tio"
 )
 
+// CollectdToInflux08 formatter plugin
 // CollectdToInflux08 provides a transformation from collectd JSON data to
 // InfluxDB 0.8.x compatible JSON data. Trailing and leading commas are removed
 // from the Collectd message beforehand.
 // Configuration example
 //
-//   - "<producer|stream>":
-//     Formatter: "format.CollectdToInflux08"
-//     CollectdToInfluxFormatter: "format.Forward"
+//  - "stream.Broadcast":
+//    Formatter: "format.CollectdToInflux08"
+//    CollectdToInfluxFormatter: "format.Forward"
 //
 // CollectdToInfluxFormatter defines the formatter applied before the conversion
 // from Collectd to InfluxDB. By default this is set to format.Forward.
@@ -40,7 +41,7 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *CollectdToInflux08) Configure(conf core.PluginConfig) error {
+func (format *CollectdToInflux08) Configure(conf core.PluginConfigReader) error {
 	return format.FormatterBase.Configure(conf)
 }
 

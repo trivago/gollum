@@ -24,7 +24,7 @@ import (
 
 type mockPlugin struct{}
 
-func (m *mockPlugin) Configure(config PluginConfig) error {
+func (m *mockPlugin) Configure(config PluginConfigReader) error {
 	return nil
 }
 

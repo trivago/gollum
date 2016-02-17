@@ -17,21 +17,18 @@ package producer
 import (
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"os"
 	"strings"
 	"sync"
 )
 
 // Console producer plugin
-// Configuration example
-//
-//   - "producer.Console":
-//     Enable: true
-//     Console: "stdout"
-//
 // The console producer writes messages to the standard output streams.
 // This producer does not implement a fuse breaker.
+// Configuration example
+//
+//  - "producer.Console":
+//    Console: "stdout"
 //
 // Console may either be "stdout" or "stderr". By default it is set to "stdout".
 type Console struct {
@@ -44,12 +41,11 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Console) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(prod.ProducerBase.Configure(conf))
-
+func (prod *Console) Configure(conf core.PluginConfigReader) error {
+	prod.ProducerBase.Configure(conf)
 	prod.SetStopCallback(prod.close)
-	console := errors.String(conf.GetString("Console", "stdout"))
+
+	console := conf.GetString("Console", "stdout")
 
 	switch strings.ToLower(console) {
 	default:
@@ -60,7 +56,7 @@ func (prod *Console) Configure(conf core.PluginConfig) error {
 		prod.console = os.Stderr
 	}
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 func (prod *Console) printMessage(msg core.Message) {

@@ -36,30 +36,26 @@ const (
 )
 
 // Socket consumer plugin
-// Configuration example
-//
-//   - "consumer.Socket":
-//     Enable: true
-//     Address: ":5880"
-//     Permissions: "0770"
-//     Acknowledge: ""
-//     Partitioner: "delimiter"
-//     Delimiter: "\n"
-//     Offset: 0
-//     Size: 1
-//     ReconnectAfterSec: 2
-//     AckTimoutSec: 2
-//     ReadTimeoutSec: 5
-//     Stream:
-//       - "socket"
-//
 // The socket consumer reads messages directly as-is from a given socket.
-// Messages are separated from the stream by using a specific paritioner method.
+// Messages are separated from the stream by using a specific partitioner method.
 // When attached to a fuse, this consumer will stop accepting new connections
 // (closing the socket) and close all existing connections in case that fuse is
 // burned.
+// Configuration example
 //
-// Address stores the identifier to bind to.
+//  - "consumer.Socket":
+//    Address: ":5880"
+//    Permissions: "0770"
+//    Acknowledge: ""
+//    Partitioner: "delimiter"
+//    Delimiter: "\n"
+//    Offset: 0
+//    Size: 1
+//    ReconnectAfterSec: 2
+//    AckTimoutSec: 2
+//    ReadTimeoutSec: 5
+//
+// Address defines the protocol, host and port or socket to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
 //
@@ -75,20 +71,19 @@ const (
 //
 // Partitioner defines the algorithm used to read messages from the stream.
 // By default this is set to "delimiter".
-//  - "delimiter" separates messages by looking for a delimiter string. The
-//    delimiter is removed from the message.
-//  - "ascii" reads an ASCII encoded number at a given offset until a given
-//    delimiter is found. Everything to the right of and including the delimiter
-//    is removed from the message.
-//  - "binary" reads a binary number at a given offset and size
-//  - "binary_le" is an alias for "binary"
-//  - "binary_be" is the same as "binary" but uses big endian encoding
-//  - "fixed" assumes fixed size messages
+//  * "delimiter" separates messages by looking for a delimiter string.
+//    The delimiter is removed from the message.
+//  * "ascii" reads an ASCII number at a given offset until a given delimiter is found.
+//    Everything to the right of and including the delimiter is removed from the message.
+//  * "binary" reads a binary number at a given offset and size.
+//  * "binary_le" is an alias for "binary".
+//  * "binary_be" is the same as "binary" but uses big endian encoding.
+//  * "fixed" assumes fixed size messages.
 //
 // Delimiter defines the delimiter used by the text and delimiter partitioner.
 // By default this is set to "\n".
 //
-// Offset defines the offset used by the binary and text paritioner.
+// Offset defines the offset used by the binary and text partitioner.
 // By default this is set to 0. This setting is ignored by the fixed partitioner.
 //
 // Size defines the size in bytes used by the binary or fixed partitioner.
@@ -129,21 +124,21 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Socket) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(cons.ConsumerBase.Configure(conf))
+func (cons *Socket) Configure(conf core.PluginConfigReader) error {
+	cons.ConsumerBase.Configure(conf)
 
-	flags := errors.Int64(strconv.ParseInt(errors.String(conf.GetString("Permissions", "0770")), 8, 32))
+	flags, err := strconv.ParseInt(conf.GetString("Permissions", "0770"), 8, 32)
+	conf.Errors.Push(err)
 	cons.fileFlags = os.FileMode(flags)
 
 	cons.clients = list.New()
 	cons.clientLock = new(sync.Mutex)
-	cons.acknowledge = tstrings.Unescape(errors.String(conf.GetString("Acknowledge", "")))
-	cons.address, cons.protocol = tnet.ParseAddress(errors.String(conf.GetString("Address", ":5880")))
-	cons.reconnectTime = time.Duration(errors.Int(conf.GetInt("ReconnectAfterSec", 2))) * time.Second
-	cons.ackTimeout = time.Duration(errors.Int(conf.GetInt("AckTimoutSec", 2))) * time.Second
-	cons.readTimeout = time.Duration(errors.Int(conf.GetInt("ReadTimoutSec", 5))) * time.Second
-	cons.clearSocket = errors.Bool(conf.GetBool("RemoveOldSocket", true))
+	cons.acknowledge = tstrings.Unescape(conf.GetString("Acknowledge", ""))
+	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"))
+	cons.reconnectTime = time.Duration(conf.GetInt("ReconnectAfterSec", 2)) * time.Second
+	cons.ackTimeout = time.Duration(conf.GetInt("AckTimoutSec", 2)) * time.Second
+	cons.readTimeout = time.Duration(conf.GetInt("ReadTimoutSec", 5)) * time.Second
+	cons.clearSocket = conf.GetBool("RemoveOldSocket", true)
 
 	if cons.protocol != "unix" {
 		if cons.acknowledge != "" {
@@ -153,11 +148,11 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 		}
 	}
 
-	cons.delimiter = tstrings.Unescape(errors.String(conf.GetString("Delimiter", "\n")))
-	cons.offset = errors.Int(conf.GetInt("Offset", 0))
+	cons.delimiter = tstrings.Unescape(conf.GetString("Delimiter", "\n"))
+	cons.offset = conf.GetInt("Offset", 0)
 	cons.flags = 0
 
-	partitioner := strings.ToLower(errors.String(conf.GetString("Partitioner", "delimiter")))
+	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))
 	switch partitioner {
 	case "binary_be":
 		cons.flags |= tio.BufferedReaderFlagBigEndian
@@ -165,7 +160,7 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 
 	case "binary", "binary_le":
 		cons.flags |= tio.BufferedReaderFlagEverything
-		switch errors.Int(conf.GetInt("Size", 4)) {
+		switch conf.GetInt("Size", 4) {
 		case 1:
 			cons.flags |= tio.BufferedReaderFlagMLE8
 		case 2:
@@ -175,12 +170,12 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 		case 8:
 			cons.flags |= tio.BufferedReaderFlagMLE64
 		default:
-			return fmt.Errorf("Size only supports the value 1,2,4 and 8")
+			conf.Errors.Pushf("Size only supports the value 1,2,4 and 8")
 		}
 
 	case "fixed":
 		cons.flags |= tio.BufferedReaderFlagMLEFixed
-		cons.offset = errors.Int(conf.GetInt("Size", 1))
+		cons.offset = conf.GetInt("Size", 1)
 
 	case "ascii":
 		cons.flags |= tio.BufferedReaderFlagMLE
@@ -189,10 +184,10 @@ func (cons *Socket) Configure(conf core.PluginConfig) error {
 		// Nothing to add
 
 	default:
-		errors.Pushf("Unknown partitioner: %s", partitioner)
+		conf.Errors.Pushf("Unknown partitioner: %s", partitioner)
 	}
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 func (cons *Socket) sendAck(conn net.Conn, success bool) error {

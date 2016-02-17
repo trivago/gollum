@@ -16,17 +16,17 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"strconv"
 )
 
+// Runlength formatter plugin
 // Runlength is a formatter that prepends the length of the message, followed by
 // a ":". The actual message is formatted by a nested formatter.
 // Configuration example
 //
-//   - "<producer|stream>":
-//     Formatter: "format.Runlength"
-//     RunlengthFormatter: "format.Envelope"
+//  - "stream.Broadcast":
+//    Formatter: "format.Runlength"
+//    RunlengthFormatter: "format.Envelope"
 //
 // RunlengthDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
@@ -40,12 +40,11 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Runlength) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(format.FormatterBase.Configure(conf))
+func (format *Runlength) Configure(conf core.PluginConfigReader) error {
+	format.FormatterBase.Configure(conf)
 
-	format.separator = errors.String(conf.GetString("Separator", ":"))
-	return errors.OrNil()
+	format.separator = conf.GetString("Separator", ":")
+	return conf.Errors.OrNil()
 }
 
 // Format prepends the length of the message (followed by ":") to the message.

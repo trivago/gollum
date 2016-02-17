@@ -16,7 +16,6 @@ package consumer
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"io"
 	"os"
@@ -28,22 +27,16 @@ const (
 )
 
 // Console consumer plugin
-// Configuration example
-//
-//   - "consumer.Console":
-//     Enable: true
-//	   ExitOnEOF: false
-//     Stream:
-//       - "console"
-//
 // This consumer reads from stdin. A message is generated after each newline
 // character. When attached to a fuse, this consumer will stop accepting
 // messages in case that fuse is burned.
+// Configuration example
+//
+//  - "consumer.Console":
+//    ExitOnEOF: false
 //
 // ExitOnEOF can be set to true to trigger an exit signal if StdIn is closed
 // (e.g. when a pipe is closed). This is set to false by default.
-//
-// This consumer does not define any options beside the standard ones.
 type Console struct {
 	core.ConsumerBase
 	autoexit bool
@@ -54,14 +47,11 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Console) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
+func (cons *Console) Configure(conf core.PluginConfigReader) error {
+	cons.ConsumerBase.Configure(conf)
+	cons.autoexit = conf.GetBool("ExitOnEOF", false)
 
-	cons.autoexit = errors.Bool(conf.GetBool("ExitOnEOF", false))
-	err := cons.ConsumerBase.Configure(conf)
-	errors.Push(err)
-
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 func (cons *Console) readStdIn() {

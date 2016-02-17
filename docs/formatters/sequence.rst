@@ -1,21 +1,21 @@
 Sequence
 ========
 
-This formatter prepends the internal sequence number of the message as "number:" to the message.
-Note that "number" is the actual ASCII representation of a number, not a binary representation.
-This formatter allows a nested formatter to further modify the message.
+Sequence is a formatter that allows prefixing a message with the message's sequence number .
+
 
 Parameters
 ----------
 
-**SequenceFormatter**
-  Defines an additional formatter applied before adding the sequence number. :doc:`Format.Forward </formatters/forward>` by default.
+**SequenceDataFormatter**
+  SequenceDataFormatter defines the formatter for the data transferred as message.
+  By default this is set to "format.Forward" .
 
 Example
 -------
 
 .. code-block:: yaml
 
-  - "stream.Broadcast":
-    Formatter: "format.Sequence"
-    SequenceFormatter: "format.Forward"
+	    - "stream.Broadcast":
+	        Formatter: "format.Sequence"
+	        SequenceFormatter: "format.Envelope"

@@ -48,7 +48,7 @@ func registerMockStream(streamName string) {
 	mockConf.Override("Formatters", []interface{}{map[string]tcontainer.MarshalMap{"core.mockFormatter": tcontainer.NewMarshalMap()}})
 	mockConf.Override("Filter", "core.mockFilter")
 
-	mockStream.ConfigureStream(mockConf, func(msg Message) {})
+	mockStream.ConfigureStream(NewPluginConfigReader(&mockConf), func(msg Message) {})
 	StreamRegistry.Register(&mockStream, mockStream.GetBoundStreamID())
 }
 
@@ -69,7 +69,7 @@ func TestStreamConfigureStream(t *testing.T) {
 	}
 
 	mockStream := getMockStream()
-	mockStream.ConfigureStream(mockConf, mockDistributer)
+	mockStream.ConfigureStream(NewPluginConfigReader(&mockConf), mockDistributer)
 }
 
 func TestStreamPauseFlush(t *testing.T) {
@@ -80,7 +80,7 @@ func TestStreamPauseFlush(t *testing.T) {
 	mockDistributer := func(msg Message) {
 		expect.Equal("abc", msg.String())
 	}
-	// rewrite paused as nil to check if properly asigned by Pause(capacity).
+	// rewrite paused as nil to check if properly assigned by Pause(capacity).
 	mockStream.paused = nil
 	mockStream.distribute = mockDistributer
 

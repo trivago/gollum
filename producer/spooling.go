@@ -25,18 +25,6 @@ import (
 )
 
 // Spooling producer plugin
-// Configuration example
-//
-//   - "producer.Spooling":
-//     Enable: true
-//     Path: "/var/run/gollum/spooling"
-//     BatchMaxCount: 100
-//     BatchTimeoutSec: 5
-//     MaxFileSizeMB: 512
-//     MaxFileAgeMin: 1
-//     MessageSizeByte: 8192
-//     RespoolDelaySec: 10
-//
 // The Spooling producer buffers messages and sends them again to the previous
 // stream stored in the message. This means the message must have been routed
 // at least once before reaching the spooling producer. If the previous and
@@ -44,6 +32,17 @@ import (
 // The Formatter configuration value is forced to "format.Serialize" and
 // cannot be changed.
 // This producer does not implement a fuse breaker.
+// Configuration example
+//
+//  - "producer.Spooling":
+//    Path: "/var/run/gollum/spooling"
+//    BatchMaxCount: 100
+//    BatchTimeoutSec: 5
+//    MaxFileSizeMB: 512
+//    MaxFileAgeMin: 1
+//    MessageSizeByte: 8192
+//    RespoolDelaySec: 10
+//    MaxMessagesSec: 100
 //
 // Path sets the output directory for spooling files. Spooling files will
 // Files will be stored as "<path>/<stream>/<number>.spl". By default this is
@@ -101,31 +100,28 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Spooling) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(prod.ProducerBase.Configure(conf))
+func (prod *Spooling) Configure(conf core.PluginConfigReader) error {
+	prod.ProducerBase.Configure(conf)
+	prod.SetStopCallback(prod.close)
 
 	serializePlugin, err := core.NewPlugin(core.NewPluginConfig("", "format.Serialize"))
-	errors.Push(err)
+	conf.Errors.Push(err)
 	if serializeFormatter, isFormatter := serializePlugin.(core.Formatter); isFormatter {
 		prod.PrependFormatter(serializeFormatter)
 	} else {
-		errors.Pushf("Failed to instantiate format.Serialize")
+		conf.Errors.Pushf("Failed to instantiate format.Serialize")
 	}
 
-	prod.SetStopCallback(prod.close)
-
-	prod.path = errors.String(conf.GetString("Path", "/var/run/gollum/spooling"))
-
-	prod.maxFileSize = int64(errors.Int(conf.GetInt("MaxFileSizeMB", 512))) << 20
-	prod.maxFileAge = time.Duration(errors.Int(conf.GetInt("MaxFileAgeMin", 1))) * time.Minute
-	prod.batchMaxCount = errors.Int(conf.GetInt("BatchMaxCount", 100))
-	prod.batchTimeout = time.Duration(errors.Int(conf.GetInt("BatchTimeoutSec", 5))) * time.Second
+	prod.path = conf.GetString("Path", "/var/run/gollum/spooling")
+	prod.maxFileSize = int64(conf.GetInt("MaxFileSizeMB", 512)) << 20
+	prod.maxFileAge = time.Duration(conf.GetInt("MaxFileAgeMin", 1)) * time.Minute
+	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 100)
+	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.outfile = make(map[core.MessageStreamID]*spoolFile)
-	prod.RespoolDuration = time.Duration(errors.Int(conf.GetInt("RespoolDelaySec", 10))) * time.Second
-	prod.bufferSizeByte = errors.Int(conf.GetInt("BufferSizeByte", 8192))
+	prod.RespoolDuration = time.Duration(conf.GetInt("RespoolDelaySec", 10)) * time.Second
+	prod.bufferSizeByte = conf.GetInt("BufferSizeByte", 8192)
 
-	if maxMsgSec := time.Duration(errors.Int(conf.GetInt("MaxMessagesSec", 100))); maxMsgSec > 0 {
+	if maxMsgSec := time.Duration(conf.GetInt("MaxMessagesSec", 100)); maxMsgSec > 0 {
 		prod.readDelay = time.Second / maxMsgSec
 	} else {
 		prod.readDelay = 0
@@ -140,7 +136,7 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 		compress: false,
 	}
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 func (prod *Spooling) writeBatchOnTimeOut() {

@@ -26,35 +26,30 @@ import (
 )
 
 // ElasticSearch producer plugin
-// Configuration example
-//
-//   - "producer.ElasticSearch":
-//     Enable: true
-//     Connections: 6
-//     RetrySec: 5
-//     TTL: ""
-//     DayBasedIndex: false
-//     User: ""
-//     Password: ""
-//     BatchSizeByte: 32768
-//     BatchMaxCount: 256
-//     BatchTimeoutSec: 5
-//     Port: 9200
-//     Servers:
-//       - "localhost"
-//     Index:
-//       "console" : "console"
-//       "_GOLLUM_"  : "_GOLLUM_"
-//     Type:
-//       "console" : "console"
-//       "_GOLLUM_"  : "_GOLLUM_"
-//     Stream:
-//       - "console"
-//       - "_GOLLUM_"
-//
 // The ElasticSearch producer sends messages to elastic search using the bulk
 // http API. This producer uses a fuse breaker when cluster health reports a
 // "red" status or the connection is down.
+// Configuration example
+//
+//  - "producer.ElasticSearch":
+//    Connections: 6
+//    RetrySec: 5
+//    TTL: ""
+//    DayBasedIndex: false
+//    User: ""
+//    Password: ""
+//    BatchSizeByte: 32768
+//    BatchMaxCount: 256
+//    BatchTimeoutSec: 5
+//    Port: 9200
+//    Servers:
+//      - "localhost"
+//    Index:
+//      "console" : "console"
+//      "_GOLLUM_"  : "_GOLLUM_"
+//    Type:
+//      "console" : "console"
+//      "_GOLLUM_"  : "_GOLLUM_"
 //
 // RetrySec denotes the time in seconds after which a failed dataset will be
 // transmitted again. By default this is set to 5.
@@ -117,42 +112,37 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
-	var err error
-	errors := tgo.NewErrorStack()
-	errors.Push(prod.ProducerBase.Configure(conf))
-
+func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) error {
+	prod.ProducerBase.Configure(conf)
 	prod.SetStopCallback(prod.close)
+	prod.SetCheckFuseCallback(prod.isClusterUp)
 
 	defaultServer := []string{"localhost"}
-	numConnections := errors.Int(conf.GetInt("Connections", 6))
-	retrySec := errors.Int(conf.GetInt("RetrySec", 5))
+	numConnections := conf.GetInt("Connections", 6)
+	retrySec := conf.GetInt("RetrySec", 5)
 
 	prod.conn = elastigo.NewConn()
-	prod.conn.Hosts, err = conf.GetStringArray("Servers", defaultServer)
-	errors.Push(err)
-	prod.conn.Domain = errors.String(conf.GetString("Domain", prod.conn.Hosts[0]))
+	prod.conn.Hosts = conf.GetStringArray("Servers", defaultServer)
+	prod.conn.Domain = conf.GetString("Domain", prod.conn.Hosts[0])
 	prod.conn.ClusterDomains = prod.conn.Hosts
-	prod.conn.Port = strconv.Itoa(errors.Int(conf.GetInt("Port", 9200)))
-	prod.conn.Username = errors.String(conf.GetString("User", ""))
-	prod.conn.Password = errors.String(conf.GetString("Password", ""))
+	prod.conn.Port = strconv.Itoa(conf.GetInt("Port", 9200))
+	prod.conn.Username = conf.GetString("User", "")
+	prod.conn.Password = conf.GetString("Password", "")
 
 	prod.indexer = prod.conn.NewBulkIndexerErrors(numConnections, retrySec)
-	prod.indexer.BufferDelayMax = time.Duration(errors.Int(conf.GetInt("BatchTimeoutSec", 5))) * time.Second
-	prod.indexer.BulkMaxBuffer = errors.Int(conf.GetInt("BatchSizeByte", 32768))
-	prod.indexer.BulkMaxDocs = errors.Int(conf.GetInt("BatchMaxCount", 128))
+	prod.indexer.BufferDelayMax = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
+	prod.indexer.BulkMaxBuffer = conf.GetInt("BatchSizeByte", 32768)
+	prod.indexer.BulkMaxDocs = conf.GetInt("BatchMaxCount", 128)
 
 	prod.indexer.Sender = func(buf *bytes.Buffer) error {
 		_, err := prod.conn.DoCommand("POST", "/_bulk", nil, buf)
 		return err
 	}
 
-	prod.index, err = conf.GetStreamMap("Index", "")
-	errors.Push(err)
-	prod.msgType, err = conf.GetStreamMap("Type", "log")
-	errors.Push(err)
-	prod.msgTTL = errors.String(conf.GetString("TTL", ""))
-	prod.dayBasedIndex = errors.Bool(conf.GetBool("DayBasedIndex", false))
+	prod.index = conf.GetStreamMap("Index", "")
+	prod.msgType = conf.GetStreamMap("Type", "log")
+	prod.msgTTL = conf.GetString("TTL", "")
+	prod.dayBasedIndex = conf.GetBool("DayBasedIndex", false)
 
 	prod.counters = make(map[string]*int64)
 	prod.lastMetricUpdate = time.Now()
@@ -163,8 +153,7 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 		prod.counters[index] = new(int64)
 	}
 
-	prod.SetCheckFuseCallback(prod.isClusterUp)
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 func (prod *ElasticSearch) updateMetrics() {

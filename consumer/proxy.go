@@ -35,27 +35,22 @@ const (
 )
 
 // Proxy consumer plugin.
-// Configuration example
-//
-//   - "consumer.Proxy":
-//     Enable: true
-//     Address: ":5880"
-//     Partitioner: "delimiter"
-//     Delimiter: "\n"
-//     Offset: 0
-//     Size: 1
-//     Stream:
-//       - "proxy"
-//
 // The proxy consumer reads messages directly as-is from a given socket.
-// Messages are extracted by standard message size algorithms (see Parititioner).
+// Messages are extracted by standard message size algorithms (see Partitioner).
 // This consumer can be used with any compatible proxy producer to establish
 // a two-way communication.
 // When attached to a fuse, this consumer will stop accepting new connections
 // and close all existing connections in case that fuse is burned.
+// Configuration example
 //
+//  - "consumer.Proxy":
+//    Address: ":5880"
+//    Partitioner: "delimiter"
+//    Delimiter: "\n"
+//    Offset: 0
+//    Size: 1
 //
-// Address stores the identifier to bind to.
+// Address defines the protocol, host and port or socket to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
 // UDP is not supported.
@@ -63,19 +58,19 @@ const (
 // Partitioner defines the algorithm used to read messages from the stream.
 // The messages will be sent as a whole, no cropping or removal will take place.
 // By default this is set to "delimiter".
-//  - "delimiter" separates messages by looking for a delimiter string. The
-//    delimiter is included into the left hand message.
-//  - "ascii" reads an ASCII encoded number at a given offset until a given
-//    delimiter is found.
-//  - "binary" reads a binary number at a given offset and size
-//  - "binary_le" is an alias for "binary"
-//  - "binary_be" is the same as "binary" but uses big endian encoding
-//  - "fixed" assumes fixed size messages
+//  * "delimiter" separates messages by looking for a delimiter string.
+//    The delimiter is included into the left hand message.
+//  * "ascii" reads an ASCII number at a given offset until a given delimiter is found.
+//    Everything to the right of and including the delimiter is removed from the message.
+//  * "binary" reads a binary number at a given offset and size.
+//  * "binary_le" is an alias for "binary".
+//  * "binary_be" is the same as "binary" but uses big endian encoding.
+//  * "fixed" assumes fixed size messages.
 //
 // Delimiter defines the delimiter used by the text and delimiter partitioner.
 // By default this is set to "\n".
 //
-// Offset defines the offset used by the binary and text paritioner.
+// Offset defines the offset used by the binary and text partitioner.
 // By default this is set to 0. This setting is ignored by the fixed partitioner.
 //
 // Size defines the size in bytes used by the binary or fixed partitioner.
@@ -96,27 +91,26 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Proxy) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(cons.ConsumerBase.Configure(conf))
+func (cons *Proxy) Configure(conf core.PluginConfigReader) error {
+	cons.ConsumerBase.Configure(conf)
 
-	cons.address, cons.protocol = tnet.ParseAddress(errors.String(conf.GetString("Address", ":5880")))
+	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"))
 	if cons.protocol == "udp" {
-		errors.Pushf("Proxy does not support UDP")
+		conf.Errors.Pushf("Proxy does not support UDP")
 	}
 
-	cons.delimiter = tstrings.Unescape(errors.String(conf.GetString("Delimiter", "\n")))
-	cons.offset = errors.Int(conf.GetInt("Offset", 0))
+	cons.delimiter = tstrings.Unescape(conf.GetString("Delimiter", "\n"))
+	cons.offset = conf.GetInt("Offset", 0)
 	cons.flags = tio.BufferedReaderFlagEverything
 
-	partitioner := strings.ToLower(errors.String(conf.GetString("Partitioner", "delimiter")))
+	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))
 	switch partitioner {
 	case "binary_be":
 		cons.flags |= tio.BufferedReaderFlagBigEndian
 		fallthrough
 
 	case "binary", "binary_le":
-		switch errors.Int(conf.GetInt("Size", 4)) {
+		switch conf.GetInt("Size", 4) {
 		case 1:
 			cons.flags |= tio.BufferedReaderFlagMLE8
 		case 2:
@@ -126,12 +120,12 @@ func (cons *Proxy) Configure(conf core.PluginConfig) error {
 		case 8:
 			cons.flags |= tio.BufferedReaderFlagMLE64
 		default:
-			errors.Pushf("Size only supports the value 1,2,4 and 8")
+			conf.Errors.Pushf("Size only supports the value 1,2,4 and 8")
 		}
 
 	case "fixed":
 		cons.flags |= tio.BufferedReaderFlagMLEFixed
-		cons.offset = errors.Int(conf.GetInt("Size", 1))
+		cons.offset = conf.GetInt("Size", 1)
 
 	case "ascii":
 		cons.flags |= tio.BufferedReaderFlagMLE
@@ -140,10 +134,10 @@ func (cons *Proxy) Configure(conf core.PluginConfig) error {
 		// Nothing to add
 
 	default:
-		errors.Pushf("Unknown partitioner: %s", partitioner)
+		conf.Errors.Pushf("Unknown partitioner: %s", partitioner)
 	}
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 func (cons *Proxy) accept() {

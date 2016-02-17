@@ -18,23 +18,34 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"
 )
 
+// SplitToJSON formatter plugin
 // SplitToJSON is a formatter that splits a message by a given token and puts
 // the result into a JSON object by using an array based mapping
 // Configuration example
 //
-//   - "<producer|stream>":
-//     Formatter: "format.SplitToJSON"
-//     SplitToJSONDataFormatter: "format.Forward"
-//     SplitToJSONToken: "|"
-//     SplitToJSONKeys:
-//       - "timestamp"
-//       - "server"
-//       - "error"
+//  - "stream.Broadcast":
+//    Formatter: "format.SplitToJSON"
+//    SplitToJSONDataFormatter: "format.Forward"
+//    SplitToJSONToken: "|"
+//    SplitToJSONKeys:
+//      - "timestamp"
+//      - "server"
+//      - "error"
+//
+// SplitToJSONDataFormatter defines the formatter to apply before executing
+// this formatter. Set to "format.Forward" by default.
+//
+// SplitToJSONToken defines the separator character to use when processing a
+// message. By default this is set to "|".
+//
+// SplitToJSONKeys defines an array of keys to apply to the tokens generated
+// by splitting a message by SplitToJSONToken. The keys listed here are
+// applied to the resulting token array by index.
+// This list is empty by default.
 type SplitToJSON struct {
 	core.FormatterBase
 	token []byte
@@ -46,16 +57,13 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *SplitToJSON) Configure(conf core.PluginConfig) error {
-	var err error
-	errors := tgo.NewErrorStack()
-	errors.Push(format.FormatterBase.Configure(conf))
+func (format *SplitToJSON) Configure(conf core.PluginConfigReader) error {
+	format.FormatterBase.Configure(conf)
 
-	format.token = []byte(errors.String(conf.GetString("SplitBy", "|")))
-	format.keys, err = conf.GetStringArray("Keys", []string{})
-	errors.Push(err)
+	format.token = []byte(conf.GetString("SplitBy", "|"))
+	format.keys = conf.GetStringArray("Keys", []string{})
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 // Format returns the splitted message payload as json

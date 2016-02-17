@@ -45,38 +45,33 @@ const (
 )
 
 // File consumer plugin
-// Configuration example
-//
-//   - "consumer.File":
-//     Enable: true
-//     File: "/var/run/system.log"
-//     DefaultOffset: "Newest"
-//     OffsetFile: ""
-//     Delimiter: "\n"
-//     Stream:
-//       - "file"
-//
 // The file consumer allows to read from files while looking for a delimiter
 // that marks the end of a message. If the file is part of e.g. a log rotation
-// the file consumer can set to a symbolic link of the latest file and be told
-// to reopen the file by sending a SIGHUP.
+// the file consumer can be set to a symbolic link of the latest file and
+// (optionally) be told to reopen the file by sending a SIGHUP. A symlink to
+// a file will automatically be reopened if the underlying file is changed.
 // When attached to a fuse, this consumer will stop accepting messages in case
 // that fuse is burned.
+// Configuration example
+//
+//  - "consumer.File":
+//    File: "/var/run/system.log"
+//    DefaultOffset: "Newest"
+//    OffsetFile: ""
+//    Delimiter: "\n"
 //
 // File is a mandatory setting and contains the file to read. The file will be
 // read from beginning to end and the reader will stay attached until the
-// consumer is stopped. This means appends to the file will be recognized.
-// Symlinks are always resolved, i.e. changing the symlink target will
-// be ignored unless gollum is restarted or a log rotation is triggered.
+// consumer is stopped. I.e. appends to the attached file will be recognized
+// automatically.
 //
 // DefaultOffset defines where to start reading the file. Valid values are
-// "oldest" and "newest". If OffsetFile is defined this setting will be used
-// only if the file does not exist. If OffsetFile is not defined this setting
-// will allways be used.
-// By default this is set to Newest.
+// "oldest" and "newest". If OffsetFile is defined the DefaultOffset setting
+// will be ignored unless the file does not exist.
+// By default this is set to "newest".
 //
 // OffsetFile defines the path to a file that stores the current offset inside
-// the file. If the consumer is restarted that offset is used to continue
+// the given file. If the consumer is restarted that offset is used to continue
 // reading. By default this is set to "" which disables the offset file.
 //
 // Delimiter defines the end of a message inside the file. By default this is
@@ -98,18 +93,16 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *File) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(cons.ConsumerBase.Configure(conf))
-
+func (cons *File) Configure(conf core.PluginConfigReader) error {
+	cons.ConsumerBase.Configure(conf)
 	cons.SetRollCallback(cons.onRoll)
 
 	cons.file = nil
-	cons.fileName = errors.String(conf.GetString("File", "/var/run/system.log"))
-	cons.offsetFileName = errors.String(conf.GetString("OffsetFile", ""))
-	cons.delimiter = tstrings.Unescape(errors.String(conf.GetString("Delimiter", "\n")))
+	cons.fileName = conf.GetString("File", "/var/run/system.log")
+	cons.offsetFileName = conf.GetString("OffsetFile", "")
+	cons.delimiter = tstrings.Unescape(conf.GetString("Delimiter", "\n"))
 
-	switch strings.ToLower(errors.String(conf.GetString("DefaultOffset", fileOffsetEnd))) {
+	switch strings.ToLower(conf.GetString("DefaultOffset", fileOffsetEnd)) {
 	default:
 		fallthrough
 	case fileOffsetEnd:
@@ -123,7 +116,7 @@ func (cons *File) Configure(conf core.PluginConfig) error {
 		cons.seekOffset = 0
 	}
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 func (cons *File) storeOffset() {

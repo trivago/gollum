@@ -16,24 +16,13 @@ package stream
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"sync"
 	"sync/atomic"
 )
 
 // RoundRobin stream plugin
-// Configuration example
-//
-//   - "stream.RoundRobin":
-//     Enable: true
-//     Stream: "data"
-//	   Formatter: "format.Envelope"
-//     Filter: "filter.All"
-//
 // Messages will be sent to one of the producers attached to this stream.
 // Producers will be switched one-by-one.
-//
-// This stream defines the same fields as stream.Broadcast.
 type RoundRobin struct {
 	core.StreamBase
 	index         int32
@@ -46,14 +35,13 @@ func init() {
 }
 
 // Configure initializes this distributor with values from a plugin config.
-func (stream *RoundRobin) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(stream.StreamBase.ConfigureStream(conf, stream.roundRobin))
+func (stream *RoundRobin) Configure(conf core.PluginConfigReader) error {
+	stream.StreamBase.ConfigureStream(conf, stream.roundRobin)
 
 	stream.index = 0
 	stream.indexByStream = make(map[core.MessageStreamID]*int32)
 	stream.mapInitLock = new(sync.Mutex)
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 func (stream *RoundRobin) roundRobin(msg core.Message) {

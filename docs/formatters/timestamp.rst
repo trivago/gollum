@@ -1,25 +1,26 @@
 Timestamp
 =========
 
-This formatter prepends a custom timestamp to the message.
-The timestamp format is based upon Go's timestamp formatter. See Go's `documentation <http://golang.org/pkg/time/#pkg-constants>`_.
-This formatter allows a nested formatter to further modify the message.
+Timestamp is a formatter that allows prefixing a message with a timestamp (time of arrival at gollum) as well as postfixing it with a delimiter string.
+
 
 Parameters
 ----------
 
-**TimestampFormatter**
-  Defines an additional formatter applied before adding the timestamp. :doc:`Format.Forward </formatters/forward>` by default.
-
 **Timestamp**
-  Defines the format of the timestamp. "2006-01-02T15:04:05.000 MST " by default.
+  Timestamp defines a Go time format string that is used to format the actual timestamp that prefixes the message.
+  By default this is set to "2006-01-02 15:04:05 MST | ".
+
+**TimestampDataFormatter**
+  TimestampDataFormatter defines the formatter for the data transferred as message.
+  By default this is set to "format.Forward" .
 
 Example
 -------
 
 .. code-block:: yaml
 
-  - "stream.Broadcast":
-    Formatter: "format.Sequence"
-    Timestamp: "[2006-01-02 15:04:05]"
-    TimestampFormatter: "format.Forward"
+	    - "stream.Broadcast":
+	        Formatter: "format.Timestamp"
+	        TimestampFormatter: "format.Envelope"
+	        Timestamp: "2006-01-02T15:04:05.000 MST | "

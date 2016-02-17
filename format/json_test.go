@@ -28,7 +28,7 @@ func newTestJSONFormatter(directives []interface{}, start string) *JSON {
 	conf.Settings["startstate"] = start
 	conf.Settings["directives"] = directives
 
-	if err := format.Configure(conf); err != nil {
+	if err := format.Configure(core.NewPluginConfigReader(&conf)); err != nil {
 		panic(err)
 	}
 	return &format

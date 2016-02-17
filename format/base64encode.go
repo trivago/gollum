@@ -17,16 +17,16 @@ package format
 import (
 	"encoding/base64"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 )
 
+// Base64Encode formatter plugin
 // Base64Encode is a formatter that encodes a message as base64.
 // Configuration example
 //
-//   - "<producer|stream>":
-//     Formatter: "format.Base64Encode"
-//     Base64Formatter: "format.Forward"
-//     Base64Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
+//  - "stream.Broadcast":
+//    Formatter: "format.Base64Encode"
+//    Base64Formatter: "format.Forward"
+//    Base64Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
 //
 // Base64Dictionary defines the 64-character base64 lookup dictionary to use.
 // When left empty a dictionary as defined by RFC4648 is used. This is the default.
@@ -43,20 +43,19 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Base64Encode) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(format.FormatterBase.Configure(conf))
+func (format *Base64Encode) Configure(conf core.PluginConfigReader) error {
+	format.FormatterBase.Configure(conf)
 
-	dict := errors.String(conf.GetString("Dictionary", ""))
+	dict := conf.GetString("Dictionary", "")
 	if dict == "" {
 		format.dictionary = base64.StdEncoding
 	} else {
 		if len(dict) != 64 {
-			errors.Pushf("Base64 dictionary must contain 64 characters.")
+			conf.Errors.Pushf("Base64 dictionary must contain 64 characters.")
 		}
 		format.dictionary = base64.NewEncoding(dict)
 	}
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 // Format returns the original message payload

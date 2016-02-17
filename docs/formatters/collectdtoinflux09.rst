@@ -1,21 +1,22 @@
 CollectdToInflux09
 ==================
 
-This formatter converts data produced by Collectd to InfluxDB 0.9.x format.
+CollectdToInflux09 provides a transformation from collectd JSON data to InfluxDB 0.9.x compatible JSON data.
 Trailing and leading commas are removed from the Collectd message beforehand.
+
 
 Parameters
 ----------
 
 **CollectdToInfluxFormatter**
-  Defines the formatter applied before the conversion from Collectd to InfluxDB.
-  Set to :doc:`Format.Forward </formatters/forward>` by default.
+  CollectdToInfluxFormatter defines the formatter applied before the conversion from Collectd to InfluxDB.
+  By default this is set to format.Forward.
 
 Example
 -------
 
 .. code-block:: yaml
 
-  - "stream.Broadcast":
-    Formatter: "format.CollectdToInflux09"
-    CollectdToInflux09Formatter: "format.Forward"
+	    - "stream.Broadcast":
+	        Formatter: "format.CollectdToInflux09"
+	        CollectdToInfluxFormatter: "format.Forward"

@@ -7,9 +7,10 @@ Producers
 	console
 	elasticsearch
 	file
-	httpreq
+	httprequest
 	influxdb
 	kafka
+	kinesis
 	null
 	proxy
 	redis

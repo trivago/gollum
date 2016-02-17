@@ -19,24 +19,21 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tnet"
 	"net/http"
 	"sync"
 )
 
 // HTTPRequest producer plugin
-// Configuration example
-//
-//   - "producer.HTTPRequest":
-//     Enable:  true
-//     RawData: true
-//     Encoding: "text/plain; charset=utf-8"
-//     Address: "localhost:80"
-//
 // The HTTPRequest producers sends messages as HTTP packet to a given webserver.
 // This producer uses a fuse breaker when a request fails with an error
 // code > 400 or the connection is down.
+// Configuration example
+//
+//  - "producer.HTTPRequest":
+//    RawData: true
+//    Encoding: "text/plain; charset=utf-8"
+//    Address: "localhost:80"
 //
 // Address defines the webserver to send http requests to. Set to "localhost:80"
 // by default.
@@ -63,27 +60,25 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *HTTPRequest) Configure(conf core.PluginConfig) error {
+func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) error {
 	var err error
-	errors := tgo.NewErrorStack()
-	errors.Push(prod.ProducerBase.Configure(conf))
-
+	prod.ProducerBase.Configure(conf)
 	prod.SetStopCallback(prod.close)
+	prod.SetCheckFuseCallback(prod.isHostUp)
 
-	address := errors.String(conf.GetString("Address", "localhost:80"))
+	address := conf.GetString("Address", "localhost:80")
 	prod.protocol, prod.host, prod.port, err = tnet.SplitAddress(address, "http")
-	errors.Push(err)
+	conf.Errors.Push(err)
 
 	if prod.host == "" {
 		prod.host = "localhost"
 	}
 
 	prod.address = fmt.Sprintf("%s://%s:%s", prod.protocol, prod.host, prod.port)
-	prod.encoding = errors.String(conf.GetString("Encoding", "text/plain; charset=utf-8"))
-	prod.rawPackets = errors.Bool(conf.GetBool("RawData", true))
-	prod.SetCheckFuseCallback(prod.isHostUp)
+	prod.encoding = conf.GetString("Encoding", "text/plain; charset=utf-8")
+	prod.rawPackets = conf.GetBool("RawData", true)
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 func (prod *HTTPRequest) isHostUp() bool {

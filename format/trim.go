@@ -17,7 +17,6 @@ package format
 import (
 	"bytes"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 )
 
 // Trim is a formatter that removes part of the message.
@@ -43,16 +42,15 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Trim) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(format.FormatterBase.Configure(conf))
+func (format *Trim) Configure(conf core.PluginConfigReader) error {
+	format.FormatterBase.Configure(conf)
 
-	format.leftSeparator = []byte(errors.String(conf.GetString("LeftSeparator", "")))
-	format.rightSeparator = []byte(errors.String(conf.GetString("RightSeparator", "")))
-	format.leftOffset = errors.Int(conf.GetInt("LeftOffset", 0))
-	format.rightOffset = errors.Int(conf.GetInt("RightOffset", 0))
+	format.leftSeparator = []byte(conf.GetString("LeftSeparator", ""))
+	format.rightSeparator = []byte(conf.GetString("RightSeparator", ""))
+	format.leftOffset = conf.GetInt("LeftOffset", 0)
+	format.rightOffset = conf.GetInt("RightOffset", 0)
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 // Format removes data from the front and/or back of the message.

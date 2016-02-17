@@ -28,7 +28,7 @@ func (mock *mockFormatter) Format(msg Message) ([]byte, MessageStreamID) {
 	return mockFormatFunc(msg)
 }
 
-func (mock *mockFormatter) Configure(conf PluginConfig) error {
+func (mock *mockFormatter) Configure(conf PluginConfigReader) error {
 	return nil
 }
 

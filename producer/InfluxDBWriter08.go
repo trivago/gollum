@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tlog"
 	"io/ioutil"
@@ -45,15 +44,14 @@ type influxDBWriter08 struct {
 }
 
 // Configure sets the database connection values
-func (writer *influxDBWriter08) configure(conf core.PluginConfig, prod *InfluxDB) error {
-	errors := tgo.NewErrorStack()
-	writer.host = errors.String(conf.GetString("Host", "localhost:8086"))
-	writer.username = errors.String(conf.GetString("User", ""))
-	writer.password = errors.String(conf.GetString("Password", ""))
-	writer.databaseTemplate = errors.String(conf.GetString("Database", "default"))
+func (writer *influxDBWriter08) configure(conf core.PluginConfigReader, prod *InfluxDB) error {
+	writer.host = conf.GetString("Host", "localhost:8086")
+	writer.username = conf.GetString("User", "")
+	writer.password = conf.GetString("Password", "")
+	writer.databaseTemplate = conf.GetString("Database", "default")
 	writer.buffer = tio.NewByteStream(4096)
 	writer.connectionUp = false
-	writer.timeBasedDBName = errors.Bool(conf.GetBool("TimeBasedName", true))
+	writer.timeBasedDBName = conf.GetBool("TimeBasedName", true)
 	writer.Control = prod.Control
 	writer.log = prod.Log
 
@@ -67,7 +65,7 @@ func (writer *influxDBWriter08) configure(conf core.PluginConfig, prod *InfluxDB
 	}
 
 	prod.SetCheckFuseCallback(writer.isConnectionUp)
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 func (writer *influxDBWriter08) isConnectionUp() bool {

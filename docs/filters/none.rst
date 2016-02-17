@@ -1,18 +1,6 @@
 None
 ====
 
-This filter blocks all messages.
-This filter is intended to be used for temporarily disabling certain streams.
+This plugin blocks all messages.
 
-Parameters
-----------
 
-No parameters defined.
-
-Example
--------
-
-.. code-block:: yaml
-
-  - "stream.Broadcast":
-    Filter: "filter.None"

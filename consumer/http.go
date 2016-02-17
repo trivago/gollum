@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"crypto/tls"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tnet"
 	"io"
 	"net/http"
@@ -28,35 +27,34 @@ import (
 )
 
 // Http consumer plugin
-// Configuration example
-//
-//   - "consumer.Http":
-//     Enable: true
-//     Address: ":80"
-//     ReadTimeoutSec: 3
-//     WithHeaders: true
-//     Certificate: ""
-//     PrivateKey: ""
-//     Stream:
-//       - "http"
-//
-// Address stores the identifier to bind to.
-// This is allowed be any ip address/dns and port like "localhost:5880".
-// By default this is set to ":80".
+// This consumer opens up an HTTP 1.1 server and processes the contents of any
+// incoming HTTP request.
 // When attached to a fuse, this consumer will return error 503 in case that
 // fuse is burned.
+// Configuration example
+//
+//  - "consumer.Http":
+//    Address: ":80"
+//    ReadTimeoutSec: 3
+//    WithHeaders: true
+//    Certificate: ""
+//    PrivateKey: ""
+//
+// Address stores the host and port to bind to.
+// This is allowed be any ip address/dns and port like "localhost:5880".
+// By default this is set to ":80".
 //
 // ReadTimeoutSec specifies the maximum duration in seconds before timing out
-// read of the request. By default this is set to 3 seconds.
+// the HTTP read request. By default this is set to 3 seconds.
 //
 // WithHeaders can be set to false to only read the HTTP body instead of passing
-// the while HTTP message. By default this setting is set to true.
+// the whole HTTP message. By default this setting is set to true.
 //
-// Certificate defines a path to a root certificate file if this consumer is to
-// handle https connections. Left empty by default (disabled).
-// If a Certificate is given, a PrivatKey must be given, too.
+// Certificate defines a path to a root certificate file to make this consumer
+// handle HTTPS connections. Left empty by default (disabled).
+// If a Certificate is given, a PrivateKey must be given, too.
 //
-// PrivateKey defines a path to the private key used for https connections.
+// PrivateKey defines a path to the private key used for HTTPS connections.
 // Left empty by default (disabled).
 // If a Certificate is given, a PrivatKey must be given, too.
 type Http struct {
@@ -74,33 +72,32 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Http) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(cons.ConsumerBase.Configure(conf))
+func (cons *Http) Configure(conf core.PluginConfigReader) error {
+	cons.ConsumerBase.Configure(conf)
 
-	cons.address = errors.String(conf.GetString("Address", ":80"))
-	cons.readTimeoutSec = time.Duration(errors.Int(conf.GetInt("ReadTimeoutSec", 3))) * time.Second
-	cons.withHeaders = errors.Bool(conf.GetBool("WithHeaders", true))
+	cons.address = conf.GetString("Address", ":80")
+	cons.readTimeoutSec = time.Duration(conf.GetInt("ReadTimeoutSec", 3)) * time.Second
+	cons.withHeaders = conf.GetBool("WithHeaders", true)
 
-	certificateFile := errors.String(conf.GetString("Certificate", ""))
-	keyFile := errors.String(conf.GetString("PrivateKey", ""))
+	certificateFile := conf.GetString("Certificate", "")
+	keyFile := conf.GetString("PrivateKey", "")
 
 	if certificateFile != "" || keyFile != "" {
 		if certificateFile == "" || keyFile == "" {
-			errors.Pushf("There must always be a certificate and a private key or none of both")
+			conf.Errors.Pushf("There must always be a certificate and a private key or none of both")
 		} else {
 
 			cons.certificate = new(tls.Config)
 			cons.certificate.NextProtos = []string{"http/1.1"}
 
 			keypair, err := tls.LoadX509KeyPair(certificateFile, keyFile)
-			if !errors.Push(err) {
+			if !conf.Errors.Push(err) {
 				cons.certificate.Certificates = []tls.Certificate{keypair}
 			}
 		}
 	}
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 // requestHandler will handle a single web request.

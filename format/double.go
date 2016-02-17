@@ -16,7 +16,6 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 )
 
 // Double is a formatter that doubles the message and glues both parts
@@ -50,35 +49,34 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Double) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(format.FormatterBase.Configure(conf))
+func (format *Double) Configure(conf core.PluginConfigReader) error {
+	format.FormatterBase.Configure(conf)
 
-	leftPlugins, err := conf.GetPluginArray("Left", []core.Plugin{})
-	if !errors.Push(err) {
+	leftPlugins, err := conf.WithError.GetPluginArray("Left", []core.Plugin{})
+	if !conf.Errors.Push(err) {
 		for _, plugin := range leftPlugins {
 			formatter, isFormatter := plugin.(core.Formatter)
 			if !isFormatter {
-				errors.Pushf("Plugin is not a valid formatter")
+				conf.Errors.Pushf("Plugin is not a valid formatter")
 			}
 			format.left = append(format.left, formatter)
 		}
 	}
 
-	rightPlugins, err := conf.GetPluginArray("Right", []core.Plugin{})
-	if !errors.Push(err) {
+	rightPlugins, err := conf.WithError.GetPluginArray("Right", []core.Plugin{})
+	if !conf.Errors.Push(err) {
 		for _, plugin := range rightPlugins {
 			formatter, isFormatter := plugin.(core.Formatter)
 			if !isFormatter {
-				errors.Pushf("Plugin is not a valid formatter")
+				conf.Errors.Pushf("Plugin is not a valid formatter")
 			}
 			format.right = append(format.right, formatter)
 		}
 	}
 
-	format.separator = errors.String(conf.GetString("Separator", ":"))
-	format.leftStreamID = errors.Bool(conf.GetBool("LeftStreamID", false))
-	return errors.OrNil()
+	format.separator = conf.GetString("Separator", ":")
+	format.leftStreamID = conf.GetBool("LeftStreamID", false)
+	return conf.Errors.OrNil()
 }
 
 // Format prepends the Hostname of the message to the message.

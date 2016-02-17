@@ -16,7 +16,6 @@ package producer
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tnet"
 	"github.com/trivago/tgo/tsync"
 	"golang.org/x/net/websocket"
@@ -27,18 +26,16 @@ import (
 )
 
 // Websocket producer plugin
-// Configuration example
-//
-//   - "producer.Websocket":
-//     Enable:  true
-//     Address: ":81"
-//     Path:    "/"
-//	   ReadTimeoutSec: 3
-//
 // The websocket producer opens up a websocket.
 // This producer does not implement a fuse breaker.
+// Configuration example
 //
-// Address stores the identifier to bind to.
+//  - "producer.Websocket":
+//    Address: ":81"
+//    Path:    "/"
+//    ReadTimeoutSec: 3
+//
+// Address defines the host and port to bind to.
 // This is allowed be any ip address/dns and port like "localhost:5880".
 // By default this is set to ":81".
 //
@@ -67,17 +64,15 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Websocket) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(prod.ProducerBase.Configure(conf))
-
+func (prod *Websocket) Configure(conf core.PluginConfigReader) error {
+	prod.ProducerBase.Configure(conf)
 	prod.SetStopCallback(prod.close)
 
-	prod.address = errors.String(conf.GetString("Address", ":81"))
-	prod.path = errors.String(conf.GetString("Path", "/"))
-	prod.readTimeoutSec = time.Duration(errors.Int(conf.GetInt("ReadTimeoutSec", 3))) * time.Second
+	prod.address = conf.GetString("Address", ":81")
+	prod.path = conf.GetString("Path", "/")
+	prod.readTimeoutSec = time.Duration(conf.GetInt("ReadTimeoutSec", 3)) * time.Second
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 func (prod *Websocket) handleConnection(conn *websocket.Conn) {

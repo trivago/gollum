@@ -24,6 +24,7 @@ This is a patch / minor features release.
  * producer.Spool will drop messages if rotation failes (not reroute)
  * Messages that are spooled twice now retain their original stream
  * Better handling of situations where Sarama (Kafka) writes become blocking
+ * Plugins now start up as "initializing" not as "dead" preventing dropped messages during startup
  
 #### New
 
@@ -35,6 +36,7 @@ This is a patch / minor features release.
  * producer.File can now prune logfiles by file age
  * producer.Spool can now be rate limited
  * Dev version (major.minor.patch.dev) is now part of the metrics
+ * New AWS Kinesis producer and consumer
 
 # 0.4.1
 

@@ -568,7 +568,7 @@ func (j JsonHelper) PrettyJson() []byte {
 }
 func (j JsonHelper) Keys() []string {
 	keys := make([]string, 0)
-	for key, _ := range j {
+	for key := range j {
 		keys = append(keys, key)
 	}
 	return keys

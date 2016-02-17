@@ -26,25 +26,20 @@ import (
 )
 
 // Scribe producer plugin
-// Configuration example
-//
-//   - "producer.Scribe":
-//     Enable: true
-//     Address: "localhost:1463"
-//     ConnectionBufferSizeKB: 1024
-//     BatchMaxCount: 8192
-//     BatchFlushCount: 4096
-//     BatchTimeoutSec: 5
-//     Category:
-//       "console" : "console"
-//       "_GOLLUM_"  : "_GOLLUM_"
-//     Stream:
-//       - "console"
-//       - "_GOLLUM_"
-//
 // The scribe producer allows sending messages to Facebook's scribe.
 // This producer uses a fuse breaker if the connection to the scribe server is
 // lost.
+// Configuration example
+//
+//  - "producer.Scribe":
+//    Address: "localhost:1463"
+//    ConnectionBufferSizeKB: 1024
+//    BatchMaxCount: 8192
+//    BatchFlushCount: 4096
+//    BatchTimeoutSec: 5
+//    Category:
+//      "console" : "console"
+//      "_GOLLUM_"  : "_GOLLUM_"
 //
 // Address defines the host and port to connect to.
 // By default this is set to "localhost:1463".
@@ -98,29 +93,27 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Scribe) Configure(conf core.PluginConfig) error {
-	var err error
-	errors := tgo.NewErrorStack()
-	errors.Push(prod.ProducerBase.Configure(conf))
+func (prod *Scribe) Configure(conf core.PluginConfigReader) error {
+	prod.ProducerBase.Configure(conf)
 
 	prod.SetStopCallback(prod.close)
-	host := errors.String(conf.GetString("Address", "localhost:1463"))
+	host := conf.GetString("Address", "localhost:1463")
 
-	prod.batchMaxCount = errors.Int(conf.GetInt("BatchMaxCount", 8192))
+	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
 	prod.windowSize = prod.batchMaxCount
-	prod.batchFlushCount = errors.Int(conf.GetInt("BatchFlushCount", prod.batchMaxCount/2))
+	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
-	prod.batchTimeout = time.Duration(errors.Int(conf.GetInt("BatchTimeoutSec", 5))) * time.Second
+	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
 
-	prod.bufferSizeByte = errors.Int(conf.GetInt("ConnectionBufferSizeKB", 1<<10)) << 10 // 1 MB
-	prod.category, err = conf.GetStreamMap("Category", "")
-	errors.Push(err)
+	prod.bufferSizeByte = conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10 // 1 MB
+	prod.category = conf.GetStreamMap("Category", "")
 
 	// Initialize scribe connection
 
+	var err error
 	prod.socket, err = thrift.NewTSocket(host)
-	errors.Push(err)
+	conf.Errors.Push(err)
 
 	prod.transport = thrift.NewTFramedTransport(prod.socket)
 	binProtocol := thrift.NewTBinaryProtocol(prod.transport, false, false)
@@ -138,7 +131,7 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 	}
 
 	prod.SetCheckFuseCallback(prod.tryOpenConnection)
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 func (prod *Scribe) bufferMessage(msg core.Message) {

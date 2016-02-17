@@ -42,7 +42,7 @@ func (filter *FilterBase) SetLogScope(log tlog.LogScope) {
 }
 
 // Configure sets up all values requred by FormatterBase.
-func (filter *FilterBase) Configure(conf PluginConfig) error {
-	filter.Log = NewSubPluginLogScope(conf, "Filter")
+func (filter *FilterBase) Configure(conf PluginConfigReader) error {
+	filter.Log = conf.GetSubLogScope("Filter")
 	return nil
 }

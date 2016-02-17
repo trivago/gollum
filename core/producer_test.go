@@ -62,7 +62,7 @@ func TestProducerConfigure(t *testing.T) {
 	mockConf.Override("streams", []string{"testBoundStream"})
 	mockConf.Override("Filter", "core.mockFilter")
 
-	err := mockProducer.Configure(mockConf)
+	err := mockProducer.Configure(NewPluginConfigReader(&mockConf))
 	expect.NoError(err)
 }
 

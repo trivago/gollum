@@ -1,0 +1,5 @@
+gollum: ./gollum -ll 3 -m 5880 -c kinesis.conf 
+option_settings:
+  - namespace:  aws:elasticbeanstalk:application:environment
+    option_name:  PORT
+    value:  80

@@ -1,13 +1,10 @@
 {
 	"ImportPath": "github.com/trivago/gollum",
 	"GoVersion": "go1.5",
-	"Packages": [
-		"./..."
-	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/araddon/gou",
-			"Rev": "5e9110908156ae10fe90dd01d6c9fcbe058a6c9e"
+			"Rev": "1fd0868458fb611a8a956fae0ed0d0cc657cd321"
 		},
 		{
 			"ImportPath": "github.com/artyom/fb303",
@@ -20,6 +17,36 @@
 		{
 			"ImportPath": "github.com/artyom/thrift",
 			"Rev": "388840a05deb9b7d85fdf6c225a2729fe1826cb7"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/aws",
+			"Comment": "v1.1.2",
+			"Rev": "8041be5461786460d86b4358305fbdf32d37cfb2"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/private/endpoints",
+			"Comment": "v1.1.2",
+			"Rev": "8041be5461786460d86b4358305fbdf32d37cfb2"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/private/protocol",
+			"Comment": "v1.1.2",
+			"Rev": "8041be5461786460d86b4358305fbdf32d37cfb2"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/private/signer/v4",
+			"Comment": "v1.1.2",
+			"Rev": "8041be5461786460d86b4358305fbdf32d37cfb2"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/private/waiter",
+			"Comment": "v1.1.2",
+			"Rev": "8041be5461786460d86b4358305fbdf32d37cfb2"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/service/kinesis",
+			"Comment": "v1.1.2",
+			"Rev": "8041be5461786460d86b4358305fbdf32d37cfb2"
 		},
 		{
 			"ImportPath": "github.com/bitly/go-hostpool",
@@ -36,25 +63,35 @@
 			"Rev": "ded5959c0d4e360646dc9e9908cff48666781367"
 		},
 		{
+			"ImportPath": "github.com/go-ini/ini",
+			"Comment": "v1.9.0",
+			"Rev": "193d1ecb466bf97aae8b454a5cfc192941c64809"
+		},
+		{
 			"ImportPath": "github.com/golang/protobuf/proto",
-			"Rev": "6aaa8d47701fa6cf07e914ec01fde3d4a1fe79c3"
+			"Rev": "89238a3245885ada85d2f4fdbe76adae392df69b"
 		},
 		{
 			"ImportPath": "github.com/golang/snappy",
-			"Rev": "723cc1e459b8eea2dea4583200fd60757d40097a"
+			"Rev": "d1d908a252c22fd7afd36190d5cffb144aa8f777"
 		},
 		{
 			"ImportPath": "github.com/jeromer/syslogparser",
 			"Rev": "ff71fe7a7d5279df4b964b31f7ee4adf117277f6"
 		},
 		{
+			"ImportPath": "github.com/jmespath/go-jmespath",
+			"Comment": "0.2.2-12-g0b12d6b",
+			"Rev": "0b12d6b521d83fc7f755e7cfc1b1fbdd35a01a74"
+		},
+		{
 			"ImportPath": "github.com/klauspost/crc32",
-			"Rev": "999f3125931f6557b991b2f8472172bdfa578d38"
+			"Rev": "81ac41837f877bc6a7f81321c2c29d88d69c108a"
 		},
 		{
 			"ImportPath": "github.com/mattbaird/elastigo/lib",
-			"Comment": "v1.0-293-gbd9e895",
-			"Rev": "bd9e895823b8d2159b9a3dcf8ef17498eb886769"
+			"Comment": "v1.0-299-g7dc47d2",
+			"Rev": "7dc47d261c9718f93000e2ed2b0b94b13d078e77"
 		},
 		{
 			"ImportPath": "github.com/mgutz/ansi",
@@ -66,8 +103,8 @@
 		},
 		{
 			"ImportPath": "github.com/shopify/sarama",
-			"Comment": "v1.7.0-23-gd37c73f",
-			"Rev": "d37c73f2b2bce85f7fa16b6a550d26c5372892ef"
+			"Comment": "v1.8.0-2-g0040558",
+			"Rev": "0040558fcec302da8e56f7e5d9ac24f0b407c36d"
 		},
 		{
 			"ImportPath": "github.com/trivago/tgo",
@@ -75,12 +112,12 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
-			"Rev": "04b9de9b512f58addf28c9853d50ebef61c3953e"
+			"Rev": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3"
 		},
 		{
 			"ImportPath": "gopkg.in/Shopify/sarama.v1",
-			"Comment": "v1.7.0",
-			"Rev": "87ec8d76e89cc002ff5673ee7598ae1db2f32424"
+			"Comment": "v1.8.0",
+			"Rev": "4ba9bba6adb6697bcec3841e1ecdfecf5227c3b9"
 		},
 		{
 			"ImportPath": "gopkg.in/bufio.v1",

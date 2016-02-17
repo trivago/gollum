@@ -16,17 +16,17 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 )
 
+// Timestamp formatter plugin
 // Timestamp is a formatter that allows prefixing a message with a timestamp
 // (time of arrival at gollum) as well as postfixing it with a delimiter string.
 // Configuration example
 //
-//   - "<producer|stream>":
-//     Formatter: "format.Timestamp"
-//     TimestampFormatter: "format.Envelope"
-//     Timestamp: "2006-01-02T15:04:05.000 MST | "
+//  - "stream.Broadcast":
+//    Formatter: "format.Timestamp"
+//    TimestampFormatter: "format.Envelope"
+//    Timestamp: "2006-01-02T15:04:05.000 MST | "
 //
 // Timestamp defines a Go time format string that is used to format the actual
 // timestamp that prefixes the message.
@@ -44,12 +44,11 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Timestamp) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(format.FormatterBase.Configure(conf))
+func (format *Timestamp) Configure(conf core.PluginConfigReader) error {
+	format.FormatterBase.Configure(conf)
 
-	format.timestampFormat = errors.String(conf.GetString("Timestamp", "2006-01-02 15:04:05 MST | "))
-	return errors.OrNil()
+	format.timestampFormat = conf.GetString("Timestamp", "2006-01-02 15:04:05 MST | ")
+	return conf.Errors.OrNil()
 }
 
 // Format prepends the timestamp of the message to the message.

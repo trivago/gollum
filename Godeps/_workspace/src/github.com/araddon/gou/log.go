@@ -228,7 +228,7 @@ func LogTracef(logLvl int, format string, v ...interface{}) {
 		stackTraceStr := string(stackBuf[0:stackBufLen])
 		parts := strings.Split(stackTraceStr, "\n")
 		if len(parts) > 1 {
-			v = append(v, strings.Join(parts[3:len(parts)], "\n"))
+			v = append(v, strings.Join(parts[3:], "\n"))
 		}
 		DoLog(3, logLvl, fmt.Sprintf(format+"\n%v", v...))
 	}
@@ -255,7 +255,7 @@ func LogTraceDf(logLvl, lineCt int, format string, v ...interface{}) {
 				v = append(v, strings.Join(parts2, "\n"))
 				//v = append(v, strings.Join(parts[3:3+lineCt], "\n"))
 			} else {
-				v = append(v, strings.Join(parts[3:len(parts)], "\n"))
+				v = append(v, strings.Join(parts[3:], "\n"))
 			}
 		}
 		DoLog(3, logLvl, fmt.Sprintf(format+"\n%v", v...))

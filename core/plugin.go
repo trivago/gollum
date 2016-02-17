@@ -17,7 +17,6 @@ package core
 import (
 	"fmt"
 	"github.com/trivago/tgo"
-	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/treflect"
 	"sync"
 	"sync/atomic"
@@ -54,7 +53,7 @@ const (
 	// lifecycle of a plugin orderd by time.
 	// -------------------------------------------------------------------------
 
-	// PluginStateInitializing is set when a plugin has not yet been configured
+	// PluginStateInitializing is set when a plugin is not yet configured
 	PluginStateInitializing = PluginState(iota)
 	// PluginStateWaiting is set when a plugin is active but currently unable to process data
 	PluginStateWaiting = PluginState(iota)
@@ -79,7 +78,7 @@ type PluginRunState struct {
 // instantiated during runtim.
 type Plugin interface {
 	// Configure is called during NewPluginWithType
-	Configure(conf PluginConfig) error
+	Configure(conf PluginConfigReader) error
 }
 
 // PluginWithState allows certain plugins to give information about their runstate
@@ -90,24 +89,6 @@ type PluginWithState interface {
 
 func init() {
 	tgo.Metric.New(metricActiveWorkers)
-}
-
-// NewPluginLogScope creates a new tlog.LogScope for the plugin contained in this
-// config.
-func NewPluginLogScope(conf PluginConfig) tlog.LogScope {
-	if conf.ID == "" {
-		return tlog.NewLogScope(conf.Typename)
-	}
-	return tlog.NewLogScope(conf.Typename + ":" + conf.ID)
-}
-
-// NewSubPluginLogScope creates a new sub scope tlog.LogScope for the plugin contained
-// in this config.
-func NewSubPluginLogScope(conf PluginConfig, subScope string) tlog.LogScope {
-	if conf.ID == "" {
-		return tlog.NewLogScope(conf.Typename + ":" + subScope)
-	}
-	return tlog.NewLogScope(conf.Typename + ":" + conf.ID + ":" + subScope)
 }
 
 // NewPluginRunState creates a new plugin state helper
@@ -159,7 +140,7 @@ func NewPlugin(config PluginConfig) (Plugin, error) {
 		return nil, fmt.Errorf("%s is not a plugin type", config.Typename)
 	}
 
-	err = plugin.Configure(config)
+	err = plugin.Configure(NewPluginConfigReader(&config))
 	if err == nil {
 		if config.ID != "" {
 			// If an id is set it must be unique

@@ -23,6 +23,7 @@ import (
 	"os"
 	"os/signal"
 	"reflect"
+	"runtime/debug"
 	"sync"
 	"time"
 )
@@ -234,7 +235,8 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	// built. This eliminates lookups when sending to specific streams.
 
 	logConsumer, _ := plex.consumers[0].(*core.LogConsumer)
-	logConsumer.Configure(core.NewPluginConfig("", "core.LogConsumer"))
+	logConsumerConfig := core.NewPluginConfig("", "core.LogConsumer")
+	logConsumer.Configure(core.NewPluginConfigReader(&logConsumerConfig))
 
 	for _, config := range consumerConfig {
 		for i := 0; i < config.Instances; i++ {
@@ -305,12 +307,14 @@ func (plex *multiplexer) shutdown() {
 	logFallback := time.AfterFunc(time.Duration(3)*time.Second, func() {
 		tlog.SetWriter(os.Stdout)
 	})
-	defer logFallback.Stop()
 
-	// Handle panics if any
-	if r := recover(); r != nil {
-		tlog.Error.Println(r)
-	}
+	defer func() {
+		if r := recover(); r != nil {
+			tlog.Error.Println(r)
+			tlog.Error.Print(string(debug.Stack()))
+		}
+		logFallback.Stop()
+	}()
 
 	// Make Ctrl+C possible during shutdown sequence
 	if plex.signal != nil {

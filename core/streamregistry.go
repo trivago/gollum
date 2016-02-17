@@ -200,7 +200,7 @@ func (registry *streamRegistry) Register(stream Stream, streamID MessageStreamID
 // GetStreamOrFallback returns the stream for the given id if it is registered.
 // If no stream is registered for the given id the default stream is used.
 // The default stream is equivalent to an unconfigured stream.Broadcast with
-// all wildcard producers allready added.
+// all wildcard producers already added.
 func (registry *streamRegistry) GetStreamOrFallback(streamID MessageStreamID) Stream {
 	if stream, exists := registry.streams[streamID]; exists {
 		return stream
@@ -213,7 +213,7 @@ func (registry *streamRegistry) GetStreamOrFallback(streamID MessageStreamID) St
 	defaultConfig := NewPluginConfig("", "core.StreamBase")
 	defaultConfig.Override("stream", streamName)
 
-	defaultStream.ConfigureStream(defaultConfig, defaultStream.Broadcast)
+	defaultStream.ConfigureStream(NewPluginConfigReader(&defaultConfig), defaultStream.Broadcast)
 	registry.AddWildcardProducersToStream(defaultStream)
 
 	registry.streams[streamID] = defaultStream

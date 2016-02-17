@@ -17,7 +17,6 @@ package consumer
 import (
 	"github.com/jeromer/syslogparser"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tnet"
 	"gopkg.in/mcuadros/go-syslog.v2"
 	"gopkg.in/mcuadros/go-syslog.v2/format"
@@ -25,32 +24,27 @@ import (
 )
 
 // Syslogd consumer plugin
-// Configuration example
-//
-//   - "consumer.Syslogd":
-//     Enable: true
-//     Address: "udp://0.0.0.0:514"
-//     Format: "RFC6587"
-//     Stream:
-//       - "syslog"
-//
 // The syslogd consumer accepts messages from a syslogd comaptible socket.
 // When attached to a fuse, this consumer will stop the syslogd service in case
 // that fuse is burned.
+// Configuration example
 //
-// Address stores the identifier to bind to.
+//  - "consumer.Syslogd":
+//    Address: "udp://0.0.0.0:514"
+//    Format: "RFC6587"
+//
+// Address defines the protocol, host and port or socket to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
 // like "unix:///var/gollum.socket". By default this is set to "udp://0.0.0.0:514".
 // The protocol can be defined along with the address, e.g. "tcp://..." but
 // this may be ignored if a certain protocol format does not support the desired
 // transport protocol.
 //
-// Format define the used syslog standard.
-// Three standards are currently supported:
-// 	* RFC3164 (https://tools.ietf.org/html/rfc3164) udp only
-// 	* RFC5424 (https://tools.ietf.org/html/rfc5424) udp only
-// 	* RFC6587 (https://tools.ietf.org/html/rfc6587) tcp or udp
-// By default this is set to "RFC6587".
+// Format defines the syslog standard to expect for message encoding.
+// Three standards are currently supported, by default this is set to "RFC6587".
+//  * RFC3164 (https://tools.ietf.org/html/rfc3164) udp only.
+//  * RFC5424 (https://tools.ietf.org/html/rfc5424) udp only.
+//  * RFC6587 (https://tools.ietf.org/html/rfc6587) tcp or udp.
 type Syslogd struct {
 	core.ConsumerBase
 	format   format.Format // RFC3164, RFC5424 or RFC6587?
@@ -64,17 +58,16 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Syslogd) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(cons.ConsumerBase.Configure(conf))
+func (cons *Syslogd) Configure(conf core.PluginConfigReader) error {
+	cons.ConsumerBase.Configure(conf)
 
-	cons.address, cons.protocol = tnet.ParseAddress(errors.String(conf.GetString("Address", "udp://0.0.0.0:514")))
-	format := errors.String(conf.GetString("Format", "RFC6587"))
+	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", "udp://0.0.0.0:514"))
+	format := conf.GetString("Format", "RFC6587")
 
 	switch cons.protocol {
 	case "udp", "tcp", "unix":
 	default:
-		errors.Pushf("Syslog: unknown protocol type %s", cons.protocol) // ### return, unknown protocol ###
+		conf.Errors.Pushf("Syslog: unknown protocol type %s", cons.protocol) // ### return, unknown protocol ###
 	}
 
 	switch format {
@@ -99,11 +92,11 @@ func (cons *Syslogd) Configure(conf core.PluginConfig) error {
 		cons.format = syslog.RFC6587
 
 	default:
-		errors.Pushf("Syslog: Format %s is not supported", format)
+		conf.Errors.Pushf("Syslog: Format %s is not supported", format)
 	}
 
 	cons.sequence = new(uint64)
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 // Handle implements the syslog handle interface

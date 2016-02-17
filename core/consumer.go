@@ -15,7 +15,6 @@
 package core
 
 import (
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tsync"
 	"sync"
@@ -40,16 +39,18 @@ type Consumer interface {
 	Control() chan<- PluginControl
 }
 
-// ConsumerBase base class
-// All consumers support a common subset of configuration options:
+// ConsumerBase plugin base type
+// This type defines a common baseclass for all consumers. All consumer plugins
+// should derive from this class but don't necessarily need to.
+// Configuration example:
 //
-// - "consumer.Something":
-//   Enable: true
-//   ID: ""
-//   Fuse: ""
-//   Stream:
-//      - "error"
-//      - "default"
+//  - "consumer.Foobar":
+//    Enable: true
+//    ID: ""
+//    Fuse: ""
+//    Stream:
+//      - "foo"
+//      - "bar"
 //
 // Enable switches the consumer on or off. By default this value is set to true.
 //
@@ -80,17 +81,14 @@ type ConsumerBase struct {
 }
 
 // Configure initializes standard consumer values from a plugin config.
-func (cons *ConsumerBase) Configure(conf PluginConfig) error {
-	errors := tgo.NewErrorStack()
-
-	cons.Log = NewPluginLogScope(conf)
+func (cons *ConsumerBase) Configure(conf PluginConfigReader) error {
+	cons.Log = conf.GetLogScope()
 	cons.runState = NewPluginRunState()
 	cons.control = make(chan PluginControl, 1)
 	cons.onRoll = nil
 	cons.onStop = nil
 
-	streamIDs, err := conf.GetStreamArray("Streams", []MessageStreamID{GetStreamID(conf.ID)})
-	errors.Push(err)
+	streamIDs := conf.GetStreamArray("Streams", []MessageStreamID{GetStreamID(conf.GetID())})
 
 	for _, streamID := range streamIDs {
 		cons.streams = append(cons.streams, MappedStream{
@@ -99,12 +97,12 @@ func (cons *ConsumerBase) Configure(conf PluginConfig) error {
 		})
 	}
 
-	fuseName, err := conf.GetString("Fuse", "")
-	if !errors.Push(err) && fuseName != "" {
+	fuseName, err := conf.WithError.GetString("Fuse", "")
+	if !conf.Errors.Push(err) && fuseName != "" {
 		cons.fuse = StreamRegistry.GetFuse(fuseName)
 	}
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 // setState sets the runstate of this plugin

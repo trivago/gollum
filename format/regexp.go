@@ -16,7 +16,6 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"regexp"
 )
 
@@ -39,21 +38,20 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *RegExp) Configure(conf core.PluginConfig) error {
-	var err error
-	errors := tgo.NewErrorStack()
-	errors.Push(format.FormatterBase.Configure(conf))
+func (format *RegExp) Configure(conf core.PluginConfigReader) error {
+	format.FormatterBase.Configure(conf)
 
-	if errors.Bool(conf.GetBool("Posix", true)) {
-		format.expression, err = regexp.CompilePOSIX(errors.String(conf.GetString("Expression", "(.*)")))
+	var err error
+	if conf.GetBool("Posix", true) {
+		format.expression, err = regexp.CompilePOSIX(conf.GetString("Expression", "(.*)"))
 	} else {
-		format.expression, err = regexp.Compile(errors.String(conf.GetString("Expression", "(.*)")))
+		format.expression, err = regexp.Compile(conf.GetString("Expression", "(.*)"))
 	}
 
-	errors.Push(err)
-	format.template = []byte(errors.String(conf.GetString("Template", "${1}")))
+	conf.Errors.Push(err)
+	format.template = []byte(conf.GetString("Template", "${1}"))
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 // Format prepends the timestamp of the message to the message.

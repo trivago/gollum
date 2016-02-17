@@ -17,13 +17,13 @@ package filter
 import (
 	"encoding/json"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 	"regexp"
 	"strconv"
 )
 
-// JSON allows filtering of JSON messages by looking at certain fields.
+// JSON filter plugin
+// This plugin allows filtering of JSON messages by looking at certain fields.
 // Note that this filter is quite expensive due to JSON marshaling and regexp
 // testing of every message passing through it.
 // Configuration example
@@ -33,15 +33,15 @@ import (
 //    FilterReject:
 //      "command" : "state\d\..*"
 //    FilterAccept:
-//	    "args/results[0]value" : "true"
+//      "args/results[0]value" : "true"
 //      "args/results[1]" : "true"
 //      "command" : "state\d\..*"
 //
-// FormatReject defines fields that will cause a message to be rejected if the
+// FilterReject defines fields that will cause a message to be rejected if the
 // given regular expression matches. Rejects are checked before Accepts.
 // Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
 //
-// FormatAccept defines fields that will cause a message to be rejected if the
+// FilterAccept defines fields that will cause a message to be rejected if the
 // given regular expression does not match.
 // Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
 type JSON struct {
@@ -55,15 +55,11 @@ func init() {
 }
 
 // Configure initializes this filter with values from a plugin config.
-func (filter *JSON) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(filter.FilterBase.Configure(conf))
+func (filter *JSON) Configure(conf core.PluginConfigReader) error {
+	filter.FilterBase.Configure(conf)
 
-	rejectValues, err := conf.GetStringMap("Reject", make(map[string]string))
-	errors.Push(err)
-
-	acceptValues, err := conf.GetStringMap("Accept", make(map[string]string))
-	errors.Push(err)
+	rejectValues := conf.GetStringMap("Reject", make(map[string]string))
+	acceptValues := conf.GetStringMap("Accept", make(map[string]string))
 
 	// Compile regexp from map[string]string to map[string]*regexp.Regexp
 	filter.rejectValues = make(map[string]*regexp.Regexp)
@@ -71,20 +67,19 @@ func (filter *JSON) Configure(conf core.PluginConfig) error {
 
 	for key, val := range rejectValues {
 		exp, err := regexp.Compile(val)
-		if !errors.Push(err) {
+		if !conf.Errors.Push(err) {
 			filter.rejectValues[key] = exp
 		}
-
 	}
 
 	for key, val := range acceptValues {
 		exp, err := regexp.Compile(val)
-		if !errors.Push(err) {
+		if !conf.Errors.Push(err) {
 			filter.acceptValues[key] = exp
 		}
 	}
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 func (filter *JSON) getValue(key string, values tcontainer.MarshalMap) (string, bool) {

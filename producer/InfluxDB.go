@@ -16,7 +16,6 @@ package producer
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tmath"
 	"io"
 	"sync"
@@ -24,22 +23,6 @@ import (
 )
 
 // InfluxDB producer plugin
-// Configuration example
-//
-//   - "producer.InfluxDB":
-//     Enable: true
-//     Host: "localhost:8086"
-//     User: ""
-//     Password: ""
-//     Database: "default"
-//     TimeBasedName: true
-//     UseVersion08: false
-//     Version: 100
-//     RetentionPolicy: ""
-//     BatchMaxCount: 8192
-//     BatchFlushCount: 4096
-//     BatchTimeoutSec: 5
-//
 // This producer writes data to an influxDB cluster. The data is expected to be
 // of a valid influxDB format. As the data format changed between influxDB
 // versions it is advisable to use a formatter for the specific influxDB version
@@ -47,6 +30,20 @@ import (
 // that can be used (as an example).
 // This producer uses a fuse breaker if the connection to the influxDB cluster
 // is lost.
+// Configuration example
+//
+//  - "producer.InfluxDB":
+//    Host: "localhost:8086"
+//    User: ""
+//    Password: ""
+//    Database: "default"
+//    TimeBasedName: true
+//    UseVersion08: false
+//    Version: 100
+//    RetentionPolicy: ""
+//    BatchMaxCount: 8192
+//    BatchFlushCount: 4096
+//    BatchTimeoutSec: 5
 //
 // Host defines the host (and port) of the InfluxDB server.
 // Defaults to "localhost:8086".
@@ -97,7 +94,7 @@ type InfluxDB struct {
 
 type influxDBWriter interface {
 	io.Writer
-	configure(core.PluginConfig, *InfluxDB) error
+	configure(core.PluginConfigReader, *InfluxDB) error
 	isConnectionUp() bool
 }
 
@@ -106,13 +103,12 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *InfluxDB) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(prod.ProducerBase.Configure(conf))
+func (prod *InfluxDB) Configure(conf core.PluginConfigReader) error {
+	prod.ProducerBase.Configure(conf)
 	prod.SetStopCallback(prod.close)
 
-	version := errors.Int(conf.GetInt("Version", 100))
-	if errors.Bool(conf.GetBool("UseVersion08", false)) {
+	version := conf.GetInt("Version", 100)
+	if conf.GetBool("UseVersion08", false) {
 		version = 80
 	}
 
@@ -132,14 +128,14 @@ func (prod *InfluxDB) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
-	prod.batchMaxCount = errors.Int(conf.GetInt("BatchMaxCount", 8192))
-	prod.batchFlushCount = errors.Int(conf.GetInt("BatchFlushCount", prod.batchMaxCount/2))
+	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
+	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
-	prod.batchTimeout = time.Duration(errors.Int(conf.GetInt("BatchTimeoutSec", 5))) * time.Second
+	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
 	prod.assembly = core.NewWriterAssembly(prod.writer, prod.Drop, prod.Format)
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 // Flush flushes the content of the buffer into the influxdb

@@ -16,19 +16,19 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tstrings"
 )
 
+// Envelope formatter plugin
 // Envelope is a formatter that allows prefixing and/or postfixing a message
 // with configurable strings.
 // Configuration example
 //
-//   - "<producer|stream>":
-//     Formatter: "format.Envelope"
-//     EnvelopeFormatter: "format.Forward"
-//     EnvelopePrefix: "<data>"
-//     EnvelopePostfix: "</data>\n"
+//  - "stream.Broadcast":
+//    Formatter: "format.Envelope"
+//    EnvelopeFormatter: "format.Forward"
+//    EnvelopePrefix: "<data>"
+//    EnvelopePostfix: "</data>\n"
 //
 // Prefix defines the message prefix. By default this is set to "".
 // Special characters like \n \r \t will be transformed into the actual control
@@ -51,13 +51,12 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Envelope) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(format.FormatterBase.Configure(conf))
+func (format *Envelope) Configure(conf core.PluginConfigReader) error {
+	format.FormatterBase.Configure(conf)
 
-	format.prefix = tstrings.Unescape(errors.String(conf.GetString("Prefix", "")))
-	format.postfix = tstrings.Unescape(errors.String(conf.GetString("Postfix", "\n")))
-	return errors.OrNil()
+	format.prefix = tstrings.Unescape(conf.GetString("Prefix", ""))
+	format.postfix = tstrings.Unescape(conf.GetString("Postfix", "\n"))
+	return conf.Errors.OrNil()
 }
 
 // Format adds prefix and postfix to the message formatted by the base formatter

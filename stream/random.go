@@ -20,19 +20,8 @@ import (
 )
 
 // Random stream plugin
-// Configuration example
-//
-//   - "stream.Random":
-//     Enable: true
-//     Stream: "data"
-//	   Formatter: "format.Envelope"
-//     Filter: "filter.All"
-//     StickyStream: true
-//
 // Messages will be sent to one of the producers attached to this stream.
-// The producer used is defined randomly.
-//
-// This stream defines the same fields as stream.Broadcast.
+// The concrete producer is chosen randomly with each message.
 type Random struct {
 	core.StreamBase
 }
@@ -42,7 +31,7 @@ func init() {
 }
 
 // Configure initializes this distributor with values from a plugin config.
-func (stream *Random) Configure(conf core.PluginConfig) error {
+func (stream *Random) Configure(conf core.PluginConfigReader) error {
 	return stream.StreamBase.ConfigureStream(conf, stream.random)
 }
 

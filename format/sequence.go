@@ -16,17 +16,17 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"strconv"
 )
 
+// Sequence formatter plugin
 // Sequence is a formatter that allows prefixing a message with the message's
 // sequence number
 // Configuration example
 //
-//   - "<producer|stream>":
-//     Formatter: "format.Sequence"
-//     SequenceFormatter: "format.Envelope"
+//  - "stream.Broadcast":
+//    Formatter: "format.Sequence"
+//    SequenceFormatter: "format.Envelope"
 //
 // SequenceDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
@@ -40,12 +40,11 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Sequence) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(format.FormatterBase.Configure(conf))
+func (format *Sequence) Configure(conf core.PluginConfigReader) error {
+	format.FormatterBase.Configure(conf)
 
-	format.separator = errors.String(conf.GetString("Separator", ":"))
-	return errors.OrNil()
+	format.separator = conf.GetString("Separator", ":")
+	return conf.Errors.OrNil()
 }
 
 // Format prepends the sequence number of the message (followed by ":") to the

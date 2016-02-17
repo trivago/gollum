@@ -48,7 +48,7 @@ func TestConsumerConfigure(t *testing.T) {
 	// Stream needs to be configured to avoid unknown class errors
 	registerMockStream("mockConsumer")
 
-	err := mockC.Configure(pluginCfg)
+	err := mockC.Configure(NewPluginConfigReader(&pluginCfg))
 	expect.NoError(err)
 }
 
@@ -69,7 +69,7 @@ func TestConsumerEnqueueCopy(t *testing.T) {
 	StreamRegistry.Register(&mockStream, mockStreamID)
 
 	mockC.streams = []MappedStream{
-		MappedStream{
+		{
 			StreamID: mockStreamID,
 			Stream:   &mockStream,
 		},
@@ -89,7 +89,7 @@ func TestConsumerStreams(t *testing.T) {
 	StreamRegistry.Register(&mockStream, mockStreamID)
 
 	mockC.streams = []MappedStream{
-		MappedStream{
+		{
 			StreamID: mockStreamID,
 			Stream:   &mockStream,
 		},
@@ -183,7 +183,7 @@ func TestConsumerFuse(t *testing.T) {
 	conf := NewPluginConfig("mockConsumer", "mockConsumer")
 	conf.Override("Fuse", "test")
 
-	mockC.Configure(conf)
+	mockC.Configure(NewPluginConfigReader(&conf))
 	expect.NotNil(mockC.fuse)
 
 	burnedCallback := false

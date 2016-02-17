@@ -1,100 +1,120 @@
 Kafka
 =====
 
-This consumer reads data from a kafka cluster using Shopify's `Sarama <https://github.com/Shopify/sarama>`_ library.
-Any setting here reflects settings from this library.
+Thes consumer reads data from a given kafka topic.
+It is based on the sarama library so most settings are mapped to the settings from this library.
 When attached to a fuse, this consumer will stop processing messages in case that fuse is burned.
-See the `API documentation <http://gollum.readthedocs.org/en/latest/consumers/kafka.html>`_ for additional details.
 
 
 Parameters
 ----------
 
 **Enable**
-  Can either be true or false to enable or disable this consumer.
+  Enable switches the consumer on or off.
+  By default this value is set to true.
+
 **ID**
-  Allows this consumer to be found by other plugins by name.
+  ID allows this consumer to be found by other plugins by name.
   By default this is set to "" which does not register this consumer.
-**Fuse**
-  Defines the name of the fuse this consumer is attached to.
-  When left empty no fuse is attached. This is the default value.
+
 **Stream**
-    Defines either one or an aray of stream names this consumer sends messages to.
+  Stream contains either a single string or a list of strings defining the message channels this consumer will produce.
+  By default this is set to "*" which means only producers set to consume "all streams" will get these messages.
+
+**Fuse**
+  Fuse defines the name of a fuse to observe for this consumer.
+  Producer may "burn" the fuse when they encounter errors.
+  Consumers may react on this by e.g. closing connections to notify any writing services of the problem.
+  Set to "" by default which disables the fuse feature for this consumer.
+  It is up to the consumer implementation to react on a broken fuse in an appropriate manner.
+
+**Topic**
+  Topic defines the kafka topic to read from.
+  By default this is set to "default".
+
 **DefaultOffset**
-  Defines the offset inside the topic to start reading from if no OffsetFile is defined or found.
-  Valid values are "newest", "oldest" and any number based index. By default this is set to "newest".
+  DefaultOffset defines where to start reading the topic.
+  Valid values are "oldest" and "newest".
+  If OffsetFile is defined the DefaultOffset setting will be ignored unless the file does not exist.
+  By default this is set to "newest".
+
 **OffsetFile**
-  Defines a file to store the current offset to.
-  The offset is updated in intervalls and can be used to continue reading after a restart.
-**ClientID**
-  Set the id of this client. "gollum" by default.
+  OffsetFile defines the path to a file that stores the current offset inside a given partition.
+  If the consumer is restarted that offset is used to continue reading.
+  By default this is set to "" which disables the offset file.
+
 **MaxOpenRequests**
-  Defines the number of simultanious connections are allowed.
+  MaxOpenRequests defines the number of simultanious connections are allowed.
   By default this is set to 5.
+
 **ServerTimeoutSec**
-  Defines the time after which a connection is set to timed
-  out. By default this is set to 30 seconds.
+  ServerTimeoutSec defines the time after which a connection is set to timed out.
+  By default this is set to 30 seconds.
+
 **MaxFetchSizeByte**
-  Defines the maximum size of a message to fetch. Larger messages
-  will be ignored. By default this is set to 0 (fetch all messages).
+  MaxFetchSizeByte sets the maximum size of a message to fetch.
+  Larger messages will be ignored.
+  By default this is set to 0 (fetch all messages).
+
 **MinFetchSizeByte**
-  Defines the minimum amout of data to fetch from Kafka per request.
-  If less data is available the broker will wait
+  MinFetchSizeByte defines the minimum amout of data to fetch from Kafka per request.
+  If less data is available the broker will wait.
   By default this is set to 1.
+
 **FetchTimeoutMs**
-  Defines the time in milliseconds the broker will wait for MinFetchSizeByte to be reached before processing data anyway.
+  FetchTimeoutMs defines the time in milliseconds the broker will wait for MinFetchSizeByte to be reached before processing data anyway.
   By default this is set to 250ms.
+
 **MessageBufferCount**
-  Defines the internal channel size for the Kafka client.
+  MessageBufferCount sets the internal channel size for the kafka client.
   By default this is set to 256.
+
 **PresistTimoutMs**
-  Defines the time in milliseconds between writes to OffsetFile.
+  PresistTimoutMs defines the time in milliseconds between writes to OffsetFile.
   By default this is set to 5000.
   Shorter durations reduce the amount of duplicate messages after a fail but increases I/O.
+
 **ElectRetries**
-  Defines how many times to retry during a leader election.
+  ElectRetries defines how many times to retry during a leader election.
   By default this is set to 3.
+
 **ElectTimeoutMs**
-  Defines the number of milliseconds to wait for the cluster to elect a new leader.
-  By defaults set to 250.
+  ElectTimeoutMs defines the number of milliseconds to wait for the cluster to elect a new leader.
+  Defaults to 250.
+
 **MetadataRefreshMs**
-  Defines the interval in seconds for fetching cluster metadata.
+  MetadataRefreshMs set the interval in seconds for fetching cluster metadata.
   By default this is set to 10000.
   This corresponds to the JVM setting `topic.metadata.refresh.interval.ms`.
+
 **Servers**
-  Contains the list of all kafka servers to connect to.
-
-Offsets
--------
-
-**Oldest**
-  Start reading at the end of the file if no offset file is set and/or found.
-**Neweset**
-  Start reading at the beginning of the file if no offset file is set and/or found.
-**Any number**
-  Start at the specified message index.
+  Servers contains the list of all kafka servers to connect to.
+  By default this is set to contain only "localhost:9092".
 
 Example
 -------
 
 .. code-block:: yaml
 
-  - "consumer.Kafka":
-    Enable: true
-    DefaultOffset: "Newest"
-    OffsetFile: "/tmp/gollum_kafka.idx"
-    ClientID: "logger"
-    MaxOpenRequests: 6
-    ServerTimeoutSec: 10
-    MaxFetchSizeByte: 8192
-    MinFetchSizeByte: 0
-    FetchTimeoutMs: 500
-    MessageBufferCount: 1024
-    PresistTimoutMs: 1000
-    ElectRetries: 5
-    ElectTimeoutMs: 300
-    MetadataRefreshMs: 3000
-    Servers:
-      - "192.168.222.30:9092"
-      - "192.168.222.31:9092"
-    Stream: "kafka"
+	- "consumer.Kafka":
+	    Enable: true
+	    ID: ""
+	    Fuse: ""
+	    Stream:
+	        - "foo"
+	        - "bar"
+	    Topic: "default"
+	    DefaultOffset: "newest"
+	    OffsetFile: ""
+	    MaxOpenRequests: 5
+	    ServerTimeoutSec: 30
+	    MaxFetchSizeByte: 0
+	    MinFetchSizeByte: 1
+	    FetchTimeoutMs: 250
+	    MessageBufferCount: 256
+	    PresistTimoutMs: 5000
+	    ElectRetries: 3
+	    ElectTimeoutMs: 250
+	    MetadataRefreshMs: 10000
+	    Servers:
+	        - "localhost:9092"

@@ -16,20 +16,20 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 )
 
-// Stream filters messages by stream based on a black and a whitelist.
+// Stream filter plugin
+// This plugin filters messages by stream based on a black and a whitelist.
 // The blacklist is checked first.
 // Configuration example
 //
-//   - "stream.Broadcast":
-//     Filter: "filter.Stream"
-//     FilterBlockStreams:
-//       - "foo"
-//     FilterOnlyStreams:
-//       - "test1"
-//       - "test2"
+//  - "stream.Broadcast":
+//    Filter: "filter.Stream"
+//    FilterBlockStreams:
+//      - "foo"
+//    FilterOnlyStreams:
+//      - "test1"
+//      - "test2"
 //
 // FilterBlockStreams sets a list of streams that are blocked. If a message's
 // stream is not in that list, the OnlyStreams list is tested. This list ist
@@ -49,17 +49,13 @@ func init() {
 }
 
 // Configure initializes this filter with values from a plugin config.
-func (filter *Stream) Configure(conf core.PluginConfig) error {
-	var err error
-	errors := tgo.NewErrorStack()
-	errors.Push(filter.FilterBase.Configure(conf))
+func (filter *Stream) Configure(conf core.PluginConfigReader) error {
+	filter.FilterBase.Configure(conf)
 
-	filter.blacklist, err = conf.GetStreamArray("Block", []core.MessageStreamID{})
-	errors.Push(err)
-	filter.whitelist, err = conf.GetStreamArray("Only", []core.MessageStreamID{})
-	errors.Push(err)
+	filter.blacklist = conf.GetStreamArray("Block", []core.MessageStreamID{})
+	filter.whitelist = conf.GetStreamArray("Only", []core.MessageStreamID{})
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 // Accepts filters by streamId using a black and whitelist
@@ -76,6 +72,6 @@ func (filter *Stream) Accepts(msg core.Message) bool {
 		}
 	}
 
-	// Return true if no whitlist is given, false otherwise (must fullfill whitelist)
+	// Return true if no whitlist is given, false otherwise (must fulfill whitelist)
 	return len(filter.whitelist) == 0
 }

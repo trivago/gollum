@@ -15,7 +15,6 @@
 package core
 
 import (
-	"fmt"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/tlog"
@@ -111,19 +110,23 @@ func (conf PluginConfig) Validate() bool {
 // for each plugin. All non-default values are written to the Settings member.
 // All keys will be converted to lowercase.
 func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
+	var err error
 	errors := tgo.NewErrorStack()
 	for key, settingValue := range values {
 		lowerCaseKey := strings.ToLower(key)
 
 		switch lowerCaseKey {
 		case "type":
-			conf.Typename = errors.String(values.String(key))
+			conf.Typename, err = values.String(key)
+			errors.Push(err)
 
 		case "enable":
-			conf.Enable = errors.Bool(values.Bool(key))
+			conf.Enable, err = values.Bool(key)
+			errors.Push(err)
 
 		case "instances":
-			conf.Instances = errors.Int(values.Int(key))
+			conf.Instances, err = values.Int(key)
+			errors.Push(err)
 
 		default:
 			// If the value is a marshalmap candidate -> convert it
@@ -161,268 +164,8 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
 	return errors.OrNil()
 }
 
-// HasValue returns true if the given key has been set as a config option.
-// This function only takes non-predefined settings into account.
-func (conf PluginConfig) HasValue(key string) bool {
-	key = conf.registerKey(key)
-	_, exists := conf.Settings.Value(key)
-	return exists
-}
-
 // Override sets or override a configuration value for non-predefined options.
-func (conf PluginConfig) Override(key string, value interface{}) {
+func (conf *PluginConfig) Override(key string, value interface{}) {
 	key = conf.registerKey(key)
 	conf.Settings[key] = value
-}
-
-// GetString tries to read a non-predefined, string value from a PluginConfig.
-// If that value is not found defaultValue is returned.
-func (conf PluginConfig) GetString(key string, defaultValue string) (string, error) {
-	key = conf.registerKey(key)
-	if conf.HasValue(key) {
-		return conf.Settings.String(key)
-	}
-	return defaultValue, nil
-}
-
-// GetInt tries to read a non-predefined, integer value from a PluginConfig.
-// If that value is not found defaultValue is returned.
-func (conf PluginConfig) GetInt(key string, defaultValue int) (int, error) {
-	key = conf.registerKey(key)
-	if conf.HasValue(key) {
-		return conf.Settings.Int(key)
-	}
-	return defaultValue, nil
-}
-
-// GetBool tries to read a non-predefined, boolean value from a PluginConfig.
-// If that value is not found defaultValue is returned.
-func (conf PluginConfig) GetBool(key string, defaultValue bool) (bool, error) {
-	key = conf.registerKey(key)
-	if conf.HasValue(key) {
-		return conf.Settings.Bool(key)
-	}
-	return defaultValue, nil
-}
-
-// GetValue tries to read a non-predefined, untyped value from a PluginConfig.
-// If that value is not found defaultValue is returned.
-func (conf PluginConfig) GetValue(key string, defaultValue interface{}) interface{} {
-	key = conf.registerKey(key)
-	value, exists := conf.Settings[key]
-	if exists {
-		return value
-	}
-	return defaultValue
-}
-
-// GetStreamID tries to read a non-predefined, StreamID value from a PluginConfig.
-// If that value is not found defaultValue is returned.
-func (conf PluginConfig) GetStreamID(key string, defaultValue MessageStreamID) (MessageStreamID, error) {
-	key = conf.registerKey(key)
-	if conf.HasValue(key) {
-		value, err := conf.Settings.String(key)
-		if err != nil {
-			return InvalidStreamID, err
-		}
-		return GetStreamID(value), nil
-	}
-	return defaultValue, nil
-}
-
-// GetPlugin creates a nested plugin from a config map. The default type has
-// to be passed and is overriden if the config specifies a type.
-// The value stored in the config can either be a string or a map. If a map
-// is found it is used to override defaultConfig. If a string is found it is
-// used to override defaultType.
-func (conf PluginConfig) GetPlugin(key string, defaultType string, defaultConfig tcontainer.MarshalMap) (Plugin, error) {
-	key = conf.registerKey(key)
-	configMap := defaultConfig
-
-	if conf.HasValue(key) {
-		if value, err := conf.Settings.String(key); err == nil {
-			defaultType = value
-		} else {
-			configMap, err = conf.GetMap(key, defaultConfig)
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	config, err := NewNestedPluginConfig(defaultType, configMap)
-	if err != nil {
-		return nil, err
-	}
-	return NewPlugin(config)
-}
-
-// GetArray tries to read a non-predefined, untyped array from a PluginConfig.
-// If that value is not found defaultValue is returned.
-func (conf PluginConfig) GetArray(key string, defaultValue []interface{}) ([]interface{}, error) {
-	key = conf.registerKey(key)
-	if conf.HasValue(key) {
-		return conf.Settings.Array(key)
-	}
-	return defaultValue, nil
-}
-
-// GetMap tries to read a non-predefined, MarshalMap from a PluginConfig.
-// If that value is not found defaultValue is returned.
-func (conf PluginConfig) GetMap(key string, defaultValue tcontainer.MarshalMap) (tcontainer.MarshalMap, error) {
-	key = conf.registerKey(key)
-	if conf.HasValue(key) {
-		return conf.Settings.MarshalMap(key)
-	}
-	return defaultValue, nil
-}
-
-// GetPluginArray tries to read a non-predefined, array of plugins (type to config) from a PluginConfig.
-// If that value is not found defaultValue is returned.
-func (conf PluginConfig) GetPluginArray(key string, defaultValue []Plugin) ([]Plugin, error) {
-	key = conf.registerKey(key)
-	namedConfigs, err := conf.GetArray(key, []interface{}{})
-	if err != nil {
-		return defaultValue, err
-	}
-
-	if len(namedConfigs) == 0 {
-		return defaultValue, nil
-	}
-
-	pluginArray := make([]Plugin, 0, len(namedConfigs))
-
-	// Iterate over all entries in the array.
-	// An entry can either be a string or a string -> map[string]interface{}
-	for _, typedConfigInterface := range namedConfigs {
-		typedConfig, isMap := typedConfigInterface.(map[interface{}]interface{})
-		if !isMap {
-			typeNameStr, isString := typedConfigInterface.(string)
-			if !isString {
-				return nil, fmt.Errorf("%s section is malformed (entry does not contain a config)", key)
-			}
-
-			// Only string given, initialize with empty config
-			pluginConfig, _ := NewNestedPluginConfig(typeNameStr, tcontainer.NewMarshalMap())
-			plugin, err := NewPlugin(pluginConfig)
-			if err != nil {
-				return nil, err
-			}
-			pluginArray = append(pluginArray, plugin)
-		}
-
-		// string -> map[string]interface{}
-		// This is actually a map with just one entry
-		for typename, config := range typedConfig {
-			typeNameStr, isString := typename.(string)
-			if !isString {
-				return nil, fmt.Errorf("%s section is malformed (entry is not type:config)", key)
-			}
-
-			configMap, err := tcontainer.ConvertToMarshalMap(config, nil)
-			if err != nil {
-				return nil, fmt.Errorf("%s section is malformed (config for %s is not a map but %T)", key, typeNameStr, config)
-			}
-
-			pluginConfig, err := NewNestedPluginConfig(typeNameStr, configMap)
-			plugin, err := NewPlugin(pluginConfig)
-			if err != nil {
-				return pluginArray, err
-			}
-			pluginArray = append(pluginArray, plugin)
-		}
-	}
-
-	return pluginArray, nil
-}
-
-// GetStringArray tries to read a non-predefined, string array from a
-// PluginConfig. If that value is not found defaultValue is returned.
-func (conf PluginConfig) GetStringArray(key string, defaultValue []string) ([]string, error) {
-	key = conf.registerKey(key)
-	if conf.HasValue(key) {
-		return conf.Settings.StringArray(key)
-	}
-	return defaultValue, nil
-}
-
-// GetStringMap tries to read a non-predefined, string to string map from a
-// PluginConfig. If the key is not found defaultValue is returned.
-func (conf PluginConfig) GetStringMap(key string, defaultValue map[string]string) (map[string]string, error) {
-	key = conf.registerKey(key)
-	if conf.HasValue(key) {
-		return conf.Settings.StringMap(key)
-	}
-	return defaultValue, nil
-}
-
-// GetStreamArray tries to read a non-predefined string array from a pluginconfig
-// and translates all values to streamIds. If the key is not found defaultValue
-// is returned.
-func (conf PluginConfig) GetStreamArray(key string, defaultValue []MessageStreamID) ([]MessageStreamID, error) {
-	key = conf.registerKey(key)
-	if conf.HasValue(key) {
-		values, err := conf.GetStringArray(key, []string{})
-		if err != nil {
-			return nil, err
-		}
-		streamArray := []MessageStreamID{}
-		for _, streamName := range values {
-			streamArray = append(streamArray, GetStreamID(streamName))
-		}
-		return streamArray, nil
-	}
-
-	return defaultValue, nil
-}
-
-// GetStreamMap tries to read a non-predefined, stream to string map from a
-// plugin config. A mapping on the wildcard stream is always returned.
-// The target is either defaultValue or a value defined by the config.
-func (conf PluginConfig) GetStreamMap(key string, defaultValue string) (map[MessageStreamID]string, error) {
-	key = conf.registerKey(key)
-	streamMap := make(map[MessageStreamID]string)
-	if defaultValue != "" {
-		streamMap[WildcardStreamID] = defaultValue
-	}
-
-	if conf.HasValue(key) {
-		value, err := conf.Settings.StringMap(key)
-		if err != nil {
-			return nil, err
-		}
-
-		for streamName, target := range value {
-			streamMap[GetStreamID(streamName)] = target
-		}
-	}
-
-	return streamMap, nil
-}
-
-// GetStreamRoutes tries to read a non-predefined, stream to stream map from a
-// plugin config. If no routes are defined an empty map is returned
-func (conf PluginConfig) GetStreamRoutes(key string) (map[MessageStreamID][]MessageStreamID, error) {
-	key = conf.registerKey(key)
-	streamRoute := make(map[MessageStreamID][]MessageStreamID)
-	if !conf.HasValue(key) {
-		return streamRoute, nil
-	}
-
-	value, err := conf.Settings.StringArrayMap(key)
-	if err != nil {
-		return nil, err
-	}
-
-	for sourceName, targets := range value {
-		sourceStream := GetStreamID(sourceName)
-		targetIds := []MessageStreamID{}
-		for _, targetName := range targets {
-			targetIds = append(targetIds, GetStreamID(targetName))
-		}
-
-		streamRoute[sourceStream] = targetIds
-	}
-
-	return streamRoute, nil
 }

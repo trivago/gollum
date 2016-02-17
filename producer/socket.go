@@ -16,7 +16,6 @@ package producer
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tnet"
 	"github.com/trivago/tgo/tstrings"
@@ -26,20 +25,19 @@ import (
 )
 
 // Socket producer plugin
-// Configuration example
-//
-//   - "producer.Socket":
-//     Enable: true
-//     Address: ":5880"
-//     ConnectionBufferSizeKB: 1024
-//     BatchMaxCount: 8192
-//     BatchFlushCount: 4096
-//     BatchTimeoutSec: 5
-//     Acknowledge: ""
-//
 // The socket producer connects to a service over a TCP, UDP or unix domain
 // socket based connection.
 // This producer uses a fuse breaker when the service to connect to goes down.
+// Configuration example
+//
+//  - "producer.Socket":
+//    Enable: true
+//    Address: ":5880"
+//    ConnectionBufferSizeKB: 1024
+//    BatchMaxCount: 8192
+//    BatchFlushCount: 4096
+//    BatchTimeoutSec: 5
+//    Acknowledge: ""
 //
 // Address stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:5880" or a file
@@ -93,21 +91,20 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Socket) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(prod.ProducerBase.Configure(conf))
-
+func (prod *Socket) Configure(conf core.PluginConfigReader) error {
+	prod.ProducerBase.Configure(conf)
 	prod.SetStopCallback(prod.close)
+	prod.SetCheckFuseCallback(prod.tryConnect)
 
-	prod.batchMaxCount = errors.Int(conf.GetInt("BatchMaxCount", 8192))
-	prod.batchFlushCount = errors.Int(conf.GetInt("BatchFlushCount", prod.batchMaxCount/2))
+	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
+	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
-	prod.batchTimeout = time.Duration(errors.Int(conf.GetInt("BatchTimeoutSec", 5))) * time.Second
-	prod.bufferSizeByte = errors.Int(conf.GetInt("ConnectionBufferSizeKB", 1<<10)) << 10 // 1 MB
+	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
+	prod.bufferSizeByte = conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10 // 1 MB
 
-	prod.acknowledge = tstrings.Unescape(errors.String(conf.GetString("Acknowledge", "")))
-	prod.ackTimeout = time.Duration(errors.Int(conf.GetInt("AckTimeoutMs", 2000))) * time.Millisecond
-	prod.address, prod.protocol = tnet.ParseAddress(errors.String(conf.GetString("Address", ":5880")))
+	prod.acknowledge = tstrings.Unescape(conf.GetString("Acknowledge", ""))
+	prod.ackTimeout = time.Duration(conf.GetInt("AckTimeoutMs", 2000)) * time.Millisecond
+	prod.address, prod.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"))
 
 	if prod.protocol != "unix" {
 		if prod.acknowledge != "" {
@@ -122,8 +119,7 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 	prod.assembly.SetValidator(prod.validate)
 	prod.assembly.SetErrorHandler(prod.onWriteError)
 
-	prod.SetCheckFuseCallback(prod.tryConnect)
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 func (prod *Socket) tryConnect() bool {

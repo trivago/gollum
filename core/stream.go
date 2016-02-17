@@ -15,7 +15,6 @@
 package core
 
 import (
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tlog"
 	"sync"
 	"time"
@@ -56,12 +55,36 @@ type MappedStream struct {
 	Stream   Stream
 }
 
-// StreamBase defines the standard stream implementation. New stream types
+// StreamBase plugin base type
+// This type defines the standard stream implementation. New stream types
 // should derive from this class.
 // StreamBase allows streams to set and execute filters as well as format a
 // message. Types derived from StreamBase should set the Distribute member
 // instead of overloading the Enqueue method.
-// See stream.Broadcast for default configuration values and examples.
+// Configuration Example
+//
+//  - "stream.Foobar"
+//    Enable: true
+//    Stream: "streamToConfigure"
+//    Formatter: "format.Forward"
+//    Filter: "filter.All"
+//    TimeoutMs: 0
+//
+// Enable can be set to false to disable this stream configuration but leave
+// it in the config for future use. Set to true by default.
+//
+// Stream defines the stream to configure. This is a mandatory setting and
+// has no default value.
+//
+// Formatter defines the first formatter to apply to the messages passing through
+// this stream. By default this is set to "format.Forward".
+//
+// Filter defines the filter to apply to the messages passing through this stream.
+// By default this is et to "filter.All".
+//
+// TimeoutMs defines an optional timeout that can be used to wait for producers
+// attached to this stream to unblock. This setting overwrites the corresponding
+// producer setting for this (and only this) stream.
 type StreamBase struct {
 	filters        []Filter
 	formatters     []Formatter
@@ -78,39 +101,33 @@ type StreamBase struct {
 // Distributor is a callback typedef for methods processing messages
 type Distributor func(msg Message)
 
-// ConfigureStream sets up all values requred by StreamBase.
-func (stream *StreamBase) ConfigureStream(conf PluginConfig, distribute Distributor) error {
-	errors := tgo.NewErrorStack()
-	stream.Log = NewPluginLogScope(conf)
+// ConfigureStream sets up all values required by StreamBase.
+func (stream *StreamBase) ConfigureStream(conf PluginConfigReader, distribute Distributor) error {
+	stream.Log = conf.GetLogScope()
 
-	formatPlugins, err := conf.GetPluginArray("Formatters", []Plugin{})
-	errors.Push(err)
-
+	formatPlugins := conf.GetPluginArray("Formatters", []Plugin{})
 	for _, plugin := range formatPlugins {
 		formatter, isFormatter := plugin.(Formatter)
 		if !isFormatter {
-			errors.Pushf("Plugin is not a valid formatter")
+			conf.Errors.Pushf("Plugin is not a valid formatter")
 		} else {
 			formatter.SetLogScope(stream.Log)
 			stream.formatters = append(stream.formatters, formatter)
 		}
 	}
 
-	filterPlugins, err := conf.GetPluginArray("Filters", []Plugin{})
-	errors.Push(err)
-
+	filterPlugins := conf.GetPluginArray("Filters", []Plugin{})
 	for _, plugin := range filterPlugins {
 		filter, isFilter := plugin.(Filter)
 		if !isFilter {
-			errors.Pushf("Plugin is not a valid filter")
+			conf.Errors.Pushf("Plugin is not a valid filter")
 		} else {
 			filter.SetLogScope(stream.Log)
 			stream.filters = append(stream.filters, filter)
 		}
 	}
 
-	stream.boundStreamID, err = conf.GetStreamID("Stream", GetStreamID(conf.ID))
-	errors.Push(err)
+	stream.boundStreamID = conf.GetStreamID("Stream", GetStreamID(conf.GetID()))
 
 	if stream.boundStreamID == WildcardStreamID {
 		stream.Log.Note.Print("A wildcard stream configuration only affects the wildcard stream, not all streams")
@@ -120,13 +137,13 @@ func (stream *StreamBase) ConfigureStream(conf PluginConfig, distribute Distribu
 	stream.distribute = distribute
 
 	if conf.HasValue("TimeoutMs") {
-		timeout := time.Duration(errors.Int(conf.GetInt("TimeoutMs", 0))) * time.Millisecond
+		timeout := time.Duration(conf.GetInt("TimeoutMs", 0)) * time.Millisecond
 		stream.Timeout = &timeout
 	} else {
 		stream.Timeout = nil
 	}
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 // AddProducer adds all producers to the list of known producers.

@@ -17,20 +17,20 @@ package format
 import (
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tmath"
 	"strings"
 )
 
+// CollectdToInflux10 formatter plugin
 // CollectdToInflux10 provides a transformation from collectd JSON data to
 // InfluxDB 0.9.1+ compatible line protocol data. Trailing and leading commas
 // are removed from the Collectd message beforehand.
 // Configuration example
 //
-//   - "<producer|stream>":
-//     Formatter: "format.CollectdToInflux10"
-//     CollectdToInflux10Formatter: "format.Forward"
+//  - "stream.Broadcast":
+//    Formatter: "format.CollectdToInflux10"
+//    CollectdToInflux10Formatter: "format.Forward"
 //
 // CollectdToInfluxFormatter defines the formatter applied before the conversion
 // from Collectd to InfluxDB. By default this is set to format.Forward.
@@ -45,13 +45,12 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *CollectdToInflux10) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(format.FormatterBase.Configure(conf))
+func (format *CollectdToInflux10) Configure(conf core.PluginConfigReader) error {
+	format.FormatterBase.Configure(conf)
 
 	format.tagString = strings.NewReplacer(",", "\\,", " ", "\\ ")
 	format.stringString = strings.NewReplacer("\"", "\\\"")
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 func (format *CollectdToInflux10) escapeTag(value string) string {

@@ -17,27 +17,27 @@ package format
 import (
 	"encoding/json"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"
 	"strings"
 	"time"
 )
 
+// ProcessJSON formatter plugin
 // ProcessJSON is a formatter that allows modifications to fields of a given
 // JSON message. The message is modified and returned again as JSON.
 // Configuration example
 //
-//   - "<producer|stream>":
-//     Formatter: "format.processJSON"
-//     ProcessJSONDataFormatter: "format.Forward"
-//     ProcessJSONDirectives:
-//       - "host:split: :host:@timestamp"
-//       - "@timestamp:time:20060102150405:2006-01-02 15\\:04\\:05"
-//       - "error:replace:°:\n"
-//       - "text:trim: \t"
-//		 - "foo:rename:bar"
-//	   ProcessJSONTrimFields: true
+//  - "stream.Broadcast":
+//    Formatter: "format.processJSON"
+//    ProcessJSONDataFormatter: "format.Forward"
+//    ProcessJSONDirectives:
+//      - "host:split: :host:@timestamp"
+//      - "@timestamp:time:20060102150405:2006-01-02 15\\:04\\:05"
+//      - "error:replace:°:\n"
+//      - "text:trim: \t"
+//      - "foo:rename:bar"
+//    ProcessJSONTrimFields: true
 //
 // ProcessJSONDataFormatter formatter that will be applied before
 // ProcessJSONDirectives are processed.
@@ -76,13 +76,11 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *ProcessJSON) Configure(conf core.PluginConfig) error {
-	errors := tgo.NewErrorStack()
-	errors.Push(format.FormatterBase.Configure(conf))
+func (format *ProcessJSON) Configure(conf core.PluginConfigReader) error {
+	format.FormatterBase.Configure(conf)
 
-	format.trimValues = errors.Bool(conf.GetBool("TrimValues", true))
-	directives, err := conf.GetStringArray("Directives", []string{})
-	errors.Push(err)
+	format.trimValues = conf.GetBool("TrimValues", true)
+	directives := conf.GetStringArray("Directives", []string{})
 
 	if len(directives) > 0 {
 		format.directives = make([]transformDirective, 0, len(directives))
@@ -108,7 +106,7 @@ func (format *ProcessJSON) Configure(conf core.PluginConfig) error {
 		}
 	}
 
-	return errors.OrNil()
+	return conf.Errors.OrNil()
 }
 
 func (values *valueMap) processDirective(directive transformDirective, format *ProcessJSON) {
