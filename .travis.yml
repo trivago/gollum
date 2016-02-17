@@ -1,5 +1,5 @@
 language: go
-sudo: required
+sudo: false
 
 go:
   - 1.5
@@ -8,8 +8,10 @@ go:
 env:
   - GO15VENDOREXPERIMENT=1
 
-before_install:
-  - sudo apt-get install libpcap-dev
+addons:
+  apt:
+    packages:
+      - libpcap-dev
 
 script:
   - go build
