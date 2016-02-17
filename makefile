@@ -37,8 +37,9 @@ current:
 	@go build
 
 vendor:
-	@go get -u github.com/govend/govend
-	@govend -v -u -l
+	@go get -u github.com/kardianos/govendor
+	@govendor add +outside
+	@govendor update +vendor
     
 test:
 	@go test -cover -v -timeout 10s ./...

@@ -1,0 +1,459 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"path": "github.com/Shopify/sarama",
+			"revision": "0040558fcec302da8e56f7e5d9ac24f0b407c36d",
+			"revisionTime": "2016-02-11T11:43:40-05:00"
+		},
+		{
+			"path": "github.com/araddon/gou",
+			"revision": "1fd0868458fb611a8a956fae0ed0d0cc657cd321",
+			"revisionTime": "2016-02-03T17:04:11-08:00"
+		},
+		{
+			"path": "github.com/artyom/fb303",
+			"revision": "fa4a241cefb113c4981dbac51a8cfcb047efa079",
+			"revisionTime": "2013-09-02T14:41:09+04:00"
+		},
+		{
+			"path": "github.com/artyom/scribe",
+			"revision": "35c1da66e76d138c09c552b492bb341f8504ff40",
+			"revisionTime": "2013-09-02T14:41:22+04:00"
+		},
+		{
+			"path": "github.com/artyom/thrift",
+			"revision": "388840a05deb9b7d85fdf6c225a2729fe1826cb7",
+			"revisionTime": "2013-09-02T14:33:59+04:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/aws",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/aws/awserr",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/aws/awsutil",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/aws/client",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/aws/client/metadata",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/aws/corehandlers",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/aws/credentials",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/aws/defaults",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/aws/ec2metadata",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/aws/request",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/aws/session",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/private/endpoints",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/private/protocol",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/private/protocol/json/jsonutil",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/private/protocol/jsonrpc",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/private/protocol/rest",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/private/signer/v4",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/private/waiter",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/aws/aws-sdk-go/service/kinesis",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-11T16:23:28-08:00"
+		},
+		{
+			"path": "github.com/bitly/go-hostpool",
+			"revision": "d0e59c22a56e8dadfed24f74f452cea5a52722d2",
+			"revisionTime": "2015-03-31T09:04:00-04:00"
+		},
+		{
+			"path": "github.com/eapache/go-resiliency/breaker",
+			"revision": "b86b1ec0dd4209a588dc1285cdd471e73525c0b3",
+			"revisionTime": "2016-01-04T14:15:39-05:00"
+		},
+		{
+			"path": "github.com/eapache/queue",
+			"revision": "ded5959c0d4e360646dc9e9908cff48666781367",
+			"revisionTime": "2015-06-06T07:53:03-04:00"
+		},
+		{
+			"origin": "github.com/aws/aws-sdk-go/vendor/github.com/go-ini/ini",
+			"path": "github.com/go-ini/ini",
+			"revision": "193d1ecb466bf97aae8b454a5cfc192941c64809",
+			"revisionTime": "2016-02-07T11:33:30-05:00"
+		},
+		{
+			"path": "github.com/golang/protobuf/proto",
+			"revision": "89238a3245885ada85d2f4fdbe76adae392df69b",
+			"revisionTime": "2016-02-15T08:55:00+11:00"
+		},
+		{
+			"path": "github.com/golang/snappy",
+			"revision": "d1d908a252c22fd7afd36190d5cffb144aa8f777",
+			"revisionTime": "2016-02-14T16:54:35+11:00"
+		},
+		{
+			"path": "github.com/jeromer/syslogparser",
+			"revision": "ff71fe7a7d5279df4b964b31f7ee4adf117277f6",
+			"revisionTime": "2015-07-17T06:28:40+02:00"
+		},
+		{
+			"path": "github.com/jeromer/syslogparser/rfc3164",
+			"revision": "ff71fe7a7d5279df4b964b31f7ee4adf117277f6",
+			"revisionTime": "2015-07-17T06:28:40+02:00"
+		},
+		{
+			"path": "github.com/jeromer/syslogparser/rfc5424",
+			"revision": "ff71fe7a7d5279df4b964b31f7ee4adf117277f6",
+			"revisionTime": "2015-07-17T06:28:40+02:00"
+		},
+		{
+			"origin": "github.com/aws/aws-sdk-go/vendor/github.com/jmespath/go-jmespath",
+			"path": "github.com/jmespath/go-jmespath",
+			"revision": "0b12d6b521d83fc7f755e7cfc1b1fbdd35a01a74",
+			"revisionTime": "2016-02-02T10:50:14-08:00"
+		},
+		{
+			"path": "github.com/klauspost/crc32",
+			"revision": "81ac41837f877bc6a7f81321c2c29d88d69c108a",
+			"revisionTime": "2016-02-08T11:06:53+01:00"
+		},
+		{
+			"path": "github.com/mattbaird/elastigo/lib",
+			"revision": "7dc47d261c9718f93000e2ed2b0b94b13d078e77",
+			"revisionTime": "2016-02-03T07:52:37-08:00"
+		},
+		{
+			"path": "github.com/mcuadros/go-syslog",
+			"revision": "e079f554382028527e4509d7bb58793b5e98194e",
+			"revisionTime": "2015-08-12T00:27:55+02:00"
+		},
+		{
+			"path": "github.com/mcuadros/go-syslog/format",
+			"revision": "e079f554382028527e4509d7bb58793b5e98194e",
+			"revisionTime": "2015-08-12T00:27:55+02:00"
+		},
+		{
+			"origin": "github.com/trivago/tgo/vendor/github.com/mgutz/ansi",
+			"path": "github.com/mgutz/ansi",
+			"revision": "c286dcecd19ff979eeb73ea444e479b903f2cfcb",
+			"revisionTime": "2015-09-14T09:22:38-07:00"
+		},
+		{
+			"path": "github.com/miekg/pcap",
+			"revision": "fbfcc463715f6206524a6b1fcc8ed1b9e7567ba5",
+			"revisionTime": "2015-06-08T06:55:24+01:00"
+		},
+		{
+			"path": "github.com/trivago/tgo",
+			"revision": "ee402a02407c89f465ad1126f635e6280c5d2a90",
+			"revisionTime": "2016-02-17T15:26:58+01:00"
+		},
+		{
+			"path": "github.com/trivago/tgo/tcontainer",
+			"revision": "ee402a02407c89f465ad1126f635e6280c5d2a90",
+			"revisionTime": "2016-02-17T15:26:58+01:00"
+		},
+		{
+			"path": "github.com/trivago/tgo/tflag",
+			"revision": "ee402a02407c89f465ad1126f635e6280c5d2a90",
+			"revisionTime": "2016-02-17T15:26:58+01:00"
+		},
+		{
+			"path": "github.com/trivago/tgo/tio",
+			"revision": "ee402a02407c89f465ad1126f635e6280c5d2a90",
+			"revisionTime": "2016-02-17T15:26:58+01:00"
+		},
+		{
+			"path": "github.com/trivago/tgo/tlog",
+			"revision": "ee402a02407c89f465ad1126f635e6280c5d2a90",
+			"revisionTime": "2016-02-17T15:26:58+01:00"
+		},
+		{
+			"path": "github.com/trivago/tgo/tmath",
+			"revision": "ee402a02407c89f465ad1126f635e6280c5d2a90",
+			"revisionTime": "2016-02-17T15:26:58+01:00"
+		},
+		{
+			"path": "github.com/trivago/tgo/tnet",
+			"revision": "ee402a02407c89f465ad1126f635e6280c5d2a90",
+			"revisionTime": "2016-02-17T15:26:58+01:00"
+		},
+		{
+			"path": "github.com/trivago/tgo/treflect",
+			"revision": "ee402a02407c89f465ad1126f635e6280c5d2a90",
+			"revisionTime": "2016-02-17T15:26:58+01:00"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/github.com/trivago/tgo/tstrings",
+			"path": "github.com/trivago/tgo/tstrings",
+			"revision": "ee402a02407c89f465ad1126f635e6280c5d2a90",
+			"revisionTime": "2016-02-17T15:26:58+01:00"
+		},
+		{
+			"path": "github.com/trivago/tgo/tsync",
+			"revision": "ee402a02407c89f465ad1126f635e6280c5d2a90",
+			"revisionTime": "2016-02-17T15:26:58+01:00"
+		},
+		{
+			"path": "github.com/trivago/tgo/ttesting",
+			"revision": "ee402a02407c89f465ad1126f635e6280c5d2a90",
+			"revisionTime": "2016-02-17T15:26:58+01:00"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/context",
+			"path": "golang.org/x/net/context",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/context/ctxhttp",
+			"path": "golang.org/x/net/context/ctxhttp",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/dict",
+			"path": "golang.org/x/net/dict",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/html",
+			"path": "golang.org/x/net/html",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/html/atom",
+			"path": "golang.org/x/net/html/atom",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/html/charset",
+			"path": "golang.org/x/net/html/charset",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/http2",
+			"path": "golang.org/x/net/http2",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/http2/h2demo",
+			"path": "golang.org/x/net/http2/h2demo",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/http2/h2i",
+			"path": "golang.org/x/net/http2/h2i",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/http2/hpack",
+			"path": "golang.org/x/net/http2/hpack",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/icmp",
+			"path": "golang.org/x/net/icmp",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/idna",
+			"path": "golang.org/x/net/idna",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/internal/iana",
+			"path": "golang.org/x/net/internal/iana",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/internal/nettest",
+			"path": "golang.org/x/net/internal/nettest",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/internal/timeseries",
+			"path": "golang.org/x/net/internal/timeseries",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/ipv4",
+			"path": "golang.org/x/net/ipv4",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/ipv6",
+			"path": "golang.org/x/net/ipv6",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/netutil",
+			"path": "golang.org/x/net/netutil",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/proxy",
+			"path": "golang.org/x/net/proxy",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/publicsuffix",
+			"path": "golang.org/x/net/publicsuffix",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/trace",
+			"path": "golang.org/x/net/trace",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/webdav",
+			"path": "golang.org/x/net/webdav",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/webdav/internal/xml",
+			"path": "golang.org/x/net/webdav/internal/xml",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"path": "golang.org/x/net/websocket",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"origin": "github.com/trivago/gollum/vendor/golang.org/x/net/xsrftoken",
+			"path": "golang.org/x/net/xsrftoken",
+			"revision": "cbbbe2bc0f2efdd2afb318d93f1eadb19350e4a3",
+			"revisionTime": "2016-02-13T01:55:36Z"
+		},
+		{
+			"path": "gopkg.in/bsm/ratelimit.v1",
+			"revision": "f14ad9c78b155f69b480cfa41cb655259baac260",
+			"revisionTime": "2015-12-10T17:49:14Z"
+		},
+		{
+			"path": "gopkg.in/mcuadros/go-syslog.v2",
+			"revision": "6cba2bfcf64a025c899aa3be061161d2b89d8b54",
+			"revisionTime": "2015-07-16T15:34:00+02:00"
+		},
+		{
+			"path": "gopkg.in/mcuadros/go-syslog.v2/format",
+			"revision": "6cba2bfcf64a025c899aa3be061161d2b89d8b54",
+			"revisionTime": "2015-07-16T15:34:00+02:00"
+		},
+		{
+			"path": "gopkg.in/redis.v3",
+			"revision": "298fdec44579d427ee4c50483e5ccda1ebdcc204",
+			"revisionTime": "2016-02-06T12:27:35+02:00"
+		},
+		{
+			"path": "gopkg.in/redis.v3/internal/consistenthash",
+			"revision": "298fdec44579d427ee4c50483e5ccda1ebdcc204",
+			"revisionTime": "2016-02-06T12:27:35+02:00"
+		},
+		{
+			"path": "gopkg.in/redis.v3/internal/hashtag",
+			"revision": "298fdec44579d427ee4c50483e5ccda1ebdcc204",
+			"revisionTime": "2016-02-06T12:27:35+02:00"
+		},
+		{
+			"path": "gopkg.in/yaml.v2",
+			"revision": "f7716cbe52baa25d2e9b0d0da546fcf909fc16b4",
+			"revisionTime": "2015-12-01T14:27:45-02:00"
+		}
+	]
+}
