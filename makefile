@@ -1,4 +1,4 @@
-.PHONY: all clean freebsd linux mac pi win current restore test
+.PHONY: all clean freebsd linux mac pi win current vendor test
 clean:
 	@rm -f ./gollum
 	@rm -f ./dist/gollum_*.zip
@@ -36,9 +36,10 @@ aws:
 current:
 	@GOGC=off go build
 
-restore:
-	@go get github.com/tools/godep
-	@godep restore
+vendor:
+	@go get -u github.com/kardianos/govendor
+	@govendor add +outside
+	@govendor update +vendor
 
 test:
 	@go test -cover -v -timeout 10s ./...
