@@ -24,6 +24,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -112,7 +113,7 @@ type Kafka struct {
 	consumer       kafka.Consumer
 	offsetFile     string
 	defaultOffset  int64
-	offsets        map[int32]int64
+	offsets        map[int32]*int64
 	MaxPartitionID int32
 	persistTimeout time.Duration
 }
@@ -132,7 +133,7 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 	cons.topic = conf.GetString("Topic", "default")
 	cons.offsetFile = conf.GetString("OffsetFile", "")
 	cons.persistTimeout = time.Duration(conf.GetInt("PresistTimoutMs", 5000)) * time.Millisecond
-	cons.offsets = make(map[int32]int64)
+	cons.offsets = make(map[int32]*int64)
 	cons.MaxPartitionID = 0
 
 	cons.config = kafka.NewConfig()
@@ -179,7 +180,8 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 			if err != nil {
 				return err
 			}
-			cons.offsets[int32(id)] = v
+			startOffset := v
+			cons.offsets[int32(id)] = &startOffset
 		}
 	}
 
@@ -194,10 +196,11 @@ func (cons *Kafka) restartPartition(partitionID int32) {
 
 // Main fetch loop for kafka events
 func (cons *Kafka) readFromPartition(partitionID int32) {
-	partCons, err := cons.consumer.ConsumePartition(cons.topic, partitionID, cons.offsets[partitionID])
+	currentOffset := atomic.LoadInt64(cons.offsets[partitionID])
+	partCons, err := cons.consumer.ConsumePartition(cons.topic, partitionID, currentOffset)
 	if err != nil {
 		defer cons.restartPartition(partitionID)
-		Log.Error.Printf("Restarting kafka consumer (%s:%d) - %s", cons.topic, cons.offsets[partitionID], err.Error())
+		Log.Error.Printf("Restarting kafka consumer (%s:%d) - %s", cons.topic, currentOffset, err.Error())
 		return // ### return, stop and retry ###
 	}
 
@@ -218,7 +221,7 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 		cons.WaitOnFuse()
 		select {
 		case event := <-partCons.Messages():
-			cons.offsets[partitionID] = event.Offset
+			atomic.StoreInt64(cons.offsets[partitionID], event.Offset)
 
 			// Offset is always relative to the partition, so we create "buckets"
 			// i.e. we are able to reconstruct partiton and local offset from
@@ -264,22 +267,18 @@ func (cons *Kafka) startConsumers() error {
 		return err
 	}
 
-	for _, partition := range partitions {
-		if _, mapped := cons.offsets[partition]; !mapped {
-			cons.offsets[partition] = cons.defaultOffset
+	for _, partitionID := range partitions {
+		if _, mapped := cons.offsets[partitionID]; !mapped {
+			startOffset := cons.defaultOffset
+			cons.offsets[partitionID] = &startOffset
 		}
-		if partition > cons.MaxPartitionID {
-			cons.MaxPartitionID = partition
+		if partitionID > cons.MaxPartitionID {
+			cons.MaxPartitionID = partitionID
 		}
 	}
 
-	for _, partition := range partitions {
-		partition := partition
-		if _, mapped := cons.offsets[partition]; !mapped {
-			cons.offsets[partition] = cons.defaultOffset
-		}
-
-		go cons.readFromPartition(partition)
+	for _, partitionID := range partitions {
+		go cons.readFromPartition(partitionID)
 	}
 
 	return nil
@@ -289,8 +288,8 @@ func (cons *Kafka) startConsumers() error {
 func (cons *Kafka) dumpIndex() {
 	if cons.offsetFile != "" {
 		encodedOffsets := make(map[string]int64)
-		for k, v := range cons.offsets {
-			encodedOffsets[strconv.Itoa(int(k))] = v
+		for k := range cons.offsets {
+			encodedOffsets[strconv.Itoa(int(k))] = atomic.LoadInt64(cons.offsets[k])
 		}
 
 		data, err := json.Marshal(encodedOffsets)
