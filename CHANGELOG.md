@@ -2,6 +2,14 @@
 
 This is a patch / minor features release.
 
+#### Fixed
+
+ * Fixed a race condition in consumer/kafka reported by Go 1.6
+
+#### New
+
+ * Support for Go1.5 vendor experiment
+
 #### Nothing changed, yet
 
 # 0.4.2
