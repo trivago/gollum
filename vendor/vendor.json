@@ -208,6 +208,61 @@
 			"revisionTime": "2016-02-20T08:46:35-05:00"
 		},
 		{
+			"path": "github.com/trivago/gollum",
+			"revision": "84a150de9298ec4970de14a506b8091119669b21",
+			"revisionTime": "2016-02-24T18:05:36+01:00"
+		},
+		{
+			"path": "github.com/trivago/gollum/consumer",
+			"revision": "84a150de9298ec4970de14a506b8091119669b21",
+			"revisionTime": "2016-02-24T18:05:36+01:00"
+		},
+		{
+			"path": "github.com/trivago/gollum/contrib",
+			"revision": "84a150de9298ec4970de14a506b8091119669b21",
+			"revisionTime": "2016-02-24T18:05:36+01:00"
+		},
+		{
+			"path": "github.com/trivago/gollum/contrib/native",
+			"revision": "84a150de9298ec4970de14a506b8091119669b21",
+			"revisionTime": "2016-02-24T18:05:36+01:00"
+		},
+		{
+			"path": "github.com/trivago/gollum/core",
+			"revision": "84a150de9298ec4970de14a506b8091119669b21",
+			"revisionTime": "2016-02-24T18:05:36+01:00"
+		},
+		{
+			"path": "github.com/trivago/gollum/core/log",
+			"revision": "84a150de9298ec4970de14a506b8091119669b21",
+			"revisionTime": "2016-02-24T18:05:36+01:00"
+		},
+		{
+			"path": "github.com/trivago/gollum/filter",
+			"revision": "84a150de9298ec4970de14a506b8091119669b21",
+			"revisionTime": "2016-02-24T18:05:36+01:00"
+		},
+		{
+			"path": "github.com/trivago/gollum/format",
+			"revision": "84a150de9298ec4970de14a506b8091119669b21",
+			"revisionTime": "2016-02-24T18:05:36+01:00"
+		},
+		{
+			"path": "github.com/trivago/gollum/producer",
+			"revision": "84a150de9298ec4970de14a506b8091119669b21",
+			"revisionTime": "2016-02-24T18:05:36+01:00"
+		},
+		{
+			"path": "github.com/trivago/gollum/shared",
+			"revision": "84a150de9298ec4970de14a506b8091119669b21",
+			"revisionTime": "2016-02-24T18:05:36+01:00"
+		},
+		{
+			"path": "github.com/trivago/gollum/stream",
+			"revision": "84a150de9298ec4970de14a506b8091119669b21",
+			"revisionTime": "2016-02-24T18:05:36+01:00"
+		},
+		{
 			"path": "golang.org/x/net/websocket",
 			"revision": "4599ae7937fce9b670ce32b8ad32bbb7ae726b3e",
 			"revisionTime": "2016-02-20T14:44:54-08:00"
