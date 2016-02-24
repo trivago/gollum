@@ -34,7 +34,7 @@ aws:
 	@zip -j dist/gollum_aws.zip gollum config/kinesis.conf dist/Procfile
 
 current:
-	@go build
+	@GOGC=off go build
 
 restore:
 	@go get github.com/tools/godep
