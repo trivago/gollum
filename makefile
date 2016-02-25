@@ -42,7 +42,7 @@ vendor:
 	@govendor update +vendor
 
 test:
-	@go test -cover -v -timeout 10s ./...
+	@go test -cover -v -timeout 10s -race $$(go list ./...|grep -v vendor)
 
 all: clean freebsd linux mac pi win current
 

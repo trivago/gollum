@@ -67,7 +67,7 @@ const (
 // ClientId sets the client id of this producer. By default this is "gollum".
 //
 // Partitioner sets the distribution algorithm to use. Valid values are:
-// "Random","Roundrobin" and "Hash". By default "Hash" is set.
+// "Random","Roundrobin" and "Hash". By default "Roundrobin" is set.
 //
 // RequiredAcks defines the acknowledgment level required by the broker.
 // 0 = No responses required. 1 = wait for the local commit. -1 = wait for
@@ -197,7 +197,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 		prod.config.Producer.Compression = kafka.CompressionSnappy
 	}
 
-	switch strings.ToLower(conf.GetString("Partitioner", partRandom)) {
+	switch strings.ToLower(conf.GetString("Partitioner", partRoundrobin)) {
 	case partRandom:
 		prod.config.Producer.Partitioner = kafka.NewRandomPartitioner
 	case partRoundrobin:
