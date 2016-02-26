@@ -18,6 +18,7 @@ import (
 	"github.com/trivago/gollum/shared"
 	"math"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -226,32 +227,32 @@ func TestProducerTickerLoop(t *testing.T) {
 	mockP.setState(PluginStateActive)
 	// accept timeroff by abs( 8 ms)
 	delta := float64(8 * time.Millisecond)
-	var counter = 0
+	counter := new(int32)
 	tickerLoopTimeout := 20 * time.Millisecond
 	var timeRecorded time.Time
 	onTimeOut := func() {
-		if counter > 3 {
+		if atomic.LoadInt32(counter) > 3 {
 			mockP.setState(PluginStateDead)
 			return
 		}
 		//this was fired as soon as the ticker started. So ignore but save the time
-		if counter == 0 {
+		if atomic.LoadInt32(counter) == 0 {
 			timeRecorded = time.Now()
-			counter++
+			atomic.AddInt32(counter, 1)
 			return
 		}
 		diff := time.Now().Sub(timeRecorded)
 		deltaDiff := math.Abs(float64(tickerLoopTimeout - diff))
 		expect.True(deltaDiff < delta)
 		timeRecorded = time.Now()
-		counter++
+		atomic.AddInt32(counter, 1)
 		return
 	}
 
 	mockP.tickerLoop(tickerLoopTimeout, onTimeOut)
 	time.Sleep(2 * time.Second)
 	// in anycase, the callback has to be called atleast once
-	expect.True(counter > 1)
+	expect.Greater(atomic.LoadInt32(counter), int32(1))
 }
 
 func TestProducerMessageLoop(t *testing.T) {
@@ -306,39 +307,39 @@ func TestProducerControlLoop(t *testing.T) {
 	expect := shared.NewExpect(t)
 	mockP := getMockProducer()
 
-	var stop bool
-	var roll bool
+	stop := new(int32)
+	roll := new(int32)
 	mockP.onStop = func() {
-		stop = true
+		atomic.StoreInt32(stop, 1)
 	}
 
 	mockP.onRoll = func() {
-		roll = true
+		atomic.StoreInt32(roll, 1)
 	}
 
 	go expect.NonBlocking(2*time.Second, mockP.ControlLoop)
 	time.Sleep(50 * time.Millisecond)
 	mockP.control <- PluginControlStopProducer // trigger stopLoop (stop expect.NonBlocking)
 	time.Sleep(50 * time.Millisecond)
-	expect.True(stop)
+	expect.Equal(atomic.LoadInt32(stop), int32(1))
 
 	go expect.NonBlocking(2*time.Second, mockP.ControlLoop)
 	time.Sleep(50 * time.Millisecond)
 	mockP.control <- PluginControlRoll // trigger rollLoop (stop expect.NonBlocking)
 	time.Sleep(50 * time.Millisecond)
-	expect.True(roll)
+	expect.Equal(atomic.LoadInt32(roll), int32(1))
 
 }
 
 func TestProducerFuse(t *testing.T) {
 	expect := shared.NewExpect(t)
-	activateFuse := false
-	checkCounter := 0
+	activateFuse := new(int32)
+	checkCounter := new(int32)
 
 	mockP := getMockProducer()
 	mockP.SetCheckFuseCallback(func() bool {
-		checkCounter++
-		return activateFuse
+		atomic.AddInt32(checkCounter, 1)
+		return atomic.LoadInt32(activateFuse) == 1
 	})
 
 	fuse := StreamRegistry.GetFuse(mockP.fuseName)
@@ -349,19 +350,20 @@ func TestProducerFuse(t *testing.T) {
 	// Check basic functionality
 
 	expect.NonBlocking(time.Second, func() { mockP.Control() <- PluginControlFuseBurn })
+	time.Sleep(mockP.fuseTimeout)
 	expect.True(fuse.IsBurned())
 
 	time.Sleep(mockP.fuseTimeout * 2)
 	expect.True(fuse.IsBurned())
-	expect.Greater(checkCounter, 0)
+	expect.Greater(atomic.LoadInt32(checkCounter), int32(0))
 
-	activateFuse = true
+	atomic.StoreInt32(activateFuse, 1)
 	time.Sleep(mockP.fuseTimeout * 2)
 	expect.False(fuse.IsBurned())
 
 	// Check double calls
 
-	activateFuse = false
+	atomic.StoreInt32(activateFuse, 0)
 	expect.NonBlocking(time.Second, func() { mockP.Control() <- PluginControlFuseBurn })
 	expect.NonBlocking(time.Second, func() { mockP.Control() <- PluginControlFuseBurn })
 	expect.True(fuse.IsBurned())

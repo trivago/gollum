@@ -27,14 +27,14 @@ import (
 type MessageBatch struct {
 	queue     [2]messageQueue
 	flushing  *shared.WaitGroup
-	lastFlush time.Time
-	activeSet uint32
-	closed    int32
+	lastFlush *int64
+	activeSet *uint32
+	closed    *int32
 }
 
 type messageQueue struct {
 	messages  []Message
-	doneCount uint32
+	doneCount *uint32
 }
 
 const (
@@ -50,19 +50,20 @@ type AssemblyFunc func([]Message)
 // NewMessageBatch creates a new MessageBatch with a given size (in bytes)
 // and a given formatter.
 func NewMessageBatch(maxMessageCount int) MessageBatch {
+	now := time.Now().Unix()
 	return MessageBatch{
 		queue:     [2]messageQueue{newMessageQueue(maxMessageCount), newMessageQueue(maxMessageCount)},
 		flushing:  new(shared.WaitGroup),
-		lastFlush: time.Now(),
-		activeSet: uint32(0),
-		closed:    0,
+		lastFlush: &now,
+		activeSet: new(uint32),
+		closed:    new(int32),
 	}
 }
 
 func newMessageQueue(maxMessageCount int) messageQueue {
 	return messageQueue{
 		messages:  make([]Message, maxMessageCount),
-		doneCount: uint32(0),
+		doneCount: new(uint32),
 	}
 }
 
@@ -73,7 +74,7 @@ func (batch *MessageBatch) Len() int {
 
 // The number of elements in the active buffer
 func (batch *MessageBatch) getActiveBufferCount() int {
-	return int(batch.activeSet & 0x7FFFFFFF)
+	return int(atomic.LoadUint32(batch.activeSet) & 0x7FFFFFFF)
 }
 
 // Append formats a message and appends it to the internal buffer.
@@ -85,14 +86,14 @@ func (batch *MessageBatch) Append(msg Message) bool {
 		return false // ### return, closed ###
 	}
 
-	activeSet := atomic.AddUint32(&batch.activeSet, 1)
+	activeSet := atomic.AddUint32(batch.activeSet, 1)
 	activeIdx := activeSet >> messageBatchIndexShift
 	activeQueue := &batch.queue[activeIdx]
 	ticketIdx := (activeSet & messageBatchCountMask) - 1
 
 	// We mark the message as written even if the write fails so that flush
 	// does not block after a failed message.
-	defer func() { atomic.AddUint32(&activeQueue.doneCount, 1) }()
+	defer func() { atomic.AddUint32(activeQueue.doneCount, 1) }()
 
 	if ticketIdx >= uint32(len(activeQueue.messages)) {
 		return false // ### return, queue is full ###
@@ -132,20 +133,20 @@ func (batch *MessageBatch) AppendOrFlush(msg Message, flushBuffer func(), canBlo
 // Touch resets the timer queried by ReachedTimeThreshold, i.e. this resets the
 // automatic flush timeout
 func (batch *MessageBatch) Touch() {
-	batch.lastFlush = time.Now()
+	atomic.StoreInt64(batch.lastFlush, time.Now().Unix())
 }
 
 // Close disables Append, calls flush and waits for this call to finish.
 // Timeout is passed to WaitForFlush.
 func (batch *MessageBatch) Close(assemble AssemblyFunc, timeout time.Duration) {
-	atomic.StoreInt32(&batch.closed, 1)
+	atomic.StoreInt32(batch.closed, 1)
 	batch.Flush(assemble)
 	batch.WaitForFlush(timeout)
 }
 
 // IsClosed returns true of Close has been called at least once.
 func (batch MessageBatch) IsClosed() bool {
-	return atomic.LoadInt32(&batch.closed) != 0
+	return atomic.LoadInt32(batch.closed) != 0
 }
 
 // Flush writes the content of the buffer to a given resource and resets the
@@ -169,7 +170,7 @@ func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
 	batch.flushing.IncWhenDone()
 
 	// Switch the buffers so writers can go on writing
-	flushSet := atomic.SwapUint32(&batch.activeSet, (batch.activeSet&messageBatchIndexMask)^messageBatchIndexMask)
+	flushSet := atomic.SwapUint32(batch.activeSet, (atomic.LoadUint32(batch.activeSet)&messageBatchIndexMask)^messageBatchIndexMask)
 
 	flushIdx := flushSet >> messageBatchIndexShift
 	writerCount := flushSet & messageBatchCountMask
@@ -177,7 +178,7 @@ func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
 	spin := shared.NewSpinner(shared.SpinPriorityHigh)
 
 	// Wait for remaining writers to finish
-	for writerCount != atomic.LoadUint32(&flushQueue.doneCount) {
+	for writerCount != atomic.LoadUint32(flushQueue.doneCount) {
 		spin.Yield()
 	}
 
@@ -187,7 +188,7 @@ func (batch *MessageBatch) Flush(assemble AssemblyFunc) {
 
 		messageCount := shared.MinI(int(writerCount), len(flushQueue.messages))
 		assemble(flushQueue.messages[:messageCount])
-		atomic.StoreUint32(&flushQueue.doneCount, 0)
+		atomic.StoreUint32(flushQueue.doneCount, 0)
 		batch.Touch()
 	})
 }
@@ -211,20 +212,21 @@ func (batch *MessageBatch) WaitForFlush(timeout time.Duration) {
 // IsEmpty returns true if no data is stored in the front buffer, i.e. if no data
 // is scheduled for flushing.
 func (batch MessageBatch) IsEmpty() bool {
-	return atomic.LoadUint32(&batch.activeSet)&messageBatchCountMask == 0
+	return atomic.LoadUint32(batch.activeSet)&messageBatchCountMask == 0
 }
 
 // ReachedSizeThreshold returns true if the bytes stored in the buffer are
 // above or equal to the size given.
 // If there is no data this function returns false.
 func (batch MessageBatch) ReachedSizeThreshold(size int) bool {
-	activeIdx := atomic.LoadUint32(&batch.activeSet) >> messageBatchIndexShift
+	activeIdx := atomic.LoadUint32(batch.activeSet) >> messageBatchIndexShift
 	threshold := uint32(shared.MaxI(size, len(batch.queue[activeIdx].messages)))
-	return batch.queue[activeIdx].doneCount >= threshold
+	return atomic.LoadUint32(batch.queue[activeIdx].doneCount) >= threshold
 }
 
 // ReachedTimeThreshold returns true if the last flush was more than timeout ago.
 // If there is no data this function returns false.
 func (batch MessageBatch) ReachedTimeThreshold(timeout time.Duration) bool {
-	return !batch.IsEmpty() && time.Since(batch.lastFlush) > timeout
+	lastFlush := time.Unix(atomic.LoadInt64(batch.lastFlush), 0)
+	return !batch.IsEmpty() && time.Since(lastFlush) > timeout
 }

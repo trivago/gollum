@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/shared"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -49,17 +50,17 @@ func TestPluginRunState(t *testing.T) {
 
 	pluginState.AddWorker()
 	pluginState.AddWorker()
-	done := false
+	done := new(int32)
 
 	go func() {
 		pluginState.WorkerDone()
 		pluginState.WorkerDone()
 		wg.Wait()
-		done = true
+		atomic.StoreInt32(done, 1)
 	}()
 	// timeout for go routine.
 	time.Sleep(500 * time.Millisecond)
-	expect.True(done)
+	expect.Equal(atomic.LoadInt32(done), int32(1))
 
 }
 
