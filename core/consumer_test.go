@@ -118,28 +118,28 @@ func TestConsumerTickerLoop(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockC := getMockConsumer()
 	mockC.setState(PluginStateActive)
+
 	// accept timeroff by abs( 8 ms)
-	delta := float64(8 * time.Millisecond)
-	counter := new(int32)
+	tickThreshold := float64(10 * time.Millisecond)
 	tickerLoopTimeout := 20 * time.Millisecond
-	var timeRecorded time.Time
+	lastTick := time.Now()
+	counter := new(int32)
+
 	onTimeOut := func() {
+		defer func() {
+			atomic.AddInt32(counter, 1)
+			lastTick = time.Now()
+		}()
+
 		if atomic.LoadInt32(counter) > 3 {
 			mockC.setState(PluginStateDead)
 			return
 		}
-		//this was fired as soon as the ticker started. So ignore but save the time
-		if atomic.LoadInt32(counter) == 0 {
-			timeRecorded = time.Now()
-			atomic.AddInt32(counter, 1)
-			return
+
+		if atomic.LoadInt32(counter) > 0 {
+			deltaDiff := math.Abs(float64(tickerLoopTimeout - time.Since(lastTick)))
+			expect.Less(deltaDiff, tickThreshold)
 		}
-		diff := time.Now().Sub(timeRecorded)
-		deltaDiff := math.Abs(float64(tickerLoopTimeout - diff))
-		expect.True(deltaDiff < delta)
-		timeRecorded = time.Now()
-		atomic.AddInt32(counter, 1)
-		return
 	}
 
 	mockC.tickerLoop(tickerLoopTimeout, onTimeOut)
