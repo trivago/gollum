@@ -34,17 +34,18 @@ func (prod *mockProducer) Produce(workers *sync.WaitGroup) {
 func getMockProducer() mockProducer {
 	return mockProducer{
 		ProducerBase{
-			messages:        make(chan Message, 2),
-			control:         make(chan PluginControl),
-			streams:         []MessageStreamID{},
-			dropStreamID:    2,
-			runState:        new(PluginRunState),
-			timeout:         500 * time.Millisecond,
-			filter:          &mockFilter{},
-			format:          &mockFormatter{},
-			shutdownTimeout: 10 * time.Millisecond,
-			fuseName:        "test",
-			fuseTimeout:     100 * time.Millisecond,
+			messages:         make(chan Message, 2),
+			control:          make(chan PluginControl),
+			streams:          []MessageStreamID{},
+			dropStreamID:     2,
+			runState:         new(PluginRunState),
+			timeout:          500 * time.Millisecond,
+			filter:           &mockFilter{},
+			format:           &mockFormatter{},
+			shutdownTimeout:  10 * time.Millisecond,
+			fuseName:         "test",
+			fuseTimeout:      100 * time.Millisecond,
+			fuseControlGuard: new(sync.Mutex),
 		},
 	}
 }

@@ -132,7 +132,7 @@ type ProducerBase struct {
 	timeout          time.Duration
 	shutdownTimeout  time.Duration
 	fuseTimeout      time.Duration
-	fuseControlGuard sync.Mutex
+	fuseControlGuard *sync.Mutex
 	fuseControl      *time.Timer
 	fuseName         string
 	format           Formatter
@@ -165,6 +165,7 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	prod.fuseTimeout = time.Duration(conf.GetInt("FuseTimeoutSec", 10)) * time.Second
 	prod.fuseName = conf.GetString("Fuse", "")
 	prod.dropStreamID = GetStreamID(conf.GetString("DropToStream", DroppedStream))
+	prod.fuseControlGuard = new(sync.Mutex)
 
 	prod.onRoll = nil
 	prod.onStop = nil
@@ -289,13 +290,13 @@ func (prod *ProducerBase) DependsOn(dep Producer) bool {
 // GetTimeout returns the duration this producer will block before a message
 // is dropped. A value of -1 will cause the message to drop. A value of 0
 // will cause the producer to always block.
-func (prod ProducerBase) GetTimeout() time.Duration {
+func (prod *ProducerBase) GetTimeout() time.Duration {
 	return prod.timeout
 }
 
 // GetShutdownTimeout returns the duration this producer will wait during close
 // before messages get dropped.
-func (prod ProducerBase) GetShutdownTimeout() time.Duration {
+func (prod *ProducerBase) GetShutdownTimeout() time.Duration {
 	return prod.shutdownTimeout
 }
 
