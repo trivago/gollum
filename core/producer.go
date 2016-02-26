@@ -123,23 +123,24 @@ type Producer interface {
 // be recovered. Note that automatic fuse recovery logic depends on each
 // producer's implementation. By default this setting is set to 10.
 type ProducerBase struct {
-	messages        chan Message
-	control         chan PluginControl
-	streams         []MessageStreamID
-	dropStreamID    MessageStreamID
-	dependencies    []Producer
-	runState        *PluginRunState
-	timeout         time.Duration
-	shutdownTimeout time.Duration
-	fuseTimeout     time.Duration
-	fuseControl     *time.Timer
-	fuseName        string
-	formatters      []Formatter
-	filters         []Filter
-	onRoll          func()
-	onStop          func()
-	onCheckFuse     func() bool
-	Log             tlog.LogScope
+	messages         chan Message
+	control          chan PluginControl
+	streams          []MessageStreamID
+	dropStreamID     MessageStreamID
+	dependencies     []Producer
+	runState         *PluginRunState
+	timeout          time.Duration
+	shutdownTimeout  time.Duration
+	fuseTimeout      time.Duration
+	fuseControlGuard sync.Mutex
+	fuseControl      *time.Timer
+	fuseName         string
+	formatters       []Formatter
+	filters          []Filter
+	onRoll           func()
+	onStop           func()
+	onCheckFuse      func() bool
+	Log              tlog.LogScope
 }
 
 // Configure initializes the standard producer config values.
@@ -530,12 +531,27 @@ func (prod *ProducerBase) WaitForDependencies(waitForState PluginState, timeout 
 	}
 }
 
+func (prod *ProducerBase) setFuseControl(callback func()) {
+	prod.fuseControlGuard.Lock()
+	defer prod.fuseControlGuard.Unlock()
+
+	if prod.fuseControl != nil {
+		prod.fuseControl.Stop()
+	}
+
+	if callback == nil {
+		prod.fuseControl = nil
+	} else {
+		prod.fuseControl = time.AfterFunc(prod.fuseTimeout, callback)
+	}
+}
+
 func (prod *ProducerBase) triggerCheckFuse() {
 	if fuse := prod.GetFuse(); prod.onCheckFuse != nil && fuse.IsBurned() {
 		if prod.onCheckFuse() {
 			prod.Control() <- PluginControlFuseActive
 		} else {
-			prod.fuseControl = time.AfterFunc(prod.fuseTimeout, prod.triggerCheckFuse)
+			prod.setFuseControl(prod.triggerCheckFuse)
 		}
 	}
 }
@@ -579,9 +595,7 @@ func (prod *ProducerBase) ControlLoop() {
 
 		case PluginControlFuseActive:
 			if fuse := prod.GetFuse(); fuse != nil && fuse.IsBurned() {
-				if prod.fuseControl != nil {
-					prod.fuseControl.Stop()
-				}
+				prod.setFuseControl(nil)
 				fuse.Activate()
 				prod.Log.Note.Print("Fuse reactivated")
 			}

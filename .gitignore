@@ -1,8 +1,7 @@
 gollum
 gollum.pid
 *.prof
-.tags*
 docs/_build
 *.tar.gz
 *.zip
-test/*
+test

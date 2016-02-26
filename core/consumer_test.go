@@ -20,6 +20,7 @@ import (
 	"github.com/trivago/tgo/ttesting"
 	"math"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -119,32 +120,32 @@ func TestConsumerTickerLoop(t *testing.T) {
 	mockC.setState(PluginStateActive)
 	// accept timeroff by abs( 8 ms)
 	delta := float64(8 * time.Millisecond)
-	var counter = 0
+	counter := new(int32)
 	tickerLoopTimeout := 20 * time.Millisecond
 	var timeRecorded time.Time
 	onTimeOut := func() {
-		if counter > 3 {
+		if atomic.LoadInt32(counter) > 3 {
 			mockC.setState(PluginStateDead)
 			return
 		}
 		//this was fired as soon as the ticker started. So ignore but save the time
-		if counter == 0 {
+		if atomic.LoadInt32(counter) == 0 {
 			timeRecorded = time.Now()
-			counter++
+			atomic.AddInt32(counter, 1)
 			return
 		}
 		diff := time.Now().Sub(timeRecorded)
 		deltaDiff := math.Abs(float64(tickerLoopTimeout - diff))
 		expect.True(deltaDiff < delta)
 		timeRecorded = time.Now()
-		counter++
+		atomic.AddInt32(counter, 1)
 		return
 	}
 
 	mockC.tickerLoop(tickerLoopTimeout, onTimeOut)
 	time.Sleep(2 * time.Second)
 	// in anycase, the callback has to be called atleast once
-	expect.True(counter > 1)
+	expect.Greater(atomic.LoadInt32(counter), int32(1))
 }
 
 // For completeness' sake. This is exactly the same as Producer's control loop
@@ -152,14 +153,14 @@ func TestConsumerControlLoop(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockC := getMockConsumer()
 
-	var stop bool
-	var roll bool
+	stop := new(int32)
+	roll := new(int32)
 	mockC.SetStopCallback(func() {
-		stop = true
+		atomic.StoreInt32(stop, 1)
 	})
 
 	mockC.SetRollCallback(func() {
-		roll = true
+		atomic.StoreInt32(roll, 1)
 	})
 
 	go mockC.ControlLoop()
@@ -167,13 +168,13 @@ func TestConsumerControlLoop(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 	mockC.control <- PluginControlStopConsumer
 	time.Sleep(50 * time.Millisecond)
-	expect.True(stop)
+	expect.Equal(atomic.LoadInt32(stop), int32(1))
 
 	go mockC.ControlLoop()
 	time.Sleep(50 * time.Millisecond)
 	mockC.control <- PluginControlRoll
 	time.Sleep(50 * time.Millisecond)
-	expect.True(roll)
+	expect.Equal(atomic.LoadInt32(roll), int32(1))
 }
 
 func TestConsumerFuse(t *testing.T) {
@@ -186,50 +187,50 @@ func TestConsumerFuse(t *testing.T) {
 	mockC.Configure(NewPluginConfigReader(&conf))
 	expect.NotNil(mockC.fuse)
 
-	burnedCallback := false
-	activeCallback := false
+	burnedCallback := new(int32)
+	activeCallback := new(int32)
 
-	mockC.SetFuseBurnedCallback(func() { burnedCallback = true })
-	mockC.SetFuseActiveCallback(func() { activeCallback = true })
+	mockC.SetFuseBurnedCallback(func() { atomic.StoreInt32(burnedCallback, 1) })
+	mockC.SetFuseActiveCallback(func() { atomic.StoreInt32(activeCallback, 1) })
 
 	go mockC.ControlLoop()
 
 	expect.False(mockC.fuse.IsBurned())
-	expect.False(burnedCallback)
-	expect.False(activeCallback)
+	expect.Equal(atomic.LoadInt32(burnedCallback), int32(0))
+	expect.Equal(atomic.LoadInt32(activeCallback), int32(0))
 
 	// Check manual fuse trigger
 
-	burnedCallback = false
-	activeCallback = false
+	atomic.StoreInt32(burnedCallback, 0)
+	atomic.StoreInt32(activeCallback, 0)
 
 	mockC.Control() <- PluginControlFuseBurn
 	time.Sleep(10 * time.Millisecond)
-	expect.True(burnedCallback)
-	expect.False(activeCallback)
+	expect.Equal(atomic.LoadInt32(burnedCallback), int32(1))
+	expect.Equal(atomic.LoadInt32(activeCallback), int32(0))
 
-	burnedCallback = false
+	atomic.StoreInt32(burnedCallback, 0)
 	mockC.Control() <- PluginControlFuseActive
 	time.Sleep(10 * time.Millisecond)
-	expect.False(burnedCallback)
-	expect.True(activeCallback)
+	expect.Equal(atomic.LoadInt32(burnedCallback), int32(0))
+	expect.Equal(atomic.LoadInt32(activeCallback), int32(1))
 
 	// Check automatic burn callback
 
-	burnedCallback = false
-	activeCallback = false
+	atomic.StoreInt32(burnedCallback, 0)
+	atomic.StoreInt32(activeCallback, 0)
 
 	mockC.fuse.Burn()
 	time.Sleep(tsync.SpinTimeSuspend + 100*time.Millisecond)
 
-	expect.True(burnedCallback)
-	expect.False(activeCallback)
+	expect.Equal(atomic.LoadInt32(burnedCallback), int32(1))
+	expect.Equal(atomic.LoadInt32(activeCallback), int32(0))
 
 	// Check automatic activate callback
 
-	burnedCallback = false
+	atomic.StoreInt32(burnedCallback, 0)
 	mockC.fuse.Activate()
 	time.Sleep(10 * time.Millisecond)
-	expect.False(burnedCallback)
-	expect.True(activeCallback)
+	expect.Equal(atomic.LoadInt32(burnedCallback), int32(0))
+	expect.Equal(atomic.LoadInt32(activeCallback), int32(1))
 }

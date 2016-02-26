@@ -103,7 +103,7 @@ func Decode(dst, src []byte) ([]byte, error) {
 
 		case tagCopy1:
 			s += 2
-			if s > len(src) {
+			if uint(s) > uint(len(src)) { // The uint conversions catch overflow from the previous line.
 				return nil, ErrCorrupt
 			}
 			length = 4 + int(src[s-2])>>2&0x7
@@ -111,7 +111,7 @@ func Decode(dst, src []byte) ([]byte, error) {
 
 		case tagCopy2:
 			s += 3
-			if s > len(src) {
+			if uint(s) > uint(len(src)) { // The uint conversions catch overflow from the previous line.
 				return nil, ErrCorrupt
 			}
 			length = 1 + int(src[s-3])>>2
@@ -140,8 +140,8 @@ func Decode(dst, src []byte) ([]byte, error) {
 func NewReader(r io.Reader) *Reader {
 	return &Reader{
 		r:       r,
-		decoded: make([]byte, maxUncompressedChunkLen),
-		buf:     make([]byte, maxEncodedLenOfMaxUncompressedChunkLen+checksumSize),
+		decoded: make([]byte, maxBlockSize),
+		buf:     make([]byte, maxEncodedLenOfMaxBlockSize+checksumSize),
 	}
 }
 
