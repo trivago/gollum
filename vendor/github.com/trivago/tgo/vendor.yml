@@ -1,5 +1,0 @@
-vendors:
-- path: github.com/mgutz/ansi
-  rev: c286dcecd19ff979eeb73ea444e479b903f2cfcb
-- path: github.com/trivago/tgo
-  rev: 2807b786139c4633f43ad9417fa062b99c108b40

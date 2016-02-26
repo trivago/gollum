@@ -22,23 +22,7 @@ Package ini provides INI file read and write functionality in Go.
 
 ## Installation
 
-To use a tagged revision:
-
 	go get gopkg.in/ini.v1
-
-To use with latest changes:
-
-	go get github.com/go-ini/ini
-
-Please add `-u` flag to update in the future.
-
-### Testing
-
-If you want to test on your machine, please apply `-t` flag:
-
-	go get -t gopkg.in/ini.v1
-
-Please add `-u` flag to update in the future.
 
 ## Getting Started
 
@@ -111,12 +95,6 @@ Same rule applies to key operations:
 key := cfg.Section("").Key("key name")
 ```
 
-To check if a key exists:
-
-```go
-yes := cfg.Section("").HasKey("key name")
-```
-
 To create a new key:
 
 ```go
@@ -155,24 +133,12 @@ val := cfg.Section("").Key("key name").Validate(func(in string) string {
 })
 ```
 
-If you do not want any auto-transformation (such as recursive read) for the values, you can get raw value directly (this way you get much better performance):
-
-```go
-val := cfg.Section("").Key("key name").Value()
-```
-
-To check if raw value exists:
-
-```go
-yes := cfg.Section("").HasValue("test value")
-```
-
 To get value with types:
 
 ```go
 // For boolean values:
-// true when value is: 1, t, T, TRUE, true, True, YES, yes, Yes, y, ON, on, On
-// false when value is: 0, f, F, FALSE, false, False, NO, no, No, n, OFF, off, Off
+// true when value is: 1, t, T, TRUE, true, True, YES, yes, Yes, ON, on, On
+// false when value is: 0, f, F, FALSE, false, False, NO, no, No, OFF, off, Off
 v, err = cfg.Section("").Key("BOOL").Bool()
 v, err = cfg.Section("").Key("FLOAT64").Float64()
 v, err = cfg.Section("").Key("INT").Int()
@@ -284,13 +250,9 @@ vals = cfg.Section("").Key("TIME").RangeTimeFormat(time.RFC3339, time.Now(), min
 vals = cfg.Section("").Key("TIME").RangeTime(time.Now(), minTime, maxTime) // RFC3339
 ```
 
-##### Auto-split values into a slice
-
-To use zero value of type for invalid inputs:
+To auto-split value into slice:
 
 ```go
-// Input: 1.1, 2.2, 3.3, 4.4 -> [1.1 2.2 3.3 4.4]
-// Input: how, 2.2, are, you -> [0.0 2.2 0.0 0.0]
 vals = cfg.Section("").Key("STRINGS").Strings(",")
 vals = cfg.Section("").Key("FLOAT64S").Float64s(",")
 vals = cfg.Section("").Key("INTS").Ints(",")
@@ -298,32 +260,6 @@ vals = cfg.Section("").Key("INT64S").Int64s(",")
 vals = cfg.Section("").Key("UINTS").Uints(",")
 vals = cfg.Section("").Key("UINT64S").Uint64s(",")
 vals = cfg.Section("").Key("TIMES").Times(",")
-```
-
-To exclude invalid values out of result slice:
-
-```go
-// Input: 1.1, 2.2, 3.3, 4.4 -> [1.1 2.2 3.3 4.4]
-// Input: how, 2.2, are, you -> [2.2]
-vals = cfg.Section("").Key("FLOAT64S").ValidFloat64s(",")
-vals = cfg.Section("").Key("INTS").ValidInts(",")
-vals = cfg.Section("").Key("INT64S").ValidInt64s(",")
-vals = cfg.Section("").Key("UINTS").ValidUints(",")
-vals = cfg.Section("").Key("UINT64S").ValidUint64s(",")
-vals = cfg.Section("").Key("TIMES").ValidTimes(",")
-```
-
-Or to return nothing but error when have invalid inputs:
-
-```go
-// Input: 1.1, 2.2, 3.3, 4.4 -> [1.1 2.2 3.3 4.4]
-// Input: how, 2.2, are, you -> error
-vals = cfg.Section("").Key("FLOAT64S").StrictFloat64s(",")
-vals = cfg.Section("").Key("INTS").StrictInts(",")
-vals = cfg.Section("").Key("INT64S").StrictInt64s(",")
-vals = cfg.Section("").Key("UINTS").StrictUints(",")
-vals = cfg.Section("").Key("UINT64S").StrictUint64s(",")
-vals = cfg.Section("").Key("TIMES").StrictTimes(",")
 ```
 
 ### Save your configuration
@@ -528,7 +464,7 @@ type Info struct {
 }
 
 func main() {
-	err = ini.MapToWithMapper(&Info{}, ini.TitleUnderscore, []byte("package_name=ini"))
+	err = ini.MapToWithMapper(&Info{}, ini.TitleUnderscore, []byte("packag_name=ini"))
 	// ...
 
 	cfg, err := ini.Load([]byte("PACKAGE_NAME=ini"))

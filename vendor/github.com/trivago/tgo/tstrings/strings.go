@@ -23,12 +23,12 @@ import (
 var simpleEscapeChars = strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
 var jsonEscapeChars = strings.NewReplacer("\\", "\\\\", "\"", "\\\"")
 
-// Unescape replaces occurences of \\n, \\r and \\t with real escape codes.
+// Unescape replaces occurrences of \\n, \\r and \\t with real escape codes.
 func Unescape(text string) string {
 	return simpleEscapeChars.Replace(text)
 }
 
-// EscapeJSON replaces occurences of \ and " with escaped versions.
+// EscapeJSON replaces occurrences of \ and " with escaped versions.
 func EscapeJSON(text string) string {
 	return jsonEscapeChars.Replace(text)
 }
@@ -93,8 +93,8 @@ func Btoi(buffer []byte) (uint64, int) {
 	return number, index
 }
 
-// IndexN returns the nth occurance of sep in s or -1 if there is no nth
-// occurance of sep.
+// IndexN returns the nth occurrences of sep in s or -1 if there is no nth
+// occurrence of sep.
 func IndexN(s, sep string, n int) int {
 	sepIdx := 0
 	for i := 0; i < n; i++ {
@@ -107,8 +107,8 @@ func IndexN(s, sep string, n int) int {
 	return sepIdx - 1
 }
 
-// LastIndexN returns the nth occurance of sep in s or -1 if there is no nth
-// occurance of sep. Searching is going from the end of the string to the start.
+// LastIndexN returns the nth occurrence of sep in s or -1 if there is no nth
+// occurrence of sep. Searching is going from the end of the string to the start.
 func LastIndexN(s, sep string, n int) int {
 	if n == 0 {
 		return -1 // ### return, nonsense ###

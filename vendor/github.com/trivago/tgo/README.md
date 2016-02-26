@@ -1,5 +1,7 @@
 # tGo
 
+[![GoDoc](https://godoc.org/github.com/trivago/tgo?status.svg)](https://godoc.org/github.com/trivago/tgo)
+[![Go Report Card](http://goreportcard.com/badge/trivago/tgo)](http://goreportcard.com/report/trivago/tgo)
 [![Build Status](https://travis-ci.org/trivago/tgo.svg?branch=master)](https://travis-ci.org/trivago/tgo)
 
 Trivago go extensions and utilities.

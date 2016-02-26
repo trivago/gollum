@@ -145,13 +145,14 @@ func String(short string, long string, value string, usage string) *string {
 	return StringVar(&flagVar, short, long, value, usage)
 }
 
+// Parse is a wrapper to golang's flag.parse
 func Parse() {
 	flag.Parse()
 }
 
+// PrintFlags prints information about the flags set for this application
 func PrintFlags(header string) {
 	fmt.Println(header)
-
 	valueFmt := fmt.Sprintf("%%-%ds\tdefault: %%-%ds\t%%-%ds\n", tabWidth[tabKey], tabWidth[tabValue], tabWidth[tabUsage])
 
 	for _, desc := range descriptions {

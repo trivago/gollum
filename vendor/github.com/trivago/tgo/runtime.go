@@ -20,6 +20,14 @@ import (
 	"runtime/debug"
 )
 
+// ShutdownCallback holds the function that is called when RecoverShutdown detects
+// a panic and could recover. By default this functions sends an os.Interrupt
+// signal to the process. This function can be overwritten for customization.
+var ShutdownCallback = func() {
+	proc, _ := os.FindProcess(os.Getpid())
+	proc.Signal(os.Interrupt)
+}
+
 // RecoverShutdown will trigger a shutdown via os.Interrupt if a panic was issued.
 // A callstack will be printed like with RecoverTrace().
 // Typically used as "defer RecoverShutdown()".
@@ -27,11 +35,7 @@ func RecoverShutdown() {
 	if r := recover(); r != nil {
 		log.Print("Panic triggered shutdown: ", r)
 		log.Print(string(debug.Stack()))
-
-		// Send interrupt = clean shutdown
-		// TODO: Hack
-		proc, _ := os.FindProcess(os.Getpid())
-		proc.Signal(os.Interrupt)
+		ShutdownCallback()
 	}
 }
 
