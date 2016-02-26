@@ -39,7 +39,7 @@ current:
 
 vendor:
 	@go get -u github.com/kardianos/govendor
-	@go get -u $$(go list ./...|grep -v vendor)
+	@go get -f -u $$(go list ./...|grep -v vendor)
 	@govendor add +outside
 	@govendor update +vendor
 
