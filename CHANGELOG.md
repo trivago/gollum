@@ -5,12 +5,12 @@ This is a patch / minor features release.
 #### Fixed
 
  * Fixed a race condition in consumer/kafka reported by Go 1.6
+ * Fixed a rare race condition during producer fuse handling
+ * Fixed a non-critical race condition in messagebatch handling
 
 #### New
 
  * Support for Go1.5 vendor experiment
-
-#### Nothing changed, yet
 
 # 0.4.2
 
