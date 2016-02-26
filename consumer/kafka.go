@@ -16,10 +16,10 @@ package consumer
 
 import (
 	"encoding/json"
+	kafka "github.com/shopify/sarama"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
-	kafka "gopkg.in/Shopify/sarama.v1"
 	"io/ioutil"
 	"strconv"
 	"strings"
