@@ -147,6 +147,16 @@ func (prod *Scribe) sendBatchOnTimeOut() {
 	if prod.batch.ReachedTimeThreshold(prod.batchTimeout) || prod.batch.ReachedSizeThreshold(prod.batchFlushCount) {
 		prod.sendBatch()
 	}
+
+	// Update metrics
+	duration := time.Since(prod.lastMetricUpdate)
+	prod.lastMetricUpdate = time.Now()
+
+	for category, counter := range prod.counters {
+		count := atomic.SwapInt64(counter, 0)
+		shared.Metric.Add(scribeMetricMessages+category, count)
+		shared.Metric.SetF(scribeMetricMessagesSec+category, float64(count)/duration.Seconds())
+	}
 }
 
 func (prod *Scribe) tryOpenConnection() bool {
@@ -170,18 +180,6 @@ func (prod *Scribe) sendBatch() {
 		prod.batch.Flush(prod.transformMessages)
 	} else if prod.IsStopping() {
 		prod.batch.Flush(prod.dropMessages)
-	} else {
-		return // ### return, do not update metrics ###
-	}
-
-	// Update metrics
-	duration := time.Since(prod.lastMetricUpdate)
-	prod.lastMetricUpdate = time.Now()
-
-	for category, counter := range prod.counters {
-		count := atomic.SwapInt64(counter, 0)
-		shared.Metric.Add(scribeMetricMessages+category, count)
-		shared.Metric.SetF(scribeMetricMessagesSec+category, float64(count)/duration.Seconds())
 	}
 }
 

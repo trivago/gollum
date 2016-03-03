@@ -241,16 +241,6 @@ func (prod *Kafka) sendBatchOnTimeOut() {
 	if prod.batch.ReachedTimeThreshold(prod.config.Producer.Flush.Frequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2) {
 		prod.sendBatch()
 	}
-}
-
-func (prod *Kafka) sendBatch() {
-	if prod.tryOpenConnection() {
-		prod.batch.Flush(prod.transformMessages)
-	} else if prod.IsStopping() {
-		prod.batch.Flush(prod.dropMessages)
-	} else {
-		return // ### return, do not update metrics ###
-	}
 
 	// Update metrics
 	duration := time.Since(prod.lastMetricUpdate)
@@ -258,9 +248,16 @@ func (prod *Kafka) sendBatch() {
 
 	for topic, counter := range prod.counters {
 		count := atomic.SwapInt64(counter, 0)
-
 		shared.Metric.Add(kafkaMetricMessages+topic, count)
 		shared.Metric.SetF(kafkaMetricMessagesSec+topic, float64(count)/duration.Seconds())
+	}
+}
+
+func (prod *Kafka) sendBatch() {
+	if prod.tryOpenConnection() {
+		prod.batch.Flush(prod.transformMessages)
+	} else if prod.IsStopping() {
+		prod.batch.Flush(prod.dropMessages)
 	}
 }
 
