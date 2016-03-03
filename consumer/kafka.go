@@ -16,6 +16,7 @@ package consumer
 
 import (
 	"encoding/json"
+	"fmt"
 	kafka "github.com/shopify/sarama"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
@@ -68,6 +69,10 @@ const (
 // a given partition. If the consumer is restarted that offset is used to continue
 // reading. By default this is set to "" which disables the offset file.
 //
+// Ordered can be set to enforce paritions to be read one-by-one in a round robin
+// fashion instead of reading in parallel from all partitions.
+// Set to false by default.
+//
 // MaxOpenRequests defines the number of simultanious connections are allowed.
 // By default this is set to 5.
 //
@@ -116,6 +121,8 @@ type Kafka struct {
 	offsets        map[int32]*int64
 	MaxPartitionID int32
 	persistTimeout time.Duration
+	orderedRead    bool
+	sequence       *uint64
 }
 
 func init() {
@@ -133,8 +140,10 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 	cons.topic = conf.GetString("Topic", "default")
 	cons.offsetFile = conf.GetString("OffsetFile", "")
 	cons.persistTimeout = time.Duration(conf.GetInt("PresistTimoutMs", 5000)) * time.Millisecond
+	cons.orderedRead = conf.GetBool("Ordered", false)
 	cons.offsets = make(map[int32]*int64)
 	cons.MaxPartitionID = 0
+	cons.sequence = new(uint64)
 
 	cons.config = kafka.NewConfig()
 	cons.config.ChannelBufferSize = conf.GetInt("MessageBufferCount", 256)
@@ -163,9 +172,12 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 
 	default:
 		cons.defaultOffset, _ = strconv.ParseInt(offsetValue, 10, 64)
+	}
+
+	if cons.offsetFile != "" {
 		fileContents, err := ioutil.ReadFile(cons.offsetFile)
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to open kafka offset file: %s", err.Error())
 		}
 
 		// Decode the JSON file into the partition -> offset map
@@ -222,19 +234,7 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 		select {
 		case event := <-partCons.Messages():
 			atomic.StoreInt64(cons.offsets[partitionID], event.Offset)
-
-			// Offset is always relative to the partition, so we create "buckets"
-			// i.e. we are able to reconstruct partiton and local offset from
-			// the sequence number.
-			//
-			// To generate this we use:
-			// seq = offset * numPartition + partitionId
-			//
-			// Reading can be done via:
-			// seq % numPartition = partitionId
-			// seq / numPartition = offset
-
-			sequence := uint64(event.Offset*int64(cons.MaxPartitionID) + int64(partitionID))
+			sequence := atomic.AddUint64(cons.sequence, 1) - 1
 			cons.Enqueue(event.Value, sequence)
 
 		case err := <-partCons.Errors():
@@ -244,6 +244,69 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 
 		default:
 			spin.Yield()
+		}
+	}
+}
+
+func (cons *Kafka) readPartitions(partitions []int32) {
+	consumers := []kafka.PartitionConsumer{}
+
+	// Start consumer
+initLoop:
+	for _, partitionID := range partitions {
+		startOffset := atomic.LoadInt64(cons.offsets[partitionID])
+		consumer, err := cons.consumer.ConsumePartition(cons.topic, partitionID, startOffset)
+
+		// Retry consumer until successfull
+		for err != nil {
+			Log.Error.Printf("Failed to start kafka consumer (%s:%d) - %s", cons.topic, partitionID, err.Error())
+			time.Sleep(cons.persistTimeout)
+			consumer, err = cons.consumer.ConsumePartition(cons.topic, partitionID, startOffset)
+			if cons.client.Closed() {
+				break initLoop
+			}
+		}
+
+		consumers = append(consumers, consumer)
+	}
+
+	// Make sure we wait for all consumers to end
+	cons.AddWorker()
+	defer func() {
+		if !cons.client.Closed() {
+			for _, consumer := range consumers {
+				consumer.Close()
+			}
+		}
+		cons.WorkerDone()
+	}()
+
+	// Loop over worker.
+	// Note: partitions and consumer are assumed to be index parallel
+	for !cons.client.Closed() {
+		for idx, consumer := range consumers {
+			var err error
+			cons.WaitOnFuse()
+			partition := partitions[idx]
+
+			select {
+			case event := <-consumer.Messages():
+				atomic.StoreInt64(cons.offsets[partition], event.Offset)
+				sequence := atomic.AddUint64(cons.sequence, 1) - 1
+				cons.Enqueue(event.Value, sequence)
+
+			case err = <-consumer.Errors():
+				Log.Error.Print("Kafka consumer error:", err)
+				consumer.Close()
+
+			reconnect:
+				consumer, err = cons.consumer.ConsumePartition(cons.topic, partition, atomic.LoadInt64(cons.offsets[partition]))
+				if err != nil {
+					Log.Error.Printf("Failed to restart kafka consumer (%s:%d) - %s", cons.topic, partition, err.Error())
+					time.Sleep(cons.persistTimeout)
+					goto reconnect
+				}
+			}
 		}
 	}
 }
@@ -277,8 +340,12 @@ func (cons *Kafka) startConsumers() error {
 		}
 	}
 
-	for _, partitionID := range partitions {
-		go cons.readFromPartition(partitionID)
+	if cons.orderedRead {
+		go cons.readPartitions(partitions)
+	} else {
+		for _, partitionID := range partitions {
+			go cons.readFromPartition(partitionID)
+		}
 	}
 
 	return nil
