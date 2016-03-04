@@ -47,13 +47,23 @@ func (stack *ErrorStack) Pushf(message string, args ...interface{}) {
 	stack.errors = append(stack.errors, fmt.Errorf(message, args...))
 }
 
+// PushAndDescribe behaves like Push but allows to prepend a text before
+// the error messages returned by err. The type of err will be lost.
+func (stack *ErrorStack) PushAndDescribe(message string, err error) bool {
+	if err != nil {
+		stack.errors = append(stack.errors, fmt.Errorf(message+" %s", err.Error()))
+		return true
+	}
+	return false
+}
+
 // Pop removes an error from the top of the stack and returns it
 func (stack *ErrorStack) Pop() error {
 	if len(stack.errors) == 0 {
 		return nil
 	}
 	err := stack.errors[len(stack.errors)-1]
-	stack.errors = stack.errors[:len(stack.errors)]
+	stack.errors = stack.errors[:len(stack.errors)-1]
 	return err
 }
 

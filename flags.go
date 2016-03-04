@@ -26,7 +26,7 @@ var (
 	flagLoglevel       = tflag.Int("ll", "loglevel", 1, "Set the loglevel [0-3] as in {0=Errors, 1=+Warnings, 2=+Notes, 3=+Debug}.")
 	flagNumCPU         = tflag.Int("n", "numcpu", 0, "Number of CPUs to use. Set 0 for all CPUs.")
 	flagPidFile        = tflag.String("p", "pidfile", "", "Write the process id into a given file.")
-	flagMetricsPort    = tflag.Int("m", "metrics", 0, "Port to use for metric queries. Set 0 to disable.")
+	flagMetricsAddress = tflag.String("m", "metrics", "", "Address to use for metric queries. Disabled by default.")
 	flagCPUProfile     = tflag.String("pc", "profilecpu", "", "Write CPU profiler results to a given file.")
 	flagMemProfile     = tflag.String("pm", "profilemem", "", "Write heap profile results to a given file.")
 	flagProfile        = tflag.Switch("ps", "profilespeed", "Write msg/sec measurements to log.")

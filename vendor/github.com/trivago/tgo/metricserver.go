@@ -1,7 +1,6 @@
 package tgo
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"time"
@@ -33,19 +32,20 @@ func (server *MetricServer) handleMetricRequest(conn net.Conn) {
 	conn.Close()
 }
 
-// Start causes a metric server to listen for a specific port.
-// If this port is accessed a JSON containing all metrics will be returned and
-// the connection is closed.
-func (server *MetricServer) Start(port int) {
+// Start causes a metric server to listen for a specific address and port.
+// If this address/port is accessed a JSON containing all metrics will be
+// returned and the connection is closed.
+// You can use the standard go notation for addresses like ":80".
+func (server *MetricServer) Start(address string) {
 	if server.running {
 		return
 	}
 
 	var err error
-	server.listen, err = net.Listen("tcp", fmt.Sprintf(":%d", port))
+	server.listen, err = net.Listen("tcp", address)
 	if err != nil {
 		log.Print("Metrics: ", err)
-		time.AfterFunc(time.Second*5, func() { server.Start(port) })
+		time.AfterFunc(time.Second*5, func() { server.Start(address) })
 		return
 	}
 

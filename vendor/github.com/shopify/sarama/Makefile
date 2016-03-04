@@ -7,7 +7,7 @@ vet:
 	go vet ./...
 
 errcheck:
-	@if go version | grep -q go1.5; then errcheck github.com/Shopify/sarama/...; fi
+	errcheck github.com/Shopify/sarama/...
 
 fmt:
 	@if [ -n "$$(go fmt ./...)" ]; then echo 'Please run go fmt on your code.' && exit 1; fi
@@ -15,7 +15,7 @@ fmt:
 install_dependencies: install_errcheck install_go_vet get
 
 install_errcheck:
-	@if go version | grep -q go1.5; then go get github.com/kisielk/errcheck; fi
+	go get github.com/kisielk/errcheck
 
 install_go_vet:
 	go get golang.org/x/tools/cmd/vet

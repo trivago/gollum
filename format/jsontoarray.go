@@ -61,7 +61,7 @@ func (format *JSONToArray) Format(msg core.Message) ([]byte, core.MessageStreamI
 				case bool:
 					csv = fmt.Sprintf("%s%t%s", csv, value.(bool), format.separator)
 				case float64:
-					csv = fmt.Sprintf("%s%f%s", csv, value.(int), format.separator)
+					csv = fmt.Sprintf("%s%d%s", csv, value.(int), format.separator)
 				case string:
 					csv = fmt.Sprintf("%s%s%s", csv, value.(string), format.separator)
 				default:

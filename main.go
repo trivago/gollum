@@ -31,6 +31,7 @@ import (
 	"runtime"
 	"runtime/pprof"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -98,6 +99,24 @@ func main() {
 		runtime.GOMAXPROCS(*flagNumCPU)
 	}
 
+	// Metrics server start
+
+	if *flagMetricsAddress != "" {
+		server := tgo.NewMetricServer()
+		address := *flagMetricsAddress
+
+		if !strings.Contains(address, ":") {
+			if !tstrings.IsInt(address) {
+				fmt.Printf("Metrics address must be of the form \"host:port\" or \":port\" or \"port\".\n")
+				return
+			}
+			address = ":" + address
+		}
+
+		go server.Start(address)
+		defer server.Stop()
+	}
+
 	// Profiling flags
 
 	if *flagCPUProfile != "" {
@@ -112,14 +131,6 @@ func main() {
 
 	if *flagMemProfile != "" {
 		defer dumpMemoryProfile()
-	}
-
-	// Metrics server start
-
-	if *flagMetricsPort != 0 {
-		server := tgo.NewMetricServer()
-		go server.Start(*flagMetricsPort)
-		defer server.Stop()
 	}
 
 	// Start the multiplexer

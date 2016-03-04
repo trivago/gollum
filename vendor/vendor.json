@@ -3,11 +3,6 @@
 	"ignore": "test",
 	"package": [
 		{
-			"path": "github.com/Shopify/sarama",
-			"revision": "8aadb476e66ca998f2f6bb3c993e9a2daa3666b9",
-			"revisionTime": "2016-02-20T08:46:35-05:00"
-		},
-		{
 			"path": "github.com/araddon/gou",
 			"revision": "1fd0868458fb611a8a956fae0ed0d0cc657cd321",
 			"revisionTime": "2016-02-03T17:04:11-08:00"
@@ -216,9 +211,14 @@
 			"revisionTime": "2015-06-08T06:55:24+01:00"
 		},
 		{
+			"path": "github.com/shopify/sarama",
+			"revision": "4faee6199919651f769e85fd97f1b3bf5739cb81",
+			"revisionTime": "2015-09-04T10:48:20-04:00"
+		},
+		{
 			"path": "github.com/trivago/tgo",
-			"revision": "948db669e551f25da79a2a9d82c19b699fc10858",
-			"revisionTime": "2016-02-26T10:01:31+01:00"
+			"revision": "1163eedd74e83b22324c1bd3c36d1f6953c8cf32",
+			"revisionTime": "2016-03-04T11:33:15+01:00"
 		},
 		{
 			"path": "github.com/trivago/tgo/tcontainer",
