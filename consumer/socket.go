@@ -298,10 +298,20 @@ func (cons *Socket) tcpAccept() {
 
 				// Clear socket if necessary
 				if cons.protocol == "unix" && cons.clearSocket {
-					if _, err := os.Stat(cons.address); err == nil {
+					// Try to create the socket file to check if it exists
+					if socketFile, err := os.Create(cons.address); os.IsExist(err) {
 						cons.Log.Warning.Print("Found existing socket ", cons.address, ". Removing.")
+
 						if err := os.Remove(cons.address); err != nil {
-							cons.Log.Error.Print("Could not remove existing socket ", cons.address)
+							cons.Log.Warning.Print("Found existing socket ", cons.address, ". Removing.")
+						} else {
+							cons.Log.Error.Printf("Socket %s cleared", cons.address)
+						}
+					} else {
+						cons.Log.Error.Printf("Existing socket %s was removed by third party", cons.address)
+						socketFile.Close()
+						if err := os.Remove(cons.address); err != nil {
+							cons.Log.Error.Print("Could not remove test socket ", cons.address)
 						}
 					}
 				}

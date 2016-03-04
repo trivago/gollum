@@ -78,7 +78,7 @@ const (
 // By default this is set to 1500.
 //
 // SendRetries defines how many times to retry sending data before marking a
-// server as not reachable. By default this is set to 3.
+// server as not reachable. By default this is set to 0.
 //
 // Compression sets the method of compression to use. Valid values are:
 // "None","Zip" and "Snappy". By default "None" is set.
@@ -115,6 +115,10 @@ const (
 //
 // ElectTimeoutMs defines the number of milliseconds to wait for the cluster to
 // elect a new leader. Defaults to 250.
+// GracePeriodMs defines the number of milliseconds to wait for Sarama to
+//
+// accept a single message. After this period a message is dropped.
+// By default this is set to 5ms.
 //
 // MetadataRefreshMs set the interval in seconds for fetching cluster metadata.
 // By default this is set to 10000. This corresponds to the JVM setting
@@ -139,6 +143,7 @@ type Kafka struct {
 	counters         map[string]*int64
 	missCount        int64
 	lastMetricUpdate time.Time
+	gracePeriod      time.Duration
 }
 
 const (
@@ -161,6 +166,7 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 	prod.topic = conf.GetStreamMap("Topic", "")
 	prod.clientID = conf.GetString("ClientId", "gollum")
 	prod.lastMetricUpdate = time.Now()
+	prod.gracePeriod = time.Duration(conf.GetInt("GracePeriodMs", 5)) * time.Millisecond
 
 	prod.config = kafka.NewConfig()
 	prod.config.ClientID = conf.GetString("ClientId", "gollum")
@@ -208,7 +214,7 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 	prod.config.Producer.Flush.Messages = conf.GetInt("BatchMinCount", 1)
 	prod.config.Producer.Flush.Frequency = time.Duration(conf.GetInt("BatchTimeoutSec", 3)) * time.Second
 	prod.config.Producer.Flush.MaxMessages = conf.GetInt("BatchMaxCount", 0)
-	prod.config.Producer.Retry.Max = conf.GetInt("SendRetries", 3)
+	prod.config.Producer.Retry.Max = conf.GetInt("SendRetries", 0)
 	prod.config.Producer.Retry.Backoff = time.Duration(conf.GetInt("SendTimeoutMs", 100)) * time.Millisecond
 
 	prod.batch = core.NewMessageBatch(conf.GetInt("Channel", 8192))
@@ -237,16 +243,6 @@ func (prod *Kafka) sendBatchOnTimeOut() {
 	if prod.batch.ReachedTimeThreshold(prod.config.Producer.Flush.Frequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2) {
 		prod.sendBatch()
 	}
-}
-
-func (prod *Kafka) sendBatch() {
-	if prod.tryOpenConnection() {
-		prod.batch.Flush(prod.transformMessages)
-	} else if prod.IsStopping() {
-		prod.batch.Flush(prod.dropMessages)
-	} else {
-		return // ### return, do not update metrics ###
-	}
 
 	// Update metrics
 	duration := time.Since(prod.lastMetricUpdate)
@@ -254,9 +250,16 @@ func (prod *Kafka) sendBatch() {
 
 	for topic, counter := range prod.counters {
 		count := atomic.SwapInt64(counter, 0)
-
 		tgo.Metric.Add(kafkaMetricMessages+topic, count)
 		tgo.Metric.SetF(kafkaMetricMessagesSec+topic, float64(count)/duration.Seconds())
+	}
+}
+
+func (prod *Kafka) sendBatch() {
+	if prod.tryOpenConnection() {
+		prod.batch.Flush(prod.transformMessages)
+	} else if prod.IsStopping() {
+		prod.batch.Flush(prod.dropMessages)
 	}
 }
 
@@ -309,7 +312,7 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 
 		// Sarama can block on single messages if all buffers are full.
 		// So we stop trying after a few milliseconds
-		timeout := time.NewTimer(2 * time.Millisecond)
+		timeout := time.NewTimer(prod.gracePeriod)
 		select {
 		case producer.Input() <- kafkaMsg:
 			// Message send, wait for result later

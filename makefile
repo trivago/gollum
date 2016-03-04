@@ -1,4 +1,4 @@
-.PHONY: all clean freebsd linux mac pi win current vendor test
+.PHONY: all clean freebsd linux mac pi win aws current vendor test
 clean:
 	@rm -f ./gollum
 	@rm -f ./dist/gollum_*.zip
@@ -46,6 +46,6 @@ vendor:
 test:
 	@GOGC=off go test -cover -v -timeout 10s -race $$(go list ./...|grep -v vendor)
 
-all: clean freebsd linux mac pi win current
+all: clean freebsd linux mac pi win aws current
 
 .DEFAULT_GOAL := current
