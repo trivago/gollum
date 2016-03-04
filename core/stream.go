@@ -233,6 +233,7 @@ func (stream *StreamBase) Format(msg Message) ([]byte, MessageStreamID) {
 func (stream *StreamBase) Accepts(msg Message) bool {
 	for _, filter := range stream.filters {
 		if !filter.Accepts(msg) {
+			filter.Drop(msg)
 			return false // ### return, false if one filter failed ###
 		}
 	}

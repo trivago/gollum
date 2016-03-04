@@ -352,6 +352,7 @@ func (prod *ProducerBase) PrependFormatter(format Formatter) {
 func (prod *ProducerBase) Accepts(msg Message) bool {
 	for _, filter := range prod.filters {
 		if !filter.Accepts(msg) {
+			filter.Drop(msg)
 			return false // ### return, false if one filter failed ###
 		}
 	}

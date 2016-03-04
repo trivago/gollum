@@ -26,14 +26,30 @@ type Filter interface {
 
 	// SetLogScope sets the log scope to be used for this filter
 	SetLogScope(log tlog.LogScope)
+
+	// Drop sends the given message to the stream configured with this filter.
+	// This method is called by the framework after Accepts failed.
+	Drop(msg Message)
 }
 
 // FilterFunc is the function signature type used by all filter functions.
 type FilterFunc func(msg Message) bool
 
-// FilterBase defines the standard filter implementation.
+// FilterBase plugin base type
+// This type defines a common baseclass for all Filters. All filter plugins
+// should derive from this class but don't necessarily need to.
+// Configuration example:
+//
+//  - "plugin":
+//    Filters:
+//      - SomeFilter:
+//        DropToStream: ""
+//
+// DropToStream defines a stream where filtered messages get sent to.
+// You can disable this behavior by setting "". Set to "" by default.
 type FilterBase struct {
-	Log tlog.LogScope
+	Log          tlog.LogScope
+	dropStreamID MessageStreamID
 }
 
 // SetLogScope sets the log scope to be used for this filter
@@ -44,5 +60,13 @@ func (filter *FilterBase) SetLogScope(log tlog.LogScope) {
 // Configure sets up all values requred by FormatterBase.
 func (filter *FilterBase) Configure(conf PluginConfigReader) error {
 	filter.Log = conf.GetSubLogScope("Filter")
+	filter.dropStreamID = GetStreamID(conf.GetString("DropToStream", InvalidStream))
 	return nil
+}
+
+// Drop sends the given message to the stream configured with this filter.
+func (filter *FilterBase) Drop(msg Message) {
+	if filter.dropStreamID != InvalidStreamID {
+		msg.Route(filter.dropStreamID)
+	}
 }
