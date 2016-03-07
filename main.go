@@ -64,6 +64,7 @@ func main() {
 		} else {
 			fmt.Printf("Gollum v%d.%d.%d\n%s", gollumMajorVer, gollumMinorVer, gollumPatchVer, modules)
 		}
+		fmt.Println(runtime.Version())
 		return // ### return, version only ###
 	}
 

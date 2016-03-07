@@ -49,8 +49,6 @@ func init() {
 	Metric.Set(MetricProcessStart, ProcessStartTime.Unix())
 
 	version := runtime.Version()
-	fmt.Println(version)
-
 	if version[0] == 'g' && version[1] == 'o' {
 		parts := strings.Split(version[2:], ".")
 		numericVersion := make([]uint64, MaxI(3, len(parts)))
