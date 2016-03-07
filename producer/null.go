@@ -39,7 +39,7 @@ func (prod *Null) Configure(conf core.PluginConfig) error {
 	prod.control = make(chan core.PluginControl, 1)
 	prod.streams = make([]core.MessageStreamID, len(conf.Stream))
 	for i, stream := range conf.Stream {
-		prod.streams[i] = core.GetStreamID(stream)
+		prod.streams[i] = core.StreamRegistry.GetStreamID(stream)
 	}
 	return nil
 }

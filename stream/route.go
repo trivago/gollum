@@ -49,7 +49,7 @@ func init() {
 }
 
 func newStreamWithID(streamName string) streamWithID {
-	streamID := core.GetStreamID(streamName)
+	streamID := core.StreamRegistry.GetStreamID(streamName)
 	return streamWithID{
 		id:     streamID,
 		stream: core.StreamRegistry.GetStream(streamID),

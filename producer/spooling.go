@@ -214,7 +214,7 @@ func (prod *Spooling) openExistingFiles() {
 	for _, file := range files {
 		if file.IsDir() {
 			streamName := filepath.Base(file.Name())
-			streamID := core.GetStreamID(streamName)
+			streamID := core.StreamRegistry.GetStreamID(streamName)
 
 			// Only create a new spooler if the stream is registered by this instance
 			if _, exists := prod.outfile[streamID]; !exists && core.StreamRegistry.IsStreamRegistered(streamID) {

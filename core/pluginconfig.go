@@ -164,7 +164,7 @@ func (conf PluginConfig) GetStreamArray(key string, defaultValue []MessageStream
 		values := conf.GetStringArray(key, []string{})
 		streamArray := []MessageStreamID{}
 		for _, streamName := range values {
-			streamArray = append(streamArray, GetStreamID(streamName))
+			streamArray = append(streamArray, StreamRegistry.GetStreamID(streamName))
 		}
 		return streamArray
 	}
@@ -186,7 +186,7 @@ func (conf PluginConfig) GetStreamMap(key string, defaultValue string) map[Messa
 			Log.Error.Fatalf(err.Error())
 		} else {
 			for streamName, target := range value {
-				streamMap[GetStreamID(streamName)] = target
+				streamMap[StreamRegistry.GetStreamID(streamName)] = target
 			}
 		}
 	}
@@ -208,11 +208,11 @@ func (conf PluginConfig) GetStreamRoutes(key string) map[MessageStreamID][]Messa
 		Log.Error.Fatalf(err.Error())
 	} else {
 		for sourceName, targets := range value {
-			sourceStream := GetStreamID(sourceName)
+			sourceStream := StreamRegistry.GetStreamID(sourceName)
 
 			targetIds := []MessageStreamID{}
 			for _, targetName := range targets {
-				targetIds = append(targetIds, GetStreamID(targetName))
+				targetIds = append(targetIds, StreamRegistry.GetStreamID(targetName))
 			}
 
 			streamRoute[sourceStream] = targetIds

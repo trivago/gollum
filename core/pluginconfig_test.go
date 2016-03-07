@@ -203,8 +203,8 @@ func TestPluginConfigGetStreamArray(t *testing.T) {
 	}
 
 	mockStreamHashed := []MessageStreamID{
-		GetStreamID("stream1"),
-		GetStreamID("stream2"),
+		StreamRegistry.GetStreamID("stream1"),
+		StreamRegistry.GetStreamID("stream2"),
 	}
 
 	expect.Equal(len(mockPluginCfg.GetStreamArray("mockStream", []MessageStreamID{})), 0)
@@ -234,16 +234,16 @@ func TestPluginConfigGetStreamMap(t *testing.T) {
 	}
 
 	expectedMapWithWildcard := map[MessageStreamID]string{
-		WildcardStreamID:  defaultValue,
-		GetStreamID("k1"): "v1",
-		GetStreamID("k2"): "v2",
-		GetStreamID("k3"): "v3",
+		WildcardStreamID:                 defaultValue,
+		StreamRegistry.GetStreamID("k1"): "v1",
+		StreamRegistry.GetStreamID("k2"): "v2",
+		StreamRegistry.GetStreamID("k3"): "v3",
 	}
 
 	expectedMapWithoutWildcard := map[MessageStreamID]string{
-		GetStreamID("k1"): "v1",
-		GetStreamID("k2"): "v2",
-		GetStreamID("k3"): "v3",
+		StreamRegistry.GetStreamID("k1"): "v1",
+		StreamRegistry.GetStreamID("k2"): "v2",
+		StreamRegistry.GetStreamID("k3"): "v3",
 	}
 
 	expectedMapOnlyWildCard := map[MessageStreamID]string{
@@ -276,8 +276,8 @@ func TestPluginConfigGetStreamRoutes(t *testing.T) {
 	}
 
 	expectedMockStreamRoute := map[MessageStreamID][]MessageStreamID{
-		GetStreamID("k1"): {GetStreamID("v1")},
-		GetStreamID("k2"): {GetStreamID("v2"), GetStreamID("v3")},
+		StreamRegistry.GetStreamID("k1"): {StreamRegistry.GetStreamID("v1")},
+		StreamRegistry.GetStreamID("k2"): {StreamRegistry.GetStreamID("v2"), StreamRegistry.GetStreamID("v3")},
 	}
 
 	expect.Equal(mockPluginCfg.GetStreamRoutes("routes"), map[MessageStreamID][]MessageStreamID{})

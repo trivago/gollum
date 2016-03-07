@@ -98,7 +98,7 @@ func (format *StreamRoute) Format(msg core.Message) ([]byte, core.MessageStreamI
 				streamName, _ = format.streamFormat.Format(streamMessage)
 			}
 
-			modMsg.StreamID = core.GetStreamID(string(streamName))
+			modMsg.StreamID = core.StreamRegistry.GetStreamID(string(streamName))
 			modMsg.Data = msg.Data[prefixEnd+1:]
 		}
 	}

@@ -15,16 +15,21 @@
 package core
 
 import (
+	"fmt"
 	"github.com/trivago/gollum/shared"
+	"sync"
 	"testing"
 )
 
 func getMockStreamRegistry() streamRegistry {
 	return streamRegistry{
-		streams:  map[MessageStreamID]Stream{},
-		name:     map[MessageStreamID]string{},
-		fuses:    map[string]*shared.Fuse{},
-		wildcard: []Producer{},
+		streams:     map[MessageStreamID]Stream{},
+		name:        map[MessageStreamID]string{},
+		fuses:       map[string]*shared.Fuse{},
+		streamGuard: new(sync.Mutex),
+		nameGuard:   new(sync.Mutex),
+		fuseGuard:   new(sync.Mutex),
+		wildcard:    []Producer{},
 	}
 }
 
@@ -92,7 +97,7 @@ func TestStreamRegistryGetStreamName(t *testing.T) {
 	expect.Equal(mockSRegistry.GetStreamName(LogInternalStreamID), LogInternalStream)
 	expect.Equal(mockSRegistry.GetStreamName(WildcardStreamID), WildcardStream)
 
-	mockStreamID := GetStreamID("test")
+	mockStreamID := StreamRegistry.GetStreamID("test")
 	expect.Equal(mockSRegistry.GetStreamName(mockStreamID), "")
 
 	mockSRegistry.name[mockStreamID] = "test"
@@ -106,7 +111,7 @@ func TestStreamRegistryGetStreamByName(t *testing.T) {
 	streamName := mockSRegistry.GetStreamByName("testStream")
 	expect.Equal(streamName, nil)
 
-	mockStreamID := GetStreamID("testStream")
+	mockStreamID := StreamRegistry.GetStreamID("testStream")
 	// TODO: Get a real stream and test with that
 	mockSRegistry.streams[mockStreamID] = &StreamBase{}
 	expect.Equal(mockSRegistry.GetStreamByName("testStream"), &StreamBase{})
@@ -116,7 +121,7 @@ func TestStreamRegistryIsStreamRegistered(t *testing.T) {
 	expect := shared.NewExpect(t)
 	mockSRegistry := getMockStreamRegistry()
 
-	mockStreamID := GetStreamID("testStream")
+	mockStreamID := StreamRegistry.GetStreamID("testStream")
 
 	expect.False(mockSRegistry.IsStreamRegistered(mockStreamID))
 	// TODO: Get a real stream and test with that
@@ -129,10 +134,10 @@ func TestStreamRegistryForEachStream(t *testing.T) {
 	mockSRegistry := getMockStreamRegistry()
 
 	callback := func(streamID MessageStreamID, stream Stream) {
-		expect.Equal(streamID, GetStreamID("testRegistry"))
+		expect.Equal(streamID, StreamRegistry.GetStreamID("testRegistry"))
 	}
 
-	mockSRegistry.streams[GetStreamID("testRegistry")] = &StreamBase{}
+	mockSRegistry.streams[StreamRegistry.GetStreamID("testRegistry")] = &StreamBase{}
 	mockSRegistry.ForEachStream(callback)
 }
 
@@ -160,7 +165,7 @@ func TestStreamRegistryAddWildcardProducersToStream(t *testing.T) {
 	// create wildcardProducer.
 	mProducer := new(mockProducer)
 	// adding dropStreamID to verify the producer later.
-	mProducer.dropStreamID = GetStreamID("wildcardProducerDrop")
+	mProducer.dropStreamID = StreamRegistry.GetStreamID("wildcardProducerDrop")
 	mockSRegistry.RegisterWildcardProducer(mProducer)
 
 	mockSRegistry.AddWildcardProducersToStream(&mockStream)
@@ -168,7 +173,7 @@ func TestStreamRegistryAddWildcardProducersToStream(t *testing.T) {
 	streamsProducer := mockStream.GetProducers()
 	expect.Equal(len(streamsProducer), 1)
 
-	expect.Equal(streamsProducer[0].GetDropStreamID(), GetStreamID("wildcardProducerDrop"))
+	expect.Equal(streamsProducer[0].GetDropStreamID(), StreamRegistry.GetStreamID("wildcardProducerDrop"))
 }
 
 func TestStreamRegistryRegister(t *testing.T) {
@@ -177,9 +182,9 @@ func TestStreamRegistryRegister(t *testing.T) {
 
 	streamName := "testStream"
 	mockStream := getMockStream()
-	mockSRegistry.Register(&mockStream, GetStreamID(streamName))
+	mockSRegistry.Register(&mockStream, StreamRegistry.GetStreamID(streamName))
 
-	expect.NotNil(mockSRegistry.GetStream(GetStreamID(streamName)))
+	expect.NotNil(mockSRegistry.GetStream(StreamRegistry.GetStreamID(streamName)))
 }
 
 func TestStreamRegistryGetStreamOrFallback(t *testing.T) {
@@ -190,7 +195,7 @@ func TestStreamRegistryGetStreamOrFallback(t *testing.T) {
 	expect.Equal(len(mockSRegistry.wildcard), 0)
 
 	streamName := "testStream"
-	streamID := GetStreamID(streamName)
+	streamID := StreamRegistry.GetStreamID(streamName)
 	mockSRegistry.GetStreamOrFallback(streamID)
 
 	expect.Equal(len(mockSRegistry.streams), 1)
@@ -212,7 +217,7 @@ func TestStreamRegistryLinkDependencies(t *testing.T) {
 	mockSRegistry := getMockStreamRegistry()
 
 	streamName := "testStream"
-	streamID := GetStreamID(streamName)
+	streamID := StreamRegistry.GetStreamID(streamName)
 	//register a stream
 	stream := mockSRegistry.GetStreamOrFallback(streamID)
 
@@ -238,4 +243,25 @@ func TestStreamRegistryLinkDependencies(t *testing.T) {
 	expect.Equal(len(producer3.dependencies), 1)
 	expect.Equal(len(producer4.dependencies), 1)
 
+}
+
+func TestStreamRegistryConcurrency(t *testing.T) {
+	mockSRegistry := getMockStreamRegistry()
+	expect := shared.NewExpect(t)
+	routines := sync.WaitGroup{}
+
+	for i := 0; i < 10; i++ {
+		routines.Add(1)
+		base := i
+		go func() {
+			for j := 0; j < 100; j++ {
+				streamID := mockSRegistry.GetStreamID(fmt.Sprintf("test%d", base*100+j))
+				mockSRegistry.GetStreamOrFallback(streamID)
+			}
+			routines.Done()
+		}()
+	}
+
+	routines.Wait()
+	expect.Equal(len(mockSRegistry.streams), len(mockSRegistry.name))
 }

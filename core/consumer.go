@@ -87,7 +87,7 @@ func (cons *ConsumerBase) Configure(conf PluginConfig) error {
 	cons.onStop = nil
 
 	for _, streamName := range conf.Stream {
-		streamID := GetStreamID(streamName)
+		streamID := StreamRegistry.GetStreamID(streamName)
 		cons.streams = append(cons.streams, MappedStream{
 			StreamID: streamID,
 			Stream:   StreamRegistry.GetStreamOrFallback(streamID),

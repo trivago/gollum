@@ -117,7 +117,7 @@ func (stream *StreamBase) ConfigureStream(conf PluginConfig, distribute Distribu
 		panic("No source stream configured.")
 	}
 
-	stream.boundStreamID = GetStreamID(conf.Stream[0])
+	stream.boundStreamID = StreamRegistry.GetStreamID(conf.Stream[0])
 	stream.resumeWorker = new(sync.WaitGroup)
 	stream.distribute = distribute
 

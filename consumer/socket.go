@@ -323,6 +323,7 @@ func (cons *Socket) tcpAccept() {
 			}
 		}
 
+		Log.Note.Print("Listening to open: ", cons.address)
 		listener := cons.listen.(net.Listener)
 		if client, err := listener.Accept(); err != nil {
 			// Trigger full reconnect (suppress errors during shutdown)

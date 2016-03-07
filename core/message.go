@@ -43,11 +43,11 @@ const (
 
 var (
 	// LogInternalStreamID is the ID of the "_GOLLUM_" stream
-	LogInternalStreamID = GetStreamID(LogInternalStream)
+	LogInternalStreamID = StreamRegistry.GetStreamID(LogInternalStream)
 	// WildcardStreamID is the ID of the "*" stream
-	WildcardStreamID = GetStreamID(WildcardStream)
+	WildcardStreamID = StreamRegistry.GetStreamID(WildcardStream)
 	// DroppedStreamID is the ID of the "_DROPPED_" stream
-	DroppedStreamID = GetStreamID(DroppedStream)
+	DroppedStreamID = StreamRegistry.GetStreamID(DroppedStream)
 )
 
 // MessageSource defines methods that are common to all message sources.

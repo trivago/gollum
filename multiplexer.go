@@ -177,7 +177,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 		}
 
 		Log.Debug.Print("Configuring ", config.Typename, " for ", streamName)
-		core.StreamRegistry.Register(plugin.(core.Stream), core.GetStreamID(streamName))
+		core.StreamRegistry.Register(plugin.(core.Stream), core.StreamRegistry.GetStreamID(streamName))
 	}
 
 	// All producers are added to the wildcard stream so that consumers can send
