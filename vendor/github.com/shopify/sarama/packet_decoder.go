@@ -16,7 +16,6 @@ type packetDecoder interface {
 	getString() (string, error)
 	getInt32Array() ([]int32, error)
 	getInt64Array() ([]int64, error)
-	getStringArray() ([]string, error)
 
 	// Subsets
 	remaining() int
