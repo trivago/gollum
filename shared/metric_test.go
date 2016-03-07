@@ -21,7 +21,7 @@ import (
 
 func getMockMetric() metrics {
 	return metrics{
-		new(sync.Mutex),
+		new(sync.RWMutex),
 		make(map[string]*int64),
 	}
 }
