@@ -123,7 +123,7 @@ type Producer interface {
 // be recovered. Note that automatic fuse recovery logic depends on each
 // producer's implementation. By default this setting is set to 10.
 type ProducerBase struct {
-	messages         chan Message
+	messages         MessageBuffer
 	control          chan PluginControl
 	streams          []MessageStreamID
 	dropStreamID     MessageStreamID
@@ -174,7 +174,7 @@ func (prod *ProducerBase) Configure(conf PluginConfigReader) error {
 
 	prod.control = make(chan PluginControl, 1)
 	prod.streams = conf.GetStreamArray("Streams", []MessageStreamID{WildcardStreamID})
-	prod.messages = make(chan Message, conf.GetInt("Channel", 8192))
+	prod.messages = NewMessageBuffer(conf.GetInt("Channel", 8192))
 	prod.timeout = time.Duration(conf.GetInt("ChannelTimeoutMs", 0)) * time.Millisecond
 	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 3000)) * time.Millisecond
 	prod.fuseTimeout = time.Duration(conf.GetInt("FuseTimeoutSec", 10)) * time.Second
@@ -311,25 +311,6 @@ func (prod *ProducerBase) GetShutdownTimeout() time.Duration {
 	return prod.shutdownTimeout
 }
 
-// Next returns the latest message from the channel as well as the open state
-// of the channel. This function blocks if the channel is empty.
-func (prod *ProducerBase) Next() (Message, bool) {
-	msg, ok := <-prod.messages
-	return msg, ok
-}
-
-// NextNonBlocking calls a given callback if a message is queued or returns.
-// Returns false if no message was received.
-func (prod *ProducerBase) NextNonBlocking(onMessage func(msg Message)) bool {
-	select {
-	case msg := <-prod.messages:
-		onMessage(msg)
-		return true
-	default:
-		return false
-	}
-}
-
 // Format calls all formatters in their order of definition
 func (prod *ProducerBase) Format(msg Message) ([]byte, MessageStreamID) {
 	for _, formatter := range prod.formatters {
@@ -403,11 +384,6 @@ func (prod *ProducerBase) Control() chan<- PluginControl {
 	return prod.control
 }
 
-// Messages returns write access to the message channel this producer reads from.
-func (prod *ProducerBase) Messages() chan<- Message {
-	return prod.messages
-}
-
 // Enqueue will add the message to the internal channel so it can be processed
 // by the producer main loop. A timeout value != nil will overwrite the channel
 // timeout value for this call.
@@ -439,7 +415,7 @@ func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
 		usedTimeout = *timeout
 	}
 
-	switch msg.Enqueue(prod.messages, usedTimeout) {
+	switch prod.messages.Push(msg, usedTimeout) {
 	case MessageStateTimeout:
 		prod.Drop(msg)
 		prod.setState(PluginStateWaiting)
@@ -467,10 +443,15 @@ func (prod *ProducerBase) Drop(msg Message) {
 // remaining messages will be dropped by using the producer.Drop function.
 // If a timout has been detected, false is returned.
 func (prod *ProducerBase) CloseMessageChannel(handleMessage func(msg Message)) bool {
-	close(prod.messages)
+	prod.messages.Close()
 	flushWorker := new(tsync.WaitGroup)
 
-	for msg := range prod.messages {
+	var msg Message
+	more := true
+
+	for more {
+		msg, more = prod.messages.Pop()
+
 		// handleMessage may block. To be able to exit this method we need to
 		// call it async and wait for it to finish.
 		flushWorker.Inc()
@@ -481,7 +462,8 @@ func (prod *ProducerBase) CloseMessageChannel(handleMessage func(msg Message)) b
 
 		if !flushWorker.WaitFor(prod.shutdownTimeout) {
 			prod.Log.Warning.Printf("A producer listening to %s has found to be blocking during close. Dropping remaining messages.", StreamRegistry.GetStreamName(prod.Streams()[0]))
-			for msg := range prod.messages {
+			for more {
+				msg, more = prod.messages.Pop()
 				prod.Drop(msg)
 			}
 			return false // ### return, timed out ###
@@ -510,7 +492,7 @@ func (prod *ProducerBase) tickerLoop(interval time.Duration, onTimeOut func()) {
 
 func (prod *ProducerBase) messageLoop(onMessage func(Message)) {
 	for prod.IsActive() {
-		msg, more := <-prod.messages
+		msg, more := prod.messages.Pop()
 		if more {
 			onMessage(msg)
 		}
