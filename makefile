@@ -40,9 +40,10 @@ current:
 
 vendor:
 	@go get -u github.com/kardianos/govendor
-	@go get -f -u $$(go list ./...|grep -v vendor)
-	@govendor add +outside
+	@go get -t -f -u -d ./...
+	@govendor add +missing
 	@govendor update +vendor
+	@govendor remove +unused
 
 test:
 	@$(BUILD_FLAGS) go test -cover -v -timeout 10s -race $$(go list ./...|grep -v vendor)
