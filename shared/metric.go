@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"math"
 	"runtime"
+	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -31,6 +33,8 @@ const (
 	// MetricGoRoutines is the metric name storing the number of active go
 	// routines.
 	MetricGoRoutines = "GoRoutines"
+	// MetricGoVersion holds the go version as Major*10000+Minor*100+Patch
+	MetricGoVersion = "GoVersion"
 )
 
 // ProcessStartTime stores the time this process has started.
@@ -41,7 +45,21 @@ func init() {
 	ProcessStartTime = time.Now()
 	Metric.New(MetricProcessStart)
 	Metric.New(MetricGoRoutines)
+	Metric.New(MetricGoVersion)
 	Metric.Set(MetricProcessStart, ProcessStartTime.Unix())
+
+	version := runtime.Version()
+	fmt.Println(version)
+
+	if version[0] == 'g' && version[1] == 'o' {
+		parts := strings.Split(version[2:], ".")
+		numericVersion := make([]uint64, MaxI(3, len(parts)))
+		for i, p := range parts {
+			numericVersion[i], _ = strconv.ParseUint(p, 10, 64)
+		}
+
+		Metric.SetI(MetricGoVersion, int(numericVersion[0]*10000+numericVersion[1]*100+numericVersion[2]))
+	}
 }
 
 type metrics struct {
