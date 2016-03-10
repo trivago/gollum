@@ -69,6 +69,10 @@ const (
 // Partitioner sets the distribution algorithm to use. Valid values are:
 // "Random","Roundrobin" and "Hash". By default "Roundrobin" is set.
 //
+// KeyFormatter can define a formatter that extracts the key for a kafka message
+// from the message payload. By default this is an empty string, which disables
+// this feature. A good formatter for this can be format.Identifier.
+//
 // RequiredAcks defines the acknowledgment level required by the broker.
 // 0 = No responses required. 1 = wait for the local commit. -1 = wait for
 // all replicas to commit. >1 = wait for a specific number of commits.
