@@ -145,6 +145,7 @@ type Kafka struct {
 	missCount        int64
 	lastMetricUpdate time.Time
 	gracePeriod      time.Duration
+	keyFormat        core.Formatter
 }
 
 const (
@@ -165,6 +166,16 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 		return err
 	}
 	prod.SetStopCallback(prod.close)
+
+	if conf.HasValue("KeyFormatter") {
+		keyFormatter, err := core.NewPluginWithType(conf.GetString("KeyFormatter", "format.Identifier"), conf)
+		if err != nil {
+			return err // ### return, plugin load error ###
+		}
+		prod.keyFormat = keyFormatter.(core.Formatter)
+	} else {
+		prod.keyFormat = nil
+	}
 
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.topic = conf.GetStreamMap("Topic", "")
@@ -312,6 +323,11 @@ func (prod *Kafka) transformMessages(messages []core.Message) {
 			Topic:    topic,
 			Value:    kafka.ByteEncoder(msg.Data),
 			Metadata: originalMsg,
+		}
+
+		if prod.keyFormat != nil {
+			key, _ := prod.keyFormat.Format(msg)
+			kafkaMsg.Key = kafka.ByteEncoder(key)
 		}
 
 		// Sarama can block on single messages if all buffers are full.
