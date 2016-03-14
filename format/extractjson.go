@@ -48,7 +48,7 @@ type ExtractJSON struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(ProcessJSON{})
+	shared.TypeRegistry.Register(ExtractJSON{})
 }
 
 // Configure initializes this formatter with values from a plugin config.

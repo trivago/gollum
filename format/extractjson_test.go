@@ -23,6 +23,8 @@ import (
 func TestExtractJSON(t *testing.T) {
 	expect := shared.NewExpect(t)
 
+	expect.NotNil(shared.TypeRegistry.GetTypeOf("format.ExtractJSON"))
+
 	formatter := ExtractJSON{}
 	config := core.NewPluginConfig("")
 	config.Override("ExtractJSONField", "test")
