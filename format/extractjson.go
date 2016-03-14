@@ -32,6 +32,7 @@ import (
 //    ExtractJSONdataFormatter: "format.Forward"
 //    ExtractJSONField: ""
 //    ExtractJSONTrimField: true
+//    ExtractJSONPrecision: 0
 //
 // ExtractJSONDataFormatter formatter that will be applied before
 // the field is extracted. Set to format.Forward by default.
@@ -41,10 +42,15 @@ import (
 //
 // ExtractJSONTrimField will trim whitspaces from the value if enabled.
 // Enabled by default.
+//
+// ExtractJSONPrecision defines the floating point precision of number
+// values. By default this is set to 0 i.e. all decimal places will be
+// omitted.
 type ExtractJSON struct {
-	base       core.Formatter
-	field      string
-	trimValues bool
+	base         core.Formatter
+	field        string
+	trimValues   bool
+	numberFormat string
 }
 
 func init() {
@@ -60,7 +66,9 @@ func (format *ExtractJSON) Configure(conf core.PluginConfig) error {
 
 	format.base = plugin.(core.Formatter)
 	format.field = conf.GetString("ExtractJSONField", "")
-	format.trimValues = conf.GetBool("ProcessJSONTrimValues", true)
+	format.trimValues = conf.GetBool("ExtractJSONTrimValues", true)
+	precision := conf.GetInt("ExtractJSONPrecision", 0)
+	format.numberFormat = fmt.Sprintf("%%.%df", precision)
 
 	return nil
 }
@@ -77,7 +85,19 @@ func (format *ExtractJSON) Format(msg core.Message) ([]byte, core.MessageStreamI
 	}
 
 	if value, exists := values[format.field]; exists {
-		return []byte(fmt.Sprintf("%v", value)), streamID
+		switch value.(type) {
+		case int64:
+			val, _ := value.(int64)
+			return []byte(fmt.Sprintf("%d", val)), streamID
+		case string:
+			val, _ := value.(string)
+			return []byte(val), streamID
+		case float64:
+			val, _ := value.(float64)
+			return []byte(fmt.Sprintf(format.numberFormat, val)), streamID
+		default:
+			return []byte(fmt.Sprintf("%v", value)), streamID
+		}
 	}
 
 	return []byte(""), streamID

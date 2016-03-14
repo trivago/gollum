@@ -36,3 +36,18 @@ func TestExtractJSON(t *testing.T) {
 
 	expect.Equal("valid", string(result))
 }
+
+func TestExtractJSONPrecision(t *testing.T) {
+	expect := shared.NewExpect(t)
+
+	formatter := ExtractJSON{}
+	config := core.NewPluginConfig("")
+	config.Override("ExtractJSONField", "test")
+	config.Override("ExtractJSONPrecision", 0)
+
+	formatter.Configure(config)
+	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":999999999}"), 0)
+	result, _ := formatter.Format(msg)
+
+	expect.Equal("999999999", string(result))
+}
