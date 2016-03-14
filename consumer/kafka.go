@@ -73,6 +73,13 @@ const (
 // fashion instead of reading in parallel from all partitions.
 // Set to false by default.
 //
+// PrependKey can be enabled to prefix the read message with the key from the
+// kafka message. A separator will ba appended to the key. See KeySeparator.
+// By default this is option set to false.
+//
+// KeySeparator defines the separator that is appended to the kafka message key
+// if PrependKey is set to true. Set to ":" by default.
+//
 // MaxOpenRequests defines the number of simultanious connections are allowed.
 // By default this is set to 5.
 //
@@ -122,6 +129,8 @@ type Kafka struct {
 	MaxPartitionID int32
 	persistTimeout time.Duration
 	orderedRead    bool
+	prependKey     bool
+	keySeparator   []byte
 	sequence       *uint64
 }
 
@@ -143,6 +152,8 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 	cons.orderedRead = conf.GetBool("Ordered", false)
 	cons.offsets = make(map[int32]*int64)
 	cons.MaxPartitionID = 0
+	cons.keySeparator = []byte(conf.GetString("KeySeparator", ":"))
+	cons.prependKey = conf.GetBool("PrependKey", false)
 	cons.sequence = new(uint64)
 
 	cons.config = kafka.NewConfig()
@@ -206,6 +217,14 @@ func (cons *Kafka) restartPartition(partitionID int32) {
 	cons.readFromPartition(partitionID)
 }
 
+func (cons *Kafka) keyedMessage(key []byte, value []byte) []byte {
+	buffer := make([]byte, len(key)+len(cons.keySeparator)+len(value))
+	offset := copy(buffer, key)
+	offset += copy(buffer[offset:], cons.keySeparator)
+	copy(buffer[offset:], value)
+	return buffer
+}
+
 // Main fetch loop for kafka events
 func (cons *Kafka) readFromPartition(partitionID int32) {
 	currentOffset := atomic.LoadInt64(cons.offsets[partitionID])
@@ -235,7 +254,11 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 		case event := <-partCons.Messages():
 			atomic.StoreInt64(cons.offsets[partitionID], event.Offset)
 			sequence := atomic.AddUint64(cons.sequence, 1) - 1
-			cons.Enqueue(event.Value, sequence)
+			if cons.prependKey {
+				cons.Enqueue(cons.keyedMessage(event.Key, event.Value), sequence)
+			} else {
+				cons.Enqueue(event.Value, sequence)
+			}
 
 		case err := <-partCons.Errors():
 			defer cons.restartPartition(partitionID)
@@ -293,7 +316,11 @@ initLoop:
 			case event := <-consumer.Messages():
 				atomic.StoreInt64(cons.offsets[partition], event.Offset)
 				sequence := atomic.AddUint64(cons.sequence, 1) - 1
-				cons.Enqueue(event.Value, sequence)
+				if cons.prependKey {
+					cons.Enqueue(cons.keyedMessage(event.Key, event.Value), sequence)
+				} else {
+					cons.Enqueue(event.Value, sequence)
+				}
 
 			case err = <-consumer.Errors():
 				Log.Error.Print("Kafka consumer error:", err)
