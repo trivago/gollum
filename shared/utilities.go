@@ -216,6 +216,9 @@ func RecoverShutdown() {
 		log.Print("Panic triggered shutdown: ", r)
 		log.Print(string(debug.Stack()))
 
+		fmt.Println("PANIC: ", r)
+		fmt.Println(string(debug.Stack()))
+
 		// Send interrupt = clean shutdown
 		// TODO: Hack
 		proc, _ := os.FindProcess(os.Getpid())

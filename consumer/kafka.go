@@ -45,6 +45,7 @@ const (
 //    Topic: "default"
 //    DefaultOffset: "newest"
 //    OffsetFile: ""
+//    Ordered: true
 //    MaxOpenRequests: 5
 //    ServerTimeoutSec: 30
 //    MaxFetchSizeByte: 0
@@ -55,6 +56,8 @@ const (
 //    ElectRetries: 3
 //    ElectTimeoutMs: 250
 //    MetadataRefreshMs: 10000
+//    PrependKey: false
+//    KeySeparator: ":"
 //    Servers:
 //      - "localhost:9092"
 //

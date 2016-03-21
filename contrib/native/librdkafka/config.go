@@ -12,60 +12,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package native
+package librdkafka
 
 // #cgo CFLAGS: -I/usr/local/include
 // #cgo LDFLAGS: -L/usr/local/opt/librdkafka/lib -L/usr/local/lib -lrdkafka
-// #include <librdkafka/rdkafka.h>
+// #include "wrapper.h"
 import "C"
 
 import (
 	"strconv"
-	"unsafe"
 )
 
-type libKafkaError struct {
-	errBuffer [512]byte
+// Config is a wrapper for rd_kafka_conf_t
+type Config struct {
+	handle *C.rd_kafka_conf_t
 }
 
-func (l *libKafkaError) buffer() *C.char {
-	return (*C.char)(unsafe.Pointer(&l.errBuffer[0]))
-}
-
-func (l *libKafkaError) len() C.size_t {
-	return C.size_t(len(l.errBuffer))
-}
-
-func (l *libKafkaError) Error() string {
-	for i := 0; i < len(l.errBuffer); i++ {
-		if l.errBuffer[i] == 0 {
-			return string(l.errBuffer[:i])
-		}
-	}
-
-	return string(l.errBuffer[:len(l.errBuffer)])
-}
-
-type libKafkaConfig struct {
-	handle *C.struct_rd_kafka_conf_s
-}
-
-func newLibKafkaConfig() libKafkaConfig {
-	return libKafkaConfig{
+// NewConfig creates a new main config wrapper.
+// Make sure to call Close() when done.
+func NewConfig() Config {
+	return Config{
 		handle: C.rd_kafka_conf_new(),
 	}
 }
 
-func (c *libKafkaConfig) Set(key, value string) error {
-	nativeErr := new(libKafkaError)
+// Close frees up the native handle
+func (c *Config) Close() {
+	C.rd_kafka_conf_destroy(c.handle)
+}
+
+// Set sets a string value in this config
+func (c *Config) Set(key, value string) error {
+	nativeErr := new(ErrorHandle)
 	if C.rd_kafka_conf_set(c.handle, C.CString(key), C.CString(value), nativeErr.buffer(), nativeErr.len()) != 0 {
 		return nativeErr
 	}
 	return nil
 }
 
-func (c *libKafkaConfig) SetI(key string, value int) error {
-	nativeErr := new(libKafkaError)
+// SetI sets an integer value in this config
+func (c *Config) SetI(key string, value int) error {
+	nativeErr := new(ErrorHandle)
 	strValue := strconv.Itoa(value)
 	if C.rd_kafka_conf_set(c.handle, C.CString(key), C.CString(strValue), nativeErr.buffer(), nativeErr.len()) != 0 {
 		return nativeErr
@@ -73,8 +60,9 @@ func (c *libKafkaConfig) SetI(key string, value int) error {
 	return nil
 }
 
-func (c *libKafkaConfig) SetB(key string, value bool) error {
-	nativeErr := new(libKafkaError)
+// SetB sets a boolean value in this config
+func (c *Config) SetB(key string, value bool) error {
+	nativeErr := new(ErrorHandle)
 	var boolValue string
 	if value {
 		boolValue = "true"
@@ -85,17 +73,4 @@ func (c *libKafkaConfig) SetB(key string, value bool) error {
 		return nativeErr
 	}
 	return nil
-}
-
-type libKafkaProducer struct {
-	handle *C.struct_rd_kafka_s
-}
-
-func newLibKafkaProducer(config libKafkaConfig) (libKafkaProducer, error) {
-	nativeErr := new(libKafkaError)
-	client := C.rd_kafka_new(C.RD_KAFKA_PRODUCER, config.handle, nativeErr.buffer(), nativeErr.len())
-	if client == nil {
-		return libKafkaProducer{}, nativeErr
-	}
-	return libKafkaProducer{client}, nil
 }
