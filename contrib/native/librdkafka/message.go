@@ -20,6 +20,8 @@ package librdkafka
 import "C"
 
 import (
+	//"runtime"
+	//"sync"
 	"unsafe"
 )
 
@@ -65,29 +67,34 @@ func (m SimpleMessage) GetMetadata() interface{} {
 // PrepareBatch converts a message array to an array of native messages.
 // The resulting pointer has to be freed with C.free(unsafe.Pointer(p)).
 func PrepareBatch(messages []Message, topic *Topic) *C.rd_kafka_message_t {
-	batch := C.CreateBatch(C.int(len(messages)))
-	var (
-		keyPtr   unsafe.Pointer
-		valuePtr unsafe.Pointer
-	)
+	topicID := C.int(topic.id)
+	keyPtr := unsafe.Pointer(nil)
+	valuePtr := unsafe.Pointer(nil)
 
-	for i, msg := range messages {
+	numMessages := C.int(len(messages))
+	batch := C.CreateBatch(numMessages)
+
+	for i := C.int(0); i < numMessages; i++ {
+		msg := messages[i]
 		key := msg.GetKey()
-		if len(key) > 0 {
+		value := msg.GetPayload()
+		keyLen := C.int(len(key))
+		valueLen := C.int(len(value))
+
+		if keyLen > 0 {
 			keyPtr = unsafe.Pointer(&key[0])
 		} else {
-			keyPtr = nil
+			keyPtr = unsafe.Pointer(nil)
 		}
 
-		value := msg.GetPayload()
-		if len(value) > 0 {
+		if valueLen > 0 {
 			valuePtr = unsafe.Pointer(&value[0])
 		} else {
-			valuePtr = nil
+			valuePtr = unsafe.Pointer(nil)
 		}
 
-		hook := makeErrorHook(topic, i)
-		C.StoreBatchItem(batch, C.int(i), keyPtr, C.int(len(key)), valuePtr, C.int(len(value)), hook)
+		C.StoreBatchItem(batch, i, keyPtr, keyLen, valuePtr, valueLen, topicID)
 	}
+
 	return batch
 }

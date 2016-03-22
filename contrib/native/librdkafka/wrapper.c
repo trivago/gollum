@@ -57,12 +57,12 @@ rd_kafka_message_t* CreateBatch(int size) {
     return (rd_kafka_message_t*)malloc(size * sizeof(rd_kafka_message_t));
 }
 
-void StoreBatchItem(rd_kafka_message_t* pBatch, int index, void* key, int keyLen, void* payload, int payloadLen, void* hook) {
+void StoreBatchItem(rd_kafka_message_t* pBatch, int index, void* key, int keyLen, void* payload, int payloadLen, int topicId) {
      pBatch[index].key_len = (size_t)keyLen;
      pBatch[index].len = (size_t)payloadLen;
      pBatch[index].key = key;
      pBatch[index].payload = payload;
-     pBatch[index]._private = hook;
+     pBatch[index]._private = NewErrorHook(topicId, index);
 }
 
 void DestroyBatch(rd_kafka_message_t* pBatch, int length) {

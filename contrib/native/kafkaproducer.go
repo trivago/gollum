@@ -19,7 +19,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
-	"strconv"
+	//"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -94,7 +94,7 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfig) error {
 	// Init librdkafka
 	prod.config = kafka.NewConfig()
 
-	kafkaVer := conf.GetString("ProtocolVersion", "0.8.2")
+	/*kafkaVer := conf.GetString("ProtocolVersion", "0.8.2")
 	verParts := strings.Split(kafkaVer, ".")
 	multiplicator := 1000000
 	verNumber := 0
@@ -102,7 +102,7 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfig) error {
 		part, _ := strconv.Atoi(n)
 		verNumber += part * multiplicator
 		multiplicator /= 100
-	}
+	}*/
 
 	prod.config.Set("client.id", conf.GetString("ClientId", "gollum"))
 	prod.config.Set("metadata.broker.list", strings.Join(prod.servers, ","))
@@ -116,7 +116,7 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfig) error {
 	prod.config.SetI("queue.buffering.max.messages", conf.GetInt("BatchMaxMessages", 100000))
 	prod.config.SetI("queue.buffering.max.ms", conf.GetInt("BatchTimeoutMs", 10))
 	prod.config.SetI("batch.num.messages", prod.batch.Len())
-	prod.config.SetI("protocol.version", verNumber)
+	//prod.config.SetI("protocol.version", verNumber)
 
 	return nil
 }
@@ -161,6 +161,20 @@ func (prod *KafkaProducer) dropMessages(messages []core.Message) {
 	}
 }
 
+type messageWrapper struct {
+	key      []byte
+	value    []byte
+	original core.Message
+}
+
+func (m *messageWrapper) GetKey() []byte {
+	return m.key
+}
+
+func (m *messageWrapper) GetPayload() []byte {
+	return m.value
+}
+
 func (prod *KafkaProducer) transformMessages(messages []core.Message) {
 	batch := make(map[*kafka.Topic][]kafka.Message)
 
@@ -195,14 +209,19 @@ func (prod *KafkaProducer) transformMessages(messages []core.Message) {
 		if prod.keyFormat != nil {
 			key, _ = prod.keyFormat.Format(msg)
 		}
-		kafkaMsg := kafka.NewSimpleMessage(key, msg.Data, originalMsg)
 
-		if topicBatch, exists := batch[topic]; !exists {
-			batch[topic] = []kafka.Message{kafkaMsg}
-		} else {
-			batch[topic] = append(topicBatch, kafkaMsg)
+		kafkaMsg := &messageWrapper{
+			key:      key,
+			value:    msg.Data,
+			original: originalMsg,
 		}
 
+		topicBatch, exists := batch[topic]
+		if !exists {
+			topicBatch = make([]kafka.Message, 0, len(messages))
+		}
+
+		batch[topic] = append(topicBatch, kafkaMsg)
 		atomic.AddInt64(prod.counters[topic.GetName()], 1)
 	}
 
@@ -210,8 +229,8 @@ func (prod *KafkaProducer) transformMessages(messages []core.Message) {
 	for topic, messages := range batch {
 		errors := topic.Produce(messages)
 		for _, err := range errors {
-			failed := err.Original.(kafka.SimpleMessage)
-			failedMsg := failed.GetMetadata().(core.Message)
+			failed := err.Original.(*messageWrapper)
+			failedMsg := failed.original
 			Log.Error.Print(err)
 			prod.Drop(failedMsg)
 		}

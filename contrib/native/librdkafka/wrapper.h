@@ -48,7 +48,7 @@ rd_kafka_message_t* CreateBatch(int size);
 void DestroyBatch(rd_kafka_message_t* pBatch, int length);
 
 // StoreBatchItem stores data in the given message batch slot.
-void StoreBatchItem(rd_kafka_message_t* pBatch, int index, void* key, int keyLen, void* payload, int payloadLen, void* hook);
+void StoreBatchItem(rd_kafka_message_t* pBatch, int index, void* key, int keyLen, void* payload, int payloadLen, int topicId);
 
 // NextError finds the next error in a message batch (that has been sent).
 // If no error is found -1 is returned.

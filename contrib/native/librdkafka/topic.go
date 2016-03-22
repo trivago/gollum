@@ -73,10 +73,10 @@ func (t *Topic) GetName() string {
 	return t.name
 }
 
-// PollEvents triggers the event queue. This function may block for 500ms.
+// PollEvents triggers the event queue. This function may block for up to 400ms.
 func (t *Topic) PollEvents() int {
-	for i := 0; C.rd_kafka_outq_len(t.client.handle) > 0 && i < 50; i++ {
-		C.rd_kafka_poll(t.client.handle, 10)
+	for i := 0; C.rd_kafka_outq_len(t.client.handle) > 0 && i < 20; i++ {
+		C.rd_kafka_poll(t.client.handle, 20)
 	}
 	return int(C.rd_kafka_outq_len(t.client.handle))
 }
@@ -93,7 +93,8 @@ func (t *Topic) Produce(messages []Message) []ResponseError {
 	batchLen := C.int(len(messages))
 	defer C.DestroyBatch(unsafe.Pointer(batch), C.int(len(messages)))
 
-	if enqueued := C.rd_kafka_produce_batch(t.handle, C.RD_KAFKA_PARTITION_UA, C.RD_KAFKA_MSG_F_COPY, batch, batchLen); enqueued != batchLen {
+	enqueued := C.rd_kafka_produce_batch(t.handle, C.RD_KAFKA_PARTITION_UA, C.RD_KAFKA_MSG_F_COPY, batch, batchLen)
+	if enqueued != batchLen {
 		offset := C.int(0)
 		for offset >= 0 {
 			offset = C.NextError(batch, batchLen, offset)
