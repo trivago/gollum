@@ -20,6 +20,7 @@ package librdkafka
 import "C"
 
 import (
+	"fmt"
 	"unsafe"
 )
 
@@ -56,6 +57,8 @@ func NewTopic(name string, p Partitioner, config TopicConfig, client *Client) (*
 		id:          len(allTopics),
 	}
 
+	C.RegisterRandomPartitioner(topic.handle)
+
 	// TODO: Locking?
 	allTopics = append(allTopics, topic)
 	return topic, nil
@@ -84,7 +87,9 @@ func (t *Topic) Produce(messages []Message) []ResponseError {
 	defer C.DestroyBatch(unsafe.Pointer(batch), C.int(len(messages)))
 	t.transmitErr = t.transmitErr[:0] // Clear
 
-	if C.rd_kafka_produce_batch(t.handle, C.RD_KAFKA_PARTITION_UA, C.RD_KAFKA_MSG_F_COPY, batch, batchLen) != batchLen {
+	if enqueued := C.rd_kafka_produce_batch(t.handle, C.RD_KAFKA_PARTITION_UA, C.RD_KAFKA_MSG_F_COPY, batch, batchLen); enqueued != batchLen {
+		fmt.Println("enqueued", enqueued, "of", batchLen)
+
 		offset := C.int(0)
 		for offset >= 0 {
 			offset = C.NextError(batch, batchLen, offset)
@@ -99,8 +104,16 @@ func (t *Topic) Produce(messages []Message) []ResponseError {
 		}
 	}
 
-	for C.rd_kafka_outq_len(t.client.handle) > 0 {
+	fmt.Println("polling")
+
+	for i := 0; C.rd_kafka_outq_len(t.client.handle) > 0 && i < 100; i++ {
 		C.rd_kafka_poll(t.client.handle, 10)
+	}
+
+	if C.rd_kafka_outq_len(t.client.handle) > 0 {
+		fmt.Println(C.rd_kafka_outq_len(t.client.handle), "queued")
+	} else {
+		fmt.Println("done")
 	}
 
 	for _, err := range t.transmitErr {

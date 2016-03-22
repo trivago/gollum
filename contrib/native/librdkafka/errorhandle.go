@@ -21,18 +21,44 @@ package librdkafka
 import "C"
 
 import (
+	"fmt"
 	"reflect"
 	"unsafe"
 )
 
 //export goMarshalAsyncError
 func goMarshalAsyncError(code C.int, reason *C.char, hook *C.ErrorHook_t) {
-	topic := allTopics[int(hook.topic)]
-	topic.pushError(int(code), int(hook.index))
+	topicID := int(hook.topic)
+	if topicID < 0 || topicID >= len(allTopics) || allTopics[topicID] == nil {
+		fmt.Println("lib error:", codeToString(int(code)))
+		reasonHeader := reflect.StringHeader{
+			Data: uintptr(unsafe.Pointer(reason)),
+			Len:  int(C.strlen(reason)),
+		}
+		reasonString := (*string)(unsafe.Pointer(&reasonHeader))
+		fmt.Println("lib error reason:", *reasonString)
+	} else {
+		topic := allTopics[topicID]
+		topic.pushError(int(code), int(hook.index))
+	}
 }
 
 func makeErrorHook(topic *Topic, index int) unsafe.Pointer {
 	return unsafe.Pointer(C.NewErrorHook(C.int(topic.id), C.int(index)))
+}
+
+func codeToString(code int) string {
+	nativeString := C.rd_kafka_err2str(C.rd_kafka_resp_err_t(code))
+	if nativeString == nil {
+		return "Unknown error"
+	}
+
+	textHeader := reflect.StringHeader{
+		Data: uintptr(unsafe.Pointer(nativeString)),
+		Len:  int(C.strlen(nativeString)),
+	}
+	text := (*string)(unsafe.Pointer(&textHeader))
+	return *text
 }
 
 // ErrorHandle is a convenience wrapper for handling librdkafka native errors.
@@ -68,15 +94,5 @@ type ResponseError struct {
 }
 
 func (r ResponseError) Error() string {
-	nativeString := C.rd_kafka_err2str(C.rd_kafka_resp_err_t(r.Code))
-	if nativeString == nil {
-		return "Unknown error"
-	}
-
-	textHeader := reflect.StringHeader{
-		Data: uintptr(unsafe.Pointer(nativeString)),
-		Len:  int(C.strlen(nativeString)),
-	}
-	text := (*string)(unsafe.Pointer(&textHeader))
-	return *text
+	return codeToString(r.Code)
 }

@@ -1,5 +1,18 @@
-// +build ignore
+// Copyright 2015-2016 trivago GmbH
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
+// +build ignore
 #ifndef __INCLUED_WRAPPER_H__
 #define __INCLUED_WRAPPER_H__
 
@@ -19,6 +32,10 @@ ErrorHook_t* NewErrorHook(int topic, int index);
 // RegisterErrorWrapper registers the internal error handler to the given
 // config. This allows routing back errors to go.
 void RegisterErrorWrapper(rd_kafka_conf_t* config);
+
+// RegisterRandomPartitioner registers the random partitioner to the given
+// topic configuration.
+void RegisterRandomPartitioner(rd_kafka_topic_conf_t* config);
 
 // CreateBatch creates a new native kafka batch of the given size.
 rd_kafka_message_t* CreateBatch(int size);
