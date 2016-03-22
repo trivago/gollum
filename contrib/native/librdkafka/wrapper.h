@@ -37,6 +37,10 @@ void RegisterErrorWrapper(rd_kafka_conf_t* config);
 // topic configuration.
 void RegisterRandomPartitioner(rd_kafka_topic_conf_t* config);
 
+// RegisterRoundRobinPartitioner registers a round robin partitioner to the
+// given topic configuration.
+void RegisterRoundRobinPartitioner(rd_kafka_topic_conf_t* config);
+
 // CreateBatch creates a new native kafka batch of the given size.
 rd_kafka_message_t* CreateBatch(int size);
 

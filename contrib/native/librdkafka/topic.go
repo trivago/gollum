@@ -20,7 +20,7 @@ package librdkafka
 import "C"
 
 import (
-	"fmt"
+	"sync"
 	"unsafe"
 )
 
@@ -37,6 +37,7 @@ type Topic struct {
 	name        string
 	transmitErr []asyncError
 	id          int
+	errorGuard  *sync.Mutex
 }
 
 type asyncError struct {
@@ -48,18 +49,16 @@ type asyncError struct {
 // You have to call Close() to free any internal state. As this struct holds a
 // pointer to the client make sure that Client.Close is called after closing
 // objects of this type.
-func NewTopic(name string, p Partitioner, config TopicConfig, client *Client) (*Topic, error) {
+func NewTopic(name string, config TopicConfig, client *Client) (*Topic, error) {
 	topic := &Topic{
 		handle:      C.rd_kafka_topic_new(client.handle, C.CString(name), config.handle),
 		client:      client,
 		name:        name,
 		transmitErr: []asyncError{},
 		id:          len(allTopics),
+		errorGuard:  new(sync.Mutex),
 	}
 
-	C.RegisterRandomPartitioner(topic.handle)
-
-	// TODO: Locking?
 	allTopics = append(allTopics, topic)
 	return topic, nil
 }
@@ -74,6 +73,14 @@ func (t *Topic) GetName() string {
 	return t.name
 }
 
+// PollEvents triggers the event queue. This function may block for 500ms.
+func (t *Topic) PollEvents() int {
+	for i := 0; C.rd_kafka_outq_len(t.client.handle) > 0 && i < 50; i++ {
+		C.rd_kafka_poll(t.client.handle, 10)
+	}
+	return int(C.rd_kafka_outq_len(t.client.handle))
+}
+
 // Produce sends the list of messages given to kafka and blocks until all
 // messages have been sent.
 func (t *Topic) Produce(messages []Message) []ResponseError {
@@ -85,11 +92,8 @@ func (t *Topic) Produce(messages []Message) []ResponseError {
 	batch := PrepareBatch(messages, t)
 	batchLen := C.int(len(messages))
 	defer C.DestroyBatch(unsafe.Pointer(batch), C.int(len(messages)))
-	t.transmitErr = t.transmitErr[:0] // Clear
 
 	if enqueued := C.rd_kafka_produce_batch(t.handle, C.RD_KAFKA_PARTITION_UA, C.RD_KAFKA_MSG_F_COPY, batch, batchLen); enqueued != batchLen {
-		fmt.Println("enqueued", enqueued, "of", batchLen)
-
 		offset := C.int(0)
 		for offset >= 0 {
 			offset = C.NextError(batch, batchLen, offset)
@@ -104,18 +108,8 @@ func (t *Topic) Produce(messages []Message) []ResponseError {
 		}
 	}
 
-	fmt.Println("polling")
-
-	for i := 0; C.rd_kafka_outq_len(t.client.handle) > 0 && i < 100; i++ {
-		C.rd_kafka_poll(t.client.handle, 10)
-	}
-
-	if C.rd_kafka_outq_len(t.client.handle) > 0 {
-		fmt.Println(C.rd_kafka_outq_len(t.client.handle), "queued")
-	} else {
-		fmt.Println("done")
-	}
-
+	t.PollEvents()
+	t.errorGuard.Lock()
 	for _, err := range t.transmitErr {
 		rspErr := ResponseError{
 			Original: messages[err.index],
@@ -123,11 +117,16 @@ func (t *Topic) Produce(messages []Message) []ResponseError {
 		}
 		errors = append(errors, rspErr)
 	}
+	t.transmitErr = t.transmitErr[:0] // Clear
+	t.errorGuard.Unlock()
 
 	return errors
 }
 
 func (t *Topic) pushError(code int, index int) {
+	t.errorGuard.Lock()
+	defer t.errorGuard.Unlock()
+
 	err := asyncError{
 		code:  code,
 		index: index,

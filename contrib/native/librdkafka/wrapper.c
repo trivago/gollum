@@ -34,11 +34,27 @@ void RegisterErrorWrapper(rd_kafka_conf_t* config) {
 }
 
 void RegisterRandomPartitioner(rd_kafka_topic_conf_t* config) {
-    rd_kafka_topic_conf_set_partitioner_cb(config, rd_kafka_msg_partitioner_random);
+    rd_kafka_topic_conf_set_partitioner_cb(config, &rd_kafka_msg_partitioner_random);
+}
+                     
+static int32_t msg_partitioner_round_robin(const rd_kafka_topic_t *rkt, const void *key, size_t keylen, int32_t partition_cnt, void *opaque, void *msg_opaque) {
+    int32_t p = 0;
+    int32_t tries = 0;
+    do {
+        int32_t index = __sync_fetch_and_add((int32_t*)opaque, 1);
+        p = index % partition_cnt; 
+        ++tries;
+    } while (!rd_kafka_topic_partition_available(rkt, p) && tries < partition_cnt);
+    return p;
+}
+
+void RegisterRoundRobinPartitioner(rd_kafka_topic_conf_t* config) {
+    rd_kafka_topic_conf_set_opaque(config, calloc(1, sizeof(int32_t)));
+    rd_kafka_topic_conf_set_partitioner_cb(config, &msg_partitioner_round_robin);
 }
 
 rd_kafka_message_t* CreateBatch(int size) {
-     return (rd_kafka_message_t*)malloc(size * sizeof(rd_kafka_message_t));
+    return (rd_kafka_message_t*)malloc(size * sizeof(rd_kafka_message_t));
 }
 
 void StoreBatchItem(rd_kafka_message_t* pBatch, int index, void* key, int keyLen, void* payload, int payloadLen, void* hook) {

@@ -21,22 +21,27 @@ package librdkafka
 import "C"
 
 import (
-	"fmt"
+	"log"
+	"os"
 	"reflect"
 	"unsafe"
+)
+
+var (
+	// Log is the standard logger used for non-message related errors
+	Log = log.New(os.Stderr, "librdkafka: ", log.Lshortfile)
 )
 
 //export goMarshalAsyncError
 func goMarshalAsyncError(code C.int, reason *C.char, hook *C.ErrorHook_t) {
 	topicID := int(hook.topic)
 	if topicID < 0 || topicID >= len(allTopics) || allTopics[topicID] == nil {
-		fmt.Println("lib error:", codeToString(int(code)))
 		reasonHeader := reflect.StringHeader{
 			Data: uintptr(unsafe.Pointer(reason)),
 			Len:  int(C.strlen(reason)),
 		}
 		reasonString := (*string)(unsafe.Pointer(&reasonHeader))
-		fmt.Println("lib error reason:", *reasonString)
+		Log.Printf("%s -- %s", codeToString(int(code)), *reasonString)
 	} else {
 		topic := allTopics[topicID]
 		topic.pushError(int(code), int(hook.index))

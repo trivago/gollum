@@ -36,32 +36,40 @@ func NewTopicConfig() TopicConfig {
 	}
 }
 
+// SetRoundRobinPartitioner registers the round robin partitioner function.
+func (c *TopicConfig) SetRoundRobinPartitioner() {
+	C.RegisterRoundRobinPartitioner(c.handle)
+}
+
+// SetRandomPartitioner registers the random partitioner function.
+func (c *TopicConfig) SetRandomPartitioner() {
+	C.RegisterRandomPartitioner(c.handle)
+}
+
 // Close frees up the native handle
 func (c *TopicConfig) Close() {
 	C.rd_kafka_topic_conf_destroy(c.handle)
 }
 
 // Set sets a string value in this config
-func (c *TopicConfig) Set(key, value string) error {
+func (c *TopicConfig) Set(key, value string) {
 	nativeErr := new(ErrorHandle)
 	if C.rd_kafka_topic_conf_set(c.handle, C.CString(key), C.CString(value), nativeErr.buffer(), nativeErr.len()) != 0 {
-		return nativeErr
+		Log.Print(nativeErr)
 	}
-	return nil
 }
 
 // SetI sets an integer value in this config
-func (c *TopicConfig) SetI(key string, value int) error {
+func (c *TopicConfig) SetI(key string, value int) {
 	nativeErr := new(ErrorHandle)
 	strValue := strconv.Itoa(value)
 	if C.rd_kafka_topic_conf_set(c.handle, C.CString(key), C.CString(strValue), nativeErr.buffer(), nativeErr.len()) != 0 {
-		return nativeErr
+		Log.Print(nativeErr)
 	}
-	return nil
 }
 
 // SetB sets a boolean value in this config
-func (c *TopicConfig) SetB(key string, value bool) error {
+func (c *TopicConfig) SetB(key string, value bool) {
 	nativeErr := new(ErrorHandle)
 	var boolValue string
 	if value {
@@ -70,7 +78,6 @@ func (c *TopicConfig) SetB(key string, value bool) error {
 		boolValue = "false"
 	}
 	if C.rd_kafka_topic_conf_set(c.handle, C.CString(key), C.CString(boolValue), nativeErr.buffer(), nativeErr.len()) != 0 {
-		return nativeErr
+		Log.Print(nativeErr)
 	}
-	return nil
 }

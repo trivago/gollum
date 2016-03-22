@@ -19,7 +19,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
-	//"strconv"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -28,23 +28,25 @@ import (
 
 type KafkaProducer struct {
 	core.ProducerBase
-	servers          []string
-	clientID         string
-	batch            core.MessageBatch
-	counters         map[string]*int64
-	lastMetricUpdate time.Time
-	batchTimeout     time.Duration
-	keyFormat        core.Formatter
-	client           *kafka.Client
-	config           kafka.Config
-	topicConfig      kafka.TopicConfig
-	streamToTopic    map[core.MessageStreamID]string
-	topic            map[core.MessageStreamID]*kafka.Topic
+	servers           []string
+	clientID          string
+	batch             core.MessageBatch
+	counters          map[string]*int64
+	lastMetricUpdate  time.Time
+	batchTimeout      time.Duration
+	keyFormat         core.Formatter
+	client            *kafka.Client
+	config            kafka.Config
+	topicRequiredAcks int
+	topicTimeoutMs    int
+	streamToTopic     map[core.MessageStreamID]string
+	topic             map[core.MessageStreamID]*kafka.Topic
 }
 
 const (
 	kafkaMetricMessages    = "Kafka:Messages-"
 	kafkaMetricMessagesSec = "Kafka:MessagesSec-"
+	kafkaMetricQueueSize   = "Kafka:QueueSize-"
 )
 
 const (
@@ -65,6 +67,8 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfig) error {
 	}
 	prod.SetStopCallback(prod.close)
 
+	kafka.Log = Log.Error
+
 	if conf.HasValue("KeyFormatter") {
 		keyFormatter, err := core.NewPluginWithType(conf.GetString("KeyFormatter", "format.Identifier"), conf)
 		if err != nil {
@@ -84,19 +88,13 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfig) error {
 	prod.counters = make(map[string]*int64)
 	prod.streamToTopic = conf.GetStreamMap("Topics", "default")
 	prod.topic = make(map[core.MessageStreamID]*kafka.Topic)
-
-	/*compression := "none"
-	switch strings.ToLower(conf.GetString("Compression", compressNone)) {
-	case compressGZIP:
-		compression = "gzip"
-	case compressSnappy:
-		compression = "snappy"
-	}*/
+	prod.topicRequiredAcks = conf.GetInt("RequiredAcks", 1)
+	prod.topicTimeoutMs = conf.GetInt("TimeoutMs", 1)
 
 	// Init librdkafka
 	prod.config = kafka.NewConfig()
 
-	/*kafkaVer := conf.GetString("ProtocolVersion", "0.8.2")
+	kafkaVer := conf.GetString("ProtocolVersion", "0.8.2")
 	verParts := strings.Split(kafkaVer, ".")
 	multiplicator := 1000000
 	verNumber := 0
@@ -104,62 +102,21 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfig) error {
 		part, _ := strconv.Atoi(n)
 		verNumber += part * multiplicator
 		multiplicator /= 100
-	}*/
+	}
 
-	if err := prod.config.Set("client.id", conf.GetString("ClientId", "gollum")); err != nil {
-		return err
-	}
-	if err := prod.config.Set("metadata.broker.list", strings.Join(prod.servers, ",")); err != nil {
-		return err
-	}
-	if err := prod.config.SetI("message.max.bytes", conf.GetInt("BatchSizeMaxKB", 1<<10)<<10); err != nil {
-		return err
-	}
-	if err := prod.config.SetI("metadata.request.timeout.ms", int(conf.GetInt("MetadataTimeoutSec", 60)*1000)); err != nil {
-		return err
-	}
-	if err := prod.config.SetI("topic.metadata.refresh.interval.ms", int(conf.GetInt("MetadataRefreshMs", 300000))); err != nil {
-		return err
-	}
-	if err := prod.config.SetI("socket.max.fails", int(conf.GetInt("ServerMaxFails", 3))); err != nil {
-		return err
-	}
-	if err := prod.config.SetI("socket.timeout.ms", int(conf.GetInt("ServerTimeoutSec", 60)*1000)); err != nil {
-		return err
-	}
-	if err := prod.config.SetB("socket.keepalive.enable", true); err != nil {
-		return err
-	}
-	if err := prod.config.SetI("message.send.max.retries", conf.GetInt("SendRetries", 0)); err != nil {
-		return err
-	}
-	if err := prod.config.SetI("queue.buffering.max.messages", conf.GetInt("BatchMaxMessages", 100000)); err != nil {
-		return err
-	}
-	if err := prod.config.SetI("queue.buffering.max.ms", conf.GetInt("BatchTimeoutMs", 10)); err != nil {
-		return err
-	}
-	if err := prod.config.SetI("batch.num.messages", prod.batch.Len()); err != nil {
-		return err
-	}
-	/*if err := prod.config.Set("partition.assignment.strategy", "roundrobin"); err != nil {
-		return err
-	}
-	if err := prod.config.SetI("protocol.version", verNumber); err != nil {
-		return err
-	}*/
-
-	// Topic
-	prod.topicConfig = kafka.NewTopicConfig()
-	if err := prod.topicConfig.SetI("request.required.acks", conf.GetInt("RequiredAcks", 1)); err != nil {
-		return err
-	}
-	if err := prod.topicConfig.SetI("request.timeout.ms", int(conf.GetInt("TimeoutMs", 1))); err != nil {
-		return err
-	}
-	/*if err := prod.topicConfig.Set("compression.codec", compression); err != nil {
-		return err
-	}*/
+	prod.config.Set("client.id", conf.GetString("ClientId", "gollum"))
+	prod.config.Set("metadata.broker.list", strings.Join(prod.servers, ","))
+	prod.config.SetI("message.max.bytes", conf.GetInt("BatchSizeMaxKB", 1<<10)<<10)
+	prod.config.SetI("metadata.request.timeout.ms", int(conf.GetInt("MetadataTimeoutSec", 60)*1000))
+	prod.config.SetI("topic.metadata.refresh.interval.ms", int(conf.GetInt("MetadataRefreshMs", 300000)))
+	prod.config.SetI("socket.max.fails", int(conf.GetInt("ServerMaxFails", 3)))
+	prod.config.SetI("socket.timeout.ms", int(conf.GetInt("ServerTimeoutSec", 60)*1000))
+	prod.config.SetB("socket.keepalive.enable", true)
+	prod.config.SetI("message.send.max.retries", conf.GetInt("SendRetries", 0))
+	prod.config.SetI("queue.buffering.max.messages", conf.GetInt("BatchMaxMessages", 100000))
+	prod.config.SetI("queue.buffering.max.ms", conf.GetInt("BatchTimeoutMs", 10))
+	prod.config.SetI("batch.num.messages", prod.batch.Len())
+	prod.config.SetI("protocol.version", verNumber)
 
 	return nil
 }
@@ -172,6 +129,11 @@ func (prod *KafkaProducer) sendBatchOnTimeOut() {
 	// Flush if necessary
 	if prod.batch.ReachedTimeThreshold(prod.batchTimeout) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2) {
 		prod.sendBatch()
+	}
+
+	// Update queue size
+	for _, topic := range prod.topic {
+		shared.Metric.SetI(kafkaMetricQueueSize+topic.GetName(), topic.PollEvents())
 	}
 
 	// Update metrics
@@ -217,9 +179,15 @@ func (prod *KafkaProducer) transformMessages(messages []core.Message) {
 
 			shared.Metric.New(kafkaMetricMessages + topicName)
 			shared.Metric.New(kafkaMetricMessagesSec + topicName)
+			shared.Metric.New(kafkaMetricQueueSize + topicName)
 			prod.counters[topicName] = new(int64)
 
-			topic, _ = kafka.NewTopic(topicName, kafka.NewRoundRobinPartitioner(), prod.topicConfig, prod.client)
+			topicConfig := kafka.NewTopicConfig()
+			topicConfig.SetI("request.required.acks", prod.topicRequiredAcks)
+			topicConfig.SetI("request.timeout.ms", prod.topicTimeoutMs)
+			topicConfig.SetRoundRobinPartitioner()
+
+			topic, _ = kafka.NewTopic(topicName, topicConfig, prod.client)
 			prod.topic[msg.StreamID] = topic
 		}
 
@@ -288,10 +256,6 @@ func (prod *KafkaProducer) close() {
 	prod.CloseMessageChannel(prod.bufferMessage)
 	prod.batch.Close(prod.transformMessages, prod.GetShutdownTimeout())
 	prod.closeConnection()
-
-	// TODO: Apparently those get freed by other means
-	//prod.config.Close()
-	//prod.topicConfig.Close()
 }
 
 // Produce writes to a buffer that is sent to a given socket.
