@@ -21,13 +21,16 @@ import "C"
 
 import (
 	"sync"
+	"sync/atomic"
 	"unsafe"
 )
 
+// required for getting from C back to Go as we cannot pass Go structs with
+// Go pointers to C.
 var (
-	// required for getting from C back to Go as we cannot pass Go structs with
-	// Go pointers to C.
-	allTopics = []*Topic{}
+	allTopics   = []*Topic{}
+	topicsGuard = sync.Mutex{}
+	batchID     = new(uint64)
 )
 
 // Topic wrapper handle for rd_kafka_topic_t
@@ -35,14 +38,15 @@ type Topic struct {
 	handle      *C.rd_kafka_topic_t
 	client      *Client
 	name        string
-	transmitErr []asyncError
 	id          int
+	transmitErr []asyncError
 	errorGuard  *sync.Mutex
 }
 
 type asyncError struct {
-	code  int
-	index int
+	batchID uint64
+	code    int
+	index   int
 }
 
 // NewTopic creates a new topic representation in librdkafka.
@@ -55,10 +59,13 @@ func NewTopic(name string, config TopicConfig, client *Client) (*Topic, error) {
 		client:      client,
 		name:        name,
 		transmitErr: []asyncError{},
-		id:          len(allTopics),
 		errorGuard:  new(sync.Mutex),
 	}
 
+	topicsGuard.Lock()
+	defer topicsGuard.Unlock()
+
+	topic.id = len(allTopics)
 	allTopics = append(allTopics, topic)
 	return topic, nil
 }
@@ -73,14 +80,6 @@ func (t *Topic) GetName() string {
 	return t.name
 }
 
-// PollEvents triggers the event queue. This function may block for up to 400ms.
-func (t *Topic) PollEvents() int {
-	for i := 0; C.rd_kafka_outq_len(t.client.handle) > 0 && i < 20; i++ {
-		C.rd_kafka_poll(t.client.handle, 20)
-	}
-	return int(C.rd_kafka_outq_len(t.client.handle))
-}
-
 // Produce sends the list of messages given to kafka and blocks until all
 // messages have been sent.
 func (t *Topic) Produce(messages []Message) []ResponseError {
@@ -89,7 +88,8 @@ func (t *Topic) Produce(messages []Message) []ResponseError {
 		return errors // ### return, nothing to do ###
 	}
 
-	batch := PrepareBatch(messages, t)
+	batchID := atomic.AddUint64(batchID, 1)
+	batch := PrepareBatch(messages, t, batchID)
 	batchLen := C.int(len(messages))
 	defer C.DestroyBatch(unsafe.Pointer(batch), C.int(len(messages)))
 
@@ -109,14 +109,25 @@ func (t *Topic) Produce(messages []Message) []ResponseError {
 		}
 	}
 
-	t.PollEvents()
+	// We need to wait for *all* messages to return, otherwise we don't
+	// have access to the messages produced.
+	for C.rd_kafka_outq_len(t.client.handle) > 0 {
+		C.rd_kafka_poll(t.client.handle, 10)
+	}
+
+	// Process
+
 	t.errorGuard.Lock()
 	for _, err := range t.transmitErr {
-		rspErr := ResponseError{
-			Original: messages[err.index],
-			Code:     err.code,
+		if err.batchID == batchID {
+			rspErr := ResponseError{
+				Original: messages[err.index],
+				Code:     err.code,
+			}
+			errors = append(errors, rspErr)
+		} else {
+			Log.Print("Lost a message from a previous batch.")
 		}
-		errors = append(errors, rspErr)
 	}
 	t.transmitErr = t.transmitErr[:0] // Clear
 	t.errorGuard.Unlock()
@@ -124,13 +135,14 @@ func (t *Topic) Produce(messages []Message) []ResponseError {
 	return errors
 }
 
-func (t *Topic) pushError(code int, index int) {
+func (t *Topic) pushError(code int, index int, batchID uint64) {
 	t.errorGuard.Lock()
 	defer t.errorGuard.Unlock()
 
 	err := asyncError{
-		code:  code,
-		index: index,
+		code:    code,
+		index:   index,
+		batchID: batchID,
 	}
 	t.transmitErr = append(t.transmitErr, err)
 }

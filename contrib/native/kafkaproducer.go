@@ -19,13 +19,58 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
-	//"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 )
 
+// KafkaProducer librdkafka producer plugin
+// The kafka producer writes messages to a kafka cluster. This producer is
+// backed by the native librdkafka library so most settings relate to that.
+// library. This producer does not use a fuse breaker.
+// Configuration example
+//
+//  - "native.KafkaProducer":
+//    ClientId: "weblog"
+//    RequiredAcks: 1
+//    TimeoutMs: 1500
+//    SendRetries: 0
+//    BatchSizeMaxKB: 1024
+//    BatchMaxMessages: 100000
+//    BatchTimeoutSec: 3
+//    ServerTimeoutSec: 60
+//    ServerMaxFails: 3
+//    MetadataTimeoutSec: 60
+//    MetadataRefreshMs: 300000
+//    KeyFormatter: ""
+//    Servers:
+//    	- "localhost:9092"
+//    Topic:
+//      "console" : "console"
+//
+// SendRetries is mapped to message.send.max.retries.
+//
+// BatchSizeMaxKB is mapped to message.max.bytes.
+//
+// BatchMaxMessages is mapped to queue.buffering.max.messages.
+//
+// BatchTimeoutSec is mapped to queue.buffering.max.ms.
+//
+// ServerTimeoutSec is mapped to socket.timeout.ms.
+//
+// ServerMaxFails is mapped to socket.max.fails.
+//
+// MetadataTimeoutSec is mapped to metadata.request.timeout.ms.
+//
+// MetadataRefreshMs is mapped to topic.metadata.refresh.interval.ms.
+//
+// Servers defines the list of brokers to produce messages to.
+//
+// Topic defines a stream to topic mapping.
+//
+// KeyFormatter defines the formatter used to extract keys from a message.
+// Set to "" by default (disable).
 type KafkaProducer struct {
 	core.ProducerBase
 	servers           []string
@@ -46,7 +91,6 @@ type KafkaProducer struct {
 const (
 	kafkaMetricMessages    = "Kafka:Messages-"
 	kafkaMetricMessagesSec = "Kafka:MessagesSec-"
-	kafkaMetricQueueSize   = "Kafka:QueueSize-"
 )
 
 const (
@@ -131,11 +175,6 @@ func (prod *KafkaProducer) sendBatchOnTimeOut() {
 		prod.sendBatch()
 	}
 
-	// Update queue size
-	for _, topic := range prod.topic {
-		shared.Metric.SetI(kafkaMetricQueueSize+topic.GetName(), topic.PollEvents())
-	}
-
 	// Update metrics
 	duration := time.Since(prod.lastMetricUpdate)
 	prod.lastMetricUpdate = time.Now()
@@ -193,7 +232,6 @@ func (prod *KafkaProducer) transformMessages(messages []core.Message) {
 
 			shared.Metric.New(kafkaMetricMessages + topicName)
 			shared.Metric.New(kafkaMetricMessagesSec + topicName)
-			shared.Metric.New(kafkaMetricQueueSize + topicName)
 			prod.counters[topicName] = new(int64)
 
 			topicConfig := kafka.NewTopicConfig()
@@ -231,7 +269,7 @@ func (prod *KafkaProducer) transformMessages(messages []core.Message) {
 		for _, err := range errors {
 			failed := err.Original.(*messageWrapper)
 			failedMsg := failed.original
-			Log.Error.Print(err)
+			Log.Error.Print(err.Error())
 			prod.Drop(failedMsg)
 		}
 	}

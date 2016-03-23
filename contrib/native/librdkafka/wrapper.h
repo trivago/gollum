@@ -21,13 +21,10 @@
 // errorHook is used in a message opaque pointer to store information required
 // for routing messages back.
 typedef struct errorHook {
-     int topic;
+     uint64_t batchId;
+     int topicId;
      int index;
 } ErrorHook_t;
-
-// NewErrorHook creates a new handle that can be attached to massages. This
-// allows callbacks to the topic that sent the message. 
-ErrorHook_t* NewErrorHook(int topic, int index);
 
 // RegisterErrorWrapper registers the internal error handler to the given
 // config. This allows routing back errors to go.
@@ -48,7 +45,7 @@ rd_kafka_message_t* CreateBatch(int size);
 void DestroyBatch(rd_kafka_message_t* pBatch, int length);
 
 // StoreBatchItem stores data in the given message batch slot.
-void StoreBatchItem(rd_kafka_message_t* pBatch, int index, void* key, int keyLen, void* payload, int payloadLen, int topicId);
+void StoreBatchItem(rd_kafka_message_t* pBatch, int index, void* key, int keyLen, void* payload, int payloadLen, int topicId, uint64_t batchId);
 
 // NextError finds the next error in a message batch (that has been sent).
 // If no error is found -1 is returned.

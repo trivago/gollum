@@ -16,25 +16,32 @@
 #include <string.h>
 #include <stdlib.h>
 
-extern void goMarshalAsyncError(int, char*, void*);
+extern void goErrorHandler(int, char*, void*);
+extern void goLogHandler(int, char*, char*);
 
-ErrorHook_t* NewErrorHook(int topic, int index) {
+static ErrorHook_t* newErrorHook(int topic, int index, uint64_t batchId) {
      ErrorHook_t* hook = (ErrorHook_t*)malloc(sizeof(ErrorHook_t));
-     hook->topic = topic;
+     hook->batchId = batchId;
+     hook->topicId = topic;
      hook->index = index;
      return hook;
 }
 
 static void errorWrapper(rd_kafka_t* client, int code, const char* reason, void* opaque) {
-     goMarshalAsyncError(code, (char*)reason, (ErrorHook_t*)opaque);
+     goErrorHandler(code, (char*)reason, (ErrorHook_t*)opaque);
+}
+
+static void logWrapper(const rd_kafka_t *rk, int level, const char *fac, const char *buf) {
+    goLogHandler(level, (char*)fac, (char*)buf);
 }
 
 void RegisterErrorWrapper(rd_kafka_conf_t* config) {
-    rd_kafka_conf_set_error_cb(config, &errorWrapper);
+    rd_kafka_conf_set_error_cb(config, errorWrapper);
+    rd_kafka_conf_set_log_cb(config, logWrapper);
 }
 
 void RegisterRandomPartitioner(rd_kafka_topic_conf_t* config) {
-    rd_kafka_topic_conf_set_partitioner_cb(config, &rd_kafka_msg_partitioner_random);
+    rd_kafka_topic_conf_set_partitioner_cb(config, rd_kafka_msg_partitioner_random);
 }
                      
 static int32_t msg_partitioner_round_robin(const rd_kafka_topic_t *rkt, const void *key, size_t keylen, int32_t partition_cnt, void *opaque, void *msg_opaque) {
@@ -50,19 +57,19 @@ static int32_t msg_partitioner_round_robin(const rd_kafka_topic_t *rkt, const vo
 
 void RegisterRoundRobinPartitioner(rd_kafka_topic_conf_t* config) {
     rd_kafka_topic_conf_set_opaque(config, calloc(1, sizeof(int32_t)));
-    rd_kafka_topic_conf_set_partitioner_cb(config, &msg_partitioner_round_robin);
+    rd_kafka_topic_conf_set_partitioner_cb(config, msg_partitioner_round_robin);
 }
 
 rd_kafka_message_t* CreateBatch(int size) {
     return (rd_kafka_message_t*)malloc(size * sizeof(rd_kafka_message_t));
 }
 
-void StoreBatchItem(rd_kafka_message_t* pBatch, int index, void* key, int keyLen, void* payload, int payloadLen, int topicId) {
+void StoreBatchItem(rd_kafka_message_t* pBatch, int index, void* key, int keyLen, void* payload, int payloadLen, int topicId, uint64_t batchId) {
      pBatch[index].key_len = (size_t)keyLen;
      pBatch[index].len = (size_t)payloadLen;
      pBatch[index].key = key;
      pBatch[index].payload = payload;
-     pBatch[index]._private = NewErrorHook(topicId, index);
+     pBatch[index]._private = newErrorHook(topicId, index, batchId);
 }
 
 void DestroyBatch(rd_kafka_message_t* pBatch, int length) {

@@ -32,9 +32,13 @@ var (
 	Log = log.New(os.Stderr, "librdkafka: ", log.Lshortfile)
 )
 
-//export goMarshalAsyncError
-func goMarshalAsyncError(code C.int, reason *C.char, hook *C.ErrorHook_t) {
-	topicID := int(hook.topic)
+//export goErrorHandler
+func goErrorHandler(code C.int, reason *C.char, hook *C.ErrorHook_t) {
+	topicID := -1
+	if hook != nil {
+		topicID = int(hook.topicId)
+	}
+
 	if topicID < 0 || topicID >= len(allTopics) || allTopics[topicID] == nil {
 		reasonHeader := reflect.StringHeader{
 			Data: uintptr(unsafe.Pointer(reason)),
@@ -44,12 +48,25 @@ func goMarshalAsyncError(code C.int, reason *C.char, hook *C.ErrorHook_t) {
 		Log.Printf("%s -- %s", codeToString(int(code)), *reasonString)
 	} else {
 		topic := allTopics[topicID]
-		topic.pushError(int(code), int(hook.index))
+		topic.pushError(int(code), int(hook.index), uint64(hook.batchId))
 	}
 }
 
-func makeErrorHook(topic *Topic, index int) unsafe.Pointer {
-	return unsafe.Pointer(C.NewErrorHook(C.int(topic.id), C.int(index)))
+//export goLogHandler
+func goLogHandler(level C.int, facility *C.char, message *C.char) {
+	facHeader := reflect.StringHeader{
+		Data: uintptr(unsafe.Pointer(facility)),
+		Len:  int(C.strlen(facility)),
+	}
+	facString := (*string)(unsafe.Pointer(&facHeader))
+
+	msgHeader := reflect.StringHeader{
+		Data: uintptr(unsafe.Pointer(message)),
+		Len:  int(C.strlen(message)),
+	}
+	msgString := (*string)(unsafe.Pointer(&msgHeader))
+
+	Log.Printf("[%s] %s", *facString, *msgString)
 }
 
 func codeToString(code int) string {
@@ -86,7 +103,6 @@ func (l *ErrorHandle) Error() string {
 			return string(l.errBuffer[:i])
 		}
 	}
-
 	return string(l.errBuffer[:len(l.errBuffer)])
 }
 

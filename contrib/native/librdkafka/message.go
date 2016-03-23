@@ -20,8 +20,6 @@ package librdkafka
 import "C"
 
 import (
-	//"runtime"
-	//"sync"
 	"unsafe"
 )
 
@@ -66,8 +64,9 @@ func (m SimpleMessage) GetMetadata() interface{} {
 
 // PrepareBatch converts a message array to an array of native messages.
 // The resulting pointer has to be freed with C.free(unsafe.Pointer(p)).
-func PrepareBatch(messages []Message, topic *Topic) *C.rd_kafka_message_t {
+func PrepareBatch(messages []Message, topic *Topic, batchID uint64) *C.rd_kafka_message_t {
 	topicID := C.int(topic.id)
+	cBatchID := C.uint64_t(batchID)
 	keyPtr := unsafe.Pointer(nil)
 	valuePtr := unsafe.Pointer(nil)
 
@@ -93,7 +92,7 @@ func PrepareBatch(messages []Message, topic *Topic) *C.rd_kafka_message_t {
 			valuePtr = unsafe.Pointer(nil)
 		}
 
-		C.StoreBatchItem(batch, i, keyPtr, keyLen, valuePtr, valueLen, topicID)
+		C.StoreBatchItem(batch, i, keyPtr, keyLen, valuePtr, valueLen, topicID, cBatchID)
 	}
 
 	return batch

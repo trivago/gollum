@@ -29,12 +29,13 @@ type Client struct {
 func NewProducer(config Config) (*Client, error) {
 	client := Client{}
 	nativeErr := new(ErrorHandle)
+	C.RegisterErrorWrapper(config.handle)
+
 	client.handle = C.rd_kafka_new(C.RD_KAFKA_PRODUCER, config.handle, nativeErr.buffer(), nativeErr.len())
 	if client.handle == nil {
 		return nil, nativeErr
 	}
 
-	C.RegisterErrorWrapper(config.handle)
 	return &client, nil
 }
 
