@@ -5,11 +5,14 @@ go:
 - 1.6
 env:
 - GO15VENDOREXPERIMENT=1
-addons:
-  apt:
-    packages:
-    - libpcap-dev
-    - librdkafka-dev
+before_install:
+- sudo apt-get install -y libpcap-dev
+- sudo apt-get install -y librdkafka-dev
+#addons:
+#  apt:
+#    packages:
+#    - libpcap-dev
+#    - librdkafka-dev
 script:
 - go build
 - go vet -v $(go list ./...|grep -v vendor)
