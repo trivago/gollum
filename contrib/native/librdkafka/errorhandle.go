@@ -33,23 +33,13 @@ var (
 )
 
 //export goErrorHandler
-func goErrorHandler(code C.int, reason *C.char, hook *C.ErrorHook_t) {
-	topicID := -1
-	if hook != nil {
-		topicID = int(hook.topicId)
+func goErrorHandler(code C.int, reason *C.char) {
+	reasonHeader := reflect.StringHeader{
+		Data: uintptr(unsafe.Pointer(reason)),
+		Len:  int(C.strlen(reason)),
 	}
-
-	if topicID < 0 || topicID >= len(allTopics) || allTopics[topicID] == nil {
-		reasonHeader := reflect.StringHeader{
-			Data: uintptr(unsafe.Pointer(reason)),
-			Len:  int(C.strlen(reason)),
-		}
-		reasonString := (*string)(unsafe.Pointer(&reasonHeader))
-		Log.Printf("%s -- %s", codeToString(int(code)), *reasonString)
-	} else {
-		topic := allTopics[topicID]
-		topic.pushError(int(code), int(hook.index), uint64(hook.batchId))
-	}
+	reasonString := (*string)(unsafe.Pointer(&reasonHeader))
+	Log.Printf("%s -- %s", codeToString(int(code)), *reasonString)
 }
 
 //export goLogHandler
@@ -110,7 +100,7 @@ func (l *ErrorHandle) Error() string {
 // producer. The Code member wraps directly to the librdkafka error
 // number. The original message is attached to allow backtracking.
 type ResponseError struct {
-	Original Message
+	Userdata []byte
 	Code     int
 }
 

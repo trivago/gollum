@@ -27,72 +27,73 @@ import (
 type Message interface {
 	GetKey() []byte
 	GetPayload() []byte
+	GetUserdata() []byte
 }
 
-// SimpleMessage basic implementation of the Message interface
-type SimpleMessage struct {
-	key      []byte
-	value    []byte
-	metadata interface{}
+// MessageDelivery is used to handle message delivery errors
+type MessageDelivery interface {
+	OnMessageError(reason string, userdata []byte)
 }
 
-// NewSimpleMessage creates a wrapper for a simple key/value pair. Use this
-// strcut if you don't already have a container or your container cannot
-// fulfill the Message interface.
-func NewSimpleMessage(key []byte, value []byte, metadata interface{}) SimpleMessage {
-	return SimpleMessage{
-		key:      key,
-		value:    value,
-		metadata: metadata,
+//export goDeliveryHandler
+func goDeliveryHandler(clientHandle *C.rd_kafka_t, code C.int, bufferPtr *C.buffer_t) {
+	// Only gets called if code != 0
+	defer C.DestroyBuffer(bufferPtr)
+
+	// Send userdata and code to handler
+	if handler, exists := clients[clientHandle]; exists {
+		buffer := UnmarshalBuffer(bufferPtr)
+		handler.OnMessageError(codeToString(int(code)), buffer)
 	}
 }
 
-// GetKey returns the (optional) key for this message
-func (m SimpleMessage) GetKey() []byte {
-	return m.key
+// UnmarshalBuffer creates a byte slice copy from a buffer_t handle.
+func UnmarshalBuffer(bufferPtr *C.buffer_t) []byte {
+	length := int(bufferPtr.len)
+	buffer := make([]byte, length)
+	copy(buffer, (*[1 << 30]byte)(bufferPtr.data)[:length:length])
+	return buffer
 }
 
-// GetPayload returns the actual message data to be stored
-func (m SimpleMessage) GetPayload() []byte {
-	return m.value
-}
+// MarshalMessage converts a message to native fields.
+func MarshalMessage(msg Message) (keyLen C.size_t, keyPtr unsafe.Pointer, payLen C.size_t, payPtr unsafe.Pointer, usrLen C.size_t, usrPtr unsafe.Pointer) {
+	key := msg.GetKey()
+	pay := msg.GetPayload()
+	usr := msg.GetUserdata()
+	keyLen = C.size_t(len(key))
+	payLen = C.size_t(len(pay))
+	usrLen = C.size_t(len(usr))
 
-// GetMetadata returns the custom data attached to this message
-func (m SimpleMessage) GetMetadata() interface{} {
-	return m.metadata
+	if keyLen > 0 {
+		keyPtr = unsafe.Pointer(&key[0])
+	} else {
+		keyPtr = unsafe.Pointer(nil)
+	}
+
+	if payLen > 0 {
+		payPtr = unsafe.Pointer(&pay[0])
+	} else {
+		payPtr = unsafe.Pointer(nil)
+	}
+
+	if usrLen > 0 {
+		usrPtr = unsafe.Pointer(&usr[0])
+	} else {
+		usrPtr = unsafe.Pointer(nil)
+	}
+
+	return keyLen, keyPtr, payLen, payPtr, usrLen, usrPtr
 }
 
 // PrepareBatch converts a message array to an array of native messages.
 // The resulting pointer has to be freed with C.free(unsafe.Pointer(p)).
-func PrepareBatch(messages []Message, topic *Topic, batchID uint64) *C.rd_kafka_message_t {
-	topicID := C.int(topic.id)
-	cBatchID := C.uint64_t(batchID)
-	keyPtr := unsafe.Pointer(nil)
-	valuePtr := unsafe.Pointer(nil)
-
+func PrepareBatch(messages []Message) *C.rd_kafka_message_t {
 	numMessages := C.int(len(messages))
 	batch := C.CreateBatch(numMessages)
 
 	for i := C.int(0); i < numMessages; i++ {
-		msg := messages[i]
-		key := msg.GetKey()
-		value := msg.GetPayload()
-		keyLen := C.int(len(key))
-		valueLen := C.int(len(value))
-
-		if keyLen > 0 {
-			keyPtr = unsafe.Pointer(&key[0])
-		} else {
-			keyPtr = unsafe.Pointer(nil)
-		}
-
-		if valueLen > 0 {
-			valuePtr = unsafe.Pointer(&value[0])
-		} else {
-			valuePtr = unsafe.Pointer(nil)
-		}
-
-		C.StoreBatchItem(batch, i, keyPtr, keyLen, valuePtr, valueLen, topicID, cBatchID)
+		keyLen, keyPtr, payLen, payPtr, usrLen, usrPtr := MarshalMessage(messages[i])
+		C.StoreBatchItem(batch, i, keyLen, keyPtr, payLen, payPtr, usrLen, usrPtr)
 	}
 
 	return batch

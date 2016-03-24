@@ -20,58 +20,47 @@ package librdkafka
 import "C"
 
 import (
-	"sync"
-	"sync/atomic"
 	"unsafe"
-)
-
-// required for getting from C back to Go as we cannot pass Go structs with
-// Go pointers to C.
-var (
-	allTopics   = []*Topic{}
-	topicsGuard = sync.Mutex{}
-	batchID     = new(uint64)
 )
 
 // Topic wrapper handle for rd_kafka_topic_t
 type Topic struct {
-	handle      *C.rd_kafka_topic_t
-	client      *Client
-	name        string
-	id          int
-	transmitErr []asyncError
-	errorGuard  *sync.Mutex
-}
-
-type asyncError struct {
-	batchID uint64
-	code    int
-	index   int
+	handle   *C.rd_kafka_topic_t
+	client   *Client
+	name     string
+	shutdown bool
 }
 
 // NewTopic creates a new topic representation in librdkafka.
 // You have to call Close() to free any internal state. As this struct holds a
 // pointer to the client make sure that Client.Close is called after closing
 // objects of this type.
-func NewTopic(name string, config TopicConfig, client *Client) (*Topic, error) {
-	topic := &Topic{
-		handle:      C.rd_kafka_topic_new(client.handle, C.CString(name), config.handle),
-		client:      client,
-		name:        name,
-		transmitErr: []asyncError{},
-		errorGuard:  new(sync.Mutex),
+func NewTopic(name string, config TopicConfig, client *Client) *Topic {
+	return &Topic{
+		handle:   C.rd_kafka_topic_new(client.handle, C.CString(name), config.handle),
+		client:   client,
+		name:     name,
+		shutdown: false,
 	}
-
-	topicsGuard.Lock()
-	defer topicsGuard.Unlock()
-
-	topic.id = len(allTopics)
-	allTopics = append(allTopics, topic)
-	return topic, nil
 }
 
-// Close frees the internal handle
+// TriggerShutdown signals a topic to stop producing messages (unblocks any
+// waiting topics).
+func (t *Topic) TriggerShutdown() {
+	t.shutdown = true
+}
+
+// Close frees the internal handle and tries to flush the queue.
 func (t *Topic) Close() {
+	if C.rd_kafka_outq_len(t.client.handle) > 0 {
+		C.rd_kafka_poll(t.client.handle, 3000) // poll to trigger callbacks
+
+		leftOver := C.rd_kafka_outq_len(t.client.handle)
+		if leftOver > 0 {
+			Log.Printf("%d messages have been lost as the internal queue could not be flushed", leftOver)
+		}
+
+	}
 	C.rd_kafka_topic_destroy(t.handle)
 }
 
@@ -80,69 +69,64 @@ func (t *Topic) GetName() string {
 	return t.name
 }
 
-// Produce sends the list of messages given to kafka and blocks until all
-// messages have been sent.
-func (t *Topic) Produce(messages []Message) []ResponseError {
-	errors := []ResponseError{}
+// Produce produces a single messages.
+// If a message cannot be produced because of internal (non-wire) problems an
+// error is immediately returned instead of being asynchronously handled via
+// MessageDelivery interface.
+func (t *Topic) Produce(message Message) error {
+	keyLen, keyPtr, payLen, payPtr, usrLen, usrPtr := MarshalMessage(message)
+	usrData := C.CreateBuffer(usrLen, usrPtr)
+	errCode := C.rd_kafka_produce(t.handle, C.RD_KAFKA_PARTITION_UA, C.RD_KAFKA_MSG_F_COPY, payPtr, payLen, keyPtr, keyLen, usrData)
+	if errCode != 0 {
+		defer C.DestroyBuffer(usrPtr)
+		rspErr := ResponseError{
+			Userdata: UnmarshalBuffer((*C.buffer_t)(usrPtr)),
+			Code:     int(errCode),
+		}
+		return rspErr
+	}
+
+	C.rd_kafka_poll(t.client.handle, 0)
+	return nil
+}
+
+// ProduceBatch produces a set of messages.
+// Messages that cannot be produced because of internal (non-wire) problems are
+// immediately returned instead of asynchronously handled via MessageDelivery
+// interface.
+func (t *Topic) ProduceBatch(messages []Message) []error {
+	errors := []error{}
 	if len(messages) == 0 {
 		return errors // ### return, nothing to do ###
 	}
 
-	batchID := atomic.AddUint64(batchID, 1)
-	batch := PrepareBatch(messages, t, batchID)
+	batch := PrepareBatch(messages)
 	batchLen := C.int(len(messages))
-	defer C.DestroyBatch(unsafe.Pointer(batch), C.int(len(messages)))
+	defer C.DestroyBatch(unsafe.Pointer(batch))
 
 	enqueued := C.rd_kafka_produce_batch(t.handle, C.RD_KAFKA_PARTITION_UA, C.RD_KAFKA_MSG_F_COPY, batch, batchLen)
 	if enqueued != batchLen {
 		offset := C.int(0)
 		for offset >= 0 {
-			offset = C.NextError(batch, batchLen, offset)
+			offset = C.BatchGetNextError(batch, batchLen, offset)
 			if offset >= 0 {
+				bufferPtr := C.BatchGetUserdataAt(batch, offset)
+				errCode := C.BatchGetErrAt(batch, offset)
+
 				rspErr := ResponseError{
-					Original: messages[offset],
-					Code:     int(C.GetErr(batch, offset)),
+					Userdata: UnmarshalBuffer(bufferPtr),
+					Code:     int(errCode),
 				}
+
 				errors = append(errors, rspErr)
 				offset++
 			}
 		}
 	}
 
-	// We need to wait for *all* messages to return, otherwise we don't
-	// have access to the messages produced.
-	for C.rd_kafka_outq_len(t.client.handle) > 0 {
-		C.rd_kafka_poll(t.client.handle, 10)
+	for C.rd_kafka_outq_len(t.client.handle) > 0 && !t.shutdown {
+		C.rd_kafka_poll(t.client.handle, 20)
 	}
-
-	// Process
-
-	t.errorGuard.Lock()
-	for _, err := range t.transmitErr {
-		if err.batchID == batchID {
-			rspErr := ResponseError{
-				Original: messages[err.index],
-				Code:     err.code,
-			}
-			errors = append(errors, rspErr)
-		} else {
-			Log.Print("Lost a message from a previous batch.")
-		}
-	}
-	t.transmitErr = t.transmitErr[:0] // Clear
-	t.errorGuard.Unlock()
 
 	return errors
-}
-
-func (t *Topic) pushError(code int, index int, batchID uint64) {
-	t.errorGuard.Lock()
-	defer t.errorGuard.Unlock()
-
-	err := asyncError{
-		code:    code,
-		index:   index,
-		batchID: batchID,
-	}
-	t.transmitErr = append(t.transmitErr, err)
 }

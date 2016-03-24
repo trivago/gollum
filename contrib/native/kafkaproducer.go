@@ -201,9 +201,9 @@ func (prod *KafkaProducer) dropMessages(messages []core.Message) {
 }
 
 type messageWrapper struct {
-	key      []byte
-	value    []byte
-	original core.Message
+	key   []byte
+	value []byte
+	user  []byte
 }
 
 func (m *messageWrapper) GetKey() []byte {
@@ -212,6 +212,19 @@ func (m *messageWrapper) GetKey() []byte {
 
 func (m *messageWrapper) GetPayload() []byte {
 	return m.value
+}
+
+func (m *messageWrapper) GetUserdata() []byte {
+	return m.user
+}
+
+func (prod *KafkaProducer) OnMessageError(reason string, userdata []byte) {
+	Log.Error.Print("message delivery failed:", reason)
+	if msg, err := core.DeserializeMessage(userdata); err != nil {
+		Log.Error.Print(err)
+	} else {
+		prod.Drop(msg)
+	}
 }
 
 func (prod *KafkaProducer) transformMessages(messages []core.Message) {
@@ -239,7 +252,7 @@ func (prod *KafkaProducer) transformMessages(messages []core.Message) {
 			topicConfig.SetI("request.timeout.ms", prod.topicTimeoutMs)
 			topicConfig.SetRoundRobinPartitioner()
 
-			topic, _ = kafka.NewTopic(topicName, topicConfig, prod.client)
+			topic = kafka.NewTopic(topicName, topicConfig, prod.client)
 			prod.topic[msg.StreamID] = topic
 		}
 
@@ -248,29 +261,31 @@ func (prod *KafkaProducer) transformMessages(messages []core.Message) {
 			key, _ = prod.keyFormat.Format(msg)
 		}
 
+		serializedOriginal, err := originalMsg.Serialize()
+		if err != nil {
+			Log.Error.Print(err)
+		}
+
 		kafkaMsg := &messageWrapper{
-			key:      key,
-			value:    msg.Data,
-			original: originalMsg,
+			key:   key,
+			value: msg.Data,
+			user:  serializedOriginal,
 		}
 
 		topicBatch, exists := batch[topic]
 		if !exists {
 			topicBatch = make([]kafka.Message, 0, len(messages))
 		}
-
 		batch[topic] = append(topicBatch, kafkaMsg)
-		atomic.AddInt64(prod.counters[topic.GetName()], 1)
 	}
 
 	// Send messages
 	for topic, messages := range batch {
-		errors := topic.Produce(messages)
+		atomic.AddInt64(prod.counters[topic.GetName()], int64(len(messages)))
+		errors := topic.ProduceBatch(messages)
 		for _, err := range errors {
-			failed := err.Original.(*messageWrapper)
-			failedMsg := failed.original
-			Log.Error.Print(err.Error())
-			prod.Drop(failedMsg)
+			rspErr := err.(kafka.ResponseError)
+			prod.OnMessageError(rspErr.Error(), rspErr.Userdata)
 		}
 	}
 }
@@ -284,7 +299,7 @@ func (prod *KafkaProducer) tryConnect() bool {
 		return true
 	}
 
-	client, err := kafka.NewProducer(prod.config)
+	client, err := kafka.NewProducer(prod.config, prod)
 	if err != nil {
 		Log.Error.Print(err)
 		return false
@@ -301,16 +316,21 @@ func (prod *KafkaProducer) closeConnection() {
 	prod.client = nil
 	prod.topic = make(map[core.MessageStreamID]*kafka.Topic)
 
-	client.Close()
 	for _, topic := range topics {
 		topic.Close()
 	}
+	client.Close()
 }
 
 func (prod *KafkaProducer) close() {
 	defer prod.WorkerDone()
 
 	prod.CloseMessageChannel(prod.bufferMessage)
+
+	for _, topic := range prod.topic {
+		topic.TriggerShutdown()
+	}
+
 	prod.batch.Close(prod.transformMessages, prod.GetShutdownTimeout())
 	prod.closeConnection()
 }

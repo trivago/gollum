@@ -24,16 +24,26 @@ type Client struct {
 	handle *C.rd_kafka_t
 }
 
+var (
+	clients = make(map[*C.rd_kafka_t]MessageDelivery)
+)
+
 // NewProducer creates a new librdkafka client in producer mode.
 // Make sure to call Close() when done.
-func NewProducer(config Config) (*Client, error) {
+func NewProducer(config Config, handler MessageDelivery) (*Client, error) {
 	client := Client{}
 	nativeErr := new(ErrorHandle)
+
 	C.RegisterErrorWrapper(config.handle)
+	C.RegisterDeliveryReportWrapper(config.handle)
 
 	client.handle = C.rd_kafka_new(C.RD_KAFKA_PRODUCER, config.handle, nativeErr.buffer(), nativeErr.len())
 	if client.handle == nil {
 		return nil, nativeErr
+	}
+
+	if handler != nil {
+		clients[client.handle] = handler
 	}
 
 	return &client, nil

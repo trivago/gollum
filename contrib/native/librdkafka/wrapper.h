@@ -18,17 +18,18 @@
 
 #include <librdkafka/rdkafka.h>
 
-// errorHook is used in a message opaque pointer to store information required
-// for routing messages back.
-typedef struct errorHook {
-     uint64_t batchId;
-     int topicId;
-     int index;
-} ErrorHook_t;
+typedef struct buffer_s {
+     void* data;
+     int len;
+} buffer_t;
 
 // RegisterErrorWrapper registers the internal error handler to the given
 // config. This allows routing back errors to go.
 void RegisterErrorWrapper(rd_kafka_conf_t* config);
+
+// RegisterDeliveryReportWrapper registers the internal handler for the
+// successfull or unsuccessfull delivery of messages.
+void RegisterDeliveryReportWrapper(rd_kafka_conf_t* config);
 
 // RegisterRandomPartitioner registers the random partitioner to the given
 // topic configuration.
@@ -38,20 +39,29 @@ void RegisterRandomPartitioner(rd_kafka_topic_conf_t* config);
 // given topic configuration.
 void RegisterRoundRobinPartitioner(rd_kafka_topic_conf_t* config);
 
+// CreateBuffer creates a buffer used to attach to message userdata
+void* CreateBuffer(size_t len, void* pData);
+ 
+// DestroyBuffer properly frees a buffer attached to message userdata
+void DestroyBuffer(void* pBuffer);
+
 // CreateBatch creates a new native kafka batch of the given size.
 rd_kafka_message_t* CreateBatch(int size);
 
-// DestroyBatch clears up the batch and any attached error handlers
-void DestroyBatch(rd_kafka_message_t* pBatch, int length);
+// DestroyBatch clears up the batch (without messages)
+void DestroyBatch(rd_kafka_message_t* pBatch);
 
 // StoreBatchItem stores data in the given message batch slot.
-void StoreBatchItem(rd_kafka_message_t* pBatch, int index, void* key, int keyLen, void* payload, int payloadLen, int topicId, uint64_t batchId);
+void StoreBatchItem(rd_kafka_message_t* pBatch, int index, size_t keyLen, void* pKey, size_t payloadLen, void* pPayload, size_t userdataLen, void* pUserdata);
 
-// NextError finds the next error in a message batch (that has been sent).
+// GetNextError finds the next error in a message batch (that has been sent).
 // If no error is found -1 is returned.
-int NextError(rd_kafka_message_t* pBatch, int length, int offset);
+int BatchGetNextError(rd_kafka_message_t* pBatch, int length, int offset);
 
 // GetErr returns the error code for a given message in the given batch.
-int GetErr(rd_kafka_message_t* pBatch, int index);
+int BatchGetErrAt(rd_kafka_message_t* pBatch, int index);
+
+// BatchGetBufferAt returns the userdata for a given message in the given batch.
+buffer_t* BatchGetUserdataAt(rd_kafka_message_t* pBatch, int index);
 
 #endif
