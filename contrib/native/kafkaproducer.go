@@ -21,7 +21,6 @@ import (
 	"github.com/trivago/gollum/shared"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -55,6 +54,8 @@ import (
 //
 // BatchMaxMessages is mapped to queue.buffering.max.messages.
 //
+// BatchMinMessages is mapped to batch.num.messages.
+//
 // BatchTimeoutSec is mapped to queue.buffering.max.ms.
 //
 // ServerTimeoutSec is mapped to socket.timeout.ms.
@@ -75,17 +76,22 @@ type KafkaProducer struct {
 	core.ProducerBase
 	servers           []string
 	clientID          string
-	batch             core.MessageBatch
 	counters          map[string]*int64
 	lastMetricUpdate  time.Time
-	batchTimeout      time.Duration
 	keyFormat         core.Formatter
 	client            *kafka.Client
 	config            kafka.Config
 	topicRequiredAcks int
 	topicTimeoutMs    int
+	pollInterval      time.Duration
 	streamToTopic     map[core.MessageStreamID]string
 	topic             map[core.MessageStreamID]*kafka.Topic
+}
+
+type messageWrapper struct {
+	key   []byte
+	value []byte
+	user  []byte
 }
 
 const (
@@ -101,6 +107,18 @@ const (
 
 func init() {
 	shared.TypeRegistry.Register(KafkaProducer{})
+}
+
+func (m *messageWrapper) GetKey() []byte {
+	return m.key
+}
+
+func (m *messageWrapper) GetPayload() []byte {
+	return m.value
+}
+
+func (m *messageWrapper) GetUserdata() []byte {
+	return m.user
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -126,14 +144,15 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfig) error {
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.clientID = conf.GetString("ClientId", "gollum")
 	prod.lastMetricUpdate = time.Now()
-	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 3)) * time.Second
 
-	prod.batch = core.NewMessageBatch(conf.GetInt("Channel", 8192))
 	prod.counters = make(map[string]*int64)
 	prod.streamToTopic = conf.GetStreamMap("Topics", "default")
 	prod.topic = make(map[core.MessageStreamID]*kafka.Topic)
 	prod.topicRequiredAcks = conf.GetInt("RequiredAcks", 1)
 	prod.topicTimeoutMs = conf.GetInt("TimeoutMs", 1)
+
+	batchIntervalMs := conf.GetInt("BatchTimeoutMs", 1000)
+	prod.pollInterval = time.Millisecond * time.Duration(batchIntervalMs)
 
 	// Init librdkafka
 	prod.config = kafka.NewConfig()
@@ -158,135 +177,74 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfig) error {
 	prod.config.SetB("socket.keepalive.enable", true)
 	prod.config.SetI("message.send.max.retries", conf.GetInt("SendRetries", 0))
 	prod.config.SetI("queue.buffering.max.messages", conf.GetInt("BatchMaxMessages", 100000))
-	prod.config.SetI("queue.buffering.max.ms", conf.GetInt("BatchTimeoutMs", 10))
-	prod.config.SetI("batch.num.messages", prod.batch.Len())
+	prod.config.SetI("queue.buffering.max.ms", batchIntervalMs)
+	prod.config.SetI("batch.num.messages", conf.GetInt("BatchMinMessages", 10000))
 	//prod.config.SetI("protocol.version", verNumber)
 
 	return nil
 }
 
-func (prod *KafkaProducer) bufferMessage(msg core.Message) {
-	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
-}
+func (prod *KafkaProducer) produceMessage(msg core.Message) {
+	originalMsg := msg
+	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
 
-func (prod *KafkaProducer) sendBatchOnTimeOut() {
-	// Flush if necessary
-	if prod.batch.ReachedTimeThreshold(prod.batchTimeout) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2) {
-		prod.sendBatch()
+	// Send message
+	topic, topicMapped := prod.topic[msg.StreamID]
+	if !topicMapped {
+		topicName, isMapped := prod.streamToTopic[msg.StreamID]
+		if !isMapped {
+			topicName = core.StreamRegistry.GetStreamName(msg.StreamID)
+			prod.streamToTopic[msg.StreamID] = topicName
+		}
+
+		shared.Metric.New(kafkaMetricMessages + topicName)
+		shared.Metric.New(kafkaMetricMessagesSec + topicName)
+		prod.counters[topicName] = new(int64)
+
+		topicConfig := kafka.NewTopicConfig()
+		topicConfig.SetI("request.required.acks", prod.topicRequiredAcks)
+		topicConfig.SetI("request.timeout.ms", prod.topicTimeoutMs)
+		topicConfig.SetRoundRobinPartitioner()
+
+		topic = kafka.NewTopic(topicName, topicConfig, prod.client)
+		prod.topic[msg.StreamID] = topic
 	}
 
-	// Update metrics
-	duration := time.Since(prod.lastMetricUpdate)
-	prod.lastMetricUpdate = time.Now()
-
-	for topic, counter := range prod.counters {
-		count := atomic.SwapInt64(counter, 0)
-		shared.Metric.Add(kafkaMetricMessages+topic, count)
-		shared.Metric.SetF(kafkaMetricMessagesSec+topic, float64(count)/duration.Seconds())
+	var key []byte
+	if prod.keyFormat != nil {
+		key, _ = prod.keyFormat.Format(msg)
 	}
-}
 
-func (prod *KafkaProducer) sendBatch() {
-	if prod.tryConnect() {
-		prod.batch.Flush(prod.transformMessages)
-	} else if !prod.IsStopping() {
-		prod.batch.Flush(prod.dropMessages)
-	}
-}
-
-func (prod *KafkaProducer) dropMessages(messages []core.Message) {
-	for _, msg := range messages {
-		prod.Drop(msg)
-	}
-}
-
-type messageWrapper struct {
-	key   []byte
-	value []byte
-	user  []byte
-}
-
-func (m *messageWrapper) GetKey() []byte {
-	return m.key
-}
-
-func (m *messageWrapper) GetPayload() []byte {
-	return m.value
-}
-
-func (m *messageWrapper) GetUserdata() []byte {
-	return m.user
-}
-
-func (prod *KafkaProducer) OnMessageError(reason string, userdata []byte) {
-	Log.Error.Print("message delivery failed:", reason)
-	if msg, err := core.DeserializeMessage(userdata); err != nil {
+	serializedOriginal, err := originalMsg.Serialize()
+	if err != nil {
 		Log.Error.Print(err)
-	} else {
-		prod.Drop(msg)
+	}
+
+	kafkaMsg := &messageWrapper{
+		key:   key,
+		value: msg.Data,
+		user:  serializedOriginal,
+	}
+
+	if err := topic.Produce(kafkaMsg); err != nil {
+		//Log.Error.Print("Message produce failed:", err)
+		prod.Drop(originalMsg)
 	}
 }
 
-func (prod *KafkaProducer) transformMessages(messages []core.Message) {
-	batch := make(map[*kafka.Topic][]kafka.Message)
-
-	for _, msg := range messages {
-		originalMsg := msg
-		msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
-
-		// Send message
-		topic, topicMapped := prod.topic[msg.StreamID]
-		if !topicMapped {
-			topicName, isMapped := prod.streamToTopic[msg.StreamID]
-			if !isMapped {
-				topicName = core.StreamRegistry.GetStreamName(msg.StreamID)
-				prod.streamToTopic[msg.StreamID] = topicName
-			}
-
-			shared.Metric.New(kafkaMetricMessages + topicName)
-			shared.Metric.New(kafkaMetricMessagesSec + topicName)
-			prod.counters[topicName] = new(int64)
-
-			topicConfig := kafka.NewTopicConfig()
-			topicConfig.SetI("request.required.acks", prod.topicRequiredAcks)
-			topicConfig.SetI("request.timeout.ms", prod.topicTimeoutMs)
-			topicConfig.SetRoundRobinPartitioner()
-
-			topic = kafka.NewTopic(topicName, topicConfig, prod.client)
-			prod.topic[msg.StreamID] = topic
-		}
-
-		var key []byte
-		if prod.keyFormat != nil {
-			key, _ = prod.keyFormat.Format(msg)
-		}
-
-		serializedOriginal, err := originalMsg.Serialize()
-		if err != nil {
-			Log.Error.Print(err)
-		}
-
-		kafkaMsg := &messageWrapper{
-			key:   key,
-			value: msg.Data,
-			user:  serializedOriginal,
-		}
-
-		topicBatch, exists := batch[topic]
-		if !exists {
-			topicBatch = make([]kafka.Message, 0, len(messages))
-		}
-		batch[topic] = append(topicBatch, kafkaMsg)
+// OnMessageError gets called by librdkafka on message delivery failure
+func (prod *KafkaProducer) OnMessageError(reason string, userdata []byte) {
+	Log.Error.Print("Message delivery failed:", reason)
+	if msg, err := core.DeserializeMessage(userdata); err == nil {
+		prod.Drop(msg)
+	} else {
+		Log.Error.Print(err)
 	}
+}
 
-	// Send messages
-	for topic, messages := range batch {
-		atomic.AddInt64(prod.counters[topic.GetName()], int64(len(messages)))
-		errors := topic.ProduceBatch(messages)
-		for _, err := range errors {
-			rspErr := err.(kafka.ResponseError)
-			prod.OnMessageError(rspErr.Error(), rspErr.Userdata)
-		}
+func (prod *KafkaProducer) poll() {
+	for _, topic := range prod.topic {
+		topic.Poll()
 	}
 }
 
@@ -325,13 +283,9 @@ func (prod *KafkaProducer) closeConnection() {
 func (prod *KafkaProducer) close() {
 	defer prod.WorkerDone()
 
-	prod.CloseMessageChannel(prod.bufferMessage)
-
 	for _, topic := range prod.topic {
 		topic.TriggerShutdown()
 	}
-
-	prod.batch.Close(prod.transformMessages, prod.GetShutdownTimeout())
 	prod.closeConnection()
 }
 
@@ -339,5 +293,5 @@ func (prod *KafkaProducer) close() {
 func (prod *KafkaProducer) Produce(workers *sync.WaitGroup) {
 	prod.tryConnect()
 	prod.AddMainWorker(workers)
-	prod.TickerMessageControlLoop(prod.bufferMessage, prod.batchTimeout, prod.sendBatchOnTimeOut)
+	prod.TickerMessageControlLoop(prod.produceMessage, prod.pollInterval, prod.poll)
 }

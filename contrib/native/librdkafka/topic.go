@@ -52,14 +52,18 @@ func (t *Topic) TriggerShutdown() {
 
 // Close frees the internal handle and tries to flush the queue.
 func (t *Topic) Close() {
-	if C.rd_kafka_outq_len(t.client.handle) > 0 {
-		C.rd_kafka_poll(t.client.handle, 3000) // poll to trigger callbacks
+	oldQueueLen := C.int(0x7FFFFFFF)
+	queueLen := C.rd_kafka_outq_len(t.client.handle)
 
-		leftOver := C.rd_kafka_outq_len(t.client.handle)
-		if leftOver > 0 {
-			Log.Printf("%d messages have been lost as the internal queue could not be flushed", leftOver)
-		}
+	// Wait as long as we're flushing
+	for queueLen > 0 && queueLen < oldQueueLen {
+		C.rd_kafka_poll(t.client.handle, 1000)
+		oldQueueLen = queueLen
+		queueLen = C.rd_kafka_outq_len(t.client.handle)
+	}
 
+	if queueLen > 0 {
+		Log.Printf("%d messages have been lost as the internal queue could not be flushed", queueLen)
 	}
 	C.rd_kafka_topic_destroy(t.handle)
 }
@@ -67,6 +71,11 @@ func (t *Topic) Close() {
 // GetName returns the name of the topic
 func (t *Topic) GetName() string {
 	return t.name
+}
+
+// Poll polls for new data to be sent to the async handler functions
+func (t *Topic) Poll() {
+	C.rd_kafka_poll(t.client.handle, 1000)
 }
 
 // Produce produces a single messages.
@@ -77,13 +86,14 @@ func (t *Topic) Produce(message Message) error {
 	keyLen, keyPtr, payLen, payPtr, usrLen, usrPtr := MarshalMessage(message)
 	usrData := C.CreateBuffer(usrLen, usrPtr)
 	errCode := C.rd_kafka_produce(t.handle, C.RD_KAFKA_PARTITION_UA, C.RD_KAFKA_MSG_F_COPY, payPtr, payLen, keyPtr, keyLen, usrData)
+
 	if errCode != 0 {
-		defer C.DestroyBuffer(usrPtr)
+		defer C.DestroyBuffer(usrData)
 		rspErr := ResponseError{
-			Userdata: UnmarshalBuffer((*C.buffer_t)(usrPtr)),
+			Userdata: message.GetUserdata(),
 			Code:     int(errCode),
 		}
-		return rspErr
+		return rspErr // ### return, error ###
 	}
 
 	C.rd_kafka_poll(t.client.handle, 0)
