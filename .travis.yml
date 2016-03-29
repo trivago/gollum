@@ -8,7 +8,8 @@ env:
 - GO15VENDOREXPERIMENT=1
 before_install:
 - sudo apt-get install -y libpcap-dev
-- sudo apt-get install -y librdkafka-dev
+- wget http://launchpadlibrarian.net/234454185/librdkafka-dev_0.8.6-1.1_amd64.deb
+- sudo dpkg -i librdkafka-dev_0.8.6-1.1_amd64.deb
 #addons:
 #  apt:
 #    packages:
