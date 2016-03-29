@@ -43,7 +43,7 @@ void RegisterRoundRobinPartitioner(rd_kafka_topic_conf_t* config);
 void* CreateBuffer(size_t len, void* pData);
  
 // DestroyBuffer properly frees a buffer attached to message userdata
-void DestroyBuffer(void* pBuffer);
+void DestroyBuffer(buffer_t* pBuffer);
 
 // CreateBatch creates a new native kafka batch of the given size.
 rd_kafka_message_t* CreateBatch(int size);

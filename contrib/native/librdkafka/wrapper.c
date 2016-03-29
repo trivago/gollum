@@ -89,7 +89,7 @@ void* CreateBuffer(size_t len, void* pData) {
      return pBuffer;
 }
 
-void DestroyBuffer(void* pBuffer) {
+void DestroyBuffer(buffer_t* pBuffer) {
     free(pBuffer);
 }
 

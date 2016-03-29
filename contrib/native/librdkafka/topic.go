@@ -100,7 +100,7 @@ func (t *Topic) Produce(message Message) error {
 // Messages that cannot be produced because of internal (non-wire) problems are
 // immediately returned instead of asynchronously handled via MessageDelivery
 // interface.
-/*func (t *Topic) ProduceBatch(messages []Message) []error {
+func (t *Topic) ProduceBatch(messages []Message) []error {
 	errors := []error{}
 	if len(messages) == 0 {
 		return errors // ### return, nothing to do ###
@@ -108,7 +108,7 @@ func (t *Topic) Produce(message Message) error {
 
 	batch := PrepareBatch(messages)
 	batchLen := C.int(len(messages))
-	defer C.DestroyBatch(unsafe.Pointer(batch))
+	defer C.DestroyBatch(batch)
 
 	enqueued := C.rd_kafka_produce_batch(t.handle, C.RD_KAFKA_PARTITION_UA, C.RD_KAFKA_MSG_F_COPY, batch, batchLen)
 	if enqueued != batchLen {
@@ -135,4 +135,4 @@ func (t *Topic) Produce(message Message) error {
 	}
 
 	return errors
-}*/
+}
