@@ -110,7 +110,8 @@ void StoreBatchItem(rd_kafka_message_t* pBatch, int index, size_t keyLen, void* 
 }
 
 int BatchGetNextError(rd_kafka_message_t* pBatch, int length, int offset) {
-    for (int i=offset; i<length; i++) {
+    int i;
+    for (i=offset; i<length; i++) {
         if (pBatch[i].err != RD_KAFKA_RESP_ERR_NO_ERROR) {
             return i;
         }
