@@ -84,7 +84,7 @@ func (t *Topic) Produce(message Message) error {
 	success := C.rd_kafka_produce(t.handle, C.RD_KAFKA_PARTITION_UA, C.RD_KAFKA_MSG_F_COPY, payPtr, payLen, keyPtr, keyLen, usrData)
 
 	if success != 0 {
-		defer C.DestroyBuffer(usrData)
+		defer C.DestroyBuffer((*C.buffer_t)(usrData))
 		rspErr := ResponseError{
 			Userdata: message.GetUserdata(),
 			Code:     int(C.GetLastError()),
