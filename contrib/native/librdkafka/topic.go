@@ -104,7 +104,7 @@ func (t *Topic) Produce(message Message) error {
 // Messages that cannot be produced because of internal (non-wire) problems are
 // immediately returned instead of asynchronously handled via MessageDelivery
 // interface.
-func (t *Topic) ProduceBatch(messages []Message) []error {
+/*func (t *Topic) ProduceBatch(messages []Message) []error {
 	errors := []error{}
 	if len(messages) == 0 {
 		return errors // ### return, nothing to do ###
@@ -139,4 +139,4 @@ func (t *Topic) ProduceBatch(messages []Message) []error {
 	}
 
 	return errors
-}
+}*/
