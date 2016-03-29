@@ -21,6 +21,7 @@ import (
 	"github.com/trivago/gollum/shared"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -35,9 +36,11 @@ import (
 //    RequiredAcks: 1
 //    TimeoutMs: 1500
 //    SendRetries: 0
+//    Compression: "none"
 //    BatchSizeMaxKB: 1024
 //    BatchMaxMessages: 100000
-//    BatchTimeoutSec: 3
+//    BatchMinMessages: 10000
+//    BatchTimeoutMs: 1000
 //    ServerTimeoutSec: 60
 //    ServerMaxFails: 3
 //    MetadataTimeoutSec: 60
@@ -50,13 +53,16 @@ import (
 //
 // SendRetries is mapped to message.send.max.retries.
 //
+// Compression is mapped to compression.codec. Please not that "zip" has to be
+// used instead of "gzip".
+//
 // BatchSizeMaxKB is mapped to message.max.bytes.
 //
 // BatchMaxMessages is mapped to queue.buffering.max.messages.
 //
 // BatchMinMessages is mapped to batch.num.messages.
 //
-// BatchTimeoutSec is mapped to queue.buffering.max.ms.
+// BatchTimeoutMs is mapped to queue.buffering.max.ms.
 //
 // ServerTimeoutSec is mapped to socket.timeout.ms.
 //
@@ -86,6 +92,7 @@ type KafkaProducer struct {
 	pollInterval      time.Duration
 	streamToTopic     map[core.MessageStreamID]string
 	topic             map[core.MessageStreamID]*kafka.Topic
+	topicGuard        *sync.RWMutex
 }
 
 type messageWrapper struct {
@@ -146,10 +153,11 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfig) error {
 	prod.lastMetricUpdate = time.Now()
 
 	prod.counters = make(map[string]*int64)
-	prod.streamToTopic = conf.GetStreamMap("Topics", "default")
+	prod.streamToTopic = conf.GetStreamMap("Topic", "default")
 	prod.topic = make(map[core.MessageStreamID]*kafka.Topic)
 	prod.topicRequiredAcks = conf.GetInt("RequiredAcks", 1)
 	prod.topicTimeoutMs = conf.GetInt("TimeoutMs", 1)
+	prod.topicGuard = new(sync.RWMutex)
 
 	batchIntervalMs := conf.GetInt("BatchTimeoutMs", 1000)
 	prod.pollInterval = time.Millisecond * time.Duration(batchIntervalMs)
@@ -181,25 +189,32 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfig) error {
 	prod.config.SetI("batch.num.messages", conf.GetInt("BatchMinMessages", 10000))
 	//prod.config.SetI("protocol.version", verNumber)
 
+	switch strings.ToLower(conf.GetString("Compression", compressNone)) {
+	default:
+		prod.config.Set("compression.codec", "none")
+	case compressGZIP:
+		prod.config.Set("compression.codec", "gzip")
+	case compressSnappy:
+		prod.config.Set("compression.codec", "snappy")
+	}
+
 	return nil
 }
 
-func (prod *KafkaProducer) produceMessage(msg core.Message) {
-	originalMsg := msg
-	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
+func (prod *KafkaProducer) registerNewTopic(streamID core.MessageStreamID) *kafka.Topic {
+	prod.topicGuard.Lock()
+	defer prod.topicGuard.Unlock()
 
-	// Send message
-	topic, topicMapped := prod.topic[msg.StreamID]
+	topic, topicMapped := prod.topic[streamID]
 	if !topicMapped {
-		topicName, isMapped := prod.streamToTopic[msg.StreamID]
+		topicName, isMapped := prod.streamToTopic[streamID]
 		if !isMapped {
-			topicName = core.StreamRegistry.GetStreamName(msg.StreamID)
-			prod.streamToTopic[msg.StreamID] = topicName
+			topicName = core.StreamRegistry.GetStreamName(streamID)
+			prod.streamToTopic[streamID] = topicName
 		}
 
 		shared.Metric.New(kafkaMetricMessages + topicName)
 		shared.Metric.New(kafkaMetricMessagesSec + topicName)
-		prod.counters[topicName] = new(int64)
 
 		topicConfig := kafka.NewTopicConfig()
 		topicConfig.SetI("request.required.acks", prod.topicRequiredAcks)
@@ -207,7 +222,27 @@ func (prod *KafkaProducer) produceMessage(msg core.Message) {
 		topicConfig.SetRoundRobinPartitioner()
 
 		topic = kafka.NewTopic(topicName, topicConfig, prod.client)
-		prod.topic[msg.StreamID] = topic
+
+		prod.counters[topicName] = new(int64)
+		prod.topic[streamID] = topic
+	}
+
+	return topic
+}
+
+func (prod *KafkaProducer) produceMessage(msg core.Message) {
+	originalMsg := msg
+	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
+
+	// Send message
+	prod.topicGuard.RLock()
+	defer prod.topicGuard.RUnlock()
+
+	topic, topicMapped := prod.topic[msg.StreamID]
+	if !topicMapped {
+		prod.topicGuard.RUnlock()
+		topic = prod.registerNewTopic(msg.StreamID)
+		prod.topicGuard.RLock()
 	}
 
 	var key []byte
@@ -227,8 +262,11 @@ func (prod *KafkaProducer) produceMessage(msg core.Message) {
 	}
 
 	if err := topic.Produce(kafkaMsg); err != nil {
-		//Log.Error.Print("Message produce failed:", err)
+		Log.Error.Print("Message produce failed:", err)
 		prod.Drop(originalMsg)
+	} else {
+		topicName := topic.GetName()
+		atomic.AddInt64(prod.counters[topicName], 1)
 	}
 }
 
@@ -246,6 +284,19 @@ func (prod *KafkaProducer) poll() {
 	for _, topic := range prod.topic {
 		topic.Poll()
 	}
+
+	prod.topicGuard.RLock()
+	defer prod.topicGuard.RUnlock()
+
+	for topicName, counter := range prod.counters {
+		duration := time.Since(prod.lastMetricUpdate)
+		count := atomic.SwapInt64(counter, 0)
+		countPerSec := int64(float64(count)/duration.Seconds() + 0.5)
+		shared.Metric.Add(kafkaMetricMessages+topicName, count)
+		shared.Metric.Set(kafkaMetricMessagesSec+topicName, countPerSec)
+	}
+
+	prod.lastMetricUpdate = time.Now()
 }
 
 func (prod *KafkaProducer) isConnected() bool {

@@ -64,4 +64,7 @@ int BatchGetErrAt(rd_kafka_message_t* pBatch, int index);
 // BatchGetBufferAt returns the userdata for a given message in the given batch.
 buffer_t* BatchGetUserdataAt(rd_kafka_message_t* pBatch, int index);
 
+// GetLastError returns rd_kafka_errno2err(errno)
+int GetLastError();
+
 #endif

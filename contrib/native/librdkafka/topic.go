@@ -85,13 +85,13 @@ func (t *Topic) Poll() {
 func (t *Topic) Produce(message Message) error {
 	keyLen, keyPtr, payLen, payPtr, usrLen, usrPtr := MarshalMessage(message)
 	usrData := C.CreateBuffer(usrLen, usrPtr)
-	errCode := C.rd_kafka_produce(t.handle, C.RD_KAFKA_PARTITION_UA, C.RD_KAFKA_MSG_F_COPY, payPtr, payLen, keyPtr, keyLen, usrData)
+	success := C.rd_kafka_produce(t.handle, C.RD_KAFKA_PARTITION_UA, C.RD_KAFKA_MSG_F_COPY, payPtr, payLen, keyPtr, keyLen, usrData)
 
-	if errCode != 0 {
+	if success != 0 {
 		defer C.DestroyBuffer(usrData)
 		rspErr := ResponseError{
 			Userdata: message.GetUserdata(),
-			Code:     int(errCode),
+			Code:     int(C.GetLastError()),
 		}
 		return rspErr // ### return, error ###
 	}

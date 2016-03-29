@@ -15,6 +15,7 @@
 #include "wrapper.h"
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 
 
 // ------------------------------------
@@ -123,4 +124,8 @@ int BatchGetErrAt(rd_kafka_message_t* pBatch, int index) {
 
 buffer_t* BatchGetUserdataAt(rd_kafka_message_t* pBatch, int index) {
     return (buffer_t*)pBatch[index]._private;
+}
+
+int GetLastError() {
+    return rd_kafka_errno2err(errno);
 }

@@ -21,6 +21,7 @@ package librdkafka
 import "C"
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"reflect"
@@ -70,7 +71,7 @@ func codeToString(code int) string {
 		Len:  int(C.strlen(nativeString)),
 	}
 	text := (*string)(unsafe.Pointer(&textHeader))
-	return *text
+	return fmt.Sprintf("(%d) %s", code, *text)
 }
 
 // ErrorHandle is a convenience wrapper for handling librdkafka native errors.
