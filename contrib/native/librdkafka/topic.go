@@ -19,10 +19,6 @@ package librdkafka
 // #include "wrapper.h"
 import "C"
 
-import (
-	"unsafe"
-)
-
 // Topic wrapper handle for rd_kafka_topic_t
 type Topic struct {
 	handle   *C.rd_kafka_topic_t
