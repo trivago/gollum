@@ -48,6 +48,8 @@ var (
 	WildcardStreamID = StreamRegistry.GetStreamID(WildcardStream)
 	// DroppedStreamID is the ID of the "_DROPPED_" stream
 	DroppedStreamID = StreamRegistry.GetStreamID(DroppedStream)
+	// InvalidStreamID is a placeholder and must never be used for any stream
+	InvalidStreamID = MessageStreamID(0)
 )
 
 // MessageSource defines methods that are common to all message sources.

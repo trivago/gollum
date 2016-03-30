@@ -37,7 +37,7 @@ const (
 // Kafka producer plugin
 // The kafka producer writes messages to a kafka cluster. This producer is
 // backed by the sarama library so most settings relate to that library.
-// This producer uses a fuse breaker if the connection reports an error.
+// This producer uses a fuse breaker if any connection reports an error.
 // Configuration example
 //
 //  - "producer.Kafka":
@@ -168,7 +168,10 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err
 	}
+
 	prod.SetStopCallback(prod.close)
+	prod.SetCheckFuseCallback(prod.checkAllTopics)
+
 	kafka.Logger = Log.Note
 
 	if conf.HasValue("KeyFormatter") {
@@ -253,7 +256,6 @@ func (prod *Kafka) pollResults() {
 	for keepPolling {
 		select {
 		case err := <-prod.producer.Errors():
-			//Log.Error.Printf("Kafka producer error: %s", err.Error())
 			if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
 				prod.Drop(msg)
 			}
@@ -314,10 +316,11 @@ func (prod *Kafka) produceMessage(msg core.Message) {
 	}
 
 	if isConnected, err := prod.isConnected(topic); !isConnected {
+		prod.Drop(msg)
 		if err != nil {
 			Log.Error.Printf("%s is not connected: %s", topic, err.Error())
 		}
-		prod.Drop(msg)
+		prod.Control() <- core.PluginControlFuseBurn
 		return // ### return, not connected ###
 	}
 
@@ -347,6 +350,22 @@ func (prod *Kafka) produceMessage(msg core.Message) {
 	}
 }
 
+func (prod *Kafka) checkAllTopics() bool {
+	topics, err := prod.client.Topics()
+	if err != nil {
+		Log.Error.Print("Failed to get topics ", err.Error())
+	}
+
+	for _, topic := range topics {
+		connected, _ := prod.isConnected(topic)
+		if !connected {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (prod *Kafka) isConnected(topic string) (bool, error) {
 	if prod.client == nil || prod.producer == nil {
 		if !prod.tryOpenConnection() {
@@ -365,8 +384,9 @@ func (prod *Kafka) isConnected(topic string) (bool, error) {
 			return false, err // ### return, error ###
 		}
 
-		connected, _ := broker.Connected()
-		return connected, nil
+		// TODO: this function only returns false if the connection has explicitly
+		//       been closed [Sarama 1.8.0]!
+		return broker.Connected()
 	}
 
 	return true, nil
