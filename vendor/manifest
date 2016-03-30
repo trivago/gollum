@@ -207,6 +207,12 @@
 			"path": "/lib"
 		},
 		{
+			"importpath": "github.com/miekg/pcap",
+			"repository": "https://github.com/miekg/pcap",
+			"revision": "fbfcc463715f6206524a6b1fcc8ed1b9e7567ba5",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/opencontainers/runc/libcontainer/user",
 			"repository": "https://github.com/opencontainers/runc",
 			"revision": "8fa5343b0058459296399a89bc532aa5508de28d",
