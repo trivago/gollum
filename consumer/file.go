@@ -155,6 +155,11 @@ func (cons *File) initFile() {
 	if cons.file != nil {
 		cons.file.Close()
 		cons.file = nil
+		cons.seek = cons.seekOnRotate
+		cons.seekOffset = 0
+		if cons.offsetFileName != "" {
+			cons.storeOffset()
+		}
 	}
 
 	if cons.offsetFileName != "" {
@@ -226,18 +231,22 @@ func (cons *File) read() {
 			switch {
 			case err == nil: // ok
 				spin.Reset()
+
 			case err == io.EOF:
 				if cons.file.Name() != cons.realFileName() {
 					Log.Note.Print("File rotation detected")
-					cons.file.Close()
-					cons.file = nil
-					cons.seek = cons.seekOnRotate
-					cons.seekOffset = 0
-					if cons.offsetFileName != "" {
-						cons.storeOffset()
+					cons.onRoll()
+				} else {
+					newStat, newStatErr := os.Stat(cons.realFileName())
+					oldStat, oldStatErr := cons.file.Stat()
+
+					if newStatErr == nil && oldStatErr == nil && !os.SameFile(newStat, oldStat) {
+						Log.Note.Print("File rotation detected")
+						cons.onRoll()
 					}
 				}
 				spin.Yield()
+
 			case cons.state == fileStateRead:
 				Log.Error.Print("Error reading file - ", err)
 				cons.file.Close()
