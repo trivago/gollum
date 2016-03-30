@@ -6,6 +6,6 @@ docs/_build
 *.zip
 test
 vendor/**/*
-!vendor/**/*\.go
-!vendor/manifest
+!vendor/**/
+!vendor/**/*.go
 vendor/**/*_test.go
