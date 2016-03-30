@@ -5,3 +5,7 @@ docs/_build
 *.tar.gz
 *.zip
 test
+vendor/**/*
+!vendor/**/*\.go
+!vendor/manifest
+vendor/**/*_test.go

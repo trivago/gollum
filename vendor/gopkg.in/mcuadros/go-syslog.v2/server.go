@@ -2,6 +2,7 @@ package syslog
 
 import (
 	"bufio"
+	"crypto/tls"
 	"errors"
 	"net"
 	"sync"
@@ -22,8 +23,12 @@ const (
 	datagramReadBufferSize    = 64 * 1024
 )
 
+// A function type which gets the TLS peer name from the connection. Can return
+// ok=false to terminate the connection
+type TlsPeerNameFunc func(tlsConn *tls.Conn) (tlsPeer string, ok bool)
+
 type Server struct {
-	listeners               []*net.TCPListener
+	listeners               []net.Listener
 	connections             []net.Conn
 	wait                    sync.WaitGroup
 	doneTcp                 chan bool
@@ -32,11 +37,12 @@ type Server struct {
 	handler                 Handler
 	lastError               error
 	readTimeoutMilliseconds int64
+	tlsPeerNameFunc         TlsPeerNameFunc
 }
 
 //NewServer returns a new Server
 func NewServer() *Server {
-	return &Server{}
+	return &Server{tlsPeerNameFunc: defaultTlsPeerName}
 }
 
 //Sets the syslog format (RFC3164 or RFC5424 or RFC6587)
@@ -52,6 +58,21 @@ func (s *Server) SetHandler(handler Handler) {
 //Sets the connection timeout for TCP connections, in milliseconds
 func (s *Server) SetTimeout(millseconds int64) {
 	s.readTimeoutMilliseconds = millseconds
+}
+
+// Set the function that extracts a TLS peer name from the TLS connection
+func (s *Server) SetTlsPeerNameFunc(tlsPeerNameFunc TlsPeerNameFunc) {
+	s.tlsPeerNameFunc = tlsPeerNameFunc
+}
+
+// Default TLS peer name function - returns the CN of the certificate
+func defaultTlsPeerName(tlsConn *tls.Conn) (tlsPeer string, ok bool) {
+	state := tlsConn.ConnectionState()
+	if len(state.PeerCertificates) <= 0 {
+		return "", false
+	}
+	cn := state.PeerCertificates[0].Subject.CommonName
+	return cn, true
 }
 
 //Configure the server for listen on an UDP addr
@@ -105,6 +126,18 @@ func (s *Server) ListenTCP(addr string) error {
 	return nil
 }
 
+//Configure the server for listen on a TCP addr for TLS
+func (s *Server) ListenTCPTLS(addr string, config *tls.Config) error {
+	listener, err := tls.Listen("tcp", addr, config)
+	if err != nil {
+		return err
+	}
+
+	s.doneTcp = make(chan bool)
+	s.listeners = append(s.listeners, listener)
+	return nil
+}
+
 //Starts the server, all the go routines goes to live
 func (s *Server) Boot() error {
 	if s.format == nil {
@@ -130,9 +163,9 @@ func (s *Server) Boot() error {
 	return nil
 }
 
-func (s *Server) goAcceptConnection(listener *net.TCPListener) {
+func (s *Server) goAcceptConnection(listener net.Listener) {
 	s.wait.Add(1)
-	go func(listener *net.TCPListener) {
+	go func(listener net.Listener) {
 	loop:
 		for {
 			select {
@@ -158,20 +191,37 @@ func (s *Server) goScanConnection(connection net.Conn) {
 		scanner.Split(sf)
 	}
 
-	var scanCloser *ScanCloser
-	scanCloser = &ScanCloser{scanner, connection}
-
 	remoteAddr := connection.RemoteAddr()
 	var client string
 	if remoteAddr != nil {
 		client = remoteAddr.String()
 	}
 
+	tlsPeer := ""
+	if tlsConn, ok := connection.(*tls.Conn); ok {
+		// Handshake now so we get the TLS peer information
+		if err := tlsConn.Handshake(); err != nil {
+			connection.Close()
+			return
+		}
+		if s.tlsPeerNameFunc != nil {
+			var ok bool
+			tlsPeer, ok = s.tlsPeerNameFunc(tlsConn)
+			if !ok {
+				connection.Close()
+				return
+			}
+		}
+	}
+
+	var scanCloser *ScanCloser
+	scanCloser = &ScanCloser{scanner, connection}
+
 	s.wait.Add(1)
-	go s.scan(scanCloser, client)
+	go s.scan(scanCloser, client, tlsPeer)
 }
 
-func (s *Server) scan(scanCloser *ScanCloser, client string) {
+func (s *Server) scan(scanCloser *ScanCloser, client string, tlsPeer string) {
 loop:
 	for {
 		select {
@@ -183,7 +233,7 @@ loop:
 			scanCloser.closer.SetReadDeadline(time.Now().Add(time.Duration(s.readTimeoutMilliseconds) * time.Millisecond))
 		}
 		if scanCloser.Scan() {
-			s.parser([]byte(scanCloser.Text()), client)
+			s.parser([]byte(scanCloser.Text()), client, tlsPeer)
 		} else {
 			break loop
 		}
@@ -193,7 +243,7 @@ loop:
 	s.wait.Done()
 }
 
-func (s *Server) parser(line []byte, client string) {
+func (s *Server) parser(line []byte, client string, tlsPeer string) {
 	parser := s.format.GetParser(line)
 	err := parser.Parse()
 	if err != nil {
@@ -202,6 +252,7 @@ func (s *Server) parser(line []byte, client string) {
 
 	logParts := parser.Dump()
 	logParts["client"] = client
+	logParts["tls_peer"] = tlsPeer
 
 	s.handler.Handle(logParts, int64(len(line)), err)
 }
@@ -272,7 +323,11 @@ func (s *Server) goReceiveDatagrams(connection net.Conn) {
 				for ; (n > 0) && (buf[n-1] < 32); n-- {
 				}
 				if n > 0 {
-					s.datagramChannel <- DatagramMessage{buf[:n], addr.String()}
+					var address string
+					if addr != nil {
+						address = addr.String()
+					}
+					s.datagramChannel <- DatagramMessage{buf[:n], address}
 				}
 			} else {
 				// there has been an error. Either the server has been killed
@@ -302,10 +357,10 @@ func (s *Server) goParseDatagrams() {
 				}
 				if sf := s.format.GetSplitFunc(); sf != nil {
 					if _, token, err := sf(msg.message, true); err == nil {
-						s.parser(token, msg.client)
+						s.parser(token, msg.client, "")
 					}
 				} else {
-					s.parser(msg.message, msg.client)
+					s.parser(msg.message, msg.client, "")
 				}
 			}
 		}

@@ -19,7 +19,7 @@ func (rd *realDecoder) getInt8() (int8, error) {
 		return -1, ErrInsufficientData
 	}
 	tmp := int8(rd.raw[rd.off])
-	rd.off += 1
+	rd.off++
 	return tmp, nil
 }
 
@@ -177,6 +177,33 @@ func (rd *realDecoder) getInt64Array() ([]int64, error) {
 	for i := range ret {
 		ret[i] = int64(binary.BigEndian.Uint64(rd.raw[rd.off:]))
 		rd.off += 8
+	}
+	return ret, nil
+}
+
+func (rd *realDecoder) getStringArray() ([]string, error) {
+	if rd.remaining() < 4 {
+		rd.off = len(rd.raw)
+		return nil, ErrInsufficientData
+	}
+	n := int(binary.BigEndian.Uint32(rd.raw[rd.off:]))
+	rd.off += 4
+
+	if n == 0 {
+		return nil, nil
+	}
+
+	if n < 0 {
+		return nil, PacketDecodingError{"invalid array length"}
+	}
+
+	ret := make([]string, n)
+	for i := range ret {
+		if str, err := rd.getString(); err != nil {
+			return nil, err
+		} else {
+			ret[i] = str
+		}
 	}
 	return ret, nil
 }

@@ -6,8 +6,6 @@ import (
 	"strings"
 )
 
-
-
 // newCatNodeInfo returns an instance of CatNodeInfo populated with the
 // the information in the cat output indexLine which contains the
 // specified fields. An err is returned if a field is not known.

@@ -9,13 +9,15 @@ import (
 
 // OffsetManager uses Kafka to store and fetch consumed partition offsets.
 type OffsetManager interface {
-	// ManagePartition creates a PartitionOffsetManager on the given topic/partition. It will
-	// return an error if this OffsetManager is already managing the given topic/partition.
+	// ManagePartition creates a PartitionOffsetManager on the given topic/partition.
+	// It will return an error if this OffsetManager is already managing the given
+	// topic/partition.
 	ManagePartition(topic string, partition int32) (PartitionOffsetManager, error)
 
-	// Close stops the OffsetManager from managing offsets. It is required to call this function
-	// before an OffsetManager object passes out of scope, as it will otherwise
-	// leak memory. You must call this after all the PartitionOffsetManagers are closed.
+	// Close stops the OffsetManager from managing offsets. It is required to call
+	// this function before an OffsetManager object passes out of scope, as it
+	// will otherwise leak memory. You must call this after all the
+	// PartitionOffsetManagers are closed.
 	Close() error
 }
 
@@ -127,36 +129,41 @@ func (om *offsetManager) abandonPartitionOffsetManager(pom *partitionOffsetManag
 // on a partition offset manager to avoid leaks, it will not be garbage-collected automatically when it passes
 // out of scope.
 type PartitionOffsetManager interface {
-	// NextOffset returns the next offset that should be consumed for the managed partition, accompanied
-	// by metadata which can be used to reconstruct the state of the partition consumer when it resumes.
-	// NextOffset() will return `config.Consumer.Offsets.Initial` and an empty metadata string if no
-	// offset was committed for this partition yet.
+	// NextOffset returns the next offset that should be consumed for the managed
+	// partition, accompanied by metadata which can be used to reconstruct the state
+	// of the partition consumer when it resumes. NextOffset() will return
+	// `config.Consumer.Offsets.Initial` and an empty metadata string if no offset
+	// was committed for this partition yet.
 	NextOffset() (int64, string)
 
-	// MarkOffset marks the provided offset as processed, alongside a metadata string that represents
-	// the state of the partition consumer at that point in time. The metadata string can be used by
-	// another consumer to restore that state, so it can resume consumption.
+	// MarkOffset marks the provided offset as processed, alongside a metadata string
+	// that represents the state of the partition consumer at that point in time. The
+	// metadata string can be used by another consumer to restore that state, so it
+	// can resume consumption.
 	//
-	// Note: calling MarkOffset does not necessarily commit the offset to the backend store immediately
-	// for efficiency reasons, and it may never be committed if your application crashes. This means that
-	// you may end up processing the same message twice, and your processing should ideally be idempotent.
+	// Note: calling MarkOffset does not necessarily commit the offset to the backend
+	// store immediately for efficiency reasons, and it may never be committed if
+	// your application crashes. This means that you may end up processing the same
+	// message twice, and your processing should ideally be idempotent.
 	MarkOffset(offset int64, metadata string)
 
-	// Errors returns a read channel of errors that occur during offset management, if enabled. By default,
-	// errors are logged and not returned over this channel. If you want to implement any custom error
-	// handling, set your config's Consumer.Return.Errors setting to true, and read from this channel.
+	// Errors returns a read channel of errors that occur during offset management, if
+	// enabled. By default, errors are logged and not returned over this channel. If
+	// you want to implement any custom error handling, set your config's
+	// Consumer.Return.Errors setting to true, and read from this channel.
 	Errors() <-chan *ConsumerError
 
-	// AsyncClose initiates a shutdown of the PartitionOffsetManager. This method will return immediately,
-	// after which you should wait until the 'errors' channel has been drained and closed.
-	// It is required to call this function, or Close before a consumer object passes out of scope,
-	// as it will otherwise leak memory.  You must call this before calling Close on the underlying
-	// client.
+	// AsyncClose initiates a shutdown of the PartitionOffsetManager. This method will
+	// return immediately, after which you should wait until the 'errors' channel has
+	// been drained and closed. It is required to call this function, or Close before
+	// a consumer object passes out of scope, as it will otherwise leak memory. You
+	// must call this before calling Close on the underlying client.
 	AsyncClose()
 
-	// Close stops the PartitionOffsetManager from managing offsets. It is required to call this function
-	// (or AsyncClose) before a PartitionOffsetManager object passes out of scope, as it will otherwise
-	// leak memory. You must call this before calling Close on the underlying client.
+	// Close stops the PartitionOffsetManager from managing offsets. It is required to
+	// call this function (or AsyncClose) before a PartitionOffsetManager object
+	// passes out of scope, as it will otherwise leak memory. You must call this
+	// before calling Close on the underlying client.
 	Close() error
 }
 
@@ -338,9 +345,9 @@ func (pom *partitionOffsetManager) NextOffset() (int64, string) {
 
 	if pom.offset >= 0 {
 		return pom.offset + 1, pom.metadata
-	} else {
-		return pom.parent.conf.Consumer.Offsets.Initial, ""
 	}
+
+	return pom.parent.conf.Consumer.Offsets.Initial, ""
 }
 
 func (pom *partitionOffsetManager) AsyncClose() {
@@ -455,11 +462,19 @@ func (bom *brokerOffsetManager) flushToBroker() {
 		case ErrNoError:
 			block := request.blocks[s.topic][s.partition]
 			s.updateCommitted(block.offset, block.metadata)
-			break
-		case ErrUnknownTopicOrPartition, ErrNotLeaderForPartition, ErrLeaderNotAvailable:
+		case ErrUnknownTopicOrPartition, ErrNotLeaderForPartition, ErrLeaderNotAvailable,
+			ErrConsumerCoordinatorNotAvailable, ErrNotCoordinatorForConsumer:
+			// not a critical error, we just need to redispatch
 			delete(bom.subscriptions, s)
 			s.rebalance <- none{}
+		case ErrOffsetMetadataTooLarge, ErrInvalidCommitOffsetSize:
+			// nothing we can do about this, just tell the user and carry on
+			s.handleError(err)
+		case ErrOffsetsLoadInProgress:
+			// nothing wrong but we didn't commit, we'll get it next time round
+			break
 		default:
+			// dunno, tell the user and try redispatching
 			s.handleError(err)
 			delete(bom.subscriptions, s)
 			s.rebalance <- none{}
@@ -468,9 +483,21 @@ func (bom *brokerOffsetManager) flushToBroker() {
 }
 
 func (bom *brokerOffsetManager) constructRequest() *OffsetCommitRequest {
-	r := &OffsetCommitRequest{
-		Version:       1,
-		ConsumerGroup: bom.parent.group,
+	var r *OffsetCommitRequest
+	if bom.parent.conf.Consumer.Offsets.Retention == 0 {
+		r = &OffsetCommitRequest{
+			Version:                 1,
+			ConsumerGroup:           bom.parent.group,
+			ConsumerGroupGeneration: GroupGenerationUndefined,
+		}
+	} else {
+		r = &OffsetCommitRequest{
+			Version:                 2,
+			RetentionTime:           int64(bom.parent.conf.Consumer.Offsets.Retention / time.Millisecond),
+			ConsumerGroup:           bom.parent.group,
+			ConsumerGroupGeneration: GroupGenerationUndefined,
+		}
+
 	}
 
 	for s := range bom.subscriptions {
