@@ -41,15 +41,19 @@ type streamRegistry struct {
 	streams   map[MessageStreamID]Stream
 	name      map[MessageStreamID]string
 	fuses     map[string]*tsync.Fuse
-	fuseGuard *sync.Mutex
-	wildcard  []Producer
+	fuseGuard   *sync.Mutex
+	nameGuard   *sync.Mutex
+	streamGuard *sync.Mutex
+	wildcard    []Producer
 }
 
 // StreamRegistry is the global instance of streamRegistry used to store the
 // all registered streams.
 var StreamRegistry = streamRegistry{
-	streams:   make(map[MessageStreamID]Stream),
-	name:      make(map[MessageStreamID]string),
+	streams:     make(map[MessageStreamID]Stream),
+	streamGuard: new(sync.Mutex),
+	name:        make(map[MessageStreamID]string),
+	nameGuard:   new(sync.Mutex),
 	fuses:     make(map[string]*tsync.Fuse),
 	fuseGuard: new(sync.Mutex),
 }
@@ -93,14 +97,21 @@ func GetAndResetMessageCount() (messages, dropped, discarded, filtered, noroute 
 		atomic.SwapUint32(&noRouteCount, 0)
 }
 
-// GetStreamID returns the integer representation of a given stream name.
+// GetStreamID is deprecated
 func GetStreamID(stream string) MessageStreamID {
+	return StreamRegistry.GetStreamID(stream)
+}
+
+// GetStreamID returns the integer representation of a given stream name.
+func (registry *streamRegistry) GetStreamID(stream string) MessageStreamID {
 	hash := fnv.New64a()
 	hash.Write([]byte(stream))
 	streamID := MessageStreamID(hash.Sum64())
 
-	// Register for reverse lookup
-	StreamRegistry.name[streamID] = stream
+	registry.nameGuard.Lock()
+	defer registry.nameGuard.Unlock()
+	registry.name[streamID] = stream
+
 	return streamID
 }
 
@@ -119,6 +130,8 @@ func (registry streamRegistry) GetStreamName(streamID MessageStreamID) string {
 		return WildcardStream
 
 	default:
+		registry.nameGuard.Lock()
+		defer registry.nameGuard.Unlock()
 		if name, exists := registry.name[streamID]; exists {
 			return name // ### return, found ###
 		}
@@ -128,12 +141,14 @@ func (registry streamRegistry) GetStreamName(streamID MessageStreamID) string {
 
 // GetStreamByName returns a registered stream by name. See GetStream.
 func (registry streamRegistry) GetStreamByName(name string) Stream {
-	streamID := GetStreamID(name)
+	streamID := registry.GetStreamID(name)
 	return registry.GetStream(streamID)
 }
 
 // GetStream returns a registered stream or nil
 func (registry streamRegistry) GetStream(id MessageStreamID) Stream {
+	registry.streamGuard.Lock()
+	defer registry.streamGuard.Unlock()
 	stream, exists := registry.streams[id]
 	if !exists {
 		return nil
@@ -143,13 +158,19 @@ func (registry streamRegistry) GetStream(id MessageStreamID) Stream {
 
 // IsStreamRegistered returns true if the stream for the given id is registered.
 func (registry streamRegistry) IsStreamRegistered(id MessageStreamID) bool {
+	registry.streamGuard.Lock()
+	defer registry.streamGuard.Unlock()
 	_, exists := registry.streams[id]
 	return exists
 }
 
 // ForEachStream loops over all registered streams and calls the given function.
 func (registry streamRegistry) ForEachStream(callback func(streamID MessageStreamID, stream Stream)) {
-	for streamID, stream := range registry.streams {
+	registry.streamGuard.Lock()
+	streams := registry.streams
+	registry.streamGuard.Unlock()
+
+	for streamID, stream := range streams {
 		callback(streamID, stream)
 	}
 }
@@ -189,6 +210,9 @@ func (registry streamRegistry) AddWildcardProducersToStream(stream Stream) {
 
 // Register registeres a stream plugin to a given stream id
 func (registry *streamRegistry) Register(stream Stream, streamID MessageStreamID) {
+	registry.streamGuard.Lock()
+	defer registry.streamGuard.Unlock()
+
 	if _, exists := registry.streams[streamID]; exists {
 		tlog.Warning.Printf("%T attaches to an already occupied stream (%s)", stream, registry.GetStreamName(streamID))
 	} else {
@@ -202,6 +226,8 @@ func (registry *streamRegistry) Register(stream Stream, streamID MessageStreamID
 // The default stream is equivalent to an unconfigured stream.Broadcast with
 // all wildcard producers already added.
 func (registry *streamRegistry) GetStreamOrFallback(streamID MessageStreamID) Stream {
+	registry.streamGuard.Lock()
+	defer registry.streamGuard.Unlock()
 	if stream, exists := registry.streams[streamID]; exists {
 		return stream
 	}

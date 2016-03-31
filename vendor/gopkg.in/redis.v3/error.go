@@ -33,15 +33,17 @@ func isNetworkError(err error) bool {
 	return ok
 }
 
-func isBadConn(cn *conn, ei error) bool {
-	if cn.rd.Buffered() > 0 {
-		return true
-	}
-	if ei == nil {
+func isBadConn(err error, allowTimeout bool) bool {
+	if err == nil {
 		return false
 	}
-	if _, ok := ei.(redisError); ok {
+	if _, ok := err.(redisError); ok {
 		return false
+	}
+	if allowTimeout {
+		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+			return false
+		}
 	}
 	return true
 }

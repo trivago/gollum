@@ -8,6 +8,7 @@ import (
 
 	"gopkg.in/redis.v3/internal/consistenthash"
 	"gopkg.in/redis.v3/internal/hashtag"
+	"gopkg.in/redis.v3/internal/pool"
 )
 
 var (
@@ -31,9 +32,10 @@ type RingOptions struct {
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 
-	PoolSize    int
-	PoolTimeout time.Duration
-	IdleTimeout time.Duration
+	PoolSize           int
+	PoolTimeout        time.Duration
+	IdleTimeout        time.Duration
+	IdleCheckFrequency time.Duration
 }
 
 func (opt *RingOptions) clientOptions() *Options {
@@ -45,9 +47,10 @@ func (opt *RingOptions) clientOptions() *Options {
 		ReadTimeout:  opt.ReadTimeout,
 		WriteTimeout: opt.WriteTimeout,
 
-		PoolSize:    opt.PoolSize,
-		PoolTimeout: opt.PoolTimeout,
-		IdleTimeout: opt.IdleTimeout,
+		PoolSize:           opt.PoolSize,
+		PoolTimeout:        opt.PoolTimeout,
+		IdleTimeout:        opt.IdleTimeout,
+		IdleCheckFrequency: opt.IdleCheckFrequency,
 	}
 }
 
@@ -148,7 +151,7 @@ func (ring *Ring) getClient(key string) (*Client, error) {
 	ring.mx.RLock()
 
 	if ring.closed {
-		return nil, errClosed
+		return nil, pool.ErrClosed
 	}
 
 	name := ring.hash.Get(hashtag.Key(key))
@@ -200,7 +203,7 @@ func (ring *Ring) heartbeat() {
 
 		for _, shard := range ring.shards {
 			err := shard.Client.Ping().Err()
-			if shard.Vote(err == nil || err == errPoolTimeout) {
+			if shard.Vote(err == nil || err == pool.ErrPoolTimeout) {
 				Logger.Printf("ring shard state changed: %s", shard)
 				rebalance = true
 			}
@@ -276,7 +279,7 @@ func (pipe *RingPipeline) process(cmd Cmder) {
 // Discard resets the pipeline and discards queued commands.
 func (pipe *RingPipeline) Discard() error {
 	if pipe.closed {
-		return errClosed
+		return pool.ErrClosed
 	}
 	pipe.cmds = pipe.cmds[:0]
 	return nil
@@ -286,7 +289,7 @@ func (pipe *RingPipeline) Discard() error {
 // command if any.
 func (pipe *RingPipeline) Exec() (cmds []Cmder, retErr error) {
 	if pipe.closed {
-		return nil, errClosed
+		return nil, pool.ErrClosed
 	}
 	if len(pipe.cmds) == 0 {
 		return pipe.cmds, nil
@@ -313,7 +316,7 @@ func (pipe *RingPipeline) Exec() (cmds []Cmder, retErr error) {
 
 		for name, cmds := range cmdsMap {
 			client := pipe.ring.shards[name].Client
-			cn, _, err := client.conn()
+			cn, err := client.conn()
 			if err != nil {
 				setCmdsErr(cmds, err)
 				if retErr == nil {
@@ -326,7 +329,7 @@ func (pipe *RingPipeline) Exec() (cmds []Cmder, retErr error) {
 				resetCmds(cmds)
 			}
 			failedCmds, err := execCmds(cn, cmds)
-			client.putConn(cn, err)
+			client.putConn(cn, err, false)
 			if err != nil && retErr == nil {
 				retErr = err
 			}

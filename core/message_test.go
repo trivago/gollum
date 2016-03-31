@@ -34,25 +34,26 @@ func TestMessageEnqueue(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	msgString := "Test for Enqueue()"
 	msg := getMockMessage(msgString)
-	ch := make(chan Message)
+	buffer := NewMessageBuffer(0)
 
-	expect.Equal(MessageStateDiscard, msg.Enqueue(ch, -1))
+	expect.Equal(MessageStateDiscard, buffer.Push(msg, -1))
 
 	go func() {
-		expect.Equal(MessageStateOk, msg.Enqueue(ch, 0))
+		expect.Equal(MessageStateOk, buffer.Push(msg, 0))
 	}()
 
-	retMsg := (<-ch).String()
-	expect.Equal(msgString, retMsg)
+	retMsg, _ := buffer.Pop()
+	expect.Equal(msgString, retMsg.String())
 
-	retStatus := msg.Enqueue(ch, 10*time.Millisecond)
+	retStatus := buffer.Push(msg, 10*time.Millisecond)
 	expect.Equal(MessageStateTimeout, retStatus)
 
 	go func() {
-		expect.Equal(MessageStateOk, msg.Enqueue(ch, 1*time.Second))
+		expect.Equal(MessageStateOk, buffer.Push(msg, 1*time.Second))
 	}()
 
-	expect.Equal(msgString, (<-ch).String())
+	retMsg, _ = buffer.Pop()
+	expect.Equal(msgString, retMsg.String())
 }
 
 func TestMessageRoute(t *testing.T) {

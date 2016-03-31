@@ -18,6 +18,7 @@ import (
 	kafka "github.com/shopify/sarama"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tcontainer"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -36,7 +37,7 @@ const (
 // Kafka producer plugin
 // The kafka producer writes messages to a kafka cluster. This producer is
 // backed by the sarama library so most settings relate to that library.
-// This producer uses a fuse breaker if the connection reports an error.
+// This producer uses a fuse breaker if any connection reports an error.
 // Configuration example
 //
 //  - "producer.Kafka":
@@ -52,7 +53,7 @@ const (
 //    BatchMaxCount: 1
 //    BatchSizeByte: 8192
 //    BatchSizeMaxKB: 1024
-//    BatchTimeoutSec: 3
+//    BatchTimeoutMs: 3000
 //    ServerTimeoutSec: 30
 //    SendTimeoutMs: 250
 //    ElectRetries: 3
@@ -67,6 +68,10 @@ const (
 //
 // Partitioner sets the distribution algorithm to use. Valid values are:
 // "Random","Roundrobin" and "Hash". By default "Roundrobin" is set.
+//
+// KeyFormatter can define a formatter that extracts the key for a kafka message
+// from the message payload. By default this is an empty string, which disables
+// this feature. A good formatter for this can be format.Identifier.
 //
 // RequiredAcks defines the acknowledgment level required by the broker.
 // 0 = No responses required. 1 = wait for the local commit. -1 = wait for
@@ -98,7 +103,7 @@ const (
 // BatchSizeMaxKB defines the maximum allowed message size. By default this is
 // set to 1024.
 //
-// BatchTimeoutSec sets the minimum time in seconds to pass after wich a new
+// BatchTimeoutMs sets the minimum time in milliseconds to pass after wich a new
 // flush will be triggered. By default this is set to 3.
 //
 // MessageBufferCount sets the internal channel size for the kafka client.
@@ -134,23 +139,23 @@ const (
 type Kafka struct {
 	core.ProducerBase
 	servers          []string
+	topicGuard       *sync.RWMutex
 	topic            map[core.MessageStreamID]string
 	clientID         string
 	client           kafka.Client
 	config           *kafka.Config
-	batch            core.MessageBatch
 	producer         kafka.AsyncProducer
 	counters         map[string]*int64
 	missCount        int64
 	lastMetricUpdate time.Time
 	gracePeriod      time.Duration
+	keyFormat        core.Formatter
 }
 
 const (
 	kafkaMetricMessages     = "Kafka:Messages-"
 	kafkaMetricMessagesSec  = "Kafka:MessagesSec-"
 	kafkaMetricUnresponsive = "Kafka:Unresponsive-"
-	kafkaMetricMissCount    = "Kafka:ResponsesQueued"
 )
 
 func init() {
@@ -161,12 +166,24 @@ func init() {
 func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 	prod.ProducerBase.Configure(conf)
 	prod.SetStopCallback(prod.close)
+	prod.SetCheckFuseCallback(prod.checkAllTopics)
+
+	kafka.Logger = prod.Log.Note
+
+	if conf.HasValue("KeyFormatter") {
+		keyFormatter := conf.GetPlugin("KeyFormatter", "format.Identifier", tcontainer.NewMarshalMap())
+		prod.keyFormat = keyFormatter.(core.Formatter)
+	} else {
+		prod.keyFormat = nil
+	}
 
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
-	prod.topic = conf.GetStreamMap("Topic", "")
 	prod.clientID = conf.GetString("ClientId", "gollum")
 	prod.lastMetricUpdate = time.Now()
 	prod.gracePeriod = time.Duration(conf.GetInt("GracePeriodMs", 5)) * time.Millisecond
+	prod.topicGuard = new(sync.RWMutex)
+	prod.topic = conf.GetStreamMap("Topic", "")
+	prod.counters = make(map[string]*int64)
 
 	prod.config = kafka.NewConfig()
 	prod.config.ClientID = conf.GetString("ClientId", "gollum")
@@ -184,9 +201,14 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 	prod.config.Producer.MaxMessageBytes = conf.GetInt("BatchSizeMaxKB", 1<<10) << 10
 	prod.config.Producer.RequiredAcks = kafka.RequiredAcks(conf.GetInt("RequiredAcks", int(kafka.WaitForLocal)))
 	prod.config.Producer.Timeout = time.Duration(conf.GetInt("TimoutMs", 1500)) * time.Millisecond
+	prod.config.Producer.Flush.Bytes = conf.GetInt("BatchSizeByte", 8192)
+	prod.config.Producer.Flush.Messages = conf.GetInt("BatchMinCount", 1)
+	prod.config.Producer.Flush.Frequency = time.Duration(conf.GetInt("BatchTimeoutMs", 3000)) * time.Millisecond
+	prod.config.Producer.Flush.MaxMessages = conf.GetInt("BatchMaxCount", 0)
+	prod.config.Producer.Retry.Max = conf.GetInt("SendRetries", 0)
+	prod.config.Producer.Retry.Backoff = time.Duration(conf.GetInt("SendTimeoutMs", 100)) * time.Millisecond
 
 	prod.config.Producer.Return.Errors = true
-	prod.config.Producer.Return.Successes = true
 
 	switch strings.ToLower(conf.GetString("Compression", compressNone)) {
 	default:
@@ -210,16 +232,6 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 		prod.config.Producer.Partitioner = kafka.NewHashPartitioner
 	}
 
-	prod.config.Producer.Flush.Bytes = conf.GetInt("BatchSizeByte", 8192)
-	prod.config.Producer.Flush.Messages = conf.GetInt("BatchMinCount", 1)
-	prod.config.Producer.Flush.Frequency = time.Duration(conf.GetInt("BatchTimeoutSec", 3)) * time.Second
-	prod.config.Producer.Flush.MaxMessages = conf.GetInt("BatchMaxCount", 0)
-	prod.config.Producer.Retry.Max = conf.GetInt("SendRetries", 0)
-	prod.config.Producer.Retry.Backoff = time.Duration(conf.GetInt("SendTimeoutMs", 100)) * time.Millisecond
-
-	prod.batch = core.NewMessageBatch(conf.GetInt("Channel", 8192))
-	prod.counters = make(map[string]*int64)
-
 	for _, topic := range prod.topic {
 		tgo.Metric.New(kafkaMetricMessages + topic)
 		tgo.Metric.New(kafkaMetricMessagesSec + topic)
@@ -227,150 +239,150 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 		prod.counters[topic] = new(int64)
 	}
 
-	tgo.Metric.New(kafkaMetricMissCount)
-	prod.SetCheckFuseCallback(prod.tryOpenConnection)
-
-	kafka.Logger = prod.Log.Note
 	return conf.Errors.OrNil()
 }
 
-func (prod *Kafka) bufferMessage(msg core.Message) {
-	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
-}
-
-func (prod *Kafka) sendBatchOnTimeOut() {
-	// Flush if necessary
-	if prod.batch.ReachedTimeThreshold(prod.config.Producer.Flush.Frequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2) {
-		prod.sendBatch()
-	}
-
-	// Update metrics
-	duration := time.Since(prod.lastMetricUpdate)
-	prod.lastMetricUpdate = time.Now()
-
-	for topic, counter := range prod.counters {
-		count := atomic.SwapInt64(counter, 0)
-		tgo.Metric.Add(kafkaMetricMessages+topic, count)
-		tgo.Metric.SetF(kafkaMetricMessagesSec+topic, float64(count)/duration.Seconds())
-	}
-}
-
-func (prod *Kafka) sendBatch() {
-	if prod.tryOpenConnection() {
-		prod.batch.Flush(prod.transformMessages)
-	} else if prod.IsStopping() {
-		prod.batch.Flush(prod.dropMessages)
-	}
-}
-
-func (prod *Kafka) dropMessages(messages []core.Message) {
-	for _, msg := range messages {
-		prod.Drop(msg)
-	}
-}
-
-func (prod *Kafka) transformMessages(messages []core.Message) {
-	defer func() { tgo.Metric.Set(kafkaMetricMissCount, prod.missCount) }()
-	topicsBad := make(map[string]bool)
-	errors := make(map[string]bool)
-
-	for _, msg := range messages {
-		originalMsg := msg
-		msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
-
-		// Store current client and producer to avoid races
-		client := prod.client
-		producer := prod.producer
-
-		// Check if connected
-		if client == nil || producer == nil {
-			prod.Drop(originalMsg)
-			continue // ### return, not connected ###
-		}
-
-		// Send message
-		topic, topicMapped := prod.topic[msg.StreamID]
-		if !topicMapped {
-			// Use wildcard fallback or stream name if not set
-			topic, topicMapped = prod.topic[core.WildcardStreamID]
-			if !topicMapped {
-				topic = core.StreamRegistry.GetStreamName(msg.StreamID)
-			}
-
-			tgo.Metric.New(kafkaMetricMessages + topic)
-			tgo.Metric.New(kafkaMetricMessagesSec + topic)
-			tgo.Metric.New(kafkaMetricUnresponsive + topic)
-			prod.counters[topic] = new(int64)
-			prod.topic[msg.StreamID] = topic
-		}
-
-		kafkaMsg := &kafka.ProducerMessage{
-			Topic:    topic,
-			Value:    kafka.ByteEncoder(msg.Data),
-			Metadata: originalMsg,
-		}
-
-		// Sarama can block on single messages if all buffers are full.
-		// So we stop trying after a few milliseconds
-		timeout := time.NewTimer(prod.gracePeriod)
+func (prod *Kafka) pollResults() {
+	// Check for results
+	keepPolling := true
+	timeout := time.NewTimer(prod.config.Producer.Flush.Frequency / 2)
+	for keepPolling {
 		select {
-		case producer.Input() <- kafkaMsg:
-			// Message send, wait for result later
-			timeout.Stop()
-			atomic.AddInt64(prod.counters[topic], 1)
-			topicsBad[topic] = false
-			prod.missCount++
-
-		case <-timeout.C:
-			// Sarama channels are full -> drop
-			prod.Drop(originalMsg)
-			tgo.Metric.Inc(kafkaMetricUnresponsive + topic)
-			if _, stateSet := topicsBad[topic]; !stateSet {
-				topicsBad[topic] = true
-			}
-		}
-	}
-
-	// Wait for errors to be returned
-resultLoop:
-	for timeout := time.NewTimer(prod.config.Producer.Flush.Frequency); prod.missCount > 0; prod.missCount-- {
-		select {
-		case succ := <-prod.producer.Successes():
-			topicsBad[succ.Topic] = false // ok overwrites bad
-
 		case err := <-prod.producer.Errors():
-			if _, errorExists := errors[err.Error()]; !errorExists {
-				prod.Log.Error.Printf("Kafka producer error: %s", err.Error())
-				errors[err.Error()] = true
-
-				// Do not overwrite ok states (one ok = server reachable)
-				if _, stateSet := topicsBad[err.Msg.Topic]; !stateSet {
-					topicsBad[err.Msg.Topic] = true
-				}
-			}
 			if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
 				prod.Drop(msg)
 			}
 
 		case <-timeout.C:
-			prod.Log.Warning.Printf("Kafka flush timed out with %d messages left", prod.missCount)
-			break resultLoop // ### break, took too long ###
+			keepPolling = false
 		}
 	}
 
-	// Check for a reconnect
-	if len(errors) > 0 {
-		allTopicsBad := true
-		for _, topicBad := range topicsBad {
-			allTopicsBad = topicBad && allTopicsBad
+	// Update metrics
+	for topic, counter := range prod.counters {
+		duration := time.Since(prod.lastMetricUpdate)
+		count := atomic.SwapInt64(counter, 0)
+		countPerSec := float64(count)/duration.Seconds() + 0.5
+
+		tgo.Metric.Add(kafkaMetricMessages+topic, count)
+		tgo.Metric.SetF(kafkaMetricMessagesSec+topic, countPerSec)
+	}
+
+	prod.lastMetricUpdate = time.Now()
+}
+
+func (prod *Kafka) registerNewTopic(streamID core.MessageStreamID) string {
+	prod.topicGuard.Lock()
+	defer prod.topicGuard.Unlock()
+
+	// Check again to avoid races
+	topic, topicMapped := prod.topic[streamID]
+	if !topicMapped {
+		// Use wildcard fallback or stream name if not set
+		topic, topicMapped = prod.topic[core.WildcardStreamID]
+		if !topicMapped {
+			topic = core.StreamRegistry.GetStreamName(streamID)
 		}
-		if allTopicsBad {
-			// Only restart if all topics report an error
-			// This is done to separate topic related errors from server related errors
-			prod.Log.Error.Printf("%d error type(s) for this batch. Triggering a reconnect", len(errors))
-			prod.closeConnection()
+
+		tgo.Metric.New(kafkaMetricMessages + topic)
+		tgo.Metric.New(kafkaMetricMessagesSec + topic)
+		tgo.Metric.New(kafkaMetricUnresponsive + topic)
+		prod.counters[topic] = new(int64)
+		prod.topic[streamID] = topic
+	}
+
+	return topic
+}
+
+func (prod *Kafka) produceMessage(msg core.Message) {
+	originalMsg := msg
+	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
+
+	prod.topicGuard.RLock()
+	defer prod.topicGuard.RUnlock()
+
+	topic, topicMapped := prod.topic[msg.StreamID]
+	prod.topicGuard.RUnlock()
+	if !topicMapped {
+		topic = prod.registerNewTopic(msg.StreamID)
+		prod.topicGuard.RLock()
+	}
+
+	if isConnected, err := prod.isConnected(topic); !isConnected {
+		prod.Drop(msg)
+		if err != nil {
+			prod.Log.Error.Printf("%s is not connected: %s", topic, err.Error())
+		}
+		prod.Control() <- core.PluginControlFuseBurn
+		return // ### return, not connected ###
+	}
+
+	kafkaMsg := &kafka.ProducerMessage{
+		Topic:    topic,
+		Value:    kafka.ByteEncoder(msg.Data),
+		Metadata: originalMsg,
+	}
+
+	if prod.keyFormat != nil {
+		key, _ := prod.keyFormat.Format(msg)
+		kafkaMsg.Key = kafka.ByteEncoder(key)
+	}
+
+	// Sarama can block on single messages if all buffers are full.
+	// So we stop trying after a few milliseconds
+	timeout := time.NewTimer(prod.gracePeriod)
+	select {
+	case prod.producer.Input() <- kafkaMsg:
+		timeout.Stop()
+		atomic.AddInt64(prod.counters[topic], 1)
+
+	case <-timeout.C:
+		// Sarama channels are full -> drop
+		prod.Drop(originalMsg)
+		tgo.Metric.Inc(kafkaMetricUnresponsive + topic)
+	}
+}
+
+func (prod *Kafka) checkAllTopics() bool {
+	topics, err := prod.client.Topics()
+	if err != nil {
+		prod.Log.Error.Print("Failed to get topics ", err.Error())
+	}
+
+	for _, topic := range topics {
+		connected, _ := prod.isConnected(topic)
+		if !connected {
+			return false
 		}
 	}
+
+	return true
+}
+
+func (prod *Kafka) isConnected(topic string) (bool, error) {
+	if prod.client == nil || prod.producer == nil {
+		if !prod.tryOpenConnection() {
+			return false, nil // ### return, error ###
+		}
+	}
+
+	partitions, err := prod.client.Partitions(topic)
+	if err != nil {
+		return false, err // ### return, error ###
+	}
+
+	for _, p := range partitions {
+		broker, err := prod.client.Leader(topic, p)
+		if err != nil {
+			return false, err // ### return, error ###
+		}
+
+		// TODO: this function only returns false if the connection has explicitly
+		//       been closed [Sarama 1.8.0]!
+		return broker.Connected()
+	}
+
+	return true, nil
 }
 
 func (prod *Kafka) tryOpenConnection() bool {
@@ -379,9 +391,7 @@ func (prod *Kafka) tryOpenConnection() bool {
 		if client, err := kafka.NewClient(prod.servers, prod.config); err == nil {
 			prod.client = client
 		} else {
-			prod.Log.Error.Print("Kafka client error:", err)
-			prod.client = nil
-			prod.producer = nil
+			prod.Log.Error.Print("Kafka client initialization error:", err)
 			return false // ### return, connection failed ###
 		}
 	}
@@ -391,37 +401,21 @@ func (prod *Kafka) tryOpenConnection() bool {
 		if producer, err := kafka.NewAsyncProducerFromClient(prod.client); err == nil {
 			prod.producer = producer
 		} else {
-			prod.Log.Error.Print("Kafka producer error:", err)
-			prod.client.Close()
-			prod.client = nil
-			prod.producer = nil
+			prod.Log.Error.Print("Kafka producer initialization error:", err)
 			return false // ### return, connection failed ###
 		}
 	}
 
-	prod.Control() <- core.PluginControlFuseActive
 	return true
 }
 
 func (prod *Kafka) closeConnection() {
-	if prod.producer != nil {
-		prod.producer.Close()
-		prod.producer = nil
-	}
-	if prod.client != nil && !prod.client.Closed() {
-		prod.client.Close()
-		prod.client = nil
-
-		if !prod.IsStopping() {
-			prod.Control() <- core.PluginControlFuseBurn
-		}
-	}
+	prod.producer.Close()
+	prod.client.Close()
 }
 
 func (prod *Kafka) close() {
 	defer prod.WorkerDone()
-	prod.CloseMessageChannel(prod.bufferMessage)
-	prod.batch.Close(prod.transformMessages, prod.GetShutdownTimeout())
 	prod.closeConnection()
 }
 
@@ -429,5 +423,5 @@ func (prod *Kafka) close() {
 func (prod *Kafka) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
 	prod.tryOpenConnection()
-	prod.TickerMessageControlLoop(prod.bufferMessage, prod.config.Producer.Timeout, prod.sendBatchOnTimeOut)
+	prod.TickerMessageControlLoop(prod.produceMessage, prod.config.Producer.Flush.Frequency, prod.pollResults)
 }

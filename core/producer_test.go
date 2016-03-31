@@ -35,7 +35,7 @@ func (prod *mockProducer) Produce(workers *sync.WaitGroup) {
 func getMockProducer() mockProducer {
 	return mockProducer{
 		ProducerBase{
-			messages:         make(chan Message, 2),
+			messages:         NewMessageBuffer(2),
 			control:          make(chan PluginControl),
 			streams:          []MessageStreamID{},
 			dropStreamID:     2,
@@ -170,7 +170,7 @@ func TestProducerEnqueue(t *testing.T) {
 	//give time for message to enqueue in the channel
 	time.Sleep(200 * time.Millisecond)
 
-	ret := <-mockP.messages
+	ret, _ := mockP.messages.Pop()
 	expect.Equal("ProdEnqueueTest", ret.String())
 
 }
@@ -204,13 +204,13 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 		Data:     []byte("closeMessageChannel"),
 		StreamID: 1,
 	}
-	mockP.messages <- msgToSend
-	mockP.messages <- msgToSend
+	mockP.messages.Push(msgToSend, -1)
+	mockP.messages.Push(msgToSend, -1)
 	ret := mockP.CloseMessageChannel(handleMessageFail)
 	expect.False(ret)
 
-	mockP.messages = make(chan Message, 2)
-	mockP.messages <- msgToSend
+	mockP.messages = NewMessageBuffer(2)
+	mockP.messages.Push(msgToSend, -1)
 	ret = mockP.CloseMessageChannel(handleMessage)
 	expect.True(ret)
 
@@ -254,14 +254,14 @@ func TestProducerMessageLoop(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockP := getMockProducer()
 	mockP.setState(PluginStateActive)
-	mockP.messages = make(chan Message, 10)
+	mockP.messages = NewMessageBuffer(10)
 	msgData := "test Message loop"
 	msg := Message{
 		Data: []byte(msgData),
 	}
 
 	for i := 0; i < 9; i++ {
-		mockP.messages <- msg
+		mockP.messages.Push(msg, -1)
 	}
 	counter := 0
 	onMessage := func(msg Message) {

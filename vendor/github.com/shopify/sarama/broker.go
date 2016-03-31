@@ -45,6 +45,10 @@ func NewBroker(addr string) *Broker {
 // follow it by a call to Connected(). The only errors Open will return directly are ConfigurationError or
 // AlreadyConnected. If conf is nil, the result of NewConfig() is used.
 func (b *Broker) Open(conf *Config) error {
+	if !atomic.CompareAndSwapInt32(&b.opened, 0, 1) {
+		return ErrAlreadyConnected
+	}
+
 	if conf == nil {
 		conf = NewConfig()
 	}
@@ -54,17 +58,7 @@ func (b *Broker) Open(conf *Config) error {
 		return err
 	}
 
-	if !atomic.CompareAndSwapInt32(&b.opened, 0, 1) {
-		return ErrAlreadyConnected
-	}
-
 	b.lock.Lock()
-
-	if b.conn != nil {
-		b.lock.Unlock()
-		Logger.Printf("Failed to connect to broker %s: %s\n", b.addr, ErrAlreadyConnected)
-		return ErrAlreadyConnected
-	}
 
 	go withRecover(func() {
 		defer b.lock.Unlock()
@@ -80,11 +74,12 @@ func (b *Broker) Open(conf *Config) error {
 			b.conn, b.connErr = dialer.Dial("tcp", b.addr)
 		}
 		if b.connErr != nil {
+			Logger.Printf("Failed to connect to broker %s: %s\n", b.addr, b.connErr)
 			b.conn = nil
 			atomic.StoreInt32(&b.opened, 0)
-			Logger.Printf("Failed to connect to broker %s: %s\n", b.addr, b.connErr)
 			return
 		}
+		b.conn = newBufConn(b.conn)
 
 		b.conf = conf
 		b.done = make(chan bool)
@@ -128,13 +123,13 @@ func (b *Broker) Close() error {
 	b.done = nil
 	b.responses = nil
 
-	atomic.StoreInt32(&b.opened, 0)
-
 	if err == nil {
 		Logger.Printf("Closed connection to broker %s\n", b.addr)
 	} else {
 		Logger.Printf("Error while closing connection to broker %s: %s\n", b.addr, err)
 	}
+
+	atomic.StoreInt32(&b.opened, 0)
 
 	return err
 }
@@ -232,6 +227,72 @@ func (b *Broker) FetchOffset(request *OffsetFetchRequest) (*OffsetFetchResponse,
 
 	err := b.sendAndReceive(request, response)
 
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func (b *Broker) JoinGroup(request *JoinGroupRequest) (*JoinGroupResponse, error) {
+	response := new(JoinGroupResponse)
+
+	err := b.sendAndReceive(request, response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func (b *Broker) SyncGroup(request *SyncGroupRequest) (*SyncGroupResponse, error) {
+	response := new(SyncGroupResponse)
+
+	err := b.sendAndReceive(request, response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func (b *Broker) LeaveGroup(request *LeaveGroupRequest) (*LeaveGroupResponse, error) {
+	response := new(LeaveGroupResponse)
+
+	err := b.sendAndReceive(request, response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func (b *Broker) Heartbeat(request *HeartbeatRequest) (*HeartbeatResponse, error) {
+	response := new(HeartbeatResponse)
+
+	err := b.sendAndReceive(request, response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func (b *Broker) ListGroups(request *ListGroupsRequest) (*ListGroupsResponse, error) {
+	response := new(ListGroupsResponse)
+
+	err := b.sendAndReceive(request, response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func (b *Broker) DescribeGroups(request *DescribeGroupsRequest) (*DescribeGroupsResponse, error) {
+	response := new(DescribeGroupsResponse)
+
+	err := b.sendAndReceive(request, response)
 	if err != nil {
 		return nil, err
 	}
@@ -344,16 +405,24 @@ func (b *Broker) encode(pe packetEncoder) (err error) {
 }
 
 func (b *Broker) responseReceiver() {
+	var dead error
 	header := make([]byte, 8)
 	for response := range b.responses {
+		if dead != nil {
+			response.errors <- dead
+			continue
+		}
+
 		err := b.conn.SetReadDeadline(time.Now().Add(b.conf.Net.ReadTimeout))
 		if err != nil {
+			dead = err
 			response.errors <- err
 			continue
 		}
 
 		_, err = io.ReadFull(b.conn, header)
 		if err != nil {
+			dead = err
 			response.errors <- err
 			continue
 		}
@@ -361,23 +430,22 @@ func (b *Broker) responseReceiver() {
 		decodedHeader := responseHeader{}
 		err = decode(header, &decodedHeader)
 		if err != nil {
+			dead = err
 			response.errors <- err
 			continue
 		}
 		if decodedHeader.correlationID != response.correlationID {
 			// TODO if decoded ID < cur ID, discard until we catch up
 			// TODO if decoded ID > cur ID, save it so when cur ID catches up we have a response
-			response.errors <- PacketDecodingError{fmt.Sprintf("correlation ID didn't match, wanted %d, got %d", response.correlationID, decodedHeader.correlationID)}
+			dead = PacketDecodingError{fmt.Sprintf("correlation ID didn't match, wanted %d, got %d", response.correlationID, decodedHeader.correlationID)}
+			response.errors <- dead
 			continue
 		}
 
 		buf := make([]byte, decodedHeader.length-4)
 		_, err = io.ReadFull(b.conn, buf)
 		if err != nil {
-			// XXX: the above ReadFull call inherits the same ReadDeadline set at the top of this loop, so it may
-			// fail with a timeout error. If this happens, our connection is permanently toast since we will no longer
-			// be aligned correctly on the stream (we'll be reading garbage Kafka headers from the middle of data).
-			// Can we/should we fail harder in that case?
+			dead = err
 			response.errors <- err
 			continue
 		}

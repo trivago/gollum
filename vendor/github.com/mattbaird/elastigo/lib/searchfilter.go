@@ -142,7 +142,6 @@ func (f *FilterWrap) MarshalJSON() ([]byte, error) {
 
 */
 
-
 // Filter creates a blank FilterOp that can be customized with further function calls
 // This is the starting point for constructing any filter query
 // Examples:

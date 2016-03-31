@@ -77,6 +77,7 @@ import (
 type Spooling struct {
 	core.ProducerBase
 	outfile         map[core.MessageStreamID]*spoolFile
+	outfileGuard    *sync.Mutex
 	rotation        fileRotateConfig
 	path            string
 	maxFileSize     int64
@@ -120,6 +121,7 @@ func (prod *Spooling) Configure(conf core.PluginConfigReader) error {
 	prod.outfile = make(map[core.MessageStreamID]*spoolFile)
 	prod.RespoolDuration = time.Duration(conf.GetInt("RespoolDelaySec", 10)) * time.Second
 	prod.bufferSizeByte = conf.GetInt("BufferSizeByte", 8192)
+	prod.outfileGuard = new(sync.Mutex)
 
 	if maxMsgSec := time.Duration(conf.GetInt("MaxMessagesSec", 100)); maxMsgSec > 0 {
 		prod.readDelay = time.Second / maxMsgSec
@@ -140,7 +142,11 @@ func (prod *Spooling) Configure(conf core.PluginConfigReader) error {
 }
 
 func (prod *Spooling) writeBatchOnTimeOut() {
-	for _, spool := range prod.outfile {
+	prod.outfileGuard.Lock()
+	outfiles := prod.outfile
+	prod.outfileGuard.Unlock()
+
+	for _, spool := range outfiles {
 		read, write := spool.getAndResetCounts()
 		duration := time.Since(spool.lastMetricUpdate)
 		spool.lastMetricUpdate = time.Now()
@@ -160,11 +166,18 @@ func (prod *Spooling) writeBatchOnTimeOut() {
 func (prod *Spooling) writeToFile(msg core.Message) {
 	// Get the correct file state for this stream
 	streamID := msg.PrevStreamID
+
+	prod.outfileGuard.Lock()
 	spool, exists := prod.outfile[streamID]
+	prod.outfileGuard.Unlock()
+
 	if !exists {
 		streamName := core.StreamRegistry.GetStreamName(streamID)
 		spool = newSpoolFile(prod, streamName, msg.Source)
+
+		prod.outfileGuard.Lock()
 		prod.outfile[streamID] = spool
+		prod.outfileGuard.Unlock()
 	}
 
 	if err := os.MkdirAll(spool.basePath, 0700); err != nil && !os.IsExist(err) {
@@ -190,9 +203,11 @@ func (prod *Spooling) routeToOrigin(msg core.Message) {
 	msg.StreamID = msg.PrevStreamID // Force PrevStreamID to be preserved in case message gets spooled again
 	msg.Route(msg.PrevStreamID)
 
+	prod.outfileGuard.Lock()
 	if spool, exists := prod.outfile[msg.PrevStreamID]; exists {
 		spool.countRead()
 	}
+	prod.outfileGuard.Unlock()
 
 	delay := prod.readDelay - time.Now().Sub(routeStart)
 	if delay > 0 {
@@ -205,6 +220,9 @@ func (prod *Spooling) close() {
 
 	// Drop as the producer accepting these messages is already offline anyway
 	prod.CloseMessageChannel(prod.Drop)
+
+	prod.outfileGuard.Lock()
+	defer prod.outfileGuard.Unlock()
 	for _, spool := range prod.outfile {
 		spool.close()
 	}
@@ -216,13 +234,15 @@ func (prod *Spooling) openExistingFiles() {
 	for _, file := range files {
 		if file.IsDir() {
 			streamName := filepath.Base(file.Name())
-			streamID := core.GetStreamID(streamName)
+			streamID := core.StreamRegistry.GetStreamID(streamName)
 
 			// Only create a new spooler if the stream is registered by this instance
+			prod.outfileGuard.Lock()
 			if _, exists := prod.outfile[streamID]; !exists && core.StreamRegistry.IsStreamRegistered(streamID) {
 				prod.Log.Note.Printf("Found existing spooling folders for %s", streamName)
 				prod.outfile[streamID] = newSpoolFile(prod, streamName, nil)
 			}
+			prod.outfileGuard.Unlock()
 		}
 	}
 }

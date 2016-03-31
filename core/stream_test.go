@@ -29,7 +29,7 @@ func getMockStream() StreamBase {
 		formatters:     []Formatter{&mockFormatter{}},
 		Timeout:        &timeout,
 		Producers:      []Producer{},
-		boundStreamID:  GetStreamID("testBoundStream"),
+		boundStreamID:  StreamRegistry.GetStreamID("testBoundStream"),
 		distribute:     mockDistributer,
 		prevDistribute: mockPrevDistributer,
 		paused:         make(chan Message),

@@ -179,7 +179,7 @@ func (prod *ProducerBase) Configure(conf PluginConfigReader) error {
 	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 3000)) * time.Millisecond
 	prod.fuseTimeout = time.Duration(conf.GetInt("FuseTimeoutSec", 10)) * time.Second
 	prod.fuseName = conf.GetString("Fuse", "")
-	prod.dropStreamID = GetStreamID(conf.GetString("DropToStream", DroppedStream))
+	prod.dropStreamID = StreamRegistry.GetStreamID(conf.GetString("DropToStream", DroppedStream))
 	prod.fuseControlGuard = new(sync.Mutex)
 
 	prod.onRoll = nil

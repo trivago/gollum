@@ -277,13 +277,13 @@ func (cons *Kinesis) connect() error {
 			return fmt.Errorf("ShardId could not be retrieved.")
 		}
 
-		shardID := *shard.ShardId
-		cons.Log.Debug.Printf("Starting kinesis consumer for %s:%s", cons.stream, shardID)
-
-		if _, offsetStored := cons.offsets[shardID]; !offsetStored {
-			cons.offsets[shardID] = cons.defaultOffset
+		if _, offsetStored := cons.offsets[*shard.ShardId]; !offsetStored {
+			cons.offsets[*shard.ShardId] = cons.defaultOffset
 		}
+	}
 
+	for shardID := range cons.offsets {
+		cons.Log.Debug.Printf("Starting kinesis consumer for %s:%s", cons.stream, shardID)
 		go cons.processShard(shardID)
 	}
 	return nil
