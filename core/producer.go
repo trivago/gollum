@@ -123,6 +123,7 @@ type Producer interface {
 // be recovered. Note that automatic fuse recovery logic depends on each
 // producer's implementation. By default this setting is set to 10.
 type ProducerBase struct {
+	id               string
 	messages         MessageBuffer
 	control          chan PluginControl
 	streams          []MessageStreamID
@@ -145,6 +146,7 @@ type ProducerBase struct {
 
 // Configure initializes the standard producer config values.
 func (prod *ProducerBase) Configure(conf PluginConfigReader) error {
+	prod.id = conf.GetID()
 	prod.Log = conf.GetLogScope()
 	prod.runState = NewPluginRunState()
 
@@ -186,6 +188,11 @@ func (prod *ProducerBase) Configure(conf PluginConfigReader) error {
 	prod.onStop = nil
 
 	return conf.Errors.OrNil()
+}
+
+// GetID returns the ID of this producer
+func (prod *ProducerBase) GetID() string {
+	return prod.id
 }
 
 // setState sets the runstate of this plugin
@@ -391,7 +398,7 @@ func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
 	defer func() {
 		if r := recover(); r != nil {
 			prod.Log.Error.Print("Recovered a panic during producer enqueue: ", r)
-			prod.Log.Error.Print("State: ", prod.GetState(), ", Stream: ", StreamRegistry.GetStreamName(msg.StreamID))
+			prod.Log.Error.Print("Producer: ", prod.id, "State: ", prod.GetState(), ", Stream: ", StreamRegistry.GetStreamName(msg.StreamID))
 			prod.Drop(msg)
 		}
 	}()
@@ -442,15 +449,14 @@ func (prod *ProducerBase) Drop(msg Message) {
 // timeout per message. If flushing messages runs into this timeout all
 // remaining messages will be dropped by using the producer.Drop function.
 // If a timout has been detected, false is returned.
-func (prod *ProducerBase) CloseMessageChannel(handleMessage func(msg Message)) bool {
+func (prod *ProducerBase) CloseMessageChannel(handleMessage func(Message)) bool {
 	prod.messages.Close()
 	flushWorker := new(tsync.WaitGroup)
 
-	var msg Message
 	more := true
-
 	for more {
-		msg, more = prod.messages.Pop()
+		msg, m := prod.messages.Pop()
+		more = m
 
 		// handleMessage may block. To be able to exit this method we need to
 		// call it async and wait for it to finish.
@@ -461,9 +467,10 @@ func (prod *ProducerBase) CloseMessageChannel(handleMessage func(msg Message)) b
 		}()
 
 		if !flushWorker.WaitFor(prod.shutdownTimeout) {
-			prod.Log.Warning.Printf("A producer listening to %s has found to be blocking during close. Dropping remaining messages.", StreamRegistry.GetStreamName(prod.Streams()[0]))
+			prod.Log.Warning.Printf("Producer %s has found to be blocking during close. Dropping remaining messages.", prod.id)
 			for more {
-				msg, more = prod.messages.Pop()
+				msg, m := prod.messages.Pop()
+				more = m
 				prod.Drop(msg)
 			}
 			return false // ### return, timed out ###

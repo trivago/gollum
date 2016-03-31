@@ -69,6 +69,7 @@ type Consumer interface {
 // It is up to the consumer implementation to react on a broken fuse in an
 // appropriate manner.
 type ConsumerBase struct {
+	id           string
 	control      chan PluginControl
 	streams      []MappedStream
 	runState     *PluginRunState
@@ -82,6 +83,7 @@ type ConsumerBase struct {
 
 // Configure initializes standard consumer values from a plugin config.
 func (cons *ConsumerBase) Configure(conf PluginConfigReader) error {
+	cons.id = conf.GetID()
 	cons.Log = conf.GetLogScope()
 	cons.runState = NewPluginRunState()
 	cons.control = make(chan PluginControl, 1)
@@ -103,6 +105,11 @@ func (cons *ConsumerBase) Configure(conf PluginConfigReader) error {
 	}
 
 	return conf.Errors.OrNil()
+}
+
+// GetID returns the ID of this consumer
+func (cons *ConsumerBase) GetID() string {
+	return cons.id
 }
 
 // setState sets the runstate of this plugin

@@ -86,6 +86,7 @@ type MappedStream struct {
 // attached to this stream to unblock. This setting overwrites the corresponding
 // producer setting for this (and only this) stream.
 type StreamBase struct {
+	id             string
 	filters        []Filter
 	formatters     []Formatter
 	Producers      []Producer
@@ -103,6 +104,7 @@ type Distributor func(msg Message)
 
 // ConfigureStream sets up all values required by StreamBase.
 func (stream *StreamBase) ConfigureStream(conf PluginConfigReader, distribute Distributor) error {
+	stream.id = conf.GetID()
 	stream.Log = conf.GetLogScope()
 
 	formatPlugins := conf.GetPluginArray("Formatters", []Plugin{})
@@ -144,6 +146,11 @@ func (stream *StreamBase) ConfigureStream(conf PluginConfigReader, distribute Di
 	}
 
 	return conf.Errors.OrNil()
+}
+
+// GetID returns the ID of this stream
+func (stream *StreamBase) GetID() string {
+	return stream.id
 }
 
 // AddProducer adds all producers to the list of known producers.

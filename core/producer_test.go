@@ -182,7 +182,7 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 	mockP.setState(PluginStateActive)
 
 	handleMessageFail := func(msg Message) {
-		time.Sleep(20 * time.Millisecond)
+		time.Sleep(time.Second)
 	}
 
 	handleMessage := func(msg Message) {
@@ -192,6 +192,7 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 	mockDistribute := func(msg Message) {
 		expect.Equal("closeMessageChannel", msg.String())
 	}
+
 	mockDropStream := getMockStream()
 	mockDropStream.distribute = mockDistribute
 	mockDropStream.AddProducer(&mockProducer{})
@@ -204,16 +205,13 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 		Data:     []byte("closeMessageChannel"),
 		StreamID: 1,
 	}
-	mockP.messages.Push(msgToSend, -1)
-	mockP.messages.Push(msgToSend, -1)
-	ret := mockP.CloseMessageChannel(handleMessageFail)
-	expect.False(ret)
+	expect.Equal(MessageStateOk, mockP.messages.Push(msgToSend, 0))
+	expect.Equal(MessageStateOk, mockP.messages.Push(msgToSend, 0))
+	expect.False(mockP.CloseMessageChannel(handleMessageFail))
 
 	mockP.messages = NewMessageBuffer(2)
-	mockP.messages.Push(msgToSend, -1)
-	ret = mockP.CloseMessageChannel(handleMessage)
-	expect.True(ret)
-
+	expect.Equal(MessageStateOk, mockP.messages.Push(msgToSend, 0))
+	expect.True(mockP.CloseMessageChannel(handleMessage))
 }
 
 func TestProducerTickerLoop(t *testing.T) {
