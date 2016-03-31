@@ -41,12 +41,11 @@ static void logWrapper(const rd_kafka_t *rk, int level, const char *fac, const c
 }
 
 static void deliveryWrapper(rd_kafka_t* rk, const rd_kafka_message_t* rkmessage, void *opaque) {
+    buffer_t* pBuffer = (buffer_t*)rkmessage->_private;
     if (rkmessage->err != RD_KAFKA_RESP_ERR_NO_ERROR) {
-        buffer_t* pBuffer = (buffer_t*)opaque;
         goDeliveryHandler(rk, rkmessage->err, pBuffer);
-    } else {
-        DestroyBuffer(opaque);
-    }
+    }    
+    DestroyBuffer(pBuffer);
 }
                      
 static int32_t msg_partitioner_round_robin(const rd_kafka_topic_t *rkt, const void *key, size_t keylen, int32_t partition_cnt, void *opaque, void *msg_opaque) {
@@ -82,15 +81,23 @@ void RegisterRoundRobinPartitioner(rd_kafka_topic_conf_t* config) {
     rd_kafka_topic_conf_set_partitioner_cb(config, msg_partitioner_round_robin);
 }
 
-void* CreateBuffer(size_t len, void* pData) {
-     buffer_t* pBuffer = (buffer_t*)malloc(sizeof(buffer_t));
-     pBuffer->data = pData;
-     pBuffer->len = len;
-     return pBuffer;
+buffer_t* CreateBuffer(size_t len, void* pData) {
+    __sync_fetch_and_add(&gAllocCounter, 1);
+    buffer_t* pBuffer = (buffer_t*)malloc(sizeof(buffer_t));
+    pBuffer->data = pData;
+    pBuffer->len = len;
+    return pBuffer;
 }
 
 void DestroyBuffer(buffer_t* pBuffer) {
-    free(pBuffer);
+    if (pBuffer != NULL) {
+        free(pBuffer);
+        __sync_fetch_and_sub(&gAllocCounter, 1);
+    }
+}
+
+int GetLastError() {
+    return rd_kafka_errno2err(errno);
 }
 
 rd_kafka_message_t* CreateBatch(int size) {
@@ -127,6 +134,6 @@ buffer_t* BatchGetUserdataAt(rd_kafka_message_t* pBatch, int index) {
     return (buffer_t*)pBatch[index]._private;
 }
 
-int GetLastError() {
-    return rd_kafka_errno2err(errno);
+int64_t GetAllocatedBuffers() {
+    return gAllocCounter;
 }

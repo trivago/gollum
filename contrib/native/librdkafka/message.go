@@ -37,10 +37,6 @@ type MessageDelivery interface {
 
 //export goDeliveryHandler
 func goDeliveryHandler(clientHandle *C.rd_kafka_t, code C.int, bufferPtr *C.buffer_t) {
-	// Only gets called if code != 0
-	defer C.DestroyBuffer(bufferPtr)
-
-	// Send userdata and code to handler
 	if handler, exists := clients[clientHandle]; exists {
 		buffer := UnmarshalBuffer(bufferPtr)
 		handler.OnMessageError(codeToString(int(code)), buffer)

@@ -40,7 +40,7 @@ void RegisterRandomPartitioner(rd_kafka_topic_conf_t* config);
 void RegisterRoundRobinPartitioner(rd_kafka_topic_conf_t* config);
 
 // CreateBuffer creates a buffer used to attach to message userdata
-void* CreateBuffer(size_t len, void* pData);
+buffer_t* CreateBuffer(size_t len, void* pData);
  
 // DestroyBuffer properly frees a buffer attached to message userdata
 void DestroyBuffer(buffer_t* pBuffer);
@@ -66,5 +66,8 @@ buffer_t* BatchGetUserdataAt(rd_kafka_message_t* pBatch, int index);
 
 // GetLastError returns rd_kafka_errno2err(errno)
 int GetLastError();
+
+// GetAllocatedBuffers returns the current allocation count for buffer_t
+int64_t GetAllocatedBuffers();
 
 #endif

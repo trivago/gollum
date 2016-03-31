@@ -53,3 +53,8 @@ func NewProducer(config Config, handler MessageDelivery) (*Client, error) {
 func (t *Client) Close() {
 	C.rd_kafka_destroy(t.handle)
 }
+
+// GetInflightBuffers returns the number of allocated buffers (message useradata)
+func (t *Client) GetInflightBuffers() int64 {
+	return int64(C.GetAllocatedBuffers())
+}

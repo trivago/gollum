@@ -102,8 +102,9 @@ type messageWrapper struct {
 }
 
 const (
-	kafkaMetricMessages    = "Kafka:Messages-"
-	kafkaMetricMessagesSec = "Kafka:MessagesSec-"
+	kafkaMetricMessages         = "Kafka:Messages-"
+	kafkaMetricMessagesSec      = "Kafka:MessagesSec-"
+	kafkaMetricMessagesInflight = "Kafka:Inflight"
 )
 
 const (
@@ -134,8 +135,8 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err
 	}
-	prod.SetStopCallback(prod.close)
 
+	prod.SetStopCallback(prod.close)
 	kafka.Log = Log.Error
 
 	if conf.HasValue("KeyFormatter") {
@@ -198,6 +199,7 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfig) error {
 		prod.config.Set("compression.codec", "snappy")
 	}
 
+	shared.Metric.New(kafkaMetricMessagesInflight)
 	return nil
 }
 
@@ -284,6 +286,8 @@ func (prod *KafkaProducer) poll() {
 	for _, topic := range prod.topic {
 		topic.Poll()
 	}
+
+	shared.Metric.Set(kafkaMetricMessagesInflight, prod.client.GetInflightBuffers())
 
 	prod.topicGuard.RLock()
 	defer prod.topicGuard.RUnlock()

@@ -18,6 +18,7 @@ package librdkafka
 // #cgo LDFLAGS: -L/usr/local/opt/librdkafka/lib -L/usr/local/lib -lrdkafka
 // #include "wrapper.h"
 import "C"
+import "unsafe"
 
 // Topic wrapper handle for rd_kafka_topic_t
 type Topic struct {
@@ -81,10 +82,10 @@ func (t *Topic) Poll() {
 func (t *Topic) Produce(message Message) error {
 	keyLen, keyPtr, payLen, payPtr, usrLen, usrPtr := MarshalMessage(message)
 	usrData := C.CreateBuffer(usrLen, usrPtr)
-	success := C.rd_kafka_produce(t.handle, C.RD_KAFKA_PARTITION_UA, C.RD_KAFKA_MSG_F_COPY, payPtr, payLen, keyPtr, keyLen, usrData)
+	success := C.rd_kafka_produce(t.handle, C.RD_KAFKA_PARTITION_UA, C.RD_KAFKA_MSG_F_COPY, payPtr, payLen, keyPtr, keyLen, unsafe.Pointer(usrData))
 
 	if success != 0 {
-		defer C.DestroyBuffer((*C.buffer_t)(usrData))
+		defer C.DestroyBuffer(usrData)
 		rspErr := ResponseError{
 			Userdata: message.GetUserdata(),
 			Code:     int(C.GetLastError()),
