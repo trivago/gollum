@@ -182,6 +182,7 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 	mockP.setState(PluginStateActive)
 
 	handleMessageFail := func(msg Message) {
+		expect.Equal("closeMessageChannel", msg.String())
 		time.Sleep(time.Second)
 	}
 
@@ -205,12 +206,12 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 		Data:     []byte("closeMessageChannel"),
 		StreamID: 1,
 	}
-	expect.Equal(MessageStateOk, mockP.messages.Push(msgToSend, 0))
-	expect.Equal(MessageStateOk, mockP.messages.Push(msgToSend, 0))
+	mockP.Enqueue(msgToSend, nil)
+	mockP.Enqueue(msgToSend, nil)
 	expect.False(mockP.CloseMessageChannel(handleMessageFail))
 
 	mockP.messages = NewMessageBuffer(2)
-	expect.Equal(MessageStateOk, mockP.messages.Push(msgToSend, 0))
+	mockP.Enqueue(msgToSend, nil)
 	expect.True(mockP.CloseMessageChannel(handleMessage))
 }
 

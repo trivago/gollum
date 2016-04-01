@@ -453,10 +453,11 @@ func (prod *ProducerBase) CloseMessageChannel(handleMessage func(Message)) bool 
 	prod.messages.Close()
 	flushWorker := new(tsync.WaitGroup)
 
-	more := true
-	for more {
-		msg, m := prod.messages.Pop()
-		more = m
+	for {
+		msg, more := prod.messages.Pop()
+		if !more {
+			return true // ### return, done ###
+		}
 
 		// handleMessage may block. To be able to exit this method we need to
 		// call it async and wait for it to finish.
@@ -468,16 +469,15 @@ func (prod *ProducerBase) CloseMessageChannel(handleMessage func(Message)) bool 
 
 		if !flushWorker.WaitFor(prod.shutdownTimeout) {
 			prod.Log.Warning.Printf("Producer %s has found to be blocking during close. Dropping remaining messages.", prod.id)
-			for more {
-				msg, m := prod.messages.Pop()
-				more = m
-				prod.Drop(msg)
+			for {
+				if msg, more := prod.messages.Pop(); !more {
+					prod.Drop(msg)
+				} else {
+					return false // ### return, timed out ###
+				}
 			}
-			return false // ### return, timed out ###
 		}
 	}
-
-	return true
 }
 
 func (prod *ProducerBase) tickerLoop(interval time.Duration, onTimeOut func()) {
