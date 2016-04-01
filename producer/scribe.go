@@ -193,22 +193,22 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 	logBuffer := make([]*scribe.LogEntry, len(messages))
 
 	for idx, msg := range messages {
-		msg.Data, msg.StreamID = prod.Format(msg)
+		data, streamID := prod.Format(msg)
 
-		category, exists := prod.category[msg.StreamID]
+		category, exists := prod.category[streamID]
 		if !exists {
 			if category, exists = prod.category[core.WildcardStreamID]; !exists {
-				category = core.StreamRegistry.GetStreamName(msg.StreamID)
+				category = core.StreamRegistry.GetStreamName(streamID)
 			}
 			shared.Metric.New(scribeMetricMessages + category)
 			shared.Metric.New(scribeMetricMessagesSec + category)
 			prod.counters[category] = new(int64)
-			prod.category[msg.StreamID] = category
+			prod.category[streamID] = category
 		}
 
 		logBuffer[idx] = &scribe.LogEntry{
 			Category: category,
-			Message:  string(msg.Data),
+			Message:  string(data),
 		}
 
 		atomic.AddInt64(prod.counters[category], 1)
