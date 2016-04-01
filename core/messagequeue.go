@@ -22,8 +22,8 @@ import (
 // MessageStreamID is the "compiled name" of a stream
 type MessageStreamID uint64
 
-// MessageStream is the type used for transferring messages between plugins
-type MessageBuffer chan Message
+// MessageQueue is the type used for transferring messages between plugins
+type MessageQueue chan *Message
 
 const (
 	// InvalidStream is used for invalid stream handling and maps to ""
@@ -53,9 +53,9 @@ var (
 	DroppedStreamID = GetStreamID(DroppedStream)
 )
 
-// NewMessageBuffer creates a new message buffer of the given capacity
-func NewMessageBuffer(capacity int) MessageBuffer {
-	return make(MessageBuffer, capacity)
+// NewMessageQueue creates a new message buffer of the given capacity
+func NewMessageQueue(capacity int) MessageQueue {
+	return make(MessageQueue, capacity)
 }
 
 // Push adds a message to the MessageStream.
@@ -66,7 +66,7 @@ func NewMessageBuffer(capacity int) MessageBuffer {
 // consumer exists.
 // The source parameter is used when a message is dropped, i.e. it is passed
 // to the Drop function.
-func (channel MessageBuffer) Push(msg Message, timeout time.Duration) MessageState {
+func (channel MessageQueue) Push(msg *Message, timeout time.Duration) MessageState {
 	if timeout == 0 {
 		channel <- msg
 		return MessageStateOk // ### return, done ###
@@ -102,12 +102,12 @@ func (channel MessageBuffer) Push(msg Message, timeout time.Duration) MessageSta
 }
 
 // Pop returns a message from the buffer
-func (channel MessageBuffer) Pop() (Message, bool) {
+func (channel MessageQueue) Pop() (*Message, bool) {
 	msg, more := <-channel
 	return msg, more
 }
 
 // Close stops the buffer from being able to recieve messages
-func (channel MessageBuffer) Close() {
+func (channel MessageQueue) Close() {
 	close(channel)
 }

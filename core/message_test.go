@@ -20,8 +20,8 @@ import (
 	"time"
 )
 
-func getMockMessage(data string) Message {
-	return Message{
+func getMockMessage(data string) *Message {
+	return &Message{
 		StreamID:     1,
 		PrevStreamID: 2,
 		Timestamp:    time.Now(),
@@ -34,7 +34,7 @@ func TestMessageEnqueue(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	msgString := "Test for Enqueue()"
 	msg := getMockMessage(msgString)
-	buffer := NewMessageBuffer(0)
+	buffer := NewMessageQueue(0)
 
 	expect.Equal(MessageStateDiscard, buffer.Push(msg, -1))
 
@@ -61,7 +61,7 @@ func TestMessageRoute(t *testing.T) {
 	msgString := "Test for Route()"
 	msg := getMockMessage(msgString)
 
-	mockDistributer := func(msg Message) {
+	mockDistributer := func(msg *Message) {
 		expect.Equal(msgString, msg.String())
 	}
 

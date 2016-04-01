@@ -218,7 +218,7 @@ func (cons *ConsumerBase) EnqueueCopy(data []byte, sequence uint64) {
 
 // EnqueueMessage passes a given message  to all streams.
 // Only the StreamID of the message is modified, everything else is passed as-is.
-func (cons *ConsumerBase) EnqueueMessage(msg Message) {
+func (cons *ConsumerBase) EnqueueMessage(msg *Message) {
 	for _, mapping := range cons.streams {
 		msg.StreamID = mapping.StreamID
 		msg.PrevStreamID = msg.StreamID

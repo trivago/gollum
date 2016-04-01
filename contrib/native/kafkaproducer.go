@@ -226,8 +226,8 @@ func (prod *KafkaProducer) registerNewTopic(streamID core.MessageStreamID) *kafk
 	return topic
 }
 
-func (prod *KafkaProducer) produceMessage(msg core.Message) {
-	originalMsg := msg
+func (prod *KafkaProducer) produceMessage(msg *core.Message) {
+	originalMsg := *msg
 	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
 
 	// Send message
@@ -259,7 +259,7 @@ func (prod *KafkaProducer) produceMessage(msg core.Message) {
 
 	if err := topic.Produce(kafkaMsg); err != nil {
 		prod.Log.Error.Print("Message produce failed:", err)
-		prod.Drop(originalMsg)
+		prod.Drop(&originalMsg)
 	} else {
 		topicName := topic.GetName()
 		atomic.AddInt64(prod.counters[topicName], 1)
@@ -270,7 +270,7 @@ func (prod *KafkaProducer) produceMessage(msg core.Message) {
 func (prod *KafkaProducer) OnMessageError(reason string, userdata []byte) {
 	prod.Log.Error.Print("Message delivery failed:", reason)
 	if msg, err := core.DeserializeMessage(userdata); err == nil {
-		prod.Drop(msg)
+		prod.Drop(&msg)
 	} else {
 		prod.Log.Error.Print(err)
 	}

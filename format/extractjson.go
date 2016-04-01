@@ -69,7 +69,7 @@ func (format *ExtractJSON) Configure(conf core.PluginConfigReader) error {
 }
 
 // Format modifies the JSON payload of this message
-func (format *ExtractJSON) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+func (format *ExtractJSON) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
 	values := tcontainer.NewMarshalMap()
 	err := json.Unmarshal(msg.Data, &values)
 	if err != nil {

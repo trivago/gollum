@@ -154,7 +154,7 @@ func (prod *InfluxDB) sendBatchOnTimeOut() {
 	}
 }
 
-func (prod *InfluxDB) bufferMessage(msg core.Message) {
+func (prod *InfluxDB) bufferMessage(msg *core.Message) {
 	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
 }
 

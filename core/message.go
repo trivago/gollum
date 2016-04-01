@@ -38,7 +38,7 @@ type AsyncMessageSource interface {
 	MessageSource
 
 	// EnqueueResponse sends a message to the source of another message.
-	EnqueueResponse(msg Message)
+	EnqueueResponse(msg *Message)
 }
 
 // SerialMessageSource extends the AsyncMessageSource interface to allow waiting
@@ -75,8 +75,8 @@ type Message struct {
 }
 
 // NewMessage creates a new message from a given data stream
-func NewMessage(source MessageSource, data []byte, sequence uint64) Message {
-	return Message{
+func NewMessage(source MessageSource, data []byte, sequence uint64) *Message {
+	return &Message{
 		Data:         data,
 		Source:       source,
 		StreamID:     WildcardStreamID,
@@ -92,16 +92,16 @@ func (msg Message) String() string {
 }
 
 // Clone returns a copy of this message, i.e. the payload is duplicated
-func (msg *Message) Clone() Message {
+func (msg *Message) Clone() *Message {
 	clone := *msg
 	clone.Data = make([]byte, len(msg.Data))
 	copy(clone.Data, msg.Data)
-	return clone
+	return &clone
 }
 
 // Route enqueues this message to the given stream.
 // If the stream does not exist, a default stream (broadcast) is created.
-func (msg Message) Route(targetID MessageStreamID) {
+func (msg *Message) Route(targetID MessageStreamID) {
 	msg.PrevStreamID = msg.StreamID
 	msg.StreamID = targetID
 	targetStream := StreamRegistry.GetStreamOrFallback(msg.StreamID)

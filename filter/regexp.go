@@ -64,7 +64,7 @@ func (filter *RegExp) Configure(conf core.PluginConfigReader) error {
 }
 
 // Accepts allows all messages
-func (filter *RegExp) Accepts(msg core.Message) bool {
+func (filter *RegExp) Accepts(msg *core.Message) bool {
 	if filter.exp != nil {
 		return filter.exp.MatchString(string(msg.Data))
 	}

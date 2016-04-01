@@ -51,7 +51,7 @@ func (format *Hostname) Configure(conf core.PluginConfigReader) error {
 }
 
 // Format prepends the Hostname of the message to the message.
-func (format *Hostname) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+func (format *Hostname) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
 	hostnameStr, err := os.Hostname()
 	if err != nil {
 		hostnameStr = ""

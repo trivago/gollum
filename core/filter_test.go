@@ -24,11 +24,11 @@ type mockFilter struct {
 func (mf *mockFilter) SetLogScope(log tlog.LogScope) {
 }
 
-func (mf *mockFilter) Accepts(msg Message) bool {
+func (mf *mockFilter) Accepts(msg *Message) bool {
 	return true
 }
 
-func (mf *mockFilter) Drop(msg Message) {
+func (mf *mockFilter) Drop(msg *Message) {
 }
 
 func (mf *mockFilter) Configure(conf PluginConfig) error {

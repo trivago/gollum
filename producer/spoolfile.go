@@ -166,7 +166,7 @@ func (spool *spoolFile) decode(data []byte, sequence uint64) {
 	} else if msg, err := core.DeserializeMessage(decoded[:size]); err != nil {
 		spool.log.Error.Print("Spool file read: ", err)
 	} else {
-		spool.prod.routeToOrigin(msg)
+		spool.prod.routeToOrigin(&msg)
 	}
 }
 

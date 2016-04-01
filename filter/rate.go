@@ -66,7 +66,7 @@ func (filter *Rate) resetLoop() {
 }
 
 // Accepts allows all messages
-func (filter *Rate) Accepts(msg core.Message) bool {
+func (filter *Rate) Accepts(msg *core.Message) bool {
 	if atomic.AddInt64(filter.counter, 1) > filter.rateLimit {
 		return false
 	}

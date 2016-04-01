@@ -161,7 +161,7 @@ func (values *valueMap) processDirective(directive transformDirective, format *P
 }
 
 // Format modifies the JSON payload of this message
-func (format *ProcessJSON) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+func (format *ProcessJSON) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
 	if len(format.directives) == 0 {
 		return msg.Data, msg.StreamID // ### return, no directives ###
 	}

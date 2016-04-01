@@ -23,14 +23,14 @@ type Formatter interface {
 	// Format transfers the message payload into a new format. The payload may
 	// then be reassigned to the original or a new message.
 	// In addition to that the formatter may change the stream of the message.
-	Format(msg Message) ([]byte, MessageStreamID)
+	Format(msg *Message) ([]byte, MessageStreamID)
 
 	// SetLogScope sets the log scope to be used for this formatter
 	SetLogScope(log tlog.LogScope)
 }
 
 // FormatterFunc is the function signature type used by all formating functions.
-type FormatterFunc func(msg Message) ([]byte, MessageStreamID)
+type FormatterFunc func(msg *Message) ([]byte, MessageStreamID)
 
 // FormatterBase defines the standard formatter implementation.
 type FormatterBase struct {

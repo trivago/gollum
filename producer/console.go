@@ -59,7 +59,7 @@ func (prod *Console) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-func (prod *Console) printMessage(msg core.Message) {
+func (prod *Console) printMessage(msg *core.Message) {
 	text, _ := prod.ProducerBase.Format(msg)
 	fmt.Fprint(prod.console, string(text))
 }

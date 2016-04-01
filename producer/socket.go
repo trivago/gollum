@@ -177,7 +177,7 @@ func (prod *Socket) onWriteError(err error) bool {
 	return false
 }
 
-func (prod *Socket) sendMessage(msg core.Message) {
+func (prod *Socket) sendMessage(msg *core.Message) {
 	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
 }
 

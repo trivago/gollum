@@ -39,6 +39,6 @@ func (filter *None) Configure(conf core.PluginConfigReader) error {
 }
 
 // Accepts allows all messages
-func (filter *None) Accepts(msg core.Message) bool {
+func (filter *None) Accepts(msg *core.Message) bool {
 	return false
 }

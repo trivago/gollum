@@ -93,7 +93,7 @@ func (prod *Websocket) handleConnection(conn *websocket.Conn) {
 	}
 }
 
-func (prod *Websocket) pushMessage(msg core.Message) {
+func (prod *Websocket) pushMessage(msg *core.Message) {
 	messageText, _ := prod.ProducerBase.Format(msg)
 
 	if prod.clientIdx&0x7FFFFFFF > 0 {

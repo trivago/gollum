@@ -76,7 +76,7 @@ func (format *StreamRoute) Configure(conf core.PluginConfigReader) error {
 }
 
 // Format adds prefix and postfix to the message formatted by the base formatter
-func (format *StreamRoute) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+func (format *StreamRoute) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
 	delimiterIdx := bytes.Index(msg.Data, format.delimiter)
 
 	switch delimiterIdx {

@@ -176,8 +176,8 @@ func (prod *ElasticSearch) isClusterUp() bool {
 	return !cluster.TimedOut && cluster.Status != "red"
 }
 
-func (prod *ElasticSearch) sendMessage(msg core.Message) {
-	originalMsg := msg
+func (prod *ElasticSearch) sendMessage(msg *core.Message) {
+	originalMsg := *msg
 	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
 
 	index, indexMapped := prod.index[msg.StreamID]
@@ -211,7 +211,7 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 		if !prod.isClusterUp() {
 			prod.Control() <- core.PluginControlFuseBurn
 		}
-		prod.Drop(originalMsg)
+		prod.Drop(&originalMsg)
 	} else {
 		prod.Control() <- core.PluginControlFuseActive
 	}

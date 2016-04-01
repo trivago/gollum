@@ -48,7 +48,7 @@ type fileRotateConfig struct {
 	compress bool
 }
 
-func newFileState(maxMessageCount int, formatter core.FormatterFunc, drop func(core.Message), timeout time.Duration, logScope tlog.LogScope) *fileState {
+func newFileState(maxMessageCount int, formatter core.FormatterFunc, drop func(*core.Message), timeout time.Duration, logScope tlog.LogScope) *fileState {
 	return &fileState{
 		batch:        core.NewMessageBatch(maxMessageCount),
 		bgWriter:     new(sync.WaitGroup),

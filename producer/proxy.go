@@ -143,7 +143,7 @@ func (prod *Proxy) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-func (prod *Proxy) sendMessage(msg core.Message) {
+func (prod *Proxy) sendMessage(msg *core.Message) {
 	// If we have not yet connected or the connection dropped: connect.
 	for prod.connection == nil {
 		conn, err := net.DialTimeout(prod.protocol, prod.address, prod.timeout)

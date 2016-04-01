@@ -44,7 +44,7 @@ func (stream *RoundRobin) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-func (stream *RoundRobin) roundRobin(msg core.Message) {
+func (stream *RoundRobin) roundRobin(msg *core.Message) {
 	index := atomic.AddInt32(&stream.index, 1) % int32(len(stream.StreamBase.Producers))
 	stream.StreamBase.Producers[index].Enqueue(msg, stream.Timeout)
 }

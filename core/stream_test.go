@@ -32,7 +32,7 @@ func getMockStream() StreamBase {
 		boundStreamID:  StreamRegistry.GetStreamID("testBoundStream"),
 		distribute:     mockDistributer,
 		prevDistribute: mockPrevDistributer,
-		paused:         make(chan Message),
+		paused:         make(chan *Message),
 		resumeWorker:   new(sync.WaitGroup),
 	}
 }
@@ -48,7 +48,7 @@ func registerMockStream(streamName string) {
 	mockConf.Override("Formatters", []interface{}{map[string]tcontainer.MarshalMap{"core.mockFormatter": tcontainer.NewMarshalMap()}})
 	mockConf.Override("Filter", "core.mockFilter")
 
-	mockStream.ConfigureStream(NewPluginConfigReader(&mockConf), func(msg Message) {})
+	mockStream.ConfigureStream(NewPluginConfigReader(&mockConf), func(msg *Message) {})
 	StreamRegistry.Register(&mockStream, mockStream.GetBoundStreamID())
 }
 
@@ -64,7 +64,7 @@ func TestStreamConfigureStream(t *testing.T) {
 	mockConf.Override("Filter", "core.mockFilter")
 	mockConf.Override("TimeoutMs", 100)
 
-	mockDistributer := func(msg Message) {
+	mockDistributer := func(msg *Message) {
 		expect.True(true)
 	}
 
@@ -77,7 +77,7 @@ func TestStreamPauseFlush(t *testing.T) {
 
 	mockStream := getMockStream()
 
-	mockDistributer := func(msg Message) {
+	mockDistributer := func(msg *Message) {
 		expect.Equal("abc", msg.String())
 	}
 	// rewrite paused as nil to check if properly assigned by Pause(capacity).
@@ -85,7 +85,7 @@ func TestStreamPauseFlush(t *testing.T) {
 	mockStream.distribute = mockDistributer
 
 	// shouldn't the enqued message after pause start distributing after resume?
-	msgToSend := Message{
+	msgToSend := &Message{
 		Data:     []byte("abc"),
 		StreamID: 1,
 	}
@@ -104,7 +104,7 @@ func TestStreamRoute(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockStream := getMockStream()
 
-	mockDistributer := func(msg Message) {
+	mockDistributer := func(msg *Message) {
 		expect.Equal("abc", msg.String())
 	}
 	targetMockStream := getMockStream()
@@ -112,7 +112,7 @@ func TestStreamRoute(t *testing.T) {
 	targetMockStream.distribute = mockDistributer
 	StreamRegistry.streams[2] = &targetMockStream
 
-	msgToSend := Message{
+	msgToSend := &Message{
 		Data:     []byte("abc"),
 		StreamID: 1,
 	}

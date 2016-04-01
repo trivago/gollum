@@ -48,7 +48,7 @@ func (format *Runlength) Configure(conf core.PluginConfigReader) error {
 }
 
 // Format prepends the length of the message (followed by ":") to the message.
-func (format *Runlength) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+func (format *Runlength) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
 	lengthStr := strconv.Itoa(len(msg.Data))
 
 	payload := make([]byte, len(lengthStr)+len(format.separator)+len(msg.Data))

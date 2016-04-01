@@ -27,15 +27,15 @@ import (
 // You can use the Reached* functions to determine whether a flush should be
 // called, i.e. if a timeout or size threshold has been reached.
 type MessageBatch struct {
-	queue     [2]messageQueue
+	queue     [2]messageBuffer
 	flushing  *tsync.WaitGroup
 	lastFlush *int64
 	activeSet *uint32
 	closed    *int32
 }
 
-type messageQueue struct {
-	messages  []Message
+type messageBuffer struct {
+	messages  []*Message
 	doneCount *uint32
 }
 
@@ -47,14 +47,14 @@ const (
 
 // AssemblyFunc is the function signature for callbacks passed to the Flush
 // method.
-type AssemblyFunc func([]Message)
+type AssemblyFunc func([]*Message)
 
 // NewMessageBatch creates a new MessageBatch with a given size (in bytes)
 // and a given formatter.
 func NewMessageBatch(maxMessageCount int) MessageBatch {
 	now := time.Now().Unix()
 	return MessageBatch{
-		queue:     [2]messageQueue{newMessageQueue(maxMessageCount), newMessageQueue(maxMessageCount)},
+		queue:     [2]messageBuffer{newMessageBuffer(maxMessageCount), newMessageBuffer(maxMessageCount)},
 		flushing:  new(tsync.WaitGroup),
 		lastFlush: &now,
 		activeSet: new(uint32),
@@ -62,9 +62,9 @@ func NewMessageBatch(maxMessageCount int) MessageBatch {
 	}
 }
 
-func newMessageQueue(maxMessageCount int) messageQueue {
-	return messageQueue{
-		messages:  make([]Message, maxMessageCount),
+func newMessageBuffer(maxMessageCount int) messageBuffer {
+	return messageBuffer{
+		messages:  make([]*Message, maxMessageCount),
 		doneCount: new(uint32),
 	}
 }
@@ -83,7 +83,7 @@ func (batch *MessageBatch) getActiveBufferCount() int {
 // If the message does not fit into the buffer this function returns false.
 // If the message can never fit into the buffer (too large), true is returned
 // and an error is logged.
-func (batch *MessageBatch) Append(msg Message) bool {
+func (batch *MessageBatch) Append(msg *Message) bool {
 	if batch.IsClosed() {
 		return false // ### return, closed ###
 	}
@@ -107,7 +107,7 @@ func (batch *MessageBatch) Append(msg Message) bool {
 
 // AppendOrBlock works like Append but will block until Append returns true.
 // If the batch was closed during this call, false is returned.
-func (batch *MessageBatch) AppendOrBlock(msg Message) bool {
+func (batch *MessageBatch) AppendOrBlock(msg *Message) bool {
 	spin := tsync.NewSpinner(tsync.SpinPriorityMedium)
 	for !batch.IsClosed() {
 		if batch.Append(msg) {
@@ -123,7 +123,7 @@ func (batch *MessageBatch) AppendOrBlock(msg Message) bool {
 // If append fails, flush is called, followed by AppendOrBlock if blocking is
 // allowed. If AppendOrBlock fails (or blocking is not allowed) the message is
 // dropped.
-func (batch *MessageBatch) AppendOrFlush(msg Message, flushBuffer func(), canBlock func() bool, drop func(Message)) {
+func (batch *MessageBatch) AppendOrFlush(msg *Message, flushBuffer func(), canBlock func() bool, drop func(*Message)) {
 	if !batch.Append(msg) {
 		flushBuffer()
 		if !canBlock() || !batch.AppendOrBlock(msg) {

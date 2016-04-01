@@ -370,7 +370,7 @@ func (prod *File) writeBatchOnTimeOut() {
 	}
 }
 
-func (prod *File) writeMessage(msg core.Message) {
+func (prod *File) writeMessage(msg *core.Message) {
 	_, streamID := prod.ProducerBase.Format(msg)
 	state, err := prod.getFileState(streamID, false)
 	if err != nil {

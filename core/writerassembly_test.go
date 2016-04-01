@@ -37,7 +37,7 @@ func (iw secondMockIoWrite) Write(data []byte) (n int, err error) {
 	return len(data), errors.New("someError")
 }
 
-func (iw mockIoWrite) mockFlush(m Message) {
+func (iw mockIoWrite) mockFlush(m *Message) {
 	iw.e.Equal(m.String(), "abcde")
 }
 
@@ -87,23 +87,23 @@ func TestWriterAssemblyWrite(t *testing.T) {
 
 	// should give error msg and flush msg as ther writer is not available yet
 	// test here is done in mockIo.mockFlush
-	wa.Write([]Message{msg1})
+	wa.Write([]*Message{msg1})
 
 	wa.SetWriter(mockIo)
 	//this should extend the wa's buffer to 5 -> "abcde"
-	wa.Write([]Message{msg1})
+	wa.Write([]*Message{msg1})
 	//should override in the same buffer from beginning
-	wa.Write([]Message{msg1})
+	wa.Write([]*Message{msg1})
 
 	//set validator to return false so final flush is executed
 	validator := func() bool {
 		return false
 	}
 	wa.SetValidator(validator)
-	wa.Write([]Message{msg1})
+	wa.Write([]*Message{msg1})
 	// this writer object return error value
 	wa.SetWriter(secondMockIoWrite{})
-	wa.Write([]Message{msg1})
+	wa.Write([]*Message{msg1})
 
 	// set errorHandler
 	handlerReturnsTrue := func(e error) bool {
@@ -113,7 +113,7 @@ func TestWriterAssemblyWrite(t *testing.T) {
 		return false
 	}
 	wa.SetErrorHandler(handlerReturnsTrue)
-	wa.Write([]Message{msg1})
+	wa.Write([]*Message{msg1})
 
 	handlerWithoutError := func(e error) bool {
 		if e.Error() == "someError" {
@@ -122,6 +122,6 @@ func TestWriterAssemblyWrite(t *testing.T) {
 		return true
 	}
 	wa.SetErrorHandler(handlerWithoutError)
-	wa.Write([]Message{msg1})
+	wa.Write([]*Message{msg1})
 
 }

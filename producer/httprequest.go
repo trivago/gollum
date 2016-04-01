@@ -86,7 +86,7 @@ func (prod *HTTPRequest) isHostUp() bool {
 	return err != nil && resp != nil && resp.StatusCode < 400
 }
 
-func (prod *HTTPRequest) sendReq(msg core.Message) {
+func (prod *HTTPRequest) sendReq(msg *core.Message) {
 	var (
 		req *http.Request
 		err error

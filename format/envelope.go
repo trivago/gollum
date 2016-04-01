@@ -60,7 +60,7 @@ func (format *Envelope) Configure(conf core.PluginConfigReader) error {
 }
 
 // Format adds prefix and postfix to the message formatted by the base formatter
-func (format *Envelope) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+func (format *Envelope) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
 	prefixLen := len(format.prefix)
 	baseLen := len(msg.Data)
 	postfixLen := len(format.postfix)

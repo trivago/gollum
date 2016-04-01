@@ -22,18 +22,18 @@ import (
 // Producers not deriving from ProducerBase might utilize this one, too.
 type Filter interface {
 	// Accepts returns true if this filter validated the given message (pass)
-	Accepts(msg Message) bool
+	Accepts(msg *Message) bool
 
 	// SetLogScope sets the log scope to be used for this filter
 	SetLogScope(log tlog.LogScope)
 
 	// Drop sends the given message to the stream configured with this filter.
 	// This method is called by the framework after Accepts failed.
-	Drop(msg Message)
+	Drop(msg *Message)
 }
 
 // FilterFunc is the function signature type used by all filter functions.
-type FilterFunc func(msg Message) bool
+type FilterFunc func(msg *Message) bool
 
 // FilterBase plugin base type
 // This type defines a common baseclass for all Filters. All filter plugins
@@ -65,7 +65,7 @@ func (filter *FilterBase) Configure(conf PluginConfigReader) error {
 }
 
 // Drop sends the given message to the stream configured with this filter.
-func (filter *FilterBase) Drop(msg Message) {
+func (filter *FilterBase) Drop(msg *Message) {
 	if filter.dropStreamID != InvalidStreamID {
 		msg.Route(filter.dropStreamID)
 	}

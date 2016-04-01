@@ -56,7 +56,7 @@ func (format *CollectdToInflux08) createMetricName(plugin string, pluginInstance
 }
 
 // Format transforms collectd data to influx 0.8.x data
-func (format *CollectdToInflux08) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+func (format *CollectdToInflux08) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
 	collectdData, err := parseCollectdPacket(msg.Data)
 	if err != nil {
 		format.Log.Error.Print("Collectd parser error: ", err)

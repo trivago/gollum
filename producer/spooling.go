@@ -163,7 +163,7 @@ func (prod *Spooling) writeBatchOnTimeOut() {
 	}
 }
 
-func (prod *Spooling) writeToFile(msg core.Message) {
+func (prod *Spooling) writeToFile(msg *core.Message) {
 	// Get the correct file state for this stream
 	streamID := msg.PrevStreamID
 
@@ -197,7 +197,7 @@ func (prod *Spooling) writeToFile(msg core.Message) {
 	spool.countWrite()
 }
 
-func (prod *Spooling) routeToOrigin(msg core.Message) {
+func (prod *Spooling) routeToOrigin(msg *core.Message) {
 	routeStart := time.Now()
 
 	msg.StreamID = msg.PrevStreamID // Force PrevStreamID to be preserved in case message gets spooled again

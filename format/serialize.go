@@ -52,7 +52,7 @@ func (format *Serialize) Configure(conf core.PluginConfigReader) error {
 
 // Format prepends the sequence number of the message (followed by ":") to the
 // message.
-func (format *Serialize) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+func (format *Serialize) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
 	data, err := msg.Serialize()
 	if err != nil {
 		format.Log.Error.Print(err)

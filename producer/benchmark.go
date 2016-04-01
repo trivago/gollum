@@ -12,30 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package stream
+package producer
 
 import (
 	"github.com/trivago/gollum/core"
-	"math/rand"
+	"sync"
 )
 
-// Random stream plugin
-// Messages will be sent to one of the producers attached to this stream.
-// The concrete producer is chosen randomly with each message.
-type Random struct {
-	core.StreamBase
+// Benchmark producer plugin
+// The producer is used to benchmark the core system.
+type Benchmark struct {
+	core.ProducerBase
 }
 
 func init() {
-	core.TypeRegistry.Register(Random{})
+	core.TypeRegistry.Register(Benchmark{})
 }
 
-// Configure initializes this distributor with values from a plugin config.
-func (stream *Random) Configure(conf core.PluginConfigReader) error {
-	return stream.StreamBase.ConfigureStream(conf, stream.random)
+// Configure initializes this producer with values from a plugin config.
+func (prod *Benchmark) Configure(conf core.PluginConfigReader) error {
+	prod.ProducerBase.Configure(conf)
+	return conf.Errors.OrNil()
 }
 
-func (stream *Random) random(msg *core.Message) {
-	index := rand.Intn(len(stream.StreamBase.Producers))
-	stream.StreamBase.Producers[index].Enqueue(msg, stream.Timeout)
+func (prod *Benchmark) null(msg *core.Message) {
+}
+
+// Produce writes to stdout or stderr.
+func (prod *Benchmark) Produce(workers *sync.WaitGroup) {
+	prod.MessageControlLoop(prod.null)
 }

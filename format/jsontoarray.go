@@ -49,10 +49,11 @@ func (format *JSONToArray) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Format prepends the timestamp of the message to the message.
-func (format *JSONToArray) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+// Format spilts a json struct to a csv.
+func (format *JSONToArray) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
 	values := make(tcontainer.MarshalMap)
-	if err := json.Unmarshal(msg.Data, &values); err == nil {
+	err := json.Unmarshal(msg.Data, &values)
+	if err == nil {
 		csv := ""
 		for _, field := range format.fields {
 			if value, exists := values.Value(field); exists {
@@ -78,10 +79,9 @@ func (format *JSONToArray) Format(msg core.Message) ([]byte, core.MessageStreamI
 		if len(csv) >= len(format.separator) {
 			csv = csv[:len(csv)-len(format.separator)]
 		}
-		msg.Data = []byte(csv)
-	} else {
-		format.Log.Error.Print("Json parsing error: ", err)
+		return []byte(csv), msg.StreamID
 	}
 
+	format.Log.Error.Print("Json parsing error: ", err)
 	return msg.Data, msg.StreamID
 }

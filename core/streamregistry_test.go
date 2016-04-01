@@ -34,11 +34,11 @@ func getMockStreamRegistry() streamRegistry {
 	}
 }
 
-func mockDistributer(msg Message) {
+func mockDistributer(msg *Message) {
 
 }
 
-func mockPrevDistributer(msg Message) {
+func mockPrevDistributer(msg *Message) {
 
 }
 

@@ -43,7 +43,7 @@ type Stream interface {
 	AddProducer(producers ...Producer)
 
 	// Enqueue sends a given message to all registered producers
-	Enqueue(msg Message)
+	Enqueue(msg *Message)
 
 	// GetProducers returns the producers bound to this stream
 	GetProducers() []Producer
@@ -94,13 +94,13 @@ type StreamBase struct {
 	boundStreamID  MessageStreamID
 	distribute     Distributor
 	prevDistribute Distributor
-	paused         chan Message
+	paused         chan *Message
 	resumeWorker   *sync.WaitGroup
 	Log            tlog.LogScope
 }
 
 // Distributor is a callback typedef for methods processing messages
-type Distributor func(msg Message)
+type Distributor func(msg *Message)
 
 // ConfigureStream sets up all values required by StreamBase.
 func (stream *StreamBase) ConfigureStream(conf PluginConfigReader, distribute Distributor) error {
@@ -177,7 +177,7 @@ func (stream *StreamBase) GetProducers() []Producer {
 // Calling Pause on an already paused stream is ignored.
 func (stream *StreamBase) Pause(capacity int) {
 	if stream.paused == nil {
-		stream.paused = make(chan Message, capacity)
+		stream.paused = make(chan *Message, capacity)
 		stream.prevDistribute = stream.distribute
 		stream.distribute = stream.stash
 	}
@@ -216,28 +216,29 @@ func (stream *StreamBase) Flush() {
 }
 
 // stash is used as a distributor during pause
-func (stream *StreamBase) stash(msg Message) {
+func (stream *StreamBase) stash(msg *Message) {
 	stream.paused <- msg
 }
 
 // Broadcast enqueues the given message to all producers attached to this stream.
-func (stream *StreamBase) Broadcast(msg Message) {
+func (stream *StreamBase) Broadcast(msg *Message) {
 	for _, prod := range stream.Producers {
 		prod.Enqueue(msg, stream.Timeout)
 	}
 }
 
 // Format calls all formatters in their order of definition
-func (stream *StreamBase) Format(msg Message) ([]byte, MessageStreamID) {
+func (stream *StreamBase) Format(msg *Message) ([]byte, MessageStreamID) {
+	msgCopy := *msg
 	for _, formatter := range stream.formatters {
-		msg.Data, msg.StreamID = formatter.Format(msg)
+		msgCopy.Data, msgCopy.StreamID = formatter.Format(&msgCopy)
 	}
-	return msg.Data, msg.StreamID
+	return msgCopy.Data, msgCopy.StreamID
 }
 
 // Accepts calls applys all filters to the given message and returns true when
 // all filters pass.
-func (stream *StreamBase) Accepts(msg Message) bool {
+func (stream *StreamBase) Accepts(msg *Message) bool {
 	for _, filter := range stream.filters {
 		if !filter.Accepts(msg) {
 			filter.Drop(msg)
@@ -250,7 +251,7 @@ func (stream *StreamBase) Accepts(msg Message) bool {
 // Enqueue checks the filter, formats the message and sends it to all producers
 // registered. Functions deriving from StreamBase can set the Distribute member
 // to hook into this function.
-func (stream *StreamBase) Enqueue(msg Message) {
+func (stream *StreamBase) Enqueue(msg *Message) {
 	if stream.Accepts(msg) {
 		var streamID MessageStreamID
 		msg.Data, streamID = stream.Format(msg)
@@ -263,7 +264,7 @@ func (stream *StreamBase) Enqueue(msg Message) {
 // Route is called by Enqueue after a message has been accepted and formatted.
 // This encapsulates the main logic of sending messages to producers or to
 // another stream if necessary.
-func (stream *StreamBase) Route(msg Message, targetID MessageStreamID) {
+func (stream *StreamBase) Route(msg *Message, targetID MessageStreamID) {
 	if msg.StreamID != targetID {
 		msg.PrevStreamID = msg.StreamID
 		msg.StreamID = targetID

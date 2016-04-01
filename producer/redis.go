@@ -67,7 +67,7 @@ type Redis struct {
 	database        int64
 	key             string
 	client          *redis.Client
-	store           func(msg core.Message)
+	store           func(*core.Message)
 	fieldFormatters []core.Formatter
 	fieldFromParsed bool
 }
@@ -117,14 +117,14 @@ func (prod *Redis) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-func (prod *Redis) formatField(msg core.Message) []byte {
+func (prod *Redis) formatField(msg *core.Message) []byte {
 	for _, formatter := range prod.fieldFormatters {
 		msg.Data, _ = formatter.Format(msg)
 	}
 	return msg.Data
 }
 
-func (prod *Redis) storeHash(msg core.Message) {
+func (prod *Redis) storeHash(msg *core.Message) {
 	value, _ := prod.Format(msg)
 	var field []byte
 	if prod.fieldFromParsed {
@@ -142,7 +142,7 @@ func (prod *Redis) storeHash(msg core.Message) {
 	}
 }
 
-func (prod *Redis) storeList(msg core.Message) {
+func (prod *Redis) storeList(msg *core.Message) {
 	value, _ := prod.ProducerBase.Format(msg)
 
 	result := prod.client.RPush(prod.key, string(value))
@@ -152,7 +152,7 @@ func (prod *Redis) storeList(msg core.Message) {
 	}
 }
 
-func (prod *Redis) storeSet(msg core.Message) {
+func (prod *Redis) storeSet(msg *core.Message) {
 	value, _ := prod.ProducerBase.Format(msg)
 
 	result := prod.client.SAdd(prod.key, string(value))
@@ -162,7 +162,7 @@ func (prod *Redis) storeSet(msg core.Message) {
 	}
 }
 
-func (prod *Redis) storeSortedSet(msg core.Message) {
+func (prod *Redis) storeSortedSet(msg *core.Message) {
 	value, _ := prod.Format(msg)
 	var scoreValue []byte
 	if prod.fieldFromParsed {
@@ -190,7 +190,7 @@ func (prod *Redis) storeSortedSet(msg core.Message) {
 	}
 }
 
-func (prod *Redis) storeString(msg core.Message) {
+func (prod *Redis) storeString(msg *core.Message) {
 	value, _ := prod.ProducerBase.Format(msg)
 
 	result := prod.client.Set(prod.key, string(value), time.Duration(0))

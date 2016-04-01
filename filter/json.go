@@ -101,7 +101,7 @@ func (filter *JSON) getValue(key string, values tcontainer.MarshalMap) (string, 
 
 // Accepts checks JSON field values and rejects messages after testing a
 // blacklist and a whitelist.
-func (filter *JSON) Accepts(msg core.Message) bool {
+func (filter *JSON) Accepts(msg *core.Message) bool {
 	values := tcontainer.NewMarshalMap()
 	if err := json.Unmarshal(msg.Data, &values); err != nil {
 		return false

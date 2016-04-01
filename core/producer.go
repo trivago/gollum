@@ -29,7 +29,7 @@ type Producer interface {
 
 	// Enqueue sends a message to the producer. The producer may reject
 	// the message or drop it after a given timeout. Enqueue can block.
-	Enqueue(msg Message, timeout *time.Duration)
+	Enqueue(msg *Message, timeout *time.Duration)
 
 	// Produce should implement a main loop that passes messages from the
 	// message channel to some other service like the console.
@@ -124,7 +124,7 @@ type Producer interface {
 // producer's implementation. By default this setting is set to 10.
 type ProducerBase struct {
 	id               string
-	messages         MessageBuffer
+	messages         MessageQueue
 	control          chan PluginControl
 	streams          []MessageStreamID
 	dropStreamID     MessageStreamID
@@ -176,7 +176,7 @@ func (prod *ProducerBase) Configure(conf PluginConfigReader) error {
 
 	prod.control = make(chan PluginControl, 1)
 	prod.streams = conf.GetStreamArray("Streams", []MessageStreamID{WildcardStreamID})
-	prod.messages = NewMessageBuffer(conf.GetInt("Channel", 8192))
+	prod.messages = NewMessageQueue(conf.GetInt("Channel", 8192))
 	prod.timeout = time.Duration(conf.GetInt("ChannelTimeoutMs", 0)) * time.Millisecond
 	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 3000)) * time.Millisecond
 	prod.fuseTimeout = time.Duration(conf.GetInt("FuseTimeoutSec", 10)) * time.Second
@@ -319,11 +319,12 @@ func (prod *ProducerBase) GetShutdownTimeout() time.Duration {
 }
 
 // Format calls all formatters in their order of definition
-func (prod *ProducerBase) Format(msg Message) ([]byte, MessageStreamID) {
+func (prod *ProducerBase) Format(msg *Message) ([]byte, MessageStreamID) {
+	msgCopy := *msg
 	for _, formatter := range prod.formatters {
-		msg.Data, msg.StreamID = formatter.Format(msg)
+		msgCopy.Data, msgCopy.StreamID = formatter.Format(&msgCopy)
 	}
-	return msg.Data, msg.StreamID
+	return msgCopy.Data, msgCopy.StreamID
 }
 
 // AppendFormatter adds a given formatter to the end of the list of formatters
@@ -337,7 +338,7 @@ func (prod *ProducerBase) PrependFormatter(format Formatter) {
 }
 
 // Accepts calls the filters Accepts function
-func (prod *ProducerBase) Accepts(msg Message) bool {
+func (prod *ProducerBase) Accepts(msg *Message) bool {
 	for _, filter := range prod.filters {
 		if !filter.Accepts(msg) {
 			filter.Drop(msg)
@@ -394,7 +395,7 @@ func (prod *ProducerBase) Control() chan<- PluginControl {
 // Enqueue will add the message to the internal channel so it can be processed
 // by the producer main loop. A timeout value != nil will overwrite the channel
 // timeout value for this call.
-func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
+func (prod *ProducerBase) Enqueue(msg *Message, timeout *time.Duration) {
 	defer func() {
 		if r := recover(); r != nil {
 			prod.Log.Error.Print("Recovered a panic during producer enqueue: ", r)
@@ -437,7 +438,7 @@ func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
 }
 
 // Drop routes the message to the configured drop stream.
-func (prod *ProducerBase) Drop(msg Message) {
+func (prod *ProducerBase) Drop(msg *Message) {
 	CountDroppedMessage()
 
 	//Log.Debug.Print("Dropping message from ", StreamRegistry.GetStreamName(msg.StreamID))
@@ -449,7 +450,7 @@ func (prod *ProducerBase) Drop(msg Message) {
 // timeout per message. If flushing messages runs into this timeout all
 // remaining messages will be dropped by using the producer.Drop function.
 // If a timout has been detected, false is returned.
-func (prod *ProducerBase) CloseMessageChannel(handleMessage func(Message)) bool {
+func (prod *ProducerBase) CloseMessageChannel(handleMessage func(*Message)) bool {
 	prod.messages.Close()
 	flushWorker := new(tsync.WaitGroup)
 
@@ -497,7 +498,7 @@ func (prod *ProducerBase) tickerLoop(interval time.Duration, onTimeOut func()) {
 	}
 }
 
-func (prod *ProducerBase) messageLoop(onMessage func(Message)) {
+func (prod *ProducerBase) messageLoop(onMessage func(*Message)) {
 	for prod.IsActive() {
 		msg, more := prod.messages.Pop()
 		if more {
@@ -597,7 +598,7 @@ func (prod *ProducerBase) ControlLoop() {
 // MessageControlLoop provides a producer mainloop that is sufficient for most
 // usecases. ControlLoop will be called in a separate go routine.
 // This function will block until a stop signal is received.
-func (prod *ProducerBase) MessageControlLoop(onMessage func(Message)) {
+func (prod *ProducerBase) MessageControlLoop(onMessage func(*Message)) {
 	prod.setState(PluginStateActive)
 	go prod.ControlLoop()
 	prod.messageLoop(onMessage)
@@ -606,7 +607,7 @@ func (prod *ProducerBase) MessageControlLoop(onMessage func(Message)) {
 // TickerMessageControlLoop is like MessageLoop but executes a given function at
 // every given interval tick, too. If the onTick function takes longer than
 // interval, the next tick will be delayed until onTick finishes.
-func (prod *ProducerBase) TickerMessageControlLoop(onMessage func(Message), interval time.Duration, onTimeOut func()) {
+func (prod *ProducerBase) TickerMessageControlLoop(onMessage func(*Message), interval time.Duration, onTimeOut func()) {
 	prod.setState(PluginStateActive)
 	go prod.ControlLoop()
 	go prod.tickerLoop(interval, onTimeOut)

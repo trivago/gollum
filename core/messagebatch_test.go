@@ -27,11 +27,11 @@ type messageBatchWriter struct {
 	counter int
 }
 
-func (bw *messageBatchWriter) hasData(messages []Message) {
+func (bw *messageBatchWriter) hasData(messages []*Message) {
 	bw.expect.Greater(len(messages), 0)
 }
 
-func (bw *messageBatchWriter) checkOrder(messages []Message) {
+func (bw *messageBatchWriter) checkOrder(messages []*Message) {
 	for i, msg := range messages {
 		bw.expect.Equal(uint64(i), msg.Sequence)
 	}
@@ -42,11 +42,11 @@ func (bw messageBatchWriter) Write(data []byte) (int, error) {
 	return len(data), nil
 }
 
-func (bw messageBatchWriter) Flush(msg Message) {
+func (bw messageBatchWriter) Flush(msg *Message) {
 	bw.expect.NotExecuted()
 }
 
-func (bw *messageBatchWriter) Count(msg Message) {
+func (bw *messageBatchWriter) Count(msg *Message) {
 	bw.counter++
 }
 
@@ -70,7 +70,7 @@ func TestMessageBatchAppendOrFlush(t *testing.T) {
 		return false
 	}
 	//dropMsg a stub
-	dropMsg := func(msg Message) {
+	dropMsg := func(msg *Message) {
 	}
 
 	for i := 0; i < 10; i++ {

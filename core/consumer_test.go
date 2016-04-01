@@ -63,7 +63,7 @@ func TestConsumerEnqueueCopy(t *testing.T) {
 	mockC := getMockConsumer()
 
 	dataToSend := "Consumer Enqueue Data"
-	distribute := func(msg Message) {
+	distribute := func(msg *Message) {
 		expect.Equal(dataToSend, msg.String())
 	}
 

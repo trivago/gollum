@@ -68,7 +68,7 @@ func (stream *Route) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-func (stream *Route) routeMessage(msg core.Message) {
+func (stream *Route) routeMessage(msg *core.Message) {
 	for i := 0; i < len(stream.routes); i++ {
 		target := stream.routes[i]
 
@@ -89,16 +89,16 @@ func (stream *Route) routeMessage(msg core.Message) {
 		if target.id == stream.GetBoundStreamID() {
 			stream.StreamBase.Route(msg, stream.GetBoundStreamID())
 		} else {
-			msg := msg // copy to allow streamId changes and multiple routes
-			msg.StreamID = target.id
-			target.stream.Enqueue(msg)
+			msgCopy := *msg // copy to allow streamId changes and multiple routes
+			msgCopy.StreamID = target.id
+			target.stream.Enqueue(&msgCopy)
 		}
 	}
 }
 
 // Enqueue overloads the standard Enqueue method to allow direct routing to
 // explicit stream targets
-func (stream *Route) Enqueue(msg core.Message) {
+func (stream *Route) Enqueue(msg *core.Message) {
 	if stream.Accepts(msg) {
 		var streamID core.MessageStreamID
 		msg.Data, streamID = stream.Format(msg)

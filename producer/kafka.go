@@ -249,7 +249,7 @@ func (prod *Kafka) pollResults() {
 	for keepPolling {
 		select {
 		case err := <-prod.producer.Errors():
-			if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
+			if msg, hasMsg := err.Msg.Metadata.(*core.Message); hasMsg {
 				prod.Drop(msg)
 			}
 
@@ -294,8 +294,8 @@ func (prod *Kafka) registerNewTopic(streamID core.MessageStreamID) string {
 	return topic
 }
 
-func (prod *Kafka) produceMessage(msg core.Message) {
-	originalMsg := msg
+func (prod *Kafka) produceMessage(msg *core.Message) {
+	originalMsg := *msg
 	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
 
 	prod.topicGuard.RLock()
@@ -320,7 +320,7 @@ func (prod *Kafka) produceMessage(msg core.Message) {
 	kafkaMsg := &kafka.ProducerMessage{
 		Topic:    topic,
 		Value:    kafka.ByteEncoder(msg.Data),
-		Metadata: originalMsg,
+		Metadata: &originalMsg,
 	}
 
 	if prod.keyFormat != nil {
@@ -338,7 +338,7 @@ func (prod *Kafka) produceMessage(msg core.Message) {
 
 	case <-timeout.C:
 		// Sarama channels are full -> drop
-		prod.Drop(originalMsg)
+		prod.Drop(&originalMsg)
 		tgo.Metric.Inc(kafkaMetricUnresponsive + topic)
 	}
 }

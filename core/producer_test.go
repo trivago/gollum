@@ -35,7 +35,7 @@ func (prod *mockProducer) Produce(workers *sync.WaitGroup) {
 func getMockProducer() mockProducer {
 	return mockProducer{
 		ProducerBase{
-			messages:         NewMessageBuffer(2),
+			messages:         NewMessageQueue(2),
 			control:          make(chan PluginControl),
 			streams:          []MessageStreamID{},
 			dropStreamID:     2,
@@ -141,14 +141,14 @@ func TestProducerEnqueue(t *testing.T) {
 	// TODO: distribute for drop route not called. Probably streams array contains soln
 	expect := ttesting.NewExpect(t)
 	mockP := getMockProducer()
-	mockDistribute := func(msg Message) {
+	mockDistribute := func(msg *Message) {
 		expect.Equal("ProdEnqueueTest", msg.String())
 	}
 	mockDropStream := getMockStream()
 	StreamRegistry.Register(&mockDropStream, 2)
 	mockDropStream.distribute = mockDistribute
 
-	msg := Message{
+	msg := &Message{
 		Data:     []byte("ProdEnqueueTest"),
 		StreamID: 1,
 	}
@@ -181,16 +181,16 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 
 	mockP.setState(PluginStateActive)
 
-	handleMessageFail := func(msg Message) {
+	handleMessageFail := func(msg *Message) {
 		expect.Equal("closeMessageChannel", msg.String())
 		time.Sleep(time.Second)
 	}
 
-	handleMessage := func(msg Message) {
+	handleMessage := func(msg *Message) {
 		expect.Equal("closeMessageChannel", msg.String())
 	}
 
-	mockDistribute := func(msg Message) {
+	mockDistribute := func(msg *Message) {
 		expect.Equal("closeMessageChannel", msg.String())
 	}
 
@@ -202,7 +202,7 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 	StreamRegistry.Register(&mockDropStream, 2)
 
 	mockP.streams = []MessageStreamID{2}
-	msgToSend := Message{
+	msgToSend := &Message{
 		Data:     []byte("closeMessageChannel"),
 		StreamID: 1,
 	}
@@ -210,7 +210,7 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 	mockP.Enqueue(msgToSend, nil)
 	expect.False(mockP.CloseMessageChannel(handleMessageFail))
 
-	mockP.messages = NewMessageBuffer(2)
+	mockP.messages = NewMessageQueue(2)
 	mockP.Enqueue(msgToSend, nil)
 	expect.True(mockP.CloseMessageChannel(handleMessage))
 }
@@ -253,9 +253,9 @@ func TestProducerMessageLoop(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockP := getMockProducer()
 	mockP.setState(PluginStateActive)
-	mockP.messages = NewMessageBuffer(10)
+	mockP.messages = NewMessageQueue(10)
 	msgData := "test Message loop"
-	msg := Message{
+	msg := &Message{
 		Data: []byte(msgData),
 	}
 
@@ -263,7 +263,7 @@ func TestProducerMessageLoop(t *testing.T) {
 		mockP.messages.Push(msg, -1)
 	}
 	counter := 0
-	onMessage := func(msg Message) {
+	onMessage := func(msg *Message) {
 		expect.Equal(msgData, msg.String())
 		counter++
 		if counter == 9 {

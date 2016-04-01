@@ -24,7 +24,7 @@ import (
 // messagebatch.
 type WriterAssembly struct {
 	writer       io.Writer
-	flush        func(Message)
+	flush        func(*Message)
 	formatter    FormatterFunc
 	dropStreamID MessageStreamID
 	buffer       []byte
@@ -35,7 +35,7 @@ type WriterAssembly struct {
 
 // NewWriterAssembly creates a new adapter between io.Writer and the MessageBatch
 // AssemblyFunc function signature
-func NewWriterAssembly(writer io.Writer, flush func(Message), formatter FormatterFunc) WriterAssembly {
+func NewWriterAssembly(writer io.Writer, flush func(*Message), formatter FormatterFunc) WriterAssembly {
 	return WriterAssembly{
 		writer:      writer,
 		formatter:   formatter,
@@ -64,7 +64,7 @@ func (asm *WriterAssembly) SetWriter(writer io.Writer) {
 }
 
 // SetFlush changes the bound flush function
-func (asm *WriterAssembly) SetFlush(flush func(Message)) {
+func (asm *WriterAssembly) SetFlush(flush func(*Message)) {
 	asm.flush = flush
 }
 
@@ -78,7 +78,7 @@ func (asm *WriterAssembly) getWriter() io.Writer {
 // a MessageBatch to an io.Writer.
 // Messages are formatted using a given formatter. If the io.Writer fails to
 // write the assembled buffer all messages are passed to the FLush() method.
-func (asm *WriterAssembly) Write(messages []Message) {
+func (asm *WriterAssembly) Write(messages []*Message) {
 	writer := asm.getWriter()
 
 	if writer == nil {
@@ -120,7 +120,7 @@ func (asm *WriterAssembly) Write(messages []Message) {
 // Flush is an AssemblyFunc compatible implementation to pass all messages from
 // a MessageBatch to e.g. the Drop function of a producer.
 // Flush will also be called by Write if the io.Writer reported an error.
-func (asm *WriterAssembly) Flush(messages []Message) {
+func (asm *WriterAssembly) Flush(messages []*Message) {
 	for _, msg := range messages {
 		asm.flush(msg)
 	}

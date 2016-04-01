@@ -62,7 +62,7 @@ func (format *CollectdToInflux10) escapeString(value string) string {
 }
 
 // Format transforms collectd data to influx 0.9.x data
-func (format *CollectdToInflux10) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+func (format *CollectdToInflux10) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
 	collectdData, err := parseCollectdPacket(msg.Data)
 	if err != nil {
 		format.Log.Error.Print("Collectd parser error: ", err)

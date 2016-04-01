@@ -59,7 +59,7 @@ func (filter *Stream) Configure(conf core.PluginConfigReader) error {
 }
 
 // Accepts filters by streamId using a black and whitelist
-func (filter *Stream) Accepts(msg core.Message) bool {
+func (filter *Stream) Accepts(msg *core.Message) bool {
 	for _, blockedID := range filter.blacklist {
 		if msg.StreamID == blockedID {
 			return false // ### return, explicitly blocked ###

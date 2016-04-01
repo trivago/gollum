@@ -165,7 +165,7 @@ func (prod *Kinesis) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-func (prod *Kinesis) bufferMessage(msg core.Message) {
+func (prod *Kinesis) bufferMessage(msg *core.Message) {
 	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
 }
 
@@ -190,13 +190,13 @@ func (prod *Kinesis) sendBatch() {
 	prod.batch.Flush(prod.transformMessages)
 }
 
-func (prod *Kinesis) dropMessages(messages []core.Message) {
+func (prod *Kinesis) dropMessages(messages []*core.Message) {
 	for _, msg := range messages {
 		prod.Drop(msg)
 	}
 }
 
-func (prod *Kinesis) transformMessages(messages []core.Message) {
+func (prod *Kinesis) transformMessages(messages []*core.Message) {
 	streamRecords := make(map[core.MessageStreamID]*streamData)
 
 	// Format and sort
@@ -236,7 +236,7 @@ func (prod *Kinesis) transformMessages(messages []core.Message) {
 		}
 
 		records.content.Records = append(records.content.Records, record)
-		records.original = append(records.original, &messages[idx])
+		records.original = append(records.original, messages[idx])
 	}
 
 	sleepDuration := prod.sendTimeLimit - time.Since(prod.lastSendTime)
@@ -253,14 +253,14 @@ func (prod *Kinesis) transformMessages(messages []core.Message) {
 			// Batch failed, drop all
 			prod.Log.Error.Print("Kinesis write error: ", err)
 			for _, msg := range records.original {
-				prod.Drop(*msg)
+				prod.Drop(msg)
 			}
 		} else {
 			// Check each message for errors
 			for msgIdx, record := range result.Records {
 				if record.ErrorMessage != nil {
 					prod.Log.Error.Print("Kinesis message write error: ", *record.ErrorMessage)
-					prod.Drop(*records.original[msgIdx])
+					prod.Drop(records.original[msgIdx])
 				}
 			}
 		}

@@ -80,7 +80,7 @@ func (format *Double) Configure(conf core.PluginConfigReader) error {
 }
 
 // Format prepends the Hostname of the message to the message.
-func (format *Double) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+func (format *Double) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
 	leftMsg := msg.Clone()
 	for _, formatter := range format.left {
 		leftMsg.Data, leftMsg.StreamID = formatter.Format(leftMsg)

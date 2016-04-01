@@ -44,7 +44,7 @@ import (
 // build the identifier from. By default this is set to "format.Forward"
 type Identifier struct {
 	core.FormatterBase
-	hash func(msg core.Message) []byte
+	hash func(*core.Message) []byte
 }
 
 func init() {
@@ -71,25 +71,25 @@ func (format *Identifier) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-func (format *Identifier) idHash(msg core.Message) []byte {
+func (format *Identifier) idHash(msg *core.Message) []byte {
 	hasher := fnv.New64a()
 	hasher.Write(msg.Data)
 	return []byte(strconv.FormatUint(hasher.Sum64(), 16))
 }
 
-func (format *Identifier) idTime(msg core.Message) []byte {
+func (format *Identifier) idTime(msg *core.Message) []byte {
 	return []byte(msg.Timestamp.Format("060102150405") + strconv.FormatUint(msg.Sequence%10000000, 10))
 }
 
-func (format *Identifier) idSeq(msg core.Message) []byte {
+func (format *Identifier) idSeq(msg *core.Message) []byte {
 	return []byte(strconv.FormatUint(msg.Sequence, 10))
 }
 
-func (format *Identifier) idSeqHex(msg core.Message) []byte {
+func (format *Identifier) idSeqHex(msg *core.Message) []byte {
 	return []byte(strconv.FormatUint(msg.Sequence, 16))
 }
 
 // Format generates a unique identifier from the message contents or metadata.
-func (format *Identifier) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+func (format *Identifier) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
 	return format.hash(msg), msg.StreamID
 }
