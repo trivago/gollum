@@ -87,7 +87,7 @@ func (stream *Route) routeMessage(msg *core.Message) {
 		}
 
 		if target.id == stream.GetBoundStreamID() {
-			stream.StreamBase.Route(msg, stream.GetBoundStreamID())
+			stream.StreamBase.Route(msg)
 		} else {
 			msgCopy := *msg // copy to allow streamId changes and multiple routes
 			msgCopy.StreamID = target.id
@@ -100,11 +100,10 @@ func (stream *Route) routeMessage(msg *core.Message) {
 // explicit stream targets
 func (stream *Route) Enqueue(msg *core.Message) {
 	if stream.Accepts(msg) {
-		var streamID core.MessageStreamID
-		msg.Data, streamID = stream.Format(msg)
+		stream.Format(msg)
 
-		if msg.StreamID != streamID {
-			stream.StreamBase.Route(msg, streamID)
+		if msg.StreamID != stream.GetBoundStreamID() {
+			stream.StreamBase.Route(msg)
 			return // ### return, routed by standard method ###
 		}
 

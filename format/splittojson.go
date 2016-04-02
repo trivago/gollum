@@ -67,7 +67,7 @@ func (format *SplitToJSON) Configure(conf core.PluginConfigReader) error {
 }
 
 // Format returns the splitted message payload as json
-func (format *SplitToJSON) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
+func (format *SplitToJSON) Format(msg *core.Message) {
 	components := bytes.Split(msg.Data, format.token)
 	maxIdx := tmath.MinI(len(format.keys), len(components))
 	jsonData := ""
@@ -91,5 +91,5 @@ func (format *SplitToJSON) Format(msg *core.Message) ([]byte, core.MessageStream
 		}
 	}
 
-	return []byte(jsonData), msg.StreamID
+	msg.Data = []byte(jsonData)
 }

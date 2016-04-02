@@ -118,59 +118,62 @@ func (prod *Redis) Configure(conf core.PluginConfigReader) error {
 }
 
 func (prod *Redis) formatField(msg *core.Message) []byte {
+	fieldMsg := *msg
 	for _, formatter := range prod.fieldFormatters {
-		msg.Data, _ = formatter.Format(msg)
+		formatter.Format(&fieldMsg)
 	}
-	return msg.Data
+	return fieldMsg.Data
 }
 
 func (prod *Redis) storeHash(msg *core.Message) {
-	value, _ := prod.Format(msg)
+	originalMsg := *msg
+	prod.Format(msg)
+
 	var field []byte
 	if prod.fieldFromParsed {
-		fieldMsg := msg
-		fieldMsg.Data = value
-		field = prod.formatField(fieldMsg)
-	} else {
 		field = prod.formatField(msg)
+	} else {
+		field = prod.formatField(&originalMsg)
 	}
 
-	result := prod.client.HSet(prod.key, string(field), string(value))
+	result := prod.client.HSet(prod.key, string(field), string(msg.Data))
 	if result.Err() != nil {
 		prod.Log.Error.Print("Redis: ", result.Err())
-		prod.Drop(msg)
+		prod.Drop(&originalMsg)
 	}
 }
 
 func (prod *Redis) storeList(msg *core.Message) {
-	value, _ := prod.ProducerBase.Format(msg)
+	originalMsg := *msg
+	prod.Format(msg)
 
-	result := prod.client.RPush(prod.key, string(value))
+	result := prod.client.RPush(prod.key, string(msg.Data))
 	if result.Err() != nil {
 		prod.Log.Error.Print("Redis: ", result.Err())
-		prod.Drop(msg)
+		prod.Drop(&originalMsg)
 	}
 }
 
 func (prod *Redis) storeSet(msg *core.Message) {
-	value, _ := prod.ProducerBase.Format(msg)
+	originalMsg := *msg
+	prod.Format(msg)
 
-	result := prod.client.SAdd(prod.key, string(value))
+	result := prod.client.SAdd(prod.key, string(msg.Data))
 	if result.Err() != nil {
 		prod.Log.Error.Print("Redis: ", result.Err())
-		prod.Drop(msg)
+		prod.Drop(&originalMsg)
 	}
 }
 
 func (prod *Redis) storeSortedSet(msg *core.Message) {
-	value, _ := prod.Format(msg)
+	originalMsg := *msg
+	prod.Format(msg)
+
 	var scoreValue []byte
 	if prod.fieldFromParsed {
-		scoreMsg := msg
-		scoreMsg.Data = value
-		scoreValue = prod.formatField(scoreMsg)
-	} else {
 		scoreValue = prod.formatField(msg)
+	} else {
+		scoreValue = prod.formatField(&originalMsg)
 	}
 
 	score, err := strconv.ParseFloat(string(scoreValue), 64)
@@ -181,22 +184,23 @@ func (prod *Redis) storeSortedSet(msg *core.Message) {
 
 	result := prod.client.ZAdd(prod.key, redis.Z{
 		Score:  score,
-		Member: string(value),
+		Member: string(msg.Data),
 	})
 
 	if result.Err() != nil {
 		prod.Log.Error.Print("Redis: ", result.Err())
-		prod.Drop(msg)
+		prod.Drop(&originalMsg)
 	}
 }
 
 func (prod *Redis) storeString(msg *core.Message) {
-	value, _ := prod.ProducerBase.Format(msg)
+	originalMsg := *msg
+	prod.Format(msg)
 
-	result := prod.client.Set(prod.key, string(value), time.Duration(0))
+	result := prod.client.Set(prod.key, string(msg.Data), time.Duration(0))
 	if result.Err() != nil {
 		prod.Log.Error.Print("Redis: ", result.Err())
-		prod.Drop(msg)
+		prod.Drop(&originalMsg)
 	}
 }
 

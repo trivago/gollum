@@ -55,7 +55,7 @@ func (format *StreamName) Configure(conf core.PluginConfigReader) error {
 }
 
 // Format prepends the StreamName of the message to the message.
-func (format *StreamName) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
+func (format *StreamName) Format(msg *core.Message) {
 	var streamName string
 
 	switch {
@@ -71,5 +71,5 @@ func (format *StreamName) Format(msg *core.Message) ([]byte, core.MessageStreamI
 	separatorLen := copy(payload[streamNameLen:], format.separator)
 	copy(payload[streamNameLen+separatorLen:], msg.Data)
 
-	return payload, msg.StreamID
+	msg.Data = payload
 }

@@ -60,8 +60,8 @@ func (prod *Console) Configure(conf core.PluginConfigReader) error {
 }
 
 func (prod *Console) printMessage(msg *core.Message) {
-	text, _ := prod.ProducerBase.Format(msg)
-	fmt.Fprint(prod.console, string(text))
+	prod.ProducerBase.Format(msg)
+	fmt.Fprint(prod.console, string(msg.Data))
 }
 
 func (prod *Console) close() {

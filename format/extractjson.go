@@ -69,29 +69,29 @@ func (format *ExtractJSON) Configure(conf core.PluginConfigReader) error {
 }
 
 // Format modifies the JSON payload of this message
-func (format *ExtractJSON) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
+func (format *ExtractJSON) Format(msg *core.Message) {
 	values := tcontainer.NewMarshalMap()
 	err := json.Unmarshal(msg.Data, &values)
 	if err != nil {
 		format.Log.Warning.Print("ExtractJSON failed to unmarshal a message: ", err)
-		return msg.Data, msg.StreamID // ### return, malformed data ###
+		return // ### return, malformed data ###
 	}
 
 	if value, exists := values[format.field]; exists {
 		switch value.(type) {
 		case int64:
 			val, _ := value.(int64)
-			return []byte(fmt.Sprintf("%d", val)), msg.StreamID
+			msg.Data = []byte(fmt.Sprintf("%d", val))
 		case string:
 			val, _ := value.(string)
-			return []byte(val), msg.StreamID
+			msg.Data = []byte(val)
 		case float64:
 			val, _ := value.(float64)
-			return []byte(fmt.Sprintf(format.numberFormat, val)), msg.StreamID
+			msg.Data = []byte(fmt.Sprintf(format.numberFormat, val))
 		default:
-			return []byte(fmt.Sprintf("%v", value)), msg.StreamID
+			msg.Data = []byte(fmt.Sprintf("%v", value))
 		}
 	}
 
-	return []byte(""), msg.StreamID
+	msg.Data = []byte("")
 }

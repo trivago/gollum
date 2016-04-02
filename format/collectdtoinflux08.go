@@ -56,11 +56,11 @@ func (format *CollectdToInflux08) createMetricName(plugin string, pluginInstance
 }
 
 // Format transforms collectd data to influx 0.8.x data
-func (format *CollectdToInflux08) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
+func (format *CollectdToInflux08) Format(msg *core.Message) {
 	collectdData, err := parseCollectdPacket(msg.Data)
 	if err != nil {
 		format.Log.Error.Print("Collectd parser error: ", err)
-		return []byte{}, msg.StreamID // ### return, error ###
+		return // ### return, error ###
 	}
 
 	// Manually convert to JSON lines
@@ -75,5 +75,5 @@ func (format *CollectdToInflux08) Format(msg *core.Message) ([]byte, core.Messag
 		fmt.Fprintf(&influxData, `{"name": "%s", "columns": ["time", "value"], "points":[[%d, %f]]},`, name, int32(collectdData.Time), value)
 	}
 
-	return influxData.Bytes(), msg.StreamID
+	msg.Data = influxData.Bytes()
 }

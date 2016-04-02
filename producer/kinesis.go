@@ -201,17 +201,18 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 
 	// Format and sort
 	for idx, msg := range messages {
-		msgData, streamID := prod.ProducerBase.Format(msg)
-		messageHash := fmt.Sprintf("%X-%d", streamID, msg.Sequence)
+		currentMsg := *msg
+		prod.ProducerBase.Format(&currentMsg)
+		messageHash := fmt.Sprintf("%X-%d", currentMsg.StreamID, currentMsg.Sequence)
 
 		// Fetch buffer for this stream
-		records, recordsExists := streamRecords[streamID]
+		records, recordsExists := streamRecords[currentMsg.StreamID]
 		if !recordsExists {
 			// Select the correct kinesis stream
-			streamName, streamMapped := prod.streamMap[streamID]
+			streamName, streamMapped := prod.streamMap[currentMsg.StreamID]
 			if !streamMapped {
-				streamName = core.StreamRegistry.GetStreamName(streamID)
-				prod.streamMap[streamID] = streamName
+				streamName = core.StreamRegistry.GetStreamName(currentMsg.StreamID)
+				prod.streamMap[currentMsg.StreamID] = streamName
 
 				tgo.Metric.New(kinesisMetricMessages + streamName)
 				tgo.Metric.New(kinesisMetricMessagesSec + streamName)
@@ -226,12 +227,12 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 				},
 				original: make([]*core.Message, 0, len(messages)),
 			}
-			streamRecords[streamID] = records
+			streamRecords[currentMsg.StreamID] = records
 		}
 
 		// Append record to stream
 		record := &kinesis.PutRecordsRequestEntry{
-			Data:         msgData,
+			Data:         currentMsg.Data,
 			PartitionKey: aws.String(messageHash),
 		}
 

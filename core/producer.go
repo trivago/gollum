@@ -319,12 +319,10 @@ func (prod *ProducerBase) GetShutdownTimeout() time.Duration {
 }
 
 // Format calls all formatters in their order of definition
-func (prod *ProducerBase) Format(msg *Message) ([]byte, MessageStreamID) {
-	msgCopy := *msg
+func (prod *ProducerBase) Format(msg *Message) {
 	for _, formatter := range prod.formatters {
-		msgCopy.Data, msgCopy.StreamID = formatter.Format(&msgCopy)
+		formatter.Format(msg)
 	}
-	return msgCopy.Data, msgCopy.StreamID
 }
 
 // AppendFormatter adds a given formatter to the end of the list of formatters

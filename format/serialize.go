@@ -52,15 +52,15 @@ func (format *Serialize) Configure(conf core.PluginConfigReader) error {
 
 // Format prepends the sequence number of the message (followed by ":") to the
 // message.
-func (format *Serialize) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
+func (format *Serialize) Format(msg *core.Message) {
 	data, err := msg.Serialize()
 	if err != nil {
 		format.Log.Error.Print(err)
-		return msg.Data, msg.StreamID
+		return // ### return, error ###
 	}
 
 	if !format.encode {
-		return data, msg.StreamID // ### return, raw data ###
+		return // ### return, raw data ###
 	}
 
 	encodedSize := base64.StdEncoding.EncodedLen(len(data))
@@ -68,5 +68,5 @@ func (format *Serialize) Format(msg *core.Message) ([]byte, core.MessageStreamID
 	base64.StdEncoding.Encode(encoded, data)
 	encoded[encodedSize] = '\n'
 
-	return encoded, msg.StreamID
+	msg.Data = encoded
 }

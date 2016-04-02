@@ -61,11 +61,11 @@ func (format *Base64Decode) Configure(conf core.PluginConfigReader) error {
 }
 
 // Format returns the original message payload
-func (format *Base64Decode) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
+func (format *Base64Decode) Format(msg *core.Message) {
 	decoded := make([]byte, format.dictionary.DecodedLen(len(msg.Data)))
-	size, err := format.dictionary.Decode(decoded, msg.Data)
-	if err != nil {
+	if size, err := format.dictionary.Decode(decoded, msg.Data); err != nil {
 		format.Log.Error.Print(err)
+	} else {
+		msg.Data = decoded[:size]
 	}
-	return decoded[:size], msg.StreamID
 }

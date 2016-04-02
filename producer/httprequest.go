@@ -92,8 +92,9 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 		err error
 	)
 
-	data, _ := prod.ProducerBase.Format(msg)
-	requestData := bytes.NewBuffer(data)
+	originalMsg := *msg
+	prod.ProducerBase.Format(msg)
+	requestData := bytes.NewBuffer(msg.Data)
 
 	if prod.rawPackets {
 		// Pass raw request
@@ -114,7 +115,7 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 
 	if err != nil {
 		prod.Log.Error.Print("HTTPRequest invalid request", err)
-		prod.Drop(msg)
+		prod.Drop(&originalMsg)
 		return // ### return, malformed request ###
 	}
 
@@ -124,7 +125,7 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 			if !prod.isHostUp() {
 				prod.Control() <- core.PluginControlFuseBurn
 			}
-			prod.Drop(msg)
+			prod.Drop(&originalMsg)
 		} else {
 			prod.Control() <- core.PluginControlFuseActive
 		}

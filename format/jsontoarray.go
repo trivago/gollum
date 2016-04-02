@@ -50,38 +50,39 @@ func (format *JSONToArray) Configure(conf core.PluginConfigReader) error {
 }
 
 // Format spilts a json struct to a csv.
-func (format *JSONToArray) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
+func (format *JSONToArray) Format(msg *core.Message) {
 	values := make(tcontainer.MarshalMap)
 	err := json.Unmarshal(msg.Data, &values)
-	if err == nil {
-		csv := ""
-		for _, field := range format.fields {
-			if value, exists := values.Value(field); exists {
-				// Add value to csv string based on the actual type
-				switch value.(type) {
-				case bool:
-					csv = fmt.Sprintf("%s%t%s", csv, value.(bool), format.separator)
-				case float64:
-					csv = fmt.Sprintf("%s%d%s", csv, value.(int), format.separator)
-				case string:
-					csv = fmt.Sprintf("%s%s%s", csv, value.(string), format.separator)
-				default:
-					format.Log.Warning.Print("Field ", field, " uses an unsupported datatype")
-					csv = format.separator
-				}
-			} else {
-				// Not parsable = empty value
-				format.Log.Warning.Print("Field ", field, " not found")
-				csv += format.separator
-			}
-		}
-		// Remove last separator
-		if len(csv) >= len(format.separator) {
-			csv = csv[:len(csv)-len(format.separator)]
-		}
-		return []byte(csv), msg.StreamID
+	if err != nil {
+		format.Log.Error.Print("Json parsing error: ", err)
+		return // ### error ###
 	}
 
-	format.Log.Error.Print("Json parsing error: ", err)
-	return msg.Data, msg.StreamID
+	csv := ""
+	for _, field := range format.fields {
+		if value, exists := values.Value(field); exists {
+			// Add value to csv string based on the actual type
+			switch value.(type) {
+			case bool:
+				csv = fmt.Sprintf("%s%t%s", csv, value.(bool), format.separator)
+			case float64:
+				csv = fmt.Sprintf("%s%d%s", csv, value.(int), format.separator)
+			case string:
+				csv = fmt.Sprintf("%s%s%s", csv, value.(string), format.separator)
+			default:
+				format.Log.Warning.Print("Field ", field, " uses an unsupported datatype")
+				csv = format.separator
+			}
+		} else {
+			// Not parsable = empty value
+			format.Log.Warning.Print("Field ", field, " not found")
+			csv += format.separator
+		}
+	}
+	// Remove last separator
+	if len(csv) >= len(format.separator) {
+		csv = csv[:len(csv)-len(format.separator)]
+	}
+
+	msg.Data = []byte(csv)
 }

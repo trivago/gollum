@@ -228,7 +228,7 @@ func (prod *KafkaProducer) registerNewTopic(streamID core.MessageStreamID) *kafk
 
 func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 	originalMsg := *msg
-	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
+	prod.ProducerBase.Format(msg)
 
 	// Send message
 	prod.topicGuard.RLock()
@@ -243,7 +243,9 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 
 	var key []byte
 	if prod.keyFormat != nil {
-		key, _ = prod.keyFormat.Format(msg)
+		keyMsg := *msg
+		prod.keyFormat.Format(&keyMsg)
+		key = keyMsg.Data
 	}
 
 	serializedOriginal, err := originalMsg.Serialize()

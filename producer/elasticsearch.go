@@ -178,7 +178,7 @@ func (prod *ElasticSearch) isClusterUp() bool {
 
 func (prod *ElasticSearch) sendMessage(msg *core.Message) {
 	originalMsg := *msg
-	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
+	prod.ProducerBase.Format(msg)
 
 	index, indexMapped := prod.index[msg.StreamID]
 	if !indexMapped {

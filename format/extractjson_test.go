@@ -32,9 +32,8 @@ func TestExtractJSON(t *testing.T) {
 	formatter.Configure(core.NewPluginConfigReader(&config))
 	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"), 0)
 
-	result, _ := formatter.Format(msg)
-
-	expect.Equal("valid", string(result))
+	formatter.Format(msg)
+	expect.Equal("valid", string(msg.Data))
 }
 
 func TestExtractJSONPrecision(t *testing.T) {
@@ -47,7 +46,7 @@ func TestExtractJSONPrecision(t *testing.T) {
 
 	formatter.Configure(core.NewPluginConfigReader(&config))
 	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":999999999}"), 0)
-	result, _ := formatter.Format(msg)
+	formatter.Format(msg)
 
-	expect.Equal("999999999", string(result))
+	expect.Equal("999999999", string(msg.Data))
 }

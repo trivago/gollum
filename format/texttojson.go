@@ -34,8 +34,8 @@ const (
 	jsonReadArrayAppend = jsonReaderState(iota)
 )
 
-// JSON formatter plugin
-// JSON is a formatter that passes a message encapsulated as JSON in the form
+// TextToJSON formatter plugin
+// TextToJSON is a formatter that passes a message encapsulated as JSON in the form
 // {"message":"..."}. The actual message is formatted by a nested formatter and
 // HTML escaped.
 // Configuration example
@@ -95,7 +95,7 @@ const (
 // written. This does not happen after an object has been started.
 // A key write inside an array will cause the array to be closed. If the array
 // is nested, all arrays will be closed.
-type JSON struct {
+type TextToJSON struct {
 	core.FormatterBase
 	message   *bytes.Buffer
 	parser    tstrings.TransitionParser
@@ -108,11 +108,11 @@ type JSON struct {
 }
 
 func init() {
-	core.TypeRegistry.Register(JSON{})
+	core.TypeRegistry.Register(TextToJSON{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *JSON) Configure(conf core.PluginConfigReader) error {
+func (format *TextToJSON) Configure(conf core.PluginConfigReader) error {
 	format.FormatterBase.Configure(conf)
 
 	format.parser = tstrings.NewTransitionParser()
@@ -165,7 +165,7 @@ func (format *JSON) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-func (format *JSON) writeKey(key []byte) {
+func (format *TextToJSON) writeKey(key []byte) {
 	// Make sure we are not in an array anymore
 	for format.state == jsonReadArray || format.state == jsonReadArrayAppend {
 		format.readEnd(nil, 0)
@@ -186,12 +186,12 @@ func (format *JSON) writeKey(key []byte) {
 	format.message.WriteString(`":`)
 }
 
-func (format *JSON) readKey(data []byte, state tstrings.ParserStateID) {
+func (format *TextToJSON) readKey(data []byte, state tstrings.ParserStateID) {
 	format.writeKey(data)
 	format.state = jsonReadValue
 }
 
-func (format *JSON) readValue(data []byte, state tstrings.ParserStateID) {
+func (format *TextToJSON) readValue(data []byte, state tstrings.ParserStateID) {
 	switch format.state {
 	default:
 		format.writeKey([]byte(format.parser.GetStateName(state)))
@@ -211,7 +211,7 @@ func (format *JSON) readValue(data []byte, state tstrings.ParserStateID) {
 	}
 }
 
-func (format *JSON) readEscaped(data []byte, state tstrings.ParserStateID) {
+func (format *TextToJSON) readEscaped(data []byte, state tstrings.ParserStateID) {
 	switch format.state {
 	default:
 		format.writeKey([]byte(format.parser.GetStateName(state)))
@@ -234,49 +234,49 @@ func (format *JSON) readEscaped(data []byte, state tstrings.ParserStateID) {
 	format.message.WriteByte('"')
 }
 
-func (format *JSON) readDate(data []byte, state tstrings.ParserStateID) {
+func (format *TextToJSON) readDate(data []byte, state tstrings.ParserStateID) {
 	date, _ := time.Parse(format.timeRead, string(bytes.TrimSpace(data)))
 	formattedDate := date.Format(format.timeWrite)
 	format.readEscaped([]byte(formattedDate), state)
 }
 
-func (format *JSON) readValueEnd(data []byte, state tstrings.ParserStateID) {
+func (format *TextToJSON) readValueEnd(data []byte, state tstrings.ParserStateID) {
 	formatState := format.state
 	format.readValue(data, state)
 	format.state = formatState
 	format.readEnd(data, state)
 }
 
-func (format *JSON) readEscapedEnd(data []byte, state tstrings.ParserStateID) {
+func (format *TextToJSON) readEscapedEnd(data []byte, state tstrings.ParserStateID) {
 	formatState := format.state
 	format.readEscaped(data, state)
 	format.state = formatState
 	format.readEnd(data, state)
 }
 
-func (format *JSON) readDateEnd(data []byte, state tstrings.ParserStateID) {
+func (format *TextToJSON) readDateEnd(data []byte, state tstrings.ParserStateID) {
 	formatState := format.state
 	format.readDate(data, state)
 	format.state = formatState
 	format.readEnd(data, state)
 }
 
-func (format *JSON) readArrayValue(data []byte, state tstrings.ParserStateID) {
+func (format *TextToJSON) readArrayValue(data []byte, state tstrings.ParserStateID) {
 	format.readArray(data, state)
 	format.readValue(data, state)
 }
 
-func (format *JSON) readArrayEscaped(data []byte, state tstrings.ParserStateID) {
+func (format *TextToJSON) readArrayEscaped(data []byte, state tstrings.ParserStateID) {
 	format.readArray(data, state)
 	format.readEscaped(data, state)
 }
 
-func (format *JSON) readArrayDate(data []byte, state tstrings.ParserStateID) {
+func (format *TextToJSON) readArrayDate(data []byte, state tstrings.ParserStateID) {
 	format.readArray(data, state)
 	format.readDate(data, state)
 }
 
-func (format *JSON) readArray(data []byte, state tstrings.ParserStateID) {
+func (format *TextToJSON) readArray(data []byte, state tstrings.ParserStateID) {
 	if format.state == jsonReadArrayAppend {
 		format.message.WriteString(",[")
 	} else {
@@ -286,7 +286,7 @@ func (format *JSON) readArray(data []byte, state tstrings.ParserStateID) {
 	format.state = jsonReadArray
 }
 
-func (format *JSON) readObject(data []byte, state tstrings.ParserStateID) {
+func (format *TextToJSON) readObject(data []byte, state tstrings.ParserStateID) {
 	if format.state == jsonReadArrayAppend {
 		format.message.WriteString(",{")
 	} else {
@@ -296,7 +296,7 @@ func (format *JSON) readObject(data []byte, state tstrings.ParserStateID) {
 	format.state = jsonReadObject
 }
 
-func (format *JSON) readEnd(data []byte, state tstrings.ParserStateID) {
+func (format *TextToJSON) readEnd(data []byte, state tstrings.ParserStateID) {
 	stackSize := len(format.stack)
 
 	if stackSize > 0 {
@@ -319,7 +319,7 @@ func (format *JSON) readEnd(data []byte, state tstrings.ParserStateID) {
 
 // Format parses the incoming message and generates JSON from it.
 // This function is mutex locked.
-func (format *JSON) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
+func (format *TextToJSON) Format(msg *core.Message) {
 	// The internal state is not threadsafe so we need to lock here
 	format.parseLock.Lock()
 	defer format.parseLock.Unlock()
@@ -343,5 +343,5 @@ func (format *JSON) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
 	}
 
 	format.message.WriteString("}\n")
-	return bytes.TrimSpace(format.message.Bytes()), msg.StreamID
+	msg.Data = bytes.TrimSpace(format.message.Bytes())
 }

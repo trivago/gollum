@@ -21,9 +21,9 @@ import (
 	"testing"
 )
 
-func newTestJSONFormatter(directives []interface{}, start string) *JSON {
-	format := JSON{}
-	conf := core.NewPluginConfig("mockJSONFormatter", "format.JSON")
+func newTestTextToJSONFormatter(directives []interface{}, start string) *TextToJSON {
+	format := TextToJSON{}
+	conf := core.NewPluginConfig("mockTextToJSONFormatter", "format.TextToJSON")
 
 	conf.Settings["startstate"] = start
 	conf.Settings["directives"] = directives
@@ -34,12 +34,12 @@ func newTestJSONFormatter(directives []interface{}, start string) *JSON {
 	return &format
 }
 
-func TestJSONFormatter1(t *testing.T) {
+func TestTextToJSONFormatter1(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	testString := `{"a":123,"b":"string","c":[1,2,3],"d":[{"a":1}],"e":[[1,2]],"f":[{"a":1},{"b":2}],"g":[[1,2],[3,4]]}`
 	msg := core.NewMessage(nil, []byte(testString), 0)
-	test := newTestJSONFormatter([]interface{}{
+	test := newTestTextToJSONFormatter([]interface{}{
 		`findKey    :":  key        ::`,
 		`findKey    :}:             : pop  : end`,
 		`key        :":  findVal    :      : key`,
@@ -62,13 +62,13 @@ func TestJSONFormatter1(t *testing.T) {
 		`arrNextStr :]:             : pop  : end`,
 	}, "findKey")
 
-	result, _ := test.Format(msg)
-	expect.Equal(testString, string(result))
+	test.Format(msg)
+	expect.Equal(testString, string(msg.Data))
 }
 
-func BenchmarkJSONFormatter(b *testing.B) {
+func BenchmarkTextToJSONFormatter(b *testing.B) {
 
-	test := newTestJSONFormatter([]interface{}{
+	test := newTestTextToJSONFormatter([]interface{}{
 		`findKey    :":  key        ::`,
 		`findKey    :}:             : pop  : end`,
 		`key        :":  findVal    :      : key`,

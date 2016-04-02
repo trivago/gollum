@@ -228,12 +228,10 @@ func (stream *StreamBase) Broadcast(msg *Message) {
 }
 
 // Format calls all formatters in their order of definition
-func (stream *StreamBase) Format(msg *Message) ([]byte, MessageStreamID) {
-	msgCopy := *msg
+func (stream *StreamBase) Format(msg *Message) {
 	for _, formatter := range stream.formatters {
-		msgCopy.Data, msgCopy.StreamID = formatter.Format(&msgCopy)
+		formatter.Format(msg)
 	}
-	return msgCopy.Data, msgCopy.StreamID
 }
 
 // Accepts calls applys all filters to the given message and returns true when
@@ -253,9 +251,8 @@ func (stream *StreamBase) Accepts(msg *Message) bool {
 // to hook into this function.
 func (stream *StreamBase) Enqueue(msg *Message) {
 	if stream.Accepts(msg) {
-		var streamID MessageStreamID
-		msg.Data, streamID = stream.Format(msg)
-		stream.Route(msg, streamID)
+		stream.Format(msg)
+		stream.Route(msg)
 	} else {
 		CountFilteredMessage()
 	}
@@ -264,11 +261,10 @@ func (stream *StreamBase) Enqueue(msg *Message) {
 // Route is called by Enqueue after a message has been accepted and formatted.
 // This encapsulates the main logic of sending messages to producers or to
 // another stream if necessary.
-func (stream *StreamBase) Route(msg *Message, targetID MessageStreamID) {
-	if msg.StreamID != targetID {
-		msg.PrevStreamID = msg.StreamID
-		msg.StreamID = targetID
-		StreamRegistry.GetStreamOrFallback(targetID).Enqueue(msg)
+func (stream *StreamBase) Route(msg *Message) {
+	if msg.StreamID != stream.boundStreamID {
+		msg.PrevStreamID = stream.boundStreamID
+		StreamRegistry.GetStreamOrFallback(msg.StreamID).Enqueue(msg)
 		return // ### done, routed ###
 	}
 

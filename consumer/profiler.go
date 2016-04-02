@@ -182,7 +182,7 @@ func (cons *Profiler) profile() {
 		for i := 0; i < cons.profileRuns && cons.IsActive(); i++ {
 			cons.WaitOnFuse()
 			template := cons.templates[rand.Intn(len(cons.templates))]
-			cons.EnqueueCopy(template, uint64(batchIdx*cons.profileRuns+i))
+			cons.Enqueue(template, uint64(batchIdx*cons.profileRuns+i))
 			if cons.delay > 0 {
 				time.Sleep(cons.delay)
 			}

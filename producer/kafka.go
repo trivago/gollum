@@ -296,7 +296,7 @@ func (prod *Kafka) registerNewTopic(streamID core.MessageStreamID) string {
 
 func (prod *Kafka) produceMessage(msg *core.Message) {
 	originalMsg := *msg
-	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
+	prod.ProducerBase.Format(msg)
 
 	prod.topicGuard.RLock()
 	defer prod.topicGuard.RUnlock()
@@ -324,8 +324,9 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	}
 
 	if prod.keyFormat != nil {
-		key, _ := prod.keyFormat.Format(msg)
-		kafkaMsg.Key = kafka.ByteEncoder(key)
+		keyMsg := *msg
+		prod.keyFormat.Format(&keyMsg)
+		kafkaMsg.Key = kafka.ByteEncoder(keyMsg.Data)
 	}
 
 	// Sarama can block on single messages if all buffers are full.

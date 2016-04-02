@@ -161,16 +161,16 @@ func (values *valueMap) processDirective(directive transformDirective, format *P
 }
 
 // Format modifies the JSON payload of this message
-func (format *ProcessJSON) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
+func (format *ProcessJSON) Format(msg *core.Message) {
 	if len(format.directives) == 0 {
-		return msg.Data, msg.StreamID // ### return, no directives ###
+		return // ### return, no directives ###
 	}
 
 	values := make(valueMap)
 	err := json.Unmarshal(msg.Data, &values)
 	if err != nil {
 		format.Log.Warning.Print("ProcessJSON failed to unmarshal a message: ", err)
-		return msg.Data, msg.StreamID // ### return, malformed data ###
+		return // ### return, malformed data ###
 	}
 
 	for _, directive := range format.directives {
@@ -183,10 +183,9 @@ func (format *ProcessJSON) Format(msg *core.Message) ([]byte, core.MessageStream
 		}
 	}
 
-	if jsonData, err := json.Marshal(values); err == nil {
-		return jsonData, msg.StreamID // ### return, ok ###
+	if jsonData, err := json.Marshal(values); err != nil {
+		format.Log.Warning.Print("ProcessJSON failed to marshal a message: ", err)
+	} else {
+		msg.Data = jsonData
 	}
-
-	format.Log.Warning.Print("ProcessJSON failed to marshal a message: ", err)
-	return msg.Data, msg.StreamID
 }

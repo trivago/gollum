@@ -90,13 +90,15 @@ func (asm *WriterAssembly) Write(messages []*Message) {
 	// Format all messages
 	contentLen := 0
 	for _, msg := range messages {
-		payload, _ := asm.formatter(msg)
-		if contentLen+len(payload) > len(asm.buffer) {
-			asm.buffer = append(asm.buffer[:contentLen], payload...)
+		msgCopy := *msg
+		asm.formatter(&msgCopy)
+
+		if contentLen+len(msgCopy.Data) > len(asm.buffer) {
+			asm.buffer = append(asm.buffer[:contentLen], msgCopy.Data...)
 		} else {
-			copy(asm.buffer[contentLen:], payload)
+			copy(asm.buffer[contentLen:], msgCopy.Data)
 		}
-		contentLen += len(payload)
+		contentLen += len(msgCopy.Data)
 	}
 
 	// Route all messages if they could not be written

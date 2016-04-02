@@ -199,22 +199,23 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 	logBuffer := make([]*scribe.LogEntry, len(messages))
 
 	for idx, msg := range messages {
-		data, streamID := prod.Format(msg)
+		currentMsg := *msg
+		prod.Format(&currentMsg)
 
-		category, exists := prod.category[streamID]
+		category, exists := prod.category[currentMsg.StreamID]
 		if !exists {
 			if category, exists = prod.category[core.WildcardStreamID]; !exists {
-				category = core.StreamRegistry.GetStreamName(streamID)
+				category = core.StreamRegistry.GetStreamName(currentMsg.StreamID)
 			}
 			tgo.Metric.New(scribeMetricMessages + category)
 			tgo.Metric.New(scribeMetricMessagesSec + category)
 			prod.counters[category] = new(int64)
-			prod.category[streamID] = category
+			prod.category[currentMsg.StreamID] = category
 		}
 
 		logBuffer[idx] = &scribe.LogEntry{
 			Category: category,
-			Message:  string(data),
+			Message:  string(currentMsg.Data),
 		}
 
 		atomic.AddInt64(prod.counters[category], 1)

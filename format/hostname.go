@@ -51,7 +51,7 @@ func (format *Hostname) Configure(conf core.PluginConfigReader) error {
 }
 
 // Format prepends the Hostname of the message to the message.
-func (format *Hostname) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
+func (format *Hostname) Format(msg *core.Message) {
 	hostnameStr, err := os.Hostname()
 	if err != nil {
 		hostnameStr = ""
@@ -63,5 +63,5 @@ func (format *Hostname) Format(msg *core.Message) ([]byte, core.MessageStreamID)
 	len := copy(payload, []byte(hostnameStr))
 	copy(payload[len:], msg.Data)
 
-	return payload, msg.StreamID
+	msg.Data = payload
 }

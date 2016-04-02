@@ -62,11 +62,11 @@ func (format *CollectdToInflux10) escapeString(value string) string {
 }
 
 // Format transforms collectd data to influx 0.9.x data
-func (format *CollectdToInflux10) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
+func (format *CollectdToInflux10) Format(msg *core.Message) {
 	collectdData, err := parseCollectdPacket(msg.Data)
 	if err != nil {
 		format.Log.Error.Print("Collectd parser error: ", err)
-		return []byte{}, msg.StreamID // ### return, error ###
+		return // ### return, error ###
 	}
 
 	// Manually convert to line protocol
@@ -91,5 +91,5 @@ func (format *CollectdToInflux10) Format(msg *core.Message) ([]byte, core.Messag
 			timestamp)
 	}
 
-	return influxData.Bytes(), msg.StreamID
+	msg.Data = influxData.Bytes()
 }

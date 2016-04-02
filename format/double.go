@@ -80,15 +80,15 @@ func (format *Double) Configure(conf core.PluginConfigReader) error {
 }
 
 // Format prepends the Hostname of the message to the message.
-func (format *Double) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
+func (format *Double) Format(msg *core.Message) {
 	leftMsg := msg.Clone()
 	for _, formatter := range format.left {
-		leftMsg.Data, leftMsg.StreamID = formatter.Format(leftMsg)
+		formatter.Format(leftMsg)
 	}
 
 	rightMsg := msg.Clone()
 	for _, formatter := range format.right {
-		rightMsg.Data, rightMsg.StreamID = formatter.Format(rightMsg)
+		formatter.Format(rightMsg)
 	}
 
 	combined := make([]byte, len(leftMsg.Data)+len(format.separator)+len(rightMsg.Data))
@@ -97,8 +97,8 @@ func (format *Double) Format(msg *core.Message) ([]byte, core.MessageStreamID) {
 	offset += copy(combined[offset:], rightMsg.Data)
 
 	if format.leftStreamID {
-		return combined, leftMsg.StreamID
+		msg.Data, msg.StreamID = combined, leftMsg.StreamID
+	} else {
+		msg.Data, msg.StreamID = combined, rightMsg.StreamID
 	}
-
-	return combined, rightMsg.StreamID
 }
