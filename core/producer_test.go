@@ -145,8 +145,9 @@ func TestProducerEnqueue(t *testing.T) {
 		expect.Equal("ProdEnqueueTest", msg.String())
 	}
 	mockDropStream := getMockStream()
-	StreamRegistry.Register(&mockDropStream, 2)
 	mockDropStream.distribute = mockDistribute
+	mockDropStream.boundStreamID = 2
+	StreamRegistry.Register(&mockDropStream, 2)
 
 	msg := &Message{
 		Data:     []byte("ProdEnqueueTest"),
@@ -162,6 +163,7 @@ func TestProducerEnqueue(t *testing.T) {
 
 	mockStream := getMockStream()
 	mockStream.distribute = mockDistribute
+	mockDropStream.boundStreamID = 1
 	StreamRegistry.Register(&mockStream, 1)
 
 	go func() {
@@ -197,6 +199,7 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 	mockDropStream := getMockStream()
 	mockDropStream.distribute = mockDistribute
 	mockDropStream.AddProducer(&mockProducer{})
+	mockDropStream.boundStreamID = 2
 
 	StreamRegistry.name[2] = "testStream"
 	StreamRegistry.Register(&mockDropStream, 2)
@@ -204,7 +207,7 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 	mockP.streams = []MessageStreamID{2}
 	msgToSend := &Message{
 		Data:     []byte("closeMessageChannel"),
-		StreamID: 1,
+		StreamID: 2,
 	}
 	mockP.Enqueue(msgToSend, nil)
 	mockP.Enqueue(msgToSend, nil)

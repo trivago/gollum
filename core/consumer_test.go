@@ -48,8 +48,8 @@ func TestConsumerConfigure(t *testing.T) {
 	pluginCfg := NewPluginConfig("mockConsumer", "mockConsumer")
 
 	mockStream := getMockStream()
-	mockStreamID := StreamRegistry.GetStreamID("mockStream")
-	StreamRegistry.Register(&mockStream, mockStreamID)
+	mockStream.boundStreamID = StreamRegistry.GetStreamID("mockStream")
+	StreamRegistry.Register(&mockStream, mockStream.boundStreamID)
 
 	// Stream needs to be configured to avoid unknown class errors
 	registerMockStream("mockConsumer")
@@ -71,12 +71,12 @@ func TestConsumerEnqueueCopy(t *testing.T) {
 	mockP := getMockProducer()
 	mockStream.AddProducer(&mockP)
 	mockStream.distribute = distribute
-	mockStreamID := StreamRegistry.GetStreamID("mockStream")
-	StreamRegistry.Register(&mockStream, mockStreamID)
+	mockStream.boundStreamID = StreamRegistry.GetStreamID("mockStream")
+	StreamRegistry.Register(&mockStream, mockStream.boundStreamID)
 
 	mockC.streams = []MappedStream{
 		{
-			StreamID: mockStreamID,
+			StreamID: mockStream.boundStreamID,
 			Stream:   &mockStream,
 		},
 	}
@@ -91,12 +91,12 @@ func TestConsumerStreams(t *testing.T) {
 	mockStream := getMockStream()
 	mockP := getMockProducer()
 	mockStream.AddProducer(&mockP)
-	mockStreamID := StreamRegistry.GetStreamID("mockStream")
-	StreamRegistry.Register(&mockStream, mockStreamID)
+	mockStream.boundStreamID = StreamRegistry.GetStreamID("mockStream")
+	StreamRegistry.Register(&mockStream, mockStream.boundStreamID)
 
 	mockC.streams = []MappedStream{
 		{
-			StreamID: mockStreamID,
+			StreamID: mockStream.boundStreamID,
 			Stream:   &mockStream,
 		},
 	}

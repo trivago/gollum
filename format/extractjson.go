@@ -91,7 +91,7 @@ func (format *ExtractJSON) Format(msg *core.Message) {
 		default:
 			msg.Data = []byte(fmt.Sprintf("%v", value))
 		}
+	} else {
+		msg.Data = []byte{}
 	}
-
-	msg.Data = []byte("")
 }

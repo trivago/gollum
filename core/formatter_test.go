@@ -24,14 +24,13 @@ type mockFormatter struct {
 func (mock *mockFormatter) SetLogScope(log tlog.LogScope) {
 }
 
-func (mock *mockFormatter) Format(msg *Message) ([]byte, MessageStreamID) {
-	return mockFormatFunc(msg)
+func (mock *mockFormatter) Format(msg *Message) {
+	mockFormatFunc(msg)
 }
 
 func (mock *mockFormatter) Configure(conf PluginConfigReader) error {
 	return nil
 }
 
-func mockFormatFunc(msg *Message) ([]byte, MessageStreamID) {
-	return msg.Data, msg.StreamID
+func mockFormatFunc(msg *Message) {
 }

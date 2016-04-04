@@ -87,7 +87,7 @@ func TestStreamPauseFlush(t *testing.T) {
 	// shouldn't the enqued message after pause start distributing after resume?
 	msgToSend := &Message{
 		Data:     []byte("abc"),
-		StreamID: 1,
+		StreamID: mockStream.boundStreamID,
 	}
 	mockStream.AddProducer(&mockProducer{})
 	mockStream.Pause(1)
@@ -107,17 +107,19 @@ func TestStreamRoute(t *testing.T) {
 	mockDistributer := func(msg *Message) {
 		expect.Equal("abc", msg.String())
 	}
+
 	targetMockStream := getMockStream()
 	targetMockStream.AddProducer(&mockProducer{})
 	targetMockStream.distribute = mockDistributer
+	targetMockStream.boundStreamID = 2
 	StreamRegistry.streams[2] = &targetMockStream
 
 	msgToSend := &Message{
 		Data:     []byte("abc"),
-		StreamID: 1,
+		StreamID: mockStream.boundStreamID,
 	}
 
 	mockStream.AddProducer(&mockProducer{})
-	mockStream.Route(msgToSend, 2)
+	mockStream.Route(msgToSend)
 
 }
