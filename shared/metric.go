@@ -35,6 +35,12 @@ const (
 	MetricGoRoutines = "GoRoutines"
 	// MetricGoVersion holds the go version as Major*10000+Minor*100+Patch
 	MetricGoVersion = "GoVersion"
+	// MetricMemoryAllocated holds the currently active memory in bytes
+	MetricMemoryAllocated = "GoMemoryAllocated"
+	// MetricMemoryNumObjects holds the total number of allocated heap objects
+	MetricMemoryNumObjects = "GoMemoryNumObjects"
+	// MetricMemoryGCEnabled holds 1 or 0 depending on the state of garbage collection
+	MetricMemoryGCEnabled = "GoMemoryGCEnabled"
 )
 
 // ProcessStartTime stores the time this process has started.
@@ -46,6 +52,9 @@ func init() {
 	Metric.New(MetricProcessStart)
 	Metric.New(MetricGoRoutines)
 	Metric.New(MetricGoVersion)
+	Metric.New(MetricMemoryAllocated)
+	Metric.New(MetricMemoryNumObjects)
+	Metric.New(MetricMemoryGCEnabled)
 	Metric.Set(MetricProcessStart, ProcessStartTime.Unix())
 
 	version := runtime.Version()
@@ -98,6 +107,17 @@ func (met *metrics) SetF(name string, value float64) {
 	met.mutex.RLock()
 	defer met.mutex.RUnlock()
 	atomic.StoreInt64(met.store[name], int64(rounded))
+}
+
+// SetB is Set for boolean values (conversion to 0/1)
+func (met *metrics) SetB(name string, value bool) {
+	met.mutex.RLock()
+	defer met.mutex.RUnlock()
+	ivalue := 0
+	if value {
+		ivalue = 1
+	}
+	atomic.StoreInt64(met.store[name], int64(ivalue))
 }
 
 // Inc adds 1 to a given metric. This operation is atomic.
@@ -174,7 +194,14 @@ func (met *metrics) Get(name string) (int64, error) {
 func (met *metrics) UpdateSystemMetrics() {
 	met.mutex.RLock()
 	defer met.mutex.RUnlock()
+
+	stats := new(runtime.MemStats)
+	runtime.ReadMemStats(stats)
+
 	met.SetI(MetricGoRoutines, runtime.NumGoroutine())
+	met.Set(MetricMemoryAllocated, int64(stats.Alloc))
+	met.SetB(MetricMemoryGCEnabled, stats.EnableGC)
+	met.Set(MetricMemoryNumObjects, int64(stats.HeapObjects))
 }
 
 // Dump creates a JSON string from all stored metrics.
