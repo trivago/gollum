@@ -1,9 +1,7 @@
-FROM golang:latest
+FROM trivago/gollum:base-latest
 
-COPY . /go/src/gollum
-WORKDIR /go/src/gollum
+COPY . /go/src/github.com/trivago/gollum
 
-RUN go get . && \
-	go build -v
+RUN make
 
 ENTRYPOINT ["/go/src/gollum/gollum"]
