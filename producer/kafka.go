@@ -21,7 +21,6 @@ import (
 	"github.com/trivago/tgo/tcontainer"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -138,24 +137,23 @@ const (
 // If no topic mappings are set the stream names will be used as topic.
 type Kafka struct {
 	core.ProducerBase
-	servers          []string
-	topicGuard       *sync.RWMutex
-	topic            map[core.MessageStreamID]string
-	clientID         string
-	client           kafka.Client
-	config           *kafka.Config
-	producer         kafka.AsyncProducer
-	counters         map[string]*int64
-	missCount        int64
-	lastMetricUpdate time.Time
-	gracePeriod      time.Duration
-	keyFormat        core.Formatter
+	servers     []string
+	topicGuard  *sync.RWMutex
+	topic       map[core.MessageStreamID]string
+	clientID    string
+	client      kafka.Client
+	config      *kafka.Config
+	producer    kafka.AsyncProducer
+	missCount   int64
+	gracePeriod time.Duration
+	keyFormat   core.Formatter
 }
 
 const (
 	kafkaMetricMessages     = "Kafka:Messages-"
 	kafkaMetricMessagesSec  = "Kafka:MessagesSec-"
 	kafkaMetricUnresponsive = "Kafka:Unresponsive-"
+	kafkaMetricInflight     = "Kafka:Inflight-"
 )
 
 func init() {
@@ -179,11 +177,9 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.clientID = conf.GetString("ClientId", "gollum")
-	prod.lastMetricUpdate = time.Now()
 	prod.gracePeriod = time.Duration(conf.GetInt("GracePeriodMs", 5)) * time.Millisecond
 	prod.topicGuard = new(sync.RWMutex)
 	prod.topic = conf.GetStreamMap("Topic", "")
-	prod.counters = make(map[string]*int64)
 
 	prod.config = kafka.NewConfig()
 	prod.config.ClientID = conf.GetString("ClientId", "gollum")
@@ -209,6 +205,7 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 	prod.config.Producer.Retry.Backoff = time.Duration(conf.GetInt("SendTimeoutMs", 100)) * time.Millisecond
 
 	prod.config.Producer.Return.Errors = true
+	prod.config.Producer.Return.Successes = true
 
 	switch strings.ToLower(conf.GetString("Compression", compressNone)) {
 	default:
@@ -233,10 +230,11 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 	}
 
 	for _, topic := range prod.topic {
-		tgo.Metric.New(kafkaMetricMessages + topic)
-		tgo.Metric.New(kafkaMetricMessagesSec + topic)
+		metricName := kafkaMetricMessages + topic
+		tgo.Metric.New(metricName)
+		tgo.Metric.NewRate(metricName, kafkaMetricMessagesSec+topic, time.Second, 10, 3, true)
 		tgo.Metric.New(kafkaMetricUnresponsive + topic)
-		prod.counters[topic] = new(int64)
+		tgo.Metric.New(kafkaMetricInflight + topic)
 	}
 
 	return conf.Errors.OrNil()
@@ -248,7 +246,11 @@ func (prod *Kafka) pollResults() {
 	timeout := time.NewTimer(prod.config.Producer.Flush.Frequency / 2)
 	for keepPolling {
 		select {
+		case msg := <-prod.producer.Successes():
+			tgo.Metric.Dec(kafkaMetricInflight + msg.Topic)
+
 		case err := <-prod.producer.Errors():
+			tgo.Metric.Dec(kafkaMetricInflight + err.Msg.Topic)
 			if msg, hasMsg := err.Msg.Metadata.(*core.Message); hasMsg {
 				prod.Drop(msg)
 			}
@@ -257,18 +259,6 @@ func (prod *Kafka) pollResults() {
 			keepPolling = false
 		}
 	}
-
-	// Update metrics
-	for topic, counter := range prod.counters {
-		duration := time.Since(prod.lastMetricUpdate)
-		count := atomic.SwapInt64(counter, 0)
-		countPerSec := float64(count)/duration.Seconds() + 0.5
-
-		tgo.Metric.Add(kafkaMetricMessages+topic, count)
-		tgo.Metric.SetF(kafkaMetricMessagesSec+topic, countPerSec)
-	}
-
-	prod.lastMetricUpdate = time.Now()
 }
 
 func (prod *Kafka) registerNewTopic(streamID core.MessageStreamID) string {
@@ -284,10 +274,12 @@ func (prod *Kafka) registerNewTopic(streamID core.MessageStreamID) string {
 			topic = core.StreamRegistry.GetStreamName(streamID)
 		}
 
-		tgo.Metric.New(kafkaMetricMessages + topic)
-		tgo.Metric.New(kafkaMetricMessagesSec + topic)
+		metricName := kafkaMetricMessages + topic
+		tgo.Metric.New(metricName)
+		tgo.Metric.NewRate(metricName, kafkaMetricMessagesSec+topic, time.Second, 10, 3, true)
 		tgo.Metric.New(kafkaMetricUnresponsive + topic)
-		prod.counters[topic] = new(int64)
+		tgo.Metric.New(kafkaMetricInflight + topic)
+
 		prod.topic[streamID] = topic
 	}
 
@@ -335,7 +327,8 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	select {
 	case prod.producer.Input() <- kafkaMsg:
 		timeout.Stop()
-		atomic.AddInt64(prod.counters[topic], 1)
+		tgo.Metric.Inc(kafkaMetricMessages + topic)
+		tgo.Metric.Inc(kafkaMetricInflight + topic)
 
 	case <-timeout.C:
 		// Sarama channels are full -> drop

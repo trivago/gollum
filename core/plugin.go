@@ -88,6 +88,7 @@ type PluginWithState interface {
 }
 
 func init() {
+	tgo.EnableGlobalMetrics()
 	tgo.Metric.New(metricActiveWorkers)
 }
 

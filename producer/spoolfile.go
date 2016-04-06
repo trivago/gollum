@@ -32,19 +32,18 @@ import (
 )
 
 type spoolFile struct {
-	file             *os.File
-	batch            core.MessageBatch
-	assembly         core.WriterAssembly
-	fileCreated      time.Time
-	streamName       string
-	basePath         string
-	prod             *Spooling
-	source           core.MessageSource
-	readCount        int64
-	writeCount       int64
-	lastMetricUpdate time.Time
-	log              tlog.LogScope
-	reader           *tio.BufferedReader
+	file        *os.File
+	batch       core.MessageBatch
+	assembly    core.WriterAssembly
+	fileCreated time.Time
+	streamName  string
+	basePath    string
+	prod        *Spooling
+	source      core.MessageSource
+	readCount   int64
+	writeCount  int64
+	log         tlog.LogScope
+	reader      *tio.BufferedReader
 }
 
 const maxSpoolFileNumber = 99999999 // maximum file number defined by %08d -> 8 digits
@@ -52,23 +51,25 @@ const spoolFileFormatString = "%s/%08d.spl"
 
 func newSpoolFile(prod *Spooling, streamName string, source core.MessageSource) *spoolFile {
 	spool := &spoolFile{
-		file:             nil,
-		batch:            core.NewMessageBatch(prod.batchMaxCount),
-		assembly:         core.NewWriterAssembly(nil, prod.Drop, prod.Format),
-		fileCreated:      time.Now(),
-		streamName:       streamName,
-		basePath:         prod.path + "/" + streamName,
-		prod:             prod,
-		source:           source,
-		lastMetricUpdate: time.Now(),
-		log:              prod.Log,
-		reader:           tio.NewBufferedReader(prod.bufferSizeByte, tio.BufferedReaderFlagDelimiter, 0, "\n"),
+		file:        nil,
+		batch:       core.NewMessageBatch(prod.batchMaxCount),
+		assembly:    core.NewWriterAssembly(nil, prod.Drop, prod.Format),
+		fileCreated: time.Now(),
+		streamName:  streamName,
+		basePath:    prod.path + "/" + streamName,
+		prod:        prod,
+		source:      source,
+		log:         prod.Log,
+		reader:      tio.NewBufferedReader(prod.bufferSizeByte, tio.BufferedReaderFlagDelimiter, 0, "\n"),
 	}
 
-	tgo.Metric.New(spoolingMetricWrite + streamName)
-	tgo.Metric.New(spoolingMetricWriteSec + streamName)
-	tgo.Metric.New(spoolingMetricRead + streamName)
-	tgo.Metric.New(spoolingMetricReadSec + streamName)
+	writeMetric := spoolingMetricWrite + streamName
+	tgo.Metric.New(writeMetric)
+	tgo.Metric.NewRate(writeMetric, spoolingMetricWriteSec+streamName, time.Second, 10, 3, true)
+
+	readMetric := spoolingMetricRead + streamName
+	tgo.Metric.New(readMetric)
+	tgo.Metric.NewRate(readMetric, spoolingMetricReadSec+streamName, time.Second, 10, 3, true)
 	go spool.read()
 	return spool
 }

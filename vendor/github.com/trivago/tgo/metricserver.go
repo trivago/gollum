@@ -8,13 +8,25 @@ import (
 
 // MetricServer contains state information about the metric server process
 type MetricServer struct {
+	metrics *Metrics
 	running bool
 	listen  net.Listener
 }
 
-// NewMetricServer creates a new server state for a metric server
+// NewMetricServer creates a new server state for a metric server based on
+// the global Metric variable.
 func NewMetricServer() *MetricServer {
 	return &MetricServer{
+		metrics: Metric,
+		running: false,
+	}
+}
+
+// NewMetricServerFor creates a new server state for a metric server based
+// on a custom Metrics variable
+func NewMetricServerFor(m *Metrics) *MetricServer {
+	return &MetricServer{
+		metrics: m,
 		running: false,
 	}
 }
@@ -22,7 +34,7 @@ func NewMetricServer() *MetricServer {
 func (server *MetricServer) handleMetricRequest(conn net.Conn) {
 	defer conn.Close()
 
-	data, err := Metric.Dump()
+	data, err := server.metrics.Dump()
 	if err != nil {
 		conn.Write([]byte(err.Error()))
 	} else {

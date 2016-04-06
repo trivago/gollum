@@ -21,7 +21,6 @@ import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tmath"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -66,18 +65,16 @@ import (
 // If no category mappings are set the stream name is used.
 type Scribe struct {
 	core.ProducerBase
-	scribe           *scribe.ScribeClient
-	transport        *thrift.TFramedTransport
-	socket           *thrift.TSocket
-	category         map[core.MessageStreamID]string
-	batch            core.MessageBatch
-	batchTimeout     time.Duration
-	batchMaxCount    int
-	batchFlushCount  int
-	bufferSizeByte   int
-	windowSize       int
-	counters         map[string]*int64
-	lastMetricUpdate time.Time
+	scribe          *scribe.ScribeClient
+	transport       *thrift.TFramedTransport
+	socket          *thrift.TSocket
+	category        map[core.MessageStreamID]string
+	batch           core.MessageBatch
+	batchTimeout    time.Duration
+	batchMaxCount   int
+	batchFlushCount int
+	bufferSizeByte  int
+	windowSize      int
 }
 
 const (
@@ -118,16 +115,14 @@ func (prod *Scribe) Configure(conf core.PluginConfigReader) error {
 	prod.transport = thrift.NewTFramedTransport(prod.socket)
 	binProtocol := thrift.NewTBinaryProtocol(prod.transport, false, false)
 	prod.scribe = scribe.NewScribeClientProtocol(prod.transport, binProtocol, binProtocol)
-	prod.lastMetricUpdate = time.Now()
-	prod.counters = make(map[string]*int64)
 
 	tgo.Metric.New(scribeMetricWindowSize)
 	tgo.Metric.SetI(scribeMetricWindowSize, prod.windowSize)
 
 	for _, category := range prod.category {
-		tgo.Metric.New(scribeMetricMessages + category)
-		tgo.Metric.New(scribeMetricMessagesSec + category)
-		prod.counters[category] = new(int64)
+		metricName := scribeMetricMessages + category
+		tgo.Metric.New(metricName)
+		tgo.Metric.NewRate(metricName, scribeMetricMessagesSec+category, time.Second, 10, 3, true)
 	}
 
 	prod.SetCheckFuseCallback(prod.tryOpenConnection)
@@ -142,16 +137,6 @@ func (prod *Scribe) sendBatchOnTimeOut() {
 	// Flush if necessary
 	if prod.batch.ReachedTimeThreshold(prod.batchTimeout) || prod.batch.ReachedSizeThreshold(prod.batchFlushCount) {
 		prod.sendBatch()
-	}
-
-	// Update metrics
-	duration := time.Since(prod.lastMetricUpdate)
-	prod.lastMetricUpdate = time.Now()
-
-	for category, counter := range prod.counters {
-		count := atomic.SwapInt64(counter, 0)
-		tgo.Metric.Add(scribeMetricMessages+category, count)
-		tgo.Metric.SetF(scribeMetricMessagesSec+category, float64(count)/duration.Seconds())
 	}
 }
 
@@ -177,16 +162,6 @@ func (prod *Scribe) sendBatch() {
 	} else if prod.IsStopping() {
 		prod.batch.Flush(prod.dropMessages)
 	}
-
-	// Update metrics
-	duration := time.Since(prod.lastMetricUpdate)
-	prod.lastMetricUpdate = time.Now()
-
-	for category, counter := range prod.counters {
-		count := atomic.SwapInt64(counter, 0)
-		tgo.Metric.Add(scribeMetricMessages+category, count)
-		tgo.Metric.SetF(scribeMetricMessagesSec+category, float64(count)/duration.Seconds())
-	}
 }
 
 func (prod *Scribe) dropMessages(messages []*core.Message) {
@@ -207,9 +182,9 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 			if category, exists = prod.category[core.WildcardStreamID]; !exists {
 				category = core.StreamRegistry.GetStreamName(currentMsg.StreamID)
 			}
-			tgo.Metric.New(scribeMetricMessages + category)
-			tgo.Metric.New(scribeMetricMessagesSec + category)
-			prod.counters[category] = new(int64)
+			metricName := scribeMetricMessages + category
+			tgo.Metric.New(metricName)
+			tgo.Metric.NewRate(metricName, scribeMetricMessagesSec+category, time.Second, 10, 3, true)
 			prod.category[currentMsg.StreamID] = category
 		}
 
@@ -218,7 +193,7 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 			Message:  string(currentMsg.Data),
 		}
 
-		atomic.AddInt64(prod.counters[category], 1)
+		tgo.Metric.Inc(scribeMetricMessages + category)
 	}
 
 	// Try to send the whole batch.

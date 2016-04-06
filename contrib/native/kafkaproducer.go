@@ -21,7 +21,6 @@ import (
 	"github.com/trivago/tgo/tcontainer"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -82,8 +81,6 @@ type KafkaProducer struct {
 	core.ProducerBase
 	servers           []string
 	clientID          string
-	counters          map[string]*int64
-	lastMetricUpdate  time.Time
 	keyFormat         core.Formatter
 	client            *kafka.Client
 	config            kafka.Config
@@ -102,9 +99,9 @@ type messageWrapper struct {
 }
 
 const (
-	kafkaMetricMessages         = "Kafka:Messages-"
-	kafkaMetricMessagesSec      = "Kafka:MessagesSec-"
-	kafkaMetricMessagesInflight = "Kafka:Inflight"
+	kafkaMetricMessages    = "Kafka:Messages-"
+	kafkaMetricMessagesSec = "Kafka:MessagesSec-"
+	kafkaMetricPending     = "Kafka:Pending"
 )
 
 const (
@@ -145,9 +142,6 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
 
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.clientID = conf.GetString("ClientId", "gollum")
-	prod.lastMetricUpdate = time.Now()
-
-	prod.counters = make(map[string]*int64)
 	prod.streamToTopic = conf.GetStreamMap("Topic", "default")
 	prod.topic = make(map[core.MessageStreamID]*kafka.Topic)
 	prod.topicRequiredAcks = conf.GetInt("RequiredAcks", 1)
@@ -193,7 +187,7 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
 		prod.config.Set("compression.codec", "snappy")
 	}
 
-	tgo.Metric.New(kafkaMetricMessagesInflight)
+	tgo.Metric.New(kafkaMetricPending)
 	return conf.Errors.OrNil()
 }
 
@@ -209,8 +203,9 @@ func (prod *KafkaProducer) registerNewTopic(streamID core.MessageStreamID) *kafk
 			prod.streamToTopic[streamID] = topicName
 		}
 
-		tgo.Metric.New(kafkaMetricMessages + topicName)
-		tgo.Metric.New(kafkaMetricMessagesSec + topicName)
+		metricName := kafkaMetricMessages + topicName
+		tgo.Metric.New(metricName)
+		tgo.Metric.NewRate(metricName, kafkaMetricMessagesSec+topicName, time.Second, 10, 3, true)
 
 		topicConfig := kafka.NewTopicConfig()
 		topicConfig.SetI("request.required.acks", prod.topicRequiredAcks)
@@ -218,8 +213,6 @@ func (prod *KafkaProducer) registerNewTopic(streamID core.MessageStreamID) *kafk
 		topicConfig.SetRoundRobinPartitioner()
 
 		topic = kafka.NewTopic(topicName, topicConfig, prod.client)
-
-		prod.counters[topicName] = new(int64)
 		prod.topic[streamID] = topic
 	}
 
@@ -264,7 +257,7 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 		prod.Drop(&originalMsg)
 	} else {
 		topicName := topic.GetName()
-		atomic.AddInt64(prod.counters[topicName], 1)
+		tgo.Metric.Inc(kafkaMetricMessages + topicName)
 	}
 }
 
@@ -283,20 +276,7 @@ func (prod *KafkaProducer) poll() {
 		topic.Poll()
 	}
 
-	tgo.Metric.Set(kafkaMetricMessagesInflight, prod.client.GetInflightBuffers())
-
-	prod.topicGuard.RLock()
-	defer prod.topicGuard.RUnlock()
-
-	for topicName, counter := range prod.counters {
-		duration := time.Since(prod.lastMetricUpdate)
-		count := atomic.SwapInt64(counter, 0)
-		countPerSec := int64(float64(count)/duration.Seconds() + 0.5)
-		tgo.Metric.Add(kafkaMetricMessages+topicName, count)
-		tgo.Metric.Set(kafkaMetricMessagesSec+topicName, countPerSec)
-	}
-
-	prod.lastMetricUpdate = time.Now()
+	tgo.Metric.Set(kafkaMetricPending, prod.client.GetInflightBuffers())
 }
 
 func (prod *KafkaProducer) isConnected() bool {

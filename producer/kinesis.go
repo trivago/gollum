@@ -157,9 +157,9 @@ func (prod *Kinesis) Configure(conf core.PluginConfigReader) error {
 	}
 
 	for _, streamName := range prod.streamMap {
-		tgo.Metric.New(kinesisMetricMessages + streamName)
-		tgo.Metric.New(kinesisMetricMessagesSec + streamName)
-		prod.counters[streamName] = new(int64)
+		metricName := kinesisMetricMessages + streamName
+		tgo.Metric.New(metricName)
+		tgo.Metric.NewRate(metricName, kinesisMetricMessagesSec+streamName, time.Second, 10, 3, true)
 	}
 
 	return conf.Errors.OrNil()
@@ -173,16 +173,6 @@ func (prod *Kinesis) sendBatchOnTimeOut() {
 	// Flush if necessary
 	if prod.batch.ReachedTimeThreshold(prod.flushFrequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2) {
 		prod.sendBatch()
-	}
-
-	duration := time.Since(prod.lastMetricUpdate)
-	prod.lastMetricUpdate = time.Now()
-
-	for streamName, counter := range prod.counters {
-		count := atomic.SwapInt64(counter, 0)
-
-		tgo.Metric.Add(kinesisMetricMessages+streamName, count)
-		tgo.Metric.SetF(kinesisMetricMessagesSec+streamName, float64(count)/duration.Seconds())
 	}
 }
 
@@ -214,9 +204,9 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 				streamName = core.StreamRegistry.GetStreamName(currentMsg.StreamID)
 				prod.streamMap[currentMsg.StreamID] = streamName
 
-				tgo.Metric.New(kinesisMetricMessages + streamName)
-				tgo.Metric.New(kinesisMetricMessagesSec + streamName)
-				prod.counters[streamName] = new(int64)
+				metricName := kinesisMetricMessages + streamName
+				tgo.Metric.New(metricName)
+				tgo.Metric.NewRate(metricName, kinesisMetricMessagesSec+streamName, time.Second, 10, 3, true)
 			}
 
 			// Create buffers for this kinesis stream
@@ -262,6 +252,9 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 				if record.ErrorMessage != nil {
 					prod.Log.Error.Print("Kinesis message write error: ", *record.ErrorMessage)
 					prod.Drop(records.original[msgIdx])
+				} else {
+					streamName := prod.streamMap[records.original[msgIdx].StreamID]
+					tgo.Metric.Inc(kinesisMetricMessages + streamName)
 				}
 			}
 		}

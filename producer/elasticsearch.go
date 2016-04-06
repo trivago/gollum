@@ -21,7 +21,6 @@ import (
 	"github.com/trivago/tgo"
 	"strconv"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -92,14 +91,12 @@ import (
 // triggered. By default this is set to 5.
 type ElasticSearch struct {
 	core.ProducerBase
-	conn             *elastigo.Conn
-	indexer          *elastigo.BulkIndexer
-	index            map[core.MessageStreamID]string
-	msgType          map[core.MessageStreamID]string
-	msgTTL           string
-	dayBasedIndex    bool
-	counters         map[string]*int64
-	lastMetricUpdate time.Time
+	conn          *elastigo.Conn
+	indexer       *elastigo.BulkIndexer
+	index         map[core.MessageStreamID]string
+	msgType       map[core.MessageStreamID]string
+	msgTTL        string
+	dayBasedIndex bool
 }
 
 const (
@@ -144,27 +141,13 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) error {
 	prod.msgTTL = conf.GetString("TTL", "")
 	prod.dayBasedIndex = conf.GetBool("DayBasedIndex", false)
 
-	prod.counters = make(map[string]*int64)
-	prod.lastMetricUpdate = time.Now()
-
 	for _, index := range prod.index {
-		tgo.Metric.New(elasticMetricMessages + index)
-		tgo.Metric.New(elasticMetricMessagesSec + index)
-		prod.counters[index] = new(int64)
+		metricName := elasticMetricMessages + index
+		tgo.Metric.New(metricName)
+		tgo.Metric.NewRate(metricName, elasticMetricMessagesSec+index, time.Second, 10, 3, true)
 	}
 
 	return conf.Errors.OrNil()
-}
-
-func (prod *ElasticSearch) updateMetrics() {
-	duration := time.Since(prod.lastMetricUpdate)
-	prod.lastMetricUpdate = time.Now()
-
-	for index, counter := range prod.counters {
-		count := atomic.SwapInt64(counter, 0)
-		tgo.Metric.Add(elasticMetricMessages+index, count)
-		tgo.Metric.SetF(elasticMetricMessagesSec+index, float64(count)/duration.Seconds())
-	}
 }
 
 func (prod *ElasticSearch) isClusterUp() bool {
@@ -186,9 +169,9 @@ func (prod *ElasticSearch) sendMessage(msg *core.Message) {
 		if !indexMapped {
 			index = core.StreamRegistry.GetStreamName(msg.StreamID)
 		}
-		tgo.Metric.New(elasticMetricMessages + index)
-		tgo.Metric.New(elasticMetricMessagesSec + index)
-		prod.counters[index] = new(int64)
+		metricName := elasticMetricMessages + index
+		tgo.Metric.New(metricName)
+		tgo.Metric.NewRate(metricName, elasticMetricMessagesSec+index, time.Second, 10, 3, true)
 		prod.index[msg.StreamID] = index
 	}
 
@@ -204,7 +187,6 @@ func (prod *ElasticSearch) sendMessage(msg *core.Message) {
 		}
 	}
 
-	atomic.AddInt64(prod.counters[index], 1)
 	err := prod.indexer.Index(index, msgType, "", "", prod.msgTTL, &msg.Timestamp, string(msg.Data))
 	if err != nil {
 		prod.Log.Error.Print("ElasticSearch index error - ", err)
@@ -213,6 +195,7 @@ func (prod *ElasticSearch) sendMessage(msg *core.Message) {
 		}
 		prod.Drop(&originalMsg)
 	} else {
+		tgo.Metric.Inc(elasticMetricMessages + index)
 		prod.Control() <- core.PluginControlFuseActive
 	}
 }
@@ -228,5 +211,5 @@ func (prod *ElasticSearch) close() {
 func (prod *ElasticSearch) Produce(workers *sync.WaitGroup) {
 	prod.indexer.Start()
 	prod.AddMainWorker(workers)
-	prod.TickerMessageControlLoop(prod.sendMessage, time.Second*5, prod.updateMetrics)
+	prod.MessageControlLoop(prod.sendMessage)
 }

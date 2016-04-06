@@ -148,13 +148,9 @@ func (prod *Spooling) writeBatchOnTimeOut() {
 
 	for _, spool := range outfiles {
 		read, write := spool.getAndResetCounts()
-		duration := time.Since(spool.lastMetricUpdate)
-		spool.lastMetricUpdate = time.Now()
 
 		tgo.Metric.Add(spoolingMetricRead+spool.streamName, read)
 		tgo.Metric.Add(spoolingMetricWrite+spool.streamName, write)
-		tgo.Metric.SetF(spoolingMetricReadSec+spool.streamName, float64(read)/duration.Seconds())
-		tgo.Metric.SetF(spoolingMetricWriteSec+spool.streamName, float64(write)/duration.Seconds())
 
 		if spool.batch.ReachedSizeThreshold(prod.batchMaxCount/2) || spool.batch.ReachedTimeThreshold(prod.batchTimeout) {
 			spool.flush()

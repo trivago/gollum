@@ -134,7 +134,6 @@ func main() {
 	}
 
 	// Start the multiplexer
-
 	plex := newMultiplexer(config, *flagProfile)
 	plex.run()
 }

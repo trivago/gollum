@@ -98,11 +98,11 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	tgo.Metric.New(metricDiscarded)
 	tgo.Metric.New(metricNoRoute)
 	tgo.Metric.New(metricFiltered)
-	tgo.Metric.New(metricMessagesSec)
-	tgo.Metric.New(metricDroppedSec)
-	tgo.Metric.New(metricDiscardedSec)
-	tgo.Metric.New(metricNoRouteSec)
-	tgo.Metric.New(metricFilteredSec)
+	tgo.Metric.NewRate(metricDropped, metricDroppedSec, time.Second, 10, 3, true)
+	tgo.Metric.NewRate(metricMessages, metricMessagesSec, time.Second, 10, 3, true)
+	tgo.Metric.NewRate(metricDiscarded, metricDiscardedSec, time.Second, 10, 3, true)
+	tgo.Metric.NewRate(metricNoRoute, metricNoRouteSec, time.Second, 10, 3, true)
+	tgo.Metric.NewRate(metricFiltered, metricFilteredSec, time.Second, 10, 3, true)
 	tgo.Metric.New(metricBlockedProducers)
 	tgo.Metric.New(metricVersion)
 
@@ -408,25 +408,16 @@ func (plex multiplexer) run() {
 	plex.signal = newSignalHandler()
 
 	tlog.Note.Print("We be nice to them, if they be nice to us. (startup)")
-	measure := time.Now()
-	timer := time.NewTicker(5 * time.Second)
+	timer := time.NewTicker(3 * time.Second)
 
 	for {
 		select {
 		case <-timer.C:
-			duration := time.Since(measure)
-			measure = time.Now()
 
 			// Sampling values
 			messageCount, droppedCount, discardedCount, filteredCount, noRouteCount := core.GetAndResetMessageCount()
-			messageSec := float64(messageCount) / duration.Seconds()
 
-			tgo.Metric.SetF(metricMessagesSec, messageSec)
-			tgo.Metric.SetF(metricDroppedSec, float64(droppedCount)/duration.Seconds())
-			tgo.Metric.SetF(metricDiscardedSec, float64(discardedCount)/duration.Seconds())
-			tgo.Metric.SetF(metricFilteredSec, float64(filteredCount)/duration.Seconds())
-			tgo.Metric.SetF(metricNoRouteSec, float64(noRouteCount)/duration.Seconds())
-
+			tgo.Metric.UpdateSystemMetrics()
 			tgo.Metric.Add(metricMessages, int64(messageCount))
 			tgo.Metric.Add(metricDropped, int64(droppedCount))
 			tgo.Metric.Add(metricDiscarded, int64(discardedCount))
@@ -434,7 +425,8 @@ func (plex multiplexer) run() {
 			tgo.Metric.Add(metricNoRoute, int64(noRouteCount))
 
 			if plex.profile {
-				tlog.Note.Printf("Processed %.2f msg/sec", messageSec)
+				msgSec, _ := tgo.Metric.Get(metricMessagesSec)
+				tlog.Note.Printf("Processed %d msg/sec", msgSec)
 			}
 
 			// Blocked producers
