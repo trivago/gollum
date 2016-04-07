@@ -15,7 +15,7 @@
 package librdkafka
 
 // #cgo CFLAGS: -I/usr/local/include -std=c99
-// #cgo LDFLAGS: -L/usr/local/opt/librdkafka/lib -L/usr/local/lib -lrdkafka
+// #cgo LDFLAGS: -L/usr/local/lib -L/usr/local/opt/librdkafka/lib -lrdkafka
 // #include "wrapper.h"
 import "C"
 

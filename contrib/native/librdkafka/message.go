@@ -15,11 +15,12 @@
 package librdkafka
 
 // #cgo CFLAGS: -I/usr/local/include -std=c99
-// #cgo LDFLAGS: -L/usr/local/opt/librdkafka/lib -L/usr/local/lib -lrdkafka
+// #cgo LDFLAGS: -L/usr/local/lib -L/usr/local/opt/librdkafka/lib -lrdkafka
 // #include "wrapper.h"
 import "C"
 
 import (
+	"reflect"
 	"unsafe"
 )
 
@@ -51,46 +52,58 @@ func UnmarshalBuffer(bufferPtr *C.buffer_t) []byte {
 	return buffer
 }
 
-// MarshalMessage converts a message to native fields.
-func MarshalMessage(msg Message) (keyLen C.size_t, keyPtr unsafe.Pointer, payLen C.size_t, payPtr unsafe.Pointer, usrLen C.size_t, usrPtr unsafe.Pointer) {
-	key := msg.GetKey()
-	pay := msg.GetPayload()
-	usr := msg.GetUserdata()
-	keyLen = C.size_t(len(key))
-	payLen = C.size_t(len(pay))
-	usrLen = C.size_t(len(usr))
-
-	if keyLen > 0 {
-		keyPtr = unsafe.Pointer(&key[0])
-	} else {
-		keyPtr = unsafe.Pointer(nil)
-	}
-
-	if payLen > 0 {
-		payPtr = unsafe.Pointer(&pay[0])
-	} else {
-		payPtr = unsafe.Pointer(nil)
-	}
-
-	if usrLen > 0 {
-		usrPtr = unsafe.Pointer(&usr[0])
-	} else {
-		usrPtr = unsafe.Pointer(nil)
-	}
-
-	return keyLen, keyPtr, payLen, payPtr, usrLen, usrPtr
+type nativeMessage struct {
+	key        unsafe.Pointer
+	payload    unsafe.Pointer
+	keyLen     C.size_t
+	payloadLen C.size_t
 }
 
-// PrepareBatch converts a message array to an array of native messages.
-// The resulting pointer has to be freed with C.free(unsafe.Pointer(p)).
-func PrepareBatch(messages []Message) *C.rd_kafka_message_t {
-	numMessages := C.int(len(messages))
-	batch := C.CreateBatch(numMessages)
-
-	for i := C.int(0); i < numMessages; i++ {
-		keyLen, keyPtr, payLen, payPtr, usrLen, usrPtr := MarshalMessage(messages[i])
-		C.StoreBatchItem(batch, i, keyLen, keyPtr, payLen, payPtr, usrLen, usrPtr)
+func newBuffer(data []byte) *C.buffer_t {
+	size := C.size_t(len(data))
+	if size == 0 {
+		return (*C.buffer_t)(nil)
 	}
 
-	return batch
+	nativeCopy := allocCopy(data)
+	return C.CreateBuffer(size, nativeCopy)
+}
+
+func freeBuffer(buffer *C.buffer_t) {
+	C.DestroyBuffer(buffer)
+}
+
+func newNativeMessage(msg Message) nativeMessage {
+	key := msg.GetKey()
+	pay := msg.GetPayload()
+
+	return nativeMessage{
+		key:        allocCopy(key),
+		keyLen:     C.size_t(len(key)),
+		payload:    allocCopy(pay),
+		payloadLen: C.size_t(len(pay)),
+	}
+}
+
+func allocCopy(data []byte) unsafe.Pointer {
+	size := C.size_t(len(data))
+	if size == 0 {
+		return unsafe.Pointer(nil)
+	}
+
+	nativePtr := C.Alloc(size)
+	slice := unsafe.Pointer(&reflect.SliceHeader{
+		Data: uintptr(nativePtr),
+		Len:  len(data),
+		Cap:  len(data),
+	})
+
+	byteSlice := (*[]byte)(slice)
+	copy(*byteSlice, data)
+	return nativePtr
+}
+
+func (n *nativeMessage) free() {
+	C.Free(n.key)
+	C.Free(n.payload)
 }

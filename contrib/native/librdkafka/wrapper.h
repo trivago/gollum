@@ -45,29 +45,18 @@ buffer_t* CreateBuffer(size_t len, void* pData);
 // DestroyBuffer properly frees a buffer attached to message userdata
 void DestroyBuffer(buffer_t* pBuffer);
 
-// CreateBatch creates a new native kafka batch of the given size.
-rd_kafka_message_t* CreateBatch(int size);
+// Alloc allocates a buffer of the given size and tracks the allocation
+void* Alloc(size_t size);
 
-// DestroyBatch clears up the batch (without messages)
-void DestroyBatch(rd_kafka_message_t* pBatch);
+// Free is the counterpart to Alloc and untracks an allocation
+void Free(void* pData);
 
-// StoreBatchItem stores data in the given message batch slot.
-void StoreBatchItem(rd_kafka_message_t* pBatch, int index, size_t keyLen, void* pKey, size_t payloadLen, void* pPayload, size_t userdataLen, void* pUserdata);
-
-// GetNextError finds the next error in a message batch (that has been sent).
-// If no error is found -1 is returned.
-int BatchGetNextError(rd_kafka_message_t* pBatch, int length, int offset);
-
-// GetErr returns the error code for a given message in the given batch.
-int BatchGetErrAt(rd_kafka_message_t* pBatch, int index);
-
-// BatchGetBufferAt returns the userdata for a given message in the given batch.
-buffer_t* BatchGetUserdataAt(rd_kafka_message_t* pBatch, int index);
+int Produce(rd_kafka_topic_t* pTopic, void* pKey, size_t keyLen, void* pPayload, size_t payloadLen, buffer_t* pUserdata);
 
 // GetLastError returns rd_kafka_errno2err(errno)
 int GetLastError();
 
-// GetAllocatedBuffers returns the current allocation count for buffer_t
-int64_t GetAllocatedBuffers();
+// GetAllocCounter returns the number of currently open Alloc calls.
+int64_t GetAllocCounter();
 
 #endif

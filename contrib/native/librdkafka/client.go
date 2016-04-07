@@ -15,9 +15,13 @@
 package librdkafka
 
 // #cgo CFLAGS: -I/usr/local/include -std=c99
-// #cgo LDFLAGS: -L/usr/local/opt/librdkafka/lib -L/usr/local/lib -lrdkafka
+// #cgo LDFLAGS: -L/usr/local/lib -L/usr/local/opt/librdkafka/lib -lrdkafka
 // #include "wrapper.h"
 import "C"
+
+import (
+	"time"
+)
 
 // Client is a wrapper handle for rd_kafka_t
 type Client struct {
@@ -49,12 +53,22 @@ func NewProducer(config Config, handler MessageDelivery) (*Client, error) {
 	return &client, nil
 }
 
-// Close frees the native handle.
-func (t *Client) Close() {
-	C.rd_kafka_destroy(t.handle)
+// Poll polls for new data to be sent to the async handler functions
+func (cl *Client) Poll(timeout time.Duration) {
+	if timeout < 0 {
+		C.rd_kafka_poll(cl.handle, -1)
+	} else {
+		timeoutMs := C.int(timeout.Nanoseconds() / 1000000)
+		C.rd_kafka_poll(cl.handle, timeoutMs)
+	}
 }
 
-// GetInflightBuffers returns the number of allocated buffers (message useradata)
-func (t *Client) GetInflightBuffers() int64 {
-	return int64(C.GetAllocatedBuffers())
+// Close frees the native handle.
+func (cl *Client) Close() {
+	C.rd_kafka_destroy(cl.handle)
+}
+
+// GetAllocCounter returns the number of allocated native buffers
+func (cl *Client) GetAllocCounter() int64 {
+	return int64(C.GetAllocCounter())
 }

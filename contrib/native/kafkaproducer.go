@@ -39,7 +39,7 @@ import (
 //    Compression: "none"
 //    BatchSizeMaxKB: 1024
 //    BatchMaxMessages: 100000
-//    BatchMinMessages: 10000
+//    BatchMinMessages: 1000
 //    BatchTimeoutMs: 1000
 //    ServerTimeoutSec: 60
 //    ServerMaxFails: 3
@@ -102,9 +102,9 @@ type messageWrapper struct {
 }
 
 const (
-	kafkaMetricMessages         = "Kafka:Messages-"
-	kafkaMetricMessagesSec      = "Kafka:MessagesSec-"
-	kafkaMetricMessagesInflight = "Kafka:Inflight"
+	kafkaMetricMessages    = "Kafka:Messages-"
+	kafkaMetricMessagesSec = "Kafka:MessagesSec-"
+	kafkaMetricAllocations = "Kafka:Allocations"
 )
 
 const (
@@ -187,7 +187,7 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfig) error {
 	prod.config.SetI("message.send.max.retries", conf.GetInt("SendRetries", 0))
 	prod.config.SetI("queue.buffering.max.messages", conf.GetInt("BatchMaxMessages", 100000))
 	prod.config.SetI("queue.buffering.max.ms", batchIntervalMs)
-	prod.config.SetI("batch.num.messages", conf.GetInt("BatchMinMessages", 10000))
+	prod.config.SetI("batch.num.messages", conf.GetInt("BatchMinMessages", 1000))
 	//prod.config.SetI("protocol.version", verNumber)
 
 	switch strings.ToLower(conf.GetString("Compression", compressNone)) {
@@ -199,7 +199,7 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfig) error {
 		prod.config.Set("compression.codec", "snappy")
 	}
 
-	shared.Metric.New(kafkaMetricMessagesInflight)
+	shared.Metric.New(kafkaMetricAllocations)
 	return nil
 }
 
@@ -283,11 +283,9 @@ func (prod *KafkaProducer) OnMessageError(reason string, userdata []byte) {
 }
 
 func (prod *KafkaProducer) poll() {
-	for _, topic := range prod.topic {
-		topic.Poll()
-	}
+	prod.client.Poll(time.Second)
 
-	shared.Metric.Set(kafkaMetricMessagesInflight, prod.client.GetInflightBuffers())
+	shared.Metric.Set(kafkaMetricAllocations, prod.client.GetAllocCounter())
 
 	prod.topicGuard.RLock()
 	defer prod.topicGuard.RUnlock()
