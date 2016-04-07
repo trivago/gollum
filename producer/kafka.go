@@ -49,8 +49,8 @@ const (
 //    Compression: "None"
 //    MaxOpenRequests: 5
 //    MessageBufferCount: 256
-//    BatchMinCount: 10
-//    BatchMaxCount: 1
+//    BatchMinCount: 1
+//    BatchMaxCount: 0
 //    BatchSizeByte: 8192
 //    BatchSizeMaxKB: 1024
 //    BatchTimeoutMs: 3000

@@ -32,8 +32,8 @@ import (
 //    Formatter: "format.StreamRoute"
 //    StreamRouteFormatter: "format.Forward"
 //    StreamRouteStreamFormatter: "format.Forward"
-//    StreamRouteDelimiter: "$"
-//    StreamRouteFormatBoth: false
+//    StreamRouteDelimiter: ":"
+//    StreamRouteFormatStream: false
 //
 // StreamRouteFormatter defines the formatter applied after reading the stream.
 // This formatter is applied to the data after StreamRouteDelimiter.
