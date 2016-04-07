@@ -1,16 +1,38 @@
 # 0.4.3
 
 This is a patch / minor features release.
+It includes several configuration changes for producer.Kafka that might change the runtime behavior.
+Please check your configuration files.
 
 #### Fixed
 
- * Fixed a race condition in consumer/kafka reported by Go 1.6
- * Fixed a rare race condition during producer fuse handling
- * Fixed a non-critical race condition in messagebatch handling
-
+ * Fixed several race conditions reported by Go 1.6 and go build -race
+ * Fixed the scribe producer to drop unformatted message in case of error
+ * Fixed file.consumer rotation to work on regular files, too
+ * Fixed file.consumer rotation to reset the offset file after a SIGHUP
+ * Dockerfiles updated
+ * Producer.Kafka now sends messages directly to avoid sarama performance bottlenecks
+ * consumer.Kafka offset file is properly read on startup if DefaultOffset "oldest" or "newest" is 
+ * Exisiting unix domain socket detection changed to use create instead of stat (better error handling)
+ * Kafka and Scribe specific metrics are now updated if there are no messages, too
+ 
 #### New
 
  * Support for Go1.5 vendor experiment
+ * New producer for librdkafka
+ * Metrics added to show memory consumption
+ * producer.Benchmark added to get more meaningful core system profiling results
+ * New filter filter.Rate added to allow limiting streams to a certain number of messages per second
+ * Added key support to consumer.Kafka and producer.Kafka
+ * Added an "ordered read" config option to consumer.Kafka (round robin reading)
+ * Added a new formater format.ExtractJSON to extract a single value from a JSON object
+ * Go version is no printed with gollum -v 
+ 
+#### Other changes
+
+ * Renamed producer.Kafka BatchTimeoutSec to BatchTimeoutMs to allow millisecond based values
+ * Default producer.Kafka retry count set to 0
+ * Kafka.producer default producer set to RoundRobin
 
 # 0.4.2
 
