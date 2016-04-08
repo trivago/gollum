@@ -3,7 +3,8 @@ Producers
 
 .. toctree::
 	:maxdepth: 1
-
+    
+	benchmark
 	console
 	elasticsearch
 	file
