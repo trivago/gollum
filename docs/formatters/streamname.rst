@@ -25,6 +25,6 @@ Example
 
 .. code-block:: yaml
 
-	    - "stream.Broadcast":
-	        Formatter: "format.StreamName"
-	        StreamNameFormatter: "format.Envelope"
+	- "stream.Broadcast":
+	    Formatter: "format.StreamName"
+	    StreamNameFormatter: "format.Envelope"

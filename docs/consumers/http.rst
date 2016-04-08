@@ -1,4 +1,4 @@
-HTTP
+Http
 ====
 
 This consumer opens up an HTTP 1.1 server and processes the contents of any incoming HTTP request.

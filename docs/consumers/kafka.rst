@@ -43,6 +43,20 @@ Parameters
   If the consumer is restarted that offset is used to continue reading.
   By default this is set to "" which disables the offset file.
 
+**Ordered**
+  Ordered can be set to enforce paritions to be read one-by-one in a round robin fashion instead of reading in parallel from all partitions.
+  Set to false by default.
+
+**PrependKey**
+  PrependKey can be enabled to prefix the read message with the key from the kafka message.
+  A separator will ba appended to the key.
+  See KeySeparator.
+  By default this is option set to false.
+
+**KeySeparator**
+  KeySeparator defines the separator that is appended to the kafka message key if PrependKey is set to true.
+  Set to ":" by default.
+
 **MaxOpenRequests**
   MaxOpenRequests defines the number of simultanious connections are allowed.
   By default this is set to 5.
@@ -106,6 +120,7 @@ Example
 	    Topic: "default"
 	    DefaultOffset: "newest"
 	    OffsetFile: ""
+	    Ordered: true
 	    MaxOpenRequests: 5
 	    ServerTimeoutSec: 30
 	    MaxFetchSizeByte: 0
@@ -116,5 +131,7 @@ Example
 	    ElectRetries: 3
 	    ElectTimeoutMs: 250
 	    MetadataRefreshMs: 10000
+	    PrependKey: false
+	    KeySeparator: ":"
 	    Servers:
 	        - "localhost:9092"

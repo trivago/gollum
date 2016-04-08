@@ -1,7 +1,9 @@
-Kinesis
-=======
+Benchmark
+=========
 
-This producer sends data to an AWS kinesis stream.
+This producer is similar to producer.Null but will use the standard buffer mechanism before discarding messages.
+This producer is used for benchmarking the core system.
+If you require a /dev/null style producer you should prefer producer.Null instead as it is way more performant.
 
 
 Parameters
@@ -61,47 +63,12 @@ Parameters
   Note that automatic fuse recovery logic depends on each producer's implementation.
   By default this setting is set to 10.
 
-**KinesisStream**
-  KinesisStream defines the stream to read from.
-  By default this is set to "default".
-
-**Region**
-  Region defines the amazon region of your kinesis stream.
-  By default this is set to "eu-west-1".
-
-**Endpoint**
-  Endpoint defines the amazon endpoint for your kinesis stream.
-  By default this is et to "kinesis.eu-west-1.amazonaws.com".
-
-**CredentialType**
-  CredentialType defines the credentials that are to be used when connectiong to kensis.
-  This can be one of the following: environment, static, shared, none.
-  Static enables the parameters CredentialId, CredentialToken and CredentialSecret shared enables the parameters CredentialFile and CredentialProfile.
-  None will not use any credentials and environment will pull the credentials from environmental settings.
-  By default this is set to none.
-
-**BatchMaxMessages**
-  BatchMaxMessages defines the maximum number of messages to send per batch.
-  By default this is set to 500.
-
-**SendTimeframeMs**
-  SendTimeframeMs defines the timeframe in milliseconds in which a second batch send can be triggered.
-  By default this is set to 1000, i.e. one send operation per second.
-
-**BatchTimeoutSec**
-  BatchTimeoutSec defines the number of seconds after which a batch is flushed automatically.
-  By default this is set to 3.
-
-**StreamMapping**
-  StreamMapping defines a translation from gollum stream to kinesis stream name.
-  If no mapping is given the gollum stream name is used as kinesis stream name.
-
 Example
 -------
 
 .. code-block:: yaml
 
-	- "producer.Kinesis":
+	- "producer.Foobar":
 	    Enable: true
 	    ID: ""
 	    Channel: 8192
@@ -115,16 +82,3 @@ Example
 	    Stream:
 	        - "foo"
 	        - "bar"
-	    Region: "eu-west-1"
-	    Endpoint: "kinesis.eu-west-1.amazonaws.com"
-	    CredentialType: "none"
-	    CredentialId: ""
-	    CredentialToken: ""
-	    CredentialSecret: ""
-	    CredentialFile: ""
-	    CredentialProfile: ""
-	    BatchMaxMessages: 500
-	    SendTimeframeSec: 1
-	    BatchTimeoutSec: 3
-	    StreamMapping:
-	        "*" : "default"

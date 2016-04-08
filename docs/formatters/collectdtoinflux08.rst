@@ -1,7 +1,7 @@
 CollectdToInflux08
 ==================
 
-InfluxDB 0.8.x compatible JSON data.
+CollectdToInflux08 provides a transformation from collectd JSON data to InfluxDB 0.8.x compatible JSON data.
 Trailing and leading commas are removed from the Collectd message beforehand.
 
 
@@ -17,6 +17,6 @@ Example
 
 .. code-block:: yaml
 
-	    - "stream.Broadcast":
-	        Formatter: "format.CollectdToInflux08"
-	        CollectdToInfluxFormatter: "format.Forward"
+	- "stream.Broadcast":
+	    Formatter: "format.CollectdToInflux08"
+	    CollectdToInfluxFormatter: "format.Forward"

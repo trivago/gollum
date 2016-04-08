@@ -20,7 +20,7 @@ Example
 
 .. code-block:: yaml
 
-	    - "stream.Broadcast":
-	        Formatter: "format.Timestamp"
-	        TimestampFormatter: "format.Envelope"
-	        Timestamp: "2006-01-02T15:04:05.000 MST | "
+	- "stream.Broadcast":
+	    Formatter: "format.Timestamp"
+	    TimestampFormatter: "format.Envelope"
+	    Timestamp: "2006-01-02T15:04:05.000 MST | "
