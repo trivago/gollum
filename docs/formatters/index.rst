@@ -10,12 +10,12 @@ Formatters
 	collectdtoinflux09
 	collectdtoinflux10
 	envelope
-    extractjson
+	extractjson
 	forward
 	hostname
 	identifier
 	json
-    processjson
+	processjson
 	runlength
 	sequence
 	serialize
