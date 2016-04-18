@@ -122,7 +122,7 @@ func (prod *Scribe) Configure(conf core.PluginConfig) error {
 
 	// Initialize scribe connection
 
-	prod.socket, err = thrift.NewTSocket(host)
+	prod.socket, err = thrift.NewTSocketTimeout(host, prod.batchTimeout)
 	if err != nil {
 		Log.Error.Print("Scribe socket error:", err)
 		return err
@@ -226,6 +226,7 @@ func (prod *Scribe) dropMessages(messages []core.Message) {
 func (prod *Scribe) transformMessages(messages []core.Message) {
 	logBuffer := make([]*scribe.LogEntry, len(messages))
 
+	// Convert messages to scribe log format
 	for idx, msg := range messages {
 		data, streamID := prod.Format(msg)
 
@@ -250,20 +251,8 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 
 	// Try to send the whole batch.
 	// If this fails, reduce the number of items send until sending succeeds.
-
 	idxStart := 0
 	for retryCount := 0; retryCount < scribeMaxRetries; retryCount++ {
-		socket := prod.socket.Conn()
-		if socket == nil {
-			Log.Error.Print("Scribe socket is invalid.")
-			prod.dropMessages(messages[idxStart:])
-			return // ### return, socket dead ###
-		}
-
-		deadline := time.Now().Add(prod.batchTimeout)
-		socket.SetWriteDeadline(deadline)
-		socket.SetReadDeadline(deadline)
-
 		idxEnd := shared.MinI(len(logBuffer), idxStart+prod.windowSize)
 		resultCode, err := prod.scribe.Log(logBuffer[idxStart:idxEnd])
 
@@ -275,8 +264,8 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 			}
 
 			// Grow the window on success so we don't get stuck at 1
-			if prod.windowSize < len(logBuffer) {
-				prod.windowSize += (len(logBuffer) - prod.windowSize) / 2
+			if prod.windowSize < prod.batchMaxCount {
+				prod.windowSize = shared.MinI(prod.windowSize*2, prod.batchMaxCount)
 			}
 
 			return // ### return, success ###
@@ -305,7 +294,6 @@ func (prod *Scribe) transformMessages(messages []core.Message) {
 func (prod *Scribe) close() {
 	defer func() {
 		prod.transport.Close()
-		prod.socket.Close()
 		prod.WorkerDone()
 	}()
 
