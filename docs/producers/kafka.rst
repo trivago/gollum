@@ -146,7 +146,7 @@ Parameters
 **GracePeriodMs**
   GracePeriodMs defines the number of milliseconds to wait for Sarama to accept a single message.
   After this period a message is dropped.
-  By default this is set to 5ms.
+  By default this is set to 10ms.
 
 **MetadataRefreshMs**
   MetadataRefreshMs set the interval in seconds for fetching cluster metadata.
@@ -186,7 +186,8 @@ Example
 	    Partitioner: "Roundrobin"
 	    RequiredAcks: 1
 	    TimeoutMs: 1500
-	    SendRetries: 3
+	    GracePeriodMs: 10
+	    SendRetries: 0
 	    Compression: "None"
 	    MaxOpenRequests: 5
 	    MessageBufferCount: 256
