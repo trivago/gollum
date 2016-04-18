@@ -3,7 +3,7 @@ Producers
 
 .. toctree::
 	:maxdepth: 1
-    
+
 	benchmark
 	console
 	elasticsearch
@@ -11,6 +11,7 @@ Producers
 	httprequest
 	influxdb
 	kafka
+	kafkaproducer
 	kinesis
 	null
 	proxy
