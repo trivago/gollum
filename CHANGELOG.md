@@ -15,6 +15,7 @@ Please check your configuration files.
  * consumer.Kafka offset file is properly read on startup if DefaultOffset "oldest" or "newest" is 
  * Exisiting unix domain socket detection changed to use create instead of stat (better error handling)
  * Kafka and Scribe specific metrics are now updated if there are no messages, too
+ * Scribe producer is now reacting better to server connection errors
  
 #### New
 
@@ -27,6 +28,7 @@ Please check your configuration files.
  * Added an "ordered read" config option to consumer.Kafka (round robin reading)
  * Added a new formater format.ExtractJSON to extract a single value from a JSON object
  * Go version is no printed with gollum -v 
+ * Scribe producer now queries scribe server status in regular intervals
  
 #### Other changes
 
