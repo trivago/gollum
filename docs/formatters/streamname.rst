@@ -28,3 +28,5 @@ Example
 	- "stream.Broadcast":
 	    Formatter: "format.StreamName"
 	    StreamNameFormatter: "format.Envelope"
+	    StreamNameSeparator: " "
+	    StreamNameHistory: false

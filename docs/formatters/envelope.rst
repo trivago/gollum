@@ -7,18 +7,18 @@ Envelope is a formatter that allows prefixing and/or postfixing a message with c
 Parameters
 ----------
 
-**Prefix**
-  Prefix defines the message prefix.
+**EnvelopePrefix**
+  EnvelopePrefix defines the message prefix.
   By default this is set to "".
   Special characters like \n \r \t will be transformed into the actual control characters.
 
-**Postfix**
-  Postfix defines the message postfix.
+**EnvelopePostfix**
+  EnvelopePostfix defines the message postfix.
   By default this is set to "\n".
   Special characters like \n \r \t will be transformed into the actual control characters.
 
-**EnvelopeDataFormatter**
-  EnvelopeDataFormatter defines the formatter for the data transferred as message.
+**EnvelopeFormatter**
+  EnvelopeFormatter defines the formatter for the data transferred as message.
   By default this is set to "format.Forward" .
 
 Example
@@ -29,5 +29,5 @@ Example
 	- "stream.Broadcast":
 	    Formatter: "format.Envelope"
 	    EnvelopeFormatter: "format.Forward"
-	    EnvelopePrefix: "<data>"
-	    EnvelopePostfix: "</data>\n"
+	    EnvelopePrefix: ""
+	    EnvelopePostfix: "\n"

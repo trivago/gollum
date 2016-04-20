@@ -29,6 +29,8 @@ Please check your configuration files.
  * Added a new formater format.ExtractJSON to extract a single value from a JSON object
  * Go version is no printed with gollum -v 
  * Scribe producer now queries scribe server status in regular intervals
+ * format.Sequence separator character can now be configured
+ * format.Runlength separator character can now be configured
  
 #### Other changes
 
