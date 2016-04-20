@@ -35,6 +35,8 @@ Please check your configuration files.
  * Renamed producer.Kafka BatchTimeoutSec to BatchTimeoutMs to allow millisecond based values
  * Default producer.Kafka retry count set to 0
  * Kafka.producer default producer set to RoundRobin
+ * filter.RegExp FilterExpressionNot is evaluated before FilterExpression
+ * filter.RegExp FilterExpression is evaluated if FilterExpressionNot passed
 
 # 0.4.2
 
