@@ -27,14 +27,14 @@ import (
 //  - "stream.Broadcast":
 //    Formatter: "format.Envelope"
 //    EnvelopeFormatter: "format.Forward"
-//    EnvelopePrefix: "<data>"
-//    EnvelopePostfix: "</data>\n"
+//    EnvelopePrefix: ""
+//    EnvelopePostfix: "\n"
 //
-// Prefix defines the message prefix. By default this is set to "".
+// EnvelopePrefix defines the message prefix. By default this is set to "".
 // Special characters like \n \r \t will be transformed into the actual control
 // characters.
 //
-// Postfix defines the message postfix. By default this is set to "\n".
+// EnvelopePostfix defines the message postfix. By default this is set to "\n".
 // Special characters like \n \r \t will be transformed into the actual control
 // characters.
 //

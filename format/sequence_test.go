@@ -20,37 +20,18 @@ import (
 	"testing"
 )
 
-func TestExtractJSON(t *testing.T) {
+func TestSequence(t *testing.T) {
 	expect := shared.NewExpect(t)
 
 	config := core.NewPluginConfig("")
-	config.Override("ExtractJSONField", "test")
-
-	plugin, err := core.NewPluginWithType("format.ExtractJSON", config)
+	plugin, err := core.NewPluginWithType("format.Sequence", config)
 	expect.NoError(err)
-	formatter, casted := plugin.(*ExtractJSON)
+
+	formatter, casted := plugin.(*Sequence)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"), 0)
+	msg := core.NewMessage(nil, []byte("test"), 10)
 	result, _ := formatter.Format(msg)
 
-	expect.Equal("valid", string(result))
-}
-
-func TestExtractJSONPrecision(t *testing.T) {
-	expect := shared.NewExpect(t)
-
-	config := core.NewPluginConfig("")
-	config.Override("ExtractJSONField", "test")
-	config.Override("ExtractJSONPrecision", 0)
-
-	plugin, err := core.NewPluginWithType("format.ExtractJSON", config)
-	expect.NoError(err)
-	formatter, casted := plugin.(*ExtractJSON)
-	expect.True(casted)
-
-	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":999999999}"), 0)
-	result, _ := formatter.Format(msg)
-
-	expect.Equal("999999999", string(result))
+	expect.Equal("10:test", string(result))
 }
