@@ -27,12 +27,17 @@ import (
 //
 //  - "stream.Broadcast":
 //    Formatter: "format.Runlength"
+//    RunlengthSeparator: ":"
 //    RunlengthFormatter: "format.Envelope"
+//
+// RunlengthSeparator sets the separator character placed after the runlength.
+// This is set to ":" by default.
 //
 // RunlengthDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Runlength struct {
-	base core.Formatter
+	base      core.Formatter
+	separator string
 }
 
 func init() {
@@ -46,6 +51,7 @@ func (format *Runlength) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
+	format.separator = conf.GetString("RunlengthSeparator", ":")
 	format.base = plugin.(core.Formatter)
 	return nil
 }
@@ -54,7 +60,7 @@ func (format *Runlength) Configure(conf core.PluginConfig) error {
 func (format *Runlength) Format(msg core.Message) ([]byte, core.MessageStreamID) {
 	basePayload, stream := format.base.Format(msg)
 	baseLength := len(basePayload)
-	lengthStr := strconv.Itoa(baseLength) + ":"
+	lengthStr := strconv.Itoa(baseLength) + format.separator
 
 	payload := make([]byte, len(lengthStr)+baseLength)
 	len := copy(payload, []byte(lengthStr))

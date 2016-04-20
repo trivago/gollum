@@ -37,7 +37,7 @@ import (
 //      - "error:replace:°:\n"
 //      - "text:trim: \t"
 //      - "foo:rename:bar"
-//    ProcessJSONTrimFields: true
+//    ProcessJSONTrimValues: true
 //
 // ProcessJSONDataFormatter formatter that will be applied before
 // ProcessJSONDirectives are processed.

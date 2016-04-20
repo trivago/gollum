@@ -28,13 +28,18 @@ import (
 //  - "stream.Broadcast":
 //    Formatter: "format.Sequence"
 //    SequenceFormatter: "format.Envelope"
+//    SequenceSeparator: ":"
+//
+// SequenceSeparator sets the separator character placed after the sequence
+// number. This is set to ":" by default.
 //
 // SequenceDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Sequence struct {
-	base     core.Formatter
-	length   int
-	sequence string
+	base      core.Formatter
+	length    int
+	sequence  string
+	separator string
 }
 
 func init() {
@@ -48,6 +53,7 @@ func (format *Sequence) Configure(conf core.PluginConfig) error {
 		return err
 	}
 
+	format.separator = conf.GetString("SequenceSeparator", ":")
 	format.base = plugin.(core.Formatter)
 	return nil
 }
@@ -57,7 +63,7 @@ func (format *Sequence) Configure(conf core.PluginConfig) error {
 func (format *Sequence) Format(msg core.Message) ([]byte, core.MessageStreamID) {
 	basePayload, stream := format.base.Format(msg)
 	baseLength := len(basePayload)
-	sequenceStr := strconv.FormatUint(msg.Sequence, 10) + ":"
+	sequenceStr := strconv.FormatUint(msg.Sequence, 10) + format.separator
 
 	payload := make([]byte, len(sequenceStr)+baseLength)
 	len := copy(payload, []byte(sequenceStr))

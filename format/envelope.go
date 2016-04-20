@@ -38,7 +38,7 @@ import (
 // Special characters like \n \r \t will be transformed into the actual control
 // characters.
 //
-// EnvelopeDataFormatter defines the formatter for the data transferred as
+// EnvelopeFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Envelope struct {
 	base    core.Formatter
