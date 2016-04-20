@@ -15,6 +15,7 @@
 package producer
 
 import (
+	"github.com/artyom/fb303"
 	"github.com/artyom/scribe"
 	"github.com/artyom/thrift"
 	"github.com/trivago/gollum/core"
@@ -36,6 +37,7 @@ import (
 //    BatchMaxCount: 8192
 //    BatchFlushCount: 4096
 //    BatchTimeoutSec: 5
+//	  HeartBeatIntervalSec: 5
 //    Category:
 //      "console" : "console"
 //      "_GOLLUM_"  : "_GOLLUM_"
@@ -57,7 +59,11 @@ import (
 //
 // BatchTimeoutSec defines the maximum number of seconds to wait after the last
 // message arrived before a batch is flushed automatically. By default this is
-// set to 5.
+// set to 5. This also defines the maximum time allowed for messages to be
+// sent to the server.
+//
+// HeartBeatIntervalSec defines the interval used to query scribe for status
+// updates. By default this is set to 5sec.
 //
 // Category maps a stream to a specific scribe category. You can define the
 // wildcard stream (*) here, too. When set, all streams that do not have a
@@ -65,16 +71,20 @@ import (
 // If no category mappings are set the stream name is used.
 type Scribe struct {
 	core.ProducerBase
-	scribe          *scribe.ScribeClient
-	transport       *thrift.TFramedTransport
-	socket          *thrift.TSocket
-	category        map[core.MessageStreamID]string
-	batch           core.MessageBatch
-	batchTimeout    time.Duration
-	batchMaxCount   int
-	batchFlushCount int
-	bufferSizeByte  int
-	windowSize      int
+	scribe            *scribe.ScribeClient
+	transport         *thrift.TFramedTransport
+	socket            *thrift.TSocket
+	category          map[core.MessageStreamID]string
+	batch             core.MessageBatch
+	batchTimeout      time.Duration
+	lastHeartBeat     time.Time
+	heartBeatInterval time.Duration
+	batchMaxCount     int
+	batchFlushCount   int
+	bufferSizeByte    int
+	windowSize        int
+	counters          map[string]*int64
+	lastMetricUpdate  time.Time
 }
 
 const (
@@ -102,6 +112,7 @@ func (prod *Scribe) Configure(conf core.PluginConfigReader) error {
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
+	prod.heartBeatInterval = time.Duration(conf.GetInt("HeartBeatIntervalSec", 5)) * time.Second
 
 	prod.bufferSizeByte = conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10 // 1 MB
 	prod.category = conf.GetStreamMap("Category", "")
@@ -109,7 +120,7 @@ func (prod *Scribe) Configure(conf core.PluginConfigReader) error {
 	// Initialize scribe connection
 
 	var err error
-	prod.socket, err = thrift.NewTSocket(host)
+	prod.socket, err = thrift.NewTSocketTimeout(host, prod.batchTimeout)
 	conf.Errors.Push(err)
 
 	prod.transport = thrift.NewTFramedTransport(prod.socket)
@@ -141,19 +152,44 @@ func (prod *Scribe) sendBatchOnTimeOut() {
 }
 
 func (prod *Scribe) tryOpenConnection() bool {
-	if prod.transport.IsOpen() {
-		return true
+	if !prod.transport.IsOpen() {
+		if err := prod.transport.Open(); err != nil {
+			prod.Log.Error.Print("Scribe connection error:", err)
+			return false // ### return, cannot connect ###
+		}
+
+		prod.socket.Conn().(bufferedConn).SetWriteBuffer(prod.bufferSizeByte)
+		prod.Control() <- core.PluginControlFuseActive
+		prod.lastHeartBeat = time.Now().Add(prod.heartBeatInterval)
+		prod.Log.Note.Print("Scribe connection opened")
 	}
 
-	err := prod.transport.Open()
-	if err != nil {
-		prod.Log.Error.Print("Scribe connection error:", err)
-		return false
+	if time.Since(prod.lastHeartBeat) < prod.heartBeatInterval {
+		return true // ### return, assume alive ###
 	}
 
-	prod.socket.Conn().(bufferedConn).SetWriteBuffer(prod.bufferSizeByte)
-	prod.Control() <- core.PluginControlFuseActive
-	return true
+	// Check status only when not sending, otherwise scribe gets confused
+	prod.lastHeartBeat = time.Now()
+	prod.batch.WaitForFlush(0)
+
+	if status, err := prod.scribe.GetStatus(); err != nil {
+		prod.Log.Error.Print("Scribe status error:", err)
+	} else {
+		switch status {
+		case fb303.FbStatus_DEAD:
+			prod.Log.Warning.Print("Scribe status reported as dead.")
+		case fb303.FbStatus_STOPPING:
+			prod.Log.Warning.Print("Scribe status reported as stopping.")
+		case fb303.FbStatus_STOPPED:
+			prod.Log.Warning.Print("Scribe status reported as stopped.")
+		default:
+			return true // ### return, all is well ###
+		}
+	}
+
+	prod.Control() <- core.PluginControlFuseBurn
+	prod.transport.Close()
+	return false
 }
 
 func (prod *Scribe) sendBatch() {
@@ -173,6 +209,7 @@ func (prod *Scribe) dropMessages(messages []*core.Message) {
 func (prod *Scribe) transformMessages(messages []*core.Message) {
 	logBuffer := make([]*scribe.LogEntry, len(messages))
 
+	// Convert messages to scribe log format
 	for idx, msg := range messages {
 		currentMsg := *msg
 		prod.Format(&currentMsg)
@@ -198,7 +235,6 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 
 	// Try to send the whole batch.
 	// If this fails, reduce the number of items send until sending succeeds.
-
 	idxStart := 0
 	for retryCount := 0; retryCount < scribeMaxRetries; retryCount++ {
 		idxEnd := tmath.MinI(len(logBuffer), idxStart+prod.windowSize)
@@ -210,16 +246,21 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 				retryCount = -1 // incremented to 0 after continue
 				continue        // ### continue, data left to send ###
 			}
+
 			// Grow the window on success so we don't get stuck at 1
-			if prod.windowSize < len(logBuffer) {
-				prod.windowSize += (len(logBuffer) - prod.windowSize) / 2
+			if prod.windowSize < prod.batchMaxCount {
+				prod.windowSize = tmath.MinI(prod.windowSize*2, prod.batchMaxCount)
 			}
+
 			return // ### return, success ###
 		}
 
 		if err != nil || resultCode != scribe.ResultCode_TRY_LATER {
 			prod.Log.Error.Printf("Scribe log error %d: %s", resultCode, err.Error())
+
+			prod.Control() <- core.PluginControlFuseBurn
 			prod.transport.Close() // reconnect
+
 			prod.dropMessages(messages[idxStart:])
 			return // ### return, failure ###
 		}
@@ -237,7 +278,6 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 func (prod *Scribe) close() {
 	defer func() {
 		prod.transport.Close()
-		prod.socket.Close()
 		prod.WorkerDone()
 	}()
 

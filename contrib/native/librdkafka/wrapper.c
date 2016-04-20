@@ -44,7 +44,7 @@ static void deliveryWrapper(rd_kafka_t* rk, const rd_kafka_message_t* rkmessage,
     buffer_t* pBuffer = (buffer_t*)rkmessage->_private;
     if (rkmessage->err != RD_KAFKA_RESP_ERR_NO_ERROR) {
         goDeliveryHandler(rk, rkmessage->err, pBuffer);
-    }    
+    }
     DestroyBuffer(pBuffer);
 }
                      
@@ -82,8 +82,11 @@ void RegisterRoundRobinPartitioner(rd_kafka_topic_conf_t* config) {
 }
 
 buffer_t* CreateBuffer(size_t len, void* pData) {
-    __sync_fetch_and_add(&gAllocCounter, 1);
-    buffer_t* pBuffer = (buffer_t*)malloc(sizeof(buffer_t));
+    if (pData == NULL || len == 0) {
+        return NULL;
+    }
+    
+    buffer_t* pBuffer = (buffer_t*)Alloc(sizeof(buffer_t));
     pBuffer->data = pData;
     pBuffer->len = len;
     return pBuffer;
@@ -91,49 +94,31 @@ buffer_t* CreateBuffer(size_t len, void* pData) {
 
 void DestroyBuffer(buffer_t* pBuffer) {
     if (pBuffer != NULL) {
-        free(pBuffer);
+        Free(pBuffer->data);
+        Free(pBuffer);
+    }
+}
+
+void* Alloc(size_t size) {
+    __sync_fetch_and_add(&gAllocCounter, 1);
+    return malloc(size);
+}
+
+void Free(void* pData) {
+    if (pData != NULL) {
+        free(pData);
         __sync_fetch_and_sub(&gAllocCounter, 1);
     }
 }
 
+int Produce(rd_kafka_topic_t* pTopic, void* pKey, size_t keyLen, void* pPayload, size_t payloadLen, buffer_t* pUserdata) {
+    return rd_kafka_produce(pTopic, RD_KAFKA_PARTITION_UA, RD_KAFKA_MSG_F_COPY, pPayload, payloadLen, pKey, keyLen, pUserdata);
+}
+ 
 int GetLastError() {
     return rd_kafka_errno2err(errno);
 }
 
-rd_kafka_message_t* CreateBatch(int size) {
-    return (rd_kafka_message_t*)malloc(size * sizeof(rd_kafka_message_t));
-}
-
-void DestroyBatch(rd_kafka_message_t* pBatch) {
-    free(pBatch);
-}
-
-void StoreBatchItem(rd_kafka_message_t* pBatch, int index, size_t keyLen, void* pKey, size_t payloadLen, void* pPayload, size_t userdataLen, void* pUserdata) {
-    pBatch[index].key_len = keyLen;
-    pBatch[index].len = payloadLen;
-    pBatch[index].key = pKey;
-    pBatch[index].payload = pPayload;
-    pBatch[index]._private = CreateBuffer(userdataLen, pUserdata);
-}
-
-int BatchGetNextError(rd_kafka_message_t* pBatch, int length, int offset) {
-    int i;
-    for (i=offset; i<length; i++) {
-        if (pBatch[i].err != RD_KAFKA_RESP_ERR_NO_ERROR) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-int BatchGetErrAt(rd_kafka_message_t* pBatch, int index) {
-    return pBatch[index].err;
-}
-
-buffer_t* BatchGetUserdataAt(rd_kafka_message_t* pBatch, int index) {
-    return (buffer_t*)pBatch[index]._private;
-}
-
-int64_t GetAllocatedBuffers() {
+int64_t GetAllocCounter() {
     return gAllocCounter;
 }

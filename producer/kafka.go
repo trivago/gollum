@@ -44,12 +44,13 @@ const (
 //    Partitioner: "Roundrobin"
 //    RequiredAcks: 1
 //    TimeoutMs: 1500
-//    SendRetries: 3
+//    GracePeriodMs: 10
+//    SendRetries: 0
 //    Compression: "None"
 //    MaxOpenRequests: 5
 //    MessageBufferCount: 256
-//    BatchMinCount: 10
-//    BatchMaxCount: 1
+//    BatchMinCount: 1
+//    BatchMaxCount: 0
 //    BatchSizeByte: 8192
 //    BatchSizeMaxKB: 1024
 //    BatchTimeoutMs: 3000
@@ -119,10 +120,10 @@ const (
 //
 // ElectTimeoutMs defines the number of milliseconds to wait for the cluster to
 // elect a new leader. Defaults to 250.
-// GracePeriodMs defines the number of milliseconds to wait for Sarama to
 //
+// GracePeriodMs defines the number of milliseconds to wait for Sarama to
 // accept a single message. After this period a message is dropped.
-// By default this is set to 5ms.
+// By default this is set to 10ms.
 //
 // MetadataRefreshMs set the interval in seconds for fetching cluster metadata.
 // By default this is set to 10000. This corresponds to the JVM setting
@@ -177,7 +178,7 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.clientID = conf.GetString("ClientId", "gollum")
-	prod.gracePeriod = time.Duration(conf.GetInt("GracePeriodMs", 5)) * time.Millisecond
+	prod.gracePeriod = time.Duration(conf.GetInt("GracePeriodMs", 10)) * time.Millisecond
 	prod.topicGuard = new(sync.RWMutex)
 	prod.topic = conf.GetStreamMap("Topic", "")
 

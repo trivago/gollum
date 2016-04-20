@@ -15,10 +15,9 @@
 package librdkafka
 
 // #cgo CFLAGS: -I/usr/local/include -std=c99
-// #cgo LDFLAGS: -L/usr/local/opt/librdkafka/lib -L/usr/local/lib -lrdkafka
+// #cgo LDFLAGS: -L/usr/local/lib -L/usr/local/opt/librdkafka/lib -lrdkafka
 // #include "wrapper.h"
 import "C"
-import "unsafe"
 
 // Topic wrapper handle for rd_kafka_topic_t
 type Topic struct {
@@ -70,70 +69,25 @@ func (t *Topic) GetName() string {
 	return t.name
 }
 
-// Poll polls for new data to be sent to the async handler functions
-func (t *Topic) Poll() {
-	C.rd_kafka_poll(t.client.handle, 1000)
-}
-
 // Produce produces a single messages.
 // If a message cannot be produced because of internal (non-wire) problems an
 // error is immediately returned instead of being asynchronously handled via
 // MessageDelivery interface.
-func (t *Topic) Produce(message Message) error {
-	keyLen, keyPtr, payLen, payPtr, usrLen, usrPtr := MarshalMessage(message)
-	usrData := C.CreateBuffer(usrLen, usrPtr)
-	success := C.rd_kafka_produce(t.handle, C.RD_KAFKA_PARTITION_UA, C.RD_KAFKA_MSG_F_COPY, payPtr, payLen, keyPtr, keyLen, unsafe.Pointer(usrData))
+func (t *Topic) Produce(msg Message) error {
+	userdata := newBuffer(msg.GetUserdata())
+	native := newNativeMessage(msg)
+	defer native.free()
 
-	if success != 0 {
-		defer C.DestroyBuffer(usrData)
+	if C.Produce(t.handle, native.key, native.keyLen, native.payload, native.payloadLen, userdata) != 0 {
+		defer freeBuffer(userdata)
 		rspErr := ResponseError{
-			Userdata: message.GetUserdata(),
+			Userdata: msg.GetUserdata(),
 			Code:     int(C.GetLastError()),
+		}
+		if rspErr.Code == C.RD_KAFKA_RESP_ERR__QUEUE_FULL {
+			t.client.Poll(-1)
 		}
 		return rspErr // ### return, error ###
 	}
-
-	C.rd_kafka_poll(t.client.handle, 0)
 	return nil
-}
-
-// ProduceBatch produces a set of messages.
-// Messages that cannot be produced because of internal (non-wire) problems are
-// immediately returned instead of asynchronously handled via MessageDelivery
-// interface.
-func (t *Topic) ProduceBatch(messages []Message) []error {
-	errors := []error{}
-	if len(messages) == 0 {
-		return errors // ### return, nothing to do ###
-	}
-
-	batch := PrepareBatch(messages)
-	batchLen := C.int(len(messages))
-	defer C.DestroyBatch(batch)
-
-	enqueued := C.rd_kafka_produce_batch(t.handle, C.RD_KAFKA_PARTITION_UA, C.RD_KAFKA_MSG_F_COPY, batch, batchLen)
-	if enqueued != batchLen {
-		offset := C.int(0)
-		for offset >= 0 {
-			offset = C.BatchGetNextError(batch, batchLen, offset)
-			if offset >= 0 {
-				bufferPtr := C.BatchGetUserdataAt(batch, offset)
-				errCode := C.BatchGetErrAt(batch, offset)
-
-				rspErr := ResponseError{
-					Userdata: UnmarshalBuffer(bufferPtr),
-					Code:     int(errCode),
-				}
-
-				errors = append(errors, rspErr)
-				offset++
-			}
-		}
-	}
-
-	for C.rd_kafka_outq_len(t.client.handle) > 0 && !t.shutdown {
-		C.rd_kafka_poll(t.client.handle, 20)
-	}
-
-	return errors
 }

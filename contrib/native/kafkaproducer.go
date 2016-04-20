@@ -27,7 +27,7 @@ import (
 // KafkaProducer librdkafka producer plugin
 // The kafka producer writes messages to a kafka cluster. This producer is
 // backed by the native librdkafka library so most settings relate to that.
-// library. This producer does not use a fuse breaker.
+// library. This producer does not implement a fuse breaker.
 // Configuration example
 //
 //  - "native.KafkaProducer":
@@ -38,11 +38,11 @@ import (
 //    Compression: "none"
 //    BatchSizeMaxKB: 1024
 //    BatchMaxMessages: 100000
-//    BatchMinMessages: 10000
+//    BatchMinMessages: 1000
 //    BatchTimeoutMs: 1000
 //    ServerTimeoutSec: 60
 //    ServerMaxFails: 3
-//    MetadataTimeoutSec: 60
+//    MetadataTimeoutMs: 1500
 //    MetadataRefreshMs: 300000
 //    KeyFormatter: ""
 //    Servers:
@@ -51,29 +51,54 @@ import (
 //      "console" : "console"
 //
 // SendRetries is mapped to message.send.max.retries.
+// This defines the number of times librdkafka will try to re-send a message
+// if it did not succeed. Set to 0 by default (don't retry).
 //
-// Compression is mapped to compression.codec. Please not that "zip" has to be
-// used instead of "gzip".
+// Compression is mapped to compression.codec. Please note that "zip" has to be
+// used instead of "gzip". Possible values are "none", "zip" and "snappy".
+// By default this is set to "none".
 //
-// BatchSizeMaxKB is mapped to message.max.bytes.
+// TimeoutMs is mapped to request.timeout.ms.
+// This defines the number of milliseconds to wait until a request is marked
+// as failed. By default this is set to 1.5sec.
+//
+// BatchSizeMaxKB is mapped to message.max.bytes (x1024).
+// This defines the maximum message size in KB. By default this is set to 1 MB.
+// Messages above this size are rejected.
 //
 // BatchMaxMessages is mapped to queue.buffering.max.messages.
+// This defines the maximum number of messages that can be pending at any given
+// moment in time. If this limit is hit additional messages will be rejected.
+// This value is set to 100.000 by default and should be adjusted according to
+// your average message throughput.
 //
 // BatchMinMessages is mapped to batch.num.messages.
+// This defines the minimum number of messages required for a batch to be sent.
+// This is set to 1000 by default and should be significantly lower than
+// BatchMaxMessages to avoid messages to be rejected.
 //
 // BatchTimeoutMs is mapped to queue.buffering.max.ms.
+// This defines the number of milliseconds to wait until a batch is flushed to
+// kafka. Set to 1sec by default.
 //
 // ServerTimeoutSec is mapped to socket.timeout.ms.
+// Defines the time in seconds after a server is defined as "not reachable".
+// Set to 1 minute by default.
 //
 // ServerMaxFails is mapped to socket.max.fails.
+// Number of retries after a server is marked as "failing".
 //
-// MetadataTimeoutSec is mapped to metadata.request.timeout.ms.
+// MetadataTimeoutMs is mapped to metadata.request.timeout.ms.
+// Number of milliseconds a metadata request may take until considered as failed.
+// Set to 1.5 seconds by default.
 //
 // MetadataRefreshMs is mapped to topic.metadata.refresh.interval.ms.
+// Interval in milliseconds for querying metadata. Set to 5 minutes by default.
 //
 // Servers defines the list of brokers to produce messages to.
 //
 // Topic defines a stream to topic mapping.
+// If a stream is not mapped a topic named like the stream is assumed.
 //
 // KeyFormatter defines the formatter used to extract keys from a message.
 // Set to "" by default (disable).
@@ -101,7 +126,7 @@ type messageWrapper struct {
 const (
 	kafkaMetricMessages    = "Kafka:Messages-"
 	kafkaMetricMessagesSec = "Kafka:MessagesSec-"
-	kafkaMetricPending     = "Kafka:Pending"
+	kafkaMetricAllocations = "Kafka:Allocations"
 )
 
 const (
@@ -167,7 +192,7 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
 	prod.config.Set("client.id", conf.GetString("ClientId", "gollum"))
 	prod.config.Set("metadata.broker.list", strings.Join(prod.servers, ","))
 	prod.config.SetI("message.max.bytes", conf.GetInt("BatchSizeMaxKB", 1<<10)<<10)
-	prod.config.SetI("metadata.request.timeout.ms", int(conf.GetInt("MetadataTimeoutSec", 60)*1000))
+	prod.config.SetI("metadata.request.timeout.ms", int(conf.GetInt("MetadataTimeoutMs", 1500)))
 	prod.config.SetI("topic.metadata.refresh.interval.ms", int(conf.GetInt("MetadataRefreshMs", 300000)))
 	prod.config.SetI("socket.max.fails", int(conf.GetInt("ServerMaxFails", 3)))
 	prod.config.SetI("socket.timeout.ms", int(conf.GetInt("ServerTimeoutSec", 60)*1000))
@@ -175,7 +200,7 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
 	prod.config.SetI("message.send.max.retries", conf.GetInt("SendRetries", 0))
 	prod.config.SetI("queue.buffering.max.messages", conf.GetInt("BatchMaxMessages", 100000))
 	prod.config.SetI("queue.buffering.max.ms", batchIntervalMs)
-	prod.config.SetI("batch.num.messages", conf.GetInt("BatchMinMessages", 10000))
+	prod.config.SetI("batch.num.messages", conf.GetInt("BatchMinMessages", 1000))
 	//prod.config.SetI("protocol.version", verNumber)
 
 	switch strings.ToLower(conf.GetString("Compression", compressNone)) {
@@ -187,8 +212,8 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
 		prod.config.Set("compression.codec", "snappy")
 	}
 
-	tgo.Metric.New(kafkaMetricPending)
-	return conf.Errors.OrNil()
+	tgo.Metric.New(kafkaMetricAllocations)
+	return nil
 }
 
 func (prod *KafkaProducer) registerNewTopic(streamID core.MessageStreamID) *kafka.Topic {
@@ -272,11 +297,8 @@ func (prod *KafkaProducer) OnMessageError(reason string, userdata []byte) {
 }
 
 func (prod *KafkaProducer) poll() {
-	for _, topic := range prod.topic {
-		topic.Poll()
-	}
-
-	tgo.Metric.Set(kafkaMetricPending, prod.client.GetInflightBuffers())
+	prod.client.Poll(time.Second)
+	tgo.Metric.Set(kafkaMetricAllocations, prod.client.GetAllocCounter())
 }
 
 func (prod *KafkaProducer) isConnected() bool {

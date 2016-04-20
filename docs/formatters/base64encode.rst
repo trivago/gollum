@@ -21,7 +21,7 @@ Example
 
 .. code-block:: yaml
 
-	    - "stream.Broadcast":
-	        Formatter: "format.Base64Encode"
-	        Base64Formatter: "format.Forward"
-	        Base64Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
+	- "stream.Broadcast":
+	    Formatter: "format.Base64Encode"
+	    Base64Formatter: "format.Forward"
+	    Base64Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"

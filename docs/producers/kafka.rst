@@ -3,7 +3,7 @@ Kafka
 
 The kafka producer writes messages to a kafka cluster.
 This producer is backed by the sarama library so most settings relate to that library.
-This producer uses a fuse breaker if the connection reports an error.
+This producer uses a fuse breaker if any connection reports an error.
 
 
 Parameters
@@ -70,7 +70,12 @@ Parameters
 **Partitioner**
   Partitioner sets the distribution algorithm to use.
   Valid values are: "Random","Roundrobin" and "Hash".
-  By default "Hash" is set.
+  By default "Roundrobin" is set.
+
+**KeyFormatter**
+  KeyFormatter can define a formatter that extracts the key for a kafka message from the message payload.
+  By default this is an empty string, which disables this feature.
+  A good formatter for this can be format.Identifier.
 
 **RequiredAcks**
   RequiredAcks defines the acknowledgment level required by the broker.
@@ -87,7 +92,7 @@ Parameters
 
 **SendRetries**
   SendRetries defines how many times to retry sending data before marking a server as not reachable.
-  By default this is set to 3.
+  By default this is set to 0.
 
 **Compression**
   Compression sets the method of compression to use.
@@ -107,15 +112,15 @@ Parameters
   By default this is set to 0 for "unlimited".
 
 **BatchSizeByte**
-  BatchSizeByte sets the mimimum number of bytes to collect before a new flush is triggered.
+  BatchSizeByte sets the minimum number of bytes to collect before a new flush is triggered.
   By default this is set to 8192.
 
 **BatchSizeMaxKB**
   BatchSizeMaxKB defines the maximum allowed message size.
   By default this is set to 1024.
 
-**BatchTimeoutSec**
-  BatchTimeoutSec sets the minimum time in seconds to pass after wich a new flush will be triggered.
+**BatchTimeoutMs**
+  BatchTimeoutMs sets the minimum time in milliseconds to pass after wich a new flush will be triggered.
   By default this is set to 3.
 
 **MessageBufferCount**
@@ -137,6 +142,11 @@ Parameters
 **ElectTimeoutMs**
   ElectTimeoutMs defines the number of milliseconds to wait for the cluster to elect a new leader.
   Defaults to 250.
+
+**GracePeriodMs**
+  GracePeriodMs defines the number of milliseconds to wait for Sarama to accept a single message.
+  After this period a message is dropped.
+  By default this is set to 10ms.
 
 **MetadataRefreshMs**
   MetadataRefreshMs set the interval in seconds for fetching cluster metadata.
@@ -176,15 +186,16 @@ Example
 	    Partitioner: "Roundrobin"
 	    RequiredAcks: 1
 	    TimeoutMs: 1500
-	    SendRetries: 3
+	    GracePeriodMs: 10
+	    SendRetries: 0
 	    Compression: "None"
 	    MaxOpenRequests: 5
 	    MessageBufferCount: 256
-	    BatchMinCount: 10
-	    BatchMaxCount: 1
+	    BatchMinCount: 1
+	    BatchMaxCount: 0
 	    BatchSizeByte: 8192
 	    BatchSizeMaxKB: 1024
-	    BatchTimeoutSec: 3
+	    BatchTimeoutMs: 3000
 	    ServerTimeoutSec: 30
 	    SendTimeoutMs: 250
 	    ElectRetries: 3

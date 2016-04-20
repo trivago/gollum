@@ -1,6 +1,7 @@
 RegExp
 ======
 
+This plugin allows filtering messages using regular expressions.
 
 
 Parameters
@@ -19,7 +20,7 @@ Example
 
 .. code-block:: yaml
 
-	    - "stream.Broadcast":
-	        Filter: "filter.RegExp"
-	        FilterExpression: "\d+-.*"
-	        FilterExpressionNot: "\d+-.*"
+	- "stream.Broadcast":
+	    Filter: "filter.RegExp"
+	    FilterExpression: "\d+-.*"
+	    FilterExpressionNot: "\d+-.*"

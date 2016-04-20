@@ -20,7 +20,7 @@ Example
 
 .. code-block:: yaml
 
-	    - "stream.Broadcast":
-	        Formatter: "format.Hostname"
-	        HostnameFormatter: "format.Envelope"
-	        HostnameSeparator: " "
+	- "stream.Broadcast":
+	    Formatter: "format.Hostname"
+	    HostnameFormatter: "format.Envelope"
+	    HostnameSeparator: " "

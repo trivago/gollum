@@ -16,6 +16,6 @@ Example
 
 .. code-block:: yaml
 
-	    - "stream.Broadcast":
-	        Formatter: "format.Sequence"
-	        SequenceFormatter: "format.Envelope"
+	- "stream.Broadcast":
+	    Formatter: "format.Sequence"
+	    SequenceFormatter: "format.Envelope"
