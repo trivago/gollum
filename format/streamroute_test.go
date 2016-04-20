@@ -20,38 +20,48 @@ import (
 	"testing"
 )
 
-func TestExtractJSON(t *testing.T) {
+func TestStreamRoute(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.ExtractJSON")
+	config := core.NewPluginConfig("", "format.StreamRoute")
 
 	plugin, err := core.NewPlugin(config)
 	expect.NoError(err)
-	formatter, casted := plugin.(*ExtractJSON)
+
+	formatter, casted := plugin.(*StreamRoute)
 	expect.True(casted)
 
-	formatter.Configure(core.NewPluginConfigReader(&config))
-	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"), 0)
+	msg := core.NewMessage(nil, []byte(core.LogInternalStream+":test"), 0)
+	msg.StreamID = core.DroppedStreamID
 
 	formatter.Format(msg)
-	expect.Equal("valid", string(msg.Data))
+
+	expect.Equal("test", string(msg.Data))
+	expect.Equal(core.LogInternalStreamID, msg.StreamID)
 }
 
-func TestExtractJSONPrecision(t *testing.T) {
+// TODO
+/*
+func TestStreamRouteFormat(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.ExtractJSON")
-	config.Override("ExtractJSONField", "test")
-	config.Override("ExtractJSONPrecision", 0)
+	config := core.NewPluginConfig("", "format.StreamRoute")
+	config.Override("Formatter", map[string]string{"format.Envelope"})
+	config.Override("EnvelopePrefix", "_")
+	config.Override("EnvelopePostfix", "_")
+	config.Override("StreamRouteFormatStream", true)
 
 	plugin, err := core.NewPlugin(config)
 	expect.NoError(err)
-	formatter, casted := plugin.(*ExtractJSON)
+
+	formatter, casted := plugin.(*StreamRoute)
 	expect.True(casted)
 
-	formatter.Configure(core.NewPluginConfigReader(&config))
-	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":999999999}"), 0)
+	msg := core.NewMessage(nil, []byte("GOLLUM:test"), 0)
+	msg.StreamID = core.DroppedStreamID
+
 	formatter.Format(msg)
 
-	expect.Equal("999999999", string(msg.Data))
-}
+	expect.Equal("test", string(msg.Data))
+	expect.Equal(core.LogInternalStream, core.StreamRegistry.GetStreamName(msg.StreamID))
+}*/

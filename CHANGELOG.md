@@ -35,12 +35,16 @@ Please check your configuration files.
  * Added a new formater format.ExtractJSON to extract a single value from a JSON object
  * Go version is no printed with gollum -v 
  * Scribe producer now queries scribe server status in regular intervals
+ * format.Sequence separator character can now be configured
+ * format.Runlength separator character can now be configured
  
 #### Other changes
 
  * Renamed producer.Kafka BatchTimeoutSec to BatchTimeoutMs to allow millisecond based values
  * Default producer.Kafka retry count set to 0
  * Kafka.producer default producer set to RoundRobin
+ * filter.RegExp FilterExpressionNot is evaluated before FilterExpression
+ * filter.RegExp FilterExpression is evaluated if FilterExpressionNot passed
 
 # 0.4.2
 

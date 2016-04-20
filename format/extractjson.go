@@ -30,7 +30,7 @@ import (
 //    Formatter: "format.ExtractJSON"
 //    ExtractJSONdataFormatter: "format.Forward"
 //    ExtractJSONField: ""
-//    ExtractJSONTrimField: true
+//    ExtractJSONTrimValues: true
 //    ExtractJSONPrecision: 0
 //
 // ExtractJSONDataFormatter formatter that will be applied before
@@ -39,7 +39,7 @@ import (
 // ExtractJSONField defines the field to extract. This value is empty by
 // default. If the field does not exist an empty string is returned.
 //
-// ExtractJSONTrimField will trim whitspaces from the value if enabled.
+// ExtractJSONTrimValues will trim whitspaces from the value if enabled.
 // Enabled by default.
 //
 // ExtractJSONPrecision defines the floating point precision of number

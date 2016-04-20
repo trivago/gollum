@@ -8,6 +8,10 @@ The actual message is formatted by a nested formatter.
 Parameters
 ----------
 
+**RunlengthSeparator**
+  RunlengthSeparator sets the separator character placed after the runlength.
+  This is set to ":" by default.
+
 **RunlengthDataFormatter**
   RunlengthDataFormatter defines the formatter for the data transferred as message.
   By default this is set to "format.Forward" .
@@ -19,4 +23,5 @@ Example
 
 	- "stream.Broadcast":
 	    Formatter: "format.Runlength"
+	    RunlengthSeparator: ":"
 	    RunlengthFormatter: "format.Envelope"

@@ -30,6 +30,7 @@ import (
 //  - "stream.Broadcast":
 //    Formatter: "format.Identifier"
 //    IdentifierType: "hash"
+//    IdentifierDataFormatter: "format.Forward"
 //
 // IdentifierType defines the algorithm used to generate the message id.
 // This my be one of the following: "hash", "time", "seq", "seqhex".

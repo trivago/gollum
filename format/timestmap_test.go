@@ -18,40 +18,28 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
 	"testing"
+	"time"
 )
 
-func TestExtractJSON(t *testing.T) {
+func TestTimestamp(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.ExtractJSON")
-
+	config := core.NewPluginConfig("", "format.Timestamp")
 	plugin, err := core.NewPlugin(config)
 	expect.NoError(err)
-	formatter, casted := plugin.(*ExtractJSON)
+
+	formatter, casted := plugin.(*Timestamp)
 	expect.True(casted)
 
-	formatter.Configure(core.NewPluginConfigReader(&config))
-	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"), 0)
+	msg := core.NewMessage(nil, []byte("test"), 0)
+	msg.Timestamp = msg.Timestamp.Add(time.Hour + time.Minute + time.Second)
+	prefix := msg.Timestamp.Format(formatter.timestampFormat)
 
 	formatter.Format(msg)
-	expect.Equal("valid", string(msg.Data))
-}
+	expect.Equal(prefix+"test", string(msg.Data))
 
-func TestExtractJSONPrecision(t *testing.T) {
-	expect := ttesting.NewExpect(t)
+	msg.Timestamp = msg.Timestamp.Add(time.Hour + time.Minute + time.Second)
 
-	config := core.NewPluginConfig("", "format.ExtractJSON")
-	config.Override("ExtractJSONField", "test")
-	config.Override("ExtractJSONPrecision", 0)
-
-	plugin, err := core.NewPlugin(config)
-	expect.NoError(err)
-	formatter, casted := plugin.(*ExtractJSON)
-	expect.True(casted)
-
-	formatter.Configure(core.NewPluginConfigReader(&config))
-	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":999999999}"), 0)
 	formatter.Format(msg)
-
-	expect.Equal("999999999", string(msg.Data))
+	expect.Neq(prefix+"test", string(msg.Data))
 }

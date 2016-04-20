@@ -35,4 +35,4 @@ Example
 	        - "error:replace:°:\n"
 	        - "text:trim: \t"
 	        - "foo:rename:bar"
-	    ProcessJSONTrimFields: true
+	    ProcessJSONTrimValues: true

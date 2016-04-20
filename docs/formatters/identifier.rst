@@ -29,3 +29,4 @@ Example
 	- "stream.Broadcast":
 	    Formatter: "format.Identifier"
 	    IdentifierType: "hash"
+	    IdentifierDataFormatter: "format.Forward"

@@ -32,7 +32,7 @@ import (
 // timestamp that prefixes the message.
 // By default this is set to "2006-01-02 15:04:05 MST | "
 //
-// TimestampDataFormatter defines the formatter for the data transferred as
+// TimestampFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Timestamp struct {
 	core.FormatterBase

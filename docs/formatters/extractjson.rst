@@ -16,8 +16,8 @@ Parameters
   This value is empty by default.
   If the field does not exist an empty string is returned.
 
-**ExtractJSONTrimField**
-  ExtractJSONTrimField will trim whitspaces from the value if enabled.
+**ExtractJSONTrimValues**
+  ExtractJSONTrimValues will trim whitspaces from the value if enabled.
   Enabled by default.
 
 **ExtractJSONPrecision**
@@ -33,5 +33,5 @@ Example
 	    Formatter: "format.ExtractJSON"
 	    ExtractJSONdataFormatter: "format.Forward"
 	    ExtractJSONField: ""
-	    ExtractJSONTrimField: true
+	    ExtractJSONTrimValues: true
 	    ExtractJSONPrecision: 0

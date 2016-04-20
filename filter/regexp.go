@@ -30,9 +30,11 @@ import (
 //
 // FilterExpression defines the regular expression used for matching the message
 // payload. If the expression matches, the message is passed.
+// FilterExpression is evaluated after FilterExpressionNot.
 //
 // FilterExpressionNot defines a negated regular expression used for matching
 // the message payload. If the expression matches, the message is blocked.
+// FilterExpressionNot is evaluated before FilterExpression.
 type RegExp struct {
 	core.FilterBase
 	exp    *regexp.Regexp
@@ -54,9 +56,9 @@ func (filter *RegExp) Configure(conf core.PluginConfigReader) error {
 		conf.Errors.Push(err)
 	}
 
-	exp = conf.GetString("ExpressionNot", "")
-	if exp != "" {
-		filter.expNot, err = regexp.Compile(exp)
+	notExp := conf.GetString("FilterExpressionNot", "")
+	if notExp != "" {
+		filter.expNot, err = regexp.Compile(notExp)
 		conf.Errors.Push(err)
 	}
 
@@ -65,12 +67,14 @@ func (filter *RegExp) Configure(conf core.PluginConfigReader) error {
 
 // Accepts allows all messages
 func (filter *RegExp) Accepts(msg *core.Message) bool {
-	if filter.exp != nil {
-		return filter.exp.MatchString(string(msg.Data))
+	if filter.expNot != nil {
+		if filter.expNot.MatchString(string(msg.Data)) {
+			return false
+		}
 	}
 
-	if filter.expNot != nil {
-		return !filter.expNot.MatchString(string(msg.Data))
+	if filter.exp != nil {
+		return filter.exp.MatchString(string(msg.Data))
 	}
 
 	return true // ### return, pass everything ###

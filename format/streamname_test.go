@@ -20,38 +20,42 @@ import (
 	"testing"
 )
 
-func TestExtractJSON(t *testing.T) {
+func TestStreamName(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.ExtractJSON")
+	config := core.NewPluginConfig("", "format.StreamName")
 
 	plugin, err := core.NewPlugin(config)
 	expect.NoError(err)
-	formatter, casted := plugin.(*ExtractJSON)
+
+	formatter, casted := plugin.(*StreamName)
 	expect.True(casted)
 
-	formatter.Configure(core.NewPluginConfigReader(&config))
-	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"), 0)
+	msg := core.NewMessage(nil, []byte("test"), 0)
+	msg.StreamID = core.DroppedStreamID
 
 	formatter.Format(msg)
-	expect.Equal("valid", string(msg.Data))
+
+	expect.Equal(core.DroppedStream+" test", string(msg.Data))
 }
 
-func TestExtractJSONPrecision(t *testing.T) {
+func TestStreamNameHistory(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.ExtractJSON")
-	config.Override("ExtractJSONField", "test")
-	config.Override("ExtractJSONPrecision", 0)
+	config := core.NewPluginConfig("", "format.StreamName")
+	config.Override("StreamNameHistory", true)
 
 	plugin, err := core.NewPlugin(config)
 	expect.NoError(err)
-	formatter, casted := plugin.(*ExtractJSON)
+
+	formatter, casted := plugin.(*StreamName)
 	expect.True(casted)
 
-	formatter.Configure(core.NewPluginConfigReader(&config))
-	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":999999999}"), 0)
+	msg := core.NewMessage(nil, []byte("test"), 0)
+	msg.StreamID = core.DroppedStreamID
+	msg.PrevStreamID = core.LogInternalStreamID
+
 	formatter.Format(msg)
 
-	expect.Equal("999999999", string(msg.Data))
+	expect.Equal(core.LogInternalStream+" test", string(msg.Data))
 }

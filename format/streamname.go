@@ -25,6 +25,8 @@ import (
 //  - "stream.Broadcast":
 //    Formatter: "format.StreamName"
 //    StreamNameFormatter: "format.Envelope"
+//    StreamNameSeparator: " "
+//    StreamNameHistory: false
 //
 // StreamNameFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Envelope"

@@ -27,6 +27,10 @@ import (
 //  - "stream.Broadcast":
 //    Formatter: "format.Sequence"
 //    SequenceFormatter: "format.Envelope"
+//    SequenceSeparator: ":"
+//
+// SequenceSeparator sets the separator character placed after the sequence
+// number. This is set to ":" by default.
 //
 // SequenceDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
