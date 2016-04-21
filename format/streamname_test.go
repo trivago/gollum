@@ -36,14 +36,14 @@ func TestStreamName(t *testing.T) {
 
 	formatter.Format(msg)
 
-	expect.Equal(core.DroppedStream+" test", string(msg.Data))
+	expect.Equal(core.DroppedStream+":test", string(msg.Data))
 }
 
 func TestStreamNameHistory(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.StreamName")
-	config.Override("StreamNameHistory", true)
+	config.Override("UseHistory", true)
 
 	plugin, err := core.NewPlugin(config)
 	expect.NoError(err)
@@ -57,5 +57,5 @@ func TestStreamNameHistory(t *testing.T) {
 
 	formatter.Format(msg)
 
-	expect.Equal(core.LogInternalStream+" test", string(msg.Data))
+	expect.Equal(core.LogInternalStream+":test", string(msg.Data))
 }

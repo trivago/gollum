@@ -24,13 +24,13 @@ func TestExtractJSON(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.ExtractJSON")
+	config.Override("Field", "test")
 
 	plugin, err := core.NewPlugin(config)
 	expect.NoError(err)
 	formatter, casted := plugin.(*ExtractJSON)
 	expect.True(casted)
 
-	formatter.Configure(core.NewPluginConfigReader(&config))
 	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"), 0)
 
 	formatter.Format(msg)
@@ -41,15 +41,14 @@ func TestExtractJSONPrecision(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.ExtractJSON")
-	config.Override("ExtractJSONField", "test")
-	config.Override("ExtractJSONPrecision", 0)
+	config.Override("Field", "test")
+	config.Override("Precision", 0)
 
 	plugin, err := core.NewPlugin(config)
 	expect.NoError(err)
 	formatter, casted := plugin.(*ExtractJSON)
 	expect.True(casted)
 
-	formatter.Configure(core.NewPluginConfigReader(&config))
 	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":999999999}"), 0)
 	formatter.Format(msg)
 

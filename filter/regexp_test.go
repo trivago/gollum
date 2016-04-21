@@ -16,17 +16,17 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo/ttesting"
 	"testing"
 )
 
 func TestFilterRegExp(t *testing.T) {
-	expect := shared.NewExpect(t)
-	conf := core.NewPluginConfig("")
+	expect := ttesting.NewExpect(t)
+	conf := core.NewPluginConfig("", "filter.RegExp")
 
-	conf.Override("FilterExpressionNot", "^\\d")
-	conf.Override("FilterExpression", "accept")
-	plugin, err := core.NewPluginWithType("filter.RegExp", conf)
+	conf.Override("ExpressionNot", "^\\d")
+	conf.Override("Expression", "accept")
+	plugin, err := core.NewPlugin(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*RegExp)

@@ -16,17 +16,17 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo/ttesting"
 	"testing"
 	"time"
 )
 
 func TestFilterRate(t *testing.T) {
-	expect := shared.NewExpect(t)
-	conf := core.NewPluginConfig("")
+	expect := ttesting.NewExpect(t)
+	conf := core.NewPluginConfig("", "filter.Rate")
 
 	conf.Override("RateLimitPerSec", 100)
-	plugin, err := core.NewPluginWithType("filter.Rate", conf)
+	plugin, err := core.NewPlugin(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*Rate)

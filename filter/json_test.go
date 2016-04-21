@@ -16,17 +16,17 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo/ttesting"
 	"testing"
 )
 
 func TestFilterJSON(t *testing.T) {
-	expect := shared.NewExpect(t)
-	conf := core.NewPluginConfig("")
+	expect := ttesting.NewExpect(t)
+	conf := core.NewPluginConfig("", "filter.JSON")
 
-	conf.Override("FilterReject", map[string]string{"data": "^\\d"})
-	conf.Override("FilterAccept", map[string]string{"data": "accept"})
-	plugin, err := core.NewPluginWithType("filter.JSON", conf)
+	conf.Override("Reject", map[string]string{"data": "^\\d"})
+	conf.Override("Accept", map[string]string{"data": "accept"})
+	plugin, err := core.NewPlugin(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*JSON)

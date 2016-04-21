@@ -26,8 +26,8 @@ func TestSplitToJSON(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.SplitToJSON")
-	config.Override("SplitToJSONToken", ",")
-	config.Override("SplitToJSONKeys", []string{"first", "second", "third"})
+	config.Override("SplitBy", ",")
+	config.Override("Keys", []string{"first", "second", "third"})
 
 	plugin, err := core.NewPlugin(config)
 	expect.NoError(err)
@@ -51,8 +51,8 @@ func TestSplitToJSONTooFew(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.SplitToJSON")
-	config.Override("SplitToJSONToken", ",")
-	config.Override("SplitToJSONKeys", []string{"first", "second"})
+	config.Override("SplitBy", ",")
+	config.Override("Keys", []string{"first", "second"})
 
 	plugin, err := core.NewPlugin(config)
 	expect.NoError(err)
@@ -76,8 +76,8 @@ func TestSplitToJSONTooMany(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.SplitToJSON")
-	config.Override("SplitToJSONToken", ",")
-	config.Override("SplitToJSONKeys", []string{"first", "second", "third", "fourth"})
+	config.Override("SplitBy", ",")
+	config.Override("Keys", []string{"first", "second", "third", "fourth"})
 
 	plugin, err := core.NewPlugin(config)
 	expect.NoError(err)

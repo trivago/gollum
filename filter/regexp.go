@@ -56,7 +56,7 @@ func (filter *RegExp) Configure(conf core.PluginConfigReader) error {
 		conf.Errors.Push(err)
 	}
 
-	notExp := conf.GetString("FilterExpressionNot", "")
+	notExp := conf.GetString("ExpressionNot", "")
 	if notExp != "" {
 		filter.expNot, err = regexp.Compile(notExp)
 		conf.Errors.Push(err)

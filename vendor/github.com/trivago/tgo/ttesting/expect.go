@@ -27,7 +27,7 @@ var expectBasePath string
 
 func init() {
 	pkgPath := reflect.TypeOf(Expect{}).PkgPath()
-	pathEndIdx := strings.LastIndex(pkgPath, "/") + 1
+	pathEndIdx := strings.LastIndex(pkgPath, "/")
 	expectBasePath = pkgPath[:pathEndIdx]
 }
 
@@ -43,6 +43,7 @@ func NewExpect(t *testing.T) Expect {
 	pc, _, _, _ := runtime.Caller(1)
 	caller := runtime.FuncForPC(pc)
 	funcName := caller.Name()
+
 	return Expect{
 		scope: funcName[strings.LastIndex(funcName, ".")+1:],
 		t:     t,
@@ -53,14 +54,16 @@ func (e Expect) error(message string) {
 	_, file, line, _ := runtime.Caller(2)
 	file = file[strings.Index(file, expectBasePath)+len(expectBasePath):]
 
-	e.t.Errorf("%s(%d): %s -> %s", file, line, e.scope, message)
+	fmt.Printf("\t%s:%d: %s -> %s\n", file, line, e.scope, message)
+	e.t.Fail()
 }
 
 func (e Expect) errorf(format string, args ...interface{}) {
 	_, file, line, _ := runtime.Caller(2)
 	file = file[strings.Index(file, expectBasePath)+len(expectBasePath):]
 
-	e.t.Errorf(fmt.Sprintf("%s(%d): %s -> %s", file, line, e.scope, format), args...)
+	fmt.Printf(fmt.Sprintf("\t%s:%d: %s -> %s\n", file, line, e.scope, format), args...)
+	e.t.Fail()
 }
 
 // NotExecuted always reports an error when called
