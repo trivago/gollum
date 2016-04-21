@@ -23,8 +23,8 @@ import (
 // given interface. It returns the interface coverage [0..1] as well as an array
 // of error messages. If the interface is correctly implemented the coverage is
 // 1 and the error message array is empty.
-func GetMissingMethods(objType reflect.Type, ifaceType reflect.Type) (float32, []interface{}) {
-	var missing []interface{}
+func GetMissingMethods(objType reflect.Type, ifaceType reflect.Type) (float32, []string) {
+	missing := []string{}
 	if objType.Implements(ifaceType) {
 		return 1.0, missing
 	}

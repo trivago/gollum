@@ -20,27 +20,29 @@ import (
 	"github.com/trivago/tgo/tsync"
 	"hash/fnv"
 	"sync"
-	"sync/atomic"
+	"time"
 )
 
 const (
-	metricStreams = "Streams"
-)
-
-var (
-	messageCount   = uint32(0)
-	droppedCount   = uint32(0)
-	discardedCount = uint32(0)
-	filteredCount  = uint32(0)
-	noRouteCount   = uint32(0)
+	metricStreams      = "Streams"
+	metricMessages     = "Messages"
+	MetricMessagesSec  = "MessagesPerSec"
+	metricDiscarded    = "DiscardedMessages"
+	metricDropped      = "DroppedMessages"
+	metricFiltered     = "Filtered"
+	metricNoRoute      = "DiscardedNoRoute"
+	metricDiscardedSec = "DiscardedMessagesSec"
+	metricDroppedSec   = "DroppedMessagesSec"
+	metricFilteredSec  = "FilteredSec"
+	metricNoRouteSec   = "DiscardedNoRouteSec"
 )
 
 // streamRegistry holds streams mapped by their MessageStreamID as well as a
 // reverse lookup of MessageStreamID to stream name.
 type streamRegistry struct {
-	streams   map[MessageStreamID]Stream
-	name      map[MessageStreamID]string
-	fuses     map[string]*tsync.Fuse
+	streams     map[MessageStreamID]Stream
+	name        map[MessageStreamID]string
+	fuses       map[string]*tsync.Fuse
 	fuseGuard   *sync.Mutex
 	nameGuard   *sync.Mutex
 	streamGuard *sync.Mutex
@@ -54,47 +56,48 @@ var StreamRegistry = streamRegistry{
 	streamGuard: new(sync.Mutex),
 	name:        make(map[MessageStreamID]string),
 	nameGuard:   new(sync.Mutex),
-	fuses:     make(map[string]*tsync.Fuse),
-	fuseGuard: new(sync.Mutex),
+	fuses:       make(map[string]*tsync.Fuse),
+	fuseGuard:   new(sync.Mutex),
 }
 
 func init() {
+	tgo.EnableGlobalMetrics()
 	tgo.Metric.New(metricStreams)
+	tgo.Metric.New(metricMessages)
+	tgo.Metric.New(metricDropped)
+	tgo.Metric.New(metricDiscarded)
+	tgo.Metric.New(metricNoRoute)
+	tgo.Metric.New(metricFiltered)
+	tgo.Metric.NewRate(metricDropped, metricDroppedSec, time.Second, 10, 3, true)
+	tgo.Metric.NewRate(metricMessages, MetricMessagesSec, time.Second, 10, 3, true)
+	tgo.Metric.NewRate(metricDiscarded, metricDiscardedSec, time.Second, 10, 3, true)
+	tgo.Metric.NewRate(metricNoRoute, metricNoRouteSec, time.Second, 10, 3, true)
+	tgo.Metric.NewRate(metricFiltered, metricFilteredSec, time.Second, 10, 3, true)
 }
 
 // CountProcessedMessage increases the messages counter by 1
 func CountProcessedMessage() {
-	atomic.AddUint32(&messageCount, 1)
+	tgo.Metric.Inc(metricMessages)
 }
 
 // CountDroppedMessage increases the dropped messages counter by 1
 func CountDroppedMessage() {
-	atomic.AddUint32(&droppedCount, 1)
+	tgo.Metric.Inc(metricDropped)
 }
 
 // CountDiscardedMessage increases the discarded messages counter by 1
 func CountDiscardedMessage() {
-	atomic.AddUint32(&discardedCount, 1)
+	tgo.Metric.Inc(metricDiscarded)
 }
 
 // CountFilteredMessage increases the filtered messages counter by 1
 func CountFilteredMessage() {
-	atomic.AddUint32(&filteredCount, 1)
+	tgo.Metric.Inc(metricFiltered)
 }
 
 // CountNoRouteForMessage increases the "no route" counter by 1
 func CountNoRouteForMessage() {
-	atomic.AddUint32(&noRouteCount, 1)
-}
-
-// GetAndResetMessageCount returns the current message counters and resets them
-// to 0. This function is threadsafe.
-func GetAndResetMessageCount() (messages, dropped, discarded, filtered, noroute uint32) {
-	return atomic.SwapUint32(&messageCount, 0),
-		atomic.SwapUint32(&droppedCount, 0),
-		atomic.SwapUint32(&discardedCount, 0),
-		atomic.SwapUint32(&filteredCount, 0),
-		atomic.SwapUint32(&noRouteCount, 0)
+	tgo.Metric.Inc(metricNoRoute)
 }
 
 // GetStreamID is deprecated
@@ -206,6 +209,15 @@ func (registry streamRegistry) AddWildcardProducersToStream(stream Stream) {
 	if streamID != LogInternalStreamID && streamID != DroppedStreamID {
 		stream.AddProducer(registry.wildcard...)
 	}
+}
+
+// AddAllWildcardProducersToAllStreams executes AddWildcardProducersToStream on
+// all currently registered streams
+func (registry *streamRegistry) AddAllWildcardProducersToAllStreams() {
+	registry.ForEachStream(
+		func(streamID MessageStreamID, stream Stream) {
+			registry.AddWildcardProducersToStream(stream)
+		})
 }
 
 // Register registeres a stream plugin to a given stream id

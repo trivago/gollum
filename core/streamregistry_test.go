@@ -42,54 +42,6 @@ func mockPrevDistributer(msg *Message) {
 
 }
 
-func resetStreamRegistryCounts() {
-	messageCount = 0
-	droppedCount = 0
-	discardedCount = 0
-	filteredCount = 0
-	noRouteCount = 0
-}
-
-func TestStreamRegistryAtomicOperations(t *testing.T) {
-	expect := ttesting.NewExpect(t)
-	// Tests run in one go, so the counts might already be affected. Reset here.
-	resetStreamRegistryCounts()
-
-	expect.Equal(messageCount, uint32(0))
-	CountProcessedMessage()
-	expect.Equal(messageCount, uint32(1))
-
-	expect.Equal(droppedCount, uint32(0))
-	CountDroppedMessage()
-	expect.Equal(droppedCount, uint32(1))
-
-	expect.Equal(discardedCount, uint32(0))
-	CountDiscardedMessage()
-	expect.Equal(discardedCount, uint32(1))
-
-	expect.Equal(filteredCount, uint32(0))
-	CountFilteredMessage()
-	expect.Equal(filteredCount, uint32(1))
-
-	expect.Equal(noRouteCount, uint32(0))
-	CountNoRouteForMessage()
-	expect.Equal(noRouteCount, uint32(1))
-
-	messages, dropped, discarded, filtered, noroute := GetAndResetMessageCount()
-
-	expect.Equal(messages, uint32(1))
-	expect.Equal(dropped, uint32(1))
-	expect.Equal(discarded, uint32(1))
-	expect.Equal(filtered, uint32(1))
-	expect.Equal(noroute, uint32(1))
-
-	expect.Equal(messageCount, uint32(0))
-	expect.Equal(droppedCount, uint32(0))
-	expect.Equal(discardedCount, uint32(0))
-	expect.Equal(filteredCount, uint32(0))
-	expect.Equal(noRouteCount, uint32(0))
-}
-
 func TestStreamRegistryGetStreamName(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockSRegistry := getMockStreamRegistry()

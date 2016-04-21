@@ -32,6 +32,7 @@ import (
 	"runtime/pprof"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -50,23 +51,46 @@ func dumpMemoryProfile() {
 	}
 }
 
-func main() {
-	tlog.SetCacheWriter()
-	parseFlags()
-	tlog.SetVerbosity(tlog.Verbosity(*flagLoglevel))
-
+func printVersion() {
 	contribModules := core.TypeRegistry.GetRegistered("contrib")
 	modules := ""
 	for _, typeName := range contribModules {
 		modules += " + " + typeName[tstrings.IndexN(typeName, ".", 1)+1:] + "\n"
 	}
 
+	if gollumDevVer > 0 {
+		fmt.Printf("Gollum v%d.%d.%d.%d dev\n%s", gollumMajorVer, gollumMinorVer, gollumPatchVer, gollumDevVer, modules)
+	} else {
+		fmt.Printf("Gollum v%d.%d.%d\n%s", gollumMajorVer, gollumMinorVer, gollumPatchVer, modules)
+	}
+}
+
+func printProfile() {
+	msgSec, err := tgo.Metric.Get(core.MetricMessagesSec)
+	if err == nil {
+		fmt.Printf("Processed %d msg/sec\n", msgSec)
+	}
+	time.AfterFunc(time.Second*3, printProfile)
+}
+
+func setVersionMetric() {
+	metricVersion := "Version"
+	tgo.Metric.New(metricVersion)
+
+	if gollumDevVer > 0 {
+		tgo.Metric.Set(metricVersion, gollumMajorVer*1000000+gollumMinorVer*10000+gollumPatchVer*100+gollumDevVer)
+	} else {
+		tgo.Metric.Set(metricVersion, gollumMajorVer*10000+gollumMinorVer*100+gollumPatchVer)
+	}
+}
+
+func main() {
+	tlog.SetCacheWriter()
+	parseFlags()
+	tlog.SetVerbosity(tlog.Verbosity(*flagLoglevel))
+
 	if *flagVersion {
-		if gollumDevVer > 0 {
-			fmt.Printf("Gollum v%d.%d.%d.%d dev\n%s", gollumMajorVer, gollumMinorVer, gollumPatchVer, gollumDevVer, modules)
-		} else {
-			fmt.Printf("Gollum v%d.%d.%d\n%s", gollumMajorVer, gollumMinorVer, gollumPatchVer, modules)
-		}
+		printVersion()
 		return // ### return, version only ###
 	}
 
@@ -75,15 +99,25 @@ func main() {
 		return // ### return, nothing to do ###
 	}
 
-	// Read config
+	// Read and test config
 
 	config, err := core.ReadConfig(*flagConfigFile)
 	if err != nil {
 		fmt.Printf("Config: %s\n", err.Error())
 		return // ### return, config error ###
-	} else if *flagTestConfigFile {
-		fmt.Printf("Config: %s parsed as ok.\n", *flagConfigFile)
-		newMultiplexer(config, false)
+	}
+
+	errors := config.Validate()
+	for _, err := range errors {
+		fmt.Print(err.Error())
+	}
+
+	if *flagTestConfigFile {
+		if len(errors) == 0 {
+			fmt.Print("Config check passed.")
+		} else {
+			fmt.Print("Config check FAILED.")
+		}
 		return // ### return, only test config ###
 	}
 
@@ -101,6 +135,7 @@ func main() {
 
 	// Metrics server start
 
+	setVersionMetric()
 	if *flagMetricsAddress != "" {
 		server := tgo.NewMetricServer()
 		address := *flagMetricsAddress
@@ -129,11 +164,20 @@ func main() {
 		}
 	}
 
+	if *flagProfile {
+		time.AfterFunc(time.Second*3, printProfile)
+	}
+
 	if *flagMemProfile != "" {
 		defer dumpMemoryProfile()
 	}
 
 	// Start the multiplexer
-	plex := newMultiplexer(config, *flagProfile)
-	plex.run()
+
+	plex := NewMultiplexer()
+	plex.Configure(config)
+
+	defer plex.Shutdown()
+	plex.StartPlugins()
+	plex.Run()
 }

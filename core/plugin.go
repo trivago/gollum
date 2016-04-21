@@ -26,8 +26,6 @@ import (
 // Use this instance to register plugins.
 var TypeRegistry = treflect.NewTypeRegistry()
 
-var metricActiveWorkers = "ActiveWorkers"
-
 // PluginControl is an enumeration used to pass signals to plugins
 type PluginControl int
 
@@ -65,6 +63,25 @@ const (
 	PluginStateDead = PluginState(iota)
 )
 
+const (
+	metricActiveWorkers   = "ActiveWorkers"
+	metricPluginsInit     = "PluginsInitializing"
+	metricPluginsActive   = "PluginsActive"
+	metricPluginsWaiting  = "PluginsWaiting"
+	metricPluginsStopping = "PluginsStopping"
+	metricPluginsDead     = "PluginsDead"
+)
+
+var (
+	stateToMetric = map[PluginState]string{
+		PluginStateInitializing: metricPluginsInit,
+		PluginStateActive:       metricPluginsActive,
+		PluginStateWaiting:      metricPluginsWaiting,
+		PluginStateStopping:     metricPluginsStopping,
+		PluginStateDead:         metricPluginsDead,
+	}
+)
+
 // PluginRunState is used in some plugins to store information about the
 // execution state of the plugin (i.e. if it is running or not) as well as
 // threading primitives that enable gollum to wait for a plugin top properly
@@ -89,11 +106,17 @@ type PluginWithState interface {
 
 func init() {
 	tgo.EnableGlobalMetrics()
+	tgo.Metric.New(metricPluginsInit)
+	tgo.Metric.New(metricPluginsActive)
+	tgo.Metric.New(metricPluginsWaiting)
+	tgo.Metric.New(metricPluginsStopping)
+	tgo.Metric.New(metricPluginsDead)
 	tgo.Metric.New(metricActiveWorkers)
 }
 
 // NewPluginRunState creates a new plugin state helper
 func NewPluginRunState() *PluginRunState {
+	tgo.Metric.Inc(metricPluginsInit)
 	return &PluginRunState{
 		workers: nil,
 		state:   int32(PluginStateInitializing),
@@ -107,7 +130,12 @@ func (state *PluginRunState) GetState() PluginState {
 
 // SetState sets a new plugin state casted to the correct type
 func (state *PluginRunState) SetState(nextState PluginState) {
-	atomic.SwapInt32(&state.state, int32(nextState))
+	prevState := PluginState(atomic.SwapInt32(&state.state, int32(nextState)))
+
+	if nextState != prevState {
+		tgo.Metric.Dec(stateToMetric[prevState])
+		tgo.Metric.Inc(stateToMetric[nextState])
+	}
 }
 
 // SetWorkerWaitGroup sets the WaitGroup used to manage workers

@@ -87,6 +87,11 @@ func (stack ErrorStack) Error() string {
 	return errString
 }
 
+// Errors returns all gathered errors as an array
+func (stack ErrorStack) Errors() []error {
+	return stack.errors
+}
+
 // OrNil returns this object or nil of no errors are stored
 func (stack *ErrorStack) OrNil() error {
 	if len(stack.errors) == 0 {
