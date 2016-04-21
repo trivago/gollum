@@ -42,48 +42,6 @@ const (
 	gollumDevVer   = 0
 )
 
-func dumpMemoryProfile() {
-	if file, err := os.Create(*flagMemProfile); err != nil {
-		panic(err)
-	} else {
-		defer file.Close()
-		pprof.WriteHeapProfile(file)
-	}
-}
-
-func printVersion() {
-	contribModules := core.TypeRegistry.GetRegistered("contrib")
-	modules := ""
-	for _, typeName := range contribModules {
-		modules += " + " + typeName[tstrings.IndexN(typeName, ".", 1)+1:] + "\n"
-	}
-
-	if gollumDevVer > 0 {
-		fmt.Printf("Gollum v%d.%d.%d.%d dev\n%s", gollumMajorVer, gollumMinorVer, gollumPatchVer, gollumDevVer, modules)
-	} else {
-		fmt.Printf("Gollum v%d.%d.%d\n%s", gollumMajorVer, gollumMinorVer, gollumPatchVer, modules)
-	}
-}
-
-func printProfile() {
-	msgSec, err := tgo.Metric.Get(core.MetricMessagesSec)
-	if err == nil {
-		fmt.Printf("Processed %d msg/sec\n", msgSec)
-	}
-	time.AfterFunc(time.Second*3, printProfile)
-}
-
-func setVersionMetric() {
-	metricVersion := "Version"
-	tgo.Metric.New(metricVersion)
-
-	if gollumDevVer > 0 {
-		tgo.Metric.Set(metricVersion, gollumMajorVer*1000000+gollumMinorVer*10000+gollumPatchVer*100+gollumDevVer)
-	} else {
-		tgo.Metric.Set(metricVersion, gollumMajorVer*10000+gollumMinorVer*100+gollumPatchVer)
-	}
-}
-
 func main() {
 	tlog.SetCacheWriter()
 	parseFlags()
@@ -180,4 +138,46 @@ func main() {
 	defer plex.Shutdown()
 	plex.StartPlugins()
 	plex.Run()
+}
+
+func dumpMemoryProfile() {
+	if file, err := os.Create(*flagMemProfile); err != nil {
+		panic(err)
+	} else {
+		defer file.Close()
+		pprof.WriteHeapProfile(file)
+	}
+}
+
+func printVersion() {
+	contribModules := core.TypeRegistry.GetRegistered("contrib")
+	modules := ""
+	for _, typeName := range contribModules {
+		modules += " + " + typeName[tstrings.IndexN(typeName, ".", 1)+1:] + "\n"
+	}
+
+	if gollumDevVer > 0 {
+		fmt.Printf("Gollum v%d.%d.%d.%d dev\n%s", gollumMajorVer, gollumMinorVer, gollumPatchVer, gollumDevVer, modules)
+	} else {
+		fmt.Printf("Gollum v%d.%d.%d\n%s", gollumMajorVer, gollumMinorVer, gollumPatchVer, modules)
+	}
+}
+
+func printProfile() {
+	msgSec, err := tgo.Metric.Get(core.MetricMessagesSec)
+	if err == nil {
+		fmt.Printf("Processed %d msg/sec\n", msgSec)
+	}
+	time.AfterFunc(time.Second*3, printProfile)
+}
+
+func setVersionMetric() {
+	metricVersion := "Version"
+	tgo.Metric.New(metricVersion)
+
+	if gollumDevVer > 0 {
+		tgo.Metric.Set(metricVersion, gollumMajorVer*1000000+gollumMinorVer*10000+gollumPatchVer*100+gollumDevVer)
+	} else {
+		tgo.Metric.Set(metricVersion, gollumMajorVer*10000+gollumMinorVer*100+gollumPatchVer)
+	}
 }

@@ -11,6 +11,7 @@ type MetricServer struct {
 	metrics *Metrics
 	running bool
 	listen  net.Listener
+	updates *time.Ticker
 }
 
 // NewMetricServer creates a new server state for a metric server based on
@@ -19,6 +20,7 @@ func NewMetricServer() *MetricServer {
 	return &MetricServer{
 		metrics: Metric,
 		running: false,
+		updates: time.NewTicker(time.Second),
 	}
 }
 
@@ -28,6 +30,7 @@ func NewMetricServerFor(m *Metrics) *MetricServer {
 	return &MetricServer{
 		metrics: m,
 		running: false,
+		updates: time.NewTicker(time.Second),
 	}
 }
 
@@ -42,6 +45,17 @@ func (server *MetricServer) handleMetricRequest(conn net.Conn) {
 	}
 	conn.Write([]byte{'\n'})
 	conn.Close()
+}
+
+func (server *MetricServer) sysUpdate() {
+	for server.running {
+		_, running := <-server.updates.C
+		if !running {
+			return // ### return, timer has been stopped ###
+		}
+
+		server.metrics.UpdateSystemMetrics()
+	}
 }
 
 // Start causes a metric server to listen for a specific address and port.
@@ -62,6 +76,8 @@ func (server *MetricServer) Start(address string) {
 	}
 
 	server.running = true
+	go server.sysUpdate()
+
 	for server.running {
 		client, err := server.listen.Accept()
 		if err != nil {
@@ -78,6 +94,7 @@ func (server *MetricServer) Start(address string) {
 // Stop notifies the metric server to halt.
 func (server *MetricServer) Stop() {
 	server.running = false
+	server.updates.Stop()
 	if server.listen != nil {
 		if err := server.listen.Close(); err != nil {
 			log.Print("Metrics: ", err)

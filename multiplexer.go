@@ -304,12 +304,10 @@ func (plex *Multiplexer) configureConsumers(conf *core.Config) {
 }
 
 func (plex *Multiplexer) configureLogConsumer() {
-	logConfig := core.NewPluginConfig("", "core.LogConsumer")
-	logPlugin, err := core.NewPlugin(logConfig)
-	if err != nil {
-		tlog.Error.Print("Error creating log consumer", err.Error())
-	}
+	config := core.NewPluginConfig("", "core.LogConsumer")
+	configReader := core.NewPluginConfigReader(&config)
 
-	plex.logConsumer = logPlugin.(*core.LogConsumer)
+	plex.logConsumer = new(core.LogConsumer)
+	plex.logConsumer.Configure(configReader)
 	plex.consumers = append(plex.consumers, plex.logConsumer)
 }
