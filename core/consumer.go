@@ -38,6 +38,10 @@ type Consumer interface {
 	// Control returns write access to this consumer's control channel.
 	// See PluginControl* constants.
 	Control() chan<- PluginControl
+
+	// GetShutdownTimeout returns the duration gollum will wait for this consumer
+	// before canceling the shutdown process.
+	GetShutdownTimeout() time.Duration
 }
 
 // ConsumerBase plugin base type
@@ -215,6 +219,12 @@ func (cons *ConsumerBase) WorkerDone() {
 	cons.runState.WorkerDone()
 }
 
+// GetShutdownTimeout returns the duration gollum will wait for this producer
+// before canceling the shutdown process.
+func (cons *ConsumerBase) GetShutdownTimeout() time.Duration {
+	return cons.shutdownTimeout
+}
+
 // Enqueue creates a new message from a given byte slice and passes it to
 // EnqueueMessage. Note that data is not copied, just referenced by the message.
 func (cons *ConsumerBase) Enqueue(data []byte, sequence uint64) {
@@ -309,7 +319,7 @@ func (cons *ConsumerBase) ControlLoop() {
 			cons.setState(PluginStatePrepareStop)
 
 			if cons.onPrepareStop != nil {
-				if !tgo.ReturnAfter(cons.shutdownTimeout*10, cons.onPrepareStop) {
+				if !tgo.ReturnAfter(cons.shutdownTimeout*5, cons.onPrepareStop) {
 					cons.Log.Error.Print("Timeout during onPrepareStop")
 				}
 			}
@@ -318,7 +328,7 @@ func (cons *ConsumerBase) ControlLoop() {
 			cons.setState(PluginStateStopping)
 
 			if cons.onStop != nil {
-				if !tgo.ReturnAfter(cons.shutdownTimeout*10, cons.onStop) {
+				if !tgo.ReturnAfter(cons.shutdownTimeout*5, cons.onStop) {
 					cons.Log.Error.Printf("Timeout during onStop")
 				}
 			}

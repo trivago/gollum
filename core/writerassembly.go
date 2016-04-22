@@ -82,7 +82,7 @@ func (asm *WriterAssembly) Write(messages []*Message) {
 	writer := asm.getWriter()
 
 	if writer == nil {
-		tlog.Error.Print("No writer assigned to writer assembly")
+		tlog.Warning.Print("No writer assigned to writer assembly")
 		asm.Flush(messages)
 		return // ### return, cannot write ###
 	}

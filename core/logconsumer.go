@@ -16,6 +16,7 @@ package core
 
 import (
 	"sync"
+	"time"
 )
 
 // LogConsumer is an internal consumer plugin used indirectly by the gollum log
@@ -51,6 +52,11 @@ func (cons *LogConsumer) IsActive() bool {
 // IsBlocked always returns false
 func (cons *LogConsumer) IsBlocked() bool {
 	return false
+}
+
+// GetShutdownTimeout always returns 1 millisecond
+func (cons *LogConsumer) GetShutdownTimeout() time.Duration {
+	return time.Millisecond
 }
 
 // Streams always returns an array with one member - the internal log stream

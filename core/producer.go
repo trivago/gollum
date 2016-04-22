@@ -47,6 +47,10 @@ type Producer interface {
 
 	// DropStream returns the id of the stream to drop messages to.
 	GetDropStreamID() MessageStreamID
+
+	// GetShutdownTimeout returns the duration gollum will wait for this producer
+	// before canceling the shutdown process.
+	GetShutdownTimeout() time.Duration
 }
 
 // ProducerBase plugin base type
@@ -173,7 +177,7 @@ func (prod *ProducerBase) Configure(conf PluginConfigReader) error {
 	prod.streams = conf.GetStreamArray("Streams", []MessageStreamID{WildcardStreamID})
 	prod.messages = NewMessageQueue(conf.GetInt("Channel", 8192))
 	prod.timeout = time.Duration(conf.GetInt("ChannelTimeoutMs", 0)) * time.Millisecond
-	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 3000)) * time.Millisecond
+	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 1000)) * time.Millisecond
 	prod.fuseTimeout = time.Duration(conf.GetInt("FuseTimeoutSec", 10)) * time.Second
 	prod.fuseName = conf.GetString("Fuse", "")
 	prod.dropStreamID = StreamRegistry.GetStreamID(conf.GetString("DropToStream", DroppedStream))
@@ -301,8 +305,8 @@ func (prod *ProducerBase) GetTimeout() time.Duration {
 	return prod.timeout
 }
 
-// GetShutdownTimeout returns the duration this producer will wait during close
-// before messages get dropped.
+// GetShutdownTimeout returns the duration gollum will wait for this producer
+// before canceling the shutdown process.
 func (prod *ProducerBase) GetShutdownTimeout() time.Duration {
 	return prod.shutdownTimeout
 }
@@ -539,7 +543,7 @@ func (prod *ProducerBase) ControlLoop() {
 			prod.setState(PluginStatePrepareStop)
 
 			if prod.onPrepareStop != nil {
-				if !tgo.ReturnAfter(prod.shutdownTimeout*10, prod.onPrepareStop) {
+				if !tgo.ReturnAfter(prod.shutdownTimeout*5, prod.onPrepareStop) {
 					prod.Log.Error.Print("Timeout during onPrepareStop.")
 				}
 			}
@@ -548,7 +552,7 @@ func (prod *ProducerBase) ControlLoop() {
 			prod.setState(PluginStateStopping)
 
 			if prod.onStop != nil {
-				if !tgo.ReturnAfter(prod.shutdownTimeout*10, prod.onStop) {
+				if !tgo.ReturnAfter(prod.shutdownTimeout*5, prod.onStop) {
 					prod.Log.Error.Print("Timeout during onStop.")
 				}
 			}

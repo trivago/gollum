@@ -59,12 +59,21 @@ func newFileState(maxMessageCount int, formatter core.FormatterFunc, drop func(*
 }
 
 func (state *fileState) flush() {
-	state.assembly.SetWriter(state.file)
-	state.batch.Flush(state.assembly.Write)
+	if state.file != nil {
+		state.assembly.SetWriter(state.file)
+		state.batch.Flush(state.assembly.Write)
+	} else {
+		state.batch.Flush(state.assembly.Flush)
+	}
 }
 
 func (state *fileState) close() {
-	state.batch.Close(state.assembly.Write, state.flushTimeout)
+	if state.file != nil {
+		state.assembly.SetWriter(state.file)
+		state.batch.Close(state.assembly.Write, state.flushTimeout)
+	} else {
+		state.batch.Close(state.assembly.Flush, state.flushTimeout)
+	}
 	state.bgWriter.Wait()
 }
 

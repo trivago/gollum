@@ -141,7 +141,7 @@ func (prod *Socket) tryConnect() bool {
 	return true
 }
 
-func (prod *Socket) closeConnection() {
+func (prod *Socket) closeConnection() error {
 	prod.assembly.SetWriter(nil)
 	if prod.connection != nil {
 		prod.connection.Close()
@@ -151,6 +151,7 @@ func (prod *Socket) closeConnection() {
 			prod.Control() <- core.PluginControlFuseBurn
 		}
 	}
+	return nil
 }
 
 func (prod *Socket) validate() bool {
@@ -162,7 +163,7 @@ func (prod *Socket) validate() bool {
 	prod.connection.SetReadDeadline(time.Now().Add(prod.ackTimeout))
 	_, err := prod.connection.Read(response)
 	if err != nil {
-		prod.Log.Error.Print("Socket response error: ", err)
+		prod.Log.Error.Print("Socket response error - ", err)
 		if tnet.IsDisconnectedError(err) {
 			prod.closeConnection()
 		}
@@ -198,12 +199,17 @@ func (prod *Socket) sendBatchOnTimeOut() {
 
 func (prod *Socket) close() {
 	defer func() {
-		prod.closeConnection()
+		prod.batch.AfterFlushDo(prod.closeConnection)
 		prod.WorkerDone()
 	}()
 
 	prod.DefaultClose()
-	prod.batch.Close(prod.assembly.Write, prod.GetShutdownTimeout())
+
+	if prod.tryConnect() {
+		prod.batch.Close(prod.assembly.Write, prod.GetShutdownTimeout())
+	} else {
+		prod.batch.Close(prod.assembly.Flush, prod.GetShutdownTimeout())
+	}
 }
 
 // Produce writes to a buffer that is sent to a given socket.
