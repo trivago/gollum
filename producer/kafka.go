@@ -424,6 +424,7 @@ func (prod *Kafka) closeConnection() {
 
 func (prod *Kafka) close() {
 	defer prod.WorkerDone()
+	prod.CloseMessageChannel(prod.produceMessage)
 	prod.closeConnection()
 }
 
