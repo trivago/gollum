@@ -57,6 +57,8 @@ const (
 	PluginStateWaiting = PluginState(iota)
 	// PluginStateActive is set when a plugin is ready to process data
 	PluginStateActive = PluginState(iota)
+	// PluginStatePrepareStop is set when a plugin should prepare for shutdown
+	PluginStatePrepareStop = PluginState(iota)
 	// PluginStateStopping is set when a plugin is about to stop
 	PluginStateStopping = PluginState(iota)
 	// PluginStateDead is set when a plugin is unable to process any data
@@ -64,21 +66,24 @@ const (
 )
 
 const (
-	metricActiveWorkers   = "ActiveWorkers"
-	metricPluginsInit     = "PluginsInitializing"
-	metricPluginsActive   = "PluginsActive"
-	metricPluginsWaiting  = "PluginsWaiting"
-	metricPluginsStopping = "PluginsStopping"
-	metricPluginsDead     = "PluginsDead"
+	metricActiveWorkers      = "ActiveWorkers"
+	metricPluginsInit        = "PluginsInitializing"
+	metricPluginsActive      = "PluginsActive"
+	metricPluginsWaiting     = "PluginsWaiting"
+	metricPluginsPrepareStop = "PluginsPrepateStop"
+	metricPluginsStopping    = "PluginsStopping"
+	metricPluginsDead        = "PluginsDead"
 )
 
 var (
-	stateToMetric = map[PluginState]string{
-		PluginStateInitializing: metricPluginsInit,
-		PluginStateActive:       metricPluginsActive,
-		PluginStateWaiting:      metricPluginsWaiting,
-		PluginStateStopping:     metricPluginsStopping,
-		PluginStateDead:         metricPluginsDead,
+	// Has to be index parallel to PluginState*
+	stateToMetric = []string{
+		metricPluginsInit,
+		metricPluginsWaiting,
+		metricPluginsActive,
+		metricPluginsPrepareStop,
+		metricPluginsStopping,
+		metricPluginsDead,
 	}
 )
 
@@ -107,8 +112,9 @@ type PluginWithState interface {
 func init() {
 	tgo.EnableGlobalMetrics()
 	tgo.Metric.New(metricPluginsInit)
-	tgo.Metric.New(metricPluginsActive)
 	tgo.Metric.New(metricPluginsWaiting)
+	tgo.Metric.New(metricPluginsActive)
+	tgo.Metric.New(metricPluginsPrepareStop)
 	tgo.Metric.New(metricPluginsStopping)
 	tgo.Metric.New(metricPluginsDead)
 	tgo.Metric.New(metricActiveWorkers)

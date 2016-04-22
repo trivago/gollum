@@ -15,6 +15,7 @@
 package core
 
 import (
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tsync"
 	"sync"
@@ -48,6 +49,7 @@ type Consumer interface {
 //    Enable: true
 //    ID: ""
 //    Fuse: ""
+//    ShutdownTimeoutMs: 1000
 //    Stream:
 //      - "foo"
 //      - "bar"
@@ -68,17 +70,22 @@ type Consumer interface {
 // Set to "" by default which disables the fuse feature for this consumer.
 // It is up to the consumer implementation to react on a broken fuse in an
 // appropriate manner.
+//
+// ShutdownTimeoutMs sets a timeout in milliseconds that will be used to detect
+// various timeouts during shutdown. By default this is set to 1 second.
 type ConsumerBase struct {
-	id           string
-	control      chan PluginControl
-	streams      []MappedStream
-	runState     *PluginRunState
-	fuse         *tsync.Fuse
-	onRoll       func()
-	onStop       func()
-	onFuseBurned func()
-	onFuseActive func()
-	Log          tlog.LogScope
+	id              string
+	control         chan PluginControl
+	streams         []MappedStream
+	runState        *PluginRunState
+	fuse            *tsync.Fuse
+	shutdownTimeout time.Duration
+	onRoll          func()
+	onPrepareStop   func()
+	onStop          func()
+	onFuseBurned    func()
+	onFuseActive    func()
+	Log             tlog.LogScope
 }
 
 // Configure initializes standard consumer values from a plugin config.
@@ -87,8 +94,6 @@ func (cons *ConsumerBase) Configure(conf PluginConfigReader) error {
 	cons.Log = conf.GetLogScope()
 	cons.runState = NewPluginRunState()
 	cons.control = make(chan PluginControl, 1)
-	cons.onRoll = nil
-	cons.onStop = nil
 
 	streamIDs := conf.GetStreamArray("Streams", []MessageStreamID{GetStreamID(conf.GetID())})
 
@@ -103,6 +108,8 @@ func (cons *ConsumerBase) Configure(conf PluginConfigReader) error {
 	if !conf.Errors.Push(err) && fuseName != "" {
 		cons.fuse = StreamRegistry.GetFuse(fuseName)
 	}
+
+	cons.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 1000)) * time.Millisecond
 
 	return conf.Errors.OrNil()
 }
@@ -144,14 +151,15 @@ func (cons *ConsumerBase) IsBlocked() bool {
 	return cons.GetState() == PluginStateWaiting
 }
 
-// IsActive returns true if GetState() returns active
+// IsActive returns true if GetState() returns initialize, active, waiting or
+// prepareStop.
 func (cons *ConsumerBase) IsActive() bool {
-	return cons.GetState() <= PluginStateActive
+	return cons.GetState() <= PluginStatePrepareStop
 }
 
-// IsStopping returns true if GetState() returns stopping
+// IsStopping returns true if GetState() returns prepareStop, stopping or dead
 func (cons *ConsumerBase) IsStopping() bool {
-	return cons.GetState() == PluginStateStopping
+	return cons.GetState() >= PluginStatePrepareStop
 }
 
 // IsActiveOrStopping is a shortcut for prod.IsActive() || prod.IsStopping()
@@ -162,6 +170,11 @@ func (cons *ConsumerBase) IsActiveOrStopping() bool {
 // SetRollCallback sets the function to be called upon PluginControlRoll
 func (cons *ConsumerBase) SetRollCallback(onRoll func()) {
 	cons.onRoll = onRoll
+}
+
+// SetPrepareStopCallback sets the function to be called upon PluginControlPrepareStop
+func (cons *ConsumerBase) SetPrepareStopCallback(onPrepareStop func()) {
+	cons.onPrepareStop = onPrepareStop
 }
 
 // SetStopCallback sets the function to be called upon PluginControlStop
@@ -280,6 +293,8 @@ func (cons *ConsumerBase) fuseControlLoop() {
 func (cons *ConsumerBase) ControlLoop() {
 	cons.setState(PluginStateActive)
 	defer cons.setState(PluginStateDead)
+	defer cons.Log.Debug.Print("Stopped")
+
 	go cons.fuseControlLoop()
 
 	for {
@@ -290,10 +305,22 @@ func (cons *ConsumerBase) ControlLoop() {
 			// Do nothing
 
 		case PluginControlStopConsumer:
+			cons.Log.Debug.Print("Preparing for stop")
+			cons.setState(PluginStatePrepareStop)
+
+			if cons.onPrepareStop != nil {
+				if !tgo.ReturnAfter(cons.shutdownTimeout*10, cons.onPrepareStop) {
+					cons.Log.Error.Print("Timeout during onPrepareStop")
+				}
+			}
+
+			cons.Log.Debug.Print("Executing stop command")
 			cons.setState(PluginStateStopping)
-			cons.Log.Debug.Print("Recieved stop command")
+
 			if cons.onStop != nil {
-				cons.onStop()
+				if !tgo.ReturnAfter(cons.shutdownTimeout*10, cons.onStop) {
+					cons.Log.Error.Printf("Timeout during onStop")
+				}
 			}
 			return // ### return ###
 

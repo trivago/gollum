@@ -206,7 +206,7 @@ func (prod *Redis) storeString(msg *core.Message) {
 
 func (prod *Redis) close() {
 	defer prod.WorkerDone()
-	prod.CloseMessageChannel(prod.store)
+	prod.DefaultClose()
 }
 
 // Produce writes to stdout or stderr.

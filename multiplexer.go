@@ -178,32 +178,14 @@ func (plex *Multiplexer) Shutdown() {
 	stateAtShutdown := plex.state
 	plex.state = multiplexerStateShutdown
 
-	// Shutdown consumers
-	if stateAtShutdown >= multiplexerStateStartConsumers {
-		plex.state = multiplexerStateStopConsumers
-		for _, cons := range plex.consumers {
-			tlog.Debug.Printf("Closing consumer %s", reflect.TypeOf(cons).String())
-			cons.Control() <- core.PluginControlStopConsumer
-		}
-		core.StreamRegistry.ActivateAllFuses()
-		tlog.Debug.Print("Waiting for consumers to close")
-		plex.consumerWorker.Wait()
-	}
+	plex.shutdownConsumers(stateAtShutdown)
 
 	// Make sure remaining warning / errors are written to stderr
-	tlog.Note.Print("It's the only way. Go in, or go back. (flushing)")
+	tlog.Note.Print("I'm not listening... I'm not listening... (flushing)")
 	tlog.SetWriter(os.Stdout)
 
 	// Shutdown producers
-	if stateAtShutdown >= multiplexerStateStartProducers {
-		plex.state = multiplexerStateStopProducers
-		for _, prod := range plex.producers {
-			tlog.Debug.Printf("Closing producer %s", reflect.TypeOf(prod).String())
-			prod.Control() <- core.PluginControlStopProducer
-		}
-		tlog.Debug.Print("Waiting for producers to close")
-		plex.producerWorker.Wait()
-	}
+	plex.shutdownProducers(stateAtShutdown)
 
 	plex.state = multiplexerStateStopped
 }
@@ -310,4 +292,36 @@ func (plex *Multiplexer) configureLogConsumer() {
 	plex.logConsumer = new(core.LogConsumer)
 	plex.logConsumer.Configure(configReader)
 	plex.consumers = append(plex.consumers, plex.logConsumer)
+}
+
+func (plex *Multiplexer) shutdownConsumers(stateAtShutdown multiplexerState) {
+	if stateAtShutdown >= multiplexerStateStartConsumers {
+		plex.state = multiplexerStateStopConsumers
+
+		tlog.Debug.Print("Telling consumers of stop")
+		for _, cons := range plex.consumers {
+			cons.Control() <- core.PluginControlStopConsumer
+		}
+
+		tlog.Debug.Print("Waiting for consumers to stop")
+		if !tgo.ReturnAfter(10*time.Second, plex.consumerWorker.Wait) {
+			tlog.Error.Print("At least one consumer found to be blocking.")
+		}
+	}
+}
+
+func (plex *Multiplexer) shutdownProducers(stateAtShutdown multiplexerState) {
+	if stateAtShutdown >= multiplexerStateStartProducers {
+		plex.state = multiplexerStateStopProducers
+
+		tlog.Debug.Print("Telling producers of stop")
+		for _, prod := range plex.producers {
+			prod.Control() <- core.PluginControlStopProducer
+		}
+
+		tlog.Debug.Print("Waiting for producers to stop")
+		if !tgo.ReturnAfter(30*time.Second, plex.producerWorker.Wait) {
+			tlog.Error.Print("At least one producer found to be blocking.")
+		}
+	}
 }

@@ -195,7 +195,7 @@ func (prod *Proxy) sendMessage(msg *core.Message) {
 
 func (prod *Proxy) close() {
 	defer prod.WorkerDone()
-	prod.CloseMessageChannel(prod.sendMessage)
+	prod.DefaultClose()
 
 	if prod.connection != nil {
 		prod.connection.Close()

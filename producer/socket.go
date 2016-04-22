@@ -202,8 +202,7 @@ func (prod *Socket) close() {
 		prod.WorkerDone()
 	}()
 
-	// Flush buffer to regular socket
-	prod.CloseMessageChannel(prod.sendMessage)
+	prod.DefaultClose()
 	prod.batch.Close(prod.assembly.Write, prod.GetShutdownTimeout())
 }
 

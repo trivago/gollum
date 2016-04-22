@@ -66,7 +66,14 @@ func NewMessageQueue(capacity int) MessageQueue {
 // consumer exists.
 // The source parameter is used when a message is dropped, i.e. it is passed
 // to the Drop function.
-func (channel MessageQueue) Push(msg *Message, timeout time.Duration) MessageState {
+func (channel MessageQueue) Push(msg *Message, timeout time.Duration) (state MessageState) {
+	defer func() {
+		// Treat closed channels like timeouts
+		if recover() != nil {
+			state = MessageStateTimeout
+		}
+	}()
+
 	if timeout == 0 {
 		channel <- msg
 		return MessageStateOk // ### return, done ###
@@ -98,6 +105,32 @@ func (channel MessageQueue) Push(msg *Message, timeout time.Duration) MessageSta
 				spin.Yield()
 			}
 		}
+	}
+}
+
+// IsEmpty returns true if no element is currently stored in the channel.
+// Please note that this information can be extremely volatile in multithreaded
+// environments.
+func (channel MessageQueue) IsEmpty() bool {
+	return len(channel) == 0
+}
+
+// GetNumQueued returns the number of queued messages.
+// Please note that this information can be extremely volatile in multithreaded
+// environments.
+func (channel MessageQueue) GetNumQueued() int {
+	return len(channel)
+}
+
+// PopWithTimeout returns a message from the buffer with a runtime <= maxDuration.
+// If the channel is empty or the timout hit, the second return value is false.
+func (channel MessageQueue) PopWithTimeout(maxDuration time.Duration) (*Message, bool) {
+	timeout := time.NewTimer(maxDuration)
+	select {
+	case msg, more := <-channel:
+		return msg, more
+	case <-timeout.C:
+		return nil, false
 	}
 }
 

@@ -386,8 +386,7 @@ func (prod *File) writeMessage(msg *core.Message) {
 func (prod *File) close() {
 	defer prod.WorkerDone()
 
-	// Flush buffers
-	prod.CloseMessageChannel(prod.writeMessage)
+	prod.DefaultClose()
 	for _, state := range prod.files {
 		state.close()
 	}

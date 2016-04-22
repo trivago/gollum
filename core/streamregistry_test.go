@@ -158,46 +158,6 @@ func TestStreamRegistryGetStreamOrFallback(t *testing.T) {
 	expect.Equal(len(mockSRegistry.streams), 1)
 }
 
-func TestStreamRegistryLinkDependencies(t *testing.T) {
-	/**
-	The dependency tree in this test is given below. A -> B means A depends on B
-		producer1 -> producer3
-		producer3 -> producer2
-		producer2 -> none
-		producer4 -> none
-	*/
-	expect := ttesting.NewExpect(t)
-	mockSRegistry := getMockStreamRegistry()
-
-	streamName := "testStream"
-	streamID := StreamRegistry.GetStreamID(streamName)
-	//register a stream
-	stream := mockSRegistry.GetStreamOrFallback(streamID)
-
-	producer1 := mockProducer{}
-	producer2 := mockProducer{}
-	producer3 := mockProducer{}
-	producer4 := mockProducer{}
-
-	expect.Equal(len(producer1.dependencies), 0)
-	expect.Equal(len(producer2.dependencies), 0)
-	expect.Equal(len(producer3.dependencies), 0)
-	expect.Equal(len(producer4.dependencies), 0)
-
-	producer1.AddDependency(&producer3)
-	producer3.AddDependency(&producer2)
-
-	stream.AddProducer(&producer1, &producer2, &producer3, &producer4)
-
-	mockSRegistry.LinkDependencies(&producer3, streamID)
-
-	expect.Equal(len(producer1.dependencies), 1)
-	expect.Equal(len(producer2.dependencies), 0)
-	expect.Equal(len(producer3.dependencies), 1)
-	expect.Equal(len(producer4.dependencies), 1)
-
-}
-
 func TestStreamRegistryConcurrency(t *testing.T) {
 	mockSRegistry := getMockStreamRegistry()
 	expect := ttesting.NewExpect(t)

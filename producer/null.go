@@ -66,15 +66,6 @@ func (prod *Null) GetDropStreamID() core.MessageStreamID {
 	return core.DroppedStreamID
 }
 
-// AddDependency is an empty call because null does not support them
-func (prod *Null) AddDependency(dep core.Producer) {
-}
-
-// DependsOn always returns false
-func (prod *Null) DependsOn(dep core.Producer) bool {
-	return false
-}
-
 // Control returns write access to this producer's control channel.
 func (prod *Null) Control() chan<- core.PluginControl {
 	return prod.control

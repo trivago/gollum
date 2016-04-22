@@ -25,6 +25,7 @@ type LogConsumer struct {
 	control   chan PluginControl
 	logStream Stream
 	sequence  uint64
+	stopped   bool
 }
 
 // Configure initializes this consumer with values from a plugin config.
@@ -36,7 +37,20 @@ func (cons *LogConsumer) Configure(conf PluginConfigReader) error {
 
 // GetState always returns PluginStateActive
 func (cons *LogConsumer) GetState() PluginState {
+	if cons.stopped {
+		return PluginStateDead
+	}
 	return PluginStateActive
+}
+
+// IsActive always returns true
+func (cons *LogConsumer) IsActive() bool {
+	return true
+}
+
+// IsBlocked always returns false
+func (cons *LogConsumer) IsBlocked() bool {
+	return false
 }
 
 // Streams always returns an array with one member - the internal log stream
@@ -45,7 +59,7 @@ func (cons *LogConsumer) Streams() []MessageStreamID {
 }
 
 // Write fulfills the io.Writer interface
-func (cons LogConsumer) Write(data []byte) (int, error) {
+func (cons *LogConsumer) Write(data []byte) (int, error) {
 	dataCopy := make([]byte, len(data))
 	copy(dataCopy, data)
 
@@ -67,6 +81,7 @@ func (cons *LogConsumer) Consume(threads *sync.WaitGroup) {
 	for {
 		command := <-cons.control
 		if command == PluginControlStopConsumer {
+			cons.stopped = true
 			return // ### return ###
 		}
 	}

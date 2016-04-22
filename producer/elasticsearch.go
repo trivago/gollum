@@ -202,7 +202,7 @@ func (prod *ElasticSearch) sendMessage(msg *core.Message) {
 
 func (prod *ElasticSearch) close() {
 	defer prod.WorkerDone()
-	prod.CloseMessageChannel(prod.sendMessage)
+	prod.DefaultClose()
 	prod.indexer.Flush()
 	prod.indexer.Stop()
 }

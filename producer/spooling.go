@@ -103,6 +103,7 @@ func init() {
 // Configure initializes this producer with values from a plugin config.
 func (prod *Spooling) Configure(conf core.PluginConfigReader) error {
 	prod.ProducerBase.Configure(conf)
+	prod.SetPrepareStopCallback(prod.waitForReader)
 	prod.SetStopCallback(prod.close)
 
 	serializePlugin, err := core.NewPlugin(core.NewPluginConfig("", "format.Serialize"))
@@ -211,11 +212,21 @@ func (prod *Spooling) routeToOrigin(msg *core.Message) {
 	}
 }
 
+func (prod *Spooling) waitForReader() {
+	prod.outfileGuard.Lock()
+	defer prod.outfileGuard.Unlock()
+
+	outfiles := prod.outfile
+	for _, spool := range outfiles {
+		spool.waitForReader()
+	}
+}
+
 func (prod *Spooling) close() {
 	defer prod.WorkerDone()
 
 	// Drop as the producer accepting these messages is already offline anyway
-	prod.CloseMessageChannel(prod.Drop)
+	prod.DefaultClose()
 
 	prod.outfileGuard.Lock()
 	defer prod.outfileGuard.Unlock()

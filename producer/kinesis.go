@@ -266,7 +266,7 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 
 func (prod *Kinesis) close() {
 	defer prod.WorkerDone()
-	prod.CloseMessageChannel(prod.bufferMessage)
+	prod.DefaultClose()
 	prod.batch.Close(prod.transformMessages, prod.GetShutdownTimeout())
 }
 

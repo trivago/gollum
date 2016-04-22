@@ -15,6 +15,7 @@
 package core
 
 import (
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tsync"
 	"sync"
@@ -46,15 +47,6 @@ type Producer interface {
 
 	// DropStream returns the id of the stream to drop messages to.
 	GetDropStreamID() MessageStreamID
-
-	// AddDependency is called whenever a producer is registered that sends
-	// messages to this producer. Dependencies are used to resolve shutdown
-	// conflicts.
-	AddDependency(Producer)
-
-	// DependsOn returns true if this plugin has a direct or indirect dependency
-	// on the given producer
-	DependsOn(Producer) bool
 }
 
 // ProducerBase plugin base type
@@ -67,7 +59,7 @@ type Producer interface {
 //    ID: ""
 //    Channel: 8192
 //    ChannelTimeoutMs: 0
-//    ShutdownTimeoutMs: 3000
+//    ShutdownTimeoutMs: 1000
 //    Formatter: "format.Forward"
 //    Filter: "filter.All"
 //    DropToStream: "_DROPPED_"
@@ -94,9 +86,9 @@ type Producer interface {
 // retry channel.
 //
 // ShutdownTimeoutMs sets a timeout in milliseconds that will be used to detect
-// a blocking producer during shutdown. By default this is set to 3 seconds.
-// If processing a message takes longer to process than this duration, messages
-// will be dropped during shutdown.
+// a blocking producer during shutdown. By default this is set to 1 second.
+// Decreasing this value may lead to lost messages during shutdown. Increasing
+// this value will increase shutdown time.
 //
 // Stream contains either a single string or a list of strings defining the
 // message channels this producer will consume. By default this is set to "*"
@@ -127,8 +119,9 @@ type ProducerBase struct {
 	messages         MessageQueue
 	control          chan PluginControl
 	streams          []MessageStreamID
+	formatters       []Formatter
+	filters          []Filter
 	dropStreamID     MessageStreamID
-	dependencies     []Producer
 	runState         *PluginRunState
 	timeout          time.Duration
 	shutdownTimeout  time.Duration
@@ -136,11 +129,11 @@ type ProducerBase struct {
 	fuseControlGuard *sync.Mutex
 	fuseControl      *time.Timer
 	fuseName         string
-	formatters       []Formatter
-	filters          []Filter
 	onRoll           func()
+	onPrepareStop    func()
 	onStop           func()
 	onCheckFuse      func() bool
+	onMessage        func(*Message)
 	Log              tlog.LogScope
 }
 
@@ -149,6 +142,8 @@ func (prod *ProducerBase) Configure(conf PluginConfigReader) error {
 	prod.id = conf.GetID()
 	prod.Log = conf.GetLogScope()
 	prod.runState = NewPluginRunState()
+	prod.onPrepareStop = prod.DefaultDrain
+	prod.onStop = prod.DefaultClose
 
 	formatPlugins := conf.GetPluginArray("Formatters", []Plugin{})
 
@@ -184,24 +179,38 @@ func (prod *ProducerBase) Configure(conf PluginConfigReader) error {
 	prod.dropStreamID = StreamRegistry.GetStreamID(conf.GetString("DropToStream", DroppedStream))
 	prod.fuseControlGuard = new(sync.Mutex)
 
-	prod.onRoll = nil
-	prod.onStop = nil
-
 	return conf.Errors.OrNil()
+}
+
+func (prod *ProducerBase) setState(state PluginState) {
+	if state != prod.GetState() {
+		prod.runState.SetState(state)
+	}
+}
+
+// DefaultDrain is the function registered to onPrepareStop by default.
+// It calls DrainMessageChannel with the message handling function passed to
+// Any of the control functions. If no such call happens, this function does
+// nothing.
+func (prod *ProducerBase) DefaultDrain() {
+	if prod.onMessage != nil {
+		prod.DrainMessageChannel(prod.onMessage, prod.shutdownTimeout)
+	}
+}
+
+// DefaultClose is the function registered to onStop by default.
+// It calls CloseMessageChannel with the message handling function passed to
+// Any of the control functions. If no such call happens, this function does
+// nothing.
+func (prod *ProducerBase) DefaultClose() {
+	if prod.onMessage != nil {
+		prod.CloseMessageChannel(prod.onMessage)
+	}
 }
 
 // GetID returns the ID of this producer
 func (prod *ProducerBase) GetID() string {
 	return prod.id
-}
-
-// setState sets the runstate of this plugin
-func (prod *ProducerBase) setState(state PluginState) {
-	if state == prod.GetState() {
-		return // ### return, no change ###
-	}
-
-	prod.runState.SetState(state)
 }
 
 // GetFuse returns the fuse bound to this producer or nil if no fuse name has
@@ -223,14 +232,15 @@ func (prod *ProducerBase) IsBlocked() bool {
 	return prod.GetState() == PluginStateWaiting
 }
 
-// IsActive returns true if GetState() returns active or waiting
+// IsActive returns true if GetState() returns initializing, active, waiting, or
+// prepareStop
 func (prod *ProducerBase) IsActive() bool {
-	return prod.GetState() <= PluginStateActive
+	return prod.GetState() <= PluginStatePrepareStop
 }
 
-// IsStopping returns true if GetState() returns stopping
+// IsStopping returns true if GetState() returns prepareStop, stopping or dead
 func (prod *ProducerBase) IsStopping() bool {
-	return prod.GetState() == PluginStateStopping
+	return prod.GetState() >= PluginStatePrepareStop
 }
 
 // IsActiveOrStopping is a shortcut for prod.IsActive() || prod.IsStopping()
@@ -241,6 +251,11 @@ func (prod *ProducerBase) IsActiveOrStopping() bool {
 // SetRollCallback sets the function to be called upon PluginControlRoll
 func (prod *ProducerBase) SetRollCallback(onRoll func()) {
 	prod.onRoll = onRoll
+}
+
+// SetPrepareStopCallback sets the function to be called upon PluginControlPrepareStop
+func (prod *ProducerBase) SetPrepareStopCallback(onPrepareStop func()) {
+	prod.onPrepareStop = onPrepareStop
 }
 
 // SetStopCallback sets the function to be called upon PluginControlStop
@@ -277,32 +292,6 @@ func (prod *ProducerBase) AddWorker() {
 // WorkerDone removes an additional worker to the waitgroup.
 func (prod *ProducerBase) WorkerDone() {
 	prod.runState.WorkerDone()
-}
-
-// AddDependency is called whenever a producer is registered that sends
-// messages to this producer. Dependencies are used to resolve shutdown
-// conflicts.
-func (prod *ProducerBase) AddDependency(dep Producer) {
-	for _, storedDep := range prod.dependencies {
-		if storedDep == dep {
-			return // ### return, duplicate ###
-		}
-	}
-	prod.dependencies = append(prod.dependencies, dep)
-}
-
-// DependsOn returns true if this plugin has a direct or indirect dependency
-// on the given producer
-func (prod *ProducerBase) DependsOn(dep Producer) bool {
-	for _, storedDep := range prod.dependencies {
-		if storedDep == dep {
-			return true // ### return, depends ###
-		}
-		if storedDep.DependsOn(dep) {
-			return true // ### return, nested dependency ###
-		}
-	}
-	return false
 }
 
 // GetTimeout returns the duration this producer will block before a message
@@ -444,37 +433,37 @@ func (prod *ProducerBase) Drop(msg *Message) {
 	msg.Route(prod.dropStreamID)
 }
 
-// CloseMessageChannel closes and empties the internal channel with a given
-// timeout per message. If flushing messages runs into this timeout all
-// remaining messages will be dropped by using the producer.Drop function.
-// If a timout has been detected, false is returned.
-func (prod *ProducerBase) CloseMessageChannel(handleMessage func(*Message)) bool {
+// DrainMessageChannel empties the message channel. This functions returns
+// after the queue being empty for a given amount of time or when the queue
+// has been closed and no more messages are available. The return value
+// indicates wether the channel is empty or not.
+func (prod *ProducerBase) DrainMessageChannel(handleMessage func(*Message), timeout time.Duration) bool {
+	for {
+		if msg, ok := prod.messages.PopWithTimeout(timeout); ok {
+			if !tgo.ReturnAfter(prod.shutdownTimeout, func() { handleMessage(msg) }) {
+				return false // ### return, done ###
+			}
+		} else {
+			return prod.messages.IsEmpty() // ### return, done ###
+		}
+	}
+}
+
+// CloseMessageChannel first calls DrainMessageChannel with shutdown timeout,
+// closes the channel afterwards and calls DrainMessageChannel again to make
+// sure all messages are actually gone. The return value indicates wether
+// the channel is empty or not.
+func (prod *ProducerBase) CloseMessageChannel(handleMessage func(*Message)) (empty bool) {
+	prod.DrainMessageChannel(handleMessage, prod.shutdownTimeout)
 	prod.messages.Close()
-	flushWorker := new(tsync.WaitGroup)
 
 	for {
-		msg, more := prod.messages.Pop()
-		if !more {
-			return true // ### return, done ###
-		}
-
-		// handleMessage may block. To be able to exit this method we need to
-		// call it async and wait for it to finish.
-		flushWorker.Inc()
-		go func() {
-			defer flushWorker.Done()
-			handleMessage(msg)
-		}()
-
-		if !flushWorker.WaitFor(prod.shutdownTimeout) {
-			prod.Log.Warning.Printf("Producer %s has found to be blocking during close. Dropping remaining messages.", prod.id)
-			for {
-				if msg, more := prod.messages.Pop(); !more {
-					prod.Drop(msg)
-				} else {
-					return false // ### return, timed out ###
-				}
+		if msg, ok := prod.messages.Pop(); ok {
+			if !tgo.ReturnAfter(prod.shutdownTimeout, func() { handleMessage(msg) }) {
+				return false // ### return, failed to handle message ###
 			}
+		} else {
+			return true // ### return, done ###
 		}
 	}
 }
@@ -497,26 +486,11 @@ func (prod *ProducerBase) tickerLoop(interval time.Duration, onTimeOut func()) {
 }
 
 func (prod *ProducerBase) messageLoop(onMessage func(*Message)) {
+	prod.onMessage = onMessage
 	for prod.IsActive() {
 		msg, more := prod.messages.Pop()
 		if more {
 			onMessage(msg)
-		}
-	}
-}
-
-// WaitForDependencies waits until all dependencies reach the given runstate.
-// A timeout > 0 can be given to work around possible blocking situations.
-func (prod *ProducerBase) WaitForDependencies(waitForState PluginState, timeout time.Duration) {
-	spinner := tsync.NewSpinner(tsync.SpinPriorityMedium)
-	for _, dep := range prod.dependencies {
-		start := time.Now()
-		for dep.GetState() < waitForState {
-			spinner.Yield()
-			if timeout > 0 && time.Since(start) > timeout {
-				prod.Log.Warning.Printf("WaitForDependencies call timed out for %T", dep)
-				break // ### break loop, timeout ###
-			}
 		}
 	}
 }
@@ -551,6 +525,7 @@ func (prod *ProducerBase) triggerCheckFuse() {
 func (prod *ProducerBase) ControlLoop() {
 	prod.setState(PluginStateActive)
 	defer prod.setState(PluginStateDead)
+	defer prod.Log.Debug.Print("Stopped")
 
 	for {
 		command := <-prod.control
@@ -560,13 +535,26 @@ func (prod *ProducerBase) ControlLoop() {
 			// Do nothing
 
 		case PluginControlStopProducer:
-			prod.Log.Debug.Print("Recieved stop command")
-			prod.WaitForDependencies(PluginStateDead, prod.GetShutdownTimeout())
+			prod.Log.Debug.Print("Preparing for stop")
+			prod.setState(PluginStatePrepareStop)
+
+			if prod.onPrepareStop != nil {
+				if !tgo.ReturnAfter(prod.shutdownTimeout*10, prod.onPrepareStop) {
+					prod.Log.Error.Print("Timeout during onPrepareStop.")
+				}
+			}
+
+			prod.Log.Debug.Print("Executing stop command")
 			prod.setState(PluginStateStopping)
-			prod.Log.Debug.Print("All dependencies resolved")
 
 			if prod.onStop != nil {
-				prod.onStop()
+				if !tgo.ReturnAfter(prod.shutdownTimeout*10, prod.onStop) {
+					prod.Log.Error.Print("Timeout during onStop.")
+				}
+			}
+
+			if !prod.messages.IsEmpty() {
+				prod.Log.Error.Printf("%d messages left after closing.", prod.messages.GetNumQueued())
 			}
 			return // ### return ###
 

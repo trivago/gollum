@@ -114,29 +114,6 @@ func TestProducerWaitgroup(t *testing.T) {
 
 }
 
-func TestProducerDependency(t *testing.T) {
-	expect := ttesting.NewExpect(t)
-	mockP := mockProducer{}
-
-	secondMockP := mockProducer{}
-	thirdMockP := mockProducer{}
-
-	// give dropStreamId to differentiate secondMockP and thirdMockP
-	secondMockP.dropStreamID = 1
-	thirdMockP.dropStreamID = 2
-
-	secondMockP.AddDependency(&thirdMockP)
-	mockP.dependencies = []Producer{}
-	mockP.AddDependency(&secondMockP)
-
-	//add secondMockP again. Shouldn't add it in its dependency list
-	mockP.AddDependency(&secondMockP)
-	expect.Equal(1, len(mockP.dependencies))
-
-	expect.True(mockP.DependsOn(&secondMockP))
-	expect.True(mockP.DependsOn(&thirdMockP))
-}
-
 func TestProducerEnqueue(t *testing.T) {
 	// TODO: distribute for drop route not called. Probably streams array contains soln
 	expect := ttesting.NewExpect(t)
@@ -185,7 +162,7 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 
 	handleMessageFail := func(msg *Message) {
 		expect.Equal("closeMessageChannel", msg.String())
-		time.Sleep(time.Second)
+		time.Sleep(mockP.GetShutdownTimeout() * 10)
 	}
 
 	handleMessage := func(msg *Message) {
@@ -211,11 +188,11 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 	}
 	mockP.Enqueue(msgToSend, nil)
 	mockP.Enqueue(msgToSend, nil)
-	expect.False(mockP.CloseMessageChannel(handleMessageFail))
+	mockP.CloseMessageChannel(handleMessageFail)
 
 	mockP.messages = NewMessageQueue(2)
 	mockP.Enqueue(msgToSend, nil)
-	expect.True(mockP.CloseMessageChannel(handleMessage))
+	mockP.CloseMessageChannel(handleMessage)
 }
 
 func TestProducerTickerLoop(t *testing.T) {
@@ -276,28 +253,6 @@ func TestProducerMessageLoop(t *testing.T) {
 
 	mockP.messageLoop(onMessage)
 	expect.Equal(9, counter)
-}
-
-func TestProducerWaitForDependencies(t *testing.T) {
-	expect := ttesting.NewExpect(t)
-	mockP := getMockProducer()
-
-	for i := 0; i < 5; i++ {
-		dep := getMockProducer()
-		dep.setState(PluginStateActive)
-		mockP.AddDependency(&dep)
-	}
-	routine := func() {
-		mockP.WaitForDependencies(PluginStateStopping, 50*time.Millisecond)
-	}
-
-	go expect.NonBlocking(2*time.Second, routine)
-
-	// Resolve states so that expect.NonBlocking returns
-	for _, dep := range mockP.dependencies {
-		ped := dep.(*mockProducer)
-		ped.setState(PluginStateDead)
-	}
 }
 
 func TestProducerControlLoop(t *testing.T) {

@@ -281,12 +281,8 @@ func (prod *Scribe) close() {
 		prod.WorkerDone()
 	}()
 
-	prod.CloseMessageChannel(prod.bufferMessage)
+	prod.DefaultClose()
 	prod.batch.Close(prod.transformMessages, prod.GetShutdownTimeout())
-
-	if !prod.IsStopping() {
-		prod.Control() <- core.PluginControlFuseBurn
-	}
 }
 
 // Produce writes to a buffer that is sent to scribe.

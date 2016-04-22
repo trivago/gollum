@@ -161,8 +161,7 @@ func (prod *InfluxDB) bufferMessage(msg *core.Message) {
 func (prod *InfluxDB) close() {
 	defer prod.WorkerDone()
 
-	// Flush buffer to regular socket
-	prod.CloseMessageChannel(prod.bufferMessage)
+	prod.DefaultClose()
 	prod.batch.Close(prod.assembly.Write, prod.GetShutdownTimeout())
 }
 

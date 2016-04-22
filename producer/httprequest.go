@@ -134,7 +134,7 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 
 func (prod *HTTPRequest) close() {
 	defer prod.WorkerDone()
-	prod.CloseMessageChannel(prod.sendReq)
+	prod.DefaultClose()
 }
 
 // Produce writes to stdout or stderr.

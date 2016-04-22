@@ -176,14 +176,16 @@ func (cons *Profiler) profile() {
 	batchIdx := 0
 
 	for batchIdx = 0; batchIdx < cons.batches && cons.IsActive(); batchIdx++ {
-		cons.Log.Note.Print(fmt.Sprintf("run %d/%d:", batchIdx, cons.batches))
+		cons.Log.Note.Print(fmt.Sprintf("run %d/%d", batchIdx, cons.batches))
 		start := time.Now()
 
 		for i := 0; i < cons.profileRuns && cons.IsActive(); i++ {
 			cons.WaitOnFuse()
 			template := cons.templates[rand.Intn(len(cons.templates))]
+
 			cons.Enqueue(template, uint64(batchIdx*cons.profileRuns+i))
-			if cons.delay > 0 {
+
+			if cons.delay > 0 && cons.IsActive() {
 				time.Sleep(cons.delay)
 			}
 		}

@@ -43,7 +43,6 @@ func init() {
 // Configure initializes this producer with values from a plugin config.
 func (prod *Console) Configure(conf core.PluginConfigReader) error {
 	prod.ProducerBase.Configure(conf)
-	prod.SetStopCallback(prod.close)
 
 	console := conf.GetString("Console", "stdout")
 
@@ -62,10 +61,6 @@ func (prod *Console) Configure(conf core.PluginConfigReader) error {
 func (prod *Console) printMessage(msg *core.Message) {
 	prod.ProducerBase.Format(msg)
 	fmt.Fprint(prod.console, string(msg.Data))
-}
-
-func (prod *Console) close() {
-	prod.CloseMessageChannel(prod.printMessage)
 }
 
 // Produce writes to stdout or stderr.

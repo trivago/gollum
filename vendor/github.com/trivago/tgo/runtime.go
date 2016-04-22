@@ -17,7 +17,8 @@ package tgo
 import (
 	"log"
 	"os"
-	"runtime/debug"
+	"runtime"
+	"time"
 )
 
 // ShutdownCallback holds the function that is called when RecoverShutdown detects
@@ -28,13 +29,41 @@ var ShutdownCallback = func() {
 	proc.Signal(os.Interrupt)
 }
 
+// ReturnAfter calls a function. If that function does not return after the
+// given limit, the function returns regardless of the callback being done or
+// not. This guarantees the call to finish before or at the given limit.
+func ReturnAfter(runtimeLimit time.Duration, callback func()) bool {
+	timeout := time.NewTimer(runtimeLimit)
+	callOk := make(chan bool)
+
+	go func() {
+		callback()
+		timeout.Stop()
+		callOk <- true
+	}()
+
+	select {
+	case <-timeout.C:
+		return false
+
+	case <-callOk:
+		return true
+	}
+}
+
 // RecoverShutdown will trigger a shutdown via os.Interrupt if a panic was issued.
 // A callstack will be printed like with RecoverTrace().
 // Typically used as "defer RecoverShutdown()".
 func RecoverShutdown() {
 	if r := recover(); r != nil {
-		log.Print("Panic triggered shutdown: ", r)
-		log.Print(string(debug.Stack()))
+		log.Printf("Panic shutdown: %s", r)
+		for i := 0; i < 10; i++ {
+			_, file, line, ok := runtime.Caller(i)
+			if !ok {
+				break // ### break, could not retrieve ###
+			}
+			log.Printf("\t%s:%d", file, line)
+		}
 		ShutdownCallback()
 	}
 }
@@ -43,8 +72,14 @@ func RecoverShutdown() {
 // function. Typically used as "defer RecoverTrace()".
 func RecoverTrace() {
 	if r := recover(); r != nil {
-		log.Print("Panic ignored: ", r)
-		log.Print(string(debug.Stack()))
+		log.Printf("Panic ignored: %s", r)
+		for i := 0; i < 10; i++ {
+			_, file, line, ok := runtime.Caller(i)
+			if !ok {
+				break // ### break, could not retrieve ###
+			}
+			log.Printf("\t%s:%d", file, line)
+		}
 	}
 }
 
