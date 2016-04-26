@@ -31,14 +31,14 @@ const (
 )
 
 const (
-	multiplexerStateConfigure      = multiplexerState(iota)
-	multiplexerStateStartProducers = multiplexerState(iota)
-	multiplexerStateStartConsumers = multiplexerState(iota)
-	multiplexerStateRunning        = multiplexerState(iota)
-	multiplexerStateShutdown       = multiplexerState(iota)
-	multiplexerStateStopConsumers  = multiplexerState(iota)
-	multiplexerStateStopProducers  = multiplexerState(iota)
-	multiplexerStateStopped        = multiplexerState(iota)
+	coordinatorStateConfigure      = coordinatorState(iota)
+	coordinatorStateStartProducers = coordinatorState(iota)
+	coordinatorStateStartConsumers = coordinatorState(iota)
+	coordinatorStateRunning        = coordinatorState(iota)
+	coordinatorStateShutdown       = coordinatorState(iota)
+	coordinatorStateStopConsumers  = coordinatorState(iota)
+	coordinatorStateStopProducers  = coordinatorState(iota)
+	coordinatorStateStopped        = coordinatorState(iota)
 )
 
 const (
@@ -47,35 +47,35 @@ const (
 	signalRoll = signalType(iota)
 )
 
-type multiplexerState byte
+type coordinatorState byte
 type signalType byte
 
-// Multiplexer is the main gollum instance taking care of starting and stopping
+// Coordinator is the main gollum instance taking care of starting and stopping
 // plugins.
-type Multiplexer struct {
+type Coordinator struct {
 	consumers      []core.Consumer
 	producers      []core.Producer
 	consumerWorker *sync.WaitGroup
 	producerWorker *sync.WaitGroup
 	logConsumer    *core.LogConsumer
-	state          multiplexerState
+	state          coordinatorState
 	signal         chan os.Signal
 }
 
-// NewMultiplexer creates a new multplexer
-func NewMultiplexer() Multiplexer {
+// NewCoordinator creates a new multplexer
+func NewCoordinator() Coordinator {
 	tgo.Metric.New(metricCons)
 	tgo.Metric.New(metricProds)
 
-	return Multiplexer{
+	return Coordinator{
 		consumerWorker: new(sync.WaitGroup),
 		producerWorker: new(sync.WaitGroup),
-		state:          multiplexerStateConfigure,
+		state:          coordinatorStateConfigure,
 	}
 }
 
 // Configure processes the config and instantiates all valid plugins
-func (plex *Multiplexer) Configure(conf *core.Config) {
+func (plex *Coordinator) Configure(conf *core.Config) {
 	// Make sure the log is printed to stderr if we are stuck here
 	logFallback := time.AfterFunc(time.Duration(3)*time.Second, func() {
 		tlog.SetWriter(os.Stderr)
@@ -97,7 +97,7 @@ func (plex *Multiplexer) Configure(conf *core.Config) {
 }
 
 // StartPlugins starts all plugins in the correct order.
-func (plex *Multiplexer) StartPlugins() {
+func (plex *Coordinator) StartPlugins() {
 
 	if len(plex.consumers) == 0 {
 		tlog.Error.Print("No consumers configured.")
@@ -112,7 +112,7 @@ func (plex *Multiplexer) StartPlugins() {
 	}
 
 	// Launch producers
-	plex.state = multiplexerStateStartProducers
+	plex.state = coordinatorStateStartProducers
 	for _, producer := range plex.producers {
 		producer := producer
 		go tgo.WithRecoverShutdown(func() {
@@ -129,7 +129,7 @@ func (plex *Multiplexer) StartPlugins() {
 	}
 
 	// Launch consumers
-	plex.state = multiplexerStateStartConsumers
+	plex.state = coordinatorStateStartConsumers
 	for _, consumer := range plex.consumers {
 		consumer := consumer
 		go tgo.WithRecoverShutdown(func() {
@@ -139,9 +139,9 @@ func (plex *Multiplexer) StartPlugins() {
 	}
 }
 
-// Run is essentially the multiplexer main loop.
+// Run is essentially the Coordinator main loop.
 // It listens for shutdown signals and updates global metrics
-func (plex *Multiplexer) Run() {
+func (plex *Coordinator) Run() {
 	plex.signal = newSignalHandler()
 	defer signal.Stop(plex.signal)
 
@@ -172,11 +172,11 @@ func (plex *Multiplexer) Run() {
 // consumer related messages are still in the tlog.
 // Producers are flushed after flushing the log, so producer related shutdown
 // messages will be posted to stdout
-func (plex *Multiplexer) Shutdown() {
+func (plex *Coordinator) Shutdown() {
 	tlog.Note.Print("Filthy little hobbites. They stole it from us. (shutdown)")
 
 	stateAtShutdown := plex.state
-	plex.state = multiplexerStateShutdown
+	plex.state = coordinatorStateShutdown
 
 	plex.shutdownConsumers(stateAtShutdown)
 
@@ -187,10 +187,10 @@ func (plex *Multiplexer) Shutdown() {
 	// Shutdown producers
 	plex.shutdownProducers(stateAtShutdown)
 
-	plex.state = multiplexerStateStopped
+	plex.state = coordinatorStateStopped
 }
 
-func (plex *Multiplexer) configureStreams(conf *core.Config) {
+func (plex *Coordinator) configureStreams(conf *core.Config) {
 	streamConfigs := conf.GetStreams()
 	for _, config := range streamConfigs {
 		tlog.Debug.Print("Instantiating ", config.ID)
@@ -208,8 +208,8 @@ func (plex *Multiplexer) configureStreams(conf *core.Config) {
 	}
 }
 
-func (plex *Multiplexer) configureProducers(conf *core.Config) {
-	plex.state = multiplexerStateStartProducers
+func (plex *Coordinator) configureProducers(conf *core.Config) {
+	plex.state = coordinatorStateStartProducers
 
 	// All producers are added to the wildcard stream so that consumers can send
 	// to all producers if required. The wildcard producer list is required
@@ -263,8 +263,8 @@ func (plex *Multiplexer) configureProducers(conf *core.Config) {
 	}
 }
 
-func (plex *Multiplexer) configureConsumers(conf *core.Config) {
-	plex.state = multiplexerStateStartConsumers
+func (plex *Coordinator) configureConsumers(conf *core.Config) {
+	plex.state = coordinatorStateStartConsumers
 	plex.configureLogConsumer()
 
 	consumerConfigs := conf.GetConsumers()
@@ -285,7 +285,7 @@ func (plex *Multiplexer) configureConsumers(conf *core.Config) {
 	}
 }
 
-func (plex *Multiplexer) configureLogConsumer() {
+func (plex *Coordinator) configureLogConsumer() {
 	config := core.NewPluginConfig("", "core.LogConsumer")
 	configReader := core.NewPluginConfigReader(&config)
 
@@ -294,9 +294,9 @@ func (plex *Multiplexer) configureLogConsumer() {
 	plex.consumers = append(plex.consumers, plex.logConsumer)
 }
 
-func (plex *Multiplexer) shutdownConsumers(stateAtShutdown multiplexerState) {
-	if stateAtShutdown >= multiplexerStateStartConsumers {
-		plex.state = multiplexerStateStopConsumers
+func (plex *Coordinator) shutdownConsumers(stateAtShutdown coordinatorState) {
+	if stateAtShutdown >= coordinatorStateStartConsumers {
+		plex.state = coordinatorStateStopConsumers
 		waitTimeout := time.Duration(0)
 
 		tlog.Debug.Print("Telling consumers of stop")
@@ -316,9 +316,9 @@ func (plex *Multiplexer) shutdownConsumers(stateAtShutdown multiplexerState) {
 	}
 }
 
-func (plex *Multiplexer) shutdownProducers(stateAtShutdown multiplexerState) {
-	if stateAtShutdown >= multiplexerStateStartProducers {
-		plex.state = multiplexerStateStopProducers
+func (plex *Coordinator) shutdownProducers(stateAtShutdown coordinatorState) {
+	if stateAtShutdown >= coordinatorStateStartProducers {
+		plex.state = coordinatorStateStopProducers
 		waitTimeout := time.Duration(0)
 
 		tlog.Debug.Print("Telling producers of stop")

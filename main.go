@@ -130,9 +130,9 @@ func main() {
 		defer dumpMemoryProfile()
 	}
 
-	// Start the multiplexer
+	// Start the coordinator
 
-	plex := NewMultiplexer()
+	plex := NewCoordinator()
 	plex.Configure(config)
 
 	defer plex.Shutdown()
