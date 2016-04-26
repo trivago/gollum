@@ -90,7 +90,7 @@ import (
 // BatchTimeoutSec defines the time in seconds after which a flush will be
 // triggered. By default this is set to 5.
 type ElasticSearch struct {
-	core.ProducerBase
+	core.BufferedProducer
 	conn          *elastigo.Conn
 	indexer       *elastigo.BulkIndexer
 	index         map[core.MessageStreamID]string
@@ -110,7 +110,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) error {
-	prod.ProducerBase.Configure(conf)
+	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
 	prod.SetCheckFuseCallback(prod.isClusterUp)
 
@@ -161,7 +161,7 @@ func (prod *ElasticSearch) isClusterUp() bool {
 
 func (prod *ElasticSearch) sendMessage(msg *core.Message) {
 	originalMsg := *msg
-	prod.ProducerBase.Format(msg)
+	prod.BufferedProducer.Format(msg)
 
 	index, indexMapped := prod.index[msg.StreamID]
 	if !indexMapped {

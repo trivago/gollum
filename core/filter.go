@@ -18,8 +18,8 @@ import (
 	"github.com/trivago/tgo/tlog"
 )
 
-// Filter allows custom message filtering for ProducerBase derived plugins.
-// Producers not deriving from ProducerBase might utilize this one, too.
+// Filter allows custom message filtering for BufferedProducer derived plugins.
+// Producers not deriving from BufferedProducer might utilize this one, too.
 type Filter interface {
 	// Accepts returns true if this filter validated the given message (pass)
 	Accepts(msg *Message) bool

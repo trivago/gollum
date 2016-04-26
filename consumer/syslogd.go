@@ -46,7 +46,7 @@ import (
 //  * RFC5424 (https://tools.ietf.org/html/rfc5424) udp only.
 //  * RFC6587 (https://tools.ietf.org/html/rfc6587) tcp or udp.
 type Syslogd struct {
-	core.ConsumerBase
+	core.SimpleConsumer
 	format   format.Format // RFC3164, RFC5424 or RFC6587?
 	protocol string
 	address  string
@@ -59,7 +59,7 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Syslogd) Configure(conf core.PluginConfigReader) error {
-	cons.ConsumerBase.Configure(conf)
+	cons.SimpleConsumer.Configure(conf)
 
 	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", "udp://0.0.0.0:514"))
 	format := conf.GetString("Format", "RFC6587")

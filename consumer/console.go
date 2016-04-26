@@ -38,7 +38,7 @@ const (
 // ExitOnEOF can be set to true to trigger an exit signal if StdIn is closed
 // (e.g. when a pipe is closed). This is set to false by default.
 type Console struct {
-	core.ConsumerBase
+	core.SimpleConsumer
 	autoexit bool
 }
 
@@ -48,7 +48,7 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Console) Configure(conf core.PluginConfigReader) error {
-	cons.ConsumerBase.Configure(conf)
+	cons.SimpleConsumer.Configure(conf)
 	cons.autoexit = conf.GetBool("ExitOnEOF", false)
 
 	return conf.Errors.OrNil()

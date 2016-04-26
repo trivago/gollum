@@ -123,7 +123,7 @@ import (
 // Compress defines if a rotated logfile is to be gzip compressed or not.
 // By default this is set to false.
 type File struct {
-	core.ProducerBase
+	core.BufferedProducer
 	filesByStream     map[core.MessageStreamID]*fileState
 	files             map[string]*fileState
 	rotate            fileRotateConfig
@@ -150,7 +150,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *File) Configure(conf core.PluginConfigReader) error {
-	prod.ProducerBase.Configure(conf)
+	prod.BufferedProducer.Configure(conf)
 	prod.SetRollCallback(prod.rotateLog)
 	prod.SetStopCallback(prod.close)
 
@@ -372,7 +372,7 @@ func (prod *File) writeBatchOnTimeOut() {
 
 func (prod *File) writeMessage(msg *core.Message) {
 	streamMsg := *msg
-	prod.ProducerBase.Format(&streamMsg)
+	prod.BufferedProducer.Format(&streamMsg)
 	state, err := prod.getFileState(streamMsg.StreamID, false)
 	if err != nil {
 		prod.Log.Error.Print("File log error: ", err)

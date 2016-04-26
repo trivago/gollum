@@ -57,7 +57,7 @@ import (
 // packet will restart the timer for the specific client session.
 // By default this is set to 3000, i.e. 3 seconds.
 type PcapHTTPConsumer struct {
-	core.ConsumerBase
+	core.SimpleConsumer
 	netInterface   string
 	filter         string
 	promiscuous    bool
@@ -84,7 +84,7 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *PcapHTTPConsumer) Configure(conf core.PluginConfigReader) error {
-	cons.ConsumerBase.Configure(conf)
+	cons.SimpleConsumer.Configure(conf)
 
 	cons.netInterface = conf.GetString("Interface", "eth0")
 	cons.promiscuous = conf.GetBool("Promiscuous", true)

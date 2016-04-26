@@ -98,7 +98,7 @@ const (
 // RetrySleepTimeSec defines the number of seconds to wait after trying to
 // reconnect to a shard. By default this is set to 4.
 type Kinesis struct {
-	core.ConsumerBase
+	core.SimpleConsumer
 	client          *kinesis.Kinesis
 	config          *aws.Config
 	offsets         map[string]string
@@ -118,7 +118,7 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Kinesis) Configure(conf core.PluginConfigReader) error {
-	cons.ConsumerBase.Configure(conf)
+	cons.SimpleConsumer.Configure(conf)
 
 	cons.offsets = make(map[string]string)
 	cons.stream = conf.GetString("KinesisStream", "default")

@@ -68,7 +68,7 @@ import (
 // AckTimeoutMs defines the time in milliseconds to wait for a response from the
 // server. After this timeout the send is marked as failed. Defaults to 2000.
 type Socket struct {
-	core.ProducerBase
+	core.BufferedProducer
 	connection      net.Conn
 	batch           core.MessageBatch
 	assembly        core.WriterAssembly
@@ -92,7 +92,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Socket) Configure(conf core.PluginConfigReader) error {
-	prod.ProducerBase.Configure(conf)
+	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
 	prod.SetCheckFuseCallback(prod.tryConnect)
 

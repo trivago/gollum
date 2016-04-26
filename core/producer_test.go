@@ -25,7 +25,7 @@ import (
 )
 
 type mockProducer struct {
-	ProducerBase
+	BufferedProducer
 }
 
 func (prod *mockProducer) Produce(workers *sync.WaitGroup) {
@@ -34,7 +34,7 @@ func (prod *mockProducer) Produce(workers *sync.WaitGroup) {
 
 func getMockProducer() mockProducer {
 	return mockProducer{
-		ProducerBase{
+		BufferedProducer{
 			messages:         NewMessageQueue(2),
 			control:          make(chan PluginControl),
 			streams:          []MessageStreamID{},

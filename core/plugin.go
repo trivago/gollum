@@ -106,6 +106,7 @@ type Plugin interface {
 // PluginWithState allows certain plugins to give information about their runstate
 type PluginWithState interface {
 	Plugin
+	// GetState returns the current state of a plugin
 	GetState() PluginState
 }
 

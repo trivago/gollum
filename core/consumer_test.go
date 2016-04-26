@@ -26,15 +26,15 @@ import (
 )
 
 type mockConsumer struct {
-	ConsumerBase
+	SimpleConsumer
 }
 
 func (mc *mockConsumer) Consume(wg *sync.WaitGroup) {
 	// consumes something
 }
 
-func getMockConsumer() ConsumerBase {
-	return ConsumerBase{
+func getMockConsumer() SimpleConsumer {
+	return SimpleConsumer{
 		control:  make(chan PluginControl),
 		runState: NewPluginRunState(),
 		Log:      tlog.NewLogScope("test"),

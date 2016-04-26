@@ -77,7 +77,7 @@ const (
 // For binary this can be set to 1,2,4 or 8. By default 4 is chosen.
 // For fixed this defines the size of a message. By default 1 is chosen.
 type Proxy struct {
-	core.ConsumerBase
+	core.SimpleConsumer
 	listen    io.Closer
 	protocol  string
 	address   string
@@ -92,7 +92,7 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Proxy) Configure(conf core.PluginConfigReader) error {
-	cons.ConsumerBase.Configure(conf)
+	cons.SimpleConsumer.Configure(conf)
 
 	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"))
 	if cons.protocol == "udp" {

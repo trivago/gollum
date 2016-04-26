@@ -102,7 +102,7 @@ const (
 // RemoveOldSocket toggles removing exisiting files with the same name as the
 // socket (unix://<path>) prior to connecting. Enabled by default.
 type Socket struct {
-	core.ConsumerBase
+	core.SimpleConsumer
 	listen        io.Closer
 	clientLock    *sync.Mutex
 	clients       *list.List
@@ -125,7 +125,7 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Socket) Configure(conf core.PluginConfigReader) error {
-	cons.ConsumerBase.Configure(conf)
+	cons.SimpleConsumer.Configure(conf)
 
 	flags, err := strconv.ParseInt(conf.GetString("Permissions", "0770"), 8, 32)
 	conf.Errors.Push(err)

@@ -86,7 +86,7 @@ const (
 // name. If no mapping is given the gollum stream name is used as kinesis
 // stream name.
 type Kinesis struct {
-	core.ProducerBase
+	core.BufferedProducer
 	client           *kinesis.Kinesis
 	config           *aws.Config
 	streamMap        map[core.MessageStreamID]string
@@ -114,7 +114,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Kinesis) Configure(conf core.PluginConfigReader) error {
-	prod.ProducerBase.Configure(conf)
+	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
 
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "default")
@@ -195,7 +195,7 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 	// Format and sort
 	for idx, msg := range messages {
 		currentMsg := *msg
-		prod.ProducerBase.Format(&currentMsg)
+		prod.BufferedProducer.Format(&currentMsg)
 		messageHash := fmt.Sprintf("%X-%d", currentMsg.StreamID, currentMsg.Sequence)
 
 		// Fetch buffer for this stream

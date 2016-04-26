@@ -45,7 +45,7 @@ import (
 // ReadTimeoutSec specifies the maximum duration in seconds before timing out
 // read of the request. By default this is set to 3 seconds.
 type Websocket struct {
-	core.ProducerBase
+	core.BufferedProducer
 	address        string
 	path           string
 	listen         *tnet.StopListener
@@ -65,7 +65,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Websocket) Configure(conf core.PluginConfigReader) error {
-	prod.ProducerBase.Configure(conf)
+	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
 
 	prod.address = conf.GetString("Address", ":81")
@@ -94,7 +94,7 @@ func (prod *Websocket) handleConnection(conn *websocket.Conn) {
 }
 
 func (prod *Websocket) pushMessage(msg *core.Message) {
-	prod.ProducerBase.Format(msg)
+	prod.BufferedProducer.Format(msg)
 
 	if prod.clientIdx&0x7FFFFFFF > 0 {
 		// There are new clients available

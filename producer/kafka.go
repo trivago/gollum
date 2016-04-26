@@ -137,7 +137,7 @@ const (
 // specific mapping will go to this topic (including _GOLLUM_).
 // If no topic mappings are set the stream names will be used as topic.
 type Kafka struct {
-	core.ProducerBase
+	core.BufferedProducer
 	servers     []string
 	topicGuard  *sync.RWMutex
 	topic       map[core.MessageStreamID]string
@@ -163,7 +163,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
-	prod.ProducerBase.Configure(conf)
+	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
 	prod.SetCheckFuseCallback(prod.checkAllTopics)
 
@@ -289,7 +289,7 @@ func (prod *Kafka) registerNewTopic(streamID core.MessageStreamID) string {
 
 func (prod *Kafka) produceMessage(msg *core.Message) {
 	originalMsg := *msg
-	prod.ProducerBase.Format(msg)
+	prod.BufferedProducer.Format(msg)
 
 	prod.topicGuard.RLock()
 	defer prod.topicGuard.RUnlock()

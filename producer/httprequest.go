@@ -45,7 +45,7 @@ import (
 // Encoding defines the payload encoding when RawData is set to false.
 // Set to "text/plain; charset=utf-8" by default.
 type HTTPRequest struct {
-	core.ProducerBase
+	core.BufferedProducer
 	host       string
 	port       string
 	protocol   string
@@ -62,7 +62,7 @@ func init() {
 // Configure initializes this producer with values from a plugin config.
 func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) error {
 	var err error
-	prod.ProducerBase.Configure(conf)
+	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
 	prod.SetCheckFuseCallback(prod.isHostUp)
 
@@ -93,7 +93,7 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 	)
 
 	originalMsg := *msg
-	prod.ProducerBase.Format(msg)
+	prod.BufferedProducer.Format(msg)
 	requestData := bytes.NewBuffer(msg.Data)
 
 	if prod.rawPackets {

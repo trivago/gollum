@@ -75,7 +75,7 @@ import (
 // For binary this can be set to 1,2,4 or 8. By default 4 is chosen.
 // For fixed this defines the size of a message. By default 1 is chosen.
 type Proxy struct {
-	core.ProducerBase
+	core.BufferedProducer
 	connection   net.Conn
 	protocol     string
 	address      string
@@ -90,7 +90,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Proxy) Configure(conf core.PluginConfigReader) error {
-	prod.ProducerBase.Configure(conf)
+	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
 
 	prod.bufferSizeKB = conf.GetInt("ConnectionBufferSizeKB", 1<<10) // 1 MB

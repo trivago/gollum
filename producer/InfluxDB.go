@@ -83,7 +83,7 @@ import (
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5.
 type InfluxDB struct {
-	core.ProducerBase
+	core.BufferedProducer
 	writer          influxDBWriter
 	assembly        core.WriterAssembly
 	batch           core.MessageBatch
@@ -104,7 +104,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *InfluxDB) Configure(conf core.PluginConfigReader) error {
-	prod.ProducerBase.Configure(conf)
+	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
 
 	version := conf.GetInt("Version", 100)

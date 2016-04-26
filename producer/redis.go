@@ -60,7 +60,7 @@ import (
 // to true. If this is set to false the message will be send to the FieldFormatter
 // before it has been formatted. By default this is set to false.
 type Redis struct {
-	core.ProducerBase
+	core.BufferedProducer
 	address         string
 	protocol        string
 	password        string
@@ -78,7 +78,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Redis) Configure(conf core.PluginConfigReader) error {
-	prod.ProducerBase.Configure(conf)
+	prod.BufferedProducer.Configure(conf)
 
 	plugins, err := conf.WithError.GetPluginArray("FieldFormatters", []core.Plugin{})
 	if !conf.Errors.Push(err) {

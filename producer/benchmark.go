@@ -22,7 +22,7 @@ import (
 // Benchmark producer plugin
 // The producer is used to benchmark the core system.
 type Benchmark struct {
-	core.ProducerBase
+	core.BufferedProducer
 }
 
 func init() {
@@ -31,7 +31,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Benchmark) Configure(conf core.PluginConfigReader) error {
-	prod.ProducerBase.Configure(conf)
+	prod.BufferedProducer.Configure(conf)
 	return conf.Errors.OrNil()
 }
 

@@ -103,7 +103,7 @@ import (
 // KeyFormatter defines the formatter used to extract keys from a message.
 // Set to "" by default (disable).
 type KafkaProducer struct {
-	core.ProducerBase
+	core.BufferedProducer
 	servers           []string
 	clientID          string
 	keyFormat         core.Formatter
@@ -153,7 +153,7 @@ func (m *messageWrapper) GetUserdata() []byte {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
-	prod.ProducerBase.Configure(conf)
+	prod.BufferedProducer.Configure(conf)
 
 	prod.SetStopCallback(prod.close)
 	kafka.Log = prod.Log.Error
@@ -246,7 +246,7 @@ func (prod *KafkaProducer) registerNewTopic(streamID core.MessageStreamID) *kafk
 
 func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 	originalMsg := *msg
-	prod.ProducerBase.Format(msg)
+	prod.Format(msg)
 
 	// Send message
 	prod.topicGuard.RLock()

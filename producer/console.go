@@ -32,7 +32,7 @@ import (
 //
 // Console may either be "stdout" or "stderr". By default it is set to "stdout".
 type Console struct {
-	core.ProducerBase
+	core.BufferedProducer
 	console *os.File
 }
 
@@ -42,7 +42,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Console) Configure(conf core.PluginConfigReader) error {
-	prod.ProducerBase.Configure(conf)
+	prod.BufferedProducer.Configure(conf)
 
 	console := conf.GetString("Console", "stdout")
 
@@ -59,7 +59,7 @@ func (prod *Console) Configure(conf core.PluginConfigReader) error {
 }
 
 func (prod *Console) printMessage(msg *core.Message) {
-	prod.ProducerBase.Format(msg)
+	prod.BufferedProducer.Format(msg)
 	fmt.Fprint(prod.console, string(msg.Data))
 }
 

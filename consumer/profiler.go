@@ -68,7 +68,7 @@ import (
 // profiling is done. This can be used to e.g. read metrics after a profile run.
 // By default this is set to false.
 type Profiler struct {
-	core.ConsumerBase
+	core.SimpleConsumer
 	profileRuns int
 	batches     int
 	templates   [][]byte
@@ -86,7 +86,7 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Profiler) Configure(conf core.PluginConfigReader) error {
-	cons.ConsumerBase.Configure(conf)
+	cons.SimpleConsumer.Configure(conf)
 
 	numTemplates := conf.GetInt("TemplateCount", 10)
 	cons.profileRuns = conf.GetInt("Runs", 10000)

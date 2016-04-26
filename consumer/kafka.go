@@ -118,7 +118,7 @@ const (
 // Servers contains the list of all kafka servers to connect to. By default this
 // is set to contain only "localhost:9092".
 type Kafka struct {
-	core.ConsumerBase
+	core.SimpleConsumer
 	servers        []string
 	topic          string
 	client         kafka.Client
@@ -141,7 +141,7 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
-	cons.ConsumerBase.Configure(conf)
+	cons.SimpleConsumer.Configure(conf)
 	kafka.Logger = cons.Log.Note
 
 	cons.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})

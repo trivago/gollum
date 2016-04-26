@@ -75,7 +75,7 @@ import (
 // second. By default this is set to 100. Setting this value to 0 will cause
 // respooling to work as fast as possible.
 type Spooling struct {
-	core.ProducerBase
+	core.BufferedProducer
 	outfile         map[core.MessageStreamID]*spoolFile
 	outfileGuard    *sync.Mutex
 	rotation        fileRotateConfig
@@ -102,7 +102,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Spooling) Configure(conf core.PluginConfigReader) error {
-	prod.ProducerBase.Configure(conf)
+	prod.BufferedProducer.Configure(conf)
 	prod.SetPrepareStopCallback(prod.waitForReader)
 	prod.SetStopCallback(prod.close)
 

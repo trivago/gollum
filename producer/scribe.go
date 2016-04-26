@@ -70,7 +70,7 @@ import (
 // specific mapping will go to this category (including _GOLLUM_).
 // If no category mappings are set the stream name is used.
 type Scribe struct {
-	core.ProducerBase
+	core.BufferedProducer
 	scribe            *scribe.ScribeClient
 	transport         *thrift.TFramedTransport
 	socket            *thrift.TSocket
@@ -101,7 +101,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Scribe) Configure(conf core.PluginConfigReader) error {
-	prod.ProducerBase.Configure(conf)
+	prod.BufferedProducer.Configure(conf)
 
 	prod.SetStopCallback(prod.close)
 	host := conf.GetString("Address", "localhost:1463")

@@ -25,6 +25,7 @@ import (
 // enabled and streams). Use this producer to test consumer performance.
 // This producer does not implement a fuse breaker.
 type Null struct {
+	core.SimpleProducer
 	control chan core.PluginControl
 	streams []core.MessageStreamID
 }
@@ -35,52 +36,15 @@ func init() {
 
 // Configure initializes the basic members
 func (prod *Null) Configure(conf core.PluginConfigReader) error {
-	prod.control = make(chan core.PluginControl, 1)
-	prod.streams = conf.GetStreamArray("Stream", []core.MessageStreamID{core.GetStreamID("conf.ID")})
-
+	prod.SimpleProducer.Configure(conf)
 	return conf.Errors.OrNil()
-}
-
-// GetState always returns PluginStateActive
-func (prod *Null) GetState() core.PluginState {
-	return core.PluginStateActive
-}
-
-// IsActive always returns true
-func (prod *Null) IsActive() bool {
-	return true
-}
-
-// IsBlocked always returns false
-func (prod *Null) IsBlocked() bool {
-	return false
-}
-
-// Streams returns the streams this producer is listening to.
-func (prod *Null) Streams() []core.MessageStreamID {
-	return prod.streams
-}
-
-// GetDropStreamID returns the id of the stream to drop messages to.
-func (prod *Null) GetDropStreamID() core.MessageStreamID {
-	return core.DroppedStreamID
-}
-
-// Control returns write access to this producer's control channel.
-func (prod *Null) Control() chan<- core.PluginControl {
-	return prod.control
 }
 
 // Enqueue simply ignores the message
 func (prod *Null) Enqueue(msg core.Message, timeout *time.Duration) {
 }
 
-// Produce writes to a buffer that is dumped to a file.
+// Produce starts a control loop only
 func (prod *Null) Produce(threads *sync.WaitGroup) {
-	for {
-		command := <-prod.control
-		if command == core.PluginControlStopConsumer {
-			return // ### return ###
-		}
-	}
+	prod.ControlLoop()
 }

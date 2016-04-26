@@ -58,7 +58,7 @@ import (
 // Left empty by default (disabled).
 // If a Certificate is given, a PrivatKey must be given, too.
 type Http struct {
-	core.ConsumerBase
+	core.SimpleConsumer
 	listen         *tnet.StopListener
 	address        string
 	sequence       uint64
@@ -73,7 +73,7 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Http) Configure(conf core.PluginConfigReader) error {
-	cons.ConsumerBase.Configure(conf)
+	cons.SimpleConsumer.Configure(conf)
 
 	cons.address = conf.GetString("Address", ":80")
 	cons.readTimeoutSec = time.Duration(conf.GetInt("ReadTimeoutSec", 3)) * time.Second

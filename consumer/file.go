@@ -77,7 +77,7 @@ const (
 // Delimiter defines the end of a message inside the file. By default this is
 // set to "\n".
 type File struct {
-	core.ConsumerBase
+	core.SimpleConsumer
 	file           *os.File
 	fileName       string
 	offsetFileName string
@@ -94,7 +94,7 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *File) Configure(conf core.PluginConfigReader) error {
-	cons.ConsumerBase.Configure(conf)
+	cons.SimpleConsumer.Configure(conf)
 	cons.SetRollCallback(cons.onRoll)
 
 	cons.file = nil
