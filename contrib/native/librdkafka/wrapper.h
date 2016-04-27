@@ -51,6 +51,7 @@ void* Alloc(size_t size);
 // Free is the counterpart to Alloc and untracks an allocation
 void Free(void* pData);
 
+// Produce sends a message to a given topic
 int Produce(rd_kafka_topic_t* pTopic, void* pKey, size_t keyLen, void* pPayload, size_t payloadLen, buffer_t* pUserdata);
 
 // GetLastError returns rd_kafka_errno2err(errno)

@@ -88,7 +88,7 @@ Parameters
 **TimeoutMs**
   TimeoutMs denotes the maximum time the broker will wait for acks.
   This setting becomes active when RequiredAcks is set to wait for multiple commits.
-  By default this is set to 1500.
+  By default this is set to 10 seconds.
 
 **SendRetries**
   SendRetries defines how many times to retry sending data before marking a server as not reachable.
@@ -146,11 +146,11 @@ Parameters
 **GracePeriodMs**
   GracePeriodMs defines the number of milliseconds to wait for Sarama to accept a single message.
   After this period a message is dropped.
-  By default this is set to 10ms.
+  By default this is set to 100ms.
 
 **MetadataRefreshMs**
   MetadataRefreshMs set the interval in seconds for fetching cluster metadata.
-  By default this is set to 10000.
+  By default this is set to 600000 (10 minutes).
   This corresponds to the JVM setting `topic.metadata.refresh.interval.ms`.
 
 **Servers**
