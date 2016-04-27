@@ -32,27 +32,68 @@ func TestFilterRate(t *testing.T) {
 	filter, casted := plugin.(*Rate)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte{}, 0)
+	msg1 := core.NewMessage(nil, []byte{}, 0)
+	msg2 := core.NewMessage(nil, []byte{}, 0)
+	msg1.StreamID = 1
+	msg2.StreamID = 2
 
 	for i := 0; i < 110; i++ {
-		result := filter.Accepts(msg)
+		result1 := filter.Accepts(msg1)
+		result2 := filter.Accepts(msg2)
 		if i < 100 {
-			expect.True(result)
+			expect.True(result1)
+			expect.True(result2)
 			time.Sleep(time.Millisecond)
 		} else {
-			expect.False(result)
+			expect.False(result1)
+			expect.False(result2)
 		}
 	}
 
+	// Wait for rates to be cleared
 	time.Sleep(time.Second)
 
 	for i := 0; i < 110; i++ {
-		result := filter.Accepts(msg)
+		result1 := filter.Accepts(msg1)
+		result2 := filter.Accepts(msg2)
 		if i < 100 {
-			expect.True(result)
+			expect.True(result1)
+			expect.True(result2)
 			time.Sleep(time.Millisecond)
 		} else {
-			expect.False(result)
+			expect.False(result1)
+			expect.False(result2)
+		}
+	}
+}
+
+func TestFilterRateIgnore(t *testing.T) {
+	expect := shared.NewExpect(t)
+	conf := core.NewPluginConfig("")
+
+	conf.Override("RateLimitPerSec", 100)
+	conf.Override("RateLimitIgnore", []string{core.LogInternalStream})
+	plugin, err := core.NewPluginWithType("filter.Rate", conf)
+	expect.NoError(err)
+
+	filter, casted := plugin.(*Rate)
+	expect.True(casted)
+
+	msg1 := core.NewMessage(nil, []byte{}, 0)
+	msg2 := core.NewMessage(nil, []byte{}, 0)
+	msg1.StreamID = core.LogInternalStreamID
+	msg2.StreamID = 2
+
+	for i := 0; i < 200; i++ {
+		result1 := filter.Accepts(msg1)
+		result2 := filter.Accepts(msg2)
+
+		expect.True(result1)
+		if i < 100 {
+			expect.True(result2)
+			time.Sleep(time.Millisecond)
+		} else {
+			expect.False(result2)
 		}
 	}
 }
