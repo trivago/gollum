@@ -36,7 +36,7 @@ const (
 	gollumMajorVer = 0
 	gollumMinorVer = 4
 	gollumPatchVer = 3
-	gollumDevVer   = 14
+	gollumDevVer   = 15
 )
 
 func dumpMemoryProfile() {
