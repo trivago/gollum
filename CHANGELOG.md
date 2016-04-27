@@ -16,6 +16,9 @@ Please check your configuration files.
  * Exisiting unix domain socket detection changed to use create instead of stat (better error handling)
  * Kafka and Scribe specific metrics are now updated if there are no messages, too
  * Scribe producer is now reacting better to server connection errors
+ * producer.Kafka GracePeriodMs default set to 100
+ * producer.Kafka MetadataRefreshMs default set to 600000 (10 minutes)
+ * producer.Kafka TimeoutMs default set to 10000 (10 seconds)
  
 #### New
 

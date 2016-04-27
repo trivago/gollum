@@ -81,7 +81,7 @@ const (
 //
 // TimeoutMs denotes the maximum time the broker will wait for acks. This
 // setting becomes active when RequiredAcks is set to wait for multiple commits.
-// By default this is set to 1500.
+// By default this is set to 10 seconds.
 //
 // SendRetries defines how many times to retry sending data before marking a
 // server as not reachable. By default this is set to 0.
@@ -124,11 +124,11 @@ const (
 //
 // GracePeriodMs defines the number of milliseconds to wait for Sarama to
 // accept a single message. After this period a message is dropped.
-// By default this is set to 10ms.
+// By default this is set to 100ms.
 //
 // MetadataRefreshMs set the interval in seconds for fetching cluster metadata.
-// By default this is set to 10000. This corresponds to the JVM setting
-// `topic.metadata.refresh.interval.ms`.
+// By default this is set to 600000 (10 minutes). This corresponds to the JVM
+// setting `topic.metadata.refresh.interval.ms`.
 //
 // Servers contains the list of all kafka servers to connect to.  By default this
 // is set to contain only "localhost:9092".
@@ -188,7 +188,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.clientID = conf.GetString("ClientId", "gollum")
 	prod.lastMetricUpdate = time.Now()
-	prod.gracePeriod = time.Duration(conf.GetInt("GracePeriodMs", 10)) * time.Millisecond
+	prod.gracePeriod = time.Duration(conf.GetInt("GracePeriodMs", 100)) * time.Millisecond
 	prod.topicGuard = new(sync.RWMutex)
 	prod.topic = conf.GetStreamMap("Topic", "")
 	prod.counters = make(map[string]*int64)
@@ -204,11 +204,11 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 
 	prod.config.Metadata.Retry.Max = conf.GetInt("ElectRetries", 3)
 	prod.config.Metadata.Retry.Backoff = time.Duration(conf.GetInt("ElectTimeoutMs", 250)) * time.Millisecond
-	prod.config.Metadata.RefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshMs", 10000)) * time.Millisecond
+	prod.config.Metadata.RefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshMs", 600000)) * time.Millisecond
 
 	prod.config.Producer.MaxMessageBytes = conf.GetInt("BatchSizeMaxKB", 1<<10) << 10
 	prod.config.Producer.RequiredAcks = kafka.RequiredAcks(conf.GetInt("RequiredAcks", int(kafka.WaitForLocal)))
-	prod.config.Producer.Timeout = time.Duration(conf.GetInt("TimoutMs", 1500)) * time.Millisecond
+	prod.config.Producer.Timeout = time.Duration(conf.GetInt("TimoutMs", 10000)) * time.Millisecond
 	prod.config.Producer.Flush.Bytes = conf.GetInt("BatchSizeByte", 8192)
 	prod.config.Producer.Flush.Messages = conf.GetInt("BatchMinCount", 1)
 	prod.config.Producer.Flush.Frequency = time.Duration(conf.GetInt("BatchTimeoutMs", 3000)) * time.Millisecond
