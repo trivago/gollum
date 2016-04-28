@@ -8,4 +8,5 @@ test
 vendor/**/*
 !vendor/**/
 !vendor/**/*.go
+!vendor/**/*.s
 vendor/**/*_test.go
