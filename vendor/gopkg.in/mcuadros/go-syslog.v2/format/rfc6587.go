@@ -5,8 +5,8 @@ import (
 	"bytes"
 	"strconv"
 
-	"github.com/jeromer/syslogparser"
-	"github.com/jeromer/syslogparser/rfc5424"
+	"gopkg.in/mcuadros/go-syslog.v2/internal/syslogparser"
+	"gopkg.in/mcuadros/go-syslog.v2/internal/syslogparser/rfc5424"
 )
 
 type RFC6587 struct{}

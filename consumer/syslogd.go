@@ -16,7 +16,6 @@ package consumer
 
 import (
 	"fmt"
-	"github.com/jeromer/syslogparser"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
@@ -105,7 +104,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfig) error {
 }
 
 // Handle implements the syslog handle interface
-func (cons *Syslogd) Handle(parts syslogparser.LogParts, code int64, err error) {
+func (cons *Syslogd) Handle(parts syslog.LogParts, code int64, err error) {
 	content, isString := parts["content"].(string)
 	if isString {
 		cons.Enqueue([]byte(content), *cons.sequence)

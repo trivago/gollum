@@ -20,6 +20,11 @@ type CatIndexStore struct {
 	PriSize int64
 }
 
+type CatAliasInfo struct {
+	Name  string
+	Index string
+}
+
 type CatShardInfo struct {
 	IndexName string
 	Shard     int

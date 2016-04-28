@@ -110,7 +110,7 @@ func DiscardStandardLogger() {
 //	gou.SetLogger(log.New(os.Stdout, "", log.LstdFlags), "debug")
 //
 //  loglevls:   debug, info, warn, error, fatal
-// Note, that you can also set a seperate Error Log Level
+// Note, that you can also set a separate Error Log Level
 func SetLogger(l *log.Logger, logLevel string) {
 	logger = l
 	LogLevelSet(logLevel)
