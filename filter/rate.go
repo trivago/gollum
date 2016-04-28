@@ -16,6 +16,7 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -28,16 +29,30 @@ import (
 //   - "stream.Broadcast":
 //     Filter: "filter.Rate"
 //     RateLimitPerSec: 100
+//     RateLimitDropToStream: ""
+//     RateLimitIgnore:
+//       - "foo"
 //
 // RateLimitPerSec defines the maximum number of messages per second allowed
 // to pass through this filter. By default this is set to 100.
 //
 // RateLimitDropToStream is an optional stream messages are sent to when the
 // limit is reached. By default this is disabled and set to "".
+//
+// RateLimitIgnore defines a list of streams that should not be affected by
+// rate limiting. This is usefull for e.g. producers listeing to "*".
+// By default this list is empty.
 type Rate struct {
 	core.FilterBase
-	counter   *int64
-	rateLimit int64
+	stateGuard   *sync.RWMutex
+	state        map[core.MessageStreamID]rateState
+	dropStreamID core.MessageStreamID
+	rateLimit    int64
+}
+
+type rateState struct {
+	count  *int64
+	ignore bool
 }
 
 func init() {
@@ -48,7 +63,20 @@ func init() {
 func (filter *Rate) Configure(conf core.PluginConfigReader) error {
 	filter.FilterBase.Configure(conf)
 	filter.rateLimit = int64(conf.GetInt("MessagesPerSec", 100))
-	filter.counter = new(int64)
+	filter.stateGuard = new(sync.RWMutex)
+	filter.state = make(map[core.MessageStreamID]rateState)
+
+	dropToStream := conf.GetString("RateLimitDropToStream", "")
+	if dropToStream != "" {
+		filter.dropStreamID = core.GetStreamID(dropToStream)
+	}
+
+	ignore := conf.GetStreamArray("RateLimitIgnore", []core.MessageStreamID{})
+	for _, stream := range ignore {
+		filter.state[stream] = rateState{
+			ignore: true,
+		}
+	}
 
 	go filter.resetLoop()
 	return conf.Errors.OrNil()
@@ -58,17 +86,44 @@ func (filter *Rate) resetLoop() {
 	waitForReset := time.NewTicker(time.Second)
 	for {
 		<-waitForReset.C
-		numFiltered := atomic.SwapInt64(filter.counter, 0)
-		if numFiltered > filter.rateLimit {
-			filter.Log.Warning.Printf("Ratelimit reached: %d msg/sec", numFiltered)
+		filter.stateGuard.RLock()
+		for streamID, state := range filter.state {
+			numFiltered := atomic.SwapInt64(state.count, 0)
+			if numFiltered > filter.rateLimit {
+				filter.Log.Warning.Printf("Ratelimit reached for stream %s: %d msg/sec", core.StreamRegistry.GetStreamName(streamID), numFiltered)
+			}
 		}
+		filter.stateGuard.RUnlock()
 	}
 }
 
 // Accepts allows all messages
 func (filter *Rate) Accepts(msg *core.Message) bool {
-	if atomic.AddInt64(filter.counter, 1) > filter.rateLimit {
-		return false
+	filter.stateGuard.RLock()
+	state, known := filter.state[msg.StreamID]
+	filter.stateGuard.RUnlock()
+
+	// Add stream if necessary
+	if !known {
+		filter.stateGuard.Lock()
+		state = rateState{
+			count:  new(int64),
+			ignore: false,
+		}
+		filter.state[msg.StreamID] = state
+		filter.stateGuard.Unlock()
+	} else if state.ignore {
+		return true // ### return, do not limit ###
 	}
-	return true
+
+	if atomic.AddInt64(state.count, 1) <= filter.rateLimit {
+		return true
+	}
+
+	if filter.dropStreamID != core.InvalidStreamID {
+		msg.Route(filter.dropStreamID)
+	}
+
+	return false
+
 }

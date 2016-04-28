@@ -51,7 +51,7 @@ func (r *Throttler) Throttle() (bool, int32) {
 		r.allowance = r.maxPer
 	}
 
-	if r.allowance <= 1.0 {
+	if r.allowance < 1.0 {
 		r.count++            // increment throttled log count
 		return true, r.count // do throttle/limit
 	}

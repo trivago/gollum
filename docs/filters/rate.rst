@@ -15,6 +15,11 @@ Parameters
   RateLimitDropToStream is an optional stream messages are sent to when the limit is reached.
   By default this is disabled and set to "".
 
+**RateLimitIgnore**
+  RateLimitIgnore defines a list of streams that should not be affected by rate limiting.
+  This is usefull for e.g. producers listeing to "*".
+  By default this list is empty.
+
 Example
 -------
 
@@ -24,3 +29,5 @@ Example
 	        Filter: "filter.Rate"
 	        RateLimitPerSec: 100
 	        RateLimitDropToStream: ""
+	        RateLimitIgnore:
+	            - "foo"

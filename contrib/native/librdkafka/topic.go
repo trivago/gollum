@@ -21,10 +21,9 @@ import "C"
 
 // Topic wrapper handle for rd_kafka_topic_t
 type Topic struct {
-	handle   *C.rd_kafka_topic_t
-	client   *Client
-	name     string
-	shutdown bool
+	handle *C.rd_kafka_topic_t
+	client *Client
+	name   string
 }
 
 // NewTopic creates a new topic representation in librdkafka.
@@ -33,17 +32,10 @@ type Topic struct {
 // objects of this type.
 func NewTopic(name string, config TopicConfig, client *Client) *Topic {
 	return &Topic{
-		handle:   C.rd_kafka_topic_new(client.handle, C.CString(name), config.handle),
-		client:   client,
-		name:     name,
-		shutdown: false,
+		handle: C.rd_kafka_topic_new(client.handle, C.CString(name), config.handle),
+		client: client,
+		name:   name,
 	}
-}
-
-// TriggerShutdown signals a topic to stop producing messages (unblocks any
-// waiting topics).
-func (t *Topic) TriggerShutdown() {
-	t.shutdown = true
 }
 
 // Close frees the internal handle and tries to flush the queue.

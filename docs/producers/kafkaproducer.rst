@@ -1,7 +1,7 @@
-Native KafkaProducer
-====================
+KafkaProducer
+=============
 
-The native kafka producer writes messages to a kafka cluster.
+The kafka producer writes messages to a kafka cluster.
 This producer is backed by the native librdkafka library so most settings relate to that.
 library.
 This producer does not implement a fuse breaker.

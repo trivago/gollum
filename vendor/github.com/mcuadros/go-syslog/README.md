@@ -1,4 +1,4 @@
-go-syslog [![Build Status](https://travis-ci.org/mcuadros/go-syslog.png?branch=master)](https://travis-ci.org/mcuadros/go-syslog) [![GoDoc](http://godoc.org/github.com/mcuadros/go-syslog?status.png)](http://godoc.org/github.com/mcuadros/go-syslog) [![GitHub release](https://img.shields.io/github/release/mcuadros/go-syslog.svg)](https://github.com/mcuadros/go-syslog/releases)
+go-syslog [![Build Status](https://travis-ci.org/mcuadros/go-syslog.png?branch=master)](https://travis-ci.org/mcuadros/go-syslog) [![GoDoc](http://godoc.org/github.com/mcuadros/go-syslog?status.png)](hhttps://godoc.org/gopkg.in/mcuadros/go-syslog.v2) [![GitHub release](https://img.shields.io/github/release/mcuadros/go-syslog.svg)](https://github.com/mcuadros/go-syslog/releases)
 ==============================
 
 Syslog server library for go, build easy your custom syslog server over UDP, TCP or Unix sockets using RFC3164, RFC6587 or RFC5424

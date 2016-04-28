@@ -15,11 +15,10 @@
 package consumer
 
 import (
-	"github.com/jeromer/syslogparser"
-	"github.com/mcuadros/go-syslog"
-	"github.com/mcuadros/go-syslog/format"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tnet"
+	"gopkg.in/mcuadros/go-syslog.v2"
+	"gopkg.in/mcuadros/go-syslog.v2/format"
 	"sync"
 )
 
@@ -100,7 +99,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) error {
 }
 
 // Handle implements the syslog handle interface
-func (cons *Syslogd) Handle(parts syslogparser.LogParts, code int64, err error) {
+func (cons *Syslogd) Handle(parts syslog.LogParts, code int64, err error) {
 	content, isString := parts["content"].(string)
 	if isString {
 		cons.Enqueue([]byte(content), *cons.sequence)

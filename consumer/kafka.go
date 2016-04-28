@@ -16,7 +16,8 @@ package consumer
 
 import (
 	"encoding/json"
-	kafka "github.com/shopify/sarama"
+	"fmt"
+	kafka "github.com/Shopify/sarama"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tsync"
 	"io/ioutil"
@@ -142,7 +143,6 @@ func init() {
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 	cons.SimpleConsumer.Configure(conf)
-	kafka.Logger = cons.Log.Note
 
 	cons.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	cons.topic = conf.GetString("Topic", "default")
@@ -187,22 +187,27 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 	if cons.offsetFile != "" {
 		fileContents, err := ioutil.ReadFile(cons.offsetFile)
 		if err != nil {
-			conf.Errors.Pushf("Failed to open kafka offset file: %s", err.Error())
-		} else {
-			// Decode the JSON file into the partition -> offset map
-			encodedOffsets := make(map[string]int64)
-			if !conf.Errors.Push(json.Unmarshal(fileContents, &encodedOffsets)) {
-				for k, v := range encodedOffsets {
-					id, err := strconv.Atoi(k)
-					if !conf.Errors.Push(err) {
-						startOffset := v
-						cons.offsets[int32(id)] = &startOffset
-					}
-				}
+			return fmt.Errorf("Failed to open kafka offset file: %s", err.Error())
+		}
+
+		// Decode the JSON file into the partition -> offset map
+		encodedOffsets := make(map[string]int64)
+		err = json.Unmarshal(fileContents, &encodedOffsets)
+		if err != nil {
+			return err
+		}
+
+		for k, v := range encodedOffsets {
+			id, err := strconv.Atoi(k)
+			if err != nil {
+				return err
 			}
+			startOffset := v
+			cons.offsets[int32(id)] = &startOffset
 		}
 	}
 
+	kafka.Logger = cons.Log.Note
 	return conf.Errors.OrNil()
 }
 

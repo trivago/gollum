@@ -21,6 +21,7 @@ import (
 	"github.com/trivago/tgo/tcontainer"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -112,8 +113,8 @@ type KafkaProducer struct {
 	topicRequiredAcks int
 	topicTimeoutMs    int
 	pollInterval      time.Duration
+	topic             map[core.MessageStreamID]*topicHandle
 	streamToTopic     map[core.MessageStreamID]string
-	topic             map[core.MessageStreamID]*kafka.Topic
 	topicGuard        *sync.RWMutex
 }
 
@@ -123,9 +124,16 @@ type messageWrapper struct {
 	user  []byte
 }
 
+type topicHandle struct {
+	handle    *kafka.Topic
+	rttSum    int64
+	delivered int64
+}
+
 const (
 	kafkaMetricMessages    = "Kafka:Messages-"
 	kafkaMetricMessagesSec = "Kafka:MessagesSec-"
+	kafkaMetricRoundtrip   = "Kafka:AvgRoundtripMs-"
 	kafkaMetricAllocations = "Kafka:Allocations"
 )
 
@@ -168,10 +176,11 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.clientID = conf.GetString("ClientId", "gollum")
 	prod.streamToTopic = conf.GetStreamMap("Topic", "default")
-	prod.topic = make(map[core.MessageStreamID]*kafka.Topic)
+	prod.topic = make(map[core.MessageStreamID]*topicHandle)
 	prod.topicRequiredAcks = conf.GetInt("RequiredAcks", 1)
 	prod.topicTimeoutMs = conf.GetInt("TimeoutMs", 1)
 	prod.topicGuard = new(sync.RWMutex)
+	prod.streamToTopic = conf.GetStreamMap("Topic", "default")
 
 	batchIntervalMs := conf.GetInt("BatchTimeoutMs", 1000)
 	prod.pollInterval = time.Millisecond * time.Duration(batchIntervalMs)
@@ -216,30 +225,27 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
 	return nil
 }
 
-func (prod *KafkaProducer) registerNewTopic(streamID core.MessageStreamID) *kafka.Topic {
-	prod.topicGuard.Lock()
-	defer prod.topicGuard.Unlock()
+func (prod *KafkaProducer) newTopicHandle(topicName string) *kafka.Topic {
+	topicConfig := kafka.NewTopicConfig()
+	topicConfig.SetI("request.required.acks", prod.topicRequiredAcks)
+	topicConfig.SetI("request.timeout.ms", prod.topicTimeoutMs)
+	topicConfig.SetRoundRobinPartitioner()
 
-	topic, topicMapped := prod.topic[streamID]
-	if !topicMapped {
-		topicName, isMapped := prod.streamToTopic[streamID]
-		if !isMapped {
-			topicName = core.StreamRegistry.GetStreamName(streamID)
-			prod.streamToTopic[streamID] = topicName
-		}
+	return kafka.NewTopic(topicName, topicConfig, prod.client)
+}
 
-		metricName := kafkaMetricMessages + topicName
-		tgo.Metric.New(metricName)
-		tgo.Metric.NewRate(metricName, kafkaMetricMessagesSec+topicName, time.Second, 10, 3, true)
-
-		topicConfig := kafka.NewTopicConfig()
-		topicConfig.SetI("request.required.acks", prod.topicRequiredAcks)
-		topicConfig.SetI("request.timeout.ms", prod.topicTimeoutMs)
-		topicConfig.SetRoundRobinPartitioner()
-
-		topic = kafka.NewTopic(topicName, topicConfig, prod.client)
-		prod.topic[streamID] = topic
+func (prod *KafkaProducer) registerNewTopic(topicName string, streamID core.MessageStreamID) *topicHandle {
+	topic := &topicHandle{
+		handle: prod.newTopicHandle(topicName),
 	}
+
+	tgo.Metric.New(kafkaMetricMessages + topicName)
+	tgo.Metric.New(kafkaMetricMessagesSec + topicName)
+	tgo.Metric.New(kafkaMetricRoundtrip + topicName)
+
+	prod.topicGuard.Lock()
+	prod.topic[streamID] = topic
+	prod.topicGuard.Unlock()
 
 	return topic
 }
@@ -250,13 +256,17 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 
 	// Send message
 	prod.topicGuard.RLock()
-	defer prod.topicGuard.RUnlock()
+	topic, topicRegistered := prod.topic[msg.StreamID]
 
-	topic, topicMapped := prod.topic[msg.StreamID]
-	if !topicMapped {
+	if !topicRegistered {
 		prod.topicGuard.RUnlock()
-		topic = prod.registerNewTopic(msg.StreamID)
-		prod.topicGuard.RLock()
+		topicName, isMapped := prod.streamToTopic[msg.StreamID]
+		if !isMapped {
+			topicName = core.StreamRegistry.GetStreamName(msg.StreamID)
+		}
+		topic = prod.registerNewTopic(topicName, msg.StreamID)
+	} else {
+		prod.topicGuard.RUnlock()
 	}
 
 	var key []byte
@@ -277,12 +287,31 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 		user:  serializedOriginal,
 	}
 
-	if err := topic.Produce(kafkaMsg); err != nil {
+	if err := topic.handle.Produce(kafkaMsg); err != nil {
 		prod.Log.Error.Print("Message produce failed:", err)
 		prod.Drop(&originalMsg)
 	} else {
-		topicName := topic.GetName()
-		tgo.Metric.Inc(kafkaMetricMessages + topicName)
+		tgo.Metric.Inc(kafkaMetricMessages + topic.handle.GetName())
+	}
+}
+
+func (prod *KafkaProducer) storeRTT(msg *core.Message) {
+	rtt := time.Since(msg.Timestamp)
+
+	prod.topicGuard.RLock()
+	topic := prod.topic[msg.StreamID]
+	prod.topicGuard.RUnlock()
+
+	atomic.AddInt64(&topic.rttSum, rtt.Nanoseconds()/1000)
+	atomic.AddInt64(&topic.delivered, 1)
+}
+
+// OnMessageDelivered gets called by librdkafka on message delivery success
+func (prod *KafkaProducer) OnMessageDelivered(userdata []byte) {
+	if msg, err := core.DeserializeMessage(userdata); err == nil {
+		prod.storeRTT(&msg)
+	} else {
+		prod.Log.Error.Print(err)
 	}
 }
 
@@ -290,6 +319,7 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 func (prod *KafkaProducer) OnMessageError(reason string, userdata []byte) {
 	prod.Log.Error.Print("Message delivery failed:", reason)
 	if msg, err := core.DeserializeMessage(userdata); err == nil {
+		prod.storeRTT(&msg)
 		prod.Drop(&msg)
 	} else {
 		prod.Log.Error.Print(err)
@@ -299,6 +329,22 @@ func (prod *KafkaProducer) OnMessageError(reason string, userdata []byte) {
 func (prod *KafkaProducer) poll() {
 	prod.client.Poll(time.Second)
 	tgo.Metric.Set(kafkaMetricAllocations, prod.client.GetAllocCounter())
+
+	prod.topicGuard.RLock()
+	defer prod.topicGuard.RUnlock()
+
+	for _, topic := range prod.topic {
+		rttSum := atomic.SwapInt64(&topic.rttSum, 0)
+		delivered := atomic.SwapInt64(&topic.delivered, 0)
+		topicName := topic.handle.GetName()
+
+		avgRoundtripMs := int64(0)
+		if delivered > 0 {
+			avgRoundtripMs = rttSum / (delivered * 1000)
+		}
+
+		tgo.Metric.Set(kafkaMetricRoundtrip+topicName, avgRoundtripMs)
+	}
 }
 
 func (prod *KafkaProducer) isConnected() bool {
@@ -316,30 +362,30 @@ func (prod *KafkaProducer) tryConnect() bool {
 		return false
 	}
 
+	prod.topicGuard.Lock()
+	defer prod.topicGuard.Unlock()
+
 	prod.client = client
-	return true
-}
-
-func (prod *KafkaProducer) closeConnection() {
-	client := prod.client
-	topics := prod.topic
-
-	prod.client = nil
-	prod.topic = make(map[core.MessageStreamID]*kafka.Topic)
-
-	for _, topic := range topics {
-		topic.Close()
+	for _, topic := range prod.topic {
+		topic.handle = prod.newTopicHandle(topic.handle.GetName())
 	}
-	client.Close()
+	return true
 }
 
 func (prod *KafkaProducer) close() {
 	defer prod.WorkerDone()
 
+	prod.CloseMessageChannel(prod.produceMessage)
+
+	prod.topicGuard.RLock()
+	defer prod.topicGuard.RUnlock()
+
 	for _, topic := range prod.topic {
-		topic.TriggerShutdown()
+		topic.handle.Close()
 	}
-	prod.closeConnection()
+
+	prod.client.Close()
+	prod.client = nil
 }
 
 // Produce writes to a buffer that is sent to a given socket.
