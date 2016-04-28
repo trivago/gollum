@@ -34,13 +34,18 @@ type Message interface {
 // MessageDelivery is used to handle message delivery errors
 type MessageDelivery interface {
 	OnMessageError(reason string, userdata []byte)
+	OnMessageDelivered(userdata []byte)
 }
 
 //export goDeliveryHandler
 func goDeliveryHandler(clientHandle *C.rd_kafka_t, code C.int, bufferPtr *C.buffer_t) {
 	if handler, exists := clients[clientHandle]; exists {
 		buffer := UnmarshalBuffer(bufferPtr)
-		handler.OnMessageError(codeToString(int(code)), buffer)
+		if code == C.RD_KAFKA_RESP_ERR_NO_ERROR {
+			handler.OnMessageDelivered(buffer)
+		} else {
+			handler.OnMessageError(codeToString(int(code)), buffer)
+		}
 	}
 }
 

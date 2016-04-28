@@ -42,9 +42,7 @@ static void logWrapper(const rd_kafka_t *rk, int level, const char *fac, const c
 
 static void deliveryWrapper(rd_kafka_t* rk, const rd_kafka_message_t* rkmessage, void *opaque) {
     buffer_t* pBuffer = (buffer_t*)rkmessage->_private;
-    if (rkmessage->err != RD_KAFKA_RESP_ERR_NO_ERROR) {
-        goDeliveryHandler(rk, rkmessage->err, pBuffer);
-    }
+    goDeliveryHandler(rk, rkmessage->err, pBuffer);
     DestroyBuffer(pBuffer);
 }
                      
