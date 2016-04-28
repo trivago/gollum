@@ -47,13 +47,14 @@ import (
 type Rate struct {
 	rateLimit    int64
 	stateGuard   *sync.RWMutex
-	state        map[core.MessageStreamID]rateState
+	state        map[core.MessageStreamID]*rateState
 	dropStreamID core.MessageStreamID
 }
 
 type rateState struct {
-	count  *int64
-	ignore bool
+	lastReset time.Time
+	count     *int64
+	ignore    bool
 }
 
 func init() {
@@ -65,7 +66,7 @@ func (filter *Rate) Configure(conf core.PluginConfig) error {
 	filter.rateLimit = int64(conf.GetInt("RateLimitPerSec", 100))
 	filter.dropStreamID = core.InvalidStreamID
 	filter.stateGuard = new(sync.RWMutex)
-	filter.state = make(map[core.MessageStreamID]rateState)
+	filter.state = make(map[core.MessageStreamID]*rateState)
 
 	dropToStream := conf.GetString("RateLimitDropToStream", "")
 	if dropToStream != "" {
@@ -74,28 +75,14 @@ func (filter *Rate) Configure(conf core.PluginConfig) error {
 
 	ignore := conf.GetStreamArray("RateLimitIgnore", []core.MessageStreamID{})
 	for _, stream := range ignore {
-		filter.state[stream] = rateState{
-			ignore: true,
+		filter.state[stream] = &rateState{
+			count:     new(int64),
+			ignore:    true,
+			lastReset: time.Now().Add(-time.Second),
 		}
 	}
 
-	go filter.resetLoop()
 	return nil
-}
-
-func (filter *Rate) resetLoop() {
-	waitForReset := time.NewTicker(time.Second)
-	for {
-		<-waitForReset.C
-		filter.stateGuard.RLock()
-		for streamID, state := range filter.state {
-			numFiltered := atomic.SwapInt64(state.count, 0)
-			if numFiltered > filter.rateLimit {
-				Log.Warning.Printf("Ratelimit reached for %s: %d msg/sec", core.StreamRegistry.GetStreamName(streamID), numFiltered)
-			}
-		}
-		filter.stateGuard.RUnlock()
-	}
 }
 
 // Accepts allows all messages
@@ -107,24 +94,36 @@ func (filter *Rate) Accepts(msg core.Message) bool {
 	// Add stream if necessary
 	if !known {
 		filter.stateGuard.Lock()
-		state = rateState{
-			count:  new(int64),
-			ignore: false,
+		state = &rateState{
+			count:     new(int64),
+			ignore:    false,
+			lastReset: time.Now(),
 		}
 		filter.state[msg.StreamID] = state
 		filter.stateGuard.Unlock()
-	} else if state.ignore {
+	}
+
+	// Ignore if set
+	if state.ignore {
 		return true // ### return, do not limit ###
 	}
 
-	if atomic.AddInt64(state.count, 1) <= filter.rateLimit {
-		return true
+	// Reset if necessary
+	if time.Since(state.lastReset) > time.Second {
+		state.lastReset = time.Now()
+		numFiltered := atomic.SwapInt64(state.count, 0)
+		if numFiltered > filter.rateLimit {
+			Log.Warning.Printf("Ratelimit reached for %s: %d msg/sec", core.StreamRegistry.GetStreamName(msg.StreamID), numFiltered)
+		}
 	}
 
-	if filter.dropStreamID != core.InvalidStreamID {
-		msg.Route(filter.dropStreamID)
+	// Check if to be filtered
+	if atomic.AddInt64(state.count, 1) > filter.rateLimit {
+		if filter.dropStreamID != core.InvalidStreamID {
+			msg.Route(filter.dropStreamID)
+		}
+		return false // ### return, filter ###
 	}
 
-	return false
-
+	return true
 }
