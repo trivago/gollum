@@ -2,12 +2,6 @@
 	"version": 0,
 	"dependencies": [
 		{
-			"importpath": "github.com/Shopify/sarama",
-			"repository": "https://github.com/Shopify/sarama",
-			"revision": "68920ff1be3bbd31449ab1e2c255c50cedeb755c",
-			"branch": "master"
-		},
-		{
 			"importpath": "github.com/araddon/gou",
 			"repository": "https://github.com/araddon/gou",
 			"revision": "c4d51044125da629d6f2aa594f25b45c451a7d2a",
@@ -218,12 +212,6 @@
 			"revision": "8fa5343b0058459296399a89bc532aa5508de28d",
 			"branch": "master",
 			"path": "/libcontainer/user"
-		},
-		{
-			"importpath": "github.com/shopify/sarama",
-			"repository": "https://github.com/shopify/sarama",
-			"revision": "68920ff1be3bbd31449ab1e2c255c50cedeb755c",
-			"branch": "master"
 		},
 		{
 			"importpath": "golang.org/x/net/websocket",
