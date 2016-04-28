@@ -25,7 +25,7 @@ func TestFilterRate(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	conf := core.NewPluginConfig("", "filter.Rate")
 
-	conf.Override("RateLimitPerSec", 100)
+	conf.Override("MessagesPerSec", 100)
 	plugin, err := core.NewPlugin(conf)
 	expect.NoError(err)
 
@@ -68,12 +68,12 @@ func TestFilterRate(t *testing.T) {
 }
 
 func TestFilterRateIgnore(t *testing.T) {
-	expect := shared.NewExpect(t)
-	conf := core.NewPluginConfig("")
+	expect := ttesting.NewExpect(t)
+	conf := core.NewPluginConfig("", "filter.Rate")
 
-	conf.Override("RateLimitPerSec", 100)
-	conf.Override("RateLimitIgnore", []string{core.LogInternalStream})
-	plugin, err := core.NewPluginWithType("filter.Rate", conf)
+	conf.Override("MessagesPerSec", 100)
+	conf.Override("Ignore", []string{core.LogInternalStream})
+	plugin, err := core.NewPlugin(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*Rate)

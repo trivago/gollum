@@ -44,10 +44,9 @@ import (
 // By default this list is empty.
 type Rate struct {
 	core.FilterBase
-	stateGuard   *sync.RWMutex
-	state        map[core.MessageStreamID]rateState
-	dropStreamID core.MessageStreamID
-	rateLimit    int64
+	stateGuard *sync.RWMutex
+	state      map[core.MessageStreamID]rateState
+	rateLimit  int64
 }
 
 type rateState struct {
@@ -66,12 +65,7 @@ func (filter *Rate) Configure(conf core.PluginConfigReader) error {
 	filter.stateGuard = new(sync.RWMutex)
 	filter.state = make(map[core.MessageStreamID]rateState)
 
-	dropToStream := conf.GetString("RateLimitDropToStream", "")
-	if dropToStream != "" {
-		filter.dropStreamID = core.GetStreamID(dropToStream)
-	}
-
-	ignore := conf.GetStreamArray("RateLimitIgnore", []core.MessageStreamID{})
+	ignore := conf.GetStreamArray("Ignore", []core.MessageStreamID{})
 	for _, stream := range ignore {
 		filter.state[stream] = rateState{
 			ignore: true,
@@ -116,14 +110,5 @@ func (filter *Rate) Accepts(msg *core.Message) bool {
 		return true // ### return, do not limit ###
 	}
 
-	if atomic.AddInt64(state.count, 1) <= filter.rateLimit {
-		return true
-	}
-
-	if filter.dropStreamID != core.InvalidStreamID {
-		msg.Route(filter.dropStreamID)
-	}
-
-	return false
-
+	return atomic.AddInt64(state.count, 1) <= filter.rateLimit
 }
