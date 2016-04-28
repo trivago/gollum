@@ -17,7 +17,7 @@ package consumer
 import (
 	"encoding/json"
 	"fmt"
-	kafka "github.com/shopify/sarama"
+	kafka "github.com/Shopify/sarama"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"

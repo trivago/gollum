@@ -2,6 +2,12 @@
 	"version": 0,
 	"dependencies": [
 		{
+			"importpath": "github.com/Shopify/sarama",
+			"repository": "https://github.com/Shopify/sarama",
+			"revision": "92a286e4dde1688175cff3d2ec9b49a02838b447",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/araddon/gou",
 			"repository": "https://github.com/araddon/gou",
 			"revision": "c4d51044125da629d6f2aa594f25b45c451a7d2a",
