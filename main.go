@@ -30,6 +30,7 @@ import (
 	"os"
 	"runtime"
 	"runtime/pprof"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -50,6 +51,11 @@ func main() {
 	if *flagVersion {
 		printVersion()
 		return // ### return, version only ###
+	}
+
+	if *flagModules {
+		printModules()
+		return // ### return, modules only ###
 	}
 
 	if *flagHelp || *flagConfigFile == "" {
@@ -150,16 +156,35 @@ func dumpMemoryProfile() {
 }
 
 func printVersion() {
-	contribModules := core.TypeRegistry.GetRegistered("contrib")
-	modules := ""
-	for _, typeName := range contribModules {
-		modules += " + " + typeName[tstrings.IndexN(typeName, ".", 1)+1:] + "\n"
+	if gollumDevVer > 0 {
+		fmt.Printf("Gollum v%d.%d.%d.%d dev\n", gollumMajorVer, gollumMinorVer, gollumPatchVer, gollumDevVer)
+	} else {
+		fmt.Printf("Gollum v%d.%d.%d\n", gollumMajorVer, gollumMinorVer, gollumPatchVer)
+	}
+	fmt.Println(runtime.Version())
+}
+
+func printModules() {
+	namespaces := []string{"consumer", "producer", "filter", "format", "stream", "contrib"}
+	allMods := []string{}
+	for _, pkg := range namespaces {
+		modules := core.TypeRegistry.GetRegistered(pkg)
+		for _, typeName := range modules {
+			allMods = append(allMods, typeName)
+		}
 	}
 
-	if gollumDevVer > 0 {
-		fmt.Printf("Gollum v%d.%d.%d.%d dev\n%s", gollumMajorVer, gollumMinorVer, gollumPatchVer, gollumDevVer, modules)
-	} else {
-		fmt.Printf("Gollum v%d.%d.%d\n%s", gollumMajorVer, gollumMinorVer, gollumPatchVer, modules)
+	sort.Strings(allMods)
+	lastName := allMods[0]
+
+	for _, name := range allMods {
+		pkgIdx := strings.LastIndex(name, ".")
+		if name[:pkgIdx] != lastName[:pkgIdx] {
+			fmt.Println()
+		}
+
+		fmt.Println(name)
+		lastName = name
 	}
 }
 

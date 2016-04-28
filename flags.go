@@ -21,6 +21,7 @@ import (
 var (
 	flagHelp           = tflag.Switch("h", "help", "Print this help message.")
 	flagVersion        = tflag.Switch("v", "version", "Print version information and quit.")
+	flagModules        = tflag.Switch("l", "list", "Print plugin information and quit.")
 	flagConfigFile     = tflag.String("c", "config", "", "Use a given configuration file.")
 	flagTestConfigFile = tflag.Switch("tc", "testconfig", "Test the given configuration file and exit.")
 	flagLoglevel       = tflag.Int("ll", "loglevel", 1, "Set the loglevel [0-3] as in {0=Errors, 1=+Warnings, 2=+Notes, 3=+Debug}.")
