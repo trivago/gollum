@@ -198,6 +198,7 @@ func (prod *File) Configure(conf core.PluginConfig) error {
 
 	prod.pruneCount = conf.GetInt("RotatePruneCount", 0)
 	prod.pruneSize = int64(conf.GetInt("RotatePruneTotalSizeMB", 0)) << 20
+	prod.pruneHours = conf.GetInt("RotatePruneAfterHours", 0)
 
 	if prod.pruneSize > 0 && prod.rotate.sizeByte > 0 {
 		prod.pruneSize -= prod.rotate.sizeByte >> 20
