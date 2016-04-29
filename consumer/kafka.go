@@ -283,7 +283,7 @@ initLoop:
 		startOffset := atomic.LoadInt64(cons.offsets[partitionID])
 		consumer, err := cons.consumer.ConsumePartition(cons.topic, partitionID, startOffset)
 
-		// Retry consumer until successfull
+		// Retry consumer until successful
 		for err != nil {
 			Log.Error.Printf("Failed to start kafka consumer (%s:%d) - %s", cons.topic, partitionID, err.Error())
 			time.Sleep(cons.persistTimeout)
