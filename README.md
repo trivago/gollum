@@ -63,6 +63,7 @@ Writing a custom plugin does not require you to change any additional code besid
 * `CollectdToInflux08` convert [CollectD](https://collectd.org) 0.8 data to [InfluxDB](https://influxdb.com) compatible values.
 * `CollectdToInflux09` convert [CollectD](https://collectd.org) 0.9 data to [InfluxDB](https://influxdb.com) compatible values.
 * `CollectdToInflux10` convert [CollectD](https://collectd.org) 0.10 data to [InfluxDB](https://influxdb.com) compatible values.
+* `ExtractJSON` extracts a single filed from a JSON object.
 * `Envelope` add a prefix and/or postfix string to a message.
 * `Forward` write the message without modifying it.
 * `Hostname` prepend the current machine's hostname to a message.
@@ -82,6 +83,7 @@ Writing a custom plugin does not require you to change any additional code besid
 * `All` lets all message pass.
 * `JSON` blocks or lets json messages pass based on their content.
 * `None` blocks all messages.
+* `Rate` blocks messages that go over a given messages per second rate.
 * `RegExp` blocks or lets messages pass based on a regular expression.
 * `Stream` blocks or lets messages pass based on their stream name.
 
@@ -90,17 +92,17 @@ Writing a custom plugin does not require you to change any additional code besid
 ### From source
 
 Installation from source requires the installation of the [Go toolchain](http://golang.org/).  
-Gollum has [Godeps](https://github.com/tools/godep) support but this is considered optional.
+Gollum supports the Go 1.5 vendor experiment that is automatically enabled when using the provided makefile.
+With Go 1.6 and later you can also use `go build` directly without additional modifications.
+Builds with Go 1.4 or earlier versions are not officially supported and might require additional steps and modifications.
 
 ```
-$ go get .
-$ go build
-$ gollum --help
+$ make
+$ ./gollum --help
 ```
 
-You can use the supplied make file to trigger cross platform builds.  
-Make will produce ready to deploy .tar.gz files with the corresponding platform builds.  
-This does require a cross platform golang build. For details see the "build" section below.
+You can use the make file coming with gollum to trigger cross platform builds.  
+Make will produce ready to deploy .zip files with the corresponding platform builds inside the dist folder.
 
 ## Usage
 
@@ -111,7 +113,7 @@ $ gollum -c config/profile.conf -ps -ll 3
 ```
 
 By default this test profiles the theoretic maximum throughput of 256 Byte messages.  
-You can enable different producers to test the write performance of these producers, too.
+You can enable different producers in that config to test the write performance of these producers, too.
 
 ## Configuration
 
@@ -171,9 +173,6 @@ Print version information and quit.
 The easiest way to install go is by using homebrew:  
 `brew install go`
 
-If you want to do cross platform builds you need to specify an additional option (Go 1.5 does not require this anymore):  
-`brew install go --with-cc-all`
-
 ### Linux
 
 Download Go from the [golang website](https://golang.org/dl/) and unzip it to e.g. /usr/local/go.  
@@ -196,12 +195,12 @@ mkdir -p $(GOPATH)/src/github.com/trivago
 cd $(GOPATH)/src/github.com/trivago
 git clone https://github.com/trivago/gollum.git
 cd gollum
-go get -u .
 ```
 
 ### Build
 
-Building gollum is as easy as `go build`.  
+Building gollum is as easy as `make` or `go build`.
+When using Go 1.5 make sure to enable the go vendor experiment by setting `export GO15VENDOREXPERIMENT=1` or use `make`.
 If you want to do cross platform builds use `make all` or specifiy one of the following platforms instead of "all":
  * `current` build for current OS (default)
  * `freebsd` build for FreeBSD 
@@ -213,7 +212,7 @@ If you want to do cross platform builds use `make all` or specifiy one of the fo
 There are also supplementary targets for make:
  * `clean` clean all artifacts created by the build process
  * `test` run unittests
- * `restore` install godep and restore all dependencies
+ * `vendor` install gvt and update all dependencies
  * `aws` build for Linux x64 and generate an [Elastic Beanstalk](https://aws.amazon.com/de/elasticbeanstalk/) package
  
 If you want to use native plugins (contrib/native) you will have to enable the corresponding imports in the file contrib/loader.go.
@@ -233,11 +232,6 @@ To use your own configuration you could run:
 ```
 $ docker run -it --rm -v /path/to/config.conf:/etc/gollum/gollum.conf:ro trivago/gollum -c /etc/gollum/gollum.conf
 ```
-
-### Solving dependency problems
-
-If you got any errors during build regarding external dependencies (i.e. the error message points to another repository than github.com/trivago) you can restore the last dependency snapshot using [godep](https://github.com/tools/godep).
-Install godep via `go get github.com/tools/godep` and restore the dependency via `godep restore` when inside the gollum base folder.
 
 ## License
 
