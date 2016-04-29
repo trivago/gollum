@@ -27,8 +27,10 @@ import (
 
 // KafkaProducer librdkafka producer plugin
 // The kafka producer writes messages to a kafka cluster. This producer is
-// backed by the native librdkafka library so most settings relate to that.
-// library. This producer does not implement a fuse breaker.
+// backed by the native librdkafka (0.8.6) library so most settings relate
+// to that library. This producer does not implement a fuse breaker.
+// NOTICE: This producer is not included in standard builds. To enable it
+// you need to trigger a custom build with native plugins enabled.
 // Configuration example
 //
 //  - "native.KafkaProducer":

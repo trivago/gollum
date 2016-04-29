@@ -16,21 +16,20 @@ Please check your configuration files.
  * Exisiting unix domain socket detection changed to use create instead of stat (better error handling)
  * Kafka and Scribe specific metrics are now updated if there are no messages, too
  * Scribe producer is now reacting better to server connection errors
- * producer.Kafka GracePeriodMs default set to 100
- * producer.Kafka MetadataRefreshMs default set to 600000 (10 minutes)
- * producer.Kafka TimeoutMs default set to 10000 (10 seconds)
+ * Filters and Formatters are now covered with unittests
  
 #### New
 
  * Support for Go1.5 vendor experiment
- * New producer for librdkafka
+ * New producer for librdkafka (not included in standard builds)
  * Metrics added to show memory consumption
+ * New kafka metrics added to show "roundtrip" times for messages
  * producer.Benchmark added to get more meaningful core system profiling results
  * New filter filter.Rate added to allow limiting streams to a certain number of messages per second
  * Added key support to consumer.Kafka and producer.Kafka
  * Added an "ordered read" config option to consumer.Kafka (round robin reading)
  * Added a new formater format.ExtractJSON to extract a single value from a JSON object
- * Go version is no printed with gollum -v 
+ * Go version is now printed with gollum -v 
  * Scribe producer now queries scribe server status in regular intervals
  * format.Sequence separator character can now be configured
  * format.Runlength separator character can now be configured
@@ -38,8 +37,11 @@ Please check your configuration files.
 #### Other changes
 
  * Renamed producer.Kafka BatchTimeoutSec to BatchTimeoutMs to allow millisecond based values
- * Default producer.Kafka retry count set to 0
- * Kafka.producer default producer set to RoundRobin
+ * producer.Kafka retry count set to 0
+ * producer.Kafka default producer set to RoundRobin
+ * producer.Kafka GracePeriodMs default set to 100
+ * producer.Kafka MetadataRefreshMs default set to 600000 (10 minutes)
+ * producer.Kafka TimeoutMs default set to 10000 (10 seconds)
  * filter.RegExp FilterExpressionNot is evaluated before FilterExpression
  * filter.RegExp FilterExpression is evaluated if FilterExpressionNot passed
 

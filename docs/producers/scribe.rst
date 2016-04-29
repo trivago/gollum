@@ -83,6 +83,11 @@ Parameters
 **BatchTimeoutSec**
   BatchTimeoutSec defines the maximum number of seconds to wait after the last message arrived before a batch is flushed automatically.
   By default this is set to 5.
+  This also defines the maximum time allowed for messages to be sent to the server.
+
+**HeartBeatIntervalSec**
+  HeartBeatIntervalSec defines the interval used to query scribe for status updates.
+  By default this is set to 5sec.
 
 **Category**
   Category maps a stream to a specific scribe category.
@@ -114,6 +119,7 @@ Example
 	    BatchMaxCount: 8192
 	    BatchFlushCount: 4096
 	    BatchTimeoutSec: 5
+	        HeartBeatIntervalSec: 5
 	    Category:
 	        "console" : "console"
 	        "_GOLLUM_"  : "_GOLLUM_"
