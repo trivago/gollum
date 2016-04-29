@@ -35,8 +35,8 @@ import (
 const (
 	gollumMajorVer = 0
 	gollumMinorVer = 4
-	gollumPatchVer = 3
-	gollumDevVer   = 0
+	gollumPatchVer = 4
+	gollumDevVer   = 1
 )
 
 func dumpMemoryProfile() {
