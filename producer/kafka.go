@@ -254,9 +254,10 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 
 func (prod *Kafka) storeRTT(msg *core.Message) {
 	rtt := time.Since(msg.Timestamp)
+	_, streamID := prod.ProducerBase.Format(*msg)
 
 	prod.topicGuard.RLock()
-	topic := prod.topic[msg.StreamID]
+	topic := prod.topic[streamID]
 	prod.topicGuard.RUnlock()
 
 	atomic.AddInt64(&topic.rttSum, rtt.Nanoseconds()/1000) // microseconds
