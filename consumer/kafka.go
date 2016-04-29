@@ -72,7 +72,7 @@ const (
 // a given partition. If the consumer is restarted that offset is used to continue
 // reading. By default this is set to "" which disables the offset file.
 //
-// Ordered can be set to enforce paritions to be read one-by-one in a round robin
+// Ordered can be set to enforce partitions to be read one-by-one in a round robin
 // fashion instead of reading in parallel from all partitions.
 // Set to false by default.
 //

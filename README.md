@@ -30,7 +30,7 @@ Writing a custom plugin does not require you to change any additional code besid
 * `Kinesis` read from a [Kinesis](https://aws.amazon.com/de/kinesis/) stream.
 * `Profiler` Generate profiling messages.
 * `Proxy` use in combination with a proxy producer to enable two-way communication.
-* `Socket` read from a socket (gollum specfic protocol).
+* `Socket` read from a socket (gollum specific protocol).
 * `Syslogd` read from a socket (syslogd protocol).
 
 ## Producers (writing data)
@@ -45,7 +45,7 @@ Writing a custom plugin does not require you to change any additional code besid
 * `Null` like /dev/null.
 * `Proxy` two-way communication proxy for simple protocols.
 * `Scribe` send messages to a [Facebook scribe](https://github.com/facebookarchive/scribe) server.
-* `Socket` send messages to a socket (gollum specfic protocol).
+* `Socket` send messages to a socket (gollum specific protocol).
 * `Spooling` write messages to disk and retry them later.
 * `Websocket` send messages to a websocket.
 
@@ -201,7 +201,7 @@ cd gollum
 
 Building gollum is as easy as `make` or `go build`.
 When using Go 1.5 make sure to enable the go vendor experiment by setting `export GO15VENDOREXPERIMENT=1` or use `make`.
-If you want to do cross platform builds use `make all` or specifiy one of the following platforms instead of "all":
+If you want to do cross platform builds use `make all` or specify one of the following platforms instead of "all":
  * `current` build for current OS (default)
  * `freebsd` build for FreeBSD 
  * `linux` build for Linux x64
