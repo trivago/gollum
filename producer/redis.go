@@ -70,7 +70,9 @@ type Redis struct {
 	store           func(msg core.Message)
 	format          core.Formatter
 	fieldFormat     core.Formatter
+	keyFormat       core.Formatter
 	fieldFromParsed bool
+	keyFromParsed   bool
 }
 
 func init() {
@@ -83,18 +85,27 @@ func (prod *Redis) Configure(conf core.PluginConfig) error {
 	if err != nil {
 		return err
 	}
+	prod.SetStopCallback(prod.close)
 
 	fieldFormat, err := core.NewPluginWithType(conf.GetString("FieldFormatter", "format.Identifier"), conf)
 	if err != nil {
 		return err // ### return, plugin load error ###
 	}
-	prod.SetStopCallback(prod.close)
 	prod.fieldFormat = fieldFormat.(core.Formatter)
+
+	if conf.HasValue("KeyFormatter") {
+		keyFormat, err := core.NewPluginWithType(conf.GetString("KeyFormatter", "format.Forward"), conf)
+		if err != nil {
+			return err // ### return, plugin load error ###
+		}
+		prod.keyFormat = keyFormat.(core.Formatter)
+	}
 
 	prod.password = conf.GetString("Password", "")
 	prod.database = int64(conf.GetInt("Database", 0))
 	prod.key = conf.GetString("Key", "default")
 	prod.fieldFromParsed = conf.GetBool("FieldAfterFormat", false)
+	prod.keyFromParsed = conf.GetBool("KeyAfterFormat", false)
 	prod.address, prod.protocol = shared.ParseAddress(conf.GetString("Address", ":6379"))
 
 	switch strings.ToLower(conf.GetString("Storage", "hash")) {
@@ -115,18 +126,52 @@ func (prod *Redis) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-func (prod *Redis) storeHash(msg core.Message) {
+func (prod *Redis) getValueAndKey(msg core.Message) (v []byte, k string) {
 	value, _ := prod.format.Format(msg)
-	var field []byte
+
+	if prod.keyFormat == nil {
+		return value, prod.key
+	}
+
+	if prod.keyFromParsed {
+		keyMsg := msg
+		keyMsg.Data = value
+		key, _ := prod.keyFormat.Format(keyMsg)
+		return value, string(key)
+	}
+
+	key, _ := prod.keyFormat.Format(msg)
+	return value, string(key)
+}
+
+func (prod *Redis) getValueFieldAndKey(msg core.Message) (v []byte, f []byte, k string) {
+	value, _ := prod.format.Format(msg)
+	key := []byte(prod.key)
+
+	if prod.keyFormat != nil {
+		if prod.keyFromParsed {
+			keyMsg := msg
+			keyMsg.Data = value
+			key, _ = prod.keyFormat.Format(keyMsg)
+		} else {
+			key, _ = prod.keyFormat.Format(msg)
+		}
+	}
+
 	if prod.fieldFromParsed {
 		fieldMsg := msg
 		fieldMsg.Data = value
-		field, _ = prod.fieldFormat.Format(fieldMsg)
-	} else {
-		field, _ = prod.fieldFormat.Format(msg)
+		field, _ := prod.fieldFormat.Format(fieldMsg)
+		return value, field, string(key)
 	}
 
-	result := prod.client.HSet(prod.key, string(field), string(value))
+	field, _ := prod.fieldFormat.Format(msg)
+	return value, field, string(key)
+}
+
+func (prod *Redis) storeHash(msg core.Message) {
+	value, field, key := prod.getValueFieldAndKey(msg)
+	result := prod.client.HSet(key, string(field), string(value))
 	if result.Err() != nil {
 		Log.Error.Print("Redis: ", result.Err())
 		prod.Drop(msg)
@@ -134,9 +179,9 @@ func (prod *Redis) storeHash(msg core.Message) {
 }
 
 func (prod *Redis) storeList(msg core.Message) {
-	value, _ := prod.ProducerBase.Format(msg)
+	value, key := prod.getValueAndKey(msg)
 
-	result := prod.client.RPush(prod.key, string(value))
+	result := prod.client.RPush(key, string(value))
 	if result.Err() != nil {
 		Log.Error.Print("Redis: ", result.Err())
 		prod.Drop(msg)
@@ -144,9 +189,9 @@ func (prod *Redis) storeList(msg core.Message) {
 }
 
 func (prod *Redis) storeSet(msg core.Message) {
-	value, _ := prod.ProducerBase.Format(msg)
+	value, key := prod.getValueAndKey(msg)
 
-	result := prod.client.SAdd(prod.key, string(value))
+	result := prod.client.SAdd(key, string(value))
 	if result.Err() != nil {
 		Log.Error.Print("Redis: ", result.Err())
 		prod.Drop(msg)
@@ -154,23 +199,14 @@ func (prod *Redis) storeSet(msg core.Message) {
 }
 
 func (prod *Redis) storeSortedSet(msg core.Message) {
-	value, _ := prod.format.Format(msg)
-	var scoreValue []byte
-	if prod.fieldFromParsed {
-		scoreMsg := msg
-		scoreMsg.Data = value
-		scoreValue, _ = prod.fieldFormat.Format(scoreMsg)
-	} else {
-		scoreValue, _ = prod.fieldFormat.Format(msg)
-	}
-
+	value, scoreValue, key := prod.getValueFieldAndKey(msg)
 	score, err := strconv.ParseFloat(string(scoreValue), 64)
 	if err != nil {
 		Log.Error.Print("Redis: ", err)
 		return // ### return, no valid score ###
 	}
 
-	result := prod.client.ZAdd(prod.key, redis.Z{
+	result := prod.client.ZAdd(key, redis.Z{
 		Score:  score,
 		Member: string(value),
 	})
@@ -182,9 +218,9 @@ func (prod *Redis) storeSortedSet(msg core.Message) {
 }
 
 func (prod *Redis) storeString(msg core.Message) {
-	value, _ := prod.ProducerBase.Format(msg)
+	value, key := prod.getValueAndKey(msg)
 
-	result := prod.client.Set(prod.key, string(value))
+	result := prod.client.Set(key, string(value))
 	if result.Err() != nil {
 		Log.Error.Print("Redis: ", result.Err())
 		prod.Drop(msg)

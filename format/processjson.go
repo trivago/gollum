@@ -37,6 +37,7 @@ import (
 //      - "error:replace:°:\n"
 //      - "text:trim: \t"
 //      - "foo:rename:bar"
+//		- "foobar:remove"
 //    ProcessJSONTrimValues: true
 //
 // ProcessJSONDataFormatter formatter that will be applied before
@@ -52,6 +53,7 @@ import (
 // - trim:<characters> remove the given characters (not string!) from the start
 // and end of the value
 // - rename:<old>:<new> rename a given field
+// - remove:<old> remove a given field
 // - timestamp:<read>:<write> read a timestamp and transform it into another
 // format
 //
@@ -144,6 +146,11 @@ func (values *valueMap) processDirective(directive transformDirective) {
 						(*values)[mapping[i]] = elements[i]
 					}
 				}
+			}
+
+		case "remove":
+			if numParameters == 1 {
+				delete(*values, directive.key)
 			}
 
 		case "replace":
