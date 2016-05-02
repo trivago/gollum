@@ -29,7 +29,7 @@ import (
 // Configuration example
 //
 //  - "stream.Broadcast":
-//    Formatter: "format.processJSON"
+//    Formatter: "format.ProcessJSON"
 //    ProcessJSONDataFormatter: "format.Forward"
 //    ProcessJSONDirectives:
 //      - "host:split: :host:@timestamp"
@@ -53,7 +53,7 @@ import (
 // - trim:<characters> remove the given characters (not string!) from the start
 // and end of the value
 // - rename:<old>:<new> rename a given field
-// - remove:<old> remove a given field
+// - remove remove a given field
 // - timestamp:<read>:<write> read a timestamp and transform it into another
 // format
 //
@@ -149,7 +149,7 @@ func (values *valueMap) processDirective(directive transformDirective) {
 			}
 
 		case "remove":
-			if numParameters == 1 {
+			if numParameters == 0 {
 				delete(*values, directive.key)
 			}
 
