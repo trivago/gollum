@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,9 +28,7 @@ func (s Int64Slice) Less(i, j int) bool {
 }
 
 func (s Int64Slice) Swap(i, j int) {
-	t := s[i]
-	s[i] = s[j]
-	s[j] = t
+	s[i], s[j] = s[j], s[i]
 }
 
 // Sort is a shortcut for sort.Sort(s)
@@ -62,9 +60,7 @@ func (s Uint64Slice) Less(i, j int) bool {
 }
 
 func (s Uint64Slice) Swap(i, j int) {
-	s[i] = s[i] ^ s[j]
-	s[j] = s[j] ^ s[i]
-	s[i] = s[i] ^ s[j]
+	s[i], s[j] = s[j], s[i]
 }
 
 // Sort is a shortcut for sort.Sort(s)
@@ -96,9 +92,7 @@ func (s Float32Slice) Less(i, j int) bool {
 }
 
 func (s Float32Slice) Swap(i, j int) {
-	t := s[i]
-	s[i] = s[j]
-	s[j] = t
+	s[i], s[j] = s[j], s[i]
 }
 
 // Sort is a shortcut for sort.Sort(s)

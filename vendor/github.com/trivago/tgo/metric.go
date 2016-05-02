@@ -1,4 +1,4 @@
-// Copyright 2015 trivago GmbH
+// Copyright 2015-2016 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@ package tgo
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/trivago/tgo/tcontainer"
-	"github.com/trivago/tgo/tmath"
 	"math"
 	"runtime"
 	"strconv"
@@ -26,6 +24,9 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/trivago/tgo/tcontainer"
+	"github.com/trivago/tgo/tmath"
 )
 
 const (
@@ -89,20 +90,25 @@ func EnableGlobalMetrics() {
 // NewMetrics creates a new metrics container.
 // To initialize the global Metrics variable use EnableGlobalMetrics.
 func NewMetrics() *Metrics {
-	metrics := &Metrics{
+	return &Metrics{
 		store:      make(map[string]*int64),
 		rates:      make(map[string]*rate),
 		storeGuard: new(sync.RWMutex),
 		rateGuard:  new(sync.RWMutex),
 	}
+}
 
-	metrics.New(MetricProcessStart)
-	metrics.New(MetricGoRoutines)
-	metrics.New(MetricGoVersion)
-	metrics.New(MetricMemoryAllocated)
-	metrics.New(MetricMemoryNumObjects)
-	metrics.New(MetricMemoryGCEnabled)
-	metrics.Set(MetricProcessStart, ProcessStartTime.Unix())
+// InitSystemMetrics Adds system metrics (memory, go routines, etc.) to this
+// metric storage. System metrics need to be updated manually by
+// calling UpdateSystemMetrics().
+func (met *Metrics) InitSystemMetrics() {
+	met.New(MetricProcessStart)
+	met.New(MetricGoRoutines)
+	met.New(MetricGoVersion)
+	met.New(MetricMemoryAllocated)
+	met.New(MetricMemoryNumObjects)
+	met.New(MetricMemoryGCEnabled)
+	met.Set(MetricProcessStart, ProcessStartTime.Unix())
 
 	version := runtime.Version()
 	if version[0] == 'g' && version[1] == 'o' {
@@ -112,10 +118,8 @@ func NewMetrics() *Metrics {
 			numericVersion[i], _ = strconv.ParseUint(p, 10, 64)
 		}
 
-		metrics.SetI(MetricGoVersion, int(numericVersion[0]*10000+numericVersion[1]*100+numericVersion[2]))
+		met.SetI(MetricGoVersion, int(numericVersion[0]*10000+numericVersion[1]*100+numericVersion[2]))
 	}
-
-	return metrics
 }
 
 // Close stops the internal go routines used for e.g. sampling

@@ -99,7 +99,7 @@ func main() {
 
 	// Metrics server start
 
-	setVersionMetric()
+	setStaticMetrics()
 	if *flagMetricsAddress != "" {
 		server := tgo.NewMetricServer()
 		address := *flagMetricsAddress
@@ -138,12 +138,12 @@ func main() {
 
 	// Start the coordinator
 
-	plex := NewCoordinator()
-	plex.Configure(config)
+	coordinater := NewCoordinator()
+	coordinater.Configure(config)
 
-	defer plex.Shutdown()
-	plex.StartPlugins()
-	plex.Run()
+	defer coordinater.Shutdown()
+	coordinater.StartPlugins()
+	coordinater.Run()
 }
 
 func dumpMemoryProfile() {
@@ -196,9 +196,10 @@ func printProfile() {
 	time.AfterFunc(time.Second*3, printProfile)
 }
 
-func setVersionMetric() {
+func setStaticMetrics() {
 	metricVersion := "Version"
 	tgo.Metric.New(metricVersion)
+	tgo.Metric.InitSystemMetrics()
 
 	if gollumDevVer > 0 {
 		tgo.Metric.Set(metricVersion, gollumMajorVer*1000000+gollumMinorVer*10000+gollumPatchVer*100+gollumDevVer)

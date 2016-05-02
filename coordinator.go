@@ -75,7 +75,7 @@ func NewCoordinator() Coordinator {
 }
 
 // Configure processes the config and instantiates all valid plugins
-func (plex *Coordinator) Configure(conf *core.Config) {
+func (co *Coordinator) Configure(conf *core.Config) {
 	// Make sure the log is printed to stderr if we are stuck here
 	logFallback := time.AfterFunc(time.Duration(3)*time.Second, func() {
 		tlog.SetWriter(os.Stderr)
@@ -85,9 +85,9 @@ func (plex *Coordinator) Configure(conf *core.Config) {
 	// Initialize the plugins in the order of streams > producers > consumers
 	// to match the order of reference between the different types.
 
-	plex.configureStreams(conf)
-	plex.configureProducers(conf)
-	plex.configureConsumers(conf)
+	co.configureStreams(conf)
+	co.configureProducers(conf)
+	co.configureConsumers(conf)
 
 	// As consumers might create new fallback streams this is the first position
 	// where we can add the wildcard producers to all streams. No new streams
@@ -97,68 +97,68 @@ func (plex *Coordinator) Configure(conf *core.Config) {
 }
 
 // StartPlugins starts all plugins in the correct order.
-func (plex *Coordinator) StartPlugins() {
+func (co *Coordinator) StartPlugins() {
 
-	if len(plex.consumers) == 0 {
+	if len(co.consumers) == 0 {
 		tlog.Error.Print("No consumers configured.")
 		tlog.SetWriter(os.Stdout)
 		return // ### return, nothing to do ###
 	}
 
-	if len(plex.producers) == 0 {
+	if len(co.producers) == 0 {
 		tlog.Error.Print("No producers configured.")
 		tlog.SetWriter(os.Stdout)
 		return // ### return, nothing to do ###
 	}
 
 	// Launch producers
-	plex.state = coordinatorStateStartProducers
-	for _, producer := range plex.producers {
+	co.state = coordinatorStateStartProducers
+	for _, producer := range co.producers {
 		producer := producer
 		go tgo.WithRecoverShutdown(func() {
 			tlog.Debug.Print("Starting ", reflect.TypeOf(producer))
-			producer.Produce(plex.producerWorker)
+			producer.Produce(co.producerWorker)
 		})
 	}
 
 	// If there are intenal log listeners switch to stream mode
 	if core.StreamRegistry.IsStreamRegistered(core.LogInternalStreamID) {
-		tlog.SetWriter(plex.logConsumer)
+		tlog.SetWriter(co.logConsumer)
 	} else {
 		tlog.SetWriter(os.Stdout)
 	}
 
 	// Launch consumers
-	plex.state = coordinatorStateStartConsumers
-	for _, consumer := range plex.consumers {
+	co.state = coordinatorStateStartConsumers
+	for _, consumer := range co.consumers {
 		consumer := consumer
 		go tgo.WithRecoverShutdown(func() {
 			tlog.Debug.Print("Starting ", reflect.TypeOf(consumer))
-			consumer.Consume(plex.consumerWorker)
+			consumer.Consume(co.consumerWorker)
 		})
 	}
 }
 
 // Run is essentially the Coordinator main loop.
 // It listens for shutdown signals and updates global metrics
-func (plex *Coordinator) Run() {
-	plex.signal = newSignalHandler()
-	defer signal.Stop(plex.signal)
+func (co *Coordinator) Run() {
+	co.signal = newSignalHandler()
+	defer signal.Stop(co.signal)
 
 	tlog.Note.Print("We be nice to them, if they be nice to us. (startup)")
 
 	for {
-		sig := <-plex.signal
+		sig := <-co.signal
 		switch translateSignal(sig) {
 		case signalExit:
 			tlog.Note.Print("Master betrayed us. Wicked. Tricksy, False. (signal)")
 			return // ### return, exit requested ###
 
 		case signalRoll:
-			for _, consumer := range plex.consumers {
+			for _, consumer := range co.consumers {
 				consumer.Control() <- core.PluginControlRoll
 			}
-			for _, producer := range plex.producers {
+			for _, producer := range co.producers {
 				producer.Control() <- core.PluginControlRoll
 			}
 
@@ -172,25 +172,25 @@ func (plex *Coordinator) Run() {
 // consumer related messages are still in the tlog.
 // Producers are flushed after flushing the log, so producer related shutdown
 // messages will be posted to stdout
-func (plex *Coordinator) Shutdown() {
+func (co *Coordinator) Shutdown() {
 	tlog.Note.Print("Filthy little hobbites. They stole it from us. (shutdown)")
 
-	stateAtShutdown := plex.state
-	plex.state = coordinatorStateShutdown
+	stateAtShutdown := co.state
+	co.state = coordinatorStateShutdown
 
-	plex.shutdownConsumers(stateAtShutdown)
+	co.shutdownConsumers(stateAtShutdown)
 
 	// Make sure remaining warning / errors are written to stderr
 	tlog.Note.Print("I'm not listening... I'm not listening... (flushing)")
 	tlog.SetWriter(os.Stdout)
 
 	// Shutdown producers
-	plex.shutdownProducers(stateAtShutdown)
+	co.shutdownProducers(stateAtShutdown)
 
-	plex.state = coordinatorStateStopped
+	co.state = coordinatorStateStopped
 }
 
-func (plex *Coordinator) configureStreams(conf *core.Config) {
+func (co *Coordinator) configureStreams(conf *core.Config) {
 	streamConfigs := conf.GetStreams()
 	for _, config := range streamConfigs {
 		tlog.Debug.Print("Instantiating ", config.ID)
@@ -208,8 +208,8 @@ func (plex *Coordinator) configureStreams(conf *core.Config) {
 	}
 }
 
-func (plex *Coordinator) configureProducers(conf *core.Config) {
-	plex.state = coordinatorStateStartProducers
+func (co *Coordinator) configureProducers(conf *core.Config) {
+	co.state = coordinatorStateStartProducers
 
 	// All producers are added to the wildcard stream so that consumers can send
 	// to all producers if required. The wildcard producer list is required
@@ -235,7 +235,7 @@ func (plex *Coordinator) configureProducers(conf *core.Config) {
 				continue // ### continue ###
 			}
 
-			plex.producers = append(plex.producers, producer)
+			co.producers = append(co.producers, producer)
 			tgo.Metric.Inc(metricProds)
 
 			// Attach producer to streams
@@ -263,9 +263,9 @@ func (plex *Coordinator) configureProducers(conf *core.Config) {
 	}
 }
 
-func (plex *Coordinator) configureConsumers(conf *core.Config) {
-	plex.state = coordinatorStateStartConsumers
-	plex.configureLogConsumer()
+func (co *Coordinator) configureConsumers(conf *core.Config) {
+	co.state = coordinatorStateStartConsumers
+	co.configureLogConsumer()
 
 	consumerConfigs := conf.GetConsumers()
 	for _, config := range consumerConfigs {
@@ -279,28 +279,28 @@ func (plex *Coordinator) configureConsumers(conf *core.Config) {
 			}
 
 			consumer, _ := plugin.(core.Consumer)
-			plex.consumers = append(plex.consumers, consumer)
+			co.consumers = append(co.consumers, consumer)
 			tgo.Metric.Inc(metricCons)
 		}
 	}
 }
 
-func (plex *Coordinator) configureLogConsumer() {
+func (co *Coordinator) configureLogConsumer() {
 	config := core.NewPluginConfig("", "core.LogConsumer")
 	configReader := core.NewPluginConfigReader(&config)
 
-	plex.logConsumer = new(core.LogConsumer)
-	plex.logConsumer.Configure(configReader)
-	plex.consumers = append(plex.consumers, plex.logConsumer)
+	co.logConsumer = new(core.LogConsumer)
+	co.logConsumer.Configure(configReader)
+	co.consumers = append(co.consumers, co.logConsumer)
 }
 
-func (plex *Coordinator) shutdownConsumers(stateAtShutdown coordinatorState) {
+func (co *Coordinator) shutdownConsumers(stateAtShutdown coordinatorState) {
 	if stateAtShutdown >= coordinatorStateStartConsumers {
-		plex.state = coordinatorStateStopConsumers
+		co.state = coordinatorStateStopConsumers
 		waitTimeout := time.Duration(0)
 
-		tlog.Debug.Print("Telling consumers of stop")
-		for _, cons := range plex.consumers {
+		tlog.Debug.Print("Telling consumers to stop")
+		for _, cons := range co.consumers {
 			timeout := cons.GetShutdownTimeout()
 			if timeout > waitTimeout {
 				waitTimeout = timeout
@@ -310,19 +310,19 @@ func (plex *Coordinator) shutdownConsumers(stateAtShutdown coordinatorState) {
 
 		waitTimeout *= 10
 		tlog.Debug.Printf("Waiting for consumers to stop. Forced shutdown after %.2f seconds.", waitTimeout.Seconds())
-		if !tgo.ReturnAfter(waitTimeout, plex.consumerWorker.Wait) {
+		if !tgo.ReturnAfter(waitTimeout, co.consumerWorker.Wait) {
 			tlog.Error.Print("At least one consumer found to be blocking.")
 		}
 	}
 }
 
-func (plex *Coordinator) shutdownProducers(stateAtShutdown coordinatorState) {
+func (co *Coordinator) shutdownProducers(stateAtShutdown coordinatorState) {
 	if stateAtShutdown >= coordinatorStateStartProducers {
-		plex.state = coordinatorStateStopProducers
+		co.state = coordinatorStateStopProducers
 		waitTimeout := time.Duration(0)
 
-		tlog.Debug.Print("Telling producers of stop")
-		for _, prod := range plex.producers {
+		tlog.Debug.Print("Telling producers to stop")
+		for _, prod := range co.producers {
 			timeout := prod.GetShutdownTimeout()
 			if timeout > waitTimeout {
 				waitTimeout = timeout
@@ -332,7 +332,7 @@ func (plex *Coordinator) shutdownProducers(stateAtShutdown coordinatorState) {
 
 		waitTimeout *= 10
 		tlog.Debug.Printf("Waiting for producers to stop. Forced shutdown after %.2f seconds.", waitTimeout.Seconds())
-		if !tgo.ReturnAfter(waitTimeout, plex.producerWorker.Wait) {
+		if !tgo.ReturnAfter(waitTimeout, co.producerWorker.Wait) {
 			tlog.Error.Print("At least one producer found to be blocking.")
 		}
 	}

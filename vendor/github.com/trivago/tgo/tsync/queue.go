@@ -1,3 +1,17 @@
+// Copyright 2015-2016 trivago GmbH
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package tsync
 
 import (
@@ -33,25 +47,25 @@ type Queue struct {
 	read     queueAccess
 	capacity uint64
 	locked   *int32
-	priority SpinPriority
+	spin     Spinner
 	items    []interface{}
 }
 
 // NewQueue creates a new queue with medium spinning priority
 func NewQueue(capacity uint32) Queue {
-	return NewQueueWithPriority(capacity, SpinPriorityMedium)
+	return NewQueueWithSpinner(capacity, NewSpinner(SpinPriorityMedium))
 }
 
-// NewQueueWithPriority allows to set the spinning priority of the queue to
+// NewQueueWithSpinner allows to set the spinning priority of the queue to
 // be created.
-func NewQueueWithPriority(capacity uint32, priority SpinPriority) Queue {
+func NewQueueWithSpinner(capacity uint32, spinner Spinner) Queue {
 	return Queue{
 		items:    make([]interface{}, capacity),
 		read:     newQueueAccess(),
 		write:    newQueueAccess(),
 		locked:   new(int32),
 		capacity: uint64(capacity),
-		priority: priority,
+		spin:     spinner,
 	}
 }
 
@@ -65,7 +79,7 @@ func (q *Queue) Push(item interface{}) error {
 	// Get ticket and slot
 	ticket := atomic.AddUint64(q.write.next, 1) - 1
 	slot := ticket % q.capacity
-	spin := NewSpinner(q.priority)
+	spin := q.spin
 
 	// Wait for pending reads on slot
 	for ticket-atomic.LoadUint64(q.read.processing) >= q.capacity {
@@ -94,7 +108,7 @@ func (q *Queue) Pop() interface{} {
 	// Get ticket andd slot
 	ticket := atomic.AddUint64(q.read.next, 1) - 1
 	slot := ticket % q.capacity
-	spin := NewSpinner(q.priority)
+	spin := q.spin
 
 	// Wait for slot to be written to
 	for ticket >= atomic.LoadUint64(q.write.processing) {
