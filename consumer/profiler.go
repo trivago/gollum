@@ -164,6 +164,7 @@ func (cons *Profiler) generateTemplate() []byte {
 
 func (cons *Profiler) profile() {
 	defer cons.WorkerDone()
+
 	for i := 0; i < len(cons.templates); i++ {
 		cons.templates[i] = cons.generateTemplate()
 	}
@@ -183,7 +184,7 @@ func (cons *Profiler) profile() {
 			cons.WaitOnFuse()
 			template := cons.templates[rand.Intn(len(cons.templates))]
 
-			cons.Enqueue(template, uint64(batchIdx*cons.profileRuns+i))
+			cons.Enqueue(template)
 
 			if cons.delay > 0 && cons.IsActive() {
 				time.Sleep(cons.delay)

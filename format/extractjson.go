@@ -71,7 +71,7 @@ func (format *ExtractJSON) Configure(conf core.PluginConfigReader) error {
 // Format modifies the JSON payload of this message
 func (format *ExtractJSON) Format(msg *core.Message) {
 	values := tcontainer.NewMarshalMap()
-	err := json.Unmarshal(msg.Data, &values)
+	err := json.Unmarshal(msg.Data(), &values)
 	if err != nil {
 		format.Log.Warning.Print("ExtractJSON failed to unmarshal a message: ", err)
 		return // ### return, malformed data ###
@@ -81,17 +81,17 @@ func (format *ExtractJSON) Format(msg *core.Message) {
 		switch value.(type) {
 		case int64:
 			val, _ := value.(int64)
-			msg.Data = []byte(fmt.Sprintf("%d", val))
+			msg.Store([]byte(fmt.Sprintf("%d", val)))
 		case string:
 			val, _ := value.(string)
-			msg.Data = []byte(val)
+			msg.Store([]byte(val))
 		case float64:
 			val, _ := value.(float64)
-			msg.Data = []byte(fmt.Sprintf(format.numberFormat, val))
+			msg.Store([]byte(fmt.Sprintf(format.numberFormat, val)))
 		default:
-			msg.Data = []byte(fmt.Sprintf("%v", value))
+			msg.Store([]byte(fmt.Sprintf("%v", value)))
 		}
 	} else {
-		msg.Data = []byte{}
+		msg.Resize(0)
 	}
 }

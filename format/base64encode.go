@@ -60,7 +60,9 @@ func (format *Base64Encode) Configure(conf core.PluginConfigReader) error {
 
 // Format returns the original message payload
 func (format *Base64Encode) Format(msg *core.Message) {
-	encoded := make([]byte, format.dictionary.EncodedLen(len(msg.Data)))
-	format.dictionary.Encode(encoded, msg.Data)
-	msg.Data = encoded
+	encodedLen := format.dictionary.EncodedLen(msg.Len())
+	encoded := core.MessageDataPool.Get(encodedLen)
+
+	format.dictionary.Encode(encoded, msg.Data())
+	msg.Store(encoded)
 }

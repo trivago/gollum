@@ -38,7 +38,7 @@ import (
 // streamID of this formatter. Set to false by default.
 type Double struct {
 	core.FormatterBase
-	separator    string
+	separator    []byte
 	leftStreamID bool
 	left         []core.Formatter
 	right        []core.Formatter
@@ -74,12 +74,12 @@ func (format *Double) Configure(conf core.PluginConfigReader) error {
 		}
 	}
 
-	format.separator = conf.GetString("Separator", ":")
+	format.separator = []byte(conf.GetString("Separator", ":"))
 	format.leftStreamID = conf.GetBool("LeftStreamID", false)
 	return conf.Errors.OrNil()
 }
 
-// Format prepends the Hostname of the message to the message.
+// Format duplicates the message, formats both parts and merges them back together.
 func (format *Double) Format(msg *core.Message) {
 	leftMsg := msg.Clone()
 	for _, formatter := range format.left {
@@ -91,14 +91,16 @@ func (format *Double) Format(msg *core.Message) {
 		formatter.Format(rightMsg)
 	}
 
-	combined := make([]byte, len(leftMsg.Data)+len(format.separator)+len(rightMsg.Data))
-	offset := copy(combined, leftMsg.Data)
-	offset += copy(combined[offset:], format.separator)
-	offset += copy(combined[offset:], rightMsg.Data)
+	dataSize := leftMsg.Len() + len(format.separator) + rightMsg.Len()
+	payload := msg.Resize(dataSize)
+
+	offset := copy(payload, leftMsg.Data())
+	offset += copy(payload[offset:], format.separator)
+	offset += copy(payload[offset:], rightMsg.Data())
 
 	if format.leftStreamID {
-		msg.Data, msg.StreamID = combined, leftMsg.StreamID
+		msg.SetStreamID(leftMsg.StreamID())
 	} else {
-		msg.Data, msg.StreamID = combined, rightMsg.StreamID
+		msg.SetStreamID(rightMsg.StreamID())
 	}
 }

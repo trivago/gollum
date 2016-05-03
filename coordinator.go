@@ -203,8 +203,8 @@ func (co *Coordinator) configureStreams(conf *core.Config) {
 
 		streamPlugin := plugin.(core.Stream)
 
-		tlog.Debug.Printf("Instantiated %s (%s) as %s", config.ID, core.StreamRegistry.GetStreamName(streamPlugin.GetBoundStreamID()), config.Typename)
-		core.StreamRegistry.Register(streamPlugin, streamPlugin.GetBoundStreamID())
+		tlog.Debug.Printf("Instantiated %s (%s) as %s", config.ID, core.StreamRegistry.GetStreamName(streamPlugin.StreamID()), config.Typename)
+		core.StreamRegistry.Register(streamPlugin, streamPlugin.StreamID())
 	}
 }
 

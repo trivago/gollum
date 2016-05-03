@@ -214,20 +214,20 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 		currentMsg := *msg
 		prod.Format(&currentMsg)
 
-		category, exists := prod.category[currentMsg.StreamID]
+		category, exists := prod.category[currentMsg.StreamID()]
 		if !exists {
 			if category, exists = prod.category[core.WildcardStreamID]; !exists {
-				category = core.StreamRegistry.GetStreamName(currentMsg.StreamID)
+				category = core.StreamRegistry.GetStreamName(currentMsg.StreamID())
 			}
 			metricName := scribeMetricMessages + category
 			tgo.Metric.New(metricName)
 			tgo.Metric.NewRate(metricName, scribeMetricMessagesSec+category, time.Second, 10, 3, true)
-			prod.category[currentMsg.StreamID] = category
+			prod.category[currentMsg.StreamID()] = category
 		}
 
 		logBuffer[idx] = &scribe.LogEntry{
 			Category: category,
-			Message:  string(currentMsg.Data),
+			Message:  string(currentMsg.Data()),
 		}
 
 		tgo.Metric.Inc(scribeMetricMessages + category)

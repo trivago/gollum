@@ -49,7 +49,6 @@ type Syslogd struct {
 	format   format.Format // RFC3164, RFC5424 or RFC6587?
 	protocol string
 	address  string
-	sequence *uint64
 }
 
 func init() {
@@ -94,7 +93,6 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) error {
 		conf.Errors.Pushf("Syslog: Format %s is not supported", format)
 	}
 
-	cons.sequence = new(uint64)
 	return conf.Errors.OrNil()
 }
 
@@ -102,8 +100,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) error {
 func (cons *Syslogd) Handle(parts syslog.LogParts, code int64, err error) {
 	content, isString := parts["content"].(string)
 	if isString {
-		cons.Enqueue([]byte(content), *cons.sequence)
-		*cons.sequence++
+		cons.Enqueue([]byte(content))
 	}
 }
 

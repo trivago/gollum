@@ -48,8 +48,8 @@ type FilterFunc func(msg *Message) bool
 // DropToStream defines a stream where filtered messages get sent to.
 // You can disable this behavior by setting "". Set to "" by default.
 type FilterBase struct {
-	Log          tlog.LogScope
-	dropStreamID MessageStreamID
+	Log        tlog.LogScope
+	dropStream Stream
 }
 
 // SetLogScope sets the log scope to be used for this filter
@@ -60,13 +60,17 @@ func (filter *FilterBase) SetLogScope(log tlog.LogScope) {
 // Configure sets up all values requred by FormatterBase.
 func (filter *FilterBase) Configure(conf PluginConfigReader) error {
 	filter.Log = conf.GetSubLogScope("Filter")
-	filter.dropStreamID = GetStreamID(conf.GetString("DropToStream", InvalidStream))
+
+	dropStreamID := GetStreamID(conf.GetString("DropToStream", InvalidStream))
+	if dropStreamID != InvalidStreamID {
+		filter.dropStream = StreamRegistry.GetStreamOrFallback(dropStreamID)
+	}
 	return nil
 }
 
 // Drop sends the given message to the stream configured with this filter.
 func (filter *FilterBase) Drop(msg *Message) {
-	if filter.dropStreamID != InvalidStreamID {
-		msg.Route(filter.dropStreamID)
+	if filter.dropStream != nil {
+		Route(msg, filter.dropStream)
 	}
 }

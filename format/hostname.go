@@ -35,7 +35,7 @@ import (
 // This is set to " " by default.
 type Hostname struct {
 	core.FormatterBase
-	separator string
+	separator []byte
 }
 
 func init() {
@@ -46,22 +46,24 @@ func init() {
 func (format *Hostname) Configure(conf core.PluginConfigReader) error {
 	format.FormatterBase.Configure(conf)
 
-	format.separator = conf.GetString("Separator", ":")
+	format.separator = []byte(conf.GetString("Separator", ":"))
 	return conf.Errors.OrNil()
 }
 
 // Format prepends the Hostname of the message to the message.
 func (format *Hostname) Format(msg *core.Message) {
-	hostnameStr, err := os.Hostname()
+	hostname, err := os.Hostname()
 	if err != nil {
-		hostnameStr = ""
-	} else {
-		hostnameStr += format.separator
+		format.Log.Error.Print(err)
+		return // ### return, don't change anything
 	}
 
-	payload := make([]byte, len(hostnameStr)+len(msg.Data))
-	len := copy(payload, []byte(hostnameStr))
-	copy(payload[len:], msg.Data)
+	dataSize := len(hostname) + len(format.separator) + msg.Len()
+	payload := core.MessageDataPool.Get(dataSize)
 
-	msg.Data = payload
+	offset := copy(payload, []byte(hostname))
+	offset += copy(payload[offset:], format.separator)
+	copy(payload[offset:], msg.Data())
+
+	msg.Store(payload)
 }

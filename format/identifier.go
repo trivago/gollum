@@ -56,17 +56,21 @@ func init() {
 func (format *Identifier) Configure(conf core.PluginConfigReader) error {
 	format.FormatterBase.Configure(conf)
 
-	switch strings.ToLower(conf.GetString("Type", "time")) {
+	idType := strings.ToLower(conf.GetString("Type", "time"))
+
+	switch idType {
 	case "hash":
 		format.hash = format.idHash
 	case "seq":
 		format.hash = format.idSeq
 	case "seqhex":
 		format.hash = format.idSeqHex
-	default:
-		fallthrough
 	case "time":
 		format.hash = format.idTime
+	default:
+		format.hash = func(msg *core.Message) []byte {
+			return []byte(idType)
+		}
 	}
 
 	return conf.Errors.OrNil()
@@ -74,23 +78,23 @@ func (format *Identifier) Configure(conf core.PluginConfigReader) error {
 
 func (format *Identifier) idHash(msg *core.Message) []byte {
 	hasher := fnv.New64a()
-	hasher.Write(msg.Data)
+	hasher.Write(msg.Data())
 	return []byte(strconv.FormatUint(hasher.Sum64(), 16))
 }
 
 func (format *Identifier) idTime(msg *core.Message) []byte {
-	return []byte(msg.Timestamp.Format("060102150405") + strconv.FormatUint(msg.Sequence%10000000, 10))
+	return []byte(msg.Created().Format("060102150405") + strconv.FormatUint(msg.Sequence()%10000000, 10))
 }
 
 func (format *Identifier) idSeq(msg *core.Message) []byte {
-	return []byte(strconv.FormatUint(msg.Sequence, 10))
+	return []byte(strconv.FormatUint(msg.Sequence(), 10))
 }
 
 func (format *Identifier) idSeqHex(msg *core.Message) []byte {
-	return []byte(strconv.FormatUint(msg.Sequence, 16))
+	return []byte(strconv.FormatUint(msg.Sequence(), 16))
 }
 
 // Format generates a unique identifier from the message contents or metadata.
 func (format *Identifier) Format(msg *core.Message) {
-	msg.Data = format.hash(msg)
+	msg.Store(format.hash(msg))
 }

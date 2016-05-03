@@ -167,7 +167,7 @@ func (format *ProcessJSON) Format(msg *core.Message) {
 	}
 
 	values := make(valueMap)
-	err := json.Unmarshal(msg.Data, &values)
+	err := json.Unmarshal(msg.Data(), &values)
 	if err != nil {
 		format.Log.Warning.Print("ProcessJSON failed to unmarshal a message: ", err)
 		return // ### return, malformed data ###
@@ -186,6 +186,6 @@ func (format *ProcessJSON) Format(msg *core.Message) {
 	if jsonData, err := json.Marshal(values); err != nil {
 		format.Log.Warning.Print("ProcessJSON failed to marshal a message: ", err)
 	} else {
-		msg.Data = jsonData
+		msg.Store(jsonData)
 	}
 }

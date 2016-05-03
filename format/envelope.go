@@ -62,20 +62,20 @@ func (format *Envelope) Configure(conf core.PluginConfigReader) error {
 // Format adds prefix and postfix to the message formatted by the base formatter
 func (format *Envelope) Format(msg *core.Message) {
 	prefixLen := len(format.prefix)
-	baseLen := len(msg.Data)
 	postfixLen := len(format.postfix)
+	offset := 0
 
-	payload := make([]byte, prefixLen+baseLen+postfixLen)
+	payload := core.MessageDataPool.Get(prefixLen + msg.Len() + postfixLen)
 
 	if prefixLen > 0 {
-		prefixLen = copy(payload, format.prefix)
+		offset = copy(payload, format.prefix)
 	}
 
-	baseLen = copy(payload[prefixLen:], msg.Data)
+	offset += copy(payload[offset:], msg.Data())
 
 	if postfixLen > 0 {
-		copy(payload[prefixLen+baseLen:], format.postfix)
+		copy(payload[offset:], format.postfix)
 	}
 
-	msg.Data = payload
+	msg.Store(payload)
 }

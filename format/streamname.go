@@ -39,7 +39,7 @@ import (
 // This is set to " " by default.
 type StreamName struct {
 	core.FormatterBase
-	separator   string
+	separator   []byte
 	usePrevious bool
 }
 
@@ -51,7 +51,7 @@ func init() {
 func (format *StreamName) Configure(conf core.PluginConfigReader) error {
 	format.FormatterBase.Configure(conf)
 
-	format.separator = conf.GetString("Separator", ":")
+	format.separator = []byte(conf.GetString("Separator", ":"))
 	format.usePrevious = conf.GetBool("UseHistory", false)
 	return conf.Errors.OrNil()
 }
@@ -62,16 +62,17 @@ func (format *StreamName) Format(msg *core.Message) {
 
 	switch {
 	case !format.usePrevious:
-		streamName = core.StreamRegistry.GetStreamName(msg.StreamID)
-
+		streamName = core.StreamRegistry.GetStreamName(msg.StreamID())
 	default:
-		streamName = core.StreamRegistry.GetStreamName(msg.PrevStreamID)
+		streamName = core.StreamRegistry.GetStreamName(msg.PreviousStreamID())
 	}
 
-	payload := make([]byte, len(streamName)+len(format.separator)+len(msg.Data))
-	streamNameLen := copy(payload, []byte(streamName))
-	separatorLen := copy(payload[streamNameLen:], format.separator)
-	copy(payload[streamNameLen+separatorLen:], msg.Data)
+	dataSize := len(streamName) + len(format.separator) + msg.Len()
+	payload := core.MessageDataPool.Get(dataSize)
 
-	msg.Data = payload
+	offset := copy(payload, []byte(streamName))
+	offset += copy(payload[offset:], format.separator)
+	copy(payload[offset:], msg.Data())
+
+	msg.Store(payload)
 }

@@ -93,7 +93,7 @@ type SimpleProducer struct {
 	streams          []MessageStreamID
 	formatters       []Formatter
 	filters          []Filter
-	dropStreamID     MessageStreamID
+	dropStream       Stream
 	runState         *PluginRunState
 	shutdownTimeout  time.Duration
 	fuseTimeout      time.Duration
@@ -117,8 +117,10 @@ func (prod *SimpleProducer) Configure(conf PluginConfigReader) error {
 	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 1000)) * time.Millisecond
 	prod.fuseTimeout = time.Duration(conf.GetInt("FuseTimeoutSec", 10)) * time.Second
 	prod.fuseName = conf.GetString("Fuse", "")
-	prod.dropStreamID = StreamRegistry.GetStreamID(conf.GetString("DropToStream", DroppedStream))
 	prod.fuseControlGuard = new(sync.Mutex)
+
+	dropStreamID := StreamRegistry.GetStreamID(conf.GetString("DropToStream", DroppedStream))
+	prod.dropStream = StreamRegistry.GetStreamOrFallback(dropStreamID)
 
 	formatPlugins := conf.GetPluginArray("Formatters", []Plugin{})
 
@@ -157,9 +159,9 @@ func (prod *SimpleProducer) Streams() []MessageStreamID {
 	return prod.streams
 }
 
-// GetDropStreamID returns the id of the stream to drop messages to.
-func (prod *SimpleProducer) GetDropStreamID() MessageStreamID {
-	return prod.dropStreamID
+// GetDropStream returns the stream to drop messages to.
+func (prod *SimpleProducer) GetDropStream() Stream {
+	return prod.dropStream
 }
 
 // Control returns write access to this producer's control channel.
@@ -174,7 +176,7 @@ func (prod *SimpleProducer) GetFuse() *tsync.Fuse {
 	if prod.fuseName == "" || prod.fuseTimeout <= 0 {
 		return nil
 	}
-	return StreamRegistry.GetFuse(prod.fuseName)
+	return FuseRegistry.GetFuse(prod.fuseName)
 }
 
 // GetState returns the state this plugin is currently in
@@ -298,8 +300,7 @@ func (prod *SimpleProducer) Drop(msg *Message) {
 	CountDroppedMessage()
 
 	//Log.Debug.Print("Dropping message from ", StreamRegistry.GetStreamName(msg.StreamID))
-	msg.Source = prod
-	msg.Route(prod.dropStreamID)
+	Route(msg, prod.dropStream)
 }
 
 // ControlLoop listens to the control channel and triggers callbacks for these

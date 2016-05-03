@@ -17,7 +17,6 @@ package core
 import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tlog"
-	"github.com/trivago/tgo/tsync"
 	"hash/fnv"
 	"sync"
 	"time"
@@ -43,8 +42,6 @@ const (
 type streamRegistry struct {
 	streams     map[MessageStreamID]Stream
 	name        map[MessageStreamID]string
-	fuses       map[string]*tsync.Fuse
-	fuseGuard   *sync.Mutex
 	nameGuard   *sync.Mutex
 	streamGuard *sync.Mutex
 	wildcard    []Producer
@@ -57,8 +54,6 @@ var StreamRegistry = streamRegistry{
 	streamGuard: new(sync.Mutex),
 	name:        make(map[MessageStreamID]string),
 	nameGuard:   new(sync.Mutex),
-	fuses:       make(map[string]*tsync.Fuse),
-	fuseGuard:   new(sync.Mutex),
 }
 
 func init() {
@@ -206,7 +201,7 @@ nextProd:
 // stream. The state of the wildcard list is undefined during the configuration
 // phase.
 func (registry streamRegistry) AddWildcardProducersToStream(stream Stream) {
-	streamID := stream.GetBoundStreamID()
+	streamID := stream.StreamID()
 	if streamID != LogInternalStreamID && streamID != DroppedStreamID {
 		stream.AddProducer(registry.wildcard...)
 	}
@@ -234,6 +229,22 @@ func (registry *streamRegistry) Register(stream Stream, streamID MessageStreamID
 	registry.streams[streamID] = stream
 }
 
+func (registry *streamRegistry) createFallback(streamID MessageStreamID) Stream {
+	streamName := registry.GetStreamName(streamID)
+	tlog.Debug.Print("Creating fallback stream for ", streamName)
+
+	config := NewPluginConfig("_generated_stream_"+streamName, "stream.Broadcast")
+	config.Override("stream", streamName)
+
+	plugin, err := NewPlugin(config)
+	if err != nil {
+		panic(err) // this has to always work, otherwise: panic
+	}
+
+	stream := plugin.(Stream) // panic if not!
+	return stream
+}
+
 // GetStreamOrFallback returns the stream for the given id if it is registered.
 // If no stream is registered for the given id the default stream is used.
 // The default stream is equivalent to an unconfigured stream.Broadcast with
@@ -241,46 +252,15 @@ func (registry *streamRegistry) Register(stream Stream, streamID MessageStreamID
 func (registry *streamRegistry) GetStreamOrFallback(streamID MessageStreamID) Stream {
 	registry.streamGuard.Lock()
 	defer registry.streamGuard.Unlock()
+
 	if stream, exists := registry.streams[streamID]; exists {
 		return stream
 	}
 
-	streamName := registry.GetStreamName(streamID)
-	tlog.Debug.Print("Using fallback stream for ", streamName)
-
-	defaultStream := new(StreamBase)
-	defaultConfig := NewPluginConfig("", "core.StreamBase")
-	defaultConfig.Override("stream", streamName)
-
-	defaultStream.ConfigureStream(NewPluginConfigReader(&defaultConfig), defaultStream.Broadcast)
+	defaultStream := registry.createFallback(streamID)
 	registry.AddWildcardProducersToStream(defaultStream)
 
 	registry.streams[streamID] = defaultStream
 	tgo.Metric.Inc(metricStreams)
 	return defaultStream
-}
-
-// GetFuse returns a fuse object by name. This function will always return a
-// valid fuse (creates fuses if they have not yet been created).
-// This function is threadsafe.
-func (registry *streamRegistry) GetFuse(name string) *tsync.Fuse {
-	registry.fuseGuard.Lock()
-	defer registry.fuseGuard.Unlock()
-
-	fuse, exists := registry.fuses[name]
-	if !exists {
-		fuse = tsync.NewFuse()
-		registry.fuses[name] = fuse
-	}
-	return fuse
-}
-
-// ActivateAllFuses calls Activate on all registered fuses.
-func (registry *streamRegistry) ActivateAllFuses() {
-	registry.fuseGuard.Lock()
-	defer registry.fuseGuard.Unlock()
-
-	for _, fuse := range registry.fuses {
-		fuse.Activate()
-	}
 }

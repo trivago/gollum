@@ -19,6 +19,7 @@ import (
 	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tsync"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -58,10 +59,11 @@ import (
 type SimpleConsumer struct {
 	id              string
 	control         chan PluginControl
-	streams         []MappedStream
+	streams         []Stream
 	runState        *PluginRunState
 	fuse            *tsync.Fuse
 	shutdownTimeout time.Duration
+	sequence        *uint64
 	onRoll          func()
 	onPrepareStop   func()
 	onStop          func()
@@ -76,19 +78,19 @@ func (cons *SimpleConsumer) Configure(conf PluginConfigReader) error {
 	cons.Log = conf.GetLogScope()
 	cons.runState = NewPluginRunState()
 	cons.control = make(chan PluginControl, 1)
+	cons.sequence = new(uint64)
 
-	streamIDs := conf.GetStreamArray("Streams", []MessageStreamID{GetStreamID(conf.GetID())})
+	defaultStreamID := GetStreamID(conf.GetID())
+	boundStreamIDs := conf.GetStreamArray("Streams", []MessageStreamID{defaultStreamID})
 
-	for _, streamID := range streamIDs {
-		cons.streams = append(cons.streams, MappedStream{
-			StreamID: streamID,
-			Stream:   StreamRegistry.GetStreamOrFallback(streamID),
-		})
+	for _, streamID := range boundStreamIDs {
+		stream := StreamRegistry.GetStreamOrFallback(streamID)
+		cons.streams = append(cons.streams, stream)
 	}
 
 	fuseName, err := conf.WithError.GetString("Fuse", "")
 	if !conf.Errors.Push(err) && fuseName != "" {
-		cons.fuse = StreamRegistry.GetFuse(fuseName)
+		cons.fuse = FuseRegistry.GetFuse(fuseName)
 	}
 
 	cons.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 1000)) * time.Millisecond
@@ -99,15 +101,6 @@ func (cons *SimpleConsumer) Configure(conf PluginConfigReader) error {
 // GetID returns the ID of this consumer
 func (cons *SimpleConsumer) GetID() string {
 	return cons.id
-}
-
-// Streams returns an array with all stream ids this consumer is writing to.
-func (cons *SimpleConsumer) Streams() []MessageStreamID {
-	streamIDs := make([]MessageStreamID, 0, len(cons.streams))
-	for _, mapping := range cons.streams {
-		streamIDs = append(streamIDs, mapping.StreamID)
-	}
-	return streamIDs
 }
 
 // GetShutdownTimeout returns the duration gollum will wait for this producer
@@ -214,26 +207,25 @@ func (cons *SimpleConsumer) IsFuseBurned() bool {
 }
 
 // Enqueue creates a new message from a given byte slice and passes it to
-// EnqueueMessage. Note that data is not copied, just referenced by the message.
-func (cons *SimpleConsumer) Enqueue(data []byte, sequence uint64) {
-	cons.EnqueueMessage(NewMessage(cons, data, sequence))
+// EnqueueMessage. Data is copied to the message.
+func (cons *SimpleConsumer) Enqueue(data []byte) {
+	seq := atomic.AddUint64(cons.sequence, 1)
+	cons.EnqueueWithSequence(data, seq)
 }
 
-// EnqueueCopy behaves like Enqueue but creates a copy of data that is attached
-// to the message.
-func (cons *SimpleConsumer) EnqueueCopy(data []byte, sequence uint64) {
-	dataCopy := make([]byte, len(data))
-	copy(dataCopy, data)
-	cons.EnqueueMessage(NewMessage(cons, dataCopy, sequence))
-}
+// EnqueueWithSequence works like Enqueue but allows to set a custom sequence
+// number. The internal sequence number is not incremented by this function.
+func (cons *SimpleConsumer) EnqueueWithSequence(data []byte, seq uint64) {
+	if len(cons.streams) == 1 {
+		stream := cons.streams[0]
+		msg := NewMessage(cons, data, seq, stream.StreamID())
+		Route(msg, stream)
+		return // ### return, fast path ###
+	}
 
-// EnqueueMessage passes a given message  to all streams.
-// Only the StreamID of the message is modified, everything else is passed as-is.
-func (cons *SimpleConsumer) EnqueueMessage(msg *Message) {
-	for _, mapping := range cons.streams {
-		msg.StreamID = mapping.StreamID
-		msg.PrevStreamID = msg.StreamID
-		mapping.Stream.Enqueue(msg)
+	for _, stream := range cons.streams {
+		msg := NewMessage(cons, data, seq, stream.StreamID())
+		Route(msg, stream)
 	}
 }
 

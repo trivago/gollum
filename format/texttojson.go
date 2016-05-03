@@ -328,7 +328,7 @@ func (format *TextToJSON) Format(msg *core.Message) {
 	format.state = jsonReadObject
 
 	format.message.WriteString("{")
-	remains, state := format.parser.Parse(msg.Data, format.initState)
+	remains, state := format.parser.Parse(msg.Data(), format.initState)
 
 	// Write remains as string value
 	if remains != nil {
@@ -343,5 +343,5 @@ func (format *TextToJSON) Format(msg *core.Message) {
 	}
 
 	format.message.WriteString("}\n")
-	msg.Data = bytes.TrimSpace(format.message.Bytes())
+	msg.Store(bytes.TrimSpace(format.message.Bytes()))
 }

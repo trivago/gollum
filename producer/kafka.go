@@ -244,10 +244,10 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 }
 func (prod *Kafka) storeRTT(msg *core.Message) {
 
-	rtt := time.Since(msg.Timestamp)
+	rtt := time.Since(msg.Created())
 
 	prod.topicGuard.RLock()
-	topic := prod.topic[msg.StreamID]
+	topic := prod.topic[msg.StreamID()]
 	prod.topicGuard.RUnlock()
 
 	atomic.AddInt64(&topic.rttSum, rtt.Nanoseconds()/1000) // microseconds
@@ -316,15 +316,15 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	prod.BufferedProducer.Format(msg)
 
 	prod.topicGuard.RLock()
-	topic, topicRegistered := prod.topic[msg.StreamID]
+	topic, topicRegistered := prod.topic[msg.StreamID()]
 
 	if !topicRegistered {
 		prod.topicGuard.RUnlock()
-		topicName, isMapped := prod.streamToTopic[msg.StreamID]
+		topicName, isMapped := prod.streamToTopic[msg.StreamID()]
 		if !isMapped {
-			topicName = core.StreamRegistry.GetStreamName(msg.StreamID)
+			topicName = core.StreamRegistry.GetStreamName(msg.StreamID())
 		}
-		topic = prod.registerNewTopic(topicName, msg.StreamID)
+		topic = prod.registerNewTopic(topicName, msg.StreamID())
 	} else {
 		prod.topicGuard.RUnlock()
 	}
@@ -340,14 +340,14 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 
 	kafkaMsg := &kafka.ProducerMessage{
 		Topic:    topic.name,
-		Value:    kafka.ByteEncoder(msg.Data),
+		Value:    kafka.ByteEncoder(msg.Data()),
 		Metadata: &originalMsg,
 	}
 
 	if prod.keyFormat != nil {
 		keyMsg := *msg
 		prod.keyFormat.Format(&keyMsg)
-		kafkaMsg.Key = kafka.ByteEncoder(keyMsg.Data)
+		kafkaMsg.Key = kafka.ByteEncoder(keyMsg.Data())
 	}
 
 	// Sarama can block on single messages if all buffers are full.

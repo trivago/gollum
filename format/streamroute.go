@@ -77,26 +77,27 @@ func (format *StreamRoute) Configure(conf core.PluginConfigReader) error {
 
 // Format adds prefix and postfix to the message formatted by the base formatter
 func (format *StreamRoute) Format(msg *core.Message) {
-	delimiterIdx := bytes.Index(msg.Data, format.delimiter)
+	delimiterIdx := bytes.Index(msg.Data(), format.delimiter)
 
 	switch delimiterIdx {
 	case -1:
 		return
 
 	case 0:
-		msg.Data = msg.Data[1:]
+		msg.Offset(len(format.delimiter))
 
 	default:
-		streamName := msg.Data[:delimiterIdx]
-		data := msg.Data[delimiterIdx+1:]
+		streamName := msg.Data()[:delimiterIdx]
+		msg.Offset(delimiterIdx + len(format.delimiter))
 
-		nameMessage := core.NewMessage(nil, streamName, 0)
-		for _, formatter := range format.streamFormatters {
-			formatter.Format(nameMessage)
+		if len(format.streamFormatters) > 0 {
+			nameMessage := core.NewMessage(nil, streamName, msg.Sequence(), msg.StreamID())
+			for _, formatter := range format.streamFormatters {
+				formatter.Format(nameMessage)
+			}
+			streamName = nameMessage.Data()
 		}
 
-		msg.Data = data
-		msg.PrevStreamID = msg.StreamID
-		msg.StreamID = core.GetStreamID(string(nameMessage.Data))
+		msg.SetStreamID(core.GetStreamID(string(streamName)))
 	}
 }

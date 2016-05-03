@@ -47,5 +47,5 @@ func (format *StreamRevert) Configure(conf core.PluginConfigReader) error {
 
 // Format adds prefix and postfix to the message formatted by the base formatter
 func (format *StreamRevert) Format(msg *core.Message) {
-	msg.StreamID = msg.PrevStreamID
+	msg.SetStreamID(msg.PreviousStreamID())
 }

@@ -66,11 +66,7 @@ func (cons *LogConsumer) Streams() []MessageStreamID {
 
 // Write fulfills the io.Writer interface
 func (cons *LogConsumer) Write(data []byte) (int, error) {
-	dataCopy := make([]byte, len(data))
-	copy(dataCopy, data)
-
-	msg := NewMessage(cons, dataCopy, cons.sequence)
-	msg.StreamID = LogInternalStreamID
+	msg := NewMessage(cons, data, cons.sequence, LogInternalStreamID)
 	cons.logStream.Enqueue(msg)
 
 	return len(data), nil

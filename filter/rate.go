@@ -81,7 +81,7 @@ func (filter *Rate) Configure(conf core.PluginConfigReader) error {
 // Accepts allows all messages
 func (filter *Rate) Accepts(msg *core.Message) bool {
 	filter.stateGuard.RLock()
-	state, known := filter.state[msg.StreamID]
+	state, known := filter.state[msg.StreamID()]
 	filter.stateGuard.RUnlock()
 
 	// Add stream if necessary
@@ -92,7 +92,7 @@ func (filter *Rate) Accepts(msg *core.Message) bool {
 			ignore:    false,
 			lastReset: time.Now(),
 		}
-		filter.state[msg.StreamID] = state
+		filter.state[msg.StreamID()] = state
 		filter.stateGuard.Unlock()
 	}
 
@@ -106,7 +106,7 @@ func (filter *Rate) Accepts(msg *core.Message) bool {
 		state.lastReset = time.Now()
 		numFiltered := atomic.SwapInt64(state.count, 0)
 		if numFiltered > filter.rateLimit {
-			filter.Log.Warning.Printf("Ratelimit reached for %s: %d msg/sec", core.StreamRegistry.GetStreamName(msg.StreamID), numFiltered)
+			filter.Log.Warning.Printf("Ratelimit reached for %s: %d msg/sec", core.StreamRegistry.GetStreamName(msg.StreamID()), numFiltered)
 		}
 	}
 

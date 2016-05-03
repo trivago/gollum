@@ -53,11 +53,13 @@ func (format *Timestamp) Configure(conf core.PluginConfigReader) error {
 
 // Format prepends the timestamp of the message to the message.
 func (format *Timestamp) Format(msg *core.Message) {
-	timestampStr := msg.Timestamp.Format(format.timestampFormat)
+	timestampStr := msg.Created().Format(format.timestampFormat)
 
-	payload := make([]byte, len(timestampStr)+len(msg.Data))
-	len := copy(payload, []byte(timestampStr))
-	copy(payload[len:], msg.Data)
+	dataSize := len(timestampStr) + msg.Len()
+	payload := core.MessageDataPool.Get(dataSize)
 
-	msg.Data = payload
+	offset := copy(payload, []byte(timestampStr))
+	copy(payload[offset:], msg.Data())
+
+	msg.Store(payload)
 }

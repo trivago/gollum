@@ -21,7 +21,7 @@ import (
 // Broadcast stream plugin
 // Messages will be sent to all producers attached to this stream.
 type Broadcast struct {
-	core.StreamBase
+	core.SimpleStream
 }
 
 func init() {
@@ -30,5 +30,24 @@ func init() {
 
 // Configure initializes this distributor with values from a plugin config.
 func (stream *Broadcast) Configure(conf core.PluginConfigReader) error {
-	return stream.StreamBase.ConfigureStream(conf, stream.Broadcast)
+	return stream.SimpleStream.Configure(conf)
+}
+
+func (stream *Broadcast) Enqueue(msg *core.Message) bool {
+	producers := stream.GetProducers()
+	if len(producers) == 0 {
+		return false // ### return, no route to producer ###
+	}
+
+	if len(producers) == 1 {
+		producers[0].Enqueue(msg, stream.Timeout)
+		return true // ### return, fast path ###
+	}
+
+	for _, prod := range stream.GetProducers() {
+		msg := msg.Clone()
+		prod.Enqueue(msg, stream.Timeout)
+	}
+
+	return true
 }

@@ -52,7 +52,7 @@ func (format *JSONToArray) Configure(conf core.PluginConfigReader) error {
 // Format spilts a json struct to a csv.
 func (format *JSONToArray) Format(msg *core.Message) {
 	values := make(tcontainer.MarshalMap)
-	err := json.Unmarshal(msg.Data, &values)
+	err := json.Unmarshal(msg.Data(), &values)
 	if err != nil {
 		format.Log.Error.Print("Json parsing error: ", err)
 		return // ### error ###
@@ -84,5 +84,5 @@ func (format *JSONToArray) Format(msg *core.Message) {
 		csv = csv[:len(csv)-len(format.separator)]
 	}
 
-	msg.Data = []byte(csv)
+	msg.Store([]byte(csv))
 }

@@ -36,7 +36,7 @@ import (
 // message. By default this is set to "format.Forward"
 type Sequence struct {
 	core.FormatterBase
-	separator string
+	separator []byte
 }
 
 func init() {
@@ -47,19 +47,21 @@ func init() {
 func (format *Sequence) Configure(conf core.PluginConfigReader) error {
 	format.FormatterBase.Configure(conf)
 
-	format.separator = conf.GetString("Separator", ":")
+	format.separator = []byte(conf.GetString("Separator", ":"))
 	return conf.Errors.OrNil()
 }
 
 // Format prepends the sequence number of the message (followed by ":") to the
 // message.
 func (format *Sequence) Format(msg *core.Message) {
-	sequenceStr := strconv.FormatUint(msg.Sequence, 10)
+	sequenceStr := strconv.FormatUint(msg.Sequence(), 10)
 
-	payload := make([]byte, len(sequenceStr)+len(format.separator)+len(msg.Data))
-	len := copy(payload, []byte(sequenceStr))
-	len += copy(payload[len:], []byte(format.separator))
+	dataSize := len(sequenceStr) + len(format.separator) + msg.Len()
+	payload := core.MessageDataPool.Get(dataSize)
 
-	copy(payload[len:], msg.Data)
-	msg.Data = payload
+	offset := copy(payload, []byte(sequenceStr))
+	offset += copy(payload[offset:], format.separator)
+	copy(payload[offset:], msg.Data())
+
+	msg.Store(payload)
 }

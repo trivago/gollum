@@ -72,7 +72,7 @@ func (client *proxyClient) hasDisconnected(err error) bool {
 }
 
 func (client *proxyClient) EnqueueResponse(msg core.Message) {
-	_, err := client.conn.Write(msg.Data)
+	_, err := client.conn.Write(msg.Data())
 	if err != nil && err != io.EOF {
 		if client.hasDisconnected(err) {
 			client.connected = false // ### return, connection closed ###
@@ -81,9 +81,8 @@ func (client *proxyClient) EnqueueResponse(msg core.Message) {
 	}
 }
 
-func (client *proxyClient) sendMessage(data []byte, seq uint64) {
-	msg := core.NewMessage(client, data, seq)
-	client.proxy.EnqueueMessage(msg)
+func (client *proxyClient) sendMessage(data []byte) {
+	client.proxy.Enqueue(data)
 }
 
 func (client *proxyClient) read() {

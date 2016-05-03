@@ -60,7 +60,7 @@ func (prod *Console) Configure(conf core.PluginConfigReader) error {
 
 func (prod *Console) printMessage(msg *core.Message) {
 	prod.BufferedProducer.Format(msg)
-	fmt.Fprint(prod.console, string(msg.Data))
+	fmt.Fprint(prod.console, msg.String())
 }
 
 // Produce writes to stdout or stderr.

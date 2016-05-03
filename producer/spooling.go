@@ -162,7 +162,7 @@ func (prod *Spooling) writeBatchOnTimeOut() {
 
 func (prod *Spooling) writeToFile(msg *core.Message) {
 	// Get the correct file state for this stream
-	streamID := msg.PrevStreamID
+	streamID := msg.PreviousStreamID()
 
 	prod.outfileGuard.Lock()
 	spool, exists := prod.outfile[streamID]
@@ -170,7 +170,7 @@ func (prod *Spooling) writeToFile(msg *core.Message) {
 
 	if !exists {
 		streamName := core.StreamRegistry.GetStreamName(streamID)
-		spool = newSpoolFile(prod, streamName, msg.Source)
+		spool = newSpoolFile(prod, streamName, msg.Source())
 
 		prod.outfileGuard.Lock()
 		prod.outfile[streamID] = spool
@@ -197,11 +197,12 @@ func (prod *Spooling) writeToFile(msg *core.Message) {
 func (prod *Spooling) routeToOrigin(msg *core.Message) {
 	routeStart := time.Now()
 
-	msg.StreamID = msg.PrevStreamID // Force PrevStreamID to be preserved in case message gets spooled again
-	msg.Route(msg.PrevStreamID)
+	msg.SetStreamID(msg.PreviousStreamID()) // Force PrevStreamID to be preserved in case message gets spooled again
+	stream := core.StreamRegistry.GetStream(msg.StreamID())
+	core.Route(msg, stream)
 
 	prod.outfileGuard.Lock()
-	if spool, exists := prod.outfile[msg.PrevStreamID]; exists {
+	if spool, exists := prod.outfile[msg.PreviousStreamID()]; exists {
 		spool.countRead()
 	}
 	prod.outfileGuard.Unlock()

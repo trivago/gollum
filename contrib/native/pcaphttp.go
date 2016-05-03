@@ -20,7 +20,6 @@ import (
 	"github.com/trivago/gollum/core"
 	"hash/fnv"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -63,7 +62,6 @@ type PcapHTTPConsumer struct {
 	promiscuous    bool
 	handle         *pcap.Pcap
 	sessions       pcapSessionMap
-	seqNum         uint64
 	sessionTimeout time.Duration
 	sessionGuard   *sync.Mutex
 }
@@ -97,8 +95,7 @@ func (cons *PcapHTTPConsumer) Configure(conf core.PluginConfigReader) error {
 }
 
 func (cons *PcapHTTPConsumer) enqueueBuffer(data []byte) {
-	cons.Enqueue(data, cons.seqNum)
-	atomic.AddUint64(&cons.seqNum, 1)
+	cons.Enqueue(data)
 }
 
 func (cons *PcapHTTPConsumer) getStreamKey(pkt *pcap.Packet) (uint32, string, bool) {

@@ -23,7 +23,7 @@ import (
 // Messages will be sent to one of the producers attached to this stream.
 // The concrete producer is chosen randomly with each message.
 type Random struct {
-	core.StreamBase
+	core.SimpleStream
 }
 
 func init() {
@@ -32,10 +32,16 @@ func init() {
 
 // Configure initializes this distributor with values from a plugin config.
 func (stream *Random) Configure(conf core.PluginConfigReader) error {
-	return stream.StreamBase.ConfigureStream(conf, stream.random)
+	return stream.SimpleStream.Configure(conf)
 }
 
-func (stream *Random) random(msg *core.Message) {
-	index := rand.Intn(len(stream.StreamBase.Producers))
-	stream.StreamBase.Producers[index].Enqueue(msg, stream.Timeout)
+func (stream *Random) Enqueue(msg *core.Message) bool {
+	producers := stream.GetProducers()
+	if len(producers) == 0 {
+		return false // ### return, no route to producer ###
+	}
+
+	index := rand.Intn(len(producers))
+	producers[index].Enqueue(msg, stream.Timeout)
+	return true
 }

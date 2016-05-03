@@ -48,14 +48,14 @@ func (format *CollectdToInflux09) Configure(conf core.PluginConfigReader) error 
 
 // Format transforms collectd data to influx 0.9.x data
 func (format *CollectdToInflux09) Format(msg *core.Message) {
-	collectdData, err := parseCollectdPacket(msg.Data)
+	collectdData, err := parseCollectdPacket(msg.Data())
 	if err != nil {
 		format.Log.Error.Print("Collectd parser error: ", err)
 		return // ### return, error ###
 	}
 
 	// Manually convert to JSON lines
-	influxData := tio.NewByteStream(len(msg.Data))
+	influxData := tio.NewByteStream(msg.Len())
 	fixedPart := fmt.Sprintf(
 		`{"name": "%s", "timestamp": %d, "precision": "ms", "tags": {"plugin_instance": "%s", "type": "%s", "type_instance": "%s", "host": "%s"`,
 		collectdData.Plugin,
@@ -75,5 +75,5 @@ func (format *CollectdToInflux09) Format(msg *core.Message) {
 			collectdData.Values[i])
 	}
 
-	msg.Data = influxData.Bytes()
+	msg.Store(influxData.Bytes())
 }

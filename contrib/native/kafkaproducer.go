@@ -256,15 +256,15 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 
 	// Send message
 	prod.topicGuard.RLock()
-	topic, topicRegistered := prod.topic[msg.StreamID]
+	topic, topicRegistered := prod.topic[msg.StreamID()]
 
 	if !topicRegistered {
 		prod.topicGuard.RUnlock()
-		topicName, isMapped := prod.streamToTopic[msg.StreamID]
+		topicName, isMapped := prod.streamToTopic[msg.StreamID()]
 		if !isMapped {
-			topicName = core.StreamRegistry.GetStreamName(msg.StreamID)
+			topicName = core.StreamRegistry.GetStreamName(msg.StreamID())
 		}
-		topic = prod.registerNewTopic(topicName, msg.StreamID)
+		topic = prod.registerNewTopic(topicName, msg.StreamID())
 	} else {
 		prod.topicGuard.RUnlock()
 	}
@@ -273,7 +273,7 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 	if prod.keyFormat != nil {
 		keyMsg := *msg
 		prod.keyFormat.Format(&keyMsg)
-		key = keyMsg.Data
+		key = keyMsg.Data()
 	}
 
 	serializedOriginal, err := originalMsg.Serialize()
@@ -283,7 +283,7 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 
 	kafkaMsg := &messageWrapper{
 		key:   key,
-		value: msg.Data,
+		value: msg.Data(),
 		user:  serializedOriginal,
 	}
 
@@ -296,10 +296,10 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 }
 
 func (prod *KafkaProducer) storeRTT(msg *core.Message) {
-	rtt := time.Since(msg.Timestamp)
+	rtt := time.Since(msg.Created())
 
 	prod.topicGuard.RLock()
-	topic := prod.topic[msg.StreamID]
+	topic := prod.topic[msg.StreamID()]
 	prod.topicGuard.RUnlock()
 
 	atomic.AddInt64(&topic.rttSum, rtt.Nanoseconds()/1000)

@@ -36,7 +36,7 @@ import (
 // message. By default this is set to "format.Forward"
 type Runlength struct {
 	core.FormatterBase
-	separator string
+	separator []byte
 }
 
 func init() {
@@ -47,18 +47,20 @@ func init() {
 func (format *Runlength) Configure(conf core.PluginConfigReader) error {
 	format.FormatterBase.Configure(conf)
 
-	format.separator = conf.GetString("Separator", ":")
+	format.separator = []byte(conf.GetString("Separator", ":"))
 	return conf.Errors.OrNil()
 }
 
 // Format prepends the length of the message (followed by ":") to the message.
 func (format *Runlength) Format(msg *core.Message) {
-	lengthStr := strconv.Itoa(len(msg.Data))
+	lengthStr := strconv.Itoa(msg.Len())
 
-	payload := make([]byte, len(lengthStr)+len(format.separator)+len(msg.Data))
-	len := copy(payload, []byte(lengthStr))
-	len += copy(payload[len:], []byte(format.separator))
+	dataSize := len(lengthStr) + len(format.separator) + msg.Len()
+	payload := core.MessageDataPool.Get(dataSize)
 
-	copy(payload[len:], msg.Data)
-	msg.Data = payload
+	offset := copy(payload, []byte(lengthStr))
+	offset += copy(payload[offset:], format.separator)
+	copy(payload[offset:], msg.Data())
+
+	msg.Store(payload)
 }

@@ -16,10 +16,11 @@ package core
 
 import (
 	"github.com/golang/protobuf/proto"
+	"github.com/trivago/tgo/tcontainer"
 	"time"
 )
 
-// MessageState is used as a return value for the Enqueu method
+// MessageState is used as a return value for the Enqueue method
 type MessageState int
 
 // MessageSource defines methods that are common to all message sources.
@@ -66,57 +67,163 @@ type LinkableMessageSource interface {
 // Message is a container used for storing the internal state of messages.
 // This struct is passed between consumers and producers.
 type Message struct {
-	Data         []byte
-	StreamID     MessageStreamID
-	PrevStreamID MessageStreamID
-	Source       MessageSource
-	Timestamp    time.Time
-	Sequence     uint64
+	data         []byte
+	streamID     MessageStreamID
+	prevStreamID MessageStreamID
+	source       MessageSource
+	timestamp    time.Time
+	sequence     uint64
 }
 
-// NewMessage creates a new message from a given data stream
-func NewMessage(source MessageSource, data []byte, sequence uint64) *Message {
+var (
+	// MessageDataPool is the pool used for message payloads.
+	// This pool should be used to allocate temporary buffers for e.g.
+	// formatters.
+	MessageDataPool = tcontainer.NewBytePool()
+)
+
+// NewMessage creates a new message from a given data stream by copying data.
+func NewMessage(source MessageSource, data []byte, sequence uint64, streamID MessageStreamID) *Message {
+	buffer := MessageDataPool.Get(len(data))
+	copy(buffer, data)
+
 	return &Message{
-		Data:         data,
-		Source:       source,
-		StreamID:     WildcardStreamID,
-		PrevStreamID: WildcardStreamID,
-		Timestamp:    time.Now(),
-		Sequence:     sequence,
+		data:         buffer,
+		source:       source,
+		streamID:     streamID,
+		prevStreamID: streamID,
+		timestamp:    time.Now(),
+		sequence:     sequence,
 	}
 }
 
-// String implements the stringer interface
-func (msg Message) String() string {
-	return string(msg.Data)
+// NewMessageWithSize creates a new message with a buffer of a given size.
+// The buffer may contain data from previous messages.
+func NewMessageWithSize(source MessageSource, dataSize int, sequence uint64, streamID MessageStreamID) *Message {
+	return &Message{
+		data:         MessageDataPool.Get(dataSize),
+		source:       source,
+		streamID:     streamID,
+		prevStreamID: streamID,
+		timestamp:    time.Now(),
+		sequence:     sequence,
+	}
 }
 
-// Clone returns a copy of this message, i.e. the payload is duplicated
+// Created returns the time when this message was created.
+func (msg *Message) Created() time.Time {
+	return msg.timestamp
+}
+
+// Sequence returns the message's sequence number.
+func (msg *Message) Sequence() uint64 {
+	return msg.sequence
+}
+
+// StreamID returns the stream this message is currently routed to.
+func (msg *Message) StreamID() MessageStreamID {
+	return msg.streamID
+}
+
+// PreviousStreamID returns the last "hop" of this message.
+func (msg *Message) PreviousStreamID() MessageStreamID {
+	return msg.prevStreamID
+}
+
+// SetStreamID sets a new stream and stores the current one in the previous
+// stream field.
+func (msg *Message) SetStreamID(streamID MessageStreamID) {
+	msg.prevStreamID = msg.streamID
+	msg.streamID = streamID
+}
+
+// Source returns the message's source (can be nil).
+func (msg *Message) Source() MessageSource {
+	return msg.source
+}
+
+// String implements the stringer interface
+func (msg *Message) String() string {
+	return string(msg.data)
+}
+
+// Data returns the stored data
+func (msg *Message) Data() []byte {
+	return msg.data
+}
+
+// Len returns the length of the current data buffer
+func (msg *Message) Len() int {
+	return len(msg.data)
+}
+
+// Cap returns the capacity of the current data buffer
+func (msg *Message) Cap() int {
+	return cap(msg.data)
+}
+
+// Store copies data into the hold data buffer. If the buffer can hold data
+// it is resized, otherwise a new buffer will be allocated.
+func (msg *Message) Store(data []byte) {
+	copy(msg.Resize(len(data)), data)
+}
+
+// Offset moves the slice start offset of the currently stored data to the
+// given position. This can be used to e.g. efficiently crop of the beginning
+// of a message.
+func (msg *Message) Offset(offset int) {
+	msg.data = msg.data[offset:]
+}
+
+// Resize changes the size of the stored buffer. The current content is not
+// guaranteed to be preserved. If content needs to be preserved use Extend.
+func (msg *Message) Resize(size int) []byte {
+	switch {
+	case size == len(msg.data):
+	case size <= cap(msg.data):
+		msg.data = msg.data[:size]
+	default:
+		msg.data = MessageDataPool.Get(size)
+	}
+
+	return msg.data
+}
+
+// Extend changes the size of the stored buffer. The current content will be
+// preserved. If content does not need to be preserved use Resize.
+func (msg *Message) Extend(size int) []byte {
+	switch {
+	case size == len(msg.data):
+	case size <= cap(msg.data):
+		msg.data = msg.data[:size]
+	default:
+		old := msg.data
+		msg.data = MessageDataPool.Get(size)
+		copy(msg.data, old)
+	}
+
+	return msg.data
+}
+
+// Clone returns a copy of this message, i.e. the payload is duplicated.
+// The created timestamp is copied, too.
 func (msg *Message) Clone() *Message {
 	clone := *msg
-	clone.Data = make([]byte, len(msg.Data))
-	copy(clone.Data, msg.Data)
-	return &clone
-}
+	clone.data = MessageDataPool.Get(len(msg.data))
+	copy(clone.data, msg.data)
 
-// Route enqueues this message to the given stream.
-// If the stream does not exist, a default stream (broadcast) is created.
-func (msg *Message) Route(targetID MessageStreamID) {
-	msg.PrevStreamID = msg.StreamID
-	msg.StreamID = targetID
-	targetStream := StreamRegistry.GetStreamOrFallback(msg.StreamID)
-	targetStream.Enqueue(msg)
+	return &clone
 }
 
 // Serialize generates a string containing all data that can be preserved over
 // shutdown (i.e. no data directly referencing runtime components).
 func (msg Message) Serialize() ([]byte, error) {
 	serializable := &SerializedMessage{
-		StreamID:     proto.Uint64(uint64(msg.StreamID)),
-		PrevStreamID: proto.Uint64(uint64(msg.PrevStreamID)),
-		Timestamp:    proto.Int64(msg.Timestamp.UnixNano()),
-		Sequence:     proto.Uint64(msg.Sequence),
-		Data:         msg.Data,
+		StreamID:     proto.Uint64(uint64(msg.streamID)),
+		PrevStreamID: proto.Uint64(uint64(msg.prevStreamID)),
+		Timestamp:    proto.Int64(msg.timestamp.UnixNano()),
+		Sequence:     proto.Uint64(msg.sequence),
+		Data:         msg.data,
 	}
 
 	return proto.Marshal(serializable)
@@ -129,11 +236,11 @@ func DeserializeMessage(data []byte) (Message, error) {
 	err := proto.Unmarshal(data, serializable)
 
 	msg := Message{
-		StreamID:     MessageStreamID(serializable.GetStreamID()),
-		PrevStreamID: MessageStreamID(serializable.GetPrevStreamID()),
-		Timestamp:    time.Unix(0, serializable.GetTimestamp()),
-		Sequence:     serializable.GetSequence(),
-		Data:         serializable.GetData(),
+		streamID:     MessageStreamID(serializable.GetStreamID()),
+		prevStreamID: MessageStreamID(serializable.GetPrevStreamID()),
+		timestamp:    time.Unix(0, serializable.GetTimestamp()),
+		sequence:     serializable.GetSequence(),
+		data:         serializable.GetData(),
 	}
 
 	return msg, err

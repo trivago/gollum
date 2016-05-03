@@ -134,7 +134,7 @@ func (prod *Websocket) pushMessage(msg *core.Message) {
 
 	for i := 0; i < len(activeConns.conns); i++ {
 		client := activeConns.conns[i]
-		if _, err := client.Write(msg.Data); err != nil {
+		if _, err := client.Write(msg.Data()); err != nil {
 			activeConns.conns = append(activeConns.conns[:i], activeConns.conns[i+1:]...)
 			if closeErr := client.Close(); closeErr == nil {
 				prod.Log.Error.Print("Websocket: ", err)

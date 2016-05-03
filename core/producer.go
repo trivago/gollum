@@ -42,8 +42,8 @@ type Producer interface {
 	// See ProducerControl* constants.
 	Control() chan<- PluginControl
 
-	// DropStream returns the id of the stream to drop messages to.
-	GetDropStreamID() MessageStreamID
+	// GetDropStream returns stream to drop messages to.
+	GetDropStream() Stream
 
 	// GetShutdownTimeout returns the duration gollum will wait for this producer
 	// before canceling the shutdown process.

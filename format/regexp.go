@@ -56,8 +56,8 @@ func (format *RegExp) Configure(conf core.PluginConfigReader) error {
 
 // Format prepends the timestamp of the message to the message.
 func (format *RegExp) Format(msg *core.Message) {
-	matches := format.expression.FindSubmatchIndex(msg.Data)
-	transformed := format.expression.Expand([]byte{}, format.template, msg.Data, matches)
+	matches := format.expression.FindSubmatchIndex(msg.Data())
+	transformed := format.expression.Expand([]byte{}, format.template, msg.Data(), matches)
 
-	msg.Data = transformed
+	msg.Store(transformed)
 }

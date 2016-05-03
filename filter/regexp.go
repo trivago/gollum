@@ -68,13 +68,13 @@ func (filter *RegExp) Configure(conf core.PluginConfigReader) error {
 // Accepts allows all messages
 func (filter *RegExp) Accepts(msg *core.Message) bool {
 	if filter.expNot != nil {
-		if filter.expNot.MatchString(string(msg.Data)) {
+		if filter.expNot.MatchString(string(msg.Data())) {
 			return false
 		}
 	}
 
 	if filter.exp != nil {
-		return filter.exp.MatchString(string(msg.Data))
+		return filter.exp.MatchString(string(msg.Data()))
 	}
 
 	return true // ### return, pass everything ###

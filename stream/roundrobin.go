@@ -24,7 +24,7 @@ import (
 // Messages will be sent to one of the producers attached to this stream.
 // Producers will be switched one-by-one.
 type RoundRobin struct {
-	core.StreamBase
+	core.SimpleStream
 	index         int32
 	indexByStream map[core.MessageStreamID]*int32
 	mapInitLock   *sync.Mutex
@@ -36,7 +36,7 @@ func init() {
 
 // Configure initializes this distributor with values from a plugin config.
 func (stream *RoundRobin) Configure(conf core.PluginConfigReader) error {
-	stream.StreamBase.ConfigureStream(conf, stream.roundRobin)
+	stream.SimpleStream.Configure(conf)
 
 	stream.index = 0
 	stream.indexByStream = make(map[core.MessageStreamID]*int32)
@@ -44,7 +44,12 @@ func (stream *RoundRobin) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-func (stream *RoundRobin) roundRobin(msg *core.Message) {
-	index := atomic.AddInt32(&stream.index, 1) % int32(len(stream.StreamBase.Producers))
-	stream.StreamBase.Producers[index].Enqueue(msg, stream.Timeout)
+func (stream *RoundRobin) roundRobin(msg *core.Message) bool {
+	producers := stream.GetProducers()
+	if len(producers) == 0 {
+		return false // ### return, no route to producer ###
+	}
+	index := atomic.AddInt32(&stream.index, 1) % int32(len(producers))
+	producers[index].Enqueue(msg, stream.Timeout)
+	return true
 }

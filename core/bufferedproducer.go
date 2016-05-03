@@ -117,7 +117,7 @@ func (prod *BufferedProducer) Enqueue(msg *Message, timeout *time.Duration) {
 	defer func() {
 		if r := recover(); r != nil {
 			prod.Log.Error.Print("Recovered a panic during producer enqueue: ", r)
-			prod.Log.Error.Print("Producer: ", prod.id, "State: ", prod.GetState(), ", Stream: ", StreamRegistry.GetStreamName(msg.StreamID))
+			prod.Log.Error.Print("Producer: ", prod.id, "State: ", prod.GetState(), ", Stream: ", StreamRegistry.GetStreamName(msg.StreamID()))
 			prod.Drop(msg)
 		}
 	}()

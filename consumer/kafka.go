@@ -133,7 +133,6 @@ type Kafka struct {
 	orderedRead    bool
 	prependKey     bool
 	keySeparator   []byte
-	sequence       *uint64
 }
 
 func init() {
@@ -153,7 +152,6 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 	cons.MaxPartitionID = 0
 	cons.keySeparator = []byte(conf.GetString("KeySeparator", ":"))
 	cons.prependKey = conf.GetBool("PrependKey", false)
-	cons.sequence = new(uint64)
 
 	cons.config = kafka.NewConfig()
 	cons.config.ChannelBufferSize = conf.GetInt("MessageBufferCount", 256)
@@ -252,11 +250,10 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 		select {
 		case event := <-partCons.Messages():
 			atomic.StoreInt64(cons.offsets[partitionID], event.Offset)
-			sequence := atomic.AddUint64(cons.sequence, 1) - 1
 			if cons.prependKey {
-				cons.Enqueue(cons.keyedMessage(event.Key, event.Value), sequence)
+				cons.Enqueue(cons.keyedMessage(event.Key, event.Value))
 			} else {
-				cons.Enqueue(event.Value, sequence)
+				cons.Enqueue(event.Value)
 			}
 
 		case err := <-partCons.Errors():
@@ -314,11 +311,10 @@ initLoop:
 			select {
 			case event := <-consumer.Messages():
 				atomic.StoreInt64(cons.offsets[partition], event.Offset)
-				sequence := atomic.AddUint64(cons.sequence, 1) - 1
 				if cons.prependKey {
-					cons.Enqueue(cons.keyedMessage(event.Key, event.Value), sequence)
+					cons.Enqueue(cons.keyedMessage(event.Key, event.Value))
 				} else {
-					cons.Enqueue(event.Value, sequence)
+					cons.Enqueue(event.Value)
 				}
 
 			case err = <-consumer.Errors():

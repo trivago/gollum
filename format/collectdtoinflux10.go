@@ -63,14 +63,14 @@ func (format *CollectdToInflux10) escapeString(value string) string {
 
 // Format transforms collectd data to influx 0.9.x data
 func (format *CollectdToInflux10) Format(msg *core.Message) {
-	collectdData, err := parseCollectdPacket(msg.Data)
+	collectdData, err := parseCollectdPacket(msg.Data())
 	if err != nil {
 		format.Log.Error.Print("Collectd parser error: ", err)
 		return // ### return, error ###
 	}
 
 	// Manually convert to line protocol
-	influxData := tio.NewByteStream(len(msg.Data))
+	influxData := tio.NewByteStream(msg.Len())
 	timestamp := int64(collectdData.Time * 1000)
 	fixedPart := fmt.Sprintf(
 		`%s,plugin_instance=%s,type=%s,type_instance=%s,host=%s`,
@@ -91,5 +91,5 @@ func (format *CollectdToInflux10) Format(msg *core.Message) {
 			timestamp)
 	}
 
-	msg.Data = influxData.Bytes()
+	msg.Store(influxData.Bytes())
 }

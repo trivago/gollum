@@ -163,31 +163,32 @@ func (prod *ElasticSearch) sendMessage(msg *core.Message) {
 	originalMsg := *msg
 	prod.BufferedProducer.Format(msg)
 
-	index, indexMapped := prod.index[msg.StreamID]
+	index, indexMapped := prod.index[msg.StreamID()]
 	if !indexMapped {
 		index, indexMapped = prod.index[core.WildcardStreamID]
 		if !indexMapped {
-			index = core.StreamRegistry.GetStreamName(msg.StreamID)
+			index = core.StreamRegistry.GetStreamName(msg.StreamID())
 		}
 		metricName := elasticMetricMessages + index
 		tgo.Metric.New(metricName)
 		tgo.Metric.NewRate(metricName, elasticMetricMessagesSec+index, time.Second, 10, 3, true)
-		prod.index[msg.StreamID] = index
+		prod.index[msg.StreamID()] = index
 	}
 
 	if prod.dayBasedIndex {
-		index = index + "_" + msg.Timestamp.Format("2006-01-02")
+		index = index + "_" + msg.Created().Format("2006-01-02")
 	}
 
-	msgType, typeMapped := prod.msgType[msg.StreamID]
+	msgType, typeMapped := prod.msgType[msg.StreamID()]
 	if !typeMapped {
 		msgType, typeMapped = prod.msgType[core.WildcardStreamID]
 		if !typeMapped {
-			msgType = core.StreamRegistry.GetStreamName(msg.StreamID)
+			msgType = core.StreamRegistry.GetStreamName(msg.StreamID())
 		}
 	}
 
-	err := prod.indexer.Index(index, msgType, "", "", prod.msgTTL, &msg.Timestamp, string(msg.Data))
+	timestamp := msg.Created()
+	err := prod.indexer.Index(index, msgType, "", "", prod.msgTTL, &timestamp, msg.String())
 	if err != nil {
 		prod.Log.Error.Print("ElasticSearch index error - ", err)
 		if !prod.isClusterUp() {

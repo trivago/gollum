@@ -199,13 +199,13 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 		messageHash := fmt.Sprintf("%X-%d", currentMsg.StreamID, currentMsg.Sequence)
 
 		// Fetch buffer for this stream
-		records, recordsExists := streamRecords[currentMsg.StreamID]
+		records, recordsExists := streamRecords[currentMsg.StreamID()]
 		if !recordsExists {
 			// Select the correct kinesis stream
-			streamName, streamMapped := prod.streamMap[currentMsg.StreamID]
+			streamName, streamMapped := prod.streamMap[currentMsg.StreamID()]
 			if !streamMapped {
-				streamName = core.StreamRegistry.GetStreamName(currentMsg.StreamID)
-				prod.streamMap[currentMsg.StreamID] = streamName
+				streamName = core.StreamRegistry.GetStreamName(currentMsg.StreamID())
+				prod.streamMap[currentMsg.StreamID()] = streamName
 
 				metricName := kinesisMetricMessages + streamName
 				tgo.Metric.New(metricName)
@@ -220,12 +220,12 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 				},
 				original: make([]*core.Message, 0, len(messages)),
 			}
-			streamRecords[currentMsg.StreamID] = records
+			streamRecords[currentMsg.StreamID()] = records
 		}
 
 		// Append record to stream
 		record := &kinesis.PutRecordsRequestEntry{
-			Data:         currentMsg.Data,
+			Data:         currentMsg.Data(),
 			PartitionKey: aws.String(messageHash),
 		}
 
@@ -256,7 +256,7 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 					prod.Log.Error.Print("Kinesis message write error: ", *record.ErrorMessage)
 					prod.Drop(records.original[msgIdx])
 				} else {
-					streamName := prod.streamMap[records.original[msgIdx].StreamID]
+					streamName := prod.streamMap[records.original[msgIdx].StreamID()]
 					tgo.Metric.Inc(kinesisMetricMessages + streamName)
 				}
 			}

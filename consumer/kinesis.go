@@ -244,7 +244,7 @@ func (cons *Kinesis) processShard(shardID string) {
 				}
 
 				seq, _ := strconv.ParseInt(*record.SequenceNumber, 10, 64)
-				cons.Enqueue(record.Data, uint64(seq))
+				cons.EnqueueWithSequence(record.Data, uint64(seq))
 				cons.offsets[*iteratorConfig.ShardId] = *record.SequenceNumber
 			}
 

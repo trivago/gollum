@@ -55,22 +55,21 @@ func (format *Trim) Configure(conf core.PluginConfigReader) error {
 
 // Format removes data from the front and/or back of the message.
 func (format *Trim) Format(msg *core.Message) {
-	leftOffset := format.leftOffset
-	if len(format.leftSeparator) > 0 {
-		leftIdx := bytes.Index(msg.Data, format.leftSeparator)
-		if leftIdx > 0 {
-			leftOffset += leftIdx
-		}
-	}
-
-	rightOffset := len(msg.Data)
+	offset := msg.Len()
 	if len(format.rightSeparator) > 0 {
-		rightIdx := bytes.LastIndex(msg.Data, format.rightSeparator)
+		rightIdx := bytes.LastIndex(msg.Data(), format.rightSeparator)
 		if rightIdx > 0 {
-			rightOffset = rightIdx
+			offset = rightIdx
 		}
 	}
-	rightOffset -= format.rightOffset
+	msg.Extend(offset - format.rightOffset)
 
-	msg.Data = msg.Data[leftOffset:rightOffset]
+	offset = format.leftOffset
+	if len(format.leftSeparator) > 0 {
+		leftIdx := bytes.Index(msg.Data(), format.leftSeparator)
+		if leftIdx > 0 {
+			offset += leftIdx
+		}
+	}
+	msg.Offset(offset)
 }

@@ -15,7 +15,6 @@
 package format
 
 import (
-	"encoding/base64"
 	"github.com/trivago/gollum/core"
 )
 
@@ -35,7 +34,6 @@ import (
 // newline separated. This is enabled by default.
 type Serialize struct {
 	core.FormatterBase
-	encode bool
 }
 
 func init() {
@@ -44,10 +42,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Serialize) Configure(conf core.PluginConfigReader) error {
-	format.FormatterBase.Configure(conf)
-
-	format.encode = conf.GetBool("Encode", true)
-	return conf.Errors.OrNil()
+	return format.FormatterBase.Configure(conf)
 }
 
 // Format prepends the sequence number of the message (followed by ":") to the
@@ -59,14 +54,5 @@ func (format *Serialize) Format(msg *core.Message) {
 		return // ### return, error ###
 	}
 
-	if !format.encode {
-		return // ### return, raw data ###
-	}
-
-	encodedSize := base64.StdEncoding.EncodedLen(len(data))
-	encoded := make([]byte, encodedSize+1)
-	base64.StdEncoding.Encode(encoded, data)
-	encoded[encodedSize] = '\n'
-
-	msg.Data = encoded
+	msg.Store(data)
 }

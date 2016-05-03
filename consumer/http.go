@@ -22,7 +22,6 @@ import (
 	"io"
 	"net/http"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -61,7 +60,6 @@ type Http struct {
 	core.SimpleConsumer
 	listen         *tnet.StopListener
 	address        string
-	sequence       uint64
 	readTimeoutSec time.Duration
 	withHeaders    bool
 	certificate    *tls.Config
@@ -116,7 +114,7 @@ func (cons *Http) requestHandler(resp http.ResponseWriter, req *http.Request) {
 			return // ### return, missing body or bad write ###
 		}
 
-		cons.Enqueue(requestBuffer.Bytes(), atomic.AddUint64(&cons.sequence, 1))
+		cons.Enqueue(requestBuffer.Bytes())
 		resp.WriteHeader(http.StatusOK)
 	} else {
 		// Read only the message body
@@ -133,7 +131,7 @@ func (cons *Http) requestHandler(resp http.ResponseWriter, req *http.Request) {
 			return // ### return, missing body or bad write ###
 		}
 
-		cons.Enqueue(body[:length], atomic.AddUint64(&cons.sequence, 1))
+		cons.Enqueue(body[:length])
 		resp.WriteHeader(http.StatusOK)
 	}
 }

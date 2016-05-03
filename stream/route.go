@@ -34,84 +34,54 @@ import (
 // If no route is set messages are forwarded on the incoming stream.
 // When routing to multiple streams, the incoming stream has to be listed explicitly to be used.
 type Route struct {
-	core.StreamBase
-	routes []streamWithID
-}
-
-type streamWithID struct {
-	id     core.MessageStreamID
-	stream core.Stream
+	Broadcast
+	streams []core.Stream
 }
 
 func init() {
 	core.TypeRegistry.Register(Route{})
 }
 
-func newStreamWithID(streamName string) streamWithID {
-	streamID := core.StreamRegistry.GetStreamID(streamName)
-	return streamWithID{
-		id:     streamID,
-		stream: core.StreamRegistry.GetStream(streamID),
-	}
-}
-
 // Configure initializes this distributor with values from a plugin config.
 func (stream *Route) Configure(conf core.PluginConfigReader) error {
-	stream.StreamBase.ConfigureStream(conf, stream.Broadcast)
+	stream.Broadcast.Configure(conf)
 
-	routes := conf.GetStringArray("Routes", []string{})
-	for _, streamName := range routes {
-		targetStream := newStreamWithID(streamName)
-		stream.routes = append(stream.routes, targetStream)
+	boundStreamIDs := conf.GetStreamArray("Streams", []core.MessageStreamID{})
+	for _, streamID := range boundStreamIDs {
+		route := core.StreamRegistry.GetStreamOrFallback(streamID)
+		stream.streams = append(stream.streams, route)
 	}
 
 	return conf.Errors.OrNil()
 }
 
-func (stream *Route) routeMessage(msg *core.Message) {
-	for i := 0; i < len(stream.routes); i++ {
-		target := stream.routes[i]
-
-		// Stream might require late binding
-		if target.stream == nil {
-			if core.StreamRegistry.WildcardProducersExist() {
-				target.stream = core.StreamRegistry.GetStreamOrFallback(target.id)
-			} else if target.stream = core.StreamRegistry.GetStream(target.id); target.stream == nil {
-				// Remove without preserving order allows us to continue iterating
-				lastIdx := len(stream.routes) - 1
-				stream.routes[i] = stream.routes[lastIdx]
-				stream.routes = stream.routes[:lastIdx]
-				i--
-				continue // ### continue, no route ###
-			}
-		}
-
-		if target.id == stream.GetBoundStreamID() {
-			stream.StreamBase.Route(msg)
-		} else {
-			msgCopy := *msg // copy to allow streamId changes and multiple routes
-			msgCopy.StreamID = target.id
-			target.stream.Enqueue(&msgCopy)
-		}
-	}
-}
-
 // Enqueue overloads the standard Enqueue method to allow direct routing to
 // explicit stream targets
-func (stream *Route) Enqueue(msg *core.Message) {
-	if stream.Accepts(msg) {
-		stream.Format(msg)
+func (stream *Route) Enqueue(msg *core.Message) bool {
+	if len(stream.streams) == 0 {
+		return false // ### return, no route ###
+	}
 
-		if msg.StreamID != stream.GetBoundStreamID() {
-			stream.StreamBase.Route(msg)
-			return // ### return, routed by standard method ###
+	if len(stream.streams) == 1 {
+		route := stream.streams[0]
+		if route.StreamID() == stream.StreamID() {
+			return stream.Broadcast.Enqueue(msg) // ### return, broadcast ###
 		}
 
-		stream.routeMessage(msg)
+		msg.SetStreamID(route.StreamID())
+		core.Route(msg, route)
+		return true // ### return, fast path ###
+	}
 
-		if len(stream.routes) == 0 {
-			core.CountNoRouteForMessage()
-			return // ### return, no route to producer ###
+	for _, route := range stream.streams {
+		if route.StreamID() == stream.StreamID() {
+			stream.Broadcast.Enqueue(msg)
+		} else {
+			msg := msg.Clone()
+			msg.SetStreamID(route.StreamID())
+			core.Route(msg, route)
 		}
 	}
+
+	return true
 }

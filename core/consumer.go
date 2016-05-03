@@ -29,9 +29,6 @@ type Consumer interface {
 	// source and pushes it to the Message channel.
 	Consume(*sync.WaitGroup)
 
-	// Streams returns the streams this consumer is writing to.
-	Streams() []MessageStreamID
-
 	// Control returns write access to this consumer's control channel.
 	// See PluginControl* constants.
 	Control() chan<- PluginControl

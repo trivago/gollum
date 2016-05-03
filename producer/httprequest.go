@@ -94,7 +94,7 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 
 	originalMsg := *msg
 	prod.BufferedProducer.Format(msg)
-	requestData := bytes.NewBuffer(msg.Data)
+	requestData := bytes.NewBuffer(msg.Data())
 
 	if prod.rawPackets {
 		// Pass raw request

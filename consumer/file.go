@@ -123,9 +123,9 @@ func (cons *File) storeOffset() {
 	ioutil.WriteFile(cons.offsetFileName, []byte(strconv.FormatInt(cons.seekOffset, 10)), 0644)
 }
 
-func (cons *File) enqueueAndPersist(data []byte, sequence uint64) {
+func (cons *File) enqueueAndPersist(data []byte) {
 	cons.seekOffset, _ = cons.file.Seek(0, 1)
-	cons.Enqueue(data, sequence)
+	cons.Enqueue(data)
 	cons.storeOffset()
 }
 

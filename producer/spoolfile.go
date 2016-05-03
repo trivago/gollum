@@ -158,7 +158,7 @@ func (spool *spoolFile) openOrRotate() bool {
 	return true
 }
 
-func (spool *spoolFile) decode(data []byte, sequence uint64) {
+func (spool *spoolFile) decode(data []byte) {
 	// Base64 decode, than deserialize
 	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(data)))
 
