@@ -14,9 +14,14 @@ Parameters
 **ProcessJSONDirectives**
   ProcessJSONDirectives defines the action to be applied to the json payload.
   Directives are processed in order of appearance.
-  The directives have to be given in the form of key:operation:parameters, where operation can be one of the following: - split:<string>:{<key>:<key>:...} Split the value by a string and set the resulting array elements to the given fields in order of appearance.
-  - replace:<old>:<new> replace a given string in the value with a new one - trim:<characters> remove the given characters (not string!) from the start and end of the value - rename:<old>:<new> rename a given field - timestamp:<read>:<write> read a timestamp and transform it into another format.
-
+  The directives have to be given in the form of key:operation:parameters, where operation can be one of the following: 
+  - split:<string>:{<key>:<key>:...} Split the value by a string and set the resulting array elements to the given fields in order of appearance.
+  - replace:<old>:<new> replace a given string in the value with a new one 
+  - trim:<characters> remove the given characters (not string!) from the start and end of the value 
+  - rename:<old>:<new> rename a given field 
+  - timestamp:<read>:<write> read a timestamp and transform it into another format.
+  - remove remove a given field
+	
 **ProcessJSONTrimValues**
   ProcessJSONTrimValues will trim whitspaces from all values if enabled.
   Enabled by default.
@@ -35,4 +40,5 @@ Example
 	        - "error:replace:°:\n"
 	        - "text:trim: \t"
 	        - "foo:rename:bar"
+					- "bar:remove"
 	    ProcessJSONTrimValues: true

@@ -82,14 +82,24 @@ Parameters
   Valid values are: "hash", "list", "set", "sortedset", "string".
   By default this is set to "hash".
 
-**FieldFormat**
-  FieldFormat defines an extra formatter used to define an additional field or score value if required by the storage type.
+**FieldFormatter**
+  FieldFormatter defines an extra formatter used to define an additional field or score value if required by the storage type.
   If no field value is required this value is ignored.
   By default this is set to "format.Identifier".
 
 **FieldAfterFormat**
   FieldAfterFormat will send the formatted message to the FieldFormatter if set to true.
   If this is set to false the message will be send to the FieldFormatter before it has been formatted.
+  By default this is set to false.
+
+**KeyFormatter**
+  KeyFormatter defines an extra formatter used to allow generating the key from a message. 
+  If this value is set the "Key" field will be ignored. 
+  By default this field is not used.
+
+**KeyAfterFormat**
+  KeyAfterFormat will send the formatted message to the keyFormatter if set to true. 
+  If this is set to false the message will be send to the keyFormatter before it has been formatted. 
   By default this is set to false.
 
 Example
@@ -115,5 +125,7 @@ Example
 	    Database: 0
 	    Key: "default"
 	    Storage: "hash"
-	    FieldFormat: "format.Identifier"
+	    FieldFormatter: "format.Identifier"
 	    FieldAfterFormat: false
+	    KeyFormatter: "format.Forward"
+	    KeyAfterFormat: false
