@@ -268,7 +268,7 @@ func (prod *Kafka) pollResults() {
 	// Check for results
 	keepPolling := true
 	timeout := time.NewTimer(prod.config.Producer.Flush.Frequency / 2)
-	for keepPolling {
+	for keepPolling && prod.producer != nil {
 		select {
 		case result, hasMore := <-prod.producer.Successes():
 			if hasMore {
@@ -453,8 +453,12 @@ func (prod *Kafka) tryOpenConnection() bool {
 }
 
 func (prod *Kafka) closeConnection() {
-	prod.producer.Close()
-	prod.client.Close()
+	if prod.producer != nil {
+		prod.producer.Close()
+	}
+	if prod.client != nil {
+		prod.client.Close()
+	}
 }
 
 func (prod *Kafka) close() {
