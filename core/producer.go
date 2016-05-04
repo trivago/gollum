@@ -15,6 +15,7 @@
 package core
 
 import (
+	"fmt"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"sync"
@@ -136,7 +137,7 @@ type ProducerBase struct {
 	fuseControl      *time.Timer
 	fuseName         string
 	format           Formatter
-	filter           Filter
+	filters          []Filter
 	onRoll           func()
 	onStop           func()
 	onCheckFuse      func() bool
@@ -151,11 +152,18 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	}
 	prod.format = format.(Formatter)
 
-	filter, err := NewPluginWithType(conf.GetString("Filter", "filter.All"), conf)
-	if err != nil {
-		return err // ### return, plugin load error ###
+	filters := conf.GetStringArray("Filter", []string{"filter.All"})
+	for _, filterName := range filters {
+		plugin, err := NewPluginWithType(filterName, conf)
+		if err != nil {
+			return err
+		}
+		filter, isFilter := plugin.(Filter)
+		if !isFilter {
+			return fmt.Errorf("%s is not a filter", filterName)
+		}
+		prod.filters = append(prod.filters, filter)
 	}
-	prod.filter = filter.(Filter)
 
 	prod.streams = make([]MessageStreamID, len(conf.Stream))
 	prod.control = make(chan PluginControl, 1)
@@ -329,14 +337,19 @@ func (prod *ProducerBase) GetFormatter() Formatter {
 	return prod.format
 }
 
-// Accepts calls the filters Accepts function
+// Accepts returns false if one filter in the list returns false
 func (prod *ProducerBase) Accepts(msg Message) bool {
-	return prod.filter.Accepts(msg)
+	for _, filter := range prod.filters {
+		if !filter.Accepts(msg) {
+			return false
+		}
+	}
+	return true
 }
 
-// GetFilter returns the filter of this producer
+// GetFilter returns the first filter of this producer
 func (prod *ProducerBase) GetFilter() Filter {
-	return prod.filter
+	return prod.filters[0]
 }
 
 // PauseAllStreams sends the Pause() command to all streams this producer is
@@ -392,7 +405,7 @@ func (prod *ProducerBase) Enqueue(msg Message, timeout *time.Duration) {
 
 	// Filtering happens before formatting. If fitering AFTER formatting is
 	// required, the producer has to do so as it decides where to format.
-	if !prod.filter.Accepts(msg) {
+	if !prod.Accepts(msg) {
 		CountFilteredMessage()
 		return // ### return, filtered ###
 	}
