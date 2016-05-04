@@ -35,8 +35,10 @@ import (
 //    Database: 0
 //    Key: "default"
 //    Storage: "hash"
-//    FieldFormat: "format.Identifier"
+//    FieldFormatter: "format.Identifier"
 //    FieldAfterFormat: false
+//	  KeyFormatter: "format.Forward"
+//    KeyAfterFormat: false
 //
 // Address stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:6379" or a file
@@ -47,17 +49,26 @@ import (
 // By default this is set to 0.
 //
 // Key defines the redis key to store the values in.
+// This field is ignored when "KeyFormatter" is set.
 // By default this is set to "default".
 //
 // Storage defines the type of the storage to use. Valid values are: "hash",
 // "list", "set", "sortedset", "string". By default this is set to "hash".
 //
-// FieldFormat defines an extra formatter used to define an additional field or
+// FieldFormatter defines an extra formatter used to define an additional field or
 // score value if required by the storage type. If no field value is required
 // this value is ignored. By default this is set to "format.Identifier".
 //
 // FieldAfterFormat will send the formatted message to the FieldFormatter if set
 // to true. If this is set to false the message will be send to the FieldFormatter
+// before it has been formatted. By default this is set to false.
+//
+// KeyFormatter defines an extra formatter used to allow generating the key from
+// a message. If this value is set the "Key" field will be ignored. By default
+// this field is not used.
+//
+// KeyAfterFormat will send the formatted message to the keyFormatter if set
+// to true. If this is set to false the message will be send to the keyFormatter
 // before it has been formatted. By default this is set to false.
 type Redis struct {
 	core.ProducerBase
@@ -68,7 +79,6 @@ type Redis struct {
 	key             string
 	client          *redis.Client
 	store           func(msg core.Message)
-	format          core.Formatter
 	fieldFormat     core.Formatter
 	keyFormat       core.Formatter
 	fieldFromParsed bool
@@ -127,7 +137,7 @@ func (prod *Redis) Configure(conf core.PluginConfig) error {
 }
 
 func (prod *Redis) getValueAndKey(msg core.Message) (v []byte, k string) {
-	value, _ := prod.format.Format(msg)
+	value, _ := prod.Format(msg)
 
 	if prod.keyFormat == nil {
 		return value, prod.key
@@ -145,7 +155,7 @@ func (prod *Redis) getValueAndKey(msg core.Message) (v []byte, k string) {
 }
 
 func (prod *Redis) getValueFieldAndKey(msg core.Message) (v []byte, f []byte, k string) {
-	value, _ := prod.format.Format(msg)
+	value, _ := prod.Format(msg)
 	key := []byte(prod.key)
 
 	if prod.keyFormat != nil {

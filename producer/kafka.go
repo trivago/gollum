@@ -270,15 +270,19 @@ func (prod *Kafka) pollResults() {
 	timeout := time.NewTimer(prod.config.Producer.Flush.Frequency / 2)
 	for keepPolling {
 		select {
-		case result := <-prod.producer.Successes():
-			if msg, hasMsg := result.Metadata.(core.Message); hasMsg {
-				prod.storeRTT(&msg)
+		case result, hasMore := <-prod.producer.Successes():
+			if hasMore {
+				if msg, hasMsg := result.Metadata.(core.Message); hasMsg {
+					prod.storeRTT(&msg)
+				}
 			}
 
-		case err := <-prod.producer.Errors():
-			if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
-				prod.storeRTT(&msg)
-				prod.Drop(msg)
+		case err, hasMore := <-prod.producer.Errors():
+			if hasMore {
+				if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
+					prod.storeRTT(&msg)
+					prod.Drop(msg)
+				}
 			}
 
 		case <-timeout.C:
