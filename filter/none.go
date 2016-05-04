@@ -26,7 +26,7 @@ import (
 //     Filter: "filter.None"
 //
 type None struct {
-	core.FilterBase
+	core.SimpleFilter
 }
 
 func init() {
@@ -35,7 +35,7 @@ func init() {
 
 // Configure initializes this filter with values from a plugin config.
 func (filter *None) Configure(conf core.PluginConfigReader) error {
-	return filter.FilterBase.Configure(conf)
+	return filter.SimpleFilter.Configure(conf)
 }
 
 // Accepts allows all messages

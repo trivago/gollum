@@ -96,7 +96,7 @@ func (cons *Proxy) Configure(conf core.PluginConfigReader) error {
 
 	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"))
 	if cons.protocol == "udp" {
-		conf.Errors.Pushf("Proxy does not support UDP")
+		conf.Errors.Pushf("UDP is not supported")
 	}
 
 	cons.delimiter = tstrings.Unescape(conf.GetString("Delimiter", "\n"))
@@ -150,7 +150,7 @@ func (cons *Proxy) accept() {
 		client, err := listener.Accept()
 		if err != nil {
 			if cons.IsActive() {
-				cons.Log.Error.Print("Proxy listen failed: ", err)
+				cons.Log.Error.Print("Listen failed: ", err)
 			}
 			break // ### break ###
 		}
@@ -164,7 +164,7 @@ func (cons *Proxy) Consume(workers *sync.WaitGroup) {
 	var err error
 
 	if cons.listen, err = net.Listen(cons.protocol, cons.address); err != nil {
-		cons.Log.Error.Print("Proxy connection error: ", err)
+		cons.Log.Error.Print("Connection error: ", err)
 		return
 	}
 

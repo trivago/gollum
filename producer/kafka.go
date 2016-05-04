@@ -188,7 +188,7 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 	prod.clientID = conf.GetString("ClientId", "gollum")
 	prod.gracePeriod = time.Duration(conf.GetInt("GracePeriodMs", 100)) * time.Millisecond
 	prod.topicGuard = new(sync.RWMutex)
-	prod.streamToTopic = conf.GetStreamMap("Topic", "")
+	prod.streamToTopic = conf.GetStreamMap("Topics", "")
 	prod.topic = make(map[core.MessageStreamID]*topicHandle)
 
 	prod.config = kafka.NewConfig()
@@ -204,13 +204,13 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 	prod.config.Metadata.Retry.Backoff = time.Duration(conf.GetInt("ElectTimeoutMs", 250)) * time.Millisecond
 	prod.config.Metadata.RefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshMs", 600000)) * time.Millisecond
 
-	prod.config.Producer.MaxMessageBytes = conf.GetInt("BatchSizeMaxKB", 1<<10) << 10
+	prod.config.Producer.MaxMessageBytes = conf.GetInt("Batch/SizeMaxKB", 1<<10) << 10
 	prod.config.Producer.RequiredAcks = kafka.RequiredAcks(conf.GetInt("RequiredAcks", int(kafka.WaitForLocal)))
 	prod.config.Producer.Timeout = time.Duration(conf.GetInt("TimoutMs", 10000)) * time.Millisecond
-	prod.config.Producer.Flush.Bytes = conf.GetInt("BatchSizeByte", 8192)
-	prod.config.Producer.Flush.Messages = conf.GetInt("BatchMinCount", 1)
-	prod.config.Producer.Flush.Frequency = time.Duration(conf.GetInt("BatchTimeoutMs", 3000)) * time.Millisecond
-	prod.config.Producer.Flush.MaxMessages = conf.GetInt("BatchMaxCount", 0)
+	prod.config.Producer.Flush.Bytes = conf.GetInt("Batch/SizeByte", 8192)
+	prod.config.Producer.Flush.Messages = conf.GetInt("Batch/MinCount", 1)
+	prod.config.Producer.Flush.Frequency = time.Duration(conf.GetInt("Batch/TimeoutMs", 3000)) * time.Millisecond
+	prod.config.Producer.Flush.MaxMessages = conf.GetInt("Batch/MaxCount", 0)
 	prod.config.Producer.Retry.Max = conf.GetInt("SendRetries", 0)
 	prod.config.Producer.Retry.Backoff = time.Duration(conf.GetInt("SendTimeoutMs", 100)) * time.Millisecond
 
@@ -413,7 +413,7 @@ func (prod *Kafka) tryOpenConnection() bool {
 		if client, err := kafka.NewClient(prod.servers, prod.config); err == nil {
 			prod.client = client
 		} else {
-			prod.Log.Error.Print("Kafka client initialization error:", err)
+			prod.Log.Error.Print("Client initialization error:", err)
 			return false // ### return, connection failed ###
 		}
 	}
@@ -423,7 +423,7 @@ func (prod *Kafka) tryOpenConnection() bool {
 		if producer, err := kafka.NewAsyncProducerFromClient(prod.client); err == nil {
 			prod.producer = producer
 		} else {
-			prod.Log.Error.Print("Kafka producer initialization error:", err)
+			prod.Log.Error.Print("Producer initialization error:", err)
 			return false // ### return, connection failed ###
 		}
 	}

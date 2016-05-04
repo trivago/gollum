@@ -28,7 +28,7 @@ import (
 //     Template: "${1}"
 //     Posix: true
 type RegExp struct {
-	core.FormatterBase
+	core.SimpleFormatter
 	expression *regexp.Regexp
 	template   []byte
 }
@@ -39,7 +39,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *RegExp) Configure(conf core.PluginConfigReader) error {
-	format.FormatterBase.Configure(conf)
+	format.SimpleFormatter.Configure(conf)
 
 	var err error
 	if conf.GetBool("Posix", true) {

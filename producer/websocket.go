@@ -137,7 +137,7 @@ func (prod *Websocket) pushMessage(msg *core.Message) {
 		if _, err := client.Write(msg.Data()); err != nil {
 			activeConns.conns = append(activeConns.conns[:i], activeConns.conns[i+1:]...)
 			if closeErr := client.Close(); closeErr == nil {
-				prod.Log.Error.Print("Websocket: ", err)
+				prod.Log.Error.Print(err)
 			}
 			i--
 		}
@@ -149,13 +149,13 @@ func (prod *Websocket) serve() {
 
 	listen, err := tnet.NewStopListener(prod.address)
 	if err != nil {
-		prod.Log.Error.Print("Websocket: ", err)
+		prod.Log.Error.Print(err)
 		return // ### return, could not connect ###
 	}
 
 	config, err := websocket.NewConfig(prod.address, prod.path)
 	if err != nil {
-		prod.Log.Error.Print("Websocket: ", err)
+		prod.Log.Error.Print(err)
 		return // ### return, could not connect ###
 	}
 
@@ -172,7 +172,7 @@ func (prod *Websocket) serve() {
 	err = srv.Serve(prod.listen)
 	_, isStopRequest := err.(tnet.StopRequestError)
 	if err != nil && !isStopRequest {
-		prod.Log.Error.Print("Websocket: ", err)
+		prod.Log.Error.Print(err)
 	}
 }
 

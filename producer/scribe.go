@@ -106,16 +106,16 @@ func (prod *Scribe) Configure(conf core.PluginConfigReader) error {
 	prod.SetStopCallback(prod.close)
 	host := conf.GetString("Address", "localhost:1463")
 
-	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
+	prod.batchMaxCount = conf.GetInt("Batch/MaxCount", 8192)
 	prod.windowSize = prod.batchMaxCount
-	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
+	prod.batchFlushCount = conf.GetInt("Batch/FlushCount", prod.batchMaxCount/2)
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
-	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
+	prod.batchTimeout = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
 	prod.heartBeatInterval = time.Duration(conf.GetInt("HeartBeatIntervalSec", 5)) * time.Second
 
 	prod.bufferSizeByte = conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10 // 1 MB
-	prod.category = conf.GetStreamMap("Category", "")
+	prod.category = conf.GetStreamMap("Categories", "")
 
 	// Initialize scribe connection
 
@@ -154,14 +154,14 @@ func (prod *Scribe) sendBatchOnTimeOut() {
 func (prod *Scribe) tryOpenConnection() bool {
 	if !prod.transport.IsOpen() {
 		if err := prod.transport.Open(); err != nil {
-			prod.Log.Error.Print("Scribe connection error:", err)
+			prod.Log.Error.Print("Connection error:", err)
 			return false // ### return, cannot connect ###
 		}
 
 		prod.socket.Conn().(bufferedConn).SetWriteBuffer(prod.bufferSizeByte)
 		prod.Control() <- core.PluginControlFuseActive
 		prod.lastHeartBeat = time.Now().Add(prod.heartBeatInterval)
-		prod.Log.Note.Print("Scribe connection opened")
+		prod.Log.Note.Print("Connection opened")
 	}
 
 	if time.Since(prod.lastHeartBeat) < prod.heartBeatInterval {
@@ -173,15 +173,15 @@ func (prod *Scribe) tryOpenConnection() bool {
 	prod.batch.WaitForFlush(0)
 
 	if status, err := prod.scribe.GetStatus(); err != nil {
-		prod.Log.Error.Print("Scribe status error:", err)
+		prod.Log.Error.Print("Status error:", err)
 	} else {
 		switch status {
 		case fb303.FbStatus_DEAD:
-			prod.Log.Warning.Print("Scribe status reported as dead.")
+			prod.Log.Warning.Print("Status reported as dead.")
 		case fb303.FbStatus_STOPPING:
-			prod.Log.Warning.Print("Scribe status reported as stopping.")
+			prod.Log.Warning.Print("Status reported as stopping.")
 		case fb303.FbStatus_STOPPED:
-			prod.Log.Warning.Print("Scribe status reported as stopped.")
+			prod.Log.Warning.Print("Status reported as stopped.")
 		default:
 			return true // ### return, all is well ###
 		}
@@ -256,7 +256,7 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 		}
 
 		if err != nil || resultCode != scribe.ResultCode_TRY_LATER {
-			prod.Log.Error.Printf("Scribe log error %d: %s", resultCode, err.Error())
+			prod.Log.Error.Printf("Log error %d: %s", resultCode, err.Error())
 
 			prod.Control() <- core.PluginControlFuseBurn
 			prod.transport.Close() // reconnect
@@ -271,7 +271,7 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 		time.Sleep(time.Duration(scribeMaxSleepTimeMs/scribeMaxRetries) * time.Millisecond)
 	}
 
-	prod.Log.Error.Printf("Scribe server seems to be busy")
+	prod.Log.Error.Printf("Server seems to be busy")
 	prod.dropMessages(messages[idxStart:])
 }
 

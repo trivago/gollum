@@ -77,7 +77,7 @@ func (client *proxyClient) EnqueueResponse(msg core.Message) {
 		if client.hasDisconnected(err) {
 			client.connected = false // ### return, connection closed ###
 		}
-		client.log.Error.Print("Proxy write failed: ", err)
+		client.log.Error.Print("Write failed: ", err)
 	}
 }
 
@@ -96,7 +96,7 @@ func (client *proxyClient) read() {
 			if client.hasDisconnected(err) {
 				return // ### return, connection closed ###
 			}
-			client.log.Error.Print("Proxy read failed: ", err)
+			client.log.Error.Print("Read failed: ", err)
 		}
 	}
 }

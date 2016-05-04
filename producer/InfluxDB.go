@@ -128,10 +128,10 @@ func (prod *InfluxDB) Configure(conf core.PluginConfigReader) error {
 		return err
 	}
 
-	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
-	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
+	prod.batchMaxCount = conf.GetInt("Batch/MaxCount", 8192)
+	prod.batchFlushCount = conf.GetInt("Batch/FlushCount", prod.batchMaxCount/2)
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
-	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
+	prod.batchTimeout = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
 
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
 	prod.assembly = core.NewWriterAssembly(prod.writer, prod.Drop, prod.Format)

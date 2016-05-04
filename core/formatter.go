@@ -31,19 +31,3 @@ type Formatter interface {
 
 // FormatterFunc is the function signature type used by all formating functions.
 type FormatterFunc func(*Message)
-
-// FormatterBase defines the standard formatter implementation.
-type FormatterBase struct {
-	Log tlog.LogScope
-}
-
-// SetLogScope sets the log scope to be used for this formatter
-func (format *FormatterBase) SetLogScope(log tlog.LogScope) {
-	format.Log = log
-}
-
-// Configure sets up all values requred by FormatterBase.
-func (format *FormatterBase) Configure(conf PluginConfigReader) error {
-	format.Log = conf.GetSubLogScope("Formatter")
-	return nil
-}

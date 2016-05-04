@@ -96,10 +96,10 @@ func (prod *Socket) Configure(conf core.PluginConfigReader) error {
 	prod.SetStopCallback(prod.close)
 	prod.SetCheckFuseCallback(prod.tryConnect)
 
-	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
-	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
+	prod.batchMaxCount = conf.GetInt("Batch/MaxCount", 8192)
+	prod.batchFlushCount = conf.GetInt("Batch/FlushCount", prod.batchMaxCount/2)
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
-	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
+	prod.batchTimeout = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
 	prod.bufferSizeByte = conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10 // 1 MB
 
 	prod.acknowledge = tstrings.Unescape(conf.GetString("Acknowledge", ""))
@@ -129,7 +129,7 @@ func (prod *Socket) tryConnect() bool {
 
 	conn, err := net.DialTimeout(prod.protocol, prod.address, prod.ackTimeout)
 	if err != nil {
-		prod.Log.Error.Print("Socket connection error - ", err)
+		prod.Log.Error.Print("Connection error: ", err)
 		prod.closeConnection()
 		return false // ### return, connection failed ###
 	}
@@ -163,7 +163,7 @@ func (prod *Socket) validate() bool {
 	prod.connection.SetReadDeadline(time.Now().Add(prod.ackTimeout))
 	_, err := prod.connection.Read(response)
 	if err != nil {
-		prod.Log.Error.Print("Socket response error - ", err)
+		prod.Log.Error.Print("Response error: ", err)
 		if tnet.IsDisconnectedError(err) {
 			prod.closeConnection()
 		}
@@ -173,7 +173,7 @@ func (prod *Socket) validate() bool {
 }
 
 func (prod *Socket) onWriteError(err error) bool {
-	prod.Log.Error.Print("Socket write error - ", err)
+	prod.Log.Error.Print("Write error: ", err)
 	prod.closeConnection()
 	return false
 }

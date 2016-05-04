@@ -44,7 +44,7 @@ import (
 // IdentifierDataFormatter defines the formatter for the data that is used to
 // build the identifier from. By default this is set to "format.Forward"
 type Identifier struct {
-	core.FormatterBase
+	core.SimpleFormatter
 	hash func(*core.Message) []byte
 }
 
@@ -54,9 +54,9 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Identifier) Configure(conf core.PluginConfigReader) error {
-	format.FormatterBase.Configure(conf)
+	format.SimpleFormatter.Configure(conf)
 
-	idType := strings.ToLower(conf.GetString("Type", "time"))
+	idType := strings.ToLower(conf.GetString("Use", "time"))
 
 	switch idType {
 	case "hash":

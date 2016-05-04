@@ -89,7 +89,7 @@ func (state *fileState) compressAndCloseLog(sourceFile *os.File) {
 
 	targetFile, err := os.OpenFile(targetFileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
-		state.log.Error.Print("File compress error:", err)
+		state.log.Error.Print("Compress error:", err)
 		sourceFile.Close()
 		return
 	}

@@ -118,8 +118,8 @@ func (prod *Kinesis) Configure(conf core.PluginConfigReader) error {
 	prod.SetStopCallback(prod.close)
 
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "default")
-	prod.batch = core.NewMessageBatch(conf.GetInt("BatchMaxMessages", 500))
-	prod.flushFrequency = time.Duration(conf.GetInt("BatchTimeoutSec", 3)) * time.Second
+	prod.batch = core.NewMessageBatch(conf.GetInt("Batch/MaxMessages", 500))
+	prod.flushFrequency = time.Duration(conf.GetInt("Batch/TimeoutSec", 3)) * time.Second
 	prod.sendTimeLimit = time.Duration(conf.GetInt("SendTimeframeMs", 1000)) * time.Millisecond
 	prod.lastSendTime = time.Now()
 	prod.counters = make(map[string]*int64)
@@ -136,27 +136,27 @@ func (prod *Kinesis) Configure(conf core.PluginConfigReader) error {
 	}
 
 	// Credentials
-	credentialType := strings.ToLower(conf.GetString("CredentialType", kinesisCredentialNone))
+	credentialType := strings.ToLower(conf.GetString("Credential/Type", kinesisCredentialNone))
 	switch credentialType {
 	case kinesisCredentialEnv:
 		prod.config.WithCredentials(credentials.NewEnvCredentials())
 
 	case kinesisCredentialStatic:
-		id := conf.GetString("CredentialId", "")
-		token := conf.GetString("CredentialToken", "")
-		secret := conf.GetString("CredentialSecret", "")
+		id := conf.GetString("Credential/Id", "")
+		token := conf.GetString("Credential/Token", "")
+		secret := conf.GetString("Credential/Secret", "")
 		prod.config.WithCredentials(credentials.NewStaticCredentials(id, secret, token))
 
 	case kinesisCredentialShared:
-		filename := conf.GetString("CredentialFile", "")
-		profile := conf.GetString("CredentialProfile", "")
+		filename := conf.GetString("Credential/File", "")
+		profile := conf.GetString("Credential/Profile", "")
 		prod.config.WithCredentials(credentials.NewSharedCredentials(filename, profile))
 
 	case kinesisCredentialNone:
 		// Nothing
 
 	default:
-		return fmt.Errorf("Unknown CredentialType: %s", credentialType)
+		return fmt.Errorf("Unknown credential type: %s", credentialType)
 	}
 
 	for _, streamName := range prod.streamMap {
@@ -245,7 +245,7 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 
 		if err != nil {
 			// Batch failed, drop all
-			prod.Log.Error.Print("Kinesis write error: ", err)
+			prod.Log.Error.Print("Write error: ", err)
 			for _, msg := range records.original {
 				prod.Drop(msg)
 			}
@@ -253,7 +253,7 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 			// Check each message for errors
 			for msgIdx, record := range result.Records {
 				if record.ErrorMessage != nil {
-					prod.Log.Error.Print("Kinesis message write error: ", *record.ErrorMessage)
+					prod.Log.Error.Print("Message write error: ", *record.ErrorMessage)
 					prod.Drop(records.original[msgIdx])
 				} else {
 					streamName := prod.streamMap[records.original[msgIdx].StreamID()]

@@ -35,7 +35,7 @@ import (
 // CollectdToInfluxFormatter defines the formatter applied before the conversion
 // from Collectd to InfluxDB. By default this is set to format.Forward.
 type CollectdToInflux10 struct {
-	core.FormatterBase
+	core.SimpleFormatter
 	tagString    *strings.Replacer
 	stringString *strings.Replacer
 }
@@ -46,7 +46,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *CollectdToInflux10) Configure(conf core.PluginConfigReader) error {
-	format.FormatterBase.Configure(conf)
+	format.SimpleFormatter.Configure(conf)
 
 	format.tagString = strings.NewReplacer(",", "\\,", " ", "\\ ")
 	format.stringString = strings.NewReplacer("\"", "\\\"")

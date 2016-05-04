@@ -167,7 +167,7 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 
 	cons.config.Consumer.Fetch.Min = int32(conf.GetInt("MinFetchSizeByte", 1))
 	cons.config.Consumer.Fetch.Max = int32(conf.GetInt("MaxFetchSizeByte", 0))
-	cons.config.Consumer.Fetch.Default = int32(conf.GetInt("MaxFetchSizeByte", 32768))
+	cons.config.Consumer.Fetch.Default = cons.config.Consumer.Fetch.Max
 	cons.config.Consumer.MaxWaitTime = time.Duration(conf.GetInt("FetchTimeoutMs", 250)) * time.Millisecond
 
 	offsetValue := strings.ToLower(conf.GetString("DefaultOffset", kafkaOffsetNewest))

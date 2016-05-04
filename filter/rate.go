@@ -43,7 +43,7 @@ import (
 // rate limiting. This is usefull for e.g. producers listeing to "*".
 // By default this list is empty.
 type Rate struct {
-	core.FilterBase
+	core.SimpleFilter
 	stateGuard *sync.RWMutex
 	state      map[core.MessageStreamID]*rateState
 	rateLimit  int64
@@ -61,7 +61,7 @@ func init() {
 
 // Configure initializes this filter with values from a plugin config.
 func (filter *Rate) Configure(conf core.PluginConfigReader) error {
-	filter.FilterBase.Configure(conf)
+	filter.SimpleFilter.Configure(conf)
 	filter.rateLimit = int64(conf.GetInt("MessagesPerSec", 100))
 	filter.stateGuard = new(sync.RWMutex)
 	filter.state = make(map[core.MessageStreamID]*rateState)

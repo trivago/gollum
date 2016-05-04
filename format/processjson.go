@@ -58,7 +58,7 @@ import (
 // ProcessJSONTrimValues will trim whitspaces from all values if enabled.
 // Enabled by default.
 type ProcessJSON struct {
-	core.FormatterBase
+	core.SimpleFormatter
 	directives []transformDirective
 	trimValues bool
 }
@@ -77,9 +77,9 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *ProcessJSON) Configure(conf core.PluginConfigReader) error {
-	format.FormatterBase.Configure(conf)
+	format.SimpleFormatter.Configure(conf)
 
-	format.trimValues = conf.GetBool("TrimValues", true)
+	format.trimValues = conf.GetBool("Trim", true)
 	directives := conf.GetStringArray("Directives", []string{})
 
 	if len(directives) > 0 {

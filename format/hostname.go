@@ -34,7 +34,7 @@ import (
 // HostnameSeparator sets the separator character placed after the hostname.
 // This is set to " " by default.
 type Hostname struct {
-	core.FormatterBase
+	core.SimpleFormatter
 	separator []byte
 }
 
@@ -44,7 +44,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Hostname) Configure(conf core.PluginConfigReader) error {
-	format.FormatterBase.Configure(conf)
+	format.SimpleFormatter.Configure(conf)
 
 	format.separator = []byte(conf.GetString("Separator", ":"))
 	return conf.Errors.OrNil()

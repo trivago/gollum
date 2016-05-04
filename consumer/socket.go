@@ -230,7 +230,7 @@ func (cons *Socket) processConnection(conn net.Conn) {
 			continue // ### return, ignore timeouts ###
 		}
 
-		cons.Log.Error.Print("Socket transfer failed: ", err)
+		cons.Log.Error.Print("Transfer failed: ", err)
 		cons.sendAck(conn, false)
 
 		// Parser errors do not drop the connection
@@ -265,7 +265,7 @@ func (cons *Socket) udpAccept() {
 			if listener, err := net.ListenUDP(cons.protocol, addr); err == nil {
 				cons.listen = listener
 			} else {
-				cons.Log.Error.Print("Socket connection error: ", err)
+				cons.Log.Error.Print("Connection error: ", err)
 				time.Sleep(cons.reconnectTime)
 			}
 		}
@@ -294,7 +294,7 @@ func (cons *Socket) tcpAccept() {
 			if err == nil {
 				cons.listen = listener
 			} else {
-				cons.Log.Error.Print("Socket connection error: ", err)
+				cons.Log.Error.Print("Connection error: ", err)
 
 				// Clear socket if necessary
 				if cons.protocol == "unix" && cons.clearSocket {
@@ -325,7 +325,7 @@ func (cons *Socket) tcpAccept() {
 		if client, err := listener.Accept(); err != nil {
 			// Trigger full reconnect (suppress errors during shutdown)
 			if cons.IsActive() {
-				cons.Log.Error.Print("Socket accept failed: ", err)
+				cons.Log.Error.Print("Accept failed: ", err)
 			}
 			cons.closeTCPConnection()
 		} else {

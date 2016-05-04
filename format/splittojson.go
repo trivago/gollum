@@ -47,7 +47,7 @@ import (
 // applied to the resulting token array by index.
 // This list is empty by default.
 type SplitToJSON struct {
-	core.FormatterBase
+	core.SimpleFormatter
 	token []byte
 	keys  []string
 }
@@ -58,7 +58,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *SplitToJSON) Configure(conf core.PluginConfigReader) error {
-	format.FormatterBase.Configure(conf)
+	format.SimpleFormatter.Configure(conf)
 
 	format.token = []byte(conf.GetString("SplitBy", "|"))
 	format.keys = conf.GetStringArray("Keys", []string{})

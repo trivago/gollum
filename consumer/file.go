@@ -208,7 +208,7 @@ func (cons *File) read() {
 			switch {
 			case err != nil:
 				if printFileOpenError {
-					cons.Log.Warning.Print("File open failed - ", err)
+					cons.Log.Warning.Print("Open failed: ", err)
 					printFileOpenError = false
 				}
 				time.Sleep(3 * time.Second)
@@ -232,21 +232,21 @@ func (cons *File) read() {
 
 			case err == io.EOF:
 				if cons.file.Name() != cons.realFileName() {
-					cons.Log.Note.Print("File rotation detected")
+					cons.Log.Note.Print("Rotation detected")
 					cons.onRoll()
 				} else {
 					newStat, newStatErr := os.Stat(cons.realFileName())
 					oldStat, oldStatErr := cons.file.Stat()
 
 					if newStatErr == nil && oldStatErr == nil && !os.SameFile(newStat, oldStat) {
-						cons.Log.Note.Print("File rotation detected")
+						cons.Log.Note.Print("Rotation detected")
 						cons.onRoll()
 					}
 				}
 				spin.Yield()
 
 			case cons.state == fileStateRead:
-				cons.Log.Error.Print("Error reading file - ", err)
+				cons.Log.Error.Print("Reading failed: ", err)
 				cons.file.Close()
 				cons.file = nil
 			}

@@ -110,7 +110,7 @@ func (cons *Http) requestHandler(resp http.ResponseWriter, req *http.Request) {
 		requestBuffer := bytes.NewBuffer(nil)
 		if err := req.Write(requestBuffer); err != nil {
 			resp.WriteHeader(http.StatusBadRequest)
-			cons.Log.Error.Print("HttpRequest: ", err.Error())
+			cons.Log.Error.Print(err)
 			return // ### return, missing body or bad write ###
 		}
 
@@ -127,7 +127,7 @@ func (cons *Http) requestHandler(resp http.ResponseWriter, req *http.Request) {
 		length, err := req.Body.Read(body)
 		if err != nil && err != io.EOF {
 			resp.WriteHeader(http.StatusBadRequest)
-			cons.Log.Error.Print("HttpRequest: ", err.Error())
+			cons.Log.Error.Print(err)
 			return // ### return, missing body or bad write ###
 		}
 
@@ -148,7 +148,7 @@ func (cons *Http) serve() {
 
 	err := srv.Serve(cons.listen)
 	if _, isStopRequest := err.(tnet.StopRequestError); err != nil && !isStopRequest {
-		cons.Log.Error.Print("httpd: ", err)
+		cons.Log.Error.Print(err)
 	}
 }
 
@@ -156,7 +156,7 @@ func (cons *Http) serve() {
 func (cons Http) Consume(workers *sync.WaitGroup) {
 	listen, err := tnet.NewStopListener(cons.address)
 	if err != nil {
-		cons.Log.Error.Print("Http: ", err)
+		cons.Log.Error.Print(err)
 		return // ### return, could not connect ###
 	}
 

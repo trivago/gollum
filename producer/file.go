@@ -156,10 +156,10 @@ func (prod *File) Configure(conf core.PluginConfigReader) error {
 
 	prod.filesByStream = make(map[core.MessageStreamID]*fileState)
 	prod.files = make(map[string]*fileState)
-	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 8192)
-	prod.batchFlushCount = conf.GetInt("BatchFlushCount", prod.batchMaxCount/2)
+	prod.batchMaxCount = conf.GetInt("Batch/MaxCount", 8192)
+	prod.batchFlushCount = conf.GetInt("Batch/FlushCount", prod.batchMaxCount/2)
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
-	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
+	prod.batchTimeout = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
 	prod.overwriteFile = conf.GetBool("FileOverwrite", false)
 
 	fileFlags, err := strconv.ParseInt(conf.GetString("Permissions", "0664"), 8, 32)
@@ -357,7 +357,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 func (prod *File) rotateLog() {
 	for streamID := range prod.filesByStream {
 		if _, err := prod.getFileState(streamID, true); err != nil {
-			prod.Log.Error.Print("File rotate error: ", err)
+			prod.Log.Error.Print("Rotate error: ", err)
 		}
 	}
 }
@@ -375,7 +375,7 @@ func (prod *File) writeMessage(msg *core.Message) {
 	prod.BufferedProducer.Format(&streamMsg)
 	state, err := prod.getFileState(streamMsg.StreamID(), false)
 	if err != nil {
-		prod.Log.Error.Print("File log error: ", err)
+		prod.Log.Error.Print("Write error: ", err)
 		prod.Drop(msg)
 		return // ### return, dropped ###
 	}

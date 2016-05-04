@@ -96,7 +96,7 @@ const (
 // A key write inside an array will cause the array to be closed. If the array
 // is nested, all arrays will be closed.
 type TextToJSON struct {
-	core.FormatterBase
+	core.SimpleFormatter
 	message   *bytes.Buffer
 	parser    tstrings.TransitionParser
 	state     jsonReaderState
@@ -113,7 +113,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *TextToJSON) Configure(conf core.PluginConfigReader) error {
-	format.FormatterBase.Configure(conf)
+	format.SimpleFormatter.Configure(conf)
 
 	format.parser = tstrings.NewTransitionParser()
 	format.state = jsonReadObject

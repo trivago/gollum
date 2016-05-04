@@ -115,7 +115,7 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) error {
 	prod.SetCheckFuseCallback(prod.isClusterUp)
 
 	defaultServer := []string{"localhost"}
-	numConnections := conf.GetInt("Connections", 6)
+	numConnections := conf.GetInt("NumConnections", 6)
 	retrySec := conf.GetInt("RetrySec", 5)
 
 	prod.conn = elastigo.NewConn()
@@ -127,17 +127,17 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) error {
 	prod.conn.Password = conf.GetString("Password", "")
 
 	prod.indexer = prod.conn.NewBulkIndexerErrors(numConnections, retrySec)
-	prod.indexer.BufferDelayMax = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
-	prod.indexer.BulkMaxBuffer = conf.GetInt("BatchSizeByte", 32768)
-	prod.indexer.BulkMaxDocs = conf.GetInt("BatchMaxCount", 128)
+	prod.indexer.BufferDelayMax = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
+	prod.indexer.BulkMaxBuffer = conf.GetInt("Batch/SizeByte", 32768)
+	prod.indexer.BulkMaxDocs = conf.GetInt("Batch/MaxCount", 128)
 
 	prod.indexer.Sender = func(buf *bytes.Buffer) error {
 		_, err := prod.conn.DoCommand("POST", "/_bulk", nil, buf)
 		return err
 	}
 
-	prod.index = conf.GetStreamMap("Index", "")
-	prod.msgType = conf.GetStreamMap("Type", "log")
+	prod.index = conf.GetStreamMap("Indexes", "")
+	prod.msgType = conf.GetStreamMap("Types", "log")
 	prod.msgTTL = conf.GetString("TTL", "")
 	prod.dayBasedIndex = conf.GetBool("DayBasedIndex", false)
 
@@ -190,7 +190,7 @@ func (prod *ElasticSearch) sendMessage(msg *core.Message) {
 	timestamp := msg.Created()
 	err := prod.indexer.Index(index, msgType, "", "", prod.msgTTL, &timestamp, msg.String())
 	if err != nil {
-		prod.Log.Error.Print("ElasticSearch index error - ", err)
+		prod.Log.Error.Print("Index error - ", err)
 		if !prod.isClusterUp() {
 			prod.Control() <- core.PluginControlFuseBurn
 		}

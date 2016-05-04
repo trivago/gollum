@@ -36,7 +36,7 @@ import (
 // the message payload. If the expression matches, the message is blocked.
 // FilterExpressionNot is evaluated before FilterExpression.
 type RegExp struct {
-	core.FilterBase
+	core.SimpleFilter
 	exp    *regexp.Regexp
 	expNot *regexp.Regexp
 }
@@ -48,7 +48,7 @@ func init() {
 // Configure initializes this filter with values from a plugin config.
 func (filter *RegExp) Configure(conf core.PluginConfigReader) error {
 	var err error
-	filter.FilterBase.Configure(conf)
+	filter.SimpleFilter.Configure(conf)
 
 	exp := conf.GetString("Expression", "")
 	if exp != "" {

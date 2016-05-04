@@ -37,7 +37,7 @@ import (
 // LeftStreamID uses the stream name result of the left side as the
 // streamID of this formatter. Set to false by default.
 type Double struct {
-	core.FormatterBase
+	core.SimpleFormatter
 	separator    []byte
 	leftStreamID bool
 	left         []core.Formatter
@@ -50,7 +50,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Double) Configure(conf core.PluginConfigReader) error {
-	format.FormatterBase.Configure(conf)
+	format.SimpleFormatter.Configure(conf)
 
 	leftPlugins, err := conf.WithError.GetPluginArray("Left", []core.Plugin{})
 	if !conf.Errors.Push(err) {
@@ -75,7 +75,7 @@ func (format *Double) Configure(conf core.PluginConfigReader) error {
 	}
 
 	format.separator = []byte(conf.GetString("Separator", ":"))
-	format.leftStreamID = conf.GetBool("LeftStreamID", false)
+	format.leftStreamID = conf.GetBool("UseLeftStreamID", false)
 	return conf.Errors.OrNil()
 }
 

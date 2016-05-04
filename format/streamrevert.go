@@ -32,7 +32,7 @@ import (
 // This formatter is applied to the data after StreamRevertDelimiter.
 // By default this is set to "format.Forward"
 type StreamRevert struct {
-	core.FormatterBase
+	core.SimpleFormatter
 	delimiter []byte
 }
 
@@ -42,7 +42,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *StreamRevert) Configure(conf core.PluginConfigReader) error {
-	return format.FormatterBase.Configure(conf)
+	return format.SimpleFormatter.Configure(conf)
 }
 
 // Format adds prefix and postfix to the message formatted by the base formatter

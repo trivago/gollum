@@ -45,7 +45,7 @@ import (
 // given regular expression does not match.
 // Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
 type JSON struct {
-	core.FilterBase
+	core.SimpleFilter
 	rejectValues map[string]*regexp.Regexp
 	acceptValues map[string]*regexp.Regexp
 }
@@ -56,7 +56,7 @@ func init() {
 
 // Configure initializes this filter with values from a plugin config.
 func (filter *JSON) Configure(conf core.PluginConfigReader) error {
-	filter.FilterBase.Configure(conf)
+	filter.SimpleFilter.Configure(conf)
 
 	rejectValues := conf.GetStringMap("Reject", make(map[string]string))
 	acceptValues := conf.GetStringMap("Accept", make(map[string]string))

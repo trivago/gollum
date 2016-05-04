@@ -138,27 +138,27 @@ func (cons *Kinesis) Configure(conf core.PluginConfigReader) error {
 	}
 
 	// Credentials
-	credentialType := strings.ToLower(conf.GetString("CredentialType", kinesisCredentialNone))
+	credentialType := strings.ToLower(conf.GetString("Credential/Type", kinesisCredentialNone))
 	switch credentialType {
 	case kinesisCredentialEnv:
 		cons.config.WithCredentials(credentials.NewEnvCredentials())
 
 	case kinesisCredentialStatic:
-		id := conf.GetString("CredentialId", "")
-		token := conf.GetString("CredentialToken", "")
-		secret := conf.GetString("CredentialSecret", "")
+		id := conf.GetString("Credentia/lId", "")
+		token := conf.GetString("Credential/Token", "")
+		secret := conf.GetString("Credential/Secret", "")
 		cons.config.WithCredentials(credentials.NewStaticCredentials(id, secret, token))
 
 	case kinesisCredentialShared:
-		filename := conf.GetString("CredentialFile", "")
-		profile := conf.GetString("CredentialProfile", "")
+		filename := conf.GetString("Credential/File", "")
+		profile := conf.GetString("Credential/Profile", "")
 		cons.config.WithCredentials(credentials.NewSharedCredentials(filename, profile))
 
 	case kinesisCredentialNone:
 		// Nothing
 
 	default:
-		return fmt.Errorf("Unknwon CredentialType: %s", credentialType)
+		return fmt.Errorf("Unknown credential type: %s", credentialType)
 	}
 
 	// Offset
@@ -283,7 +283,7 @@ func (cons *Kinesis) connect() error {
 	}
 
 	for shardID := range cons.offsets {
-		cons.Log.Debug.Printf("Starting kinesis consumer for %s:%s", cons.stream, shardID)
+		cons.Log.Debug.Printf("Starting consumer for %s:%s", cons.stream, shardID)
 		go cons.processShard(shardID)
 	}
 	return nil
@@ -300,7 +300,7 @@ func (cons *Kinesis) Consume(workers *sync.WaitGroup) {
 	defer cons.close()
 
 	if err := cons.connect(); err != nil {
-		cons.Log.Error.Print("Kinesis connection error: ", err)
+		cons.Log.Error.Print("Connection error: ", err)
 	} else {
 		cons.ControlLoop()
 	}

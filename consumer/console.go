@@ -16,6 +16,7 @@ package consumer
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"io"
 	"os"
@@ -63,16 +64,14 @@ func (cons *Console) readStdIn() {
 		switch err {
 		case io.EOF:
 			if cons.autoexit {
-				// TODO: Hack
-				cons.Log.Debug.Print("Console triggered exit.")
-				proc, _ := os.FindProcess(os.Getpid())
-				proc.Signal(os.Interrupt)
+				cons.Log.Note.Print("Exit triggered by EOF.")
+				tgo.ShutdownCallback()
 			}
 
 		case nil:
 			// ignore
 		default:
-			cons.Log.Error.Print("Error reading stdin: ", err)
+			cons.Log.Error.Print(err)
 		}
 	}
 }

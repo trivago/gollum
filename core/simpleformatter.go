@@ -18,19 +18,18 @@ import (
 	"github.com/trivago/tgo/tlog"
 )
 
-// Filter allows custom message filtering for BufferedProducer derived plugins.
-// Producers not deriving from BufferedProducer might utilize this one, too.
-type Filter interface {
-	// Accepts returns true if this filter validated the given message (pass)
-	Accepts(msg *Message) bool
-
-	// SetLogScope sets the log scope to be used for this filter
-	SetLogScope(log tlog.LogScope)
-
-	// Drop sends the given message to the stream configured with this filter.
-	// This method is called by the framework after Accepts failed.
-	Drop(msg *Message)
+// SimpleFormatter defines the standard formatter implementation.
+type SimpleFormatter struct {
+	Log tlog.LogScope
 }
 
-// FilterFunc is the function signature type used by all filter functions.
-type FilterFunc func(msg *Message) bool
+// SetLogScope sets the log scope to be used for this formatter
+func (format *SimpleFormatter) SetLogScope(log tlog.LogScope) {
+	format.Log = log
+}
+
+// Configure sets up all values requred by SimpleFormatter.
+func (format *SimpleFormatter) Configure(conf PluginConfigReader) error {
+	format.Log = conf.GetSubLogScope("Formatter")
+	return nil
+}

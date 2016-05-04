@@ -35,7 +35,7 @@ import (
 // RunlengthDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Runlength struct {
-	core.FormatterBase
+	core.SimpleFormatter
 	separator []byte
 }
 
@@ -45,7 +45,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Runlength) Configure(conf core.PluginConfigReader) error {
-	format.FormatterBase.Configure(conf)
+	format.SimpleFormatter.Configure(conf)
 
 	format.separator = []byte(conf.GetString("Separator", ":"))
 	return conf.Errors.OrNil()

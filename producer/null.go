@@ -36,8 +36,7 @@ func init() {
 
 // Configure initializes the basic members
 func (prod *Null) Configure(conf core.PluginConfigReader) error {
-	prod.SimpleProducer.Configure(conf)
-	return conf.Errors.OrNil()
+	return prod.SimpleProducer.Configure(conf)
 }
 
 // Enqueue simply ignores the message

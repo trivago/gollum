@@ -39,7 +39,7 @@ import (
 // that are not in this list are blocked unless the list is empty. By default
 // this list is empty.
 type Stream struct {
-	core.FilterBase
+	core.SimpleFilter
 	blacklist []core.MessageStreamID
 	whitelist []core.MessageStreamID
 }
@@ -50,7 +50,7 @@ func init() {
 
 // Configure initializes this filter with values from a plugin config.
 func (filter *Stream) Configure(conf core.PluginConfigReader) error {
-	filter.FilterBase.Configure(conf)
+	filter.SimpleFilter.Configure(conf)
 
 	filter.blacklist = conf.GetStreamArray("Block", []core.MessageStreamID{})
 	filter.whitelist = conf.GetStreamArray("Only", []core.MessageStreamID{})

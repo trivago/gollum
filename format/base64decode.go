@@ -36,7 +36,7 @@ import (
 // Base64DataFormatter defines a formatter that is applied before the base64
 // decoding takes place. By default this is set to "format.Forward"
 type Base64Decode struct {
-	core.FormatterBase
+	core.SimpleFormatter
 	dictionary *base64.Encoding
 }
 
@@ -46,7 +46,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Base64Decode) Configure(conf core.PluginConfigReader) error {
-	format.FormatterBase.Configure(conf)
+	format.SimpleFormatter.Configure(conf)
 
 	dict := conf.GetString("Dictionary", "")
 	if dict == "" {

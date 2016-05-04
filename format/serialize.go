@@ -33,7 +33,7 @@ import (
 // SerializeStringEncode causes the serialized data to be base64 encoded and
 // newline separated. This is enabled by default.
 type Serialize struct {
-	core.FormatterBase
+	core.SimpleFormatter
 }
 
 func init() {
@@ -42,7 +42,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Serialize) Configure(conf core.PluginConfigReader) error {
-	return format.FormatterBase.Configure(conf)
+	return format.SimpleFormatter.Configure(conf)
 }
 
 // Format prepends the sequence number of the message (followed by ":") to the

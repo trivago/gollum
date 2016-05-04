@@ -65,7 +65,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) error {
 	switch cons.protocol {
 	case "udp", "tcp", "unix":
 	default:
-		conf.Errors.Pushf("Syslog: unknown protocol type %s", cons.protocol) // ### return, unknown protocol ###
+		conf.Errors.Pushf("nknown protocol type %s", cons.protocol) // ### return, unknown protocol ###
 	}
 
 	switch format {
@@ -73,7 +73,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) error {
 	case "RFC3164":
 		cons.format = syslog.RFC3164
 		if cons.protocol == "tcp" {
-			cons.Log.Warning.Print("Syslog: RFC3164 demands UDP")
+			cons.Log.Warning.Print("RFC3164 demands UDP")
 			cons.protocol = "udp"
 		}
 
@@ -81,7 +81,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) error {
 	case "RFC5424":
 		cons.format = syslog.RFC5424
 		if cons.protocol == "tcp" {
-			cons.Log.Warning.Print("Syslog: RFC5424 demands UDP")
+			cons.Log.Warning.Print("RFC5424 demands UDP")
 			cons.protocol = "udp"
 		}
 
@@ -90,7 +90,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) error {
 		cons.format = syslog.RFC6587
 
 	default:
-		conf.Errors.Pushf("Syslog: Format %s is not supported", format)
+		conf.Errors.Pushf("Format %s is not supported", format)
 	}
 
 	return conf.Errors.OrNil()
@@ -114,15 +114,15 @@ func (cons *Syslogd) Consume(workers *sync.WaitGroup) {
 	switch cons.protocol {
 	case "unix":
 		if err := server.ListenUnixgram(cons.address); err != nil {
-			cons.Log.Error.Print("Syslog: Failed to open unix://", cons.address)
+			cons.Log.Error.Print("Failed to open unix://", cons.address)
 		}
 	case "udp":
 		if err := server.ListenUDP(cons.address); err != nil {
-			cons.Log.Error.Print("Syslog: Failed to open udp://", cons.address)
+			cons.Log.Error.Print("Failed to open udp://", cons.address)
 		}
 	case "tcp":
 		if err := server.ListenTCP(cons.address); err != nil {
-			cons.Log.Error.Print("Syslog: Failed to open tcp://", cons.address)
+			cons.Log.Error.Print("Failed to open tcp://", cons.address)
 		}
 	}
 

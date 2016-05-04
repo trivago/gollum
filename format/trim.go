@@ -30,7 +30,7 @@ import (
 //          LeftOffset: 0
 //          RightOffset: 0
 type Trim struct {
-	core.FormatterBase
+	core.SimpleFormatter
 	leftSeparator  []byte
 	rightSeparator []byte
 	leftOffset     int
@@ -43,7 +43,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Trim) Configure(conf core.PluginConfigReader) error {
-	format.FormatterBase.Configure(conf)
+	format.SimpleFormatter.Configure(conf)
 
 	format.leftSeparator = []byte(conf.GetString("LeftSeparator", ""))
 	format.rightSeparator = []byte(conf.GetString("RightSeparator", ""))

@@ -38,7 +38,7 @@ import (
 // StreamNameSeparator sets the separator character placed after the stream name.
 // This is set to " " by default.
 type StreamName struct {
-	core.FormatterBase
+	core.SimpleFormatter
 	separator   []byte
 	usePrevious bool
 }
@@ -49,7 +49,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *StreamName) Configure(conf core.PluginConfigReader) error {
-	format.FormatterBase.Configure(conf)
+	format.SimpleFormatter.Configure(conf)
 
 	format.separator = []byte(conf.GetString("Separator", ":"))
 	format.usePrevious = conf.GetBool("UseHistory", false)

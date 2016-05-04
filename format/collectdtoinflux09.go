@@ -34,7 +34,7 @@ import (
 // CollectdToInfluxFormatter defines the formatter applied before the conversion
 // from Collectd to InfluxDB. By default this is set to format.Forward.
 type CollectdToInflux09 struct {
-	core.FormatterBase
+	core.SimpleFormatter
 }
 
 func init() {
@@ -43,7 +43,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *CollectdToInflux09) Configure(conf core.PluginConfigReader) error {
-	return format.FormatterBase.Configure(conf)
+	return format.SimpleFormatter.Configure(conf)
 }
 
 // Format transforms collectd data to influx 0.9.x data
