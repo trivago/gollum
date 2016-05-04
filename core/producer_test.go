@@ -40,7 +40,7 @@ func getMockProducer() mockProducer {
 			dropStreamID:     2,
 			runState:         new(PluginRunState),
 			timeout:          500 * time.Millisecond,
-			filter:           &mockFilter{},
+			filters:          []Filter{&mockFilter{}},
 			format:           &mockFormatter{},
 			shutdownTimeout:  10 * time.Millisecond,
 			fuseName:         "test",
