@@ -51,6 +51,10 @@ type Rate struct {
 	dropStreamID core.MessageStreamID
 }
 
+const (
+	metricLimit = "Rate-"
+)
+
 type rateState struct {
 	lastReset time.Time
 	count     *int64
@@ -100,6 +104,7 @@ func (filter *Rate) Accepts(msg core.Message) bool {
 			lastReset: time.Now(),
 		}
 		filter.state[msg.StreamID] = state
+		shared.Metric.New(metricLimit + core.StreamRegistry.GetStreamName(msg.StreamID))
 		filter.stateGuard.Unlock()
 	}
 
@@ -112,8 +117,12 @@ func (filter *Rate) Accepts(msg core.Message) bool {
 	if time.Since(state.lastReset) > time.Second {
 		state.lastReset = time.Now()
 		numFiltered := atomic.SwapInt64(state.count, 0)
+
+		streamName := core.StreamRegistry.GetStreamName(msg.StreamID)
+		shared.Metric.Set(metricLimit+streamName, numFiltered)
+
 		if numFiltered > filter.rateLimit {
-			Log.Warning.Printf("Ratelimit reached for %s: %d msg/sec", core.StreamRegistry.GetStreamName(msg.StreamID), numFiltered)
+			Log.Warning.Printf("Ratelimit reached for %s: %d msg/sec", streamName, numFiltered)
 		}
 	}
 
