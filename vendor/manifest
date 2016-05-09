@@ -228,7 +228,7 @@
 		{
 			"importpath": "github.com/trivago/tgo",
 			"repository": "https://github.com/trivago/tgo",
-			"revision": "fcb5ea431f6cf04a88e5ced4d1f2b0242e306d33",
+			"revision": "7c85f1c57ea9c94b3be7afca36006ae97a2da379",
 			"branch": "master"
 		},
 		{

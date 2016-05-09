@@ -14,9 +14,58 @@
 
 package tcontainer
 
+// BytePool is a fragmentation friendly way to allocated byte slices.
+type BytePool struct {
+}
+
+const (
+	tiny   = 64
+	small  = 1024
+	medium = 1024 * 10
+	large  = 1024 * 100
+	huge   = 1024 * 1000
+)
+
+// NewBytePool creates a new BytePool
+func NewBytePool() BytePool {
+	return BytePool{}
+}
+
+// Get returns a slice allocated to a normalized size.
+// Sizes are organized in evenly sized buckets so that fragmentation is kept low.
+// Buckets are:
+//  * 0      - 960     bytes (64 byte steps)
+//  * 960    - 10240   bytes (1 kb steps)
+//  * 10240  - 102400  bytes (10 kb steps)
+//  * 102400 - 1024000 bytes (100 kb steps)
+func (b *BytePool) Get(size int) []byte {
+	switch {
+	case size == 0:
+		return []byte{}
+
+	case size <= small-tiny:
+		return make([]byte, size, ((size-1)/tiny+1)*tiny)
+
+	case size <= medium-small:
+		return make([]byte, size, ((size-1)/small+1)*small)
+
+	case size <= large-medium:
+		return make([]byte, size, ((size-1)/medium+1)*medium)
+
+	case size <= huge-large:
+		return make([]byte, size, ((size-1)/large+1)*large)
+
+	default:
+		return make([]byte, size)
+	}
+}
+
+/*
 import (
+	"reflect"
 	"runtime"
-	"sync"
+	"sync/atomic"
+	"unsafe"
 )
 
 // BytePool holds a set of byte buffers that are recycled after use.
@@ -31,63 +80,49 @@ type BytePool struct {
 	large  slabsList // 100KB to 1000KB
 }
 
-type chunk []byte
-type slab chan chunk
+type slab struct {
+	chunks []*uintptr
+	top    *int32
+	head   *int32
+	size   int
+}
+
 type slabsList struct {
-	slabs     []slab
-	chunkSize int
-	numChunks int
-	guard     *sync.Mutex
+	slabs []slab
+	unit  int
+	max   int
 }
 
 const (
 	// tinySlabUnit is the multiplicator for tiny slabs
-	tinyChunkSize = 64
+	tinySlabUnit = 64
 	// tinySlabCount is the number of tiny slabs
-	tinySlabCount = (smallChunkSize / tinyChunkSize) - 1
-	// tinySlabMax is the largest tiny slab available
-	tinyChunkMax = tinyChunkSize * tinySlabCount
+	tinySlabCount = (smallSlabUnit / tinySlabUnit) - 1
 
 	// smallSlabUnit is the multiplicator for small slabs
-	smallChunkSize = 1024
+	smallSlabUnit = 1024
 	// smallSlabCount is the number of small slabs
-	smallSlabCount = (mediumChunkSize / smallChunkSize) - 1
-	// smallSlabMax is the largest small slab available
-	smallChunkMax = smallChunkSize * smallSlabCount
+	smallSlabCount = (mediumSlabUnit / smallSlabUnit) - 1
 
 	// mediumSlabUnit is the multiplicator for medium slabs
-	mediumChunkSize = 1024 * 10
+	mediumSlabUnit = 1024 * 10
 	// mediumSlabCount is the number of medium slabs
-	mediumSlabCount = (largeChunkSize / mediumChunkSize) - 1
-	// mediumSlabMax is the largest medium slab available
-	mediumChunkMax = mediumChunkSize * mediumSlabCount
+	mediumSlabCount = (largeSlabUnit / mediumSlabUnit) - 1
 
 	// largeSlabUnit is the multiplicator for large slabs
-	largeChunkSize = 1024 * 100
+	largeSlabUnit = 1024 * 100
 	// largeSlabCount is the number of large slabs
 	largeSlabCount = 10
-	// largeSlabMax is the largest large slab available
-	largeChunkMax = largeChunkSize * largeSlabCount
 )
 
 // NewBytePool creates a new bytepool. This will call NewBytePoolWithSize
-// with 1000, 100, 100, 10.
+// with 10000, 1000, 100, 10.
 func NewBytePool() BytePool {
-	return NewBytePoolWithSize(1000, 100, 100, 10)
-}
-
-// NewBytePoolWithSize creates a new BytePool. You can define the maximum
-// number of chunks ([]byte) cached per storage size. Chunks wills always be
-// returned, even if the cache is empty. If there are more chunks "in flight"
-// than allowed, excess chunks will be garbage collected.
-// Storage sizes in bytes: tiny: 1-960, small: 1024-9216, medium: 10240-92160.
-// large: 102400-1024000. Each sorage size holds up to 10 slabs.
-func NewBytePoolWithSize(tinyChunkCount int, smallChunkCount int, mediumChunkCount int, largeChunkCount int) BytePool {
 	return BytePool{
-		tiny:   newSlabsList(tinySlabCount, tinyChunkCount, tinyChunkSize),
-		small:  newSlabsList(smallSlabCount, smallChunkCount, smallChunkSize),
-		medium: newSlabsList(mediumSlabCount, mediumChunkCount, mediumChunkSize),
-		large:  newSlabsList(largeSlabCount, largeChunkCount, largeChunkSize),
+		tiny:   newSlabsList(tinySlabCount, tinySlabUnit),
+		small:  newSlabsList(smallSlabCount, smallSlabUnit),
+		medium: newSlabsList(mediumSlabCount, mediumSlabUnit),
+		large:  newSlabsList(largeSlabCount, largeSlabUnit),
 	}
 }
 
@@ -95,86 +130,97 @@ func NewBytePoolWithSize(tinyChunkCount int, smallChunkCount int, mediumChunkCou
 // If possible this slice is coming from a pool. Slices are automatically
 // returned to the pool. No additional action is necessary.
 func (b *BytePool) Get(size int) []byte {
-	if size == 0 {
-		return []byte{}
-	}
-
-	slab := b.getSlab(size)
-	if slab == nil {
-		return make([]byte, size) // ### return, oversized ###
-	}
-
-	select {
-	case buffer := <-slab:
-		return buffer[:size] // ### return, cached ###
-
-	default:
-		return make([]byte, size) // ### return, empty pool ###
-	}
-}
-
-func newSlabsList(numSlabs int, numChunks int, chunkSize int) slabsList {
-	return slabsList{
-		slabs:     make([]slab, numSlabs),
-		chunkSize: chunkSize,
-		numChunks: numChunks,
-		guard:     new(sync.Mutex),
-	}
-}
-
-func (b *BytePool) getSlab(size int) slab {
 	switch {
+	case size == 0:
+		return []byte{}
 
-	case size <= tinyChunkMax:
-		return b.tiny.fetch(size, b)
+	case size <= b.tiny.max:
+		return b.tiny.alloc(size)
 
-	case size <= smallChunkMax:
-		return b.small.fetch(size, b)
+	case size <= b.small.max:
+		return b.small.alloc(size)
 
-	case size <= mediumChunkMax:
-		return b.medium.fetch(size, b)
+	case size <= b.medium.max:
+		return b.medium.alloc(size)
 
-	case size <= largeChunkMax:
-		return b.large.fetch(size, b)
+	case size <= b.large.max:
+		return b.large.alloc(size)
 
 	default:
-		return nil // ### return, too large ###
+		return make([]byte, size)
 	}
 }
 
-func (s *slabsList) fetch(size int, b *BytePool) slab {
-	slabIdx := size / (s.chunkSize + 1)
-	chunks := s.slabs[slabIdx]
+func newSlabsList(count int, unit int) slabsList {
+	slabs := make([]slab, count)
+	for i := range slabs {
+		slabs[i] = slab{
+			chunks: make([]*uintptr, 10),
+			top:    new(int32),
+			head:   new(int32),
+			size:   unit * (i + 1),
+		}
+		*slabs[i].top--
+		*slabs[i].head--
+	}
 
-	if chunks == nil {
-		// First initialization can be racey
-		s.guard.Lock()
-		defer s.guard.Unlock()
+	return slabsList{
+		slabs: slabs,
+		unit:  unit,
+		max:   unit * count,
+	}
+}
 
-		if chunks = s.slabs[slabIdx]; chunks == nil {
-			chunks = make(slab, s.numChunks)
-			chunkSize := (slabIdx + 1) * s.chunkSize
+func (s *slabsList) alloc(size int) []byte {
+	slabIdx := (size - 1) / s.unit
+	slab := s.slabs[slabIdx]
+	ptr := slab.pop()
 
-			// Prepopulate slab
-			for i := 0; i < s.numChunks; i++ {
-				buffer := make([]byte, chunkSize)
-				runtime.SetFinalizer(&buffer, b.put)
-				chunks <- buffer
+	header := reflect.SliceHeader{
+		Data: *ptr, // BROKEN: Finalizer is not moved
+		Len:  size,
+		Cap:  slab.size,
+	}
+
+	return *(*[]byte)(unsafe.Pointer(&header))
+}
+
+func (s *slab) push(p *uintptr) {
+	for {
+		top := atomic.LoadInt32(s.top)
+		if atomic.CompareAndSwapInt32(s.head, top, top+1) {
+			// Grow stack if necessary
+			if top+1 == int32(len(s.chunks)) {
+				old := s.chunks
+				s.chunks = make([]*uintptr, len(s.chunks)+10)
+				copy(s.chunks, old)
 			}
 
-			s.slabs[slabIdx] = chunks
+			// All chunks on the stack have to return here
+			runtime.SetFinalizer(p, s.push)
+			s.chunks[top+1] = p
+			atomic.AddInt32(s.top, 1)
+			return
 		}
 	}
-
-	return chunks
 }
 
-func (b *BytePool) put(buffer *[]byte) {
-	slab := b.getSlab(cap(*buffer))
-	select {
-	case slab <- *buffer:
-		runtime.SetFinalizer(buffer, b.put)
-	default:
-		// discard, pool is full
+func (s *slab) pop() *uintptr {
+	for {
+		top := atomic.LoadInt32(s.top)
+		if top < 0 {
+			b := make([]byte, s.size)
+			h := (*reflect.SliceHeader)(unsafe.Pointer(&b))
+			p := &h.Data
+			runtime.SetFinalizer(p, s.push)
+			return p // ### return, newly allocated ###
+		}
+
+		if atomic.CompareAndSwapInt32(s.head, top, top-1) {
+			p := s.chunks[top]
+			s.chunks[top] = nil
+			atomic.AddInt32(s.top, -1)
+			return p
+		}
 	}
-}
+}*/

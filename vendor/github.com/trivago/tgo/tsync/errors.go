@@ -31,3 +31,10 @@ type TimeoutError terrors.SimpleError
 func (err TimeoutError) Error() string {
 	return err.Error()
 }
+
+// LimitError is returned when a datastructure reached its limit
+type LimitError terrors.SimpleError
+
+func (err LimitError) Error() string {
+	return err.Error()
+}
