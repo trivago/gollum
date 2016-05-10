@@ -52,7 +52,7 @@ type Rate struct {
 }
 
 const (
-	metricLimit = "Rate-"
+	metricLimit = "RateLimited-"
 )
 
 type rateState struct {
@@ -117,12 +117,13 @@ func (filter *Rate) Accepts(msg core.Message) bool {
 	if time.Since(state.lastReset) > time.Second {
 		state.lastReset = time.Now()
 		numFiltered := atomic.SwapInt64(state.count, 0)
-
 		streamName := core.StreamRegistry.GetStreamName(msg.StreamID)
-		shared.Metric.Set(metricLimit+streamName, numFiltered)
 
 		if numFiltered > filter.rateLimit {
+			shared.Metric.Set(metricLimit+streamName, numFiltered-filter.rateLimit)
 			Log.Warning.Printf("Ratelimit reached for %s: %d msg/sec", streamName, numFiltered)
+		} else {
+			shared.Metric.Set(metricLimit+streamName, 0)
 		}
 	}
 
