@@ -63,7 +63,7 @@ Writing a custom plugin does not require you to change any additional code besid
 * `CollectdToInflux08` convert [CollectD](https://collectd.org) 0.8 data to [InfluxDB](https://influxdb.com) compatible values.
 * `CollectdToInflux09` convert [CollectD](https://collectd.org) 0.9 data to [InfluxDB](https://influxdb.com) compatible values.
 * `CollectdToInflux10` convert [CollectD](https://collectd.org) 0.10 data to [InfluxDB](https://influxdb.com) compatible values.
-* `ExtractJSON` extracts a single filed from a JSON object.
+* `ExtractJSON` extracts a single field from a JSON object.
 * `Envelope` add a prefix and/or postfix string to a message.
 * `Forward` write the message without modifying it.
 * `Hostname` prepend the current machine's hostname to a message.
