@@ -8,6 +8,8 @@ This is a patch / minor features release.
  * Fixed panic in producer.Kafka when shutting down
  * Fixed panic in producer.Redis when Formatter was not set
  * Fixed file offset handling in consumer.Kinesis (thanks @relud)
+ * Fixed a concurrent map write during initialization in native.KafkaProducer
+ * Fixed producer.Spooling being stuck for a long time during shutdown
 
 #### New
 
@@ -15,6 +17,7 @@ This is a patch / minor features release.
  * Added key Formatter support for producer.Redis
  * Added RateLimited- metrics for filter.Rate
  * Added format.Clear to remove message content (e.g. useful for key formatters)
+ * Added "KeyFormatterFirst" for producer.Kafka and native.KafkaProducer
 
 # 0.4.3
 
