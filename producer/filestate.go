@@ -61,6 +61,7 @@ func (state *fileState) flush() {
 }
 
 func (state *fileState) close() {
+	state.assembly.SetWriter(state.file)
 	state.batch.Close(state.assembly.Write, state.flushTimeout)
 	state.bgWriter.Wait()
 }

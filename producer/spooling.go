@@ -44,6 +44,7 @@ import (
 //    MessageSizeByte: 8192
 //    RespoolDelaySec: 10
 //    MaxMessagesSec: 100
+//    RevertStreamOnDrop: false
 //
 // Path sets the output directory for spooling files. Spooling files will
 // Files will be stored as "<path>/<stream>/<number>.spl". By default this is
@@ -75,6 +76,11 @@ import (
 // MaxMessagesSec sets the maximum number of messages that can be respooled per
 // second. By default this is set to 100. Setting this value to 0 will cause
 // respooling to work as fast as possible.
+//
+// RevertStreamOnDrop can be used to revert the message stream before dropping
+// the message. This can be useful if you e.g. want to write messages that
+// could not be spooled to stream separated files on disk. Set to false by
+// default.
 type Spooling struct {
 	core.ProducerBase
 	outfile         map[core.MessageStreamID]*spoolFile
@@ -88,6 +94,7 @@ type Spooling struct {
 	readDelay       time.Duration
 	batchMaxCount   int
 	bufferSizeByte  int
+	revertOnDrop    bool
 }
 
 const (
@@ -120,6 +127,7 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 	prod.RespoolDuration = time.Duration(conf.GetInt("RespoolDelaySec", 10)) * time.Second
 	prod.bufferSizeByte = conf.GetInt("BufferSizeByte", 8192)
 	prod.outfileGuard = new(sync.Mutex)
+	prod.revertOnDrop = conf.GetBool("RevertStreamOnDrop", false)
 
 	if maxMsgSec := time.Duration(conf.GetInt("MaxMessagesSec", 100)); maxMsgSec > 0 {
 		prod.readDelay = time.Second / maxMsgSec
@@ -159,6 +167,14 @@ func (prod *Spooling) writeBatchOnTimeOut() {
 		}
 		spool.openOrRotate()
 	}
+}
+
+// Drop reverts the message stream before dropping
+func (prod *Spooling) Drop(msg core.Message) {
+	if prod.revertOnDrop {
+		msg.StreamID = msg.PrevStreamID
+	}
+	prod.ProducerBase.Drop(msg)
 }
 
 func (prod *Spooling) writeToFile(msg core.Message) {
