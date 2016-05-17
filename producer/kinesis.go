@@ -204,16 +204,16 @@ func (prod *Kinesis) dropMessages(messages []core.Message) {
 }
 
 func (prod *Kinesis) transformMessages(messages []core.Message) {
-	streamRecords := make(map[core.MessageStreamID]*streamData)
+	streamBuffers := make(map[core.MessageStreamID][]*streamData)
 
 	// Format and sort
 	for idx, msg := range messages {
 		msgData, streamID := prod.ProducerBase.Format(msg)
 		messageHash := fmt.Sprintf("%X-%d", streamID, msg.Sequence)
 
-		// Fetch buffer for this stream
-		records, recordsExists := streamRecords[streamID]
-		if !recordsExists {
+		// Fetch buffers for this stream
+		buffers, buffersExists := streamBuffers[streamID]
+		if !buffersExists {
 			// Select the correct kinesis stream
 			streamName, streamMapped := prod.streamMap[streamID]
 			if !streamMapped {
@@ -226,24 +226,40 @@ func (prod *Kinesis) transformMessages(messages []core.Message) {
 			}
 
 			// Create buffers for this kinesis stream
-			records = &streamData{
+			buffers = make([]*streamData, 0, 1)
+			streamBuffers[streamID] = buffers
+		}
+
+		// Fetch current buffer for this stream
+		var buffer *streamData
+		bufferExists := len(buffers) > 0
+		if bufferExists {
+			buffer = buffers[len(buffers)-1]
+		}
+
+		// Create new buffer if none exists, or current buffer is full
+		if !bufferExists || len(buffer.content.Records) + 1 > prod.batch.Len() {
+            // Assuming streamName exists because it would have been created with buffers
+			streamName, _ := prod.streamMap[streamID]
+			buffer = &streamData{
 				content: &kinesis.PutRecordsInput{
 					Records:    make([]*kinesis.PutRecordsRequestEntry, 0, len(messages)),
 					StreamName: aws.String(streamName),
 				},
 				original: make([]*core.Message, 0, len(messages)),
 			}
-			streamRecords[streamID] = records
+			buffers = append(buffers, buffer)
+			streamBuffers[streamID] = buffers
 		}
 
-		// Append record to stream
+		// Append record to buffer
 		record := &kinesis.PutRecordsRequestEntry{
 			Data:         msgData,
 			PartitionKey: aws.String(messageHash),
 		}
 
-		records.content.Records = append(records.content.Records, record)
-		records.original = append(records.original, &messages[idx])
+		buffer.content.Records = append(buffer.content.Records, record)
+		buffer.original = append(buffer.original, &messages[idx])
 	}
 
 	sleepDuration := prod.sendTimeLimit - time.Since(prod.lastSendTime)
@@ -252,22 +268,24 @@ func (prod *Kinesis) transformMessages(messages []core.Message) {
 	}
 
 	// Send to Kinesis
-	for _, records := range streamRecords {
-		result, err := prod.client.PutRecords(records.content)
-		atomic.AddInt64(prod.counters[*records.content.StreamName], int64(len(records.content.Records)))
+	for _, buffers := range streamBuffers {
+		for _, buffer := range buffers {
+			result, err := prod.client.PutRecords(buffer.content)
+			atomic.AddInt64(prod.counters[*buffer.content.StreamName], int64(len(buffer.content.Records)))
 
-		if err != nil {
-			// Batch failed, drop all
-			Log.Error.Print("Kinesis write error: ", err)
-			for _, msg := range records.original {
-				prod.Drop(*msg)
-			}
-		} else {
-			// Check each message for errors
-			for msgIdx, record := range result.Records {
-				if record.ErrorMessage != nil {
-					Log.Error.Print("Kinesis message write error: ", *record.ErrorMessage)
-					prod.Drop(*records.original[msgIdx])
+			if err != nil {
+				// Batch failed, drop all
+				Log.Error.Print("Kinesis write error: ", err)
+				for _, msg := range buffer.original {
+					prod.Drop(*msg)
+				}
+			} else {
+				// Check each message for errors
+				for msgIdx, record := range result.Records {
+					if record.ErrorMessage != nil {
+						Log.Error.Print("Kinesis message write error: ", *record.ErrorMessage)
+						prod.Drop(*buffer.original[msgIdx])
+					}
 				}
 			}
 		}
