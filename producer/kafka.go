@@ -60,6 +60,8 @@ const (
 //    ElectRetries: 3
 //    ElectTimeoutMs: 250
 //    MetadataRefreshMs: 10000
+//    KeyFormatter: ""
+//    KeyFormatterFirst: false
 //    Servers:
 //    	- "localhost:9092"
 //    Topic:
@@ -73,6 +75,11 @@ const (
 // KeyFormatter can define a formatter that extracts the key for a kafka message
 // from the message payload. By default this is an empty string, which disables
 // this feature. A good formatter for this can be format.Identifier.
+//
+// KeyFormatterFirst can be set to true to apply the key formatter to the
+// unformatted message. By default this is set to false, so that key formatter
+// uses the message after Formatter has been applied.
+// KeyFormatter does never affect the payload of the message sent to kafka.
 //
 // RequiredAcks defines the acknowledgment level required by the broker.
 // 0 = No responses required. 1 = wait for the local commit. -1 = wait for
@@ -151,6 +158,7 @@ type Kafka struct {
 	lastMetricUpdate time.Time
 	gracePeriod      time.Duration
 	keyFormat        core.Formatter
+	keyFirst         bool
 }
 
 type topicHandle struct {
@@ -200,6 +208,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.topicGuard = new(sync.RWMutex)
 	prod.streamToTopic = conf.GetStreamMap("Topic", "")
 	prod.topic = make(map[core.MessageStreamID]*topicHandle)
+	prod.keyFirst = conf.GetBool("KeyFormatterFirst", false)
 
 	prod.config = kafka.NewConfig()
 	prod.config.ClientID = conf.GetString("ClientId", "gollum")
@@ -367,7 +376,12 @@ func (prod *Kafka) produceMessage(msg core.Message) {
 	}
 
 	if prod.keyFormat != nil {
-		key, _ := prod.keyFormat.Format(originalMsg)
+		var key []byte
+		if prod.keyFirst {
+			key, _ = prod.keyFormat.Format(originalMsg)
+		} else {
+			key, _ = prod.keyFormat.Format(msg)
+		}
 		kafkaMsg.Key = kafka.ByteEncoder(key)
 	}
 
