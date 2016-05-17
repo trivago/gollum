@@ -1,3 +1,21 @@
+# 0.4.4
+
+This is a patch / minor features release.
+
+#### Fixed
+ 
+ * Fixed producer.File RotatePruneAfterHours setting
+ * Fixed panic in producer.Kafka when shutting down
+ * Fixed panic in producer.Redis when Formatter was not set
+ * Fixed file offset handling in consumer.Kinesis (thanks @relud)
+
+#### New
+
+ * Added "remove" directive for format.ProcessJSON
+ * Added key Formatter support for producer.Redis
+ * Added RateLimited- metrics for filter.Rate
+ * Added format.Clear to remove message content (e.g. useful for key formatters)
+
 # 0.4.3
 
 This is a patch / minor features release.
