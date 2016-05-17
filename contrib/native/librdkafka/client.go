@@ -20,6 +20,7 @@ package librdkafka
 import "C"
 
 import (
+	"sync"
 	"time"
 )
 
@@ -29,7 +30,8 @@ type Client struct {
 }
 
 var (
-	clients = make(map[*C.rd_kafka_t]MessageDelivery)
+	clientGuard = new(sync.RWMutex)
+	clients     = make(map[*C.rd_kafka_t]MessageDelivery)
 )
 
 // NewProducer creates a new librdkafka client in producer mode.
@@ -47,7 +49,9 @@ func NewProducer(config Config, handler MessageDelivery) (*Client, error) {
 	}
 
 	if handler != nil {
+		clientGuard.Lock()
 		clients[client.handle] = handler
+		clientGuard.Unlock()
 	}
 
 	return &client, nil

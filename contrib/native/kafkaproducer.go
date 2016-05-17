@@ -103,8 +103,14 @@ import (
 // Topic defines a stream to topic mapping.
 // If a stream is not mapped a topic named like the stream is assumed.
 //
-// KeyFormatter defines the formatter used to extract keys from a message.
-// Set to "" by default (disable).
+// KeyFormatter can define a formatter that extracts the key for a kafka message
+// from the message payload. By default this is an empty string, which disables
+// this feature. A good formatter for this can be format.Identifier.
+//
+// KeyFormatterFirst can be set to true to apply the key formatter to the
+// unformatted message. By default this is set to false, so that key formatter
+// uses the message after Formatter has been applied.
+// KeyFormatter does never affect the payload of the message sent to kafka.
 type KafkaProducer struct {
 	core.ProducerBase
 	servers           []string
@@ -119,6 +125,7 @@ type KafkaProducer struct {
 	topic             map[core.MessageStreamID]*topicHandle
 	streamToTopic     map[core.MessageStreamID]string
 	topicGuard        *sync.RWMutex
+	keyFirst          bool
 }
 
 type messageWrapper struct {
@@ -192,6 +199,7 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfig) error {
 	prod.topicTimeoutMs = conf.GetInt("TimeoutMs", 1)
 	prod.topicGuard = new(sync.RWMutex)
 	prod.streamToTopic = conf.GetStreamMap("Topic", "default")
+	prod.keyFirst = conf.GetBool("KeyFormatterFirst", false)
 
 	batchIntervalMs := conf.GetInt("BatchTimeoutMs", 1000)
 	prod.pollInterval = time.Millisecond * time.Duration(batchIntervalMs)
@@ -282,7 +290,11 @@ func (prod *KafkaProducer) produceMessage(msg core.Message) {
 
 	var key []byte
 	if prod.keyFormat != nil {
-		key, _ = prod.keyFormat.Format(msg)
+		if prod.keyFirst {
+			key, _ = prod.keyFormat.Format(originalMsg)
+		} else {
+			key, _ = prod.keyFormat.Format(msg)
+		}
 	}
 
 	serializedOriginal, err := originalMsg.Serialize()
