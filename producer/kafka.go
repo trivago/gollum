@@ -367,7 +367,7 @@ func (prod *Kafka) produceMessage(msg core.Message) {
 	}
 
 	if prod.keyFormat != nil {
-		key, _ := prod.keyFormat.Format(msg)
+		key, _ := prod.keyFormat.Format(originalMsg)
 		kafkaMsg.Key = kafka.ByteEncoder(key)
 	}
 
