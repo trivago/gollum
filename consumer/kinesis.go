@@ -192,7 +192,6 @@ func (cons *Kinesis) Configure(conf core.PluginConfig) error {
 		if err != nil {
 			return err
 		}
-		cons.offsetType = kinesis.ShardIteratorTypeAfterSequenceNumber
 		if err := json.Unmarshal(fileContents, &cons.offsets); err != nil {
 			return err
 		}
@@ -210,6 +209,9 @@ func (cons *Kinesis) processShard(shardID string) {
 	}
 	if *iteratorConfig.StartingSequenceNumber == "" {
 		iteratorConfig.StartingSequenceNumber = nil
+	} else {
+		// starting sequence number requires ShardIteratorTypeAfterSequenceNumber
+		iteratorConfig.ShardIteratorType = aws.String(kinesis.ShardIteratorTypeAfterSequenceNumber)
 	}
 
 	iterator, err := cons.client.GetShardIterator(&iteratorConfig)
