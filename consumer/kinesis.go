@@ -27,6 +27,7 @@ import (
 	"github.com/trivago/gollum/shared"
 	"io/ioutil"
 	"strconv"
+	"bytes"
 	"strings"
 	"sync"
 	"time"
@@ -54,6 +55,7 @@ const (
 //    DefaultOffset: "Newest"
 //    OffsetFile: ""
 //    RecordsPerQuery: 100
+//    RecordMessageDelimiter: ""
 //    QuerySleepTimeMs: 1000
 //    RetrySleepTimeSec: 4
 //    CredentialType: "none"
@@ -93,6 +95,9 @@ const (
 // RecordsPerQuery defines the number of records to pull per query.
 // By default this is set to 100.
 //
+// RecordMessageDelimiter defines the string to delimit messages within a
+// record. By default this is set to "", i.e. it is disabled.
+//
 // QuerySleepTimeMs defines the number of milliseconds to sleep before
 // trying to pull new records from a shard that did not return any records.
 // By default this is set to 1000.
@@ -109,6 +114,7 @@ type Kinesis struct {
 	offsetFile      string
 	defaultOffset   string
 	recordsPerQuery int64
+	delimiter       []byte
 	sleepTime       time.Duration
 	retryTime       time.Duration
 	running         bool
@@ -129,6 +135,7 @@ func (cons *Kinesis) Configure(conf core.PluginConfig) error {
 	cons.stream = conf.GetString("KinesisStream", "default")
 	cons.offsetFile = conf.GetString("OffsetFile", "")
 	cons.recordsPerQuery = int64(conf.GetInt("RecordsPerQuery", 1000))
+	cons.delimiter = []byte(conf.GetString("RecordMessageDelimiter", ""))
 	cons.sleepTime = time.Duration(conf.GetInt("QuerySleepTimeMs", 1000)) * time.Millisecond
 	cons.retryTime = time.Duration(conf.GetInt("RetrySleepTimeSec", 4)) * time.Second
 
@@ -263,7 +270,14 @@ func (cons *Kinesis) processShard(shardID string) {
 				}
 
 				seq, _ := strconv.ParseInt(*record.SequenceNumber, 10, 64)
-				cons.Enqueue(record.Data, uint64(seq))
+				if len(cons.delimiter) > 0 {
+					messages := bytes.Split(record.Data, cons.delimiter)
+					for idx, msg := range messages {
+						cons.Enqueue([]byte(msg), uint64(seq) + uint64(idx))
+					}
+				} else {
+					cons.Enqueue(record.Data, uint64(seq))
+				}
 				cons.offsets[*iteratorConfig.ShardId] = *record.SequenceNumber
 				cons.storeOffsets()
 			}
