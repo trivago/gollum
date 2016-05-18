@@ -361,7 +361,7 @@ func (prod *Kafka) produceMessage(msg core.Message) {
 	}
 
 	if isConnected, err := prod.isConnected(topic.name); !isConnected {
-		prod.Drop(msg)
+		prod.Drop(originalMsg)
 		if err != nil {
 			Log.Error.Printf("%s is not connected: %s", topic.name, err.Error())
 		}
