@@ -84,17 +84,18 @@ import (
 type Spooling struct {
 	core.ProducerBase
 	outfile         map[core.MessageStreamID]*spoolFile
-	outfileGuard    *sync.Mutex
+	outfileGuard    *sync.RWMutex
 	rotation        fileRotateConfig
 	path            string
 	maxFileSize     int64
-	RespoolDuration time.Duration
+	respoolDuration time.Duration
 	maxFileAge      time.Duration
 	batchTimeout    time.Duration
 	readDelay       time.Duration
 	batchMaxCount   int
 	bufferSizeByte  int
 	revertOnDrop    bool
+	spoolCheck      *time.Timer
 }
 
 const (
@@ -124,9 +125,9 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 	prod.batchMaxCount = conf.GetInt("BatchMaxCount", 100)
 	prod.batchTimeout = time.Duration(conf.GetInt("BatchTimeoutSec", 5)) * time.Second
 	prod.outfile = make(map[core.MessageStreamID]*spoolFile)
-	prod.RespoolDuration = time.Duration(conf.GetInt("RespoolDelaySec", 10)) * time.Second
+	prod.respoolDuration = time.Duration(conf.GetInt("RespoolDelaySec", 10)) * time.Second
 	prod.bufferSizeByte = conf.GetInt("BufferSizeByte", 8192)
-	prod.outfileGuard = new(sync.Mutex)
+	prod.outfileGuard = new(sync.RWMutex)
 	prod.revertOnDrop = conf.GetBool("RevertStreamOnDrop", false)
 
 	if maxMsgSec := time.Duration(conf.GetInt("MaxMessagesSec", 100)); maxMsgSec > 0 {
@@ -148,9 +149,9 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 }
 
 func (prod *Spooling) writeBatchOnTimeOut() {
-	prod.outfileGuard.Lock()
+	prod.outfileGuard.RLock()
 	outfiles := prod.outfile
-	prod.outfileGuard.Unlock()
+	prod.outfileGuard.RUnlock()
 
 	for _, spool := range outfiles {
 		read, write := spool.getAndResetCounts()
@@ -181,16 +182,18 @@ func (prod *Spooling) writeToFile(msg core.Message) {
 	// Get the correct file state for this stream
 	streamID := msg.PrevStreamID
 
-	prod.outfileGuard.Lock()
+	prod.outfileGuard.RLock()
 	spool, exists := prod.outfile[streamID]
-	prod.outfileGuard.Unlock()
+	prod.outfileGuard.RUnlock()
 
 	if !exists {
 		streamName := core.StreamRegistry.GetStreamName(streamID)
-		spool = newSpoolFile(prod, streamName, msg.Source)
-
 		prod.outfileGuard.Lock()
-		prod.outfile[streamID] = spool
+		// Recheck to avoid races
+		if spool, exists = prod.outfile[streamID]; !exists {
+			spool = newSpoolFile(prod, streamName, msg.Source)
+			prod.outfile[streamID] = spool
+		}
 		prod.outfileGuard.Unlock()
 	}
 
@@ -217,11 +220,11 @@ func (prod *Spooling) routeToOrigin(msg core.Message) {
 	msg.StreamID = msg.PrevStreamID // Force PrevStreamID to be preserved in case message gets spooled again
 	msg.Route(msg.PrevStreamID)
 
-	prod.outfileGuard.Lock()
+	prod.outfileGuard.RLock()
 	if spool, exists := prod.outfile[msg.PrevStreamID]; exists {
 		spool.countRead()
 	}
-	prod.outfileGuard.Unlock()
+	prod.outfileGuard.RUnlock()
 
 	delay := prod.readDelay - time.Now().Sub(routeStart)
 	if delay > 0 {
@@ -233,6 +236,9 @@ func (prod *Spooling) close() {
 	defer prod.WorkerDone()
 
 	// Drop as the producer accepting these messages is already offline anyway
+	if prod.spoolCheck != nil {
+		prod.spoolCheck.Stop()
+	}
 	prod.CloseMessageChannel(prod.Drop)
 
 	prod.outfileGuard.Lock()
@@ -242,6 +248,8 @@ func (prod *Spooling) close() {
 	}
 }
 
+// As we might share spooling folders with different instances we only read
+// streams that we actually care about.
 func (prod *Spooling) openExistingFiles() {
 	Log.Debug.Print("Looking for spool files to read")
 	files, _ := ioutil.ReadDir(prod.path)
@@ -259,11 +267,16 @@ func (prod *Spooling) openExistingFiles() {
 			prod.outfileGuard.Unlock()
 		}
 	}
+
+	// Keep looking for new streams
+	if prod.IsActive() {
+		prod.spoolCheck = time.AfterFunc(prod.respoolDuration, prod.openExistingFiles)
+	}
 }
 
 // Produce writes to stdout or stderr.
 func (prod *Spooling) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	time.AfterFunc(prod.RespoolDuration, prod.openExistingFiles)
+	prod.spoolCheck = time.AfterFunc(prod.respoolDuration, prod.openExistingFiles)
 	prod.TickerMessageControlLoop(prod.writeToFile, prod.batchTimeout, prod.writeBatchOnTimeOut)
 }
