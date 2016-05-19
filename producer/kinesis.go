@@ -143,12 +143,12 @@ func (prod *Kinesis) Configure(conf core.PluginConfig) error {
 	prod.lastMetricUpdate = time.Now()
 
 	if prod.recordMaxMessages < 1 {
-        prod.recordMaxMessages = 1
+		prod.recordMaxMessages = 1
 		Log.Warning.Print("RecordMaxMessages was < 1. Defaulting to 1.")
 	}
 
 	if prod.recordMaxMessages > 1 && len(prod.delimiter) == 0 {
-        prod.delimiter = []byte("\n")
+		prod.delimiter = []byte("\n")
 		Log.Warning.Print("RecordMessageDelimiter was empty. Defaulting to \"\\n\".")
 	}
 
