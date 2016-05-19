@@ -51,7 +51,7 @@ const (
 //    CredentialProfile: ""
 //    BatchMaxMessages: 500
 //    RecordMaxMessages: 1
-//    RecordMessageDelimiter: "\n"
+//    RecordMessageDelimiter: ""
 //    SendTimeframeSec: 1
 //    BatchTimeoutSec: 3
 //    StreamMapping:
@@ -82,7 +82,7 @@ const (
 // a kinesis record. By default this is set to 500.
 //
 // RecordMessageDelimiter defines the string to delimit messages within
-// a kinesis record. By default this is set to "\n".
+// a kinesis record. By default this is set to "".
 //
 // SendTimeframeMs defines the timeframe in milliseconds in which a second
 // batch send can be triggered. By default this is set to 1000, i.e. one
@@ -141,6 +141,16 @@ func (prod *Kinesis) Configure(conf core.PluginConfig) error {
 	prod.lastSendTime = time.Now()
 	prod.counters = make(map[string]*int64)
 	prod.lastMetricUpdate = time.Now()
+
+	if prod.recordMaxMessages < 1 {
+        prod.recordMaxMessages = 1
+		Log.Warning.Print("RecordMaxMessages was < 1. Defaulting to 1.")
+	}
+
+	if prod.recordMaxMessages > 1 && len(prod.delimiter) == 0 {
+        prod.delimiter = []byte("\n")
+		Log.Warning.Print("RecordMessageDelimiter was empty. Defaulting to \"\\n\".")
+	}
 
 	// Config
 	prod.config = aws.NewConfig()
