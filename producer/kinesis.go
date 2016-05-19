@@ -51,7 +51,7 @@ const (
 //    CredentialProfile: ""
 //    BatchMaxMessages: 500
 //    RecordMaxMessages: 1
-//    RecordMessageDelimiter: ""
+//    RecordMessageDelimiter: "\n"
 //    SendTimeframeSec: 1
 //    BatchTimeoutSec: 3
 //    StreamMapping:
@@ -82,7 +82,7 @@ const (
 // a kinesis record. By default this is set to 500.
 //
 // RecordMessageDelimiter defines the string to delimit messages within
-// a kinesis record. By default this is set to "".
+// a kinesis record. By default this is set to "\n".
 //
 // SendTimeframeMs defines the timeframe in milliseconds in which a second
 // batch send can be triggered. By default this is set to 1000, i.e. one
@@ -143,12 +143,12 @@ func (prod *Kinesis) Configure(conf core.PluginConfig) error {
 	prod.lastMetricUpdate = time.Now()
 
 	if prod.recordMaxMessages < 1 {
-        prod.recordMaxMessages = 1
+		prod.recordMaxMessages = 1
 		Log.Warning.Print("RecordMaxMessages was < 1. Defaulting to 1.")
 	}
 
 	if prod.recordMaxMessages > 1 && len(prod.delimiter) == 0 {
-        prod.delimiter = []byte("\n")
+		prod.delimiter = []byte("\n")
 		Log.Warning.Print("RecordMessageDelimiter was empty. Defaulting to \"\\n\".")
 	}
 
@@ -249,12 +249,13 @@ func (prod *Kinesis) transformMessages(messages []core.Message) {
 			}
 
 			// Create buffers for this kinesis stream
+			maxLength := len(messages) / prod.recordMaxMessages + 1
 			records = &streamData{
 				content: &kinesis.PutRecordsInput{
-					Records:    make([]*kinesis.PutRecordsRequestEntry, 0, len(messages)),
+					Records:    make([]*kinesis.PutRecordsRequestEntry, 0, maxLength),
 					StreamName: aws.String(streamName),
 				},
-				original: make([][]*core.Message, 0, len(messages) / prod.recordMaxMessages + 1),
+				original: make([][]*core.Message, 0, maxLength),
 				lastRecordMessages: 0,
 			}
 			streamRecords[streamID] = records
