@@ -249,12 +249,13 @@ func (prod *Kinesis) transformMessages(messages []core.Message) {
 			}
 
 			// Create buffers for this kinesis stream
+			maxLength := len(messages) / prod.recordMaxMessages + 1
 			records = &streamData{
 				content: &kinesis.PutRecordsInput{
-					Records:    make([]*kinesis.PutRecordsRequestEntry, 0, len(messages)),
+					Records:    make([]*kinesis.PutRecordsRequestEntry, 0, maxLength),
 					StreamName: aws.String(streamName),
 				},
-				original: make([][]*core.Message, 0, len(messages) / prod.recordMaxMessages + 1),
+				original: make([][]*core.Message, 0, maxLength),
 				lastRecordMessages: 0,
 			}
 			streamRecords[streamID] = records
