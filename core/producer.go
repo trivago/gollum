@@ -152,7 +152,7 @@ func (prod *ProducerBase) Configure(conf PluginConfig) error {
 	}
 	prod.format = format.(Formatter)
 
-	filters := conf.GetStringArray("Filter", []string{"filter.All"})
+	filters := conf.GetStringArray("Filter", []string{})
 	for _, filterName := range filters {
 		plugin, err := NewPluginWithType(filterName, conf)
 		if err != nil {

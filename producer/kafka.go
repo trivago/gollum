@@ -15,6 +15,7 @@
 package producer
 
 import (
+	"fmt"
 	kafka "github.com/Shopify/sarama"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
@@ -146,19 +147,21 @@ const (
 // If no topic mappings are set the stream names will be used as topic.
 type Kafka struct {
 	core.ProducerBase
-	servers          []string
-	topicGuard       *sync.RWMutex
-	topic            map[core.MessageStreamID]*topicHandle
-	streamToTopic    map[core.MessageStreamID]string
-	clientID         string
-	client           kafka.Client
-	config           *kafka.Config
-	producer         kafka.AsyncProducer
-	missCount        int64
-	lastMetricUpdate time.Time
-	gracePeriod      time.Duration
-	keyFormat        core.Formatter
-	keyFirst         bool
+	servers            []string
+	topicGuard         *sync.RWMutex
+	topic              map[core.MessageStreamID]*topicHandle
+	topicHandles       map[string]*topicHandle
+	streamToTopic      map[core.MessageStreamID]string
+	clientID           string
+	client             kafka.Client
+	config             *kafka.Config
+	producer           kafka.AsyncProducer
+	missCount          int64
+	lastMetricUpdate   time.Time
+	gracePeriod        time.Duration
+	keyFormat          core.Formatter
+	keyFirst           bool
+	filtersAfterFormat []core.Filter
 }
 
 type topicHandle struct {
@@ -201,6 +204,19 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 		prod.keyFormat = nil
 	}
 
+	filters := conf.GetStringArray("FilterAfterFormat", []string{})
+	for _, filterName := range filters {
+		plugin, err := core.NewPluginWithType(filterName, conf)
+		if err != nil {
+			return err
+		}
+		filter, isFilter := plugin.(core.Filter)
+		if !isFilter {
+			return fmt.Errorf("%s is not a filter", filterName)
+		}
+		prod.filtersAfterFormat = append(prod.filtersAfterFormat, filter)
+	}
+
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.clientID = conf.GetString("ClientId", "gollum")
 	prod.lastMetricUpdate = time.Now()
@@ -208,6 +224,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.topicGuard = new(sync.RWMutex)
 	prod.streamToTopic = conf.GetStreamMap("Topic", "")
 	prod.topic = make(map[core.MessageStreamID]*topicHandle)
+	prod.topicHandles = make(map[string]*topicHandle)
 	prod.keyFirst = conf.GetBool("KeyFormatterFirst", false)
 
 	prod.config = kafka.NewConfig()
@@ -326,13 +343,20 @@ func (prod *Kafka) pollResults() {
 }
 
 func (prod *Kafka) registerNewTopic(topicName string, streamID core.MessageStreamID) *topicHandle {
+	prod.topicGuard.Lock()
+	defer prod.topicGuard.Unlock()
+
+	if topic, exists := prod.topicHandles[topicName]; exists {
+		prod.topic[streamID] = topic
+		return topic
+	}
+
 	topic := &topicHandle{
 		name: topicName,
 	}
 
-	prod.topicGuard.Lock()
+	prod.topicHandles[topicName] = topic
 	prod.topic[streamID] = topic
-	prod.topicGuard.Unlock()
 
 	shared.Metric.New(kafkaMetricMessages + topicName)
 	shared.Metric.New(kafkaMetricMessagesSec + topicName)
@@ -346,18 +370,26 @@ func (prod *Kafka) produceMessage(msg core.Message) {
 	originalMsg := msg
 	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
 
+	for _, filter := range prod.filtersAfterFormat {
+		if !filter.Accepts(msg) {
+			core.CountFilteredMessage()
+			return
+		}
+	}
+
 	prod.topicGuard.RLock()
 	topic, topicRegistered := prod.topic[msg.StreamID]
+	prod.topicGuard.RUnlock()
 
 	if !topicRegistered {
-		prod.topicGuard.RUnlock()
+		wildcardSet := false
 		topicName, isMapped := prod.streamToTopic[msg.StreamID]
 		if !isMapped {
-			topicName = core.StreamRegistry.GetStreamName(msg.StreamID)
+			if topicName, wildcardSet = prod.streamToTopic[core.WildcardStreamID]; !wildcardSet {
+				topicName = core.StreamRegistry.GetStreamName(msg.StreamID)
+			}
 		}
 		topic = prod.registerNewTopic(topicName, msg.StreamID)
-	} else {
-		prod.topicGuard.RUnlock()
 	}
 
 	if isConnected, err := prod.isConnected(topic.name); !isConnected {

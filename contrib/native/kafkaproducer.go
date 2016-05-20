@@ -15,6 +15,7 @@
 package native
 
 import (
+	"fmt"
 	kafka "github.com/trivago/gollum/contrib/native/librdkafka"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
@@ -113,19 +114,21 @@ import (
 // KeyFormatter does never affect the payload of the message sent to kafka.
 type KafkaProducer struct {
 	core.ProducerBase
-	servers           []string
-	clientID          string
-	lastMetricUpdate  time.Time
-	keyFormat         core.Formatter
-	client            *kafka.Client
-	config            kafka.Config
-	topicRequiredAcks int
-	topicTimeoutMs    int
-	pollInterval      time.Duration
-	topic             map[core.MessageStreamID]*topicHandle
-	streamToTopic     map[core.MessageStreamID]string
-	topicGuard        *sync.RWMutex
-	keyFirst          bool
+	servers            []string
+	clientID           string
+	lastMetricUpdate   time.Time
+	keyFormat          core.Formatter
+	client             *kafka.Client
+	config             kafka.Config
+	topicRequiredAcks  int
+	topicTimeoutMs     int
+	pollInterval       time.Duration
+	topic              map[core.MessageStreamID]*topicHandle
+	topicHandles       map[string]*topicHandle
+	streamToTopic      map[core.MessageStreamID]string
+	topicGuard         *sync.RWMutex
+	keyFirst           bool
+	filtersAfterFormat []core.Filter
 }
 
 type messageWrapper struct {
@@ -190,6 +193,19 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfig) error {
 		prod.keyFormat = nil
 	}
 
+	filters := conf.GetStringArray("FilterAfterFormat", []string{})
+	for _, filterName := range filters {
+		plugin, err := core.NewPluginWithType(filterName, conf)
+		if err != nil {
+			return err
+		}
+		filter, isFilter := plugin.(core.Filter)
+		if !isFilter {
+			return fmt.Errorf("%s is not a filter", filterName)
+		}
+		prod.filtersAfterFormat = append(prod.filtersAfterFormat, filter)
+	}
+
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.clientID = conf.GetString("ClientId", "gollum")
 	prod.lastMetricUpdate = time.Now()
@@ -200,6 +216,7 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfig) error {
 	prod.topicGuard = new(sync.RWMutex)
 	prod.streamToTopic = conf.GetStreamMap("Topic", "default")
 	prod.keyFirst = conf.GetBool("KeyFormatterFirst", false)
+	prod.topicHandles = make(map[string]*topicHandle)
 
 	batchIntervalMs := conf.GetInt("BatchTimeoutMs", 1000)
 	prod.pollInterval = time.Millisecond * time.Duration(batchIntervalMs)
@@ -254,17 +271,24 @@ func (prod *KafkaProducer) newTopicHandle(topicName string) *kafka.Topic {
 }
 
 func (prod *KafkaProducer) registerNewTopic(topicName string, streamID core.MessageStreamID) *topicHandle {
+	prod.topicGuard.Lock()
+	defer prod.topicGuard.Unlock()
+
+	if topic, exists := prod.topicHandles[topicName]; exists {
+		prod.topic[streamID] = topic
+		return topic
+	}
+
 	topic := &topicHandle{
 		handle: prod.newTopicHandle(topicName),
 	}
 
+	prod.topicHandles[topicName] = topic
+	prod.topic[streamID] = topic
+
 	shared.Metric.New(kafkaMetricMessages + topicName)
 	shared.Metric.New(kafkaMetricMessagesSec + topicName)
 	shared.Metric.New(kafkaMetricRoundtrip + topicName)
-
-	prod.topicGuard.Lock()
-	prod.topic[streamID] = topic
-	prod.topicGuard.Unlock()
 
 	return topic
 }
@@ -273,19 +297,26 @@ func (prod *KafkaProducer) produceMessage(msg core.Message) {
 	originalMsg := msg
 	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
 
-	// Send message
+	for _, filter := range prod.filtersAfterFormat {
+		if !filter.Accepts(msg) {
+			core.CountFilteredMessage()
+			return
+		}
+	}
+
 	prod.topicGuard.RLock()
 	topic, topicRegistered := prod.topic[msg.StreamID]
+	prod.topicGuard.RUnlock()
 
 	if !topicRegistered {
-		prod.topicGuard.RUnlock()
+		wildcardSet := false
 		topicName, isMapped := prod.streamToTopic[msg.StreamID]
 		if !isMapped {
-			topicName = core.StreamRegistry.GetStreamName(msg.StreamID)
+			if topicName, wildcardSet = prod.streamToTopic[core.WildcardStreamID]; !wildcardSet {
+				topicName = core.StreamRegistry.GetStreamName(msg.StreamID)
+			}
 		}
 		topic = prod.registerNewTopic(topicName, msg.StreamID)
-	} else {
-		prod.topicGuard.RUnlock()
 	}
 
 	var key []byte
