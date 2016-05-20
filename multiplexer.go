@@ -238,7 +238,10 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	// built. This eliminates lookups when sending to specific streams.
 
 	logConsumer, _ := plex.consumers[0].(*core.LogConsumer)
-	logConsumer.Configure(core.NewPluginConfig("core.LogConsumer"))
+	logConfig := core.NewPluginConfig("core.LogConsumer")
+	logConfig.Override("MetricKey", "LogMessages")
+
+	logConsumer.Configure(logConfig)
 
 	for _, config := range consumerConfig {
 		for i := 0; i < config.Instances; i++ {

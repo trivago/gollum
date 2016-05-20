@@ -15,22 +15,34 @@
 package core
 
 import (
+	"github.com/trivago/gollum/shared"
 	"sync"
+	"time"
 )
 
 // LogConsumer is an internal consumer plugin used indirectly by the gollum log
 // package.
 type LogConsumer struct {
 	Consumer
-	control   chan PluginControl
-	logStream Stream
-	sequence  uint64
+	control     chan PluginControl
+	logStream   Stream
+	sequence    uint64
+	metric      string
+	lastCount   int64
+	updateTimer *time.Timer
 }
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *LogConsumer) Configure(conf PluginConfig) error {
 	cons.control = make(chan PluginControl, 1)
 	cons.logStream = StreamRegistry.GetStream(LogInternalStreamID)
+	cons.metric = conf.GetString("MetricKey", "")
+
+	if cons.metric != "" {
+		cons.updateTimer = time.AfterFunc(time.Second*5, cons.updateMetric)
+		shared.Metric.New(cons.metric)
+		shared.Metric.New(cons.metric + "Sec")
+	}
 	return nil
 }
 
@@ -44,6 +56,13 @@ func (cons *LogConsumer) Streams() []MessageStreamID {
 	return []MessageStreamID{LogInternalStreamID}
 }
 
+func (cons *LogConsumer) updateMetric() {
+	currentCount, _ := shared.Metric.Get(cons.metric)
+	shared.Metric.Set(cons.metric+"Sec", (currentCount-cons.lastCount)/5)
+	cons.lastCount = currentCount
+	cons.updateTimer = time.AfterFunc(time.Second*5, cons.updateMetric)
+}
+
 // Write fulfills the io.Writer interface
 func (cons LogConsumer) Write(data []byte) (int, error) {
 	dataCopy := make([]byte, len(data))
@@ -52,6 +71,10 @@ func (cons LogConsumer) Write(data []byte) (int, error) {
 	msg := NewMessage(cons, dataCopy, cons.sequence)
 	msg.StreamID = LogInternalStreamID
 	cons.logStream.Enqueue(msg)
+
+	if cons.metric != "" {
+		shared.Metric.Inc(cons.metric)
+	}
 
 	return len(data), nil
 }
@@ -67,6 +90,7 @@ func (cons *LogConsumer) Consume(threads *sync.WaitGroup) {
 	for {
 		command := <-cons.control
 		if command == PluginControlStopConsumer {
+			cons.updateTimer.Stop()
 			return // ### return ###
 		}
 	}
