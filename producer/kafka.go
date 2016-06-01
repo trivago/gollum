@@ -162,6 +162,7 @@ type Kafka struct {
 	keyFormat          core.Formatter
 	keyFirst           bool
 	filtersAfterFormat []core.Filter
+	lastHeartbeat      time.Time
 }
 
 type topicHandle struct {
@@ -226,6 +227,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.topic = make(map[core.MessageStreamID]*topicHandle)
 	prod.topicHandles = make(map[string]*topicHandle)
 	prod.keyFirst = conf.GetBool("KeyFormatterFirst", false)
+	prod.lastHeartbeat = time.Now()
 
 	prod.config = kafka.NewConfig()
 	prod.config.ClientID = conf.GetString("ClientId", "gollum")
@@ -460,15 +462,34 @@ func (prod *Kafka) isConnected(topic string) (bool, error) {
 		return false, err // ### return, error ###
 	}
 
+	doHeartBeat := false
+	if time.Since(prod.lastHeartbeat) > prod.config.Net.DialTimeout {
+		doHeartBeat = true
+		prod.lastHeartbeat = time.Now()
+	}
+
 	for _, p := range partitions {
 		broker, err := prod.client.Leader(topic, p)
 		if err != nil {
 			return false, err // ### return, error ###
 		}
 
-		// TODO: this function only returns false if the connection has explicitly
-		//       been closed [Sarama 1.8.0]!
-		return broker.Connected()
+		// This function only returns false if the connection has explicitly
+		// been closed [Sarama 1.9.0]!
+		if connected, _ := broker.Connected(); !connected {
+			if errOpen := broker.Open(prod.config); errOpen != nil {
+				return false, errOpen
+			}
+		}
+
+		// Do a heartbeat to check if connection is functional
+		if doHeartBeat {
+			req := &kafka.MetadataRequest{Topics: []string{topic}}
+			if _, err := broker.GetMetadata(req); err != nil {
+				broker.Close()
+				return false, err
+			}
+		}
 	}
 
 	return true, nil
