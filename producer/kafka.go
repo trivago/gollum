@@ -325,7 +325,7 @@ func (prod *Kafka) pollResults() {
 	for _, topic := range prod.topic {
 		sent := atomic.SwapInt64(&topic.sent, 0)
 		duration := time.Since(prod.lastMetricUpdate)
-		sentPerSec := float64(sent)/duration.Seconds() + 0.5
+		sentPerSec := float64(sent) / duration.Seconds()
 
 		rttSum := atomic.SwapInt64(&topic.rttSum, 0)
 		delivered := atomic.SwapInt64(&topic.delivered, 0)
