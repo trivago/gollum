@@ -82,6 +82,9 @@ const (
 // uses the message after Formatter has been applied.
 // KeyFormatter does never affect the payload of the message sent to kafka.
 //
+// FilterAfterFormat behaves like Filter but allows filters to be executed
+// after the formatter has run. By default no such filter is set.
+//
 // RequiredAcks defines the acknowledgment level required by the broker.
 // 0 = No responses required. 1 = wait for the local commit. -1 = wait for
 // all replicas to commit. >1 = wait for a specific number of commits.
@@ -92,7 +95,7 @@ const (
 // By default this is set to 10 seconds.
 //
 // SendRetries defines how many times to retry sending data before marking a
-// server as not reachable. By default this is set to 0.
+// server as not reachable. By default this is set to 1.
 //
 // Compression sets the method of compression to use. Valid values are:
 // "None","Zip" and "Snappy". By default "None" is set.
@@ -248,7 +251,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.config.Producer.Flush.Messages = conf.GetInt("BatchMinCount", 1)
 	prod.config.Producer.Flush.Frequency = time.Duration(conf.GetInt("BatchTimeoutMs", 3000)) * time.Millisecond
 	prod.config.Producer.Flush.MaxMessages = conf.GetInt("BatchMaxCount", 0)
-	prod.config.Producer.Retry.Max = conf.GetInt("SendRetries", 0)
+	prod.config.Producer.Retry.Max = conf.GetInt("SendRetries", 1)
 	prod.config.Producer.Retry.Backoff = time.Duration(conf.GetInt("SendTimeoutMs", 100)) * time.Millisecond
 
 	prod.config.Producer.Return.Successes = true

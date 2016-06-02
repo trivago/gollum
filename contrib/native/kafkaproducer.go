@@ -112,6 +112,9 @@ import (
 // unformatted message. By default this is set to false, so that key formatter
 // uses the message after Formatter has been applied.
 // KeyFormatter does never affect the payload of the message sent to kafka.
+//
+// FilterAfterFormat behaves like Filter but allows filters to be executed
+// after the formatter has run. By default no such filter is set.
 type KafkaProducer struct {
 	core.ProducerBase
 	servers            []string
