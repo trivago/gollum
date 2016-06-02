@@ -162,14 +162,14 @@ type Kafka struct {
 	keyFormat          core.Formatter
 	keyFirst           bool
 	filtersAfterFormat []core.Filter
-	lastHeartbeat      time.Time
 }
 
 type topicHandle struct {
-	name      string
-	rttSum    int64
-	sent      int64
-	delivered int64
+	name          string
+	rttSum        int64
+	sent          int64
+	delivered     int64
+	lastHeartBeat time.Time
 }
 
 const (
@@ -227,7 +227,6 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.topic = make(map[core.MessageStreamID]*topicHandle)
 	prod.topicHandles = make(map[string]*topicHandle)
 	prod.keyFirst = conf.GetBool("KeyFormatterFirst", false)
-	prod.lastHeartbeat = time.Now()
 
 	prod.config = kafka.NewConfig()
 	prod.config.ClientID = conf.GetString("ClientId", "gollum")
@@ -462,10 +461,13 @@ func (prod *Kafka) isConnected(topic string) (bool, error) {
 		return false, err // ### return, error ###
 	}
 
-	doHeartBeat := false
-	if time.Since(prod.lastHeartbeat) > prod.config.Net.DialTimeout {
-		doHeartBeat = true
-		prod.lastHeartbeat = time.Now()
+	prod.topicGuard.RLock()
+	handle := prod.topicHandles[topic]
+	prod.topicGuard.RUnlock()
+
+	doHeartBeat := time.Since(handle.lastHeartBeat) > prod.config.Net.DialTimeout
+	if doHeartBeat {
+		defer func() { handle.lastHeartBeat = time.Now() }()
 	}
 
 	for _, p := range partitions {
@@ -474,20 +476,19 @@ func (prod *Kafka) isConnected(topic string) (bool, error) {
 			return false, err // ### return, error ###
 		}
 
-		// This function only returns false if the connection has explicitly
-		// been closed [Sarama 1.9.0]!
-		if connected, _ := broker.Connected(); !connected {
-			if errOpen := broker.Open(prod.config); errOpen != nil {
-				return false, errOpen
-			}
-		}
-
 		// Do a heartbeat to check if connection is functional
 		if doHeartBeat {
 			req := &kafka.MetadataRequest{Topics: []string{topic}}
 			if _, err := broker.GetMetadata(req); err != nil {
+				Log.Debug.Print("Broker ", broker.Addr(), " found to have an invalid connection: ", err)
 				broker.Close()
-				return false, err
+			}
+		}
+
+		// Reconnect if necessary
+		if connected, _ := broker.Connected(); !connected {
+			if errOpen := broker.Open(prod.config); errOpen != nil {
+				return false, errOpen
 			}
 		}
 	}
