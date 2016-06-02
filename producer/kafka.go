@@ -478,10 +478,12 @@ func (prod *Kafka) isConnected(topic string) (bool, error) {
 
 		// Do a heartbeat to check if connection is functional
 		if doHeartBeat {
-			req := &kafka.MetadataRequest{Topics: []string{topic}}
-			if _, err := broker.GetMetadata(req); err != nil {
-				Log.Debug.Print("Broker ", broker.Addr(), " found to have an invalid connection: ", err)
-				broker.Close()
+			if connected, _ := broker.Connected(); connected {
+				req := &kafka.MetadataRequest{Topics: []string{topic}}
+				if _, err := broker.GetMetadata(req); err != nil {
+					Log.Debug.Print("Broker ", broker.Addr(), " found to have an invalid connection: ", err)
+					broker.Close()
+				}
 			}
 		}
 
