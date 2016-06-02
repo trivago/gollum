@@ -63,15 +63,15 @@ func TestProducerConfigure(t *testing.T) {
 	mockConf.Stream = []string{"testBoundStream"}
 
 	err := mockProducer.Configure(mockConf)
-	expect.NotNil(err)
+	expect.NotNil(err) // format.Forward not found
 	mockConf.Settings["Formatter"] = "core.mockFormatter"
 
 	err = mockProducer.Configure(mockConf)
-	expect.NotNil(err)
+	expect.NoError(err)
 	mockConf.Settings["Filter"] = "core.mockFilter"
 
 	err = mockProducer.Configure(mockConf)
-	expect.Nil(err)
+	expect.NoError(err)
 }
 
 func TestProducerState(t *testing.T) {
