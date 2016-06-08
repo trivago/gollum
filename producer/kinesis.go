@@ -132,7 +132,7 @@ func (prod *Kinesis) Configure(conf core.PluginConfig) error {
 	}
 	prod.SetStopCallback(prod.close)
 
-	prod.streamMap = conf.GetStreamMap("StreamMapping", "default")
+	prod.streamMap = conf.GetStreamMap("StreamMapping", "")
 	prod.batch = core.NewMessageBatch(conf.GetInt("BatchMaxMessages", 500))
 	prod.recordMaxMessages = conf.GetInt("RecordMaxMessages", 1)
 	prod.delimiter = []byte(conf.GetString("RecordMessageDelimiter", "\n"))
@@ -240,12 +240,15 @@ func (prod *Kinesis) transformMessages(messages []core.Message) {
 			// Select the correct kinesis stream
 			streamName, streamMapped := prod.streamMap[streamID]
 			if !streamMapped {
-				streamName = core.StreamRegistry.GetStreamName(streamID)
-				prod.streamMap[streamID] = streamName
+				streamName, streamMapped = prod.streamMap[core.WildcardStreamID]
+				if !streamMapped {
+					streamName = core.StreamRegistry.GetStreamName(streamID)
+					prod.streamMap[streamID] = streamName
 
-				shared.Metric.New(kinesisMetricMessages + streamName)
-				shared.Metric.New(kinesisMetricMessagesSec + streamName)
-				prod.counters[streamName] = new(int64)
+					shared.Metric.New(kinesisMetricMessages + streamName)
+					shared.Metric.New(kinesisMetricMessagesSec + streamName)
+					prod.counters[streamName] = new(int64)
+				}
 			}
 
 			// Create buffers for this kinesis stream
