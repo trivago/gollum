@@ -16,7 +16,6 @@ package consumer
 
 import (
 	"encoding/json"
-	"fmt"
 	kafka "github.com/Shopify/sarama"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
@@ -191,23 +190,23 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 	if cons.offsetFile != "" {
 		fileContents, err := ioutil.ReadFile(cons.offsetFile)
 		if err != nil {
-			return fmt.Errorf("Failed to open kafka offset file: %s", err.Error())
-		}
-
-		// Decode the JSON file into the partition -> offset map
-		encodedOffsets := make(map[string]int64)
-		err = json.Unmarshal(fileContents, &encodedOffsets)
-		if err != nil {
-			return err
-		}
-
-		for k, v := range encodedOffsets {
-			id, err := strconv.Atoi(k)
+			Log.Error.Printf("Failed to open kafka offset file: %s", err.Error())
+		} else {
+			// Decode the JSON file into the partition -> offset map
+			encodedOffsets := make(map[string]int64)
+			err = json.Unmarshal(fileContents, &encodedOffsets)
 			if err != nil {
 				return err
 			}
-			startOffset := v
-			cons.offsets[int32(id)] = &startOffset
+
+			for k, v := range encodedOffsets {
+				id, err := strconv.Atoi(k)
+				if err != nil {
+					return err
+				}
+				startOffset := v
+				cons.offsets[int32(id)] = &startOffset
+			}
 		}
 	}
 

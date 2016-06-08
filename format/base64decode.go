@@ -74,6 +74,7 @@ func (format *Base64Decode) Format(msg core.Message) ([]byte, core.MessageStream
 	size, err := format.dictionary.Decode(decoded, msg.Data)
 	if err != nil {
 		Log.Error.Print("Base64Decode: ", err)
+		return data, streamID
 	}
 	return decoded[:size], streamID
 }

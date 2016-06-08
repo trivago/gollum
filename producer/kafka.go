@@ -374,6 +374,13 @@ func (prod *Kafka) produceMessage(msg core.Message) {
 	originalMsg := msg
 	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
 
+	if len(msg.Data) == 0 {
+		streamName := core.StreamRegistry.GetStreamName(msg.StreamID)
+		Log.Error.Printf("0 byte message detected on %s. Discarded", streamName)
+		core.CountDiscardedMessage()
+		return // ### return, invalid data ###
+	}
+
 	for _, filter := range prod.filtersAfterFormat {
 		if !filter.Accepts(msg) {
 			core.CountFilteredMessage()
