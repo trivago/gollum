@@ -21,6 +21,8 @@ import (
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
 	"io/ioutil"
+	"os"
+	"path"
 	"strconv"
 	"strings"
 	"sync"
@@ -44,6 +46,7 @@ const (
 //    Topic: "default"
 //    DefaultOffset: "newest"
 //    OffsetFile: ""
+//	  FolderPermissions: "0755"
 //    Ordered: true
 //    MaxOpenRequests: 5
 //    ServerTimeoutSec: 30
@@ -70,6 +73,9 @@ const (
 // OffsetFile defines the path to a file that stores the current offset inside
 // a given partition. If the consumer is restarted that offset is used to continue
 // reading. By default this is set to "" which disables the offset file.
+//
+// FolderPermissions is used to create the offset file path if necessary.
+// Set to 0755 by default.
 //
 // Ordered can be set to enforce partitions to be read one-by-one in a round robin
 // fashion instead of reading in parallel from all partitions.
@@ -120,20 +126,21 @@ const (
 // is set to contain only "localhost:9092".
 type Kafka struct {
 	core.ConsumerBase
-	servers        []string
-	topic          string
-	client         kafka.Client
-	config         *kafka.Config
-	consumer       kafka.Consumer
-	offsetFile     string
-	defaultOffset  int64
-	offsets        map[int32]*int64
-	MaxPartitionID int32
-	persistTimeout time.Duration
-	orderedRead    bool
-	prependKey     bool
-	keySeparator   []byte
-	sequence       *uint64
+	servers           []string
+	topic             string
+	client            kafka.Client
+	config            *kafka.Config
+	consumer          kafka.Consumer
+	offsetFile        string
+	defaultOffset     int64
+	offsets           map[int32]*int64
+	MaxPartitionID    int32
+	persistTimeout    time.Duration
+	orderedRead       bool
+	prependKey        bool
+	keySeparator      []byte
+	sequence          *uint64
+	folderPermissions os.FileMode
 }
 
 func init() {
@@ -157,6 +164,12 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 	cons.keySeparator = []byte(conf.GetString("KeySeparator", ":"))
 	cons.prependKey = conf.GetBool("PrependKey", false)
 	cons.sequence = new(uint64)
+
+	folderFlags, err := strconv.ParseInt(conf.GetString("FolderPermissions", "0755"), 8, 32)
+	cons.folderPermissions = os.FileMode(folderFlags)
+	if err != nil {
+		return err
+	}
 
 	cons.config = kafka.NewConfig()
 	cons.config.ChannelBufferSize = conf.GetInt("MessageBufferCount", 256)
@@ -392,7 +405,12 @@ func (cons *Kafka) dumpIndex() {
 		if err != nil {
 			Log.Error.Print("Kafka index file write error - ", err)
 		} else {
-			ioutil.WriteFile(cons.offsetFile, data, 0644)
+			fileDir := path.Dir(cons.offsetFile)
+			if err := os.MkdirAll(fileDir, 0755); err != nil {
+				Log.Error.Printf("Failed to create %s because of %s", fileDir, err.Error())
+			} else {
+				ioutil.WriteFile(cons.offsetFile, data, 0644)
+			}
 		}
 	}
 }
