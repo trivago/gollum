@@ -52,12 +52,17 @@ type Rate struct {
 }
 
 const (
-	metricLimit = "RateLimited-"
+	metricLimit    = "RateLimited-"
+	metricLimitAgo = "RateLimitedSecAgo-"
+
+	rateLimitUpdateIntervalSec = 3
 )
 
 type rateState struct {
 	lastReset time.Time
+	lastLimit time.Time
 	count     *int64
+	filtered  *int64
 	ignore    bool
 }
 
@@ -86,7 +91,28 @@ func (filter *Rate) Configure(conf core.PluginConfig) error {
 		}
 	}
 
+	time.AfterFunc(rateLimitUpdateIntervalSec*time.Second, filter.updateMetrics)
 	return nil
+}
+
+func (filter *Rate) updateMetrics() {
+	filter.stateGuard.RLock()
+	defer filter.stateGuard.RUnlock()
+
+	for streamID, state := range filter.state {
+		streamName := core.StreamRegistry.GetStreamName(streamID)
+		numFiltered := atomic.SwapInt64(state.filtered, 0)
+
+		shared.Metric.Add(metricLimit+streamName, numFiltered)
+		if numFiltered > 0 {
+			state.lastLimit = time.Now()
+			Log.Warning.Printf("Ratelimit reached for %s: %d filtered in %d seconds", streamName, numFiltered, rateLimitUpdateIntervalSec)
+		}
+
+		shared.Metric.SetF(metricLimitAgo+streamName, time.Since(state.lastLimit).Seconds())
+	}
+
+	time.AfterFunc(rateLimitUpdateIntervalSec*time.Second, filter.updateMetrics)
 }
 
 // Accepts allows all messages
@@ -100,11 +126,14 @@ func (filter *Rate) Accepts(msg core.Message) bool {
 		filter.stateGuard.Lock()
 		state = &rateState{
 			count:     new(int64),
+			filtered:  new(int64),
 			ignore:    false,
 			lastReset: time.Now(),
 		}
+		streamName := core.StreamRegistry.GetStreamName(msg.StreamID)
 		filter.state[msg.StreamID] = state
-		shared.Metric.New(metricLimit + core.StreamRegistry.GetStreamName(msg.StreamID))
+		shared.Metric.New(metricLimit + streamName)
+		shared.Metric.New(metricLimitAgo + streamName)
 		filter.stateGuard.Unlock()
 	}
 
@@ -117,14 +146,7 @@ func (filter *Rate) Accepts(msg core.Message) bool {
 	if time.Since(state.lastReset) > time.Second {
 		state.lastReset = time.Now()
 		numFiltered := atomic.SwapInt64(state.count, 0)
-		streamName := core.StreamRegistry.GetStreamName(msg.StreamID)
-
-		if numFiltered > filter.rateLimit {
-			shared.Metric.Set(metricLimit+streamName, numFiltered-filter.rateLimit)
-			Log.Warning.Printf("Ratelimit reached for %s: %d msg/sec", streamName, numFiltered)
-		} else {
-			shared.Metric.Set(metricLimit+streamName, 0)
-		}
+		atomic.AddInt64(state.filtered, numFiltered-filter.rateLimit)
 	}
 
 	// Check if to be filtered
