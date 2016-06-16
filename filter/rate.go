@@ -146,7 +146,9 @@ func (filter *Rate) Accepts(msg core.Message) bool {
 	if time.Since(state.lastReset) > time.Second {
 		state.lastReset = time.Now()
 		numFiltered := atomic.SwapInt64(state.count, 0)
-		atomic.AddInt64(state.filtered, numFiltered-filter.rateLimit)
+		if numFiltered > filter.rateLimit {
+			atomic.AddInt64(state.filtered, numFiltered-filter.rateLimit)
+		}
 	}
 
 	// Check if to be filtered
