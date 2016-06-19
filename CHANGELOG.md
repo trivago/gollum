@@ -10,6 +10,12 @@ This is a patch / minor features release.
  * Fixed file offset handling in consumer.Kinesis (thanks @relud)
  * Fixed a concurrent map write during initialization in native.KafkaProducer
  * Fixed producer.Spooling being stuck for a long time during shutdown
+ * Fixed consumer.Kafka OffsetFile setting stopping gollum when the offset file was not present
+ * Fixed native.KafkaProducer to map all topics to "default" if no topic mapping was set
+ * Producer.Kafka and native.KafkaProducer now discard messages with 0-Byte content
+ * Format.Base64Encode now returns the original message if decoding failed
+ * Producer.Kafka SendRetries set to 1 by default to circumvent a reconnect issue within sarama
+ * Added manual heartbeat to check a valid broker connection with producer.Kafka
 
 #### New
 
@@ -18,6 +24,12 @@ This is a patch / minor features release.
  * Added RateLimited- metrics for filter.Rate
  * Added format.Clear to remove message content (e.g. useful for key formatters)
  * Added "KeyFormatterFirst" for producer.Kafka and native.KafkaProducer
+ * Added folder creation capatibilites to consumer.File when creating offset files
+ * Added gollum log messages metrics
+ * Allowed * in stream mapping for kafka and kinesis producers
+ * Added FilterAfterFormat to producer.Kafka and native.KafkaProducer
+ * Added wildcard topic mapping to producer.Kafka and native.KafkaProducer
+ * Producer.Spooling now continuously looks for new streams to read
 
 # 0.4.3
 
