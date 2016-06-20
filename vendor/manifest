@@ -170,6 +170,14 @@
 			"path": "/ptypes/any"
 		},
 		{
+			"importpath": "github.com/golang/snappy",
+			"repository": "https://github.com/golang/snappy",
+			"vcs": "git",
+			"revision": "d9eb7a3d35ec988b8585d4a0068e462c27d28380",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/jeromer/syslogparser",
 			"repository": "https://github.com/jeromer/syslogparser",
 			"vcs": "git",
