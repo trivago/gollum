@@ -1,11 +1,12 @@
 package sarama
 
 type ProduceResponseBlock struct {
-	Err    KError
-	Offset int64
+	Err       KError
+	Offset    int64
+	Timestamp int64 // only provided if Version >= 2
 }
 
-func (pr *ProduceResponseBlock) decode(pd packetDecoder) (err error) {
+func (pr *ProduceResponseBlock) decode(pd packetDecoder, version int16) (err error) {
 	tmp, err := pd.getInt16()
 	if err != nil {
 		return err
@@ -17,14 +18,24 @@ func (pr *ProduceResponseBlock) decode(pd packetDecoder) (err error) {
 		return err
 	}
 
+	if version >= 2 {
+		if pr.Timestamp, err = pd.getInt64(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
 type ProduceResponse struct {
-	Blocks map[string]map[int32]*ProduceResponseBlock
+	Blocks       map[string]map[int32]*ProduceResponseBlock
+	Version      int16
+	ThrottleTime int32 // only provided if Version >= 1
 }
 
-func (pr *ProduceResponse) decode(pd packetDecoder) (err error) {
+func (pr *ProduceResponse) decode(pd packetDecoder, version int16) (err error) {
+	pr.Version = version
+
 	numTopics, err := pd.getArrayLength()
 	if err != nil {
 		return err
@@ -51,11 +62,17 @@ func (pr *ProduceResponse) decode(pd packetDecoder) (err error) {
 			}
 
 			block := new(ProduceResponseBlock)
-			err = block.decode(pd)
+			err = block.decode(pd, version)
 			if err != nil {
 				return err
 			}
 			pr.Blocks[name][id] = block
+		}
+	}
+
+	if pr.Version >= 1 {
+		if pr.ThrottleTime, err = pd.getInt32(); err != nil {
+			return err
 		}
 	}
 
@@ -83,6 +100,14 @@ func (pr *ProduceResponse) encode(pe packetEncoder) error {
 		}
 	}
 	return nil
+}
+
+func (r *ProduceResponse) key() int16 {
+	return 0
+}
+
+func (r *ProduceResponse) version() int16 {
+	return r.Version
 }
 
 func (pr *ProduceResponse) GetBlock(topic string, partition int32) *ProduceResponseBlock {

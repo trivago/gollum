@@ -198,6 +198,21 @@ func (b *Broker) GetAvailableOffsets(request *OffsetRequest) (*OffsetResponse, e
 }
 
 func (b *Broker) Produce(request *ProduceRequest) (*ProduceResponse, error) {
+	switch request.version() {
+	case 0:
+		break
+	case 1:
+		if !b.conf.Version.IsAtLeast(V0_9_0_0) {
+			return nil, ErrUnsupportedVersion
+		}
+	case 2:
+		if !b.conf.Version.IsAtLeast(V0_10_0_0) {
+			return nil, ErrUnsupportedVersion
+		}
+	default:
+		return nil, ErrUnsupportedVersion
+	}
+
 	var response *ProduceResponse
 	var err error
 
@@ -317,7 +332,7 @@ func (b *Broker) DescribeGroups(request *DescribeGroupsRequest) (*DescribeGroups
 	return response, nil
 }
 
-func (b *Broker) send(rb requestBody, promiseResponse bool) (*responsePromise, error) {
+func (b *Broker) send(rb protocolBody, promiseResponse bool) (*responsePromise, error) {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
@@ -355,7 +370,7 @@ func (b *Broker) send(rb requestBody, promiseResponse bool) (*responsePromise, e
 	return &promise, nil
 }
 
-func (b *Broker) sendAndReceive(req requestBody, res decoder) error {
+func (b *Broker) sendAndReceive(req protocolBody, res versionedDecoder) error {
 	promise, err := b.send(req, res != nil)
 
 	if err != nil {
@@ -368,7 +383,7 @@ func (b *Broker) sendAndReceive(req requestBody, res decoder) error {
 
 	select {
 	case buf := <-promise.packets:
-		return decode(buf, res)
+		return versionedDecode(buf, res, req.version())
 	case err = <-promise.errors:
 		return err
 	}
