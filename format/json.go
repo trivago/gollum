@@ -20,6 +20,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -106,10 +107,30 @@ type JSON struct {
 	initState string
 	timeRead  string
 	timeWrite string
+	timeParse func(string, string) (time.Time, error)
 }
 
 func init() {
 	shared.TypeRegistry.Register(JSON{})
+}
+
+func parseUnix(layout, value string) (time.Time, error) {
+	s, ns := int64(0), int64(0)
+	switch layout {
+	case "s", "sec":
+		valueInt, err := strconv.ParseInt(value, 10, 64)
+		if err != nil { return time.Time{}, err }
+		s = valueInt
+	case "ms", "msec":
+		valueInt, err := strconv.ParseInt(value, 10, 64)
+		if err != nil { return time.Time{}, err }
+		ns = valueInt*int64(time.Millisecond)
+	case "ns", "nsec":
+		valueInt, err := strconv.ParseInt(value, 10, 64)
+		if err != nil { return time.Time{}, err }
+		ns = valueInt
+	}
+	return time.Unix(s, ns), nil
 }
 
 // Configure initializes this formatter with values from a plugin config.
@@ -120,6 +141,13 @@ func (format *JSON) Configure(conf core.PluginConfig) error {
 	format.timeRead = conf.GetString("JSONTimestampRead", "20060102150405")
 	format.timeWrite = conf.GetString("JSONTimestampWrite", "2006-01-02 15:04:05 MST")
 	format.parseLock = new(sync.Mutex)
+
+	switch format.timeRead {
+	case "s", "sec", "ms", "msec", "ns", "nsec":
+		format.timeParse = parseUnix
+	default:
+		format.timeParse = time.Parse
+	}
 
 	if !conf.HasValue("JSONDirectives") {
 		Log.Warning.Print("JSON formatter has no JSONDirectives setting")
@@ -234,7 +262,7 @@ func (format *JSON) readEscaped(data []byte, state shared.ParserStateID) {
 }
 
 func (format *JSON) readDate(data []byte, state shared.ParserStateID) {
-	date, _ := time.Parse(format.timeRead, string(bytes.TrimSpace(data)))
+	date, _ := format.timeParse(format.timeRead, string(bytes.TrimSpace(data)))
 	formattedDate := date.Format(format.timeWrite)
 	format.readEscaped([]byte(formattedDate), state)
 }
