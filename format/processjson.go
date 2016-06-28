@@ -16,6 +16,7 @@ package format
 
 import (
 	"encoding/json"
+	"github.com/mssola/user_agent"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
@@ -37,6 +38,7 @@ import (
 //      - "error:replace:°:\n"
 //      - "text:trim: \t"
 //      - "foo:rename:bar"
+//      - "user_agent:agent:browser:os:version"
 //    ProcessJSONTrimValues: true
 //
 // ProcessJSONDataFormatter formatter that will be applied before
@@ -54,6 +56,9 @@ import (
 // - rename:<old>:<new> rename a given field
 // - timestamp:<read>:<write> read a timestamp and transform it into another
 // format
+// - agent:{<user_agent_field>:<user_agent_field>:...} Parse the value as a user
+// agent string and extract the given fields into <key>_<user_agent_field>
+// ("ua:agent:browser:os" would create the new fields "ua_browser" and "ua_os")
 //
 // ProcessJSONTrimValues will trim whitspaces from all values if enabled.
 // Enabled by default.
@@ -179,6 +184,47 @@ func processDirective(directive transformDirective, values *shared.MarshalMap) {
 
 		case "remove":
 			delete(*values, directive.key)
+
+		case "agent":
+			stringValue, err := values.String(directive.key)
+			if err != nil {
+				Log.Warning.Print(err.Error())
+				return
+			}
+			fields := []string{
+				"mozilla",
+				"platform",
+				"os",
+				"localization",
+				"engine",
+				"engine_version",
+				"browser",
+				"version",
+			}
+			if numParameters > 0 {
+				fields = directive.parameters
+			}
+			ua := user_agent.New(stringValue)
+			for _, field := range fields {
+				switch field {
+				case "mozilla":
+					(*values)[directive.key + "_mozilla"] = ua.Mozilla()
+				case "platform":
+					(*values)[directive.key + "_platform"] = ua.Platform()
+				case "os":
+					(*values)[directive.key + "_os"] = ua.OS()
+				case "localization":
+					(*values)[directive.key + "_localization"] = ua.Localization()
+				case "engine":
+					(*values)[directive.key + "_engine"], _ = ua.Engine()
+				case "engine_version":
+					_, (*values)[directive.key + "_engine_version"] = ua.Engine()
+				case "browser":
+					(*values)[directive.key + "_browser"], _ = ua.Browser()
+				case "version":
+					_, (*values)[directive.key + "_version"] = ua.Browser()
+				}
+			}
 		}
 	}
 }
