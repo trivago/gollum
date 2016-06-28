@@ -159,7 +159,7 @@ func (values *valueMap) processDirective(directive transformDirective) {
 				(*values)[directive.key] = strings.Trim(value, shared.Unescape(directive.parameters[0]))
 			}
 
-		case "omit":
+		case "remove":
 			delete(*values, directive.key)
 		}
 	}
