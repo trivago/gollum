@@ -117,15 +117,15 @@ func init() {
 func parseUnix(layout, value string) (time.Time, error) {
 	s, ns := int64(0), int64(0)
 	switch layout {
-	case "s", "sec":
+	case "s":
 		valueInt, err := strconv.ParseInt(value, 10, 64)
 		if err != nil { return time.Time{}, err }
 		s = valueInt
-	case "ms", "msec":
+	case "ms":
 		valueInt, err := strconv.ParseInt(value, 10, 64)
 		if err != nil { return time.Time{}, err }
 		ns = valueInt*int64(time.Millisecond)
-	case "ns", "nsec":
+	case "ns":
 		valueInt, err := strconv.ParseInt(value, 10, 64)
 		if err != nil { return time.Time{}, err }
 		ns = valueInt
@@ -143,7 +143,7 @@ func (format *JSON) Configure(conf core.PluginConfig) error {
 	format.parseLock = new(sync.Mutex)
 
 	switch format.timeRead {
-	case "s", "sec", "ms", "msec", "ns", "nsec":
+	case "s", "ms", "ns":
 		format.timeParse = parseUnix
 	default:
 		format.timeParse = time.Parse
