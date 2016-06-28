@@ -15,6 +15,7 @@
 package consumer
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
@@ -27,7 +28,6 @@ import (
 	"github.com/trivago/gollum/shared"
 	"io/ioutil"
 	"strconv"
-	"bytes"
 	"strings"
 	"sync"
 	"time"
@@ -276,7 +276,7 @@ func (cons *Kinesis) processShard(shardID string) {
 				if len(cons.delimiter) > 0 {
 					messages := bytes.Split(record.Data, cons.delimiter)
 					for idx, msg := range messages {
-						cons.Enqueue([]byte(msg), uint64(seq) + uint64(idx))
+						cons.Enqueue([]byte(msg), uint64(seq)+uint64(idx))
 					}
 				} else {
 					cons.Enqueue(record.Data, uint64(seq))
@@ -325,6 +325,7 @@ func (cons *Kinesis) connect() error {
 	}
 
 	if cons.shardTime > 0 {
+		cons.AddWorker()
 		time.AfterFunc(cons.shardTime, cons.updateShards)
 	}
 
@@ -332,6 +333,8 @@ func (cons *Kinesis) connect() error {
 }
 
 func (cons *Kinesis) updateShards() {
+	defer cons.WorkerDone()
+
 	streamQuery := &kinesis.DescribeStreamInput{
 		StreamName: aws.String(cons.stream),
 	}
