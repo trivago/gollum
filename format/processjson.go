@@ -69,8 +69,6 @@ type transformDirective struct {
 	parameters []string
 }
 
-type valueMap map[string]string
-
 func init() {
 	shared.TypeRegistry.Register(ProcessJSON{})
 }
@@ -111,7 +109,7 @@ func (format *ProcessJSON) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-func (values *valueMap) processDirective(directive transformDirective) {
+func processDirective(directive transformDirective, values *shared.MarshalMap) {
 	if value, keyExists := (*values)[directive.key]; keyExists {
 
 		numParameters := len(directive.parameters)
@@ -123,9 +121,14 @@ func (values *valueMap) processDirective(directive transformDirective) {
 			}
 
 		case "time":
+			stringValue, err := values.String(directive.key)
+			if err != nil {
+				Log.Warning.Print(err.Error())
+				return
+			}
 			if numParameters == 2 {
 
-				if timestamp, err := time.Parse(directive.parameters[0], value[:len(directive.parameters[0])]); err != nil {
+				if timestamp, err := time.Parse(directive.parameters[0], stringValue[:len(directive.parameters[0])]); err != nil {
 					Log.Warning.Print("ProcessJSON failed to parse a timestamp: ", err)
 				} else {
 					(*values)[directive.key] = timestamp.Format(directive.parameters[1])
@@ -133,10 +136,15 @@ func (values *valueMap) processDirective(directive transformDirective) {
 			}
 
 		case "split":
+			stringValue, err := values.String(directive.key)
+			if err != nil {
+				Log.Warning.Print(err.Error())
+				return
+			}
 			if numParameters > 1 {
 				token := shared.Unescape(directive.parameters[0])
-				if strings.Contains(value, token) {
-					elements := strings.Split(value, token)
+				if strings.Contains(stringValue, token) {
+					elements := strings.Split(stringValue, token)
 					mapping := directive.parameters[1:]
 					maxItems := shared.MinI(len(elements), len(mapping))
 
@@ -147,16 +155,26 @@ func (values *valueMap) processDirective(directive transformDirective) {
 			}
 
 		case "replace":
+			stringValue, err := values.String(directive.key)
+			if err != nil {
+				Log.Warning.Print(err.Error())
+				return
+			}
 			if numParameters == 2 {
-				(*values)[directive.key] = strings.Replace(value, shared.Unescape(directive.parameters[0]), shared.Unescape(directive.parameters[1]), -1)
+				(*values)[directive.key] = strings.Replace(stringValue, shared.Unescape(directive.parameters[0]), shared.Unescape(directive.parameters[1]), -1)
 			}
 
 		case "trim":
+			stringValue, err := values.String(directive.key)
+			if err != nil {
+				Log.Warning.Print(err.Error())
+				return
+			}
 			switch {
 			case numParameters == 0:
-				(*values)[directive.key] = strings.Trim(value, " \t")
+				(*values)[directive.key] = strings.Trim(stringValue, " \t")
 			case numParameters == 1:
-				(*values)[directive.key] = strings.Trim(value, shared.Unescape(directive.parameters[0]))
+				(*values)[directive.key] = strings.Trim(stringValue, shared.Unescape(directive.parameters[0]))
 			}
 
 		case "remove":
@@ -172,7 +190,7 @@ func (format *ProcessJSON) Format(msg core.Message) ([]byte, core.MessageStreamI
 		return data, streamID // ### return, no directives ###
 	}
 
-	values := make(valueMap)
+	values := make(shared.MarshalMap)
 	err := json.Unmarshal(data, &values)
 	if err != nil {
 		Log.Warning.Print("ProcessJSON failed to unmarshal a message: ", err)
@@ -180,12 +198,15 @@ func (format *ProcessJSON) Format(msg core.Message) ([]byte, core.MessageStreamI
 	}
 
 	for _, directive := range format.directives {
-		values.processDirective(directive)
+		processDirective(directive, &values)
 	}
 
 	if format.trimValues {
-		for key, value := range values {
-			values[key] = strings.Trim(value, " ")
+		for key := range values {
+			stringValue, err := values.String(key)
+			if err == nil {
+				values[key] = strings.Trim(stringValue, " ")
+			}
 		}
 	}
 
