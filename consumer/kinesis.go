@@ -324,14 +324,22 @@ func (cons *Kinesis) connect() error {
 		go cons.processShard(shardID)
 	}
 
-	if cons.shardTime {
-		return nil
+	if cons.shardTime > 0 {
+		time.AfterFunc(cons.shardTime, cons.updateShards)
+	}
+
+	return nil
+}
+
+func (cons *Kinesis) updateShards() {
+	streamQuery := &kinesis.DescribeStreamInput{
+		StreamName: aws.String(cons.stream),
 	}
 
 	for cons.running {
-		streamInfo, err = cons.client.DescribeStream(streamQuery)
+		streamInfo, err := cons.client.DescribeStream(streamQuery)
 		if err != nil {
-			return err
+			Log.Warning.Printf("StreamInfo could not be retrieved.")
 		}
 
 		if streamInfo.StreamDescription == nil {
@@ -354,8 +362,6 @@ func (cons *Kinesis) connect() error {
 		}
 		time.Sleep(cons.shardTime)
 	}
-
-	return nil
 }
 
 func (cons *Kinesis) close() {
