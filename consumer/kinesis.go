@@ -117,6 +117,7 @@ type Kinesis struct {
 	delimiter       []byte
 	sleepTime       time.Duration
 	retryTime       time.Duration
+	shardTime       time.Duration
 	running         bool
 }
 
@@ -138,6 +139,8 @@ func (cons *Kinesis) Configure(conf core.PluginConfig) error {
 	cons.delimiter = []byte(conf.GetString("RecordMessageDelimiter", ""))
 	cons.sleepTime = time.Duration(conf.GetInt("QuerySleepTimeMs", 1000)) * time.Millisecond
 	cons.retryTime = time.Duration(conf.GetInt("RetrySleepTimeSec", 4)) * time.Second
+	// 0 means don't
+	cons.shardTime = time.Duration(conf.GetInt("CheckNewShardsSec", 0)) * time.Second
 
 	// Config
 	cons.config = aws.NewConfig()
@@ -320,7 +323,45 @@ func (cons *Kinesis) connect() error {
 		Log.Debug.Printf("Starting kinesis consumer for %s:%s", cons.stream, shardID)
 		go cons.processShard(shardID)
 	}
+
+	if cons.shardTime > 0 {
+		time.AfterFunc(cons.shardTime, cons.updateShards)
+	}
+
 	return nil
+}
+
+func (cons *Kinesis) updateShards() {
+	streamQuery := &kinesis.DescribeStreamInput{
+		StreamName: aws.String(cons.stream),
+	}
+
+	for cons.running {
+		streamInfo, err := cons.client.DescribeStream(streamQuery)
+		if err != nil {
+			Log.Warning.Printf("StreamInfo could not be retrieved.")
+		}
+
+		if streamInfo.StreamDescription == nil {
+			Log.Warning.Printf("StreamDescription could not be retrieved.")
+			continue
+		}
+
+		cons.running = true
+		for _, shard := range streamInfo.StreamDescription.Shards {
+			if shard.ShardId == nil {
+				Log.Warning.Printf("ShardId could not be retrieved.")
+				continue
+			}
+
+			if _, offsetStored := cons.offsets[*shard.ShardId]; !offsetStored {
+				cons.offsets[*shard.ShardId] = cons.defaultOffset
+				Log.Debug.Printf("Starting kinesis consumer for %s:%s", cons.stream, *shard.ShardId)
+				go cons.processShard(*shard.ShardId)
+			}
+		}
+		time.Sleep(cons.shardTime)
+	}
 }
 
 func (cons *Kinesis) close() {
