@@ -57,7 +57,12 @@ const (
 // the JSONDirectives array.
 //
 // JSONTimestampRead defines the go timestamp format expected from fields that
-// are parsed as "dat". By default this is set to "20060102150405".
+// are parsed as "dat". When JSONUnixTimestampRead is not set, this is set to
+// "20060102150405" by default.
+//
+// JSONUnixTimestampRead defines the unix timestamp format expected from fields that
+// are parsed as "dat". May be "s", "ms", or "ns", and only accepts integer values.
+// When JSONTimestampRead is set, this is ignored.
 //
 // JSONTimestampWrite defines the go timestamp format that "dat" fields will be
 // converted to. By default this is set to "2006-01-02 15:04:05 MST".
@@ -138,15 +143,22 @@ func (format *JSON) Configure(conf core.PluginConfig) error {
 	format.parser = shared.NewTransitionParser()
 	format.state = jsonReadObject
 	format.initState = conf.GetString("JSONStartState", "")
-	format.timeRead = conf.GetString("JSONTimestampRead", "20060102150405")
+	format.timeRead = conf.GetString("JSONTimestampRead", "")
 	format.timeWrite = conf.GetString("JSONTimestampWrite", "2006-01-02 15:04:05 MST")
+	format.timeParse = time.Parse
 	format.parseLock = new(sync.Mutex)
 
-	switch format.timeRead {
-	case "s", "ms", "ns":
-		format.timeParse = parseUnix
-	default:
-		format.timeParse = time.Parse
+	unixRead := conf.GetString("JSONUnixTimestampRead", "")
+	if format.timeRead == "" {
+		if unixRead == "" {
+			// Use default when neither are specified
+			format.timeRead = "20060102150405"
+		} else {
+			format.timeRead = unixRead
+			format.timeParse = parseUnix
+		}
+	} else if unixRead != "" {
+		Log.Warning.Print("Cannot use both JSONTimestampRead and JSONUnixTimestampRead, defaulting to JSONTimestampRead")
 	}
 
 	if !conf.HasValue("JSONDirectives") {
