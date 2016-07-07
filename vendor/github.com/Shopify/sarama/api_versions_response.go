@@ -6,25 +6,25 @@ type ApiVersionsResponseBlock struct {
 	MaxVersion int16
 }
 
-func (r *ApiVersionsResponseBlock) encode(pe packetEncoder) error {
-	pe.putInt16(r.ApiKey)
-	pe.putInt16(r.MinVersion)
-	pe.putInt16(r.MaxVersion)
+func (b *ApiVersionsResponseBlock) encode(pe packetEncoder) error {
+	pe.putInt16(b.ApiKey)
+	pe.putInt16(b.MinVersion)
+	pe.putInt16(b.MaxVersion)
 	return nil
 }
 
-func (r *ApiVersionsResponseBlock) decode(pd packetDecoder) error {
+func (b *ApiVersionsResponseBlock) decode(pd packetDecoder) error {
 	var err error
 
-	if r.ApiKey, err = pd.getInt16(); err != nil {
+	if b.ApiKey, err = pd.getInt16(); err != nil {
 		return err
 	}
 
-	if r.MinVersion, err = pd.getInt16(); err != nil {
+	if b.MinVersion, err = pd.getInt16(); err != nil {
 		return err
 	}
 
-	if r.MaxVersion, err = pd.getInt16(); err != nil {
+	if b.MaxVersion, err = pd.getInt16(); err != nil {
 		return err
 	}
 
@@ -79,4 +79,8 @@ func (r *ApiVersionsResponse) key() int16 {
 
 func (r *ApiVersionsResponse) version() int16 {
 	return 0
+}
+
+func (r *ApiVersionsResponse) requiredVersion() KafkaVersion {
+	return V0_10_0_0
 }
