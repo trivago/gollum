@@ -51,7 +51,7 @@ func (t *Topic) Close() {
 	}
 
 	if queueLen > 0 {
-		Log.Printf("%d messages have been lost as the internal queue could not be flushed", queueLen)
+		Log.Printf("%d messages have been lost as the internal queue for %s could not be flushed", queueLen, t.name)
 	}
 	C.rd_kafka_topic_destroy(t.handle)
 }

@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tstrings"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -54,7 +55,12 @@ const (
 // the JSONDirectives array.
 //
 // JSONTimestampRead defines the go timestamp format expected from fields that
-// are parsed as "dat". By default this is set to "20060102150405".
+// are parsed as "dat". When JSONUnixTimestampRead is not set, this is set to
+// "20060102150405" by default.
+//
+// JSONUnixTimestampRead defines the unix timestamp format expected from fields that
+// are parsed as "dat". May be "s", "ms", or "ns", and only accepts integer values.
+// When JSONTimestampRead is set, this is ignored.
 //
 // JSONTimestampWrite defines the go timestamp format that "dat" fields will be
 // converted to. By default this is set to "2006-01-02 15:04:05 MST".
@@ -105,10 +111,30 @@ type TextToJSON struct {
 	initState string
 	timeRead  string
 	timeWrite string
+	timeParse func(string, string) (time.Time, error)
 }
 
 func init() {
 	core.TypeRegistry.Register(TextToJSON{})
+}
+
+func parseUnix(layout, value string) (time.Time, error) {
+	s, ns := int64(0), int64(0)
+	switch layout {
+	case "s":
+		valueInt, err := strconv.ParseInt(value, 10, 64)
+		if err != nil { return time.Time{}, err }
+		s = valueInt
+	case "ms":
+		valueInt, err := strconv.ParseInt(value, 10, 64)
+		if err != nil { return time.Time{}, err }
+		ns = valueInt*int64(time.Millisecond)
+	case "ns":
+		valueInt, err := strconv.ParseInt(value, 10, 64)
+		if err != nil { return time.Time{}, err }
+		ns = valueInt
+	}
+	return time.Unix(s, ns), nil
 }
 
 // Configure initializes this formatter with values from a plugin config.
@@ -118,9 +144,23 @@ func (format *TextToJSON) Configure(conf core.PluginConfigReader) error {
 	format.parser = tstrings.NewTransitionParser()
 	format.state = jsonReadObject
 	format.initState = conf.GetString("StartState", "")
-	format.timeRead = conf.GetString("TimestampRead", "20060102150405")
+	format.timeRead = conf.GetString("TimestampRead", "")
 	format.timeWrite = conf.GetString("TimestampWrite", "2006-01-02 15:04:05 MST")
+	format.timeParse = time.Parse
 	format.parseLock = new(sync.Mutex)
+
+	unixRead := conf.GetString("UnixTimestampRead", "")
+	if format.timeRead == "" {
+		if unixRead == "" {
+			// Use default when neither are specified
+			format.timeRead = "20060102150405"
+		} else {
+			format.timeRead = unixRead
+			format.timeParse = parseUnix
+		}
+	} else if unixRead != "" {
+		Log.Warning.Print("Cannot use both JSONTimestampRead and JSONUnixTimestampRead, defaulting to JSONTimestampRead")
+	}
 
 	if !conf.HasValue("Directives") {
 		format.Log.Warning.Print("JSON formatter has no directives setting")
@@ -235,7 +275,7 @@ func (format *TextToJSON) readEscaped(data []byte, state tstrings.ParserStateID)
 }
 
 func (format *TextToJSON) readDate(data []byte, state tstrings.ParserStateID) {
-	date, _ := time.Parse(format.timeRead, string(bytes.TrimSpace(data)))
+	date, _ := format.timeParse(format.timeRead, string(bytes.TrimSpace(data)))
 	formattedDate := date.Format(format.timeWrite)
 	format.readEscaped([]byte(formattedDate), state)
 }

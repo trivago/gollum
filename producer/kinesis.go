@@ -49,6 +49,8 @@ const (
 //    CredentialFile: ""
 //    CredentialProfile: ""
 //    BatchMaxMessages: 500
+//    RecordMaxMessages: 1
+//    RecordMessageDelimiter: "\n"
 //    SendTimeframeSec: 1
 //    BatchTimeoutSec: 3
 //    StreamMapping:
@@ -75,6 +77,12 @@ const (
 // BatchMaxMessages defines the maximum number of messages to send per
 // batch. By default this is set to 500.
 //
+// RecordMaxMessages defines the maximum number of messages to join into
+// a kinesis record. By default this is set to 500.
+//
+// RecordMessageDelimiter defines the string to delimit messages within
+// a kinesis record. By default this is set to "\n".
+//
 // SendTimeframeMs defines the timeframe in milliseconds in which a second
 // batch send can be triggered. By default this is set to 1000, i.e. one
 // send operation per second.
@@ -91,11 +99,13 @@ type Kinesis struct {
 	config           *aws.Config
 	streamMap        map[core.MessageStreamID]string
 	batch            core.MessageBatch
-	flushFrequency   time.Duration
-	lastSendTime     time.Time
-	sendTimeLimit    time.Duration
-	counters         map[string]*int64
-	lastMetricUpdate time.Time
+	recordMaxMessages int
+	delimiter         []byte
+	flushFrequency    time.Duration
+	lastSendTime      time.Time
+	sendTimeLimit     time.Duration
+	counters          map[string]*int64
+	lastMetricUpdate  time.Time
 }
 
 const (
@@ -104,8 +114,9 @@ const (
 )
 
 type streamData struct {
-	content  *kinesis.PutRecordsInput
-	original []*core.Message
+	content            *kinesis.PutRecordsInput
+	original           [][]*core.Message
+	lastRecordMessages int
 }
 
 func init() {
@@ -117,13 +128,25 @@ func (prod *Kinesis) Configure(conf core.PluginConfigReader) error {
 	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
 
-	prod.streamMap = conf.GetStreamMap("StreamMapping", "default")
+	prod.streamMap = conf.GetStreamMap("StreamMapping", "")
 	prod.batch = core.NewMessageBatch(conf.GetInt("Batch/MaxMessages", 500))
+	prod.recordMaxMessages = conf.GetInt("RecordMaxMessages", 1)
+	prod.delimiter = []byte(conf.GetString("RecordMessageDelimiter", "\n"))
 	prod.flushFrequency = time.Duration(conf.GetInt("Batch/TimeoutSec", 3)) * time.Second
 	prod.sendTimeLimit = time.Duration(conf.GetInt("SendTimeframeMs", 1000)) * time.Millisecond
 	prod.lastSendTime = time.Now()
 	prod.counters = make(map[string]*int64)
 	prod.lastMetricUpdate = time.Now()
+
+	if prod.recordMaxMessages < 1 {
+		prod.recordMaxMessages = 1
+		Log.Warning.Print("RecordMaxMessages was < 1. Defaulting to 1.")
+	}
+
+	if prod.recordMaxMessages > 1 && len(prod.delimiter) == 0 {
+		prod.delimiter = []byte("\n")
+		Log.Warning.Print("RecordMessageDelimiter was empty. Defaulting to \"\\n\".")
+	}
 
 	// Config
 	prod.config = aws.NewConfig()
@@ -204,33 +227,51 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 			// Select the correct kinesis stream
 			streamName, streamMapped := prod.streamMap[currentMsg.StreamID()]
 			if !streamMapped {
-				streamName = core.StreamRegistry.GetStreamName(currentMsg.StreamID())
-				prod.streamMap[currentMsg.StreamID()] = streamName
+				streamName, streamMapped = prod.streamMap[core.WildcardStreamID]
+				if !streamMapped {
+					streamName = core.StreamRegistry.GetStreamName(currentMsg.StreamID())
+					prod.streamMap[currentMsg.StreamID()] = streamName
 
-				metricName := kinesisMetricMessages + streamName
-				tgo.Metric.New(metricName)
-				tgo.Metric.NewRate(metricName, kinesisMetricMessagesSec+streamName, time.Second, 10, 3, true)
+					metricName := kinesisMetricMessages + streamName
+					tgo.Metric.New(metricName)
+					tgo.Metric.NewRate(metricName, kinesisMetricMessagesSec+streamName, time.Second, 10, 3, true)
+				}
 			}
 
 			// Create buffers for this kinesis stream
+			maxLength := len(messages) / prod.recordMaxMessages + 1
 			records = &streamData{
 				content: &kinesis.PutRecordsInput{
-					Records:    make([]*kinesis.PutRecordsRequestEntry, 0, len(messages)),
+					Records:    make([]*kinesis.PutRecordsRequestEntry, 0, maxLength),
 					StreamName: aws.String(streamName),
 				},
-				original: make([]*core.Message, 0, len(messages)),
+				original: make([][]*core.Message, 0, maxLength),
+				lastRecordMessages: 0,
 			}
 			streamRecords[currentMsg.StreamID()] = records
 		}
 
+		// Fetch record for this buffer
+		var record *kinesis.PutRecordsRequestEntry
+		recordExists := len(records.content.Records) > 0
+		if !recordExists || records.lastRecordMessages + 1 > prod.recordMaxMessages {
 		// Append record to stream
 		record := &kinesis.PutRecordsRequestEntry{
 			Data:         currentMsg.Data(),
 			PartitionKey: aws.String(messageHash),
+			records.content.Records = append(records.content.Records, record)
+		}
+			records.original = append(records.original, make([]*core.Message, 0, prod.recordMaxMessages))
+			records.lastRecordMessages = 0
+		} else {
+			record = records.content.Records[len(records.content.Records)-1]
+			record.Data = append(record.Data, prod.delimiter...)
 		}
 
-		records.content.Records = append(records.content.Records, record)
-		records.original = append(records.original, messages[idx])
+		// Append message to record
+		record.Data = append(record.Data, msgData...)
+		records.lastRecordMessages += 1
+		records.original[len(records.original)-1] = append(records.original[len(records.original)-1], &messages[idx])
 	}
 
 	sleepDuration := prod.sendTimeLimit - time.Since(prod.lastSendTime)
@@ -246,23 +287,20 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 		if err != nil {
 			// Batch failed, drop all
 			prod.Log.Error.Print("Write error: ", err)
-			for _, msg := range records.original {
-				prod.Drop(msg)
+			for _, messages := range records.original {
+				for _, msg := range messages {
+					prod.Drop(*msg)
+				}
 			}
 		} else {
 			// Check each message for errors
 			for msgIdx, record := range result.Records {
 				if record.ErrorMessage != nil {
-					prod.Log.Error.Print("Message write error: ", *record.ErrorMessage)
-					prod.Drop(records.original[msgIdx])
-				} else {
-					streamName := prod.streamMap[records.original[msgIdx].StreamID()]
-					tgo.Metric.Inc(kinesisMetricMessages + streamName)
-				}
-			}
-		}
-	}
-}
+					Log.Error.Print("Kinesis message write error: ", *record.ErrorMessage)
+					for _, msg := range records.original[msgIdx] {
+						prod.Drop(*msg)
+					}
+
 
 func (prod *Kinesis) close() {
 	defer prod.WorkerDone()

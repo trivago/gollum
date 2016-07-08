@@ -15,6 +15,7 @@
 package native
 
 import (
+	"fmt"
 	kafka "github.com/trivago/gollum/contrib/native/librdkafka"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
@@ -27,8 +28,10 @@ import (
 
 // KafkaProducer librdkafka producer plugin
 // The kafka producer writes messages to a kafka cluster. This producer is
-// backed by the native librdkafka library so most settings relate to that.
-// library. This producer does not implement a fuse breaker.
+// backed by the native librdkafka (0.8.6) library so most settings relate
+// to that library. This producer does not implement a fuse breaker.
+// NOTICE: This producer is not included in standard builds. To enable it
+// you need to trigger a custom build with native plugins enabled.
 // Configuration example
 //
 //  - "native.KafkaProducer":
@@ -101,21 +104,33 @@ import (
 // Topic defines a stream to topic mapping.
 // If a stream is not mapped a topic named like the stream is assumed.
 //
-// KeyFormatter defines the formatter used to extract keys from a message.
-// Set to "" by default (disable).
+// KeyFormatter can define a formatter that extracts the key for a kafka message
+// from the message payload. By default this is an empty string, which disables
+// this feature. A good formatter for this can be format.Identifier.
+//
+// KeyFormatterFirst can be set to true to apply the key formatter to the
+// unformatted message. By default this is set to false, so that key formatter
+// uses the message after Formatter has been applied.
+// KeyFormatter does never affect the payload of the message sent to kafka.
+//
+// FilterAfterFormat behaves like Filter but allows filters to be executed
+// after the formatter has run. By default no such filter is set.
 type KafkaProducer struct {
 	core.BufferedProducer
 	servers           []string
 	clientID          string
-	keyFormat         core.Formatter
-	client            *kafka.Client
-	config            kafka.Config
-	topicRequiredAcks int
-	topicTimeoutMs    int
-	pollInterval      time.Duration
-	topic             map[core.MessageStreamID]*topicHandle
-	streamToTopic     map[core.MessageStreamID]string
-	topicGuard        *sync.RWMutex
+	keyFormat          core.Formatter
+	client             *kafka.Client
+	config             kafka.Config
+	topicRequiredAcks  int
+	topicTimeoutMs     int
+	pollInterval       time.Duration
+	topic              map[core.MessageStreamID]*topicHandle
+	topicHandles       map[string]*topicHandle
+	streamToTopic      map[core.MessageStreamID]string
+	topicGuard         *sync.RWMutex
+	keyFirst           bool
+	filtersAfterFormat []core.Filter
 }
 
 type messageWrapper struct {
@@ -173,6 +188,19 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
 		prod.keyFormat = nil
 	}
 
+	filters := conf.GetStringArray("FilterAfterFormat", []string{})
+	for _, filterName := range filters {
+		plugin, err := core.NewPluginWithType(filterName, conf)
+		if err != nil {
+			return err
+		}
+		filter, isFilter := plugin.(core.Filter)
+		if !isFilter {
+			return fmt.Errorf("%s is not a filter", filterName)
+		}
+		prod.filtersAfterFormat = append(prod.filtersAfterFormat, filter)
+	}
+
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.clientID = conf.GetString("ClientId", "gollum")
 	prod.streamToTopic = conf.GetStreamMap("Topic", "default")
@@ -181,6 +209,8 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
 	prod.topicTimeoutMs = conf.GetInt("TimeoutMs", 1)
 	prod.topicGuard = new(sync.RWMutex)
 	prod.streamToTopic = conf.GetStreamMap("Topic", "default")
+	prod.keyFirst = conf.GetBool("KeyFormatterFirst", false)
+	prod.topicHandles = make(map[string]*topicHandle)
 
 	batchIntervalMs := conf.GetInt("BatchTimeoutMs", 1000)
 	prod.pollInterval = time.Millisecond * time.Duration(batchIntervalMs)
@@ -235,45 +265,69 @@ func (prod *KafkaProducer) newTopicHandle(topicName string) *kafka.Topic {
 }
 
 func (prod *KafkaProducer) registerNewTopic(topicName string, streamID core.MessageStreamID) *topicHandle {
+	prod.topicGuard.Lock()
+	defer prod.topicGuard.Unlock()
+
+	if topic, exists := prod.topicHandles[topicName]; exists {
+		prod.topic[streamID] = topic
+		return topic
+	}
+
 	topic := &topicHandle{
 		handle: prod.newTopicHandle(topicName),
 	}
+
+	prod.topicHandles[topicName] = topic
+	prod.topic[streamID] = topic
 
 	tgo.Metric.New(kafkaMetricMessages + topicName)
 	tgo.Metric.New(kafkaMetricMessagesSec + topicName)
 	tgo.Metric.New(kafkaMetricRoundtrip + topicName)
 
-	prod.topicGuard.Lock()
-	prod.topic[streamID] = topic
-	prod.topicGuard.Unlock()
-
 	return topic
 }
 
-func (prod *KafkaProducer) produceMessage(msg *core.Message) {
-	originalMsg := *msg
+func (prod *KafkaProducer) produceMessage(msg core.Message) {
+	originalMsg := msg
 	prod.Format(msg)
 
-	// Send message
+	if len(msg.Data) == 0 {
+		streamName := core.StreamRegistry.GetStreamName(msg.StreamID)
+		Log.Error.Printf("0 byte message detected on %s. Discarded", streamName)
+		core.CountDiscardedMessage()
+		return // ### return, invalid data ###
+	}
+
+	for _, filter := range prod.filtersAfterFormat {
+		if !filter.Accepts(msg) {
+			core.CountFilteredMessage()
+			return
+		}
+	}
+
 	prod.topicGuard.RLock()
 	topic, topicRegistered := prod.topic[msg.StreamID()]
+	prod.topicGuard.RUnlock()
 
 	if !topicRegistered {
-		prod.topicGuard.RUnlock()
-		topicName, isMapped := prod.streamToTopic[msg.StreamID()]
+		wildcardSet := false
+		topicName, isMapped := prod.streamToTopic[msg.StreamID]
 		if !isMapped {
-			topicName = core.StreamRegistry.GetStreamName(msg.StreamID())
+			if topicName, wildcardSet = prod.streamToTopic[core.WildcardStreamID]; !wildcardSet {
+				topicName = core.StreamRegistry.GetStreamName(msg.StreamID())
+			}
 		}
 		topic = prod.registerNewTopic(topicName, msg.StreamID())
-	} else {
-		prod.topicGuard.RUnlock()
 	}
 
 	var key []byte
 	if prod.keyFormat != nil {
-		keyMsg := *msg
-		prod.keyFormat.Format(&keyMsg)
-		key = keyMsg.Data()
+		if prod.keyFirst {
+			keyMsg := *msg
+			prod.keyFormat.Format(&keyMsg)
+		} else {
+			key = keyMsg.Data()
+		}
 	}
 
 	serializedOriginal, err := originalMsg.Serialize()
@@ -297,6 +351,7 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 
 func (prod *KafkaProducer) storeRTT(msg *core.Message) {
 	rtt := time.Since(msg.Created())
+	_, streamID := prod.ProducerBase.Format(*msg)
 
 	prod.topicGuard.RLock()
 	topic := prod.topic[msg.StreamID()]

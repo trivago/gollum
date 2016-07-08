@@ -39,7 +39,11 @@ type MessageDelivery interface {
 
 //export goDeliveryHandler
 func goDeliveryHandler(clientHandle *C.rd_kafka_t, code C.int, bufferPtr *C.buffer_t) {
-	if handler, exists := clients[clientHandle]; exists {
+	clientGuard.RLock()
+	handler, handlerExists := clients[clientHandle]
+	clientGuard.RUnlock()
+
+	if handlerExists {
 		buffer := UnmarshalBuffer(bufferPtr)
 		if code == C.RD_KAFKA_RESP_ERR_NO_ERROR {
 			handler.OnMessageDelivered(buffer)

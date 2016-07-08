@@ -16,9 +16,11 @@ package format
 
 import (
 	"encoding/json"
+	"github.com/mssola/user_agent"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"
+	"github.com/trivago/tgo/tcontainer"
 	"strings"
 	"time"
 )
@@ -29,7 +31,7 @@ import (
 // Configuration example
 //
 //  - "stream.Broadcast":
-//    Formatter: "format.processJSON"
+//    Formatter: "format.ProcessJSON"
 //    ProcessJSONDataFormatter: "format.Forward"
 //    ProcessJSONDirectives:
 //      - "host:split: :host:@timestamp"
@@ -37,6 +39,8 @@ import (
 //      - "error:replace:°:\n"
 //      - "text:trim: \t"
 //      - "foo:rename:bar"
+//		- "foobar:remove"
+//      - "user_agent:agent:browser:os:version"
 //    ProcessJSONTrimValues: true
 //
 // ProcessJSONDataFormatter formatter that will be applied before
@@ -52,8 +56,12 @@ import (
 // - trim:<characters> remove the given characters (not string!) from the start
 // and end of the value
 // - rename:<old>:<new> rename a given field
+// - remove remove a given field
 // - timestamp:<read>:<write> read a timestamp and transform it into another
 // format
+// - agent:{<user_agent_field>:<user_agent_field>:...} Parse the value as a user
+// agent string and extract the given fields into <key>_<user_agent_field>
+// ("ua:agent:browser:os" would create the new fields "ua_browser" and "ua_os")
 //
 // ProcessJSONTrimValues will trim whitspaces from all values if enabled.
 // Enabled by default.
@@ -68,8 +76,6 @@ type transformDirective struct {
 	operation  string
 	parameters []string
 }
-
-type valueMap map[string]string
 
 func init() {
 	core.TypeRegistry.Register(ProcessJSON{})
@@ -109,7 +115,7 @@ func (format *ProcessJSON) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-func (values *valueMap) processDirective(directive transformDirective, format *ProcessJSON) {
+func processDirective(directive transformDirective, values *shared.MarshalMap) {
 	if value, keyExists := (*values)[directive.key]; keyExists {
 
 		numParameters := len(directive.parameters)
@@ -121,6 +127,11 @@ func (values *valueMap) processDirective(directive transformDirective, format *P
 			}
 
 		case "time":
+			stringValue, err := values.String(directive.key)
+			if err != nil {
+				Log.Warning.Print(err.Error())
+				return
+			}
 			if numParameters == 2 {
 
 				if timestamp, err := time.Parse(directive.parameters[0], value[:len(directive.parameters[0])]); err != nil {
@@ -131,30 +142,91 @@ func (values *valueMap) processDirective(directive transformDirective, format *P
 			}
 
 		case "split":
+			stringValue, err := values.String(directive.key)
+			if err != nil {
+				Log.Warning.Print(err.Error())
+				return
+			}
 			if numParameters > 1 {
 				token := tstrings.Unescape(directive.parameters[0])
-				if strings.Contains(value, token) {
-					elements := strings.Split(value, token)
+				if strings.Contains(stringValue, token) {
+					elements := strings.Split(stringValue, token)
 					mapping := directive.parameters[1:]
 					maxItems := tmath.MinI(len(elements), len(mapping))
 
 					for i := 0; i < maxItems; i++ {
 						(*values)[mapping[i]] = elements[i]
+		case "remove":
 					}
 				}
 			}
 
+			if numParameters == 0 {
+				delete(*values, directive.key)
+			}
+
 		case "replace":
+			stringValue, err := values.String(directive.key)
+			if err != nil {
+				Log.Warning.Print(err.Error())
+				return
+			}
 			if numParameters == 2 {
-				(*values)[directive.key] = strings.Replace(value, tstrings.Unescape(directive.parameters[0]), tstrings.Unescape(directive.parameters[1]), -1)
+				(*values)[directive.key] = strings.Replace(stringValue, tstrings.Unescape(directive.parameters[0]), tstrings.Unescape(directive.parameters[1]), -1)
 			}
 
 		case "trim":
+			stringValue, err := values.String(directive.key)
+			if err != nil {
+				Log.Warning.Print(err.Error())
+				return
+			}
 			switch {
 			case numParameters == 0:
-				(*values)[directive.key] = strings.Trim(value, " \t")
+				(*values)[directive.key] = strings.Trim(stringValue, " \t")
 			case numParameters == 1:
-				(*values)[directive.key] = strings.Trim(value, tstrings.Unescape(directive.parameters[0]))
+				(*values)[directive.key] = strings.Trim(stringValue, tstrings.Unescape(directive.parameters[0]))
+			}
+
+		case "agent":
+			stringValue, err := values.String(directive.key)
+			if err != nil {
+				Log.Warning.Print(err.Error())
+				return
+			}
+			fields := []string{
+				"mozilla",
+				"platform",
+				"os",
+				"localization",
+				"engine",
+				"engine_version",
+				"browser",
+				"version",
+			}
+			if numParameters > 0 {
+				fields = directive.parameters
+			}
+			ua := user_agent.New(stringValue)
+			for _, field := range fields {
+				switch field {
+				case "mozilla":
+					(*values)[directive.key + "_mozilla"] = ua.Mozilla()
+				case "platform":
+					(*values)[directive.key + "_platform"] = ua.Platform()
+				case "os":
+					(*values)[directive.key + "_os"] = ua.OS()
+				case "localization":
+					(*values)[directive.key + "_localization"] = ua.Localization()
+				case "engine":
+					(*values)[directive.key + "_engine"], _ = ua.Engine()
+				case "engine_version":
+					_, (*values)[directive.key + "_engine_version"] = ua.Engine()
+				case "browser":
+					(*values)[directive.key + "_browser"], _ = ua.Browser()
+				case "version":
+					_, (*values)[directive.key + "_version"] = ua.Browser()
+				}
 			}
 		}
 	}
@@ -166,7 +238,7 @@ func (format *ProcessJSON) Format(msg *core.Message) {
 		return // ### return, no directives ###
 	}
 
-	values := make(valueMap)
+	values := make(tcontainer.valueMap)
 	err := json.Unmarshal(msg.Data(), &values)
 	if err != nil {
 		format.Log.Warning.Print("ProcessJSON failed to unmarshal a message: ", err)
@@ -174,12 +246,15 @@ func (format *ProcessJSON) Format(msg *core.Message) {
 	}
 
 	for _, directive := range format.directives {
-		values.processDirective(directive, format)
+		processDirective(directive, &values)
 	}
 
 	if format.trimValues {
-		for key, value := range values {
-			values[key] = strings.Trim(value, " ")
+		for key := range values {
+			stringValue, err := values.String(key)
+			if err == nil {
+				values[key] = strings.Trim(stringValue, " ")
+			}
 		}
 	}
 

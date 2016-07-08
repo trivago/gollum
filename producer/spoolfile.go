@@ -191,7 +191,11 @@ func (spool *spoolFile) read() {
 			} else {
 				spool.prod.Log.Debug.Printf("Read waits for %s", spoolFileName)
 			}
+
+			spool.prod.WorkerDone() // to avoid being stuck during shutdown
 			time.Sleep(spool.prod.maxFileAge / 2)
+			spool.prod.AddWorker() // worker done is always called at exit
+
 			continue // ### continue, try again ###
 		}
 

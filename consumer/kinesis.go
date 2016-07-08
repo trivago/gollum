@@ -15,6 +15,7 @@
 package consumer
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
@@ -52,6 +53,7 @@ const (
 //    DefaultOffset: "Newest"
 //    OffsetFile: ""
 //    RecordsPerQuery: 100
+//    RecordMessageDelimiter: ""
 //    QuerySleepTimeMs: 1000
 //    RetrySleepTimeSec: 4
 //    CredentialType: "none"
@@ -91,6 +93,9 @@ const (
 // RecordsPerQuery defines the number of records to pull per query.
 // By default this is set to 100.
 //
+// RecordMessageDelimiter defines the string to delimit messages within a
+// record. By default this is set to "", i.e. it is disabled.
+//
 // QuerySleepTimeMs defines the number of milliseconds to sleep before
 // trying to pull new records from a shard that did not return any records.
 // By default this is set to 1000.
@@ -107,8 +112,10 @@ type Kinesis struct {
 	offsetFile      string
 	defaultOffset   string
 	recordsPerQuery int64
+	delimiter       []byte
 	sleepTime       time.Duration
 	retryTime       time.Duration
+	shardTime       time.Duration
 	running         bool
 }
 
@@ -124,8 +131,11 @@ func (cons *Kinesis) Configure(conf core.PluginConfigReader) error {
 	cons.stream = conf.GetString("KinesisStream", "default")
 	cons.offsetFile = conf.GetString("OffsetFile", "")
 	cons.recordsPerQuery = int64(conf.GetInt("RecordsPerQuery", 1000))
+	cons.delimiter = []byte(conf.GetString("RecordMessageDelimiter", ""))
 	cons.sleepTime = time.Duration(conf.GetInt("QuerySleepTimeMs", 1000)) * time.Millisecond
 	cons.retryTime = time.Duration(conf.GetInt("RetrySleepTimeSec", 4)) * time.Second
+	// 0 means don't
+	cons.shardTime = time.Duration(conf.GetInt("CheckNewShardsSec", 0)) * time.Second
 
 	// Config
 	cons.config = aws.NewConfig()
@@ -189,8 +199,16 @@ func (cons *Kinesis) Configure(conf core.PluginConfigReader) error {
 			conf.Errors.Push(json.Unmarshal(fileContents, &cons.offsets))
 		}
 	}
-
 	return conf.Errors.OrNil()
+}
+
+func (cons *Kinesis) storeOffsets() {
+	if cons.offsetFile != "" {
+		fileContents, err := json.Marshal(cons.offsets)
+		if err == nil {
+			ioutil.WriteFile(cons.offsetFile, fileContents, 0644)
+		}
+	}
 }
 
 func (cons *Kinesis) processShard(shardID string) {
@@ -202,6 +220,9 @@ func (cons *Kinesis) processShard(shardID string) {
 	}
 	if *iteratorConfig.StartingSequenceNumber == "" {
 		iteratorConfig.StartingSequenceNumber = nil
+	} else {
+		// starting sequence number requires ShardIteratorTypeAfterSequenceNumber
+		iteratorConfig.ShardIteratorType = aws.String(kinesis.ShardIteratorTypeAfterSequenceNumber)
 	}
 
 	iterator, err := cons.client.GetShardIterator(&iteratorConfig)
@@ -244,8 +265,16 @@ func (cons *Kinesis) processShard(shardID string) {
 				}
 
 				seq, _ := strconv.ParseInt(*record.SequenceNumber, 10, 64)
+				if len(cons.delimiter) > 0 {
+					messages := bytes.Split(record.Data, cons.delimiter)
+					for idx, msg := range messages {
+						cons.Enqueue([]byte(msg), uint64(seq)+uint64(idx))
+					}
+				} else {
 				cons.EnqueueWithSequence(record.Data, uint64(seq))
+				}
 				cons.offsets[*iteratorConfig.ShardId] = *record.SequenceNumber
+				cons.storeOffsets()
 			}
 
 			recordConfig.ShardIterator = result.NextShardIterator
@@ -286,7 +315,48 @@ func (cons *Kinesis) connect() error {
 		cons.Log.Debug.Printf("Starting consumer for %s:%s", cons.stream, shardID)
 		go cons.processShard(shardID)
 	}
+
+	if cons.shardTime > 0 {
+		cons.AddWorker()
+		time.AfterFunc(cons.shardTime, cons.updateShards)
+	}
+
 	return nil
+}
+
+func (cons *Kinesis) updateShards() {
+	defer cons.WorkerDone()
+
+	streamQuery := &kinesis.DescribeStreamInput{
+		StreamName: aws.String(cons.stream),
+	}
+
+	for cons.running {
+		streamInfo, err := cons.client.DescribeStream(streamQuery)
+		if err != nil {
+			Log.Warning.Printf("StreamInfo could not be retrieved.")
+		}
+
+		if streamInfo.StreamDescription == nil {
+			Log.Warning.Printf("StreamDescription could not be retrieved.")
+			continue
+		}
+
+		cons.running = true
+		for _, shard := range streamInfo.StreamDescription.Shards {
+			if shard.ShardId == nil {
+				Log.Warning.Printf("ShardId could not be retrieved.")
+				continue
+			}
+
+			if _, offsetStored := cons.offsets[*shard.ShardId]; !offsetStored {
+				cons.offsets[*shard.ShardId] = cons.defaultOffset
+				Log.Debug.Printf("Starting kinesis consumer for %s:%s", cons.stream, *shard.ShardId)
+				go cons.processShard(*shard.ShardId)
+			}
+		}
+		time.Sleep(cons.shardTime)
+	}
 }
 
 func (cons *Kinesis) close() {

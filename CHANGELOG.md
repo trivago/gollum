@@ -1,8 +1,35 @@
-# 0.5.0
+# 0.4.4
 
-#### Breaking changes
+This is a patch / minor features release.
 
- * If no stream is set a plugin will use a stream named like the plugin by default (formerly *)
+#### Fixed
+ 
+ * Fixed producer.File RotatePruneAfterHours setting
+ * Fixed panic in producer.Kafka when shutting down
+ * Fixed panic in producer.Redis when Formatter was not set
+ * Fixed file offset handling in consumer.Kinesis (thanks @relud)
+ * Fixed a concurrent map write during initialization in native.KafkaProducer
+ * Fixed producer.Spooling being stuck for a long time during shutdown
+ * Fixed consumer.Kafka OffsetFile setting stopping gollum when the offset file was not present
+ * Fixed native.KafkaProducer to map all topics to "default" if no topic mapping was set
+ * Producer.Kafka and native.KafkaProducer now discard messages with 0-Byte content
+ * Format.Base64Encode now returns the original message if decoding failed
+ * Producer.Kafka SendRetries set to 1 by default to circumvent a reconnect issue within sarama
+ * Added manual heartbeat to check a valid broker connection with producer.Kafka
+
+#### New
+
+ * Added "remove" directive for format.ProcessJSON
+ * Added key Formatter support for producer.Redis
+ * Added RateLimited- metrics for filter.Rate
+ * Added format.Clear to remove message content (e.g. useful for key formatters)
+ * Added "KeyFormatterFirst" for producer.Kafka and native.KafkaProducer
+ * Added folder creation capatibilites to consumer.File when creating offset files
+ * Added gollum log messages metrics
+ * Allowed * in stream mapping for kafka and kinesis producers
+ * Added FilterAfterFormat to producer.Kafka and native.KafkaProducer
+ * Added wildcard topic mapping to producer.Kafka and native.KafkaProducer
+ * Producer.Spooling now continuously looks for new streams to read
 
 # 0.4.3
 
@@ -22,21 +49,20 @@ Please check your configuration files.
  * Exisiting unix domain socket detection changed to use create instead of stat (better error handling)
  * Kafka and Scribe specific metrics are now updated if there are no messages, too
  * Scribe producer is now reacting better to server connection errors
- * producer.Kafka GracePeriodMs default set to 100
- * producer.Kafka MetadataRefreshMs default set to 600000 (10 minutes)
- * producer.Kafka TimeoutMs default set to 10000 (10 seconds)
-
+ * Filters and Formatters are now covered with unittests
+ 
 #### New
 
  * Support for Go1.5 vendor experiment
- * New producer for librdkafka
+ * New producer for librdkafka (not included in standard builds)
  * Metrics added to show memory consumption
+ * New kafka metrics added to show "roundtrip" times for messages
  * producer.Benchmark added to get more meaningful core system profiling results
  * New filter filter.Rate added to allow limiting streams to a certain number of messages per second
  * Added key support to consumer.Kafka and producer.Kafka
  * Added an "ordered read" config option to consumer.Kafka (round robin reading)
  * Added a new formater format.ExtractJSON to extract a single value from a JSON object
- * Go version is no printed with gollum -v 
+ * Go version is now printed with gollum -v 
  * Scribe producer now queries scribe server status in regular intervals
  * format.Sequence separator character can now be configured
  * format.Runlength separator character can now be configured
@@ -44,8 +70,11 @@ Please check your configuration files.
 #### Other changes
 
  * Renamed producer.Kafka BatchTimeoutSec to BatchTimeoutMs to allow millisecond based values
- * Default producer.Kafka retry count set to 0
- * Kafka.producer default producer set to RoundRobin
+ * producer.Kafka retry count set to 0
+ * producer.Kafka default producer set to RoundRobin
+ * producer.Kafka GracePeriodMs default set to 100
+ * producer.Kafka MetadataRefreshMs default set to 600000 (10 minutes)
+ * producer.Kafka TimeoutMs default set to 10000 (10 seconds)
  * filter.RegExp FilterExpressionNot is evaluated before FilterExpression
  * filter.RegExp FilterExpression is evaluated if FilterExpressionNot passed
 
@@ -90,8 +119,8 @@ This is a patch / minor features release
 #### Fixed
 
  * InfluxDB JSON and line protocol fixed
- * tgo.WaitGroup.WaitFor with duration 0 falls back to tgo.WaitGroup.Wait
- * proper io.EOF handling for tgo.BufferedReader and tgo.ByteStream
+ * shared.WaitGroup.WaitFor with duration 0 falls back to shared.WaitGroup.Wait
+ * proper io.EOF handling for shared.BufferedReader and shared.ByteStream
  * HTTP consumer now responds with 200 instead of 203
  * HTTP consumer properly handles EOF
  * Increased test coverage
@@ -116,7 +145,7 @@ Custom producers and config files may have to be adjusted.
 
 #### Breaking changes
 
- * tgo.RuntimeType renamed to TypeRegistry
+ * shared.RuntimeType renamed to TypeRegistry
  * core.StreamTypes renamed to StreamRegistry
  * ?ControlLoop callback parameters for command handling moved to callback members
  * ?ControlLoop renamed to ?Loop, where ? can be a combination of Control (handling of control messages), Message (handling of messages) or Ticker (handling of regular callbacks)

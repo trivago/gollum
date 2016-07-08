@@ -59,7 +59,7 @@ type LinkableMessageSource interface {
 	// to create stable "pipes" between e.g. a consumer and producer.
 	Link(pipe interface{})
 
-	// IsLinked has to return true if Link executed successfull and does not
+	// IsLinked has to return true if Link executed successful and does not
 	// need to be called again.
 	IsLinked() bool
 }

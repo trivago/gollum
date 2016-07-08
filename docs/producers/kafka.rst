@@ -125,7 +125,7 @@ Parameters
 
 **MessageBufferCount**
   MessageBufferCount sets the internal channel size for the kafka client.
-  By default this is set to 256.
+  By default this is set to 8192.
 
 **ServerTimeoutSec**
   ServerTimeoutSec defines the time after which a connection is set to timed out.

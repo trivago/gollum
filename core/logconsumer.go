@@ -15,6 +15,7 @@
 package core
 
 import (
+	"strings"
 	"sync"
 	"time"
 )
@@ -23,9 +24,14 @@ import (
 // package.
 type LogConsumer struct {
 	Consumer
-	control   chan PluginControl
-	logStream Stream
-	sequence  uint64
+	control        chan PluginControl
+	logStream      Stream
+	sequence       uint64
+	metric         string
+	lastCount      int64
+	lastCountWarn  int64
+	lastCountError int64
+	updateTimer    *time.Timer
 	stopped   bool
 }
 
@@ -33,6 +39,17 @@ type LogConsumer struct {
 func (cons *LogConsumer) Configure(conf PluginConfigReader) error {
 	cons.control = make(chan PluginControl, 1)
 	cons.logStream = StreamRegistry.GetStream(LogInternalStreamID)
+	cons.metric = conf.GetString("MetricKey", "")
+
+	if cons.metric != "" {
+		shared.Metric.New(cons.metric)
+		shared.Metric.New(cons.metric + "Error")
+		shared.Metric.New(cons.metric + "Warning")
+		shared.Metric.New(cons.metric + "Sec")
+		shared.Metric.New(cons.metric + "ErrorSec")
+		shared.Metric.New(cons.metric + "WarningSec")
+		cons.updateTimer = time.AfterFunc(time.Second*5, cons.updateMetric)
+	}
 	return nil
 }
 
@@ -44,9 +61,9 @@ func (cons *LogConsumer) GetState() PluginState {
 	return PluginStateActive
 }
 
-// IsActive always returns true
-func (cons *LogConsumer) IsActive() bool {
-	return true
+// Streams always returns an array with one member - the internal log stream
+func (cons *LogConsumer) Streams() []MessageStreamID {
+	return []MessageStreamID{LogInternalStreamID}
 }
 
 // IsBlocked always returns false
@@ -59,6 +76,20 @@ func (cons *LogConsumer) GetShutdownTimeout() time.Duration {
 	return time.Millisecond
 }
 
+func (cons *LogConsumer) updateMetric() {
+	currentCount, _ := shared.Metric.Get(cons.metric)
+	currentCountWarn, _ := shared.Metric.Get(cons.metric + "Warning")
+	currentCountError, _ := shared.Metric.Get(cons.metric + "Error")
+
+	shared.Metric.Set(cons.metric+"Sec", (currentCount-cons.lastCount)/5)
+	shared.Metric.Set(cons.metric+"WarningSec", (currentCountWarn-cons.lastCountWarn)/5)
+	shared.Metric.Set(cons.metric+"ErrorSec", (currentCountError-cons.lastCountError)/5)
+	cons.lastCount = currentCount
+	cons.lastCountWarn = currentCountWarn
+	cons.lastCountError = currentCountError
+	cons.updateTimer = time.AfterFunc(time.Second*5, cons.updateMetric)
+}
+
 // Streams always returns an array with one member - the internal log stream
 func (cons *LogConsumer) Streams() []MessageStreamID {
 	return []MessageStreamID{LogInternalStreamID}
@@ -68,6 +99,18 @@ func (cons *LogConsumer) Streams() []MessageStreamID {
 func (cons *LogConsumer) Write(data []byte) (int, error) {
 	msg := NewMessage(cons, data, cons.sequence, LogInternalStreamID)
 	cons.logStream.Enqueue(msg)
+
+	if cons.metric != "" {
+		// HACK: Use different writers with the possibility to enable/disable metrics
+		switch {
+		case strings.HasPrefix(string(data), "ERROR"):
+			shared.Metric.Inc(cons.metric + "Error")
+		case strings.HasPrefix(string(data), "Warning"):
+			shared.Metric.Inc(cons.metric + "Warning")
+		default:
+			shared.Metric.Inc(cons.metric)
+		}
+	}
 
 	return len(data), nil
 }
@@ -84,6 +127,7 @@ func (cons *LogConsumer) Consume(threads *sync.WaitGroup) {
 		command := <-cons.control
 		if command == PluginControlStopConsumer {
 			cons.stopped = true
+			cons.updateTimer.Stop()
 			return // ### return ###
 		}
 	}

@@ -15,6 +15,7 @@
 package producer
 
 import (
+	"fmt"
 	kafka "github.com/Shopify/sarama"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
@@ -60,6 +61,8 @@ const (
 //    ElectRetries: 3
 //    ElectTimeoutMs: 250
 //    MetadataRefreshMs: 10000
+//    KeyFormatter: ""
+//    KeyFormatterFirst: false
 //    Servers:
 //    	- "localhost:9092"
 //    Topic:
@@ -74,6 +77,14 @@ const (
 // from the message payload. By default this is an empty string, which disables
 // this feature. A good formatter for this can be format.Identifier.
 //
+// KeyFormatterFirst can be set to true to apply the key formatter to the
+// unformatted message. By default this is set to false, so that key formatter
+// uses the message after Formatter has been applied.
+// KeyFormatter does never affect the payload of the message sent to kafka.
+//
+// FilterAfterFormat behaves like Filter but allows filters to be executed
+// after the formatter has run. By default no such filter is set.
+//
 // RequiredAcks defines the acknowledgment level required by the broker.
 // 0 = No responses required. 1 = wait for the local commit. -1 = wait for
 // all replicas to commit. >1 = wait for a specific number of commits.
@@ -84,7 +95,7 @@ const (
 // By default this is set to 10 seconds.
 //
 // SendRetries defines how many times to retry sending data before marking a
-// server as not reachable. By default this is set to 0.
+// server as not reachable. By default this is set to 1.
 //
 // Compression sets the method of compression to use. Valid values are:
 // "None","Zip" and "Snappy". By default "None" is set.
@@ -142,6 +153,7 @@ type Kafka struct {
 	servers       []string
 	topicGuard    *sync.RWMutex
 	topic         map[core.MessageStreamID]*topicHandle
+	topicHandles       map[string]*topicHandle
 	streamToTopic map[core.MessageStreamID]string
 	clientID      string
 	client        kafka.Client
@@ -150,12 +162,16 @@ type Kafka struct {
 	missCount     int64
 	gracePeriod   time.Duration
 	keyFormat     core.Formatter
+	keyFirst           bool
+	filtersAfterFormat []core.Filter
 }
 
 type topicHandle struct {
-	name      string
-	rttSum    int64
-	delivered int64
+	name          string
+	rttSum        int64
+	sent          int64
+	delivered     int64
+	lastHeartBeat time.Time
 }
 
 const (
@@ -184,12 +200,27 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 		prod.keyFormat = nil
 	}
 
+	filters := conf.GetStringArray("FilterAfterFormat", []string{})
+	for _, filterName := range filters {
+		plugin, err := core.NewPluginWithType(filterName, conf)
+		if err != nil {
+			return err
+		}
+		filter, isFilter := plugin.(core.Filter)
+		if !isFilter {
+			return fmt.Errorf("%s is not a filter", filterName)
+		}
+		prod.filtersAfterFormat = append(prod.filtersAfterFormat, filter)
+	}
+
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.clientID = conf.GetString("ClientId", "gollum")
 	prod.gracePeriod = time.Duration(conf.GetInt("GracePeriodMs", 100)) * time.Millisecond
 	prod.topicGuard = new(sync.RWMutex)
 	prod.streamToTopic = conf.GetStreamMap("Topics", "")
 	prod.topic = make(map[core.MessageStreamID]*topicHandle)
+	prod.topicHandles = make(map[string]*topicHandle)
+	prod.keyFirst = conf.GetBool("KeyFormatterFirst", false)
 
 	prod.config = kafka.NewConfig()
 	prod.config.ClientID = conf.GetString("ClientId", "gollum")
@@ -211,7 +242,7 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 	prod.config.Producer.Flush.Messages = conf.GetInt("Batch/MinCount", 1)
 	prod.config.Producer.Flush.Frequency = time.Duration(conf.GetInt("Batch/TimeoutMs", 3000)) * time.Millisecond
 	prod.config.Producer.Flush.MaxMessages = conf.GetInt("Batch/MaxCount", 0)
-	prod.config.Producer.Retry.Max = conf.GetInt("SendRetries", 0)
+	prod.config.Producer.Retry.Max = conf.GetInt("SendRetries", 1)
 	prod.config.Producer.Retry.Backoff = time.Duration(conf.GetInt("SendTimeoutMs", 100)) * time.Millisecond
 
 	prod.config.Producer.Return.Successes = true
@@ -242,9 +273,10 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 
 	return nil
 }
-func (prod *Kafka) storeRTT(msg *core.Message) {
 
-	rtt := time.Since(msg.Created())
+func (prod *Kafka) storeRTT(msg *core.Message) {
+	rtt := time.Since(msg.Timestamp)
+	prod.Format(*msg)
 
 	prod.topicGuard.RLock()
 	topic := prod.topic[msg.StreamID()]
@@ -258,17 +290,21 @@ func (prod *Kafka) pollResults() {
 	// Check for results
 	keepPolling := true
 	timeout := time.NewTimer(prod.config.Producer.Flush.Frequency / 2)
-	for keepPolling {
+	for keepPolling && prod.producer != nil {
 		select {
-		case result := <-prod.producer.Successes():
+		case result, hasMore := <-prod.producer.Successes():
+			if hasMore {
 			if msg, hasMsg := result.Metadata.(core.Message); hasMsg {
 				prod.storeRTT(&msg)
+				}
 			}
 
-		case err := <-prod.producer.Errors():
-			if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
-				prod.storeRTT(&msg)
-				prod.Drop(&msg)
+		case err, hasMore := <-prod.producer.Errors():
+			if hasMore {
+				if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
+					prod.storeRTT(&msg)
+					prod.Drop(&msg)
+				}
 			}
 
 		case <-timeout.C:
@@ -281,6 +317,10 @@ func (prod *Kafka) pollResults() {
 
 	// Update metrics
 	for _, topic := range prod.topic {
+		sent := atomic.SwapInt64(&topic.sent, 0)
+		duration := time.Since(prod.lastMetricUpdate)
+		sentPerSec := float64(sent) / duration.Seconds()
+
 		rttSum := atomic.SwapInt64(&topic.rttSum, 0)
 		delivered := atomic.SwapInt64(&topic.delivered, 0)
 		topicName := topic.name
@@ -295,13 +335,20 @@ func (prod *Kafka) pollResults() {
 }
 
 func (prod *Kafka) registerNewTopic(topicName string, streamID core.MessageStreamID) *topicHandle {
+	prod.topicGuard.Lock()
+	defer prod.topicGuard.Unlock()
+
+	if topic, exists := prod.topicHandles[topicName]; exists {
+		prod.topic[streamID] = topic
+		return topic
+	}
+
 	topic := &topicHandle{
 		name: topicName,
 	}
 
-	prod.topicGuard.Lock()
+	prod.topicHandles[topicName] = topic
 	prod.topic[streamID] = topic
-	prod.topicGuard.Unlock()
 
 	tgo.Metric.New(kafkaMetricMessages + topicName)
 	tgo.Metric.New(kafkaMetricMessagesSec + topicName)
@@ -315,22 +362,37 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	originalMsg := *msg
 	prod.BufferedProducer.Format(msg)
 
+	if len(msg.Data) == 0 {
+		streamName := core.StreamRegistry.GetStreamName(msg.StreamID)
+		Log.Error.Printf("0 byte message detected on %s. Discarded", streamName)
+		core.CountDiscardedMessage()
+		return // ### return, invalid data ###
+}
+
+	for _, filter := range prod.filtersAfterFormat {
+		if !filter.Accepts(msg) {
+			core.CountFilteredMessage()
+			return
+		}
+	}
+
 	prod.topicGuard.RLock()
 	topic, topicRegistered := prod.topic[msg.StreamID()]
+	prod.topicGuard.RUnlock()
 
 	if !topicRegistered {
-		prod.topicGuard.RUnlock()
-		topicName, isMapped := prod.streamToTopic[msg.StreamID()]
+		wildcardSet := false
+		topicName, isMapped := prod.streamToTopic[msg.StreamID]
 		if !isMapped {
-			topicName = core.StreamRegistry.GetStreamName(msg.StreamID())
+			if topicName, wildcardSet = prod.streamToTopic[core.WildcardStreamID]; !wildcardSet {
+				topicName = core.StreamRegistry.GetStreamName(msg.StreamID())
+			}
 		}
 		topic = prod.registerNewTopic(topicName, msg.StreamID())
-	} else {
-		prod.topicGuard.RUnlock()
 	}
 
 	if isConnected, err := prod.isConnected(topic.name); !isConnected {
-		prod.Drop(msg)
+		prod.Drop(originalMsg)
 		if err != nil {
 			prod.Log.Error.Printf("%s is not connected: %s", topic.name, err.Error())
 		}
@@ -345,9 +407,15 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	}
 
 	if prod.keyFormat != nil {
-		keyMsg := *msg
-		prod.keyFormat.Format(&keyMsg)
-		kafkaMsg.Key = kafka.ByteEncoder(keyMsg.Data())
+		if prod.keyFirst {
+			keyMsg := originalMsg
+			prod.keyFormat.Format(&keyMsg)
+			kafkaMsg.Key = kafka.ByteEncoder(keyMsg.Data())
+		} else {
+			keyMsg := *msg
+			prod.keyFormat.Format(&keyMsg)
+			kafkaMsg.Key = kafka.ByteEncoder(keyMsg.Data())
+		}
 	}
 
 	// Sarama can block on single messages if all buffers are full.
@@ -393,15 +461,38 @@ func (prod *Kafka) isConnected(topic string) (bool, error) {
 		return false, err // ### return, error ###
 	}
 
+	prod.topicGuard.RLock()
+	handle := prod.topicHandles[topic]
+	prod.topicGuard.RUnlock()
+
+	doHeartBeat := time.Since(handle.lastHeartBeat) > prod.config.Net.DialTimeout
+	if doHeartBeat {
+		defer func() { handle.lastHeartBeat = time.Now() }()
+	}
+
 	for _, p := range partitions {
 		broker, err := prod.client.Leader(topic, p)
 		if err != nil {
 			return false, err // ### return, error ###
 		}
 
-		// TODO: this function only returns false if the connection has explicitly
-		//       been closed [Sarama 1.8.0]!
-		return broker.Connected()
+		// Do a heartbeat to check if connection is functional
+		if doHeartBeat {
+			if connected, _ := broker.Connected(); connected {
+				req := &kafka.MetadataRequest{Topics: []string{topic}}
+				if _, err := broker.GetMetadata(req); err != nil {
+					Log.Debug.Print("Broker ", broker.Addr(), " found to have an invalid connection: ", err)
+					broker.Close()
+				}
+			}
+		}
+
+		// Reconnect if necessary
+		if connected, _ := broker.Connected(); !connected {
+			if errOpen := broker.Open(prod.config); errOpen != nil {
+				return false, errOpen
+			}
+		}
 	}
 
 	return true, nil
@@ -432,8 +523,12 @@ func (prod *Kafka) tryOpenConnection() bool {
 }
 
 func (prod *Kafka) closeConnection() {
+	if prod.producer != nil {
 	prod.producer.Close()
-	prod.client.Close()
+	}
+	if prod.client != nil {
+		prod.client.Close()
+	}
 }
 
 func (prod *Kafka) close() {

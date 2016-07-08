@@ -16,11 +16,12 @@ package consumer
 
 import (
 	"encoding/json"
-	"fmt"
 	kafka "github.com/Shopify/sarama"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tsync"
 	"io/ioutil"
+	"os"
+	"path"
 	"strconv"
 	"strings"
 	"sync"
@@ -44,6 +45,7 @@ const (
 //    Topic: "default"
 //    DefaultOffset: "newest"
 //    OffsetFile: ""
+//	  FolderPermissions: "0755"
 //    Ordered: true
 //    MaxOpenRequests: 5
 //    ServerTimeoutSec: 30
@@ -71,7 +73,10 @@ const (
 // a given partition. If the consumer is restarted that offset is used to continue
 // reading. By default this is set to "" which disables the offset file.
 //
-// Ordered can be set to enforce paritions to be read one-by-one in a round robin
+// FolderPermissions is used to create the offset file path if necessary.
+// Set to 0755 by default.
+//
+// Ordered can be set to enforce partitions to be read one-by-one in a round robin
 // fashion instead of reading in parallel from all partitions.
 // Set to false by default.
 //
@@ -133,6 +138,7 @@ type Kafka struct {
 	orderedRead    bool
 	prependKey     bool
 	keySeparator   []byte
+	folderPermissions os.FileMode
 }
 
 func init() {
@@ -152,6 +158,12 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 	cons.MaxPartitionID = 0
 	cons.keySeparator = []byte(conf.GetString("KeySeparator", ":"))
 	cons.prependKey = conf.GetBool("PrependKey", false)
+
+	folderFlags, err := strconv.ParseInt(conf.GetString("FolderPermissions", "0755"), 8, 32)
+	cons.folderPermissions = os.FileMode(folderFlags)
+	if err != nil {
+		return err
+	}
 
 	cons.config = kafka.NewConfig()
 	cons.config.ChannelBufferSize = conf.GetInt("MessageBufferCount", 256)
@@ -185,9 +197,8 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 	if cons.offsetFile != "" {
 		fileContents, err := ioutil.ReadFile(cons.offsetFile)
 		if err != nil {
-			return fmt.Errorf("Failed to open kafka offset file: %s", err.Error())
-		}
-
+			Log.Error.Printf("Failed to open kafka offset file: %s", err.Error())
+		} else {
 		// Decode the JSON file into the partition -> offset map
 		encodedOffsets := make(map[string]int64)
 		err = json.Unmarshal(fileContents, &encodedOffsets)
@@ -202,6 +213,7 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 			}
 			startOffset := v
 			cons.offsets[int32(id)] = &startOffset
+			}
 		}
 	}
 
@@ -276,7 +288,7 @@ initLoop:
 		startOffset := atomic.LoadInt64(cons.offsets[partitionID])
 		consumer, err := cons.consumer.ConsumePartition(cons.topic, partitionID, startOffset)
 
-		// Retry consumer until successfull
+		// Retry consumer until successful
 		for err != nil {
 			cons.Log.Error.Printf("Failed to start kafka consumer (%s:%d) - %s", cons.topic, partitionID, err.Error())
 			time.Sleep(cons.persistTimeout)
@@ -385,7 +397,12 @@ func (cons *Kafka) dumpIndex() {
 		if err != nil {
 			cons.Log.Error.Print("Kafka index file write error - ", err)
 		} else {
-			ioutil.WriteFile(cons.offsetFile, data, 0644)
+			fileDir := path.Dir(cons.offsetFile)
+			if err := os.MkdirAll(fileDir, 0755); err != nil {
+				Log.Error.Printf("Failed to create %s because of %s", fileDir, err.Error())
+			} else {
+				ioutil.WriteFile(cons.offsetFile, data, 0644)
+			}
 		}
 	}
 }

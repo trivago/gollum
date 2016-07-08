@@ -5,7 +5,7 @@
 [![GoDoc](https://godoc.org/github.com/trivago/gollum?status.svg)](https://godoc.org/github.com/trivago/gollum)
 [![Documentation Status](https://readthedocs.org/projects/gollum/badge/?version=latest)](http://gollum.readthedocs.org/en/latest/)
 [![Go Report Card](http://goreportcard.com/badge/trivago/gollum)](http://goreportcard.com/report/trivago/gollum)
-[![Build Status](https://travis-ci.org/trivago/gollum.svg?branch=v0.5.0dev)](https://travis-ci.org/trivago/gollum)
+[![Build Status](https://travis-ci.org/trivago/gollum.svg?branch=v0.4.3dev)](https://travis-ci.org/trivago/gollum)
 [![License](https://img.shields.io/badge/license-apache%202.0-lightgrey.svg)](https://github.com/trivago/gollum/blob/master/LICENSE)
 
 Gollum is a n:m multiplexer that gathers messages from different sources and broadcasts them to a set of destinations.
@@ -30,7 +30,7 @@ Writing a custom plugin does not require you to change any additional code besid
 * `Kinesis` read from a [Kinesis](https://aws.amazon.com/de/kinesis/) stream.
 * `Profiler` Generate profiling messages.
 * `Proxy` use in combination with a proxy producer to enable two-way communication.
-* `Socket` read from a socket (gollum specfic protocol).
+* `Socket` read from a socket (gollum specific protocol).
 * `Syslogd` read from a socket (syslogd protocol).
 
 ## Producers (writing data)
@@ -45,7 +45,7 @@ Writing a custom plugin does not require you to change any additional code besid
 * `Null` like /dev/null.
 * `Proxy` two-way communication proxy for simple protocols.
 * `Scribe` send messages to a [Facebook scribe](https://github.com/facebookarchive/scribe) server.
-* `Socket` send messages to a socket (gollum specfic protocol).
+* `Socket` send messages to a socket (gollum specific protocol).
 * `Spooling` write messages to disk and retry them later.
 * `Websocket` send messages to a websocket.
 
@@ -63,6 +63,7 @@ Writing a custom plugin does not require you to change any additional code besid
 * `CollectdToInflux08` convert [CollectD](https://collectd.org) 0.8 data to [InfluxDB](https://influxdb.com) compatible values.
 * `CollectdToInflux09` convert [CollectD](https://collectd.org) 0.9 data to [InfluxDB](https://influxdb.com) compatible values.
 * `CollectdToInflux10` convert [CollectD](https://collectd.org) 0.10 data to [InfluxDB](https://influxdb.com) compatible values.
+* `ExtractJSON` extracts a single field from a JSON object.
 * `Envelope` add a prefix and/or postfix string to a message.
 * `Forward` write the message without modifying it.
 * `Hostname` prepend the current machine's hostname to a message.
@@ -82,6 +83,7 @@ Writing a custom plugin does not require you to change any additional code besid
 * `All` lets all message pass.
 * `JSON` blocks or lets json messages pass based on their content.
 * `None` blocks all messages.
+* `Rate` blocks messages that go over a given messages per second rate.
 * `RegExp` blocks or lets messages pass based on a regular expression.
 * `Stream` blocks or lets messages pass based on their stream name.
 
@@ -90,18 +92,17 @@ Writing a custom plugin does not require you to change any additional code besid
 ### From source
 
 Installation from source requires the installation of the [Go toolchain](http://golang.org/).  
-Gollum supports the Go 1.5 vendor experiment. The vendor folder is managed using govend.
-You can update dependencies by using `make vendor`.
+Gollum supports the Go 1.5 vendor experiment that is automatically enabled when using the provided makefile.
+With Go 1.6 and later you can also use `go build` directly without additional modifications.
+Builds with Go 1.4 or earlier versions are not officially supported and might require additional steps and modifications.
 
 ```
-$ go get
-$ go build
-$ gollum --help
+$ make
+$ ./gollum --help
 ```
 
-You can use the supplied make file to trigger cross platform builds.  
-Make will produce ready to deploy .tar.gz files with the corresponding platform builds.  
-This does require a cross platform golang build. For details see the "build" section below.
+You can use the make file coming with gollum to trigger cross platform builds.  
+Make will produce ready to deploy .zip files with the corresponding platform builds inside the dist folder.
 
 ## Usage
 
@@ -112,7 +113,7 @@ $ gollum -c config/profile.conf -ps -ll 3
 ```
 
 By default this test profiles the theoretic maximum throughput of 256 Byte messages.  
-You can enable different producers to test the write performance of these producers, too.
+You can enable different producers in that config to test the write performance of these producers, too.
 
 ## Configuration
 
@@ -172,9 +173,6 @@ Print version information and quit.
 The easiest way to install go is by using homebrew:  
 `brew install go`
 
-If you want to do cross platform builds you need to specify an additional option (Go 1.5 does not require this anymore):  
-`brew install go --with-cc-all`
-
 ### Linux
 
 Download Go from the [golang website](https://golang.org/dl/) and unzip it to e.g. /usr/local/go.  
@@ -183,13 +181,11 @@ You have to set the GOROOT environment variable to the folder you chose:
 
 ### Prerequisites
 
-If you do not already have a GOPATH set up you need to create one.
-You should also enable the Go 1.5 vendor experiment when building with Go 1.5.  
+If you do not already have a GOPATH set up you need to create one.  
 The location is free of choice, we prefer to put it into each users home folder:
 ```
 mkdir -p ~/go
 export GOPATH=$(HOME)/go
-export GO15VENDOREXPERIMENT=1
 ```
 
 You can download gollum via `go get github.com/trivago/gollum` or clone it directly into your GOPATH.  
@@ -199,13 +195,13 @@ mkdir -p $(GOPATH)/src/github.com/trivago
 cd $(GOPATH)/src/github.com/trivago
 git clone https://github.com/trivago/gollum.git
 cd gollum
-go get -u .
 ```
 
 ### Build
 
-Building gollum is as easy as `go build`.  
-If you want to do cross platform builds use `make all` or specifiy one of the following platforms instead of "all":
+Building gollum is as easy as `make` or `go build`.
+When using Go 1.5 make sure to enable the go vendor experiment by setting `export GO15VENDOREXPERIMENT=1` or use `make`.
+If you want to do cross platform builds use `make all` or specify one of the following platforms instead of "all":
  * `current` build for current OS (default)
  * `freebsd` build for FreeBSD 
  * `linux` build for Linux x64
@@ -216,7 +212,7 @@ If you want to do cross platform builds use `make all` or specifiy one of the fo
 There are also supplementary targets for make:
  * `clean` clean all artifacts created by the build process
  * `test` run unittests
- * `vendor` update all dependencies
+ * `vendor` install gvt and update all dependencies
  * `aws` build for Linux x64 and generate an [Elastic Beanstalk](https://aws.amazon.com/de/elasticbeanstalk/) package
  
 If you want to use native plugins (contrib/native) you will have to enable the corresponding imports in the file contrib/loader.go.

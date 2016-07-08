@@ -6,7 +6,9 @@ import (
 	"time"
 )
 
-var validID *regexp.Regexp = regexp.MustCompile(`\A[A-Za-z0-9._-]*\z`)
+const defaultClientID = "sarama"
+
+var validID = regexp.MustCompile(`\A[A-Za-z0-9._-]+\z`)
 
 // Config is used to pass multiple configuration options to Sarama's constructors.
 type Config struct {
@@ -31,6 +33,17 @@ type Config struct {
 			// The TLS configuration to use for secure connections if
 			// enabled (defaults to nil).
 			Config *tls.Config
+		}
+
+		// SASL based authentication with broker. While there are multiple SASL authentication methods
+		// the current implementation is limited to plaintext (SASL/PLAIN) authentication
+		SASL struct {
+			// Whether or not to use SASL authentication when connecting to the broker
+			// (defaults to false).
+			Enable bool
+			//username and password for SASL/PLAIN authentication
+			User     string
+			Password string
 		}
 
 		// KeepAlive specifies the keep-alive period for an active network connection.
@@ -178,7 +191,7 @@ type Config struct {
 		// Return specifies what channels will be populated. If they are set to true,
 		// you must read from them to prevent deadlock.
 		Return struct {
-			// If enabled, any errors that occured while consuming are returned on
+			// If enabled, any errors that occurred while consuming are returned on
 			// the Errors channel (default disabled).
 			Errors bool
 		}
@@ -213,6 +226,13 @@ type Config struct {
 	// in the background while user code is working, greatly improving throughput.
 	// Defaults to 256.
 	ChannelBufferSize int
+	// The version of Kafka that Sarama will assume it is running against.
+	// Defaults to the oldest supported stable version. Since Kafka provides
+	// backwards-compatibility, setting it to a version older than you have
+	// will not break anything, although it may prevent you from using the
+	// latest features. Setting it to a version greater than you are actually
+	// running may lead to random breakage.
+	Version KafkaVersion
 }
 
 // NewConfig returns a new configuration instance with sane defaults.
@@ -245,7 +265,9 @@ func NewConfig() *Config {
 	c.Consumer.Offsets.CommitInterval = 1 * time.Second
 	c.Consumer.Offsets.Initial = OffsetNewest
 
+	c.ClientID = defaultClientID
 	c.ChannelBufferSize = 256
+	c.Version = minVersion
 
 	return c
 }
@@ -256,6 +278,14 @@ func (c *Config) Validate() error {
 	// some configuration values should be warned on but not fail completely, do those first
 	if c.Net.TLS.Enable == false && c.Net.TLS.Config != nil {
 		Logger.Println("Net.TLS is disabled but a non-nil configuration was provided.")
+	}
+	if c.Net.SASL.Enable == false {
+		if c.Net.SASL.User != "" {
+			Logger.Println("Net.SASL is disabled but a non-empty username was provided.")
+		}
+		if c.Net.SASL.Password != "" {
+			Logger.Println("Net.SASL is disabled but a non-empty password was provided.")
+		}
 	}
 	if c.Producer.RequiredAcks > 1 {
 		Logger.Println("Producer.RequiredAcks > 1 is deprecated and will raise an exception with kafka >= 0.8.2.0.")
@@ -278,7 +308,7 @@ func (c *Config) Validate() error {
 	if c.Consumer.Offsets.Retention%time.Millisecond != 0 {
 		Logger.Println("Consumer.Offsets.Retention only supports millisecond precision; nanoseconds will be truncated.")
 	}
-	if c.ClientID == "sarama" {
+	if c.ClientID == defaultClientID {
 		Logger.Println("ClientID is the default of 'sarama', you should consider setting it to something application-specific.")
 	}
 
@@ -294,6 +324,10 @@ func (c *Config) Validate() error {
 		return ConfigurationError("Net.WriteTimeout must be > 0")
 	case c.Net.KeepAlive < 0:
 		return ConfigurationError("Net.KeepAlive must be >= 0")
+	case c.Net.SASL.Enable == true && c.Net.SASL.User == "":
+		return ConfigurationError("Net.SASL.User must not be empty when SASL is enabled")
+	case c.Net.SASL.Enable == true && c.Net.SASL.Password == "":
+		return ConfigurationError("Net.SASL.Password must not be empty when SASL is enabled")
 	}
 
 	// validate the Metadata values
