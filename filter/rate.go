@@ -16,6 +16,7 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -96,13 +97,13 @@ func (filter *Rate) updateMetrics() {
 		streamName := core.StreamRegistry.GetStreamName(streamID)
 		numFiltered := atomic.SwapInt64(state.filtered, 0)
 
-		shared.Metric.Add(metricLimit+streamName, numFiltered)
+		tgo.Metric.Add(metricLimit+streamName, numFiltered)
 		if numFiltered > 0 {
 			state.lastLimit = time.Now()
-			Log.Warning.Printf("Ratelimit reached for %s: %d filtered in %d seconds", streamName, numFiltered, rateLimitUpdateIntervalSec)
+			filter.Log.Warning.Printf("Ratelimit reached for %s: %d filtered in %d seconds", streamName, numFiltered, rateLimitUpdateIntervalSec)
 		}
 
-		shared.Metric.SetF(metricLimitAgo+streamName, time.Since(state.lastLimit).Seconds())
+		tgo.Metric.SetF(metricLimitAgo+streamName, time.Since(state.lastLimit).Seconds())
 	}
 }
 
@@ -123,8 +124,8 @@ func (filter *Rate) Accepts(msg *core.Message) bool {
 		}
 		streamName := core.StreamRegistry.GetStreamName(msg.StreamID())
 		filter.state[msg.StreamID()] = state
-		shared.Metric.New(metricLimit + streamName)
-		shared.Metric.New(metricLimitAgo + streamName)
+		tgo.Metric.New(metricLimit + streamName)
+		tgo.Metric.New(metricLimitAgo + streamName)
 		filter.stateGuard.Unlock()
 	}
 

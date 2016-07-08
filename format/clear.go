@@ -16,7 +16,6 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
 )
 
 // Clear formatter plugin
@@ -29,15 +28,15 @@ type Clear struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(Clear{})
+	core.TypeRegistry.Register(Clear{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Clear) Configure(conf core.PluginConfig) error {
+func (format *Clear) Configure(conf core.PluginConfigReader) error {
 	return nil
 }
 
 // Format returns any empty message
-func (format *Clear) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	return []byte{}, msg.StreamID
+func (format *Clear) Format(msg *core.Message) {
+	msg.Store([]byte{})
 }

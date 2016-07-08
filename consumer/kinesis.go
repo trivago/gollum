@@ -267,11 +267,11 @@ func (cons *Kinesis) processShard(shardID string) {
 				seq, _ := strconv.ParseInt(*record.SequenceNumber, 10, 64)
 				if len(cons.delimiter) > 0 {
 					messages := bytes.Split(record.Data, cons.delimiter)
-					for idx, msg := range messages {
-						cons.Enqueue([]byte(msg), uint64(seq)+uint64(idx))
+					for _, msg := range messages {
+						cons.Enqueue([]byte(msg))
 					}
 				} else {
-				cons.EnqueueWithSequence(record.Data, uint64(seq))
+					cons.EnqueueWithSequence(record.Data, uint64(seq))
 				}
 				cons.offsets[*iteratorConfig.ShardId] = *record.SequenceNumber
 				cons.storeOffsets()
@@ -334,24 +334,24 @@ func (cons *Kinesis) updateShards() {
 	for cons.running {
 		streamInfo, err := cons.client.DescribeStream(streamQuery)
 		if err != nil {
-			Log.Warning.Printf("StreamInfo could not be retrieved.")
+			cons.Log.Warning.Printf("StreamInfo could not be retrieved.")
 		}
 
 		if streamInfo.StreamDescription == nil {
-			Log.Warning.Printf("StreamDescription could not be retrieved.")
+			cons.Log.Warning.Printf("StreamDescription could not be retrieved.")
 			continue
 		}
 
 		cons.running = true
 		for _, shard := range streamInfo.StreamDescription.Shards {
 			if shard.ShardId == nil {
-				Log.Warning.Printf("ShardId could not be retrieved.")
+				cons.Log.Warning.Printf("ShardId could not be retrieved.")
 				continue
 			}
 
 			if _, offsetStored := cons.offsets[*shard.ShardId]; !offsetStored {
 				cons.offsets[*shard.ShardId] = cons.defaultOffset
-				Log.Debug.Printf("Starting kinesis consumer for %s:%s", cons.stream, *shard.ShardId)
+				cons.Log.Debug.Printf("Starting kinesis consumer for %s:%s", cons.stream, *shard.ShardId)
 				go cons.processShard(*shard.ShardId)
 			}
 		}

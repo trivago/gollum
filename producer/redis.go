@@ -16,12 +16,12 @@ package producer
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
-	"gopkg.in/redis.v2"
+	"github.com/trivago/tgo/tnet"
+	"gopkg.in/redis.v3"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 // Redis producer plugin
@@ -71,44 +71,49 @@ import (
 // to true. If this is set to false the message will be send to the keyFormatter
 // before it has been formatted. By default this is set to false.
 type Redis struct {
-	core.ProducerBase
+	core.BufferedProducer
 	address         string
 	protocol        string
 	password        string
 	database        int64
 	key             string
 	client          *redis.Client
-	store           func(msg core.Message)
-	fieldFormat     core.Formatter
-	keyFormat       core.Formatter
+	store           func(msg *core.Message)
+	fieldFormatters []core.Formatter
+	keyFormatters   []core.Formatter
 	fieldFromParsed bool
 	keyFromParsed   bool
 }
 
 func init() {
-	shared.TypeRegistry.Register(Redis{})
+	core.TypeRegistry.Register(Redis{})
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Redis) Configure(conf core.PluginConfig) error {
-	err := prod.ProducerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+func (prod *Redis) Configure(conf core.PluginConfigReader) error {
+	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
 
-	fieldFormat, err := core.NewPluginWithType(conf.GetString("FieldFormatter", "format.Identifier"), conf)
-	if err != nil {
-		return err // ### return, plugin load error ###
-	}
-	prod.fieldFormat = fieldFormat.(core.Formatter)
-
-	if conf.HasValue("KeyFormatter") {
-		keyFormat, err := core.NewPluginWithType(conf.GetString("KeyFormatter", "format.Forward"), conf)
-		if err != nil {
-			return err // ### return, plugin load error ###
+	fieldFormatPlugins := conf.GetPluginArray("FieldFormatter", []core.Plugin{})
+	for _, plugin := range fieldFormatPlugins {
+		formatter, isFormatter := plugin.(core.Formatter)
+		if !isFormatter {
+			conf.Errors.Pushf("Plugin is not a valid formatter")
+		} else {
+			formatter.SetLogScope(prod.Log)
+			prod.fieldFormatters = append(prod.fieldFormatters, formatter)
 		}
-		prod.keyFormat = keyFormat.(core.Formatter)
+	}
+
+	keyFormatPlugins := conf.GetPluginArray("KeyFormatter", []core.Plugin{})
+	for _, plugin := range keyFormatPlugins {
+		formatter, isFormatter := plugin.(core.Formatter)
+		if !isFormatter {
+			conf.Errors.Pushf("Plugin is not a valid formatter")
+		} else {
+			formatter.SetLogScope(prod.Log)
+			prod.keyFormatters = append(prod.keyFormatters, formatter)
+		}
 	}
 
 	prod.password = conf.GetString("Password", "")
@@ -116,7 +121,7 @@ func (prod *Redis) Configure(conf core.PluginConfig) error {
 	prod.key = conf.GetString("Key", "default")
 	prod.fieldFromParsed = conf.GetBool("FieldAfterFormat", false)
 	prod.keyFromParsed = conf.GetBool("KeyAfterFormat", false)
-	prod.address, prod.protocol = shared.ParseAddress(conf.GetString("Address", ":6379"))
+	prod.address, prod.protocol = tnet.ParseAddress(conf.GetString("Address", ":6379"))
 
 	switch strings.ToLower(conf.GetString("Storage", "hash")) {
 	case "hash":
@@ -136,83 +141,93 @@ func (prod *Redis) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-func (prod *Redis) getValueAndKey(msg core.Message) (v []byte, k string) {
-	value, _ := prod.Format(msg)
+func (prod *Redis) getValueAndKey(msg *core.Message) (v []byte, k string) {
+	keyMsg := msg.Clone()
+	msg = msg.Clone()
+	prod.Format(msg)
 
-	if prod.keyFormat == nil {
-		return value, prod.key
+	if len(prod.keyFormatters) == 0 {
+		return msg.Data(), prod.key
 	}
 
 	if prod.keyFromParsed {
-		keyMsg := msg
-		keyMsg.Data = value
-		key, _ := prod.keyFormat.Format(keyMsg)
-		return value, string(key)
+		keyMsg = msg.Clone()
 	}
 
-	key, _ := prod.keyFormat.Format(msg)
-	return value, string(key)
+	for _, formatter := range prod.keyFormatters {
+		formatter.Format(keyMsg)
+	}
+
+	return msg.Data(), keyMsg.String()
 }
 
-func (prod *Redis) getValueFieldAndKey(msg core.Message) (v []byte, f []byte, k string) {
-	value, _ := prod.Format(msg)
-	key := []byte(prod.key)
+func (prod *Redis) getValueFieldAndKey(msg *core.Message) (v []byte, f []byte, k string) {
+	keyMsg := msg.Clone()
+	fieldMsg := msg.Clone()
+	msg = msg.Clone()
+	prod.Format(msg)
 
-	if prod.keyFormat != nil {
-		if prod.keyFromParsed {
-			keyMsg := msg
-			keyMsg.Data = value
-			key, _ = prod.keyFormat.Format(keyMsg)
-		} else {
-			key, _ = prod.keyFormat.Format(msg)
-		}
+	if prod.keyFromParsed {
+		keyMsg = msg.Clone()
 	}
 
 	if prod.fieldFromParsed {
-		fieldMsg := msg
-		fieldMsg.Data = value
-		field, _ := prod.fieldFormat.Format(fieldMsg)
-		return value, field, string(key)
+		keyMsg = msg.Clone()
 	}
 
-	field, _ := prod.fieldFormat.Format(msg)
-	return value, field, string(key)
+	key := prod.key
+	if len(prod.keyFormatters) > 0 {
+		for _, formatter := range prod.keyFormatters {
+			formatter.Format(keyMsg)
+		}
+		key = keyMsg.String()
+	}
+
+	field := []byte{}
+	if len(prod.keyFormatters) > 0 {
+		for _, formatter := range prod.fieldFormatters {
+			formatter.Format(fieldMsg)
+		}
+		field = fieldMsg.Data()
+	}
+
+	return msg.Data(), field, key
 }
 
-func (prod *Redis) storeHash(msg core.Message) {
+func (prod *Redis) storeHash(msg *core.Message) {
 	value, field, key := prod.getValueFieldAndKey(msg)
 	result := prod.client.HSet(key, string(field), string(value))
 	if result.Err() != nil {
-		Log.Error.Print("Redis: ", result.Err())
+		prod.Log.Error.Print("Redis: ", result.Err())
 		prod.Drop(msg)
 	}
 }
 
-func (prod *Redis) storeList(msg core.Message) {
+func (prod *Redis) storeList(msg *core.Message) {
 	value, key := prod.getValueAndKey(msg)
 
 	result := prod.client.RPush(key, string(value))
 	if result.Err() != nil {
-		Log.Error.Print("Redis: ", result.Err())
+		prod.Log.Error.Print("Redis: ", result.Err())
 		prod.Drop(msg)
 	}
 }
 
-func (prod *Redis) storeSet(msg core.Message) {
+func (prod *Redis) storeSet(msg *core.Message) {
 	value, key := prod.getValueAndKey(msg)
 
 	result := prod.client.SAdd(key, string(value))
 	if result.Err() != nil {
-		Log.Error.Print("Redis: ", result.Err())
+		prod.Log.Error.Print("Redis: ", result.Err())
 		prod.Drop(msg)
 	}
 }
 
-func (prod *Redis) storeSortedSet(msg core.Message) {
+func (prod *Redis) storeSortedSet(msg *core.Message) {
 	value, scoreValue, key := prod.getValueFieldAndKey(msg)
 	score, err := strconv.ParseFloat(string(scoreValue), 64)
 	if err != nil {
-		Log.Error.Print("Redis: ", err)
+		prod.Log.Error.Print("Redis: ", err)
 		return // ### return, no valid score ###
 	}
 
@@ -222,24 +237,24 @@ func (prod *Redis) storeSortedSet(msg core.Message) {
 	})
 
 	if result.Err() != nil {
-		Log.Error.Print("Redis: ", result.Err())
+		prod.Log.Error.Print("Redis: ", result.Err())
 		prod.Drop(msg)
 	}
 }
 
-func (prod *Redis) storeString(msg core.Message) {
+func (prod *Redis) storeString(msg *core.Message) {
 	value, key := prod.getValueAndKey(msg)
 
-	result := prod.client.Set(key, string(value))
+	result := prod.client.Set(key, string(value), time.Duration(0))
 	if result.Err() != nil {
-		Log.Error.Print("Redis: ", result.Err())
+		prod.Log.Error.Print("Redis: ", result.Err())
 		prod.Drop(msg)
 	}
 }
 
 func (prod *Redis) close() {
 	defer prod.WorkerDone()
-	prod.CloseMessageChannel(prod.store)
+	prod.DefaultClose()
 }
 
 // Produce writes to stdout or stderr.
@@ -252,7 +267,7 @@ func (prod *Redis) Produce(workers *sync.WaitGroup) {
 	})
 
 	if _, err := prod.client.Ping().Result(); err != nil {
-		Log.Error.Print("Redis: ", err)
+		prod.Log.Error.Print("Redis: ", err)
 	}
 
 	prod.AddMainWorker(workers)

@@ -166,7 +166,7 @@ func (cons *File) initFile() {
 			cons.seek = 1
 			cons.seekOffset, err = strconv.ParseInt(string(fileContents), 10, 64)
 			if err != nil {
-				Log.Error.Print("Error reading offset file: ", err)
+				cons.Log.Error.Print("Error reading offset file: ", err)
 			}
 		}
 	}

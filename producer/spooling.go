@@ -170,14 +170,14 @@ func (prod *Spooling) writeBatchOnTimeOut() {
 }
 
 // Drop reverts the message stream before dropping
-func (prod *Spooling) Drop(msg core.Message) {
+func (prod *Spooling) Drop(msg *core.Message) {
 	if prod.revertOnDrop {
 		msg.SetStreamID(msg.PreviousStreamID())
 	}
 	prod.BufferedProducer.Drop(msg)
 }
 
-func (prod *Spooling) writeToFile(msg core.Message) {
+func (prod *Spooling) writeToFile(msg *core.Message) {
 	// Get the correct file state for this stream
 	streamID := msg.PreviousStreamID()
 
@@ -192,7 +192,7 @@ func (prod *Spooling) writeToFile(msg core.Message) {
 		prod.outfileGuard.Lock()
 		// Recheck to avoid races
 		if spool, exists = prod.outfile[streamID]; !exists {
-			spool = newSpoolFile(prod, streamName, msg.Source)
+			spool = newSpoolFile(prod, streamName, msg.Source())
 			prod.outfile[streamID] = spool
 		}
 		prod.outfileGuard.Unlock()

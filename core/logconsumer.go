@@ -15,6 +15,7 @@
 package core
 
 import (
+	"github.com/trivago/tgo"
 	"strings"
 	"sync"
 	"time"
@@ -32,7 +33,7 @@ type LogConsumer struct {
 	lastCountWarn  int64
 	lastCountError int64
 	updateTimer    *time.Timer
-	stopped   bool
+	stopped        bool
 }
 
 // Configure initializes this consumer with values from a plugin config.
@@ -42,12 +43,12 @@ func (cons *LogConsumer) Configure(conf PluginConfigReader) error {
 	cons.metric = conf.GetString("MetricKey", "")
 
 	if cons.metric != "" {
-		shared.Metric.New(cons.metric)
-		shared.Metric.New(cons.metric + "Error")
-		shared.Metric.New(cons.metric + "Warning")
-		shared.Metric.New(cons.metric + "Sec")
-		shared.Metric.New(cons.metric + "ErrorSec")
-		shared.Metric.New(cons.metric + "WarningSec")
+		tgo.Metric.New(cons.metric)
+		tgo.Metric.New(cons.metric + "Error")
+		tgo.Metric.New(cons.metric + "Warning")
+		tgo.Metric.New(cons.metric + "Sec")
+		tgo.Metric.New(cons.metric + "ErrorSec")
+		tgo.Metric.New(cons.metric + "WarningSec")
 		cons.updateTimer = time.AfterFunc(time.Second*5, cons.updateMetric)
 	}
 	return nil
@@ -77,22 +78,17 @@ func (cons *LogConsumer) GetShutdownTimeout() time.Duration {
 }
 
 func (cons *LogConsumer) updateMetric() {
-	currentCount, _ := shared.Metric.Get(cons.metric)
-	currentCountWarn, _ := shared.Metric.Get(cons.metric + "Warning")
-	currentCountError, _ := shared.Metric.Get(cons.metric + "Error")
+	currentCount, _ := tgo.Metric.Get(cons.metric)
+	currentCountWarn, _ := tgo.Metric.Get(cons.metric + "Warning")
+	currentCountError, _ := tgo.Metric.Get(cons.metric + "Error")
 
-	shared.Metric.Set(cons.metric+"Sec", (currentCount-cons.lastCount)/5)
-	shared.Metric.Set(cons.metric+"WarningSec", (currentCountWarn-cons.lastCountWarn)/5)
-	shared.Metric.Set(cons.metric+"ErrorSec", (currentCountError-cons.lastCountError)/5)
+	tgo.Metric.Set(cons.metric+"Sec", (currentCount-cons.lastCount)/5)
+	tgo.Metric.Set(cons.metric+"WarningSec", (currentCountWarn-cons.lastCountWarn)/5)
+	tgo.Metric.Set(cons.metric+"ErrorSec", (currentCountError-cons.lastCountError)/5)
 	cons.lastCount = currentCount
 	cons.lastCountWarn = currentCountWarn
 	cons.lastCountError = currentCountError
 	cons.updateTimer = time.AfterFunc(time.Second*5, cons.updateMetric)
-}
-
-// Streams always returns an array with one member - the internal log stream
-func (cons *LogConsumer) Streams() []MessageStreamID {
-	return []MessageStreamID{LogInternalStreamID}
 }
 
 // Write fulfills the io.Writer interface
@@ -104,11 +100,11 @@ func (cons *LogConsumer) Write(data []byte) (int, error) {
 		// HACK: Use different writers with the possibility to enable/disable metrics
 		switch {
 		case strings.HasPrefix(string(data), "ERROR"):
-			shared.Metric.Inc(cons.metric + "Error")
+			tgo.Metric.Inc(cons.metric + "Error")
 		case strings.HasPrefix(string(data), "Warning"):
-			shared.Metric.Inc(cons.metric + "Warning")
+			tgo.Metric.Inc(cons.metric + "Warning")
 		default:
-			shared.Metric.Inc(cons.metric)
+			tgo.Metric.Inc(cons.metric)
 		}
 	}
 

@@ -95,10 +95,10 @@ const (
 // stream name.
 type Kinesis struct {
 	core.BufferedProducer
-	client           *kinesis.Kinesis
-	config           *aws.Config
-	streamMap        map[core.MessageStreamID]string
-	batch            core.MessageBatch
+	client            *kinesis.Kinesis
+	config            *aws.Config
+	streamMap         map[core.MessageStreamID]string
+	batch             core.MessageBatch
 	recordMaxMessages int
 	delimiter         []byte
 	flushFrequency    time.Duration
@@ -140,12 +140,12 @@ func (prod *Kinesis) Configure(conf core.PluginConfigReader) error {
 
 	if prod.recordMaxMessages < 1 {
 		prod.recordMaxMessages = 1
-		Log.Warning.Print("RecordMaxMessages was < 1. Defaulting to 1.")
+		prod.Log.Warning.Print("RecordMaxMessages was < 1. Defaulting to 1.")
 	}
 
 	if prod.recordMaxMessages > 1 && len(prod.delimiter) == 0 {
 		prod.delimiter = []byte("\n")
-		Log.Warning.Print("RecordMessageDelimiter was empty. Defaulting to \"\\n\".")
+		prod.Log.Warning.Print("RecordMessageDelimiter was empty. Defaulting to \"\\n\".")
 	}
 
 	// Config
@@ -239,13 +239,13 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 			}
 
 			// Create buffers for this kinesis stream
-			maxLength := len(messages) / prod.recordMaxMessages + 1
+			maxLength := len(messages)/prod.recordMaxMessages + 1
 			records = &streamData{
 				content: &kinesis.PutRecordsInput{
 					Records:    make([]*kinesis.PutRecordsRequestEntry, 0, maxLength),
 					StreamName: aws.String(streamName),
 				},
-				original: make([][]*core.Message, 0, maxLength),
+				original:           make([][]*core.Message, 0, maxLength),
 				lastRecordMessages: 0,
 			}
 			streamRecords[currentMsg.StreamID()] = records
@@ -254,13 +254,13 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 		// Fetch record for this buffer
 		var record *kinesis.PutRecordsRequestEntry
 		recordExists := len(records.content.Records) > 0
-		if !recordExists || records.lastRecordMessages + 1 > prod.recordMaxMessages {
-		// Append record to stream
-		record := &kinesis.PutRecordsRequestEntry{
-			Data:         currentMsg.Data(),
-			PartitionKey: aws.String(messageHash),
+		if !recordExists || records.lastRecordMessages+1 > prod.recordMaxMessages {
+			// Append record to stream
+			record := &kinesis.PutRecordsRequestEntry{
+				Data:         currentMsg.Data(),
+				PartitionKey: aws.String(messageHash),
+			}
 			records.content.Records = append(records.content.Records, record)
-		}
 			records.original = append(records.original, make([]*core.Message, 0, prod.recordMaxMessages))
 			records.lastRecordMessages = 0
 		} else {
@@ -269,9 +269,9 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 		}
 
 		// Append message to record
-		record.Data = append(record.Data, msgData...)
-		records.lastRecordMessages += 1
-		records.original[len(records.original)-1] = append(records.original[len(records.original)-1], &messages[idx])
+		record.Data = append(record.Data, msg.Data()...)
+		records.lastRecordMessages++
+		records.original[len(records.original)-1] = append(records.original[len(records.original)-1], messages[idx])
 	}
 
 	sleepDuration := prod.sendTimeLimit - time.Since(prod.lastSendTime)
@@ -289,18 +289,22 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 			prod.Log.Error.Print("Write error: ", err)
 			for _, messages := range records.original {
 				for _, msg := range messages {
-					prod.Drop(*msg)
+					prod.Drop(msg)
 				}
 			}
 		} else {
 			// Check each message for errors
 			for msgIdx, record := range result.Records {
 				if record.ErrorMessage != nil {
-					Log.Error.Print("Kinesis message write error: ", *record.ErrorMessage)
+					prod.Log.Error.Print("Kinesis message write error: ", *record.ErrorMessage)
 					for _, msg := range records.original[msgIdx] {
-						prod.Drop(*msg)
+						prod.Drop(msg)
 					}
-
+				}
+			}
+		}
+	}
+}
 
 func (prod *Kinesis) close() {
 	defer prod.WorkerDone()

@@ -15,7 +15,6 @@
 package producer
 
 import (
-	"fmt"
 	kafka "github.com/Shopify/sarama"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
@@ -150,18 +149,18 @@ const (
 // If no topic mappings are set the stream names will be used as topic.
 type Kafka struct {
 	core.BufferedProducer
-	servers       []string
-	topicGuard    *sync.RWMutex
-	topic         map[core.MessageStreamID]*topicHandle
+	servers            []string
+	topicGuard         *sync.RWMutex
+	topic              map[core.MessageStreamID]*topicHandle
 	topicHandles       map[string]*topicHandle
-	streamToTopic map[core.MessageStreamID]string
-	clientID      string
-	client        kafka.Client
-	config        *kafka.Config
-	producer      kafka.AsyncProducer
-	missCount     int64
-	gracePeriod   time.Duration
-	keyFormat     core.Formatter
+	streamToTopic      map[core.MessageStreamID]string
+	clientID           string
+	client             kafka.Client
+	config             *kafka.Config
+	producer           kafka.AsyncProducer
+	missCount          int64
+	gracePeriod        time.Duration
+	keyFormat          core.Formatter
 	keyFirst           bool
 	filtersAfterFormat []core.Filter
 }
@@ -200,17 +199,16 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 		prod.keyFormat = nil
 	}
 
-	filters := conf.GetStringArray("FilterAfterFormat", []string{})
-	for _, filterName := range filters {
-		plugin, err := core.NewPluginWithType(filterName, conf)
-		if err != nil {
-			return err
-		}
+	filterPlugins := conf.GetPluginArray("FilterAfterFormat", []core.Plugin{})
+
+	for _, plugin := range filterPlugins {
 		filter, isFilter := plugin.(core.Filter)
 		if !isFilter {
-			return fmt.Errorf("%s is not a filter", filterName)
+			conf.Errors.Pushf("Plugin is not a valid filter")
+		} else {
+			filter.SetLogScope(prod.Log)
+			prod.filtersAfterFormat = append(prod.filtersAfterFormat, filter)
 		}
-		prod.filtersAfterFormat = append(prod.filtersAfterFormat, filter)
 	}
 
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
@@ -275,8 +273,8 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 }
 
 func (prod *Kafka) storeRTT(msg *core.Message) {
-	rtt := time.Since(msg.Timestamp)
-	prod.Format(*msg)
+	rtt := time.Since(msg.Created())
+	prod.Format(msg)
 
 	prod.topicGuard.RLock()
 	topic := prod.topic[msg.StreamID()]
@@ -294,8 +292,8 @@ func (prod *Kafka) pollResults() {
 		select {
 		case result, hasMore := <-prod.producer.Successes():
 			if hasMore {
-			if msg, hasMsg := result.Metadata.(core.Message); hasMsg {
-				prod.storeRTT(&msg)
+				if msg, hasMsg := result.Metadata.(core.Message); hasMsg {
+					prod.storeRTT(&msg)
 				}
 			}
 
@@ -317,10 +315,6 @@ func (prod *Kafka) pollResults() {
 
 	// Update metrics
 	for _, topic := range prod.topic {
-		sent := atomic.SwapInt64(&topic.sent, 0)
-		duration := time.Since(prod.lastMetricUpdate)
-		sentPerSec := float64(sent) / duration.Seconds()
-
 		rttSum := atomic.SwapInt64(&topic.rttSum, 0)
 		delivered := atomic.SwapInt64(&topic.delivered, 0)
 		topicName := topic.name
@@ -362,12 +356,12 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	originalMsg := *msg
 	prod.BufferedProducer.Format(msg)
 
-	if len(msg.Data) == 0 {
-		streamName := core.StreamRegistry.GetStreamName(msg.StreamID)
-		Log.Error.Printf("0 byte message detected on %s. Discarded", streamName)
+	if msg.Len() == 0 {
+		streamName := core.StreamRegistry.GetStreamName(msg.StreamID())
+		prod.Log.Error.Printf("0 byte message detected on %s. Discarded", streamName)
 		core.CountDiscardedMessage()
 		return // ### return, invalid data ###
-}
+	}
 
 	for _, filter := range prod.filtersAfterFormat {
 		if !filter.Accepts(msg) {
@@ -382,7 +376,7 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 
 	if !topicRegistered {
 		wildcardSet := false
-		topicName, isMapped := prod.streamToTopic[msg.StreamID]
+		topicName, isMapped := prod.streamToTopic[msg.StreamID()]
 		if !isMapped {
 			if topicName, wildcardSet = prod.streamToTopic[core.WildcardStreamID]; !wildcardSet {
 				topicName = core.StreamRegistry.GetStreamName(msg.StreamID())
@@ -392,7 +386,7 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	}
 
 	if isConnected, err := prod.isConnected(topic.name); !isConnected {
-		prod.Drop(originalMsg)
+		prod.Drop(&originalMsg)
 		if err != nil {
 			prod.Log.Error.Printf("%s is not connected: %s", topic.name, err.Error())
 		}
@@ -481,7 +475,7 @@ func (prod *Kafka) isConnected(topic string) (bool, error) {
 			if connected, _ := broker.Connected(); connected {
 				req := &kafka.MetadataRequest{Topics: []string{topic}}
 				if _, err := broker.GetMetadata(req); err != nil {
-					Log.Debug.Print("Broker ", broker.Addr(), " found to have an invalid connection: ", err)
+					prod.Log.Debug.Print("Broker ", broker.Addr(), " found to have an invalid connection: ", err)
 					broker.Close()
 				}
 			}
@@ -524,7 +518,7 @@ func (prod *Kafka) tryOpenConnection() bool {
 
 func (prod *Kafka) closeConnection() {
 	if prod.producer != nil {
-	prod.producer.Close()
+		prod.producer.Close()
 	}
 	if prod.client != nil {
 		prod.client.Close()

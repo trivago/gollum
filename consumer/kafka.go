@@ -125,19 +125,19 @@ const (
 // is set to contain only "localhost:9092".
 type Kafka struct {
 	core.SimpleConsumer
-	servers        []string
-	topic          string
-	client         kafka.Client
-	config         *kafka.Config
-	consumer       kafka.Consumer
-	offsetFile     string
-	defaultOffset  int64
-	offsets        map[int32]*int64
-	MaxPartitionID int32
-	persistTimeout time.Duration
-	orderedRead    bool
-	prependKey     bool
-	keySeparator   []byte
+	servers           []string
+	topic             string
+	client            kafka.Client
+	config            *kafka.Config
+	consumer          kafka.Consumer
+	offsetFile        string
+	defaultOffset     int64
+	offsets           map[int32]*int64
+	MaxPartitionID    int32
+	persistTimeout    time.Duration
+	orderedRead       bool
+	prependKey        bool
+	keySeparator      []byte
 	folderPermissions os.FileMode
 }
 
@@ -197,22 +197,22 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 	if cons.offsetFile != "" {
 		fileContents, err := ioutil.ReadFile(cons.offsetFile)
 		if err != nil {
-			Log.Error.Printf("Failed to open kafka offset file: %s", err.Error())
+			cons.Log.Error.Printf("Failed to open kafka offset file: %s", err.Error())
 		} else {
-		// Decode the JSON file into the partition -> offset map
-		encodedOffsets := make(map[string]int64)
-		err = json.Unmarshal(fileContents, &encodedOffsets)
-		if err != nil {
-			return err
-		}
-
-		for k, v := range encodedOffsets {
-			id, err := strconv.Atoi(k)
+			// Decode the JSON file into the partition -> offset map
+			encodedOffsets := make(map[string]int64)
+			err = json.Unmarshal(fileContents, &encodedOffsets)
 			if err != nil {
 				return err
 			}
-			startOffset := v
-			cons.offsets[int32(id)] = &startOffset
+
+			for k, v := range encodedOffsets {
+				id, err := strconv.Atoi(k)
+				if err != nil {
+					return err
+				}
+				startOffset := v
+				cons.offsets[int32(id)] = &startOffset
 			}
 		}
 	}
@@ -399,7 +399,7 @@ func (cons *Kafka) dumpIndex() {
 		} else {
 			fileDir := path.Dir(cons.offsetFile)
 			if err := os.MkdirAll(fileDir, 0755); err != nil {
-				Log.Error.Printf("Failed to create %s because of %s", fileDir, err.Error())
+				cons.Log.Error.Printf("Failed to create %s because of %s", fileDir, err.Error())
 			} else {
 				ioutil.WriteFile(cons.offsetFile, data, 0644)
 			}

@@ -21,8 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/firehose"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -95,7 +94,7 @@ const (
 // name. If no mapping is given the gollum stream name is used as firehose
 // stream name.
 type Firehose struct {
-	core.ProducerBase
+	core.BufferedProducer
 	client            *firehose.Firehose
 	config            *aws.Config
 	streamMap         map[core.MessageStreamID]string
@@ -121,15 +120,12 @@ type firehoseData struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(Firehose{})
+	core.TypeRegistry.Register(Firehose{})
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Firehose) Configure(conf core.PluginConfig) error {
-	err := prod.ProducerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+func (prod *Firehose) Configure(conf core.PluginConfigReader) error {
+	prod.SimpleProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
 
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "default")
@@ -144,12 +140,12 @@ func (prod *Firehose) Configure(conf core.PluginConfig) error {
 
 	if prod.recordMaxMessages < 1 {
 		prod.recordMaxMessages = 1
-		Log.Warning.Print("RecordMaxMessages was < 1. Defaulting to 1.")
+		prod.Log.Warning.Print("RecordMaxMessages was < 1. Defaulting to 1.")
 	}
 
 	if prod.recordMaxMessages > 1 && len(prod.delimiter) == 0 {
 		prod.delimiter = []byte("\n")
-		Log.Warning.Print("RecordMessageDelimiter was empty. Defaulting to \"\\n\".")
+		prod.Log.Warning.Print("RecordMessageDelimiter was empty. Defaulting to \"\\n\".")
 	}
 
 	// Config
@@ -187,15 +183,15 @@ func (prod *Firehose) Configure(conf core.PluginConfig) error {
 	}
 
 	for _, streamName := range prod.streamMap {
-		shared.Metric.New(firehoseMetricMessages + streamName)
-		shared.Metric.New(firehoseMetricMessagesSec + streamName)
+		tgo.Metric.New(firehoseMetricMessages + streamName)
+		tgo.Metric.New(firehoseMetricMessagesSec + streamName)
 		prod.counters[streamName] = new(int64)
 	}
 
 	return nil
 }
 
-func (prod *Firehose) bufferMessage(msg core.Message) {
+func (prod *Firehose) bufferMessage(msg *core.Message) {
 	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
 }
 
@@ -211,8 +207,8 @@ func (prod *Firehose) sendBatchOnTimeOut() {
 	for streamName, counter := range prod.counters {
 		count := atomic.SwapInt64(counter, 0)
 
-		shared.Metric.Add(firehoseMetricMessages+streamName, count)
-		shared.Metric.SetF(firehoseMetricMessagesSec+streamName, float64(count)/duration.Seconds())
+		tgo.Metric.Add(firehoseMetricMessages+streamName, count)
+		tgo.Metric.SetF(firehoseMetricMessagesSec+streamName, float64(count)/duration.Seconds())
 	}
 }
 
@@ -220,53 +216,53 @@ func (prod *Firehose) sendBatch() {
 	prod.batch.Flush(prod.transformMessages)
 }
 
-func (prod *Firehose) dropMessages(messages []core.Message) {
+func (prod *Firehose) dropMessages(messages []*core.Message) {
 	for _, msg := range messages {
 		prod.Drop(msg)
 	}
 }
 
-func (prod *Firehose) transformMessages(messages []core.Message) {
+func (prod *Firehose) transformMessages(messages []*core.Message) {
 	streamRecords := make(map[core.MessageStreamID]*firehoseData)
 
 	// Format and sort
 	for idx, msg := range messages {
-		msgData, streamID := prod.ProducerBase.Format(msg)
+		prod.Format(msg)
 
 		// Fetch buffer for this stream
-		records, recordsExists := streamRecords[streamID]
+		records, recordsExists := streamRecords[msg.StreamID()]
 		if !recordsExists {
 			// Select the correct firehose stream
-			streamName, streamMapped := prod.streamMap[streamID]
+			streamName, streamMapped := prod.streamMap[msg.StreamID()]
 			if !streamMapped {
-				streamName = core.StreamRegistry.GetStreamName(streamID)
-				prod.streamMap[streamID] = streamName
+				streamName = core.StreamRegistry.GetStreamName(msg.StreamID())
+				prod.streamMap[msg.StreamID()] = streamName
 
-				shared.Metric.New(firehoseMetricMessages + streamName)
-				shared.Metric.New(firehoseMetricMessagesSec + streamName)
+				tgo.Metric.New(firehoseMetricMessages + streamName)
+				tgo.Metric.New(firehoseMetricMessagesSec + streamName)
 				prod.counters[streamName] = new(int64)
 			}
 
 			// Create buffers for this firehose stream
-			maxLength := len(messages) / prod.recordMaxMessages + 1
-			records =  &firehoseData{
-				content:            &firehose.PutRecordBatchInput{
+			maxLength := len(messages)/prod.recordMaxMessages + 1
+			records = &firehoseData{
+				content: &firehose.PutRecordBatchInput{
 					Records:            make([]*firehose.Record, 0, maxLength),
 					DeliveryStreamName: aws.String(streamName),
 				},
 				original:           make([][]*core.Message, 0, maxLength),
 				lastRecordMessages: 0,
 			}
-			streamRecords[streamID] = records
+			streamRecords[msg.StreamID()] = records
 		}
 
 		// Fetch record for this buffer
 		var record *firehose.Record
 		recordExists := len(records.content.Records) > 0
-		if !recordExists || records.lastRecordMessages + 1 > prod.recordMaxMessages {
+		if !recordExists || records.lastRecordMessages+1 > prod.recordMaxMessages {
 			// Append record to stream
 			record = &firehose.Record{
-				Data: make([]byte, 0, len(msgData)),
+				Data: make([]byte, 0, len(msg.Data())),
 			}
 			records.content.Records = append(records.content.Records, record)
 			records.original = append(records.original, make([]*core.Message, 0, prod.recordMaxMessages))
@@ -277,9 +273,9 @@ func (prod *Firehose) transformMessages(messages []core.Message) {
 		}
 
 		// Append message to record
-		record.Data = append(record.Data, msgData...)
-		records.lastRecordMessages += 1
-		records.original[len(records.original)-1] = append(records.original[len(records.original)-1], &messages[idx])
+		record.Data = append(record.Data, msg.Data()...)
+		records.lastRecordMessages++
+		records.original[len(records.original)-1] = append(records.original[len(records.original)-1], messages[idx])
 	}
 
 	sleepDuration := prod.sendTimeLimit - time.Since(prod.lastSendTime)
@@ -294,19 +290,19 @@ func (prod *Firehose) transformMessages(messages []core.Message) {
 
 		if err != nil {
 			// Batch failed, drop all
-			Log.Error.Print("Firehose write error: ", err)
+			prod.Log.Error.Print("Firehose write error: ", err)
 			for _, messages := range records.original {
 				for _, msg := range messages {
-					prod.Drop(*msg)
+					prod.Drop(msg)
 				}
 			}
 		} else {
 			// Check each message for errors
 			for msgIdx, record := range result.RequestResponses {
 				if record.ErrorMessage != nil {
-					Log.Error.Print("Firehose message write error: ", *record.ErrorMessage)
+					prod.Log.Error.Print("Firehose message write error: ", *record.ErrorMessage)
 					for _, msg := range records.original[msgIdx] {
-						prod.Drop(*msg)
+						prod.Drop(msg)
 					}
 				}
 			}

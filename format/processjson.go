@@ -18,9 +18,9 @@ import (
 	"encoding/json"
 	"github.com/mssola/user_agent"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"
-	"github.com/trivago/tgo/tcontainer"
 	"strings"
 	"time"
 )
@@ -115,7 +115,7 @@ func (format *ProcessJSON) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-func processDirective(directive transformDirective, values *shared.MarshalMap) {
+func (format *ProcessJSON) processDirective(directive transformDirective, values *tcontainer.MarshalMap) {
 	if value, keyExists := (*values)[directive.key]; keyExists {
 
 		numParameters := len(directive.parameters)
@@ -129,12 +129,12 @@ func processDirective(directive transformDirective, values *shared.MarshalMap) {
 		case "time":
 			stringValue, err := values.String(directive.key)
 			if err != nil {
-				Log.Warning.Print(err.Error())
+				format.Log.Warning.Print(err.Error())
 				return
 			}
-			if numParameters == 2 {
 
-				if timestamp, err := time.Parse(directive.parameters[0], value[:len(directive.parameters[0])]); err != nil {
+			if numParameters == 2 {
+				if timestamp, err := time.Parse(directive.parameters[0], stringValue[:len(directive.parameters[0])]); err != nil {
 					format.Log.Warning.Print("ProcessJSON failed to parse a timestamp: ", err)
 				} else {
 					(*values)[directive.key] = timestamp.Format(directive.parameters[1])
@@ -144,7 +144,7 @@ func processDirective(directive transformDirective, values *shared.MarshalMap) {
 		case "split":
 			stringValue, err := values.String(directive.key)
 			if err != nil {
-				Log.Warning.Print(err.Error())
+				format.Log.Warning.Print(err.Error())
 				return
 			}
 			if numParameters > 1 {
@@ -156,11 +156,11 @@ func processDirective(directive transformDirective, values *shared.MarshalMap) {
 
 					for i := 0; i < maxItems; i++ {
 						(*values)[mapping[i]] = elements[i]
-		case "remove":
 					}
 				}
 			}
 
+		case "remove":
 			if numParameters == 0 {
 				delete(*values, directive.key)
 			}
@@ -168,7 +168,7 @@ func processDirective(directive transformDirective, values *shared.MarshalMap) {
 		case "replace":
 			stringValue, err := values.String(directive.key)
 			if err != nil {
-				Log.Warning.Print(err.Error())
+				format.Log.Warning.Print(err.Error())
 				return
 			}
 			if numParameters == 2 {
@@ -178,7 +178,7 @@ func processDirective(directive transformDirective, values *shared.MarshalMap) {
 		case "trim":
 			stringValue, err := values.String(directive.key)
 			if err != nil {
-				Log.Warning.Print(err.Error())
+				format.Log.Warning.Print(err.Error())
 				return
 			}
 			switch {
@@ -191,7 +191,7 @@ func processDirective(directive transformDirective, values *shared.MarshalMap) {
 		case "agent":
 			stringValue, err := values.String(directive.key)
 			if err != nil {
-				Log.Warning.Print(err.Error())
+				format.Log.Warning.Print(err.Error())
 				return
 			}
 			fields := []string{
@@ -211,21 +211,21 @@ func processDirective(directive transformDirective, values *shared.MarshalMap) {
 			for _, field := range fields {
 				switch field {
 				case "mozilla":
-					(*values)[directive.key + "_mozilla"] = ua.Mozilla()
+					(*values)[directive.key+"_mozilla"] = ua.Mozilla()
 				case "platform":
-					(*values)[directive.key + "_platform"] = ua.Platform()
+					(*values)[directive.key+"_platform"] = ua.Platform()
 				case "os":
-					(*values)[directive.key + "_os"] = ua.OS()
+					(*values)[directive.key+"_os"] = ua.OS()
 				case "localization":
-					(*values)[directive.key + "_localization"] = ua.Localization()
+					(*values)[directive.key+"_localization"] = ua.Localization()
 				case "engine":
-					(*values)[directive.key + "_engine"], _ = ua.Engine()
+					(*values)[directive.key+"_engine"], _ = ua.Engine()
 				case "engine_version":
-					_, (*values)[directive.key + "_engine_version"] = ua.Engine()
+					_, (*values)[directive.key+"_engine_version"] = ua.Engine()
 				case "browser":
-					(*values)[directive.key + "_browser"], _ = ua.Browser()
+					(*values)[directive.key+"_browser"], _ = ua.Browser()
 				case "version":
-					_, (*values)[directive.key + "_version"] = ua.Browser()
+					_, (*values)[directive.key+"_version"] = ua.Browser()
 				}
 			}
 		}
@@ -238,7 +238,7 @@ func (format *ProcessJSON) Format(msg *core.Message) {
 		return // ### return, no directives ###
 	}
 
-	values := make(tcontainer.valueMap)
+	values := make(tcontainer.MarshalMap)
 	err := json.Unmarshal(msg.Data(), &values)
 	if err != nil {
 		format.Log.Warning.Print("ProcessJSON failed to unmarshal a message: ", err)
@@ -246,7 +246,7 @@ func (format *ProcessJSON) Format(msg *core.Message) {
 	}
 
 	for _, directive := range format.directives {
-		processDirective(directive, &values)
+		format.processDirective(directive, &values)
 	}
 
 	if format.trimValues {
