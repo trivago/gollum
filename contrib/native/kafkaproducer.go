@@ -15,7 +15,6 @@
 package native
 
 import (
-	"fmt"
 	kafka "github.com/trivago/gollum/contrib/native/librdkafka"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
@@ -117,8 +116,8 @@ import (
 // after the formatter has run. By default no such filter is set.
 type KafkaProducer struct {
 	core.BufferedProducer
-	servers           []string
-	clientID          string
+	servers            []string
+	clientID           string
 	keyFormat          core.Formatter
 	client             *kafka.Client
 	config             kafka.Config
@@ -188,17 +187,16 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
 		prod.keyFormat = nil
 	}
 
-	filters := conf.GetStringArray("FilterAfterFormat", []string{})
-	for _, filterName := range filters {
-		plugin, err := core.NewPluginWithType(filterName, conf)
-		if err != nil {
-			return err
-		}
+	filterPlugins := conf.GetPluginArray("FilterAfterFormat", []core.Plugin{})
+
+	for _, plugin := range filterPlugins {
 		filter, isFilter := plugin.(core.Filter)
 		if !isFilter {
-			return fmt.Errorf("%s is not a filter", filterName)
+			conf.Errors.Pushf("Plugin is not a valid filter")
+		} else {
+			filter.SetLogScope(prod.Log)
+			prod.filtersAfterFormat = append(prod.filtersAfterFormat, filter)
 		}
-		prod.filtersAfterFormat = append(prod.filtersAfterFormat, filter)
 	}
 
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
@@ -287,13 +285,13 @@ func (prod *KafkaProducer) registerNewTopic(topicName string, streamID core.Mess
 	return topic
 }
 
-func (prod *KafkaProducer) produceMessage(msg core.Message) {
-	originalMsg := msg
+func (prod *KafkaProducer) produceMessage(msg *core.Message) {
+	originalMsg := msg.Clone()
 	prod.Format(msg)
 
-	if len(msg.Data) == 0 {
-		streamName := core.StreamRegistry.GetStreamName(msg.StreamID)
-		Log.Error.Printf("0 byte message detected on %s. Discarded", streamName)
+	if msg.Len() == 0 {
+		streamName := core.StreamRegistry.GetStreamName(msg.StreamID())
+		prod.Log.Error.Printf("0 byte message detected on %s. Discarded", streamName)
 		core.CountDiscardedMessage()
 		return // ### return, invalid data ###
 	}
@@ -311,7 +309,7 @@ func (prod *KafkaProducer) produceMessage(msg core.Message) {
 
 	if !topicRegistered {
 		wildcardSet := false
-		topicName, isMapped := prod.streamToTopic[msg.StreamID]
+		topicName, isMapped := prod.streamToTopic[msg.StreamID()]
 		if !isMapped {
 			if topicName, wildcardSet = prod.streamToTopic[core.WildcardStreamID]; !wildcardSet {
 				topicName = core.StreamRegistry.GetStreamName(msg.StreamID())
@@ -320,30 +318,32 @@ func (prod *KafkaProducer) produceMessage(msg core.Message) {
 		topic = prod.registerNewTopic(topicName, msg.StreamID())
 	}
 
-	var key []byte
-	if prod.keyFormat != nil {
-		if prod.keyFirst {
-			keyMsg := *msg
-			prod.keyFormat.Format(&keyMsg)
-		} else {
-			key = keyMsg.Data()
-		}
-	}
-
 	serializedOriginal, err := originalMsg.Serialize()
 	if err != nil {
 		prod.Log.Error.Print(err)
 	}
 
 	kafkaMsg := &messageWrapper{
-		key:   key,
+		key:   []byte{},
 		value: msg.Data(),
 		user:  serializedOriginal,
 	}
 
+	if prod.keyFormat != nil {
+		if prod.keyFirst {
+			keyMsg := originalMsg.Clone()
+			prod.keyFormat.Format(keyMsg)
+			kafkaMsg.key = keyMsg.Data()
+		} else {
+			keyMsg := msg.Clone()
+			prod.keyFormat.Format(keyMsg)
+			kafkaMsg.key = keyMsg.Data()
+		}
+	}
+
 	if err := topic.handle.Produce(kafkaMsg); err != nil {
 		prod.Log.Error.Print("Message produce failed:", err)
-		prod.Drop(&originalMsg)
+		prod.Drop(originalMsg)
 	} else {
 		tgo.Metric.Inc(kafkaMetricMessages + topic.handle.GetName())
 	}
@@ -351,7 +351,7 @@ func (prod *KafkaProducer) produceMessage(msg core.Message) {
 
 func (prod *KafkaProducer) storeRTT(msg *core.Message) {
 	rtt := time.Since(msg.Created())
-	_, streamID := prod.ProducerBase.Format(*msg)
+	prod.Format(msg)
 
 	prod.topicGuard.RLock()
 	topic := prod.topic[msg.StreamID()]
