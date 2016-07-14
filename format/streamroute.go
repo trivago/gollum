@@ -48,7 +48,7 @@ import (
 // parts of the message (stream and data). Set to false by default.
 type StreamRoute struct {
 	core.SimpleFormatter
-	streamFormatters []core.Formatter
+	streamModulators core.ModulatorArray
 	delimiter        []byte
 }
 
@@ -61,43 +61,39 @@ func (format *StreamRoute) Configure(conf core.PluginConfigReader) error {
 	format.SimpleFormatter.Configure(conf)
 
 	format.delimiter = []byte(conf.GetString("Delimiter", ":"))
-	plugins := conf.GetPluginArray("NameFormatters", []core.Plugin{})
-
-	for _, plugin := range plugins {
-		formatter, isFormatter := plugin.(core.Formatter)
-		if !isFormatter {
-			conf.Errors.Pushf("Plugin is not a valid formatter")
-		} else {
-			format.streamFormatters = append(format.streamFormatters, formatter)
-		}
-	}
+	format.streamModulators = conf.GetModulatorArray("StreamModulator", format.Log, core.ModulatorArray{})
 
 	return conf.Errors.OrNil()
 }
 
-// Format adds prefix and postfix to the message formatted by the base formatter
-func (format *StreamRoute) Format(msg *core.Message) {
+// Modulate searches for a stream prefix, removes it from the message and
+// routes the message to the given stream.
+func (format *StreamRoute) Modulate(msg *core.Message) core.ModulateResult {
 	delimiterIdx := bytes.Index(msg.Data(), format.delimiter)
 
 	switch delimiterIdx {
-	case -1:
-		return
-
 	case 0:
 		msg.Offset(len(format.delimiter))
 
+	case -1:
+		// no prefix
+
 	default:
 		streamName := msg.Data()[:delimiterIdx]
-		msg.Offset(delimiterIdx + len(format.delimiter))
+		streamMsg := core.NewMessage(nil, []byte(streamName), 0, msg.StreamID())
 
-		if len(format.streamFormatters) > 0 {
-			nameMessage := core.NewMessage(nil, streamName, msg.Sequence(), msg.StreamID())
-			for _, formatter := range format.streamFormatters {
-				formatter.Format(nameMessage)
-			}
-			streamName = nameMessage.Data()
+		msg.Offset(delimiterIdx + len(format.delimiter))
+		switch result := format.streamModulators.Modulate(streamMsg); result {
+		case core.ModulateResultDiscard, core.ModulateResultDrop:
+			return result // ### return, rule based early out ###
 		}
 
-		msg.SetStreamID(core.GetStreamID(string(streamName)))
+		targetStreamID := core.GetStreamID(streamMsg.String())
+		if msg.StreamID() != targetStreamID {
+			msg.SetStreamID(targetStreamID)
+			return core.ModulateResultRoute // ### return, rout message ###
+		}
 	}
+
+	return core.ModulateResultContinue
 }

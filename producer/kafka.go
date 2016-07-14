@@ -18,7 +18,6 @@ import (
 	kafka "github.com/Shopify/sarama"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
-	"github.com/trivago/tgo/tcontainer"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -149,20 +148,19 @@ const (
 // If no topic mappings are set the stream names will be used as topic.
 type Kafka struct {
 	core.BufferedProducer
-	servers            []string
-	topicGuard         *sync.RWMutex
-	topic              map[core.MessageStreamID]*topicHandle
-	topicHandles       map[string]*topicHandle
-	streamToTopic      map[core.MessageStreamID]string
-	clientID           string
-	client             kafka.Client
-	config             *kafka.Config
-	producer           kafka.AsyncProducer
-	missCount          int64
-	gracePeriod        time.Duration
-	keyFormat          core.Formatter
-	keyFirst           bool
-	filtersAfterFormat []core.Filter
+	servers       []string
+	topicGuard    *sync.RWMutex
+	topic         map[core.MessageStreamID]*topicHandle
+	topicHandles  map[string]*topicHandle
+	streamToTopic map[core.MessageStreamID]string
+	clientID      string
+	client        kafka.Client
+	config        *kafka.Config
+	producer      kafka.AsyncProducer
+	missCount     int64
+	gracePeriod   time.Duration
+	keyModulators core.ModulatorArray
+	keyFirst      bool
 }
 
 type topicHandle struct {
@@ -191,25 +189,7 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 	prod.SetCheckFuseCallback(prod.checkAllTopics)
 
 	kafka.Logger = prod.Log.Note
-
-	if conf.HasValue("KeyFormatter") {
-		keyFormatter := conf.GetPlugin("KeyFormatter", "format.Identifier", tcontainer.NewMarshalMap())
-		prod.keyFormat = keyFormatter.(core.Formatter)
-	} else {
-		prod.keyFormat = nil
-	}
-
-	filterPlugins := conf.GetPluginArray("FilterAfterFormat", []core.Plugin{})
-
-	for _, plugin := range filterPlugins {
-		filter, isFilter := plugin.(core.Filter)
-		if !isFilter {
-			conf.Errors.Pushf("Plugin is not a valid filter")
-		} else {
-			filter.SetLogScope(prod.Log)
-			prod.filtersAfterFormat = append(prod.filtersAfterFormat, filter)
-		}
-	}
+	prod.keyModulators = conf.GetModulatorArray("KeyModulators", prod.Log, core.ModulatorArray{})
 
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.clientID = conf.GetString("ClientId", "gollum")
@@ -274,7 +254,7 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 
 func (prod *Kafka) storeRTT(msg *core.Message) {
 	rtt := time.Since(msg.Created())
-	prod.Format(msg)
+	prod.Modulate(msg)
 
 	prod.topicGuard.RLock()
 	topic := prod.topic[msg.StreamID()]
@@ -353,21 +333,14 @@ func (prod *Kafka) registerNewTopic(topicName string, streamID core.MessageStrea
 }
 
 func (prod *Kafka) produceMessage(msg *core.Message) {
-	originalMsg := *msg
-	prod.BufferedProducer.Format(msg)
+	originalMsg := msg.Clone()
+	prod.Modulate(msg)
 
 	if msg.Len() == 0 {
 		streamName := core.StreamRegistry.GetStreamName(msg.StreamID())
 		prod.Log.Error.Printf("0 byte message detected on %s. Discarded", streamName)
 		core.CountDiscardedMessage()
 		return // ### return, invalid data ###
-	}
-
-	for _, filter := range prod.filtersAfterFormat {
-		if !filter.Accepts(msg) {
-			core.CountFilteredMessage()
-			return
-		}
 	}
 
 	prod.topicGuard.RLock()
@@ -386,7 +359,7 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	}
 
 	if isConnected, err := prod.isConnected(topic.name); !isConnected {
-		prod.Drop(&originalMsg)
+		prod.Drop(originalMsg)
 		if err != nil {
 			prod.Log.Error.Printf("%s is not connected: %s", topic.name, err.Error())
 		}
@@ -400,16 +373,14 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 		Metadata: &originalMsg,
 	}
 
-	if prod.keyFormat != nil {
-		if prod.keyFirst {
-			keyMsg := originalMsg
-			prod.keyFormat.Format(&keyMsg)
-			kafkaMsg.Key = kafka.ByteEncoder(keyMsg.Data())
-		} else {
-			keyMsg := *msg
-			prod.keyFormat.Format(&keyMsg)
-			kafkaMsg.Key = kafka.ByteEncoder(keyMsg.Data())
-		}
+	if prod.keyFirst {
+		keyMsg := originalMsg.Clone()
+		prod.Modulate(keyMsg)
+		kafkaMsg.Key = kafka.ByteEncoder(keyMsg.Data())
+	} else {
+		keyMsg := msg.Clone()
+		prod.Modulate(keyMsg)
+		kafkaMsg.Key = kafka.ByteEncoder(keyMsg.Data())
 	}
 
 	// Sarama can block on single messages if all buffers are full.
@@ -422,7 +393,7 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 
 	case <-timeout.C:
 		// Sarama channels are full -> drop
-		prod.Drop(&originalMsg)
+		prod.Drop(originalMsg)
 		tgo.Metric.Inc(kafkaMetricUnresponsive + topic.name)
 	}
 }

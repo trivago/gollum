@@ -16,6 +16,8 @@ package core
 
 // Stream defines the interface for all stream plugins
 type Stream interface {
+	Modulator
+
 	// StreamID returns the stream id this plugin is bound to.
 	StreamID() MessageStreamID
 
@@ -23,37 +25,34 @@ type Stream interface {
 	// listening to messages on this stream.
 	AddProducer(producers ...Producer)
 
-	// Format calls all formatters in their order of definition
-	Format(msg *Message)
-
-	// Accepts calls applys all filters to the given message and returns true when
-	// all filters pass.
-	Accepts(msg *Message) bool
-
 	// Enqueue sends a given message to all registered end points.
 	// This function is called by Route() which should be preferred over this
-	// function when sending messages to a stream unless you don't care about
-	// formatters that can change the stream of a message.
-	// If the message could be enqueued true is returned
-	Enqueue(msg *Message) bool
+	// function when sending messages.
+	Enqueue(msg *Message) error
 }
 
 // Route tries to enqueue a message to the given stream. This function also
 // handles redirections enforced by formatters.
-func Route(msg *Message, stream Stream) {
-	if stream.Accepts(msg) {
-		stream.Format(msg)
+func Route(msg *Message, stream Stream) error {
+	action := stream.Modulate(msg)
 
-		if msg.StreamID() != stream.StreamID() {
-			detour := StreamRegistry.GetStreamOrFallback(msg.StreamID())
-			Route(msg, detour)
-			return // ### return, detour ###
+	switch action {
+	case ModulateResultDiscard:
+		CountDiscardedMessage()
+		return nil
+
+	case ModulateResultContinue:
+		return stream.Enqueue(msg)
+
+	case ModulateResultRoute, ModulateResultDrop:
+		if msg.StreamID() == stream.StreamID() {
+			streamName := StreamRegistry.GetStreamName(msg.StreamID())
+			prevStreamName := StreamRegistry.GetStreamName(msg.PreviousStreamID())
+			return NewModulateResultError("Routing loop detected for stream %s (from %s)", streamName, prevStreamName)
 		}
 
-		if stream.Enqueue(msg) {
-			CountProcessedMessage()
-		} else {
-			CountNoRouteForMessage()
-		}
+		return Route(msg, msg.GetStream())
 	}
+
+	return NewModulateResultError("Unknown ModulateResult action: %d", action)
 }

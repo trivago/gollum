@@ -63,6 +63,7 @@ type SimpleConsumer struct {
 	runState        *PluginRunState
 	fuse            *tsync.Fuse
 	shutdownTimeout time.Duration
+	modulators      ModulatorArray
 	sequence        *uint64
 	onRoll          func()
 	onPrepareStop   func()
@@ -79,6 +80,7 @@ func (cons *SimpleConsumer) Configure(conf PluginConfigReader) error {
 	cons.runState = NewPluginRunState()
 	cons.control = make(chan PluginControl, 1)
 	cons.sequence = new(uint64)
+	cons.modulators = conf.GetModulatorArray("Modulators", cons.Log, ModulatorArray{})
 
 	defaultStreamID := GetStreamID(conf.GetID())
 	boundStreamIDs := conf.GetStreamArray("Streams", []MessageStreamID{defaultStreamID})
@@ -216,16 +218,40 @@ func (cons *SimpleConsumer) Enqueue(data []byte) {
 // EnqueueWithSequence works like Enqueue but allows to set a custom sequence
 // number. The internal sequence number is not incremented by this function.
 func (cons *SimpleConsumer) EnqueueWithSequence(data []byte, seq uint64) {
-	if len(cons.streams) == 1 {
-		stream := cons.streams[0]
-		msg := NewMessage(cons, data, seq, stream.StreamID())
-		Route(msg, stream)
-		return // ### return, fast path ###
+	numStreams := len(cons.streams)
+	lastStreamIdx := numStreams - 1
+
+	msg := NewMessage(cons, data, seq, InvalidStreamID)
+	switch cons.modulators.Modulate(msg) {
+	case ModulateResultDiscard:
+		CountDiscardedMessage()
+		return
+
+	case ModulateResultRoute, ModulateResultDrop:
+		if err := Route(msg, msg.GetStream()); err != nil {
+			cons.Log.Error.Print(err)
+		}
+		return
 	}
 
-	for _, stream := range cons.streams {
-		msg := NewMessage(cons, data, seq, stream.StreamID())
-		Route(msg, stream)
+	// Send message to all streams registered to this consumer
+	// Last message will not be cloned.
+
+	for streamIdx := 0; streamIdx < lastStreamIdx; streamIdx++ {
+		stream := cons.streams[streamIdx]
+		msg := msg.Clone()
+		msg.SetStreamID(stream.StreamID())
+
+		if err := Route(msg, stream); err != nil {
+			cons.Log.Error.Print(err)
+		}
+	}
+
+	stream := cons.streams[lastStreamIdx]
+	msg.SetStreamID(stream.StreamID())
+
+	if err := Route(msg, stream); err != nil {
+		cons.Log.Error.Print(err)
 	}
 }
 

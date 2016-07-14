@@ -66,8 +66,9 @@ func (format *SplitToJSON) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Format returns the splitted message payload as json
-func (format *SplitToJSON) Format(msg *core.Message) {
+// Modulate splits a given CSV and stores fields as JSON by using a static
+// key map.
+func (format *SplitToJSON) Modulate(msg *core.Message) core.ModulateResult {
 	components := bytes.Split(msg.Data(), format.token)
 	maxIdx := tmath.MinI(len(format.keys), len(components))
 	jsonData := ""
@@ -92,4 +93,5 @@ func (format *SplitToJSON) Format(msg *core.Message) {
 	}
 
 	msg.Store([]byte(jsonData))
+	return core.ModulateResultContinue
 }

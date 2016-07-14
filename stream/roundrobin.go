@@ -44,12 +44,12 @@ func (stream *RoundRobin) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-func (stream *RoundRobin) roundRobin(msg *core.Message) bool {
+func (stream *RoundRobin) Enqueue(msg *core.Message) error {
 	producers := stream.GetProducers()
 	if len(producers) == 0 {
-		return false // ### return, no route to producer ###
+		return core.NewModulateResultError("No producers configured for stream %s", stream.GetID())
 	}
 	index := atomic.AddInt32(&stream.index, 1) % int32(len(producers))
 	producers[index].Enqueue(msg, stream.Timeout)
-	return true
+	return nil
 }

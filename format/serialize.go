@@ -45,14 +45,15 @@ func (format *Serialize) Configure(conf core.PluginConfigReader) error {
 	return format.SimpleFormatter.Configure(conf)
 }
 
-// Format prepends the sequence number of the message (followed by ":") to the
-// message.
-func (format *Serialize) Format(msg *core.Message) {
+// Modulate serializes the current message and replaces it with the serialized
+// contents. If serialization fails the original message is kept.
+func (format *Serialize) Modulate(msg *core.Message) core.ModulateResult {
 	data, err := msg.Serialize()
 	if err != nil {
 		format.Log.Error.Print(err)
-		return // ### return, error ###
+		return core.ModulateResultContinue // ### return, error ###
 	}
 
 	msg.Store(data)
+	return core.ModulateResultContinue
 }

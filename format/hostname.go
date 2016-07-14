@@ -50,12 +50,13 @@ func (format *Hostname) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Format prepends the Hostname of the message to the message.
-func (format *Hostname) Format(msg *core.Message) {
+// Modulate prepends the Hostname of the current machine to the message.
+// If the hostname could not be retrieved, "unknown" is prepended
+func (format *Hostname) Modulate(msg *core.Message) core.ModulateResult {
 	hostname, err := os.Hostname()
 	if err != nil {
 		format.Log.Error.Print(err)
-		return // ### return, don't change anything
+		hostname = "unknown host"
 	}
 
 	dataSize := len(hostname) + len(format.separator) + msg.Len()
@@ -66,4 +67,5 @@ func (format *Hostname) Format(msg *core.Message) {
 	copy(payload[offset:], msg.Data())
 
 	msg.Store(payload)
+	return core.ModulateResultContinue
 }

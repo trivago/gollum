@@ -59,8 +59,8 @@ func (format *Envelope) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Format adds prefix and postfix to the message formatted by the base formatter
-func (format *Envelope) Format(msg *core.Message) {
+// Modulate adds prefix and postfix to the message formatted by the base formatter
+func (format *Envelope) Modulate(msg *core.Message) core.ModulateResult {
 	prefixLen := len(format.prefix)
 	postfixLen := len(format.postfix)
 	offset := 0
@@ -78,4 +78,5 @@ func (format *Envelope) Format(msg *core.Message) {
 	}
 
 	msg.Store(payload)
+	return core.ModulateResultContinue
 }

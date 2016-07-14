@@ -59,7 +59,7 @@ func (prod *Console) Configure(conf core.PluginConfigReader) error {
 }
 
 func (prod *Console) printMessage(msg *core.Message) {
-	prod.BufferedProducer.Format(msg)
+	prod.Modulate(msg)
 	fmt.Fprint(prod.console, msg.String())
 }
 

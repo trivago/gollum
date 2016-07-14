@@ -35,13 +35,13 @@ func (stream *Random) Configure(conf core.PluginConfigReader) error {
 	return stream.SimpleStream.Configure(conf)
 }
 
-func (stream *Random) Enqueue(msg *core.Message) bool {
+func (stream *Random) Enqueue(msg *core.Message) error {
 	producers := stream.GetProducers()
 	if len(producers) == 0 {
-		return false // ### return, no route to producer ###
+		return core.NewModulateResultError("No producers configured for stream %s", stream.GetID())
 	}
 
 	index := rand.Intn(len(producers))
 	producers[index].Enqueue(msg, stream.Timeout)
-	return true
+	return nil
 }

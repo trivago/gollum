@@ -38,7 +38,7 @@ func (filter *None) Configure(conf core.PluginConfigReader) error {
 	return filter.SimpleFilter.Configure(conf)
 }
 
-// Accepts allows all messages
-func (filter *None) Accepts(msg *core.Message) bool {
-	return false
+// Modulate drops all messages
+func (filter *None) Modulate(msg *core.Message) core.ModulateResult {
+	return core.ModulateResultDrop
 }

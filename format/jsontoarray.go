@@ -49,13 +49,14 @@ func (format *JSONToArray) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Format spilts a json struct to a csv.
-func (format *JSONToArray) Format(msg *core.Message) {
+// Modulate spilts a json struct to a csv. If the payload is not a valid JSON
+// the message will be discarded.
+func (format *JSONToArray) Modulate(msg *core.Message) core.ModulateResult {
 	values := make(tcontainer.MarshalMap)
 	err := json.Unmarshal(msg.Data(), &values)
 	if err != nil {
 		format.Log.Error.Print("Json parsing error: ", err)
-		return // ### error ###
+		return core.ModulateResultDiscard // ### error ###
 	}
 
 	csv := ""
@@ -85,4 +86,5 @@ func (format *JSONToArray) Format(msg *core.Message) {
 	}
 
 	msg.Store([]byte(csv))
+	return core.ModulateResultContinue
 }

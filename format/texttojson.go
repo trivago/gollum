@@ -363,9 +363,8 @@ func (format *TextToJSON) readEnd(data []byte, state tstrings.ParserStateID) {
 	}
 }
 
-// Format parses the incoming message and generates JSON from it.
-// This function is mutex locked.
-func (format *TextToJSON) Format(msg *core.Message) {
+// Modulate parses an arbitrary text format and transforms it to JSON.
+func (format *TextToJSON) Modulate(msg *core.Message) core.ModulateResult {
 	// The internal state is not threadsafe so we need to lock here
 	format.parseLock.Lock()
 	defer format.parseLock.Unlock()
@@ -390,4 +389,5 @@ func (format *TextToJSON) Format(msg *core.Message) {
 
 	format.message.WriteString("}\n")
 	msg.Store(bytes.TrimSpace(format.message.Bytes()))
+	return core.ModulateResultContinue
 }

@@ -18,7 +18,6 @@ import (
 	kafka "github.com/trivago/gollum/contrib/native/librdkafka"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
-	"github.com/trivago/tgo/tcontainer"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -116,20 +115,19 @@ import (
 // after the formatter has run. By default no such filter is set.
 type KafkaProducer struct {
 	core.BufferedProducer
-	servers            []string
-	clientID           string
-	keyFormat          core.Formatter
-	client             *kafka.Client
-	config             kafka.Config
-	topicRequiredAcks  int
-	topicTimeoutMs     int
-	pollInterval       time.Duration
-	topic              map[core.MessageStreamID]*topicHandle
-	topicHandles       map[string]*topicHandle
-	streamToTopic      map[core.MessageStreamID]string
-	topicGuard         *sync.RWMutex
-	keyFirst           bool
-	filtersAfterFormat []core.Filter
+	servers           []string
+	clientID          string
+	keyModulators     core.ModulatorArray
+	client            *kafka.Client
+	config            kafka.Config
+	topicRequiredAcks int
+	topicTimeoutMs    int
+	pollInterval      time.Duration
+	topic             map[core.MessageStreamID]*topicHandle
+	topicHandles      map[string]*topicHandle
+	streamToTopic     map[core.MessageStreamID]string
+	topicGuard        *sync.RWMutex
+	keyFirst          bool
 }
 
 type messageWrapper struct {
@@ -179,25 +177,7 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
 
 	prod.SetStopCallback(prod.close)
 	kafka.Log = prod.Log.Error
-
-	if conf.HasValue("KeyFormatter") {
-		keyFormatter := conf.GetPlugin("KeyFormatter", "format.Identifier", tcontainer.NewMarshalMap())
-		prod.keyFormat = keyFormatter.(core.Formatter)
-	} else {
-		prod.keyFormat = nil
-	}
-
-	filterPlugins := conf.GetPluginArray("FilterAfterFormat", []core.Plugin{})
-
-	for _, plugin := range filterPlugins {
-		filter, isFilter := plugin.(core.Filter)
-		if !isFilter {
-			conf.Errors.Pushf("Plugin is not a valid filter")
-		} else {
-			filter.SetLogScope(prod.Log)
-			prod.filtersAfterFormat = append(prod.filtersAfterFormat, filter)
-		}
-	}
+	prod.keyModulators = conf.GetModulatorArray("KeyModulators", prod.Log, core.ModulatorArray{})
 
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.clientID = conf.GetString("ClientId", "gollum")
@@ -287,20 +267,12 @@ func (prod *KafkaProducer) registerNewTopic(topicName string, streamID core.Mess
 
 func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 	originalMsg := msg.Clone()
-	prod.Format(msg)
 
 	if msg.Len() == 0 {
 		streamName := core.StreamRegistry.GetStreamName(msg.StreamID())
 		prod.Log.Error.Printf("0 byte message detected on %s. Discarded", streamName)
 		core.CountDiscardedMessage()
 		return // ### return, invalid data ###
-	}
-
-	for _, filter := range prod.filtersAfterFormat {
-		if !filter.Accepts(msg) {
-			core.CountFilteredMessage()
-			return
-		}
 	}
 
 	prod.topicGuard.RLock()
@@ -329,16 +301,14 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 		user:  serializedOriginal,
 	}
 
-	if prod.keyFormat != nil {
-		if prod.keyFirst {
-			keyMsg := originalMsg.Clone()
-			prod.keyFormat.Format(keyMsg)
-			kafkaMsg.key = keyMsg.Data()
-		} else {
-			keyMsg := msg.Clone()
-			prod.keyFormat.Format(keyMsg)
-			kafkaMsg.key = keyMsg.Data()
-		}
+	if prod.keyFirst {
+		keyMsg := originalMsg.Clone()
+		prod.keyModulators.Modulate(keyMsg)
+		kafkaMsg.key = keyMsg.Data()
+	} else {
+		keyMsg := msg.Clone()
+		prod.keyModulators.Modulate(keyMsg)
+		kafkaMsg.key = keyMsg.Data()
 	}
 
 	if err := topic.handle.Produce(kafkaMsg); err != nil {
@@ -351,7 +321,7 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 
 func (prod *KafkaProducer) storeRTT(msg *core.Message) {
 	rtt := time.Since(msg.Created())
-	prod.Format(msg)
+	prod.Modulate(msg)
 
 	prod.topicGuard.RLock()
 	topic := prod.topic[msg.StreamID()]

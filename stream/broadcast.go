@@ -33,21 +33,24 @@ func (stream *Broadcast) Configure(conf core.PluginConfigReader) error {
 	return stream.SimpleStream.Configure(conf)
 }
 
-func (stream *Broadcast) Enqueue(msg *core.Message) bool {
+func (stream *Broadcast) Enqueue(msg *core.Message) error {
 	producers := stream.GetProducers()
-	if len(producers) == 0 {
-		return false // ### return, no route to producer ###
-	}
+	numProducers := len(producers)
 
-	if len(producers) == 1 {
+	switch numProducers {
+	case 0:
+		return core.NewModulateResultError("No producers configured for stream %s", stream.GetID())
+
+	case 1:
 		producers[0].Enqueue(msg, stream.Timeout)
-		return true // ### return, fast path ###
+
+	default:
+		lastProdIdx := numProducers - 1
+		for prodIdx := 0; prodIdx < lastProdIdx; prodIdx++ {
+			producers[prodIdx].Enqueue(msg.Clone(), stream.Timeout)
+		}
+		producers[lastProdIdx].Enqueue(msg, stream.Timeout)
 	}
 
-	for _, prod := range stream.GetProducers() {
-		msg := msg.Clone()
-		prod.Enqueue(msg, stream.Timeout)
-	}
-
-	return true
+	return nil
 }

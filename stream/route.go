@@ -55,33 +55,32 @@ func (stream *Route) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Enqueue overloads the standard Enqueue method to allow direct routing to
-// explicit stream targets
-func (stream *Route) Enqueue(msg *core.Message) bool {
-	if len(stream.streams) == 0 {
-		return false // ### return, no route ###
-	}
-
-	if len(stream.streams) == 1 {
-		route := stream.streams[0]
-		if route.StreamID() == stream.StreamID() {
-			return stream.Broadcast.Enqueue(msg) // ### return, broadcast ###
-		}
-
+func (stream *Route) route(msg *core.Message, route core.Stream) {
+	if route.StreamID() == stream.StreamID() {
+		stream.Broadcast.Enqueue(msg)
+	} else {
 		msg.SetStreamID(route.StreamID())
 		core.Route(msg, route)
-		return true // ### return, fast path ###
 	}
+}
 
-	for _, route := range stream.streams {
-		if route.StreamID() == stream.StreamID() {
-			stream.Broadcast.Enqueue(msg)
-		} else {
-			msg := msg.Clone()
-			msg.SetStreamID(route.StreamID())
-			core.Route(msg, route)
+func (stream *Route) Enqueue(msg *core.Message) error {
+	numStreams := len(stream.streams)
+
+	switch numStreams {
+	case 0:
+		return core.NewModulateResultError("No producers configured for stream %s", stream.GetID())
+
+	case 1:
+		stream.route(msg, stream.streams[0])
+
+	default:
+		lastStreamIdx := numStreams - 1
+		for streamIdx := 0; streamIdx < lastStreamIdx; streamIdx++ {
+			stream.route(msg.Clone(), stream.streams[streamIdx])
 		}
+		stream.route(msg, stream.streams[lastStreamIdx])
 	}
 
-	return true
+	return nil
 }

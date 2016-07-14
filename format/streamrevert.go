@@ -45,7 +45,8 @@ func (format *StreamRevert) Configure(conf core.PluginConfigReader) error {
 	return format.SimpleFormatter.Configure(conf)
 }
 
-// Format adds prefix and postfix to the message formatted by the base formatter
-func (format *StreamRevert) Format(msg *core.Message) {
+// Modulate routes the message back to it's original stream
+func (format *StreamRevert) Modulate(msg *core.Message) core.ModulateResult {
 	msg.SetStreamID(msg.PreviousStreamID())
+	return core.ModulateResultRoute
 }

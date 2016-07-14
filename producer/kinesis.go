@@ -217,9 +217,9 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 
 	// Format and sort
 	for idx, msg := range messages {
-		currentMsg := *msg
-		prod.BufferedProducer.Format(&currentMsg)
-		messageHash := fmt.Sprintf("%X-%d", currentMsg.StreamID, currentMsg.Sequence)
+		currentMsg := msg.Clone()
+		prod.Modulate(currentMsg)
+		messageHash := fmt.Sprintf("%X-%d", currentMsg.StreamID(), currentMsg.Sequence())
 
 		// Fetch buffer for this stream
 		records, recordsExists := streamRecords[currentMsg.StreamID()]

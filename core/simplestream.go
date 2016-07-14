@@ -21,8 +21,7 @@ import (
 
 type SimpleStream struct {
 	id         string
-	filters    []Filter
-	formatters []Formatter
+	modulators ModulatorArray
 	Producers  []Producer
 	Timeout    *time.Duration
 	streamID   MessageStreamID
@@ -35,6 +34,7 @@ func (stream *SimpleStream) Configure(conf PluginConfigReader) error {
 	stream.Log = conf.GetLogScope()
 	stream.Timeout = nil
 	stream.streamID = conf.GetStreamID("Stream", GetStreamID(conf.GetID()))
+	stream.modulators = conf.GetModulatorArray("Modulators", stream.Log, ModulatorArray{})
 
 	if stream.streamID == WildcardStreamID {
 		stream.Log.Note.Print("A wildcard stream configuration only affects the wildcard stream, not all streams")
@@ -43,28 +43,6 @@ func (stream *SimpleStream) Configure(conf PluginConfigReader) error {
 	if conf.HasValue("TimeoutMs") {
 		timeout := time.Duration(conf.GetInt("TimeoutMs", 0)) * time.Millisecond
 		stream.Timeout = &timeout
-	}
-
-	formatPlugins := conf.GetPluginArray("Formatters", []Plugin{})
-	for _, plugin := range formatPlugins {
-		formatter, isFormatter := plugin.(Formatter)
-		if !isFormatter {
-			conf.Errors.Pushf("Plugin is not a valid formatter")
-		} else {
-			formatter.SetLogScope(stream.Log)
-			stream.formatters = append(stream.formatters, formatter)
-		}
-	}
-
-	filterPlugins := conf.GetPluginArray("Filters", []Plugin{})
-	for _, plugin := range filterPlugins {
-		filter, isFilter := plugin.(Filter)
-		if !isFilter {
-			conf.Errors.Pushf("Plugin is not a valid filter")
-		} else {
-			filter.SetLogScope(stream.Log)
-			stream.filters = append(stream.filters, filter)
-		}
 	}
 
 	return conf.Errors.OrNil()
@@ -98,22 +76,7 @@ func (stream *SimpleStream) GetProducers() []Producer {
 	return stream.Producers
 }
 
-// Accepts calls applys all filters to the given message and returns true when
-// all filters pass.
-func (stream *SimpleStream) Accepts(msg *Message) bool {
-	for _, filter := range stream.filters {
-		if !filter.Accepts(msg) {
-			filter.Drop(msg)
-			CountFilteredMessage()
-			return false // ### return, false if one filter failed ###
-		}
-	}
-	return true
-}
-
-// Format calls all formatters in their order of definition
-func (stream *SimpleStream) Format(msg *Message) {
-	for _, formatter := range stream.formatters {
-		formatter.Format(msg)
-	}
+// Modulate calls all modulators in their order of definition
+func (stream *SimpleStream) Modulate(msg *Message) ModulateResult {
+	return stream.modulators.Modulate(msg)
 }

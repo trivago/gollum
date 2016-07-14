@@ -58,20 +58,24 @@ func (filter *Stream) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Accepts filters by streamId using a black and whitelist
-func (filter *Stream) Accepts(msg *core.Message) bool {
+// Modulate filters by streamId using a black and whitelist
+func (filter *Stream) Modulate(msg *core.Message) core.ModulateResult {
 	for _, blockedID := range filter.blacklist {
 		if msg.StreamID() == blockedID {
-			return false // ### return, explicitly blocked ###
+			return core.ModulateResultDrop // ### return, explicitly blocked ###
 		}
 	}
 
 	for _, allowedID := range filter.whitelist {
 		if msg.StreamID() == allowedID {
-			return true // ### return, explicitly allowed ###
+			return core.ModulateResultContinue // ### return, explicitly allowed ###
 		}
 	}
 
 	// Return true if no whitlist is given, false otherwise (must fulfill whitelist)
-	return len(filter.whitelist) == 0
+	if len(filter.whitelist) > 0 {
+		return core.ModulateResultDrop
+	}
+
+	return core.ModulateResultContinue
 }

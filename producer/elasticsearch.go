@@ -160,8 +160,8 @@ func (prod *ElasticSearch) isClusterUp() bool {
 }
 
 func (prod *ElasticSearch) sendMessage(msg *core.Message) {
-	originalMsg := *msg
-	prod.BufferedProducer.Format(msg)
+	originalMsg := msg.Clone()
+	prod.Modulate(msg)
 
 	index, indexMapped := prod.index[msg.StreamID()]
 	if !indexMapped {
@@ -194,7 +194,7 @@ func (prod *ElasticSearch) sendMessage(msg *core.Message) {
 		if !prod.isClusterUp() {
 			prod.Control() <- core.PluginControlFuseBurn
 		}
-		prod.Drop(&originalMsg)
+		prod.Drop(originalMsg)
 	} else {
 		tgo.Metric.Inc(elasticMetricMessages + index)
 		prod.Control() <- core.PluginControlFuseActive

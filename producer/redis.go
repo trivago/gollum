@@ -79,8 +79,8 @@ type Redis struct {
 	key             string
 	client          *redis.Client
 	store           func(msg *core.Message)
-	fieldFormatters []core.Formatter
-	keyFormatters   []core.Formatter
+	fieldModulators core.ModulatorArray
+	keyModulators   core.ModulatorArray
 	fieldFromParsed bool
 	keyFromParsed   bool
 }
@@ -94,27 +94,8 @@ func (prod *Redis) Configure(conf core.PluginConfigReader) error {
 	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
 
-	fieldFormatPlugins := conf.GetPluginArray("FieldFormatter", []core.Plugin{})
-	for _, plugin := range fieldFormatPlugins {
-		formatter, isFormatter := plugin.(core.Formatter)
-		if !isFormatter {
-			conf.Errors.Pushf("Plugin is not a valid formatter")
-		} else {
-			formatter.SetLogScope(prod.Log)
-			prod.fieldFormatters = append(prod.fieldFormatters, formatter)
-		}
-	}
-
-	keyFormatPlugins := conf.GetPluginArray("KeyFormatter", []core.Plugin{})
-	for _, plugin := range keyFormatPlugins {
-		formatter, isFormatter := plugin.(core.Formatter)
-		if !isFormatter {
-			conf.Errors.Pushf("Plugin is not a valid formatter")
-		} else {
-			formatter.SetLogScope(prod.Log)
-			prod.keyFormatters = append(prod.keyFormatters, formatter)
-		}
-	}
+	prod.fieldModulators = conf.GetModulatorArray("FieldModulators", prod.Log, core.ModulatorArray{})
+	prod.keyModulators = conf.GetModulatorArray("FieldModulators", prod.Log, core.ModulatorArray{})
 
 	prod.password = conf.GetString("Password", "")
 	prod.database = int64(conf.GetInt("Database", 0))
@@ -142,56 +123,57 @@ func (prod *Redis) Configure(conf core.PluginConfigReader) error {
 }
 
 func (prod *Redis) getValueAndKey(msg *core.Message) (v []byte, k string) {
-	keyMsg := msg.Clone()
-	msg = msg.Clone()
-	prod.Format(msg)
+	dataMsg := msg.Clone()
+	prod.Modulate(dataMsg)
 
-	if len(prod.keyFormatters) == 0 {
-		return msg.Data(), prod.key
+	key := prod.key
+	if len(prod.keyModulators) > 0 {
+		var keyMsg *core.Message
+		if prod.keyFromParsed {
+			keyMsg = dataMsg.Clone()
+		} else {
+			keyMsg = msg.Clone()
+		}
+
+		prod.keyModulators.Modulate(keyMsg)
+		key = keyMsg.String()
 	}
 
-	if prod.keyFromParsed {
-		keyMsg = msg.Clone()
-	}
-
-	for _, formatter := range prod.keyFormatters {
-		formatter.Format(keyMsg)
-	}
-
-	return msg.Data(), keyMsg.String()
+	return dataMsg.Data(), key
 }
 
 func (prod *Redis) getValueFieldAndKey(msg *core.Message) (v []byte, f []byte, k string) {
-	keyMsg := msg.Clone()
-	fieldMsg := msg.Clone()
-	msg = msg.Clone()
-	prod.Format(msg)
+	dataMsg := msg.Clone()
 
-	if prod.keyFromParsed {
-		keyMsg = msg.Clone()
-	}
-
-	if prod.fieldFromParsed {
-		keyMsg = msg.Clone()
-	}
+	prod.Modulate(dataMsg)
 
 	key := prod.key
-	if len(prod.keyFormatters) > 0 {
-		for _, formatter := range prod.keyFormatters {
-			formatter.Format(keyMsg)
+	if len(prod.keyModulators) > 0 {
+		var keyMsg *core.Message
+		if prod.keyFromParsed {
+			keyMsg = dataMsg.Clone()
+		} else {
+			keyMsg = msg.Clone()
 		}
+
+		prod.keyModulators.Modulate(keyMsg)
 		key = keyMsg.String()
 	}
 
 	field := []byte{}
-	if len(prod.keyFormatters) > 0 {
-		for _, formatter := range prod.fieldFormatters {
-			formatter.Format(fieldMsg)
+	if len(prod.fieldModulators) > 0 {
+		var fieldMsg *core.Message
+		if prod.fieldFromParsed {
+			fieldMsg = dataMsg.Clone()
+		} else {
+			fieldMsg = msg.Clone()
 		}
+
+		prod.fieldModulators.Modulate(fieldMsg)
 		field = fieldMsg.Data()
 	}
 
-	return msg.Data(), field, key
+	return dataMsg.Data(), field, key
 }
 
 func (prod *Redis) storeHash(msg *core.Message) {

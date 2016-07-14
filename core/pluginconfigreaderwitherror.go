@@ -16,6 +16,7 @@ package core
 
 import (
 	"fmt"
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/tlog"
 )
@@ -231,6 +232,33 @@ func (reader PluginConfigReaderWithError) GetPluginArray(key string, defaultValu
 	}
 
 	return pluginArray, nil
+}
+
+// GetModulatorArray returns an array of modulator plugins.
+func (reader PluginConfigReaderWithError) GetModulatorArray(key string, logScope tlog.LogScope, defaultValue ModulatorArray) (ModulatorArray, error) {
+	modPlugins, err := reader.GetPluginArray(key, []Plugin{})
+	if err != nil {
+		return defaultValue, err
+	}
+	if len(modPlugins) == 0 {
+		return defaultValue, nil
+	}
+
+	errors := tgo.NewErrorStack()
+	modulators := []Modulator{}
+	for _, plugin := range modPlugins {
+		modulator, isModulator := plugin.(Modulator)
+		if !isModulator {
+			errors.Pushf("Plugin is not a valid modulator")
+		} else {
+			if modulator, isScopedModulator := plugin.(ScopedModulator); isScopedModulator {
+				modulator.SetLogScope(logScope)
+			}
+			modulators = append(modulators, modulator)
+		}
+	}
+
+	return modulators, errors.OrNil()
 }
 
 // GetStringArray tries to read a string array from a

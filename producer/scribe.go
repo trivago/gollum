@@ -211,8 +211,8 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 
 	// Convert messages to scribe log format
 	for idx, msg := range messages {
-		currentMsg := *msg
-		prod.Format(&currentMsg)
+		currentMsg := msg.Clone()
+		prod.Modulate(currentMsg)
 
 		category, exists := prod.category[currentMsg.StreamID()]
 		if !exists {

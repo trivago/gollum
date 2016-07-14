@@ -122,13 +122,6 @@ func (prod *BufferedProducer) Enqueue(msg *Message, timeout *time.Duration) {
 		}
 	}()
 
-	// Filtering happens before formatting. If fitering AFTER formatting is
-	// required, the producer has to do so as it decides where to format.
-	if !prod.Accepts(msg) {
-		CountFilteredMessage()
-		return // ### return, filtered ###
-	}
-
 	// Don't accept messages if we are shutting down
 	if prod.GetState() >= PluginStateStopping {
 		prod.Drop(msg)

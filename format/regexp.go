@@ -54,10 +54,11 @@ func (format *RegExp) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Format prepends the timestamp of the message to the message.
-func (format *RegExp) Format(msg *core.Message) {
+// Modulate applies a given regexp replacement to the message.
+func (format *RegExp) Modulate(msg *core.Message) core.ModulateResult {
 	matches := format.expression.FindSubmatchIndex(msg.Data())
 	transformed := format.expression.Expand([]byte{}, format.template, msg.Data(), matches)
 
 	msg.Store(transformed)
+	return core.ModulateResultContinue
 }

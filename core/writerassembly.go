@@ -25,7 +25,7 @@ import (
 type WriterAssembly struct {
 	writer       io.Writer
 	flush        func(*Message)
-	formatter    FormatterFunc
+	modulator    Modulator
 	dropStreamID MessageStreamID
 	buffer       []byte
 	validate     func() bool
@@ -35,10 +35,10 @@ type WriterAssembly struct {
 
 // NewWriterAssembly creates a new adapter between io.Writer and the MessageBatch
 // AssemblyFunc function signature
-func NewWriterAssembly(writer io.Writer, flush func(*Message), formatter FormatterFunc) WriterAssembly {
+func NewWriterAssembly(writer io.Writer, flush func(*Message), modulator Modulator) WriterAssembly {
 	return WriterAssembly{
 		writer:      writer,
-		formatter:   formatter,
+		modulator:   modulator,
 		flush:       flush,
 		writerGuard: new(sync.Mutex),
 	}
@@ -91,7 +91,7 @@ func (asm *WriterAssembly) Write(messages []*Message) {
 	contentLen := 0
 	for _, msg := range messages {
 		msgCopy := msg.Clone()
-		asm.formatter(msgCopy)
+		asm.modulator.Modulate(msgCopy)
 
 		if contentLen+len(msgCopy.Data()) > len(asm.buffer) {
 			asm.buffer = append(asm.buffer[:contentLen], msgCopy.Data()...)

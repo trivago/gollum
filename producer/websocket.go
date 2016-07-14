@@ -94,7 +94,7 @@ func (prod *Websocket) handleConnection(conn *websocket.Conn) {
 }
 
 func (prod *Websocket) pushMessage(msg *core.Message) {
-	prod.BufferedProducer.Format(msg)
+	prod.Modulate(msg)
 
 	if prod.clientIdx&0x7FFFFFFF > 0 {
 		// There are new clients available

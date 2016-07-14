@@ -15,22 +15,19 @@
 package core
 
 import (
-	"github.com/trivago/tgo/tlog"
+	"fmt"
 )
 
-type mockFormatter struct {
+type ModulateResultError struct {
+	message string
 }
 
-func (mock *mockFormatter) SetLogScope(log tlog.LogScope) {
+func (p ModulateResultError) Error() string {
+	return p.message
 }
 
-func (mock *mockFormatter) Format(msg *Message) {
-	mockFormatFunc(msg)
-}
-
-func (mock *mockFormatter) Configure(conf PluginConfigReader) error {
-	return nil
-}
-
-func mockFormatFunc(msg *Message) {
+func NewModulateResultError(message string, values ...interface{}) ModulateResultError {
+	return ModulateResultError{
+		message: fmt.Sprintf(message, values),
+	}
 }

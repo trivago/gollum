@@ -60,8 +60,9 @@ func (format *Base64Decode) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Format returns the original message payload
-func (format *Base64Decode) Format(msg *core.Message) {
+// Modulate tries to read the message as base64 and decode it. If decoding
+// fails the message is left untouched.
+func (format *Base64Decode) Modulate(msg *core.Message) core.ModulateResult {
 	decodedLen := format.dictionary.DecodedLen(msg.Len())
 	decoded := core.MessageDataPool.Get(decodedLen)
 
@@ -70,4 +71,6 @@ func (format *Base64Decode) Format(msg *core.Message) {
 	} else {
 		msg.Store(decoded[:size])
 	}
+
+	return core.ModulateResultContinue
 }

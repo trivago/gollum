@@ -149,6 +149,13 @@ func (reader *PluginConfigReader) GetPluginArray(key string, defaultValue []Plug
 	return value
 }
 
+// GetModulatorArray reads an array of modulator plugins
+func (reader *PluginConfigReader) GetModulatorArray(key string, logScope tlog.LogScope, defaultValue ModulatorArray) ModulatorArray {
+	modulators, err := reader.WithError.GetModulatorArray(key, logScope, defaultValue)
+	reader.Errors.Push(err)
+	return modulators
+}
+
 // GetStringArray tries to read a string array from a
 // PluginConfig. If that value is not found defaultValue is returned.
 func (reader *PluginConfigReader) GetStringArray(key string, defaultValue []string) []string {

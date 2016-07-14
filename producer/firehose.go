@@ -227,7 +227,7 @@ func (prod *Firehose) transformMessages(messages []*core.Message) {
 
 	// Format and sort
 	for idx, msg := range messages {
-		prod.Format(msg)
+		prod.Modulate(msg)
 
 		// Fetch buffer for this stream
 		records, recordsExists := streamRecords[msg.StreamID()]

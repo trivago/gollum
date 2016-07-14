@@ -56,8 +56,8 @@ func (format *StreamName) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Format prepends the StreamName of the message to the message.
-func (format *StreamName) Format(msg *core.Message) {
+// Modulate prepends the StreamName of the message to the message.
+func (format *StreamName) Modulate(msg *core.Message) core.ModulateResult {
 	var streamName string
 
 	switch {
@@ -75,4 +75,5 @@ func (format *StreamName) Format(msg *core.Message) {
 	copy(payload[offset:], msg.Data())
 
 	msg.Store(payload)
+	return core.ModulateResultContinue
 }

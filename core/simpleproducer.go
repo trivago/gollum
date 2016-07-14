@@ -91,8 +91,7 @@ type SimpleProducer struct {
 	id               string
 	control          chan PluginControl
 	streams          []MessageStreamID
-	formatters       []Formatter
-	filters          []Filter
+	modulators       ModulatorArray
 	dropStream       Stream
 	runState         *PluginRunState
 	shutdownTimeout  time.Duration
@@ -118,33 +117,10 @@ func (prod *SimpleProducer) Configure(conf PluginConfigReader) error {
 	prod.fuseTimeout = time.Duration(conf.GetInt("FuseTimeoutSec", 10)) * time.Second
 	prod.fuseName = conf.GetString("Fuse", "")
 	prod.fuseControlGuard = new(sync.Mutex)
+	prod.modulators = conf.GetModulatorArray("Modulators", prod.Log, ModulatorArray{})
 
 	dropStreamID := StreamRegistry.GetStreamID(conf.GetString("DropToStream", DroppedStream))
 	prod.dropStream = StreamRegistry.GetStreamOrFallback(dropStreamID)
-
-	formatPlugins := conf.GetPluginArray("Formatters", []Plugin{})
-
-	for _, plugin := range formatPlugins {
-		formatter, isFormatter := plugin.(Formatter)
-		if !isFormatter {
-			conf.Errors.Pushf("Plugin is not a valid formatter")
-		} else {
-			formatter.SetLogScope(prod.Log)
-			prod.formatters = append(prod.formatters, formatter)
-		}
-	}
-
-	filterPlugins := conf.GetPluginArray("Filters", []Plugin{})
-
-	for _, plugin := range filterPlugins {
-		filter, isFilter := plugin.(Filter)
-		if !isFilter {
-			conf.Errors.Pushf("Plugin is not a valid filter")
-		} else {
-			filter.SetLogScope(prod.Log)
-			prod.filters = append(prod.filters, filter)
-		}
-	}
 
 	return conf.Errors.OrNil()
 }
@@ -157,11 +133,6 @@ func (prod *SimpleProducer) GetID() string {
 // Streams returns the streams this producer is listening to.
 func (prod *SimpleProducer) Streams() []MessageStreamID {
 	return prod.streams
-}
-
-// GetDropStream returns the stream to drop messages to.
-func (prod *SimpleProducer) GetDropStream() Stream {
-	return prod.dropStream
 }
 
 // Control returns write access to this producer's control channel.
@@ -257,42 +228,9 @@ func (prod *SimpleProducer) GetShutdownTimeout() time.Duration {
 	return prod.shutdownTimeout
 }
 
-// Format calls all formatters in their order of definition
-func (prod *SimpleProducer) Format(msg *Message) {
-	for _, formatter := range prod.formatters {
-		formatter.Format(msg)
-	}
-}
-
-// AppendFormatter adds a given formatter to the end of the list of formatters
-func (prod *SimpleProducer) AppendFormatter(format Formatter) {
-	prod.formatters = append(prod.formatters, format)
-}
-
-// PrependFormatter adds a given formatter to the start of the list of formatters
-func (prod *SimpleProducer) PrependFormatter(format Formatter) {
-	prod.formatters = append([]Formatter{format}, prod.formatters...)
-}
-
-// Accepts calls the filters Accepts function
-func (prod *SimpleProducer) Accepts(msg *Message) bool {
-	for _, filter := range prod.filters {
-		if !filter.Accepts(msg) {
-			filter.Drop(msg)
-			return false // ### return, false if one filter failed ###
-		}
-	}
-	return true
-}
-
-// AppendFilter adds a given filter to the end of the list of filters
-func (prod *SimpleProducer) AppendFilter(filter Filter) {
-	prod.filters = append(prod.filters, filter)
-}
-
-// PrependFilter adds a given filter to the start of the list of filters
-func (prod *SimpleProducer) PrependFilter(filter Filter) {
-	prod.filters = append([]Filter{filter}, prod.filters...)
+// Modulate applies all modulators from this producer to a given message
+func (prod *SimpleProducer) Modulate(msg *Message) ModulateResult {
+	return prod.modulators.Modulate(msg)
 }
 
 // Drop routes the message to the configured drop stream.

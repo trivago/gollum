@@ -134,7 +134,7 @@ func (prod *InfluxDB) Configure(conf core.PluginConfigReader) error {
 	prod.batchTimeout = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
 
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
-	prod.assembly = core.NewWriterAssembly(prod.writer, prod.Drop, prod.Format)
+	prod.assembly = core.NewWriterAssembly(prod.writer, prod.Drop, prod)
 	return conf.Errors.OrNil()
 }
 
