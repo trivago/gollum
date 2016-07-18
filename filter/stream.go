@@ -62,7 +62,7 @@ func (filter *Stream) Configure(conf core.PluginConfigReader) error {
 func (filter *Stream) Modulate(msg *core.Message) core.ModulateResult {
 	for _, blockedID := range filter.blacklist {
 		if msg.StreamID() == blockedID {
-			return core.ModulateResultDrop // ### return, explicitly blocked ###
+			return filter.Drop(msg) // ### return, explicitly blocked ###
 		}
 	}
 
@@ -74,7 +74,7 @@ func (filter *Stream) Modulate(msg *core.Message) core.ModulateResult {
 
 	// Return true if no whitlist is given, false otherwise (must fulfill whitelist)
 	if len(filter.whitelist) > 0 {
-		return core.ModulateResultDrop
+		return filter.Drop(msg)
 	}
 
 	return core.ModulateResultContinue

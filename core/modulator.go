@@ -18,21 +18,6 @@ import (
 	"github.com/trivago/tgo/tlog"
 )
 
-// ModulateResult defines a set of results used to control the message flow
-// induced by Modulator actions.
-type ModulateResult int
-
-const (
-	// ModulateResultContinue causes a message to be passed along
-	ModulateResultContinue = ModulateResult(iota)
-	// ModulateResultRoute causes a message to be routed
-	ModulateResultRoute = ModulateResult(iota)
-	// ModulateResultDrop acts like ModulateResultRoute but causes the ModulateResult to stop, too
-	ModulateResultDrop = ModulateResult(iota)
-	// ModulateResultDiscard causes a message to be discarded
-	ModulateResultDiscard = ModulateResult(iota)
-)
-
 // A Modulator defines a modification or analysis step inside the message
 // ModulateResult. It may alter messages or stop the ModulateResult for this message.
 type Modulator interface {
@@ -52,6 +37,27 @@ type ScopedModulator interface {
 	SetLogScope(log tlog.LogScope)
 }
 
+// ModulateResult defines a set of results used to control the message flow
+// induced by Modulator actions.
+type ModulateResult int
+
+const (
+	// ModulateResultContinue indicates that a messag can be passed along.
+	ModulateResultContinue = ModulateResult(iota)
+	// ModulateResultRoute indicates that a message requires routing
+	ModulateResultRoute = ModulateResult(iota)
+	// ModulateResultDrop has to act like ModulateResultRoute but also
+	// indicates that no further modluators should be called.
+	ModulateResultDrop = ModulateResult(iota)
+	// ModulateResultDiscard indicates that a message should be discarded and
+	// that no further modulators should be called.
+	ModulateResultDiscard = ModulateResult(iota)
+	// ModulateResultHandled is used inside a Modulate chain call when a
+	// message has already been processed and does not require further
+	// processing (ignore)
+	ModulateResultHandled = ModulateResult(iota)
+)
+
 // ModulatorArray is a type wrapper to []Modulator to make array of modulators
 // compatible with the modulator interface
 type ModulatorArray []Modulator
@@ -64,6 +70,7 @@ func (modulators ModulatorArray) Modulate(msg *Message) ModulateResult {
 		switch modRes := modulator.Modulate(msg); modRes {
 		case ModulateResultDiscard, ModulateResultDrop:
 			return modRes
+
 		case ModulateResultRoute:
 			action = modRes
 		}

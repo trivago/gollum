@@ -40,5 +40,5 @@ func (filter *None) Configure(conf core.PluginConfigReader) error {
 
 // Modulate drops all messages
 func (filter *None) Modulate(msg *core.Message) core.ModulateResult {
-	return core.ModulateResultDrop
+	return filter.Drop(msg)
 }

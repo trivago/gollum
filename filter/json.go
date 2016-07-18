@@ -111,7 +111,7 @@ func (filter *JSON) Modulate(msg *core.Message) core.ModulateResult {
 	for key, exp := range filter.rejectValues {
 		if value, exists := filter.getValue(key, values); exists {
 			if exp.MatchString(value) {
-				return core.ModulateResultDrop
+				return filter.Drop(msg)
 			}
 		}
 	}
@@ -120,7 +120,7 @@ func (filter *JSON) Modulate(msg *core.Message) core.ModulateResult {
 	for key, exp := range filter.acceptValues {
 		if value, exists := filter.getValue(key, values); exists {
 			if !exp.MatchString(value) {
-				return core.ModulateResultDrop
+				return filter.Drop(msg)
 			}
 		}
 	}

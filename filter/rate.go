@@ -148,5 +148,5 @@ func (filter *Rate) Modulate(msg *core.Message) core.ModulateResult {
 		return core.ModulateResultContinue
 	}
 
-	return core.ModulateResultDrop
+	return filter.Drop(msg)
 }

@@ -31,8 +31,8 @@ import (
 // DropToStream defines a stream where filtered messages get sent to.
 // You can disable this behavior by setting "". Set to "" by default.
 type SimpleFilter struct {
-	Log        tlog.LogScope
-	dropStream Stream
+	Log          tlog.LogScope
+	dropStreamID MessageStreamID
 }
 
 // SetLogScope sets the log scope to be used for this filter
@@ -44,16 +44,15 @@ func (filter *SimpleFilter) SetLogScope(log tlog.LogScope) {
 func (filter *SimpleFilter) Configure(conf PluginConfigReader) error {
 	filter.Log = conf.GetSubLogScope("Filter")
 
-	dropStreamID := GetStreamID(conf.GetString("DropToStream", InvalidStream))
-	if dropStreamID != InvalidStreamID {
-		filter.dropStream = StreamRegistry.GetStreamOrFallback(dropStreamID)
-	}
+	filter.dropStreamID = GetStreamID(conf.GetString("DropToStream", InvalidStream))
 	return nil
 }
 
 // Drop sends the given message to the stream configured with this filter.
-func (filter *SimpleFilter) Drop(msg *Message) {
-	if filter.dropStream != nil {
-		Route(msg, filter.dropStream)
+func (filter *SimpleFilter) Drop(msg *Message) ModulateResult {
+	if filter.dropStreamID != InvalidStreamID {
+		msg.SetStreamID(filter.dropStreamID)
+		return ModulateResultDrop
 	}
+	return ModulateResultDiscard
 }
