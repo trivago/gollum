@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/lsegal/gucumber/gherkin"
+	"github.com/gucumber/gucumber/gherkin"
 )
 
 var (

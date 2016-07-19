@@ -5,7 +5,7 @@
 			"importpath": "github.com/Shopify/sarama",
 			"repository": "https://github.com/Shopify/sarama",
 			"vcs": "git",
-			"revision": "d234b743b38c4781e1192efe141ee3634a0b6cdd",
+			"revision": "366453c3e32f055595f4d5269d8f39aac5fdcdbb",
 			"branch": "master"
 		},
 		{
@@ -40,7 +40,7 @@
 			"importpath": "github.com/aws/aws-sdk-go",
 			"repository": "https://github.com/aws/aws-sdk-go",
 			"vcs": "git",
-			"revision": "333fcdc9874ea63fbdb3176e12ffa04b5ec44f5a",
+			"revision": "cd07afdfbfa6b5d94f23137a8efd4f2970386a23",
 			"branch": "master",
 			"notests": true
 		},
@@ -63,7 +63,7 @@
 			"importpath": "github.com/docker/docker/pkg/homedir",
 			"repository": "https://github.com/docker/docker",
 			"vcs": "git",
-			"revision": "14a2633f3c8777e0b2d7deed691f122d0b5a8ffd",
+			"revision": "cf8f2a5037d2795cbcd21eb095ace66bbd9b1c93",
 			"branch": "master",
 			"path": "/pkg/homedir"
 		},
@@ -71,7 +71,7 @@
 			"importpath": "github.com/docker/docker/pkg/mflag",
 			"repository": "https://github.com/docker/docker",
 			"vcs": "git",
-			"revision": "14a2633f3c8777e0b2d7deed691f122d0b5a8ffd",
+			"revision": "cf8f2a5037d2795cbcd21eb095ace66bbd9b1c93",
 			"branch": "master",
 			"path": "/pkg/mflag"
 		},
@@ -102,14 +102,14 @@
 			"importpath": "github.com/go-ini/ini",
 			"repository": "https://github.com/go-ini/ini",
 			"vcs": "git",
-			"revision": "72ba3e6b9e6b87e0c74c9a7a4dc86e8dd8ba4355",
+			"revision": "cf53f9204df4fbdd7ec4164b57fa6184ba168292",
 			"branch": "master"
 		},
 		{
 			"importpath": "github.com/golang/protobuf/proto",
 			"repository": "https://github.com/golang/protobuf",
 			"vcs": "git",
-			"revision": "0c1f6d65b5a189c2250d10e71a5506f06f9fa0a0",
+			"revision": "874264fbbb43f4d91e999fecb4b40143ed611400",
 			"branch": "master",
 			"path": "/proto"
 		},
@@ -117,7 +117,7 @@
 			"importpath": "github.com/golang/protobuf/ptypes/any",
 			"repository": "https://github.com/golang/protobuf",
 			"vcs": "git",
-			"revision": "0c1f6d65b5a189c2250d10e71a5506f06f9fa0a0",
+			"revision": "874264fbbb43f4d91e999fecb4b40143ed611400",
 			"branch": "master",
 			"path": "/ptypes/any"
 		},
@@ -133,7 +133,7 @@
 			"importpath": "github.com/gopherjs/gopherjs/js",
 			"repository": "https://github.com/gopherjs/gopherjs",
 			"vcs": "git",
-			"revision": "090403452ab6979e3b7c054ceb7ee23da91b2ae4",
+			"revision": "72e303cb5f235b23471872477b57e573dc1c71d0",
 			"branch": "master",
 			"path": "/js",
 			"notests": true
@@ -171,7 +171,7 @@
 			"importpath": "github.com/lsegal/gucumber",
 			"repository": "https://github.com/lsegal/gucumber",
 			"vcs": "git",
-			"revision": "090009ec4b32fd019e2d5e1a6a92f66268441cee",
+			"revision": "71608e2f6e76fd4da5b09a376aeec7a5c0b5edbc",
 			"branch": "master",
 			"notests": true
 		},
@@ -202,7 +202,7 @@
 			"importpath": "github.com/opencontainers/runc/libcontainer/user",
 			"repository": "https://github.com/opencontainers/runc",
 			"vcs": "git",
-			"revision": "5dc3f3576efb5262bf582217e93f86c93944374d",
+			"revision": "4dedd0939638fc27a609de1cb37e0666b3cf2079",
 			"branch": "master",
 			"path": "/libcontainer/user"
 		},
@@ -218,7 +218,7 @@
 			"importpath": "github.com/smartystreets/assertions",
 			"repository": "https://github.com/smartystreets/assertions",
 			"vcs": "git",
-			"revision": "40711f7748186bbf9c99977cd89f21ce1a229447",
+			"revision": "2063fd1cc7c975db70502811a34b06ad034ccdf2",
 			"branch": "master",
 			"notests": true
 		},
@@ -271,7 +271,7 @@
 			"importpath": "golang.org/x/net/context",
 			"repository": "https://go.googlesource.com/net",
 			"vcs": "git",
-			"revision": "7864c9eef811cd4e2387a4d17eaf985e412b5032",
+			"revision": "3797cd8864994d713d909eda5e61ede8683fdc12",
 			"branch": "master",
 			"path": "/context",
 			"notests": true
@@ -280,7 +280,7 @@
 			"importpath": "golang.org/x/net/websocket",
 			"repository": "https://go.googlesource.com/net",
 			"vcs": "git",
-			"revision": "8bf2b39827dbadfd566c4fae7a8790d12be8b23c",
+			"revision": "3797cd8864994d713d909eda5e61ede8683fdc12",
 			"branch": "master",
 			"path": "/websocket"
 		},
@@ -317,7 +317,7 @@
 			"importpath": "gopkg.in/yaml.v2",
 			"repository": "https://gopkg.in/yaml.v2",
 			"vcs": "git",
-			"revision": "a83829b6f1293c91addabc89d0571c246397bbf4",
+			"revision": "e4d366fc3c7938e2958e662b4258c7a89e1f0e3e",
 			"branch": "v2"
 		}
 	]
