@@ -107,12 +107,16 @@ func (prod *Socket) Configure(conf core.PluginConfig) error {
 	prod.ackTimeout = time.Duration(conf.GetInt("AckTimeoutMs", 2000)) * time.Millisecond
 	prod.address, prod.protocol = shared.ParseAddress(conf.GetString("Address", ":5880"))
 
-	if prod.protocol != "unix" {
+	switch prod.protocol {
+	case "udp":
 		if prod.acknowledge != "" {
+			Log.Warning.Print("Acknowledge is only supported for TCP connections. TCP connection forced.")
 			prod.protocol = "tcp"
-		} else {
-			prod.protocol = "udp"
 		}
+	case "unix", "tcp":
+		// Everything is fine
+	default:
+		prod.protocol = "tcp"
 	}
 
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)

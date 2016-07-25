@@ -16,6 +16,7 @@ This is a patch / minor features release.
  * Format.Base64Encode now returns the original message if decoding failed
  * Producer.Kafka SendRetries set to 1 by default to circumvent a reconnect issue within sarama
  * Added manual heartbeat to check a valid broker connection with producer.Kafka
+ * socket.producer TCP can be used without ACK
 
 #### New
 
