@@ -353,23 +353,12 @@ initLoop:
 	}
 }
 
-// Start one consumer per partition as a go routine
-func (cons *Kafka) startConsumers() error {
-	var err error
-
-	cons.client, err = kafka.NewClient(cons.servers, cons.config)
+func (cons *Kafka) startReadTopic(topic string) {
+	partitions, err := cons.client.Partitions(topic)
 	if err != nil {
-		return err
-	}
-
-	cons.consumer, err = kafka.NewConsumerFromClient(cons.client)
-	if err != nil {
-		return err
-	}
-
-	partitions, err := cons.client.Partitions(cons.topic)
-	if err != nil {
-		return err
+		Log.Error.Print(err)
+		time.AfterFunc(cons.persistTimeout, func() { cons.startReadTopic(topic) })
+		return
 	}
 
 	for _, partitionID := range partitions {
@@ -389,6 +378,23 @@ func (cons *Kafka) startConsumers() error {
 			go cons.readFromPartition(partitionID)
 		}
 	}
+}
+
+// Start one consumer per partition as a go routine
+func (cons *Kafka) startConsumers() error {
+	var err error
+
+	cons.client, err = kafka.NewClient(cons.servers, cons.config)
+	if err != nil {
+		return err
+	}
+
+	cons.consumer, err = kafka.NewConsumerFromClient(cons.client)
+	if err != nil {
+		return err
+	}
+
+	cons.startReadTopic(cons.topic)
 
 	return nil
 }
