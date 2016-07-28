@@ -17,6 +17,7 @@ This is a patch / minor features release.
  * Producer.Kafka SendRetries set to 1 by default to circumvent a reconnect issue within sarama
  * Added manual heartbeat to check a valid broker connection with producer.Kafka
  * socket.producer TCP can be used without ACK
+ * Kafka consumer will retry to connect to a not (yet) existing topic every PersistTimeoutMs
 
 #### New
 
@@ -31,6 +32,7 @@ This is a patch / minor features release.
  * Added FilterAfterFormat to producer.Kafka and native.KafkaProducer
  * Added wildcard topic mapping to producer.Kafka and native.KafkaProducer
  * Producer.Spooling now continuously looks for new streams to read
+ * Seperated version information to -r (version, go runtime, modules) and -v (just version) command line flag
 
 # 0.4.3
 
