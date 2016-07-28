@@ -58,13 +58,22 @@ func main() {
 		modules += " + " + typeName[shared.IndexN(typeName, ".", 1)+1:] + "\n"
 	}
 
+	if *flagReport {
+		goVersion := runtime.Version()
+		if gollumDevVer > 0 {
+			fmt.Printf("Gollum %d.%d.%d.%d dev\n%s\nModules:\n%s", gollumMajorVer, gollumMinorVer, gollumPatchVer, gollumDevVer, goVersion, modules)
+		} else {
+			fmt.Printf("Gollum %d.%d.%d\n%s\nModules:\n%s", gollumMajorVer, gollumMinorVer, gollumPatchVer, goVersion, modules)
+		}
+		return // ### return, version only ###
+	}
+
 	if *flagVersion {
 		if gollumDevVer > 0 {
-			fmt.Printf("Gollum v%d.%d.%d.%d dev\n%s", gollumMajorVer, gollumMinorVer, gollumPatchVer, gollumDevVer, modules)
+			fmt.Printf("%d.%d.%d.%d dev\n", gollumMajorVer, gollumMinorVer, gollumPatchVer, gollumDevVer)
 		} else {
-			fmt.Printf("Gollum v%d.%d.%d\n%s", gollumMajorVer, gollumMinorVer, gollumPatchVer, modules)
+			fmt.Printf("%d.%d.%d\n", gollumMajorVer, gollumMinorVer, gollumPatchVer)
 		}
-		fmt.Println(runtime.Version())
 		return // ### return, version only ###
 	}
 
