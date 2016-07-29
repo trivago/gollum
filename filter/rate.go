@@ -86,6 +86,7 @@ func (filter *Rate) Configure(conf core.PluginConfig) error {
 	for _, stream := range ignore {
 		filter.state[stream] = &rateState{
 			count:     new(int64),
+			filtered:  new(int64),
 			ignore:    true,
 			lastReset: time.Now().Add(-time.Second),
 		}
@@ -100,6 +101,10 @@ func (filter *Rate) updateMetrics() {
 	defer filter.stateGuard.RUnlock()
 
 	for streamID, state := range filter.state {
+		if state.ignore {
+			continue
+		}
+
 		streamName := core.StreamRegistry.GetStreamName(streamID)
 		numFiltered := atomic.SwapInt64(state.filtered, 0)
 
