@@ -162,7 +162,17 @@ Write msg/sec measurements to log.
 
 Test a given configuration file and exit.
 
+#### `-tr` or `--testconfig` [file]
+
+Write heap trace results to a given file.
+
 #### `-v` or `--version`
+
+Print version information and quit.
+
+#### `-r` or `--report`
+
+Print detailed version report and quit.
 
 Print version information and quit.
 
