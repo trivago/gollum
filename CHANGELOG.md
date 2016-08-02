@@ -18,6 +18,7 @@ This is a patch / minor features release.
  * Added manual heartbeat to check a valid broker connection with producer.Kafka
  * socket.producer TCP can be used without ACK
  * Kafka consumer will retry to connect to a not (yet) existing topic every PersistTimeoutMs
+ * Producer.File symlink switch is now atomic
 
 #### New
 
