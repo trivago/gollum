@@ -20,6 +20,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -42,7 +43,8 @@ const (
 // Configuration example
 //
 //  - "producer.Kafka":
-//    ClientId: "weblog"
+//    ClientId: "gollum"
+//    Version: "0.8.2"
 //    Partitioner: "Roundrobin"
 //    RequiredAcks: 1
 //    TimeoutMs: 1500
@@ -69,6 +71,11 @@ const (
 //      "console" : "console"
 //
 // ClientId sets the client id of this producer. By default this is "gollum".
+//
+// Version defines the kafka protocol version to use. Common values are 0.8.2,
+// 0.9.0 or 0.10.0. Values of the form "A.B" are allowed as well as "A.B.C"
+// and "A.B.C.D". Defaults to "0.8.2". If the version given is not known, the
+// closest possible version is chosen.
 //
 // Partitioner sets the distribution algorithm to use. Valid values are:
 // "Random","Roundrobin" and "Hash". By default "Roundrobin" is set.
@@ -234,6 +241,37 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.config = kafka.NewConfig()
 	prod.config.ClientID = conf.GetString("ClientId", "gollum")
 	prod.config.ChannelBufferSize = conf.GetInt("MessageBufferCount", 8192)
+
+	switch ver := conf.GetString("Version", "0.8.2"); ver {
+	case "0.8.2.0":
+		prod.config.Version = kafka.V0_8_2_0
+	case "0.8.2.1":
+		prod.config.Version = kafka.V0_8_2_1
+	case "0.8", "0.8.2", "0.8.2.2":
+		prod.config.Version = kafka.V0_8_2_2
+	case "0.9.0", "0.9.0.0":
+		prod.config.Version = kafka.V0_9_0_0
+	case "0.9", "0.9.0.1":
+		prod.config.Version = kafka.V0_9_0_1
+	case "0.10", "0.10.0", "0.10.0.0":
+		prod.config.Version = kafka.V0_10_0_0
+	default:
+		Log.Warning.Print("Unknown kafka version given: ", ver)
+		parts := strings.Split(ver, ".")
+		if len(parts) < 2 {
+			prod.config.Version = kafka.V0_8_2_2
+		} else {
+			minor, _ := strconv.ParseUint(parts[1], 10, 8)
+			switch {
+			case minor <= 8:
+				prod.config.Version = kafka.V0_8_2_2
+			case minor == 9:
+				prod.config.Version = kafka.V0_9_0_1
+			case minor >= 10:
+				prod.config.Version = kafka.V0_10_0_0
+			}
+		}
+	}
 
 	prod.config.Net.MaxOpenRequests = conf.GetInt("MaxOpenRequests", 5)
 	prod.config.Net.DialTimeout = time.Duration(conf.GetInt("ServerTimeoutSec", 30)) * time.Second

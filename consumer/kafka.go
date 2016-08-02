@@ -44,6 +44,8 @@ const (
 //
 //  - "consumer.Kafka":
 //    Topic: "default"
+//	  ClientId: "gollum"
+//    Version: "0.8.2"
 //    DefaultOffset: "newest"
 //    OffsetFile: ""
 //	  FolderPermissions: "0755"
@@ -64,6 +66,13 @@ const (
 //      - "localhost:9092"
 //
 // Topic defines the kafka topic to read from. By default this is set to "default".
+//
+// ClientId sets the client id of this producer. By default this is "gollum".
+//
+// Version defines the kafka protocol version to use. Common values are 0.8.2,
+// 0.9.0 or 0.10.0. Values of the form "A.B" are allowed as well as "A.B.C"
+// and "A.B.C.D". Defaults to "0.8.2". If the version given is not known, the
+// closest possible version is chosen.
 //
 // DefaultOffset defines where to start reading the topic. Valid values are
 // "oldest" and "newest". If OffsetFile is defined the DefaultOffset setting
@@ -172,7 +181,39 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 	}
 
 	cons.config = kafka.NewConfig()
+	cons.config.ClientID = conf.GetString("ClientId", "gollum")
 	cons.config.ChannelBufferSize = conf.GetInt("MessageBufferCount", 256)
+
+	switch ver := conf.GetString("Version", "0.8.2"); ver {
+	case "0.8.2.0":
+		cons.config.Version = kafka.V0_8_2_0
+	case "0.8.2.1":
+		cons.config.Version = kafka.V0_8_2_1
+	case "0.8", "0.8.2", "0.8.2.2":
+		cons.config.Version = kafka.V0_8_2_2
+	case "0.9.0", "0.9.0.0":
+		cons.config.Version = kafka.V0_9_0_0
+	case "0.9", "0.9.0.1":
+		cons.config.Version = kafka.V0_9_0_1
+	case "0.10", "0.10.0", "0.10.0.0":
+		cons.config.Version = kafka.V0_10_0_0
+	default:
+		Log.Warning.Print("Unknown kafka version given: ", ver)
+		parts := strings.Split(ver, ".")
+		if len(parts) < 2 {
+			cons.config.Version = kafka.V0_8_2_2
+		} else {
+			minor, _ := strconv.ParseUint(parts[1], 10, 8)
+			switch {
+			case minor <= 8:
+				cons.config.Version = kafka.V0_8_2_2
+			case minor == 9:
+				cons.config.Version = kafka.V0_9_0_1
+			case minor >= 10:
+				cons.config.Version = kafka.V0_10_0_0
+			}
+		}
+	}
 
 	cons.config.Net.MaxOpenRequests = conf.GetInt("MaxOpenRequests", 5)
 	cons.config.Net.DialTimeout = time.Duration(conf.GetInt("ServerTimeoutSec", 30)) * time.Second

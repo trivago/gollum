@@ -34,6 +34,8 @@ This is a patch / minor features release.
  * Added wildcard topic mapping to producer.Kafka and native.KafkaProducer
  * Producer.Spooling now continuously looks for new streams to read
  * Seperated version information to -r (version, go runtime, modules) and -v (just version) command line flag
+ * Added Version support for producer.Kafka and consumer.Kafka
+ * Added ClientID support for consumer.Kafka
 
 # 0.4.3
 

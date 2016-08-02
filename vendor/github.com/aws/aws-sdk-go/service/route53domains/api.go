@@ -431,6 +431,53 @@ func (c *Route53Domains) GetDomainDetail(input *GetDomainDetailInput) (*GetDomai
 	return out, err
 }
 
+const opGetDomainSuggestions = "GetDomainSuggestions"
+
+// GetDomainSuggestionsRequest generates a "aws/request.Request" representing the
+// client's request for the GetDomainSuggestions operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the GetDomainSuggestions method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the GetDomainSuggestionsRequest method.
+//    req, resp := client.GetDomainSuggestionsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *Route53Domains) GetDomainSuggestionsRequest(input *GetDomainSuggestionsInput) (req *request.Request, output *GetDomainSuggestionsOutput) {
+	op := &request.Operation{
+		Name:       opGetDomainSuggestions,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetDomainSuggestionsInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &GetDomainSuggestionsOutput{}
+	req.Data = output
+	return
+}
+
+func (c *Route53Domains) GetDomainSuggestions(input *GetDomainSuggestionsInput) (*GetDomainSuggestionsOutput, error) {
+	req, out := c.GetDomainSuggestionsRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opGetOperationDetail = "GetOperationDetail"
 
 // GetOperationDetailRequest generates a "aws/request.Request" representing the
@@ -752,6 +799,53 @@ func (c *Route53Domains) RegisterDomainRequest(input *RegisterDomainInput) (req 
 // Amazon Route 53 Pricing (http://aws.amazon.com/route53/pricing/).
 func (c *Route53Domains) RegisterDomain(input *RegisterDomainInput) (*RegisterDomainOutput, error) {
 	req, out := c.RegisterDomainRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opRenewDomain = "RenewDomain"
+
+// RenewDomainRequest generates a "aws/request.Request" representing the
+// client's request for the RenewDomain operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the RenewDomain method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the RenewDomainRequest method.
+//    req, resp := client.RenewDomainRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *Route53Domains) RenewDomainRequest(input *RenewDomainInput) (req *request.Request, output *RenewDomainOutput) {
+	op := &request.Operation{
+		Name:       opRenewDomain,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &RenewDomainInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &RenewDomainOutput{}
+	req.Data = output
+	return
+}
+
+func (c *Route53Domains) RenewDomain(input *RenewDomainInput) (*RenewDomainOutput, error) {
+	req, out := c.RenewDomainRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -1143,6 +1237,77 @@ func (c *Route53Domains) UpdateTagsForDomain(input *UpdateTagsForDomainInput) (*
 	req, out := c.UpdateTagsForDomainRequest(input)
 	err := req.Send()
 	return out, err
+}
+
+const opViewBilling = "ViewBilling"
+
+// ViewBillingRequest generates a "aws/request.Request" representing the
+// client's request for the ViewBilling operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ViewBilling method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ViewBillingRequest method.
+//    req, resp := client.ViewBillingRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *Route53Domains) ViewBillingRequest(input *ViewBillingInput) (req *request.Request, output *ViewBillingOutput) {
+	op := &request.Operation{
+		Name:       opViewBilling,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ViewBillingInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &ViewBillingOutput{}
+	req.Data = output
+	return
+}
+
+func (c *Route53Domains) ViewBilling(input *ViewBillingInput) (*ViewBillingOutput, error) {
+	req, out := c.ViewBillingRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+type BillingRecord struct {
+	_ struct{} `type:"structure"`
+
+	BillDate *time.Time `type:"timestamp" timestampFormat:"unix"`
+
+	DomainName *string `type:"string"`
+
+	InvoiceId *string `type:"string"`
+
+	Operation *string `type:"string" enum:"OperationType"`
+
+	Price *float64 `type:"double"`
+}
+
+// String returns the string representation
+func (s BillingRecord) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BillingRecord) GoString() string {
+	return s.String()
 }
 
 // The CheckDomainAvailability request contains the following elements.
@@ -1630,6 +1795,24 @@ func (s DisableDomainTransferLockOutput) GoString() string {
 	return s.String()
 }
 
+type DomainSuggestion struct {
+	_ struct{} `type:"structure"`
+
+	Availability *string `type:"string"`
+
+	DomainName *string `type:"string"`
+}
+
+// String returns the string representation
+func (s DomainSuggestion) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DomainSuggestion) GoString() string {
+	return s.String()
+}
+
 type DomainSummary struct {
 	_ struct{} `type:"structure"`
 
@@ -2082,6 +2265,61 @@ func (s GetDomainDetailOutput) String() string {
 
 // GoString returns the string representation
 func (s GetDomainDetailOutput) GoString() string {
+	return s.String()
+}
+
+type GetDomainSuggestionsInput struct {
+	_ struct{} `type:"structure"`
+
+	DomainName *string `type:"string" required:"true"`
+
+	OnlyAvailable *bool `type:"boolean" required:"true"`
+
+	SuggestionCount *int64 `type:"integer" required:"true"`
+}
+
+// String returns the string representation
+func (s GetDomainSuggestionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetDomainSuggestionsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetDomainSuggestionsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetDomainSuggestionsInput"}
+	if s.DomainName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainName"))
+	}
+	if s.OnlyAvailable == nil {
+		invalidParams.Add(request.NewErrParamRequired("OnlyAvailable"))
+	}
+	if s.SuggestionCount == nil {
+		invalidParams.Add(request.NewErrParamRequired("SuggestionCount"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+type GetDomainSuggestionsOutput struct {
+	_ struct{} `type:"structure"`
+
+	SuggestionsList []*DomainSuggestion `type:"list"`
+}
+
+// String returns the string representation
+func (s GetDomainSuggestionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetDomainSuggestionsOutput) GoString() string {
 	return s.String()
 }
 
@@ -2655,6 +2893,61 @@ func (s RegisterDomainOutput) String() string {
 
 // GoString returns the string representation
 func (s RegisterDomainOutput) GoString() string {
+	return s.String()
+}
+
+type RenewDomainInput struct {
+	_ struct{} `type:"structure"`
+
+	CurrentExpiryYear *int64 `type:"integer" required:"true"`
+
+	DomainName *string `type:"string" required:"true"`
+
+	DurationInYears *int64 `min:"1" type:"integer"`
+}
+
+// String returns the string representation
+func (s RenewDomainInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RenewDomainInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RenewDomainInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RenewDomainInput"}
+	if s.CurrentExpiryYear == nil {
+		invalidParams.Add(request.NewErrParamRequired("CurrentExpiryYear"))
+	}
+	if s.DomainName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainName"))
+	}
+	if s.DurationInYears != nil && *s.DurationInYears < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("DurationInYears", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+type RenewDomainOutput struct {
+	_ struct{} `type:"structure"`
+
+	OperationId *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s RenewDomainOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RenewDomainOutput) GoString() string {
 	return s.String()
 }
 
@@ -3444,6 +3737,46 @@ func (s UpdateTagsForDomainOutput) String() string {
 
 // GoString returns the string representation
 func (s UpdateTagsForDomainOutput) GoString() string {
+	return s.String()
+}
+
+type ViewBillingInput struct {
+	_ struct{} `type:"structure"`
+
+	End *time.Time `type:"timestamp" timestampFormat:"unix"`
+
+	Marker *string `type:"string"`
+
+	MaxItems *int64 `type:"integer"`
+
+	Start *time.Time `type:"timestamp" timestampFormat:"unix"`
+}
+
+// String returns the string representation
+func (s ViewBillingInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ViewBillingInput) GoString() string {
+	return s.String()
+}
+
+type ViewBillingOutput struct {
+	_ struct{} `type:"structure"`
+
+	BillingRecords []*BillingRecord `type:"list"`
+
+	NextPageMarker *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ViewBillingOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ViewBillingOutput) GoString() string {
 	return s.String()
 }
 

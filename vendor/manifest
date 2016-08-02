@@ -5,7 +5,7 @@
 			"importpath": "github.com/Shopify/sarama",
 			"repository": "https://github.com/Shopify/sarama",
 			"vcs": "git",
-			"revision": "366453c3e32f055595f4d5269d8f39aac5fdcdbb",
+			"revision": "9bb4a68d57ff6f623363aa172f0a8297aa289ba7",
 			"branch": "master"
 		},
 		{
@@ -40,7 +40,7 @@
 			"importpath": "github.com/aws/aws-sdk-go",
 			"repository": "https://github.com/aws/aws-sdk-go",
 			"vcs": "git",
-			"revision": "cd07afdfbfa6b5d94f23137a8efd4f2970386a23",
+			"revision": "3b8c171554fc7d4fc53b87e25d4926a9e7495c2e",
 			"branch": "master",
 			"notests": true
 		},
@@ -63,7 +63,7 @@
 			"importpath": "github.com/docker/docker/pkg/homedir",
 			"repository": "https://github.com/docker/docker",
 			"vcs": "git",
-			"revision": "cf8f2a5037d2795cbcd21eb095ace66bbd9b1c93",
+			"revision": "d7c9c85e3093cef9e014be12951d226ab45bbba6",
 			"branch": "master",
 			"path": "/pkg/homedir"
 		},
@@ -71,7 +71,7 @@
 			"importpath": "github.com/docker/docker/pkg/mflag",
 			"repository": "https://github.com/docker/docker",
 			"vcs": "git",
-			"revision": "cf8f2a5037d2795cbcd21eb095ace66bbd9b1c93",
+			"revision": "d7c9c85e3093cef9e014be12951d226ab45bbba6",
 			"branch": "master",
 			"path": "/pkg/mflag"
 		},
@@ -109,7 +109,7 @@
 			"importpath": "github.com/golang/protobuf/proto",
 			"repository": "https://github.com/golang/protobuf",
 			"vcs": "git",
-			"revision": "874264fbbb43f4d91e999fecb4b40143ed611400",
+			"revision": "c3cefd437628a0b7d31b34fe44b3a7a540e98527",
 			"branch": "master",
 			"path": "/proto"
 		},
@@ -117,7 +117,7 @@
 			"importpath": "github.com/golang/protobuf/ptypes/any",
 			"repository": "https://github.com/golang/protobuf",
 			"vcs": "git",
-			"revision": "874264fbbb43f4d91e999fecb4b40143ed611400",
+			"revision": "c3cefd437628a0b7d31b34fe44b3a7a540e98527",
 			"branch": "master",
 			"path": "/ptypes/any"
 		},
@@ -202,7 +202,7 @@
 			"importpath": "github.com/opencontainers/runc/libcontainer/user",
 			"repository": "https://github.com/opencontainers/runc",
 			"vcs": "git",
-			"revision": "4dedd0939638fc27a609de1cb37e0666b3cf2079",
+			"revision": "50f0a2b1e18bba4468928cf1640b53e2b5238362",
 			"branch": "master",
 			"path": "/libcontainer/user"
 		},
@@ -271,7 +271,7 @@
 			"importpath": "golang.org/x/net/context",
 			"repository": "https://go.googlesource.com/net",
 			"vcs": "git",
-			"revision": "3797cd8864994d713d909eda5e61ede8683fdc12",
+			"revision": "28d1bd4fbe7e56c9025ffe3a89113fa4f5e48f31",
 			"branch": "master",
 			"path": "/context",
 			"notests": true
@@ -280,7 +280,7 @@
 			"importpath": "golang.org/x/net/websocket",
 			"repository": "https://go.googlesource.com/net",
 			"vcs": "git",
-			"revision": "3797cd8864994d713d909eda5e61ede8683fdc12",
+			"revision": "28d1bd4fbe7e56c9025ffe3a89113fa4f5e48f31",
 			"branch": "master",
 			"path": "/websocket"
 		},
@@ -295,7 +295,7 @@
 			"importpath": "gopkg.in/docker/docker.v1/pkg/mflag",
 			"repository": "https://gopkg.in/docker/docker.v1",
 			"vcs": "git",
-			"revision": "b9f10c951893f9a00865890a5232e85d770c1087",
+			"revision": "8eab29edd820017901796eb60d4bea28d760f16f",
 			"branch": "master",
 			"path": "/pkg/mflag"
 		},
