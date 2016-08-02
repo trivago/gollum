@@ -174,8 +174,6 @@ Print version information and quit.
 
 Print detailed version report and quit.
 
-Print version information and quit.
-
 ## Building
 
 ### Mac OS X
