@@ -36,6 +36,7 @@ This is a patch / minor features release.
  * Seperated version information to -r (version, go runtime, modules) and -v (just version) command line flag
  * Added Version support for producer.Kafka and consumer.Kafka
  * Added ClientID support for consumer.Kafka
+ * Added trace commandline flag
 
 # 0.4.3
 

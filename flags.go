@@ -32,6 +32,7 @@ var (
 	flagTestConfigFile = flag.String([]string{"tc", "-testconfig"}, "", "Test a given configuration file and exit.")
 	flagCPUProfile     = flag.String([]string{"pc", "-profilecpu"}, "", "Write CPU profiler results to a given file.")
 	flagMemProfile     = flag.String([]string{"pm", "-profilemem"}, "", "Write heap profile results to a given file.")
+	flagTrace          = flag.String([]string{"tr", "-trace"}, "", "Write trace results to a given file.")
 	flagPidFile        = flag.String([]string{"p", "-pidfile"}, "", "Write the process id into a given file.")
 )
 

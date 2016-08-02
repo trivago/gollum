@@ -29,6 +29,7 @@ import (
 	"os"
 	"runtime"
 	"runtime/pprof"
+	"runtime/trace"
 	"strconv"
 )
 
@@ -118,9 +119,24 @@ func main() {
 			panic(err)
 		} else {
 			defer file.Close()
-			pprof.StartCPUProfile(file)
+			if err := pprof.StartCPUProfile(file); err != nil {
+				panic(err)
+			}
 			defer pprof.StopCPUProfile()
 		}
+	}
+
+	if *flagTrace != "" {
+		traceFile, err := os.OpenFile(*flagTrace, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+		if err != nil {
+			panic(err)
+		}
+		defer traceFile.Close()
+
+		if err := trace.Start(traceFile); err != nil {
+			panic(err)
+		}
+		defer trace.Stop()
 	}
 
 	if *flagMemProfile != "" {
