@@ -4,7 +4,7 @@
 
 [![GoDoc](https://godoc.org/github.com/trivago/gollum?status.svg)](https://godoc.org/github.com/trivago/gollum)
 [![Documentation Status](https://readthedocs.org/projects/gollum/badge/?version=latest)](http://gollum.readthedocs.org/en/latest/)
-[![Go Report Card](http://goreportcard.com/badge/trivago/gollum)](http://goreportcard.com/report/trivago/gollum)
+[![Go Report Card](https://goreportcard.com/badge/github.com/trivago/gollum)](https://goreportcard.com/report/github.com/trivago/gollum)
 [![Build Status](https://travis-ci.org/trivago/gollum.svg?branch=v0.4.3dev)](https://travis-ci.org/trivago/gollum)
 [![License](https://img.shields.io/badge/license-apache%202.0-lightgrey.svg)](https://github.com/trivago/gollum/blob/master/LICENSE)
 
@@ -162,9 +162,17 @@ Write msg/sec measurements to log.
 
 Test a given configuration file and exit.
 
+#### `-tr` or `--testconfig` [file]
+
+Write heap trace results to a given file.
+
 #### `-v` or `--version`
 
 Print version information and quit.
+
+#### `-r` or `--report`
+
+Print detailed version report and quit.
 
 ## Building
 
