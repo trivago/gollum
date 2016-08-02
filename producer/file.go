@@ -342,8 +342,9 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	state.fileCreated = time.Now()
 	if prod.rotate.enabled {
 		symLinkName := fmt.Sprintf("%s/%s_current%s", fileDir, fileName, fileExt)
-		os.Remove(symLinkName)
-		os.Symlink(logFileName, symLinkName)
+		symLinkNameTemporary := fmt.Sprintf("%s.tmp", symLinkName)
+		os.Symlink(logFileName, symLinkNameTemporary)
+		os.Rename(symLinkNameTemporary, symLinkName)
 	}
 
 	// Prune old logs if requested
