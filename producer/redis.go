@@ -18,7 +18,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
-	"gopkg.in/redis.v2"
+	"gopkg.in/redis.v4"
 	"strconv"
 	"strings"
 	"sync"
@@ -75,7 +75,7 @@ type Redis struct {
 	address         string
 	protocol        string
 	password        string
-	database        int64
+	database        int
 	key             string
 	client          *redis.Client
 	store           func(msg core.Message)
@@ -112,7 +112,7 @@ func (prod *Redis) Configure(conf core.PluginConfig) error {
 	}
 
 	prod.password = conf.GetString("Password", "")
-	prod.database = int64(conf.GetInt("Database", 0))
+	prod.database = conf.GetInt("Database", 0)
 	prod.key = conf.GetString("Key", "default")
 	prod.fieldFromParsed = conf.GetBool("FieldAfterFormat", false)
 	prod.keyFromParsed = conf.GetBool("KeyAfterFormat", false)
@@ -230,7 +230,7 @@ func (prod *Redis) storeSortedSet(msg core.Message) {
 func (prod *Redis) storeString(msg core.Message) {
 	value, key := prod.getValueAndKey(msg)
 
-	result := prod.client.Set(key, string(value))
+	result := prod.client.Set(key, string(value), 0)
 	if result.Err() != nil {
 		Log.Error.Print("Redis: ", result.Err())
 		prod.Drop(msg)
