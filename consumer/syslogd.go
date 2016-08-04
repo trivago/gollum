@@ -104,7 +104,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfig) error {
 }
 
 // Handle implements the syslog handle interface
-func (cons *Syslogd) Handle(parts syslog.LogParts, code int64, err error) {
+func (cons *Syslogd) Handle(parts format.LogParts, code int64, err error) {
 	content := ""
 	isString := false
 

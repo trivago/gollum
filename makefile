@@ -40,7 +40,7 @@ current:
 
 vendor:
 	@go get -u github.com/FiloSottile/gvt
-	@gvt update -all
+	@gvt update -all -precaire
 
 test:
 	@$(BUILD_FLAGS) go test -cover -v -timeout 10s -race $$(go list ./...|grep -v vendor)

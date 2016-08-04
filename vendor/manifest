@@ -40,7 +40,7 @@
 			"importpath": "github.com/aws/aws-sdk-go",
 			"repository": "https://github.com/aws/aws-sdk-go",
 			"vcs": "git",
-			"revision": "3b8c171554fc7d4fc53b87e25d4926a9e7495c2e",
+			"revision": "00e2bf9d1518c2b7d8a97eb05b5d2a9afd1dd34e",
 			"branch": "master",
 			"notests": true
 		},
@@ -63,7 +63,7 @@
 			"importpath": "github.com/docker/docker/pkg/homedir",
 			"repository": "https://github.com/docker/docker",
 			"vcs": "git",
-			"revision": "d7c9c85e3093cef9e014be12951d226ab45bbba6",
+			"revision": "402cf238bf3da16a7b04ec2b911ca6a2097fa285",
 			"branch": "master",
 			"path": "/pkg/homedir"
 		},
@@ -71,7 +71,7 @@
 			"importpath": "github.com/docker/docker/pkg/mflag",
 			"repository": "https://github.com/docker/docker",
 			"vcs": "git",
-			"revision": "d7c9c85e3093cef9e014be12951d226ab45bbba6",
+			"revision": "402cf238bf3da16a7b04ec2b911ca6a2097fa285",
 			"branch": "master",
 			"path": "/pkg/mflag"
 		},
@@ -95,7 +95,7 @@
 			"importpath": "github.com/eapache/queue",
 			"repository": "https://github.com/eapache/queue",
 			"vcs": "git",
-			"revision": "ded5959c0d4e360646dc9e9908cff48666781367",
+			"revision": "f0262ae4097ea6eeac7be4db5b89077c5766b2af",
 			"branch": "master"
 		},
 		{
@@ -149,7 +149,7 @@
 			"importpath": "github.com/jmespath/go-jmespath",
 			"repository": "https://github.com/jmespath/go-jmespath",
 			"vcs": "git",
-			"revision": "0b12d6b521d83fc7f755e7cfc1b1fbdd35a01a74",
+			"revision": "bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d",
 			"branch": "master"
 		},
 		{
@@ -202,7 +202,7 @@
 			"importpath": "github.com/opencontainers/runc/libcontainer/user",
 			"repository": "https://github.com/opencontainers/runc",
 			"vcs": "git",
-			"revision": "50f0a2b1e18bba4468928cf1640b53e2b5238362",
+			"revision": "142df3836b740af53dc6da59eed8dbc92f62917c",
 			"branch": "master",
 			"path": "/libcontainer/user"
 		},
@@ -271,7 +271,7 @@
 			"importpath": "golang.org/x/net/context",
 			"repository": "https://go.googlesource.com/net",
 			"vcs": "git",
-			"revision": "28d1bd4fbe7e56c9025ffe3a89113fa4f5e48f31",
+			"revision": "57bfaa875b96fb91b4766077f34470528d4b03e9",
 			"branch": "master",
 			"path": "/context",
 			"notests": true
@@ -280,7 +280,7 @@
 			"importpath": "golang.org/x/net/websocket",
 			"repository": "https://go.googlesource.com/net",
 			"vcs": "git",
-			"revision": "28d1bd4fbe7e56c9025ffe3a89113fa4f5e48f31",
+			"revision": "57bfaa875b96fb91b4766077f34470528d4b03e9",
 			"branch": "master",
 			"path": "/websocket"
 		},
@@ -312,13 +312,14 @@
 			"repository": "https://gopkg.in/mcuadros/go-syslog.v2",
 			"vcs": "git",
 			"revision": "d3055b9994b88519219253c3d4d4b0fead2abc94",
-			"branch": "master"
+			"branch": "master",
+			"notests": true
 		},
 		{
 			"importpath": "gopkg.in/redis.v4",
 			"repository": "https://gopkg.in/redis.v4",
 			"vcs": "git",
-			"revision": "bc66ed0ebaa2b2a5f55935d45265b6885e2b22ff",
+			"revision": "1324657ba9910bf5ebed1435519e2e913802cfbe",
 			"branch": "master",
 			"notests": true
 		},
