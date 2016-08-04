@@ -38,6 +38,7 @@ Writing a custom plugin does not require you to change any additional code besid
 * `Console` write to stdin or stdout.
 * `ElasticSearch` write to [elasticsearch](http://www.elasticsearch.org/) via http/bulk.
 * `File` write to a file. Supports log rotation and compression.
+* `Firehose` write data to a [Firehose](https://aws.amazon.com/de/firehose/) stream.
 * `HTTPRequest` HTTP request forwarder.
 * `InfluxDB` send data to an [InfluxDB](https://influxdb.com) server.
 * `Kafka` write to a [Kafka](http://kafka.apache.org/) topic.
@@ -60,6 +61,7 @@ Writing a custom plugin does not require you to change any additional code besid
 
 * `Base64Encode` encode messages to base64.
 * `Base64Decode` decode messages from base64.
+* `Clear` clears a message
 * `CollectdToInflux08` convert [CollectD](https://collectd.org) 0.8 data to [InfluxDB](https://influxdb.com) compatible values.
 * `CollectdToInflux09` convert [CollectD](https://collectd.org) 0.9 data to [InfluxDB](https://influxdb.com) compatible values.
 * `CollectdToInflux10` convert [CollectD](https://collectd.org) 0.10 data to [InfluxDB](https://influxdb.com) compatible values.
@@ -162,9 +164,9 @@ Write msg/sec measurements to log.
 
 Test a given configuration file and exit.
 
-#### `-tr` or `--testconfig` [file]
+#### `-tr` or `--trace` [file]
 
-Write heap trace results to a given file.
+Write trace results to a given file.
 
 #### `-v` or `--version`
 
