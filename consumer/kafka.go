@@ -436,7 +436,6 @@ func (cons *Kafka) startConsumers() error {
 	}
 
 	cons.startReadTopic(cons.topic)
-
 	return nil
 }
 
@@ -468,6 +467,7 @@ func (cons *Kafka) Consume(workers *sync.WaitGroup) {
 
 	if err := cons.startConsumers(); err != nil {
 		Log.Error.Print("Kafka client error - ", err)
+		time.AfterFunc(cons.config.Net.DialTimeout, func() { cons.Consume(workers) })
 		return
 	}
 
