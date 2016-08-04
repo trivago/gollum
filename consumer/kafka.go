@@ -44,11 +44,11 @@ const (
 //
 //  - "consumer.Kafka":
 //    Topic: "default"
-//	  ClientId: "gollum"
+//    ClientId: "gollum"
 //    Version: "0.8.2"
 //    DefaultOffset: "newest"
 //    OffsetFile: ""
-//	  FolderPermissions: "0755"
+//    FolderPermissions: "0755"
 //    Ordered: true
 //    MaxOpenRequests: 5
 //    ServerTimeoutSec: 30

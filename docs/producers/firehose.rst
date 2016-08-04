@@ -1,11 +1,7 @@
-Spooling
+Firehose
 ========
 
-The Spooling producer buffers messages and sends them again to the previous stream stored in the message.
-This means the message must have been routed at least once before reaching the spooling producer.
-If the previous and current stream is identical the message is dropped.
-The Formatter configuration value is forced to "format.Serialize" and cannot be changed.
-This producer does not implement a fuse breaker.
+This producer sends data to an AWS Firehose stream.
 
 
 Parameters
@@ -65,56 +61,55 @@ Parameters
   Note that automatic fuse recovery logic depends on each producer's implementation.
   By default this setting is set to 10.
 
-**Path**
-  Path sets the output directory for spooling files.
-  Spooling files will Files will be stored as "<path>/<stream>/<number>.spl".
-  By default this is set to "/var/run/gollum/spooling".
+**Firehose**
+  Firehose defines the stream to read from.
+  By default this is set to "default".
 
-**BatchMaxCount**
-  BatchMaxCount defines the maximum number of messages stored in memory before a write to file is triggered.
-  Set to 100 by default.
+**Region**
+  Region defines the amazon region of your firehose stream.
+  By default this is set to "eu-west-1".
+
+**Endpoint**
+  Endpoint defines the amazon endpoint for your firehose stream.
+  By default this is set to "firehose.eu-west-1.amazonaws.com".
+
+**CredentialType**
+  CredentialType defines the credentials that are to be used when connectiong to kensis.
+  This can be one of the following: environment, static, shared, none.
+  Static enables the parameters CredentialId, CredentialToken and CredentialSecret shared enables the parameters CredentialFile and CredentialProfile.
+  None will not use any credentials and environment will pull the credentials from environmental settings.
+  By default this is set to none.
+
+**BatchMaxMessages**
+  BatchMaxMessages defines the maximum number of messages to send per batch.
+  By default this is set to 500.
+
+**RecordMaxMessages**
+  RecordMaxMessages defines the maximum number of messages to join into a firehose record.
+  By default this is set to 500.
+
+**RecordMessageDelimiter**
+  RecordMessageDelimiter defines the string to delimit messages within a firehose record.
+  By default this is set to "\n".
+
+**SendTimeframeMs**
+  SendTimeframeMs defines the timeframe in milliseconds in which a second batch send can be triggered.
+  By default this is set to 1000, i.e. one send operation per second.
 
 **BatchTimeoutSec**
-  BatchTimeoutSec defines the maximum number of seconds to wait after the last message arrived before a batch is flushed automatically.
-  By default this is set to 5.
+  BatchTimeoutSec defines the number of seconds after which a batch is flushed automatically.
+  By default this is set to 3.
 
-**MaxFileSizeMB**
-  MaxFileSizeMB sets the size in MB when a spooling file is rotated.
-  Reading will start only after a file is rotated.
-  Set to 512 MB by default.
-
-**MaxFileAgeMin**
-  MaxFileAgeMin defines the time in minutes after a spooling file is rotated.
-  Reading will start only after a file is rotated.
-  This setting divided by two will be used to define the wait time for reading, too.
-  Set to 1 minute by default.
-
-**BufferSizeByte**
-  BufferSizeByte defines the initial size of the buffer that is used to parse messages from a spool file.
-  If a message is larger than this size, the buffer will be resized.
-  By default this is set to 8192.
-
-**RespoolDelaySec**
-  RespoolDelaySec sets the number of seconds to wait before trying to load existing spool files after a restart.
-  This is useful for configurations that contain dynamic streams.
-  By default this is set to 10.
-
-**MaxMessagesSec**
-  MaxMessagesSec sets the maximum number of messages that can be respooled per second.
-  By default this is set to 100.
-  Setting this value to 0 will cause respooling to work as fast as possible.
-
-**RevertStreamOnDrop**
-  RevertStreamOnDrop can be used to revert the message stream before dropping the message.
-  This can be useful if you e.g. want to write messages that could not be spooled to stream separated files on disk.
-  Set to false by default.
+**StreamMapping**
+  StreamMapping defines a translation from gollum stream to firehose stream name.
+  If no mapping is given the gollum stream name is used as firehose stream name.
 
 Example
 -------
 
 .. code-block:: yaml
 
-	- "producer.Spooling":
+	- "producer.Firehose":
 	    Enable: true
 	    ID: ""
 	    Channel: 8192
@@ -128,12 +123,18 @@ Example
 	    Stream:
 	        - "foo"
 	        - "bar"
-	    Path: "/var/run/gollum/spooling"
-	    BatchMaxCount: 100
-	    BatchTimeoutSec: 5
-	    MaxFileSizeMB: 512
-	    MaxFileAgeMin: 1
-	    MessageSizeByte: 8192
-	    RespoolDelaySec: 10
-	    MaxMessagesSec: 100
-	    RevertStreamOnDrop: false
+	    Region: "eu-west-1"
+	    Endpoint: "firehose.eu-west-1.amazonaws.com"
+	    CredentialType: "none"
+	    CredentialId: ""
+	    CredentialToken: ""
+	    CredentialSecret: ""
+	    CredentialFile: ""
+	    CredentialProfile: ""
+	    BatchMaxMessages: 500
+	    RecordMaxMessages: 1
+	    RecordMessageDelimiter: "\n"
+	    SendTimeframeSec: 1
+	    BatchTimeoutSec: 3
+	    StreamMapping:
+	        "*" : "default"

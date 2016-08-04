@@ -37,7 +37,7 @@ import (
 //    Storage: "hash"
 //    FieldFormatter: "format.Identifier"
 //    FieldAfterFormat: false
-//	  KeyFormatter: "format.Forward"
+//    KeyFormatter: "format.Forward"
 //    KeyAfterFormat: false
 //
 // Address stores the identifier to connect to.

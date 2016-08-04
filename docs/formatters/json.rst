@@ -14,7 +14,12 @@ Parameters
 
 **JSONTimestampRead**
   JSONTimestampRead defines the go timestamp format expected from fields that are parsed as "dat".
-  By default this is set to "20060102150405".
+  When JSONUnixTimestampRead is not set, this is set to "20060102150405" by default.
+
+**JSONUnixTimestampRead**
+  JSONUnixTimestampRead defines the unix timestamp format expected from fields that are parsed as "dat".
+  May be "s", "ms", or "ns", and only accepts integer values.
+  When JSONTimestampRead is set, this is ignored.
 
 **JSONTimestampWrite**
   JSONTimestampWrite defines the go timestamp format that "dat" fields will be converted to.

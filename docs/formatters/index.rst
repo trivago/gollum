@@ -6,6 +6,7 @@ Formatters
 
 	base64decode
 	base64encode
+	clear
 	collectdtoinflux08
 	collectdtoinflux09
 	collectdtoinflux10

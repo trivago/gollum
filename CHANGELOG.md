@@ -19,6 +19,7 @@ This is a patch / minor features release.
  * socket.producer TCP can be used without ACK
  * Kafka consumer will retry to connect to a not (yet) existing topic every PersistTimeoutMs
  * Producer.File symlink switch is now atomic
+ * Consumer.Kafka now tries to connect every ServerTimeoutSec if initial connect fails
 
 #### New
 
