@@ -105,11 +105,25 @@ func (cons *Syslogd) Configure(conf core.PluginConfig) error {
 
 // Handle implements the syslog handle interface
 func (cons *Syslogd) Handle(parts syslog.LogParts, code int64, err error) {
-	content, isString := parts["content"].(string)
-	if isString {
-		cons.Enqueue([]byte(content), *cons.sequence)
-		*cons.sequence++
+	content := ""
+	isString := false
+
+	switch cons.format {
+	case syslog.RFC3164:
+		content, isString = parts["content"].(string)
+	case syslog.RFC5424, syslog.RFC6587:
+		content, isString = parts["message"].(string)
+	default:
+		Log.Error.Print("Could not determine the format to retrieve message/content")
 	}
+
+	if !isString {
+		Log.Error.Print("Message/Content is not a string")
+		return
+	}
+
+	cons.Enqueue([]byte(content), *cons.sequence)
+	*cons.sequence++
 }
 
 // Consume opens a new syslog socket.
