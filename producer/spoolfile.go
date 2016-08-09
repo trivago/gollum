@@ -40,6 +40,7 @@ type spoolFile struct {
 	readCount        int64
 	writeCount       int64
 	lastMetricUpdate time.Time
+	roll             chan struct{}
 	reader           *shared.BufferedReader
 }
 
@@ -58,6 +59,7 @@ func newSpoolFile(prod *Spooling, streamName string, source core.MessageSource) 
 		source:           source,
 		lastMetricUpdate: time.Now(),
 		reader:           shared.NewBufferedReader(prod.bufferSizeByte, shared.BufferedReaderFlagDelimiter, 0, "\n"),
+		roll:             make(chan struct{}, 1),
 	}
 
 	shared.Metric.New(spoolingMetricWrite + streamName)
@@ -66,6 +68,10 @@ func newSpoolFile(prod *Spooling, streamName string, source core.MessageSource) 
 	shared.Metric.New(spoolingMetricReadSec + streamName)
 	go spool.read()
 	return spool
+}
+
+func (spool *spoolFile) triggerRoll() {
+	spool.roll <- struct{}{}
 }
 
 func (spool *spoolFile) flush() {
@@ -181,10 +187,15 @@ func (spool *spoolFile) read() {
 			}
 
 			spool.prod.WorkerDone() // to avoid being stuck during shutdown
-			time.Sleep(spool.prod.maxFileAge / 2)
-			spool.prod.AddWorker() // worker done is always called at exit
 
-			continue // ### continue, try again ###
+			retry := time.After(spool.prod.maxFileAge / 2)
+			select {
+			case <-retry:
+			case <-spool.roll:
+			}
+
+			spool.prod.AddWorker() // worker done is always called at exit
+			continue               // ### continue, try again ###
 		}
 
 		file, err := os.OpenFile(spoolFileName, os.O_RDONLY, 0600)

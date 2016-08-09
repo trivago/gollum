@@ -117,6 +117,7 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 		return err
 	}
 	prod.SetStopCallback(prod.close)
+	prod.SetRollCallback(prod.onRoll)
 
 	prod.path = conf.GetString("Path", "/var/run/gollum/spooling")
 
@@ -168,6 +169,17 @@ func (prod *Spooling) writeBatchOnTimeOut() {
 		}
 		spool.openOrRotate()
 	}
+}
+
+func (prod *Spooling) onRoll() {
+	prod.outfileGuard.RLock()
+	outfiles := prod.outfile
+	prod.outfileGuard.RUnlock()
+
+	for _, file := range outfiles {
+		file.triggerRoll()
+	}
+	prod.writeBatchOnTimeOut()
 }
 
 // Drop reverts the message stream before dropping
