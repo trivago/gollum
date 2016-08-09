@@ -115,7 +115,7 @@ const (
 // is set to 250ms.
 //
 // MessageBufferCount sets the internal channel size for the kafka client.
-// By default this is set to 256.
+// By default this is set to 8192.
 //
 // PresistTimoutMs defines the time in milliseconds between writes to OffsetFile.
 // By default this is set to 5000. Shorter durations reduce the amount of
@@ -182,7 +182,7 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 
 	cons.config = kafka.NewConfig()
 	cons.config.ClientID = conf.GetString("ClientId", "gollum")
-	cons.config.ChannelBufferSize = conf.GetInt("MessageBufferCount", 256)
+	cons.config.ChannelBufferSize = conf.GetInt("MessageBufferCount", 8192)
 
 	switch ver := conf.GetString("Version", "0.8.2"); ver {
 	case "0.8.2.0":
