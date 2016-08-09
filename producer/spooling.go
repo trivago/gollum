@@ -183,7 +183,7 @@ func (prod *Spooling) writeToFile(msg core.Message) {
 	}
 
 	// Open/rotate file if nnecessary
-	if !spool.openOrRotate() {
+	if !spool.openOrRotate(false) {
 		prod.Drop(msg)
 		return // ### return, could not spool to disk ###
 	}
@@ -211,7 +211,7 @@ func (prod *Spooling) flush(force bool) {
 		if force || spool.batch.ReachedSizeThreshold(prod.batchMaxCount/2) || spool.batch.ReachedTimeThreshold(prod.batchTimeout) {
 			spool.flush()
 		}
-		spool.openOrRotate()
+		spool.openOrRotate(force)
 	}
 }
 

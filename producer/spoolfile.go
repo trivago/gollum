@@ -112,7 +112,7 @@ func (spool *spoolFile) getFileNumbering() (min int, max int) {
 	return min, max
 }
 
-func (spool *spoolFile) openOrRotate() bool {
+func (spool *spoolFile) openOrRotate(force bool) bool {
 	err := spool.batch.AfterFlushDo(func() error {
 		fileSize := int64(0)
 
@@ -124,7 +124,7 @@ func (spool *spoolFile) openOrRotate() bool {
 			fileSize = fileInfo.Size()
 		}
 
-		if spool.file == nil ||
+		if force || spool.file == nil ||
 			fileSize >= spool.prod.maxFileSize ||
 			(fileSize > 0 && time.Since(spool.fileCreated) > spool.prod.maxFileAge) {
 
