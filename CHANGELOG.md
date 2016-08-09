@@ -39,6 +39,7 @@ This is a patch / minor features release.
  * Added Version support for producer.Kafka and consumer.Kafka
  * Added ClientID support for consumer.Kafka
  * Added trace commandline flag
+ * Producer.Spool now reacts on SIGHUP to trigger a respooling
 
 # 0.4.3
 
