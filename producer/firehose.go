@@ -248,9 +248,9 @@ func (prod *Firehose) transformMessages(messages []core.Message) {
 			}
 
 			// Create buffers for this firehose stream
-			maxLength := len(messages) / prod.recordMaxMessages + 1
-			records =  &firehoseData{
-				content:            &firehose.PutRecordBatchInput{
+			maxLength := len(messages)/prod.recordMaxMessages + 1
+			records = &firehoseData{
+				content: &firehose.PutRecordBatchInput{
 					Records:            make([]*firehose.Record, 0, maxLength),
 					DeliveryStreamName: aws.String(streamName),
 				},
@@ -263,7 +263,7 @@ func (prod *Firehose) transformMessages(messages []core.Message) {
 		// Fetch record for this buffer
 		var record *firehose.Record
 		recordExists := len(records.content.Records) > 0
-		if !recordExists || records.lastRecordMessages + 1 > prod.recordMaxMessages {
+		if !recordExists || records.lastRecordMessages+1 > prod.recordMaxMessages {
 			// Append record to stream
 			record = &firehose.Record{
 				Data: make([]byte, 0, len(msgData)),
@@ -278,7 +278,7 @@ func (prod *Firehose) transformMessages(messages []core.Message) {
 
 		// Append message to record
 		record.Data = append(record.Data, msgData...)
-		records.lastRecordMessages += 1
+		records.lastRecordMessages++
 		records.original[len(records.original)-1] = append(records.original[len(records.original)-1], &messages[idx])
 	}
 

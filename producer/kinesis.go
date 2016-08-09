@@ -252,13 +252,13 @@ func (prod *Kinesis) transformMessages(messages []core.Message) {
 			}
 
 			// Create buffers for this kinesis stream
-			maxLength := len(messages) / prod.recordMaxMessages + 1
+			maxLength := len(messages)/prod.recordMaxMessages + 1
 			records = &streamData{
 				content: &kinesis.PutRecordsInput{
 					Records:    make([]*kinesis.PutRecordsRequestEntry, 0, maxLength),
 					StreamName: aws.String(streamName),
 				},
-				original: make([][]*core.Message, 0, maxLength),
+				original:           make([][]*core.Message, 0, maxLength),
 				lastRecordMessages: 0,
 			}
 			streamRecords[streamID] = records
@@ -267,7 +267,7 @@ func (prod *Kinesis) transformMessages(messages []core.Message) {
 		// Fetch record for this buffer
 		var record *kinesis.PutRecordsRequestEntry
 		recordExists := len(records.content.Records) > 0
-		if !recordExists || records.lastRecordMessages + 1 > prod.recordMaxMessages {
+		if !recordExists || records.lastRecordMessages+1 > prod.recordMaxMessages {
 			// Append record to stream
 			record = &kinesis.PutRecordsRequestEntry{
 				Data:         make([]byte, 0, len(msgData)),
@@ -283,7 +283,7 @@ func (prod *Kinesis) transformMessages(messages []core.Message) {
 
 		// Append message to record
 		record.Data = append(record.Data, msgData...)
-		records.lastRecordMessages += 1
+		records.lastRecordMessages++
 		records.original[len(records.original)-1] = append(records.original[len(records.original)-1], &messages[idx])
 	}
 
