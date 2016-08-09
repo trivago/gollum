@@ -20,6 +20,7 @@ This is a patch / minor features release.
  * Kafka consumer will retry to connect to a not (yet) existing topic every PersistTimeoutMs
  * Producer.File symlink switch is now atomic
  * Consumer.Kafka now tries to connect every ServerTimeoutSec if initial connect fails
+ * Consumer.Kafka MessageBufferCount default value increased to 8192
  * Consumer.Syslogd message handling differences between RFC3164 and RFC5424 / RFC6587 fixed
 
 #### New
