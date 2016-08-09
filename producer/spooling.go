@@ -149,39 +149,6 @@ func (prod *Spooling) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-func (prod *Spooling) writeBatchOnTimeOut() {
-	prod.outfileGuard.RLock()
-	outfiles := prod.outfile
-	prod.outfileGuard.RUnlock()
-
-	for _, spool := range outfiles {
-		read, write := spool.getAndResetCounts()
-		duration := time.Since(spool.lastMetricUpdate)
-		spool.lastMetricUpdate = time.Now()
-
-		shared.Metric.Add(spoolingMetricRead+spool.streamName, read)
-		shared.Metric.Add(spoolingMetricWrite+spool.streamName, write)
-		shared.Metric.SetF(spoolingMetricReadSec+spool.streamName, float64(read)/duration.Seconds())
-		shared.Metric.SetF(spoolingMetricWriteSec+spool.streamName, float64(write)/duration.Seconds())
-
-		if spool.batch.ReachedSizeThreshold(prod.batchMaxCount/2) || spool.batch.ReachedTimeThreshold(prod.batchTimeout) {
-			spool.flush()
-		}
-		spool.openOrRotate()
-	}
-}
-
-func (prod *Spooling) onRoll() {
-	prod.outfileGuard.RLock()
-	outfiles := prod.outfile
-	prod.outfileGuard.RUnlock()
-
-	for _, file := range outfiles {
-		file.triggerRoll()
-	}
-	prod.writeBatchOnTimeOut()
-}
-
 // Drop reverts the message stream before dropping
 func (prod *Spooling) Drop(msg core.Message) {
 	if prod.revertOnDrop {
@@ -224,6 +191,44 @@ func (prod *Spooling) writeToFile(msg core.Message) {
 	// Append to buffer
 	spool.batch.AppendOrFlush(msg, spool.flush, prod.IsActiveOrStopping, prod.Drop)
 	spool.countWrite()
+}
+
+func (prod *Spooling) flush(force bool) {
+	prod.outfileGuard.RLock()
+	outfiles := prod.outfile
+	prod.outfileGuard.RUnlock()
+
+	for _, spool := range outfiles {
+		read, write := spool.getAndResetCounts()
+		duration := time.Since(spool.lastMetricUpdate)
+		spool.lastMetricUpdate = time.Now()
+
+		shared.Metric.Add(spoolingMetricRead+spool.streamName, read)
+		shared.Metric.Add(spoolingMetricWrite+spool.streamName, write)
+		shared.Metric.SetF(spoolingMetricReadSec+spool.streamName, float64(read)/duration.Seconds())
+		shared.Metric.SetF(spoolingMetricWriteSec+spool.streamName, float64(write)/duration.Seconds())
+
+		if force || spool.batch.ReachedSizeThreshold(prod.batchMaxCount/2) || spool.batch.ReachedTimeThreshold(prod.batchTimeout) {
+			spool.flush()
+		}
+		spool.openOrRotate()
+	}
+}
+
+func (prod *Spooling) writeBatchOnTimeOut() {
+	prod.flush(false)
+}
+
+func (prod *Spooling) onRoll() {
+	prod.flush(true)
+
+	prod.outfileGuard.RLock()
+	outfiles := prod.outfile
+	prod.outfileGuard.RUnlock()
+
+	for _, file := range outfiles {
+		file.triggerRoll()
+	}
 }
 
 func (prod *Spooling) routeToOrigin(msg core.Message) {
