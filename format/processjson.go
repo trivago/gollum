@@ -208,21 +208,21 @@ func processDirective(directive transformDirective, values *shared.MarshalMap) {
 			for _, field := range fields {
 				switch field {
 				case "mozilla":
-					(*values)[directive.key + "_mozilla"] = ua.Mozilla()
+					(*values)[directive.key+"_mozilla"] = ua.Mozilla()
 				case "platform":
-					(*values)[directive.key + "_platform"] = ua.Platform()
+					(*values)[directive.key+"_platform"] = ua.Platform()
 				case "os":
-					(*values)[directive.key + "_os"] = ua.OS()
+					(*values)[directive.key+"_os"] = ua.OS()
 				case "localization":
-					(*values)[directive.key + "_localization"] = ua.Localization()
+					(*values)[directive.key+"_localization"] = ua.Localization()
 				case "engine":
-					(*values)[directive.key + "_engine"], _ = ua.Engine()
+					(*values)[directive.key+"_engine"], _ = ua.Engine()
 				case "engine_version":
-					_, (*values)[directive.key + "_engine_version"] = ua.Engine()
+					_, (*values)[directive.key+"_engine_version"] = ua.Engine()
 				case "browser":
-					(*values)[directive.key + "_browser"], _ = ua.Browser()
+					(*values)[directive.key+"_browser"], _ = ua.Browser()
 				case "version":
-					_, (*values)[directive.key + "_version"] = ua.Browser()
+					_, (*values)[directive.key+"_version"] = ua.Browser()
 				}
 			}
 		}
