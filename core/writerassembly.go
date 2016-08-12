@@ -44,7 +44,7 @@ func NewWriterAssembly(writer io.Writer, flush func(Message), formatter Formatte
 	}
 }
 
-// SetValidator sets a callback that is called if a write was successfull.
+// SetValidator sets a callback that is called if a write was successful.
 // Validate needs to return true to prevent messages to be flushed.
 func (asm *WriterAssembly) SetValidator(validate func() bool) {
 	asm.validate = validate

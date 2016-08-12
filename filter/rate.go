@@ -42,7 +42,7 @@ import (
 // limit is reached. By default this is disabled and set to "".
 //
 // RateLimitIgnore defines a list of streams that should not be affected by
-// rate limiting. This is usefull for e.g. producers listeing to "*".
+// rate limiting. This is useful for e.g. producers listeing to "*".
 // By default this list is empty.
 type Rate struct {
 	rateLimit    int64

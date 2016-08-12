@@ -538,11 +538,11 @@ func (prod *ProducerBase) ControlLoop() {
 		command := <-prod.control
 		switch command {
 		default:
-			Log.Debug.Print("Recieved untracked command")
+			Log.Debug.Print("Received untracked command")
 			// Do nothing
 
 		case PluginControlStopProducer:
-			Log.Debug.Print("Recieved stop command")
+			Log.Debug.Print("Received stop command")
 			prod.WaitForDependencies(PluginStateDead, prod.GetShutdownTimeout())
 			prod.setState(PluginStateStopping)
 			Log.Debug.Print("All dependencies resolved")
@@ -553,7 +553,7 @@ func (prod *ProducerBase) ControlLoop() {
 			return // ### return ###
 
 		case PluginControlRoll:
-			Log.Debug.Print("Recieved roll command")
+			Log.Debug.Print("Received roll command")
 			if prod.onRoll != nil {
 				prod.onRoll()
 			}
