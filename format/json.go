@@ -124,15 +124,21 @@ func parseUnix(layout, value string) (time.Time, error) {
 	switch layout {
 	case "s":
 		valueInt, err := strconv.ParseInt(value, 10, 64)
-		if err != nil { return time.Time{}, err }
+		if err != nil {
+			return time.Time{}, err
+		}
 		s = valueInt
 	case "ms":
 		valueInt, err := strconv.ParseInt(value, 10, 64)
-		if err != nil { return time.Time{}, err }
-		ns = valueInt*int64(time.Millisecond)
+		if err != nil {
+			return time.Time{}, err
+		}
+		ns = valueInt * int64(time.Millisecond)
 	case "ns":
 		valueInt, err := strconv.ParseInt(value, 10, 64)
-		if err != nil { return time.Time{}, err }
+		if err != nil {
+			return time.Time{}, err
+		}
 		ns = valueInt
 	}
 	return time.Unix(s, ns), nil
