@@ -15,7 +15,7 @@
 package shared
 
 // TrieNode represents a single node inside a trie.
-// Each node can contain a payload which can be retrieved after a successfull
+// Each node can contain a payload which can be retrieved after a successful
 // match. In addition to that PathLen will contain the length of the match.
 type TrieNode struct {
 	suffix      []byte

@@ -122,7 +122,7 @@ const (
 // BatchSizeMaxKB defines the maximum allowed message size. By default this is
 // set to 1024.
 //
-// BatchTimeoutMs sets the minimum time in milliseconds to pass after wich a new
+// BatchTimeoutMs sets the minimum time in milliseconds to pass after which a new
 // flush will be triggered. By default this is set to 3.
 //
 // MessageBufferCount sets the internal channel size for the kafka client.
