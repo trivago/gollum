@@ -173,7 +173,7 @@ func (cons *Kinesis) Configure(conf core.PluginConfig) error {
 		// Nothing
 
 	default:
-		return fmt.Errorf("Unknwon CredentialType: %s", credentialType)
+		return fmt.Errorf("Unknown CredentialType: %s", credentialType)
 	}
 
 	// Offset

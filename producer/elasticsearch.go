@@ -68,7 +68,7 @@ import (
 // is used as the server passed to the "Domain" setting. The Domain setting can
 // be overwritten, too.
 //
-// Port defines the elasticsearch port, wich has to be the same for all servers.
+// Port defines the elasticsearch port, which has to be the same for all servers.
 // By default this is set to 9200.
 //
 // User and Password can be used to pass credentials to the elasticsearch server.
