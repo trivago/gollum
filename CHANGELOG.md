@@ -27,6 +27,7 @@ All vendor dependencies have been updated to the latest version and binaries hav
 #### New
 
  * New AWS Firehose producer (thanks @relud)
+ * New format.ProcessTSV for modifying TSV encoded messages (thanks @relud)
  * Added user agent parsing to format.ProcessJSON (thanks @relud)
  * Added support for unix timestamp parsing to format.ProcessJSON (thanks @relud)
  * Added support for new shard detection to consumer.Kinesis (thanks @relud)

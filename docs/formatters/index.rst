@@ -17,6 +17,7 @@ Formatters
 	identifier
 	json
 	processjson
+	processtsv
 	runlength
 	sequence
 	serialize

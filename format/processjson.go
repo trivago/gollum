@@ -48,19 +48,19 @@ import (
 // ProcessJSONDirectives defines the action to be applied to the json payload.
 // Directives are processed in order of appearance.
 // The directives have to be given in the form of key:operation:parameters, where
-// operation can be one of the following:
-// - split:<string>:{<key>:<key>:...} Split the value by a string and set the
-// resulting array elements to the given fields in order of appearance.
-// - replace:<old>:<new> replace a given string in the value with a new one
-// - trim:<characters> remove the given characters (not string!) from the start
-// and end of the value
-// - rename:<old>:<new> rename a given field
-// - remove remove a given field
-// - timestamp:<read>:<write> read a timestamp and transform it into another
-// format
-// - agent:{<user_agent_field>:<user_agent_field>:...} Parse the value as a user
-// agent string and extract the given fields into <key>_<user_agent_field>
-// ("ua:agent:browser:os" would create the new fields "ua_browser" and "ua_os")
+// operation can be one of the following.
+//  * split:<string>:{<key>:<key>:...} Split the value by a string and set the
+//    resulting array elements to the given fields in order of appearance.
+//  * replace:<old>:<new> replace a given string in the value with a new one
+//  * trim:<characters> remove the given characters (not string!) from the start
+//    and end of the value
+//  * rename:<old>:<new> rename a given field
+//  * remove remove a given field
+//  * timestamp:<read>:<write> read a timestamp and transform it into another
+//    format
+//  * agent:{<user_agent_field>:<user_agent_field>:...} Parse the value as a user
+//    agent string and extract the given fields into <key>_<user_agent_field>
+//    ("ua:agent:browser:os" would create the new fields "ua_browser" and "ua_os")
 //
 // ProcessJSONTrimValues will trim whitspaces from all values if enabled.
 // Enabled by default.

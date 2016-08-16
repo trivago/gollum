@@ -71,7 +71,8 @@ Writing a custom plugin does not require you to change any additional code besid
 * `Hostname` prepend the current machine's hostname to a message.
 * `Identifier` hash the message to generate a (mostly) unique id.
 * `JSON` write the message as a JSON object. Messages can be parsed to generate fields.
-* `ProcessJSON` Modify fields of a JSON object.
+* `ProcessJSON` Modify fields of a JSON encoded message.
+* `ProcessTSV` Modify fields of a TSV encoded message.
 * `Runlength` prepend the length of the message.
 * `Sequence` prepend the sequence number of the message.
 * `SplitToJSON` tokenize a message and put the values into JSON fields.

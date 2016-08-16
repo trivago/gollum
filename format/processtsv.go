@@ -50,19 +50,19 @@ import (
 // ProcessTSVDirectives defines the action to be applied to the tsv payload.
 // Directives are processed in order of appearance.
 // The directives have to be given in the form of key:operation:parameters, where
-// operation can be one of the following:
-// - replace:<old>:<new> replace a given string in the value with a new one
-// - prefix:<string> add a given string to the start of the value
-// - postfix:<string> add a given string to the end of the value
-// - trim:<characters> remove the given characters (not string!) from the start
-// and end of the value
-// - quote add a " to the start and end of the value after processing
-// - timestamp:<read>:<write> read a timestamp and transform it into another
-// format
-// - remove remove the value
-// - agent:{<user_agent_field>:<user_agent_field>:...} Parse the value as a user
-// agent string and extract the given fields into <key>_<user_agent_field>
-// ("ua:agent:browser:os" would create the new fields "ua_browser" and "ua_os")
+// operation can be one of the following.
+//  * replace:<old>:<new> replace a given string in the value with a new one
+//  * prefix:<string> add a given string to the start of the value
+//  * postfix:<string> add a given string to the end of the value
+//  * trim:<characters> remove the given characters (not string!) from the start
+//    and end of the value
+//  * quote add a " to the start and end of the value after processing
+//  * timestamp:<read>:<write> read a timestamp and transform it into another
+//    format
+//  * remove remove the value
+//  * agent:{<user_agent_field>:<user_agent_field>:...} Parse the value as a user
+//    agent string and extract the given fields into <key>_<user_agent_field>
+//    ("ua:agent:browser:os" would create the new fields "ua_browser" and "ua_os")
 //
 // ProcessTSVDelimiter defines what value separator to split on. Defaults to tabs.
 //
@@ -133,7 +133,7 @@ func (format *ProcessTSV) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-func stringsToTSVValues(values []string) ([]tsvValue) {
+func stringsToTSVValues(values []string) []tsvValue {
 	tsvValues := make([]tsvValue, len(values))
 	for index, value := range values {
 		tsvValues[index] = tsvValue{
@@ -144,7 +144,7 @@ func stringsToTSVValues(values []string) ([]tsvValue) {
 	return tsvValues
 }
 
-func processTSVDirective(directive tsvDirective, values []tsvValue) ([]tsvValue) {
+func processTSVDirective(directive tsvDirective, values []tsvValue) []tsvValue {
 	if len(values) > directive.index {
 		value := values[directive.index].value
 
@@ -249,7 +249,7 @@ func (format *ProcessTSV) Format(msg core.Message) ([]byte, core.MessageStreamID
 		remainder := string(data)
 		for true {
 			if remainder[:1] != `"` {
-				split := strings.SplitN(remainder, format.delimiter + `"`, 2)
+				split := strings.SplitN(remainder, format.delimiter+`"`, 2)
 				tsvValues := stringsToTSVValues(strings.Split(split[0], format.delimiter))
 				values = append(values, tsvValues...)
 				if len(split) == 2 {
@@ -260,7 +260,7 @@ func (format *ProcessTSV) Format(msg core.Message) ([]byte, core.MessageStreamID
 			} else {
 				remainder = remainder[1:]
 			}
-			split := strings.SplitN(remainder, `"` + format.delimiter, 2)
+			split := strings.SplitN(remainder, `"`+format.delimiter, 2)
 			if len(split) == 2 {
 				values = append(values, tsvValue{
 					quoted: true,
