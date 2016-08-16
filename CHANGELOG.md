@@ -1,46 +1,51 @@
 # 0.4.4
 
 This is a patch / minor features release.
+All vendor dependencies have been updated to the latest version and binaries have been compiled with go 1.7.
 
 #### Fixed
  
- * Fixed producer.File RotatePruneAfterHours setting
- * Fixed panic in producer.Kafka when shutting down
- * Fixed panic in producer.Redis when Formatter was not set
  * Fixed file offset handling in consumer.Kinesis (thanks @relud)
- * Fixed a concurrent map write during initialization in native.KafkaProducer
- * Fixed producer.Spooling being stuck for a long time during shutdown
- * Fixed consumer.Kafka OffsetFile setting stopping gollum when the offset file was not present
- * Fixed native.KafkaProducer to map all topics to "default" if no topic mapping was set
- * Producer.Kafka and native.KafkaProducer now discard messages with 0-Byte content
- * Format.Base64Encode now returns the original message if decoding failed
- * Producer.Kafka SendRetries set to 1 by default to circumvent a reconnect issue within sarama
- * Added manual heartbeat to check a valid broker connection with producer.Kafka
- * socket.producer TCP can be used without ACK
- * Kafka consumer will retry to connect to a not (yet) existing topic every PersistTimeoutMs
+ * Fixed producer.File RotatePruneAfterHours setting
  * Producer.File symlink switch is now atomic
+ * Fixed panic in producer.Redis when Formatter was not set
+ * Fixed producer.Spooling being stuck for a long time during shutdown
+ * Fixed native.KafkaProducer to map all topics to "default" if no topic mapping was set
+ * Fixed a concurrent map write during initialization in native.KafkaProducer
+ * Fixed consumer.Kafka OffsetFile setting stopping gollum when the offset file was not present
+ * consumer.Kafka will retry to connect to a not (yet) existing topic every PersistTimeoutMs
  * Consumer.Kafka now tries to connect every ServerTimeoutSec if initial connect fails
  * Consumer.Kafka MessageBufferCount default value increased to 8192
+ * Producer.Kafka and native.KafkaProducer now discard messages with 0-Byte content
+ * Producer.Kafka SendRetries set to 1 by default to circumvent a reconnect issue within sarama
+ * Fixed panic in producer.Kafka when shutting down
+ * Added manual heartbeat to check a valid broker connection with producer.Kafka
+ * Format.Base64Encode now returns the original message if decoding failed
+ * socket.producer TCP can be used without ACK
  * Consumer.Syslogd message handling differences between RFC3164 and RFC5424 / RFC6587 fixed
 
 #### New
 
+ * New AWS Firehose producer (thanks @relud)
+ * Added user agent parsing to format.ProcessJSON (thanks @relud)
+ * Added support for unix timestamp parsing to format.ProcessJSON (thanks @relud)
+ * Added support for new shard detection to consumer.Kinesis (thanks @relud)
+ * Added support for mulitple messages per record to producer.Kinesis and consumer.Kinesis (thanks @relud)
  * Added "remove" directive for format.ProcessJSON
  * Added key Formatter support for producer.Redis
  * Added RateLimited- metrics for filter.Rate
  * Added format.Clear to remove message content (e.g. useful for key formatters)
  * Added "KeyFormatterFirst" for producer.Kafka and native.KafkaProducer
- * Added folder creation capatibilites to consumer.File when creating offset files
- * Added gollum log messages metrics
- * Allowed * in stream mapping for kafka and kinesis producers
- * Added FilterAfterFormat to producer.Kafka and native.KafkaProducer
- * Added wildcard topic mapping to producer.Kafka and native.KafkaProducer
- * Producer.Spooling now continuously looks for new streams to read
- * Seperated version information to -r (version, go runtime, modules) and -v (just version) command line flag
  * Added Version support for producer.Kafka and consumer.Kafka
  * Added ClientID support for consumer.Kafka
+ * Added folder creation capatibilites to consumer.File when creating offset files
+ * Added gollum log messages metrics
+ * Added wildcard topic mapping to producer.Kafka and native.KafkaProducer
+ * Added FilterAfterFormat to producer.Kafka and native.KafkaProducer
+ * Producer.Spooling now continuously looks for new streams to read
+ * Producer.Spooling now reacts on SIGHUP to trigger a respooling
+ * Seperated version information to -r (version, go runtime, modules) and -v (just version) command line flag
  * Added trace commandline flag
- * Producer.Spool now reacts on SIGHUP to trigger a respooling
 
 # 0.4.3
 
@@ -121,7 +126,7 @@ This is a patch / minor features release.
  * producer.File can now prune logfiles by file age
  * producer.Spool can now be rate limited
  * Dev version (major.minor.patch.dev) is now part of the metrics
- * New AWS Kinesis producer and consumer
+ * New AWS Kinesis producer and consumer (thanks @relud)
 
 # 0.4.1
 
