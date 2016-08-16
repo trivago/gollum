@@ -160,6 +160,10 @@ Write heap profile results to a given file.
 
 Write msg/sec measurements to log.
 
+#### `-r` or `--report`
+
+Print detailed version report and quit.
+
 #### `-tc` or `--testconfig` [file]
 
 Test a given configuration file and exit.
@@ -171,10 +175,6 @@ Write trace results to a given file.
 #### `-v` or `--version`
 
 Print version information and quit.
-
-#### `-r` or `--report`
-
-Print detailed version report and quit.
 
 ## Building
 
