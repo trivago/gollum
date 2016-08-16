@@ -5,7 +5,7 @@
 			"importpath": "github.com/Shopify/sarama",
 			"repository": "https://github.com/Shopify/sarama",
 			"vcs": "git",
-			"revision": "9bb4a68d57ff6f623363aa172f0a8297aa289ba7",
+			"revision": "f4a626377cb2c5dee4cc644e941775138c9fbc80",
 			"branch": "master"
 		},
 		{
@@ -40,7 +40,7 @@
 			"importpath": "github.com/aws/aws-sdk-go",
 			"repository": "https://github.com/aws/aws-sdk-go",
 			"vcs": "git",
-			"revision": "00e2bf9d1518c2b7d8a97eb05b5d2a9afd1dd34e",
+			"revision": "f80e7d0182a463dff0c0da6bbed57f21369d4346",
 			"branch": "master",
 			"notests": true
 		},
@@ -63,7 +63,7 @@
 			"importpath": "github.com/docker/docker/pkg/homedir",
 			"repository": "https://github.com/docker/docker",
 			"vcs": "git",
-			"revision": "402cf238bf3da16a7b04ec2b911ca6a2097fa285",
+			"revision": "3c6f4cd5a6c0de3d3700ad14bb8f177e8e1198fd",
 			"branch": "master",
 			"path": "/pkg/homedir"
 		},
@@ -71,7 +71,7 @@
 			"importpath": "github.com/docker/docker/pkg/mflag",
 			"repository": "https://github.com/docker/docker",
 			"vcs": "git",
-			"revision": "402cf238bf3da16a7b04ec2b911ca6a2097fa285",
+			"revision": "3c6f4cd5a6c0de3d3700ad14bb8f177e8e1198fd",
 			"branch": "master",
 			"path": "/pkg/mflag"
 		},
@@ -95,21 +95,21 @@
 			"importpath": "github.com/eapache/queue",
 			"repository": "https://github.com/eapache/queue",
 			"vcs": "git",
-			"revision": "f0262ae4097ea6eeac7be4db5b89077c5766b2af",
+			"revision": "44cc805cf13205b55f69e14bcb69867d1ae92f98",
 			"branch": "master"
 		},
 		{
 			"importpath": "github.com/go-ini/ini",
 			"repository": "https://github.com/go-ini/ini",
 			"vcs": "git",
-			"revision": "cf53f9204df4fbdd7ec4164b57fa6184ba168292",
+			"revision": "cefc24de9422bb3a6422b307cb3f4502ffd5640c",
 			"branch": "master"
 		},
 		{
 			"importpath": "github.com/golang/protobuf/proto",
 			"repository": "https://github.com/golang/protobuf",
 			"vcs": "git",
-			"revision": "c3cefd437628a0b7d31b34fe44b3a7a540e98527",
+			"revision": "7390af9dcd3c33042ebaf2474a1724a83cf1a7e6",
 			"branch": "master",
 			"path": "/proto"
 		},
@@ -117,7 +117,7 @@
 			"importpath": "github.com/golang/protobuf/ptypes/any",
 			"repository": "https://github.com/golang/protobuf",
 			"vcs": "git",
-			"revision": "c3cefd437628a0b7d31b34fe44b3a7a540e98527",
+			"revision": "7390af9dcd3c33042ebaf2474a1724a83cf1a7e6",
 			"branch": "master",
 			"path": "/ptypes/any"
 		},
@@ -202,7 +202,7 @@
 			"importpath": "github.com/opencontainers/runc/libcontainer/user",
 			"repository": "https://github.com/opencontainers/runc",
 			"vcs": "git",
-			"revision": "142df3836b740af53dc6da59eed8dbc92f62917c",
+			"revision": "12c3d17017f5e50baed65aa4543d7a2771e6afc8",
 			"branch": "master",
 			"path": "/libcontainer/user"
 		},
@@ -271,7 +271,7 @@
 			"importpath": "golang.org/x/net/context",
 			"repository": "https://go.googlesource.com/net",
 			"vcs": "git",
-			"revision": "57bfaa875b96fb91b4766077f34470528d4b03e9",
+			"revision": "07b51741c1d6423d4a6abab1c49940ec09cb1aaf",
 			"branch": "master",
 			"path": "/context",
 			"notests": true
@@ -280,7 +280,7 @@
 			"importpath": "golang.org/x/net/websocket",
 			"repository": "https://go.googlesource.com/net",
 			"vcs": "git",
-			"revision": "57bfaa875b96fb91b4766077f34470528d4b03e9",
+			"revision": "07b51741c1d6423d4a6abab1c49940ec09cb1aaf",
 			"branch": "master",
 			"path": "/websocket"
 		},
@@ -319,7 +319,7 @@
 			"importpath": "gopkg.in/redis.v4",
 			"repository": "https://gopkg.in/redis.v4",
 			"vcs": "git",
-			"revision": "1324657ba9910bf5ebed1435519e2e913802cfbe",
+			"revision": "0b8675fa4582105c8f54e08d3e0e6ad8f7df0546",
 			"branch": "master",
 			"notests": true
 		},

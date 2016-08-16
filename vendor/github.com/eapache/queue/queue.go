@@ -83,12 +83,13 @@ func (q *Queue) Get(i int) interface{} {
 	return q.buf[(q.head+i)&(len(q.buf)-1)]
 }
 
-// Remove removes the element from the front of the queue. If you actually
-// want the element, call Peek first. This call panics if the queue is empty.
-func (q *Queue) Remove() {
+// Remove removes and returns the element from the front of the queue. If the
+// queue is empty, the call will panic.
+func (q *Queue) Remove() interface{} {
 	if q.count <= 0 {
 		panic("queue: Remove() called on empty queue")
 	}
+	ret := q.buf[q.head]
 	q.buf[q.head] = nil
 	// bitwise modulus
 	q.head = (q.head + 1) & (len(q.buf) - 1)
@@ -97,4 +98,5 @@ func (q *Queue) Remove() {
 	if len(q.buf) > minQueueLen && (q.count<<2) == len(q.buf) {
 		q.resize()
 	}
+	return ret
 }
