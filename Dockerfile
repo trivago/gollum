@@ -4,4 +4,6 @@ COPY . /go/src/github.com/trivago/gollum
 
 RUN make
 
-ENTRYPOINT ["/go/src/gollum/gollum"]
+RUN chmod +x /go/src/github.com/trivago/gollum/gollum
+
+ENTRYPOINT ["/go/src/github.com/trivago/gollum/gollum"]
