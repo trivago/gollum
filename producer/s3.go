@@ -68,8 +68,9 @@ const (
 // Endpoint defines the amazon endpoint for your s3 bucket.
 // By default this is set to "s3-eu-west-1.amazonaws.com"
 //
-// Endpoint defines the amazon s3 storage class for objects created.
-// By default this is set to "STANDARD"
+// StorageClass defines the amazon s3 storage class for objects created, from
+// http://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html
+// By default this is set to "STANDARD".
 //
 // CredentialType defines the credentials that are to be used when
 // connectiong to kensis. This can be one of the following: environment,
