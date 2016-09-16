@@ -60,7 +60,7 @@ const (
 //    BatchTimeoutSec: 30
 //    TimestampWrite: "2006-01-02T15:04:05"
 //    StreamMapping:
-//      "*" : "default"
+//      "*" : "bucket/path"
 //
 // Region defines the amazon region of your s3 bucket.
 // By default this is set to "eu-west-1".
@@ -101,8 +101,10 @@ const (
 // objects. Objects are named <s3_path><timestamp><sha1>. By default timestamp
 // is set to "2006-01-02T15:04:05".
 //
-// StreamMapping defines a translation from gollum stream to s3 path. If
-// no mapping is given the gollum stream name is used as s3 path.
+// StreamMapping defines a translation from gollum stream to s3 bucket/path. If
+// no mapping is given the gollum stream name is used as s3 bucket.
+// Values are of the form bucket/path or bucket, s3:// prefix is not allowed.
+
 type S3 struct {
 	core.ProducerBase
 	client            *s3.S3
