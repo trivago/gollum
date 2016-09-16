@@ -59,6 +59,7 @@ const (
 //    SendTimeframeMs: 10000
 //    BatchTimeoutSec: 30
 //    TimestampWrite: "2006-01-02T15:04:05"
+//    PathFormatter: ""
 //    StreamMapping:
 //      "*" : "bucket/path"
 //
@@ -101,9 +102,16 @@ const (
 // objects. Objects are named <s3_path><timestamp><sha1>. By default timestamp
 // is set to "2006-01-02T15:04:05".
 //
+// PathFormatter can define a formatter that extracts the path suffix for an s3
+// object from the object data. By default this is uses the sha1 of the object.
+// A good formatter for this can be format.Identifier.
+//
 // StreamMapping defines a translation from gollum stream to s3 bucket/path. If
 // no mapping is given the gollum stream name is used as s3 bucket.
 // Values are of the form bucket/path or bucket, s3:// prefix is not allowed.
+// The full path of the object will be s3://<StreamMapping><Timestamp><PathFormat>
+// where Timestamp is time the object is written formatted with TimestampWrite, 
+// and PathFormat is the output of PathFormatter when passed the object data.
 
 type S3 struct {
 	core.ProducerBase
@@ -111,6 +119,7 @@ type S3 struct {
 	config            *aws.Config
 	storageClass      string
 	streamMap         map[core.MessageStreamID]string
+	pathFormat        core.Formatter
 	batch             core.MessageBatch
 	objectMaxMessages int
 	delimiter         []byte
@@ -159,6 +168,16 @@ func (prod *S3) Configure(conf core.PluginConfig) error {
 	prod.lastSendTime = time.Now()
 	prod.counters = make(map[string]*int64)
 	prod.lastMetricUpdate = time.Now()
+	
+	if conf.HasValue("PathFormatter") {
+		keyFormatter, err := core.NewPluginWithType(conf.GetString("PathFormatter", "format.Identifier"), conf)
+		if err != nil {
+			return err // ### return, plugin load error ###
+		}
+		prod.pathFormat = keyFormatter.(core.Formatter)
+	} else {
+		prod.pathFormat = nil
+	}
 
 	if prod.objectMaxMessages < 1 {
 		prod.objectMaxMessages = 1
@@ -282,7 +301,7 @@ func (prod *S3) transformMessages(messages []core.Message) {
 			// Create buffers for this s3 path
 			maxLength := len(messages) / prod.objectMaxMessages + 1
 			objects = &objectData{
-			    objects:            make([][]byte, 0, maxLength),
+				objects:            make([][]byte, 0, maxLength),
 				s3Bucket:           s3Bucket,
 				s3Path:				s3Path,
 				s3Prefix:           s3Prefix,
@@ -318,8 +337,16 @@ func (prod *S3) transformMessages(messages []core.Message) {
 	// Send to S3
 	for _, objects := range streamObjects {
 		for idx, object := range objects.objects {
-			hash := sha1.Sum(object)
-			key := objects.s3Prefix + time.Now().Format(prod.timeWrite) + hex.EncodeToString(hash[:])
+			var key string
+			if prod.pathFormat != nil {
+				timestamp := time.Now()
+				msg := core.NewMessage(nil, object, uint64(0))
+				byte_key, _ := prod.pathFormat.Format(msg)
+				key = objects.s3Prefix + timestamp.Format(prod.timeWrite) + string(byte_key)
+			} else {
+				hash := sha1.Sum(object)
+				key = objects.s3Prefix + time.Now().Format(prod.timeWrite) + hex.EncodeToString(hash[:])
+			}
 			params := &s3.PutObjectInput{
 				Bucket:       aws.String(objects.s3Bucket),
 				Key:          aws.String(key),
