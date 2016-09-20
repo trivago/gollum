@@ -1,3 +1,17 @@
+# 0.4.5
+
+This is a patch / minor features release.
+
+#### Fixed
+
+ * Dockerfile is now working again
+
+#### New
+
+ * Added producer for writing data to Amazon S3 (thanks @relud)
+ * Added authentication support to native.KafkaProducer (thanks @relud)
+ * Added a native systemd consumer (thanks @relud)
+
 # 0.4.4
 
 This is a patch / minor features release.

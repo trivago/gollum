@@ -18,6 +18,7 @@ before_install:
 #    packages:
 #    - libpcap-dev
 #    - librdkafka-dev
+#    - libsystemd-journal-dev
 script:
 - go build
 - go vet -v $(go list ./...|grep -v vendor)
