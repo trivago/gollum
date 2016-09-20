@@ -1,3 +1,4 @@
+//+build linux
 // Copyright 2015-2016 mozilla
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,20 +16,20 @@
 package native
 
 import (
-    "github.com/coreos/go-systemd/sdjournal"
-    "github.com/trivago/gollum/core"
-    "github.com/trivago/gollum/core/log"
-    "github.com/trivago/gollum/shared"
-    "io/ioutil"
-    "strconv"
-    "strings"
-    "sync"
-    "time"
+	"github.com/coreos/go-systemd/sdjournal"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
+	"github.com/trivago/gollum/shared"
+	"io/ioutil"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
 )
 
 const (
-    sdOffsetTail = "newest"
-    sdOffsetHead = "oldest"
+	sdOffsetTail = "newest"
+	sdOffsetHead = "oldest"
 )
 
 // Systemd consumer plugin
@@ -56,134 +57,134 @@ const (
 // default this is set to "" which disables the offset file.
 
 type SystemdConsumer struct {
-    core.ConsumerBase
-    journal    *sdjournal.Journal
-    offset     uint64
-    offsetFile string
-    running    bool
+	core.ConsumerBase
+	journal    *sdjournal.Journal
+	offset     uint64
+	offsetFile string
+	running    bool
 }
 
 func init() {
-    shared.TypeRegistry.Register(SystemdConsumer{})
+	shared.TypeRegistry.Register(SystemdConsumer{})
 }
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *SystemdConsumer) Configure(conf core.PluginConfig) error {
-    err := cons.ConsumerBase.Configure(conf)
-    if err != nil {
-        return err
-    }
+	err := cons.ConsumerBase.Configure(conf)
+	if err != nil {
+		return err
+	}
 
-    cons.journal, err = sdjournal.NewJournal()
-    if err != nil {
-        return err
-    }
+	cons.journal, err = sdjournal.NewJournal()
+	if err != nil {
+		return err
+	}
 
-    if sdUnit := conf.GetString("SystemdUnit", ""); sdUnit != "" {
-        err = cons.journal.AddMatch("_SYSTEMD_UNIT=" + sdUnit)
-        if err != nil {
-            return err
-        }
-    }
+	if sdUnit := conf.GetString("SystemdUnit", ""); sdUnit != "" {
+		err = cons.journal.AddMatch("_SYSTEMD_UNIT=" + sdUnit)
+		if err != nil {
+			return err
+		}
+	}
 
-    // Offset
-    offsetValue := strings.ToLower(conf.GetString("DefaultOffset", sdOffsetTail))
+	// Offset
+	offsetValue := strings.ToLower(conf.GetString("DefaultOffset", sdOffsetTail))
 
-    cons.offsetFile = conf.GetString("OffsetFile", "")
-    if cons.offsetFile != "" {
-        fileContents, err := ioutil.ReadFile(cons.offsetFile)
-        if err != nil {
-            Log.Error.Print("Error reading offset file: ", err)
-        }
-        if string(fileContents) != "" {
-            offsetValue = string(fileContents)
-        }
-    }
+	cons.offsetFile = conf.GetString("OffsetFile", "")
+	if cons.offsetFile != "" {
+		fileContents, err := ioutil.ReadFile(cons.offsetFile)
+		if err != nil {
+			Log.Error.Print("Error reading offset file: ", err)
+		}
+		if string(fileContents) != "" {
+			offsetValue = string(fileContents)
+		}
+	}
 
-    switch offsetValue {
-    case sdOffsetHead:
-        err = cons.journal.SeekHead()
+	switch offsetValue {
+	case sdOffsetHead:
+		err = cons.journal.SeekHead()
 
-    case sdOffsetTail:
-        err = cons.journal.SeekTail()
-        if err != nil {
-            return err
-        }
-        // start *after* the newest record
-        _, err = cons.journal.Next()
+	case sdOffsetTail:
+		err = cons.journal.SeekTail()
+		if err != nil {
+			return err
+		}
+		// start *after* the newest record
+		_, err = cons.journal.Next()
 
-    default:
-        offset, err := strconv.ParseUint(offsetValue, 10, 64)
-        if err != nil {
-            return err
-        }
-        err = cons.journal.SeekRealtimeUsec(offset)
-        if err != nil {
-            return err
-        }
-        // start *after* the specified time
-        _, err = cons.journal.Next()
-    }
+	default:
+		offset, err := strconv.ParseUint(offsetValue, 10, 64)
+		if err != nil {
+			return err
+		}
+		err = cons.journal.SeekRealtimeUsec(offset)
+		if err != nil {
+			return err
+		}
+		// start *after* the specified time
+		_, err = cons.journal.Next()
+	}
 
-    if err != nil {
-        return err
-    }
+	if err != nil {
+		return err
+	}
 
-    // Register close to the control message handler
-    cons.SetStopCallback(cons.close)
+	// Register close to the control message handler
+	cons.SetStopCallback(cons.close)
 
-    return nil
+	return nil
 }
 
 func (cons *SystemdConsumer) storeOffset(offset uint64) {
-    ioutil.WriteFile(cons.offsetFile, []byte(strconv.FormatUint(offset, 10)), 0644)
+	ioutil.WriteFile(cons.offsetFile, []byte(strconv.FormatUint(offset, 10)), 0644)
 }
 
 func (cons *SystemdConsumer) enqueueAndPersist(data []byte, sequence uint64) {
-    cons.Enqueue(data, sequence)
-    cons.storeOffset(sequence)
+	cons.Enqueue(data, sequence)
+	cons.storeOffset(sequence)
 }
 
 func (cons *SystemdConsumer) close() {
-    if cons.journal != nil {
-        cons.journal.Close()
-    }
-    cons.WorkerDone()
+	if cons.journal != nil {
+		cons.journal.Close()
+	}
+	cons.WorkerDone()
 }
 
 func (cons *SystemdConsumer) read() {
-    sendFunction := cons.Enqueue
-    if cons.offsetFile != "" {
-        sendFunction = cons.enqueueAndPersist
-    }
+	sendFunction := cons.Enqueue
+	if cons.offsetFile != "" {
+		sendFunction = cons.enqueueAndPersist
+	}
 
-    for cons.IsActive() {
-        cons.WaitOnFuse()
+	for cons.IsActive() {
+		cons.WaitOnFuse()
 
-        c, err := cons.journal.Next()
-        if err != nil {
-            Log.Error.Print("Failed to advance journal: ", err)
-        } else if c == 0 {
-            // reached end of log
-            time.Sleep(1 * time.Second)
-        } else {
-            msg, err := cons.journal.GetDataValue("MESSAGE")
-            if err != nil {
-                Log.Error.Print("Failed to read journal message: ", err)
-            } else {
-                offset, err := cons.journal.GetRealtimeUsec()
-                if err != nil {
-                    Log.Error.Print("Failed to read journal realtime: ", err)
-                } else {
-                    sendFunction([]byte(msg), offset)
-                }
-            }
-        }
-    }
+		c, err := cons.journal.Next()
+		if err != nil {
+			Log.Error.Print("Failed to advance journal: ", err)
+		} else if c == 0 {
+			// reached end of log
+			time.Sleep(1 * time.Second)
+		} else {
+			msg, err := cons.journal.GetDataValue("MESSAGE")
+			if err != nil {
+				Log.Error.Print("Failed to read journal message: ", err)
+			} else {
+				offset, err := cons.journal.GetRealtimeUsec()
+				if err != nil {
+					Log.Error.Print("Failed to read journal realtime: ", err)
+				} else {
+					sendFunction([]byte(msg), offset)
+				}
+			}
+		}
+	}
 }
 
 func (cons *SystemdConsumer) Consume(workers *sync.WaitGroup) {
-    cons.AddMainWorker(workers)
-    go cons.read()
-    cons.ControlLoop()
+	cons.AddMainWorker(workers)
+	go cons.read()
+	cons.ControlLoop()
 }
