@@ -12,11 +12,13 @@ before_install:
 - wget http://launchpadlibrarian.net/234454185/librdkafka-dev_0.8.6-1.1_amd64.deb
 - sudo dpkg -i librdkafka1_0.8.6-1.1_amd64.deb
 - sudo dpkg -i librdkafka-dev_0.8.6-1.1_amd64.deb
+- sudo apt-get install -y libsystemd-journal-dev
 #addons:
 #  apt:
 #    packages:
 #    - libpcap-dev
 #    - librdkafka-dev
+#    - libsystemd-journal-dev
 script:
 - go build
 - go vet -v $(go list ./...|grep -v vendor)

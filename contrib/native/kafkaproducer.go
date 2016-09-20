@@ -48,6 +48,16 @@ import (
 //    ServerMaxFails: 3
 //    MetadataTimeoutMs: 1500
 //    MetadataRefreshMs: 300000
+//    SecurityProtocol: "plaintext"
+//    SslCipherSuites: ""
+//    SslKeyLocation: ""
+//    SslKeyPassword: ""
+//    SslCertificateLocation: ""
+//    SslCaLocation: ""
+//    SslCrlLocation: ""
+//    SaslMechanism: ""
+//    SaslUsername: ""
+//    SaslPassword: ""
 //    KeyFormatter: ""
 //    Servers:
 //    	- "localhost:9092"
@@ -98,6 +108,36 @@ import (
 //
 // MetadataRefreshMs is mapped to topic.metadata.refresh.interval.ms.
 // Interval in milliseconds for querying metadata. Set to 5 minutes by default.
+//
+// SecurityProtocol is mapped to security.protocol.
+// Protocol used to communicate with brokers. Set to plaintext by default.
+//
+// SslCipherSuites is mapped to ssl.cipher.suites.
+// Cipher Suites to use when connection via TLS/SSL. Not set by default.
+//
+// SslKeyLocation is mapped to ssl.key.location.
+// Path to client's private key (PEM) for used for authentication. Not set by default.
+//
+// SslKeyPassword is mapped to ssl.key.password.
+// Private key passphrase. Not set by default.
+//
+// SslCertificateLocation is mapped to ssl.certificate.location.
+// Path to client's public key (PEM) used for authentication. Not set by default.
+//
+// SslCaLocation is mapped to ssl.ca.location.
+// File or directory path to CA certificate(s) for verifying the broker's key. Not set by default.
+//
+// SslCrlLocation is mapped to ssl.crl.location.
+// Path to CRL for verifying broker's certificate validity. Not set by default.
+//
+// SaslMechanism is mapped to sasl.mechanisms.
+// SASL mechanism to use for authentication. Not set by default.
+//
+// SaslUsername is mapped to sasl.username.
+// SASL username for use with the PLAIN mechanism. Not set by default.
+//
+// SaslPassword is mapped to sasl.password.
+// SASL password for use with the PLAIN mechanism. Not set by default.
 //
 // Servers defines the list of brokers to produce messages to.
 //
@@ -158,6 +198,13 @@ const (
 	compressNone   = "none"
 	compressGZIP   = "zip"
 	compressSnappy = "snappy"
+)
+
+const (
+	protocolPlaintext     = "plaintext"
+	protocolSsl           = "ssl"
+	protocolSaslPlaintext = "sasl_plaintext"
+	protocolSaslSsl       = "sasl_ssl"
 )
 
 func init() {
@@ -239,6 +286,15 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfig) error {
 
 	prod.config.Set("client.id", conf.GetString("ClientId", "gollum"))
 	prod.config.Set("metadata.broker.list", strings.Join(prod.servers, ","))
+	prod.config.Set("sasl.mechanisms", conf.GetString("SaslMechanism", ""))
+	prod.config.Set("sasl.password", conf.GetString("SaslPassword", ""))
+	prod.config.Set("sasl.username", conf.GetString("SaslUsername", ""))
+	prod.config.Set("ssl.ca.location", conf.GetString("SslCaLocation", ""))
+	prod.config.Set("ssl.certificate.location", conf.GetString("SslCertificateLocation", ""))
+	prod.config.Set("ssl.cipher.suites", conf.GetString("SslCipherSuites", ""))
+	prod.config.Set("ssl.crl.location", conf.GetString("SslCrlLocation", ""))
+	prod.config.Set("ssl.key.location", conf.GetString("SslKeyLocation", ""))
+	prod.config.Set("ssl.key.password", conf.GetString("SslKeyPassword", ""))
 	prod.config.SetI("message.max.bytes", conf.GetInt("BatchSizeMaxKB", 1<<10)<<10)
 	prod.config.SetI("metadata.request.timeout.ms", int(conf.GetInt("MetadataTimeoutMs", 1500)))
 	prod.config.SetI("topic.metadata.refresh.interval.ms", int(conf.GetInt("MetadataRefreshMs", 300000)))
@@ -250,6 +306,20 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfig) error {
 	prod.config.SetI("queue.buffering.max.ms", batchIntervalMs)
 	prod.config.SetI("batch.num.messages", conf.GetInt("BatchMinMessages", 1000))
 	//prod.config.SetI("protocol.version", verNumber)
+
+	securityProtocol := strings.ToLower(conf.GetString("SecurityProtocol", protocolPlaintext))
+	switch securityProtocol {
+	default:
+		return fmt.Errorf("%s is not a valid security protocol", securityProtocol)
+	case protocolPlaintext:
+		prod.config.Set("security.protocol", protocolPlaintext)
+	case protocolSsl:
+		prod.config.Set("security.protocol", protocolSsl)
+	case protocolSaslPlaintext:
+		prod.config.Set("security.protocol", protocolSaslPlaintext)
+	case protocolSaslSsl:
+		prod.config.Set("security.protocol", protocolSaslSsl)
+	}
 
 	switch strings.ToLower(conf.GetString("Compression", compressNone)) {
 	default:

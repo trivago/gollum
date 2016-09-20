@@ -52,6 +52,24 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/coreos/go-systemd/sdjournal",
+			"repository": "https://github.com/coreos/go-systemd",
+			"vcs": "git",
+			"revision": "a63dfec412dc3675ec36888f359f8a1e5c3f740d",
+			"branch": "master",
+			"path": "/sdjournal",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/coreos/pkg/dlopen",
+			"repository": "https://github.com/coreos/pkg",
+			"vcs": "git",
+			"revision": "3ac0863d7acf3bc44daf49afef8919af12f704ef",
+			"branch": "master",
+			"path": "/dlopen",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/davecgh/go-spew/spew",
 			"repository": "https://github.com/davecgh/go-spew",
 			"vcs": "git",
