@@ -8,6 +8,7 @@ This is a patch / minor features release.
 
 #### New
 
+ * Added named pipe support to consumer.Console
  * Added producer for writing data to Amazon S3 (thanks @relud)
  * Added authentication support to native.KafkaProducer (thanks @relud)
  * Added a native systemd consumer (thanks @relud)
