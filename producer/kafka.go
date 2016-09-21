@@ -15,6 +15,9 @@
 package producer
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"io/ioutil"
 	"fmt"
 	kafka "github.com/Shopify/sarama"
 	"github.com/trivago/gollum/core"
@@ -63,6 +66,15 @@ const (
 //    ElectRetries: 3
 //    ElectTimeoutMs: 250
 //    MetadataRefreshMs: 10000
+//    TlsEnabled: true
+//    TlsKeyLocation: ""
+//    TlsCertificateLocation: ""
+//    TlsCaLocation: ""
+//    TlsServerName: ""
+//    TlsInsecureSkipVerify: false
+//    SaslEnabled: false
+//    SaslUsername: "gollum"
+//    SaslPassword: ""
 //    KeyFormatter: ""
 //    KeyFormatterFirst: false
 //    Servers:
@@ -147,6 +159,30 @@ const (
 // MetadataRefreshMs set the interval in seconds for fetching cluster metadata.
 // By default this is set to 600000 (10 minutes). This corresponds to the JVM
 // setting `topic.metadata.refresh.interval.ms`.
+//
+// TlsEnable defines whether to use TLS to communicate with brokers. Defaults
+// to false.
+//
+// TlsKeyLocation defines the path to the client's private key (PEM) for used
+// for authentication. Defaults to "".
+//
+// TlsCertificateLocation defines the path to the client's public key (PEM) used
+// for authentication. Defaults to "".
+//
+// TlsCaLocation defines the path to CA certificate(s) for verifying the broker's
+// key. Defaults to "".
+//
+// TlsServerName is used to verify the hostname on the server's certificate
+// unless TlsInsecureSkipVerify is true. Defaults to "".
+//
+// TlsInsecureSkipVerify controls whether to verify the server's certificate
+// chain and host name. Defaults to false.
+//
+// SaslEnable is whether to use SASL for authentication. Defaults to false.
+//
+// SaslUsername is the user for SASL/PLAIN authentication. Defaults to "gollum".
+//
+// SaslPassword is the password for SASL/PLAIN authentication. Defaults to "".
 //
 // Servers contains the list of all kafka servers to connect to.  By default this
 // is set to contain only "localhost:9092".
@@ -277,6 +313,52 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	prod.config.Net.DialTimeout = time.Duration(conf.GetInt("ServerTimeoutSec", 30)) * time.Second
 	prod.config.Net.ReadTimeout = prod.config.Net.DialTimeout
 	prod.config.Net.WriteTimeout = prod.config.Net.DialTimeout
+
+	prod.config.Net.TLS.Enable = conf.GetBool("TlsEnable", false)
+	if prod.config.Net.TLS.Enable {
+		prod.config.Net.TLS.Config = &tls.Config{}
+
+		keyFile := conf.GetString("TlsKeyLocation", "")
+		certFile := conf.GetString("TlsCertificateLocation", "")
+		if keyFile != "" && certFile != "" {
+			cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+			if err != nil {
+				return err
+			}
+			prod.config.Net.TLS.Config.Certificates = []tls.Certificate{cert}
+		} else if certFile == "" {
+			return fmt.Errorf("Cannot specify TlsKeyLocation without TlsCertificateLocation")
+		} else if keyFile == "" {
+			return fmt.Errorf("Cannot specify TlsCertificateLocation without TlsKeyLocation")
+		}
+
+		caFile := conf.GetString("TlsCaLocation", "")
+		if caFile == "" {
+			return fmt.Errorf("TlsEnable is set to true, but no TlsCaLocation was specified")
+		}
+
+		caCert, err := ioutil.ReadFile(caFile)
+		if err != nil {
+			return err
+		}
+
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+		prod.config.Net.TLS.Config.RootCAs = caCertPool
+
+		serverName := conf.GetString("TlsServerName", "")
+		if serverName != "" {
+			prod.config.Net.TLS.Config.ServerName = serverName
+		}
+
+		prod.config.Net.TLS.Config.InsecureSkipVerify = conf.GetBool("TlsInsecureSkipVerify", false)
+	}
+
+	prod.config.Net.SASL.Enable = conf.GetBool("SaslEnable", false)
+	if prod.config.Net.SASL.Enable {
+		prod.config.Net.SASL.User = conf.GetString("SaslUser", "gollum")
+		prod.config.Net.SASL.Password = conf.GetString("SaslPassword", "")
+	}
 
 	prod.config.Metadata.Retry.Max = conf.GetInt("ElectRetries", 3)
 	prod.config.Metadata.Retry.Backoff = time.Duration(conf.GetInt("ElectTimeoutMs", 250)) * time.Millisecond

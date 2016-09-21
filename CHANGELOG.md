@@ -5,13 +5,17 @@ This is a patch / minor features release.
 #### Fixed
 
  * Dockerfile is now working again
+ * Fixed a crash when using producer.ElasticSearch with date based indexes (thanks @relud)
 
 #### New
 
  * Added named pipe support to consumer.Console
  * Added producer for writing data to Amazon S3 (thanks @relud)
  * Added authentication support to native.KafkaProducer (thanks @relud)
- * Added a native systemd consumer (thanks @relud)
+ * Added authentication support to producer.Kafka (thanks @relud)
+ * Added authentication support to consumer.Kafka (thanks @relud)
+ * Added consumer group support to consumer.Kafka (thanks @relud)
+ * Added a native SystemD consumer (thanks @relud)
 
 # 0.4.4
 

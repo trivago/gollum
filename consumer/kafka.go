@@ -15,8 +15,12 @@
 package consumer
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
+	"fmt"
 	kafka "github.com/Shopify/sarama"
+	cluster "github.com/bsm/sarama-cluster"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
@@ -46,6 +50,7 @@ const (
 //    Topic: "default"
 //    ClientId: "gollum"
 //    Version: "0.8.2"
+//    GroupId: ""
 //    DefaultOffset: "newest"
 //    OffsetFile: ""
 //    FolderPermissions: "0755"
@@ -60,6 +65,15 @@ const (
 //    ElectRetries: 3
 //    ElectTimeoutMs: 250
 //    MetadataRefreshMs: 10000
+//    TlsEnabled: true
+//    TlsKeyLocation: ""
+//    TlsCertificateLocation: ""
+//    TlsCaLocation: ""
+//    TlsServerName: ""
+//    TlsInsecureSkipVerify: false
+//    SaslEnabled: false
+//    SaslUsername: "gollum"
+//    SaslPassword: ""
 //    PrependKey: false
 //    KeySeparator: ":"
 //    Servers:
@@ -67,28 +81,33 @@ const (
 //
 // Topic defines the kafka topic to read from. By default this is set to "default".
 //
-// ClientId sets the client id of this producer. By default this is "gollum".
+// ClientId sets the client id of this consumer. By default this is "gollum".
+//
+// GroupId sets the consumer group of this consumer. By default this is "" which
+// disables consumer groups. This requires Version to be >= 0.9.
 //
 // Version defines the kafka protocol version to use. Common values are 0.8.2,
 // 0.9.0 or 0.10.0. Values of the form "A.B" are allowed as well as "A.B.C"
-// and "A.B.C.D". Defaults to "0.8.2". If the version given is not known, the
-// closest possible version is chosen.
+// and "A.B.C.D". Defaults to "0.8.2", or if GroupId is set "0.9.0.1". If the
+// version given is not known, the closest possible version is chosen. If GroupId
+// is set and this is < "0.9", "0.9.0.1" will be used.
 //
 // DefaultOffset defines where to start reading the topic. Valid values are
 // "oldest" and "newest". If OffsetFile is defined the DefaultOffset setting
 // will be ignored unless the file does not exist.
-// By default this is set to "newest".
+// By default this is set to "newest". Ignored when using GroupId.
 //
 // OffsetFile defines the path to a file that stores the current offset inside
 // a given partition. If the consumer is restarted that offset is used to continue
-// reading. By default this is set to "" which disables the offset file.
+// reading. By default this is set to "" which disables the offset file. Ignored
+// when using GroupId.
 //
 // FolderPermissions is used to create the offset file path if necessary.
-// Set to 0755 by default.
+// Set to 0755 by default. Ignored when using GroupId.
 //
 // Ordered can be set to enforce partitions to be read one-by-one in a round robin
 // fashion instead of reading in parallel from all partitions.
-// Set to false by default.
+// Set to false by default. Ignored when using GroupId.
 //
 // PrependKey can be enabled to prefix the read message with the key from the
 // kafka message. A separator will ba appended to the key. See KeySeparator.
@@ -119,7 +138,8 @@ const (
 //
 // PresistTimoutMs defines the time in milliseconds between writes to OffsetFile.
 // By default this is set to 5000. Shorter durations reduce the amount of
-// duplicate messages after a fail but increases I/O.
+// duplicate messages after a fail but increases I/O. When using GroupId this
+// only controls how long to pause after receiving errors.
 //
 // ElectRetries defines how many times to retry during a leader election.
 // By default this is set to 3.
@@ -131,12 +151,39 @@ const (
 // By default this is set to 10000. This corresponds to the JVM setting
 // `topic.metadata.refresh.interval.ms`.
 //
+// TlsEnable defines whether to use TLS to communicate with brokers. Defaults
+// to false.
+//
+// TlsKeyLocation defines the path to the client's private key (PEM) for used
+// for authentication. Defaults to "".
+//
+// TlsCertificateLocation defines the path to the client's public key (PEM) used
+// for authentication. Defaults to "".
+//
+// TlsCaLocation defines the path to CA certificate(s) for verifying the broker's
+// key. Defaults to "".
+//
+// TlsServerName is used to verify the hostname on the server's certificate
+// unless TlsInsecureSkipVerify is true. Defaults to "".
+//
+// TlsInsecureSkipVerify controls whether to verify the server's certificate
+// chain and host name. Defaults to false.
+//
+// SaslEnable is whether to use SASL for authentication. Defaults to false.
+//
+// SaslUsername is the user for SASL/PLAIN authentication. Defaults to "gollum".
+//
+// SaslPassword is the password for SASL/PLAIN authentication. Defaults to "".
+//
 // Servers contains the list of all kafka servers to connect to. By default this
 // is set to contain only "localhost:9092".
 type Kafka struct {
 	core.ConsumerBase
 	servers           []string
 	topic             string
+	group             string
+	groupClient       *cluster.Client
+	groupConfig       *cluster.Config
 	client            kafka.Client
 	config            *kafka.Config
 	consumer          kafka.Consumer
@@ -165,6 +212,7 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 
 	cons.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	cons.topic = conf.GetString("Topic", "default")
+	cons.group = conf.GetString("GroupId", "")
 	cons.offsetFile = conf.GetString("OffsetFile", "")
 	cons.persistTimeout = time.Duration(conf.GetInt("PresistTimoutMs", 5000)) * time.Millisecond
 	cons.orderedRead = conf.GetBool("Ordered", false)
@@ -220,6 +268,52 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 	cons.config.Net.ReadTimeout = cons.config.Net.DialTimeout
 	cons.config.Net.WriteTimeout = cons.config.Net.DialTimeout
 
+	cons.config.Net.TLS.Enable = conf.GetBool("TlsEnable", false)
+	if cons.config.Net.TLS.Enable {
+		cons.config.Net.TLS.Config = &tls.Config{}
+
+		keyFile := conf.GetString("TlsKeyLocation", "")
+		certFile := conf.GetString("TlsCertificateLocation", "")
+		if keyFile != "" && certFile != "" {
+			cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+			if err != nil {
+				return err
+			}
+			cons.config.Net.TLS.Config.Certificates = []tls.Certificate{cert}
+		} else if certFile == "" {
+			return fmt.Errorf("Cannot specify TlsKeyLocation without TlsCertificateLocation")
+		} else if keyFile == "" {
+			return fmt.Errorf("Cannot specify TlsCertificateLocation without TlsKeyLocation")
+		}
+
+		caFile := conf.GetString("TlsCaLocation", "")
+		if caFile == "" {
+			return fmt.Errorf("TlsEnable is set to true, but no TlsCaLocation was specified")
+		}
+
+		caCert, err := ioutil.ReadFile(caFile)
+		if err != nil {
+			return err
+		}
+
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+		cons.config.Net.TLS.Config.RootCAs = caCertPool
+
+		serverName := conf.GetString("TlsServerName", "")
+		if serverName != "" {
+			cons.config.Net.TLS.Config.ServerName = serverName
+		}
+
+		cons.config.Net.TLS.Config.InsecureSkipVerify = conf.GetBool("TlsInsecureSkipVerify", false)
+	}
+
+	cons.config.Net.SASL.Enable = conf.GetBool("SaslEnable", false)
+	if cons.config.Net.SASL.Enable {
+		cons.config.Net.SASL.User = conf.GetString("SaslUser", "gollum")
+		cons.config.Net.SASL.Password = conf.GetString("SaslPassword", "")
+	}
+
 	cons.config.Metadata.Retry.Max = conf.GetInt("ElectRetries", 3)
 	cons.config.Metadata.Retry.Backoff = time.Duration(conf.GetInt("ElectTimeoutMs", 250)) * time.Millisecond
 	cons.config.Metadata.RefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshMs", 10000)) * time.Millisecond
@@ -228,6 +322,18 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 	cons.config.Consumer.Fetch.Max = int32(conf.GetInt("MaxFetchSizeByte", 0))
 	cons.config.Consumer.Fetch.Default = int32(conf.GetInt("MaxFetchSizeByte", 32768))
 	cons.config.Consumer.MaxWaitTime = time.Duration(conf.GetInt("FetchTimeoutMs", 250)) * time.Millisecond
+
+	if cons.group != "" {
+		cons.offsetFile = "" // forcibly ignore this option
+		switch cons.config.Version {
+		case kafka.V0_8_2_0, kafka.V0_8_2_1, kafka.V0_8_2_2:
+			Log.Warning.Print("Invalid kafka version 0.8.x given, minimum is 0.9 for consumer groups, defaulting to 0.9.0.1")
+			cons.config.Version = kafka.V0_9_0_1
+		}
+
+		cons.groupConfig = cluster.NewConfig()
+		cons.groupConfig.Config = *cons.config
+	}
 
 	offsetValue := strings.ToLower(conf.GetString("DefaultOffset", kafkaOffsetNewest))
 	switch offsetValue {
@@ -273,12 +379,60 @@ func (cons *Kafka) restartPartition(partitionID int32) {
 	cons.readFromPartition(partitionID)
 }
 
+func (cons *Kafka) restartGroup() {
+	time.Sleep(cons.persistTimeout)
+	cons.readFromGroup()
+}
+
 func (cons *Kafka) keyedMessage(key []byte, value []byte) []byte {
 	buffer := make([]byte, len(key)+len(cons.keySeparator)+len(value))
 	offset := copy(buffer, key)
 	offset += copy(buffer[offset:], cons.keySeparator)
 	copy(buffer[offset:], value)
 	return buffer
+}
+
+// Main fetch loop for kafka events
+func (cons *Kafka) readFromGroup() {
+	consumer, err := cluster.NewConsumerFromClient(cons.groupClient, cons.group, []string{cons.topic})
+	if err != nil {
+		defer cons.restartGroup()
+		Log.Error.Printf("Restarting kafka consumer (%s:%s) - %s", cons.topic, cons.group, err.Error())
+		return // ### return, stop and retry ###
+	}
+
+	// Make sure we wait for all consumers to end
+	cons.AddWorker()
+	defer func() {
+		if !cons.groupClient.Closed() {
+			consumer.Close()
+		}
+		cons.WorkerDone()
+	}()
+
+	// Loop over worker
+	spin := shared.NewSpinner(shared.SpinPriorityLow)
+
+	for !cons.groupClient.Closed() {
+		cons.WaitOnFuse()
+		select {
+		case event := <-consumer.Messages():
+			sequence := atomic.AddUint64(cons.sequence, 1) - 1
+			if cons.prependKey {
+				cons.Enqueue(cons.keyedMessage(event.Key, event.Value), sequence)
+			} else {
+				cons.Enqueue(event.Value, sequence)
+			}
+
+		case err := <-consumer.Errors():
+			defer cons.restartGroup()
+			Log.Error.Print("Kafka consumer error:", err)
+			return // ### return, try reconnect ###
+
+		default:
+			spin.Yield()
+		}
+	}
 }
 
 // Main fetch loop for kafka events
@@ -425,17 +579,27 @@ func (cons *Kafka) startReadTopic(topic string) {
 func (cons *Kafka) startConsumers() error {
 	var err error
 
-	cons.client, err = kafka.NewClient(cons.servers, cons.config)
-	if err != nil {
-		return err
+	if cons.group != "" {
+		cons.groupClient, err = cluster.NewClient(cons.servers, cons.groupConfig)
+		if err != nil {
+			return err
+		}
+
+		go cons.readFromGroup()
+	} else {
+		cons.client, err = kafka.NewClient(cons.servers, cons.config)
+		if err != nil {
+			return err
+		}
+
+		cons.consumer, err = kafka.NewConsumerFromClient(cons.client)
+		if err != nil {
+			return err
+		}
+
+		cons.startReadTopic(cons.topic)
 	}
 
-	cons.consumer, err = kafka.NewConsumerFromClient(cons.client)
-	if err != nil {
-		return err
-	}
-
-	cons.startReadTopic(cons.topic)
 	return nil
 }
 

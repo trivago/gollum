@@ -32,6 +32,7 @@ Writing a custom plugin does not require you to change any additional code besid
 * `Proxy` use in combination with a proxy producer to enable two-way communication.
 * `Socket` read from a socket (gollum specific protocol).
 * `Syslogd` read from a socket (syslogd protocol).
+* `SystemD` read from the SystemD journal.
 
 ## Producers (writing data)
 
@@ -45,6 +46,7 @@ Writing a custom plugin does not require you to change any additional code besid
 * `Kinesis` write data to a [Kinesis](https://aws.amazon.com/de/kinesis/) stream.
 * `Null` like /dev/null.
 * `Proxy` two-way communication proxy for simple protocols.
+* `S3` write data to [Amazon S3](https://aws.amazon.com/de/s3/) stream.
 * `Scribe` send messages to a [Facebook scribe](https://github.com/facebookarchive/scribe) server.
 * `Socket` send messages to a socket (gollum specific protocol).
 * `Spooling` write messages to disk and retry them later.
