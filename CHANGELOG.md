@@ -11,9 +11,10 @@ This is a patch / minor features release.
 
  * Added producer for writing data to Amazon S3 (thanks @relud)
  * Added authentication support to native.KafkaProducer (thanks @relud)
+ * Added authentication support to producer.Kafka (thanks @relud)
  * Added authentication support to consumer.Kafka (thanks @relud)
  * Added consumer group support to consumer.Kafka (thanks @relud)
- * Added a native systemd consumer (thanks @relud)
+ * Added a native SystemD consumer (thanks @relud)
 
 # 0.4.4
 
