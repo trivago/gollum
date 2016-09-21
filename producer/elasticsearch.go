@@ -200,10 +200,6 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 		prod.index[msg.StreamID] = index
 	}
 
-	if prod.dayBasedIndex {
-		index = index + "_" + msg.Timestamp.Format("2006-01-02")
-	}
-
 	msgType, typeMapped := prod.msgType[msg.StreamID]
 	if !typeMapped {
 		msgType, typeMapped = prod.msgType[core.WildcardStreamID]
@@ -213,6 +209,11 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 	}
 
 	atomic.AddInt64(prod.counters[index], 1)
+
+	if prod.dayBasedIndex {
+		index = index + "_" + msg.Timestamp.Format("2006-01-02")
+	}
+
 	err := prod.indexer.Index(index, msgType, "", "", prod.msgTTL, &msg.Timestamp, string(msg.Data))
 	if err != nil {
 		Log.Error.Print("ElasticSearch index error - ", err)
