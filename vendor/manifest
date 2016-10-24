@@ -194,6 +194,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/lytics/logrus",
+			"repository": "https://github.com/lytics/logrus",
+			"vcs": "git",
+			"revision": "59cd2e4a569b4494d9196bef82f0784e467adac9",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/mattbaird/elastigo/lib",
 			"repository": "https://github.com/mattbaird/elastigo",
 			"vcs": "git",
@@ -225,6 +233,14 @@
 			"path": "/libcontainer/user"
 		},
 		{
+			"importpath": "github.com/rcrowley/go-metrics",
+			"repository": "https://github.com/rcrowley/go-metrics",
+			"vcs": "git",
+			"revision": "ab2277b1c5d15c3cba104e9cbddbdfc622df5ad8",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/shiena/ansicolor",
 			"repository": "https://github.com/shiena/ansicolor",
 			"vcs": "git",
@@ -247,6 +263,14 @@
 			"revision": "4622128e06c77c0174e17a7f0ed2db19a989b473",
 			"branch": "master",
 			"path": "/convey",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/stathat/go",
+			"repository": "https://github.com/stathat/go",
+			"vcs": "git",
+			"revision": "74669b9f388d9d788c97399a0824adbfee78400e",
+			"branch": "master",
 			"notests": true
 		},
 		{
@@ -301,6 +325,15 @@
 			"revision": "07b51741c1d6423d4a6abab1c49940ec09cb1aaf",
 			"branch": "master",
 			"path": "/websocket"
+		},
+		{
+			"importpath": "golang.org/x/sys/unix",
+			"repository": "https://go.googlesource.com/sys",
+			"vcs": "git",
+			"revision": "c200b10b5d5e122be351b67af224adc6128af5bf",
+			"branch": "master",
+			"path": "/unix",
+			"notests": true
 		},
 		{
 			"importpath": "gopkg.in/bsm/ratelimit.v1",
