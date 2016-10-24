@@ -20,6 +20,7 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -63,6 +64,9 @@ import (
 //  * agent:{<user_agent_field>:<user_agent_field>:...} Parse the value as a user
 //    agent string and extract the given fields into <key>_<user_agent_field>
 //    ("ua:agent:browser:os" would create the new fields "ua_browser" and "ua_os")
+//  * flatten:{<delimiter>} create new fields from the values in field, with new
+//    fields named field + delimiter + subfield. Delimiter defaults to ".".
+//    Removes the original field.
 //
 // ProcessJSONTrimValues will trim whitspaces from all values if enabled.
 // Enabled by default.
@@ -253,6 +257,26 @@ func processDirective(directive transformDirective, values *shared.MarshalMap) {
 					_, (*values)[directive.key+"_version"] = ua.Browser()
 				}
 			}
+
+		case "flatten":
+			delimiter := "."
+			if numParameters == 1 {
+				delimiter = directive.parameters[0]
+			}
+			keyPrefix := directive.key + delimiter
+			if mapValue, err := values.Map(directive.key); err == nil {
+				for key, val := range mapValue {
+					(*values)[keyPrefix + key.(string)] = val
+				}
+			} else if arrayValue, err := values.Array(directive.key); err == nil {
+				for index, val := range arrayValue {
+					(*values)[keyPrefix + strconv.Itoa(index)] = val
+				}
+			} else {
+				Log.Warning.Print("key was not a JSON array or object: " + directive.key)
+				return
+			}
+			delete(*values, directive.key)
 		}
 	}
 }
