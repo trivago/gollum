@@ -1,3 +1,5 @@
+// +build example
+
 package main
 
 import (
@@ -11,8 +13,13 @@ import (
 // Lists all objects in a bucket using pagination
 //
 // Usage:
-// go run listObjects.go <bucket>
+// listObjects <bucket>
 func main() {
+	if len(os.Args) < 2 {
+		fmt.Println("you must specify a bucket")
+		return
+	}
+
 	sess, err := session.NewSession()
 	if err != nil {
 		fmt.Println("failed to create session,", err)

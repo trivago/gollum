@@ -1,3 +1,5 @@
+// +build codegen
+
 package api
 
 import (
@@ -26,6 +28,12 @@ type ShapeRef struct {
 	Payload          string
 	IdempotencyToken bool `json:"idempotencyToken"`
 	Deprecated       bool `json:"deprecated"`
+}
+
+// ErrorInfo represents the error block of a shape's structure
+type ErrorInfo struct {
+	Code           string
+	HTTPStatusCode int
 }
 
 // A XMLInfo defines URL and prefix for Shapes when rendered as XML
@@ -67,6 +75,24 @@ type Shape struct {
 	Deprecated bool `json:"deprecated"`
 
 	Validations ShapeValidations
+
+	// Error information that is set if the shape is an error shape.
+	IsError   bool
+	ErrorInfo ErrorInfo `json:"error"`
+}
+
+// ErrorName will return the shape's name or error code if available based
+// on the API's protocol.
+func (s *Shape) ErrorName() string {
+	name := s.ShapeName
+	switch s.API.Metadata.Protocol {
+	case "query", "ec2query", "rest-xml":
+		if len(s.ErrorInfo.Code) > 0 {
+			name = s.ErrorInfo.Code
+		}
+	}
+
+	return name
 }
 
 // GoTags returns the struct tags for a shape.
@@ -347,6 +373,12 @@ func (s *Shape) Docstring() string {
 	return strings.Trim(s.Documentation, "\n ")
 }
 
+// IndentedDocstring is the indented form of the doc string.
+func (ref *ShapeRef) IndentedDocstring() string {
+	doc := ref.Docstring()
+	return strings.Replace(doc, "// ", "//   ", -1)
+}
+
 var goCodeStringerTmpl = template.Must(template.New("goCodeStringerTmpl").Parse(`
 // String returns the string representation
 func (s {{ .ShapeName }}) String() string {
@@ -420,10 +452,19 @@ type {{ .ShapeName }} struct {
 
 	{{ $context := . -}}
 	{{ range $_, $name := $context.MemberNames -}}
-		{{ $elem := index $context.MemberRefs $name }}
-		{{ $isRequired := $context.IsRequired $name }}
-		{{ $elem.Docstring }}
+		{{ $elem := index $context.MemberRefs $name -}}
+		{{ $isRequired := $context.IsRequired $name -}}
+		{{ $doc := $elem.Docstring -}}
+
+		{{ $doc }}
+		{{ if $isRequired -}}
+			{{ if $doc -}}
+				//
+			{{ end -}}
+			// {{ $name }} is a required field
+		{{ end -}}
 		{{ $name }} {{ $context.GoStructType $name $elem }} {{ $elem.GoTags false $isRequired }}
+
 	{{ end }}
 }
 {{ if not .API.NoStringerMethods }}
@@ -441,8 +482,10 @@ var enumShapeTmpl = template.Must(template.New("EnumShape").Parse(`
 const (
 	{{ $context := . -}}
 	{{ range $index, $elem := .Enum -}}
-		// @enum {{ $context.ShapeName }}
-		{{ index $context.EnumConsts $index }} = "{{ $elem }}"
+		{{ $name := index $context.EnumConsts $index -}}
+		// {{ $name }} is a {{ $context.ShapeName }} enum value
+		{{ $name }} = "{{ $elem }}"
+
 	{{ end }}
 )
 `))

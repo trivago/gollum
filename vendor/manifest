@@ -5,14 +5,14 @@
 			"importpath": "github.com/Shopify/sarama",
 			"repository": "https://github.com/Shopify/sarama",
 			"vcs": "git",
-			"revision": "f4a626377cb2c5dee4cc644e941775138c9fbc80",
+			"revision": "1548006a8b86e4431c98a96ff029d8c2cfdf7fd3",
 			"branch": "master"
 		},
 		{
 			"importpath": "github.com/araddon/gou",
 			"repository": "https://github.com/araddon/gou",
 			"vcs": "git",
-			"revision": "50a94aa4a3fb69e8fbde05df290fcb49fa685e07",
+			"revision": "0ab1e8f997e35d27da012072dc531fcc0204da5a",
 			"branch": "master"
 		},
 		{
@@ -40,7 +40,7 @@
 			"importpath": "github.com/aws/aws-sdk-go",
 			"repository": "https://github.com/aws/aws-sdk-go",
 			"vcs": "git",
-			"revision": "f80e7d0182a463dff0c0da6bbed57f21369d4346",
+			"revision": "32cdc88aa5cd2ba4afa049da884aaf9a3d103ef4",
 			"branch": "master",
 			"notests": true
 		},
@@ -55,7 +55,7 @@
 			"importpath": "github.com/coreos/go-systemd/sdjournal",
 			"repository": "https://github.com/coreos/go-systemd",
 			"vcs": "git",
-			"revision": "a63dfec412dc3675ec36888f359f8a1e5c3f740d",
+			"revision": "61c7ee68bddeb1e66b491c3e1045c4f72b2cd6e3",
 			"branch": "master",
 			"path": "/sdjournal",
 			"notests": true
@@ -73,7 +73,7 @@
 			"importpath": "github.com/davecgh/go-spew/spew",
 			"repository": "https://github.com/davecgh/go-spew",
 			"vcs": "git",
-			"revision": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d",
+			"revision": "6d212800a42e8ab5c146b8ace3490ee17e5225f9",
 			"branch": "master",
 			"path": "/spew"
 		},
@@ -81,7 +81,7 @@
 			"importpath": "github.com/docker/docker/pkg/homedir",
 			"repository": "https://github.com/docker/docker",
 			"vcs": "git",
-			"revision": "3c6f4cd5a6c0de3d3700ad14bb8f177e8e1198fd",
+			"revision": "b2786a388817784e8abde3da1b67e50b58cc8b7a",
 			"branch": "master",
 			"path": "/pkg/homedir"
 		},
