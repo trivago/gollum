@@ -21,6 +21,10 @@ There are a few basic terms used throughout Gollum:
 
 Writing a custom plugin does not require you to change any additional code besides your new plugin file.
 
+## Documentation
+
+A how-to-use documentation can be found on [read the docs](http://gollum.readthedocs.org/en/latest/). Developers should use the [godoc pages](https://godoc.org/github.com/trivago/gollum) to get started. Plugin documentation is generated from the plugin source code. So if you feel that something is missing a look into the code may help.
+
 ## Consumers (reading data)
 
 * `Console` read from stdin.
