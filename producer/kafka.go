@@ -207,6 +207,7 @@ type Kafka struct {
 	gracePeriod        time.Duration
 	keyFormat          core.Formatter
 	keyFirst           bool
+	nilValueAllowed    bool
 	filtersAfterFormat []core.Filter
 }
 
@@ -388,6 +389,7 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 		prod.config.Producer.Compression = kafka.CompressionSnappy
 	}
 
+	prod.nilValueAllowed = conf.GetBool("AllowNilValue", false)
 	switch strings.ToLower(conf.GetString("Partitioner", partRoundrobin)) {
 	case partRandom:
 		prod.config.Producer.Partitioner = kafka.NewRandomPartitioner
@@ -396,7 +398,16 @@ func (prod *Kafka) Configure(conf core.PluginConfig) error {
 	default:
 		fallthrough
 	case partHash:
-		prod.config.Producer.Partitioner = kafka.NewHashPartitioner
+		switch strings.ToLower(conf.GetString("PartitionHasher", "FNV-1a")) {
+		case "murmur2":
+			prod.config.Producer.Partitioner = NewMurmur2HashPartitioner
+		default:
+			fallthrough
+		case "fnv-1a":
+			prod.config.Producer.Partitioner = kafka.NewHashPartitioner
+
+		}
+
 	}
 
 	return nil
@@ -494,7 +505,7 @@ func (prod *Kafka) produceMessage(msg core.Message) {
 	originalMsg := msg
 	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
 
-	if len(msg.Data) == 0 {
+	if !prod.nilValueAllowed && len(msg.Data) == 0 {
 		streamName := core.StreamRegistry.GetStreamName(msg.StreamID)
 		Log.Error.Printf("0 byte message detected on %s. Discarded", streamName)
 		core.CountDiscardedMessage()
