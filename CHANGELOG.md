@@ -7,6 +7,8 @@ This is a patch / minor features release.
  * Dockerfile is now working again
  * It is now possible to (optionally) send nil messages with producer.kafka again
  * Consumer.Kinesis will renew the iterator object when hitting a timeout
+ * Consumer.Kinesis now runs with an offset file set that does not exist
+ * Consumer.Kinesis offset file is now written less often (after each batch)
  * Fixed a crash when using producer.ElasticSearch with date based indexes (thanks @relud)
  
 #### New
