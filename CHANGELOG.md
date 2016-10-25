@@ -5,8 +5,10 @@ This is a patch / minor features release.
 #### Fixed
 
  * Dockerfile is now working again
+ * It is now possible to (optionally) send nil messages with producer.kafka again
+ * Consumer.Kinesis will renew the iterator object when hitting a timeout
  * Fixed a crash when using producer.ElasticSearch with date based indexes (thanks @relud)
-
+ 
 #### New
 
  * Added named pipe support to consumer.Console
@@ -16,6 +18,10 @@ This is a patch / minor features release.
  * Added authentication support to consumer.Kafka (thanks @relud)
  * Added consumer group support to consumer.Kafka (thanks @relud)
  * Added a native SystemD consumer (thanks @relud)
+ * Added an option to flatten JSON arrays into single values with format.ProcessJSON (thanks @relud)
+ * Added filter.Any to allow "or" style combinations of filters (thanks @relud)
+ * Added support for unix timestamp parsing to format.ProcessJSON (thanks @relud)
+ * Added filter.Sample to allow processing of every n'th message only (thanks @relud)
 
 # 0.4.4
 
