@@ -200,9 +200,8 @@ func (cons *Kinesis) Configure(conf core.PluginConfig) error {
 	if cons.offsetFile != "" {
 		fileContents, err := ioutil.ReadFile(cons.offsetFile)
 		if err != nil {
-			return err
-		}
-		if err := json.Unmarshal(fileContents, &cons.offsets); err != nil {
+			Log.Error.Printf("Failed to open kinesis offset file: %s", err.Error())
+		} else if err := json.Unmarshal(fileContents, &cons.offsets); err != nil {
 			return err
 		}
 	}
@@ -213,8 +212,13 @@ func (cons *Kinesis) Configure(conf core.PluginConfig) error {
 func (cons *Kinesis) storeOffsets() {
 	if cons.offsetFile != "" {
 		fileContents, err := json.Marshal(cons.offsets)
-		if err == nil {
-			ioutil.WriteFile(cons.offsetFile, fileContents, 0644)
+		if err != nil {
+			Log.Error.Printf("Failed to marshal kinesis offsets: %s", err.Error())
+			return
+		}
+
+		if err := ioutil.WriteFile(cons.offsetFile, fileContents, 0644); err != nil {
+			Log.Error.Printf("Failed to write kinesis offsets: %s", err.Error())
 		}
 	}
 }
@@ -299,9 +303,9 @@ func (cons *Kinesis) processShard(shardID string) {
 				cons.Enqueue(record.Data, uint64(seq))
 			}
 			cons.offsets[shardID] = *record.SequenceNumber
-			cons.storeOffsets()
 		}
 
+		cons.storeOffsets()
 		recordConfig.ShardIterator = result.NextShardIterator
 		time.Sleep(cons.sleepTime)
 	}
