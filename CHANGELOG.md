@@ -9,7 +9,9 @@ This is a patch / minor features release.
  * Consumer.Kinesis will renew the iterator object when hitting a timeout
  * Consumer.Kinesis now runs with an offset file set that does not exist
  * Consumer.Kinesis offset file is now written less often (after each batch)
+ * Consumer.Kafka does now retry with an "oldest" offset after encountering an OutOfRange exception.
  * Fixed a crash when using producer.ElasticSearch with date based indexes (thanks @relud)
+ * format.Base64Decode now uses data from previous formatters as intended
  
 #### New
 
