@@ -430,7 +430,7 @@ func (cons *Kafka) readFromGroup() {
 	}
 }
 
-func (cons *Kafka) startConsumer(partitionID int32) kafka.PartitionConsumer {
+func (cons *Kafka) startConsumerForPartition(partitionID int32) kafka.PartitionConsumer {
 	for !cons.client.Closed() {
 		startOffset := atomic.LoadInt64(cons.offsets[partitionID])
 		consumer, err := cons.consumer.ConsumePartition(cons.topic, partitionID, startOffset)
@@ -442,7 +442,10 @@ func (cons *Kafka) startConsumer(partitionID int32) kafka.PartitionConsumer {
 
 		// Reset offset to default value if we have an offset error
 		if err == kafka.ErrOffsetOutOfRange {
-			startOffset = cons.defaultOffset
+			// Actually we would need to see if we're out of range at the end or at the start
+			// and choose OffsetOldest or OffsetNewset accordingly.
+			// At the moment we stick to the most common case here.
+			startOffset = kafka.OffsetOldest
 			atomic.StoreInt64(cons.offsets[partitionID], startOffset)
 		} else {
 			time.Sleep(cons.persistTimeout)
@@ -457,7 +460,7 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 	cons.AddWorker()
 	defer cons.WorkerDone()
 
-	partCons := cons.startConsumer(partitionID)
+	partCons := cons.startConsumerForPartition(partitionID)
 	spin := shared.NewSpinner(shared.SpinPriorityLow)
 
 	for !cons.client.Closed() {
@@ -478,7 +481,7 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 			if !cons.client.Closed() {
 				partCons.Close()
 			}
-			partCons = cons.startConsumer(partitionID)
+			partCons = cons.startConsumerForPartition(partitionID)
 
 		default:
 			spin.Yield()
@@ -494,7 +497,7 @@ func (cons *Kafka) readPartitions(partitions []int32) {
 
 	consumers := []kafka.PartitionConsumer{}
 	for _, partitionID := range partitions {
-		consumer := cons.startConsumer(partitionID)
+		consumer := cons.startConsumerForPartition(partitionID)
 		consumers = append(consumers, consumer)
 	}
 
@@ -523,7 +526,7 @@ func (cons *Kafka) readPartitions(partitions []int32) {
 					consumer.Close()
 				}
 
-				consumer = cons.startConsumer(partition)
+				consumer = cons.startConsumerForPartition(partition)
 				consumers[idx] = consumer
 
 			default:
@@ -561,7 +564,7 @@ func (cons *Kafka) startReadTopic(topic string) {
 }
 
 // Start one consumer per partition as a go routine
-func (cons *Kafka) startConsumers() error {
+func (cons *Kafka) startAllConsumers() error {
 	var err error
 
 	if cons.group != "" {
@@ -615,7 +618,7 @@ func (cons *Kafka) dumpIndex() {
 func (cons *Kafka) Consume(workers *sync.WaitGroup) {
 	cons.SetWorkerWaitGroup(workers)
 
-	if err := cons.startConsumers(); err != nil {
+	if err := cons.startAllConsumers(); err != nil {
 		Log.Error.Print("Kafka client error - ", err)
 		time.AfterFunc(cons.config.Net.DialTimeout, func() { cons.Consume(workers) })
 		return
