@@ -11,7 +11,7 @@ func TestSplitPick_Success(t *testing.T) {
 
 	config := core.NewPluginConfig("")
 	config.Settings["SplitPickIndex"] = 0
-	config.Settings["SplitDelimiter"] = "#"
+	config.Settings["SplitPickDelimiter"] = "#"
 	plugin, err := core.NewPluginWithType("format.SplitPick", config)
 
 	expect.NoError(err)
