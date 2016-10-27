@@ -15,9 +15,7 @@
 package producer
 
 import (
-	"bytes"
-	"crypto/sha1"
-	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -26,6 +24,10 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
+	"io/ioutil"
+	"os"
+	"path"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -60,6 +62,11 @@ const (
 //    BatchTimeoutSec: 30
 //    TimestampWrite: "2006-01-02T15:04:05"
 //    PathFormatter: ""
+//    Compress: false
+//    LocalPath: ""
+//    UploadOnShutdown: false
+//    FileMaxAgeSec: 3600
+//    FileMaxMB: 1000
 //    StreamMapping:
 //      "*" : "bucket/path"
 //
@@ -106,11 +113,28 @@ const (
 // object from the object data. By default this is uses the sha1 of the object.
 // A good formatter for this can be format.Identifier.
 //
+// Compress defines whether to gzip compress the object before uploading.
+// This adds a ".gz" extension to objects. By default this is set to false.
+//
+// LocalPath defines the local output directory for temporary object files.
+// Files will be stored as "<path>/<number>". Compressed files will have a .gz
+// extension. State will be stored in "<path>/state". By default this is
+// not set, and objects will be built in memory.
+//
+// UploadOnShutdown defines whether to upload all temporary object files on
+// shutdown. This has no effect if LocalPath is not set. By default this is false.
+//
+// FileMaxAgeSec defines the maximum age of a local file before it is uploaded.
+// This defaults to 3600 (1 hour).
+//
+// FileMaxMB defines the maximum size of a local file before it is uploaded.
+// This limit is imposed before compression occurs. This defaults to 1000 (1 GB).
+//
 // StreamMapping defines a translation from gollum stream to s3 bucket/path. If
 // no mapping is given the gollum stream name is used as s3 bucket.
 // Values are of the form bucket/path or bucket, s3:// prefix is not allowed.
 // The full path of the object will be s3://<StreamMapping><Timestamp><PathFormat>
-// where Timestamp is time the object is written formatted with TimestampWrite, 
+// where Timestamp is time the object is written formatted with TimestampWrite,
 // and PathFormat is the output of PathFormatter when passed the object data.
 
 type S3 struct {
@@ -124,11 +148,22 @@ type S3 struct {
 	objectMaxMessages int
 	delimiter         []byte
 	flushFrequency    time.Duration
-	timeWrite    string
+	timeWrite         string
 	lastSendTime      time.Time
 	sendTimeLimit     time.Duration
 	counters          map[string]*int64
 	lastMetricUpdate  time.Time
+	closing           bool
+	compress          bool
+	fileMaxAge        time.Duration
+	fileMaxSize       int
+	localPath         string
+	nextFile          int64
+	objects           map[string]*objectData
+	objectsLock       *sync.Mutex
+	stateFile         string
+	uploadOnShutdown  bool
+	useFiles          bool
 }
 
 const (
@@ -137,12 +172,14 @@ const (
 )
 
 type objectData struct {
-	objects            [][]byte
-	original           [][]*core.Message
-	s3Bucket           string
-	s3Path             string
-	s3Prefix           string
-	lastObjectMessages int
+	Compressed bool
+	Created    time.Time
+	Filename   string
+	Messages   int
+	S3Path     string
+	Uploaded   bool
+	buffer     s3Buffer
+	lock       *sync.Mutex
 }
 
 func init() {
@@ -168,7 +205,60 @@ func (prod *S3) Configure(conf core.PluginConfig) error {
 	prod.lastSendTime = time.Now()
 	prod.counters = make(map[string]*int64)
 	prod.lastMetricUpdate = time.Now()
-	
+	prod.closing = false
+	prod.compress = conf.GetBool("Compress", false)
+	prod.objects = make(map[string]*objectData)
+	prod.objectsLock = new(sync.Mutex)
+	prod.uploadOnShutdown = conf.GetBool("UploadOnShutdown", false)
+	prod.fileMaxSize = conf.GetInt("FileMaxMB", 1000) * 1000000
+	prod.fileMaxAge = time.Duration(conf.GetInt("FileMaxAgeSec", 3600)) * time.Second
+
+	for _, s3Path := range prod.streamMap {
+		shared.Metric.New(s3MetricMessages + s3Path)
+		shared.Metric.New(s3MetricMessagesSec + s3Path)
+		prod.counters[s3Path] = new(int64)
+	}
+
+	prod.localPath = conf.GetString("LocalPath", "")
+	prod.useFiles = prod.localPath != ""
+	if prod.useFiles {
+		if err := os.MkdirAll(prod.localPath, 0700); err != nil {
+			return fmt.Errorf("Failed to create %s because of %s", prod.localPath, err.Error()) // ### return, missing directory ###
+		}
+		prod.stateFile = path.Join(prod.localPath, "state")
+		if _, err := os.Stat(prod.stateFile); !os.IsNotExist(err) {
+			data, err := ioutil.ReadFile(prod.stateFile)
+			if err != nil {
+				return err
+			}
+			if err := json.Unmarshal(data, &prod.objects); err != nil {
+				return err
+			}
+			for s3Path, object := range prod.objects {
+				filename := object.Filename
+				basename := path.Base(filename)
+				if basenum, err := strconv.ParseInt(basename, 10, 64); err == nil && basenum > prod.nextFile {
+					prod.nextFile = basenum
+				}
+				if object.Compressed {
+					filename += ".gz"
+				}
+				buffer, err := newS3FileBuffer(filename)
+				if err != nil {
+					return err
+				}
+				object.buffer = buffer
+				object.lock = new(sync.Mutex)
+				// add missing metrics
+				if _, exists := prod.counters[s3Path]; !exists {
+					shared.Metric.New(s3MetricMessages + s3Path)
+					shared.Metric.New(s3MetricMessagesSec + s3Path)
+					prod.counters[s3Path] = new(int64)
+				}
+			}
+		}
+	}
+
 	if conf.HasValue("PathFormatter") {
 		keyFormatter, err := core.NewPluginWithType(conf.GetString("PathFormatter", "format.Identifier"), conf)
 		if err != nil {
@@ -227,13 +317,29 @@ func (prod *S3) Configure(conf core.PluginConfig) error {
 		return fmt.Errorf("Unknown CredentialType: %s", credentialType)
 	}
 
-	for _, s3Path := range prod.streamMap {
-		shared.Metric.New(s3MetricMessages + s3Path)
-		shared.Metric.New(s3MetricMessagesSec + s3Path)
-		prod.counters[s3Path] = new(int64)
-	}
-
 	return nil
+}
+
+func (prod *S3) storeState() {
+	if prod.useFiles {
+		prod.objectsLock.Lock()
+		defer prod.objectsLock.Unlock()
+		data, err := json.Marshal(prod.objects)
+		if err == nil {
+			ioutil.WriteFile(prod.stateFile, data, 0600)
+		}
+	}
+}
+
+func (prod *S3) newS3Buffer() (buffer s3Buffer, filename string, err error) {
+	if prod.useFiles {
+		basename := atomic.AddInt64(&prod.nextFile, 1)
+		filename := path.Join(prod.localPath, strconv.FormatInt(basename, 10))
+		buffer, err := newS3FileBuffer(filename)
+		return buffer, filename, err
+	} else {
+		return newS3ByteBuffer(), "", nil
+	}
 }
 
 func (prod *S3) bufferMessage(msg core.Message) {
@@ -245,6 +351,8 @@ func (prod *S3) sendBatchOnTimeOut() {
 	if prod.batch.ReachedTimeThreshold(prod.flushFrequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2) {
 		prod.sendBatch()
 	}
+	prod.uploadAllOnTimeout()
+	prod.storeState()
 
 	duration := time.Since(prod.lastMetricUpdate)
 	prod.lastMetricUpdate = time.Now()
@@ -261,114 +369,244 @@ func (prod *S3) sendBatch() {
 	prod.batch.Flush(prod.transformMessages)
 }
 
-func (prod *S3) dropMessages(messages []core.Message) {
-	for _, msg := range messages {
-		prod.Drop(msg)
-	}
-}
-
-func (prod *S3) transformMessages(messages []core.Message) {
-	streamObjects := make(map[core.MessageStreamID]*objectData)
-
-	// Format and sort
-	for idx, msg := range messages {
-		msgData, streamID := prod.ProducerBase.Format(msg)
-
-		// Fetch buffer for this stream
-		objects, objectsExists := streamObjects[streamID]
-		if !objectsExists {
-			// Select the correct s3 path
-			s3Path, streamMapped := prod.streamMap[streamID]
-			if !streamMapped {
-				s3Path, streamMapped = prod.streamMap[core.WildcardStreamID]
-				if !streamMapped {
-					s3Path = core.StreamRegistry.GetStreamName(streamID)
-					prod.streamMap[streamID] = s3Path
-
-					shared.Metric.New(s3MetricMessages + s3Path)
-					shared.Metric.New(s3MetricMessagesSec + s3Path)
-					prod.counters[s3Path] = new(int64)
-				}
-			}
-
-			// split bucket from prefix in path
-			s3Bucket, s3Prefix := s3Path, ""
-			if strings.Contains(s3Path, "/") {
-				split := strings.SplitN(s3Path, "/", 2)
-				s3Bucket, s3Prefix = split[0], split[1]
-			}
-
-			// Create buffers for this s3 path
-			maxLength := len(messages) / prod.objectMaxMessages + 1
-			objects = &objectData{
-				objects:            make([][]byte, 0, maxLength),
-				s3Bucket:           s3Bucket,
-				s3Path:				s3Path,
-				s3Prefix:           s3Prefix,
-				original:           make([][]*core.Message, 0, maxLength),
-				lastObjectMessages: 0,
-			}
-			streamObjects[streamID] = objects
-		}
-
-		// Fetch object for this buffer
-		objectExists := len(objects.objects) > 0
-		if !objectExists || objects.lastObjectMessages + 1 > prod.objectMaxMessages {
-			// Append object to stream
-			objects.objects = append(objects.objects, make([]byte, 0, len(msgData)))
-			objects.original = append(objects.original, make([]*core.Message, 0, prod.objectMaxMessages))
-			objects.lastObjectMessages = 0
-		} else {
-			objects.objects[len(objects.objects)-1] = append(objects.objects[len(objects.objects)-1], prod.delimiter...)
-		}
-
-		// Append message to object
-		objects.objects[len(objects.objects)-1] = append(objects.objects[len(objects.objects)-1], msgData...)
-		objects.lastObjectMessages += 1
-		objects.original[len(objects.original)-1] = append(objects.original[len(objects.original)-1], &messages[idx])
+func (prod *S3) upload(object *objectData, needLock bool) error {
+	if needLock {
+		object.lock.Lock()
+		defer object.lock.Unlock()
 	}
 
+	if object.Uploaded || object.Messages == 0 {
+		return nil
+	}
+
+	// compress
+	if prod.compress && !object.Compressed {
+		if err := object.buffer.Compress(); err != nil {
+			return err
+		}
+		object.Compressed = true
+	}
+
+	// respect prod.sendTimeLimit
 	sleepDuration := prod.sendTimeLimit - time.Since(prod.lastSendTime)
 	if sleepDuration > 0 {
 		time.Sleep(sleepDuration)
 	}
+	prod.lastSendTime = time.Now()
 
+	// get bucket and key
+	bucket, key := object.S3Path, ""
+	if strings.Contains(object.S3Path, "/") {
+		split := strings.SplitN(object.S3Path, "/", 2)
+		bucket, key = split[0], split[1]
+	}
 
-	// Send to S3
-	for _, objects := range streamObjects {
-		for idx, object := range objects.objects {
-			var key string
-			if prod.pathFormat != nil {
-				timestamp := time.Now()
-				msg := core.NewMessage(nil, object, uint64(0))
-				byte_key, _ := prod.pathFormat.Format(msg)
-				key = objects.s3Prefix + timestamp.Format(prod.timeWrite) + string(byte_key)
-			} else {
-				hash := sha1.Sum(object)
-				key = objects.s3Prefix + time.Now().Format(prod.timeWrite) + hex.EncodeToString(hash[:])
+	// add timestamp
+	key += time.Now().Format(prod.timeWrite)
+
+	// add pathFormat or sha1 suffix
+	if prod.pathFormat != nil {
+		data, err := object.buffer.Bytes()
+		if err != nil {
+			return err
+		}
+		msg := core.NewMessage(nil, data, uint64(0))
+		byte_key, _ := prod.pathFormat.Format(msg)
+		key += string(byte_key)
+	} else {
+		hash, err := object.buffer.Sha1()
+		if err != nil {
+			return err
+		}
+		key += hash
+	}
+
+	// .gz file extension
+	if object.Compressed {
+		key += ".gz"
+	}
+
+	// upload object.buffer
+	params := &s3.PutObjectInput{
+		Bucket:       aws.String(bucket),
+		Key:          aws.String(key),
+		Body:         object.buffer,
+		StorageClass: aws.String(prod.storageClass),
+	}
+	_, err := prod.client.PutObject(params)
+	atomic.AddInt64(prod.counters[object.S3Path], int64(1))
+	if err != nil {
+		Log.Error.Print("S3.upload() PutObject ", bucket + key, " error:", err)
+		return err
+	}
+
+	// mark this object complete
+	object.Uploaded = true
+	return nil
+}
+
+func (prod *S3) needsUpload(object *objectData, nextMessageSize int) (bool, error) {
+	upload := object.Messages >= prod.objectMaxMessages
+	if prod.useFiles {
+		size, err := object.buffer.Size()
+		if err != nil {
+			return false, err
+		}
+		upload = upload || (size + nextMessageSize >= prod.fileMaxSize)
+		upload = upload || (time.Since(object.Created) >= prod.fileMaxAge)
+	}
+	upload = upload || (object.Compressed)
+	return upload, nil
+}
+
+func (prod *S3) uploadAllOnTimeout() {
+	prod.objectsLock.Lock()
+	defer prod.objectsLock.Unlock()
+	for s3Path, object := range prod.objects {
+		if upload, err := prod.needsUpload(object, 0); err == nil && upload {
+			if err := prod.upload(object, true); err == nil {
+				object.buffer.CloseAndDelete()
+				delete(prod.objects, s3Path)
 			}
-			params := &s3.PutObjectInput{
-				Bucket:       aws.String(objects.s3Bucket),
-				Key:          aws.String(key),
-				Body:         bytes.NewReader(object),
-				StorageClass: aws.String(prod.storageClass),
+		}
+	}
+}
+
+func (prod *S3) uploadAll() error {
+	prod.objectsLock.Lock()
+	defer prod.objectsLock.Unlock()
+	for s3Path, object := range prod.objects {
+		if err := prod.upload(object, true); err != nil {
+			return err
+		} else {
+			object.buffer.CloseAndDelete()
+			delete(prod.objects, s3Path)
+		}
+	}
+	return nil
+}
+
+func (prod *S3) appendOrUpload(object *objectData, p []byte) error {
+	// acquire lock
+	object.lock.Lock()
+	defer object.lock.Unlock()
+
+	// upload
+	needsUpload, err := prod.needsUpload(object, len(p))
+	if err != nil {
+		return err
+	} else if needsUpload {
+		if err = prod.upload(object, false); err != nil {
+			return err
+		}
+	}
+
+	// refresh object
+	if object.Uploaded {
+		buffer, filename, err := prod.newS3Buffer()
+		if err != nil {
+			return err
+		}
+		object.buffer.CloseAndDelete()
+		object.buffer = buffer
+		object.Messages = 0
+		object.Compressed = false
+		object.Uploaded = false
+		object.Filename = filename
+		object.Created = time.Now()
+	}
+
+	var data []byte
+	if object.Messages > 0 {
+		data = append(make([]byte, 0), prod.delimiter...)
+		data = append(data, p...)
+	} else {
+		data = p
+	}
+
+	// append
+	if _, err = object.buffer.Write(data); err != nil {
+		Log.Error.Print("S3.appendOrUpload() buffer.Write() error:", err)
+		return err
+	}
+	object.Messages += 1
+	return nil
+}
+
+func (prod *S3) transformMessages(messages []core.Message) {
+	bufferedMessages := make([]core.Message, 0)
+	// Format and sort
+	for _, msg := range messages {
+		msgData, streamID := prod.ProducerBase.Format(msg)
+
+		// Select the correct s3 path
+		s3Path, streamMapped := prod.streamMap[streamID]
+		if !streamMapped {
+			s3Path, streamMapped = prod.streamMap[core.WildcardStreamID]
+			if !streamMapped {
+				s3Path = core.StreamRegistry.GetStreamName(streamID)
+				prod.streamMap[streamID] = s3Path
+
+				shared.Metric.New(s3MetricMessages + s3Path)
+				shared.Metric.New(s3MetricMessagesSec + s3Path)
+				prod.counters[s3Path] = new(int64)
 			}
-			_, err := prod.client.PutObject(params)
-			atomic.AddInt64(prod.counters[objects.s3Path], int64(1))
+		}
+
+		// Fetch buffer for this stream
+		prod.objectsLock.Lock()
+		object, objectExists := prod.objects[s3Path]
+		if !objectExists {
+			// Create buffer for this s3 path
+			buffer, filename, err := prod.newS3Buffer()
 			if err != nil {
-				Log.Error.Print("S3 write error: ", err)
-				for _, msg := range objects.original[idx] {
-					prod.Drop(*msg)
-				}
+				prod.Drop(msg)
+				prod.objectsLock.Unlock()
+				continue
+			}
+			object = &objectData{
+				Compressed: false,
+				Created: time.Now(),
+				Filename: filename,
+				Messages: 0,
+				S3Path: s3Path,
+				Uploaded: false,
+				buffer: buffer,
+				lock: new(sync.Mutex),
+			}
+			prod.objects[s3Path] = object
+		}
+		prod.objectsLock.Unlock()
+
+		err := prod.appendOrUpload(object, msgData)
+		if err != nil {
+			prod.Drop(msg)
+			continue
+		}
+
+		bufferedMessages = append(bufferedMessages, msg)
+	}
+	// always upload if we aren't using file buffers
+	if !prod.useFiles {
+		err := prod.uploadAll()
+		if prod.closing && err != nil {
+			// that was the last chance to upload messages, so drop them
+			for _, msg := range bufferedMessages {
+				prod.Drop(msg)
 			}
 		}
 	}
 }
 
 func (prod *S3) close() {
+	prod.closing = true
 	defer prod.WorkerDone()
 	prod.CloseMessageChannel(prod.bufferMessage)
 	prod.batch.Close(prod.transformMessages, prod.GetShutdownTimeout())
+	if prod.useFiles && prod.uploadOnShutdown {
+		prod.uploadAll()
+	}
+	prod.storeState()
 }
 
 func (prod *S3) Produce(workers *sync.WaitGroup) {
