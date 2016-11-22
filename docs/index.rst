@@ -49,12 +49,12 @@ Running Gollum
 --------------
 
 Gollum goes into an infinte loop once started.
-You can shutdown gollum by sending a SIG_INT, i.e. Ctrl+C.
+You can shutdown gollum by sending a SIG_INT, i.e. Ctrl+C, SIG_TERM or SIG_KILL.
 Gollum has several commandline options that can be accessed by starting Gollum without any paramters:
 
 **-c, --config=""**
    Use a given configuration file.
-**-h, --help=false**
+**-h, --help**
   Print this help message.
 **-ll, --loglevel=0**
   Set the loglevel [0-3]. Higher levels produce more messages.
@@ -68,12 +68,16 @@ Gollum has several commandline options that can be accessed by starting Gollum w
   Write CPU profiler results to a given file.
 **-pm, --profilemem=""**
   Write heap profile results to a given file.
-**ps, --profilespeed=false**
+**-ps, --profilespeed**
   Write msg/sec measurements to log.
+**-r, --report**
+  Print detailed version report and exit.
 **-tc, --testconfig=""**
   Test a given configuration file and exit.
-**-v, --version=false**
-  Print version information and quit.
+**-tr, --trace**
+  Write trace results to a given file.
+**-v, --version**
+  Print version information and exit.
 
 Table of contents
 -----------------

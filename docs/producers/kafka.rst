@@ -67,6 +67,13 @@ Parameters
   ClientId sets the client id of this producer.
   By default this is "gollum".
 
+**Version**
+  Version defines the kafka protocol version to use.
+  Common values are 0.8.2, 0.9.0 or 0.10.0.
+  Values of the form "A.B" are allowed as well as "A.B.C" and "A.B.C.D".
+  Defaults to "0.8.2".
+  If the version given is not known, the closest possible version is chosen.
+
 **Partitioner**
   Partitioner sets the distribution algorithm to use.
   Valid values are: "Random","Roundrobin" and "Hash".
@@ -76,6 +83,15 @@ Parameters
   KeyFormatter can define a formatter that extracts the key for a kafka message from the message payload.
   By default this is an empty string, which disables this feature.
   A good formatter for this can be format.Identifier.
+
+**KeyFormatterFirst**
+  KeyFormatterFirst can be set to true to apply the key formatter to the unformatted message.
+  By default this is set to false, so that key formatter uses the message after Formatter has been applied.
+  KeyFormatter does never affect the payload of the message sent to kafka.
+
+**FilterAfterFormat**
+  FilterAfterFormat behaves like Filter but allows filters to be executed after the formatter has run.
+  By default no such filter is set.
 
 **RequiredAcks**
   RequiredAcks defines the acknowledgment level required by the broker.
@@ -92,7 +108,7 @@ Parameters
 
 **SendRetries**
   SendRetries defines how many times to retry sending data before marking a server as not reachable.
-  By default this is set to 0.
+  By default this is set to 1.
 
 **Compression**
   Compression sets the method of compression to use.
@@ -182,7 +198,8 @@ Example
 	    Stream:
 	        - "foo"
 	        - "bar"
-	    ClientId: "weblog"
+	    ClientId: "gollum"
+	    Version: "0.8.2"
 	    Partitioner: "Roundrobin"
 	    RequiredAcks: 1
 	    TimeoutMs: 1500
@@ -201,6 +218,8 @@ Example
 	    ElectRetries: 3
 	    ElectTimeoutMs: 250
 	    MetadataRefreshMs: 10000
+	    KeyFormatter: ""
+	    KeyFormatterFirst: false
 	    Servers:
 	        - "localhost:9092"
 	    Topic:

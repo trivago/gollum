@@ -15,13 +15,14 @@
 package producer
 
 import (
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
 	"time"
+
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 )
 
 // Spooling producer plugin
@@ -114,6 +115,7 @@ func (prod *Spooling) Configure(conf core.PluginConfigReader) error {
 	prod.BufferedProducer.Configure(conf)
 	prod.SetPrepareStopCallback(prod.waitForReader)
 	prod.SetStopCallback(prod.close)
+	prod.SetRollCallback(prod.onRoll)
 
 	serializePlugin, err := core.NewPlugin(core.NewPluginConfig("", "format.Serialize"))
 	conf.Errors.Push(err)
@@ -124,6 +126,7 @@ func (prod *Spooling) Configure(conf core.PluginConfigReader) error {
 	}
 
 	prod.path = conf.GetString("Path", "/var/run/gollum/spooling")
+
 	prod.maxFileSize = int64(conf.GetInt("MaxFileSizeMB", 512)) << 20
 	prod.maxFileAge = time.Duration(conf.GetInt("MaxFileAgeMin", 1)) * time.Minute
 	prod.batchMaxCount = conf.GetInt("Batch/MaxCount", 100)
@@ -156,24 +159,6 @@ func (prod *Spooling) Modulate(msg *core.Message) core.ModulateResult {
 	result := prod.BufferedProducer.Modulate(msg)
 	prod.serialze.Modulate(msg) // Ignore result
 	return result
-}
-
-func (prod *Spooling) writeBatchOnTimeOut() {
-	prod.outfileGuard.RLock()
-	outfiles := prod.outfile
-	prod.outfileGuard.RUnlock()
-
-	for _, spool := range outfiles {
-		read, write := spool.getAndResetCounts()
-
-		tgo.Metric.Add(spoolingMetricRead+spool.streamName, read)
-		tgo.Metric.Add(spoolingMetricWrite+spool.streamName, write)
-
-		if spool.batch.ReachedSizeThreshold(prod.batchMaxCount/2) || spool.batch.ReachedTimeThreshold(prod.batchTimeout) {
-			spool.flush()
-		}
-		spool.openOrRotate()
-	}
 }
 
 // Drop reverts the message stream before dropping
@@ -212,7 +197,7 @@ func (prod *Spooling) writeToFile(msg *core.Message) {
 	}
 
 	// Open/rotate file if nnecessary
-	if !spool.openOrRotate() {
+	if !spool.openOrRotate(false) {
 		prod.Drop(msg)
 		return // ### return, could not spool to disk ###
 	}
@@ -220,6 +205,40 @@ func (prod *Spooling) writeToFile(msg *core.Message) {
 	// Append to buffer
 	spool.batch.AppendOrFlush(msg, spool.flush, prod.IsActiveOrStopping, prod.Drop)
 	spool.countWrite()
+}
+
+func (prod *Spooling) flush(force bool) {
+	prod.outfileGuard.RLock()
+	outfiles := prod.outfile
+	prod.outfileGuard.RUnlock()
+
+	for _, spool := range outfiles {
+		read, write := spool.getAndResetCounts()
+
+		tgo.Metric.Add(spoolingMetricRead+spool.streamName, read)
+		tgo.Metric.Add(spoolingMetricWrite+spool.streamName, write)
+
+		if force || spool.batch.ReachedSizeThreshold(prod.batchMaxCount/2) || spool.batch.ReachedTimeThreshold(prod.batchTimeout) {
+			spool.flush()
+		}
+		spool.openOrRotate(force)
+	}
+}
+
+func (prod *Spooling) writeBatchOnTimeOut() {
+	prod.flush(false)
+}
+
+func (prod *Spooling) onRoll() {
+	prod.flush(true)
+
+	prod.outfileGuard.RLock()
+	outfiles := prod.outfile
+	prod.outfileGuard.RUnlock()
+
+	for _, file := range outfiles {
+		file.triggerRoll()
+	}
 }
 
 func (prod *Spooling) routeToOrigin(msg *core.Message) {

@@ -41,7 +41,7 @@ import (
 // limit is reached. By default this is disabled and set to "".
 //
 // RateLimitIgnore defines a list of streams that should not be affected by
-// rate limiting. This is usefull for e.g. producers listeing to "*".
+// rate limiting. This is useful for e.g. producers listeing to "*".
 // By default this list is empty.
 type Rate struct {
 	core.SimpleFilter
@@ -80,6 +80,7 @@ func (filter *Rate) Configure(conf core.PluginConfigReader) error {
 	for _, stream := range ignore {
 		filter.state[stream] = &rateState{
 			count:     new(int64),
+			filtered:  new(int64),
 			ignore:    true,
 			lastReset: time.Now().Add(-time.Second),
 		}
@@ -94,6 +95,10 @@ func (filter *Rate) updateMetrics() {
 	defer filter.stateGuard.RUnlock()
 
 	for streamID, state := range filter.state {
+		if state.ignore {
+			continue
+		}
+
 		streamName := core.StreamRegistry.GetStreamName(streamID)
 		numFiltered := atomic.SwapInt64(state.filtered, 0)
 

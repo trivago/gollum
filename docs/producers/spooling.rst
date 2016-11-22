@@ -104,6 +104,11 @@ Parameters
   By default this is set to 100.
   Setting this value to 0 will cause respooling to work as fast as possible.
 
+**RevertStreamOnDrop**
+  RevertStreamOnDrop can be used to revert the message stream before dropping the message.
+  This can be useful if you e.g. want to write messages that could not be spooled to stream separated files on disk.
+  Set to false by default.
+
 Example
 -------
 
@@ -131,3 +136,4 @@ Example
 	    MessageSizeByte: 8192
 	    RespoolDelaySec: 10
 	    MaxMessagesSec: 100
+	    RevertStreamOnDrop: false

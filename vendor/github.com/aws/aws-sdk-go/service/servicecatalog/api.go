@@ -18,6 +18,8 @@ const opDescribeProduct = "DescribeProduct"
 // value can be used to capture response data after the request's "Send" method
 // is called.
 //
+// See DescribeProduct for usage and error information.
+//
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
 // access properties on the request object before or after sending the request. If
@@ -52,10 +54,27 @@ func (c *ServiceCatalog) DescribeProductRequest(input *DescribeProductInput) (re
 	return
 }
 
+// DescribeProduct API operation for AWS Service Catalog.
+//
 // Retrieves information about a specified product.
 //
 // This operation is functionally identical to DescribeProductView except that
 // it takes as input ProductId instead of ProductViewId.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Service Catalog's
+// API operation DescribeProduct for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundException
+//   The specified resource was not found.
+//
+//   * InvalidParametersException
+//   One or more parameters provided to the operation are invalid.
+//
 func (c *ServiceCatalog) DescribeProduct(input *DescribeProductInput) (*DescribeProductOutput, error) {
 	req, out := c.DescribeProductRequest(input)
 	err := req.Send()
@@ -68,6 +87,8 @@ const opDescribeProductView = "DescribeProductView"
 // client's request for the DescribeProductView operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See DescribeProductView for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -103,10 +124,27 @@ func (c *ServiceCatalog) DescribeProductViewRequest(input *DescribeProductViewIn
 	return
 }
 
+// DescribeProductView API operation for AWS Service Catalog.
+//
 // Retrieves information about a specified product.
 //
 // This operation is functionally identical to DescribeProduct except that
 // it takes as input ProductViewId instead of ProductId.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Service Catalog's
+// API operation DescribeProductView for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundException
+//   The specified resource was not found.
+//
+//   * InvalidParametersException
+//   One or more parameters provided to the operation are invalid.
+//
 func (c *ServiceCatalog) DescribeProductView(input *DescribeProductViewInput) (*DescribeProductViewOutput, error) {
 	req, out := c.DescribeProductViewRequest(input)
 	err := req.Send()
@@ -119,6 +157,8 @@ const opDescribeProvisioningParameters = "DescribeProvisioningParameters"
 // client's request for the DescribeProvisioningParameters operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See DescribeProvisioningParameters for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -154,10 +194,27 @@ func (c *ServiceCatalog) DescribeProvisioningParametersRequest(input *DescribePr
 	return
 }
 
+// DescribeProvisioningParameters API operation for AWS Service Catalog.
+//
 // Provides information about parameters required to provision a specified product
 // in a specified manner. Use this operation to obtain the list of ProvisioningArtifactParameters
 // parameters available to call the ProvisionProduct operation for the specified
 // product.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Service Catalog's
+// API operation DescribeProvisioningParameters for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParametersException
+//   One or more parameters provided to the operation are invalid.
+//
+//   * ResourceNotFoundException
+//   The specified resource was not found.
+//
 func (c *ServiceCatalog) DescribeProvisioningParameters(input *DescribeProvisioningParametersInput) (*DescribeProvisioningParametersOutput, error) {
 	req, out := c.DescribeProvisioningParametersRequest(input)
 	err := req.Send()
@@ -170,6 +227,8 @@ const opDescribeRecord = "DescribeRecord"
 // client's request for the DescribeRecord operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See DescribeRecord for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -205,9 +264,23 @@ func (c *ServiceCatalog) DescribeRecordRequest(input *DescribeRecordInput) (req 
 	return
 }
 
+// DescribeRecord API operation for AWS Service Catalog.
+//
 // Retrieves a paginated list of the full details of a specific request. Use
 // this operation after calling a request operation (ProvisionProduct, TerminateProvisionedProduct,
 // or UpdateProvisionedProduct).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Service Catalog's
+// API operation DescribeRecord for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundException
+//   The specified resource was not found.
+//
 func (c *ServiceCatalog) DescribeRecord(input *DescribeRecordInput) (*DescribeRecordOutput, error) {
 	req, out := c.DescribeRecordRequest(input)
 	err := req.Send()
@@ -220,6 +293,8 @@ const opListLaunchPaths = "ListLaunchPaths"
 // client's request for the ListLaunchPaths operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See ListLaunchPaths for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -255,9 +330,26 @@ func (c *ServiceCatalog) ListLaunchPathsRequest(input *ListLaunchPathsInput) (re
 	return
 }
 
+// ListLaunchPaths API operation for AWS Service Catalog.
+//
 // Returns a paginated list of all paths to a specified product. A path is how
 // the user has access to a specified product, and is necessary when provisioning
 // a product. A path also determines the constraints put on the product.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Service Catalog's
+// API operation ListLaunchPaths for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParametersException
+//   One or more parameters provided to the operation are invalid.
+//
+//   * ResourceNotFoundException
+//   The specified resource was not found.
+//
 func (c *ServiceCatalog) ListLaunchPaths(input *ListLaunchPathsInput) (*ListLaunchPathsOutput, error) {
 	req, out := c.ListLaunchPathsRequest(input)
 	err := req.Send()
@@ -270,6 +362,8 @@ const opListRecordHistory = "ListRecordHistory"
 // client's request for the ListRecordHistory operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See ListRecordHistory for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -305,8 +399,22 @@ func (c *ServiceCatalog) ListRecordHistoryRequest(input *ListRecordHistoryInput)
 	return
 }
 
+// ListRecordHistory API operation for AWS Service Catalog.
+//
 // Returns a paginated list of all performed requests, in the form of RecordDetails
 // objects that are filtered as specified.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Service Catalog's
+// API operation ListRecordHistory for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParametersException
+//   One or more parameters provided to the operation are invalid.
+//
 func (c *ServiceCatalog) ListRecordHistory(input *ListRecordHistoryInput) (*ListRecordHistoryOutput, error) {
 	req, out := c.ListRecordHistoryRequest(input)
 	err := req.Send()
@@ -319,6 +427,8 @@ const opProvisionProduct = "ProvisionProduct"
 // client's request for the ProvisionProduct operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See ProvisionProduct for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -354,12 +464,32 @@ func (c *ServiceCatalog) ProvisionProductRequest(input *ProvisionProductInput) (
 	return
 }
 
+// ProvisionProduct API operation for AWS Service Catalog.
+//
 // Requests a Provision of a specified product. A ProvisionedProduct is a resourced
 // instance for a product. For example, provisioning a CloudFormation-template-backed
 // product results in launching a CloudFormation stack and all the underlying
 // resources that come with it.
 //
 // You can check the status of this request using the DescribeRecord operation.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Service Catalog's
+// API operation ProvisionProduct for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParametersException
+//   One or more parameters provided to the operation are invalid.
+//
+//   * ResourceNotFoundException
+//   The specified resource was not found.
+//
+//   * DuplicateResourceException
+//   The specified resource is a duplicate.
+//
 func (c *ServiceCatalog) ProvisionProduct(input *ProvisionProductInput) (*ProvisionProductOutput, error) {
 	req, out := c.ProvisionProductRequest(input)
 	err := req.Send()
@@ -372,6 +502,8 @@ const opScanProvisionedProducts = "ScanProvisionedProducts"
 // client's request for the ScanProvisionedProducts operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See ScanProvisionedProducts for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -407,8 +539,22 @@ func (c *ServiceCatalog) ScanProvisionedProductsRequest(input *ScanProvisionedPr
 	return
 }
 
+// ScanProvisionedProducts API operation for AWS Service Catalog.
+//
 // Returns a paginated list of all the ProvisionedProduct objects that are currently
 // available (not terminated).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Service Catalog's
+// API operation ScanProvisionedProducts for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParametersException
+//   One or more parameters provided to the operation are invalid.
+//
 func (c *ServiceCatalog) ScanProvisionedProducts(input *ScanProvisionedProductsInput) (*ScanProvisionedProductsOutput, error) {
 	req, out := c.ScanProvisionedProductsRequest(input)
 	err := req.Send()
@@ -421,6 +567,8 @@ const opSearchProducts = "SearchProducts"
 // client's request for the SearchProducts operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See SearchProducts for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -456,11 +604,25 @@ func (c *ServiceCatalog) SearchProductsRequest(input *SearchProductsInput) (req 
 	return
 }
 
+// SearchProducts API operation for AWS Service Catalog.
+//
 // Returns a paginated list all of the Products objects to which the caller
 // has access.
 //
 // The output of this operation can be used as input for other operations,
 // such as DescribeProductView.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Service Catalog's
+// API operation SearchProducts for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParametersException
+//   One or more parameters provided to the operation are invalid.
+//
 func (c *ServiceCatalog) SearchProducts(input *SearchProductsInput) (*SearchProductsOutput, error) {
 	req, out := c.SearchProductsRequest(input)
 	err := req.Send()
@@ -473,6 +635,8 @@ const opTerminateProvisionedProduct = "TerminateProvisionedProduct"
 // client's request for the TerminateProvisionedProduct operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See TerminateProvisionedProduct for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -508,6 +672,8 @@ func (c *ServiceCatalog) TerminateProvisionedProductRequest(input *TerminateProv
 	return
 }
 
+// TerminateProvisionedProduct API operation for AWS Service Catalog.
+//
 // Requests termination of an existing ProvisionedProduct object. If there are
 // Tags associated with the object, they are terminated when the ProvisionedProduct
 // object is terminated.
@@ -516,6 +682,18 @@ func (c *ServiceCatalog) TerminateProvisionedProductRequest(input *TerminateProv
 // object.
 //
 // You can check the status of this request using the DescribeRecord operation.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Service Catalog's
+// API operation TerminateProvisionedProduct for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundException
+//   The specified resource was not found.
+//
 func (c *ServiceCatalog) TerminateProvisionedProduct(input *TerminateProvisionedProductInput) (*TerminateProvisionedProductOutput, error) {
 	req, out := c.TerminateProvisionedProductRequest(input)
 	err := req.Send()
@@ -528,6 +706,8 @@ const opUpdateProvisionedProduct = "UpdateProvisionedProduct"
 // client's request for the UpdateProvisionedProduct operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See UpdateProvisionedProduct for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -563,6 +743,8 @@ func (c *ServiceCatalog) UpdateProvisionedProductRequest(input *UpdateProvisione
 	return
 }
 
+// UpdateProvisionedProduct API operation for AWS Service Catalog.
+//
 // Requests updates to the configuration of an existing ProvisionedProduct object.
 // If there are tags associated with the object, they cannot be updated or added
 // with this operation. Depending on the specific updates requested, this operation
@@ -570,10 +752,53 @@ func (c *ServiceCatalog) UpdateProvisionedProductRequest(input *UpdateProvisione
 // object entirely.
 //
 // You can check the status of this request using the DescribeRecord operation.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Service Catalog's
+// API operation UpdateProvisionedProduct for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParametersException
+//   One or more parameters provided to the operation are invalid.
+//
+//   * ResourceNotFoundException
+//   The specified resource was not found.
+//
 func (c *ServiceCatalog) UpdateProvisionedProduct(input *UpdateProvisionedProductInput) (*UpdateProvisionedProductOutput, error) {
 	req, out := c.UpdateProvisionedProductRequest(input)
 	err := req.Send()
 	return out, err
+}
+
+// The access level to limit results.
+type AccessLevelFilter struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the access level.
+	//
+	//  Account allows results at the account level.
+	//
+	//  Role allows results based on the federated role of the specified user.
+	//
+	//  User allows results limited to the specified user.
+	Key *string `type:"string" enum:"AccessLevelFilterKey"`
+
+	// Specifies the user to which the access level applies. A value of Self is
+	// currently supported.
+	Value *string `type:"string"`
+}
+
+// String returns the string representation
+func (s AccessLevelFilter) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AccessLevelFilter) GoString() string {
+	return s.String()
 }
 
 // An administrator-specified constraint to apply when provisioning a product.
@@ -600,7 +825,8 @@ func (s ConstraintSummary) GoString() string {
 type DescribeProductInput struct {
 	_ struct{} `type:"structure"`
 
-	// Optional language code. Supported language codes are as follows:
+	// The language code to use for this operation. Supported language codes are
+	// as follows:
 	//
 	// "en" (English)
 	//
@@ -612,7 +838,9 @@ type DescribeProductInput struct {
 	AcceptLanguage *string `type:"string"`
 
 	// The ProductId of the product to describe.
-	Id *string `type:"string" required:"true"`
+	//
+	// Id is a required field
+	Id *string `min:"1" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -630,6 +858,9 @@ func (s *DescribeProductInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DescribeProductInput"}
 	if s.Id == nil {
 		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+	if s.Id != nil && len(*s.Id) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Id", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -662,7 +893,8 @@ func (s DescribeProductOutput) GoString() string {
 type DescribeProductViewInput struct {
 	_ struct{} `type:"structure"`
 
-	// Optional language code. Supported language codes are as follows:
+	// The language code to use for this operation. Supported language codes are
+	// as follows:
 	//
 	// "en" (English)
 	//
@@ -674,7 +906,9 @@ type DescribeProductViewInput struct {
 	AcceptLanguage *string `type:"string"`
 
 	// The ProductViewId of the product to describe.
-	Id *string `type:"string" required:"true"`
+	//
+	// Id is a required field
+	Id *string `min:"1" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -692,6 +926,9 @@ func (s *DescribeProductViewInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DescribeProductViewInput"}
 	if s.Id == nil {
 		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+	if s.Id != nil && len(*s.Id) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Id", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -724,7 +961,8 @@ func (s DescribeProductViewOutput) GoString() string {
 type DescribeProvisioningParametersInput struct {
 	_ struct{} `type:"structure"`
 
-	// Optional language code. Supported language codes are as follows:
+	// The language code to use for this operation. Supported language codes are
+	// as follows:
 	//
 	// "en" (English)
 	//
@@ -738,13 +976,17 @@ type DescribeProvisioningParametersInput struct {
 	// The identifier of the path for this product's provisioning. This value is
 	// optional if the product has a default path, and is required if there is more
 	// than one path for the specified product.
-	PathId *string `type:"string"`
+	PathId *string `min:"1" type:"string"`
 
 	// The identifier of the product.
-	ProductId *string `type:"string" required:"true"`
+	//
+	// ProductId is a required field
+	ProductId *string `min:"1" type:"string" required:"true"`
 
 	// The provisioning artifact identifier for this product.
-	ProvisioningArtifactId *string `type:"string" required:"true"`
+	//
+	// ProvisioningArtifactId is a required field
+	ProvisioningArtifactId *string `min:"1" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -760,11 +1002,20 @@ func (s DescribeProvisioningParametersInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *DescribeProvisioningParametersInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DescribeProvisioningParametersInput"}
+	if s.PathId != nil && len(*s.PathId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PathId", 1))
+	}
 	if s.ProductId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ProductId"))
 	}
+	if s.ProductId != nil && len(*s.ProductId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ProductId", 1))
+	}
 	if s.ProvisioningArtifactId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ProvisioningArtifactId"))
+	}
+	if s.ProvisioningArtifactId != nil && len(*s.ProvisioningArtifactId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ProvisioningArtifactId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -801,7 +1052,8 @@ func (s DescribeProvisioningParametersOutput) GoString() string {
 type DescribeRecordInput struct {
 	_ struct{} `type:"structure"`
 
-	// Optional language code. Supported language codes are as follows:
+	// The language code to use for this operation. Supported language codes are
+	// as follows:
 	//
 	// "en" (English)
 	//
@@ -815,14 +1067,16 @@ type DescribeRecordInput struct {
 	// The record identifier of the ProvisionedProduct object for which to retrieve
 	// output information. This is the RecordDetail.RecordId obtained from the request
 	// operation's response.
-	Id *string `type:"string" required:"true"`
+	//
+	// Id is a required field
+	Id *string `min:"1" type:"string" required:"true"`
 
 	// The maximum number of items to return in the results. If more results exist
 	// than fit in the specified PageSize, the value of NextPageToken in the response
 	// is non-null.
 	PageSize *int64 `type:"integer"`
 
-	// The page token of the first page retrieve. If null, this retrieves the first
+	// The page token of the first page retrieved. If null, this retrieves the first
 	// page of size PageSize.
 	PageToken *string `type:"string"`
 }
@@ -842,6 +1096,9 @@ func (s *DescribeRecordInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DescribeRecordInput"}
 	if s.Id == nil {
 		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+	if s.Id != nil && len(*s.Id) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Id", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -885,7 +1142,7 @@ type LaunchPathSummary struct {
 	ConstraintSummaries []*ConstraintSummary `type:"list"`
 
 	// The unique identifier of the product path.
-	Id *string `type:"string"`
+	Id *string `min:"1" type:"string"`
 
 	// Corresponds to the name of the portfolio to which the user was assigned.
 	Name *string `type:"string"`
@@ -907,7 +1164,8 @@ func (s LaunchPathSummary) GoString() string {
 type ListLaunchPathsInput struct {
 	_ struct{} `type:"structure"`
 
-	// Optional language code. Supported language codes are as follows:
+	// The language code to use for this operation. Supported language codes are
+	// as follows:
 	//
 	// "en" (English)
 	//
@@ -923,12 +1181,14 @@ type ListLaunchPathsInput struct {
 	// is non-null.
 	PageSize *int64 `type:"integer"`
 
-	// The page token of the first page retrieve. If null, this retrieves the first
+	// The page token of the first page retrieved. If null, this retrieves the first
 	// page of size PageSize.
 	PageToken *string `type:"string"`
 
 	// Identifies the product for which to retrieve LaunchPathSummaries information.
-	ProductId *string `type:"string" required:"true"`
+	//
+	// ProductId is a required field
+	ProductId *string `min:"1" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -946,6 +1206,9 @@ func (s *ListLaunchPathsInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "ListLaunchPathsInput"}
 	if s.ProductId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ProductId"))
+	}
+	if s.ProductId != nil && len(*s.ProductId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ProductId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -978,7 +1241,8 @@ func (s ListLaunchPathsOutput) GoString() string {
 type ListRecordHistoryInput struct {
 	_ struct{} `type:"structure"`
 
-	// Optional language code. Supported language codes are as follows:
+	// The language code to use for this operation. Supported language codes are
+	// as follows:
 	//
 	// "en" (English)
 	//
@@ -989,16 +1253,20 @@ type ListRecordHistoryInput struct {
 	// If no code is specified, "en" is used as the default.
 	AcceptLanguage *string `type:"string"`
 
+	// The access level for obtaining results. If left unspecified, User level access
+	// is used.
+	AccessLevelFilter *AccessLevelFilter `type:"structure"`
+
 	// The maximum number of items to return in the results. If more results exist
 	// than fit in the specified PageSize, the value of NextPageToken in the response
 	// is non-null.
 	PageSize *int64 `type:"integer"`
 
-	// The page token of the first page retrieve. If null, this retrieves the first
+	// The page token of the first page retrieved. If null, this retrieves the first
 	// page of size PageSize.
 	PageToken *string `type:"string"`
 
-	// (Optional) The filter to limit search results.
+	// The filter to limit search results.
 	SearchFilter *ListRecordHistorySearchFilter `type:"structure"`
 }
 
@@ -1110,7 +1378,7 @@ type ProductViewSummary struct {
 	HasDefaultPath *bool `type:"boolean"`
 
 	// The product view identifier.
-	Id *string `type:"string"`
+	Id *string `min:"1" type:"string"`
 
 	// The name of the product.
 	Name *string `type:"string"`
@@ -1120,7 +1388,7 @@ type ProductViewSummary struct {
 	Owner *string `type:"string"`
 
 	// The product identifier.
-	ProductId *string `type:"string"`
+	ProductId *string `min:"1" type:"string"`
 
 	// Short description of the product.
 	ShortDescription *string `type:"string"`
@@ -1152,7 +1420,8 @@ func (s ProductViewSummary) GoString() string {
 type ProvisionProductInput struct {
 	_ struct{} `type:"structure"`
 
-	// Optional language code. Supported language codes are as follows:
+	// The language code to use for this operation. Supported language codes are
+	// as follows:
 	//
 	// "en" (English)
 	//
@@ -1170,27 +1439,35 @@ type ProvisionProductInput struct {
 	// The identifier of the path for this product's provisioning. This value is
 	// optional if the product has a default path, and is required if there is more
 	// than one path for the specified product.
-	PathId *string `type:"string"`
+	PathId *string `min:"1" type:"string"`
 
 	// The identifier of the product.
-	ProductId *string `type:"string" required:"true"`
+	//
+	// ProductId is a required field
+	ProductId *string `min:"1" type:"string" required:"true"`
 
 	// An idempotency token that uniquely identifies the provisioning request.
+	//
+	// ProvisionToken is a required field
 	ProvisionToken *string `min:"1" type:"string" required:"true" idempotencyToken:"true"`
 
 	// A user-friendly name to identify the ProvisionedProduct object. This value
 	// must be unique for the AWS account and cannot be updated after the product
 	// is provisioned.
+	//
+	// ProvisionedProductName is a required field
 	ProvisionedProductName *string `type:"string" required:"true"`
 
 	// The provisioning artifact identifier for this product.
-	ProvisioningArtifactId *string `type:"string" required:"true"`
+	//
+	// ProvisioningArtifactId is a required field
+	ProvisioningArtifactId *string `min:"1" type:"string" required:"true"`
 
 	// Parameters specified by the administrator that are required for provisioning
 	// the product.
 	ProvisioningParameters []*ProvisioningParameter `type:"list"`
 
-	// (Optional) A list of tags to use as provisioning options.
+	// A list of tags to use as provisioning options.
 	Tags []*Tag `type:"list"`
 }
 
@@ -1207,8 +1484,14 @@ func (s ProvisionProductInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *ProvisionProductInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "ProvisionProductInput"}
+	if s.PathId != nil && len(*s.PathId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PathId", 1))
+	}
 	if s.ProductId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ProductId"))
+	}
+	if s.ProductId != nil && len(*s.ProductId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ProductId", 1))
 	}
 	if s.ProvisionToken == nil {
 		invalidParams.Add(request.NewErrParamRequired("ProvisionToken"))
@@ -1221,6 +1504,9 @@ func (s *ProvisionProductInput) Validate() error {
 	}
 	if s.ProvisioningArtifactId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ProvisioningArtifactId"))
+	}
+	if s.ProvisioningArtifactId != nil && len(*s.ProvisioningArtifactId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ProvisioningArtifactId", 1))
 	}
 	if s.Tags != nil {
 		for i, v := range s.Tags {
@@ -1313,7 +1599,7 @@ type ProvisioningArtifact struct {
 	Description *string `type:"string"`
 
 	// The identifier for the artifact.
-	Id *string `type:"string"`
+	Id *string `min:"1" type:"string"`
 
 	// The name of the artifact.
 	Name *string `type:"string"`
@@ -1395,13 +1681,13 @@ type RecordDetail struct {
 	CreatedTime *time.Time `type:"timestamp" timestampFormat:"unix"`
 
 	// The identifier of the path for this product's provisioning.
-	PathId *string `type:"string"`
+	PathId *string `min:"1" type:"string"`
 
 	// The identifier of the product.
-	ProductId *string `type:"string"`
+	ProductId *string `min:"1" type:"string"`
 
 	// The identifier of the ProvisionedProduct object.
-	ProvisionedProductId *string `type:"string"`
+	ProvisionedProductId *string `min:"1" type:"string"`
 
 	// The user-friendly name of the ProvisionedProduct object.
 	ProvisionedProductName *string `type:"string"`
@@ -1410,13 +1696,13 @@ type RecordDetail struct {
 	ProvisionedProductType *string `type:"string"`
 
 	// The provisioning artifact identifier for this product.
-	ProvisioningArtifactId *string `type:"string"`
+	ProvisioningArtifactId *string `min:"1" type:"string"`
 
 	// A list of errors that occurred while processing the request.
 	RecordErrors []*RecordError `type:"list"`
 
 	// The identifier of the ProvisionedProduct object record.
-	RecordId *string `type:"string"`
+	RecordId *string `min:"1" type:"string"`
 
 	// List of tags associated with this record.
 	RecordTags []*RecordTag `type:"list"`
@@ -1512,7 +1798,8 @@ func (s RecordTag) GoString() string {
 type ScanProvisionedProductsInput struct {
 	_ struct{} `type:"structure"`
 
-	// Optional language code. Supported language codes are as follows:
+	// The language code to use for this operation. Supported language codes are
+	// as follows:
 	//
 	// "en" (English)
 	//
@@ -1523,12 +1810,16 @@ type ScanProvisionedProductsInput struct {
 	// If no code is specified, "en" is used as the default.
 	AcceptLanguage *string `type:"string"`
 
+	// The access level for obtaining results. If left unspecified, User level access
+	// is used.
+	AccessLevelFilter *AccessLevelFilter `type:"structure"`
+
 	// The maximum number of items to return in the results. If more results exist
 	// than fit in the specified PageSize, the value of NextPageToken in the response
 	// is non-null.
 	PageSize *int64 `type:"integer"`
 
-	// The page token of the first page retrieve. If null, this retrieves the first
+	// The page token of the first page retrieved. If null, this retrieves the first
 	// page of size PageSize.
 	PageToken *string `type:"string"`
 }
@@ -1567,7 +1858,8 @@ func (s ScanProvisionedProductsOutput) GoString() string {
 type SearchProductsInput struct {
 	_ struct{} `type:"structure"`
 
-	// Optional language code. Supported language codes are as follows:
+	// The language code to use for this operation. Supported language codes are
+	// as follows:
 	//
 	// "en" (English)
 	//
@@ -1578,9 +1870,9 @@ type SearchProductsInput struct {
 	// If no code is specified, "en" is used as the default.
 	AcceptLanguage *string `type:"string"`
 
-	// (Optional) The list of filters with which to limit search results. If no
-	// search filters are specified, the output is all the products to which the
-	// calling user has access.
+	// The list of filters with which to limit search results. If no search filters
+	// are specified, the output is all the products to which the calling user has
+	// access.
 	Filters map[string][]*string `type:"map"`
 
 	// The maximum number of items to return in the results. If more results exist
@@ -1588,16 +1880,14 @@ type SearchProductsInput struct {
 	// is non-null.
 	PageSize *int64 `type:"integer"`
 
-	// The page token of the first page retrieve. If null, this retrieves the first
+	// The page token of the first page retrieved. If null, this retrieves the first
 	// page of size PageSize.
 	PageToken *string `type:"string"`
 
-	// (Optional) The sort field specifier. If no value is specified, results are
-	// not sorted.
+	// The sort field specifier. If no value is specified, results are not sorted.
 	SortBy *string `type:"string" enum:"ProductViewSortBy"`
 
-	// (Optional) The sort order specifier. If no value is specified, results are
-	// not sorted.
+	// The sort order specifier. If no value is specified, results are not sorted.
 	SortOrder *string `type:"string" enum:"SortOrder"`
 }
 
@@ -1635,8 +1925,8 @@ func (s SearchProductsOutput) GoString() string {
 	return s.String()
 }
 
-// Optional key/value pairs to associate with this provisioning. These tags
-// are propagated to the resources created in the provisioning.
+// Key/value pairs to associate with this provisioning. These tags are entirely
+// discretionary and are propagated to the resources created in the provisioning.
 type Tag struct {
 	_ struct{} `type:"structure"`
 
@@ -1676,7 +1966,8 @@ func (s *Tag) Validate() error {
 type TerminateProvisionedProductInput struct {
 	_ struct{} `type:"structure"`
 
-	// Optional language code. Supported language codes are as follows:
+	// The language code to use for this operation. Supported language codes are
+	// as follows:
 	//
 	// "en" (English)
 	//
@@ -1687,14 +1978,13 @@ type TerminateProvisionedProductInput struct {
 	// If no code is specified, "en" is used as the default.
 	AcceptLanguage *string `type:"string"`
 
-	// Optional Boolean parameter. If set to true, AWS Service Catalog stops managing
-	// the specified ProvisionedProduct object even if it cannot delete the underlying
-	// resources.
+	// If set to true, AWS Service Catalog stops managing the specified ProvisionedProduct
+	// object even if it cannot delete the underlying resources.
 	IgnoreErrors *bool `type:"boolean"`
 
 	// The identifier of the ProvisionedProduct object to terminate. You must specify
 	// either ProvisionedProductName or ProvisionedProductId, but not both.
-	ProvisionedProductId *string `type:"string"`
+	ProvisionedProductId *string `min:"1" type:"string"`
 
 	// The name of the ProvisionedProduct object to terminate. You must specify
 	// either ProvisionedProductName or ProvisionedProductId, but not both.
@@ -1704,6 +1994,8 @@ type TerminateProvisionedProductInput struct {
 	// token is only valid during the termination process. After the ProvisionedProduct
 	// object is terminated, further requests to terminate the same ProvisionedProduct
 	// object always return ResourceNotFound regardless of the value of TerminateToken.
+	//
+	// TerminateToken is a required field
 	TerminateToken *string `min:"1" type:"string" required:"true" idempotencyToken:"true"`
 }
 
@@ -1720,6 +2012,9 @@ func (s TerminateProvisionedProductInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *TerminateProvisionedProductInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "TerminateProvisionedProductInput"}
+	if s.ProvisionedProductId != nil && len(*s.ProvisionedProductId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ProvisionedProductId", 1))
+	}
 	if s.ProvisionedProductName != nil && len(*s.ProvisionedProductName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ProvisionedProductName", 1))
 	}
@@ -1759,7 +2054,8 @@ func (s TerminateProvisionedProductOutput) GoString() string {
 type UpdateProvisionedProductInput struct {
 	_ struct{} `type:"structure"`
 
-	// Optional language code. Supported language codes are as follows:
+	// The language code to use for this operation. Supported language codes are
+	// as follows:
 	//
 	// "en" (English)
 	//
@@ -1773,27 +2069,29 @@ type UpdateProvisionedProductInput struct {
 	// The identifier of the path to use in the updated ProvisionedProduct object.
 	// This value is optional if the product has a default path, and is required
 	// if there is more than one path for the specified product.
-	PathId *string `type:"string"`
+	PathId *string `min:"1" type:"string"`
 
 	// The identifier of the ProvisionedProduct object.
-	ProductId *string `type:"string"`
+	ProductId *string `min:"1" type:"string"`
 
 	// The identifier of the ProvisionedProduct object to update. You must specify
 	// either ProvisionedProductName or ProvisionedProductId, but not both.
-	ProvisionedProductId *string `type:"string"`
+	ProvisionedProductId *string `min:"1" type:"string"`
 
 	// The updated name of the ProvisionedProduct object . You must specify either
 	// ProvisionedProductName or ProvisionedProductId, but not both.
 	ProvisionedProductName *string `min:"1" type:"string"`
 
 	// The provisioning artifact identifier for this product.
-	ProvisioningArtifactId *string `type:"string"`
+	ProvisioningArtifactId *string `min:"1" type:"string"`
 
 	// A list of ProvisioningParameter objects used to update the ProvisionedProduct
 	// object.
 	ProvisioningParameters []*UpdateProvisioningParameter `type:"list"`
 
 	// The idempotency token that uniquely identifies the provisioning update request.
+	//
+	// UpdateToken is a required field
 	UpdateToken *string `min:"1" type:"string" required:"true" idempotencyToken:"true"`
 }
 
@@ -1810,8 +2108,20 @@ func (s UpdateProvisionedProductInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *UpdateProvisionedProductInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "UpdateProvisionedProductInput"}
+	if s.PathId != nil && len(*s.PathId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PathId", 1))
+	}
+	if s.ProductId != nil && len(*s.ProductId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ProductId", 1))
+	}
+	if s.ProvisionedProductId != nil && len(*s.ProvisionedProductId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ProvisionedProductId", 1))
+	}
 	if s.ProvisionedProductName != nil && len(*s.ProvisionedProductName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ProvisionedProductName", 1))
+	}
+	if s.ProvisioningArtifactId != nil && len(*s.ProvisioningArtifactId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ProvisioningArtifactId", 1))
 	}
 	if s.UpdateToken == nil {
 		invalidParams.Add(request.NewErrParamRequired("UpdateToken"))
@@ -1896,35 +2206,53 @@ func (s UsageInstruction) GoString() string {
 }
 
 const (
-	// @enum ProductViewFilterBy
+	// AccessLevelFilterKeyAccount is a AccessLevelFilterKey enum value
+	AccessLevelFilterKeyAccount = "Account"
+
+	// AccessLevelFilterKeyRole is a AccessLevelFilterKey enum value
+	AccessLevelFilterKeyRole = "Role"
+
+	// AccessLevelFilterKeyUser is a AccessLevelFilterKey enum value
+	AccessLevelFilterKeyUser = "User"
+)
+
+const (
+	// ProductViewFilterByFullTextSearch is a ProductViewFilterBy enum value
 	ProductViewFilterByFullTextSearch = "FullTextSearch"
-	// @enum ProductViewFilterBy
+
+	// ProductViewFilterByOwner is a ProductViewFilterBy enum value
 	ProductViewFilterByOwner = "Owner"
-	// @enum ProductViewFilterBy
+
+	// ProductViewFilterByProductType is a ProductViewFilterBy enum value
 	ProductViewFilterByProductType = "ProductType"
 )
 
 const (
-	// @enum ProductViewSortBy
+	// ProductViewSortByTitle is a ProductViewSortBy enum value
 	ProductViewSortByTitle = "Title"
-	// @enum ProductViewSortBy
+
+	// ProductViewSortByVersionCount is a ProductViewSortBy enum value
 	ProductViewSortByVersionCount = "VersionCount"
-	// @enum ProductViewSortBy
+
+	// ProductViewSortByCreationDate is a ProductViewSortBy enum value
 	ProductViewSortByCreationDate = "CreationDate"
 )
 
 const (
-	// @enum RecordStatus
+	// RecordStatusInProgress is a RecordStatus enum value
 	RecordStatusInProgress = "IN_PROGRESS"
-	// @enum RecordStatus
+
+	// RecordStatusSucceeded is a RecordStatus enum value
 	RecordStatusSucceeded = "SUCCEEDED"
-	// @enum RecordStatus
+
+	// RecordStatusError is a RecordStatus enum value
 	RecordStatusError = "ERROR"
 )
 
 const (
-	// @enum SortOrder
+	// SortOrderAscending is a SortOrder enum value
 	SortOrderAscending = "ASCENDING"
-	// @enum SortOrder
+
+	// SortOrderDescending is a SortOrder enum value
 	SortOrderDescending = "DESCENDING"
 )

@@ -16,13 +16,14 @@ package consumer
 
 import (
 	"fmt"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"math"
 	"math/rand"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 )
 
 // Profiler consumer plugin
@@ -175,6 +176,7 @@ func (cons *Profiler) profile() {
 	minTime := math.MaxFloat64
 	maxTime := 0.0
 	batchIdx := 0
+	messageCount := 0
 
 	for batchIdx = 0; batchIdx < cons.batches && cons.IsActive(); batchIdx++ {
 		cons.Log.Note.Print(fmt.Sprintf("run %d/%d", batchIdx, cons.batches))
@@ -183,6 +185,7 @@ func (cons *Profiler) profile() {
 		for i := 0; i < cons.profileRuns && cons.IsActive(); i++ {
 			cons.WaitOnFuse()
 			template := cons.templates[rand.Intn(len(cons.templates))]
+			messageCount++
 
 			cons.Enqueue(template)
 
@@ -192,26 +195,28 @@ func (cons *Profiler) profile() {
 		}
 
 		runTime := time.Since(start)
-		minTime = math.Min(minTime, runTime.Seconds())
-		maxTime = math.Max(maxTime, runTime.Seconds())
+		if messageCount%cons.profileRuns == 0 {
+			minTime = math.Min(minTime, runTime.Seconds())
+			maxTime = math.Max(maxTime, runTime.Seconds())
+		}
 	}
 
 	runTime := time.Since(testStart)
 
-	cons.Log.Note.Print(fmt.Sprintf(
-		"Avg: %.4f sec = %4.f msg/sec",
-		runTime.Seconds(),
-		float64(cons.profileRuns*batchIdx)/runTime.Seconds()))
+	cons.Log.Note.Printf("Overview: %d messages sent in %.4f seconds",
+		messageCount,
+		runTime.Seconds())
 
-	cons.Log.Note.Print(fmt.Sprintf(
-		"Best: %.4f sec = %4.f msg/sec",
+	cons.Log.Note.Printf("Avg: %4.f msg/sec",
+		float64(messageCount)/runTime.Seconds())
+
+	cons.Log.Note.Printf("Best: %.4f sec = %4.f msg/sec",
 		minTime,
-		float64(cons.profileRuns)/minTime))
+		float64(cons.profileRuns)/minTime)
 
-	cons.Log.Note.Print(fmt.Sprintf(
-		"Worst: %.4f sec = %4.f msg/sec",
+	cons.Log.Note.Printf("Worst: %.4f sec = %4.f msg/sec",
 		maxTime,
-		float64(cons.profileRuns)/maxTime))
+		float64(cons.profileRuns)/maxTime)
 
 	if cons.IsActive() {
 		cons.Log.Debug.Print("Profiler done.")

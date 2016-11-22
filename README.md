@@ -4,7 +4,7 @@
 
 [![GoDoc](https://godoc.org/github.com/trivago/gollum?status.svg)](https://godoc.org/github.com/trivago/gollum)
 [![Documentation Status](https://readthedocs.org/projects/gollum/badge/?version=latest)](http://gollum.readthedocs.org/en/latest/)
-[![Go Report Card](http://goreportcard.com/badge/trivago/gollum)](http://goreportcard.com/report/trivago/gollum)
+[![Go Report Card](https://goreportcard.com/badge/github.com/trivago/gollum)](https://goreportcard.com/report/github.com/trivago/gollum)
 [![Build Status](https://travis-ci.org/trivago/gollum.svg?branch=v0.4.3dev)](https://travis-ci.org/trivago/gollum)
 [![License](https://img.shields.io/badge/license-apache%202.0-lightgrey.svg)](https://github.com/trivago/gollum/blob/master/LICENSE)
 
@@ -21,6 +21,10 @@ There are a few basic terms used throughout Gollum:
 
 Writing a custom plugin does not require you to change any additional code besides your new plugin file.
 
+## Documentation
+
+A how-to-use documentation can be found on [read the docs](http://gollum.readthedocs.org/en/latest/). Developers should use the [godoc pages](https://godoc.org/github.com/trivago/gollum) to get started. Plugin documentation is generated from the plugin source code. So if you feel that something is missing a look into the code may help.
+
 ## Consumers (reading data)
 
 * `Console` read from stdin.
@@ -32,18 +36,21 @@ Writing a custom plugin does not require you to change any additional code besid
 * `Proxy` use in combination with a proxy producer to enable two-way communication.
 * `Socket` read from a socket (gollum specific protocol).
 * `Syslogd` read from a socket (syslogd protocol).
+* `SystemD` read from the SystemD journal.
 
 ## Producers (writing data)
 
 * `Console` write to stdin or stdout.
 * `ElasticSearch` write to [elasticsearch](http://www.elasticsearch.org/) via http/bulk.
 * `File` write to a file. Supports log rotation and compression.
+* `Firehose` write data to a [Firehose](https://aws.amazon.com/de/firehose/) stream.
 * `HTTPRequest` HTTP request forwarder.
 * `InfluxDB` send data to an [InfluxDB](https://influxdb.com) server.
 * `Kafka` write to a [Kafka](http://kafka.apache.org/) topic.
 * `Kinesis` write data to a [Kinesis](https://aws.amazon.com/de/kinesis/) stream.
 * `Null` like /dev/null.
 * `Proxy` two-way communication proxy for simple protocols.
+* `S3` write data to [Amazon S3](https://aws.amazon.com/de/s3/) stream.
 * `Scribe` send messages to a [Facebook scribe](https://github.com/facebookarchive/scribe) server.
 * `Socket` send messages to a socket (gollum specific protocol).
 * `Spooling` write messages to disk and retry them later.
@@ -60,6 +67,7 @@ Writing a custom plugin does not require you to change any additional code besid
 
 * `Base64Encode` encode messages to base64.
 * `Base64Decode` decode messages from base64.
+* `Clear` clears a message
 * `CollectdToInflux08` convert [CollectD](https://collectd.org) 0.8 data to [InfluxDB](https://influxdb.com) compatible values.
 * `CollectdToInflux09` convert [CollectD](https://collectd.org) 0.9 data to [InfluxDB](https://influxdb.com) compatible values.
 * `CollectdToInflux10` convert [CollectD](https://collectd.org) 0.10 data to [InfluxDB](https://influxdb.com) compatible values.
@@ -69,7 +77,8 @@ Writing a custom plugin does not require you to change any additional code besid
 * `Hostname` prepend the current machine's hostname to a message.
 * `Identifier` hash the message to generate a (mostly) unique id.
 * `JSON` write the message as a JSON object. Messages can be parsed to generate fields.
-* `ProcessJSON` Modify fields of a JSON object.
+* `ProcessJSON` Modify fields of a JSON encoded message.
+* `ProcessTSV` Modify fields of a TSV encoded message.
 * `Runlength` prepend the length of the message.
 * `Sequence` prepend the sequence number of the message.
 * `SplitToJSON` tokenize a message and put the values into JSON fields.
@@ -158,9 +167,17 @@ Write heap profile results to a given file.
 
 Write msg/sec measurements to log.
 
+#### `-r` or `--report`
+
+Print detailed version report and quit.
+
 #### `-tc` or `--testconfig` [file]
 
 Test a given configuration file and exit.
+
+#### `-tr` or `--trace` [file]
+
+Write trace results to a given file.
 
 #### `-v` or `--version`
 

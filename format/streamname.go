@@ -32,7 +32,7 @@ import (
 // message. By default this is set to "format.Envelope"
 //
 // StreamNameHistory can be set to true to not use the current but the previous
-// stream name. This can be usefull to e.g. get the name of the stream messages
+// stream name. This can be useful to e.g. get the name of the stream messages
 // were dropped from. By default this is set to false.
 //
 // StreamNameSeparator sets the separator character placed after the stream name.

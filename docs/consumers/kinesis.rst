@@ -60,6 +60,10 @@ Parameters
   RecordsPerQuery defines the number of records to pull per query.
   By default this is set to 100.
 
+**RecordMessageDelimiter**
+  RecordMessageDelimiter defines the string to delimit messages within a record.
+  By default this is set to "", i.e. it is disabled.
+
 **QuerySleepTimeMs**
   QuerySleepTimeMs defines the number of milliseconds to sleep before trying to pull new records from a shard that did not return any records.
   By default this is set to 1000.
@@ -86,6 +90,7 @@ Example
 	    DefaultOffset: "Newest"
 	    OffsetFile: ""
 	    RecordsPerQuery: 100
+	    RecordMessageDelimiter: ""
 	    QuerySleepTimeMs: 1000
 	    RetrySleepTimeSec: 4
 	    CredentialType: "none"

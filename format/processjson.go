@@ -21,6 +21,7 @@ import (
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -49,19 +50,24 @@ import (
 // ProcessJSONDirectives defines the action to be applied to the json payload.
 // Directives are processed in order of appearance.
 // The directives have to be given in the form of key:operation:parameters, where
-// operation can be one of the following:
-// - split:<string>:{<key>:<key>:...} Split the value by a string and set the
-// resulting array elements to the given fields in order of appearance.
-// - replace:<old>:<new> replace a given string in the value with a new one
-// - trim:<characters> remove the given characters (not string!) from the start
-// and end of the value
-// - rename:<old>:<new> rename a given field
-// - remove remove a given field
-// - timestamp:<read>:<write> read a timestamp and transform it into another
-// format
-// - agent:{<user_agent_field>:<user_agent_field>:...} Parse the value as a user
-// agent string and extract the given fields into <key>_<user_agent_field>
-// ("ua:agent:browser:os" would create the new fields "ua_browser" and "ua_os")
+// operation can be one of the following.
+//  * split:<string>:{<key>:<key>:...} Split the value by a string and set the
+//    resulting array elements to the given fields in order of appearance.
+//  * replace:<old>:<new> replace a given string in the value with a new one
+//  * trim:<characters> remove the given characters (not string!) from the start
+//    and end of the value
+//  * rename:<old>:<new> rename a given field
+//  * remove remove a given field
+//  * time:<read>:<write> read a timestamp and transform it into another
+//    format
+//  * unixtimestamp:<read>:<write> read a unix timestamp and transform it into another
+//    format. valid read formats are s, ms, and ns.
+//  * agent:{<user_agent_field>:<user_agent_field>:...} Parse the value as a user
+//    agent string and extract the given fields into <key>_<user_agent_field>
+//    ("ua:agent:browser:os" would create the new fields "ua_browser" and "ua_os")
+//  * flatten:{<delimiter>} create new fields from the values in field, with new
+//    fields named field + delimiter + subfield. Delimiter defaults to ".".
+//    Removes the original field.
 //
 // ProcessJSONTrimValues will trim whitspaces from all values if enabled.
 // Enabled by default.
@@ -134,11 +140,34 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 			}
 
 			if numParameters == 2 {
+
 				if timestamp, err := time.Parse(directive.parameters[0], stringValue[:len(directive.parameters[0])]); err != nil {
 					format.Log.Warning.Print("ProcessJSON failed to parse a timestamp: ", err)
 				} else {
 					(*values)[directive.key] = timestamp.Format(directive.parameters[1])
 				}
+			}
+
+		case "unixtimestamp":
+			floatValue, err := values.Float64(directive.key)
+			if err != nil {
+				format.Log.Warning.Print(err.Error())
+				return
+			}
+			intValue := int64(floatValue)
+			if numParameters == 2 {
+				s, ns := int64(0), int64(0)
+				switch directive.parameters[0] {
+				case "s":
+					s = intValue
+				case "ms":
+					ns = intValue * int64(time.Millisecond)
+				case "ns":
+					ns = intValue
+				default:
+					return
+				}
+				(*values)[directive.key] = time.Unix(s, ns).Format(directive.parameters[1])
 			}
 
 		case "split":
@@ -228,6 +257,26 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 					_, (*values)[directive.key+"_version"] = ua.Browser()
 				}
 			}
+
+		case "flatten":
+			delimiter := "."
+			if numParameters == 1 {
+				delimiter = directive.parameters[0]
+			}
+			keyPrefix := directive.key + delimiter
+			if mapValue, err := values.Map(directive.key); err == nil {
+				for key, val := range mapValue {
+					(*values)[keyPrefix + key.(string)] = val
+				}
+			} else if arrayValue, err := values.Array(directive.key); err == nil {
+				for index, val := range arrayValue {
+					(*values)[keyPrefix + strconv.Itoa(index)] = val
+				}
+			} else {
+				format.Log.Warning.Print("key was not a JSON array or object: " + directive.key)
+				return
+			}
+			delete(*values, directive.key)
 		}
 	}
 }

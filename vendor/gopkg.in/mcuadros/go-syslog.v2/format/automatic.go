@@ -6,7 +6,6 @@ import (
 	"errors"
 	"strconv"
 
-	"gopkg.in/mcuadros/go-syslog.v2/internal/syslogparser"
 	"gopkg.in/mcuadros/go-syslog.v2/internal/syslogparser/rfc3164"
 	"gopkg.in/mcuadros/go-syslog.v2/internal/syslogparser/rfc5424"
 )
@@ -57,12 +56,12 @@ func detect(data []byte) (detected int, err error) {
 	return detectedUnknown, nil
 }
 
-func (f *Automatic) GetParser(line []byte) syslogparser.LogParser {
+func (f *Automatic) GetParser(line []byte) LogParser {
 	switch format, _ := detect(line); format {
 	case detectedRFC3164:
-		return rfc3164.NewParser(line)
+		return &parserWrapper{rfc3164.NewParser(line)}
 	case detectedRFC5424:
-		return rfc5424.NewParser(line)
+		return &parserWrapper{rfc5424.NewParser(line)}
 	default:
 		// If the line was an RFC6587 line, the splitter should already have removed the length,
 		// so one of the above two will be chosen if the line is correctly formed. However, it
@@ -70,7 +69,7 @@ func (f *Automatic) GetParser(line []byte) syslogparser.LogParser {
 		// will return detectedRFC6587. The line may also simply be malformed after the length in
 		// which case we will have detectedUnknown. In this case we return the simplest parser so
 		// the illegally formatted line is properly handled
-		return rfc3164.NewParser(line)
+		return &parserWrapper{rfc3164.NewParser(line)}
 	}
 }
 

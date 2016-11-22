@@ -17,11 +17,6 @@ package producer
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
-	"github.com/trivago/tgo/tio"
-	"github.com/trivago/tgo/tmath"
-	"github.com/trivago/tgo/tstrings"
 	"io"
 	"io/ioutil"
 	"os"
@@ -29,21 +24,28 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tio"
+	"github.com/trivago/tgo/tmath"
+	"github.com/trivago/tgo/tstrings"
 )
 
 type spoolFile struct {
 	file        *os.File
-	source      core.MessageSource
 	batch       core.MessageBatch
 	assembly    core.WriterAssembly
-	reader      *tio.BufferedReader
-	readWorker  *sync.WaitGroup
-	prod        *Spooling
 	fileCreated time.Time
 	streamName  string
 	basePath    string
+	prod        *Spooling
+	source      core.MessageSource
 	readCount   int64
 	writeCount  int64
+	readWorker  *sync.WaitGroup
+	roll        chan struct{}
+	reader      *tio.BufferedReader
 }
 
 const maxSpoolFileNumber = 99999999 // maximum file number defined by %08d -> 8 digits
@@ -61,6 +63,7 @@ func newSpoolFile(prod *Spooling, streamName string, source core.MessageSource) 
 		source:      source,
 		readWorker:  &sync.WaitGroup{},
 		reader:      tio.NewBufferedReader(prod.bufferSizeByte, tio.BufferedReaderFlagDelimiter, 0, "\n"),
+		roll:        make(chan struct{}, 1),
 	}
 
 	writeMetric := spoolingMetricWrite + streamName
@@ -72,6 +75,10 @@ func newSpoolFile(prod *Spooling, streamName string, source core.MessageSource) 
 	tgo.Metric.NewRate(readMetric, spoolingMetricReadSec+streamName, time.Second, 10, 3, true)
 	go spool.read()
 	return spool
+}
+
+func (spool *spoolFile) triggerRoll() {
+	spool.roll <- struct{}{}
 }
 
 func (spool *spoolFile) flush() {
@@ -112,7 +119,7 @@ func (spool *spoolFile) getFileNumbering() (min int, max int) {
 	return min, max
 }
 
-func (spool *spoolFile) openOrRotate() bool {
+func (spool *spoolFile) openOrRotate(force bool) bool {
 	err := spool.batch.AfterFlushDo(func() error {
 		fileSize := int64(0)
 
@@ -124,7 +131,7 @@ func (spool *spoolFile) openOrRotate() bool {
 			fileSize = fileInfo.Size()
 		}
 
-		if spool.file == nil ||
+		if force || spool.file == nil ||
 			fileSize >= spool.prod.maxFileSize ||
 			(fileSize > 0 && time.Since(spool.fileCreated) > spool.prod.maxFileAge) {
 
@@ -193,10 +200,15 @@ func (spool *spoolFile) read() {
 			}
 
 			spool.prod.WorkerDone() // to avoid being stuck during shutdown
-			time.Sleep(spool.prod.maxFileAge / 2)
-			spool.prod.AddWorker() // worker done is always called at exit
 
-			continue // ### continue, try again ###
+			retry := time.After(spool.prod.maxFileAge / 2)
+			select {
+			case <-retry:
+			case <-spool.roll:
+			}
+
+			spool.prod.AddWorker() // worker done is always called at exit
+			continue               // ### continue, try again ###
 		}
 
 		file, err := os.OpenFile(spoolFileName, os.O_RDONLY, 0600)
