@@ -167,7 +167,7 @@ func (cons *SystemdConsumer) read() {
 			Log.Error.Print("Failed to advance journal: ", err)
 		} else if c == 0 {
 			// reached end of log
-			time.Sleep(1 * time.Second)
+			cons.journal.Wait(1 * time.Second)
 		} else {
 			msg, err := cons.journal.GetDataValue("MESSAGE")
 			if err != nil {
