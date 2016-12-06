@@ -15,56 +15,49 @@
 package filter
 
 import (
-    "fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
 )
 
 // Any filter plugin
 // This plugin blocks messages after a certain number of messages per second
 // has been reached.
 // Configuration example
-//
-//   - "stream.Broadcast":
-//	 Filter: "filter.Any"
-//	 AnyFilter:
-//	 - "filter.JSON"
-//	 - "filter.RegEx"
+//	- "yourStreamId"
+//		type: "stream.Broadcast"
+//		filters:
+//			- "filter.Any"
+//				Any:
+//					- "filter.JSON"
+//					- "filter.RegEx"
 //
 // AnyFilter defines a list of filters that should be checked before dropping
 // a message. Filters are checked in order, and if the message passes
 // then no further filters are checked. By default this list is empty.
 type Any struct {
-	filters []core.Filter
+	core.SimpleFilter
+	modulators core.ModulatorArray
 }
 
 func init() {
-	shared.TypeRegistry.Register(Any{})
+	core.TypeRegistry.Register(Any{})
 }
 
 // Configure initializes this filter with values from a plugin config.
-func (filter *Any) Configure(conf core.PluginConfig) error {
-	filters := conf.GetStringArray("AnyFilter", []string{})
-	for _, filterName := range filters {
-		plugin, err := core.NewPluginWithType(filterName, conf)
-		if err != nil {
-			return err
-		}
-		f, isFilter := plugin.(core.Filter)
-		if !isFilter {
-			return fmt.Errorf("%s is not a filter", filterName)
-		}
-		filter.filters = append(filter.filters, f)
-	}
+func (filter *Any) Configure(conf core.PluginConfigReader) error {
+	filter.SimpleFilter.Configure(conf)
 
-	return nil
+	filter.modulators = conf.GetModulatorArray("Any",
+		filter.Log, core.ModulatorArray{})
+
+	return conf.Errors.OrNil()
 }
 
-func (filter *Any) Accepts(msg core.Message) bool {
-	for _, f := range filter.filters {
-		if f.Accepts(msg) {
-			return true
+func (filter *Any) Modulate(msg *core.Message) core.ModulateResult {
+	for _, modulator := range filter.modulators {
+		if res := modulator.Modulate(msg); res != core.ModulateResultDiscard {
+			return res
 		}
 	}
-	return false
+
+	return filter.Drop(msg)
 }
