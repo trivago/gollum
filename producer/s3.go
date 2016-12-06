@@ -19,17 +19,18 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"strings"
+	"sync"
+	"sync/atomic"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
-	"strings"
-	"sync"
-	"sync/atomic"
-	"time"
+	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tcontainer"
 )
 
 const (
@@ -110,21 +111,21 @@ const (
 // no mapping is given the gollum stream name is used as s3 bucket.
 // Values are of the form bucket/path or bucket, s3:// prefix is not allowed.
 // The full path of the object will be s3://<StreamMapping><Timestamp><PathFormat>
-// where Timestamp is time the object is written formatted with TimestampWrite, 
+// where Timestamp is time the object is written formatted with TimestampWrite,
 // and PathFormat is the output of PathFormatter when passed the object data.
 
 type S3 struct {
-	core.ProducerBase
+	core.BufferedProducer
 	client            *s3.S3
 	config            *aws.Config
 	storageClass      string
 	streamMap         map[core.MessageStreamID]string
-	pathFormat        core.Formatter
+	pathFormat        core.Modulator
 	batch             core.MessageBatch
 	objectMaxMessages int
 	delimiter         []byte
 	flushFrequency    time.Duration
-	timeWrite    string
+	timeWrite         string
 	lastSendTime      time.Time
 	sendTimeLimit     time.Duration
 	counters          map[string]*int64
@@ -146,19 +147,16 @@ type objectData struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(S3{})
+	core.TypeRegistry.Register(S3{})
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *S3) Configure(conf core.PluginConfig) error {
-	err := prod.ProducerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+func (prod *S3) Configure(conf core.PluginConfigReader) error {
+	prod.SimpleProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
 
 	prod.storageClass = conf.GetString("StorageClass", "STANDARD")
-	prod.streamMap = conf.GetStreamMap("StreamMapping", "")
+	prod.streamMap = conf.GetStreamMap("StreamMapping", "default")
 	prod.batch = core.NewMessageBatch(conf.GetInt("BatchMaxMessages", 5000))
 	prod.objectMaxMessages = conf.GetInt("ObjectMaxMessages", 5000)
 	prod.delimiter = []byte(conf.GetString("ObjectMessageDelimiter", "\n"))
@@ -168,25 +166,26 @@ func (prod *S3) Configure(conf core.PluginConfig) error {
 	prod.lastSendTime = time.Now()
 	prod.counters = make(map[string]*int64)
 	prod.lastMetricUpdate = time.Now()
-	
+
 	if conf.HasValue("PathFormatter") {
-		keyFormatter, err := core.NewPluginWithType(conf.GetString("PathFormatter", "format.Identifier"), conf)
-		if err != nil {
-			return err // ### return, plugin load error ###
-		}
-		prod.pathFormat = keyFormatter.(core.Formatter)
+		keyFormatter := conf.GetPlugin("PathFormatter", "format.Identifier", tcontainer.MarshalMap{})
+		//		keyFormatter, err := core.NewPluginWithType(conf.GetString("PathFormatter", "format.Identifier"), conf)
+		//		if err != nil {
+		//			return err // ### return, plugin load error ###
+		//		}
+		prod.pathFormat = keyFormatter.(core.Modulator)
 	} else {
 		prod.pathFormat = nil
 	}
 
 	if prod.objectMaxMessages < 1 {
 		prod.objectMaxMessages = 1
-		Log.Warning.Print("ObjectMaxMessages was < 1. Defaulting to 1.")
+		prod.Log.Warning.Print("ObjectMaxMessages was < 1. Defaulting to 1.")
 	}
 
 	if prod.objectMaxMessages > 1 && len(prod.delimiter) == 0 {
 		prod.delimiter = []byte("\n")
-		Log.Warning.Print("ObjectMessageDelimiter was empty. Defaulting to \"\\n\".")
+		prod.Log.Warning.Print("ObjectMessageDelimiter was empty. Defaulting to \"\\n\".")
 	}
 
 	// Config
@@ -228,15 +227,15 @@ func (prod *S3) Configure(conf core.PluginConfig) error {
 	}
 
 	for _, s3Path := range prod.streamMap {
-		shared.Metric.New(s3MetricMessages + s3Path)
-		shared.Metric.New(s3MetricMessagesSec + s3Path)
+		tgo.Metric.New(s3MetricMessages + s3Path)
+		tgo.Metric.New(s3MetricMessagesSec + s3Path)
 		prod.counters[s3Path] = new(int64)
 	}
 
-	return nil
+	return conf.Errors.OrNil()
 }
 
-func (prod *S3) bufferMessage(msg core.Message) {
+func (prod *S3) bufferMessage(msg *core.Message) {
 	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
 }
 
@@ -252,8 +251,8 @@ func (prod *S3) sendBatchOnTimeOut() {
 	for s3Path, counter := range prod.counters {
 		count := atomic.SwapInt64(counter, 0)
 
-		shared.Metric.Add(s3MetricMessages+s3Path, count)
-		shared.Metric.SetF(s3MetricMessagesSec+s3Path, float64(count)/duration.Seconds())
+		tgo.Metric.Add(s3MetricMessages+s3Path, count)
+		tgo.Metric.SetF(s3MetricMessagesSec+s3Path, float64(count)/duration.Seconds())
 	}
 }
 
@@ -261,32 +260,32 @@ func (prod *S3) sendBatch() {
 	prod.batch.Flush(prod.transformMessages)
 }
 
-func (prod *S3) dropMessages(messages []core.Message) {
+func (prod *S3) dropMessages(messages []*core.Message) {
 	for _, msg := range messages {
 		prod.Drop(msg)
 	}
 }
 
-func (prod *S3) transformMessages(messages []core.Message) {
+func (prod *S3) transformMessages(messages []*core.Message) {
 	streamObjects := make(map[core.MessageStreamID]*objectData)
 
 	// Format and sort
 	for idx, msg := range messages {
-		msgData, streamID := prod.ProducerBase.Format(msg)
+		prod.Modulate(msg)
 
 		// Fetch buffer for this stream
-		objects, objectsExists := streamObjects[streamID]
+		objects, objectsExists := streamObjects[msg.StreamID()]
 		if !objectsExists {
 			// Select the correct s3 path
-			s3Path, streamMapped := prod.streamMap[streamID]
+			s3Path, streamMapped := prod.streamMap[msg.StreamID()]
 			if !streamMapped {
 				s3Path, streamMapped = prod.streamMap[core.WildcardStreamID]
 				if !streamMapped {
-					s3Path = core.StreamRegistry.GetStreamName(streamID)
-					prod.streamMap[streamID] = s3Path
+					s3Path = core.StreamRegistry.GetStreamName(msg.StreamID())
+					prod.streamMap[msg.StreamID()] = s3Path
 
-					shared.Metric.New(s3MetricMessages + s3Path)
-					shared.Metric.New(s3MetricMessagesSec + s3Path)
+					tgo.Metric.New(s3MetricMessages + s3Path)
+					tgo.Metric.New(s3MetricMessagesSec + s3Path)
 					prod.counters[s3Path] = new(int64)
 				}
 			}
@@ -299,23 +298,23 @@ func (prod *S3) transformMessages(messages []core.Message) {
 			}
 
 			// Create buffers for this s3 path
-			maxLength := len(messages) / prod.objectMaxMessages + 1
+			maxLength := len(messages)/prod.objectMaxMessages + 1
 			objects = &objectData{
 				objects:            make([][]byte, 0, maxLength),
 				s3Bucket:           s3Bucket,
-				s3Path:				s3Path,
+				s3Path:             s3Path,
 				s3Prefix:           s3Prefix,
 				original:           make([][]*core.Message, 0, maxLength),
 				lastObjectMessages: 0,
 			}
-			streamObjects[streamID] = objects
+			streamObjects[msg.StreamID()] = objects
 		}
 
 		// Fetch object for this buffer
 		objectExists := len(objects.objects) > 0
-		if !objectExists || objects.lastObjectMessages + 1 > prod.objectMaxMessages {
+		if !objectExists || objects.lastObjectMessages+1 > prod.objectMaxMessages {
 			// Append object to stream
-			objects.objects = append(objects.objects, make([]byte, 0, len(msgData)))
+			objects.objects = append(objects.objects, make([]byte, 0, len(msg.Data())))
 			objects.original = append(objects.original, make([]*core.Message, 0, prod.objectMaxMessages))
 			objects.lastObjectMessages = 0
 		} else {
@@ -323,9 +322,9 @@ func (prod *S3) transformMessages(messages []core.Message) {
 		}
 
 		// Append message to object
-		objects.objects[len(objects.objects)-1] = append(objects.objects[len(objects.objects)-1], msgData...)
+		objects.objects[len(objects.objects)-1] = append(objects.objects[len(objects.objects)-1], msg.Data()...)
 		objects.lastObjectMessages += 1
-		objects.original[len(objects.original)-1] = append(objects.original[len(objects.original)-1], &messages[idx])
+		objects.original[len(objects.original)-1] = append(objects.original[len(objects.original)-1], messages[idx])
 	}
 
 	sleepDuration := prod.sendTimeLimit - time.Since(prod.lastSendTime)
@@ -333,16 +332,15 @@ func (prod *S3) transformMessages(messages []core.Message) {
 		time.Sleep(sleepDuration)
 	}
 
-
 	// Send to S3
 	for _, objects := range streamObjects {
 		for idx, object := range objects.objects {
 			var key string
 			if prod.pathFormat != nil {
 				timestamp := time.Now()
-				msg := core.NewMessage(nil, object, uint64(0))
-				byte_key, _ := prod.pathFormat.Format(msg)
-				key = objects.s3Prefix + timestamp.Format(prod.timeWrite) + string(byte_key)
+				byte_key := core.NewMessage(nil, object, uint64(0), core.InvalidStreamID)
+				prod.pathFormat.Modulate(byte_key)
+				key = objects.s3Prefix + timestamp.Format(prod.timeWrite) + byte_key.String()
 			} else {
 				hash := sha1.Sum(object)
 				key = objects.s3Prefix + time.Now().Format(prod.timeWrite) + hex.EncodeToString(hash[:])
@@ -356,9 +354,9 @@ func (prod *S3) transformMessages(messages []core.Message) {
 			_, err := prod.client.PutObject(params)
 			atomic.AddInt64(prod.counters[objects.s3Path], int64(1))
 			if err != nil {
-				Log.Error.Print("S3 write error: ", err)
+				prod.Log.Error.Print("S3 write error: ", err)
 				for _, msg := range objects.original[idx] {
-					prod.Drop(*msg)
+					prod.Drop(msg)
 				}
 			}
 		}
