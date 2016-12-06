@@ -15,8 +15,6 @@
 package filter
 
 import (
-	"fmt"
-
 	"github.com/trivago/gollum/core"
 )
 
@@ -31,18 +29,13 @@ import (
 //				Any:
 //					- "filter.JSON"
 //					- "filter.RegEx"
-//   - "stream.Broadcast":
-//	 Filter: "filter.Any"
-//	 AnyFilter:
-//	 - "filter.JSON"
-//	 - "filter.RegEx"
 //
 // AnyFilter defines a list of filters that should be checked before dropping
 // a message. Filters are checked in order, and if the message passes
 // then no further filters are checked. By default this list is empty.
 type Any struct {
 	core.SimpleFilter
-	filters []core.SimpleFilter
+	modulators core.ModulatorArray
 }
 
 func init() {
@@ -53,30 +46,16 @@ func init() {
 func (filter *Any) Configure(conf core.PluginConfigReader) error {
 	filter.SimpleFilter.Configure(conf)
 
-	filters := conf.GetStringArray("Any", []string{})
-	for _, filterName := range filters {
-		cfg := core.NewPluginConfig("_Any_"+filterName, filterName)
-
-		plugin, err := core.NewPlugin(core.NewPluginConfigReader(&cfg))
-		if err != nil {
-			return err
-		}
-
-		f, isFilter := plugin.(core.SimpleFilter)
-		if !isFilter {
-			return fmt.Errorf("%s is not a filter", filterName)
-		}
-
-		filter.filters = append(filter.filters, f)
-	}
+	filter.modulators = conf.GetModulatorArray("Any",
+		filter.Log, core.ModulatorArray{})
 
 	return conf.Errors.OrNil()
 }
 
-func (filter *Any) Modulate(msg *Message) core.ModulateResult {
-	for _, f := range filter.filters {
-		if res := f.Modulate(msg); res == core.ModulateResultContinue {
-			return core.ModulateResultContinue
+func (filter *Any) Modulate(msg *core.Message) core.ModulateResult {
+	for _, modulator := range filter.modulators {
+		if res := modulator.Modulate(msg); res != core.ModulateResultDiscard {
+			return res
 		}
 	}
 
