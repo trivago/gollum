@@ -15,13 +15,13 @@
 package format
 
 import (
-	"github.com/mssola/user_agent"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/mssola/user_agent"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tstrings"
 )
 
 // ProcessTSV formatter plugin
@@ -70,7 +70,7 @@ import (
 // contain ProcessTSVDelimiter without being split. Default is false.
 //
 type ProcessTSV struct {
-	base         core.Formatter
+	core.SimpleFormatter
 	directives   []tsvDirective
 	delimiter    string
 	quotedValues bool
@@ -88,18 +88,15 @@ type tsvValue struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(ProcessTSV{})
+	core.TypeRegistry.Register(ProcessTSV{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *ProcessTSV) Configure(conf core.PluginConfig) error {
-	plugin, err := core.NewPluginWithType(conf.GetString("ProcessTSVDataFormatter", "format.Forward"), conf)
-	if err != nil {
-		return err
-	}
+func (format *ProcessTSV) Configure(conf core.PluginConfigReader) error {
+	format.SimpleFormatter.Configure(conf)
+
 	directives := conf.GetStringArray("ProcessTSVDirectives", []string{})
 
-	format.base = plugin.(core.Formatter)
 	format.directives = make([]tsvDirective, 0, len(directives))
 	format.delimiter = conf.GetString("ProcessTSVDelimiter", "\t")
 	format.quotedValues = conf.GetBool("ProcessTSVQuotedValues", false)
@@ -123,14 +120,14 @@ func (format *ProcessTSV) Configure(conf core.PluginConfig) error {
 			}
 
 			for i := 2; i < len(parts); i++ {
-				newDirective.parameters = append(newDirective.parameters, shared.Unescape(parts[i]))
+				newDirective.parameters = append(newDirective.parameters, tstrings.Unescape(parts[i]))
 			}
 
 			format.directives = append(format.directives, newDirective)
 		}
 	}
 
-	return nil
+	return conf.Errors.OrNil()
 }
 
 func stringsToTSVValues(values []string) []tsvValue {
@@ -144,7 +141,7 @@ func stringsToTSVValues(values []string) []tsvValue {
 	return tsvValues
 }
 
-func processTSVDirective(directive tsvDirective, values []tsvValue) []tsvValue {
+func (format *ProcessTSV) processTSVDirective(directive tsvDirective, values []tsvValue) []tsvValue {
 	if len(values) > directive.index {
 		value := values[directive.index].value
 
@@ -154,7 +151,7 @@ func processTSVDirective(directive tsvDirective, values []tsvValue) []tsvValue {
 			if numParameters == 2 {
 
 				if timestamp, err := time.Parse(directive.parameters[0], value[:len(directive.parameters[0])]); err != nil {
-					Log.Warning.Print("ProcessTSV failed to parse a timestamp: ", err)
+					format.Log.Warning.Print("ProcessTSV failed to parse a timestamp: ", err)
 				} else {
 					values[directive.index].value = timestamp.Format(directive.parameters[1])
 				}
@@ -162,17 +159,17 @@ func processTSVDirective(directive tsvDirective, values []tsvValue) []tsvValue {
 
 		case "replace":
 			if numParameters == 2 {
-				values[directive.index].value = strings.Replace(value, shared.Unescape(directive.parameters[0]), shared.Unescape(directive.parameters[1]), -1)
+				values[directive.index].value = strings.Replace(value, tstrings.Unescape(directive.parameters[0]), tstrings.Unescape(directive.parameters[1]), -1)
 			}
 
 		case "prefix":
 			if numParameters == 1 {
-				values[directive.index].value = shared.Unescape(directive.parameters[0]) + value
+				values[directive.index].value = tstrings.Unescape(directive.parameters[0]) + value
 			}
 
 		case "postfix":
 			if numParameters == 1 {
-				values[directive.index].value = value + shared.Unescape(directive.parameters[0])
+				values[directive.index].value = value + tstrings.Unescape(directive.parameters[0])
 			}
 
 		case "trim":
@@ -180,7 +177,7 @@ func processTSVDirective(directive tsvDirective, values []tsvValue) []tsvValue {
 			case numParameters == 0:
 				values[directive.index].value = strings.Trim(value, " ")
 			case numParameters == 1:
-				values[directive.index].value = strings.Trim(value, shared.Unescape(directive.parameters[0]))
+				values[directive.index].value = strings.Trim(value, tstrings.Unescape(directive.parameters[0]))
 			}
 
 		case "quote":
@@ -238,15 +235,14 @@ func processTSVDirective(directive tsvDirective, values []tsvValue) []tsvValue {
 }
 
 // Format modifies the TSV payload of this message
-func (format *ProcessTSV) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	data, streamID := format.base.Format(msg)
+func (format *ProcessTSV) Modulate(msg *core.Message) core.ModulateResult {
 	if len(format.directives) == 0 {
-		return data, streamID // ### return, no directives ###
+		return core.ModulateResultContinue
 	}
 
 	values := make([]tsvValue, 0)
 	if format.quotedValues {
-		remainder := string(data)
+		remainder := string(msg.Data())
 		for true {
 			if remainder[:1] != `"` {
 				split := strings.SplitN(remainder, format.delimiter+`"`, 2)
@@ -270,8 +266,8 @@ func (format *ProcessTSV) Format(msg core.Message) ([]byte, core.MessageStreamID
 			} else {
 				if split[0][len(split[0])-1:] != `"` {
 					// unmatched quote, abort processing this message
-					Log.Warning.Print("ProcessTSV failed to parse a message: unmatched quote")
-					return data, streamID
+					format.Log.Warning.Print("ProcessTSV failed to parse a message: unmatched quote")
+					return core.ModulateResultContinue
 				}
 				values = append(values, tsvValue{
 					quoted: true,
@@ -281,11 +277,11 @@ func (format *ProcessTSV) Format(msg core.Message) ([]byte, core.MessageStreamID
 			}
 		}
 	} else {
-		values = stringsToTSVValues(strings.Split(string(data), format.delimiter))
+		values = stringsToTSVValues(strings.Split(string(msg.Data()), format.delimiter))
 	}
 
 	for _, directive := range format.directives {
-		values = processTSVDirective(directive, values)
+		values = format.processTSVDirective(directive, values)
 	}
 
 	stringValues := make([]string, len(values))
@@ -297,5 +293,6 @@ func (format *ProcessTSV) Format(msg core.Message) ([]byte, core.MessageStreamID
 		}
 	}
 
-	return []byte(strings.Join(stringValues, format.delimiter)), streamID
+	msg.Store([]byte(strings.Join(stringValues, format.delimiter)))
+	return core.ModulateResultContinue
 }
