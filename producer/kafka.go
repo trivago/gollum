@@ -18,15 +18,16 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	kafka "github.com/Shopify/sarama"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"io/ioutil"
-	"strconv"	
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	kafka "github.com/Shopify/sarama"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 )
 
 const (
@@ -192,20 +193,20 @@ const (
 // If no topic mappings are set the stream names will be used as topic.
 type Kafka struct {
 	core.BufferedProducer
-	servers       []string
-	topicGuard    *sync.RWMutex
-	topic         map[core.MessageStreamID]*topicHandle
-	topicHandles  map[string]*topicHandle
-	streamToTopic map[core.MessageStreamID]string
-	clientID      string
-	client        kafka.Client
-	config        *kafka.Config
-	producer      kafka.AsyncProducer
-	missCount     int64
-	gracePeriod   time.Duration
-	keyModulators core.ModulatorArray
-	keyFirst      bool
-	nilValueAllowed    bool
+	servers         []string
+	topicGuard      *sync.RWMutex
+	topic           map[core.MessageStreamID]*topicHandle
+	topicHandles    map[string]*topicHandle
+	streamToTopic   map[core.MessageStreamID]string
+	clientID        string
+	client          kafka.Client
+	config          *kafka.Config
+	producer        kafka.AsyncProducer
+	missCount       int64
+	gracePeriod     time.Duration
+	keyModulators   core.ModulatorArray
+	keyFirst        bool
+	nilValueAllowed bool
 }
 
 type topicHandle struct {
@@ -381,7 +382,7 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 
 	}
 
-	return nil
+	return conf.Errors.OrNil()
 }
 
 func (prod *Kafka) storeRTT(msg *core.Message) {

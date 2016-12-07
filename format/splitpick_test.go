@@ -1,46 +1,50 @@
 package format
 
 import (
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
 	"testing"
+
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/ttesting"
 )
 
 func TestSplitPick_Success(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("")
+	config := core.NewPluginConfig("", "format.SplitPick")
 	config.Settings["SplitPickIndex"] = 0
 	config.Settings["SplitPickDelimiter"] = "#"
-	plugin, err := core.NewPluginWithType("format.SplitPick", config)
+	plugin, err := core.NewPlugin(config)
 
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*SplitPick)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("MTIzNDU2#NjU0MzIx"), 0)
-	result, _ := formatter.Format(msg)
+	msg := core.NewMessage(nil, []byte("MTIzNDU2#NjU0MzIx"), 0, core.InvalidStreamID)
+	result := formatter.Modulate(msg)
 
-	expect.Equal("MTIzNDU2", string(result))
+	expect.Equal(core.ModulateResultContinue, result)
+	expect.Equal("MTIzNDU2", msg.String())
 
 }
 
 func TestSplitPick_OutOfBoundIndex(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("")
+	config := core.NewPluginConfig("", "format.SplitPick")
 	config.Settings["SplitPickIndex"] = 2
-	plugin, err := core.NewPluginWithType("format.SplitPick", config)
+	plugin, err := core.NewPlugin(config)
 
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*SplitPick)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("MTIzNDU2:NjU0MzIx"), 0)
-	result, _ := formatter.Format(msg)
+	msg := core.NewMessage(nil, []byte("MTIzNDU2:NjU0MzIx"), 0, core.InvalidStreamID)
+	result := formatter.Modulate(msg)
 
-	expect.Equal(0, len(result))
+	expect.Equal(core.ModulateResultContinue, result)
+
+	expect.Equal(0, len(msg.Data()))
 
 }
