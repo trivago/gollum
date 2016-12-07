@@ -17,15 +17,14 @@
 package native
 
 import (
-	"github.com/coreos/go-systemd/sdjournal"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
 	"io/ioutil"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/coreos/go-systemd/sdjournal"
+	"github.com/trivago/gollum/core"
 )
 
 const (
@@ -58,7 +57,7 @@ const (
 // default this is set to "" which disables the offset file.
 
 type SystemdConsumer struct {
-	core.ConsumerBase
+	core.SimpleConsumer
 	journal    *sdjournal.Journal
 	offset     uint64
 	offsetFile string
@@ -66,16 +65,14 @@ type SystemdConsumer struct {
 }
 
 func init() {
-	shared.TypeRegistry.Register(SystemdConsumer{})
+	core.TypeRegistry.Register(SystemdConsumer{})
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *SystemdConsumer) Configure(conf core.PluginConfig) error {
-	err := cons.ConsumerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+func (cons *SystemdConsumer) Configure(conf core.PluginConfigReader) error {
+	cons.SimpleConsumer.Configure(conf)
 
+	var err error
 	cons.journal, err = sdjournal.NewJournal()
 	if err != nil {
 		return err
@@ -95,7 +92,7 @@ func (cons *SystemdConsumer) Configure(conf core.PluginConfig) error {
 	if cons.offsetFile != "" {
 		fileContents, err := ioutil.ReadFile(cons.offsetFile)
 		if err != nil {
-			Log.Error.Print("Error reading offset file: ", err)
+			cons.Log.Error.Print("Error reading offset file: ", err)
 		}
 		if string(fileContents) != "" {
 			offsetValue = string(fileContents)
@@ -134,7 +131,7 @@ func (cons *SystemdConsumer) Configure(conf core.PluginConfig) error {
 	// Register close to the control message handler
 	cons.SetStopCallback(cons.close)
 
-	return nil
+	return conf.Errors.OrNil()
 }
 
 func (cons *SystemdConsumer) storeOffset(offset uint64) {
@@ -142,7 +139,7 @@ func (cons *SystemdConsumer) storeOffset(offset uint64) {
 }
 
 func (cons *SystemdConsumer) enqueueAndPersist(data []byte, sequence uint64) {
-	cons.Enqueue(data, sequence)
+	cons.Enqueue(data)
 	cons.storeOffset(sequence)
 }
 
@@ -154,30 +151,27 @@ func (cons *SystemdConsumer) close() {
 }
 
 func (cons *SystemdConsumer) read() {
-	sendFunction := cons.Enqueue
-	if cons.offsetFile != "" {
-		sendFunction = cons.enqueueAndPersist
-	}
-
 	for cons.IsActive() {
 		cons.WaitOnFuse()
 
 		c, err := cons.journal.Next()
 		if err != nil {
-			Log.Error.Print("Failed to advance journal: ", err)
+			cons.Log.Error.Print("Failed to advance journal: ", err)
 		} else if c == 0 {
 			// reached end of log
 			time.Sleep(1 * time.Second)
 		} else {
 			msg, err := cons.journal.GetDataValue("MESSAGE")
 			if err != nil {
-				Log.Error.Print("Failed to read journal message: ", err)
+				cons.Log.Error.Print("Failed to read journal message: ", err)
 			} else {
 				offset, err := cons.journal.GetRealtimeUsec()
 				if err != nil {
-					Log.Error.Print("Failed to read journal realtime: ", err)
+					cons.Log.Error.Print("Failed to read journal realtime: ", err)
+				} else if cons.offsetFile != "" {
+					cons.enqueueAndPersist([]byte(msg), offset)
 				} else {
-					sendFunction([]byte(msg), offset)
+					cons.Enqueue([]byte(msg))
 				}
 			}
 		}
