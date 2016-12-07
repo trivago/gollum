@@ -15,9 +15,9 @@
 package filter
 
 import (
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
 	"sync/atomic"
+
+	"github.com/trivago/gollum/core"
 )
 
 // Sample filter plugin
@@ -46,19 +46,22 @@ import (
 // sampling. This is useful for e.g. producers listeing to "*".
 // By default this list is empty.
 type Sample struct {
-	rate		 int64
-	group		int64
-	count		*int64
+	core.SimpleFilter
+	rate         int64
+	group        int64
+	count        *int64
 	dropStreamID core.MessageStreamID
-	ignore	   map[core.MessageStreamID]bool
+	ignore       map[core.MessageStreamID]bool
 }
 
 func init() {
-	shared.TypeRegistry.Register(Sample{})
+	core.TypeRegistry.Register(Sample{})
 }
 
 // Configure initializes this filter with values from a plugin config.
-func (filter *Sample) Configure(conf core.PluginConfig) error {
+func (filter *Sample) Configure(conf core.PluginConfigReader) error {
+	filter.SimpleFilter.Configure(conf)
+
 	filter.rate = int64(conf.GetInt("SampleRatePerGroup", 1))
 	filter.group = int64(conf.GetInt("SampleGroupSize", 1))
 	filter.dropStreamID = core.InvalidStreamID
@@ -75,34 +78,35 @@ func (filter *Sample) Configure(conf core.PluginConfig) error {
 		filter.ignore[stream] = true
 	}
 
-	return nil
+	return conf.Errors.OrNil()
 }
 
-func (filter *Sample) Accepts(msg core.Message) bool {
+func (filter *Sample) Modulate(msg *core.Message) core.ModulateResult {
 	// Ignore based on StreamID
-	if ignore, known := filter.ignore[msg.StreamID]; known && ignore {
-		return true // ### return, do not limit ###
+	if ignore, known := filter.ignore[msg.StreamID()]; known && ignore {
+		return core.ModulateResultContinue // ### return, do not limit ###
 	}
 
 	// Check if count needs to be reset
 	count := atomic.AddInt64(filter.count, 1)
 	if count > filter.group {
-		if count % filter.group == 1 {
+		if count%filter.group == 1 {
 			// make sure we never overflow filter.count
 			count = atomic.AddInt64(filter.count, -(filter.group))
 		} else {
 			// range from 1 to filter.group
-			count = (count - 1) % filter.group + 1
+			count = (count-1)%filter.group + 1
 		}
 	}
 
 	// Check if to be filtered
 	if count > filter.rate {
 		if filter.dropStreamID != core.InvalidStreamID {
-			msg.Route(filter.dropStreamID)
+			msg.SetStreamID(filter.dropStreamID)
+			return core.ModulateResultRoute
 		}
-		return false // ### return, filter ###
+		return core.ModulateResultDiscard // ### return, filter ###
 	}
 
-	return true
+	return core.ModulateResultContinue
 }

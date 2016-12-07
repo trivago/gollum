@@ -15,20 +15,20 @@
 package filter
 
 import (
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
 	"testing"
+
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/ttesting"
 )
 
 func TestFilterSample(t *testing.T) {
-	expect := shared.NewExpect(t)
-	msg := core.NewMessage(nil, []byte{}, 0)
-	msg.StreamID = 1
+	expect := ttesting.NewExpect(t)
+	msg := core.NewMessage(nil, []byte{}, 0, 1)
 
-	conf := core.NewPluginConfig("")
+	conf := core.NewPluginConfig("", "filter.Sample")
 	conf.Override("SampleRatePerGroup", 2)
 	conf.Override("SampleGroupSize", 5)
-	plugin, err := core.NewPluginWithType("filter.Sample", conf)
+	plugin, err := core.NewPlugin(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*Sample)
@@ -36,8 +36,8 @@ func TestFilterSample(t *testing.T) {
 
 	accept, deny := 0, 0
 	for i := 0; i < 10; i++ {
-		result := filter.Accepts(msg)
-		if result {
+		result := filter.Modulate(msg)
+		if result == core.ModulateResultContinue {
 			accept += 1
 		} else {
 			deny += 1
@@ -46,9 +46,9 @@ func TestFilterSample(t *testing.T) {
 	expect.Equal(accept, 4)
 	expect.Equal(deny, 6)
 
-	conf = core.NewPluginConfig("")
+	conf = core.NewPluginConfig("", "filter.Sample")
 	conf.Override("SampleGroupSize", 2)
-	plugin, err = core.NewPluginWithType("filter.Sample", conf)
+	plugin, err = core.NewPlugin(conf)
 	expect.NoError(err)
 
 	filter, casted = plugin.(*Sample)
@@ -56,8 +56,8 @@ func TestFilterSample(t *testing.T) {
 
 	accept, deny = 0, 0
 	for i := 0; i < 10; i++ {
-		result := filter.Accepts(msg)
-		if result {
+		result := filter.Modulate(msg)
+		if result == core.ModulateResultContinue {
 			accept += 1
 		} else {
 			deny += 1
@@ -68,33 +68,31 @@ func TestFilterSample(t *testing.T) {
 }
 
 func TestFilterSampleIgnore(t *testing.T) {
-	expect := shared.NewExpect(t)
-	conf := core.NewPluginConfig("")
+	expect := ttesting.NewExpect(t)
+	conf := core.NewPluginConfig("", "filter.Sample")
 
 	conf.Override("SampleGroupSize", 2)
 	conf.Override("SampleIgnore", []string{core.LogInternalStream})
-	plugin, err := core.NewPluginWithType("filter.Sample", conf)
+	plugin, err := core.NewPlugin(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*Sample)
 	expect.True(casted)
 
-	msg1 := core.NewMessage(nil, []byte{}, 0)
-	msg2 := core.NewMessage(nil, []byte{}, 0)
-	msg1.StreamID = core.LogInternalStreamID
-	msg2.StreamID = 2
+	msg1 := core.NewMessage(nil, []byte{}, 0, core.LogInternalStreamID)
+	msg2 := core.NewMessage(nil, []byte{}, 0, 2)
 
 	accept1, accept2, deny1, deny2 := 0, 0, 0, 0
 	for i := 0; i < 10; i++ {
-		result1 := filter.Accepts(msg1)
-		result2 := filter.Accepts(msg2)
+		result1 := filter.Modulate(msg1)
+		result2 := filter.Modulate(msg2)
 
-		if result1 {
+		if result1 == core.ModulateResultContinue {
 			accept1 += 1
 		} else {
 			deny1 += 1
 		}
-		if result2 {
+		if result2 == core.ModulateResultContinue {
 			accept2 += 1
 		} else {
 			deny2 += 1
