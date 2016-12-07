@@ -2,8 +2,8 @@ package format
 
 import (
 	"bytes"
+
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
 )
 
 // SplitPick formatter plugin
@@ -19,38 +19,36 @@ import (
 //	By default, SplitPickIndex is 0.
 //	By default, SplitPickDelimiter is ":".
 type SplitPick struct {
+	core.SimpleFormatter
 	index     int
 	delimiter []byte
-	base      core.Formatter
 }
 
 func init() {
-	shared.TypeRegistry.Register(SplitPick{})
+	core.TypeRegistry.Register(SplitPick{})
 }
 
 // Configure initializes the SplitPick formatter plugin
-func (format *SplitPick) Configure(conf core.PluginConfig) error {
-	plugin, err := core.NewPluginWithType(conf.GetString("SplitPickFormatter", "format.Forward"), conf)
-	if err != nil {
-		return err
-	}
-	format.base = plugin.(core.Formatter)
+func (format *SplitPick) Configure(conf core.PluginConfigReader) error {
+	format.SimpleFormatter.Configure(conf)
 
 	format.index = conf.GetInt("SplitPickIndex", 0)
 	format.delimiter = []byte(conf.GetString("SplitPickDelimiter", ":"))
-	return nil
+
+	return conf.Errors.OrNil()
 }
 
-// Format splits the message based on a delimiter and returns the indexed
+// Modulate splits the message based on a delimiter and returns the indexed
 // part.
 // If the index is out of bound, an error is logged and the returned byte is empty.
-func (format *SplitPick) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	data, streamID := format.base.Format(msg)
-	parts := bytes.Split(data, format.delimiter)
+func (format *SplitPick) Modulate(msg *core.Message) core.ModulateResult {
+	parts := bytes.Split(msg.Data(), format.delimiter)
 
 	if format.index < len(parts) {
-		return parts[format.index], streamID
+		msg.Store(parts[format.index])
+	} else {
+		msg.Store([]byte{})
 	}
 
-	return []byte{}, streamID
+	return core.ModulateResultContinue
 }

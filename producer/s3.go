@@ -169,10 +169,6 @@ func (prod *S3) Configure(conf core.PluginConfigReader) error {
 
 	if conf.HasValue("PathFormatter") {
 		keyFormatter := conf.GetPlugin("PathFormatter", "format.Identifier", tcontainer.MarshalMap{})
-		//		keyFormatter, err := core.NewPluginWithType(conf.GetString("PathFormatter", "format.Identifier"), conf)
-		//		if err != nil {
-		//			return err // ### return, plugin load error ###
-		//		}
 		prod.pathFormat = keyFormatter.(core.Modulator)
 	} else {
 		prod.pathFormat = nil
