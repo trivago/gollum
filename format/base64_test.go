@@ -15,9 +15,10 @@
 package format
 
 import (
+	"testing"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
 
 func TestBase64(t *testing.T) {
@@ -36,9 +37,12 @@ func TestBase64(t *testing.T) {
 	decoder, castedDecoder := pluginDecode.(*Base64Decode)
 	expect.True(castedDecoder)
 
-	msg := core.NewMessage(nil, []byte("test"), 0)
-	encoder.Format(msg)
-	decoder.Format(msg)
+	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
+	result := encoder.Modulate(msg)
+	expect.Equal(core.ModulateResultContinue, result)
 
-	expect.Equal("test", string(msg.Data))
+	result = decoder.Modulate(msg)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	expect.Equal("test", string(msg.Data()))
 }
