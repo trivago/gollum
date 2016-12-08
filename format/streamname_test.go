@@ -15,9 +15,10 @@
 package format
 
 import (
+	"testing"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
 
 func TestStreamName(t *testing.T) {
@@ -31,12 +32,12 @@ func TestStreamName(t *testing.T) {
 	formatter, casted := plugin.(*StreamName)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), 0)
-	msg.StreamID = core.DroppedStreamID
+	msg := core.NewMessage(nil, []byte("test"), 0, core.DroppedStreamID)
 
-	formatter.Format(msg)
+	result := formatter.Modulate(msg)
+	expect.Equal(core.ModulateResultContinue, result)
 
-	expect.Equal(core.DroppedStream+":test", string(msg.Data))
+	expect.Equal(core.DroppedStream+":test", msg.String())
 }
 
 func TestStreamNameHistory(t *testing.T) {
@@ -51,11 +52,11 @@ func TestStreamNameHistory(t *testing.T) {
 	formatter, casted := plugin.(*StreamName)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), 0)
-	msg.StreamID = core.DroppedStreamID
-	msg.PrevStreamID = core.LogInternalStreamID
+	msg := core.NewMessage(nil, []byte("test"), 0, core.LogInternalStreamID)
+	msg.SetStreamID(core.DroppedStreamID)
 
-	formatter.Format(msg)
+	result := formatter.Modulate(msg)
+	expect.Equal(core.ModulateResultContinue, result)
 
-	expect.Equal(core.LogInternalStream+":test", string(msg.Data))
+	expect.Equal(core.LogInternalStream+":test", msg.String())
 }

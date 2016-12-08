@@ -15,9 +15,10 @@
 package format
 
 import (
+	"testing"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
 
 func TestStreamRoute(t *testing.T) {
@@ -31,13 +32,14 @@ func TestStreamRoute(t *testing.T) {
 	formatter, casted := plugin.(*StreamRoute)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte(core.LogInternalStream+":test"), 0)
-	msg.StreamID = core.DroppedStreamID
+	msg := core.NewMessage(nil, []byte(core.LogInternalStream+":test"),
+		0, core.DroppedStreamID)
 
-	formatter.Format(msg)
+	result := formatter.Modulate(msg)
+	expect.Equal(core.ModulateResultRoute, result)
 
-	expect.Equal("test", string(msg.Data))
-	expect.Equal(core.LogInternalStreamID, msg.StreamID)
+	expect.Equal("test", msg.String())
+	expect.Equal(core.LogInternalStreamID, msg.StreamID())
 }
 
 // TODO

@@ -15,10 +15,10 @@
 package format
 
 import (
+	"testing"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
-	"time"
 )
 
 func TestTimestamp(t *testing.T) {
@@ -31,15 +31,11 @@ func TestTimestamp(t *testing.T) {
 	formatter, casted := plugin.(*Timestamp)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), 0)
-	msg.Timestamp = msg.Timestamp.Add(time.Hour + time.Minute + time.Second)
-	prefix := msg.Timestamp.Format(formatter.timestampFormat)
+	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
+	prefix := msg.Created().Format(formatter.timestampFormat)
 
-	formatter.Format(msg)
-	expect.Equal(prefix+"test", string(msg.Data))
+	result := formatter.Modulate(msg)
+	expect.Equal(core.ModulateResultContinue, result)
 
-	msg.Timestamp = msg.Timestamp.Add(time.Hour + time.Minute + time.Second)
-
-	formatter.Format(msg)
-	expect.Neq(prefix+"test", string(msg.Data))
+	expect.Equal(prefix+"test", msg.String())
 }

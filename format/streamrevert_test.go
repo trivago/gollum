@@ -15,9 +15,10 @@
 package format
 
 import (
+	"testing"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
 
 func TestStreamRevert(t *testing.T) {
@@ -31,12 +32,13 @@ func TestStreamRevert(t *testing.T) {
 	formatter, casted := plugin.(*StreamRevert)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), 0)
-	msg.StreamID = core.DroppedStreamID
-	msg.PrevStreamID = core.LogInternalStreamID
+	streamID, prevStreamID := core.DroppedStreamID, core.LogInternalStreamID
+	msg := core.NewMessage(nil, []byte("test"), 0, prevStreamID)
+	msg.SetStreamID(streamID)
 
-	formatter.Format(msg)
+	result := formatter.Modulate(msg)
+	expect.Equal(core.ModulateResultRoute, result)
 
-	expect.Equal("test", string(msg.Data))
-	expect.Equal(msg.PrevStreamID, msg.StreamID)
+	expect.Equal("test", msg.String())
+	expect.Equal(prevStreamID, msg.StreamID())
 }
