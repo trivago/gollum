@@ -11,8 +11,8 @@ func TestSplitPick_Success(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.SplitPick")
-	config.Settings["SplitPickIndex"] = 0
-	config.Settings["SplitPickDelimiter"] = "#"
+	config.Override("SplitPickIndex", 0)
+	config.Override("SplitPickDelimiter", "#")
 	plugin, err := core.NewPlugin(config)
 
 	expect.NoError(err)
@@ -32,7 +32,7 @@ func TestSplitPick_OutOfBoundIndex(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.SplitPick")
-	config.Settings["SplitPickIndex"] = 2
+	config.Override("SplitPickIndex", 2)
 	plugin, err := core.NewPlugin(config)
 
 	expect.NoError(err)
