@@ -15,10 +15,11 @@
 package filter
 
 import (
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo/ttesting"
 	"testing"
 	"time"
+
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/ttesting"
 )
 
 func TestFilterRate(t *testing.T) {
@@ -32,21 +33,19 @@ func TestFilterRate(t *testing.T) {
 	filter, casted := plugin.(*Rate)
 	expect.True(casted)
 
-	msg1 := core.NewMessage(nil, []byte{}, 0)
-	msg2 := core.NewMessage(nil, []byte{}, 0)
-	msg1.StreamID = 1
-	msg2.StreamID = 2
+	msg1 := core.NewMessage(nil, []byte{}, 0, 1)
+	msg2 := core.NewMessage(nil, []byte{}, 0, 2)
 
 	for i := 0; i < 110; i++ {
-		result1 := filter.Accepts(msg1)
-		result2 := filter.Accepts(msg2)
+		result1 := filter.Modulate(msg1)
+		result2 := filter.Modulate(msg2)
 		if i < 100 {
-			expect.True(result1)
-			expect.True(result2)
+			expect.Equal(core.ModulateResultContinue, result1)
+			expect.Equal(core.ModulateResultContinue, result2)
 			time.Sleep(time.Millisecond)
 		} else {
-			expect.False(result1)
-			expect.False(result2)
+			expect.Equal(core.ModulateResultDiscard, result1)
+			expect.Equal(core.ModulateResultDiscard, result2)
 		}
 	}
 
@@ -54,15 +53,15 @@ func TestFilterRate(t *testing.T) {
 	time.Sleep(time.Second)
 
 	for i := 0; i < 110; i++ {
-		result1 := filter.Accepts(msg1)
-		result2 := filter.Accepts(msg2)
+		result1 := filter.Modulate(msg1)
+		result2 := filter.Modulate(msg2)
 		if i < 100 {
-			expect.True(result1)
-			expect.True(result2)
+			expect.Equal(core.ModulateResultContinue, result1)
+			expect.Equal(core.ModulateResultContinue, result2)
 			time.Sleep(time.Millisecond)
 		} else {
-			expect.False(result1)
-			expect.False(result2)
+			expect.Equal(core.ModulateResultDiscard, result1)
+			expect.Equal(core.ModulateResultDiscard, result2)
 		}
 	}
 }
@@ -79,21 +78,19 @@ func TestFilterRateIgnore(t *testing.T) {
 	filter, casted := plugin.(*Rate)
 	expect.True(casted)
 
-	msg1 := core.NewMessage(nil, []byte{}, 0)
-	msg2 := core.NewMessage(nil, []byte{}, 0)
-	msg1.StreamID = core.LogInternalStreamID
-	msg2.StreamID = 2
+	msg1 := core.NewMessage(nil, []byte{}, 0, core.LogInternalStreamID)
+	msg2 := core.NewMessage(nil, []byte{}, 0, 2)
 
 	for i := 0; i < 200; i++ {
-		result1 := filter.Accepts(msg1)
-		result2 := filter.Accepts(msg2)
+		result1 := filter.Modulate(msg1)
+		result2 := filter.Modulate(msg2)
 
-		expect.True(result1)
+		expect.Equal(core.ModulateResultContinue, result1)
 		if i < 100 {
-			expect.True(result2)
+			expect.Equal(core.ModulateResultContinue, result2)
 			time.Sleep(time.Millisecond)
 		} else {
-			expect.False(result2)
+			expect.Equal(core.ModulateResultDiscard, result2)
 		}
 	}
 }

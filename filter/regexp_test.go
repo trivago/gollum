@@ -15,9 +15,10 @@
 package filter
 
 import (
+	"testing"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
 
 func TestFilterRegExp(t *testing.T) {
@@ -32,30 +33,50 @@ func TestFilterRegExp(t *testing.T) {
 	filter, casted := plugin.(*RegExp)
 	expect.True(casted)
 
-	msg1 := core.NewMessage(nil, ([]byte)("accept"), 0)
-	msg2 := core.NewMessage(nil, ([]byte)("0accept"), 0)
-	msg3 := core.NewMessage(nil, ([]byte)("reject"), 0)
+	msg1 := core.NewMessage(nil, ([]byte)("accept"), 0, core.InvalidStreamID)
+	msg2 := core.NewMessage(nil, ([]byte)("0accept"), 0, core.InvalidStreamID)
+	msg3 := core.NewMessage(nil, ([]byte)("reject"), 0, core.InvalidStreamID)
 
-	expect.True(filter.Accepts(msg1))
-	expect.False(filter.Accepts(msg2))
-	expect.False(filter.Accepts(msg3))
+	result := filter.Modulate(msg1)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	result = filter.Modulate(msg2)
+	expect.Equal(core.ModulateResultDiscard, result)
+
+	result = filter.Modulate(msg3)
+	expect.Equal(core.ModulateResultDiscard, result)
 
 	acceptExp := filter.exp
 	filter.exp = nil
 
-	expect.True(filter.Accepts(msg1))
-	expect.False(filter.Accepts(msg2))
-	expect.True(filter.Accepts(msg3))
+	result = filter.Modulate(msg1)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	result = filter.Modulate(msg2)
+	expect.Equal(core.ModulateResultDiscard, result)
+
+	result = filter.Modulate(msg3)
+	expect.Equal(core.ModulateResultContinue, result)
 
 	filter.expNot = nil
 
-	expect.True(filter.Accepts(msg1))
-	expect.True(filter.Accepts(msg2))
-	expect.True(filter.Accepts(msg3))
+	result = filter.Modulate(msg1)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	result = filter.Modulate(msg2)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	result = filter.Modulate(msg3)
+	expect.Equal(core.ModulateResultContinue, result)
 
 	filter.exp = acceptExp
 
-	expect.True(filter.Accepts(msg1))
-	expect.True(filter.Accepts(msg2))
-	expect.False(filter.Accepts(msg3))
+	result = filter.Modulate(msg1)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	result = filter.Modulate(msg2)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	result = filter.Modulate(msg3)
+	expect.Equal(core.ModulateResultDiscard, result)
 }

@@ -15,52 +15,80 @@
 package filter
 
 import (
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
 	"testing"
+
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/ttesting"
 )
 
 func TestFilterAnyAllNone(t *testing.T) {
-	expect := shared.NewExpect(t)
-	conf := core.NewPluginConfig("")
+	expect := ttesting.NewExpect(t)
+	conf := core.NewPluginConfig("", "filter.Any")
 
-	conf.Override("AnyFilter", []string{"filter.None", "filter.All"})
-	plugin, err := core.NewPluginWithType("filter.Any", conf)
+	conf.Override("Any", []interface{}{"filter.None"})
+	plugin, err := core.NewPlugin(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*Any)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte{}, 0)
-	expect.False(filter.filters[0].Accepts(msg))
-	expect.True(filter.filters[1].Accepts(msg))
-	expect.True(filter.Accepts(msg))
+	msg := core.NewMessage(nil, []byte{}, 0, core.InvalidStreamID)
+
+	result := filter.modulators[0].Modulate(msg)
+	expect.Equal(core.ModulateResultDiscard, result)
+
+	result = filter.Modulate(msg)
+	expect.Equal(core.ModulateResultDiscard, result)
 }
 
 func TestFilterAnyJsonRegExp(t *testing.T) {
-	expect := shared.NewExpect(t)
-	conf := core.NewPluginConfig("")
+	expect := ttesting.NewExpect(t)
+	conf := core.NewPluginConfig("", "filter.Any")
 
-	conf.Override("AnyFilter", []string{"filter.JSON", "filter.RegExp"})
-	conf.Override("FilterExpression", "^ERROR")
-	plugin, err := core.NewPluginWithType("filter.Any", conf)
+	conf.Override("Any", []interface{}{
+		"filter.JSON",
+		map[interface{}]interface{}{
+			"filter.RegExp": map[string]string{
+				"Expression": "^ERROR",
+			},
+		},
+	})
+	plugin, err := core.NewPlugin(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*Any)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("ERROR"), 0)
-	expect.False(filter.filters[0].Accepts(msg))
-	expect.True(filter.filters[1].Accepts(msg))
-	expect.True(filter.Accepts(msg))
+	msg := core.NewMessage(nil, []byte("ERROR"), 0, core.InvalidStreamID)
 
-	msg = core.NewMessage(nil, []byte("{}"), 0)
-	expect.True(filter.filters[0].Accepts(msg))
-	expect.False(filter.filters[1].Accepts(msg))
-	expect.True(filter.Accepts(msg))
+	result := filter.modulators[0].Modulate(msg)
+	expect.Equal(core.ModulateResultDiscard, result)
 
-	msg = core.NewMessage(nil, []byte("FAIL"), 0)
-	expect.False(filter.filters[0].Accepts(msg))
-	expect.False(filter.filters[1].Accepts(msg))
-	expect.False(filter.Accepts(msg))
+	result = filter.modulators[1].Modulate(msg)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	result = filter.Modulate(msg)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	msg = core.NewMessage(nil, []byte("{}"), 0, core.InvalidStreamID)
+
+	result = filter.modulators[0].Modulate(msg)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	result = filter.modulators[1].Modulate(msg)
+	expect.Equal(core.ModulateResultDiscard, result)
+
+	result = filter.Modulate(msg)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	msg = core.NewMessage(nil, []byte("FAIL"), 0, core.InvalidStreamID)
+
+	result = filter.modulators[0].Modulate(msg)
+	expect.Equal(core.ModulateResultDiscard, result)
+
+	result = filter.modulators[1].Modulate(msg)
+	expect.Equal(core.ModulateResultDiscard, result)
+
+	result = filter.Modulate(msg)
+	expect.Equal(core.ModulateResultDiscard, result)
 }

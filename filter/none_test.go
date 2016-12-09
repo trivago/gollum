@@ -15,9 +15,10 @@
 package filter
 
 import (
+	"testing"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
 
 func TestFilterNone(t *testing.T) {
@@ -30,6 +31,8 @@ func TestFilterNone(t *testing.T) {
 	filter, casted := plugin.(*None)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte{}, 0)
-	expect.False(filter.Accepts(msg))
+	msg := core.NewMessage(nil, []byte{}, 0, core.InvalidStreamID)
+
+	result := filter.Modulate(msg)
+	expect.Equal(core.ModulateResultDiscard, result)
 }

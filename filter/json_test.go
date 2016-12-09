@@ -15,9 +15,10 @@
 package filter
 
 import (
+	"testing"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
 
 func TestFilterJSON(t *testing.T) {
@@ -32,30 +33,53 @@ func TestFilterJSON(t *testing.T) {
 	filter, casted := plugin.(*JSON)
 	expect.True(casted)
 
-	msg1 := core.NewMessage(nil, ([]byte)("{\"data\":\"accept\"}"), 0)
-	msg2 := core.NewMessage(nil, ([]byte)("{\"data\":\"0accept\"}"), 0)
-	msg3 := core.NewMessage(nil, ([]byte)("{\"data\":\"reject\"}"), 0)
+	msg1 := core.NewMessage(nil, ([]byte)("{\"data\":\"accept\"}"),
+		0, core.InvalidStreamID)
+	msg2 := core.NewMessage(nil, ([]byte)("{\"data\":\"0accept\"}"),
+		0, core.InvalidStreamID)
+	msg3 := core.NewMessage(nil, ([]byte)("{\"data\":\"reject\"}"),
+		0, core.InvalidStreamID)
 
-	expect.True(filter.Accepts(msg1))
-	expect.False(filter.Accepts(msg2))
-	expect.False(filter.Accepts(msg3))
+	result := filter.Modulate(msg1)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	result = filter.Modulate(msg2)
+	expect.Equal(core.ModulateResultDiscard, result)
+
+	result = filter.Modulate(msg3)
+	expect.Equal(core.ModulateResultDiscard, result)
 
 	acceptExp := filter.acceptValues["data"]
 	delete(filter.acceptValues, "data")
 
-	expect.True(filter.Accepts(msg1))
-	expect.False(filter.Accepts(msg2))
-	expect.True(filter.Accepts(msg3))
+	result = filter.Modulate(msg1)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	result = filter.Modulate(msg2)
+	expect.Equal(core.ModulateResultDiscard, result)
+
+	result = filter.Modulate(msg3)
+	expect.Equal(core.ModulateResultContinue, result)
 
 	delete(filter.rejectValues, "data")
 
-	expect.True(filter.Accepts(msg1))
-	expect.True(filter.Accepts(msg2))
-	expect.True(filter.Accepts(msg3))
+	result = filter.Modulate(msg1)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	result = filter.Modulate(msg2)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	result = filter.Modulate(msg3)
+	expect.Equal(core.ModulateResultContinue, result)
 
 	filter.acceptValues["data"] = acceptExp
 
-	expect.True(filter.Accepts(msg1))
-	expect.True(filter.Accepts(msg2))
-	expect.False(filter.Accepts(msg3))
+	result = filter.Modulate(msg1)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	result = filter.Modulate(msg2)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	result = filter.Modulate(msg3)
+	expect.Equal(core.ModulateResultDiscard, result)
 }
