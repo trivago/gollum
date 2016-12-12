@@ -15,14 +15,14 @@
 package core
 
 import (
-	"github.com/trivago/tgo/tlog"
-	"github.com/trivago/tgo/tsync"
-	"github.com/trivago/tgo/ttesting"
 	"math"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/trivago/tgo/tlog"
+	"github.com/trivago/tgo/ttesting"
 )
 
 type mockConsumer struct {
@@ -47,62 +47,11 @@ func TestConsumerConfigure(t *testing.T) {
 
 	pluginCfg := NewPluginConfig("mockConsumer", "mockConsumer")
 
-	mockStream := getMockStream()
-	mockStream.boundStreamID = StreamRegistry.GetStreamID("mockStream")
-	StreamRegistry.Register(&mockStream, mockStream.boundStreamID)
-
 	// Stream needs to be configured to avoid unknown class errors
 	registerMockStream("mockConsumer")
 
 	err := mockC.Configure(NewPluginConfigReader(&pluginCfg))
 	expect.NoError(err)
-}
-
-func TestConsumerEnqueueCopy(t *testing.T) {
-	expect := ttesting.NewExpect(t)
-	mockC := getMockConsumer()
-
-	dataToSend := "Consumer Enqueue Data"
-	distribute := func(msg *Message) {
-		expect.Equal(dataToSend, msg.String())
-	}
-
-	mockStream := getMockStream()
-	mockP := getMockProducer()
-	mockStream.AddProducer(&mockP)
-	mockStream.distribute = distribute
-	mockStream.boundStreamID = StreamRegistry.GetStreamID("mockStream")
-	StreamRegistry.Register(&mockStream, mockStream.boundStreamID)
-
-	mockC.streams = []MappedStream{
-		{
-			StreamID: mockStream.boundStreamID,
-			Stream:   &mockStream,
-		},
-	}
-
-	mockC.EnqueueCopy([]byte(dataToSend), 2)
-}
-
-func TestConsumerStreams(t *testing.T) {
-	expect := ttesting.NewExpect(t)
-	mockC := getMockConsumer()
-
-	mockStream := getMockStream()
-	mockP := getMockProducer()
-	mockStream.AddProducer(&mockP)
-	mockStream.boundStreamID = StreamRegistry.GetStreamID("mockStream")
-	StreamRegistry.Register(&mockStream, mockStream.boundStreamID)
-
-	mockC.streams = []MappedStream{
-		{
-			StreamID: mockStream.boundStreamID,
-			Stream:   &mockStream,
-		},
-	}
-
-	ret := mockC.Streams()
-	expect.Equal(1, len(ret))
 }
 
 func TestConsumerControl(t *testing.T) {
@@ -226,7 +175,8 @@ func TestConsumerFuse(t *testing.T) {
 	atomic.StoreInt32(activeCallback, 0)
 
 	mockC.fuse.Burn()
-	time.Sleep(tsync.SpinTimeSuspend + 100*time.Millisecond)
+	//time.Sleep(tsync.SpinTimeSuspend + 100*time.Millisecond)
+	time.Sleep(time.Second + 100*time.Millisecond)
 
 	expect.Equal(atomic.LoadInt32(burnedCallback), int32(1))
 	expect.Equal(atomic.LoadInt32(activeCallback), int32(0))
