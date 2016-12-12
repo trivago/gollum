@@ -15,13 +15,14 @@
 package core
 
 import (
-	"github.com/trivago/tgo/tlog"
-	"github.com/trivago/tgo/ttesting"
 	"math"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/trivago/tgo/tlog"
+	"github.com/trivago/tgo/ttesting"
 )
 
 type mockProducer struct {
@@ -38,10 +39,9 @@ func getMockProducer() mockProducer {
 			SimpleProducer: SimpleProducer{
 				control:          make(chan PluginControl),
 				streams:          []MessageStreamID{},
-				dropStreamID:     2,
+				dropStream:       nil, //it must be set after registration of stream
 				runState:         new(PluginRunState),
-				filters:          []Filter{&mockFilter{}},
-				formatters:       []Formatter{&mockFormatter{}},
+				modulators:       ModulatorArray{},
 				shutdownTimeout:  10 * time.Millisecond,
 				fuseName:         "test",
 				fuseTimeout:      100 * time.Millisecond,
@@ -59,12 +59,12 @@ func TestProducerConfigure(t *testing.T) {
 
 	mockProducer := mockProducer{}
 
-	TypeRegistry.Register(mockPlugin{})
-	TypeRegistry.Register(mockFormatter{})
-	TypeRegistry.Register(mockFilter{})
-	mockConf := NewPluginConfig("testPluginConf", "core.mockPlugin")
+	mockConf := NewPluginConfig("", "mockProducer")
 	mockConf.Override("streams", []string{"testBoundStream"})
-	mockConf.Override("Filter", "core.mockFilter")
+	mockConf.Override("DropToStream", "mockStream")
+
+	// Stream needs to be configured to avoid unknown class errors
+	registerMockStream("mockStream")
 
 	err := mockProducer.Configure(NewPluginConfigReader(&mockConf))
 	expect.NoError(err)
@@ -120,18 +120,15 @@ func TestProducerEnqueue(t *testing.T) {
 	// TODO: distribute for drop route not called. Probably streams array contains soln
 	expect := ttesting.NewExpect(t)
 	mockP := getMockProducer()
-	mockDistribute := func(msg *Message) {
-		expect.Equal("ProdEnqueueTest", msg.String())
-	}
+
 	mockDropStream := getMockStream()
-	mockDropStream.distribute = mockDistribute
-	mockDropStream.boundStreamID = 2
+	mockDropStream.streamID = 2
 	StreamRegistry.Register(&mockDropStream, 2)
 
-	msg := &Message{
-		Data:     []byte("ProdEnqueueTest"),
-		StreamID: 1,
-	}
+	mockP.dropStream = StreamRegistry.GetStream(2)
+
+	msg := NewMessage(nil, []byte("ProdEnqueueTest"), 4, 1)
+
 	enqTimeout := time.Second
 	mockP.setState(PluginStateStopping)
 	// cause panic and check if message is dropped
@@ -141,8 +138,7 @@ func TestProducerEnqueue(t *testing.T) {
 	mockP.Enqueue(msg, &enqTimeout)
 
 	mockStream := getMockStream()
-	mockStream.distribute = mockDistribute
-	mockDropStream.boundStreamID = 1
+	mockDropStream.streamID = 1
 	StreamRegistry.Register(&mockStream, 1)
 
 	go func() {
@@ -171,23 +167,16 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 		expect.Equal("closeMessageChannel", msg.String())
 	}
 
-	mockDistribute := func(msg *Message) {
-		expect.Equal("closeMessageChannel", msg.String())
-	}
-
 	mockDropStream := getMockStream()
-	mockDropStream.distribute = mockDistribute
 	mockDropStream.AddProducer(&mockProducer{})
-	mockDropStream.boundStreamID = 2
+	mockDropStream.streamID = 2
 
 	StreamRegistry.name[2] = "testStream"
 	StreamRegistry.Register(&mockDropStream, 2)
 
 	mockP.streams = []MessageStreamID{2}
-	msgToSend := &Message{
-		Data:     []byte("closeMessageChannel"),
-		StreamID: 2,
-	}
+	msgToSend := NewMessage(nil, []byte("closeMessageChannel"), 4, 2)
+
 	mockP.Enqueue(msgToSend, nil)
 	mockP.Enqueue(msgToSend, nil)
 	mockP.CloseMessageChannel(handleMessageFail)
@@ -238,7 +227,7 @@ func TestProducerMessageLoop(t *testing.T) {
 	mockP.messages = NewMessageQueue(10)
 	msgData := "test Message loop"
 	msg := &Message{
-		Data: []byte(msgData),
+		data: []byte(msgData),
 	}
 
 	for i := 0; i < 9; i++ {
@@ -296,7 +285,7 @@ func TestProducerFuse(t *testing.T) {
 		return atomic.LoadInt32(activateFuse) == 1
 	})
 
-	fuse := StreamRegistry.GetFuse(mockP.fuseName)
+	fuse := FuseRegistry.GetFuse(mockP.fuseName)
 	expect.False(fuse.IsBurned())
 
 	go mockP.ControlLoop()
