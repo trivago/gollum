@@ -8,6 +8,7 @@ Producers
 	console
 	elasticsearch
 	file
+	firehose
 	httprequest
 	influxdb
 	kafka

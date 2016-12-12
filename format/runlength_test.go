@@ -15,9 +15,10 @@
 package format
 
 import (
+	"testing"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
 
 func TestRunlength(t *testing.T) {
@@ -30,8 +31,9 @@ func TestRunlength(t *testing.T) {
 	formatter, casted := plugin.(*Runlength)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), 0)
-	formatter.Format(msg)
+	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
+	result := formatter.Modulate(msg)
+	expect.Equal(core.ModulateResultContinue, result)
 
-	expect.Equal("4:test", string(msg.Data))
+	expect.Equal("4:test", string(msg.Data()))
 }

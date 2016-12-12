@@ -16,10 +16,11 @@ package format
 
 import (
 	"encoding/json"
+	"testing"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
 
 func TestSplitToJSON(t *testing.T) {
@@ -35,11 +36,14 @@ func TestSplitToJSON(t *testing.T) {
 	formatter, casted := plugin.(*SplitToJSON)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test1,test2,test3"), 10)
-	formatter.Format(msg)
+	msg := core.NewMessage(nil, []byte("test1,test2,test3"),
+		10, core.InvalidStreamID)
+
+	result := formatter.Modulate(msg)
+	expect.Equal(core.ModulateResultContinue, result)
 
 	jsonData := tcontainer.NewMarshalMap()
-	err = json.Unmarshal(msg.Data, &jsonData)
+	err = json.Unmarshal(msg.Data(), &jsonData)
 	expect.NoError(err)
 
 	expect.MapEqual(jsonData, "first", "test1")
@@ -60,11 +64,14 @@ func TestSplitToJSONTooFew(t *testing.T) {
 	formatter, casted := plugin.(*SplitToJSON)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test1,test2,test3"), 10)
-	formatter.Format(msg)
+	msg := core.NewMessage(nil, []byte("test1,test2,test3"),
+		10, core.InvalidStreamID)
+
+	result := formatter.Modulate(msg)
+	expect.Equal(core.ModulateResultContinue, result)
 
 	jsonData := tcontainer.NewMarshalMap()
-	err = json.Unmarshal(msg.Data, &jsonData)
+	err = json.Unmarshal(msg.Data(), &jsonData)
 	expect.NoError(err)
 
 	expect.MapEqual(jsonData, "first", "test1")
@@ -85,11 +92,14 @@ func TestSplitToJSONTooMany(t *testing.T) {
 	formatter, casted := plugin.(*SplitToJSON)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test1,test2,test3"), 10)
-	formatter.Format(msg)
+	msg := core.NewMessage(nil, []byte("test1,test2,test3"),
+		10, core.InvalidStreamID)
+
+	result := formatter.Modulate(msg)
+	expect.Equal(core.ModulateResultContinue, result)
 
 	jsonData := tcontainer.NewMarshalMap()
-	err = json.Unmarshal(msg.Data, &jsonData)
+	err = json.Unmarshal(msg.Data(), &jsonData)
 	expect.NoError(err)
 
 	expect.MapEqual(jsonData, "first", "test1")

@@ -20,6 +20,8 @@ const opCreateIdentityPool = "CreateIdentityPool"
 // value can be used to capture response data after the request's "Send" method
 // is called.
 //
+// See CreateIdentityPool for usage and error information.
+//
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
 // access properties on the request object before or after sending the request. If
@@ -54,12 +56,42 @@ func (c *CognitoIdentity) CreateIdentityPoolRequest(input *CreateIdentityPoolInp
 	return
 }
 
+// CreateIdentityPool API operation for Amazon Cognito Identity.
+//
 // Creates a new identity pool. The identity pool is a store of user identity
 // information that is specific to your AWS account. The limit on identity pools
 // is 60 per account. The keys for SupportedLoginProviders are as follows:
 // Facebook: graph.facebook.com Google: accounts.google.com Amazon: www.amazon.com
 // Twitter: api.twitter.com Digits: www.digits.com  You must use AWS Developer
 // credentials to call this API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity's
+// API operation CreateIdentityPool for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   Thrown for missing or bad input parameter(s).
+//
+//   * NotAuthorizedException
+//   Thrown when a user is not authorized to access the requested resource.
+//
+//   * ResourceConflictException
+//   Thrown when a user tries to use a login which is already linked to another
+//   account.
+//
+//   * TooManyRequestsException
+//   Thrown when a request is throttled.
+//
+//   * InternalErrorException
+//   Thrown when the service encounters an error during processing the request.
+//
+//   * LimitExceededException
+//   Thrown when the total number of user pools has exceeded a preset limit.
+//
 func (c *CognitoIdentity) CreateIdentityPool(input *CreateIdentityPoolInput) (*IdentityPool, error) {
 	req, out := c.CreateIdentityPoolRequest(input)
 	err := req.Send()
@@ -72,6 +104,8 @@ const opDeleteIdentities = "DeleteIdentities"
 // client's request for the DeleteIdentities operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See DeleteIdentities for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -107,10 +141,30 @@ func (c *CognitoIdentity) DeleteIdentitiesRequest(input *DeleteIdentitiesInput) 
 	return
 }
 
+// DeleteIdentities API operation for Amazon Cognito Identity.
+//
 // Deletes identities from an identity pool. You can specify a list of 1-60
 // identities that you want to delete.
 //
 // You must use AWS Developer credentials to call this API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity's
+// API operation DeleteIdentities for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   Thrown for missing or bad input parameter(s).
+//
+//   * TooManyRequestsException
+//   Thrown when a request is throttled.
+//
+//   * InternalErrorException
+//   Thrown when the service encounters an error during processing the request.
+//
 func (c *CognitoIdentity) DeleteIdentities(input *DeleteIdentitiesInput) (*DeleteIdentitiesOutput, error) {
 	req, out := c.DeleteIdentitiesRequest(input)
 	err := req.Send()
@@ -123,6 +177,8 @@ const opDeleteIdentityPool = "DeleteIdentityPool"
 // client's request for the DeleteIdentityPool operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See DeleteIdentityPool for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -160,10 +216,37 @@ func (c *CognitoIdentity) DeleteIdentityPoolRequest(input *DeleteIdentityPoolInp
 	return
 }
 
+// DeleteIdentityPool API operation for Amazon Cognito Identity.
+//
 // Deletes a user pool. Once a pool is deleted, users will not be able to authenticate
 // with the pool.
 //
 // You must use AWS Developer credentials to call this API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity's
+// API operation DeleteIdentityPool for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   Thrown for missing or bad input parameter(s).
+//
+//   * ResourceNotFoundException
+//   Thrown when the requested resource (for example, a dataset or record) does
+//   not exist.
+//
+//   * NotAuthorizedException
+//   Thrown when a user is not authorized to access the requested resource.
+//
+//   * TooManyRequestsException
+//   Thrown when a request is throttled.
+//
+//   * InternalErrorException
+//   Thrown when the service encounters an error during processing the request.
+//
 func (c *CognitoIdentity) DeleteIdentityPool(input *DeleteIdentityPoolInput) (*DeleteIdentityPoolOutput, error) {
 	req, out := c.DeleteIdentityPoolRequest(input)
 	err := req.Send()
@@ -176,6 +259,8 @@ const opDescribeIdentity = "DescribeIdentity"
 // client's request for the DescribeIdentity operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See DescribeIdentity for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -211,10 +296,37 @@ func (c *CognitoIdentity) DescribeIdentityRequest(input *DescribeIdentityInput) 
 	return
 }
 
+// DescribeIdentity API operation for Amazon Cognito Identity.
+//
 // Returns metadata related to the given identity, including when the identity
 // was created and any associated linked logins.
 //
 // You must use AWS Developer credentials to call this API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity's
+// API operation DescribeIdentity for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   Thrown for missing or bad input parameter(s).
+//
+//   * ResourceNotFoundException
+//   Thrown when the requested resource (for example, a dataset or record) does
+//   not exist.
+//
+//   * NotAuthorizedException
+//   Thrown when a user is not authorized to access the requested resource.
+//
+//   * TooManyRequestsException
+//   Thrown when a request is throttled.
+//
+//   * InternalErrorException
+//   Thrown when the service encounters an error during processing the request.
+//
 func (c *CognitoIdentity) DescribeIdentity(input *DescribeIdentityInput) (*IdentityDescription, error) {
 	req, out := c.DescribeIdentityRequest(input)
 	err := req.Send()
@@ -227,6 +339,8 @@ const opDescribeIdentityPool = "DescribeIdentityPool"
 // client's request for the DescribeIdentityPool operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See DescribeIdentityPool for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -262,10 +376,37 @@ func (c *CognitoIdentity) DescribeIdentityPoolRequest(input *DescribeIdentityPoo
 	return
 }
 
+// DescribeIdentityPool API operation for Amazon Cognito Identity.
+//
 // Gets details about a particular identity pool, including the pool name, ID
 // description, creation date, and current number of users.
 //
 // You must use AWS Developer credentials to call this API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity's
+// API operation DescribeIdentityPool for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   Thrown for missing or bad input parameter(s).
+//
+//   * ResourceNotFoundException
+//   Thrown when the requested resource (for example, a dataset or record) does
+//   not exist.
+//
+//   * NotAuthorizedException
+//   Thrown when a user is not authorized to access the requested resource.
+//
+//   * TooManyRequestsException
+//   Thrown when a request is throttled.
+//
+//   * InternalErrorException
+//   Thrown when the service encounters an error during processing the request.
+//
 func (c *CognitoIdentity) DescribeIdentityPool(input *DescribeIdentityPoolInput) (*IdentityPool, error) {
 	req, out := c.DescribeIdentityPoolRequest(input)
 	err := req.Send()
@@ -278,6 +419,8 @@ const opGetCredentialsForIdentity = "GetCredentialsForIdentity"
 // client's request for the GetCredentialsForIdentity operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See GetCredentialsForIdentity for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -313,12 +456,51 @@ func (c *CognitoIdentity) GetCredentialsForIdentityRequest(input *GetCredentials
 	return
 }
 
+// GetCredentialsForIdentity API operation for Amazon Cognito Identity.
+//
 // Returns credentials for the provided identity ID. Any provided logins will
 // be validated against supported login providers. If the token is for cognito-identity.amazonaws.com,
 // it will be passed through to AWS Security Token Service with the appropriate
 // role for the token.
 //
 // This is a public API. You do not need any credentials to call this API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity's
+// API operation GetCredentialsForIdentity for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   Thrown for missing or bad input parameter(s).
+//
+//   * ResourceNotFoundException
+//   Thrown when the requested resource (for example, a dataset or record) does
+//   not exist.
+//
+//   * NotAuthorizedException
+//   Thrown when a user is not authorized to access the requested resource.
+//
+//   * ResourceConflictException
+//   Thrown when a user tries to use a login which is already linked to another
+//   account.
+//
+//   * TooManyRequestsException
+//   Thrown when a request is throttled.
+//
+//   * InvalidIdentityPoolConfigurationException
+//   Thrown if the identity pool has no role associated for the given auth type
+//   (auth/unauth) or if the AssumeRole fails.
+//
+//   * InternalErrorException
+//   Thrown when the service encounters an error during processing the request.
+//
+//   * ExternalServiceException
+//   An exception thrown when a dependent service such as Facebook or Twitter
+//   is not responding
+//
 func (c *CognitoIdentity) GetCredentialsForIdentity(input *GetCredentialsForIdentityInput) (*GetCredentialsForIdentityOutput, error) {
 	req, out := c.GetCredentialsForIdentityRequest(input)
 	err := req.Send()
@@ -331,6 +513,8 @@ const opGetId = "GetId"
 // client's request for the GetId operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See GetId for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -366,10 +550,48 @@ func (c *CognitoIdentity) GetIdRequest(input *GetIdInput) (req *request.Request,
 	return
 }
 
+// GetId API operation for Amazon Cognito Identity.
+//
 // Generates (or retrieves) a Cognito ID. Supplying multiple logins will create
 // an implicit linked account.
 //
 // This is a public API. You do not need any credentials to call this API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity's
+// API operation GetId for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   Thrown for missing or bad input parameter(s).
+//
+//   * ResourceNotFoundException
+//   Thrown when the requested resource (for example, a dataset or record) does
+//   not exist.
+//
+//   * NotAuthorizedException
+//   Thrown when a user is not authorized to access the requested resource.
+//
+//   * ResourceConflictException
+//   Thrown when a user tries to use a login which is already linked to another
+//   account.
+//
+//   * TooManyRequestsException
+//   Thrown when a request is throttled.
+//
+//   * InternalErrorException
+//   Thrown when the service encounters an error during processing the request.
+//
+//   * LimitExceededException
+//   Thrown when the total number of user pools has exceeded a preset limit.
+//
+//   * ExternalServiceException
+//   An exception thrown when a dependent service such as Facebook or Twitter
+//   is not responding
+//
 func (c *CognitoIdentity) GetId(input *GetIdInput) (*GetIdOutput, error) {
 	req, out := c.GetIdRequest(input)
 	err := req.Send()
@@ -382,6 +604,8 @@ const opGetIdentityPoolRoles = "GetIdentityPoolRoles"
 // client's request for the GetIdentityPoolRoles operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See GetIdentityPoolRoles for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -417,9 +641,40 @@ func (c *CognitoIdentity) GetIdentityPoolRolesRequest(input *GetIdentityPoolRole
 	return
 }
 
+// GetIdentityPoolRoles API operation for Amazon Cognito Identity.
+//
 // Gets the roles for an identity pool.
 //
 // You must use AWS Developer credentials to call this API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity's
+// API operation GetIdentityPoolRoles for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   Thrown for missing or bad input parameter(s).
+//
+//   * ResourceNotFoundException
+//   Thrown when the requested resource (for example, a dataset or record) does
+//   not exist.
+//
+//   * NotAuthorizedException
+//   Thrown when a user is not authorized to access the requested resource.
+//
+//   * ResourceConflictException
+//   Thrown when a user tries to use a login which is already linked to another
+//   account.
+//
+//   * TooManyRequestsException
+//   Thrown when a request is throttled.
+//
+//   * InternalErrorException
+//   Thrown when the service encounters an error during processing the request.
+//
 func (c *CognitoIdentity) GetIdentityPoolRoles(input *GetIdentityPoolRolesInput) (*GetIdentityPoolRolesOutput, error) {
 	req, out := c.GetIdentityPoolRolesRequest(input)
 	err := req.Send()
@@ -432,6 +687,8 @@ const opGetOpenIdToken = "GetOpenIdToken"
 // client's request for the GetOpenIdToken operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See GetOpenIdToken for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -467,6 +724,8 @@ func (c *CognitoIdentity) GetOpenIdTokenRequest(input *GetOpenIdTokenInput) (req
 	return
 }
 
+// GetOpenIdToken API operation for Amazon Cognito Identity.
+//
 // Gets an OpenID token, using a known Cognito ID. This known Cognito ID is
 // returned by GetId. You can optionally add additional logins for the identity.
 // Supplying multiple logins creates an implicit link.
@@ -474,6 +733,39 @@ func (c *CognitoIdentity) GetOpenIdTokenRequest(input *GetOpenIdTokenInput) (req
 // The OpenId token is valid for 15 minutes.
 //
 // This is a public API. You do not need any credentials to call this API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity's
+// API operation GetOpenIdToken for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   Thrown for missing or bad input parameter(s).
+//
+//   * ResourceNotFoundException
+//   Thrown when the requested resource (for example, a dataset or record) does
+//   not exist.
+//
+//   * NotAuthorizedException
+//   Thrown when a user is not authorized to access the requested resource.
+//
+//   * ResourceConflictException
+//   Thrown when a user tries to use a login which is already linked to another
+//   account.
+//
+//   * TooManyRequestsException
+//   Thrown when a request is throttled.
+//
+//   * InternalErrorException
+//   Thrown when the service encounters an error during processing the request.
+//
+//   * ExternalServiceException
+//   An exception thrown when a dependent service such as Facebook or Twitter
+//   is not responding
+//
 func (c *CognitoIdentity) GetOpenIdToken(input *GetOpenIdTokenInput) (*GetOpenIdTokenOutput, error) {
 	req, out := c.GetOpenIdTokenRequest(input)
 	err := req.Send()
@@ -486,6 +778,8 @@ const opGetOpenIdTokenForDeveloperIdentity = "GetOpenIdTokenForDeveloperIdentity
 // client's request for the GetOpenIdTokenForDeveloperIdentity operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See GetOpenIdTokenForDeveloperIdentity for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -521,6 +815,8 @@ func (c *CognitoIdentity) GetOpenIdTokenForDeveloperIdentityRequest(input *GetOp
 	return
 }
 
+// GetOpenIdTokenForDeveloperIdentity API operation for Amazon Cognito Identity.
+//
 // Registers (or retrieves) a Cognito IdentityId and an OpenID Connect token
 // for a user authenticated by your backend authentication process. Supplying
 // multiple logins will create an implicit linked account. You can only specify
@@ -537,6 +833,39 @@ func (c *CognitoIdentity) GetOpenIdTokenForDeveloperIdentityRequest(input *GetOp
 // in the specified IdentityPoolId.
 //
 // You must use AWS Developer credentials to call this API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity's
+// API operation GetOpenIdTokenForDeveloperIdentity for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   Thrown for missing or bad input parameter(s).
+//
+//   * ResourceNotFoundException
+//   Thrown when the requested resource (for example, a dataset or record) does
+//   not exist.
+//
+//   * NotAuthorizedException
+//   Thrown when a user is not authorized to access the requested resource.
+//
+//   * ResourceConflictException
+//   Thrown when a user tries to use a login which is already linked to another
+//   account.
+//
+//   * TooManyRequestsException
+//   Thrown when a request is throttled.
+//
+//   * InternalErrorException
+//   Thrown when the service encounters an error during processing the request.
+//
+//   * DeveloperUserAlreadyRegisteredException
+//   The provided developer user identifier is already registered with Cognito
+//   under a different identity ID.
+//
 func (c *CognitoIdentity) GetOpenIdTokenForDeveloperIdentity(input *GetOpenIdTokenForDeveloperIdentityInput) (*GetOpenIdTokenForDeveloperIdentityOutput, error) {
 	req, out := c.GetOpenIdTokenForDeveloperIdentityRequest(input)
 	err := req.Send()
@@ -549,6 +878,8 @@ const opListIdentities = "ListIdentities"
 // client's request for the ListIdentities operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See ListIdentities for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -584,9 +915,36 @@ func (c *CognitoIdentity) ListIdentitiesRequest(input *ListIdentitiesInput) (req
 	return
 }
 
+// ListIdentities API operation for Amazon Cognito Identity.
+//
 // Lists the identities in a pool.
 //
 // You must use AWS Developer credentials to call this API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity's
+// API operation ListIdentities for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   Thrown for missing or bad input parameter(s).
+//
+//   * ResourceNotFoundException
+//   Thrown when the requested resource (for example, a dataset or record) does
+//   not exist.
+//
+//   * NotAuthorizedException
+//   Thrown when a user is not authorized to access the requested resource.
+//
+//   * TooManyRequestsException
+//   Thrown when a request is throttled.
+//
+//   * InternalErrorException
+//   Thrown when the service encounters an error during processing the request.
+//
 func (c *CognitoIdentity) ListIdentities(input *ListIdentitiesInput) (*ListIdentitiesOutput, error) {
 	req, out := c.ListIdentitiesRequest(input)
 	err := req.Send()
@@ -599,6 +957,8 @@ const opListIdentityPools = "ListIdentityPools"
 // client's request for the ListIdentityPools operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See ListIdentityPools for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -634,9 +994,32 @@ func (c *CognitoIdentity) ListIdentityPoolsRequest(input *ListIdentityPoolsInput
 	return
 }
 
+// ListIdentityPools API operation for Amazon Cognito Identity.
+//
 // Lists all of the Cognito identity pools registered for your account.
 //
 // You must use AWS Developer credentials to call this API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity's
+// API operation ListIdentityPools for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   Thrown for missing or bad input parameter(s).
+//
+//   * NotAuthorizedException
+//   Thrown when a user is not authorized to access the requested resource.
+//
+//   * TooManyRequestsException
+//   Thrown when a request is throttled.
+//
+//   * InternalErrorException
+//   Thrown when the service encounters an error during processing the request.
+//
 func (c *CognitoIdentity) ListIdentityPools(input *ListIdentityPoolsInput) (*ListIdentityPoolsOutput, error) {
 	req, out := c.ListIdentityPoolsRequest(input)
 	err := req.Send()
@@ -649,6 +1032,8 @@ const opLookupDeveloperIdentity = "LookupDeveloperIdentity"
 // client's request for the LookupDeveloperIdentity operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See LookupDeveloperIdentity for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -684,6 +1069,8 @@ func (c *CognitoIdentity) LookupDeveloperIdentityRequest(input *LookupDeveloperI
 	return
 }
 
+// LookupDeveloperIdentity API operation for Amazon Cognito Identity.
+//
 // Retrieves the IdentityID associated with a DeveloperUserIdentifier or the
 // list of DeveloperUserIdentifiers associated with an IdentityId for an existing
 // identity. Either IdentityID or DeveloperUserIdentifier must not be null.
@@ -694,6 +1081,35 @@ func (c *CognitoIdentity) LookupDeveloperIdentityRequest(input *LookupDeveloperI
 // the same as the request. Otherwise a ResourceConflictException is thrown.
 //
 // You must use AWS Developer credentials to call this API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity's
+// API operation LookupDeveloperIdentity for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   Thrown for missing or bad input parameter(s).
+//
+//   * ResourceNotFoundException
+//   Thrown when the requested resource (for example, a dataset or record) does
+//   not exist.
+//
+//   * NotAuthorizedException
+//   Thrown when a user is not authorized to access the requested resource.
+//
+//   * ResourceConflictException
+//   Thrown when a user tries to use a login which is already linked to another
+//   account.
+//
+//   * TooManyRequestsException
+//   Thrown when a request is throttled.
+//
+//   * InternalErrorException
+//   Thrown when the service encounters an error during processing the request.
+//
 func (c *CognitoIdentity) LookupDeveloperIdentity(input *LookupDeveloperIdentityInput) (*LookupDeveloperIdentityOutput, error) {
 	req, out := c.LookupDeveloperIdentityRequest(input)
 	err := req.Send()
@@ -706,6 +1122,8 @@ const opMergeDeveloperIdentities = "MergeDeveloperIdentities"
 // client's request for the MergeDeveloperIdentities operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See MergeDeveloperIdentities for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -741,6 +1159,8 @@ func (c *CognitoIdentity) MergeDeveloperIdentitiesRequest(input *MergeDeveloperI
 	return
 }
 
+// MergeDeveloperIdentities API operation for Amazon Cognito Identity.
+//
 // Merges two users having different IdentityIds, existing in the same identity
 // pool, and identified by the same developer provider. You can use this action
 // to request that discrete users be merged and identified as a single user
@@ -750,6 +1170,35 @@ func (c *CognitoIdentity) MergeDeveloperIdentitiesRequest(input *MergeDeveloperI
 // public provider, but as two different users, an exception will be thrown.
 //
 // You must use AWS Developer credentials to call this API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity's
+// API operation MergeDeveloperIdentities for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   Thrown for missing or bad input parameter(s).
+//
+//   * ResourceNotFoundException
+//   Thrown when the requested resource (for example, a dataset or record) does
+//   not exist.
+//
+//   * NotAuthorizedException
+//   Thrown when a user is not authorized to access the requested resource.
+//
+//   * ResourceConflictException
+//   Thrown when a user tries to use a login which is already linked to another
+//   account.
+//
+//   * TooManyRequestsException
+//   Thrown when a request is throttled.
+//
+//   * InternalErrorException
+//   Thrown when the service encounters an error during processing the request.
+//
 func (c *CognitoIdentity) MergeDeveloperIdentities(input *MergeDeveloperIdentitiesInput) (*MergeDeveloperIdentitiesOutput, error) {
 	req, out := c.MergeDeveloperIdentitiesRequest(input)
 	err := req.Send()
@@ -762,6 +1211,8 @@ const opSetIdentityPoolRoles = "SetIdentityPoolRoles"
 // client's request for the SetIdentityPoolRoles operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See SetIdentityPoolRoles for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -799,10 +1250,44 @@ func (c *CognitoIdentity) SetIdentityPoolRolesRequest(input *SetIdentityPoolRole
 	return
 }
 
+// SetIdentityPoolRoles API operation for Amazon Cognito Identity.
+//
 // Sets the roles for an identity pool. These roles are used when making calls
 // to GetCredentialsForIdentity action.
 //
 // You must use AWS Developer credentials to call this API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity's
+// API operation SetIdentityPoolRoles for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   Thrown for missing or bad input parameter(s).
+//
+//   * ResourceNotFoundException
+//   Thrown when the requested resource (for example, a dataset or record) does
+//   not exist.
+//
+//   * NotAuthorizedException
+//   Thrown when a user is not authorized to access the requested resource.
+//
+//   * ResourceConflictException
+//   Thrown when a user tries to use a login which is already linked to another
+//   account.
+//
+//   * TooManyRequestsException
+//   Thrown when a request is throttled.
+//
+//   * InternalErrorException
+//   Thrown when the service encounters an error during processing the request.
+//
+//   * ConcurrentModificationException
+//   Thrown if there are parallel requests to modify a resource.
+//
 func (c *CognitoIdentity) SetIdentityPoolRoles(input *SetIdentityPoolRolesInput) (*SetIdentityPoolRolesOutput, error) {
 	req, out := c.SetIdentityPoolRolesRequest(input)
 	err := req.Send()
@@ -815,6 +1300,8 @@ const opUnlinkDeveloperIdentity = "UnlinkDeveloperIdentity"
 // client's request for the UnlinkDeveloperIdentity operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See UnlinkDeveloperIdentity for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -852,12 +1339,43 @@ func (c *CognitoIdentity) UnlinkDeveloperIdentityRequest(input *UnlinkDeveloperI
 	return
 }
 
+// UnlinkDeveloperIdentity API operation for Amazon Cognito Identity.
+//
 // Unlinks a DeveloperUserIdentifier from an existing identity. Unlinked developer
 // users will be considered new identities next time they are seen. If, for
 // a given Cognito identity, you remove all federated identities as well as
 // the developer user identifier, the Cognito identity becomes inaccessible.
 //
 // You must use AWS Developer credentials to call this API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity's
+// API operation UnlinkDeveloperIdentity for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   Thrown for missing or bad input parameter(s).
+//
+//   * ResourceNotFoundException
+//   Thrown when the requested resource (for example, a dataset or record) does
+//   not exist.
+//
+//   * NotAuthorizedException
+//   Thrown when a user is not authorized to access the requested resource.
+//
+//   * ResourceConflictException
+//   Thrown when a user tries to use a login which is already linked to another
+//   account.
+//
+//   * TooManyRequestsException
+//   Thrown when a request is throttled.
+//
+//   * InternalErrorException
+//   Thrown when the service encounters an error during processing the request.
+//
 func (c *CognitoIdentity) UnlinkDeveloperIdentity(input *UnlinkDeveloperIdentityInput) (*UnlinkDeveloperIdentityOutput, error) {
 	req, out := c.UnlinkDeveloperIdentityRequest(input)
 	err := req.Send()
@@ -870,6 +1388,8 @@ const opUnlinkIdentity = "UnlinkIdentity"
 // client's request for the UnlinkIdentity operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See UnlinkIdentity for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -907,11 +1427,46 @@ func (c *CognitoIdentity) UnlinkIdentityRequest(input *UnlinkIdentityInput) (req
 	return
 }
 
+// UnlinkIdentity API operation for Amazon Cognito Identity.
+//
 // Unlinks a federated identity from an existing account. Unlinked logins will
 // be considered new identities next time they are seen. Removing the last linked
 // login will make this identity inaccessible.
 //
 // This is a public API. You do not need any credentials to call this API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity's
+// API operation UnlinkIdentity for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   Thrown for missing or bad input parameter(s).
+//
+//   * ResourceNotFoundException
+//   Thrown when the requested resource (for example, a dataset or record) does
+//   not exist.
+//
+//   * NotAuthorizedException
+//   Thrown when a user is not authorized to access the requested resource.
+//
+//   * ResourceConflictException
+//   Thrown when a user tries to use a login which is already linked to another
+//   account.
+//
+//   * TooManyRequestsException
+//   Thrown when a request is throttled.
+//
+//   * InternalErrorException
+//   Thrown when the service encounters an error during processing the request.
+//
+//   * ExternalServiceException
+//   An exception thrown when a dependent service such as Facebook or Twitter
+//   is not responding
+//
 func (c *CognitoIdentity) UnlinkIdentity(input *UnlinkIdentityInput) (*UnlinkIdentityOutput, error) {
 	req, out := c.UnlinkIdentityRequest(input)
 	err := req.Send()
@@ -924,6 +1479,8 @@ const opUpdateIdentityPool = "UpdateIdentityPool"
 // client's request for the UpdateIdentityPool operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See UpdateIdentityPool for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -959,9 +1516,46 @@ func (c *CognitoIdentity) UpdateIdentityPoolRequest(input *IdentityPool) (req *r
 	return
 }
 
+// UpdateIdentityPool API operation for Amazon Cognito Identity.
+//
 // Updates a user pool.
 //
 // You must use AWS Developer credentials to call this API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity's
+// API operation UpdateIdentityPool for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   Thrown for missing or bad input parameter(s).
+//
+//   * ResourceNotFoundException
+//   Thrown when the requested resource (for example, a dataset or record) does
+//   not exist.
+//
+//   * NotAuthorizedException
+//   Thrown when a user is not authorized to access the requested resource.
+//
+//   * ResourceConflictException
+//   Thrown when a user tries to use a login which is already linked to another
+//   account.
+//
+//   * TooManyRequestsException
+//   Thrown when a request is throttled.
+//
+//   * InternalErrorException
+//   Thrown when the service encounters an error during processing the request.
+//
+//   * ConcurrentModificationException
+//   Thrown if there are parallel requests to modify a resource.
+//
+//   * LimitExceededException
+//   Thrown when the total number of user pools has exceeded a preset limit.
+//
 func (c *CognitoIdentity) UpdateIdentityPool(input *IdentityPool) (*IdentityPool, error) {
 	req, out := c.UpdateIdentityPoolRequest(input)
 	err := req.Send()
@@ -973,6 +1567,8 @@ type CreateIdentityPoolInput struct {
 	_ struct{} `type:"structure"`
 
 	// TRUE if the identity pool supports unauthenticated logins.
+	//
+	// AllowUnauthenticatedIdentities is a required field
 	AllowUnauthenticatedIdentities *bool `type:"boolean" required:"true"`
 
 	// An array of Amazon Cognito Identity user pools.
@@ -988,6 +1584,8 @@ type CreateIdentityPoolInput struct {
 	DeveloperProviderName *string `min:"1" type:"string"`
 
 	// A string that you provide.
+	//
+	// IdentityPoolName is a required field
 	IdentityPoolName *string `min:"1" type:"string" required:"true"`
 
 	// A list of OpendID Connect provider ARNs.
@@ -1075,6 +1673,8 @@ type DeleteIdentitiesInput struct {
 	_ struct{} `type:"structure"`
 
 	// A list of 1-60 identities that you want to delete.
+	//
+	// IdentityIdsToDelete is a required field
 	IdentityIdsToDelete []*string `min:"1" type:"list" required:"true"`
 }
 
@@ -1128,6 +1728,8 @@ type DeleteIdentityPoolInput struct {
 	_ struct{} `type:"structure"`
 
 	// An identity pool ID in the format REGION:GUID.
+	//
+	// IdentityPoolId is a required field
 	IdentityPoolId *string `min:"1" type:"string" required:"true"`
 }
 
@@ -1176,6 +1778,8 @@ type DescribeIdentityInput struct {
 	_ struct{} `type:"structure"`
 
 	// A unique identifier in the format REGION:GUID.
+	//
+	// IdentityId is a required field
 	IdentityId *string `min:"1" type:"string" required:"true"`
 }
 
@@ -1210,6 +1814,8 @@ type DescribeIdentityPoolInput struct {
 	_ struct{} `type:"structure"`
 
 	// An identity pool ID in the format REGION:GUID.
+	//
+	// IdentityPoolId is a required field
 	IdentityPoolId *string `min:"1" type:"string" required:"true"`
 }
 
@@ -1250,6 +1856,8 @@ type GetCredentialsForIdentityInput struct {
 	CustomRoleArn *string `min:"20" type:"string"`
 
 	// A unique identifier in the format REGION:GUID.
+	//
+	// IdentityId is a required field
 	IdentityId *string `min:"1" type:"string" required:"true"`
 
 	// A set of optional name-value pairs that map provider names to provider tokens.
@@ -1314,6 +1922,8 @@ type GetIdInput struct {
 	AccountId *string `min:"1" type:"string"`
 
 	// An identity pool ID in the format REGION:GUID.
+	//
+	// IdentityPoolId is a required field
 	IdentityPoolId *string `min:"1" type:"string" required:"true"`
 
 	// A set of optional name-value pairs that map provider names to provider tokens.
@@ -1376,6 +1986,8 @@ type GetIdentityPoolRolesInput struct {
 	_ struct{} `type:"structure"`
 
 	// An identity pool ID in the format REGION:GUID.
+	//
+	// IdentityPoolId is a required field
 	IdentityPoolId *string `min:"1" type:"string" required:"true"`
 }
 
@@ -1435,6 +2047,8 @@ type GetOpenIdTokenForDeveloperIdentityInput struct {
 	IdentityId *string `min:"1" type:"string"`
 
 	// An identity pool ID in the format REGION:GUID.
+	//
+	// IdentityPoolId is a required field
 	IdentityPoolId *string `min:"1" type:"string" required:"true"`
 
 	// A set of optional name-value pairs that map provider names to provider tokens.
@@ -1446,6 +2060,8 @@ type GetOpenIdTokenForDeveloperIdentityInput struct {
 	// The developer user identifier is an identifier from your backend that uniquely
 	// identifies a user. When you create an identity pool, you can specify the
 	// supported logins.
+	//
+	// Logins is a required field
 	Logins map[string]*string `type:"map" required:"true"`
 
 	// The expiration time of the token, in seconds. You can specify a custom expiration
@@ -1520,6 +2136,8 @@ type GetOpenIdTokenInput struct {
 	_ struct{} `type:"structure"`
 
 	// A unique identifier in the format REGION:GUID.
+	//
+	// IdentityId is a required field
 	IdentityId *string `min:"1" type:"string" required:"true"`
 
 	// A set of optional name-value pairs that map provider names to provider tokens.
@@ -1609,6 +2227,8 @@ type IdentityPool struct {
 	_ struct{} `type:"structure"`
 
 	// TRUE if the identity pool supports unauthenticated logins.
+	//
+	// AllowUnauthenticatedIdentities is a required field
 	AllowUnauthenticatedIdentities *bool `type:"boolean" required:"true"`
 
 	// A list representing an Amazon Cognito Identity User Pool and its client ID.
@@ -1618,9 +2238,13 @@ type IdentityPool struct {
 	DeveloperProviderName *string `min:"1" type:"string"`
 
 	// An identity pool ID in the format REGION:GUID.
+	//
+	// IdentityPoolId is a required field
 	IdentityPoolId *string `min:"1" type:"string" required:"true"`
 
 	// A string that you provide.
+	//
+	// IdentityPoolName is a required field
 	IdentityPoolName *string `min:"1" type:"string" required:"true"`
 
 	// A list of OpendID Connect provider ARNs.
@@ -1713,9 +2337,13 @@ type ListIdentitiesInput struct {
 	HideDisabled *bool `type:"boolean"`
 
 	// An identity pool ID in the format REGION:GUID.
+	//
+	// IdentityPoolId is a required field
 	IdentityPoolId *string `min:"1" type:"string" required:"true"`
 
 	// The maximum number of identities to return.
+	//
+	// MaxResults is a required field
 	MaxResults *int64 `min:"1" type:"integer" required:"true"`
 
 	// A pagination token.
@@ -1786,6 +2414,8 @@ type ListIdentityPoolsInput struct {
 	_ struct{} `type:"structure"`
 
 	// The maximum number of identities to return.
+	//
+	// MaxResults is a required field
 	MaxResults *int64 `min:"1" type:"integer" required:"true"`
 
 	// A pagination token.
@@ -1855,6 +2485,8 @@ type LookupDeveloperIdentityInput struct {
 	IdentityId *string `min:"1" type:"string"`
 
 	// An identity pool ID in the format REGION:GUID.
+	//
+	// IdentityPoolId is a required field
 	IdentityPoolId *string `min:"1" type:"string" required:"true"`
 
 	// The maximum number of identities to return.
@@ -1943,6 +2575,8 @@ type MergeDeveloperIdentitiesInput struct {
 	_ struct{} `type:"structure"`
 
 	// User identifier for the destination user. The value should be a DeveloperUserIdentifier.
+	//
+	// DestinationUserIdentifier is a required field
 	DestinationUserIdentifier *string `min:"1" type:"string" required:"true"`
 
 	// The "domain" by which Cognito will refer to your users. This is a (pseudo)
@@ -1950,12 +2584,18 @@ type MergeDeveloperIdentitiesInput struct {
 	// as a placeholder that allows your backend and the Cognito service to communicate
 	// about the developer provider. For the DeveloperProviderName, you can use
 	// letters as well as period (.), underscore (_), and dash (-).
+	//
+	// DeveloperProviderName is a required field
 	DeveloperProviderName *string `min:"1" type:"string" required:"true"`
 
 	// An identity pool ID in the format REGION:GUID.
+	//
+	// IdentityPoolId is a required field
 	IdentityPoolId *string `min:"1" type:"string" required:"true"`
 
 	// User identifier for the source user. The value should be a DeveloperUserIdentifier.
+	//
+	// SourceUserIdentifier is a required field
 	SourceUserIdentifier *string `min:"1" type:"string" required:"true"`
 }
 
@@ -2065,11 +2705,15 @@ type SetIdentityPoolRolesInput struct {
 	_ struct{} `type:"structure"`
 
 	// An identity pool ID in the format REGION:GUID.
+	//
+	// IdentityPoolId is a required field
 	IdentityPoolId *string `min:"1" type:"string" required:"true"`
 
 	// The map of roles associated with this pool. For a given role, the key will
 	// be either "authenticated" or "unauthenticated" and the value will be the
 	// Role ARN.
+	//
+	// Roles is a required field
 	Roles map[string]*string `type:"map" required:"true"`
 }
 
@@ -2121,15 +2765,23 @@ type UnlinkDeveloperIdentityInput struct {
 	_ struct{} `type:"structure"`
 
 	// The "domain" by which Cognito will refer to your users.
+	//
+	// DeveloperProviderName is a required field
 	DeveloperProviderName *string `min:"1" type:"string" required:"true"`
 
 	// A unique ID used by your backend authentication process to identify a user.
+	//
+	// DeveloperUserIdentifier is a required field
 	DeveloperUserIdentifier *string `min:"1" type:"string" required:"true"`
 
 	// A unique identifier in the format REGION:GUID.
+	//
+	// IdentityId is a required field
 	IdentityId *string `min:"1" type:"string" required:"true"`
 
 	// An identity pool ID in the format REGION:GUID.
+	//
+	// IdentityPoolId is a required field
 	IdentityPoolId *string `min:"1" type:"string" required:"true"`
 }
 
@@ -2196,12 +2848,18 @@ type UnlinkIdentityInput struct {
 	_ struct{} `type:"structure"`
 
 	// A unique identifier in the format REGION:GUID.
+	//
+	// IdentityId is a required field
 	IdentityId *string `min:"1" type:"string" required:"true"`
 
 	// A set of optional name-value pairs that map provider names to provider tokens.
+	//
+	// Logins is a required field
 	Logins map[string]*string `type:"map" required:"true"`
 
 	// Provider names to unlink from this identity.
+	//
+	// LoginsToRemove is a required field
 	LoginsToRemove []*string `type:"list" required:"true"`
 }
 
@@ -2274,8 +2932,9 @@ func (s UnprocessedIdentityId) GoString() string {
 }
 
 const (
-	// @enum ErrorCode
+	// ErrorCodeAccessDenied is a ErrorCode enum value
 	ErrorCodeAccessDenied = "AccessDenied"
-	// @enum ErrorCode
+
+	// ErrorCodeInternalServerError is a ErrorCode enum value
 	ErrorCodeInternalServerError = "InternalServerError"
 )

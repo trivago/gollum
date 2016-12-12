@@ -15,9 +15,10 @@
 package format
 
 import (
+	"testing"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
 
 func TestExtractJSON(t *testing.T) {
@@ -31,10 +32,13 @@ func TestExtractJSON(t *testing.T) {
 	formatter, casted := plugin.(*ExtractJSON)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"), 0)
+	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"),
+		0, core.InvalidStreamID)
 
-	formatter.Format(msg)
-	expect.Equal("valid", string(msg.Data))
+	result := formatter.Modulate(msg)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	expect.Equal("valid", string(msg.Data()))
 }
 
 func TestExtractJSONPrecision(t *testing.T) {
@@ -49,8 +53,11 @@ func TestExtractJSONPrecision(t *testing.T) {
 	formatter, casted := plugin.(*ExtractJSON)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":999999999}"), 0)
-	formatter.Format(msg)
+	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":999999999}"),
+		0, core.InvalidStreamID)
 
-	expect.Equal("999999999", string(msg.Data))
+	result := formatter.Modulate(msg)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	expect.Equal("999999999", string(msg.Data()))
 }

@@ -85,7 +85,7 @@ func TestWriterAssemblyWrite(t *testing.T) {
 
 	msg1 := NewMessage(nil, []byte("abcde"), 0)
 
-	// should give error msg and flush msg as ther writer is not available yet
+	// should give error msg and flush msg as there writer is not available yet
 	// test here is done in mockIo.mockFlush
 	wa.Write([]*Message{msg1})
 

@@ -31,6 +31,7 @@ var (
 	flagCPUProfile     = tflag.String("pc", "profilecpu", "", "Write CPU profiler results to a given file.")
 	flagMemProfile     = tflag.String("pm", "profilemem", "", "Write heap profile results to a given file.")
 	flagProfile        = tflag.Switch("ps", "profilespeed", "Write msg/sec measurements to log.")
+	flagTrace          = tflag.String("tr", "trace", "", "Write trace results to a given file.")
 )
 
 func parseFlags() {

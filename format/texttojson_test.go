@@ -16,17 +16,18 @@ package format
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
 
 func newTestTextToJSONFormatter(directives []interface{}, start string) *TextToJSON {
 	format := TextToJSON{}
 	conf := core.NewPluginConfig("mockTextToJSONFormatter", "format.TextToJSON")
 
-	conf.Settings["startstate"] = start
-	conf.Settings["directives"] = directives
+	conf.Override("startstate", start)
+	conf.Override("directives", directives)
 
 	if err := format.Configure(core.NewPluginConfigReader(&conf)); err != nil {
 		panic(err)
@@ -38,7 +39,7 @@ func TestTextToJSONFormatter1(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	testString := `{"a":123,"b":"string","c":[1,2,3],"d":[{"a":1}],"e":[[1,2]],"f":[{"a":1},{"b":2}],"g":[[1,2],[3,4]]}`
-	msg := core.NewMessage(nil, []byte(testString), 0)
+	msg := core.NewMessage(nil, []byte(testString), 0, core.InvalidStreamID)
 	test := newTestTextToJSONFormatter([]interface{}{
 		`findKey    :":  key        ::`,
 		`findKey    :}:             : pop  : end`,
@@ -62,8 +63,10 @@ func TestTextToJSONFormatter1(t *testing.T) {
 		`arrNextStr :]:             : pop  : end`,
 	}, "findKey")
 
-	test.Format(msg)
-	expect.Equal(testString, string(msg.Data))
+	result := test.Modulate(msg)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	expect.Equal(testString, msg.String())
 }
 
 func BenchmarkTextToJSONFormatter(b *testing.B) {
@@ -93,7 +96,7 @@ func BenchmarkTextToJSONFormatter(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		testString := fmt.Sprintf(`{"a":%d23,"b":"string","c":[%d,2,3],"d":[{"a":%d}],"e":[[%d,2]],"f":[{"a":%d},{"b":2}],"g":[[%d,2],[3,4]]}`, i, i, i, i, i, i)
-		msg := core.NewMessage(nil, []byte(testString), 0)
-		test.Format(msg)
+		msg := core.NewMessage(nil, []byte(testString), 0, core.InvalidStreamID)
+		test.Modulate(msg)
 	}
 }

@@ -17,7 +17,7 @@ package producer
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tnet"
-	"gopkg.in/redis.v3"
+	"gopkg.in/redis.v4"
 	"strconv"
 	"strings"
 	"sync"
@@ -37,7 +37,7 @@ import (
 //    Storage: "hash"
 //    FieldFormatter: "format.Identifier"
 //    FieldAfterFormat: false
-//	  KeyFormatter: "format.Forward"
+//    KeyFormatter: "format.Forward"
 //    KeyAfterFormat: false
 //
 // Address stores the identifier to connect to.
@@ -75,7 +75,7 @@ type Redis struct {
 	address         string
 	protocol        string
 	password        string
-	database        int64
+	database        int
 	key             string
 	client          *redis.Client
 	store           func(msg *core.Message)
@@ -98,7 +98,7 @@ func (prod *Redis) Configure(conf core.PluginConfigReader) error {
 	prod.keyModulators = conf.GetModulatorArray("FieldModulators", prod.Log, core.ModulatorArray{})
 
 	prod.password = conf.GetString("Password", "")
-	prod.database = int64(conf.GetInt("Database", 0))
+	prod.database = conf.GetInt("Database", 0)
 	prod.key = conf.GetString("Key", "default")
 	prod.fieldFromParsed = conf.GetBool("FieldAfterFormat", false)
 	prod.keyFromParsed = conf.GetBool("KeyAfterFormat", false)

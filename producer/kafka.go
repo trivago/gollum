@@ -15,13 +15,19 @@
 package producer
 
 import (
-	kafka "github.com/Shopify/sarama"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
+	"crypto/tls"
+	"crypto/x509"
+	"fmt"
+	"io/ioutil"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	kafka "github.com/Shopify/sarama"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 )
 
 const (
@@ -40,7 +46,8 @@ const (
 // Configuration example
 //
 //  - "producer.Kafka":
-//    ClientId: "weblog"
+//    ClientId: "gollum"
+//    Version: "0.8.2"
 //    Partitioner: "Roundrobin"
 //    RequiredAcks: 1
 //    TimeoutMs: 1500
@@ -59,6 +66,15 @@ const (
 //    ElectRetries: 3
 //    ElectTimeoutMs: 250
 //    MetadataRefreshMs: 10000
+//    TlsEnabled: true
+//    TlsKeyLocation: ""
+//    TlsCertificateLocation: ""
+//    TlsCaLocation: ""
+//    TlsServerName: ""
+//    TlsInsecureSkipVerify: false
+//    SaslEnabled: false
+//    SaslUsername: "gollum"
+//    SaslPassword: ""
 //    KeyFormatter: ""
 //    KeyFormatterFirst: false
 //    Servers:
@@ -67,6 +83,11 @@ const (
 //      "console" : "console"
 //
 // ClientId sets the client id of this producer. By default this is "gollum".
+//
+// Version defines the kafka protocol version to use. Common values are 0.8.2,
+// 0.9.0 or 0.10.0. Values of the form "A.B" are allowed as well as "A.B.C"
+// and "A.B.C.D". Defaults to "0.8.2". If the version given is not known, the
+// closest possible version is chosen.
 //
 // Partitioner sets the distribution algorithm to use. Valid values are:
 // "Random","Roundrobin" and "Hash". By default "Roundrobin" is set.
@@ -113,7 +134,7 @@ const (
 // BatchSizeMaxKB defines the maximum allowed message size. By default this is
 // set to 1024.
 //
-// BatchTimeoutMs sets the minimum time in milliseconds to pass after wich a new
+// BatchTimeoutMs sets the minimum time in milliseconds to pass after which a new
 // flush will be triggered. By default this is set to 3.
 //
 // MessageBufferCount sets the internal channel size for the kafka client.
@@ -139,6 +160,30 @@ const (
 // By default this is set to 600000 (10 minutes). This corresponds to the JVM
 // setting `topic.metadata.refresh.interval.ms`.
 //
+// TlsEnable defines whether to use TLS to communicate with brokers. Defaults
+// to false.
+//
+// TlsKeyLocation defines the path to the client's private key (PEM) for used
+// for authentication. Defaults to "".
+//
+// TlsCertificateLocation defines the path to the client's public key (PEM) used
+// for authentication. Defaults to "".
+//
+// TlsCaLocation defines the path to CA certificate(s) for verifying the broker's
+// key. Defaults to "".
+//
+// TlsServerName is used to verify the hostname on the server's certificate
+// unless TlsInsecureSkipVerify is true. Defaults to "".
+//
+// TlsInsecureSkipVerify controls whether to verify the server's certificate
+// chain and host name. Defaults to false.
+//
+// SaslEnable is whether to use SASL for authentication. Defaults to false.
+//
+// SaslUsername is the user for SASL/PLAIN authentication. Defaults to "gollum".
+//
+// SaslPassword is the password for SASL/PLAIN authentication. Defaults to "".
+//
 // Servers contains the list of all kafka servers to connect to.  By default this
 // is set to contain only "localhost:9092".
 //
@@ -148,19 +193,20 @@ const (
 // If no topic mappings are set the stream names will be used as topic.
 type Kafka struct {
 	core.BufferedProducer
-	servers       []string
-	topicGuard    *sync.RWMutex
-	topic         map[core.MessageStreamID]*topicHandle
-	topicHandles  map[string]*topicHandle
-	streamToTopic map[core.MessageStreamID]string
-	clientID      string
-	client        kafka.Client
-	config        *kafka.Config
-	producer      kafka.AsyncProducer
-	missCount     int64
-	gracePeriod   time.Duration
-	keyModulators core.ModulatorArray
-	keyFirst      bool
+	servers         []string
+	topicGuard      *sync.RWMutex
+	topic           map[core.MessageStreamID]*topicHandle
+	topicHandles    map[string]*topicHandle
+	streamToTopic   map[core.MessageStreamID]string
+	clientID        string
+	client          kafka.Client
+	config          *kafka.Config
+	producer        kafka.AsyncProducer
+	missCount       int64
+	gracePeriod     time.Duration
+	keyModulators   core.ModulatorArray
+	keyFirst        bool
+	nilValueAllowed bool
 }
 
 type topicHandle struct {
@@ -204,10 +250,87 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 	prod.config.ClientID = conf.GetString("ClientId", "gollum")
 	prod.config.ChannelBufferSize = conf.GetInt("MessageBufferCount", 8192)
 
+	switch ver := conf.GetString("Version", "0.8.2"); ver {
+	case "0.8.2.0":
+		prod.config.Version = kafka.V0_8_2_0
+	case "0.8.2.1":
+		prod.config.Version = kafka.V0_8_2_1
+	case "0.8", "0.8.2", "0.8.2.2":
+		prod.config.Version = kafka.V0_8_2_2
+	case "0.9.0", "0.9.0.0":
+		prod.config.Version = kafka.V0_9_0_0
+	case "0.9", "0.9.0.1":
+		prod.config.Version = kafka.V0_9_0_1
+	case "0.10", "0.10.0", "0.10.0.0":
+		prod.config.Version = kafka.V0_10_0_0
+	default:
+		prod.Log.Warning.Print("Unknown kafka version given: ", ver)
+		parts := strings.Split(ver, ".")
+		if len(parts) < 2 {
+			prod.config.Version = kafka.V0_8_2_2
+		} else {
+			minor, _ := strconv.ParseUint(parts[1], 10, 8)
+			switch {
+			case minor <= 8:
+				prod.config.Version = kafka.V0_8_2_2
+			case minor == 9:
+				prod.config.Version = kafka.V0_9_0_1
+			case minor >= 10:
+				prod.config.Version = kafka.V0_10_0_0
+			}
+		}
+	}
+
 	prod.config.Net.MaxOpenRequests = conf.GetInt("MaxOpenRequests", 5)
 	prod.config.Net.DialTimeout = time.Duration(conf.GetInt("ServerTimeoutSec", 30)) * time.Second
 	prod.config.Net.ReadTimeout = prod.config.Net.DialTimeout
 	prod.config.Net.WriteTimeout = prod.config.Net.DialTimeout
+
+	prod.config.Net.TLS.Enable = conf.GetBool("TlsEnable", false)
+	if prod.config.Net.TLS.Enable {
+		prod.config.Net.TLS.Config = &tls.Config{}
+
+		keyFile := conf.GetString("TlsKeyLocation", "")
+		certFile := conf.GetString("TlsCertificateLocation", "")
+		if keyFile != "" && certFile != "" {
+			cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+			if err != nil {
+				return err
+			}
+			prod.config.Net.TLS.Config.Certificates = []tls.Certificate{cert}
+		} else if certFile == "" {
+			return fmt.Errorf("Cannot specify TlsKeyLocation without TlsCertificateLocation")
+		} else if keyFile == "" {
+			return fmt.Errorf("Cannot specify TlsCertificateLocation without TlsKeyLocation")
+		}
+
+		caFile := conf.GetString("TlsCaLocation", "")
+		if caFile == "" {
+			return fmt.Errorf("TlsEnable is set to true, but no TlsCaLocation was specified")
+		}
+
+		caCert, err := ioutil.ReadFile(caFile)
+		if err != nil {
+			return err
+		}
+
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+		prod.config.Net.TLS.Config.RootCAs = caCertPool
+
+		serverName := conf.GetString("TlsServerName", "")
+		if serverName != "" {
+			prod.config.Net.TLS.Config.ServerName = serverName
+		}
+
+		prod.config.Net.TLS.Config.InsecureSkipVerify = conf.GetBool("TlsInsecureSkipVerify", false)
+	}
+
+	prod.config.Net.SASL.Enable = conf.GetBool("SaslEnable", false)
+	if prod.config.Net.SASL.Enable {
+		prod.config.Net.SASL.User = conf.GetString("SaslUser", "gollum")
+		prod.config.Net.SASL.Password = conf.GetString("SaslPassword", "")
+	}
 
 	prod.config.Metadata.Retry.Max = conf.GetInt("ElectRetries", 3)
 	prod.config.Metadata.Retry.Backoff = time.Duration(conf.GetInt("ElectTimeoutMs", 250)) * time.Millisecond
@@ -238,6 +361,7 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 		prod.config.Producer.Compression = kafka.CompressionSnappy
 	}
 
+	prod.nilValueAllowed = conf.GetBool("AllowNilValue", false)
 	switch strings.ToLower(conf.GetString("Partitioner", partRoundrobin)) {
 	case partRandom:
 		prod.config.Producer.Partitioner = kafka.NewRandomPartitioner
@@ -246,10 +370,19 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 	default:
 		fallthrough
 	case partHash:
-		prod.config.Producer.Partitioner = kafka.NewHashPartitioner
+		switch strings.ToLower(conf.GetString("PartitionHasher", "FNV-1a")) {
+		case "murmur2":
+			prod.config.Producer.Partitioner = NewMurmur2HashPartitioner
+		default:
+			fallthrough
+		case "fnv-1a":
+			prod.config.Producer.Partitioner = kafka.NewHashPartitioner
+
+		}
+
 	}
 
-	return nil
+	return conf.Errors.OrNil()
 }
 
 func (prod *Kafka) storeRTT(msg *core.Message) {
@@ -280,6 +413,7 @@ func (prod *Kafka) pollResults() {
 		case err, hasMore := <-prod.producer.Errors():
 			if hasMore {
 				if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
+					prod.Log.Warning.Print("Kafka producer error on return: ", err)
 					prod.storeRTT(&msg)
 					prod.Drop(&msg)
 				}
@@ -336,7 +470,7 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	originalMsg := msg.Clone()
 	prod.Modulate(msg)
 
-	if msg.Len() == 0 {
+	if !prod.nilValueAllowed && msg.Len() == 0 {
 		streamName := core.StreamRegistry.GetStreamName(msg.StreamID())
 		prod.Log.Error.Printf("0 byte message detected on %s. Discarded", streamName)
 		core.CountDiscardedMessage()

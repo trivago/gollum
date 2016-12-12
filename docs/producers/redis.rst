@@ -75,6 +75,7 @@ Parameters
 
 **Key**
   Key defines the redis key to store the values in.
+  This field is ignored when "KeyFormatter" is set.
   By default this is set to "default".
 
 **Storage**
@@ -93,13 +94,13 @@ Parameters
   By default this is set to false.
 
 **KeyFormatter**
-  KeyFormatter defines an extra formatter used to allow generating the key from a message. 
-  If this value is set the "Key" field will be ignored. 
+  KeyFormatter defines an extra formatter used to allow generating the key from a message.
+  If this value is set the "Key" field will be ignored.
   By default this field is not used.
 
 **KeyAfterFormat**
-  KeyAfterFormat will send the formatted message to the keyFormatter if set to true. 
-  If this is set to false the message will be send to the keyFormatter before it has been formatted. 
+  KeyAfterFormat will send the formatted message to the keyFormatter if set to true.
+  If this is set to false the message will be send to the keyFormatter before it has been formatted.
   By default this is set to false.
 
 Example

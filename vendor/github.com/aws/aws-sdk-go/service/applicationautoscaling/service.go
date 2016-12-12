@@ -15,14 +15,15 @@ import (
 // elastic AWS resources. With Application Auto Scaling, you can automatically
 // scale your AWS resources, with an experience similar to that of Auto Scaling.
 //
-//  At this time, Application Auto Scaling only supports scaling Amazon ECS
-// services.
+// Application Auto Scaling supports scaling the following AWS resources:
 //
-//  For example, you can use Application Auto Scaling to accomplish the following
-// tasks:
+//   Amazon ECS services
 //
-//   Define scaling policies for automatically adjusting your application’s
-// resources
+//   Amazon EC2 Spot fleet instances
+//
+//   You can use Application Auto Scaling to accomplish the following tasks:
+//
+//   Define scaling policies for automatically adjusting your AWS resources
 //
 //   Scale your resources in response to CloudWatch alarms
 //
@@ -32,7 +33,17 @@ import (
 //
 //    us-east-1
 //
+//    us-west-1
+//
 //    us-west-2
+//
+//    ap-southeast-1
+//
+//    ap-southeast-2
+//
+//    ap-northeast-1
+//
+//    eu-central-1
 //
 //    eu-west-1
 //The service client's operations are safe to be used concurrently.

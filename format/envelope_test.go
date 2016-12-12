@@ -15,9 +15,10 @@
 package format
 
 import (
+	"testing"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
 
 func TestEnvelope(t *testing.T) {
@@ -33,8 +34,9 @@ func TestEnvelope(t *testing.T) {
 	formatter, casted := plugin.(*Envelope)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), 0)
-	formatter.Format(msg)
+	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
+	result := formatter.Modulate(msg)
+	expect.Equal(core.ModulateResultContinue, result)
 
-	expect.Equal("start test end", string(msg.Data))
+	expect.Equal("start test end", string(msg.Data()))
 }

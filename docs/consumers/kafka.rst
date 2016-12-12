@@ -32,6 +32,17 @@ Parameters
   Topic defines the kafka topic to read from.
   By default this is set to "default".
 
+**ClientId**
+  ClientId sets the client id of this producer.
+  By default this is "gollum".
+
+**Version**
+  Version defines the kafka protocol version to use.
+  Common values are 0.8.2, 0.9.0 or 0.10.0.
+  Values of the form "A.B" are allowed as well as "A.B.C" and "A.B.C.D".
+  Defaults to "0.8.2".
+  If the version given is not known, the closest possible version is chosen.
+
 **DefaultOffset**
   DefaultOffset defines where to start reading the topic.
   Valid values are "oldest" and "newest".
@@ -43,8 +54,12 @@ Parameters
   If the consumer is restarted that offset is used to continue reading.
   By default this is set to "" which disables the offset file.
 
+**FolderPermissions**
+  FolderPermissions is used to create the offset file path if necessary.
+  Set to 0755 by default.
+
 **Ordered**
-  Ordered can be set to enforce paritions to be read one-by-one in a round robin fashion instead of reading in parallel from all partitions.
+  Ordered can be set to enforce partitions to be read one-by-one in a round robin fashion instead of reading in parallel from all partitions.
   Set to false by default.
 
 **PrependKey**
@@ -118,8 +133,11 @@ Example
 	        - "foo"
 	        - "bar"
 	    Topic: "default"
+	    ClientId: "gollum"
+	    Version: "0.8.2"
 	    DefaultOffset: "newest"
 	    OffsetFile: ""
+	    FolderPermissions: "0755"
 	    Ordered: true
 	    MaxOpenRequests: 5
 	    ServerTimeoutSec: 30

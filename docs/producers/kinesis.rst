@@ -84,6 +84,14 @@ Parameters
   BatchMaxMessages defines the maximum number of messages to send per batch.
   By default this is set to 500.
 
+**RecordMaxMessages**
+  RecordMaxMessages defines the maximum number of messages to join into a kinesis record.
+  By default this is set to 500.
+
+**RecordMessageDelimiter**
+  RecordMessageDelimiter defines the string to delimit messages within a kinesis record.
+  By default this is set to "\n".
+
 **SendTimeframeMs**
   SendTimeframeMs defines the timeframe in milliseconds in which a second batch send can be triggered.
   By default this is set to 1000, i.e. one send operation per second.
@@ -124,6 +132,8 @@ Example
 	    CredentialFile: ""
 	    CredentialProfile: ""
 	    BatchMaxMessages: 500
+	    RecordMaxMessages: 1
+	    RecordMessageDelimiter: "\n"
 	    SendTimeframeSec: 1
 	    BatchTimeoutSec: 3
 	    StreamMapping:

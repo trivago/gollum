@@ -16,12 +16,13 @@ package producer
 
 import (
 	"bytes"
-	elastigo "github.com/mattbaird/elastigo/lib"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"strconv"
 	"sync"
 	"time"
+
+	elastigo "github.com/mattbaird/elastigo/lib"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 )
 
 // ElasticSearch producer plugin
@@ -66,7 +67,7 @@ import (
 // is used as the server passed to the "Domain" setting. The Domain setting can
 // be overwritten, too.
 //
-// Port defines the elasticsearch port, wich has to be the same for all servers.
+// Port defines the elasticsearch port, which has to be the same for all servers.
 // By default this is set to 9200.
 //
 // User and Password can be used to pass credentials to the elasticsearch server.
@@ -175,16 +176,16 @@ func (prod *ElasticSearch) sendMessage(msg *core.Message) {
 		prod.index[msg.StreamID()] = index
 	}
 
-	if prod.dayBasedIndex {
-		index = index + "_" + msg.Created().Format("2006-01-02")
-	}
-
 	msgType, typeMapped := prod.msgType[msg.StreamID()]
 	if !typeMapped {
 		msgType, typeMapped = prod.msgType[core.WildcardStreamID]
 		if !typeMapped {
 			msgType = core.StreamRegistry.GetStreamName(msg.StreamID())
 		}
+	}
+
+	if prod.dayBasedIndex {
+		index = index + "_" + msg.Created().Format("2006-01-02")
 	}
 
 	timestamp := msg.Created()

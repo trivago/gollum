@@ -15,13 +15,14 @@
 package producer
 
 import (
+	"net"
+	"sync"
+	"time"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tnet"
 	"github.com/trivago/tgo/tstrings"
-	"net"
-	"sync"
-	"time"
 )
 
 // Socket producer plugin
@@ -106,12 +107,16 @@ func (prod *Socket) Configure(conf core.PluginConfigReader) error {
 	prod.ackTimeout = time.Duration(conf.GetInt("AckTimeoutMs", 2000)) * time.Millisecond
 	prod.address, prod.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"))
 
-	if prod.protocol != "unix" {
+	switch prod.protocol {
+	case "udp":
 		if prod.acknowledge != "" {
+			prod.Log.Warning.Print("Acknowledge is only supported for TCP connections. TCP connection forced.")
 			prod.protocol = "tcp"
-		} else {
-			prod.protocol = "udp"
 		}
+	case "unix", "tcp":
+		// Everything is fine
+	default:
+		prod.protocol = "tcp"
 	}
 
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)

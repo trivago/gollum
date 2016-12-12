@@ -15,9 +15,10 @@
 package filter
 
 import (
+	"testing"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
 
 func TestFilterStream(t *testing.T) {
@@ -30,24 +31,30 @@ func TestFilterStream(t *testing.T) {
 	filter, casted := plugin.(*Stream)
 	expect.True(casted)
 
-	msg1 := core.NewMessage(nil, []byte{}, 0)
-	msg1.StreamID = 1
-
-	msg2 := core.NewMessage(nil, []byte{}, 0)
-	msg2.StreamID = 2
+	msg1 := core.NewMessage(nil, []byte{}, 0, 1)
+	msg2 := core.NewMessage(nil, []byte{}, 0, 2)
 
 	filter.blacklist = []core.MessageStreamID{1}
 
-	expect.False(filter.Accepts(msg1))
-	expect.True(filter.Accepts(msg2))
+	result := filter.Modulate(msg1)
+	expect.Equal(core.ModulateResultDiscard, result)
+
+	result = filter.Modulate(msg2)
+	expect.Equal(core.ModulateResultContinue, result)
 
 	filter.whitelist = []core.MessageStreamID{1}
 
-	expect.False(filter.Accepts(msg1))
-	expect.False(filter.Accepts(msg2))
+	result = filter.Modulate(msg1)
+	expect.Equal(core.ModulateResultDiscard, result)
+
+	result = filter.Modulate(msg2)
+	expect.Equal(core.ModulateResultDiscard, result)
 
 	filter.blacklist = []core.MessageStreamID{}
 
-	expect.True(filter.Accepts(msg1))
-	expect.False(filter.Accepts(msg2))
+	result = filter.Modulate(msg1)
+	expect.Equal(core.ModulateResultContinue, result)
+
+	result = filter.Modulate(msg2)
+	expect.Equal(core.ModulateResultDiscard, result)
 }
