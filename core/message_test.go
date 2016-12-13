@@ -15,18 +15,20 @@
 package core
 
 import (
-	"github.com/trivago/tgo/ttesting"
 	"testing"
 	"time"
+
+	"github.com/trivago/tgo/ttesting"
 )
 
 func getMockMessage(data string) *Message {
 	return &Message{
-		StreamID:     1,
-		PrevStreamID: 2,
-		Timestamp:    time.Now(),
-		Sequence:     4,
-		Data:         []byte(data),
+		data:         []byte(data),
+		streamID:     1,
+		prevStreamID: 2,
+		source:       nil,
+		timestamp:    time.Now(),
+		sequence:     4,
 	}
 }
 
@@ -54,25 +56,4 @@ func TestMessageEnqueue(t *testing.T) {
 
 	retMsg, _ = buffer.Pop()
 	expect.Equal(msgString, retMsg.String())
-}
-
-func TestMessageRoute(t *testing.T) {
-	expect := ttesting.NewExpect(t)
-	msgString := "Test for Route()"
-	msg := getMockMessage(msgString)
-
-	mockDistributer := func(msg *Message) {
-		expect.Equal(msgString, msg.String())
-	}
-
-	mockStream := StreamBase{}
-	mockStream.filters = []Filter{&mockFilter{}}
-	mockStream.distribute = mockDistributer
-	mockStream.formatters = []Formatter{&mockFormatter{}}
-	mockStream.boundStreamID = 1
-	mockStream.AddProducer(&mockProducer{})
-	StreamRegistry.Register(&mockStream, 1)
-
-	msg.Route(1)
-
 }
