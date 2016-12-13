@@ -16,9 +16,10 @@ package core
 
 import (
 	"errors"
+	"testing"
+
 	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
 
 type mockIoWrite struct {
@@ -44,7 +45,7 @@ func (iw mockIoWrite) mockFlush(m *Message) {
 func TestWriterAssemblySetValidator(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockIo := mockIoWrite{expect}
-	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, mockFormatFunc)
+	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, &mockFormatter{})
 	validator := func() bool {
 		return true
 	}
@@ -56,7 +57,7 @@ func TestWriterAssemblySetErrorHandler(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockIo := mockIoWrite{expect}
 	tlog.SetCacheWriter()
-	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, mockFormatFunc)
+	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, &mockFormatter{})
 	handler := func(e error) bool {
 		if e.Error() == "abc" {
 			return true
@@ -71,7 +72,7 @@ func TestWriterAssemblySetErrorHandler(t *testing.T) {
 func TestWriterAssemblySetWriter(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockIo := mockIoWrite{expect}
-	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, mockFormatFunc)
+	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, &mockFormatter{})
 
 	wa.SetWriter(secondMockIoWrite{})
 	length, _ := wa.writer.Write([]byte("abcde"))
@@ -81,9 +82,9 @@ func TestWriterAssemblySetWriter(t *testing.T) {
 func TestWriterAssemblyWrite(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockIo := mockIoWrite{expect}
-	wa := NewWriterAssembly(nil, mockIo.mockFlush, mockFormatFunc)
+	wa := NewWriterAssembly(nil, mockIo.mockFlush, &mockFormatter{})
 
-	msg1 := NewMessage(nil, []byte("abcde"), 0)
+	msg1 := NewMessage(nil, []byte("abcde"), 0, InvalidStreamID)
 
 	// should give error msg and flush msg as there writer is not available yet
 	// test here is done in mockIo.mockFlush
