@@ -214,13 +214,13 @@ func (c *StorageGateway) AddTagsToResourceRequest(input *AddTagsToResourceInput)
 // tag consists of a key and a value, which you define. You can add tags to
 // the following AWS Storage Gateway resources:
 //
-//   Storage gateways of all types
+//    * Storage gateways of all types
 //
-//     Storage Volumes
+//    * Storage Volumes
 //
-//     Virtual Tapes
+//    * Virtual Tapes
 //
-//   You can create a maximum of 10 tags for each resource. Virtual tapes and
+// You can create a maximum of 10 tags for each resource. Virtual tapes and
 // storage volumes that are recovered to a new gateway maintain their tags.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -370,10 +370,10 @@ func (c *StorageGateway) AddWorkingStorageRequest(input *AddWorkingStorageInput)
 // This operation is deprecated in cached-volumes API version 20120630. Use
 // AddUploadBuffer instead.
 //
-//  Working storage is also referred to as upload buffer. You can also use
-// the AddUploadBuffer operation to add upload buffer to a stored-volume gateway.
+// Working storage is also referred to as upload buffer. You can also use the
+// AddUploadBuffer operation to add upload buffer to a stored-volume gateway.
 //
-//  In the request, you specify the gateway Amazon Resource Name (ARN) to which
+// In the request, you specify the gateway Amazon Resource Name (ARN) to which
 // you want to add working storage, and one or more disk IDs that you want to
 // configure as working storage.
 //
@@ -591,7 +591,7 @@ func (c *StorageGateway) CreateCachediSCSIVolumeRequest(input *CreateCachediSCSI
 // Cache storage must be allocated to the gateway before you can create a cached
 // volume. Use the AddCache operation to add cache storage to a gateway.
 //
-//  In the request, you must specify the gateway, size of the volume in bytes,
+// In the request, you must specify the gateway, size of the volume in bytes,
 // the iSCSI target name, an IP address on which to expose the target, and a
 // unique client token. In response, AWS Storage Gateway creates the volume
 // and returns information about it such as the volume Amazon Resource Name
@@ -683,12 +683,11 @@ func (c *StorageGateway) CreateSnapshotRequest(input *CreateSnapshotInput) (req 
 // ID to check the snapshot progress or later use it when you want to create
 // a volume from a snapshot.
 //
-// To list or delete a snapshot, you must use the Amazon EC2 API. For more
-// information, see DescribeSnapshots or DeleteSnapshot in the EC2 API reference
-// (http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Operations.html).
+// To list or delete a snapshot, you must use the Amazon EC2 API. For more information,
+// see DescribeSnapshots or DeleteSnapshot in the EC2 API reference (http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Operations.html).
 //
-//   Volume and snapshot IDs are changing to a longer length ID format. For
-// more information, see the important note on the Welcome (http://docs.aws.amazon.com/storagegateway/latest/APIReference/Welcome.html)
+// Volume and snapshot IDs are changing to a longer length ID format. For more
+// information, see the important note on the Welcome (http://docs.aws.amazon.com/storagegateway/latest/APIReference/Welcome.html)
 // page.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -773,8 +772,8 @@ func (c *StorageGateway) CreateSnapshotFromVolumeRecoveryPointRequest(input *Cre
 // can use this snapshot ID to check the snapshot progress or later use it when
 // you want to create a volume from a snapshot.
 //
-//  To list or delete a snapshot, you must use the Amazon EC2 API. For more
-// information, in Amazon Elastic Compute Cloud API Reference.
+// To list or delete a snapshot, you must use the Amazon EC2 API. For more information,
+// in Amazon Elastic Compute Cloud API Reference.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -851,9 +850,9 @@ func (c *StorageGateway) CreateStorediSCSIVolumeRequest(input *CreateStorediSCSI
 // snapshot, or create an empty volume. If you choose to create an empty gateway
 // volume, then any existing data on the disk is erased.
 //
-// In the request you must specify the gateway and the disk information on
-// which you are creating the volume. In response, AWS Storage Gateway creates
-// the volume and returns volume information such as the volume Amazon Resource
+// In the request you must specify the gateway and the disk information on which
+// you are creating the volume. In response, AWS Storage Gateway creates the
+// volume and returns volume information such as the volume Amazon Resource
 // Name (ARN), its size, and the iSCSI target ARN that initiators can use to
 // connect to the volume target.
 //
@@ -1223,7 +1222,7 @@ func (c *StorageGateway) DeleteGatewayRequest(input *DeleteGatewayInput) (req *r
 // pending snapshots will not complete. After you delete a gateway, your next
 // step is to remove it from your environment.
 //
-//  You no longer pay software charges after the gateway is deleted; however,
+// You no longer pay software charges after the gateway is deleted; however,
 // your existing Amazon EBS snapshots persist and you will continue to be billed
 // for these snapshots. You can choose to remove all remaining Amazon EBS snapshots
 // by canceling your Amazon EC2 subscription.  If you prefer not to cancel your
@@ -1299,13 +1298,13 @@ func (c *StorageGateway) DeleteSnapshotScheduleRequest(input *DeleteSnapshotSche
 //
 // Deletes a snapshot of a volume.
 //
-// You can take snapshots of your gateway volumes on a scheduled or ad hoc
-// basis. This API action enables you to delete a snapshot schedule for a volume.
-// For more information, see Working with Snapshots (http://docs.aws.amazon.com/storagegateway/latest/userguide/WorkingWithSnapshots.html).
+// You can take snapshots of your gateway volumes on a scheduled or ad hoc basis.
+// This API action enables you to delete a snapshot schedule for a volume. For
+// more information, see Working with Snapshots (http://docs.aws.amazon.com/storagegateway/latest/userguide/WorkingWithSnapshots.html).
 // In the DeleteSnapshotSchedule request, you identify the volume by providing
 // its Amazon Resource Name (ARN).
 //
-//  To list or delete a snapshot, you must use the Amazon EC2 API. in Amazon
+// To list or delete a snapshot, you must use the Amazon EC2 API. in Amazon
 // Elastic Compute Cloud API Reference.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -1746,9 +1745,9 @@ func (c *StorageGateway) DescribeCachediSCSIVolumesRequest(input *DescribeCached
 // Returns a description of the gateway volumes specified in the request. This
 // operation is supported only for the gateway-cached volume architecture.
 //
-// The list of gateway volumes in the request must be from one gateway. In
-// the response Amazon Storage Gateway returns volume information sorted by
-// volume Amazon Resource Name (ARN).
+// The list of gateway volumes in the request must be from one gateway. In the
+// response Amazon Storage Gateway returns volume information sorted by volume
+// Amazon Resource Name (ARN).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2285,8 +2284,8 @@ func (c *StorageGateway) DescribeTapeRecoveryPointsRequest(input *DescribeTapeRe
 // Returns a list of virtual tape recovery points that are available for the
 // specified gateway-VTL.
 //
-// A recovery point is a point-in-time view of a virtual tape at which all
-// the data on the virtual tape is consistent. If your gateway crashes, virtual
+// A recovery point is a point-in-time view of a virtual tape at which all the
+// data on the virtual tape is consistent. If your gateway crashes, virtual
 // tapes that have recovery points can be recovered to a new gateway.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -2664,12 +2663,11 @@ func (c *StorageGateway) DescribeWorkingStorageRequest(input *DescribeWorkingSto
 // is deprecated in cached-volumes API version (20120630). Use DescribeUploadBuffer
 // instead.
 //
-//  Working storage is also referred to as upload buffer. You can also use
-// the DescribeUploadBuffer operation to add upload buffer to a stored-volume
-// gateway.
+// Working storage is also referred to as upload buffer. You can also use the
+// DescribeUploadBuffer operation to add upload buffer to a stored-volume gateway.
 //
-//  The response includes disk IDs that are configured as working storage,
-// and it includes the amount of working storage allocated and used.
+// The response includes disk IDs that are configured as working storage, and
+// it includes the amount of working storage allocated and used.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2826,10 +2824,10 @@ func (c *StorageGateway) ListGatewaysRequest(input *ListGatewaysInput) (req *req
 // supports pagination that allows you to optionally reduce the number of gateways
 // returned in a response.
 //
-// If you have more gateways than are returned in a response (that is, the
-// response returns only a truncated list of your gateways), the response contains
-// a marker that you can specify in your next request to fetch the next page
-// of gateways.
+// If you have more gateways than are returned in a response (that is, the response
+// returns only a truncated list of your gateways), the response contains a
+// marker that you can specify in your next request to fetch the next page of
+// gateways.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3075,12 +3073,11 @@ func (c *StorageGateway) ListTapesRequest(input *ListTapesInput) (req *request.R
 // Amazon Resource Names (ARNs). If you don't specify a tape ARN, the operation
 // lists all virtual tapes in both your VTL and VTS.
 //
-// This operation supports pagination. By default, the operation returns a
-// maximum of up to 100 tapes. You can optionally specify the Limit parameter
-// in the body to limit the number of tapes in the response. If the number of
-// tapes returned in the response is truncated, the response includes a Marker
-// element that you can use in your subsequent request to retrieve the next
-// set of tapes.
+// This operation supports pagination. By default, the operation returns a maximum
+// of up to 100 tapes. You can optionally specify the Limit parameter in the
+// body to limit the number of tapes in the response. If the number of tapes
+// returned in the response is truncated, the response includes a Marker element
+// that you can use in your subsequent request to retrieve the next set of tapes.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3479,7 +3476,7 @@ func (c *StorageGateway) ResetCacheRequest(input *ResetCacheInput) (req *request
 // or removed from the gateway. When a cache is reset, the gateway loses its
 // cache storage. At this point you can reconfigure the disks as cache disks.
 //
-//  If the cache disk you are resetting contains data that has not been uploaded
+// If the cache disk you are resetting contains data that has not been uploaded
 // to Amazon S3 yet, that data can be lost. After you reset cache disks, there
 // will be no configured cache disks left in the gateway, so you must configure
 // at least one new cache disk for your gateway to function properly.
@@ -3629,9 +3626,9 @@ func (c *StorageGateway) RetrieveTapeRecoveryPointRequest(input *RetrieveTapeRec
 //
 // Retrieves the recovery point for the specified virtual tape.
 //
-// A recovery point is a point in time view of a virtual tape at which all
-// the data on the tape is consistent. If your gateway crashes, virtual tapes
-// that have recovery points can be recovered to a new gateway.
+// A recovery point is a point in time view of a virtual tape at which all the
+// data on the tape is consistent. If your gateway crashes, virtual tapes that
+// have recovery points can be recovered to a new gateway.
 //
 // The virtual tape can be retrieved to only one gateway. The retrieved tape
 // is read-only. The virtual tape can be retrieved to only a gateway-VTL. There
@@ -3785,7 +3782,7 @@ func (c *StorageGateway) ShutdownGatewayRequest(input *ShutdownGatewayInput) (re
 // If you want to shut down the VM, it is recommended that you first shut down
 // the gateway component in the VM to avoid unpredictable conditions.
 //
-//  After the gateway is shutdown, you cannot call any other API except StartGateway,
+// After the gateway is shutdown, you cannot call any other API except StartGateway,
 // DescribeGatewayInformation, and ListGateways. For more information, see ActivateGateway.
 // Your applications cannot read from or write to the gateway's storage volumes,
 // and there are no snapshots taken.
@@ -3795,9 +3792,8 @@ func (c *StorageGateway) ShutdownGatewayRequest(input *ShutdownGatewayInput) (re
 // You can call the DescribeGatewayInformation API to check the status. For
 // more information, see ActivateGateway.
 //
-//  If do not intend to use the gateway again, you must delete the gateway
-// (using DeleteGateway) to no longer pay software charges associated with the
-// gateway.
+// If do not intend to use the gateway again, you must delete the gateway (using
+// DeleteGateway) to no longer pay software charges associated with the gateway.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3876,7 +3872,7 @@ func (c *StorageGateway) StartGatewayRequest(input *StartGatewayInput) (req *req
 // call DescribeGatewayInformation and check the status before making any additional
 // API calls. For more information, see ActivateGateway.
 //
-//  To specify which gateway to start, use the Amazon Resource Name (ARN) of
+// To specify which gateway to start, use the Amazon Resource Name (ARN) of
 // the gateway in your request.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -3950,9 +3946,9 @@ func (c *StorageGateway) UpdateBandwidthRateLimitRequest(input *UpdateBandwidthR
 // and download bandwidth rate limit or specify only one of the two. If you
 // don't set a bandwidth rate limit, the existing rate limit remains.
 //
-// By default, a gateway's bandwidth rate limits are not set. If you don't
-// set any limit, the gateway does not have any limitations on its bandwidth
-// usage and could potentially use the maximum available bandwidth.
+// By default, a gateway's bandwidth rate limits are not set. If you don't set
+// any limit, the gateway does not have any limitations on its bandwidth usage
+// and could potentially use the maximum available bandwidth.
 //
 // To specify which gateway to update, use the Amazon Resource Name (ARN) of
 // the gateway in your request.
@@ -4028,7 +4024,7 @@ func (c *StorageGateway) UpdateChapCredentialsRequest(input *UpdateChapCredentia
 // for a specified iSCSI target. By default, a gateway does not have CHAP enabled;
 // however, for added security, you might use it.
 //
-//  When you update CHAP credentials, all existing connections on the target
+// When you update CHAP credentials, all existing connections on the target
 // are closed and initiators must reconnect with the new credentials.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -4181,7 +4177,7 @@ func (c *StorageGateway) UpdateGatewaySoftwareNowRequest(input *UpdateGatewaySof
 // DescribeGatewayInformation to verify the gateway is in the STATE_RUNNING
 // state.
 //
-//  A software update forces a system restart of your gateway. You can minimize
+// A software update forces a system restart of your gateway. You can minimize
 // the chance of any disruption to your applications by increasing your iSCSI
 // Initiators' timeouts. For more information about increasing iSCSI Initiator
 // timeouts for Windows and Linux, see Customizing Your Windows iSCSI Settings
@@ -4433,19 +4429,19 @@ func (c *StorageGateway) UpdateVTLDeviceType(input *UpdateVTLDeviceTypeInput) (*
 
 // A JSON object containing one or more of the following fields:
 //
-//    ActivateGatewayInput$ActivationKey
+//    * ActivateGatewayInput$ActivationKey
 //
-//    ActivateGatewayInput$GatewayName
+//    * ActivateGatewayInput$GatewayName
 //
-//    ActivateGatewayInput$GatewayRegion
+//    * ActivateGatewayInput$GatewayRegion
 //
-//    ActivateGatewayInput$GatewayTimezone
+//    * ActivateGatewayInput$GatewayTimezone
 //
-//    ActivateGatewayInput$GatewayType
+//    * ActivateGatewayInput$GatewayType
 //
-//    ActivateGatewayInput$TapeDriveType
+//    * ActivateGatewayInput$TapeDriveType
 //
-//    ActivateGatewayInput$MediumChangerType
+//    * ActivateGatewayInput$MediumChangerType
 type ActivateGatewayInput struct {
 	_ struct{} `type:"structure"`
 
@@ -4471,7 +4467,7 @@ type ActivateGatewayInput struct {
 	// and endpoints for AWS Storage Gateway, see Regions and Endpoints (http://docs.aws.amazon.com/general/latest/gr/rande.html#sg_region)
 	// in the Amazon Web Services Glossary.
 	//
-	//  Valid Values: "us-east-1", "us-west-1", "us-west-2", "eu-west-1", "eu-central-1",
+	// Valid Values: "us-east-1", "us-west-1", "us-west-2", "eu-west-1", "eu-central-1",
 	// "ap-northeast-1", "ap-northeast-2", "ap-southeast-1", "ap-southeast-2", "sa-east-1"
 	//
 	// GatewayRegion is a required field
@@ -4492,13 +4488,13 @@ type ActivateGatewayInput struct {
 	// The value that indicates the type of medium changer to use for gateway-VTL.
 	// This field is optional.
 	//
-	//  Valid Values: "STK-L700", "AWS-Gateway-VTL"
+	// Valid Values: "STK-L700", "AWS-Gateway-VTL"
 	MediumChangerType *string `min:"2" type:"string"`
 
 	// The value that indicates the type of tape drive to use for gateway-VTL. This
 	// field is optional.
 	//
-	//  Valid Values: "IBM-ULT3580-TD5"
+	// Valid Values: "IBM-ULT3580-TD5"
 	TapeDriveType *string `min:"2" type:"string"`
 }
 
@@ -4555,6 +4551,48 @@ func (s *ActivateGatewayInput) Validate() error {
 	return nil
 }
 
+// SetActivationKey sets the ActivationKey field's value.
+func (s *ActivateGatewayInput) SetActivationKey(v string) *ActivateGatewayInput {
+	s.ActivationKey = &v
+	return s
+}
+
+// SetGatewayName sets the GatewayName field's value.
+func (s *ActivateGatewayInput) SetGatewayName(v string) *ActivateGatewayInput {
+	s.GatewayName = &v
+	return s
+}
+
+// SetGatewayRegion sets the GatewayRegion field's value.
+func (s *ActivateGatewayInput) SetGatewayRegion(v string) *ActivateGatewayInput {
+	s.GatewayRegion = &v
+	return s
+}
+
+// SetGatewayTimezone sets the GatewayTimezone field's value.
+func (s *ActivateGatewayInput) SetGatewayTimezone(v string) *ActivateGatewayInput {
+	s.GatewayTimezone = &v
+	return s
+}
+
+// SetGatewayType sets the GatewayType field's value.
+func (s *ActivateGatewayInput) SetGatewayType(v string) *ActivateGatewayInput {
+	s.GatewayType = &v
+	return s
+}
+
+// SetMediumChangerType sets the MediumChangerType field's value.
+func (s *ActivateGatewayInput) SetMediumChangerType(v string) *ActivateGatewayInput {
+	s.MediumChangerType = &v
+	return s
+}
+
+// SetTapeDriveType sets the TapeDriveType field's value.
+func (s *ActivateGatewayInput) SetTapeDriveType(v string) *ActivateGatewayInput {
+	s.TapeDriveType = &v
+	return s
+}
+
 // AWS Storage Gateway returns the Amazon Resource Name (ARN) of the activated
 // gateway. It is a string made of information such as your account, gateway
 // name, and region. This ARN is used to reference the gateway in other API
@@ -4579,6 +4617,12 @@ func (s ActivateGatewayOutput) String() string {
 // GoString returns the string representation
 func (s ActivateGatewayOutput) GoString() string {
 	return s.String()
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *ActivateGatewayOutput) SetGatewayARN(v string) *ActivateGatewayOutput {
+	s.GatewayARN = &v
+	return s
 }
 
 type AddCacheInput struct {
@@ -4623,6 +4667,18 @@ func (s *AddCacheInput) Validate() error {
 	return nil
 }
 
+// SetDiskIds sets the DiskIds field's value.
+func (s *AddCacheInput) SetDiskIds(v []*string) *AddCacheInput {
+	s.DiskIds = v
+	return s
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *AddCacheInput) SetGatewayARN(v string) *AddCacheInput {
+	s.GatewayARN = &v
+	return s
+}
+
 type AddCacheOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -4641,6 +4697,12 @@ func (s AddCacheOutput) GoString() string {
 	return s.String()
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *AddCacheOutput) SetGatewayARN(v string) *AddCacheOutput {
+	s.GatewayARN = &v
+	return s
+}
+
 // AddTagsToResourceInput
 type AddTagsToResourceInput struct {
 	_ struct{} `type:"structure"`
@@ -4653,7 +4715,7 @@ type AddTagsToResourceInput struct {
 	// The key-value pair that represents the tag you want to add to the resource.
 	// The value can be an empty string.
 	//
-	//  Valid characters for key and value are letters, spaces, and numbers representable
+	// Valid characters for key and value are letters, spaces, and numbers representable
 	// in UTF-8 format, and the following special characters: + - = . _ : / @.
 	//
 	// Tags is a required field
@@ -4699,6 +4761,18 @@ func (s *AddTagsToResourceInput) Validate() error {
 	return nil
 }
 
+// SetResourceARN sets the ResourceARN field's value.
+func (s *AddTagsToResourceInput) SetResourceARN(v string) *AddTagsToResourceInput {
+	s.ResourceARN = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *AddTagsToResourceInput) SetTags(v []*Tag) *AddTagsToResourceInput {
+	s.Tags = v
+	return s
+}
+
 // AddTagsToResourceOutput
 type AddTagsToResourceOutput struct {
 	_ struct{} `type:"structure"`
@@ -4715,6 +4789,12 @@ func (s AddTagsToResourceOutput) String() string {
 // GoString returns the string representation
 func (s AddTagsToResourceOutput) GoString() string {
 	return s.String()
+}
+
+// SetResourceARN sets the ResourceARN field's value.
+func (s *AddTagsToResourceOutput) SetResourceARN(v string) *AddTagsToResourceOutput {
+	s.ResourceARN = &v
+	return s
 }
 
 type AddUploadBufferInput struct {
@@ -4759,6 +4839,18 @@ func (s *AddUploadBufferInput) Validate() error {
 	return nil
 }
 
+// SetDiskIds sets the DiskIds field's value.
+func (s *AddUploadBufferInput) SetDiskIds(v []*string) *AddUploadBufferInput {
+	s.DiskIds = v
+	return s
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *AddUploadBufferInput) SetGatewayARN(v string) *AddUploadBufferInput {
+	s.GatewayARN = &v
+	return s
+}
+
 type AddUploadBufferOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -4777,9 +4869,15 @@ func (s AddUploadBufferOutput) GoString() string {
 	return s.String()
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *AddUploadBufferOutput) SetGatewayARN(v string) *AddUploadBufferOutput {
+	s.GatewayARN = &v
+	return s
+}
+
 // A JSON object containing one or more of the following fields:
 //
-//    AddWorkingStorageInput$DiskIds
+//    * AddWorkingStorageInput$DiskIds
 type AddWorkingStorageInput struct {
 	_ struct{} `type:"structure"`
 
@@ -4826,6 +4924,18 @@ func (s *AddWorkingStorageInput) Validate() error {
 	return nil
 }
 
+// SetDiskIds sets the DiskIds field's value.
+func (s *AddWorkingStorageInput) SetDiskIds(v []*string) *AddWorkingStorageInput {
+	s.DiskIds = v
+	return s
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *AddWorkingStorageInput) SetGatewayARN(v string) *AddWorkingStorageInput {
+	s.GatewayARN = &v
+	return s
+}
+
 // A JSON object containing the of the gateway for which working storage was
 // configured.
 type AddWorkingStorageOutput struct {
@@ -4844,6 +4954,12 @@ func (s AddWorkingStorageOutput) String() string {
 // GoString returns the string representation
 func (s AddWorkingStorageOutput) GoString() string {
 	return s.String()
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *AddWorkingStorageOutput) SetGatewayARN(v string) *AddWorkingStorageOutput {
+	s.GatewayARN = &v
+	return s
 }
 
 type CachediSCSIVolume struct {
@@ -4875,6 +4991,54 @@ func (s CachediSCSIVolume) String() string {
 // GoString returns the string representation
 func (s CachediSCSIVolume) GoString() string {
 	return s.String()
+}
+
+// SetSourceSnapshotId sets the SourceSnapshotId field's value.
+func (s *CachediSCSIVolume) SetSourceSnapshotId(v string) *CachediSCSIVolume {
+	s.SourceSnapshotId = &v
+	return s
+}
+
+// SetVolumeARN sets the VolumeARN field's value.
+func (s *CachediSCSIVolume) SetVolumeARN(v string) *CachediSCSIVolume {
+	s.VolumeARN = &v
+	return s
+}
+
+// SetVolumeId sets the VolumeId field's value.
+func (s *CachediSCSIVolume) SetVolumeId(v string) *CachediSCSIVolume {
+	s.VolumeId = &v
+	return s
+}
+
+// SetVolumeProgress sets the VolumeProgress field's value.
+func (s *CachediSCSIVolume) SetVolumeProgress(v float64) *CachediSCSIVolume {
+	s.VolumeProgress = &v
+	return s
+}
+
+// SetVolumeSizeInBytes sets the VolumeSizeInBytes field's value.
+func (s *CachediSCSIVolume) SetVolumeSizeInBytes(v int64) *CachediSCSIVolume {
+	s.VolumeSizeInBytes = &v
+	return s
+}
+
+// SetVolumeStatus sets the VolumeStatus field's value.
+func (s *CachediSCSIVolume) SetVolumeStatus(v string) *CachediSCSIVolume {
+	s.VolumeStatus = &v
+	return s
+}
+
+// SetVolumeType sets the VolumeType field's value.
+func (s *CachediSCSIVolume) SetVolumeType(v string) *CachediSCSIVolume {
+	s.VolumeType = &v
+	return s
+}
+
+// SetVolumeiSCSIAttributes sets the VolumeiSCSIAttributes field's value.
+func (s *CachediSCSIVolume) SetVolumeiSCSIAttributes(v *VolumeiSCSIAttributes) *CachediSCSIVolume {
+	s.VolumeiSCSIAttributes = v
+	return s
 }
 
 // CancelArchivalInput
@@ -4926,6 +5090,18 @@ func (s *CancelArchivalInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *CancelArchivalInput) SetGatewayARN(v string) *CancelArchivalInput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetTapeARN sets the TapeARN field's value.
+func (s *CancelArchivalInput) SetTapeARN(v string) *CancelArchivalInput {
+	s.TapeARN = &v
+	return s
+}
+
 // CancelArchivalOutput
 type CancelArchivalOutput struct {
 	_ struct{} `type:"structure"`
@@ -4943,6 +5119,12 @@ func (s CancelArchivalOutput) String() string {
 // GoString returns the string representation
 func (s CancelArchivalOutput) GoString() string {
 	return s.String()
+}
+
+// SetTapeARN sets the TapeARN field's value.
+func (s *CancelArchivalOutput) SetTapeARN(v string) *CancelArchivalOutput {
+	s.TapeARN = &v
+	return s
 }
 
 // CancelRetrievalInput
@@ -4994,6 +5176,18 @@ func (s *CancelRetrievalInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *CancelRetrievalInput) SetGatewayARN(v string) *CancelRetrievalInput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetTapeARN sets the TapeARN field's value.
+func (s *CancelRetrievalInput) SetTapeARN(v string) *CancelRetrievalInput {
+	s.TapeARN = &v
+	return s
+}
+
 // CancelRetrievalOutput
 type CancelRetrievalOutput struct {
 	_ struct{} `type:"structure"`
@@ -5011,6 +5205,12 @@ func (s CancelRetrievalOutput) String() string {
 // GoString returns the string representation
 func (s CancelRetrievalOutput) GoString() string {
 	return s.String()
+}
+
+// SetTapeARN sets the TapeARN field's value.
+func (s *CancelRetrievalOutput) SetTapeARN(v string) *CancelRetrievalOutput {
+	s.TapeARN = &v
+	return s
 }
 
 // Describes Challenge-Handshake Authentication Protocol (CHAP) information
@@ -5031,7 +5231,7 @@ type ChapInfo struct {
 
 	// The Amazon Resource Name (ARN) of the volume.
 	//
-	//  Valid Values: 50 to 500 lowercase letters, numbers, periods (.), and hyphens
+	// Valid Values: 50 to 500 lowercase letters, numbers, periods (.), and hyphens
 	// (-).
 	TargetARN *string `min:"50" type:"string"`
 }
@@ -5044,6 +5244,30 @@ func (s ChapInfo) String() string {
 // GoString returns the string representation
 func (s ChapInfo) GoString() string {
 	return s.String()
+}
+
+// SetInitiatorName sets the InitiatorName field's value.
+func (s *ChapInfo) SetInitiatorName(v string) *ChapInfo {
+	s.InitiatorName = &v
+	return s
+}
+
+// SetSecretToAuthenticateInitiator sets the SecretToAuthenticateInitiator field's value.
+func (s *ChapInfo) SetSecretToAuthenticateInitiator(v string) *ChapInfo {
+	s.SecretToAuthenticateInitiator = &v
+	return s
+}
+
+// SetSecretToAuthenticateTarget sets the SecretToAuthenticateTarget field's value.
+func (s *ChapInfo) SetSecretToAuthenticateTarget(v string) *ChapInfo {
+	s.SecretToAuthenticateTarget = &v
+	return s
+}
+
+// SetTargetARN sets the TargetARN field's value.
+func (s *ChapInfo) SetTargetARN(v string) *ChapInfo {
+	s.TargetARN = &v
+	return s
 }
 
 type CreateCachediSCSIVolumeInput struct {
@@ -5114,6 +5338,42 @@ func (s *CreateCachediSCSIVolumeInput) Validate() error {
 	return nil
 }
 
+// SetClientToken sets the ClientToken field's value.
+func (s *CreateCachediSCSIVolumeInput) SetClientToken(v string) *CreateCachediSCSIVolumeInput {
+	s.ClientToken = &v
+	return s
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *CreateCachediSCSIVolumeInput) SetGatewayARN(v string) *CreateCachediSCSIVolumeInput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetNetworkInterfaceId sets the NetworkInterfaceId field's value.
+func (s *CreateCachediSCSIVolumeInput) SetNetworkInterfaceId(v string) *CreateCachediSCSIVolumeInput {
+	s.NetworkInterfaceId = &v
+	return s
+}
+
+// SetSnapshotId sets the SnapshotId field's value.
+func (s *CreateCachediSCSIVolumeInput) SetSnapshotId(v string) *CreateCachediSCSIVolumeInput {
+	s.SnapshotId = &v
+	return s
+}
+
+// SetTargetName sets the TargetName field's value.
+func (s *CreateCachediSCSIVolumeInput) SetTargetName(v string) *CreateCachediSCSIVolumeInput {
+	s.TargetName = &v
+	return s
+}
+
+// SetVolumeSizeInBytes sets the VolumeSizeInBytes field's value.
+func (s *CreateCachediSCSIVolumeInput) SetVolumeSizeInBytes(v int64) *CreateCachediSCSIVolumeInput {
+	s.VolumeSizeInBytes = &v
+	return s
+}
+
 type CreateCachediSCSIVolumeOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -5130,6 +5390,18 @@ func (s CreateCachediSCSIVolumeOutput) String() string {
 // GoString returns the string representation
 func (s CreateCachediSCSIVolumeOutput) GoString() string {
 	return s.String()
+}
+
+// SetTargetARN sets the TargetARN field's value.
+func (s *CreateCachediSCSIVolumeOutput) SetTargetARN(v string) *CreateCachediSCSIVolumeOutput {
+	s.TargetARN = &v
+	return s
+}
+
+// SetVolumeARN sets the VolumeARN field's value.
+func (s *CreateCachediSCSIVolumeOutput) SetVolumeARN(v string) *CreateCachediSCSIVolumeOutput {
+	s.VolumeARN = &v
+	return s
 }
 
 type CreateSnapshotFromVolumeRecoveryPointInput struct {
@@ -5174,6 +5446,18 @@ func (s *CreateSnapshotFromVolumeRecoveryPointInput) Validate() error {
 	return nil
 }
 
+// SetSnapshotDescription sets the SnapshotDescription field's value.
+func (s *CreateSnapshotFromVolumeRecoveryPointInput) SetSnapshotDescription(v string) *CreateSnapshotFromVolumeRecoveryPointInput {
+	s.SnapshotDescription = &v
+	return s
+}
+
+// SetVolumeARN sets the VolumeARN field's value.
+func (s *CreateSnapshotFromVolumeRecoveryPointInput) SetVolumeARN(v string) *CreateSnapshotFromVolumeRecoveryPointInput {
+	s.VolumeARN = &v
+	return s
+}
+
 type CreateSnapshotFromVolumeRecoveryPointOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -5194,11 +5478,29 @@ func (s CreateSnapshotFromVolumeRecoveryPointOutput) GoString() string {
 	return s.String()
 }
 
+// SetSnapshotId sets the SnapshotId field's value.
+func (s *CreateSnapshotFromVolumeRecoveryPointOutput) SetSnapshotId(v string) *CreateSnapshotFromVolumeRecoveryPointOutput {
+	s.SnapshotId = &v
+	return s
+}
+
+// SetVolumeARN sets the VolumeARN field's value.
+func (s *CreateSnapshotFromVolumeRecoveryPointOutput) SetVolumeARN(v string) *CreateSnapshotFromVolumeRecoveryPointOutput {
+	s.VolumeARN = &v
+	return s
+}
+
+// SetVolumeRecoveryPointTime sets the VolumeRecoveryPointTime field's value.
+func (s *CreateSnapshotFromVolumeRecoveryPointOutput) SetVolumeRecoveryPointTime(v string) *CreateSnapshotFromVolumeRecoveryPointOutput {
+	s.VolumeRecoveryPointTime = &v
+	return s
+}
+
 // A JSON object containing one or more of the following fields:
 //
-//    CreateSnapshotInput$SnapshotDescription
+//    * CreateSnapshotInput$SnapshotDescription
 //
-//    CreateSnapshotInput$VolumeARN
+//    * CreateSnapshotInput$VolumeARN
 type CreateSnapshotInput struct {
 	_ struct{} `type:"structure"`
 
@@ -5248,6 +5550,18 @@ func (s *CreateSnapshotInput) Validate() error {
 	return nil
 }
 
+// SetSnapshotDescription sets the SnapshotDescription field's value.
+func (s *CreateSnapshotInput) SetSnapshotDescription(v string) *CreateSnapshotInput {
+	s.SnapshotDescription = &v
+	return s
+}
+
+// SetVolumeARN sets the VolumeARN field's value.
+func (s *CreateSnapshotInput) SetVolumeARN(v string) *CreateSnapshotInput {
+	s.VolumeARN = &v
+	return s
+}
+
 // A JSON object containing the following fields:
 type CreateSnapshotOutput struct {
 	_ struct{} `type:"structure"`
@@ -5271,17 +5585,29 @@ func (s CreateSnapshotOutput) GoString() string {
 	return s.String()
 }
 
+// SetSnapshotId sets the SnapshotId field's value.
+func (s *CreateSnapshotOutput) SetSnapshotId(v string) *CreateSnapshotOutput {
+	s.SnapshotId = &v
+	return s
+}
+
+// SetVolumeARN sets the VolumeARN field's value.
+func (s *CreateSnapshotOutput) SetVolumeARN(v string) *CreateSnapshotOutput {
+	s.VolumeARN = &v
+	return s
+}
+
 // A JSON object containing one or more of the following fields:
 //
-//    CreateStorediSCSIVolumeInput$DiskId
+//    * CreateStorediSCSIVolumeInput$DiskId
 //
-//    CreateStorediSCSIVolumeInput$NetworkInterfaceId
+//    * CreateStorediSCSIVolumeInput$NetworkInterfaceId
 //
-//    CreateStorediSCSIVolumeInput$PreserveExistingData
+//    * CreateStorediSCSIVolumeInput$PreserveExistingData
 //
-//    CreateStorediSCSIVolumeInput$SnapshotId
+//    * CreateStorediSCSIVolumeInput$SnapshotId
 //
-//    CreateStorediSCSIVolumeInput$TargetName
+//    * CreateStorediSCSIVolumeInput$TargetName
 type CreateStorediSCSIVolumeInput struct {
 	_ struct{} `type:"structure"`
 
@@ -5302,7 +5628,7 @@ type CreateStorediSCSIVolumeInput struct {
 	// Only IPv4 addresses are accepted. Use DescribeGatewayInformation to get a
 	// list of the network interfaces available on a gateway.
 	//
-	//  Valid Values: A valid IP address.
+	// Valid Values: A valid IP address.
 	//
 	// NetworkInterfaceId is a required field
 	NetworkInterfaceId *string `type:"string" required:"true"`
@@ -5310,7 +5636,7 @@ type CreateStorediSCSIVolumeInput struct {
 	// Specify this field as true if you want to preserve the data on the local
 	// disk. Otherwise, specifying this field as false creates an empty volume.
 	//
-	//  Valid Values: true, false
+	// Valid Values: true, false
 	//
 	// PreserveExistingData is a required field
 	PreserveExistingData *bool `type:"boolean" required:"true"`
@@ -5375,6 +5701,42 @@ func (s *CreateStorediSCSIVolumeInput) Validate() error {
 	return nil
 }
 
+// SetDiskId sets the DiskId field's value.
+func (s *CreateStorediSCSIVolumeInput) SetDiskId(v string) *CreateStorediSCSIVolumeInput {
+	s.DiskId = &v
+	return s
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *CreateStorediSCSIVolumeInput) SetGatewayARN(v string) *CreateStorediSCSIVolumeInput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetNetworkInterfaceId sets the NetworkInterfaceId field's value.
+func (s *CreateStorediSCSIVolumeInput) SetNetworkInterfaceId(v string) *CreateStorediSCSIVolumeInput {
+	s.NetworkInterfaceId = &v
+	return s
+}
+
+// SetPreserveExistingData sets the PreserveExistingData field's value.
+func (s *CreateStorediSCSIVolumeInput) SetPreserveExistingData(v bool) *CreateStorediSCSIVolumeInput {
+	s.PreserveExistingData = &v
+	return s
+}
+
+// SetSnapshotId sets the SnapshotId field's value.
+func (s *CreateStorediSCSIVolumeInput) SetSnapshotId(v string) *CreateStorediSCSIVolumeInput {
+	s.SnapshotId = &v
+	return s
+}
+
+// SetTargetName sets the TargetName field's value.
+func (s *CreateStorediSCSIVolumeInput) SetTargetName(v string) *CreateStorediSCSIVolumeInput {
+	s.TargetName = &v
+	return s
+}
+
 // A JSON object containing the following fields:
 type CreateStorediSCSIVolumeOutput struct {
 	_ struct{} `type:"structure"`
@@ -5398,6 +5760,24 @@ func (s CreateStorediSCSIVolumeOutput) String() string {
 // GoString returns the string representation
 func (s CreateStorediSCSIVolumeOutput) GoString() string {
 	return s.String()
+}
+
+// SetTargetARN sets the TargetARN field's value.
+func (s *CreateStorediSCSIVolumeOutput) SetTargetARN(v string) *CreateStorediSCSIVolumeOutput {
+	s.TargetARN = &v
+	return s
+}
+
+// SetVolumeARN sets the VolumeARN field's value.
+func (s *CreateStorediSCSIVolumeOutput) SetVolumeARN(v string) *CreateStorediSCSIVolumeOutput {
+	s.VolumeARN = &v
+	return s
+}
+
+// SetVolumeSizeInBytes sets the VolumeSizeInBytes field's value.
+func (s *CreateStorediSCSIVolumeOutput) SetVolumeSizeInBytes(v int64) *CreateStorediSCSIVolumeOutput {
+	s.VolumeSizeInBytes = &v
+	return s
 }
 
 // CreateTapeWithBarcodeInput
@@ -5459,6 +5839,24 @@ func (s *CreateTapeWithBarcodeInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *CreateTapeWithBarcodeInput) SetGatewayARN(v string) *CreateTapeWithBarcodeInput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetTapeBarcode sets the TapeBarcode field's value.
+func (s *CreateTapeWithBarcodeInput) SetTapeBarcode(v string) *CreateTapeWithBarcodeInput {
+	s.TapeBarcode = &v
+	return s
+}
+
+// SetTapeSizeInBytes sets the TapeSizeInBytes field's value.
+func (s *CreateTapeWithBarcodeInput) SetTapeSizeInBytes(v int64) *CreateTapeWithBarcodeInput {
+	s.TapeSizeInBytes = &v
+	return s
+}
+
 // CreateTapeOutput
 type CreateTapeWithBarcodeOutput struct {
 	_ struct{} `type:"structure"`
@@ -5476,6 +5874,12 @@ func (s CreateTapeWithBarcodeOutput) String() string {
 // GoString returns the string representation
 func (s CreateTapeWithBarcodeOutput) GoString() string {
 	return s.String()
+}
+
+// SetTapeARN sets the TapeARN field's value.
+func (s *CreateTapeWithBarcodeOutput) SetTapeARN(v string) *CreateTapeWithBarcodeOutput {
+	s.TapeARN = &v
+	return s
 }
 
 // CreateTapesInput
@@ -5566,6 +5970,36 @@ func (s *CreateTapesInput) Validate() error {
 	return nil
 }
 
+// SetClientToken sets the ClientToken field's value.
+func (s *CreateTapesInput) SetClientToken(v string) *CreateTapesInput {
+	s.ClientToken = &v
+	return s
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *CreateTapesInput) SetGatewayARN(v string) *CreateTapesInput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetNumTapesToCreate sets the NumTapesToCreate field's value.
+func (s *CreateTapesInput) SetNumTapesToCreate(v int64) *CreateTapesInput {
+	s.NumTapesToCreate = &v
+	return s
+}
+
+// SetTapeBarcodePrefix sets the TapeBarcodePrefix field's value.
+func (s *CreateTapesInput) SetTapeBarcodePrefix(v string) *CreateTapesInput {
+	s.TapeBarcodePrefix = &v
+	return s
+}
+
+// SetTapeSizeInBytes sets the TapeSizeInBytes field's value.
+func (s *CreateTapesInput) SetTapeSizeInBytes(v int64) *CreateTapesInput {
+	s.TapeSizeInBytes = &v
+	return s
+}
+
 // CreateTapeOutput
 type CreateTapesOutput struct {
 	_ struct{} `type:"structure"`
@@ -5583,6 +6017,12 @@ func (s CreateTapesOutput) String() string {
 // GoString returns the string representation
 func (s CreateTapesOutput) GoString() string {
 	return s.String()
+}
+
+// SetTapeARNs sets the TapeARNs field's value.
+func (s *CreateTapesOutput) SetTapeARNs(v []*string) *CreateTapesOutput {
+	s.TapeARNs = v
+	return s
 }
 
 type DeleteBandwidthRateLimitInput struct {
@@ -5630,6 +6070,18 @@ func (s *DeleteBandwidthRateLimitInput) Validate() error {
 	return nil
 }
 
+// SetBandwidthType sets the BandwidthType field's value.
+func (s *DeleteBandwidthRateLimitInput) SetBandwidthType(v string) *DeleteBandwidthRateLimitInput {
+	s.BandwidthType = &v
+	return s
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DeleteBandwidthRateLimitInput) SetGatewayARN(v string) *DeleteBandwidthRateLimitInput {
+	s.GatewayARN = &v
+	return s
+}
+
 // A JSON object containing the of the gateway whose bandwidth rate information
 // was deleted.
 type DeleteBandwidthRateLimitOutput struct {
@@ -5650,11 +6102,17 @@ func (s DeleteBandwidthRateLimitOutput) GoString() string {
 	return s.String()
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DeleteBandwidthRateLimitOutput) SetGatewayARN(v string) *DeleteBandwidthRateLimitOutput {
+	s.GatewayARN = &v
+	return s
+}
+
 // A JSON object containing one or more of the following fields:
 //
-//    DeleteChapCredentialsInput$InitiatorName
+//    * DeleteChapCredentialsInput$InitiatorName
 //
-//    DeleteChapCredentialsInput$TargetARN
+//    * DeleteChapCredentialsInput$TargetARN
 type DeleteChapCredentialsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -5702,6 +6160,18 @@ func (s *DeleteChapCredentialsInput) Validate() error {
 	return nil
 }
 
+// SetInitiatorName sets the InitiatorName field's value.
+func (s *DeleteChapCredentialsInput) SetInitiatorName(v string) *DeleteChapCredentialsInput {
+	s.InitiatorName = &v
+	return s
+}
+
+// SetTargetARN sets the TargetARN field's value.
+func (s *DeleteChapCredentialsInput) SetTargetARN(v string) *DeleteChapCredentialsInput {
+	s.TargetARN = &v
+	return s
+}
+
 // A JSON object containing the following fields:
 type DeleteChapCredentialsOutput struct {
 	_ struct{} `type:"structure"`
@@ -5721,6 +6191,18 @@ func (s DeleteChapCredentialsOutput) String() string {
 // GoString returns the string representation
 func (s DeleteChapCredentialsOutput) GoString() string {
 	return s.String()
+}
+
+// SetInitiatorName sets the InitiatorName field's value.
+func (s *DeleteChapCredentialsOutput) SetInitiatorName(v string) *DeleteChapCredentialsOutput {
+	s.InitiatorName = &v
+	return s
+}
+
+// SetTargetARN sets the TargetARN field's value.
+func (s *DeleteChapCredentialsOutput) SetTargetARN(v string) *DeleteChapCredentialsOutput {
+	s.TargetARN = &v
+	return s
 }
 
 // A JSON object containing the id of the gateway to delete.
@@ -5760,6 +6242,12 @@ func (s *DeleteGatewayInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DeleteGatewayInput) SetGatewayARN(v string) *DeleteGatewayInput {
+	s.GatewayARN = &v
+	return s
+}
+
 // A JSON object containing the id of the deleted gateway.
 type DeleteGatewayOutput struct {
 	_ struct{} `type:"structure"`
@@ -5777,6 +6265,12 @@ func (s DeleteGatewayOutput) String() string {
 // GoString returns the string representation
 func (s DeleteGatewayOutput) GoString() string {
 	return s.String()
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DeleteGatewayOutput) SetGatewayARN(v string) *DeleteGatewayOutput {
+	s.GatewayARN = &v
+	return s
 }
 
 type DeleteSnapshotScheduleInput struct {
@@ -5812,6 +6306,12 @@ func (s *DeleteSnapshotScheduleInput) Validate() error {
 	return nil
 }
 
+// SetVolumeARN sets the VolumeARN field's value.
+func (s *DeleteSnapshotScheduleInput) SetVolumeARN(v string) *DeleteSnapshotScheduleInput {
+	s.VolumeARN = &v
+	return s
+}
+
 type DeleteSnapshotScheduleOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -5826,6 +6326,12 @@ func (s DeleteSnapshotScheduleOutput) String() string {
 // GoString returns the string representation
 func (s DeleteSnapshotScheduleOutput) GoString() string {
 	return s.String()
+}
+
+// SetVolumeARN sets the VolumeARN field's value.
+func (s *DeleteSnapshotScheduleOutput) SetVolumeARN(v string) *DeleteSnapshotScheduleOutput {
+	s.VolumeARN = &v
+	return s
 }
 
 // DeleteTapeArchiveInput
@@ -5865,6 +6371,12 @@ func (s *DeleteTapeArchiveInput) Validate() error {
 	return nil
 }
 
+// SetTapeARN sets the TapeARN field's value.
+func (s *DeleteTapeArchiveInput) SetTapeARN(v string) *DeleteTapeArchiveInput {
+	s.TapeARN = &v
+	return s
+}
+
 // DeleteTapeArchiveOutput
 type DeleteTapeArchiveOutput struct {
 	_ struct{} `type:"structure"`
@@ -5882,6 +6394,12 @@ func (s DeleteTapeArchiveOutput) String() string {
 // GoString returns the string representation
 func (s DeleteTapeArchiveOutput) GoString() string {
 	return s.String()
+}
+
+// SetTapeARN sets the TapeARN field's value.
+func (s *DeleteTapeArchiveOutput) SetTapeARN(v string) *DeleteTapeArchiveOutput {
+	s.TapeARN = &v
+	return s
 }
 
 // DeleteTapeInput
@@ -5933,6 +6451,18 @@ func (s *DeleteTapeInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DeleteTapeInput) SetGatewayARN(v string) *DeleteTapeInput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetTapeARN sets the TapeARN field's value.
+func (s *DeleteTapeInput) SetTapeARN(v string) *DeleteTapeInput {
+	s.TapeARN = &v
+	return s
+}
+
 // DeleteTapeOutput
 type DeleteTapeOutput struct {
 	_ struct{} `type:"structure"`
@@ -5949,6 +6479,12 @@ func (s DeleteTapeOutput) String() string {
 // GoString returns the string representation
 func (s DeleteTapeOutput) GoString() string {
 	return s.String()
+}
+
+// SetTapeARN sets the TapeARN field's value.
+func (s *DeleteTapeOutput) SetTapeARN(v string) *DeleteTapeOutput {
+	s.TapeARN = &v
+	return s
 }
 
 // A JSON object containing the DeleteVolumeInput$VolumeARN to delete.
@@ -5988,6 +6524,12 @@ func (s *DeleteVolumeInput) Validate() error {
 	return nil
 }
 
+// SetVolumeARN sets the VolumeARN field's value.
+func (s *DeleteVolumeInput) SetVolumeARN(v string) *DeleteVolumeInput {
+	s.VolumeARN = &v
+	return s
+}
+
 // A JSON object containing the of the storage volume that was deleted
 type DeleteVolumeOutput struct {
 	_ struct{} `type:"structure"`
@@ -6005,6 +6547,12 @@ func (s DeleteVolumeOutput) String() string {
 // GoString returns the string representation
 func (s DeleteVolumeOutput) GoString() string {
 	return s.String()
+}
+
+// SetVolumeARN sets the VolumeARN field's value.
+func (s *DeleteVolumeOutput) SetVolumeARN(v string) *DeleteVolumeOutput {
+	s.VolumeARN = &v
+	return s
 }
 
 // A JSON object containing the of the gateway.
@@ -6044,6 +6592,12 @@ func (s *DescribeBandwidthRateLimitInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DescribeBandwidthRateLimitInput) SetGatewayARN(v string) *DescribeBandwidthRateLimitInput {
+	s.GatewayARN = &v
+	return s
+}
+
 // A JSON object containing the following fields:
 type DescribeBandwidthRateLimitOutput struct {
 	_ struct{} `type:"structure"`
@@ -6069,6 +6623,24 @@ func (s DescribeBandwidthRateLimitOutput) String() string {
 // GoString returns the string representation
 func (s DescribeBandwidthRateLimitOutput) GoString() string {
 	return s.String()
+}
+
+// SetAverageDownloadRateLimitInBitsPerSec sets the AverageDownloadRateLimitInBitsPerSec field's value.
+func (s *DescribeBandwidthRateLimitOutput) SetAverageDownloadRateLimitInBitsPerSec(v int64) *DescribeBandwidthRateLimitOutput {
+	s.AverageDownloadRateLimitInBitsPerSec = &v
+	return s
+}
+
+// SetAverageUploadRateLimitInBitsPerSec sets the AverageUploadRateLimitInBitsPerSec field's value.
+func (s *DescribeBandwidthRateLimitOutput) SetAverageUploadRateLimitInBitsPerSec(v int64) *DescribeBandwidthRateLimitOutput {
+	s.AverageUploadRateLimitInBitsPerSec = &v
+	return s
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DescribeBandwidthRateLimitOutput) SetGatewayARN(v string) *DescribeBandwidthRateLimitOutput {
+	s.GatewayARN = &v
+	return s
 }
 
 type DescribeCacheInput struct {
@@ -6107,6 +6679,12 @@ func (s *DescribeCacheInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DescribeCacheInput) SetGatewayARN(v string) *DescribeCacheInput {
+	s.GatewayARN = &v
+	return s
+}
+
 type DescribeCacheOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -6135,6 +6713,48 @@ func (s DescribeCacheOutput) String() string {
 // GoString returns the string representation
 func (s DescribeCacheOutput) GoString() string {
 	return s.String()
+}
+
+// SetCacheAllocatedInBytes sets the CacheAllocatedInBytes field's value.
+func (s *DescribeCacheOutput) SetCacheAllocatedInBytes(v int64) *DescribeCacheOutput {
+	s.CacheAllocatedInBytes = &v
+	return s
+}
+
+// SetCacheDirtyPercentage sets the CacheDirtyPercentage field's value.
+func (s *DescribeCacheOutput) SetCacheDirtyPercentage(v float64) *DescribeCacheOutput {
+	s.CacheDirtyPercentage = &v
+	return s
+}
+
+// SetCacheHitPercentage sets the CacheHitPercentage field's value.
+func (s *DescribeCacheOutput) SetCacheHitPercentage(v float64) *DescribeCacheOutput {
+	s.CacheHitPercentage = &v
+	return s
+}
+
+// SetCacheMissPercentage sets the CacheMissPercentage field's value.
+func (s *DescribeCacheOutput) SetCacheMissPercentage(v float64) *DescribeCacheOutput {
+	s.CacheMissPercentage = &v
+	return s
+}
+
+// SetCacheUsedPercentage sets the CacheUsedPercentage field's value.
+func (s *DescribeCacheOutput) SetCacheUsedPercentage(v float64) *DescribeCacheOutput {
+	s.CacheUsedPercentage = &v
+	return s
+}
+
+// SetDiskIds sets the DiskIds field's value.
+func (s *DescribeCacheOutput) SetDiskIds(v []*string) *DescribeCacheOutput {
+	s.DiskIds = v
+	return s
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DescribeCacheOutput) SetGatewayARN(v string) *DescribeCacheOutput {
+	s.GatewayARN = &v
+	return s
 }
 
 type DescribeCachediSCSIVolumesInput struct {
@@ -6167,6 +6787,12 @@ func (s *DescribeCachediSCSIVolumesInput) Validate() error {
 	return nil
 }
 
+// SetVolumeARNs sets the VolumeARNs field's value.
+func (s *DescribeCachediSCSIVolumesInput) SetVolumeARNs(v []*string) *DescribeCachediSCSIVolumesInput {
+	s.VolumeARNs = v
+	return s
+}
+
 // A JSON object containing the following fields:
 type DescribeCachediSCSIVolumesOutput struct {
 	_ struct{} `type:"structure"`
@@ -6184,6 +6810,12 @@ func (s DescribeCachediSCSIVolumesOutput) String() string {
 // GoString returns the string representation
 func (s DescribeCachediSCSIVolumesOutput) GoString() string {
 	return s.String()
+}
+
+// SetCachediSCSIVolumes sets the CachediSCSIVolumes field's value.
+func (s *DescribeCachediSCSIVolumesOutput) SetCachediSCSIVolumes(v []*CachediSCSIVolume) *DescribeCachediSCSIVolumesOutput {
+	s.CachediSCSIVolumes = v
+	return s
 }
 
 // A JSON object containing the Amazon Resource Name (ARN) of the iSCSI volume
@@ -6224,6 +6856,12 @@ func (s *DescribeChapCredentialsInput) Validate() error {
 	return nil
 }
 
+// SetTargetARN sets the TargetARN field's value.
+func (s *DescribeChapCredentialsInput) SetTargetARN(v string) *DescribeChapCredentialsInput {
+	s.TargetARN = &v
+	return s
+}
+
 // A JSON object containing a .
 type DescribeChapCredentialsOutput struct {
 	_ struct{} `type:"structure"`
@@ -6233,16 +6871,16 @@ type DescribeChapCredentialsOutput struct {
 	// pair. If no CHAP credentials are set, an empty array is returned. CHAP credential
 	// information is provided in a JSON object with the following fields:
 	//
-	//    InitiatorName: The iSCSI initiator that connects to the target.
+	//    * InitiatorName: The iSCSI initiator that connects to the target.
 	//
-	//    SecretToAuthenticateInitiator: The secret key that the initiator (for
-	// example, the Windows client) must provide to participate in mutual CHAP with
-	// the target.
+	//    * SecretToAuthenticateInitiator: The secret key that the initiator (for
+	//    example, the Windows client) must provide to participate in mutual CHAP
+	//    with the target.
 	//
-	//    SecretToAuthenticateTarget: The secret key that the target must provide
-	// to participate in mutual CHAP with the initiator (e.g. Windows client).
+	//    * SecretToAuthenticateTarget: The secret key that the target must provide
+	//    to participate in mutual CHAP with the initiator (e.g. Windows client).
 	//
-	//    TargetARN: The Amazon Resource Name (ARN) of the storage volume.
+	//    * TargetARN: The Amazon Resource Name (ARN) of the storage volume.
 	ChapCredentials []*ChapInfo `type:"list"`
 }
 
@@ -6254,6 +6892,12 @@ func (s DescribeChapCredentialsOutput) String() string {
 // GoString returns the string representation
 func (s DescribeChapCredentialsOutput) GoString() string {
 	return s.String()
+}
+
+// SetChapCredentials sets the ChapCredentials field's value.
+func (s *DescribeChapCredentialsOutput) SetChapCredentials(v []*ChapInfo) *DescribeChapCredentialsOutput {
+	s.ChapCredentials = v
+	return s
 }
 
 // A JSON object containing the id of the gateway.
@@ -6291,6 +6935,12 @@ func (s *DescribeGatewayInformationInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DescribeGatewayInformationInput) SetGatewayARN(v string) *DescribeGatewayInformationInput {
+	s.GatewayARN = &v
+	return s
 }
 
 // A JSON object containing the following fields:
@@ -6343,6 +6993,60 @@ func (s DescribeGatewayInformationOutput) GoString() string {
 	return s.String()
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DescribeGatewayInformationOutput) SetGatewayARN(v string) *DescribeGatewayInformationOutput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetGatewayId sets the GatewayId field's value.
+func (s *DescribeGatewayInformationOutput) SetGatewayId(v string) *DescribeGatewayInformationOutput {
+	s.GatewayId = &v
+	return s
+}
+
+// SetGatewayName sets the GatewayName field's value.
+func (s *DescribeGatewayInformationOutput) SetGatewayName(v string) *DescribeGatewayInformationOutput {
+	s.GatewayName = &v
+	return s
+}
+
+// SetGatewayNetworkInterfaces sets the GatewayNetworkInterfaces field's value.
+func (s *DescribeGatewayInformationOutput) SetGatewayNetworkInterfaces(v []*NetworkInterface) *DescribeGatewayInformationOutput {
+	s.GatewayNetworkInterfaces = v
+	return s
+}
+
+// SetGatewayState sets the GatewayState field's value.
+func (s *DescribeGatewayInformationOutput) SetGatewayState(v string) *DescribeGatewayInformationOutput {
+	s.GatewayState = &v
+	return s
+}
+
+// SetGatewayTimezone sets the GatewayTimezone field's value.
+func (s *DescribeGatewayInformationOutput) SetGatewayTimezone(v string) *DescribeGatewayInformationOutput {
+	s.GatewayTimezone = &v
+	return s
+}
+
+// SetGatewayType sets the GatewayType field's value.
+func (s *DescribeGatewayInformationOutput) SetGatewayType(v string) *DescribeGatewayInformationOutput {
+	s.GatewayType = &v
+	return s
+}
+
+// SetLastSoftwareUpdate sets the LastSoftwareUpdate field's value.
+func (s *DescribeGatewayInformationOutput) SetLastSoftwareUpdate(v string) *DescribeGatewayInformationOutput {
+	s.LastSoftwareUpdate = &v
+	return s
+}
+
+// SetNextUpdateAvailabilityDate sets the NextUpdateAvailabilityDate field's value.
+func (s *DescribeGatewayInformationOutput) SetNextUpdateAvailabilityDate(v string) *DescribeGatewayInformationOutput {
+	s.NextUpdateAvailabilityDate = &v
+	return s
+}
+
 // A JSON object containing the of the gateway.
 type DescribeMaintenanceStartTimeInput struct {
 	_ struct{} `type:"structure"`
@@ -6380,6 +7084,12 @@ func (s *DescribeMaintenanceStartTimeInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DescribeMaintenanceStartTimeInput) SetGatewayARN(v string) *DescribeMaintenanceStartTimeInput {
+	s.GatewayARN = &v
+	return s
+}
+
 type DescribeMaintenanceStartTimeOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -6404,6 +7114,36 @@ func (s DescribeMaintenanceStartTimeOutput) String() string {
 // GoString returns the string representation
 func (s DescribeMaintenanceStartTimeOutput) GoString() string {
 	return s.String()
+}
+
+// SetDayOfWeek sets the DayOfWeek field's value.
+func (s *DescribeMaintenanceStartTimeOutput) SetDayOfWeek(v int64) *DescribeMaintenanceStartTimeOutput {
+	s.DayOfWeek = &v
+	return s
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DescribeMaintenanceStartTimeOutput) SetGatewayARN(v string) *DescribeMaintenanceStartTimeOutput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetHourOfDay sets the HourOfDay field's value.
+func (s *DescribeMaintenanceStartTimeOutput) SetHourOfDay(v int64) *DescribeMaintenanceStartTimeOutput {
+	s.HourOfDay = &v
+	return s
+}
+
+// SetMinuteOfHour sets the MinuteOfHour field's value.
+func (s *DescribeMaintenanceStartTimeOutput) SetMinuteOfHour(v int64) *DescribeMaintenanceStartTimeOutput {
+	s.MinuteOfHour = &v
+	return s
+}
+
+// SetTimezone sets the Timezone field's value.
+func (s *DescribeMaintenanceStartTimeOutput) SetTimezone(v string) *DescribeMaintenanceStartTimeOutput {
+	s.Timezone = &v
+	return s
 }
 
 // A JSON object containing the DescribeSnapshotScheduleInput$VolumeARN of the
@@ -6444,6 +7184,12 @@ func (s *DescribeSnapshotScheduleInput) Validate() error {
 	return nil
 }
 
+// SetVolumeARN sets the VolumeARN field's value.
+func (s *DescribeSnapshotScheduleInput) SetVolumeARN(v string) *DescribeSnapshotScheduleInput {
+	s.VolumeARN = &v
+	return s
+}
+
 type DescribeSnapshotScheduleOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -6466,6 +7212,36 @@ func (s DescribeSnapshotScheduleOutput) String() string {
 // GoString returns the string representation
 func (s DescribeSnapshotScheduleOutput) GoString() string {
 	return s.String()
+}
+
+// SetDescription sets the Description field's value.
+func (s *DescribeSnapshotScheduleOutput) SetDescription(v string) *DescribeSnapshotScheduleOutput {
+	s.Description = &v
+	return s
+}
+
+// SetRecurrenceInHours sets the RecurrenceInHours field's value.
+func (s *DescribeSnapshotScheduleOutput) SetRecurrenceInHours(v int64) *DescribeSnapshotScheduleOutput {
+	s.RecurrenceInHours = &v
+	return s
+}
+
+// SetStartAt sets the StartAt field's value.
+func (s *DescribeSnapshotScheduleOutput) SetStartAt(v int64) *DescribeSnapshotScheduleOutput {
+	s.StartAt = &v
+	return s
+}
+
+// SetTimezone sets the Timezone field's value.
+func (s *DescribeSnapshotScheduleOutput) SetTimezone(v string) *DescribeSnapshotScheduleOutput {
+	s.Timezone = &v
+	return s
+}
+
+// SetVolumeARN sets the VolumeARN field's value.
+func (s *DescribeSnapshotScheduleOutput) SetVolumeARN(v string) *DescribeSnapshotScheduleOutput {
+	s.VolumeARN = &v
+	return s
 }
 
 // A JSON object containing a list of DescribeStorediSCSIVolumesInput$VolumeARNs.
@@ -6503,6 +7279,12 @@ func (s *DescribeStorediSCSIVolumesInput) Validate() error {
 	return nil
 }
 
+// SetVolumeARNs sets the VolumeARNs field's value.
+func (s *DescribeStorediSCSIVolumesInput) SetVolumeARNs(v []*string) *DescribeStorediSCSIVolumesInput {
+	s.VolumeARNs = v
+	return s
+}
+
 type DescribeStorediSCSIVolumesOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -6517,6 +7299,12 @@ func (s DescribeStorediSCSIVolumesOutput) String() string {
 // GoString returns the string representation
 func (s DescribeStorediSCSIVolumesOutput) GoString() string {
 	return s.String()
+}
+
+// SetStorediSCSIVolumes sets the StorediSCSIVolumes field's value.
+func (s *DescribeStorediSCSIVolumesOutput) SetStorediSCSIVolumes(v []*StorediSCSIVolume) *DescribeStorediSCSIVolumesOutput {
+	s.StorediSCSIVolumes = v
+	return s
 }
 
 // DescribeTapeArchivesInput
@@ -6562,6 +7350,24 @@ func (s *DescribeTapeArchivesInput) Validate() error {
 	return nil
 }
 
+// SetLimit sets the Limit field's value.
+func (s *DescribeTapeArchivesInput) SetLimit(v int64) *DescribeTapeArchivesInput {
+	s.Limit = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeTapeArchivesInput) SetMarker(v string) *DescribeTapeArchivesInput {
+	s.Marker = &v
+	return s
+}
+
+// SetTapeARNs sets the TapeARNs field's value.
+func (s *DescribeTapeArchivesInput) SetTapeARNs(v []*string) *DescribeTapeArchivesInput {
+	s.TapeARNs = v
+	return s
+}
+
 // DescribeTapeArchivesOutput
 type DescribeTapeArchivesOutput struct {
 	_ struct{} `type:"structure"`
@@ -6588,6 +7394,18 @@ func (s DescribeTapeArchivesOutput) String() string {
 // GoString returns the string representation
 func (s DescribeTapeArchivesOutput) GoString() string {
 	return s.String()
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeTapeArchivesOutput) SetMarker(v string) *DescribeTapeArchivesOutput {
+	s.Marker = &v
+	return s
+}
+
+// SetTapeArchives sets the TapeArchives field's value.
+func (s *DescribeTapeArchivesOutput) SetTapeArchives(v []*TapeArchive) *DescribeTapeArchivesOutput {
+	s.TapeArchives = v
+	return s
 }
 
 // DescribeTapeRecoveryPointsInput
@@ -6641,6 +7459,24 @@ func (s *DescribeTapeRecoveryPointsInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DescribeTapeRecoveryPointsInput) SetGatewayARN(v string) *DescribeTapeRecoveryPointsInput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetLimit sets the Limit field's value.
+func (s *DescribeTapeRecoveryPointsInput) SetLimit(v int64) *DescribeTapeRecoveryPointsInput {
+	s.Limit = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeTapeRecoveryPointsInput) SetMarker(v string) *DescribeTapeRecoveryPointsInput {
+	s.Marker = &v
+	return s
+}
+
 // DescribeTapeRecoveryPointsOutput
 type DescribeTapeRecoveryPointsOutput struct {
 	_ struct{} `type:"structure"`
@@ -6669,6 +7505,24 @@ func (s DescribeTapeRecoveryPointsOutput) String() string {
 // GoString returns the string representation
 func (s DescribeTapeRecoveryPointsOutput) GoString() string {
 	return s.String()
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DescribeTapeRecoveryPointsOutput) SetGatewayARN(v string) *DescribeTapeRecoveryPointsOutput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeTapeRecoveryPointsOutput) SetMarker(v string) *DescribeTapeRecoveryPointsOutput {
+	s.Marker = &v
+	return s
+}
+
+// SetTapeRecoveryPointInfos sets the TapeRecoveryPointInfos field's value.
+func (s *DescribeTapeRecoveryPointsOutput) SetTapeRecoveryPointInfos(v []*TapeRecoveryPointInfo) *DescribeTapeRecoveryPointsOutput {
+	s.TapeRecoveryPointInfos = v
+	return s
 }
 
 // DescribeTapesInput
@@ -6732,6 +7586,30 @@ func (s *DescribeTapesInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DescribeTapesInput) SetGatewayARN(v string) *DescribeTapesInput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetLimit sets the Limit field's value.
+func (s *DescribeTapesInput) SetLimit(v int64) *DescribeTapesInput {
+	s.Limit = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeTapesInput) SetMarker(v string) *DescribeTapesInput {
+	s.Marker = &v
+	return s
+}
+
+// SetTapeARNs sets the TapeARNs field's value.
+func (s *DescribeTapesInput) SetTapeARNs(v []*string) *DescribeTapesInput {
+	s.TapeARNs = v
+	return s
+}
+
 // DescribeTapesOutput
 type DescribeTapesOutput struct {
 	_ struct{} `type:"structure"`
@@ -6739,8 +7617,8 @@ type DescribeTapesOutput struct {
 	// An opaque string which can be used as part of a subsequent DescribeTapes
 	// call to retrieve the next page of results.
 	//
-	// If a response does not contain a marker, then there are no more results
-	// to be retrieved.
+	// If a response does not contain a marker, then there are no more results to
+	// be retrieved.
 	Marker *string `min:"1" type:"string"`
 
 	// An array of virtual tape descriptions.
@@ -6755,6 +7633,18 @@ func (s DescribeTapesOutput) String() string {
 // GoString returns the string representation
 func (s DescribeTapesOutput) GoString() string {
 	return s.String()
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeTapesOutput) SetMarker(v string) *DescribeTapesOutput {
+	s.Marker = &v
+	return s
+}
+
+// SetTapes sets the Tapes field's value.
+func (s *DescribeTapesOutput) SetTapes(v []*Tape) *DescribeTapesOutput {
+	s.Tapes = v
+	return s
 }
 
 type DescribeUploadBufferInput struct {
@@ -6793,6 +7683,12 @@ func (s *DescribeUploadBufferInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DescribeUploadBufferInput) SetGatewayARN(v string) *DescribeUploadBufferInput {
+	s.GatewayARN = &v
+	return s
+}
+
 type DescribeUploadBufferOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -6815,6 +7711,30 @@ func (s DescribeUploadBufferOutput) String() string {
 // GoString returns the string representation
 func (s DescribeUploadBufferOutput) GoString() string {
 	return s.String()
+}
+
+// SetDiskIds sets the DiskIds field's value.
+func (s *DescribeUploadBufferOutput) SetDiskIds(v []*string) *DescribeUploadBufferOutput {
+	s.DiskIds = v
+	return s
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DescribeUploadBufferOutput) SetGatewayARN(v string) *DescribeUploadBufferOutput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetUploadBufferAllocatedInBytes sets the UploadBufferAllocatedInBytes field's value.
+func (s *DescribeUploadBufferOutput) SetUploadBufferAllocatedInBytes(v int64) *DescribeUploadBufferOutput {
+	s.UploadBufferAllocatedInBytes = &v
+	return s
+}
+
+// SetUploadBufferUsedInBytes sets the UploadBufferUsedInBytes field's value.
+func (s *DescribeUploadBufferOutput) SetUploadBufferUsedInBytes(v int64) *DescribeUploadBufferOutput {
+	s.UploadBufferUsedInBytes = &v
+	return s
 }
 
 // DescribeVTLDevicesInput
@@ -6876,6 +7796,30 @@ func (s *DescribeVTLDevicesInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DescribeVTLDevicesInput) SetGatewayARN(v string) *DescribeVTLDevicesInput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetLimit sets the Limit field's value.
+func (s *DescribeVTLDevicesInput) SetLimit(v int64) *DescribeVTLDevicesInput {
+	s.Limit = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeVTLDevicesInput) SetMarker(v string) *DescribeVTLDevicesInput {
+	s.Marker = &v
+	return s
+}
+
+// SetVTLDeviceARNs sets the VTLDeviceARNs field's value.
+func (s *DescribeVTLDevicesInput) SetVTLDeviceARNs(v []*string) *DescribeVTLDevicesInput {
+	s.VTLDeviceARNs = v
+	return s
+}
+
 // DescribeVTLDevicesOutput
 type DescribeVTLDevicesOutput struct {
 	_ struct{} `type:"structure"`
@@ -6903,6 +7847,24 @@ func (s DescribeVTLDevicesOutput) String() string {
 // GoString returns the string representation
 func (s DescribeVTLDevicesOutput) GoString() string {
 	return s.String()
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DescribeVTLDevicesOutput) SetGatewayARN(v string) *DescribeVTLDevicesOutput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeVTLDevicesOutput) SetMarker(v string) *DescribeVTLDevicesOutput {
+	s.Marker = &v
+	return s
+}
+
+// SetVTLDevices sets the VTLDevices field's value.
+func (s *DescribeVTLDevicesOutput) SetVTLDevices(v []*VTLDevice) *DescribeVTLDevicesOutput {
+	s.VTLDevices = v
+	return s
 }
 
 // A JSON object containing the of the gateway.
@@ -6942,6 +7904,12 @@ func (s *DescribeWorkingStorageInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DescribeWorkingStorageInput) SetGatewayARN(v string) *DescribeWorkingStorageInput {
+	s.GatewayARN = &v
+	return s
+}
+
 // A JSON object containing the following fields:
 type DescribeWorkingStorageOutput struct {
 	_ struct{} `type:"structure"`
@@ -6975,6 +7943,30 @@ func (s DescribeWorkingStorageOutput) GoString() string {
 	return s.String()
 }
 
+// SetDiskIds sets the DiskIds field's value.
+func (s *DescribeWorkingStorageOutput) SetDiskIds(v []*string) *DescribeWorkingStorageOutput {
+	s.DiskIds = v
+	return s
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DescribeWorkingStorageOutput) SetGatewayARN(v string) *DescribeWorkingStorageOutput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetWorkingStorageAllocatedInBytes sets the WorkingStorageAllocatedInBytes field's value.
+func (s *DescribeWorkingStorageOutput) SetWorkingStorageAllocatedInBytes(v int64) *DescribeWorkingStorageOutput {
+	s.WorkingStorageAllocatedInBytes = &v
+	return s
+}
+
+// SetWorkingStorageUsedInBytes sets the WorkingStorageUsedInBytes field's value.
+func (s *DescribeWorkingStorageOutput) SetWorkingStorageUsedInBytes(v int64) *DescribeWorkingStorageOutput {
+	s.WorkingStorageUsedInBytes = &v
+	return s
+}
+
 // Lists iSCSI information about a VTL device.
 type DeviceiSCSIAttributes struct {
 	_ struct{} `type:"structure"`
@@ -7001,6 +7993,30 @@ func (s DeviceiSCSIAttributes) String() string {
 // GoString returns the string representation
 func (s DeviceiSCSIAttributes) GoString() string {
 	return s.String()
+}
+
+// SetChapEnabled sets the ChapEnabled field's value.
+func (s *DeviceiSCSIAttributes) SetChapEnabled(v bool) *DeviceiSCSIAttributes {
+	s.ChapEnabled = &v
+	return s
+}
+
+// SetNetworkInterfaceId sets the NetworkInterfaceId field's value.
+func (s *DeviceiSCSIAttributes) SetNetworkInterfaceId(v string) *DeviceiSCSIAttributes {
+	s.NetworkInterfaceId = &v
+	return s
+}
+
+// SetNetworkInterfacePort sets the NetworkInterfacePort field's value.
+func (s *DeviceiSCSIAttributes) SetNetworkInterfacePort(v int64) *DeviceiSCSIAttributes {
+	s.NetworkInterfacePort = &v
+	return s
+}
+
+// SetTargetARN sets the TargetARN field's value.
+func (s *DeviceiSCSIAttributes) SetTargetARN(v string) *DeviceiSCSIAttributes {
+	s.TargetARN = &v
+	return s
 }
 
 // DisableGatewayInput
@@ -7040,6 +8056,12 @@ func (s *DisableGatewayInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DisableGatewayInput) SetGatewayARN(v string) *DisableGatewayInput {
+	s.GatewayARN = &v
+	return s
+}
+
 // DisableGatewayOutput
 type DisableGatewayOutput struct {
 	_ struct{} `type:"structure"`
@@ -7056,6 +8078,12 @@ func (s DisableGatewayOutput) String() string {
 // GoString returns the string representation
 func (s DisableGatewayOutput) GoString() string {
 	return s.String()
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DisableGatewayOutput) SetGatewayARN(v string) *DisableGatewayOutput {
+	s.GatewayARN = &v
+	return s
 }
 
 type Disk struct {
@@ -7086,6 +8114,48 @@ func (s Disk) GoString() string {
 	return s.String()
 }
 
+// SetDiskAllocationResource sets the DiskAllocationResource field's value.
+func (s *Disk) SetDiskAllocationResource(v string) *Disk {
+	s.DiskAllocationResource = &v
+	return s
+}
+
+// SetDiskAllocationType sets the DiskAllocationType field's value.
+func (s *Disk) SetDiskAllocationType(v string) *Disk {
+	s.DiskAllocationType = &v
+	return s
+}
+
+// SetDiskId sets the DiskId field's value.
+func (s *Disk) SetDiskId(v string) *Disk {
+	s.DiskId = &v
+	return s
+}
+
+// SetDiskNode sets the DiskNode field's value.
+func (s *Disk) SetDiskNode(v string) *Disk {
+	s.DiskNode = &v
+	return s
+}
+
+// SetDiskPath sets the DiskPath field's value.
+func (s *Disk) SetDiskPath(v string) *Disk {
+	s.DiskPath = &v
+	return s
+}
+
+// SetDiskSizeInBytes sets the DiskSizeInBytes field's value.
+func (s *Disk) SetDiskSizeInBytes(v int64) *Disk {
+	s.DiskSizeInBytes = &v
+	return s
+}
+
+// SetDiskStatus sets the DiskStatus field's value.
+func (s *Disk) SetDiskStatus(v string) *Disk {
+	s.DiskStatus = &v
+	return s
+}
+
 // Provides additional information about an error that was returned by the service
 // as an or. See the errorCode and errorDetails members for more information
 // about the error.
@@ -7107,6 +8177,18 @@ func (s Error) String() string {
 // GoString returns the string representation
 func (s Error) GoString() string {
 	return s.String()
+}
+
+// SetErrorCode sets the ErrorCode field's value.
+func (s *Error) SetErrorCode(v string) *Error {
+	s.ErrorCode = &v
+	return s
+}
+
+// SetErrorDetails sets the ErrorDetails field's value.
+func (s *Error) SetErrorDetails(v map[string]*string) *Error {
+	s.ErrorDetails = v
+	return s
 }
 
 // Describes a gateway object.
@@ -7144,11 +8226,41 @@ func (s GatewayInfo) GoString() string {
 	return s.String()
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *GatewayInfo) SetGatewayARN(v string) *GatewayInfo {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetGatewayId sets the GatewayId field's value.
+func (s *GatewayInfo) SetGatewayId(v string) *GatewayInfo {
+	s.GatewayId = &v
+	return s
+}
+
+// SetGatewayName sets the GatewayName field's value.
+func (s *GatewayInfo) SetGatewayName(v string) *GatewayInfo {
+	s.GatewayName = &v
+	return s
+}
+
+// SetGatewayOperationalState sets the GatewayOperationalState field's value.
+func (s *GatewayInfo) SetGatewayOperationalState(v string) *GatewayInfo {
+	s.GatewayOperationalState = &v
+	return s
+}
+
+// SetGatewayType sets the GatewayType field's value.
+func (s *GatewayInfo) SetGatewayType(v string) *GatewayInfo {
+	s.GatewayType = &v
+	return s
+}
+
 // A JSON object containing zero or more of the following fields:
 //
-//    ListGatewaysInput$Limit
+//    * ListGatewaysInput$Limit
 //
-//    ListGatewaysInput$Marker
+//    * ListGatewaysInput$Marker
 type ListGatewaysInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7187,6 +8299,18 @@ func (s *ListGatewaysInput) Validate() error {
 	return nil
 }
 
+// SetLimit sets the Limit field's value.
+func (s *ListGatewaysInput) SetLimit(v int64) *ListGatewaysInput {
+	s.Limit = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *ListGatewaysInput) SetMarker(v string) *ListGatewaysInput {
+	s.Marker = &v
+	return s
+}
+
 type ListGatewaysOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -7203,6 +8327,18 @@ func (s ListGatewaysOutput) String() string {
 // GoString returns the string representation
 func (s ListGatewaysOutput) GoString() string {
 	return s.String()
+}
+
+// SetGateways sets the Gateways field's value.
+func (s *ListGatewaysOutput) SetGateways(v []*GatewayInfo) *ListGatewaysOutput {
+	s.Gateways = v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *ListGatewaysOutput) SetMarker(v string) *ListGatewaysOutput {
+	s.Marker = &v
+	return s
 }
 
 // A JSON object containing the of the gateway.
@@ -7242,6 +8378,12 @@ func (s *ListLocalDisksInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *ListLocalDisksInput) SetGatewayARN(v string) *ListLocalDisksInput {
+	s.GatewayARN = &v
+	return s
+}
+
 type ListLocalDisksOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -7260,6 +8402,18 @@ func (s ListLocalDisksOutput) String() string {
 // GoString returns the string representation
 func (s ListLocalDisksOutput) GoString() string {
 	return s.String()
+}
+
+// SetDisks sets the Disks field's value.
+func (s *ListLocalDisksOutput) SetDisks(v []*Disk) *ListLocalDisksOutput {
+	s.Disks = v
+	return s
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *ListLocalDisksOutput) SetGatewayARN(v string) *ListLocalDisksOutput {
+	s.GatewayARN = &v
+	return s
 }
 
 // ListTagsForResourceInput
@@ -7313,6 +8467,24 @@ func (s *ListTagsForResourceInput) Validate() error {
 	return nil
 }
 
+// SetLimit sets the Limit field's value.
+func (s *ListTagsForResourceInput) SetLimit(v int64) *ListTagsForResourceInput {
+	s.Limit = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *ListTagsForResourceInput) SetMarker(v string) *ListTagsForResourceInput {
+	s.Marker = &v
+	return s
+}
+
+// SetResourceARN sets the ResourceARN field's value.
+func (s *ListTagsForResourceInput) SetResourceARN(v string) *ListTagsForResourceInput {
+	s.ResourceARN = &v
+	return s
+}
+
 // ListTagsForResourceOutput
 type ListTagsForResourceOutput struct {
 	_ struct{} `type:"structure"`
@@ -7339,13 +8511,31 @@ func (s ListTagsForResourceOutput) GoString() string {
 	return s.String()
 }
 
+// SetMarker sets the Marker field's value.
+func (s *ListTagsForResourceOutput) SetMarker(v string) *ListTagsForResourceOutput {
+	s.Marker = &v
+	return s
+}
+
+// SetResourceARN sets the ResourceARN field's value.
+func (s *ListTagsForResourceOutput) SetResourceARN(v string) *ListTagsForResourceOutput {
+	s.ResourceARN = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *ListTagsForResourceOutput) SetTags(v []*Tag) *ListTagsForResourceOutput {
+	s.Tags = v
+	return s
+}
+
 // A JSON object that contains one or more of the following fields:
 //
-//    ListTapesInput$Limit
+//    * ListTapesInput$Limit
 //
-//    ListTapesInput$Marker
+//    * ListTapesInput$Marker
 //
-//    ListTapesInput$TapeARNs
+//    * ListTapesInput$TapeARNs
 type ListTapesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7388,11 +8578,29 @@ func (s *ListTapesInput) Validate() error {
 	return nil
 }
 
+// SetLimit sets the Limit field's value.
+func (s *ListTapesInput) SetLimit(v int64) *ListTapesInput {
+	s.Limit = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *ListTapesInput) SetMarker(v string) *ListTapesInput {
+	s.Marker = &v
+	return s
+}
+
+// SetTapeARNs sets the TapeARNs field's value.
+func (s *ListTapesInput) SetTapeARNs(v []*string) *ListTapesInput {
+	s.TapeARNs = v
+	return s
+}
+
 // A JSON object containing the following fields:
 //
-//    ListTapesOutput$Marker
+//    * ListTapesOutput$Marker
 //
-//    ListTapesOutput$VolumeInfos
+//    * ListTapesOutput$VolumeInfos
 type ListTapesOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -7416,6 +8624,18 @@ func (s ListTapesOutput) String() string {
 // GoString returns the string representation
 func (s ListTapesOutput) GoString() string {
 	return s.String()
+}
+
+// SetMarker sets the Marker field's value.
+func (s *ListTapesOutput) SetMarker(v string) *ListTapesOutput {
+	s.Marker = &v
+	return s
+}
+
+// SetTapeInfos sets the TapeInfos field's value.
+func (s *ListTapesOutput) SetTapeInfos(v []*TapeInfo) *ListTapesOutput {
+	s.TapeInfos = v
+	return s
 }
 
 // ListVolumeInitiatorsInput
@@ -7455,6 +8675,12 @@ func (s *ListVolumeInitiatorsInput) Validate() error {
 	return nil
 }
 
+// SetVolumeARN sets the VolumeARN field's value.
+func (s *ListVolumeInitiatorsInput) SetVolumeARN(v string) *ListVolumeInitiatorsInput {
+	s.VolumeARN = &v
+	return s
+}
+
 // ListVolumeInitiatorsOutput
 type ListVolumeInitiatorsOutput struct {
 	_ struct{} `type:"structure"`
@@ -7472,6 +8698,12 @@ func (s ListVolumeInitiatorsOutput) String() string {
 // GoString returns the string representation
 func (s ListVolumeInitiatorsOutput) GoString() string {
 	return s.String()
+}
+
+// SetInitiators sets the Initiators field's value.
+func (s *ListVolumeInitiatorsOutput) SetInitiators(v []*string) *ListVolumeInitiatorsOutput {
+	s.Initiators = v
+	return s
 }
 
 type ListVolumeRecoveryPointsInput struct {
@@ -7510,6 +8742,12 @@ func (s *ListVolumeRecoveryPointsInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *ListVolumeRecoveryPointsInput) SetGatewayARN(v string) *ListVolumeRecoveryPointsInput {
+	s.GatewayARN = &v
+	return s
+}
+
 type ListVolumeRecoveryPointsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -7530,11 +8768,23 @@ func (s ListVolumeRecoveryPointsOutput) GoString() string {
 	return s.String()
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *ListVolumeRecoveryPointsOutput) SetGatewayARN(v string) *ListVolumeRecoveryPointsOutput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetVolumeRecoveryPointInfos sets the VolumeRecoveryPointInfos field's value.
+func (s *ListVolumeRecoveryPointsOutput) SetVolumeRecoveryPointInfos(v []*VolumeRecoveryPointInfo) *ListVolumeRecoveryPointsOutput {
+	s.VolumeRecoveryPointInfos = v
+	return s
+}
+
 // A JSON object that contains one or more of the following fields:
 //
-//    ListVolumesInput$Limit
+//    * ListVolumesInput$Limit
 //
-//    ListVolumesInput$Marker
+//    * ListVolumesInput$Marker
 type ListVolumesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7581,6 +8831,24 @@ func (s *ListVolumesInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *ListVolumesInput) SetGatewayARN(v string) *ListVolumesInput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetLimit sets the Limit field's value.
+func (s *ListVolumesInput) SetLimit(v int64) *ListVolumesInput {
+	s.Limit = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *ListVolumesInput) SetMarker(v string) *ListVolumesInput {
+	s.Marker = &v
+	return s
+}
+
 type ListVolumesOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -7601,6 +8869,24 @@ func (s ListVolumesOutput) String() string {
 // GoString returns the string representation
 func (s ListVolumesOutput) GoString() string {
 	return s.String()
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *ListVolumesOutput) SetGatewayARN(v string) *ListVolumesOutput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *ListVolumesOutput) SetMarker(v string) *ListVolumesOutput {
+	s.Marker = &v
+	return s
+}
+
+// SetVolumeInfos sets the VolumeInfos field's value.
+func (s *ListVolumesOutput) SetVolumeInfos(v []*VolumeInfo) *ListVolumesOutput {
+	s.VolumeInfos = v
+	return s
 }
 
 // Describes a gateway's network interface.
@@ -7628,6 +8914,24 @@ func (s NetworkInterface) String() string {
 // GoString returns the string representation
 func (s NetworkInterface) GoString() string {
 	return s.String()
+}
+
+// SetIpv4Address sets the Ipv4Address field's value.
+func (s *NetworkInterface) SetIpv4Address(v string) *NetworkInterface {
+	s.Ipv4Address = &v
+	return s
+}
+
+// SetIpv6Address sets the Ipv6Address field's value.
+func (s *NetworkInterface) SetIpv6Address(v string) *NetworkInterface {
+	s.Ipv6Address = &v
+	return s
+}
+
+// SetMacAddress sets the MacAddress field's value.
+func (s *NetworkInterface) SetMacAddress(v string) *NetworkInterface {
+	s.MacAddress = &v
+	return s
 }
 
 // RemoveTagsFromResourceInput
@@ -7676,6 +8980,18 @@ func (s *RemoveTagsFromResourceInput) Validate() error {
 	return nil
 }
 
+// SetResourceARN sets the ResourceARN field's value.
+func (s *RemoveTagsFromResourceInput) SetResourceARN(v string) *RemoveTagsFromResourceInput {
+	s.ResourceARN = &v
+	return s
+}
+
+// SetTagKeys sets the TagKeys field's value.
+func (s *RemoveTagsFromResourceInput) SetTagKeys(v []*string) *RemoveTagsFromResourceInput {
+	s.TagKeys = v
+	return s
+}
+
 // RemoveTagsFromResourceOutput
 type RemoveTagsFromResourceOutput struct {
 	_ struct{} `type:"structure"`
@@ -7693,6 +9009,12 @@ func (s RemoveTagsFromResourceOutput) String() string {
 // GoString returns the string representation
 func (s RemoveTagsFromResourceOutput) GoString() string {
 	return s.String()
+}
+
+// SetResourceARN sets the ResourceARN field's value.
+func (s *RemoveTagsFromResourceOutput) SetResourceARN(v string) *RemoveTagsFromResourceOutput {
+	s.ResourceARN = &v
+	return s
 }
 
 type ResetCacheInput struct {
@@ -7731,6 +9053,12 @@ func (s *ResetCacheInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *ResetCacheInput) SetGatewayARN(v string) *ResetCacheInput {
+	s.GatewayARN = &v
+	return s
+}
+
 type ResetCacheOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -7749,6 +9077,12 @@ func (s ResetCacheOutput) GoString() string {
 	return s.String()
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *ResetCacheOutput) SetGatewayARN(v string) *ResetCacheOutput {
+	s.GatewayARN = &v
+	return s
+}
+
 // RetrieveTapeArchiveInput
 type RetrieveTapeArchiveInput struct {
 	_ struct{} `type:"structure"`
@@ -7757,8 +9091,8 @@ type RetrieveTapeArchiveInput struct {
 	// tape to. Use the ListGateways operation to return a list of gateways for
 	// your account and region.
 	//
-	// You retrieve archived virtual tapes to only one gateway and the gateway
-	// must be a gateway-VTL.
+	// You retrieve archived virtual tapes to only one gateway and the gateway must
+	// be a gateway-VTL.
 	//
 	// GatewayARN is a required field
 	GatewayARN *string `min:"50" type:"string" required:"true"`
@@ -7802,6 +9136,18 @@ func (s *RetrieveTapeArchiveInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *RetrieveTapeArchiveInput) SetGatewayARN(v string) *RetrieveTapeArchiveInput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetTapeARN sets the TapeARN field's value.
+func (s *RetrieveTapeArchiveInput) SetTapeARN(v string) *RetrieveTapeArchiveInput {
+	s.TapeARN = &v
+	return s
+}
+
 // RetrieveTapeArchiveOutput
 type RetrieveTapeArchiveOutput struct {
 	_ struct{} `type:"structure"`
@@ -7818,6 +9164,12 @@ func (s RetrieveTapeArchiveOutput) String() string {
 // GoString returns the string representation
 func (s RetrieveTapeArchiveOutput) GoString() string {
 	return s.String()
+}
+
+// SetTapeARN sets the TapeARN field's value.
+func (s *RetrieveTapeArchiveOutput) SetTapeARN(v string) *RetrieveTapeArchiveOutput {
+	s.TapeARN = &v
+	return s
 }
 
 // RetrieveTapeRecoveryPointInput
@@ -7869,6 +9221,18 @@ func (s *RetrieveTapeRecoveryPointInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *RetrieveTapeRecoveryPointInput) SetGatewayARN(v string) *RetrieveTapeRecoveryPointInput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetTapeARN sets the TapeARN field's value.
+func (s *RetrieveTapeRecoveryPointInput) SetTapeARN(v string) *RetrieveTapeRecoveryPointInput {
+	s.TapeARN = &v
+	return s
+}
+
 // RetrieveTapeRecoveryPointOutput
 type RetrieveTapeRecoveryPointOutput struct {
 	_ struct{} `type:"structure"`
@@ -7886,6 +9250,12 @@ func (s RetrieveTapeRecoveryPointOutput) String() string {
 // GoString returns the string representation
 func (s RetrieveTapeRecoveryPointOutput) GoString() string {
 	return s.String()
+}
+
+// SetTapeARN sets the TapeARN field's value.
+func (s *RetrieveTapeRecoveryPointOutput) SetTapeARN(v string) *RetrieveTapeRecoveryPointOutput {
+	s.TapeARN = &v
+	return s
 }
 
 // SetLocalConsolePasswordInput
@@ -7936,6 +9306,18 @@ func (s *SetLocalConsolePasswordInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *SetLocalConsolePasswordInput) SetGatewayARN(v string) *SetLocalConsolePasswordInput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetLocalConsolePassword sets the LocalConsolePassword field's value.
+func (s *SetLocalConsolePasswordInput) SetLocalConsolePassword(v string) *SetLocalConsolePasswordInput {
+	s.LocalConsolePassword = &v
+	return s
+}
+
 type SetLocalConsolePasswordOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -7952,6 +9334,12 @@ func (s SetLocalConsolePasswordOutput) String() string {
 // GoString returns the string representation
 func (s SetLocalConsolePasswordOutput) GoString() string {
 	return s.String()
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *SetLocalConsolePasswordOutput) SetGatewayARN(v string) *SetLocalConsolePasswordOutput {
+	s.GatewayARN = &v
+	return s
 }
 
 // A JSON object containing the of the gateway to shut down.
@@ -7991,6 +9379,12 @@ func (s *ShutdownGatewayInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *ShutdownGatewayInput) SetGatewayARN(v string) *ShutdownGatewayInput {
+	s.GatewayARN = &v
+	return s
+}
+
 // A JSON object containing the of the gateway that was shut down.
 type ShutdownGatewayOutput struct {
 	_ struct{} `type:"structure"`
@@ -8008,6 +9402,12 @@ func (s ShutdownGatewayOutput) String() string {
 // GoString returns the string representation
 func (s ShutdownGatewayOutput) GoString() string {
 	return s.String()
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *ShutdownGatewayOutput) SetGatewayARN(v string) *ShutdownGatewayOutput {
+	s.GatewayARN = &v
+	return s
 }
 
 // A JSON object containing the of the gateway to start.
@@ -8047,6 +9447,12 @@ func (s *StartGatewayInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *StartGatewayInput) SetGatewayARN(v string) *StartGatewayInput {
+	s.GatewayARN = &v
+	return s
+}
+
 // A JSON object containing the of the gateway that was restarted.
 type StartGatewayOutput struct {
 	_ struct{} `type:"structure"`
@@ -8064,6 +9470,12 @@ func (s StartGatewayOutput) String() string {
 // GoString returns the string representation
 func (s StartGatewayOutput) GoString() string {
 	return s.String()
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *StartGatewayOutput) SetGatewayARN(v string) *StartGatewayOutput {
+	s.GatewayARN = &v
+	return s
 }
 
 type StorediSCSIVolume struct {
@@ -8099,6 +9511,66 @@ func (s StorediSCSIVolume) String() string {
 // GoString returns the string representation
 func (s StorediSCSIVolume) GoString() string {
 	return s.String()
+}
+
+// SetPreservedExistingData sets the PreservedExistingData field's value.
+func (s *StorediSCSIVolume) SetPreservedExistingData(v bool) *StorediSCSIVolume {
+	s.PreservedExistingData = &v
+	return s
+}
+
+// SetSourceSnapshotId sets the SourceSnapshotId field's value.
+func (s *StorediSCSIVolume) SetSourceSnapshotId(v string) *StorediSCSIVolume {
+	s.SourceSnapshotId = &v
+	return s
+}
+
+// SetVolumeARN sets the VolumeARN field's value.
+func (s *StorediSCSIVolume) SetVolumeARN(v string) *StorediSCSIVolume {
+	s.VolumeARN = &v
+	return s
+}
+
+// SetVolumeDiskId sets the VolumeDiskId field's value.
+func (s *StorediSCSIVolume) SetVolumeDiskId(v string) *StorediSCSIVolume {
+	s.VolumeDiskId = &v
+	return s
+}
+
+// SetVolumeId sets the VolumeId field's value.
+func (s *StorediSCSIVolume) SetVolumeId(v string) *StorediSCSIVolume {
+	s.VolumeId = &v
+	return s
+}
+
+// SetVolumeProgress sets the VolumeProgress field's value.
+func (s *StorediSCSIVolume) SetVolumeProgress(v float64) *StorediSCSIVolume {
+	s.VolumeProgress = &v
+	return s
+}
+
+// SetVolumeSizeInBytes sets the VolumeSizeInBytes field's value.
+func (s *StorediSCSIVolume) SetVolumeSizeInBytes(v int64) *StorediSCSIVolume {
+	s.VolumeSizeInBytes = &v
+	return s
+}
+
+// SetVolumeStatus sets the VolumeStatus field's value.
+func (s *StorediSCSIVolume) SetVolumeStatus(v string) *StorediSCSIVolume {
+	s.VolumeStatus = &v
+	return s
+}
+
+// SetVolumeType sets the VolumeType field's value.
+func (s *StorediSCSIVolume) SetVolumeType(v string) *StorediSCSIVolume {
+	s.VolumeType = &v
+	return s
+}
+
+// SetVolumeiSCSIAttributes sets the VolumeiSCSIAttributes field's value.
+func (s *StorediSCSIVolume) SetVolumeiSCSIAttributes(v *VolumeiSCSIAttributes) *StorediSCSIVolume {
+	s.VolumeiSCSIAttributes = v
+	return s
 }
 
 type Tag struct {
@@ -8140,6 +9612,18 @@ func (s *Tag) Validate() error {
 	return nil
 }
 
+// SetKey sets the Key field's value.
+func (s *Tag) SetKey(v string) *Tag {
+	s.Key = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *Tag) SetValue(v string) *Tag {
+	s.Value = &v
+	return s
+}
+
 // Describes a virtual tape object.
 type Tape struct {
 	_ struct{} `type:"structure"`
@@ -8175,6 +9659,42 @@ func (s Tape) String() string {
 // GoString returns the string representation
 func (s Tape) GoString() string {
 	return s.String()
+}
+
+// SetProgress sets the Progress field's value.
+func (s *Tape) SetProgress(v float64) *Tape {
+	s.Progress = &v
+	return s
+}
+
+// SetTapeARN sets the TapeARN field's value.
+func (s *Tape) SetTapeARN(v string) *Tape {
+	s.TapeARN = &v
+	return s
+}
+
+// SetTapeBarcode sets the TapeBarcode field's value.
+func (s *Tape) SetTapeBarcode(v string) *Tape {
+	s.TapeBarcode = &v
+	return s
+}
+
+// SetTapeSizeInBytes sets the TapeSizeInBytes field's value.
+func (s *Tape) SetTapeSizeInBytes(v int64) *Tape {
+	s.TapeSizeInBytes = &v
+	return s
+}
+
+// SetTapeStatus sets the TapeStatus field's value.
+func (s *Tape) SetTapeStatus(v string) *Tape {
+	s.TapeStatus = &v
+	return s
+}
+
+// SetVTLDevice sets the VTLDevice field's value.
+func (s *Tape) SetVTLDevice(v string) *Tape {
+	s.VTLDevice = &v
+	return s
 }
 
 // Represents a virtual tape that is archived in the virtual tape shelf (VTS).
@@ -8216,6 +9736,42 @@ func (s TapeArchive) GoString() string {
 	return s.String()
 }
 
+// SetCompletionTime sets the CompletionTime field's value.
+func (s *TapeArchive) SetCompletionTime(v time.Time) *TapeArchive {
+	s.CompletionTime = &v
+	return s
+}
+
+// SetRetrievedTo sets the RetrievedTo field's value.
+func (s *TapeArchive) SetRetrievedTo(v string) *TapeArchive {
+	s.RetrievedTo = &v
+	return s
+}
+
+// SetTapeARN sets the TapeARN field's value.
+func (s *TapeArchive) SetTapeARN(v string) *TapeArchive {
+	s.TapeARN = &v
+	return s
+}
+
+// SetTapeBarcode sets the TapeBarcode field's value.
+func (s *TapeArchive) SetTapeBarcode(v string) *TapeArchive {
+	s.TapeBarcode = &v
+	return s
+}
+
+// SetTapeSizeInBytes sets the TapeSizeInBytes field's value.
+func (s *TapeArchive) SetTapeSizeInBytes(v int64) *TapeArchive {
+	s.TapeSizeInBytes = &v
+	return s
+}
+
+// SetTapeStatus sets the TapeStatus field's value.
+func (s *TapeArchive) SetTapeStatus(v string) *TapeArchive {
+	s.TapeStatus = &v
+	return s
+}
+
 // Describes a virtual tape.
 type TapeInfo struct {
 	_ struct{} `type:"structure"`
@@ -8245,6 +9801,36 @@ func (s TapeInfo) String() string {
 // GoString returns the string representation
 func (s TapeInfo) GoString() string {
 	return s.String()
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *TapeInfo) SetGatewayARN(v string) *TapeInfo {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetTapeARN sets the TapeARN field's value.
+func (s *TapeInfo) SetTapeARN(v string) *TapeInfo {
+	s.TapeARN = &v
+	return s
+}
+
+// SetTapeBarcode sets the TapeBarcode field's value.
+func (s *TapeInfo) SetTapeBarcode(v string) *TapeInfo {
+	s.TapeBarcode = &v
+	return s
+}
+
+// SetTapeSizeInBytes sets the TapeSizeInBytes field's value.
+func (s *TapeInfo) SetTapeSizeInBytes(v int64) *TapeInfo {
+	s.TapeSizeInBytes = &v
+	return s
+}
+
+// SetTapeStatus sets the TapeStatus field's value.
+func (s *TapeInfo) SetTapeStatus(v string) *TapeInfo {
+	s.TapeStatus = &v
+	return s
 }
 
 // Describes a recovery point.
@@ -8277,11 +9863,35 @@ func (s TapeRecoveryPointInfo) GoString() string {
 	return s.String()
 }
 
+// SetTapeARN sets the TapeARN field's value.
+func (s *TapeRecoveryPointInfo) SetTapeARN(v string) *TapeRecoveryPointInfo {
+	s.TapeARN = &v
+	return s
+}
+
+// SetTapeRecoveryPointTime sets the TapeRecoveryPointTime field's value.
+func (s *TapeRecoveryPointInfo) SetTapeRecoveryPointTime(v time.Time) *TapeRecoveryPointInfo {
+	s.TapeRecoveryPointTime = &v
+	return s
+}
+
+// SetTapeSizeInBytes sets the TapeSizeInBytes field's value.
+func (s *TapeRecoveryPointInfo) SetTapeSizeInBytes(v int64) *TapeRecoveryPointInfo {
+	s.TapeSizeInBytes = &v
+	return s
+}
+
+// SetTapeStatus sets the TapeStatus field's value.
+func (s *TapeRecoveryPointInfo) SetTapeStatus(v string) *TapeRecoveryPointInfo {
+	s.TapeStatus = &v
+	return s
+}
+
 // A JSON object containing one or more of the following fields:
 //
-//    UpdateBandwidthRateLimitInput$AverageDownloadRateLimitInBitsPerSec
+//    * UpdateBandwidthRateLimitInput$AverageDownloadRateLimitInBitsPerSec
 //
-//    UpdateBandwidthRateLimitInput$AverageUploadRateLimitInBitsPerSec
+//    * UpdateBandwidthRateLimitInput$AverageUploadRateLimitInBitsPerSec
 type UpdateBandwidthRateLimitInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8330,6 +9940,24 @@ func (s *UpdateBandwidthRateLimitInput) Validate() error {
 	return nil
 }
 
+// SetAverageDownloadRateLimitInBitsPerSec sets the AverageDownloadRateLimitInBitsPerSec field's value.
+func (s *UpdateBandwidthRateLimitInput) SetAverageDownloadRateLimitInBitsPerSec(v int64) *UpdateBandwidthRateLimitInput {
+	s.AverageDownloadRateLimitInBitsPerSec = &v
+	return s
+}
+
+// SetAverageUploadRateLimitInBitsPerSec sets the AverageUploadRateLimitInBitsPerSec field's value.
+func (s *UpdateBandwidthRateLimitInput) SetAverageUploadRateLimitInBitsPerSec(v int64) *UpdateBandwidthRateLimitInput {
+	s.AverageUploadRateLimitInBitsPerSec = &v
+	return s
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *UpdateBandwidthRateLimitInput) SetGatewayARN(v string) *UpdateBandwidthRateLimitInput {
+	s.GatewayARN = &v
+	return s
+}
+
 // A JSON object containing the of the gateway whose throttle information was
 // updated.
 type UpdateBandwidthRateLimitOutput struct {
@@ -8350,15 +9978,21 @@ func (s UpdateBandwidthRateLimitOutput) GoString() string {
 	return s.String()
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *UpdateBandwidthRateLimitOutput) SetGatewayARN(v string) *UpdateBandwidthRateLimitOutput {
+	s.GatewayARN = &v
+	return s
+}
+
 // A JSON object containing one or more of the following fields:
 //
-//    UpdateChapCredentialsInput$InitiatorName
+//    * UpdateChapCredentialsInput$InitiatorName
 //
-//    UpdateChapCredentialsInput$SecretToAuthenticateInitiator
+//    * UpdateChapCredentialsInput$SecretToAuthenticateInitiator
 //
-//    UpdateChapCredentialsInput$SecretToAuthenticateTarget
+//    * UpdateChapCredentialsInput$SecretToAuthenticateTarget
 //
-//    UpdateChapCredentialsInput$TargetARN
+//    * UpdateChapCredentialsInput$TargetARN
 type UpdateChapCredentialsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8431,6 +10065,30 @@ func (s *UpdateChapCredentialsInput) Validate() error {
 	return nil
 }
 
+// SetInitiatorName sets the InitiatorName field's value.
+func (s *UpdateChapCredentialsInput) SetInitiatorName(v string) *UpdateChapCredentialsInput {
+	s.InitiatorName = &v
+	return s
+}
+
+// SetSecretToAuthenticateInitiator sets the SecretToAuthenticateInitiator field's value.
+func (s *UpdateChapCredentialsInput) SetSecretToAuthenticateInitiator(v string) *UpdateChapCredentialsInput {
+	s.SecretToAuthenticateInitiator = &v
+	return s
+}
+
+// SetSecretToAuthenticateTarget sets the SecretToAuthenticateTarget field's value.
+func (s *UpdateChapCredentialsInput) SetSecretToAuthenticateTarget(v string) *UpdateChapCredentialsInput {
+	s.SecretToAuthenticateTarget = &v
+	return s
+}
+
+// SetTargetARN sets the TargetARN field's value.
+func (s *UpdateChapCredentialsInput) SetTargetARN(v string) *UpdateChapCredentialsInput {
+	s.TargetARN = &v
+	return s
+}
+
 // A JSON object containing the following fields:
 type UpdateChapCredentialsOutput struct {
 	_ struct{} `type:"structure"`
@@ -8452,6 +10110,18 @@ func (s UpdateChapCredentialsOutput) String() string {
 // GoString returns the string representation
 func (s UpdateChapCredentialsOutput) GoString() string {
 	return s.String()
+}
+
+// SetInitiatorName sets the InitiatorName field's value.
+func (s *UpdateChapCredentialsOutput) SetInitiatorName(v string) *UpdateChapCredentialsOutput {
+	s.InitiatorName = &v
+	return s
+}
+
+// SetTargetARN sets the TargetARN field's value.
+func (s *UpdateChapCredentialsOutput) SetTargetARN(v string) *UpdateChapCredentialsOutput {
+	s.TargetARN = &v
+	return s
 }
 
 type UpdateGatewayInformationInput struct {
@@ -8501,6 +10171,24 @@ func (s *UpdateGatewayInformationInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *UpdateGatewayInformationInput) SetGatewayARN(v string) *UpdateGatewayInformationInput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetGatewayName sets the GatewayName field's value.
+func (s *UpdateGatewayInformationInput) SetGatewayName(v string) *UpdateGatewayInformationInput {
+	s.GatewayName = &v
+	return s
+}
+
+// SetGatewayTimezone sets the GatewayTimezone field's value.
+func (s *UpdateGatewayInformationInput) SetGatewayTimezone(v string) *UpdateGatewayInformationInput {
+	s.GatewayTimezone = &v
+	return s
+}
+
 // A JSON object containing the ARN of the gateway that was updated.
 type UpdateGatewayInformationOutput struct {
 	_ struct{} `type:"structure"`
@@ -8520,6 +10208,18 @@ func (s UpdateGatewayInformationOutput) String() string {
 // GoString returns the string representation
 func (s UpdateGatewayInformationOutput) GoString() string {
 	return s.String()
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *UpdateGatewayInformationOutput) SetGatewayARN(v string) *UpdateGatewayInformationOutput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetGatewayName sets the GatewayName field's value.
+func (s *UpdateGatewayInformationOutput) SetGatewayName(v string) *UpdateGatewayInformationOutput {
+	s.GatewayName = &v
+	return s
 }
 
 // A JSON object containing the of the gateway to update.
@@ -8559,6 +10259,12 @@ func (s *UpdateGatewaySoftwareNowInput) Validate() error {
 	return nil
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *UpdateGatewaySoftwareNowInput) SetGatewayARN(v string) *UpdateGatewaySoftwareNowInput {
+	s.GatewayARN = &v
+	return s
+}
+
 // A JSON object containing the of the gateway that was updated.
 type UpdateGatewaySoftwareNowOutput struct {
 	_ struct{} `type:"structure"`
@@ -8578,13 +10284,19 @@ func (s UpdateGatewaySoftwareNowOutput) GoString() string {
 	return s.String()
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *UpdateGatewaySoftwareNowOutput) SetGatewayARN(v string) *UpdateGatewaySoftwareNowOutput {
+	s.GatewayARN = &v
+	return s
+}
+
 // A JSON object containing the following fields:
 //
-//    UpdateMaintenanceStartTimeInput$DayOfWeek
+//    * UpdateMaintenanceStartTimeInput$DayOfWeek
 //
-//    UpdateMaintenanceStartTimeInput$HourOfDay
+//    * UpdateMaintenanceStartTimeInput$HourOfDay
 //
-//    UpdateMaintenanceStartTimeInput$MinuteOfHour
+//    * UpdateMaintenanceStartTimeInput$MinuteOfHour
 type UpdateMaintenanceStartTimeInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8649,6 +10361,30 @@ func (s *UpdateMaintenanceStartTimeInput) Validate() error {
 	return nil
 }
 
+// SetDayOfWeek sets the DayOfWeek field's value.
+func (s *UpdateMaintenanceStartTimeInput) SetDayOfWeek(v int64) *UpdateMaintenanceStartTimeInput {
+	s.DayOfWeek = &v
+	return s
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *UpdateMaintenanceStartTimeInput) SetGatewayARN(v string) *UpdateMaintenanceStartTimeInput {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetHourOfDay sets the HourOfDay field's value.
+func (s *UpdateMaintenanceStartTimeInput) SetHourOfDay(v int64) *UpdateMaintenanceStartTimeInput {
+	s.HourOfDay = &v
+	return s
+}
+
+// SetMinuteOfHour sets the MinuteOfHour field's value.
+func (s *UpdateMaintenanceStartTimeInput) SetMinuteOfHour(v int64) *UpdateMaintenanceStartTimeInput {
+	s.MinuteOfHour = &v
+	return s
+}
+
 // A JSON object containing the of the gateway whose maintenance start time
 // is updated.
 type UpdateMaintenanceStartTimeOutput struct {
@@ -8669,15 +10405,21 @@ func (s UpdateMaintenanceStartTimeOutput) GoString() string {
 	return s.String()
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *UpdateMaintenanceStartTimeOutput) SetGatewayARN(v string) *UpdateMaintenanceStartTimeOutput {
+	s.GatewayARN = &v
+	return s
+}
+
 // A JSON object containing one or more of the following fields:
 //
-//    UpdateSnapshotScheduleInput$Description
+//    * UpdateSnapshotScheduleInput$Description
 //
-//    UpdateSnapshotScheduleInput$RecurrenceInHours
+//    * UpdateSnapshotScheduleInput$RecurrenceInHours
 //
-//    UpdateSnapshotScheduleInput$StartAt
+//    * UpdateSnapshotScheduleInput$StartAt
 //
-//    UpdateSnapshotScheduleInput$VolumeARN
+//    * UpdateSnapshotScheduleInput$VolumeARN
 type UpdateSnapshotScheduleInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8741,6 +10483,30 @@ func (s *UpdateSnapshotScheduleInput) Validate() error {
 	return nil
 }
 
+// SetDescription sets the Description field's value.
+func (s *UpdateSnapshotScheduleInput) SetDescription(v string) *UpdateSnapshotScheduleInput {
+	s.Description = &v
+	return s
+}
+
+// SetRecurrenceInHours sets the RecurrenceInHours field's value.
+func (s *UpdateSnapshotScheduleInput) SetRecurrenceInHours(v int64) *UpdateSnapshotScheduleInput {
+	s.RecurrenceInHours = &v
+	return s
+}
+
+// SetStartAt sets the StartAt field's value.
+func (s *UpdateSnapshotScheduleInput) SetStartAt(v int64) *UpdateSnapshotScheduleInput {
+	s.StartAt = &v
+	return s
+}
+
+// SetVolumeARN sets the VolumeARN field's value.
+func (s *UpdateSnapshotScheduleInput) SetVolumeARN(v string) *UpdateSnapshotScheduleInput {
+	s.VolumeARN = &v
+	return s
+}
+
 // A JSON object containing the of the updated storage volume.
 type UpdateSnapshotScheduleOutput struct {
 	_ struct{} `type:"structure"`
@@ -8758,12 +10524,18 @@ func (s UpdateSnapshotScheduleOutput) GoString() string {
 	return s.String()
 }
 
+// SetVolumeARN sets the VolumeARN field's value.
+func (s *UpdateSnapshotScheduleOutput) SetVolumeARN(v string) *UpdateSnapshotScheduleOutput {
+	s.VolumeARN = &v
+	return s
+}
+
 type UpdateVTLDeviceTypeInput struct {
 	_ struct{} `type:"structure"`
 
 	// The type of medium changer you want to select.
 	//
-	//  Valid Values: "STK-L700", "AWS-Gateway-VTL"
+	// Valid Values: "STK-L700", "AWS-Gateway-VTL"
 	//
 	// DeviceType is a required field
 	DeviceType *string `min:"2" type:"string" required:"true"`
@@ -8806,6 +10578,18 @@ func (s *UpdateVTLDeviceTypeInput) Validate() error {
 	return nil
 }
 
+// SetDeviceType sets the DeviceType field's value.
+func (s *UpdateVTLDeviceTypeInput) SetDeviceType(v string) *UpdateVTLDeviceTypeInput {
+	s.DeviceType = &v
+	return s
+}
+
+// SetVTLDeviceARN sets the VTLDeviceARN field's value.
+func (s *UpdateVTLDeviceTypeInput) SetVTLDeviceARN(v string) *UpdateVTLDeviceTypeInput {
+	s.VTLDeviceARN = &v
+	return s
+}
+
 // UpdateVTLDeviceTypeOutput
 type UpdateVTLDeviceTypeOutput struct {
 	_ struct{} `type:"structure"`
@@ -8822,6 +10606,12 @@ func (s UpdateVTLDeviceTypeOutput) String() string {
 // GoString returns the string representation
 func (s UpdateVTLDeviceTypeOutput) GoString() string {
 	return s.String()
+}
+
+// SetVTLDeviceARN sets the VTLDeviceARN field's value.
+func (s *UpdateVTLDeviceTypeOutput) SetVTLDeviceARN(v string) *UpdateVTLDeviceTypeOutput {
+	s.VTLDeviceARN = &v
+	return s
 }
 
 // Represents a device object associated with a gateway-VTL.
@@ -8852,6 +10642,36 @@ func (s VTLDevice) GoString() string {
 	return s.String()
 }
 
+// SetDeviceiSCSIAttributes sets the DeviceiSCSIAttributes field's value.
+func (s *VTLDevice) SetDeviceiSCSIAttributes(v *DeviceiSCSIAttributes) *VTLDevice {
+	s.DeviceiSCSIAttributes = v
+	return s
+}
+
+// SetVTLDeviceARN sets the VTLDeviceARN field's value.
+func (s *VTLDevice) SetVTLDeviceARN(v string) *VTLDevice {
+	s.VTLDeviceARN = &v
+	return s
+}
+
+// SetVTLDeviceProductIdentifier sets the VTLDeviceProductIdentifier field's value.
+func (s *VTLDevice) SetVTLDeviceProductIdentifier(v string) *VTLDevice {
+	s.VTLDeviceProductIdentifier = &v
+	return s
+}
+
+// SetVTLDeviceType sets the VTLDeviceType field's value.
+func (s *VTLDevice) SetVTLDeviceType(v string) *VTLDevice {
+	s.VTLDeviceType = &v
+	return s
+}
+
+// SetVTLDeviceVendor sets the VTLDeviceVendor field's value.
+func (s *VTLDevice) SetVTLDeviceVendor(v string) *VTLDevice {
+	s.VTLDeviceVendor = &v
+	return s
+}
+
 // Describes a storage volume object.
 type VolumeInfo struct {
 	_ struct{} `type:"structure"`
@@ -8864,23 +10684,23 @@ type VolumeInfo struct {
 	// becomes part of the gateway Amazon Resource Name (ARN), which you use as
 	// input for other operations.
 	//
-	//  Valid Values: 50 to 500 lowercase letters, numbers, periods (.), and hyphens
+	// Valid Values: 50 to 500 lowercase letters, numbers, periods (.), and hyphens
 	// (-).
 	GatewayId *string `min:"12" type:"string"`
 
 	// The Amazon Resource Name (ARN) for the storage volume. For example, the following
 	// is a valid ARN:
 	//
-	//  arn:aws:storagegateway:us-east-1:111122223333:gateway/sgw-12A3456B/volume/vol-1122AABB
+	// arn:aws:storagegateway:us-east-1:111122223333:gateway/sgw-12A3456B/volume/vol-1122AABB
 	//
-	//  Valid Values: 50 to 500 lowercase letters, numbers, periods (.), and hyphens
+	// Valid Values: 50 to 500 lowercase letters, numbers, periods (.), and hyphens
 	// (-).
 	VolumeARN *string `min:"50" type:"string"`
 
 	// The unique identifier assigned to the volume. This ID becomes part of the
 	// volume Amazon Resource Name (ARN), which you use as input for other operations.
 	//
-	//  Valid Values: 50 to 500 lowercase letters, numbers, periods (.), and hyphens
+	// Valid Values: 50 to 500 lowercase letters, numbers, periods (.), and hyphens
 	// (-).
 	VolumeId *string `min:"12" type:"string"`
 
@@ -8903,6 +10723,42 @@ func (s VolumeInfo) GoString() string {
 	return s.String()
 }
 
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *VolumeInfo) SetGatewayARN(v string) *VolumeInfo {
+	s.GatewayARN = &v
+	return s
+}
+
+// SetGatewayId sets the GatewayId field's value.
+func (s *VolumeInfo) SetGatewayId(v string) *VolumeInfo {
+	s.GatewayId = &v
+	return s
+}
+
+// SetVolumeARN sets the VolumeARN field's value.
+func (s *VolumeInfo) SetVolumeARN(v string) *VolumeInfo {
+	s.VolumeARN = &v
+	return s
+}
+
+// SetVolumeId sets the VolumeId field's value.
+func (s *VolumeInfo) SetVolumeId(v string) *VolumeInfo {
+	s.VolumeId = &v
+	return s
+}
+
+// SetVolumeSizeInBytes sets the VolumeSizeInBytes field's value.
+func (s *VolumeInfo) SetVolumeSizeInBytes(v int64) *VolumeInfo {
+	s.VolumeSizeInBytes = &v
+	return s
+}
+
+// SetVolumeType sets the VolumeType field's value.
+func (s *VolumeInfo) SetVolumeType(v string) *VolumeInfo {
+	s.VolumeType = &v
+	return s
+}
+
 type VolumeRecoveryPointInfo struct {
 	_ struct{} `type:"structure"`
 
@@ -8923,6 +10779,30 @@ func (s VolumeRecoveryPointInfo) String() string {
 // GoString returns the string representation
 func (s VolumeRecoveryPointInfo) GoString() string {
 	return s.String()
+}
+
+// SetVolumeARN sets the VolumeARN field's value.
+func (s *VolumeRecoveryPointInfo) SetVolumeARN(v string) *VolumeRecoveryPointInfo {
+	s.VolumeARN = &v
+	return s
+}
+
+// SetVolumeRecoveryPointTime sets the VolumeRecoveryPointTime field's value.
+func (s *VolumeRecoveryPointInfo) SetVolumeRecoveryPointTime(v string) *VolumeRecoveryPointInfo {
+	s.VolumeRecoveryPointTime = &v
+	return s
+}
+
+// SetVolumeSizeInBytes sets the VolumeSizeInBytes field's value.
+func (s *VolumeRecoveryPointInfo) SetVolumeSizeInBytes(v int64) *VolumeRecoveryPointInfo {
+	s.VolumeSizeInBytes = &v
+	return s
+}
+
+// SetVolumeUsageInBytes sets the VolumeUsageInBytes field's value.
+func (s *VolumeRecoveryPointInfo) SetVolumeUsageInBytes(v int64) *VolumeRecoveryPointInfo {
+	s.VolumeUsageInBytes = &v
+	return s
 }
 
 // Lists iSCSI information about a volume.
@@ -8953,6 +10833,36 @@ func (s VolumeiSCSIAttributes) String() string {
 // GoString returns the string representation
 func (s VolumeiSCSIAttributes) GoString() string {
 	return s.String()
+}
+
+// SetChapEnabled sets the ChapEnabled field's value.
+func (s *VolumeiSCSIAttributes) SetChapEnabled(v bool) *VolumeiSCSIAttributes {
+	s.ChapEnabled = &v
+	return s
+}
+
+// SetLunNumber sets the LunNumber field's value.
+func (s *VolumeiSCSIAttributes) SetLunNumber(v int64) *VolumeiSCSIAttributes {
+	s.LunNumber = &v
+	return s
+}
+
+// SetNetworkInterfaceId sets the NetworkInterfaceId field's value.
+func (s *VolumeiSCSIAttributes) SetNetworkInterfaceId(v string) *VolumeiSCSIAttributes {
+	s.NetworkInterfaceId = &v
+	return s
+}
+
+// SetNetworkInterfacePort sets the NetworkInterfacePort field's value.
+func (s *VolumeiSCSIAttributes) SetNetworkInterfacePort(v int64) *VolumeiSCSIAttributes {
+	s.NetworkInterfacePort = &v
+	return s
+}
+
+// SetTargetARN sets the TargetARN field's value.
+func (s *VolumeiSCSIAttributes) SetTargetARN(v string) *VolumeiSCSIAttributes {
+	s.TargetARN = &v
+	return s
 }
 
 const (

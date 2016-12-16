@@ -20,7 +20,7 @@ import (
 // IP address, the request parameters, and the response elements returned by
 // the service.
 //
-//  As an alternative to the API, you can use one of the AWS SDKs, which consist
+// As an alternative to the API, you can use one of the AWS SDKs, which consist
 // of libraries and sample code for various programming languages and platforms
 // (Java, Ruby, .NET, iOS, Android, etc.). The SDKs provide a convenient way
 // to create programmatic access to AWSCloudTrail. For example, the SDKs take
@@ -29,8 +29,9 @@ import (
 // to download and install them, see the Tools for Amazon Web Services page
 // (http://aws.amazon.com/tools/).
 //
-//  See the CloudTrail User Guide for information about the data that is included
-// with each AWS API call listed in the log files.
+// See the AWS CloudTrail User Guide (http://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html)
+// for information about the data that is included with each AWS API call listed
+// in the log files.
 //The service client's operations are safe to be used concurrently.
 // It is not safe to mutate any of the client's properties though.
 type CloudTrail struct {
@@ -58,16 +59,17 @@ const ServiceName = "cloudtrail"
 //     svc := cloudtrail.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
 func New(p client.ConfigProvider, cfgs ...*aws.Config) *CloudTrail {
 	c := p.ClientConfig(ServiceName, cfgs...)
-	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion)
+	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion, c.SigningName)
 }
 
 // newClient creates, initializes and returns a new service client instance.
-func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion string) *CloudTrail {
+func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion, signingName string) *CloudTrail {
 	svc := &CloudTrail{
 		Client: client.New(
 			cfg,
 			metadata.ClientInfo{
 				ServiceName:   ServiceName,
+				SigningName:   signingName,
 				SigningRegion: signingRegion,
 				Endpoint:      endpoint,
 				APIVersion:    "2013-11-01",

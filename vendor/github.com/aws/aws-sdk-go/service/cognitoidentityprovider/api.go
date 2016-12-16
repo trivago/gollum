@@ -97,6 +97,92 @@ func (c *CognitoIdentityProvider) AddCustomAttributes(input *AddCustomAttributes
 	return out, err
 }
 
+const opAdminAddUserToGroup = "AdminAddUserToGroup"
+
+// AdminAddUserToGroupRequest generates a "aws/request.Request" representing the
+// client's request for the AdminAddUserToGroup operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See AdminAddUserToGroup for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the AdminAddUserToGroup method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the AdminAddUserToGroupRequest method.
+//    req, resp := client.AdminAddUserToGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *CognitoIdentityProvider) AdminAddUserToGroupRequest(input *AdminAddUserToGroupInput) (req *request.Request, output *AdminAddUserToGroupOutput) {
+	op := &request.Operation{
+		Name:       opAdminAddUserToGroup,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &AdminAddUserToGroupInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	output = &AdminAddUserToGroupOutput{}
+	req.Data = output
+	return
+}
+
+// AdminAddUserToGroup API operation for Amazon Cognito Identity Provider.
+//
+// Adds the specified user to the specified group.
+//
+// Requires developer credentials.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity Provider's
+// API operation AdminAddUserToGroup for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   This exception is thrown when the Amazon Cognito service encounters an invalid
+//   parameter.
+//
+//   * ResourceNotFoundException
+//   This exception is thrown when the Amazon Cognito service cannot find the
+//   requested resource.
+//
+//   * TooManyRequestsException
+//   This exception gets thrown when the user has made too many requests for a
+//   given operation.
+//
+//   * NotAuthorizedException
+//   This exception gets thrown when a user is not authorized.
+//
+//   * UserNotFoundException
+//   This exception is thrown when a user is not found.
+//
+//   * InternalErrorException
+//   This exception is thrown when Amazon Cognito encounters an internal error.
+//
+func (c *CognitoIdentityProvider) AdminAddUserToGroup(input *AdminAddUserToGroupInput) (*AdminAddUserToGroupOutput, error) {
+	req, out := c.AdminAddUserToGroupRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opAdminConfirmSignUp = "AdminConfirmSignUp"
 
 // AdminConfirmSignUpRequest generates a "aws/request.Request" representing the
@@ -144,6 +230,8 @@ func (c *CognitoIdentityProvider) AdminConfirmSignUpRequest(input *AdminConfirmS
 //
 // Confirms user registration as an admin without using a confirmation code.
 // Works on any user.
+//
+// Requires developer credentials.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -376,6 +464,8 @@ func (c *CognitoIdentityProvider) AdminDeleteUserRequest(input *AdminDeleteUserI
 //
 // Deletes a user as an administrator. Works on any user.
 //
+// Requires developer credentials.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -459,6 +549,8 @@ func (c *CognitoIdentityProvider) AdminDeleteUserAttributesRequest(input *AdminD
 // Deletes the user attributes in a user pool as an administrator. Works on
 // any user.
 //
+// Requires developer credentials.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -541,6 +633,8 @@ func (c *CognitoIdentityProvider) AdminDisableUserRequest(input *AdminDisableUse
 //
 // Disables the specified user as an administrator. Works on any user.
 //
+// Requires developer credentials.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -622,6 +716,8 @@ func (c *CognitoIdentityProvider) AdminEnableUserRequest(input *AdminEnableUserI
 // AdminEnableUser API operation for Amazon Cognito Identity Provider.
 //
 // Enables the specified user as an administrator. Works on any user.
+//
+// Requires developer credentials.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -706,6 +802,8 @@ func (c *CognitoIdentityProvider) AdminForgetDeviceRequest(input *AdminForgetDev
 // AdminForgetDevice API operation for Amazon Cognito Identity Provider.
 //
 // Forgets the device, as an administrator.
+//
+// Requires developer credentials.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -792,6 +890,8 @@ func (c *CognitoIdentityProvider) AdminGetDeviceRequest(input *AdminGetDeviceInp
 //
 // Gets the device, as an administrator.
 //
+// Requires developer credentials.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -875,6 +975,8 @@ func (c *CognitoIdentityProvider) AdminGetUserRequest(input *AdminGetUserInput) 
 // Gets the specified user by user name in a user pool as an administrator.
 // Works on any user.
 //
+// Requires developer credentials.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -956,6 +1058,8 @@ func (c *CognitoIdentityProvider) AdminInitiateAuthRequest(input *AdminInitiateA
 // AdminInitiateAuth API operation for Amazon Cognito Identity Provider.
 //
 // Initiates the authentication flow, as an administrator.
+//
+// Requires developer credentials.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1074,6 +1178,8 @@ func (c *CognitoIdentityProvider) AdminListDevicesRequest(input *AdminListDevice
 //
 // Lists devices, as an administrator.
 //
+// Requires developer credentials.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -1105,6 +1211,176 @@ func (c *CognitoIdentityProvider) AdminListDevicesRequest(input *AdminListDevice
 //
 func (c *CognitoIdentityProvider) AdminListDevices(input *AdminListDevicesInput) (*AdminListDevicesOutput, error) {
 	req, out := c.AdminListDevicesRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opAdminListGroupsForUser = "AdminListGroupsForUser"
+
+// AdminListGroupsForUserRequest generates a "aws/request.Request" representing the
+// client's request for the AdminListGroupsForUser operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See AdminListGroupsForUser for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the AdminListGroupsForUser method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the AdminListGroupsForUserRequest method.
+//    req, resp := client.AdminListGroupsForUserRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *CognitoIdentityProvider) AdminListGroupsForUserRequest(input *AdminListGroupsForUserInput) (req *request.Request, output *AdminListGroupsForUserOutput) {
+	op := &request.Operation{
+		Name:       opAdminListGroupsForUser,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &AdminListGroupsForUserInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &AdminListGroupsForUserOutput{}
+	req.Data = output
+	return
+}
+
+// AdminListGroupsForUser API operation for Amazon Cognito Identity Provider.
+//
+// Lists the groups that the user belongs to.
+//
+// Requires developer credentials.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity Provider's
+// API operation AdminListGroupsForUser for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   This exception is thrown when the Amazon Cognito service encounters an invalid
+//   parameter.
+//
+//   * ResourceNotFoundException
+//   This exception is thrown when the Amazon Cognito service cannot find the
+//   requested resource.
+//
+//   * TooManyRequestsException
+//   This exception gets thrown when the user has made too many requests for a
+//   given operation.
+//
+//   * NotAuthorizedException
+//   This exception gets thrown when a user is not authorized.
+//
+//   * UserNotFoundException
+//   This exception is thrown when a user is not found.
+//
+//   * InternalErrorException
+//   This exception is thrown when Amazon Cognito encounters an internal error.
+//
+func (c *CognitoIdentityProvider) AdminListGroupsForUser(input *AdminListGroupsForUserInput) (*AdminListGroupsForUserOutput, error) {
+	req, out := c.AdminListGroupsForUserRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opAdminRemoveUserFromGroup = "AdminRemoveUserFromGroup"
+
+// AdminRemoveUserFromGroupRequest generates a "aws/request.Request" representing the
+// client's request for the AdminRemoveUserFromGroup operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See AdminRemoveUserFromGroup for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the AdminRemoveUserFromGroup method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the AdminRemoveUserFromGroupRequest method.
+//    req, resp := client.AdminRemoveUserFromGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *CognitoIdentityProvider) AdminRemoveUserFromGroupRequest(input *AdminRemoveUserFromGroupInput) (req *request.Request, output *AdminRemoveUserFromGroupOutput) {
+	op := &request.Operation{
+		Name:       opAdminRemoveUserFromGroup,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &AdminRemoveUserFromGroupInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	output = &AdminRemoveUserFromGroupOutput{}
+	req.Data = output
+	return
+}
+
+// AdminRemoveUserFromGroup API operation for Amazon Cognito Identity Provider.
+//
+// Removes the specified user from the specified group.
+//
+// Requires developer credentials.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity Provider's
+// API operation AdminRemoveUserFromGroup for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   This exception is thrown when the Amazon Cognito service encounters an invalid
+//   parameter.
+//
+//   * ResourceNotFoundException
+//   This exception is thrown when the Amazon Cognito service cannot find the
+//   requested resource.
+//
+//   * TooManyRequestsException
+//   This exception gets thrown when the user has made too many requests for a
+//   given operation.
+//
+//   * NotAuthorizedException
+//   This exception gets thrown when a user is not authorized.
+//
+//   * UserNotFoundException
+//   This exception is thrown when a user is not found.
+//
+//   * InternalErrorException
+//   This exception is thrown when Amazon Cognito encounters an internal error.
+//
+func (c *CognitoIdentityProvider) AdminRemoveUserFromGroup(input *AdminRemoveUserFromGroupInput) (*AdminRemoveUserFromGroupOutput, error) {
+	req, out := c.AdminRemoveUserFromGroupRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -1166,6 +1442,8 @@ func (c *CognitoIdentityProvider) AdminResetUserPasswordRequest(input *AdminRese
 // is selected and a verified email exists for the user, calling this API will
 // also result in sending a message to the end user with the code to change
 // their password.
+//
+// Requires developer credentials.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1264,6 +1542,8 @@ func (c *CognitoIdentityProvider) AdminRespondToAuthChallengeRequest(input *Admi
 // AdminRespondToAuthChallenge API operation for Amazon Cognito Identity Provider.
 //
 // Responds to an authentication challenge, as an administrator.
+//
+// Requires developer credentials.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1399,6 +1679,8 @@ func (c *CognitoIdentityProvider) AdminSetUserSettingsRequest(input *AdminSetUse
 //
 // Sets all the user settings for a specified user name. Works on any user.
 //
+// Requires developer credentials.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -1476,6 +1758,8 @@ func (c *CognitoIdentityProvider) AdminUpdateDeviceStatusRequest(input *AdminUpd
 // AdminUpdateDeviceStatus API operation for Amazon Cognito Identity Provider.
 //
 // Updates the device status as an administrator.
+//
+// Requires developer credentials.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1562,6 +1846,8 @@ func (c *CognitoIdentityProvider) AdminUpdateUserAttributesRequest(input *AdminU
 //
 // Updates the specified user's attributes, including developer attributes,
 // as an administrator. Works on any user.
+//
+// Requires developer credentials.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1662,6 +1948,8 @@ func (c *CognitoIdentityProvider) AdminUserGlobalSignOutRequest(input *AdminUser
 // AdminUserGlobalSignOut API operation for Amazon Cognito Identity Provider.
 //
 // Signs out users from all devices, as an administrator.
+//
+// Requires developer credentials.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2134,6 +2422,95 @@ func (c *CognitoIdentityProvider) ConfirmSignUp(input *ConfirmSignUpInput) (*Con
 	return out, err
 }
 
+const opCreateGroup = "CreateGroup"
+
+// CreateGroupRequest generates a "aws/request.Request" representing the
+// client's request for the CreateGroup operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See CreateGroup for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CreateGroup method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CreateGroupRequest method.
+//    req, resp := client.CreateGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *CognitoIdentityProvider) CreateGroupRequest(input *CreateGroupInput) (req *request.Request, output *CreateGroupOutput) {
+	op := &request.Operation{
+		Name:       opCreateGroup,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateGroupInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &CreateGroupOutput{}
+	req.Data = output
+	return
+}
+
+// CreateGroup API operation for Amazon Cognito Identity Provider.
+//
+// Creates a new group in the specified user pool.
+//
+// Requires developer credentials.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity Provider's
+// API operation CreateGroup for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   This exception is thrown when the Amazon Cognito service encounters an invalid
+//   parameter.
+//
+//   * GroupExistsException
+//   This exception is thrown when Amazon Cognito encounters a group that already
+//   exists in the user pool.
+//
+//   * ResourceNotFoundException
+//   This exception is thrown when the Amazon Cognito service cannot find the
+//   requested resource.
+//
+//   * TooManyRequestsException
+//   This exception gets thrown when the user has made too many requests for a
+//   given operation.
+//
+//   * LimitExceededException
+//   This exception is thrown when a user exceeds the limit for a requested AWS
+//   resource.
+//
+//   * NotAuthorizedException
+//   This exception gets thrown when a user is not authorized.
+//
+//   * InternalErrorException
+//   This exception is thrown when Amazon Cognito encounters an internal error.
+//
+func (c *CognitoIdentityProvider) CreateGroup(input *CreateGroupInput) (*CreateGroupOutput, error) {
+	req, out := c.CreateGroupRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opCreateUserImportJob = "CreateUserImportJob"
 
 // CreateUserImportJobRequest generates a "aws/request.Request" representing the
@@ -2305,6 +2682,9 @@ func (c *CognitoIdentityProvider) CreateUserPoolRequest(input *CreateUserPoolInp
 //   * NotAuthorizedException
 //   This exception gets thrown when a user is not authorized.
 //
+//   * UserPoolTaggingException
+//   This exception gets thrown when a user pool tag cannot be set or updated.
+//
 //   * InternalErrorException
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
@@ -2393,6 +2773,89 @@ func (c *CognitoIdentityProvider) CreateUserPoolClientRequest(input *CreateUserP
 //
 func (c *CognitoIdentityProvider) CreateUserPoolClient(input *CreateUserPoolClientInput) (*CreateUserPoolClientOutput, error) {
 	req, out := c.CreateUserPoolClientRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opDeleteGroup = "DeleteGroup"
+
+// DeleteGroupRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteGroup operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DeleteGroup for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeleteGroup method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeleteGroupRequest method.
+//    req, resp := client.DeleteGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *CognitoIdentityProvider) DeleteGroupRequest(input *DeleteGroupInput) (req *request.Request, output *DeleteGroupOutput) {
+	op := &request.Operation{
+		Name:       opDeleteGroup,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteGroupInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	output = &DeleteGroupOutput{}
+	req.Data = output
+	return
+}
+
+// DeleteGroup API operation for Amazon Cognito Identity Provider.
+//
+// Deletes a group. Currently only groups with no members can be deleted.
+//
+// Requires developer credentials.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity Provider's
+// API operation DeleteGroup for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundException
+//   This exception is thrown when the Amazon Cognito service cannot find the
+//   requested resource.
+//
+//   * InvalidParameterException
+//   This exception is thrown when the Amazon Cognito service encounters an invalid
+//   parameter.
+//
+//   * TooManyRequestsException
+//   This exception gets thrown when the user has made too many requests for a
+//   given operation.
+//
+//   * NotAuthorizedException
+//   This exception gets thrown when a user is not authorized.
+//
+//   * InternalErrorException
+//   This exception is thrown when Amazon Cognito encounters an internal error.
+//
+func (c *CognitoIdentityProvider) DeleteGroup(input *DeleteGroupInput) (*DeleteGroupOutput, error) {
+	req, out := c.DeleteGroupRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -2893,6 +3356,9 @@ func (c *CognitoIdentityProvider) DescribeUserPoolRequest(input *DescribeUserPoo
 //   * NotAuthorizedException
 //   This exception gets thrown when a user is not authorized.
 //
+//   * UserPoolTaggingException
+//   This exception gets thrown when a user pool tag cannot be set or updated.
+//
 //   * InternalErrorException
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
@@ -3361,6 +3827,87 @@ func (c *CognitoIdentityProvider) GetDeviceRequest(input *GetDeviceInput) (req *
 //
 func (c *CognitoIdentityProvider) GetDevice(input *GetDeviceInput) (*GetDeviceOutput, error) {
 	req, out := c.GetDeviceRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opGetGroup = "GetGroup"
+
+// GetGroupRequest generates a "aws/request.Request" representing the
+// client's request for the GetGroup operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See GetGroup for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the GetGroup method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the GetGroupRequest method.
+//    req, resp := client.GetGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *CognitoIdentityProvider) GetGroupRequest(input *GetGroupInput) (req *request.Request, output *GetGroupOutput) {
+	op := &request.Operation{
+		Name:       opGetGroup,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetGroupInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &GetGroupOutput{}
+	req.Data = output
+	return
+}
+
+// GetGroup API operation for Amazon Cognito Identity Provider.
+//
+// Gets a group.
+//
+// Requires developer credentials.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity Provider's
+// API operation GetGroup for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundException
+//   This exception is thrown when the Amazon Cognito service cannot find the
+//   requested resource.
+//
+//   * InvalidParameterException
+//   This exception is thrown when the Amazon Cognito service encounters an invalid
+//   parameter.
+//
+//   * TooManyRequestsException
+//   This exception gets thrown when the user has made too many requests for a
+//   given operation.
+//
+//   * NotAuthorizedException
+//   This exception gets thrown when a user is not authorized.
+//
+//   * InternalErrorException
+//   This exception is thrown when Amazon Cognito encounters an internal error.
+//
+func (c *CognitoIdentityProvider) GetGroup(input *GetGroupInput) (*GetGroupOutput, error) {
+	req, out := c.GetGroupRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -3855,6 +4402,87 @@ func (c *CognitoIdentityProvider) ListDevices(input *ListDevicesInput) (*ListDev
 	return out, err
 }
 
+const opListGroups = "ListGroups"
+
+// ListGroupsRequest generates a "aws/request.Request" representing the
+// client's request for the ListGroups operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See ListGroups for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ListGroups method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ListGroupsRequest method.
+//    req, resp := client.ListGroupsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *CognitoIdentityProvider) ListGroupsRequest(input *ListGroupsInput) (req *request.Request, output *ListGroupsOutput) {
+	op := &request.Operation{
+		Name:       opListGroups,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListGroupsInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &ListGroupsOutput{}
+	req.Data = output
+	return
+}
+
+// ListGroups API operation for Amazon Cognito Identity Provider.
+//
+// Lists the groups associated with a user pool.
+//
+// Requires developer credentials.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity Provider's
+// API operation ListGroups for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   This exception is thrown when the Amazon Cognito service encounters an invalid
+//   parameter.
+//
+//   * ResourceNotFoundException
+//   This exception is thrown when the Amazon Cognito service cannot find the
+//   requested resource.
+//
+//   * TooManyRequestsException
+//   This exception gets thrown when the user has made too many requests for a
+//   given operation.
+//
+//   * NotAuthorizedException
+//   This exception gets thrown when a user is not authorized.
+//
+//   * InternalErrorException
+//   This exception is thrown when Amazon Cognito encounters an internal error.
+//
+func (c *CognitoIdentityProvider) ListGroups(input *ListGroupsInput) (*ListGroupsOutput, error) {
+	req, out := c.ListGroupsRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opListUserImportJobs = "ListUserImportJobs"
 
 // ListUserImportJobsRequest generates a "aws/request.Request" representing the
@@ -4163,6 +4791,87 @@ func (c *CognitoIdentityProvider) ListUsersRequest(input *ListUsersInput) (req *
 //
 func (c *CognitoIdentityProvider) ListUsers(input *ListUsersInput) (*ListUsersOutput, error) {
 	req, out := c.ListUsersRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opListUsersInGroup = "ListUsersInGroup"
+
+// ListUsersInGroupRequest generates a "aws/request.Request" representing the
+// client's request for the ListUsersInGroup operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See ListUsersInGroup for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ListUsersInGroup method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ListUsersInGroupRequest method.
+//    req, resp := client.ListUsersInGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *CognitoIdentityProvider) ListUsersInGroupRequest(input *ListUsersInGroupInput) (req *request.Request, output *ListUsersInGroupOutput) {
+	op := &request.Operation{
+		Name:       opListUsersInGroup,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListUsersInGroupInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &ListUsersInGroupOutput{}
+	req.Data = output
+	return
+}
+
+// ListUsersInGroup API operation for Amazon Cognito Identity Provider.
+//
+// Lists the users in the specified group.
+//
+// Requires developer credentials.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity Provider's
+// API operation ListUsersInGroup for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   This exception is thrown when the Amazon Cognito service encounters an invalid
+//   parameter.
+//
+//   * ResourceNotFoundException
+//   This exception is thrown when the Amazon Cognito service cannot find the
+//   requested resource.
+//
+//   * TooManyRequestsException
+//   This exception gets thrown when the user has made too many requests for a
+//   given operation.
+//
+//   * NotAuthorizedException
+//   This exception gets thrown when a user is not authorized.
+//
+//   * InternalErrorException
+//   This exception is thrown when Amazon Cognito encounters an internal error.
+//
+func (c *CognitoIdentityProvider) ListUsersInGroup(input *ListUsersInGroupInput) (*ListUsersInGroupOutput, error) {
+	req, out := c.ListUsersInGroupRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -4878,6 +5587,87 @@ func (c *CognitoIdentityProvider) UpdateDeviceStatus(input *UpdateDeviceStatusIn
 	return out, err
 }
 
+const opUpdateGroup = "UpdateGroup"
+
+// UpdateGroupRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateGroup operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See UpdateGroup for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the UpdateGroup method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the UpdateGroupRequest method.
+//    req, resp := client.UpdateGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *CognitoIdentityProvider) UpdateGroupRequest(input *UpdateGroupInput) (req *request.Request, output *UpdateGroupOutput) {
+	op := &request.Operation{
+		Name:       opUpdateGroup,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateGroupInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &UpdateGroupOutput{}
+	req.Data = output
+	return
+}
+
+// UpdateGroup API operation for Amazon Cognito Identity Provider.
+//
+// Updates the specified group with the specified attributes.
+//
+// Requires developer credentials.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Cognito Identity Provider's
+// API operation UpdateGroup for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundException
+//   This exception is thrown when the Amazon Cognito service cannot find the
+//   requested resource.
+//
+//   * InvalidParameterException
+//   This exception is thrown when the Amazon Cognito service encounters an invalid
+//   parameter.
+//
+//   * TooManyRequestsException
+//   This exception gets thrown when the user has made too many requests for a
+//   given operation.
+//
+//   * NotAuthorizedException
+//   This exception gets thrown when a user is not authorized.
+//
+//   * InternalErrorException
+//   This exception is thrown when Amazon Cognito encounters an internal error.
+//
+func (c *CognitoIdentityProvider) UpdateGroup(input *UpdateGroupInput) (*UpdateGroupOutput, error) {
+	req, out := c.UpdateGroupRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opUpdateUserAttributes = "UpdateUserAttributes"
 
 // UpdateUserAttributesRequest generates a "aws/request.Request" representing the
@@ -5098,6 +5888,9 @@ func (c *CognitoIdentityProvider) UpdateUserPoolRequest(input *UpdateUserPoolInp
 //   provided for SMS configuration. This can happen if you do not trust cognito-idp.amazonaws.com
 //   or the external ID provided in the role does not match what is provided in
 //   the SMS configuration for the user pool.
+//
+//   * UserPoolTaggingException
+//   This exception gets thrown when a user pool tag cannot be set or updated.
 //
 //   * InvalidEmailRoleAccessPolicyException
 //   This exception is thrown when Amazon Cognito is not allowed to use your email
@@ -5346,6 +6139,18 @@ func (s *AddCustomAttributesInput) Validate() error {
 	return nil
 }
 
+// SetCustomAttributes sets the CustomAttributes field's value.
+func (s *AddCustomAttributesInput) SetCustomAttributes(v []*SchemaAttributeType) *AddCustomAttributesInput {
+	s.CustomAttributes = v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AddCustomAttributesInput) SetUserPoolId(v string) *AddCustomAttributesInput {
+	s.UserPoolId = &v
+	return s
+}
+
 // Represents the response from the server for the request to add custom attributes.
 type AddCustomAttributesOutput struct {
 	_ struct{} `type:"structure"`
@@ -5358,6 +6163,95 @@ func (s AddCustomAttributesOutput) String() string {
 
 // GoString returns the string representation
 func (s AddCustomAttributesOutput) GoString() string {
+	return s.String()
+}
+
+type AdminAddUserToGroupInput struct {
+	_ struct{} `type:"structure"`
+
+	// The group name.
+	//
+	// GroupName is a required field
+	GroupName *string `min:"1" type:"string" required:"true"`
+
+	// The user pool ID for the user pool.
+	//
+	// UserPoolId is a required field
+	UserPoolId *string `min:"1" type:"string" required:"true"`
+
+	// The username for the user.
+	//
+	// Username is a required field
+	Username *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s AdminAddUserToGroupInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AdminAddUserToGroupInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AdminAddUserToGroupInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AdminAddUserToGroupInput"}
+	if s.GroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GroupName"))
+	}
+	if s.GroupName != nil && len(*s.GroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupName", 1))
+	}
+	if s.UserPoolId == nil {
+		invalidParams.Add(request.NewErrParamRequired("UserPoolId"))
+	}
+	if s.UserPoolId != nil && len(*s.UserPoolId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("UserPoolId", 1))
+	}
+	if s.Username == nil {
+		invalidParams.Add(request.NewErrParamRequired("Username"))
+	}
+	if s.Username != nil && len(*s.Username) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Username", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetGroupName sets the GroupName field's value.
+func (s *AdminAddUserToGroupInput) SetGroupName(v string) *AdminAddUserToGroupInput {
+	s.GroupName = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminAddUserToGroupInput) SetUserPoolId(v string) *AdminAddUserToGroupInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *AdminAddUserToGroupInput) SetUsername(v string) *AdminAddUserToGroupInput {
+	s.Username = &v
+	return s
+}
+
+type AdminAddUserToGroupOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s AdminAddUserToGroupOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AdminAddUserToGroupOutput) GoString() string {
 	return s.String()
 }
 
@@ -5408,6 +6302,18 @@ func (s *AdminConfirmSignUpInput) Validate() error {
 	return nil
 }
 
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminConfirmSignUpInput) SetUserPoolId(v string) *AdminConfirmSignUpInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *AdminConfirmSignUpInput) SetUsername(v string) *AdminConfirmSignUpInput {
+	s.Username = &v
+	return s
+}
+
 // Represents the response from the server for the request to confirm registration.
 type AdminConfirmSignUpOutput struct {
 	_ struct{} `type:"structure"`
@@ -5437,6 +6343,7 @@ type AdminCreateUserConfigType struct {
 	// The user account expiration limit, in days, after which the account is no
 	// longer usable. To reset the account after that time limit, you must call
 	// AdminCreateUser again, specifying "RESEND" for the MessageAction parameter.
+	// The default value for this paameter is 7.
 	UnusedAccountValidityDays *int64 `type:"integer"`
 }
 
@@ -5463,6 +6370,24 @@ func (s *AdminCreateUserConfigType) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAllowAdminCreateUserOnly sets the AllowAdminCreateUserOnly field's value.
+func (s *AdminCreateUserConfigType) SetAllowAdminCreateUserOnly(v bool) *AdminCreateUserConfigType {
+	s.AllowAdminCreateUserOnly = &v
+	return s
+}
+
+// SetInviteMessageTemplate sets the InviteMessageTemplate field's value.
+func (s *AdminCreateUserConfigType) SetInviteMessageTemplate(v *MessageTemplateType) *AdminCreateUserConfigType {
+	s.InviteMessageTemplate = v
+	return s
+}
+
+// SetUnusedAccountValidityDays sets the UnusedAccountValidityDays field's value.
+func (s *AdminCreateUserConfigType) SetUnusedAccountValidityDays(v int64) *AdminCreateUserConfigType {
+	s.UnusedAccountValidityDays = &v
+	return s
 }
 
 // Represents the request to create a user in the specified user pool.
@@ -5495,9 +6420,9 @@ type AdminCreateUserInput struct {
 	// The user's temporary password. This password must conform to the password
 	// policy that you specified when you created the user pool.
 	//
-	// The temporary password is valid only once. To complete the Admin Create
-	// User flow, the user must enter the temporary password in the sign-in page
-	// along with a new password to be used in all future sign-ins.
+	// The temporary password is valid only once. To complete the Admin Create User
+	// flow, the user must enter the temporary password in the sign-in page along
+	// with a new password to be used in all future sign-ins.
 	//
 	// This parameter is not required. If you do not specify a value, Amazon Cognito
 	// generates one for you.
@@ -5524,15 +6449,15 @@ type AdminCreateUserInput struct {
 	// to True, and you can set the phone_number_verified attribute to True. (You
 	// cannot do this by calling other operations such as AdminUpdateUserAttributes.)
 	//
-	//    email: The email address of the user to whom the message that contains
-	// the code and username will be sent. Required if the email_verified attribute
-	// is set to True, or if "EMAIL" is specified in the DesiredDeliveryMediums
-	// parameter.
+	//    * email: The email address of the user to whom the message that contains
+	//    the code and username will be sent. Required if the email_verified attribute
+	//    is set to True, or if "EMAIL" is specified in the DesiredDeliveryMediums
+	//    parameter.
 	//
-	//    phone_number: The phone number of the user to whom the message that contains
-	// the code and username will be sent. Required if the phone_number_verified
-	// attribute is set to True, or if "SMS" is specified in the DesiredDeliveryMediums
-	// parameter.
+	//    * phone_number: The phone number of the user to whom the message that
+	//    contains the code and username will be sent. Required if the phone_number_verified
+	//    attribute is set to True, or if "SMS" is specified in the DesiredDeliveryMediums
+	//    parameter.
 	UserAttributes []*AttributeType `type:"list"`
 
 	// The user pool ID for the user pool where the user will be created.
@@ -5617,6 +6542,54 @@ func (s *AdminCreateUserInput) Validate() error {
 	return nil
 }
 
+// SetDesiredDeliveryMediums sets the DesiredDeliveryMediums field's value.
+func (s *AdminCreateUserInput) SetDesiredDeliveryMediums(v []*string) *AdminCreateUserInput {
+	s.DesiredDeliveryMediums = v
+	return s
+}
+
+// SetForceAliasCreation sets the ForceAliasCreation field's value.
+func (s *AdminCreateUserInput) SetForceAliasCreation(v bool) *AdminCreateUserInput {
+	s.ForceAliasCreation = &v
+	return s
+}
+
+// SetMessageAction sets the MessageAction field's value.
+func (s *AdminCreateUserInput) SetMessageAction(v string) *AdminCreateUserInput {
+	s.MessageAction = &v
+	return s
+}
+
+// SetTemporaryPassword sets the TemporaryPassword field's value.
+func (s *AdminCreateUserInput) SetTemporaryPassword(v string) *AdminCreateUserInput {
+	s.TemporaryPassword = &v
+	return s
+}
+
+// SetUserAttributes sets the UserAttributes field's value.
+func (s *AdminCreateUserInput) SetUserAttributes(v []*AttributeType) *AdminCreateUserInput {
+	s.UserAttributes = v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminCreateUserInput) SetUserPoolId(v string) *AdminCreateUserInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *AdminCreateUserInput) SetUsername(v string) *AdminCreateUserInput {
+	s.Username = &v
+	return s
+}
+
+// SetValidationData sets the ValidationData field's value.
+func (s *AdminCreateUserInput) SetValidationData(v []*AttributeType) *AdminCreateUserInput {
+	s.ValidationData = v
+	return s
+}
+
 // Represents the response from the server to the request to create the user.
 type AdminCreateUserOutput struct {
 	_ struct{} `type:"structure"`
@@ -5633,6 +6606,12 @@ func (s AdminCreateUserOutput) String() string {
 // GoString returns the string representation
 func (s AdminCreateUserOutput) GoString() string {
 	return s.String()
+}
+
+// SetUser sets the User field's value.
+func (s *AdminCreateUserOutput) SetUser(v *UserType) *AdminCreateUserOutput {
+	s.User = v
+	return s
 }
 
 // Represents the request to delete user attributes as an administrator.
@@ -5688,6 +6667,24 @@ func (s *AdminDeleteUserAttributesInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetUserAttributeNames sets the UserAttributeNames field's value.
+func (s *AdminDeleteUserAttributesInput) SetUserAttributeNames(v []*string) *AdminDeleteUserAttributesInput {
+	s.UserAttributeNames = v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminDeleteUserAttributesInput) SetUserPoolId(v string) *AdminDeleteUserAttributesInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *AdminDeleteUserAttributesInput) SetUsername(v string) *AdminDeleteUserAttributesInput {
+	s.Username = &v
+	return s
 }
 
 // Represents the response received from the server for a request to delete
@@ -5753,6 +6750,18 @@ func (s *AdminDeleteUserInput) Validate() error {
 	return nil
 }
 
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminDeleteUserInput) SetUserPoolId(v string) *AdminDeleteUserInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *AdminDeleteUserInput) SetUsername(v string) *AdminDeleteUserInput {
+	s.Username = &v
+	return s
+}
+
 type AdminDeleteUserOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -5812,6 +6821,18 @@ func (s *AdminDisableUserInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminDisableUserInput) SetUserPoolId(v string) *AdminDisableUserInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *AdminDisableUserInput) SetUsername(v string) *AdminDisableUserInput {
+	s.Username = &v
+	return s
 }
 
 // Represents the response received from the server to disable the user as an
@@ -5875,6 +6896,18 @@ func (s *AdminEnableUserInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminEnableUserInput) SetUserPoolId(v string) *AdminEnableUserInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *AdminEnableUserInput) SetUsername(v string) *AdminEnableUserInput {
+	s.Username = &v
+	return s
 }
 
 // Represents the response from the server for the request to enable a user
@@ -5951,6 +6984,24 @@ func (s *AdminForgetDeviceInput) Validate() error {
 	return nil
 }
 
+// SetDeviceKey sets the DeviceKey field's value.
+func (s *AdminForgetDeviceInput) SetDeviceKey(v string) *AdminForgetDeviceInput {
+	s.DeviceKey = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminForgetDeviceInput) SetUserPoolId(v string) *AdminForgetDeviceInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *AdminForgetDeviceInput) SetUsername(v string) *AdminForgetDeviceInput {
+	s.Username = &v
+	return s
+}
+
 type AdminForgetDeviceOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -6023,6 +7074,24 @@ func (s *AdminGetDeviceInput) Validate() error {
 	return nil
 }
 
+// SetDeviceKey sets the DeviceKey field's value.
+func (s *AdminGetDeviceInput) SetDeviceKey(v string) *AdminGetDeviceInput {
+	s.DeviceKey = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminGetDeviceInput) SetUserPoolId(v string) *AdminGetDeviceInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *AdminGetDeviceInput) SetUsername(v string) *AdminGetDeviceInput {
+	s.Username = &v
+	return s
+}
+
 // Gets the device response, as an administrator.
 type AdminGetDeviceOutput struct {
 	_ struct{} `type:"structure"`
@@ -6041,6 +7110,12 @@ func (s AdminGetDeviceOutput) String() string {
 // GoString returns the string representation
 func (s AdminGetDeviceOutput) GoString() string {
 	return s.String()
+}
+
+// SetDevice sets the Device field's value.
+func (s *AdminGetDeviceOutput) SetDevice(v *DeviceType) *AdminGetDeviceOutput {
+	s.Device = v
+	return s
 }
 
 // Represents the request to get the specified user as an administrator.
@@ -6091,6 +7166,18 @@ func (s *AdminGetUserInput) Validate() error {
 	return nil
 }
 
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminGetUserInput) SetUserPoolId(v string) *AdminGetUserInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *AdminGetUserInput) SetUsername(v string) *AdminGetUserInput {
+	s.Username = &v
+	return s
+}
+
 // Represents the response from the server from the request to get the specified
 // user as an administrator.
 type AdminGetUserOutput struct {
@@ -6113,15 +7200,15 @@ type AdminGetUserOutput struct {
 
 	// The user status. Can be one of the following:
 	//
-	//   UNCONFIRMED - User has been created but not confirmed.
+	//    * UNCONFIRMED - User has been created but not confirmed.
 	//
-	//   CONFIRMED - User has been confirmed.
+	//    * CONFIRMED - User has been confirmed.
 	//
-	//   ARCHIVED - User is no longer active.
+	//    * ARCHIVED - User is no longer active.
 	//
-	//   COMPROMISED - User is disabled due to a potential security threat.
+	//    * COMPROMISED - User is disabled due to a potential security threat.
 	//
-	//   UNKNOWN - User status is not known.
+	//    * UNKNOWN - User status is not known.
 	UserStatus *string `type:"string" enum:"UserStatusType"`
 
 	// The user name of the user about whom you are receiving information.
@@ -6138,6 +7225,48 @@ func (s AdminGetUserOutput) String() string {
 // GoString returns the string representation
 func (s AdminGetUserOutput) GoString() string {
 	return s.String()
+}
+
+// SetEnabled sets the Enabled field's value.
+func (s *AdminGetUserOutput) SetEnabled(v bool) *AdminGetUserOutput {
+	s.Enabled = &v
+	return s
+}
+
+// SetMFAOptions sets the MFAOptions field's value.
+func (s *AdminGetUserOutput) SetMFAOptions(v []*MFAOptionType) *AdminGetUserOutput {
+	s.MFAOptions = v
+	return s
+}
+
+// SetUserAttributes sets the UserAttributes field's value.
+func (s *AdminGetUserOutput) SetUserAttributes(v []*AttributeType) *AdminGetUserOutput {
+	s.UserAttributes = v
+	return s
+}
+
+// SetUserCreateDate sets the UserCreateDate field's value.
+func (s *AdminGetUserOutput) SetUserCreateDate(v time.Time) *AdminGetUserOutput {
+	s.UserCreateDate = &v
+	return s
+}
+
+// SetUserLastModifiedDate sets the UserLastModifiedDate field's value.
+func (s *AdminGetUserOutput) SetUserLastModifiedDate(v time.Time) *AdminGetUserOutput {
+	s.UserLastModifiedDate = &v
+	return s
+}
+
+// SetUserStatus sets the UserStatus field's value.
+func (s *AdminGetUserOutput) SetUserStatus(v string) *AdminGetUserOutput {
+	s.UserStatus = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *AdminGetUserOutput) SetUsername(v string) *AdminGetUserOutput {
+	s.Username = &v
+	return s
 }
 
 // Initiates the authorization request, as an administrator.
@@ -6201,11 +7330,41 @@ func (s *AdminInitiateAuthInput) Validate() error {
 	return nil
 }
 
+// SetAuthFlow sets the AuthFlow field's value.
+func (s *AdminInitiateAuthInput) SetAuthFlow(v string) *AdminInitiateAuthInput {
+	s.AuthFlow = &v
+	return s
+}
+
+// SetAuthParameters sets the AuthParameters field's value.
+func (s *AdminInitiateAuthInput) SetAuthParameters(v map[string]*string) *AdminInitiateAuthInput {
+	s.AuthParameters = v
+	return s
+}
+
+// SetClientId sets the ClientId field's value.
+func (s *AdminInitiateAuthInput) SetClientId(v string) *AdminInitiateAuthInput {
+	s.ClientId = &v
+	return s
+}
+
+// SetClientMetadata sets the ClientMetadata field's value.
+func (s *AdminInitiateAuthInput) SetClientMetadata(v map[string]*string) *AdminInitiateAuthInput {
+	s.ClientMetadata = v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminInitiateAuthInput) SetUserPoolId(v string) *AdminInitiateAuthInput {
+	s.UserPoolId = &v
+	return s
+}
+
 // Initiates the authentication response, as an administrator.
 type AdminInitiateAuthOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The result type of the authentication result.
+	// The result of the authentication response.
 	AuthenticationResult *AuthenticationResultType `type:"structure"`
 
 	// The name of the challenge.
@@ -6226,6 +7385,30 @@ func (s AdminInitiateAuthOutput) String() string {
 // GoString returns the string representation
 func (s AdminInitiateAuthOutput) GoString() string {
 	return s.String()
+}
+
+// SetAuthenticationResult sets the AuthenticationResult field's value.
+func (s *AdminInitiateAuthOutput) SetAuthenticationResult(v *AuthenticationResultType) *AdminInitiateAuthOutput {
+	s.AuthenticationResult = v
+	return s
+}
+
+// SetChallengeName sets the ChallengeName field's value.
+func (s *AdminInitiateAuthOutput) SetChallengeName(v string) *AdminInitiateAuthOutput {
+	s.ChallengeName = &v
+	return s
+}
+
+// SetChallengeParameters sets the ChallengeParameters field's value.
+func (s *AdminInitiateAuthOutput) SetChallengeParameters(v map[string]*string) *AdminInitiateAuthOutput {
+	s.ChallengeParameters = v
+	return s
+}
+
+// SetSession sets the Session field's value.
+func (s *AdminInitiateAuthOutput) SetSession(v string) *AdminInitiateAuthOutput {
+	s.Session = &v
+	return s
 }
 
 // Represents the request to list devices, as an administrator.
@@ -6284,6 +7467,30 @@ func (s *AdminListDevicesInput) Validate() error {
 	return nil
 }
 
+// SetLimit sets the Limit field's value.
+func (s *AdminListDevicesInput) SetLimit(v int64) *AdminListDevicesInput {
+	s.Limit = &v
+	return s
+}
+
+// SetPaginationToken sets the PaginationToken field's value.
+func (s *AdminListDevicesInput) SetPaginationToken(v string) *AdminListDevicesInput {
+	s.PaginationToken = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminListDevicesInput) SetUserPoolId(v string) *AdminListDevicesInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *AdminListDevicesInput) SetUsername(v string) *AdminListDevicesInput {
+	s.Username = &v
+	return s
+}
+
 // Lists the device's response, as an administrator.
 type AdminListDevicesOutput struct {
 	_ struct{} `type:"structure"`
@@ -6302,6 +7509,220 @@ func (s AdminListDevicesOutput) String() string {
 
 // GoString returns the string representation
 func (s AdminListDevicesOutput) GoString() string {
+	return s.String()
+}
+
+// SetDevices sets the Devices field's value.
+func (s *AdminListDevicesOutput) SetDevices(v []*DeviceType) *AdminListDevicesOutput {
+	s.Devices = v
+	return s
+}
+
+// SetPaginationToken sets the PaginationToken field's value.
+func (s *AdminListDevicesOutput) SetPaginationToken(v string) *AdminListDevicesOutput {
+	s.PaginationToken = &v
+	return s
+}
+
+type AdminListGroupsForUserInput struct {
+	_ struct{} `type:"structure"`
+
+	// The limit of the request to list groups.
+	Limit *int64 `type:"integer"`
+
+	// An identifier that was returned from the previous call to this operation,
+	// which can be used to return the next set of items in the list.
+	NextToken *string `min:"1" type:"string"`
+
+	// The user pool ID for the user pool.
+	//
+	// UserPoolId is a required field
+	UserPoolId *string `min:"1" type:"string" required:"true"`
+
+	// The username for the user.
+	//
+	// Username is a required field
+	Username *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s AdminListGroupsForUserInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AdminListGroupsForUserInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AdminListGroupsForUserInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AdminListGroupsForUserInput"}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NextToken", 1))
+	}
+	if s.UserPoolId == nil {
+		invalidParams.Add(request.NewErrParamRequired("UserPoolId"))
+	}
+	if s.UserPoolId != nil && len(*s.UserPoolId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("UserPoolId", 1))
+	}
+	if s.Username == nil {
+		invalidParams.Add(request.NewErrParamRequired("Username"))
+	}
+	if s.Username != nil && len(*s.Username) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Username", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetLimit sets the Limit field's value.
+func (s *AdminListGroupsForUserInput) SetLimit(v int64) *AdminListGroupsForUserInput {
+	s.Limit = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *AdminListGroupsForUserInput) SetNextToken(v string) *AdminListGroupsForUserInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminListGroupsForUserInput) SetUserPoolId(v string) *AdminListGroupsForUserInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *AdminListGroupsForUserInput) SetUsername(v string) *AdminListGroupsForUserInput {
+	s.Username = &v
+	return s
+}
+
+type AdminListGroupsForUserOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The groups that the user belongs to.
+	Groups []*GroupType `type:"list"`
+
+	// An identifier that was returned from the previous call to this operation,
+	// which can be used to return the next set of items in the list.
+	NextToken *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s AdminListGroupsForUserOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AdminListGroupsForUserOutput) GoString() string {
+	return s.String()
+}
+
+// SetGroups sets the Groups field's value.
+func (s *AdminListGroupsForUserOutput) SetGroups(v []*GroupType) *AdminListGroupsForUserOutput {
+	s.Groups = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *AdminListGroupsForUserOutput) SetNextToken(v string) *AdminListGroupsForUserOutput {
+	s.NextToken = &v
+	return s
+}
+
+type AdminRemoveUserFromGroupInput struct {
+	_ struct{} `type:"structure"`
+
+	// The group name.
+	//
+	// GroupName is a required field
+	GroupName *string `min:"1" type:"string" required:"true"`
+
+	// The user pool ID for the user pool.
+	//
+	// UserPoolId is a required field
+	UserPoolId *string `min:"1" type:"string" required:"true"`
+
+	// The username for the user.
+	//
+	// Username is a required field
+	Username *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s AdminRemoveUserFromGroupInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AdminRemoveUserFromGroupInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AdminRemoveUserFromGroupInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AdminRemoveUserFromGroupInput"}
+	if s.GroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GroupName"))
+	}
+	if s.GroupName != nil && len(*s.GroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupName", 1))
+	}
+	if s.UserPoolId == nil {
+		invalidParams.Add(request.NewErrParamRequired("UserPoolId"))
+	}
+	if s.UserPoolId != nil && len(*s.UserPoolId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("UserPoolId", 1))
+	}
+	if s.Username == nil {
+		invalidParams.Add(request.NewErrParamRequired("Username"))
+	}
+	if s.Username != nil && len(*s.Username) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Username", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetGroupName sets the GroupName field's value.
+func (s *AdminRemoveUserFromGroupInput) SetGroupName(v string) *AdminRemoveUserFromGroupInput {
+	s.GroupName = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminRemoveUserFromGroupInput) SetUserPoolId(v string) *AdminRemoveUserFromGroupInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *AdminRemoveUserFromGroupInput) SetUsername(v string) *AdminRemoveUserFromGroupInput {
+	s.Username = &v
+	return s
+}
+
+type AdminRemoveUserFromGroupOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s AdminRemoveUserFromGroupOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AdminRemoveUserFromGroupOutput) GoString() string {
 	return s.String()
 }
 
@@ -6350,6 +7771,18 @@ func (s *AdminResetUserPasswordInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminResetUserPasswordInput) SetUserPoolId(v string) *AdminResetUserPasswordInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *AdminResetUserPasswordInput) SetUsername(v string) *AdminResetUserPasswordInput {
+	s.Username = &v
+	return s
 }
 
 // Represents the response from the server to reset a user password as an administrator.
@@ -6431,11 +7864,41 @@ func (s *AdminRespondToAuthChallengeInput) Validate() error {
 	return nil
 }
 
+// SetChallengeName sets the ChallengeName field's value.
+func (s *AdminRespondToAuthChallengeInput) SetChallengeName(v string) *AdminRespondToAuthChallengeInput {
+	s.ChallengeName = &v
+	return s
+}
+
+// SetChallengeResponses sets the ChallengeResponses field's value.
+func (s *AdminRespondToAuthChallengeInput) SetChallengeResponses(v map[string]*string) *AdminRespondToAuthChallengeInput {
+	s.ChallengeResponses = v
+	return s
+}
+
+// SetClientId sets the ClientId field's value.
+func (s *AdminRespondToAuthChallengeInput) SetClientId(v string) *AdminRespondToAuthChallengeInput {
+	s.ClientId = &v
+	return s
+}
+
+// SetSession sets the Session field's value.
+func (s *AdminRespondToAuthChallengeInput) SetSession(v string) *AdminRespondToAuthChallengeInput {
+	s.Session = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminRespondToAuthChallengeInput) SetUserPoolId(v string) *AdminRespondToAuthChallengeInput {
+	s.UserPoolId = &v
+	return s
+}
+
 // Responds to the authentication challenge, as an administrator.
 type AdminRespondToAuthChallengeOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The result type of the authentication result.
+	// The result returned by the server in response to the authentication request.
 	AuthenticationResult *AuthenticationResultType `type:"structure"`
 
 	// The name of the challenge.
@@ -6456,6 +7919,30 @@ func (s AdminRespondToAuthChallengeOutput) String() string {
 // GoString returns the string representation
 func (s AdminRespondToAuthChallengeOutput) GoString() string {
 	return s.String()
+}
+
+// SetAuthenticationResult sets the AuthenticationResult field's value.
+func (s *AdminRespondToAuthChallengeOutput) SetAuthenticationResult(v *AuthenticationResultType) *AdminRespondToAuthChallengeOutput {
+	s.AuthenticationResult = v
+	return s
+}
+
+// SetChallengeName sets the ChallengeName field's value.
+func (s *AdminRespondToAuthChallengeOutput) SetChallengeName(v string) *AdminRespondToAuthChallengeOutput {
+	s.ChallengeName = &v
+	return s
+}
+
+// SetChallengeParameters sets the ChallengeParameters field's value.
+func (s *AdminRespondToAuthChallengeOutput) SetChallengeParameters(v map[string]*string) *AdminRespondToAuthChallengeOutput {
+	s.ChallengeParameters = v
+	return s
+}
+
+// SetSession sets the Session field's value.
+func (s *AdminRespondToAuthChallengeOutput) SetSession(v string) *AdminRespondToAuthChallengeOutput {
+	s.Session = &v
+	return s
 }
 
 // Represents the request to set user settings as an administrator.
@@ -6522,6 +8009,24 @@ func (s *AdminSetUserSettingsInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetMFAOptions sets the MFAOptions field's value.
+func (s *AdminSetUserSettingsInput) SetMFAOptions(v []*MFAOptionType) *AdminSetUserSettingsInput {
+	s.MFAOptions = v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminSetUserSettingsInput) SetUserPoolId(v string) *AdminSetUserSettingsInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *AdminSetUserSettingsInput) SetUsername(v string) *AdminSetUserSettingsInput {
+	s.Username = &v
+	return s
 }
 
 // Represents the response from the server to set user settings as an administrator.
@@ -6598,6 +8103,30 @@ func (s *AdminUpdateDeviceStatusInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetDeviceKey sets the DeviceKey field's value.
+func (s *AdminUpdateDeviceStatusInput) SetDeviceKey(v string) *AdminUpdateDeviceStatusInput {
+	s.DeviceKey = &v
+	return s
+}
+
+// SetDeviceRememberedStatus sets the DeviceRememberedStatus field's value.
+func (s *AdminUpdateDeviceStatusInput) SetDeviceRememberedStatus(v string) *AdminUpdateDeviceStatusInput {
+	s.DeviceRememberedStatus = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminUpdateDeviceStatusInput) SetUserPoolId(v string) *AdminUpdateDeviceStatusInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *AdminUpdateDeviceStatusInput) SetUsername(v string) *AdminUpdateDeviceStatusInput {
+	s.Username = &v
+	return s
 }
 
 // The status response from the request to update the device, as an administrator.
@@ -6680,6 +8209,24 @@ func (s *AdminUpdateUserAttributesInput) Validate() error {
 	return nil
 }
 
+// SetUserAttributes sets the UserAttributes field's value.
+func (s *AdminUpdateUserAttributesInput) SetUserAttributes(v []*AttributeType) *AdminUpdateUserAttributesInput {
+	s.UserAttributes = v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminUpdateUserAttributesInput) SetUserPoolId(v string) *AdminUpdateUserAttributesInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *AdminUpdateUserAttributesInput) SetUsername(v string) *AdminUpdateUserAttributesInput {
+	s.Username = &v
+	return s
+}
+
 // Represents the response from the server for the request to update user attributes
 // as an administrator.
 type AdminUpdateUserAttributesOutput struct {
@@ -6743,6 +8290,18 @@ func (s *AdminUserGlobalSignOutInput) Validate() error {
 	return nil
 }
 
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *AdminUserGlobalSignOutInput) SetUserPoolId(v string) *AdminUserGlobalSignOutInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *AdminUserGlobalSignOutInput) SetUsername(v string) *AdminUserGlobalSignOutInput {
+	s.Username = &v
+	return s
+}
+
 // The global sign-out response, as an administrator.
 type AdminUserGlobalSignOutOutput struct {
 	_ struct{} `type:"structure"`
@@ -6797,6 +8356,18 @@ func (s *AttributeType) Validate() error {
 	return nil
 }
 
+// SetName sets the Name field's value.
+func (s *AttributeType) SetName(v string) *AttributeType {
+	s.Name = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *AttributeType) SetValue(v string) *AttributeType {
+	s.Value = &v
+	return s
+}
+
 // The result type of the authentication result.
 type AuthenticationResultType struct {
 	_ struct{} `type:"structure"`
@@ -6828,6 +8399,42 @@ func (s AuthenticationResultType) String() string {
 // GoString returns the string representation
 func (s AuthenticationResultType) GoString() string {
 	return s.String()
+}
+
+// SetAccessToken sets the AccessToken field's value.
+func (s *AuthenticationResultType) SetAccessToken(v string) *AuthenticationResultType {
+	s.AccessToken = &v
+	return s
+}
+
+// SetExpiresIn sets the ExpiresIn field's value.
+func (s *AuthenticationResultType) SetExpiresIn(v int64) *AuthenticationResultType {
+	s.ExpiresIn = &v
+	return s
+}
+
+// SetIdToken sets the IdToken field's value.
+func (s *AuthenticationResultType) SetIdToken(v string) *AuthenticationResultType {
+	s.IdToken = &v
+	return s
+}
+
+// SetNewDeviceMetadata sets the NewDeviceMetadata field's value.
+func (s *AuthenticationResultType) SetNewDeviceMetadata(v *NewDeviceMetadataType) *AuthenticationResultType {
+	s.NewDeviceMetadata = v
+	return s
+}
+
+// SetRefreshToken sets the RefreshToken field's value.
+func (s *AuthenticationResultType) SetRefreshToken(v string) *AuthenticationResultType {
+	s.RefreshToken = &v
+	return s
+}
+
+// SetTokenType sets the TokenType field's value.
+func (s *AuthenticationResultType) SetTokenType(v string) *AuthenticationResultType {
+	s.TokenType = &v
+	return s
 }
 
 // Represents the request to change a user password.
@@ -6880,6 +8487,24 @@ func (s *ChangePasswordInput) Validate() error {
 	return nil
 }
 
+// SetAccessToken sets the AccessToken field's value.
+func (s *ChangePasswordInput) SetAccessToken(v string) *ChangePasswordInput {
+	s.AccessToken = &v
+	return s
+}
+
+// SetPreviousPassword sets the PreviousPassword field's value.
+func (s *ChangePasswordInput) SetPreviousPassword(v string) *ChangePasswordInput {
+	s.PreviousPassword = &v
+	return s
+}
+
+// SetProposedPassword sets the ProposedPassword field's value.
+func (s *ChangePasswordInput) SetProposedPassword(v string) *ChangePasswordInput {
+	s.ProposedPassword = &v
+	return s
+}
+
 // The response from the server to the change password request.
 type ChangePasswordOutput struct {
 	_ struct{} `type:"structure"`
@@ -6917,6 +8542,24 @@ func (s CodeDeliveryDetailsType) String() string {
 // GoString returns the string representation
 func (s CodeDeliveryDetailsType) GoString() string {
 	return s.String()
+}
+
+// SetAttributeName sets the AttributeName field's value.
+func (s *CodeDeliveryDetailsType) SetAttributeName(v string) *CodeDeliveryDetailsType {
+	s.AttributeName = &v
+	return s
+}
+
+// SetDeliveryMedium sets the DeliveryMedium field's value.
+func (s *CodeDeliveryDetailsType) SetDeliveryMedium(v string) *CodeDeliveryDetailsType {
+	s.DeliveryMedium = &v
+	return s
+}
+
+// SetDestination sets the Destination field's value.
+func (s *CodeDeliveryDetailsType) SetDestination(v string) *CodeDeliveryDetailsType {
+	s.Destination = &v
+	return s
 }
 
 // Confirms the device request.
@@ -6972,6 +8615,30 @@ func (s *ConfirmDeviceInput) Validate() error {
 	return nil
 }
 
+// SetAccessToken sets the AccessToken field's value.
+func (s *ConfirmDeviceInput) SetAccessToken(v string) *ConfirmDeviceInput {
+	s.AccessToken = &v
+	return s
+}
+
+// SetDeviceKey sets the DeviceKey field's value.
+func (s *ConfirmDeviceInput) SetDeviceKey(v string) *ConfirmDeviceInput {
+	s.DeviceKey = &v
+	return s
+}
+
+// SetDeviceName sets the DeviceName field's value.
+func (s *ConfirmDeviceInput) SetDeviceName(v string) *ConfirmDeviceInput {
+	s.DeviceName = &v
+	return s
+}
+
+// SetDeviceSecretVerifierConfig sets the DeviceSecretVerifierConfig field's value.
+func (s *ConfirmDeviceInput) SetDeviceSecretVerifierConfig(v *DeviceSecretVerifierConfigType) *ConfirmDeviceInput {
+	s.DeviceSecretVerifierConfig = v
+	return s
+}
+
 // Confirms the device response.
 type ConfirmDeviceOutput struct {
 	_ struct{} `type:"structure"`
@@ -6989,6 +8656,12 @@ func (s ConfirmDeviceOutput) String() string {
 // GoString returns the string representation
 func (s ConfirmDeviceOutput) GoString() string {
 	return s.String()
+}
+
+// SetUserConfirmationNecessary sets the UserConfirmationNecessary field's value.
+func (s *ConfirmDeviceOutput) SetUserConfirmationNecessary(v bool) *ConfirmDeviceOutput {
+	s.UserConfirmationNecessary = &v
+	return s
 }
 
 // The request representing the confirmation for a password reset.
@@ -7066,6 +8739,36 @@ func (s *ConfirmForgotPasswordInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetClientId sets the ClientId field's value.
+func (s *ConfirmForgotPasswordInput) SetClientId(v string) *ConfirmForgotPasswordInput {
+	s.ClientId = &v
+	return s
+}
+
+// SetConfirmationCode sets the ConfirmationCode field's value.
+func (s *ConfirmForgotPasswordInput) SetConfirmationCode(v string) *ConfirmForgotPasswordInput {
+	s.ConfirmationCode = &v
+	return s
+}
+
+// SetPassword sets the Password field's value.
+func (s *ConfirmForgotPasswordInput) SetPassword(v string) *ConfirmForgotPasswordInput {
+	s.Password = &v
+	return s
+}
+
+// SetSecretHash sets the SecretHash field's value.
+func (s *ConfirmForgotPasswordInput) SetSecretHash(v string) *ConfirmForgotPasswordInput {
+	s.SecretHash = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *ConfirmForgotPasswordInput) SetUsername(v string) *ConfirmForgotPasswordInput {
+	s.Username = &v
+	return s
 }
 
 // The response from the server that results from a user's request to retrieve
@@ -7157,6 +8860,36 @@ func (s *ConfirmSignUpInput) Validate() error {
 	return nil
 }
 
+// SetClientId sets the ClientId field's value.
+func (s *ConfirmSignUpInput) SetClientId(v string) *ConfirmSignUpInput {
+	s.ClientId = &v
+	return s
+}
+
+// SetConfirmationCode sets the ConfirmationCode field's value.
+func (s *ConfirmSignUpInput) SetConfirmationCode(v string) *ConfirmSignUpInput {
+	s.ConfirmationCode = &v
+	return s
+}
+
+// SetForceAliasCreation sets the ForceAliasCreation field's value.
+func (s *ConfirmSignUpInput) SetForceAliasCreation(v bool) *ConfirmSignUpInput {
+	s.ForceAliasCreation = &v
+	return s
+}
+
+// SetSecretHash sets the SecretHash field's value.
+func (s *ConfirmSignUpInput) SetSecretHash(v string) *ConfirmSignUpInput {
+	s.SecretHash = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *ConfirmSignUpInput) SetUsername(v string) *ConfirmSignUpInput {
+	s.Username = &v
+	return s
+}
+
 // Represents the response from the server for the registration confirmation.
 type ConfirmSignUpOutput struct {
 	_ struct{} `type:"structure"`
@@ -7170,6 +8903,131 @@ func (s ConfirmSignUpOutput) String() string {
 // GoString returns the string representation
 func (s ConfirmSignUpOutput) GoString() string {
 	return s.String()
+}
+
+type CreateGroupInput struct {
+	_ struct{} `type:"structure"`
+
+	// A string containing the description of the group.
+	Description *string `type:"string"`
+
+	// The name of the group. Must be unique.
+	//
+	// GroupName is a required field
+	GroupName *string `min:"1" type:"string" required:"true"`
+
+	// A nonnegative integer value that specifies the precedence of this group relative
+	// to the other groups that a user can belong to in the user pool. Zero is the
+	// highest precedence value. Groups with lower Precedence values take precedence
+	// over groups with higher or null Precedence values. If a user belongs to two
+	// or more groups, it is the group with the lowest precedence value whose role
+	// ARN will be used in the cognito:roles and cognito:preferred_role claims in
+	// the user's tokens.
+	//
+	// Two groups can have the same Precedence value. If this happens, neither group
+	// takes precedence over the other. If two groups with the same Precedence have
+	// the same role ARN, that role is used in the cognito:preferred_role claim
+	// in tokens for users in each group. If the two groups have different role
+	// ARNs, the cognito:preferred_role claim is not set in users' tokens.
+	//
+	// The default Precedence value is null.
+	Precedence *int64 `type:"integer"`
+
+	// The role ARN for the group.
+	RoleArn *string `min:"20" type:"string"`
+
+	// The user pool ID for the user pool.
+	//
+	// UserPoolId is a required field
+	UserPoolId *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CreateGroupInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateGroupInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateGroupInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateGroupInput"}
+	if s.GroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GroupName"))
+	}
+	if s.GroupName != nil && len(*s.GroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupName", 1))
+	}
+	if s.RoleArn != nil && len(*s.RoleArn) < 20 {
+		invalidParams.Add(request.NewErrParamMinLen("RoleArn", 20))
+	}
+	if s.UserPoolId == nil {
+		invalidParams.Add(request.NewErrParamRequired("UserPoolId"))
+	}
+	if s.UserPoolId != nil && len(*s.UserPoolId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("UserPoolId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDescription sets the Description field's value.
+func (s *CreateGroupInput) SetDescription(v string) *CreateGroupInput {
+	s.Description = &v
+	return s
+}
+
+// SetGroupName sets the GroupName field's value.
+func (s *CreateGroupInput) SetGroupName(v string) *CreateGroupInput {
+	s.GroupName = &v
+	return s
+}
+
+// SetPrecedence sets the Precedence field's value.
+func (s *CreateGroupInput) SetPrecedence(v int64) *CreateGroupInput {
+	s.Precedence = &v
+	return s
+}
+
+// SetRoleArn sets the RoleArn field's value.
+func (s *CreateGroupInput) SetRoleArn(v string) *CreateGroupInput {
+	s.RoleArn = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *CreateGroupInput) SetUserPoolId(v string) *CreateGroupInput {
+	s.UserPoolId = &v
+	return s
+}
+
+type CreateGroupOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The group object for the group.
+	Group *GroupType `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateGroupOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateGroupOutput) GoString() string {
+	return s.String()
+}
+
+// SetGroup sets the Group field's value.
+func (s *CreateGroupOutput) SetGroup(v *GroupType) *CreateGroupOutput {
+	s.Group = v
+	return s
 }
 
 // Represents the request to create the user import job.
@@ -7230,6 +9088,24 @@ func (s *CreateUserImportJobInput) Validate() error {
 	return nil
 }
 
+// SetCloudWatchLogsRoleArn sets the CloudWatchLogsRoleArn field's value.
+func (s *CreateUserImportJobInput) SetCloudWatchLogsRoleArn(v string) *CreateUserImportJobInput {
+	s.CloudWatchLogsRoleArn = &v
+	return s
+}
+
+// SetJobName sets the JobName field's value.
+func (s *CreateUserImportJobInput) SetJobName(v string) *CreateUserImportJobInput {
+	s.JobName = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *CreateUserImportJobInput) SetUserPoolId(v string) *CreateUserImportJobInput {
+	s.UserPoolId = &v
+	return s
+}
+
 // Represents the response from the server to the request to create the user
 // import job.
 type CreateUserImportJobOutput struct {
@@ -7247,6 +9123,12 @@ func (s CreateUserImportJobOutput) String() string {
 // GoString returns the string representation
 func (s CreateUserImportJobOutput) GoString() string {
 	return s.String()
+}
+
+// SetUserImportJob sets the UserImportJob field's value.
+func (s *CreateUserImportJobOutput) SetUserImportJob(v *UserImportJobType) *CreateUserImportJobOutput {
+	s.UserImportJob = v
+	return s
 }
 
 // Represents the request to create a user pool client.
@@ -7268,7 +9150,7 @@ type CreateUserPoolClientInput struct {
 	// The read attributes.
 	ReadAttributes []*string `type:"list"`
 
-	// Refreshes the token validity.
+	// The validity of the refresh token, in days.
 	RefreshTokenValidity *int64 `type:"integer"`
 
 	// The user pool ID for the user pool where you want to create a user pool client.
@@ -7312,6 +9194,48 @@ func (s *CreateUserPoolClientInput) Validate() error {
 	return nil
 }
 
+// SetClientName sets the ClientName field's value.
+func (s *CreateUserPoolClientInput) SetClientName(v string) *CreateUserPoolClientInput {
+	s.ClientName = &v
+	return s
+}
+
+// SetExplicitAuthFlows sets the ExplicitAuthFlows field's value.
+func (s *CreateUserPoolClientInput) SetExplicitAuthFlows(v []*string) *CreateUserPoolClientInput {
+	s.ExplicitAuthFlows = v
+	return s
+}
+
+// SetGenerateSecret sets the GenerateSecret field's value.
+func (s *CreateUserPoolClientInput) SetGenerateSecret(v bool) *CreateUserPoolClientInput {
+	s.GenerateSecret = &v
+	return s
+}
+
+// SetReadAttributes sets the ReadAttributes field's value.
+func (s *CreateUserPoolClientInput) SetReadAttributes(v []*string) *CreateUserPoolClientInput {
+	s.ReadAttributes = v
+	return s
+}
+
+// SetRefreshTokenValidity sets the RefreshTokenValidity field's value.
+func (s *CreateUserPoolClientInput) SetRefreshTokenValidity(v int64) *CreateUserPoolClientInput {
+	s.RefreshTokenValidity = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *CreateUserPoolClientInput) SetUserPoolId(v string) *CreateUserPoolClientInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetWriteAttributes sets the WriteAttributes field's value.
+func (s *CreateUserPoolClientInput) SetWriteAttributes(v []*string) *CreateUserPoolClientInput {
+	s.WriteAttributes = v
+	return s
+}
+
 // Represents the response from the server to create a user pool client.
 type CreateUserPoolClientOutput struct {
 	_ struct{} `type:"structure"`
@@ -7328,6 +9252,12 @@ func (s CreateUserPoolClientOutput) String() string {
 // GoString returns the string representation
 func (s CreateUserPoolClientOutput) GoString() string {
 	return s.String()
+}
+
+// SetUserPoolClient sets the UserPoolClient field's value.
+func (s *CreateUserPoolClientOutput) SetUserPoolClient(v *UserPoolClientType) *CreateUserPoolClientOutput {
+	s.UserPoolClient = v
+	return s
 }
 
 // Represents the request to create a user pool.
@@ -7370,6 +9300,10 @@ type CreateUserPoolInput struct {
 	// PoolName is a required field
 	PoolName *string `min:"1" type:"string" required:"true"`
 
+	// An array of schema attributes for the new user pool. These attributes can
+	// be standard or custom attributes.
+	Schema []*SchemaAttributeType `min:"1" type:"list"`
+
 	// A string representing the SMS authentication message.
 	SmsAuthenticationMessage *string `min:"6" type:"string"`
 
@@ -7378,6 +9312,10 @@ type CreateUserPoolInput struct {
 
 	// A string representing the SMS verification message.
 	SmsVerificationMessage *string `min:"6" type:"string"`
+
+	// The cost allocation tags for the user pool. For more information, see Adding
+	// Cost Allocation Tags to Your User Pool (http://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-cost-allocation-tagging.html)
+	UserPoolTags map[string]*string `type:"map"`
 }
 
 // String returns the string representation
@@ -7405,6 +9343,9 @@ func (s *CreateUserPoolInput) Validate() error {
 	if s.PoolName != nil && len(*s.PoolName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("PoolName", 1))
 	}
+	if s.Schema != nil && len(s.Schema) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Schema", 1))
+	}
 	if s.SmsAuthenticationMessage != nil && len(*s.SmsAuthenticationMessage) < 6 {
 		invalidParams.Add(request.NewErrParamMinLen("SmsAuthenticationMessage", 6))
 	}
@@ -7431,6 +9372,16 @@ func (s *CreateUserPoolInput) Validate() error {
 			invalidParams.AddNested("Policies", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.Schema != nil {
+		for i, v := range s.Schema {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Schema", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 	if s.SmsConfiguration != nil {
 		if err := s.SmsConfiguration.Validate(); err != nil {
 			invalidParams.AddNested("SmsConfiguration", err.(request.ErrInvalidParams))
@@ -7441,6 +9392,102 @@ func (s *CreateUserPoolInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAdminCreateUserConfig sets the AdminCreateUserConfig field's value.
+func (s *CreateUserPoolInput) SetAdminCreateUserConfig(v *AdminCreateUserConfigType) *CreateUserPoolInput {
+	s.AdminCreateUserConfig = v
+	return s
+}
+
+// SetAliasAttributes sets the AliasAttributes field's value.
+func (s *CreateUserPoolInput) SetAliasAttributes(v []*string) *CreateUserPoolInput {
+	s.AliasAttributes = v
+	return s
+}
+
+// SetAutoVerifiedAttributes sets the AutoVerifiedAttributes field's value.
+func (s *CreateUserPoolInput) SetAutoVerifiedAttributes(v []*string) *CreateUserPoolInput {
+	s.AutoVerifiedAttributes = v
+	return s
+}
+
+// SetDeviceConfiguration sets the DeviceConfiguration field's value.
+func (s *CreateUserPoolInput) SetDeviceConfiguration(v *DeviceConfigurationType) *CreateUserPoolInput {
+	s.DeviceConfiguration = v
+	return s
+}
+
+// SetEmailConfiguration sets the EmailConfiguration field's value.
+func (s *CreateUserPoolInput) SetEmailConfiguration(v *EmailConfigurationType) *CreateUserPoolInput {
+	s.EmailConfiguration = v
+	return s
+}
+
+// SetEmailVerificationMessage sets the EmailVerificationMessage field's value.
+func (s *CreateUserPoolInput) SetEmailVerificationMessage(v string) *CreateUserPoolInput {
+	s.EmailVerificationMessage = &v
+	return s
+}
+
+// SetEmailVerificationSubject sets the EmailVerificationSubject field's value.
+func (s *CreateUserPoolInput) SetEmailVerificationSubject(v string) *CreateUserPoolInput {
+	s.EmailVerificationSubject = &v
+	return s
+}
+
+// SetLambdaConfig sets the LambdaConfig field's value.
+func (s *CreateUserPoolInput) SetLambdaConfig(v *LambdaConfigType) *CreateUserPoolInput {
+	s.LambdaConfig = v
+	return s
+}
+
+// SetMfaConfiguration sets the MfaConfiguration field's value.
+func (s *CreateUserPoolInput) SetMfaConfiguration(v string) *CreateUserPoolInput {
+	s.MfaConfiguration = &v
+	return s
+}
+
+// SetPolicies sets the Policies field's value.
+func (s *CreateUserPoolInput) SetPolicies(v *UserPoolPolicyType) *CreateUserPoolInput {
+	s.Policies = v
+	return s
+}
+
+// SetPoolName sets the PoolName field's value.
+func (s *CreateUserPoolInput) SetPoolName(v string) *CreateUserPoolInput {
+	s.PoolName = &v
+	return s
+}
+
+// SetSchema sets the Schema field's value.
+func (s *CreateUserPoolInput) SetSchema(v []*SchemaAttributeType) *CreateUserPoolInput {
+	s.Schema = v
+	return s
+}
+
+// SetSmsAuthenticationMessage sets the SmsAuthenticationMessage field's value.
+func (s *CreateUserPoolInput) SetSmsAuthenticationMessage(v string) *CreateUserPoolInput {
+	s.SmsAuthenticationMessage = &v
+	return s
+}
+
+// SetSmsConfiguration sets the SmsConfiguration field's value.
+func (s *CreateUserPoolInput) SetSmsConfiguration(v *SmsConfigurationType) *CreateUserPoolInput {
+	s.SmsConfiguration = v
+	return s
+}
+
+// SetSmsVerificationMessage sets the SmsVerificationMessage field's value.
+func (s *CreateUserPoolInput) SetSmsVerificationMessage(v string) *CreateUserPoolInput {
+	s.SmsVerificationMessage = &v
+	return s
+}
+
+// SetUserPoolTags sets the UserPoolTags field's value.
+func (s *CreateUserPoolInput) SetUserPoolTags(v map[string]*string) *CreateUserPoolInput {
+	s.UserPoolTags = v
+	return s
 }
 
 // Represents the response from the server for the request to create a user
@@ -7459,6 +9506,84 @@ func (s CreateUserPoolOutput) String() string {
 
 // GoString returns the string representation
 func (s CreateUserPoolOutput) GoString() string {
+	return s.String()
+}
+
+// SetUserPool sets the UserPool field's value.
+func (s *CreateUserPoolOutput) SetUserPool(v *UserPoolType) *CreateUserPoolOutput {
+	s.UserPool = v
+	return s
+}
+
+type DeleteGroupInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the group.
+	//
+	// GroupName is a required field
+	GroupName *string `min:"1" type:"string" required:"true"`
+
+	// The user pool ID for the user pool.
+	//
+	// UserPoolId is a required field
+	UserPoolId *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteGroupInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteGroupInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteGroupInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteGroupInput"}
+	if s.GroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GroupName"))
+	}
+	if s.GroupName != nil && len(*s.GroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupName", 1))
+	}
+	if s.UserPoolId == nil {
+		invalidParams.Add(request.NewErrParamRequired("UserPoolId"))
+	}
+	if s.UserPoolId != nil && len(*s.UserPoolId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("UserPoolId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetGroupName sets the GroupName field's value.
+func (s *DeleteGroupInput) SetGroupName(v string) *DeleteGroupInput {
+	s.GroupName = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *DeleteGroupInput) SetUserPoolId(v string) *DeleteGroupInput {
+	s.UserPoolId = &v
+	return s
+}
+
+type DeleteGroupOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteGroupOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteGroupOutput) GoString() string {
 	return s.String()
 }
 
@@ -7498,6 +9623,18 @@ func (s *DeleteUserAttributesInput) Validate() error {
 	return nil
 }
 
+// SetAccessToken sets the AccessToken field's value.
+func (s *DeleteUserAttributesInput) SetAccessToken(v string) *DeleteUserAttributesInput {
+	s.AccessToken = &v
+	return s
+}
+
+// SetUserAttributeNames sets the UserAttributeNames field's value.
+func (s *DeleteUserAttributesInput) SetUserAttributeNames(v []*string) *DeleteUserAttributesInput {
+	s.UserAttributeNames = v
+	return s
+}
+
 // Represents the response from the server to delete user attributes.
 type DeleteUserAttributesOutput struct {
 	_ struct{} `type:"structure"`
@@ -7529,6 +9666,12 @@ func (s DeleteUserInput) String() string {
 // GoString returns the string representation
 func (s DeleteUserInput) GoString() string {
 	return s.String()
+}
+
+// SetAccessToken sets the AccessToken field's value.
+func (s *DeleteUserInput) SetAccessToken(v string) *DeleteUserInput {
+	s.AccessToken = &v
+	return s
 }
 
 type DeleteUserOutput struct {
@@ -7592,6 +9735,18 @@ func (s *DeleteUserPoolClientInput) Validate() error {
 	return nil
 }
 
+// SetClientId sets the ClientId field's value.
+func (s *DeleteUserPoolClientInput) SetClientId(v string) *DeleteUserPoolClientInput {
+	s.ClientId = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *DeleteUserPoolClientInput) SetUserPoolId(v string) *DeleteUserPoolClientInput {
+	s.UserPoolId = &v
+	return s
+}
+
 type DeleteUserPoolClientOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -7640,6 +9795,12 @@ func (s *DeleteUserPoolInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *DeleteUserPoolInput) SetUserPoolId(v string) *DeleteUserPoolInput {
+	s.UserPoolId = &v
+	return s
 }
 
 type DeleteUserPoolOutput struct {
@@ -7703,6 +9864,18 @@ func (s *DescribeUserImportJobInput) Validate() error {
 	return nil
 }
 
+// SetJobId sets the JobId field's value.
+func (s *DescribeUserImportJobInput) SetJobId(v string) *DescribeUserImportJobInput {
+	s.JobId = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *DescribeUserImportJobInput) SetUserPoolId(v string) *DescribeUserImportJobInput {
+	s.UserPoolId = &v
+	return s
+}
+
 // Represents the response from the server to the request to describe the user
 // import job.
 type DescribeUserImportJobOutput struct {
@@ -7720,6 +9893,12 @@ func (s DescribeUserImportJobOutput) String() string {
 // GoString returns the string representation
 func (s DescribeUserImportJobOutput) GoString() string {
 	return s.String()
+}
+
+// SetUserImportJob sets the UserImportJob field's value.
+func (s *DescribeUserImportJobOutput) SetUserImportJob(v *UserImportJobType) *DescribeUserImportJobOutput {
+	s.UserImportJob = v
+	return s
 }
 
 // Represents the request to describe a user pool client.
@@ -7769,6 +9948,18 @@ func (s *DescribeUserPoolClientInput) Validate() error {
 	return nil
 }
 
+// SetClientId sets the ClientId field's value.
+func (s *DescribeUserPoolClientInput) SetClientId(v string) *DescribeUserPoolClientInput {
+	s.ClientId = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *DescribeUserPoolClientInput) SetUserPoolId(v string) *DescribeUserPoolClientInput {
+	s.UserPoolId = &v
+	return s
+}
+
 // Represents the response from the server from a request to describe the user
 // pool client.
 type DescribeUserPoolClientOutput struct {
@@ -7786,6 +9977,12 @@ func (s DescribeUserPoolClientOutput) String() string {
 // GoString returns the string representation
 func (s DescribeUserPoolClientOutput) GoString() string {
 	return s.String()
+}
+
+// SetUserPoolClient sets the UserPoolClient field's value.
+func (s *DescribeUserPoolClientOutput) SetUserPoolClient(v *UserPoolClientType) *DescribeUserPoolClientOutput {
+	s.UserPoolClient = v
+	return s
 }
 
 // Represents the request to describe the user pool.
@@ -7824,6 +10021,12 @@ func (s *DescribeUserPoolInput) Validate() error {
 	return nil
 }
 
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *DescribeUserPoolInput) SetUserPoolId(v string) *DescribeUserPoolInput {
+	s.UserPoolId = &v
+	return s
+}
+
 // Represents the response to describe the user pool.
 type DescribeUserPoolOutput struct {
 	_ struct{} `type:"structure"`
@@ -7840,6 +10043,12 @@ func (s DescribeUserPoolOutput) String() string {
 // GoString returns the string representation
 func (s DescribeUserPoolOutput) GoString() string {
 	return s.String()
+}
+
+// SetUserPool sets the UserPool field's value.
+func (s *DescribeUserPoolOutput) SetUserPool(v *UserPoolType) *DescribeUserPoolOutput {
+	s.UserPool = v
+	return s
 }
 
 // The type of configuration for the user pool's device tracking.
@@ -7864,6 +10073,18 @@ func (s DeviceConfigurationType) GoString() string {
 	return s.String()
 }
 
+// SetChallengeRequiredOnNewDevice sets the ChallengeRequiredOnNewDevice field's value.
+func (s *DeviceConfigurationType) SetChallengeRequiredOnNewDevice(v bool) *DeviceConfigurationType {
+	s.ChallengeRequiredOnNewDevice = &v
+	return s
+}
+
+// SetDeviceOnlyRememberedOnUserPrompt sets the DeviceOnlyRememberedOnUserPrompt field's value.
+func (s *DeviceConfigurationType) SetDeviceOnlyRememberedOnUserPrompt(v bool) *DeviceConfigurationType {
+	s.DeviceOnlyRememberedOnUserPrompt = &v
+	return s
+}
+
 // The device verifier against which it will be authenticated.
 type DeviceSecretVerifierConfigType struct {
 	_ struct{} `type:"structure"`
@@ -7883,6 +10104,18 @@ func (s DeviceSecretVerifierConfigType) String() string {
 // GoString returns the string representation
 func (s DeviceSecretVerifierConfigType) GoString() string {
 	return s.String()
+}
+
+// SetPasswordVerifier sets the PasswordVerifier field's value.
+func (s *DeviceSecretVerifierConfigType) SetPasswordVerifier(v string) *DeviceSecretVerifierConfigType {
+	s.PasswordVerifier = &v
+	return s
+}
+
+// SetSalt sets the Salt field's value.
+func (s *DeviceSecretVerifierConfigType) SetSalt(v string) *DeviceSecretVerifierConfigType {
+	s.Salt = &v
+	return s
 }
 
 // The device type.
@@ -7913,6 +10146,36 @@ func (s DeviceType) String() string {
 // GoString returns the string representation
 func (s DeviceType) GoString() string {
 	return s.String()
+}
+
+// SetDeviceAttributes sets the DeviceAttributes field's value.
+func (s *DeviceType) SetDeviceAttributes(v []*AttributeType) *DeviceType {
+	s.DeviceAttributes = v
+	return s
+}
+
+// SetDeviceCreateDate sets the DeviceCreateDate field's value.
+func (s *DeviceType) SetDeviceCreateDate(v time.Time) *DeviceType {
+	s.DeviceCreateDate = &v
+	return s
+}
+
+// SetDeviceKey sets the DeviceKey field's value.
+func (s *DeviceType) SetDeviceKey(v string) *DeviceType {
+	s.DeviceKey = &v
+	return s
+}
+
+// SetDeviceLastAuthenticatedDate sets the DeviceLastAuthenticatedDate field's value.
+func (s *DeviceType) SetDeviceLastAuthenticatedDate(v time.Time) *DeviceType {
+	s.DeviceLastAuthenticatedDate = &v
+	return s
+}
+
+// SetDeviceLastModifiedDate sets the DeviceLastModifiedDate field's value.
+func (s *DeviceType) SetDeviceLastModifiedDate(v time.Time) *DeviceType {
+	s.DeviceLastModifiedDate = &v
+	return s
 }
 
 // The email configuration type.
@@ -7947,6 +10210,18 @@ func (s *EmailConfigurationType) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetReplyToEmailAddress sets the ReplyToEmailAddress field's value.
+func (s *EmailConfigurationType) SetReplyToEmailAddress(v string) *EmailConfigurationType {
+	s.ReplyToEmailAddress = &v
+	return s
+}
+
+// SetSourceArn sets the SourceArn field's value.
+func (s *EmailConfigurationType) SetSourceArn(v string) *EmailConfigurationType {
+	s.SourceArn = &v
+	return s
 }
 
 // Represents the request to forget the device.
@@ -7988,6 +10263,18 @@ func (s *ForgetDeviceInput) Validate() error {
 	return nil
 }
 
+// SetAccessToken sets the AccessToken field's value.
+func (s *ForgetDeviceInput) SetAccessToken(v string) *ForgetDeviceInput {
+	s.AccessToken = &v
+	return s
+}
+
+// SetDeviceKey sets the DeviceKey field's value.
+func (s *ForgetDeviceInput) SetDeviceKey(v string) *ForgetDeviceInput {
+	s.DeviceKey = &v
+	return s
+}
+
 type ForgetDeviceOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -8015,8 +10302,8 @@ type ForgotPasswordInput struct {
 	// key of a user pool client and username plus the client ID in the message.
 	SecretHash *string `min:"1" type:"string"`
 
-	// The user name of the user for whom you want to enter a code to retrieve a
-	// forgotten password.
+	// The user name of the user for whom you want to enter a code to reset a forgotten
+	// password.
 	//
 	// Username is a required field
 	Username *string `min:"1" type:"string" required:"true"`
@@ -8057,12 +10344,31 @@ func (s *ForgotPasswordInput) Validate() error {
 	return nil
 }
 
+// SetClientId sets the ClientId field's value.
+func (s *ForgotPasswordInput) SetClientId(v string) *ForgotPasswordInput {
+	s.ClientId = &v
+	return s
+}
+
+// SetSecretHash sets the SecretHash field's value.
+func (s *ForgotPasswordInput) SetSecretHash(v string) *ForgotPasswordInput {
+	s.SecretHash = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *ForgotPasswordInput) SetUsername(v string) *ForgotPasswordInput {
+	s.Username = &v
+	return s
+}
+
 // Respresents the response from the server regarding the request to reset a
 // password.
 type ForgotPasswordOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The type of code delivery details being returned from the server.
+	// The code delivery details returned by the server in response to the request
+	// to reset a password.
 	CodeDeliveryDetails *CodeDeliveryDetailsType `type:"structure"`
 }
 
@@ -8074,6 +10380,12 @@ func (s ForgotPasswordOutput) String() string {
 // GoString returns the string representation
 func (s ForgotPasswordOutput) GoString() string {
 	return s.String()
+}
+
+// SetCodeDeliveryDetails sets the CodeDeliveryDetails field's value.
+func (s *ForgotPasswordOutput) SetCodeDeliveryDetails(v *CodeDeliveryDetailsType) *ForgotPasswordOutput {
+	s.CodeDeliveryDetails = v
+	return s
 }
 
 // Represents the request to get the header information for the .csv file for
@@ -8113,6 +10425,12 @@ func (s *GetCSVHeaderInput) Validate() error {
 	return nil
 }
 
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *GetCSVHeaderInput) SetUserPoolId(v string) *GetCSVHeaderInput {
+	s.UserPoolId = &v
+	return s
+}
+
 // Represents the response from the server to the request to get the header
 // information for the .csv file for the user import job.
 type GetCSVHeaderOutput struct {
@@ -8133,6 +10451,18 @@ func (s GetCSVHeaderOutput) String() string {
 // GoString returns the string representation
 func (s GetCSVHeaderOutput) GoString() string {
 	return s.String()
+}
+
+// SetCSVHeader sets the CSVHeader field's value.
+func (s *GetCSVHeaderOutput) SetCSVHeader(v []*string) *GetCSVHeaderOutput {
+	s.CSVHeader = v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *GetCSVHeaderOutput) SetUserPoolId(v string) *GetCSVHeaderOutput {
+	s.UserPoolId = &v
+	return s
 }
 
 // Represents the request to get the device.
@@ -8174,6 +10504,18 @@ func (s *GetDeviceInput) Validate() error {
 	return nil
 }
 
+// SetAccessToken sets the AccessToken field's value.
+func (s *GetDeviceInput) SetAccessToken(v string) *GetDeviceInput {
+	s.AccessToken = &v
+	return s
+}
+
+// SetDeviceKey sets the DeviceKey field's value.
+func (s *GetDeviceInput) SetDeviceKey(v string) *GetDeviceInput {
+	s.DeviceKey = &v
+	return s
+}
+
 // Gets the device response.
 type GetDeviceOutput struct {
 	_ struct{} `type:"structure"`
@@ -8192,6 +10534,93 @@ func (s GetDeviceOutput) String() string {
 // GoString returns the string representation
 func (s GetDeviceOutput) GoString() string {
 	return s.String()
+}
+
+// SetDevice sets the Device field's value.
+func (s *GetDeviceOutput) SetDevice(v *DeviceType) *GetDeviceOutput {
+	s.Device = v
+	return s
+}
+
+type GetGroupInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the group.
+	//
+	// GroupName is a required field
+	GroupName *string `min:"1" type:"string" required:"true"`
+
+	// The user pool ID for the user pool.
+	//
+	// UserPoolId is a required field
+	UserPoolId *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GetGroupInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetGroupInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetGroupInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetGroupInput"}
+	if s.GroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GroupName"))
+	}
+	if s.GroupName != nil && len(*s.GroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupName", 1))
+	}
+	if s.UserPoolId == nil {
+		invalidParams.Add(request.NewErrParamRequired("UserPoolId"))
+	}
+	if s.UserPoolId != nil && len(*s.UserPoolId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("UserPoolId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetGroupName sets the GroupName field's value.
+func (s *GetGroupInput) SetGroupName(v string) *GetGroupInput {
+	s.GroupName = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *GetGroupInput) SetUserPoolId(v string) *GetGroupInput {
+	s.UserPoolId = &v
+	return s
+}
+
+type GetGroupOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The group object for the group.
+	Group *GroupType `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetGroupOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetGroupOutput) GoString() string {
+	return s.String()
+}
+
+// SetGroup sets the Group field's value.
+func (s *GetGroupOutput) SetGroup(v *GroupType) *GetGroupOutput {
+	s.Group = v
+	return s
 }
 
 // Represents the request to get user attribute verification.
@@ -8235,13 +10664,25 @@ func (s *GetUserAttributeVerificationCodeInput) Validate() error {
 	return nil
 }
 
+// SetAccessToken sets the AccessToken field's value.
+func (s *GetUserAttributeVerificationCodeInput) SetAccessToken(v string) *GetUserAttributeVerificationCodeInput {
+	s.AccessToken = &v
+	return s
+}
+
+// SetAttributeName sets the AttributeName field's value.
+func (s *GetUserAttributeVerificationCodeInput) SetAttributeName(v string) *GetUserAttributeVerificationCodeInput {
+	s.AttributeName = &v
+	return s
+}
+
 // The verification code response returned by the server response to get the
 // user attribute verification code.
 type GetUserAttributeVerificationCodeOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The code delivery details returned by the server response to get the user
-	// attribute verification code.
+	// The code delivery details returned by the server in response to the request
+	// to get the user attribute verification code.
 	CodeDeliveryDetails *CodeDeliveryDetailsType `type:"structure"`
 }
 
@@ -8253,6 +10694,12 @@ func (s GetUserAttributeVerificationCodeOutput) String() string {
 // GoString returns the string representation
 func (s GetUserAttributeVerificationCodeOutput) GoString() string {
 	return s.String()
+}
+
+// SetCodeDeliveryDetails sets the CodeDeliveryDetails field's value.
+func (s *GetUserAttributeVerificationCodeOutput) SetCodeDeliveryDetails(v *CodeDeliveryDetailsType) *GetUserAttributeVerificationCodeOutput {
+	s.CodeDeliveryDetails = v
+	return s
 }
 
 // Represents the request to get information about the user.
@@ -8272,6 +10719,12 @@ func (s GetUserInput) String() string {
 // GoString returns the string representation
 func (s GetUserInput) GoString() string {
 	return s.String()
+}
+
+// SetAccessToken sets the AccessToken field's value.
+func (s *GetUserInput) SetAccessToken(v string) *GetUserInput {
+	s.AccessToken = &v
+	return s
 }
 
 // Represents the response from the server from the request to get information
@@ -8303,6 +10756,24 @@ func (s GetUserOutput) GoString() string {
 	return s.String()
 }
 
+// SetMFAOptions sets the MFAOptions field's value.
+func (s *GetUserOutput) SetMFAOptions(v []*MFAOptionType) *GetUserOutput {
+	s.MFAOptions = v
+	return s
+}
+
+// SetUserAttributes sets the UserAttributes field's value.
+func (s *GetUserOutput) SetUserAttributes(v []*AttributeType) *GetUserOutput {
+	s.UserAttributes = v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *GetUserOutput) SetUsername(v string) *GetUserOutput {
+	s.Username = &v
+	return s
+}
+
 // Represents the request to sign out all devices.
 type GlobalSignOutInput struct {
 	_ struct{} `type:"structure"`
@@ -8321,6 +10792,12 @@ func (s GlobalSignOutInput) GoString() string {
 	return s.String()
 }
 
+// SetAccessToken sets the AccessToken field's value.
+func (s *GlobalSignOutInput) SetAccessToken(v string) *GlobalSignOutInput {
+	s.AccessToken = &v
+	return s
+}
+
 // The response to the request to sign out all devices.
 type GlobalSignOutOutput struct {
 	_ struct{} `type:"structure"`
@@ -8334,6 +10811,97 @@ func (s GlobalSignOutOutput) String() string {
 // GoString returns the string representation
 func (s GlobalSignOutOutput) GoString() string {
 	return s.String()
+}
+
+// The group type.
+type GroupType struct {
+	_ struct{} `type:"structure"`
+
+	// The date the group was created.
+	CreationDate *time.Time `type:"timestamp" timestampFormat:"unix"`
+
+	// A string containing the description of the group.
+	Description *string `type:"string"`
+
+	// The name of the group.
+	GroupName *string `min:"1" type:"string"`
+
+	// The date the group was last modified.
+	LastModifiedDate *time.Time `type:"timestamp" timestampFormat:"unix"`
+
+	// A nonnegative integer value that specifies the precedence of this group relative
+	// to the other groups that a user can belong to in the user pool. If a user
+	// belongs to two or more groups, it is the group with the highest precedence
+	// whose role ARN will be used in the cognito:roles and cognito:preferred_role
+	// claims in the user's tokens. Groups with higher Precedence values take precedence
+	// over groups with lower Precedence values or with null Precedence values.
+	//
+	// Two groups can have the same Precedence value. If this happens, neither group
+	// takes precedence over the other. If two groups with the same Precedence have
+	// the same role ARN, that role is used in the cognito:preferred_role claim
+	// in tokens for users in each group. If the two groups have different role
+	// ARNs, the cognito:preferred_role claim is not set in users' tokens.
+	//
+	// The default Precedence value is null.
+	Precedence *int64 `type:"integer"`
+
+	// The role ARN for the group.
+	RoleArn *string `min:"20" type:"string"`
+
+	// The user pool ID for the user pool.
+	UserPoolId *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s GroupType) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GroupType) GoString() string {
+	return s.String()
+}
+
+// SetCreationDate sets the CreationDate field's value.
+func (s *GroupType) SetCreationDate(v time.Time) *GroupType {
+	s.CreationDate = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *GroupType) SetDescription(v string) *GroupType {
+	s.Description = &v
+	return s
+}
+
+// SetGroupName sets the GroupName field's value.
+func (s *GroupType) SetGroupName(v string) *GroupType {
+	s.GroupName = &v
+	return s
+}
+
+// SetLastModifiedDate sets the LastModifiedDate field's value.
+func (s *GroupType) SetLastModifiedDate(v time.Time) *GroupType {
+	s.LastModifiedDate = &v
+	return s
+}
+
+// SetPrecedence sets the Precedence field's value.
+func (s *GroupType) SetPrecedence(v int64) *GroupType {
+	s.Precedence = &v
+	return s
+}
+
+// SetRoleArn sets the RoleArn field's value.
+func (s *GroupType) SetRoleArn(v string) *GroupType {
+	s.RoleArn = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *GroupType) SetUserPoolId(v string) *GroupType {
+	s.UserPoolId = &v
+	return s
 }
 
 // Initiates the authentication request.
@@ -8386,11 +10954,36 @@ func (s *InitiateAuthInput) Validate() error {
 	return nil
 }
 
+// SetAuthFlow sets the AuthFlow field's value.
+func (s *InitiateAuthInput) SetAuthFlow(v string) *InitiateAuthInput {
+	s.AuthFlow = &v
+	return s
+}
+
+// SetAuthParameters sets the AuthParameters field's value.
+func (s *InitiateAuthInput) SetAuthParameters(v map[string]*string) *InitiateAuthInput {
+	s.AuthParameters = v
+	return s
+}
+
+// SetClientId sets the ClientId field's value.
+func (s *InitiateAuthInput) SetClientId(v string) *InitiateAuthInput {
+	s.ClientId = &v
+	return s
+}
+
+// SetClientMetadata sets the ClientMetadata field's value.
+func (s *InitiateAuthInput) SetClientMetadata(v map[string]*string) *InitiateAuthInput {
+	s.ClientMetadata = v
+	return s
+}
+
 // Initiates the authentication response.
 type InitiateAuthOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The result type of the authentication result.
+	// The result returned by the server in response to the request to initiate
+	// authentication.
 	AuthenticationResult *AuthenticationResultType `type:"structure"`
 
 	// The name of the challenge.
@@ -8411,6 +11004,30 @@ func (s InitiateAuthOutput) String() string {
 // GoString returns the string representation
 func (s InitiateAuthOutput) GoString() string {
 	return s.String()
+}
+
+// SetAuthenticationResult sets the AuthenticationResult field's value.
+func (s *InitiateAuthOutput) SetAuthenticationResult(v *AuthenticationResultType) *InitiateAuthOutput {
+	s.AuthenticationResult = v
+	return s
+}
+
+// SetChallengeName sets the ChallengeName field's value.
+func (s *InitiateAuthOutput) SetChallengeName(v string) *InitiateAuthOutput {
+	s.ChallengeName = &v
+	return s
+}
+
+// SetChallengeParameters sets the ChallengeParameters field's value.
+func (s *InitiateAuthOutput) SetChallengeParameters(v map[string]*string) *InitiateAuthOutput {
+	s.ChallengeParameters = v
+	return s
+}
+
+// SetSession sets the Session field's value.
+func (s *InitiateAuthOutput) SetSession(v string) *InitiateAuthOutput {
+	s.Session = &v
+	return s
 }
 
 // Specifies the type of configuration for AWS Lambda triggers.
@@ -8486,6 +11103,54 @@ func (s *LambdaConfigType) Validate() error {
 	return nil
 }
 
+// SetCreateAuthChallenge sets the CreateAuthChallenge field's value.
+func (s *LambdaConfigType) SetCreateAuthChallenge(v string) *LambdaConfigType {
+	s.CreateAuthChallenge = &v
+	return s
+}
+
+// SetCustomMessage sets the CustomMessage field's value.
+func (s *LambdaConfigType) SetCustomMessage(v string) *LambdaConfigType {
+	s.CustomMessage = &v
+	return s
+}
+
+// SetDefineAuthChallenge sets the DefineAuthChallenge field's value.
+func (s *LambdaConfigType) SetDefineAuthChallenge(v string) *LambdaConfigType {
+	s.DefineAuthChallenge = &v
+	return s
+}
+
+// SetPostAuthentication sets the PostAuthentication field's value.
+func (s *LambdaConfigType) SetPostAuthentication(v string) *LambdaConfigType {
+	s.PostAuthentication = &v
+	return s
+}
+
+// SetPostConfirmation sets the PostConfirmation field's value.
+func (s *LambdaConfigType) SetPostConfirmation(v string) *LambdaConfigType {
+	s.PostConfirmation = &v
+	return s
+}
+
+// SetPreAuthentication sets the PreAuthentication field's value.
+func (s *LambdaConfigType) SetPreAuthentication(v string) *LambdaConfigType {
+	s.PreAuthentication = &v
+	return s
+}
+
+// SetPreSignUp sets the PreSignUp field's value.
+func (s *LambdaConfigType) SetPreSignUp(v string) *LambdaConfigType {
+	s.PreSignUp = &v
+	return s
+}
+
+// SetVerifyAuthChallengeResponse sets the VerifyAuthChallengeResponse field's value.
+func (s *LambdaConfigType) SetVerifyAuthChallengeResponse(v string) *LambdaConfigType {
+	s.VerifyAuthChallengeResponse = &v
+	return s
+}
+
 // Represents the request to list the devices.
 type ListDevicesInput struct {
 	_ struct{} `type:"structure"`
@@ -8528,6 +11193,24 @@ func (s *ListDevicesInput) Validate() error {
 	return nil
 }
 
+// SetAccessToken sets the AccessToken field's value.
+func (s *ListDevicesInput) SetAccessToken(v string) *ListDevicesInput {
+	s.AccessToken = &v
+	return s
+}
+
+// SetLimit sets the Limit field's value.
+func (s *ListDevicesInput) SetLimit(v int64) *ListDevicesInput {
+	s.Limit = &v
+	return s
+}
+
+// SetPaginationToken sets the PaginationToken field's value.
+func (s *ListDevicesInput) SetPaginationToken(v string) *ListDevicesInput {
+	s.PaginationToken = &v
+	return s
+}
+
 // Represents the response to list devices.
 type ListDevicesOutput struct {
 	_ struct{} `type:"structure"`
@@ -8547,6 +11230,114 @@ func (s ListDevicesOutput) String() string {
 // GoString returns the string representation
 func (s ListDevicesOutput) GoString() string {
 	return s.String()
+}
+
+// SetDevices sets the Devices field's value.
+func (s *ListDevicesOutput) SetDevices(v []*DeviceType) *ListDevicesOutput {
+	s.Devices = v
+	return s
+}
+
+// SetPaginationToken sets the PaginationToken field's value.
+func (s *ListDevicesOutput) SetPaginationToken(v string) *ListDevicesOutput {
+	s.PaginationToken = &v
+	return s
+}
+
+type ListGroupsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The limit of the request to list groups.
+	Limit *int64 `type:"integer"`
+
+	// An identifier that was returned from the previous call to this operation,
+	// which can be used to return the next set of items in the list.
+	NextToken *string `min:"1" type:"string"`
+
+	// The user pool ID for the user pool.
+	//
+	// UserPoolId is a required field
+	UserPoolId *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ListGroupsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListGroupsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListGroupsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListGroupsInput"}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NextToken", 1))
+	}
+	if s.UserPoolId == nil {
+		invalidParams.Add(request.NewErrParamRequired("UserPoolId"))
+	}
+	if s.UserPoolId != nil && len(*s.UserPoolId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("UserPoolId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetLimit sets the Limit field's value.
+func (s *ListGroupsInput) SetLimit(v int64) *ListGroupsInput {
+	s.Limit = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListGroupsInput) SetNextToken(v string) *ListGroupsInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *ListGroupsInput) SetUserPoolId(v string) *ListGroupsInput {
+	s.UserPoolId = &v
+	return s
+}
+
+type ListGroupsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The group objects for the groups.
+	Groups []*GroupType `type:"list"`
+
+	// An identifier that was returned from the previous call to this operation,
+	// which can be used to return the next set of items in the list.
+	NextToken *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ListGroupsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListGroupsOutput) GoString() string {
+	return s.String()
+}
+
+// SetGroups sets the Groups field's value.
+func (s *ListGroupsOutput) SetGroups(v []*GroupType) *ListGroupsOutput {
+	s.Groups = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListGroupsOutput) SetNextToken(v string) *ListGroupsOutput {
+	s.NextToken = &v
+	return s
 }
 
 // Represents the request to list the user import jobs.
@@ -8603,6 +11394,24 @@ func (s *ListUserImportJobsInput) Validate() error {
 	return nil
 }
 
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListUserImportJobsInput) SetMaxResults(v int64) *ListUserImportJobsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetPaginationToken sets the PaginationToken field's value.
+func (s *ListUserImportJobsInput) SetPaginationToken(v string) *ListUserImportJobsInput {
+	s.PaginationToken = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *ListUserImportJobsInput) SetUserPoolId(v string) *ListUserImportJobsInput {
+	s.UserPoolId = &v
+	return s
+}
+
 // Represents the response from the server to the request to list the user import
 // jobs.
 type ListUserImportJobsOutput struct {
@@ -8624,6 +11433,18 @@ func (s ListUserImportJobsOutput) String() string {
 // GoString returns the string representation
 func (s ListUserImportJobsOutput) GoString() string {
 	return s.String()
+}
+
+// SetPaginationToken sets the PaginationToken field's value.
+func (s *ListUserImportJobsOutput) SetPaginationToken(v string) *ListUserImportJobsOutput {
+	s.PaginationToken = &v
+	return s
+}
+
+// SetUserImportJobs sets the UserImportJobs field's value.
+func (s *ListUserImportJobsOutput) SetUserImportJobs(v []*UserImportJobType) *ListUserImportJobsOutput {
+	s.UserImportJobs = v
+	return s
 }
 
 // Represents the request to list the user pool clients.
@@ -8676,6 +11497,24 @@ func (s *ListUserPoolClientsInput) Validate() error {
 	return nil
 }
 
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListUserPoolClientsInput) SetMaxResults(v int64) *ListUserPoolClientsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListUserPoolClientsInput) SetNextToken(v string) *ListUserPoolClientsInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *ListUserPoolClientsInput) SetUserPoolId(v string) *ListUserPoolClientsInput {
+	s.UserPoolId = &v
+	return s
+}
+
 // Represents the response from the server that lists user pool clients.
 type ListUserPoolClientsOutput struct {
 	_ struct{} `type:"structure"`
@@ -8696,6 +11535,18 @@ func (s ListUserPoolClientsOutput) String() string {
 // GoString returns the string representation
 func (s ListUserPoolClientsOutput) GoString() string {
 	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListUserPoolClientsOutput) SetNextToken(v string) *ListUserPoolClientsOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetUserPoolClients sets the UserPoolClients field's value.
+func (s *ListUserPoolClientsOutput) SetUserPoolClients(v []*UserPoolClientDescription) *ListUserPoolClientsOutput {
+	s.UserPoolClients = v
+	return s
 }
 
 // Represents the request to list user pools.
@@ -8742,6 +11593,18 @@ func (s *ListUserPoolsInput) Validate() error {
 	return nil
 }
 
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListUserPoolsInput) SetMaxResults(v int64) *ListUserPoolsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListUserPoolsInput) SetNextToken(v string) *ListUserPoolsInput {
+	s.NextToken = &v
+	return s
+}
+
 // Represents the response to list user pools.
 type ListUserPoolsOutput struct {
 	_ struct{} `type:"structure"`
@@ -8762,6 +11625,131 @@ func (s ListUserPoolsOutput) String() string {
 // GoString returns the string representation
 func (s ListUserPoolsOutput) GoString() string {
 	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListUserPoolsOutput) SetNextToken(v string) *ListUserPoolsOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetUserPools sets the UserPools field's value.
+func (s *ListUserPoolsOutput) SetUserPools(v []*UserPoolDescriptionType) *ListUserPoolsOutput {
+	s.UserPools = v
+	return s
+}
+
+type ListUsersInGroupInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the group.
+	//
+	// GroupName is a required field
+	GroupName *string `min:"1" type:"string" required:"true"`
+
+	// The limit of the request to list users.
+	Limit *int64 `type:"integer"`
+
+	// An identifier that was returned from the previous call to this operation,
+	// which can be used to return the next set of items in the list.
+	NextToken *string `min:"1" type:"string"`
+
+	// The user pool ID for the user pool.
+	//
+	// UserPoolId is a required field
+	UserPoolId *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ListUsersInGroupInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListUsersInGroupInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListUsersInGroupInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListUsersInGroupInput"}
+	if s.GroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GroupName"))
+	}
+	if s.GroupName != nil && len(*s.GroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupName", 1))
+	}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NextToken", 1))
+	}
+	if s.UserPoolId == nil {
+		invalidParams.Add(request.NewErrParamRequired("UserPoolId"))
+	}
+	if s.UserPoolId != nil && len(*s.UserPoolId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("UserPoolId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetGroupName sets the GroupName field's value.
+func (s *ListUsersInGroupInput) SetGroupName(v string) *ListUsersInGroupInput {
+	s.GroupName = &v
+	return s
+}
+
+// SetLimit sets the Limit field's value.
+func (s *ListUsersInGroupInput) SetLimit(v int64) *ListUsersInGroupInput {
+	s.Limit = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListUsersInGroupInput) SetNextToken(v string) *ListUsersInGroupInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *ListUsersInGroupInput) SetUserPoolId(v string) *ListUsersInGroupInput {
+	s.UserPoolId = &v
+	return s
+}
+
+type ListUsersInGroupOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An identifier that was returned from the previous call to this operation,
+	// which can be used to return the next set of items in the list.
+	NextToken *string `min:"1" type:"string"`
+
+	// The users returned in the request to list users.
+	Users []*UserType `type:"list"`
+}
+
+// String returns the string representation
+func (s ListUsersInGroupOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListUsersInGroupOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListUsersInGroupOutput) SetNextToken(v string) *ListUsersInGroupOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetUsers sets the Users field's value.
+func (s *ListUsersInGroupOutput) SetUsers(v []*UserType) *ListUsersInGroupOutput {
+	s.Users = v
+	return s
 }
 
 // Represents the request to list users.
@@ -8816,6 +11804,36 @@ func (s *ListUsersInput) Validate() error {
 	return nil
 }
 
+// SetAttributesToGet sets the AttributesToGet field's value.
+func (s *ListUsersInput) SetAttributesToGet(v []*string) *ListUsersInput {
+	s.AttributesToGet = v
+	return s
+}
+
+// SetFilter sets the Filter field's value.
+func (s *ListUsersInput) SetFilter(v string) *ListUsersInput {
+	s.Filter = &v
+	return s
+}
+
+// SetLimit sets the Limit field's value.
+func (s *ListUsersInput) SetLimit(v int64) *ListUsersInput {
+	s.Limit = &v
+	return s
+}
+
+// SetPaginationToken sets the PaginationToken field's value.
+func (s *ListUsersInput) SetPaginationToken(v string) *ListUsersInput {
+	s.PaginationToken = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *ListUsersInput) SetUserPoolId(v string) *ListUsersInput {
+	s.UserPoolId = &v
+	return s
+}
+
 // The response from the request to list users.
 type ListUsersOutput struct {
 	_ struct{} `type:"structure"`
@@ -8836,6 +11854,18 @@ func (s ListUsersOutput) String() string {
 // GoString returns the string representation
 func (s ListUsersOutput) GoString() string {
 	return s.String()
+}
+
+// SetPaginationToken sets the PaginationToken field's value.
+func (s *ListUsersOutput) SetPaginationToken(v string) *ListUsersOutput {
+	s.PaginationToken = &v
+	return s
+}
+
+// SetUsers sets the Users field's value.
+func (s *ListUsersOutput) SetUsers(v []*UserType) *ListUsersOutput {
+	s.Users = v
+	return s
 }
 
 // Specifies the different settings for multi-factor authentication (MFA).
@@ -8870,6 +11900,18 @@ func (s *MFAOptionType) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAttributeName sets the AttributeName field's value.
+func (s *MFAOptionType) SetAttributeName(v string) *MFAOptionType {
+	s.AttributeName = &v
+	return s
+}
+
+// SetDeliveryMedium sets the DeliveryMedium field's value.
+func (s *MFAOptionType) SetDeliveryMedium(v string) *MFAOptionType {
+	s.DeliveryMedium = &v
+	return s
 }
 
 // The message template structure.
@@ -8915,6 +11957,24 @@ func (s *MessageTemplateType) Validate() error {
 	return nil
 }
 
+// SetEmailMessage sets the EmailMessage field's value.
+func (s *MessageTemplateType) SetEmailMessage(v string) *MessageTemplateType {
+	s.EmailMessage = &v
+	return s
+}
+
+// SetEmailSubject sets the EmailSubject field's value.
+func (s *MessageTemplateType) SetEmailSubject(v string) *MessageTemplateType {
+	s.EmailSubject = &v
+	return s
+}
+
+// SetSMSMessage sets the SMSMessage field's value.
+func (s *MessageTemplateType) SetSMSMessage(v string) *MessageTemplateType {
+	s.SMSMessage = &v
+	return s
+}
+
 // The new device metadata type.
 type NewDeviceMetadataType struct {
 	_ struct{} `type:"structure"`
@@ -8934,6 +11994,18 @@ func (s NewDeviceMetadataType) String() string {
 // GoString returns the string representation
 func (s NewDeviceMetadataType) GoString() string {
 	return s.String()
+}
+
+// SetDeviceGroupKey sets the DeviceGroupKey field's value.
+func (s *NewDeviceMetadataType) SetDeviceGroupKey(v string) *NewDeviceMetadataType {
+	s.DeviceGroupKey = &v
+	return s
+}
+
+// SetDeviceKey sets the DeviceKey field's value.
+func (s *NewDeviceMetadataType) SetDeviceKey(v string) *NewDeviceMetadataType {
+	s.DeviceKey = &v
+	return s
 }
 
 // The minimum and maximum value of an attribute that is of the number data
@@ -8956,6 +12028,18 @@ func (s NumberAttributeConstraintsType) String() string {
 // GoString returns the string representation
 func (s NumberAttributeConstraintsType) GoString() string {
 	return s.String()
+}
+
+// SetMaxValue sets the MaxValue field's value.
+func (s *NumberAttributeConstraintsType) SetMaxValue(v string) *NumberAttributeConstraintsType {
+	s.MaxValue = &v
+	return s
+}
+
+// SetMinValue sets the MinValue field's value.
+func (s *NumberAttributeConstraintsType) SetMinValue(v string) *NumberAttributeConstraintsType {
+	s.MinValue = &v
+	return s
 }
 
 // The password policy type.
@@ -9004,6 +12088,36 @@ func (s *PasswordPolicyType) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetMinimumLength sets the MinimumLength field's value.
+func (s *PasswordPolicyType) SetMinimumLength(v int64) *PasswordPolicyType {
+	s.MinimumLength = &v
+	return s
+}
+
+// SetRequireLowercase sets the RequireLowercase field's value.
+func (s *PasswordPolicyType) SetRequireLowercase(v bool) *PasswordPolicyType {
+	s.RequireLowercase = &v
+	return s
+}
+
+// SetRequireNumbers sets the RequireNumbers field's value.
+func (s *PasswordPolicyType) SetRequireNumbers(v bool) *PasswordPolicyType {
+	s.RequireNumbers = &v
+	return s
+}
+
+// SetRequireSymbols sets the RequireSymbols field's value.
+func (s *PasswordPolicyType) SetRequireSymbols(v bool) *PasswordPolicyType {
+	s.RequireSymbols = &v
+	return s
+}
+
+// SetRequireUppercase sets the RequireUppercase field's value.
+func (s *PasswordPolicyType) SetRequireUppercase(v bool) *PasswordPolicyType {
+	s.RequireUppercase = &v
+	return s
 }
 
 // Represents the request to resend the confirmation code.
@@ -9060,12 +12174,31 @@ func (s *ResendConfirmationCodeInput) Validate() error {
 	return nil
 }
 
-// The response from the server when the Amazon Cognito service makes the request
-// to resend a confirmation code.
+// SetClientId sets the ClientId field's value.
+func (s *ResendConfirmationCodeInput) SetClientId(v string) *ResendConfirmationCodeInput {
+	s.ClientId = &v
+	return s
+}
+
+// SetSecretHash sets the SecretHash field's value.
+func (s *ResendConfirmationCodeInput) SetSecretHash(v string) *ResendConfirmationCodeInput {
+	s.SecretHash = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *ResendConfirmationCodeInput) SetUsername(v string) *ResendConfirmationCodeInput {
+	s.Username = &v
+	return s
+}
+
+// The response from the server when the Amazon Cognito Your User Pools service
+// makes the request to resend a confirmation code.
 type ResendConfirmationCodeOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The type of code delivery details being returned from the server.
+	// The code delivery details returned by the server in response to the request
+	// to resend the confirmation code.
 	CodeDeliveryDetails *CodeDeliveryDetailsType `type:"structure"`
 }
 
@@ -9077,6 +12210,12 @@ func (s ResendConfirmationCodeOutput) String() string {
 // GoString returns the string representation
 func (s ResendConfirmationCodeOutput) GoString() string {
 	return s.String()
+}
+
+// SetCodeDeliveryDetails sets the CodeDeliveryDetails field's value.
+func (s *ResendConfirmationCodeOutput) SetCodeDeliveryDetails(v *CodeDeliveryDetailsType) *ResendConfirmationCodeOutput {
+	s.CodeDeliveryDetails = v
+	return s
 }
 
 // The request to respond to an authentication challenge.
@@ -9132,11 +12271,36 @@ func (s *RespondToAuthChallengeInput) Validate() error {
 	return nil
 }
 
+// SetChallengeName sets the ChallengeName field's value.
+func (s *RespondToAuthChallengeInput) SetChallengeName(v string) *RespondToAuthChallengeInput {
+	s.ChallengeName = &v
+	return s
+}
+
+// SetChallengeResponses sets the ChallengeResponses field's value.
+func (s *RespondToAuthChallengeInput) SetChallengeResponses(v map[string]*string) *RespondToAuthChallengeInput {
+	s.ChallengeResponses = v
+	return s
+}
+
+// SetClientId sets the ClientId field's value.
+func (s *RespondToAuthChallengeInput) SetClientId(v string) *RespondToAuthChallengeInput {
+	s.ClientId = &v
+	return s
+}
+
+// SetSession sets the Session field's value.
+func (s *RespondToAuthChallengeInput) SetSession(v string) *RespondToAuthChallengeInput {
+	s.Session = &v
+	return s
+}
+
 // The response to respond to the authentication challenge.
 type RespondToAuthChallengeOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The result type of the authentication result.
+	// The result returned by the server in response to the request to respond to
+	// the authentication challenge.
 	AuthenticationResult *AuthenticationResultType `type:"structure"`
 
 	// The challenge name.
@@ -9157,6 +12321,30 @@ func (s RespondToAuthChallengeOutput) String() string {
 // GoString returns the string representation
 func (s RespondToAuthChallengeOutput) GoString() string {
 	return s.String()
+}
+
+// SetAuthenticationResult sets the AuthenticationResult field's value.
+func (s *RespondToAuthChallengeOutput) SetAuthenticationResult(v *AuthenticationResultType) *RespondToAuthChallengeOutput {
+	s.AuthenticationResult = v
+	return s
+}
+
+// SetChallengeName sets the ChallengeName field's value.
+func (s *RespondToAuthChallengeOutput) SetChallengeName(v string) *RespondToAuthChallengeOutput {
+	s.ChallengeName = &v
+	return s
+}
+
+// SetChallengeParameters sets the ChallengeParameters field's value.
+func (s *RespondToAuthChallengeOutput) SetChallengeParameters(v map[string]*string) *RespondToAuthChallengeOutput {
+	s.ChallengeParameters = v
+	return s
+}
+
+// SetSession sets the Session field's value.
+func (s *RespondToAuthChallengeOutput) SetSession(v string) *RespondToAuthChallengeOutput {
+	s.Session = &v
+	return s
 }
 
 // Contains information about the schema attribute.
@@ -9210,6 +12398,48 @@ func (s *SchemaAttributeType) Validate() error {
 	return nil
 }
 
+// SetAttributeDataType sets the AttributeDataType field's value.
+func (s *SchemaAttributeType) SetAttributeDataType(v string) *SchemaAttributeType {
+	s.AttributeDataType = &v
+	return s
+}
+
+// SetDeveloperOnlyAttribute sets the DeveloperOnlyAttribute field's value.
+func (s *SchemaAttributeType) SetDeveloperOnlyAttribute(v bool) *SchemaAttributeType {
+	s.DeveloperOnlyAttribute = &v
+	return s
+}
+
+// SetMutable sets the Mutable field's value.
+func (s *SchemaAttributeType) SetMutable(v bool) *SchemaAttributeType {
+	s.Mutable = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *SchemaAttributeType) SetName(v string) *SchemaAttributeType {
+	s.Name = &v
+	return s
+}
+
+// SetNumberAttributeConstraints sets the NumberAttributeConstraints field's value.
+func (s *SchemaAttributeType) SetNumberAttributeConstraints(v *NumberAttributeConstraintsType) *SchemaAttributeType {
+	s.NumberAttributeConstraints = v
+	return s
+}
+
+// SetRequired sets the Required field's value.
+func (s *SchemaAttributeType) SetRequired(v bool) *SchemaAttributeType {
+	s.Required = &v
+	return s
+}
+
+// SetStringAttributeConstraints sets the StringAttributeConstraints field's value.
+func (s *SchemaAttributeType) SetStringAttributeConstraints(v *StringAttributeConstraintsType) *SchemaAttributeType {
+	s.StringAttributeConstraints = v
+	return s
+}
+
 // Represents the request to set user settings.
 type SetUserSettingsInput struct {
 	_ struct{} `type:"structure"`
@@ -9259,6 +12489,18 @@ func (s *SetUserSettingsInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAccessToken sets the AccessToken field's value.
+func (s *SetUserSettingsInput) SetAccessToken(v string) *SetUserSettingsInput {
+	s.AccessToken = &v
+	return s
+}
+
+// SetMFAOptions sets the MFAOptions field's value.
+func (s *SetUserSettingsInput) SetMFAOptions(v []*MFAOptionType) *SetUserSettingsInput {
+	s.MFAOptions = v
+	return s
 }
 
 // The response from the server for a set user settings request.
@@ -9367,11 +12609,48 @@ func (s *SignUpInput) Validate() error {
 	return nil
 }
 
+// SetClientId sets the ClientId field's value.
+func (s *SignUpInput) SetClientId(v string) *SignUpInput {
+	s.ClientId = &v
+	return s
+}
+
+// SetPassword sets the Password field's value.
+func (s *SignUpInput) SetPassword(v string) *SignUpInput {
+	s.Password = &v
+	return s
+}
+
+// SetSecretHash sets the SecretHash field's value.
+func (s *SignUpInput) SetSecretHash(v string) *SignUpInput {
+	s.SecretHash = &v
+	return s
+}
+
+// SetUserAttributes sets the UserAttributes field's value.
+func (s *SignUpInput) SetUserAttributes(v []*AttributeType) *SignUpInput {
+	s.UserAttributes = v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *SignUpInput) SetUsername(v string) *SignUpInput {
+	s.Username = &v
+	return s
+}
+
+// SetValidationData sets the ValidationData field's value.
+func (s *SignUpInput) SetValidationData(v []*AttributeType) *SignUpInput {
+	s.ValidationData = v
+	return s
+}
+
 // The response from the server for a registration request.
 type SignUpOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The type of code delivery details being returned from the server.
+	// The code delivery details returned by the server response to the user registration
+	// request.
 	CodeDeliveryDetails *CodeDeliveryDetailsType `type:"structure"`
 
 	// A response from the server indicating that a user registration has been confirmed.
@@ -9388,6 +12667,18 @@ func (s SignUpOutput) GoString() string {
 	return s.String()
 }
 
+// SetCodeDeliveryDetails sets the CodeDeliveryDetails field's value.
+func (s *SignUpOutput) SetCodeDeliveryDetails(v *CodeDeliveryDetailsType) *SignUpOutput {
+	s.CodeDeliveryDetails = v
+	return s
+}
+
+// SetUserConfirmed sets the UserConfirmed field's value.
+func (s *SignUpOutput) SetUserConfirmed(v bool) *SignUpOutput {
+	s.UserConfirmed = &v
+	return s
+}
+
 // The SMS configuratoin type.
 type SmsConfigurationType struct {
 	_ struct{} `type:"structure"`
@@ -9397,7 +12688,9 @@ type SmsConfigurationType struct {
 
 	// The Amazon Resource Name (ARN) of the Amazon Simple Notification Service
 	// (SNS) caller.
-	SnsCallerArn *string `min:"20" type:"string"`
+	//
+	// SnsCallerArn is a required field
+	SnsCallerArn *string `min:"20" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -9413,6 +12706,9 @@ func (s SmsConfigurationType) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *SmsConfigurationType) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "SmsConfigurationType"}
+	if s.SnsCallerArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("SnsCallerArn"))
+	}
 	if s.SnsCallerArn != nil && len(*s.SnsCallerArn) < 20 {
 		invalidParams.Add(request.NewErrParamMinLen("SnsCallerArn", 20))
 	}
@@ -9421,6 +12717,18 @@ func (s *SmsConfigurationType) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetExternalId sets the ExternalId field's value.
+func (s *SmsConfigurationType) SetExternalId(v string) *SmsConfigurationType {
+	s.ExternalId = &v
+	return s
+}
+
+// SetSnsCallerArn sets the SnsCallerArn field's value.
+func (s *SmsConfigurationType) SetSnsCallerArn(v string) *SmsConfigurationType {
+	s.SnsCallerArn = &v
+	return s
 }
 
 // Represents the request to start the user import job.
@@ -9470,6 +12778,18 @@ func (s *StartUserImportJobInput) Validate() error {
 	return nil
 }
 
+// SetJobId sets the JobId field's value.
+func (s *StartUserImportJobInput) SetJobId(v string) *StartUserImportJobInput {
+	s.JobId = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *StartUserImportJobInput) SetUserPoolId(v string) *StartUserImportJobInput {
+	s.UserPoolId = &v
+	return s
+}
+
 // Represents the response from the server to the request to start the user
 // import job.
 type StartUserImportJobOutput struct {
@@ -9487,6 +12807,12 @@ func (s StartUserImportJobOutput) String() string {
 // GoString returns the string representation
 func (s StartUserImportJobOutput) GoString() string {
 	return s.String()
+}
+
+// SetUserImportJob sets the UserImportJob field's value.
+func (s *StartUserImportJobOutput) SetUserImportJob(v *UserImportJobType) *StartUserImportJobOutput {
+	s.UserImportJob = v
+	return s
 }
 
 // Represents the request to stop the user import job.
@@ -9536,6 +12862,18 @@ func (s *StopUserImportJobInput) Validate() error {
 	return nil
 }
 
+// SetJobId sets the JobId field's value.
+func (s *StopUserImportJobInput) SetJobId(v string) *StopUserImportJobInput {
+	s.JobId = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *StopUserImportJobInput) SetUserPoolId(v string) *StopUserImportJobInput {
+	s.UserPoolId = &v
+	return s
+}
+
 // Represents the response from the server to the request to stop the user import
 // job.
 type StopUserImportJobOutput struct {
@@ -9553,6 +12891,12 @@ func (s StopUserImportJobOutput) String() string {
 // GoString returns the string representation
 func (s StopUserImportJobOutput) GoString() string {
 	return s.String()
+}
+
+// SetUserImportJob sets the UserImportJob field's value.
+func (s *StopUserImportJobOutput) SetUserImportJob(v *UserImportJobType) *StopUserImportJobOutput {
+	s.UserImportJob = v
+	return s
 }
 
 // The type of constraints associated with an attribute of the string type.
@@ -9574,6 +12918,18 @@ func (s StringAttributeConstraintsType) String() string {
 // GoString returns the string representation
 func (s StringAttributeConstraintsType) GoString() string {
 	return s.String()
+}
+
+// SetMaxLength sets the MaxLength field's value.
+func (s *StringAttributeConstraintsType) SetMaxLength(v string) *StringAttributeConstraintsType {
+	s.MaxLength = &v
+	return s
+}
+
+// SetMinLength sets the MinLength field's value.
+func (s *StringAttributeConstraintsType) SetMinLength(v string) *StringAttributeConstraintsType {
+	s.MinLength = &v
+	return s
 }
 
 // Represents the request to update the device status.
@@ -9623,6 +12979,24 @@ func (s *UpdateDeviceStatusInput) Validate() error {
 	return nil
 }
 
+// SetAccessToken sets the AccessToken field's value.
+func (s *UpdateDeviceStatusInput) SetAccessToken(v string) *UpdateDeviceStatusInput {
+	s.AccessToken = &v
+	return s
+}
+
+// SetDeviceKey sets the DeviceKey field's value.
+func (s *UpdateDeviceStatusInput) SetDeviceKey(v string) *UpdateDeviceStatusInput {
+	s.DeviceKey = &v
+	return s
+}
+
+// SetDeviceRememberedStatus sets the DeviceRememberedStatus field's value.
+func (s *UpdateDeviceStatusInput) SetDeviceRememberedStatus(v string) *UpdateDeviceStatusInput {
+	s.DeviceRememberedStatus = &v
+	return s
+}
+
 // The response to the request to update the device status.
 type UpdateDeviceStatusOutput struct {
 	_ struct{} `type:"structure"`
@@ -9636,6 +13010,119 @@ func (s UpdateDeviceStatusOutput) String() string {
 // GoString returns the string representation
 func (s UpdateDeviceStatusOutput) GoString() string {
 	return s.String()
+}
+
+type UpdateGroupInput struct {
+	_ struct{} `type:"structure"`
+
+	// A string containing the new description of the group.
+	Description *string `type:"string"`
+
+	// The name of the group.
+	//
+	// GroupName is a required field
+	GroupName *string `min:"1" type:"string" required:"true"`
+
+	// The new precedence value for the group. For more information about this parameter,
+	// see CreateGroupRequest (API_CreateGroupRequeste.html).
+	Precedence *int64 `type:"integer"`
+
+	// The new role ARN for the group. This is used for setting the cognito:roles
+	// and cognito:preferred_role claims in the token.
+	RoleArn *string `min:"20" type:"string"`
+
+	// The user pool ID for the user pool.
+	//
+	// UserPoolId is a required field
+	UserPoolId *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateGroupInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateGroupInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateGroupInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateGroupInput"}
+	if s.GroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GroupName"))
+	}
+	if s.GroupName != nil && len(*s.GroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupName", 1))
+	}
+	if s.RoleArn != nil && len(*s.RoleArn) < 20 {
+		invalidParams.Add(request.NewErrParamMinLen("RoleArn", 20))
+	}
+	if s.UserPoolId == nil {
+		invalidParams.Add(request.NewErrParamRequired("UserPoolId"))
+	}
+	if s.UserPoolId != nil && len(*s.UserPoolId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("UserPoolId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDescription sets the Description field's value.
+func (s *UpdateGroupInput) SetDescription(v string) *UpdateGroupInput {
+	s.Description = &v
+	return s
+}
+
+// SetGroupName sets the GroupName field's value.
+func (s *UpdateGroupInput) SetGroupName(v string) *UpdateGroupInput {
+	s.GroupName = &v
+	return s
+}
+
+// SetPrecedence sets the Precedence field's value.
+func (s *UpdateGroupInput) SetPrecedence(v int64) *UpdateGroupInput {
+	s.Precedence = &v
+	return s
+}
+
+// SetRoleArn sets the RoleArn field's value.
+func (s *UpdateGroupInput) SetRoleArn(v string) *UpdateGroupInput {
+	s.RoleArn = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *UpdateGroupInput) SetUserPoolId(v string) *UpdateGroupInput {
+	s.UserPoolId = &v
+	return s
+}
+
+type UpdateGroupOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The group object for the group.
+	Group *GroupType `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateGroupOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateGroupOutput) GoString() string {
+	return s.String()
+}
+
+// SetGroup sets the Group field's value.
+func (s *UpdateGroupOutput) SetGroup(v *GroupType) *UpdateGroupOutput {
+	s.Group = v
+	return s
 }
 
 // Represents the request to update user attributes.
@@ -9684,6 +13171,18 @@ func (s *UpdateUserAttributesInput) Validate() error {
 	return nil
 }
 
+// SetAccessToken sets the AccessToken field's value.
+func (s *UpdateUserAttributesInput) SetAccessToken(v string) *UpdateUserAttributesInput {
+	s.AccessToken = &v
+	return s
+}
+
+// SetUserAttributes sets the UserAttributes field's value.
+func (s *UpdateUserAttributesInput) SetUserAttributes(v []*AttributeType) *UpdateUserAttributesInput {
+	s.UserAttributes = v
+	return s
+}
+
 // Represents the response from the server for the request to update user attributes.
 type UpdateUserAttributesOutput struct {
 	_ struct{} `type:"structure"`
@@ -9701,6 +13200,12 @@ func (s UpdateUserAttributesOutput) String() string {
 // GoString returns the string representation
 func (s UpdateUserAttributesOutput) GoString() string {
 	return s.String()
+}
+
+// SetCodeDeliveryDetailsList sets the CodeDeliveryDetailsList field's value.
+func (s *UpdateUserAttributesOutput) SetCodeDeliveryDetailsList(v []*CodeDeliveryDetailsType) *UpdateUserAttributesOutput {
+	s.CodeDeliveryDetailsList = v
+	return s
 }
 
 // Represents the request to update the user pool client.
@@ -9721,7 +13226,7 @@ type UpdateUserPoolClientInput struct {
 	// The read-only attributes of the user pool.
 	ReadAttributes []*string `type:"list"`
 
-	// The validity of the refresh token.
+	// The validity of the refresh token, in days.
 	RefreshTokenValidity *int64 `type:"integer"`
 
 	// The user pool ID for the user pool where you want to update the user pool
@@ -9769,6 +13274,48 @@ func (s *UpdateUserPoolClientInput) Validate() error {
 	return nil
 }
 
+// SetClientId sets the ClientId field's value.
+func (s *UpdateUserPoolClientInput) SetClientId(v string) *UpdateUserPoolClientInput {
+	s.ClientId = &v
+	return s
+}
+
+// SetClientName sets the ClientName field's value.
+func (s *UpdateUserPoolClientInput) SetClientName(v string) *UpdateUserPoolClientInput {
+	s.ClientName = &v
+	return s
+}
+
+// SetExplicitAuthFlows sets the ExplicitAuthFlows field's value.
+func (s *UpdateUserPoolClientInput) SetExplicitAuthFlows(v []*string) *UpdateUserPoolClientInput {
+	s.ExplicitAuthFlows = v
+	return s
+}
+
+// SetReadAttributes sets the ReadAttributes field's value.
+func (s *UpdateUserPoolClientInput) SetReadAttributes(v []*string) *UpdateUserPoolClientInput {
+	s.ReadAttributes = v
+	return s
+}
+
+// SetRefreshTokenValidity sets the RefreshTokenValidity field's value.
+func (s *UpdateUserPoolClientInput) SetRefreshTokenValidity(v int64) *UpdateUserPoolClientInput {
+	s.RefreshTokenValidity = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *UpdateUserPoolClientInput) SetUserPoolId(v string) *UpdateUserPoolClientInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetWriteAttributes sets the WriteAttributes field's value.
+func (s *UpdateUserPoolClientInput) SetWriteAttributes(v []*string) *UpdateUserPoolClientInput {
+	s.WriteAttributes = v
+	return s
+}
+
 // Represents the response from the server to the request to update the user
 // pool client.
 type UpdateUserPoolClientOutput struct {
@@ -9787,6 +13334,12 @@ func (s UpdateUserPoolClientOutput) String() string {
 // GoString returns the string representation
 func (s UpdateUserPoolClientOutput) GoString() string {
 	return s.String()
+}
+
+// SetUserPoolClient sets the UserPoolClient field's value.
+func (s *UpdateUserPoolClientOutput) SetUserPoolClient(v *UserPoolClientType) *UpdateUserPoolClientOutput {
+	s.UserPoolClient = v
+	return s
 }
 
 // Represents the request to update the user pool.
@@ -9818,13 +13371,13 @@ type UpdateUserPoolInput struct {
 
 	// Can be one of the following values:
 	//
-	//    OFF - MFA tokens are not required and cannot be specified during user
-	// registration.
+	//    * OFF - MFA tokens are not required and cannot be specified during user
+	//    registration.
 	//
-	//    ON - MFA tokens are required for all user registrations. You can only
-	// specify required when you are initially creating a user pool.
+	//    * ON - MFA tokens are required for all user registrations. You can only
+	//    specify required when you are initially creating a user pool.
 	//
-	//    OPTIONAL - Users have the option when registering to create an MFA token.
+	//    * OPTIONAL - Users have the option when registering to create an MFA token.
 	MfaConfiguration *string `type:"string" enum:"UserPoolMfaType"`
 
 	// A container with the policies you wish to update in a user pool.
@@ -9843,6 +13396,10 @@ type UpdateUserPoolInput struct {
 	//
 	// UserPoolId is a required field
 	UserPoolId *string `min:"1" type:"string" required:"true"`
+
+	// The cost allocation tags for the user pool. For more information, see Adding
+	// Cost Allocation Tags to Your User Pool (http://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-cost-allocation-tagging.html)
+	UserPoolTags map[string]*string `type:"map"`
 }
 
 // String returns the string representation
@@ -9908,6 +13465,90 @@ func (s *UpdateUserPoolInput) Validate() error {
 	return nil
 }
 
+// SetAdminCreateUserConfig sets the AdminCreateUserConfig field's value.
+func (s *UpdateUserPoolInput) SetAdminCreateUserConfig(v *AdminCreateUserConfigType) *UpdateUserPoolInput {
+	s.AdminCreateUserConfig = v
+	return s
+}
+
+// SetAutoVerifiedAttributes sets the AutoVerifiedAttributes field's value.
+func (s *UpdateUserPoolInput) SetAutoVerifiedAttributes(v []*string) *UpdateUserPoolInput {
+	s.AutoVerifiedAttributes = v
+	return s
+}
+
+// SetDeviceConfiguration sets the DeviceConfiguration field's value.
+func (s *UpdateUserPoolInput) SetDeviceConfiguration(v *DeviceConfigurationType) *UpdateUserPoolInput {
+	s.DeviceConfiguration = v
+	return s
+}
+
+// SetEmailConfiguration sets the EmailConfiguration field's value.
+func (s *UpdateUserPoolInput) SetEmailConfiguration(v *EmailConfigurationType) *UpdateUserPoolInput {
+	s.EmailConfiguration = v
+	return s
+}
+
+// SetEmailVerificationMessage sets the EmailVerificationMessage field's value.
+func (s *UpdateUserPoolInput) SetEmailVerificationMessage(v string) *UpdateUserPoolInput {
+	s.EmailVerificationMessage = &v
+	return s
+}
+
+// SetEmailVerificationSubject sets the EmailVerificationSubject field's value.
+func (s *UpdateUserPoolInput) SetEmailVerificationSubject(v string) *UpdateUserPoolInput {
+	s.EmailVerificationSubject = &v
+	return s
+}
+
+// SetLambdaConfig sets the LambdaConfig field's value.
+func (s *UpdateUserPoolInput) SetLambdaConfig(v *LambdaConfigType) *UpdateUserPoolInput {
+	s.LambdaConfig = v
+	return s
+}
+
+// SetMfaConfiguration sets the MfaConfiguration field's value.
+func (s *UpdateUserPoolInput) SetMfaConfiguration(v string) *UpdateUserPoolInput {
+	s.MfaConfiguration = &v
+	return s
+}
+
+// SetPolicies sets the Policies field's value.
+func (s *UpdateUserPoolInput) SetPolicies(v *UserPoolPolicyType) *UpdateUserPoolInput {
+	s.Policies = v
+	return s
+}
+
+// SetSmsAuthenticationMessage sets the SmsAuthenticationMessage field's value.
+func (s *UpdateUserPoolInput) SetSmsAuthenticationMessage(v string) *UpdateUserPoolInput {
+	s.SmsAuthenticationMessage = &v
+	return s
+}
+
+// SetSmsConfiguration sets the SmsConfiguration field's value.
+func (s *UpdateUserPoolInput) SetSmsConfiguration(v *SmsConfigurationType) *UpdateUserPoolInput {
+	s.SmsConfiguration = v
+	return s
+}
+
+// SetSmsVerificationMessage sets the SmsVerificationMessage field's value.
+func (s *UpdateUserPoolInput) SetSmsVerificationMessage(v string) *UpdateUserPoolInput {
+	s.SmsVerificationMessage = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *UpdateUserPoolInput) SetUserPoolId(v string) *UpdateUserPoolInput {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetUserPoolTags sets the UserPoolTags field's value.
+func (s *UpdateUserPoolInput) SetUserPoolTags(v map[string]*string) *UpdateUserPoolInput {
+	s.UserPoolTags = v
+	return s
+}
+
 // Represents the response from the server when you make a request to update
 // the user pool.
 type UpdateUserPoolOutput struct {
@@ -9965,25 +13606,26 @@ type UserImportJobType struct {
 
 	// The status of the user import job. One of the following:
 	//
-	//   Created - The job was created but not started.
+	//    * Created - The job was created but not started.
 	//
-	//   Pending - A transition state. You have started the job, but it has not
-	// begun importing users yet.
+	//    * Pending - A transition state. You have started the job, but it has not
+	//    begun importing users yet.
 	//
-	//   InProgress - The job has started, and users are being imported.
+	//    * InProgress - The job has started, and users are being imported.
 	//
-	//   Stopping - You have stopped the job, but the job has not stopped importing
-	// users yet.
+	//    * Stopping - You have stopped the job, but the job has not stopped importing
+	//    users yet.
 	//
-	//   Stopped - You have stopped the job, and the job has stopped importing
-	// users.
+	//    * Stopped - You have stopped the job, and the job has stopped importing
+	//    users.
 	//
-	//   Succeeded - The job has completed successfully.
+	//    * Succeeded - The job has completed successfully.
 	//
-	//   Failed - The job has stopped due to an error.
+	//    * Failed - The job has stopped due to an error.
 	//
-	//   Expired - You created a job, but did not start the job within 24-48 hours.
-	// All data associated with the job was deleted, and the job cannot be started.
+	//    * Expired - You created a job, but did not start the job within 24-48
+	//    hours. All data associated with the job was deleted, and the job cannot
+	//    be started.
 	Status *string `type:"string" enum:"UserImportJobStatusType"`
 
 	// The user pool ID for the user pool that the users are being imported into.
@@ -10000,7 +13642,85 @@ func (s UserImportJobType) GoString() string {
 	return s.String()
 }
 
-// The description of the user poool client.
+// SetCloudWatchLogsRoleArn sets the CloudWatchLogsRoleArn field's value.
+func (s *UserImportJobType) SetCloudWatchLogsRoleArn(v string) *UserImportJobType {
+	s.CloudWatchLogsRoleArn = &v
+	return s
+}
+
+// SetCompletionDate sets the CompletionDate field's value.
+func (s *UserImportJobType) SetCompletionDate(v time.Time) *UserImportJobType {
+	s.CompletionDate = &v
+	return s
+}
+
+// SetCompletionMessage sets the CompletionMessage field's value.
+func (s *UserImportJobType) SetCompletionMessage(v string) *UserImportJobType {
+	s.CompletionMessage = &v
+	return s
+}
+
+// SetCreationDate sets the CreationDate field's value.
+func (s *UserImportJobType) SetCreationDate(v time.Time) *UserImportJobType {
+	s.CreationDate = &v
+	return s
+}
+
+// SetFailedUsers sets the FailedUsers field's value.
+func (s *UserImportJobType) SetFailedUsers(v int64) *UserImportJobType {
+	s.FailedUsers = &v
+	return s
+}
+
+// SetImportedUsers sets the ImportedUsers field's value.
+func (s *UserImportJobType) SetImportedUsers(v int64) *UserImportJobType {
+	s.ImportedUsers = &v
+	return s
+}
+
+// SetJobId sets the JobId field's value.
+func (s *UserImportJobType) SetJobId(v string) *UserImportJobType {
+	s.JobId = &v
+	return s
+}
+
+// SetJobName sets the JobName field's value.
+func (s *UserImportJobType) SetJobName(v string) *UserImportJobType {
+	s.JobName = &v
+	return s
+}
+
+// SetPreSignedUrl sets the PreSignedUrl field's value.
+func (s *UserImportJobType) SetPreSignedUrl(v string) *UserImportJobType {
+	s.PreSignedUrl = &v
+	return s
+}
+
+// SetSkippedUsers sets the SkippedUsers field's value.
+func (s *UserImportJobType) SetSkippedUsers(v int64) *UserImportJobType {
+	s.SkippedUsers = &v
+	return s
+}
+
+// SetStartDate sets the StartDate field's value.
+func (s *UserImportJobType) SetStartDate(v time.Time) *UserImportJobType {
+	s.StartDate = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *UserImportJobType) SetStatus(v string) *UserImportJobType {
+	s.Status = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *UserImportJobType) SetUserPoolId(v string) *UserImportJobType {
+	s.UserPoolId = &v
+	return s
+}
+
+// The description of the user pool client.
 type UserPoolClientDescription struct {
 	_ struct{} `type:"structure"`
 
@@ -10023,6 +13743,24 @@ func (s UserPoolClientDescription) String() string {
 // GoString returns the string representation
 func (s UserPoolClientDescription) GoString() string {
 	return s.String()
+}
+
+// SetClientId sets the ClientId field's value.
+func (s *UserPoolClientDescription) SetClientId(v string) *UserPoolClientDescription {
+	s.ClientId = &v
+	return s
+}
+
+// SetClientName sets the ClientName field's value.
+func (s *UserPoolClientDescription) SetClientName(v string) *UserPoolClientDescription {
+	s.ClientName = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *UserPoolClientDescription) SetUserPoolId(v string) *UserPoolClientDescription {
+	s.UserPoolId = &v
+	return s
 }
 
 // A user pool of the client type.
@@ -10050,7 +13788,7 @@ type UserPoolClientType struct {
 	// The Read-only attributes.
 	ReadAttributes []*string `type:"list"`
 
-	// The validity of the refresh token.
+	// The validity of the refresh token, in days.
 	RefreshTokenValidity *int64 `type:"integer"`
 
 	// The user pool ID for the user pool client.
@@ -10068,6 +13806,66 @@ func (s UserPoolClientType) String() string {
 // GoString returns the string representation
 func (s UserPoolClientType) GoString() string {
 	return s.String()
+}
+
+// SetClientId sets the ClientId field's value.
+func (s *UserPoolClientType) SetClientId(v string) *UserPoolClientType {
+	s.ClientId = &v
+	return s
+}
+
+// SetClientName sets the ClientName field's value.
+func (s *UserPoolClientType) SetClientName(v string) *UserPoolClientType {
+	s.ClientName = &v
+	return s
+}
+
+// SetClientSecret sets the ClientSecret field's value.
+func (s *UserPoolClientType) SetClientSecret(v string) *UserPoolClientType {
+	s.ClientSecret = &v
+	return s
+}
+
+// SetCreationDate sets the CreationDate field's value.
+func (s *UserPoolClientType) SetCreationDate(v time.Time) *UserPoolClientType {
+	s.CreationDate = &v
+	return s
+}
+
+// SetExplicitAuthFlows sets the ExplicitAuthFlows field's value.
+func (s *UserPoolClientType) SetExplicitAuthFlows(v []*string) *UserPoolClientType {
+	s.ExplicitAuthFlows = v
+	return s
+}
+
+// SetLastModifiedDate sets the LastModifiedDate field's value.
+func (s *UserPoolClientType) SetLastModifiedDate(v time.Time) *UserPoolClientType {
+	s.LastModifiedDate = &v
+	return s
+}
+
+// SetReadAttributes sets the ReadAttributes field's value.
+func (s *UserPoolClientType) SetReadAttributes(v []*string) *UserPoolClientType {
+	s.ReadAttributes = v
+	return s
+}
+
+// SetRefreshTokenValidity sets the RefreshTokenValidity field's value.
+func (s *UserPoolClientType) SetRefreshTokenValidity(v int64) *UserPoolClientType {
+	s.RefreshTokenValidity = &v
+	return s
+}
+
+// SetUserPoolId sets the UserPoolId field's value.
+func (s *UserPoolClientType) SetUserPoolId(v string) *UserPoolClientType {
+	s.UserPoolId = &v
+	return s
+}
+
+// SetWriteAttributes sets the WriteAttributes field's value.
+func (s *UserPoolClientType) SetWriteAttributes(v []*string) *UserPoolClientType {
+	s.WriteAttributes = v
+	return s
 }
 
 // A user pool description.
@@ -10103,6 +13901,42 @@ func (s UserPoolDescriptionType) GoString() string {
 	return s.String()
 }
 
+// SetCreationDate sets the CreationDate field's value.
+func (s *UserPoolDescriptionType) SetCreationDate(v time.Time) *UserPoolDescriptionType {
+	s.CreationDate = &v
+	return s
+}
+
+// SetId sets the Id field's value.
+func (s *UserPoolDescriptionType) SetId(v string) *UserPoolDescriptionType {
+	s.Id = &v
+	return s
+}
+
+// SetLambdaConfig sets the LambdaConfig field's value.
+func (s *UserPoolDescriptionType) SetLambdaConfig(v *LambdaConfigType) *UserPoolDescriptionType {
+	s.LambdaConfig = v
+	return s
+}
+
+// SetLastModifiedDate sets the LastModifiedDate field's value.
+func (s *UserPoolDescriptionType) SetLastModifiedDate(v time.Time) *UserPoolDescriptionType {
+	s.LastModifiedDate = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *UserPoolDescriptionType) SetName(v string) *UserPoolDescriptionType {
+	s.Name = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *UserPoolDescriptionType) SetStatus(v string) *UserPoolDescriptionType {
+	s.Status = &v
+	return s
+}
+
 // The type of policy in a user pool.
 type UserPoolPolicyType struct {
 	_ struct{} `type:"structure"`
@@ -10134,6 +13968,12 @@ func (s *UserPoolPolicyType) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetPasswordPolicy sets the PasswordPolicy field's value.
+func (s *UserPoolPolicyType) SetPasswordPolicy(v *PasswordPolicyType) *UserPoolPolicyType {
+	s.PasswordPolicy = v
+	return s
 }
 
 // A container with information about the user pool type.
@@ -10181,13 +14021,13 @@ type UserPoolType struct {
 
 	// Can be one of the following values:
 	//
-	//    OFF - MFA tokens are not required and cannot be specified during user
-	// registration.
+	//    * OFF - MFA tokens are not required and cannot be specified during user
+	//    registration.
 	//
-	//    ON - MFA tokens are required for all user registrations. You can only
-	// specify required when you are initially creating a user pool.
+	//    * ON - MFA tokens are required for all user registrations. You can only
+	//    specify required when you are initially creating a user pool.
 	//
-	//    OPTIONAL - Users have the option when registering to create an MFA token.
+	//    * OPTIONAL - Users have the option when registering to create an MFA token.
 	MfaConfiguration *string `type:"string" enum:"UserPoolMfaType"`
 
 	// The name of the user pool.
@@ -10213,6 +14053,10 @@ type UserPoolType struct {
 
 	// The status of a user pool.
 	Status *string `type:"string" enum:"StatusType"`
+
+	// The cost allocation tags for the user pool. For more information, see Adding
+	// Cost Allocation Tags to Your User Pool (http://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-cost-allocation-tagging.html)
+	UserPoolTags map[string]*string `type:"map"`
 }
 
 // String returns the string representation
@@ -10223,6 +14067,144 @@ func (s UserPoolType) String() string {
 // GoString returns the string representation
 func (s UserPoolType) GoString() string {
 	return s.String()
+}
+
+// SetAdminCreateUserConfig sets the AdminCreateUserConfig field's value.
+func (s *UserPoolType) SetAdminCreateUserConfig(v *AdminCreateUserConfigType) *UserPoolType {
+	s.AdminCreateUserConfig = v
+	return s
+}
+
+// SetAliasAttributes sets the AliasAttributes field's value.
+func (s *UserPoolType) SetAliasAttributes(v []*string) *UserPoolType {
+	s.AliasAttributes = v
+	return s
+}
+
+// SetAutoVerifiedAttributes sets the AutoVerifiedAttributes field's value.
+func (s *UserPoolType) SetAutoVerifiedAttributes(v []*string) *UserPoolType {
+	s.AutoVerifiedAttributes = v
+	return s
+}
+
+// SetCreationDate sets the CreationDate field's value.
+func (s *UserPoolType) SetCreationDate(v time.Time) *UserPoolType {
+	s.CreationDate = &v
+	return s
+}
+
+// SetDeviceConfiguration sets the DeviceConfiguration field's value.
+func (s *UserPoolType) SetDeviceConfiguration(v *DeviceConfigurationType) *UserPoolType {
+	s.DeviceConfiguration = v
+	return s
+}
+
+// SetEmailConfiguration sets the EmailConfiguration field's value.
+func (s *UserPoolType) SetEmailConfiguration(v *EmailConfigurationType) *UserPoolType {
+	s.EmailConfiguration = v
+	return s
+}
+
+// SetEmailConfigurationFailure sets the EmailConfigurationFailure field's value.
+func (s *UserPoolType) SetEmailConfigurationFailure(v string) *UserPoolType {
+	s.EmailConfigurationFailure = &v
+	return s
+}
+
+// SetEmailVerificationMessage sets the EmailVerificationMessage field's value.
+func (s *UserPoolType) SetEmailVerificationMessage(v string) *UserPoolType {
+	s.EmailVerificationMessage = &v
+	return s
+}
+
+// SetEmailVerificationSubject sets the EmailVerificationSubject field's value.
+func (s *UserPoolType) SetEmailVerificationSubject(v string) *UserPoolType {
+	s.EmailVerificationSubject = &v
+	return s
+}
+
+// SetEstimatedNumberOfUsers sets the EstimatedNumberOfUsers field's value.
+func (s *UserPoolType) SetEstimatedNumberOfUsers(v int64) *UserPoolType {
+	s.EstimatedNumberOfUsers = &v
+	return s
+}
+
+// SetId sets the Id field's value.
+func (s *UserPoolType) SetId(v string) *UserPoolType {
+	s.Id = &v
+	return s
+}
+
+// SetLambdaConfig sets the LambdaConfig field's value.
+func (s *UserPoolType) SetLambdaConfig(v *LambdaConfigType) *UserPoolType {
+	s.LambdaConfig = v
+	return s
+}
+
+// SetLastModifiedDate sets the LastModifiedDate field's value.
+func (s *UserPoolType) SetLastModifiedDate(v time.Time) *UserPoolType {
+	s.LastModifiedDate = &v
+	return s
+}
+
+// SetMfaConfiguration sets the MfaConfiguration field's value.
+func (s *UserPoolType) SetMfaConfiguration(v string) *UserPoolType {
+	s.MfaConfiguration = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *UserPoolType) SetName(v string) *UserPoolType {
+	s.Name = &v
+	return s
+}
+
+// SetPolicies sets the Policies field's value.
+func (s *UserPoolType) SetPolicies(v *UserPoolPolicyType) *UserPoolType {
+	s.Policies = v
+	return s
+}
+
+// SetSchemaAttributes sets the SchemaAttributes field's value.
+func (s *UserPoolType) SetSchemaAttributes(v []*SchemaAttributeType) *UserPoolType {
+	s.SchemaAttributes = v
+	return s
+}
+
+// SetSmsAuthenticationMessage sets the SmsAuthenticationMessage field's value.
+func (s *UserPoolType) SetSmsAuthenticationMessage(v string) *UserPoolType {
+	s.SmsAuthenticationMessage = &v
+	return s
+}
+
+// SetSmsConfiguration sets the SmsConfiguration field's value.
+func (s *UserPoolType) SetSmsConfiguration(v *SmsConfigurationType) *UserPoolType {
+	s.SmsConfiguration = v
+	return s
+}
+
+// SetSmsConfigurationFailure sets the SmsConfigurationFailure field's value.
+func (s *UserPoolType) SetSmsConfigurationFailure(v string) *UserPoolType {
+	s.SmsConfigurationFailure = &v
+	return s
+}
+
+// SetSmsVerificationMessage sets the SmsVerificationMessage field's value.
+func (s *UserPoolType) SetSmsVerificationMessage(v string) *UserPoolType {
+	s.SmsVerificationMessage = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *UserPoolType) SetStatus(v string) *UserPoolType {
+	s.Status = &v
+	return s
+}
+
+// SetUserPoolTags sets the UserPoolTags field's value.
+func (s *UserPoolType) SetUserPoolTags(v map[string]*string) *UserPoolType {
+	s.UserPoolTags = v
+	return s
 }
 
 // The user type.
@@ -10246,15 +14228,15 @@ type UserType struct {
 
 	// The user status. Can be one of the following:
 	//
-	//   UNCONFIRMED - User has been created but not confirmed.
+	//    * UNCONFIRMED - User has been created but not confirmed.
 	//
-	//   CONFIRMED - User has been confirmed.
+	//    * CONFIRMED - User has been confirmed.
 	//
-	//   ARCHIVED - User is no longer active.
+	//    * ARCHIVED - User is no longer active.
 	//
-	//   COMPROMISED - User is disabled due to a potential security threat.
+	//    * COMPROMISED - User is disabled due to a potential security threat.
 	//
-	//   UNKNOWN - User status is not known.
+	//    * UNKNOWN - User status is not known.
 	UserStatus *string `type:"string" enum:"UserStatusType"`
 
 	// The user name of the user you wish to describe.
@@ -10269,6 +14251,48 @@ func (s UserType) String() string {
 // GoString returns the string representation
 func (s UserType) GoString() string {
 	return s.String()
+}
+
+// SetAttributes sets the Attributes field's value.
+func (s *UserType) SetAttributes(v []*AttributeType) *UserType {
+	s.Attributes = v
+	return s
+}
+
+// SetEnabled sets the Enabled field's value.
+func (s *UserType) SetEnabled(v bool) *UserType {
+	s.Enabled = &v
+	return s
+}
+
+// SetMFAOptions sets the MFAOptions field's value.
+func (s *UserType) SetMFAOptions(v []*MFAOptionType) *UserType {
+	s.MFAOptions = v
+	return s
+}
+
+// SetUserCreateDate sets the UserCreateDate field's value.
+func (s *UserType) SetUserCreateDate(v time.Time) *UserType {
+	s.UserCreateDate = &v
+	return s
+}
+
+// SetUserLastModifiedDate sets the UserLastModifiedDate field's value.
+func (s *UserType) SetUserLastModifiedDate(v time.Time) *UserType {
+	s.UserLastModifiedDate = &v
+	return s
+}
+
+// SetUserStatus sets the UserStatus field's value.
+func (s *UserType) SetUserStatus(v string) *UserType {
+	s.UserStatus = &v
+	return s
+}
+
+// SetUsername sets the Username field's value.
+func (s *UserType) SetUsername(v string) *UserType {
+	s.Username = &v
+	return s
 }
 
 // Represents the request to verify user attributes.
@@ -10319,6 +14343,24 @@ func (s *VerifyUserAttributeInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAccessToken sets the AccessToken field's value.
+func (s *VerifyUserAttributeInput) SetAccessToken(v string) *VerifyUserAttributeInput {
+	s.AccessToken = &v
+	return s
+}
+
+// SetAttributeName sets the AttributeName field's value.
+func (s *VerifyUserAttributeInput) SetAttributeName(v string) *VerifyUserAttributeInput {
+	s.AttributeName = &v
+	return s
+}
+
+// SetCode sets the Code field's value.
+func (s *VerifyUserAttributeInput) SetCode(v string) *VerifyUserAttributeInput {
+	s.Code = &v
+	return s
 }
 
 // A container representing the response from the server from the request to

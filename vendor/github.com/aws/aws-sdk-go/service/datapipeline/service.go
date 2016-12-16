@@ -16,12 +16,12 @@ import (
 // that data dependencies are met so that your application can focus on processing
 // the data.
 //
-// AWS Data Pipeline provides a JAR implementation of a task runner called
-// AWS Data Pipeline Task Runner. AWS Data Pipeline Task Runner provides logic
-// for common data management scenarios, such as performing database queries
-// and running data analysis using Amazon Elastic MapReduce (Amazon EMR). You
-// can use AWS Data Pipeline Task Runner as your task runner, or you can write
-// your own task runner to provide custom data management.
+// AWS Data Pipeline provides a JAR implementation of a task runner called AWS
+// Data Pipeline Task Runner. AWS Data Pipeline Task Runner provides logic for
+// common data management scenarios, such as performing database queries and
+// running data analysis using Amazon Elastic MapReduce (Amazon EMR). You can
+// use AWS Data Pipeline Task Runner as your task runner, or you can write your
+// own task runner to provide custom data management.
 //
 // AWS Data Pipeline implements two main sets of functionality. Use the first
 // set to create a pipeline and define data sources, schedules, dependencies,
@@ -60,16 +60,17 @@ const ServiceName = "datapipeline"
 //     svc := datapipeline.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
 func New(p client.ConfigProvider, cfgs ...*aws.Config) *DataPipeline {
 	c := p.ClientConfig(ServiceName, cfgs...)
-	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion)
+	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion, c.SigningName)
 }
 
 // newClient creates, initializes and returns a new service client instance.
-func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion string) *DataPipeline {
+func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion, signingName string) *DataPipeline {
 	svc := &DataPipeline{
 		Client: client.New(
 			cfg,
 			metadata.ClientInfo{
 				ServiceName:   ServiceName,
+				SigningName:   signingName,
 				SigningRegion: signingRegion,
 				Endpoint:      endpoint,
 				APIVersion:    "2012-10-29",

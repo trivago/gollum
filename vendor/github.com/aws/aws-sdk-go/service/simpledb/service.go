@@ -25,8 +25,8 @@ import (
 // functionality within Amazon's proven computing environment, are able to scale
 // instantly, and pay only for what they use.
 //
-//  Visit http://aws.amazon.com/simpledb/ (http://aws.amazon.com/simpledb/)
-// for more information.
+// Visit http://aws.amazon.com/simpledb/ (http://aws.amazon.com/simpledb/) for
+// more information.
 //The service client's operations are safe to be used concurrently.
 // It is not safe to mutate any of the client's properties though.
 type SimpleDB struct {
@@ -54,16 +54,17 @@ const ServiceName = "sdb"
 //     svc := simpledb.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
 func New(p client.ConfigProvider, cfgs ...*aws.Config) *SimpleDB {
 	c := p.ClientConfig(ServiceName, cfgs...)
-	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion)
+	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion, c.SigningName)
 }
 
 // newClient creates, initializes and returns a new service client instance.
-func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion string) *SimpleDB {
+func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion, signingName string) *SimpleDB {
 	svc := &SimpleDB{
 		Client: client.New(
 			cfg,
 			metadata.ClientInfo{
 				ServiceName:   ServiceName,
+				SigningName:   signingName,
 				SigningRegion: signingRegion,
 				Endpoint:      endpoint,
 				APIVersion:    "2009-04-15",

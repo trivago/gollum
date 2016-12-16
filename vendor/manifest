@@ -5,7 +5,7 @@
 			"importpath": "github.com/Shopify/sarama",
 			"repository": "https://github.com/Shopify/sarama",
 			"vcs": "git",
-			"revision": "1548006a8b86e4431c98a96ff029d8c2cfdf7fd3",
+			"revision": "9418d7c7189af6ea2df537692f9428efe1368368",
 			"branch": "master"
 		},
 		{
@@ -40,7 +40,7 @@
 			"importpath": "github.com/aws/aws-sdk-go",
 			"repository": "https://github.com/aws/aws-sdk-go",
 			"vcs": "git",
-			"revision": "32cdc88aa5cd2ba4afa049da884aaf9a3d103ef4",
+			"revision": "7b90d889699f15aa1121a9087c00b52471c676fc",
 			"branch": "master",
 			"notests": true
 		},
@@ -55,7 +55,7 @@
 			"importpath": "github.com/coreos/go-systemd/sdjournal",
 			"repository": "https://github.com/coreos/go-systemd",
 			"vcs": "git",
-			"revision": "61c7ee68bddeb1e66b491c3e1045c4f72b2cd6e3",
+			"revision": "7c9533367ef925dc1078d75e5b7141e10da2c4e8",
 			"branch": "master",
 			"path": "/sdjournal",
 			"notests": true
@@ -64,7 +64,7 @@
 			"importpath": "github.com/coreos/pkg/dlopen",
 			"repository": "https://github.com/coreos/pkg",
 			"vcs": "git",
-			"revision": "3ac0863d7acf3bc44daf49afef8919af12f704ef",
+			"revision": "447b7ec906e523386d9c53be15b55a8ae86ea944",
 			"branch": "master",
 			"path": "/dlopen",
 			"notests": true
@@ -73,7 +73,7 @@
 			"importpath": "github.com/davecgh/go-spew/spew",
 			"repository": "https://github.com/davecgh/go-spew",
 			"vcs": "git",
-			"revision": "6d212800a42e8ab5c146b8ace3490ee17e5225f9",
+			"revision": "346938d642f2ec3594ed81d874461961cd0faa76",
 			"branch": "master",
 			"path": "/spew"
 		},
@@ -81,7 +81,7 @@
 			"importpath": "github.com/docker/docker/pkg/homedir",
 			"repository": "https://github.com/docker/docker",
 			"vcs": "git",
-			"revision": "b2786a388817784e8abde3da1b67e50b58cc8b7a",
+			"revision": "e43566565887f58edf3b2eb1bf43ca9e6846bfc1",
 			"branch": "master",
 			"path": "/pkg/homedir"
 		},
@@ -231,6 +231,23 @@
 			"revision": "12c3d17017f5e50baed65aa4543d7a2771e6afc8",
 			"branch": "master",
 			"path": "/libcontainer/user"
+		},
+		{
+			"importpath": "github.com/pierrec/lz4",
+			"repository": "https://github.com/pierrec/lz4",
+			"vcs": "git",
+			"revision": "5c9560bfa9ace2bf86080bf40d46b34ae44604df",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/pierrec/xxHash/xxHash32",
+			"repository": "https://github.com/pierrec/xxHash",
+			"vcs": "git",
+			"revision": "5a004441f897722c627870a981d02b29924215fa",
+			"branch": "master",
+			"path": "/xxHash32",
+			"notests": true
 		},
 		{
 			"importpath": "github.com/rcrowley/go-metrics",

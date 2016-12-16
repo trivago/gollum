@@ -16,8 +16,7 @@ import (
 //
 // The endpoint for configuration service requests is region-specific: es.region.amazonaws.com.
 // For example, es.us-east-1.amazonaws.com. For a current list of supported
-// regions and endpoints, see Regions and Endpoints (http://docs.aws.amazon.com/general/latest/gr/rande.html#elasticsearch-service-regions"
-// target="_blank).
+// regions and endpoints, see Regions and Endpoints (http://docs.aws.amazon.com/general/latest/gr/rande.html#elasticsearch-service-regions).
 //The service client's operations are safe to be used concurrently.
 // It is not safe to mutate any of the client's properties though.
 type ElasticsearchService struct {
@@ -45,16 +44,17 @@ const ServiceName = "es"
 //     svc := elasticsearchservice.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
 func New(p client.ConfigProvider, cfgs ...*aws.Config) *ElasticsearchService {
 	c := p.ClientConfig(ServiceName, cfgs...)
-	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion)
+	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion, c.SigningName)
 }
 
 // newClient creates, initializes and returns a new service client instance.
-func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion string) *ElasticsearchService {
+func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion, signingName string) *ElasticsearchService {
 	svc := &ElasticsearchService{
 		Client: client.New(
 			cfg,
 			metadata.ClientInfo{
 				ServiceName:   ServiceName,
+				SigningName:   signingName,
 				SigningRegion: signingRegion,
 				Endpoint:      endpoint,
 				APIVersion:    "2015-01-01",

@@ -11,11 +11,10 @@ import (
 	"github.com/aws/aws-sdk-go/private/protocol/jsonrpc"
 )
 
-// Amazon Elastic MapReduce (Amazon EMR) is a web service that makes it easy
-// to process large amounts of data efficiently. Amazon EMR uses Hadoop processing
-// combined with several AWS products to do tasks such as web indexing, data
-// mining, log file analysis, machine learning, scientific simulation, and data
-// warehousing.
+// Amazon EMR is a web service that makes it easy to process large amounts of
+// data efficiently. Amazon EMR uses Hadoop processing combined with several
+// AWS products to do tasks such as web indexing, data mining, log file analysis,
+// machine learning, scientific simulation, and data warehousing.
 //The service client's operations are safe to be used concurrently.
 // It is not safe to mutate any of the client's properties though.
 type EMR struct {
@@ -43,16 +42,17 @@ const ServiceName = "elasticmapreduce"
 //     svc := emr.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
 func New(p client.ConfigProvider, cfgs ...*aws.Config) *EMR {
 	c := p.ClientConfig(ServiceName, cfgs...)
-	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion)
+	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion, c.SigningName)
 }
 
 // newClient creates, initializes and returns a new service client instance.
-func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion string) *EMR {
+func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion, signingName string) *EMR {
 	svc := &EMR{
 		Client: client.New(
 			cfg,
 			metadata.ClientInfo{
 				ServiceName:   ServiceName,
+				SigningName:   signingName,
 				SigningRegion: signingRegion,
 				Endpoint:      endpoint,
 				APIVersion:    "2009-03-31",

@@ -16,18 +16,17 @@ import (
 // see Capturing Table Activity with DynamoDB Streams (http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html)
 // in the Amazon DynamoDB Developer Guide.
 //
-// The following are short descriptions of each low-level DynamoDB Streams
-// action:
+// The following are short descriptions of each low-level DynamoDB Streams action:
 //
-//    DescribeStream - Returns detailed information about a particular stream.
+//    * DescribeStream - Returns detailed information about a particular stream.
 //
-//    GetRecords - Retrieves the stream records from within a shard.
+//    * GetRecords - Retrieves the stream records from within a shard.
 //
-//    GetShardIterator - Returns information on how to retrieve the streams
-// record from a shard with a given shard ID.
+//    * GetShardIterator - Returns information on how to retrieve the streams
+//    record from a shard with a given shard ID.
 //
-//    ListStreams - Returns a list of all the streams associated with the current
-// AWS account and endpoint.
+//    * ListStreams - Returns a list of all the streams associated with the
+//    current AWS account and endpoint.
 //The service client's operations are safe to be used concurrently.
 // It is not safe to mutate any of the client's properties though.
 type DynamoDBStreams struct {
@@ -55,17 +54,20 @@ const ServiceName = "streams.dynamodb"
 //     svc := dynamodbstreams.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
 func New(p client.ConfigProvider, cfgs ...*aws.Config) *DynamoDBStreams {
 	c := p.ClientConfig(ServiceName, cfgs...)
-	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion)
+	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion, c.SigningName)
 }
 
 // newClient creates, initializes and returns a new service client instance.
-func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion string) *DynamoDBStreams {
+func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion, signingName string) *DynamoDBStreams {
+	if len(signingName) == 0 {
+		signingName = "dynamodb"
+	}
 	svc := &DynamoDBStreams{
 		Client: client.New(
 			cfg,
 			metadata.ClientInfo{
 				ServiceName:   ServiceName,
-				SigningName:   "dynamodb",
+				SigningName:   signingName,
 				SigningRegion: signingRegion,
 				Endpoint:      endpoint,
 				APIVersion:    "2012-08-10",

@@ -159,9 +159,9 @@ func (c *ACM) DeleteCertificateRequest(input *DeleteCertificateInput) (req *requ
 // by calling the GetCertificate action. The certificate will not be available
 // for use by other AWS services.
 //
-//  You cannot delete an ACM Certificate that is being used by another AWS
-// service. To delete a certificate that is in use, the certificate association
-// must first be removed.
+// You cannot delete an ACM Certificate that is being used by another AWS service.
+// To delete a certificate that is in use, the certificate association must
+// first be removed.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -312,7 +312,7 @@ func (c *ACM) GetCertificateRequest(input *GetCertificateInput) (req *request.Re
 // you want to decode the certificate chain to see the individual certificate
 // fields, you can use OpenSSL.
 //
-//  Currently, ACM Certificates can be used only with Elastic Load Balancing
+// Currently, ACM Certificates can be used only with Elastic Load Balancing
 // and Amazon CloudFront.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -388,10 +388,10 @@ func (c *ACM) ImportCertificateRequest(input *ImportCertificateInput) (req *requ
 // Imports an SSL/TLS certificate into AWS Certificate Manager (ACM) to use
 // with ACM's integrated AWS services (http://docs.aws.amazon.com/acm/latest/userguide/acm-services.html).
 //
-//  ACM does not provide managed renewal (http://docs.aws.amazon.com/acm/latest/userguide/acm-renewal.html)
+// ACM does not provide managed renewal (http://docs.aws.amazon.com/acm/latest/userguide/acm-renewal.html)
 // for certificates that you import.
 //
-//  For more information about importing certificates into ACM, including the
+// For more information about importing certificates into ACM, including the
 // differences between certificates that you import and those that ACM provides,
 // see Importing Certificates (http://docs.aws.amazon.com/acm/latest/userguide/import-certificate.html)
 // in the AWS Certificate Manager User Guide.
@@ -851,7 +851,7 @@ type AddTagsToCertificateInput struct {
 	// String that contains the ARN of the ACM Certificate to which the tag is to
 	// be applied. This must be of the form:
 	//
-	//  arn:aws:acm:region:123456789012:certificate/12345678-1234-1234-1234-123456789012
+	// arn:aws:acm:region:123456789012:certificate/12345678-1234-1234-1234-123456789012
 	//
 	// For more information about ARNs, see Amazon Resource Names (ARNs) and AWS
 	// Service Namespaces (http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html).
@@ -905,6 +905,18 @@ func (s *AddTagsToCertificateInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetCertificateArn sets the CertificateArn field's value.
+func (s *AddTagsToCertificateInput) SetCertificateArn(v string) *AddTagsToCertificateInput {
+	s.CertificateArn = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *AddTagsToCertificateInput) SetTags(v []*Tag) *AddTagsToCertificateInput {
+	s.Tags = v
+	return s
 }
 
 type AddTagsToCertificateOutput struct {
@@ -1022,13 +1034,133 @@ func (s CertificateDetail) GoString() string {
 	return s.String()
 }
 
+// SetCertificateArn sets the CertificateArn field's value.
+func (s *CertificateDetail) SetCertificateArn(v string) *CertificateDetail {
+	s.CertificateArn = &v
+	return s
+}
+
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *CertificateDetail) SetCreatedAt(v time.Time) *CertificateDetail {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetDomainName sets the DomainName field's value.
+func (s *CertificateDetail) SetDomainName(v string) *CertificateDetail {
+	s.DomainName = &v
+	return s
+}
+
+// SetDomainValidationOptions sets the DomainValidationOptions field's value.
+func (s *CertificateDetail) SetDomainValidationOptions(v []*DomainValidation) *CertificateDetail {
+	s.DomainValidationOptions = v
+	return s
+}
+
+// SetFailureReason sets the FailureReason field's value.
+func (s *CertificateDetail) SetFailureReason(v string) *CertificateDetail {
+	s.FailureReason = &v
+	return s
+}
+
+// SetImportedAt sets the ImportedAt field's value.
+func (s *CertificateDetail) SetImportedAt(v time.Time) *CertificateDetail {
+	s.ImportedAt = &v
+	return s
+}
+
+// SetInUseBy sets the InUseBy field's value.
+func (s *CertificateDetail) SetInUseBy(v []*string) *CertificateDetail {
+	s.InUseBy = v
+	return s
+}
+
+// SetIssuedAt sets the IssuedAt field's value.
+func (s *CertificateDetail) SetIssuedAt(v time.Time) *CertificateDetail {
+	s.IssuedAt = &v
+	return s
+}
+
+// SetIssuer sets the Issuer field's value.
+func (s *CertificateDetail) SetIssuer(v string) *CertificateDetail {
+	s.Issuer = &v
+	return s
+}
+
+// SetKeyAlgorithm sets the KeyAlgorithm field's value.
+func (s *CertificateDetail) SetKeyAlgorithm(v string) *CertificateDetail {
+	s.KeyAlgorithm = &v
+	return s
+}
+
+// SetNotAfter sets the NotAfter field's value.
+func (s *CertificateDetail) SetNotAfter(v time.Time) *CertificateDetail {
+	s.NotAfter = &v
+	return s
+}
+
+// SetNotBefore sets the NotBefore field's value.
+func (s *CertificateDetail) SetNotBefore(v time.Time) *CertificateDetail {
+	s.NotBefore = &v
+	return s
+}
+
+// SetRevocationReason sets the RevocationReason field's value.
+func (s *CertificateDetail) SetRevocationReason(v string) *CertificateDetail {
+	s.RevocationReason = &v
+	return s
+}
+
+// SetRevokedAt sets the RevokedAt field's value.
+func (s *CertificateDetail) SetRevokedAt(v time.Time) *CertificateDetail {
+	s.RevokedAt = &v
+	return s
+}
+
+// SetSerial sets the Serial field's value.
+func (s *CertificateDetail) SetSerial(v string) *CertificateDetail {
+	s.Serial = &v
+	return s
+}
+
+// SetSignatureAlgorithm sets the SignatureAlgorithm field's value.
+func (s *CertificateDetail) SetSignatureAlgorithm(v string) *CertificateDetail {
+	s.SignatureAlgorithm = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *CertificateDetail) SetStatus(v string) *CertificateDetail {
+	s.Status = &v
+	return s
+}
+
+// SetSubject sets the Subject field's value.
+func (s *CertificateDetail) SetSubject(v string) *CertificateDetail {
+	s.Subject = &v
+	return s
+}
+
+// SetSubjectAlternativeNames sets the SubjectAlternativeNames field's value.
+func (s *CertificateDetail) SetSubjectAlternativeNames(v []*string) *CertificateDetail {
+	s.SubjectAlternativeNames = v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *CertificateDetail) SetType(v string) *CertificateDetail {
+	s.Type = &v
+	return s
+}
+
 // This structure is returned in the response object of ListCertificates action.
 type CertificateSummary struct {
 	_ struct{} `type:"structure"`
 
 	// Amazon Resource Name (ARN) of the certificate. This is of the form:
 	//
-	//  arn:aws:acm:region:123456789012:certificate/12345678-1234-1234-1234-123456789012
+	// arn:aws:acm:region:123456789012:certificate/12345678-1234-1234-1234-123456789012
 	//
 	// For more information about ARNs, see Amazon Resource Names (ARNs) and AWS
 	// Service Namespaces (http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html).
@@ -1049,13 +1181,25 @@ func (s CertificateSummary) GoString() string {
 	return s.String()
 }
 
+// SetCertificateArn sets the CertificateArn field's value.
+func (s *CertificateSummary) SetCertificateArn(v string) *CertificateSummary {
+	s.CertificateArn = &v
+	return s
+}
+
+// SetDomainName sets the DomainName field's value.
+func (s *CertificateSummary) SetDomainName(v string) *CertificateSummary {
+	s.DomainName = &v
+	return s
+}
+
 type DeleteCertificateInput struct {
 	_ struct{} `type:"structure"`
 
 	// String that contains the ARN of the ACM Certificate to be deleted. This must
 	// be of the form:
 	//
-	//  arn:aws:acm:region:123456789012:certificate/12345678-1234-1234-1234-123456789012
+	// arn:aws:acm:region:123456789012:certificate/12345678-1234-1234-1234-123456789012
 	//
 	// For more information about ARNs, see Amazon Resource Names (ARNs) and AWS
 	// Service Namespaces (http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html).
@@ -1090,6 +1234,12 @@ func (s *DeleteCertificateInput) Validate() error {
 	return nil
 }
 
+// SetCertificateArn sets the CertificateArn field's value.
+func (s *DeleteCertificateInput) SetCertificateArn(v string) *DeleteCertificateInput {
+	s.CertificateArn = &v
+	return s
+}
+
 type DeleteCertificateOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -1109,7 +1259,7 @@ type DescribeCertificateInput struct {
 
 	// String that contains an ACM Certificate ARN. The ARN must be of the form:
 	//
-	//  arn:aws:acm:region:123456789012:certificate/12345678-1234-1234-1234-123456789012
+	// arn:aws:acm:region:123456789012:certificate/12345678-1234-1234-1234-123456789012
 	//
 	// For more information about ARNs, see Amazon Resource Names (ARNs) and AWS
 	// Service Namespaces (http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html).
@@ -1144,6 +1294,12 @@ func (s *DescribeCertificateInput) Validate() error {
 	return nil
 }
 
+// SetCertificateArn sets the CertificateArn field's value.
+func (s *DescribeCertificateInput) SetCertificateArn(v string) *DescribeCertificateInput {
+	s.CertificateArn = &v
+	return s
+}
+
 type DescribeCertificateOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -1161,13 +1317,19 @@ func (s DescribeCertificateOutput) GoString() string {
 	return s.String()
 }
 
+// SetCertificate sets the Certificate field's value.
+func (s *DescribeCertificateOutput) SetCertificate(v *CertificateDetail) *DescribeCertificateOutput {
+	s.Certificate = v
+	return s
+}
+
 // Structure that contains the domain name, the base validation domain to which
 // validation email is sent, and the email addresses used to validate the domain
 // identity.
 type DomainValidation struct {
 	_ struct{} `type:"structure"`
 
-	// Fully Qualified Domain Name (FQDN) of the form www.example.com or  example.com.
+	// Fully Qualified Domain Name (FQDN) of the form www.example.com or example.com.
 	//
 	// DomainName is a required field
 	DomainName *string `min:"1" type:"string" required:"true"`
@@ -1190,6 +1352,24 @@ func (s DomainValidation) GoString() string {
 	return s.String()
 }
 
+// SetDomainName sets the DomainName field's value.
+func (s *DomainValidation) SetDomainName(v string) *DomainValidation {
+	s.DomainName = &v
+	return s
+}
+
+// SetValidationDomain sets the ValidationDomain field's value.
+func (s *DomainValidation) SetValidationDomain(v string) *DomainValidation {
+	s.ValidationDomain = &v
+	return s
+}
+
+// SetValidationEmails sets the ValidationEmails field's value.
+func (s *DomainValidation) SetValidationEmails(v []*string) *DomainValidation {
+	s.ValidationEmails = v
+	return s
+}
+
 // This structure is used in the request object of the RequestCertificate action.
 type DomainValidationOption struct {
 	_ struct{} `type:"structure"`
@@ -1207,15 +1387,15 @@ type DomainValidationOption struct {
 	// domain registrant, technical contact, and administrative contact in WHOIS
 	// for the base domain and the following five addresses:
 	//
-	//   admin@subdomain.example.com
+	//    * admin@subdomain.example.com
 	//
-	//   administrator@subdomain.example.com
+	//    * administrator@subdomain.example.com
 	//
-	//   hostmaster@subdomain.example.com
+	//    * hostmaster@subdomain.example.com
 	//
-	//   postmaster@subdomain.example.com
+	//    * postmaster@subdomain.example.com
 	//
-	//   webmaster@subdomain.example.com
+	//    * webmaster@subdomain.example.com
 	//
 	// ValidationDomain is a required field
 	ValidationDomain *string `min:"1" type:"string" required:"true"`
@@ -1253,12 +1433,24 @@ func (s *DomainValidationOption) Validate() error {
 	return nil
 }
 
+// SetDomainName sets the DomainName field's value.
+func (s *DomainValidationOption) SetDomainName(v string) *DomainValidationOption {
+	s.DomainName = &v
+	return s
+}
+
+// SetValidationDomain sets the ValidationDomain field's value.
+func (s *DomainValidationOption) SetValidationDomain(v string) *DomainValidationOption {
+	s.ValidationDomain = &v
+	return s
+}
+
 type GetCertificateInput struct {
 	_ struct{} `type:"structure"`
 
 	// String that contains a certificate ARN in the following format:
 	//
-	//  arn:aws:acm:region:123456789012:certificate/12345678-1234-1234-1234-123456789012
+	// arn:aws:acm:region:123456789012:certificate/12345678-1234-1234-1234-123456789012
 	//
 	// For more information about ARNs, see Amazon Resource Names (ARNs) and AWS
 	// Service Namespaces (http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html).
@@ -1293,6 +1485,12 @@ func (s *GetCertificateInput) Validate() error {
 	return nil
 }
 
+// SetCertificateArn sets the CertificateArn field's value.
+func (s *GetCertificateInput) SetCertificateArn(v string) *GetCertificateInput {
+	s.CertificateArn = &v
+	return s
+}
+
 type GetCertificateOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -1315,18 +1513,30 @@ func (s GetCertificateOutput) GoString() string {
 	return s.String()
 }
 
+// SetCertificate sets the Certificate field's value.
+func (s *GetCertificateOutput) SetCertificate(v string) *GetCertificateOutput {
+	s.Certificate = &v
+	return s
+}
+
+// SetCertificateChain sets the CertificateChain field's value.
+func (s *GetCertificateOutput) SetCertificateChain(v string) *GetCertificateOutput {
+	s.CertificateChain = &v
+	return s
+}
+
 type ImportCertificateInput struct {
 	_ struct{} `type:"structure"`
 
 	// The certificate to import. It must meet the following requirements:
 	//
-	//   Must be PEM-encoded.
+	//    * Must be PEM-encoded.
 	//
-	//   Must contain a 1024-bit or 2048-bit RSA public key.
+	//    * Must contain a 1024-bit or 2048-bit RSA public key.
 	//
-	//   Must be valid at the time of import. You cannot import a certificate before
-	// its validity period begins (the certificate's NotBefore date) or after it
-	// expires (the certificate's NotAfter date).
+	//    * Must be valid at the time of import. You cannot import a certificate
+	//    before its validity period begins (the certificate's NotBefore date) or
+	//    after it expires (the certificate's NotAfter date).
 	//
 	// Certificate is automatically base64 encoded/decoded by the SDK.
 	//
@@ -1346,10 +1556,10 @@ type ImportCertificateInput struct {
 	// The private key that matches the public key in the certificate. It must meet
 	// the following requirements:
 	//
-	//   Must be PEM-encoded.
+	//    * Must be PEM-encoded.
 	//
-	//   Must be unencrypted. You cannot import a private key that is protected
-	// by a password or passphrase.
+	//    * Must be unencrypted. You cannot import a private key that is protected
+	//    by a password or passphrase.
 	//
 	// PrivateKey is automatically base64 encoded/decoded by the SDK.
 	//
@@ -1395,6 +1605,30 @@ func (s *ImportCertificateInput) Validate() error {
 	return nil
 }
 
+// SetCertificate sets the Certificate field's value.
+func (s *ImportCertificateInput) SetCertificate(v []byte) *ImportCertificateInput {
+	s.Certificate = v
+	return s
+}
+
+// SetCertificateArn sets the CertificateArn field's value.
+func (s *ImportCertificateInput) SetCertificateArn(v string) *ImportCertificateInput {
+	s.CertificateArn = &v
+	return s
+}
+
+// SetCertificateChain sets the CertificateChain field's value.
+func (s *ImportCertificateInput) SetCertificateChain(v []byte) *ImportCertificateInput {
+	s.CertificateChain = v
+	return s
+}
+
+// SetPrivateKey sets the PrivateKey field's value.
+func (s *ImportCertificateInput) SetPrivateKey(v []byte) *ImportCertificateInput {
+	s.PrivateKey = v
+	return s
+}
+
 type ImportCertificateOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -1411,6 +1645,12 @@ func (s ImportCertificateOutput) String() string {
 // GoString returns the string representation
 func (s ImportCertificateOutput) GoString() string {
 	return s.String()
+}
+
+// SetCertificateArn sets the CertificateArn field's value.
+func (s *ImportCertificateOutput) SetCertificateArn(v string) *ImportCertificateOutput {
+	s.CertificateArn = &v
+	return s
 }
 
 type ListCertificatesInput struct {
@@ -1457,6 +1697,24 @@ func (s *ListCertificatesInput) Validate() error {
 	return nil
 }
 
+// SetCertificateStatuses sets the CertificateStatuses field's value.
+func (s *ListCertificatesInput) SetCertificateStatuses(v []*string) *ListCertificatesInput {
+	s.CertificateStatuses = v
+	return s
+}
+
+// SetMaxItems sets the MaxItems field's value.
+func (s *ListCertificatesInput) SetMaxItems(v int64) *ListCertificatesInput {
+	s.MaxItems = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListCertificatesInput) SetNextToken(v string) *ListCertificatesInput {
+	s.NextToken = &v
+	return s
+}
+
 type ListCertificatesOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -1478,13 +1736,25 @@ func (s ListCertificatesOutput) GoString() string {
 	return s.String()
 }
 
+// SetCertificateSummaryList sets the CertificateSummaryList field's value.
+func (s *ListCertificatesOutput) SetCertificateSummaryList(v []*CertificateSummary) *ListCertificatesOutput {
+	s.CertificateSummaryList = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListCertificatesOutput) SetNextToken(v string) *ListCertificatesOutput {
+	s.NextToken = &v
+	return s
+}
+
 type ListTagsForCertificateInput struct {
 	_ struct{} `type:"structure"`
 
 	// String that contains the ARN of the ACM Certificate for which you want to
 	// list the tags. This must be of the form:
 	//
-	//  arn:aws:acm:region:123456789012:certificate/12345678-1234-1234-1234-123456789012
+	// arn:aws:acm:region:123456789012:certificate/12345678-1234-1234-1234-123456789012
 	//
 	// For more information about ARNs, see Amazon Resource Names (ARNs) and AWS
 	// Service Namespaces (http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html).
@@ -1519,6 +1789,12 @@ func (s *ListTagsForCertificateInput) Validate() error {
 	return nil
 }
 
+// SetCertificateArn sets the CertificateArn field's value.
+func (s *ListTagsForCertificateInput) SetCertificateArn(v string) *ListTagsForCertificateInput {
+	s.CertificateArn = &v
+	return s
+}
+
 type ListTagsForCertificateOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -1536,13 +1812,19 @@ func (s ListTagsForCertificateOutput) GoString() string {
 	return s.String()
 }
 
+// SetTags sets the Tags field's value.
+func (s *ListTagsForCertificateOutput) SetTags(v []*Tag) *ListTagsForCertificateOutput {
+	s.Tags = v
+	return s
+}
+
 type RemoveTagsFromCertificateInput struct {
 	_ struct{} `type:"structure"`
 
 	// String that contains the ARN of the ACM Certificate with one or more tags
 	// that you want to remove. This must be of the form:
 	//
-	//  arn:aws:acm:region:123456789012:certificate/12345678-1234-1234-1234-123456789012
+	// arn:aws:acm:region:123456789012:certificate/12345678-1234-1234-1234-123456789012
 	//
 	// For more information about ARNs, see Amazon Resource Names (ARNs) and AWS
 	// Service Namespaces (http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html).
@@ -1598,6 +1880,18 @@ func (s *RemoveTagsFromCertificateInput) Validate() error {
 	return nil
 }
 
+// SetCertificateArn sets the CertificateArn field's value.
+func (s *RemoveTagsFromCertificateInput) SetCertificateArn(v string) *RemoveTagsFromCertificateInput {
+	s.CertificateArn = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *RemoveTagsFromCertificateInput) SetTags(v []*Tag) *RemoveTagsFromCertificateInput {
+	s.Tags = v
+	return s
+}
+
 type RemoveTagsFromCertificateOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -1630,15 +1924,15 @@ type RequestCertificateInput struct {
 	// ACM sends email to the domain registrant, technical contact, and administrative
 	// contact in WHOIS and the following five addresses:
 	//
-	//   admin@example.com
+	//    * admin@example.com
 	//
-	//   administrator@example.com
+	//    * administrator@example.com
 	//
-	//   hostmaster@example.com
+	//    * hostmaster@example.com
 	//
-	//   postmaster@example.com
+	//    * postmaster@example.com
 	//
-	//   webmaster@example.com
+	//    * webmaster@example.com
 	DomainValidationOptions []*DomainValidationOption `min:"1" type:"list"`
 
 	// Customer chosen string that can be used to distinguish between calls to RequestCertificate.
@@ -1701,13 +1995,37 @@ func (s *RequestCertificateInput) Validate() error {
 	return nil
 }
 
+// SetDomainName sets the DomainName field's value.
+func (s *RequestCertificateInput) SetDomainName(v string) *RequestCertificateInput {
+	s.DomainName = &v
+	return s
+}
+
+// SetDomainValidationOptions sets the DomainValidationOptions field's value.
+func (s *RequestCertificateInput) SetDomainValidationOptions(v []*DomainValidationOption) *RequestCertificateInput {
+	s.DomainValidationOptions = v
+	return s
+}
+
+// SetIdempotencyToken sets the IdempotencyToken field's value.
+func (s *RequestCertificateInput) SetIdempotencyToken(v string) *RequestCertificateInput {
+	s.IdempotencyToken = &v
+	return s
+}
+
+// SetSubjectAlternativeNames sets the SubjectAlternativeNames field's value.
+func (s *RequestCertificateInput) SetSubjectAlternativeNames(v []*string) *RequestCertificateInput {
+	s.SubjectAlternativeNames = v
+	return s
+}
+
 type RequestCertificateOutput struct {
 	_ struct{} `type:"structure"`
 
 	// String that contains the ARN of the issued certificate. This must be of the
 	// form:
 	//
-	//  arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012
+	// arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012
 	CertificateArn *string `min:"20" type:"string"`
 }
 
@@ -1721,6 +2039,12 @@ func (s RequestCertificateOutput) GoString() string {
 	return s.String()
 }
 
+// SetCertificateArn sets the CertificateArn field's value.
+func (s *RequestCertificateOutput) SetCertificateArn(v string) *RequestCertificateOutput {
+	s.CertificateArn = &v
+	return s
+}
+
 type ResendValidationEmailInput struct {
 	_ struct{} `type:"structure"`
 
@@ -1731,7 +2055,7 @@ type ResendValidationEmailInput struct {
 	//
 	// The ARN must be of the form:
 	//
-	//  arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012
+	// arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012
 	//
 	// CertificateArn is a required field
 	CertificateArn *string `min:"20" type:"string" required:"true"`
@@ -1749,15 +2073,15 @@ type ResendValidationEmailInput struct {
 	// ACM sends email to the domain registrant, technical contact, and administrative
 	// contact in WHOIS and the following five addresses:
 	//
-	//   admin@subdomain.example.com
+	//    * admin@subdomain.example.com
 	//
-	//   administrator@subdomain.example.com
+	//    * administrator@subdomain.example.com
 	//
-	//   hostmaster@subdomain.example.com
+	//    * hostmaster@subdomain.example.com
 	//
-	//   postmaster@subdomain.example.com
+	//    * postmaster@subdomain.example.com
 	//
-	//   webmaster@subdomain.example.com
+	//    * webmaster@subdomain.example.com
 	//
 	// ValidationDomain is a required field
 	ValidationDomain *string `min:"1" type:"string" required:"true"`
@@ -1799,6 +2123,24 @@ func (s *ResendValidationEmailInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetCertificateArn sets the CertificateArn field's value.
+func (s *ResendValidationEmailInput) SetCertificateArn(v string) *ResendValidationEmailInput {
+	s.CertificateArn = &v
+	return s
+}
+
+// SetDomain sets the Domain field's value.
+func (s *ResendValidationEmailInput) SetDomain(v string) *ResendValidationEmailInput {
+	s.Domain = &v
+	return s
+}
+
+// SetValidationDomain sets the ValidationDomain field's value.
+func (s *ResendValidationEmailInput) SetValidationDomain(v string) *ResendValidationEmailInput {
+	s.ValidationDomain = &v
+	return s
 }
 
 type ResendValidationEmailOutput struct {
@@ -1852,6 +2194,18 @@ func (s *Tag) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetKey sets the Key field's value.
+func (s *Tag) SetKey(v string) *Tag {
+	s.Key = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *Tag) SetValue(v string) *Tag {
+	s.Value = &v
+	return s
 }
 
 const (

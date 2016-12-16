@@ -15,7 +15,7 @@ import (
 // documentation is intended to be used in conjunction with the Amazon SES Developer
 // Guide (http://docs.aws.amazon.com/ses/latest/DeveloperGuide/Welcome.html).
 //
-//   For a list of Amazon SES endpoints to use in service requests, see Regions
+// For a list of Amazon SES endpoints to use in service requests, see Regions
 // and Amazon SES (http://docs.aws.amazon.com/ses/latest/DeveloperGuide/regions.html)
 // in the Amazon SES Developer Guide.
 //The service client's operations are safe to be used concurrently.
@@ -45,17 +45,20 @@ const ServiceName = "email"
 //     svc := ses.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
 func New(p client.ConfigProvider, cfgs ...*aws.Config) *SES {
 	c := p.ClientConfig(ServiceName, cfgs...)
-	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion)
+	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion, c.SigningName)
 }
 
 // newClient creates, initializes and returns a new service client instance.
-func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion string) *SES {
+func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion, signingName string) *SES {
+	if len(signingName) == 0 {
+		signingName = "ses"
+	}
 	svc := &SES{
 		Client: client.New(
 			cfg,
 			metadata.ClientInfo{
 				ServiceName:   ServiceName,
-				SigningName:   "ses",
+				SigningName:   signingName,
 				SigningRegion: signingRegion,
 				Endpoint:      endpoint,
 				APIVersion:    "2010-12-01",

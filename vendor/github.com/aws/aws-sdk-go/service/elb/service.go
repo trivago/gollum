@@ -32,9 +32,8 @@ import (
 // This reference covers the 2012-06-01 API, which supports Classic load balancers.
 // The 2015-12-01 API supports Application load balancers.
 //
-// To get started, create a load balancer with one or more listeners using
-// CreateLoadBalancer. Register your instances with the load balancer using
-// RegisterInstancesWithLoadBalancer.
+// To get started, create a load balancer with one or more listeners using CreateLoadBalancer.
+// Register your instances with the load balancer using RegisterInstancesWithLoadBalancer.
 //
 // All Elastic Load Balancing operations are idempotent, which means that they
 // complete at most one time. If you repeat an operation, it succeeds with a
@@ -66,16 +65,17 @@ const ServiceName = "elasticloadbalancing"
 //     svc := elb.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
 func New(p client.ConfigProvider, cfgs ...*aws.Config) *ELB {
 	c := p.ClientConfig(ServiceName, cfgs...)
-	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion)
+	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion, c.SigningName)
 }
 
 // newClient creates, initializes and returns a new service client instance.
-func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion string) *ELB {
+func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion, signingName string) *ELB {
 	svc := &ELB{
 		Client: client.New(
 			cfg,
 			metadata.ClientInfo{
 				ServiceName:   ServiceName,
+				SigningName:   signingName,
 				SigningRegion: signingRegion,
 				Endpoint:      endpoint,
 				APIVersion:    "2012-06-01",

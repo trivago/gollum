@@ -31,9 +31,9 @@ import (
 // For more information about how to sign a request with this protocol, see
 // Signature Version 4 Signing Process (http://docs.aws.amazon.com/general/latest/gr/signature-version-4.html).
 //
-// For detailed information about AWS Config features and their associated
-// actions or commands, as well as how to work with AWS Management Console,
-// see What Is AWS Config? (http://docs.aws.amazon.com/config/latest/developerguide/WhatIsConfig.html)
+// For detailed information about AWS Config features and their associated actions
+// or commands, as well as how to work with AWS Management Console, see What
+// Is AWS Config? (http://docs.aws.amazon.com/config/latest/developerguide/WhatIsConfig.html)
 // in the AWS Config Developer Guide.
 //The service client's operations are safe to be used concurrently.
 // It is not safe to mutate any of the client's properties though.
@@ -62,16 +62,17 @@ const ServiceName = "config"
 //     svc := configservice.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
 func New(p client.ConfigProvider, cfgs ...*aws.Config) *ConfigService {
 	c := p.ClientConfig(ServiceName, cfgs...)
-	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion)
+	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion, c.SigningName)
 }
 
 // newClient creates, initializes and returns a new service client instance.
-func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion string) *ConfigService {
+func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion, signingName string) *ConfigService {
 	svc := &ConfigService{
 		Client: client.New(
 			cfg,
 			metadata.ClientInfo{
 				ServiceName:   ServiceName,
+				SigningName:   signingName,
 				SigningRegion: signingRegion,
 				Endpoint:      endpoint,
 				APIVersion:    "2014-11-12",

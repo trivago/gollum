@@ -31,10 +31,10 @@ import (
 // If you are a first-time user of Amazon Redshift, we recommend that you begin
 // by reading the Amazon Redshift Getting Started Guide (http://docs.aws.amazon.com/redshift/latest/gsg/getting-started.html).
 //
-// If you are a database developer, the Amazon Redshift Database Developer
-// Guide (http://docs.aws.amazon.com/redshift/latest/dg/welcome.html) explains
-// how to design, build, query, and maintain the databases that make up your
-// data warehouse.
+// If you are a database developer, the Amazon Redshift Database Developer Guide
+// (http://docs.aws.amazon.com/redshift/latest/dg/welcome.html) explains how
+// to design, build, query, and maintain the databases that make up your data
+// warehouse.
 //The service client's operations are safe to be used concurrently.
 // It is not safe to mutate any of the client's properties though.
 type Redshift struct {
@@ -62,16 +62,17 @@ const ServiceName = "redshift"
 //     svc := redshift.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
 func New(p client.ConfigProvider, cfgs ...*aws.Config) *Redshift {
 	c := p.ClientConfig(ServiceName, cfgs...)
-	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion)
+	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion, c.SigningName)
 }
 
 // newClient creates, initializes and returns a new service client instance.
-func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion string) *Redshift {
+func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion, signingName string) *Redshift {
 	svc := &Redshift{
 		Client: client.New(
 			cfg,
 			metadata.ClientInfo{
 				ServiceName:   ServiceName,
+				SigningName:   signingName,
 				SigningRegion: signingRegion,
 				Endpoint:      endpoint,
 				APIVersion:    "2012-12-01",

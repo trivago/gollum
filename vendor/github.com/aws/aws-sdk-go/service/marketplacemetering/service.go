@@ -19,7 +19,19 @@ import (
 //
 // Submitting Metering Records
 //
-//   MeterUsage- Submits the metering record for a Marketplace product.
+//    * MeterUsage- Submits the metering record for a Marketplace product. MeterUsage
+//    is called from an EC2 instance.
+//
+//    * BatchMeterUsage- Submits the metering record for a set of customers.
+//    BatchMeterUsage is called from a software-as-a-service (SaaS) application.
+//
+// Accepting New Customers
+//
+//    * ResolveCustomer- Called by a SaaS application during the registration
+//    process. When a buyer visits your website during the registration process,
+//    the buyer submits a Registration Token through the browser. The Registration
+//    Token is resolved through this API to obtain a CustomerIdentifier and
+//    Product Code.
 //The service client's operations are safe to be used concurrently.
 // It is not safe to mutate any of the client's properties though.
 type MarketplaceMetering struct {
@@ -47,17 +59,20 @@ const ServiceName = "metering.marketplace"
 //     svc := marketplacemetering.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
 func New(p client.ConfigProvider, cfgs ...*aws.Config) *MarketplaceMetering {
 	c := p.ClientConfig(ServiceName, cfgs...)
-	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion)
+	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion, c.SigningName)
 }
 
 // newClient creates, initializes and returns a new service client instance.
-func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion string) *MarketplaceMetering {
+func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion, signingName string) *MarketplaceMetering {
+	if len(signingName) == 0 {
+		signingName = "aws-marketplace"
+	}
 	svc := &MarketplaceMetering{
 		Client: client.New(
 			cfg,
 			metadata.ClientInfo{
 				ServiceName:   ServiceName,
-				SigningName:   "aws-marketplace",
+				SigningName:   signingName,
 				SigningRegion: signingRegion,
 				Endpoint:      endpoint,
 				APIVersion:    "2016-01-14",

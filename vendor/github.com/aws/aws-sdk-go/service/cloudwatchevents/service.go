@@ -18,11 +18,13 @@ import (
 // to take action on a pre-determined schedule. For example, you can configure
 // rules to:
 //
-//  Automatically invoke an AWS Lambda function to update DNS entries when
-// an event notifies you that Amazon EC2 instance enters the running state.
-// Direct specific API records from CloudTrail to an Amazon Kinesis stream for
-// detailed analysis of potential security or availability risks. Periodically
-// invoke a built-in target to create a snapshot of an Amazon EBS volume.
+//    * Automatically invoke an AWS Lambda function to update DNS entries when
+//    an event notifies you that Amazon EC2 instance enters the running state.
+//
+//    * Direct specific API records from CloudTrail to an Amazon Kinesis stream
+//    for detailed analysis of potential security or availability risks.
+//    * Periodically invoke a built-in target to create a snapshot of an Amazon
+//    EBS volume.
 // For more information about Amazon CloudWatch Events features, see the Amazon
 // CloudWatch Developer Guide (http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide).
 //The service client's operations are safe to be used concurrently.
@@ -52,16 +54,17 @@ const ServiceName = "events"
 //     svc := cloudwatchevents.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
 func New(p client.ConfigProvider, cfgs ...*aws.Config) *CloudWatchEvents {
 	c := p.ClientConfig(ServiceName, cfgs...)
-	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion)
+	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion, c.SigningName)
 }
 
 // newClient creates, initializes and returns a new service client instance.
-func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion string) *CloudWatchEvents {
+func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion, signingName string) *CloudWatchEvents {
 	svc := &CloudWatchEvents{
 		Client: client.New(
 			cfg,
 			metadata.ClientInfo{
 				ServiceName:   ServiceName,
+				SigningName:   signingName,
 				SigningRegion: signingRegion,
 				Endpoint:      endpoint,
 				APIVersion:    "2015-10-07",

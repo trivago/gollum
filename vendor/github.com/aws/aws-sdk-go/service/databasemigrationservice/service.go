@@ -14,9 +14,10 @@ import (
 // AWS Database Migration Service (AWS DMS) can migrate your data to and from
 // the most widely used commercial and open-source databases such as Oracle,
 // PostgreSQL, Microsoft SQL Server, Amazon Redshift, MariaDB, Amazon Aurora,
-// and MySQL. The service supports homogeneous migrations such as Oracle to
-// Oracle, as well as heterogeneous migrations between different database platforms,
-// such as Oracle to MySQL or SQL Server to PostgreSQL.
+// MySQL, and SAP Adaptive Server Enterprise (ASE). The service supports homogeneous
+// migrations such as Oracle to Oracle, as well as heterogeneous migrations
+// between different database platforms, such as Oracle to MySQL or SQL Server
+// to PostgreSQL.
 //The service client's operations are safe to be used concurrently.
 // It is not safe to mutate any of the client's properties though.
 type DatabaseMigrationService struct {
@@ -44,16 +45,17 @@ const ServiceName = "dms"
 //     svc := databasemigrationservice.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
 func New(p client.ConfigProvider, cfgs ...*aws.Config) *DatabaseMigrationService {
 	c := p.ClientConfig(ServiceName, cfgs...)
-	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion)
+	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion, c.SigningName)
 }
 
 // newClient creates, initializes and returns a new service client instance.
-func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion string) *DatabaseMigrationService {
+func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion, signingName string) *DatabaseMigrationService {
 	svc := &DatabaseMigrationService{
 		Client: client.New(
 			cfg,
 			metadata.ClientInfo{
 				ServiceName:   ServiceName,
+				SigningName:   signingName,
 				SigningRegion: signingRegion,
 				Endpoint:      endpoint,
 				APIVersion:    "2016-01-01",
