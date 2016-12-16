@@ -322,20 +322,32 @@ func (format *JSON) readArrayDate(data []byte, state shared.ParserStateID) {
 }
 
 func (format *JSON) readArray(data []byte, state shared.ParserStateID) {
-	if format.state == jsonReadArrayAppend {
-		format.message.WriteString(",[")
-	} else {
+	switch format.state {
+	default:
+		format.writeKey([]byte(format.parser.GetStateName(state)))
+		fallthrough
+
+	case jsonReadValue:
 		format.message.WriteByte('[')
+
+	case jsonReadArrayAppend:
+		format.message.WriteString(",[")
 	}
 	format.stack = append(format.stack, format.state)
 	format.state = jsonReadArray
 }
 
 func (format *JSON) readObject(data []byte, state shared.ParserStateID) {
-	if format.state == jsonReadArrayAppend {
-		format.message.WriteString(",{")
-	} else {
+	switch format.state {
+	default:
+		format.writeKey([]byte(format.parser.GetStateName(state)))
+		fallthrough
+
+	case jsonReadValue:
 		format.message.WriteByte('{')
+
+	case jsonReadArrayAppend:
+		format.message.WriteString(",{")
 	}
 	format.stack = append(format.stack, format.state)
 	format.state = jsonReadObject
@@ -358,7 +370,7 @@ func (format *JSON) readEnd(data []byte, state shared.ParserStateID) {
 		format.stack = format.stack[:stackSize-1] // Pop the stack
 	} else {
 		format.stack = format.stack[:0] // Clear the stack
-		format.state = jsonReadValue
+		format.state = jsonReadKey
 	}
 }
 
