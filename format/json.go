@@ -207,6 +207,8 @@ func (format *JSON) Configure(conf core.PluginConfig) error {
 	}
 
 	format.parser.AddDirectives(directives)
+
+	// TODO check directives format.initState
 	return nil
 }
 
@@ -389,6 +391,7 @@ func (format *JSON) Format(msg core.Message) ([]byte, core.MessageStreamID) {
 
 	// Write remains as string value
 	if remains != nil {
+		fmt.Println("remains:", string(remains))
 		format.readEscaped(remains, state)
 	}
 

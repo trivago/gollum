@@ -12,6 +12,7 @@ This is a patch / minor features release.
  * Consumer.Kafka does now retry with an "oldest" offset after encountering an OutOfRange exception.
  * Fixed a crash when using producer.ElasticSearch with date based indexes (thanks @relud)
  * format.Base64Decode now uses data from previous formatters as intended
+ * format.JSON arr and obj will now auto create a key if necessary
  
 #### New
 
@@ -26,6 +27,8 @@ This is a patch / minor features release.
  * Added filter.Any to allow "or" style combinations of filters (thanks @relud)
  * Added support for unix timestamp parsing to format.ProcessJSON (thanks @relud)
  * Added filter.Sample to allow processing of every n'th message only (thanks @relud)
+ * Added "pick" option to format.ProcessJSON to get a single value from an arrays
+ * Added "geoip" option to format.ProcessJSON to get GeoIP data from an IP
 
 # 0.4.4
 

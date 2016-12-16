@@ -233,6 +233,14 @@
 			"path": "/libcontainer/user"
 		},
 		{
+			"importpath": "github.com/oschwald/maxminddb-golang",
+			"repository": "https://github.com/oschwald/maxminddb-golang",
+			"vcs": "git",
+			"revision": "6a69cca899de040a10275a92f5e3af60ef8185b5",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/pierrec/lz4",
 			"repository": "https://github.com/pierrec/lz4",
 			"vcs": "git",
@@ -353,6 +361,15 @@
 			"notests": true
 		},
 		{
+			"importpath": "golang.org/x/sys/windows",
+			"repository": "https://go.googlesource.com/sys",
+			"vcs": "git",
+			"revision": "d75a52659825e75fff6158388dddc6a5b04f9ba5",
+			"branch": "master",
+			"path": "/windows",
+			"notests": true
+		},
+		{
 			"importpath": "gopkg.in/bsm/ratelimit.v1",
 			"repository": "https://gopkg.in/bsm/ratelimit.v1",
 			"vcs": "git",
@@ -380,6 +397,14 @@
 			"repository": "https://gopkg.in/mcuadros/go-syslog.v2",
 			"vcs": "git",
 			"revision": "d3055b9994b88519219253c3d4d4b0fead2abc94",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "gopkg.in/oschwald/geoip2-golang.v1",
+			"repository": "https://gopkg.in/oschwald/geoip2-golang.v1",
+			"vcs": "git",
+			"revision": "496a3cbcb65a3cb54497fe4ae2273319e85160a4",
 			"branch": "master",
 			"notests": true
 		},
