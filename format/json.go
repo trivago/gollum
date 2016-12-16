@@ -208,7 +208,25 @@ func (format *JSON) Configure(conf core.PluginConfig) error {
 
 	format.parser.AddDirectives(directives)
 
-	// TODO check directives format.initState
+	// Validate initstate
+	initStateValid := false
+	for i := 0; i < len(directives) && !initStateValid; i++ {
+		initStateValid = directives[i].State == format.initState
+	}
+	if !initStateValid {
+		return fmt.Errorf("JSONStartState does not exist in directives")
+	}
+
+	for _, dir := range directives {
+		nextStateValid := false
+		for i := 0; i < len(directives) && !nextStateValid; i++ {
+			nextStateValid = dir.NextState == directives[i].State
+		}
+		if !nextStateValid {
+			Log.Warning.Printf("State \"%s\" has a transition to \"%s\" which does not exist in directives", dir.State, dir.NextState)
+		}
+	}
+
 	return nil
 }
 
@@ -391,7 +409,6 @@ func (format *JSON) Format(msg core.Message) ([]byte, core.MessageStreamID) {
 
 	// Write remains as string value
 	if remains != nil {
-		fmt.Println("remains:", string(remains))
 		format.readEscaped(remains, state)
 	}
 
