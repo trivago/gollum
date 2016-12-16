@@ -257,6 +257,17 @@ func (format *JSON) readKey(data []byte, state shared.ParserStateID) {
 }
 
 func (format *JSON) readValue(data []byte, state shared.ParserStateID) {
+	if len(data) == 0 {
+		switch format.state {
+		default:
+			format.state = jsonReadKey
+		case jsonReadArrayAppend:
+		case jsonReadArray:
+			format.state = jsonReadArrayAppend
+		}
+		return
+	}
+
 	switch format.state {
 	default:
 		format.writeKey([]byte(format.parser.GetStateName(state)))
@@ -277,6 +288,17 @@ func (format *JSON) readValue(data []byte, state shared.ParserStateID) {
 }
 
 func (format *JSON) readEscaped(data []byte, state shared.ParserStateID) {
+	if len(data) == 0 {
+		switch format.state {
+		default:
+			format.state = jsonReadKey
+		case jsonReadArrayAppend:
+		case jsonReadArray:
+			format.state = jsonReadArrayAppend
+		}
+		return
+	}
+
 	switch format.state {
 	default:
 		format.writeKey([]byte(format.parser.GetStateName(state)))
@@ -347,7 +369,7 @@ func (format *JSON) readArray(data []byte, state shared.ParserStateID) {
 		format.writeKey([]byte(format.parser.GetStateName(state)))
 		fallthrough
 
-	case jsonReadValue:
+	case jsonReadValue, jsonReadArray, jsonReadObject:
 		format.message.WriteByte('[')
 
 	case jsonReadArrayAppend:
@@ -363,7 +385,7 @@ func (format *JSON) readObject(data []byte, state shared.ParserStateID) {
 		format.writeKey([]byte(format.parser.GetStateName(state)))
 		fallthrough
 
-	case jsonReadValue:
+	case jsonReadValue, jsonReadObject, jsonReadArray:
 		format.message.WriteByte('{')
 
 	case jsonReadArrayAppend:

@@ -56,6 +56,8 @@ func TestJSONFormatter1(t *testing.T) {
 		`array      :]:             : pop  : end`,
 		`array      :,:  arrIntVal  :      : val`,
 		`array      :":  arrStrVal  ::`,
+		`arrIntVal  :[:  array      : push : arr`,
+		`arrIntVal  :{:  findKey    : push : obj`,
 		`arrIntVal  :,:  arrIntVal  :      : val`,
 		`arrIntVal  :]:             : pop  : val+end`,
 		`arrStrVal  :":  arrNextStr :      : esc`,

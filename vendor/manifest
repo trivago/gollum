@@ -217,6 +217,14 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/mmcloughlin/geohash",
+			"repository": "https://github.com/mmcloughlin/geohash",
+			"vcs": "git",
+			"revision": "4ee9e1034fc9a68c69a55e3aa68678a52367fe87",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/mssola/user_agent",
 			"repository": "https://github.com/mssola/user_agent",
 			"vcs": "git",

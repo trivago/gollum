@@ -16,6 +16,7 @@ package format
 
 import (
 	"encoding/json"
+	"github.com/mmcloughlin/geohash"
 	"github.com/mssola/user_agent"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
@@ -80,6 +81,7 @@ import (
 //    "engine_version", "browser", "version".
 //  * geoip:{<field>:<field>:...} like agent this directive will analyse an IP string
 //    via geoip and produce new fields.
+//    Possible values are: "country", "city", "continent", "timezone", "proxy", "location"
 //
 // ProcessJSONTrimValues will trim whitspaces from all values if enabled.
 // Enabled by default.
@@ -329,6 +331,7 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 				"continent",
 				"timezone",
 				"proxy",
+				"location",
 			}
 			if numParameters > 0 {
 				fields = directive.parameters
@@ -368,6 +371,10 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 				case "proxy":
 					(*values)[directive.key+"_proxy"] = record.Traits.IsAnonymousProxy
 					(*values)[directive.key+"_satellite"] = record.Traits.IsSatelliteProvider
+
+				case "location":
+					(*values)[directive.key+"_geocoord"] = []float64{record.Location.Latitude, record.Location.Longitude}
+					(*values)[directive.key+"_geohash"] = geohash.Encode(record.Location.Latitude, record.Location.Longitude)
 				}
 			}
 		}
