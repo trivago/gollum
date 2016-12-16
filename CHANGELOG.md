@@ -13,6 +13,7 @@ This is a patch / minor features release.
  * Fixed a crash when using producer.ElasticSearch with date based indexes (thanks @relud)
  * format.Base64Decode now uses data from previous formatters as intended
  * format.JSON arr and obj will now auto create a key if necessary
+ * format.JSON now checks for valid state references upon startup
  
 #### New
 
