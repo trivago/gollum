@@ -50,7 +50,7 @@ import (
 //      "_GOLLUM_"  : "_GOLLUM_"
 //    Settings:
 //      "console":
-//          "number_of_shards": 1
+//        "number_of_shards": 1
 //    DataTypes:
 //      "console":
 //        "source": "ip"

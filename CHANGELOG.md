@@ -14,6 +14,7 @@ This is a patch / minor features release.
  * format.Base64Decode now uses data from previous formatters as intended
  * format.JSON arr and obj will now auto create a key if necessary
  * format.JSON now checks for valid state references upon startup
+ * format.JSON now properly encodes strings when using "enc"
  
 #### New
 
@@ -30,6 +31,7 @@ This is a patch / minor features release.
  * Added filter.Sample to allow processing of every n'th message only (thanks @relud)
  * Added "pick" option to format.ProcessJSON to get a single value from an arrays
  * Added "geoip" option to format.ProcessJSON to get GeoIP data from an IP
+ * Added index configuration options to producer.ElasticSearch
 
 # 0.4.4
 
