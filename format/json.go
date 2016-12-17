@@ -16,6 +16,7 @@ package format
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
@@ -288,7 +289,8 @@ func (format *JSON) readValue(data []byte, state shared.ParserStateID) {
 }
 
 func (format *JSON) readEscaped(data []byte, state shared.ParserStateID) {
-	if len(data) == 0 {
+	encodedData, _ := json.Marshal(string(bytes.TrimSpace(data)))
+	if len(encodedData) == 0 {
 		switch format.state {
 		default:
 			format.state = jsonReadKey
@@ -305,20 +307,17 @@ func (format *JSON) readEscaped(data []byte, state shared.ParserStateID) {
 		fallthrough
 
 	case jsonReadValue:
-		format.message.WriteByte('"')
-		format.message.Write(bytes.TrimSpace(data))
+		format.message.Write(encodedData)
 		format.state = jsonReadKey
 
 	case jsonReadArray:
-		format.message.WriteByte('"')
-		format.message.Write(bytes.TrimSpace(data))
+		format.message.Write(encodedData)
 		format.state = jsonReadArrayAppend
 
 	case jsonReadArrayAppend:
-		format.message.WriteString(`,"`)
-		format.message.Write(bytes.TrimSpace(data))
+		format.message.WriteString(`,`)
+		format.message.Write(encodedData)
 	}
-	format.message.WriteByte('"')
 }
 
 func (format *JSON) readDate(data []byte, state shared.ParserStateID) {
