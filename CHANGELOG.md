@@ -30,6 +30,7 @@ This is a patch / minor features release.
  * Added support for unix timestamp parsing to format.ProcessJSON (thanks @relud)
  * Added filter.Sample to allow processing of every n'th message only (thanks @relud)
  * Added "pick" option to format.ProcessJSON to get a single value from an arrays
+ * Extended "remove" option pf format.ProcessJSON to remove values from arrays
  * Added "geoip" option to format.ProcessJSON to get GeoIP data from an IP
  * Added index configuration options to producer.ElasticSearch
 

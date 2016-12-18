@@ -44,7 +44,10 @@ import (
 //      - "text:trim: \t"
 //      - "foo:rename:bar"
 //		- "foobar:remove"
+//      - "array:pick:0:firstOfArray"
+//		- "array:remove:foobar"
 //      - "user_agent:agent:browser:os:version"
+//      - "client:geoip:country:city:timezone:location"
 //    ProcessJSONTrimValues: true
 //
 // ProcessJSONDataFormatter formatter that will be applied before
@@ -64,7 +67,8 @@ import (
 //  * trim:<characters> remove the given characters (not string!) from the start
 //    and end of the value
 //  * rename:<old>:<new> rename a given field
-//  * remove remove a given field
+//  * remove remove a given field. If additional parameters are given, an array is
+//    expected. Strings given as additional parameters will be removed from that array
 //  * pick:<key>:<index>:<name> Pick a specific index from an array and store it
 //    in a new field.
 //  * time:<read>:<write> read a timestamp and transform it into another
@@ -228,6 +232,19 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 		case "remove":
 			if numParameters == 0 {
 				delete(*values, directive.key)
+			} else {
+				array, _ := (*values).Array(directive.key)
+				result := []interface{}{}
+			nextItem:
+				for _, value := range array {
+					for _, cmp := range directive.parameters {
+						if value == cmp {
+							continue nextItem
+						}
+					}
+					result = append(result, value)
+				}
+				(*values)[directive.key] = result
 			}
 
 		case "replace":
