@@ -340,7 +340,9 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 			ip := net.ParseIP(ipString)
 			record, err := format.db.City(ip)
 			if err != nil {
-				Log.Warning.Print(err.Error())
+				Log.Warning.Printf("IP \"%s\" could not be resolved: %s", ipString, err.Error())
+				Log.Debug.Printf("%#v", values)
+				return
 			}
 
 			for _, field := range fields {

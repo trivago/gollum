@@ -258,13 +258,12 @@ func (format *JSON) readKey(data []byte, state shared.ParserStateID) {
 }
 
 func (format *JSON) readValue(data []byte, state shared.ParserStateID) {
-	if len(data) == 0 {
+	trimmedData := bytes.TrimSpace(data)
+	if len(trimmedData) == 0 {
 		switch format.state {
 		default:
 			format.state = jsonReadKey
-		case jsonReadArrayAppend:
-		case jsonReadArray:
-			format.state = jsonReadArrayAppend
+		case jsonReadArray, jsonReadArrayAppend:
 		}
 		return
 	}
@@ -275,32 +274,31 @@ func (format *JSON) readValue(data []byte, state shared.ParserStateID) {
 		fallthrough
 
 	case jsonReadValue:
-		format.message.Write(bytes.TrimSpace(data))
+		format.message.Write(trimmedData)
 		format.state = jsonReadKey
 
 	case jsonReadArray:
-		format.message.Write(bytes.TrimSpace(data))
+		format.message.Write(trimmedData)
 		format.state = jsonReadArrayAppend
 
 	case jsonReadArrayAppend:
 		format.message.WriteByte(',')
-		format.message.Write(bytes.TrimSpace(data))
+		format.message.Write(trimmedData)
 	}
 }
 
 func (format *JSON) readEscaped(data []byte, state shared.ParserStateID) {
-	encodedData, _ := json.Marshal(string(bytes.TrimSpace(data)))
-	if len(encodedData) == 0 {
+	trimmedData := bytes.TrimSpace(data)
+	if len(trimmedData) == 0 {
 		switch format.state {
 		default:
 			format.state = jsonReadKey
-		case jsonReadArrayAppend:
-		case jsonReadArray:
-			format.state = jsonReadArrayAppend
+		case jsonReadArrayAppend, jsonReadArray:
 		}
 		return
 	}
 
+	encodedData, _ := json.Marshal(string(trimmedData))
 	switch format.state {
 	default:
 		format.writeKey([]byte(format.parser.GetStateName(state)))
@@ -409,6 +407,9 @@ func (format *JSON) readEnd(data []byte, state shared.ParserStateID) {
 	if stackSize > 1 {
 		format.state = format.stack[stackSize-1]
 		format.stack = format.stack[:stackSize-1] // Pop the stack
+		if format.state == jsonReadArray {
+			format.state = jsonReadArrayAppend // just finished the first entry
+		}
 	} else {
 		format.stack = format.stack[:0] // Clear the stack
 		format.state = jsonReadKey
