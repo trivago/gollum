@@ -126,7 +126,9 @@ func gecko(p *UserAgent, comment []string) {
 				}
 			}
 		}
-		if len(comment) > 3 {
+		// Only parse 4th comment as localization if it doesn't start with rv:.
+		// For example Firefox on Ubuntu contains "rv:XX.X" in this field.
+		if len(comment) > 3 && !strings.HasPrefix(comment[3], "rv:") {
 			p.localization = comment[3]
 		}
 	}

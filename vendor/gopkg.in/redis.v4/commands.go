@@ -40,7 +40,7 @@ func formatSec(dur time.Duration) string {
 	return strconv.FormatInt(int64(dur/time.Second), 10)
 }
 
-type Cmdable interface {
+type BaseCmdable interface {
 	Echo(message interface{}) *StringCmd
 	Ping() *StatusCmd
 	Quit() *StatusCmd
@@ -74,7 +74,6 @@ type Cmdable interface {
 	ZScan(key string, cursor uint64, match string, count int64) Scanner
 	Append(key, value string) *IntCmd
 	BitCount(key string, bitCount *BitCount) *IntCmd
-	bitOp(op, destKey string, keys ...string) *IntCmd
 	BitOpAnd(destKey string, keys ...string) *IntCmd
 	BitOpOr(destKey string, keys ...string) *IntCmd
 	BitOpXor(destKey string, keys ...string) *IntCmd
@@ -146,14 +145,12 @@ type Cmdable interface {
 	SRem(key string, members ...interface{}) *IntCmd
 	SUnion(keys ...string) *StringSliceCmd
 	SUnionStore(destination string, keys ...string) *IntCmd
-	zAdd(a []interface{}, n int, members ...Z) *IntCmd
 	ZAdd(key string, members ...Z) *IntCmd
 	ZAddNX(key string, members ...Z) *IntCmd
 	ZAddXX(key string, members ...Z) *IntCmd
 	ZAddCh(key string, members ...Z) *IntCmd
 	ZAddNXCh(key string, members ...Z) *IntCmd
 	ZAddXXCh(key string, members ...Z) *IntCmd
-	zIncr(a []interface{}, n int, members ...Z) *FloatCmd
 	ZIncr(key string, member Z) *FloatCmd
 	ZIncrNX(key string, member Z) *FloatCmd
 	ZIncrXX(key string, member Z) *FloatCmd
@@ -161,10 +158,8 @@ type Cmdable interface {
 	ZCount(key, min, max string) *IntCmd
 	ZIncrBy(key string, increment float64, member string) *FloatCmd
 	ZInterStore(destination string, store ZStore, keys ...string) *IntCmd
-	zRange(key string, start, stop int64, withScores bool) *StringSliceCmd
 	ZRange(key string, start, stop int64) *StringSliceCmd
 	ZRangeWithScores(key string, start, stop int64) *ZSliceCmd
-	zRangeBy(zcmd, key string, opt ZRangeBy, withScores bool) *StringSliceCmd
 	ZRangeByScore(key string, opt ZRangeBy) *StringSliceCmd
 	ZRangeByLex(key string, opt ZRangeBy) *StringSliceCmd
 	ZRangeByScoreWithScores(key string, opt ZRangeBy) *ZSliceCmd
@@ -174,7 +169,6 @@ type Cmdable interface {
 	ZRemRangeByScore(key, min, max string) *IntCmd
 	ZRevRange(key string, start, stop int64) *StringSliceCmd
 	ZRevRangeWithScores(key string, start, stop int64) *ZSliceCmd
-	zRevRangeBy(zcmd, key string, opt ZRangeBy) *StringSliceCmd
 	ZRevRangeByScore(key string, opt ZRangeBy) *StringSliceCmd
 	ZRevRangeByLex(key string, opt ZRangeBy) *StringSliceCmd
 	ZRevRangeByScoreWithScores(key string, opt ZRangeBy) *ZSliceCmd
@@ -199,7 +193,6 @@ type Cmdable interface {
 	Info(section ...string) *StringCmd
 	LastSave() *IntCmd
 	Save() *StatusCmd
-	shutdown(modifier string) *StatusCmd
 	Shutdown() *StatusCmd
 	ShutdownSave() *StatusCmd
 	ShutdownNoSave() *StatusCmd
@@ -234,6 +227,7 @@ type Cmdable interface {
 	ClusterAddSlots(slots ...int) *StatusCmd
 	ClusterAddSlotsRange(min, max int) *StatusCmd
 	GeoAdd(key string, geoLocation ...*GeoLocation) *IntCmd
+	GeoPos(key string, members ...string) *GeoPosCmd
 	GeoRadius(key string, longitude, latitude float64, query *GeoRadiusQuery) *GeoLocationCmd
 	GeoRadiusByMember(key, member string, query *GeoRadiusQuery) *GeoLocationCmd
 	GeoDist(key string, member1, member2, unit string) *FloatCmd
@@ -241,11 +235,23 @@ type Cmdable interface {
 	Command() *CommandsInfoCmd
 }
 
+type Cmdable interface {
+	Pipeline() *Pipeline
+	Pipelined(fn func(*Pipeline) error) ([]Cmder, error)
+	BaseCmdable
+}
+
 type cmdable struct {
 	process func(cmd Cmder) error
 }
 
-var _ Cmdable = (*cmdable)(nil)
+// WrapProcess replaces the process func. It takes a function createWrapper
+// which is supplied by the user. createWrapper takes the old process func as
+// an input and returns the new wrapper process func. createWrapper should
+// use call the old process func within the new process func.
+func (c *cmdable) WrapProcess(createWrapper func(oldProcess func(cmd Cmder) error) func(cmd Cmder) error) {
+	c.process = createWrapper(c.process)
+}
 
 type statefulCmdable struct {
 	process func(cmd Cmder) error
@@ -2042,6 +2048,18 @@ func (c *cmdable) GeoHash(key string, members ...string) *StringSliceCmd {
 		args[2+i] = member
 	}
 	cmd := NewStringSliceCmd(args...)
+	c.process(cmd)
+	return cmd
+}
+
+func (c *cmdable) GeoPos(key string, members ...string) *GeoPosCmd {
+	args := make([]interface{}, 2+len(members))
+	args[0] = "geopos"
+	args[1] = key
+	for i, member := range members {
+		args[2+i] = member
+	}
+	cmd := NewGeoPosCmd(args...)
 	c.process(cmd)
 	return cmd
 }

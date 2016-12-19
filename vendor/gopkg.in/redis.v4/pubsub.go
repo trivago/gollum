@@ -18,12 +18,25 @@ type PubSub struct {
 
 	channels []string
 	patterns []string
+}
 
-	nsub int // number of active subscriptions
+func (c *PubSub) conn() (*pool.Conn, bool, error) {
+	cn, isNew, err := c.base.conn()
+	if err != nil {
+		return nil, false, err
+	}
+	if isNew {
+		c.resubscribe()
+	}
+	return cn, isNew, nil
+}
+
+func (c *PubSub) putConn(cn *pool.Conn, err error) {
+	c.base.putConn(cn, err, true)
 }
 
 func (c *PubSub) subscribe(redisCmd string, channels ...string) error {
-	cn, err := c.base.conn()
+	cn, _, err := c.conn()
 	if err != nil {
 		return err
 	}
@@ -43,8 +56,7 @@ func (c *PubSub) subscribe(redisCmd string, channels ...string) error {
 func (c *PubSub) Subscribe(channels ...string) error {
 	err := c.subscribe("SUBSCRIBE", channels...)
 	if err == nil {
-		c.channels = append(c.channels, channels...)
-		c.nsub += len(channels)
+		c.channels = appendIfNotExists(c.channels, channels...)
 	}
 	return err
 }
@@ -53,25 +65,9 @@ func (c *PubSub) Subscribe(channels ...string) error {
 func (c *PubSub) PSubscribe(patterns ...string) error {
 	err := c.subscribe("PSUBSCRIBE", patterns...)
 	if err == nil {
-		c.patterns = append(c.patterns, patterns...)
-		c.nsub += len(patterns)
+		c.patterns = appendIfNotExists(c.patterns, patterns...)
 	}
 	return err
-}
-
-func remove(ss []string, es ...string) []string {
-	if len(es) == 0 {
-		return ss[:0]
-	}
-	for _, e := range es {
-		for i, s := range ss {
-			if s == e {
-				ss = append(ss[:i], ss[i+1:]...)
-				break
-			}
-		}
-	}
-	return ss
 }
 
 // Unsubscribes the client from the given channels, or from all of
@@ -99,7 +95,7 @@ func (c *PubSub) Close() error {
 }
 
 func (c *PubSub) Ping(payload string) error {
-	cn, err := c.base.conn()
+	cn, _, err := c.conn()
 	if err != nil {
 		return err
 	}
@@ -181,11 +177,7 @@ func (c *PubSub) newMessage(reply []interface{}) (interface{}, error) {
 // is not received in time. This is low-level API and most clients
 // should use ReceiveMessage.
 func (c *PubSub) ReceiveTimeout(timeout time.Duration) (interface{}, error) {
-	if c.nsub == 0 {
-		c.resubscribe()
-	}
-
-	cn, err := c.base.conn()
+	cn, _, err := c.conn()
 	if err != nil {
 		return nil, err
 	}
@@ -257,12 +249,6 @@ func (c *PubSub) receiveMessage(timeout time.Duration) (*Message, error) {
 	}
 }
 
-func (c *PubSub) putConn(cn *pool.Conn, err error) {
-	if !c.base.putConn(cn, err, true) {
-		c.nsub = 0
-	}
-}
-
 func (c *PubSub) resubscribe() {
 	if c.base.closed() {
 		return
@@ -277,4 +263,32 @@ func (c *PubSub) resubscribe() {
 			internal.Logf("PSubscribe failed: %s", err)
 		}
 	}
+}
+
+func remove(ss []string, es ...string) []string {
+	if len(es) == 0 {
+		return ss[:0]
+	}
+	for _, e := range es {
+		for i, s := range ss {
+			if s == e {
+				ss = append(ss[:i], ss[i+1:]...)
+				break
+			}
+		}
+	}
+	return ss
+}
+
+func appendIfNotExists(ss []string, es ...string) []string {
+loop:
+	for _, e := range es {
+		for _, s := range ss {
+			if s == e {
+				continue loop
+			}
+		}
+		ss = append(ss, e)
+	}
+	return ss
 }
