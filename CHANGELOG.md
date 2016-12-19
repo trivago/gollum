@@ -25,10 +25,12 @@ This is a patch / minor features release.
  * Added authentication support to consumer.Kafka (thanks @relud)
  * Added consumer group support to consumer.Kafka (thanks @relud)
  * Added a native SystemD consumer (thanks @relud)
+ * Added a Statsd producer for counting messages (thanks @relud)
  * Added an option to flatten JSON arrays into single values with format.ProcessJSON (thanks @relud)
  * Added filter.Any to allow "or" style combinations of filters (thanks @relud)
  * Added support for unix timestamp parsing to format.ProcessJSON (thanks @relud)
  * Added filter.Sample to allow processing of every n'th message only (thanks @relud)
+ * Added format.TemplateJSON to apply golang templates to JSON payloads (thanks @relud)
  * Added "pick" option to format.ProcessJSON to get a single value from an arrays
  * Extended "remove" option pf format.ProcessJSON to remove values from arrays
  * Added "geoip" option to format.ProcessJSON to get GeoIP data from an IP
