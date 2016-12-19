@@ -226,6 +226,7 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 			}
 			if index < 0 || index >= len(array) {
 				Log.Warning.Print("Array index out of bounds")
+				return
 			}
 			(*values)[field] = array[index]
 
@@ -234,17 +235,22 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 				delete(*values, directive.key)
 			} else {
 				array, _ := (*values).Array(directive.key)
-				result := []interface{}{}
+				wi := 0
 			nextItem:
-				for _, value := range array {
-					for _, cmp := range directive.parameters {
-						if value == cmp {
-							continue nextItem
+				for ri, value := range array {
+					if strValue, isStr := value.(string); isStr {
+						for _, cmp := range directive.parameters {
+							if strValue == cmp {
+								continue nextItem
+							}
 						}
 					}
-					result = append(result, value)
+					if ri != wi {
+						array[wi] = array[ri]
+					}
+					wi++
 				}
-				(*values)[directive.key] = result
+				(*values)[directive.key] = array[:wi]
 			}
 
 		case "replace":

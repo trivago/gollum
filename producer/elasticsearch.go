@@ -315,7 +315,7 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 	}
 	prod.createIndex(index, sendIndex, indexType)
 
-	err := prod.indexer.Index(sendIndex, indexType, "", "", prod.msgTTL, &msg.Timestamp, string(msg.Data))
+	err := prod.indexer.Index(sendIndex, indexType, "", "", prod.msgTTL, nil, string(msg.Data))
 	if err != nil {
 		Log.Error.Print("ElasticSearch index error - ", err)
 		if !prod.isClusterUp() {
