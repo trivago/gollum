@@ -15,6 +15,7 @@
 package shared
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -106,7 +107,11 @@ func Unescape(text string) string {
 
 // EscapeJSON replaces occurrences of \ and " with escaped versions.
 func EscapeJSON(text string) string {
-	return jsonEscapeChars.Replace(text)
+	escaped, err := json.Marshal(text)
+	if err != nil {
+		return jsonEscapeChars.Replace(text)
+	}
+	return string(escaped[1 : len(escaped)-1])
 }
 
 // MaxI returns the maximum out of two integers
@@ -358,4 +363,12 @@ func IsDisconnectedError(err error) bool {
 	}
 
 	return false
+}
+
+// IsJSON tries to marshal a byte stream as JSON. Returns true if successful
+// and also provides a result handle.
+func IsJSON(data []byte) (bool, *json.RawMessage) {
+	result := &json.RawMessage{}
+	err := json.Unmarshal(data, result)
+	return err == nil, result
 }

@@ -15,6 +15,7 @@ This is a patch / minor features release.
  * format.JSON arr and obj will now auto create a key if necessary
  * format.JSON now checks for valid state references upon startup
  * format.JSON now properly encodes strings when using "enc"
+ * format.SplitToJSON may now keep JSON payload and is better at escaping string
  
 #### New
 

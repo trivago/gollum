@@ -34,7 +34,7 @@ func TestSplitToJSON(t *testing.T) {
 	formatter, casted := plugin.(*SplitToJSON)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test1,test2,test3"), 10)
+	msg := core.NewMessage(nil, []byte("test1,test2,{\"object\": true}"), 10)
 	result, _ := formatter.Format(msg)
 
 	jsonData := shared.NewMarshalMap()
@@ -43,7 +43,9 @@ func TestSplitToJSON(t *testing.T) {
 
 	expect.MapEqual(jsonData, "first", "test1")
 	expect.MapEqual(jsonData, "second", "test2")
-	expect.MapEqual(jsonData, "third", "test3")
+	obj, err := jsonData.MarshalMap("third")
+	expect.NoError(err)
+	expect.MapEqual(obj, "object", true)
 }
 
 func TestSplitToJSONTooFew(t *testing.T) {

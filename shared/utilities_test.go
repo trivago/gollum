@@ -212,3 +212,10 @@ func TestIndexN(t *testing.T) {
 	expect.Equal(3, LastIndexN(testString, ".", 2))
 	expect.Equal(1, LastIndexN(testString, ".", 3))
 }
+
+func TestIsJSON(t *testing.T) {
+	expect := NewExpect(t)
+	testObj := "{\"object\": true}"
+	result, _ := IsJSON([]byte(testObj))
+	expect.True(result)
+}
