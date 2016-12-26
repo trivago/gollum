@@ -257,10 +257,10 @@ func (parser *TransitionParser) Parse(data []byte, state string) ([]byte, Parser
 		// Move the reader
 		if t.flags&ParserFlagContinue == 0 {
 			parseIdx += node.PathLen - 1
-			continueIdx = parseIdx + 1
 		} else {
-			continueIdx = parseIdx
+			parseIdx--
 		}
+		continueIdx = parseIdx + 1
 
 		if t.flags&ParserFlagAppend == 0 {
 			readStartIdx = continueIdx
