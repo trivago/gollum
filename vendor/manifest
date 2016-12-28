@@ -66,11 +66,12 @@
 			"notests": true
 		},
 		{
-			"importpath": "github.com/coreos/go-systemd",
+			"importpath": "github.com/coreos/go-systemd/sdjournal",
 			"repository": "https://github.com/coreos/go-systemd",
 			"vcs": "git",
 			"revision": "7c9533367ef925dc1078d75e5b7141e10da2c4e8",
 			"branch": "master",
+			"path": "/sdjournal",
 			"notests": true
 		},
 		{
@@ -113,14 +114,6 @@
 			"repository": "https://github.com/eapache/queue",
 			"vcs": "git",
 			"revision": "44cc805cf13205b55f69e14bcb69867d1ae92f98",
-			"branch": "master",
-			"notests": true
-		},
-		{
-			"importpath": "github.com/godbus/dbus",
-			"repository": "https://github.com/godbus/dbus",
-			"vcs": "git",
-			"revision": "4b24ebee04561bf8a3bcc09aead82062edc56778",
 			"branch": "master",
 			"notests": true
 		},
