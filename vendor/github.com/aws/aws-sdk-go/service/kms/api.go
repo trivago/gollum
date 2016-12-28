@@ -38,6 +38,7 @@ const opCancelKeyDeletion = "CancelKeyDeletion"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/CancelKeyDeletion
 func (c *KMS) CancelKeyDeletionRequest(input *CancelKeyDeletionInput) (req *request.Request, output *CancelKeyDeletionOutput) {
 	op := &request.Operation{
 		Name:       opCancelKeyDeletion,
@@ -96,6 +97,7 @@ func (c *KMS) CancelKeyDeletionRequest(input *CancelKeyDeletionInput) (req *requ
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/CancelKeyDeletion
 func (c *KMS) CancelKeyDeletion(input *CancelKeyDeletionInput) (*CancelKeyDeletionOutput, error) {
 	req, out := c.CancelKeyDeletionRequest(input)
 	err := req.Send()
@@ -128,6 +130,7 @@ const opCreateAlias = "CreateAlias"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/CreateAlias
 func (c *KMS) CreateAliasRequest(input *CreateAliasInput) (req *request.Request, output *CreateAliasOutput) {
 	op := &request.Operation{
 		Name:       opCreateAlias,
@@ -202,6 +205,7 @@ func (c *KMS) CreateAliasRequest(input *CreateAliasInput) (req *request.Request,
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/CreateAlias
 func (c *KMS) CreateAlias(input *CreateAliasInput) (*CreateAliasOutput, error) {
 	req, out := c.CreateAliasRequest(input)
 	err := req.Send()
@@ -234,6 +238,7 @@ const opCreateGrant = "CreateGrant"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/CreateGrant
 func (c *KMS) CreateGrantRequest(input *CreateGrantInput) (req *request.Request, output *CreateGrantOutput) {
 	op := &request.Operation{
 		Name:       opCreateGrant,
@@ -301,6 +306,7 @@ func (c *KMS) CreateGrantRequest(input *CreateGrantInput) (req *request.Request,
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/CreateGrant
 func (c *KMS) CreateGrant(input *CreateGrantInput) (*CreateGrantOutput, error) {
 	req, out := c.CreateGrantRequest(input)
 	err := req.Send()
@@ -333,6 +339,7 @@ const opCreateKey = "CreateKey"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/CreateKey
 func (c *KMS) CreateKeyRequest(input *CreateKeyInput) (req *request.Request, output *CreateKeyOutput) {
 	op := &request.Operation{
 		Name:       opCreateKey,
@@ -359,10 +366,10 @@ func (c *KMS) CreateKeyRequest(input *CreateKeyInput) (req *request.Request, out
 // are used to encrypt raw data. For more information about DEKs and the difference
 // between CMKs and DEKs, see the following:
 //
-//   The GenerateDataKey operation
+//    * The GenerateDataKey operation
 //
-//    AWS Key Management Service Concepts (http://docs.aws.amazon.com/kms/latest/developerguide/concepts.html)
-// in the AWS Key Management Service Developer Guide
+//    * AWS Key Management Service Concepts (http://docs.aws.amazon.com/kms/latest/developerguide/concepts.html)
+//    in the AWS Key Management Service Developer Guide
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -396,6 +403,7 @@ func (c *KMS) CreateKeyRequest(input *CreateKeyInput) (req *request.Request, out
 //   see Limits (http://docs.aws.amazon.com/kms/latest/developerguide/limits.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/CreateKey
 func (c *KMS) CreateKey(input *CreateKeyInput) (*CreateKeyOutput, error) {
 	req, out := c.CreateKeyRequest(input)
 	err := req.Send()
@@ -428,6 +436,7 @@ const opDecrypt = "Decrypt"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/Decrypt
 func (c *KMS) DecryptRequest(input *DecryptInput) (req *request.Request, output *DecryptOutput) {
 	op := &request.Operation{
 		Name:       opDecrypt,
@@ -450,20 +459,20 @@ func (c *KMS) DecryptRequest(input *DecryptInput) (req *request.Request, output 
 // Decrypts ciphertext. Ciphertext is plaintext that has been previously encrypted
 // by using any of the following functions:
 //
-//    GenerateDataKey
+//    * GenerateDataKey
 //
-//    GenerateDataKeyWithoutPlaintext
+//    * GenerateDataKeyWithoutPlaintext
 //
-//    Encrypt
+//    * Encrypt
 //
-//   Note that if a caller has been granted access permissions to all keys
-// (through, for example, IAM user policies that grant Decrypt permission on
-// all resources), then ciphertext encrypted by using keys in other accounts
-// where the key grants access to the caller can be decrypted. To remedy this,
-// we recommend that you do not grant Decrypt access in an IAM user policy.
-// Instead grant Decrypt access only in key policies. If you must grant Decrypt
-// access in an IAM user policy, you should scope the resource to specific keys
-// or to specific trusted accounts.
+// Note that if a caller has been granted access permissions to all keys (through,
+// for example, IAM user policies that grant Decrypt permission on all resources),
+// then ciphertext encrypted by using keys in other accounts where the key grants
+// access to the caller can be decrypted. To remedy this, we recommend that
+// you do not grant Decrypt access in an IAM user policy. Instead grant Decrypt
+// access only in key policies. If you must grant Decrypt access in an IAM user
+// policy, you should scope the resource to specific keys or to specific trusted
+// accounts.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -507,6 +516,7 @@ func (c *KMS) DecryptRequest(input *DecryptInput) (req *request.Request, output 
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/Decrypt
 func (c *KMS) Decrypt(input *DecryptInput) (*DecryptOutput, error) {
 	req, out := c.DecryptRequest(input)
 	err := req.Send()
@@ -539,6 +549,7 @@ const opDeleteAlias = "DeleteAlias"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DeleteAlias
 func (c *KMS) DeleteAliasRequest(input *DeleteAliasInput) (req *request.Request, output *DeleteAliasOutput) {
 	op := &request.Operation{
 		Name:       opDeleteAlias,
@@ -590,6 +601,7 @@ func (c *KMS) DeleteAliasRequest(input *DeleteAliasInput) (req *request.Request,
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DeleteAlias
 func (c *KMS) DeleteAlias(input *DeleteAliasInput) (*DeleteAliasOutput, error) {
 	req, out := c.DeleteAliasRequest(input)
 	err := req.Send()
@@ -622,6 +634,7 @@ const opDeleteImportedKeyMaterial = "DeleteImportedKeyMaterial"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DeleteImportedKeyMaterial
 func (c *KMS) DeleteImportedKeyMaterialRequest(input *DeleteImportedKeyMaterialInput) (req *request.Request, output *DeleteImportedKeyMaterialOutput) {
 	op := &request.Operation{
 		Name:       opDeleteImportedKeyMaterial,
@@ -689,6 +702,7 @@ func (c *KMS) DeleteImportedKeyMaterialRequest(input *DeleteImportedKeyMaterialI
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DeleteImportedKeyMaterial
 func (c *KMS) DeleteImportedKeyMaterial(input *DeleteImportedKeyMaterialInput) (*DeleteImportedKeyMaterialOutput, error) {
 	req, out := c.DeleteImportedKeyMaterialRequest(input)
 	err := req.Send()
@@ -721,6 +735,7 @@ const opDescribeKey = "DescribeKey"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DescribeKey
 func (c *KMS) DescribeKeyRequest(input *DescribeKeyInput) (req *request.Request, output *DescribeKeyOutput) {
 	op := &request.Operation{
 		Name:       opDescribeKey,
@@ -765,6 +780,7 @@ func (c *KMS) DescribeKeyRequest(input *DescribeKeyInput) (req *request.Request,
 //   The request was rejected because an internal exception occurred. The request
 //   can be retried.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DescribeKey
 func (c *KMS) DescribeKey(input *DescribeKeyInput) (*DescribeKeyOutput, error) {
 	req, out := c.DescribeKeyRequest(input)
 	err := req.Send()
@@ -797,6 +813,7 @@ const opDisableKey = "DisableKey"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DisableKey
 func (c *KMS) DisableKeyRequest(input *DisableKeyInput) (req *request.Request, output *DisableKeyOutput) {
 	op := &request.Operation{
 		Name:       opDisableKey,
@@ -855,6 +872,7 @@ func (c *KMS) DisableKeyRequest(input *DisableKeyInput) (req *request.Request, o
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DisableKey
 func (c *KMS) DisableKey(input *DisableKeyInput) (*DisableKeyOutput, error) {
 	req, out := c.DisableKeyRequest(input)
 	err := req.Send()
@@ -887,6 +905,7 @@ const opDisableKeyRotation = "DisableKeyRotation"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DisableKeyRotation
 func (c *KMS) DisableKeyRotationRequest(input *DisableKeyRotationInput) (req *request.Request, output *DisableKeyRotationOutput) {
 	op := &request.Operation{
 		Name:       opDisableKeyRotation,
@@ -948,6 +967,7 @@ func (c *KMS) DisableKeyRotationRequest(input *DisableKeyRotationInput) (req *re
 //   The request was rejected because a specified parameter is not supported or
 //   a specified resource is not valid for this operation.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DisableKeyRotation
 func (c *KMS) DisableKeyRotation(input *DisableKeyRotationInput) (*DisableKeyRotationOutput, error) {
 	req, out := c.DisableKeyRotationRequest(input)
 	err := req.Send()
@@ -980,6 +1000,7 @@ const opEnableKey = "EnableKey"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/EnableKey
 func (c *KMS) EnableKeyRequest(input *EnableKeyInput) (req *request.Request, output *EnableKeyOutput) {
 	op := &request.Operation{
 		Name:       opEnableKey,
@@ -1039,6 +1060,7 @@ func (c *KMS) EnableKeyRequest(input *EnableKeyInput) (req *request.Request, out
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/EnableKey
 func (c *KMS) EnableKey(input *EnableKeyInput) (*EnableKeyOutput, error) {
 	req, out := c.EnableKeyRequest(input)
 	err := req.Send()
@@ -1071,6 +1093,7 @@ const opEnableKeyRotation = "EnableKeyRotation"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/EnableKeyRotation
 func (c *KMS) EnableKeyRotationRequest(input *EnableKeyRotationInput) (req *request.Request, output *EnableKeyRotationOutput) {
 	op := &request.Operation{
 		Name:       opEnableKeyRotation,
@@ -1132,6 +1155,7 @@ func (c *KMS) EnableKeyRotationRequest(input *EnableKeyRotationInput) (req *requ
 //   The request was rejected because a specified parameter is not supported or
 //   a specified resource is not valid for this operation.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/EnableKeyRotation
 func (c *KMS) EnableKeyRotation(input *EnableKeyRotationInput) (*EnableKeyRotationOutput, error) {
 	req, out := c.EnableKeyRotationRequest(input)
 	err := req.Send()
@@ -1164,6 +1188,7 @@ const opEncrypt = "Encrypt"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/Encrypt
 func (c *KMS) EncryptRequest(input *EncryptInput) (req *request.Request, output *EncryptOutput) {
 	op := &request.Operation{
 		Name:       opEncrypt,
@@ -1186,16 +1211,16 @@ func (c *KMS) EncryptRequest(input *EncryptInput) (req *request.Request, output 
 // Encrypts plaintext into ciphertext by using a customer master key. The Encrypt
 // function has two primary use cases:
 //
-//   You can encrypt up to 4 KB of arbitrary data such as an RSA key, a database
-// password, or other sensitive customer information.
+//    * You can encrypt up to 4 KB of arbitrary data such as an RSA key, a database
+//    password, or other sensitive customer information.
 //
-//   If you are moving encrypted data from one region to another, you can use
-// this API to encrypt in the new region the plaintext data key that was used
-// to encrypt the data in the original region. This provides you with an encrypted
-// copy of the data key that can be decrypted in the new region and used there
-// to decrypt the encrypted data.
+//    * If you are moving encrypted data from one region to another, you can
+//    use this API to encrypt in the new region the plaintext data key that
+//    was used to encrypt the data in the original region. This provides you
+//    with an encrypted copy of the data key that can be decrypted in the new
+//    region and used there to decrypt the encrypted data.
 //
-//   Unless you are moving encrypted data from one region to another, you don't
+// Unless you are moving encrypted data from one region to another, you don't
 // use this function to encrypt a generated data key within a region. You retrieve
 // data keys already encrypted by calling the GenerateDataKey or GenerateDataKeyWithoutPlaintext
 // function. Data keys don't need to be encrypted again by calling Encrypt.
@@ -1245,6 +1270,7 @@ func (c *KMS) EncryptRequest(input *EncryptInput) (req *request.Request, output 
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/Encrypt
 func (c *KMS) Encrypt(input *EncryptInput) (*EncryptOutput, error) {
 	req, out := c.EncryptRequest(input)
 	err := req.Send()
@@ -1277,6 +1303,7 @@ const opGenerateDataKey = "GenerateDataKey"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GenerateDataKey
 func (c *KMS) GenerateDataKeyRequest(input *GenerateDataKeyInput) (req *request.Request, output *GenerateDataKeyOutput) {
 	op := &request.Operation{
 		Name:       opGenerateDataKey,
@@ -1310,27 +1337,27 @@ func (c *KMS) GenerateDataKeyRequest(input *GenerateDataKeyInput) (req *request.
 // field. The data key is encrypted under the CMK specified in the KeyId field
 // of the request.
 //
-// We recommend that you use the following pattern to encrypt data locally
-// in your application:
+// We recommend that you use the following pattern to encrypt data locally in
+// your application:
 //
-//   Use this operation (GenerateDataKey) to retrieve a data encryption key.
+// Use this operation (GenerateDataKey) to retrieve a data encryption key.
 //
-//   Use the plaintext data encryption key (returned in the Plaintext field
-// of the response) to encrypt data locally, then erase the plaintext data key
+// Use the plaintext data encryption key (returned in the Plaintext field of
+// the response) to encrypt data locally, then erase the plaintext data key
 // from memory.
 //
-//   Store the encrypted data key (returned in the CiphertextBlob field of
-// the response) alongside the locally encrypted data.
+// Store the encrypted data key (returned in the CiphertextBlob field of the
+// response) alongside the locally encrypted data.
 //
-//   To decrypt data locally:
+// To decrypt data locally:
 //
-//   Use the Decrypt operation to decrypt the encrypted data key into a plaintext
+// Use the Decrypt operation to decrypt the encrypted data key into a plaintext
 // copy of the data key.
 //
-//   Use the plaintext data key to decrypt data locally, then erase the plaintext
+// Use the plaintext data key to decrypt data locally, then erase the plaintext
 // data key from memory.
 //
-//   To return only an encrypted copy of the data key, use GenerateDataKeyWithoutPlaintext.
+// To return only an encrypted copy of the data key, use GenerateDataKeyWithoutPlaintext.
 // To return an arbitrary unpredictable byte string, use GenerateRandom.
 //
 // If you use the optional EncryptionContext field, you must store at least
@@ -1382,6 +1409,7 @@ func (c *KMS) GenerateDataKeyRequest(input *GenerateDataKeyInput) (req *request.
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GenerateDataKey
 func (c *KMS) GenerateDataKey(input *GenerateDataKeyInput) (*GenerateDataKeyOutput, error) {
 	req, out := c.GenerateDataKeyRequest(input)
 	err := req.Send()
@@ -1414,6 +1442,7 @@ const opGenerateDataKeyWithoutPlaintext = "GenerateDataKeyWithoutPlaintext"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GenerateDataKeyWithoutPlaintext
 func (c *KMS) GenerateDataKeyWithoutPlaintextRequest(input *GenerateDataKeyWithoutPlaintextInput) (req *request.Request, output *GenerateDataKeyWithoutPlaintextOutput) {
 	op := &request.Operation{
 		Name:       opGenerateDataKeyWithoutPlaintext,
@@ -1490,6 +1519,7 @@ func (c *KMS) GenerateDataKeyWithoutPlaintextRequest(input *GenerateDataKeyWitho
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GenerateDataKeyWithoutPlaintext
 func (c *KMS) GenerateDataKeyWithoutPlaintext(input *GenerateDataKeyWithoutPlaintextInput) (*GenerateDataKeyWithoutPlaintextOutput, error) {
 	req, out := c.GenerateDataKeyWithoutPlaintextRequest(input)
 	err := req.Send()
@@ -1522,6 +1552,7 @@ const opGenerateRandom = "GenerateRandom"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GenerateRandom
 func (c *KMS) GenerateRandomRequest(input *GenerateRandomInput) (req *request.Request, output *GenerateRandomOutput) {
 	op := &request.Operation{
 		Name:       opGenerateRandom,
@@ -1559,6 +1590,7 @@ func (c *KMS) GenerateRandomRequest(input *GenerateRandomInput) (req *request.Re
 //   The request was rejected because an internal exception occurred. The request
 //   can be retried.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GenerateRandom
 func (c *KMS) GenerateRandom(input *GenerateRandomInput) (*GenerateRandomOutput, error) {
 	req, out := c.GenerateRandomRequest(input)
 	err := req.Send()
@@ -1591,6 +1623,7 @@ const opGetKeyPolicy = "GetKeyPolicy"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GetKeyPolicy
 func (c *KMS) GetKeyPolicyRequest(input *GetKeyPolicyInput) (req *request.Request, output *GetKeyPolicyOutput) {
 	op := &request.Operation{
 		Name:       opGetKeyPolicy,
@@ -1643,6 +1676,7 @@ func (c *KMS) GetKeyPolicyRequest(input *GetKeyPolicyInput) (req *request.Reques
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GetKeyPolicy
 func (c *KMS) GetKeyPolicy(input *GetKeyPolicyInput) (*GetKeyPolicyOutput, error) {
 	req, out := c.GetKeyPolicyRequest(input)
 	err := req.Send()
@@ -1675,6 +1709,7 @@ const opGetKeyRotationStatus = "GetKeyRotationStatus"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GetKeyRotationStatus
 func (c *KMS) GetKeyRotationStatusRequest(input *GetKeyRotationStatusInput) (req *request.Request, output *GetKeyRotationStatusOutput) {
 	op := &request.Operation{
 		Name:       opGetKeyRotationStatus,
@@ -1732,6 +1767,7 @@ func (c *KMS) GetKeyRotationStatusRequest(input *GetKeyRotationStatusInput) (req
 //   The request was rejected because a specified parameter is not supported or
 //   a specified resource is not valid for this operation.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GetKeyRotationStatus
 func (c *KMS) GetKeyRotationStatus(input *GetKeyRotationStatusInput) (*GetKeyRotationStatusOutput, error) {
 	req, out := c.GetKeyRotationStatusRequest(input)
 	err := req.Send()
@@ -1764,6 +1800,7 @@ const opGetParametersForImport = "GetParametersForImport"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GetParametersForImport
 func (c *KMS) GetParametersForImportRequest(input *GetParametersForImportInput) (req *request.Request, output *GetParametersForImportOutput) {
 	op := &request.Operation{
 		Name:       opGetParametersForImport,
@@ -1788,13 +1825,13 @@ func (c *KMS) GetParametersForImportRequest(input *GetParametersForImportInput) 
 // key material into AWS KMS, see Importing Key Material (http://docs.aws.amazon.com/kms/latest/developerguide/importing-keys.html)
 // in the AWS Key Management Service Developer Guide.
 //
-// You must specify the key ID of the customer master key (CMK) into which
-// you will import key material. This CMK's Origin must be EXTERNAL. You must
-// also specify the wrapping algorithm and type of wrapping key (public key)
-// that you will use to encrypt the key material.
+// You must specify the key ID of the customer master key (CMK) into which you
+// will import key material. This CMK's Origin must be EXTERNAL. You must also
+// specify the wrapping algorithm and type of wrapping key (public key) that
+// you will use to encrypt the key material.
 //
-// This operation returns a public key and an import token. Use the public
-// key to encrypt the key material. Store the import token to send with a subsequent
+// This operation returns a public key and an import token. Use the public key
+// to encrypt the key material. Store the import token to send with a subsequent
 // ImportKeyMaterial request. The public key and import token from the same
 // response must be used together. These items are valid for 24 hours, after
 // which they cannot be used for a subsequent ImportKeyMaterial request. To
@@ -1835,6 +1872,7 @@ func (c *KMS) GetParametersForImportRequest(input *GetParametersForImportInput) 
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GetParametersForImport
 func (c *KMS) GetParametersForImport(input *GetParametersForImportInput) (*GetParametersForImportOutput, error) {
 	req, out := c.GetParametersForImportRequest(input)
 	err := req.Send()
@@ -1867,6 +1905,7 @@ const opImportKeyMaterial = "ImportKeyMaterial"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ImportKeyMaterial
 func (c *KMS) ImportKeyMaterialRequest(input *ImportKeyMaterialInput) (req *request.Request, output *ImportKeyMaterialOutput) {
 	op := &request.Operation{
 		Name:       opImportKeyMaterial,
@@ -1891,11 +1930,11 @@ func (c *KMS) ImportKeyMaterialRequest(input *ImportKeyMaterialInput) (req *requ
 // key material into AWS KMS, see Importing Key Material (http://docs.aws.amazon.com/kms/latest/developerguide/importing-keys.html)
 // in the AWS Key Management Service Developer Guide.
 //
-// You must specify the key ID of the CMK to import the key material into.
-// This CMK's Origin must be EXTERNAL. You must also send an import token and
-// the encrypted key material. Send the import token that you received in the
-// same GetParametersForImport response that contained the public key that you
-// used to encrypt the key material. You must also specify whether the key material
+// You must specify the key ID of the CMK to import the key material into. This
+// CMK's Origin must be EXTERNAL. You must also send an import token and the
+// encrypted key material. Send the import token that you received in the same
+// GetParametersForImport response that contained the public key that you used
+// to encrypt the key material. You must also specify whether the key material
 // expires and if so, when. When the key material expires, AWS KMS deletes the
 // key material and the CMK becomes unusable. To use the CMK again, you can
 // reimport the same key material. If you set an expiration date, you can change
@@ -1905,9 +1944,8 @@ func (c *KMS) ImportKeyMaterialRequest(input *ImportKeyMaterialInput) (req *requ
 // When this operation is successful, the specified CMK's key state changes
 // to Enabled, and you can use the CMK.
 //
-// After you successfully import key material into a CMK, you can reimport
-// the same key material into that CMK, but you cannot import different key
-// material.
+// After you successfully import key material into a CMK, you can reimport the
+// same key material into that CMK, but you cannot import different key material.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1963,6 +2001,7 @@ func (c *KMS) ImportKeyMaterialRequest(input *ImportKeyMaterialInput) (req *requ
 //   The request was rejected because the provided import token is invalid or
 //   is associated with a different customer master key (CMK).
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ImportKeyMaterial
 func (c *KMS) ImportKeyMaterial(input *ImportKeyMaterialInput) (*ImportKeyMaterialOutput, error) {
 	req, out := c.ImportKeyMaterialRequest(input)
 	err := req.Send()
@@ -1995,6 +2034,7 @@ const opListAliases = "ListAliases"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ListAliases
 func (c *KMS) ListAliasesRequest(input *ListAliasesInput) (req *request.Request, output *ListAliasesOutput) {
 	op := &request.Operation{
 		Name:       opListAliases,
@@ -2042,6 +2082,7 @@ func (c *KMS) ListAliasesRequest(input *ListAliasesInput) (req *request.Request,
 //   The request was rejected because an internal exception occurred. The request
 //   can be retried.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ListAliases
 func (c *KMS) ListAliases(input *ListAliasesInput) (*ListAliasesOutput, error) {
 	req, out := c.ListAliasesRequest(input)
 	err := req.Send()
@@ -2099,6 +2140,7 @@ const opListGrants = "ListGrants"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ListGrants
 func (c *KMS) ListGrantsRequest(input *ListGrantsInput) (req *request.Request, output *ListGrantsResponse) {
 	op := &request.Operation{
 		Name:       opListGrants,
@@ -2161,6 +2203,7 @@ func (c *KMS) ListGrantsRequest(input *ListGrantsInput) (req *request.Request, o
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ListGrants
 func (c *KMS) ListGrants(input *ListGrantsInput) (*ListGrantsResponse, error) {
 	req, out := c.ListGrantsRequest(input)
 	err := req.Send()
@@ -2218,6 +2261,7 @@ const opListKeyPolicies = "ListKeyPolicies"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ListKeyPolicies
 func (c *KMS) ListKeyPoliciesRequest(input *ListKeyPoliciesInput) (req *request.Request, output *ListKeyPoliciesOutput) {
 	op := &request.Operation{
 		Name:       opListKeyPolicies,
@@ -2276,6 +2320,7 @@ func (c *KMS) ListKeyPoliciesRequest(input *ListKeyPoliciesInput) (req *request.
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ListKeyPolicies
 func (c *KMS) ListKeyPolicies(input *ListKeyPoliciesInput) (*ListKeyPoliciesOutput, error) {
 	req, out := c.ListKeyPoliciesRequest(input)
 	err := req.Send()
@@ -2333,6 +2378,7 @@ const opListKeys = "ListKeys"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ListKeys
 func (c *KMS) ListKeysRequest(input *ListKeysInput) (req *request.Request, output *ListKeysOutput) {
 	op := &request.Operation{
 		Name:       opListKeys,
@@ -2380,6 +2426,7 @@ func (c *KMS) ListKeysRequest(input *ListKeysInput) (req *request.Request, outpu
 //   The request was rejected because the marker that specifies where pagination
 //   should next begin is not valid.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ListKeys
 func (c *KMS) ListKeys(input *ListKeysInput) (*ListKeysOutput, error) {
 	req, out := c.ListKeysRequest(input)
 	err := req.Send()
@@ -2437,6 +2484,7 @@ const opListRetirableGrants = "ListRetirableGrants"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ListRetirableGrants
 func (c *KMS) ListRetirableGrantsRequest(input *ListRetirableGrantsInput) (req *request.Request, output *ListGrantsResponse) {
 	op := &request.Operation{
 		Name:       opListRetirableGrants,
@@ -2489,6 +2537,7 @@ func (c *KMS) ListRetirableGrantsRequest(input *ListRetirableGrantsInput) (req *
 //   The request was rejected because an internal exception occurred. The request
 //   can be retried.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ListRetirableGrants
 func (c *KMS) ListRetirableGrants(input *ListRetirableGrantsInput) (*ListGrantsResponse, error) {
 	req, out := c.ListRetirableGrantsRequest(input)
 	err := req.Send()
@@ -2521,6 +2570,7 @@ const opPutKeyPolicy = "PutKeyPolicy"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/PutKeyPolicy
 func (c *KMS) PutKeyPolicyRequest(input *PutKeyPolicyInput) (req *request.Request, output *PutKeyPolicyOutput) {
 	op := &request.Operation{
 		Name:       opPutKeyPolicy,
@@ -2591,6 +2641,7 @@ func (c *KMS) PutKeyPolicyRequest(input *PutKeyPolicyInput) (req *request.Reques
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/PutKeyPolicy
 func (c *KMS) PutKeyPolicy(input *PutKeyPolicyInput) (*PutKeyPolicyOutput, error) {
 	req, out := c.PutKeyPolicyRequest(input)
 	err := req.Send()
@@ -2623,6 +2674,7 @@ const opReEncrypt = "ReEncrypt"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ReEncrypt
 func (c *KMS) ReEncryptRequest(input *ReEncryptInput) (req *request.Request, output *ReEncryptOutput) {
 	op := &request.Operation{
 		Name:       opReEncrypt,
@@ -2642,18 +2694,18 @@ func (c *KMS) ReEncryptRequest(input *ReEncryptInput) (req *request.Request, out
 
 // ReEncrypt API operation for AWS Key Management Service.
 //
-// Encrypts data on the server side with a new customer master key without exposing
-// the plaintext of the data on the client side. The data is first decrypted
-// and then encrypted. This operation can also be used to change the encryption
-// context of a ciphertext.
+// Encrypts data on the server side with a new customer master key (CMK) without
+// exposing the plaintext of the data on the client side. The data is first
+// decrypted and then reencrypted. You can also use this operation to change
+// the encryption context of a ciphertext.
 //
-// Unlike other actions, ReEncrypt is authorized twice - once as ReEncryptFrom
-// on the source key and once as ReEncryptTo on the destination key. We therefore
-// recommend that you include the "action":"kms:ReEncrypt*" statement in your
-// key policies to permit re-encryption from or to the key. The statement is
-// included automatically when you authorize use of the key through the console
-// but must be included manually when you set a policy by using the PutKeyPolicy
-// function.
+// Unlike other operations, ReEncrypt is authorized twice, once as ReEncryptFrom
+// on the source CMK and once as ReEncryptTo on the destination CMK. We recommend
+// that you include the "kms:ReEncrypt*" permission in your key policies (http://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html)
+// to permit reencryption from or to the CMK. This permission is automatically
+// included in the key policy when you create a CMK through the console, but
+// you must include it manually when you create a CMK programmatically or when
+// you set a key policy with the PutKeyPolicy operation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2700,6 +2752,7 @@ func (c *KMS) ReEncryptRequest(input *ReEncryptInput) (req *request.Request, out
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ReEncrypt
 func (c *KMS) ReEncrypt(input *ReEncryptInput) (*ReEncryptOutput, error) {
 	req, out := c.ReEncryptRequest(input)
 	err := req.Send()
@@ -2732,6 +2785,7 @@ const opRetireGrant = "RetireGrant"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/RetireGrant
 func (c *KMS) RetireGrantRequest(input *RetireGrantInput) (req *request.Request, output *RetireGrantOutput) {
 	op := &request.Operation{
 		Name:       opRetireGrant,
@@ -2753,20 +2807,22 @@ func (c *KMS) RetireGrantRequest(input *RetireGrantInput) (req *request.Request,
 
 // RetireGrant API operation for AWS Key Management Service.
 //
-// Retires a grant. You can retire a grant when you're done using it to clean
-// up. You should revoke a grant when you intend to actively deny operations
+// Retires a grant. To clean up, you can retire a grant when you're done using
+// it. You should revoke a grant when you intend to actively deny operations
 // that depend on it. The following are permitted to call this API:
 //
-//   The account that created the grant
+//    * The AWS account (root user) under which the grant was created
 //
-//   The RetiringPrincipal, if present
+//    * The RetiringPrincipal, if present in the grant
 //
-//   The GranteePrincipal, if RetireGrant is a grantee operation
+//    * The GranteePrincipal, if RetireGrant is an operation specified in the
+//    grant
 //
-//   The grant to retire must be identified by its grant token or by a combination
-// of the key ARN and the grant ID. A grant token is a unique variable-length
-// base64-encoded string. A grant ID is a 64 character unique identifier of
-// a grant. Both are returned by the CreateGrant function.
+// You must identify the grant to retire by its grant token or by a combination
+// of the grant ID and the Amazon Resource Name (ARN) of the customer master
+// key (CMK). A grant token is a unique variable-length base64-encoded string.
+// A grant ID is a 64 character unique identifier of a grant. The CreateGrant
+// operation returns both.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2802,6 +2858,7 @@ func (c *KMS) RetireGrantRequest(input *RetireGrantInput) (req *request.Request,
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/RetireGrant
 func (c *KMS) RetireGrant(input *RetireGrantInput) (*RetireGrantOutput, error) {
 	req, out := c.RetireGrantRequest(input)
 	err := req.Send()
@@ -2834,6 +2891,7 @@ const opRevokeGrant = "RevokeGrant"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/RevokeGrant
 func (c *KMS) RevokeGrantRequest(input *RevokeGrantInput) (req *request.Request, output *RevokeGrantOutput) {
 	op := &request.Operation{
 		Name:       opRevokeGrant,
@@ -2892,6 +2950,7 @@ func (c *KMS) RevokeGrantRequest(input *RevokeGrantInput) (req *request.Request,
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/RevokeGrant
 func (c *KMS) RevokeGrant(input *RevokeGrantInput) (*RevokeGrantOutput, error) {
 	req, out := c.RevokeGrantRequest(input)
 	err := req.Send()
@@ -2924,6 +2983,7 @@ const opScheduleKeyDeletion = "ScheduleKeyDeletion"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ScheduleKeyDeletion
 func (c *KMS) ScheduleKeyDeletionRequest(input *ScheduleKeyDeletionInput) (req *request.Request, output *ScheduleKeyDeletionOutput) {
 	op := &request.Operation{
 		Name:       opScheduleKeyDeletion,
@@ -2949,15 +3009,15 @@ func (c *KMS) ScheduleKeyDeletionRequest(input *ScheduleKeyDeletionInput) (req *
 // operation is successful, the state of the CMK changes to PendingDeletion.
 // Before the waiting period ends, you can use CancelKeyDeletion to cancel the
 // deletion of the CMK. After the waiting period ends, AWS KMS deletes the CMK
-// and all AWS KMS data associated with it, including all aliases that point
+// and all AWS KMS data associated with it, including all aliases that refer
 // to it.
 //
-//  Deleting a CMK is a destructive and potentially dangerous operation. When
+// Deleting a CMK is a destructive and potentially dangerous operation. When
 // a CMK is deleted, all data that was encrypted under the CMK is rendered unrecoverable.
 // To restrict the use of a CMK without deleting it, use DisableKey.
 //
-//  For more information about scheduling a CMK for deletion, see Deleting
-// Customer Master Keys (http://docs.aws.amazon.com/kms/latest/developerguide/deleting-keys.html)
+// For more information about scheduling a CMK for deletion, see Deleting Customer
+// Master Keys (http://docs.aws.amazon.com/kms/latest/developerguide/deleting-keys.html)
 // in the AWS Key Management Service Developer Guide.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -2991,6 +3051,7 @@ func (c *KMS) ScheduleKeyDeletionRequest(input *ScheduleKeyDeletionInput) (req *
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ScheduleKeyDeletion
 func (c *KMS) ScheduleKeyDeletion(input *ScheduleKeyDeletionInput) (*ScheduleKeyDeletionOutput, error) {
 	req, out := c.ScheduleKeyDeletionRequest(input)
 	err := req.Send()
@@ -3023,6 +3084,7 @@ const opUpdateAlias = "UpdateAlias"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/UpdateAlias
 func (c *KMS) UpdateAliasRequest(input *UpdateAliasInput) (req *request.Request, output *UpdateAliasOutput) {
 	op := &request.Operation{
 		Name:       opUpdateAlias,
@@ -3050,8 +3112,8 @@ func (c *KMS) UpdateAliasRequest(input *UpdateAliasInput) (req *request.Request,
 // and unmapped from an existing key without changing the properties of the
 // key.
 //
-// An alias name can contain only alphanumeric characters, forward slashes
-// (/), underscores (_), and dashes (-). An alias must start with the word "alias"
+// An alias name can contain only alphanumeric characters, forward slashes (/),
+// underscores (_), and dashes (-). An alias must start with the word "alias"
 // followed by a forward slash (alias/). An alias that begins with "aws" after
 // the forward slash (alias/aws...) is reserved by Amazon Web Services (AWS).
 //
@@ -3086,6 +3148,7 @@ func (c *KMS) UpdateAliasRequest(input *UpdateAliasInput) (req *request.Request,
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/UpdateAlias
 func (c *KMS) UpdateAlias(input *UpdateAliasInput) (*UpdateAliasOutput, error) {
 	req, out := c.UpdateAliasRequest(input)
 	err := req.Send()
@@ -3118,6 +3181,7 @@ const opUpdateKeyDescription = "UpdateKeyDescription"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/UpdateKeyDescription
 func (c *KMS) UpdateKeyDescriptionRequest(input *UpdateKeyDescriptionInput) (req *request.Request, output *UpdateKeyDescriptionOutput) {
 	op := &request.Operation{
 		Name:       opUpdateKeyDescription,
@@ -3139,7 +3203,7 @@ func (c *KMS) UpdateKeyDescriptionRequest(input *UpdateKeyDescriptionInput) (req
 
 // UpdateKeyDescription API operation for AWS Key Management Service.
 //
-// Updates the description of a key.
+// Updates the description of a customer master key (CMK).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3172,6 +3236,7 @@ func (c *KMS) UpdateKeyDescriptionRequest(input *UpdateKeyDescriptionInput) (req
 //   Key State Affects Use of a Customer Master Key (http://docs.aws.amazon.com/kms/latest/developerguide/key-state.html)
 //   in the AWS Key Management Service Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/UpdateKeyDescription
 func (c *KMS) UpdateKeyDescription(input *UpdateKeyDescriptionInput) (*UpdateKeyDescriptionOutput, error) {
 	req, out := c.UpdateKeyDescriptionRequest(input)
 	err := req.Send()
@@ -3179,6 +3244,7 @@ func (c *KMS) UpdateKeyDescription(input *UpdateKeyDescriptionInput) (*UpdateKey
 }
 
 // Contains information about an alias.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/AliasListEntry
 type AliasListEntry struct {
 	_ struct{} `type:"structure"`
 
@@ -3188,7 +3254,7 @@ type AliasListEntry struct {
 	// String that contains the alias.
 	AliasName *string `min:"1" type:"string"`
 
-	// String that contains the key identifier pointed to by the alias.
+	// String that contains the key identifier referred to by the alias.
 	TargetKeyId *string `min:"1" type:"string"`
 }
 
@@ -3202,6 +3268,25 @@ func (s AliasListEntry) GoString() string {
 	return s.String()
 }
 
+// SetAliasArn sets the AliasArn field's value.
+func (s *AliasListEntry) SetAliasArn(v string) *AliasListEntry {
+	s.AliasArn = &v
+	return s
+}
+
+// SetAliasName sets the AliasName field's value.
+func (s *AliasListEntry) SetAliasName(v string) *AliasListEntry {
+	s.AliasName = &v
+	return s
+}
+
+// SetTargetKeyId sets the TargetKeyId field's value.
+func (s *AliasListEntry) SetTargetKeyId(v string) *AliasListEntry {
+	s.TargetKeyId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/CancelKeyDeletionRequest
 type CancelKeyDeletionInput struct {
 	_ struct{} `type:"structure"`
 
@@ -3211,12 +3296,12 @@ type CancelKeyDeletionInput struct {
 	// To specify this value, use the unique key ID or the Amazon Resource Name
 	// (ARN) of the CMK. Examples:
 	//
-	//   Unique key ID: 1234abcd-12ab-34cd-56ef-1234567890ab
+	//    * Unique key ID: 1234abcd-12ab-34cd-56ef-1234567890ab
 	//
-	//   Key ARN: arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
+	//    * Key ARN: arn:aws:kms:us-east-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
 	//
-	//   To obtain the unique key ID and key ARN for a given CMK, use ListKeys
-	// or DescribeKey.
+	// To obtain the unique key ID and key ARN for a given CMK, use ListKeys or
+	// DescribeKey.
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -3248,6 +3333,13 @@ func (s *CancelKeyDeletionInput) Validate() error {
 	return nil
 }
 
+// SetKeyId sets the KeyId field's value.
+func (s *CancelKeyDeletionInput) SetKeyId(v string) *CancelKeyDeletionInput {
+	s.KeyId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/CancelKeyDeletionResponse
 type CancelKeyDeletionOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -3265,6 +3357,13 @@ func (s CancelKeyDeletionOutput) GoString() string {
 	return s.String()
 }
 
+// SetKeyId sets the KeyId field's value.
+func (s *CancelKeyDeletionOutput) SetKeyId(v string) *CancelKeyDeletionOutput {
+	s.KeyId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/CreateAliasRequest
 type CreateAliasInput struct {
 	_ struct{} `type:"structure"`
 
@@ -3279,9 +3378,9 @@ type CreateAliasInput struct {
 	// cannot be another alias but can be a globally unique identifier or a fully
 	// specified ARN to a key.
 	//
-	//   Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
+	//    * Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
 	//
-	//   Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
+	//    * Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
 	//
 	// TargetKeyId is a required field
 	TargetKeyId *string `min:"1" type:"string" required:"true"`
@@ -3319,6 +3418,19 @@ func (s *CreateAliasInput) Validate() error {
 	return nil
 }
 
+// SetAliasName sets the AliasName field's value.
+func (s *CreateAliasInput) SetAliasName(v string) *CreateAliasInput {
+	s.AliasName = &v
+	return s
+}
+
+// SetTargetKeyId sets the TargetKeyId field's value.
+func (s *CreateAliasInput) SetTargetKeyId(v string) *CreateAliasInput {
+	s.TargetKeyId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/CreateAliasOutput
 type CreateAliasOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -3333,6 +3445,7 @@ func (s CreateAliasOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/CreateGrantRequest
 type CreateGrantInput struct {
 	_ struct{} `type:"structure"`
 
@@ -3369,9 +3482,9 @@ type CreateGrantInput struct {
 	// To specify this value, use the globally unique key ID or the Amazon Resource
 	// Name (ARN) of the key. Examples:
 	//
-	//   Globally unique key ID: 12345678-1234-1234-1234-123456789012
+	//    * Globally unique key ID: 12345678-1234-1234-1234-123456789012
 	//
-	//   Key ARN: arn:aws:kms:us-west-2:123456789012:key/12345678-1234-1234-1234-123456789012
+	//    * Key ARN: arn:aws:kms:us-west-2:123456789012:key/12345678-1234-1234-1234-123456789012
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -3390,26 +3503,7 @@ type CreateGrantInput struct {
 	// All grant tokens obtained in this way can be used interchangeably.
 	Name *string `min:"1" type:"string"`
 
-	// A list of operations that the grant permits. The list can contain any combination
-	// of one or more of the following values:
-	//
-	//    Decrypt
-	//
-	//    Encrypt
-	//
-	//    GenerateDataKey
-	//
-	//    GenerateDataKeyWithoutPlaintext
-	//
-	//    ReEncryptFrom (http://docs.aws.amazon.com/kms/latest/APIReference/API_ReEncrypt.html)
-	//
-	//    ReEncryptTo (http://docs.aws.amazon.com/kms/latest/APIReference/API_ReEncrypt.html)
-	//
-	//    CreateGrant
-	//
-	//    RetireGrant
-	//
-	//    DescribeKey
+	// A list of operations that the grant permits.
 	Operations []*string `type:"list"`
 
 	// The principal that is given permission to retire the grant by using RetireGrant
@@ -3462,6 +3556,49 @@ func (s *CreateGrantInput) Validate() error {
 	return nil
 }
 
+// SetConstraints sets the Constraints field's value.
+func (s *CreateGrantInput) SetConstraints(v *GrantConstraints) *CreateGrantInput {
+	s.Constraints = v
+	return s
+}
+
+// SetGrantTokens sets the GrantTokens field's value.
+func (s *CreateGrantInput) SetGrantTokens(v []*string) *CreateGrantInput {
+	s.GrantTokens = v
+	return s
+}
+
+// SetGranteePrincipal sets the GranteePrincipal field's value.
+func (s *CreateGrantInput) SetGranteePrincipal(v string) *CreateGrantInput {
+	s.GranteePrincipal = &v
+	return s
+}
+
+// SetKeyId sets the KeyId field's value.
+func (s *CreateGrantInput) SetKeyId(v string) *CreateGrantInput {
+	s.KeyId = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *CreateGrantInput) SetName(v string) *CreateGrantInput {
+	s.Name = &v
+	return s
+}
+
+// SetOperations sets the Operations field's value.
+func (s *CreateGrantInput) SetOperations(v []*string) *CreateGrantInput {
+	s.Operations = v
+	return s
+}
+
+// SetRetiringPrincipal sets the RetiringPrincipal field's value.
+func (s *CreateGrantInput) SetRetiringPrincipal(v string) *CreateGrantInput {
+	s.RetiringPrincipal = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/CreateGrantResponse
 type CreateGrantOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -3487,18 +3624,31 @@ func (s CreateGrantOutput) GoString() string {
 	return s.String()
 }
 
+// SetGrantId sets the GrantId field's value.
+func (s *CreateGrantOutput) SetGrantId(v string) *CreateGrantOutput {
+	s.GrantId = &v
+	return s
+}
+
+// SetGrantToken sets the GrantToken field's value.
+func (s *CreateGrantOutput) SetGrantToken(v string) *CreateGrantOutput {
+	s.GrantToken = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/CreateKeyRequest
 type CreateKeyInput struct {
 	_ struct{} `type:"structure"`
 
 	// A flag to indicate whether to bypass the key policy lockout safety check.
 	//
-	//  Setting this value to true increases the likelihood that the CMK becomes
+	// Setting this value to true increases the likelihood that the CMK becomes
 	// unmanageable. Do not set this value to true indiscriminately.
 	//
 	// For more information, refer to the scenario in the Default Key Policy (http://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html#key-policy-default-allow-root-enable-iam)
 	// section in the AWS Key Management Service Developer Guide.
 	//
-	//  Use this parameter only when you include a policy in the request and you
+	// Use this parameter only when you include a policy in the request and you
 	// intend to prevent the principal making the request from making a subsequent
 	// PutKeyPolicy request on the CMK.
 	//
@@ -3533,22 +3683,22 @@ type CreateKeyInput struct {
 	// If you specify a policy and do not set BypassPolicyLockoutSafetyCheck to
 	// true, the policy must meet the following criteria:
 	//
-	//   It must allow the principal making the CreateKey request to make a subsequent
-	// PutKeyPolicy request on the CMK. This reduces the likelihood that the CMK
-	// becomes unmanageable. For more information, refer to the scenario in the
-	// Default Key Policy (http://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html#key-policy-default-allow-root-enable-iam)
-	// section in the AWS Key Management Service Developer Guide.
+	//    * It must allow the principal making the CreateKey request to make a subsequent
+	//    PutKeyPolicy request on the CMK. This reduces the likelihood that the
+	//    CMK becomes unmanageable. For more information, refer to the scenario
+	//    in the Default Key Policy (http://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html#key-policy-default-allow-root-enable-iam)
+	//    section in the AWS Key Management Service Developer Guide.
 	//
-	//   The principal(s) specified in the key policy must exist and be visible
-	// to AWS KMS. When you create a new AWS principal (for example, an IAM user
-	// or role), you might need to enforce a delay before specifying the new principal
-	// in a key policy because the new principal might not immediately be visible
-	// to AWS KMS. For more information, see Changes that I make are not always
-	// immediately visible (http://docs.aws.amazon.com/IAM/latest/UserGuide/troubleshoot_general.html#troubleshoot_general_eventual-consistency)
-	// in the IAM User Guide.
+	//    * The principal(s) specified in the key policy must exist and be visible
+	//    to AWS KMS. When you create a new AWS principal (for example, an IAM user
+	//    or role), you might need to enforce a delay before specifying the new
+	//    principal in a key policy because the new principal might not immediately
+	//    be visible to AWS KMS. For more information, see Changes that I make are
+	//    not always immediately visible (http://docs.aws.amazon.com/IAM/latest/UserGuide/troubleshoot_general.html#troubleshoot_general_eventual-consistency)
+	//    in the IAM User Guide.
 	//
-	//   If you do not specify a policy, AWS KMS attaches a default key policy
-	// to the CMK. For more information, see Default Key Policy (http://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html#key-policy-default)
+	// If you do not specify a policy, AWS KMS attaches a default key policy to
+	// the CMK. For more information, see Default Key Policy (http://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html#key-policy-default)
 	// in the AWS Key Management Service Developer Guide.
 	//
 	// The policy size limit is 32 KiB (32768 bytes).
@@ -3578,6 +3728,37 @@ func (s *CreateKeyInput) Validate() error {
 	return nil
 }
 
+// SetBypassPolicyLockoutSafetyCheck sets the BypassPolicyLockoutSafetyCheck field's value.
+func (s *CreateKeyInput) SetBypassPolicyLockoutSafetyCheck(v bool) *CreateKeyInput {
+	s.BypassPolicyLockoutSafetyCheck = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *CreateKeyInput) SetDescription(v string) *CreateKeyInput {
+	s.Description = &v
+	return s
+}
+
+// SetKeyUsage sets the KeyUsage field's value.
+func (s *CreateKeyInput) SetKeyUsage(v string) *CreateKeyInput {
+	s.KeyUsage = &v
+	return s
+}
+
+// SetOrigin sets the Origin field's value.
+func (s *CreateKeyInput) SetOrigin(v string) *CreateKeyInput {
+	s.Origin = &v
+	return s
+}
+
+// SetPolicy sets the Policy field's value.
+func (s *CreateKeyInput) SetPolicy(v string) *CreateKeyInput {
+	s.Policy = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/CreateKeyResponse
 type CreateKeyOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -3595,6 +3776,13 @@ func (s CreateKeyOutput) GoString() string {
 	return s.String()
 }
 
+// SetKeyMetadata sets the KeyMetadata field's value.
+func (s *CreateKeyOutput) SetKeyMetadata(v *KeyMetadata) *CreateKeyOutput {
+	s.KeyMetadata = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DecryptRequest
 type DecryptInput struct {
 	_ struct{} `type:"structure"`
 
@@ -3643,6 +3831,25 @@ func (s *DecryptInput) Validate() error {
 	return nil
 }
 
+// SetCiphertextBlob sets the CiphertextBlob field's value.
+func (s *DecryptInput) SetCiphertextBlob(v []byte) *DecryptInput {
+	s.CiphertextBlob = v
+	return s
+}
+
+// SetEncryptionContext sets the EncryptionContext field's value.
+func (s *DecryptInput) SetEncryptionContext(v map[string]*string) *DecryptInput {
+	s.EncryptionContext = v
+	return s
+}
+
+// SetGrantTokens sets the GrantTokens field's value.
+func (s *DecryptInput) SetGrantTokens(v []*string) *DecryptInput {
+	s.GrantTokens = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DecryptResponse
 type DecryptOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -3667,6 +3874,19 @@ func (s DecryptOutput) GoString() string {
 	return s.String()
 }
 
+// SetKeyId sets the KeyId field's value.
+func (s *DecryptOutput) SetKeyId(v string) *DecryptOutput {
+	s.KeyId = &v
+	return s
+}
+
+// SetPlaintext sets the Plaintext field's value.
+func (s *DecryptOutput) SetPlaintext(v []byte) *DecryptOutput {
+	s.Plaintext = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DeleteAliasRequest
 type DeleteAliasInput struct {
 	_ struct{} `type:"structure"`
 
@@ -3703,6 +3923,13 @@ func (s *DeleteAliasInput) Validate() error {
 	return nil
 }
 
+// SetAliasName sets the AliasName field's value.
+func (s *DeleteAliasInput) SetAliasName(v string) *DeleteAliasInput {
+	s.AliasName = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DeleteAliasOutput
 type DeleteAliasOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -3717,6 +3944,7 @@ func (s DeleteAliasOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DeleteImportedKeyMaterialRequest
 type DeleteImportedKeyMaterialInput struct {
 	_ struct{} `type:"structure"`
 
@@ -3726,9 +3954,9 @@ type DeleteImportedKeyMaterialInput struct {
 	// A valid identifier is the unique key ID or the Amazon Resource Name (ARN)
 	// of the CMK. Examples:
 	//
-	//   Unique key ID: 1234abcd-12ab-34cd-56ef-1234567890ab
+	//    * Unique key ID: 1234abcd-12ab-34cd-56ef-1234567890ab
 	//
-	//   Key ARN: arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
+	//    * Key ARN: arn:aws:kms:us-east-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -3760,6 +3988,13 @@ func (s *DeleteImportedKeyMaterialInput) Validate() error {
 	return nil
 }
 
+// SetKeyId sets the KeyId field's value.
+func (s *DeleteImportedKeyMaterialInput) SetKeyId(v string) *DeleteImportedKeyMaterialInput {
+	s.KeyId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DeleteImportedKeyMaterialOutput
 type DeleteImportedKeyMaterialOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -3774,6 +4009,7 @@ func (s DeleteImportedKeyMaterialOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DescribeKeyRequest
 type DescribeKeyInput struct {
 	_ struct{} `type:"structure"`
 
@@ -3787,13 +4023,13 @@ type DescribeKeyInput struct {
 	// unique identifier, a fully specified ARN to either an alias or a key, or
 	// an alias name prefixed by "alias/".
 	//
-	//   Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
+	//    * Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
 	//
-	//   Alias ARN Example - arn:aws:kms:us-east-1:123456789012:alias/MyAliasName
+	//    * Alias ARN Example - arn:aws:kms:us-east-1:123456789012:alias/MyAliasName
 	//
-	//   Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
+	//    * Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
 	//
-	//   Alias Name Example - alias/MyAliasName
+	//    * Alias Name Example - alias/MyAliasName
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -3825,6 +4061,19 @@ func (s *DescribeKeyInput) Validate() error {
 	return nil
 }
 
+// SetGrantTokens sets the GrantTokens field's value.
+func (s *DescribeKeyInput) SetGrantTokens(v []*string) *DescribeKeyInput {
+	s.GrantTokens = v
+	return s
+}
+
+// SetKeyId sets the KeyId field's value.
+func (s *DescribeKeyInput) SetKeyId(v string) *DescribeKeyInput {
+	s.KeyId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DescribeKeyResponse
 type DescribeKeyOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -3842,6 +4091,13 @@ func (s DescribeKeyOutput) GoString() string {
 	return s.String()
 }
 
+// SetKeyMetadata sets the KeyMetadata field's value.
+func (s *DescribeKeyOutput) SetKeyMetadata(v *KeyMetadata) *DescribeKeyOutput {
+	s.KeyMetadata = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DisableKeyRequest
 type DisableKeyInput struct {
 	_ struct{} `type:"structure"`
 
@@ -3849,9 +4105,9 @@ type DisableKeyInput struct {
 	//
 	// Use the CMK's unique identifier or its Amazon Resource Name (ARN). For example:
 	//
-	//   Unique ID: 1234abcd-12ab-34cd-56ef-1234567890ab
+	//    * Unique ID: 1234abcd-12ab-34cd-56ef-1234567890ab
 	//
-	//   ARN: arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
+	//    * ARN: arn:aws:kms:us-east-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -3883,6 +4139,13 @@ func (s *DisableKeyInput) Validate() error {
 	return nil
 }
 
+// SetKeyId sets the KeyId field's value.
+func (s *DisableKeyInput) SetKeyId(v string) *DisableKeyInput {
+	s.KeyId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DisableKeyOutput
 type DisableKeyOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -3897,15 +4160,16 @@ func (s DisableKeyOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DisableKeyRotationRequest
 type DisableKeyRotationInput struct {
 	_ struct{} `type:"structure"`
 
 	// A unique identifier for the customer master key. This value can be a globally
 	// unique identifier or the fully specified ARN to a key.
 	//
-	//   Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
+	//    * Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
 	//
-	//   Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
+	//    * Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -3937,6 +4201,13 @@ func (s *DisableKeyRotationInput) Validate() error {
 	return nil
 }
 
+// SetKeyId sets the KeyId field's value.
+func (s *DisableKeyRotationInput) SetKeyId(v string) *DisableKeyRotationInput {
+	s.KeyId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/DisableKeyRotationOutput
 type DisableKeyRotationOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -3951,15 +4222,16 @@ func (s DisableKeyRotationOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/EnableKeyRequest
 type EnableKeyInput struct {
 	_ struct{} `type:"structure"`
 
 	// A unique identifier for the customer master key. This value can be a globally
 	// unique identifier or the fully specified ARN to a key.
 	//
-	//   Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
+	//    * Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
 	//
-	//   Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
+	//    * Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -3991,6 +4263,13 @@ func (s *EnableKeyInput) Validate() error {
 	return nil
 }
 
+// SetKeyId sets the KeyId field's value.
+func (s *EnableKeyInput) SetKeyId(v string) *EnableKeyInput {
+	s.KeyId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/EnableKeyOutput
 type EnableKeyOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -4005,15 +4284,16 @@ func (s EnableKeyOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/EnableKeyRotationRequest
 type EnableKeyRotationInput struct {
 	_ struct{} `type:"structure"`
 
 	// A unique identifier for the customer master key. This value can be a globally
 	// unique identifier or the fully specified ARN to a key.
 	//
-	//   Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
+	//    * Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
 	//
-	//   Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
+	//    * Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -4045,6 +4325,13 @@ func (s *EnableKeyRotationInput) Validate() error {
 	return nil
 }
 
+// SetKeyId sets the KeyId field's value.
+func (s *EnableKeyRotationInput) SetKeyId(v string) *EnableKeyRotationInput {
+	s.KeyId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/EnableKeyRotationOutput
 type EnableKeyRotationOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -4059,6 +4346,7 @@ func (s EnableKeyRotationOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/EncryptRequest
 type EncryptInput struct {
 	_ struct{} `type:"structure"`
 
@@ -4078,13 +4366,13 @@ type EncryptInput struct {
 	// unique identifier, a fully specified ARN to either an alias or a key, or
 	// an alias name prefixed by "alias/".
 	//
-	//   Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
+	//    * Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
 	//
-	//   Alias ARN Example - arn:aws:kms:us-east-1:123456789012:alias/MyAliasName
+	//    * Alias ARN Example - arn:aws:kms:us-east-1:123456789012:alias/MyAliasName
 	//
-	//   Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
+	//    * Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
 	//
-	//   Alias Name Example - alias/MyAliasName
+	//    * Alias Name Example - alias/MyAliasName
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -4129,6 +4417,31 @@ func (s *EncryptInput) Validate() error {
 	return nil
 }
 
+// SetEncryptionContext sets the EncryptionContext field's value.
+func (s *EncryptInput) SetEncryptionContext(v map[string]*string) *EncryptInput {
+	s.EncryptionContext = v
+	return s
+}
+
+// SetGrantTokens sets the GrantTokens field's value.
+func (s *EncryptInput) SetGrantTokens(v []*string) *EncryptInput {
+	s.GrantTokens = v
+	return s
+}
+
+// SetKeyId sets the KeyId field's value.
+func (s *EncryptInput) SetKeyId(v string) *EncryptInput {
+	s.KeyId = &v
+	return s
+}
+
+// SetPlaintext sets the Plaintext field's value.
+func (s *EncryptInput) SetPlaintext(v []byte) *EncryptInput {
+	s.Plaintext = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/EncryptResponse
 type EncryptOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -4152,6 +4465,19 @@ func (s EncryptOutput) GoString() string {
 	return s.String()
 }
 
+// SetCiphertextBlob sets the CiphertextBlob field's value.
+func (s *EncryptOutput) SetCiphertextBlob(v []byte) *EncryptOutput {
+	s.CiphertextBlob = v
+	return s
+}
+
+// SetKeyId sets the KeyId field's value.
+func (s *EncryptOutput) SetKeyId(v string) *EncryptOutput {
+	s.KeyId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GenerateDataKeyRequest
 type GenerateDataKeyInput struct {
 	_ struct{} `type:"structure"`
 
@@ -4171,16 +4497,16 @@ type GenerateDataKeyInput struct {
 	// key.
 	//
 	// A valid identifier is the unique key ID or the Amazon Resource Name (ARN)
-	// of the CMK, or the alias name or ARN of an alias that points to the CMK.
+	// of the CMK, or the alias name or ARN of an alias that refers to the CMK.
 	// Examples:
 	//
-	//   Unique key ID: 1234abcd-12ab-34cd-56ef-1234567890ab
+	//    * Unique key ID: 1234abcd-12ab-34cd-56ef-1234567890ab
 	//
-	//   CMK ARN: arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
+	//    * CMK ARN: arn:aws:kms:us-east-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
 	//
-	//   Alias name: alias/ExampleAlias
+	//    * Alias name: alias/ExampleAlias
 	//
-	//   Alias ARN: arn:aws:kms:us-west-2:111122223333:alias/ExampleAlias
+	//    * Alias ARN: arn:aws:kms:us-east-2:111122223333:alias/ExampleAlias
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -4225,6 +4551,37 @@ func (s *GenerateDataKeyInput) Validate() error {
 	return nil
 }
 
+// SetEncryptionContext sets the EncryptionContext field's value.
+func (s *GenerateDataKeyInput) SetEncryptionContext(v map[string]*string) *GenerateDataKeyInput {
+	s.EncryptionContext = v
+	return s
+}
+
+// SetGrantTokens sets the GrantTokens field's value.
+func (s *GenerateDataKeyInput) SetGrantTokens(v []*string) *GenerateDataKeyInput {
+	s.GrantTokens = v
+	return s
+}
+
+// SetKeyId sets the KeyId field's value.
+func (s *GenerateDataKeyInput) SetKeyId(v string) *GenerateDataKeyInput {
+	s.KeyId = &v
+	return s
+}
+
+// SetKeySpec sets the KeySpec field's value.
+func (s *GenerateDataKeyInput) SetKeySpec(v string) *GenerateDataKeyInput {
+	s.KeySpec = &v
+	return s
+}
+
+// SetNumberOfBytes sets the NumberOfBytes field's value.
+func (s *GenerateDataKeyInput) SetNumberOfBytes(v int64) *GenerateDataKeyInput {
+	s.NumberOfBytes = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GenerateDataKeyResponse
 type GenerateDataKeyOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -4254,6 +4611,25 @@ func (s GenerateDataKeyOutput) GoString() string {
 	return s.String()
 }
 
+// SetCiphertextBlob sets the CiphertextBlob field's value.
+func (s *GenerateDataKeyOutput) SetCiphertextBlob(v []byte) *GenerateDataKeyOutput {
+	s.CiphertextBlob = v
+	return s
+}
+
+// SetKeyId sets the KeyId field's value.
+func (s *GenerateDataKeyOutput) SetKeyId(v string) *GenerateDataKeyOutput {
+	s.KeyId = &v
+	return s
+}
+
+// SetPlaintext sets the Plaintext field's value.
+func (s *GenerateDataKeyOutput) SetPlaintext(v []byte) *GenerateDataKeyOutput {
+	s.Plaintext = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GenerateDataKeyWithoutPlaintextRequest
 type GenerateDataKeyWithoutPlaintextInput struct {
 	_ struct{} `type:"structure"`
 
@@ -4273,16 +4649,16 @@ type GenerateDataKeyWithoutPlaintextInput struct {
 	// key.
 	//
 	// A valid identifier is the unique key ID or the Amazon Resource Name (ARN)
-	// of the CMK, or the alias name or ARN of an alias that points to the CMK.
+	// of the CMK, or the alias name or ARN of an alias that refers to the CMK.
 	// Examples:
 	//
-	//   Unique key ID: 1234abcd-12ab-34cd-56ef-1234567890ab
+	//    * Unique key ID: 1234abcd-12ab-34cd-56ef-1234567890ab
 	//
-	//   CMK ARN: arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
+	//    * CMK ARN: arn:aws:kms:us-east-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
 	//
-	//   Alias name: alias/ExampleAlias
+	//    * Alias name: alias/ExampleAlias
 	//
-	//   Alias ARN: arn:aws:kms:us-west-2:111122223333:alias/ExampleAlias
+	//    * Alias ARN: arn:aws:kms:us-east-2:111122223333:alias/ExampleAlias
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -4327,6 +4703,37 @@ func (s *GenerateDataKeyWithoutPlaintextInput) Validate() error {
 	return nil
 }
 
+// SetEncryptionContext sets the EncryptionContext field's value.
+func (s *GenerateDataKeyWithoutPlaintextInput) SetEncryptionContext(v map[string]*string) *GenerateDataKeyWithoutPlaintextInput {
+	s.EncryptionContext = v
+	return s
+}
+
+// SetGrantTokens sets the GrantTokens field's value.
+func (s *GenerateDataKeyWithoutPlaintextInput) SetGrantTokens(v []*string) *GenerateDataKeyWithoutPlaintextInput {
+	s.GrantTokens = v
+	return s
+}
+
+// SetKeyId sets the KeyId field's value.
+func (s *GenerateDataKeyWithoutPlaintextInput) SetKeyId(v string) *GenerateDataKeyWithoutPlaintextInput {
+	s.KeyId = &v
+	return s
+}
+
+// SetKeySpec sets the KeySpec field's value.
+func (s *GenerateDataKeyWithoutPlaintextInput) SetKeySpec(v string) *GenerateDataKeyWithoutPlaintextInput {
+	s.KeySpec = &v
+	return s
+}
+
+// SetNumberOfBytes sets the NumberOfBytes field's value.
+func (s *GenerateDataKeyWithoutPlaintextInput) SetNumberOfBytes(v int64) *GenerateDataKeyWithoutPlaintextInput {
+	s.NumberOfBytes = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GenerateDataKeyWithoutPlaintextResponse
 type GenerateDataKeyWithoutPlaintextOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -4350,6 +4757,19 @@ func (s GenerateDataKeyWithoutPlaintextOutput) GoString() string {
 	return s.String()
 }
 
+// SetCiphertextBlob sets the CiphertextBlob field's value.
+func (s *GenerateDataKeyWithoutPlaintextOutput) SetCiphertextBlob(v []byte) *GenerateDataKeyWithoutPlaintextOutput {
+	s.CiphertextBlob = v
+	return s
+}
+
+// SetKeyId sets the KeyId field's value.
+func (s *GenerateDataKeyWithoutPlaintextOutput) SetKeyId(v string) *GenerateDataKeyWithoutPlaintextOutput {
+	s.KeyId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GenerateRandomRequest
 type GenerateRandomInput struct {
 	_ struct{} `type:"structure"`
 
@@ -4380,6 +4800,13 @@ func (s *GenerateRandomInput) Validate() error {
 	return nil
 }
 
+// SetNumberOfBytes sets the NumberOfBytes field's value.
+func (s *GenerateRandomInput) SetNumberOfBytes(v int64) *GenerateRandomInput {
+	s.NumberOfBytes = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GenerateRandomResponse
 type GenerateRandomOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -4399,15 +4826,22 @@ func (s GenerateRandomOutput) GoString() string {
 	return s.String()
 }
 
+// SetPlaintext sets the Plaintext field's value.
+func (s *GenerateRandomOutput) SetPlaintext(v []byte) *GenerateRandomOutput {
+	s.Plaintext = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GetKeyPolicyRequest
 type GetKeyPolicyInput struct {
 	_ struct{} `type:"structure"`
 
 	// A unique identifier for the customer master key. This value can be a globally
 	// unique identifier or the fully specified ARN to a key.
 	//
-	//   Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
+	//    * Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
 	//
-	//   Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
+	//    * Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -4451,6 +4885,19 @@ func (s *GetKeyPolicyInput) Validate() error {
 	return nil
 }
 
+// SetKeyId sets the KeyId field's value.
+func (s *GetKeyPolicyInput) SetKeyId(v string) *GetKeyPolicyInput {
+	s.KeyId = &v
+	return s
+}
+
+// SetPolicyName sets the PolicyName field's value.
+func (s *GetKeyPolicyInput) SetPolicyName(v string) *GetKeyPolicyInput {
+	s.PolicyName = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GetKeyPolicyResponse
 type GetKeyPolicyOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -4468,15 +4915,22 @@ func (s GetKeyPolicyOutput) GoString() string {
 	return s.String()
 }
 
+// SetPolicy sets the Policy field's value.
+func (s *GetKeyPolicyOutput) SetPolicy(v string) *GetKeyPolicyOutput {
+	s.Policy = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GetKeyRotationStatusRequest
 type GetKeyRotationStatusInput struct {
 	_ struct{} `type:"structure"`
 
 	// A unique identifier for the customer master key. This value can be a globally
 	// unique identifier or the fully specified ARN to a key.
 	//
-	//   Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
+	//    * Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
 	//
-	//   Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
+	//    * Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -4508,6 +4962,13 @@ func (s *GetKeyRotationStatusInput) Validate() error {
 	return nil
 }
 
+// SetKeyId sets the KeyId field's value.
+func (s *GetKeyRotationStatusInput) SetKeyId(v string) *GetKeyRotationStatusInput {
+	s.KeyId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GetKeyRotationStatusResponse
 type GetKeyRotationStatusOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -4525,6 +4986,13 @@ func (s GetKeyRotationStatusOutput) GoString() string {
 	return s.String()
 }
 
+// SetKeyRotationEnabled sets the KeyRotationEnabled field's value.
+func (s *GetKeyRotationStatusOutput) SetKeyRotationEnabled(v bool) *GetKeyRotationStatusOutput {
+	s.KeyRotationEnabled = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GetParametersForImportRequest
 type GetParametersForImportInput struct {
 	_ struct{} `type:"structure"`
 
@@ -4534,9 +5002,9 @@ type GetParametersForImportInput struct {
 	// A valid identifier is the unique key ID or the Amazon Resource Name (ARN)
 	// of the CMK. Examples:
 	//
-	//   Unique key ID: 1234abcd-12ab-34cd-56ef-1234567890ab
+	//    * Unique key ID: 1234abcd-12ab-34cd-56ef-1234567890ab
 	//
-	//   Key ARN: arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
+	//    * Key ARN: arn:aws:kms:us-east-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -4588,6 +5056,25 @@ func (s *GetParametersForImportInput) Validate() error {
 	return nil
 }
 
+// SetKeyId sets the KeyId field's value.
+func (s *GetParametersForImportInput) SetKeyId(v string) *GetParametersForImportInput {
+	s.KeyId = &v
+	return s
+}
+
+// SetWrappingAlgorithm sets the WrappingAlgorithm field's value.
+func (s *GetParametersForImportInput) SetWrappingAlgorithm(v string) *GetParametersForImportInput {
+	s.WrappingAlgorithm = &v
+	return s
+}
+
+// SetWrappingKeySpec sets the WrappingKeySpec field's value.
+func (s *GetParametersForImportInput) SetWrappingKeySpec(v string) *GetParametersForImportInput {
+	s.WrappingKeySpec = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GetParametersForImportResponse
 type GetParametersForImportOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -4622,6 +5109,30 @@ func (s GetParametersForImportOutput) GoString() string {
 	return s.String()
 }
 
+// SetImportToken sets the ImportToken field's value.
+func (s *GetParametersForImportOutput) SetImportToken(v []byte) *GetParametersForImportOutput {
+	s.ImportToken = v
+	return s
+}
+
+// SetKeyId sets the KeyId field's value.
+func (s *GetParametersForImportOutput) SetKeyId(v string) *GetParametersForImportOutput {
+	s.KeyId = &v
+	return s
+}
+
+// SetParametersValidTo sets the ParametersValidTo field's value.
+func (s *GetParametersForImportOutput) SetParametersValidTo(v time.Time) *GetParametersForImportOutput {
+	s.ParametersValidTo = &v
+	return s
+}
+
+// SetPublicKey sets the PublicKey field's value.
+func (s *GetParametersForImportOutput) SetPublicKey(v []byte) *GetParametersForImportOutput {
+	s.PublicKey = v
+	return s
+}
+
 // A structure for specifying the conditions under which the operations permitted
 // by the grant are allowed.
 //
@@ -4629,6 +5140,7 @@ func (s GetParametersForImportOutput) GoString() string {
 // only when a specified encryption context is present. For more information
 // about encryption context, see Encryption Context (http://docs.aws.amazon.com/kms/latest/developerguide/encryption-context.html)
 // in the AWS Key Management Service Developer Guide.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GrantConstraints
 type GrantConstraints struct {
 	_ struct{} `type:"structure"`
 
@@ -4657,7 +5169,20 @@ func (s GrantConstraints) GoString() string {
 	return s.String()
 }
 
+// SetEncryptionContextEquals sets the EncryptionContextEquals field's value.
+func (s *GrantConstraints) SetEncryptionContextEquals(v map[string]*string) *GrantConstraints {
+	s.EncryptionContextEquals = v
+	return s
+}
+
+// SetEncryptionContextSubset sets the EncryptionContextSubset field's value.
+func (s *GrantConstraints) SetEncryptionContextSubset(v map[string]*string) *GrantConstraints {
+	s.EncryptionContextSubset = v
+	return s
+}
+
 // Contains information about an entry in a list of grants.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/GrantListEntry
 type GrantListEntry struct {
 	_ struct{} `type:"structure"`
 
@@ -4701,6 +5226,61 @@ func (s GrantListEntry) GoString() string {
 	return s.String()
 }
 
+// SetConstraints sets the Constraints field's value.
+func (s *GrantListEntry) SetConstraints(v *GrantConstraints) *GrantListEntry {
+	s.Constraints = v
+	return s
+}
+
+// SetCreationDate sets the CreationDate field's value.
+func (s *GrantListEntry) SetCreationDate(v time.Time) *GrantListEntry {
+	s.CreationDate = &v
+	return s
+}
+
+// SetGrantId sets the GrantId field's value.
+func (s *GrantListEntry) SetGrantId(v string) *GrantListEntry {
+	s.GrantId = &v
+	return s
+}
+
+// SetGranteePrincipal sets the GranteePrincipal field's value.
+func (s *GrantListEntry) SetGranteePrincipal(v string) *GrantListEntry {
+	s.GranteePrincipal = &v
+	return s
+}
+
+// SetIssuingAccount sets the IssuingAccount field's value.
+func (s *GrantListEntry) SetIssuingAccount(v string) *GrantListEntry {
+	s.IssuingAccount = &v
+	return s
+}
+
+// SetKeyId sets the KeyId field's value.
+func (s *GrantListEntry) SetKeyId(v string) *GrantListEntry {
+	s.KeyId = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *GrantListEntry) SetName(v string) *GrantListEntry {
+	s.Name = &v
+	return s
+}
+
+// SetOperations sets the Operations field's value.
+func (s *GrantListEntry) SetOperations(v []*string) *GrantListEntry {
+	s.Operations = v
+	return s
+}
+
+// SetRetiringPrincipal sets the RetiringPrincipal field's value.
+func (s *GrantListEntry) SetRetiringPrincipal(v string) *GrantListEntry {
+	s.RetiringPrincipal = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ImportKeyMaterialRequest
 type ImportKeyMaterialInput struct {
 	_ struct{} `type:"structure"`
 
@@ -4733,9 +5313,9 @@ type ImportKeyMaterialInput struct {
 	// A valid identifier is the unique key ID or the Amazon Resource Name (ARN)
 	// of the CMK. Examples:
 	//
-	//   Unique key ID: 1234abcd-12ab-34cd-56ef-1234567890ab
+	//    * Unique key ID: 1234abcd-12ab-34cd-56ef-1234567890ab
 	//
-	//   Key ARN: arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
+	//    * Key ARN: arn:aws:kms:us-east-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -4785,6 +5365,37 @@ func (s *ImportKeyMaterialInput) Validate() error {
 	return nil
 }
 
+// SetEncryptedKeyMaterial sets the EncryptedKeyMaterial field's value.
+func (s *ImportKeyMaterialInput) SetEncryptedKeyMaterial(v []byte) *ImportKeyMaterialInput {
+	s.EncryptedKeyMaterial = v
+	return s
+}
+
+// SetExpirationModel sets the ExpirationModel field's value.
+func (s *ImportKeyMaterialInput) SetExpirationModel(v string) *ImportKeyMaterialInput {
+	s.ExpirationModel = &v
+	return s
+}
+
+// SetImportToken sets the ImportToken field's value.
+func (s *ImportKeyMaterialInput) SetImportToken(v []byte) *ImportKeyMaterialInput {
+	s.ImportToken = v
+	return s
+}
+
+// SetKeyId sets the KeyId field's value.
+func (s *ImportKeyMaterialInput) SetKeyId(v string) *ImportKeyMaterialInput {
+	s.KeyId = &v
+	return s
+}
+
+// SetValidTo sets the ValidTo field's value.
+func (s *ImportKeyMaterialInput) SetValidTo(v time.Time) *ImportKeyMaterialInput {
+	s.ValidTo = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ImportKeyMaterialResponse
 type ImportKeyMaterialOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -4800,6 +5411,7 @@ func (s ImportKeyMaterialOutput) GoString() string {
 }
 
 // Contains information about each entry in the key list.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/KeyListEntry
 type KeyListEntry struct {
 	_ struct{} `type:"structure"`
 
@@ -4820,10 +5432,23 @@ func (s KeyListEntry) GoString() string {
 	return s.String()
 }
 
+// SetKeyArn sets the KeyArn field's value.
+func (s *KeyListEntry) SetKeyArn(v string) *KeyListEntry {
+	s.KeyArn = &v
+	return s
+}
+
+// SetKeyId sets the KeyId field's value.
+func (s *KeyListEntry) SetKeyId(v string) *KeyListEntry {
+	s.KeyId = &v
+	return s
+}
+
 // Contains metadata about a customer master key (CMK).
 //
 // This data type is used as a response element for the CreateKey and DescribeKey
 // operations.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/KeyMetadata
 type KeyMetadata struct {
 	_ struct{} `type:"structure"`
 
@@ -4893,6 +5518,79 @@ func (s KeyMetadata) GoString() string {
 	return s.String()
 }
 
+// SetAWSAccountId sets the AWSAccountId field's value.
+func (s *KeyMetadata) SetAWSAccountId(v string) *KeyMetadata {
+	s.AWSAccountId = &v
+	return s
+}
+
+// SetArn sets the Arn field's value.
+func (s *KeyMetadata) SetArn(v string) *KeyMetadata {
+	s.Arn = &v
+	return s
+}
+
+// SetCreationDate sets the CreationDate field's value.
+func (s *KeyMetadata) SetCreationDate(v time.Time) *KeyMetadata {
+	s.CreationDate = &v
+	return s
+}
+
+// SetDeletionDate sets the DeletionDate field's value.
+func (s *KeyMetadata) SetDeletionDate(v time.Time) *KeyMetadata {
+	s.DeletionDate = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *KeyMetadata) SetDescription(v string) *KeyMetadata {
+	s.Description = &v
+	return s
+}
+
+// SetEnabled sets the Enabled field's value.
+func (s *KeyMetadata) SetEnabled(v bool) *KeyMetadata {
+	s.Enabled = &v
+	return s
+}
+
+// SetExpirationModel sets the ExpirationModel field's value.
+func (s *KeyMetadata) SetExpirationModel(v string) *KeyMetadata {
+	s.ExpirationModel = &v
+	return s
+}
+
+// SetKeyId sets the KeyId field's value.
+func (s *KeyMetadata) SetKeyId(v string) *KeyMetadata {
+	s.KeyId = &v
+	return s
+}
+
+// SetKeyState sets the KeyState field's value.
+func (s *KeyMetadata) SetKeyState(v string) *KeyMetadata {
+	s.KeyState = &v
+	return s
+}
+
+// SetKeyUsage sets the KeyUsage field's value.
+func (s *KeyMetadata) SetKeyUsage(v string) *KeyMetadata {
+	s.KeyUsage = &v
+	return s
+}
+
+// SetOrigin sets the Origin field's value.
+func (s *KeyMetadata) SetOrigin(v string) *KeyMetadata {
+	s.Origin = &v
+	return s
+}
+
+// SetValidTo sets the ValidTo field's value.
+func (s *KeyMetadata) SetValidTo(v time.Time) *KeyMetadata {
+	s.ValidTo = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ListAliasesRequest
 type ListAliasesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -4936,6 +5634,19 @@ func (s *ListAliasesInput) Validate() error {
 	return nil
 }
 
+// SetLimit sets the Limit field's value.
+func (s *ListAliasesInput) SetLimit(v int64) *ListAliasesInput {
+	s.Limit = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *ListAliasesInput) SetMarker(v string) *ListAliasesInput {
+	s.Marker = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ListAliasesResponse
 type ListAliasesOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -4962,15 +5673,34 @@ func (s ListAliasesOutput) GoString() string {
 	return s.String()
 }
 
+// SetAliases sets the Aliases field's value.
+func (s *ListAliasesOutput) SetAliases(v []*AliasListEntry) *ListAliasesOutput {
+	s.Aliases = v
+	return s
+}
+
+// SetNextMarker sets the NextMarker field's value.
+func (s *ListAliasesOutput) SetNextMarker(v string) *ListAliasesOutput {
+	s.NextMarker = &v
+	return s
+}
+
+// SetTruncated sets the Truncated field's value.
+func (s *ListAliasesOutput) SetTruncated(v bool) *ListAliasesOutput {
+	s.Truncated = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ListGrantsRequest
 type ListGrantsInput struct {
 	_ struct{} `type:"structure"`
 
 	// A unique identifier for the customer master key. This value can be a globally
 	// unique identifier or the fully specified ARN to a key.
 	//
-	//   Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
+	//    * Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
 	//
-	//   Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
+	//    * Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -5021,6 +5751,25 @@ func (s *ListGrantsInput) Validate() error {
 	return nil
 }
 
+// SetKeyId sets the KeyId field's value.
+func (s *ListGrantsInput) SetKeyId(v string) *ListGrantsInput {
+	s.KeyId = &v
+	return s
+}
+
+// SetLimit sets the Limit field's value.
+func (s *ListGrantsInput) SetLimit(v int64) *ListGrantsInput {
+	s.Limit = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *ListGrantsInput) SetMarker(v string) *ListGrantsInput {
+	s.Marker = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ListGrantsResponse
 type ListGrantsResponse struct {
 	_ struct{} `type:"structure"`
 
@@ -5047,20 +5796,34 @@ func (s ListGrantsResponse) GoString() string {
 	return s.String()
 }
 
+// SetGrants sets the Grants field's value.
+func (s *ListGrantsResponse) SetGrants(v []*GrantListEntry) *ListGrantsResponse {
+	s.Grants = v
+	return s
+}
+
+// SetNextMarker sets the NextMarker field's value.
+func (s *ListGrantsResponse) SetNextMarker(v string) *ListGrantsResponse {
+	s.NextMarker = &v
+	return s
+}
+
+// SetTruncated sets the Truncated field's value.
+func (s *ListGrantsResponse) SetTruncated(v bool) *ListGrantsResponse {
+	s.Truncated = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ListKeyPoliciesRequest
 type ListKeyPoliciesInput struct {
 	_ struct{} `type:"structure"`
 
-	// A unique identifier for the customer master key. This value can be a globally
-	// unique identifier, a fully specified ARN to either an alias or a key, or
-	// an alias name prefixed by "alias/".
+	// A unique identifier for the customer master key (CMK). You can use the unique
+	// key ID or the Amazon Resource Name (ARN) of the CMK. Examples:
 	//
-	//   Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
+	//    * Unique key ID: 1234abcd-12ab-34cd-56ef-1234567890ab
 	//
-	//   Alias ARN Example - arn:aws:kms:us-east-1:123456789012:alias/MyAliasName
-	//
-	//   Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
-	//
-	//   Alias Name Example - alias/MyAliasName
+	//    * Key ARN: arn:aws:kms:us-east-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -5113,6 +5876,25 @@ func (s *ListKeyPoliciesInput) Validate() error {
 	return nil
 }
 
+// SetKeyId sets the KeyId field's value.
+func (s *ListKeyPoliciesInput) SetKeyId(v string) *ListKeyPoliciesInput {
+	s.KeyId = &v
+	return s
+}
+
+// SetLimit sets the Limit field's value.
+func (s *ListKeyPoliciesInput) SetLimit(v int64) *ListKeyPoliciesInput {
+	s.Limit = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *ListKeyPoliciesInput) SetMarker(v string) *ListKeyPoliciesInput {
+	s.Marker = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ListKeyPoliciesResponse
 type ListKeyPoliciesOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -5140,6 +5922,25 @@ func (s ListKeyPoliciesOutput) GoString() string {
 	return s.String()
 }
 
+// SetNextMarker sets the NextMarker field's value.
+func (s *ListKeyPoliciesOutput) SetNextMarker(v string) *ListKeyPoliciesOutput {
+	s.NextMarker = &v
+	return s
+}
+
+// SetPolicyNames sets the PolicyNames field's value.
+func (s *ListKeyPoliciesOutput) SetPolicyNames(v []*string) *ListKeyPoliciesOutput {
+	s.PolicyNames = v
+	return s
+}
+
+// SetTruncated sets the Truncated field's value.
+func (s *ListKeyPoliciesOutput) SetTruncated(v bool) *ListKeyPoliciesOutput {
+	s.Truncated = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ListKeysRequest
 type ListKeysInput struct {
 	_ struct{} `type:"structure"`
 
@@ -5183,6 +5984,19 @@ func (s *ListKeysInput) Validate() error {
 	return nil
 }
 
+// SetLimit sets the Limit field's value.
+func (s *ListKeysInput) SetLimit(v int64) *ListKeysInput {
+	s.Limit = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *ListKeysInput) SetMarker(v string) *ListKeysInput {
+	s.Marker = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ListKeysResponse
 type ListKeysOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -5209,6 +6023,25 @@ func (s ListKeysOutput) GoString() string {
 	return s.String()
 }
 
+// SetKeys sets the Keys field's value.
+func (s *ListKeysOutput) SetKeys(v []*KeyListEntry) *ListKeysOutput {
+	s.Keys = v
+	return s
+}
+
+// SetNextMarker sets the NextMarker field's value.
+func (s *ListKeysOutput) SetNextMarker(v string) *ListKeysOutput {
+	s.NextMarker = &v
+	return s
+}
+
+// SetTruncated sets the Truncated field's value.
+func (s *ListKeysOutput) SetTruncated(v bool) *ListKeysOutput {
+	s.Truncated = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ListRetirableGrantsRequest
 type ListRetirableGrantsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -5270,19 +6103,38 @@ func (s *ListRetirableGrantsInput) Validate() error {
 	return nil
 }
 
+// SetLimit sets the Limit field's value.
+func (s *ListRetirableGrantsInput) SetLimit(v int64) *ListRetirableGrantsInput {
+	s.Limit = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *ListRetirableGrantsInput) SetMarker(v string) *ListRetirableGrantsInput {
+	s.Marker = &v
+	return s
+}
+
+// SetRetiringPrincipal sets the RetiringPrincipal field's value.
+func (s *ListRetirableGrantsInput) SetRetiringPrincipal(v string) *ListRetirableGrantsInput {
+	s.RetiringPrincipal = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/PutKeyPolicyRequest
 type PutKeyPolicyInput struct {
 	_ struct{} `type:"structure"`
 
 	// A flag to indicate whether to bypass the key policy lockout safety check.
 	//
-	//  Setting this value to true increases the likelihood that the CMK becomes
+	// Setting this value to true increases the likelihood that the CMK becomes
 	// unmanageable. Do not set this value to true indiscriminately.
 	//
 	// For more information, refer to the scenario in the Default Key Policy (http://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html#key-policy-default-allow-root-enable-iam)
 	// section in the AWS Key Management Service Developer Guide.
 	//
-	//  Use this parameter only when you intend to prevent the principal making
-	// the request from making a subsequent PutKeyPolicy request on the CMK.
+	// Use this parameter only when you intend to prevent the principal making the
+	// request from making a subsequent PutKeyPolicy request on the CMK.
 	//
 	// The default value is false.
 	BypassPolicyLockoutSafetyCheck *bool `type:"boolean"`
@@ -5291,9 +6143,9 @@ type PutKeyPolicyInput struct {
 	//
 	// Use the CMK's unique identifier or its Amazon Resource Name (ARN). For example:
 	//
-	//   Unique ID: 1234abcd-12ab-34cd-56ef-1234567890ab
+	//    * Unique ID: 1234abcd-12ab-34cd-56ef-1234567890ab
 	//
-	//   ARN: arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
+	//    * ARN: arn:aws:kms:us-east-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -5303,21 +6155,21 @@ type PutKeyPolicyInput struct {
 	// If you do not set BypassPolicyLockoutSafetyCheck to true, the policy must
 	// meet the following criteria:
 	//
-	//   It must allow the principal making the PutKeyPolicy request to make a
-	// subsequent PutKeyPolicy request on the CMK. This reduces the likelihood that
-	// the CMK becomes unmanageable. For more information, refer to the scenario
-	// in the Default Key Policy (http://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html#key-policy-default-allow-root-enable-iam)
-	// section in the AWS Key Management Service Developer Guide.
+	//    * It must allow the principal making the PutKeyPolicy request to make
+	//    a subsequent PutKeyPolicy request on the CMK. This reduces the likelihood
+	//    that the CMK becomes unmanageable. For more information, refer to the
+	//    scenario in the Default Key Policy (http://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html#key-policy-default-allow-root-enable-iam)
+	//    section in the AWS Key Management Service Developer Guide.
 	//
-	//   The principal(s) specified in the key policy must exist and be visible
-	// to AWS KMS. When you create a new AWS principal (for example, an IAM user
-	// or role), you might need to enforce a delay before specifying the new principal
-	// in a key policy because the new principal might not immediately be visible
-	// to AWS KMS. For more information, see Changes that I make are not always
-	// immediately visible (http://docs.aws.amazon.com/IAM/latest/UserGuide/troubleshoot_general.html#troubleshoot_general_eventual-consistency)
-	// in the IAM User Guide.
+	//    * The principal(s) specified in the key policy must exist and be visible
+	//    to AWS KMS. When you create a new AWS principal (for example, an IAM user
+	//    or role), you might need to enforce a delay before specifying the new
+	//    principal in a key policy because the new principal might not immediately
+	//    be visible to AWS KMS. For more information, see Changes that I make are
+	//    not always immediately visible (http://docs.aws.amazon.com/IAM/latest/UserGuide/troubleshoot_general.html#troubleshoot_general_eventual-consistency)
+	//    in the IAM User Guide.
 	//
-	//   The policy size limit is 32 KiB (32768 bytes).
+	// The policy size limit is 32 KiB (32768 bytes).
 	//
 	// Policy is a required field
 	Policy *string `min:"1" type:"string" required:"true"`
@@ -5368,6 +6220,31 @@ func (s *PutKeyPolicyInput) Validate() error {
 	return nil
 }
 
+// SetBypassPolicyLockoutSafetyCheck sets the BypassPolicyLockoutSafetyCheck field's value.
+func (s *PutKeyPolicyInput) SetBypassPolicyLockoutSafetyCheck(v bool) *PutKeyPolicyInput {
+	s.BypassPolicyLockoutSafetyCheck = &v
+	return s
+}
+
+// SetKeyId sets the KeyId field's value.
+func (s *PutKeyPolicyInput) SetKeyId(v string) *PutKeyPolicyInput {
+	s.KeyId = &v
+	return s
+}
+
+// SetPolicy sets the Policy field's value.
+func (s *PutKeyPolicyInput) SetPolicy(v string) *PutKeyPolicyInput {
+	s.Policy = &v
+	return s
+}
+
+// SetPolicyName sets the PolicyName field's value.
+func (s *PutKeyPolicyInput) SetPolicyName(v string) *PutKeyPolicyInput {
+	s.PolicyName = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/PutKeyPolicyOutput
 type PutKeyPolicyOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -5382,30 +6259,31 @@ func (s PutKeyPolicyOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ReEncryptRequest
 type ReEncryptInput struct {
 	_ struct{} `type:"structure"`
 
-	// Ciphertext of the data to re-encrypt.
+	// Ciphertext of the data to reencrypt.
 	//
 	// CiphertextBlob is automatically base64 encoded/decoded by the SDK.
 	//
 	// CiphertextBlob is a required field
 	CiphertextBlob []byte `min:"1" type:"blob" required:"true"`
 
-	// Encryption context to be used when the data is re-encrypted.
+	// Encryption context to use when the data is reencrypted.
 	DestinationEncryptionContext map[string]*string `type:"map"`
 
-	// A unique identifier for the customer master key used to re-encrypt the data.
-	// This value can be a globally unique identifier, a fully specified ARN to
-	// either an alias or a key, or an alias name prefixed by "alias/".
+	// A unique identifier for the CMK to use to reencrypt the data. This value
+	// can be a globally unique identifier, a fully specified ARN to either an alias
+	// or a key, or an alias name prefixed by "alias/".
 	//
-	//   Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
+	//    * Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
 	//
-	//   Alias ARN Example - arn:aws:kms:us-east-1:123456789012:alias/MyAliasName
+	//    * Alias ARN Example - arn:aws:kms:us-east-1:123456789012:alias/MyAliasName
 	//
-	//   Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
+	//    * Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
 	//
-	//   Alias Name Example - alias/MyAliasName
+	//    * Alias Name Example - alias/MyAliasName
 	//
 	// DestinationKeyId is a required field
 	DestinationKeyId *string `min:"1" type:"string" required:"true"`
@@ -5453,19 +6331,49 @@ func (s *ReEncryptInput) Validate() error {
 	return nil
 }
 
+// SetCiphertextBlob sets the CiphertextBlob field's value.
+func (s *ReEncryptInput) SetCiphertextBlob(v []byte) *ReEncryptInput {
+	s.CiphertextBlob = v
+	return s
+}
+
+// SetDestinationEncryptionContext sets the DestinationEncryptionContext field's value.
+func (s *ReEncryptInput) SetDestinationEncryptionContext(v map[string]*string) *ReEncryptInput {
+	s.DestinationEncryptionContext = v
+	return s
+}
+
+// SetDestinationKeyId sets the DestinationKeyId field's value.
+func (s *ReEncryptInput) SetDestinationKeyId(v string) *ReEncryptInput {
+	s.DestinationKeyId = &v
+	return s
+}
+
+// SetGrantTokens sets the GrantTokens field's value.
+func (s *ReEncryptInput) SetGrantTokens(v []*string) *ReEncryptInput {
+	s.GrantTokens = v
+	return s
+}
+
+// SetSourceEncryptionContext sets the SourceEncryptionContext field's value.
+func (s *ReEncryptInput) SetSourceEncryptionContext(v map[string]*string) *ReEncryptInput {
+	s.SourceEncryptionContext = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ReEncryptResponse
 type ReEncryptOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The re-encrypted data. If you are using the CLI, the value is Base64 encoded.
-	// Otherwise, it is not encoded.
+	// The reencrypted data.
 	//
 	// CiphertextBlob is automatically base64 encoded/decoded by the SDK.
 	CiphertextBlob []byte `min:"1" type:"blob"`
 
-	// Unique identifier of the key used to re-encrypt the data.
+	// Unique identifier of the CMK used to reencrypt the data.
 	KeyId *string `min:"1" type:"string"`
 
-	// Unique identifier of the key used to originally encrypt the data.
+	// Unique identifier of the CMK used to originally encrypt the data.
 	SourceKeyId *string `min:"1" type:"string"`
 }
 
@@ -5479,25 +6387,40 @@ func (s ReEncryptOutput) GoString() string {
 	return s.String()
 }
 
+// SetCiphertextBlob sets the CiphertextBlob field's value.
+func (s *ReEncryptOutput) SetCiphertextBlob(v []byte) *ReEncryptOutput {
+	s.CiphertextBlob = v
+	return s
+}
+
+// SetKeyId sets the KeyId field's value.
+func (s *ReEncryptOutput) SetKeyId(v string) *ReEncryptOutput {
+	s.KeyId = &v
+	return s
+}
+
+// SetSourceKeyId sets the SourceKeyId field's value.
+func (s *ReEncryptOutput) SetSourceKeyId(v string) *ReEncryptOutput {
+	s.SourceKeyId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/RetireGrantRequest
 type RetireGrantInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique identifier of the grant to be retired. The grant ID is returned by
-	// the CreateGrant function.
+	// Unique identifier of the grant to retire. The grant ID is returned in the
+	// response to a CreateGrant operation.
 	//
-	//   Grant ID Example - 0123456789012345678901234567890123456789012345678901234567890123
+	//    * Grant ID Example - 0123456789012345678901234567890123456789012345678901234567890123
 	GrantId *string `min:"1" type:"string"`
 
 	// Token that identifies the grant to be retired.
 	GrantToken *string `min:"1" type:"string"`
 
-	// A unique identifier for the customer master key associated with the grant.
-	// This value can be a globally unique identifier or a fully specified ARN of
-	// the key.
+	// The Amazon Resource Name of the CMK associated with the grant. Example:
 	//
-	//   Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
-	//
-	//   Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
+	//    * arn:aws:kms:us-east-2:444455556666:key/1234abcd-12ab-34cd-56ef-1234567890ab
 	KeyId *string `min:"1" type:"string"`
 }
 
@@ -5530,6 +6453,25 @@ func (s *RetireGrantInput) Validate() error {
 	return nil
 }
 
+// SetGrantId sets the GrantId field's value.
+func (s *RetireGrantInput) SetGrantId(v string) *RetireGrantInput {
+	s.GrantId = &v
+	return s
+}
+
+// SetGrantToken sets the GrantToken field's value.
+func (s *RetireGrantInput) SetGrantToken(v string) *RetireGrantInput {
+	s.GrantToken = &v
+	return s
+}
+
+// SetKeyId sets the KeyId field's value.
+func (s *RetireGrantInput) SetKeyId(v string) *RetireGrantInput {
+	s.KeyId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/RetireGrantOutput
 type RetireGrantOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -5544,6 +6486,7 @@ func (s RetireGrantOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/RevokeGrantRequest
 type RevokeGrantInput struct {
 	_ struct{} `type:"structure"`
 
@@ -5556,9 +6499,9 @@ type RevokeGrantInput struct {
 	// This value can be a globally unique identifier or the fully specified ARN
 	// to a key.
 	//
-	//   Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
+	//    * Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
 	//
-	//   Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
+	//    * Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -5596,6 +6539,19 @@ func (s *RevokeGrantInput) Validate() error {
 	return nil
 }
 
+// SetGrantId sets the GrantId field's value.
+func (s *RevokeGrantInput) SetGrantId(v string) *RevokeGrantInput {
+	s.GrantId = &v
+	return s
+}
+
+// SetKeyId sets the KeyId field's value.
+func (s *RevokeGrantInput) SetKeyId(v string) *RevokeGrantInput {
+	s.KeyId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/RevokeGrantOutput
 type RevokeGrantOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -5610,6 +6566,7 @@ func (s RevokeGrantOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ScheduleKeyDeletionRequest
 type ScheduleKeyDeletionInput struct {
 	_ struct{} `type:"structure"`
 
@@ -5618,12 +6575,12 @@ type ScheduleKeyDeletionInput struct {
 	// To specify this value, use the unique key ID or the Amazon Resource Name
 	// (ARN) of the CMK. Examples:
 	//
-	//   Unique key ID: 1234abcd-12ab-34cd-56ef-1234567890ab
+	//    * Unique key ID: 1234abcd-12ab-34cd-56ef-1234567890ab
 	//
-	//   Key ARN: arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
+	//    * Key ARN: arn:aws:kms:us-east-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
 	//
-	//   To obtain the unique key ID and key ARN for a given CMK, use ListKeys
-	// or DescribeKey.
+	// To obtain the unique key ID and key ARN for a given CMK, use ListKeys or
+	// DescribeKey.
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -5665,6 +6622,19 @@ func (s *ScheduleKeyDeletionInput) Validate() error {
 	return nil
 }
 
+// SetKeyId sets the KeyId field's value.
+func (s *ScheduleKeyDeletionInput) SetKeyId(v string) *ScheduleKeyDeletionInput {
+	s.KeyId = &v
+	return s
+}
+
+// SetPendingWindowInDays sets the PendingWindowInDays field's value.
+func (s *ScheduleKeyDeletionInput) SetPendingWindowInDays(v int64) *ScheduleKeyDeletionInput {
+	s.PendingWindowInDays = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/ScheduleKeyDeletionResponse
 type ScheduleKeyDeletionOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -5686,6 +6656,19 @@ func (s ScheduleKeyDeletionOutput) GoString() string {
 	return s.String()
 }
 
+// SetDeletionDate sets the DeletionDate field's value.
+func (s *ScheduleKeyDeletionOutput) SetDeletionDate(v time.Time) *ScheduleKeyDeletionOutput {
+	s.DeletionDate = &v
+	return s
+}
+
+// SetKeyId sets the KeyId field's value.
+func (s *ScheduleKeyDeletionOutput) SetKeyId(v string) *ScheduleKeyDeletionOutput {
+	s.KeyId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/UpdateAliasRequest
 type UpdateAliasInput struct {
 	_ struct{} `type:"structure"`
 
@@ -5700,11 +6683,11 @@ type UpdateAliasInput struct {
 	// value can be a globally unique identifier or the fully specified ARN of a
 	// key.
 	//
-	//   Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
+	//    * Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
 	//
-	//   Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
+	//    * Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
 	//
-	//   You can call ListAliases to verify that the alias is mapped to the correct
+	// You can call ListAliases to verify that the alias is mapped to the correct
 	// TargetKeyId.
 	//
 	// TargetKeyId is a required field
@@ -5743,6 +6726,19 @@ func (s *UpdateAliasInput) Validate() error {
 	return nil
 }
 
+// SetAliasName sets the AliasName field's value.
+func (s *UpdateAliasInput) SetAliasName(v string) *UpdateAliasInput {
+	s.AliasName = &v
+	return s
+}
+
+// SetTargetKeyId sets the TargetKeyId field's value.
+func (s *UpdateAliasInput) SetTargetKeyId(v string) *UpdateAliasInput {
+	s.TargetKeyId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/UpdateAliasOutput
 type UpdateAliasOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -5757,20 +6753,21 @@ func (s UpdateAliasOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/UpdateKeyDescriptionRequest
 type UpdateKeyDescriptionInput struct {
 	_ struct{} `type:"structure"`
 
-	// New description for the key.
+	// New description for the CMK.
 	//
 	// Description is a required field
 	Description *string `type:"string" required:"true"`
 
-	// A unique identifier for the customer master key. This value can be a globally
-	// unique identifier or the fully specified ARN to a key.
+	// A unique identifier for the CMK. This value can be a globally unique identifier
+	// or the fully specified ARN to a key.
 	//
-	//   Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
+	//    * Key ARN Example - arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
 	//
-	//   Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
+	//    * Globally Unique Key ID Example - 12345678-1234-1234-1234-123456789012
 	//
 	// KeyId is a required field
 	KeyId *string `min:"1" type:"string" required:"true"`
@@ -5805,6 +6802,19 @@ func (s *UpdateKeyDescriptionInput) Validate() error {
 	return nil
 }
 
+// SetDescription sets the Description field's value.
+func (s *UpdateKeyDescriptionInput) SetDescription(v string) *UpdateKeyDescriptionInput {
+	s.Description = &v
+	return s
+}
+
+// SetKeyId sets the KeyId field's value.
+func (s *UpdateKeyDescriptionInput) SetKeyId(v string) *UpdateKeyDescriptionInput {
+	s.KeyId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/kms-2014-11-01/UpdateKeyDescriptionOutput
 type UpdateKeyDescriptionOutput struct {
 	_ struct{} `type:"structure"`
 }

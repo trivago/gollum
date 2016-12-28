@@ -28,6 +28,8 @@ type Tx struct {
 	closed bool
 }
 
+var _ BaseCmdable = (*Tx)(nil)
+
 func (c *Client) newTx() *Tx {
 	tx := Tx{
 		baseClient: baseClient{
@@ -139,7 +141,7 @@ func (c *Tx) MultiExec(fn func() error) ([]Cmder, error) {
 	// Strip MULTI and EXEC commands.
 	retCmds := cmds[1 : len(cmds)-1]
 
-	cn, err := c.conn()
+	cn, _, err := c.conn()
 	if err != nil {
 		setCmdsErr(retCmds, err)
 		return retCmds, err

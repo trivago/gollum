@@ -38,6 +38,7 @@ const opAuthorizeClusterSecurityGroupIngress = "AuthorizeClusterSecurityGroupIng
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/AuthorizeClusterSecurityGroupIngress
 func (c *Redshift) AuthorizeClusterSecurityGroupIngressRequest(input *AuthorizeClusterSecurityGroupIngressInput) (req *request.Request, output *AuthorizeClusterSecurityGroupIngressOutput) {
 	op := &request.Operation{
 		Name:       opAuthorizeClusterSecurityGroupIngress,
@@ -68,8 +69,8 @@ func (c *Redshift) AuthorizeClusterSecurityGroupIngressRequest(input *AuthorizeC
 // and EC2SecurityGroupOwnerId. The Amazon EC2 security group and Amazon Redshift
 // cluster must be in the same AWS region.
 //
-// If you authorize access to a CIDR/IP address range, specify CIDRIP. For
-// an overview of CIDR blocks, see the Wikipedia article on Classless Inter-Domain
+// If you authorize access to a CIDR/IP address range, specify CIDRIP. For an
+// overview of CIDR blocks, see the Wikipedia article on Classless Inter-Domain
 // Routing (http://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing).
 //
 // You must also associate the security group with a cluster so that clients
@@ -100,6 +101,7 @@ func (c *Redshift) AuthorizeClusterSecurityGroupIngressRequest(input *AuthorizeC
 //   * AuthorizationQuotaExceeded
 //   The authorization quota for the cluster security group has been reached.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/AuthorizeClusterSecurityGroupIngress
 func (c *Redshift) AuthorizeClusterSecurityGroupIngress(input *AuthorizeClusterSecurityGroupIngressInput) (*AuthorizeClusterSecurityGroupIngressOutput, error) {
 	req, out := c.AuthorizeClusterSecurityGroupIngressRequest(input)
 	err := req.Send()
@@ -132,6 +134,7 @@ const opAuthorizeSnapshotAccess = "AuthorizeSnapshotAccess"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/AuthorizeSnapshotAccess
 func (c *Redshift) AuthorizeSnapshotAccessRequest(input *AuthorizeSnapshotAccessInput) (req *request.Request, output *AuthorizeSnapshotAccessOutput) {
 	op := &request.Operation{
 		Name:       opAuthorizeSnapshotAccess,
@@ -153,7 +156,7 @@ func (c *Redshift) AuthorizeSnapshotAccessRequest(input *AuthorizeSnapshotAccess
 //
 // Authorizes the specified AWS customer account to restore the specified snapshot.
 //
-//  For more information about working with snapshots, go to Amazon Redshift
+// For more information about working with snapshots, go to Amazon Redshift
 // Snapshots (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-snapshots.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
@@ -186,6 +189,7 @@ func (c *Redshift) AuthorizeSnapshotAccessRequest(input *AuthorizeSnapshotAccess
 //   * LimitExceededFault
 //   The encryption key has exceeded its grant limit in AWS KMS.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/AuthorizeSnapshotAccess
 func (c *Redshift) AuthorizeSnapshotAccess(input *AuthorizeSnapshotAccessInput) (*AuthorizeSnapshotAccessOutput, error) {
 	req, out := c.AuthorizeSnapshotAccessRequest(input)
 	err := req.Send()
@@ -218,6 +222,7 @@ const opCopyClusterSnapshot = "CopyClusterSnapshot"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CopyClusterSnapshot
 func (c *Redshift) CopyClusterSnapshotRequest(input *CopyClusterSnapshotInput) (req *request.Request, output *CopyClusterSnapshotOutput) {
 	op := &request.Operation{
 		Name:       opCopyClusterSnapshot,
@@ -247,7 +252,7 @@ func (c *Redshift) CopyClusterSnapshotRequest(input *CopyClusterSnapshotInput) (
 // snapshot for a longer period, you can make a manual copy of the snapshot.
 // Manual snapshots are retained until you delete them.
 //
-//  For more information about working with snapshots, go to Amazon Redshift
+// For more information about working with snapshots, go to Amazon Redshift
 // Snapshots (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-snapshots.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
@@ -274,6 +279,7 @@ func (c *Redshift) CopyClusterSnapshotRequest(input *CopyClusterSnapshotInput) (
 //   The request would result in the user exceeding the allowed number of cluster
 //   snapshots.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CopyClusterSnapshot
 func (c *Redshift) CopyClusterSnapshot(input *CopyClusterSnapshotInput) (*CopyClusterSnapshotOutput, error) {
 	req, out := c.CopyClusterSnapshotRequest(input)
 	err := req.Send()
@@ -306,6 +312,7 @@ const opCreateCluster = "CreateCluster"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateCluster
 func (c *Redshift) CreateClusterRequest(input *CreateClusterInput) (req *request.Request, output *CreateClusterOutput) {
 	op := &request.Operation{
 		Name:       opCreateCluster,
@@ -408,6 +415,7 @@ func (c *Redshift) CreateClusterRequest(input *CreateClusterInput) (req *request
 //   The request cannot be completed because a dependent service is throttling
 //   requests made by Amazon Redshift on your behalf. Wait and retry the request.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateCluster
 func (c *Redshift) CreateCluster(input *CreateClusterInput) (*CreateClusterOutput, error) {
 	req, out := c.CreateClusterRequest(input)
 	err := req.Send()
@@ -440,6 +448,7 @@ const opCreateClusterParameterGroup = "CreateClusterParameterGroup"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateClusterParameterGroup
 func (c *Redshift) CreateClusterParameterGroupRequest(input *CreateClusterParameterGroupInput) (req *request.Request, output *CreateClusterParameterGroupOutput) {
 	op := &request.Operation{
 		Name:       opCreateClusterParameterGroup,
@@ -466,8 +475,8 @@ func (c *Redshift) CreateClusterParameterGroupRequest(input *CreateClusterParame
 // associate an existing cluster with a parameter group after the cluster is
 // created by using ModifyCluster.
 //
-// Parameters in the parameter group define specific behavior that applies
-// to the databases you create on the cluster. For more information about parameters
+// Parameters in the parameter group define specific behavior that applies to
+// the databases you create on the cluster. For more information about parameters
 // and parameter groups, go to Amazon Redshift Parameter Groups (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-parameter-groups.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
@@ -494,6 +503,7 @@ func (c *Redshift) CreateClusterParameterGroupRequest(input *CreateClusterParame
 //   * InvalidTagFault
 //   The tag is invalid.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateClusterParameterGroup
 func (c *Redshift) CreateClusterParameterGroup(input *CreateClusterParameterGroupInput) (*CreateClusterParameterGroupOutput, error) {
 	req, out := c.CreateClusterParameterGroupRequest(input)
 	err := req.Send()
@@ -526,6 +536,7 @@ const opCreateClusterSecurityGroup = "CreateClusterSecurityGroup"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateClusterSecurityGroup
 func (c *Redshift) CreateClusterSecurityGroupRequest(input *CreateClusterSecurityGroupInput) (req *request.Request, output *CreateClusterSecurityGroupOutput) {
 	op := &request.Operation{
 		Name:       opCreateClusterSecurityGroup,
@@ -548,7 +559,7 @@ func (c *Redshift) CreateClusterSecurityGroupRequest(input *CreateClusterSecurit
 // Creates a new Amazon Redshift security group. You use security groups to
 // control access to non-VPC clusters.
 //
-//  For information about managing security groups, go to Amazon Redshift Cluster
+// For information about managing security groups, go to Amazon Redshift Cluster
 // Security Groups (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-security-groups.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
@@ -575,6 +586,7 @@ func (c *Redshift) CreateClusterSecurityGroupRequest(input *CreateClusterSecurit
 //   * InvalidTagFault
 //   The tag is invalid.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateClusterSecurityGroup
 func (c *Redshift) CreateClusterSecurityGroup(input *CreateClusterSecurityGroupInput) (*CreateClusterSecurityGroupOutput, error) {
 	req, out := c.CreateClusterSecurityGroupRequest(input)
 	err := req.Send()
@@ -607,6 +619,7 @@ const opCreateClusterSnapshot = "CreateClusterSnapshot"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateClusterSnapshot
 func (c *Redshift) CreateClusterSnapshotRequest(input *CreateClusterSnapshotInput) (req *request.Request, output *CreateClusterSnapshotOutput) {
 	op := &request.Operation{
 		Name:       opCreateClusterSnapshot,
@@ -629,7 +642,7 @@ func (c *Redshift) CreateClusterSnapshotRequest(input *CreateClusterSnapshotInpu
 // Creates a manual snapshot of the specified cluster. The cluster must be in
 // the available state.
 //
-//  For more information about working with snapshots, go to Amazon Redshift
+// For more information about working with snapshots, go to Amazon Redshift
 // Snapshots (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-snapshots.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
@@ -661,6 +674,7 @@ func (c *Redshift) CreateClusterSnapshotRequest(input *CreateClusterSnapshotInpu
 //   * InvalidTagFault
 //   The tag is invalid.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateClusterSnapshot
 func (c *Redshift) CreateClusterSnapshot(input *CreateClusterSnapshotInput) (*CreateClusterSnapshotOutput, error) {
 	req, out := c.CreateClusterSnapshotRequest(input)
 	err := req.Send()
@@ -693,6 +707,7 @@ const opCreateClusterSubnetGroup = "CreateClusterSubnetGroup"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateClusterSubnetGroup
 func (c *Redshift) CreateClusterSubnetGroupRequest(input *CreateClusterSubnetGroupInput) (req *request.Request, output *CreateClusterSubnetGroupOutput) {
 	op := &request.Operation{
 		Name:       opCreateClusterSubnetGroup,
@@ -716,7 +731,7 @@ func (c *Redshift) CreateClusterSubnetGroupRequest(input *CreateClusterSubnetGro
 // or more subnets in your existing Amazon Virtual Private Cloud (Amazon VPC)
 // when creating Amazon Redshift subnet group.
 //
-//  For information about subnet groups, go to Amazon Redshift Cluster Subnet
+// For information about subnet groups, go to Amazon Redshift Cluster Subnet
 // Groups (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-cluster-subnet-groups.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
@@ -760,6 +775,7 @@ func (c *Redshift) CreateClusterSubnetGroupRequest(input *CreateClusterSubnetGro
 //   The request cannot be completed because a dependent service is throttling
 //   requests made by Amazon Redshift on your behalf. Wait and retry the request.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateClusterSubnetGroup
 func (c *Redshift) CreateClusterSubnetGroup(input *CreateClusterSubnetGroupInput) (*CreateClusterSubnetGroupOutput, error) {
 	req, out := c.CreateClusterSubnetGroupRequest(input)
 	err := req.Send()
@@ -792,6 +808,7 @@ const opCreateEventSubscription = "CreateEventSubscription"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateEventSubscription
 func (c *Redshift) CreateEventSubscriptionRequest(input *CreateEventSubscriptionInput) (req *request.Request, output *CreateEventSubscriptionOutput) {
 	op := &request.Operation{
 		Name:       opCreateEventSubscription,
@@ -825,8 +842,8 @@ func (c *Redshift) CreateEventSubscriptionRequest(input *CreateEventSubscription
 // send notifications for those ERROR events in the Availability and Backup
 // categories for the specified clusters.
 //
-// If you specify both the source type and source IDs, such as source type
-// = cluster and source identifier = my-cluster-1, notifications will be sent
+// If you specify both the source type and source IDs, such as source type =
+// cluster and source identifier = my-cluster-1, notifications will be sent
 // for all the cluster events for my-cluster-1. If you specify a source type
 // but do not specify a source identifier, you will receive notice of the events
 // for the objects of that type in your AWS account. If you do not specify either
@@ -885,6 +902,7 @@ func (c *Redshift) CreateEventSubscriptionRequest(input *CreateEventSubscription
 //   * InvalidTagFault
 //   The tag is invalid.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateEventSubscription
 func (c *Redshift) CreateEventSubscription(input *CreateEventSubscriptionInput) (*CreateEventSubscriptionOutput, error) {
 	req, out := c.CreateEventSubscriptionRequest(input)
 	err := req.Send()
@@ -917,6 +935,7 @@ const opCreateHsmClientCertificate = "CreateHsmClientCertificate"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateHsmClientCertificate
 func (c *Redshift) CreateHsmClientCertificateRequest(input *CreateHsmClientCertificateInput) (req *request.Request, output *CreateHsmClientCertificateOutput) {
 	op := &request.Operation{
 		Name:       opCreateHsmClientCertificate,
@@ -969,6 +988,7 @@ func (c *Redshift) CreateHsmClientCertificateRequest(input *CreateHsmClientCerti
 //   * InvalidTagFault
 //   The tag is invalid.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateHsmClientCertificate
 func (c *Redshift) CreateHsmClientCertificate(input *CreateHsmClientCertificateInput) (*CreateHsmClientCertificateOutput, error) {
 	req, out := c.CreateHsmClientCertificateRequest(input)
 	err := req.Send()
@@ -1001,6 +1021,7 @@ const opCreateHsmConfiguration = "CreateHsmConfiguration"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateHsmConfiguration
 func (c *Redshift) CreateHsmConfigurationRequest(input *CreateHsmConfigurationInput) (req *request.Request, output *CreateHsmConfigurationOutput) {
 	op := &request.Operation{
 		Name:       opCreateHsmConfiguration,
@@ -1054,6 +1075,7 @@ func (c *Redshift) CreateHsmConfigurationRequest(input *CreateHsmConfigurationIn
 //   * InvalidTagFault
 //   The tag is invalid.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateHsmConfiguration
 func (c *Redshift) CreateHsmConfiguration(input *CreateHsmConfigurationInput) (*CreateHsmConfigurationOutput, error) {
 	req, out := c.CreateHsmConfigurationRequest(input)
 	err := req.Send()
@@ -1086,6 +1108,7 @@ const opCreateSnapshotCopyGrant = "CreateSnapshotCopyGrant"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateSnapshotCopyGrant
 func (c *Redshift) CreateSnapshotCopyGrantRequest(input *CreateSnapshotCopyGrantInput) (req *request.Request, output *CreateSnapshotCopyGrantOutput) {
 	op := &request.Operation{
 		Name:       opCreateSnapshotCopyGrant,
@@ -1109,8 +1132,8 @@ func (c *Redshift) CreateSnapshotCopyGrantRequest(input *CreateSnapshotCopyGrant
 // master key (CMK) from AWS Key Management Service (AWS KMS) to encrypt copied
 // snapshots in a destination region.
 //
-//  For more information about managing snapshot copy grants, go to Amazon
-// Redshift Database Encryption (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-db-encryption.html)
+// For more information about managing snapshot copy grants, go to Amazon Redshift
+// Database Encryption (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-db-encryption.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -1142,6 +1165,7 @@ func (c *Redshift) CreateSnapshotCopyGrantRequest(input *CreateSnapshotCopyGrant
 //   The request cannot be completed because a dependent service is throttling
 //   requests made by Amazon Redshift on your behalf. Wait and retry the request.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateSnapshotCopyGrant
 func (c *Redshift) CreateSnapshotCopyGrant(input *CreateSnapshotCopyGrantInput) (*CreateSnapshotCopyGrantOutput, error) {
 	req, out := c.CreateSnapshotCopyGrantRequest(input)
 	err := req.Send()
@@ -1174,6 +1198,7 @@ const opCreateTags = "CreateTags"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateTags
 func (c *Redshift) CreateTagsRequest(input *CreateTagsInput) (req *request.Request, output *CreateTagsOutput) {
 	op := &request.Operation{
 		Name:       opCreateTags,
@@ -1220,6 +1245,7 @@ func (c *Redshift) CreateTagsRequest(input *CreateTagsInput) (req *request.Reque
 //   * InvalidTagFault
 //   The tag is invalid.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateTags
 func (c *Redshift) CreateTags(input *CreateTagsInput) (*CreateTagsOutput, error) {
 	req, out := c.CreateTagsRequest(input)
 	err := req.Send()
@@ -1252,6 +1278,7 @@ const opDeleteCluster = "DeleteCluster"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteCluster
 func (c *Redshift) DeleteClusterRequest(input *DeleteClusterInput) (req *request.Request, output *DeleteClusterOutput) {
 	op := &request.Operation{
 		Name:       opDeleteCluster,
@@ -1285,7 +1312,7 @@ func (c *Redshift) DeleteClusterRequest(input *DeleteClusterInput) (req *request
 // snapshot is being taken, then it's "deleting" once Amazon Redshift begins
 // deleting the cluster.
 //
-//  For more information about managing clusters, go to Amazon Redshift Clusters
+// For more information about managing clusters, go to Amazon Redshift Clusters
 // (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-clusters.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
@@ -1311,6 +1338,7 @@ func (c *Redshift) DeleteClusterRequest(input *DeleteClusterInput) (req *request
 //   The request would result in the user exceeding the allowed number of cluster
 //   snapshots.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteCluster
 func (c *Redshift) DeleteCluster(input *DeleteClusterInput) (*DeleteClusterOutput, error) {
 	req, out := c.DeleteClusterRequest(input)
 	err := req.Send()
@@ -1343,6 +1371,7 @@ const opDeleteClusterParameterGroup = "DeleteClusterParameterGroup"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteClusterParameterGroup
 func (c *Redshift) DeleteClusterParameterGroupRequest(input *DeleteClusterParameterGroupInput) (req *request.Request, output *DeleteClusterParameterGroupOutput) {
 	op := &request.Operation{
 		Name:       opDeleteClusterParameterGroup,
@@ -1366,7 +1395,7 @@ func (c *Redshift) DeleteClusterParameterGroupRequest(input *DeleteClusterParame
 //
 // Deletes a specified Amazon Redshift parameter group.
 //
-//  You cannot delete a parameter group if it is associated with a cluster.
+// You cannot delete a parameter group if it is associated with a cluster.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1384,6 +1413,7 @@ func (c *Redshift) DeleteClusterParameterGroupRequest(input *DeleteClusterParame
 //   * ClusterParameterGroupNotFound
 //   The parameter group name does not refer to an existing parameter group.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteClusterParameterGroup
 func (c *Redshift) DeleteClusterParameterGroup(input *DeleteClusterParameterGroupInput) (*DeleteClusterParameterGroupOutput, error) {
 	req, out := c.DeleteClusterParameterGroupRequest(input)
 	err := req.Send()
@@ -1416,6 +1446,7 @@ const opDeleteClusterSecurityGroup = "DeleteClusterSecurityGroup"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteClusterSecurityGroup
 func (c *Redshift) DeleteClusterSecurityGroupRequest(input *DeleteClusterSecurityGroupInput) (req *request.Request, output *DeleteClusterSecurityGroupOutput) {
 	op := &request.Operation{
 		Name:       opDeleteClusterSecurityGroup,
@@ -1439,11 +1470,11 @@ func (c *Redshift) DeleteClusterSecurityGroupRequest(input *DeleteClusterSecurit
 //
 // Deletes an Amazon Redshift security group.
 //
-//  You cannot delete a security group that is associated with any clusters.
+// You cannot delete a security group that is associated with any clusters.
 // You cannot delete the default security group.
 //
-//   For information about managing security groups, go to Amazon Redshift
-// Cluster Security Groups (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-security-groups.html)
+// For information about managing security groups, go to Amazon Redshift Cluster
+// Security Groups (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-security-groups.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -1461,6 +1492,7 @@ func (c *Redshift) DeleteClusterSecurityGroupRequest(input *DeleteClusterSecurit
 //   The cluster security group name does not refer to an existing cluster security
 //   group.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteClusterSecurityGroup
 func (c *Redshift) DeleteClusterSecurityGroup(input *DeleteClusterSecurityGroupInput) (*DeleteClusterSecurityGroupOutput, error) {
 	req, out := c.DeleteClusterSecurityGroupRequest(input)
 	err := req.Send()
@@ -1493,6 +1525,7 @@ const opDeleteClusterSnapshot = "DeleteClusterSnapshot"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteClusterSnapshot
 func (c *Redshift) DeleteClusterSnapshotRequest(input *DeleteClusterSnapshotInput) (req *request.Request, output *DeleteClusterSnapshotOutput) {
 	op := &request.Operation{
 		Name:       opDeleteClusterSnapshot,
@@ -1536,6 +1569,7 @@ func (c *Redshift) DeleteClusterSnapshotRequest(input *DeleteClusterSnapshotInpu
 //   * ClusterSnapshotNotFound
 //   The snapshot identifier does not refer to an existing cluster snapshot.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteClusterSnapshot
 func (c *Redshift) DeleteClusterSnapshot(input *DeleteClusterSnapshotInput) (*DeleteClusterSnapshotOutput, error) {
 	req, out := c.DeleteClusterSnapshotRequest(input)
 	err := req.Send()
@@ -1568,6 +1602,7 @@ const opDeleteClusterSubnetGroup = "DeleteClusterSubnetGroup"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteClusterSubnetGroup
 func (c *Redshift) DeleteClusterSubnetGroupRequest(input *DeleteClusterSubnetGroupInput) (req *request.Request, output *DeleteClusterSubnetGroupOutput) {
 	op := &request.Operation{
 		Name:       opDeleteClusterSubnetGroup,
@@ -1609,6 +1644,7 @@ func (c *Redshift) DeleteClusterSubnetGroupRequest(input *DeleteClusterSubnetGro
 //   The cluster subnet group name does not refer to an existing cluster subnet
 //   group.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteClusterSubnetGroup
 func (c *Redshift) DeleteClusterSubnetGroup(input *DeleteClusterSubnetGroupInput) (*DeleteClusterSubnetGroupOutput, error) {
 	req, out := c.DeleteClusterSubnetGroupRequest(input)
 	err := req.Send()
@@ -1641,6 +1677,7 @@ const opDeleteEventSubscription = "DeleteEventSubscription"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteEventSubscription
 func (c *Redshift) DeleteEventSubscriptionRequest(input *DeleteEventSubscriptionInput) (req *request.Request, output *DeleteEventSubscriptionOutput) {
 	op := &request.Operation{
 		Name:       opDeleteEventSubscription,
@@ -1680,6 +1717,7 @@ func (c *Redshift) DeleteEventSubscriptionRequest(input *DeleteEventSubscription
 //   The subscription request is invalid because it is a duplicate request. This
 //   subscription request is already in progress.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteEventSubscription
 func (c *Redshift) DeleteEventSubscription(input *DeleteEventSubscriptionInput) (*DeleteEventSubscriptionOutput, error) {
 	req, out := c.DeleteEventSubscriptionRequest(input)
 	err := req.Send()
@@ -1712,6 +1750,7 @@ const opDeleteHsmClientCertificate = "DeleteHsmClientCertificate"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteHsmClientCertificate
 func (c *Redshift) DeleteHsmClientCertificateRequest(input *DeleteHsmClientCertificateInput) (req *request.Request, output *DeleteHsmClientCertificateOutput) {
 	op := &request.Operation{
 		Name:       opDeleteHsmClientCertificate,
@@ -1750,6 +1789,7 @@ func (c *Redshift) DeleteHsmClientCertificateRequest(input *DeleteHsmClientCerti
 //   * HsmClientCertificateNotFoundFault
 //   There is no Amazon Redshift HSM client certificate with the specified identifier.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteHsmClientCertificate
 func (c *Redshift) DeleteHsmClientCertificate(input *DeleteHsmClientCertificateInput) (*DeleteHsmClientCertificateOutput, error) {
 	req, out := c.DeleteHsmClientCertificateRequest(input)
 	err := req.Send()
@@ -1782,6 +1822,7 @@ const opDeleteHsmConfiguration = "DeleteHsmConfiguration"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteHsmConfiguration
 func (c *Redshift) DeleteHsmConfigurationRequest(input *DeleteHsmConfigurationInput) (req *request.Request, output *DeleteHsmConfigurationOutput) {
 	op := &request.Operation{
 		Name:       opDeleteHsmConfiguration,
@@ -1820,6 +1861,7 @@ func (c *Redshift) DeleteHsmConfigurationRequest(input *DeleteHsmConfigurationIn
 //   * HsmConfigurationNotFoundFault
 //   There is no Amazon Redshift HSM configuration with the specified identifier.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteHsmConfiguration
 func (c *Redshift) DeleteHsmConfiguration(input *DeleteHsmConfigurationInput) (*DeleteHsmConfigurationOutput, error) {
 	req, out := c.DeleteHsmConfigurationRequest(input)
 	err := req.Send()
@@ -1852,6 +1894,7 @@ const opDeleteSnapshotCopyGrant = "DeleteSnapshotCopyGrant"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteSnapshotCopyGrant
 func (c *Redshift) DeleteSnapshotCopyGrantRequest(input *DeleteSnapshotCopyGrantInput) (req *request.Request, output *DeleteSnapshotCopyGrantOutput) {
 	op := &request.Operation{
 		Name:       opDeleteSnapshotCopyGrant,
@@ -1891,6 +1934,7 @@ func (c *Redshift) DeleteSnapshotCopyGrantRequest(input *DeleteSnapshotCopyGrant
 //   The specified snapshot copy grant can't be found. Make sure that the name
 //   is typed correctly and that the grant exists in the destination region.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteSnapshotCopyGrant
 func (c *Redshift) DeleteSnapshotCopyGrant(input *DeleteSnapshotCopyGrantInput) (*DeleteSnapshotCopyGrantOutput, error) {
 	req, out := c.DeleteSnapshotCopyGrantRequest(input)
 	err := req.Send()
@@ -1923,6 +1967,7 @@ const opDeleteTags = "DeleteTags"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteTags
 func (c *Redshift) DeleteTagsRequest(input *DeleteTagsInput) (req *request.Request, output *DeleteTagsOutput) {
 	op := &request.Operation{
 		Name:       opDeleteTags,
@@ -1961,6 +2006,7 @@ func (c *Redshift) DeleteTagsRequest(input *DeleteTagsInput) (req *request.Reque
 //   * InvalidTagFault
 //   The tag is invalid.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteTags
 func (c *Redshift) DeleteTags(input *DeleteTagsInput) (*DeleteTagsOutput, error) {
 	req, out := c.DeleteTagsRequest(input)
 	err := req.Send()
@@ -1993,6 +2039,7 @@ const opDescribeClusterParameterGroups = "DescribeClusterParameterGroups"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterParameterGroups
 func (c *Redshift) DescribeClusterParameterGroupsRequest(input *DescribeClusterParameterGroupsInput) (req *request.Request, output *DescribeClusterParameterGroupsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeClusterParameterGroups,
@@ -2024,12 +2071,12 @@ func (c *Redshift) DescribeClusterParameterGroupsRequest(input *DescribeClusterP
 // family name. You can optionally specify a name to retrieve the description
 // of a specific parameter group.
 //
-//  For more information about parameters and parameter groups, go to Amazon
+// For more information about parameters and parameter groups, go to Amazon
 // Redshift Parameter Groups (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-parameter-groups.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
-// If you specify both tag keys and tag values in the same request, Amazon
-// Redshift returns all parameter groups that match any combination of the specified
+// If you specify both tag keys and tag values in the same request, Amazon Redshift
+// returns all parameter groups that match any combination of the specified
 // keys and values. For example, if you have owner and environment for tag keys,
 // and admin and test for tag values, all parameter groups that have any combination
 // of those values are returned.
@@ -2052,6 +2099,7 @@ func (c *Redshift) DescribeClusterParameterGroupsRequest(input *DescribeClusterP
 //   * InvalidTagFault
 //   The tag is invalid.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterParameterGroups
 func (c *Redshift) DescribeClusterParameterGroups(input *DescribeClusterParameterGroupsInput) (*DescribeClusterParameterGroupsOutput, error) {
 	req, out := c.DescribeClusterParameterGroupsRequest(input)
 	err := req.Send()
@@ -2109,6 +2157,7 @@ const opDescribeClusterParameters = "DescribeClusterParameters"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterParameters
 func (c *Redshift) DescribeClusterParametersRequest(input *DescribeClusterParametersInput) (req *request.Request, output *DescribeClusterParametersOutput) {
 	op := &request.Operation{
 		Name:       opDescribeClusterParameters,
@@ -2143,7 +2192,7 @@ func (c *Redshift) DescribeClusterParametersRequest(input *DescribeClusterParame
 // For example, to retrieve parameters that were modified by a user action such
 // as from ModifyClusterParameterGroup, you can specify source equal to user.
 //
-//  For more information about parameters and parameter groups, go to Amazon
+// For more information about parameters and parameter groups, go to Amazon
 // Redshift Parameter Groups (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-parameter-groups.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
@@ -2158,6 +2207,7 @@ func (c *Redshift) DescribeClusterParametersRequest(input *DescribeClusterParame
 //   * ClusterParameterGroupNotFound
 //   The parameter group name does not refer to an existing parameter group.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterParameters
 func (c *Redshift) DescribeClusterParameters(input *DescribeClusterParametersInput) (*DescribeClusterParametersOutput, error) {
 	req, out := c.DescribeClusterParametersRequest(input)
 	err := req.Send()
@@ -2215,6 +2265,7 @@ const opDescribeClusterSecurityGroups = "DescribeClusterSecurityGroups"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterSecurityGroups
 func (c *Redshift) DescribeClusterSecurityGroupsRequest(input *DescribeClusterSecurityGroupsInput) (req *request.Request, output *DescribeClusterSecurityGroupsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeClusterSecurityGroups,
@@ -2244,13 +2295,13 @@ func (c *Redshift) DescribeClusterSecurityGroupsRequest(input *DescribeClusterSe
 // a security group is specified, the response will contain only information
 // about only that security group.
 //
-//  For information about managing security groups, go to Amazon Redshift Cluster
+// For information about managing security groups, go to Amazon Redshift Cluster
 // Security Groups (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-security-groups.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
-// If you specify both tag keys and tag values in the same request, Amazon
-// Redshift returns all security groups that match any combination of the specified
-// keys and values. For example, if you have owner and environment for tag keys,
+// If you specify both tag keys and tag values in the same request, Amazon Redshift
+// returns all security groups that match any combination of the specified keys
+// and values. For example, if you have owner and environment for tag keys,
 // and admin and test for tag values, all security groups that have any combination
 // of those values are returned.
 //
@@ -2273,6 +2324,7 @@ func (c *Redshift) DescribeClusterSecurityGroupsRequest(input *DescribeClusterSe
 //   * InvalidTagFault
 //   The tag is invalid.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterSecurityGroups
 func (c *Redshift) DescribeClusterSecurityGroups(input *DescribeClusterSecurityGroupsInput) (*DescribeClusterSecurityGroupsOutput, error) {
 	req, out := c.DescribeClusterSecurityGroupsRequest(input)
 	err := req.Send()
@@ -2330,6 +2382,7 @@ const opDescribeClusterSnapshots = "DescribeClusterSnapshots"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterSnapshots
 func (c *Redshift) DescribeClusterSnapshotsRequest(input *DescribeClusterSnapshotsInput) (req *request.Request, output *DescribeClusterSnapshotsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeClusterSnapshots,
@@ -2360,17 +2413,16 @@ func (c *Redshift) DescribeClusterSnapshotsRequest(input *DescribeClusterSnapsho
 // of all clusters that are owned by you AWS customer account. No information
 // is returned for snapshots owned by inactive AWS customer accounts.
 //
-// If you specify both tag keys and tag values in the same request, Amazon
-// Redshift returns all snapshots that match any combination of the specified
-// keys and values. For example, if you have owner and environment for tag keys,
-// and admin and test for tag values, all snapshots that have any combination
-// of those values are returned. Only snapshots that you own are returned in
-// the response; shared snapshots are not returned with the tag key and tag
-// value request parameters.
+// If you specify both tag keys and tag values in the same request, Amazon Redshift
+// returns all snapshots that match any combination of the specified keys and
+// values. For example, if you have owner and environment for tag keys, and
+// admin and test for tag values, all snapshots that have any combination of
+// those values are returned. Only snapshots that you own are returned in the
+// response; shared snapshots are not returned with the tag key and tag value
+// request parameters.
 //
-// If both tag keys and values are omitted from the request, snapshots are
-// returned regardless of whether they have tag keys or values associated with
-// them.
+// If both tag keys and values are omitted from the request, snapshots are returned
+// regardless of whether they have tag keys or values associated with them.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2386,6 +2438,7 @@ func (c *Redshift) DescribeClusterSnapshotsRequest(input *DescribeClusterSnapsho
 //   * InvalidTagFault
 //   The tag is invalid.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterSnapshots
 func (c *Redshift) DescribeClusterSnapshots(input *DescribeClusterSnapshotsInput) (*DescribeClusterSnapshotsOutput, error) {
 	req, out := c.DescribeClusterSnapshotsRequest(input)
 	err := req.Send()
@@ -2443,6 +2496,7 @@ const opDescribeClusterSubnetGroups = "DescribeClusterSubnetGroups"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterSubnetGroups
 func (c *Redshift) DescribeClusterSubnetGroupsRequest(input *DescribeClusterSubnetGroupsInput) (req *request.Request, output *DescribeClusterSubnetGroupsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeClusterSubnetGroups,
@@ -2472,15 +2526,15 @@ func (c *Redshift) DescribeClusterSubnetGroupsRequest(input *DescribeClusterSubn
 // about your cluster subnet groups. By default, this operation returns information
 // about all cluster subnet groups that are defined in you AWS account.
 //
-// If you specify both tag keys and tag values in the same request, Amazon
-// Redshift returns all subnet groups that match any combination of the specified
-// keys and values. For example, if you have owner and environment for tag keys,
+// If you specify both tag keys and tag values in the same request, Amazon Redshift
+// returns all subnet groups that match any combination of the specified keys
+// and values. For example, if you have owner and environment for tag keys,
 // and admin and test for tag values, all subnet groups that have any combination
 // of those values are returned.
 //
-// If both tag keys and values are omitted from the request, subnet groups
-// are returned regardless of whether they have tag keys or values associated
-// with them.
+// If both tag keys and values are omitted from the request, subnet groups are
+// returned regardless of whether they have tag keys or values associated with
+// them.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2497,6 +2551,7 @@ func (c *Redshift) DescribeClusterSubnetGroupsRequest(input *DescribeClusterSubn
 //   * InvalidTagFault
 //   The tag is invalid.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterSubnetGroups
 func (c *Redshift) DescribeClusterSubnetGroups(input *DescribeClusterSubnetGroupsInput) (*DescribeClusterSubnetGroupsOutput, error) {
 	req, out := c.DescribeClusterSubnetGroupsRequest(input)
 	err := req.Send()
@@ -2554,6 +2609,7 @@ const opDescribeClusterVersions = "DescribeClusterVersions"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterVersions
 func (c *Redshift) DescribeClusterVersionsRequest(input *DescribeClusterVersionsInput) (req *request.Request, output *DescribeClusterVersionsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeClusterVersions,
@@ -2591,6 +2647,7 @@ func (c *Redshift) DescribeClusterVersionsRequest(input *DescribeClusterVersions
 //
 // See the AWS API reference guide for Amazon Redshift's
 // API operation DescribeClusterVersions for usage and error information.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterVersions
 func (c *Redshift) DescribeClusterVersions(input *DescribeClusterVersionsInput) (*DescribeClusterVersionsOutput, error) {
 	req, out := c.DescribeClusterVersionsRequest(input)
 	err := req.Send()
@@ -2648,6 +2705,7 @@ const opDescribeClusters = "DescribeClusters"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusters
 func (c *Redshift) DescribeClustersRequest(input *DescribeClustersInput) (req *request.Request, output *DescribeClustersOutput) {
 	op := &request.Operation{
 		Name:       opDescribeClusters,
@@ -2679,11 +2737,11 @@ func (c *Redshift) DescribeClustersRequest(input *DescribeClustersInput) (req *r
 // about managing clusters, go to Amazon Redshift Clusters (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-clusters.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
-// If you specify both tag keys and tag values in the same request, Amazon
-// Redshift returns all clusters that match any combination of the specified
-// keys and values. For example, if you have owner and environment for tag keys,
-// and admin and test for tag values, all clusters that have any combination
-// of those values are returned.
+// If you specify both tag keys and tag values in the same request, Amazon Redshift
+// returns all clusters that match any combination of the specified keys and
+// values. For example, if you have owner and environment for tag keys, and
+// admin and test for tag values, all clusters that have any combination of
+// those values are returned.
 //
 // If both tag keys and values are omitted from the request, clusters are returned
 // regardless of whether they have tag keys or values associated with them.
@@ -2702,6 +2760,7 @@ func (c *Redshift) DescribeClustersRequest(input *DescribeClustersInput) (req *r
 //   * InvalidTagFault
 //   The tag is invalid.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusters
 func (c *Redshift) DescribeClusters(input *DescribeClustersInput) (*DescribeClustersOutput, error) {
 	req, out := c.DescribeClustersRequest(input)
 	err := req.Send()
@@ -2759,6 +2818,7 @@ const opDescribeDefaultClusterParameters = "DescribeDefaultClusterParameters"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeDefaultClusterParameters
 func (c *Redshift) DescribeDefaultClusterParametersRequest(input *DescribeDefaultClusterParametersInput) (req *request.Request, output *DescribeDefaultClusterParametersOutput) {
 	op := &request.Operation{
 		Name:       opDescribeDefaultClusterParameters,
@@ -2786,7 +2846,7 @@ func (c *Redshift) DescribeDefaultClusterParametersRequest(input *DescribeDefaul
 //
 // Returns a list of parameter settings for the specified parameter group family.
 //
-//  For more information about parameters and parameter groups, go to Amazon
+// For more information about parameters and parameter groups, go to Amazon
 // Redshift Parameter Groups (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-parameter-groups.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
@@ -2796,6 +2856,7 @@ func (c *Redshift) DescribeDefaultClusterParametersRequest(input *DescribeDefaul
 //
 // See the AWS API reference guide for Amazon Redshift's
 // API operation DescribeDefaultClusterParameters for usage and error information.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeDefaultClusterParameters
 func (c *Redshift) DescribeDefaultClusterParameters(input *DescribeDefaultClusterParametersInput) (*DescribeDefaultClusterParametersOutput, error) {
 	req, out := c.DescribeDefaultClusterParametersRequest(input)
 	err := req.Send()
@@ -2853,6 +2914,7 @@ const opDescribeEventCategories = "DescribeEventCategories"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeEventCategories
 func (c *Redshift) DescribeEventCategoriesRequest(input *DescribeEventCategoriesInput) (req *request.Request, output *DescribeEventCategoriesOutput) {
 	op := &request.Operation{
 		Name:       opDescribeEventCategories,
@@ -2882,6 +2944,7 @@ func (c *Redshift) DescribeEventCategoriesRequest(input *DescribeEventCategories
 //
 // See the AWS API reference guide for Amazon Redshift's
 // API operation DescribeEventCategories for usage and error information.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeEventCategories
 func (c *Redshift) DescribeEventCategories(input *DescribeEventCategoriesInput) (*DescribeEventCategoriesOutput, error) {
 	req, out := c.DescribeEventCategoriesRequest(input)
 	err := req.Send()
@@ -2914,6 +2977,7 @@ const opDescribeEventSubscriptions = "DescribeEventSubscriptions"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeEventSubscriptions
 func (c *Redshift) DescribeEventSubscriptionsRequest(input *DescribeEventSubscriptionsInput) (req *request.Request, output *DescribeEventSubscriptionsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeEventSubscriptions,
@@ -2955,6 +3019,7 @@ func (c *Redshift) DescribeEventSubscriptionsRequest(input *DescribeEventSubscri
 //   An Amazon Redshift event notification subscription with the specified name
 //   does not exist.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeEventSubscriptions
 func (c *Redshift) DescribeEventSubscriptions(input *DescribeEventSubscriptionsInput) (*DescribeEventSubscriptionsOutput, error) {
 	req, out := c.DescribeEventSubscriptionsRequest(input)
 	err := req.Send()
@@ -3012,6 +3077,7 @@ const opDescribeEvents = "DescribeEvents"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeEvents
 func (c *Redshift) DescribeEventsRequest(input *DescribeEventsInput) (req *request.Request, output *DescribeEventsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeEvents,
@@ -3048,6 +3114,7 @@ func (c *Redshift) DescribeEventsRequest(input *DescribeEventsInput) (req *reque
 //
 // See the AWS API reference guide for Amazon Redshift's
 // API operation DescribeEvents for usage and error information.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeEvents
 func (c *Redshift) DescribeEvents(input *DescribeEventsInput) (*DescribeEventsOutput, error) {
 	req, out := c.DescribeEventsRequest(input)
 	err := req.Send()
@@ -3105,6 +3172,7 @@ const opDescribeHsmClientCertificates = "DescribeHsmClientCertificates"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeHsmClientCertificates
 func (c *Redshift) DescribeHsmClientCertificatesRequest(input *DescribeHsmClientCertificatesInput) (req *request.Request, output *DescribeHsmClientCertificatesOutput) {
 	op := &request.Operation{
 		Name:       opDescribeHsmClientCertificates,
@@ -3134,11 +3202,11 @@ func (c *Redshift) DescribeHsmClientCertificatesRequest(input *DescribeHsmClient
 // ID is specified, returns information about all the HSM certificates owned
 // by your AWS customer account.
 //
-// If you specify both tag keys and tag values in the same request, Amazon
-// Redshift returns all HSM client certificates that match any combination of
-// the specified keys and values. For example, if you have owner and environment
-// for tag keys, and admin and test for tag values, all HSM client certificates
-// that have any combination of those values are returned.
+// If you specify both tag keys and tag values in the same request, Amazon Redshift
+// returns all HSM client certificates that match any combination of the specified
+// keys and values. For example, if you have owner and environment for tag keys,
+// and admin and test for tag values, all HSM client certificates that have
+// any combination of those values are returned.
 //
 // If both tag keys and values are omitted from the request, HSM client certificates
 // are returned regardless of whether they have tag keys or values associated
@@ -3158,6 +3226,7 @@ func (c *Redshift) DescribeHsmClientCertificatesRequest(input *DescribeHsmClient
 //   * InvalidTagFault
 //   The tag is invalid.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeHsmClientCertificates
 func (c *Redshift) DescribeHsmClientCertificates(input *DescribeHsmClientCertificatesInput) (*DescribeHsmClientCertificatesOutput, error) {
 	req, out := c.DescribeHsmClientCertificatesRequest(input)
 	err := req.Send()
@@ -3215,6 +3284,7 @@ const opDescribeHsmConfigurations = "DescribeHsmConfigurations"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeHsmConfigurations
 func (c *Redshift) DescribeHsmConfigurationsRequest(input *DescribeHsmConfigurationsInput) (req *request.Request, output *DescribeHsmConfigurationsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeHsmConfigurations,
@@ -3244,9 +3314,9 @@ func (c *Redshift) DescribeHsmConfigurationsRequest(input *DescribeHsmConfigurat
 // If no configuration ID is specified, returns information about all the HSM
 // configurations owned by your AWS customer account.
 //
-// If you specify both tag keys and tag values in the same request, Amazon
-// Redshift returns all HSM connections that match any combination of the specified
-// keys and values. For example, if you have owner and environment for tag keys,
+// If you specify both tag keys and tag values in the same request, Amazon Redshift
+// returns all HSM connections that match any combination of the specified keys
+// and values. For example, if you have owner and environment for tag keys,
 // and admin and test for tag values, all HSM connections that have any combination
 // of those values are returned.
 //
@@ -3268,6 +3338,7 @@ func (c *Redshift) DescribeHsmConfigurationsRequest(input *DescribeHsmConfigurat
 //   * InvalidTagFault
 //   The tag is invalid.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeHsmConfigurations
 func (c *Redshift) DescribeHsmConfigurations(input *DescribeHsmConfigurationsInput) (*DescribeHsmConfigurationsOutput, error) {
 	req, out := c.DescribeHsmConfigurationsRequest(input)
 	err := req.Send()
@@ -3325,6 +3396,7 @@ const opDescribeLoggingStatus = "DescribeLoggingStatus"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeLoggingStatus
 func (c *Redshift) DescribeLoggingStatusRequest(input *DescribeLoggingStatusInput) (req *request.Request, output *LoggingStatus) {
 	op := &request.Operation{
 		Name:       opDescribeLoggingStatus,
@@ -3358,6 +3430,7 @@ func (c *Redshift) DescribeLoggingStatusRequest(input *DescribeLoggingStatusInpu
 //   * ClusterNotFound
 //   The ClusterIdentifier parameter does not refer to an existing cluster.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeLoggingStatus
 func (c *Redshift) DescribeLoggingStatus(input *DescribeLoggingStatusInput) (*LoggingStatus, error) {
 	req, out := c.DescribeLoggingStatusRequest(input)
 	err := req.Send()
@@ -3390,6 +3463,7 @@ const opDescribeOrderableClusterOptions = "DescribeOrderableClusterOptions"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeOrderableClusterOptions
 func (c *Redshift) DescribeOrderableClusterOptionsRequest(input *DescribeOrderableClusterOptionsInput) (req *request.Request, output *DescribeOrderableClusterOptionsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeOrderableClusterOptions,
@@ -3431,6 +3505,7 @@ func (c *Redshift) DescribeOrderableClusterOptionsRequest(input *DescribeOrderab
 //
 // See the AWS API reference guide for Amazon Redshift's
 // API operation DescribeOrderableClusterOptions for usage and error information.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeOrderableClusterOptions
 func (c *Redshift) DescribeOrderableClusterOptions(input *DescribeOrderableClusterOptionsInput) (*DescribeOrderableClusterOptionsOutput, error) {
 	req, out := c.DescribeOrderableClusterOptionsRequest(input)
 	err := req.Send()
@@ -3488,6 +3563,7 @@ const opDescribeReservedNodeOfferings = "DescribeReservedNodeOfferings"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeReservedNodeOfferings
 func (c *Redshift) DescribeReservedNodeOfferingsRequest(input *DescribeReservedNodeOfferingsInput) (req *request.Request, output *DescribeReservedNodeOfferingsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeReservedNodeOfferings,
@@ -3520,7 +3596,7 @@ func (c *Redshift) DescribeReservedNodeOfferingsRequest(input *DescribeReservedN
 // to purchase. You then use the unique offering ID in you call to PurchaseReservedNodeOffering
 // to reserve one or more nodes for your Amazon Redshift cluster.
 //
-//  For more information about reserved node offerings, go to Purchasing Reserved
+// For more information about reserved node offerings, go to Purchasing Reserved
 // Nodes (http://docs.aws.amazon.com/redshift/latest/mgmt/purchase-reserved-node-instance.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
@@ -3538,6 +3614,7 @@ func (c *Redshift) DescribeReservedNodeOfferingsRequest(input *DescribeReservedN
 //   * UnsupportedOperation
 //   The requested operation isn't supported.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeReservedNodeOfferings
 func (c *Redshift) DescribeReservedNodeOfferings(input *DescribeReservedNodeOfferingsInput) (*DescribeReservedNodeOfferingsOutput, error) {
 	req, out := c.DescribeReservedNodeOfferingsRequest(input)
 	err := req.Send()
@@ -3595,6 +3672,7 @@ const opDescribeReservedNodes = "DescribeReservedNodes"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeReservedNodes
 func (c *Redshift) DescribeReservedNodesRequest(input *DescribeReservedNodesInput) (req *request.Request, output *DescribeReservedNodesOutput) {
 	op := &request.Operation{
 		Name:       opDescribeReservedNodes,
@@ -3633,6 +3711,7 @@ func (c *Redshift) DescribeReservedNodesRequest(input *DescribeReservedNodesInpu
 //   * ReservedNodeNotFound
 //   The specified reserved compute node not found.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeReservedNodes
 func (c *Redshift) DescribeReservedNodes(input *DescribeReservedNodesInput) (*DescribeReservedNodesOutput, error) {
 	req, out := c.DescribeReservedNodesRequest(input)
 	err := req.Send()
@@ -3690,6 +3769,7 @@ const opDescribeResize = "DescribeResize"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeResize
 func (c *Redshift) DescribeResizeRequest(input *DescribeResizeInput) (req *request.Request, output *DescribeResizeOutput) {
 	op := &request.Operation{
 		Name:       opDescribeResize,
@@ -3731,6 +3811,7 @@ func (c *Redshift) DescribeResizeRequest(input *DescribeResizeInput) (req *reque
 //   * ResizeNotFound
 //   A resize operation for the specified cluster is not found.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeResize
 func (c *Redshift) DescribeResize(input *DescribeResizeInput) (*DescribeResizeOutput, error) {
 	req, out := c.DescribeResizeRequest(input)
 	err := req.Send()
@@ -3763,6 +3844,7 @@ const opDescribeSnapshotCopyGrants = "DescribeSnapshotCopyGrants"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeSnapshotCopyGrants
 func (c *Redshift) DescribeSnapshotCopyGrantsRequest(input *DescribeSnapshotCopyGrantsInput) (req *request.Request, output *DescribeSnapshotCopyGrantsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeSnapshotCopyGrants,
@@ -3785,8 +3867,8 @@ func (c *Redshift) DescribeSnapshotCopyGrantsRequest(input *DescribeSnapshotCopy
 // Returns a list of snapshot copy grants owned by the AWS account in the destination
 // region.
 //
-//  For more information about managing snapshot copy grants, go to Amazon
-// Redshift Database Encryption (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-db-encryption.html)
+// For more information about managing snapshot copy grants, go to Amazon Redshift
+// Database Encryption (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-db-encryption.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -3804,6 +3886,7 @@ func (c *Redshift) DescribeSnapshotCopyGrantsRequest(input *DescribeSnapshotCopy
 //   * InvalidTagFault
 //   The tag is invalid.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeSnapshotCopyGrants
 func (c *Redshift) DescribeSnapshotCopyGrants(input *DescribeSnapshotCopyGrantsInput) (*DescribeSnapshotCopyGrantsOutput, error) {
 	req, out := c.DescribeSnapshotCopyGrantsRequest(input)
 	err := req.Send()
@@ -3836,6 +3919,7 @@ const opDescribeTableRestoreStatus = "DescribeTableRestoreStatus"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeTableRestoreStatus
 func (c *Redshift) DescribeTableRestoreStatusRequest(input *DescribeTableRestoreStatusInput) (req *request.Request, output *DescribeTableRestoreStatusOutput) {
 	op := &request.Operation{
 		Name:       opDescribeTableRestoreStatus,
@@ -3875,6 +3959,7 @@ func (c *Redshift) DescribeTableRestoreStatusRequest(input *DescribeTableRestore
 //   * ClusterNotFound
 //   The ClusterIdentifier parameter does not refer to an existing cluster.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeTableRestoreStatus
 func (c *Redshift) DescribeTableRestoreStatus(input *DescribeTableRestoreStatusInput) (*DescribeTableRestoreStatusOutput, error) {
 	req, out := c.DescribeTableRestoreStatusRequest(input)
 	err := req.Send()
@@ -3907,6 +3992,7 @@ const opDescribeTags = "DescribeTags"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeTags
 func (c *Redshift) DescribeTagsRequest(input *DescribeTagsInput) (req *request.Request, output *DescribeTagsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeTags,
@@ -3932,24 +4018,23 @@ func (c *Redshift) DescribeTagsRequest(input *DescribeTagsInput) (req *request.R
 //
 // The following are limitations for DescribeTags:
 //
-//   You cannot specify an ARN and a resource-type value together in the same
-// request.
+//    * You cannot specify an ARN and a resource-type value together in the
+//    same request.
 //
-//   You cannot use the MaxRecords and Marker parameters together with the
-// ARN parameter.
+//    * You cannot use the MaxRecords and Marker parameters together with the
+//    ARN parameter.
 //
-//   The MaxRecords parameter can be a range from 10 to 50 results to return
-// in a request.
+//    * The MaxRecords parameter can be a range from 10 to 50 results to return
+//    in a request.
 //
-//   If you specify both tag keys and tag values in the same request, Amazon
-// Redshift returns all resources that match any combination of the specified
-// keys and values. For example, if you have owner and environment for tag keys,
-// and admin and test for tag values, all resources that have any combination
-// of those values are returned.
+// If you specify both tag keys and tag values in the same request, Amazon Redshift
+// returns all resources that match any combination of the specified keys and
+// values. For example, if you have owner and environment for tag keys, and
+// admin and test for tag values, all resources that have any combination of
+// those values are returned.
 //
-// If both tag keys and values are omitted from the request, resources are
-// returned regardless of whether they have tag keys or values associated with
-// them.
+// If both tag keys and values are omitted from the request, resources are returned
+// regardless of whether they have tag keys or values associated with them.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3965,6 +4050,7 @@ func (c *Redshift) DescribeTagsRequest(input *DescribeTagsInput) (req *request.R
 //   * InvalidTagFault
 //   The tag is invalid.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeTags
 func (c *Redshift) DescribeTags(input *DescribeTagsInput) (*DescribeTagsOutput, error) {
 	req, out := c.DescribeTagsRequest(input)
 	err := req.Send()
@@ -3997,6 +4083,7 @@ const opDisableLogging = "DisableLogging"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DisableLogging
 func (c *Redshift) DisableLoggingRequest(input *DisableLoggingInput) (req *request.Request, output *LoggingStatus) {
 	op := &request.Operation{
 		Name:       opDisableLogging,
@@ -4030,6 +4117,7 @@ func (c *Redshift) DisableLoggingRequest(input *DisableLoggingInput) (req *reque
 //   * ClusterNotFound
 //   The ClusterIdentifier parameter does not refer to an existing cluster.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DisableLogging
 func (c *Redshift) DisableLogging(input *DisableLoggingInput) (*LoggingStatus, error) {
 	req, out := c.DisableLoggingRequest(input)
 	err := req.Send()
@@ -4062,6 +4150,7 @@ const opDisableSnapshotCopy = "DisableSnapshotCopy"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DisableSnapshotCopy
 func (c *Redshift) DisableSnapshotCopyRequest(input *DisableSnapshotCopyInput) (req *request.Request, output *DisableSnapshotCopyOutput) {
 	op := &request.Operation{
 		Name:       opDisableSnapshotCopy,
@@ -4084,8 +4173,8 @@ func (c *Redshift) DisableSnapshotCopyRequest(input *DisableSnapshotCopyInput) (
 // Disables the automatic copying of snapshots from one region to another region
 // for a specified cluster.
 //
-// If your cluster and its snapshots are encrypted using a customer master
-// key (CMK) from AWS KMS, use DeleteSnapshotCopyGrant to delete the grant that
+// If your cluster and its snapshots are encrypted using a customer master key
+// (CMK) from AWS KMS, use DeleteSnapshotCopyGrant to delete the grant that
 // grants Amazon Redshift permission to the CMK in the destination region.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -4108,6 +4197,7 @@ func (c *Redshift) DisableSnapshotCopyRequest(input *DisableSnapshotCopyInput) (
 //   * UnauthorizedOperation
 //   Your account is not authorized to perform the requested operation.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DisableSnapshotCopy
 func (c *Redshift) DisableSnapshotCopy(input *DisableSnapshotCopyInput) (*DisableSnapshotCopyOutput, error) {
 	req, out := c.DisableSnapshotCopyRequest(input)
 	err := req.Send()
@@ -4140,6 +4230,7 @@ const opEnableLogging = "EnableLogging"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/EnableLogging
 func (c *Redshift) EnableLoggingRequest(input *EnableLoggingInput) (req *request.Request, output *LoggingStatus) {
 	op := &request.Operation{
 		Name:       opEnableLogging,
@@ -4189,6 +4280,7 @@ func (c *Redshift) EnableLoggingRequest(input *EnableLoggingInput) (req *request
 //   to Bucket Restrictions and Limitations (http://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html)
 //   in the Amazon Simple Storage Service (S3) Developer Guide.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/EnableLogging
 func (c *Redshift) EnableLogging(input *EnableLoggingInput) (*LoggingStatus, error) {
 	req, out := c.EnableLoggingRequest(input)
 	err := req.Send()
@@ -4221,6 +4313,7 @@ const opEnableSnapshotCopy = "EnableSnapshotCopy"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/EnableSnapshotCopy
 func (c *Redshift) EnableSnapshotCopyRequest(input *EnableSnapshotCopyInput) (req *request.Request, output *EnableSnapshotCopyOutput) {
 	op := &request.Operation{
 		Name:       opEnableSnapshotCopy,
@@ -4283,6 +4376,7 @@ func (c *Redshift) EnableSnapshotCopyRequest(input *EnableSnapshotCopyInput) (re
 //   The request cannot be completed because a dependent service is throttling
 //   requests made by Amazon Redshift on your behalf. Wait and retry the request.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/EnableSnapshotCopy
 func (c *Redshift) EnableSnapshotCopy(input *EnableSnapshotCopyInput) (*EnableSnapshotCopyOutput, error) {
 	req, out := c.EnableSnapshotCopyRequest(input)
 	err := req.Send()
@@ -4315,6 +4409,7 @@ const opModifyCluster = "ModifyCluster"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyCluster
 func (c *Redshift) ModifyClusterRequest(input *ModifyClusterInput) (req *request.Request, output *ModifyClusterOutput) {
 	op := &request.Operation{
 		Name:       opModifyCluster,
@@ -4404,6 +4499,7 @@ func (c *Redshift) ModifyClusterRequest(input *ModifyClusterInput) (req *request
 //   * InvalidElasticIpFault
 //   The Elastic IP (EIP) is invalid or cannot be found.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyCluster
 func (c *Redshift) ModifyCluster(input *ModifyClusterInput) (*ModifyClusterOutput, error) {
 	req, out := c.ModifyClusterRequest(input)
 	err := req.Send()
@@ -4436,6 +4532,7 @@ const opModifyClusterIamRoles = "ModifyClusterIamRoles"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterIamRoles
 func (c *Redshift) ModifyClusterIamRolesRequest(input *ModifyClusterIamRolesInput) (req *request.Request, output *ModifyClusterIamRolesOutput) {
 	op := &request.Operation{
 		Name:       opModifyClusterIamRoles,
@@ -4474,6 +4571,7 @@ func (c *Redshift) ModifyClusterIamRolesRequest(input *ModifyClusterIamRolesInpu
 //   * ClusterNotFound
 //   The ClusterIdentifier parameter does not refer to an existing cluster.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterIamRoles
 func (c *Redshift) ModifyClusterIamRoles(input *ModifyClusterIamRolesInput) (*ModifyClusterIamRolesOutput, error) {
 	req, out := c.ModifyClusterIamRolesRequest(input)
 	err := req.Send()
@@ -4506,6 +4604,7 @@ const opModifyClusterParameterGroup = "ModifyClusterParameterGroup"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterParameterGroup
 func (c *Redshift) ModifyClusterParameterGroupRequest(input *ModifyClusterParameterGroupInput) (req *request.Request, output *ClusterParameterGroupNameMessage) {
 	op := &request.Operation{
 		Name:       opModifyClusterParameterGroup,
@@ -4527,7 +4626,7 @@ func (c *Redshift) ModifyClusterParameterGroupRequest(input *ModifyClusterParame
 //
 // Modifies the parameters of a parameter group.
 //
-//  For more information about parameters and parameter groups, go to Amazon
+// For more information about parameters and parameter groups, go to Amazon
 // Redshift Parameter Groups (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-parameter-groups.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
@@ -4547,6 +4646,7 @@ func (c *Redshift) ModifyClusterParameterGroupRequest(input *ModifyClusterParame
 //   is in progress that involves the parameter group. Wait a few moments and
 //   try the operation again.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterParameterGroup
 func (c *Redshift) ModifyClusterParameterGroup(input *ModifyClusterParameterGroupInput) (*ClusterParameterGroupNameMessage, error) {
 	req, out := c.ModifyClusterParameterGroupRequest(input)
 	err := req.Send()
@@ -4579,6 +4679,7 @@ const opModifyClusterSubnetGroup = "ModifyClusterSubnetGroup"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterSubnetGroup
 func (c *Redshift) ModifyClusterSubnetGroupRequest(input *ModifyClusterSubnetGroupInput) (req *request.Request, output *ModifyClusterSubnetGroupOutput) {
 	op := &request.Operation{
 		Name:       opModifyClusterSubnetGroup,
@@ -4634,6 +4735,7 @@ func (c *Redshift) ModifyClusterSubnetGroupRequest(input *ModifyClusterSubnetGro
 //   The request cannot be completed because a dependent service is throttling
 //   requests made by Amazon Redshift on your behalf. Wait and retry the request.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterSubnetGroup
 func (c *Redshift) ModifyClusterSubnetGroup(input *ModifyClusterSubnetGroupInput) (*ModifyClusterSubnetGroupOutput, error) {
 	req, out := c.ModifyClusterSubnetGroupRequest(input)
 	err := req.Send()
@@ -4666,6 +4768,7 @@ const opModifyEventSubscription = "ModifyEventSubscription"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyEventSubscription
 func (c *Redshift) ModifyEventSubscriptionRequest(input *ModifyEventSubscriptionInput) (req *request.Request, output *ModifyEventSubscriptionOutput) {
 	op := &request.Operation{
 		Name:       opModifyEventSubscription,
@@ -4730,6 +4833,7 @@ func (c *Redshift) ModifyEventSubscriptionRequest(input *ModifyEventSubscription
 //   The subscription request is invalid because it is a duplicate request. This
 //   subscription request is already in progress.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyEventSubscription
 func (c *Redshift) ModifyEventSubscription(input *ModifyEventSubscriptionInput) (*ModifyEventSubscriptionOutput, error) {
 	req, out := c.ModifyEventSubscriptionRequest(input)
 	err := req.Send()
@@ -4762,6 +4866,7 @@ const opModifySnapshotCopyRetentionPeriod = "ModifySnapshotCopyRetentionPeriod"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifySnapshotCopyRetentionPeriod
 func (c *Redshift) ModifySnapshotCopyRetentionPeriodRequest(input *ModifySnapshotCopyRetentionPeriodInput) (req *request.Request, output *ModifySnapshotCopyRetentionPeriodOutput) {
 	op := &request.Operation{
 		Name:       opModifySnapshotCopyRetentionPeriod,
@@ -4804,6 +4909,7 @@ func (c *Redshift) ModifySnapshotCopyRetentionPeriodRequest(input *ModifySnapsho
 //   * InvalidClusterState
 //   The specified cluster is not in the available state.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifySnapshotCopyRetentionPeriod
 func (c *Redshift) ModifySnapshotCopyRetentionPeriod(input *ModifySnapshotCopyRetentionPeriodInput) (*ModifySnapshotCopyRetentionPeriodOutput, error) {
 	req, out := c.ModifySnapshotCopyRetentionPeriodRequest(input)
 	err := req.Send()
@@ -4836,6 +4942,7 @@ const opPurchaseReservedNodeOffering = "PurchaseReservedNodeOffering"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/PurchaseReservedNodeOffering
 func (c *Redshift) PurchaseReservedNodeOfferingRequest(input *PurchaseReservedNodeOfferingInput) (req *request.Request, output *PurchaseReservedNodeOfferingOutput) {
 	op := &request.Operation{
 		Name:       opPurchaseReservedNodeOffering,
@@ -4861,7 +4968,7 @@ func (c *Redshift) PurchaseReservedNodeOfferingRequest(input *PurchaseReservedNo
 // reserved node offerings. You can call this API by providing a specific reserved
 // node offering and the number of nodes you want to reserve.
 //
-//  For more information about reserved node offerings, go to Purchasing Reserved
+// For more information about reserved node offerings, go to Purchasing Reserved
 // Nodes (http://docs.aws.amazon.com/redshift/latest/mgmt/purchase-reserved-node-instance.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
@@ -4887,6 +4994,7 @@ func (c *Redshift) PurchaseReservedNodeOfferingRequest(input *PurchaseReservedNo
 //   * UnsupportedOperation
 //   The requested operation isn't supported.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/PurchaseReservedNodeOffering
 func (c *Redshift) PurchaseReservedNodeOffering(input *PurchaseReservedNodeOfferingInput) (*PurchaseReservedNodeOfferingOutput, error) {
 	req, out := c.PurchaseReservedNodeOfferingRequest(input)
 	err := req.Send()
@@ -4919,6 +5027,7 @@ const opRebootCluster = "RebootCluster"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RebootCluster
 func (c *Redshift) RebootClusterRequest(input *RebootClusterInput) (req *request.Request, output *RebootClusterOutput) {
 	op := &request.Operation{
 		Name:       opRebootCluster,
@@ -4960,6 +5069,7 @@ func (c *Redshift) RebootClusterRequest(input *RebootClusterInput) (req *request
 //   * ClusterNotFound
 //   The ClusterIdentifier parameter does not refer to an existing cluster.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RebootCluster
 func (c *Redshift) RebootCluster(input *RebootClusterInput) (*RebootClusterOutput, error) {
 	req, out := c.RebootClusterRequest(input)
 	err := req.Send()
@@ -4992,6 +5102,7 @@ const opResetClusterParameterGroup = "ResetClusterParameterGroup"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ResetClusterParameterGroup
 func (c *Redshift) ResetClusterParameterGroupRequest(input *ResetClusterParameterGroupInput) (req *request.Request, output *ClusterParameterGroupNameMessage) {
 	op := &request.Operation{
 		Name:       opResetClusterParameterGroup,
@@ -5032,6 +5143,7 @@ func (c *Redshift) ResetClusterParameterGroupRequest(input *ResetClusterParamete
 //   * ClusterParameterGroupNotFound
 //   The parameter group name does not refer to an existing parameter group.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ResetClusterParameterGroup
 func (c *Redshift) ResetClusterParameterGroup(input *ResetClusterParameterGroupInput) (*ClusterParameterGroupNameMessage, error) {
 	req, out := c.ResetClusterParameterGroupRequest(input)
 	err := req.Send()
@@ -5064,6 +5176,7 @@ const opRestoreFromClusterSnapshot = "RestoreFromClusterSnapshot"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RestoreFromClusterSnapshot
 func (c *Redshift) RestoreFromClusterSnapshotRequest(input *RestoreFromClusterSnapshotInput) (req *request.Request, output *RestoreFromClusterSnapshotOutput) {
 	op := &request.Operation{
 		Name:       opRestoreFromClusterSnapshot,
@@ -5095,7 +5208,7 @@ func (c *Redshift) RestoreFromClusterSnapshotRequest(input *RestoreFromClusterSn
 // If you restore a cluster into a VPC, you must provide a cluster subnet group
 // where you want the cluster restored.
 //
-//  For more information about working with snapshots, go to Amazon Redshift
+// For more information about working with snapshots, go to Amazon Redshift
 // Snapshots (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-snapshots.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
@@ -5182,6 +5295,7 @@ func (c *Redshift) RestoreFromClusterSnapshotRequest(input *RestoreFromClusterSn
 //   The request cannot be completed because a dependent service is throttling
 //   requests made by Amazon Redshift on your behalf. Wait and retry the request.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RestoreFromClusterSnapshot
 func (c *Redshift) RestoreFromClusterSnapshot(input *RestoreFromClusterSnapshotInput) (*RestoreFromClusterSnapshotOutput, error) {
 	req, out := c.RestoreFromClusterSnapshotRequest(input)
 	err := req.Send()
@@ -5214,6 +5328,7 @@ const opRestoreTableFromClusterSnapshot = "RestoreTableFromClusterSnapshot"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RestoreTableFromClusterSnapshot
 func (c *Redshift) RestoreTableFromClusterSnapshotRequest(input *RestoreTableFromClusterSnapshotInput) (req *request.Request, output *RestoreTableFromClusterSnapshotOutput) {
 	op := &request.Operation{
 		Name:       opRestoreTableFromClusterSnapshot,
@@ -5279,6 +5394,7 @@ func (c *Redshift) RestoreTableFromClusterSnapshotRequest(input *RestoreTableFro
 //   * UnsupportedOperation
 //   The requested operation isn't supported.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RestoreTableFromClusterSnapshot
 func (c *Redshift) RestoreTableFromClusterSnapshot(input *RestoreTableFromClusterSnapshotInput) (*RestoreTableFromClusterSnapshotOutput, error) {
 	req, out := c.RestoreTableFromClusterSnapshotRequest(input)
 	err := req.Send()
@@ -5311,6 +5427,7 @@ const opRevokeClusterSecurityGroupIngress = "RevokeClusterSecurityGroupIngress"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RevokeClusterSecurityGroupIngress
 func (c *Redshift) RevokeClusterSecurityGroupIngressRequest(input *RevokeClusterSecurityGroupIngressInput) (req *request.Request, output *RevokeClusterSecurityGroupIngressOutput) {
 	op := &request.Operation{
 		Name:       opRevokeClusterSecurityGroupIngress,
@@ -5355,6 +5472,7 @@ func (c *Redshift) RevokeClusterSecurityGroupIngressRequest(input *RevokeCluster
 //   * InvalidClusterSecurityGroupState
 //   The state of the cluster security group is not available.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RevokeClusterSecurityGroupIngress
 func (c *Redshift) RevokeClusterSecurityGroupIngress(input *RevokeClusterSecurityGroupIngressInput) (*RevokeClusterSecurityGroupIngressOutput, error) {
 	req, out := c.RevokeClusterSecurityGroupIngressRequest(input)
 	err := req.Send()
@@ -5387,6 +5505,7 @@ const opRevokeSnapshotAccess = "RevokeSnapshotAccess"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RevokeSnapshotAccess
 func (c *Redshift) RevokeSnapshotAccessRequest(input *RevokeSnapshotAccessInput) (req *request.Request, output *RevokeSnapshotAccessOutput) {
 	op := &request.Operation{
 		Name:       opRevokeSnapshotAccess,
@@ -5410,7 +5529,7 @@ func (c *Redshift) RevokeSnapshotAccessRequest(input *RevokeSnapshotAccessInput)
 // specified snapshot. If the account is currently restoring the snapshot, the
 // restore will run to completion.
 //
-//  For more information about working with snapshots, go to Amazon Redshift
+// For more information about working with snapshots, go to Amazon Redshift
 // Snapshots (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-snapshots.html)
 // in the Amazon Redshift Cluster Management Guide.
 //
@@ -5433,6 +5552,7 @@ func (c *Redshift) RevokeSnapshotAccessRequest(input *RevokeSnapshotAccessInput)
 //   * ClusterSnapshotNotFound
 //   The snapshot identifier does not refer to an existing cluster snapshot.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RevokeSnapshotAccess
 func (c *Redshift) RevokeSnapshotAccess(input *RevokeSnapshotAccessInput) (*RevokeSnapshotAccessOutput, error) {
 	req, out := c.RevokeSnapshotAccessRequest(input)
 	err := req.Send()
@@ -5465,6 +5585,7 @@ const opRotateEncryptionKey = "RotateEncryptionKey"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RotateEncryptionKey
 func (c *Redshift) RotateEncryptionKeyRequest(input *RotateEncryptionKeyInput) (req *request.Request, output *RotateEncryptionKeyOutput) {
 	op := &request.Operation{
 		Name:       opRotateEncryptionKey,
@@ -5504,6 +5625,7 @@ func (c *Redshift) RotateEncryptionKeyRequest(input *RotateEncryptionKeyInput) (
 //   The request cannot be completed because a dependent service is throttling
 //   requests made by Amazon Redshift on your behalf. Wait and retry the request.
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RotateEncryptionKey
 func (c *Redshift) RotateEncryptionKey(input *RotateEncryptionKeyInput) (*RotateEncryptionKeyOutput, error) {
 	req, out := c.RotateEncryptionKeyRequest(input)
 	err := req.Send()
@@ -5511,6 +5633,7 @@ func (c *Redshift) RotateEncryptionKey(input *RotateEncryptionKeyInput) (*Rotate
 }
 
 // Describes an AWS customer account authorized to restore a snapshot.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/AccountWithRestoreAccess
 type AccountWithRestoreAccess struct {
 	_ struct{} `type:"structure"`
 
@@ -5528,6 +5651,13 @@ func (s AccountWithRestoreAccess) GoString() string {
 	return s.String()
 }
 
+// SetAccountId sets the AccountId field's value.
+func (s *AccountWithRestoreAccess) SetAccountId(v string) *AccountWithRestoreAccess {
+	s.AccountId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/AuthorizeClusterSecurityGroupIngressMessage
 type AuthorizeClusterSecurityGroupIngressInput struct {
 	_ struct{} `type:"structure"`
 
@@ -5573,6 +5703,31 @@ func (s *AuthorizeClusterSecurityGroupIngressInput) Validate() error {
 	return nil
 }
 
+// SetCIDRIP sets the CIDRIP field's value.
+func (s *AuthorizeClusterSecurityGroupIngressInput) SetCIDRIP(v string) *AuthorizeClusterSecurityGroupIngressInput {
+	s.CIDRIP = &v
+	return s
+}
+
+// SetClusterSecurityGroupName sets the ClusterSecurityGroupName field's value.
+func (s *AuthorizeClusterSecurityGroupIngressInput) SetClusterSecurityGroupName(v string) *AuthorizeClusterSecurityGroupIngressInput {
+	s.ClusterSecurityGroupName = &v
+	return s
+}
+
+// SetEC2SecurityGroupName sets the EC2SecurityGroupName field's value.
+func (s *AuthorizeClusterSecurityGroupIngressInput) SetEC2SecurityGroupName(v string) *AuthorizeClusterSecurityGroupIngressInput {
+	s.EC2SecurityGroupName = &v
+	return s
+}
+
+// SetEC2SecurityGroupOwnerId sets the EC2SecurityGroupOwnerId field's value.
+func (s *AuthorizeClusterSecurityGroupIngressInput) SetEC2SecurityGroupOwnerId(v string) *AuthorizeClusterSecurityGroupIngressInput {
+	s.EC2SecurityGroupOwnerId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/AuthorizeClusterSecurityGroupIngressResult
 type AuthorizeClusterSecurityGroupIngressOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -5590,6 +5745,13 @@ func (s AuthorizeClusterSecurityGroupIngressOutput) GoString() string {
 	return s.String()
 }
 
+// SetClusterSecurityGroup sets the ClusterSecurityGroup field's value.
+func (s *AuthorizeClusterSecurityGroupIngressOutput) SetClusterSecurityGroup(v *ClusterSecurityGroup) *AuthorizeClusterSecurityGroupIngressOutput {
+	s.ClusterSecurityGroup = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/AuthorizeSnapshotAccessMessage
 type AuthorizeSnapshotAccessInput struct {
 	_ struct{} `type:"structure"`
 
@@ -5636,6 +5798,25 @@ func (s *AuthorizeSnapshotAccessInput) Validate() error {
 	return nil
 }
 
+// SetAccountWithRestoreAccess sets the AccountWithRestoreAccess field's value.
+func (s *AuthorizeSnapshotAccessInput) SetAccountWithRestoreAccess(v string) *AuthorizeSnapshotAccessInput {
+	s.AccountWithRestoreAccess = &v
+	return s
+}
+
+// SetSnapshotClusterIdentifier sets the SnapshotClusterIdentifier field's value.
+func (s *AuthorizeSnapshotAccessInput) SetSnapshotClusterIdentifier(v string) *AuthorizeSnapshotAccessInput {
+	s.SnapshotClusterIdentifier = &v
+	return s
+}
+
+// SetSnapshotIdentifier sets the SnapshotIdentifier field's value.
+func (s *AuthorizeSnapshotAccessInput) SetSnapshotIdentifier(v string) *AuthorizeSnapshotAccessInput {
+	s.SnapshotIdentifier = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/AuthorizeSnapshotAccessResult
 type AuthorizeSnapshotAccessOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -5653,7 +5834,14 @@ func (s AuthorizeSnapshotAccessOutput) GoString() string {
 	return s.String()
 }
 
+// SetSnapshot sets the Snapshot field's value.
+func (s *AuthorizeSnapshotAccessOutput) SetSnapshot(v *Snapshot) *AuthorizeSnapshotAccessOutput {
+	s.Snapshot = v
+	return s
+}
+
 // Describes an availability zone.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/AvailabilityZone
 type AvailabilityZone struct {
 	_ struct{} `type:"structure"`
 
@@ -5671,7 +5859,14 @@ func (s AvailabilityZone) GoString() string {
 	return s.String()
 }
 
+// SetName sets the Name field's value.
+func (s *AvailabilityZone) SetName(v string) *AvailabilityZone {
+	s.Name = &v
+	return s
+}
+
 // Describes a cluster.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/Cluster
 type Cluster struct {
 	_ struct{} `type:"structure"`
 
@@ -5719,37 +5914,37 @@ type Cluster struct {
 
 	// The current state of the cluster. Possible values are the following:
 	//
-	//    available
+	//    * available
 	//
-	//    creating
+	//    * creating
 	//
-	//    deleting
+	//    * deleting
 	//
-	//    final-snapshot
+	//    * final-snapshot
 	//
-	//    hardware-failure
+	//    * hardware-failure
 	//
-	//    incompatible-hsm
+	//    * incompatible-hsm
 	//
-	//    incompatible-network
+	//    * incompatible-network
 	//
-	//    incompatible-parameters
+	//    * incompatible-parameters
 	//
-	//    incompatible-restore
+	//    * incompatible-restore
 	//
-	//    modifying
+	//    * modifying
 	//
-	//    rebooting
+	//    * rebooting
 	//
-	//    renaming
+	//    * renaming
 	//
-	//    resizing
+	//    * resizing
 	//
-	//    rotating-keys
+	//    * rotating-keys
 	//
-	//    storage-full
+	//    * storage-full
 	//
-	//    updating-hsm
+	//    * updating-hsm
 	ClusterStatus *string `type:"string"`
 
 	// The name of the subnet group that is associated with the cluster. This parameter
@@ -5851,8 +6046,207 @@ func (s Cluster) GoString() string {
 	return s.String()
 }
 
+// SetAllowVersionUpgrade sets the AllowVersionUpgrade field's value.
+func (s *Cluster) SetAllowVersionUpgrade(v bool) *Cluster {
+	s.AllowVersionUpgrade = &v
+	return s
+}
+
+// SetAutomatedSnapshotRetentionPeriod sets the AutomatedSnapshotRetentionPeriod field's value.
+func (s *Cluster) SetAutomatedSnapshotRetentionPeriod(v int64) *Cluster {
+	s.AutomatedSnapshotRetentionPeriod = &v
+	return s
+}
+
+// SetAvailabilityZone sets the AvailabilityZone field's value.
+func (s *Cluster) SetAvailabilityZone(v string) *Cluster {
+	s.AvailabilityZone = &v
+	return s
+}
+
+// SetClusterCreateTime sets the ClusterCreateTime field's value.
+func (s *Cluster) SetClusterCreateTime(v time.Time) *Cluster {
+	s.ClusterCreateTime = &v
+	return s
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *Cluster) SetClusterIdentifier(v string) *Cluster {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetClusterNodes sets the ClusterNodes field's value.
+func (s *Cluster) SetClusterNodes(v []*ClusterNode) *Cluster {
+	s.ClusterNodes = v
+	return s
+}
+
+// SetClusterParameterGroups sets the ClusterParameterGroups field's value.
+func (s *Cluster) SetClusterParameterGroups(v []*ClusterParameterGroupStatus) *Cluster {
+	s.ClusterParameterGroups = v
+	return s
+}
+
+// SetClusterPublicKey sets the ClusterPublicKey field's value.
+func (s *Cluster) SetClusterPublicKey(v string) *Cluster {
+	s.ClusterPublicKey = &v
+	return s
+}
+
+// SetClusterRevisionNumber sets the ClusterRevisionNumber field's value.
+func (s *Cluster) SetClusterRevisionNumber(v string) *Cluster {
+	s.ClusterRevisionNumber = &v
+	return s
+}
+
+// SetClusterSecurityGroups sets the ClusterSecurityGroups field's value.
+func (s *Cluster) SetClusterSecurityGroups(v []*ClusterSecurityGroupMembership) *Cluster {
+	s.ClusterSecurityGroups = v
+	return s
+}
+
+// SetClusterSnapshotCopyStatus sets the ClusterSnapshotCopyStatus field's value.
+func (s *Cluster) SetClusterSnapshotCopyStatus(v *ClusterSnapshotCopyStatus) *Cluster {
+	s.ClusterSnapshotCopyStatus = v
+	return s
+}
+
+// SetClusterStatus sets the ClusterStatus field's value.
+func (s *Cluster) SetClusterStatus(v string) *Cluster {
+	s.ClusterStatus = &v
+	return s
+}
+
+// SetClusterSubnetGroupName sets the ClusterSubnetGroupName field's value.
+func (s *Cluster) SetClusterSubnetGroupName(v string) *Cluster {
+	s.ClusterSubnetGroupName = &v
+	return s
+}
+
+// SetClusterVersion sets the ClusterVersion field's value.
+func (s *Cluster) SetClusterVersion(v string) *Cluster {
+	s.ClusterVersion = &v
+	return s
+}
+
+// SetDBName sets the DBName field's value.
+func (s *Cluster) SetDBName(v string) *Cluster {
+	s.DBName = &v
+	return s
+}
+
+// SetElasticIpStatus sets the ElasticIpStatus field's value.
+func (s *Cluster) SetElasticIpStatus(v *ElasticIpStatus) *Cluster {
+	s.ElasticIpStatus = v
+	return s
+}
+
+// SetEncrypted sets the Encrypted field's value.
+func (s *Cluster) SetEncrypted(v bool) *Cluster {
+	s.Encrypted = &v
+	return s
+}
+
+// SetEndpoint sets the Endpoint field's value.
+func (s *Cluster) SetEndpoint(v *Endpoint) *Cluster {
+	s.Endpoint = v
+	return s
+}
+
+// SetEnhancedVpcRouting sets the EnhancedVpcRouting field's value.
+func (s *Cluster) SetEnhancedVpcRouting(v bool) *Cluster {
+	s.EnhancedVpcRouting = &v
+	return s
+}
+
+// SetHsmStatus sets the HsmStatus field's value.
+func (s *Cluster) SetHsmStatus(v *HsmStatus) *Cluster {
+	s.HsmStatus = v
+	return s
+}
+
+// SetIamRoles sets the IamRoles field's value.
+func (s *Cluster) SetIamRoles(v []*ClusterIamRole) *Cluster {
+	s.IamRoles = v
+	return s
+}
+
+// SetKmsKeyId sets the KmsKeyId field's value.
+func (s *Cluster) SetKmsKeyId(v string) *Cluster {
+	s.KmsKeyId = &v
+	return s
+}
+
+// SetMasterUsername sets the MasterUsername field's value.
+func (s *Cluster) SetMasterUsername(v string) *Cluster {
+	s.MasterUsername = &v
+	return s
+}
+
+// SetModifyStatus sets the ModifyStatus field's value.
+func (s *Cluster) SetModifyStatus(v string) *Cluster {
+	s.ModifyStatus = &v
+	return s
+}
+
+// SetNodeType sets the NodeType field's value.
+func (s *Cluster) SetNodeType(v string) *Cluster {
+	s.NodeType = &v
+	return s
+}
+
+// SetNumberOfNodes sets the NumberOfNodes field's value.
+func (s *Cluster) SetNumberOfNodes(v int64) *Cluster {
+	s.NumberOfNodes = &v
+	return s
+}
+
+// SetPendingModifiedValues sets the PendingModifiedValues field's value.
+func (s *Cluster) SetPendingModifiedValues(v *PendingModifiedValues) *Cluster {
+	s.PendingModifiedValues = v
+	return s
+}
+
+// SetPreferredMaintenanceWindow sets the PreferredMaintenanceWindow field's value.
+func (s *Cluster) SetPreferredMaintenanceWindow(v string) *Cluster {
+	s.PreferredMaintenanceWindow = &v
+	return s
+}
+
+// SetPubliclyAccessible sets the PubliclyAccessible field's value.
+func (s *Cluster) SetPubliclyAccessible(v bool) *Cluster {
+	s.PubliclyAccessible = &v
+	return s
+}
+
+// SetRestoreStatus sets the RestoreStatus field's value.
+func (s *Cluster) SetRestoreStatus(v *RestoreStatus) *Cluster {
+	s.RestoreStatus = v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *Cluster) SetTags(v []*Tag) *Cluster {
+	s.Tags = v
+	return s
+}
+
+// SetVpcId sets the VpcId field's value.
+func (s *Cluster) SetVpcId(v string) *Cluster {
+	s.VpcId = &v
+	return s
+}
+
+// SetVpcSecurityGroups sets the VpcSecurityGroups field's value.
+func (s *Cluster) SetVpcSecurityGroups(v []*VpcSecurityGroupMembership) *Cluster {
+	s.VpcSecurityGroups = v
+	return s
+}
+
 // An AWS Identity and Access Management (IAM) role that can be used by the
 // associated Amazon Redshift cluster to access other AWS services.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ClusterIamRole
 type ClusterIamRole struct {
 	_ struct{} `type:"structure"`
 
@@ -5861,12 +6255,12 @@ type ClusterIamRole struct {
 	//
 	// The following are possible statuses and descriptions.
 	//
-	//    in-sync: The role is available for use by the cluster.
+	//    * in-sync: The role is available for use by the cluster.
 	//
-	//    adding: The role is in the process of being associated with the cluster.
+	//    * adding: The role is in the process of being associated with the cluster.
 	//
-	//    removing: The role is in the process of being disassociated with the
-	// cluster.
+	//    * removing: The role is in the process of being disassociated with the
+	//    cluster.
 	ApplyStatus *string `type:"string"`
 
 	// The Amazon Resource Name (ARN) of the IAM role, for example, arn:aws:iam::123456789012:role/RedshiftCopyUnload.
@@ -5883,7 +6277,20 @@ func (s ClusterIamRole) GoString() string {
 	return s.String()
 }
 
+// SetApplyStatus sets the ApplyStatus field's value.
+func (s *ClusterIamRole) SetApplyStatus(v string) *ClusterIamRole {
+	s.ApplyStatus = &v
+	return s
+}
+
+// SetIamRoleArn sets the IamRoleArn field's value.
+func (s *ClusterIamRole) SetIamRoleArn(v string) *ClusterIamRole {
+	s.IamRoleArn = &v
+	return s
+}
+
 // The identifier of a node in a cluster.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ClusterNode
 type ClusterNode struct {
 	_ struct{} `type:"structure"`
 
@@ -5907,7 +6314,26 @@ func (s ClusterNode) GoString() string {
 	return s.String()
 }
 
+// SetNodeRole sets the NodeRole field's value.
+func (s *ClusterNode) SetNodeRole(v string) *ClusterNode {
+	s.NodeRole = &v
+	return s
+}
+
+// SetPrivateIPAddress sets the PrivateIPAddress field's value.
+func (s *ClusterNode) SetPrivateIPAddress(v string) *ClusterNode {
+	s.PrivateIPAddress = &v
+	return s
+}
+
+// SetPublicIPAddress sets the PublicIPAddress field's value.
+func (s *ClusterNode) SetPublicIPAddress(v string) *ClusterNode {
+	s.PublicIPAddress = &v
+	return s
+}
+
 // Describes a parameter group.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ClusterParameterGroup
 type ClusterParameterGroup struct {
 	_ struct{} `type:"structure"`
 
@@ -5935,6 +6361,31 @@ func (s ClusterParameterGroup) GoString() string {
 	return s.String()
 }
 
+// SetDescription sets the Description field's value.
+func (s *ClusterParameterGroup) SetDescription(v string) *ClusterParameterGroup {
+	s.Description = &v
+	return s
+}
+
+// SetParameterGroupFamily sets the ParameterGroupFamily field's value.
+func (s *ClusterParameterGroup) SetParameterGroupFamily(v string) *ClusterParameterGroup {
+	s.ParameterGroupFamily = &v
+	return s
+}
+
+// SetParameterGroupName sets the ParameterGroupName field's value.
+func (s *ClusterParameterGroup) SetParameterGroupName(v string) *ClusterParameterGroup {
+	s.ParameterGroupName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *ClusterParameterGroup) SetTags(v []*Tag) *ClusterParameterGroup {
+	s.Tags = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ClusterParameterGroupNameMessage
 type ClusterParameterGroupNameMessage struct {
 	_ struct{} `type:"structure"`
 
@@ -5957,13 +6408,26 @@ func (s ClusterParameterGroupNameMessage) GoString() string {
 	return s.String()
 }
 
+// SetParameterGroupName sets the ParameterGroupName field's value.
+func (s *ClusterParameterGroupNameMessage) SetParameterGroupName(v string) *ClusterParameterGroupNameMessage {
+	s.ParameterGroupName = &v
+	return s
+}
+
+// SetParameterGroupStatus sets the ParameterGroupStatus field's value.
+func (s *ClusterParameterGroupNameMessage) SetParameterGroupStatus(v string) *ClusterParameterGroupNameMessage {
+	s.ParameterGroupStatus = &v
+	return s
+}
+
 // Describes the status of a parameter group.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ClusterParameterGroupStatus
 type ClusterParameterGroupStatus struct {
 	_ struct{} `type:"structure"`
 
 	// The list of parameter statuses.
 	//
-	//  For more information about parameters and parameter groups, go to Amazon
+	// For more information about parameters and parameter groups, go to Amazon
 	// Redshift Parameter Groups (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-parameter-groups.html)
 	// in the Amazon Redshift Cluster Management Guide.
 	ClusterParameterStatusList []*ClusterParameterStatus `type:"list"`
@@ -5985,7 +6449,26 @@ func (s ClusterParameterGroupStatus) GoString() string {
 	return s.String()
 }
 
+// SetClusterParameterStatusList sets the ClusterParameterStatusList field's value.
+func (s *ClusterParameterGroupStatus) SetClusterParameterStatusList(v []*ClusterParameterStatus) *ClusterParameterGroupStatus {
+	s.ClusterParameterStatusList = v
+	return s
+}
+
+// SetParameterApplyStatus sets the ParameterApplyStatus field's value.
+func (s *ClusterParameterGroupStatus) SetParameterApplyStatus(v string) *ClusterParameterGroupStatus {
+	s.ParameterApplyStatus = &v
+	return s
+}
+
+// SetParameterGroupName sets the ParameterGroupName field's value.
+func (s *ClusterParameterGroupStatus) SetParameterGroupName(v string) *ClusterParameterGroupStatus {
+	s.ParameterGroupName = &v
+	return s
+}
+
 // Describes the status of a parameter group.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ClusterParameterStatus
 type ClusterParameterStatus struct {
 	_ struct{} `type:"structure"`
 
@@ -5998,24 +6481,24 @@ type ClusterParameterStatus struct {
 	//
 	// The following are possible statuses and descriptions.
 	//
-	//    in-sync: The parameter value is in sync with the database.
+	//    * in-sync: The parameter value is in sync with the database.
 	//
-	//    pending-reboot: The parameter value will be applied after the cluster
-	// reboots.
+	//    * pending-reboot: The parameter value will be applied after the cluster
+	//    reboots.
 	//
-	//    applying: The parameter value is being applied to the database.
+	//    * applying: The parameter value is being applied to the database.
 	//
-	//    invalid-parameter: Cannot apply the parameter value because it has an
-	// invalid value or syntax.
+	//    * invalid-parameter: Cannot apply the parameter value because it has an
+	//    invalid value or syntax.
 	//
-	//    apply-deferred: The parameter contains static property changes. The changes
-	// are deferred until the cluster reboots.
+	//    * apply-deferred: The parameter contains static property changes. The
+	//    changes are deferred until the cluster reboots.
 	//
-	//    apply-error: Cannot connect to the cluster. The parameter change will
-	// be applied after the cluster reboots.
+	//    * apply-error: Cannot connect to the cluster. The parameter change will
+	//    be applied after the cluster reboots.
 	//
-	//    unknown-error: Cannot apply the parameter change right now. The change
-	// will be applied after the cluster reboots.
+	//    * unknown-error: Cannot apply the parameter change right now. The change
+	//    will be applied after the cluster reboots.
 	ParameterApplyStatus *string `type:"string"`
 
 	// The name of the parameter.
@@ -6032,7 +6515,26 @@ func (s ClusterParameterStatus) GoString() string {
 	return s.String()
 }
 
+// SetParameterApplyErrorDescription sets the ParameterApplyErrorDescription field's value.
+func (s *ClusterParameterStatus) SetParameterApplyErrorDescription(v string) *ClusterParameterStatus {
+	s.ParameterApplyErrorDescription = &v
+	return s
+}
+
+// SetParameterApplyStatus sets the ParameterApplyStatus field's value.
+func (s *ClusterParameterStatus) SetParameterApplyStatus(v string) *ClusterParameterStatus {
+	s.ParameterApplyStatus = &v
+	return s
+}
+
+// SetParameterName sets the ParameterName field's value.
+func (s *ClusterParameterStatus) SetParameterName(v string) *ClusterParameterStatus {
+	s.ParameterName = &v
+	return s
+}
+
 // Describes a security group.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ClusterSecurityGroup
 type ClusterSecurityGroup struct {
 	_ struct{} `type:"structure"`
 
@@ -6064,7 +6566,38 @@ func (s ClusterSecurityGroup) GoString() string {
 	return s.String()
 }
 
+// SetClusterSecurityGroupName sets the ClusterSecurityGroupName field's value.
+func (s *ClusterSecurityGroup) SetClusterSecurityGroupName(v string) *ClusterSecurityGroup {
+	s.ClusterSecurityGroupName = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *ClusterSecurityGroup) SetDescription(v string) *ClusterSecurityGroup {
+	s.Description = &v
+	return s
+}
+
+// SetEC2SecurityGroups sets the EC2SecurityGroups field's value.
+func (s *ClusterSecurityGroup) SetEC2SecurityGroups(v []*EC2SecurityGroup) *ClusterSecurityGroup {
+	s.EC2SecurityGroups = v
+	return s
+}
+
+// SetIPRanges sets the IPRanges field's value.
+func (s *ClusterSecurityGroup) SetIPRanges(v []*IPRange) *ClusterSecurityGroup {
+	s.IPRanges = v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *ClusterSecurityGroup) SetTags(v []*Tag) *ClusterSecurityGroup {
+	s.Tags = v
+	return s
+}
+
 // Describes a cluster security group.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ClusterSecurityGroupMembership
 type ClusterSecurityGroupMembership struct {
 	_ struct{} `type:"structure"`
 
@@ -6085,8 +6618,21 @@ func (s ClusterSecurityGroupMembership) GoString() string {
 	return s.String()
 }
 
+// SetClusterSecurityGroupName sets the ClusterSecurityGroupName field's value.
+func (s *ClusterSecurityGroupMembership) SetClusterSecurityGroupName(v string) *ClusterSecurityGroupMembership {
+	s.ClusterSecurityGroupName = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *ClusterSecurityGroupMembership) SetStatus(v string) *ClusterSecurityGroupMembership {
+	s.Status = &v
+	return s
+}
+
 // Returns the destination region and retention period that are configured for
 // cross-region snapshot copy.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ClusterSnapshotCopyStatus
 type ClusterSnapshotCopyStatus struct {
 	_ struct{} `type:"structure"`
 
@@ -6112,7 +6658,26 @@ func (s ClusterSnapshotCopyStatus) GoString() string {
 	return s.String()
 }
 
+// SetDestinationRegion sets the DestinationRegion field's value.
+func (s *ClusterSnapshotCopyStatus) SetDestinationRegion(v string) *ClusterSnapshotCopyStatus {
+	s.DestinationRegion = &v
+	return s
+}
+
+// SetRetentionPeriod sets the RetentionPeriod field's value.
+func (s *ClusterSnapshotCopyStatus) SetRetentionPeriod(v int64) *ClusterSnapshotCopyStatus {
+	s.RetentionPeriod = &v
+	return s
+}
+
+// SetSnapshotCopyGrantName sets the SnapshotCopyGrantName field's value.
+func (s *ClusterSnapshotCopyStatus) SetSnapshotCopyGrantName(v string) *ClusterSnapshotCopyStatus {
+	s.SnapshotCopyGrantName = &v
+	return s
+}
+
 // Describes a subnet group.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ClusterSubnetGroup
 type ClusterSubnetGroup struct {
 	_ struct{} `type:"structure"`
 
@@ -6146,8 +6711,45 @@ func (s ClusterSubnetGroup) GoString() string {
 	return s.String()
 }
 
+// SetClusterSubnetGroupName sets the ClusterSubnetGroupName field's value.
+func (s *ClusterSubnetGroup) SetClusterSubnetGroupName(v string) *ClusterSubnetGroup {
+	s.ClusterSubnetGroupName = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *ClusterSubnetGroup) SetDescription(v string) *ClusterSubnetGroup {
+	s.Description = &v
+	return s
+}
+
+// SetSubnetGroupStatus sets the SubnetGroupStatus field's value.
+func (s *ClusterSubnetGroup) SetSubnetGroupStatus(v string) *ClusterSubnetGroup {
+	s.SubnetGroupStatus = &v
+	return s
+}
+
+// SetSubnets sets the Subnets field's value.
+func (s *ClusterSubnetGroup) SetSubnets(v []*Subnet) *ClusterSubnetGroup {
+	s.Subnets = v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *ClusterSubnetGroup) SetTags(v []*Tag) *ClusterSubnetGroup {
+	s.Tags = v
+	return s
+}
+
+// SetVpcId sets the VpcId field's value.
+func (s *ClusterSubnetGroup) SetVpcId(v string) *ClusterSubnetGroup {
+	s.VpcId = &v
+	return s
+}
+
 // Describes a cluster version, including the parameter group family and description
 // of the version.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ClusterVersion
 type ClusterVersion struct {
 	_ struct{} `type:"structure"`
 
@@ -6171,6 +6773,25 @@ func (s ClusterVersion) GoString() string {
 	return s.String()
 }
 
+// SetClusterParameterGroupFamily sets the ClusterParameterGroupFamily field's value.
+func (s *ClusterVersion) SetClusterParameterGroupFamily(v string) *ClusterVersion {
+	s.ClusterParameterGroupFamily = &v
+	return s
+}
+
+// SetClusterVersion sets the ClusterVersion field's value.
+func (s *ClusterVersion) SetClusterVersion(v string) *ClusterVersion {
+	s.ClusterVersion = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *ClusterVersion) SetDescription(v string) *ClusterVersion {
+	s.Description = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CopyClusterSnapshotMessage
 type CopyClusterSnapshotInput struct {
 	_ struct{} `type:"structure"`
 
@@ -6180,14 +6801,15 @@ type CopyClusterSnapshotInput struct {
 	//
 	// Constraints:
 	//
-	//   Must be the identifier for a valid cluster.
+	//    * Must be the identifier for a valid cluster.
 	SourceSnapshotClusterIdentifier *string `type:"string"`
 
 	// The identifier for the source snapshot.
 	//
 	// Constraints:
 	//
-	//   Must be the identifier for a valid automated snapshot whose state is available.
+	//    * Must be the identifier for a valid automated snapshot whose state is
+	//    available.
 	//
 	// SourceSnapshotIdentifier is a required field
 	SourceSnapshotIdentifier *string `type:"string" required:"true"`
@@ -6196,15 +6818,15 @@ type CopyClusterSnapshotInput struct {
 	//
 	// Constraints:
 	//
-	//   Cannot be null, empty, or blank.
+	//    * Cannot be null, empty, or blank.
 	//
-	//   Must contain from 1 to 255 alphanumeric characters or hyphens.
+	//    * Must contain from 1 to 255 alphanumeric characters or hyphens.
 	//
-	//   First character must be a letter.
+	//    * First character must be a letter.
 	//
-	//   Cannot end with a hyphen or contain two consecutive hyphens.
+	//    * Cannot end with a hyphen or contain two consecutive hyphens.
 	//
-	//   Must be unique for the AWS account that is making the request.
+	//    * Must be unique for the AWS account that is making the request.
 	//
 	// TargetSnapshotIdentifier is a required field
 	TargetSnapshotIdentifier *string `type:"string" required:"true"`
@@ -6236,6 +6858,25 @@ func (s *CopyClusterSnapshotInput) Validate() error {
 	return nil
 }
 
+// SetSourceSnapshotClusterIdentifier sets the SourceSnapshotClusterIdentifier field's value.
+func (s *CopyClusterSnapshotInput) SetSourceSnapshotClusterIdentifier(v string) *CopyClusterSnapshotInput {
+	s.SourceSnapshotClusterIdentifier = &v
+	return s
+}
+
+// SetSourceSnapshotIdentifier sets the SourceSnapshotIdentifier field's value.
+func (s *CopyClusterSnapshotInput) SetSourceSnapshotIdentifier(v string) *CopyClusterSnapshotInput {
+	s.SourceSnapshotIdentifier = &v
+	return s
+}
+
+// SetTargetSnapshotIdentifier sets the TargetSnapshotIdentifier field's value.
+func (s *CopyClusterSnapshotInput) SetTargetSnapshotIdentifier(v string) *CopyClusterSnapshotInput {
+	s.TargetSnapshotIdentifier = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CopyClusterSnapshotResult
 type CopyClusterSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -6253,6 +6894,13 @@ func (s CopyClusterSnapshotOutput) GoString() string {
 	return s.String()
 }
 
+// SetSnapshot sets the Snapshot field's value.
+func (s *CopyClusterSnapshotOutput) SetSnapshot(v *Snapshot) *CopyClusterSnapshotOutput {
+	s.Snapshot = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateClusterMessage
 type CreateClusterInput struct {
 	_ struct{} `type:"structure"`
 
@@ -6262,8 +6910,8 @@ type CreateClusterInput struct {
 	// If true, major version upgrades can be applied during the maintenance window
 	// to the Amazon Redshift engine that is running on the cluster.
 	//
-	// When a new major version of the Amazon Redshift engine is released, you
-	// can request that the service automatically apply upgrades during the maintenance
+	// When a new major version of the Amazon Redshift engine is released, you can
+	// request that the service automatically apply upgrades during the maintenance
 	// window to the Amazon Redshift engine that is running on your cluster.
 	//
 	// Default: true
@@ -6298,17 +6946,17 @@ type CreateClusterInput struct {
 	//
 	// Constraints:
 	//
-	//   Must contain from 1 to 63 alphanumeric characters or hyphens.
+	//    * Must contain from 1 to 63 alphanumeric characters or hyphens.
 	//
-	//   Alphabetic characters must be lowercase.
+	//    * Alphabetic characters must be lowercase.
 	//
-	//   First character must be a letter.
+	//    * First character must be a letter.
 	//
-	//   Cannot end with a hyphen or contain two consecutive hyphens.
+	//    * Cannot end with a hyphen or contain two consecutive hyphens.
 	//
-	//   Must be unique for all clusters within an AWS account.
+	//    * Must be unique for all clusters within an AWS account.
 	//
-	//   Example: myexamplecluster
+	// Example: myexamplecluster
 	//
 	// ClusterIdentifier is a required field
 	ClusterIdentifier *string `type:"string" required:"true"`
@@ -6321,11 +6969,11 @@ type CreateClusterInput struct {
 	//
 	// Constraints:
 	//
-	//   Must be 1 to 255 alphanumeric characters or hyphens.
+	//    * Must be 1 to 255 alphanumeric characters or hyphens.
 	//
-	//   First character must be a letter.
+	//    * First character must be a letter.
 	//
-	//   Cannot end with a hyphen or contain two consecutive hyphens.
+	//    * Cannot end with a hyphen or contain two consecutive hyphens.
 	ClusterParameterGroupName *string `type:"string"`
 
 	// A list of security groups to be associated with this cluster.
@@ -6341,11 +6989,11 @@ type CreateClusterInput struct {
 
 	// The type of the cluster. When cluster type is specified as
 	//
-	//    single-node, the NumberOfNodes parameter is not required.
+	//    * single-node, the NumberOfNodes parameter is not required.
 	//
-	//    multi-node, the NumberOfNodes parameter is required.
+	//    * multi-node, the NumberOfNodes parameter is required.
 	//
-	//   Valid Values: multi-node | single-node
+	// Valid Values: multi-node | single-node
 	//
 	// Default: multi-node
 	ClusterType *string `type:"string"`
@@ -6362,22 +7010,22 @@ type CreateClusterInput struct {
 
 	// The name of the first database to be created when the cluster is created.
 	//
-	// To create additional databases after the cluster is created, connect to
-	// the cluster with a SQL client and use SQL commands to create a database.
-	// For more information, go to Create a Database (http://docs.aws.amazon.com/redshift/latest/dg/t_creating_database.html)
+	// To create additional databases after the cluster is created, connect to the
+	// cluster with a SQL client and use SQL commands to create a database. For
+	// more information, go to Create a Database (http://docs.aws.amazon.com/redshift/latest/dg/t_creating_database.html)
 	// in the Amazon Redshift Database Developer Guide.
 	//
 	// Default: dev
 	//
 	// Constraints:
 	//
-	//   Must contain 1 to 64 alphanumeric characters.
+	//    * Must contain 1 to 64 alphanumeric characters.
 	//
-	//   Must contain only lowercase letters.
+	//    * Must contain only lowercase letters.
 	//
-	//   Cannot be a word that is reserved by the service. A list of reserved words
-	// can be found in Reserved Words (http://docs.aws.amazon.com/redshift/latest/dg/r_pg_keywords.html)
-	// in the Amazon Redshift Database Developer Guide.
+	//    * Cannot be a word that is reserved by the service. A list of reserved
+	//    words can be found in Reserved Words (http://docs.aws.amazon.com/redshift/latest/dg/r_pg_keywords.html)
+	//    in the Amazon Redshift Database Developer Guide.
 	DBName *string `type:"string"`
 
 	// The Elastic IP (EIP) address for the cluster.
@@ -6429,16 +7077,16 @@ type CreateClusterInput struct {
 	//
 	// Constraints:
 	//
-	//   Must be between 8 and 64 characters in length.
+	//    * Must be between 8 and 64 characters in length.
 	//
-	//   Must contain at least one uppercase letter.
+	//    * Must contain at least one uppercase letter.
 	//
-	//   Must contain at least one lowercase letter.
+	//    * Must contain at least one lowercase letter.
 	//
-	//   Must contain one number.
+	//    * Must contain one number.
 	//
-	//   Can be any printable ASCII character (ASCII code 33 to 126) except ' (single
-	// quote), " (double quote), \, /, @, or space.
+	//    * Can be any printable ASCII character (ASCII code 33 to 126) except '
+	//    (single quote), " (double quote), \, /, @, or space.
 	//
 	// MasterUserPassword is a required field
 	MasterUserPassword *string `type:"string" required:"true"`
@@ -6448,13 +7096,13 @@ type CreateClusterInput struct {
 	//
 	// Constraints:
 	//
-	//   Must be 1 - 128 alphanumeric characters.
+	//    * Must be 1 - 128 alphanumeric characters.
 	//
-	//   First character must be a letter.
+	//    * First character must be a letter.
 	//
-	//   Cannot be a reserved word. A list of reserved words can be found in Reserved
-	// Words (http://docs.aws.amazon.com/redshift/latest/dg/r_pg_keywords.html)
-	// in the Amazon Redshift Database Developer Guide.
+	//    * Cannot be a reserved word. A list of reserved words can be found in
+	//    Reserved Words (http://docs.aws.amazon.com/redshift/latest/dg/r_pg_keywords.html)
+	//    in the Amazon Redshift Database Developer Guide.
 	//
 	// MasterUsername is a required field
 	MasterUsername *string `type:"string" required:"true"`
@@ -6499,11 +7147,11 @@ type CreateClusterInput struct {
 	// The weekly time range (in UTC) during which automated cluster maintenance
 	// can occur.
 	//
-	//  Format: ddd:hh24:mi-ddd:hh24:mi
+	// Format: ddd:hh24:mi-ddd:hh24:mi
 	//
-	//  Default: A 30-minute window selected at random from an 8-hour block of
-	// time per region, occurring on a random day of the week. For more information
-	// about the time blocks for each region, see Maintenance Windows (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-clusters.html#rs-maintenance-windows)
+	// Default: A 30-minute window selected at random from an 8-hour block of time
+	// per region, occurring on a random day of the week. For more information about
+	// the time blocks for each region, see Maintenance Windows (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-clusters.html#rs-maintenance-windows)
 	// in Amazon Redshift Cluster Management Guide.
 	//
 	// Valid Days: Mon | Tue | Wed | Thu | Fri | Sat | Sun
@@ -6556,6 +7204,169 @@ func (s *CreateClusterInput) Validate() error {
 	return nil
 }
 
+// SetAdditionalInfo sets the AdditionalInfo field's value.
+func (s *CreateClusterInput) SetAdditionalInfo(v string) *CreateClusterInput {
+	s.AdditionalInfo = &v
+	return s
+}
+
+// SetAllowVersionUpgrade sets the AllowVersionUpgrade field's value.
+func (s *CreateClusterInput) SetAllowVersionUpgrade(v bool) *CreateClusterInput {
+	s.AllowVersionUpgrade = &v
+	return s
+}
+
+// SetAutomatedSnapshotRetentionPeriod sets the AutomatedSnapshotRetentionPeriod field's value.
+func (s *CreateClusterInput) SetAutomatedSnapshotRetentionPeriod(v int64) *CreateClusterInput {
+	s.AutomatedSnapshotRetentionPeriod = &v
+	return s
+}
+
+// SetAvailabilityZone sets the AvailabilityZone field's value.
+func (s *CreateClusterInput) SetAvailabilityZone(v string) *CreateClusterInput {
+	s.AvailabilityZone = &v
+	return s
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *CreateClusterInput) SetClusterIdentifier(v string) *CreateClusterInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetClusterParameterGroupName sets the ClusterParameterGroupName field's value.
+func (s *CreateClusterInput) SetClusterParameterGroupName(v string) *CreateClusterInput {
+	s.ClusterParameterGroupName = &v
+	return s
+}
+
+// SetClusterSecurityGroups sets the ClusterSecurityGroups field's value.
+func (s *CreateClusterInput) SetClusterSecurityGroups(v []*string) *CreateClusterInput {
+	s.ClusterSecurityGroups = v
+	return s
+}
+
+// SetClusterSubnetGroupName sets the ClusterSubnetGroupName field's value.
+func (s *CreateClusterInput) SetClusterSubnetGroupName(v string) *CreateClusterInput {
+	s.ClusterSubnetGroupName = &v
+	return s
+}
+
+// SetClusterType sets the ClusterType field's value.
+func (s *CreateClusterInput) SetClusterType(v string) *CreateClusterInput {
+	s.ClusterType = &v
+	return s
+}
+
+// SetClusterVersion sets the ClusterVersion field's value.
+func (s *CreateClusterInput) SetClusterVersion(v string) *CreateClusterInput {
+	s.ClusterVersion = &v
+	return s
+}
+
+// SetDBName sets the DBName field's value.
+func (s *CreateClusterInput) SetDBName(v string) *CreateClusterInput {
+	s.DBName = &v
+	return s
+}
+
+// SetElasticIp sets the ElasticIp field's value.
+func (s *CreateClusterInput) SetElasticIp(v string) *CreateClusterInput {
+	s.ElasticIp = &v
+	return s
+}
+
+// SetEncrypted sets the Encrypted field's value.
+func (s *CreateClusterInput) SetEncrypted(v bool) *CreateClusterInput {
+	s.Encrypted = &v
+	return s
+}
+
+// SetEnhancedVpcRouting sets the EnhancedVpcRouting field's value.
+func (s *CreateClusterInput) SetEnhancedVpcRouting(v bool) *CreateClusterInput {
+	s.EnhancedVpcRouting = &v
+	return s
+}
+
+// SetHsmClientCertificateIdentifier sets the HsmClientCertificateIdentifier field's value.
+func (s *CreateClusterInput) SetHsmClientCertificateIdentifier(v string) *CreateClusterInput {
+	s.HsmClientCertificateIdentifier = &v
+	return s
+}
+
+// SetHsmConfigurationIdentifier sets the HsmConfigurationIdentifier field's value.
+func (s *CreateClusterInput) SetHsmConfigurationIdentifier(v string) *CreateClusterInput {
+	s.HsmConfigurationIdentifier = &v
+	return s
+}
+
+// SetIamRoles sets the IamRoles field's value.
+func (s *CreateClusterInput) SetIamRoles(v []*string) *CreateClusterInput {
+	s.IamRoles = v
+	return s
+}
+
+// SetKmsKeyId sets the KmsKeyId field's value.
+func (s *CreateClusterInput) SetKmsKeyId(v string) *CreateClusterInput {
+	s.KmsKeyId = &v
+	return s
+}
+
+// SetMasterUserPassword sets the MasterUserPassword field's value.
+func (s *CreateClusterInput) SetMasterUserPassword(v string) *CreateClusterInput {
+	s.MasterUserPassword = &v
+	return s
+}
+
+// SetMasterUsername sets the MasterUsername field's value.
+func (s *CreateClusterInput) SetMasterUsername(v string) *CreateClusterInput {
+	s.MasterUsername = &v
+	return s
+}
+
+// SetNodeType sets the NodeType field's value.
+func (s *CreateClusterInput) SetNodeType(v string) *CreateClusterInput {
+	s.NodeType = &v
+	return s
+}
+
+// SetNumberOfNodes sets the NumberOfNodes field's value.
+func (s *CreateClusterInput) SetNumberOfNodes(v int64) *CreateClusterInput {
+	s.NumberOfNodes = &v
+	return s
+}
+
+// SetPort sets the Port field's value.
+func (s *CreateClusterInput) SetPort(v int64) *CreateClusterInput {
+	s.Port = &v
+	return s
+}
+
+// SetPreferredMaintenanceWindow sets the PreferredMaintenanceWindow field's value.
+func (s *CreateClusterInput) SetPreferredMaintenanceWindow(v string) *CreateClusterInput {
+	s.PreferredMaintenanceWindow = &v
+	return s
+}
+
+// SetPubliclyAccessible sets the PubliclyAccessible field's value.
+func (s *CreateClusterInput) SetPubliclyAccessible(v bool) *CreateClusterInput {
+	s.PubliclyAccessible = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateClusterInput) SetTags(v []*Tag) *CreateClusterInput {
+	s.Tags = v
+	return s
+}
+
+// SetVpcSecurityGroupIds sets the VpcSecurityGroupIds field's value.
+func (s *CreateClusterInput) SetVpcSecurityGroupIds(v []*string) *CreateClusterInput {
+	s.VpcSecurityGroupIds = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateClusterResult
 type CreateClusterOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -6573,6 +7384,13 @@ func (s CreateClusterOutput) GoString() string {
 	return s.String()
 }
 
+// SetCluster sets the Cluster field's value.
+func (s *CreateClusterOutput) SetCluster(v *Cluster) *CreateClusterOutput {
+	s.Cluster = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateClusterParameterGroupMessage
 type CreateClusterParameterGroupInput struct {
 	_ struct{} `type:"structure"`
 
@@ -6598,15 +7416,15 @@ type CreateClusterParameterGroupInput struct {
 	//
 	// Constraints:
 	//
-	//   Must be 1 to 255 alphanumeric characters or hyphens
+	//    * Must be 1 to 255 alphanumeric characters or hyphens
 	//
-	//   First character must be a letter.
+	//    * First character must be a letter.
 	//
-	//   Cannot end with a hyphen or contain two consecutive hyphens.
+	//    * Cannot end with a hyphen or contain two consecutive hyphens.
 	//
-	//   Must be unique withing your AWS account.
+	//    * Must be unique withing your AWS account.
 	//
-	//    This value is stored as a lower-case string.
+	// This value is stored as a lower-case string.
 	//
 	// ParameterGroupName is a required field
 	ParameterGroupName *string `type:"string" required:"true"`
@@ -6644,6 +7462,31 @@ func (s *CreateClusterParameterGroupInput) Validate() error {
 	return nil
 }
 
+// SetDescription sets the Description field's value.
+func (s *CreateClusterParameterGroupInput) SetDescription(v string) *CreateClusterParameterGroupInput {
+	s.Description = &v
+	return s
+}
+
+// SetParameterGroupFamily sets the ParameterGroupFamily field's value.
+func (s *CreateClusterParameterGroupInput) SetParameterGroupFamily(v string) *CreateClusterParameterGroupInput {
+	s.ParameterGroupFamily = &v
+	return s
+}
+
+// SetParameterGroupName sets the ParameterGroupName field's value.
+func (s *CreateClusterParameterGroupInput) SetParameterGroupName(v string) *CreateClusterParameterGroupInput {
+	s.ParameterGroupName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateClusterParameterGroupInput) SetTags(v []*Tag) *CreateClusterParameterGroupInput {
+	s.Tags = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateClusterParameterGroupResult
 type CreateClusterParameterGroupOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -6661,6 +7504,13 @@ func (s CreateClusterParameterGroupOutput) GoString() string {
 	return s.String()
 }
 
+// SetClusterParameterGroup sets the ClusterParameterGroup field's value.
+func (s *CreateClusterParameterGroupOutput) SetClusterParameterGroup(v *ClusterParameterGroup) *CreateClusterParameterGroupOutput {
+	s.ClusterParameterGroup = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateClusterSecurityGroupMessage
 type CreateClusterSecurityGroupInput struct {
 	_ struct{} `type:"structure"`
 
@@ -6669,13 +7519,14 @@ type CreateClusterSecurityGroupInput struct {
 	//
 	// Constraints:
 	//
-	//   Must contain no more than 255 alphanumeric characters or hyphens.
+	//    * Must contain no more than 255 alphanumeric characters or hyphens.
 	//
-	//   Must not be "Default".
+	//    * Must not be "Default".
 	//
-	//   Must be unique for all security groups that are created by your AWS account.
+	//    * Must be unique for all security groups that are created by your AWS
+	//    account.
 	//
-	//   Example: examplesecuritygroup
+	// Example: examplesecuritygroup
 	//
 	// ClusterSecurityGroupName is a required field
 	ClusterSecurityGroupName *string `type:"string" required:"true"`
@@ -6715,6 +7566,25 @@ func (s *CreateClusterSecurityGroupInput) Validate() error {
 	return nil
 }
 
+// SetClusterSecurityGroupName sets the ClusterSecurityGroupName field's value.
+func (s *CreateClusterSecurityGroupInput) SetClusterSecurityGroupName(v string) *CreateClusterSecurityGroupInput {
+	s.ClusterSecurityGroupName = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *CreateClusterSecurityGroupInput) SetDescription(v string) *CreateClusterSecurityGroupInput {
+	s.Description = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateClusterSecurityGroupInput) SetTags(v []*Tag) *CreateClusterSecurityGroupInput {
+	s.Tags = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateClusterSecurityGroupResult
 type CreateClusterSecurityGroupOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -6732,6 +7602,13 @@ func (s CreateClusterSecurityGroupOutput) GoString() string {
 	return s.String()
 }
 
+// SetClusterSecurityGroup sets the ClusterSecurityGroup field's value.
+func (s *CreateClusterSecurityGroupOutput) SetClusterSecurityGroup(v *ClusterSecurityGroup) *CreateClusterSecurityGroupOutput {
+	s.ClusterSecurityGroup = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateClusterSnapshotMessage
 type CreateClusterSnapshotInput struct {
 	_ struct{} `type:"structure"`
 
@@ -6745,15 +7622,15 @@ type CreateClusterSnapshotInput struct {
 	//
 	// Constraints:
 	//
-	//   Cannot be null, empty, or blank
+	//    * Cannot be null, empty, or blank
 	//
-	//   Must contain from 1 to 255 alphanumeric characters or hyphens
+	//    * Must contain from 1 to 255 alphanumeric characters or hyphens
 	//
-	//   First character must be a letter
+	//    * First character must be a letter
 	//
-	//   Cannot end with a hyphen or contain two consecutive hyphens
+	//    * Cannot end with a hyphen or contain two consecutive hyphens
 	//
-	//   Example: my-snapshot-id
+	// Example: my-snapshot-id
 	//
 	// SnapshotIdentifier is a required field
 	SnapshotIdentifier *string `type:"string" required:"true"`
@@ -6788,6 +7665,25 @@ func (s *CreateClusterSnapshotInput) Validate() error {
 	return nil
 }
 
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *CreateClusterSnapshotInput) SetClusterIdentifier(v string) *CreateClusterSnapshotInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetSnapshotIdentifier sets the SnapshotIdentifier field's value.
+func (s *CreateClusterSnapshotInput) SetSnapshotIdentifier(v string) *CreateClusterSnapshotInput {
+	s.SnapshotIdentifier = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateClusterSnapshotInput) SetTags(v []*Tag) *CreateClusterSnapshotInput {
+	s.Tags = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateClusterSnapshotResult
 type CreateClusterSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -6805,6 +7701,13 @@ func (s CreateClusterSnapshotOutput) GoString() string {
 	return s.String()
 }
 
+// SetSnapshot sets the Snapshot field's value.
+func (s *CreateClusterSnapshotOutput) SetSnapshot(v *Snapshot) *CreateClusterSnapshotOutput {
+	s.Snapshot = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateClusterSubnetGroupMessage
 type CreateClusterSubnetGroupInput struct {
 	_ struct{} `type:"structure"`
 
@@ -6813,13 +7716,13 @@ type CreateClusterSubnetGroupInput struct {
 	//
 	// Constraints:
 	//
-	//   Must contain no more than 255 alphanumeric characters or hyphens.
+	//    * Must contain no more than 255 alphanumeric characters or hyphens.
 	//
-	//   Must not be "Default".
+	//    * Must not be "Default".
 	//
-	//   Must be unique for all subnet groups that are created by your AWS account.
+	//    * Must be unique for all subnet groups that are created by your AWS account.
 	//
-	//   Example: examplesubnetgroup
+	// Example: examplesubnetgroup
 	//
 	// ClusterSubnetGroupName is a required field
 	ClusterSubnetGroupName *string `type:"string" required:"true"`
@@ -6868,6 +7771,31 @@ func (s *CreateClusterSubnetGroupInput) Validate() error {
 	return nil
 }
 
+// SetClusterSubnetGroupName sets the ClusterSubnetGroupName field's value.
+func (s *CreateClusterSubnetGroupInput) SetClusterSubnetGroupName(v string) *CreateClusterSubnetGroupInput {
+	s.ClusterSubnetGroupName = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *CreateClusterSubnetGroupInput) SetDescription(v string) *CreateClusterSubnetGroupInput {
+	s.Description = &v
+	return s
+}
+
+// SetSubnetIds sets the SubnetIds field's value.
+func (s *CreateClusterSubnetGroupInput) SetSubnetIds(v []*string) *CreateClusterSubnetGroupInput {
+	s.SubnetIds = v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateClusterSubnetGroupInput) SetTags(v []*Tag) *CreateClusterSubnetGroupInput {
+	s.Tags = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateClusterSubnetGroupResult
 type CreateClusterSubnetGroupOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -6885,6 +7813,13 @@ func (s CreateClusterSubnetGroupOutput) GoString() string {
 	return s.String()
 }
 
+// SetClusterSubnetGroup sets the ClusterSubnetGroup field's value.
+func (s *CreateClusterSubnetGroupOutput) SetClusterSubnetGroup(v *ClusterSubnetGroup) *CreateClusterSubnetGroupOutput {
+	s.ClusterSubnetGroup = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateEventSubscriptionMessage
 type CreateEventSubscriptionInput struct {
 	_ struct{} `type:"structure"`
 
@@ -6928,21 +7863,21 @@ type CreateEventSubscriptionInput struct {
 	// for all Amazon Redshift objects in your AWS account. You must specify a source
 	// type in order to specify source IDs.
 	//
-	// Valid values: cluster, cluster-parameter-group, cluster-security-group,
-	// and cluster-snapshot.
+	// Valid values: cluster, cluster-parameter-group, cluster-security-group, and
+	// cluster-snapshot.
 	SourceType *string `type:"string"`
 
 	// The name of the event subscription to be created.
 	//
 	// Constraints:
 	//
-	//   Cannot be null, empty, or blank.
+	//    * Cannot be null, empty, or blank.
 	//
-	//   Must contain from 1 to 255 alphanumeric characters or hyphens.
+	//    * Must contain from 1 to 255 alphanumeric characters or hyphens.
 	//
-	//   First character must be a letter.
+	//    * First character must be a letter.
 	//
-	//   Cannot end with a hyphen or contain two consecutive hyphens.
+	//    * Cannot end with a hyphen or contain two consecutive hyphens.
 	//
 	// SubscriptionName is a required field
 	SubscriptionName *string `type:"string" required:"true"`
@@ -6977,6 +7912,55 @@ func (s *CreateEventSubscriptionInput) Validate() error {
 	return nil
 }
 
+// SetEnabled sets the Enabled field's value.
+func (s *CreateEventSubscriptionInput) SetEnabled(v bool) *CreateEventSubscriptionInput {
+	s.Enabled = &v
+	return s
+}
+
+// SetEventCategories sets the EventCategories field's value.
+func (s *CreateEventSubscriptionInput) SetEventCategories(v []*string) *CreateEventSubscriptionInput {
+	s.EventCategories = v
+	return s
+}
+
+// SetSeverity sets the Severity field's value.
+func (s *CreateEventSubscriptionInput) SetSeverity(v string) *CreateEventSubscriptionInput {
+	s.Severity = &v
+	return s
+}
+
+// SetSnsTopicArn sets the SnsTopicArn field's value.
+func (s *CreateEventSubscriptionInput) SetSnsTopicArn(v string) *CreateEventSubscriptionInput {
+	s.SnsTopicArn = &v
+	return s
+}
+
+// SetSourceIds sets the SourceIds field's value.
+func (s *CreateEventSubscriptionInput) SetSourceIds(v []*string) *CreateEventSubscriptionInput {
+	s.SourceIds = v
+	return s
+}
+
+// SetSourceType sets the SourceType field's value.
+func (s *CreateEventSubscriptionInput) SetSourceType(v string) *CreateEventSubscriptionInput {
+	s.SourceType = &v
+	return s
+}
+
+// SetSubscriptionName sets the SubscriptionName field's value.
+func (s *CreateEventSubscriptionInput) SetSubscriptionName(v string) *CreateEventSubscriptionInput {
+	s.SubscriptionName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateEventSubscriptionInput) SetTags(v []*Tag) *CreateEventSubscriptionInput {
+	s.Tags = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateEventSubscriptionResult
 type CreateEventSubscriptionOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -6994,6 +7978,13 @@ func (s CreateEventSubscriptionOutput) GoString() string {
 	return s.String()
 }
 
+// SetEventSubscription sets the EventSubscription field's value.
+func (s *CreateEventSubscriptionOutput) SetEventSubscription(v *EventSubscription) *CreateEventSubscriptionOutput {
+	s.EventSubscription = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateHsmClientCertificateMessage
 type CreateHsmClientCertificateInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7030,6 +8021,19 @@ func (s *CreateHsmClientCertificateInput) Validate() error {
 	return nil
 }
 
+// SetHsmClientCertificateIdentifier sets the HsmClientCertificateIdentifier field's value.
+func (s *CreateHsmClientCertificateInput) SetHsmClientCertificateIdentifier(v string) *CreateHsmClientCertificateInput {
+	s.HsmClientCertificateIdentifier = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateHsmClientCertificateInput) SetTags(v []*Tag) *CreateHsmClientCertificateInput {
+	s.Tags = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateHsmClientCertificateResult
 type CreateHsmClientCertificateOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -7049,6 +8053,13 @@ func (s CreateHsmClientCertificateOutput) GoString() string {
 	return s.String()
 }
 
+// SetHsmClientCertificate sets the HsmClientCertificate field's value.
+func (s *CreateHsmClientCertificateOutput) SetHsmClientCertificate(v *HsmClientCertificate) *CreateHsmClientCertificateOutput {
+	s.HsmClientCertificate = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateHsmConfigurationMessage
 type CreateHsmConfigurationInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7126,6 +8137,49 @@ func (s *CreateHsmConfigurationInput) Validate() error {
 	return nil
 }
 
+// SetDescription sets the Description field's value.
+func (s *CreateHsmConfigurationInput) SetDescription(v string) *CreateHsmConfigurationInput {
+	s.Description = &v
+	return s
+}
+
+// SetHsmConfigurationIdentifier sets the HsmConfigurationIdentifier field's value.
+func (s *CreateHsmConfigurationInput) SetHsmConfigurationIdentifier(v string) *CreateHsmConfigurationInput {
+	s.HsmConfigurationIdentifier = &v
+	return s
+}
+
+// SetHsmIpAddress sets the HsmIpAddress field's value.
+func (s *CreateHsmConfigurationInput) SetHsmIpAddress(v string) *CreateHsmConfigurationInput {
+	s.HsmIpAddress = &v
+	return s
+}
+
+// SetHsmPartitionName sets the HsmPartitionName field's value.
+func (s *CreateHsmConfigurationInput) SetHsmPartitionName(v string) *CreateHsmConfigurationInput {
+	s.HsmPartitionName = &v
+	return s
+}
+
+// SetHsmPartitionPassword sets the HsmPartitionPassword field's value.
+func (s *CreateHsmConfigurationInput) SetHsmPartitionPassword(v string) *CreateHsmConfigurationInput {
+	s.HsmPartitionPassword = &v
+	return s
+}
+
+// SetHsmServerPublicCertificate sets the HsmServerPublicCertificate field's value.
+func (s *CreateHsmConfigurationInput) SetHsmServerPublicCertificate(v string) *CreateHsmConfigurationInput {
+	s.HsmServerPublicCertificate = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateHsmConfigurationInput) SetTags(v []*Tag) *CreateHsmConfigurationInput {
+	s.Tags = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateHsmConfigurationResult
 type CreateHsmConfigurationOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -7145,7 +8199,14 @@ func (s CreateHsmConfigurationOutput) GoString() string {
 	return s.String()
 }
 
+// SetHsmConfiguration sets the HsmConfiguration field's value.
+func (s *CreateHsmConfigurationOutput) SetHsmConfiguration(v *HsmConfiguration) *CreateHsmConfigurationOutput {
+	s.HsmConfiguration = v
+	return s
+}
+
 // The result of the CreateSnapshotCopyGrant action.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateSnapshotCopyGrantMessage
 type CreateSnapshotCopyGrantInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7158,15 +8219,15 @@ type CreateSnapshotCopyGrantInput struct {
 	//
 	// Constraints:
 	//
-	//   Must contain from 1 to 63 alphanumeric characters or hyphens.
+	//    * Must contain from 1 to 63 alphanumeric characters or hyphens.
 	//
-	//   Alphabetic characters must be lowercase.
+	//    * Alphabetic characters must be lowercase.
 	//
-	//   First character must be a letter.
+	//    * First character must be a letter.
 	//
-	//   Cannot end with a hyphen or contain two consecutive hyphens.
+	//    * Cannot end with a hyphen or contain two consecutive hyphens.
 	//
-	//   Must be unique for all clusters within an AWS account.
+	//    * Must be unique for all clusters within an AWS account.
 	//
 	// SnapshotCopyGrantName is a required field
 	SnapshotCopyGrantName *string `type:"string" required:"true"`
@@ -7198,6 +8259,25 @@ func (s *CreateSnapshotCopyGrantInput) Validate() error {
 	return nil
 }
 
+// SetKmsKeyId sets the KmsKeyId field's value.
+func (s *CreateSnapshotCopyGrantInput) SetKmsKeyId(v string) *CreateSnapshotCopyGrantInput {
+	s.KmsKeyId = &v
+	return s
+}
+
+// SetSnapshotCopyGrantName sets the SnapshotCopyGrantName field's value.
+func (s *CreateSnapshotCopyGrantInput) SetSnapshotCopyGrantName(v string) *CreateSnapshotCopyGrantInput {
+	s.SnapshotCopyGrantName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateSnapshotCopyGrantInput) SetTags(v []*Tag) *CreateSnapshotCopyGrantInput {
+	s.Tags = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateSnapshotCopyGrantResult
 type CreateSnapshotCopyGrantOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -7205,8 +8285,8 @@ type CreateSnapshotCopyGrantOutput struct {
 	// copied snapshots with the specified customer master key (CMK) from AWS KMS
 	// in the destination region.
 	//
-	//  For more information about managing snapshot copy grants, go to Amazon
-	// Redshift Database Encryption (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-db-encryption.html)
+	// For more information about managing snapshot copy grants, go to Amazon Redshift
+	// Database Encryption (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-db-encryption.html)
 	// in the Amazon Redshift Cluster Management Guide.
 	SnapshotCopyGrant *SnapshotCopyGrant `type:"structure"`
 }
@@ -7221,7 +8301,14 @@ func (s CreateSnapshotCopyGrantOutput) GoString() string {
 	return s.String()
 }
 
+// SetSnapshotCopyGrant sets the SnapshotCopyGrant field's value.
+func (s *CreateSnapshotCopyGrantOutput) SetSnapshotCopyGrant(v *SnapshotCopyGrant) *CreateSnapshotCopyGrantOutput {
+	s.SnapshotCopyGrant = v
+	return s
+}
+
 // Contains the output from the CreateTags action.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateTagsMessage
 type CreateTagsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7267,6 +8354,19 @@ func (s *CreateTagsInput) Validate() error {
 	return nil
 }
 
+// SetResourceName sets the ResourceName field's value.
+func (s *CreateTagsInput) SetResourceName(v string) *CreateTagsInput {
+	s.ResourceName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateTagsInput) SetTags(v []*Tag) *CreateTagsInput {
+	s.Tags = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/CreateTagsOutput
 type CreateTagsOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -7282,6 +8382,7 @@ func (s CreateTagsOutput) GoString() string {
 }
 
 // Describes the default cluster parameters for a parameter group family.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DefaultClusterParameters
 type DefaultClusterParameters struct {
 	_ struct{} `type:"structure"`
 
@@ -7310,6 +8411,25 @@ func (s DefaultClusterParameters) GoString() string {
 	return s.String()
 }
 
+// SetMarker sets the Marker field's value.
+func (s *DefaultClusterParameters) SetMarker(v string) *DefaultClusterParameters {
+	s.Marker = &v
+	return s
+}
+
+// SetParameterGroupFamily sets the ParameterGroupFamily field's value.
+func (s *DefaultClusterParameters) SetParameterGroupFamily(v string) *DefaultClusterParameters {
+	s.ParameterGroupFamily = &v
+	return s
+}
+
+// SetParameters sets the Parameters field's value.
+func (s *DefaultClusterParameters) SetParameters(v []*Parameter) *DefaultClusterParameters {
+	s.Parameters = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteClusterMessage
 type DeleteClusterInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7317,13 +8437,13 @@ type DeleteClusterInput struct {
 	//
 	// Constraints:
 	//
-	//   Must contain lowercase characters.
+	//    * Must contain lowercase characters.
 	//
-	//   Must contain from 1 to 63 alphanumeric characters or hyphens.
+	//    * Must contain from 1 to 63 alphanumeric characters or hyphens.
 	//
-	//   First character must be a letter.
+	//    * First character must be a letter.
 	//
-	//   Cannot end with a hyphen or contain two consecutive hyphens.
+	//    * Cannot end with a hyphen or contain two consecutive hyphens.
 	//
 	// ClusterIdentifier is a required field
 	ClusterIdentifier *string `type:"string" required:"true"`
@@ -7334,21 +8454,21 @@ type DeleteClusterInput struct {
 	//
 	// Constraints:
 	//
-	//   Must be 1 to 255 alphanumeric characters.
+	//    * Must be 1 to 255 alphanumeric characters.
 	//
-	//   First character must be a letter.
+	//    * First character must be a letter.
 	//
-	//   Cannot end with a hyphen or contain two consecutive hyphens.
+	//    * Cannot end with a hyphen or contain two consecutive hyphens.
 	FinalClusterSnapshotIdentifier *string `type:"string"`
 
 	// Determines whether a final snapshot of the cluster is created before Amazon
 	// Redshift deletes the cluster. If true, a final cluster snapshot is not created.
 	// If false, a final cluster snapshot is created before the cluster is deleted.
 	//
-	//  The FinalClusterSnapshotIdentifier parameter must be specified if SkipFinalClusterSnapshot
+	// The FinalClusterSnapshotIdentifier parameter must be specified if SkipFinalClusterSnapshot
 	// is false.
 	//
-	//  Default: false
+	// Default: false
 	SkipFinalClusterSnapshot *bool `type:"boolean"`
 }
 
@@ -7375,6 +8495,25 @@ func (s *DeleteClusterInput) Validate() error {
 	return nil
 }
 
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *DeleteClusterInput) SetClusterIdentifier(v string) *DeleteClusterInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetFinalClusterSnapshotIdentifier sets the FinalClusterSnapshotIdentifier field's value.
+func (s *DeleteClusterInput) SetFinalClusterSnapshotIdentifier(v string) *DeleteClusterInput {
+	s.FinalClusterSnapshotIdentifier = &v
+	return s
+}
+
+// SetSkipFinalClusterSnapshot sets the SkipFinalClusterSnapshot field's value.
+func (s *DeleteClusterInput) SetSkipFinalClusterSnapshot(v bool) *DeleteClusterInput {
+	s.SkipFinalClusterSnapshot = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteClusterResult
 type DeleteClusterOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -7392,6 +8531,13 @@ func (s DeleteClusterOutput) GoString() string {
 	return s.String()
 }
 
+// SetCluster sets the Cluster field's value.
+func (s *DeleteClusterOutput) SetCluster(v *Cluster) *DeleteClusterOutput {
+	s.Cluster = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteClusterParameterGroupMessage
 type DeleteClusterParameterGroupInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7399,9 +8545,9 @@ type DeleteClusterParameterGroupInput struct {
 	//
 	// Constraints:
 	//
-	//   Must be the name of an existing cluster parameter group.
+	//    * Must be the name of an existing cluster parameter group.
 	//
-	//   Cannot delete a default cluster parameter group.
+	//    * Cannot delete a default cluster parameter group.
 	//
 	// ParameterGroupName is a required field
 	ParameterGroupName *string `type:"string" required:"true"`
@@ -7430,6 +8576,13 @@ func (s *DeleteClusterParameterGroupInput) Validate() error {
 	return nil
 }
 
+// SetParameterGroupName sets the ParameterGroupName field's value.
+func (s *DeleteClusterParameterGroupInput) SetParameterGroupName(v string) *DeleteClusterParameterGroupInput {
+	s.ParameterGroupName = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteClusterParameterGroupOutput
 type DeleteClusterParameterGroupOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -7444,6 +8597,7 @@ func (s DeleteClusterParameterGroupOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteClusterSecurityGroupMessage
 type DeleteClusterSecurityGroupInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7476,6 +8630,13 @@ func (s *DeleteClusterSecurityGroupInput) Validate() error {
 	return nil
 }
 
+// SetClusterSecurityGroupName sets the ClusterSecurityGroupName field's value.
+func (s *DeleteClusterSecurityGroupInput) SetClusterSecurityGroupName(v string) *DeleteClusterSecurityGroupInput {
+	s.ClusterSecurityGroupName = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteClusterSecurityGroupOutput
 type DeleteClusterSecurityGroupOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -7490,6 +8651,7 @@ func (s DeleteClusterSecurityGroupOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteClusterSnapshotMessage
 type DeleteClusterSnapshotInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7532,6 +8694,19 @@ func (s *DeleteClusterSnapshotInput) Validate() error {
 	return nil
 }
 
+// SetSnapshotClusterIdentifier sets the SnapshotClusterIdentifier field's value.
+func (s *DeleteClusterSnapshotInput) SetSnapshotClusterIdentifier(v string) *DeleteClusterSnapshotInput {
+	s.SnapshotClusterIdentifier = &v
+	return s
+}
+
+// SetSnapshotIdentifier sets the SnapshotIdentifier field's value.
+func (s *DeleteClusterSnapshotInput) SetSnapshotIdentifier(v string) *DeleteClusterSnapshotInput {
+	s.SnapshotIdentifier = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteClusterSnapshotResult
 type DeleteClusterSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -7549,6 +8724,13 @@ func (s DeleteClusterSnapshotOutput) GoString() string {
 	return s.String()
 }
 
+// SetSnapshot sets the Snapshot field's value.
+func (s *DeleteClusterSnapshotOutput) SetSnapshot(v *Snapshot) *DeleteClusterSnapshotOutput {
+	s.Snapshot = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteClusterSubnetGroupMessage
 type DeleteClusterSubnetGroupInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7581,6 +8763,13 @@ func (s *DeleteClusterSubnetGroupInput) Validate() error {
 	return nil
 }
 
+// SetClusterSubnetGroupName sets the ClusterSubnetGroupName field's value.
+func (s *DeleteClusterSubnetGroupInput) SetClusterSubnetGroupName(v string) *DeleteClusterSubnetGroupInput {
+	s.ClusterSubnetGroupName = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteClusterSubnetGroupOutput
 type DeleteClusterSubnetGroupOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -7595,6 +8784,7 @@ func (s DeleteClusterSubnetGroupOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteEventSubscriptionMessage
 type DeleteEventSubscriptionInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7627,6 +8817,13 @@ func (s *DeleteEventSubscriptionInput) Validate() error {
 	return nil
 }
 
+// SetSubscriptionName sets the SubscriptionName field's value.
+func (s *DeleteEventSubscriptionInput) SetSubscriptionName(v string) *DeleteEventSubscriptionInput {
+	s.SubscriptionName = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteEventSubscriptionOutput
 type DeleteEventSubscriptionOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -7641,6 +8838,7 @@ func (s DeleteEventSubscriptionOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteHsmClientCertificateMessage
 type DeleteHsmClientCertificateInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7673,6 +8871,13 @@ func (s *DeleteHsmClientCertificateInput) Validate() error {
 	return nil
 }
 
+// SetHsmClientCertificateIdentifier sets the HsmClientCertificateIdentifier field's value.
+func (s *DeleteHsmClientCertificateInput) SetHsmClientCertificateIdentifier(v string) *DeleteHsmClientCertificateInput {
+	s.HsmClientCertificateIdentifier = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteHsmClientCertificateOutput
 type DeleteHsmClientCertificateOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -7687,6 +8892,7 @@ func (s DeleteHsmClientCertificateOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteHsmConfigurationMessage
 type DeleteHsmConfigurationInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7719,6 +8925,13 @@ func (s *DeleteHsmConfigurationInput) Validate() error {
 	return nil
 }
 
+// SetHsmConfigurationIdentifier sets the HsmConfigurationIdentifier field's value.
+func (s *DeleteHsmConfigurationInput) SetHsmConfigurationIdentifier(v string) *DeleteHsmConfigurationInput {
+	s.HsmConfigurationIdentifier = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteHsmConfigurationOutput
 type DeleteHsmConfigurationOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -7734,6 +8947,7 @@ func (s DeleteHsmConfigurationOutput) GoString() string {
 }
 
 // The result of the DeleteSnapshotCopyGrant action.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteSnapshotCopyGrantMessage
 type DeleteSnapshotCopyGrantInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7766,6 +8980,13 @@ func (s *DeleteSnapshotCopyGrantInput) Validate() error {
 	return nil
 }
 
+// SetSnapshotCopyGrantName sets the SnapshotCopyGrantName field's value.
+func (s *DeleteSnapshotCopyGrantInput) SetSnapshotCopyGrantName(v string) *DeleteSnapshotCopyGrantInput {
+	s.SnapshotCopyGrantName = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteSnapshotCopyGrantOutput
 type DeleteSnapshotCopyGrantOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -7781,6 +9002,7 @@ func (s DeleteSnapshotCopyGrantOutput) GoString() string {
 }
 
 // Contains the output from the DeleteTags action.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteTagsMessage
 type DeleteTagsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7822,6 +9044,19 @@ func (s *DeleteTagsInput) Validate() error {
 	return nil
 }
 
+// SetResourceName sets the ResourceName field's value.
+func (s *DeleteTagsInput) SetResourceName(v string) *DeleteTagsInput {
+	s.ResourceName = &v
+	return s
+}
+
+// SetTagKeys sets the TagKeys field's value.
+func (s *DeleteTagsInput) SetTagKeys(v []*string) *DeleteTagsInput {
+	s.TagKeys = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DeleteTagsOutput
 type DeleteTagsOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -7836,6 +9071,7 @@ func (s DeleteTagsOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterParameterGroupsMessage
 type DescribeClusterParameterGroupsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7888,7 +9124,38 @@ func (s DescribeClusterParameterGroupsInput) GoString() string {
 	return s.String()
 }
 
+// SetMarker sets the Marker field's value.
+func (s *DescribeClusterParameterGroupsInput) SetMarker(v string) *DescribeClusterParameterGroupsInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeClusterParameterGroupsInput) SetMaxRecords(v int64) *DescribeClusterParameterGroupsInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetParameterGroupName sets the ParameterGroupName field's value.
+func (s *DescribeClusterParameterGroupsInput) SetParameterGroupName(v string) *DescribeClusterParameterGroupsInput {
+	s.ParameterGroupName = &v
+	return s
+}
+
+// SetTagKeys sets the TagKeys field's value.
+func (s *DescribeClusterParameterGroupsInput) SetTagKeys(v []*string) *DescribeClusterParameterGroupsInput {
+	s.TagKeys = v
+	return s
+}
+
+// SetTagValues sets the TagValues field's value.
+func (s *DescribeClusterParameterGroupsInput) SetTagValues(v []*string) *DescribeClusterParameterGroupsInput {
+	s.TagValues = v
+	return s
+}
+
 // Contains the output from the DescribeClusterParameterGroups action.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ClusterParameterGroupsMessage
 type DescribeClusterParameterGroupsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -7914,6 +9181,19 @@ func (s DescribeClusterParameterGroupsOutput) GoString() string {
 	return s.String()
 }
 
+// SetMarker sets the Marker field's value.
+func (s *DescribeClusterParameterGroupsOutput) SetMarker(v string) *DescribeClusterParameterGroupsOutput {
+	s.Marker = &v
+	return s
+}
+
+// SetParameterGroups sets the ParameterGroups field's value.
+func (s *DescribeClusterParameterGroupsOutput) SetParameterGroups(v []*ClusterParameterGroup) *DescribeClusterParameterGroupsOutput {
+	s.ParameterGroups = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterParametersMessage
 type DescribeClusterParametersInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7973,7 +9253,32 @@ func (s *DescribeClusterParametersInput) Validate() error {
 	return nil
 }
 
+// SetMarker sets the Marker field's value.
+func (s *DescribeClusterParametersInput) SetMarker(v string) *DescribeClusterParametersInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeClusterParametersInput) SetMaxRecords(v int64) *DescribeClusterParametersInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetParameterGroupName sets the ParameterGroupName field's value.
+func (s *DescribeClusterParametersInput) SetParameterGroupName(v string) *DescribeClusterParametersInput {
+	s.ParameterGroupName = &v
+	return s
+}
+
+// SetSource sets the Source field's value.
+func (s *DescribeClusterParametersInput) SetSource(v string) *DescribeClusterParametersInput {
+	s.Source = &v
+	return s
+}
+
 // Contains the output from the DescribeClusterParameters action.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ClusterParameterGroupDetails
 type DescribeClusterParametersOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -7999,6 +9304,19 @@ func (s DescribeClusterParametersOutput) GoString() string {
 	return s.String()
 }
 
+// SetMarker sets the Marker field's value.
+func (s *DescribeClusterParametersOutput) SetMarker(v string) *DescribeClusterParametersOutput {
+	s.Marker = &v
+	return s
+}
+
+// SetParameters sets the Parameters field's value.
+func (s *DescribeClusterParametersOutput) SetParameters(v []*Parameter) *DescribeClusterParametersOutput {
+	s.Parameters = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterSecurityGroupsMessage
 type DescribeClusterSecurityGroupsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8006,7 +9324,7 @@ type DescribeClusterSecurityGroupsInput struct {
 	// You can specify either the Marker parameter or a ClusterSecurityGroupName
 	// parameter, but not both.
 	//
-	//  Example: securitygroup1
+	// Example: securitygroup1
 	ClusterSecurityGroupName *string `type:"string"`
 
 	// An optional parameter that specifies the starting point to return a set of
@@ -8057,6 +9375,37 @@ func (s DescribeClusterSecurityGroupsInput) GoString() string {
 	return s.String()
 }
 
+// SetClusterSecurityGroupName sets the ClusterSecurityGroupName field's value.
+func (s *DescribeClusterSecurityGroupsInput) SetClusterSecurityGroupName(v string) *DescribeClusterSecurityGroupsInput {
+	s.ClusterSecurityGroupName = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeClusterSecurityGroupsInput) SetMarker(v string) *DescribeClusterSecurityGroupsInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeClusterSecurityGroupsInput) SetMaxRecords(v int64) *DescribeClusterSecurityGroupsInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetTagKeys sets the TagKeys field's value.
+func (s *DescribeClusterSecurityGroupsInput) SetTagKeys(v []*string) *DescribeClusterSecurityGroupsInput {
+	s.TagKeys = v
+	return s
+}
+
+// SetTagValues sets the TagValues field's value.
+func (s *DescribeClusterSecurityGroupsInput) SetTagValues(v []*string) *DescribeClusterSecurityGroupsInput {
+	s.TagValues = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ClusterSecurityGroupMessage
 type DescribeClusterSecurityGroupsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -8081,6 +9430,19 @@ func (s DescribeClusterSecurityGroupsOutput) GoString() string {
 	return s.String()
 }
 
+// SetClusterSecurityGroups sets the ClusterSecurityGroups field's value.
+func (s *DescribeClusterSecurityGroupsOutput) SetClusterSecurityGroups(v []*ClusterSecurityGroup) *DescribeClusterSecurityGroupsOutput {
+	s.ClusterSecurityGroups = v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeClusterSecurityGroupsOutput) SetMarker(v string) *DescribeClusterSecurityGroupsOutput {
+	s.Marker = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterSnapshotsMessage
 type DescribeClusterSnapshotsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8161,7 +9523,68 @@ func (s DescribeClusterSnapshotsInput) GoString() string {
 	return s.String()
 }
 
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *DescribeClusterSnapshotsInput) SetClusterIdentifier(v string) *DescribeClusterSnapshotsInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetEndTime sets the EndTime field's value.
+func (s *DescribeClusterSnapshotsInput) SetEndTime(v time.Time) *DescribeClusterSnapshotsInput {
+	s.EndTime = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeClusterSnapshotsInput) SetMarker(v string) *DescribeClusterSnapshotsInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeClusterSnapshotsInput) SetMaxRecords(v int64) *DescribeClusterSnapshotsInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetOwnerAccount sets the OwnerAccount field's value.
+func (s *DescribeClusterSnapshotsInput) SetOwnerAccount(v string) *DescribeClusterSnapshotsInput {
+	s.OwnerAccount = &v
+	return s
+}
+
+// SetSnapshotIdentifier sets the SnapshotIdentifier field's value.
+func (s *DescribeClusterSnapshotsInput) SetSnapshotIdentifier(v string) *DescribeClusterSnapshotsInput {
+	s.SnapshotIdentifier = &v
+	return s
+}
+
+// SetSnapshotType sets the SnapshotType field's value.
+func (s *DescribeClusterSnapshotsInput) SetSnapshotType(v string) *DescribeClusterSnapshotsInput {
+	s.SnapshotType = &v
+	return s
+}
+
+// SetStartTime sets the StartTime field's value.
+func (s *DescribeClusterSnapshotsInput) SetStartTime(v time.Time) *DescribeClusterSnapshotsInput {
+	s.StartTime = &v
+	return s
+}
+
+// SetTagKeys sets the TagKeys field's value.
+func (s *DescribeClusterSnapshotsInput) SetTagKeys(v []*string) *DescribeClusterSnapshotsInput {
+	s.TagKeys = v
+	return s
+}
+
+// SetTagValues sets the TagValues field's value.
+func (s *DescribeClusterSnapshotsInput) SetTagValues(v []*string) *DescribeClusterSnapshotsInput {
+	s.TagValues = v
+	return s
+}
+
 // Contains the output from the DescribeClusterSnapshots action.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/SnapshotMessage
 type DescribeClusterSnapshotsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -8186,6 +9609,19 @@ func (s DescribeClusterSnapshotsOutput) GoString() string {
 	return s.String()
 }
 
+// SetMarker sets the Marker field's value.
+func (s *DescribeClusterSnapshotsOutput) SetMarker(v string) *DescribeClusterSnapshotsOutput {
+	s.Marker = &v
+	return s
+}
+
+// SetSnapshots sets the Snapshots field's value.
+func (s *DescribeClusterSnapshotsOutput) SetSnapshots(v []*Snapshot) *DescribeClusterSnapshotsOutput {
+	s.Snapshots = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterSubnetGroupsMessage
 type DescribeClusterSubnetGroupsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8237,7 +9673,38 @@ func (s DescribeClusterSubnetGroupsInput) GoString() string {
 	return s.String()
 }
 
+// SetClusterSubnetGroupName sets the ClusterSubnetGroupName field's value.
+func (s *DescribeClusterSubnetGroupsInput) SetClusterSubnetGroupName(v string) *DescribeClusterSubnetGroupsInput {
+	s.ClusterSubnetGroupName = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeClusterSubnetGroupsInput) SetMarker(v string) *DescribeClusterSubnetGroupsInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeClusterSubnetGroupsInput) SetMaxRecords(v int64) *DescribeClusterSubnetGroupsInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetTagKeys sets the TagKeys field's value.
+func (s *DescribeClusterSubnetGroupsInput) SetTagKeys(v []*string) *DescribeClusterSubnetGroupsInput {
+	s.TagKeys = v
+	return s
+}
+
+// SetTagValues sets the TagValues field's value.
+func (s *DescribeClusterSubnetGroupsInput) SetTagValues(v []*string) *DescribeClusterSubnetGroupsInput {
+	s.TagValues = v
+	return s
+}
+
 // Contains the output from the DescribeClusterSubnetGroups action.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ClusterSubnetGroupMessage
 type DescribeClusterSubnetGroupsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -8262,6 +9729,19 @@ func (s DescribeClusterSubnetGroupsOutput) GoString() string {
 	return s.String()
 }
 
+// SetClusterSubnetGroups sets the ClusterSubnetGroups field's value.
+func (s *DescribeClusterSubnetGroupsOutput) SetClusterSubnetGroups(v []*ClusterSubnetGroup) *DescribeClusterSubnetGroupsOutput {
+	s.ClusterSubnetGroups = v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeClusterSubnetGroupsOutput) SetMarker(v string) *DescribeClusterSubnetGroupsOutput {
+	s.Marker = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClusterVersionsMessage
 type DescribeClusterVersionsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8269,11 +9749,11 @@ type DescribeClusterVersionsInput struct {
 	//
 	// Constraints:
 	//
-	//   Must be 1 to 255 alphanumeric characters
+	//    * Must be 1 to 255 alphanumeric characters
 	//
-	//   First character must be a letter
+	//    * First character must be a letter
 	//
-	//   Cannot end with a hyphen or contain two consecutive hyphens
+	//    * Cannot end with a hyphen or contain two consecutive hyphens
 	ClusterParameterGroupFamily *string `type:"string"`
 
 	// The specific cluster version to return.
@@ -8309,7 +9789,32 @@ func (s DescribeClusterVersionsInput) GoString() string {
 	return s.String()
 }
 
+// SetClusterParameterGroupFamily sets the ClusterParameterGroupFamily field's value.
+func (s *DescribeClusterVersionsInput) SetClusterParameterGroupFamily(v string) *DescribeClusterVersionsInput {
+	s.ClusterParameterGroupFamily = &v
+	return s
+}
+
+// SetClusterVersion sets the ClusterVersion field's value.
+func (s *DescribeClusterVersionsInput) SetClusterVersion(v string) *DescribeClusterVersionsInput {
+	s.ClusterVersion = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeClusterVersionsInput) SetMarker(v string) *DescribeClusterVersionsInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeClusterVersionsInput) SetMaxRecords(v int64) *DescribeClusterVersionsInput {
+	s.MaxRecords = &v
+	return s
+}
+
 // Contains the output from the DescribeClusterVersions action.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ClusterVersionsMessage
 type DescribeClusterVersionsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -8334,6 +9839,19 @@ func (s DescribeClusterVersionsOutput) GoString() string {
 	return s.String()
 }
 
+// SetClusterVersions sets the ClusterVersions field's value.
+func (s *DescribeClusterVersionsOutput) SetClusterVersions(v []*ClusterVersion) *DescribeClusterVersionsOutput {
+	s.ClusterVersions = v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeClusterVersionsOutput) SetMarker(v string) *DescribeClusterVersionsOutput {
+	s.Marker = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeClustersMessage
 type DescribeClustersInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8390,7 +9908,38 @@ func (s DescribeClustersInput) GoString() string {
 	return s.String()
 }
 
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *DescribeClustersInput) SetClusterIdentifier(v string) *DescribeClustersInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeClustersInput) SetMarker(v string) *DescribeClustersInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeClustersInput) SetMaxRecords(v int64) *DescribeClustersInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetTagKeys sets the TagKeys field's value.
+func (s *DescribeClustersInput) SetTagKeys(v []*string) *DescribeClustersInput {
+	s.TagKeys = v
+	return s
+}
+
+// SetTagValues sets the TagValues field's value.
+func (s *DescribeClustersInput) SetTagValues(v []*string) *DescribeClustersInput {
+	s.TagValues = v
+	return s
+}
+
 // Contains the output from the DescribeClusters action.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ClustersMessage
 type DescribeClustersOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -8415,6 +9964,19 @@ func (s DescribeClustersOutput) GoString() string {
 	return s.String()
 }
 
+// SetClusters sets the Clusters field's value.
+func (s *DescribeClustersOutput) SetClusters(v []*Cluster) *DescribeClustersOutput {
+	s.Clusters = v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeClustersOutput) SetMarker(v string) *DescribeClustersOutput {
+	s.Marker = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeDefaultClusterParametersMessage
 type DescribeDefaultClusterParametersInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8465,6 +10027,25 @@ func (s *DescribeDefaultClusterParametersInput) Validate() error {
 	return nil
 }
 
+// SetMarker sets the Marker field's value.
+func (s *DescribeDefaultClusterParametersInput) SetMarker(v string) *DescribeDefaultClusterParametersInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeDefaultClusterParametersInput) SetMaxRecords(v int64) *DescribeDefaultClusterParametersInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetParameterGroupFamily sets the ParameterGroupFamily field's value.
+func (s *DescribeDefaultClusterParametersInput) SetParameterGroupFamily(v string) *DescribeDefaultClusterParametersInput {
+	s.ParameterGroupFamily = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeDefaultClusterParametersResult
 type DescribeDefaultClusterParametersOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -8482,6 +10063,13 @@ func (s DescribeDefaultClusterParametersOutput) GoString() string {
 	return s.String()
 }
 
+// SetDefaultClusterParameters sets the DefaultClusterParameters field's value.
+func (s *DescribeDefaultClusterParametersOutput) SetDefaultClusterParameters(v *DefaultClusterParameters) *DescribeDefaultClusterParametersOutput {
+	s.DefaultClusterParameters = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeEventCategoriesMessage
 type DescribeEventCategoriesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8502,6 +10090,13 @@ func (s DescribeEventCategoriesInput) GoString() string {
 	return s.String()
 }
 
+// SetSourceType sets the SourceType field's value.
+func (s *DescribeEventCategoriesInput) SetSourceType(v string) *DescribeEventCategoriesInput {
+	s.SourceType = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/EventCategoriesMessage
 type DescribeEventCategoriesOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -8519,6 +10114,13 @@ func (s DescribeEventCategoriesOutput) GoString() string {
 	return s.String()
 }
 
+// SetEventCategoriesMapList sets the EventCategoriesMapList field's value.
+func (s *DescribeEventCategoriesOutput) SetEventCategoriesMapList(v []*EventCategoriesMap) *DescribeEventCategoriesOutput {
+	s.EventCategoriesMapList = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeEventSubscriptionsMessage
 type DescribeEventSubscriptionsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8554,6 +10156,25 @@ func (s DescribeEventSubscriptionsInput) GoString() string {
 	return s.String()
 }
 
+// SetMarker sets the Marker field's value.
+func (s *DescribeEventSubscriptionsInput) SetMarker(v string) *DescribeEventSubscriptionsInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeEventSubscriptionsInput) SetMaxRecords(v int64) *DescribeEventSubscriptionsInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetSubscriptionName sets the SubscriptionName field's value.
+func (s *DescribeEventSubscriptionsInput) SetSubscriptionName(v string) *DescribeEventSubscriptionsInput {
+	s.SubscriptionName = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/EventSubscriptionsMessage
 type DescribeEventSubscriptionsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -8578,6 +10199,19 @@ func (s DescribeEventSubscriptionsOutput) GoString() string {
 	return s.String()
 }
 
+// SetEventSubscriptionsList sets the EventSubscriptionsList field's value.
+func (s *DescribeEventSubscriptionsOutput) SetEventSubscriptionsList(v []*EventSubscription) *DescribeEventSubscriptionsOutput {
+	s.EventSubscriptionsList = v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeEventSubscriptionsOutput) SetMarker(v string) *DescribeEventSubscriptionsOutput {
+	s.Marker = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeEventsMessage
 type DescribeEventsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8619,13 +10253,13 @@ type DescribeEventsInput struct {
 	//
 	// If SourceIdentifier is supplied, SourceType must also be provided.
 	//
-	//   Specify a cluster identifier when SourceType is cluster.
+	//    * Specify a cluster identifier when SourceType is cluster.
 	//
-	//   Specify a cluster security group name when SourceType is cluster-security-group.
+	//    * Specify a cluster security group name when SourceType is cluster-security-group.
 	//
-	//   Specify a cluster parameter group name when SourceType is cluster-parameter-group.
+	//    * Specify a cluster parameter group name when SourceType is cluster-parameter-group.
 	//
-	//   Specify a cluster snapshot identifier when SourceType is cluster-snapshot.
+	//    * Specify a cluster snapshot identifier when SourceType is cluster-snapshot.
 	SourceIdentifier *string `type:"string"`
 
 	// The event source to retrieve events for. If no value is specified, all events
@@ -8635,15 +10269,16 @@ type DescribeEventsInput struct {
 	//
 	// If SourceType is supplied, SourceIdentifier must also be provided.
 	//
-	//   Specify cluster when SourceIdentifier is a cluster identifier.
+	//    * Specify cluster when SourceIdentifier is a cluster identifier.
 	//
-	//   Specify cluster-security-group when SourceIdentifier is a cluster security
-	// group name.
+	//    * Specify cluster-security-group when SourceIdentifier is a cluster security
+	//    group name.
 	//
-	//   Specify cluster-parameter-group when SourceIdentifier is a cluster parameter
-	// group name.
+	//    * Specify cluster-parameter-group when SourceIdentifier is a cluster parameter
+	//    group name.
 	//
-	//   Specify cluster-snapshot when SourceIdentifier is a cluster snapshot identifier.
+	//    * Specify cluster-snapshot when SourceIdentifier is a cluster snapshot
+	//    identifier.
 	SourceType *string `type:"string" enum:"SourceType"`
 
 	// The beginning of the time interval to retrieve events for, specified in ISO
@@ -8664,6 +10299,49 @@ func (s DescribeEventsInput) GoString() string {
 	return s.String()
 }
 
+// SetDuration sets the Duration field's value.
+func (s *DescribeEventsInput) SetDuration(v int64) *DescribeEventsInput {
+	s.Duration = &v
+	return s
+}
+
+// SetEndTime sets the EndTime field's value.
+func (s *DescribeEventsInput) SetEndTime(v time.Time) *DescribeEventsInput {
+	s.EndTime = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeEventsInput) SetMarker(v string) *DescribeEventsInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeEventsInput) SetMaxRecords(v int64) *DescribeEventsInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetSourceIdentifier sets the SourceIdentifier field's value.
+func (s *DescribeEventsInput) SetSourceIdentifier(v string) *DescribeEventsInput {
+	s.SourceIdentifier = &v
+	return s
+}
+
+// SetSourceType sets the SourceType field's value.
+func (s *DescribeEventsInput) SetSourceType(v string) *DescribeEventsInput {
+	s.SourceType = &v
+	return s
+}
+
+// SetStartTime sets the StartTime field's value.
+func (s *DescribeEventsInput) SetStartTime(v time.Time) *DescribeEventsInput {
+	s.StartTime = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/EventsMessage
 type DescribeEventsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -8688,6 +10366,19 @@ func (s DescribeEventsOutput) GoString() string {
 	return s.String()
 }
 
+// SetEvents sets the Events field's value.
+func (s *DescribeEventsOutput) SetEvents(v []*Event) *DescribeEventsOutput {
+	s.Events = v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeEventsOutput) SetMarker(v string) *DescribeEventsOutput {
+	s.Marker = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeHsmClientCertificatesMessage
 type DescribeHsmClientCertificatesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8741,6 +10432,37 @@ func (s DescribeHsmClientCertificatesInput) GoString() string {
 	return s.String()
 }
 
+// SetHsmClientCertificateIdentifier sets the HsmClientCertificateIdentifier field's value.
+func (s *DescribeHsmClientCertificatesInput) SetHsmClientCertificateIdentifier(v string) *DescribeHsmClientCertificatesInput {
+	s.HsmClientCertificateIdentifier = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeHsmClientCertificatesInput) SetMarker(v string) *DescribeHsmClientCertificatesInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeHsmClientCertificatesInput) SetMaxRecords(v int64) *DescribeHsmClientCertificatesInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetTagKeys sets the TagKeys field's value.
+func (s *DescribeHsmClientCertificatesInput) SetTagKeys(v []*string) *DescribeHsmClientCertificatesInput {
+	s.TagKeys = v
+	return s
+}
+
+// SetTagValues sets the TagValues field's value.
+func (s *DescribeHsmClientCertificatesInput) SetTagValues(v []*string) *DescribeHsmClientCertificatesInput {
+	s.TagValues = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/HsmClientCertificateMessage
 type DescribeHsmClientCertificatesOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -8767,6 +10489,19 @@ func (s DescribeHsmClientCertificatesOutput) GoString() string {
 	return s.String()
 }
 
+// SetHsmClientCertificates sets the HsmClientCertificates field's value.
+func (s *DescribeHsmClientCertificatesOutput) SetHsmClientCertificates(v []*HsmClientCertificate) *DescribeHsmClientCertificatesOutput {
+	s.HsmClientCertificates = v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeHsmClientCertificatesOutput) SetMarker(v string) *DescribeHsmClientCertificatesOutput {
+	s.Marker = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeHsmConfigurationsMessage
 type DescribeHsmConfigurationsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8820,6 +10555,37 @@ func (s DescribeHsmConfigurationsInput) GoString() string {
 	return s.String()
 }
 
+// SetHsmConfigurationIdentifier sets the HsmConfigurationIdentifier field's value.
+func (s *DescribeHsmConfigurationsInput) SetHsmConfigurationIdentifier(v string) *DescribeHsmConfigurationsInput {
+	s.HsmConfigurationIdentifier = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeHsmConfigurationsInput) SetMarker(v string) *DescribeHsmConfigurationsInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeHsmConfigurationsInput) SetMaxRecords(v int64) *DescribeHsmConfigurationsInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetTagKeys sets the TagKeys field's value.
+func (s *DescribeHsmConfigurationsInput) SetTagKeys(v []*string) *DescribeHsmConfigurationsInput {
+	s.TagKeys = v
+	return s
+}
+
+// SetTagValues sets the TagValues field's value.
+func (s *DescribeHsmConfigurationsInput) SetTagValues(v []*string) *DescribeHsmConfigurationsInput {
+	s.TagValues = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/HsmConfigurationMessage
 type DescribeHsmConfigurationsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -8844,6 +10610,19 @@ func (s DescribeHsmConfigurationsOutput) GoString() string {
 	return s.String()
 }
 
+// SetHsmConfigurations sets the HsmConfigurations field's value.
+func (s *DescribeHsmConfigurationsOutput) SetHsmConfigurations(v []*HsmConfiguration) *DescribeHsmConfigurationsOutput {
+	s.HsmConfigurations = v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeHsmConfigurationsOutput) SetMarker(v string) *DescribeHsmConfigurationsOutput {
+	s.Marker = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeLoggingStatusMessage
 type DescribeLoggingStatusInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8878,6 +10657,13 @@ func (s *DescribeLoggingStatusInput) Validate() error {
 	return nil
 }
 
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *DescribeLoggingStatusInput) SetClusterIdentifier(v string) *DescribeLoggingStatusInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeOrderableClusterOptionsMessage
 type DescribeOrderableClusterOptionsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8922,7 +10708,32 @@ func (s DescribeOrderableClusterOptionsInput) GoString() string {
 	return s.String()
 }
 
+// SetClusterVersion sets the ClusterVersion field's value.
+func (s *DescribeOrderableClusterOptionsInput) SetClusterVersion(v string) *DescribeOrderableClusterOptionsInput {
+	s.ClusterVersion = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeOrderableClusterOptionsInput) SetMarker(v string) *DescribeOrderableClusterOptionsInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeOrderableClusterOptionsInput) SetMaxRecords(v int64) *DescribeOrderableClusterOptionsInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetNodeType sets the NodeType field's value.
+func (s *DescribeOrderableClusterOptionsInput) SetNodeType(v string) *DescribeOrderableClusterOptionsInput {
+	s.NodeType = &v
+	return s
+}
+
 // Contains the output from the DescribeOrderableClusterOptions action.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/OrderableClusterOptionsMessage
 type DescribeOrderableClusterOptionsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -8948,6 +10759,19 @@ func (s DescribeOrderableClusterOptionsOutput) GoString() string {
 	return s.String()
 }
 
+// SetMarker sets the Marker field's value.
+func (s *DescribeOrderableClusterOptionsOutput) SetMarker(v string) *DescribeOrderableClusterOptionsOutput {
+	s.Marker = &v
+	return s
+}
+
+// SetOrderableClusterOptions sets the OrderableClusterOptions field's value.
+func (s *DescribeOrderableClusterOptionsOutput) SetOrderableClusterOptions(v []*OrderableClusterOption) *DescribeOrderableClusterOptionsOutput {
+	s.OrderableClusterOptions = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeReservedNodeOfferingsMessage
 type DescribeReservedNodeOfferingsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8983,6 +10807,25 @@ func (s DescribeReservedNodeOfferingsInput) GoString() string {
 	return s.String()
 }
 
+// SetMarker sets the Marker field's value.
+func (s *DescribeReservedNodeOfferingsInput) SetMarker(v string) *DescribeReservedNodeOfferingsInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeReservedNodeOfferingsInput) SetMaxRecords(v int64) *DescribeReservedNodeOfferingsInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetReservedNodeOfferingId sets the ReservedNodeOfferingId field's value.
+func (s *DescribeReservedNodeOfferingsInput) SetReservedNodeOfferingId(v string) *DescribeReservedNodeOfferingsInput {
+	s.ReservedNodeOfferingId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ReservedNodeOfferingsMessage
 type DescribeReservedNodeOfferingsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -9007,6 +10850,19 @@ func (s DescribeReservedNodeOfferingsOutput) GoString() string {
 	return s.String()
 }
 
+// SetMarker sets the Marker field's value.
+func (s *DescribeReservedNodeOfferingsOutput) SetMarker(v string) *DescribeReservedNodeOfferingsOutput {
+	s.Marker = &v
+	return s
+}
+
+// SetReservedNodeOfferings sets the ReservedNodeOfferings field's value.
+func (s *DescribeReservedNodeOfferingsOutput) SetReservedNodeOfferings(v []*ReservedNodeOffering) *DescribeReservedNodeOfferingsOutput {
+	s.ReservedNodeOfferings = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeReservedNodesMessage
 type DescribeReservedNodesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -9041,6 +10897,25 @@ func (s DescribeReservedNodesInput) GoString() string {
 	return s.String()
 }
 
+// SetMarker sets the Marker field's value.
+func (s *DescribeReservedNodesInput) SetMarker(v string) *DescribeReservedNodesInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeReservedNodesInput) SetMaxRecords(v int64) *DescribeReservedNodesInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetReservedNodeId sets the ReservedNodeId field's value.
+func (s *DescribeReservedNodesInput) SetReservedNodeId(v string) *DescribeReservedNodesInput {
+	s.ReservedNodeId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ReservedNodesMessage
 type DescribeReservedNodesOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -9065,6 +10940,19 @@ func (s DescribeReservedNodesOutput) GoString() string {
 	return s.String()
 }
 
+// SetMarker sets the Marker field's value.
+func (s *DescribeReservedNodesOutput) SetMarker(v string) *DescribeReservedNodesOutput {
+	s.Marker = &v
+	return s
+}
+
+// SetReservedNodes sets the ReservedNodes field's value.
+func (s *DescribeReservedNodesOutput) SetReservedNodes(v []*ReservedNode) *DescribeReservedNodesOutput {
+	s.ReservedNodes = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeResizeMessage
 type DescribeResizeInput struct {
 	_ struct{} `type:"structure"`
 
@@ -9101,7 +10989,14 @@ func (s *DescribeResizeInput) Validate() error {
 	return nil
 }
 
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *DescribeResizeInput) SetClusterIdentifier(v string) *DescribeResizeInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
 // Describes the result of a cluster resize operation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ResizeProgressMessage
 type DescribeResizeOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -9175,7 +11070,80 @@ func (s DescribeResizeOutput) GoString() string {
 	return s.String()
 }
 
+// SetAvgResizeRateInMegaBytesPerSecond sets the AvgResizeRateInMegaBytesPerSecond field's value.
+func (s *DescribeResizeOutput) SetAvgResizeRateInMegaBytesPerSecond(v float64) *DescribeResizeOutput {
+	s.AvgResizeRateInMegaBytesPerSecond = &v
+	return s
+}
+
+// SetElapsedTimeInSeconds sets the ElapsedTimeInSeconds field's value.
+func (s *DescribeResizeOutput) SetElapsedTimeInSeconds(v int64) *DescribeResizeOutput {
+	s.ElapsedTimeInSeconds = &v
+	return s
+}
+
+// SetEstimatedTimeToCompletionInSeconds sets the EstimatedTimeToCompletionInSeconds field's value.
+func (s *DescribeResizeOutput) SetEstimatedTimeToCompletionInSeconds(v int64) *DescribeResizeOutput {
+	s.EstimatedTimeToCompletionInSeconds = &v
+	return s
+}
+
+// SetImportTablesCompleted sets the ImportTablesCompleted field's value.
+func (s *DescribeResizeOutput) SetImportTablesCompleted(v []*string) *DescribeResizeOutput {
+	s.ImportTablesCompleted = v
+	return s
+}
+
+// SetImportTablesInProgress sets the ImportTablesInProgress field's value.
+func (s *DescribeResizeOutput) SetImportTablesInProgress(v []*string) *DescribeResizeOutput {
+	s.ImportTablesInProgress = v
+	return s
+}
+
+// SetImportTablesNotStarted sets the ImportTablesNotStarted field's value.
+func (s *DescribeResizeOutput) SetImportTablesNotStarted(v []*string) *DescribeResizeOutput {
+	s.ImportTablesNotStarted = v
+	return s
+}
+
+// SetProgressInMegaBytes sets the ProgressInMegaBytes field's value.
+func (s *DescribeResizeOutput) SetProgressInMegaBytes(v int64) *DescribeResizeOutput {
+	s.ProgressInMegaBytes = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *DescribeResizeOutput) SetStatus(v string) *DescribeResizeOutput {
+	s.Status = &v
+	return s
+}
+
+// SetTargetClusterType sets the TargetClusterType field's value.
+func (s *DescribeResizeOutput) SetTargetClusterType(v string) *DescribeResizeOutput {
+	s.TargetClusterType = &v
+	return s
+}
+
+// SetTargetNodeType sets the TargetNodeType field's value.
+func (s *DescribeResizeOutput) SetTargetNodeType(v string) *DescribeResizeOutput {
+	s.TargetNodeType = &v
+	return s
+}
+
+// SetTargetNumberOfNodes sets the TargetNumberOfNodes field's value.
+func (s *DescribeResizeOutput) SetTargetNumberOfNodes(v int64) *DescribeResizeOutput {
+	s.TargetNumberOfNodes = &v
+	return s
+}
+
+// SetTotalResizeDataInMegaBytes sets the TotalResizeDataInMegaBytes field's value.
+func (s *DescribeResizeOutput) SetTotalResizeDataInMegaBytes(v int64) *DescribeResizeOutput {
+	s.TotalResizeDataInMegaBytes = &v
+	return s
+}
+
 // The result of the DescribeSnapshotCopyGrants action.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeSnapshotCopyGrantsMessage
 type DescribeSnapshotCopyGrantsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -9186,8 +11154,8 @@ type DescribeSnapshotCopyGrantsInput struct {
 	// by providing the returned marker value in the Marker parameter and retrying
 	// the request.
 	//
-	// Constraints: You can specify either the SnapshotCopyGrantName parameter
-	// or the Marker parameter, but not both.
+	// Constraints: You can specify either the SnapshotCopyGrantName parameter or
+	// the Marker parameter, but not both.
 	Marker *string `type:"string"`
 
 	// The maximum number of response records to return in each call. If the number
@@ -9230,6 +11198,37 @@ func (s DescribeSnapshotCopyGrantsInput) GoString() string {
 	return s.String()
 }
 
+// SetMarker sets the Marker field's value.
+func (s *DescribeSnapshotCopyGrantsInput) SetMarker(v string) *DescribeSnapshotCopyGrantsInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeSnapshotCopyGrantsInput) SetMaxRecords(v int64) *DescribeSnapshotCopyGrantsInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetSnapshotCopyGrantName sets the SnapshotCopyGrantName field's value.
+func (s *DescribeSnapshotCopyGrantsInput) SetSnapshotCopyGrantName(v string) *DescribeSnapshotCopyGrantsInput {
+	s.SnapshotCopyGrantName = &v
+	return s
+}
+
+// SetTagKeys sets the TagKeys field's value.
+func (s *DescribeSnapshotCopyGrantsInput) SetTagKeys(v []*string) *DescribeSnapshotCopyGrantsInput {
+	s.TagKeys = v
+	return s
+}
+
+// SetTagValues sets the TagValues field's value.
+func (s *DescribeSnapshotCopyGrantsInput) SetTagValues(v []*string) *DescribeSnapshotCopyGrantsInput {
+	s.TagValues = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/SnapshotCopyGrantMessage
 type DescribeSnapshotCopyGrantsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -9240,8 +11239,8 @@ type DescribeSnapshotCopyGrantsOutput struct {
 	// by providing the returned marker value in the Marker parameter and retrying
 	// the request.
 	//
-	// Constraints: You can specify either the SnapshotCopyGrantName parameter
-	// or the Marker parameter, but not both.
+	// Constraints: You can specify either the SnapshotCopyGrantName parameter or
+	// the Marker parameter, but not both.
 	Marker *string `type:"string"`
 
 	// The list of SnapshotCopyGrant objects.
@@ -9258,6 +11257,19 @@ func (s DescribeSnapshotCopyGrantsOutput) GoString() string {
 	return s.String()
 }
 
+// SetMarker sets the Marker field's value.
+func (s *DescribeSnapshotCopyGrantsOutput) SetMarker(v string) *DescribeSnapshotCopyGrantsOutput {
+	s.Marker = &v
+	return s
+}
+
+// SetSnapshotCopyGrants sets the SnapshotCopyGrants field's value.
+func (s *DescribeSnapshotCopyGrantsOutput) SetSnapshotCopyGrants(v []*SnapshotCopyGrant) *DescribeSnapshotCopyGrantsOutput {
+	s.SnapshotCopyGrants = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeTableRestoreStatusMessage
 type DescribeTableRestoreStatusInput struct {
 	_ struct{} `type:"structure"`
 
@@ -9290,6 +11302,31 @@ func (s DescribeTableRestoreStatusInput) GoString() string {
 	return s.String()
 }
 
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *DescribeTableRestoreStatusInput) SetClusterIdentifier(v string) *DescribeTableRestoreStatusInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *DescribeTableRestoreStatusInput) SetMarker(v string) *DescribeTableRestoreStatusInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeTableRestoreStatusInput) SetMaxRecords(v int64) *DescribeTableRestoreStatusInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetTableRestoreRequestId sets the TableRestoreRequestId field's value.
+func (s *DescribeTableRestoreStatusInput) SetTableRestoreRequestId(v string) *DescribeTableRestoreStatusInput {
+	s.TableRestoreRequestId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/TableRestoreStatusMessage
 type DescribeTableRestoreStatusOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -9311,6 +11348,19 @@ func (s DescribeTableRestoreStatusOutput) GoString() string {
 	return s.String()
 }
 
+// SetMarker sets the Marker field's value.
+func (s *DescribeTableRestoreStatusOutput) SetMarker(v string) *DescribeTableRestoreStatusOutput {
+	s.Marker = &v
+	return s
+}
+
+// SetTableRestoreStatusDetails sets the TableRestoreStatusDetails field's value.
+func (s *DescribeTableRestoreStatusOutput) SetTableRestoreStatusDetails(v []*TableRestoreStatus) *DescribeTableRestoreStatusOutput {
+	s.TableRestoreStatusDetails = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DescribeTagsMessage
 type DescribeTagsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -9334,27 +11384,27 @@ type DescribeTagsInput struct {
 	// The type of resource with which you want to view tags. Valid resource types
 	// are:
 	//
-	//   Cluster
+	//    * Cluster
 	//
-	//   CIDR/IP
+	//    * CIDR/IP
 	//
-	//   EC2 security group
+	//    * EC2 security group
 	//
-	//   Snapshot
+	//    * Snapshot
 	//
-	//   Cluster security group
+	//    * Cluster security group
 	//
-	//   Subnet group
+	//    * Subnet group
 	//
-	//   HSM connection
+	//    * HSM connection
 	//
-	//   HSM certificate
+	//    * HSM certificate
 	//
-	//   Parameter group
+	//    * Parameter group
 	//
-	//   Snapshot copy grant
+	//    * Snapshot copy grant
 	//
-	//   For more information about Amazon Redshift resource types and constructing
+	// For more information about Amazon Redshift resource types and constructing
 	// ARNs, go to Constructing an Amazon Redshift Amazon Resource Name (ARN) (http://docs.aws.amazon.com/redshift/latest/mgmt/constructing-redshift-arn.html)
 	// in the Amazon Redshift Cluster Management Guide.
 	ResourceType *string `type:"string"`
@@ -9386,6 +11436,43 @@ func (s DescribeTagsInput) GoString() string {
 	return s.String()
 }
 
+// SetMarker sets the Marker field's value.
+func (s *DescribeTagsInput) SetMarker(v string) *DescribeTagsInput {
+	s.Marker = &v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *DescribeTagsInput) SetMaxRecords(v int64) *DescribeTagsInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetResourceName sets the ResourceName field's value.
+func (s *DescribeTagsInput) SetResourceName(v string) *DescribeTagsInput {
+	s.ResourceName = &v
+	return s
+}
+
+// SetResourceType sets the ResourceType field's value.
+func (s *DescribeTagsInput) SetResourceType(v string) *DescribeTagsInput {
+	s.ResourceType = &v
+	return s
+}
+
+// SetTagKeys sets the TagKeys field's value.
+func (s *DescribeTagsInput) SetTagKeys(v []*string) *DescribeTagsInput {
+	s.TagKeys = v
+	return s
+}
+
+// SetTagValues sets the TagValues field's value.
+func (s *DescribeTagsInput) SetTagValues(v []*string) *DescribeTagsInput {
+	s.TagValues = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/TaggedResourceListMessage
 type DescribeTagsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -9410,6 +11497,19 @@ func (s DescribeTagsOutput) GoString() string {
 	return s.String()
 }
 
+// SetMarker sets the Marker field's value.
+func (s *DescribeTagsOutput) SetMarker(v string) *DescribeTagsOutput {
+	s.Marker = &v
+	return s
+}
+
+// SetTaggedResources sets the TaggedResources field's value.
+func (s *DescribeTagsOutput) SetTaggedResources(v []*TaggedResource) *DescribeTagsOutput {
+	s.TaggedResources = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DisableLoggingMessage
 type DisableLoggingInput struct {
 	_ struct{} `type:"structure"`
 
@@ -9444,6 +11544,13 @@ func (s *DisableLoggingInput) Validate() error {
 	return nil
 }
 
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *DisableLoggingInput) SetClusterIdentifier(v string) *DisableLoggingInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DisableSnapshotCopyMessage
 type DisableSnapshotCopyInput struct {
 	_ struct{} `type:"structure"`
 
@@ -9480,6 +11587,13 @@ func (s *DisableSnapshotCopyInput) Validate() error {
 	return nil
 }
 
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *DisableSnapshotCopyInput) SetClusterIdentifier(v string) *DisableSnapshotCopyInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/DisableSnapshotCopyResult
 type DisableSnapshotCopyOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -9497,7 +11611,14 @@ func (s DisableSnapshotCopyOutput) GoString() string {
 	return s.String()
 }
 
+// SetCluster sets the Cluster field's value.
+func (s *DisableSnapshotCopyOutput) SetCluster(v *Cluster) *DisableSnapshotCopyOutput {
+	s.Cluster = v
+	return s
+}
+
 // Describes an Amazon EC2 security group.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/EC2SecurityGroup
 type EC2SecurityGroup struct {
 	_ struct{} `type:"structure"`
 
@@ -9525,7 +11646,32 @@ func (s EC2SecurityGroup) GoString() string {
 	return s.String()
 }
 
+// SetEC2SecurityGroupName sets the EC2SecurityGroupName field's value.
+func (s *EC2SecurityGroup) SetEC2SecurityGroupName(v string) *EC2SecurityGroup {
+	s.EC2SecurityGroupName = &v
+	return s
+}
+
+// SetEC2SecurityGroupOwnerId sets the EC2SecurityGroupOwnerId field's value.
+func (s *EC2SecurityGroup) SetEC2SecurityGroupOwnerId(v string) *EC2SecurityGroup {
+	s.EC2SecurityGroupOwnerId = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *EC2SecurityGroup) SetStatus(v string) *EC2SecurityGroup {
+	s.Status = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *EC2SecurityGroup) SetTags(v []*Tag) *EC2SecurityGroup {
+	s.Tags = v
+	return s
+}
+
 // Describes the status of the elastic IP (EIP) address.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ElasticIpStatus
 type ElasticIpStatus struct {
 	_ struct{} `type:"structure"`
 
@@ -9546,6 +11692,19 @@ func (s ElasticIpStatus) GoString() string {
 	return s.String()
 }
 
+// SetElasticIp sets the ElasticIp field's value.
+func (s *ElasticIpStatus) SetElasticIp(v string) *ElasticIpStatus {
+	s.ElasticIp = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *ElasticIpStatus) SetStatus(v string) *ElasticIpStatus {
+	s.Status = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/EnableLoggingMessage
 type EnableLoggingInput struct {
 	_ struct{} `type:"structure"`
 
@@ -9553,9 +11712,9 @@ type EnableLoggingInput struct {
 	//
 	// Constraints:
 	//
-	//   Must be in the same region as the cluster
+	//    * Must be in the same region as the cluster
 	//
-	//   The cluster must have read bucket and put object permissions
+	//    * The cluster must have read bucket and put object permissions
 	//
 	// BucketName is a required field
 	BucketName *string `type:"string" required:"true"`
@@ -9571,21 +11730,21 @@ type EnableLoggingInput struct {
 	//
 	// Constraints:
 	//
-	//   Cannot exceed 512 characters
+	//    * Cannot exceed 512 characters
 	//
-	//   Cannot contain spaces( ), double quotes ("), single quotes ('), a backslash
-	// (\), or control characters. The hexadecimal codes for invalid characters
-	// are:
+	//    * Cannot contain spaces( ), double quotes ("), single quotes ('), a backslash
+	//    (\), or control characters. The hexadecimal codes for invalid characters
+	//    are:
 	//
-	//   x00 to x20
+	// x00 to x20
 	//
-	//   x22
+	// x22
 	//
-	//   x27
+	// x27
 	//
-	//   x5c
+	// x5c
 	//
-	//   x7f or larger
+	// x7f or larger
 	S3KeyPrefix *string `type:"string"`
 }
 
@@ -9615,6 +11774,25 @@ func (s *EnableLoggingInput) Validate() error {
 	return nil
 }
 
+// SetBucketName sets the BucketName field's value.
+func (s *EnableLoggingInput) SetBucketName(v string) *EnableLoggingInput {
+	s.BucketName = &v
+	return s
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *EnableLoggingInput) SetClusterIdentifier(v string) *EnableLoggingInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetS3KeyPrefix sets the S3KeyPrefix field's value.
+func (s *EnableLoggingInput) SetS3KeyPrefix(v string) *EnableLoggingInput {
+	s.S3KeyPrefix = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/EnableSnapshotCopyMessage
 type EnableSnapshotCopyInput struct {
 	_ struct{} `type:"structure"`
 
@@ -9674,6 +11852,31 @@ func (s *EnableSnapshotCopyInput) Validate() error {
 	return nil
 }
 
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *EnableSnapshotCopyInput) SetClusterIdentifier(v string) *EnableSnapshotCopyInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetDestinationRegion sets the DestinationRegion field's value.
+func (s *EnableSnapshotCopyInput) SetDestinationRegion(v string) *EnableSnapshotCopyInput {
+	s.DestinationRegion = &v
+	return s
+}
+
+// SetRetentionPeriod sets the RetentionPeriod field's value.
+func (s *EnableSnapshotCopyInput) SetRetentionPeriod(v int64) *EnableSnapshotCopyInput {
+	s.RetentionPeriod = &v
+	return s
+}
+
+// SetSnapshotCopyGrantName sets the SnapshotCopyGrantName field's value.
+func (s *EnableSnapshotCopyInput) SetSnapshotCopyGrantName(v string) *EnableSnapshotCopyInput {
+	s.SnapshotCopyGrantName = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/EnableSnapshotCopyResult
 type EnableSnapshotCopyOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -9691,7 +11894,14 @@ func (s EnableSnapshotCopyOutput) GoString() string {
 	return s.String()
 }
 
+// SetCluster sets the Cluster field's value.
+func (s *EnableSnapshotCopyOutput) SetCluster(v *Cluster) *EnableSnapshotCopyOutput {
+	s.Cluster = v
+	return s
+}
+
 // Describes a connection endpoint.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/Endpoint
 type Endpoint struct {
 	_ struct{} `type:"structure"`
 
@@ -9712,7 +11922,20 @@ func (s Endpoint) GoString() string {
 	return s.String()
 }
 
+// SetAddress sets the Address field's value.
+func (s *Endpoint) SetAddress(v string) *Endpoint {
+	s.Address = &v
+	return s
+}
+
+// SetPort sets the Port field's value.
+func (s *Endpoint) SetPort(v int64) *Endpoint {
+	s.Port = &v
+	return s
+}
+
 // Describes an event.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/Event
 type Event struct {
 	_ struct{} `type:"structure"`
 
@@ -9752,7 +11975,50 @@ func (s Event) GoString() string {
 	return s.String()
 }
 
+// SetDate sets the Date field's value.
+func (s *Event) SetDate(v time.Time) *Event {
+	s.Date = &v
+	return s
+}
+
+// SetEventCategories sets the EventCategories field's value.
+func (s *Event) SetEventCategories(v []*string) *Event {
+	s.EventCategories = v
+	return s
+}
+
+// SetEventId sets the EventId field's value.
+func (s *Event) SetEventId(v string) *Event {
+	s.EventId = &v
+	return s
+}
+
+// SetMessage sets the Message field's value.
+func (s *Event) SetMessage(v string) *Event {
+	s.Message = &v
+	return s
+}
+
+// SetSeverity sets the Severity field's value.
+func (s *Event) SetSeverity(v string) *Event {
+	s.Severity = &v
+	return s
+}
+
+// SetSourceIdentifier sets the SourceIdentifier field's value.
+func (s *Event) SetSourceIdentifier(v string) *Event {
+	s.SourceIdentifier = &v
+	return s
+}
+
+// SetSourceType sets the SourceType field's value.
+func (s *Event) SetSourceType(v string) *Event {
+	s.SourceType = &v
+	return s
+}
+
 // Describes event categories.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/EventCategoriesMap
 type EventCategoriesMap struct {
 	_ struct{} `type:"structure"`
 
@@ -9774,7 +12040,20 @@ func (s EventCategoriesMap) GoString() string {
 	return s.String()
 }
 
+// SetEvents sets the Events field's value.
+func (s *EventCategoriesMap) SetEvents(v []*EventInfoMap) *EventCategoriesMap {
+	s.Events = v
+	return s
+}
+
+// SetSourceType sets the SourceType field's value.
+func (s *EventCategoriesMap) SetSourceType(v string) *EventCategoriesMap {
+	s.SourceType = &v
+	return s
+}
+
 // Describes event information.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/EventInfoMap
 type EventInfoMap struct {
 	_ struct{} `type:"structure"`
 
@@ -9803,7 +12082,32 @@ func (s EventInfoMap) GoString() string {
 	return s.String()
 }
 
+// SetEventCategories sets the EventCategories field's value.
+func (s *EventInfoMap) SetEventCategories(v []*string) *EventInfoMap {
+	s.EventCategories = v
+	return s
+}
+
+// SetEventDescription sets the EventDescription field's value.
+func (s *EventInfoMap) SetEventDescription(v string) *EventInfoMap {
+	s.EventDescription = &v
+	return s
+}
+
+// SetEventId sets the EventId field's value.
+func (s *EventInfoMap) SetEventId(v string) *EventInfoMap {
+	s.EventId = &v
+	return s
+}
+
+// SetSeverity sets the Severity field's value.
+func (s *EventInfoMap) SetSeverity(v string) *EventInfoMap {
+	s.Severity = &v
+	return s
+}
+
 // Describes event subscriptions.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/EventSubscription
 type EventSubscription struct {
 	_ struct{} `type:"structure"`
 
@@ -9845,11 +12149,11 @@ type EventSubscription struct {
 	//
 	// Constraints:
 	//
-	//   Can be one of the following: active | no-permission | topic-not-exist
+	//    * Can be one of the following: active | no-permission | topic-not-exist
 	//
-	//   The status "no-permission" indicates that Amazon Redshift no longer has
-	// permission to post to the Amazon SNS topic. The status "topic-not-exist"
-	// indicates that the topic was deleted after the subscription was created.
+	//    * The status "no-permission" indicates that Amazon Redshift no longer
+	//    has permission to post to the Amazon SNS topic. The status "topic-not-exist"
+	//    indicates that the topic was deleted after the subscription was created.
 	Status *string `type:"string"`
 
 	// The date and time the Amazon Redshift event notification subscription was
@@ -9870,9 +12174,76 @@ func (s EventSubscription) GoString() string {
 	return s.String()
 }
 
+// SetCustSubscriptionId sets the CustSubscriptionId field's value.
+func (s *EventSubscription) SetCustSubscriptionId(v string) *EventSubscription {
+	s.CustSubscriptionId = &v
+	return s
+}
+
+// SetCustomerAwsId sets the CustomerAwsId field's value.
+func (s *EventSubscription) SetCustomerAwsId(v string) *EventSubscription {
+	s.CustomerAwsId = &v
+	return s
+}
+
+// SetEnabled sets the Enabled field's value.
+func (s *EventSubscription) SetEnabled(v bool) *EventSubscription {
+	s.Enabled = &v
+	return s
+}
+
+// SetEventCategoriesList sets the EventCategoriesList field's value.
+func (s *EventSubscription) SetEventCategoriesList(v []*string) *EventSubscription {
+	s.EventCategoriesList = v
+	return s
+}
+
+// SetSeverity sets the Severity field's value.
+func (s *EventSubscription) SetSeverity(v string) *EventSubscription {
+	s.Severity = &v
+	return s
+}
+
+// SetSnsTopicArn sets the SnsTopicArn field's value.
+func (s *EventSubscription) SetSnsTopicArn(v string) *EventSubscription {
+	s.SnsTopicArn = &v
+	return s
+}
+
+// SetSourceIdsList sets the SourceIdsList field's value.
+func (s *EventSubscription) SetSourceIdsList(v []*string) *EventSubscription {
+	s.SourceIdsList = v
+	return s
+}
+
+// SetSourceType sets the SourceType field's value.
+func (s *EventSubscription) SetSourceType(v string) *EventSubscription {
+	s.SourceType = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *EventSubscription) SetStatus(v string) *EventSubscription {
+	s.Status = &v
+	return s
+}
+
+// SetSubscriptionCreationTime sets the SubscriptionCreationTime field's value.
+func (s *EventSubscription) SetSubscriptionCreationTime(v time.Time) *EventSubscription {
+	s.SubscriptionCreationTime = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *EventSubscription) SetTags(v []*Tag) *EventSubscription {
+	s.Tags = v
+	return s
+}
+
 // Returns information about an HSM client certificate. The certificate is stored
 // in a secure Hardware Storage Module (HSM), and used by the Amazon Redshift
 // cluster to encrypt data files.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/HsmClientCertificate
 type HsmClientCertificate struct {
 	_ struct{} `type:"structure"`
 
@@ -9897,9 +12268,28 @@ func (s HsmClientCertificate) GoString() string {
 	return s.String()
 }
 
+// SetHsmClientCertificateIdentifier sets the HsmClientCertificateIdentifier field's value.
+func (s *HsmClientCertificate) SetHsmClientCertificateIdentifier(v string) *HsmClientCertificate {
+	s.HsmClientCertificateIdentifier = &v
+	return s
+}
+
+// SetHsmClientCertificatePublicKey sets the HsmClientCertificatePublicKey field's value.
+func (s *HsmClientCertificate) SetHsmClientCertificatePublicKey(v string) *HsmClientCertificate {
+	s.HsmClientCertificatePublicKey = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *HsmClientCertificate) SetTags(v []*Tag) *HsmClientCertificate {
+	s.Tags = v
+	return s
+}
+
 // Returns information about an HSM configuration, which is an object that describes
 // to Amazon Redshift clusters the information they require to connect to an
 // HSM where they can store database encryption keys.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/HsmConfiguration
 type HsmConfiguration struct {
 	_ struct{} `type:"structure"`
 
@@ -9930,7 +12320,38 @@ func (s HsmConfiguration) GoString() string {
 	return s.String()
 }
 
+// SetDescription sets the Description field's value.
+func (s *HsmConfiguration) SetDescription(v string) *HsmConfiguration {
+	s.Description = &v
+	return s
+}
+
+// SetHsmConfigurationIdentifier sets the HsmConfigurationIdentifier field's value.
+func (s *HsmConfiguration) SetHsmConfigurationIdentifier(v string) *HsmConfiguration {
+	s.HsmConfigurationIdentifier = &v
+	return s
+}
+
+// SetHsmIpAddress sets the HsmIpAddress field's value.
+func (s *HsmConfiguration) SetHsmIpAddress(v string) *HsmConfiguration {
+	s.HsmIpAddress = &v
+	return s
+}
+
+// SetHsmPartitionName sets the HsmPartitionName field's value.
+func (s *HsmConfiguration) SetHsmPartitionName(v string) *HsmConfiguration {
+	s.HsmPartitionName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *HsmConfiguration) SetTags(v []*Tag) *HsmConfiguration {
+	s.Tags = v
+	return s
+}
+
 // Describes the status of changes to HSM settings.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/HsmStatus
 type HsmStatus struct {
 	_ struct{} `type:"structure"`
 
@@ -9959,7 +12380,26 @@ func (s HsmStatus) GoString() string {
 	return s.String()
 }
 
+// SetHsmClientCertificateIdentifier sets the HsmClientCertificateIdentifier field's value.
+func (s *HsmStatus) SetHsmClientCertificateIdentifier(v string) *HsmStatus {
+	s.HsmClientCertificateIdentifier = &v
+	return s
+}
+
+// SetHsmConfigurationIdentifier sets the HsmConfigurationIdentifier field's value.
+func (s *HsmStatus) SetHsmConfigurationIdentifier(v string) *HsmStatus {
+	s.HsmConfigurationIdentifier = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *HsmStatus) SetStatus(v string) *HsmStatus {
+	s.Status = &v
+	return s
+}
+
 // Describes an IP range used in a security group.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/IPRange
 type IPRange struct {
 	_ struct{} `type:"structure"`
 
@@ -9983,7 +12423,26 @@ func (s IPRange) GoString() string {
 	return s.String()
 }
 
+// SetCIDRIP sets the CIDRIP field's value.
+func (s *IPRange) SetCIDRIP(v string) *IPRange {
+	s.CIDRIP = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *IPRange) SetStatus(v string) *IPRange {
+	s.Status = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *IPRange) SetTags(v []*Tag) *IPRange {
+	s.Tags = v
+	return s
+}
+
 // Describes the status of logging for a cluster.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/LoggingStatus
 type LoggingStatus struct {
 	_ struct{} `type:"structure"`
 
@@ -10016,6 +12475,43 @@ func (s LoggingStatus) GoString() string {
 	return s.String()
 }
 
+// SetBucketName sets the BucketName field's value.
+func (s *LoggingStatus) SetBucketName(v string) *LoggingStatus {
+	s.BucketName = &v
+	return s
+}
+
+// SetLastFailureMessage sets the LastFailureMessage field's value.
+func (s *LoggingStatus) SetLastFailureMessage(v string) *LoggingStatus {
+	s.LastFailureMessage = &v
+	return s
+}
+
+// SetLastFailureTime sets the LastFailureTime field's value.
+func (s *LoggingStatus) SetLastFailureTime(v time.Time) *LoggingStatus {
+	s.LastFailureTime = &v
+	return s
+}
+
+// SetLastSuccessfulDeliveryTime sets the LastSuccessfulDeliveryTime field's value.
+func (s *LoggingStatus) SetLastSuccessfulDeliveryTime(v time.Time) *LoggingStatus {
+	s.LastSuccessfulDeliveryTime = &v
+	return s
+}
+
+// SetLoggingEnabled sets the LoggingEnabled field's value.
+func (s *LoggingStatus) SetLoggingEnabled(v bool) *LoggingStatus {
+	s.LoggingEnabled = &v
+	return s
+}
+
+// SetS3KeyPrefix sets the S3KeyPrefix field's value.
+func (s *LoggingStatus) SetS3KeyPrefix(v string) *LoggingStatus {
+	s.S3KeyPrefix = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterIamRolesMessage
 type ModifyClusterIamRolesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -10058,6 +12554,25 @@ func (s *ModifyClusterIamRolesInput) Validate() error {
 	return nil
 }
 
+// SetAddIamRoles sets the AddIamRoles field's value.
+func (s *ModifyClusterIamRolesInput) SetAddIamRoles(v []*string) *ModifyClusterIamRolesInput {
+	s.AddIamRoles = v
+	return s
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *ModifyClusterIamRolesInput) SetClusterIdentifier(v string) *ModifyClusterIamRolesInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetRemoveIamRoles sets the RemoveIamRoles field's value.
+func (s *ModifyClusterIamRolesInput) SetRemoveIamRoles(v []*string) *ModifyClusterIamRolesInput {
+	s.RemoveIamRoles = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterIamRolesResult
 type ModifyClusterIamRolesOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -10075,6 +12590,13 @@ func (s ModifyClusterIamRolesOutput) GoString() string {
 	return s.String()
 }
 
+// SetCluster sets the Cluster field's value.
+func (s *ModifyClusterIamRolesOutput) SetCluster(v *Cluster) *ModifyClusterIamRolesOutput {
+	s.Cluster = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterMessage
 type ModifyClusterInput struct {
 	_ struct{} `type:"structure"`
 
@@ -10121,32 +12643,32 @@ type ModifyClusterInput struct {
 	//
 	// Constraints:
 	//
-	//   Must be 1 to 255 alphanumeric characters or hyphens
+	//    * Must be 1 to 255 alphanumeric characters or hyphens
 	//
-	//   First character must be a letter
+	//    * First character must be a letter
 	//
-	//   Cannot end with a hyphen or contain two consecutive hyphens
+	//    * Cannot end with a hyphen or contain two consecutive hyphens
 	ClusterSecurityGroups []*string `locationNameList:"ClusterSecurityGroupName" type:"list"`
 
 	// The new cluster type.
 	//
-	// When you submit your cluster resize request, your existing cluster goes
-	// into a read-only mode. After Amazon Redshift provisions a new cluster based
-	// on your resize requirements, there will be outage for a period while the
-	// old cluster is deleted and your connection is switched to the new cluster.
-	// You can use DescribeResize to track the progress of the resize request.
+	// When you submit your cluster resize request, your existing cluster goes into
+	// a read-only mode. After Amazon Redshift provisions a new cluster based on
+	// your resize requirements, there will be outage for a period while the old
+	// cluster is deleted and your connection is switched to the new cluster. You
+	// can use DescribeResize to track the progress of the resize request.
 	//
 	// Valid Values:  multi-node | single-node
 	ClusterType *string `type:"string"`
 
 	// The new version number of the Amazon Redshift engine to upgrade to.
 	//
-	// For major version upgrades, if a non-default cluster parameter group is
-	// currently in use, a new cluster parameter group in the cluster parameter
-	// group family for the new version must be specified. The new cluster parameter
-	// group can be the default for that cluster parameter group family. For more
-	// information about parameters and parameter groups, go to Amazon Redshift
-	// Parameter Groups (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-parameter-groups.html)
+	// For major version upgrades, if a non-default cluster parameter group is currently
+	// in use, a new cluster parameter group in the cluster parameter group family
+	// for the new version must be specified. The new cluster parameter group can
+	// be the default for that cluster parameter group family. For more information
+	// about parameters and parameter groups, go to Amazon Redshift Parameter Groups
+	// (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-parameter-groups.html)
 	// in the Amazon Redshift Cluster Management Guide.
 	//
 	// Example: 1.0
@@ -10184,41 +12706,41 @@ type ModifyClusterInput struct {
 	// of the request, the MasterUserPassword element exists in the PendingModifiedValues
 	// element of the operation response.
 	//
-	//  Operations never return the password, so this operation provides a way
-	// to regain access to the master user account for a cluster if the password
-	// is lost.
+	// Operations never return the password, so this operation provides a way to
+	// regain access to the master user account for a cluster if the password is
+	// lost.
 	//
-	//  Default: Uses existing setting.
+	// Default: Uses existing setting.
 	//
 	// Constraints:
 	//
-	//   Must be between 8 and 64 characters in length.
+	//    * Must be between 8 and 64 characters in length.
 	//
-	//   Must contain at least one uppercase letter.
+	//    * Must contain at least one uppercase letter.
 	//
-	//   Must contain at least one lowercase letter.
+	//    * Must contain at least one lowercase letter.
 	//
-	//   Must contain one number.
+	//    * Must contain one number.
 	//
-	//   Can be any printable ASCII character (ASCII code 33 to 126) except ' (single
-	// quote), " (double quote), \, /, @, or space.
+	//    * Can be any printable ASCII character (ASCII code 33 to 126) except '
+	//    (single quote), " (double quote), \, /, @, or space.
 	MasterUserPassword *string `type:"string"`
 
 	// The new identifier for the cluster.
 	//
 	// Constraints:
 	//
-	//   Must contain from 1 to 63 alphanumeric characters or hyphens.
+	//    * Must contain from 1 to 63 alphanumeric characters or hyphens.
 	//
-	//   Alphabetic characters must be lowercase.
+	//    * Alphabetic characters must be lowercase.
 	//
-	//   First character must be a letter.
+	//    * First character must be a letter.
 	//
-	//   Cannot end with a hyphen or contain two consecutive hyphens.
+	//    * Cannot end with a hyphen or contain two consecutive hyphens.
 	//
-	//   Must be unique for all clusters within an AWS account.
+	//    * Must be unique for all clusters within an AWS account.
 	//
-	//   Example: examplecluster
+	// Example: examplecluster
 	NewClusterIdentifier *string `type:"string"`
 
 	// The new node type of the cluster. If you specify a new node type, you must
@@ -10300,6 +12822,115 @@ func (s *ModifyClusterInput) Validate() error {
 	return nil
 }
 
+// SetAllowVersionUpgrade sets the AllowVersionUpgrade field's value.
+func (s *ModifyClusterInput) SetAllowVersionUpgrade(v bool) *ModifyClusterInput {
+	s.AllowVersionUpgrade = &v
+	return s
+}
+
+// SetAutomatedSnapshotRetentionPeriod sets the AutomatedSnapshotRetentionPeriod field's value.
+func (s *ModifyClusterInput) SetAutomatedSnapshotRetentionPeriod(v int64) *ModifyClusterInput {
+	s.AutomatedSnapshotRetentionPeriod = &v
+	return s
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *ModifyClusterInput) SetClusterIdentifier(v string) *ModifyClusterInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetClusterParameterGroupName sets the ClusterParameterGroupName field's value.
+func (s *ModifyClusterInput) SetClusterParameterGroupName(v string) *ModifyClusterInput {
+	s.ClusterParameterGroupName = &v
+	return s
+}
+
+// SetClusterSecurityGroups sets the ClusterSecurityGroups field's value.
+func (s *ModifyClusterInput) SetClusterSecurityGroups(v []*string) *ModifyClusterInput {
+	s.ClusterSecurityGroups = v
+	return s
+}
+
+// SetClusterType sets the ClusterType field's value.
+func (s *ModifyClusterInput) SetClusterType(v string) *ModifyClusterInput {
+	s.ClusterType = &v
+	return s
+}
+
+// SetClusterVersion sets the ClusterVersion field's value.
+func (s *ModifyClusterInput) SetClusterVersion(v string) *ModifyClusterInput {
+	s.ClusterVersion = &v
+	return s
+}
+
+// SetElasticIp sets the ElasticIp field's value.
+func (s *ModifyClusterInput) SetElasticIp(v string) *ModifyClusterInput {
+	s.ElasticIp = &v
+	return s
+}
+
+// SetEnhancedVpcRouting sets the EnhancedVpcRouting field's value.
+func (s *ModifyClusterInput) SetEnhancedVpcRouting(v bool) *ModifyClusterInput {
+	s.EnhancedVpcRouting = &v
+	return s
+}
+
+// SetHsmClientCertificateIdentifier sets the HsmClientCertificateIdentifier field's value.
+func (s *ModifyClusterInput) SetHsmClientCertificateIdentifier(v string) *ModifyClusterInput {
+	s.HsmClientCertificateIdentifier = &v
+	return s
+}
+
+// SetHsmConfigurationIdentifier sets the HsmConfigurationIdentifier field's value.
+func (s *ModifyClusterInput) SetHsmConfigurationIdentifier(v string) *ModifyClusterInput {
+	s.HsmConfigurationIdentifier = &v
+	return s
+}
+
+// SetMasterUserPassword sets the MasterUserPassword field's value.
+func (s *ModifyClusterInput) SetMasterUserPassword(v string) *ModifyClusterInput {
+	s.MasterUserPassword = &v
+	return s
+}
+
+// SetNewClusterIdentifier sets the NewClusterIdentifier field's value.
+func (s *ModifyClusterInput) SetNewClusterIdentifier(v string) *ModifyClusterInput {
+	s.NewClusterIdentifier = &v
+	return s
+}
+
+// SetNodeType sets the NodeType field's value.
+func (s *ModifyClusterInput) SetNodeType(v string) *ModifyClusterInput {
+	s.NodeType = &v
+	return s
+}
+
+// SetNumberOfNodes sets the NumberOfNodes field's value.
+func (s *ModifyClusterInput) SetNumberOfNodes(v int64) *ModifyClusterInput {
+	s.NumberOfNodes = &v
+	return s
+}
+
+// SetPreferredMaintenanceWindow sets the PreferredMaintenanceWindow field's value.
+func (s *ModifyClusterInput) SetPreferredMaintenanceWindow(v string) *ModifyClusterInput {
+	s.PreferredMaintenanceWindow = &v
+	return s
+}
+
+// SetPubliclyAccessible sets the PubliclyAccessible field's value.
+func (s *ModifyClusterInput) SetPubliclyAccessible(v bool) *ModifyClusterInput {
+	s.PubliclyAccessible = &v
+	return s
+}
+
+// SetVpcSecurityGroupIds sets the VpcSecurityGroupIds field's value.
+func (s *ModifyClusterInput) SetVpcSecurityGroupIds(v []*string) *ModifyClusterInput {
+	s.VpcSecurityGroupIds = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterResult
 type ModifyClusterOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -10317,6 +12948,13 @@ func (s ModifyClusterOutput) GoString() string {
 	return s.String()
 }
 
+// SetCluster sets the Cluster field's value.
+func (s *ModifyClusterOutput) SetCluster(v *Cluster) *ModifyClusterOutput {
+	s.Cluster = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterParameterGroupMessage
 type ModifyClusterParameterGroupInput struct {
 	_ struct{} `type:"structure"`
 
@@ -10364,6 +13002,19 @@ func (s *ModifyClusterParameterGroupInput) Validate() error {
 	return nil
 }
 
+// SetParameterGroupName sets the ParameterGroupName field's value.
+func (s *ModifyClusterParameterGroupInput) SetParameterGroupName(v string) *ModifyClusterParameterGroupInput {
+	s.ParameterGroupName = &v
+	return s
+}
+
+// SetParameters sets the Parameters field's value.
+func (s *ModifyClusterParameterGroupInput) SetParameters(v []*Parameter) *ModifyClusterParameterGroupInput {
+	s.Parameters = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterSubnetGroupMessage
 type ModifyClusterSubnetGroupInput struct {
 	_ struct{} `type:"structure"`
 
@@ -10408,6 +13059,25 @@ func (s *ModifyClusterSubnetGroupInput) Validate() error {
 	return nil
 }
 
+// SetClusterSubnetGroupName sets the ClusterSubnetGroupName field's value.
+func (s *ModifyClusterSubnetGroupInput) SetClusterSubnetGroupName(v string) *ModifyClusterSubnetGroupInput {
+	s.ClusterSubnetGroupName = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *ModifyClusterSubnetGroupInput) SetDescription(v string) *ModifyClusterSubnetGroupInput {
+	s.Description = &v
+	return s
+}
+
+// SetSubnetIds sets the SubnetIds field's value.
+func (s *ModifyClusterSubnetGroupInput) SetSubnetIds(v []*string) *ModifyClusterSubnetGroupInput {
+	s.SubnetIds = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyClusterSubnetGroupResult
 type ModifyClusterSubnetGroupOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -10425,6 +13095,13 @@ func (s ModifyClusterSubnetGroupOutput) GoString() string {
 	return s.String()
 }
 
+// SetClusterSubnetGroup sets the ClusterSubnetGroup field's value.
+func (s *ModifyClusterSubnetGroupOutput) SetClusterSubnetGroup(v *ClusterSubnetGroup) *ModifyClusterSubnetGroupOutput {
+	s.ClusterSubnetGroup = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyEventSubscriptionMessage
 type ModifyEventSubscriptionInput struct {
 	_ struct{} `type:"structure"`
 
@@ -10465,8 +13142,8 @@ type ModifyEventSubscriptionInput struct {
 	// for all Amazon Redshift objects in your AWS account. You must specify a source
 	// type in order to specify source IDs.
 	//
-	// Valid values: cluster, cluster-parameter-group, cluster-security-group,
-	// and cluster-snapshot.
+	// Valid values: cluster, cluster-parameter-group, cluster-security-group, and
+	// cluster-snapshot.
 	SourceType *string `type:"string"`
 
 	// The name of the modified Amazon Redshift event notification subscription.
@@ -10498,6 +13175,49 @@ func (s *ModifyEventSubscriptionInput) Validate() error {
 	return nil
 }
 
+// SetEnabled sets the Enabled field's value.
+func (s *ModifyEventSubscriptionInput) SetEnabled(v bool) *ModifyEventSubscriptionInput {
+	s.Enabled = &v
+	return s
+}
+
+// SetEventCategories sets the EventCategories field's value.
+func (s *ModifyEventSubscriptionInput) SetEventCategories(v []*string) *ModifyEventSubscriptionInput {
+	s.EventCategories = v
+	return s
+}
+
+// SetSeverity sets the Severity field's value.
+func (s *ModifyEventSubscriptionInput) SetSeverity(v string) *ModifyEventSubscriptionInput {
+	s.Severity = &v
+	return s
+}
+
+// SetSnsTopicArn sets the SnsTopicArn field's value.
+func (s *ModifyEventSubscriptionInput) SetSnsTopicArn(v string) *ModifyEventSubscriptionInput {
+	s.SnsTopicArn = &v
+	return s
+}
+
+// SetSourceIds sets the SourceIds field's value.
+func (s *ModifyEventSubscriptionInput) SetSourceIds(v []*string) *ModifyEventSubscriptionInput {
+	s.SourceIds = v
+	return s
+}
+
+// SetSourceType sets the SourceType field's value.
+func (s *ModifyEventSubscriptionInput) SetSourceType(v string) *ModifyEventSubscriptionInput {
+	s.SourceType = &v
+	return s
+}
+
+// SetSubscriptionName sets the SubscriptionName field's value.
+func (s *ModifyEventSubscriptionInput) SetSubscriptionName(v string) *ModifyEventSubscriptionInput {
+	s.SubscriptionName = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifyEventSubscriptionResult
 type ModifyEventSubscriptionOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -10515,6 +13235,13 @@ func (s ModifyEventSubscriptionOutput) GoString() string {
 	return s.String()
 }
 
+// SetEventSubscription sets the EventSubscription field's value.
+func (s *ModifyEventSubscriptionOutput) SetEventSubscription(v *EventSubscription) *ModifyEventSubscriptionOutput {
+	s.EventSubscription = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifySnapshotCopyRetentionPeriodMessage
 type ModifySnapshotCopyRetentionPeriodInput struct {
 	_ struct{} `type:"structure"`
 
@@ -10567,6 +13294,19 @@ func (s *ModifySnapshotCopyRetentionPeriodInput) Validate() error {
 	return nil
 }
 
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *ModifySnapshotCopyRetentionPeriodInput) SetClusterIdentifier(v string) *ModifySnapshotCopyRetentionPeriodInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetRetentionPeriod sets the RetentionPeriod field's value.
+func (s *ModifySnapshotCopyRetentionPeriodInput) SetRetentionPeriod(v int64) *ModifySnapshotCopyRetentionPeriodInput {
+	s.RetentionPeriod = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ModifySnapshotCopyRetentionPeriodResult
 type ModifySnapshotCopyRetentionPeriodOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -10584,7 +13324,14 @@ func (s ModifySnapshotCopyRetentionPeriodOutput) GoString() string {
 	return s.String()
 }
 
+// SetCluster sets the Cluster field's value.
+func (s *ModifySnapshotCopyRetentionPeriodOutput) SetCluster(v *Cluster) *ModifySnapshotCopyRetentionPeriodOutput {
+	s.Cluster = v
+	return s
+}
+
 // Describes an orderable cluster option.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/OrderableClusterOption
 type OrderableClusterOption struct {
 	_ struct{} `type:"structure"`
 
@@ -10611,7 +13358,32 @@ func (s OrderableClusterOption) GoString() string {
 	return s.String()
 }
 
+// SetAvailabilityZones sets the AvailabilityZones field's value.
+func (s *OrderableClusterOption) SetAvailabilityZones(v []*AvailabilityZone) *OrderableClusterOption {
+	s.AvailabilityZones = v
+	return s
+}
+
+// SetClusterType sets the ClusterType field's value.
+func (s *OrderableClusterOption) SetClusterType(v string) *OrderableClusterOption {
+	s.ClusterType = &v
+	return s
+}
+
+// SetClusterVersion sets the ClusterVersion field's value.
+func (s *OrderableClusterOption) SetClusterVersion(v string) *OrderableClusterOption {
+	s.ClusterVersion = &v
+	return s
+}
+
+// SetNodeType sets the NodeType field's value.
+func (s *OrderableClusterOption) SetNodeType(v string) *OrderableClusterOption {
+	s.NodeType = &v
+	return s
+}
+
 // Describes a parameter in a cluster parameter group.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/Parameter
 type Parameter struct {
 	_ struct{} `type:"structure"`
 
@@ -10659,8 +13431,63 @@ func (s Parameter) GoString() string {
 	return s.String()
 }
 
+// SetAllowedValues sets the AllowedValues field's value.
+func (s *Parameter) SetAllowedValues(v string) *Parameter {
+	s.AllowedValues = &v
+	return s
+}
+
+// SetApplyType sets the ApplyType field's value.
+func (s *Parameter) SetApplyType(v string) *Parameter {
+	s.ApplyType = &v
+	return s
+}
+
+// SetDataType sets the DataType field's value.
+func (s *Parameter) SetDataType(v string) *Parameter {
+	s.DataType = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *Parameter) SetDescription(v string) *Parameter {
+	s.Description = &v
+	return s
+}
+
+// SetIsModifiable sets the IsModifiable field's value.
+func (s *Parameter) SetIsModifiable(v bool) *Parameter {
+	s.IsModifiable = &v
+	return s
+}
+
+// SetMinimumEngineVersion sets the MinimumEngineVersion field's value.
+func (s *Parameter) SetMinimumEngineVersion(v string) *Parameter {
+	s.MinimumEngineVersion = &v
+	return s
+}
+
+// SetParameterName sets the ParameterName field's value.
+func (s *Parameter) SetParameterName(v string) *Parameter {
+	s.ParameterName = &v
+	return s
+}
+
+// SetParameterValue sets the ParameterValue field's value.
+func (s *Parameter) SetParameterValue(v string) *Parameter {
+	s.ParameterValue = &v
+	return s
+}
+
+// SetSource sets the Source field's value.
+func (s *Parameter) SetSource(v string) *Parameter {
+	s.Source = &v
+	return s
+}
+
 // Describes cluster attributes that are in a pending state. A change to one
 // or more the attributes was requested and is in progress or will be applied.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/PendingModifiedValues
 type PendingModifiedValues struct {
 	_ struct{} `type:"structure"`
 
@@ -10711,6 +13538,61 @@ func (s PendingModifiedValues) GoString() string {
 	return s.String()
 }
 
+// SetAutomatedSnapshotRetentionPeriod sets the AutomatedSnapshotRetentionPeriod field's value.
+func (s *PendingModifiedValues) SetAutomatedSnapshotRetentionPeriod(v int64) *PendingModifiedValues {
+	s.AutomatedSnapshotRetentionPeriod = &v
+	return s
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *PendingModifiedValues) SetClusterIdentifier(v string) *PendingModifiedValues {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetClusterType sets the ClusterType field's value.
+func (s *PendingModifiedValues) SetClusterType(v string) *PendingModifiedValues {
+	s.ClusterType = &v
+	return s
+}
+
+// SetClusterVersion sets the ClusterVersion field's value.
+func (s *PendingModifiedValues) SetClusterVersion(v string) *PendingModifiedValues {
+	s.ClusterVersion = &v
+	return s
+}
+
+// SetEnhancedVpcRouting sets the EnhancedVpcRouting field's value.
+func (s *PendingModifiedValues) SetEnhancedVpcRouting(v bool) *PendingModifiedValues {
+	s.EnhancedVpcRouting = &v
+	return s
+}
+
+// SetMasterUserPassword sets the MasterUserPassword field's value.
+func (s *PendingModifiedValues) SetMasterUserPassword(v string) *PendingModifiedValues {
+	s.MasterUserPassword = &v
+	return s
+}
+
+// SetNodeType sets the NodeType field's value.
+func (s *PendingModifiedValues) SetNodeType(v string) *PendingModifiedValues {
+	s.NodeType = &v
+	return s
+}
+
+// SetNumberOfNodes sets the NumberOfNodes field's value.
+func (s *PendingModifiedValues) SetNumberOfNodes(v int64) *PendingModifiedValues {
+	s.NumberOfNodes = &v
+	return s
+}
+
+// SetPubliclyAccessible sets the PubliclyAccessible field's value.
+func (s *PendingModifiedValues) SetPubliclyAccessible(v bool) *PendingModifiedValues {
+	s.PubliclyAccessible = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/PurchaseReservedNodeOfferingMessage
 type PurchaseReservedNodeOfferingInput struct {
 	_ struct{} `type:"structure"`
 
@@ -10748,6 +13630,19 @@ func (s *PurchaseReservedNodeOfferingInput) Validate() error {
 	return nil
 }
 
+// SetNodeCount sets the NodeCount field's value.
+func (s *PurchaseReservedNodeOfferingInput) SetNodeCount(v int64) *PurchaseReservedNodeOfferingInput {
+	s.NodeCount = &v
+	return s
+}
+
+// SetReservedNodeOfferingId sets the ReservedNodeOfferingId field's value.
+func (s *PurchaseReservedNodeOfferingInput) SetReservedNodeOfferingId(v string) *PurchaseReservedNodeOfferingInput {
+	s.ReservedNodeOfferingId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/PurchaseReservedNodeOfferingResult
 type PurchaseReservedNodeOfferingOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -10766,6 +13661,13 @@ func (s PurchaseReservedNodeOfferingOutput) GoString() string {
 	return s.String()
 }
 
+// SetReservedNode sets the ReservedNode field's value.
+func (s *PurchaseReservedNodeOfferingOutput) SetReservedNode(v *ReservedNode) *PurchaseReservedNodeOfferingOutput {
+	s.ReservedNode = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RebootClusterMessage
 type RebootClusterInput struct {
 	_ struct{} `type:"structure"`
 
@@ -10798,6 +13700,13 @@ func (s *RebootClusterInput) Validate() error {
 	return nil
 }
 
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *RebootClusterInput) SetClusterIdentifier(v string) *RebootClusterInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RebootClusterResult
 type RebootClusterOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -10815,7 +13724,14 @@ func (s RebootClusterOutput) GoString() string {
 	return s.String()
 }
 
+// SetCluster sets the Cluster field's value.
+func (s *RebootClusterOutput) SetCluster(v *Cluster) *RebootClusterOutput {
+	s.Cluster = v
+	return s
+}
+
 // Describes a recurring charge.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RecurringCharge
 type RecurringCharge struct {
 	_ struct{} `type:"structure"`
 
@@ -10837,8 +13753,21 @@ func (s RecurringCharge) GoString() string {
 	return s.String()
 }
 
+// SetRecurringChargeAmount sets the RecurringChargeAmount field's value.
+func (s *RecurringCharge) SetRecurringChargeAmount(v float64) *RecurringCharge {
+	s.RecurringChargeAmount = &v
+	return s
+}
+
+// SetRecurringChargeFrequency sets the RecurringChargeFrequency field's value.
+func (s *RecurringCharge) SetRecurringChargeFrequency(v string) *RecurringCharge {
+	s.RecurringChargeFrequency = &v
+	return s
+}
+
 // Describes a reserved node. You can call the DescribeReservedNodeOfferings
 // API to obtain the available reserved node offerings.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ReservedNode
 type ReservedNode struct {
 	_ struct{} `type:"structure"`
 
@@ -10878,13 +13807,13 @@ type ReservedNode struct {
 	//
 	// Possible Values:
 	//
-	//   pending-payment-This reserved node has recently been purchased, and the
-	// sale has been approved, but payment has not yet been confirmed.
+	//    * pending-payment-This reserved node has recently been purchased, and
+	//    the sale has been approved, but payment has not yet been confirmed.
 	//
-	//   active-This reserved node is owned by the caller and is available for
-	// use.
+	//    * active-This reserved node is owned by the caller and is available for
+	//    use.
 	//
-	//   payment-failed-Payment failed for the purchase attempt.
+	//    * payment-failed-Payment failed for the purchase attempt.
 	State *string `type:"string"`
 
 	// The hourly rate Amazon Redshift charges you for this reserved node.
@@ -10901,7 +13830,80 @@ func (s ReservedNode) GoString() string {
 	return s.String()
 }
 
+// SetCurrencyCode sets the CurrencyCode field's value.
+func (s *ReservedNode) SetCurrencyCode(v string) *ReservedNode {
+	s.CurrencyCode = &v
+	return s
+}
+
+// SetDuration sets the Duration field's value.
+func (s *ReservedNode) SetDuration(v int64) *ReservedNode {
+	s.Duration = &v
+	return s
+}
+
+// SetFixedPrice sets the FixedPrice field's value.
+func (s *ReservedNode) SetFixedPrice(v float64) *ReservedNode {
+	s.FixedPrice = &v
+	return s
+}
+
+// SetNodeCount sets the NodeCount field's value.
+func (s *ReservedNode) SetNodeCount(v int64) *ReservedNode {
+	s.NodeCount = &v
+	return s
+}
+
+// SetNodeType sets the NodeType field's value.
+func (s *ReservedNode) SetNodeType(v string) *ReservedNode {
+	s.NodeType = &v
+	return s
+}
+
+// SetOfferingType sets the OfferingType field's value.
+func (s *ReservedNode) SetOfferingType(v string) *ReservedNode {
+	s.OfferingType = &v
+	return s
+}
+
+// SetRecurringCharges sets the RecurringCharges field's value.
+func (s *ReservedNode) SetRecurringCharges(v []*RecurringCharge) *ReservedNode {
+	s.RecurringCharges = v
+	return s
+}
+
+// SetReservedNodeId sets the ReservedNodeId field's value.
+func (s *ReservedNode) SetReservedNodeId(v string) *ReservedNode {
+	s.ReservedNodeId = &v
+	return s
+}
+
+// SetReservedNodeOfferingId sets the ReservedNodeOfferingId field's value.
+func (s *ReservedNode) SetReservedNodeOfferingId(v string) *ReservedNode {
+	s.ReservedNodeOfferingId = &v
+	return s
+}
+
+// SetStartTime sets the StartTime field's value.
+func (s *ReservedNode) SetStartTime(v time.Time) *ReservedNode {
+	s.StartTime = &v
+	return s
+}
+
+// SetState sets the State field's value.
+func (s *ReservedNode) SetState(v string) *ReservedNode {
+	s.State = &v
+	return s
+}
+
+// SetUsagePrice sets the UsagePrice field's value.
+func (s *ReservedNode) SetUsagePrice(v float64) *ReservedNode {
+	s.UsagePrice = &v
+	return s
+}
+
 // Describes a reserved node offering.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ReservedNodeOffering
 type ReservedNodeOffering struct {
 	_ struct{} `type:"structure"`
 
@@ -10945,6 +13947,55 @@ func (s ReservedNodeOffering) GoString() string {
 	return s.String()
 }
 
+// SetCurrencyCode sets the CurrencyCode field's value.
+func (s *ReservedNodeOffering) SetCurrencyCode(v string) *ReservedNodeOffering {
+	s.CurrencyCode = &v
+	return s
+}
+
+// SetDuration sets the Duration field's value.
+func (s *ReservedNodeOffering) SetDuration(v int64) *ReservedNodeOffering {
+	s.Duration = &v
+	return s
+}
+
+// SetFixedPrice sets the FixedPrice field's value.
+func (s *ReservedNodeOffering) SetFixedPrice(v float64) *ReservedNodeOffering {
+	s.FixedPrice = &v
+	return s
+}
+
+// SetNodeType sets the NodeType field's value.
+func (s *ReservedNodeOffering) SetNodeType(v string) *ReservedNodeOffering {
+	s.NodeType = &v
+	return s
+}
+
+// SetOfferingType sets the OfferingType field's value.
+func (s *ReservedNodeOffering) SetOfferingType(v string) *ReservedNodeOffering {
+	s.OfferingType = &v
+	return s
+}
+
+// SetRecurringCharges sets the RecurringCharges field's value.
+func (s *ReservedNodeOffering) SetRecurringCharges(v []*RecurringCharge) *ReservedNodeOffering {
+	s.RecurringCharges = v
+	return s
+}
+
+// SetReservedNodeOfferingId sets the ReservedNodeOfferingId field's value.
+func (s *ReservedNodeOffering) SetReservedNodeOfferingId(v string) *ReservedNodeOffering {
+	s.ReservedNodeOfferingId = &v
+	return s
+}
+
+// SetUsagePrice sets the UsagePrice field's value.
+func (s *ReservedNodeOffering) SetUsagePrice(v float64) *ReservedNodeOffering {
+	s.UsagePrice = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/ResetClusterParameterGroupMessage
 type ResetClusterParameterGroupInput struct {
 	_ struct{} `type:"structure"`
 
@@ -10989,6 +14040,25 @@ func (s *ResetClusterParameterGroupInput) Validate() error {
 	return nil
 }
 
+// SetParameterGroupName sets the ParameterGroupName field's value.
+func (s *ResetClusterParameterGroupInput) SetParameterGroupName(v string) *ResetClusterParameterGroupInput {
+	s.ParameterGroupName = &v
+	return s
+}
+
+// SetParameters sets the Parameters field's value.
+func (s *ResetClusterParameterGroupInput) SetParameters(v []*Parameter) *ResetClusterParameterGroupInput {
+	s.Parameters = v
+	return s
+}
+
+// SetResetAllParameters sets the ResetAllParameters field's value.
+func (s *ResetClusterParameterGroupInput) SetResetAllParameters(v bool) *ResetClusterParameterGroupInput {
+	s.ResetAllParameters = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RestoreFromClusterSnapshotMessage
 type RestoreFromClusterSnapshotInput struct {
 	_ struct{} `type:"structure"`
 
@@ -11005,8 +14075,7 @@ type RestoreFromClusterSnapshotInput struct {
 	// 0, automated snapshots are disabled. Even if automated snapshots are disabled,
 	// you can still create manual snapshots when you want with CreateClusterSnapshot.
 	//
-	// Default: The value selected for the cluster from which the snapshot was
-	// taken.
+	// Default: The value selected for the cluster from which the snapshot was taken.
 	//
 	// Constraints: Must be a value from 0 to 35.
 	AutomatedSnapshotRetentionPeriod *int64 `type:"integer"`
@@ -11022,15 +14091,15 @@ type RestoreFromClusterSnapshotInput struct {
 	//
 	// Constraints:
 	//
-	//   Must contain from 1 to 63 alphanumeric characters or hyphens.
+	//    * Must contain from 1 to 63 alphanumeric characters or hyphens.
 	//
-	//   Alphabetic characters must be lowercase.
+	//    * Alphabetic characters must be lowercase.
 	//
-	//   First character must be a letter.
+	//    * First character must be a letter.
 	//
-	//   Cannot end with a hyphen or contain two consecutive hyphens.
+	//    * Cannot end with a hyphen or contain two consecutive hyphens.
 	//
-	//   Must be unique for all clusters within an AWS account.
+	//    * Must be unique for all clusters within an AWS account.
 	//
 	// ClusterIdentifier is a required field
 	ClusterIdentifier *string `type:"string" required:"true"`
@@ -11043,11 +14112,11 @@ type RestoreFromClusterSnapshotInput struct {
 	//
 	// Constraints:
 	//
-	//   Must be 1 to 255 alphanumeric characters or hyphens.
+	//    * Must be 1 to 255 alphanumeric characters or hyphens.
 	//
-	//   First character must be a letter.
+	//    * First character must be a letter.
 	//
-	//   Cannot end with a hyphen or contain two consecutive hyphens.
+	//    * Cannot end with a hyphen or contain two consecutive hyphens.
 	ClusterParameterGroupName *string `type:"string"`
 
 	// A list of security groups to be associated with this cluster.
@@ -11125,10 +14194,10 @@ type RestoreFromClusterSnapshotInput struct {
 	// The weekly time range (in UTC) during which automated cluster maintenance
 	// can occur.
 	//
-	//  Format: ddd:hh24:mi-ddd:hh24:mi
+	// Format: ddd:hh24:mi-ddd:hh24:mi
 	//
-	//  Default: The value selected for the cluster from which the snapshot was
-	// taken. For more information about the time blocks for each region, see Maintenance
+	// Default: The value selected for the cluster from which the snapshot was taken.
+	// For more information about the time blocks for each region, see Maintenance
 	// Windows (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-clusters.html#rs-maintenance-windows)
 	// in Amazon Redshift Cluster Management Guide.
 	//
@@ -11188,6 +14257,139 @@ func (s *RestoreFromClusterSnapshotInput) Validate() error {
 	return nil
 }
 
+// SetAdditionalInfo sets the AdditionalInfo field's value.
+func (s *RestoreFromClusterSnapshotInput) SetAdditionalInfo(v string) *RestoreFromClusterSnapshotInput {
+	s.AdditionalInfo = &v
+	return s
+}
+
+// SetAllowVersionUpgrade sets the AllowVersionUpgrade field's value.
+func (s *RestoreFromClusterSnapshotInput) SetAllowVersionUpgrade(v bool) *RestoreFromClusterSnapshotInput {
+	s.AllowVersionUpgrade = &v
+	return s
+}
+
+// SetAutomatedSnapshotRetentionPeriod sets the AutomatedSnapshotRetentionPeriod field's value.
+func (s *RestoreFromClusterSnapshotInput) SetAutomatedSnapshotRetentionPeriod(v int64) *RestoreFromClusterSnapshotInput {
+	s.AutomatedSnapshotRetentionPeriod = &v
+	return s
+}
+
+// SetAvailabilityZone sets the AvailabilityZone field's value.
+func (s *RestoreFromClusterSnapshotInput) SetAvailabilityZone(v string) *RestoreFromClusterSnapshotInput {
+	s.AvailabilityZone = &v
+	return s
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *RestoreFromClusterSnapshotInput) SetClusterIdentifier(v string) *RestoreFromClusterSnapshotInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetClusterParameterGroupName sets the ClusterParameterGroupName field's value.
+func (s *RestoreFromClusterSnapshotInput) SetClusterParameterGroupName(v string) *RestoreFromClusterSnapshotInput {
+	s.ClusterParameterGroupName = &v
+	return s
+}
+
+// SetClusterSecurityGroups sets the ClusterSecurityGroups field's value.
+func (s *RestoreFromClusterSnapshotInput) SetClusterSecurityGroups(v []*string) *RestoreFromClusterSnapshotInput {
+	s.ClusterSecurityGroups = v
+	return s
+}
+
+// SetClusterSubnetGroupName sets the ClusterSubnetGroupName field's value.
+func (s *RestoreFromClusterSnapshotInput) SetClusterSubnetGroupName(v string) *RestoreFromClusterSnapshotInput {
+	s.ClusterSubnetGroupName = &v
+	return s
+}
+
+// SetElasticIp sets the ElasticIp field's value.
+func (s *RestoreFromClusterSnapshotInput) SetElasticIp(v string) *RestoreFromClusterSnapshotInput {
+	s.ElasticIp = &v
+	return s
+}
+
+// SetEnhancedVpcRouting sets the EnhancedVpcRouting field's value.
+func (s *RestoreFromClusterSnapshotInput) SetEnhancedVpcRouting(v bool) *RestoreFromClusterSnapshotInput {
+	s.EnhancedVpcRouting = &v
+	return s
+}
+
+// SetHsmClientCertificateIdentifier sets the HsmClientCertificateIdentifier field's value.
+func (s *RestoreFromClusterSnapshotInput) SetHsmClientCertificateIdentifier(v string) *RestoreFromClusterSnapshotInput {
+	s.HsmClientCertificateIdentifier = &v
+	return s
+}
+
+// SetHsmConfigurationIdentifier sets the HsmConfigurationIdentifier field's value.
+func (s *RestoreFromClusterSnapshotInput) SetHsmConfigurationIdentifier(v string) *RestoreFromClusterSnapshotInput {
+	s.HsmConfigurationIdentifier = &v
+	return s
+}
+
+// SetIamRoles sets the IamRoles field's value.
+func (s *RestoreFromClusterSnapshotInput) SetIamRoles(v []*string) *RestoreFromClusterSnapshotInput {
+	s.IamRoles = v
+	return s
+}
+
+// SetKmsKeyId sets the KmsKeyId field's value.
+func (s *RestoreFromClusterSnapshotInput) SetKmsKeyId(v string) *RestoreFromClusterSnapshotInput {
+	s.KmsKeyId = &v
+	return s
+}
+
+// SetNodeType sets the NodeType field's value.
+func (s *RestoreFromClusterSnapshotInput) SetNodeType(v string) *RestoreFromClusterSnapshotInput {
+	s.NodeType = &v
+	return s
+}
+
+// SetOwnerAccount sets the OwnerAccount field's value.
+func (s *RestoreFromClusterSnapshotInput) SetOwnerAccount(v string) *RestoreFromClusterSnapshotInput {
+	s.OwnerAccount = &v
+	return s
+}
+
+// SetPort sets the Port field's value.
+func (s *RestoreFromClusterSnapshotInput) SetPort(v int64) *RestoreFromClusterSnapshotInput {
+	s.Port = &v
+	return s
+}
+
+// SetPreferredMaintenanceWindow sets the PreferredMaintenanceWindow field's value.
+func (s *RestoreFromClusterSnapshotInput) SetPreferredMaintenanceWindow(v string) *RestoreFromClusterSnapshotInput {
+	s.PreferredMaintenanceWindow = &v
+	return s
+}
+
+// SetPubliclyAccessible sets the PubliclyAccessible field's value.
+func (s *RestoreFromClusterSnapshotInput) SetPubliclyAccessible(v bool) *RestoreFromClusterSnapshotInput {
+	s.PubliclyAccessible = &v
+	return s
+}
+
+// SetSnapshotClusterIdentifier sets the SnapshotClusterIdentifier field's value.
+func (s *RestoreFromClusterSnapshotInput) SetSnapshotClusterIdentifier(v string) *RestoreFromClusterSnapshotInput {
+	s.SnapshotClusterIdentifier = &v
+	return s
+}
+
+// SetSnapshotIdentifier sets the SnapshotIdentifier field's value.
+func (s *RestoreFromClusterSnapshotInput) SetSnapshotIdentifier(v string) *RestoreFromClusterSnapshotInput {
+	s.SnapshotIdentifier = &v
+	return s
+}
+
+// SetVpcSecurityGroupIds sets the VpcSecurityGroupIds field's value.
+func (s *RestoreFromClusterSnapshotInput) SetVpcSecurityGroupIds(v []*string) *RestoreFromClusterSnapshotInput {
+	s.VpcSecurityGroupIds = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RestoreFromClusterSnapshotResult
 type RestoreFromClusterSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -11205,8 +14407,15 @@ func (s RestoreFromClusterSnapshotOutput) GoString() string {
 	return s.String()
 }
 
+// SetCluster sets the Cluster field's value.
+func (s *RestoreFromClusterSnapshotOutput) SetCluster(v *Cluster) *RestoreFromClusterSnapshotOutput {
+	s.Cluster = v
+	return s
+}
+
 // Describes the status of a cluster restore action. Returns null if the cluster
 // was not created by restoring a snapshot.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RestoreStatus
 type RestoreStatus struct {
 	_ struct{} `type:"structure"`
 
@@ -11243,6 +14452,43 @@ func (s RestoreStatus) GoString() string {
 	return s.String()
 }
 
+// SetCurrentRestoreRateInMegaBytesPerSecond sets the CurrentRestoreRateInMegaBytesPerSecond field's value.
+func (s *RestoreStatus) SetCurrentRestoreRateInMegaBytesPerSecond(v float64) *RestoreStatus {
+	s.CurrentRestoreRateInMegaBytesPerSecond = &v
+	return s
+}
+
+// SetElapsedTimeInSeconds sets the ElapsedTimeInSeconds field's value.
+func (s *RestoreStatus) SetElapsedTimeInSeconds(v int64) *RestoreStatus {
+	s.ElapsedTimeInSeconds = &v
+	return s
+}
+
+// SetEstimatedTimeToCompletionInSeconds sets the EstimatedTimeToCompletionInSeconds field's value.
+func (s *RestoreStatus) SetEstimatedTimeToCompletionInSeconds(v int64) *RestoreStatus {
+	s.EstimatedTimeToCompletionInSeconds = &v
+	return s
+}
+
+// SetProgressInMegaBytes sets the ProgressInMegaBytes field's value.
+func (s *RestoreStatus) SetProgressInMegaBytes(v int64) *RestoreStatus {
+	s.ProgressInMegaBytes = &v
+	return s
+}
+
+// SetSnapshotSizeInMegaBytes sets the SnapshotSizeInMegaBytes field's value.
+func (s *RestoreStatus) SetSnapshotSizeInMegaBytes(v int64) *RestoreStatus {
+	s.SnapshotSizeInMegaBytes = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *RestoreStatus) SetStatus(v string) *RestoreStatus {
+	s.Status = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RestoreTableFromClusterSnapshotMessage
 type RestoreTableFromClusterSnapshotInput struct {
 	_ struct{} `type:"structure"`
 
@@ -11319,6 +14565,55 @@ func (s *RestoreTableFromClusterSnapshotInput) Validate() error {
 	return nil
 }
 
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *RestoreTableFromClusterSnapshotInput) SetClusterIdentifier(v string) *RestoreTableFromClusterSnapshotInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetNewTableName sets the NewTableName field's value.
+func (s *RestoreTableFromClusterSnapshotInput) SetNewTableName(v string) *RestoreTableFromClusterSnapshotInput {
+	s.NewTableName = &v
+	return s
+}
+
+// SetSnapshotIdentifier sets the SnapshotIdentifier field's value.
+func (s *RestoreTableFromClusterSnapshotInput) SetSnapshotIdentifier(v string) *RestoreTableFromClusterSnapshotInput {
+	s.SnapshotIdentifier = &v
+	return s
+}
+
+// SetSourceDatabaseName sets the SourceDatabaseName field's value.
+func (s *RestoreTableFromClusterSnapshotInput) SetSourceDatabaseName(v string) *RestoreTableFromClusterSnapshotInput {
+	s.SourceDatabaseName = &v
+	return s
+}
+
+// SetSourceSchemaName sets the SourceSchemaName field's value.
+func (s *RestoreTableFromClusterSnapshotInput) SetSourceSchemaName(v string) *RestoreTableFromClusterSnapshotInput {
+	s.SourceSchemaName = &v
+	return s
+}
+
+// SetSourceTableName sets the SourceTableName field's value.
+func (s *RestoreTableFromClusterSnapshotInput) SetSourceTableName(v string) *RestoreTableFromClusterSnapshotInput {
+	s.SourceTableName = &v
+	return s
+}
+
+// SetTargetDatabaseName sets the TargetDatabaseName field's value.
+func (s *RestoreTableFromClusterSnapshotInput) SetTargetDatabaseName(v string) *RestoreTableFromClusterSnapshotInput {
+	s.TargetDatabaseName = &v
+	return s
+}
+
+// SetTargetSchemaName sets the TargetSchemaName field's value.
+func (s *RestoreTableFromClusterSnapshotInput) SetTargetSchemaName(v string) *RestoreTableFromClusterSnapshotInput {
+	s.TargetSchemaName = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RestoreTableFromClusterSnapshotResult
 type RestoreTableFromClusterSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -11336,6 +14631,13 @@ func (s RestoreTableFromClusterSnapshotOutput) GoString() string {
 	return s.String()
 }
 
+// SetTableRestoreStatus sets the TableRestoreStatus field's value.
+func (s *RestoreTableFromClusterSnapshotOutput) SetTableRestoreStatus(v *TableRestoreStatus) *RestoreTableFromClusterSnapshotOutput {
+	s.TableRestoreStatus = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RevokeClusterSecurityGroupIngressMessage
 type RevokeClusterSecurityGroupIngressInput struct {
 	_ struct{} `type:"structure"`
 
@@ -11386,6 +14688,31 @@ func (s *RevokeClusterSecurityGroupIngressInput) Validate() error {
 	return nil
 }
 
+// SetCIDRIP sets the CIDRIP field's value.
+func (s *RevokeClusterSecurityGroupIngressInput) SetCIDRIP(v string) *RevokeClusterSecurityGroupIngressInput {
+	s.CIDRIP = &v
+	return s
+}
+
+// SetClusterSecurityGroupName sets the ClusterSecurityGroupName field's value.
+func (s *RevokeClusterSecurityGroupIngressInput) SetClusterSecurityGroupName(v string) *RevokeClusterSecurityGroupIngressInput {
+	s.ClusterSecurityGroupName = &v
+	return s
+}
+
+// SetEC2SecurityGroupName sets the EC2SecurityGroupName field's value.
+func (s *RevokeClusterSecurityGroupIngressInput) SetEC2SecurityGroupName(v string) *RevokeClusterSecurityGroupIngressInput {
+	s.EC2SecurityGroupName = &v
+	return s
+}
+
+// SetEC2SecurityGroupOwnerId sets the EC2SecurityGroupOwnerId field's value.
+func (s *RevokeClusterSecurityGroupIngressInput) SetEC2SecurityGroupOwnerId(v string) *RevokeClusterSecurityGroupIngressInput {
+	s.EC2SecurityGroupOwnerId = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RevokeClusterSecurityGroupIngressResult
 type RevokeClusterSecurityGroupIngressOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -11403,6 +14730,13 @@ func (s RevokeClusterSecurityGroupIngressOutput) GoString() string {
 	return s.String()
 }
 
+// SetClusterSecurityGroup sets the ClusterSecurityGroup field's value.
+func (s *RevokeClusterSecurityGroupIngressOutput) SetClusterSecurityGroup(v *ClusterSecurityGroup) *RevokeClusterSecurityGroupIngressOutput {
+	s.ClusterSecurityGroup = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RevokeSnapshotAccessMessage
 type RevokeSnapshotAccessInput struct {
 	_ struct{} `type:"structure"`
 
@@ -11449,6 +14783,25 @@ func (s *RevokeSnapshotAccessInput) Validate() error {
 	return nil
 }
 
+// SetAccountWithRestoreAccess sets the AccountWithRestoreAccess field's value.
+func (s *RevokeSnapshotAccessInput) SetAccountWithRestoreAccess(v string) *RevokeSnapshotAccessInput {
+	s.AccountWithRestoreAccess = &v
+	return s
+}
+
+// SetSnapshotClusterIdentifier sets the SnapshotClusterIdentifier field's value.
+func (s *RevokeSnapshotAccessInput) SetSnapshotClusterIdentifier(v string) *RevokeSnapshotAccessInput {
+	s.SnapshotClusterIdentifier = &v
+	return s
+}
+
+// SetSnapshotIdentifier sets the SnapshotIdentifier field's value.
+func (s *RevokeSnapshotAccessInput) SetSnapshotIdentifier(v string) *RevokeSnapshotAccessInput {
+	s.SnapshotIdentifier = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RevokeSnapshotAccessResult
 type RevokeSnapshotAccessOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -11466,6 +14819,13 @@ func (s RevokeSnapshotAccessOutput) GoString() string {
 	return s.String()
 }
 
+// SetSnapshot sets the Snapshot field's value.
+func (s *RevokeSnapshotAccessOutput) SetSnapshot(v *Snapshot) *RevokeSnapshotAccessOutput {
+	s.Snapshot = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RotateEncryptionKeyMessage
 type RotateEncryptionKeyInput struct {
 	_ struct{} `type:"structure"`
 
@@ -11501,6 +14861,13 @@ func (s *RotateEncryptionKeyInput) Validate() error {
 	return nil
 }
 
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *RotateEncryptionKeyInput) SetClusterIdentifier(v string) *RotateEncryptionKeyInput {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/RotateEncryptionKeyResult
 type RotateEncryptionKeyOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -11518,7 +14885,14 @@ func (s RotateEncryptionKeyOutput) GoString() string {
 	return s.String()
 }
 
+// SetCluster sets the Cluster field's value.
+func (s *RotateEncryptionKeyOutput) SetCluster(v *Cluster) *RotateEncryptionKeyOutput {
+	s.Cluster = v
+	return s
+}
+
 // Describes a snapshot.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/Snapshot
 type Snapshot struct {
 	_ struct{} `type:"structure"`
 
@@ -11619,12 +14993,13 @@ type Snapshot struct {
 	// The snapshot status. The value of the status depends on the API operation
 	// used.
 	//
-	//    CreateClusterSnapshot and CopyClusterSnapshot returns status as "creating".
+	//    * CreateClusterSnapshot and CopyClusterSnapshot returns status as "creating".
 	//
-	//    DescribeClusterSnapshots returns status as "creating", "available", "final
-	// snapshot", or "failed".
 	//
-	//    DeleteClusterSnapshot returns status as "deleted".
+	//    * DescribeClusterSnapshots returns status as "creating", "available",
+	//    "final snapshot", or "failed".
+	//
+	//    * DeleteClusterSnapshot returns status as "deleted".
 	Status *string `type:"string"`
 
 	// The list of tags for the cluster snapshot.
@@ -11649,13 +15024,188 @@ func (s Snapshot) GoString() string {
 	return s.String()
 }
 
+// SetAccountsWithRestoreAccess sets the AccountsWithRestoreAccess field's value.
+func (s *Snapshot) SetAccountsWithRestoreAccess(v []*AccountWithRestoreAccess) *Snapshot {
+	s.AccountsWithRestoreAccess = v
+	return s
+}
+
+// SetActualIncrementalBackupSizeInMegaBytes sets the ActualIncrementalBackupSizeInMegaBytes field's value.
+func (s *Snapshot) SetActualIncrementalBackupSizeInMegaBytes(v float64) *Snapshot {
+	s.ActualIncrementalBackupSizeInMegaBytes = &v
+	return s
+}
+
+// SetAvailabilityZone sets the AvailabilityZone field's value.
+func (s *Snapshot) SetAvailabilityZone(v string) *Snapshot {
+	s.AvailabilityZone = &v
+	return s
+}
+
+// SetBackupProgressInMegaBytes sets the BackupProgressInMegaBytes field's value.
+func (s *Snapshot) SetBackupProgressInMegaBytes(v float64) *Snapshot {
+	s.BackupProgressInMegaBytes = &v
+	return s
+}
+
+// SetClusterCreateTime sets the ClusterCreateTime field's value.
+func (s *Snapshot) SetClusterCreateTime(v time.Time) *Snapshot {
+	s.ClusterCreateTime = &v
+	return s
+}
+
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *Snapshot) SetClusterIdentifier(v string) *Snapshot {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetClusterVersion sets the ClusterVersion field's value.
+func (s *Snapshot) SetClusterVersion(v string) *Snapshot {
+	s.ClusterVersion = &v
+	return s
+}
+
+// SetCurrentBackupRateInMegaBytesPerSecond sets the CurrentBackupRateInMegaBytesPerSecond field's value.
+func (s *Snapshot) SetCurrentBackupRateInMegaBytesPerSecond(v float64) *Snapshot {
+	s.CurrentBackupRateInMegaBytesPerSecond = &v
+	return s
+}
+
+// SetDBName sets the DBName field's value.
+func (s *Snapshot) SetDBName(v string) *Snapshot {
+	s.DBName = &v
+	return s
+}
+
+// SetElapsedTimeInSeconds sets the ElapsedTimeInSeconds field's value.
+func (s *Snapshot) SetElapsedTimeInSeconds(v int64) *Snapshot {
+	s.ElapsedTimeInSeconds = &v
+	return s
+}
+
+// SetEncrypted sets the Encrypted field's value.
+func (s *Snapshot) SetEncrypted(v bool) *Snapshot {
+	s.Encrypted = &v
+	return s
+}
+
+// SetEncryptedWithHSM sets the EncryptedWithHSM field's value.
+func (s *Snapshot) SetEncryptedWithHSM(v bool) *Snapshot {
+	s.EncryptedWithHSM = &v
+	return s
+}
+
+// SetEnhancedVpcRouting sets the EnhancedVpcRouting field's value.
+func (s *Snapshot) SetEnhancedVpcRouting(v bool) *Snapshot {
+	s.EnhancedVpcRouting = &v
+	return s
+}
+
+// SetEstimatedSecondsToCompletion sets the EstimatedSecondsToCompletion field's value.
+func (s *Snapshot) SetEstimatedSecondsToCompletion(v int64) *Snapshot {
+	s.EstimatedSecondsToCompletion = &v
+	return s
+}
+
+// SetKmsKeyId sets the KmsKeyId field's value.
+func (s *Snapshot) SetKmsKeyId(v string) *Snapshot {
+	s.KmsKeyId = &v
+	return s
+}
+
+// SetMasterUsername sets the MasterUsername field's value.
+func (s *Snapshot) SetMasterUsername(v string) *Snapshot {
+	s.MasterUsername = &v
+	return s
+}
+
+// SetNodeType sets the NodeType field's value.
+func (s *Snapshot) SetNodeType(v string) *Snapshot {
+	s.NodeType = &v
+	return s
+}
+
+// SetNumberOfNodes sets the NumberOfNodes field's value.
+func (s *Snapshot) SetNumberOfNodes(v int64) *Snapshot {
+	s.NumberOfNodes = &v
+	return s
+}
+
+// SetOwnerAccount sets the OwnerAccount field's value.
+func (s *Snapshot) SetOwnerAccount(v string) *Snapshot {
+	s.OwnerAccount = &v
+	return s
+}
+
+// SetPort sets the Port field's value.
+func (s *Snapshot) SetPort(v int64) *Snapshot {
+	s.Port = &v
+	return s
+}
+
+// SetRestorableNodeTypes sets the RestorableNodeTypes field's value.
+func (s *Snapshot) SetRestorableNodeTypes(v []*string) *Snapshot {
+	s.RestorableNodeTypes = v
+	return s
+}
+
+// SetSnapshotCreateTime sets the SnapshotCreateTime field's value.
+func (s *Snapshot) SetSnapshotCreateTime(v time.Time) *Snapshot {
+	s.SnapshotCreateTime = &v
+	return s
+}
+
+// SetSnapshotIdentifier sets the SnapshotIdentifier field's value.
+func (s *Snapshot) SetSnapshotIdentifier(v string) *Snapshot {
+	s.SnapshotIdentifier = &v
+	return s
+}
+
+// SetSnapshotType sets the SnapshotType field's value.
+func (s *Snapshot) SetSnapshotType(v string) *Snapshot {
+	s.SnapshotType = &v
+	return s
+}
+
+// SetSourceRegion sets the SourceRegion field's value.
+func (s *Snapshot) SetSourceRegion(v string) *Snapshot {
+	s.SourceRegion = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *Snapshot) SetStatus(v string) *Snapshot {
+	s.Status = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *Snapshot) SetTags(v []*Tag) *Snapshot {
+	s.Tags = v
+	return s
+}
+
+// SetTotalBackupSizeInMegaBytes sets the TotalBackupSizeInMegaBytes field's value.
+func (s *Snapshot) SetTotalBackupSizeInMegaBytes(v float64) *Snapshot {
+	s.TotalBackupSizeInMegaBytes = &v
+	return s
+}
+
+// SetVpcId sets the VpcId field's value.
+func (s *Snapshot) SetVpcId(v string) *Snapshot {
+	s.VpcId = &v
+	return s
+}
+
 // The snapshot copy grant that grants Amazon Redshift permission to encrypt
 // copied snapshots with the specified customer master key (CMK) from AWS KMS
 // in the destination region.
 //
-//  For more information about managing snapshot copy grants, go to Amazon
-// Redshift Database Encryption (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-db-encryption.html)
+// For more information about managing snapshot copy grants, go to Amazon Redshift
+// Database Encryption (http://docs.aws.amazon.com/redshift/latest/mgmt/working-with-db-encryption.html)
 // in the Amazon Redshift Cluster Management Guide.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/SnapshotCopyGrant
 type SnapshotCopyGrant struct {
 	_ struct{} `type:"structure"`
 
@@ -11680,7 +15230,26 @@ func (s SnapshotCopyGrant) GoString() string {
 	return s.String()
 }
 
+// SetKmsKeyId sets the KmsKeyId field's value.
+func (s *SnapshotCopyGrant) SetKmsKeyId(v string) *SnapshotCopyGrant {
+	s.KmsKeyId = &v
+	return s
+}
+
+// SetSnapshotCopyGrantName sets the SnapshotCopyGrantName field's value.
+func (s *SnapshotCopyGrant) SetSnapshotCopyGrantName(v string) *SnapshotCopyGrant {
+	s.SnapshotCopyGrantName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *SnapshotCopyGrant) SetTags(v []*Tag) *SnapshotCopyGrant {
+	s.Tags = v
+	return s
+}
+
 // Describes a subnet.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/Subnet
 type Subnet struct {
 	_ struct{} `type:"structure"`
 
@@ -11704,7 +15273,26 @@ func (s Subnet) GoString() string {
 	return s.String()
 }
 
+// SetSubnetAvailabilityZone sets the SubnetAvailabilityZone field's value.
+func (s *Subnet) SetSubnetAvailabilityZone(v *AvailabilityZone) *Subnet {
+	s.SubnetAvailabilityZone = v
+	return s
+}
+
+// SetSubnetIdentifier sets the SubnetIdentifier field's value.
+func (s *Subnet) SetSubnetIdentifier(v string) *Subnet {
+	s.SubnetIdentifier = &v
+	return s
+}
+
+// SetSubnetStatus sets the SubnetStatus field's value.
+func (s *Subnet) SetSubnetStatus(v string) *Subnet {
+	s.SubnetStatus = &v
+	return s
+}
+
 // Describes the status of a RestoreTableFromClusterSnapshot operation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/TableRestoreStatus
 type TableRestoreStatus struct {
 	_ struct{} `type:"structure"`
 
@@ -11766,7 +15354,92 @@ func (s TableRestoreStatus) GoString() string {
 	return s.String()
 }
 
+// SetClusterIdentifier sets the ClusterIdentifier field's value.
+func (s *TableRestoreStatus) SetClusterIdentifier(v string) *TableRestoreStatus {
+	s.ClusterIdentifier = &v
+	return s
+}
+
+// SetMessage sets the Message field's value.
+func (s *TableRestoreStatus) SetMessage(v string) *TableRestoreStatus {
+	s.Message = &v
+	return s
+}
+
+// SetNewTableName sets the NewTableName field's value.
+func (s *TableRestoreStatus) SetNewTableName(v string) *TableRestoreStatus {
+	s.NewTableName = &v
+	return s
+}
+
+// SetProgressInMegaBytes sets the ProgressInMegaBytes field's value.
+func (s *TableRestoreStatus) SetProgressInMegaBytes(v int64) *TableRestoreStatus {
+	s.ProgressInMegaBytes = &v
+	return s
+}
+
+// SetRequestTime sets the RequestTime field's value.
+func (s *TableRestoreStatus) SetRequestTime(v time.Time) *TableRestoreStatus {
+	s.RequestTime = &v
+	return s
+}
+
+// SetSnapshotIdentifier sets the SnapshotIdentifier field's value.
+func (s *TableRestoreStatus) SetSnapshotIdentifier(v string) *TableRestoreStatus {
+	s.SnapshotIdentifier = &v
+	return s
+}
+
+// SetSourceDatabaseName sets the SourceDatabaseName field's value.
+func (s *TableRestoreStatus) SetSourceDatabaseName(v string) *TableRestoreStatus {
+	s.SourceDatabaseName = &v
+	return s
+}
+
+// SetSourceSchemaName sets the SourceSchemaName field's value.
+func (s *TableRestoreStatus) SetSourceSchemaName(v string) *TableRestoreStatus {
+	s.SourceSchemaName = &v
+	return s
+}
+
+// SetSourceTableName sets the SourceTableName field's value.
+func (s *TableRestoreStatus) SetSourceTableName(v string) *TableRestoreStatus {
+	s.SourceTableName = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *TableRestoreStatus) SetStatus(v string) *TableRestoreStatus {
+	s.Status = &v
+	return s
+}
+
+// SetTableRestoreRequestId sets the TableRestoreRequestId field's value.
+func (s *TableRestoreStatus) SetTableRestoreRequestId(v string) *TableRestoreStatus {
+	s.TableRestoreRequestId = &v
+	return s
+}
+
+// SetTargetDatabaseName sets the TargetDatabaseName field's value.
+func (s *TableRestoreStatus) SetTargetDatabaseName(v string) *TableRestoreStatus {
+	s.TargetDatabaseName = &v
+	return s
+}
+
+// SetTargetSchemaName sets the TargetSchemaName field's value.
+func (s *TableRestoreStatus) SetTargetSchemaName(v string) *TableRestoreStatus {
+	s.TargetSchemaName = &v
+	return s
+}
+
+// SetTotalDataInMegaBytes sets the TotalDataInMegaBytes field's value.
+func (s *TableRestoreStatus) SetTotalDataInMegaBytes(v int64) *TableRestoreStatus {
+	s.TotalDataInMegaBytes = &v
+	return s
+}
+
 // A tag consisting of a name/value pair for a resource.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/Tag
 type Tag struct {
 	_ struct{} `type:"structure"`
 
@@ -11787,7 +15460,20 @@ func (s Tag) GoString() string {
 	return s.String()
 }
 
+// SetKey sets the Key field's value.
+func (s *Tag) SetKey(v string) *Tag {
+	s.Key = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *Tag) SetValue(v string) *Tag {
+	s.Value = &v
+	return s
+}
+
 // A tag and its associated resource.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/TaggedResource
 type TaggedResource struct {
 	_ struct{} `type:"structure"`
 
@@ -11798,25 +15484,25 @@ type TaggedResource struct {
 	// The type of resource with which the tag is associated. Valid resource types
 	// are:
 	//
-	//   Cluster
+	//    * Cluster
 	//
-	//   CIDR/IP
+	//    * CIDR/IP
 	//
-	//   EC2 security group
+	//    * EC2 security group
 	//
-	//   Snapshot
+	//    * Snapshot
 	//
-	//   Cluster security group
+	//    * Cluster security group
 	//
-	//   Subnet group
+	//    * Subnet group
 	//
-	//   HSM connection
+	//    * HSM connection
 	//
-	//   HSM certificate
+	//    * HSM certificate
 	//
-	//   Parameter group
+	//    * Parameter group
 	//
-	//   For more information about Amazon Redshift resource types and constructing
+	// For more information about Amazon Redshift resource types and constructing
 	// ARNs, go to Constructing an Amazon Redshift Amazon Resource Name (ARN) (http://docs.aws.amazon.com/redshift/latest/mgmt/constructing-redshift-arn.html)
 	// in the Amazon Redshift Cluster Management Guide.
 	ResourceType *string `type:"string"`
@@ -11835,7 +15521,26 @@ func (s TaggedResource) GoString() string {
 	return s.String()
 }
 
+// SetResourceName sets the ResourceName field's value.
+func (s *TaggedResource) SetResourceName(v string) *TaggedResource {
+	s.ResourceName = &v
+	return s
+}
+
+// SetResourceType sets the ResourceType field's value.
+func (s *TaggedResource) SetResourceType(v string) *TaggedResource {
+	s.ResourceType = &v
+	return s
+}
+
+// SetTag sets the Tag field's value.
+func (s *TaggedResource) SetTag(v *Tag) *TaggedResource {
+	s.Tag = v
+	return s
+}
+
 // Describes the members of a VPC security group.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/redshift-2012-12-01/VpcSecurityGroupMembership
 type VpcSecurityGroupMembership struct {
 	_ struct{} `type:"structure"`
 
@@ -11854,6 +15559,18 @@ func (s VpcSecurityGroupMembership) String() string {
 // GoString returns the string representation
 func (s VpcSecurityGroupMembership) GoString() string {
 	return s.String()
+}
+
+// SetStatus sets the Status field's value.
+func (s *VpcSecurityGroupMembership) SetStatus(v string) *VpcSecurityGroupMembership {
+	s.Status = &v
+	return s
+}
+
+// SetVpcSecurityGroupId sets the VpcSecurityGroupId field's value.
+func (s *VpcSecurityGroupMembership) SetVpcSecurityGroupId(v string) *VpcSecurityGroupMembership {
+	s.VpcSecurityGroupId = &v
+	return s
 }
 
 const (

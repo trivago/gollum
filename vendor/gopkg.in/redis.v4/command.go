@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"gopkg.in/redis.v4/internal"
 	"gopkg.in/redis.v4/internal/pool"
 	"gopkg.in/redis.v4/internal/proto"
 )
@@ -130,6 +131,10 @@ func (cmd *baseCmd) setErr(e error) {
 }
 
 func newBaseCmd(args []interface{}) baseCmd {
+	if len(args) > 0 {
+		// Cmd name is expected to be in lower case.
+		args[0] = internal.ToLower(args[0].(string))
+	}
 	return baseCmd{_args: args}
 }
 
@@ -879,6 +884,50 @@ func (cmd *GeoLocationCmd) readReply(cn *pool.Conn) error {
 		return err
 	}
 	cmd.locations = reply.([]GeoLocation)
+	return nil
+}
+
+//------------------------------------------------------------------------------
+
+type GeoPos struct {
+	Longitude, Latitude float64
+}
+
+type GeoPosCmd struct {
+	baseCmd
+
+	positions []*GeoPos
+}
+
+func NewGeoPosCmd(args ...interface{}) *GeoPosCmd {
+	cmd := newBaseCmd(args)
+	return &GeoPosCmd{baseCmd: cmd}
+}
+
+func (cmd *GeoPosCmd) Val() []*GeoPos {
+	return cmd.positions
+}
+
+func (cmd *GeoPosCmd) Result() ([]*GeoPos, error) {
+	return cmd.Val(), cmd.Err()
+}
+
+func (cmd *GeoPosCmd) String() string {
+	return cmdString(cmd, cmd.positions)
+}
+
+func (cmd *GeoPosCmd) reset() {
+	cmd.positions = nil
+	cmd.err = nil
+}
+
+func (cmd *GeoPosCmd) readReply(cn *pool.Conn) error {
+	reply, err := cn.Rd.ReadArrayReply(geoPosSliceParser)
+	if err != nil {
+		cmd.err = err
+		return err
+	}
+	cmd.positions = reply.([]*GeoPos)
 	return nil
 }
 

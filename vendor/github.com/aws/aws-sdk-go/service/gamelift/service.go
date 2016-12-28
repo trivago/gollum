@@ -24,50 +24,50 @@ import (
 // for GameLift. For administrative actions, you can also use the Amazon GameLift
 // console.
 //
-//  More Resources
+// More Resources
 //
-//    Amazon GameLift Developer Guide (http://docs.aws.amazon.com/gamelift/latest/developerguide/):
-// Learn more about GameLift features and how to use them
+//    * Amazon GameLift Developer Guide (http://docs.aws.amazon.com/gamelift/latest/developerguide/):
+//    Learn more about GameLift features and how to use them
 //
-//    Lumberyard and GameLift Tutorials (https://gamedev.amazon.com/forums/tutorials):
-// Get started fast with walkthroughs and sample projects
+//    * Lumberyard and GameLift Tutorials (https://gamedev.amazon.com/forums/tutorials):
+//    Get started fast with walkthroughs and sample projects
 //
-//    GameDev Blog (http://aws.amazon.com/blogs/gamedev/): Stay up to date
-// with new features and techniques
+//    * GameDev Blog (http://aws.amazon.com/blogs/gamedev/): Stay up to date
+//    with new features and techniques
 //
-//    GameDev Forums (https://gamedev.amazon.com/forums/spaces/123/gamelift-discussion.html):
-// Connect with the GameDev community
+//    * GameDev Forums (https://gamedev.amazon.com/forums/spaces/123/gamelift-discussion.html):
+//    Connect with the GameDev community
 //
-//    Manage Games and Players Through GameLift
+// Manage Games and Players Through GameLift
 //
-// Call these actions from your game clients and/or services to create and
-// manage multiplayer game sessions and player sessions.
+// Call these actions from your game clients and/or services to create and manage
+// multiplayer game sessions and player sessions.
 //
-//    Game sessions:
+//    * Game sessions:
 //
-//    CreateGameSession
+// CreateGameSession
 //
-//    DescribeGameSessions
+// DescribeGameSessions
 //
-//    DescribeGameSessionDetails
+// DescribeGameSessionDetails
 //
-//    UpdateGameSession
+// UpdateGameSession
 //
-//    SearchGameSessions
+// SearchGameSessions
 //
-//      Player sessions:
+//    * Player sessions:
 //
-//    CreatePlayerSession
+// CreatePlayerSession
 //
-//    CreatePlayerSessions
+// CreatePlayerSessions
 //
-//    DescribePlayerSessions
+// DescribePlayerSessions
 //
-//      Other actions:
+//    * Other actions:
 //
-//    GetGameSessionLogUrl
+// GetGameSessionLogUrl
 //
-//      Set Up and Manage Game Servers
+// Set Up and Manage Game Servers
 //
 // Use these administrative actions to configure GameLift to host your game
 // servers. When setting up GameLift, you will need to (1) configure a build
@@ -75,80 +75,87 @@ import (
 // host game sessions. Once you've created and activated a fleet, you can assign
 // aliases to it, scale capacity, track performance and utilization, etc.
 //
-//    Game builds:
+//    * Game builds:
 //
-//    ListBuilds
+// ListBuilds
 //
-//    CreateBuild
+// CreateBuild
 //
-//    DescribeBuild
+// DescribeBuild
 //
-//    UpdateBuild
+// UpdateBuild
 //
-//    DeleteBuild
+// DeleteBuild
 //
-//    RequestUploadCredentials
+// RequestUploadCredentials
 //
-//      Fleets:
+//    * Fleets:
 //
-//    ListFleets
+// ListFleets
 //
-//    CreateFleet
+// CreateFleet
 //
-//   Describe fleets:
+// Describe fleets:
 //
-//    DescribeFleetAttributes
+// DescribeFleetAttributes
 //
-//    DescribeFleetCapacity
+// DescribeFleetCapacity
 //
-//    DescribeFleetPortSettings
+// DescribeFleetPortSettings
 //
-//    DescribeFleetUtilization
+// DescribeFleetUtilization
 //
-//    DescribeEC2InstanceLimits
+// DescribeEC2InstanceLimits
 //
-//    DescribeFleetEvents
+// DescribeFleetEvents
 //
-//    DescribeRuntimeConfiguration
+// DescribeRuntimeConfiguration
 //
-//     Update fleets:
+// Update fleets:
 //
-//    UpdateFleetAttributes
+// UpdateFleetAttributes
 //
-//    UpdateFleetCapacity
+// UpdateFleetCapacity
 //
-//    UpdateFleetPortSettings
+// UpdateFleetPortSettings
 //
-//    UpdateRuntimeConfiguration
+// UpdateRuntimeConfiguration
 //
-//      DeleteFleet
+// DeleteFleet
 //
-//      Manage fleet aliases:
+//    * Manage your instances:
 //
-//    ListAliases
+// DescribeInstances
 //
-//    CreateAlias
+// GetInstanceAccess
 //
-//    DescribeAlias
+//    * Manage fleet aliases:
 //
-//    UpdateAlias
+// ListAliases
 //
-//    DeleteAlias
+// CreateAlias
 //
-//    ResolveAlias
+// DescribeAlias
 //
-//      Manage autoscaling:
+// UpdateAlias
 //
-//    PutScalingPolicy
+// DeleteAlias
 //
-//    DescribeScalingPolicies
+// ResolveAlias
 //
-//    DeleteScalingPolicy
+//    * Manage autoscaling:
 //
-//     To view changes to the API, see the GameLift Document History (http://docs.aws.amazon.com/gamelift/latest/developerguide/doc-history.html)
+// PutScalingPolicy
+//
+// DescribeScalingPolicies
+//
+// DeleteScalingPolicy
+//
+// To view changes to the API, see the GameLift Document History (http://docs.aws.amazon.com/gamelift/latest/developerguide/doc-history.html)
 // page.
-//The service client's operations are safe to be used concurrently.
+// The service client's operations are safe to be used concurrently.
 // It is not safe to mutate any of the client's properties though.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01
 type GameLift struct {
 	*client.Client
 }
@@ -159,8 +166,11 @@ var initClient func(*client.Client)
 // Used for custom request initialization logic
 var initRequest func(*request.Request)
 
-// A ServiceName is the name of the service the client will make API calls to.
-const ServiceName = "gamelift"
+// Service information constants
+const (
+	ServiceName = "gamelift"  // Service endpoint prefix API calls made to.
+	EndpointsID = ServiceName // Service ID for Regions and Endpoints metadata.
+)
 
 // New creates a new instance of the GameLift client with a session.
 // If additional configuration is needed for the client instance use the optional
@@ -173,17 +183,18 @@ const ServiceName = "gamelift"
 //     // Create a GameLift client with additional configuration
 //     svc := gamelift.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
 func New(p client.ConfigProvider, cfgs ...*aws.Config) *GameLift {
-	c := p.ClientConfig(ServiceName, cfgs...)
-	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion)
+	c := p.ClientConfig(EndpointsID, cfgs...)
+	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion, c.SigningName)
 }
 
 // newClient creates, initializes and returns a new service client instance.
-func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion string) *GameLift {
+func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion, signingName string) *GameLift {
 	svc := &GameLift{
 		Client: client.New(
 			cfg,
 			metadata.ClientInfo{
 				ServiceName:   ServiceName,
+				SigningName:   signingName,
 				SigningRegion: signingRegion,
 				Endpoint:      endpoint,
 				APIVersion:    "2015-10-01",

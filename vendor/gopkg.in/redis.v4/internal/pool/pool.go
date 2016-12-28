@@ -25,8 +25,8 @@ var timers = sync.Pool{
 	},
 }
 
-// PoolStats contains pool state information and accumulated stats.
-type PoolStats struct {
+// Stats contains pool state information and accumulated stats.
+type Stats struct {
 	Requests uint32 // number of times a connection was requested by the pool
 	Hits     uint32 // number of times free connection was found in the pool
 	Timeouts uint32 // number of times a wait timeout occurred
@@ -36,12 +36,12 @@ type PoolStats struct {
 }
 
 type Pooler interface {
-	Get() (*Conn, error)
+	Get() (*Conn, bool, error)
 	Put(*Conn) error
 	Remove(*Conn, error) error
 	Len() int
 	FreeLen() int
-	Stats() *PoolStats
+	Stats() *Stats
 	Close() error
 	Closed() bool
 }
@@ -64,7 +64,7 @@ type ConnPool struct {
 	freeConnsMu sync.Mutex
 	freeConns   []*Conn
 
-	stats PoolStats
+	stats Stats
 
 	_closed int32 // atomic
 	lastErr atomic.Value
@@ -83,9 +83,6 @@ func NewConnPool(dial dialer, poolSize int, poolTimeout, idleTimeout, idleCheckF
 		queue:     make(chan struct{}, poolSize),
 		conns:     make([]*Conn, 0, poolSize),
 		freeConns: make([]*Conn, 0, poolSize),
-	}
-	for i := 0; i < poolSize; i++ {
-		p.queue <- struct{}{}
 	}
 	if idleTimeout > 0 && idleCheckFrequency > 0 {
 		go p.reaper(idleCheckFrequency)
@@ -125,7 +122,7 @@ func (p *ConnPool) PopFree() *Conn {
 	}
 
 	select {
-	case <-p.queue:
+	case p.queue <- struct{}{}:
 		timers.Put(timer)
 	case <-timer.C:
 		timers.Put(timer)
@@ -138,7 +135,7 @@ func (p *ConnPool) PopFree() *Conn {
 	p.freeConnsMu.Unlock()
 
 	if cn == nil {
-		p.queue <- struct{}{}
+		<-p.queue
 	}
 	return cn
 }
@@ -155,9 +152,9 @@ func (p *ConnPool) popFree() *Conn {
 }
 
 // Get returns existed connection from the pool or creates a new one.
-func (p *ConnPool) Get() (*Conn, error) {
+func (p *ConnPool) Get() (*Conn, bool, error) {
 	if p.Closed() {
-		return nil, ErrClosed
+		return nil, false, ErrClosed
 	}
 
 	atomic.AddUint32(&p.stats.Requests, 1)
@@ -168,40 +165,43 @@ func (p *ConnPool) Get() (*Conn, error) {
 	}
 
 	select {
-	case <-p.queue:
+	case p.queue <- struct{}{}:
 		timers.Put(timer)
 	case <-timer.C:
 		timers.Put(timer)
 		atomic.AddUint32(&p.stats.Timeouts, 1)
-		return nil, ErrPoolTimeout
+		return nil, false, ErrPoolTimeout
 	}
 
-	p.freeConnsMu.Lock()
-	cn := p.popFree()
-	p.freeConnsMu.Unlock()
+	for {
+		p.freeConnsMu.Lock()
+		cn := p.popFree()
+		p.freeConnsMu.Unlock()
 
-	if cn != nil {
-		atomic.AddUint32(&p.stats.Hits, 1)
-		if !cn.IsStale(p.idleTimeout) {
-			return cn, nil
+		if cn == nil {
+			break
 		}
-		_ = cn.Close()
+
+		if cn.IsStale(p.idleTimeout) {
+			p.remove(cn, errConnStale)
+			continue
+		}
+
+		atomic.AddUint32(&p.stats.Hits, 1)
+		return cn, false, nil
 	}
 
 	newcn, err := p.NewConn()
 	if err != nil {
-		p.queue <- struct{}{}
-		return nil, err
+		<-p.queue
+		return nil, false, err
 	}
 
 	p.connsMu.Lock()
-	if cn != nil {
-		p.remove(cn, errConnStale)
-	}
 	p.conns = append(p.conns, newcn)
 	p.connsMu.Unlock()
 
-	return newcn, nil
+	return newcn, true, nil
 }
 
 func (p *ConnPool) Put(cn *Conn) error {
@@ -213,27 +213,27 @@ func (p *ConnPool) Put(cn *Conn) error {
 	p.freeConnsMu.Lock()
 	p.freeConns = append(p.freeConns, cn)
 	p.freeConnsMu.Unlock()
-	p.queue <- struct{}{}
+	<-p.queue
 	return nil
 }
 
 func (p *ConnPool) Remove(cn *Conn, reason error) error {
-	_ = cn.Close()
-	p.connsMu.Lock()
 	p.remove(cn, reason)
-	p.connsMu.Unlock()
-	p.queue <- struct{}{}
+	<-p.queue
 	return nil
 }
 
 func (p *ConnPool) remove(cn *Conn, reason error) {
-	p.storeLastErr(reason.Error())
+	_ = p.closeConn(cn, reason)
+
+	p.connsMu.Lock()
 	for i, c := range p.conns {
 		if c == cn {
 			p.conns = append(p.conns[:i], p.conns[i+1:]...)
 			break
 		}
 	}
+	p.connsMu.Unlock()
 }
 
 // Len returns total number of connections.
@@ -252,14 +252,14 @@ func (p *ConnPool) FreeLen() int {
 	return l
 }
 
-func (p *ConnPool) Stats() *PoolStats {
-	stats := PoolStats{}
-	stats.Requests = atomic.LoadUint32(&p.stats.Requests)
-	stats.Hits = atomic.LoadUint32(&p.stats.Hits)
-	stats.Timeouts = atomic.LoadUint32(&p.stats.Timeouts)
-	stats.TotalConns = uint32(p.Len())
-	stats.FreeConns = uint32(p.FreeLen())
-	return &stats
+func (p *ConnPool) Stats() *Stats {
+	return &Stats{
+		Requests:   atomic.LoadUint32(&p.stats.Requests),
+		Hits:       atomic.LoadUint32(&p.stats.Hits),
+		Timeouts:   atomic.LoadUint32(&p.stats.Timeouts),
+		TotalConns: uint32(p.Len()),
+		FreeConns:  uint32(p.FreeLen()),
+	}
 }
 
 func (p *ConnPool) Closed() bool {
@@ -272,13 +272,12 @@ func (p *ConnPool) Close() (retErr error) {
 	}
 
 	p.connsMu.Lock()
-
 	// Close all connections.
 	for _, cn := range p.conns {
 		if cn == nil {
 			continue
 		}
-		if err := p.closeConn(cn); err != nil && retErr == nil {
+		if err := p.closeConn(cn, ErrClosed); err != nil && retErr == nil {
 			retErr = err
 		}
 	}
@@ -292,41 +291,48 @@ func (p *ConnPool) Close() (retErr error) {
 	return retErr
 }
 
-func (p *ConnPool) closeConn(cn *Conn) error {
+func (p *ConnPool) closeConn(cn *Conn, reason error) error {
+	p.storeLastErr(reason.Error())
 	if p.OnClose != nil {
 		_ = p.OnClose(cn)
 	}
 	return cn.Close()
 }
 
-func (p *ConnPool) ReapStaleConns() (n int, err error) {
-	<-p.queue
-	p.freeConnsMu.Lock()
-
+func (p *ConnPool) reapStaleConn() bool {
 	if len(p.freeConns) == 0 {
-		p.freeConnsMu.Unlock()
-		p.queue <- struct{}{}
-		return
+		return false
 	}
 
-	var idx int
-	var cn *Conn
-	for idx, cn = range p.freeConns {
-		if !cn.IsStale(p.idleTimeout) {
+	cn := p.freeConns[0]
+	if !cn.IsStale(p.idleTimeout) {
+		return false
+	}
+
+	p.remove(cn, errConnStale)
+	p.freeConns = append(p.freeConns[:0], p.freeConns[1:]...)
+
+	return true
+}
+
+func (p *ConnPool) ReapStaleConns() (int, error) {
+	var n int
+	for {
+		p.queue <- struct{}{}
+		p.freeConnsMu.Lock()
+
+		reaped := p.reapStaleConn()
+
+		p.freeConnsMu.Unlock()
+		<-p.queue
+
+		if reaped {
+			n++
+		} else {
 			break
 		}
-		p.connsMu.Lock()
-		p.remove(cn, errConnStale)
-		p.connsMu.Unlock()
-		n++
 	}
-	if idx > 0 {
-		p.freeConns = append(p.freeConns[:0], p.freeConns[idx:]...)
-	}
-
-	p.freeConnsMu.Unlock()
-	p.queue <- struct{}{}
-	return
+	return n, nil
 }
 
 func (p *ConnPool) reaper(frequency time.Duration) {

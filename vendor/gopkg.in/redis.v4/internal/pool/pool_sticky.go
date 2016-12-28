@@ -30,23 +30,23 @@ func (p *StickyConnPool) First() *Conn {
 	return cn
 }
 
-func (p *StickyConnPool) Get() (*Conn, error) {
+func (p *StickyConnPool) Get() (*Conn, bool, error) {
 	defer p.mx.Unlock()
 	p.mx.Lock()
 
 	if p.closed {
-		return nil, ErrClosed
+		return nil, false, ErrClosed
 	}
 	if p.cn != nil {
-		return p.cn, nil
+		return p.cn, false, nil
 	}
 
-	cn, err := p.pool.Get()
+	cn, _, err := p.pool.Get()
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	p.cn = cn
-	return cn, nil
+	return cn, true, nil
 }
 
 func (p *StickyConnPool) put() (err error) {
@@ -106,7 +106,9 @@ func (p *StickyConnPool) FreeLen() int {
 	return 0
 }
 
-func (p *StickyConnPool) Stats() *PoolStats { return nil }
+func (p *StickyConnPool) Stats() *Stats {
+	return nil
+}
 
 func (p *StickyConnPool) Close() error {
 	defer p.mx.Unlock()

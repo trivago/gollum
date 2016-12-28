@@ -273,12 +273,50 @@ func newGeoLocationSliceParser(q *GeoRadiusQuery) proto.MultiBulkParse {
 	}
 }
 
+func geoPosParser(rd *proto.Reader, n int64) (interface{}, error) {
+	var pos GeoPos
+	var err error
+
+	pos.Longitude, err = rd.ReadFloatReply()
+	if err != nil {
+		return nil, err
+	}
+
+	pos.Latitude, err = rd.ReadFloatReply()
+	if err != nil {
+		return nil, err
+	}
+
+	return &pos, nil
+}
+
+func geoPosSliceParser(rd *proto.Reader, n int64) (interface{}, error) {
+	positions := make([]*GeoPos, 0, n)
+	for i := int64(0); i < n; i++ {
+		v, err := rd.ReadReply(geoPosParser)
+		if err != nil {
+			if err == Nil {
+				positions = append(positions, nil)
+				continue
+			}
+			return nil, err
+		}
+		switch v := v.(type) {
+		case *GeoPos:
+			positions = append(positions, v)
+		default:
+			return nil, fmt.Errorf("got %T, expected *GeoPos", v)
+		}
+	}
+	return positions, nil
+}
+
 func commandInfoParser(rd *proto.Reader, n int64) (interface{}, error) {
 	var cmd CommandInfo
 	var err error
 
 	if n != 6 {
-		return nil, fmt.Errorf("redis: got %d elements in COMMAND reply, wanted 6")
+		return nil, fmt.Errorf("redis: got %d elements in COMMAND reply, wanted 6", n)
 	}
 
 	cmd.Name, err = rd.ReadStringReply()
