@@ -52,8 +52,8 @@ import (
 // This list is empty by default.
 type SplitToJSON struct {
 	core.SimpleFormatter
-	token []byte
-	keys  []string
+	token    []byte
+	keys     []string
 	keepJSON bool
 }
 
@@ -64,16 +64,8 @@ func init() {
 // Configure initializes this formatter with values from a plugin config.
 func (format *SplitToJSON) Configure(conf core.PluginConfigReader) error {
 	format.SimpleFormatter.Configure(conf)
-	if err != nil {
-		return err
-	}
-	format.base = plugin.(core.Formatter)
-	format.token = []byte(conf.GetString("SplitToJSONToken", "|"))
-	format.keys = conf.GetStringArray("SplitToJSONKeys", []string{})
-	format.keepJSON = conf.GetBool("SplitToJSONKeepJSON", true)
-	return nil
-}
 
+	format.keepJSON = conf.GetBool("KeepJSON", true)
 	format.token = []byte(conf.GetString("SplitBy", "|"))
 	format.keys = conf.GetStringArray("Keys", []string{})
 
@@ -95,9 +87,10 @@ func (format *SplitToJSON) Modulate(msg *core.Message) core.ModulateResult {
 		for i := 0; i < maxIdx; i++ {
 			key := tstrings.EscapeJSON(format.keys[i])
 			value := string(components[i])
-			if isJson, _ := tstrings.IsJSON(components[i]); !format.keepJSON || !isJson {
+			if isJson, _, _ := tstrings.IsJSON(components[i]); !format.keepJSON || !isJson {
 				value = "\"" + tstrings.EscapeJSON(value) + "\""
 			}
+
 			switch {
 			case i == 0:
 				jsonData = fmt.Sprintf("{\"%s\":%s", key, value)

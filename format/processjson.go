@@ -110,21 +110,16 @@ func init() {
 // Configure initializes this formatter with values from a plugin config.
 func (format *ProcessJSON) Configure(conf core.PluginConfigReader) error {
 	format.SimpleFormatter.Configure(conf)
-	if err != nil {
-		return err
-	}
-	directives := conf.GetStringArray("ProcessJSONDirectives", []string{})
 
-	format.base = plugin.(core.Formatter)
+	directives := conf.GetStringArray("ProcessJSONDirectives", []string{})
 	format.directives = make([]transformDirective, 0, len(directives))
 	format.trimValues = conf.GetBool("ProcessJSONTrimValues", true)
 	geoIPFile := conf.GetString("ProcessJSONGeoIPFile", "")
 
 	if geoIPFile != "" {
+		var err error
 		format.db, err = geoip2.Open(geoIPFile)
-		if err != nil {
-			return err
-		}
+		conf.Errors.Push(err)
 	}
 
 	if len(directives) > 0 {
@@ -230,7 +225,7 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 				index = len(array) - index
 			}
 			if index < 0 || index >= len(array) {
-				Log.Warning.Print("Array index out of bounds")
+				format.Log.Warning.Print("Array index out of bounds")
 				return
 			}
 			(*values)[field] = array[index]
@@ -296,7 +291,7 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 					(*values)[keyPrefix+strconv.Itoa(index)] = val
 				}
 			} else {
-				Log.Warning.Print("key was not a JSON array or object: " + directive.key)
+				format.Log.Warning.Print("key was not a JSON array or object: " + directive.key)
 				return
 			}
 			delete(*values, directive.key)
@@ -349,7 +344,7 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 
 			ipString, err := (*values).String(directive.key)
 			if err != nil {
-				Log.Warning.Print(err.Error())
+				format.Log.Warning.Print(err.Error())
 				return
 			}
 
@@ -360,16 +355,16 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 				"timezone",
 				"proxy",
 				"location",
-				}
+			}
 			if numParameters > 0 {
 				fields = directive.parameters
-				}
+			}
 
 			ip := net.ParseIP(ipString)
 			record, err := format.db.City(ip)
 			if err != nil {
-				Log.Warning.Printf("IP \"%s\" could not be resolved: %s", ipString, err.Error())
-				Log.Debug.Printf("%#v", values)
+				format.Log.Warning.Printf("IP \"%s\" could not be resolved: %s", ipString, err.Error())
+				format.Log.Debug.Printf("%#v", values)
 				return
 			}
 
@@ -386,7 +381,7 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 					name, exists := record.Country.Names["en"]
 					if exists {
 						(*values)[directive.key+"_country"] = name
-			}
+					}
 
 				case "continent":
 					(*values)[directive.key+"_continentCode"] = record.Continent.Code

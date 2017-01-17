@@ -466,7 +466,7 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 			//exception. Probably it might happen when sarama close the channel
 			//so we will get nil message from the channel.
 			if event == nil || cons.offsets == nil || cons.offsets[partitionID] == nil {
-				Log.Error.Printf("Kafka consumer failed to store offset. Trace : event : %+v, cons.partCons: %+v, partitionID: %d\n", 
+				cons.Log.Error.Printf("Kafka consumer failed to store offset. Trace : event : %+v, cons.partCons: %+v, partitionID: %d\n",
 					event, cons.offsets, partitionID)
 
 				partCons.Close()

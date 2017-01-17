@@ -16,6 +16,7 @@ package format
 
 import (
 	"bytes"
+	"encoding/json"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tstrings"
 	"strconv"
@@ -208,22 +209,23 @@ func (format *TextToJSON) Configure(conf core.PluginConfigReader) error {
 
 		format.parser.AddDirectives(directives)
 
-	// Validate initstate
-	initStateValid := false
-	for i := 0; i < len(directives) && !initStateValid; i++ {
-		initStateValid = directives[i].State == format.initState
-	}
-	if !initStateValid {
-		return fmt.Errorf("JSONStartState does not exist in directives")
-	}
-
-	for _, dir := range directives {
-		nextStateValid := false
-		for i := 0; i < len(directives) && !nextStateValid; i++ {
-			nextStateValid = dir.NextState == directives[i].State
+		// Validate initstate
+		initStateValid := false
+		for i := 0; i < len(directives) && !initStateValid; i++ {
+			initStateValid = directives[i].State == format.initState
 		}
-		if !nextStateValid {
-			Log.Warning.Printf("State \"%s\" has a transition to \"%s\" which does not exist in directives", dir.State, dir.NextState)
+		if !initStateValid {
+			conf.Errors.Pushf("JSONStartState does not exist in directives")
+		}
+
+		for _, dir := range directives {
+			nextStateValid := false
+			for i := 0; i < len(directives) && !nextStateValid; i++ {
+				nextStateValid = dir.NextState == directives[i].State
+			}
+			if !nextStateValid {
+				format.Log.Warning.Printf("State \"%s\" has a transition to \"%s\" which does not exist in directives", dir.State, dir.NextState)
+			}
 		}
 	}
 
@@ -254,9 +256,9 @@ func (format *TextToJSON) writeKey(key []byte) {
 func (format *TextToJSON) readKey(data []byte, state tstrings.ParserStateID) {
 	format.writeKey(data)
 	format.state = jsonReadValue
-func (format *TextToJSON) readValue(data []byte, state tstrings.ParserStateID) {
 }
 
+func (format *TextToJSON) readValue(data []byte, state tstrings.ParserStateID) {
 	trimmedData := bytes.TrimSpace(data)
 	if len(trimmedData) == 0 {
 		switch format.state {
@@ -286,16 +288,16 @@ func (format *TextToJSON) readValue(data []byte, state tstrings.ParserStateID) {
 	}
 }
 
-func (format *JSON) readEscaped(data []byte, state shared.ParserStateID) {
+func (format *TextToJSON) readEscaped(data []byte, state tstrings.ParserStateID) {
 	trimmedData := bytes.TrimSpace(data)
 	if len(trimmedData) == 0 {
 		switch format.state {
 		default:
 			format.state = jsonReadKey
 		case jsonReadArrayAppend, jsonReadArray:
-	}
+		}
 		return
-}
+	}
 
 	encodedData, _ := json.Marshal(string(trimmedData))
 	switch format.state {
@@ -359,7 +361,7 @@ func (format *TextToJSON) readArrayDate(data []byte, state tstrings.ParserStateI
 	format.readDate(data, state)
 }
 
-func (format *JSON) readArray(data []byte, state shared.ParserStateID) {
+func (format *TextToJSON) readArray(data []byte, state tstrings.ParserStateID) {
 	switch format.state {
 	default:
 		format.writeKey([]byte(format.parser.GetStateName(state)))
@@ -368,7 +370,6 @@ func (format *JSON) readArray(data []byte, state shared.ParserStateID) {
 	case jsonReadValue, jsonReadArray, jsonReadObject:
 		format.message.WriteByte('[')
 
-func (format *TextToJSON) readArray(data []byte, state tstrings.ParserStateID) {
 	case jsonReadArrayAppend:
 		format.message.WriteString(",[")
 	}
@@ -376,7 +377,7 @@ func (format *TextToJSON) readArray(data []byte, state tstrings.ParserStateID) {
 	format.state = jsonReadArray
 }
 
-func (format * TextToJSON) readObject(data []byte, state tstrings.ParserStateID) {
+func (format *TextToJSON) readObject(data []byte, state tstrings.ParserStateID) {
 	switch format.state {
 	default:
 		format.writeKey([]byte(format.parser.GetStateName(state)))

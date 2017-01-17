@@ -263,7 +263,7 @@
 			"importpath": "github.com/trivago/tgo",
 			"repository": "https://github.com/trivago/tgo",
 			"vcs": "git",
-			"revision": "b99713a5b70326d837dd988494117a4e67b7e895",
+			"revision": "ce135bd93276fac6ee9e5890a94e24c1a9503372",
 			"branch": "master",
 			"notests": true
 		},

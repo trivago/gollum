@@ -16,11 +16,10 @@ package format
 
 import (
 	"encoding/json"
-	"testing"
-
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/ttesting"
+	"testing"
 )
 
 func TestSplitToJSON(t *testing.T) {
@@ -36,7 +35,7 @@ func TestSplitToJSON(t *testing.T) {
 	formatter, casted := plugin.(*SplitToJSON)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test1,test2,test3"),
+	msg := core.NewMessage(nil, []byte("test1,test2,{\"object\": true}"),
 		10, core.InvalidStreamID)
 
 	result := formatter.Modulate(msg)

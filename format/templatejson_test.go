@@ -16,23 +16,26 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/shared"
 	"testing"
+
+	"github.com/trivago/tgo/ttesting"
 )
 
 func TestTemplateJSON(t *testing.T) {
-	expect := shared.NewExpect(t)
+	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("")
+	config := core.NewPluginConfig("", "format.TemplateJSON")
 	config.Override("TemplateJSONTemplate", "{{ .foo }} {{ .test }}")
 
-	plugin, err := core.NewPluginWithType("format.TemplateJSON", config)
+	plugin, err := core.NewPlugin(config)
 	expect.NoError(err)
+
 	formatter, casted := plugin.(*TemplateJSON)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"), 0)
-	result, _ := formatter.Format(msg)
+	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"), 0, core.DroppedStreamID)
+	result := formatter.Modulate(msg)
+	expect.Equal(core.ModulateResultContinue, result)
 
-	expect.Equal("bar valid", string(result))
+	expect.Equal("bar valid", msg.String())
 }

@@ -17,8 +17,6 @@ package producer
 import (
 	"github.com/quipo/statsd"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
 	"strconv"
 	"sync"
 	"time"
@@ -59,24 +57,21 @@ import (
 // name. If no mapping is given the gollum stream name is used as the
 // metric name.
 type Statsd struct {
-	core.ProducerBase
-	streamMap         map[core.MessageStreamID]string
-	client            *statsd.StatsdClient
-	batch             core.MessageBatch
-	flushFrequency    time.Duration
-	useMessage        bool
+	core.BufferedProducer
+	streamMap      map[core.MessageStreamID]string
+	client         *statsd.StatsdClient
+	batch          core.MessageBatch
+	flushFrequency time.Duration
+	useMessage     bool
 }
 
 func init() {
-	shared.TypeRegistry.Register(Statsd{})
+	core.TypeRegistry.Register(Statsd{})
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Statsd) Configure(conf core.PluginConfig) error {
-	err := prod.ProducerBase.Configure(conf)
-	if err != nil {
-		return err
-	}
+func (prod *Statsd) Configure(conf core.PluginConfigReader) error {
+	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
 
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "")
@@ -87,15 +82,12 @@ func (prod *Statsd) Configure(conf core.PluginConfig) error {
 	server := conf.GetString("Server", "localhost:8125")
 	prefix := conf.GetString("Prefix", "gollum.")
 	prod.client = statsd.NewStatsdClient(server, prefix)
-	err = prod.client.CreateSocket()
-	if nil != err {
-		return err
-	}
+	conf.Errors.Push(prod.client.CreateSocket())
 
-	return nil
+	return conf.Errors.OrNil()
 }
 
-func (prod *Statsd) bufferMessage(msg core.Message) {
+func (prod *Statsd) bufferMessage(msg *core.Message) {
 	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
 }
 
@@ -110,26 +102,27 @@ func (prod *Statsd) sendBatch() {
 	prod.batch.Flush(prod.transformMessages)
 }
 
-func (prod *Statsd) dropMessages(messages []core.Message) {
+func (prod *Statsd) dropMessages(messages []*core.Message) {
 	for _, msg := range messages {
 		prod.Drop(msg)
 	}
 }
 
-func (prod *Statsd) transformMessages(messages []core.Message) {
+func (prod *Statsd) transformMessages(messages []*core.Message) {
 	metricValues := make(map[string]int64)
 
 	// Format and sort
 	for _, msg := range messages {
-		msgData, streamID := prod.ProducerBase.Format(msg)
+		msgCopy := msg.Clone()
+		prod.Modulate(msgCopy)
 
 		// Select the correct statsd metric
-		metricName, streamMapped := prod.streamMap[streamID]
+		metricName, streamMapped := prod.streamMap[msgCopy.StreamID()]
 		if !streamMapped {
 			metricName, streamMapped = prod.streamMap[core.WildcardStreamID]
 			if !streamMapped {
-				metricName = core.StreamRegistry.GetStreamName(streamID)
-				prod.streamMap[streamID] = metricName
+				metricName = core.StreamRegistry.GetStreamName(msgCopy.StreamID())
+				prod.streamMap[msgCopy.StreamID()] = metricName
 			}
 		}
 
@@ -140,10 +133,10 @@ func (prod *Statsd) transformMessages(messages []core.Message) {
 
 		if prod.useMessage {
 			// case msgData to int
-			if val, err := strconv.ParseInt(string(msgData), 10, 64); err == nil {
+			if val, err := strconv.ParseInt(msgCopy.String(), 10, 64); err == nil {
 				metricValues[metricName] += val
 			} else {
-				Log.Warning.Print("producer.Statsd: message was skipped")
+				prod.Log.Warning.Print("message was skipped")
 			}
 		} else {
 			metricValues[metricName] += int64(1)

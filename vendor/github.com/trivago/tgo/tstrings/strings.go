@@ -15,13 +15,16 @@
 package tstrings
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
+	"reflect"
 	"strings"
+	"unsafe"
 )
 
-var simpleEscapeChars = strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t")
-var jsonEscapeChars = strings.NewReplacer("\\", "\\\\", "\"", "\\\"")
+var simpleEscapeChars = strings.NewReplacer("\\n", "\n", "\\r", "\r", "\\t", "\t", "\\f", "\f", "\\b", "\b")
+var jsonEscapeChars = strings.NewReplacer("\\", "\\\\", "\"", "\\\"", "\\n", "\n", "\\r", "\r", "\\t", "\t", "\\f", "\f", "\\b", "\b")
 
 // Unescape replaces occurrences of \\n, \\r and \\t with real escape codes.
 func Unescape(text string) string {
@@ -132,6 +135,56 @@ func IsInt(s string) bool {
 		}
 	}
 	return true
+}
+
+// IsJSON returns true if the given byte slice contains valid JSON data.
+// You can access the results by utilizing the RawMessage returned.
+func IsJSON(data []byte) (bool, error, *json.RawMessage) {
+	delayedResult := new(json.RawMessage)
+	err := json.Unmarshal(data, delayedResult)
+	return err == nil, err, delayedResult
+
+}
+
+// ByteRef is a standard byte slice that is referencing a string.
+// This type is considered unsafe and should only be used for fast conversion
+// in case of read-only string access via []byte.
+type ByteRef []byte
+
+// NewByteRef creates an unsafe byte slice reference to the given string.
+// The referenced data is not guaranteed to stay valid if no reference to the
+// original string is held anymore. The returned ByteRef does not count as
+// reference.
+// Writing to the returned ByteRef will result in a segfault.
+func NewByteRef(a string) ByteRef {
+	stringHeader := (*reflect.StringHeader)(unsafe.Pointer(&a))
+	sliceHeader := &reflect.SliceHeader{
+		Data: stringHeader.Data,
+		Len:  stringHeader.Len,
+		Cap:  stringHeader.Len,
+	}
+	return *(*ByteRef)(unsafe.Pointer(sliceHeader))
+}
+
+// StringRef is a standard string that is referencing the data of a byte slice.
+// The string changes if the referenced byte slice changes. If the referenced
+// byte slice changes size this data might get invalid and result in segfaults.
+// As of that, this type is to be considered unsafe and should only be used
+// in special, performance critical situations.
+type StringRef string
+
+// NewStringRef creates a unsafe string reference to to the given byte slice.
+// The referenced data is not guaranteed to stay valid if no reference to the
+// original byte slice is held anymore. The returned StringRef does not count as
+// reference.
+// Changing the size of the underlying byte slice will result in a segfault.
+func NewStringRef(a []byte) StringRef {
+	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&a))
+	stringHeader := &reflect.StringHeader{
+		Data: sliceHeader.Data,
+		Len:  sliceHeader.Len,
+	}
+	return *(*StringRef)(unsafe.Pointer(stringHeader))
 }
 
 // JoinStringers works like strings.Join but takes an array of fmt.Stringer.

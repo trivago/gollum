@@ -16,13 +16,13 @@ package producer
 
 import (
 	"bytes"
-	"strconv"
-	"sync"
-	"time"
-
 	elastigo "github.com/mattbaird/elastigo/lib"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tcontainer"
+	"strconv"
+	"sync"
+	"time"
 )
 
 // ElasticSearch producer plugin
@@ -105,14 +105,13 @@ import (
 // BatchTimeoutSec defines the time in seconds after which a flush will be
 // triggered. By default this is set to 5.
 type ElasticSearch struct {
-	core.ProducerBase
+	core.BufferedProducer
 	conn               *elastigo.Conn
 	indexer            *elastigo.BulkIndexer
 	index              map[core.MessageStreamID]string
 	msgType            map[core.MessageStreamID]string
 	msgTTL             string
 	dayBasedIndex      bool
-	counters           map[string]*int64
 	indexSettings      map[string]*elasticSettings
 	indexSettingsSent  map[string]string
 	indexSettingsGuard *sync.Mutex
@@ -188,35 +187,31 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) error {
 	prod.dayBasedIndex = conf.GetBool("DayBasedIndex", false)
 
 	for _, index := range prod.index {
-		shared.Metric.New(elasticMetricMessages + index)
-		shared.Metric.New(elasticMetricMessagesSec + index)
-		prod.counters[index] = new(int64)
+		metricName := elasticMetricMessages + index
+		tgo.Metric.New(metricName)
+		tgo.Metric.NewRate(metricName, elasticMetricMessagesSec+index, time.Second, 10, 3, true)
 	}
 
 	prod.indexSettingsGuard = new(sync.Mutex)
 	prod.indexSettingsSent = make(map[string]string)
 	prod.indexSettings = make(map[string]*elasticSettings)
 
-	conf.HasValue("DataTypes")
-	indexTypes, err := conf.Settings.MarshalMap("DataTypes")
-	if indexTypes != nil {
-		for index := range indexTypes {
-			mappings := makeElasticMapping()
-			types, _ := indexTypes.MarshalMap(index)
-			for name := range types {
-				typeName, _ := types.String(name)
-				mappings.Properties[name] = elasticType{TypeName: typeName}
-			}
-
-			indexType := prod.getIndexType(core.StreamRegistry.GetStreamID(index))
-			settings := makeElasticSettings()
-			settings.Mappings[indexType] = mappings
-			prod.indexSettings[index] = settings
+	indexTypes := conf.GetMap("DataTypes", tcontainer.NewMarshalMap())
+	for index := range indexTypes {
+		mappings := makeElasticMapping()
+		types, _ := indexTypes.MarshalMap(index)
+		for name := range types {
+			typeName, _ := types.String(name)
+			mappings.Properties[name] = elasticType{TypeName: typeName}
 		}
+
+		indexType := prod.getIndexType(core.StreamRegistry.GetStreamID(index))
+		settings := makeElasticSettings()
+		settings.Mappings[indexType] = mappings
+		prod.indexSettings[index] = settings
 	}
 
-	conf.HasValue("Settings")
-	indexSettings, _ := conf.Settings.MarshalMap("Settings")
+	indexSettings := conf.GetMap("Settings", tcontainer.NewMarshalMap())
 	if indexSettings != nil {
 		for index := range indexSettings {
 			mappings, exist := prod.indexSettings[index]
@@ -229,13 +224,6 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) error {
 	}
 
 	prod.SetCheckFuseCallback(prod.isClusterUp)
-	return nil
-	}
-
-func (prod *ElasticSearch) updateMetrics() {
-	duration := time.Since(prod.lastMetricUpdate)
-	prod.lastMetricUpdate = time.Now()
-
 	return conf.Errors.OrNil()
 }
 
@@ -257,7 +245,7 @@ func (prod *ElasticSearch) createIndex(index string, sendIndex string, indexType
 	if settings, exist := prod.indexSettings[index]; exist {
 		if onServer, _ := prod.conn.ExistsIndex(sendIndex, indexType, make(map[string]interface{})); !onServer {
 			if _, err := prod.conn.CreateIndexWithSettings(sendIndex, *settings); err != nil {
-				Log.Error.Print("ElasticSearch index creation error - ", err.Error())
+				prod.Log.Error.Print("Index creation error: ", err.Error())
 			}
 		}
 	}
@@ -292,8 +280,7 @@ func (prod *ElasticSearch) sendMessage(msg *core.Message) {
 		prod.index[msg.StreamID()] = index
 	}
 
-	indexType := prod.getIndexType(msg.StreamID)
-	atomic.AddInt64(prod.counters[index], 1)
+	indexType := prod.getIndexType(msg.StreamID())
 
 	sendIndex := index
 	if prod.dayBasedIndex {
@@ -301,7 +288,7 @@ func (prod *ElasticSearch) sendMessage(msg *core.Message) {
 	}
 	prod.createIndex(index, sendIndex, indexType)
 
-	err := prod.indexer.Index(index, msgType, "", "", prod.msgTTL, nil, msg.String())
+	err := prod.indexer.Index(index, indexType, "", "", prod.msgTTL, nil, msg.String())
 	if err != nil {
 		prod.Log.Error.Print("Index error - ", err)
 		if !prod.isClusterUp() {

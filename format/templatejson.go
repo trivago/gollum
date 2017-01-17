@@ -18,8 +18,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
+	"github.com/trivago/tgo/tcontainer"
 	"text/template"
 )
 
@@ -40,48 +39,41 @@ import (
 // This value is empty by default. If the template fails to execute the output
 // of TemplateJSONFormatter is returned.
 type TemplateJSON struct {
-	base         core.Formatter
-	template     *template.Template
+	core.SimpleFormatter
+	template *template.Template
 }
 
 func init() {
-	shared.TypeRegistry.Register(TemplateJSON{})
+	core.TypeRegistry.Register(TemplateJSON{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *TemplateJSON) Configure(conf core.PluginConfig) error {
-	plugin, err := core.NewPluginWithType(conf.GetString("TemplateJSONFormatter", "format.Forward"), conf)
-	if err != nil {
-		return err
-	}
+func (format *TemplateJSON) Configure(conf core.PluginConfigReader) error {
+	var err error
 
-	format.base = plugin.(core.Formatter)
 	templ := conf.GetString("TemplateJSONTemplate", "")
 	format.template, err = template.New("TemplateJSON").Parse(templ)
-	if err != nil {
-		return err
-	}
+	conf.Errors.Push(err)
 
-	return nil
+	return conf.Errors.OrNil()
 }
 
 // Format executes the template against the JSON payload of this message
-func (format *TemplateJSON) Format(msg core.Message) ([]byte, core.MessageStreamID) {
-	data, streamID := format.base.Format(msg)
-
-	values := shared.NewMarshalMap()
-	err := json.Unmarshal(data, &values)
+func (format *TemplateJSON) Modulate(msg *core.Message) core.ModulateResult {
+	values := tcontainer.NewMarshalMap()
+	err := json.Unmarshal(msg.Data(), &values)
 	if err != nil {
-		Log.Warning.Print("TemplateJSON failed to unmarshal a message: ", err)
-		return data, streamID // ### return, malformed data ###
+		format.Log.Warning.Print("TemplateJSON failed to unmarshal a message: ", err)
+		return core.ModulateResultDiscard
 	}
 
 	var templateData bytes.Buffer
 	err = format.template.Execute(&templateData, values)
 	if err != nil {
-		Log.Warning.Print("TemplateJSON failed to template a message: ", err)
-		return data, streamID // ### return, malformed data ###
+		format.Log.Warning.Print("TemplateJSON failed to template a message: ", err)
+		return core.ModulateResultDiscard
 	}
+	msg.Store(templateData.Bytes())
 
-	return templateData.Bytes(), streamID
+	return core.ModulateResultContinue
 }

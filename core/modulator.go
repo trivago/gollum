@@ -42,7 +42,7 @@ type ScopedModulator interface {
 type ModulateResult int
 
 const (
-	// ModulateResultContinue indicates that a messag can be passed along.
+	// ModulateResultContinue indicates that a message can be passed along.
 	ModulateResultContinue = ModulateResult(iota)
 	// ModulateResultRoute indicates that a message requires routing
 	ModulateResultRoute = ModulateResult(iota)
