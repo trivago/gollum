@@ -53,14 +53,10 @@ func TestTextToJSONFormatter1(t *testing.T) {
 		`string     :":  findKey    :      : esc`,
 		`array      :[:  array      : push : arr`,
 		`array      :{:  findKey    : push : obj`,
-		`array      :]:             : pop  : end`,
-		`array      :,:  arrIntVal  :      : val`,
-		`array      :":  arrStrVal  ::`,
-		`arrIntVal  :,:  arrIntVal  :      : val`,
-		`arrIntVal  :]:             : pop  : val+end`,
-		`arrStrVal  :":  arrNextStr :      : esc`,
-		`arrNextStr :":  arrStrVal  ::`,
-		`arrNextStr :]:             : pop  : end`,
+		`array      :]:             : pop  : val+end`,
+		`array      :,:  array      :      : val`,
+		`array      :":  arrString  ::`,
+		`arrString  :":  array      :      : esc`,
 	}, "findKey")
 
 	result := test.Modulate(msg)
@@ -84,14 +80,10 @@ func BenchmarkTextToJSONFormatter(b *testing.B) {
 		`string     :":  findKey    :      : esc`,
 		`array      :[:  array      : push : arr`,
 		`array      :{:  findKey    : push : obj`,
-		`array      :]:             : pop  : end`,
-		`array      :,:  arrIntVal  :      : val`,
-		`array      :":  arrStrVal  ::`,
-		`arrIntVal  :,:  arrIntVal  :      : val`,
-		`arrIntVal  :]:             : pop  : val+end`,
-		`arrStrVal  :":  arrNextStr :      : esc`,
-		`arrNextStr :":  arrStrVal  ::`,
-		`arrNextStr :]:             : pop  : end`,
+		`array      :]:             : pop  : val+end`,
+		`array      :,:  array      :      : val`,
+		`array      :":  arrString  ::`,
+		`arrString  :":  array      :      : esc`,
 	}, "findKey")
 
 	for i := 0; i < b.N; i++ {

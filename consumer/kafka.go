@@ -462,6 +462,18 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 
 		select {
 		case event := <-partCons.Messages():
+			//Added some verbose information so that we can investigate reasons of
+			//exception. Probably it might happen when sarama close the channel
+			//so we will get nil message from the channel.
+			if event == nil || cons.offsets == nil || cons.offsets[partitionID] == nil {
+				Log.Error.Printf("Kafka consumer failed to store offset. Trace : event : %+v, cons.partCons: %+v, partitionID: %d\n", 
+					event, cons.offsets, partitionID)
+
+				partCons.Close()
+				partCons = cons.startConsumerForPartition(partitionID)
+				continue
+			}
+
 			atomic.StoreInt64(cons.offsets[partitionID], event.Offset)
 			if cons.prependKey {
 				cons.Enqueue(cons.keyedMessage(event.Key, event.Value))

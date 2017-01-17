@@ -48,7 +48,9 @@ func TestSplitToJSON(t *testing.T) {
 
 	expect.MapEqual(jsonData, "first", "test1")
 	expect.MapEqual(jsonData, "second", "test2")
-	expect.MapEqual(jsonData, "third", "test3")
+	obj, err := jsonData.MarshalMap("third")
+	expect.NoError(err)
+	expect.MapEqual(obj, "object", true)
 }
 
 func TestSplitToJSONTooFew(t *testing.T) {

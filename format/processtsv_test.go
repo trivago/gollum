@@ -197,6 +197,7 @@ func TestProcessTSVDirectives(t *testing.T) {
 	result := formatter.Modulate(msg)
 	expect.Equal(core.ModulateResultContinue, result)
 
+	// TODO: "rv:48.0" is currently not parsed correctly by the client library (bug)
 	expect.Equal(
 		"2016-08-19 17:10:53\t\"preyamlpost\"\tFirefox\tWindows 10\t48.0\t5.0\tWindows\tWindows 10\t\tGecko\t20100101\tFirefox\t48.0",
 		msg.String(),

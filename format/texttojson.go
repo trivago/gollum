@@ -207,7 +207,26 @@ func (format *TextToJSON) Configure(conf core.PluginConfigReader) error {
 		}
 
 		format.parser.AddDirectives(directives)
+
+	// Validate initstate
+	initStateValid := false
+	for i := 0; i < len(directives) && !initStateValid; i++ {
+		initStateValid = directives[i].State == format.initState
 	}
+	if !initStateValid {
+		return fmt.Errorf("JSONStartState does not exist in directives")
+	}
+
+	for _, dir := range directives {
+		nextStateValid := false
+		for i := 0; i < len(directives) && !nextStateValid; i++ {
+			nextStateValid = dir.NextState == directives[i].State
+		}
+		if !nextStateValid {
+			Log.Warning.Printf("State \"%s\" has a transition to \"%s\" which does not exist in directives", dir.State, dir.NextState)
+		}
+	}
+
 	return conf.Errors.OrNil()
 }
 
@@ -235,49 +254,67 @@ func (format *TextToJSON) writeKey(key []byte) {
 func (format *TextToJSON) readKey(data []byte, state tstrings.ParserStateID) {
 	format.writeKey(data)
 	format.state = jsonReadValue
+func (format *TextToJSON) readValue(data []byte, state tstrings.ParserStateID) {
 }
 
-func (format *TextToJSON) readValue(data []byte, state tstrings.ParserStateID) {
+	trimmedData := bytes.TrimSpace(data)
+	if len(trimmedData) == 0 {
+		switch format.state {
+		default:
+			format.state = jsonReadKey
+		case jsonReadArray, jsonReadArrayAppend:
+		}
+		return
+	}
+
 	switch format.state {
 	default:
 		format.writeKey([]byte(format.parser.GetStateName(state)))
 		fallthrough
 
 	case jsonReadValue:
-		format.message.Write(bytes.TrimSpace(data))
+		format.message.Write(trimmedData)
 		format.state = jsonReadKey
 
 	case jsonReadArray:
-		format.message.Write(bytes.TrimSpace(data))
+		format.message.Write(trimmedData)
 		format.state = jsonReadArrayAppend
 
 	case jsonReadArrayAppend:
 		format.message.WriteByte(',')
-		format.message.Write(bytes.TrimSpace(data))
+		format.message.Write(trimmedData)
 	}
 }
 
-func (format *TextToJSON) readEscaped(data []byte, state tstrings.ParserStateID) {
+func (format *JSON) readEscaped(data []byte, state shared.ParserStateID) {
+	trimmedData := bytes.TrimSpace(data)
+	if len(trimmedData) == 0 {
+		switch format.state {
+		default:
+			format.state = jsonReadKey
+		case jsonReadArrayAppend, jsonReadArray:
+	}
+		return
+}
+
+	encodedData, _ := json.Marshal(string(trimmedData))
 	switch format.state {
 	default:
 		format.writeKey([]byte(format.parser.GetStateName(state)))
 		fallthrough
 
 	case jsonReadValue:
-		format.message.WriteByte('"')
-		format.message.Write(bytes.TrimSpace(data))
+		format.message.Write(encodedData)
 		format.state = jsonReadKey
 
 	case jsonReadArray:
-		format.message.WriteByte('"')
-		format.message.Write(bytes.TrimSpace(data))
+		format.message.Write(encodedData)
 		format.state = jsonReadArrayAppend
 
 	case jsonReadArrayAppend:
-		format.message.WriteString(`,"`)
-		format.message.Write(bytes.TrimSpace(data))
+		format.message.WriteString(`,`)
+		format.message.Write(encodedData)
 	}
-	format.message.WriteByte('"')
 }
 
 func (format *TextToJSON) readDate(data []byte, state tstrings.ParserStateID) {
@@ -322,21 +359,34 @@ func (format *TextToJSON) readArrayDate(data []byte, state tstrings.ParserStateI
 	format.readDate(data, state)
 }
 
-func (format *TextToJSON) readArray(data []byte, state tstrings.ParserStateID) {
-	if format.state == jsonReadArrayAppend {
-		format.message.WriteString(",[")
-	} else {
+func (format *JSON) readArray(data []byte, state shared.ParserStateID) {
+	switch format.state {
+	default:
+		format.writeKey([]byte(format.parser.GetStateName(state)))
+		fallthrough
+
+	case jsonReadValue, jsonReadArray, jsonReadObject:
 		format.message.WriteByte('[')
+
+func (format *TextToJSON) readArray(data []byte, state tstrings.ParserStateID) {
+	case jsonReadArrayAppend:
+		format.message.WriteString(",[")
 	}
 	format.stack = append(format.stack, format.state)
 	format.state = jsonReadArray
 }
 
-func (format *TextToJSON) readObject(data []byte, state tstrings.ParserStateID) {
-	if format.state == jsonReadArrayAppend {
-		format.message.WriteString(",{")
-	} else {
+func (format * TextToJSON) readObject(data []byte, state tstrings.ParserStateID) {
+	switch format.state {
+	default:
+		format.writeKey([]byte(format.parser.GetStateName(state)))
+		fallthrough
+
+	case jsonReadValue, jsonReadObject, jsonReadArray:
 		format.message.WriteByte('{')
+
+	case jsonReadArrayAppend:
+		format.message.WriteString(",{")
 	}
 	format.stack = append(format.stack, format.state)
 	format.state = jsonReadObject
@@ -357,9 +407,12 @@ func (format *TextToJSON) readEnd(data []byte, state tstrings.ParserStateID) {
 	if stackSize > 1 {
 		format.state = format.stack[stackSize-1]
 		format.stack = format.stack[:stackSize-1] // Pop the stack
+		if format.state == jsonReadArray {
+			format.state = jsonReadArrayAppend // just finished the first entry
+		}
 	} else {
 		format.stack = format.stack[:0] // Clear the stack
-		format.state = jsonReadValue
+		format.state = jsonReadKey
 	}
 }
 

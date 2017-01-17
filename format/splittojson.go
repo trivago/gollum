@@ -42,6 +42,10 @@ import (
 // SplitToJSONToken defines the separator character to use when processing a
 // message. By default this is set to "|".
 //
+// SplitToJSONKeepJSON can be set to false to escape texts that are JSON
+// payloads as regualar strings. Otherwise JSON payload will be taken as-is and
+// set to the corresponding key. By default set to "true"
+//
 // SplitToJSONKeys defines an array of keys to apply to the tokens generated
 // by splitting a message by SplitToJSONToken. The keys listed here are
 // applied to the resulting token array by index.
@@ -50,6 +54,7 @@ type SplitToJSON struct {
 	core.SimpleFormatter
 	token []byte
 	keys  []string
+	keepJSON bool
 }
 
 func init() {
@@ -59,6 +64,15 @@ func init() {
 // Configure initializes this formatter with values from a plugin config.
 func (format *SplitToJSON) Configure(conf core.PluginConfigReader) error {
 	format.SimpleFormatter.Configure(conf)
+	if err != nil {
+		return err
+	}
+	format.base = plugin.(core.Formatter)
+	format.token = []byte(conf.GetString("SplitToJSONToken", "|"))
+	format.keys = conf.GetStringArray("SplitToJSONKeys", []string{})
+	format.keepJSON = conf.GetBool("SplitToJSONKeepJSON", true)
+	return nil
+}
 
 	format.token = []byte(conf.GetString("SplitBy", "|"))
 	format.keys = conf.GetStringArray("Keys", []string{})
@@ -80,14 +94,17 @@ func (format *SplitToJSON) Modulate(msg *core.Message) core.ModulateResult {
 	default:
 		for i := 0; i < maxIdx; i++ {
 			key := tstrings.EscapeJSON(format.keys[i])
-			value := tstrings.EscapeJSON(string(components[i]))
+			value := string(components[i])
+			if isJson, _ := tstrings.IsJSON(components[i]); !format.keepJSON || !isJson {
+				value = "\"" + tstrings.EscapeJSON(value) + "\""
+			}
 			switch {
 			case i == 0:
-				jsonData = fmt.Sprintf("{\"%s\":\"%s\"", key, value)
+				jsonData = fmt.Sprintf("{\"%s\":%s", key, value)
 			case i == maxIdx-1:
-				jsonData = fmt.Sprintf("%s,\"%s\":\"%s\"}", jsonData, key, value)
+				jsonData = fmt.Sprintf("%s,\"%s\":%s}", jsonData, key, value)
 			default:
-				jsonData = fmt.Sprintf("%s,\"%s\":\"%s\"", jsonData, key, value)
+				jsonData = fmt.Sprintf("%s,\"%s\":%s", jsonData, key, value)
 			}
 		}
 	}
