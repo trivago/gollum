@@ -76,6 +76,7 @@ type Http struct {
 	readTimeoutSec time.Duration
 	withHeaders    bool
 	htpasswd       string
+	secrets        auth.SecretProvider
 	basicRealm     string
 	certificate    *tls.Config
 }
@@ -102,6 +103,7 @@ func (cons *Http) Configure(conf core.PluginConfig) error {
 		if _, fileErr := os.Stat(cons.htpasswd); os.IsNotExist(fileErr) {
 			return fmt.Errorf("htpasswd file does not exist: %s", cons.htpasswd)
 		}
+		cons.secrets = auth.HtpasswdFileProvider(cons.htpasswd)
 	}
 
 	certificateFile := conf.GetString("Certificate", "")
@@ -127,8 +129,7 @@ func (cons *Http) Configure(conf core.PluginConfig) error {
 }
 
 func (cons *Http) checkAuth(r *http.Request) bool {
-	secrets := auth.HtpasswdFileProvider(cons.htpasswd)
-	a := &auth.BasicAuth{Realm: cons.basicRealm, Secrets: secrets}
+	a := &auth.BasicAuth{Realm: cons.basicRealm, Secrets: cons.secrets}
 	if a.CheckAuth(r) == "" {
 		return false
 	}
