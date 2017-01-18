@@ -10,6 +10,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/abbot/go-http-auth",
+			"repository": "https://github.com/abbot/go-http-auth",
+			"vcs": "git",
+			"revision": "d45c47bedec736d172957bd394786b76626fa8ac",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/araddon/gou",
 			"repository": "https://github.com/araddon/gou",
 			"vcs": "git",
@@ -263,8 +271,35 @@
 			"importpath": "github.com/trivago/tgo",
 			"repository": "https://github.com/trivago/tgo",
 			"vcs": "git",
-			"revision": "ce135bd93276fac6ee9e5890a94e24c1a9503372",
+			"revision": "ad1dc89f5fe7ec80bc111ef9d9e93dc8bedf72ee",
 			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/crypto/bcrypt",
+			"repository": "https://go.googlesource.com/crypto",
+			"vcs": "git",
+			"revision": "b82246307bd525fde15c1df976318003716bca68",
+			"branch": "master",
+			"path": "/bcrypt",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/crypto/blowfish",
+			"repository": "https://go.googlesource.com/crypto",
+			"vcs": "git",
+			"revision": "b82246307bd525fde15c1df976318003716bca68",
+			"branch": "master",
+			"path": "blowfish",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/net/context",
+			"repository": "https://go.googlesource.com/net",
+			"vcs": "git",
+			"revision": "f2499483f923065a842d38eb4c7f1927e6fc6e6d",
+			"branch": "master",
+			"path": "/context",
 			"notests": true
 		},
 		{

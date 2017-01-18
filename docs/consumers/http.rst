@@ -40,6 +40,12 @@ Parameters
   WithHeaders can be set to false to only read the HTTP body instead of passing the whole HTTP message.
   By default this setting is set to true.
 
+**Htpasswd**
+  Htpasswd can be set to the htpasswd formatted file to enable HTTP BasicAuth
+
+**BasicRealm**
+  BasicRealm can be set for HTTP BasicAuth
+
 **Certificate**
   Certificate defines a path to a root certificate file to make this consumer handle HTTPS connections.
   Left empty by default (disabled).

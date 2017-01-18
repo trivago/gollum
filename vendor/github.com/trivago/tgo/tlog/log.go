@@ -62,14 +62,30 @@ type LogScope struct {
 	Warning *log.Logger
 	Note    *log.Logger
 	Debug   *log.Logger
+	name    string
 }
 
 // NewLogScope creates a new LogScope with the given prefix string.
-func NewLogScope(scope string) LogScope {
+func NewLogScope(name string) LogScope {
 	black := ansi.ColorFunc("black+h")
-	scopeMarker := black(fmt.Sprintf("[%s] ", scope))
+	scopeMarker := black(fmt.Sprintf("[%s] ", name))
 
 	return LogScope{
+		name:    name,
+		Error:   log.New(logLogger{Error}, scopeMarker, 0),
+		Warning: log.New(logLogger{Warning}, scopeMarker, 0),
+		Note:    log.New(logLogger{Note}, scopeMarker, 0),
+		Debug:   log.New(logLogger{Debug}, scopeMarker, 0),
+	}
+}
+
+// NewSubScope creates a log scope inside an existing log scope.
+func (scope *LogScope) NewSubScope(name string) LogScope {
+	black := ansi.ColorFunc("black+h")
+	scopeMarker := black(fmt.Sprintf("[%s.%s] ", scope.name, name))
+
+	return LogScope{
+		name:    name,
 		Error:   log.New(logLogger{Error}, scopeMarker, 0),
 		Warning: log.New(logLogger{Warning}, scopeMarker, 0),
 		Note:    log.New(logLogger{Note}, scopeMarker, 0),
