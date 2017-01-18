@@ -9,6 +9,14 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/abbot/go-http-auth",
+			"repository": "https://github.com/abbot/go-http-auth",
+			"vcs": "git",
+			"revision": "d45c47bedec736d172957bd394786b76626fa8ac",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/araddon/gou",
 			"repository": "https://github.com/araddon/gou",
 			"vcs": "git",
@@ -283,6 +291,24 @@
 			"revision": "d77da356e56a7428ad25149ca77381849a6a5232",
 			"branch": "master",
 			"path": "vendor/github.com/pmezard/go-difflib/difflib",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/crypto/bcrypt",
+			"repository": "https://go.googlesource.com/crypto",
+			"vcs": "git",
+			"revision": "91902e332b9d47760598861512d2ae148f94ca58",
+			"branch": "master",
+			"path": "/bcrypt",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/crypto/blowfish",
+			"repository": "https://go.googlesource.com/crypto",
+			"vcs": "git",
+			"revision": "91902e332b9d47760598861512d2ae148f94ca58",
+			"branch": "master",
+			"path": "blowfish",
 			"notests": true
 		},
 		{

@@ -18,14 +18,17 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/log"
-	"github.com/trivago/gollum/shared"
 	"io"
 	"net/http"
+	"os"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/abbot/go-http-auth"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/log"
+	"github.com/trivago/gollum/shared"
 )
 
 // Http consumer plugin
@@ -39,6 +42,8 @@ import (
 //    Address: ":80"
 //    ReadTimeoutSec: 3
 //    WithHeaders: true
+//    Htpasswd: ""
+//    BasicRealm: ""
 //    Certificate: ""
 //    PrivateKey: ""
 //
@@ -51,6 +56,10 @@ import (
 //
 // WithHeaders can be set to false to only read the HTTP body instead of passing
 // the whole HTTP message. By default this setting is set to true.
+//
+// Htpasswd can be set to the htpasswd formatted file to enable HTTP BasicAuth
+//
+// BasicRealm can be set for HTTP BasicAuth
 //
 // Certificate defines a path to a root certificate file to make this consumer
 // handle HTTPS connections. Left empty by default (disabled).
@@ -66,6 +75,9 @@ type Http struct {
 	sequence       uint64
 	readTimeoutSec time.Duration
 	withHeaders    bool
+	htpasswd       string
+	secrets        auth.SecretProvider
+	basicRealm     string
 	certificate    *tls.Config
 }
 
@@ -84,6 +96,16 @@ func (cons *Http) Configure(conf core.PluginConfig) error {
 	cons.readTimeoutSec = time.Duration(conf.GetInt("ReadTimeoutSec", 3)) * time.Second
 	cons.withHeaders = conf.GetBool("WithHeaders", true)
 
+	cons.htpasswd = conf.GetString("Htpasswd", "")
+	cons.basicRealm = conf.GetString("BasicRealm", "")
+
+	if cons.htpasswd != "" {
+		if _, fileErr := os.Stat(cons.htpasswd); os.IsNotExist(fileErr) {
+			return fmt.Errorf("htpasswd file does not exist: %s", cons.htpasswd)
+		}
+		cons.secrets = auth.HtpasswdFileProvider(cons.htpasswd)
+	}
+
 	certificateFile := conf.GetString("Certificate", "")
 	keyFile := conf.GetString("PrivateKey", "")
 
@@ -95,9 +117,9 @@ func (cons *Http) Configure(conf core.PluginConfig) error {
 		cons.certificate = new(tls.Config)
 		cons.certificate.NextProtos = []string{"http/1.1"}
 
-		keypair, err := tls.LoadX509KeyPair(certificateFile, keyFile)
-		if err != nil {
-			return err
+		keypair, keyErr := tls.LoadX509KeyPair(certificateFile, keyFile)
+		if keyErr != nil {
+			return keyErr
 		}
 
 		cons.certificate.Certificates = []tls.Certificate{keypair}
@@ -106,8 +128,22 @@ func (cons *Http) Configure(conf core.PluginConfig) error {
 	return err
 }
 
+func (cons *Http) checkAuth(r *http.Request) bool {
+	a := &auth.BasicAuth{Realm: cons.basicRealm, Secrets: cons.secrets}
+	if a.CheckAuth(r) == "" {
+		return false
+	}
+	return true
+}
+
 // requestHandler will handle a single web request.
 func (cons *Http) requestHandler(resp http.ResponseWriter, req *http.Request) {
+	if cons.htpasswd != "" {
+		if !cons.checkAuth(req) {
+			resp.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+	}
 	if cons.IsFuseBurned() {
 		resp.WriteHeader(http.StatusServiceUnavailable)
 		return // ### return, service is down ###
@@ -138,6 +174,7 @@ func (cons *Http) requestHandler(resp http.ResponseWriter, req *http.Request) {
 			Log.Error.Print("HttpRequest: ", err.Error())
 			return // ### return, missing body or bad write ###
 		}
+		defer req.Body.Close()
 
 		cons.Enqueue(body[:length], atomic.AddUint64(&cons.sequence, 1))
 		resp.WriteHeader(http.StatusOK)
