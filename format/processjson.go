@@ -229,7 +229,10 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 				index = len(array) - index
 			}
 			if index < 0 || index >= len(array) {
-				Log.Warning.Print("Array index out of bounds")
+				if len(array) > 0 {
+					// Don't log if array is empty
+					Log.Warning.Printf("Array index %d out of bounds: %#v", index, array)
+				}
 				return
 			}
 			(*values)[field] = array[index]
@@ -342,15 +345,16 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 			}
 
 		case "ip":
-			ipArray, err := (*values).StringArray(directive.key)
+			ipArray, err := (*values).Array(directive.key)
 			if err != nil {
 				Log.Warning.Print(err.Error())
 				return
 			}
 
-			sanitized := make([]string, 0, len(ipArray))
+			sanitized := make([]interface{}, 0, len(ipArray))
 			for _, ip := range ipArray {
-				if net.ParseIP(ip) != nil {
+				ipString, isString := ip.(string)
+				if !isString || net.ParseIP(ipString) != nil {
 					sanitized = append(sanitized, ip)
 				}
 			}
