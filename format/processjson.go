@@ -61,29 +61,33 @@ import (
 // Directives are processed in order of appearance.
 // The directives have to be given in the form of key:operation:parameters, where
 // operation can be one of the following.
-//  * split:<string>:{<key>:<key>:...} Split the value by a string and set the
+//  * `split:<string>{:<key>:<key>:...` Split the value by a string and set the
 //    resulting array elements to the given fields in order of appearance.
-//  * replace:<old>:<new> replace a given string in the value with a new one
-//  * trim:<characters> remove the given characters (not string!) from the start
+//  * `replace:<old>:<new>` replace a given string in the value with a new one
+//  * `trim:<characters>` remove the given characters (not string!) from the start
 //    and end of the value
-//  * rename:<old>:<new> rename a given field
-//  * remove remove a given field. If additional parameters are given, an array is
-//    expected. Strings given as additional parameters will be removed from that array
-//  * pick:<key>:<index>:<name> Pick a specific index from an array and store it
+//  * `rename:<old>:<new>` rename a given field
+//  * `remove{:<string>:<string>...}` remove a given field. If additional parameters are
+//    given, an array is expected. Strings given as additional parameters will be removed
+//    from that array
+//  * `pick:<key>:<index>:<name>` Pick a specific index from an array and store it
 //    in a new field.
-//  * time:<read>:<write> read a timestamp and transform it into another
+//  * `time:<read>:<write>` read a timestamp and transform it into another
 //    format
-//  * unixtimestamp:<read>:<write> read a unix timestamp and transform it into another
+//  * `unixtimestamp:<read>:<write>` read a unix timestamp and transform it into another
 //    format. valid read formats are s, ms, and ns.
-//  * flatten:{<delimiter>} create new fields from the values in field, with new
+//  * `flatten{:<delimiter>}` create new fields from the values in field, with new
 //    fields named field + delimiter + subfield. Delimiter defaults to ".".
 //    Removes the original field.
-//  * agent:<key>:{<field>:<field>:...} Parse the value as a user agent string and
+//  * `agent:<key>{:<field>:<field>:...}` Parse the value as a user agent string and
 //    extract the given fields into <key>_<field>.
 //    ("ua:agent:browser:os" would create the new fields "ua_browser" and "ua_os").
 //    Possible values are: "mozilla", "platform", "os", "localization", "engine",
 //    "engine_version", "browser", "version".
-//  * geoip:{<field>:<field>:...} like agent this directive will analyse an IP string
+//  * `ip` Parse the field as an array of strings and remove all values that cannot
+//    be parsed as a valid IP. Single-string fields are supported, too, but will be
+//    converted to an array.
+//  * `geoip:{<field>:<field>:...}` like agent this directive will analyse an IP string
 //    via geoip and produce new fields.
 //    Possible values are: "country", "city", "continent", "timezone", "proxy", "location"
 //
@@ -336,6 +340,21 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 					_, (*values)[directive.key+"_version"] = ua.Browser()
 				}
 			}
+
+		case "ip":
+			ipArray, err := (*values).StringArray(directive.key)
+			if err != nil {
+				Log.Warning.Print(err.Error())
+				return
+			}
+
+			sanitized := make([]string, 0, len(ipArray))
+			for _, ip := range ipArray {
+				if net.ParseIP(ip) != nil {
+					sanitized = append(sanitized, ip)
+				}
+			}
+			(*values)[directive.key] = sanitized
 
 		case "geoip":
 			if format.db == nil {
