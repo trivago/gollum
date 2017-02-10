@@ -264,9 +264,9 @@ func processDirective(directive transformDirective, values *shared.MarshalMap) {
 				delimiter = directive.parameters[0]
 			}
 			keyPrefix := directive.key + delimiter
-			if mapValue, err := values.Map(directive.key); err == nil {
+			if mapValue, err := values.MarshalMap(directive.key); err == nil {
 				for key, val := range mapValue {
-					(*values)[keyPrefix + key.(string)] = val
+					(*values)[keyPrefix + key] = val
 				}
 			} else if arrayValue, err := values.Array(directive.key); err == nil {
 				for index, val := range arrayValue {
