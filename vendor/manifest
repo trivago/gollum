@@ -110,12 +110,75 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/docker/docker/pkg/idtools",
+			"repository": "https://github.com/docker/docker",
+			"vcs": "git",
+			"revision": "a8f4d82176139babcd818fcb4590eec22860ffc9",
+			"branch": "master",
+			"path": "/pkg/idtools",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/docker/docker/pkg/system",
+			"repository": "https://github.com/docker/docker",
+			"vcs": "git",
+			"revision": "a8f4d82176139babcd818fcb4590eec22860ffc9",
+			"branch": "master",
+			"path": "pkg/system",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/docker/docker/vendor/github.com/Microsoft/go-winio",
+			"repository": "https://github.com/docker/docker",
+			"vcs": "git",
+			"revision": "a8f4d82176139babcd818fcb4590eec22860ffc9",
+			"branch": "master",
+			"path": "vendor/github.com/Microsoft/go-winio",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/docker/docker/vendor/github.com/Sirupsen/logrus",
+			"repository": "https://github.com/docker/docker",
+			"vcs": "git",
+			"revision": "a8f4d82176139babcd818fcb4590eec22860ffc9",
+			"branch": "master",
+			"path": "vendor/github.com/Sirupsen/logrus",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/docker/docker/vendor/github.com/docker/go-units",
+			"repository": "https://github.com/docker/docker",
+			"vcs": "git",
+			"revision": "a8f4d82176139babcd818fcb4590eec22860ffc9",
+			"branch": "master",
+			"path": "vendor/github.com/docker/go-units",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/docker/docker/vendor/github.com/opencontainers/runc/libcontainer/user",
 			"repository": "https://github.com/docker/docker",
 			"vcs": "git",
 			"revision": "a8f4d82176139babcd818fcb4590eec22860ffc9",
 			"branch": "master",
 			"path": "vendor/github.com/opencontainers/runc/libcontainer/user",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/docker/docker/vendor/golang.org/x/sys/unix",
+			"repository": "https://github.com/docker/docker",
+			"vcs": "git",
+			"revision": "a8f4d82176139babcd818fcb4590eec22860ffc9",
+			"branch": "master",
+			"path": "vendor/golang.org/x/sys/unix",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/docker/docker/vendor/golang.org/x/sys/windows",
+			"repository": "https://github.com/docker/docker",
+			"vcs": "git",
+			"revision": "a8f4d82176139babcd818fcb4590eec22860ffc9",
+			"branch": "master",
+			"path": "vendor/golang.org/x/sys/windows",
 			"notests": true
 		},
 		{
