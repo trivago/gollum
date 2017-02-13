@@ -48,9 +48,8 @@ func (c *SFN) CreateActivityRequest(input *CreateActivityInput) (req *request.Re
 		input = &CreateActivityInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateActivityOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -66,11 +65,11 @@ func (c *SFN) CreateActivityRequest(input *CreateActivityInput) (req *request.Re
 // API operation CreateActivity for usage and error information.
 //
 // Returned Error Codes:
-//   * ActivityLimitExceeded
+//   * ErrCodeActivityLimitExceeded "ActivityLimitExceeded"
 //   The maximum number of activities has been reached. Existing activities must
 //   be deleted before a new activity can be created.
 //
-//   * InvalidName
+//   * ErrCodeInvalidName "InvalidName"
 //   The provided name is invalid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/states-2016-11-23/CreateActivity
@@ -118,9 +117,8 @@ func (c *SFN) CreateStateMachineRequest(input *CreateStateMachineInput) (req *re
 		input = &CreateStateMachineInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateStateMachineOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -136,23 +134,23 @@ func (c *SFN) CreateStateMachineRequest(input *CreateStateMachineInput) (req *re
 // API operation CreateStateMachine for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidArn
+//   * ErrCodeInvalidArn "InvalidArn"
 //   The provided Amazon Resource Name (ARN) is invalid.
 //
-//   * InvalidDefinition
+//   * ErrCodeInvalidDefinition "InvalidDefinition"
 //   The provided Amazon States Language definition is invalid.
 //
-//   * InvalidName
+//   * ErrCodeInvalidName "InvalidName"
 //   The provided name is invalid.
 //
-//   * StateMachineAlreadyExists
+//   * ErrCodeStateMachineAlreadyExists "StateMachineAlreadyExists"
 //   A state machine with the same name but a different definition or role ARN
 //   already exists.
 //
-//   * StateMachineDeleting
+//   * ErrCodeStateMachineDeleting "StateMachineDeleting"
 //   The specified state machine is being deleted.
 //
-//   * StateMachineLimitExceeded
+//   * ErrCodeStateMachineLimitExceeded "StateMachineLimitExceeded"
 //   The maximum number of state machines has been reached. Existing state machines
 //   must be deleted before a new state machine can be created.
 //
@@ -201,9 +199,8 @@ func (c *SFN) DeleteActivityRequest(input *DeleteActivityInput) (req *request.Re
 		input = &DeleteActivityInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteActivityOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -219,7 +216,7 @@ func (c *SFN) DeleteActivityRequest(input *DeleteActivityInput) (req *request.Re
 // API operation DeleteActivity for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidArn
+//   * ErrCodeInvalidArn "InvalidArn"
 //   The provided Amazon Resource Name (ARN) is invalid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/states-2016-11-23/DeleteActivity
@@ -267,9 +264,8 @@ func (c *SFN) DeleteStateMachineRequest(input *DeleteStateMachineInput) (req *re
 		input = &DeleteStateMachineInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteStateMachineOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -286,7 +282,7 @@ func (c *SFN) DeleteStateMachineRequest(input *DeleteStateMachineInput) (req *re
 // API operation DeleteStateMachine for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidArn
+//   * ErrCodeInvalidArn "InvalidArn"
 //   The provided Amazon Resource Name (ARN) is invalid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/states-2016-11-23/DeleteStateMachine
@@ -334,9 +330,8 @@ func (c *SFN) DescribeActivityRequest(input *DescribeActivityInput) (req *reques
 		input = &DescribeActivityInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeActivityOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -352,10 +347,10 @@ func (c *SFN) DescribeActivityRequest(input *DescribeActivityInput) (req *reques
 // API operation DescribeActivity for usage and error information.
 //
 // Returned Error Codes:
-//   * ActivityDoesNotExist
+//   * ErrCodeActivityDoesNotExist "ActivityDoesNotExist"
 //   The specified activity does not exist.
 //
-//   * InvalidArn
+//   * ErrCodeInvalidArn "InvalidArn"
 //   The provided Amazon Resource Name (ARN) is invalid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/states-2016-11-23/DescribeActivity
@@ -403,9 +398,8 @@ func (c *SFN) DescribeExecutionRequest(input *DescribeExecutionInput) (req *requ
 		input = &DescribeExecutionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeExecutionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -421,10 +415,10 @@ func (c *SFN) DescribeExecutionRequest(input *DescribeExecutionInput) (req *requ
 // API operation DescribeExecution for usage and error information.
 //
 // Returned Error Codes:
-//   * ExecutionDoesNotExist
+//   * ErrCodeExecutionDoesNotExist "ExecutionDoesNotExist"
 //   The specified execution does not exist.
 //
-//   * InvalidArn
+//   * ErrCodeInvalidArn "InvalidArn"
 //   The provided Amazon Resource Name (ARN) is invalid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/states-2016-11-23/DescribeExecution
@@ -472,9 +466,8 @@ func (c *SFN) DescribeStateMachineRequest(input *DescribeStateMachineInput) (req
 		input = &DescribeStateMachineInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeStateMachineOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -490,10 +483,10 @@ func (c *SFN) DescribeStateMachineRequest(input *DescribeStateMachineInput) (req
 // API operation DescribeStateMachine for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidArn
+//   * ErrCodeInvalidArn "InvalidArn"
 //   The provided Amazon Resource Name (ARN) is invalid.
 //
-//   * StateMachineDoesNotExist
+//   * ErrCodeStateMachineDoesNotExist "StateMachineDoesNotExist"
 //   The specified state machine does not exist.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/states-2016-11-23/DescribeStateMachine
@@ -541,9 +534,8 @@ func (c *SFN) GetActivityTaskRequest(input *GetActivityTaskInput) (req *request.
 		input = &GetActivityTaskInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetActivityTaskOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -568,14 +560,14 @@ func (c *SFN) GetActivityTaskRequest(input *GetActivityTaskInput) (req *request.
 // API operation GetActivityTask for usage and error information.
 //
 // Returned Error Codes:
-//   * ActivityDoesNotExist
+//   * ErrCodeActivityDoesNotExist "ActivityDoesNotExist"
 //   The specified activity does not exist.
 //
-//   * ActivityWorkerLimitExceeded
+//   * ErrCodeActivityWorkerLimitExceeded "ActivityWorkerLimitExceeded"
 //   The maximum number of workers concurrently polling for activity tasks has
 //   been reached.
 //
-//   * InvalidArn
+//   * ErrCodeInvalidArn "InvalidArn"
 //   The provided Amazon Resource Name (ARN) is invalid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/states-2016-11-23/GetActivityTask
@@ -629,9 +621,8 @@ func (c *SFN) GetExecutionHistoryRequest(input *GetExecutionHistoryInput) (req *
 		input = &GetExecutionHistoryInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetExecutionHistoryOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -651,13 +642,13 @@ func (c *SFN) GetExecutionHistoryRequest(input *GetExecutionHistoryInput) (req *
 // API operation GetExecutionHistory for usage and error information.
 //
 // Returned Error Codes:
-//   * ExecutionDoesNotExist
+//   * ErrCodeExecutionDoesNotExist "ExecutionDoesNotExist"
 //   The specified execution does not exist.
 //
-//   * InvalidArn
+//   * ErrCodeInvalidArn "InvalidArn"
 //   The provided Amazon Resource Name (ARN) is invalid.
 //
-//   * InvalidToken
+//   * ErrCodeInvalidToken "InvalidToken"
 //   The provided token is invalid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/states-2016-11-23/GetExecutionHistory
@@ -736,9 +727,8 @@ func (c *SFN) ListActivitiesRequest(input *ListActivitiesInput) (req *request.Re
 		input = &ListActivitiesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListActivitiesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -756,7 +746,7 @@ func (c *SFN) ListActivitiesRequest(input *ListActivitiesInput) (req *request.Re
 // API operation ListActivities for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidToken
+//   * ErrCodeInvalidToken "InvalidToken"
 //   The provided token is invalid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/states-2016-11-23/ListActivities
@@ -835,9 +825,8 @@ func (c *SFN) ListExecutionsRequest(input *ListExecutionsInput) (req *request.Re
 		input = &ListExecutionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListExecutionsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -855,13 +844,13 @@ func (c *SFN) ListExecutionsRequest(input *ListExecutionsInput) (req *request.Re
 // API operation ListExecutions for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidArn
+//   * ErrCodeInvalidArn "InvalidArn"
 //   The provided Amazon Resource Name (ARN) is invalid.
 //
-//   * InvalidToken
+//   * ErrCodeInvalidToken "InvalidToken"
 //   The provided token is invalid.
 //
-//   * StateMachineDoesNotExist
+//   * ErrCodeStateMachineDoesNotExist "StateMachineDoesNotExist"
 //   The specified state machine does not exist.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/states-2016-11-23/ListExecutions
@@ -940,9 +929,8 @@ func (c *SFN) ListStateMachinesRequest(input *ListStateMachinesInput) (req *requ
 		input = &ListStateMachinesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListStateMachinesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -960,7 +948,7 @@ func (c *SFN) ListStateMachinesRequest(input *ListStateMachinesInput) (req *requ
 // API operation ListStateMachines for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidToken
+//   * ErrCodeInvalidToken "InvalidToken"
 //   The provided token is invalid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/states-2016-11-23/ListStateMachines
@@ -1033,9 +1021,8 @@ func (c *SFN) SendTaskFailureRequest(input *SendTaskFailureInput) (req *request.
 		input = &SendTaskFailureInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &SendTaskFailureOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1051,14 +1038,12 @@ func (c *SFN) SendTaskFailureRequest(input *SendTaskFailureInput) (req *request.
 // API operation SendTaskFailure for usage and error information.
 //
 // Returned Error Codes:
-//   * TaskDoesNotExist
-
+//   * ErrCodeTaskDoesNotExist "TaskDoesNotExist"
 //
-//   * InvalidToken
+//   * ErrCodeInvalidToken "InvalidToken"
 //   The provided token is invalid.
 //
-//   * TaskTimedOut
-
+//   * ErrCodeTaskTimedOut "TaskTimedOut"
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/states-2016-11-23/SendTaskFailure
 func (c *SFN) SendTaskFailure(input *SendTaskFailureInput) (*SendTaskFailureOutput, error) {
@@ -1105,9 +1090,8 @@ func (c *SFN) SendTaskHeartbeatRequest(input *SendTaskHeartbeatInput) (req *requ
 		input = &SendTaskHeartbeatInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &SendTaskHeartbeatOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1135,14 +1119,12 @@ func (c *SFN) SendTaskHeartbeatRequest(input *SendTaskHeartbeatInput) (req *requ
 // API operation SendTaskHeartbeat for usage and error information.
 //
 // Returned Error Codes:
-//   * TaskDoesNotExist
-
+//   * ErrCodeTaskDoesNotExist "TaskDoesNotExist"
 //
-//   * InvalidToken
+//   * ErrCodeInvalidToken "InvalidToken"
 //   The provided token is invalid.
 //
-//   * TaskTimedOut
-
+//   * ErrCodeTaskTimedOut "TaskTimedOut"
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/states-2016-11-23/SendTaskHeartbeat
 func (c *SFN) SendTaskHeartbeat(input *SendTaskHeartbeatInput) (*SendTaskHeartbeatOutput, error) {
@@ -1189,9 +1171,8 @@ func (c *SFN) SendTaskSuccessRequest(input *SendTaskSuccessInput) (req *request.
 		input = &SendTaskSuccessInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &SendTaskSuccessOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1208,17 +1189,15 @@ func (c *SFN) SendTaskSuccessRequest(input *SendTaskSuccessInput) (req *request.
 // API operation SendTaskSuccess for usage and error information.
 //
 // Returned Error Codes:
-//   * TaskDoesNotExist
-
+//   * ErrCodeTaskDoesNotExist "TaskDoesNotExist"
 //
-//   * InvalidOutput
+//   * ErrCodeInvalidOutput "InvalidOutput"
 //   The provided JSON output data is invalid.
 //
-//   * InvalidToken
+//   * ErrCodeInvalidToken "InvalidToken"
 //   The provided token is invalid.
 //
-//   * TaskTimedOut
-
+//   * ErrCodeTaskTimedOut "TaskTimedOut"
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/states-2016-11-23/SendTaskSuccess
 func (c *SFN) SendTaskSuccess(input *SendTaskSuccessInput) (*SendTaskSuccessOutput, error) {
@@ -1265,9 +1244,8 @@ func (c *SFN) StartExecutionRequest(input *StartExecutionInput) (req *request.Re
 		input = &StartExecutionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &StartExecutionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1283,26 +1261,26 @@ func (c *SFN) StartExecutionRequest(input *StartExecutionInput) (req *request.Re
 // API operation StartExecution for usage and error information.
 //
 // Returned Error Codes:
-//   * ExecutionLimitExceeded
+//   * ErrCodeExecutionLimitExceeded "ExecutionLimitExceeded"
 //   The maximum number of running executions has been reached. Running executions
 //   must end or be stopped before a new execution can be started.
 //
-//   * ExecutionAlreadyExists
+//   * ErrCodeExecutionAlreadyExists "ExecutionAlreadyExists"
 //   An execution with the same name already exists.
 //
-//   * InvalidArn
+//   * ErrCodeInvalidArn "InvalidArn"
 //   The provided Amazon Resource Name (ARN) is invalid.
 //
-//   * InvalidExecutionInput
+//   * ErrCodeInvalidExecutionInput "InvalidExecutionInput"
 //   The provided JSON input data is invalid.
 //
-//   * InvalidName
+//   * ErrCodeInvalidName "InvalidName"
 //   The provided name is invalid.
 //
-//   * StateMachineDoesNotExist
+//   * ErrCodeStateMachineDoesNotExist "StateMachineDoesNotExist"
 //   The specified state machine does not exist.
 //
-//   * StateMachineDeleting
+//   * ErrCodeStateMachineDeleting "StateMachineDeleting"
 //   The specified state machine is being deleted.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/states-2016-11-23/StartExecution
@@ -1350,9 +1328,8 @@ func (c *SFN) StopExecutionRequest(input *StopExecutionInput) (req *request.Requ
 		input = &StopExecutionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &StopExecutionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1368,10 +1345,10 @@ func (c *SFN) StopExecutionRequest(input *StopExecutionInput) (req *request.Requ
 // API operation StopExecution for usage and error information.
 //
 // Returned Error Codes:
-//   * ExecutionDoesNotExist
+//   * ErrCodeExecutionDoesNotExist "ExecutionDoesNotExist"
 //   The specified execution does not exist.
 //
-//   * InvalidArn
+//   * ErrCodeInvalidArn "InvalidArn"
 //   The provided Amazon Resource Name (ARN) is invalid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/states-2016-11-23/StopExecution

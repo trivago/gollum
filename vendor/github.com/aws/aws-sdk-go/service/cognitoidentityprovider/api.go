@@ -52,9 +52,8 @@ func (c *CognitoIdentityProvider) AddCustomAttributesRequest(input *AddCustomAtt
 		input = &AddCustomAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AddCustomAttributesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -70,26 +69,26 @@ func (c *CognitoIdentityProvider) AddCustomAttributesRequest(input *AddCustomAtt
 // API operation AddCustomAttributes for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UserImportInProgressException
+//   * ErrCodeUserImportInProgressException "UserImportInProgressException"
 //   This exception is thrown when you are trying to modify a user pool while
 //   a user import job is in progress for that pool.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AddCustomAttributes
@@ -137,11 +136,10 @@ func (c *CognitoIdentityProvider) AdminAddUserToGroupRequest(input *AdminAddUser
 		input = &AdminAddUserToGroupInput{}
 	}
 
+	output = &AdminAddUserToGroupOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &AdminAddUserToGroupOutput{}
-	req.Data = output
 	return
 }
 
@@ -159,25 +157,25 @@ func (c *CognitoIdentityProvider) AdminAddUserToGroupRequest(input *AdminAddUser
 // API operation AdminAddUserToGroup for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminAddUserToGroup
@@ -225,9 +223,8 @@ func (c *CognitoIdentityProvider) AdminConfirmSignUpRequest(input *AdminConfirmS
 		input = &AdminConfirmSignUpInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AdminConfirmSignUpOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -246,45 +243,45 @@ func (c *CognitoIdentityProvider) AdminConfirmSignUpRequest(input *AdminConfirmS
 // API operation AdminConfirmSignUp for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * UnexpectedLambdaException
+//   * ErrCodeUnexpectedLambdaException "UnexpectedLambdaException"
 //   This exception gets thrown when the Amazon Cognito service encounters an
 //   unexpected exception with the AWS Lambda service.
 //
-//   * UserLambdaValidationException
+//   * ErrCodeUserLambdaValidationException "UserLambdaValidationException"
 //   This exception gets thrown when the Amazon Cognito service encounters a user
 //   validation exception with the AWS Lambda service.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * TooManyFailedAttemptsException
+//   * ErrCodeTooManyFailedAttemptsException "TooManyFailedAttemptsException"
 //   This exception gets thrown when the user has made too many failed attempts
 //   for a given action (e.g., sign in).
 //
-//   * InvalidLambdaResponseException
+//   * ErrCodeInvalidLambdaResponseException "InvalidLambdaResponseException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   AWS Lambda response.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   This exception is thrown when a user exceeds the limit for a requested AWS
 //   resource.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminConfirmSignUp
@@ -332,9 +329,8 @@ func (c *CognitoIdentityProvider) AdminCreateUserRequest(input *AdminCreateUserI
 		input = &AdminCreateUserInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AdminCreateUserOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -356,64 +352,64 @@ func (c *CognitoIdentityProvider) AdminCreateUserRequest(input *AdminCreateUserI
 // API operation AdminCreateUser for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UsernameExistsException
+//   * ErrCodeUsernameExistsException "UsernameExistsException"
 //   This exception is thrown when Amazon Cognito encounters a user name that
 //   already exists in the user pool.
 //
-//   * InvalidPasswordException
+//   * ErrCodeInvalidPasswordException "InvalidPasswordException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   password.
 //
-//   * CodeDeliveryFailureException
+//   * ErrCodeCodeDeliveryFailureException "CodeDeliveryFailureException"
 //   This exception is thrown when a verification code fails to deliver successfully.
 //
-//   * UnexpectedLambdaException
+//   * ErrCodeUnexpectedLambdaException "UnexpectedLambdaException"
 //   This exception gets thrown when the Amazon Cognito service encounters an
 //   unexpected exception with the AWS Lambda service.
 //
-//   * UserLambdaValidationException
+//   * ErrCodeUserLambdaValidationException "UserLambdaValidationException"
 //   This exception gets thrown when the Amazon Cognito service encounters a user
 //   validation exception with the AWS Lambda service.
 //
-//   * InvalidLambdaResponseException
+//   * ErrCodeInvalidLambdaResponseException "InvalidLambdaResponseException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   AWS Lambda response.
 //
-//   * PreconditionNotMetException
+//   * ErrCodePreconditionNotMetException "PreconditionNotMetException"
 //   This exception is thrown when a precondition is not met.
 //
-//   * InvalidSmsRoleAccessPolicyException
+//   * ErrCodeInvalidSmsRoleAccessPolicyException "InvalidSmsRoleAccessPolicyException"
 //   This exception is returned when the role provided for SMS configuration does
 //   not have permission to publish using Amazon SNS.
 //
-//   * InvalidSmsRoleTrustRelationshipException
+//   * ErrCodeInvalidSmsRoleTrustRelationshipException "InvalidSmsRoleTrustRelationshipException"
 //   This exception is thrown when the trust relationship is invalid for the role
 //   provided for SMS configuration. This can happen if you do not trust cognito-idp.amazonaws.com
 //   or the external ID provided in the role does not match what is provided in
 //   the SMS configuration for the user pool.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UnsupportedUserStateException
+//   * ErrCodeUnsupportedUserStateException "UnsupportedUserStateException"
 //   The request failed because the user is in an unsupported state.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminCreateUser
@@ -461,11 +457,10 @@ func (c *CognitoIdentityProvider) AdminDeleteUserRequest(input *AdminDeleteUserI
 		input = &AdminDeleteUserInput{}
 	}
 
+	output = &AdminDeleteUserOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &AdminDeleteUserOutput{}
-	req.Data = output
 	return
 }
 
@@ -483,25 +478,25 @@ func (c *CognitoIdentityProvider) AdminDeleteUserRequest(input *AdminDeleteUserI
 // API operation AdminDeleteUser for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminDeleteUser
@@ -549,9 +544,8 @@ func (c *CognitoIdentityProvider) AdminDeleteUserAttributesRequest(input *AdminD
 		input = &AdminDeleteUserAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AdminDeleteUserAttributesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -570,25 +564,25 @@ func (c *CognitoIdentityProvider) AdminDeleteUserAttributesRequest(input *AdminD
 // API operation AdminDeleteUserAttributes for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminDeleteUserAttributes
@@ -636,9 +630,8 @@ func (c *CognitoIdentityProvider) AdminDisableUserRequest(input *AdminDisableUse
 		input = &AdminDisableUserInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AdminDisableUserOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -656,25 +649,25 @@ func (c *CognitoIdentityProvider) AdminDisableUserRequest(input *AdminDisableUse
 // API operation AdminDisableUser for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminDisableUser
@@ -722,9 +715,8 @@ func (c *CognitoIdentityProvider) AdminEnableUserRequest(input *AdminEnableUserI
 		input = &AdminEnableUserInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AdminEnableUserOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -742,25 +734,25 @@ func (c *CognitoIdentityProvider) AdminEnableUserRequest(input *AdminEnableUserI
 // API operation AdminEnableUser for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminEnableUser
@@ -808,11 +800,10 @@ func (c *CognitoIdentityProvider) AdminForgetDeviceRequest(input *AdminForgetDev
 		input = &AdminForgetDeviceInput{}
 	}
 
+	output = &AdminForgetDeviceOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &AdminForgetDeviceOutput{}
-	req.Data = output
 	return
 }
 
@@ -830,28 +821,28 @@ func (c *CognitoIdentityProvider) AdminForgetDeviceRequest(input *AdminForgetDev
 // API operation AdminForgetDevice for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * InvalidUserPoolConfigurationException
+//   * ErrCodeInvalidUserPoolConfigurationException "InvalidUserPoolConfigurationException"
 //   This exception is thrown when the user pool configuration is invalid.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminForgetDevice
@@ -899,9 +890,8 @@ func (c *CognitoIdentityProvider) AdminGetDeviceRequest(input *AdminGetDeviceInp
 		input = &AdminGetDeviceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AdminGetDeviceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -919,25 +909,25 @@ func (c *CognitoIdentityProvider) AdminGetDeviceRequest(input *AdminGetDeviceInp
 // API operation AdminGetDevice for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * InvalidUserPoolConfigurationException
+//   * ErrCodeInvalidUserPoolConfigurationException "InvalidUserPoolConfigurationException"
 //   This exception is thrown when the user pool configuration is invalid.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminGetDevice
@@ -985,9 +975,8 @@ func (c *CognitoIdentityProvider) AdminGetUserRequest(input *AdminGetUserInput) 
 		input = &AdminGetUserInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AdminGetUserOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1006,25 +995,25 @@ func (c *CognitoIdentityProvider) AdminGetUserRequest(input *AdminGetUserInput) 
 // API operation AdminGetUser for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminGetUser
@@ -1072,9 +1061,8 @@ func (c *CognitoIdentityProvider) AdminInitiateAuthRequest(input *AdminInitiateA
 		input = &AdminInitiateAuthInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AdminInitiateAuthOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1092,60 +1080,60 @@ func (c *CognitoIdentityProvider) AdminInitiateAuthRequest(input *AdminInitiateA
 // API operation AdminInitiateAuth for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
-//   * UnexpectedLambdaException
+//   * ErrCodeUnexpectedLambdaException "UnexpectedLambdaException"
 //   This exception gets thrown when the Amazon Cognito service encounters an
 //   unexpected exception with the AWS Lambda service.
 //
-//   * InvalidUserPoolConfigurationException
+//   * ErrCodeInvalidUserPoolConfigurationException "InvalidUserPoolConfigurationException"
 //   This exception is thrown when the user pool configuration is invalid.
 //
-//   * UserLambdaValidationException
+//   * ErrCodeUserLambdaValidationException "UserLambdaValidationException"
 //   This exception gets thrown when the Amazon Cognito service encounters a user
 //   validation exception with the AWS Lambda service.
 //
-//   * InvalidLambdaResponseException
+//   * ErrCodeInvalidLambdaResponseException "InvalidLambdaResponseException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   AWS Lambda response.
 //
-//   * MFAMethodNotFoundException
+//   * ErrCodeMFAMethodNotFoundException "MFAMethodNotFoundException"
 //   This exception is thrown when Amazon Cognito cannot find a multi-factor authentication
 //   (MFA) method.
 //
-//   * InvalidSmsRoleAccessPolicyException
+//   * ErrCodeInvalidSmsRoleAccessPolicyException "InvalidSmsRoleAccessPolicyException"
 //   This exception is returned when the role provided for SMS configuration does
 //   not have permission to publish using Amazon SNS.
 //
-//   * InvalidSmsRoleTrustRelationshipException
+//   * ErrCodeInvalidSmsRoleTrustRelationshipException "InvalidSmsRoleTrustRelationshipException"
 //   This exception is thrown when the trust relationship is invalid for the role
 //   provided for SMS configuration. This can happen if you do not trust cognito-idp.amazonaws.com
 //   or the external ID provided in the role does not match what is provided in
 //   the SMS configuration for the user pool.
 //
-//   * PasswordResetRequiredException
+//   * ErrCodePasswordResetRequiredException "PasswordResetRequiredException"
 //   This exception is thrown when a password reset is required.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminInitiateAuth
@@ -1193,9 +1181,8 @@ func (c *CognitoIdentityProvider) AdminListDevicesRequest(input *AdminListDevice
 		input = &AdminListDevicesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AdminListDevicesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1213,25 +1200,25 @@ func (c *CognitoIdentityProvider) AdminListDevicesRequest(input *AdminListDevice
 // API operation AdminListDevices for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidUserPoolConfigurationException
+//   * ErrCodeInvalidUserPoolConfigurationException "InvalidUserPoolConfigurationException"
 //   This exception is thrown when the user pool configuration is invalid.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminListDevices
@@ -1279,9 +1266,8 @@ func (c *CognitoIdentityProvider) AdminListGroupsForUserRequest(input *AdminList
 		input = &AdminListGroupsForUserInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AdminListGroupsForUserOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1299,25 +1285,25 @@ func (c *CognitoIdentityProvider) AdminListGroupsForUserRequest(input *AdminList
 // API operation AdminListGroupsForUser for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminListGroupsForUser
@@ -1365,11 +1351,10 @@ func (c *CognitoIdentityProvider) AdminRemoveUserFromGroupRequest(input *AdminRe
 		input = &AdminRemoveUserFromGroupInput{}
 	}
 
+	output = &AdminRemoveUserFromGroupOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &AdminRemoveUserFromGroupOutput{}
-	req.Data = output
 	return
 }
 
@@ -1387,25 +1372,25 @@ func (c *CognitoIdentityProvider) AdminRemoveUserFromGroupRequest(input *AdminRe
 // API operation AdminRemoveUserFromGroup for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminRemoveUserFromGroup
@@ -1453,9 +1438,8 @@ func (c *CognitoIdentityProvider) AdminResetUserPasswordRequest(input *AdminRese
 		input = &AdminResetUserPasswordInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AdminResetUserPasswordOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1484,41 +1468,41 @@ func (c *CognitoIdentityProvider) AdminResetUserPasswordRequest(input *AdminRese
 // API operation AdminResetUserPassword for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * UnexpectedLambdaException
+//   * ErrCodeUnexpectedLambdaException "UnexpectedLambdaException"
 //   This exception gets thrown when the Amazon Cognito service encounters an
 //   unexpected exception with the AWS Lambda service.
 //
-//   * UserLambdaValidationException
+//   * ErrCodeUserLambdaValidationException "UserLambdaValidationException"
 //   This exception gets thrown when the Amazon Cognito service encounters a user
 //   validation exception with the AWS Lambda service.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InvalidLambdaResponseException
+//   * ErrCodeInvalidLambdaResponseException "InvalidLambdaResponseException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   AWS Lambda response.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   This exception is thrown when a user exceeds the limit for a requested AWS
 //   resource.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminResetUserPassword
@@ -1566,9 +1550,8 @@ func (c *CognitoIdentityProvider) AdminRespondToAuthChallengeRequest(input *Admi
 		input = &AdminRespondToAuthChallengeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AdminRespondToAuthChallengeOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1586,77 +1569,77 @@ func (c *CognitoIdentityProvider) AdminRespondToAuthChallengeRequest(input *Admi
 // API operation AdminRespondToAuthChallenge for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * CodeMismatchException
+//   * ErrCodeCodeMismatchException "CodeMismatchException"
 //   This exception is thrown if the provided code does not match what the server
 //   was expecting.
 //
-//   * ExpiredCodeException
+//   * ErrCodeExpiredCodeException "ExpiredCodeException"
 //   This exception is thrown if a code has expired.
 //
-//   * UnexpectedLambdaException
+//   * ErrCodeUnexpectedLambdaException "UnexpectedLambdaException"
 //   This exception gets thrown when the Amazon Cognito service encounters an
 //   unexpected exception with the AWS Lambda service.
 //
-//   * InvalidPasswordException
+//   * ErrCodeInvalidPasswordException "InvalidPasswordException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   password.
 //
-//   * UserLambdaValidationException
+//   * ErrCodeUserLambdaValidationException "UserLambdaValidationException"
 //   This exception gets thrown when the Amazon Cognito service encounters a user
 //   validation exception with the AWS Lambda service.
 //
-//   * InvalidLambdaResponseException
+//   * ErrCodeInvalidLambdaResponseException "InvalidLambdaResponseException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   AWS Lambda response.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * InvalidUserPoolConfigurationException
+//   * ErrCodeInvalidUserPoolConfigurationException "InvalidUserPoolConfigurationException"
 //   This exception is thrown when the user pool configuration is invalid.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
-//   * MFAMethodNotFoundException
+//   * ErrCodeMFAMethodNotFoundException "MFAMethodNotFoundException"
 //   This exception is thrown when Amazon Cognito cannot find a multi-factor authentication
 //   (MFA) method.
 //
-//   * InvalidSmsRoleAccessPolicyException
+//   * ErrCodeInvalidSmsRoleAccessPolicyException "InvalidSmsRoleAccessPolicyException"
 //   This exception is returned when the role provided for SMS configuration does
 //   not have permission to publish using Amazon SNS.
 //
-//   * InvalidSmsRoleTrustRelationshipException
+//   * ErrCodeInvalidSmsRoleTrustRelationshipException "InvalidSmsRoleTrustRelationshipException"
 //   This exception is thrown when the trust relationship is invalid for the role
 //   provided for SMS configuration. This can happen if you do not trust cognito-idp.amazonaws.com
 //   or the external ID provided in the role does not match what is provided in
 //   the SMS configuration for the user pool.
 //
-//   * AliasExistsException
+//   * ErrCodeAliasExistsException "AliasExistsException"
 //   This exception is thrown when a user tries to confirm the account with an
 //   email or phone number that has already been supplied as an alias from a different
 //   account. This exception tells user that an account with this email or phone
 //   already exists.
 //
-//   * PasswordResetRequiredException
+//   * ErrCodePasswordResetRequiredException "PasswordResetRequiredException"
 //   This exception is thrown when a password reset is required.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminRespondToAuthChallenge
@@ -1704,9 +1687,8 @@ func (c *CognitoIdentityProvider) AdminSetUserSettingsRequest(input *AdminSetUse
 		input = &AdminSetUserSettingsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AdminSetUserSettingsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1724,21 +1706,21 @@ func (c *CognitoIdentityProvider) AdminSetUserSettingsRequest(input *AdminSetUse
 // API operation AdminSetUserSettings for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminSetUserSettings
@@ -1786,9 +1768,8 @@ func (c *CognitoIdentityProvider) AdminUpdateDeviceStatusRequest(input *AdminUpd
 		input = &AdminUpdateDeviceStatusInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AdminUpdateDeviceStatusOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1806,28 +1787,28 @@ func (c *CognitoIdentityProvider) AdminUpdateDeviceStatusRequest(input *AdminUpd
 // API operation AdminUpdateDeviceStatus for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidUserPoolConfigurationException
+//   * ErrCodeInvalidUserPoolConfigurationException "InvalidUserPoolConfigurationException"
 //   This exception is thrown when the user pool configuration is invalid.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminUpdateDeviceStatus
@@ -1875,9 +1856,8 @@ func (c *CognitoIdentityProvider) AdminUpdateUserAttributesRequest(input *AdminU
 		input = &AdminUpdateUserAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AdminUpdateUserAttributesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1896,43 +1876,43 @@ func (c *CognitoIdentityProvider) AdminUpdateUserAttributesRequest(input *AdminU
 // API operation AdminUpdateUserAttributes for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * UnexpectedLambdaException
+//   * ErrCodeUnexpectedLambdaException "UnexpectedLambdaException"
 //   This exception gets thrown when the Amazon Cognito service encounters an
 //   unexpected exception with the AWS Lambda service.
 //
-//   * UserLambdaValidationException
+//   * ErrCodeUserLambdaValidationException "UserLambdaValidationException"
 //   This exception gets thrown when the Amazon Cognito service encounters a user
 //   validation exception with the AWS Lambda service.
 //
-//   * InvalidLambdaResponseException
+//   * ErrCodeInvalidLambdaResponseException "InvalidLambdaResponseException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   AWS Lambda response.
 //
-//   * AliasExistsException
+//   * ErrCodeAliasExistsException "AliasExistsException"
 //   This exception is thrown when a user tries to confirm the account with an
 //   email or phone number that has already been supplied as an alias from a different
 //   account. This exception tells user that an account with this email or phone
 //   already exists.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminUpdateUserAttributes
@@ -1980,9 +1960,8 @@ func (c *CognitoIdentityProvider) AdminUserGlobalSignOutRequest(input *AdminUser
 		input = &AdminUserGlobalSignOutInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AdminUserGlobalSignOutOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2000,25 +1979,25 @@ func (c *CognitoIdentityProvider) AdminUserGlobalSignOutRequest(input *AdminUser
 // API operation AdminUserGlobalSignOut for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/AdminUserGlobalSignOut
@@ -2066,10 +2045,9 @@ func (c *CognitoIdentityProvider) ChangePasswordRequest(input *ChangePasswordInp
 		input = &ChangePasswordInput{}
 	}
 
+	output = &ChangePasswordOutput{}
 	req = c.newRequest(op, input, output)
 	req.Config.Credentials = credentials.AnonymousCredentials
-	output = &ChangePasswordOutput{}
-	req.Data = output
 	return
 }
 
@@ -2085,39 +2063,39 @@ func (c *CognitoIdentityProvider) ChangePasswordRequest(input *ChangePasswordInp
 // API operation ChangePassword for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * InvalidPasswordException
+//   * ErrCodeInvalidPasswordException "InvalidPasswordException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   password.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   This exception is thrown when a user exceeds the limit for a requested AWS
 //   resource.
 //
-//   * PasswordResetRequiredException
+//   * ErrCodePasswordResetRequiredException "PasswordResetRequiredException"
 //   This exception is thrown when a password reset is required.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/ChangePassword
@@ -2165,9 +2143,8 @@ func (c *CognitoIdentityProvider) ConfirmDeviceRequest(input *ConfirmDeviceInput
 		input = &ConfirmDeviceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ConfirmDeviceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2184,46 +2161,46 @@ func (c *CognitoIdentityProvider) ConfirmDeviceRequest(input *ConfirmDeviceInput
 // API operation ConfirmDevice for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InvalidPasswordException
+//   * ErrCodeInvalidPasswordException "InvalidPasswordException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   password.
 //
-//   * InvalidLambdaResponseException
+//   * ErrCodeInvalidLambdaResponseException "InvalidLambdaResponseException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   AWS Lambda response.
 //
-//   * UsernameExistsException
+//   * ErrCodeUsernameExistsException "UsernameExistsException"
 //   This exception is thrown when Amazon Cognito encounters a user name that
 //   already exists in the user pool.
 //
-//   * InvalidUserPoolConfigurationException
+//   * ErrCodeInvalidUserPoolConfigurationException "InvalidUserPoolConfigurationException"
 //   This exception is thrown when the user pool configuration is invalid.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * PasswordResetRequiredException
+//   * ErrCodePasswordResetRequiredException "PasswordResetRequiredException"
 //   This exception is thrown when a password reset is required.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/ConfirmDevice
@@ -2271,10 +2248,9 @@ func (c *CognitoIdentityProvider) ConfirmForgotPasswordRequest(input *ConfirmFor
 		input = &ConfirmForgotPasswordInput{}
 	}
 
+	output = &ConfirmForgotPasswordOutput{}
 	req = c.newRequest(op, input, output)
 	req.Config.Credentials = credentials.AnonymousCredentials
-	output = &ConfirmForgotPasswordOutput{}
-	req.Data = output
 	return
 }
 
@@ -2291,59 +2267,59 @@ func (c *CognitoIdentityProvider) ConfirmForgotPasswordRequest(input *ConfirmFor
 // API operation ConfirmForgotPassword for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * UnexpectedLambdaException
+//   * ErrCodeUnexpectedLambdaException "UnexpectedLambdaException"
 //   This exception gets thrown when the Amazon Cognito service encounters an
 //   unexpected exception with the AWS Lambda service.
 //
-//   * UserLambdaValidationException
+//   * ErrCodeUserLambdaValidationException "UserLambdaValidationException"
 //   This exception gets thrown when the Amazon Cognito service encounters a user
 //   validation exception with the AWS Lambda service.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * InvalidPasswordException
+//   * ErrCodeInvalidPasswordException "InvalidPasswordException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   password.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * CodeMismatchException
+//   * ErrCodeCodeMismatchException "CodeMismatchException"
 //   This exception is thrown if the provided code does not match what the server
 //   was expecting.
 //
-//   * ExpiredCodeException
+//   * ErrCodeExpiredCodeException "ExpiredCodeException"
 //   This exception is thrown if a code has expired.
 //
-//   * TooManyFailedAttemptsException
+//   * ErrCodeTooManyFailedAttemptsException "TooManyFailedAttemptsException"
 //   This exception gets thrown when the user has made too many failed attempts
 //   for a given action (e.g., sign in).
 //
-//   * InvalidLambdaResponseException
+//   * ErrCodeInvalidLambdaResponseException "InvalidLambdaResponseException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   AWS Lambda response.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   This exception is thrown when a user exceeds the limit for a requested AWS
 //   resource.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/ConfirmForgotPassword
@@ -2391,10 +2367,9 @@ func (c *CognitoIdentityProvider) ConfirmSignUpRequest(input *ConfirmSignUpInput
 		input = &ConfirmSignUpInput{}
 	}
 
+	output = &ConfirmSignUpOutput{}
 	req = c.newRequest(op, input, output)
 	req.Config.Credentials = credentials.AnonymousCredentials
-	output = &ConfirmSignUpOutput{}
-	req.Data = output
 	return
 }
 
@@ -2411,58 +2386,58 @@ func (c *CognitoIdentityProvider) ConfirmSignUpRequest(input *ConfirmSignUpInput
 // API operation ConfirmSignUp for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * UnexpectedLambdaException
+//   * ErrCodeUnexpectedLambdaException "UnexpectedLambdaException"
 //   This exception gets thrown when the Amazon Cognito service encounters an
 //   unexpected exception with the AWS Lambda service.
 //
-//   * UserLambdaValidationException
+//   * ErrCodeUserLambdaValidationException "UserLambdaValidationException"
 //   This exception gets thrown when the Amazon Cognito service encounters a user
 //   validation exception with the AWS Lambda service.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * TooManyFailedAttemptsException
+//   * ErrCodeTooManyFailedAttemptsException "TooManyFailedAttemptsException"
 //   This exception gets thrown when the user has made too many failed attempts
 //   for a given action (e.g., sign in).
 //
-//   * CodeMismatchException
+//   * ErrCodeCodeMismatchException "CodeMismatchException"
 //   This exception is thrown if the provided code does not match what the server
 //   was expecting.
 //
-//   * ExpiredCodeException
+//   * ErrCodeExpiredCodeException "ExpiredCodeException"
 //   This exception is thrown if a code has expired.
 //
-//   * InvalidLambdaResponseException
+//   * ErrCodeInvalidLambdaResponseException "InvalidLambdaResponseException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   AWS Lambda response.
 //
-//   * AliasExistsException
+//   * ErrCodeAliasExistsException "AliasExistsException"
 //   This exception is thrown when a user tries to confirm the account with an
 //   email or phone number that has already been supplied as an alias from a different
 //   account. This exception tells user that an account with this email or phone
 //   already exists.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   This exception is thrown when a user exceeds the limit for a requested AWS
 //   resource.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/ConfirmSignUp
@@ -2510,9 +2485,8 @@ func (c *CognitoIdentityProvider) CreateGroupRequest(input *CreateGroupInput) (r
 		input = &CreateGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateGroupOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2530,30 +2504,30 @@ func (c *CognitoIdentityProvider) CreateGroupRequest(input *CreateGroupInput) (r
 // API operation CreateGroup for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * GroupExistsException
+//   * ErrCodeGroupExistsException "GroupExistsException"
 //   This exception is thrown when Amazon Cognito encounters a group that already
 //   exists in the user pool.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   This exception is thrown when a user exceeds the limit for a requested AWS
 //   resource.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/CreateGroup
@@ -2601,9 +2575,8 @@ func (c *CognitoIdentityProvider) CreateUserImportJobRequest(input *CreateUserIm
 		input = &CreateUserImportJobInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateUserImportJobOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2619,29 +2592,29 @@ func (c *CognitoIdentityProvider) CreateUserImportJobRequest(input *CreateUserIm
 // API operation CreateUserImportJob for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * PreconditionNotMetException
+//   * ErrCodePreconditionNotMetException "PreconditionNotMetException"
 //   This exception is thrown when a precondition is not met.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   This exception is thrown when a user exceeds the limit for a requested AWS
 //   resource.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/CreateUserImportJob
@@ -2689,9 +2662,8 @@ func (c *CognitoIdentityProvider) CreateUserPoolRequest(input *CreateUserPoolInp
 		input = &CreateUserPoolInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateUserPoolOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2708,39 +2680,39 @@ func (c *CognitoIdentityProvider) CreateUserPoolRequest(input *CreateUserPoolInp
 // API operation CreateUserPool for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   This exception is thrown when a user exceeds the limit for a requested AWS
 //   resource.
 //
-//   * InvalidSmsRoleAccessPolicyException
+//   * ErrCodeInvalidSmsRoleAccessPolicyException "InvalidSmsRoleAccessPolicyException"
 //   This exception is returned when the role provided for SMS configuration does
 //   not have permission to publish using Amazon SNS.
 //
-//   * InvalidSmsRoleTrustRelationshipException
+//   * ErrCodeInvalidSmsRoleTrustRelationshipException "InvalidSmsRoleTrustRelationshipException"
 //   This exception is thrown when the trust relationship is invalid for the role
 //   provided for SMS configuration. This can happen if you do not trust cognito-idp.amazonaws.com
 //   or the external ID provided in the role does not match what is provided in
 //   the SMS configuration for the user pool.
 //
-//   * InvalidEmailRoleAccessPolicyException
+//   * ErrCodeInvalidEmailRoleAccessPolicyException "InvalidEmailRoleAccessPolicyException"
 //   This exception is thrown when Amazon Cognito is not allowed to use your email
 //   identity. HTTP status code: 400.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UserPoolTaggingException
+//   * ErrCodeUserPoolTaggingException "UserPoolTaggingException"
 //   This exception gets thrown when a user pool tag cannot be set or updated.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/CreateUserPool
@@ -2788,9 +2760,8 @@ func (c *CognitoIdentityProvider) CreateUserPoolClientRequest(input *CreateUserP
 		input = &CreateUserPoolClientInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateUserPoolClientOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2806,26 +2777,26 @@ func (c *CognitoIdentityProvider) CreateUserPoolClientRequest(input *CreateUserP
 // API operation CreateUserPoolClient for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   This exception is thrown when a user exceeds the limit for a requested AWS
 //   resource.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/CreateUserPoolClient
@@ -2873,11 +2844,10 @@ func (c *CognitoIdentityProvider) DeleteGroupRequest(input *DeleteGroupInput) (r
 		input = &DeleteGroupInput{}
 	}
 
+	output = &DeleteGroupOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteGroupOutput{}
-	req.Data = output
 	return
 }
 
@@ -2895,22 +2865,22 @@ func (c *CognitoIdentityProvider) DeleteGroupRequest(input *DeleteGroupInput) (r
 // API operation DeleteGroup for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/DeleteGroup
@@ -2958,12 +2928,11 @@ func (c *CognitoIdentityProvider) DeleteUserRequest(input *DeleteUserInput) (req
 		input = &DeleteUserInput{}
 	}
 
+	output = &DeleteUserOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
 	req.Config.Credentials = credentials.AnonymousCredentials
-	output = &DeleteUserOutput{}
-	req.Data = output
 	return
 }
 
@@ -2979,31 +2948,31 @@ func (c *CognitoIdentityProvider) DeleteUserRequest(input *DeleteUserInput) (req
 // API operation DeleteUser for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * PasswordResetRequiredException
+//   * ErrCodePasswordResetRequiredException "PasswordResetRequiredException"
 //   This exception is thrown when a password reset is required.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/DeleteUser
@@ -3051,10 +3020,9 @@ func (c *CognitoIdentityProvider) DeleteUserAttributesRequest(input *DeleteUserA
 		input = &DeleteUserAttributesInput{}
 	}
 
+	output = &DeleteUserAttributesOutput{}
 	req = c.newRequest(op, input, output)
 	req.Config.Credentials = credentials.AnonymousCredentials
-	output = &DeleteUserAttributesOutput{}
-	req.Data = output
 	return
 }
 
@@ -3070,31 +3038,31 @@ func (c *CognitoIdentityProvider) DeleteUserAttributesRequest(input *DeleteUserA
 // API operation DeleteUserAttributes for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * PasswordResetRequiredException
+//   * ErrCodePasswordResetRequiredException "PasswordResetRequiredException"
 //   This exception is thrown when a password reset is required.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/DeleteUserAttributes
@@ -3142,11 +3110,10 @@ func (c *CognitoIdentityProvider) DeleteUserPoolRequest(input *DeleteUserPoolInp
 		input = &DeleteUserPoolInput{}
 	}
 
+	output = &DeleteUserPoolOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteUserPoolOutput{}
-	req.Data = output
 	return
 }
 
@@ -3162,26 +3129,26 @@ func (c *CognitoIdentityProvider) DeleteUserPoolRequest(input *DeleteUserPoolInp
 // API operation DeleteUserPool for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UserImportInProgressException
+//   * ErrCodeUserImportInProgressException "UserImportInProgressException"
 //   This exception is thrown when you are trying to modify a user pool while
 //   a user import job is in progress for that pool.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/DeleteUserPool
@@ -3229,11 +3196,10 @@ func (c *CognitoIdentityProvider) DeleteUserPoolClientRequest(input *DeleteUserP
 		input = &DeleteUserPoolClientInput{}
 	}
 
+	output = &DeleteUserPoolClientOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteUserPoolClientOutput{}
-	req.Data = output
 	return
 }
 
@@ -3249,22 +3215,22 @@ func (c *CognitoIdentityProvider) DeleteUserPoolClientRequest(input *DeleteUserP
 // API operation DeleteUserPoolClient for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/DeleteUserPoolClient
@@ -3312,9 +3278,8 @@ func (c *CognitoIdentityProvider) DescribeUserImportJobRequest(input *DescribeUs
 		input = &DescribeUserImportJobInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeUserImportJobOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3330,22 +3295,22 @@ func (c *CognitoIdentityProvider) DescribeUserImportJobRequest(input *DescribeUs
 // API operation DescribeUserImportJob for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/DescribeUserImportJob
@@ -3393,9 +3358,8 @@ func (c *CognitoIdentityProvider) DescribeUserPoolRequest(input *DescribeUserPoo
 		input = &DescribeUserPoolInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeUserPoolOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3412,25 +3376,25 @@ func (c *CognitoIdentityProvider) DescribeUserPoolRequest(input *DescribeUserPoo
 // API operation DescribeUserPool for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UserPoolTaggingException
+//   * ErrCodeUserPoolTaggingException "UserPoolTaggingException"
 //   This exception gets thrown when a user pool tag cannot be set or updated.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/DescribeUserPool
@@ -3478,9 +3442,8 @@ func (c *CognitoIdentityProvider) DescribeUserPoolClientRequest(input *DescribeU
 		input = &DescribeUserPoolClientInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeUserPoolClientOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3497,22 +3460,22 @@ func (c *CognitoIdentityProvider) DescribeUserPoolClientRequest(input *DescribeU
 // API operation DescribeUserPoolClient for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/DescribeUserPoolClient
@@ -3560,11 +3523,10 @@ func (c *CognitoIdentityProvider) ForgetDeviceRequest(input *ForgetDeviceInput) 
 		input = &ForgetDeviceInput{}
 	}
 
+	output = &ForgetDeviceOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &ForgetDeviceOutput{}
-	req.Data = output
 	return
 }
 
@@ -3580,34 +3542,34 @@ func (c *CognitoIdentityProvider) ForgetDeviceRequest(input *ForgetDeviceInput) 
 // API operation ForgetDevice for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * InvalidUserPoolConfigurationException
+//   * ErrCodeInvalidUserPoolConfigurationException "InvalidUserPoolConfigurationException"
 //   This exception is thrown when the user pool configuration is invalid.
 //
-//   * PasswordResetRequiredException
+//   * ErrCodePasswordResetRequiredException "PasswordResetRequiredException"
 //   This exception is thrown when a password reset is required.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/ForgetDevice
@@ -3655,10 +3617,9 @@ func (c *CognitoIdentityProvider) ForgotPasswordRequest(input *ForgotPasswordInp
 		input = &ForgotPasswordInput{}
 	}
 
+	output = &ForgotPasswordOutput{}
 	req = c.newRequest(op, input, output)
 	req.Config.Credentials = credentials.AnonymousCredentials
-	output = &ForgotPasswordOutput{}
-	req.Data = output
 	return
 }
 
@@ -3674,61 +3635,61 @@ func (c *CognitoIdentityProvider) ForgotPasswordRequest(input *ForgotPasswordInp
 // API operation ForgotPassword for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * UnexpectedLambdaException
+//   * ErrCodeUnexpectedLambdaException "UnexpectedLambdaException"
 //   This exception gets thrown when the Amazon Cognito service encounters an
 //   unexpected exception with the AWS Lambda service.
 //
-//   * UserLambdaValidationException
+//   * ErrCodeUserLambdaValidationException "UserLambdaValidationException"
 //   This exception gets thrown when the Amazon Cognito service encounters a user
 //   validation exception with the AWS Lambda service.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InvalidLambdaResponseException
+//   * ErrCodeInvalidLambdaResponseException "InvalidLambdaResponseException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   AWS Lambda response.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   This exception is thrown when a user exceeds the limit for a requested AWS
 //   resource.
 //
-//   * InvalidSmsRoleAccessPolicyException
+//   * ErrCodeInvalidSmsRoleAccessPolicyException "InvalidSmsRoleAccessPolicyException"
 //   This exception is returned when the role provided for SMS configuration does
 //   not have permission to publish using Amazon SNS.
 //
-//   * InvalidSmsRoleTrustRelationshipException
+//   * ErrCodeInvalidSmsRoleTrustRelationshipException "InvalidSmsRoleTrustRelationshipException"
 //   This exception is thrown when the trust relationship is invalid for the role
 //   provided for SMS configuration. This can happen if you do not trust cognito-idp.amazonaws.com
 //   or the external ID provided in the role does not match what is provided in
 //   the SMS configuration for the user pool.
 //
-//   * InvalidEmailRoleAccessPolicyException
+//   * ErrCodeInvalidEmailRoleAccessPolicyException "InvalidEmailRoleAccessPolicyException"
 //   This exception is thrown when Amazon Cognito is not allowed to use your email
 //   identity. HTTP status code: 400.
 //
-//   * CodeDeliveryFailureException
+//   * ErrCodeCodeDeliveryFailureException "CodeDeliveryFailureException"
 //   This exception is thrown when a verification code fails to deliver successfully.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/ForgotPassword
@@ -3776,9 +3737,8 @@ func (c *CognitoIdentityProvider) GetCSVHeaderRequest(input *GetCSVHeaderInput) 
 		input = &GetCSVHeaderInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetCSVHeaderOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3795,22 +3755,22 @@ func (c *CognitoIdentityProvider) GetCSVHeaderRequest(input *GetCSVHeaderInput) 
 // API operation GetCSVHeader for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/GetCSVHeader
@@ -3858,9 +3818,8 @@ func (c *CognitoIdentityProvider) GetDeviceRequest(input *GetDeviceInput) (req *
 		input = &GetDeviceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetDeviceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3876,34 +3835,34 @@ func (c *CognitoIdentityProvider) GetDeviceRequest(input *GetDeviceInput) (req *
 // API operation GetDevice for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * InvalidUserPoolConfigurationException
+//   * ErrCodeInvalidUserPoolConfigurationException "InvalidUserPoolConfigurationException"
 //   This exception is thrown when the user pool configuration is invalid.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * PasswordResetRequiredException
+//   * ErrCodePasswordResetRequiredException "PasswordResetRequiredException"
 //   This exception is thrown when a password reset is required.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/GetDevice
@@ -3951,9 +3910,8 @@ func (c *CognitoIdentityProvider) GetGroupRequest(input *GetGroupInput) (req *re
 		input = &GetGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetGroupOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3971,22 +3929,22 @@ func (c *CognitoIdentityProvider) GetGroupRequest(input *GetGroupInput) (req *re
 // API operation GetGroup for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/GetGroup
@@ -4034,10 +3992,9 @@ func (c *CognitoIdentityProvider) GetUserRequest(input *GetUserInput) (req *requ
 		input = &GetUserInput{}
 	}
 
+	output = &GetUserOutput{}
 	req = c.newRequest(op, input, output)
 	req.Config.Credentials = credentials.AnonymousCredentials
-	output = &GetUserOutput{}
-	req.Data = output
 	return
 }
 
@@ -4053,31 +4010,31 @@ func (c *CognitoIdentityProvider) GetUserRequest(input *GetUserInput) (req *requ
 // API operation GetUser for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * PasswordResetRequiredException
+//   * ErrCodePasswordResetRequiredException "PasswordResetRequiredException"
 //   This exception is thrown when a password reset is required.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/GetUser
@@ -4125,10 +4082,9 @@ func (c *CognitoIdentityProvider) GetUserAttributeVerificationCodeRequest(input 
 		input = &GetUserAttributeVerificationCodeInput{}
 	}
 
+	output = &GetUserAttributeVerificationCodeOutput{}
 	req = c.newRequest(op, input, output)
 	req.Config.Credentials = credentials.AnonymousCredentials
-	output = &GetUserAttributeVerificationCodeOutput{}
-	req.Data = output
 	return
 }
 
@@ -4144,64 +4100,64 @@ func (c *CognitoIdentityProvider) GetUserAttributeVerificationCodeRequest(input 
 // API operation GetUserAttributeVerificationCode for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UnexpectedLambdaException
+//   * ErrCodeUnexpectedLambdaException "UnexpectedLambdaException"
 //   This exception gets thrown when the Amazon Cognito service encounters an
 //   unexpected exception with the AWS Lambda service.
 //
-//   * UserLambdaValidationException
+//   * ErrCodeUserLambdaValidationException "UserLambdaValidationException"
 //   This exception gets thrown when the Amazon Cognito service encounters a user
 //   validation exception with the AWS Lambda service.
 //
-//   * InvalidLambdaResponseException
+//   * ErrCodeInvalidLambdaResponseException "InvalidLambdaResponseException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   AWS Lambda response.
 //
-//   * InvalidSmsRoleAccessPolicyException
+//   * ErrCodeInvalidSmsRoleAccessPolicyException "InvalidSmsRoleAccessPolicyException"
 //   This exception is returned when the role provided for SMS configuration does
 //   not have permission to publish using Amazon SNS.
 //
-//   * InvalidSmsRoleTrustRelationshipException
+//   * ErrCodeInvalidSmsRoleTrustRelationshipException "InvalidSmsRoleTrustRelationshipException"
 //   This exception is thrown when the trust relationship is invalid for the role
 //   provided for SMS configuration. This can happen if you do not trust cognito-idp.amazonaws.com
 //   or the external ID provided in the role does not match what is provided in
 //   the SMS configuration for the user pool.
 //
-//   * InvalidEmailRoleAccessPolicyException
+//   * ErrCodeInvalidEmailRoleAccessPolicyException "InvalidEmailRoleAccessPolicyException"
 //   This exception is thrown when Amazon Cognito is not allowed to use your email
 //   identity. HTTP status code: 400.
 //
-//   * CodeDeliveryFailureException
+//   * ErrCodeCodeDeliveryFailureException "CodeDeliveryFailureException"
 //   This exception is thrown when a verification code fails to deliver successfully.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   This exception is thrown when a user exceeds the limit for a requested AWS
 //   resource.
 //
-//   * PasswordResetRequiredException
+//   * ErrCodePasswordResetRequiredException "PasswordResetRequiredException"
 //   This exception is thrown when a password reset is required.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/GetUserAttributeVerificationCode
@@ -4249,9 +4205,8 @@ func (c *CognitoIdentityProvider) GlobalSignOutRequest(input *GlobalSignOutInput
 		input = &GlobalSignOutInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GlobalSignOutOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4267,28 +4222,28 @@ func (c *CognitoIdentityProvider) GlobalSignOutRequest(input *GlobalSignOutInput
 // API operation GlobalSignOut for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * PasswordResetRequiredException
+//   * ErrCodePasswordResetRequiredException "PasswordResetRequiredException"
 //   This exception is thrown when a password reset is required.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/GlobalSignOut
@@ -4336,9 +4291,8 @@ func (c *CognitoIdentityProvider) InitiateAuthRequest(input *InitiateAuthInput) 
 		input = &InitiateAuthInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &InitiateAuthOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4354,46 +4308,46 @@ func (c *CognitoIdentityProvider) InitiateAuthRequest(input *InitiateAuthInput) 
 // API operation InitiateAuth for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * UnexpectedLambdaException
+//   * ErrCodeUnexpectedLambdaException "UnexpectedLambdaException"
 //   This exception gets thrown when the Amazon Cognito service encounters an
 //   unexpected exception with the AWS Lambda service.
 //
-//   * InvalidUserPoolConfigurationException
+//   * ErrCodeInvalidUserPoolConfigurationException "InvalidUserPoolConfigurationException"
 //   This exception is thrown when the user pool configuration is invalid.
 //
-//   * UserLambdaValidationException
+//   * ErrCodeUserLambdaValidationException "UserLambdaValidationException"
 //   This exception gets thrown when the Amazon Cognito service encounters a user
 //   validation exception with the AWS Lambda service.
 //
-//   * InvalidLambdaResponseException
+//   * ErrCodeInvalidLambdaResponseException "InvalidLambdaResponseException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   AWS Lambda response.
 //
-//   * PasswordResetRequiredException
+//   * ErrCodePasswordResetRequiredException "PasswordResetRequiredException"
 //   This exception is thrown when a password reset is required.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/InitiateAuth
@@ -4441,9 +4395,8 @@ func (c *CognitoIdentityProvider) ListDevicesRequest(input *ListDevicesInput) (r
 		input = &ListDevicesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListDevicesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4459,34 +4412,34 @@ func (c *CognitoIdentityProvider) ListDevicesRequest(input *ListDevicesInput) (r
 // API operation ListDevices for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InvalidUserPoolConfigurationException
+//   * ErrCodeInvalidUserPoolConfigurationException "InvalidUserPoolConfigurationException"
 //   This exception is thrown when the user pool configuration is invalid.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * PasswordResetRequiredException
+//   * ErrCodePasswordResetRequiredException "PasswordResetRequiredException"
 //   This exception is thrown when a password reset is required.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/ListDevices
@@ -4534,9 +4487,8 @@ func (c *CognitoIdentityProvider) ListGroupsRequest(input *ListGroupsInput) (req
 		input = &ListGroupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListGroupsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4554,22 +4506,22 @@ func (c *CognitoIdentityProvider) ListGroupsRequest(input *ListGroupsInput) (req
 // API operation ListGroups for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/ListGroups
@@ -4617,9 +4569,8 @@ func (c *CognitoIdentityProvider) ListUserImportJobsRequest(input *ListUserImpor
 		input = &ListUserImportJobsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListUserImportJobsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4635,22 +4586,22 @@ func (c *CognitoIdentityProvider) ListUserImportJobsRequest(input *ListUserImpor
 // API operation ListUserImportJobs for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/ListUserImportJobs
@@ -4698,9 +4649,8 @@ func (c *CognitoIdentityProvider) ListUserPoolClientsRequest(input *ListUserPool
 		input = &ListUserPoolClientsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListUserPoolClientsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4716,22 +4666,22 @@ func (c *CognitoIdentityProvider) ListUserPoolClientsRequest(input *ListUserPool
 // API operation ListUserPoolClients for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/ListUserPoolClients
@@ -4779,9 +4729,8 @@ func (c *CognitoIdentityProvider) ListUserPoolsRequest(input *ListUserPoolsInput
 		input = &ListUserPoolsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListUserPoolsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4797,18 +4746,18 @@ func (c *CognitoIdentityProvider) ListUserPoolsRequest(input *ListUserPoolsInput
 // API operation ListUserPools for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/ListUserPools
@@ -4856,9 +4805,8 @@ func (c *CognitoIdentityProvider) ListUsersRequest(input *ListUsersInput) (req *
 		input = &ListUsersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListUsersOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4874,22 +4822,22 @@ func (c *CognitoIdentityProvider) ListUsersRequest(input *ListUsersInput) (req *
 // API operation ListUsers for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/ListUsers
@@ -4937,9 +4885,8 @@ func (c *CognitoIdentityProvider) ListUsersInGroupRequest(input *ListUsersInGrou
 		input = &ListUsersInGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListUsersInGroupOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4957,22 +4904,22 @@ func (c *CognitoIdentityProvider) ListUsersInGroupRequest(input *ListUsersInGrou
 // API operation ListUsersInGroup for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/ListUsersInGroup
@@ -5020,10 +4967,9 @@ func (c *CognitoIdentityProvider) ResendConfirmationCodeRequest(input *ResendCon
 		input = &ResendConfirmationCodeInput{}
 	}
 
+	output = &ResendConfirmationCodeOutput{}
 	req = c.newRequest(op, input, output)
 	req.Config.Credentials = credentials.AnonymousCredentials
-	output = &ResendConfirmationCodeOutput{}
-	req.Data = output
 	return
 }
 
@@ -5040,58 +4986,58 @@ func (c *CognitoIdentityProvider) ResendConfirmationCodeRequest(input *ResendCon
 // API operation ResendConfirmationCode for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * UnexpectedLambdaException
+//   * ErrCodeUnexpectedLambdaException "UnexpectedLambdaException"
 //   This exception gets thrown when the Amazon Cognito service encounters an
 //   unexpected exception with the AWS Lambda service.
 //
-//   * UserLambdaValidationException
+//   * ErrCodeUserLambdaValidationException "UserLambdaValidationException"
 //   This exception gets thrown when the Amazon Cognito service encounters a user
 //   validation exception with the AWS Lambda service.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InvalidLambdaResponseException
+//   * ErrCodeInvalidLambdaResponseException "InvalidLambdaResponseException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   AWS Lambda response.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   This exception is thrown when a user exceeds the limit for a requested AWS
 //   resource.
 //
-//   * InvalidSmsRoleAccessPolicyException
+//   * ErrCodeInvalidSmsRoleAccessPolicyException "InvalidSmsRoleAccessPolicyException"
 //   This exception is returned when the role provided for SMS configuration does
 //   not have permission to publish using Amazon SNS.
 //
-//   * InvalidSmsRoleTrustRelationshipException
+//   * ErrCodeInvalidSmsRoleTrustRelationshipException "InvalidSmsRoleTrustRelationshipException"
 //   This exception is thrown when the trust relationship is invalid for the role
 //   provided for SMS configuration. This can happen if you do not trust cognito-idp.amazonaws.com
 //   or the external ID provided in the role does not match what is provided in
 //   the SMS configuration for the user pool.
 //
-//   * InvalidEmailRoleAccessPolicyException
+//   * ErrCodeInvalidEmailRoleAccessPolicyException "InvalidEmailRoleAccessPolicyException"
 //   This exception is thrown when Amazon Cognito is not allowed to use your email
 //   identity. HTTP status code: 400.
 //
-//   * CodeDeliveryFailureException
+//   * ErrCodeCodeDeliveryFailureException "CodeDeliveryFailureException"
 //   This exception is thrown when a verification code fails to deliver successfully.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/ResendConfirmationCode
@@ -5139,9 +5085,8 @@ func (c *CognitoIdentityProvider) RespondToAuthChallengeRequest(input *RespondTo
 		input = &RespondToAuthChallengeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &RespondToAuthChallengeOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -5157,77 +5102,77 @@ func (c *CognitoIdentityProvider) RespondToAuthChallengeRequest(input *RespondTo
 // API operation RespondToAuthChallenge for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * CodeMismatchException
+//   * ErrCodeCodeMismatchException "CodeMismatchException"
 //   This exception is thrown if the provided code does not match what the server
 //   was expecting.
 //
-//   * ExpiredCodeException
+//   * ErrCodeExpiredCodeException "ExpiredCodeException"
 //   This exception is thrown if a code has expired.
 //
-//   * UnexpectedLambdaException
+//   * ErrCodeUnexpectedLambdaException "UnexpectedLambdaException"
 //   This exception gets thrown when the Amazon Cognito service encounters an
 //   unexpected exception with the AWS Lambda service.
 //
-//   * UserLambdaValidationException
+//   * ErrCodeUserLambdaValidationException "UserLambdaValidationException"
 //   This exception gets thrown when the Amazon Cognito service encounters a user
 //   validation exception with the AWS Lambda service.
 //
-//   * InvalidPasswordException
+//   * ErrCodeInvalidPasswordException "InvalidPasswordException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   password.
 //
-//   * InvalidLambdaResponseException
+//   * ErrCodeInvalidLambdaResponseException "InvalidLambdaResponseException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   AWS Lambda response.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * InvalidUserPoolConfigurationException
+//   * ErrCodeInvalidUserPoolConfigurationException "InvalidUserPoolConfigurationException"
 //   This exception is thrown when the user pool configuration is invalid.
 //
-//   * MFAMethodNotFoundException
+//   * ErrCodeMFAMethodNotFoundException "MFAMethodNotFoundException"
 //   This exception is thrown when Amazon Cognito cannot find a multi-factor authentication
 //   (MFA) method.
 //
-//   * PasswordResetRequiredException
+//   * ErrCodePasswordResetRequiredException "PasswordResetRequiredException"
 //   This exception is thrown when a password reset is required.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
-//   * InvalidSmsRoleAccessPolicyException
+//   * ErrCodeInvalidSmsRoleAccessPolicyException "InvalidSmsRoleAccessPolicyException"
 //   This exception is returned when the role provided for SMS configuration does
 //   not have permission to publish using Amazon SNS.
 //
-//   * InvalidSmsRoleTrustRelationshipException
+//   * ErrCodeInvalidSmsRoleTrustRelationshipException "InvalidSmsRoleTrustRelationshipException"
 //   This exception is thrown when the trust relationship is invalid for the role
 //   provided for SMS configuration. This can happen if you do not trust cognito-idp.amazonaws.com
 //   or the external ID provided in the role does not match what is provided in
 //   the SMS configuration for the user pool.
 //
-//   * AliasExistsException
+//   * ErrCodeAliasExistsException "AliasExistsException"
 //   This exception is thrown when a user tries to confirm the account with an
 //   email or phone number that has already been supplied as an alias from a different
 //   account. This exception tells user that an account with this email or phone
 //   already exists.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/RespondToAuthChallenge
@@ -5275,10 +5220,9 @@ func (c *CognitoIdentityProvider) SetUserSettingsRequest(input *SetUserSettingsI
 		input = &SetUserSettingsInput{}
 	}
 
+	output = &SetUserSettingsOutput{}
 	req = c.newRequest(op, input, output)
 	req.Config.Credentials = credentials.AnonymousCredentials
-	output = &SetUserSettingsOutput{}
-	req.Data = output
 	return
 }
 
@@ -5296,27 +5240,27 @@ func (c *CognitoIdentityProvider) SetUserSettingsRequest(input *SetUserSettingsI
 // API operation SetUserSettings for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * PasswordResetRequiredException
+//   * ErrCodePasswordResetRequiredException "PasswordResetRequiredException"
 //   This exception is thrown when a password reset is required.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/SetUserSettings
@@ -5364,10 +5308,9 @@ func (c *CognitoIdentityProvider) SignUpRequest(input *SignUpInput) (req *reques
 		input = &SignUpInput{}
 	}
 
+	output = &SignUpOutput{}
 	req = c.newRequest(op, input, output)
 	req.Config.Credentials = credentials.AnonymousCredentials
-	output = &SignUpOutput{}
-	req.Data = output
 	return
 }
 
@@ -5384,59 +5327,59 @@ func (c *CognitoIdentityProvider) SignUpRequest(input *SignUpInput) (req *reques
 // API operation SignUp for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * UnexpectedLambdaException
+//   * ErrCodeUnexpectedLambdaException "UnexpectedLambdaException"
 //   This exception gets thrown when the Amazon Cognito service encounters an
 //   unexpected exception with the AWS Lambda service.
 //
-//   * UserLambdaValidationException
+//   * ErrCodeUserLambdaValidationException "UserLambdaValidationException"
 //   This exception gets thrown when the Amazon Cognito service encounters a user
 //   validation exception with the AWS Lambda service.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InvalidPasswordException
+//   * ErrCodeInvalidPasswordException "InvalidPasswordException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   password.
 //
-//   * InvalidLambdaResponseException
+//   * ErrCodeInvalidLambdaResponseException "InvalidLambdaResponseException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   AWS Lambda response.
 //
-//   * UsernameExistsException
+//   * ErrCodeUsernameExistsException "UsernameExistsException"
 //   This exception is thrown when Amazon Cognito encounters a user name that
 //   already exists in the user pool.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
-//   * InvalidSmsRoleAccessPolicyException
+//   * ErrCodeInvalidSmsRoleAccessPolicyException "InvalidSmsRoleAccessPolicyException"
 //   This exception is returned when the role provided for SMS configuration does
 //   not have permission to publish using Amazon SNS.
 //
-//   * InvalidSmsRoleTrustRelationshipException
+//   * ErrCodeInvalidSmsRoleTrustRelationshipException "InvalidSmsRoleTrustRelationshipException"
 //   This exception is thrown when the trust relationship is invalid for the role
 //   provided for SMS configuration. This can happen if you do not trust cognito-idp.amazonaws.com
 //   or the external ID provided in the role does not match what is provided in
 //   the SMS configuration for the user pool.
 //
-//   * InvalidEmailRoleAccessPolicyException
+//   * ErrCodeInvalidEmailRoleAccessPolicyException "InvalidEmailRoleAccessPolicyException"
 //   This exception is thrown when Amazon Cognito is not allowed to use your email
 //   identity. HTTP status code: 400.
 //
-//   * CodeDeliveryFailureException
+//   * ErrCodeCodeDeliveryFailureException "CodeDeliveryFailureException"
 //   This exception is thrown when a verification code fails to deliver successfully.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/SignUp
@@ -5484,9 +5427,8 @@ func (c *CognitoIdentityProvider) StartUserImportJobRequest(input *StartUserImpo
 		input = &StartUserImportJobInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &StartUserImportJobOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -5502,25 +5444,25 @@ func (c *CognitoIdentityProvider) StartUserImportJobRequest(input *StartUserImpo
 // API operation StartUserImportJob for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
-//   * PreconditionNotMetException
+//   * ErrCodePreconditionNotMetException "PreconditionNotMetException"
 //   This exception is thrown when a precondition is not met.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/StartUserImportJob
@@ -5568,9 +5510,8 @@ func (c *CognitoIdentityProvider) StopUserImportJobRequest(input *StopUserImport
 		input = &StopUserImportJobInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &StopUserImportJobOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -5586,25 +5527,25 @@ func (c *CognitoIdentityProvider) StopUserImportJobRequest(input *StopUserImport
 // API operation StopUserImportJob for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
-//   * PreconditionNotMetException
+//   * ErrCodePreconditionNotMetException "PreconditionNotMetException"
 //   This exception is thrown when a precondition is not met.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/StopUserImportJob
@@ -5652,9 +5593,8 @@ func (c *CognitoIdentityProvider) UpdateDeviceStatusRequest(input *UpdateDeviceS
 		input = &UpdateDeviceStatusInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateDeviceStatusOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -5670,34 +5610,34 @@ func (c *CognitoIdentityProvider) UpdateDeviceStatusRequest(input *UpdateDeviceS
 // API operation UpdateDeviceStatus for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InvalidUserPoolConfigurationException
+//   * ErrCodeInvalidUserPoolConfigurationException "InvalidUserPoolConfigurationException"
 //   This exception is thrown when the user pool configuration is invalid.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * PasswordResetRequiredException
+//   * ErrCodePasswordResetRequiredException "PasswordResetRequiredException"
 //   This exception is thrown when a password reset is required.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/UpdateDeviceStatus
@@ -5745,9 +5685,8 @@ func (c *CognitoIdentityProvider) UpdateGroupRequest(input *UpdateGroupInput) (r
 		input = &UpdateGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateGroupOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -5765,22 +5704,22 @@ func (c *CognitoIdentityProvider) UpdateGroupRequest(input *UpdateGroupInput) (r
 // API operation UpdateGroup for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/UpdateGroup
@@ -5828,10 +5767,9 @@ func (c *CognitoIdentityProvider) UpdateUserAttributesRequest(input *UpdateUserA
 		input = &UpdateUserAttributesInput{}
 	}
 
+	output = &UpdateUserAttributesOutput{}
 	req = c.newRequest(op, input, output)
 	req.Config.Credentials = credentials.AnonymousCredentials
-	output = &UpdateUserAttributesOutput{}
-	req.Data = output
 	return
 }
 
@@ -5847,73 +5785,73 @@ func (c *CognitoIdentityProvider) UpdateUserAttributesRequest(input *UpdateUserA
 // API operation UpdateUserAttributes for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * CodeMismatchException
+//   * ErrCodeCodeMismatchException "CodeMismatchException"
 //   This exception is thrown if the provided code does not match what the server
 //   was expecting.
 //
-//   * ExpiredCodeException
+//   * ErrCodeExpiredCodeException "ExpiredCodeException"
 //   This exception is thrown if a code has expired.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UnexpectedLambdaException
+//   * ErrCodeUnexpectedLambdaException "UnexpectedLambdaException"
 //   This exception gets thrown when the Amazon Cognito service encounters an
 //   unexpected exception with the AWS Lambda service.
 //
-//   * UserLambdaValidationException
+//   * ErrCodeUserLambdaValidationException "UserLambdaValidationException"
 //   This exception gets thrown when the Amazon Cognito service encounters a user
 //   validation exception with the AWS Lambda service.
 //
-//   * InvalidLambdaResponseException
+//   * ErrCodeInvalidLambdaResponseException "InvalidLambdaResponseException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   AWS Lambda response.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * AliasExistsException
+//   * ErrCodeAliasExistsException "AliasExistsException"
 //   This exception is thrown when a user tries to confirm the account with an
 //   email or phone number that has already been supplied as an alias from a different
 //   account. This exception tells user that an account with this email or phone
 //   already exists.
 //
-//   * InvalidSmsRoleAccessPolicyException
+//   * ErrCodeInvalidSmsRoleAccessPolicyException "InvalidSmsRoleAccessPolicyException"
 //   This exception is returned when the role provided for SMS configuration does
 //   not have permission to publish using Amazon SNS.
 //
-//   * InvalidSmsRoleTrustRelationshipException
+//   * ErrCodeInvalidSmsRoleTrustRelationshipException "InvalidSmsRoleTrustRelationshipException"
 //   This exception is thrown when the trust relationship is invalid for the role
 //   provided for SMS configuration. This can happen if you do not trust cognito-idp.amazonaws.com
 //   or the external ID provided in the role does not match what is provided in
 //   the SMS configuration for the user pool.
 //
-//   * InvalidEmailRoleAccessPolicyException
+//   * ErrCodeInvalidEmailRoleAccessPolicyException "InvalidEmailRoleAccessPolicyException"
 //   This exception is thrown when Amazon Cognito is not allowed to use your email
 //   identity. HTTP status code: 400.
 //
-//   * CodeDeliveryFailureException
+//   * ErrCodeCodeDeliveryFailureException "CodeDeliveryFailureException"
 //   This exception is thrown when a verification code fails to deliver successfully.
 //
-//   * PasswordResetRequiredException
+//   * ErrCodePasswordResetRequiredException "PasswordResetRequiredException"
 //   This exception is thrown when a password reset is required.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/UpdateUserAttributes
@@ -5961,9 +5899,8 @@ func (c *CognitoIdentityProvider) UpdateUserPoolRequest(input *UpdateUserPoolInp
 		input = &UpdateUserPoolInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateUserPoolOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -5979,45 +5916,45 @@ func (c *CognitoIdentityProvider) UpdateUserPoolRequest(input *UpdateUserPoolInp
 // API operation UpdateUserPool for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * ConcurrentModificationException
+//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
 //   This exception is thrown if two or more modifications are happening concurrently.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * UserImportInProgressException
+//   * ErrCodeUserImportInProgressException "UserImportInProgressException"
 //   This exception is thrown when you are trying to modify a user pool while
 //   a user import job is in progress for that pool.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
-//   * InvalidSmsRoleAccessPolicyException
+//   * ErrCodeInvalidSmsRoleAccessPolicyException "InvalidSmsRoleAccessPolicyException"
 //   This exception is returned when the role provided for SMS configuration does
 //   not have permission to publish using Amazon SNS.
 //
-//   * InvalidSmsRoleTrustRelationshipException
+//   * ErrCodeInvalidSmsRoleTrustRelationshipException "InvalidSmsRoleTrustRelationshipException"
 //   This exception is thrown when the trust relationship is invalid for the role
 //   provided for SMS configuration. This can happen if you do not trust cognito-idp.amazonaws.com
 //   or the external ID provided in the role does not match what is provided in
 //   the SMS configuration for the user pool.
 //
-//   * UserPoolTaggingException
+//   * ErrCodeUserPoolTaggingException "UserPoolTaggingException"
 //   This exception gets thrown when a user pool tag cannot be set or updated.
 //
-//   * InvalidEmailRoleAccessPolicyException
+//   * ErrCodeInvalidEmailRoleAccessPolicyException "InvalidEmailRoleAccessPolicyException"
 //   This exception is thrown when Amazon Cognito is not allowed to use your email
 //   identity. HTTP status code: 400.
 //
@@ -6066,9 +6003,8 @@ func (c *CognitoIdentityProvider) UpdateUserPoolClientRequest(input *UpdateUserP
 		input = &UpdateUserPoolClientInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateUserPoolClientOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -6085,22 +6021,22 @@ func (c *CognitoIdentityProvider) UpdateUserPoolClientRequest(input *UpdateUserP
 // API operation UpdateUserPoolClient for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/UpdateUserPoolClient
@@ -6148,10 +6084,9 @@ func (c *CognitoIdentityProvider) VerifyUserAttributeRequest(input *VerifyUserAt
 		input = &VerifyUserAttributeInput{}
 	}
 
+	output = &VerifyUserAttributeOutput{}
 	req = c.newRequest(op, input, output)
 	req.Config.Credentials = credentials.AnonymousCredentials
-	output = &VerifyUserAttributeOutput{}
-	req.Data = output
 	return
 }
 
@@ -6167,42 +6102,42 @@ func (c *CognitoIdentityProvider) VerifyUserAttributeRequest(input *VerifyUserAt
 // API operation VerifyUserAttribute for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   This exception is thrown when the Amazon Cognito service cannot find the
 //   requested resource.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown when the Amazon Cognito service encounters an invalid
 //   parameter.
 //
-//   * CodeMismatchException
+//   * ErrCodeCodeMismatchException "CodeMismatchException"
 //   This exception is thrown if the provided code does not match what the server
 //   was expecting.
 //
-//   * ExpiredCodeException
+//   * ErrCodeExpiredCodeException "ExpiredCodeException"
 //   This exception is thrown if a code has expired.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   This exception gets thrown when a user is not authorized.
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   This exception gets thrown when the user has made too many requests for a
 //   given operation.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   This exception is thrown when a user exceeds the limit for a requested AWS
 //   resource.
 //
-//   * PasswordResetRequiredException
+//   * ErrCodePasswordResetRequiredException "PasswordResetRequiredException"
 //   This exception is thrown when a password reset is required.
 //
-//   * UserNotFoundException
+//   * ErrCodeUserNotFoundException "UserNotFoundException"
 //   This exception is thrown when a user is not found.
 //
-//   * UserNotConfirmedException
+//   * ErrCodeUserNotConfirmedException "UserNotConfirmedException"
 //   This exception is thrown when a user is not confirmed successfully.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/cognito-idp-2016-04-18/VerifyUserAttribute

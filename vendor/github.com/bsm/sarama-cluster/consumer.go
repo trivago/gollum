@@ -21,8 +21,8 @@ type Consumer struct {
 	groupID      string
 	memberID     string
 
-	targetTopics []string
-	knownTopics  []string
+	coreTopics  []string
+	extraTopics []string
 
 	dying, dead chan none
 
@@ -48,7 +48,7 @@ func NewConsumerFromClient(client *Client, groupID string, topics []string) (*Co
 		subs:    newPartitionMap(),
 		groupID: groupID,
 
-		targetTopics: topics,
+		coreTopics: topics,
 
 		dying: make(chan none),
 		dead:  make(chan none),
@@ -96,6 +96,10 @@ func (c *Consumer) Errors() <-chan error { return c.errors }
 // Group.Return.Notifications setting to true.
 func (c *Consumer) Notifications() <-chan *Notification { return c.notifications }
 
+// HighWaterMarks returns the current high water marks for each topic and partition
+// Consistency between partitions is not garanteed since high water marks are updated separately.
+func (c *Consumer) HighWaterMarks() map[string]map[int32]int64 { return c.csmr.HighWaterMarks() }
+
 // MarkOffset marks the provided message as processed, alongside a metadata string
 // that represents the state of the partition consumer at that point in time. The
 // metadata string can be used by another consumer to restore that state, so it
@@ -113,6 +117,18 @@ func (c *Consumer) MarkOffset(msg *sarama.ConsumerMessage, metadata string) {
 // See MarkOffset for additional explanation.
 func (c *Consumer) MarkPartitionOffset(topic string, partition int32, offset int64, metadata string) {
 	c.subs.Fetch(topic, partition).MarkOffset(offset+1, metadata)
+}
+
+// MarkOffsets marks stashed offsets as processed.
+// See MarkOffset for additional explanation.
+func (c *Consumer) MarkOffsets(s *OffsetStash) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for tp, info := range s.offsets {
+		c.subs.Fetch(tp.Topic, tp.Partition).MarkOffset(info.Offset+1, info.Metadata)
+		delete(s.offsets, tp)
+	}
 }
 
 // Subscriptions returns the consumed topics and partitions
@@ -318,8 +334,7 @@ func (c *Consumer) hbLoop(stop <-chan none, done chan<- none) {
 func (c *Consumer) twLoop(stop <-chan none, done chan<- none) {
 	defer close(done)
 
-	// ticker := time.NewTicker(c.client.config.Metadata.RefreshFrequency)
-	ticker := time.NewTicker(time.Second)
+	ticker := time.NewTicker(c.client.config.Metadata.RefreshFrequency / 2)
 	defer ticker.Stop()
 
 	for {
@@ -332,7 +347,9 @@ func (c *Consumer) twLoop(stop <-chan none, done chan<- none) {
 			}
 
 			for _, topic := range topics {
-				if c.isTargetTopic(topic) && !c.isKnownTopic(topic) {
+				if !c.isKnownCoreTopic(topic) &&
+					!c.isKnownExtraTopic(topic) &&
+					c.isPotentialExtraTopic(topic) {
 					return
 				}
 			}
@@ -436,6 +453,10 @@ func (c *Consumer) heartbeat() error {
 func (c *Consumer) rebalance() (map[string][]int32, error) {
 	sarama.Logger.Printf("cluster/consumer %s rebalance\n", c.memberID)
 
+	if err := c.client.RefreshMetadata(); err != nil {
+		return nil, err
+	}
+
 	if err := c.client.RefreshCoordinator(c.groupID); err != nil {
 		return nil, err
 	}
@@ -444,8 +465,8 @@ func (c *Consumer) rebalance() (map[string][]int32, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.knownTopics = c.onlyConsumableTopics(allTopics)
-	sort.Strings(c.knownTopics)
+	c.extraTopics = c.selectExtraTopics(allTopics)
+	sort.Strings(c.extraTopics)
 
 	// Release subscriptions
 	if err := c.release(); err != nil {
@@ -525,7 +546,7 @@ func (c *Consumer) joinGroup() (*balancer, error) {
 
 	meta := &sarama.ConsumerGroupMemberMetadata{
 		Version: 1,
-		Topics:  c.knownTopics,
+		Topics:  append(c.coreTopics, c.extraTopics...),
 	}
 	err := req.AddGroupProtocolMetadata(string(StrategyRange), meta)
 	if err != nil {
@@ -725,22 +746,33 @@ func (c *Consumer) closeCoordinator(broker *sarama.Broker, err error) {
 	}
 }
 
-func (c *Consumer) onlyConsumableTopics(allTopics []string) []string {
-	topics := allTopics[:0]
+func (c *Consumer) selectExtraTopics(allTopics []string) []string {
+	extra := allTopics[:0]
 	for _, topic := range allTopics {
-		if c.isTargetTopic(topic) {
-			topics = append(topics, topic)
+		if !c.isKnownCoreTopic(topic) && c.isPotentialExtraTopic(topic) {
+			extra = append(extra, topic)
 		}
 	}
-	return topics
+	return extra
 }
 
-func (c *Consumer) isTargetTopic(topic string) bool {
-	pos := sort.SearchStrings(c.targetTopics, topic)
-	return pos < len(c.targetTopics) && c.targetTopics[pos] == topic
+func (c *Consumer) isKnownCoreTopic(topic string) bool {
+	pos := sort.SearchStrings(c.coreTopics, topic)
+	return pos < len(c.coreTopics) && c.coreTopics[pos] == topic
 }
 
-func (c *Consumer) isKnownTopic(topic string) bool {
-	pos := sort.SearchStrings(c.knownTopics, topic)
-	return pos < len(c.knownTopics) && c.knownTopics[pos] == topic
+func (c *Consumer) isKnownExtraTopic(topic string) bool {
+	pos := sort.SearchStrings(c.extraTopics, topic)
+	return pos < len(c.extraTopics) && c.extraTopics[pos] == topic
+}
+
+func (c *Consumer) isPotentialExtraTopic(topic string) bool {
+	rx := c.client.config.Group.Topics
+	if rx.Blacklist != nil && rx.Blacklist.MatchString(topic) {
+		return false
+	}
+	if rx.Whitelist != nil && rx.Whitelist.MatchString(topic) {
+		return true
+	}
+	return false
 }

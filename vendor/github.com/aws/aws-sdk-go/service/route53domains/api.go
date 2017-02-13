@@ -49,9 +49,8 @@ func (c *Route53Domains) CheckDomainAvailabilityRequest(input *CheckDomainAvaila
 		input = &CheckDomainAvailabilityInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CheckDomainAvailabilityOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -69,12 +68,12 @@ func (c *Route53Domains) CheckDomainAvailabilityRequest(input *CheckDomainAvaila
 // API operation CheckDomainAvailability for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
 //
-//   * UnsupportedTLD
+//   * ErrCodeUnsupportedTLD "UnsupportedTLD"
 //   Amazon Route 53 does not support this top-level domain.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53domains-2014-05-15/CheckDomainAvailability
@@ -122,9 +121,8 @@ func (c *Route53Domains) DeleteTagsForDomainRequest(input *DeleteTagsForDomainIn
 		input = &DeleteTagsForDomainInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteTagsForDomainOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -143,16 +141,16 @@ func (c *Route53Domains) DeleteTagsForDomainRequest(input *DeleteTagsForDomainIn
 // API operation DeleteTagsForDomain for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
 //
-//   * OperationLimitExceeded
+//   * ErrCodeOperationLimitExceeded "OperationLimitExceeded"
 //   The number of operations or jobs running exceeded the allowed threshold for
 //   the account.
 //
-//   * UnsupportedTLD
+//   * ErrCodeUnsupportedTLD "UnsupportedTLD"
 //   Amazon Route 53 does not support this top-level domain.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53domains-2014-05-15/DeleteTagsForDomain
@@ -200,9 +198,8 @@ func (c *Route53Domains) DisableDomainAutoRenewRequest(input *DisableDomainAutoR
 		input = &DisableDomainAutoRenewInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DisableDomainAutoRenewOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -219,12 +216,12 @@ func (c *Route53Domains) DisableDomainAutoRenewRequest(input *DisableDomainAutoR
 // API operation DisableDomainAutoRenew for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
 //
-//   * UnsupportedTLD
+//   * ErrCodeUnsupportedTLD "UnsupportedTLD"
 //   Amazon Route 53 does not support this top-level domain.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53domains-2014-05-15/DisableDomainAutoRenew
@@ -272,9 +269,8 @@ func (c *Route53Domains) DisableDomainTransferLockRequest(input *DisableDomainTr
 		input = &DisableDomainTransferLockInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DisableDomainTransferLockOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -296,22 +292,22 @@ func (c *Route53Domains) DisableDomainTransferLockRequest(input *DisableDomainTr
 // API operation DisableDomainTransferLock for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
 //
-//   * DuplicateRequest
+//   * ErrCodeDuplicateRequest "DuplicateRequest"
 //   The request is already in progress for the domain.
 //
-//   * TLDRulesViolation
+//   * ErrCodeTLDRulesViolation "TLDRulesViolation"
 //   The top-level domain does not support this operation.
 //
-//   * OperationLimitExceeded
+//   * ErrCodeOperationLimitExceeded "OperationLimitExceeded"
 //   The number of operations or jobs running exceeded the allowed threshold for
 //   the account.
 //
-//   * UnsupportedTLD
+//   * ErrCodeUnsupportedTLD "UnsupportedTLD"
 //   Amazon Route 53 does not support this top-level domain.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53domains-2014-05-15/DisableDomainTransferLock
@@ -359,9 +355,8 @@ func (c *Route53Domains) EnableDomainAutoRenewRequest(input *EnableDomainAutoRen
 		input = &EnableDomainAutoRenewInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &EnableDomainAutoRenewOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -386,15 +381,15 @@ func (c *Route53Domains) EnableDomainAutoRenewRequest(input *EnableDomainAutoRen
 // API operation EnableDomainAutoRenew for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
 //
-//   * UnsupportedTLD
+//   * ErrCodeUnsupportedTLD "UnsupportedTLD"
 //   Amazon Route 53 does not support this top-level domain.
 //
-//   * TLDRulesViolation
+//   * ErrCodeTLDRulesViolation "TLDRulesViolation"
 //   The top-level domain does not support this operation.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53domains-2014-05-15/EnableDomainAutoRenew
@@ -442,9 +437,8 @@ func (c *Route53Domains) EnableDomainTransferLockRequest(input *EnableDomainTran
 		input = &EnableDomainTransferLockInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &EnableDomainTransferLockOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -464,22 +458,22 @@ func (c *Route53Domains) EnableDomainTransferLockRequest(input *EnableDomainTran
 // API operation EnableDomainTransferLock for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
 //
-//   * DuplicateRequest
+//   * ErrCodeDuplicateRequest "DuplicateRequest"
 //   The request is already in progress for the domain.
 //
-//   * TLDRulesViolation
+//   * ErrCodeTLDRulesViolation "TLDRulesViolation"
 //   The top-level domain does not support this operation.
 //
-//   * OperationLimitExceeded
+//   * ErrCodeOperationLimitExceeded "OperationLimitExceeded"
 //   The number of operations or jobs running exceeded the allowed threshold for
 //   the account.
 //
-//   * UnsupportedTLD
+//   * ErrCodeUnsupportedTLD "UnsupportedTLD"
 //   Amazon Route 53 does not support this top-level domain.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53domains-2014-05-15/EnableDomainTransferLock
@@ -527,9 +521,8 @@ func (c *Route53Domains) GetContactReachabilityStatusRequest(input *GetContactRe
 		input = &GetContactReachabilityStatusInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetContactReachabilityStatusOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -550,16 +543,16 @@ func (c *Route53Domains) GetContactReachabilityStatusRequest(input *GetContactRe
 // API operation GetContactReachabilityStatus for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
 //
-//   * OperationLimitExceeded
+//   * ErrCodeOperationLimitExceeded "OperationLimitExceeded"
 //   The number of operations or jobs running exceeded the allowed threshold for
 //   the account.
 //
-//   * UnsupportedTLD
+//   * ErrCodeUnsupportedTLD "UnsupportedTLD"
 //   Amazon Route 53 does not support this top-level domain.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53domains-2014-05-15/GetContactReachabilityStatus
@@ -607,9 +600,8 @@ func (c *Route53Domains) GetDomainDetailRequest(input *GetDomainDetailInput) (re
 		input = &GetDomainDetailInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetDomainDetailOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -626,12 +618,12 @@ func (c *Route53Domains) GetDomainDetailRequest(input *GetDomainDetailInput) (re
 // API operation GetDomainDetail for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
 //
-//   * UnsupportedTLD
+//   * ErrCodeUnsupportedTLD "UnsupportedTLD"
 //   Amazon Route 53 does not support this top-level domain.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53domains-2014-05-15/GetDomainDetail
@@ -679,9 +671,8 @@ func (c *Route53Domains) GetDomainSuggestionsRequest(input *GetDomainSuggestions
 		input = &GetDomainSuggestionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetDomainSuggestionsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -709,12 +700,12 @@ func (c *Route53Domains) GetDomainSuggestionsRequest(input *GetDomainSuggestions
 // API operation GetDomainSuggestions for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
 //
-//   * UnsupportedTLD
+//   * ErrCodeUnsupportedTLD "UnsupportedTLD"
 //   Amazon Route 53 does not support this top-level domain.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53domains-2014-05-15/GetDomainSuggestions
@@ -762,9 +753,8 @@ func (c *Route53Domains) GetOperationDetailRequest(input *GetOperationDetailInpu
 		input = &GetOperationDetailInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetOperationDetailOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -780,7 +770,7 @@ func (c *Route53Domains) GetOperationDetailRequest(input *GetOperationDetailInpu
 // API operation GetOperationDetail for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
@@ -836,9 +826,8 @@ func (c *Route53Domains) ListDomainsRequest(input *ListDomainsInput) (req *reque
 		input = &ListDomainsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListDomainsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -855,7 +844,7 @@ func (c *Route53Domains) ListDomainsRequest(input *ListDomainsInput) (req *reque
 // API operation ListDomains for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
@@ -936,9 +925,8 @@ func (c *Route53Domains) ListOperationsRequest(input *ListOperationsInput) (req 
 		input = &ListOperationsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListOperationsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -954,7 +942,7 @@ func (c *Route53Domains) ListOperationsRequest(input *ListOperationsInput) (req 
 // API operation ListOperations for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
@@ -1029,9 +1017,8 @@ func (c *Route53Domains) ListTagsForDomainRequest(input *ListTagsForDomainInput)
 		input = &ListTagsForDomainInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListTagsForDomainOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1051,16 +1038,16 @@ func (c *Route53Domains) ListTagsForDomainRequest(input *ListTagsForDomainInput)
 // API operation ListTagsForDomain for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
 //
-//   * OperationLimitExceeded
+//   * ErrCodeOperationLimitExceeded "OperationLimitExceeded"
 //   The number of operations or jobs running exceeded the allowed threshold for
 //   the account.
 //
-//   * UnsupportedTLD
+//   * ErrCodeUnsupportedTLD "UnsupportedTLD"
 //   Amazon Route 53 does not support this top-level domain.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53domains-2014-05-15/ListTagsForDomain
@@ -1108,9 +1095,8 @@ func (c *Route53Domains) RegisterDomainRequest(input *RegisterDomainInput) (req 
 		input = &RegisterDomainInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &RegisterDomainOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1147,24 +1133,24 @@ func (c *Route53Domains) RegisterDomainRequest(input *RegisterDomainInput) (req 
 // API operation RegisterDomain for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
 //
-//   * UnsupportedTLD
+//   * ErrCodeUnsupportedTLD "UnsupportedTLD"
 //   Amazon Route 53 does not support this top-level domain.
 //
-//   * DuplicateRequest
+//   * ErrCodeDuplicateRequest "DuplicateRequest"
 //   The request is already in progress for the domain.
 //
-//   * TLDRulesViolation
+//   * ErrCodeTLDRulesViolation "TLDRulesViolation"
 //   The top-level domain does not support this operation.
 //
-//   * DomainLimitExceeded
+//   * ErrCodeDomainLimitExceeded "DomainLimitExceeded"
 //   The number of domains has exceeded the allowed threshold for the account.
 //
-//   * OperationLimitExceeded
+//   * ErrCodeOperationLimitExceeded "OperationLimitExceeded"
 //   The number of operations or jobs running exceeded the allowed threshold for
 //   the account.
 //
@@ -1213,9 +1199,8 @@ func (c *Route53Domains) RenewDomainRequest(input *RenewDomainInput) (req *reque
 		input = &RenewDomainInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &RenewDomainOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1238,21 +1223,21 @@ func (c *Route53Domains) RenewDomainRequest(input *RenewDomainInput) (req *reque
 // API operation RenewDomain for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
 //
-//   * UnsupportedTLD
+//   * ErrCodeUnsupportedTLD "UnsupportedTLD"
 //   Amazon Route 53 does not support this top-level domain.
 //
-//   * DuplicateRequest
+//   * ErrCodeDuplicateRequest "DuplicateRequest"
 //   The request is already in progress for the domain.
 //
-//   * TLDRulesViolation
+//   * ErrCodeTLDRulesViolation "TLDRulesViolation"
 //   The top-level domain does not support this operation.
 //
-//   * OperationLimitExceeded
+//   * ErrCodeOperationLimitExceeded "OperationLimitExceeded"
 //   The number of operations or jobs running exceeded the allowed threshold for
 //   the account.
 //
@@ -1301,9 +1286,8 @@ func (c *Route53Domains) ResendContactReachabilityEmailRequest(input *ResendCont
 		input = &ResendContactReachabilityEmailInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ResendContactReachabilityEmailOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1321,16 +1305,16 @@ func (c *Route53Domains) ResendContactReachabilityEmailRequest(input *ResendCont
 // API operation ResendContactReachabilityEmail for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
 //
-//   * OperationLimitExceeded
+//   * ErrCodeOperationLimitExceeded "OperationLimitExceeded"
 //   The number of operations or jobs running exceeded the allowed threshold for
 //   the account.
 //
-//   * UnsupportedTLD
+//   * ErrCodeUnsupportedTLD "UnsupportedTLD"
 //   Amazon Route 53 does not support this top-level domain.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53domains-2014-05-15/ResendContactReachabilityEmail
@@ -1378,9 +1362,8 @@ func (c *Route53Domains) RetrieveDomainAuthCodeRequest(input *RetrieveDomainAuth
 		input = &RetrieveDomainAuthCodeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &RetrieveDomainAuthCodeOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1397,12 +1380,12 @@ func (c *Route53Domains) RetrieveDomainAuthCodeRequest(input *RetrieveDomainAuth
 // API operation RetrieveDomainAuthCode for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
 //
-//   * UnsupportedTLD
+//   * ErrCodeUnsupportedTLD "UnsupportedTLD"
 //   Amazon Route 53 does not support this top-level domain.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53domains-2014-05-15/RetrieveDomainAuthCode
@@ -1450,9 +1433,8 @@ func (c *Route53Domains) TransferDomainRequest(input *TransferDomainInput) (req 
 		input = &TransferDomainInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &TransferDomainOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1491,24 +1473,24 @@ func (c *Route53Domains) TransferDomainRequest(input *TransferDomainInput) (req 
 // API operation TransferDomain for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
 //
-//   * UnsupportedTLD
+//   * ErrCodeUnsupportedTLD "UnsupportedTLD"
 //   Amazon Route 53 does not support this top-level domain.
 //
-//   * DuplicateRequest
+//   * ErrCodeDuplicateRequest "DuplicateRequest"
 //   The request is already in progress for the domain.
 //
-//   * TLDRulesViolation
+//   * ErrCodeTLDRulesViolation "TLDRulesViolation"
 //   The top-level domain does not support this operation.
 //
-//   * DomainLimitExceeded
+//   * ErrCodeDomainLimitExceeded "DomainLimitExceeded"
 //   The number of domains has exceeded the allowed threshold for the account.
 //
-//   * OperationLimitExceeded
+//   * ErrCodeOperationLimitExceeded "OperationLimitExceeded"
 //   The number of operations or jobs running exceeded the allowed threshold for
 //   the account.
 //
@@ -1557,9 +1539,8 @@ func (c *Route53Domains) UpdateDomainContactRequest(input *UpdateDomainContactIn
 		input = &UpdateDomainContactInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateDomainContactOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1582,22 +1563,22 @@ func (c *Route53Domains) UpdateDomainContactRequest(input *UpdateDomainContactIn
 // API operation UpdateDomainContact for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
 //
-//   * DuplicateRequest
+//   * ErrCodeDuplicateRequest "DuplicateRequest"
 //   The request is already in progress for the domain.
 //
-//   * TLDRulesViolation
+//   * ErrCodeTLDRulesViolation "TLDRulesViolation"
 //   The top-level domain does not support this operation.
 //
-//   * OperationLimitExceeded
+//   * ErrCodeOperationLimitExceeded "OperationLimitExceeded"
 //   The number of operations or jobs running exceeded the allowed threshold for
 //   the account.
 //
-//   * UnsupportedTLD
+//   * ErrCodeUnsupportedTLD "UnsupportedTLD"
 //   Amazon Route 53 does not support this top-level domain.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53domains-2014-05-15/UpdateDomainContact
@@ -1645,9 +1626,8 @@ func (c *Route53Domains) UpdateDomainContactPrivacyRequest(input *UpdateDomainCo
 		input = &UpdateDomainContactPrivacyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateDomainContactPrivacyOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1673,22 +1653,22 @@ func (c *Route53Domains) UpdateDomainContactPrivacyRequest(input *UpdateDomainCo
 // API operation UpdateDomainContactPrivacy for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
 //
-//   * DuplicateRequest
+//   * ErrCodeDuplicateRequest "DuplicateRequest"
 //   The request is already in progress for the domain.
 //
-//   * TLDRulesViolation
+//   * ErrCodeTLDRulesViolation "TLDRulesViolation"
 //   The top-level domain does not support this operation.
 //
-//   * OperationLimitExceeded
+//   * ErrCodeOperationLimitExceeded "OperationLimitExceeded"
 //   The number of operations or jobs running exceeded the allowed threshold for
 //   the account.
 //
-//   * UnsupportedTLD
+//   * ErrCodeUnsupportedTLD "UnsupportedTLD"
 //   Amazon Route 53 does not support this top-level domain.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53domains-2014-05-15/UpdateDomainContactPrivacy
@@ -1736,9 +1716,8 @@ func (c *Route53Domains) UpdateDomainNameserversRequest(input *UpdateDomainNames
 		input = &UpdateDomainNameserversInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateDomainNameserversOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1761,22 +1740,22 @@ func (c *Route53Domains) UpdateDomainNameserversRequest(input *UpdateDomainNames
 // API operation UpdateDomainNameservers for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
 //
-//   * DuplicateRequest
+//   * ErrCodeDuplicateRequest "DuplicateRequest"
 //   The request is already in progress for the domain.
 //
-//   * TLDRulesViolation
+//   * ErrCodeTLDRulesViolation "TLDRulesViolation"
 //   The top-level domain does not support this operation.
 //
-//   * OperationLimitExceeded
+//   * ErrCodeOperationLimitExceeded "OperationLimitExceeded"
 //   The number of operations or jobs running exceeded the allowed threshold for
 //   the account.
 //
-//   * UnsupportedTLD
+//   * ErrCodeUnsupportedTLD "UnsupportedTLD"
 //   Amazon Route 53 does not support this top-level domain.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53domains-2014-05-15/UpdateDomainNameservers
@@ -1824,9 +1803,8 @@ func (c *Route53Domains) UpdateTagsForDomainRequest(input *UpdateTagsForDomainIn
 		input = &UpdateTagsForDomainInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateTagsForDomainOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1845,16 +1823,16 @@ func (c *Route53Domains) UpdateTagsForDomainRequest(input *UpdateTagsForDomainIn
 // API operation UpdateTagsForDomain for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.
 //
-//   * OperationLimitExceeded
+//   * ErrCodeOperationLimitExceeded "OperationLimitExceeded"
 //   The number of operations or jobs running exceeded the allowed threshold for
 //   the account.
 //
-//   * UnsupportedTLD
+//   * ErrCodeUnsupportedTLD "UnsupportedTLD"
 //   Amazon Route 53 does not support this top-level domain.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53domains-2014-05-15/UpdateTagsForDomain
@@ -1902,9 +1880,8 @@ func (c *Route53Domains) ViewBillingRequest(input *ViewBillingInput) (req *reque
 		input = &ViewBillingInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ViewBillingOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1921,7 +1898,7 @@ func (c *Route53Domains) ViewBillingRequest(input *ViewBillingInput) (req *reque
 // API operation ViewBilling for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The requested item is not acceptable. For example, for an OperationId it
 //   may refer to the ID of an operation that is already completed. For a domain
 //   name, it may not be a valid domain name or belong to the requester account.

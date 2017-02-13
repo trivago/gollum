@@ -49,9 +49,8 @@ func (c *Route53) AssociateVPCWithHostedZoneRequest(input *AssociateVPCWithHoste
 		input = &AssociateVPCWithHostedZoneInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AssociateVPCWithHostedZoneOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -81,32 +80,32 @@ func (c *Route53) AssociateVPCWithHostedZoneRequest(input *AssociateVPCWithHoste
 // API operation AssociateVPCWithHostedZone for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchHostedZone
+//   * ErrCodeNoSuchHostedZone "NoSuchHostedZone"
 //   No hosted zone exists with the ID that you specified.
 //
-//   * NotAuthorizedException
+//   * ErrCodeNotAuthorizedException "NotAuthorizedException"
 //   Associating the specified VPC with the specified hosted zone has not been
 //   authorized.
 //
-//   * InvalidVPCId
+//   * ErrCodeInvalidVPCId "InvalidVPCId"
 //   The VPC ID that you specified either isn't a valid ID or the current account
 //   is not authorized to access this VPC.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * PublicZoneVPCAssociation
+//   * ErrCodePublicZoneVPCAssociation "PublicZoneVPCAssociation"
 //   You're trying to associate a VPC with a public hosted zone. Amazon Route
 //   53 doesn't support associating a VPC with a public hosted zone.
 //
-//   * ConflictingDomainExists
+//   * ErrCodeConflictingDomainExists "ConflictingDomainExists"
 //   You specified an Amazon VPC that you're already using for another hosted
 //   zone, and the domain that you specified for one of the hosted zones is a
 //   subdomain of the domain that you specified for the other hosted zone. For
 //   example, you can't use the same Amazon VPC for the hosted zones for example.com
 //   and test.example.com.
 //
-//   * LimitsExceeded
+//   * ErrCodeLimitsExceeded "LimitsExceeded"
 //   The limits specified for a resource have been exceeded.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/AssociateVPCWithHostedZone
@@ -154,9 +153,8 @@ func (c *Route53) ChangeResourceRecordSetsRequest(input *ChangeResourceRecordSet
 		input = &ChangeResourceRecordSetsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ChangeResourceRecordSetsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -262,21 +260,21 @@ func (c *Route53) ChangeResourceRecordSetsRequest(input *ChangeResourceRecordSet
 // API operation ChangeResourceRecordSets for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchHostedZone
+//   * ErrCodeNoSuchHostedZone "NoSuchHostedZone"
 //   No hosted zone exists with the ID that you specified.
 //
-//   * NoSuchHealthCheck
+//   * ErrCodeNoSuchHealthCheck "NoSuchHealthCheck"
 //   No health check exists with the ID that you specified in the DeleteHealthCheck
 //   request.
 //
-//   * InvalidChangeBatch
+//   * ErrCodeInvalidChangeBatch "InvalidChangeBatch"
 //   This exception contains a list of messages that might contain one or more
 //   error messages. Each error message indicates one error in the change batch.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * PriorRequestNotComplete
+//   * ErrCodePriorRequestNotComplete "PriorRequestNotComplete"
 //   If Amazon Route 53 can't process a request before the next request arrives,
 //   it will reject subsequent requests for the same hosted zone and return an
 //   HTTP 400 error (Bad request). If Amazon Route 53 returns this error repeatedly
@@ -328,9 +326,8 @@ func (c *Route53) ChangeTagsForResourceRequest(input *ChangeTagsForResourceInput
 		input = &ChangeTagsForResourceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ChangeTagsForResourceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -350,25 +347,24 @@ func (c *Route53) ChangeTagsForResourceRequest(input *ChangeTagsForResourceInput
 // API operation ChangeTagsForResource for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * NoSuchHealthCheck
+//   * ErrCodeNoSuchHealthCheck "NoSuchHealthCheck"
 //   No health check exists with the ID that you specified in the DeleteHealthCheck
 //   request.
 //
-//   * NoSuchHostedZone
+//   * ErrCodeNoSuchHostedZone "NoSuchHostedZone"
 //   No hosted zone exists with the ID that you specified.
 //
-//   * PriorRequestNotComplete
+//   * ErrCodePriorRequestNotComplete "PriorRequestNotComplete"
 //   If Amazon Route 53 can't process a request before the next request arrives,
 //   it will reject subsequent requests for the same hosted zone and return an
 //   HTTP 400 error (Bad request). If Amazon Route 53 returns this error repeatedly
 //   for the same request, we recommend that you wait, in intervals of increasing
 //   duration, before you try the request again.
 //
-//   * ThrottlingException
-
+//   * ErrCodeThrottlingException "ThrottlingException"
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/ChangeTagsForResource
 func (c *Route53) ChangeTagsForResource(input *ChangeTagsForResourceInput) (*ChangeTagsForResourceOutput, error) {
@@ -415,9 +411,8 @@ func (c *Route53) CreateHealthCheckRequest(input *CreateHealthCheckInput) (req *
 		input = &CreateHealthCheckInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateHealthCheckOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -464,18 +459,18 @@ func (c *Route53) CreateHealthCheckRequest(input *CreateHealthCheckInput) (req *
 // API operation CreateHealthCheck for usage and error information.
 //
 // Returned Error Codes:
-//   * TooManyHealthChecks
+//   * ErrCodeTooManyHealthChecks "TooManyHealthChecks"
 //   You have reached the maximum number of active health checks for an AWS account.
 //   The default limit is 100. To request a higher limit, create a case (http://aws.amazon.com/route53-request)
 //   with the AWS Support Center.
 //
-//   * HealthCheckAlreadyExists
+//   * ErrCodeHealthCheckAlreadyExists "HealthCheckAlreadyExists"
 //   The health check you're attempting to create already exists.
 //
 //   Amazon Route 53 returns this error when a health check has already been created
 //   with the specified value for CallerReference.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/CreateHealthCheck
@@ -523,9 +518,8 @@ func (c *Route53) CreateHostedZoneRequest(input *CreateHostedZoneInput) (req *re
 		input = &CreateHostedZoneInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateHostedZoneOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -580,44 +574,44 @@ func (c *Route53) CreateHostedZoneRequest(input *CreateHostedZoneInput) (req *re
 // API operation CreateHostedZone for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidDomainName
+//   * ErrCodeInvalidDomainName "InvalidDomainName"
 //   The specified domain name is not valid.
 //
-//   * HostedZoneAlreadyExists
+//   * ErrCodeHostedZoneAlreadyExists "HostedZoneAlreadyExists"
 //   The hosted zone you are trying to create already exists. Amazon Route 53
 //   returns this error when a hosted zone has already been created with the specified
 //   CallerReference.
 //
-//   * TooManyHostedZones
+//   * ErrCodeTooManyHostedZones "TooManyHostedZones"
 //   This hosted zone can't be created because the hosted zone limit is exceeded.
 //   To request a limit increase, go to the Amazon Route 53 Contact Us (http://aws.amazon.com/route53-request/)
 //   page.
 //
-//   * InvalidVPCId
+//   * ErrCodeInvalidVPCId "InvalidVPCId"
 //   The VPC ID that you specified either isn't a valid ID or the current account
 //   is not authorized to access this VPC.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * DelegationSetNotAvailable
+//   * ErrCodeDelegationSetNotAvailable "DelegationSetNotAvailable"
 //   You can create a hosted zone that has the same name as an existing hosted
 //   zone (example.com is common), but there is a limit to the number of hosted
 //   zones that have the same name. If you get this error, Amazon Route 53 has
 //   reached that limit. If you own the domain name and Amazon Route 53 generates
 //   this error, contact Customer Support.
 //
-//   * ConflictingDomainExists
+//   * ErrCodeConflictingDomainExists "ConflictingDomainExists"
 //   You specified an Amazon VPC that you're already using for another hosted
 //   zone, and the domain that you specified for one of the hosted zones is a
 //   subdomain of the domain that you specified for the other hosted zone. For
 //   example, you can't use the same Amazon VPC for the hosted zones for example.com
 //   and test.example.com.
 //
-//   * NoSuchDelegationSet
+//   * ErrCodeNoSuchDelegationSet "NoSuchDelegationSet"
 //   A reusable delegation set with the specified ID does not exist.
 //
-//   * DelegationSetNotReusable
+//   * ErrCodeDelegationSetNotReusable "DelegationSetNotReusable"
 //   A reusable delegation set with the specified ID does not exist.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/CreateHostedZone
@@ -665,9 +659,8 @@ func (c *Route53) CreateReusableDelegationSetRequest(input *CreateReusableDelega
 		input = &CreateReusableDelegationSetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateReusableDelegationSetOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -694,30 +687,30 @@ func (c *Route53) CreateReusableDelegationSetRequest(input *CreateReusableDelega
 // API operation CreateReusableDelegationSet for usage and error information.
 //
 // Returned Error Codes:
-//   * DelegationSetAlreadyCreated
+//   * ErrCodeDelegationSetAlreadyCreated "DelegationSetAlreadyCreated"
 //   A delegation set with the same owner and caller reference combination has
 //   already been created.
 //
-//   * LimitsExceeded
+//   * ErrCodeLimitsExceeded "LimitsExceeded"
 //   The limits specified for a resource have been exceeded.
 //
-//   * HostedZoneNotFound
+//   * ErrCodeHostedZoneNotFound "HostedZoneNotFound"
 //   The specified HostedZone can't be found.
 //
-//   * InvalidArgument
+//   * ErrCodeInvalidArgument "InvalidArgument"
 //   Parameter name and problem.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * DelegationSetNotAvailable
+//   * ErrCodeDelegationSetNotAvailable "DelegationSetNotAvailable"
 //   You can create a hosted zone that has the same name as an existing hosted
 //   zone (example.com is common), but there is a limit to the number of hosted
 //   zones that have the same name. If you get this error, Amazon Route 53 has
 //   reached that limit. If you own the domain name and Amazon Route 53 generates
 //   this error, contact Customer Support.
 //
-//   * DelegationSetAlreadyReusable
+//   * ErrCodeDelegationSetAlreadyReusable "DelegationSetAlreadyReusable"
 //   The specified delegation set has already been marked as reusable.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/CreateReusableDelegationSet
@@ -765,9 +758,8 @@ func (c *Route53) CreateTrafficPolicyRequest(input *CreateTrafficPolicyInput) (r
 		input = &CreateTrafficPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateTrafficPolicyOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -790,18 +782,18 @@ func (c *Route53) CreateTrafficPolicyRequest(input *CreateTrafficPolicyInput) (r
 // API operation CreateTrafficPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * TooManyTrafficPolicies
+//   * ErrCodeTooManyTrafficPolicies "TooManyTrafficPolicies"
 //   You've created the maximum number of traffic policies that can be created
 //   for the current AWS account. You can request an increase to the limit on
 //   the Contact Us (http://aws.amazon.com/route53-request/) page.
 //
-//   * TrafficPolicyAlreadyExists
+//   * ErrCodeTrafficPolicyAlreadyExists "TrafficPolicyAlreadyExists"
 //   A traffic policy that has the same value for Name already exists.
 //
-//   * InvalidTrafficPolicyDocument
+//   * ErrCodeInvalidTrafficPolicyDocument "InvalidTrafficPolicyDocument"
 //   The format of the traffic policy document that you specified in the Document
 //   element is invalid.
 //
@@ -850,9 +842,8 @@ func (c *Route53) CreateTrafficPolicyInstanceRequest(input *CreateTrafficPolicyI
 		input = &CreateTrafficPolicyInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateTrafficPolicyInstanceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -878,21 +869,21 @@ func (c *Route53) CreateTrafficPolicyInstanceRequest(input *CreateTrafficPolicyI
 // API operation CreateTrafficPolicyInstance for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchHostedZone
+//   * ErrCodeNoSuchHostedZone "NoSuchHostedZone"
 //   No hosted zone exists with the ID that you specified.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * TooManyTrafficPolicyInstances
+//   * ErrCodeTooManyTrafficPolicyInstances "TooManyTrafficPolicyInstances"
 //   You've created the maximum number of traffic policy instances that can be
 //   created for the current AWS account. You can request an increase to the limit
 //   on the Contact Us (http://aws.amazon.com/route53-request/) page.
 //
-//   * NoSuchTrafficPolicy
+//   * ErrCodeNoSuchTrafficPolicy "NoSuchTrafficPolicy"
 //   No traffic policy exists with the specified ID.
 //
-//   * TrafficPolicyInstanceAlreadyExists
+//   * ErrCodeTrafficPolicyInstanceAlreadyExists "TrafficPolicyInstanceAlreadyExists"
 //   Traffic policy instance with given Id already exists.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/CreateTrafficPolicyInstance
@@ -940,9 +931,8 @@ func (c *Route53) CreateTrafficPolicyVersionRequest(input *CreateTrafficPolicyVe
 		input = &CreateTrafficPolicyVersionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateTrafficPolicyVersionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -970,17 +960,17 @@ func (c *Route53) CreateTrafficPolicyVersionRequest(input *CreateTrafficPolicyVe
 // API operation CreateTrafficPolicyVersion for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchTrafficPolicy
+//   * ErrCodeNoSuchTrafficPolicy "NoSuchTrafficPolicy"
 //   No traffic policy exists with the specified ID.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * ConcurrentModification
+//   * ErrCodeConcurrentModification "ConcurrentModification"
 //   Another user submitted a request to update the object at the same time that
 //   you did. Retry the request.
 //
-//   * InvalidTrafficPolicyDocument
+//   * ErrCodeInvalidTrafficPolicyDocument "InvalidTrafficPolicyDocument"
 //   The format of the traffic policy document that you specified in the Document
 //   element is invalid.
 //
@@ -1029,9 +1019,8 @@ func (c *Route53) CreateVPCAssociationAuthorizationRequest(input *CreateVPCAssoc
 		input = &CreateVPCAssociationAuthorizationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateVPCAssociationAuthorizationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1060,21 +1049,21 @@ func (c *Route53) CreateVPCAssociationAuthorizationRequest(input *CreateVPCAssoc
 // API operation CreateVPCAssociationAuthorization for usage and error information.
 //
 // Returned Error Codes:
-//   * TooManyVPCAssociationAuthorizations
+//   * ErrCodeTooManyVPCAssociationAuthorizations "TooManyVPCAssociationAuthorizations"
 //   You've created the maximum number of authorizations that can be created for
 //   the specified hosted zone. To authorize another VPC to be associated with
 //   the hosted zone, submit a DeleteVPCAssociationAuthorization request to remove
 //   an existing authorization. To get a list of existing authorizations, submit
 //   a ListVPCAssociationAuthorizations request.
 //
-//   * NoSuchHostedZone
+//   * ErrCodeNoSuchHostedZone "NoSuchHostedZone"
 //   No hosted zone exists with the ID that you specified.
 //
-//   * InvalidVPCId
+//   * ErrCodeInvalidVPCId "InvalidVPCId"
 //   The VPC ID that you specified either isn't a valid ID or the current account
 //   is not authorized to access this VPC.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/CreateVPCAssociationAuthorization
@@ -1122,9 +1111,8 @@ func (c *Route53) DeleteHealthCheckRequest(input *DeleteHealthCheckInput) (req *
 		input = &DeleteHealthCheckInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteHealthCheckOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1149,16 +1137,16 @@ func (c *Route53) DeleteHealthCheckRequest(input *DeleteHealthCheckInput) (req *
 // API operation DeleteHealthCheck for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchHealthCheck
+//   * ErrCodeNoSuchHealthCheck "NoSuchHealthCheck"
 //   No health check exists with the ID that you specified in the DeleteHealthCheck
 //   request.
 //
-//   * HealthCheckInUse
+//   * ErrCodeHealthCheckInUse "HealthCheckInUse"
 //   The health check ID for this health check is referenced in the HealthCheckId
 //   element in one of the resource record sets in one of the hosted zones that
 //   are owned by the current AWS account.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/DeleteHealthCheck
@@ -1206,9 +1194,8 @@ func (c *Route53) DeleteHostedZoneRequest(input *DeleteHostedZoneInput) (req *re
 		input = &DeleteHostedZoneInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteHostedZoneOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1232,23 +1219,23 @@ func (c *Route53) DeleteHostedZoneRequest(input *DeleteHostedZoneInput) (req *re
 // API operation DeleteHostedZone for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchHostedZone
+//   * ErrCodeNoSuchHostedZone "NoSuchHostedZone"
 //   No hosted zone exists with the ID that you specified.
 //
-//   * HostedZoneNotEmpty
+//   * ErrCodeHostedZoneNotEmpty "HostedZoneNotEmpty"
 //   The hosted zone contains resource records that are not SOA or NS records.
 //
-//   * PriorRequestNotComplete
+//   * ErrCodePriorRequestNotComplete "PriorRequestNotComplete"
 //   If Amazon Route 53 can't process a request before the next request arrives,
 //   it will reject subsequent requests for the same hosted zone and return an
 //   HTTP 400 error (Bad request). If Amazon Route 53 returns this error repeatedly
 //   for the same request, we recommend that you wait, in intervals of increasing
 //   duration, before you try the request again.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * InvalidDomainName
+//   * ErrCodeInvalidDomainName "InvalidDomainName"
 //   The specified domain name is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/DeleteHostedZone
@@ -1296,9 +1283,8 @@ func (c *Route53) DeleteReusableDelegationSetRequest(input *DeleteReusableDelega
 		input = &DeleteReusableDelegationSetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteReusableDelegationSetOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1322,17 +1308,17 @@ func (c *Route53) DeleteReusableDelegationSetRequest(input *DeleteReusableDelega
 // API operation DeleteReusableDelegationSet for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchDelegationSet
+//   * ErrCodeNoSuchDelegationSet "NoSuchDelegationSet"
 //   A reusable delegation set with the specified ID does not exist.
 //
-//   * DelegationSetInUse
+//   * ErrCodeDelegationSetInUse "DelegationSetInUse"
 //   The specified delegation contains associated hosted zones which must be deleted
 //   before the reusable delegation set can be deleted.
 //
-//   * DelegationSetNotReusable
+//   * ErrCodeDelegationSetNotReusable "DelegationSetNotReusable"
 //   A reusable delegation set with the specified ID does not exist.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/DeleteReusableDelegationSet
@@ -1380,9 +1366,8 @@ func (c *Route53) DeleteTrafficPolicyRequest(input *DeleteTrafficPolicyInput) (r
 		input = &DeleteTrafficPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteTrafficPolicyOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1400,17 +1385,17 @@ func (c *Route53) DeleteTrafficPolicyRequest(input *DeleteTrafficPolicyInput) (r
 // API operation DeleteTrafficPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchTrafficPolicy
+//   * ErrCodeNoSuchTrafficPolicy "NoSuchTrafficPolicy"
 //   No traffic policy exists with the specified ID.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * TrafficPolicyInUse
+//   * ErrCodeTrafficPolicyInUse "TrafficPolicyInUse"
 //   One or more traffic policy instances were created by using the specified
 //   traffic policy.
 //
-//   * ConcurrentModification
+//   * ErrCodeConcurrentModification "ConcurrentModification"
 //   Another user submitted a request to update the object at the same time that
 //   you did. Retry the request.
 //
@@ -1459,9 +1444,8 @@ func (c *Route53) DeleteTrafficPolicyInstanceRequest(input *DeleteTrafficPolicyI
 		input = &DeleteTrafficPolicyInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteTrafficPolicyInstanceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1484,13 +1468,13 @@ func (c *Route53) DeleteTrafficPolicyInstanceRequest(input *DeleteTrafficPolicyI
 // API operation DeleteTrafficPolicyInstance for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchTrafficPolicyInstance
+//   * ErrCodeNoSuchTrafficPolicyInstance "NoSuchTrafficPolicyInstance"
 //   No traffic policy instance exists with the specified ID.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * PriorRequestNotComplete
+//   * ErrCodePriorRequestNotComplete "PriorRequestNotComplete"
 //   If Amazon Route 53 can't process a request before the next request arrives,
 //   it will reject subsequent requests for the same hosted zone and return an
 //   HTTP 400 error (Bad request). If Amazon Route 53 returns this error repeatedly
@@ -1542,9 +1526,8 @@ func (c *Route53) DeleteVPCAssociationAuthorizationRequest(input *DeleteVPCAssoc
 		input = &DeleteVPCAssociationAuthorizationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteVPCAssociationAuthorizationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1573,18 +1556,18 @@ func (c *Route53) DeleteVPCAssociationAuthorizationRequest(input *DeleteVPCAssoc
 // API operation DeleteVPCAssociationAuthorization for usage and error information.
 //
 // Returned Error Codes:
-//   * VPCAssociationAuthorizationNotFound
+//   * ErrCodeVPCAssociationAuthorizationNotFound "VPCAssociationAuthorizationNotFound"
 //   The VPC that you specified is not authorized to be associated with the hosted
 //   zone.
 //
-//   * NoSuchHostedZone
+//   * ErrCodeNoSuchHostedZone "NoSuchHostedZone"
 //   No hosted zone exists with the ID that you specified.
 //
-//   * InvalidVPCId
+//   * ErrCodeInvalidVPCId "InvalidVPCId"
 //   The VPC ID that you specified either isn't a valid ID or the current account
 //   is not authorized to access this VPC.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/DeleteVPCAssociationAuthorization
@@ -1632,9 +1615,8 @@ func (c *Route53) DisassociateVPCFromHostedZoneRequest(input *DisassociateVPCFro
 		input = &DisassociateVPCFromHostedZoneInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DisassociateVPCFromHostedZoneOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1660,22 +1642,22 @@ func (c *Route53) DisassociateVPCFromHostedZoneRequest(input *DisassociateVPCFro
 // API operation DisassociateVPCFromHostedZone for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchHostedZone
+//   * ErrCodeNoSuchHostedZone "NoSuchHostedZone"
 //   No hosted zone exists with the ID that you specified.
 //
-//   * InvalidVPCId
+//   * ErrCodeInvalidVPCId "InvalidVPCId"
 //   The VPC ID that you specified either isn't a valid ID or the current account
 //   is not authorized to access this VPC.
 //
-//   * VPCAssociationNotFound
+//   * ErrCodeVPCAssociationNotFound "VPCAssociationNotFound"
 //   The specified VPC and hosted zone are not currently associated.
 //
-//   * LastVPCAssociation
+//   * ErrCodeLastVPCAssociation "LastVPCAssociation"
 //   The VPC that you're trying to disassociate from the private hosted zone is
 //   the last VPC that is associated with the hosted zone. Amazon Route 53 doesn't
 //   support disassociating the last VPC from a hosted zone.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/DisassociateVPCFromHostedZone
@@ -1723,9 +1705,8 @@ func (c *Route53) GetChangeRequest(input *GetChangeInput) (req *request.Request,
 		input = &GetChangeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetChangeOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1749,10 +1730,10 @@ func (c *Route53) GetChangeRequest(input *GetChangeInput) (req *request.Request,
 // API operation GetChange for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchChange
+//   * ErrCodeNoSuchChange "NoSuchChange"
 //   A change with the specified change ID does not exist.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/GetChange
@@ -1800,9 +1781,8 @@ func (c *Route53) GetCheckerIpRangesRequest(input *GetCheckerIpRangesInput) (req
 		input = &GetCheckerIpRangesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetCheckerIpRangesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1865,9 +1845,8 @@ func (c *Route53) GetGeoLocationRequest(input *GetGeoLocationInput) (req *reques
 		input = &GetGeoLocationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetGeoLocationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1885,10 +1864,10 @@ func (c *Route53) GetGeoLocationRequest(input *GetGeoLocationInput) (req *reques
 // API operation GetGeoLocation for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchGeoLocation
+//   * ErrCodeNoSuchGeoLocation "NoSuchGeoLocation"
 //   Amazon Route 53 doesn't support the specified geolocation.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/GetGeoLocation
@@ -1936,9 +1915,8 @@ func (c *Route53) GetHealthCheckRequest(input *GetHealthCheckInput) (req *reques
 		input = &GetHealthCheckInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetHealthCheckOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1958,14 +1936,14 @@ func (c *Route53) GetHealthCheckRequest(input *GetHealthCheckInput) (req *reques
 // API operation GetHealthCheck for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchHealthCheck
+//   * ErrCodeNoSuchHealthCheck "NoSuchHealthCheck"
 //   No health check exists with the ID that you specified in the DeleteHealthCheck
 //   request.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * IncompatibleVersion
+//   * ErrCodeIncompatibleVersion "IncompatibleVersion"
 //   The resource you are trying to access is unsupported on this Amazon Route
 //   53 endpoint. Please consider using a newer endpoint or a tool that does so.
 //
@@ -2014,9 +1992,8 @@ func (c *Route53) GetHealthCheckCountRequest(input *GetHealthCheckCountInput) (r
 		input = &GetHealthCheckCountInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetHealthCheckCountOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2076,9 +2053,8 @@ func (c *Route53) GetHealthCheckLastFailureReasonRequest(input *GetHealthCheckLa
 		input = &GetHealthCheckLastFailureReasonInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetHealthCheckLastFailureReasonOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2097,11 +2073,11 @@ func (c *Route53) GetHealthCheckLastFailureReasonRequest(input *GetHealthCheckLa
 // API operation GetHealthCheckLastFailureReason for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchHealthCheck
+//   * ErrCodeNoSuchHealthCheck "NoSuchHealthCheck"
 //   No health check exists with the ID that you specified in the DeleteHealthCheck
 //   request.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/GetHealthCheckLastFailureReason
@@ -2149,9 +2125,8 @@ func (c *Route53) GetHealthCheckStatusRequest(input *GetHealthCheckStatusInput) 
 		input = &GetHealthCheckStatusInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetHealthCheckStatusOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2169,11 +2144,11 @@ func (c *Route53) GetHealthCheckStatusRequest(input *GetHealthCheckStatusInput) 
 // API operation GetHealthCheckStatus for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchHealthCheck
+//   * ErrCodeNoSuchHealthCheck "NoSuchHealthCheck"
 //   No health check exists with the ID that you specified in the DeleteHealthCheck
 //   request.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/GetHealthCheckStatus
@@ -2221,9 +2196,8 @@ func (c *Route53) GetHostedZoneRequest(input *GetHostedZoneInput) (req *request.
 		input = &GetHostedZoneInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetHostedZoneOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2241,10 +2215,10 @@ func (c *Route53) GetHostedZoneRequest(input *GetHostedZoneInput) (req *request.
 // API operation GetHostedZone for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchHostedZone
+//   * ErrCodeNoSuchHostedZone "NoSuchHostedZone"
 //   No hosted zone exists with the ID that you specified.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/GetHostedZone
@@ -2292,9 +2266,8 @@ func (c *Route53) GetHostedZoneCountRequest(input *GetHostedZoneCountInput) (req
 		input = &GetHostedZoneCountInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetHostedZoneCountOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2311,7 +2284,7 @@ func (c *Route53) GetHostedZoneCountRequest(input *GetHostedZoneCountInput) (req
 // API operation GetHostedZoneCount for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/GetHostedZoneCount
@@ -2359,9 +2332,8 @@ func (c *Route53) GetReusableDelegationSetRequest(input *GetReusableDelegationSe
 		input = &GetReusableDelegationSetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetReusableDelegationSetOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2378,13 +2350,13 @@ func (c *Route53) GetReusableDelegationSetRequest(input *GetReusableDelegationSe
 // API operation GetReusableDelegationSet for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchDelegationSet
+//   * ErrCodeNoSuchDelegationSet "NoSuchDelegationSet"
 //   A reusable delegation set with the specified ID does not exist.
 //
-//   * DelegationSetNotReusable
+//   * ErrCodeDelegationSetNotReusable "DelegationSetNotReusable"
 //   A reusable delegation set with the specified ID does not exist.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/GetReusableDelegationSet
@@ -2432,9 +2404,8 @@ func (c *Route53) GetTrafficPolicyRequest(input *GetTrafficPolicyInput) (req *re
 		input = &GetTrafficPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetTrafficPolicyOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2452,10 +2423,10 @@ func (c *Route53) GetTrafficPolicyRequest(input *GetTrafficPolicyInput) (req *re
 // API operation GetTrafficPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchTrafficPolicy
+//   * ErrCodeNoSuchTrafficPolicy "NoSuchTrafficPolicy"
 //   No traffic policy exists with the specified ID.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/GetTrafficPolicy
@@ -2503,9 +2474,8 @@ func (c *Route53) GetTrafficPolicyInstanceRequest(input *GetTrafficPolicyInstanc
 		input = &GetTrafficPolicyInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetTrafficPolicyInstanceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2532,10 +2502,10 @@ func (c *Route53) GetTrafficPolicyInstanceRequest(input *GetTrafficPolicyInstanc
 // API operation GetTrafficPolicyInstance for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchTrafficPolicyInstance
+//   * ErrCodeNoSuchTrafficPolicyInstance "NoSuchTrafficPolicyInstance"
 //   No traffic policy instance exists with the specified ID.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/GetTrafficPolicyInstance
@@ -2583,9 +2553,8 @@ func (c *Route53) GetTrafficPolicyInstanceCountRequest(input *GetTrafficPolicyIn
 		input = &GetTrafficPolicyInstanceCountInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetTrafficPolicyInstanceCountOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2648,9 +2617,8 @@ func (c *Route53) ListGeoLocationsRequest(input *ListGeoLocationsInput) (req *re
 		input = &ListGeoLocationsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListGeoLocationsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2673,7 +2641,7 @@ func (c *Route53) ListGeoLocationsRequest(input *ListGeoLocationsInput) (req *re
 // API operation ListGeoLocations for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/ListGeoLocations
@@ -2727,9 +2695,8 @@ func (c *Route53) ListHealthChecksRequest(input *ListHealthChecksInput) (req *re
 		input = &ListHealthChecksInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListHealthChecksOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2753,10 +2720,10 @@ func (c *Route53) ListHealthChecksRequest(input *ListHealthChecksInput) (req *re
 // API operation ListHealthChecks for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * IncompatibleVersion
+//   * ErrCodeIncompatibleVersion "IncompatibleVersion"
 //   The resource you are trying to access is unsupported on this Amazon Route
 //   53 endpoint. Please consider using a newer endpoint or a tool that does so.
 //
@@ -2836,9 +2803,8 @@ func (c *Route53) ListHostedZonesRequest(input *ListHostedZonesInput) (req *requ
 		input = &ListHostedZonesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListHostedZonesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2879,13 +2845,13 @@ func (c *Route53) ListHostedZonesRequest(input *ListHostedZonesInput) (req *requ
 // API operation ListHostedZones for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * NoSuchDelegationSet
+//   * ErrCodeNoSuchDelegationSet "NoSuchDelegationSet"
 //   A reusable delegation set with the specified ID does not exist.
 //
-//   * DelegationSetNotReusable
+//   * ErrCodeDelegationSetNotReusable "DelegationSetNotReusable"
 //   A reusable delegation set with the specified ID does not exist.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/ListHostedZones
@@ -2958,9 +2924,8 @@ func (c *Route53) ListHostedZonesByNameRequest(input *ListHostedZonesByNameInput
 		input = &ListHostedZonesByNameInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListHostedZonesByNameOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3026,10 +2991,10 @@ func (c *Route53) ListHostedZonesByNameRequest(input *ListHostedZonesByNameInput
 // API operation ListHostedZonesByName for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * InvalidDomainName
+//   * ErrCodeInvalidDomainName "InvalidDomainName"
 //   The specified domain name is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/ListHostedZonesByName
@@ -3083,9 +3048,8 @@ func (c *Route53) ListResourceRecordSetsRequest(input *ListResourceRecordSetsInp
 		input = &ListResourceRecordSetsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListResourceRecordSetsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3139,10 +3103,10 @@ func (c *Route53) ListResourceRecordSetsRequest(input *ListResourceRecordSetsInp
 // API operation ListResourceRecordSets for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchHostedZone
+//   * ErrCodeNoSuchHostedZone "NoSuchHostedZone"
 //   No hosted zone exists with the ID that you specified.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/ListResourceRecordSets
@@ -3215,9 +3179,8 @@ func (c *Route53) ListReusableDelegationSetsRequest(input *ListReusableDelegatio
 		input = &ListReusableDelegationSetsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListReusableDelegationSetsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3242,7 +3205,7 @@ func (c *Route53) ListReusableDelegationSetsRequest(input *ListReusableDelegatio
 // API operation ListReusableDelegationSets for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/ListReusableDelegationSets
@@ -3290,9 +3253,8 @@ func (c *Route53) ListTagsForResourceRequest(input *ListTagsForResourceInput) (r
 		input = &ListTagsForResourceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListTagsForResourceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3312,25 +3274,24 @@ func (c *Route53) ListTagsForResourceRequest(input *ListTagsForResourceInput) (r
 // API operation ListTagsForResource for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * NoSuchHealthCheck
+//   * ErrCodeNoSuchHealthCheck "NoSuchHealthCheck"
 //   No health check exists with the ID that you specified in the DeleteHealthCheck
 //   request.
 //
-//   * NoSuchHostedZone
+//   * ErrCodeNoSuchHostedZone "NoSuchHostedZone"
 //   No hosted zone exists with the ID that you specified.
 //
-//   * PriorRequestNotComplete
+//   * ErrCodePriorRequestNotComplete "PriorRequestNotComplete"
 //   If Amazon Route 53 can't process a request before the next request arrives,
 //   it will reject subsequent requests for the same hosted zone and return an
 //   HTTP 400 error (Bad request). If Amazon Route 53 returns this error repeatedly
 //   for the same request, we recommend that you wait, in intervals of increasing
 //   duration, before you try the request again.
 //
-//   * ThrottlingException
-
+//   * ErrCodeThrottlingException "ThrottlingException"
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/ListTagsForResource
 func (c *Route53) ListTagsForResource(input *ListTagsForResourceInput) (*ListTagsForResourceOutput, error) {
@@ -3377,9 +3338,8 @@ func (c *Route53) ListTagsForResourcesRequest(input *ListTagsForResourcesInput) 
 		input = &ListTagsForResourcesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListTagsForResourcesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3399,25 +3359,24 @@ func (c *Route53) ListTagsForResourcesRequest(input *ListTagsForResourcesInput) 
 // API operation ListTagsForResources for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * NoSuchHealthCheck
+//   * ErrCodeNoSuchHealthCheck "NoSuchHealthCheck"
 //   No health check exists with the ID that you specified in the DeleteHealthCheck
 //   request.
 //
-//   * NoSuchHostedZone
+//   * ErrCodeNoSuchHostedZone "NoSuchHostedZone"
 //   No hosted zone exists with the ID that you specified.
 //
-//   * PriorRequestNotComplete
+//   * ErrCodePriorRequestNotComplete "PriorRequestNotComplete"
 //   If Amazon Route 53 can't process a request before the next request arrives,
 //   it will reject subsequent requests for the same hosted zone and return an
 //   HTTP 400 error (Bad request). If Amazon Route 53 returns this error repeatedly
 //   for the same request, we recommend that you wait, in intervals of increasing
 //   duration, before you try the request again.
 //
-//   * ThrottlingException
-
+//   * ErrCodeThrottlingException "ThrottlingException"
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/ListTagsForResources
 func (c *Route53) ListTagsForResources(input *ListTagsForResourcesInput) (*ListTagsForResourcesOutput, error) {
@@ -3464,9 +3423,8 @@ func (c *Route53) ListTrafficPoliciesRequest(input *ListTrafficPoliciesInput) (r
 		input = &ListTrafficPoliciesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListTrafficPoliciesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3515,7 +3473,7 @@ func (c *Route53) ListTrafficPoliciesRequest(input *ListTrafficPoliciesInput) (r
 // API operation ListTrafficPolicies for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/ListTrafficPolicies
@@ -3563,9 +3521,8 @@ func (c *Route53) ListTrafficPolicyInstancesRequest(input *ListTrafficPolicyInst
 		input = &ListTrafficPolicyInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListTrafficPolicyInstancesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3620,10 +3577,10 @@ func (c *Route53) ListTrafficPolicyInstancesRequest(input *ListTrafficPolicyInst
 // API operation ListTrafficPolicyInstances for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * NoSuchTrafficPolicyInstance
+//   * ErrCodeNoSuchTrafficPolicyInstance "NoSuchTrafficPolicyInstance"
 //   No traffic policy instance exists with the specified ID.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/ListTrafficPolicyInstances
@@ -3671,9 +3628,8 @@ func (c *Route53) ListTrafficPolicyInstancesByHostedZoneRequest(input *ListTraff
 		input = &ListTrafficPolicyInstancesByHostedZoneInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListTrafficPolicyInstancesByHostedZoneOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3728,13 +3684,13 @@ func (c *Route53) ListTrafficPolicyInstancesByHostedZoneRequest(input *ListTraff
 // API operation ListTrafficPolicyInstancesByHostedZone for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * NoSuchTrafficPolicyInstance
+//   * ErrCodeNoSuchTrafficPolicyInstance "NoSuchTrafficPolicyInstance"
 //   No traffic policy instance exists with the specified ID.
 //
-//   * NoSuchHostedZone
+//   * ErrCodeNoSuchHostedZone "NoSuchHostedZone"
 //   No hosted zone exists with the ID that you specified.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/ListTrafficPolicyInstancesByHostedZone
@@ -3782,9 +3738,8 @@ func (c *Route53) ListTrafficPolicyInstancesByPolicyRequest(input *ListTrafficPo
 		input = &ListTrafficPolicyInstancesByPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListTrafficPolicyInstancesByPolicyOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3838,13 +3793,13 @@ func (c *Route53) ListTrafficPolicyInstancesByPolicyRequest(input *ListTrafficPo
 // API operation ListTrafficPolicyInstancesByPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * NoSuchTrafficPolicyInstance
+//   * ErrCodeNoSuchTrafficPolicyInstance "NoSuchTrafficPolicyInstance"
 //   No traffic policy instance exists with the specified ID.
 //
-//   * NoSuchTrafficPolicy
+//   * ErrCodeNoSuchTrafficPolicy "NoSuchTrafficPolicy"
 //   No traffic policy exists with the specified ID.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/ListTrafficPolicyInstancesByPolicy
@@ -3892,9 +3847,8 @@ func (c *Route53) ListTrafficPolicyVersionsRequest(input *ListTrafficPolicyVersi
 		input = &ListTrafficPolicyVersionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListTrafficPolicyVersionsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3943,10 +3897,10 @@ func (c *Route53) ListTrafficPolicyVersionsRequest(input *ListTrafficPolicyVersi
 // API operation ListTrafficPolicyVersions for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * NoSuchTrafficPolicy
+//   * ErrCodeNoSuchTrafficPolicy "NoSuchTrafficPolicy"
 //   No traffic policy exists with the specified ID.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/ListTrafficPolicyVersions
@@ -3994,9 +3948,8 @@ func (c *Route53) ListVPCAssociationAuthorizationsRequest(input *ListVPCAssociat
 		input = &ListVPCAssociationAuthorizationsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListVPCAssociationAuthorizationsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4032,14 +3985,13 @@ func (c *Route53) ListVPCAssociationAuthorizationsRequest(input *ListVPCAssociat
 // API operation ListVPCAssociationAuthorizations for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchHostedZone
+//   * ErrCodeNoSuchHostedZone "NoSuchHostedZone"
 //   No hosted zone exists with the ID that you specified.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * InvalidPaginationToken
-
+//   * ErrCodeInvalidPaginationToken "InvalidPaginationToken"
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/ListVPCAssociationAuthorizations
 func (c *Route53) ListVPCAssociationAuthorizations(input *ListVPCAssociationAuthorizationsInput) (*ListVPCAssociationAuthorizationsOutput, error) {
@@ -4086,9 +4038,8 @@ func (c *Route53) TestDNSAnswerRequest(input *TestDNSAnswerInput) (req *request.
 		input = &TestDNSAnswerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &TestDNSAnswerOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4106,10 +4057,10 @@ func (c *Route53) TestDNSAnswerRequest(input *TestDNSAnswerInput) (req *request.
 // API operation TestDNSAnswer for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchHostedZone
+//   * ErrCodeNoSuchHostedZone "NoSuchHostedZone"
 //   No hosted zone exists with the ID that you specified.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/TestDNSAnswer
@@ -4157,9 +4108,8 @@ func (c *Route53) UpdateHealthCheckRequest(input *UpdateHealthCheckInput) (req *
 		input = &UpdateHealthCheckInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateHealthCheckOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4181,14 +4131,14 @@ func (c *Route53) UpdateHealthCheckRequest(input *UpdateHealthCheckInput) (req *
 // API operation UpdateHealthCheck for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchHealthCheck
+//   * ErrCodeNoSuchHealthCheck "NoSuchHealthCheck"
 //   No health check exists with the ID that you specified in the DeleteHealthCheck
 //   request.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * HealthCheckVersionMismatch
+//   * ErrCodeHealthCheckVersionMismatch "HealthCheckVersionMismatch"
 //   The value of HealthCheckVersion in the request doesn't match the value of
 //   HealthCheckVersion in the health check.
 //
@@ -4237,9 +4187,8 @@ func (c *Route53) UpdateHostedZoneCommentRequest(input *UpdateHostedZoneCommentI
 		input = &UpdateHostedZoneCommentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateHostedZoneCommentOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4256,10 +4205,10 @@ func (c *Route53) UpdateHostedZoneCommentRequest(input *UpdateHostedZoneCommentI
 // API operation UpdateHostedZoneComment for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchHostedZone
+//   * ErrCodeNoSuchHostedZone "NoSuchHostedZone"
 //   No hosted zone exists with the ID that you specified.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/route53-2013-04-01/UpdateHostedZoneComment
@@ -4307,9 +4256,8 @@ func (c *Route53) UpdateTrafficPolicyCommentRequest(input *UpdateTrafficPolicyCo
 		input = &UpdateTrafficPolicyCommentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateTrafficPolicyCommentOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4330,13 +4278,13 @@ func (c *Route53) UpdateTrafficPolicyCommentRequest(input *UpdateTrafficPolicyCo
 // API operation UpdateTrafficPolicyComment for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * NoSuchTrafficPolicy
+//   * ErrCodeNoSuchTrafficPolicy "NoSuchTrafficPolicy"
 //   No traffic policy exists with the specified ID.
 //
-//   * ConcurrentModification
+//   * ErrCodeConcurrentModification "ConcurrentModification"
 //   Another user submitted a request to update the object at the same time that
 //   you did. Retry the request.
 //
@@ -4385,9 +4333,8 @@ func (c *Route53) UpdateTrafficPolicyInstanceRequest(input *UpdateTrafficPolicyI
 		input = &UpdateTrafficPolicyInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateTrafficPolicyInstanceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4425,23 +4372,23 @@ func (c *Route53) UpdateTrafficPolicyInstanceRequest(input *UpdateTrafficPolicyI
 // API operation UpdateTrafficPolicyInstance for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInput "InvalidInput"
 //   The input is not valid.
 //
-//   * NoSuchTrafficPolicy
+//   * ErrCodeNoSuchTrafficPolicy "NoSuchTrafficPolicy"
 //   No traffic policy exists with the specified ID.
 //
-//   * NoSuchTrafficPolicyInstance
+//   * ErrCodeNoSuchTrafficPolicyInstance "NoSuchTrafficPolicyInstance"
 //   No traffic policy instance exists with the specified ID.
 //
-//   * PriorRequestNotComplete
+//   * ErrCodePriorRequestNotComplete "PriorRequestNotComplete"
 //   If Amazon Route 53 can't process a request before the next request arrives,
 //   it will reject subsequent requests for the same hosted zone and return an
 //   HTTP 400 error (Bad request). If Amazon Route 53 returns this error repeatedly
 //   for the same request, we recommend that you wait, in intervals of increasing
 //   duration, before you try the request again.
 //
-//   * ConflictingTypes
+//   * ErrCodeConflictingTypes "ConflictingTypes"
 //   You tried to update a traffic policy instance by using a traffic policy version
 //   that has a different DNS type than the current type for the instance. You
 //   specified the type in the JSON document in the CreateTrafficPolicy or CreateTrafficPolicyVersionrequest.
@@ -4557,47 +4504,53 @@ type AliasTarget struct {
 	//    (The environment must have a regionalized domain name.) You can use the
 	//    following methods to get the value of the CNAME attribute:
 	//
-	// AWS Managment Console: For information about how to get the value by using
+	// AWS Management Console: For information about how to get the value by using
 	//    the console, see Using Custom Domains with AWS Elastic Beanstalk (http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/customdomains.html)
 	//    in the AWS Elastic Beanstalk Developer Guide.
 	//
-	// Elastic Load Balancing API: Use the DescribeEnvironments action to get the
-	//    value of the CNAME attribute. For more information, see DescribeEnvironments
-	//    (http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/API_DescribeEnvironments.html)
+	// Elastic Beanstalk API: Use the DescribeEnvironments action to get the value
+	//    of the CNAME attribute. For more information, see DescribeEnvironments
+	//    (http://docs.aws.amazon.com/elasticbeanstalk/latest/api/API_DescribeEnvironments.html)
 	//    in the AWS Elastic Beanstalk API Reference.
 	//
 	// AWS CLI: Use the describe-environments command to get the value of the CNAME
 	//    attribute. For more information, see describe-environments (http://docs.aws.amazon.com/cli/latest/reference/elasticbeanstalk/describe-environments.html)
 	//    in the AWS Command Line Interface Reference.
 	//
-	//    * An ELB load balancer: Specify the DNS name associated with the load
-	//    balancer. Get the DNS name by using the AWS Management Console, the ELB
-	//    API, or the AWS CLI. Use the same method to get values for HostedZoneId
+	//    * An ELB load balancer: Specify the DNS name that is associated with the
+	//    load balancer. Get the DNS name by using the AWS Management Console, the
+	//    ELB API, or the AWS CLI. Use the same method to get values for HostedZoneId
 	//    and DNSName. If you get one value from the console and the other value
 	//    from the API or the CLI, creating the resource record set will fail.
 	//
 	// AWS Management Console: Go to the EC2 page, click Load Balancers in the navigation
 	//    pane, choose the load balancer, choose the Description tab, and get the
-	//    value of the DNS Name field that begins with dualstack. Use the same process
-	//    to get the Hosted Zone ID. See HostedZone$Id.
+	//    value of the DNS name field. (If you're routing traffic to a Classic Load
+	//    Balancer, get the value that begins with dualstack.) Use the same process
+	//    to get the value of the Hosted zone field. See AliasTarget$HostedZoneId.
 	//
-	// Elastic Load Balancing API: Use DescribeLoadBalancers (http://docs.aws.amazon.com/ElasticLoadBalancing/latest/APIReference/API_DescribeLoadBalancers.html)
-	//    to get the value of CanonicalHostedZoneName. Use the same process to get
-	//    the CanonicalHostedZoneNameId. See HostedZone$Id.
+	// Elastic Load Balancing API: Use DescribeLoadBalancers to get the value of
+	//    DNSName and CanonicalHostedZoneNameId. (You specify the value of CanonicalHostedZoneNameId
+	//    for AliasTarget$HostedZoneId.) For more information, see the applicable
+	//    guide:
 	//
-	// AWS CLI: Use describe-load-balancers (http://docs.aws.amazon.com/ElasticLoadBalancing/latest/APIReference/API_DescribeLoadBalancers.html)
-	//    to get the value of CanonicalHostedZoneName. Use the same process to get
-	//    the CanonicalHostedZoneNameId. See HostedZoneId.
+	// Classic Load Balancer: DescribeLoadBalancers (http://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_DescribeLoadBalancers.html)
+	//
+	// Application Load Balancer: DescribeLoadBalancers (http://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_DescribeLoadBalancers.html)
+	//
+	// AWS CLI: Use describe-load-balancers (http://docs.aws.amazon.com/cli/latest/reference/elb/describe-load-balancers.html)
+	//    to get the value of DNSName and CanonicalHostedZoneNameId. (You specify
+	//    the value of CanonicalHostedZoneNameId for AliasTarget$HostedZoneId.)
 	//
 	//    * An Amazon S3 bucket that is configured as a static website: Specify
 	//    the domain name of the Amazon S3 website endpoint in which you created
-	//    the bucket; for example, s3-website-us-east-1.amazonaws.com. For more
+	//    the bucket, for example, s3-website-us-east-1.amazonaws.com. For more
 	//    information about valid values, see the table Amazon Simple Storage Service
 	//    (S3) Website Endpoints (http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region)
 	//    in the Amazon Web Services General Reference. For more information about
-	//    using S3 buckets for websites, see Hosting a Static Website on Amazon
-	//    S3 (http://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteHosting.html)
-	//    in the Amazon S3 Developer Guide.
+	//    using S3 buckets for websites, see Getting Started with Amazon Route 53
+	//    (http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/getting-started.html)
+	//    in the Amazon Route 53 Developer Guide.
 	//
 	//    * Another Amazon Route 53 resource record set: Specify the value of the
 	//    Name element for a resource record set in the current hosted zone.
@@ -4703,22 +4656,26 @@ type AliasTarget struct {
 	//
 	// AWS Management Console: Go to the Amazon EC2 page, click Load Balancers in
 	// the navigation pane, select the load balancer, and get the value of the Hosted
-	// Zone ID field on the Description tab. Use the same process to get the value
-	// of DNS Name. See HostedZone$Name.
+	// zone field on the Description tab. Use the same process to get the value
+	// of DNS name. (You specify the value of DNS name for AliasTarget$DNSName.)
 	//
 	// Elastic Load Balancing API: Use DescribeLoadBalancers to get the value of
-	// CanonicalHostedZoneNameID. Use the same process to get the CanonicalHostedZoneName.
-	// See HostedZone$Name.
+	// CanonicalHostedZoneNameId and DNSName. (You specify the value of DNSName
+	// for AliasTarget$DNSName.) For more information, see the applicable guide:
+	//
+	// Classic Load Balancer: DescribeLoadBalancers (http://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_DescribeLoadBalancers.html)
+	//
+	// Application Load Balancer: DescribeLoadBalancers (http://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_DescribeLoadBalancers.html)
 	//
 	// AWS CLI: Use describe-load-balancers (http://docs.aws.amazon.com/cli/latest/reference/elb/describe-load-balancers.html)
-	// to get the value of CanonicalHostedZoneNameID. Use the same process to get
-	// the CanonicalHostedZoneName. See HostedZone$Name.
+	// to get the value of CanonicalHostedZoneNameID and DNSName. (You specify the
+	// value of DNSName for AliasTarget$DNSName.)
 	//
 	// An Amazon S3 bucket configured as a static websiteSpecify the hosted zone
-	// ID for the Amazon S3 website endpoint in which you created the bucket. For
-	// more information about valid values, see the table  Amazon S3 (S3) Website
-	// Endpoints (http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region)
-	// in the Amazon Web Services General Reference.
+	// ID for the region that you created the bucket in. For more information about
+	// valid values, see the table Amazon Simple Storage Service Website Endpoints
+	// (http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region) in the
+	// Amazon Web Services General Reference.
 	//
 	// Another Amazon Route 53 resource record set in your hosted zoneSpecify the
 	// hosted zone ID of your hosted zone. (An alias resource record set can't reference
@@ -5897,7 +5854,7 @@ type CreateTrafficPolicyInstanceInput struct {
 	// sets in the specified hosted zone.
 	//
 	// TrafficPolicyId is a required field
-	TrafficPolicyId *string `type:"string" required:"true"`
+	TrafficPolicyId *string `min:"1" type:"string" required:"true"`
 
 	// The version of the traffic policy that you want to use to create resource
 	// record sets in the specified hosted zone.
@@ -5930,6 +5887,9 @@ func (s *CreateTrafficPolicyInstanceInput) Validate() error {
 	}
 	if s.TrafficPolicyId == nil {
 		invalidParams.Add(request.NewErrParamRequired("TrafficPolicyId"))
+	}
+	if s.TrafficPolicyId != nil && len(*s.TrafficPolicyId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TrafficPolicyId", 1))
 	}
 	if s.TrafficPolicyVersion == nil {
 		invalidParams.Add(request.NewErrParamRequired("TrafficPolicyVersion"))
@@ -6072,7 +6032,7 @@ type CreateTrafficPolicyVersionInput struct {
 	// The ID of the traffic policy for which you want to create a new version.
 	//
 	// Id is a required field
-	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" min:"1" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -6093,6 +6053,9 @@ func (s *CreateTrafficPolicyVersionInput) Validate() error {
 	}
 	if s.Id == nil {
 		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+	if s.Id != nil && len(*s.Id) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Id", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -6501,7 +6464,7 @@ type DeleteTrafficPolicyInput struct {
 	// The ID of the traffic policy that you want to delete.
 	//
 	// Id is a required field
-	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" min:"1" type:"string" required:"true"`
 
 	// The version number of the traffic policy that you want to delete.
 	//
@@ -6524,6 +6487,9 @@ func (s *DeleteTrafficPolicyInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DeleteTrafficPolicyInput"}
 	if s.Id == nil {
 		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+	if s.Id != nil && len(*s.Id) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Id", 1))
 	}
 	if s.Version == nil {
 		invalidParams.Add(request.NewErrParamRequired("Version"))
@@ -6563,7 +6529,7 @@ type DeleteTrafficPolicyInstanceInput struct {
 	// policy instance.
 	//
 	// Id is a required field
-	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" min:"1" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -6581,6 +6547,9 @@ func (s *DeleteTrafficPolicyInstanceInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DeleteTrafficPolicyInstanceInput"}
 	if s.Id == nil {
 		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+	if s.Id != nil && len(*s.Id) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Id", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -7749,7 +7718,7 @@ type GetTrafficPolicyInput struct {
 	// The ID of the traffic policy that you want to get information about.
 	//
 	// Id is a required field
-	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" min:"1" type:"string" required:"true"`
 
 	// The version number of the traffic policy that you want to get information
 	// about.
@@ -7773,6 +7742,9 @@ func (s *GetTrafficPolicyInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "GetTrafficPolicyInput"}
 	if s.Id == nil {
 		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+	if s.Id != nil && len(*s.Id) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Id", 1))
 	}
 	if s.Version == nil {
 		invalidParams.Add(request.NewErrParamRequired("Version"))
@@ -7856,7 +7828,7 @@ type GetTrafficPolicyInstanceInput struct {
 	// The ID of the traffic policy instance that you want to get information about.
 	//
 	// Id is a required field
-	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" min:"1" type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -7874,6 +7846,9 @@ func (s *GetTrafficPolicyInstanceInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "GetTrafficPolicyInstanceInput"}
 	if s.Id == nil {
 		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+	if s.Id != nil && len(*s.Id) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Id", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -9779,7 +9754,7 @@ type ListTrafficPoliciesInput struct {
 	// element that was returned in the previous response.
 	//
 	// Policies are listed in the order in which they were created.
-	TrafficPolicyIdMarker *string `location:"querystring" locationName:"trafficpolicyid" type:"string"`
+	TrafficPolicyIdMarker *string `location:"querystring" locationName:"trafficpolicyid" min:"1" type:"string"`
 }
 
 // String returns the string representation
@@ -9790,6 +9765,19 @@ func (s ListTrafficPoliciesInput) String() string {
 // GoString returns the string representation
 func (s ListTrafficPoliciesInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListTrafficPoliciesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListTrafficPoliciesInput"}
+	if s.TrafficPolicyIdMarker != nil && len(*s.TrafficPolicyIdMarker) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TrafficPolicyIdMarker", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetMaxItems sets the MaxItems field's value.
@@ -9829,7 +9817,7 @@ type ListTrafficPoliciesOutput struct {
 	// first traffic policy in the next group of MaxItems traffic policies.
 	//
 	// TrafficPolicyIdMarker is a required field
-	TrafficPolicyIdMarker *string `type:"string" required:"true"`
+	TrafficPolicyIdMarker *string `min:"1" type:"string" required:"true"`
 
 	// A list that contains one TrafficPolicySummary element for each traffic policy
 	// that was created by the current AWS account.
@@ -10072,7 +10060,7 @@ type ListTrafficPolicyInstancesByPolicyInput struct {
 	// The ID of the traffic policy for which you want to list traffic policy instances.
 	//
 	// TrafficPolicyId is a required field
-	TrafficPolicyId *string `location:"querystring" locationName:"id" type:"string" required:"true"`
+	TrafficPolicyId *string `location:"querystring" locationName:"id" min:"1" type:"string" required:"true"`
 
 	// For the first request to ListTrafficPolicyInstancesByPolicy, omit this value.
 	//
@@ -10120,6 +10108,9 @@ func (s *ListTrafficPolicyInstancesByPolicyInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "ListTrafficPolicyInstancesByPolicyInput"}
 	if s.TrafficPolicyId == nil {
 		invalidParams.Add(request.NewErrParamRequired("TrafficPolicyId"))
+	}
+	if s.TrafficPolicyId != nil && len(*s.TrafficPolicyId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TrafficPolicyId", 1))
 	}
 	if s.TrafficPolicyVersion == nil {
 		invalidParams.Add(request.NewErrParamRequired("TrafficPolicyVersion"))
@@ -10440,7 +10431,7 @@ type ListTrafficPolicyVersionsInput struct {
 	// all versions.
 	//
 	// Id is a required field
-	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" min:"1" type:"string" required:"true"`
 
 	// The maximum number of traffic policy versions that you want Amazon Route
 	// 53 to include in the response body for this request. If the specified traffic
@@ -10478,6 +10469,9 @@ func (s *ListTrafficPolicyVersionsInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "ListTrafficPolicyVersionsInput"}
 	if s.Id == nil {
 		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+	if s.Id != nil && len(*s.Id) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Id", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -11032,7 +11026,7 @@ type ResourceRecordSet struct {
 	// by using ChangeResourceRecordSets, Amazon Route 53 doesn't automatically
 	// delete the traffic policy instance, and you'll continue to be charged for
 	// it even though it's no longer in use.
-	TrafficPolicyInstanceId *string `type:"string"`
+	TrafficPolicyInstanceId *string `min:"1" type:"string"`
 
 	// The DNS record type. For information about different record types and how
 	// data is encoded for them, see Supported DNS Resource Record Types (http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/ResourceRecordTypes.html)
@@ -11137,6 +11131,9 @@ func (s *ResourceRecordSet) Validate() error {
 	}
 	if s.SetIdentifier != nil && len(*s.SetIdentifier) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("SetIdentifier", 1))
+	}
+	if s.TrafficPolicyInstanceId != nil && len(*s.TrafficPolicyInstanceId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TrafficPolicyInstanceId", 1))
 	}
 	if s.Type == nil {
 		invalidParams.Add(request.NewErrParamRequired("Type"))
@@ -11615,7 +11612,7 @@ type TrafficPolicy struct {
 	// it.
 	//
 	// Id is a required field
-	Id *string `type:"string" required:"true"`
+	Id *string `min:"1" type:"string" required:"true"`
 
 	// The name that you specified when you created the traffic policy.
 	//
@@ -11695,7 +11692,7 @@ type TrafficPolicyInstance struct {
 	// The ID that Amazon Route 53 assigned to the new traffic policy instance.
 	//
 	// Id is a required field
-	Id *string `type:"string" required:"true"`
+	Id *string `min:"1" type:"string" required:"true"`
 
 	// If State is Failed, an explanation of the reason for the failure. If State
 	// is another value, Message is empty.
@@ -11735,7 +11732,7 @@ type TrafficPolicyInstance struct {
 	// record sets in the specified hosted zone.
 	//
 	// TrafficPolicyId is a required field
-	TrafficPolicyId *string `type:"string" required:"true"`
+	TrafficPolicyId *string `min:"1" type:"string" required:"true"`
 
 	// The DNS type that Amazon Route 53 assigned to all of the resource record
 	// sets that it created for this traffic policy instance.
@@ -11824,7 +11821,7 @@ type TrafficPolicySummary struct {
 	// it.
 	//
 	// Id is a required field
-	Id *string `type:"string" required:"true"`
+	Id *string `min:"1" type:"string" required:"true"`
 
 	// The version number of the latest version of the traffic policy.
 	//
@@ -12355,7 +12352,7 @@ type UpdateTrafficPolicyCommentInput struct {
 	// The value of Id for the traffic policy for which you want to update the comment.
 	//
 	// Id is a required field
-	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" min:"1" type:"string" required:"true"`
 
 	// The value of Version for the traffic policy for which you want to update
 	// the comment.
@@ -12382,6 +12379,9 @@ func (s *UpdateTrafficPolicyCommentInput) Validate() error {
 	}
 	if s.Id == nil {
 		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+	if s.Id != nil && len(*s.Id) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Id", 1))
 	}
 	if s.Version == nil {
 		invalidParams.Add(request.NewErrParamRequired("Version"))
@@ -12450,7 +12450,7 @@ type UpdateTrafficPolicyInstanceInput struct {
 	// The ID of the traffic policy instance that you want to update.
 	//
 	// Id is a required field
-	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" min:"1" type:"string" required:"true"`
 
 	// The TTL that you want Amazon Route 53 to assign to all of the updated resource
 	// record sets.
@@ -12462,7 +12462,7 @@ type UpdateTrafficPolicyInstanceInput struct {
 	// resource record sets for the specified traffic policy instance.
 	//
 	// TrafficPolicyId is a required field
-	TrafficPolicyId *string `type:"string" required:"true"`
+	TrafficPolicyId *string `min:"1" type:"string" required:"true"`
 
 	// The version of the traffic policy that you want Amazon Route 53 to use to
 	// update resource record sets for the specified traffic policy instance.
@@ -12487,11 +12487,17 @@ func (s *UpdateTrafficPolicyInstanceInput) Validate() error {
 	if s.Id == nil {
 		invalidParams.Add(request.NewErrParamRequired("Id"))
 	}
+	if s.Id != nil && len(*s.Id) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Id", 1))
+	}
 	if s.TTL == nil {
 		invalidParams.Add(request.NewErrParamRequired("TTL"))
 	}
 	if s.TrafficPolicyId == nil {
 		invalidParams.Add(request.NewErrParamRequired("TrafficPolicyId"))
+	}
+	if s.TrafficPolicyId != nil && len(*s.TrafficPolicyId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TrafficPolicyId", 1))
 	}
 	if s.TrafficPolicyVersion == nil {
 		invalidParams.Add(request.NewErrParamRequired("TrafficPolicyVersion"))
@@ -12639,11 +12645,17 @@ const (
 	// CloudWatchRegionUsWest2 is a CloudWatchRegion enum value
 	CloudWatchRegionUsWest2 = "us-west-2"
 
+	// CloudWatchRegionCaCentral1 is a CloudWatchRegion enum value
+	CloudWatchRegionCaCentral1 = "ca-central-1"
+
 	// CloudWatchRegionEuCentral1 is a CloudWatchRegion enum value
 	CloudWatchRegionEuCentral1 = "eu-central-1"
 
 	// CloudWatchRegionEuWest1 is a CloudWatchRegion enum value
 	CloudWatchRegionEuWest1 = "eu-west-1"
+
+	// CloudWatchRegionEuWest2 is a CloudWatchRegion enum value
+	CloudWatchRegionEuWest2 = "eu-west-2"
 
 	// CloudWatchRegionApSouth1 is a CloudWatchRegion enum value
 	CloudWatchRegionApSouth1 = "ap-south-1"
@@ -12796,8 +12808,14 @@ const (
 	// ResourceRecordSetRegionUsWest2 is a ResourceRecordSetRegion enum value
 	ResourceRecordSetRegionUsWest2 = "us-west-2"
 
+	// ResourceRecordSetRegionCaCentral1 is a ResourceRecordSetRegion enum value
+	ResourceRecordSetRegionCaCentral1 = "ca-central-1"
+
 	// ResourceRecordSetRegionEuWest1 is a ResourceRecordSetRegion enum value
 	ResourceRecordSetRegionEuWest1 = "eu-west-1"
+
+	// ResourceRecordSetRegionEuWest2 is a ResourceRecordSetRegion enum value
+	ResourceRecordSetRegionEuWest2 = "eu-west-2"
 
 	// ResourceRecordSetRegionEuCentral1 is a ResourceRecordSetRegion enum value
 	ResourceRecordSetRegionEuCentral1 = "eu-central-1"
@@ -12865,6 +12883,9 @@ const (
 	// VPCRegionEuWest1 is a VPCRegion enum value
 	VPCRegionEuWest1 = "eu-west-1"
 
+	// VPCRegionEuWest2 is a VPCRegion enum value
+	VPCRegionEuWest2 = "eu-west-2"
+
 	// VPCRegionEuCentral1 is a VPCRegion enum value
 	VPCRegionEuCentral1 = "eu-central-1"
 
@@ -12885,6 +12906,9 @@ const (
 
 	// VPCRegionSaEast1 is a VPCRegion enum value
 	VPCRegionSaEast1 = "sa-east-1"
+
+	// VPCRegionCaCentral1 is a VPCRegion enum value
+	VPCRegionCaCentral1 = "ca-central-1"
 
 	// VPCRegionCnNorth1 is a VPCRegion enum value
 	VPCRegionCnNorth1 = "cn-north-1"

@@ -2,6 +2,7 @@ package pcap
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -31,8 +32,11 @@ type Packet struct {
 }
 
 // Decode decodes the headers of a Packet.
-func (p *Packet) Decode() {
+func (p *Packet) Decode() error {
 
+	if len(p.Data) <= 14 {
+		return errors.New("invalid header")
+	}
 	p.Type = int(binary.BigEndian.Uint16(p.Data[12:14]))
 	p.DestMac = decodemac(p.Data[0:6])
 	p.SrcMac = decodemac(p.Data[6:12])
@@ -46,6 +50,8 @@ func (p *Packet) Decode() {
 	case TYPE_ARP:
 		p.decodeArp()
 	}
+
+	return nil
 }
 
 func (p *Packet) headerString(headers []interface{}) string {

@@ -48,9 +48,8 @@ func (c *Batch) CancelJobRequest(input *CancelJobInput) (req *request.Request, o
 		input = &CancelJobInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CancelJobOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -70,12 +69,12 @@ func (c *Batch) CancelJobRequest(input *CancelJobInput) (req *request.Request, o
 // API operation CancelJob for usage and error information.
 //
 // Returned Error Codes:
-//   * ClientException
+//   * ErrCodeClientException "ClientException"
 //   These errors are usually caused by a client action, such as using an action
 //   or resource on behalf of a user that doesn't have permission to use the action
 //   or resource, or specifying an identifier that is not valid.
 //
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server issue.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/batch-2016-08-10/CancelJob
@@ -123,9 +122,8 @@ func (c *Batch) CreateComputeEnvironmentRequest(input *CreateComputeEnvironmentI
 		input = &CreateComputeEnvironmentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateComputeEnvironmentOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -162,12 +160,12 @@ func (c *Batch) CreateComputeEnvironmentRequest(input *CreateComputeEnvironmentI
 // API operation CreateComputeEnvironment for usage and error information.
 //
 // Returned Error Codes:
-//   * ClientException
+//   * ErrCodeClientException "ClientException"
 //   These errors are usually caused by a client action, such as using an action
 //   or resource on behalf of a user that doesn't have permission to use the action
 //   or resource, or specifying an identifier that is not valid.
 //
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server issue.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/batch-2016-08-10/CreateComputeEnvironment
@@ -215,9 +213,8 @@ func (c *Batch) CreateJobQueueRequest(input *CreateJobQueueInput) (req *request.
 		input = &CreateJobQueueInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateJobQueueOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -241,12 +238,12 @@ func (c *Batch) CreateJobQueueRequest(input *CreateJobQueueInput) (req *request.
 // API operation CreateJobQueue for usage and error information.
 //
 // Returned Error Codes:
-//   * ClientException
+//   * ErrCodeClientException "ClientException"
 //   These errors are usually caused by a client action, such as using an action
 //   or resource on behalf of a user that doesn't have permission to use the action
 //   or resource, or specifying an identifier that is not valid.
 //
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server issue.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/batch-2016-08-10/CreateJobQueue
@@ -294,9 +291,8 @@ func (c *Batch) DeleteComputeEnvironmentRequest(input *DeleteComputeEnvironmentI
 		input = &DeleteComputeEnvironmentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteComputeEnvironmentOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -316,12 +312,12 @@ func (c *Batch) DeleteComputeEnvironmentRequest(input *DeleteComputeEnvironmentI
 // API operation DeleteComputeEnvironment for usage and error information.
 //
 // Returned Error Codes:
-//   * ClientException
+//   * ErrCodeClientException "ClientException"
 //   These errors are usually caused by a client action, such as using an action
 //   or resource on behalf of a user that doesn't have permission to use the action
 //   or resource, or specifying an identifier that is not valid.
 //
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server issue.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/batch-2016-08-10/DeleteComputeEnvironment
@@ -369,9 +365,8 @@ func (c *Batch) DeleteJobQueueRequest(input *DeleteJobQueueInput) (req *request.
 		input = &DeleteJobQueueInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteJobQueueOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -392,12 +387,12 @@ func (c *Batch) DeleteJobQueueRequest(input *DeleteJobQueueInput) (req *request.
 // API operation DeleteJobQueue for usage and error information.
 //
 // Returned Error Codes:
-//   * ClientException
+//   * ErrCodeClientException "ClientException"
 //   These errors are usually caused by a client action, such as using an action
 //   or resource on behalf of a user that doesn't have permission to use the action
 //   or resource, or specifying an identifier that is not valid.
 //
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server issue.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/batch-2016-08-10/DeleteJobQueue
@@ -445,9 +440,8 @@ func (c *Batch) DeregisterJobDefinitionRequest(input *DeregisterJobDefinitionInp
 		input = &DeregisterJobDefinitionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeregisterJobDefinitionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -463,12 +457,12 @@ func (c *Batch) DeregisterJobDefinitionRequest(input *DeregisterJobDefinitionInp
 // API operation DeregisterJobDefinition for usage and error information.
 //
 // Returned Error Codes:
-//   * ClientException
+//   * ErrCodeClientException "ClientException"
 //   These errors are usually caused by a client action, such as using an action
 //   or resource on behalf of a user that doesn't have permission to use the action
 //   or resource, or specifying an identifier that is not valid.
 //
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server issue.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/batch-2016-08-10/DeregisterJobDefinition
@@ -516,9 +510,8 @@ func (c *Batch) DescribeComputeEnvironmentsRequest(input *DescribeComputeEnviron
 		input = &DescribeComputeEnvironmentsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeComputeEnvironmentsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -538,12 +531,12 @@ func (c *Batch) DescribeComputeEnvironmentsRequest(input *DescribeComputeEnviron
 // API operation DescribeComputeEnvironments for usage and error information.
 //
 // Returned Error Codes:
-//   * ClientException
+//   * ErrCodeClientException "ClientException"
 //   These errors are usually caused by a client action, such as using an action
 //   or resource on behalf of a user that doesn't have permission to use the action
 //   or resource, or specifying an identifier that is not valid.
 //
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server issue.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/batch-2016-08-10/DescribeComputeEnvironments
@@ -591,9 +584,8 @@ func (c *Batch) DescribeJobDefinitionsRequest(input *DescribeJobDefinitionsInput
 		input = &DescribeJobDefinitionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeJobDefinitionsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -610,12 +602,12 @@ func (c *Batch) DescribeJobDefinitionsRequest(input *DescribeJobDefinitionsInput
 // API operation DescribeJobDefinitions for usage and error information.
 //
 // Returned Error Codes:
-//   * ClientException
+//   * ErrCodeClientException "ClientException"
 //   These errors are usually caused by a client action, such as using an action
 //   or resource on behalf of a user that doesn't have permission to use the action
 //   or resource, or specifying an identifier that is not valid.
 //
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server issue.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/batch-2016-08-10/DescribeJobDefinitions
@@ -663,9 +655,8 @@ func (c *Batch) DescribeJobQueuesRequest(input *DescribeJobQueuesInput) (req *re
 		input = &DescribeJobQueuesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeJobQueuesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -681,12 +672,12 @@ func (c *Batch) DescribeJobQueuesRequest(input *DescribeJobQueuesInput) (req *re
 // API operation DescribeJobQueues for usage and error information.
 //
 // Returned Error Codes:
-//   * ClientException
+//   * ErrCodeClientException "ClientException"
 //   These errors are usually caused by a client action, such as using an action
 //   or resource on behalf of a user that doesn't have permission to use the action
 //   or resource, or specifying an identifier that is not valid.
 //
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server issue.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/batch-2016-08-10/DescribeJobQueues
@@ -734,9 +725,8 @@ func (c *Batch) DescribeJobsRequest(input *DescribeJobsInput) (req *request.Requ
 		input = &DescribeJobsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeJobsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -752,12 +742,12 @@ func (c *Batch) DescribeJobsRequest(input *DescribeJobsInput) (req *request.Requ
 // API operation DescribeJobs for usage and error information.
 //
 // Returned Error Codes:
-//   * ClientException
+//   * ErrCodeClientException "ClientException"
 //   These errors are usually caused by a client action, such as using an action
 //   or resource on behalf of a user that doesn't have permission to use the action
 //   or resource, or specifying an identifier that is not valid.
 //
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server issue.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/batch-2016-08-10/DescribeJobs
@@ -805,9 +795,8 @@ func (c *Batch) ListJobsRequest(input *ListJobsInput) (req *request.Request, out
 		input = &ListJobsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListJobsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -824,12 +813,12 @@ func (c *Batch) ListJobsRequest(input *ListJobsInput) (req *request.Request, out
 // API operation ListJobs for usage and error information.
 //
 // Returned Error Codes:
-//   * ClientException
+//   * ErrCodeClientException "ClientException"
 //   These errors are usually caused by a client action, such as using an action
 //   or resource on behalf of a user that doesn't have permission to use the action
 //   or resource, or specifying an identifier that is not valid.
 //
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server issue.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/batch-2016-08-10/ListJobs
@@ -877,9 +866,8 @@ func (c *Batch) RegisterJobDefinitionRequest(input *RegisterJobDefinitionInput) 
 		input = &RegisterJobDefinitionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &RegisterJobDefinitionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -895,12 +883,12 @@ func (c *Batch) RegisterJobDefinitionRequest(input *RegisterJobDefinitionInput) 
 // API operation RegisterJobDefinition for usage and error information.
 //
 // Returned Error Codes:
-//   * ClientException
+//   * ErrCodeClientException "ClientException"
 //   These errors are usually caused by a client action, such as using an action
 //   or resource on behalf of a user that doesn't have permission to use the action
 //   or resource, or specifying an identifier that is not valid.
 //
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server issue.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/batch-2016-08-10/RegisterJobDefinition
@@ -948,9 +936,8 @@ func (c *Batch) SubmitJobRequest(input *SubmitJobInput) (req *request.Request, o
 		input = &SubmitJobInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &SubmitJobOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -967,12 +954,12 @@ func (c *Batch) SubmitJobRequest(input *SubmitJobInput) (req *request.Request, o
 // API operation SubmitJob for usage and error information.
 //
 // Returned Error Codes:
-//   * ClientException
+//   * ErrCodeClientException "ClientException"
 //   These errors are usually caused by a client action, such as using an action
 //   or resource on behalf of a user that doesn't have permission to use the action
 //   or resource, or specifying an identifier that is not valid.
 //
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server issue.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/batch-2016-08-10/SubmitJob
@@ -1020,9 +1007,8 @@ func (c *Batch) TerminateJobRequest(input *TerminateJobInput) (req *request.Requ
 		input = &TerminateJobInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &TerminateJobOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1040,12 +1026,12 @@ func (c *Batch) TerminateJobRequest(input *TerminateJobInput) (req *request.Requ
 // API operation TerminateJob for usage and error information.
 //
 // Returned Error Codes:
-//   * ClientException
+//   * ErrCodeClientException "ClientException"
 //   These errors are usually caused by a client action, such as using an action
 //   or resource on behalf of a user that doesn't have permission to use the action
 //   or resource, or specifying an identifier that is not valid.
 //
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server issue.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/batch-2016-08-10/TerminateJob
@@ -1093,9 +1079,8 @@ func (c *Batch) UpdateComputeEnvironmentRequest(input *UpdateComputeEnvironmentI
 		input = &UpdateComputeEnvironmentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateComputeEnvironmentOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1111,12 +1096,12 @@ func (c *Batch) UpdateComputeEnvironmentRequest(input *UpdateComputeEnvironmentI
 // API operation UpdateComputeEnvironment for usage and error information.
 //
 // Returned Error Codes:
-//   * ClientException
+//   * ErrCodeClientException "ClientException"
 //   These errors are usually caused by a client action, such as using an action
 //   or resource on behalf of a user that doesn't have permission to use the action
 //   or resource, or specifying an identifier that is not valid.
 //
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server issue.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/batch-2016-08-10/UpdateComputeEnvironment
@@ -1164,9 +1149,8 @@ func (c *Batch) UpdateJobQueueRequest(input *UpdateJobQueueInput) (req *request.
 		input = &UpdateJobQueueInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateJobQueueOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1182,12 +1166,12 @@ func (c *Batch) UpdateJobQueueRequest(input *UpdateJobQueueInput) (req *request.
 // API operation UpdateJobQueue for usage and error information.
 //
 // Returned Error Codes:
-//   * ClientException
+//   * ErrCodeClientException "ClientException"
 //   These errors are usually caused by a client action, such as using an action
 //   or resource on behalf of a user that doesn't have permission to use the action
 //   or resource, or specifying an identifier that is not valid.
 //
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server issue.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/batch-2016-08-10/UpdateJobQueue

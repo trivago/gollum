@@ -48,9 +48,8 @@ func (c *IoTDataPlane) DeleteThingShadowRequest(input *DeleteThingShadowInput) (
 		input = &DeleteThingShadowInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteThingShadowOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -69,28 +68,28 @@ func (c *IoTDataPlane) DeleteThingShadowRequest(input *DeleteThingShadowInput) (
 // API operation DeleteThingShadow for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The specified resource does not exist.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   The request is not valid.
 //
-//   * ThrottlingException
+//   * ErrCodeThrottlingException "ThrottlingException"
 //   The rate exceeds the limit.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   You are not authorized to perform this operation.
 //
-//   * ServiceUnavailableException
+//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
 //   The service is temporarily unavailable.
 //
-//   * InternalFailureException
+//   * ErrCodeInternalFailureException "InternalFailureException"
 //   An unexpected error has occurred.
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   The specified combination of HTTP verb and URI is not supported.
 //
-//   * UnsupportedDocumentEncodingException
+//   * ErrCodeUnsupportedDocumentEncodingException "UnsupportedDocumentEncodingException"
 //   The document encoding is not supported.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/DeleteThingShadow
@@ -138,9 +137,8 @@ func (c *IoTDataPlane) GetThingShadowRequest(input *GetThingShadowInput) (req *r
 		input = &GetThingShadowInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetThingShadowOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -159,28 +157,28 @@ func (c *IoTDataPlane) GetThingShadowRequest(input *GetThingShadowInput) (req *r
 // API operation GetThingShadow for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   The request is not valid.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The specified resource does not exist.
 //
-//   * ThrottlingException
+//   * ErrCodeThrottlingException "ThrottlingException"
 //   The rate exceeds the limit.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   You are not authorized to perform this operation.
 //
-//   * ServiceUnavailableException
+//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
 //   The service is temporarily unavailable.
 //
-//   * InternalFailureException
+//   * ErrCodeInternalFailureException "InternalFailureException"
 //   An unexpected error has occurred.
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   The specified combination of HTTP verb and URI is not supported.
 //
-//   * UnsupportedDocumentEncodingException
+//   * ErrCodeUnsupportedDocumentEncodingException "UnsupportedDocumentEncodingException"
 //   The document encoding is not supported.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/GetThingShadow
@@ -228,11 +226,10 @@ func (c *IoTDataPlane) PublishRequest(input *PublishInput) (req *request.Request
 		input = &PublishInput{}
 	}
 
+	output = &PublishOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &PublishOutput{}
-	req.Data = output
 	return
 }
 
@@ -251,16 +248,16 @@ func (c *IoTDataPlane) PublishRequest(input *PublishInput) (req *request.Request
 // API operation Publish for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalFailureException
+//   * ErrCodeInternalFailureException "InternalFailureException"
 //   An unexpected error has occurred.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   The request is not valid.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   You are not authorized to perform this operation.
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   The specified combination of HTTP verb and URI is not supported.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/Publish
@@ -308,9 +305,8 @@ func (c *IoTDataPlane) UpdateThingShadowRequest(input *UpdateThingShadowInput) (
 		input = &UpdateThingShadowInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateThingShadowOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -329,31 +325,31 @@ func (c *IoTDataPlane) UpdateThingShadowRequest(input *UpdateThingShadowInput) (
 // API operation UpdateThingShadow for usage and error information.
 //
 // Returned Error Codes:
-//   * ConflictException
+//   * ErrCodeConflictException "ConflictException"
 //   The specified version does not match the version of the document.
 //
-//   * RequestEntityTooLargeException
+//   * ErrCodeRequestEntityTooLargeException "RequestEntityTooLargeException"
 //   The payload exceeds the maximum size allowed.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   The request is not valid.
 //
-//   * ThrottlingException
+//   * ErrCodeThrottlingException "ThrottlingException"
 //   The rate exceeds the limit.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   You are not authorized to perform this operation.
 //
-//   * ServiceUnavailableException
+//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
 //   The service is temporarily unavailable.
 //
-//   * InternalFailureException
+//   * ErrCodeInternalFailureException "InternalFailureException"
 //   An unexpected error has occurred.
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   The specified combination of HTTP verb and URI is not supported.
 //
-//   * UnsupportedDocumentEncodingException
+//   * ErrCodeUnsupportedDocumentEncodingException "UnsupportedDocumentEncodingException"
 //   The document encoding is not supported.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/UpdateThingShadow

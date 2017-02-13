@@ -48,9 +48,8 @@ func (c *SMS) CreateReplicationJobRequest(input *CreateReplicationJobInput) (req
 		input = &CreateReplicationJobInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateReplicationJobOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -69,33 +68,33 @@ func (c *SMS) CreateReplicationJobRequest(input *CreateReplicationJobInput) (req
 // API operation CreateReplicationJob for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   A parameter specified in the request is not valid, is unsupported, or cannot
 //   be used.
 //
-//   * MissingRequiredParameterException
+//   * ErrCodeMissingRequiredParameterException "MissingRequiredParameterException"
 //   The request is missing a required parameter. Ensure that you have supplied
 //   all the required parameters for the request.
 //
-//   * UnauthorizedOperationException
+//   * ErrCodeUnauthorizedOperationException "UnauthorizedOperationException"
 //   This user does not have permissions to perform this operation.
 //
-//   * OperationNotPermittedException
+//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
 //   The specified operation is not allowed. This error can occur for a number
 //   of reasons; for example, you might be trying to start a Replication Run before
 //   seed Replication Run.
 //
-//   * ServerCannotBeReplicatedException
+//   * ErrCodeServerCannotBeReplicatedException "ServerCannotBeReplicatedException"
 //   The provided server cannot be replicated.
 //
-//   * ReplicationJobAlreadyExistsException
+//   * ErrCodeReplicationJobAlreadyExistsException "ReplicationJobAlreadyExistsException"
 //   An active Replication Job already exists for the specified server.
 //
-//   * NoConnectorsAvailableException
+//   * ErrCodeNoConnectorsAvailableException "NoConnectorsAvailableException"
 //   No connectors are available to handle this request. Please associate connector(s)
 //   and verify any existing connectors are healthy and can respond to requests.
 //
-//   * InternalError
+//   * ErrCodeInternalError "InternalError"
 //   An internal error has occured.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/sms-2016-10-24/CreateReplicationJob
@@ -143,9 +142,8 @@ func (c *SMS) DeleteReplicationJobRequest(input *DeleteReplicationJobInput) (req
 		input = &DeleteReplicationJobInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteReplicationJobOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -164,23 +162,23 @@ func (c *SMS) DeleteReplicationJobRequest(input *DeleteReplicationJobInput) (req
 // API operation DeleteReplicationJob for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   A parameter specified in the request is not valid, is unsupported, or cannot
 //   be used.
 //
-//   * MissingRequiredParameterException
+//   * ErrCodeMissingRequiredParameterException "MissingRequiredParameterException"
 //   The request is missing a required parameter. Ensure that you have supplied
 //   all the required parameters for the request.
 //
-//   * UnauthorizedOperationException
+//   * ErrCodeUnauthorizedOperationException "UnauthorizedOperationException"
 //   This user does not have permissions to perform this operation.
 //
-//   * OperationNotPermittedException
+//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
 //   The specified operation is not allowed. This error can occur for a number
 //   of reasons; for example, you might be trying to start a Replication Run before
 //   seed Replication Run.
 //
-//   * ReplicationJobNotFoundException
+//   * ErrCodeReplicationJobNotFoundException "ReplicationJobNotFoundException"
 //   The specified Replication Job cannot be found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/sms-2016-10-24/DeleteReplicationJob
@@ -228,9 +226,8 @@ func (c *SMS) DeleteServerCatalogRequest(input *DeleteServerCatalogInput) (req *
 		input = &DeleteServerCatalogInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteServerCatalogOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -248,19 +245,19 @@ func (c *SMS) DeleteServerCatalogRequest(input *DeleteServerCatalogInput) (req *
 // API operation DeleteServerCatalog for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedOperationException
+//   * ErrCodeUnauthorizedOperationException "UnauthorizedOperationException"
 //   This user does not have permissions to perform this operation.
 //
-//   * OperationNotPermittedException
+//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
 //   The specified operation is not allowed. This error can occur for a number
 //   of reasons; for example, you might be trying to start a Replication Run before
 //   seed Replication Run.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   A parameter specified in the request is not valid, is unsupported, or cannot
 //   be used.
 //
-//   * MissingRequiredParameterException
+//   * ErrCodeMissingRequiredParameterException "MissingRequiredParameterException"
 //   The request is missing a required parameter. Ensure that you have supplied
 //   all the required parameters for the request.
 //
@@ -309,9 +306,8 @@ func (c *SMS) DisassociateConnectorRequest(input *DisassociateConnectorInput) (r
 		input = &DisassociateConnectorInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DisassociateConnectorOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -328,19 +324,19 @@ func (c *SMS) DisassociateConnectorRequest(input *DisassociateConnectorInput) (r
 // API operation DisassociateConnector for usage and error information.
 //
 // Returned Error Codes:
-//   * MissingRequiredParameterException
+//   * ErrCodeMissingRequiredParameterException "MissingRequiredParameterException"
 //   The request is missing a required parameter. Ensure that you have supplied
 //   all the required parameters for the request.
 //
-//   * UnauthorizedOperationException
+//   * ErrCodeUnauthorizedOperationException "UnauthorizedOperationException"
 //   This user does not have permissions to perform this operation.
 //
-//   * OperationNotPermittedException
+//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
 //   The specified operation is not allowed. This error can occur for a number
 //   of reasons; for example, you might be trying to start a Replication Run before
 //   seed Replication Run.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   A parameter specified in the request is not valid, is unsupported, or cannot
 //   be used.
 //
@@ -395,9 +391,8 @@ func (c *SMS) GetConnectorsRequest(input *GetConnectorsInput) (req *request.Requ
 		input = &GetConnectorsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetConnectorsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -414,7 +409,7 @@ func (c *SMS) GetConnectorsRequest(input *GetConnectorsInput) (req *request.Requ
 // API operation GetConnectors for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedOperationException
+//   * ErrCodeUnauthorizedOperationException "UnauthorizedOperationException"
 //   This user does not have permissions to perform this operation.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/sms-2016-10-24/GetConnectors
@@ -493,9 +488,8 @@ func (c *SMS) GetReplicationJobsRequest(input *GetReplicationJobsInput) (req *re
 		input = &GetReplicationJobsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetReplicationJobsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -513,15 +507,15 @@ func (c *SMS) GetReplicationJobsRequest(input *GetReplicationJobsInput) (req *re
 // API operation GetReplicationJobs for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   A parameter specified in the request is not valid, is unsupported, or cannot
 //   be used.
 //
-//   * MissingRequiredParameterException
+//   * ErrCodeMissingRequiredParameterException "MissingRequiredParameterException"
 //   The request is missing a required parameter. Ensure that you have supplied
 //   all the required parameters for the request.
 //
-//   * UnauthorizedOperationException
+//   * ErrCodeUnauthorizedOperationException "UnauthorizedOperationException"
 //   This user does not have permissions to perform this operation.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/sms-2016-10-24/GetReplicationJobs
@@ -600,9 +594,8 @@ func (c *SMS) GetReplicationRunsRequest(input *GetReplicationRunsInput) (req *re
 		input = &GetReplicationRunsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetReplicationRunsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -620,15 +613,15 @@ func (c *SMS) GetReplicationRunsRequest(input *GetReplicationRunsInput) (req *re
 // API operation GetReplicationRuns for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   A parameter specified in the request is not valid, is unsupported, or cannot
 //   be used.
 //
-//   * MissingRequiredParameterException
+//   * ErrCodeMissingRequiredParameterException "MissingRequiredParameterException"
 //   The request is missing a required parameter. Ensure that you have supplied
 //   all the required parameters for the request.
 //
-//   * UnauthorizedOperationException
+//   * ErrCodeUnauthorizedOperationException "UnauthorizedOperationException"
 //   This user does not have permissions to perform this operation.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/sms-2016-10-24/GetReplicationRuns
@@ -707,9 +700,8 @@ func (c *SMS) GetServersRequest(input *GetServersInput) (req *request.Request, o
 		input = &GetServersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetServersOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -726,7 +718,7 @@ func (c *SMS) GetServersRequest(input *GetServersInput) (req *request.Request, o
 // API operation GetServers for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedOperationException
+//   * ErrCodeUnauthorizedOperationException "UnauthorizedOperationException"
 //   This user does not have permissions to perform this operation.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/sms-2016-10-24/GetServers
@@ -799,9 +791,8 @@ func (c *SMS) ImportServerCatalogRequest(input *ImportServerCatalogInput) (req *
 		input = &ImportServerCatalogInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ImportServerCatalogOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -820,23 +811,23 @@ func (c *SMS) ImportServerCatalogRequest(input *ImportServerCatalogInput) (req *
 // API operation ImportServerCatalog for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedOperationException
+//   * ErrCodeUnauthorizedOperationException "UnauthorizedOperationException"
 //   This user does not have permissions to perform this operation.
 //
-//   * OperationNotPermittedException
+//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
 //   The specified operation is not allowed. This error can occur for a number
 //   of reasons; for example, you might be trying to start a Replication Run before
 //   seed Replication Run.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   A parameter specified in the request is not valid, is unsupported, or cannot
 //   be used.
 //
-//   * MissingRequiredParameterException
+//   * ErrCodeMissingRequiredParameterException "MissingRequiredParameterException"
 //   The request is missing a required parameter. Ensure that you have supplied
 //   all the required parameters for the request.
 //
-//   * NoConnectorsAvailableException
+//   * ErrCodeNoConnectorsAvailableException "NoConnectorsAvailableException"
 //   No connectors are available to handle this request. Please associate connector(s)
 //   and verify any existing connectors are healthy and can respond to requests.
 //
@@ -885,9 +876,8 @@ func (c *SMS) StartOnDemandReplicationRunRequest(input *StartOnDemandReplication
 		input = &StartOnDemandReplicationRunInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &StartOnDemandReplicationRunOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -907,23 +897,23 @@ func (c *SMS) StartOnDemandReplicationRunRequest(input *StartOnDemandReplication
 // API operation StartOnDemandReplicationRun for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   A parameter specified in the request is not valid, is unsupported, or cannot
 //   be used.
 //
-//   * MissingRequiredParameterException
+//   * ErrCodeMissingRequiredParameterException "MissingRequiredParameterException"
 //   The request is missing a required parameter. Ensure that you have supplied
 //   all the required parameters for the request.
 //
-//   * UnauthorizedOperationException
+//   * ErrCodeUnauthorizedOperationException "UnauthorizedOperationException"
 //   This user does not have permissions to perform this operation.
 //
-//   * OperationNotPermittedException
+//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
 //   The specified operation is not allowed. This error can occur for a number
 //   of reasons; for example, you might be trying to start a Replication Run before
 //   seed Replication Run.
 //
-//   * ReplicationRunLimitExceededException
+//   * ErrCodeReplicationRunLimitExceededException "ReplicationRunLimitExceededException"
 //   This user has exceeded the maximum allowed Replication Run limit.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/sms-2016-10-24/StartOnDemandReplicationRun
@@ -971,9 +961,8 @@ func (c *SMS) UpdateReplicationJobRequest(input *UpdateReplicationJobInput) (req
 		input = &UpdateReplicationJobInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateReplicationJobOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -991,29 +980,29 @@ func (c *SMS) UpdateReplicationJobRequest(input *UpdateReplicationJobInput) (req
 // API operation UpdateReplicationJob for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   A parameter specified in the request is not valid, is unsupported, or cannot
 //   be used.
 //
-//   * MissingRequiredParameterException
+//   * ErrCodeMissingRequiredParameterException "MissingRequiredParameterException"
 //   The request is missing a required parameter. Ensure that you have supplied
 //   all the required parameters for the request.
 //
-//   * OperationNotPermittedException
+//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
 //   The specified operation is not allowed. This error can occur for a number
 //   of reasons; for example, you might be trying to start a Replication Run before
 //   seed Replication Run.
 //
-//   * UnauthorizedOperationException
+//   * ErrCodeUnauthorizedOperationException "UnauthorizedOperationException"
 //   This user does not have permissions to perform this operation.
 //
-//   * ServerCannotBeReplicatedException
+//   * ErrCodeServerCannotBeReplicatedException "ServerCannotBeReplicatedException"
 //   The provided server cannot be replicated.
 //
-//   * ReplicationJobNotFoundException
+//   * ErrCodeReplicationJobNotFoundException "ReplicationJobNotFoundException"
 //   The specified Replication Job cannot be found.
 //
-//   * InternalError
+//   * ErrCodeInternalError "InternalError"
 //   An internal error has occured.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/sms-2016-10-24/UpdateReplicationJob

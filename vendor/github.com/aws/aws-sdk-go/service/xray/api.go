@@ -48,9 +48,8 @@ func (c *XRay) BatchGetTracesRequest(input *BatchGetTracesInput) (req *request.R
 		input = &BatchGetTracesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &BatchGetTracesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -68,10 +67,10 @@ func (c *XRay) BatchGetTracesRequest(input *BatchGetTracesInput) (req *request.R
 // API operation BatchGetTraces for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   The request is missing required parameters or has invalid parameters.
 //
-//   * ThrottledException
+//   * ErrCodeThrottledException "ThrottledException"
 //   The request exceeds the maximum number of requests per second.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/xray-2016-04-12/BatchGetTraces
@@ -119,9 +118,8 @@ func (c *XRay) GetServiceGraphRequest(input *GetServiceGraphInput) (req *request
 		input = &GetServiceGraphInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetServiceGraphOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -141,10 +139,10 @@ func (c *XRay) GetServiceGraphRequest(input *GetServiceGraphInput) (req *request
 // API operation GetServiceGraph for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   The request is missing required parameters or has invalid parameters.
 //
-//   * ThrottledException
+//   * ErrCodeThrottledException "ThrottledException"
 //   The request exceeds the maximum number of requests per second.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/xray-2016-04-12/GetServiceGraph
@@ -192,9 +190,8 @@ func (c *XRay) GetTraceGraphRequest(input *GetTraceGraphInput) (req *request.Req
 		input = &GetTraceGraphInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetTraceGraphOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -210,10 +207,10 @@ func (c *XRay) GetTraceGraphRequest(input *GetTraceGraphInput) (req *request.Req
 // API operation GetTraceGraph for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   The request is missing required parameters or has invalid parameters.
 //
-//   * ThrottledException
+//   * ErrCodeThrottledException "ThrottledException"
 //   The request exceeds the maximum number of requests per second.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/xray-2016-04-12/GetTraceGraph
@@ -261,9 +258,8 @@ func (c *XRay) GetTraceSummariesRequest(input *GetTraceSummariesInput) (req *req
 		input = &GetTraceSummariesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetTraceSummariesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -280,10 +276,10 @@ func (c *XRay) GetTraceSummariesRequest(input *GetTraceSummariesInput) (req *req
 // API operation GetTraceSummaries for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   The request is missing required parameters or has invalid parameters.
 //
-//   * ThrottledException
+//   * ErrCodeThrottledException "ThrottledException"
 //   The request exceeds the maximum number of requests per second.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/xray-2016-04-12/GetTraceSummaries
@@ -331,9 +327,8 @@ func (c *XRay) PutTelemetryRecordsRequest(input *PutTelemetryRecordsInput) (req 
 		input = &PutTelemetryRecordsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &PutTelemetryRecordsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -349,10 +344,10 @@ func (c *XRay) PutTelemetryRecordsRequest(input *PutTelemetryRecordsInput) (req 
 // API operation PutTelemetryRecords for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   The request is missing required parameters or has invalid parameters.
 //
-//   * ThrottledException
+//   * ErrCodeThrottledException "ThrottledException"
 //   The request exceeds the maximum number of requests per second.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/xray-2016-04-12/PutTelemetryRecords
@@ -400,9 +395,8 @@ func (c *XRay) PutTraceSegmentsRequest(input *PutTraceSegmentsInput) (req *reque
 		input = &PutTraceSegmentsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &PutTraceSegmentsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -421,10 +415,10 @@ func (c *XRay) PutTraceSegmentsRequest(input *PutTraceSegmentsInput) (req *reque
 // API operation PutTraceSegments for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   The request is missing required parameters or has invalid parameters.
 //
-//   * ThrottledException
+//   * ErrCodeThrottledException "ThrottledException"
 //   The request exceeds the maximum number of requests per second.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/xray-2016-04-12/PutTraceSegments

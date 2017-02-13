@@ -51,9 +51,8 @@ func (c *GameLift) CreateAliasRequest(input *CreateAliasInput) (req *request.Req
 		input = &CreateAliasInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateAliasOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -81,24 +80,24 @@ func (c *GameLift) CreateAliasRequest(input *CreateAliasInput) (req *request.Req
 // API operation CreateAlias for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * ConflictException
+//   * ErrCodeConflictException "ConflictException"
 //   The requested operation would cause a conflict with the current state of
 //   a service resource associated with the request. Resolve the conflict before
 //   retrying this request.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   The requested operation would cause the resource to exceed the allowed service
 //   limit. Resolve the issue before retrying.
 //
@@ -147,9 +146,8 @@ func (c *GameLift) CreateBuildRequest(input *CreateBuildInput) (req *request.Req
 		input = &CreateBuildInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateBuildOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -182,19 +180,19 @@ func (c *GameLift) CreateBuildRequest(input *CreateBuildInput) (req *request.Req
 // API operation CreateBuild for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * ConflictException
+//   * ErrCodeConflictException "ConflictException"
 //   The requested operation would cause a conflict with the current state of
 //   a service resource associated with the request. Resolve the conflict before
 //   retrying this request.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
@@ -244,9 +242,8 @@ func (c *GameLift) CreateFleetRequest(input *CreateFleetInput) (req *request.Req
 		input = &CreateFleetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateFleetOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -310,29 +307,29 @@ func (c *GameLift) CreateFleetRequest(input *CreateFleetInput) (req *request.Req
 // API operation CreateFleet for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * ConflictException
+//   * ErrCodeConflictException "ConflictException"
 //   The requested operation would cause a conflict with the current state of
 //   a service resource associated with the request. Resolve the conflict before
 //   retrying this request.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   The requested operation would cause the resource to exceed the allowed service
 //   limit. Resolve the issue before retrying.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/CreateFleet
@@ -380,9 +377,8 @@ func (c *GameLift) CreateGameSessionRequest(input *CreateGameSessionInput) (req 
 		input = &CreateGameSessionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateGameSessionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -413,48 +409,48 @@ func (c *GameLift) CreateGameSessionRequest(input *CreateGameSessionInput) (req 
 // API operation CreateGameSession for usage and error information.
 //
 // Returned Error Codes:
-//   * ConflictException
+//   * ErrCodeConflictException "ConflictException"
 //   The requested operation would cause a conflict with the current state of
 //   a service resource associated with the request. Resolve the conflict before
 //   retrying this request.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * InvalidFleetStatusException
+//   * ErrCodeInvalidFleetStatusException "InvalidFleetStatusException"
 //   The requested operation would cause a conflict with the current state of
 //   a resource associated with the request and/or the fleet. Resolve the conflict
 //   before retrying.
 //
-//   * TerminalRoutingStrategyException
+//   * ErrCodeTerminalRoutingStrategyException "TerminalRoutingStrategyException"
 //   The service is unable to resolve the routing for a particular alias because
 //   it has a terminal RoutingStrategy associated with it. The message returned
 //   in this exception is the message defined in the routing strategy itself.
 //   Such requests should only be retried if the routing strategy for the specified
 //   alias is modified.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * FleetCapacityExceededException
+//   * ErrCodeFleetCapacityExceededException "FleetCapacityExceededException"
 //   The specified fleet has no available instances to fulfill a CreateGameSession
 //   request. Clients can retry such requests immediately or after a waiting period.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   The requested operation would cause the resource to exceed the allowed service
 //   limit. Resolve the issue before retrying.
 //
-//   * IdempotentParameterMismatchException
+//   * ErrCodeIdempotentParameterMismatchException "IdempotentParameterMismatchException"
 //   A game session with this custom ID string already exists in this fleet. Resolve
 //   this conflict before retrying this request.
 //
@@ -503,9 +499,8 @@ func (c *GameLift) CreatePlayerSessionRequest(input *CreatePlayerSessionInput) (
 		input = &CreatePlayerSessionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreatePlayerSessionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -527,35 +522,35 @@ func (c *GameLift) CreatePlayerSessionRequest(input *CreatePlayerSessionInput) (
 // API operation CreatePlayerSession for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * InvalidGameSessionStatusException
+//   * ErrCodeInvalidGameSessionStatusException "InvalidGameSessionStatusException"
 //   The requested operation would cause a conflict with the current state of
 //   a resource associated with the request and/or the game instance. Resolve
 //   the conflict before retrying.
 //
-//   * GameSessionFullException
+//   * ErrCodeGameSessionFullException "GameSessionFullException"
 //   The game instance is currently full and cannot allow the requested player(s)
 //   to join. Clients can retry such requests immediately or after a waiting period.
 //
-//   * TerminalRoutingStrategyException
+//   * ErrCodeTerminalRoutingStrategyException "TerminalRoutingStrategyException"
 //   The service is unable to resolve the routing for a particular alias because
 //   it has a terminal RoutingStrategy associated with it. The message returned
 //   in this exception is the message defined in the routing strategy itself.
 //   Such requests should only be retried if the routing strategy for the specified
 //   alias is modified.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
@@ -604,9 +599,8 @@ func (c *GameLift) CreatePlayerSessionsRequest(input *CreatePlayerSessionsInput)
 		input = &CreatePlayerSessionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreatePlayerSessionsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -630,35 +624,35 @@ func (c *GameLift) CreatePlayerSessionsRequest(input *CreatePlayerSessionsInput)
 // API operation CreatePlayerSessions for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * InvalidGameSessionStatusException
+//   * ErrCodeInvalidGameSessionStatusException "InvalidGameSessionStatusException"
 //   The requested operation would cause a conflict with the current state of
 //   a resource associated with the request and/or the game instance. Resolve
 //   the conflict before retrying.
 //
-//   * GameSessionFullException
+//   * ErrCodeGameSessionFullException "GameSessionFullException"
 //   The game instance is currently full and cannot allow the requested player(s)
 //   to join. Clients can retry such requests immediately or after a waiting period.
 //
-//   * TerminalRoutingStrategyException
+//   * ErrCodeTerminalRoutingStrategyException "TerminalRoutingStrategyException"
 //   The service is unable to resolve the routing for a particular alias because
 //   it has a terminal RoutingStrategy associated with it. The message returned
 //   in this exception is the message defined in the routing strategy itself.
 //   Such requests should only be retried if the routing strategy for the specified
 //   alias is modified.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
@@ -707,11 +701,10 @@ func (c *GameLift) DeleteAliasRequest(input *DeleteAliasInput) (req *request.Req
 		input = &DeleteAliasInput{}
 	}
 
+	output = &DeleteAliasOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteAliasOutput{}
-	req.Data = output
 	return
 }
 
@@ -729,18 +722,18 @@ func (c *GameLift) DeleteAliasRequest(input *DeleteAliasInput) (req *request.Req
 // API operation DeleteAlias for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
@@ -790,11 +783,10 @@ func (c *GameLift) DeleteBuildRequest(input *DeleteBuildInput) (req *request.Req
 		input = &DeleteBuildInput{}
 	}
 
+	output = &DeleteBuildOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteBuildOutput{}
-	req.Data = output
 	return
 }
 
@@ -815,19 +807,19 @@ func (c *GameLift) DeleteBuildRequest(input *DeleteBuildInput) (req *request.Req
 // API operation DeleteBuild for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
@@ -876,11 +868,10 @@ func (c *GameLift) DeleteFleetRequest(input *DeleteFleetInput) (req *request.Req
 		input = &DeleteFleetInput{}
 	}
 
+	output = &DeleteFleetOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteFleetOutput{}
-	req.Data = output
 	return
 }
 
@@ -900,24 +891,24 @@ func (c *GameLift) DeleteFleetRequest(input *DeleteFleetInput) (req *request.Req
 // API operation DeleteFleet for usage and error information.
 //
 // Returned Error Codes:
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * InvalidFleetStatusException
+//   * ErrCodeInvalidFleetStatusException "InvalidFleetStatusException"
 //   The requested operation would cause a conflict with the current state of
 //   a resource associated with the request and/or the fleet. Resolve the conflict
 //   before retrying.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
@@ -966,11 +957,10 @@ func (c *GameLift) DeleteScalingPolicyRequest(input *DeleteScalingPolicyInput) (
 		input = &DeleteScalingPolicyInput{}
 	}
 
+	output = &DeleteScalingPolicyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteScalingPolicyOutput{}
-	req.Data = output
 	return
 }
 
@@ -988,19 +978,19 @@ func (c *GameLift) DeleteScalingPolicyRequest(input *DeleteScalingPolicyInput) (
 // API operation DeleteScalingPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
@@ -1049,9 +1039,8 @@ func (c *GameLift) DescribeAliasRequest(input *DescribeAliasInput) (req *request
 		input = &DescribeAliasInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeAliasOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1068,18 +1057,18 @@ func (c *GameLift) DescribeAliasRequest(input *DescribeAliasInput) (req *request
 // API operation DescribeAlias for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
@@ -1129,9 +1118,8 @@ func (c *GameLift) DescribeBuildRequest(input *DescribeBuildInput) (req *request
 		input = &DescribeBuildInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeBuildOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1148,18 +1136,18 @@ func (c *GameLift) DescribeBuildRequest(input *DescribeBuildInput) (req *request
 // API operation DescribeBuild for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
@@ -1209,9 +1197,8 @@ func (c *GameLift) DescribeEC2InstanceLimitsRequest(input *DescribeEC2InstanceLi
 		input = &DescribeEC2InstanceLimitsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeEC2InstanceLimitsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1235,16 +1222,16 @@ func (c *GameLift) DescribeEC2InstanceLimitsRequest(input *DescribeEC2InstanceLi
 // API operation DescribeEC2InstanceLimits for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/DescribeEC2InstanceLimits
@@ -1292,9 +1279,8 @@ func (c *GameLift) DescribeFleetAttributesRequest(input *DescribeFleetAttributes
 		input = &DescribeFleetAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeFleetAttributesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1320,20 +1306,20 @@ func (c *GameLift) DescribeFleetAttributesRequest(input *DescribeFleetAttributes
 // API operation DescribeFleetAttributes for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/DescribeFleetAttributes
@@ -1381,9 +1367,8 @@ func (c *GameLift) DescribeFleetCapacityRequest(input *DescribeFleetCapacityInpu
 		input = &DescribeFleetCapacityInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeFleetCapacityOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1410,20 +1395,20 @@ func (c *GameLift) DescribeFleetCapacityRequest(input *DescribeFleetCapacityInpu
 // API operation DescribeFleetCapacity for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/DescribeFleetCapacity
@@ -1471,9 +1456,8 @@ func (c *GameLift) DescribeFleetEventsRequest(input *DescribeFleetEventsInput) (
 		input = &DescribeFleetEventsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeFleetEventsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1492,19 +1476,19 @@ func (c *GameLift) DescribeFleetEventsRequest(input *DescribeFleetEventsInput) (
 // API operation DescribeFleetEvents for usage and error information.
 //
 // Returned Error Codes:
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
@@ -1553,9 +1537,8 @@ func (c *GameLift) DescribeFleetPortSettingsRequest(input *DescribeFleetPortSett
 		input = &DescribeFleetPortSettingsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeFleetPortSettingsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1576,20 +1559,20 @@ func (c *GameLift) DescribeFleetPortSettingsRequest(input *DescribeFleetPortSett
 // API operation DescribeFleetPortSettings for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/DescribeFleetPortSettings
@@ -1637,9 +1620,8 @@ func (c *GameLift) DescribeFleetUtilizationRequest(input *DescribeFleetUtilizati
 		input = &DescribeFleetUtilizationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeFleetUtilizationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1664,20 +1646,20 @@ func (c *GameLift) DescribeFleetUtilizationRequest(input *DescribeFleetUtilizati
 // API operation DescribeFleetUtilization for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/DescribeFleetUtilization
@@ -1725,9 +1707,8 @@ func (c *GameLift) DescribeGameSessionDetailsRequest(input *DescribeGameSessionD
 		input = &DescribeGameSessionDetailsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeGameSessionDetailsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1753,23 +1734,23 @@ func (c *GameLift) DescribeGameSessionDetailsRequest(input *DescribeGameSessionD
 // API operation DescribeGameSessionDetails for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * TerminalRoutingStrategyException
+//   * ErrCodeTerminalRoutingStrategyException "TerminalRoutingStrategyException"
 //   The service is unable to resolve the routing for a particular alias because
 //   it has a terminal RoutingStrategy associated with it. The message returned
 //   in this exception is the message defined in the routing strategy itself.
@@ -1821,9 +1802,8 @@ func (c *GameLift) DescribeGameSessionsRequest(input *DescribeGameSessionsInput)
 		input = &DescribeGameSessionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeGameSessionsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1851,23 +1831,23 @@ func (c *GameLift) DescribeGameSessionsRequest(input *DescribeGameSessionsInput)
 // API operation DescribeGameSessions for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * TerminalRoutingStrategyException
+//   * ErrCodeTerminalRoutingStrategyException "TerminalRoutingStrategyException"
 //   The service is unable to resolve the routing for a particular alias because
 //   it has a terminal RoutingStrategy associated with it. The message returned
 //   in this exception is the message defined in the routing strategy itself.
@@ -1919,9 +1899,8 @@ func (c *GameLift) DescribeInstancesRequest(input *DescribeInstancesInput) (req 
 		input = &DescribeInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeInstancesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1944,18 +1923,18 @@ func (c *GameLift) DescribeInstancesRequest(input *DescribeInstancesInput) (req 
 // API operation DescribeInstances for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
@@ -2005,9 +1984,8 @@ func (c *GameLift) DescribePlayerSessionsRequest(input *DescribePlayerSessionsIn
 		input = &DescribePlayerSessionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribePlayerSessionsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2034,20 +2012,20 @@ func (c *GameLift) DescribePlayerSessionsRequest(input *DescribePlayerSessionsIn
 // API operation DescribePlayerSessions for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/DescribePlayerSessions
@@ -2095,9 +2073,8 @@ func (c *GameLift) DescribeRuntimeConfigurationRequest(input *DescribeRuntimeCon
 		input = &DescribeRuntimeConfigurationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeRuntimeConfigurationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2115,19 +2092,19 @@ func (c *GameLift) DescribeRuntimeConfigurationRequest(input *DescribeRuntimeCon
 // API operation DescribeRuntimeConfiguration for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
@@ -2176,9 +2153,8 @@ func (c *GameLift) DescribeScalingPoliciesRequest(input *DescribeScalingPolicies
 		input = &DescribeScalingPoliciesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeScalingPoliciesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2199,19 +2175,19 @@ func (c *GameLift) DescribeScalingPoliciesRequest(input *DescribeScalingPolicies
 // API operation DescribeScalingPolicies for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
@@ -2260,9 +2236,8 @@ func (c *GameLift) GetGameSessionLogUrlRequest(input *GetGameSessionLogUrlInput)
 		input = &GetGameSessionLogUrlInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetGameSessionLogUrlOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2284,19 +2259,19 @@ func (c *GameLift) GetGameSessionLogUrlRequest(input *GetGameSessionLogUrlInput)
 // API operation GetGameSessionLogUrl for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
@@ -2345,9 +2320,8 @@ func (c *GameLift) GetInstanceAccessRequest(input *GetInstanceAccessInput) (req 
 		input = &GetInstanceAccessInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetInstanceAccessOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2378,18 +2352,18 @@ func (c *GameLift) GetInstanceAccessRequest(input *GetInstanceAccessInput) (req 
 // API operation GetInstanceAccess for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
@@ -2439,9 +2413,8 @@ func (c *GameLift) ListAliasesRequest(input *ListAliasesInput) (req *request.Req
 		input = &ListAliasesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListAliasesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2461,14 +2434,14 @@ func (c *GameLift) ListAliasesRequest(input *ListAliasesInput) (req *request.Req
 // API operation ListAliases for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
@@ -2518,9 +2491,8 @@ func (c *GameLift) ListBuildsRequest(input *ListBuildsInput) (req *request.Reque
 		input = &ListBuildsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListBuildsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2541,14 +2513,14 @@ func (c *GameLift) ListBuildsRequest(input *ListBuildsInput) (req *request.Reque
 // API operation ListBuilds for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
@@ -2598,9 +2570,8 @@ func (c *GameLift) ListFleetsRequest(input *ListFleetsInput) (req *request.Reque
 		input = &ListFleetsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListFleetsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2620,20 +2591,20 @@ func (c *GameLift) ListFleetsRequest(input *ListFleetsInput) (req *request.Reque
 // API operation ListFleets for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/ListFleets
@@ -2681,9 +2652,8 @@ func (c *GameLift) PutScalingPolicyRequest(input *PutScalingPolicyInput) (req *r
 		input = &PutScalingPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &PutScalingPolicyOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2720,19 +2690,19 @@ func (c *GameLift) PutScalingPolicyRequest(input *PutScalingPolicyInput) (req *r
 // API operation PutScalingPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
@@ -2781,9 +2751,8 @@ func (c *GameLift) RequestUploadCredentialsRequest(input *RequestUploadCredentia
 		input = &RequestUploadCredentialsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &RequestUploadCredentialsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2811,18 +2780,18 @@ func (c *GameLift) RequestUploadCredentialsRequest(input *RequestUploadCredentia
 // API operation RequestUploadCredentials for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
@@ -2872,9 +2841,8 @@ func (c *GameLift) ResolveAliasRequest(input *ResolveAliasInput) (req *request.R
 		input = &ResolveAliasInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ResolveAliasOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2890,25 +2858,25 @@ func (c *GameLift) ResolveAliasRequest(input *ResolveAliasInput) (req *request.R
 // API operation ResolveAlias for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * TerminalRoutingStrategyException
+//   * ErrCodeTerminalRoutingStrategyException "TerminalRoutingStrategyException"
 //   The service is unable to resolve the routing for a particular alias because
 //   it has a terminal RoutingStrategy associated with it. The message returned
 //   in this exception is the message defined in the routing strategy itself.
 //   Such requests should only be retried if the routing strategy for the specified
 //   alias is modified.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
@@ -2958,9 +2926,8 @@ func (c *GameLift) SearchGameSessionsRequest(input *SearchGameSessionsInput) (re
 		input = &SearchGameSessionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &SearchGameSessionsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3020,23 +2987,23 @@ func (c *GameLift) SearchGameSessionsRequest(input *SearchGameSessionsInput) (re
 // API operation SearchGameSessions for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * TerminalRoutingStrategyException
+//   * ErrCodeTerminalRoutingStrategyException "TerminalRoutingStrategyException"
 //   The service is unable to resolve the routing for a particular alias because
 //   it has a terminal RoutingStrategy associated with it. The message returned
 //   in this exception is the message defined in the routing strategy itself.
@@ -3088,9 +3055,8 @@ func (c *GameLift) UpdateAliasRequest(input *UpdateAliasInput) (req *request.Req
 		input = &UpdateAliasInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateAliasOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3109,18 +3075,18 @@ func (c *GameLift) UpdateAliasRequest(input *UpdateAliasInput) (req *request.Req
 // API operation UpdateAlias for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
@@ -3170,9 +3136,8 @@ func (c *GameLift) UpdateBuildRequest(input *UpdateBuildInput) (req *request.Req
 		input = &UpdateBuildInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateBuildOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3191,18 +3156,18 @@ func (c *GameLift) UpdateBuildRequest(input *UpdateBuildInput) (req *request.Req
 // API operation UpdateBuild for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
@@ -3252,9 +3217,8 @@ func (c *GameLift) UpdateFleetAttributesRequest(input *UpdateFleetAttributesInpu
 		input = &UpdateFleetAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateFleetAttributesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3272,34 +3236,34 @@ func (c *GameLift) UpdateFleetAttributesRequest(input *UpdateFleetAttributesInpu
 // API operation UpdateFleetAttributes for usage and error information.
 //
 // Returned Error Codes:
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * ConflictException
+//   * ErrCodeConflictException "ConflictException"
 //   The requested operation would cause a conflict with the current state of
 //   a service resource associated with the request. Resolve the conflict before
 //   retrying this request.
 //
-//   * InvalidFleetStatusException
+//   * ErrCodeInvalidFleetStatusException "InvalidFleetStatusException"
 //   The requested operation would cause a conflict with the current state of
 //   a resource associated with the request and/or the fleet. Resolve the conflict
 //   before retrying.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   The requested operation would cause the resource to exceed the allowed service
 //   limit. Resolve the issue before retrying.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/UpdateFleetAttributes
@@ -3347,9 +3311,8 @@ func (c *GameLift) UpdateFleetCapacityRequest(input *UpdateFleetCapacityInput) (
 		input = &UpdateFleetCapacityInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateFleetCapacityOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3379,34 +3342,34 @@ func (c *GameLift) UpdateFleetCapacityRequest(input *UpdateFleetCapacityInput) (
 // API operation UpdateFleetCapacity for usage and error information.
 //
 // Returned Error Codes:
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * ConflictException
+//   * ErrCodeConflictException "ConflictException"
 //   The requested operation would cause a conflict with the current state of
 //   a service resource associated with the request. Resolve the conflict before
 //   retrying this request.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   The requested operation would cause the resource to exceed the allowed service
 //   limit. Resolve the issue before retrying.
 //
-//   * InvalidFleetStatusException
+//   * ErrCodeInvalidFleetStatusException "InvalidFleetStatusException"
 //   The requested operation would cause a conflict with the current state of
 //   a resource associated with the request and/or the fleet. Resolve the conflict
 //   before retrying.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/UpdateFleetCapacity
@@ -3454,9 +3417,8 @@ func (c *GameLift) UpdateFleetPortSettingsRequest(input *UpdateFleetPortSettings
 		input = &UpdateFleetPortSettingsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateFleetPortSettingsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3477,34 +3439,34 @@ func (c *GameLift) UpdateFleetPortSettingsRequest(input *UpdateFleetPortSettings
 // API operation UpdateFleetPortSettings for usage and error information.
 //
 // Returned Error Codes:
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * ConflictException
+//   * ErrCodeConflictException "ConflictException"
 //   The requested operation would cause a conflict with the current state of
 //   a service resource associated with the request. Resolve the conflict before
 //   retrying this request.
 //
-//   * InvalidFleetStatusException
+//   * ErrCodeInvalidFleetStatusException "InvalidFleetStatusException"
 //   The requested operation would cause a conflict with the current state of
 //   a resource associated with the request and/or the fleet. Resolve the conflict
 //   before retrying.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   The requested operation would cause the resource to exceed the allowed service
 //   limit. Resolve the issue before retrying.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/UpdateFleetPortSettings
@@ -3552,9 +3514,8 @@ func (c *GameLift) UpdateGameSessionRequest(input *UpdateGameSessionInput) (req 
 		input = &UpdateGameSessionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateGameSessionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3576,29 +3537,29 @@ func (c *GameLift) UpdateGameSessionRequest(input *UpdateGameSessionInput) (req 
 // API operation UpdateGameSession for usage and error information.
 //
 // Returned Error Codes:
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * ConflictException
+//   * ErrCodeConflictException "ConflictException"
 //   The requested operation would cause a conflict with the current state of
 //   a service resource associated with the request. Resolve the conflict before
 //   retrying this request.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * InvalidGameSessionStatusException
+//   * ErrCodeInvalidGameSessionStatusException "InvalidGameSessionStatusException"
 //   The requested operation would cause a conflict with the current state of
 //   a resource associated with the request and/or the game instance. Resolve
 //   the conflict before retrying.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
@@ -3647,9 +3608,8 @@ func (c *GameLift) UpdateRuntimeConfigurationRequest(input *UpdateRuntimeConfigu
 		input = &UpdateRuntimeConfigurationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateRuntimeConfigurationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3679,23 +3639,23 @@ func (c *GameLift) UpdateRuntimeConfigurationRequest(input *UpdateRuntimeConfigu
 // API operation UpdateRuntimeConfiguration for usage and error information.
 //
 // Returned Error Codes:
-//   * UnauthorizedException
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
 //   The client failed authentication. Clients should not retry such requests.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   A service resource associated with the request could not be found. Clients
 //   should not retry such requests.
 //
-//   * InternalServiceException
+//   * ErrCodeInternalServiceException "InternalServiceException"
 //   The service encountered an unrecoverable internal failure while processing
 //   the request. Clients can retry such requests immediately or after a waiting
 //   period.
 //
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more parameter values in the request are invalid. Correct the invalid
 //   parameter values before retrying.
 //
-//   * InvalidFleetStatusException
+//   * ErrCodeInvalidFleetStatusException "InvalidFleetStatusException"
 //   The requested operation would cause a conflict with the current state of
 //   a resource associated with the request and/or the fleet. Resolve the conflict
 //   before retrying.

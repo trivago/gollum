@@ -48,9 +48,8 @@ func (c *OpsWorksCM) AssociateNodeRequest(input *AssociateNodeInput) (req *reque
 		input = &AssociateNodeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AssociateNodeOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -64,14 +63,14 @@ func (c *OpsWorksCM) AssociateNodeRequest(input *AssociateNodeInput) (req *reque
 // API operation AssociateNode for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidStateException
+//   * ErrCodeInvalidStateException "InvalidStateException"
 //   The resource is in a state that does not allow you to perform a specified
 //   action.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The requested resource does not exist, or access was denied.
 //
-//   * ValidationException
+//   * ErrCodeValidationException "ValidationException"
 //   One or more of the provided request parameters are not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/opsworkscm-2016-11-01/AssociateNode
@@ -119,9 +118,8 @@ func (c *OpsWorksCM) CreateBackupRequest(input *CreateBackupInput) (req *request
 		input = &CreateBackupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateBackupOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -150,17 +148,17 @@ func (c *OpsWorksCM) CreateBackupRequest(input *CreateBackupInput) (req *request
 // API operation CreateBackup for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidStateException
+//   * ErrCodeInvalidStateException "InvalidStateException"
 //   The resource is in a state that does not allow you to perform a specified
 //   action.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   The limit of servers or backups has been reached.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The requested resource does not exist, or access was denied.
 //
-//   * ValidationException
+//   * ErrCodeValidationException "ValidationException"
 //   One or more of the provided request parameters are not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/opsworkscm-2016-11-01/CreateBackup
@@ -208,9 +206,8 @@ func (c *OpsWorksCM) CreateServerRequest(input *CreateServerInput) (req *request
 		input = &CreateServerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateServerOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -248,16 +245,16 @@ func (c *OpsWorksCM) CreateServerRequest(input *CreateServerInput) (req *request
 // API operation CreateServer for usage and error information.
 //
 // Returned Error Codes:
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   The limit of servers or backups has been reached.
 //
-//   * ResourceAlreadyExistsException
+//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
 //   The requested resource cannot be created because it already exists.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The requested resource does not exist, or access was denied.
 //
-//   * ValidationException
+//   * ErrCodeValidationException "ValidationException"
 //   One or more of the provided request parameters are not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/opsworkscm-2016-11-01/CreateServer
@@ -305,9 +302,8 @@ func (c *OpsWorksCM) DeleteBackupRequest(input *DeleteBackupInput) (req *request
 		input = &DeleteBackupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteBackupOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -329,14 +325,14 @@ func (c *OpsWorksCM) DeleteBackupRequest(input *DeleteBackupInput) (req *request
 // API operation DeleteBackup for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidStateException
+//   * ErrCodeInvalidStateException "InvalidStateException"
 //   The resource is in a state that does not allow you to perform a specified
 //   action.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The requested resource does not exist, or access was denied.
 //
-//   * ValidationException
+//   * ErrCodeValidationException "ValidationException"
 //   One or more of the provided request parameters are not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/opsworkscm-2016-11-01/DeleteBackup
@@ -384,9 +380,8 @@ func (c *OpsWorksCM) DeleteServerRequest(input *DeleteServerInput) (req *request
 		input = &DeleteServerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteServerOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -412,14 +407,14 @@ func (c *OpsWorksCM) DeleteServerRequest(input *DeleteServerInput) (req *request
 // API operation DeleteServer for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidStateException
+//   * ErrCodeInvalidStateException "InvalidStateException"
 //   The resource is in a state that does not allow you to perform a specified
 //   action.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The requested resource does not exist, or access was denied.
 //
-//   * ValidationException
+//   * ErrCodeValidationException "ValidationException"
 //   One or more of the provided request parameters are not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/opsworkscm-2016-11-01/DeleteServer
@@ -467,9 +462,8 @@ func (c *OpsWorksCM) DescribeAccountAttributesRequest(input *DescribeAccountAttr
 		input = &DescribeAccountAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeAccountAttributesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -531,9 +525,8 @@ func (c *OpsWorksCM) DescribeBackupsRequest(input *DescribeBackupsInput) (req *r
 		input = &DescribeBackupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeBackupsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -555,13 +548,13 @@ func (c *OpsWorksCM) DescribeBackupsRequest(input *DescribeBackupsInput) (req *r
 // API operation DescribeBackups for usage and error information.
 //
 // Returned Error Codes:
-//   * ValidationException
+//   * ErrCodeValidationException "ValidationException"
 //   One or more of the provided request parameters are not valid.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The requested resource does not exist, or access was denied.
 //
-//   * InvalidNextTokenException
+//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
 //   This occurs when the provided nextToken is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/opsworkscm-2016-11-01/DescribeBackups
@@ -609,9 +602,8 @@ func (c *OpsWorksCM) DescribeEventsRequest(input *DescribeEventsInput) (req *req
 		input = &DescribeEventsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeEventsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -633,13 +625,13 @@ func (c *OpsWorksCM) DescribeEventsRequest(input *DescribeEventsInput) (req *req
 // API operation DescribeEvents for usage and error information.
 //
 // Returned Error Codes:
-//   * ValidationException
+//   * ErrCodeValidationException "ValidationException"
 //   One or more of the provided request parameters are not valid.
 //
-//   * InvalidNextTokenException
+//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
 //   This occurs when the provided nextToken is not valid.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The requested resource does not exist, or access was denied.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/opsworkscm-2016-11-01/DescribeEvents
@@ -687,9 +679,8 @@ func (c *OpsWorksCM) DescribeNodeAssociationStatusRequest(input *DescribeNodeAss
 		input = &DescribeNodeAssociationStatusInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeNodeAssociationStatusOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -703,10 +694,10 @@ func (c *OpsWorksCM) DescribeNodeAssociationStatusRequest(input *DescribeNodeAss
 // API operation DescribeNodeAssociationStatus for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The requested resource does not exist, or access was denied.
 //
-//   * ValidationException
+//   * ErrCodeValidationException "ValidationException"
 //   One or more of the provided request parameters are not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/opsworkscm-2016-11-01/DescribeNodeAssociationStatus
@@ -754,9 +745,8 @@ func (c *OpsWorksCM) DescribeServersRequest(input *DescribeServersInput) (req *r
 		input = &DescribeServersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeServersOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -779,13 +769,13 @@ func (c *OpsWorksCM) DescribeServersRequest(input *DescribeServersInput) (req *r
 // API operation DescribeServers for usage and error information.
 //
 // Returned Error Codes:
-//   * ValidationException
+//   * ErrCodeValidationException "ValidationException"
 //   One or more of the provided request parameters are not valid.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The requested resource does not exist, or access was denied.
 //
-//   * InvalidNextTokenException
+//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
 //   This occurs when the provided nextToken is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/opsworkscm-2016-11-01/DescribeServers
@@ -833,9 +823,8 @@ func (c *OpsWorksCM) DisassociateNodeRequest(input *DisassociateNodeInput) (req 
 		input = &DisassociateNodeInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DisassociateNodeOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -849,14 +838,14 @@ func (c *OpsWorksCM) DisassociateNodeRequest(input *DisassociateNodeInput) (req 
 // API operation DisassociateNode for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidStateException
+//   * ErrCodeInvalidStateException "InvalidStateException"
 //   The resource is in a state that does not allow you to perform a specified
 //   action.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The requested resource does not exist, or access was denied.
 //
-//   * ValidationException
+//   * ErrCodeValidationException "ValidationException"
 //   One or more of the provided request parameters are not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/opsworkscm-2016-11-01/DisassociateNode
@@ -904,9 +893,8 @@ func (c *OpsWorksCM) RestoreServerRequest(input *RestoreServerInput) (req *reque
 		input = &RestoreServerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &RestoreServerOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -932,14 +920,14 @@ func (c *OpsWorksCM) RestoreServerRequest(input *RestoreServerInput) (req *reque
 // API operation RestoreServer for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidStateException
+//   * ErrCodeInvalidStateException "InvalidStateException"
 //   The resource is in a state that does not allow you to perform a specified
 //   action.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The requested resource does not exist, or access was denied.
 //
-//   * ValidationException
+//   * ErrCodeValidationException "ValidationException"
 //   One or more of the provided request parameters are not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/opsworkscm-2016-11-01/RestoreServer
@@ -987,9 +975,8 @@ func (c *OpsWorksCM) StartMaintenanceRequest(input *StartMaintenanceInput) (req 
 		input = &StartMaintenanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &StartMaintenanceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1013,14 +1000,14 @@ func (c *OpsWorksCM) StartMaintenanceRequest(input *StartMaintenanceInput) (req 
 // API operation StartMaintenance for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidStateException
+//   * ErrCodeInvalidStateException "InvalidStateException"
 //   The resource is in a state that does not allow you to perform a specified
 //   action.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The requested resource does not exist, or access was denied.
 //
-//   * ValidationException
+//   * ErrCodeValidationException "ValidationException"
 //   One or more of the provided request parameters are not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/opsworkscm-2016-11-01/StartMaintenance
@@ -1068,9 +1055,8 @@ func (c *OpsWorksCM) UpdateServerRequest(input *UpdateServerInput) (req *request
 		input = &UpdateServerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateServerOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1088,14 +1074,14 @@ func (c *OpsWorksCM) UpdateServerRequest(input *UpdateServerInput) (req *request
 // API operation UpdateServer for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidStateException
+//   * ErrCodeInvalidStateException "InvalidStateException"
 //   The resource is in a state that does not allow you to perform a specified
 //   action.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The requested resource does not exist, or access was denied.
 //
-//   * ValidationException
+//   * ErrCodeValidationException "ValidationException"
 //   One or more of the provided request parameters are not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/opsworkscm-2016-11-01/UpdateServer
@@ -1143,9 +1129,8 @@ func (c *OpsWorksCM) UpdateServerEngineAttributesRequest(input *UpdateServerEngi
 		input = &UpdateServerEngineAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateServerEngineAttributesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1172,14 +1157,14 @@ func (c *OpsWorksCM) UpdateServerEngineAttributesRequest(input *UpdateServerEngi
 // API operation UpdateServerEngineAttributes for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidStateException
+//   * ErrCodeInvalidStateException "InvalidStateException"
 //   The resource is in a state that does not allow you to perform a specified
 //   action.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The requested resource does not exist, or access was denied.
 //
-//   * ValidationException
+//   * ErrCodeValidationException "ValidationException"
 //   One or more of the provided request parameters are not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/opsworkscm-2016-11-01/UpdateServerEngineAttributes

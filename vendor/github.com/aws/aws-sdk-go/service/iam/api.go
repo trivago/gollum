@@ -51,11 +51,10 @@ func (c *IAM) AddClientIDToOpenIDConnectProviderRequest(input *AddClientIDToOpen
 		input = &AddClientIDToOpenIDConnectProviderInput{}
 	}
 
+	output = &AddClientIDToOpenIDConnectProviderOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &AddClientIDToOpenIDConnectProviderOutput{}
-	req.Data = output
 	return
 }
 
@@ -75,19 +74,19 @@ func (c *IAM) AddClientIDToOpenIDConnectProviderRequest(input *AddClientIDToOpen
 // API operation AddClientIDToOpenIDConnectProvider for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -136,11 +135,10 @@ func (c *IAM) AddRoleToInstanceProfileRequest(input *AddRoleToInstanceProfileInp
 		input = &AddRoleToInstanceProfileInput{}
 	}
 
+	output = &AddRoleToInstanceProfileOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &AddRoleToInstanceProfileOutput{}
-	req.Data = output
 	return
 }
 
@@ -163,19 +161,19 @@ func (c *IAM) AddRoleToInstanceProfileRequest(input *AddRoleToInstanceProfileInp
 // API operation AddRoleToInstanceProfile for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * EntityAlreadyExists
+//   * ErrCodeEntityAlreadyExistsException "EntityAlreadyExists"
 //   The request was rejected because it attempted to create a resource that already
 //   exists.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -224,11 +222,10 @@ func (c *IAM) AddUserToGroupRequest(input *AddUserToGroupInput) (req *request.Re
 		input = &AddUserToGroupInput{}
 	}
 
+	output = &AddUserToGroupOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &AddUserToGroupOutput{}
-	req.Data = output
 	return
 }
 
@@ -244,15 +241,15 @@ func (c *IAM) AddUserToGroupRequest(input *AddUserToGroupInput) (req *request.Re
 // API operation AddUserToGroup for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -301,11 +298,10 @@ func (c *IAM) AttachGroupPolicyRequest(input *AttachGroupPolicyInput) (req *requ
 		input = &AttachGroupPolicyInput{}
 	}
 
+	output = &AttachGroupPolicyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &AttachGroupPolicyOutput{}
-	req.Data = output
 	return
 }
 
@@ -328,19 +324,19 @@ func (c *IAM) AttachGroupPolicyRequest(input *AttachGroupPolicyInput) (req *requ
 // API operation AttachGroupPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -389,11 +385,10 @@ func (c *IAM) AttachRolePolicyRequest(input *AttachRolePolicyInput) (req *reques
 		input = &AttachRolePolicyInput{}
 	}
 
+	output = &AttachRolePolicyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &AttachRolePolicyOutput{}
-	req.Data = output
 	return
 }
 
@@ -420,19 +415,19 @@ func (c *IAM) AttachRolePolicyRequest(input *AttachRolePolicyInput) (req *reques
 // API operation AttachRolePolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -481,11 +476,10 @@ func (c *IAM) AttachUserPolicyRequest(input *AttachUserPolicyInput) (req *reques
 		input = &AttachUserPolicyInput{}
 	}
 
+	output = &AttachUserPolicyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &AttachUserPolicyOutput{}
-	req.Data = output
 	return
 }
 
@@ -508,19 +502,19 @@ func (c *IAM) AttachUserPolicyRequest(input *AttachUserPolicyInput) (req *reques
 // API operation AttachUserPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -569,11 +563,10 @@ func (c *IAM) ChangePasswordRequest(input *ChangePasswordInput) (req *request.Re
 		input = &ChangePasswordInput{}
 	}
 
+	output = &ChangePasswordOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &ChangePasswordOutput{}
-	req.Data = output
 	return
 }
 
@@ -594,29 +587,29 @@ func (c *IAM) ChangePasswordRequest(input *ChangePasswordInput) (req *request.Re
 // API operation ChangePassword for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * InvalidUserType
+//   * ErrCodeInvalidUserTypeException "InvalidUserType"
 //   The request was rejected because the type of user for the transaction was
 //   incorrect.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * EntityTemporarilyUnmodifiable
+//   * ErrCodeEntityTemporarilyUnmodifiableException "EntityTemporarilyUnmodifiable"
 //   The request was rejected because it referenced an entity that is temporarily
 //   unmodifiable, such as a user name that was deleted and then recreated. The
 //   error indicates that the request is likely to succeed if you try again after
 //   waiting several minutes. The error message describes the entity.
 //
-//   * PasswordPolicyViolation
+//   * ErrCodePasswordPolicyViolationException "PasswordPolicyViolation"
 //   The request was rejected because the provided password did not meet the requirements
 //   imposed by the account password policy.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -665,9 +658,8 @@ func (c *IAM) CreateAccessKeyRequest(input *CreateAccessKeyInput) (req *request.
 		input = &CreateAccessKeyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateAccessKeyOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -699,15 +691,15 @@ func (c *IAM) CreateAccessKeyRequest(input *CreateAccessKeyInput) (req *request.
 // API operation CreateAccessKey for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -756,11 +748,10 @@ func (c *IAM) CreateAccountAliasRequest(input *CreateAccountAliasInput) (req *re
 		input = &CreateAccountAliasInput{}
 	}
 
+	output = &CreateAccountAliasOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &CreateAccountAliasOutput{}
-	req.Data = output
 	return
 }
 
@@ -778,15 +769,15 @@ func (c *IAM) CreateAccountAliasRequest(input *CreateAccountAliasInput) (req *re
 // API operation CreateAccountAlias for usage and error information.
 //
 // Returned Error Codes:
-//   * EntityAlreadyExists
+//   * ErrCodeEntityAlreadyExistsException "EntityAlreadyExists"
 //   The request was rejected because it attempted to create a resource that already
 //   exists.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -835,9 +826,8 @@ func (c *IAM) CreateGroupRequest(input *CreateGroupInput) (req *request.Request,
 		input = &CreateGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateGroupOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -857,19 +847,19 @@ func (c *IAM) CreateGroupRequest(input *CreateGroupInput) (req *request.Request,
 // API operation CreateGroup for usage and error information.
 //
 // Returned Error Codes:
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * EntityAlreadyExists
+//   * ErrCodeEntityAlreadyExistsException "EntityAlreadyExists"
 //   The request was rejected because it attempted to create a resource that already
 //   exists.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -918,9 +908,8 @@ func (c *IAM) CreateInstanceProfileRequest(input *CreateInstanceProfileInput) (r
 		input = &CreateInstanceProfileInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateInstanceProfileOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -941,15 +930,15 @@ func (c *IAM) CreateInstanceProfileRequest(input *CreateInstanceProfileInput) (r
 // API operation CreateInstanceProfile for usage and error information.
 //
 // Returned Error Codes:
-//   * EntityAlreadyExists
+//   * ErrCodeEntityAlreadyExistsException "EntityAlreadyExists"
 //   The request was rejected because it attempted to create a resource that already
 //   exists.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -998,9 +987,8 @@ func (c *IAM) CreateLoginProfileRequest(input *CreateLoginProfileInput) (req *re
 		input = &CreateLoginProfileInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateLoginProfileOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1019,23 +1007,23 @@ func (c *IAM) CreateLoginProfileRequest(input *CreateLoginProfileInput) (req *re
 // API operation CreateLoginProfile for usage and error information.
 //
 // Returned Error Codes:
-//   * EntityAlreadyExists
+//   * ErrCodeEntityAlreadyExistsException "EntityAlreadyExists"
 //   The request was rejected because it attempted to create a resource that already
 //   exists.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * PasswordPolicyViolation
+//   * ErrCodePasswordPolicyViolationException "PasswordPolicyViolation"
 //   The request was rejected because the provided password did not meet the requirements
 //   imposed by the account password policy.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -1084,9 +1072,8 @@ func (c *IAM) CreateOpenIDConnectProviderRequest(input *CreateOpenIDConnectProvi
 		input = &CreateOpenIDConnectProviderInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateOpenIDConnectProviderOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1118,19 +1105,19 @@ func (c *IAM) CreateOpenIDConnectProviderRequest(input *CreateOpenIDConnectProvi
 // API operation CreateOpenIDConnectProvider for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * EntityAlreadyExists
+//   * ErrCodeEntityAlreadyExistsException "EntityAlreadyExists"
 //   The request was rejected because it attempted to create a resource that already
 //   exists.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -1179,9 +1166,8 @@ func (c *IAM) CreatePolicyRequest(input *CreatePolicyInput) (req *request.Reques
 		input = &CreatePolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreatePolicyOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1206,23 +1192,23 @@ func (c *IAM) CreatePolicyRequest(input *CreatePolicyInput) (req *request.Reques
 // API operation CreatePolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * EntityAlreadyExists
+//   * ErrCodeEntityAlreadyExistsException "EntityAlreadyExists"
 //   The request was rejected because it attempted to create a resource that already
 //   exists.
 //
-//   * MalformedPolicyDocument
+//   * ErrCodeMalformedPolicyDocumentException "MalformedPolicyDocument"
 //   The request was rejected because the policy document was malformed. The error
 //   message describes the specific error.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -1271,9 +1257,8 @@ func (c *IAM) CreatePolicyVersionRequest(input *CreatePolicyVersionInput) (req *
 		input = &CreatePolicyVersionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreatePolicyVersionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1300,23 +1285,23 @@ func (c *IAM) CreatePolicyVersionRequest(input *CreatePolicyVersionInput) (req *
 // API operation CreatePolicyVersion for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * MalformedPolicyDocument
+//   * ErrCodeMalformedPolicyDocumentException "MalformedPolicyDocument"
 //   The request was rejected because the policy document was malformed. The error
 //   message describes the specific error.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -1365,9 +1350,8 @@ func (c *IAM) CreateRoleRequest(input *CreateRoleInput) (req *request.Request, o
 		input = &CreateRoleInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateRoleOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1387,19 +1371,19 @@ func (c *IAM) CreateRoleRequest(input *CreateRoleInput) (req *request.Request, o
 // API operation CreateRole for usage and error information.
 //
 // Returned Error Codes:
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * EntityAlreadyExists
+//   * ErrCodeEntityAlreadyExistsException "EntityAlreadyExists"
 //   The request was rejected because it attempted to create a resource that already
 //   exists.
 //
-//   * MalformedPolicyDocument
+//   * ErrCodeMalformedPolicyDocumentException "MalformedPolicyDocument"
 //   The request was rejected because the policy document was malformed. The error
 //   message describes the specific error.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -1448,9 +1432,8 @@ func (c *IAM) CreateSAMLProviderRequest(input *CreateSAMLProviderInput) (req *re
 		input = &CreateSAMLProviderInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateSAMLProviderOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1487,25 +1470,111 @@ func (c *IAM) CreateSAMLProviderRequest(input *CreateSAMLProviderInput) (req *re
 // API operation CreateSAMLProvider for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * EntityAlreadyExists
+//   * ErrCodeEntityAlreadyExistsException "EntityAlreadyExists"
 //   The request was rejected because it attempted to create a resource that already
 //   exists.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/CreateSAMLProvider
 func (c *IAM) CreateSAMLProvider(input *CreateSAMLProviderInput) (*CreateSAMLProviderOutput, error) {
 	req, out := c.CreateSAMLProviderRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opCreateServiceSpecificCredential = "CreateServiceSpecificCredential"
+
+// CreateServiceSpecificCredentialRequest generates a "aws/request.Request" representing the
+// client's request for the CreateServiceSpecificCredential operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See CreateServiceSpecificCredential for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CreateServiceSpecificCredential method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CreateServiceSpecificCredentialRequest method.
+//    req, resp := client.CreateServiceSpecificCredentialRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/CreateServiceSpecificCredential
+func (c *IAM) CreateServiceSpecificCredentialRequest(input *CreateServiceSpecificCredentialInput) (req *request.Request, output *CreateServiceSpecificCredentialOutput) {
+	op := &request.Operation{
+		Name:       opCreateServiceSpecificCredential,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateServiceSpecificCredentialInput{}
+	}
+
+	output = &CreateServiceSpecificCredentialOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateServiceSpecificCredential API operation for AWS Identity and Access Management.
+//
+// Generates a set of credentials consisting of a user name and password that
+// can be used to access the service specified in the request. These credentials
+// are generated by IAM, and can be used only for the specified service.
+//
+// You can have a maximum of two sets of service-specific credentials for each
+// supported service per user.
+//
+// The only supported service at this time is AWS CodeCommit.
+//
+// You can reset the password to a new service-generated value by calling ResetServiceSpecificCredential.
+//
+// For more information about service-specific credentials, see Using IAM with
+// AWS CodeCommit: Git Credentials, SSH Keys, and AWS Access Keys (http://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_ssh-keys.html)
+// in the IAM User Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Identity and Access Management's
+// API operation CreateServiceSpecificCredential for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeLimitExceededException "LimitExceeded"
+//   The request was rejected because it attempted to create resources beyond
+//   the current AWS account limits. The error message describes the limit exceeded.
+//
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
+//   The request was rejected because it referenced an entity that does not exist.
+//   The error message describes the entity.
+//
+//   * ErrCodeServiceNotSupportedException "NotSupportedService"
+//   The specified service does not support service-specific credentials.
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/CreateServiceSpecificCredential
+func (c *IAM) CreateServiceSpecificCredential(input *CreateServiceSpecificCredentialInput) (*CreateServiceSpecificCredentialOutput, error) {
+	req, out := c.CreateServiceSpecificCredentialRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -1548,9 +1617,8 @@ func (c *IAM) CreateUserRequest(input *CreateUserInput) (req *request.Request, o
 		input = &CreateUserInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateUserOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1570,19 +1638,19 @@ func (c *IAM) CreateUserRequest(input *CreateUserInput) (req *request.Request, o
 // API operation CreateUser for usage and error information.
 //
 // Returned Error Codes:
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * EntityAlreadyExists
+//   * ErrCodeEntityAlreadyExistsException "EntityAlreadyExists"
 //   The request was rejected because it attempted to create a resource that already
 //   exists.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -1631,9 +1699,8 @@ func (c *IAM) CreateVirtualMFADeviceRequest(input *CreateVirtualMFADeviceInput) 
 		input = &CreateVirtualMFADeviceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateVirtualMFADeviceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1662,15 +1729,15 @@ func (c *IAM) CreateVirtualMFADeviceRequest(input *CreateVirtualMFADeviceInput) 
 // API operation CreateVirtualMFADevice for usage and error information.
 //
 // Returned Error Codes:
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * EntityAlreadyExists
+//   * ErrCodeEntityAlreadyExistsException "EntityAlreadyExists"
 //   The request was rejected because it attempted to create a resource that already
 //   exists.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -1719,11 +1786,10 @@ func (c *IAM) DeactivateMFADeviceRequest(input *DeactivateMFADeviceInput) (req *
 		input = &DeactivateMFADeviceInput{}
 	}
 
+	output = &DeactivateMFADeviceOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeactivateMFADeviceOutput{}
-	req.Data = output
 	return
 }
 
@@ -1744,21 +1810,21 @@ func (c *IAM) DeactivateMFADeviceRequest(input *DeactivateMFADeviceInput) (req *
 // API operation DeactivateMFADevice for usage and error information.
 //
 // Returned Error Codes:
-//   * EntityTemporarilyUnmodifiable
+//   * ErrCodeEntityTemporarilyUnmodifiableException "EntityTemporarilyUnmodifiable"
 //   The request was rejected because it referenced an entity that is temporarily
 //   unmodifiable, such as a user name that was deleted and then recreated. The
 //   error indicates that the request is likely to succeed if you try again after
 //   waiting several minutes. The error message describes the entity.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -1807,11 +1873,10 @@ func (c *IAM) DeleteAccessKeyRequest(input *DeleteAccessKeyInput) (req *request.
 		input = &DeleteAccessKeyInput{}
 	}
 
+	output = &DeleteAccessKeyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteAccessKeyOutput{}
-	req.Data = output
 	return
 }
 
@@ -1832,15 +1897,15 @@ func (c *IAM) DeleteAccessKeyRequest(input *DeleteAccessKeyInput) (req *request.
 // API operation DeleteAccessKey for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -1889,11 +1954,10 @@ func (c *IAM) DeleteAccountAliasRequest(input *DeleteAccountAliasInput) (req *re
 		input = &DeleteAccountAliasInput{}
 	}
 
+	output = &DeleteAccountAliasOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteAccountAliasOutput{}
-	req.Data = output
 	return
 }
 
@@ -1911,15 +1975,15 @@ func (c *IAM) DeleteAccountAliasRequest(input *DeleteAccountAliasInput) (req *re
 // API operation DeleteAccountAlias for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -1968,11 +2032,10 @@ func (c *IAM) DeleteAccountPasswordPolicyRequest(input *DeleteAccountPasswordPol
 		input = &DeleteAccountPasswordPolicyInput{}
 	}
 
+	output = &DeleteAccountPasswordPolicyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteAccountPasswordPolicyOutput{}
-	req.Data = output
 	return
 }
 
@@ -1988,15 +2051,15 @@ func (c *IAM) DeleteAccountPasswordPolicyRequest(input *DeleteAccountPasswordPol
 // API operation DeleteAccountPasswordPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -2045,11 +2108,10 @@ func (c *IAM) DeleteGroupRequest(input *DeleteGroupInput) (req *request.Request,
 		input = &DeleteGroupInput{}
 	}
 
+	output = &DeleteGroupOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteGroupOutput{}
-	req.Data = output
 	return
 }
 
@@ -2066,19 +2128,19 @@ func (c *IAM) DeleteGroupRequest(input *DeleteGroupInput) (req *request.Request,
 // API operation DeleteGroup for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * DeleteConflict
+//   * ErrCodeDeleteConflictException "DeleteConflict"
 //   The request was rejected because it attempted to delete a resource that has
 //   attached subordinate entities. The error message describes these entities.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -2127,11 +2189,10 @@ func (c *IAM) DeleteGroupPolicyRequest(input *DeleteGroupPolicyInput) (req *requ
 		input = &DeleteGroupPolicyInput{}
 	}
 
+	output = &DeleteGroupPolicyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteGroupPolicyOutput{}
-	req.Data = output
 	return
 }
 
@@ -2153,15 +2214,15 @@ func (c *IAM) DeleteGroupPolicyRequest(input *DeleteGroupPolicyInput) (req *requ
 // API operation DeleteGroupPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -2210,11 +2271,10 @@ func (c *IAM) DeleteInstanceProfileRequest(input *DeleteInstanceProfileInput) (r
 		input = &DeleteInstanceProfileInput{}
 	}
 
+	output = &DeleteInstanceProfileOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteInstanceProfileOutput{}
-	req.Data = output
 	return
 }
 
@@ -2239,19 +2299,19 @@ func (c *IAM) DeleteInstanceProfileRequest(input *DeleteInstanceProfileInput) (r
 // API operation DeleteInstanceProfile for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * DeleteConflict
+//   * ErrCodeDeleteConflictException "DeleteConflict"
 //   The request was rejected because it attempted to delete a resource that has
 //   attached subordinate entities. The error message describes these entities.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -2300,11 +2360,10 @@ func (c *IAM) DeleteLoginProfileRequest(input *DeleteLoginProfileInput) (req *re
 		input = &DeleteLoginProfileInput{}
 	}
 
+	output = &DeleteLoginProfileOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteLoginProfileOutput{}
-	req.Data = output
 	return
 }
 
@@ -2326,21 +2385,21 @@ func (c *IAM) DeleteLoginProfileRequest(input *DeleteLoginProfileInput) (req *re
 // API operation DeleteLoginProfile for usage and error information.
 //
 // Returned Error Codes:
-//   * EntityTemporarilyUnmodifiable
+//   * ErrCodeEntityTemporarilyUnmodifiableException "EntityTemporarilyUnmodifiable"
 //   The request was rejected because it referenced an entity that is temporarily
 //   unmodifiable, such as a user name that was deleted and then recreated. The
 //   error indicates that the request is likely to succeed if you try again after
 //   waiting several minutes. The error message describes the entity.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -2389,11 +2448,10 @@ func (c *IAM) DeleteOpenIDConnectProviderRequest(input *DeleteOpenIDConnectProvi
 		input = &DeleteOpenIDConnectProviderInput{}
 	}
 
+	output = &DeleteOpenIDConnectProviderOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteOpenIDConnectProviderOutput{}
-	req.Data = output
 	return
 }
 
@@ -2416,15 +2474,15 @@ func (c *IAM) DeleteOpenIDConnectProviderRequest(input *DeleteOpenIDConnectProvi
 // API operation DeleteOpenIDConnectProvider for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -2473,11 +2531,10 @@ func (c *IAM) DeletePolicyRequest(input *DeletePolicyInput) (req *request.Reques
 		input = &DeletePolicyInput{}
 	}
 
+	output = &DeletePolicyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeletePolicyOutput{}
-	req.Data = output
 	return
 }
 
@@ -2515,23 +2572,23 @@ func (c *IAM) DeletePolicyRequest(input *DeletePolicyInput) (req *request.Reques
 // API operation DeletePolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * DeleteConflict
+//   * ErrCodeDeleteConflictException "DeleteConflict"
 //   The request was rejected because it attempted to delete a resource that has
 //   attached subordinate entities. The error message describes these entities.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -2580,11 +2637,10 @@ func (c *IAM) DeletePolicyVersionRequest(input *DeletePolicyVersionInput) (req *
 		input = &DeletePolicyVersionInput{}
 	}
 
+	output = &DeletePolicyVersionOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeletePolicyVersionOutput{}
-	req.Data = output
 	return
 }
 
@@ -2608,23 +2664,23 @@ func (c *IAM) DeletePolicyVersionRequest(input *DeletePolicyVersionInput) (req *
 // API operation DeletePolicyVersion for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * DeleteConflict
+//   * ErrCodeDeleteConflictException "DeleteConflict"
 //   The request was rejected because it attempted to delete a resource that has
 //   attached subordinate entities. The error message describes these entities.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -2673,11 +2729,10 @@ func (c *IAM) DeleteRoleRequest(input *DeleteRoleInput) (req *request.Request, o
 		input = &DeleteRoleInput{}
 	}
 
+	output = &DeleteRoleOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteRoleOutput{}
-	req.Data = output
 	return
 }
 
@@ -2698,19 +2753,19 @@ func (c *IAM) DeleteRoleRequest(input *DeleteRoleInput) (req *request.Request, o
 // API operation DeleteRole for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * DeleteConflict
+//   * ErrCodeDeleteConflictException "DeleteConflict"
 //   The request was rejected because it attempted to delete a resource that has
 //   attached subordinate entities. The error message describes these entities.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -2759,11 +2814,10 @@ func (c *IAM) DeleteRolePolicyRequest(input *DeleteRolePolicyInput) (req *reques
 		input = &DeleteRolePolicyInput{}
 	}
 
+	output = &DeleteRolePolicyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteRolePolicyOutput{}
-	req.Data = output
 	return
 }
 
@@ -2785,15 +2839,15 @@ func (c *IAM) DeleteRolePolicyRequest(input *DeleteRolePolicyInput) (req *reques
 // API operation DeleteRolePolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -2842,11 +2896,10 @@ func (c *IAM) DeleteSAMLProviderRequest(input *DeleteSAMLProviderInput) (req *re
 		input = &DeleteSAMLProviderInput{}
 	}
 
+	output = &DeleteSAMLProviderOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteSAMLProviderOutput{}
-	req.Data = output
 	return
 }
 
@@ -2869,19 +2922,19 @@ func (c *IAM) DeleteSAMLProviderRequest(input *DeleteSAMLProviderInput) (req *re
 // API operation DeleteSAMLProvider for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -2930,11 +2983,10 @@ func (c *IAM) DeleteSSHPublicKeyRequest(input *DeleteSSHPublicKeyInput) (req *re
 		input = &DeleteSSHPublicKeyInput{}
 	}
 
+	output = &DeleteSSHPublicKeyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteSSHPublicKeyOutput{}
-	req.Data = output
 	return
 }
 
@@ -2956,7 +3008,7 @@ func (c *IAM) DeleteSSHPublicKeyRequest(input *DeleteSSHPublicKeyInput) (req *re
 // API operation DeleteSSHPublicKey for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
@@ -3005,11 +3057,10 @@ func (c *IAM) DeleteServerCertificateRequest(input *DeleteServerCertificateInput
 		input = &DeleteServerCertificateInput{}
 	}
 
+	output = &DeleteServerCertificateOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteServerCertificateOutput{}
-	req.Data = output
 	return
 }
 
@@ -3040,25 +3091,93 @@ func (c *IAM) DeleteServerCertificateRequest(input *DeleteServerCertificateInput
 // API operation DeleteServerCertificate for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * DeleteConflict
+//   * ErrCodeDeleteConflictException "DeleteConflict"
 //   The request was rejected because it attempted to delete a resource that has
 //   attached subordinate entities. The error message describes these entities.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/DeleteServerCertificate
 func (c *IAM) DeleteServerCertificate(input *DeleteServerCertificateInput) (*DeleteServerCertificateOutput, error) {
 	req, out := c.DeleteServerCertificateRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opDeleteServiceSpecificCredential = "DeleteServiceSpecificCredential"
+
+// DeleteServiceSpecificCredentialRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteServiceSpecificCredential operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DeleteServiceSpecificCredential for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeleteServiceSpecificCredential method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeleteServiceSpecificCredentialRequest method.
+//    req, resp := client.DeleteServiceSpecificCredentialRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/DeleteServiceSpecificCredential
+func (c *IAM) DeleteServiceSpecificCredentialRequest(input *DeleteServiceSpecificCredentialInput) (req *request.Request, output *DeleteServiceSpecificCredentialOutput) {
+	op := &request.Operation{
+		Name:       opDeleteServiceSpecificCredential,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteServiceSpecificCredentialInput{}
+	}
+
+	output = &DeleteServiceSpecificCredentialOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteServiceSpecificCredential API operation for AWS Identity and Access Management.
+//
+// Deletes the specified service-specific credential.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Identity and Access Management's
+// API operation DeleteServiceSpecificCredential for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
+//   The request was rejected because it referenced an entity that does not exist.
+//   The error message describes the entity.
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/DeleteServiceSpecificCredential
+func (c *IAM) DeleteServiceSpecificCredential(input *DeleteServiceSpecificCredentialInput) (*DeleteServiceSpecificCredentialOutput, error) {
+	req, out := c.DeleteServiceSpecificCredentialRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -3101,11 +3220,10 @@ func (c *IAM) DeleteSigningCertificateRequest(input *DeleteSigningCertificateInp
 		input = &DeleteSigningCertificateInput{}
 	}
 
+	output = &DeleteSigningCertificateOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteSigningCertificateOutput{}
-	req.Data = output
 	return
 }
 
@@ -3126,15 +3244,15 @@ func (c *IAM) DeleteSigningCertificateRequest(input *DeleteSigningCertificateInp
 // API operation DeleteSigningCertificate for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -3183,11 +3301,10 @@ func (c *IAM) DeleteUserRequest(input *DeleteUserInput) (req *request.Request, o
 		input = &DeleteUserInput{}
 	}
 
+	output = &DeleteUserOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteUserOutput{}
-	req.Data = output
 	return
 }
 
@@ -3204,19 +3321,19 @@ func (c *IAM) DeleteUserRequest(input *DeleteUserInput) (req *request.Request, o
 // API operation DeleteUser for usage and error information.
 //
 // Returned Error Codes:
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * DeleteConflict
+//   * ErrCodeDeleteConflictException "DeleteConflict"
 //   The request was rejected because it attempted to delete a resource that has
 //   attached subordinate entities. The error message describes these entities.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -3265,11 +3382,10 @@ func (c *IAM) DeleteUserPolicyRequest(input *DeleteUserPolicyInput) (req *reques
 		input = &DeleteUserPolicyInput{}
 	}
 
+	output = &DeleteUserPolicyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteUserPolicyOutput{}
-	req.Data = output
 	return
 }
 
@@ -3291,15 +3407,15 @@ func (c *IAM) DeleteUserPolicyRequest(input *DeleteUserPolicyInput) (req *reques
 // API operation DeleteUserPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -3348,11 +3464,10 @@ func (c *IAM) DeleteVirtualMFADeviceRequest(input *DeleteVirtualMFADeviceInput) 
 		input = &DeleteVirtualMFADeviceInput{}
 	}
 
+	output = &DeleteVirtualMFADeviceOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteVirtualMFADeviceOutput{}
-	req.Data = output
 	return
 }
 
@@ -3371,19 +3486,19 @@ func (c *IAM) DeleteVirtualMFADeviceRequest(input *DeleteVirtualMFADeviceInput) 
 // API operation DeleteVirtualMFADevice for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * DeleteConflict
+//   * ErrCodeDeleteConflictException "DeleteConflict"
 //   The request was rejected because it attempted to delete a resource that has
 //   attached subordinate entities. The error message describes these entities.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -3432,11 +3547,10 @@ func (c *IAM) DetachGroupPolicyRequest(input *DetachGroupPolicyInput) (req *requ
 		input = &DetachGroupPolicyInput{}
 	}
 
+	output = &DetachGroupPolicyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DetachGroupPolicyOutput{}
-	req.Data = output
 	return
 }
 
@@ -3457,19 +3571,19 @@ func (c *IAM) DetachGroupPolicyRequest(input *DetachGroupPolicyInput) (req *requ
 // API operation DetachGroupPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -3518,11 +3632,10 @@ func (c *IAM) DetachRolePolicyRequest(input *DetachRolePolicyInput) (req *reques
 		input = &DetachRolePolicyInput{}
 	}
 
+	output = &DetachRolePolicyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DetachRolePolicyOutput{}
-	req.Data = output
 	return
 }
 
@@ -3543,19 +3656,19 @@ func (c *IAM) DetachRolePolicyRequest(input *DetachRolePolicyInput) (req *reques
 // API operation DetachRolePolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -3604,11 +3717,10 @@ func (c *IAM) DetachUserPolicyRequest(input *DetachUserPolicyInput) (req *reques
 		input = &DetachUserPolicyInput{}
 	}
 
+	output = &DetachUserPolicyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DetachUserPolicyOutput{}
-	req.Data = output
 	return
 }
 
@@ -3629,19 +3741,19 @@ func (c *IAM) DetachUserPolicyRequest(input *DetachUserPolicyInput) (req *reques
 // API operation DetachUserPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -3690,11 +3802,10 @@ func (c *IAM) EnableMFADeviceRequest(input *EnableMFADeviceInput) (req *request.
 		input = &EnableMFADeviceInput{}
 	}
 
+	output = &EnableMFADeviceOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &EnableMFADeviceOutput{}
-	req.Data = output
 	return
 }
 
@@ -3712,29 +3823,29 @@ func (c *IAM) EnableMFADeviceRequest(input *EnableMFADeviceInput) (req *request.
 // API operation EnableMFADevice for usage and error information.
 //
 // Returned Error Codes:
-//   * EntityAlreadyExists
+//   * ErrCodeEntityAlreadyExistsException "EntityAlreadyExists"
 //   The request was rejected because it attempted to create a resource that already
 //   exists.
 //
-//   * EntityTemporarilyUnmodifiable
+//   * ErrCodeEntityTemporarilyUnmodifiableException "EntityTemporarilyUnmodifiable"
 //   The request was rejected because it referenced an entity that is temporarily
 //   unmodifiable, such as a user name that was deleted and then recreated. The
 //   error indicates that the request is likely to succeed if you try again after
 //   waiting several minutes. The error message describes the entity.
 //
-//   * InvalidAuthenticationCode
+//   * ErrCodeInvalidAuthenticationCodeException "InvalidAuthenticationCode"
 //   The request was rejected because the authentication code was not recognized.
 //   The error message describes the specific error.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -3783,9 +3894,8 @@ func (c *IAM) GenerateCredentialReportRequest(input *GenerateCredentialReportInp
 		input = &GenerateCredentialReportInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GenerateCredentialReportOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3803,11 +3913,11 @@ func (c *IAM) GenerateCredentialReportRequest(input *GenerateCredentialReportInp
 // API operation GenerateCredentialReport for usage and error information.
 //
 // Returned Error Codes:
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -3856,9 +3966,8 @@ func (c *IAM) GetAccessKeyLastUsedRequest(input *GetAccessKeyLastUsedInput) (req
 		input = &GetAccessKeyLastUsedInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetAccessKeyLastUsedOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3877,7 +3986,7 @@ func (c *IAM) GetAccessKeyLastUsedRequest(input *GetAccessKeyLastUsedInput) (req
 // API operation GetAccessKeyLastUsed for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
@@ -3932,9 +4041,8 @@ func (c *IAM) GetAccountAuthorizationDetailsRequest(input *GetAccountAuthorizati
 		input = &GetAccountAuthorizationDetailsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetAccountAuthorizationDetailsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -3956,7 +4064,7 @@ func (c *IAM) GetAccountAuthorizationDetailsRequest(input *GetAccountAuthorizati
 // API operation GetAccountAuthorizationDetails for usage and error information.
 //
 // Returned Error Codes:
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -4030,9 +4138,8 @@ func (c *IAM) GetAccountPasswordPolicyRequest(input *GetAccountPasswordPolicyInp
 		input = &GetAccountPasswordPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetAccountPasswordPolicyOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4049,11 +4156,11 @@ func (c *IAM) GetAccountPasswordPolicyRequest(input *GetAccountPasswordPolicyInp
 // API operation GetAccountPasswordPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -4102,9 +4209,8 @@ func (c *IAM) GetAccountSummaryRequest(input *GetAccountSummaryInput) (req *requ
 		input = &GetAccountSummaryInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetAccountSummaryOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4124,7 +4230,7 @@ func (c *IAM) GetAccountSummaryRequest(input *GetAccountSummaryInput) (req *requ
 // API operation GetAccountSummary for usage and error information.
 //
 // Returned Error Codes:
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -4173,9 +4279,8 @@ func (c *IAM) GetContextKeysForCustomPolicyRequest(input *GetContextKeysForCusto
 		input = &GetContextKeysForCustomPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetContextKeysForPolicyResponse{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4200,7 +4305,7 @@ func (c *IAM) GetContextKeysForCustomPolicyRequest(input *GetContextKeysForCusto
 // API operation GetContextKeysForCustomPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
@@ -4249,9 +4354,8 @@ func (c *IAM) GetContextKeysForPrincipalPolicyRequest(input *GetContextKeysForPr
 		input = &GetContextKeysForPrincipalPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetContextKeysForPolicyResponse{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4283,11 +4387,11 @@ func (c *IAM) GetContextKeysForPrincipalPolicyRequest(input *GetContextKeysForPr
 // API operation GetContextKeysForPrincipalPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
@@ -4336,9 +4440,8 @@ func (c *IAM) GetCredentialReportRequest(input *GetCredentialReportInput) (req *
 		input = &GetCredentialReportInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetCredentialReportOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4356,21 +4459,21 @@ func (c *IAM) GetCredentialReportRequest(input *GetCredentialReportInput) (req *
 // API operation GetCredentialReport for usage and error information.
 //
 // Returned Error Codes:
-//   * ReportNotPresent
+//   * ErrCodeCredentialReportNotPresentException "ReportNotPresent"
 //   The request was rejected because the credential report does not exist. To
 //   generate a credential report, use GenerateCredentialReport.
 //
-//   * ReportExpired
+//   * ErrCodeCredentialReportExpiredException "ReportExpired"
 //   The request was rejected because the most recent credential report has expired.
 //   To generate a new credential report, use GenerateCredentialReport. For more
 //   information about credential report expiration, see Getting Credential Reports
 //   (http://docs.aws.amazon.com/IAM/latest/UserGuide/credential-reports.html)
 //   in the IAM User Guide.
 //
-//   * ReportInProgress
+//   * ErrCodeCredentialReportNotReadyException "ReportInProgress"
 //   The request was rejected because the credential report is still being generated.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -4425,9 +4528,8 @@ func (c *IAM) GetGroupRequest(input *GetGroupInput) (req *request.Request, outpu
 		input = &GetGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetGroupOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4444,11 +4546,11 @@ func (c *IAM) GetGroupRequest(input *GetGroupInput) (req *request.Request, outpu
 // API operation GetGroup for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -4522,9 +4624,8 @@ func (c *IAM) GetGroupPolicyRequest(input *GetGroupPolicyInput) (req *request.Re
 		input = &GetGroupPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetGroupPolicyOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4556,11 +4657,11 @@ func (c *IAM) GetGroupPolicyRequest(input *GetGroupPolicyInput) (req *request.Re
 // API operation GetGroupPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -4609,9 +4710,8 @@ func (c *IAM) GetInstanceProfileRequest(input *GetInstanceProfileInput) (req *re
 		input = &GetInstanceProfileInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetInstanceProfileOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4630,11 +4730,11 @@ func (c *IAM) GetInstanceProfileRequest(input *GetInstanceProfileInput) (req *re
 // API operation GetInstanceProfile for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -4683,9 +4783,8 @@ func (c *IAM) GetLoginProfileRequest(input *GetLoginProfileInput) (req *request.
 		input = &GetLoginProfileInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetLoginProfileOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4703,11 +4802,11 @@ func (c *IAM) GetLoginProfileRequest(input *GetLoginProfileInput) (req *request.
 // API operation GetLoginProfile for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -4756,9 +4855,8 @@ func (c *IAM) GetOpenIDConnectProviderRequest(input *GetOpenIDConnectProviderInp
 		input = &GetOpenIDConnectProviderInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetOpenIDConnectProviderOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4775,15 +4873,15 @@ func (c *IAM) GetOpenIDConnectProviderRequest(input *GetOpenIDConnectProviderInp
 // API operation GetOpenIDConnectProvider for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -4832,9 +4930,8 @@ func (c *IAM) GetPolicyRequest(input *GetPolicyInput) (req *request.Request, out
 		input = &GetPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetPolicyOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4863,15 +4960,15 @@ func (c *IAM) GetPolicyRequest(input *GetPolicyInput) (req *request.Request, out
 // API operation GetPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -4920,9 +5017,8 @@ func (c *IAM) GetPolicyVersionRequest(input *GetPolicyVersionInput) (req *reques
 		input = &GetPolicyVersionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetPolicyVersionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -4959,15 +5055,15 @@ func (c *IAM) GetPolicyVersionRequest(input *GetPolicyVersionInput) (req *reques
 // API operation GetPolicyVersion for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -5016,9 +5112,8 @@ func (c *IAM) GetRoleRequest(input *GetRoleInput) (req *request.Request, output 
 		input = &GetRoleInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetRoleOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -5042,11 +5137,11 @@ func (c *IAM) GetRoleRequest(input *GetRoleInput) (req *request.Request, output 
 // API operation GetRole for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -5095,9 +5190,8 @@ func (c *IAM) GetRolePolicyRequest(input *GetRolePolicyInput) (req *request.Requ
 		input = &GetRolePolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetRolePolicyOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -5132,11 +5226,11 @@ func (c *IAM) GetRolePolicyRequest(input *GetRolePolicyInput) (req *request.Requ
 // API operation GetRolePolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -5185,9 +5279,8 @@ func (c *IAM) GetSAMLProviderRequest(input *GetSAMLProviderInput) (req *request.
 		input = &GetSAMLProviderInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetSAMLProviderOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -5206,15 +5299,15 @@ func (c *IAM) GetSAMLProviderRequest(input *GetSAMLProviderInput) (req *request.
 // API operation GetSAMLProvider for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -5263,9 +5356,8 @@ func (c *IAM) GetSSHPublicKeyRequest(input *GetSSHPublicKeyInput) (req *request.
 		input = &GetSSHPublicKeyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetSSHPublicKeyOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -5287,11 +5379,11 @@ func (c *IAM) GetSSHPublicKeyRequest(input *GetSSHPublicKeyInput) (req *request.
 // API operation GetSSHPublicKey for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * UnrecognizedPublicKeyEncoding
+//   * ErrCodeUnrecognizedPublicKeyEncodingException "UnrecognizedPublicKeyEncoding"
 //   The request was rejected because the public key encoding format is unsupported
 //   or unrecognized.
 //
@@ -5340,9 +5432,8 @@ func (c *IAM) GetServerCertificateRequest(input *GetServerCertificateInput) (req
 		input = &GetServerCertificateInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetServerCertificateOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -5363,11 +5454,11 @@ func (c *IAM) GetServerCertificateRequest(input *GetServerCertificateInput) (req
 // API operation GetServerCertificate for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -5416,9 +5507,8 @@ func (c *IAM) GetUserRequest(input *GetUserInput) (req *request.Request, output 
 		input = &GetUserInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetUserOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -5438,11 +5528,11 @@ func (c *IAM) GetUserRequest(input *GetUserInput) (req *request.Request, output 
 // API operation GetUser for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -5491,9 +5581,8 @@ func (c *IAM) GetUserPolicyRequest(input *GetUserPolicyInput) (req *request.Requ
 		input = &GetUserPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetUserPolicyOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -5525,11 +5614,11 @@ func (c *IAM) GetUserPolicyRequest(input *GetUserPolicyInput) (req *request.Requ
 // API operation GetUserPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -5584,9 +5673,8 @@ func (c *IAM) ListAccessKeysRequest(input *ListAccessKeysInput) (req *request.Re
 		input = &ListAccessKeysInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListAccessKeysOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -5614,11 +5702,11 @@ func (c *IAM) ListAccessKeysRequest(input *ListAccessKeysInput) (req *request.Re
 // API operation ListAccessKeys for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -5698,9 +5786,8 @@ func (c *IAM) ListAccountAliasesRequest(input *ListAccountAliasesInput) (req *re
 		input = &ListAccountAliasesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListAccountAliasesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -5719,7 +5806,7 @@ func (c *IAM) ListAccountAliasesRequest(input *ListAccountAliasesInput) (req *re
 // API operation ListAccountAliases for usage and error information.
 //
 // Returned Error Codes:
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -5799,9 +5886,8 @@ func (c *IAM) ListAttachedGroupPoliciesRequest(input *ListAttachedGroupPoliciesI
 		input = &ListAttachedGroupPoliciesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListAttachedGroupPoliciesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -5828,15 +5914,15 @@ func (c *IAM) ListAttachedGroupPoliciesRequest(input *ListAttachedGroupPoliciesI
 // API operation ListAttachedGroupPolicies for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -5916,9 +6002,8 @@ func (c *IAM) ListAttachedRolePoliciesRequest(input *ListAttachedRolePoliciesInp
 		input = &ListAttachedRolePoliciesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListAttachedRolePoliciesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -5945,15 +6030,15 @@ func (c *IAM) ListAttachedRolePoliciesRequest(input *ListAttachedRolePoliciesInp
 // API operation ListAttachedRolePolicies for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -6033,9 +6118,8 @@ func (c *IAM) ListAttachedUserPoliciesRequest(input *ListAttachedUserPoliciesInp
 		input = &ListAttachedUserPoliciesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListAttachedUserPoliciesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -6062,15 +6146,15 @@ func (c *IAM) ListAttachedUserPoliciesRequest(input *ListAttachedUserPoliciesInp
 // API operation ListAttachedUserPolicies for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -6150,9 +6234,8 @@ func (c *IAM) ListEntitiesForPolicyRequest(input *ListEntitiesForPolicyInput) (r
 		input = &ListEntitiesForPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListEntitiesForPolicyOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -6176,15 +6259,15 @@ func (c *IAM) ListEntitiesForPolicyRequest(input *ListEntitiesForPolicyInput) (r
 // API operation ListEntitiesForPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -6264,9 +6347,8 @@ func (c *IAM) ListGroupPoliciesRequest(input *ListGroupPoliciesInput) (req *requ
 		input = &ListGroupPoliciesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListGroupPoliciesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -6293,11 +6375,11 @@ func (c *IAM) ListGroupPoliciesRequest(input *ListGroupPoliciesInput) (req *requ
 // API operation ListGroupPolicies for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -6377,9 +6459,8 @@ func (c *IAM) ListGroupsRequest(input *ListGroupsInput) (req *request.Request, o
 		input = &ListGroupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListGroupsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -6397,7 +6478,7 @@ func (c *IAM) ListGroupsRequest(input *ListGroupsInput) (req *request.Request, o
 // API operation ListGroups for usage and error information.
 //
 // Returned Error Codes:
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -6477,9 +6558,8 @@ func (c *IAM) ListGroupsForUserRequest(input *ListGroupsForUserInput) (req *requ
 		input = &ListGroupsForUserInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListGroupsForUserOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -6497,11 +6577,11 @@ func (c *IAM) ListGroupsForUserRequest(input *ListGroupsForUserInput) (req *requ
 // API operation ListGroupsForUser for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -6581,9 +6661,8 @@ func (c *IAM) ListInstanceProfilesRequest(input *ListInstanceProfilesInput) (req
 		input = &ListInstanceProfilesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListInstanceProfilesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -6603,7 +6682,7 @@ func (c *IAM) ListInstanceProfilesRequest(input *ListInstanceProfilesInput) (req
 // API operation ListInstanceProfiles for usage and error information.
 //
 // Returned Error Codes:
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -6683,9 +6762,8 @@ func (c *IAM) ListInstanceProfilesForRoleRequest(input *ListInstanceProfilesForR
 		input = &ListInstanceProfilesForRoleInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListInstanceProfilesForRoleOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -6705,11 +6783,11 @@ func (c *IAM) ListInstanceProfilesForRoleRequest(input *ListInstanceProfilesForR
 // API operation ListInstanceProfilesForRole for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -6789,9 +6867,8 @@ func (c *IAM) ListMFADevicesRequest(input *ListMFADevicesInput) (req *request.Re
 		input = &ListMFADevicesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListMFADevicesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -6812,11 +6889,11 @@ func (c *IAM) ListMFADevicesRequest(input *ListMFADevicesInput) (req *request.Re
 // API operation ListMFADevices for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -6890,9 +6967,8 @@ func (c *IAM) ListOpenIDConnectProvidersRequest(input *ListOpenIDConnectProvider
 		input = &ListOpenIDConnectProvidersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListOpenIDConnectProvidersOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -6909,7 +6985,7 @@ func (c *IAM) ListOpenIDConnectProvidersRequest(input *ListOpenIDConnectProvider
 // API operation ListOpenIDConnectProviders for usage and error information.
 //
 // Returned Error Codes:
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -6964,9 +7040,8 @@ func (c *IAM) ListPoliciesRequest(input *ListPoliciesInput) (req *request.Reques
 		input = &ListPoliciesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListPoliciesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -6994,7 +7069,7 @@ func (c *IAM) ListPoliciesRequest(input *ListPoliciesInput) (req *request.Reques
 // API operation ListPolicies for usage and error information.
 //
 // Returned Error Codes:
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -7074,9 +7149,8 @@ func (c *IAM) ListPolicyVersionsRequest(input *ListPolicyVersionsInput) (req *re
 		input = &ListPolicyVersionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListPolicyVersionsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -7097,15 +7171,15 @@ func (c *IAM) ListPolicyVersionsRequest(input *ListPolicyVersionsInput) (req *re
 // API operation ListPolicyVersions for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -7185,9 +7259,8 @@ func (c *IAM) ListRolePoliciesRequest(input *ListRolePoliciesInput) (req *reques
 		input = &ListRolePoliciesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListRolePoliciesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -7213,11 +7286,11 @@ func (c *IAM) ListRolePoliciesRequest(input *ListRolePoliciesInput) (req *reques
 // API operation ListRolePolicies for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -7297,9 +7370,8 @@ func (c *IAM) ListRolesRequest(input *ListRolesInput) (req *request.Request, out
 		input = &ListRolesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListRolesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -7319,7 +7391,7 @@ func (c *IAM) ListRolesRequest(input *ListRolesInput) (req *request.Request, out
 // API operation ListRoles for usage and error information.
 //
 // Returned Error Codes:
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -7393,9 +7465,8 @@ func (c *IAM) ListSAMLProvidersRequest(input *ListSAMLProvidersInput) (req *requ
 		input = &ListSAMLProvidersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListSAMLProvidersOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -7413,7 +7484,7 @@ func (c *IAM) ListSAMLProvidersRequest(input *ListSAMLProvidersInput) (req *requ
 // API operation ListSAMLProviders for usage and error information.
 //
 // Returned Error Codes:
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -7468,9 +7539,8 @@ func (c *IAM) ListSSHPublicKeysRequest(input *ListSSHPublicKeysInput) (req *requ
 		input = &ListSSHPublicKeysInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListSSHPublicKeysOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -7496,7 +7566,7 @@ func (c *IAM) ListSSHPublicKeysRequest(input *ListSSHPublicKeysInput) (req *requ
 // API operation ListSSHPublicKeys for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
@@ -7576,9 +7646,8 @@ func (c *IAM) ListServerCertificatesRequest(input *ListServerCertificatesInput) 
 		input = &ListServerCertificatesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListServerCertificatesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -7602,7 +7671,7 @@ func (c *IAM) ListServerCertificatesRequest(input *ListServerCertificatesInput) 
 // API operation ListServerCertificates for usage and error information.
 //
 // Returned Error Codes:
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -7636,6 +7705,81 @@ func (c *IAM) ListServerCertificatesPages(input *ListServerCertificatesInput, fn
 	return page.EachPage(func(p interface{}, lastPage bool) bool {
 		return fn(p.(*ListServerCertificatesOutput), lastPage)
 	})
+}
+
+const opListServiceSpecificCredentials = "ListServiceSpecificCredentials"
+
+// ListServiceSpecificCredentialsRequest generates a "aws/request.Request" representing the
+// client's request for the ListServiceSpecificCredentials operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See ListServiceSpecificCredentials for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ListServiceSpecificCredentials method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ListServiceSpecificCredentialsRequest method.
+//    req, resp := client.ListServiceSpecificCredentialsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/ListServiceSpecificCredentials
+func (c *IAM) ListServiceSpecificCredentialsRequest(input *ListServiceSpecificCredentialsInput) (req *request.Request, output *ListServiceSpecificCredentialsOutput) {
+	op := &request.Operation{
+		Name:       opListServiceSpecificCredentials,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListServiceSpecificCredentialsInput{}
+	}
+
+	output = &ListServiceSpecificCredentialsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListServiceSpecificCredentials API operation for AWS Identity and Access Management.
+//
+// Returns information about the service-specific credentials associated with
+// the specified IAM user. If there are none, the action returns an empty list.
+// The service-specific credentials returned by this action are used only for
+// authenticating the IAM user to a specific service. For more information about
+// using service-specific credentials to authenticate to an AWS service, see
+// Set Up service-specific credentials (http://docs.aws.amazon.com/codecommit/latest/userguide/setting-up-gc.html)
+// in the AWS CodeCommit User Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Identity and Access Management's
+// API operation ListServiceSpecificCredentials for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
+//   The request was rejected because it referenced an entity that does not exist.
+//   The error message describes the entity.
+//
+//   * ErrCodeServiceNotSupportedException "NotSupportedService"
+//   The specified service does not support service-specific credentials.
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/ListServiceSpecificCredentials
+func (c *IAM) ListServiceSpecificCredentials(input *ListServiceSpecificCredentialsInput) (*ListServiceSpecificCredentialsOutput, error) {
+	req, out := c.ListServiceSpecificCredentialsRequest(input)
+	err := req.Send()
+	return out, err
 }
 
 const opListSigningCertificates = "ListSigningCertificates"
@@ -7682,9 +7826,8 @@ func (c *IAM) ListSigningCertificatesRequest(input *ListSigningCertificatesInput
 		input = &ListSigningCertificatesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListSigningCertificatesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -7710,11 +7853,11 @@ func (c *IAM) ListSigningCertificatesRequest(input *ListSigningCertificatesInput
 // API operation ListSigningCertificates for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -7794,9 +7937,8 @@ func (c *IAM) ListUserPoliciesRequest(input *ListUserPoliciesInput) (req *reques
 		input = &ListUserPoliciesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListUserPoliciesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -7821,11 +7963,11 @@ func (c *IAM) ListUserPoliciesRequest(input *ListUserPoliciesInput) (req *reques
 // API operation ListUserPolicies for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -7905,9 +8047,8 @@ func (c *IAM) ListUsersRequest(input *ListUsersInput) (req *request.Request, out
 		input = &ListUsersInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListUsersOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -7927,7 +8068,7 @@ func (c *IAM) ListUsersRequest(input *ListUsersInput) (req *request.Request, out
 // API operation ListUsers for usage and error information.
 //
 // Returned Error Codes:
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -8007,9 +8148,8 @@ func (c *IAM) ListVirtualMFADevicesRequest(input *ListVirtualMFADevicesInput) (r
 		input = &ListVirtualMFADevicesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListVirtualMFADevicesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -8098,11 +8238,10 @@ func (c *IAM) PutGroupPolicyRequest(input *PutGroupPolicyInput) (req *request.Re
 		input = &PutGroupPolicyInput{}
 	}
 
+	output = &PutGroupPolicyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &PutGroupPolicyOutput{}
-	req.Data = output
 	return
 }
 
@@ -8134,19 +8273,19 @@ func (c *IAM) PutGroupPolicyRequest(input *PutGroupPolicyInput) (req *request.Re
 // API operation PutGroupPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * MalformedPolicyDocument
+//   * ErrCodeMalformedPolicyDocumentException "MalformedPolicyDocument"
 //   The request was rejected because the policy document was malformed. The error
 //   message describes the specific error.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -8195,11 +8334,10 @@ func (c *IAM) PutRolePolicyRequest(input *PutRolePolicyInput) (req *request.Requ
 		input = &PutRolePolicyInput{}
 	}
 
+	output = &PutRolePolicyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &PutRolePolicyOutput{}
-	req.Data = output
 	return
 }
 
@@ -8237,19 +8375,19 @@ func (c *IAM) PutRolePolicyRequest(input *PutRolePolicyInput) (req *request.Requ
 // API operation PutRolePolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * MalformedPolicyDocument
+//   * ErrCodeMalformedPolicyDocumentException "MalformedPolicyDocument"
 //   The request was rejected because the policy document was malformed. The error
 //   message describes the specific error.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -8298,11 +8436,10 @@ func (c *IAM) PutUserPolicyRequest(input *PutUserPolicyInput) (req *request.Requ
 		input = &PutUserPolicyInput{}
 	}
 
+	output = &PutUserPolicyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &PutUserPolicyOutput{}
-	req.Data = output
 	return
 }
 
@@ -8334,19 +8471,19 @@ func (c *IAM) PutUserPolicyRequest(input *PutUserPolicyInput) (req *request.Requ
 // API operation PutUserPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * MalformedPolicyDocument
+//   * ErrCodeMalformedPolicyDocumentException "MalformedPolicyDocument"
 //   The request was rejected because the policy document was malformed. The error
 //   message describes the specific error.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -8395,11 +8532,10 @@ func (c *IAM) RemoveClientIDFromOpenIDConnectProviderRequest(input *RemoveClient
 		input = &RemoveClientIDFromOpenIDConnectProviderInput{}
 	}
 
+	output = &RemoveClientIDFromOpenIDConnectProviderOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &RemoveClientIDFromOpenIDConnectProviderOutput{}
-	req.Data = output
 	return
 }
 
@@ -8420,15 +8556,15 @@ func (c *IAM) RemoveClientIDFromOpenIDConnectProviderRequest(input *RemoveClient
 // API operation RemoveClientIDFromOpenIDConnectProvider for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -8477,11 +8613,10 @@ func (c *IAM) RemoveRoleFromInstanceProfileRequest(input *RemoveRoleFromInstance
 		input = &RemoveRoleFromInstanceProfileInput{}
 	}
 
+	output = &RemoveRoleFromInstanceProfileOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &RemoveRoleFromInstanceProfileOutput{}
-	req.Data = output
 	return
 }
 
@@ -8506,15 +8641,15 @@ func (c *IAM) RemoveRoleFromInstanceProfileRequest(input *RemoveRoleFromInstance
 // API operation RemoveRoleFromInstanceProfile for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -8563,11 +8698,10 @@ func (c *IAM) RemoveUserFromGroupRequest(input *RemoveUserFromGroupInput) (req *
 		input = &RemoveUserFromGroupInput{}
 	}
 
+	output = &RemoveUserFromGroupOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &RemoveUserFromGroupOutput{}
-	req.Data = output
 	return
 }
 
@@ -8583,21 +8717,90 @@ func (c *IAM) RemoveUserFromGroupRequest(input *RemoveUserFromGroupInput) (req *
 // API operation RemoveUserFromGroup for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/RemoveUserFromGroup
 func (c *IAM) RemoveUserFromGroup(input *RemoveUserFromGroupInput) (*RemoveUserFromGroupOutput, error) {
 	req, out := c.RemoveUserFromGroupRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opResetServiceSpecificCredential = "ResetServiceSpecificCredential"
+
+// ResetServiceSpecificCredentialRequest generates a "aws/request.Request" representing the
+// client's request for the ResetServiceSpecificCredential operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See ResetServiceSpecificCredential for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ResetServiceSpecificCredential method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ResetServiceSpecificCredentialRequest method.
+//    req, resp := client.ResetServiceSpecificCredentialRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/ResetServiceSpecificCredential
+func (c *IAM) ResetServiceSpecificCredentialRequest(input *ResetServiceSpecificCredentialInput) (req *request.Request, output *ResetServiceSpecificCredentialOutput) {
+	op := &request.Operation{
+		Name:       opResetServiceSpecificCredential,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ResetServiceSpecificCredentialInput{}
+	}
+
+	output = &ResetServiceSpecificCredentialOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ResetServiceSpecificCredential API operation for AWS Identity and Access Management.
+//
+// Resets the password for a service-specific credential. The new password is
+// AWS generated and cryptographically strong. It cannot be configured by the
+// user. Resetting the password immediately invalidates the previous password
+// associated with this user.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Identity and Access Management's
+// API operation ResetServiceSpecificCredential for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
+//   The request was rejected because it referenced an entity that does not exist.
+//   The error message describes the entity.
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/ResetServiceSpecificCredential
+func (c *IAM) ResetServiceSpecificCredential(input *ResetServiceSpecificCredentialInput) (*ResetServiceSpecificCredentialOutput, error) {
+	req, out := c.ResetServiceSpecificCredentialRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -8640,11 +8843,10 @@ func (c *IAM) ResyncMFADeviceRequest(input *ResyncMFADeviceInput) (req *request.
 		input = &ResyncMFADeviceInput{}
 	}
 
+	output = &ResyncMFADeviceOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &ResyncMFADeviceOutput{}
-	req.Data = output
 	return
 }
 
@@ -8665,19 +8867,19 @@ func (c *IAM) ResyncMFADeviceRequest(input *ResyncMFADeviceInput) (req *request.
 // API operation ResyncMFADevice for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidAuthenticationCode
+//   * ErrCodeInvalidAuthenticationCodeException "InvalidAuthenticationCode"
 //   The request was rejected because the authentication code was not recognized.
 //   The error message describes the specific error.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -8726,11 +8928,10 @@ func (c *IAM) SetDefaultPolicyVersionRequest(input *SetDefaultPolicyVersionInput
 		input = &SetDefaultPolicyVersionInput{}
 	}
 
+	output = &SetDefaultPolicyVersionOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &SetDefaultPolicyVersionOutput{}
-	req.Data = output
 	return
 }
 
@@ -8755,19 +8956,19 @@ func (c *IAM) SetDefaultPolicyVersionRequest(input *SetDefaultPolicyVersionInput
 // API operation SetDefaultPolicyVersion for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -8822,9 +9023,8 @@ func (c *IAM) SimulateCustomPolicyRequest(input *SimulateCustomPolicyInput) (req
 		input = &SimulateCustomPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &SimulatePolicyResponse{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -8856,11 +9056,11 @@ func (c *IAM) SimulateCustomPolicyRequest(input *SimulateCustomPolicyInput) (req
 // API operation SimulateCustomPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * PolicyEvaluation
+//   * ErrCodePolicyEvaluationException "PolicyEvaluation"
 //   The request failed because a provided policy could not be successfully evaluated.
 //   An additional detail message indicates the source of the failure.
 //
@@ -8940,9 +9140,8 @@ func (c *IAM) SimulatePrincipalPolicyRequest(input *SimulatePrincipalPolicyInput
 		input = &SimulatePrincipalPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &SimulatePolicyResponse{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -8984,15 +9183,15 @@ func (c *IAM) SimulatePrincipalPolicyRequest(input *SimulatePrincipalPolicyInput
 // API operation SimulatePrincipalPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * PolicyEvaluation
+//   * ErrCodePolicyEvaluationException "PolicyEvaluation"
 //   The request failed because a provided policy could not be successfully evaluated.
 //   An additional detail message indicates the source of the failure.
 //
@@ -9066,11 +9265,10 @@ func (c *IAM) UpdateAccessKeyRequest(input *UpdateAccessKeyInput) (req *request.
 		input = &UpdateAccessKeyInput{}
 	}
 
+	output = &UpdateAccessKeyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &UpdateAccessKeyOutput{}
-	req.Data = output
 	return
 }
 
@@ -9096,15 +9294,15 @@ func (c *IAM) UpdateAccessKeyRequest(input *UpdateAccessKeyInput) (req *request.
 // API operation UpdateAccessKey for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -9153,11 +9351,10 @@ func (c *IAM) UpdateAccountPasswordPolicyRequest(input *UpdateAccountPasswordPol
 		input = &UpdateAccountPasswordPolicyInput{}
 	}
 
+	output = &UpdateAccountPasswordPolicyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &UpdateAccountPasswordPolicyOutput{}
-	req.Data = output
 	return
 }
 
@@ -9182,19 +9379,19 @@ func (c *IAM) UpdateAccountPasswordPolicyRequest(input *UpdateAccountPasswordPol
 // API operation UpdateAccountPasswordPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * MalformedPolicyDocument
+//   * ErrCodeMalformedPolicyDocumentException "MalformedPolicyDocument"
 //   The request was rejected because the policy document was malformed. The error
 //   message describes the specific error.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -9243,11 +9440,10 @@ func (c *IAM) UpdateAssumeRolePolicyRequest(input *UpdateAssumeRolePolicyInput) 
 		input = &UpdateAssumeRolePolicyInput{}
 	}
 
+	output = &UpdateAssumeRolePolicyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &UpdateAssumeRolePolicyOutput{}
-	req.Data = output
 	return
 }
 
@@ -9266,19 +9462,19 @@ func (c *IAM) UpdateAssumeRolePolicyRequest(input *UpdateAssumeRolePolicyInput) 
 // API operation UpdateAssumeRolePolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * MalformedPolicyDocument
+//   * ErrCodeMalformedPolicyDocumentException "MalformedPolicyDocument"
 //   The request was rejected because the policy document was malformed. The error
 //   message describes the specific error.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -9327,11 +9523,10 @@ func (c *IAM) UpdateGroupRequest(input *UpdateGroupInput) (req *request.Request,
 		input = &UpdateGroupInput{}
 	}
 
+	output = &UpdateGroupOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &UpdateGroupOutput{}
-	req.Data = output
 	return
 }
 
@@ -9357,19 +9552,19 @@ func (c *IAM) UpdateGroupRequest(input *UpdateGroupInput) (req *request.Request,
 // API operation UpdateGroup for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * EntityAlreadyExists
+//   * ErrCodeEntityAlreadyExistsException "EntityAlreadyExists"
 //   The request was rejected because it attempted to create a resource that already
 //   exists.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -9418,11 +9613,10 @@ func (c *IAM) UpdateLoginProfileRequest(input *UpdateLoginProfileInput) (req *re
 		input = &UpdateLoginProfileInput{}
 	}
 
+	output = &UpdateLoginProfileOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &UpdateLoginProfileOutput{}
-	req.Data = output
 	return
 }
 
@@ -9442,25 +9636,25 @@ func (c *IAM) UpdateLoginProfileRequest(input *UpdateLoginProfileInput) (req *re
 // API operation UpdateLoginProfile for usage and error information.
 //
 // Returned Error Codes:
-//   * EntityTemporarilyUnmodifiable
+//   * ErrCodeEntityTemporarilyUnmodifiableException "EntityTemporarilyUnmodifiable"
 //   The request was rejected because it referenced an entity that is temporarily
 //   unmodifiable, such as a user name that was deleted and then recreated. The
 //   error indicates that the request is likely to succeed if you try again after
 //   waiting several minutes. The error message describes the entity.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * PasswordPolicyViolation
+//   * ErrCodePasswordPolicyViolationException "PasswordPolicyViolation"
 //   The request was rejected because the provided password did not meet the requirements
 //   imposed by the account password policy.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -9509,11 +9703,10 @@ func (c *IAM) UpdateOpenIDConnectProviderThumbprintRequest(input *UpdateOpenIDCo
 		input = &UpdateOpenIDConnectProviderThumbprintInput{}
 	}
 
+	output = &UpdateOpenIDConnectProviderThumbprintOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &UpdateOpenIDConnectProviderThumbprintOutput{}
-	req.Data = output
 	return
 }
 
@@ -9543,15 +9736,15 @@ func (c *IAM) UpdateOpenIDConnectProviderThumbprintRequest(input *UpdateOpenIDCo
 // API operation UpdateOpenIDConnectProviderThumbprint for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -9600,9 +9793,8 @@ func (c *IAM) UpdateSAMLProviderRequest(input *UpdateSAMLProviderInput) (req *re
 		input = &UpdateSAMLProviderInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateSAMLProviderOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -9620,19 +9812,19 @@ func (c *IAM) UpdateSAMLProviderRequest(input *UpdateSAMLProviderInput) (req *re
 // API operation UpdateSAMLProvider for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * InvalidInput
+//   * ErrCodeInvalidInputException "InvalidInput"
 //   The request was rejected because an invalid or out-of-range value was supplied
 //   for an input parameter.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -9681,11 +9873,10 @@ func (c *IAM) UpdateSSHPublicKeyRequest(input *UpdateSSHPublicKeyInput) (req *re
 		input = &UpdateSSHPublicKeyInput{}
 	}
 
+	output = &UpdateSSHPublicKeyOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &UpdateSSHPublicKeyOutput{}
-	req.Data = output
 	return
 }
 
@@ -9710,7 +9901,7 @@ func (c *IAM) UpdateSSHPublicKeyRequest(input *UpdateSSHPublicKeyInput) (req *re
 // API operation UpdateSSHPublicKey for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
@@ -9759,11 +9950,10 @@ func (c *IAM) UpdateServerCertificateRequest(input *UpdateServerCertificateInput
 		input = &UpdateServerCertificateInput{}
 	}
 
+	output = &UpdateServerCertificateOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &UpdateServerCertificateOutput{}
-	req.Data = output
 	return
 }
 
@@ -9797,25 +9987,96 @@ func (c *IAM) UpdateServerCertificateRequest(input *UpdateServerCertificateInput
 // API operation UpdateServerCertificate for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * EntityAlreadyExists
+//   * ErrCodeEntityAlreadyExistsException "EntityAlreadyExists"
 //   The request was rejected because it attempted to create a resource that already
 //   exists.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/UpdateServerCertificate
 func (c *IAM) UpdateServerCertificate(input *UpdateServerCertificateInput) (*UpdateServerCertificateOutput, error) {
 	req, out := c.UpdateServerCertificateRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opUpdateServiceSpecificCredential = "UpdateServiceSpecificCredential"
+
+// UpdateServiceSpecificCredentialRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateServiceSpecificCredential operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See UpdateServiceSpecificCredential for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the UpdateServiceSpecificCredential method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the UpdateServiceSpecificCredentialRequest method.
+//    req, resp := client.UpdateServiceSpecificCredentialRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/UpdateServiceSpecificCredential
+func (c *IAM) UpdateServiceSpecificCredentialRequest(input *UpdateServiceSpecificCredentialInput) (req *request.Request, output *UpdateServiceSpecificCredentialOutput) {
+	op := &request.Operation{
+		Name:       opUpdateServiceSpecificCredential,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateServiceSpecificCredentialInput{}
+	}
+
+	output = &UpdateServiceSpecificCredentialOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
+	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// UpdateServiceSpecificCredential API operation for AWS Identity and Access Management.
+//
+// Sets the status of a service-specific credential to Active or Inactive. Service-specific
+// credentials that are inactive cannot be used for authentication to the service.
+// This action can be used to disable a user’s service-specific credential as
+// part of a credential rotation work flow.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Identity and Access Management's
+// API operation UpdateServiceSpecificCredential for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
+//   The request was rejected because it referenced an entity that does not exist.
+//   The error message describes the entity.
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/UpdateServiceSpecificCredential
+func (c *IAM) UpdateServiceSpecificCredential(input *UpdateServiceSpecificCredentialInput) (*UpdateServiceSpecificCredentialOutput, error) {
+	req, out := c.UpdateServiceSpecificCredentialRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -9858,11 +10119,10 @@ func (c *IAM) UpdateSigningCertificateRequest(input *UpdateSigningCertificateInp
 		input = &UpdateSigningCertificateInput{}
 	}
 
+	output = &UpdateSigningCertificateOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &UpdateSigningCertificateOutput{}
-	req.Data = output
 	return
 }
 
@@ -9885,15 +10145,15 @@ func (c *IAM) UpdateSigningCertificateRequest(input *UpdateSigningCertificateInp
 // API operation UpdateSigningCertificate for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -9942,11 +10202,10 @@ func (c *IAM) UpdateUserRequest(input *UpdateUserInput) (req *request.Request, o
 		input = &UpdateUserInput{}
 	}
 
+	output = &UpdateUserOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &UpdateUserOutput{}
-	req.Data = output
 	return
 }
 
@@ -9973,25 +10232,25 @@ func (c *IAM) UpdateUserRequest(input *UpdateUserInput) (req *request.Request, o
 // API operation UpdateUser for usage and error information.
 //
 // Returned Error Codes:
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * EntityAlreadyExists
+//   * ErrCodeEntityAlreadyExistsException "EntityAlreadyExists"
 //   The request was rejected because it attempted to create a resource that already
 //   exists.
 //
-//   * EntityTemporarilyUnmodifiable
+//   * ErrCodeEntityTemporarilyUnmodifiableException "EntityTemporarilyUnmodifiable"
 //   The request was rejected because it referenced an entity that is temporarily
 //   unmodifiable, such as a user name that was deleted and then recreated. The
 //   error indicates that the request is likely to succeed if you try again after
 //   waiting several minutes. The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -10040,9 +10299,8 @@ func (c *IAM) UploadSSHPublicKeyRequest(input *UploadSSHPublicKeyInput) (req *re
 		input = &UploadSSHPublicKeyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UploadSSHPublicKeyOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -10064,23 +10322,23 @@ func (c *IAM) UploadSSHPublicKeyRequest(input *UploadSSHPublicKeyInput) (req *re
 // API operation UploadSSHPublicKey for usage and error information.
 //
 // Returned Error Codes:
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * InvalidPublicKey
+//   * ErrCodeInvalidPublicKeyException "InvalidPublicKey"
 //   The request was rejected because the public key is malformed or otherwise
 //   invalid.
 //
-//   * DuplicateSSHPublicKey
+//   * ErrCodeDuplicateSSHPublicKeyException "DuplicateSSHPublicKey"
 //   The request was rejected because the SSH public key is already associated
 //   with the specified IAM user.
 //
-//   * UnrecognizedPublicKeyEncoding
+//   * ErrCodeUnrecognizedPublicKeyEncodingException "UnrecognizedPublicKeyEncoding"
 //   The request was rejected because the public key encoding format is unsupported
 //   or unrecognized.
 //
@@ -10129,9 +10387,8 @@ func (c *IAM) UploadServerCertificateRequest(input *UploadServerCertificateInput
 		input = &UploadServerCertificateInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UploadServerCertificateOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -10166,23 +10423,23 @@ func (c *IAM) UploadServerCertificateRequest(input *UploadServerCertificateInput
 // API operation UploadServerCertificate for usage and error information.
 //
 // Returned Error Codes:
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * EntityAlreadyExists
+//   * ErrCodeEntityAlreadyExistsException "EntityAlreadyExists"
 //   The request was rejected because it attempted to create a resource that already
 //   exists.
 //
-//   * MalformedCertificate
+//   * ErrCodeMalformedCertificateException "MalformedCertificate"
 //   The request was rejected because the certificate was malformed or expired.
 //   The error message describes the specific error.
 //
-//   * KeyPairMismatch
+//   * ErrCodeKeyPairMismatchException "KeyPairMismatch"
 //   The request was rejected because the public key certificate and the private
 //   key do not match.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -10231,9 +10488,8 @@ func (c *IAM) UploadSigningCertificateRequest(input *UploadSigningCertificateInp
 		input = &UploadSigningCertificateInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UploadSigningCertificateOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -10265,30 +10521,30 @@ func (c *IAM) UploadSigningCertificateRequest(input *UploadSigningCertificateInp
 // API operation UploadSigningCertificate for usage and error information.
 //
 // Returned Error Codes:
-//   * LimitExceeded
+//   * ErrCodeLimitExceededException "LimitExceeded"
 //   The request was rejected because it attempted to create resources beyond
 //   the current AWS account limits. The error message describes the limit exceeded.
 //
-//   * EntityAlreadyExists
+//   * ErrCodeEntityAlreadyExistsException "EntityAlreadyExists"
 //   The request was rejected because it attempted to create a resource that already
 //   exists.
 //
-//   * MalformedCertificate
+//   * ErrCodeMalformedCertificateException "MalformedCertificate"
 //   The request was rejected because the certificate was malformed or expired.
 //   The error message describes the specific error.
 //
-//   * InvalidCertificate
+//   * ErrCodeInvalidCertificateException "InvalidCertificate"
 //   The request was rejected because the certificate is invalid.
 //
-//   * DuplicateCertificate
+//   * ErrCodeDuplicateCertificateException "DuplicateCertificate"
 //   The request was rejected because the same certificate is associated with
 //   an IAM user in the account.
 //
-//   * NoSuchEntity
+//   * ErrCodeNoSuchEntityException "NoSuchEntity"
 //   The request was rejected because it referenced an entity that does not exist.
 //   The error message describes the entity.
 //
-//   * ServiceFailure
+//   * ErrCodeServiceFailureException "ServiceFailure"
 //   The request processing has failed because of an unknown error, exception
 //   or failure.
 //
@@ -10594,7 +10850,7 @@ type AddRoleToInstanceProfileInput struct {
 
 	// The name of the instance profile to update.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -10603,7 +10859,7 @@ type AddRoleToInstanceProfileInput struct {
 
 	// The name of the role to add.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -10676,7 +10932,7 @@ type AddUserToGroupInput struct {
 
 	// The name of the group to update.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -10685,7 +10941,7 @@ type AddUserToGroupInput struct {
 
 	// The name of the user to add.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -10758,7 +11014,7 @@ type AttachGroupPolicyInput struct {
 
 	// The name (friendly name, not ARN) of the group to attach the policy to.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -10849,7 +11105,7 @@ type AttachRolePolicyInput struct {
 
 	// The name (friendly name, not ARN) of the role to attach the policy to.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -10931,7 +11187,7 @@ type AttachUserPolicyInput struct {
 
 	// The name (friendly name, not ARN) of the IAM user to attach the policy to.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -11052,14 +11308,14 @@ type ChangePasswordInput struct {
 	// The new password. The new password must conform to the AWS account's password
 	// policy, if one exists.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of almost any printable ASCII character
-	// from the space (\u0020) through the end of the ASCII character range (\u00FF).
-	// You can also include the tab (\u0009), line feed (\u000A), and carriage return
-	// (\u000D) characters. Although any of these characters are valid in a password,
-	// note that many tools, such as the AWS Management Console, might restrict
-	// the ability to enter certain characters because they have special meaning
-	// within that tool.
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of almost any printable ASCII
+	// character from the space (\u0020) through the end of the ASCII character
+	// range (\u00FF). You can also include the tab (\u0009), line feed (\u000A),
+	// and carriage return (\u000D) characters. Although any of these characters
+	// are valid in a password, note that many tools, such as the AWS Management
+	// Console, might restrict the ability to enter certain characters because they
+	// have special meaning within that tool.
 	//
 	// NewPassword is a required field
 	NewPassword *string `min:"1" type:"string" required:"true"`
@@ -11201,7 +11457,7 @@ type CreateAccessKeyInput struct {
 
 	// The name of the IAM user that the new key will belong to.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	UserName *string `min:"1" type:"string"`
@@ -11269,7 +11525,7 @@ type CreateAccountAliasInput struct {
 
 	// The account alias to create.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of lowercase letters, digits, and dashes.
 	// You cannot start or finish with a dash, nor can you have two dashes in a
 	// row.
@@ -11331,7 +11587,7 @@ type CreateGroupInput struct {
 
 	// The name of the group to create. Do not include the path in this value.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-.
 	// The group name must be unique within the account. Group names are not distinguished
@@ -11347,7 +11603,7 @@ type CreateGroupInput struct {
 	// This parameter is optional. If it is not included, it defaults to a slash
 	// (/).
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This paramater allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of either a forward slash (/) by itself
 	// or a string that must begin and end with forward slashes, containing any
 	// ASCII character from the ! (\u0021) thru the DEL character (\u007F), including
@@ -11429,7 +11685,7 @@ type CreateInstanceProfileInput struct {
 
 	// The name of the instance profile to create.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -11443,7 +11699,7 @@ type CreateInstanceProfileInput struct {
 	// This parameter is optional. If it is not included, it defaults to a slash
 	// (/).
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This paramater allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of either a forward slash (/) by itself
 	// or a string that must begin and end with forward slashes, containing any
 	// ASCII character from the ! (\u0021) thru the DEL character (\u007F), including
@@ -11525,14 +11781,14 @@ type CreateLoginProfileInput struct {
 
 	// The new password for the user.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of almost any printable ASCII character
-	// from the space (\u0020) through the end of the ASCII character range (\u00FF).
-	// You can also include the tab (\u0009), line feed (\u000A), and carriage return
-	// (\u000D) characters. Although any of these characters are valid in a password,
-	// note that many tools, such as the AWS Management Console, might restrict
-	// the ability to enter certain characters because they have special meaning
-	// within that tool.
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of almost any printable ASCII
+	// character from the space (\u0020) through the end of the ASCII character
+	// range (\u00FF). You can also include the tab (\u0009), line feed (\u000A),
+	// and carriage return (\u000D) characters. Although any of these characters
+	// are valid in a password, note that many tools, such as the AWS Management
+	// Console, might restrict the ability to enter certain characters because they
+	// have special meaning within that tool.
 	//
 	// Password is a required field
 	Password *string `min:"1" type:"string" required:"true"`
@@ -11543,7 +11799,7 @@ type CreateLoginProfileInput struct {
 	// The name of the IAM user to create a password for. The user must already
 	// exist.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -11776,7 +12032,7 @@ type CreatePolicyInput struct {
 	// This parameter is optional. If it is not included, it defaults to a slash
 	// (/).
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This paramater allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of either a forward slash (/) by itself
 	// or a string that must begin and end with forward slashes, containing any
 	// ASCII character from the ! (\u0021) thru the DEL character (\u007F), including
@@ -11786,18 +12042,19 @@ type CreatePolicyInput struct {
 	// The JSON policy document that you want to use as the content for the new
 	// policy.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of any printable ASCII character ranging
-	// from the space character (\u0020) through end of the ASCII character range
-	// (\u00FF). It also includes the special characters tab (\u0009), line feed
-	// (\u000A), and carriage return (\u000D).
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of any printable ASCII character
+	// ranging from the space character (\u0020) through end of the ASCII character
+	// range as well as the printable characters in the Basic Latin and Latin-1
+	// Supplement character set (through \u00FF). It also includes the special characters
+	// tab (\u0009), line feed (\u000A), and carriage return (\u000D).
 	//
 	// PolicyDocument is a required field
 	PolicyDocument *string `min:"1" type:"string" required:"true"`
 
 	// The friendly name of the policy.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -11903,11 +12160,12 @@ type CreatePolicyVersionInput struct {
 	// The JSON policy document that you want to use as the content for this new
 	// version of the policy.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of any printable ASCII character ranging
-	// from the space character (\u0020) through end of the ASCII character range
-	// (\u00FF). It also includes the special characters tab (\u0009), line feed
-	// (\u000A), and carriage return (\u000D).
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of any printable ASCII character
+	// ranging from the space character (\u0020) through end of the ASCII character
+	// range as well as the printable characters in the Basic Latin and Latin-1
+	// Supplement character set (through \u00FF). It also includes the special characters
+	// tab (\u0009), line feed (\u000A), and carriage return (\u000D).
 	//
 	// PolicyDocument is a required field
 	PolicyDocument *string `min:"1" type:"string" required:"true"`
@@ -12006,11 +12264,12 @@ type CreateRoleInput struct {
 	// The trust relationship policy document that grants an entity permission to
 	// assume the role.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of any printable ASCII character ranging
-	// from the space character (\u0020) through end of the ASCII character range
-	// (\u00FF). It also includes the special characters tab (\u0009), line feed
-	// (\u000A), and carriage return (\u000D).
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of any printable ASCII character
+	// ranging from the space character (\u0020) through end of the ASCII character
+	// range as well as the printable characters in the Basic Latin and Latin-1
+	// Supplement character set (through \u00FF). It also includes the special characters
+	// tab (\u0009), line feed (\u000A), and carriage return (\u000D).
 	//
 	// AssumeRolePolicyDocument is a required field
 	AssumeRolePolicyDocument *string `min:"1" type:"string" required:"true"`
@@ -12022,7 +12281,7 @@ type CreateRoleInput struct {
 	// This parameter is optional. If it is not included, it defaults to a slash
 	// (/).
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This paramater allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of either a forward slash (/) by itself
 	// or a string that must begin and end with forward slashes, containing any
 	// ASCII character from the ! (\u0021) thru the DEL character (\u007F), including
@@ -12031,7 +12290,7 @@ type CreateRoleInput struct {
 
 	// The name of the role to create.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-.
 	// Role names are not distinguished by case. For example, you cannot create
@@ -12127,7 +12386,7 @@ type CreateSAMLProviderInput struct {
 
 	// The name of the provider to create.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -12216,6 +12475,99 @@ func (s *CreateSAMLProviderOutput) SetSAMLProviderArn(v string) *CreateSAMLProvi
 	return s
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/CreateServiceSpecificCredentialRequest
+type CreateServiceSpecificCredentialInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the AWS service that is to be associated with the credentials.
+	// The service you specify here is the only service that can be accessed using
+	// these credentials.
+	//
+	// ServiceName is a required field
+	ServiceName *string `type:"string" required:"true"`
+
+	// The name of the IAM user that is to be associated with the credentials. The
+	// new service-specific credentials have the same permissions as the associated
+	// user except that they can be used only to access the specified service.
+	//
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
+	// a string of characters consisting of upper and lowercase alphanumeric characters
+	// with no spaces. You can also include any of the following characters: =,.@-
+	//
+	// UserName is a required field
+	UserName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CreateServiceSpecificCredentialInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateServiceSpecificCredentialInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateServiceSpecificCredentialInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateServiceSpecificCredentialInput"}
+	if s.ServiceName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ServiceName"))
+	}
+	if s.UserName == nil {
+		invalidParams.Add(request.NewErrParamRequired("UserName"))
+	}
+	if s.UserName != nil && len(*s.UserName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("UserName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetServiceName sets the ServiceName field's value.
+func (s *CreateServiceSpecificCredentialInput) SetServiceName(v string) *CreateServiceSpecificCredentialInput {
+	s.ServiceName = &v
+	return s
+}
+
+// SetUserName sets the UserName field's value.
+func (s *CreateServiceSpecificCredentialInput) SetUserName(v string) *CreateServiceSpecificCredentialInput {
+	s.UserName = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/CreateServiceSpecificCredentialResponse
+type CreateServiceSpecificCredentialOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A structure that contains information about the newly created service-specific
+	// credential.
+	//
+	// This is the only time that the password for this credential set is available.
+	// It cannot be recovered later. Instead, you will have to reset the password
+	// with ResetServiceSpecificCredential.
+	ServiceSpecificCredential *ServiceSpecificCredential `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateServiceSpecificCredentialOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateServiceSpecificCredentialOutput) GoString() string {
+	return s.String()
+}
+
+// SetServiceSpecificCredential sets the ServiceSpecificCredential field's value.
+func (s *CreateServiceSpecificCredentialOutput) SetServiceSpecificCredential(v *ServiceSpecificCredential) *CreateServiceSpecificCredentialOutput {
+	s.ServiceSpecificCredential = v
+	return s
+}
+
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/CreateUserRequest
 type CreateUserInput struct {
 	_ struct{} `type:"structure"`
@@ -12227,7 +12579,7 @@ type CreateUserInput struct {
 	// This parameter is optional. If it is not included, it defaults to a slash
 	// (/).
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This paramater allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of either a forward slash (/) by itself
 	// or a string that must begin and end with forward slashes, containing any
 	// ASCII character from the ! (\u0021) thru the DEL character (\u007F), including
@@ -12236,7 +12588,7 @@ type CreateUserInput struct {
 
 	// The name of the user to create.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-.
 	// User names are not distinguished by case. For example, you cannot create
@@ -12323,7 +12675,7 @@ type CreateVirtualMFADeviceInput struct {
 	// This parameter is optional. If it is not included, it defaults to a slash
 	// (/).
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This paramater allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of either a forward slash (/) by itself
 	// or a string that must begin and end with forward slashes, containing any
 	// ASCII character from the ! (\u0021) thru the DEL character (\u007F), including
@@ -12333,7 +12685,7 @@ type CreateVirtualMFADeviceInput struct {
 	// The name of the virtual MFA device. Use with path to uniquely identify a
 	// virtual MFA device.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -12416,7 +12768,7 @@ type DeactivateMFADeviceInput struct {
 	// The serial number that uniquely identifies the MFA device. For virtual MFA
 	// devices, the serial number is the device ARN.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =/:,.@-
 	//
@@ -12425,7 +12777,7 @@ type DeactivateMFADeviceInput struct {
 
 	// The name of the user whose MFA device you want to deactivate.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -12499,7 +12851,7 @@ type DeleteAccessKeyInput struct {
 	// The access key ID for the access key ID and secret access key you want to
 	// delete.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters that can consist of any upper or lowercased letter
 	// or digit.
 	//
@@ -12508,7 +12860,7 @@ type DeleteAccessKeyInput struct {
 
 	// The name of the user whose access key pair you want to delete.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	UserName *string `min:"1" type:"string"`
@@ -12576,7 +12928,7 @@ type DeleteAccountAliasInput struct {
 
 	// The name of the account alias to delete.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of lowercase letters, digits, and dashes.
 	// You cannot start or finish with a dash, nor can you have two dashes in a
 	// row.
@@ -12668,7 +13020,7 @@ type DeleteGroupInput struct {
 
 	// The name of the IAM group to delete.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -12730,7 +13082,7 @@ type DeleteGroupPolicyInput struct {
 	// The name (friendly name, not ARN) identifying the group that the policy is
 	// embedded in.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -12739,7 +13091,7 @@ type DeleteGroupPolicyInput struct {
 
 	// The name identifying the policy document to delete.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -12812,7 +13164,7 @@ type DeleteInstanceProfileInput struct {
 
 	// The name of the instance profile to delete.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -12873,7 +13225,7 @@ type DeleteLoginProfileInput struct {
 
 	// The name of the user whose password you want to delete.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -13064,7 +13416,7 @@ type DeletePolicyVersionInput struct {
 
 	// The policy version to delete.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters that consists of the lowercase letter 'v' followed
 	// by one or two digits, and optionally followed by a period '.' and a string
 	// of letters and digits.
@@ -13139,7 +13491,7 @@ type DeleteRoleInput struct {
 
 	// The name of the role to delete.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -13200,7 +13552,7 @@ type DeleteRolePolicyInput struct {
 
 	// The name of the inline policy to delete from the specified IAM role.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -13210,7 +13562,7 @@ type DeleteRolePolicyInput struct {
 	// The name (friendly name, not ARN) identifying the role that the policy is
 	// embedded in.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -13340,7 +13692,7 @@ type DeleteSSHPublicKeyInput struct {
 
 	// The unique identifier for the SSH public key.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters that can consist of any upper or lowercased letter
 	// or digit.
 	//
@@ -13349,7 +13701,7 @@ type DeleteSSHPublicKeyInput struct {
 
 	// The name of the IAM user associated with the SSH public key.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -13422,7 +13774,7 @@ type DeleteServerCertificateInput struct {
 
 	// The name of the server certificate you want to delete.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -13477,6 +13829,86 @@ func (s DeleteServerCertificateOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/DeleteServiceSpecificCredentialRequest
+type DeleteServiceSpecificCredentialInput struct {
+	_ struct{} `type:"structure"`
+
+	// The unique identifier of the service-specific credential. You can get this
+	// value by calling ListServiceSpecificCredentials.
+	//
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
+	// a string of characters that can consist of any upper or lowercased letter
+	// or digit.
+	//
+	// ServiceSpecificCredentialId is a required field
+	ServiceSpecificCredentialId *string `min:"20" type:"string" required:"true"`
+
+	// The name of the IAM user associated with the service-specific credential.
+	// If this value is not specified, then the operation assumes the user whose
+	// credentials are used to call the operation.
+	//
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
+	// a string of characters consisting of upper and lowercase alphanumeric characters
+	// with no spaces. You can also include any of the following characters: =,.@-
+	UserName *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s DeleteServiceSpecificCredentialInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteServiceSpecificCredentialInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteServiceSpecificCredentialInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteServiceSpecificCredentialInput"}
+	if s.ServiceSpecificCredentialId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ServiceSpecificCredentialId"))
+	}
+	if s.ServiceSpecificCredentialId != nil && len(*s.ServiceSpecificCredentialId) < 20 {
+		invalidParams.Add(request.NewErrParamMinLen("ServiceSpecificCredentialId", 20))
+	}
+	if s.UserName != nil && len(*s.UserName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("UserName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetServiceSpecificCredentialId sets the ServiceSpecificCredentialId field's value.
+func (s *DeleteServiceSpecificCredentialInput) SetServiceSpecificCredentialId(v string) *DeleteServiceSpecificCredentialInput {
+	s.ServiceSpecificCredentialId = &v
+	return s
+}
+
+// SetUserName sets the UserName field's value.
+func (s *DeleteServiceSpecificCredentialInput) SetUserName(v string) *DeleteServiceSpecificCredentialInput {
+	s.UserName = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/DeleteServiceSpecificCredentialOutput
+type DeleteServiceSpecificCredentialOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteServiceSpecificCredentialOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteServiceSpecificCredentialOutput) GoString() string {
+	return s.String()
+}
+
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/DeleteSigningCertificateRequest
 type DeleteSigningCertificateInput struct {
 	_ struct{} `type:"structure"`
@@ -13492,7 +13924,7 @@ type DeleteSigningCertificateInput struct {
 
 	// The name of the user the signing certificate belongs to.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	UserName *string `min:"1" type:"string"`
@@ -13560,7 +13992,7 @@ type DeleteUserInput struct {
 
 	// The name of the user to delete.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -13621,7 +14053,7 @@ type DeleteUserPolicyInput struct {
 
 	// The name identifying the policy document to delete.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -13631,7 +14063,7 @@ type DeleteUserPolicyInput struct {
 	// The name (friendly name, not ARN) identifying the user that the policy is
 	// embedded in.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -13705,7 +14137,7 @@ type DeleteVirtualMFADeviceInput struct {
 	// The serial number that uniquely identifies the MFA device. For virtual MFA
 	// devices, the serial number is the same as the ARN.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =/:,.@-
 	//
@@ -13766,7 +14198,7 @@ type DetachGroupPolicyInput struct {
 
 	// The name (friendly name, not ARN) of the IAM group to detach the policy from.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -13857,7 +14289,7 @@ type DetachRolePolicyInput struct {
 
 	// The name (friendly name, not ARN) of the IAM role to detach the policy from.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -13939,7 +14371,7 @@ type DetachUserPolicyInput struct {
 
 	// The name (friendly name, not ARN) of the IAM user to detach the policy from.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -14027,7 +14459,7 @@ type EnableMFADeviceInput struct {
 	// The serial number that uniquely identifies the MFA device. For virtual MFA
 	// devices, the serial number is the device ARN.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =/:,.@-
 	//
@@ -14036,7 +14468,7 @@ type EnableMFADeviceInput struct {
 
 	// The name of the IAM user for whom you want to enable the MFA device.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -14284,7 +14716,7 @@ type GetAccessKeyLastUsedInput struct {
 
 	// The identifier of an access key.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters that can consist of any upper or lowercased letter
 	// or digit.
 	//
@@ -14379,15 +14811,15 @@ type GetAccountAuthorizationDetailsInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 }
 
@@ -14533,9 +14965,6 @@ type GetAccountPasswordPolicyOutput struct {
 
 	// Contains information about the account password policy.
 	//
-	// This data type is used as a response element in the GetAccountPasswordPolicy
-	// action.
-	//
 	// PasswordPolicy is a required field
 	PasswordPolicy *PasswordPolicy `type:"structure" required:"true"`
 }
@@ -14605,11 +15034,12 @@ type GetContextKeysForCustomPolicyInput struct {
 	// in those policies. Each document is specified as a string containing the
 	// complete, valid JSON text of an IAM policy.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of any printable ASCII character ranging
-	// from the space character (\u0020) through end of the ASCII character range
-	// (\u00FF). It also includes the special characters tab (\u0009), line feed
-	// (\u000A), and carriage return (\u000D).
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of any printable ASCII character
+	// ranging from the space character (\u0020) through end of the ASCII character
+	// range as well as the printable characters in the Basic Latin and Latin-1
+	// Supplement character set (through \u00FF). It also includes the special characters
+	// tab (\u0009), line feed (\u000A), and carriage return (\u000D).
 	//
 	// PolicyInputList is a required field
 	PolicyInputList []*string `type:"list" required:"true"`
@@ -14677,11 +15107,12 @@ type GetContextKeysForPrincipalPolicyInput struct {
 	// An optional list of additional policies for which you want the list of context
 	// keys that are referenced.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of any printable ASCII character ranging
-	// from the space character (\u0020) through end of the ASCII character range
-	// (\u00FF). It also includes the special characters tab (\u0009), line feed
-	// (\u000A), and carriage return (\u000D).
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of any printable ASCII character
+	// ranging from the space character (\u0020) through end of the ASCII character
+	// range as well as the printable characters in the Basic Latin and Latin-1
+	// Supplement character set (through \u00FF). It also includes the special characters
+	// tab (\u0009), line feed (\u000A), and carriage return (\u000D).
 	PolicyInputList []*string `type:"list"`
 
 	// The ARN of a user, group, or role whose policies contain the context keys
@@ -14805,7 +15236,7 @@ type GetGroupInput struct {
 
 	// The name of the group.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -14818,15 +15249,15 @@ type GetGroupInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 }
 
@@ -14948,7 +15379,7 @@ type GetGroupPolicyInput struct {
 
 	// The name of the group the policy is associated with.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -14957,7 +15388,7 @@ type GetGroupPolicyInput struct {
 
 	// The name of the policy document to get.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -15064,7 +15495,7 @@ type GetInstanceProfileInput struct {
 
 	// The name of the instance profile to get information about.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -15137,7 +15568,7 @@ type GetLoginProfileInput struct {
 
 	// The name of the user whose login profile you want to retrieve.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -15396,7 +15827,7 @@ type GetPolicyVersionInput struct {
 
 	// Identifies the policy version to retrieve.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters that consists of the lowercase letter 'v' followed
 	// by one or two digits, and optionally followed by a period '.' and a string
 	// of letters and digits.
@@ -15477,7 +15908,7 @@ type GetRoleInput struct {
 
 	// The name of the IAM role to get information about.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -15550,7 +15981,7 @@ type GetRolePolicyInput struct {
 
 	// The name of the policy document to get.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -15559,7 +15990,7 @@ type GetRolePolicyInput struct {
 
 	// The name of the role associated with the policy.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -15763,7 +16194,7 @@ type GetSSHPublicKeyInput struct {
 
 	// The unique identifier for the SSH public key.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters that can consist of any upper or lowercased letter
 	// or digit.
 	//
@@ -15772,7 +16203,7 @@ type GetSSHPublicKeyInput struct {
 
 	// The name of the IAM user associated with the SSH public key.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -15864,7 +16295,7 @@ type GetServerCertificateInput struct {
 
 	// The name of the server certificate you want to retrieve information about.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -15938,10 +16369,9 @@ type GetUserInput struct {
 	// The name of the user to get information about.
 	//
 	// This parameter is optional. If it is not included, it defaults to the user
-	// making the request. The regex pattern (http://wikipedia.org/wiki/regex) for
-	// this parameter is a string of characters consisting of upper and lowercase
-	// alphanumeric characters with no spaces. You can also include any of the following
-	// characters: =,.@-
+	// making the request. This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
+	// a string of characters consisting of upper and lowercase alphanumeric characters
+	// with no spaces. You can also include any of the following characters: =,.@-
 	UserName *string `min:"1" type:"string"`
 }
 
@@ -16007,7 +16437,7 @@ type GetUserPolicyInput struct {
 
 	// The name of the policy document to get.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -16016,7 +16446,7 @@ type GetUserPolicyInput struct {
 
 	// The name of the user who the policy is associated with.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -16403,20 +16833,20 @@ type ListAccessKeysInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// The name of the user.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	UserName *string `min:"1" type:"string"`
@@ -16530,15 +16960,15 @@ type ListAccountAliasesInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 }
 
@@ -16639,7 +17069,7 @@ type ListAttachedGroupPoliciesInput struct {
 	// The name (friendly name, not ARN) of the group to list attached policies
 	// for.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -16652,21 +17082,21 @@ type ListAttachedGroupPoliciesInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// The path prefix for filtering the results. This parameter is optional. If
 	// it is not included, it defaults to a slash (/), listing all policies.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This paramater allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of either a forward slash (/) by itself
 	// or a string that must begin and end with forward slashes, containing any
 	// ASCII character from the ! (\u0021) thru the DEL character (\u007F), including
@@ -16789,21 +17219,21 @@ type ListAttachedRolePoliciesInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// The path prefix for filtering the results. This parameter is optional. If
 	// it is not included, it defaults to a slash (/), listing all policies.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This paramater allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of either a forward slash (/) by itself
 	// or a string that must begin and end with forward slashes, containing any
 	// ASCII character from the ! (\u0021) thru the DEL character (\u007F), including
@@ -16812,7 +17242,7 @@ type ListAttachedRolePoliciesInput struct {
 
 	// The name (friendly name, not ARN) of the role to list attached policies for.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -16935,21 +17365,21 @@ type ListAttachedUserPoliciesInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// The path prefix for filtering the results. This parameter is optional. If
 	// it is not included, it defaults to a slash (/), listing all policies.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This paramater allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of either a forward slash (/) by itself
 	// or a string that must begin and end with forward slashes, containing any
 	// ASCII character from the ! (\u0021) thru the DEL character (\u007F), including
@@ -16958,7 +17388,7 @@ type ListAttachedUserPoliciesInput struct {
 
 	// The name (friendly name, not ARN) of the user to list attached policies for.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -17089,21 +17519,21 @@ type ListEntitiesForPolicyInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// The path prefix for filtering the results. This parameter is optional. If
 	// it is not included, it defaults to a slash (/), listing all entities.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This paramater allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of either a forward slash (/) by itself
 	// or a string that must begin and end with forward slashes, containing any
 	// ASCII character from the ! (\u0021) thru the DEL character (\u007F), including
@@ -17258,7 +17688,7 @@ type ListGroupPoliciesInput struct {
 
 	// The name of the group to list policies for.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -17271,15 +17701,15 @@ type ListGroupPoliciesInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 }
 
@@ -17394,20 +17824,20 @@ type ListGroupsForUserInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// The name of the user to list groups for.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -17526,27 +17956,26 @@ type ListGroupsInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// The path prefix for filtering the results. For example, the prefix /division_abc/subdivision_xyz/
 	// gets all groups whose path starts with /division_abc/subdivision_xyz/.
 	//
 	// This parameter is optional. If it is not included, it defaults to a slash
-	// (/), listing all groups. The regex pattern (http://wikipedia.org/wiki/regex)
-	// for this parameter is a string of characters consisting of either a forward
-	// slash (/) by itself or a string that must begin and end with forward slashes,
-	// containing any ASCII character from the ! (\u0021) thru the DEL character
-	// (\u007F), including most punctuation characters, digits, and upper and lowercased
-	// letters.
+	// (/), listing all groups. This paramater allows (per its regex pattern (http://wikipedia.org/wiki/regex))
+	// a string of characters consisting of either a forward slash (/) by itself
+	// or a string that must begin and end with forward slashes, containing any
+	// ASCII character from the ! (\u0021) thru the DEL character (\u007F), including
+	// most punctuation characters, digits, and upper and lowercased letters.
 	PathPrefix *string `min:"1" type:"string"`
 }
 
@@ -17658,20 +18087,20 @@ type ListInstanceProfilesForRoleInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// The name of the role to list instance profiles for.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -17790,27 +18219,27 @@ type ListInstanceProfilesInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// The path prefix for filtering the results. For example, the prefix /application_abc/component_xyz/
 	// gets all instance profiles whose path starts with /application_abc/component_xyz/.
 	//
 	// This parameter is optional. If it is not included, it defaults to a slash
-	// (/), listing all instance profiles. The regex pattern (http://wikipedia.org/wiki/regex)
-	// for this parameter is a string of characters consisting of either a forward
-	// slash (/) by itself or a string that must begin and end with forward slashes,
-	// containing any ASCII character from the ! (\u0021) thru the DEL character
-	// (\u007F), including most punctuation characters, digits, and upper and lowercased
-	// letters.
+	// (/), listing all instance profiles. This paramater allows (per its regex
+	// pattern (http://wikipedia.org/wiki/regex)) a string of characters consisting
+	// of either a forward slash (/) by itself or a string that must begin and end
+	// with forward slashes, containing any ASCII character from the ! (\u0021)
+	// thru the DEL character (\u007F), including most punctuation characters, digits,
+	// and upper and lowercased letters.
 	PathPrefix *string `min:"1" type:"string"`
 }
 
@@ -17922,20 +18351,20 @@ type ListMFADevicesInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// The name of the user whose MFA devices you want to list.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	UserName *string `min:"1" type:"string"`
@@ -18089,15 +18518,15 @@ type ListPoliciesInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// A flag to filter the results to only the attached policies.
@@ -18108,12 +18537,12 @@ type ListPoliciesInput struct {
 	OnlyAttached *bool `type:"boolean"`
 
 	// The path prefix for filtering the results. This parameter is optional. If
-	// it is not included, it defaults to a slash (/), listing all policies. The
-	// regex pattern (http://wikipedia.org/wiki/regex) for this parameter is a string
-	// of characters consisting of either a forward slash (/) by itself or a string
-	// that must begin and end with forward slashes, containing any ASCII character
-	// from the ! (\u0021) thru the DEL character (\u007F), including most punctuation
-	// characters, digits, and upper and lowercased letters.
+	// it is not included, it defaults to a slash (/), listing all policies. This
+	// paramater allows (per its regex pattern (http://wikipedia.org/wiki/regex))
+	// a string of characters consisting of either a forward slash (/) by itself
+	// or a string that must begin and end with forward slashes, containing any
+	// ASCII character from the ! (\u0021) thru the DEL character (\u007F), including
+	// most punctuation characters, digits, and upper and lowercased letters.
 	PathPrefix *string `type:"string"`
 
 	// The scope to use for filtering the results.
@@ -18241,15 +18670,15 @@ type ListPolicyVersionsInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// The Amazon Resource Name (ARN) of the IAM policy for which you want the versions.
@@ -18375,20 +18804,20 @@ type ListRolePoliciesInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// The name of the role to list policies for.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -18507,27 +18936,26 @@ type ListRolesInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// The path prefix for filtering the results. For example, the prefix /application_abc/component_xyz/
 	// gets all roles whose path starts with /application_abc/component_xyz/.
 	//
 	// This parameter is optional. If it is not included, it defaults to a slash
-	// (/), listing all roles. The regex pattern (http://wikipedia.org/wiki/regex)
-	// for this parameter is a string of characters consisting of either a forward
-	// slash (/) by itself or a string that must begin and end with forward slashes,
-	// containing any ASCII character from the ! (\u0021) thru the DEL character
-	// (\u007F), including most punctuation characters, digits, and upper and lowercased
-	// letters.
+	// (/), listing all roles. This paramater allows (per its regex pattern (http://wikipedia.org/wiki/regex))
+	// a string of characters consisting of either a forward slash (/) by itself
+	// or a string that must begin and end with forward slashes, containing any
+	// ASCII character from the ! (\u0021) thru the DEL character (\u007F), including
+	// most punctuation characters, digits, and upper and lowercased letters.
 	PathPrefix *string `min:"1" type:"string"`
 }
 
@@ -18679,22 +19107,22 @@ type ListSSHPublicKeysInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// The name of the IAM user to list SSH public keys for. If none is specified,
 	// the UserName field is determined implicitly based on the AWS access key used
 	// to sign the request.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	UserName *string `min:"1" type:"string"`
@@ -18806,27 +19234,27 @@ type ListServerCertificatesInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// The path prefix for filtering the results. For example: /company/servercerts
 	// would get all server certificates for which the path starts with /company/servercerts.
 	//
 	// This parameter is optional. If it is not included, it defaults to a slash
-	// (/), listing all server certificates. The regex pattern (http://wikipedia.org/wiki/regex)
-	// for this parameter is a string of characters consisting of either a forward
-	// slash (/) by itself or a string that must begin and end with forward slashes,
-	// containing any ASCII character from the ! (\u0021) thru the DEL character
-	// (\u007F), including most punctuation characters, digits, and upper and lowercased
-	// letters.
+	// (/), listing all server certificates. This paramater allows (per its regex
+	// pattern (http://wikipedia.org/wiki/regex)) a string of characters consisting
+	// of either a forward slash (/) by itself or a string that must begin and end
+	// with forward slashes, containing any ASCII character from the ! (\u0021)
+	// thru the DEL character (\u007F), including most punctuation characters, digits,
+	// and upper and lowercased letters.
 	PathPrefix *string `min:"1" type:"string"`
 }
 
@@ -18928,6 +19356,83 @@ func (s *ListServerCertificatesOutput) SetServerCertificateMetadataList(v []*Ser
 	return s
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/ListServiceSpecificCredentialsRequest
+type ListServiceSpecificCredentialsInput struct {
+	_ struct{} `type:"structure"`
+
+	// Filters the returned results to only those for the specified AWS service.
+	// If not specified, then AWS returns service-specific credentials for all services.
+	ServiceName *string `type:"string"`
+
+	// The name of the user whose service-specific credentials you want information
+	// about. If this value is not specified then the operation assumes the user
+	// whose credentials are used to call the operation.
+	//
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
+	// a string of characters consisting of upper and lowercase alphanumeric characters
+	// with no spaces. You can also include any of the following characters: =,.@-
+	UserName *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ListServiceSpecificCredentialsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListServiceSpecificCredentialsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListServiceSpecificCredentialsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListServiceSpecificCredentialsInput"}
+	if s.UserName != nil && len(*s.UserName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("UserName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetServiceName sets the ServiceName field's value.
+func (s *ListServiceSpecificCredentialsInput) SetServiceName(v string) *ListServiceSpecificCredentialsInput {
+	s.ServiceName = &v
+	return s
+}
+
+// SetUserName sets the UserName field's value.
+func (s *ListServiceSpecificCredentialsInput) SetUserName(v string) *ListServiceSpecificCredentialsInput {
+	s.UserName = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/ListServiceSpecificCredentialsResponse
+type ListServiceSpecificCredentialsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of structures that each contain details about a service-specific credential.
+	ServiceSpecificCredentials []*ServiceSpecificCredentialMetadata `type:"list"`
+}
+
+// String returns the string representation
+func (s ListServiceSpecificCredentialsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListServiceSpecificCredentialsOutput) GoString() string {
+	return s.String()
+}
+
+// SetServiceSpecificCredentials sets the ServiceSpecificCredentials field's value.
+func (s *ListServiceSpecificCredentialsOutput) SetServiceSpecificCredentials(v []*ServiceSpecificCredentialMetadata) *ListServiceSpecificCredentialsOutput {
+	s.ServiceSpecificCredentials = v
+	return s
+}
+
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/ListSigningCertificatesRequest
 type ListSigningCertificatesInput struct {
 	_ struct{} `type:"structure"`
@@ -18938,20 +19443,20 @@ type ListSigningCertificatesInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// The name of the IAM user whose signing certificates you want to examine.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	UserName *string `min:"1" type:"string"`
@@ -19065,20 +19570,20 @@ type ListUserPoliciesInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// The name of the user to list policies for.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -19197,27 +19702,27 @@ type ListUsersInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// The path prefix for filtering the results. For example: /division_abc/subdivision_xyz/,
 	// which would get all user names whose path starts with /division_abc/subdivision_xyz/.
 	//
 	// This parameter is optional. If it is not included, it defaults to a slash
-	// (/), listing all user names. The regex pattern (http://wikipedia.org/wiki/regex)
-	// for this parameter is a string of characters consisting of either a forward
-	// slash (/) by itself or a string that must begin and end with forward slashes,
-	// containing any ASCII character from the ! (\u0021) thru the DEL character
-	// (\u007F), including most punctuation characters, digits, and upper and lowercased
-	// letters.
+	// (/), listing all user names. This paramater allows (per its regex pattern
+	// (http://wikipedia.org/wiki/regex)) a string of characters consisting of either
+	// a forward slash (/) by itself or a string that must begin and end with forward
+	// slashes, containing any ASCII character from the ! (\u0021) thru the DEL
+	// character (\u007F), including most punctuation characters, digits, and upper
+	// and lowercased letters.
 	PathPrefix *string `min:"1" type:"string"`
 }
 
@@ -19334,15 +19839,15 @@ type ListVirtualMFADevicesInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 }
 
@@ -20245,7 +20750,7 @@ type PutGroupPolicyInput struct {
 
 	// The name of the group to associate the policy with.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -20254,18 +20759,19 @@ type PutGroupPolicyInput struct {
 
 	// The policy document.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of any printable ASCII character ranging
-	// from the space character (\u0020) through end of the ASCII character range
-	// (\u00FF). It also includes the special characters tab (\u0009), line feed
-	// (\u000A), and carriage return (\u000D).
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of any printable ASCII character
+	// ranging from the space character (\u0020) through end of the ASCII character
+	// range as well as the printable characters in the Basic Latin and Latin-1
+	// Supplement character set (through \u00FF). It also includes the special characters
+	// tab (\u0009), line feed (\u000A), and carriage return (\u000D).
 	//
 	// PolicyDocument is a required field
 	PolicyDocument *string `min:"1" type:"string" required:"true"`
 
 	// The name of the policy document.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -20350,18 +20856,19 @@ type PutRolePolicyInput struct {
 
 	// The policy document.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of any printable ASCII character ranging
-	// from the space character (\u0020) through end of the ASCII character range
-	// (\u00FF). It also includes the special characters tab (\u0009), line feed
-	// (\u000A), and carriage return (\u000D).
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of any printable ASCII character
+	// ranging from the space character (\u0020) through end of the ASCII character
+	// range as well as the printable characters in the Basic Latin and Latin-1
+	// Supplement character set (through \u00FF). It also includes the special characters
+	// tab (\u0009), line feed (\u000A), and carriage return (\u000D).
 	//
 	// PolicyDocument is a required field
 	PolicyDocument *string `min:"1" type:"string" required:"true"`
 
 	// The name of the policy document.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -20370,7 +20877,7 @@ type PutRolePolicyInput struct {
 
 	// The name of the role to associate the policy with.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -20455,18 +20962,19 @@ type PutUserPolicyInput struct {
 
 	// The policy document.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of any printable ASCII character ranging
-	// from the space character (\u0020) through end of the ASCII character range
-	// (\u00FF). It also includes the special characters tab (\u0009), line feed
-	// (\u000A), and carriage return (\u000D).
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of any printable ASCII character
+	// ranging from the space character (\u0020) through end of the ASCII character
+	// range as well as the printable characters in the Basic Latin and Latin-1
+	// Supplement character set (through \u00FF). It also includes the special characters
+	// tab (\u0009), line feed (\u000A), and carriage return (\u000D).
 	//
 	// PolicyDocument is a required field
 	PolicyDocument *string `min:"1" type:"string" required:"true"`
 
 	// The name of the policy document.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -20475,7 +20983,7 @@ type PutUserPolicyInput struct {
 
 	// The name of the user to associate the policy with.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -20641,7 +21149,7 @@ type RemoveRoleFromInstanceProfileInput struct {
 
 	// The name of the instance profile to update.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -20650,7 +21158,7 @@ type RemoveRoleFromInstanceProfileInput struct {
 
 	// The name of the role to remove.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -20723,7 +21231,7 @@ type RemoveUserFromGroupInput struct {
 
 	// The name of the group to update.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -20732,7 +21240,7 @@ type RemoveUserFromGroupInput struct {
 
 	// The name of the user to remove.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -20797,6 +21305,98 @@ func (s RemoveUserFromGroupOutput) String() string {
 // GoString returns the string representation
 func (s RemoveUserFromGroupOutput) GoString() string {
 	return s.String()
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/ResetServiceSpecificCredentialRequest
+type ResetServiceSpecificCredentialInput struct {
+	_ struct{} `type:"structure"`
+
+	// The unique identifier of the service-specific credential.
+	//
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
+	// a string of characters that can consist of any upper or lowercased letter
+	// or digit.
+	//
+	// ServiceSpecificCredentialId is a required field
+	ServiceSpecificCredentialId *string `min:"20" type:"string" required:"true"`
+
+	// The name of the IAM user associated with the service-specific credential.
+	// If this value is not specified, then the operation assumes the user whose
+	// credentials are used to call the operation.
+	//
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
+	// a string of characters consisting of upper and lowercase alphanumeric characters
+	// with no spaces. You can also include any of the following characters: =,.@-
+	UserName *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ResetServiceSpecificCredentialInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResetServiceSpecificCredentialInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ResetServiceSpecificCredentialInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ResetServiceSpecificCredentialInput"}
+	if s.ServiceSpecificCredentialId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ServiceSpecificCredentialId"))
+	}
+	if s.ServiceSpecificCredentialId != nil && len(*s.ServiceSpecificCredentialId) < 20 {
+		invalidParams.Add(request.NewErrParamMinLen("ServiceSpecificCredentialId", 20))
+	}
+	if s.UserName != nil && len(*s.UserName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("UserName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetServiceSpecificCredentialId sets the ServiceSpecificCredentialId field's value.
+func (s *ResetServiceSpecificCredentialInput) SetServiceSpecificCredentialId(v string) *ResetServiceSpecificCredentialInput {
+	s.ServiceSpecificCredentialId = &v
+	return s
+}
+
+// SetUserName sets the UserName field's value.
+func (s *ResetServiceSpecificCredentialInput) SetUserName(v string) *ResetServiceSpecificCredentialInput {
+	s.UserName = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/ResetServiceSpecificCredentialResponse
+type ResetServiceSpecificCredentialOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A structure with details about the updated service-specific credential, including
+	// the new password.
+	//
+	// This is the only time that you can access the password. You cannot recover
+	// the password later, but you can reset it again.
+	ServiceSpecificCredential *ServiceSpecificCredential `type:"structure"`
+}
+
+// String returns the string representation
+func (s ResetServiceSpecificCredentialOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResetServiceSpecificCredentialOutput) GoString() string {
+	return s.String()
+}
+
+// SetServiceSpecificCredential sets the ServiceSpecificCredential field's value.
+func (s *ResetServiceSpecificCredentialOutput) SetServiceSpecificCredential(v *ServiceSpecificCredential) *ResetServiceSpecificCredentialOutput {
+	s.ServiceSpecificCredential = v
+	return s
 }
 
 // Contains the result of the simulation of a single API action call on a single
@@ -20903,7 +21503,7 @@ type ResyncMFADeviceInput struct {
 
 	// Serial number that uniquely identifies the MFA device.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -20912,7 +21512,7 @@ type ResyncMFADeviceInput struct {
 
 	// The name of the user whose MFA device you want to resynchronize.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -21124,7 +21724,7 @@ type RoleDetail struct {
 	// when the role was created.
 	CreateDate *time.Time `type:"timestamp" timestampFormat:"iso8601"`
 
-	// Contains a list of instance profiles.
+	// A list of instance profiles that contain this role.
 	InstanceProfileList []*InstanceProfile `type:"list"`
 
 	// The path to the role. For more information about paths, see IAM Identifiers
@@ -21541,6 +22141,188 @@ func (s *ServerCertificateMetadata) SetUploadDate(v time.Time) *ServerCertificat
 	return s
 }
 
+// Contains the details of a service specific credential.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/ServiceSpecificCredential
+type ServiceSpecificCredential struct {
+	_ struct{} `type:"structure"`
+
+	// The date and time, in ISO 8601 date-time format (http://www.iso.org/iso/iso8601),
+	// when the service-specific credential were created.
+	//
+	// CreateDate is a required field
+	CreateDate *time.Time `type:"timestamp" timestampFormat:"iso8601" required:"true"`
+
+	// The name of the service associated with the service-specific credential.
+	//
+	// ServiceName is a required field
+	ServiceName *string `type:"string" required:"true"`
+
+	// The generated password for the service-specific credential.
+	//
+	// ServicePassword is a required field
+	ServicePassword *string `type:"string" required:"true"`
+
+	// The unique identifier for the service-specific credential.
+	//
+	// ServiceSpecificCredentialId is a required field
+	ServiceSpecificCredentialId *string `min:"20" type:"string" required:"true"`
+
+	// The generated user name for the service-specific credential. This value is
+	// generated by combining the IAM user's name combined with the ID number of
+	// the AWS account, as in jane-at-123456789012, for example. This value cannot
+	// be configured by the user.
+	//
+	// ServiceUserName is a required field
+	ServiceUserName *string `min:"17" type:"string" required:"true"`
+
+	// The status of the service-specific credential. Active means the key is valid
+	// for API calls, while Inactive means it is not.
+	//
+	// Status is a required field
+	Status *string `type:"string" required:"true" enum:"statusType"`
+
+	// The name of the IAM user associated with the service-specific credential.
+	//
+	// UserName is a required field
+	UserName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ServiceSpecificCredential) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ServiceSpecificCredential) GoString() string {
+	return s.String()
+}
+
+// SetCreateDate sets the CreateDate field's value.
+func (s *ServiceSpecificCredential) SetCreateDate(v time.Time) *ServiceSpecificCredential {
+	s.CreateDate = &v
+	return s
+}
+
+// SetServiceName sets the ServiceName field's value.
+func (s *ServiceSpecificCredential) SetServiceName(v string) *ServiceSpecificCredential {
+	s.ServiceName = &v
+	return s
+}
+
+// SetServicePassword sets the ServicePassword field's value.
+func (s *ServiceSpecificCredential) SetServicePassword(v string) *ServiceSpecificCredential {
+	s.ServicePassword = &v
+	return s
+}
+
+// SetServiceSpecificCredentialId sets the ServiceSpecificCredentialId field's value.
+func (s *ServiceSpecificCredential) SetServiceSpecificCredentialId(v string) *ServiceSpecificCredential {
+	s.ServiceSpecificCredentialId = &v
+	return s
+}
+
+// SetServiceUserName sets the ServiceUserName field's value.
+func (s *ServiceSpecificCredential) SetServiceUserName(v string) *ServiceSpecificCredential {
+	s.ServiceUserName = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *ServiceSpecificCredential) SetStatus(v string) *ServiceSpecificCredential {
+	s.Status = &v
+	return s
+}
+
+// SetUserName sets the UserName field's value.
+func (s *ServiceSpecificCredential) SetUserName(v string) *ServiceSpecificCredential {
+	s.UserName = &v
+	return s
+}
+
+// Contains additional details about a service-specific credential.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/ServiceSpecificCredentialMetadata
+type ServiceSpecificCredentialMetadata struct {
+	_ struct{} `type:"structure"`
+
+	// The date and time, in ISO 8601 date-time format (http://www.iso.org/iso/iso8601),
+	// when the service-specific credential were created.
+	//
+	// CreateDate is a required field
+	CreateDate *time.Time `type:"timestamp" timestampFormat:"iso8601" required:"true"`
+
+	// The name of the service associated with the service-specific credential.
+	//
+	// ServiceName is a required field
+	ServiceName *string `type:"string" required:"true"`
+
+	// The unique identifier for the service-specific credential.
+	//
+	// ServiceSpecificCredentialId is a required field
+	ServiceSpecificCredentialId *string `min:"20" type:"string" required:"true"`
+
+	// The generated user name for the service-specific credential.
+	//
+	// ServiceUserName is a required field
+	ServiceUserName *string `min:"17" type:"string" required:"true"`
+
+	// The status of the service-specific credential. Active means the key is valid
+	// for API calls, while Inactive means it is not.
+	//
+	// Status is a required field
+	Status *string `type:"string" required:"true" enum:"statusType"`
+
+	// The name of the IAM user associated with the service-specific credential.
+	//
+	// UserName is a required field
+	UserName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ServiceSpecificCredentialMetadata) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ServiceSpecificCredentialMetadata) GoString() string {
+	return s.String()
+}
+
+// SetCreateDate sets the CreateDate field's value.
+func (s *ServiceSpecificCredentialMetadata) SetCreateDate(v time.Time) *ServiceSpecificCredentialMetadata {
+	s.CreateDate = &v
+	return s
+}
+
+// SetServiceName sets the ServiceName field's value.
+func (s *ServiceSpecificCredentialMetadata) SetServiceName(v string) *ServiceSpecificCredentialMetadata {
+	s.ServiceName = &v
+	return s
+}
+
+// SetServiceSpecificCredentialId sets the ServiceSpecificCredentialId field's value.
+func (s *ServiceSpecificCredentialMetadata) SetServiceSpecificCredentialId(v string) *ServiceSpecificCredentialMetadata {
+	s.ServiceSpecificCredentialId = &v
+	return s
+}
+
+// SetServiceUserName sets the ServiceUserName field's value.
+func (s *ServiceSpecificCredentialMetadata) SetServiceUserName(v string) *ServiceSpecificCredentialMetadata {
+	s.ServiceUserName = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *ServiceSpecificCredentialMetadata) SetStatus(v string) *ServiceSpecificCredentialMetadata {
+	s.Status = &v
+	return s
+}
+
+// SetUserName sets the UserName field's value.
+func (s *ServiceSpecificCredentialMetadata) SetUserName(v string) *ServiceSpecificCredentialMetadata {
+	s.UserName = &v
+	return s
+}
+
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/SetDefaultPolicyVersionRequest
 type SetDefaultPolicyVersionInput struct {
 	_ struct{} `type:"structure"`
@@ -21724,15 +22506,15 @@ type SimulateCustomPolicyInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// A list of policy documents to include in the simulation. Each document is
@@ -21744,11 +22526,12 @@ type SimulateCustomPolicyInput struct {
 	// or one of the AssumeRole (http://docs.aws.amazon.com/IAM/latest/APIReference/API_AssumeRole.html)
 	// APIs to restrict what a user can do while using the temporary credentials.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of any printable ASCII character ranging
-	// from the space character (\u0020) through end of the ASCII character range
-	// (\u00FF). It also includes the special characters tab (\u0009), line feed
-	// (\u000A), and carriage return (\u000D).
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of any printable ASCII character
+	// ranging from the space character (\u0020) through end of the ASCII character
+	// range as well as the printable characters in the Basic Latin and Latin-1
+	// Supplement character set (through \u00FF). It also includes the special characters
+	// tab (\u0009), line feed (\u000A), and carriage return (\u000D).
 	//
 	// PolicyInputList is a required field
 	PolicyInputList []*string `type:"list" required:"true"`
@@ -21827,11 +22610,12 @@ type SimulateCustomPolicyInput struct {
 	// Each resource in the simulation is treated as if it had this policy attached.
 	// You can include only one resource-based policy in a simulation.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of any printable ASCII character ranging
-	// from the space character (\u0020) through end of the ASCII character range
-	// (\u00FF). It also includes the special characters tab (\u0009), line feed
-	// (\u000A), and carriage return (\u000D).
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of any printable ASCII character
+	// ranging from the space character (\u0020) through end of the ASCII character
+	// range as well as the printable characters in the Basic Latin and Latin-1
+	// Supplement character set (through \u00FF). It also includes the special characters
+	// tab (\u0009), line feed (\u000A), and carriage return (\u000D).
 	ResourcePolicy *string `min:"1" type:"string"`
 }
 
@@ -22040,26 +22824,27 @@ type SimulatePrincipalPolicyInput struct {
 	// the next call should start.
 	Marker *string `min:"1" type:"string"`
 
-	// Use this only when paginating results to indicate the maximum number of items
-	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true.
+	// (Optional) Use this only when paginating results to indicate the maximum
+	// number of items you want in the response. If additional items exist beyond
+	// the maximum you specify, the IsTruncated response element is true.
 	//
-	// This parameter is optional. If you do not include it, it defaults to 100.
-	// Note that IAM might return fewer results, even when there are more results
-	// available. In that case, the IsTruncated response element returns true and
-	// Marker contains a value to include in the subsequent call that tells the
-	// service where to continue from.
+	// If you do not include this parameter, it defaults to 100. Note that IAM might
+	// return fewer results, even when there are more results available. In that
+	// case, the IsTruncated response element returns true and Marker contains a
+	// value to include in the subsequent call that tells the service where to continue
+	// from.
 	MaxItems *int64 `min:"1" type:"integer"`
 
 	// An optional list of additional policy documents to include in the simulation.
 	// Each document is specified as a string containing the complete, valid JSON
 	// text of an IAM policy.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of any printable ASCII character ranging
-	// from the space character (\u0020) through end of the ASCII character range
-	// (\u00FF). It also includes the special characters tab (\u0009), line feed
-	// (\u000A), and carriage return (\u000D).
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of any printable ASCII character
+	// ranging from the space character (\u0020) through end of the ASCII character
+	// range as well as the printable characters in the Basic Latin and Latin-1
+	// Supplement character set (through \u00FF). It also includes the special characters
+	// tab (\u0009), line feed (\u000A), and carriage return (\u000D).
 	PolicyInputList []*string `type:"list"`
 
 	// The Amazon Resource Name (ARN) of a user, group, or role whose policies you
@@ -22146,11 +22931,12 @@ type SimulatePrincipalPolicyInput struct {
 	// Each resource in the simulation is treated as if it had this policy attached.
 	// You can include only one resource-based policy in a simulation.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of any printable ASCII character ranging
-	// from the space character (\u0020) through end of the ASCII character range
-	// (\u00FF). It also includes the special characters tab (\u0009), line feed
-	// (\u000A), and carriage return (\u000D).
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of any printable ASCII character
+	// ranging from the space character (\u0020) through end of the ASCII character
+	// range as well as the printable characters in the Basic Latin and Latin-1
+	// Supplement character set (through \u00FF). It also includes the special characters
+	// tab (\u0009), line feed (\u000A), and carriage return (\u000D).
 	ResourcePolicy *string `min:"1" type:"string"`
 }
 
@@ -22339,7 +23125,7 @@ type UpdateAccessKeyInput struct {
 
 	// The access key ID of the secret access key you want to update.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters that can consist of any upper or lowercased letter
 	// or digit.
 	//
@@ -22355,7 +23141,7 @@ type UpdateAccessKeyInput struct {
 
 	// The name of the user whose key you want to update.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	UserName *string `min:"1" type:"string"`
@@ -22592,18 +23378,19 @@ type UpdateAssumeRolePolicyInput struct {
 
 	// The policy that grants an entity permission to assume the role.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of any printable ASCII character ranging
-	// from the space character (\u0020) through end of the ASCII character range
-	// (\u00FF). It also includes the special characters tab (\u0009), line feed
-	// (\u000A), and carriage return (\u000D).
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of any printable ASCII character
+	// ranging from the space character (\u0020) through end of the ASCII character
+	// range as well as the printable characters in the Basic Latin and Latin-1
+	// Supplement character set (through \u00FF). It also includes the special characters
+	// tab (\u0009), line feed (\u000A), and carriage return (\u000D).
 	//
 	// PolicyDocument is a required field
 	PolicyDocument *string `min:"1" type:"string" required:"true"`
 
 	// The name of the role to update with the new policy.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -22677,7 +23464,7 @@ type UpdateGroupInput struct {
 	// Name of the IAM group to update. If you're changing the name of the group,
 	// this is the original name.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -22686,14 +23473,14 @@ type UpdateGroupInput struct {
 
 	// New name for the IAM group. Only include this if changing the group's name.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	NewGroupName *string `min:"1" type:"string"`
 
 	// New path for the IAM group. Only include this if changing the group's path.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This paramater allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of either a forward slash (/) by itself
 	// or a string that must begin and end with forward slashes, containing any
 	// ASCII character from the ! (\u0021) thru the DEL character (\u007F), including
@@ -22772,13 +23559,14 @@ type UpdateLoginProfileInput struct {
 
 	// The new password for the specified IAM user.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of any printable ASCII character ranging
-	// from the space character (\u0020) through end of the ASCII character range
-	// (\u00FF). It also includes the special characters tab (\u0009), line feed
-	// (\u000A), and carriage return (\u000D). However, the format can be further
-	// restricted by the account administrator by setting a password policy on the
-	// AWS account. For more information, see UpdateAccountPasswordPolicy.
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of any printable ASCII character
+	// ranging from the space character (\u0020) through end of the ASCII character
+	// range as well as the printable characters in the Basic Latin and Latin-1
+	// Supplement character set (through \u00FF). It also includes the special characters
+	// tab (\u0009), line feed (\u000A), and carriage return (\u000D). However,
+	// the format can be further restricted by the account administrator by setting
+	// a password policy on the AWS account. For more information, see UpdateAccountPasswordPolicy.
 	Password *string `min:"1" type:"string"`
 
 	// Allows this new password to be used only once by requiring the specified
@@ -22787,7 +23575,7 @@ type UpdateLoginProfileInput struct {
 
 	// The name of the user whose password you want to update.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -23033,7 +23821,7 @@ type UpdateSSHPublicKeyInput struct {
 
 	// The unique identifier for the SSH public key.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters that can consist of any upper or lowercased letter
 	// or digit.
 	//
@@ -23049,7 +23837,7 @@ type UpdateSSHPublicKeyInput struct {
 
 	// The name of the IAM user associated with the SSH public key.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -23132,7 +23920,7 @@ type UpdateServerCertificateInput struct {
 	// The new path for the server certificate. Include this only if you are updating
 	// the server certificate's path.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This paramater allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of either a forward slash (/) by itself
 	// or a string that must begin and end with forward slashes, containing any
 	// ASCII character from the ! (\u0021) thru the DEL character (\u007F), including
@@ -23143,14 +23931,14 @@ type UpdateServerCertificateInput struct {
 	// the server certificate's name. The name of the certificate cannot contain
 	// any spaces.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	NewServerCertificateName *string `min:"1" type:"string"`
 
 	// The name of the server certificate that you want to update.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -23223,13 +24011,106 @@ func (s UpdateServerCertificateOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/UpdateServiceSpecificCredentialRequest
+type UpdateServiceSpecificCredentialInput struct {
+	_ struct{} `type:"structure"`
+
+	// The unique identifier of the service-specific credential.
+	//
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
+	// a string of characters that can consist of any upper or lowercased letter
+	// or digit.
+	//
+	// ServiceSpecificCredentialId is a required field
+	ServiceSpecificCredentialId *string `min:"20" type:"string" required:"true"`
+
+	// The status to be assigned to the service-specific credential.
+	//
+	// Status is a required field
+	Status *string `type:"string" required:"true" enum:"statusType"`
+
+	// The name of the IAM user associated with the service-specific credential.
+	// If you do not specify this value, then the operation assumes the user whose
+	// credentials are used to call the operation.
+	//
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
+	// a string of characters consisting of upper and lowercase alphanumeric characters
+	// with no spaces. You can also include any of the following characters: =,.@-
+	UserName *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s UpdateServiceSpecificCredentialInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateServiceSpecificCredentialInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateServiceSpecificCredentialInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateServiceSpecificCredentialInput"}
+	if s.ServiceSpecificCredentialId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ServiceSpecificCredentialId"))
+	}
+	if s.ServiceSpecificCredentialId != nil && len(*s.ServiceSpecificCredentialId) < 20 {
+		invalidParams.Add(request.NewErrParamMinLen("ServiceSpecificCredentialId", 20))
+	}
+	if s.Status == nil {
+		invalidParams.Add(request.NewErrParamRequired("Status"))
+	}
+	if s.UserName != nil && len(*s.UserName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("UserName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetServiceSpecificCredentialId sets the ServiceSpecificCredentialId field's value.
+func (s *UpdateServiceSpecificCredentialInput) SetServiceSpecificCredentialId(v string) *UpdateServiceSpecificCredentialInput {
+	s.ServiceSpecificCredentialId = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *UpdateServiceSpecificCredentialInput) SetStatus(v string) *UpdateServiceSpecificCredentialInput {
+	s.Status = &v
+	return s
+}
+
+// SetUserName sets the UserName field's value.
+func (s *UpdateServiceSpecificCredentialInput) SetUserName(v string) *UpdateServiceSpecificCredentialInput {
+	s.UserName = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/UpdateServiceSpecificCredentialOutput
+type UpdateServiceSpecificCredentialOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateServiceSpecificCredentialOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateServiceSpecificCredentialOutput) GoString() string {
+	return s.String()
+}
+
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/iam-2010-05-08/UpdateSigningCertificateRequest
 type UpdateSigningCertificateInput struct {
 	_ struct{} `type:"structure"`
 
 	// The ID of the signing certificate you want to update.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters that can consist of any upper or lowercased letter
 	// or digit.
 	//
@@ -23245,7 +24126,7 @@ type UpdateSigningCertificateInput struct {
 
 	// The name of the IAM user the signing certificate belongs to.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	UserName *string `min:"1" type:"string"`
@@ -23323,7 +24204,7 @@ type UpdateUserInput struct {
 	// New path for the IAM user. Include this parameter only if you're changing
 	// the user's path.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This paramater allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of either a forward slash (/) by itself
 	// or a string that must begin and end with forward slashes, containing any
 	// ASCII character from the ! (\u0021) thru the DEL character (\u007F), including
@@ -23333,7 +24214,7 @@ type UpdateUserInput struct {
 	// New name for the user. Include this parameter only if you're changing the
 	// user's name.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	NewUserName *string `min:"1" type:"string"`
@@ -23341,7 +24222,7 @@ type UpdateUserInput struct {
 	// Name of the user to update. If you're changing the name of the user, this
 	// is the original user name.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -23421,18 +24302,19 @@ type UploadSSHPublicKeyInput struct {
 	// The SSH public key. The public key must be encoded in ssh-rsa format or PEM
 	// format.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of any printable ASCII character ranging
-	// from the space character (\u0020) through end of the ASCII character range
-	// (\u00FF). It also includes the special characters tab (\u0009), line feed
-	// (\u000A), and carriage return (\u000D).
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of any printable ASCII character
+	// ranging from the space character (\u0020) through end of the ASCII character
+	// range as well as the printable characters in the Basic Latin and Latin-1
+	// Supplement character set (through \u00FF). It also includes the special characters
+	// tab (\u0009), line feed (\u000A), and carriage return (\u000D).
 	//
 	// SSHPublicKeyBody is a required field
 	SSHPublicKeyBody *string `min:"1" type:"string" required:"true"`
 
 	// The name of the IAM user to associate the SSH public key with.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -23515,11 +24397,12 @@ type UploadServerCertificateInput struct {
 
 	// The contents of the public key certificate in PEM-encoded format.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of any printable ASCII character ranging
-	// from the space character (\u0020) through end of the ASCII character range
-	// (\u00FF). It also includes the special characters tab (\u0009), line feed
-	// (\u000A), and carriage return (\u000D).
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of any printable ASCII character
+	// ranging from the space character (\u0020) through end of the ASCII character
+	// range as well as the printable characters in the Basic Latin and Latin-1
+	// Supplement character set (through \u00FF). It also includes the special characters
+	// tab (\u0009), line feed (\u000A), and carriage return (\u000D).
 	//
 	// CertificateBody is a required field
 	CertificateBody *string `min:"1" type:"string" required:"true"`
@@ -23527,11 +24410,12 @@ type UploadServerCertificateInput struct {
 	// The contents of the certificate chain. This is typically a concatenation
 	// of the PEM-encoded public key certificates of the chain.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of any printable ASCII character ranging
-	// from the space character (\u0020) through end of the ASCII character range
-	// (\u00FF). It also includes the special characters tab (\u0009), line feed
-	// (\u000A), and carriage return (\u000D).
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of any printable ASCII character
+	// ranging from the space character (\u0020) through end of the ASCII character
+	// range as well as the printable characters in the Basic Latin and Latin-1
+	// Supplement character set (through \u00FF). It also includes the special characters
+	// tab (\u0009), line feed (\u000A), and carriage return (\u000D).
 	CertificateChain *string `min:"1" type:"string"`
 
 	// The path for the server certificate. For more information about paths, see
@@ -23539,8 +24423,8 @@ type UploadServerCertificateInput struct {
 	// in the IAM User Guide.
 	//
 	// This parameter is optional. If it is not included, it defaults to a slash
-	// (/). The regex pattern (http://wikipedia.org/wiki/regex) for this parameter
-	// is a string of characters consisting of either a forward slash (/) by itself
+	// (/). This paramater allows (per its regex pattern (http://wikipedia.org/wiki/regex))
+	// a string of characters consisting of either a forward slash (/) by itself
 	// or a string that must begin and end with forward slashes, containing any
 	// ASCII character from the ! (\u0021) thru the DEL character (\u007F), including
 	// most punctuation characters, digits, and upper and lowercased letters.
@@ -23553,11 +24437,12 @@ type UploadServerCertificateInput struct {
 
 	// The contents of the private key in PEM-encoded format.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of any printable ASCII character ranging
-	// from the space character (\u0020) through end of the ASCII character range
-	// (\u00FF). It also includes the special characters tab (\u0009), line feed
-	// (\u000A), and carriage return (\u000D).
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of any printable ASCII character
+	// ranging from the space character (\u0020) through end of the ASCII character
+	// range as well as the printable characters in the Basic Latin and Latin-1
+	// Supplement character set (through \u00FF). It also includes the special characters
+	// tab (\u0009), line feed (\u000A), and carriage return (\u000D).
 	//
 	// PrivateKey is a required field
 	PrivateKey *string `min:"1" type:"string" required:"true"`
@@ -23565,7 +24450,7 @@ type UploadServerCertificateInput struct {
 	// The name for the server certificate. Do not include the path in this value.
 	// The name of the certificate cannot contain any spaces.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	//
@@ -23679,18 +24564,19 @@ type UploadSigningCertificateInput struct {
 
 	// The contents of the signing certificate.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
-	// a string of characters consisting of any printable ASCII character ranging
-	// from the space character (\u0020) through end of the ASCII character range
-	// (\u00FF). It also includes the special characters tab (\u0009), line feed
-	// (\u000A), and carriage return (\u000D).
+	// The regex pattern (http://wikipedia.org/wiki/regex) used to validate this
+	// parameter is a string of characters consisting of any printable ASCII character
+	// ranging from the space character (\u0020) through end of the ASCII character
+	// range as well as the printable characters in the Basic Latin and Latin-1
+	// Supplement character set (through \u00FF). It also includes the special characters
+	// tab (\u0009), line feed (\u000A), and carriage return (\u000D).
 	//
 	// CertificateBody is a required field
 	CertificateBody *string `min:"1" type:"string" required:"true"`
 
 	// The name of the user the signing certificate is for.
 	//
-	// The regex pattern (http://wikipedia.org/wiki/regex) for this parameter is
+	// This parameter allows (per its regex pattern (http://wikipedia.org/wiki/regex))
 	// a string of characters consisting of upper and lowercase alphanumeric characters
 	// with no spaces. You can also include any of the following characters: =,.@-
 	UserName *string `min:"1" type:"string"`
@@ -23980,7 +24866,7 @@ func (s *UserDetail) SetUserPolicyList(v []*PolicyDetail) *UserDetail {
 type VirtualMFADevice struct {
 	_ struct{} `type:"structure"`
 
-	// The Base32 seed defined as specified in RFC3548 (http://www.ietf.org/rfc/rfc3548.txt).
+	// The Base32 seed defined as specified in RFC3548 (https://tools.ietf.org/html/rfc3548.txt).
 	// The Base32StringSeed is Base64-encoded.
 	//
 	// Base32StringSeed is automatically base64 encoded/decoded by the SDK.
@@ -24002,15 +24888,7 @@ type VirtualMFADevice struct {
 	// SerialNumber is a required field
 	SerialNumber *string `min:"9" type:"string" required:"true"`
 
-	// Contains information about an IAM user entity.
-	//
-	// This data type is used as a response element in the following actions:
-	//
-	//    * CreateUser
-	//
-	//    * GetUser
-	//
-	//    * ListUsers
+	// The user to whom the MFA device is assigned.
 	User *User `type:"structure"`
 }
 

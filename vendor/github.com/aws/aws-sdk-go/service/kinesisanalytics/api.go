@@ -49,9 +49,8 @@ func (c *KinesisAnalytics) AddApplicationInputRequest(input *AddApplicationInput
 		input = &AddApplicationInputInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AddApplicationInputOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -79,16 +78,16 @@ func (c *KinesisAnalytics) AddApplicationInputRequest(input *AddApplicationInput
 // API operation AddApplicationInput for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   Specified application can't be found.
 //
-//   * ResourceInUseException
+//   * ErrCodeResourceInUseException "ResourceInUseException"
 //   Application is not available for this operation.
 //
-//   * InvalidArgumentException
+//   * ErrCodeInvalidArgumentException "InvalidArgumentException"
 //   Specified input parameter value is invalid.
 //
-//   * ConcurrentModificationException
+//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
 //   Exception thrown as a result of concurrent modification to an application.
 //   For example, two individuals attempting to edit the same application at the
 //   same time.
@@ -138,9 +137,8 @@ func (c *KinesisAnalytics) AddApplicationOutputRequest(input *AddApplicationOutp
 		input = &AddApplicationOutputInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AddApplicationOutputOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -178,16 +176,16 @@ func (c *KinesisAnalytics) AddApplicationOutputRequest(input *AddApplicationOutp
 // API operation AddApplicationOutput for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   Specified application can't be found.
 //
-//   * ResourceInUseException
+//   * ErrCodeResourceInUseException "ResourceInUseException"
 //   Application is not available for this operation.
 //
-//   * InvalidArgumentException
+//   * ErrCodeInvalidArgumentException "InvalidArgumentException"
 //   Specified input parameter value is invalid.
 //
-//   * ConcurrentModificationException
+//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
 //   Exception thrown as a result of concurrent modification to an application.
 //   For example, two individuals attempting to edit the same application at the
 //   same time.
@@ -237,9 +235,8 @@ func (c *KinesisAnalytics) AddApplicationReferenceDataSourceRequest(input *AddAp
 		input = &AddApplicationReferenceDataSourceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AddApplicationReferenceDataSourceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -269,16 +266,16 @@ func (c *KinesisAnalytics) AddApplicationReferenceDataSourceRequest(input *AddAp
 // API operation AddApplicationReferenceDataSource for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   Specified application can't be found.
 //
-//   * ResourceInUseException
+//   * ErrCodeResourceInUseException "ResourceInUseException"
 //   Application is not available for this operation.
 //
-//   * InvalidArgumentException
+//   * ErrCodeInvalidArgumentException "InvalidArgumentException"
 //   Specified input parameter value is invalid.
 //
-//   * ConcurrentModificationException
+//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
 //   Exception thrown as a result of concurrent modification to an application.
 //   For example, two individuals attempting to edit the same application at the
 //   same time.
@@ -328,9 +325,8 @@ func (c *KinesisAnalytics) CreateApplicationRequest(input *CreateApplicationInpu
 		input = &CreateApplicationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateApplicationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -372,17 +368,17 @@ func (c *KinesisAnalytics) CreateApplicationRequest(input *CreateApplicationInpu
 // API operation CreateApplication for usage and error information.
 //
 // Returned Error Codes:
-//   * CodeValidationException
+//   * ErrCodeCodeValidationException "CodeValidationException"
 //   User-provided application code (query) is invalid. This can be a simple syntax
 //   error.
 //
-//   * ResourceInUseException
+//   * ErrCodeResourceInUseException "ResourceInUseException"
 //   Application is not available for this operation.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   Exceeded the number of applications allowed.
 //
-//   * InvalidArgumentException
+//   * ErrCodeInvalidArgumentException "InvalidArgumentException"
 //   Specified input parameter value is invalid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/kinesisanalytics-2015-08-14/CreateApplication
@@ -430,9 +426,8 @@ func (c *KinesisAnalytics) DeleteApplicationRequest(input *DeleteApplicationInpu
 		input = &DeleteApplicationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteApplicationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -453,15 +448,15 @@ func (c *KinesisAnalytics) DeleteApplicationRequest(input *DeleteApplicationInpu
 // API operation DeleteApplication for usage and error information.
 //
 // Returned Error Codes:
-//   * ConcurrentModificationException
+//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
 //   Exception thrown as a result of concurrent modification to an application.
 //   For example, two individuals attempting to edit the same application at the
 //   same time.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   Specified application can't be found.
 //
-//   * ResourceInUseException
+//   * ErrCodeResourceInUseException "ResourceInUseException"
 //   Application is not available for this operation.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/kinesisanalytics-2015-08-14/DeleteApplication
@@ -509,9 +504,8 @@ func (c *KinesisAnalytics) DeleteApplicationOutputRequest(input *DeleteApplicati
 		input = &DeleteApplicationOutputInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteApplicationOutputOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -532,13 +526,13 @@ func (c *KinesisAnalytics) DeleteApplicationOutputRequest(input *DeleteApplicati
 // API operation DeleteApplicationOutput for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   Specified application can't be found.
 //
-//   * ResourceInUseException
+//   * ErrCodeResourceInUseException "ResourceInUseException"
 //   Application is not available for this operation.
 //
-//   * ConcurrentModificationException
+//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
 //   Exception thrown as a result of concurrent modification to an application.
 //   For example, two individuals attempting to edit the same application at the
 //   same time.
@@ -588,9 +582,8 @@ func (c *KinesisAnalytics) DeleteApplicationReferenceDataSourceRequest(input *De
 		input = &DeleteApplicationReferenceDataSourceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteApplicationReferenceDataSourceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -614,16 +607,16 @@ func (c *KinesisAnalytics) DeleteApplicationReferenceDataSourceRequest(input *De
 // API operation DeleteApplicationReferenceDataSource for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   Specified application can't be found.
 //
-//   * ResourceInUseException
+//   * ErrCodeResourceInUseException "ResourceInUseException"
 //   Application is not available for this operation.
 //
-//   * InvalidArgumentException
+//   * ErrCodeInvalidArgumentException "InvalidArgumentException"
 //   Specified input parameter value is invalid.
 //
-//   * ConcurrentModificationException
+//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
 //   Exception thrown as a result of concurrent modification to an application.
 //   For example, two individuals attempting to edit the same application at the
 //   same time.
@@ -673,9 +666,8 @@ func (c *KinesisAnalytics) DescribeApplicationRequest(input *DescribeApplication
 		input = &DescribeApplicationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeApplicationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -698,7 +690,7 @@ func (c *KinesisAnalytics) DescribeApplicationRequest(input *DescribeApplication
 // API operation DescribeApplication for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   Specified application can't be found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/kinesisanalytics-2015-08-14/DescribeApplication
@@ -746,9 +738,8 @@ func (c *KinesisAnalytics) DiscoverInputSchemaRequest(input *DiscoverInputSchema
 		input = &DiscoverInputSchemaInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DiscoverInputSchemaOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -777,14 +768,14 @@ func (c *KinesisAnalytics) DiscoverInputSchemaRequest(input *DiscoverInputSchema
 // API operation DiscoverInputSchema for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidArgumentException
+//   * ErrCodeInvalidArgumentException "InvalidArgumentException"
 //   Specified input parameter value is invalid.
 //
-//   * UnableToDetectSchemaException
+//   * ErrCodeUnableToDetectSchemaException "UnableToDetectSchemaException"
 //   Data format is not valid, Kinesis Analytics is not able to detect schema
 //   for the given streaming source.
 //
-//   * ResourceProvisionedThroughputExceededException
+//   * ErrCodeResourceProvisionedThroughputExceededException "ResourceProvisionedThroughputExceededException"
 //   Discovery failed to get a record from the streaming source because of the
 //   Kinesis Streams ProvisionedThroughputExceededException.
 //
@@ -833,9 +824,8 @@ func (c *KinesisAnalytics) ListApplicationsRequest(input *ListApplicationsInput)
 		input = &ListApplicationsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListApplicationsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -904,9 +894,8 @@ func (c *KinesisAnalytics) StartApplicationRequest(input *StartApplicationInput)
 		input = &StartApplicationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &StartApplicationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -936,16 +925,16 @@ func (c *KinesisAnalytics) StartApplicationRequest(input *StartApplicationInput)
 // API operation StartApplication for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   Specified application can't be found.
 //
-//   * ResourceInUseException
+//   * ErrCodeResourceInUseException "ResourceInUseException"
 //   Application is not available for this operation.
 //
-//   * InvalidArgumentException
+//   * ErrCodeInvalidArgumentException "InvalidArgumentException"
 //   Specified input parameter value is invalid.
 //
-//   * InvalidApplicationConfigurationException
+//   * ErrCodeInvalidApplicationConfigurationException "InvalidApplicationConfigurationException"
 //   User-provided application configuration is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/kinesisanalytics-2015-08-14/StartApplication
@@ -993,9 +982,8 @@ func (c *KinesisAnalytics) StopApplicationRequest(input *StopApplicationInput) (
 		input = &StopApplicationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &StopApplicationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1018,10 +1006,10 @@ func (c *KinesisAnalytics) StopApplicationRequest(input *StopApplicationInput) (
 // API operation StopApplication for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   Specified application can't be found.
 //
-//   * ResourceInUseException
+//   * ErrCodeResourceInUseException "ResourceInUseException"
 //   Application is not available for this operation.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/kinesisanalytics-2015-08-14/StopApplication
@@ -1069,9 +1057,8 @@ func (c *KinesisAnalytics) UpdateApplicationRequest(input *UpdateApplicationInpu
 		input = &UpdateApplicationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateApplicationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1094,20 +1081,20 @@ func (c *KinesisAnalytics) UpdateApplicationRequest(input *UpdateApplicationInpu
 // API operation UpdateApplication for usage and error information.
 //
 // Returned Error Codes:
-//   * CodeValidationException
+//   * ErrCodeCodeValidationException "CodeValidationException"
 //   User-provided application code (query) is invalid. This can be a simple syntax
 //   error.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   Specified application can't be found.
 //
-//   * ResourceInUseException
+//   * ErrCodeResourceInUseException "ResourceInUseException"
 //   Application is not available for this operation.
 //
-//   * InvalidArgumentException
+//   * ErrCodeInvalidArgumentException "InvalidArgumentException"
 //   Specified input parameter value is invalid.
 //
-//   * ConcurrentModificationException
+//   * ErrCodeConcurrentModificationException "ConcurrentModificationException"
 //   Exception thrown as a result of concurrent modification to an application.
 //   For example, two individuals attempting to edit the same application at the
 //   same time.

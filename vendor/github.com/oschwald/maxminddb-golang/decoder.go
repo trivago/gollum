@@ -416,9 +416,9 @@ func (d *decoder) decodeMap(size uint, offset uint, result reflect.Value) (uint,
 	}
 
 	for i := uint(0); i < size; i++ {
-		var key string
+		var key []byte
 		var err error
-		key, offset, err = d.decodeKeyString(offset)
+		key, offset, err = d.decodeKey(offset)
 
 		if err != nil {
 			return 0, err
@@ -429,7 +429,7 @@ func (d *decoder) decodeMap(size uint, offset uint, result reflect.Value) (uint,
 		if err != nil {
 			return 0, err
 		}
-		result.SetMapIndex(reflect.ValueOf(key), value.Elem())
+		result.SetMapIndex(reflect.ValueOf(string(key)), value.Elem())
 	}
 	return offset, nil
 }
@@ -534,13 +534,15 @@ func (d *decoder) decodeStruct(size uint, offset uint, result reflect.Value) (ui
 	for i := uint(0); i < size; i++ {
 		var (
 			err error
-			key string
+			key []byte
 		)
-		key, offset, err = d.decodeStructKey(offset)
+		key, offset, err = d.decodeKey(offset)
 		if err != nil {
 			return 0, err
 		}
-		j, ok := fields.namedFields[key]
+		// The string() does not create a copy due to this compiler
+		// optimization: https://github.com/golang/go/issues/3512
+		j, ok := fields.namedFields[string(key)]
 		if !ok {
 			offset = d.nextValueOffset(offset, 1)
 			continue
@@ -577,17 +579,22 @@ func uintFromBytes(prefix uint64, uintBytes []byte) uint64 {
 	return val
 }
 
-func (d *decoder) decodeKeyString(offset uint) (string, uint, error) {
-	typeNum, size, newOffset := d.decodeCtrlData(offset)
+// decodeKey decodes a map key into []byte slice. We use a []byte so that we
+// can take advantage of https://github.com/golang/go/issues/3512 to avoid
+// copying the bytes when decoding a struct. Previously, we achieved this by
+// using unsafe.
+func (d *decoder) decodeKey(offset uint) ([]byte, uint, error) {
+	typeNum, size, dataOffset := d.decodeCtrlData(offset)
 	if typeNum == _Pointer {
-		pointer, ptrOffset := d.decodePointer(size, newOffset)
-		key, _, err := d.decodeKeyString(pointer)
+		pointer, ptrOffset := d.decodePointer(size, dataOffset)
+		key, _, err := d.decodeKey(pointer)
 		return key, ptrOffset, err
 	}
 	if typeNum != _String {
-		return "", 0, newInvalidDatabaseError("unexpected type when decoding string: %v", typeNum)
+		return nil, 0, newInvalidDatabaseError("unexpected type when decoding string: %v", typeNum)
 	}
-	return d.decodeString(size, newOffset)
+	newOffset := dataOffset + size
+	return d.buffer[dataOffset:newOffset], newOffset, nil
 }
 
 // This function is used to skip ahead to the next value without decoding

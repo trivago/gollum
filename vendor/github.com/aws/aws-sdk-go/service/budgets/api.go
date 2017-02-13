@@ -47,9 +47,8 @@ func (c *Budgets) CreateBudgetRequest(input *CreateBudgetInput) (req *request.Re
 		input = &CreateBudgetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateBudgetOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -65,18 +64,18 @@ func (c *Budgets) CreateBudgetRequest(input *CreateBudgetInput) (req *request.Re
 // API operation CreateBudget for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown if any request is given an invalid parameter. E.g.,
 //   if a required Date field is null.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown on an unknown internal failure.
 //
-//   * CreationLimitExceededException
+//   * ErrCodeCreationLimitExceededException "CreationLimitExceededException"
 //   The exception is thrown when customer tries to create a record (e.g. budget),
 //   but the number this record already exceeds the limitation.
 //
-//   * DuplicateRecordException
+//   * ErrCodeDuplicateRecordException "DuplicateRecordException"
 //   The exception is thrown when customer tries to create a record (e.g. budget)
 //   that already exists.
 //
@@ -122,9 +121,8 @@ func (c *Budgets) CreateNotificationRequest(input *CreateNotificationInput) (req
 		input = &CreateNotificationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateNotificationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -140,22 +138,22 @@ func (c *Budgets) CreateNotificationRequest(input *CreateNotificationInput) (req
 // API operation CreateNotification for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown on an unknown internal failure.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown if any request is given an invalid parameter. E.g.,
 //   if a required Date field is null.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   This exception is thrown if a requested entity is not found. E.g., if a budget
 //   id doesn't exist for an account ID.
 //
-//   * CreationLimitExceededException
+//   * ErrCodeCreationLimitExceededException "CreationLimitExceededException"
 //   The exception is thrown when customer tries to create a record (e.g. budget),
 //   but the number this record already exceeds the limitation.
 //
-//   * DuplicateRecordException
+//   * ErrCodeDuplicateRecordException "DuplicateRecordException"
 //   The exception is thrown when customer tries to create a record (e.g. budget)
 //   that already exists.
 //
@@ -201,9 +199,8 @@ func (c *Budgets) CreateSubscriberRequest(input *CreateSubscriberInput) (req *re
 		input = &CreateSubscriberInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateSubscriberOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -219,18 +216,18 @@ func (c *Budgets) CreateSubscriberRequest(input *CreateSubscriberInput) (req *re
 // API operation CreateSubscriber for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown on an unknown internal failure.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown if any request is given an invalid parameter. E.g.,
 //   if a required Date field is null.
 //
-//   * CreationLimitExceededException
+//   * ErrCodeCreationLimitExceededException "CreationLimitExceededException"
 //   The exception is thrown when customer tries to create a record (e.g. budget),
 //   but the number this record already exceeds the limitation.
 //
-//   * DuplicateRecordException
+//   * ErrCodeDuplicateRecordException "DuplicateRecordException"
 //   The exception is thrown when customer tries to create a record (e.g. budget)
 //   that already exists.
 //
@@ -276,9 +273,8 @@ func (c *Budgets) DeleteBudgetRequest(input *DeleteBudgetInput) (req *request.Re
 		input = &DeleteBudgetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteBudgetOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -294,14 +290,14 @@ func (c *Budgets) DeleteBudgetRequest(input *DeleteBudgetInput) (req *request.Re
 // API operation DeleteBudget for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown on an unknown internal failure.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown if any request is given an invalid parameter. E.g.,
 //   if a required Date field is null.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   This exception is thrown if a requested entity is not found. E.g., if a budget
 //   id doesn't exist for an account ID.
 //
@@ -347,9 +343,8 @@ func (c *Budgets) DeleteNotificationRequest(input *DeleteNotificationInput) (req
 		input = &DeleteNotificationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteNotificationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -365,14 +360,14 @@ func (c *Budgets) DeleteNotificationRequest(input *DeleteNotificationInput) (req
 // API operation DeleteNotification for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown if any request is given an invalid parameter. E.g.,
 //   if a required Date field is null.
 //
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown on an unknown internal failure.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   This exception is thrown if a requested entity is not found. E.g., if a budget
 //   id doesn't exist for an account ID.
 //
@@ -418,9 +413,8 @@ func (c *Budgets) DeleteSubscriberRequest(input *DeleteSubscriberInput) (req *re
 		input = &DeleteSubscriberInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteSubscriberOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -436,14 +430,14 @@ func (c *Budgets) DeleteSubscriberRequest(input *DeleteSubscriberInput) (req *re
 // API operation DeleteSubscriber for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown on an unknown internal failure.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown if any request is given an invalid parameter. E.g.,
 //   if a required Date field is null.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   This exception is thrown if a requested entity is not found. E.g., if a budget
 //   id doesn't exist for an account ID.
 //
@@ -489,9 +483,8 @@ func (c *Budgets) DescribeBudgetRequest(input *DescribeBudgetInput) (req *reques
 		input = &DescribeBudgetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeBudgetOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -507,14 +500,14 @@ func (c *Budgets) DescribeBudgetRequest(input *DescribeBudgetInput) (req *reques
 // API operation DescribeBudget for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown on an unknown internal failure.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown if any request is given an invalid parameter. E.g.,
 //   if a required Date field is null.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   This exception is thrown if a requested entity is not found. E.g., if a budget
 //   id doesn't exist for an account ID.
 //
@@ -560,9 +553,8 @@ func (c *Budgets) DescribeBudgetsRequest(input *DescribeBudgetsInput) (req *requ
 		input = &DescribeBudgetsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeBudgetsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -578,22 +570,22 @@ func (c *Budgets) DescribeBudgetsRequest(input *DescribeBudgetsInput) (req *requ
 // API operation DescribeBudgets for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown on an unknown internal failure.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown if any request is given an invalid parameter. E.g.,
 //   if a required Date field is null.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   This exception is thrown if a requested entity is not found. E.g., if a budget
 //   id doesn't exist for an account ID.
 //
-//   * InvalidNextTokenException
+//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
 //   This exception is thrown if paging token signature didn't match the token,
 //   or the paging token isn't for this request
 //
-//   * ExpiredNextTokenException
+//   * ErrCodeExpiredNextTokenException "ExpiredNextTokenException"
 //   This exception is thrown if the paging token is expired - past its TTL
 //
 func (c *Budgets) DescribeBudgets(input *DescribeBudgetsInput) (*DescribeBudgetsOutput, error) {
@@ -638,9 +630,8 @@ func (c *Budgets) DescribeNotificationsForBudgetRequest(input *DescribeNotificat
 		input = &DescribeNotificationsForBudgetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeNotificationsForBudgetOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -656,22 +647,22 @@ func (c *Budgets) DescribeNotificationsForBudgetRequest(input *DescribeNotificat
 // API operation DescribeNotificationsForBudget for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown on an unknown internal failure.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown if any request is given an invalid parameter. E.g.,
 //   if a required Date field is null.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   This exception is thrown if a requested entity is not found. E.g., if a budget
 //   id doesn't exist for an account ID.
 //
-//   * InvalidNextTokenException
+//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
 //   This exception is thrown if paging token signature didn't match the token,
 //   or the paging token isn't for this request
 //
-//   * ExpiredNextTokenException
+//   * ErrCodeExpiredNextTokenException "ExpiredNextTokenException"
 //   This exception is thrown if the paging token is expired - past its TTL
 //
 func (c *Budgets) DescribeNotificationsForBudget(input *DescribeNotificationsForBudgetInput) (*DescribeNotificationsForBudgetOutput, error) {
@@ -716,9 +707,8 @@ func (c *Budgets) DescribeSubscribersForNotificationRequest(input *DescribeSubsc
 		input = &DescribeSubscribersForNotificationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeSubscribersForNotificationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -734,22 +724,22 @@ func (c *Budgets) DescribeSubscribersForNotificationRequest(input *DescribeSubsc
 // API operation DescribeSubscribersForNotification for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown on an unknown internal failure.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   This exception is thrown if a requested entity is not found. E.g., if a budget
 //   id doesn't exist for an account ID.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown if any request is given an invalid parameter. E.g.,
 //   if a required Date field is null.
 //
-//   * InvalidNextTokenException
+//   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
 //   This exception is thrown if paging token signature didn't match the token,
 //   or the paging token isn't for this request
 //
-//   * ExpiredNextTokenException
+//   * ErrCodeExpiredNextTokenException "ExpiredNextTokenException"
 //   This exception is thrown if the paging token is expired - past its TTL
 //
 func (c *Budgets) DescribeSubscribersForNotification(input *DescribeSubscribersForNotificationInput) (*DescribeSubscribersForNotificationOutput, error) {
@@ -794,9 +784,8 @@ func (c *Budgets) UpdateBudgetRequest(input *UpdateBudgetInput) (req *request.Re
 		input = &UpdateBudgetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateBudgetOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -812,14 +801,14 @@ func (c *Budgets) UpdateBudgetRequest(input *UpdateBudgetInput) (req *request.Re
 // API operation UpdateBudget for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown on an unknown internal failure.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown if any request is given an invalid parameter. E.g.,
 //   if a required Date field is null.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   This exception is thrown if a requested entity is not found. E.g., if a budget
 //   id doesn't exist for an account ID.
 //
@@ -865,9 +854,8 @@ func (c *Budgets) UpdateNotificationRequest(input *UpdateNotificationInput) (req
 		input = &UpdateNotificationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateNotificationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -883,14 +871,14 @@ func (c *Budgets) UpdateNotificationRequest(input *UpdateNotificationInput) (req
 // API operation UpdateNotification for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown on an unknown internal failure.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown if any request is given an invalid parameter. E.g.,
 //   if a required Date field is null.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   This exception is thrown if a requested entity is not found. E.g., if a budget
 //   id doesn't exist for an account ID.
 //
@@ -936,9 +924,8 @@ func (c *Budgets) UpdateSubscriberRequest(input *UpdateSubscriberInput) (req *re
 		input = &UpdateSubscriberInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateSubscriberOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -954,14 +941,14 @@ func (c *Budgets) UpdateSubscriberRequest(input *UpdateSubscriberInput) (req *re
 // API operation UpdateSubscriber for usage and error information.
 //
 // Returned Error Codes:
-//   * InternalErrorException
+//   * ErrCodeInternalErrorException "InternalErrorException"
 //   This exception is thrown on an unknown internal failure.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   This exception is thrown if any request is given an invalid parameter. E.g.,
 //   if a required Date field is null.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   This exception is thrown if a requested entity is not found. E.g., if a budget
 //   id doesn't exist for an account ID.
 //

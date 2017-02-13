@@ -49,9 +49,8 @@ func (c *WorkSpaces) CreateTagsRequest(input *CreateTagsInput) (req *request.Req
 		input = &CreateTagsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateTagsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -67,13 +66,13 @@ func (c *WorkSpaces) CreateTagsRequest(input *CreateTagsInput) (req *request.Req
 // API operation CreateTags for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The resource could not be found.
 //
-//   * InvalidParameterValuesException
+//   * ErrCodeInvalidParameterValuesException "InvalidParameterValuesException"
 //   One or more parameter values are not valid.
 //
-//   * ResourceLimitExceededException
+//   * ErrCodeResourceLimitExceededException "ResourceLimitExceededException"
 //   Your resource limits have been exceeded.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/workspaces-2015-04-08/CreateTags
@@ -121,9 +120,8 @@ func (c *WorkSpaces) CreateWorkspacesRequest(input *CreateWorkspacesInput) (req 
 		input = &CreateWorkspacesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateWorkspacesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -141,10 +139,10 @@ func (c *WorkSpaces) CreateWorkspacesRequest(input *CreateWorkspacesInput) (req 
 // API operation CreateWorkspaces for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceLimitExceededException
+//   * ErrCodeResourceLimitExceededException "ResourceLimitExceededException"
 //   Your resource limits have been exceeded.
 //
-//   * InvalidParameterValuesException
+//   * ErrCodeInvalidParameterValuesException "InvalidParameterValuesException"
 //   One or more parameter values are not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/workspaces-2015-04-08/CreateWorkspaces
@@ -192,9 +190,8 @@ func (c *WorkSpaces) DeleteTagsRequest(input *DeleteTagsInput) (req *request.Req
 		input = &DeleteTagsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteTagsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -210,10 +207,10 @@ func (c *WorkSpaces) DeleteTagsRequest(input *DeleteTagsInput) (req *request.Req
 // API operation DeleteTags for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The resource could not be found.
 //
-//   * InvalidParameterValuesException
+//   * ErrCodeInvalidParameterValuesException "InvalidParameterValuesException"
 //   One or more parameter values are not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/workspaces-2015-04-08/DeleteTags
@@ -261,9 +258,8 @@ func (c *WorkSpaces) DescribeTagsRequest(input *DescribeTagsInput) (req *request
 		input = &DescribeTagsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeTagsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -279,7 +275,7 @@ func (c *WorkSpaces) DescribeTagsRequest(input *DescribeTagsInput) (req *request
 // API operation DescribeTags for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The resource could not be found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/workspaces-2015-04-08/DescribeTags
@@ -333,9 +329,8 @@ func (c *WorkSpaces) DescribeWorkspaceBundlesRequest(input *DescribeWorkspaceBun
 		input = &DescribeWorkspaceBundlesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeWorkspaceBundlesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -360,7 +355,7 @@ func (c *WorkSpaces) DescribeWorkspaceBundlesRequest(input *DescribeWorkspaceBun
 // API operation DescribeWorkspaceBundles for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterValuesException
+//   * ErrCodeInvalidParameterValuesException "InvalidParameterValuesException"
 //   One or more parameter values are not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/workspaces-2015-04-08/DescribeWorkspaceBundles
@@ -439,9 +434,8 @@ func (c *WorkSpaces) DescribeWorkspaceDirectoriesRequest(input *DescribeWorkspac
 		input = &DescribeWorkspaceDirectoriesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeWorkspaceDirectoriesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -464,7 +458,7 @@ func (c *WorkSpaces) DescribeWorkspaceDirectoriesRequest(input *DescribeWorkspac
 // API operation DescribeWorkspaceDirectories for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterValuesException
+//   * ErrCodeInvalidParameterValuesException "InvalidParameterValuesException"
 //   One or more parameter values are not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/workspaces-2015-04-08/DescribeWorkspaceDirectories
@@ -543,9 +537,8 @@ func (c *WorkSpaces) DescribeWorkspacesRequest(input *DescribeWorkspacesInput) (
 		input = &DescribeWorkspacesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeWorkspacesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -569,10 +562,10 @@ func (c *WorkSpaces) DescribeWorkspacesRequest(input *DescribeWorkspacesInput) (
 // API operation DescribeWorkspaces for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterValuesException
+//   * ErrCodeInvalidParameterValuesException "InvalidParameterValuesException"
 //   One or more parameter values are not valid.
 //
-//   * ResourceUnavailableException
+//   * ErrCodeResourceUnavailableException "ResourceUnavailableException"
 //   The specified resource is not available.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/workspaces-2015-04-08/DescribeWorkspaces
@@ -645,9 +638,8 @@ func (c *WorkSpaces) DescribeWorkspacesConnectionStatusRequest(input *DescribeWo
 		input = &DescribeWorkspacesConnectionStatusInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeWorkspacesConnectionStatusOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -663,7 +655,7 @@ func (c *WorkSpaces) DescribeWorkspacesConnectionStatusRequest(input *DescribeWo
 // API operation DescribeWorkspacesConnectionStatus for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterValuesException
+//   * ErrCodeInvalidParameterValuesException "InvalidParameterValuesException"
 //   One or more parameter values are not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/workspaces-2015-04-08/DescribeWorkspacesConnectionStatus
@@ -711,9 +703,8 @@ func (c *WorkSpaces) ModifyWorkspacePropertiesRequest(input *ModifyWorkspaceProp
 		input = &ModifyWorkspacePropertiesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ModifyWorkspacePropertiesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -730,27 +721,26 @@ func (c *WorkSpaces) ModifyWorkspacePropertiesRequest(input *ModifyWorkspaceProp
 // API operation ModifyWorkspaceProperties for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidParameterValuesException
+//   * ErrCodeInvalidParameterValuesException "InvalidParameterValuesException"
 //   One or more parameter values are not valid.
 //
-//   * InvalidResourceStateException
+//   * ErrCodeInvalidResourceStateException "InvalidResourceStateException"
 //   The specified WorkSpace has an invalid state for this operation.
 //
-//   * OperationInProgressException
+//   * ErrCodeOperationInProgressException "OperationInProgressException"
 //   The properties of this WorkSpace are currently being modified. Try again
 //   in a moment.
 //
-//   * UnsupportedWorkspaceConfigurationException
+//   * ErrCodeUnsupportedWorkspaceConfigurationException "UnsupportedWorkspaceConfigurationException"
 //   The WorkSpace does not have the supported configuration for this operation.
 //   For more information, see the Amazon WorkSpaces Administration Guide (http://docs.aws.amazon.com/workspaces/latest/adminguide).
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The resource could not be found.
 //
-//   * AccessDeniedException
-
+//   * ErrCodeAccessDeniedException "AccessDeniedException"
 //
-//   * ResourceUnavailableException
+//   * ErrCodeResourceUnavailableException "ResourceUnavailableException"
 //   The specified resource is not available.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/workspaces-2015-04-08/ModifyWorkspaceProperties
@@ -798,9 +788,8 @@ func (c *WorkSpaces) RebootWorkspacesRequest(input *RebootWorkspacesInput) (req 
 		input = &RebootWorkspacesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &RebootWorkspacesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -864,9 +853,8 @@ func (c *WorkSpaces) RebuildWorkspacesRequest(input *RebuildWorkspacesInput) (re
 		input = &RebuildWorkspacesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &RebuildWorkspacesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -943,9 +931,8 @@ func (c *WorkSpaces) StartWorkspacesRequest(input *StartWorkspacesInput) (req *r
 		input = &StartWorkspacesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &StartWorkspacesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1005,9 +992,8 @@ func (c *WorkSpaces) StopWorkspacesRequest(input *StopWorkspacesInput) (req *req
 		input = &StopWorkspacesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &StopWorkspacesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1068,9 +1054,8 @@ func (c *WorkSpaces) TerminateWorkspacesRequest(input *TerminateWorkspacesInput)
 		input = &TerminateWorkspacesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &TerminateWorkspacesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 

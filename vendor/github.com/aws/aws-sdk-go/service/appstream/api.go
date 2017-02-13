@@ -48,9 +48,8 @@ func (c *AppStream) AssociateFleetRequest(input *AssociateFleetInput) (req *requ
 		input = &AssociateFleetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AssociateFleetOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -66,10 +65,10 @@ func (c *AppStream) AssociateFleetRequest(input *AssociateFleetInput) (req *requ
 // API operation AssociateFleet for usage and error information.
 //
 // Returned Error Codes:
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   The requested limit exceeds the permitted limit for an account.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The specified resource was not found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/AssociateFleet
@@ -117,9 +116,8 @@ func (c *AppStream) CreateFleetRequest(input *CreateFleetInput) (req *request.Re
 		input = &CreateFleetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateFleetOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -135,19 +133,19 @@ func (c *AppStream) CreateFleetRequest(input *CreateFleetInput) (req *request.Re
 // API operation CreateFleet for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceAlreadyExistsException
+//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
 //   The specified resource already exists.
 //
-//   * ResourceNotAvailableException
+//   * ErrCodeResourceNotAvailableException "ResourceNotAvailableException"
 //   The specified resource exists and is not in use, but isn't available.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The specified resource was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   The requested limit exceeds the permitted limit for an account.
 //
-//   * InvalidRoleException
+//   * ErrCodeInvalidRoleException "InvalidRoleException"
 //   The specified role is invalid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/CreateFleet
@@ -195,9 +193,8 @@ func (c *AppStream) CreateStackRequest(input *CreateStackInput) (req *request.Re
 		input = &CreateStackInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateStackOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -213,10 +210,10 @@ func (c *AppStream) CreateStackRequest(input *CreateStackInput) (req *request.Re
 // API operation CreateStack for usage and error information.
 //
 // Returned Error Codes:
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   The requested limit exceeds the permitted limit for an account.
 //
-//   * ResourceAlreadyExistsException
+//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
 //   The specified resource already exists.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/CreateStack
@@ -264,9 +261,8 @@ func (c *AppStream) CreateStreamingURLRequest(input *CreateStreamingURLInput) (r
 		input = &CreateStreamingURLInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateStreamingURLOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -283,13 +279,13 @@ func (c *AppStream) CreateStreamingURLRequest(input *CreateStreamingURLInput) (r
 // API operation CreateStreamingURL for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The specified resource was not found.
 //
-//   * ResourceNotAvailableException
+//   * ErrCodeResourceNotAvailableException "ResourceNotAvailableException"
 //   The specified resource exists and is not in use, but isn't available.
 //
-//   * OperationNotPermittedException
+//   * ErrCodeOperationNotPermittedException "OperationNotPermittedException"
 //   The attempted operation is not permitted.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/CreateStreamingURL
@@ -337,9 +333,8 @@ func (c *AppStream) DeleteFleetRequest(input *DeleteFleetInput) (req *request.Re
 		input = &DeleteFleetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteFleetOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -355,10 +350,10 @@ func (c *AppStream) DeleteFleetRequest(input *DeleteFleetInput) (req *request.Re
 // API operation DeleteFleet for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceInUseException
+//   * ErrCodeResourceInUseException "ResourceInUseException"
 //   The specified resource is in use.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The specified resource was not found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DeleteFleet
@@ -406,9 +401,8 @@ func (c *AppStream) DeleteStackRequest(input *DeleteStackInput) (req *request.Re
 		input = &DeleteStackInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteStackOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -425,10 +419,10 @@ func (c *AppStream) DeleteStackRequest(input *DeleteStackInput) (req *request.Re
 // API operation DeleteStack for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceInUseException
+//   * ErrCodeResourceInUseException "ResourceInUseException"
 //   The specified resource is in use.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The specified resource was not found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DeleteStack
@@ -476,9 +470,8 @@ func (c *AppStream) DescribeFleetsRequest(input *DescribeFleetsInput) (req *requ
 		input = &DescribeFleetsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeFleetsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -495,7 +488,7 @@ func (c *AppStream) DescribeFleetsRequest(input *DescribeFleetsInput) (req *requ
 // API operation DescribeFleets for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The specified resource was not found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DescribeFleets
@@ -543,9 +536,8 @@ func (c *AppStream) DescribeImagesRequest(input *DescribeImagesInput) (req *requ
 		input = &DescribeImagesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeImagesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -562,7 +554,7 @@ func (c *AppStream) DescribeImagesRequest(input *DescribeImagesInput) (req *requ
 // API operation DescribeImages for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The specified resource was not found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DescribeImages
@@ -610,9 +602,8 @@ func (c *AppStream) DescribeSessionsRequest(input *DescribeSessionsInput) (req *
 		input = &DescribeSessionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeSessionsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -674,9 +665,8 @@ func (c *AppStream) DescribeStacksRequest(input *DescribeStacksInput) (req *requ
 		input = &DescribeStacksInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeStacksOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -694,7 +684,7 @@ func (c *AppStream) DescribeStacksRequest(input *DescribeStacksInput) (req *requ
 // API operation DescribeStacks for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The specified resource was not found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DescribeStacks
@@ -742,9 +732,8 @@ func (c *AppStream) DisassociateFleetRequest(input *DisassociateFleetInput) (req
 		input = &DisassociateFleetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DisassociateFleetOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -760,10 +749,10 @@ func (c *AppStream) DisassociateFleetRequest(input *DisassociateFleetInput) (req
 // API operation DisassociateFleet for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceInUseException
+//   * ErrCodeResourceInUseException "ResourceInUseException"
 //   The specified resource is in use.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The specified resource was not found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/DisassociateFleet
@@ -811,9 +800,8 @@ func (c *AppStream) ExpireSessionRequest(input *ExpireSessionInput) (req *reques
 		input = &ExpireSessionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ExpireSessionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -872,9 +860,8 @@ func (c *AppStream) ListAssociatedFleetsRequest(input *ListAssociatedFleetsInput
 		input = &ListAssociatedFleetsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListAssociatedFleetsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -933,9 +920,8 @@ func (c *AppStream) ListAssociatedStacksRequest(input *ListAssociatedStacksInput
 		input = &ListAssociatedStacksInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListAssociatedStacksOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -994,9 +980,8 @@ func (c *AppStream) StartFleetRequest(input *StartFleetInput) (req *request.Requ
 		input = &StartFleetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &StartFleetOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1012,10 +997,10 @@ func (c *AppStream) StartFleetRequest(input *StartFleetInput) (req *request.Requ
 // API operation StartFleet for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The specified resource was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   The requested limit exceeds the permitted limit for an account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/StartFleet
@@ -1063,9 +1048,8 @@ func (c *AppStream) StopFleetRequest(input *StopFleetInput) (req *request.Reques
 		input = &StopFleetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &StopFleetOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1081,7 +1065,7 @@ func (c *AppStream) StopFleetRequest(input *StopFleetInput) (req *request.Reques
 // API operation StopFleet for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The specified resource was not found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/StopFleet
@@ -1129,9 +1113,8 @@ func (c *AppStream) UpdateFleetRequest(input *UpdateFleetInput) (req *request.Re
 		input = &UpdateFleetInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateFleetOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1149,16 +1132,16 @@ func (c *AppStream) UpdateFleetRequest(input *UpdateFleetInput) (req *request.Re
 // API operation UpdateFleet for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceInUseException
+//   * ErrCodeResourceInUseException "ResourceInUseException"
 //   The specified resource is in use.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   The requested limit exceeds the permitted limit for an account.
 //
-//   * InvalidRoleException
+//   * ErrCodeInvalidRoleException "InvalidRoleException"
 //   The specified role is invalid.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The specified resource was not found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/UpdateFleet
@@ -1206,9 +1189,8 @@ func (c *AppStream) UpdateStackRequest(input *UpdateStackInput) (req *request.Re
 		input = &UpdateStackInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateStackOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1224,10 +1206,10 @@ func (c *AppStream) UpdateStackRequest(input *UpdateStackInput) (req *request.Re
 // API operation UpdateStack for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   The specified resource was not found.
 //
-//   * ResourceInUseException
+//   * ErrCodeResourceInUseException "ResourceInUseException"
 //   The specified resource is in use.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/appstream-2016-12-01/UpdateStack

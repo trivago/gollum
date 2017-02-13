@@ -33,6 +33,12 @@ func (a *API) customizationPasses() {
 	var svcCustomizations = map[string]func(*API){
 		"s3":         s3Customizations,
 		"cloudfront": cloudfrontCustomizations,
+		"rds":        rdsCustomizations,
+
+		// Disable endpoint resolving for services that require customer
+		// to provide endpoint them selves.
+		"cloudsearchdomain": disableEndpointResolving,
+		"iotdataplane":      disableEndpointResolving,
 	}
 
 	for k, _ := range mergeServices {
@@ -138,4 +144,31 @@ func mergeServicesCustomizations(a *API) {
 			a.Shapes[n].resolvePkg = "github.com/aws/aws-sdk-go/service/" + info.dstName
 		}
 	}
+}
+
+// rdsCustomizations are customization for the service/rds. This adds non-modeled fields used for presigning.
+func rdsCustomizations(a *API) {
+	inputs := []string{
+		"CopyDBSnapshotInput",
+		"CreateDBInstanceReadReplicaInput",
+	}
+	for _, input := range inputs {
+		if ref, ok := a.Shapes[input]; ok {
+			ref.MemberRefs["SourceRegion"] = &ShapeRef{
+				Documentation: docstring(`SourceRegion is the source region where the resource exists. This is not sent over the wire and is only used for presigning. This value should always have the same region as the source ARN.`),
+				ShapeName:     "String",
+				Shape:         a.Shapes["String"],
+				Ignore:        true,
+			}
+			ref.MemberRefs["DestinationRegion"] = &ShapeRef{
+				Documentation: docstring(`DestinationRegion is used for presigning the request to a given region.`),
+				ShapeName:     "String",
+				Shape:         a.Shapes["String"],
+			}
+		}
+	}
+}
+
+func disableEndpointResolving(a *API) {
+	a.Metadata.NoResolveEndpoint = true
 }

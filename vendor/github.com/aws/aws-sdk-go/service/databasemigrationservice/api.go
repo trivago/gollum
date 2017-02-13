@@ -49,9 +49,8 @@ func (c *DatabaseMigrationService) AddTagsToResourceRequest(input *AddTagsToReso
 		input = &AddTagsToResourceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AddTagsToResourceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -70,7 +69,7 @@ func (c *DatabaseMigrationService) AddTagsToResourceRequest(input *AddTagsToReso
 // API operation AddTagsToResource for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/AddTagsToResource
@@ -118,9 +117,8 @@ func (c *DatabaseMigrationService) CreateEndpointRequest(input *CreateEndpointIn
 		input = &CreateEndpointInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateEndpointOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -136,23 +134,23 @@ func (c *DatabaseMigrationService) CreateEndpointRequest(input *CreateEndpointIn
 // API operation CreateEndpoint for usage and error information.
 //
 // Returned Error Codes:
-//   * KMSKeyNotAccessibleFault
+//   * ErrCodeKMSKeyNotAccessibleFault "KMSKeyNotAccessibleFault"
 //   AWS DMS cannot access the KMS key.
 //
-//   * ResourceAlreadyExistsFault
+//   * ErrCodeResourceAlreadyExistsFault "ResourceAlreadyExistsFault"
 //   The resource you are attempting to create already exists.
 //
-//   * ResourceQuotaExceededFault
+//   * ErrCodeResourceQuotaExceededFault "ResourceQuotaExceededFault"
 //   The quota for this resource quota has been exceeded.
 //
-//   * InvalidResourceStateFault
+//   * ErrCodeInvalidResourceStateFault "InvalidResourceStateFault"
 //   The resource is in a state that prevents it from being used for database
 //   migration.
 //
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
-//   * AccessDeniedFault
+//   * ErrCodeAccessDeniedFault "AccessDeniedFault"
 //   AWS DMS was denied access to the endpoint.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/CreateEndpoint
@@ -200,9 +198,8 @@ func (c *DatabaseMigrationService) CreateReplicationInstanceRequest(input *Creat
 		input = &CreateReplicationInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateReplicationInstanceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -218,36 +215,36 @@ func (c *DatabaseMigrationService) CreateReplicationInstanceRequest(input *Creat
 // API operation CreateReplicationInstance for usage and error information.
 //
 // Returned Error Codes:
-//   * AccessDeniedFault
+//   * ErrCodeAccessDeniedFault "AccessDeniedFault"
 //   AWS DMS was denied access to the endpoint.
 //
-//   * ResourceAlreadyExistsFault
+//   * ErrCodeResourceAlreadyExistsFault "ResourceAlreadyExistsFault"
 //   The resource you are attempting to create already exists.
 //
-//   * InsufficientResourceCapacityFault
+//   * ErrCodeInsufficientResourceCapacityFault "InsufficientResourceCapacityFault"
 //   There are not enough resources allocated to the database migration.
 //
-//   * ResourceQuotaExceededFault
+//   * ErrCodeResourceQuotaExceededFault "ResourceQuotaExceededFault"
 //   The quota for this resource quota has been exceeded.
 //
-//   * StorageQuotaExceededFault
+//   * ErrCodeStorageQuotaExceededFault "StorageQuotaExceededFault"
 //   The storage quota has been exceeded.
 //
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
-//   * ReplicationSubnetGroupDoesNotCoverEnoughAZs
+//   * ErrCodeReplicationSubnetGroupDoesNotCoverEnoughAZs "ReplicationSubnetGroupDoesNotCoverEnoughAZs"
 //   The replication subnet group does not cover enough Availability Zones (AZs).
 //   Edit the replication subnet group and add more AZs.
 //
-//   * InvalidResourceStateFault
+//   * ErrCodeInvalidResourceStateFault "InvalidResourceStateFault"
 //   The resource is in a state that prevents it from being used for database
 //   migration.
 //
-//   * InvalidSubnet
+//   * ErrCodeInvalidSubnet "InvalidSubnet"
 //   The subnet provided is invalid.
 //
-//   * KMSKeyNotAccessibleFault
+//   * ErrCodeKMSKeyNotAccessibleFault "KMSKeyNotAccessibleFault"
 //   AWS DMS cannot access the KMS key.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/CreateReplicationInstance
@@ -295,9 +292,8 @@ func (c *DatabaseMigrationService) CreateReplicationSubnetGroupRequest(input *Cr
 		input = &CreateReplicationSubnetGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateReplicationSubnetGroupOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -313,23 +309,23 @@ func (c *DatabaseMigrationService) CreateReplicationSubnetGroupRequest(input *Cr
 // API operation CreateReplicationSubnetGroup for usage and error information.
 //
 // Returned Error Codes:
-//   * AccessDeniedFault
+//   * ErrCodeAccessDeniedFault "AccessDeniedFault"
 //   AWS DMS was denied access to the endpoint.
 //
-//   * ResourceAlreadyExistsFault
+//   * ErrCodeResourceAlreadyExistsFault "ResourceAlreadyExistsFault"
 //   The resource you are attempting to create already exists.
 //
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
-//   * ResourceQuotaExceededFault
+//   * ErrCodeResourceQuotaExceededFault "ResourceQuotaExceededFault"
 //   The quota for this resource quota has been exceeded.
 //
-//   * ReplicationSubnetGroupDoesNotCoverEnoughAZs
+//   * ErrCodeReplicationSubnetGroupDoesNotCoverEnoughAZs "ReplicationSubnetGroupDoesNotCoverEnoughAZs"
 //   The replication subnet group does not cover enough Availability Zones (AZs).
 //   Edit the replication subnet group and add more AZs.
 //
-//   * InvalidSubnet
+//   * ErrCodeInvalidSubnet "InvalidSubnet"
 //   The subnet provided is invalid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/CreateReplicationSubnetGroup
@@ -377,9 +373,8 @@ func (c *DatabaseMigrationService) CreateReplicationTaskRequest(input *CreateRep
 		input = &CreateReplicationTaskInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateReplicationTaskOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -395,20 +390,20 @@ func (c *DatabaseMigrationService) CreateReplicationTaskRequest(input *CreateRep
 // API operation CreateReplicationTask for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidResourceStateFault
+//   * ErrCodeInvalidResourceStateFault "InvalidResourceStateFault"
 //   The resource is in a state that prevents it from being used for database
 //   migration.
 //
-//   * ResourceAlreadyExistsFault
+//   * ErrCodeResourceAlreadyExistsFault "ResourceAlreadyExistsFault"
 //   The resource you are attempting to create already exists.
 //
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
-//   * KMSKeyNotAccessibleFault
+//   * ErrCodeKMSKeyNotAccessibleFault "KMSKeyNotAccessibleFault"
 //   AWS DMS cannot access the KMS key.
 //
-//   * ResourceQuotaExceededFault
+//   * ErrCodeResourceQuotaExceededFault "ResourceQuotaExceededFault"
 //   The quota for this resource quota has been exceeded.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/CreateReplicationTask
@@ -456,9 +451,8 @@ func (c *DatabaseMigrationService) DeleteCertificateRequest(input *DeleteCertifi
 		input = &DeleteCertificateInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteCertificateOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -474,10 +468,10 @@ func (c *DatabaseMigrationService) DeleteCertificateRequest(input *DeleteCertifi
 // API operation DeleteCertificate for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
-//   * InvalidResourceStateFault
+//   * ErrCodeInvalidResourceStateFault "InvalidResourceStateFault"
 //   The resource is in a state that prevents it from being used for database
 //   migration.
 //
@@ -526,9 +520,8 @@ func (c *DatabaseMigrationService) DeleteEndpointRequest(input *DeleteEndpointIn
 		input = &DeleteEndpointInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteEndpointOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -547,10 +540,10 @@ func (c *DatabaseMigrationService) DeleteEndpointRequest(input *DeleteEndpointIn
 // API operation DeleteEndpoint for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
-//   * InvalidResourceStateFault
+//   * ErrCodeInvalidResourceStateFault "InvalidResourceStateFault"
 //   The resource is in a state that prevents it from being used for database
 //   migration.
 //
@@ -599,9 +592,8 @@ func (c *DatabaseMigrationService) DeleteReplicationInstanceRequest(input *Delet
 		input = &DeleteReplicationInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteReplicationInstanceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -620,11 +612,11 @@ func (c *DatabaseMigrationService) DeleteReplicationInstanceRequest(input *Delet
 // API operation DeleteReplicationInstance for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidResourceStateFault
+//   * ErrCodeInvalidResourceStateFault "InvalidResourceStateFault"
 //   The resource is in a state that prevents it from being used for database
 //   migration.
 //
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/DeleteReplicationInstance
@@ -672,9 +664,8 @@ func (c *DatabaseMigrationService) DeleteReplicationSubnetGroupRequest(input *De
 		input = &DeleteReplicationSubnetGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteReplicationSubnetGroupOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -690,11 +681,11 @@ func (c *DatabaseMigrationService) DeleteReplicationSubnetGroupRequest(input *De
 // API operation DeleteReplicationSubnetGroup for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidResourceStateFault
+//   * ErrCodeInvalidResourceStateFault "InvalidResourceStateFault"
 //   The resource is in a state that prevents it from being used for database
 //   migration.
 //
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/DeleteReplicationSubnetGroup
@@ -742,9 +733,8 @@ func (c *DatabaseMigrationService) DeleteReplicationTaskRequest(input *DeleteRep
 		input = &DeleteReplicationTaskInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteReplicationTaskOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -760,10 +750,10 @@ func (c *DatabaseMigrationService) DeleteReplicationTaskRequest(input *DeleteRep
 // API operation DeleteReplicationTask for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
-//   * InvalidResourceStateFault
+//   * ErrCodeInvalidResourceStateFault "InvalidResourceStateFault"
 //   The resource is in a state that prevents it from being used for database
 //   migration.
 //
@@ -812,9 +802,8 @@ func (c *DatabaseMigrationService) DescribeAccountAttributesRequest(input *Descr
 		input = &DescribeAccountAttributesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeAccountAttributesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -878,9 +867,8 @@ func (c *DatabaseMigrationService) DescribeCertificatesRequest(input *DescribeCe
 		input = &DescribeCertificatesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeCertificatesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -896,7 +884,7 @@ func (c *DatabaseMigrationService) DescribeCertificatesRequest(input *DescribeCe
 // API operation DescribeCertificates for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/DescribeCertificates
@@ -944,9 +932,8 @@ func (c *DatabaseMigrationService) DescribeConnectionsRequest(input *DescribeCon
 		input = &DescribeConnectionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeConnectionsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -963,7 +950,7 @@ func (c *DatabaseMigrationService) DescribeConnectionsRequest(input *DescribeCon
 // API operation DescribeConnections for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/DescribeConnections
@@ -1011,9 +998,8 @@ func (c *DatabaseMigrationService) DescribeEndpointTypesRequest(input *DescribeE
 		input = &DescribeEndpointTypesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeEndpointTypesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1072,9 +1058,8 @@ func (c *DatabaseMigrationService) DescribeEndpointsRequest(input *DescribeEndpo
 		input = &DescribeEndpointsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeEndpointsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1090,7 +1075,7 @@ func (c *DatabaseMigrationService) DescribeEndpointsRequest(input *DescribeEndpo
 // API operation DescribeEndpoints for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/DescribeEndpoints
@@ -1138,9 +1123,8 @@ func (c *DatabaseMigrationService) DescribeOrderableReplicationInstancesRequest(
 		input = &DescribeOrderableReplicationInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeOrderableReplicationInstancesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1200,9 +1184,8 @@ func (c *DatabaseMigrationService) DescribeRefreshSchemasStatusRequest(input *De
 		input = &DescribeRefreshSchemasStatusInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeRefreshSchemasStatusOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1218,11 +1201,11 @@ func (c *DatabaseMigrationService) DescribeRefreshSchemasStatusRequest(input *De
 // API operation DescribeRefreshSchemasStatus for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidResourceStateFault
+//   * ErrCodeInvalidResourceStateFault "InvalidResourceStateFault"
 //   The resource is in a state that prevents it from being used for database
 //   migration.
 //
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/DescribeRefreshSchemasStatus
@@ -1270,9 +1253,8 @@ func (c *DatabaseMigrationService) DescribeReplicationInstancesRequest(input *De
 		input = &DescribeReplicationInstancesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeReplicationInstancesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1289,7 +1271,7 @@ func (c *DatabaseMigrationService) DescribeReplicationInstancesRequest(input *De
 // API operation DescribeReplicationInstances for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/DescribeReplicationInstances
@@ -1337,9 +1319,8 @@ func (c *DatabaseMigrationService) DescribeReplicationSubnetGroupsRequest(input 
 		input = &DescribeReplicationSubnetGroupsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeReplicationSubnetGroupsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1355,7 +1336,7 @@ func (c *DatabaseMigrationService) DescribeReplicationSubnetGroupsRequest(input 
 // API operation DescribeReplicationSubnetGroups for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/DescribeReplicationSubnetGroups
@@ -1403,9 +1384,8 @@ func (c *DatabaseMigrationService) DescribeReplicationTasksRequest(input *Descri
 		input = &DescribeReplicationTasksInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeReplicationTasksOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1422,7 +1402,7 @@ func (c *DatabaseMigrationService) DescribeReplicationTasksRequest(input *Descri
 // API operation DescribeReplicationTasks for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/DescribeReplicationTasks
@@ -1470,9 +1450,8 @@ func (c *DatabaseMigrationService) DescribeSchemasRequest(input *DescribeSchemas
 		input = &DescribeSchemasInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeSchemasOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1488,11 +1467,11 @@ func (c *DatabaseMigrationService) DescribeSchemasRequest(input *DescribeSchemas
 // API operation DescribeSchemas for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidResourceStateFault
+//   * ErrCodeInvalidResourceStateFault "InvalidResourceStateFault"
 //   The resource is in a state that prevents it from being used for database
 //   migration.
 //
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/DescribeSchemas
@@ -1540,9 +1519,8 @@ func (c *DatabaseMigrationService) DescribeTableStatisticsRequest(input *Describ
 		input = &DescribeTableStatisticsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeTableStatisticsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1559,10 +1537,10 @@ func (c *DatabaseMigrationService) DescribeTableStatisticsRequest(input *Describ
 // API operation DescribeTableStatistics for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
-//   * InvalidResourceStateFault
+//   * ErrCodeInvalidResourceStateFault "InvalidResourceStateFault"
 //   The resource is in a state that prevents it from being used for database
 //   migration.
 //
@@ -1611,9 +1589,8 @@ func (c *DatabaseMigrationService) ImportCertificateRequest(input *ImportCertifi
 		input = &ImportCertificateInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ImportCertificateOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1629,10 +1606,10 @@ func (c *DatabaseMigrationService) ImportCertificateRequest(input *ImportCertifi
 // API operation ImportCertificate for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceAlreadyExistsFault
+//   * ErrCodeResourceAlreadyExistsFault "ResourceAlreadyExistsFault"
 //   The resource you are attempting to create already exists.
 //
-//   * InvalidCertificateFault
+//   * ErrCodeInvalidCertificateFault "InvalidCertificateFault"
 //   The certificate was not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/ImportCertificate
@@ -1680,9 +1657,8 @@ func (c *DatabaseMigrationService) ListTagsForResourceRequest(input *ListTagsFor
 		input = &ListTagsForResourceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListTagsForResourceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1698,7 +1674,7 @@ func (c *DatabaseMigrationService) ListTagsForResourceRequest(input *ListTagsFor
 // API operation ListTagsForResource for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/ListTagsForResource
@@ -1746,9 +1722,8 @@ func (c *DatabaseMigrationService) ModifyEndpointRequest(input *ModifyEndpointIn
 		input = &ModifyEndpointInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ModifyEndpointOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1764,17 +1739,17 @@ func (c *DatabaseMigrationService) ModifyEndpointRequest(input *ModifyEndpointIn
 // API operation ModifyEndpoint for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidResourceStateFault
+//   * ErrCodeInvalidResourceStateFault "InvalidResourceStateFault"
 //   The resource is in a state that prevents it from being used for database
 //   migration.
 //
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
-//   * ResourceAlreadyExistsFault
+//   * ErrCodeResourceAlreadyExistsFault "ResourceAlreadyExistsFault"
 //   The resource you are attempting to create already exists.
 //
-//   * KMSKeyNotAccessibleFault
+//   * ErrCodeKMSKeyNotAccessibleFault "KMSKeyNotAccessibleFault"
 //   AWS DMS cannot access the KMS key.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/ModifyEndpoint
@@ -1822,9 +1797,8 @@ func (c *DatabaseMigrationService) ModifyReplicationInstanceRequest(input *Modif
 		input = &ModifyReplicationInstanceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ModifyReplicationInstanceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1844,23 +1818,23 @@ func (c *DatabaseMigrationService) ModifyReplicationInstanceRequest(input *Modif
 // API operation ModifyReplicationInstance for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidResourceStateFault
+//   * ErrCodeInvalidResourceStateFault "InvalidResourceStateFault"
 //   The resource is in a state that prevents it from being used for database
 //   migration.
 //
-//   * ResourceAlreadyExistsFault
+//   * ErrCodeResourceAlreadyExistsFault "ResourceAlreadyExistsFault"
 //   The resource you are attempting to create already exists.
 //
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
-//   * InsufficientResourceCapacityFault
+//   * ErrCodeInsufficientResourceCapacityFault "InsufficientResourceCapacityFault"
 //   There are not enough resources allocated to the database migration.
 //
-//   * StorageQuotaExceededFault
+//   * ErrCodeStorageQuotaExceededFault "StorageQuotaExceededFault"
 //   The storage quota has been exceeded.
 //
-//   * UpgradeDependencyFailureFault
+//   * ErrCodeUpgradeDependencyFailureFault "UpgradeDependencyFailureFault"
 //   An upgrade dependency is preventing the database migration.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/ModifyReplicationInstance
@@ -1908,9 +1882,8 @@ func (c *DatabaseMigrationService) ModifyReplicationSubnetGroupRequest(input *Mo
 		input = &ModifyReplicationSubnetGroupInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ModifyReplicationSubnetGroupOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1926,23 +1899,23 @@ func (c *DatabaseMigrationService) ModifyReplicationSubnetGroupRequest(input *Mo
 // API operation ModifyReplicationSubnetGroup for usage and error information.
 //
 // Returned Error Codes:
-//   * AccessDeniedFault
+//   * ErrCodeAccessDeniedFault "AccessDeniedFault"
 //   AWS DMS was denied access to the endpoint.
 //
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
-//   * ResourceQuotaExceededFault
+//   * ErrCodeResourceQuotaExceededFault "ResourceQuotaExceededFault"
 //   The quota for this resource quota has been exceeded.
 //
-//   * SubnetAlreadyInUse
+//   * ErrCodeSubnetAlreadyInUse "SubnetAlreadyInUse"
 //   The specified subnet is already in use.
 //
-//   * ReplicationSubnetGroupDoesNotCoverEnoughAZs
+//   * ErrCodeReplicationSubnetGroupDoesNotCoverEnoughAZs "ReplicationSubnetGroupDoesNotCoverEnoughAZs"
 //   The replication subnet group does not cover enough Availability Zones (AZs).
 //   Edit the replication subnet group and add more AZs.
 //
-//   * InvalidSubnet
+//   * ErrCodeInvalidSubnet "InvalidSubnet"
 //   The subnet provided is invalid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/ModifyReplicationSubnetGroup
@@ -1990,9 +1963,8 @@ func (c *DatabaseMigrationService) ModifyReplicationTaskRequest(input *ModifyRep
 		input = &ModifyReplicationTaskInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ModifyReplicationTaskOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2011,17 +1983,17 @@ func (c *DatabaseMigrationService) ModifyReplicationTaskRequest(input *ModifyRep
 // API operation ModifyReplicationTask for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidResourceStateFault
+//   * ErrCodeInvalidResourceStateFault "InvalidResourceStateFault"
 //   The resource is in a state that prevents it from being used for database
 //   migration.
 //
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
-//   * ResourceAlreadyExistsFault
+//   * ErrCodeResourceAlreadyExistsFault "ResourceAlreadyExistsFault"
 //   The resource you are attempting to create already exists.
 //
-//   * KMSKeyNotAccessibleFault
+//   * ErrCodeKMSKeyNotAccessibleFault "KMSKeyNotAccessibleFault"
 //   AWS DMS cannot access the KMS key.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/ModifyReplicationTask
@@ -2069,9 +2041,8 @@ func (c *DatabaseMigrationService) RefreshSchemasRequest(input *RefreshSchemasIn
 		input = &RefreshSchemasInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &RefreshSchemasOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2089,17 +2060,17 @@ func (c *DatabaseMigrationService) RefreshSchemasRequest(input *RefreshSchemasIn
 // API operation RefreshSchemas for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidResourceStateFault
+//   * ErrCodeInvalidResourceStateFault "InvalidResourceStateFault"
 //   The resource is in a state that prevents it from being used for database
 //   migration.
 //
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
-//   * KMSKeyNotAccessibleFault
+//   * ErrCodeKMSKeyNotAccessibleFault "KMSKeyNotAccessibleFault"
 //   AWS DMS cannot access the KMS key.
 //
-//   * ResourceQuotaExceededFault
+//   * ErrCodeResourceQuotaExceededFault "ResourceQuotaExceededFault"
 //   The quota for this resource quota has been exceeded.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/RefreshSchemas
@@ -2147,9 +2118,8 @@ func (c *DatabaseMigrationService) RemoveTagsFromResourceRequest(input *RemoveTa
 		input = &RemoveTagsFromResourceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &RemoveTagsFromResourceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2165,7 +2135,7 @@ func (c *DatabaseMigrationService) RemoveTagsFromResourceRequest(input *RemoveTa
 // API operation RemoveTagsFromResource for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/RemoveTagsFromResource
@@ -2213,9 +2183,8 @@ func (c *DatabaseMigrationService) StartReplicationTaskRequest(input *StartRepli
 		input = &StartReplicationTaskInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &StartReplicationTaskOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2231,10 +2200,10 @@ func (c *DatabaseMigrationService) StartReplicationTaskRequest(input *StartRepli
 // API operation StartReplicationTask for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
-//   * InvalidResourceStateFault
+//   * ErrCodeInvalidResourceStateFault "InvalidResourceStateFault"
 //   The resource is in a state that prevents it from being used for database
 //   migration.
 //
@@ -2283,9 +2252,8 @@ func (c *DatabaseMigrationService) StopReplicationTaskRequest(input *StopReplica
 		input = &StopReplicationTaskInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &StopReplicationTaskOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2301,10 +2269,10 @@ func (c *DatabaseMigrationService) StopReplicationTaskRequest(input *StopReplica
 // API operation StopReplicationTask for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
-//   * InvalidResourceStateFault
+//   * ErrCodeInvalidResourceStateFault "InvalidResourceStateFault"
 //   The resource is in a state that prevents it from being used for database
 //   migration.
 //
@@ -2353,9 +2321,8 @@ func (c *DatabaseMigrationService) TestConnectionRequest(input *TestConnectionIn
 		input = &TestConnectionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &TestConnectionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2371,17 +2338,17 @@ func (c *DatabaseMigrationService) TestConnectionRequest(input *TestConnectionIn
 // API operation TestConnection for usage and error information.
 //
 // Returned Error Codes:
-//   * ResourceNotFoundFault
+//   * ErrCodeResourceNotFoundFault "ResourceNotFoundFault"
 //   The resource could not be found.
 //
-//   * InvalidResourceStateFault
+//   * ErrCodeInvalidResourceStateFault "InvalidResourceStateFault"
 //   The resource is in a state that prevents it from being used for database
 //   migration.
 //
-//   * KMSKeyNotAccessibleFault
+//   * ErrCodeKMSKeyNotAccessibleFault "KMSKeyNotAccessibleFault"
 //   AWS DMS cannot access the KMS key.
 //
-//   * ResourceQuotaExceededFault
+//   * ErrCodeResourceQuotaExceededFault "ResourceQuotaExceededFault"
 //   The quota for this resource quota has been exceeded.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/dms-2016-01-01/TestConnection

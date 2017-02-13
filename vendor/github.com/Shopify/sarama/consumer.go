@@ -63,8 +63,8 @@ type Consumer interface {
 	// or OffsetOldest
 	ConsumePartition(topic string, partition int32, offset int64) (PartitionConsumer, error)
 
-	// HighWaterMarks returns the current high water marks for each topic and partition
-	// Consistency between partitions is not garanteed since high water marks are updated separately.
+	// HighWaterMarks returns the current high water marks for each topic and partition.
+	// Consistency between partitions is not guaranteed since high water marks are updated separately.
 	HighWaterMarks() map[string]map[int32]int64
 
 	// Close shuts down the consumer. It must be called after all child
@@ -324,7 +324,7 @@ func (child *partitionConsumer) sendError(err error) {
 }
 
 func (child *partitionConsumer) dispatcher() {
-	for _ = range child.trigger {
+	for range child.trigger {
 		select {
 		case <-child.dying:
 			close(child.trigger)
@@ -411,7 +411,7 @@ func (child *partitionConsumer) Close() error {
 	child.AsyncClose()
 
 	go withRecover(func() {
-		for _ = range child.messages {
+		for range child.messages {
 			// drain
 		}
 	})

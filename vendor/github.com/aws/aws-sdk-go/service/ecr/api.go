@@ -48,9 +48,8 @@ func (c *ECR) BatchCheckLayerAvailabilityRequest(input *BatchCheckLayerAvailabil
 		input = &BatchCheckLayerAvailabilityInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &BatchCheckLayerAvailabilityOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -60,7 +59,8 @@ func (c *ECR) BatchCheckLayerAvailabilityRequest(input *BatchCheckLayerAvailabil
 // repository.
 //
 // This operation is used by the Amazon ECR proxy, and it is not intended for
-// general use by customers. Use the docker CLI to pull, tag, and push images.
+// general use by customers for pulling and pushing images. In most cases, you
+// should use the docker CLI to pull, tag, and push images.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -70,15 +70,15 @@ func (c *ECR) BatchCheckLayerAvailabilityRequest(input *BatchCheckLayerAvailabil
 // API operation BatchCheckLayerAvailability for usage and error information.
 //
 // Returned Error Codes:
-//   * RepositoryNotFoundException
+//   * ErrCodeRepositoryNotFoundException "RepositoryNotFoundException"
 //   The specified repository could not be found. Check the spelling of the specified
 //   repository and ensure that you are performing operations on the correct registry.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   The specified parameter is invalid. Review the available parameters for the
 //   API request.
 //
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server-side issue.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/ecr-2015-09-21/BatchCheckLayerAvailability
@@ -126,9 +126,8 @@ func (c *ECR) BatchDeleteImageRequest(input *BatchDeleteImageInput) (req *reques
 		input = &BatchDeleteImageInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &BatchDeleteImageOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -136,6 +135,13 @@ func (c *ECR) BatchDeleteImageRequest(input *BatchDeleteImageInput) (req *reques
 //
 // Deletes a list of specified images within a specified repository. Images
 // are specified with either imageTag or imageDigest.
+//
+// You can remove a tag from an image by specifying the image's tag in your
+// request. When you remove the last tag from an image, the image is deleted
+// from your repository.
+//
+// You can completely delete an image (and all of its tags) by specifying the
+// image's digest in your request.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -145,14 +151,14 @@ func (c *ECR) BatchDeleteImageRequest(input *BatchDeleteImageInput) (req *reques
 // API operation BatchDeleteImage for usage and error information.
 //
 // Returned Error Codes:
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server-side issue.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   The specified parameter is invalid. Review the available parameters for the
 //   API request.
 //
-//   * RepositoryNotFoundException
+//   * ErrCodeRepositoryNotFoundException "RepositoryNotFoundException"
 //   The specified repository could not be found. Check the spelling of the specified
 //   repository and ensure that you are performing operations on the correct registry.
 //
@@ -201,9 +207,8 @@ func (c *ECR) BatchGetImageRequest(input *BatchGetImageInput) (req *request.Requ
 		input = &BatchGetImageInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &BatchGetImageOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -220,14 +225,14 @@ func (c *ECR) BatchGetImageRequest(input *BatchGetImageInput) (req *request.Requ
 // API operation BatchGetImage for usage and error information.
 //
 // Returned Error Codes:
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server-side issue.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   The specified parameter is invalid. Review the available parameters for the
 //   API request.
 //
-//   * RepositoryNotFoundException
+//   * ErrCodeRepositoryNotFoundException "RepositoryNotFoundException"
 //   The specified repository could not be found. Check the spelling of the specified
 //   repository and ensure that you are performing operations on the correct registry.
 //
@@ -276,9 +281,8 @@ func (c *ECR) CompleteLayerUploadRequest(input *CompleteLayerUploadInput) (req *
 		input = &CompleteLayerUploadInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CompleteLayerUploadOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -289,7 +293,8 @@ func (c *ECR) CompleteLayerUploadRequest(input *CompleteLayerUploadInput) (req *
 // of the image layer for data validation purposes.
 //
 // This operation is used by the Amazon ECR proxy, and it is not intended for
-// general use by customers. Use the docker CLI to pull, tag, and push images.
+// general use by customers for pulling and pushing images. In most cases, you
+// should use the docker CLI to pull, tag, and push images.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -299,32 +304,32 @@ func (c *ECR) CompleteLayerUploadRequest(input *CompleteLayerUploadInput) (req *
 // API operation CompleteLayerUpload for usage and error information.
 //
 // Returned Error Codes:
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server-side issue.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   The specified parameter is invalid. Review the available parameters for the
 //   API request.
 //
-//   * RepositoryNotFoundException
+//   * ErrCodeRepositoryNotFoundException "RepositoryNotFoundException"
 //   The specified repository could not be found. Check the spelling of the specified
 //   repository and ensure that you are performing operations on the correct registry.
 //
-//   * UploadNotFoundException
+//   * ErrCodeUploadNotFoundException "UploadNotFoundException"
 //   The upload could not be found, or the specified upload id is not valid for
 //   this repository.
 //
-//   * InvalidLayerException
+//   * ErrCodeInvalidLayerException "InvalidLayerException"
 //   The layer digest calculation performed by Amazon ECR upon receipt of the
 //   image layer does not match the digest specified.
 //
-//   * LayerPartTooSmallException
+//   * ErrCodeLayerPartTooSmallException "LayerPartTooSmallException"
 //   Layer parts must be at least 5 MiB in size.
 //
-//   * LayerAlreadyExistsException
+//   * ErrCodeLayerAlreadyExistsException "LayerAlreadyExistsException"
 //   The image layer already exists in the associated repository.
 //
-//   * EmptyUploadException
+//   * ErrCodeEmptyUploadException "EmptyUploadException"
 //   The specified layer upload does not contain any layer parts.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/ecr-2015-09-21/CompleteLayerUpload
@@ -372,9 +377,8 @@ func (c *ECR) CreateRepositoryRequest(input *CreateRepositoryInput) (req *reques
 		input = &CreateRepositoryInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateRepositoryOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -390,17 +394,17 @@ func (c *ECR) CreateRepositoryRequest(input *CreateRepositoryInput) (req *reques
 // API operation CreateRepository for usage and error information.
 //
 // Returned Error Codes:
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server-side issue.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   The specified parameter is invalid. Review the available parameters for the
 //   API request.
 //
-//   * RepositoryAlreadyExistsException
+//   * ErrCodeRepositoryAlreadyExistsException "RepositoryAlreadyExistsException"
 //   The specified repository already exists in the specified registry.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   The operation did not succeed because it would have exceeded a service limit
 //   for your account. For more information, see Amazon ECR Default Service Limits
 //   (http://docs.aws.amazon.com/AmazonECR/latest/userguide/service_limits.html)
@@ -451,9 +455,8 @@ func (c *ECR) DeleteRepositoryRequest(input *DeleteRepositoryInput) (req *reques
 		input = &DeleteRepositoryInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteRepositoryOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -470,18 +473,18 @@ func (c *ECR) DeleteRepositoryRequest(input *DeleteRepositoryInput) (req *reques
 // API operation DeleteRepository for usage and error information.
 //
 // Returned Error Codes:
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server-side issue.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   The specified parameter is invalid. Review the available parameters for the
 //   API request.
 //
-//   * RepositoryNotFoundException
+//   * ErrCodeRepositoryNotFoundException "RepositoryNotFoundException"
 //   The specified repository could not be found. Check the spelling of the specified
 //   repository and ensure that you are performing operations on the correct registry.
 //
-//   * RepositoryNotEmptyException
+//   * ErrCodeRepositoryNotEmptyException "RepositoryNotEmptyException"
 //   The specified repository contains images. To delete a repository that contains
 //   images, you must force the deletion with the force parameter.
 //
@@ -530,9 +533,8 @@ func (c *ECR) DeleteRepositoryPolicyRequest(input *DeleteRepositoryPolicyInput) 
 		input = &DeleteRepositoryPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteRepositoryPolicyOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -548,18 +550,18 @@ func (c *ECR) DeleteRepositoryPolicyRequest(input *DeleteRepositoryPolicyInput) 
 // API operation DeleteRepositoryPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server-side issue.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   The specified parameter is invalid. Review the available parameters for the
 //   API request.
 //
-//   * RepositoryNotFoundException
+//   * ErrCodeRepositoryNotFoundException "RepositoryNotFoundException"
 //   The specified repository could not be found. Check the spelling of the specified
 //   repository and ensure that you are performing operations on the correct registry.
 //
-//   * RepositoryPolicyNotFoundException
+//   * ErrCodeRepositoryPolicyNotFoundException "RepositoryPolicyNotFoundException"
 //   The specified repository and registry combination does not have an associated
 //   repository policy.
 //
@@ -614,16 +616,15 @@ func (c *ECR) DescribeImagesRequest(input *DescribeImagesInput) (req *request.Re
 		input = &DescribeImagesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeImagesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
 // DescribeImages API operation for Amazon EC2 Container Registry.
 //
-// Returns metadata about the images in a repository, including image size and
-// creation date.
+// Returns metadata about the images in a repository, including image size,
+// image tags, and creation date.
 //
 // Beginning with Docker version 1.9, the Docker client compresses image layers
 // before pushing them to a V2 Docker registry. The output of the docker images
@@ -638,18 +639,18 @@ func (c *ECR) DescribeImagesRequest(input *DescribeImagesInput) (req *request.Re
 // API operation DescribeImages for usage and error information.
 //
 // Returned Error Codes:
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server-side issue.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   The specified parameter is invalid. Review the available parameters for the
 //   API request.
 //
-//   * RepositoryNotFoundException
+//   * ErrCodeRepositoryNotFoundException "RepositoryNotFoundException"
 //   The specified repository could not be found. Check the spelling of the specified
 //   repository and ensure that you are performing operations on the correct registry.
 //
-//   * ImageNotFoundException
+//   * ErrCodeImageNotFoundException "ImageNotFoundException"
 //   The image requested does not exist in the specified repository.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/ecr-2015-09-21/DescribeImages
@@ -728,9 +729,8 @@ func (c *ECR) DescribeRepositoriesRequest(input *DescribeRepositoriesInput) (req
 		input = &DescribeRepositoriesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeRepositoriesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -746,14 +746,14 @@ func (c *ECR) DescribeRepositoriesRequest(input *DescribeRepositoriesInput) (req
 // API operation DescribeRepositories for usage and error information.
 //
 // Returned Error Codes:
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server-side issue.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   The specified parameter is invalid. Review the available parameters for the
 //   API request.
 //
-//   * RepositoryNotFoundException
+//   * ErrCodeRepositoryNotFoundException "RepositoryNotFoundException"
 //   The specified repository could not be found. Check the spelling of the specified
 //   repository and ensure that you are performing operations on the correct registry.
 //
@@ -827,9 +827,8 @@ func (c *ECR) GetAuthorizationTokenRequest(input *GetAuthorizationTokenInput) (r
 		input = &GetAuthorizationTokenInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetAuthorizationTokenOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -852,10 +851,10 @@ func (c *ECR) GetAuthorizationTokenRequest(input *GetAuthorizationTokenInput) (r
 // API operation GetAuthorizationToken for usage and error information.
 //
 // Returned Error Codes:
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server-side issue.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   The specified parameter is invalid. Review the available parameters for the
 //   API request.
 //
@@ -904,9 +903,8 @@ func (c *ECR) GetDownloadUrlForLayerRequest(input *GetDownloadUrlForLayerInput) 
 		input = &GetDownloadUrlForLayerInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetDownloadUrlForLayerOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -916,7 +914,8 @@ func (c *ECR) GetDownloadUrlForLayerRequest(input *GetDownloadUrlForLayerInput) 
 // layer. You can only get URLs for image layers that are referenced in an image.
 //
 // This operation is used by the Amazon ECR proxy, and it is not intended for
-// general use by customers. Use the docker CLI to pull, tag, and push images.
+// general use by customers for pulling and pushing images. In most cases, you
+// should use the docker CLI to pull, tag, and push images.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -926,22 +925,22 @@ func (c *ECR) GetDownloadUrlForLayerRequest(input *GetDownloadUrlForLayerInput) 
 // API operation GetDownloadUrlForLayer for usage and error information.
 //
 // Returned Error Codes:
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server-side issue.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   The specified parameter is invalid. Review the available parameters for the
 //   API request.
 //
-//   * LayersNotFoundException
+//   * ErrCodeLayersNotFoundException "LayersNotFoundException"
 //   The specified layers could not be found, or the specified layer is not valid
 //   for this repository.
 //
-//   * LayerInaccessibleException
+//   * ErrCodeLayerInaccessibleException "LayerInaccessibleException"
 //   The specified layer is not available because it is not associated with an
 //   image. Unassociated image layers may be cleaned up at any time.
 //
-//   * RepositoryNotFoundException
+//   * ErrCodeRepositoryNotFoundException "RepositoryNotFoundException"
 //   The specified repository could not be found. Check the spelling of the specified
 //   repository and ensure that you are performing operations on the correct registry.
 //
@@ -990,9 +989,8 @@ func (c *ECR) GetRepositoryPolicyRequest(input *GetRepositoryPolicyInput) (req *
 		input = &GetRepositoryPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetRepositoryPolicyOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1008,18 +1006,18 @@ func (c *ECR) GetRepositoryPolicyRequest(input *GetRepositoryPolicyInput) (req *
 // API operation GetRepositoryPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server-side issue.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   The specified parameter is invalid. Review the available parameters for the
 //   API request.
 //
-//   * RepositoryNotFoundException
+//   * ErrCodeRepositoryNotFoundException "RepositoryNotFoundException"
 //   The specified repository could not be found. Check the spelling of the specified
 //   repository and ensure that you are performing operations on the correct registry.
 //
-//   * RepositoryPolicyNotFoundException
+//   * ErrCodeRepositoryPolicyNotFoundException "RepositoryPolicyNotFoundException"
 //   The specified repository and registry combination does not have an associated
 //   repository policy.
 //
@@ -1068,9 +1066,8 @@ func (c *ECR) InitiateLayerUploadRequest(input *InitiateLayerUploadInput) (req *
 		input = &InitiateLayerUploadInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &InitiateLayerUploadOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1079,7 +1076,8 @@ func (c *ECR) InitiateLayerUploadRequest(input *InitiateLayerUploadInput) (req *
 // Notify Amazon ECR that you intend to upload an image layer.
 //
 // This operation is used by the Amazon ECR proxy, and it is not intended for
-// general use by customers. Use the docker CLI to pull, tag, and push images.
+// general use by customers for pulling and pushing images. In most cases, you
+// should use the docker CLI to pull, tag, and push images.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1089,14 +1087,14 @@ func (c *ECR) InitiateLayerUploadRequest(input *InitiateLayerUploadInput) (req *
 // API operation InitiateLayerUpload for usage and error information.
 //
 // Returned Error Codes:
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server-side issue.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   The specified parameter is invalid. Review the available parameters for the
 //   API request.
 //
-//   * RepositoryNotFoundException
+//   * ErrCodeRepositoryNotFoundException "RepositoryNotFoundException"
 //   The specified repository could not be found. Check the spelling of the specified
 //   repository and ensure that you are performing operations on the correct registry.
 //
@@ -1151,9 +1149,8 @@ func (c *ECR) ListImagesRequest(input *ListImagesInput) (req *request.Request, o
 		input = &ListImagesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListImagesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1175,14 +1172,14 @@ func (c *ECR) ListImagesRequest(input *ListImagesInput) (req *request.Request, o
 // API operation ListImages for usage and error information.
 //
 // Returned Error Codes:
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server-side issue.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   The specified parameter is invalid. Review the available parameters for the
 //   API request.
 //
-//   * RepositoryNotFoundException
+//   * ErrCodeRepositoryNotFoundException "RepositoryNotFoundException"
 //   The specified repository could not be found. Check the spelling of the specified
 //   repository and ensure that you are performing operations on the correct registry.
 //
@@ -1256,18 +1253,18 @@ func (c *ECR) PutImageRequest(input *PutImageInput) (req *request.Request, outpu
 		input = &PutImageInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &PutImageOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
 // PutImage API operation for Amazon EC2 Container Registry.
 //
-// Creates or updates the image manifest associated with an image.
+// Creates or updates the image manifest and tags associated with an image.
 //
 // This operation is used by the Amazon ECR proxy, and it is not intended for
-// general use by customers. Use the docker CLI to pull, tag, and push images.
+// general use by customers for pulling and pushing images. In most cases, you
+// should use the docker CLI to pull, tag, and push images.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1277,26 +1274,26 @@ func (c *ECR) PutImageRequest(input *PutImageInput) (req *request.Request, outpu
 // API operation PutImage for usage and error information.
 //
 // Returned Error Codes:
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server-side issue.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   The specified parameter is invalid. Review the available parameters for the
 //   API request.
 //
-//   * RepositoryNotFoundException
+//   * ErrCodeRepositoryNotFoundException "RepositoryNotFoundException"
 //   The specified repository could not be found. Check the spelling of the specified
 //   repository and ensure that you are performing operations on the correct registry.
 //
-//   * ImageAlreadyExistsException
+//   * ErrCodeImageAlreadyExistsException "ImageAlreadyExistsException"
 //   The specified image has already been pushed, and there are no changes to
 //   the manifest or image tag since the last push.
 //
-//   * LayersNotFoundException
+//   * ErrCodeLayersNotFoundException "LayersNotFoundException"
 //   The specified layers could not be found, or the specified layer is not valid
 //   for this repository.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   The operation did not succeed because it would have exceeded a service limit
 //   for your account. For more information, see Amazon ECR Default Service Limits
 //   (http://docs.aws.amazon.com/AmazonECR/latest/userguide/service_limits.html)
@@ -1347,9 +1344,8 @@ func (c *ECR) SetRepositoryPolicyRequest(input *SetRepositoryPolicyInput) (req *
 		input = &SetRepositoryPolicyInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &SetRepositoryPolicyOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1365,14 +1361,14 @@ func (c *ECR) SetRepositoryPolicyRequest(input *SetRepositoryPolicyInput) (req *
 // API operation SetRepositoryPolicy for usage and error information.
 //
 // Returned Error Codes:
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server-side issue.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   The specified parameter is invalid. Review the available parameters for the
 //   API request.
 //
-//   * RepositoryNotFoundException
+//   * ErrCodeRepositoryNotFoundException "RepositoryNotFoundException"
 //   The specified repository could not be found. Check the spelling of the specified
 //   repository and ensure that you are performing operations on the correct registry.
 //
@@ -1421,9 +1417,8 @@ func (c *ECR) UploadLayerPartRequest(input *UploadLayerPartInput) (req *request.
 		input = &UploadLayerPartInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UploadLayerPartOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1432,7 +1427,8 @@ func (c *ECR) UploadLayerPartRequest(input *UploadLayerPartInput) (req *request.
 // Uploads an image layer part to Amazon ECR.
 //
 // This operation is used by the Amazon ECR proxy, and it is not intended for
-// general use by customers. Use the docker CLI to pull, tag, and push images.
+// general use by customers for pulling and pushing images. In most cases, you
+// should use the docker CLI to pull, tag, and push images.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1442,26 +1438,26 @@ func (c *ECR) UploadLayerPartRequest(input *UploadLayerPartInput) (req *request.
 // API operation UploadLayerPart for usage and error information.
 //
 // Returned Error Codes:
-//   * ServerException
+//   * ErrCodeServerException "ServerException"
 //   These errors are usually caused by a server-side issue.
 //
-//   * InvalidParameterException
+//   * ErrCodeInvalidParameterException "InvalidParameterException"
 //   The specified parameter is invalid. Review the available parameters for the
 //   API request.
 //
-//   * InvalidLayerPartException
+//   * ErrCodeInvalidLayerPartException "InvalidLayerPartException"
 //   The layer part size is not valid, or the first byte specified is not consecutive
 //   to the last byte of a previous layer part upload.
 //
-//   * RepositoryNotFoundException
+//   * ErrCodeRepositoryNotFoundException "RepositoryNotFoundException"
 //   The specified repository could not be found. Check the spelling of the specified
 //   repository and ensure that you are performing operations on the correct registry.
 //
-//   * UploadNotFoundException
+//   * ErrCodeUploadNotFoundException "UploadNotFoundException"
 //   The upload could not be found, or the specified upload id is not valid for
 //   this repository.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   The operation did not succeed because it would have exceeded a service limit
 //   for your account. For more information, see Amazon ECR Default Service Limits
 //   (http://docs.aws.amazon.com/AmazonECR/latest/userguide/service_limits.html)
@@ -1734,6 +1730,12 @@ func (s *BatchDeleteImageOutput) SetImageIds(v []*ImageIdentifier) *BatchDeleteI
 type BatchGetImageInput struct {
 	_ struct{} `type:"structure"`
 
+	// The accepted media types for the request.
+	//
+	// Valid values: application/vnd.docker.distribution.manifest.v1+json | application/vnd.docker.distribution.manifest.v2+json
+	// | application/vnd.oci.image.manifest.v1+json
+	AcceptedMediaTypes []*string `locationName:"acceptedMediaTypes" min:"1" type:"list"`
+
 	// A list of image ID references that correspond to images to describe. The
 	// format of the imageIds reference is imageTag=tag or imageDigest=digest.
 	//
@@ -1763,6 +1765,9 @@ func (s BatchGetImageInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *BatchGetImageInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "BatchGetImageInput"}
+	if s.AcceptedMediaTypes != nil && len(s.AcceptedMediaTypes) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("AcceptedMediaTypes", 1))
+	}
 	if s.ImageIds == nil {
 		invalidParams.Add(request.NewErrParamRequired("ImageIds"))
 	}
@@ -1780,6 +1785,12 @@ func (s *BatchGetImageInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAcceptedMediaTypes sets the AcceptedMediaTypes field's value.
+func (s *BatchGetImageInput) SetAcceptedMediaTypes(v []*string) *BatchGetImageInput {
+	s.AcceptedMediaTypes = v
+	return s
 }
 
 // SetImageIds sets the ImageIds field's value.
@@ -2269,8 +2280,8 @@ type DescribeImagesInput struct {
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// The AWS account ID associated with the registry that contains the repository
-	// in which to list images. If you do not specify a registry, the default registry
-	// is assumed.
+	// in which to describe images. If you do not specify a registry, the default
+	// registry is assumed.
 	RegistryId *string `locationName:"registryId" type:"string"`
 
 	// A list of repositories to describe. If this parameter is omitted, then all
@@ -3057,8 +3068,7 @@ func (s *InitiateLayerUploadOutput) SetUploadId(v string) *InitiateLayerUploadOu
 type Layer struct {
 	_ struct{} `type:"structure"`
 
-	// The availability status of the image layer. Valid values are AVAILABLE and
-	// UNAVAILABLE.
+	// The availability status of the image layer.
 	LayerAvailability *string `locationName:"layerAvailability" type:"string" enum:"LayerAvailability"`
 
 	// The sha256 digest of the image layer.
@@ -3066,6 +3076,10 @@ type Layer struct {
 
 	// The size, in bytes, of the image layer.
 	LayerSize *int64 `locationName:"layerSize" type:"long"`
+
+	// The media type of the layer, such as application/vnd.docker.image.rootfs.diff.tar.gzip
+	// or application/vnd.oci.image.layer.v1.tar+gzip.
+	MediaType *string `locationName:"mediaType" type:"string"`
 }
 
 // String returns the string representation
@@ -3093,6 +3107,12 @@ func (s *Layer) SetLayerDigest(v string) *Layer {
 // SetLayerSize sets the LayerSize field's value.
 func (s *Layer) SetLayerSize(v int64) *Layer {
 	s.LayerSize = &v
+	return s
+}
+
+// SetMediaType sets the MediaType field's value.
+func (s *Layer) SetMediaType(v string) *Layer {
+	s.MediaType = &v
 	return s
 }
 
@@ -3305,6 +3325,10 @@ type PutImageInput struct {
 	// ImageManifest is a required field
 	ImageManifest *string `locationName:"imageManifest" type:"string" required:"true"`
 
+	// The tag to associate with the image. This parameter is required for images
+	// that use the Docker Image Manifest V2 Schema 2 or OCI formats.
+	ImageTag *string `locationName:"imageTag" type:"string"`
+
 	// The AWS account ID associated with the registry that contains the repository
 	// in which to put the image. If you do not specify a registry, the default
 	// registry is assumed.
@@ -3348,6 +3372,12 @@ func (s *PutImageInput) Validate() error {
 // SetImageManifest sets the ImageManifest field's value.
 func (s *PutImageInput) SetImageManifest(v string) *PutImageInput {
 	s.ImageManifest = &v
+	return s
+}
+
+// SetImageTag sets the ImageTag field's value.
+func (s *PutImageInput) SetImageTag(v string) *PutImageInput {
+	s.ImageTag = &v
 	return s
 }
 

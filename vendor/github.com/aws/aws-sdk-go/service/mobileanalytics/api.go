@@ -50,11 +50,10 @@ func (c *MobileAnalytics) PutEventsRequest(input *PutEventsInput) (req *request.
 		input = &PutEventsInput{}
 	}
 
+	output = &PutEventsOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &PutEventsOutput{}
-	req.Data = output
 	return
 }
 
@@ -72,7 +71,7 @@ func (c *MobileAnalytics) PutEventsRequest(input *PutEventsInput) (req *request.
 // API operation PutEvents for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   An exception object returned when a request fails.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//PutEvents

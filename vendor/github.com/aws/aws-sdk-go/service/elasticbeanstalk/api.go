@@ -51,11 +51,10 @@ func (c *ElasticBeanstalk) AbortEnvironmentUpdateRequest(input *AbortEnvironment
 		input = &AbortEnvironmentUpdateInput{}
 	}
 
+	output = &AbortEnvironmentUpdateOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &AbortEnvironmentUpdateOutput{}
-	req.Data = output
 	return
 }
 
@@ -72,7 +71,7 @@ func (c *ElasticBeanstalk) AbortEnvironmentUpdateRequest(input *AbortEnvironment
 // API operation AbortEnvironmentUpdate for usage and error information.
 //
 // Returned Error Codes:
-//   * InsufficientPrivilegesException
+//   * ErrCodeInsufficientPrivilegesException "InsufficientPrivilegesException"
 //   The specified account does not have sufficient privileges for one of more
 //   AWS services.
 //
@@ -121,9 +120,8 @@ func (c *ElasticBeanstalk) ApplyEnvironmentManagedActionRequest(input *ApplyEnvi
 		input = &ApplyEnvironmentManagedActionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ApplyEnvironmentManagedActionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -141,10 +139,10 @@ func (c *ElasticBeanstalk) ApplyEnvironmentManagedActionRequest(input *ApplyEnvi
 // API operation ApplyEnvironmentManagedAction for usage and error information.
 //
 // Returned Error Codes:
-//   * ServiceException
+//   * ErrCodeServiceException "ServiceException"
 //   A generic service exception has occurred.
 //
-//   * ManagedActionInvalidStateException
+//   * ErrCodeManagedActionInvalidStateException "ManagedActionInvalidStateException"
 //   Cannot modify the managed action in its current state.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/ApplyEnvironmentManagedAction
@@ -192,9 +190,8 @@ func (c *ElasticBeanstalk) CheckDNSAvailabilityRequest(input *CheckDNSAvailabili
 		input = &CheckDNSAvailabilityInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CheckDNSAvailabilityOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -253,9 +250,8 @@ func (c *ElasticBeanstalk) ComposeEnvironmentsRequest(input *ComposeEnvironments
 		input = &ComposeEnvironmentsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &EnvironmentDescriptionsMessage{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -277,10 +273,10 @@ func (c *ElasticBeanstalk) ComposeEnvironmentsRequest(input *ComposeEnvironments
 // API operation ComposeEnvironments for usage and error information.
 //
 // Returned Error Codes:
-//   * TooManyEnvironmentsException
+//   * ErrCodeTooManyEnvironmentsException "TooManyEnvironmentsException"
 //   The specified account has reached its limit of environments.
 //
-//   * InsufficientPrivilegesException
+//   * ErrCodeInsufficientPrivilegesException "InsufficientPrivilegesException"
 //   The specified account does not have sufficient privileges for one of more
 //   AWS services.
 //
@@ -329,9 +325,8 @@ func (c *ElasticBeanstalk) CreateApplicationRequest(input *CreateApplicationInpu
 		input = &CreateApplicationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ApplicationDescriptionMessage{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -348,7 +343,7 @@ func (c *ElasticBeanstalk) CreateApplicationRequest(input *CreateApplicationInpu
 // API operation CreateApplication for usage and error information.
 //
 // Returned Error Codes:
-//   * TooManyApplicationsException
+//   * ErrCodeTooManyApplicationsException "TooManyApplicationsException"
 //   The specified account has reached its limit of applications.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/CreateApplication
@@ -396,9 +391,8 @@ func (c *ElasticBeanstalk) CreateApplicationVersionRequest(input *CreateApplicat
 		input = &CreateApplicationVersionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ApplicationVersionDescriptionMessage{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -430,17 +424,17 @@ func (c *ElasticBeanstalk) CreateApplicationVersionRequest(input *CreateApplicat
 // API operation CreateApplicationVersion for usage and error information.
 //
 // Returned Error Codes:
-//   * TooManyApplicationsException
+//   * ErrCodeTooManyApplicationsException "TooManyApplicationsException"
 //   The specified account has reached its limit of applications.
 //
-//   * TooManyApplicationVersionsException
+//   * ErrCodeTooManyApplicationVersionsException "TooManyApplicationVersionsException"
 //   The specified account has reached its limit of application versions.
 //
-//   * InsufficientPrivilegesException
+//   * ErrCodeInsufficientPrivilegesException "InsufficientPrivilegesException"
 //   The specified account does not have sufficient privileges for one of more
 //   AWS services.
 //
-//   * S3LocationNotInServiceRegionException
+//   * ErrCodeS3LocationNotInServiceRegionException "S3LocationNotInServiceRegionException"
 //   The specified S3 bucket does not belong to the S3 region in which the service
 //   is running. The following regions are supported:
 //
@@ -450,7 +444,7 @@ func (c *ElasticBeanstalk) CreateApplicationVersionRequest(input *CreateApplicat
 //
 //      * DUB/eu-west-1
 //
-//   * CodeBuildNotInServiceRegionException
+//   * ErrCodeCodeBuildNotInServiceRegionException "CodeBuildNotInServiceRegionException"
 //   AWS CodeBuild is not available in the specified region.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/CreateApplicationVersion
@@ -498,9 +492,8 @@ func (c *ElasticBeanstalk) CreateConfigurationTemplateRequest(input *CreateConfi
 		input = &CreateConfigurationTemplateInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ConfigurationSettingsDescription{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -526,14 +519,14 @@ func (c *ElasticBeanstalk) CreateConfigurationTemplateRequest(input *CreateConfi
 // API operation CreateConfigurationTemplate for usage and error information.
 //
 // Returned Error Codes:
-//   * InsufficientPrivilegesException
+//   * ErrCodeInsufficientPrivilegesException "InsufficientPrivilegesException"
 //   The specified account does not have sufficient privileges for one of more
 //   AWS services.
 //
-//   * TooManyBucketsException
+//   * ErrCodeTooManyBucketsException "TooManyBucketsException"
 //   The specified account has reached its limit of Amazon S3 buckets.
 //
-//   * TooManyConfigurationTemplatesException
+//   * ErrCodeTooManyConfigurationTemplatesException "TooManyConfigurationTemplatesException"
 //   The specified account has reached its limit of configuration templates.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/CreateConfigurationTemplate
@@ -581,9 +574,8 @@ func (c *ElasticBeanstalk) CreateEnvironmentRequest(input *CreateEnvironmentInpu
 		input = &CreateEnvironmentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &EnvironmentDescription{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -600,10 +592,10 @@ func (c *ElasticBeanstalk) CreateEnvironmentRequest(input *CreateEnvironmentInpu
 // API operation CreateEnvironment for usage and error information.
 //
 // Returned Error Codes:
-//   * TooManyEnvironmentsException
+//   * ErrCodeTooManyEnvironmentsException "TooManyEnvironmentsException"
 //   The specified account has reached its limit of environments.
 //
-//   * InsufficientPrivilegesException
+//   * ErrCodeInsufficientPrivilegesException "InsufficientPrivilegesException"
 //   The specified account does not have sufficient privileges for one of more
 //   AWS services.
 //
@@ -652,9 +644,8 @@ func (c *ElasticBeanstalk) CreateStorageLocationRequest(input *CreateStorageLoca
 		input = &CreateStorageLocationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateStorageLocationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -672,13 +663,13 @@ func (c *ElasticBeanstalk) CreateStorageLocationRequest(input *CreateStorageLoca
 // API operation CreateStorageLocation for usage and error information.
 //
 // Returned Error Codes:
-//   * TooManyBucketsException
+//   * ErrCodeTooManyBucketsException "TooManyBucketsException"
 //   The specified account has reached its limit of Amazon S3 buckets.
 //
-//   * S3SubscriptionRequiredException
+//   * ErrCodeS3SubscriptionRequiredException "S3SubscriptionRequiredException"
 //   The specified account does not have a subscription to Amazon S3.
 //
-//   * InsufficientPrivilegesException
+//   * ErrCodeInsufficientPrivilegesException "InsufficientPrivilegesException"
 //   The specified account does not have sufficient privileges for one of more
 //   AWS services.
 //
@@ -727,11 +718,10 @@ func (c *ElasticBeanstalk) DeleteApplicationRequest(input *DeleteApplicationInpu
 		input = &DeleteApplicationInput{}
 	}
 
+	output = &DeleteApplicationOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteApplicationOutput{}
-	req.Data = output
 	return
 }
 
@@ -751,7 +741,7 @@ func (c *ElasticBeanstalk) DeleteApplicationRequest(input *DeleteApplicationInpu
 // API operation DeleteApplication for usage and error information.
 //
 // Returned Error Codes:
-//   * OperationInProgressFailure
+//   * ErrCodeOperationInProgressException "OperationInProgressFailure"
 //   Unable to perform the specified operation because another operation that
 //   effects an element in this activity is already in progress.
 //
@@ -800,11 +790,10 @@ func (c *ElasticBeanstalk) DeleteApplicationVersionRequest(input *DeleteApplicat
 		input = &DeleteApplicationVersionInput{}
 	}
 
+	output = &DeleteApplicationVersionOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteApplicationVersionOutput{}
-	req.Data = output
 	return
 }
 
@@ -823,19 +812,19 @@ func (c *ElasticBeanstalk) DeleteApplicationVersionRequest(input *DeleteApplicat
 // API operation DeleteApplicationVersion for usage and error information.
 //
 // Returned Error Codes:
-//   * SourceBundleDeletionFailure
+//   * ErrCodeSourceBundleDeletionException "SourceBundleDeletionFailure"
 //   Unable to delete the Amazon S3 source bundle associated with the application
 //   version. The application version was deleted successfully.
 //
-//   * InsufficientPrivilegesException
+//   * ErrCodeInsufficientPrivilegesException "InsufficientPrivilegesException"
 //   The specified account does not have sufficient privileges for one of more
 //   AWS services.
 //
-//   * OperationInProgressFailure
+//   * ErrCodeOperationInProgressException "OperationInProgressFailure"
 //   Unable to perform the specified operation because another operation that
 //   effects an element in this activity is already in progress.
 //
-//   * S3LocationNotInServiceRegionException
+//   * ErrCodeS3LocationNotInServiceRegionException "S3LocationNotInServiceRegionException"
 //   The specified S3 bucket does not belong to the S3 region in which the service
 //   is running. The following regions are supported:
 //
@@ -890,11 +879,10 @@ func (c *ElasticBeanstalk) DeleteConfigurationTemplateRequest(input *DeleteConfi
 		input = &DeleteConfigurationTemplateInput{}
 	}
 
+	output = &DeleteConfigurationTemplateOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteConfigurationTemplateOutput{}
-	req.Data = output
 	return
 }
 
@@ -914,7 +902,7 @@ func (c *ElasticBeanstalk) DeleteConfigurationTemplateRequest(input *DeleteConfi
 // API operation DeleteConfigurationTemplate for usage and error information.
 //
 // Returned Error Codes:
-//   * OperationInProgressFailure
+//   * ErrCodeOperationInProgressException "OperationInProgressFailure"
 //   Unable to perform the specified operation because another operation that
 //   effects an element in this activity is already in progress.
 //
@@ -963,11 +951,10 @@ func (c *ElasticBeanstalk) DeleteEnvironmentConfigurationRequest(input *DeleteEn
 		input = &DeleteEnvironmentConfigurationInput{}
 	}
 
+	output = &DeleteEnvironmentConfigurationOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &DeleteEnvironmentConfigurationOutput{}
-	req.Data = output
 	return
 }
 
@@ -1033,9 +1020,8 @@ func (c *ElasticBeanstalk) DescribeApplicationVersionsRequest(input *DescribeApp
 		input = &DescribeApplicationVersionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeApplicationVersionsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1094,9 +1080,8 @@ func (c *ElasticBeanstalk) DescribeApplicationsRequest(input *DescribeApplicatio
 		input = &DescribeApplicationsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeApplicationsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1155,9 +1140,8 @@ func (c *ElasticBeanstalk) DescribeConfigurationOptionsRequest(input *DescribeCo
 		input = &DescribeConfigurationOptionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeConfigurationOptionsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1177,7 +1161,7 @@ func (c *ElasticBeanstalk) DescribeConfigurationOptionsRequest(input *DescribeCo
 // API operation DescribeConfigurationOptions for usage and error information.
 //
 // Returned Error Codes:
-//   * TooManyBucketsException
+//   * ErrCodeTooManyBucketsException "TooManyBucketsException"
 //   The specified account has reached its limit of Amazon S3 buckets.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/DescribeConfigurationOptions
@@ -1225,9 +1209,8 @@ func (c *ElasticBeanstalk) DescribeConfigurationSettingsRequest(input *DescribeC
 		input = &DescribeConfigurationSettingsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeConfigurationSettingsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1255,7 +1238,7 @@ func (c *ElasticBeanstalk) DescribeConfigurationSettingsRequest(input *DescribeC
 // API operation DescribeConfigurationSettings for usage and error information.
 //
 // Returned Error Codes:
-//   * TooManyBucketsException
+//   * ErrCodeTooManyBucketsException "TooManyBucketsException"
 //   The specified account has reached its limit of Amazon S3 buckets.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/DescribeConfigurationSettings
@@ -1303,9 +1286,8 @@ func (c *ElasticBeanstalk) DescribeEnvironmentHealthRequest(input *DescribeEnvir
 		input = &DescribeEnvironmentHealthInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeEnvironmentHealthOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1323,11 +1305,11 @@ func (c *ElasticBeanstalk) DescribeEnvironmentHealthRequest(input *DescribeEnvir
 // API operation DescribeEnvironmentHealth for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more input parameters is not valid. Please correct the input parameters
 //   and try the operation again.
 //
-//   * ServiceException
+//   * ErrCodeServiceException "ServiceException"
 //   A generic service exception has occurred.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/DescribeEnvironmentHealth
@@ -1375,9 +1357,8 @@ func (c *ElasticBeanstalk) DescribeEnvironmentManagedActionHistoryRequest(input 
 		input = &DescribeEnvironmentManagedActionHistoryInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeEnvironmentManagedActionHistoryOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1393,7 +1374,7 @@ func (c *ElasticBeanstalk) DescribeEnvironmentManagedActionHistoryRequest(input 
 // API operation DescribeEnvironmentManagedActionHistory for usage and error information.
 //
 // Returned Error Codes:
-//   * ServiceException
+//   * ErrCodeServiceException "ServiceException"
 //   A generic service exception has occurred.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/DescribeEnvironmentManagedActionHistory
@@ -1441,9 +1422,8 @@ func (c *ElasticBeanstalk) DescribeEnvironmentManagedActionsRequest(input *Descr
 		input = &DescribeEnvironmentManagedActionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeEnvironmentManagedActionsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1459,7 +1439,7 @@ func (c *ElasticBeanstalk) DescribeEnvironmentManagedActionsRequest(input *Descr
 // API operation DescribeEnvironmentManagedActions for usage and error information.
 //
 // Returned Error Codes:
-//   * ServiceException
+//   * ErrCodeServiceException "ServiceException"
 //   A generic service exception has occurred.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/DescribeEnvironmentManagedActions
@@ -1507,9 +1487,8 @@ func (c *ElasticBeanstalk) DescribeEnvironmentResourcesRequest(input *DescribeEn
 		input = &DescribeEnvironmentResourcesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeEnvironmentResourcesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1525,7 +1504,7 @@ func (c *ElasticBeanstalk) DescribeEnvironmentResourcesRequest(input *DescribeEn
 // API operation DescribeEnvironmentResources for usage and error information.
 //
 // Returned Error Codes:
-//   * InsufficientPrivilegesException
+//   * ErrCodeInsufficientPrivilegesException "InsufficientPrivilegesException"
 //   The specified account does not have sufficient privileges for one of more
 //   AWS services.
 //
@@ -1574,9 +1553,8 @@ func (c *ElasticBeanstalk) DescribeEnvironmentsRequest(input *DescribeEnvironmen
 		input = &DescribeEnvironmentsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &EnvironmentDescriptionsMessage{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1641,9 +1619,8 @@ func (c *ElasticBeanstalk) DescribeEventsRequest(input *DescribeEventsInput) (re
 		input = &DescribeEventsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeEventsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1729,9 +1706,8 @@ func (c *ElasticBeanstalk) DescribeInstancesHealthRequest(input *DescribeInstanc
 		input = &DescribeInstancesHealthInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeInstancesHealthOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1748,11 +1724,11 @@ func (c *ElasticBeanstalk) DescribeInstancesHealthRequest(input *DescribeInstanc
 // API operation DescribeInstancesHealth for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidRequestException
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
 //   One or more input parameters is not valid. Please correct the input parameters
 //   and try the operation again.
 //
-//   * ServiceException
+//   * ErrCodeServiceException "ServiceException"
 //   A generic service exception has occurred.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/DescribeInstancesHealth
@@ -1800,9 +1776,8 @@ func (c *ElasticBeanstalk) ListAvailableSolutionStacksRequest(input *ListAvailab
 		input = &ListAvailableSolutionStacksInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ListAvailableSolutionStacksOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1861,11 +1836,10 @@ func (c *ElasticBeanstalk) RebuildEnvironmentRequest(input *RebuildEnvironmentIn
 		input = &RebuildEnvironmentInput{}
 	}
 
+	output = &RebuildEnvironmentOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &RebuildEnvironmentOutput{}
-	req.Data = output
 	return
 }
 
@@ -1882,7 +1856,7 @@ func (c *ElasticBeanstalk) RebuildEnvironmentRequest(input *RebuildEnvironmentIn
 // API operation RebuildEnvironment for usage and error information.
 //
 // Returned Error Codes:
-//   * InsufficientPrivilegesException
+//   * ErrCodeInsufficientPrivilegesException "InsufficientPrivilegesException"
 //   The specified account does not have sufficient privileges for one of more
 //   AWS services.
 //
@@ -1931,11 +1905,10 @@ func (c *ElasticBeanstalk) RequestEnvironmentInfoRequest(input *RequestEnvironme
 		input = &RequestEnvironmentInfoInput{}
 	}
 
+	output = &RequestEnvironmentInfoOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &RequestEnvironmentInfoOutput{}
-	req.Data = output
 	return
 }
 
@@ -2008,11 +1981,10 @@ func (c *ElasticBeanstalk) RestartAppServerRequest(input *RestartAppServerInput)
 		input = &RestartAppServerInput{}
 	}
 
+	output = &RestartAppServerOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &RestartAppServerOutput{}
-	req.Data = output
 	return
 }
 
@@ -2072,9 +2044,8 @@ func (c *ElasticBeanstalk) RetrieveEnvironmentInfoRequest(input *RetrieveEnviron
 		input = &RetrieveEnvironmentInfoInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &RetrieveEnvironmentInfoOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2137,11 +2108,10 @@ func (c *ElasticBeanstalk) SwapEnvironmentCNAMEsRequest(input *SwapEnvironmentCN
 		input = &SwapEnvironmentCNAMEsInput{}
 	}
 
+	output = &SwapEnvironmentCNAMEsOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(query.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &SwapEnvironmentCNAMEsOutput{}
-	req.Data = output
 	return
 }
 
@@ -2200,9 +2170,8 @@ func (c *ElasticBeanstalk) TerminateEnvironmentRequest(input *TerminateEnvironme
 		input = &TerminateEnvironmentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &EnvironmentDescription{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2218,7 +2187,7 @@ func (c *ElasticBeanstalk) TerminateEnvironmentRequest(input *TerminateEnvironme
 // API operation TerminateEnvironment for usage and error information.
 //
 // Returned Error Codes:
-//   * InsufficientPrivilegesException
+//   * ErrCodeInsufficientPrivilegesException "InsufficientPrivilegesException"
 //   The specified account does not have sufficient privileges for one of more
 //   AWS services.
 //
@@ -2267,9 +2236,8 @@ func (c *ElasticBeanstalk) UpdateApplicationRequest(input *UpdateApplicationInpu
 		input = &UpdateApplicationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ApplicationDescriptionMessage{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2289,6 +2257,72 @@ func (c *ElasticBeanstalk) UpdateApplicationRequest(input *UpdateApplicationInpu
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/UpdateApplication
 func (c *ElasticBeanstalk) UpdateApplication(input *UpdateApplicationInput) (*ApplicationDescriptionMessage, error) {
 	req, out := c.UpdateApplicationRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opUpdateApplicationResourceLifecycle = "UpdateApplicationResourceLifecycle"
+
+// UpdateApplicationResourceLifecycleRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateApplicationResourceLifecycle operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See UpdateApplicationResourceLifecycle for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the UpdateApplicationResourceLifecycle method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the UpdateApplicationResourceLifecycleRequest method.
+//    req, resp := client.UpdateApplicationResourceLifecycleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/UpdateApplicationResourceLifecycle
+func (c *ElasticBeanstalk) UpdateApplicationResourceLifecycleRequest(input *UpdateApplicationResourceLifecycleInput) (req *request.Request, output *UpdateApplicationResourceLifecycleOutput) {
+	op := &request.Operation{
+		Name:       opUpdateApplicationResourceLifecycle,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateApplicationResourceLifecycleInput{}
+	}
+
+	output = &UpdateApplicationResourceLifecycleOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateApplicationResourceLifecycle API operation for AWS Elastic Beanstalk.
+//
+// Modifies lifecycle settings for an application.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Elastic Beanstalk's
+// API operation UpdateApplicationResourceLifecycle for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeInsufficientPrivilegesException "InsufficientPrivilegesException"
+//   The specified account does not have sufficient privileges for one of more
+//   AWS services.
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/UpdateApplicationResourceLifecycle
+func (c *ElasticBeanstalk) UpdateApplicationResourceLifecycle(input *UpdateApplicationResourceLifecycleInput) (*UpdateApplicationResourceLifecycleOutput, error) {
+	req, out := c.UpdateApplicationResourceLifecycleRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -2331,9 +2365,8 @@ func (c *ElasticBeanstalk) UpdateApplicationVersionRequest(input *UpdateApplicat
 		input = &UpdateApplicationVersionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ApplicationVersionDescriptionMessage{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2395,9 +2428,8 @@ func (c *ElasticBeanstalk) UpdateConfigurationTemplateRequest(input *UpdateConfi
 		input = &UpdateConfigurationTemplateInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ConfigurationSettingsDescription{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2421,11 +2453,11 @@ func (c *ElasticBeanstalk) UpdateConfigurationTemplateRequest(input *UpdateConfi
 // API operation UpdateConfigurationTemplate for usage and error information.
 //
 // Returned Error Codes:
-//   * InsufficientPrivilegesException
+//   * ErrCodeInsufficientPrivilegesException "InsufficientPrivilegesException"
 //   The specified account does not have sufficient privileges for one of more
 //   AWS services.
 //
-//   * TooManyBucketsException
+//   * ErrCodeTooManyBucketsException "TooManyBucketsException"
 //   The specified account has reached its limit of Amazon S3 buckets.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/UpdateConfigurationTemplate
@@ -2473,9 +2505,8 @@ func (c *ElasticBeanstalk) UpdateEnvironmentRequest(input *UpdateEnvironmentInpu
 		input = &UpdateEnvironmentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &EnvironmentDescription{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2501,11 +2532,11 @@ func (c *ElasticBeanstalk) UpdateEnvironmentRequest(input *UpdateEnvironmentInpu
 // API operation UpdateEnvironment for usage and error information.
 //
 // Returned Error Codes:
-//   * InsufficientPrivilegesException
+//   * ErrCodeInsufficientPrivilegesException "InsufficientPrivilegesException"
 //   The specified account does not have sufficient privileges for one of more
 //   AWS services.
 //
-//   * TooManyBucketsException
+//   * ErrCodeTooManyBucketsException "TooManyBucketsException"
 //   The specified account has reached its limit of Amazon S3 buckets.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/UpdateEnvironment
@@ -2553,9 +2584,8 @@ func (c *ElasticBeanstalk) ValidateConfigurationSettingsRequest(input *ValidateC
 		input = &ValidateConfigurationSettingsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &ValidateConfigurationSettingsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2575,11 +2605,11 @@ func (c *ElasticBeanstalk) ValidateConfigurationSettingsRequest(input *ValidateC
 // API operation ValidateConfigurationSettings for usage and error information.
 //
 // Returned Error Codes:
-//   * InsufficientPrivilegesException
+//   * ErrCodeInsufficientPrivilegesException "InsufficientPrivilegesException"
 //   The specified account does not have sufficient privileges for one of more
 //   AWS services.
 //
-//   * TooManyBucketsException
+//   * ErrCodeTooManyBucketsException "TooManyBucketsException"
 //   The specified account has reached its limit of Amazon S3 buckets.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/ValidateConfigurationSettings
@@ -2672,6 +2702,9 @@ type ApplicationDescription struct {
 	// User-defined description of the application.
 	Description *string `type:"string"`
 
+	// The lifecycle settings for the application.
+	ResourceLifecycleConfig *ApplicationResourceLifecycleConfig `type:"structure"`
+
 	// The names of the versions for this application.
 	Versions []*string `type:"list"`
 }
@@ -2713,6 +2746,12 @@ func (s *ApplicationDescription) SetDateUpdated(v time.Time) *ApplicationDescrip
 // SetDescription sets the Description field's value.
 func (s *ApplicationDescription) SetDescription(v string) *ApplicationDescription {
 	s.Description = &v
+	return s
+}
+
+// SetResourceLifecycleConfig sets the ResourceLifecycleConfig field's value.
+func (s *ApplicationDescription) SetResourceLifecycleConfig(v *ApplicationResourceLifecycleConfig) *ApplicationDescription {
+	s.ResourceLifecycleConfig = v
 	return s
 }
 
@@ -2801,6 +2840,59 @@ func (s *ApplicationMetrics) SetRequestCount(v int64) *ApplicationMetrics {
 // SetStatusCodes sets the StatusCodes field's value.
 func (s *ApplicationMetrics) SetStatusCodes(v *StatusCodes) *ApplicationMetrics {
 	s.StatusCodes = v
+	return s
+}
+
+// The resource lifecycle configuration for an application. Defines lifecycle
+// settings for resources that belong to the application, and the service role
+// that Elastic Beanstalk assumes in order to apply lifecycle settings. The
+// version lifecycle configuration defines lifecycle settings for application
+// versions.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/ApplicationResourceLifecycleConfig
+type ApplicationResourceLifecycleConfig struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of an IAM service role that Elastic Beanstalk has permission to assume.
+	ServiceRole *string `type:"string"`
+
+	// The application version lifecycle configuration.
+	VersionLifecycleConfig *ApplicationVersionLifecycleConfig `type:"structure"`
+}
+
+// String returns the string representation
+func (s ApplicationResourceLifecycleConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ApplicationResourceLifecycleConfig) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ApplicationResourceLifecycleConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ApplicationResourceLifecycleConfig"}
+	if s.VersionLifecycleConfig != nil {
+		if err := s.VersionLifecycleConfig.Validate(); err != nil {
+			invalidParams.AddNested("VersionLifecycleConfig", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetServiceRole sets the ServiceRole field's value.
+func (s *ApplicationResourceLifecycleConfig) SetServiceRole(v string) *ApplicationResourceLifecycleConfig {
+	s.ServiceRole = &v
+	return s
+}
+
+// SetVersionLifecycleConfig sets the VersionLifecycleConfig field's value.
+func (s *ApplicationResourceLifecycleConfig) SetVersionLifecycleConfig(v *ApplicationVersionLifecycleConfig) *ApplicationResourceLifecycleConfig {
+	s.VersionLifecycleConfig = v
 	return s
 }
 
@@ -2925,6 +3017,68 @@ func (s ApplicationVersionDescriptionMessage) GoString() string {
 // SetApplicationVersion sets the ApplicationVersion field's value.
 func (s *ApplicationVersionDescriptionMessage) SetApplicationVersion(v *ApplicationVersionDescription) *ApplicationVersionDescriptionMessage {
 	s.ApplicationVersion = v
+	return s
+}
+
+// The application version lifecycle settings for an application. Defines the
+// rules that Elastic Beanstalk applies to an application's versions in order
+// to avoid hitting the per-region limit for application versions.
+//
+// When Elastic Beanstalk deletes an application version from its database,
+// you can no longer deploy that version to an environment. The source bundle
+// remains in S3 unless you configure the rule to delete it.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/ApplicationVersionLifecycleConfig
+type ApplicationVersionLifecycleConfig struct {
+	_ struct{} `type:"structure"`
+
+	// Specify a max age rule to restrict the length of time that application versions
+	// are retained for an application.
+	MaxAgeRule *MaxAgeRule `type:"structure"`
+
+	// Specify a max count rule to restrict the number of application versions that
+	// are retained for an application.
+	MaxCountRule *MaxCountRule `type:"structure"`
+}
+
+// String returns the string representation
+func (s ApplicationVersionLifecycleConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ApplicationVersionLifecycleConfig) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ApplicationVersionLifecycleConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ApplicationVersionLifecycleConfig"}
+	if s.MaxAgeRule != nil {
+		if err := s.MaxAgeRule.Validate(); err != nil {
+			invalidParams.AddNested("MaxAgeRule", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.MaxCountRule != nil {
+		if err := s.MaxCountRule.Validate(); err != nil {
+			invalidParams.AddNested("MaxCountRule", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaxAgeRule sets the MaxAgeRule field's value.
+func (s *ApplicationVersionLifecycleConfig) SetMaxAgeRule(v *MaxAgeRule) *ApplicationVersionLifecycleConfig {
+	s.MaxAgeRule = v
+	return s
+}
+
+// SetMaxCountRule sets the MaxCountRule field's value.
+func (s *ApplicationVersionLifecycleConfig) SetMaxCountRule(v *MaxCountRule) *ApplicationVersionLifecycleConfig {
+	s.MaxCountRule = v
 	return s
 }
 
@@ -3739,6 +3893,10 @@ type CreateApplicationInput struct {
 
 	// Describes the application.
 	Description *string `type:"string"`
+
+	// Specify an application resource lifecycle configuration to prevent your application
+	// from accumulating too many versions.
+	ResourceLifecycleConfig *ApplicationResourceLifecycleConfig `type:"structure"`
 }
 
 // String returns the string representation
@@ -3760,6 +3918,11 @@ func (s *CreateApplicationInput) Validate() error {
 	if s.ApplicationName != nil && len(*s.ApplicationName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ApplicationName", 1))
 	}
+	if s.ResourceLifecycleConfig != nil {
+		if err := s.ResourceLifecycleConfig.Validate(); err != nil {
+			invalidParams.AddNested("ResourceLifecycleConfig", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -3776,6 +3939,12 @@ func (s *CreateApplicationInput) SetApplicationName(v string) *CreateApplication
 // SetDescription sets the Description field's value.
 func (s *CreateApplicationInput) SetDescription(v string) *CreateApplicationInput {
 	s.Description = &v
+	return s
+}
+
+// SetResourceLifecycleConfig sets the ResourceLifecycleConfig field's value.
+func (s *CreateApplicationInput) SetResourceLifecycleConfig(v *ApplicationResourceLifecycleConfig) *CreateApplicationInput {
+	s.ResourceLifecycleConfig = v
 	return s
 }
 
@@ -6988,6 +7157,126 @@ func (s *ManagedActionHistoryItem) SetStatus(v string) *ManagedActionHistoryItem
 	return s
 }
 
+// A lifecycle rule that deletes application versions after the specified number
+// of days.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/MaxAgeRule
+type MaxAgeRule struct {
+	_ struct{} `type:"structure"`
+
+	// Set to true to delete a version's source bundle from Amazon S3 when Elastic
+	// Beanstalk deletes the application version.
+	DeleteSourceFromS3 *bool `type:"boolean"`
+
+	// Specify true to apply the rule, or false to disable it.
+	//
+	// Enabled is a required field
+	Enabled *bool `type:"boolean" required:"true"`
+
+	// Specify the number of days to retain an application versions.
+	MaxAgeInDays *int64 `type:"integer"`
+}
+
+// String returns the string representation
+func (s MaxAgeRule) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MaxAgeRule) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *MaxAgeRule) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "MaxAgeRule"}
+	if s.Enabled == nil {
+		invalidParams.Add(request.NewErrParamRequired("Enabled"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDeleteSourceFromS3 sets the DeleteSourceFromS3 field's value.
+func (s *MaxAgeRule) SetDeleteSourceFromS3(v bool) *MaxAgeRule {
+	s.DeleteSourceFromS3 = &v
+	return s
+}
+
+// SetEnabled sets the Enabled field's value.
+func (s *MaxAgeRule) SetEnabled(v bool) *MaxAgeRule {
+	s.Enabled = &v
+	return s
+}
+
+// SetMaxAgeInDays sets the MaxAgeInDays field's value.
+func (s *MaxAgeRule) SetMaxAgeInDays(v int64) *MaxAgeRule {
+	s.MaxAgeInDays = &v
+	return s
+}
+
+// A lifecycle rule that deletes the oldest application version when the maximum
+// count is exceeded.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/MaxCountRule
+type MaxCountRule struct {
+	_ struct{} `type:"structure"`
+
+	// Set to true to delete a version's source bundle from Amazon S3 when Elastic
+	// Beanstalk deletes the application version.
+	DeleteSourceFromS3 *bool `type:"boolean"`
+
+	// Specify true to apply the rule, or false to disable it.
+	//
+	// Enabled is a required field
+	Enabled *bool `type:"boolean" required:"true"`
+
+	// Specify the maximum number of application versions to retain.
+	MaxCount *int64 `type:"integer"`
+}
+
+// String returns the string representation
+func (s MaxCountRule) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MaxCountRule) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *MaxCountRule) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "MaxCountRule"}
+	if s.Enabled == nil {
+		invalidParams.Add(request.NewErrParamRequired("Enabled"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDeleteSourceFromS3 sets the DeleteSourceFromS3 field's value.
+func (s *MaxCountRule) SetDeleteSourceFromS3(v bool) *MaxCountRule {
+	s.DeleteSourceFromS3 = &v
+	return s
+}
+
+// SetEnabled sets the Enabled field's value.
+func (s *MaxCountRule) SetEnabled(v bool) *MaxCountRule {
+	s.Enabled = &v
+	return s
+}
+
+// SetMaxCount sets the MaxCount field's value.
+func (s *MaxCountRule) SetMaxCount(v int64) *MaxCountRule {
+	s.MaxCount = &v
+	return s
+}
+
 // A regular expression representing a restriction on a string configuration
 // option value.
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/OptionRestrictionRegex
@@ -8162,6 +8451,100 @@ func (s *UpdateApplicationInput) SetApplicationName(v string) *UpdateApplication
 // SetDescription sets the Description field's value.
 func (s *UpdateApplicationInput) SetDescription(v string) *UpdateApplicationInput {
 	s.Description = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/UpdateApplicationResourceLifecycleMessage
+type UpdateApplicationResourceLifecycleInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the application.
+	//
+	// ApplicationName is a required field
+	ApplicationName *string `min:"1" type:"string" required:"true"`
+
+	// The lifecycle configuration.
+	//
+	// ResourceLifecycleConfig is a required field
+	ResourceLifecycleConfig *ApplicationResourceLifecycleConfig `type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateApplicationResourceLifecycleInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateApplicationResourceLifecycleInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateApplicationResourceLifecycleInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateApplicationResourceLifecycleInput"}
+	if s.ApplicationName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ApplicationName"))
+	}
+	if s.ApplicationName != nil && len(*s.ApplicationName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ApplicationName", 1))
+	}
+	if s.ResourceLifecycleConfig == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceLifecycleConfig"))
+	}
+	if s.ResourceLifecycleConfig != nil {
+		if err := s.ResourceLifecycleConfig.Validate(); err != nil {
+			invalidParams.AddNested("ResourceLifecycleConfig", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetApplicationName sets the ApplicationName field's value.
+func (s *UpdateApplicationResourceLifecycleInput) SetApplicationName(v string) *UpdateApplicationResourceLifecycleInput {
+	s.ApplicationName = &v
+	return s
+}
+
+// SetResourceLifecycleConfig sets the ResourceLifecycleConfig field's value.
+func (s *UpdateApplicationResourceLifecycleInput) SetResourceLifecycleConfig(v *ApplicationResourceLifecycleConfig) *UpdateApplicationResourceLifecycleInput {
+	s.ResourceLifecycleConfig = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/ApplicationResourceLifecycleDescriptionMessage
+type UpdateApplicationResourceLifecycleOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the application.
+	ApplicationName *string `min:"1" type:"string"`
+
+	// The lifecycle configuration.
+	ResourceLifecycleConfig *ApplicationResourceLifecycleConfig `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateApplicationResourceLifecycleOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateApplicationResourceLifecycleOutput) GoString() string {
+	return s.String()
+}
+
+// SetApplicationName sets the ApplicationName field's value.
+func (s *UpdateApplicationResourceLifecycleOutput) SetApplicationName(v string) *UpdateApplicationResourceLifecycleOutput {
+	s.ApplicationName = &v
+	return s
+}
+
+// SetResourceLifecycleConfig sets the ResourceLifecycleConfig field's value.
+func (s *UpdateApplicationResourceLifecycleOutput) SetResourceLifecycleConfig(v *ApplicationResourceLifecycleConfig) *UpdateApplicationResourceLifecycleOutput {
+	s.ResourceLifecycleConfig = v
 	return s
 }
 

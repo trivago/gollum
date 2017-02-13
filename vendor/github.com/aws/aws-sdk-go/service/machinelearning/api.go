@@ -47,9 +47,8 @@ func (c *MachineLearning) AddTagsRequest(input *AddTagsInput) (req *request.Requ
 		input = &AddTagsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &AddTagsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -67,20 +66,18 @@ func (c *MachineLearning) AddTagsRequest(input *AddTagsInput) (req *request.Requ
 // API operation AddTags for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * InvalidTagException
-
+//   * ErrCodeInvalidTagException "InvalidTagException"
 //
-//   * TagLimitExceededException
-
+//   * ErrCodeTagLimitExceededException "TagLimitExceededException"
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   A specified resource cannot be located.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) AddTags(input *AddTagsInput) (*AddTagsOutput, error) {
@@ -125,9 +122,8 @@ func (c *MachineLearning) CreateBatchPredictionRequest(input *CreateBatchPredict
 		input = &CreateBatchPredictionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateBatchPredictionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -156,14 +152,14 @@ func (c *MachineLearning) CreateBatchPredictionRequest(input *CreateBatchPredict
 // API operation CreateBatchPrediction for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
-//   * IdempotentParameterMismatchException
+//   * ErrCodeIdempotentParameterMismatchException "IdempotentParameterMismatchException"
 //   A second request to use or change an object was not allowed. This can result
 //   from retrying a request using a parameter that was not present in the original
 //   request.
@@ -210,9 +206,8 @@ func (c *MachineLearning) CreateDataSourceFromRDSRequest(input *CreateDataSource
 		input = &CreateDataSourceFromRDSInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateDataSourceFromRDSOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -241,14 +236,14 @@ func (c *MachineLearning) CreateDataSourceFromRDSRequest(input *CreateDataSource
 // API operation CreateDataSourceFromRDS for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
-//   * IdempotentParameterMismatchException
+//   * ErrCodeIdempotentParameterMismatchException "IdempotentParameterMismatchException"
 //   A second request to use or change an object was not allowed. This can result
 //   from retrying a request using a parameter that was not present in the original
 //   request.
@@ -295,9 +290,8 @@ func (c *MachineLearning) CreateDataSourceFromRedshiftRequest(input *CreateDataS
 		input = &CreateDataSourceFromRedshiftInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateDataSourceFromRedshiftOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -345,14 +339,14 @@ func (c *MachineLearning) CreateDataSourceFromRedshiftRequest(input *CreateDataS
 // API operation CreateDataSourceFromRedshift for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
-//   * IdempotentParameterMismatchException
+//   * ErrCodeIdempotentParameterMismatchException "IdempotentParameterMismatchException"
 //   A second request to use or change an object was not allowed. This can result
 //   from retrying a request using a parameter that was not present in the original
 //   request.
@@ -399,9 +393,8 @@ func (c *MachineLearning) CreateDataSourceFromS3Request(input *CreateDataSourceF
 		input = &CreateDataSourceFromS3Input{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateDataSourceFromS3Output{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -444,14 +437,14 @@ func (c *MachineLearning) CreateDataSourceFromS3Request(input *CreateDataSourceF
 // API operation CreateDataSourceFromS3 for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
-//   * IdempotentParameterMismatchException
+//   * ErrCodeIdempotentParameterMismatchException "IdempotentParameterMismatchException"
 //   A second request to use or change an object was not allowed. This can result
 //   from retrying a request using a parameter that was not present in the original
 //   request.
@@ -498,9 +491,8 @@ func (c *MachineLearning) CreateEvaluationRequest(input *CreateEvaluationInput) 
 		input = &CreateEvaluationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateEvaluationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -531,14 +523,14 @@ func (c *MachineLearning) CreateEvaluationRequest(input *CreateEvaluationInput) 
 // API operation CreateEvaluation for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
-//   * IdempotentParameterMismatchException
+//   * ErrCodeIdempotentParameterMismatchException "IdempotentParameterMismatchException"
 //   A second request to use or change an object was not allowed. This can result
 //   from retrying a request using a parameter that was not present in the original
 //   request.
@@ -585,9 +577,8 @@ func (c *MachineLearning) CreateMLModelRequest(input *CreateMLModelInput) (req *
 		input = &CreateMLModelInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateMLModelOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -619,14 +610,14 @@ func (c *MachineLearning) CreateMLModelRequest(input *CreateMLModelInput) (req *
 // API operation CreateMLModel for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
-//   * IdempotentParameterMismatchException
+//   * ErrCodeIdempotentParameterMismatchException "IdempotentParameterMismatchException"
 //   A second request to use or change an object was not allowed. This can result
 //   from retrying a request using a parameter that was not present in the original
 //   request.
@@ -673,9 +664,8 @@ func (c *MachineLearning) CreateRealtimeEndpointRequest(input *CreateRealtimeEnd
 		input = &CreateRealtimeEndpointInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateRealtimeEndpointOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -693,14 +683,14 @@ func (c *MachineLearning) CreateRealtimeEndpointRequest(input *CreateRealtimeEnd
 // API operation CreateRealtimeEndpoint for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   A specified resource cannot be located.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) CreateRealtimeEndpoint(input *CreateRealtimeEndpointInput) (*CreateRealtimeEndpointOutput, error) {
@@ -745,9 +735,8 @@ func (c *MachineLearning) DeleteBatchPredictionRequest(input *DeleteBatchPredict
 		input = &DeleteBatchPredictionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteBatchPredictionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -768,14 +757,14 @@ func (c *MachineLearning) DeleteBatchPredictionRequest(input *DeleteBatchPredict
 // API operation DeleteBatchPrediction for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   A specified resource cannot be located.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) DeleteBatchPrediction(input *DeleteBatchPredictionInput) (*DeleteBatchPredictionOutput, error) {
@@ -820,9 +809,8 @@ func (c *MachineLearning) DeleteDataSourceRequest(input *DeleteDataSourceInput) 
 		input = &DeleteDataSourceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteDataSourceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -843,14 +831,14 @@ func (c *MachineLearning) DeleteDataSourceRequest(input *DeleteDataSourceInput) 
 // API operation DeleteDataSource for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   A specified resource cannot be located.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) DeleteDataSource(input *DeleteDataSourceInput) (*DeleteDataSourceOutput, error) {
@@ -895,9 +883,8 @@ func (c *MachineLearning) DeleteEvaluationRequest(input *DeleteEvaluationInput) 
 		input = &DeleteEvaluationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteEvaluationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -918,14 +905,14 @@ func (c *MachineLearning) DeleteEvaluationRequest(input *DeleteEvaluationInput) 
 // API operation DeleteEvaluation for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   A specified resource cannot be located.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) DeleteEvaluation(input *DeleteEvaluationInput) (*DeleteEvaluationOutput, error) {
@@ -970,9 +957,8 @@ func (c *MachineLearning) DeleteMLModelRequest(input *DeleteMLModelInput) (req *
 		input = &DeleteMLModelInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteMLModelOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -993,14 +979,14 @@ func (c *MachineLearning) DeleteMLModelRequest(input *DeleteMLModelInput) (req *
 // API operation DeleteMLModel for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   A specified resource cannot be located.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) DeleteMLModel(input *DeleteMLModelInput) (*DeleteMLModelOutput, error) {
@@ -1045,9 +1031,8 @@ func (c *MachineLearning) DeleteRealtimeEndpointRequest(input *DeleteRealtimeEnd
 		input = &DeleteRealtimeEndpointInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteRealtimeEndpointOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1063,14 +1048,14 @@ func (c *MachineLearning) DeleteRealtimeEndpointRequest(input *DeleteRealtimeEnd
 // API operation DeleteRealtimeEndpoint for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   A specified resource cannot be located.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) DeleteRealtimeEndpoint(input *DeleteRealtimeEndpointInput) (*DeleteRealtimeEndpointOutput, error) {
@@ -1115,9 +1100,8 @@ func (c *MachineLearning) DeleteTagsRequest(input *DeleteTagsInput) (req *reques
 		input = &DeleteTagsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteTagsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1136,17 +1120,16 @@ func (c *MachineLearning) DeleteTagsRequest(input *DeleteTagsInput) (req *reques
 // API operation DeleteTags for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * InvalidTagException
-
+//   * ErrCodeInvalidTagException "InvalidTagException"
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   A specified resource cannot be located.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) DeleteTags(input *DeleteTagsInput) (*DeleteTagsOutput, error) {
@@ -1197,9 +1180,8 @@ func (c *MachineLearning) DescribeBatchPredictionsRequest(input *DescribeBatchPr
 		input = &DescribeBatchPredictionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeBatchPredictionsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1216,11 +1198,11 @@ func (c *MachineLearning) DescribeBatchPredictionsRequest(input *DescribeBatchPr
 // API operation DescribeBatchPredictions for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) DescribeBatchPredictions(input *DescribeBatchPredictionsInput) (*DescribeBatchPredictionsOutput, error) {
@@ -1296,9 +1278,8 @@ func (c *MachineLearning) DescribeDataSourcesRequest(input *DescribeDataSourcesI
 		input = &DescribeDataSourcesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeDataSourcesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1314,11 +1295,11 @@ func (c *MachineLearning) DescribeDataSourcesRequest(input *DescribeDataSourcesI
 // API operation DescribeDataSources for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) DescribeDataSources(input *DescribeDataSourcesInput) (*DescribeDataSourcesOutput, error) {
@@ -1394,9 +1375,8 @@ func (c *MachineLearning) DescribeEvaluationsRequest(input *DescribeEvaluationsI
 		input = &DescribeEvaluationsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeEvaluationsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1413,11 +1393,11 @@ func (c *MachineLearning) DescribeEvaluationsRequest(input *DescribeEvaluationsI
 // API operation DescribeEvaluations for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) DescribeEvaluations(input *DescribeEvaluationsInput) (*DescribeEvaluationsOutput, error) {
@@ -1493,9 +1473,8 @@ func (c *MachineLearning) DescribeMLModelsRequest(input *DescribeMLModelsInput) 
 		input = &DescribeMLModelsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeMLModelsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1511,11 +1490,11 @@ func (c *MachineLearning) DescribeMLModelsRequest(input *DescribeMLModelsInput) 
 // API operation DescribeMLModels for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) DescribeMLModels(input *DescribeMLModelsInput) (*DescribeMLModelsOutput, error) {
@@ -1585,9 +1564,8 @@ func (c *MachineLearning) DescribeTagsRequest(input *DescribeTagsInput) (req *re
 		input = &DescribeTagsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeTagsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1603,14 +1581,14 @@ func (c *MachineLearning) DescribeTagsRequest(input *DescribeTagsInput) (req *re
 // API operation DescribeTags for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   A specified resource cannot be located.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) DescribeTags(input *DescribeTagsInput) (*DescribeTagsOutput, error) {
@@ -1655,9 +1633,8 @@ func (c *MachineLearning) GetBatchPredictionRequest(input *GetBatchPredictionInp
 		input = &GetBatchPredictionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetBatchPredictionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1674,14 +1651,14 @@ func (c *MachineLearning) GetBatchPredictionRequest(input *GetBatchPredictionInp
 // API operation GetBatchPrediction for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   A specified resource cannot be located.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) GetBatchPrediction(input *GetBatchPredictionInput) (*GetBatchPredictionOutput, error) {
@@ -1726,9 +1703,8 @@ func (c *MachineLearning) GetDataSourceRequest(input *GetDataSourceInput) (req *
 		input = &GetDataSourceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetDataSourceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1749,14 +1725,14 @@ func (c *MachineLearning) GetDataSourceRequest(input *GetDataSourceInput) (req *
 // API operation GetDataSource for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   A specified resource cannot be located.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) GetDataSource(input *GetDataSourceInput) (*GetDataSourceOutput, error) {
@@ -1801,9 +1777,8 @@ func (c *MachineLearning) GetEvaluationRequest(input *GetEvaluationInput) (req *
 		input = &GetEvaluationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetEvaluationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1820,14 +1795,14 @@ func (c *MachineLearning) GetEvaluationRequest(input *GetEvaluationInput) (req *
 // API operation GetEvaluation for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   A specified resource cannot be located.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) GetEvaluation(input *GetEvaluationInput) (*GetEvaluationOutput, error) {
@@ -1872,9 +1847,8 @@ func (c *MachineLearning) GetMLModelRequest(input *GetMLModelInput) (req *reques
 		input = &GetMLModelInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetMLModelOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1893,14 +1867,14 @@ func (c *MachineLearning) GetMLModelRequest(input *GetMLModelInput) (req *reques
 // API operation GetMLModel for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   A specified resource cannot be located.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) GetMLModel(input *GetMLModelInput) (*GetMLModelOutput, error) {
@@ -1945,9 +1919,8 @@ func (c *MachineLearning) PredictRequest(input *PredictInput) (req *request.Requ
 		input = &PredictInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &PredictOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1966,21 +1939,21 @@ func (c *MachineLearning) PredictRequest(input *PredictInput) (req *request.Requ
 // API operation Predict for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   A specified resource cannot be located.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   The subscriber exceeded the maximum number of operations. This exception
 //   can occur when listing objects such as DataSource.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
-//   * PredictorNotMountedException
+//   * ErrCodePredictorNotMountedException "PredictorNotMountedException"
 //   The exception is thrown when a predict request is made to an unmounted MLModel.
 //
 func (c *MachineLearning) Predict(input *PredictInput) (*PredictOutput, error) {
@@ -2025,9 +1998,8 @@ func (c *MachineLearning) UpdateBatchPredictionRequest(input *UpdateBatchPredict
 		input = &UpdateBatchPredictionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateBatchPredictionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2046,14 +2018,14 @@ func (c *MachineLearning) UpdateBatchPredictionRequest(input *UpdateBatchPredict
 // API operation UpdateBatchPrediction for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   A specified resource cannot be located.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) UpdateBatchPrediction(input *UpdateBatchPredictionInput) (*UpdateBatchPredictionOutput, error) {
@@ -2098,9 +2070,8 @@ func (c *MachineLearning) UpdateDataSourceRequest(input *UpdateDataSourceInput) 
 		input = &UpdateDataSourceInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateDataSourceOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2119,14 +2090,14 @@ func (c *MachineLearning) UpdateDataSourceRequest(input *UpdateDataSourceInput) 
 // API operation UpdateDataSource for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   A specified resource cannot be located.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) UpdateDataSource(input *UpdateDataSourceInput) (*UpdateDataSourceOutput, error) {
@@ -2171,9 +2142,8 @@ func (c *MachineLearning) UpdateEvaluationRequest(input *UpdateEvaluationInput) 
 		input = &UpdateEvaluationInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateEvaluationOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2192,14 +2162,14 @@ func (c *MachineLearning) UpdateEvaluationRequest(input *UpdateEvaluationInput) 
 // API operation UpdateEvaluation for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   A specified resource cannot be located.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) UpdateEvaluation(input *UpdateEvaluationInput) (*UpdateEvaluationOutput, error) {
@@ -2244,9 +2214,8 @@ func (c *MachineLearning) UpdateMLModelRequest(input *UpdateMLModelInput) (req *
 		input = &UpdateMLModelInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateMLModelOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2265,14 +2234,14 @@ func (c *MachineLearning) UpdateMLModelRequest(input *UpdateMLModelInput) (req *
 // API operation UpdateMLModel for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidInputException
+//   * ErrCodeInvalidInputException "InvalidInputException"
 //   An error on the client occurred. Typically, the cause is an invalid input
 //   value.
 //
-//   * ResourceNotFoundException
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
 //   A specified resource cannot be located.
 //
-//   * InternalServerException
+//   * ErrCodeInternalServerException "InternalServerException"
 //   An error on the server occurred when trying to process a request.
 //
 func (c *MachineLearning) UpdateMLModel(input *UpdateMLModelInput) (*UpdateMLModelOutput, error) {

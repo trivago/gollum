@@ -46,9 +46,8 @@ func (c *Pinpoint) CreateCampaignRequest(input *CreateCampaignInput) (req *reque
 		input = &CreateCampaignInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateCampaignOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -64,22 +63,22 @@ func (c *Pinpoint) CreateCampaignRequest(input *CreateCampaignInput) (req *reque
 // API operation CreateCampaign for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//CreateCampaign
@@ -127,9 +126,8 @@ func (c *Pinpoint) CreateImportJobRequest(input *CreateImportJobInput) (req *req
 		input = &CreateImportJobInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateImportJobOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -145,22 +143,22 @@ func (c *Pinpoint) CreateImportJobRequest(input *CreateImportJobInput) (req *req
 // API operation CreateImportJob for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//CreateImportJob
@@ -208,9 +206,8 @@ func (c *Pinpoint) CreateSegmentRequest(input *CreateSegmentInput) (req *request
 		input = &CreateSegmentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &CreateSegmentOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -226,22 +223,22 @@ func (c *Pinpoint) CreateSegmentRequest(input *CreateSegmentInput) (req *request
 // API operation CreateSegment for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//CreateSegment
@@ -289,9 +286,8 @@ func (c *Pinpoint) DeleteApnsChannelRequest(input *DeleteApnsChannelInput) (req 
 		input = &DeleteApnsChannelInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteApnsChannelOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -307,22 +303,22 @@ func (c *Pinpoint) DeleteApnsChannelRequest(input *DeleteApnsChannelInput) (req 
 // API operation DeleteApnsChannel for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//DeleteApnsChannel
@@ -370,9 +366,8 @@ func (c *Pinpoint) DeleteCampaignRequest(input *DeleteCampaignInput) (req *reque
 		input = &DeleteCampaignInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteCampaignOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -388,22 +383,22 @@ func (c *Pinpoint) DeleteCampaignRequest(input *DeleteCampaignInput) (req *reque
 // API operation DeleteCampaign for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//DeleteCampaign
@@ -451,9 +446,8 @@ func (c *Pinpoint) DeleteGcmChannelRequest(input *DeleteGcmChannelInput) (req *r
 		input = &DeleteGcmChannelInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteGcmChannelOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -469,22 +463,22 @@ func (c *Pinpoint) DeleteGcmChannelRequest(input *DeleteGcmChannelInput) (req *r
 // API operation DeleteGcmChannel for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//DeleteGcmChannel
@@ -532,9 +526,8 @@ func (c *Pinpoint) DeleteSegmentRequest(input *DeleteSegmentInput) (req *request
 		input = &DeleteSegmentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteSegmentOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -550,22 +543,22 @@ func (c *Pinpoint) DeleteSegmentRequest(input *DeleteSegmentInput) (req *request
 // API operation DeleteSegment for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//DeleteSegment
@@ -613,9 +606,8 @@ func (c *Pinpoint) GetApnsChannelRequest(input *GetApnsChannelInput) (req *reque
 		input = &GetApnsChannelInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetApnsChannelOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -631,22 +623,22 @@ func (c *Pinpoint) GetApnsChannelRequest(input *GetApnsChannelInput) (req *reque
 // API operation GetApnsChannel for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//GetApnsChannel
@@ -694,9 +686,8 @@ func (c *Pinpoint) GetApplicationSettingsRequest(input *GetApplicationSettingsIn
 		input = &GetApplicationSettingsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetApplicationSettingsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -712,22 +703,22 @@ func (c *Pinpoint) GetApplicationSettingsRequest(input *GetApplicationSettingsIn
 // API operation GetApplicationSettings for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//GetApplicationSettings
@@ -775,9 +766,8 @@ func (c *Pinpoint) GetCampaignRequest(input *GetCampaignInput) (req *request.Req
 		input = &GetCampaignInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetCampaignOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -793,22 +783,22 @@ func (c *Pinpoint) GetCampaignRequest(input *GetCampaignInput) (req *request.Req
 // API operation GetCampaign for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//GetCampaign
@@ -856,9 +846,8 @@ func (c *Pinpoint) GetCampaignActivitiesRequest(input *GetCampaignActivitiesInpu
 		input = &GetCampaignActivitiesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetCampaignActivitiesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -874,22 +863,22 @@ func (c *Pinpoint) GetCampaignActivitiesRequest(input *GetCampaignActivitiesInpu
 // API operation GetCampaignActivities for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//GetCampaignActivities
@@ -937,9 +926,8 @@ func (c *Pinpoint) GetCampaignVersionRequest(input *GetCampaignVersionInput) (re
 		input = &GetCampaignVersionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetCampaignVersionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -955,22 +943,22 @@ func (c *Pinpoint) GetCampaignVersionRequest(input *GetCampaignVersionInput) (re
 // API operation GetCampaignVersion for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//GetCampaignVersion
@@ -1018,9 +1006,8 @@ func (c *Pinpoint) GetCampaignVersionsRequest(input *GetCampaignVersionsInput) (
 		input = &GetCampaignVersionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetCampaignVersionsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1036,22 +1023,22 @@ func (c *Pinpoint) GetCampaignVersionsRequest(input *GetCampaignVersionsInput) (
 // API operation GetCampaignVersions for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//GetCampaignVersions
@@ -1099,9 +1086,8 @@ func (c *Pinpoint) GetCampaignsRequest(input *GetCampaignsInput) (req *request.R
 		input = &GetCampaignsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetCampaignsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1117,22 +1103,22 @@ func (c *Pinpoint) GetCampaignsRequest(input *GetCampaignsInput) (req *request.R
 // API operation GetCampaigns for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//GetCampaigns
@@ -1180,9 +1166,8 @@ func (c *Pinpoint) GetEndpointRequest(input *GetEndpointInput) (req *request.Req
 		input = &GetEndpointInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetEndpointOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1198,22 +1183,22 @@ func (c *Pinpoint) GetEndpointRequest(input *GetEndpointInput) (req *request.Req
 // API operation GetEndpoint for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//GetEndpoint
@@ -1261,9 +1246,8 @@ func (c *Pinpoint) GetGcmChannelRequest(input *GetGcmChannelInput) (req *request
 		input = &GetGcmChannelInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetGcmChannelOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1279,22 +1263,22 @@ func (c *Pinpoint) GetGcmChannelRequest(input *GetGcmChannelInput) (req *request
 // API operation GetGcmChannel for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//GetGcmChannel
@@ -1342,9 +1326,8 @@ func (c *Pinpoint) GetImportJobRequest(input *GetImportJobInput) (req *request.R
 		input = &GetImportJobInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetImportJobOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1360,22 +1343,22 @@ func (c *Pinpoint) GetImportJobRequest(input *GetImportJobInput) (req *request.R
 // API operation GetImportJob for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//GetImportJob
@@ -1423,9 +1406,8 @@ func (c *Pinpoint) GetImportJobsRequest(input *GetImportJobsInput) (req *request
 		input = &GetImportJobsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetImportJobsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1441,22 +1423,22 @@ func (c *Pinpoint) GetImportJobsRequest(input *GetImportJobsInput) (req *request
 // API operation GetImportJobs for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//GetImportJobs
@@ -1504,9 +1486,8 @@ func (c *Pinpoint) GetSegmentRequest(input *GetSegmentInput) (req *request.Reque
 		input = &GetSegmentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetSegmentOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1522,22 +1503,22 @@ func (c *Pinpoint) GetSegmentRequest(input *GetSegmentInput) (req *request.Reque
 // API operation GetSegment for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//GetSegment
@@ -1585,9 +1566,8 @@ func (c *Pinpoint) GetSegmentImportJobsRequest(input *GetSegmentImportJobsInput)
 		input = &GetSegmentImportJobsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetSegmentImportJobsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1603,22 +1583,22 @@ func (c *Pinpoint) GetSegmentImportJobsRequest(input *GetSegmentImportJobsInput)
 // API operation GetSegmentImportJobs for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//GetSegmentImportJobs
@@ -1666,9 +1646,8 @@ func (c *Pinpoint) GetSegmentVersionRequest(input *GetSegmentVersionInput) (req 
 		input = &GetSegmentVersionInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetSegmentVersionOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1684,22 +1663,22 @@ func (c *Pinpoint) GetSegmentVersionRequest(input *GetSegmentVersionInput) (req 
 // API operation GetSegmentVersion for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//GetSegmentVersion
@@ -1747,9 +1726,8 @@ func (c *Pinpoint) GetSegmentVersionsRequest(input *GetSegmentVersionsInput) (re
 		input = &GetSegmentVersionsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetSegmentVersionsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1765,22 +1743,22 @@ func (c *Pinpoint) GetSegmentVersionsRequest(input *GetSegmentVersionsInput) (re
 // API operation GetSegmentVersions for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//GetSegmentVersions
@@ -1828,9 +1806,8 @@ func (c *Pinpoint) GetSegmentsRequest(input *GetSegmentsInput) (req *request.Req
 		input = &GetSegmentsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetSegmentsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1846,22 +1823,22 @@ func (c *Pinpoint) GetSegmentsRequest(input *GetSegmentsInput) (req *request.Req
 // API operation GetSegments for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//GetSegments
@@ -1909,9 +1886,8 @@ func (c *Pinpoint) UpdateApnsChannelRequest(input *UpdateApnsChannelInput) (req 
 		input = &UpdateApnsChannelInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateApnsChannelOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -1927,22 +1903,22 @@ func (c *Pinpoint) UpdateApnsChannelRequest(input *UpdateApnsChannelInput) (req 
 // API operation UpdateApnsChannel for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//UpdateApnsChannel
@@ -1990,9 +1966,8 @@ func (c *Pinpoint) UpdateApplicationSettingsRequest(input *UpdateApplicationSett
 		input = &UpdateApplicationSettingsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateApplicationSettingsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2008,22 +1983,22 @@ func (c *Pinpoint) UpdateApplicationSettingsRequest(input *UpdateApplicationSett
 // API operation UpdateApplicationSettings for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//UpdateApplicationSettings
@@ -2071,9 +2046,8 @@ func (c *Pinpoint) UpdateCampaignRequest(input *UpdateCampaignInput) (req *reque
 		input = &UpdateCampaignInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateCampaignOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2089,22 +2063,22 @@ func (c *Pinpoint) UpdateCampaignRequest(input *UpdateCampaignInput) (req *reque
 // API operation UpdateCampaign for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//UpdateCampaign
@@ -2152,9 +2126,8 @@ func (c *Pinpoint) UpdateEndpointRequest(input *UpdateEndpointInput) (req *reque
 		input = &UpdateEndpointInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateEndpointOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2170,22 +2143,22 @@ func (c *Pinpoint) UpdateEndpointRequest(input *UpdateEndpointInput) (req *reque
 // API operation UpdateEndpoint for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//UpdateEndpoint
@@ -2233,9 +2206,8 @@ func (c *Pinpoint) UpdateEndpointsBatchRequest(input *UpdateEndpointsBatchInput)
 		input = &UpdateEndpointsBatchInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateEndpointsBatchOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2251,22 +2223,22 @@ func (c *Pinpoint) UpdateEndpointsBatchRequest(input *UpdateEndpointsBatchInput)
 // API operation UpdateEndpointsBatch for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//UpdateEndpointsBatch
@@ -2314,9 +2286,8 @@ func (c *Pinpoint) UpdateGcmChannelRequest(input *UpdateGcmChannelInput) (req *r
 		input = &UpdateGcmChannelInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateGcmChannelOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2332,22 +2303,22 @@ func (c *Pinpoint) UpdateGcmChannelRequest(input *UpdateGcmChannelInput) (req *r
 // API operation UpdateGcmChannel for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//UpdateGcmChannel
@@ -2395,9 +2366,8 @@ func (c *Pinpoint) UpdateSegmentRequest(input *UpdateSegmentInput) (req *request
 		input = &UpdateSegmentInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateSegmentOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -2413,22 +2383,22 @@ func (c *Pinpoint) UpdateSegmentRequest(input *UpdateSegmentInput) (req *request
 // API operation UpdateSegment for usage and error information.
 //
 // Returned Error Codes:
-//   * BadRequestException
+//   * ErrCodeBadRequestException "BadRequestException"
 //   400 response
 //
-//   * InternalServerErrorException
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
 //   500 response
 //
-//   * ForbiddenException
+//   * ErrCodeForbiddenException "ForbiddenException"
 //   403 response
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   404 response
 //
-//   * MethodNotAllowedException
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
 //   405 response
 //
-//   * TooManyRequestsException
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
 //   429 response
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI//UpdateSegment

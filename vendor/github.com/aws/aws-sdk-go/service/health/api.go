@@ -54,9 +54,8 @@ func (c *Health) DescribeAffectedEntitiesRequest(input *DescribeAffectedEntities
 		input = &DescribeAffectedEntitiesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeAffectedEntitiesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -80,10 +79,10 @@ func (c *Health) DescribeAffectedEntitiesRequest(input *DescribeAffectedEntities
 // API operation DescribeAffectedEntities for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidPaginationToken
+//   * ErrCodeInvalidPaginationToken "InvalidPaginationToken"
 //   The specified pagination token (nextToken) is not valid.
 //
-//   * UnsupportedLocale
+//   * ErrCodeUnsupportedLocale "UnsupportedLocale"
 //   The specified locale is not supported.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/health-2016-08-04/DescribeAffectedEntities
@@ -156,9 +155,8 @@ func (c *Health) DescribeEntityAggregatesRequest(input *DescribeEntityAggregates
 		input = &DescribeEntityAggregatesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeEntityAggregatesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -225,9 +223,8 @@ func (c *Health) DescribeEventAggregatesRequest(input *DescribeEventAggregatesIn
 		input = &DescribeEventAggregatesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeEventAggregatesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -245,7 +242,7 @@ func (c *Health) DescribeEventAggregatesRequest(input *DescribeEventAggregatesIn
 // API operation DescribeEventAggregates for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidPaginationToken
+//   * ErrCodeInvalidPaginationToken "InvalidPaginationToken"
 //   The specified pagination token (nextToken) is not valid.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/health-2016-08-04/DescribeEventAggregates
@@ -318,9 +315,8 @@ func (c *Health) DescribeEventDetailsRequest(input *DescribeEventDetailsInput) (
 		input = &DescribeEventDetailsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeEventDetailsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -343,7 +339,7 @@ func (c *Health) DescribeEventDetailsRequest(input *DescribeEventDetailsInput) (
 // API operation DescribeEventDetails for usage and error information.
 //
 // Returned Error Codes:
-//   * UnsupportedLocale
+//   * ErrCodeUnsupportedLocale "UnsupportedLocale"
 //   The specified locale is not supported.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/health-2016-08-04/DescribeEventDetails
@@ -397,9 +393,8 @@ func (c *Health) DescribeEventTypesRequest(input *DescribeEventTypesInput) (req 
 		input = &DescribeEventTypesInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeEventTypesOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -416,10 +411,10 @@ func (c *Health) DescribeEventTypesRequest(input *DescribeEventTypesInput) (req 
 // API operation DescribeEventTypes for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidPaginationToken
+//   * ErrCodeInvalidPaginationToken "InvalidPaginationToken"
 //   The specified pagination token (nextToken) is not valid.
 //
-//   * UnsupportedLocale
+//   * ErrCodeUnsupportedLocale "UnsupportedLocale"
 //   The specified locale is not supported.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/health-2016-08-04/DescribeEventTypes
@@ -498,9 +493,8 @@ func (c *Health) DescribeEventsRequest(input *DescribeEventsInput) (req *request
 		input = &DescribeEventsInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DescribeEventsOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
@@ -523,10 +517,10 @@ func (c *Health) DescribeEventsRequest(input *DescribeEventsInput) (req *request
 // API operation DescribeEvents for usage and error information.
 //
 // Returned Error Codes:
-//   * InvalidPaginationToken
+//   * ErrCodeInvalidPaginationToken "InvalidPaginationToken"
 //   The specified pagination token (nextToken) is not valid.
 //
-//   * UnsupportedLocale
+//   * ErrCodeUnsupportedLocale "UnsupportedLocale"
 //   The specified locale is not supported.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/health-2016-08-04/DescribeEvents
@@ -691,10 +685,11 @@ type DescribeAffectedEntitiesInput struct {
 	// Filter is a required field
 	Filter *EntityFilter `locationName:"filter" type:"structure" required:"true"`
 
-	// The locale (language) to return information in. The default is English.
+	// The locale (language) to return information in. English (en) is the default
+	// and the only supported value at this time.
 	Locale *string `locationName:"locale" min:"2" type:"string"`
 
-	// The maximum number of items to return in one batch.
+	// The maximum number of items to return in one batch, between 10 and 100, inclusive.
 	MaxResults *int64 `locationName:"maxResults" min:"10" type:"integer"`
 
 	// If the results of a search are large, only a portion of the results are returned,
@@ -874,7 +869,7 @@ type DescribeEventAggregatesInput struct {
 	// Values to narrow the results returned.
 	Filter *EventFilter `locationName:"filter" type:"structure"`
 
-	// The maximum number of items to return in one batch.
+	// The maximum number of items to return in one batch, between 10 and 100, inclusive.
 	MaxResults *int64 `locationName:"maxResults" min:"10" type:"integer"`
 
 	// If the results of a search are large, only a portion of the results are returned,
@@ -987,7 +982,8 @@ type DescribeEventDetailsInput struct {
 	// EventArns is a required field
 	EventArns []*string `locationName:"eventArns" min:"1" type:"list" required:"true"`
 
-	// The locale (language) to return information in. The default is English.
+	// The locale (language) to return information in. English (en) is the default
+	// and the only supported value at this time.
 	Locale *string `locationName:"locale" min:"2" type:"string"`
 }
 
@@ -1072,10 +1068,11 @@ type DescribeEventTypesInput struct {
 	// Values to narrow the results returned.
 	Filter *EventTypeFilter `locationName:"filter" type:"structure"`
 
-	// The locale (language) to return information in. The default is English.
+	// The locale (language) to return information in. English (en) is the default
+	// and the only supported value at this time.
 	Locale *string `locationName:"locale" min:"2" type:"string"`
 
-	// The maximum number of items to return in one batch.
+	// The maximum number of items to return in one batch, between 10 and 100, inclusive.
 	MaxResults *int64 `locationName:"maxResults" min:"10" type:"integer"`
 
 	// If the results of a search are large, only a portion of the results are returned,
@@ -1145,7 +1142,10 @@ func (s *DescribeEventTypesInput) SetNextToken(v string) *DescribeEventTypesInpu
 type DescribeEventTypesOutput struct {
 	_ struct{} `type:"structure"`
 
-	// List of event types to be matched with.
+	// A list of event types that match the filter criteria. Event types have a
+	// category (issue, accountNotification, or scheduledChange), a service (for
+	// example, EC2, RDS, DATAPIPELINE, BILLING), and a code (in the format AWS_SERVICE_DESCRIPTION;
+	// for example, AWS_EC2_SYSTEM_MAINTENANCE_EVENT).
 	EventTypes []*EventType `locationName:"eventTypes" type:"list"`
 
 	// If the results of a search are large, only a portion of the results are returned,
@@ -1185,10 +1185,11 @@ type DescribeEventsInput struct {
 	// Values to narrow the results returned.
 	Filter *EventFilter `locationName:"filter" type:"structure"`
 
-	// The locale (language) to return information in. The default is English.
+	// The locale (language) to return information in. English (en) is the default
+	// and the only supported value at this time.
 	Locale *string `locationName:"locale" min:"2" type:"string"`
 
-	// The maximum number of items to return in one batch.
+	// The maximum number of items to return in one batch, between 10 and 100, inclusive.
 	MaxResults *int64 `locationName:"maxResults" min:"10" type:"integer"`
 
 	// If the results of a search are large, only a portion of the results are returned,
@@ -1870,7 +1871,7 @@ func (s *EventFilter) SetTags(v []map[string]*string) *EventFilter {
 }
 
 // Metadata about a type of event that is reported by AWS Health. Data consists
-// of the category (for example, issue, the service (for example, EC2), and
+// of the category (for example, issue), the service (for example, EC2), and
 // the event type code (for example, AWS_EC2_SYSTEM_MAINTENANCE_EVENT).
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/health-2016-08-04/EventType
 type EventType struct {
