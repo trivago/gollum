@@ -165,6 +165,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/gorilla/websocket",
+			"repository": "https://github.com/gorilla/websocket",
+			"vcs": "git",
+			"revision": "9bc973af0682dc73a22553a08bfe00ee6255f56f",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/jeromer/syslogparser",
 			"repository": "https://github.com/jeromer/syslogparser",
 			"vcs": "git",
