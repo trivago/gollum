@@ -329,14 +329,6 @@
 			"notests": true
 		},
 		{
-			"importpath": "golang.org/x/net/websocket",
-			"repository": "https://go.googlesource.com/net",
-			"vcs": "git",
-			"revision": "07b51741c1d6423d4a6abab1c49940ec09cb1aaf",
-			"branch": "master",
-			"path": "/websocket"
-		},
-		{
 			"importpath": "gopkg.in/bsm/ratelimit.v1",
 			"repository": "https://gopkg.in/bsm/ratelimit.v1",
 			"vcs": "git",
