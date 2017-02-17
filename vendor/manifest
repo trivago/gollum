@@ -446,15 +446,6 @@
 			"notests": true
 		},
 		{
-			"importpath": "golang.org/x/net/websocket",
-			"repository": "https://go.googlesource.com/net",
-			"vcs": "git",
-			"revision": "61557ac0112b576429a0df080e1c2cef5dfbb642",
-			"branch": "master",
-			"path": "/websocket",
-			"notests": true
-		},
-		{
 			"importpath": "golang.org/x/sys/unix",
 			"repository": "https://go.googlesource.com/sys",
 			"vcs": "git",
