@@ -1,9 +1,11 @@
 # 0.4.5
 
 This is a patch / minor features release.
+All vendor dependencies have been updated to the latest version and binaries have been compiled with go 1.8.
 
 #### Fixed
 
+ * producer.Websocket now uses gorilla websockets (thanks @glaslos)
  * Dockerfile is now working again
  * It is now possible to (optionally) send nil messages with producer.kafka again
  * Consumer.Kinesis will renew the iterator object when hitting a timeout
@@ -19,8 +21,8 @@ This is a patch / minor features release.
  
 #### New
 
- * Added named pipe support to consumer.Console
  * Added producer for writing data to Amazon S3 (thanks @relud)
+ * Added authentication support to consumer.Http (thanks @glaslos)
  * Added authentication support to native.KafkaProducer (thanks @relud)
  * Added authentication support to producer.Kafka (thanks @relud)
  * Added authentication support to consumer.Kafka (thanks @relud)
@@ -32,6 +34,7 @@ This is a patch / minor features release.
  * Added support for unix timestamp parsing to format.ProcessJSON (thanks @relud)
  * Added filter.Sample to allow processing of every n'th message only (thanks @relud)
  * Added format.TemplateJSON to apply golang templates to JSON payloads (thanks @relud)
+ * Added named pipe support to consumer.Console
  * Added "pick" option to format.ProcessJSON to get a single value from an arrays
  * Extended "remove" option pf format.ProcessJSON to remove values from arrays
  * Added "geoip" option to format.ProcessJSON to get GeoIP data from an IP
