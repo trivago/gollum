@@ -233,6 +233,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/gorilla/websocket",
+			"repository": "https://github.com/gorilla/websocket",
+			"vcs": "git",
+			"revision": "9acaa683f0aa83bd1b9dbec8d43b7d07a16216fa",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/gucumber/gucumber",
 			"repository": "https://github.com/gucumber/gucumber",
 			"vcs": "git",
