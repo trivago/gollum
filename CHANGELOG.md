@@ -18,6 +18,8 @@ All vendor dependencies have been updated to the latest version and binaries hav
  * format.JSON now checks for valid state references upon startup
  * format.JSON now properly encodes strings when using "enc"
  * format.SplitToJSON may now keep JSON payload and is better at escaping string
+ * "gollum -tc" will exit with error code 1 upon error
+ * "gollum -tc" will now properly display errors during config checking
  
 #### New
 
