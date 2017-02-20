@@ -75,6 +75,10 @@ Parameters
   ReadTimeoutSec specifies the maximum duration in seconds before timing out read of the request.
   By default this is set to 3 seconds.
 
+**IgnoreOrigin**
+  IgnoreOrigin disables the Origin header check and allows connections from any remote host.
+  By default this is set to false.
+
 Example
 -------
 
@@ -97,3 +101,4 @@ Example
 	    Address: ":81"
 	    Path:    "/"
 	    ReadTimeoutSec: 3
+        IgnoreOrigin: false
