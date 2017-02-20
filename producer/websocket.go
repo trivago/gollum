@@ -53,6 +53,7 @@ type Websocket struct {
 	clientIdx      uint32
 	readTimeoutSec time.Duration
 	upgrader       websocket.Upgrader
+	ignoreOrigin   bool
 }
 
 type clientList struct {
@@ -75,7 +76,10 @@ func (prod *Websocket) Configure(conf core.PluginConfig) error {
 	prod.address = conf.GetString("Address", ":81")
 	prod.path = conf.GetString("Path", "/")
 	prod.readTimeoutSec = time.Duration(conf.GetInt("ReadTimeoutSec", 3)) * time.Second
-	prod.upgrader = websocket.Upgrader{}
+	prod.ignoreOrigin = conf.GetBool("IgnoreOrigin", false)
+	prod.upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool { return prod.ignoreOrigin },
+	}
 
 	return nil
 }
@@ -151,6 +155,8 @@ func (prod *Websocket) upgrade(w http.ResponseWriter, r *http.Request) {
 	conn, err := prod.upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		Log.Error.Print("Websocket: ", err)
+		// Return here to not track invalid connections
+		return
 	}
 	prod.handleConnection(conn)
 }
