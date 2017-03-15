@@ -84,7 +84,7 @@ const (
 // By default this is set to none.
 //
 // DefaultOffset defines the message index to start reading from.
-// Valid values are either "Newset", "Oldest", or a number.
+// Valid values are either "Newest", "Oldest", or a number.
 // The default value is "Newest".
 //
 // OffsetFile defines a file to store the current offset per shard.
