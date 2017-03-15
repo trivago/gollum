@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"sync"
@@ -167,16 +167,15 @@ func (cons *Http) requestHandler(resp http.ResponseWriter, req *http.Request) {
 			return // ### return, missing body ###
 		}
 
-		body := make([]byte, req.ContentLength)
-		length, err := req.Body.Read(body)
-		if err != nil && err != io.EOF {
+		body, err = ioutil.ReadAll(req.Body)
+		if err != nil {
 			resp.WriteHeader(http.StatusBadRequest)
 			Log.Error.Print("HttpRequest: ", err.Error())
 			return // ### return, missing body or bad write ###
 		}
 		defer req.Body.Close()
 
-		cons.Enqueue(body[:length], atomic.AddUint64(&cons.sequence, 1))
+		cons.Enqueue(body, atomic.AddUint64(&cons.sequence, 1))
 		resp.WriteHeader(http.StatusOK)
 	}
 }
