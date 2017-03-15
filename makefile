@@ -22,8 +22,8 @@ freebsd:
 
 win:
 	@echo "Building for Windows"
-	@GOOS=windows GOARCH=amd64 $(BUILD_FLAGS) go build -o gollum
-	@zip dist/gollum_win.zip gollum config/*.conf
+	@GOOS=windows GOARCH=amd64 $(BUILD_FLAGS) go build -o gollum.exe
+	@zip dist/gollum_win.zip gollum.exe config/*.conf
 
 pi:
 	@echo "Building for Raspberry Pi"
