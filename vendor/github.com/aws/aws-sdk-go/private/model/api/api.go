@@ -311,7 +311,7 @@ var noCrossLinkServices = map[string]struct{}{
 
 func GetCrosslinkURL(baseURL, name, uid string, params ...string) string {
 	_, ok := noCrossLinkServices[strings.ToLower(name)]
-	if baseURL != "" && !ok {
+	if uid != "" && baseURL != "" && !ok {
 		return strings.Join(append([]string{baseURL, "goto", "WebAPI", uid}, params...), "/")
 	}
 	return ""
@@ -545,7 +545,7 @@ var tplInterface = template.Must(template.New("interface").Parse(`
 //        // mock response/functionality
 //    }
 //
-//    TestMyFunc(t *testing.T) {
+//    func TestMyFunc(t *testing.T) {
 //        // Setup Test
 //        mockSvc := &mock{{ .StructName }}Client{}
 //
@@ -638,6 +638,12 @@ func resolveShapeValidations(s *Shape, ancestry ...*Shape) {
 	ancestry = append(ancestry, s)
 	for _, name := range children {
 		ref := s.MemberRefs[name]
+		// Since this is a grab bag we will just continue since
+		// we can't validate because we don't know the valued shape.
+		if ref.JSONValue {
+			continue
+		}
+
 		nestedShape := ref.Shape.NestedShape()
 
 		var v *ShapeValidation

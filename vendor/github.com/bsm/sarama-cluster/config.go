@@ -19,7 +19,7 @@ type Config struct {
 		PartitionStrategy Strategy
 		Offsets           struct {
 			Retry struct {
-				// The numer retries when comitting offsets (defaults to 3).
+				// The numer retries when committing offsets (defaults to 3).
 				Max int
 			}
 		}
@@ -47,6 +47,13 @@ type Config struct {
 			// An additional blacklist of topics to avoid. If set, this will precede over
 			// the Whitelist setting.
 			Blacklist *regexp.Regexp
+		}
+
+		Member struct {
+			// Custom metadata to include when joining the group. The user data for all joined members
+			// can be retrieved by sending a DescribeGroupRequest to the broker that is the
+			// coordinator for the group.
+			UserData []byte
 		}
 	}
 }
