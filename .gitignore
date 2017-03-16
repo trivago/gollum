@@ -9,6 +9,7 @@ vendor/**/*
 !vendor/**/
 !vendor/**/*.go
 !vendor/**/*.s
-# Not ignoring license files
 !vendor/**/LICENSE
 vendor/**/*_test.go
+**/.DS_Store
+.vscode
