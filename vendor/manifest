@@ -310,30 +310,11 @@
 			"notests": true
 		},
 		{
-			"importpath": "github.com/trivago/tgo/tcontainer",
+			"importpath": "github.com/trivago/tgo",
 			"repository": "https://github.com/trivago/tgo",
 			"vcs": "git",
 			"revision": "0ffb0b79f948463d115e8e8b2428a9341d03f873",
 			"branch": "master",
-			"path": "tcontainer",
-			"notests": true
-		},
-		{
-			"importpath": "github.com/trivago/tgo/treflect",
-			"repository": "https://github.com/trivago/tgo",
-			"vcs": "git",
-			"revision": "0ffb0b79f948463d115e8e8b2428a9341d03f873",
-			"branch": "master",
-			"path": "/treflect",
-			"notests": true
-		},
-		{
-			"importpath": "github.com/trivago/tgo/tstrings",
-			"repository": "https://github.com/trivago/tgo",
-			"vcs": "git",
-			"revision": "0ffb0b79f948463d115e8e8b2428a9341d03f873",
-			"branch": "master",
-			"path": "tstrings",
 			"notests": true
 		},
 		{
