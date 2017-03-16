@@ -5,6 +5,7 @@ All vendor dependencies have been updated to the latest version and binaries hav
 
 #### Fixed
 
+ * consumer.Http does not truncate messages with WithHeaders:false anymore (thanks @mhils)
  * producer.Websocket now uses gorilla websockets (thanks @glaslos)
  * Dockerfile is now working again
  * It is now possible to (optionally) send nil messages with producer.kafka again
