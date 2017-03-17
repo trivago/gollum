@@ -5,6 +5,7 @@ All vendor dependencies have been updated to the latest version and binaries hav
 
 #### Fixed
 
+ * producer.Kafka will discard messages returned as "too large" to avoid spooling
  * consumer.Http does not truncate messages with WithHeaders:false anymore (thanks @mhils)
  * producer.Websocket now uses gorilla websockets (thanks @glaslos)
  * Dockerfile is now working again

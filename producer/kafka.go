@@ -441,9 +441,15 @@ func (prod *Kafka) pollResults() {
 		case err, hasMore := <-prod.producer.Errors():
 			if hasMore {
 				if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
-					Log.Warning.Print("Kafka producer error on return: ", err)
+					streamName := core.StreamRegistry.GetStreamName(msg.StreamID)
+					Log.Warning.Printf("Kafka producer error on return (stream %s): %s", streamName, err.Error())
 					prod.storeRTT(&msg)
-					prod.Drop(msg)
+					if err == kafka.ErrMessageTooLarge {
+						Log.Error.Print("Message discarded as too large.")
+						core.CountDiscardedMessage()
+					} else {
+						prod.Drop(msg)
+					}
 				}
 			}
 
