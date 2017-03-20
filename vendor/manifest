@@ -53,7 +53,7 @@
 			"importpath": "github.com/aws/aws-sdk-go",
 			"repository": "https://github.com/aws/aws-sdk-go",
 			"vcs": "git",
-			"revision": "2b26ad567f305510849d93c5d2025a8b561f2367",
+			"revision": "5b99715ae2945a2434a2371f4e6c5542e839a32d",
 			"branch": "master",
 			"notests": true
 		},
@@ -77,7 +77,7 @@
 			"importpath": "github.com/coreos/go-systemd/sdjournal",
 			"repository": "https://github.com/coreos/go-systemd",
 			"vcs": "git",
-			"revision": "abf023b1f0f04b4cd92e02b21c5406ab18a85f08",
+			"revision": "c4308da792903734bd95f877255249cef0862886",
 			"branch": "master",
 			"path": "/sdjournal",
 			"notests": true
@@ -155,7 +155,7 @@
 			"importpath": "github.com/gorilla/websocket",
 			"repository": "https://github.com/gorilla/websocket",
 			"vcs": "git",
-			"revision": "b258b4fadb573ac412f187b9f31974ea99d32f50",
+			"revision": "a91eba7f97777409bc2c443f5534d41dd20c5720",
 			"branch": "master",
 			"notests": true
 		},
@@ -220,7 +220,7 @@
 			"importpath": "github.com/opencontainers/runc/libcontainer/user",
 			"repository": "https://github.com/opencontainers/runc",
 			"vcs": "git",
-			"revision": "31980a53ae7887b2c8f8715d13c3eb486c27b6cf",
+			"revision": "d27094036343c79ca29023ad530fa5be3d9b06c2",
 			"branch": "master",
 			"path": "/libcontainer/user",
 			"notests": true
@@ -313,7 +313,7 @@
 			"importpath": "github.com/trivago/tgo",
 			"repository": "https://github.com/trivago/tgo",
 			"vcs": "git",
-			"revision": "0ffb0b79f948463d115e8e8b2428a9341d03f873",
+			"revision": "0c7dceface8928c03e0976a9d9e4f6c0eb78508c",
 			"branch": "master",
 			"notests": true
 		},
@@ -321,7 +321,7 @@
 			"importpath": "golang.org/x/crypto/bcrypt",
 			"repository": "https://go.googlesource.com/crypto",
 			"vcs": "git",
-			"revision": "728b753d0135da6801d45a38e6f43ff55779c5c2",
+			"revision": "459e26527287adbc2adcc5d0d49abff9a5f315a7",
 			"branch": "master",
 			"path": "/bcrypt",
 			"notests": true
@@ -330,7 +330,7 @@
 			"importpath": "golang.org/x/crypto/blowfish",
 			"repository": "https://go.googlesource.com/crypto",
 			"vcs": "git",
-			"revision": "728b753d0135da6801d45a38e6f43ff55779c5c2",
+			"revision": "459e26527287adbc2adcc5d0d49abff9a5f315a7",
 			"branch": "master",
 			"path": "blowfish",
 			"notests": true
@@ -471,7 +471,7 @@
 			"importpath": "gopkg.in/redis.v4",
 			"repository": "https://gopkg.in/redis.v4",
 			"vcs": "git",
-			"revision": "8a8d997ad58dc600d2ff0f64914102192f3b51ac",
+			"revision": "c938162545c57136fa59879746bc65d0f1db3d1e",
 			"branch": "master",
 			"notests": true
 		},
@@ -479,7 +479,7 @@
 			"importpath": "gopkg.in/yaml.v2",
 			"repository": "https://gopkg.in/yaml.v2",
 			"vcs": "git",
-			"revision": "a5b47d31c556af34a302ce5d659e6fea44d90de0",
+			"revision": "a3f3340b5840cee44f372bddb5880fcbc419b46a",
 			"branch": "v2",
 			"notests": true
 		}

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !windows
+// +build cgo,go1.7
 
 package tos
 
@@ -48,6 +48,7 @@ func GetFileCredentialsName(name string) (usr string, grp string, err error) {
 		return "", "", err
 	}
 
+	// Requires go1.7
 	grpData, err := user.LookupGroupId(strconv.Itoa(gid))
 	if err != nil {
 		return "", "", err

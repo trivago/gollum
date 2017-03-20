@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build windows
+// +build !go1.7 !cgo
 
 package tos
 
@@ -23,11 +23,11 @@ import (
 // GetFileCredentials returns the user and group id of a given path.
 // This function is not supported on windows platforms.
 func GetFileCredentials(name string) (uid int, gid int, err error) {
-	return 0, 0, fmt.Errorf("Not supported on windows")
+	return 0, 0, fmt.Errorf("Not supported on this platform")
 }
 
 // GetFileCredentialsName returns the user and group name of a given path.
 // This function is not supported on windows platforms.
 func GetFileCredentialsName(name string) (usr string, grp string, err error) {
-	return "", "", fmt.Errorf("Not supported on windows")
+	return "", "", fmt.Errorf("Not supported on this platform")
 }

@@ -180,7 +180,9 @@ func (met *Metrics) NewRate(baseMetric string, name string, interval time.Durati
 	met.rates[name] = newRate
 
 	go func() {
-		for isRunning := true; isRunning; _, isRunning = <-newRate.ticker.C {
+		isRunning := true
+		for isRunning {
+			_, isRunning = <-newRate.ticker.C
 			met.updateRate(newRate)
 		}
 	}()
