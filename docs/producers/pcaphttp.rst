@@ -1,8 +1,6 @@
-Websocket
-=========
+PcapHTTPConsumer
+================
 
-The websocket producer opens up a websocket.
-This producer does not implement a fuse breaker.
 
 
 Parameters
@@ -62,25 +60,37 @@ Parameters
   Note that automatic fuse recovery logic depends on each producer's implementation.
   By default this setting is set to 10.
 
-**Address**
-  Address defines the host and port to bind to.
-  This is allowed be any ip address/dns and port like "localhost:5880".
-  By default this is set to ":81".
+**This**
+  This plugin utilizes libpcap to listen for network traffic and reassamble http requests from it.
+  As it uses a CGO based library it will break cross platform builds (i.e. you will have to compile it on the correct platform).
 
-**Path**
-  Path defines the url path to listen for.
-  By default this is set to "/".
+**Interface**
+  Interface defines the network interface to listen on.
+  By default this is set to eth0, get your specific value from ifconfig.
 
-**ReadTimeoutSec**
-  ReadTimeoutSec specifies the maximum duration in seconds before timing out read of the request.
-  By default this is set to 3 seconds.
+**Filter**
+  Filter defines a libpcap filter for the incoming packages.
+  You can filter for specific ports, portocols, ips, etc.
+  The documentation can be found here: http://www.tcpdump.org/manpages/pcap-filter.7.txt (manpage).
+  By default this is set to listen on port 80 for localhost packages.
+
+**Promiscuous**
+  Promiscuous switches the network interface defined by Interface into promiscuous mode.
+  This is required if you want to listen for all packages coming from the network, even those that were not meant for the ip bound to the interface you listen on.
+  Enabling this can increase your CPU load.
+  This setting is enabled by default.
+
+**TimeoutMs**
+  TimeoutMs defines a timeout after which a tcp session is considered to have dropped, i.e. the (remaining) packages will be discarded.
+  Every incoming packet will restart the timer for the specific client session.
+  By default this is set to 3000, i.e. 3 seconds.
 
 Example
 -------
 
 .. code-block:: yaml
 
-	- "producer.Websocket":
+	- "native.PcapHTTPConsumer":
 	    Enable: true
 	    ID: ""
 	    Channel: 8192
@@ -94,6 +104,8 @@ Example
 	    Stream:
 	        - "foo"
 	        - "bar"
-	    Address: ":81"
-	    Path:    "/"
-	    ReadTimeoutSec: 3
+	    Enable: true
+	    Interface: eth0
+	    Filter: "dst port 80 and dst host 127.0.0.1"
+	    Promiscuous: true
+	    TimeoutMs: 3000

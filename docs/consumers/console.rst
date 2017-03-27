@@ -28,6 +28,15 @@ Parameters
   Set to "" by default which disables the fuse feature for this consumer.
   It is up to the consumer implementation to react on a broken fuse in an appropriate manner.
 
+**Console**
+  Console defines the pipe to read from.
+  This can be "stdin" or the name of a named pipe that is created if not existing.
+  The default is "stdin".
+
+**Permissions**
+  Permissions accepts an octal number string that contains the unix file permissions used when creating a named pipe.
+  By default this is set to "0664".
+
 **ExitOnEOF**
   ExitOnEOF can be set to true to trigger an exit signal if StdIn is closed (e.g. when a pipe is closed).
   This is set to false by default.
@@ -44,4 +53,6 @@ Example
 	    Stream:
 	        - "foo"
 	        - "bar"
+	    Console: "stdin"
+	    Permissions: "0664"
 	    ExitOnEOF: false

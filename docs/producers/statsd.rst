@@ -1,8 +1,7 @@
-Websocket
-=========
+Statsd
+======
 
-The websocket producer opens up a websocket.
-This producer does not implement a fuse breaker.
+This producer sends increment events to a statsd server.
 
 
 Parameters
@@ -62,25 +61,38 @@ Parameters
   Note that automatic fuse recovery logic depends on each producer's implementation.
   By default this setting is set to 10.
 
-**Address**
-  Address defines the host and port to bind to.
-  This is allowed be any ip address/dns and port like "localhost:5880".
-  By default this is set to ":81".
+**BatchMaxMessages**
+  BatchMaxMessages defines the maximum number of messages to send per batch.
+  By default this is set to 500.
 
-**Path**
-  Path defines the url path to listen for.
-  By default this is set to "/".
+**BatchTimeoutSec**
+  BatchTimeoutSec defines the number of seconds after which a batch is flushed automatically.
+  By default this is set to 10.
 
-**ReadTimeoutSec**
-  ReadTimeoutSec specifies the maximum duration in seconds before timing out read of the request.
-  By default this is set to 3 seconds.
+**Prefix**
+  Prefix defines the prefix for stats metric names.
+  By default this is set to "gollum.".
+
+**Server**
+  Server defines the server and port to send statsd metrics to.
+  By default this is set to "localhost:8125".
+
+**UseMessage**
+  UseMessage defines whether to cast the message to string and increment the metric by that value.
+  If this is set to true and the message fails to cast to an integer, then the message with be ignored.
+  If this is set to false then each message will increment by 1.
+  By default this is set to false.
+
+**StreamMapping**
+  StreamMapping defines a translation from gollum stream to statsd metric name.
+  If no mapping is given the gollum stream name is used as the metric name.
 
 Example
 -------
 
 .. code-block:: yaml
 
-	- "producer.Websocket":
+	- "producer.Statsd":
 	    Enable: true
 	    ID: ""
 	    Channel: 8192
@@ -94,6 +106,10 @@ Example
 	    Stream:
 	        - "foo"
 	        - "bar"
-	    Address: ":81"
-	    Path:    "/"
-	    ReadTimeoutSec: 3
+	    BatchMaxMessages: 500
+	    BatchTimeoutSec: 10
+	    Prefix: "gollum."
+	    Server: "localhost:8125"
+	    UseMessage: false
+	    StreamMapping:
+	        "*" : "default"

@@ -41,10 +41,10 @@ Parameters
   By default this setting is set to true.
 
 **Htpasswd**
-  Htpasswd can be set to the htpasswd formatted file to enable HTTP BasicAuth
+  Htpasswd can be set to the htpasswd formatted file to enable HTTP BasicAuth.
 
 **BasicRealm**
-  BasicRealm can be set for HTTP BasicAuth
+  BasicRealm can be set for HTTP BasicAuth.
 
 **Certificate**
   Certificate defines a path to a root certificate file to make this consumer handle HTTPS connections.
@@ -71,5 +71,7 @@ Example
 	    Address: ":80"
 	    ReadTimeoutSec: 3
 	    WithHeaders: true
+	    Htpasswd: ""
+	    BasicRealm: ""
 	    Certificate: ""
 	    PrivateKey: ""

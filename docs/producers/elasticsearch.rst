@@ -84,7 +84,7 @@ Parameters
   The Domain setting can be overwritten, too.
 
 **Port**
-  Port defines the elasticsearch port, wich has to be the same for all servers.
+  Port defines the elasticsearch port, which has to be the same for all servers.
   By default this is set to 9200.
 
 **User**
@@ -101,6 +101,14 @@ Parameters
   Type maps a stream to a specific type.
   This behaves like the index map and is used to assign a _type to an elasticsearch message.
   By default the type "log" is used.
+
+**DataTypes**
+  DataTypes allows to define elasticsearch type mappings for indexes that are being created by this producer (e.g. day based indexes).
+  You can define mappings per index.
+
+**Settings**
+  Settings allows to define elasticsearch index settings for indexes that are being created by this producer (e.g. day based indexes).
+  You can define settings per index.
 
 **BatchSizeByte**
   BatchSizeByte defines the size in bytes required to trigger a flush.
@@ -148,6 +156,12 @@ Example
 	    Index:
 	        "console" : "console"
 	        "_GOLLUM_"  : "_GOLLUM_"
+	    Settings:
+	        "console":
+	            "number_of_shards": 1
+	    DataTypes:
+	        "console":
+	            "source": "ip"
 	    Type:
-	        "console" : "console"
-	        "_GOLLUM_"  : "_GOLLUM_"
+	        "console" : "log"
+	        "_GOLLUM_"  : "log"

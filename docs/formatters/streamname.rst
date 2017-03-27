@@ -13,7 +13,7 @@ Parameters
 
 **StreamNameHistory**
   StreamNameHistory can be set to true to not use the current but the previous stream name.
-  This can be usefull to e.g. get the name of the stream messages were dropped from.
+  This can be useful to e.g. get the name of the stream messages were dropped from.
   By default this is set to false.
 
 **StreamNameSeparator**

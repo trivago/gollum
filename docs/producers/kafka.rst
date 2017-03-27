@@ -136,7 +136,7 @@ Parameters
   By default this is set to 1024.
 
 **BatchTimeoutMs**
-  BatchTimeoutMs sets the minimum time in milliseconds to pass after wich a new flush will be triggered.
+  BatchTimeoutMs sets the minimum time in milliseconds to pass after which a new flush will be triggered.
   By default this is set to 3.
 
 **MessageBufferCount**
@@ -168,6 +168,42 @@ Parameters
   MetadataRefreshMs set the interval in seconds for fetching cluster metadata.
   By default this is set to 600000 (10 minutes).
   This corresponds to the JVM setting `topic.metadata.refresh.interval.ms`.
+
+**TlsEnable**
+  TlsEnable defines whether to use TLS to communicate with brokers.
+  Defaults to false.
+
+**TlsKeyLocation**
+  TlsKeyLocation defines the path to the client's private key (PEM) for used for authentication.
+  Defaults to "".
+
+**TlsCertificateLocation**
+  TlsCertificateLocation defines the path to the client's public key (PEM) used for authentication.
+  Defaults to "".
+
+**TlsCaLocation**
+  TlsCaLocation defines the path to CA certificate(s) for verifying the broker's key.
+  Defaults to "".
+
+**TlsServerName**
+  TlsServerName is used to verify the hostname on the server's certificate unless TlsInsecureSkipVerify is true.
+  Defaults to "".
+
+**TlsInsecureSkipVerify**
+  TlsInsecureSkipVerify controls whether to verify the server's certificate chain and host name.
+  Defaults to false.
+
+**SaslEnable**
+  SaslEnable is whether to use SASL for authentication.
+  Defaults to false.
+
+**SaslUsername**
+  SaslUsername is the user for SASL/PLAIN authentication.
+  Defaults to "gollum".
+
+**SaslPassword**
+  SaslPassword is the password for SASL/PLAIN authentication.
+  Defaults to "".
 
 **Servers**
   Servers contains the list of all kafka servers to connect to.
@@ -218,6 +254,15 @@ Example
 	    ElectRetries: 3
 	    ElectTimeoutMs: 250
 	    MetadataRefreshMs: 10000
+	    TlsEnabled: true
+	    TlsKeyLocation: ""
+	    TlsCertificateLocation: ""
+	    TlsCaLocation: ""
+	    TlsServerName: ""
+	    TlsInsecureSkipVerify: false
+	    SaslEnabled: false
+	    SaslUsername: "gollum"
+	    SaslPassword: ""
 	    KeyFormatter: ""
 	    KeyFormatterFirst: false
 	    Servers:

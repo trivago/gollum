@@ -48,8 +48,8 @@ Parameters
 
 **DefaultOffset**
   DefaultOffset defines the message index to start reading from.
-  Valid values are either "newest", "oldest", or a number.
-  The default value is "newest".
+  Valid values are either "Newest", "Oldest", or a number.
+  The default value is "Newest".
 
 **OffsetFile**
   OffsetFile defines a file to store the current offset per shard.
@@ -87,7 +87,7 @@ Example
 	    KinesisStream: "default"
 	    Region: "eu-west-1"
 	    Endpoint: "kinesis.eu-west-1.amazonaws.com"
-	    DefaultOffset: "newest"
+	    DefaultOffset: "Newest"
 	    OffsetFile: ""
 	    RecordsPerQuery: 100
 	    RecordMessageDelimiter: ""

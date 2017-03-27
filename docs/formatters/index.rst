@@ -25,6 +25,7 @@ Formatters
 	streamname
 	streamrevert
 	streamroute
+	templatejson
 	timestamp
 
 Formatters are plugins that are embedded into :doc:`streams </streams/index>` or :doc:`producers </producers/index>`.
