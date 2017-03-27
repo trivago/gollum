@@ -23,6 +23,7 @@ Producers
 	socket
 	spooling
 	statsd
+	systemdconsumer
 	websocket
 
 Producers are plugins that transfer messages to external services.

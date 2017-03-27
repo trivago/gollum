@@ -29,12 +29,12 @@ import (
 // PcapHTTPConsumer consumer plugin
 // Configuration example
 //
-//   - "native.PcapHTTPConsumer":
-//     Enable: true
-//     Interface: eth0
-//     Filter: "dst port 80 and dst host 127.0.0.1"
-//     Promiscuous: true
-//     TimeoutMs: 3000
+//  - "native.PcapHTTPConsumer":
+//    Enable: true
+//    Interface: eth0
+//    Filter: "dst port 80 and dst host 127.0.0.1"
+//    Promiscuous: true
+//    TimeoutMs: 3000
 //
 // This plugin utilizes libpcap to listen for network traffic and reassamble
 // http requests from it. As it uses a CGO based library it will break cross
