@@ -17,8 +17,8 @@ Example
 
 .. code-block:: yaml
 
-	- "stream.Broadcast":
-	    Filter: "filter.Any"
-	    AnyFilter:
-	        - "filter.JSON"
-	        - "filter.RegEx"
+	    - "stream.Broadcast":
+	        Filter: "filter.Any"
+	        AnyFilter:
+	            - "filter.JSON"
+	            - "filter.RegEx"

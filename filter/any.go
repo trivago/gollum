@@ -15,7 +15,7 @@
 package filter
 
 import (
-    "fmt"
+	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/shared"
 )
@@ -26,10 +26,10 @@ import (
 // Configuration example
 //
 //   - "stream.Broadcast":
-//	 Filter: "filter.Any"
-//	 AnyFilter:
-//	 - "filter.JSON"
-//	 - "filter.RegEx"
+//     Filter: "filter.Any"
+//	   AnyFilter:
+//	     - "filter.JSON"
+//	     - "filter.RegEx"
 //
 // AnyFilter defines a list of filters that should be checked before dropping
 // a message. Filters are checked in order, and if the message passes

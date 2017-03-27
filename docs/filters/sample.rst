@@ -30,10 +30,10 @@ Example
 
 .. code-block:: yaml
 
-    - "stream.Broadcast":
-	      Filter: "filter.Sample"
-	      SampleRatePerGroup: 1
-	      SampleGroupSize: 1
-	      SampleDropToStream: ""
-	      SampleRateIgnore:
-	          - "foo"
+	    - "stream.Broadcast":
+	        Filter: "filter.Sample"
+	        SampleRatePerGroup: 1
+	        SampleGroupSize: 1
+	        SampleDropToStream: ""
+	        SampleRateIgnore:
+	            - "foo"
