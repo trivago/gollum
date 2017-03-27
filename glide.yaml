@@ -34,7 +34,6 @@ import:
 - package: github.com/miekg/pcap
 - package: github.com/mmcloughlin/geohash
 - package: github.com/mssola/user_agent
-  version: ^0.4.1
 - package: github.com/quipo/statsd
 - package: github.com/trivago/tgo
   subpackages:

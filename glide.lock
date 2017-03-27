@@ -1,5 +1,5 @@
-hash: b25b4381f585c9ca1e4fcf29ddc8299cf15a6366e9ae02d247c6b8775d5d09fb
-updated: 2017-03-27T17:23:36.907729774+02:00
+hash: 04c8ac3c1690b7cad71805a65e6436066d1c44f1c33af7ba4382b3c21d3a2e34
+updated: 2017-03-27T17:40:05.920453609+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -99,7 +99,7 @@ imports:
 - name: github.com/mmcloughlin/geohash
   version: d6857f9059874953ee09d6f2bd3cb878189a4f87
 - name: github.com/mssola/user_agent
-  version: 85b2f5798558a46fc23443c596e781712f4b7792
+  version: 07efe2b857fb8c02d2dd85c12d0145f58554ec7c
 - name: github.com/oschwald/maxminddb-golang
   version: 697da8075d2061aa8ed639346443f5d3e8c80b30
 - name: github.com/pierrec/lz4
