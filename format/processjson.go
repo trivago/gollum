@@ -61,7 +61,7 @@ import (
 // Directives are processed in order of appearance.
 // The directives have to be given in the form of key:operation:parameters, where
 // operation can be one of the following.
-//  * `split:<string>{:<key>:<key>:...` Split the value by a string and set the
+//  * `split:<string>{:<key>:<key>:...}` Split the value by a string and set the
 //    resulting array elements to the given fields in order of appearance.
 //  * `replace:<old>:<new>` replace a given string in the value with a new one
 //  * `trim:<characters>` remove the given characters (not string!) from the start
