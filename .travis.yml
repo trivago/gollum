@@ -4,8 +4,12 @@ dist: trusty
 go:
 - 1.5
 - 1.6
+- 1.7
+- 1.8
+
 env:
 - GO15VENDOREXPERIMENT=1
+
 before_install:
 - sudo apt-get install -y libpcap-dev
 - wget http://launchpadlibrarian.net/234454186/librdkafka1_0.8.6-1.1_amd64.deb
@@ -13,12 +17,14 @@ before_install:
 - sudo dpkg -i librdkafka1_0.8.6-1.1_amd64.deb
 - sudo dpkg -i librdkafka-dev_0.8.6-1.1_amd64.deb
 - sudo apt-get install -y libsystemd-journal-dev
+
 #addons:
 #  apt:
 #    packages:
 #    - libpcap-dev
 #    - librdkafka-dev
 #    - libsystemd-journal-dev
+
 script:
 - go build
 - go vet -v $(go list ./...|grep -v vendor)
