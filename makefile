@@ -1,4 +1,4 @@
-.PHONY: all clean freebsd linux mac pi win examples current vendor test
+.PHONY: all clean freebsd linux mac pi win examples current vendor test example
 .DEFAULT_GOAL := current
 
 VERSION=0.4.5
@@ -49,8 +49,9 @@ current:
 	@$(BUILD_FLAGS) go build
 
 vendor:
-	@go get -u github.com/FiloSottile/gvt
-	@gvt update --all --precaire
+	@go get -u github.com/Masterminds/glide
+	@glide cc
+	@glide update
 
 test:
 	@$(BUILD_FLAGS) go test -cover -v -timeout 10s -race $$(go list ./...|grep -v vendor)

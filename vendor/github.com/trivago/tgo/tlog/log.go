@@ -16,7 +16,7 @@ package tlog
 
 import (
 	"fmt"
-	"github.com/mgutz/ansi"
+	"github.com/trivago/tgo/tfmt"
 	"io"
 	"log"
 	"os"
@@ -67,8 +67,7 @@ type LogScope struct {
 
 // NewLogScope creates a new LogScope with the given prefix string.
 func NewLogScope(name string) LogScope {
-	black := ansi.ColorFunc("black+h")
-	scopeMarker := black(fmt.Sprintf("[%s] ", name))
+	scopeMarker := fmt.Sprintf("%s[%s] ", tfmt.DarkGray, name)
 
 	return LogScope{
 		name:    name,
@@ -81,8 +80,7 @@ func NewLogScope(name string) LogScope {
 
 // NewSubScope creates a log scope inside an existing log scope.
 func (scope *LogScope) NewSubScope(name string) LogScope {
-	black := ansi.ColorFunc("black+h")
-	scopeMarker := black(fmt.Sprintf("[%s.%s] ", scope.name, name))
+	scopeMarker := fmt.Sprintf("%s[%s.%s] ", tfmt.DarkGray, scope.name, name)
 
 	return LogScope{
 		name:    name,
@@ -108,16 +106,12 @@ func SetVerbosity(loglevel Verbosity) {
 	Note = log.New(logDisabled, "", 0)
 	Debug = log.New(logDisabled, "", 0)
 
-	red := ansi.ColorFunc("red+b")
-	yellow := ansi.ColorFunc("yellow")
-	blue := ansi.ColorFunc("cyan")
-
 	switch loglevel {
 	default:
 		fallthrough
 
 	case VerbosityDebug:
-		Debug = log.New(&logEnabled, blue("Debug: "), 0)
+		Debug = log.New(&logEnabled, tfmt.Cyan.String()+"Debug: ", 0)
 		fallthrough
 
 	case VerbosityNote:
@@ -125,11 +119,11 @@ func SetVerbosity(loglevel Verbosity) {
 		fallthrough
 
 	case VerbosityWarning:
-		Warning = log.New(&logEnabled, yellow("Warning: "), 0)
+		Warning = log.New(&logEnabled, tfmt.Yellow.String()+"Warning: ", 0)
 		fallthrough
 
 	case VerbosityError:
-		Error = log.New(&logEnabled, red("ERROR: "), log.Lshortfile)
+		Error = log.New(&logEnabled, tfmt.Red.String()+"ERROR: ", log.Lshortfile)
 	}
 }
 

@@ -89,12 +89,11 @@ func (gd *GroupDescription) encode(pe packetEncoder) error {
 }
 
 func (gd *GroupDescription) decode(pd packetDecoder) (err error) {
-	kerr, err := pd.getInt16()
-	if err != nil {
+	if kerr, err := pd.getInt16(); err != nil {
 		return err
+	} else {
+		gd.Err = KError(kerr)
 	}
-
-	gd.Err = KError(kerr)
 
 	if gd.GroupId, err = pd.getString(); err != nil {
 		return

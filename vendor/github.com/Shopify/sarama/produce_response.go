@@ -76,12 +76,11 @@ func (r *ProduceResponse) decode(pd packetDecoder, version int16) (err error) {
 	}
 
 	if r.Version >= 1 {
-		millis, err := pd.getInt32()
-		if err != nil {
+		if millis, err := pd.getInt32(); err != nil {
 			return err
+		} else {
+			r.ThrottleTime = time.Duration(millis) * time.Millisecond
 		}
-
-		r.ThrottleTime = time.Duration(millis) * time.Millisecond
 	}
 
 	return nil
