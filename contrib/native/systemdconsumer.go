@@ -36,6 +36,8 @@ import (
 //    DefaultOffset: "Newest"
 //    OffsetFile: ""
 //
+// NOTICE: This producer is not included in standard builds. To enable it
+// you need to trigger a custom build with native plugins enabled.
 // The systemd consumer allows to read from the systemd journal.
 // When attached to a fuse, this consumer will stop reading messages in case
 // that fuse is burned.

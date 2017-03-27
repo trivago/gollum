@@ -1,7 +1,10 @@
 PcapHTTPConsumer
 ================
 
-
+NOTICE: This producer is not included in standard builds. 
+To enable it you need to trigger a custom build with native plugins enabled.
+This plugin utilizes libpcap to listen for network traffic and reassamble http requests from it. 
+As it uses a CGO based library it will break cross platform builds (i.e. you will have to compile it on the correct platform).
 
 Parameters
 ----------
