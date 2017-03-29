@@ -16,16 +16,6 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/trivago/gollum/consumer"
-	_ "github.com/trivago/gollum/contrib"
-	"github.com/trivago/gollum/core"
-	_ "github.com/trivago/gollum/filter"
-	_ "github.com/trivago/gollum/format"
-	_ "github.com/trivago/gollum/producer"
-	_ "github.com/trivago/gollum/stream"
-	"github.com/trivago/tgo"
-	"github.com/trivago/tgo/tlog"
-	"github.com/trivago/tgo/tstrings"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -35,6 +25,16 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	_ "github.com/trivago/gollum/consumer"
+	"github.com/trivago/gollum/core"
+	_ "github.com/trivago/gollum/filter"
+	_ "github.com/trivago/gollum/format"
+	_ "github.com/trivago/gollum/producer"
+	_ "github.com/trivago/gollum/stream"
+	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tlog"
+	"github.com/trivago/tgo/tstrings"
 )
 
 const (

@@ -1,0 +1,5 @@
+# kafkaproducer.go
+
+## Requirements
+
+* librdkafka

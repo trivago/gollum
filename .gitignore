@@ -10,3 +10,9 @@ vendor/**/*
 !vendor/**/*.go
 !vendor/**/*.s
 vendor/**/*_test.go
+
+.gitmodules
+contrib/*
+!contrib/native
+
+contrib_loader.go

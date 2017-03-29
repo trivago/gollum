@@ -16,11 +16,12 @@ package native
 
 import (
 	"fmt"
-	"github.com/miekg/pcap"
-	"github.com/trivago/gollum/core"
 	"hash/fnv"
 	"sync"
 	"time"
+
+	"github.com/miekg/pcap"
+	"github.com/trivago/gollum/core"
 )
 
 // PcapHTTPConsumer consumer plugin
