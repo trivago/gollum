@@ -1,3 +1,5 @@
+.vscode*
+
 gollum
 gollum.pid
 *.prof
