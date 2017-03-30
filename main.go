@@ -37,13 +37,6 @@ import (
 	"github.com/trivago/tgo/tstrings"
 )
 
-const (
-	gollumMajorVer = 0
-	gollumMinorVer = 5
-	gollumPatchVer = 0
-	gollumDevVer   = 0
-)
-
 func main() {
 	tlog.SetCacheWriter()
 	parseFlags()
@@ -172,11 +165,8 @@ func dumpMemoryProfile() {
 }
 
 func printVersion() {
-	if gollumDevVer > 0 {
-		fmt.Printf("Gollum v%d.%d.%d.%d dev\n", gollumMajorVer, gollumMinorVer, gollumPatchVer, gollumDevVer)
-	} else {
-		fmt.Printf("Gollum v%d.%d.%d\n", gollumMajorVer, gollumMinorVer, gollumPatchVer)
-	}
+	fmt.Printf("Gollum: %s\n", GetVersionString())
+	fmt.Printf("Version: %d\n", GetVersionNumber())
 	fmt.Println(runtime.Version())
 }
 
@@ -216,10 +206,5 @@ func setStaticMetrics() {
 	metricVersion := "Version"
 	tgo.Metric.New(metricVersion)
 	tgo.Metric.InitSystemMetrics()
-
-	if gollumDevVer > 0 {
-		tgo.Metric.Set(metricVersion, gollumMajorVer*1000000+gollumMinorVer*10000+gollumPatchVer*100+gollumDevVer)
-	} else {
-		tgo.Metric.Set(metricVersion, gollumMajorVer*10000+gollumMinorVer*100+gollumPatchVer)
-	}
+	tgo.Metric.Set(metricVersion, GetVersionNumber())
 }

@@ -1,3 +1,9 @@
+# 0.5.0-dev
+
+#### Other changes
+
+ * Separated version handling and print version now also with `gollum -h`
+
 # 0.4.5
 
 This is a patch / minor features release.
