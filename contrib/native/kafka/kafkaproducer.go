@@ -21,7 +21,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	kafka "github.com/trivago/gollum/contrib/native/librdkafka"
+	kafka "github.com/trivago/gollum/contrib/native/kafka/librdkafka"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
 )
