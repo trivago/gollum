@@ -121,7 +121,6 @@ import (
 // given number of MBs are used by logfiles. Logfiles are located by the name
 // defined by "File" and are pruned by date (followed by name).
 // By default this is set to 0 which disables pruning.
-
 type File struct {
 	core.BufferedProducer
 	filesByStream     map[core.MessageStreamID]*fileState
