@@ -7,6 +7,9 @@ go:
 - 1.7
 - 1.8
 - master
+matrix:
+  allow_failures:
+    - go: master
 env:
 - GO15VENDOREXPERIMENT=1
 before_install:
