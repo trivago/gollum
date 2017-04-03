@@ -106,11 +106,12 @@ func (cons *SystemdConsumer) Configure(conf core.PluginConfig) error {
 
 	switch offsetValue {
 	case sdOffsetHead:
-		err = cons.journal.SeekHead()
+		if err = cons.journal.SeekHead(); err != nil {
+			return err
+		}
 
 	case sdOffsetTail:
-		err = cons.journal.SeekTail()
-		if err != nil {
+		if err = cons.journal.SeekTail(); err != nil {
 			return err
 		}
 		// start *after* the newest record
@@ -121,21 +122,17 @@ func (cons *SystemdConsumer) Configure(conf core.PluginConfig) error {
 		if err != nil {
 			return err
 		}
-		err = cons.journal.SeekRealtimeUsec(offset)
-		if err != nil {
+		if err = cons.journal.SeekRealtimeUsec(offset); err != nil {
 			return err
 		}
 		// start *after* the specified time
-		_, err = cons.journal.Next()
-	}
-
-	if err != nil {
-		return err
+		if _, err = cons.journal.Next(); err != nil {
+			return err
+		}
 	}
 
 	// Register close to the control message handler
 	cons.SetStopCallback(cons.close)
-
 	return nil
 }
 
@@ -186,6 +183,7 @@ func (cons *SystemdConsumer) read() {
 	}
 }
 
+// Consume enables systemd forwarding as configured.
 func (cons *SystemdConsumer) Consume(workers *sync.WaitGroup) {
 	cons.AddMainWorker(workers)
 	go cons.read()

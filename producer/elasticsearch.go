@@ -209,7 +209,7 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 
 	conf.HasValue("DataTypes")
 	indexTypes, err := conf.Settings.MarshalMap("DataTypes")
-	if indexTypes != nil {
+	if err == nil && indexTypes != nil {
 		for index := range indexTypes {
 			mappings := makeElasticMapping()
 			types, _ := indexTypes.MarshalMap(index)

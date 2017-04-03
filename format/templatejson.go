@@ -40,8 +40,8 @@ import (
 // This value is empty by default. If the template fails to execute the output
 // of TemplateJSONFormatter is returned.
 type TemplateJSON struct {
-	base         core.Formatter
-	template     *template.Template
+	base     core.Formatter
+	template *template.Template
 }
 
 func init() {

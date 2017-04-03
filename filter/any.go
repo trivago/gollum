@@ -60,6 +60,7 @@ func (filter *Any) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
+// Accepts allows messages where at least one nested filter reutrns true
 func (filter *Any) Accepts(msg core.Message) bool {
 	for _, f := range filter.filters {
 		if f.Accepts(msg) {

@@ -120,7 +120,7 @@ type s3FileBuffer struct {
 }
 
 func newS3FileBuffer(filename string) (*s3FileBuffer, error) {
-	file, err := os.OpenFile(filename, os.O_RDWR | os.O_CREATE | os.O_APPEND, 0600)
+	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
 		Log.Error.Print("s3FileBuffer could not open file:", err)
 		return nil, err
@@ -171,7 +171,7 @@ func (buf *s3FileBuffer) Write(p []byte) (n int, err error) {
 
 func (buf *s3FileBuffer) Sha1() (string, error) {
 	hasher := sha1.New()
-	buf.file.Seek(0,0)
+	buf.file.Seek(0, 0)
 	_, err := io.Copy(hasher, buf.file)
 	if err != nil {
 		Log.Error.Print("s3FileBuffer.Sha1() hashing error: ", err)
@@ -192,7 +192,7 @@ func (buf *s3FileBuffer) Size() (int, error) {
 func (buf *s3FileBuffer) Compress() error {
 	// Generate file to gzip into
 	filename := buf.file.Name() + ".gz"
-	file, err := os.OpenFile(filename, os.O_RDWR | os.O_CREATE | os.O_TRUNC, 0600)
+	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		Log.Error.Print("s3FileBuffer.Compress() could not open file:", err)
 		return err
@@ -204,7 +204,7 @@ func (buf *s3FileBuffer) Compress() error {
 
 	for err == nil {
 		_, err = io.CopyN(gzipWriter, buf.file, 1<<20) // 1 MB chunks
-		spin.Yield() // Be async!
+		spin.Yield()                                   // Be async!
 	}
 	gzipWriter.Close()
 

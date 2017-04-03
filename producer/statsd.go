@@ -60,11 +60,11 @@ import (
 // metric name.
 type Statsd struct {
 	core.ProducerBase
-	streamMap         map[core.MessageStreamID]string
-	client            *statsd.StatsdClient
-	batch             core.MessageBatch
-	flushFrequency    time.Duration
-	useMessage        bool
+	streamMap      map[core.MessageStreamID]string
+	client         *statsd.StatsdClient
+	batch          core.MessageBatch
+	flushFrequency time.Duration
+	useMessage     bool
 }
 
 func init() {

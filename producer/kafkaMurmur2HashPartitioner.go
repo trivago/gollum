@@ -12,12 +12,16 @@ type Murmur2HashPartitioner struct {
 	random kafka.Partitioner
 }
 
+// NewMurmur2HashPartitioner creates a new sarama partitioner based on the
+// murmur2 hash algorithm.
 func NewMurmur2HashPartitioner(topic string) kafka.Partitioner {
 	p := new(Murmur2HashPartitioner)
 	p.random = kafka.NewRandomPartitioner(topic)
 	return p
 }
 
+// Partition chooses a partition based on the murmur2 hash of the key.
+// If no key is given a random parition is chosen.
 func (p *Murmur2HashPartitioner) Partition(message *kafka.ProducerMessage, numPartitions int32) (int32, error) {
 	if message.Key == nil {
 		return p.random.Partition(message, numPartitions)
@@ -85,6 +89,7 @@ func (p *Murmur2HashPartitioner) Partition(message *kafka.ProducerMessage, numPa
 
 }
 
+// RequiresConsistency always returns true
 func (p *Murmur2HashPartitioner) RequiresConsistency() bool {
 	return true
 }

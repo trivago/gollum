@@ -136,7 +136,6 @@ const (
 // The full path of the object will be s3://<StreamMapping><Timestamp><PathFormat>
 // where Timestamp is time the object is written formatted with TimestampWrite,
 // and PathFormat is the output of PathFormatter when passed the object data.
-
 type S3 struct {
 	core.ProducerBase
 	client            *s3.S3
@@ -337,9 +336,9 @@ func (prod *S3) newS3Buffer() (buffer s3Buffer, filename string, err error) {
 		filename := path.Join(prod.localPath, strconv.FormatInt(basename, 10))
 		buffer, err := newS3FileBuffer(filename)
 		return buffer, filename, err
-	} else {
-		return newS3ByteBuffer(), "", nil
 	}
+
+	return newS3ByteBuffer(), "", nil
 }
 
 func (prod *S3) bufferMessage(msg core.Message) {
@@ -411,8 +410,8 @@ func (prod *S3) upload(object *objectData, needLock bool) error {
 			return err
 		}
 		msg := core.NewMessage(nil, data, uint64(0))
-		byte_key, _ := prod.pathFormat.Format(msg)
-		key += string(byte_key)
+		byteKey, _ := prod.pathFormat.Format(msg)
+		key += string(byteKey)
 	} else {
 		hash, err := object.buffer.Sha1()
 		if err != nil {
@@ -478,10 +477,10 @@ func (prod *S3) uploadAll() error {
 	for s3Path, object := range prod.objects {
 		if err := prod.upload(object, true); err != nil {
 			return err
-		} else {
-			object.buffer.CloseAndDelete()
-			delete(prod.objects, s3Path)
 		}
+
+		object.buffer.CloseAndDelete()
+		delete(prod.objects, s3Path)
 	}
 	return nil
 }
@@ -529,12 +528,12 @@ func (prod *S3) appendOrUpload(object *objectData, p []byte) error {
 		Log.Error.Print("S3.appendOrUpload() buffer.Write() error:", err)
 		return err
 	}
-	object.Messages += 1
+	object.Messages++
 	return nil
 }
 
 func (prod *S3) transformMessages(messages []core.Message) {
-	bufferedMessages := make([]core.Message, 0)
+	bufferedMessages := []core.Message{}
 	// Format and sort
 	for _, msg := range messages {
 		msgData, streamID := prod.ProducerBase.Format(msg)
@@ -609,6 +608,7 @@ func (prod *S3) close() {
 	prod.storeState()
 }
 
+// Produce writes to a buffer that is sent to amazon s3.
 func (prod *S3) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
 

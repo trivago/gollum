@@ -78,6 +78,7 @@ func (filter *Sample) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
+// Accepts allows message until a limit is hit
 func (filter *Sample) Accepts(msg core.Message) bool {
 	// Ignore based on StreamID
 	if ignore, known := filter.ignore[msg.StreamID]; known && ignore {
@@ -89,7 +90,7 @@ func (filter *Sample) Accepts(msg core.Message) bool {
 	if count > filter.group {
 		if count%filter.group == 1 {
 			// make sure we never overflow filter.count
-			count = atomic.AddInt64(filter.count, -(filter.group))
+			count = atomic.AddInt64(filter.count, -(filter.group)) // TODO: filter.count can be != count here (!)
 		} else {
 			// range from 1 to filter.group
 			count = (count-1)%filter.group + 1
