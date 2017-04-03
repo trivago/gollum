@@ -1,5 +1,6 @@
 gollum
 gollum.pid
+gollum.exe
 *.prof
 docs/_build
 *.tar.gz
