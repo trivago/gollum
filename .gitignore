@@ -1,20 +1,20 @@
 .vscode*
 
+.gitmodules
+
 gollum
 gollum.pid
+contrib/*
+!contrib/native
+contrib_loader.go
 *.prof
 docs/_build
 *.tar.gz
 *.zip
 test
+debug
 vendor/**/*
 !vendor/**/
 !vendor/**/*.go
 !vendor/**/*.s
 vendor/**/*_test.go
-
-.gitmodules
-contrib/*
-!contrib/native
-
-contrib_loader.go
