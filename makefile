@@ -19,10 +19,10 @@ linux:
 	@zip dist/gollum-$(VERSION)-Linux_x64.zip gollum
 
 mac:
-	@echo "Building for MacOS X (Darwin/x64)"
+	@echo "Building for MacOS X (MacOS/x64)"
 	@GOOS=darwin GOARCH=amd64 $(BUILD_FLAGS) go build -o gollum
-	@rm -f dist/gollum-$(VERSION)-Darwin.zip
-	@zip dist/gollum-$(VERSION)-Darwin.zip gollum
+	@rm -f dist/gollum-$(VERSION)-MacOS_x64.zip
+	@zip dist/gollum-$(VERSION)-MacOS_x64.zip gollum
 
 pi:
 	@echo "Building for Raspberry Pi (Linux/ARMv6)"
