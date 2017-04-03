@@ -59,7 +59,12 @@ func (c *ElastiCache) WaitUntilCacheClusterAvailableWithContext(ctx aws.Context,
 		},
 		Logger: c.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
-			req, _ := c.DescribeCacheClustersRequest(input)
+			var inCpy *DescribeCacheClustersInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeCacheClustersRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -135,7 +140,12 @@ func (c *ElastiCache) WaitUntilCacheClusterDeletedWithContext(ctx aws.Context, i
 		},
 		Logger: c.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
-			req, _ := c.DescribeCacheClustersRequest(input)
+			var inCpy *DescribeCacheClustersInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeCacheClustersRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -181,7 +191,12 @@ func (c *ElastiCache) WaitUntilReplicationGroupAvailableWithContext(ctx aws.Cont
 		},
 		Logger: c.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
-			req, _ := c.DescribeReplicationGroupsRequest(input)
+			var inCpy *DescribeReplicationGroupsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeReplicationGroupsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -232,7 +247,12 @@ func (c *ElastiCache) WaitUntilReplicationGroupDeletedWithContext(ctx aws.Contex
 		},
 		Logger: c.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
-			req, _ := c.DescribeReplicationGroupsRequest(input)
+			var inCpy *DescribeReplicationGroupsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeReplicationGroupsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil

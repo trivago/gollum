@@ -472,8 +472,12 @@ func (c *WorkSpaces) DescribeWorkspaceBundlesPages(input *DescribeWorkspaceBundl
 func (c *WorkSpaces) DescribeWorkspaceBundlesPagesWithContext(ctx aws.Context, input *DescribeWorkspaceBundlesInput, fn func(*DescribeWorkspaceBundlesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeWorkspaceBundlesRequest(&inCpy)
+			var inCpy *DescribeWorkspaceBundlesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeWorkspaceBundlesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -611,8 +615,12 @@ func (c *WorkSpaces) DescribeWorkspaceDirectoriesPages(input *DescribeWorkspaceD
 func (c *WorkSpaces) DescribeWorkspaceDirectoriesPagesWithContext(ctx aws.Context, input *DescribeWorkspaceDirectoriesInput, fn func(*DescribeWorkspaceDirectoriesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeWorkspaceDirectoriesRequest(&inCpy)
+			var inCpy *DescribeWorkspaceDirectoriesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeWorkspaceDirectoriesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -754,8 +762,12 @@ func (c *WorkSpaces) DescribeWorkspacesPages(input *DescribeWorkspacesInput, fn 
 func (c *WorkSpaces) DescribeWorkspacesPagesWithContext(ctx aws.Context, input *DescribeWorkspacesInput, fn func(*DescribeWorkspacesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeWorkspacesRequest(&inCpy)
+			var inCpy *DescribeWorkspacesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeWorkspacesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil

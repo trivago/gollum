@@ -3668,8 +3668,12 @@ func (c *S3) ListMultipartUploadsPages(input *ListMultipartUploadsInput, fn func
 func (c *S3) ListMultipartUploadsPagesWithContext(ctx aws.Context, input *ListMultipartUploadsInput, fn func(*ListMultipartUploadsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListMultipartUploadsRequest(&inCpy)
+			var inCpy *ListMultipartUploadsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListMultipartUploadsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3795,8 +3799,12 @@ func (c *S3) ListObjectVersionsPages(input *ListObjectVersionsInput, fn func(*Li
 func (c *S3) ListObjectVersionsPagesWithContext(ctx aws.Context, input *ListObjectVersionsInput, fn func(*ListObjectVersionsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListObjectVersionsRequest(&inCpy)
+			var inCpy *ListObjectVersionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListObjectVersionsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3929,8 +3937,12 @@ func (c *S3) ListObjectsPages(input *ListObjectsInput, fn func(*ListObjectsOutpu
 func (c *S3) ListObjectsPagesWithContext(ctx aws.Context, input *ListObjectsInput, fn func(*ListObjectsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListObjectsRequest(&inCpy)
+			var inCpy *ListObjectsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListObjectsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -4064,8 +4076,12 @@ func (c *S3) ListObjectsV2Pages(input *ListObjectsV2Input, fn func(*ListObjectsV
 func (c *S3) ListObjectsV2PagesWithContext(ctx aws.Context, input *ListObjectsV2Input, fn func(*ListObjectsV2Output, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListObjectsV2Request(&inCpy)
+			var inCpy *ListObjectsV2Input
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListObjectsV2Request(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -4191,8 +4207,12 @@ func (c *S3) ListPartsPages(input *ListPartsInput, fn func(*ListPartsOutput, boo
 func (c *S3) ListPartsPagesWithContext(ctx aws.Context, input *ListPartsInput, fn func(*ListPartsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListPartsRequest(&inCpy)
+			var inCpy *ListPartsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListPartsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil

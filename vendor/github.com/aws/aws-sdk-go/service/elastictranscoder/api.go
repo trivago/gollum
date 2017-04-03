@@ -734,8 +734,12 @@ func (c *ElasticTranscoder) ListJobsByPipelinePages(input *ListJobsByPipelineInp
 func (c *ElasticTranscoder) ListJobsByPipelinePagesWithContext(ctx aws.Context, input *ListJobsByPipelineInput, fn func(*ListJobsByPipelineOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListJobsByPipelineRequest(&inCpy)
+			var inCpy *ListJobsByPipelineInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListJobsByPipelineRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -879,8 +883,12 @@ func (c *ElasticTranscoder) ListJobsByStatusPages(input *ListJobsByStatusInput, 
 func (c *ElasticTranscoder) ListJobsByStatusPagesWithContext(ctx aws.Context, input *ListJobsByStatusInput, fn func(*ListJobsByStatusOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListJobsByStatusRequest(&inCpy)
+			var inCpy *ListJobsByStatusInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListJobsByStatusRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -1018,8 +1026,12 @@ func (c *ElasticTranscoder) ListPipelinesPages(input *ListPipelinesInput, fn fun
 func (c *ElasticTranscoder) ListPipelinesPagesWithContext(ctx aws.Context, input *ListPipelinesInput, fn func(*ListPipelinesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListPipelinesRequest(&inCpy)
+			var inCpy *ListPipelinesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListPipelinesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -1157,8 +1169,12 @@ func (c *ElasticTranscoder) ListPresetsPages(input *ListPresetsInput, fn func(*L
 func (c *ElasticTranscoder) ListPresetsPagesWithContext(ctx aws.Context, input *ListPresetsInput, fn func(*ListPresetsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListPresetsRequest(&inCpy)
+			var inCpy *ListPresetsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListPresetsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil

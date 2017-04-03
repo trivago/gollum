@@ -2451,8 +2451,12 @@ func (c *Glacier) ListJobsPages(input *ListJobsInput, fn func(*ListJobsOutput, b
 func (c *Glacier) ListJobsPagesWithContext(ctx aws.Context, input *ListJobsInput, fn func(*ListJobsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListJobsRequest(&inCpy)
+			var inCpy *ListJobsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListJobsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -2619,8 +2623,12 @@ func (c *Glacier) ListMultipartUploadsPages(input *ListMultipartUploadsInput, fn
 func (c *Glacier) ListMultipartUploadsPagesWithContext(ctx aws.Context, input *ListMultipartUploadsInput, fn func(*ListMultipartUploadsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListMultipartUploadsRequest(&inCpy)
+			var inCpy *ListMultipartUploadsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListMultipartUploadsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -2781,8 +2789,12 @@ func (c *Glacier) ListPartsPages(input *ListPartsInput, fn func(*ListPartsOutput
 func (c *Glacier) ListPartsPagesWithContext(ctx aws.Context, input *ListPartsInput, fn func(*ListPartsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListPartsRequest(&inCpy)
+			var inCpy *ListPartsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListPartsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3112,8 +3124,12 @@ func (c *Glacier) ListVaultsPages(input *ListVaultsInput, fn func(*ListVaultsOut
 func (c *Glacier) ListVaultsPagesWithContext(ctx aws.Context, input *ListVaultsInput, fn func(*ListVaultsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListVaultsRequest(&inCpy)
+			var inCpy *ListVaultsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListVaultsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil

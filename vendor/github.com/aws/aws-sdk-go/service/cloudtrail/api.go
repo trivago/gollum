@@ -1061,8 +1061,12 @@ func (c *CloudTrail) LookupEventsPages(input *LookupEventsInput, fn func(*Lookup
 func (c *CloudTrail) LookupEventsPagesWithContext(ctx aws.Context, input *LookupEventsInput, fn func(*LookupEventsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.LookupEventsRequest(&inCpy)
+			var inCpy *LookupEventsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.LookupEventsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil

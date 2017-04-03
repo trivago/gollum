@@ -4827,8 +4827,12 @@ func (c *IAM) GetAccountAuthorizationDetailsPages(input *GetAccountAuthorization
 func (c *IAM) GetAccountAuthorizationDetailsPagesWithContext(ctx aws.Context, input *GetAccountAuthorizationDetailsInput, fn func(*GetAccountAuthorizationDetailsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.GetAccountAuthorizationDetailsRequest(&inCpy)
+			var inCpy *GetAccountAuthorizationDetailsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.GetAccountAuthorizationDetailsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -5424,8 +5428,12 @@ func (c *IAM) GetGroupPages(input *GetGroupInput, fn func(*GetGroupOutput, bool)
 func (c *IAM) GetGroupPagesWithContext(ctx aws.Context, input *GetGroupInput, fn func(*GetGroupOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.GetGroupRequest(&inCpy)
+			var inCpy *GetGroupInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.GetGroupRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -6811,8 +6819,12 @@ func (c *IAM) ListAccessKeysPages(input *ListAccessKeysInput, fn func(*ListAcces
 func (c *IAM) ListAccessKeysPagesWithContext(ctx aws.Context, input *ListAccessKeysInput, fn func(*ListAccessKeysOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListAccessKeysRequest(&inCpy)
+			var inCpy *ListAccessKeysInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListAccessKeysRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -6947,8 +6959,12 @@ func (c *IAM) ListAccountAliasesPages(input *ListAccountAliasesInput, fn func(*L
 func (c *IAM) ListAccountAliasesPagesWithContext(ctx aws.Context, input *ListAccountAliasesInput, fn func(*ListAccountAliasesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListAccountAliasesRequest(&inCpy)
+			var inCpy *ListAccountAliasesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListAccountAliasesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -7099,8 +7115,12 @@ func (c *IAM) ListAttachedGroupPoliciesPages(input *ListAttachedGroupPoliciesInp
 func (c *IAM) ListAttachedGroupPoliciesPagesWithContext(ctx aws.Context, input *ListAttachedGroupPoliciesInput, fn func(*ListAttachedGroupPoliciesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListAttachedGroupPoliciesRequest(&inCpy)
+			var inCpy *ListAttachedGroupPoliciesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListAttachedGroupPoliciesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -7251,8 +7271,12 @@ func (c *IAM) ListAttachedRolePoliciesPages(input *ListAttachedRolePoliciesInput
 func (c *IAM) ListAttachedRolePoliciesPagesWithContext(ctx aws.Context, input *ListAttachedRolePoliciesInput, fn func(*ListAttachedRolePoliciesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListAttachedRolePoliciesRequest(&inCpy)
+			var inCpy *ListAttachedRolePoliciesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListAttachedRolePoliciesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -7403,8 +7427,12 @@ func (c *IAM) ListAttachedUserPoliciesPages(input *ListAttachedUserPoliciesInput
 func (c *IAM) ListAttachedUserPoliciesPagesWithContext(ctx aws.Context, input *ListAttachedUserPoliciesInput, fn func(*ListAttachedUserPoliciesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListAttachedUserPoliciesRequest(&inCpy)
+			var inCpy *ListAttachedUserPoliciesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListAttachedUserPoliciesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -7552,8 +7580,12 @@ func (c *IAM) ListEntitiesForPolicyPages(input *ListEntitiesForPolicyInput, fn f
 func (c *IAM) ListEntitiesForPolicyPagesWithContext(ctx aws.Context, input *ListEntitiesForPolicyInput, fn func(*ListEntitiesForPolicyOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListEntitiesForPolicyRequest(&inCpy)
+			var inCpy *ListEntitiesForPolicyInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListEntitiesForPolicyRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -7700,8 +7732,12 @@ func (c *IAM) ListGroupPoliciesPages(input *ListGroupPoliciesInput, fn func(*Lis
 func (c *IAM) ListGroupPoliciesPagesWithContext(ctx aws.Context, input *ListGroupPoliciesInput, fn func(*ListGroupPoliciesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListGroupPoliciesRequest(&inCpy)
+			var inCpy *ListGroupPoliciesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListGroupPoliciesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -7835,8 +7871,12 @@ func (c *IAM) ListGroupsPages(input *ListGroupsInput, fn func(*ListGroupsOutput,
 func (c *IAM) ListGroupsPagesWithContext(ctx aws.Context, input *ListGroupsInput, fn func(*ListGroupsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListGroupsRequest(&inCpy)
+			var inCpy *ListGroupsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListGroupsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -7974,8 +8014,12 @@ func (c *IAM) ListGroupsForUserPages(input *ListGroupsForUserInput, fn func(*Lis
 func (c *IAM) ListGroupsForUserPagesWithContext(ctx aws.Context, input *ListGroupsForUserInput, fn func(*ListGroupsForUserOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListGroupsForUserRequest(&inCpy)
+			var inCpy *ListGroupsForUserInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListGroupsForUserRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -8111,8 +8155,12 @@ func (c *IAM) ListInstanceProfilesPages(input *ListInstanceProfilesInput, fn fun
 func (c *IAM) ListInstanceProfilesPagesWithContext(ctx aws.Context, input *ListInstanceProfilesInput, fn func(*ListInstanceProfilesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListInstanceProfilesRequest(&inCpy)
+			var inCpy *ListInstanceProfilesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListInstanceProfilesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -8252,8 +8300,12 @@ func (c *IAM) ListInstanceProfilesForRolePages(input *ListInstanceProfilesForRol
 func (c *IAM) ListInstanceProfilesForRolePagesWithContext(ctx aws.Context, input *ListInstanceProfilesForRoleInput, fn func(*ListInstanceProfilesForRoleOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListInstanceProfilesForRoleRequest(&inCpy)
+			var inCpy *ListInstanceProfilesForRoleInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListInstanceProfilesForRoleRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -8394,8 +8446,12 @@ func (c *IAM) ListMFADevicesPages(input *ListMFADevicesInput, fn func(*ListMFADe
 func (c *IAM) ListMFADevicesPagesWithContext(ctx aws.Context, input *ListMFADevicesInput, fn func(*ListMFADevicesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListMFADevicesRequest(&inCpy)
+			var inCpy *ListMFADevicesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListMFADevicesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -8621,8 +8677,12 @@ func (c *IAM) ListPoliciesPages(input *ListPoliciesInput, fn func(*ListPoliciesO
 func (c *IAM) ListPoliciesPagesWithContext(ctx aws.Context, input *ListPoliciesInput, fn func(*ListPoliciesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListPoliciesRequest(&inCpy)
+			var inCpy *ListPoliciesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListPoliciesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -8767,8 +8827,12 @@ func (c *IAM) ListPolicyVersionsPages(input *ListPolicyVersionsInput, fn func(*L
 func (c *IAM) ListPolicyVersionsPagesWithContext(ctx aws.Context, input *ListPolicyVersionsInput, fn func(*ListPolicyVersionsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListPolicyVersionsRequest(&inCpy)
+			var inCpy *ListPolicyVersionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListPolicyVersionsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -8914,8 +8978,12 @@ func (c *IAM) ListRolePoliciesPages(input *ListRolePoliciesInput, fn func(*ListR
 func (c *IAM) ListRolePoliciesPagesWithContext(ctx aws.Context, input *ListRolePoliciesInput, fn func(*ListRolePoliciesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListRolePoliciesRequest(&inCpy)
+			var inCpy *ListRolePoliciesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListRolePoliciesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -9051,8 +9119,12 @@ func (c *IAM) ListRolesPages(input *ListRolesInput, fn func(*ListRolesOutput, bo
 func (c *IAM) ListRolesPagesWithContext(ctx aws.Context, input *ListRolesInput, fn func(*ListRolesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListRolesRequest(&inCpy)
+			var inCpy *ListRolesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListRolesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -9277,8 +9349,12 @@ func (c *IAM) ListSSHPublicKeysPages(input *ListSSHPublicKeysInput, fn func(*Lis
 func (c *IAM) ListSSHPublicKeysPagesWithContext(ctx aws.Context, input *ListSSHPublicKeysInput, fn func(*ListSSHPublicKeysOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListSSHPublicKeysRequest(&inCpy)
+			var inCpy *ListSSHPublicKeysInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListSSHPublicKeysRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -9418,8 +9494,12 @@ func (c *IAM) ListServerCertificatesPages(input *ListServerCertificatesInput, fn
 func (c *IAM) ListServerCertificatesPagesWithContext(ctx aws.Context, input *ListServerCertificatesInput, fn func(*ListServerCertificatesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListServerCertificatesRequest(&inCpy)
+			var inCpy *ListServerCertificatesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListServerCertificatesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -9655,8 +9735,12 @@ func (c *IAM) ListSigningCertificatesPages(input *ListSigningCertificatesInput, 
 func (c *IAM) ListSigningCertificatesPagesWithContext(ctx aws.Context, input *ListSigningCertificatesInput, fn func(*ListSigningCertificatesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListSigningCertificatesRequest(&inCpy)
+			var inCpy *ListSigningCertificatesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListSigningCertificatesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -9801,8 +9885,12 @@ func (c *IAM) ListUserPoliciesPages(input *ListUserPoliciesInput, fn func(*ListU
 func (c *IAM) ListUserPoliciesPagesWithContext(ctx aws.Context, input *ListUserPoliciesInput, fn func(*ListUserPoliciesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListUserPoliciesRequest(&inCpy)
+			var inCpy *ListUserPoliciesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListUserPoliciesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -9938,8 +10026,12 @@ func (c *IAM) ListUsersPages(input *ListUsersInput, fn func(*ListUsersOutput, bo
 func (c *IAM) ListUsersPagesWithContext(ctx aws.Context, input *ListUsersInput, fn func(*ListUsersOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListUsersRequest(&inCpy)
+			var inCpy *ListUsersInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListUsersRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -10070,8 +10162,12 @@ func (c *IAM) ListVirtualMFADevicesPages(input *ListVirtualMFADevicesInput, fn f
 func (c *IAM) ListVirtualMFADevicesPagesWithContext(ctx aws.Context, input *ListVirtualMFADevicesInput, fn func(*ListVirtualMFADevicesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListVirtualMFADevicesRequest(&inCpy)
+			var inCpy *ListVirtualMFADevicesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListVirtualMFADevicesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -11137,8 +11233,12 @@ func (c *IAM) SimulateCustomPolicyPages(input *SimulateCustomPolicyInput, fn fun
 func (c *IAM) SimulateCustomPolicyPagesWithContext(ctx aws.Context, input *SimulateCustomPolicyInput, fn func(*SimulatePolicyResponse, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.SimulateCustomPolicyRequest(&inCpy)
+			var inCpy *SimulateCustomPolicyInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.SimulateCustomPolicyRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -11304,8 +11404,12 @@ func (c *IAM) SimulatePrincipalPolicyPages(input *SimulatePrincipalPolicyInput, 
 func (c *IAM) SimulatePrincipalPolicyPagesWithContext(ctx aws.Context, input *SimulatePrincipalPolicyInput, fn func(*SimulatePolicyResponse, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.SimulatePrincipalPolicyRequest(&inCpy)
+			var inCpy *SimulatePrincipalPolicyInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.SimulatePrincipalPolicyRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil

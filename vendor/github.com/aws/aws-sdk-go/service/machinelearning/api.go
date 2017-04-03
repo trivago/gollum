@@ -1468,8 +1468,12 @@ func (c *MachineLearning) DescribeBatchPredictionsPages(input *DescribeBatchPred
 func (c *MachineLearning) DescribeBatchPredictionsPagesWithContext(ctx aws.Context, input *DescribeBatchPredictionsInput, fn func(*DescribeBatchPredictionsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeBatchPredictionsRequest(&inCpy)
+			var inCpy *DescribeBatchPredictionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeBatchPredictionsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -1601,8 +1605,12 @@ func (c *MachineLearning) DescribeDataSourcesPages(input *DescribeDataSourcesInp
 func (c *MachineLearning) DescribeDataSourcesPagesWithContext(ctx aws.Context, input *DescribeDataSourcesInput, fn func(*DescribeDataSourcesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeDataSourcesRequest(&inCpy)
+			var inCpy *DescribeDataSourcesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeDataSourcesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -1735,8 +1743,12 @@ func (c *MachineLearning) DescribeEvaluationsPages(input *DescribeEvaluationsInp
 func (c *MachineLearning) DescribeEvaluationsPagesWithContext(ctx aws.Context, input *DescribeEvaluationsInput, fn func(*DescribeEvaluationsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeEvaluationsRequest(&inCpy)
+			var inCpy *DescribeEvaluationsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeEvaluationsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -1868,8 +1880,12 @@ func (c *MachineLearning) DescribeMLModelsPages(input *DescribeMLModelsInput, fn
 func (c *MachineLearning) DescribeMLModelsPagesWithContext(ctx aws.Context, input *DescribeMLModelsInput, fn func(*DescribeMLModelsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeMLModelsRequest(&inCpy)
+			var inCpy *DescribeMLModelsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeMLModelsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil

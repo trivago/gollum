@@ -1,5 +1,5 @@
 hash: 04c8ac3c1690b7cad71805a65e6436066d1c44f1c33af7ba4382b3c21d3a2e34
-updated: 2017-03-27T17:40:05.920453609+02:00
+updated: 2017-04-03T12:31:12.79028226+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -12,7 +12,7 @@ imports:
 - name: github.com/artyom/thrift
   version: 388840a05deb9b7d85fdf6c225a2729fe1826cb7
 - name: github.com/aws/aws-sdk-go
-  version: d122c9c0e1d875585918c85cf6eba7e5e43f221d
+  version: 5ab6def9a2f0445ff22a47b16660fbb1ff919b16
   subpackages:
   - aws
   - aws/awserr
@@ -67,9 +67,9 @@ imports:
 - name: github.com/eapache/queue
   version: 44cc805cf13205b55f69e14bcb69867d1ae92f98
 - name: github.com/go-ini/ini
-  version: 1730955e3146956d6a087861380f9b4667ed5071
+  version: e7fea39b01aea8d5671f6858f0532f56e8bff3a5
 - name: github.com/go-redis/redis
-  version: 18dcec21440a5c6e96da08fcdce732bb9436c190
+  version: c9fbe22817c5d1469397b3cfcfaa38ee1dbbab43
   subpackages:
   - internal
   - internal/consistenthash
@@ -77,7 +77,7 @@ imports:
   - internal/pool
   - internal/proto
 - name: github.com/golang/protobuf
-  version: c9c7427a2a70d2eb3bafa0ab2dc163e45f143317
+  version: 2bba0603135d7d7f5cb73b2125beeda19c09f4ef
   subpackages:
   - proto
 - name: github.com/golang/snappy
@@ -103,7 +103,7 @@ imports:
 - name: github.com/oschwald/maxminddb-golang
   version: 697da8075d2061aa8ed639346443f5d3e8c80b30
 - name: github.com/pierrec/lz4
-  version: 90290f74b1b4d9c097f0a3b3c7eba2ef3875c699
+  version: f5b77fd73d83122495309c0f459b810f83cc291f
 - name: github.com/pierrec/xxHash
   version: 5a004441f897722c627870a981d02b29924215fa
   subpackages:
@@ -117,16 +117,16 @@ imports:
 - name: github.com/Shopify/sarama
   version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
 - name: github.com/trivago/tgo
-  version: 065b6f2ca274f83a7d8ea05853b526ed4dd5e594
+  version: 29efc651bc8e40b607db4b7a6881614775c7f529
   subpackages:
   - tflag
 - name: golang.org/x/crypto
-  version: 459e26527287adbc2adcc5d0d49abff9a5f315a7
+  version: 88915ccf7aeb91e9324fe7cf3eddd1531ced61ea
   subpackages:
   - bcrypt
   - blowfish
 - name: golang.org/x/sys
-  version: afadfcc7779c1f4db0f6f6438afcb108d9c9c7cd
+  version: 9a7256cb28ed514b4e1e5f68959914c4c28a92e0
   subpackages:
   - unix
   - windows

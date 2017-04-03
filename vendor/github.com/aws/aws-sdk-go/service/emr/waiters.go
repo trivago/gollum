@@ -59,7 +59,12 @@ func (c *EMR) WaitUntilClusterRunningWithContext(ctx aws.Context, input *Describ
 		},
 		Logger: c.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
-			req, _ := c.DescribeClusterRequest(input)
+			var inCpy *DescribeClusterInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeClusterRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -105,7 +110,12 @@ func (c *EMR) WaitUntilClusterTerminatedWithContext(ctx aws.Context, input *Desc
 		},
 		Logger: c.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
-			req, _ := c.DescribeClusterRequest(input)
+			var inCpy *DescribeClusterInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeClusterRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -156,7 +166,12 @@ func (c *EMR) WaitUntilStepCompleteWithContext(ctx aws.Context, input *DescribeS
 		},
 		Logger: c.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
-			req, _ := c.DescribeStepRequest(input)
+			var inCpy *DescribeStepInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeStepRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil

@@ -218,8 +218,12 @@ func (c *CloudWatch) DescribeAlarmHistoryPages(input *DescribeAlarmHistoryInput,
 func (c *CloudWatch) DescribeAlarmHistoryPagesWithContext(ctx aws.Context, input *DescribeAlarmHistoryInput, fn func(*DescribeAlarmHistoryOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeAlarmHistoryRequest(&inCpy)
+			var inCpy *DescribeAlarmHistoryInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeAlarmHistoryRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -352,8 +356,12 @@ func (c *CloudWatch) DescribeAlarmsPages(input *DescribeAlarmsInput, fn func(*De
 func (c *CloudWatch) DescribeAlarmsPagesWithContext(ctx aws.Context, input *DescribeAlarmsInput, fn func(*DescribeAlarmsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeAlarmsRequest(&inCpy)
+			var inCpy *DescribeAlarmsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeAlarmsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -846,8 +854,12 @@ func (c *CloudWatch) ListMetricsPages(input *ListMetricsInput, fn func(*ListMetr
 func (c *CloudWatch) ListMetricsPagesWithContext(ctx aws.Context, input *ListMetricsInput, fn func(*ListMetricsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListMetricsRequest(&inCpy)
+			var inCpy *ListMetricsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListMetricsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil

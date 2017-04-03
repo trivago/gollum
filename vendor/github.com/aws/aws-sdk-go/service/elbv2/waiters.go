@@ -49,7 +49,12 @@ func (c *ELBV2) WaitUntilLoadBalancerAvailableWithContext(ctx aws.Context, input
 		},
 		Logger: c.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
-			req, _ := c.DescribeLoadBalancersRequest(input)
+			var inCpy *DescribeLoadBalancersInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeLoadBalancersRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -95,7 +100,12 @@ func (c *ELBV2) WaitUntilLoadBalancerExistsWithContext(ctx aws.Context, input *D
 		},
 		Logger: c.Config.Logger,
 		NewRequest: func(opts []request.Option) (*request.Request, error) {
-			req, _ := c.DescribeLoadBalancersRequest(input)
+			var inCpy *DescribeLoadBalancersInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeLoadBalancersRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil

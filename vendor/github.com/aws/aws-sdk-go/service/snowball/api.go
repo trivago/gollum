@@ -679,8 +679,12 @@ func (c *Snowball) DescribeAddressesPages(input *DescribeAddressesInput, fn func
 func (c *Snowball) DescribeAddressesPagesWithContext(ctx aws.Context, input *DescribeAddressesInput, fn func(*DescribeAddressesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeAddressesRequest(&inCpy)
+			var inCpy *DescribeAddressesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeAddressesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -1412,8 +1416,12 @@ func (c *Snowball) ListJobsPages(input *ListJobsInput, fn func(*ListJobsOutput, 
 func (c *Snowball) ListJobsPagesWithContext(ctx aws.Context, input *ListJobsInput, fn func(*ListJobsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListJobsRequest(&inCpy)
+			var inCpy *ListJobsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListJobsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil

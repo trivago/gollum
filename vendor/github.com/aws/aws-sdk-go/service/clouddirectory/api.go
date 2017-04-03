@@ -344,6 +344,10 @@ func (c *CloudDirectory) AttachObjectRequest(input *AttachObjectInput) (req *req
 //   * ErrCodeValidationException "ValidationException"
 //   Indicates your request is malformed in some manner. See the exception message.
 //
+//   * ErrCodeFacetValidationException "FacetValidationException"
+//   The Facet you provided was not well formed or could not be validated with
+//   the schema.
+//
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/clouddirectory-2016-05-10/AttachObject
 func (c *CloudDirectory) AttachObject(input *AttachObjectInput) (*AttachObjectOutput, error) {
 	req, out := c.AttachObjectRequest(input)
@@ -3023,8 +3027,12 @@ func (c *CloudDirectory) ListAppliedSchemaArnsPages(input *ListAppliedSchemaArns
 func (c *CloudDirectory) ListAppliedSchemaArnsPagesWithContext(ctx aws.Context, input *ListAppliedSchemaArnsInput, fn func(*ListAppliedSchemaArnsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListAppliedSchemaArnsRequest(&inCpy)
+			var inCpy *ListAppliedSchemaArnsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListAppliedSchemaArnsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3185,8 +3193,12 @@ func (c *CloudDirectory) ListAttachedIndicesPages(input *ListAttachedIndicesInpu
 func (c *CloudDirectory) ListAttachedIndicesPagesWithContext(ctx aws.Context, input *ListAttachedIndicesInput, fn func(*ListAttachedIndicesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListAttachedIndicesRequest(&inCpy)
+			var inCpy *ListAttachedIndicesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListAttachedIndicesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3347,8 +3359,12 @@ func (c *CloudDirectory) ListDevelopmentSchemaArnsPages(input *ListDevelopmentSc
 func (c *CloudDirectory) ListDevelopmentSchemaArnsPagesWithContext(ctx aws.Context, input *ListDevelopmentSchemaArnsInput, fn func(*ListDevelopmentSchemaArnsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListDevelopmentSchemaArnsRequest(&inCpy)
+			var inCpy *ListDevelopmentSchemaArnsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListDevelopmentSchemaArnsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3506,8 +3522,12 @@ func (c *CloudDirectory) ListDirectoriesPages(input *ListDirectoriesInput, fn fu
 func (c *CloudDirectory) ListDirectoriesPagesWithContext(ctx aws.Context, input *ListDirectoriesInput, fn func(*ListDirectoriesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListDirectoriesRequest(&inCpy)
+			var inCpy *ListDirectoriesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListDirectoriesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3671,8 +3691,12 @@ func (c *CloudDirectory) ListFacetAttributesPages(input *ListFacetAttributesInpu
 func (c *CloudDirectory) ListFacetAttributesPagesWithContext(ctx aws.Context, input *ListFacetAttributesInput, fn func(*ListFacetAttributesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListFacetAttributesRequest(&inCpy)
+			var inCpy *ListFacetAttributesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListFacetAttributesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3833,8 +3857,12 @@ func (c *CloudDirectory) ListFacetNamesPages(input *ListFacetNamesInput, fn func
 func (c *CloudDirectory) ListFacetNamesPagesWithContext(ctx aws.Context, input *ListFacetNamesInput, fn func(*ListFacetNamesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListFacetNamesRequest(&inCpy)
+			var inCpy *ListFacetNamesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListFacetNamesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3998,8 +4026,12 @@ func (c *CloudDirectory) ListIndexPages(input *ListIndexInput, fn func(*ListInde
 func (c *CloudDirectory) ListIndexPagesWithContext(ctx aws.Context, input *ListIndexInput, fn func(*ListIndexOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListIndexRequest(&inCpy)
+			var inCpy *ListIndexInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListIndexRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -4113,6 +4145,10 @@ func (c *CloudDirectory) ListObjectAttributesRequest(input *ListObjectAttributes
 //   * ErrCodeInvalidNextTokenException "InvalidNextTokenException"
 //   Indicates that the NextToken value is not valid.
 //
+//   * ErrCodeFacetValidationException "FacetValidationException"
+//   The Facet you provided was not well formed or could not be validated with
+//   the schema.
+//
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/clouddirectory-2016-05-10/ListObjectAttributes
 func (c *CloudDirectory) ListObjectAttributes(input *ListObjectAttributesInput) (*ListObjectAttributesOutput, error) {
 	req, out := c.ListObjectAttributesRequest(input)
@@ -4166,8 +4202,12 @@ func (c *CloudDirectory) ListObjectAttributesPages(input *ListObjectAttributesIn
 func (c *CloudDirectory) ListObjectAttributesPagesWithContext(ctx aws.Context, input *ListObjectAttributesInput, fn func(*ListObjectAttributesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListObjectAttributesRequest(&inCpy)
+			var inCpy *ListObjectAttributesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListObjectAttributesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -4338,8 +4378,12 @@ func (c *CloudDirectory) ListObjectChildrenPages(input *ListObjectChildrenInput,
 func (c *CloudDirectory) ListObjectChildrenPagesWithContext(ctx aws.Context, input *ListObjectChildrenInput, fn func(*ListObjectChildrenOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListObjectChildrenRequest(&inCpy)
+			var inCpy *ListObjectChildrenInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListObjectChildrenRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -4512,8 +4556,12 @@ func (c *CloudDirectory) ListObjectParentPathsPages(input *ListObjectParentPaths
 func (c *CloudDirectory) ListObjectParentPathsPagesWithContext(ctx aws.Context, input *ListObjectParentPathsInput, fn func(*ListObjectParentPathsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListObjectParentPathsRequest(&inCpy)
+			var inCpy *ListObjectParentPathsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListObjectParentPathsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -4683,8 +4731,12 @@ func (c *CloudDirectory) ListObjectParentsPages(input *ListObjectParentsInput, f
 func (c *CloudDirectory) ListObjectParentsPagesWithContext(ctx aws.Context, input *ListObjectParentsInput, fn func(*ListObjectParentsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListObjectParentsRequest(&inCpy)
+			var inCpy *ListObjectParentsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListObjectParentsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -4848,8 +4900,12 @@ func (c *CloudDirectory) ListObjectPoliciesPages(input *ListObjectPoliciesInput,
 func (c *CloudDirectory) ListObjectPoliciesPagesWithContext(ctx aws.Context, input *ListObjectPoliciesInput, fn func(*ListObjectPoliciesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListObjectPoliciesRequest(&inCpy)
+			var inCpy *ListObjectPoliciesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListObjectPoliciesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -5019,8 +5075,12 @@ func (c *CloudDirectory) ListPolicyAttachmentsPages(input *ListPolicyAttachments
 func (c *CloudDirectory) ListPolicyAttachmentsPagesWithContext(ctx aws.Context, input *ListPolicyAttachmentsInput, fn func(*ListPolicyAttachmentsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListPolicyAttachmentsRequest(&inCpy)
+			var inCpy *ListPolicyAttachmentsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListPolicyAttachmentsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -5181,8 +5241,12 @@ func (c *CloudDirectory) ListPublishedSchemaArnsPages(input *ListPublishedSchema
 func (c *CloudDirectory) ListPublishedSchemaArnsPagesWithContext(ctx aws.Context, input *ListPublishedSchemaArnsInput, fn func(*ListPublishedSchemaArnsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListPublishedSchemaArnsRequest(&inCpy)
+			var inCpy *ListPublishedSchemaArnsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListPublishedSchemaArnsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -5347,8 +5411,12 @@ func (c *CloudDirectory) ListTagsForResourcePages(input *ListTagsForResourceInpu
 func (c *CloudDirectory) ListTagsForResourcePagesWithContext(ctx aws.Context, input *ListTagsForResourceInput, fn func(*ListTagsForResourceOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListTagsForResourceRequest(&inCpy)
+			var inCpy *ListTagsForResourceInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListTagsForResourceRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -5520,8 +5588,12 @@ func (c *CloudDirectory) LookupPolicyPages(input *LookupPolicyInput, fn func(*Lo
 func (c *CloudDirectory) LookupPolicyPagesWithContext(ctx aws.Context, input *LookupPolicyInput, fn func(*LookupPolicyOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.LookupPolicyRequest(&inCpy)
+			var inCpy *LookupPolicyInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.LookupPolicyRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -7537,6 +7609,9 @@ func (s *BatchDetachObjectResponse) SetDetachedObjectIdentifier(v string) *Batch
 type BatchListObjectAttributes struct {
 	_ struct{} `type:"structure"`
 
+	// Used to filter the list of object attributes associated with a certain facet.
+	FacetFilter *SchemaFacet `type:"structure"`
+
 	// Maximum number of items to be retrieved in a single call. This is an approximate
 	// number.
 	MaxResults *int64 `min:"1" type:"integer"`
@@ -7569,11 +7644,22 @@ func (s *BatchListObjectAttributes) Validate() error {
 	if s.ObjectReference == nil {
 		invalidParams.Add(request.NewErrParamRequired("ObjectReference"))
 	}
+	if s.FacetFilter != nil {
+		if err := s.FacetFilter.Validate(); err != nil {
+			invalidParams.AddNested("FacetFilter", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetFacetFilter sets the FacetFilter field's value.
+func (s *BatchListObjectAttributes) SetFacetFilter(v *SchemaFacet) *BatchListObjectAttributes {
+	s.FacetFilter = v
+	return s
 }
 
 // SetMaxResults sets the MaxResults field's value.
@@ -11077,6 +11163,9 @@ type ListObjectAttributesInput struct {
 	// DirectoryArn is a required field
 	DirectoryArn *string `location:"header" locationName:"x-amz-data-partition" type:"string" required:"true"`
 
+	// Used to filter the list of object attributes associated with a certain facet.
+	FacetFilter *SchemaFacet `type:"structure"`
+
 	// Maximum number of items to be retrieved in a single call. This is an approximate
 	// number.
 	MaxResults *int64 `min:"1" type:"integer"`
@@ -11112,6 +11201,11 @@ func (s *ListObjectAttributesInput) Validate() error {
 	if s.ObjectReference == nil {
 		invalidParams.Add(request.NewErrParamRequired("ObjectReference"))
 	}
+	if s.FacetFilter != nil {
+		if err := s.FacetFilter.Validate(); err != nil {
+			invalidParams.AddNested("FacetFilter", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -11128,6 +11222,12 @@ func (s *ListObjectAttributesInput) SetConsistencyLevel(v string) *ListObjectAtt
 // SetDirectoryArn sets the DirectoryArn field's value.
 func (s *ListObjectAttributesInput) SetDirectoryArn(v string) *ListObjectAttributesInput {
 	s.DirectoryArn = &v
+	return s
+}
+
+// SetFacetFilter sets the FacetFilter field's value.
+func (s *ListObjectAttributesInput) SetFacetFilter(v *SchemaFacet) *ListObjectAttributesInput {
+	s.FacetFilter = v
 	return s
 }
 

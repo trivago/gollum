@@ -2380,8 +2380,12 @@ func (c *CodeDeploy) ListApplicationRevisionsPages(input *ListApplicationRevisio
 func (c *CodeDeploy) ListApplicationRevisionsPagesWithContext(ctx aws.Context, input *ListApplicationRevisionsInput, fn func(*ListApplicationRevisionsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListApplicationRevisionsRequest(&inCpy)
+			var inCpy *ListApplicationRevisionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListApplicationRevisionsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -2512,8 +2516,12 @@ func (c *CodeDeploy) ListApplicationsPages(input *ListApplicationsInput, fn func
 func (c *CodeDeploy) ListApplicationsPagesWithContext(ctx aws.Context, input *ListApplicationsInput, fn func(*ListApplicationsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListApplicationsRequest(&inCpy)
+			var inCpy *ListApplicationsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListApplicationsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -2644,8 +2652,12 @@ func (c *CodeDeploy) ListDeploymentConfigsPages(input *ListDeploymentConfigsInpu
 func (c *CodeDeploy) ListDeploymentConfigsPagesWithContext(ctx aws.Context, input *ListDeploymentConfigsInput, fn func(*ListDeploymentConfigsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListDeploymentConfigsRequest(&inCpy)
+			var inCpy *ListDeploymentConfigsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListDeploymentConfigsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -2786,8 +2798,12 @@ func (c *CodeDeploy) ListDeploymentGroupsPages(input *ListDeploymentGroupsInput,
 func (c *CodeDeploy) ListDeploymentGroupsPagesWithContext(ctx aws.Context, input *ListDeploymentGroupsInput, fn func(*ListDeploymentGroupsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListDeploymentGroupsRequest(&inCpy)
+			var inCpy *ListDeploymentGroupsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListDeploymentGroupsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -2939,8 +2955,12 @@ func (c *CodeDeploy) ListDeploymentInstancesPages(input *ListDeploymentInstances
 func (c *CodeDeploy) ListDeploymentInstancesPagesWithContext(ctx aws.Context, input *ListDeploymentInstancesInput, fn func(*ListDeploymentInstancesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListDeploymentInstancesRequest(&inCpy)
+			var inCpy *ListDeploymentInstancesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListDeploymentInstancesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3097,8 +3117,12 @@ func (c *CodeDeploy) ListDeploymentsPages(input *ListDeploymentsInput, fn func(*
 func (c *CodeDeploy) ListDeploymentsPagesWithContext(ctx aws.Context, input *ListDeploymentsInput, fn func(*ListDeploymentsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListDeploymentsRequest(&inCpy)
+			var inCpy *ListDeploymentsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListDeploymentsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil

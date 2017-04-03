@@ -811,8 +811,12 @@ func (c *CloudFormation) DescribeStackEventsPages(input *DescribeStackEventsInpu
 func (c *CloudFormation) DescribeStackEventsPagesWithContext(ctx aws.Context, input *DescribeStackEventsInput, fn func(*DescribeStackEventsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeStackEventsRequest(&inCpy)
+			var inCpy *DescribeStackEventsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeStackEventsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -1111,8 +1115,12 @@ func (c *CloudFormation) DescribeStacksPages(input *DescribeStacksInput, fn func
 func (c *CloudFormation) DescribeStacksPagesWithContext(ctx aws.Context, input *DescribeStacksInput, fn func(*DescribeStacksOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeStacksRequest(&inCpy)
+			var inCpy *DescribeStacksInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeStacksRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -1660,6 +1668,12 @@ func (c *CloudFormation) ListExportsRequest(input *ListExportsInput) (req *reque
 		Name:       opListExports,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -1709,6 +1723,56 @@ func (c *CloudFormation) ListExportsWithContext(ctx aws.Context, input *ListExpo
 	return out, req.Send()
 }
 
+// ListExportsPages iterates over the pages of a ListExports operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListExports method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListExports operation.
+//    pageNum := 0
+//    err := client.ListExportsPages(params,
+//        func(page *ListExportsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *CloudFormation) ListExportsPages(input *ListExportsInput, fn func(*ListExportsOutput, bool) bool) error {
+	return c.ListExportsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListExportsPagesWithContext same as ListExportsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CloudFormation) ListExportsPagesWithContext(ctx aws.Context, input *ListExportsInput, fn func(*ListExportsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListExportsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListExportsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListExportsOutput), !p.HasNextPage())
+	}
+	return p.Err()
+}
+
 const opListImports = "ListImports"
 
 // ListImportsRequest generates a "aws/request.Request" representing the
@@ -1741,6 +1805,12 @@ func (c *CloudFormation) ListImportsRequest(input *ListImportsInput) (req *reque
 		Name:       opListImports,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -1788,6 +1858,56 @@ func (c *CloudFormation) ListImportsWithContext(ctx aws.Context, input *ListImpo
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// ListImportsPages iterates over the pages of a ListImports operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListImports method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListImports operation.
+//    pageNum := 0
+//    err := client.ListImportsPages(params,
+//        func(page *ListImportsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *CloudFormation) ListImportsPages(input *ListImportsInput, fn func(*ListImportsOutput, bool) bool) error {
+	return c.ListImportsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListImportsPagesWithContext same as ListImportsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CloudFormation) ListImportsPagesWithContext(ctx aws.Context, input *ListImportsInput, fn func(*ListImportsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListImportsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListImportsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListImportsOutput), !p.HasNextPage())
+	}
+	return p.Err()
 }
 
 const opListStackResources = "ListStackResources"
@@ -1905,8 +2025,12 @@ func (c *CloudFormation) ListStackResourcesPages(input *ListStackResourcesInput,
 func (c *CloudFormation) ListStackResourcesPagesWithContext(ctx aws.Context, input *ListStackResourcesInput, fn func(*ListStackResourcesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListStackResourcesRequest(&inCpy)
+			var inCpy *ListStackResourcesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListStackResourcesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -2036,8 +2160,12 @@ func (c *CloudFormation) ListStacksPages(input *ListStacksInput, fn func(*ListSt
 func (c *CloudFormation) ListStacksPagesWithContext(ctx aws.Context, input *ListStacksInput, fn func(*ListStacksOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListStacksRequest(&inCpy)
+			var inCpy *ListStacksInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListStacksRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil

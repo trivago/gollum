@@ -1813,8 +1813,12 @@ func (c *ElastiCache) DescribeCacheClustersPages(input *DescribeCacheClustersInp
 func (c *ElastiCache) DescribeCacheClustersPagesWithContext(ctx aws.Context, input *DescribeCacheClustersInput, fn func(*DescribeCacheClustersOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeCacheClustersRequest(&inCpy)
+			var inCpy *DescribeCacheClustersInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeCacheClustersRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -1940,8 +1944,12 @@ func (c *ElastiCache) DescribeCacheEngineVersionsPages(input *DescribeCacheEngin
 func (c *ElastiCache) DescribeCacheEngineVersionsPagesWithContext(ctx aws.Context, input *DescribeCacheEngineVersionsInput, fn func(*DescribeCacheEngineVersionsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeCacheEngineVersionsRequest(&inCpy)
+			var inCpy *DescribeCacheEngineVersionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeCacheEngineVersionsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -2081,8 +2089,12 @@ func (c *ElastiCache) DescribeCacheParameterGroupsPages(input *DescribeCachePara
 func (c *ElastiCache) DescribeCacheParameterGroupsPagesWithContext(ctx aws.Context, input *DescribeCacheParameterGroupsInput, fn func(*DescribeCacheParameterGroupsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeCacheParameterGroupsRequest(&inCpy)
+			var inCpy *DescribeCacheParameterGroupsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeCacheParameterGroupsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -2220,8 +2232,12 @@ func (c *ElastiCache) DescribeCacheParametersPages(input *DescribeCacheParameter
 func (c *ElastiCache) DescribeCacheParametersPagesWithContext(ctx aws.Context, input *DescribeCacheParametersInput, fn func(*DescribeCacheParametersOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeCacheParametersRequest(&inCpy)
+			var inCpy *DescribeCacheParametersInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeCacheParametersRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -2360,8 +2376,12 @@ func (c *ElastiCache) DescribeCacheSecurityGroupsPages(input *DescribeCacheSecur
 func (c *ElastiCache) DescribeCacheSecurityGroupsPagesWithContext(ctx aws.Context, input *DescribeCacheSecurityGroupsInput, fn func(*DescribeCacheSecurityGroupsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeCacheSecurityGroupsRequest(&inCpy)
+			var inCpy *DescribeCacheSecurityGroupsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeCacheSecurityGroupsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -2494,8 +2514,12 @@ func (c *ElastiCache) DescribeCacheSubnetGroupsPages(input *DescribeCacheSubnetG
 func (c *ElastiCache) DescribeCacheSubnetGroupsPagesWithContext(ctx aws.Context, input *DescribeCacheSubnetGroupsInput, fn func(*DescribeCacheSubnetGroupsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeCacheSubnetGroupsRequest(&inCpy)
+			var inCpy *DescribeCacheSubnetGroupsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeCacheSubnetGroupsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -2630,8 +2654,12 @@ func (c *ElastiCache) DescribeEngineDefaultParametersPages(input *DescribeEngine
 func (c *ElastiCache) DescribeEngineDefaultParametersPagesWithContext(ctx aws.Context, input *DescribeEngineDefaultParametersInput, fn func(*DescribeEngineDefaultParametersOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeEngineDefaultParametersRequest(&inCpy)
+			var inCpy *DescribeEngineDefaultParametersInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeEngineDefaultParametersRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -2771,8 +2799,12 @@ func (c *ElastiCache) DescribeEventsPages(input *DescribeEventsInput, fn func(*D
 func (c *ElastiCache) DescribeEventsPagesWithContext(ctx aws.Context, input *DescribeEventsInput, fn func(*DescribeEventsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeEventsRequest(&inCpy)
+			var inCpy *DescribeEventsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeEventsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -2913,8 +2945,12 @@ func (c *ElastiCache) DescribeReplicationGroupsPages(input *DescribeReplicationG
 func (c *ElastiCache) DescribeReplicationGroupsPagesWithContext(ctx aws.Context, input *DescribeReplicationGroupsInput, fn func(*DescribeReplicationGroupsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeReplicationGroupsRequest(&inCpy)
+			var inCpy *DescribeReplicationGroupsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeReplicationGroupsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3052,8 +3088,12 @@ func (c *ElastiCache) DescribeReservedCacheNodesPages(input *DescribeReservedCac
 func (c *ElastiCache) DescribeReservedCacheNodesPagesWithContext(ctx aws.Context, input *DescribeReservedCacheNodesInput, fn func(*DescribeReservedCacheNodesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeReservedCacheNodesRequest(&inCpy)
+			var inCpy *DescribeReservedCacheNodesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeReservedCacheNodesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3190,8 +3230,12 @@ func (c *ElastiCache) DescribeReservedCacheNodesOfferingsPages(input *DescribeRe
 func (c *ElastiCache) DescribeReservedCacheNodesOfferingsPagesWithContext(ctx aws.Context, input *DescribeReservedCacheNodesOfferingsInput, fn func(*DescribeReservedCacheNodesOfferingsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeReservedCacheNodesOfferingsRequest(&inCpy)
+			var inCpy *DescribeReservedCacheNodesOfferingsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeReservedCacheNodesOfferingsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3336,8 +3380,12 @@ func (c *ElastiCache) DescribeSnapshotsPages(input *DescribeSnapshotsInput, fn f
 func (c *ElastiCache) DescribeSnapshotsPagesWithContext(ctx aws.Context, input *DescribeSnapshotsInput, fn func(*DescribeSnapshotsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeSnapshotsRequest(&inCpy)
+			var inCpy *DescribeSnapshotsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeSnapshotsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil

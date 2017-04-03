@@ -2474,8 +2474,12 @@ func (c *Redshift) DescribeClusterParameterGroupsPages(input *DescribeClusterPar
 func (c *Redshift) DescribeClusterParameterGroupsPagesWithContext(ctx aws.Context, input *DescribeClusterParameterGroupsInput, fn func(*DescribeClusterParameterGroupsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeClusterParameterGroupsRequest(&inCpy)
+			var inCpy *DescribeClusterParameterGroupsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeClusterParameterGroupsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -2617,8 +2621,12 @@ func (c *Redshift) DescribeClusterParametersPages(input *DescribeClusterParamete
 func (c *Redshift) DescribeClusterParametersPagesWithContext(ctx aws.Context, input *DescribeClusterParametersInput, fn func(*DescribeClusterParametersOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeClusterParametersRequest(&inCpy)
+			var inCpy *DescribeClusterParametersInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeClusterParametersRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -2769,8 +2777,12 @@ func (c *Redshift) DescribeClusterSecurityGroupsPages(input *DescribeClusterSecu
 func (c *Redshift) DescribeClusterSecurityGroupsPagesWithContext(ctx aws.Context, input *DescribeClusterSecurityGroupsInput, fn func(*DescribeClusterSecurityGroupsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeClusterSecurityGroupsRequest(&inCpy)
+			var inCpy *DescribeClusterSecurityGroupsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeClusterSecurityGroupsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -2918,8 +2930,12 @@ func (c *Redshift) DescribeClusterSnapshotsPages(input *DescribeClusterSnapshots
 func (c *Redshift) DescribeClusterSnapshotsPagesWithContext(ctx aws.Context, input *DescribeClusterSnapshotsInput, fn func(*DescribeClusterSnapshotsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeClusterSnapshotsRequest(&inCpy)
+			var inCpy *DescribeClusterSnapshotsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeClusterSnapshotsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3066,8 +3082,12 @@ func (c *Redshift) DescribeClusterSubnetGroupsPages(input *DescribeClusterSubnet
 func (c *Redshift) DescribeClusterSubnetGroupsPagesWithContext(ctx aws.Context, input *DescribeClusterSubnetGroupsInput, fn func(*DescribeClusterSubnetGroupsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeClusterSubnetGroupsRequest(&inCpy)
+			var inCpy *DescribeClusterSubnetGroupsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeClusterSubnetGroupsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3197,8 +3217,12 @@ func (c *Redshift) DescribeClusterVersionsPages(input *DescribeClusterVersionsIn
 func (c *Redshift) DescribeClusterVersionsPagesWithContext(ctx aws.Context, input *DescribeClusterVersionsInput, fn func(*DescribeClusterVersionsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeClusterVersionsRequest(&inCpy)
+			var inCpy *DescribeClusterVersionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeClusterVersionsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3345,8 +3369,12 @@ func (c *Redshift) DescribeClustersPages(input *DescribeClustersInput, fn func(*
 func (c *Redshift) DescribeClustersPagesWithContext(ctx aws.Context, input *DescribeClustersInput, fn func(*DescribeClustersOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeClustersRequest(&inCpy)
+			var inCpy *DescribeClustersInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeClustersRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3476,8 +3504,12 @@ func (c *Redshift) DescribeDefaultClusterParametersPages(input *DescribeDefaultC
 func (c *Redshift) DescribeDefaultClusterParametersPagesWithContext(ctx aws.Context, input *DescribeDefaultClusterParametersInput, fn func(*DescribeDefaultClusterParametersOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeDefaultClusterParametersRequest(&inCpy)
+			var inCpy *DescribeDefaultClusterParametersInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeDefaultClusterParametersRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3688,8 +3720,12 @@ func (c *Redshift) DescribeEventSubscriptionsPages(input *DescribeEventSubscript
 func (c *Redshift) DescribeEventSubscriptionsPagesWithContext(ctx aws.Context, input *DescribeEventSubscriptionsInput, fn func(*DescribeEventSubscriptionsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeEventSubscriptionsRequest(&inCpy)
+			var inCpy *DescribeEventSubscriptionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeEventSubscriptionsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3818,8 +3854,12 @@ func (c *Redshift) DescribeEventsPages(input *DescribeEventsInput, fn func(*Desc
 func (c *Redshift) DescribeEventsPagesWithContext(ctx aws.Context, input *DescribeEventsInput, fn func(*DescribeEventsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeEventsRequest(&inCpy)
+			var inCpy *DescribeEventsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeEventsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -3965,8 +4005,12 @@ func (c *Redshift) DescribeHsmClientCertificatesPages(input *DescribeHsmClientCe
 func (c *Redshift) DescribeHsmClientCertificatesPagesWithContext(ctx aws.Context, input *DescribeHsmClientCertificatesInput, fn func(*DescribeHsmClientCertificatesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeHsmClientCertificatesRequest(&inCpy)
+			var inCpy *DescribeHsmClientCertificatesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeHsmClientCertificatesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -4112,8 +4156,12 @@ func (c *Redshift) DescribeHsmConfigurationsPages(input *DescribeHsmConfiguratio
 func (c *Redshift) DescribeHsmConfigurationsPagesWithContext(ctx aws.Context, input *DescribeHsmConfigurationsInput, fn func(*DescribeHsmConfigurationsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeHsmConfigurationsRequest(&inCpy)
+			var inCpy *DescribeHsmConfigurationsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeHsmConfigurationsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -4328,8 +4376,12 @@ func (c *Redshift) DescribeOrderableClusterOptionsPages(input *DescribeOrderable
 func (c *Redshift) DescribeOrderableClusterOptionsPagesWithContext(ctx aws.Context, input *DescribeOrderableClusterOptionsInput, fn func(*DescribeOrderableClusterOptionsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeOrderableClusterOptionsRequest(&inCpy)
+			var inCpy *DescribeOrderableClusterOptionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeOrderableClusterOptionsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -4472,8 +4524,12 @@ func (c *Redshift) DescribeReservedNodeOfferingsPages(input *DescribeReservedNod
 func (c *Redshift) DescribeReservedNodeOfferingsPagesWithContext(ctx aws.Context, input *DescribeReservedNodeOfferingsInput, fn func(*DescribeReservedNodeOfferingsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeReservedNodeOfferingsRequest(&inCpy)
+			var inCpy *DescribeReservedNodeOfferingsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeReservedNodeOfferingsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -4604,8 +4660,12 @@ func (c *Redshift) DescribeReservedNodesPages(input *DescribeReservedNodesInput,
 func (c *Redshift) DescribeReservedNodesPagesWithContext(ctx aws.Context, input *DescribeReservedNodesInput, fn func(*DescribeReservedNodesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeReservedNodesRequest(&inCpy)
+			var inCpy *DescribeReservedNodesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeReservedNodesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil

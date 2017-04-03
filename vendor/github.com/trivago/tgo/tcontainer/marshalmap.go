@@ -19,6 +19,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // MarshalMap is a wrapper type to attach converter methods to maps normally
@@ -160,7 +161,24 @@ func (mmap MarshalMap) Float64(key string) (float64, error) {
 	return floatValue, nil
 }
 
-// Array returns a value at key that is expected to be a string
+// Duration returns a value at key that is expected to be a string
+func (mmap MarshalMap) Duration(key string) (time.Duration, error) {
+	val, exists := mmap.Value(key)
+	if !exists {
+		return time.Duration(0), fmt.Errorf(`"%s" is not set`, key)
+	}
+
+	switch val.(type) {
+	case time.Duration:
+		return val.(time.Duration), nil
+	case string:
+		return time.ParseDuration(val.(string))
+	}
+
+	return time.Duration(0), fmt.Errorf(`"%s" is expected to be a duration or string`, key)
+}
+
+// String returns a value at key that is expected to be a string
 func (mmap MarshalMap) String(key string) (string, error) {
 	val, exists := mmap.Value(key)
 	if !exists {

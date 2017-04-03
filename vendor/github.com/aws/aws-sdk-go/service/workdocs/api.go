@@ -1313,8 +1313,12 @@ func (c *WorkDocs) DescribeDocumentVersionsPages(input *DescribeDocumentVersions
 func (c *WorkDocs) DescribeDocumentVersionsPagesWithContext(ctx aws.Context, input *DescribeDocumentVersionsInput, fn func(*DescribeDocumentVersionsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeDocumentVersionsRequest(&inCpy)
+			var inCpy *DescribeDocumentVersionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeDocumentVersionsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -1468,8 +1472,12 @@ func (c *WorkDocs) DescribeFolderContentsPages(input *DescribeFolderContentsInpu
 func (c *WorkDocs) DescribeFolderContentsPagesWithContext(ctx aws.Context, input *DescribeFolderContentsInput, fn func(*DescribeFolderContentsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeFolderContentsRequest(&inCpy)
+			var inCpy *DescribeFolderContentsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeFolderContentsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -1796,8 +1804,12 @@ func (c *WorkDocs) DescribeUsersPages(input *DescribeUsersInput, fn func(*Descri
 func (c *WorkDocs) DescribeUsersPagesWithContext(ctx aws.Context, input *DescribeUsersInput, fn func(*DescribeUsersOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeUsersRequest(&inCpy)
+			var inCpy *DescribeUsersInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeUsersRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil

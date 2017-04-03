@@ -111,7 +111,7 @@ func SetVerbosity(loglevel Verbosity) {
 		fallthrough
 
 	case VerbosityDebug:
-		Debug = log.New(&logEnabled, tfmt.Cyan.String()+"Debug: ", 0)
+		Debug = log.New(&logEnabled, tfmt.Colorize(tfmt.Cyan, tfmt.NoBackground, "Debug: "), 0)
 		fallthrough
 
 	case VerbosityNote:
@@ -119,11 +119,11 @@ func SetVerbosity(loglevel Verbosity) {
 		fallthrough
 
 	case VerbosityWarning:
-		Warning = log.New(&logEnabled, tfmt.Yellow.String()+"Warning: ", 0)
+		Warning = log.New(&logEnabled, tfmt.Colorize(tfmt.Yellow, tfmt.NoBackground, "Warning: "), 0)
 		fallthrough
 
 	case VerbosityError:
-		Error = log.New(&logEnabled, tfmt.Red.String()+"ERROR: ", log.Lshortfile)
+		Error = log.New(&logEnabled, tfmt.Colorize(tfmt.Red, tfmt.NoBackground, "ERROR: "), log.Lshortfile)
 	}
 }
 

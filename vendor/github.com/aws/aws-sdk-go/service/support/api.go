@@ -567,8 +567,12 @@ func (c *Support) DescribeCasesPages(input *DescribeCasesInput, fn func(*Describ
 func (c *Support) DescribeCasesPagesWithContext(ctx aws.Context, input *DescribeCasesInput, fn func(*DescribeCasesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeCasesRequest(&inCpy)
+			var inCpy *DescribeCasesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeCasesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -711,8 +715,12 @@ func (c *Support) DescribeCommunicationsPages(input *DescribeCommunicationsInput
 func (c *Support) DescribeCommunicationsPagesWithContext(ctx aws.Context, input *DescribeCommunicationsInput, fn func(*DescribeCommunicationsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.DescribeCommunicationsRequest(&inCpy)
+			var inCpy *DescribeCommunicationsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeCommunicationsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil

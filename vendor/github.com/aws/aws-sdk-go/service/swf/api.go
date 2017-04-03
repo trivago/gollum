@@ -1321,8 +1321,12 @@ func (c *SWF) GetWorkflowExecutionHistoryPages(input *GetWorkflowExecutionHistor
 func (c *SWF) GetWorkflowExecutionHistoryPagesWithContext(ctx aws.Context, input *GetWorkflowExecutionHistoryInput, fn func(*GetWorkflowExecutionHistoryOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.GetWorkflowExecutionHistoryRequest(&inCpy)
+			var inCpy *GetWorkflowExecutionHistoryInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.GetWorkflowExecutionHistoryRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -1477,8 +1481,12 @@ func (c *SWF) ListActivityTypesPages(input *ListActivityTypesInput, fn func(*Lis
 func (c *SWF) ListActivityTypesPagesWithContext(ctx aws.Context, input *ListActivityTypesInput, fn func(*ListActivityTypesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListActivityTypesRequest(&inCpy)
+			var inCpy *ListActivityTypesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListActivityTypesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -1637,8 +1645,12 @@ func (c *SWF) ListClosedWorkflowExecutionsPages(input *ListClosedWorkflowExecuti
 func (c *SWF) ListClosedWorkflowExecutionsPagesWithContext(ctx aws.Context, input *ListClosedWorkflowExecutionsInput, fn func(*WorkflowExecutionInfos, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListClosedWorkflowExecutionsRequest(&inCpy)
+			var inCpy *ListClosedWorkflowExecutionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListClosedWorkflowExecutionsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -1788,8 +1800,12 @@ func (c *SWF) ListDomainsPages(input *ListDomainsInput, fn func(*ListDomainsOutp
 func (c *SWF) ListDomainsPagesWithContext(ctx aws.Context, input *ListDomainsInput, fn func(*ListDomainsOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListDomainsRequest(&inCpy)
+			var inCpy *ListDomainsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListDomainsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -1948,8 +1964,12 @@ func (c *SWF) ListOpenWorkflowExecutionsPages(input *ListOpenWorkflowExecutionsI
 func (c *SWF) ListOpenWorkflowExecutionsPagesWithContext(ctx aws.Context, input *ListOpenWorkflowExecutionsInput, fn func(*WorkflowExecutionInfos, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListOpenWorkflowExecutionsRequest(&inCpy)
+			var inCpy *ListOpenWorkflowExecutionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListOpenWorkflowExecutionsRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -2102,8 +2122,12 @@ func (c *SWF) ListWorkflowTypesPages(input *ListWorkflowTypesInput, fn func(*Lis
 func (c *SWF) ListWorkflowTypesPagesWithContext(ctx aws.Context, input *ListWorkflowTypesInput, fn func(*ListWorkflowTypesOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.ListWorkflowTypesRequest(&inCpy)
+			var inCpy *ListWorkflowTypesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListWorkflowTypesRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
@@ -2390,8 +2414,12 @@ func (c *SWF) PollForDecisionTaskPages(input *PollForDecisionTaskInput, fn func(
 func (c *SWF) PollForDecisionTaskPagesWithContext(ctx aws.Context, input *PollForDecisionTaskInput, fn func(*PollForDecisionTaskOutput, bool) bool, opts ...request.Option) error {
 	p := request.Pagination{
 		NewRequest: func() (*request.Request, error) {
-			inCpy := *input
-			req, _ := c.PollForDecisionTaskRequest(&inCpy)
+			var inCpy *PollForDecisionTaskInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.PollForDecisionTaskRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil
