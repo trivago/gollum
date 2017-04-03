@@ -1,3 +1,5 @@
+// +build example
+
 package main
 
 import (
@@ -14,12 +16,9 @@ import (
 // This example will list instances with a filter
 //
 // Usage:
-// go run filter_ec2_by_tag.go <name_filter>
+// filter_ec2_by_tag <name_filter>
 func main() {
-	sess, err := session.NewSession()
-	if err != nil {
-		log.Fatalf("failed to create session %v\n", err)
-	}
+	sess := session.Must(session.NewSession())
 
 	nameFilter := os.Args[1]
 	awsRegion := "us-east-1"

@@ -28,21 +28,19 @@ import (
 	"time"
 )
 
-const (
-	sdOffsetTail = "newest"
-	sdOffsetHead = "oldest"
-)
-
-// Systemd consumer plugin
-// The systemd consumer allows to read from the systemd journal.
-// When attached to a fuse, this consumer will stop reading messages in case
-// that fuse is burned.
+// SystemdConsumer consumer plugin
 // Configuration example
 //
 //  - "native.Systemd":
 //    SystemdUnit: "sshd.service"
 //    DefaultOffset: "Newest"
 //    OffsetFile: ""
+//
+// NOTICE: This producer is not included in standard builds. To enable it
+// you need to trigger a custom build with native plugins enabled.
+// The systemd consumer allows to read from the systemd journal.
+// When attached to a fuse, this consumer will stop reading messages in case
+// that fuse is burned.
 //
 // SystemdUnit defines what journal will be followed. This uses
 // journal.add_match with _SYSTEMD_UNIT. By default this is set to "", which
@@ -56,7 +54,6 @@ const (
 // OffsetFile defines the path to a file that stores the current offset. If
 // the consumer is restarted that offset is used to continue reading. By
 // default this is set to "" which disables the offset file.
-
 type SystemdConsumer struct {
 	core.ConsumerBase
 	journal    *sdjournal.Journal
@@ -64,6 +61,11 @@ type SystemdConsumer struct {
 	offsetFile string
 	running    bool
 }
+
+const (
+	sdOffsetTail = "newest"
+	sdOffsetHead = "oldest"
+)
 
 func init() {
 	shared.TypeRegistry.Register(SystemdConsumer{})

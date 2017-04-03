@@ -436,7 +436,7 @@ func (prod *S3) upload(object *objectData, needLock bool) error {
 	_, err := prod.client.PutObject(params)
 	atomic.AddInt64(prod.counters[object.S3Path], int64(1))
 	if err != nil {
-		Log.Error.Print("S3.upload() PutObject ", bucket + key, " error:", err)
+		Log.Error.Print("S3.upload() PutObject ", bucket+key, " error:", err)
 		return err
 	}
 
@@ -452,7 +452,7 @@ func (prod *S3) needsUpload(object *objectData, nextMessageSize int) (bool, erro
 		if err != nil {
 			return false, err
 		}
-		upload = upload || (size + nextMessageSize >= prod.fileMaxSize)
+		upload = upload || (size+nextMessageSize >= prod.fileMaxSize)
 		upload = upload || (time.Since(object.Created) >= prod.fileMaxAge)
 	}
 	upload = upload || (object.Compressed)
@@ -566,13 +566,13 @@ func (prod *S3) transformMessages(messages []core.Message) {
 			}
 			object = &objectData{
 				Compressed: false,
-				Created: time.Now(),
-				Filename: filename,
-				Messages: 0,
-				S3Path: s3Path,
-				Uploaded: false,
-				buffer: buffer,
-				lock: new(sync.Mutex),
+				Created:    time.Now(),
+				Filename:   filename,
+				Messages:   0,
+				S3Path:     s3Path,
+				Uploaded:   false,
+				buffer:     buffer,
+				lock:       new(sync.Mutex),
 			}
 			prod.objects[s3Path] = object
 		}

@@ -200,9 +200,8 @@ func (cons *Kinesis) Configure(conf core.PluginConfig) error {
 	if cons.offsetFile != "" {
 		fileContents, err := ioutil.ReadFile(cons.offsetFile)
 		if err != nil {
-			return err
-		}
-		if err := json.Unmarshal(fileContents, &cons.offsets); err != nil {
+			Log.Error.Printf("Failed to open kinesis offset file: %s", err.Error())
+		} else if err := json.Unmarshal(fileContents, &cons.offsets); err != nil {
 			return err
 		}
 	}
@@ -213,80 +212,101 @@ func (cons *Kinesis) Configure(conf core.PluginConfig) error {
 func (cons *Kinesis) storeOffsets() {
 	if cons.offsetFile != "" {
 		fileContents, err := json.Marshal(cons.offsets)
-		if err == nil {
-			ioutil.WriteFile(cons.offsetFile, fileContents, 0644)
+		if err != nil {
+			Log.Error.Printf("Failed to marshal kinesis offsets: %s", err.Error())
+			return
+		}
+
+		if err := ioutil.WriteFile(cons.offsetFile, fileContents, 0644); err != nil {
+			Log.Error.Printf("Failed to write kinesis offsets: %s", err.Error())
 		}
 	}
 }
 
-func (cons *Kinesis) processShard(shardID string) {
-	iteratorConfig := kinesis.GetShardIteratorInput{
-		ShardId:                aws.String(shardID),
-		ShardIteratorType:      aws.String(cons.offsetType),
-		StreamName:             aws.String(cons.stream),
-		StartingSequenceNumber: aws.String(cons.offsets[shardID]),
-	}
-	if *iteratorConfig.StartingSequenceNumber == "" {
-		iteratorConfig.StartingSequenceNumber = nil
-	} else {
-		// starting sequence number requires ShardIteratorTypeAfterSequenceNumber
-		iteratorConfig.ShardIteratorType = aws.String(kinesis.ShardIteratorTypeAfterSequenceNumber)
-	}
-
-	iterator, err := cons.client.GetShardIterator(&iteratorConfig)
-	if err != nil || iterator.ShardIterator == nil {
-		Log.Error.Printf("Failed to iterate shard %s:%s - %s", *iteratorConfig.StreamName, *iteratorConfig.ShardId, err.Error())
-		if cons.running {
-			time.AfterFunc(cons.retryTime, func() { cons.processShard(shardID) })
+func (cons *Kinesis) createShardIteratorConfig(shardID string) *kinesis.GetRecordsInput {
+	for cons.running {
+		iteratorConfig := kinesis.GetShardIteratorInput{
+			ShardId:                aws.String(shardID),
+			ShardIteratorType:      aws.String(cons.offsetType),
+			StreamName:             aws.String(cons.stream),
+			StartingSequenceNumber: aws.String(cons.offsets[shardID]),
 		}
-		return // ### return, retry ###
+
+		if *iteratorConfig.StartingSequenceNumber == "" {
+			iteratorConfig.StartingSequenceNumber = nil
+		} else {
+			// starting sequence number requires ShardIteratorTypeAfterSequenceNumber
+			iteratorConfig.ShardIteratorType = aws.String(kinesis.ShardIteratorTypeAfterSequenceNumber)
+		}
+
+		iterator, err := cons.client.GetShardIterator(&iteratorConfig)
+		if err == nil && iterator.ShardIterator != nil {
+			return &kinesis.GetRecordsInput{
+				ShardIterator: iterator.ShardIterator,
+				Limit:         aws.Int64(cons.recordsPerQuery),
+			}
+		}
+
+		Log.Error.Printf("Failed to iterate shard %s:%s - %s", *iteratorConfig.StreamName, *iteratorConfig.ShardId, err.Error())
+		time.Sleep(3 * time.Second)
 	}
 
-	recordConfig := kinesis.GetRecordsInput{
-		ShardIterator: iterator.ShardIterator,
-		Limit:         aws.Int64(cons.recordsPerQuery),
-	}
+	return nil
+}
 
+func (cons *Kinesis) processShard(shardID string) {
 	cons.AddWorker()
 	defer cons.WorkerDone()
+	recordConfig := (*kinesis.GetRecordsInput)(nil)
 
 	for cons.running {
 		cons.WaitOnFuse()
-		result, err := cons.client.GetRecords(&recordConfig)
-		if err != nil {
-			Log.Error.Printf("Failed to get records from shard %s:%s - %s", *iteratorConfig.StreamName, *iteratorConfig.ShardId, err.Error())
-			// Check if we reached throughput limit
-			if AWSerr, isAWSerr := err.(awserr.Error); isAWSerr {
-				if AWSerr.Code() == "ProvisionedThroughputExceededException" {
-					time.Sleep(5 * time.Second)
-				}
-			}
-		} else {
-			if result.NextShardIterator == nil {
-				Log.Warning.Printf("Shard %s:%s has been closed", *iteratorConfig.StreamName, *iteratorConfig.ShardId)
-				return // ### return, closed ###
-			}
-
-			for _, record := range result.Records {
-				if record == nil {
-					continue // ### continue ###
-				}
-
-				seq, _ := strconv.ParseInt(*record.SequenceNumber, 10, 64)
-				if len(cons.delimiter) > 0 {
-					messages := bytes.Split(record.Data, cons.delimiter)
-					for idx, msg := range messages {
-						cons.Enqueue([]byte(msg), uint64(seq)+uint64(idx))
-					}
-				} else {
-					cons.Enqueue(record.Data, uint64(seq))
-				}
-				cons.offsets[*iteratorConfig.ShardId] = *record.SequenceNumber
-				cons.storeOffsets()
-			}
-
-			recordConfig.ShardIterator = result.NextShardIterator
+		if recordConfig == nil {
+			recordConfig = cons.createShardIteratorConfig(shardID)
 		}
+
+		result, err := cons.client.GetRecords(recordConfig)
+		if err != nil {
+			Log.Error.Printf("Failed to get records from shard %s:%s - %s", cons.stream, shardID, err.Error())
+
+			if AWSerr, isAWSerr := err.(awserr.Error); isAWSerr {
+				switch AWSerr.Code() {
+				case "ProvisionedThroughputExceededException":
+					// We reached thethroughput limit
+					time.Sleep(5 * time.Second)
+
+				case "ExpiredIteratorException":
+					// We need to create a new iterator
+					recordConfig = nil
+				}
+			}
+			continue // ### continue ###
+		}
+
+		if result.NextShardIterator == nil {
+			Log.Warning.Printf("Shard %s:%s has been closed", cons.stream, shardID)
+			return // ### return, closed ###
+		}
+
+		for _, record := range result.Records {
+			if record == nil {
+				continue // ### continue ###
+			}
+
+			seq, _ := strconv.ParseInt(*record.SequenceNumber, 10, 64)
+			if len(cons.delimiter) > 0 {
+				messages := bytes.Split(record.Data, cons.delimiter)
+				for idx, msg := range messages {
+					cons.Enqueue([]byte(msg), uint64(seq)+uint64(idx))
+				}
+			} else {
+				cons.Enqueue(record.Data, uint64(seq))
+			}
+			cons.offsets[shardID] = *record.SequenceNumber
+		}
+
+		cons.storeOffsets()
+		recordConfig.ShardIterator = result.NextShardIterator
 		time.Sleep(cons.sleepTime)
 	}
 }

@@ -41,14 +41,19 @@ import (
 // SplitToJSONToken defines the separator character to use when processing a
 // message. By default this is set to "|".
 //
+// SplitToJSONKeepJSON can be set to false to escape texts that are JSON
+// payloads as regualar strings. Otherwise JSON payload will be taken as-is and
+// set to the corresponding key. By default set to "true"
+//
 // SplitToJSONKeys defines an array of keys to apply to the tokens generated
 // by splitting a message by SplitToJSONToken. The keys listed here are
 // applied to the resulting token array by index.
 // This list is empty by default.
 type SplitToJSON struct {
-	base  core.Formatter
-	token []byte
-	keys  []string
+	base     core.Formatter
+	token    []byte
+	keys     []string
+	keepJSON bool
 }
 
 func init() {
@@ -64,6 +69,7 @@ func (format *SplitToJSON) Configure(conf core.PluginConfig) error {
 	format.base = plugin.(core.Formatter)
 	format.token = []byte(conf.GetString("SplitToJSONToken", "|"))
 	format.keys = conf.GetStringArray("SplitToJSONKeys", []string{})
+	format.keepJSON = conf.GetBool("SplitToJSONKeepJSON", true)
 	return nil
 }
 
@@ -82,14 +88,17 @@ func (format *SplitToJSON) Format(msg core.Message) ([]byte, core.MessageStreamI
 	default:
 		for i := 0; i < maxIdx; i++ {
 			key := shared.EscapeJSON(format.keys[i])
-			value := shared.EscapeJSON(string(components[i]))
+			value := string(components[i])
+			if isJson, _ := shared.IsJSON(components[i]); !format.keepJSON || !isJson {
+				value = "\"" + shared.EscapeJSON(value) + "\""
+			}
 			switch {
 			case i == 0:
-				jsonData = fmt.Sprintf("{\"%s\":\"%s\"", key, value)
+				jsonData = fmt.Sprintf("{\"%s\":%s", key, value)
 			case i == maxIdx-1:
-				jsonData = fmt.Sprintf("%s,\"%s\":\"%s\"}", jsonData, key, value)
+				jsonData = fmt.Sprintf("%s,\"%s\":%s}", jsonData, key, value)
 			default:
-				jsonData = fmt.Sprintf("%s,\"%s\":\"%s\"", jsonData, key, value)
+				jsonData = fmt.Sprintf("%s,\"%s\":%s", jsonData, key, value)
 			}
 		}
 	}

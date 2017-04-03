@@ -1,0 +1,47 @@
+package: github.com/trivago/gollum
+import:
+- package: github.com/Shopify/sarama
+  version: ^1.11.0
+- package: github.com/abbot/go-http-auth
+  version: ^0.3.0
+- package: github.com/artyom/fb303
+- package: github.com/artyom/scribe
+- package: github.com/artyom/thrift
+- package: github.com/aws/aws-sdk-go
+  version: ^1.8.2
+  subpackages:
+  - aws
+  - aws/awserr
+  - aws/credentials
+  - aws/session
+  - service/firehose
+  - service/kinesis
+  - service/s3
+- package: github.com/bsm/sarama-cluster
+  version: ^2.1.6
+- package: github.com/coreos/go-systemd
+  version: ^14.0.0
+  subpackages:
+  - sdjournal
+- package: github.com/golang/protobuf
+  subpackages:
+  - proto
+- package: github.com/gorilla/websocket
+  version: ^1.1.0
+- package: github.com/mattbaird/elastigo
+  subpackages:
+  - lib
+- package: github.com/miekg/pcap
+- package: github.com/mmcloughlin/geohash
+- package: github.com/mssola/user_agent
+- package: github.com/quipo/statsd
+- package: github.com/trivago/tgo
+  subpackages:
+  - tflag
+- package: gopkg.in/mcuadros/go-syslog.v2
+  version: ^2.2.1
+  subpackages:
+  - format
+- package: gopkg.in/oschwald/geoip2-golang.v1
+  version: ^1.0.0
+- package: gopkg.in/yaml.v2

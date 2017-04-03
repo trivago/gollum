@@ -15,15 +15,14 @@
 package producer
 
 import (
-	"net/http"
-	"sync"
-	"sync/atomic"
-	"time"
-
 	"github.com/gorilla/websocket"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
+	"net/http"
+	"sync"
+	"sync/atomic"
+	"time"
 )
 
 // Websocket producer plugin

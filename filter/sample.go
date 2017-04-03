@@ -26,12 +26,12 @@ import (
 // Configuration example
 //
 //   - "stream.Broadcast":
-//	 Filter: "filter.Sample"
-//	 SampleRatePerGroup: 1
-//	 SampleGroupSize: 1
-//	 SampleDropToStream: ""
-//	 SampleRateIgnore:
-//	   - "foo"
+//	   Filter: "filter.Sample"
+//	   SampleRatePerGroup: 1
+//	   SampleGroupSize: 1
+//	   SampleDropToStream: ""
+//	   SampleRateIgnore:
+//	     - "foo"
 //
 // SampleRatePerGroup defines how many messages are passed through the filter
 // in each group. By default this is set to 1.
@@ -46,11 +46,11 @@ import (
 // sampling. This is useful for e.g. producers listeing to "*".
 // By default this list is empty.
 type Sample struct {
-	rate		 int64
-	group		int64
-	count		*int64
+	rate         int64
+	group        int64
+	count        *int64
 	dropStreamID core.MessageStreamID
-	ignore	   map[core.MessageStreamID]bool
+	ignore       map[core.MessageStreamID]bool
 }
 
 func init() {
@@ -87,12 +87,12 @@ func (filter *Sample) Accepts(msg core.Message) bool {
 	// Check if count needs to be reset
 	count := atomic.AddInt64(filter.count, 1)
 	if count > filter.group {
-		if count % filter.group == 1 {
+		if count%filter.group == 1 {
 			// make sure we never overflow filter.count
 			count = atomic.AddInt64(filter.count, -(filter.group))
 		} else {
 			// range from 1 to filter.group
-			count = (count - 1) % filter.group + 1
+			count = (count-1)%filter.group + 1
 		}
 	}
 

@@ -6,6 +6,7 @@ package mobileanalytics
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/private/protocol"
@@ -18,6 +19,8 @@ const opPutEvents = "PutEvents"
 // client's request for the PutEvents operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See PutEvents for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -35,7 +38,6 @@ const opPutEvents = "PutEvents"
 //    if err == nil { // resp is now filled
 //        fmt.Println(resp)
 //    }
-//
 func (c *MobileAnalytics) PutEventsRequest(input *PutEventsInput) (req *request.Request, output *PutEventsOutput) {
 	op := &request.Operation{
 		Name:       opPutEvents,
@@ -47,21 +49,49 @@ func (c *MobileAnalytics) PutEventsRequest(input *PutEventsInput) (req *request.
 		input = &PutEventsInput{}
 	}
 
+	output = &PutEventsOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &PutEventsOutput{}
-	req.Data = output
 	return
 }
 
+// PutEvents API operation for Amazon Mobile Analytics.
+//
 // The PutEvents operation records one or more events. You can have up to 1,500
 // unique custom events per app, any combination of up to 40 attributes and
 // metrics per custom event, and any number of attribute or metric values.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Mobile Analytics's
+// API operation PutEvents for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeBadRequestException "BadRequestException"
+//   An exception object returned when a request fails.
+//
 func (c *MobileAnalytics) PutEvents(input *PutEventsInput) (*PutEventsOutput, error) {
 	req, out := c.PutEventsRequest(input)
-	err := req.Send()
-	return out, err
+	return out, req.Send()
+}
+
+// PutEventsWithContext is the same as PutEvents with the addition of
+// the ability to pass a context and additional request options.
+//
+// See PutEvents for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *MobileAnalytics) PutEventsWithContext(ctx aws.Context, input *PutEventsInput, opts ...request.Option) (*PutEventsOutput, error) {
+	req, out := c.PutEventsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
 }
 
 // A JSON object representing a batch of unique event occurrences in your app.
@@ -76,6 +106,8 @@ type Event struct {
 
 	// A name signifying an event that occurred in your app. This is used for grouping
 	// and aggregating like events together for reporting purposes.
+	//
+	// EventType is a required field
 	EventType *string `locationName:"eventType" min:"1" type:"string" required:"true"`
 
 	// A collection of key-value pairs that gives additional, measurable context
@@ -89,6 +121,8 @@ type Event struct {
 
 	// The time the event occurred in ISO 8601 standard date time format. For example,
 	// 2014-06-30T19:07:47.885Z
+	//
+	// Timestamp is a required field
 	Timestamp *string `locationName:"timestamp" type:"string" required:"true"`
 
 	// The version of the event.
@@ -132,18 +166,58 @@ func (s *Event) Validate() error {
 	return nil
 }
 
+// SetAttributes sets the Attributes field's value.
+func (s *Event) SetAttributes(v map[string]*string) *Event {
+	s.Attributes = v
+	return s
+}
+
+// SetEventType sets the EventType field's value.
+func (s *Event) SetEventType(v string) *Event {
+	s.EventType = &v
+	return s
+}
+
+// SetMetrics sets the Metrics field's value.
+func (s *Event) SetMetrics(v map[string]*float64) *Event {
+	s.Metrics = v
+	return s
+}
+
+// SetSession sets the Session field's value.
+func (s *Event) SetSession(v *Session) *Event {
+	s.Session = v
+	return s
+}
+
+// SetTimestamp sets the Timestamp field's value.
+func (s *Event) SetTimestamp(v string) *Event {
+	s.Timestamp = &v
+	return s
+}
+
+// SetVersion sets the Version field's value.
+func (s *Event) SetVersion(v string) *Event {
+	s.Version = &v
+	return s
+}
+
 // A container for the data needed for a PutEvent operation
 type PutEventsInput struct {
 	_ struct{} `type:"structure"`
 
 	// The client context including the client ID, app title, app version and package
 	// name.
+	//
+	// ClientContext is a required field
 	ClientContext *string `location:"header" locationName:"x-amz-Client-Context" type:"string" required:"true"`
 
 	// The encoding used for the client context.
 	ClientContextEncoding *string `location:"header" locationName:"x-amz-Client-Context-Encoding" type:"string"`
 
 	// An array of Event JSON objects
+	//
+	// Events is a required field
 	Events []*Event `locationName:"events" type:"list" required:"true"`
 }
 
@@ -181,6 +255,24 @@ func (s *PutEventsInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetClientContext sets the ClientContext field's value.
+func (s *PutEventsInput) SetClientContext(v string) *PutEventsInput {
+	s.ClientContext = &v
+	return s
+}
+
+// SetClientContextEncoding sets the ClientContextEncoding field's value.
+func (s *PutEventsInput) SetClientContextEncoding(v string) *PutEventsInput {
+	s.ClientContextEncoding = &v
+	return s
+}
+
+// SetEvents sets the Events field's value.
+func (s *PutEventsInput) SetEvents(v []*Event) *PutEventsInput {
+	s.Events = v
+	return s
 }
 
 type PutEventsOutput struct {
@@ -237,4 +329,28 @@ func (s *Session) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetDuration sets the Duration field's value.
+func (s *Session) SetDuration(v int64) *Session {
+	s.Duration = &v
+	return s
+}
+
+// SetId sets the Id field's value.
+func (s *Session) SetId(v string) *Session {
+	s.Id = &v
+	return s
+}
+
+// SetStartTimestamp sets the StartTimestamp field's value.
+func (s *Session) SetStartTimestamp(v string) *Session {
+	s.StartTimestamp = &v
+	return s
+}
+
+// SetStopTimestamp sets the StopTimestamp field's value.
+func (s *Session) SetStopTimestamp(v string) *Session {
+	s.StopTimestamp = &v
+	return s
 }

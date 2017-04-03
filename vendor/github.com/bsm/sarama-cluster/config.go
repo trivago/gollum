@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"regexp"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -18,7 +19,7 @@ type Config struct {
 		PartitionStrategy Strategy
 		Offsets           struct {
 			Retry struct {
-				// The numer retries when comitting offsets (defaults to 3).
+				// The numer retries when committing offsets (defaults to 3).
 				Max int
 			}
 		}
@@ -38,6 +39,21 @@ type Config struct {
 			// If enabled, rebalance notification will be returned on the
 			// Notifications channel (default disabled).
 			Notifications bool
+		}
+
+		Topics struct {
+			// An additional whitelist of topics to subscribe to.
+			Whitelist *regexp.Regexp
+			// An additional blacklist of topics to avoid. If set, this will precede over
+			// the Whitelist setting.
+			Blacklist *regexp.Regexp
+		}
+
+		Member struct {
+			// Custom metadata to include when joining the group. The user data for all joined members
+			// can be retrieved by sending a DescribeGroupRequest to the broker that is the
+			// coordinator for the group.
+			UserData []byte
 		}
 	}
 }

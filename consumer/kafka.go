@@ -374,11 +374,6 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 	return nil
 }
 
-func (cons *Kafka) restartPartition(partitionID int32) {
-	time.Sleep(cons.persistTimeout)
-	cons.readFromPartition(partitionID)
-}
-
 func (cons *Kafka) restartGroup() {
 	time.Sleep(cons.persistTimeout)
 	cons.readFromGroup()
@@ -435,33 +430,56 @@ func (cons *Kafka) readFromGroup() {
 	}
 }
 
-// Main fetch loop for kafka events
-func (cons *Kafka) readFromPartition(partitionID int32) {
-	currentOffset := atomic.LoadInt64(cons.offsets[partitionID])
-	partCons, err := cons.consumer.ConsumePartition(cons.topic, partitionID, currentOffset)
-	if err != nil {
-		defer cons.restartPartition(partitionID)
-		Log.Error.Printf("Restarting kafka consumer (%s:%d) - %s", cons.topic, currentOffset, err.Error())
-		return // ### return, stop and retry ###
+func (cons *Kafka) startConsumerForPartition(partitionID int32) kafka.PartitionConsumer {
+	for !cons.client.Closed() {
+		startOffset := atomic.LoadInt64(cons.offsets[partitionID])
+		consumer, err := cons.consumer.ConsumePartition(cons.topic, partitionID, startOffset)
+		if err == nil {
+			return consumer // ### return, sucess ###
+		}
+
+		Log.Error.Printf("Failed to start kafka consumer (%s:%d) - %s", cons.topic, startOffset, err.Error())
+
+		// Reset offset to default value if we have an offset error
+		if err == kafka.ErrOffsetOutOfRange {
+			// Actually we would need to see if we're out of range at the end or at the start
+			// and choose OffsetOldest or OffsetNewset accordingly.
+			// At the moment we stick to the most common case here.
+			startOffset = kafka.OffsetOldest
+			atomic.StoreInt64(cons.offsets[partitionID], startOffset)
+		} else {
+			time.Sleep(cons.persistTimeout)
+		}
 	}
 
-	// Make sure we wait for all consumers to end
+	return nil
+}
 
+// Main fetch loop for kafka events
+func (cons *Kafka) readFromPartition(partitionID int32) {
 	cons.AddWorker()
-	defer func() {
-		if !cons.client.Closed() {
-			partCons.Close()
-		}
-		cons.WorkerDone()
-	}()
+	defer cons.WorkerDone()
 
-	// Loop over worker
+	partCons := cons.startConsumerForPartition(partitionID)
 	spin := shared.NewSpinner(shared.SpinPriorityLow)
 
 	for !cons.client.Closed() {
 		cons.WaitOnFuse()
+
 		select {
 		case event := <-partCons.Messages():
+			//Added some verbose information so that we can investigate reasons of
+			//exception. Probably it might happen when sarama close the channel
+			//so we will get nil message from the channel.
+			if event == nil || cons.offsets == nil || cons.offsets[partitionID] == nil {
+				Log.Error.Printf("Kafka consumer failed to store offset. Trace : event : %+v, cons.partCons: %+v, partitionID: %d\n", 
+					event, cons.offsets, partitionID)
+
+				partCons.Close()
+				partCons = cons.startConsumerForPartition(partitionID)
+				continue
+			}
+
 			atomic.StoreInt64(cons.offsets[partitionID], event.Offset)
 			sequence := atomic.AddUint64(cons.sequence, 1) - 1
 			if cons.prependKey {
@@ -471,9 +489,11 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 			}
 
 		case err := <-partCons.Errors():
-			defer cons.restartPartition(partitionID)
 			Log.Error.Print("Kafka consumer error:", err)
-			return // ### return, try reconnect ###
+			if !cons.client.Closed() {
+				partCons.Close()
+			}
+			partCons = cons.startConsumerForPartition(partitionID)
 
 		default:
 			spin.Yield()
@@ -482,43 +502,23 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 }
 
 func (cons *Kafka) readPartitions(partitions []int32) {
+	cons.AddWorker()
+	defer cons.WorkerDone()
+
+	// Start consumers
+
 	consumers := []kafka.PartitionConsumer{}
-
-	// Start consumer
-initLoop:
 	for _, partitionID := range partitions {
-		startOffset := atomic.LoadInt64(cons.offsets[partitionID])
-		consumer, err := cons.consumer.ConsumePartition(cons.topic, partitionID, startOffset)
-
-		// Retry consumer until successful
-		for err != nil {
-			Log.Error.Printf("Failed to start kafka consumer (%s:%d) - %s", cons.topic, partitionID, err.Error())
-			time.Sleep(cons.persistTimeout)
-			consumer, err = cons.consumer.ConsumePartition(cons.topic, partitionID, startOffset)
-			if cons.client.Closed() {
-				break initLoop
-			}
-		}
-
+		consumer := cons.startConsumerForPartition(partitionID)
 		consumers = append(consumers, consumer)
 	}
 
-	// Make sure we wait for all consumers to end
-	cons.AddWorker()
-	defer func() {
-		if !cons.client.Closed() {
-			for _, consumer := range consumers {
-				consumer.Close()
-			}
-		}
-		cons.WorkerDone()
-	}()
-
 	// Loop over worker.
 	// Note: partitions and consumer are assumed to be index parallel
+
+	spin := shared.NewSpinner(shared.SpinPriorityLow)
 	for !cons.client.Closed() {
 		for idx, consumer := range consumers {
-			var err error
 			cons.WaitOnFuse()
 			partition := partitions[idx]
 
@@ -532,17 +532,17 @@ initLoop:
 					cons.Enqueue(event.Value, sequence)
 				}
 
-			case err = <-consumer.Errors():
+			case err := <-consumer.Errors():
 				Log.Error.Print("Kafka consumer error:", err)
-				consumer.Close()
-
-			reconnect:
-				consumer, err = cons.consumer.ConsumePartition(cons.topic, partition, atomic.LoadInt64(cons.offsets[partition]))
-				if err != nil {
-					Log.Error.Printf("Failed to restart kafka consumer (%s:%d) - %s", cons.topic, partition, err.Error())
-					time.Sleep(cons.persistTimeout)
-					goto reconnect
+				if !cons.client.Closed() {
+					consumer.Close()
 				}
+
+				consumer = cons.startConsumerForPartition(partition)
+				consumers[idx] = consumer
+
+			default:
+				spin.Yield()
 			}
 		}
 	}
@@ -576,7 +576,7 @@ func (cons *Kafka) startReadTopic(topic string) {
 }
 
 // Start one consumer per partition as a go routine
-func (cons *Kafka) startConsumers() error {
+func (cons *Kafka) startAllConsumers() error {
 	var err error
 
 	if cons.group != "" {
@@ -586,19 +586,20 @@ func (cons *Kafka) startConsumers() error {
 		}
 
 		go cons.readFromGroup()
-	} else {
-		cons.client, err = kafka.NewClient(cons.servers, cons.config)
-		if err != nil {
-			return err
-		}
-
-		cons.consumer, err = kafka.NewConsumerFromClient(cons.client)
-		if err != nil {
-			return err
-		}
-
-		cons.startReadTopic(cons.topic)
+		return nil // ### return, group processing ###
 	}
+
+	cons.client, err = kafka.NewClient(cons.servers, cons.config)
+	if err != nil {
+		return err
+	}
+
+	cons.consumer, err = kafka.NewConsumerFromClient(cons.client)
+	if err != nil {
+		return err
+	}
+
+	cons.startReadTopic(cons.topic)
 
 	return nil
 }
@@ -629,7 +630,7 @@ func (cons *Kafka) dumpIndex() {
 func (cons *Kafka) Consume(workers *sync.WaitGroup) {
 	cons.SetWorkerWaitGroup(workers)
 
-	if err := cons.startConsumers(); err != nil {
+	if err := cons.startAllConsumers(); err != nil {
 		Log.Error.Print("Kafka client error - ", err)
 		time.AfterFunc(cons.config.Net.DialTimeout, func() { cons.Consume(workers) })
 		return

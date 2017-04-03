@@ -71,7 +71,7 @@ func (format *Base64Decode) Configure(conf core.PluginConfig) error {
 func (format *Base64Decode) Format(msg core.Message) ([]byte, core.MessageStreamID) {
 	data, streamID := format.base.Format(msg)
 	decoded := make([]byte, format.dictionary.DecodedLen(len(data)))
-	size, err := format.dictionary.Decode(decoded, msg.Data)
+	size, err := format.dictionary.Decode(decoded, data)
 	if err != nil {
 		Log.Error.Print("Base64Decode: ", err)
 		return data, streamID

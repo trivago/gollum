@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2016 Miquel Sabaté Solà <mikisabate@gmail.com>
+// Copyright (C) 2012-2017 Miquel Sabaté Solà <mikisabate@gmail.com>
 // This file is licensed under the MIT license.
 // See the LICENSE file.
 
@@ -51,7 +51,13 @@ func (p *UserAgent) detectBrowser(sections []section) {
 		p.browser.Engine = engine.name
 		p.browser.EngineVersion = engine.version
 		if slen > 2 {
-			p.browser.Version = sections[2].version
+			sectionIndex := 2
+			// The version after the engine comment is empty on e.g. Ubuntu
+			// platforms so if this is the case, let's use the next in line.
+			if sections[2].version == "" && slen > 3 {
+				sectionIndex = 3
+			}
+			p.browser.Version = sections[sectionIndex].version
 			if engine.name == "AppleWebKit" {
 				switch sections[slen-1].name {
 				case "Edge":
@@ -63,8 +69,10 @@ func (p *UserAgent) detectBrowser(sections []section) {
 					p.browser.Name = "Opera"
 					p.browser.Version = sections[slen-1].version
 				default:
-					if sections[2].name == "Chrome" {
+					if sections[sectionIndex].name == "Chrome" {
 						p.browser.Name = "Chrome"
+					} else if sections[sectionIndex].name == "Chromium" {
+						p.browser.Name = "Chromium"
 					} else {
 						p.browser.Name = "Safari"
 					}

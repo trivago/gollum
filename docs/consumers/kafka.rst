@@ -33,34 +33,44 @@ Parameters
   By default this is set to "default".
 
 **ClientId**
-  ClientId sets the client id of this producer.
+  ClientId sets the client id of this consumer.
   By default this is "gollum".
+
+**GroupId**
+  GroupId sets the consumer group of this consumer.
+  By default this is "" which disables consumer groups.
+  This requires Version to be >= 0.9.
 
 **Version**
   Version defines the kafka protocol version to use.
   Common values are 0.8.2, 0.9.0 or 0.10.0.
   Values of the form "A.B" are allowed as well as "A.B.C" and "A.B.C.D".
-  Defaults to "0.8.2".
+  Defaults to "0.8.2", or if GroupId is set "0.9.0.1".
   If the version given is not known, the closest possible version is chosen.
+  If GroupId is set and this is < "0.9", "0.9.0.1" will be used.
 
 **DefaultOffset**
   DefaultOffset defines where to start reading the topic.
   Valid values are "oldest" and "newest".
   If OffsetFile is defined the DefaultOffset setting will be ignored unless the file does not exist.
   By default this is set to "newest".
+  Ignored when using GroupId.
 
 **OffsetFile**
   OffsetFile defines the path to a file that stores the current offset inside a given partition.
   If the consumer is restarted that offset is used to continue reading.
   By default this is set to "" which disables the offset file.
+  Ignored when using GroupId.
 
 **FolderPermissions**
   FolderPermissions is used to create the offset file path if necessary.
   Set to 0755 by default.
+  Ignored when using GroupId.
 
 **Ordered**
   Ordered can be set to enforce partitions to be read one-by-one in a round robin fashion instead of reading in parallel from all partitions.
   Set to false by default.
+  Ignored when using GroupId.
 
 **PrependKey**
   PrependKey can be enabled to prefix the read message with the key from the kafka message.
@@ -96,12 +106,13 @@ Parameters
 
 **MessageBufferCount**
   MessageBufferCount sets the internal channel size for the kafka client.
-  By default this is set to 256.
+  By default this is set to 8192.
 
 **PresistTimoutMs**
   PresistTimoutMs defines the time in milliseconds between writes to OffsetFile.
   By default this is set to 5000.
   Shorter durations reduce the amount of duplicate messages after a fail but increases I/O.
+  When using GroupId this only controls how long to pause after receiving errors.
 
 **ElectRetries**
   ElectRetries defines how many times to retry during a leader election.
@@ -115,6 +126,42 @@ Parameters
   MetadataRefreshMs set the interval in seconds for fetching cluster metadata.
   By default this is set to 10000.
   This corresponds to the JVM setting `topic.metadata.refresh.interval.ms`.
+
+**TlsEnable**
+  TlsEnable defines whether to use TLS to communicate with brokers.
+  Defaults to false.
+
+**TlsKeyLocation**
+  TlsKeyLocation defines the path to the client's private key (PEM) for used for authentication.
+  Defaults to "".
+
+**TlsCertificateLocation**
+  TlsCertificateLocation defines the path to the client's public key (PEM) used for authentication.
+  Defaults to "".
+
+**TlsCaLocation**
+  TlsCaLocation defines the path to CA certificate(s) for verifying the broker's key.
+  Defaults to "".
+
+**TlsServerName**
+  TlsServerName is used to verify the hostname on the server's certificate unless TlsInsecureSkipVerify is true.
+  Defaults to "".
+
+**TlsInsecureSkipVerify**
+  TlsInsecureSkipVerify controls whether to verify the server's certificate chain and host name.
+  Defaults to false.
+
+**SaslEnable**
+  SaslEnable is whether to use SASL for authentication.
+  Defaults to false.
+
+**SaslUsername**
+  SaslUsername is the user for SASL/PLAIN authentication.
+  Defaults to "gollum".
+
+**SaslPassword**
+  SaslPassword is the password for SASL/PLAIN authentication.
+  Defaults to "".
 
 **Servers**
   Servers contains the list of all kafka servers to connect to.
@@ -135,6 +182,7 @@ Example
 	    Topic: "default"
 	    ClientId: "gollum"
 	    Version: "0.8.2"
+	    GroupId: ""
 	    DefaultOffset: "newest"
 	    OffsetFile: ""
 	    FolderPermissions: "0755"
@@ -149,6 +197,15 @@ Example
 	    ElectRetries: 3
 	    ElectTimeoutMs: 250
 	    MetadataRefreshMs: 10000
+	    TlsEnabled: true
+	    TlsKeyLocation: ""
+	    TlsCertificateLocation: ""
+	    TlsCaLocation: ""
+	    TlsServerName: ""
+	    TlsInsecureSkipVerify: false
+	    SaslEnabled: false
+	    SaslUsername: "gollum"
+	    SaslPassword: ""
 	    PrependKey: false
 	    KeySeparator: ":"
 	    Servers:

@@ -151,7 +151,7 @@ func (b *BulkIndexer) Start() {
 
 // Stop stops the bulk indexer, blocking the caller until it is complete.
 func (b *BulkIndexer) Stop() {
-	ch := make(chan struct{})
+	ch := make(chan struct{}, 1)
 	b.shutdownChan <- ch
 	select {
 	case <-ch:

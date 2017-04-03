@@ -48,9 +48,15 @@ import (
 //    Index:
 //      "console" : "console"
 //      "_GOLLUM_"  : "_GOLLUM_"
+//    Settings:
+//      "console":
+//        "number_of_shards": 1
+//    DataTypes:
+//      "console":
+//        "source": "ip"
 //    Type:
-//      "console" : "console"
-//      "_GOLLUM_"  : "_GOLLUM_"
+//      "console" : "log"
+//      "_GOLLUM_"  : "log"
 //
 // RetrySec denotes the time in seconds after which a failed dataset will be
 // transmitted again. By default this is set to 5.
@@ -83,6 +89,14 @@ import (
 // is used to assign a _type to an elasticsearch message. By default the type
 // "log" is used.
 //
+// DataTypes allows to define elasticsearch type mappings for indexes that are
+// being created by this producer (e.g. day based indexes). You can define
+// mappings per index.
+//
+// Settings allows to define elasticsearch index settings for indexes that are
+// being created by this producer (e.g. day based indexes). You can define
+// settings per index.
+//
 // BatchSizeByte defines the size in bytes required to trigger a flush.
 // By default this is set to 32768 (32KB).
 //
@@ -93,14 +107,30 @@ import (
 // triggered. By default this is set to 5.
 type ElasticSearch struct {
 	core.ProducerBase
-	conn             *elastigo.Conn
-	indexer          *elastigo.BulkIndexer
-	index            map[core.MessageStreamID]string
-	msgType          map[core.MessageStreamID]string
-	msgTTL           string
-	dayBasedIndex    bool
-	counters         map[string]*int64
-	lastMetricUpdate time.Time
+	conn               *elastigo.Conn
+	indexer            *elastigo.BulkIndexer
+	index              map[core.MessageStreamID]string
+	msgType            map[core.MessageStreamID]string
+	msgTTL             string
+	dayBasedIndex      bool
+	counters           map[string]*int64
+	indexSettings      map[string]*elasticSettings
+	indexSettingsSent  map[string]string
+	indexSettingsGuard *sync.Mutex
+	lastMetricUpdate   time.Time
+}
+
+type elasticType struct {
+	TypeName interface{} `json:"type"`
+}
+
+type elasticMapping struct {
+	Properties map[string]elasticType `json:"properties,omitempty"`
+}
+
+type elasticSettings struct {
+	Settings map[string]interface{}    `json:"settings,omitempty"`
+	Mappings map[string]elasticMapping `json:"mappings,omitempty"`
 }
 
 const (
@@ -110,6 +140,19 @@ const (
 
 func init() {
 	shared.TypeRegistry.Register(ElasticSearch{})
+}
+
+func makeElasticSettings() *elasticSettings {
+	return &elasticSettings{
+		Settings: make(map[string]interface{}),
+		Mappings: make(map[string]elasticMapping),
+	}
+}
+
+func makeElasticMapping() elasticMapping {
+	return elasticMapping{
+		Properties: make(map[string]elasticType),
+	}
 }
 
 // Configure initializes this producer with values from a plugin config.
@@ -160,6 +203,41 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfig) error {
 		prod.counters[index] = new(int64)
 	}
 
+	prod.indexSettingsGuard = new(sync.Mutex)
+	prod.indexSettingsSent = make(map[string]string)
+	prod.indexSettings = make(map[string]*elasticSettings)
+
+	conf.HasValue("DataTypes")
+	indexTypes, err := conf.Settings.MarshalMap("DataTypes")
+	if indexTypes != nil {
+		for index := range indexTypes {
+			mappings := makeElasticMapping()
+			types, _ := indexTypes.MarshalMap(index)
+			for name := range types {
+				typeName, _ := types.String(name)
+				mappings.Properties[name] = elasticType{TypeName: typeName}
+			}
+
+			indexType := prod.getIndexType(core.StreamRegistry.GetStreamID(index))
+			settings := makeElasticSettings()
+			settings.Mappings[indexType] = mappings
+			prod.indexSettings[index] = settings
+		}
+	}
+
+	conf.HasValue("Settings")
+	indexSettings, _ := conf.Settings.MarshalMap("Settings")
+	if indexSettings != nil {
+		for index := range indexSettings {
+			mappings, exist := prod.indexSettings[index]
+			if !exist {
+				mappings = makeElasticSettings()
+				prod.indexSettings[index] = mappings
+			}
+			mappings.Settings, _ = indexSettings.MarshalMap(index)
+		}
+	}
+
 	prod.SetCheckFuseCallback(prod.isClusterUp)
 	return nil
 }
@@ -184,6 +262,34 @@ func (prod *ElasticSearch) isClusterUp() bool {
 	return !cluster.TimedOut && cluster.Status != "red"
 }
 
+func (prod *ElasticSearch) createIndex(index string, sendIndex string, indexType string) {
+	prod.indexSettingsGuard.Lock()
+	defer prod.indexSettingsGuard.Unlock()
+	if value, isSet := prod.indexSettingsSent[index]; isSet && value == sendIndex {
+		return
+	}
+	if settings, exist := prod.indexSettings[index]; exist {
+		if onServer, _ := prod.conn.ExistsIndex(sendIndex, indexType, make(map[string]interface{})); !onServer {
+			if _, err := prod.conn.CreateIndexWithSettings(sendIndex, *settings); err != nil {
+				Log.Error.Print("ElasticSearch index creation error - ", err.Error())
+			}
+		}
+	}
+	prod.indexSettingsSent[index] = sendIndex
+}
+
+func (prod *ElasticSearch) getIndexType(streamID core.MessageStreamID) string {
+	indexType, typeMapped := prod.msgType[streamID]
+	if typeMapped {
+		return indexType
+	}
+	indexType, typeMapped = prod.msgType[core.WildcardStreamID]
+	if typeMapped {
+		return indexType
+	}
+	return core.StreamRegistry.GetStreamName(streamID)
+}
+
 func (prod *ElasticSearch) sendMessage(msg core.Message) {
 	originalMsg := msg
 	msg.Data, msg.StreamID = prod.ProducerBase.Format(msg)
@@ -200,21 +306,16 @@ func (prod *ElasticSearch) sendMessage(msg core.Message) {
 		prod.index[msg.StreamID] = index
 	}
 
-	msgType, typeMapped := prod.msgType[msg.StreamID]
-	if !typeMapped {
-		msgType, typeMapped = prod.msgType[core.WildcardStreamID]
-		if !typeMapped {
-			msgType = core.StreamRegistry.GetStreamName(msg.StreamID)
-		}
-	}
-
+	indexType := prod.getIndexType(msg.StreamID)
 	atomic.AddInt64(prod.counters[index], 1)
 
+	sendIndex := index
 	if prod.dayBasedIndex {
-		index = index + "_" + msg.Timestamp.Format("2006-01-02")
+		sendIndex += msg.Timestamp.Format("_2006-01-02")
 	}
+	prod.createIndex(index, sendIndex, indexType)
 
-	err := prod.indexer.Index(index, msgType, "", "", prod.msgTTL, &msg.Timestamp, string(msg.Data))
+	err := prod.indexer.Index(sendIndex, indexType, "", "", prod.msgTTL, nil, string(msg.Data))
 	if err != nil {
 		Log.Error.Print("ElasticSearch index error - ", err)
 		if !prod.isClusterUp() {

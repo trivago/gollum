@@ -1,20 +1,48 @@
 # 0.4.5
 
 This is a patch / minor features release.
+All vendor dependencies have been updated to the latest version and binaries have been compiled with go 1.8.
 
 #### Fixed
 
+ * producer.Kafka will discard messages returned as "too large" to avoid spooling
+ * consumer.Http does not truncate messages with WithHeaders:false anymore (thanks @mhils)
+ * producer.Websocket now uses gorilla websockets (thanks @glaslos)
  * Dockerfile is now working again
+ * It is now possible to (optionally) send nil messages with producer.kafka again
+ * Consumer.Kinesis will renew the iterator object when hitting a timeout
+ * Consumer.Kinesis now runs with an offset file set that does not exist
+ * Consumer.Kinesis offset file is now written less often (after each batch)
+ * Consumer.Kafka does now retry with an "oldest" offset after encountering an OutOfRange exception.
  * Fixed a crash when using producer.ElasticSearch with date based indexes (thanks @relud)
-
+ * format.Base64Decode now uses data from previous formatters as intended
+ * format.JSON arr and obj will now auto create a key if necessary
+ * format.JSON now checks for valid state references upon startup
+ * format.JSON now properly encodes strings when using "enc"
+ * format.SplitToJSON may now keep JSON payload and is better at escaping string
+ * "gollum -tc" will exit with error code 1 upon error
+ * "gollum -tc" will now properly display errors during config checking
+ 
 #### New
 
  * Added producer for writing data to Amazon S3 (thanks @relud)
+ * Added authentication support to consumer.Http (thanks @glaslos)
  * Added authentication support to native.KafkaProducer (thanks @relud)
  * Added authentication support to producer.Kafka (thanks @relud)
  * Added authentication support to consumer.Kafka (thanks @relud)
  * Added consumer group support to consumer.Kafka (thanks @relud)
  * Added a native SystemD consumer (thanks @relud)
+ * Added a Statsd producer for counting messages (thanks @relud)
+ * Added an option to flatten JSON arrays into single values with format.ProcessJSON (thanks @relud)
+ * Added filter.Any to allow "or" style combinations of filters (thanks @relud)
+ * Added support for unix timestamp parsing to format.ProcessJSON (thanks @relud)
+ * Added filter.Sample to allow processing of every n'th message only (thanks @relud)
+ * Added format.TemplateJSON to apply golang templates to JSON payloads (thanks @relud)
+ * Added named pipe support to consumer.Console
+ * Added "pick" option to format.ProcessJSON to get a single value from an arrays
+ * Extended "remove" option pf format.ProcessJSON to remove values from arrays
+ * Added "geoip" option to format.ProcessJSON to get GeoIP data from an IP
+ * Added index configuration options to producer.ElasticSearch
 
 # 0.4.4
 

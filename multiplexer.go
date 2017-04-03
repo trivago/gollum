@@ -16,6 +16,7 @@ package main
 
 import (
 	"container/list"
+	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
@@ -83,7 +84,7 @@ type multiplexer struct {
 }
 
 // Create a new multiplexer based on a given config file.
-func newMultiplexer(conf *core.Config, profile bool) multiplexer {
+func newMultiplexer(conf *core.Config, profile bool) (multiplexer, error) {
 	// Make sure the log is printed to stdout if we are stuck here
 	logFallback := time.AfterFunc(time.Duration(3)*time.Second, func() {
 		Log.SetWriter(os.Stdout)
@@ -123,6 +124,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	// Sort the plugins by interface type.
 
 	var consumerConfig, producerConfig, streamConfig []core.PluginConfig
+	numErrors := 0
 
 	for _, config := range conf.Plugins {
 		if !config.Enable {
@@ -134,6 +136,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 		pluginType := shared.TypeRegistry.GetTypeOf(config.Typename)
 		if pluginType == nil {
 			Log.Error.Print("Failed to load plugin ", config.Typename, ": Type not found")
+			numErrors++
 			continue // ### continue ###
 		}
 
@@ -162,6 +165,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 	for _, config := range streamConfig {
 		if len(config.Stream) == 0 {
 			Log.Error.Printf("Stream plugin %s has no streams set", config.Typename)
+			numErrors++
 			continue // ### continue ###
 		}
 
@@ -173,6 +177,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 		plugin, err := core.NewPlugin(config)
 		if err != nil {
 			Log.Error.Printf("Failed to configure stream %s: %s", streamName, err)
+			numErrors++
 			continue // ### continue ###
 		}
 
@@ -193,6 +198,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 
 			if err != nil {
 				Log.Error.Print("Failed to configure producer plugin ", config.Typename, ": ", err)
+				numErrors++
 				continue // ### continue ###
 			}
 
@@ -201,6 +207,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 
 			if len(streams) == 0 {
 				Log.Error.Print("Producer plugin ", config.Typename, " has no streams set")
+				numErrors++
 				continue // ### continue ###
 			}
 
@@ -249,6 +256,7 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 			plugin, err := core.NewPlugin(config)
 			if err != nil {
 				Log.Error.Print("Failed to configure consumer plugin ", config.Typename, ": ", err)
+				numErrors++
 				continue // ### continue ###
 			}
 
@@ -267,7 +275,11 @@ func newMultiplexer(conf *core.Config, profile bool) multiplexer {
 			core.StreamRegistry.AddWildcardProducersToStream(stream)
 		})
 
-	return plex
+	if numErrors > 0 {
+		return plex, fmt.Errorf("%d Configuration errors detected.", numErrors)
+	}
+
+	return plex, nil
 }
 
 func dumpFaultyPlugin(typeName string, pluginType reflect.Type) {

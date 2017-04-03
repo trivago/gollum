@@ -17,7 +17,7 @@ import (
 )
 
 // The delete API allows you to delete one or more indices through an API. This operation may fail
-// if the elasitsearch configuration has been set to forbid deleting indexes.
+// if the elasticsearch configuration has been set to forbid deleting indexes.
 func (c *Conn) DeleteIndex(index string) (BaseResponse, error) {
 	var url string
 	var retval BaseResponse

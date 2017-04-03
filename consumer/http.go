@@ -167,7 +167,7 @@ func (cons *Http) requestHandler(resp http.ResponseWriter, req *http.Request) {
 			return // ### return, missing body ###
 		}
 
-		body, err = ioutil.ReadAll(req.Body)
+		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
 			resp.WriteHeader(http.StatusBadRequest)
 			Log.Error.Print("HttpRequest: ", err.Error())

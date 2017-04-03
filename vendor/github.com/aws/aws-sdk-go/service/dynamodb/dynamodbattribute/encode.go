@@ -6,8 +6,49 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
+
+// An UnixTime provides aliasing of time.Time into a type that when marshaled
+// and unmarshaled with DynamoDB AttributeValues it will be done so as number
+// instead of string in seconds since January 1, 1970 UTC.
+//
+// This type is useful as an alterntitive to the struct tag `unixtime` when you
+// want to have your time value marshaled as Unix time in seconds intead of
+// the default time.RFC3339.
+//
+// Important to note that zero value time as unixtime is not 0 seconds
+// from January 1, 1970 UTC, but -62135596800. Which is seconds between
+// January 1, 0001 UTC, and January 1, 0001 UTC.
+type UnixTime time.Time
+
+// MarshalDynamoDBAttributeValue implements the Marshaler interface so that
+// the UnixTime can be marshaled from to a DynamoDB AttributeValue number
+// value encoded in the number of seconds since January 1, 1970 UTC.
+func (e UnixTime) MarshalDynamoDBAttributeValue(av *dynamodb.AttributeValue) error {
+	t := time.Time(e)
+	s := strconv.FormatInt(t.Unix(), 10)
+	av.N = &s
+
+	return nil
+}
+
+// UnmarshalDynamoDBAttributeValue implements the Unmarshaler interface so that
+// the UnixTime can be unmarshaled from a DynamoDB AttributeValue number representing
+// the number of seconds since January 1, 1970 UTC.
+//
+// If an error parsing the AttributeValue number occurs UnmarshalError will be
+// returned.
+func (e *UnixTime) UnmarshalDynamoDBAttributeValue(av *dynamodb.AttributeValue) error {
+	t, err := decodeUnixTime(aws.StringValue(av.N))
+	if err != nil {
+		return err
+	}
+
+	*e = UnixTime(t)
+	return nil
+}
 
 // A Marshaler is an interface to provide custom marshaling of Go value types
 // to AttributeValues. Use this to provide custom logic determining how a
@@ -74,6 +115,13 @@ type Marshaler interface {
 //
 //		// Field will be marshaled as a string set
 //		Field []string `dynamodbav:",stringset"`
+//
+//		// Field will be marshaled as Unix time number in seconds.
+//		// This tag is only valid with time.Time typed struct fields.
+//		// Important to note that zero value time as unixtime is not 0 seconds
+//		// from January 1, 1970 UTC, but -62135596800. Which is seconds between
+//		// January 1, 0001 UTC, and January 1, 0001 UTC.
+//		Field time.Time `dynamodbav:",unixtime"`
 //
 // The omitempty tag is only used during Marshaling and is ignored for
 // Unmarshal. Any zero value or a value when marshaled results in a
@@ -182,6 +230,23 @@ func (e *Encoder) Encode(in interface{}) (*dynamodb.AttributeValue, error) {
 	return av, nil
 }
 
+func fieldByIndex(v reflect.Value, index []int,
+	OnEmbeddedNilStruct func(*reflect.Value) bool) reflect.Value {
+	fv := v
+	for i, x := range index {
+		if i > 0 {
+			if fv.Kind() == reflect.Ptr && fv.Type().Elem().Kind() == reflect.Struct {
+				if fv.IsNil() && !OnEmbeddedNilStruct(&fv) {
+					break
+				}
+				fv = fv.Elem()
+			}
+		}
+		fv = fv.Field(x)
+	}
+	return fv
+}
+
 func (e *Encoder) encode(av *dynamodb.AttributeValue, v reflect.Value, fieldTag tag) error {
 	// We should check for omitted values first before dereferencing.
 	if fieldTag.OmitEmpty && emptyValue(v) {
@@ -202,7 +267,7 @@ func (e *Encoder) encode(av *dynamodb.AttributeValue, v reflect.Value, fieldTag 
 	case reflect.Invalid:
 		encodeNull(av)
 	case reflect.Struct:
-		return e.encodeStruct(av, v)
+		return e.encodeStruct(av, v, fieldTag)
 	case reflect.Map:
 		return e.encodeMap(av, v, fieldTag)
 	case reflect.Slice, reflect.Array:
@@ -216,11 +281,13 @@ func (e *Encoder) encode(av *dynamodb.AttributeValue, v reflect.Value, fieldTag 
 	return nil
 }
 
-func (e *Encoder) encodeStruct(av *dynamodb.AttributeValue, v reflect.Value) error {
-
+func (e *Encoder) encodeStruct(av *dynamodb.AttributeValue, v reflect.Value, fieldTag tag) error {
 	// To maintain backwards compatibility with ConvertTo family of methods which
 	// converted time.Time structs to strings
 	if t, ok := v.Interface().(time.Time); ok {
+		if fieldTag.AsUnixTime {
+			return UnixTime(t).MarshalDynamoDBAttributeValue(av)
+		}
 		s := t.Format(time.RFC3339Nano)
 		av.S = &s
 		return nil
@@ -233,7 +300,14 @@ func (e *Encoder) encodeStruct(av *dynamodb.AttributeValue, v reflect.Value) err
 			return &InvalidMarshalError{msg: "map key cannot be empty"}
 		}
 
-		fv := v.FieldByIndex(f.Index)
+		found := true
+		fv := fieldByIndex(v, f.Index, func(v *reflect.Value) bool {
+			found = false
+			return false // to break the loop.
+		})
+		if !found {
+			continue
+		}
 		elem := &dynamodb.AttributeValue{}
 		err := e.encode(elem, fv, f.tag)
 		if err != nil {

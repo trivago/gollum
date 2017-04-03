@@ -26,10 +26,15 @@ func Sort(field string) *SortDsl {
 	return &SortDsl{Name: field}
 }
 
+func GeoDistanceSort(field interface{}) *SortDsl {
+	return &SortDsl{GeoDistance: field}
+}
+
 type SortBody []interface{}
 type SortDsl struct {
-	Name   string
-	IsDesc bool
+	Name        string
+	IsDesc      bool
+	GeoDistance interface{}
 }
 
 func (s *SortDsl) Desc() *SortDsl {
@@ -42,6 +47,9 @@ func (s *SortDsl) Asc() *SortDsl {
 }
 
 func (s *SortDsl) MarshalJSON() ([]byte, error) {
+	if s.GeoDistance != nil {
+		return json.Marshal(map[string]interface{}{"_geo_distance": s.GeoDistance})
+	}
 	if s.IsDesc {
 		return json.Marshal(map[string]string{s.Name: "desc"})
 	}

@@ -17,12 +17,12 @@ package producer
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"io/ioutil"
 	"fmt"
 	kafka "github.com/Shopify/sarama"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/log"
 	"github.com/trivago/gollum/shared"
+	"io/ioutil"
 	"strconv"
 	"strings"
 	"sync"
@@ -441,8 +441,15 @@ func (prod *Kafka) pollResults() {
 		case err, hasMore := <-prod.producer.Errors():
 			if hasMore {
 				if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
+					streamName := core.StreamRegistry.GetStreamName(msg.StreamID)
+					Log.Warning.Printf("Kafka producer error on return (stream %s): %s", streamName, err.Error())
 					prod.storeRTT(&msg)
-					prod.Drop(msg)
+					if err == kafka.ErrMessageTooLarge {
+						Log.Error.Print("Message discarded as too large.")
+						core.CountDiscardedMessage()
+					} else {
+						prod.Drop(msg)
+					}
 				}
 			}
 

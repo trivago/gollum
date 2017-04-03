@@ -4,6 +4,7 @@
 package iotdataplane
 
 import (
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/private/protocol"
@@ -16,6 +17,8 @@ const opDeleteThingShadow = "DeleteThingShadow"
 // client's request for the DeleteThingShadow operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See DeleteThingShadow for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -34,6 +37,7 @@ const opDeleteThingShadow = "DeleteThingShadow"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/DeleteThingShadow
 func (c *IoTDataPlane) DeleteThingShadowRequest(input *DeleteThingShadowInput) (req *request.Request, output *DeleteThingShadowOutput) {
 	op := &request.Operation{
 		Name:       opDeleteThingShadow,
@@ -45,20 +49,70 @@ func (c *IoTDataPlane) DeleteThingShadowRequest(input *DeleteThingShadowInput) (
 		input = &DeleteThingShadowInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &DeleteThingShadowOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
+// DeleteThingShadow API operation for AWS IoT Data Plane.
+//
 // Deletes the thing shadow for the specified thing.
 //
 // For more information, see DeleteThingShadow (http://docs.aws.amazon.com/iot/latest/developerguide/API_DeleteThingShadow.html)
 // in the AWS IoT Developer Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS IoT Data Plane's
+// API operation DeleteThingShadow for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   The specified resource does not exist.
+//
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   The request is not valid.
+//
+//   * ErrCodeThrottlingException "ThrottlingException"
+//   The rate exceeds the limit.
+//
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
+//   You are not authorized to perform this operation.
+//
+//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   The service is temporarily unavailable.
+//
+//   * ErrCodeInternalFailureException "InternalFailureException"
+//   An unexpected error has occurred.
+//
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
+//   The specified combination of HTTP verb and URI is not supported.
+//
+//   * ErrCodeUnsupportedDocumentEncodingException "UnsupportedDocumentEncodingException"
+//   The document encoding is not supported.
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/DeleteThingShadow
 func (c *IoTDataPlane) DeleteThingShadow(input *DeleteThingShadowInput) (*DeleteThingShadowOutput, error) {
 	req, out := c.DeleteThingShadowRequest(input)
-	err := req.Send()
-	return out, err
+	return out, req.Send()
+}
+
+// DeleteThingShadowWithContext is the same as DeleteThingShadow with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteThingShadow for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoTDataPlane) DeleteThingShadowWithContext(ctx aws.Context, input *DeleteThingShadowInput, opts ...request.Option) (*DeleteThingShadowOutput, error) {
+	req, out := c.DeleteThingShadowRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
 }
 
 const opGetThingShadow = "GetThingShadow"
@@ -67,6 +121,8 @@ const opGetThingShadow = "GetThingShadow"
 // client's request for the GetThingShadow operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See GetThingShadow for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -85,6 +141,7 @@ const opGetThingShadow = "GetThingShadow"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/GetThingShadow
 func (c *IoTDataPlane) GetThingShadowRequest(input *GetThingShadowInput) (req *request.Request, output *GetThingShadowOutput) {
 	op := &request.Operation{
 		Name:       opGetThingShadow,
@@ -96,20 +153,70 @@ func (c *IoTDataPlane) GetThingShadowRequest(input *GetThingShadowInput) (req *r
 		input = &GetThingShadowInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &GetThingShadowOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
+// GetThingShadow API operation for AWS IoT Data Plane.
+//
 // Gets the thing shadow for the specified thing.
 //
 // For more information, see GetThingShadow (http://docs.aws.amazon.com/iot/latest/developerguide/API_GetThingShadow.html)
 // in the AWS IoT Developer Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS IoT Data Plane's
+// API operation GetThingShadow for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   The request is not valid.
+//
+//   * ErrCodeResourceNotFoundException "ResourceNotFoundException"
+//   The specified resource does not exist.
+//
+//   * ErrCodeThrottlingException "ThrottlingException"
+//   The rate exceeds the limit.
+//
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
+//   You are not authorized to perform this operation.
+//
+//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   The service is temporarily unavailable.
+//
+//   * ErrCodeInternalFailureException "InternalFailureException"
+//   An unexpected error has occurred.
+//
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
+//   The specified combination of HTTP verb and URI is not supported.
+//
+//   * ErrCodeUnsupportedDocumentEncodingException "UnsupportedDocumentEncodingException"
+//   The document encoding is not supported.
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/GetThingShadow
 func (c *IoTDataPlane) GetThingShadow(input *GetThingShadowInput) (*GetThingShadowOutput, error) {
 	req, out := c.GetThingShadowRequest(input)
-	err := req.Send()
-	return out, err
+	return out, req.Send()
+}
+
+// GetThingShadowWithContext is the same as GetThingShadow with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetThingShadow for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoTDataPlane) GetThingShadowWithContext(ctx aws.Context, input *GetThingShadowInput, opts ...request.Option) (*GetThingShadowOutput, error) {
+	req, out := c.GetThingShadowRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
 }
 
 const opPublish = "Publish"
@@ -118,6 +225,8 @@ const opPublish = "Publish"
 // client's request for the Publish operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See Publish for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -136,6 +245,7 @@ const opPublish = "Publish"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/Publish
 func (c *IoTDataPlane) PublishRequest(input *PublishInput) (req *request.Request, output *PublishOutput) {
 	op := &request.Operation{
 		Name:       opPublish,
@@ -147,22 +257,60 @@ func (c *IoTDataPlane) PublishRequest(input *PublishInput) (req *request.Request
 		input = &PublishInput{}
 	}
 
+	output = &PublishOutput{}
 	req = c.newRequest(op, input, output)
 	req.Handlers.Unmarshal.Remove(restjson.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
-	output = &PublishOutput{}
-	req.Data = output
 	return
 }
 
+// Publish API operation for AWS IoT Data Plane.
+//
 // Publishes state information.
 //
 // For more information, see HTTP Protocol (http://docs.aws.amazon.com/iot/latest/developerguide/protocols.html#http)
 // in the AWS IoT Developer Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS IoT Data Plane's
+// API operation Publish for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeInternalFailureException "InternalFailureException"
+//   An unexpected error has occurred.
+//
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   The request is not valid.
+//
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
+//   You are not authorized to perform this operation.
+//
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
+//   The specified combination of HTTP verb and URI is not supported.
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/Publish
 func (c *IoTDataPlane) Publish(input *PublishInput) (*PublishOutput, error) {
 	req, out := c.PublishRequest(input)
-	err := req.Send()
-	return out, err
+	return out, req.Send()
+}
+
+// PublishWithContext is the same as Publish with the addition of
+// the ability to pass a context and additional request options.
+//
+// See Publish for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoTDataPlane) PublishWithContext(ctx aws.Context, input *PublishInput, opts ...request.Option) (*PublishOutput, error) {
+	req, out := c.PublishRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
 }
 
 const opUpdateThingShadow = "UpdateThingShadow"
@@ -171,6 +319,8 @@ const opUpdateThingShadow = "UpdateThingShadow"
 // client's request for the UpdateThingShadow operation. The "output" return
 // value can be used to capture response data after the request's "Send" method
 // is called.
+//
+// See UpdateThingShadow for usage and error information.
 //
 // Creating a request object using this method should be used when you want to inject
 // custom logic into the request's lifecycle using a custom handler, or if you want to
@@ -189,6 +339,7 @@ const opUpdateThingShadow = "UpdateThingShadow"
 //        fmt.Println(resp)
 //    }
 //
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/UpdateThingShadow
 func (c *IoTDataPlane) UpdateThingShadowRequest(input *UpdateThingShadowInput) (req *request.Request, output *UpdateThingShadowOutput) {
 	op := &request.Operation{
 		Name:       opUpdateThingShadow,
@@ -200,27 +351,83 @@ func (c *IoTDataPlane) UpdateThingShadowRequest(input *UpdateThingShadowInput) (
 		input = &UpdateThingShadowInput{}
 	}
 
-	req = c.newRequest(op, input, output)
 	output = &UpdateThingShadowOutput{}
-	req.Data = output
+	req = c.newRequest(op, input, output)
 	return
 }
 
+// UpdateThingShadow API operation for AWS IoT Data Plane.
+//
 // Updates the thing shadow for the specified thing.
 //
 // For more information, see UpdateThingShadow (http://docs.aws.amazon.com/iot/latest/developerguide/API_UpdateThingShadow.html)
 // in the AWS IoT Developer Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS IoT Data Plane's
+// API operation UpdateThingShadow for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeConflictException "ConflictException"
+//   The specified version does not match the version of the document.
+//
+//   * ErrCodeRequestEntityTooLargeException "RequestEntityTooLargeException"
+//   The payload exceeds the maximum size allowed.
+//
+//   * ErrCodeInvalidRequestException "InvalidRequestException"
+//   The request is not valid.
+//
+//   * ErrCodeThrottlingException "ThrottlingException"
+//   The rate exceeds the limit.
+//
+//   * ErrCodeUnauthorizedException "UnauthorizedException"
+//   You are not authorized to perform this operation.
+//
+//   * ErrCodeServiceUnavailableException "ServiceUnavailableException"
+//   The service is temporarily unavailable.
+//
+//   * ErrCodeInternalFailureException "InternalFailureException"
+//   An unexpected error has occurred.
+//
+//   * ErrCodeMethodNotAllowedException "MethodNotAllowedException"
+//   The specified combination of HTTP verb and URI is not supported.
+//
+//   * ErrCodeUnsupportedDocumentEncodingException "UnsupportedDocumentEncodingException"
+//   The document encoding is not supported.
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/UpdateThingShadow
 func (c *IoTDataPlane) UpdateThingShadow(input *UpdateThingShadowInput) (*UpdateThingShadowOutput, error) {
 	req, out := c.UpdateThingShadowRequest(input)
-	err := req.Send()
-	return out, err
+	return out, req.Send()
+}
+
+// UpdateThingShadowWithContext is the same as UpdateThingShadow with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateThingShadow for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoTDataPlane) UpdateThingShadowWithContext(ctx aws.Context, input *UpdateThingShadowInput, opts ...request.Option) (*UpdateThingShadowOutput, error) {
+	req, out := c.UpdateThingShadowRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
 }
 
 // The input for the DeleteThingShadow operation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/DeleteThingShadowRequest
 type DeleteThingShadowInput struct {
 	_ struct{} `type:"structure"`
 
 	// The name of the thing.
+	//
+	// ThingName is a required field
 	ThingName *string `location:"uri" locationName:"thingName" min:"1" type:"string" required:"true"`
 }
 
@@ -250,11 +457,20 @@ func (s *DeleteThingShadowInput) Validate() error {
 	return nil
 }
 
+// SetThingName sets the ThingName field's value.
+func (s *DeleteThingShadowInput) SetThingName(v string) *DeleteThingShadowInput {
+	s.ThingName = &v
+	return s
+}
+
 // The output from the DeleteThingShadow operation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/DeleteThingShadowResponse
 type DeleteThingShadowOutput struct {
 	_ struct{} `type:"structure" payload:"Payload"`
 
 	// The state information, in JSON format.
+	//
+	// Payload is a required field
 	Payload []byte `locationName:"payload" type:"blob" required:"true"`
 }
 
@@ -268,11 +484,20 @@ func (s DeleteThingShadowOutput) GoString() string {
 	return s.String()
 }
 
+// SetPayload sets the Payload field's value.
+func (s *DeleteThingShadowOutput) SetPayload(v []byte) *DeleteThingShadowOutput {
+	s.Payload = v
+	return s
+}
+
 // The input for the GetThingShadow operation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/GetThingShadowRequest
 type GetThingShadowInput struct {
 	_ struct{} `type:"structure"`
 
 	// The name of the thing.
+	//
+	// ThingName is a required field
 	ThingName *string `location:"uri" locationName:"thingName" min:"1" type:"string" required:"true"`
 }
 
@@ -302,7 +527,14 @@ func (s *GetThingShadowInput) Validate() error {
 	return nil
 }
 
+// SetThingName sets the ThingName field's value.
+func (s *GetThingShadowInput) SetThingName(v string) *GetThingShadowInput {
+	s.ThingName = &v
+	return s
+}
+
 // The output from the GetThingShadow operation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/GetThingShadowResponse
 type GetThingShadowOutput struct {
 	_ struct{} `type:"structure" payload:"Payload"`
 
@@ -320,7 +552,14 @@ func (s GetThingShadowOutput) GoString() string {
 	return s.String()
 }
 
+// SetPayload sets the Payload field's value.
+func (s *GetThingShadowOutput) SetPayload(v []byte) *GetThingShadowOutput {
+	s.Payload = v
+	return s
+}
+
 // The input for the Publish operation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/PublishRequest
 type PublishInput struct {
 	_ struct{} `type:"structure" payload:"Payload"`
 
@@ -331,6 +570,8 @@ type PublishInput struct {
 	Qos *int64 `location:"querystring" locationName:"qos" type:"integer"`
 
 	// The name of the MQTT topic.
+	//
+	// Topic is a required field
 	Topic *string `location:"uri" locationName:"topic" type:"string" required:"true"`
 }
 
@@ -357,6 +598,25 @@ func (s *PublishInput) Validate() error {
 	return nil
 }
 
+// SetPayload sets the Payload field's value.
+func (s *PublishInput) SetPayload(v []byte) *PublishInput {
+	s.Payload = v
+	return s
+}
+
+// SetQos sets the Qos field's value.
+func (s *PublishInput) SetQos(v int64) *PublishInput {
+	s.Qos = &v
+	return s
+}
+
+// SetTopic sets the Topic field's value.
+func (s *PublishInput) SetTopic(v string) *PublishInput {
+	s.Topic = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/PublishOutput
 type PublishOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -372,13 +632,18 @@ func (s PublishOutput) GoString() string {
 }
 
 // The input for the UpdateThingShadow operation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/UpdateThingShadowRequest
 type UpdateThingShadowInput struct {
 	_ struct{} `type:"structure" payload:"Payload"`
 
 	// The state information, in JSON format.
+	//
+	// Payload is a required field
 	Payload []byte `locationName:"payload" type:"blob" required:"true"`
 
 	// The name of the thing.
+	//
+	// ThingName is a required field
 	ThingName *string `location:"uri" locationName:"thingName" min:"1" type:"string" required:"true"`
 }
 
@@ -411,7 +676,20 @@ func (s *UpdateThingShadowInput) Validate() error {
 	return nil
 }
 
+// SetPayload sets the Payload field's value.
+func (s *UpdateThingShadowInput) SetPayload(v []byte) *UpdateThingShadowInput {
+	s.Payload = v
+	return s
+}
+
+// SetThingName sets the ThingName field's value.
+func (s *UpdateThingShadowInput) SetThingName(v string) *UpdateThingShadowInput {
+	s.ThingName = &v
+	return s
+}
+
 // The output from the UpdateThingShadow operation.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/iot-data-2015-05-28/UpdateThingShadowResponse
 type UpdateThingShadowOutput struct {
 	_ struct{} `type:"structure" payload:"Payload"`
 
@@ -427,4 +705,10 @@ func (s UpdateThingShadowOutput) String() string {
 // GoString returns the string representation
 func (s UpdateThingShadowOutput) GoString() string {
 	return s.String()
+}
+
+// SetPayload sets the Payload field's value.
+func (s *UpdateThingShadowOutput) SetPayload(v []byte) *UpdateThingShadowOutput {
+	s.Payload = v
+	return s
 }
