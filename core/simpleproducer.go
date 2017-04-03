@@ -33,8 +33,9 @@ import (
 //    Channel: 8192
 //    ChannelTimeoutMs: 0
 //    ShutdownTimeoutMs: 1000
+// 	  Modulators:
+//    	- "filter.All"
 //    Formatter: "format.Forward"
-//    Filter: "filter.All"
 //    DropToStream: "_DROPPED_"
 //    Fuse: ""
 //    FuseTimeoutSec: 5
