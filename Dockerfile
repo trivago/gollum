@@ -1,9 +1,6 @@
-FROM trivago/gollum:base-latest
+FROM alpine:latest
 
-COPY . /go/src/github.com/trivago/gollum
+COPY gollum /usr/local/bin
+COPY config /var/gollum/
 
-RUN make
-
-RUN chmod +x /go/src/github.com/trivago/gollum/gollum
-
-ENTRYPOINT ["/go/src/github.com/trivago/gollum/gollum"]
+WORKDIR /var/gollum
