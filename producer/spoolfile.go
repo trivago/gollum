@@ -212,7 +212,7 @@ func (spool *spoolFile) read() {
 			// Only spool back if target is not busy
 			if spool.source != nil && spool.source.IsBlocked() {
 				time.Sleep(time.Millisecond * 100)
-				continue // ### contine, busy source ###
+				continue // ### continue, busy source ###
 			}
 
 			// Any error cancels the loop

@@ -153,7 +153,7 @@ func TestPluginConfigGetString(t *testing.T) {
 }
 
 // Function gets the string array for a key or default value if non existent
-// Plan: Similart to TestPluginConfigGetString
+// Plan: Similar to TestPluginConfigGetString
 func TestPluginConfigGetStringArray(t *testing.T) {
 	expect := shared.NewExpect(t)
 	mockPluginCfg := getMockPluginConfig()
@@ -312,7 +312,7 @@ func TestPluginConfigGetBool(t *testing.T) {
 }
 
 // Function gets a value for a key which is neither int or bool. Value encapsulated by interface
-// Plan: similart to TestPluginConfigGetInt
+// Plan: similar to TestPluginConfigGetInt
 func TestPluginConfigGetValue(t *testing.T) {
 	expect := shared.NewExpect(t)
 	mockPluginCfg := getMockPluginConfig()

@@ -119,7 +119,7 @@ const (
 // Compression sets the method of compression to use. Valid values are:
 // "None","Zip" and "Snappy". By default "None" is set.
 //
-// MaxOpenRequests defines the number of simultanious connections are allowed.
+// MaxOpenRequests defines the number of simultaneous connections are allowed.
 // By default this is set to 5.
 //
 // BatchMinCount sets the minimum number of messages required to trigger a

@@ -25,7 +25,7 @@ import (
 )
 
 // Syslogd consumer plugin
-// The syslogd consumer accepts messages from a syslogd comaptible socket.
+// The syslogd consumer accepts messages from a syslogd compatible socket.
 // When attached to a fuse, this consumer will stop the syslogd service in case
 // that fuse is burned.
 // Configuration example

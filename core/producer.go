@@ -115,7 +115,7 @@ type Producer interface {
 // formatting it has to define a separate filter as the producer decides if
 // and where to format.
 //
-// Fuse defines the name of a fuse to burn if e.g. the producer encounteres a
+// Fuse defines the name of a fuse to burn if e.g. the producer encounters a
 // lost connection. Each producer defines its own fuse breaking logic if
 // necessary / applyable. Disable fuse behavior for a producer by setting an
 // empty  name or a FuseTimeoutSec <= 0. By default this is set to "".

@@ -207,7 +207,7 @@ func (registry streamRegistry) AddWildcardProducersToStream(stream Stream) {
 	}
 }
 
-// Register registeres a stream plugin to a given stream id
+// Register registers a stream plugin to a given stream id
 func (registry *streamRegistry) Register(stream Stream, streamID MessageStreamID) {
 	registry.streamGuard.Lock()
 	defer registry.streamGuard.Unlock()

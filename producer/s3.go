@@ -81,7 +81,7 @@ const (
 // By default this is set to "STANDARD".
 //
 // CredentialType defines the credentials that are to be used when
-// connectiong to kensis. This can be one of the following: environment,
+// connecting to s3. This can be one of the following: environment,
 // static, shared, none.
 // Static enables the parameters CredentialId, CredentialToken and
 // CredentialSecret shared enables the parameters CredentialFile and

@@ -115,7 +115,9 @@ func (cons *SystemdConsumer) Configure(conf core.PluginConfig) error {
 			return err
 		}
 		// start *after* the newest record
-		_, err = cons.journal.Next()
+		if _, err = cons.journal.Next(); err != nil {
+			return err
+		}
 
 	default:
 		offset, err := strconv.ParseUint(offsetValue, 10, 64)
