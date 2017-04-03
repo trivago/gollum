@@ -44,7 +44,7 @@ func (filter *SimpleFilter) SetLogScope(log tlog.LogScope) {
 func (filter *SimpleFilter) Configure(conf PluginConfigReader) error {
 	filter.Log = conf.GetSubLogScope("Filter")
 
-	filter.dropStreamID = GetStreamID(conf.GetString("DropToStream", InvalidStream))
+	filter.dropStreamID = GetStreamID(conf.GetString("DropToStream", DroppedStream))
 	return nil
 }
 
