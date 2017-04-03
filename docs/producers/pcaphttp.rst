@@ -1,10 +1,11 @@
 PcapHTTPConsumer
 ================
 
-NOTICE: This producer is not included in standard builds. 
+NOTICE: This producer is not included in standard builds.
 To enable it you need to trigger a custom build with native plugins enabled.
-This plugin utilizes libpcap to listen for network traffic and reassamble http requests from it. 
+This plugin utilizes libpcap to listen for network traffic and reassamble http requests from it.
 As it uses a CGO based library it will break cross platform builds (i.e. you will have to compile it on the correct platform).
+
 
 Parameters
 ----------
@@ -53,7 +54,7 @@ Parameters
   If a producer requires filtering after formatting it has to define a separate filter as the producer decides if and where to format.
 
 **Fuse**
-  Fuse defines the name of a fuse to burn if e.g. the producer encounteres a lost connection.
+  Fuse defines the name of a fuse to burn if e.g. the producer encounters a lost connection.
   Each producer defines its own fuse breaking logic if necessary / applyable.
   Disable fuse behavior for a producer by setting an empty  name or a FuseTimeoutSec <= 0.
   By default this is set to "".
@@ -62,10 +63,6 @@ Parameters
   FuseTimeoutSec defines the interval in seconds used to check if the fuse can be recovered.
   Note that automatic fuse recovery logic depends on each producer's implementation.
   By default this setting is set to 10.
-
-**This**
-  This plugin utilizes libpcap to listen for network traffic and reassamble http requests from it.
-  As it uses a CGO based library it will break cross platform builds (i.e. you will have to compile it on the correct platform).
 
 **Interface**
   Interface defines the network interface to listen on.

@@ -6,6 +6,7 @@ To enable it you need to trigger a custom build with native plugins enabled.
 The systemd consumer allows to read from the systemd journal.
 When attached to a fuse, this consumer will stop reading messages in case that fuse is burned.
 
+
 Parameters
 ----------
 
@@ -53,7 +54,7 @@ Parameters
   If a producer requires filtering after formatting it has to define a separate filter as the producer decides if and where to format.
 
 **Fuse**
-  Fuse defines the name of a fuse to burn if e.g. the producer encounteres a lost connection.
+  Fuse defines the name of a fuse to burn if e.g. the producer encounters a lost connection.
   Each producer defines its own fuse breaking logic if necessary / applyable.
   Disable fuse behavior for a producer by setting an empty  name or a FuseTimeoutSec <= 0.
   By default this is set to "".
@@ -62,10 +63,6 @@ Parameters
   FuseTimeoutSec defines the interval in seconds used to check if the fuse can be recovered.
   Note that automatic fuse recovery logic depends on each producer's implementation.
   By default this setting is set to 10.
-
-**The**
-  The systemd consumer allows to read from the systemd journal.
-  When attached to a fuse, this consumer will stop reading messages in case that fuse is burned.
 
 **SystemdUnit**
   SystemdUnit defines what journal will be followed.

@@ -1,7 +1,7 @@
 SplitPick
 =========
 
-SplitPick seperates value of messages according to a specified delimiter and returns the given indexed message.
+SplitPick separates value of messages according to a specified delimiter and returns the given indexed message.
 The index are zero based.
 
 

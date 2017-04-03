@@ -51,7 +51,7 @@ Parameters
   If a producer requires filtering after formatting it has to define a separate filter as the producer decides if and where to format.
 
 **Fuse**
-  Fuse defines the name of a fuse to burn if e.g. the producer encounteres a lost connection.
+  Fuse defines the name of a fuse to burn if e.g. the producer encounters a lost connection.
   Each producer defines its own fuse breaking logic if necessary / applyable.
   Disable fuse behavior for a producer by setting an empty  name or a FuseTimeoutSec <= 0.
   By default this is set to "".
@@ -73,7 +73,7 @@ Parameters
   StorageClass defines the amazon s3 storage class for objects created, from http://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html By default this is set to "STANDARD".
 
 **CredentialType**
-  CredentialType defines the credentials that are to be used when connectiong to kensis.
+  CredentialType defines the credentials that are to be used when connecting to s3.
   This can be one of the following: environment, static, shared, none.
   Static enables the parameters CredentialId, CredentialToken and CredentialSecret shared enables the parameters CredentialFile and CredentialProfile.
   None will not use any credentials and environment will pull the credentials from environmental settings.

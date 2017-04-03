@@ -53,7 +53,7 @@ Parameters
   If a producer requires filtering after formatting it has to define a separate filter as the producer decides if and where to format.
 
 **Fuse**
-  Fuse defines the name of a fuse to burn if e.g. the producer encounteres a lost connection.
+  Fuse defines the name of a fuse to burn if e.g. the producer encounters a lost connection.
   Each producer defines its own fuse breaking logic if necessary / applyable.
   Disable fuse behavior for a producer by setting an empty  name or a FuseTimeoutSec <= 0.
   By default this is set to "".
@@ -116,7 +116,7 @@ Parameters
   By default "None" is set.
 
 **MaxOpenRequests**
-  MaxOpenRequests defines the number of simultanious connections are allowed.
+  MaxOpenRequests defines the number of simultaneous connections are allowed.
   By default this is set to 5.
 
 **BatchMinCount**

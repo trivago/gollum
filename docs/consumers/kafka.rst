@@ -83,7 +83,7 @@ Parameters
   Set to ":" by default.
 
 **MaxOpenRequests**
-  MaxOpenRequests defines the number of simultanious connections are allowed.
+  MaxOpenRequests defines the number of simultaneous connections are allowed.
   By default this is set to 5.
 
 **ServerTimeoutSec**

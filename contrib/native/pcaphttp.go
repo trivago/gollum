@@ -27,6 +27,11 @@ import (
 )
 
 // PcapHTTPConsumer consumer plugin
+// NOTICE: This producer is not included in standard builds. To enable it
+// you need to trigger a custom build with native plugins enabled.
+// This plugin utilizes libpcap to listen for network traffic and reassamble
+// http requests from it. As it uses a CGO based library it will break cross
+// platform builds (i.e. you will have to compile it on the correct platform).
 // Configuration example
 //
 //  - "native.PcapHTTPConsumer":
@@ -35,12 +40,6 @@ import (
 //    Filter: "dst port 80 and dst host 127.0.0.1"
 //    Promiscuous: true
 //    TimeoutMs: 3000
-//
-// NOTICE: This producer is not included in standard builds. To enable it
-// you need to trigger a custom build with native plugins enabled.
-// This plugin utilizes libpcap to listen for network traffic and reassamble
-// http requests from it. As it uses a CGO based library it will break cross
-// platform builds (i.e. you will have to compile it on the correct platform).
 //
 // Interface defines the network interface to listen on. By default this is set
 // to eth0, get your specific value from ifconfig.
