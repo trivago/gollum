@@ -7,7 +7,13 @@ After=network.target
 Type=simple
 EnvironmentFile=-/etc/sysconfig/gollum
 Environment=GOTRACEBACK=crash
-ExecStart=/usr/bin/gollum -c $CONFIG $ARGUMENTS
+PIDFile=$PIDFILE
+ExecStart=/usr/bin/gollum \
+    -c $CONFIG \
+    -p $PIDFILE \
+    $ARGUMENTS
+
+Restart=on-abort
 
 [Install]
 WantedBy=multi-user.target

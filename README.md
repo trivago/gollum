@@ -232,8 +232,10 @@ There are also supplementary targets for make:
  * `vendor` install gvt and update all dependencies
  * `aws` build for Linux x64 and generate an [Elastic Beanstalk](https://aws.amazon.com/de/elasticbeanstalk/) package
  
-If you want to use native plugins (contrib/native) you will have to enable the corresponding imports in the file contrib/loader.go.
+If you want to use native plugins (contrib/native) or self provided you will have to enable the corresponding imports in the file `contrib_loader.go`. You can copy the `contrib_loader.go.dist` file here and active the plugins you want to use.
+
 Doing so will disable the possibility to do cross-platform builds for most users.
+Please check also the requirements for each plugin.
 
 ### Dockerfile
 
@@ -246,9 +248,23 @@ $ docker run -it --rm trivago/gollum -c config/profile.conf -ps -ll 3
 
 To use your own configuration you could run:
 
-```
+```sh
 $ docker run -it --rm -v /path/to/config.conf:/etc/gollum/gollum.conf:ro trivago/gollum -c /etc/gollum/gollum.conf
 ```
+
+## Best practice
+
+### Managing own plugins in a seperate git repository
+
+You can add a own plugin module by simple using `git submodule`:
+
+```sh
+git submodule add -f https://github.com/YOUR_NAMESPACE/YOUR_REPO.git contrib/namespace
+```
+
+The from git created `.gitmodules` will be ignored by the gollum repository.
+
+After activating of your plugin in the `contrib_loader.go` file you are able to compile gollum with your own provided plugins.
 
 ## License
 

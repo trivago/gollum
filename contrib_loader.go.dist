@@ -12,13 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package contrib
+package main
 
 // This is a stub file to enable registration of vendor specific plugins that
 // are placed in sub folders of this folder.
 
 import (
-	_ "github.com/trivago/gollum/contrib/native" // plugins using cgo native bindings
+	_ "github.com/trivago/gollum/contrib/native/pcap" // plugins using cgo native bindings
+	//_ "github.com/trivago/gollum/contrib/native/kafka" // plugins using cgo native bindings
+	//_ "github.com/trivago/gollum/contrib/native/systemd" // plugins using cgo native bindings
 	//_ "your/company/package"
 )
 

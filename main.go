@@ -16,16 +16,6 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/trivago/gollum/consumer"
-	_ "github.com/trivago/gollum/contrib"
-	"github.com/trivago/gollum/core"
-	_ "github.com/trivago/gollum/filter"
-	_ "github.com/trivago/gollum/format"
-	_ "github.com/trivago/gollum/producer"
-	_ "github.com/trivago/gollum/stream"
-	"github.com/trivago/tgo"
-	"github.com/trivago/tgo/tlog"
-	"github.com/trivago/tgo/tstrings"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -35,13 +25,16 @@ import (
 	"strconv"
 	"strings"
 	"time"
-)
 
-const (
-	gollumMajorVer = 0
-	gollumMinorVer = 5
-	gollumPatchVer = 0
-	gollumDevVer   = 0
+	_ "github.com/trivago/gollum/consumer"
+	"github.com/trivago/gollum/core"
+	_ "github.com/trivago/gollum/filter"
+	_ "github.com/trivago/gollum/format"
+	_ "github.com/trivago/gollum/producer"
+	_ "github.com/trivago/gollum/stream"
+	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tlog"
+	"github.com/trivago/tgo/tstrings"
 )
 
 func main() {
@@ -172,11 +165,8 @@ func dumpMemoryProfile() {
 }
 
 func printVersion() {
-	if gollumDevVer > 0 {
-		fmt.Printf("Gollum v%d.%d.%d.%d dev\n", gollumMajorVer, gollumMinorVer, gollumPatchVer, gollumDevVer)
-	} else {
-		fmt.Printf("Gollum v%d.%d.%d\n", gollumMajorVer, gollumMinorVer, gollumPatchVer)
-	}
+	fmt.Printf("Gollum: %s\n", GetVersionString())
+	fmt.Printf("Version: %d\n", GetVersionNumber())
 	fmt.Println(runtime.Version())
 }
 
@@ -216,10 +206,5 @@ func setStaticMetrics() {
 	metricVersion := "Version"
 	tgo.Metric.New(metricVersion)
 	tgo.Metric.InitSystemMetrics()
-
-	if gollumDevVer > 0 {
-		tgo.Metric.Set(metricVersion, gollumMajorVer*1000000+gollumMinorVer*10000+gollumPatchVer*100+gollumDevVer)
-	} else {
-		tgo.Metric.Set(metricVersion, gollumMajorVer*10000+gollumMinorVer*100+gollumPatchVer)
-	}
+	tgo.Metric.Set(metricVersion, GetVersionNumber())
 }

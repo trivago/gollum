@@ -40,19 +40,22 @@ import (
 //    FileOverwrite: false
 //    Permissions: "0664"
 //    FolderPermissions: "0755"
-//    BatchMaxCount: 8192
-//    BatchFlushCount: 4096
-//    BatchTimeoutSec: 5
-//    FlushTimeoutSec: 0
-//    Rotate: false
-//    RotateTimeoutMin: 1440
-//    RotateSizeMB: 1024
-//    RotateAt: ""
-//    RotateTimestamp: "2006-01-02_15"
-//    RotatePruneCount: 0
-//    RotatePruneAfterHours: 0
-//    RotatePruneTotalSizeMB: 0
-//    Compress: false
+//    Batch:
+// 		MaxCount: 8192
+//    	FlushCount: 4096
+//    	TimeoutSec: 5
+//    FlushTimeoutSec: 5
+//    Rotation:
+//		Enable: false
+// 		Timestamp: 2006-01-02_15
+//    	TimeoutMin: 1440
+//    	SizeMB: 1024
+// 		Compress: false
+// 		ZeroPadding: 0
+// 	  Prune:
+//    	Count: 0
+//    	AfterHours: 0
+//    	TotalSizeMB: 0
 //
 // File contains the path to the log file to write. The wildcard character "*"
 // can be used as a placeholder for the stream name.
@@ -67,16 +70,16 @@ import (
 // FolderPermissions accepts an octal number string that contains the unix file
 // permissions used when creating a folder. By default this is set to "0755".
 //
-// BatchMaxCount defines the maximum number of messages that can be buffered
+// Batch/MaxCount defines the maximum number of messages that can be buffered
 // before a flush is mandatory. If the buffer is full and a flush is still
 // underway or cannot be triggered out of other reasons, the producer will
 // block. By default this is set to 8192.
 //
-// BatchFlushCount defines the number of messages to be buffered before they are
+// Batch/FlushCount defines the number of messages to be buffered before they are
 // written to disk. This setting is clamped to BatchMaxCount.
 // By default this is set to BatchMaxCount / 2.
 //
-// BatchTimeoutSec defines the maximum number of seconds to wait after the last
+// Batch/TimeoutSec defines the maximum number of seconds to wait after the last
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5.
 //
@@ -84,44 +87,40 @@ import (
 // aborted during shutdown. By default this is set to 0, which does not abort
 // the flushing procedure.
 //
-// Rotate if set to true the logs will rotate after reaching certain thresholds.
+// Rotation/Enable if set to true the logs will rotate after reaching certain thresholds.
 // By default this is set to false.
 //
-// RotateTimeoutMin defines a timeout in minutes that will cause the logs to
+// Rotation/TimeoutMin defines a timeout in minutes that will cause the logs to
 // rotate. Can be set in parallel with RotateSizeMB. By default this is set to
 // 1440 (i.e. 1 Day).
 //
-// RotateAt defines specific timestamp as in "HH:MM" when the log should be
-// rotated. Hours must be given in 24h format. When left empty this setting is
-// ignored. By default this setting is disabled.
-//
-// RotateSizeMB defines the maximum file size in MB that triggers a file rotate.
+// Rotation/SizeMB defines the maximum file size in MB that triggers a file rotate.
 // Files can get bigger than this size. By default this is set to 1024.
 //
-// RotateTimestamp sets the timestamp added to the filename when file rotation
+// Rotation/Timestamp sets the timestamp added to the filename when file rotation
 // is enabled. The format is based on Go's time.Format function and set to
 // "2006-01-02_15" by default.
 //
-// RotatePruneCount removes old logfiles upon rotate so that only the given
-// number of logfiles remain. Logfiles are located by the name defined by "File"
-// and are pruned by date (followed by name).
-// By default this is set to 0 which disables pruning.
-//
-// RotatePruneAfterHours removes old logfiles that are older than a given number
-// of hours. By default this is set to 0 which disables pruning.
-//
-// RotatePruneTotalSizeMB removes old logfiles upon rotate so that only the
-// given number of MBs are used by logfiles. Logfiles are located by the name
-// defined by "File" and are pruned by date (followed by name).
-// By default this is set to 0 which disables pruning.
-//
-// RotateZeroPadding sets the number of leading zeros when rotating files with
+// Rotation/ZeroPadding sets the number of leading zeros when rotating files with
 // an existing name. Setting this setting to 0 won't add zeros, every other
 // number defines the number of leading zeros to be used. By default this is
 // set to 0.
 //
-// Compress defines if a rotated logfile is to be gzip compressed or not.
+// Rotation/Compress defines if a rotated logfile is to be gzip compressed or not.
 // By default this is set to false.
+//
+// Prune/Count removes old logfiles upon rotate so that only the given
+// number of logfiles remain. Logfiles are located by the name defined by "File"
+// and are pruned by date (followed by name).
+// By default this is set to 0 which disables pruning.
+//
+// Prune/AfterHours removes old logfiles that are older than a given number
+// of hours. By default this is set to 0 which disables pruning.
+//
+// Prune/TotalSizeMB removes old logfiles upon rotate so that only the
+// given number of MBs are used by logfiles. Logfiles are located by the name
+// defined by "File" and are pruned by date (followed by name).
+// By default this is set to 0 which disables pruning.
 type File struct {
 	core.BufferedProducer
 	filesByStream     map[core.MessageStreamID]*fileState
