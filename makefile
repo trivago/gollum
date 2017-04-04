@@ -1,43 +1,44 @@
 .PHONY: all clean docker docker-dev install freebsd linux mac pi win examples current vendor test example
 .DEFAULT_GOAL := current
 
-VERSION=0.4.5
-BUILD_FLAGS=GO15VENDOREXPERIMENT=1 GORACE="halt_on_error=0"
+VERSION=0.5.0
+BUILD_ENV=GO15VENDOREXPERIMENT=1 GORACE="halt_on_error=0"
+BUILD_FLAGS=-ldflags=-s
 
 all: clean vendor test freebsd linux docker mac pi win examples current
 
 freebsd:
 	@echo "Building for FreeBSD/x64"
-	@GOOS=freebsd GOARCH=amd64 $(BUILD_FLAGS) go build -o gollum
+	@GOOS=freebsd GOARCH=amd64 $(BUILD_ENV) go build $(BUILD_FLAGS) -o gollum
 	@rm -f dist/gollum-$(VERSION)-FreeBSD_x64.zip
 	@zip dist/gollum-$(VERSION)-FreeBSD_x64.zip gollum
     
 linux:
 	@echo "Building for Linux/x64"
-	@GOOS=linux GOARCH=amd64 $(BUILD_FLAGS) go build -o gollum
+	@GOOS=linux GOARCH=amd64 $(BUILD_ENV) go build $(BUILD_FLAGS) -o gollum
 	@rm -f dist/gollum-$(VERSION)-Linux_x64.zip
 	@zip dist/gollum-$(VERSION)-Linux_x64.zip gollum
 
 mac:
 	@echo "Building for MacOS X (MacOS/x64)"
-	@GOOS=darwin GOARCH=amd64 $(BUILD_FLAGS) go build -o gollum
+	@GOOS=darwin GOARCH=amd64 $(BUILD_ENV) go build $(BUILD_FLAGS) -o gollum
 	@rm -f dist/gollum-$(VERSION)-MacOS_x64.zip
 	@zip dist/gollum-$(VERSION)-MacOS_x64.zip gollum
 
 pi:
 	@echo "Building for Raspberry Pi (Linux/ARMv6)"
-	@GOOS=linux GOARCH=arm GOARM=6 $(BUILD_FLAGS) go build -o gollum
+	@GOOS=linux GOARCH=arm GOARM=6 $(BUILD_ENV) go build $(BUILD_FLAGS) -o gollum
 	@rm -f dist/gollum-$(VERSION)-Linux_Arm6.zip
 	@zip dist/gollum-$(VERSION)-Linux_Arm6.zip gollum
 
 win:
 	@echo "Building for Windows/x64"
-	@GOOS=windows GOARCH=amd64 $(BUILD_FLAGS) go build -o gollum.exe
+	@GOOS=windows GOARCH=amd64 $(BUILD_ENV) go build $(BUILD_FLAGS) -o gollum.exe
 	@rm -f dist/gollum-$(VERSION)-Windows_x64.zip
 	@zip dist/gollum-$(VERSION)-Windows_x64.zip gollum
 
 current:
-	@$(BUILD_FLAGS) go build
+	@$(BUILD_ENV) go build $(BUILD_FLAGS) 
 
 install: current
 	@go install
@@ -52,7 +53,7 @@ vendor:
 	@glide update
 
 test:
-	@$(BUILD_FLAGS) go test -cover -v -timeout 10s -race $$(go list ./...|grep -v vendor)
+	@$(BUILD_ENV) go test $(BUILD_FLAGS) -cover -v -timeout 10s -race $$(go list ./...|grep -v vendor)
 
 clean:
 	@rm -f ./gollum
