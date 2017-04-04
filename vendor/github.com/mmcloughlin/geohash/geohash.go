@@ -134,6 +134,67 @@ func DecodeInt(hash uint64) (lat, lng float64) {
 	return DecodeIntWithPrecision(hash, 64)
 }
 
+// Neighbors returns a slice of geohash strings that correspond to the provided
+// geohash's neighbors.
+func Neighbors(hash string) []string {
+	box := BoundingBox(hash)
+	lat, lng := box.Center()
+	latDelta := box.MaxLat - box.MinLat
+	lngDelta := box.MaxLng - box.MinLng
+	precision := uint(len(hash))
+	return []string{
+		// N
+		EncodeWithPrecision(lat+latDelta, lng, precision),
+		// NE,
+		EncodeWithPrecision(lat+latDelta, lng+lngDelta, precision),
+		// E,
+		EncodeWithPrecision(lat, lng+lngDelta, precision),
+		// SE,
+		EncodeWithPrecision(lat-latDelta, lng+lngDelta, precision),
+		// S,
+		EncodeWithPrecision(lat-latDelta, lng, precision),
+		// SW,
+		EncodeWithPrecision(lat-latDelta, lng-lngDelta, precision),
+		// W,
+		EncodeWithPrecision(lat, lng-lngDelta, precision),
+		// NW
+		EncodeWithPrecision(lat+latDelta, lng-lngDelta, precision),
+	}
+}
+
+// NeighborsInt returns a slice of uint64s that correspond to the provided hash's
+// neighbors at 64-bit precision.
+func NeighborsInt(hash uint64) []uint64 {
+	return NeighborsIntWithPrecision(hash, 64)
+}
+
+// NeighborsIntWithPrecision returns a slice of uint64s that correspond to the
+// provided hash's neighbors at the given precision.
+func NeighborsIntWithPrecision(hash uint64, bits uint) []uint64 {
+	box := BoundingBoxIntWithPrecision(hash, bits)
+	lat, lng := box.Center()
+	latDelta := box.MaxLat - box.MinLat
+	lngDelta := box.MaxLng - box.MinLng
+	return []uint64{
+		// N
+		EncodeIntWithPrecision(lat+latDelta, lng, bits),
+		// NE,
+		EncodeIntWithPrecision(lat+latDelta, lng+lngDelta, bits),
+		// E,
+		EncodeIntWithPrecision(lat, lng+lngDelta, bits),
+		// SE,
+		EncodeIntWithPrecision(lat-latDelta, lng+lngDelta, bits),
+		// S,
+		EncodeIntWithPrecision(lat-latDelta, lng, bits),
+		// SW,
+		EncodeIntWithPrecision(lat-latDelta, lng-lngDelta, bits),
+		// W,
+		EncodeIntWithPrecision(lat, lng-lngDelta, bits),
+		// NW
+		EncodeIntWithPrecision(lat+latDelta, lng-lngDelta, bits),
+	}
+}
+
 // Encode the position of x within the range -r to +r as a 32-bit integer.
 func encodeRange(x, r float64) uint32 {
 	p := (x + r) / (2 * r)

@@ -15,11 +15,14 @@ Producers
 	kafkaproducer
 	kinesis
 	null
+	pcaphttp
 	proxy
 	redis
+	s3
 	scribe
 	socket
 	spooling
+	statsd
 	websocket
 
 Producers are plugins that transfer messages to external services.

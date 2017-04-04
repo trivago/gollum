@@ -1,4 +1,4 @@
-// Copyright 2015-2016 trivago GmbH
+// Copyright 2015-2017 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import (
 )
 
 // Syslogd consumer plugin
-// The syslogd consumer accepts messages from a syslogd comaptible socket.
+// The syslogd consumer accepts messages from a syslogd compatible socket.
 // When attached to a fuse, this consumer will stop the syslogd service in case
 // that fuse is burned.
 // Configuration example
@@ -59,7 +59,7 @@ func init() {
 func (cons *Syslogd) Configure(conf core.PluginConfigReader) error {
 	cons.SimpleConsumer.Configure(conf)
 
-	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", "udp://0.0.0.0:514"))
+	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", "udp://0.0.0.0:514"), "tcp")
 	format := conf.GetString("Format", "RFC6587")
 
 	switch cons.protocol {

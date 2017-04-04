@@ -19,6 +19,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // MarshalMap is a wrapper type to attach converter methods to maps normally
@@ -160,7 +161,24 @@ func (mmap MarshalMap) Float64(key string) (float64, error) {
 	return floatValue, nil
 }
 
-// Array returns a value at key that is expected to be a string
+// Duration returns a value at key that is expected to be a string
+func (mmap MarshalMap) Duration(key string) (time.Duration, error) {
+	val, exists := mmap.Value(key)
+	if !exists {
+		return time.Duration(0), fmt.Errorf(`"%s" is not set`, key)
+	}
+
+	switch val.(type) {
+	case time.Duration:
+		return val.(time.Duration), nil
+	case string:
+		return time.ParseDuration(val.(string))
+	}
+
+	return time.Duration(0), fmt.Errorf(`"%s" is expected to be a duration or string`, key)
+}
+
+// String returns a value at key that is expected to be a string
 func (mmap MarshalMap) String(key string) (string, error) {
 	val, exists := mmap.Value(key)
 	if !exists {
@@ -239,6 +257,44 @@ func (mmap MarshalMap) StringArray(key string) ([]string, error) {
 	}
 
 	return castToStringArray(key, val)
+}
+
+func castToInt64Array(key string, value interface{}) ([]int64, error) {
+	switch value.(type) {
+	case int:
+		return []int64{value.(int64)}, nil
+
+	case []interface{}:
+		arrayVal := value.([]interface{})
+		intArray := make([]int64, 0, len(arrayVal))
+
+		for _, val := range arrayVal {
+			intValue, isInt := val.(int64)
+			if !isInt {
+				return nil, fmt.Errorf(`"%s" does not contain int keys`, key)
+			}
+			intArray = append(intArray, intValue)
+		}
+		return intArray, nil
+
+	case []int64:
+		return value.([]int64), nil
+
+	default:
+		return nil, fmt.Errorf(`"%s" is not a valid string array type`, key)
+	}
+}
+
+// IntArray returns a value at key that is expected to be a []int64
+// This function supports conversion (by copy) from
+//  * []interface{}
+func (mmap MarshalMap) Int64Array(key string) ([]int64, error) {
+	val, exists := mmap.Value(key)
+	if !exists {
+		return nil, fmt.Errorf(`"%s" is not set`, key)
+	}
+
+	return castToInt64Array(key, val)
 }
 
 // StringMap returns a value at key that is expected to be a map[string]string.

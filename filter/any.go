@@ -1,4 +1,4 @@
-// Copyright 2015-2016 trivago GmbH
+// Copyright 2015-2017 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ func (filter *Any) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
+// Accepts allows messages where at least one nested filter reutrns true
 func (filter *Any) Modulate(msg *core.Message) core.ModulateResult {
 	for _, modulator := range filter.modulators {
 		if res := modulator.Modulate(msg); res != core.ModulateResultDiscard {

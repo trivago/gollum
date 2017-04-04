@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Search performs a very basic search on an index via the request URI API.
@@ -200,13 +201,26 @@ func (h *Hits) Len() int {
 
 type Highlight map[string][]string
 
+// TTL is a wrapper around time.Time that converts a number of milliseconds in the future to a time.Time.
+type TTL struct{ time.Time }
+
+func (t *TTL) UnmarshalJSON(data []byte) (err error) {
+	var millisecondsInFuture int64
+	if err = json.Unmarshal(data, &millisecondsInFuture); err == nil {
+		t.Time = time.Now().Add(time.Duration(millisecondsInFuture) * time.Millisecond)
+		return
+	}
+	return
+}
+
 type Hit struct {
 	Index       string           `json:"_index"`
 	Type        string           `json:"_type,omitempty"`
 	Id          string           `json:"_id"`
 	Score       Float32Nullable  `json:"_score,omitempty"` // Filters (no query) dont have score, so is null
 	Source      *json.RawMessage `json:"_source"`          // marshalling left to consumer
-	Fields      *json.RawMessage `json:"fields"`           // when a field arg is passed to ES, instead of _source it returns fields
+	TTL         *TTL             `json:"_ttl,omitempty"`
+	Fields      *json.RawMessage `json:"fields"` // when a field arg is passed to ES, instead of _source it returns fields
 	Explanation *Explanation     `json:"_explanation,omitempty"`
 	Highlight   *Highlight       `json:"highlight,omitempty"`
 	Sort        []interface{}    `json:"sort,omitempty"`

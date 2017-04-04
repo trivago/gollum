@@ -207,11 +207,6 @@ func (sb *StatsdBuffer) flush() (err error) {
 	if n == 0 {
 		return nil
 	}
-	err = sb.statsd.CreateSocket()
-	if nil != err {
-		sb.Logger.Println("Error establishing UDP connection for sending statsd events:", err)
-		return err
-	}
 	if err := sb.statsd.SendEvents(sb.events); err != nil {
 		sb.Logger.Println(err)
 		return err

@@ -128,6 +128,7 @@ func (s *SearchDsl) SourceFields(fields ...string) *SearchDsl {
 	s.args["_source"] = fields
 	return s
 }
+
 // Facet passes a Query expression to this search
 //
 //		qry := Search("github").Size("0").Facet(

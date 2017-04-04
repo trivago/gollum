@@ -1,4 +1,4 @@
-// Copyright 2015-2016 trivago GmbH
+// Copyright 2015-2017 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -105,7 +105,7 @@ func (prod *Socket) Configure(conf core.PluginConfigReader) error {
 
 	prod.acknowledge = tstrings.Unescape(conf.GetString("Acknowledge", ""))
 	prod.ackTimeout = time.Duration(conf.GetInt("AckTimeoutMs", 2000)) * time.Millisecond
-	prod.address, prod.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"))
+	prod.address, prod.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"), "tcp")
 
 	switch prod.protocol {
 	case "udp":

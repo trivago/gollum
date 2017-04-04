@@ -1,4 +1,4 @@
-// Copyright 2015-2016 trivago GmbH
+// Copyright 2015-2017 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,12 +26,12 @@ import (
 // Configuration example
 //
 //   - "stream.Broadcast":
-//	 Filter: "filter.Sample"
-//	 SampleRatePerGroup: 1
-//	 SampleGroupSize: 1
-//	 SampleDropToStream: ""
-//	 SampleRateIgnore:
-//	   - "foo"
+//	   Filter: "filter.Sample"
+//	   SampleRatePerGroup: 1
+//	   SampleGroupSize: 1
+//	   SampleDropToStream: ""
+//	   SampleRateIgnore:
+//	     - "foo"
 //
 // SampleRatePerGroup defines how many messages are passed through the filter
 // in each group. By default this is set to 1.
@@ -81,6 +81,7 @@ func (filter *Sample) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
+// Accepts allows message until a limit is hit
 func (filter *Sample) Modulate(msg *core.Message) core.ModulateResult {
 	// Ignore based on StreamID
 	if ignore, known := filter.ignore[msg.StreamID()]; known && ignore {
@@ -92,7 +93,7 @@ func (filter *Sample) Modulate(msg *core.Message) core.ModulateResult {
 	if count > filter.group {
 		if count%filter.group == 1 {
 			// make sure we never overflow filter.count
-			count = atomic.AddInt64(filter.count, -(filter.group))
+			count = atomic.AddInt64(filter.count, -(filter.group)) // TODO: filter.count can be != count here (!)
 		} else {
 			// range from 1 to filter.group
 			count = (count-1)%filter.group + 1

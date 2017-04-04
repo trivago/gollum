@@ -1,4 +1,4 @@
-// Copyright 2015-2016 trivago GmbH
+// Copyright 2015-2017 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import (
 	"github.com/abbot/go-http-auth"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tnet"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"sync"
@@ -159,16 +159,15 @@ func (cons *Http) requestHandler(resp http.ResponseWriter, req *http.Request) {
 			return // ### return, missing body ###
 		}
 
-		body := make([]byte, req.ContentLength)
-		length, err := req.Body.Read(body)
-		if err != nil && err != io.EOF {
+		body, err := ioutil.ReadAll(req.Body)
+		if err != nil {
 			resp.WriteHeader(http.StatusBadRequest)
 			cons.Log.Error.Print(err)
 			return // ### return, missing body or bad write ###
 		}
 		defer req.Body.Close()
 
-		cons.Enqueue(body[:length])
+		cons.Enqueue(body)
 		resp.WriteHeader(http.StatusOK)
 	}
 }

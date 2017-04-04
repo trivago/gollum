@@ -40,7 +40,7 @@ Parameters
   By default this is et to "kinesis.eu-west-1.amazonaws.com".
 
 **CredentialType**
-  CredentialType defines the credentials that are to be used when connectiong to kensis.
+  CredentialType defines the credentials that are to be used when connecting to kensis.
   This can be one of the following: environment, static, shared, none.
   Static enables the parameters CredentialId, CredentialToken and CredentialSecretm shared enables the parameters CredentialFile and CredentialProfile.
   None will not use any credentials and environment will pull the credentials from environmental settings.
@@ -48,7 +48,7 @@ Parameters
 
 **DefaultOffset**
   DefaultOffset defines the message index to start reading from.
-  Valid values are either "Newset", "Oldest", or a number.
+  Valid values are either "Newest", "Oldest", or a number.
   The default value is "Newest".
 
 **OffsetFile**

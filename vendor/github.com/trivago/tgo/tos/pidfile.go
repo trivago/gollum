@@ -15,6 +15,7 @@
 package tos
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -51,15 +52,16 @@ func WritePidFileForced(pid int, filename string) error {
 // A pidfile is expected to contain only an integer with a valid process id.
 func GetPidFromFile(filename string) (int, error) {
 	var (
-		pidString []byte
-		pid       int
-		err       error
+		pidBytes []byte
+		pid      int
+		err      error
 	)
 
-	if pidString, err = ioutil.ReadFile(filename); err != nil {
+	if pidBytes, err = ioutil.ReadFile(filename); err != nil {
 		return InvalidPID, fmt.Errorf("Could not read pidfile %s: %s", filename, err)
 	}
 
+	pidString := string(bytes.Trim(pidBytes, "\r\n\t "))
 	if pid, err = strconv.Atoi(string(pidString)); err != nil {
 		return InvalidPID, fmt.Errorf("Could not read pid from pidfile %s: %s", filename, err)
 	}

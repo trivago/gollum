@@ -1,4 +1,4 @@
-// Copyright 2015-2016 trivago GmbH
+// Copyright 2015-2017 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,11 +27,11 @@ import (
 )
 
 // KafkaProducer librdkafka producer plugin
+// NOTICE: This producer is not included in standard builds. To enable it
+// you need to trigger a custom build with native plugins enabled.
 // The kafka producer writes messages to a kafka cluster. This producer is
 // backed by the native librdkafka (0.8.6) library so most settings relate
 // to that library. This producer does not implement a fuse breaker.
-// NOTICE: This producer is not included in standard builds. To enable it
-// you need to trigger a custom build with native plugins enabled.
 // Configuration example
 //
 //  - "native.KafkaProducer":

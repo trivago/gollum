@@ -1,4 +1,4 @@
-// Copyright 2015-2016 trivago GmbH
+// Copyright 2015-2017 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -94,7 +94,7 @@ func (prod *Proxy) Configure(conf core.PluginConfigReader) error {
 	prod.SetStopCallback(prod.close)
 
 	prod.bufferSizeKB = conf.GetInt("ConnectionBufferSizeKB", 1<<10) // 1 MB
-	prod.address, prod.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"))
+	prod.address, prod.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"), "tcp")
 	if prod.protocol == "udp" {
 		conf.Errors.Pushf("Proxy does not support UDP")
 	}

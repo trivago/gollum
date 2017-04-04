@@ -1,4 +1,4 @@
-// Copyright 2015-2016 trivago GmbH
+// Copyright 2015-2017 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -116,7 +116,7 @@ const (
 // KeySeparator defines the separator that is appended to the kafka message key
 // if PrependKey is set to true. Set to ":" by default.
 //
-// MaxOpenRequests defines the number of simultanious connections are allowed.
+// MaxOpenRequests defines the number of simultaneous connections are allowed.
 // By default this is set to 5.
 //
 // ServerTimeoutSec defines the time after which a connection is set to timed
@@ -429,7 +429,7 @@ func (cons *Kafka) startConsumerForPartition(partitionID int32) kafka.PartitionC
 		startOffset := atomic.LoadInt64(cons.offsets[partitionID])
 		consumer, err := cons.consumer.ConsumePartition(cons.topic, partitionID, startOffset)
 		if err == nil {
-			return consumer // ### return, sucess ###
+			return consumer // ### return, success ###
 		}
 
 		cons.Log.Error.Printf("Failed to start kafka consumer (%s:%d) - %s", cons.topic, startOffset, err.Error())

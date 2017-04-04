@@ -59,6 +59,11 @@ func main() {
 
 	// Read and test config
 
+	configFile := *flagTestConfigFile
+	if configFile == "" {
+		configFile = *flagConfigFile
+	}
+
 	config, err := core.ReadConfig(*flagConfigFile)
 	if err != nil {
 		fmt.Printf("Config: %s\n", err.Error())
@@ -70,7 +75,7 @@ func main() {
 		fmt.Print(err.Error())
 	}
 
-	if *flagTestConfigFile {
+	if *flagTestConfigFile != "" {
 		if len(errors) == 0 {
 			fmt.Print("Config check passed.")
 		} else {

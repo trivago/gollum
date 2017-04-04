@@ -1,10 +1,7 @@
 package auth
 
-import (
-	"encoding/csv"
-	"os"
-	"sync"
-)
+import "encoding/csv"
+import "os"
 
 /* 
  SecretProvider is used by authenticators. Takes user name and realm
@@ -23,7 +20,6 @@ type File struct {
 	Info os.FileInfo
 	/* must be set in inherited types during initialization */
 	Reload func()
-	mu     sync.Mutex
 }
 
 func (f *File) ReloadIfNeeded() {
@@ -31,8 +27,6 @@ func (f *File) ReloadIfNeeded() {
 	if err != nil {
 		panic(err)
 	}
-	f.mu.Lock()
-	defer f.mu.Unlock()
 	if f.Info == nil || f.Info.ModTime() != info.ModTime() {
 		f.Info = info
 		f.Reload()
@@ -46,7 +40,6 @@ func (f *File) ReloadIfNeeded() {
 type HtdigestFile struct {
 	File
 	Users map[string]map[string]string
-	mu    sync.RWMutex
 }
 
 func reload_htdigest(hf *HtdigestFile) {
@@ -64,8 +57,6 @@ func reload_htdigest(hf *HtdigestFile) {
 		panic(err)
 	}
 
-	hf.mu.Lock()
-	defer hf.mu.Unlock()
 	hf.Users = make(map[string]map[string]string)
 	for _, record := range records {
 		_, exists := hf.Users[record[1]]
@@ -86,8 +77,6 @@ func HtdigestFileProvider(filename string) SecretProvider {
 	hf.Reload = func() { reload_htdigest(hf) }
 	return func(user, realm string) string {
 		hf.ReloadIfNeeded()
-		hf.mu.RLock()
-		defer hf.mu.RUnlock()
 		_, exists := hf.Users[realm]
 		if !exists {
 			return ""
@@ -107,7 +96,6 @@ func HtdigestFileProvider(filename string) SecretProvider {
 type HtpasswdFile struct {
 	File
 	Users map[string]string
-	mu    sync.RWMutex
 }
 
 func reload_htpasswd(h *HtpasswdFile) {
@@ -125,8 +113,6 @@ func reload_htpasswd(h *HtpasswdFile) {
 		panic(err)
 	}
 
-	h.mu.Lock()
-	defer h.mu.Unlock()
 	h.Users = make(map[string]string)
 	for _, record := range records {
 		h.Users[record[0]] = record[1]
@@ -143,9 +129,7 @@ func HtpasswdFileProvider(filename string) SecretProvider {
 	h.Reload = func() { reload_htpasswd(h) }
 	return func(user, realm string) string {
 		h.ReloadIfNeeded()
-		h.mu.RLock()
 		password, exists := h.Users[user]
-		h.mu.RUnlock()
 		if !exists {
 			return ""
 		}

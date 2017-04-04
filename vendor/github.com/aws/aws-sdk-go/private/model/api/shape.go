@@ -29,6 +29,7 @@ type ShapeRef struct {
 	XMLNamespace     XMLInfo
 	Payload          string
 	IdempotencyToken bool `json:"idempotencyToken"`
+	JSONValue        bool `json:"jsonvalue"`
 	Deprecated       bool `json:"deprecated"`
 
 	OrigShapeName string `json:"-"`
@@ -87,8 +88,14 @@ type Shape struct {
 	ErrorInfo ErrorInfo `json:"error"`
 }
 
+// ErrorCodeName will return the error shape's name formated for
+// error code const.
+func (s *Shape) ErrorCodeName() string {
+	return "ErrCode" + s.ShapeName
+}
+
 // ErrorName will return the shape's name or error code if available based
-// on the API's protocol.
+// on the API's protocol. This is the error code string returned by the service.
 func (s *Shape) ErrorName() string {
 	name := s.ShapeName
 	switch s.API.Metadata.Protocol {
@@ -141,11 +148,15 @@ func (s *Shape) GoTypeWithPkgName() string {
 // GenAccessors returns if the shape's reference should have setters generated.
 func (s *ShapeRef) UseIndirection() bool {
 	switch s.Shape.Type {
-	case "map", "list", "blob", "structure":
+	case "map", "list", "blob", "structure", "jsonvalue":
 		return false
 	}
 
 	if s.Streaming || s.Shape.Streaming {
+		return false
+	}
+
+	if s.JSONValue {
 		return false
 	}
 
@@ -175,6 +186,11 @@ func (s *Shape) GoStructType(name string, ref *ShapeRef) string {
 
 		s.API.imports["io"] = true
 		return rtype
+	}
+
+	if ref.JSONValue {
+		s.API.imports["github.com/aws/aws-sdk-go/aws"] = true
+		return "aws.JSONValue"
 	}
 
 	for _, v := range s.Validations {
@@ -229,6 +245,8 @@ func goType(s *Shape, withPkgName bool) string {
 		return "*" + s.ShapeName
 	case "map":
 		return "map[string]" + s.ValueRef.GoType()
+	case "jsonvalue":
+		return "aws.JSONValue"
 	case "list":
 		return "[]" + s.MemberRef.GoType()
 	case "boolean":
@@ -337,6 +355,7 @@ func (ref *ShapeRef) GoTags(toplevel bool, isRequired bool) string {
 	if ref.Deprecated || ref.Shape.Deprecated {
 		tags = append(tags, ShapeTag{"deprecated", "true"})
 	}
+
 	// All shapes have a type
 	tags = append(tags, ShapeTag{"type", ref.Shape.Type})
 

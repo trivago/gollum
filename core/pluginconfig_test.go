@@ -1,4 +1,4 @@
-// Copyright 2015-2016 trivago GmbH
+// Copyright 2015-2017 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -167,7 +167,7 @@ func TestPluginConfigGetString(t *testing.T) {
 }
 
 // Function gets the string array for a key or default value if non existent
-// Plan: Similart to TestPluginConfigGetString
+// Plan: Similar to TestPluginConfigGetString
 func TestPluginConfigGetStringArray(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockPluginCfg := NewPluginConfig("", "mockPlugin")
@@ -369,7 +369,7 @@ func TestPluginConfigGetBool(t *testing.T) {
 }
 
 // Function gets a value for a key which is neither int or bool. Value encapsulated by interface
-// Plan: similart to TestPluginConfigGetInt
+// Plan: similar to TestPluginConfigGetInt
 func TestPluginConfigGetValue(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockPluginCfg := NewPluginConfig("", "mockPlugin")

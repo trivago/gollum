@@ -7,7 +7,7 @@ import (
 )
 
 // SplitPick formatter plugin
-// SplitPick seperates value of messages according to a specified delimiter
+// SplitPick separates value of messages according to a specified delimiter
 // and returns the given indexed message. The index are zero based.
 // Configuration example
 //

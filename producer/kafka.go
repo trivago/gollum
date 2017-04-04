@@ -1,4 +1,4 @@
-// Copyright 2015-2016 trivago GmbH
+// Copyright 2015-2017 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -119,7 +119,7 @@ const (
 // Compression sets the method of compression to use. Valid values are:
 // "None","Zip" and "Snappy". By default "None" is set.
 //
-// MaxOpenRequests defines the number of simultanious connections are allowed.
+// MaxOpenRequests defines the number of simultaneous connections are allowed.
 // By default this is set to 5.
 //
 // BatchMinCount sets the minimum number of messages required to trigger a
@@ -415,7 +415,12 @@ func (prod *Kafka) pollResults() {
 				if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
 					prod.Log.Warning.Print("Kafka producer error on return: ", err)
 					prod.storeRTT(&msg)
-					prod.Drop(&msg)
+					if err == kafka.ErrMessageTooLarge {
+						prod.Log.Error.Print("Message discarded as too large.")
+						core.CountDiscardedMessage()
+					} else {
+						prod.Drop(&msg)
+					}
 				}
 			}
 

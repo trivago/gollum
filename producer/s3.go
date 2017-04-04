@@ -1,4 +1,4 @@
-// Copyright 2015-2016 trivago GmbH
+// Copyright 2015-2017 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -81,7 +81,7 @@ const (
 // By default this is set to "STANDARD".
 //
 // CredentialType defines the credentials that are to be used when
-// connectiong to kensis. This can be one of the following: environment,
+// connecting to s3. This can be one of the following: environment,
 // static, shared, none.
 // Static enables the parameters CredentialId, CredentialToken and
 // CredentialSecret shared enables the parameters CredentialFile and
@@ -136,7 +136,6 @@ const (
 // The full path of the object will be s3://<StreamMapping><Timestamp><PathFormat>
 // where Timestamp is time the object is written formatted with TimestampWrite,
 // and PathFormat is the output of PathFormatter when passed the object data.
-
 type S3 struct {
 	core.BufferedProducer
 	client            *s3.S3
@@ -469,10 +468,10 @@ func (prod *S3) uploadAll() error {
 	for s3Path, object := range prod.objects {
 		if err := prod.upload(object, true); err != nil {
 			return err
-		} else {
+		}
+
 			object.buffer.CloseAndDelete()
 			delete(prod.objects, s3Path)
-		}
 	}
 	return nil
 }
@@ -520,12 +519,12 @@ func (prod *S3) appendOrUpload(object *objectData, p []byte) error {
 		prod.Log.Error.Print("S3.appendOrUpload() buffer.Write() error:", err)
 		return err
 	}
-	object.Messages += 1
+	object.Messages++
 	return nil
 }
 
 func (prod *S3) transformMessages(messages []*core.Message) {
-	bufferedMessages := make([]*core.Message, 0)
+	bufferedMessages := []*core.Message{}
 	// Format and sort
 	for _, msg := range messages {
 		originalMsg := msg.Clone()
@@ -602,6 +601,7 @@ func (prod *S3) close() {
 	prod.storeState()
 }
 
+// Produce writes to a buffer that is sent to amazon s3.
 func (prod *S3) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
 

@@ -15,11 +15,13 @@
 package tio
 
 import (
+	"hash/crc32"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strings"
 )
 
 // FilesByDate implements the Sort interface by Date for os.FileInfo arrays
@@ -85,4 +87,47 @@ func SplitPath(filePath string) (dir string, base string, ext string) {
 	base = filepath.Base(filePath)
 	base = base[:len(base)-len(ext)]
 	return dir, base, ext
+}
+
+// FileExists does a proper check on wether a file exists or not.
+func FileExists(filePath string) bool {
+	_, err := os.Lstat(filePath)
+	return !os.IsNotExist(err)
+}
+
+// IsDirectory returns true if a given path points to a directory.
+func IsDirectory(filePath string) bool {
+	stat, err := os.Stat(filePath)
+	if err != nil {
+		return false
+	}
+	return stat.IsDir()
+}
+
+// CommonPath returns the longest common path of both paths given.
+func CommonPath(path1, path2 string) string {
+	parts1 := strings.Split(path1, "/")
+	parts2 := strings.Split(path2, "/")
+	maxIdx := len(parts1)
+	if len(parts2) < maxIdx {
+		maxIdx = len(parts2)
+	}
+
+	common := make([]string, 0, maxIdx)
+	for i := 0; i < maxIdx; i++ {
+		if parts1[i] == parts2[i] {
+			common = append(common, parts1[i])
+		}
+	}
+
+	return strings.Join(common, "/")
+}
+
+// FileCRC32 returns the checksum of a given file
+func FileCRC32(path string) (uint32, error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return 0, err
+	}
+	return crc32.ChecksumIEEE(data), nil
 }

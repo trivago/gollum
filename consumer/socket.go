@@ -1,4 +1,4 @@
-// Copyright 2015-2016 trivago GmbH
+// Copyright 2015-2017 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -134,7 +134,7 @@ func (cons *Socket) Configure(conf core.PluginConfigReader) error {
 	cons.clients = list.New()
 	cons.clientLock = new(sync.Mutex)
 	cons.acknowledge = tstrings.Unescape(conf.GetString("Acknowledge", ""))
-	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"))
+	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"), "tcp")
 	cons.reconnectTime = time.Duration(conf.GetInt("ReconnectAfterSec", 2)) * time.Second
 	cons.ackTimeout = time.Duration(conf.GetInt("AckTimoutSec", 2)) * time.Second
 	cons.readTimeout = time.Duration(conf.GetInt("ReadTimoutSec", 5)) * time.Second

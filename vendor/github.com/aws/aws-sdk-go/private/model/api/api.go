@@ -68,6 +68,8 @@ type Metadata struct {
 	Protocol            string
 	UID                 string
 	EndpointsID         string
+
+	NoResolveEndpoint bool
 }
 
 var serviceAliases map[string]string
@@ -185,10 +187,21 @@ func (a *API) ShapeList() []*Shape {
 	list := make([]*Shape, 0, len(a.Shapes))
 	for _, n := range a.ShapeNames() {
 		// Ignore error shapes in list
-		if a.Shapes[n].IsError {
-			continue
+		if s := a.Shapes[n]; !s.IsError {
+			list = append(list, s)
 		}
-		list = append(list, a.Shapes[n])
+	}
+	return list
+}
+
+// ShapeListErrors returns a list of the errors defined by the API model
+func (a *API) ShapeListErrors() []*Shape {
+	list := []*Shape{}
+	for _, n := range a.ShapeNames() {
+		// Ignore error shapes in list
+		if s := a.Shapes[n]; s.IsError {
+			list = append(list, s)
+		}
 	}
 	return list
 }
@@ -252,7 +265,6 @@ var tplAPI = template.Must(template.New("api").Parse(`
 // APIGoCode renders the API in Go code. Returning it as a string
 func (a *API) APIGoCode() string {
 	a.resetImports()
-	delete(a.imports, "github.com/aws/aws-sdk-go/aws")
 	a.imports["github.com/aws/aws-sdk-go/aws/awsutil"] = true
 	a.imports["github.com/aws/aws-sdk-go/aws/request"] = true
 	if a.OperationHasOutputPlaceholder() {
@@ -298,7 +310,7 @@ var noCrossLinkServices = map[string]struct{}{
 
 func GetCrosslinkURL(baseURL, name, uid string, params ...string) string {
 	_, ok := noCrossLinkServices[strings.ToLower(name)]
-	if baseURL != "" && !ok {
+	if uid != "" && baseURL != "" && !ok {
 		return strings.Join(append([]string{baseURL, "goto", "WebAPI", uid}, params...), "/")
 	}
 	return ""
@@ -371,7 +383,16 @@ const (
 //     // Create a {{ .StructName }} client with additional configuration
 //     svc := {{ .PackageName }}.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
 func New(p client.ConfigProvider, cfgs ...*aws.Config) *{{ .StructName }} {
-	c := p.ClientConfig({{ EndpointsIDValue . }}, cfgs...)
+	{{ if .Metadata.NoResolveEndpoint -}}
+		var c client.Config
+		if v, ok := p.(client.ConfigNoResolveEndpointProvider); ok {
+			c = v.ClientConfigNoResolveEndpoint(cfgs...)
+		} else {
+			c = p.ClientConfig({{ EndpointsIDValue . }}, cfgs...)
+		}
+	{{- else -}}
+		c := p.ClientConfig({{ EndpointsIDValue . }}, cfgs...)
+	{{- end }}
 	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion, c.SigningName)
 }
 
@@ -523,7 +544,7 @@ var tplInterface = template.Must(template.New("interface").Parse(`
 //        // mock response/functionality
 //    }
 //
-//    TestMyFunc(t *testing.T) {
+//    func TestMyFunc(t *testing.T) {
 //        // Setup Test
 //        mockSvc := &mock{{ .StructName }}Client{}
 //
@@ -554,6 +575,7 @@ var _ {{ .StructName }}API = (*{{ .PackageName }}.{{ .StructName }})(nil)
 func (a *API) InterfaceGoCode() string {
 	a.resetImports()
 	a.imports = map[string]bool{
+		"github.com/aws/aws-sdk-go/aws":                   true,
 		"github.com/aws/aws-sdk-go/aws/request":           true,
 		path.Join(a.SvcClientImportPath, a.PackageName()): true,
 	}
@@ -616,6 +638,12 @@ func resolveShapeValidations(s *Shape, ancestry ...*Shape) {
 	ancestry = append(ancestry, s)
 	for _, name := range children {
 		ref := s.MemberRefs[name]
+		// Since this is a grab bag we will just continue since
+		// we can't validate because we don't know the valued shape.
+		if ref.JSONValue {
+			continue
+		}
+
 		nestedShape := ref.Shape.NestedShape()
 
 		var v *ShapeValidation
@@ -637,4 +665,30 @@ func resolveShapeValidations(s *Shape, ancestry ...*Shape) {
 		}
 	}
 	ancestry = ancestry[:len(ancestry)-1]
+}
+
+// A tplAPIErrors is the top level template for the API
+var tplAPIErrors = template.Must(template.New("api").Parse(`
+const (
+{{ range $_, $s := $.ShapeListErrors }}
+	// {{ $s.ErrorCodeName }} for service response error code
+	// {{ printf "%q" $s.ErrorName }}.
+	{{ if $s.Docstring -}}
+	//
+	{{ $s.Docstring }}
+	{{ end -}}
+	{{ $s.ErrorCodeName }} = {{ printf "%q" $s.ErrorName }}
+{{ end }}
+)
+`))
+
+func (a *API) APIErrorsGoCode() string {
+	var buf bytes.Buffer
+	err := tplAPIErrors.Execute(&buf, a)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return strings.TrimSpace(buf.String())
 }

@@ -1,4 +1,4 @@
-// Copyright 2015-2016 trivago GmbH
+// Copyright 2015-2017 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -208,7 +208,7 @@ func TestProducerTickerLoop(t *testing.T) {
 		}
 		diff := time.Now().Sub(timeRecorded)
 		deltaDiff := math.Abs(float64(tickerLoopTimeout - diff))
-		expect.True(deltaDiff < delta)
+		expect.Less(deltaDiff, delta)
 		timeRecorded = time.Now()
 		atomic.AddInt32(counter, 1)
 		return

@@ -22,32 +22,25 @@ import (
 // batch handling. Convenience functions to wrap function calls of the
 // form func() (<type>, error) do exist for all golang base types.
 type ErrorStack struct {
-	errors []error
-	format ErrorStackFormat
+	errors    []error
+	formatter ErrorStackFormatter
 }
 
-type ErrorStackFormat int
-
-const (
-	// ErrorStackFormatNumbered formats like "0: error\n..."
-	ErrorStackFormatNumbered = ErrorStackFormat(iota)
-	// ErrorStackFormatNewline formats like "error\n..."
-	ErrorStackFormatNewline = ErrorStackFormat(iota)
-	// ErrorStackFormatCSV formats like "error, ..."
-	ErrorStackFormatCSV = ErrorStackFormat(iota)
-)
+// ErrorStackFormatter is used by ErroStack to generate a single error string
+// from an array of errors.
+type ErrorStackFormatter func([]error) string
 
 // NewErrorStack creates a new error stack
 func NewErrorStack() ErrorStack {
 	return ErrorStack{
-		errors: []error{},
-		format: ErrorStackFormatNumbered,
+		errors:    []error{},
+		formatter: ErrorStackFormatNumbered,
 	}
 }
 
 // SetFormat set the format used when Error() is called.
-func (stack *ErrorStack) SetFormat(format ErrorStackFormat) {
-	stack.format = format
+func (stack *ErrorStack) SetFormat(formatter ErrorStackFormatter) {
+	stack.formatter = formatter
 }
 
 // Push adds a new error to the top of the error stack.
@@ -99,18 +92,7 @@ func (stack ErrorStack) Error() string {
 		return ""
 	}
 
-	errString := ""
-	for idx, err := range stack.errors {
-		switch stack.format {
-		case ErrorStackFormatNumbered:
-			errString = fmt.Sprintf("%s%d: %s\n", errString, idx, err.Error())
-		case ErrorStackFormatNewline:
-			errString = fmt.Sprintf("%s%s\n", errString, err.Error())
-		case ErrorStackFormatCSV:
-			errString = fmt.Sprintf("%s%s, ", errString, err.Error())
-		}
-	}
-	return errString
+	return stack.formatter(stack.errors)
 }
 
 // Errors returns all gathered errors as an array
@@ -134,4 +116,38 @@ func (stack *ErrorStack) OrNil() error {
 // Clear removes all errors from the stack
 func (stack *ErrorStack) Clear() {
 	stack.errors = []error{}
+}
+
+// ErrorStackFormatNumbered returns errors with a number prefix, separated by
+// newline.
+func ErrorStackFormatNumbered(errors []error) string {
+	errString := ""
+	lastIdx := len(errors) - 1
+	for i := 0; i < lastIdx; i++ {
+		errString = fmt.Sprintf("%s%d: %s\n", errString, i+1, errors[i].Error())
+	}
+	errString = fmt.Sprintf("%s%d: %s", errString, lastIdx+1, errors[lastIdx].Error())
+	return errString
+}
+
+// ErrorStackFormatNumbered returns errors separated by newline
+func ErrorStackFormatNewline(errors []error) string {
+	errString := ""
+	lastIdx := len(errors) - 1
+	for i := 0; i < lastIdx; i++ {
+		errString = fmt.Sprintf("%s%s\n", errString, errors[i].Error())
+	}
+	errString = fmt.Sprintf("%s%s", errString, errors[lastIdx].Error())
+	return errString
+}
+
+// ErrorStackFormatNumbered returns errors separated by comma
+func ErrorStackFormatCSV(errors []error) string {
+	errString := ""
+	lastIdx := len(errors) - 1
+	for i := 0; i < lastIdx; i++ {
+		errString = fmt.Sprintf("%s%s, ", errString, errors[i].Error())
+	}
+	errString = fmt.Sprintf("%s%s", errString, errors[lastIdx].Error())
+	return errString
 }

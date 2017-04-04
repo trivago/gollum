@@ -1,4 +1,4 @@
-// Copyright 2015-2016 trivago GmbH
+// Copyright 2015-2017 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ const (
 // By default this is et to "kinesis.eu-west-1.amazonaws.com"
 //
 // CredentialType defines the credentials that are to be used when
-// connectiong to kensis. This can be one of the following: environment,
+// connecting to kensis. This can be one of the following: environment,
 // static, shared, none.
 // Static enables the parameters CredentialId, CredentialToken and
 // CredentialSecretm shared enables the parameters CredentialFile and
@@ -83,7 +83,7 @@ const (
 // By default this is set to none.
 //
 // DefaultOffset defines the message index to start reading from.
-// Valid values are either "Newset", "Oldest", or a number.
+// Valid values are either "Newest", "Oldest", or a number.
 // The default value is "Newest".
 //
 // OffsetFile defines a file to store the current offset per shard.

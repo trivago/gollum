@@ -17,7 +17,7 @@ Parameters
 
 **RateLimitIgnore**
   RateLimitIgnore defines a list of streams that should not be affected by rate limiting.
-  This is usefull for e.g. producers listeing to "*".
+  This is useful for e.g. producers listeing to "*".
   By default this list is empty.
 
 Example

@@ -34,6 +34,7 @@ A how-to-use documentation can be found on [read the docs](http://gollum.readthe
 * `Kinesis` read from a [Kinesis](https://aws.amazon.com/de/kinesis/) stream.
 * `Profiler` Generate profiling messages.
 * `Proxy` use in combination with a proxy producer to enable two-way communication.
+* `PcapHTTP` to read http traffic from libpcap, e.g. for traffic forwarding.
 * `Socket` read from a socket (gollum specific protocol).
 * `Syslogd` read from a socket (syslogd protocol).
 * `SystemD` read from the SystemD journal.
@@ -50,6 +51,7 @@ A how-to-use documentation can be found on [read the docs](http://gollum.readthe
 * `Kinesis` write data to a [Kinesis](https://aws.amazon.com/de/kinesis/) stream.
 * `Null` like /dev/null.
 * `Proxy` two-way communication proxy for simple protocols.
+* `Redis` write data to [Redis](https://redis.io).
 * `S3` write data to [Amazon S3](https://aws.amazon.com/de/s3/) stream.
 * `Scribe` send messages to a [Facebook scribe](https://github.com/facebookarchive/scribe) server.
 * `Socket` send messages to a socket (gollum specific protocol).
@@ -81,10 +83,12 @@ A how-to-use documentation can be found on [read the docs](http://gollum.readthe
 * `ProcessTSV` Modify fields of a TSV encoded message.
 * `Runlength` prepend the length of the message.
 * `Sequence` prepend the sequence number of the message.
+* `SplitPick` split a message by token and pick a specific one by index.
 * `SplitToJSON` tokenize a message and put the values into JSON fields.
 * `StreamName` prepend the name of a stream to the payload.
 * `StreamRevert` route a message to the previous stream (e.g. after it has been routed).
 * `StreamRoute` route a message to another stream by reading a prefix.
+* `TemplateJSON` run JSON data through golangs text/templat mechanism.
 * `Timestamp` prepend a timestamp to the message.
 
 ## Filters (filtering data)
@@ -229,7 +233,7 @@ If you want to do cross platform builds use `make all` or specify one of the fol
 There are also supplementary targets for make:
  * `clean` clean all artifacts created by the build process
  * `test` run unittests
- * `vendor` install gvt and update all dependencies
+ * `vendor` install [Glide](https://github.com/Masterminds/glide) and update all dependencies
  * `aws` build for Linux x64 and generate an [Elastic Beanstalk](https://aws.amazon.com/de/elasticbeanstalk/) package
  
 If you want to use native plugins (contrib/native) or self provided you will have to enable the corresponding imports in the file `contrib_loader.go`. You can copy the `contrib_loader.go.dist` file here and active the plugins you want to use.

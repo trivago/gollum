@@ -27,12 +27,9 @@ import (
 	"github.com/trivago/gollum/core"
 )
 
-const (
-	sdOffsetTail = "newest"
-	sdOffsetHead = "oldest"
-)
-
-// Systemd consumer plugin
+// SystemdConsumer consumer plugin
+// NOTICE: This producer is not included in standard builds. To enable it
+// you need to trigger a custom build with native plugins enabled.
 // The systemd consumer allows to read from the systemd journal.
 // When attached to a fuse, this consumer will stop reading messages in case
 // that fuse is burned.
@@ -55,7 +52,6 @@ const (
 // OffsetFile defines the path to a file that stores the current offset. If
 // the consumer is restarted that offset is used to continue reading. By
 // default this is set to "" which disables the offset file.
-
 type SystemdConsumer struct {
 	core.SimpleConsumer
 	journal    *sdjournal.Journal
@@ -63,6 +59,11 @@ type SystemdConsumer struct {
 	offsetFile string
 	running    bool
 }
+
+const (
+	sdOffsetTail = "newest"
+	sdOffsetHead = "oldest"
+)
 
 func init() {
 	core.TypeRegistry.Register(SystemdConsumer{})
@@ -101,36 +102,35 @@ func (cons *SystemdConsumer) Configure(conf core.PluginConfigReader) error {
 
 	switch offsetValue {
 	case sdOffsetHead:
-		err = cons.journal.SeekHead()
+		if err = cons.journal.SeekHead(); err != nil {
+			return err
+		}
 
 	case sdOffsetTail:
-		err = cons.journal.SeekTail()
-		if err != nil {
+		if err = cons.journal.SeekTail(); err != nil {
 			return err
 		}
 		// start *after* the newest record
-		_, err = cons.journal.Next()
+		if _, err = cons.journal.Next(); err != nil {
+			return err
+		}
 
 	default:
 		offset, err := strconv.ParseUint(offsetValue, 10, 64)
 		if err != nil {
 			return err
 		}
-		err = cons.journal.SeekRealtimeUsec(offset)
-		if err != nil {
+		if err = cons.journal.SeekRealtimeUsec(offset); err != nil {
 			return err
 		}
 		// start *after* the specified time
-		_, err = cons.journal.Next()
+		if _, err = cons.journal.Next(); err != nil {
+			return err
 	}
-
-	if err != nil {
-		return err
 	}
 
 	// Register close to the control message handler
 	cons.SetStopCallback(cons.close)
-
 	return conf.Errors.OrNil()
 }
 
@@ -178,6 +178,7 @@ func (cons *SystemdConsumer) read() {
 	}
 }
 
+// Consume enables systemd forwarding as configured.
 func (cons *SystemdConsumer) Consume(workers *sync.WaitGroup) {
 	cons.AddMainWorker(workers)
 	go cons.read()

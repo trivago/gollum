@@ -1,4 +1,4 @@
-// Copyright 2015-2016 trivago GmbH
+// Copyright 2015-2017 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
 package producer
 
 import (
+	"github.com/go-redis/redis"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tnet"
-	"gopkg.in/redis.v4"
 	"strconv"
 	"strings"
 	"sync"
@@ -102,7 +102,7 @@ func (prod *Redis) Configure(conf core.PluginConfigReader) error {
 	prod.key = conf.GetString("Key", "default")
 	prod.fieldFromParsed = conf.GetBool("FieldAfterFormat", false)
 	prod.keyFromParsed = conf.GetBool("KeyAfterFormat", false)
-	prod.address, prod.protocol = tnet.ParseAddress(conf.GetString("Address", ":6379"))
+	prod.address, prod.protocol = tnet.ParseAddress(conf.GetString("Address", ":6379"), "tcp")
 
 	switch strings.ToLower(conf.GetString("Storage", "hash")) {
 	case "hash":

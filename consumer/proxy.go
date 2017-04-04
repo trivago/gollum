@@ -1,4 +1,4 @@
-// Copyright 2015-2016 trivago GmbH
+// Copyright 2015-2017 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -94,7 +94,7 @@ func init() {
 func (cons *Proxy) Configure(conf core.PluginConfigReader) error {
 	cons.SimpleConsumer.Configure(conf)
 
-	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"))
+	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"), "tcp")
 	if cons.protocol == "udp" {
 		conf.Errors.Pushf("UDP is not supported")
 	}

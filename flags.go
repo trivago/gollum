@@ -1,4 +1,4 @@
-// Copyright 2015-2016 trivago GmbH
+// Copyright 2015-2017 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,9 +22,10 @@ import (
 var (
 	flagHelp           = tflag.Switch("h", "help", "Print this help message.")
 	flagVersion        = tflag.Switch("v", "version", "Print version information and quit.")
+	flagReport         = tflag.Switch("r", "report", "Print detailed version report and quit.")
 	flagModules        = tflag.Switch("l", "list", "Print plugin information and quit.")
 	flagConfigFile     = tflag.String("c", "config", "", "Use a given configuration file.")
-	flagTestConfigFile = tflag.Switch("tc", "testconfig", "Test the given configuration file and exit.")
+	flagTestConfigFile = tflag.String("tc", "testconfig", "", "Test the given configuration file and exit.")
 	flagLoglevel       = tflag.Int("ll", "loglevel", 1, "Set the loglevel [0-3] as in {0=Errors, 1=+Warnings, 2=+Notes, 3=+Debug}.")
 	flagNumCPU         = tflag.Int("n", "numcpu", 0, "Number of CPUs to use. Set 0 for all CPUs.")
 	flagPidFile        = tflag.String("p", "pidfile", "", "Write the process id into a given file.")

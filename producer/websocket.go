@@ -1,4 +1,4 @@
-// Copyright 2015-2016 trivago GmbH
+// Copyright 2015-2017 trivago GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
 package producer
 
 import (
+	"github.com/gorilla/websocket"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tnet"
 	"github.com/trivago/tgo/tsync"
-	"golang.org/x/net/websocket"
 	"net/http"
 	"sync"
 	"sync/atomic"
@@ -52,6 +52,8 @@ type Websocket struct {
 	clients        [2]clientList
 	clientIdx      uint32
 	readTimeoutSec time.Duration
+	upgrader       websocket.Upgrader
+	ignoreOrigin   bool
 }
 
 type clientList struct {
@@ -71,6 +73,10 @@ func (prod *Websocket) Configure(conf core.PluginConfigReader) error {
 	prod.address = conf.GetString("Address", ":81")
 	prod.path = conf.GetString("Path", "/")
 	prod.readTimeoutSec = time.Duration(conf.GetInt("ReadTimeoutSec", 3)) * time.Second
+	prod.ignoreOrigin = conf.GetBool("IgnoreOrigin", false)
+	prod.upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool { return prod.ignoreOrigin },
+	}
 
 	return conf.Errors.OrNil()
 }
@@ -80,13 +86,11 @@ func (prod *Websocket) handleConnection(conn *websocket.Conn) {
 
 	prod.clients[idx].conns = append(prod.clients[idx].conns, conn)
 	prod.clients[idx].doneCount++
-	buffer := make([]byte, 8)
-
-	conn.SetDeadline(time.Time{})
+	conn.SetReadDeadline(time.Time{})
 
 	// Keep alive until connection is closed
 	for {
-		if _, err := conn.Read(buffer); err != nil {
+		if _, _, err := conn.ReadMessage(); err != nil {
 			conn.Close()
 			break
 		}
@@ -134,7 +138,7 @@ func (prod *Websocket) pushMessage(msg *core.Message) {
 
 	for i := 0; i < len(activeConns.conns); i++ {
 		client := activeConns.conns[i]
-		if _, err := client.Write(msg.Data()); err != nil {
+		if err := client.WriteMessage(websocket.TextMessage, msg.Data()); err != nil {
 			activeConns.conns = append(activeConns.conns[:i], activeConns.conns[i+1:]...)
 			if closeErr := client.Close(); closeErr == nil {
 				prod.Log.Error.Print(err)
@@ -142,6 +146,16 @@ func (prod *Websocket) pushMessage(msg *core.Message) {
 			i--
 		}
 	}
+}
+
+func (prod *Websocket) upgrade(w http.ResponseWriter, r *http.Request) {
+	conn, err := prod.upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		prod.Log.Error.Print("Websocket: ", err)
+		// Return here to not track invalid connections
+		return
+	}
+	prod.handleConnection(conn)
 }
 
 func (prod *Websocket) serve() {
@@ -153,17 +167,9 @@ func (prod *Websocket) serve() {
 		return // ### return, could not connect ###
 	}
 
-	config, err := websocket.NewConfig(prod.address, prod.path)
-	if err != nil {
-		prod.Log.Error.Print(err)
-		return // ### return, could not connect ###
-	}
+	http.HandleFunc(prod.path, prod.upgrade)
 
 	srv := http.Server{
-		Handler: websocket.Server{
-			Handler: prod.handleConnection,
-			Config:  *config,
-		},
 		ReadTimeout: prod.readTimeoutSec,
 	}
 
