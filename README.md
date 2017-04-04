@@ -1,6 +1,9 @@
 ![Gollum](docs/gollum.png)
 
-## Gollum
+## Gollum v0.5.0
+
+***This is a DEVELOPMENT branch.***
+Please read the list of [breaking changes](https://github.com/trivago/gollum/wiki/Breaking050) from 0.4.x to 0.5.0.
 
 [![GoDoc](https://godoc.org/github.com/trivago/gollum?status.svg)](https://godoc.org/github.com/trivago/gollum)
 [![Documentation Status](https://readthedocs.org/projects/gollum/badge/?version=latest)](http://gollum.readthedocs.org/en/latest/)
