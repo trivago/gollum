@@ -102,7 +102,7 @@ func (prod *Redis) Configure(conf core.PluginConfigReader) error {
 	prod.key = conf.GetString("Key", "default")
 	prod.fieldFromParsed = conf.GetBool("FieldAfterFormat", false)
 	prod.keyFromParsed = conf.GetBool("KeyAfterFormat", false)
-	prod.address, prod.protocol = tnet.ParseAddress(conf.GetString("Address", ":6379"), "tcp")
+	prod.protocol, prod.address = tnet.ParseAddress(conf.GetString("Address", ":6379"), "tcp")
 
 	switch strings.ToLower(conf.GetString("Storage", "hash")) {
 	case "hash":

@@ -94,7 +94,7 @@ func (prod *Proxy) Configure(conf core.PluginConfigReader) error {
 	prod.SetStopCallback(prod.close)
 
 	prod.bufferSizeKB = conf.GetInt("ConnectionBufferSizeKB", 1<<10) // 1 MB
-	prod.address, prod.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"), "tcp")
+	prod.protocol, prod.address = tnet.ParseAddress(conf.GetString("Address", ":5880"), "tcp")
 	if prod.protocol == "udp" {
 		conf.Errors.Pushf("Proxy does not support UDP")
 	}

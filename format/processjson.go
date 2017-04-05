@@ -231,7 +231,7 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 			if index < 0 || index >= len(array) {
 				if len(array) > 0 {
 					// Don't log if array is empty
-					format.Log.Warning.Print("Array index %d out of bounds: %#v", index, array)
+					format.Log.Warning.Printf("Array index %d out of bounds: %#v", index, array)
 				}
 				return
 			}

@@ -94,7 +94,7 @@ func init() {
 func (cons *Proxy) Configure(conf core.PluginConfigReader) error {
 	cons.SimpleConsumer.Configure(conf)
 
-	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"), "tcp")
+	cons.protocol, cons.address = tnet.ParseAddress(conf.GetString("Address", ":5880"), "tcp")
 	if cons.protocol == "udp" {
 		conf.Errors.Pushf("UDP is not supported")
 	}

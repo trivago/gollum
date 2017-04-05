@@ -134,7 +134,7 @@ func (cons *Socket) Configure(conf core.PluginConfigReader) error {
 	cons.clients = list.New()
 	cons.clientLock = new(sync.Mutex)
 	cons.acknowledge = tstrings.Unescape(conf.GetString("Acknowledge", ""))
-	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"), "tcp")
+	cons.protocol, cons.address = tnet.ParseAddress(conf.GetString("Address", ":5880"), "tcp")
 	cons.reconnectTime = time.Duration(conf.GetInt("ReconnectAfterSec", 2)) * time.Second
 	cons.ackTimeout = time.Duration(conf.GetInt("AckTimoutSec", 2)) * time.Second
 	cons.readTimeout = time.Duration(conf.GetInt("ReadTimoutSec", 5)) * time.Second

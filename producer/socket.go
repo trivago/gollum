@@ -105,7 +105,7 @@ func (prod *Socket) Configure(conf core.PluginConfigReader) error {
 
 	prod.acknowledge = tstrings.Unescape(conf.GetString("Acknowledge", ""))
 	prod.ackTimeout = time.Duration(conf.GetInt("AckTimeoutMs", 2000)) * time.Millisecond
-	prod.address, prod.protocol = tnet.ParseAddress(conf.GetString("Address", ":5880"), "tcp")
+	prod.protocol, prod.address = tnet.ParseAddress(conf.GetString("Address", ":5880"), "tcp")
 
 	switch prod.protocol {
 	case "udp":
