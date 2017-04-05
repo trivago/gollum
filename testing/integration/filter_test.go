@@ -35,12 +35,12 @@ func TestRegexpFilter(t *testing.T) {
 	input := []string{"abc", "123"}
 	out, err := ExecuteGollum(TestConfigFileName, input, "-ll=2")
 
-	expect.Nil(err)
+	expect.NoError(err)
 	expect.True(strings.Contains(out.String(), "(startup)"))
 
 	// get results from file target
 	fileContent, err := GetFileContentAsString(TmpTestFilePath)
-	expect.Nil(err)
+	expect.NoError(err)
 
 	// final expectations
 	expect.True(strings.Contains(fileContent, "abc"))

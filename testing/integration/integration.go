@@ -5,7 +5,6 @@ package integration
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -78,7 +77,10 @@ func GetFileContentAsString(filepath string) (string, error) {
 	}
 	defer file.Close()
 
-	b, _ := ioutil.ReadAll(file)
+	b, err := ioutil.ReadAll(file)
+	if err != nil {
+		return "", err
+	}
 
 	return string(b), nil
 }
@@ -86,14 +88,12 @@ func GetFileContentAsString(filepath string) (string, error) {
 func getGollumPath() (pwd string) {
 	pwd, err := os.Getwd()
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		panic(err)
 	}
 
-	dir, errFilepath := filepath.Abs(pwd + "/../../")
-	if errFilepath != nil {
-		fmt.Println(errFilepath)
-		os.Exit(1)
+	dir, err := filepath.Abs(pwd + "/../../")
+	if err != nil {
+		panic(err)
 	}
 
 	return dir
@@ -104,8 +104,7 @@ func getTestConfigPath(configFile string) string {
 
 	dir, err := filepath.Abs(baseDir + "/testing/configs/")
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		panic(err)
 	}
 
 	return dir + "/" + configFile

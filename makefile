@@ -1,4 +1,4 @@
-.PHONY: all clean docker docker-dev install freebsd linux mac pi win examples current vendor test example
+.PHONY: all clean docker docker-dev install freebsd linux mac pi win examples current vendor test unit integration example
 .DEFAULT_GOAL := current
 
 VERSION=0.5.0
@@ -58,13 +58,11 @@ vendor:
 	@glide cc
 	@glide update
 
+test: unit integration
+
 unit:
 	@echo "go tests SDK"
-	@$(BUILD_ENV) go test $(BUILD_FLAGS) -v -tags ${UNIT_TEST_TAGS} $(UNIT_TEST_ONLY_PKGS)
-
-unit-with-race-cover:
-	@echo "go test SDK witch race and cover"
-	@$(BUILD_ENV) go test $(BUILD_FLAGS) -cover -timeout 10s -race -tags ${UNIT_TEST_TAGS} $(UNIT_TEST_ONLY_PKGS)
+	@$(BUILD_ENV) go test $(BUILD_FLAGS) -v -cover -timeout 10s -race -tags ${UNIT_TEST_TAGS} $(UNIT_TEST_ONLY_PKGS)
 
 integration: current
 	@echo "go tests integration"

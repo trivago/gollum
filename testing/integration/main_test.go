@@ -12,6 +12,6 @@ func TestRunable(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	out, err := ExecuteGollum("", nil, "-v")
 
-	expect.Nil(err)
+	expect.NoError(err)
 	expect.True(strings.Contains(out.String(), "Gollum: v"))
 }
