@@ -60,15 +60,15 @@ vendor:
 
 unit:
 	@echo "go tests SDK"
-	@$(BUILD_FLAGS) go test $(BUILD_FLAGS) -v -tags ${UNIT_TEST_TAGS} $(UNIT_TEST_ONLY_PKGS)
+	@$(BUILD_ENV) go test $(BUILD_FLAGS) -v -tags ${UNIT_TEST_TAGS} $(UNIT_TEST_ONLY_PKGS)
 
 unit-with-race-cover:
 	@echo "go test SDK witch race and cover"
-	@$(BUILD_FLAGS) go test $(BUILD_FLAGS) -cover -timeout 10s -race -tags ${UNIT_TEST_TAGS} $(UNIT_TEST_ONLY_PKGS)
+	@$(BUILD_ENV) go test $(BUILD_FLAGS) -cover -timeout 10s -race -tags ${UNIT_TEST_TAGS} $(UNIT_TEST_ONLY_PKGS)
 
 integration: current
 	@echo "go tests integration"
-	@$(BUILD_FLAGS) go test $(BUILD_FLAGS) -v -tags="integration" $(INTEGRATION_TEST_ONLY_PKGS)
+	@$(BUILD_ENV) go test $(BUILD_FLAGS) -v -tags="integration" $(INTEGRATION_TEST_ONLY_PKGS)
 
 clean:
 	@rm -f ./gollum
