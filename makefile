@@ -5,6 +5,12 @@ VERSION=0.5.0
 BUILD_ENV=GO15VENDOREXPERIMENT=1 GORACE="halt_on_error=0"
 BUILD_FLAGS=-ldflags=-s
 
+UNIT_TEST_TAGS="unit"
+INTEGRATION_TEST_TAGS="integration"
+
+UNIT_TEST_ONLY_PKGS=$(shell go list -tags ${UNIT_TEST_TAGS} ./... | grep -v "/vendor/" | grep -v "/contrib/")
+INTEGRATION_TEST_ONLY_PKGS=$(shell go list -tags ${INTEGRATION_TEST_TAGS} ./testing/integration/...)
+
 all: clean vendor test freebsd linux docker mac pi win examples current
 
 freebsd:
@@ -38,11 +44,11 @@ win:
 	@zip dist/gollum-$(VERSION)-Windows_x64.zip gollum
 
 current:
-	@$(BUILD_ENV) go build $(BUILD_FLAGS) 
+	@$(BUILD_ENV) go build $(BUILD_FLAGS)
 
 install: current
 	@go install
-    
+
 examples:
 	@echo "Building Examples"
 	@zip -j dist/gollum-$(VERSION)-Examples.zip config/*.conf
@@ -52,8 +58,17 @@ vendor:
 	@glide cc
 	@glide update
 
-test:
-	@$(BUILD_ENV) go test $(BUILD_FLAGS) -cover -v -timeout 10s -race $$(go list ./...|grep -v vendor)
+unit:
+	@echo "go tests SDK"
+	@$(BUILD_FLAGS) go test $(BUILD_FLAGS) -v -tags ${UNIT_TEST_TAGS} $(UNIT_TEST_ONLY_PKGS)
+
+unit-with-race-cover:
+	@echo "go test SDK witch race and cover"
+	@$(BUILD_FLAGS) go test $(BUILD_FLAGS) -cover -timeout 10s -race -tags ${UNIT_TEST_TAGS} $(UNIT_TEST_ONLY_PKGS)
+
+integration: current
+	@echo "go tests integration"
+	@$(BUILD_FLAGS) go test $(BUILD_FLAGS) -v -tags="integration" $(INTEGRATION_TEST_ONLY_PKGS)
 
 clean:
 	@rm -f ./gollum
