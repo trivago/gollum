@@ -8,7 +8,7 @@ BUILD_FLAGS=-ldflags=-s
 UNIT_TEST_TAGS="unit"
 INTEGRATION_TEST_TAGS="integration"
 
-UNIT_TEST_ONLY_PKGS=$(shell go list -tags ${UNIT_TEST_TAGS} ./... | grep -v "/vendor/" | grep -v "/contrib/")
+UNIT_TEST_ONLY_PKGS=$(shell go list -tags ${UNIT_TEST_TAGS} ./... | grep -v "/vendor/" | grep -v "/contrib/" | grep -v "/testing/integration" )
 INTEGRATION_TEST_ONLY_PKGS=$(shell go list -tags ${INTEGRATION_TEST_TAGS} ./testing/integration/...)
 
 all: clean vendor test freebsd linux docker mac pi win examples current
