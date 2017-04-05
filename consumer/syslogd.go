@@ -59,13 +59,13 @@ func init() {
 func (cons *Syslogd) Configure(conf core.PluginConfigReader) error {
 	cons.SimpleConsumer.Configure(conf)
 
-	cons.address, cons.protocol = tnet.ParseAddress(conf.GetString("Address", "udp://0.0.0.0:514"), "tcp")
+	cons.protocol, cons.address = tnet.ParseAddress(conf.GetString("Address", "udp://0.0.0.0:514"), "tcp")
 	format := conf.GetString("Format", "RFC6587")
 
 	switch cons.protocol {
 	case "udp", "tcp", "unix":
 	default:
-		conf.Errors.Pushf("nknown protocol type %s", cons.protocol) // ### return, unknown protocol ###
+		conf.Errors.Pushf("Unknown protocol type %s", cons.protocol) // ### return, unknown protocol ###
 	}
 
 	switch format {
