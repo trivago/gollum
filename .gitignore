@@ -1,16 +1,35 @@
+# IDE's / os related
+.vscode
+**/.DS_Store
+
+# git
+.gitmodules
+
+# gollum
 gollum
 gollum.pid
 gollum.exe
-*.prof
+
+contrib/*
+!contrib/native
+contrib_loader.go
+
+# docs
 docs/_build
+
+# files
+*.prof
 *.tar.gz
 *.zip
+
+# debugging
 test
+debug
+
+# vendor
 vendor/**/*
 !vendor/**/
 !vendor/**/*.go
 !vendor/**/*.s
 !vendor/**/LICENSE
 vendor/**/*_test.go
-**/.DS_Store
-.vscode
