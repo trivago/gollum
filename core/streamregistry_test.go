@@ -55,8 +55,8 @@ func TestStreamRegistryGetStreamByName(t *testing.T) {
 
 	mockStreamID := StreamRegistry.GetStreamID("testStream")
 	// TODO: Get a real stream and test with that
-	mockSRegistry.streams[mockStreamID] = &mockStream{}
-	expect.Equal(mockSRegistry.GetStreamByName("testStream"), &mockStream{})
+	mockSRegistry.streams[mockStreamID] = &mockRouter{}
+	expect.Equal(mockSRegistry.GetStreamByName("testStream"), &mockRouter{})
 }
 
 func TestStreamRegistryIsStreamRegistered(t *testing.T) {
@@ -67,7 +67,7 @@ func TestStreamRegistryIsStreamRegistered(t *testing.T) {
 
 	expect.False(mockSRegistry.IsStreamRegistered(mockStreamID))
 	// TODO: Get a real stream and test with that
-	mockSRegistry.streams[mockStreamID] = &mockStream{}
+	mockSRegistry.streams[mockStreamID] = &mockRouter{}
 	expect.True(mockSRegistry.IsStreamRegistered(mockStreamID))
 }
 
@@ -79,7 +79,7 @@ func TestStreamRegistryForEachStream(t *testing.T) {
 		expect.Equal(streamID, StreamRegistry.GetStreamID("testRegistry"))
 	}
 
-	mockSRegistry.streams[StreamRegistry.GetStreamID("testRegistry")] = &mockStream{}
+	mockSRegistry.streams[StreamRegistry.GetStreamID("testRegistry")] = &mockRouter{}
 	mockSRegistry.ForEachStream(callback)
 }
 
@@ -102,7 +102,7 @@ func TestStreamRegistryAddWildcardProducersToStream(t *testing.T) {
 	mockSRegistry := getMockStreamRegistry()
 
 	// create stream to which wildcardProducer is to be added
-	mockStream := getMockStream()
+	mockRouter := getMockRouter()
 
 	// create wildcardProducer.
 	mProducer := new(mockProducer)
@@ -110,9 +110,9 @@ func TestStreamRegistryAddWildcardProducersToStream(t *testing.T) {
 	mProducer.dropStream = StreamRegistry.GetStream(StreamRegistry.GetStreamID("wildcardProducerDrop"))
 	mockSRegistry.RegisterWildcardProducer(mProducer)
 
-	mockSRegistry.AddWildcardProducersToStream(&mockStream)
+	mockSRegistry.AddWildcardProducersToStream(&mockRouter)
 
-	streamsProducer := mockStream.GetProducers()
+	streamsProducer := mockRouter.GetProducers()
 	expect.Equal(len(streamsProducer), 1)
 
 	// GetDropStreamID removed from  Producer interface in v0.5.0
@@ -125,8 +125,8 @@ func TestStreamRegistryRegister(t *testing.T) {
 	mockSRegistry := getMockStreamRegistry()
 
 	streamName := "testStream"
-	mockStream := getMockStream()
-	mockSRegistry.Register(&mockStream, StreamRegistry.GetStreamID(streamName))
+	mockRouter := getMockRouter()
+	mockSRegistry.Register(&mockRouter, StreamRegistry.GetStreamID(streamName))
 
 	expect.NotNil(mockSRegistry.GetStream(StreamRegistry.GetStreamID(streamName)))
 }

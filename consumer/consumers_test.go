@@ -16,7 +16,7 @@ package consumer
 
 import (
 	"github.com/trivago/gollum/core"
-	_ "github.com/trivago/gollum/stream"
+	_ "github.com/trivago/gollum/router"
 	"testing"
 )
 

@@ -19,9 +19,9 @@ import (
 )
 
 // Broadcast stream plugin
-// Messages will be sent to all producers attached to this stream.
+// Messages will be sent to all producers attached to this router.
 type Broadcast struct {
-	core.SimpleStream
+	core.SimpleRouter
 }
 
 func init() {
@@ -29,27 +29,28 @@ func init() {
 }
 
 // Configure initializes this distributor with values from a plugin config.
-func (stream *Broadcast) Configure(conf core.PluginConfigReader) error {
-	return stream.SimpleStream.Configure(conf)
+func (router *Broadcast) Configure(conf core.PluginConfigReader) error {
+	return router.SimpleRouter.Configure(conf)
 }
 
-func (stream *Broadcast) Enqueue(msg *core.Message) error {
-	producers := stream.GetProducers()
+// Enqueue enques a message to the router
+func (router *Broadcast) Enqueue(msg *core.Message) error {
+	producers := router.GetProducers()
 	numProducers := len(producers)
 
 	switch numProducers {
 	case 0:
-		return core.NewModulateResultError("No producers configured for stream %s", stream.GetID())
+		return core.NewModulateResultError("No producers configured for stream %s", router.GetID())
 
 	case 1:
-		producers[0].Enqueue(msg, stream.Timeout)
+		producers[0].Enqueue(msg, router.Timeout)
 
 	default:
 		lastProdIdx := numProducers - 1
 		for prodIdx := 0; prodIdx < lastProdIdx; prodIdx++ {
-			producers[prodIdx].Enqueue(msg.Clone(), stream.Timeout)
+			producers[prodIdx].Enqueue(msg.Clone(), router.Timeout)
 		}
-		producers[lastProdIdx].Enqueue(msg, stream.Timeout)
+		producers[lastProdIdx].Enqueue(msg, router.Timeout)
 	}
 
 	return nil

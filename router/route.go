@@ -24,14 +24,16 @@ import (
 // the producers attached to the target streams.
 // Configuration example
 //
-//  - "stream.Route":
-//    Routes:
+// 	myrouter":
+//    Type: "router.Route"
+//    Stream: "mystream"
+// 	  Routes:
 //      - "foo"
 //      - "bar"
 //
 // Routes defines a 1:n stream remapping.
 // Messages are reassigned to all of stream(s) in this list.
-// If no route is set messages are forwarded on the incoming stream.
+// If no route is set messages are forwarded on the incoming router.
 // When routing to multiple streams, the incoming stream has to be listed explicitly to be used.
 type Route struct {
 	Broadcast
@@ -43,43 +45,44 @@ func init() {
 }
 
 // Configure initializes this distributor with values from a plugin config.
-func (stream *Route) Configure(conf core.PluginConfigReader) error {
-	stream.Broadcast.Configure(conf)
+func (router *Route) Configure(conf core.PluginConfigReader) error {
+	router.Broadcast.Configure(conf)
 
 	boundStreamIDs := conf.GetStreamArray("Streams", []core.MessageStreamID{})
 	for _, streamID := range boundStreamIDs {
 		route := core.StreamRegistry.GetStreamOrFallback(streamID)
-		stream.streams = append(stream.streams, route)
+		router.streams = append(router.streams, route)
 	}
 
 	return conf.Errors.OrNil()
 }
 
-func (stream *Route) route(msg *core.Message, route core.Stream) {
-	if route.StreamID() == stream.StreamID() {
-		stream.Broadcast.Enqueue(msg)
+func (router *Route) route(msg *core.Message, route core.Stream) {
+	if router.StreamID() == router.StreamID() {
+		router.Broadcast.Enqueue(msg)
 	} else {
 		msg.SetStreamID(route.StreamID())
 		core.Route(msg, route)
 	}
 }
 
-func (stream *Route) Enqueue(msg *core.Message) error {
-	numStreams := len(stream.streams)
+// Enqueue enques a message to the router
+func (router *Route) Enqueue(msg *core.Message) error {
+	numStreams := len(router.streams)
 
 	switch numStreams {
 	case 0:
-		return core.NewModulateResultError("No producers configured for stream %s", stream.GetID())
+		return core.NewModulateResultError("No producers configured for stream %s", router.GetID())
 
 	case 1:
-		stream.route(msg, stream.streams[0])
+		router.route(msg, router.streams[0])
 
 	default:
 		lastStreamIdx := numStreams - 1
 		for streamIdx := 0; streamIdx < lastStreamIdx; streamIdx++ {
-			stream.route(msg.Clone(), stream.streams[streamIdx])
+			router.route(msg.Clone(), router.streams[streamIdx])
 		}
-		stream.route(msg, stream.streams[lastStreamIdx])
+		router.route(msg, router.streams[lastStreamIdx])
 	}
 
 	return nil

@@ -233,7 +233,7 @@ func (registry *streamRegistry) createFallback(streamID MessageStreamID) Stream 
 	streamName := registry.GetStreamName(streamID)
 	tlog.Debug.Print("Creating fallback stream for ", streamName)
 
-	config := NewPluginConfig("_generated_stream_"+streamName, "stream.Broadcast")
+	config := NewPluginConfig("_generated_stream_"+streamName, "router.Broadcast")
 	config.Override("stream", streamName)
 
 	plugin, err := NewPlugin(config)
@@ -247,7 +247,7 @@ func (registry *streamRegistry) createFallback(streamID MessageStreamID) Stream 
 
 // GetStreamOrFallback returns the stream for the given id if it is registered.
 // If no stream is registered for the given id the default stream is used.
-// The default stream is equivalent to an unconfigured stream.Broadcast with
+// The default stream is equivalent to an unconfigured router.Broadcast with
 // all wildcard producers already added.
 func (registry *streamRegistry) GetStreamOrFallback(streamID MessageStreamID) Stream {
 	registry.streamGuard.Lock()

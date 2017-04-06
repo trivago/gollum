@@ -69,7 +69,7 @@ const (
 // used to open the connection, otherwise UDP is used.
 // If an error occurs during write "NOT <Acknowledge>" is returned.
 //
-// Partitioner defines the algorithm used to read messages from the stream.
+// Partitioner defines the algorithm used to read messages from the router.
 // By default this is set to "delimiter".
 //  * "delimiter" separates messages by looking for a delimiter string.
 //    The delimiter is removed from the message.

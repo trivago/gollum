@@ -64,7 +64,7 @@ func TestProducerConfigure(t *testing.T) {
 	mockConf.Override("DropToStream", "mockStream")
 
 	// Stream needs to be configured to avoid unknown class errors
-	registerMockStream("mockStream")
+	registerMockRouter("mockStream")
 
 	err := mockProducer.Configure(NewPluginConfigReader(&mockConf))
 	expect.NoError(err)
@@ -121,7 +121,7 @@ func TestProducerEnqueue(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockP := getMockProducer()
 
-	mockDropStream := getMockStream()
+	mockDropStream := getMockRouter()
 	mockDropStream.streamID = 2
 	StreamRegistry.Register(&mockDropStream, 2)
 
@@ -137,7 +137,7 @@ func TestProducerEnqueue(t *testing.T) {
 	mockP.setState(PluginStateActive)
 	mockP.Enqueue(msg, &enqTimeout)
 
-	mockStream := getMockStream()
+	mockStream := getMockRouter()
 	mockDropStream.streamID = 1
 	StreamRegistry.Register(&mockStream, 1)
 
@@ -167,7 +167,7 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 		expect.Equal("closeMessageChannel", msg.String())
 	}
 
-	mockDropStream := getMockStream()
+	mockDropStream := getMockRouter()
 	mockDropStream.AddProducer(&mockProducer{})
 	mockDropStream.streamID = 2
 

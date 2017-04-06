@@ -22,13 +22,13 @@ import (
 )
 
 func TestStreamInterface(t *testing.T) {
-	streams := core.TypeRegistry.GetRegistered("stream.")
+	router := core.TypeRegistry.GetRegistered("router.")
 
-	if len(streams) == 0 {
+	if len(router) == 0 {
 		t.Error("No streams defined")
 	}
 
-	for _, name := range streams {
+	for _, name := range router {
 		conf := core.NewPluginConfig("", name)
 		_, err := core.NewPlugin(conf)
 		if err != nil {

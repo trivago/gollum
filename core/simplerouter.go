@@ -19,7 +19,8 @@ import (
 	"time"
 )
 
-type SimpleStream struct {
+// SimpleRouter router plugin
+type SimpleRouter struct {
 	id         string
 	modulators ModulatorArray
 	Producers  []Producer
@@ -28,55 +29,55 @@ type SimpleStream struct {
 	Log        tlog.LogScope
 }
 
-// Configure sets up all values required by SimpleStream.
-func (stream *SimpleStream) Configure(conf PluginConfigReader) error {
-	stream.id = conf.GetID()
-	stream.Log = conf.GetLogScope()
-	stream.Timeout = nil
-	stream.streamID = conf.GetStreamID("Stream", GetStreamID(conf.GetID()))
-	stream.modulators = conf.GetModulatorArray("Modulators", stream.Log, ModulatorArray{})
+// Configure sets up all values required by SimpleRouter.
+func (router *SimpleRouter) Configure(conf PluginConfigReader) error {
+	router.id = conf.GetID()
+	router.Log = conf.GetLogScope()
+	router.Timeout = nil
+	router.streamID = conf.GetStreamID("Stream", GetStreamID(conf.GetID()))
+	router.modulators = conf.GetModulatorArray("Modulators", router.Log, ModulatorArray{})
 
-	if stream.streamID == WildcardStreamID {
-		stream.Log.Note.Print("A wildcard stream configuration only affects the wildcard stream, not all streams")
+	if router.streamID == WildcardStreamID {
+		router.Log.Note.Print("A wildcard stream configuration only affects the wildcard stream, not all streams")
 	}
 
 	if conf.HasValue("TimeoutMs") {
 		timeout := time.Duration(conf.GetInt("TimeoutMs", 0)) * time.Millisecond
-		stream.Timeout = &timeout
+		router.Timeout = &timeout
 	}
 
 	return conf.Errors.OrNil()
 }
 
 // GetID returns the ID of this stream
-func (stream *SimpleStream) GetID() string {
-	return stream.id
+func (router *SimpleRouter) GetID() string {
+	return router.id
 }
 
 // StreamID returns the id of the stream this plugin is bound to.
-func (stream *SimpleStream) StreamID() MessageStreamID {
-	return stream.streamID
+func (router *SimpleRouter) StreamID() MessageStreamID {
+	return router.streamID
 }
 
 // AddProducer adds all producers to the list of known producers.
 // Duplicates will be filtered.
-func (stream *SimpleStream) AddProducer(producers ...Producer) {
+func (router *SimpleRouter) AddProducer(producers ...Producer) {
 	for _, prod := range producers {
-		for _, inListProd := range stream.Producers {
+		for _, inListProd := range router.Producers {
 			if inListProd == prod {
 				return // ### return, already in list ###
 			}
 		}
-		stream.Producers = append(stream.Producers, prod)
+		router.Producers = append(router.Producers, prod)
 	}
 }
 
 // GetProducers returns the producers bound to this stream
-func (stream *SimpleStream) GetProducers() []Producer {
-	return stream.Producers
+func (router *SimpleRouter) GetProducers() []Producer {
+	return router.Producers
 }
 
 // Modulate calls all modulators in their order of definition
-func (stream *SimpleStream) Modulate(msg *Message) ModulateResult {
-	return stream.modulators.Modulate(msg)
+func (router *SimpleRouter) Modulate(msg *Message) ModulateResult {
+	return router.modulators.Modulate(msg)
 }
