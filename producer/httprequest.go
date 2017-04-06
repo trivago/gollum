@@ -93,7 +93,6 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 	)
 
 	originalMsg := msg.Clone()
-	prod.Modulate(msg)
 	requestData := bytes.NewBuffer(msg.Data())
 
 	if prod.rawPackets {

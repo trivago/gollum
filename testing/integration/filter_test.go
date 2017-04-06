@@ -3,7 +3,9 @@
 package integration
 
 import (
+	"bytes"
 	"github.com/trivago/tgo/ttesting"
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -32,7 +34,7 @@ func TestRegexpFilter(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	// execute gollum
-	input := []string{"abc", "123"}
+	input := []string{"abc", "123", "def"}
 	out, err := ExecuteGollum(TestConfigFileName, input, "-ll=2")
 
 	expect.NoError(err)
@@ -45,4 +47,28 @@ func TestRegexpFilter(t *testing.T) {
 	// final expectations
 	expect.True(strings.Contains(fileContent, "abc"))
 	expect.False(strings.Contains(fileContent, "123"))
+	expect.True(strings.Contains(fileContent, "def"))
+
+	file, _ := os.Open(TmpTestFilePath)
+	lines, _ := lineCounter(file)
+	expect.Equal(2, lines)
+}
+
+func lineCounter(r io.Reader) (int, error) {
+	buf := make([]byte, 32*1024)
+	count := 0
+	lineSep := []byte{'\n'}
+
+	for {
+		c, err := r.Read(buf)
+		count += bytes.Count(buf[:c], lineSep)
+
+		switch {
+		case err == io.EOF:
+			return count, nil
+
+		case err != nil:
+			return count, err
+		}
+	}
 }

@@ -470,8 +470,8 @@ func (prod *S3) uploadAll() error {
 			return err
 		}
 
-			object.buffer.CloseAndDelete()
-			delete(prod.objects, s3Path)
+		object.buffer.CloseAndDelete()
+		delete(prod.objects, s3Path)
 	}
 	return nil
 }
@@ -528,7 +528,6 @@ func (prod *S3) transformMessages(messages []*core.Message) {
 	// Format and sort
 	for _, msg := range messages {
 		originalMsg := msg.Clone()
-		prod.Modulate(msg)
 
 		// Select the correct s3 path
 		s3Path, streamMapped := prod.streamMap[msg.StreamID()]

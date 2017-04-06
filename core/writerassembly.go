@@ -91,7 +91,6 @@ func (asm *WriterAssembly) Write(messages []*Message) {
 	contentLen := 0
 	for _, msg := range messages {
 		msgCopy := msg.Clone()
-		asm.modulator.Modulate(msgCopy)
 
 		if contentLen+len(msgCopy.Data()) > len(asm.buffer) {
 			asm.buffer = append(asm.buffer[:contentLen], msgCopy.Data()...)

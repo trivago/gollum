@@ -114,7 +114,6 @@ func (prod *Statsd) transformMessages(messages []*core.Message) {
 	// Format and sort
 	for _, msg := range messages {
 		msgCopy := msg.Clone()
-		prod.Modulate(msgCopy)
 
 		// Select the correct statsd metric
 		metricName, streamMapped := prod.streamMap[msgCopy.StreamID()]

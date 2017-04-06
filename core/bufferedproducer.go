@@ -122,6 +122,17 @@ func (prod *BufferedProducer) Enqueue(msg *Message, timeout *time.Duration) {
 		}
 	}()
 
+	// Run modulators and drop message if necessary
+	result := prod.Modulate(msg)
+	switch result {
+	case ModulateResultHandled:
+		return
+	case ModulateResultContinue:
+		// all fine - continue
+	default:
+		prod.Log.Error.Print("Modulator result not supported:", result)
+	}
+
 	// Don't accept messages if we are shutting down
 	if prod.GetState() >= PluginStateStopping {
 		prod.Drop(msg)
