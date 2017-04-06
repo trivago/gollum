@@ -40,7 +40,7 @@ const (
 // streamRegistry holds streams mapped by their MessageStreamID as well as a
 // reverse lookup of MessageStreamID to stream name.
 type streamRegistry struct {
-	streams     map[MessageStreamID]Stream
+	streams     map[MessageStreamID]Router
 	name        map[MessageStreamID]string
 	nameGuard   *sync.Mutex
 	streamGuard *sync.Mutex
@@ -50,7 +50,7 @@ type streamRegistry struct {
 // StreamRegistry is the global instance of streamRegistry used to store the
 // all registered streams.
 var StreamRegistry = streamRegistry{
-	streams:     make(map[MessageStreamID]Stream),
+	streams:     make(map[MessageStreamID]Router),
 	streamGuard: new(sync.Mutex),
 	name:        make(map[MessageStreamID]string),
 	nameGuard:   new(sync.Mutex),
@@ -139,13 +139,13 @@ func (registry streamRegistry) GetStreamName(streamID MessageStreamID) string {
 }
 
 // GetStreamByName returns a registered stream by name. See GetStream.
-func (registry streamRegistry) GetStreamByName(name string) Stream {
+func (registry streamRegistry) GetStreamByName(name string) Router {
 	streamID := registry.GetStreamID(name)
 	return registry.GetStream(streamID)
 }
 
 // GetStream returns a registered stream or nil
-func (registry streamRegistry) GetStream(id MessageStreamID) Stream {
+func (registry streamRegistry) GetStream(id MessageStreamID) Router {
 	registry.streamGuard.Lock()
 	defer registry.streamGuard.Unlock()
 	stream, exists := registry.streams[id]
@@ -164,7 +164,7 @@ func (registry streamRegistry) IsStreamRegistered(id MessageStreamID) bool {
 }
 
 // ForEachStream loops over all registered streams and calls the given function.
-func (registry streamRegistry) ForEachStream(callback func(streamID MessageStreamID, stream Stream)) {
+func (registry streamRegistry) ForEachStream(callback func(streamID MessageStreamID, stream Router)) {
 	registry.streamGuard.Lock()
 	streams := registry.streams
 	registry.streamGuard.Unlock()
@@ -200,7 +200,7 @@ nextProd:
 // AddWildcardProducersToStream adds all known wildcard producers to a given
 // stream. The state of the wildcard list is undefined during the configuration
 // phase.
-func (registry streamRegistry) AddWildcardProducersToStream(stream Stream) {
+func (registry streamRegistry) AddWildcardProducersToStream(stream Router) {
 	streamID := stream.StreamID()
 	if streamID != LogInternalStreamID && streamID != DroppedStreamID {
 		stream.AddProducer(registry.wildcard...)
@@ -211,13 +211,13 @@ func (registry streamRegistry) AddWildcardProducersToStream(stream Stream) {
 // all currently registered streams
 func (registry *streamRegistry) AddAllWildcardProducersToAllStreams() {
 	registry.ForEachStream(
-		func(streamID MessageStreamID, stream Stream) {
+		func(streamID MessageStreamID, stream Router) {
 			registry.AddWildcardProducersToStream(stream)
 		})
 }
 
 // Register registeres a stream plugin to a given stream id
-func (registry *streamRegistry) Register(stream Stream, streamID MessageStreamID) {
+func (registry *streamRegistry) Register(stream Router, streamID MessageStreamID) {
 	registry.streamGuard.Lock()
 	defer registry.streamGuard.Unlock()
 
@@ -229,7 +229,7 @@ func (registry *streamRegistry) Register(stream Stream, streamID MessageStreamID
 	registry.streams[streamID] = stream
 }
 
-func (registry *streamRegistry) createFallback(streamID MessageStreamID) Stream {
+func (registry *streamRegistry) createFallback(streamID MessageStreamID) Router {
 	streamName := registry.GetStreamName(streamID)
 	tlog.Debug.Print("Creating fallback stream for ", streamName)
 
@@ -241,7 +241,7 @@ func (registry *streamRegistry) createFallback(streamID MessageStreamID) Stream 
 		panic(err) // this has to always work, otherwise: panic
 	}
 
-	stream := plugin.(Stream) // panic if not!
+	stream := plugin.(Router) // panic if not!
 	return stream
 }
 
@@ -249,7 +249,7 @@ func (registry *streamRegistry) createFallback(streamID MessageStreamID) Stream 
 // If no stream is registered for the given id the default stream is used.
 // The default stream is equivalent to an unconfigured router.Broadcast with
 // all wildcard producers already added.
-func (registry *streamRegistry) GetStreamOrFallback(streamID MessageStreamID) Stream {
+func (registry *streamRegistry) GetStreamOrFallback(streamID MessageStreamID) Router {
 	registry.streamGuard.Lock()
 	defer registry.streamGuard.Unlock()
 

@@ -14,8 +14,8 @@
 
 package core
 
-// Stream defines the interface for all stream plugins
-type Stream interface {
+// Router defines the interface for all stream plugins
+type Router interface {
 	Modulator
 
 	// StreamID returns the stream id this plugin is bound to.
@@ -33,8 +33,8 @@ type Stream interface {
 
 // Route tries to enqueue a message to the given stream. This function also
 // handles redirections enforced by formatters.
-func Route(msg *Message, stream Stream) error {
-	action := stream.Modulate(msg)
+func Route(msg *Message, router Router) error {
+	action := router.Modulate(msg)
 
 	switch action {
 	case ModulateResultDiscard:
@@ -42,13 +42,13 @@ func Route(msg *Message, stream Stream) error {
 		return nil
 
 	case ModulateResultContinue:
-		return stream.Enqueue(msg)
+		return router.Enqueue(msg)
 
 	case ModulateResultRoute, ModulateResultDrop:
-		if msg.StreamID() == stream.StreamID() {
+		if msg.StreamID() == router.StreamID() {
 			streamName := StreamRegistry.GetStreamName(msg.StreamID())
 			prevStreamName := StreamRegistry.GetStreamName(msg.PreviousStreamID())
-			return NewModulateResultError("Routing loop detected for stream %s (from %s)", streamName, prevStreamName)
+			return NewModulateResultError("Routing loop detected for router %s (from %s)", streamName, prevStreamName)
 		}
 
 		return Route(msg, msg.GetStream())

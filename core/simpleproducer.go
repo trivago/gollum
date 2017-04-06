@@ -39,7 +39,7 @@ import (
 //    DropToStream: "_DROPPED_"
 //    Fuse: ""
 //    FuseTimeoutSec: 5
-//    Stream:
+//    Router:
 //      - "foo"
 //      - "bar"
 //
@@ -64,7 +64,7 @@ import (
 // Decreasing this value may lead to lost messages during shutdown. Increasing
 // this value will increase shutdown time.
 //
-// Stream contains either a single string or a list of strings defining the
+// Router contains either a single string or a list of strings defining the
 // message channels this producer will consume. By default this is set to "*"
 // which means "listen to all streams but the internal".
 //
@@ -93,7 +93,7 @@ type SimpleProducer struct {
 	control          chan PluginControl
 	streams          []MessageStreamID
 	modulators       ModulatorArray
-	dropStream       Stream
+	dropStream       Router
 	runState         *PluginRunState
 	shutdownTimeout  time.Duration
 	fuseTimeout      time.Duration

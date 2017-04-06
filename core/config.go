@@ -28,7 +28,7 @@ import (
 var (
 	consumerInterface = reflect.TypeOf((*Consumer)(nil)).Elem()
 	producerInterface = reflect.TypeOf((*Producer)(nil)).Elem()
-	streamInterface   = reflect.TypeOf((*Stream)(nil)).Elem()
+	streamInterface   = reflect.TypeOf((*Router)(nil)).Elem()
 )
 
 // Config represents the top level config containing all plugin clonfigs

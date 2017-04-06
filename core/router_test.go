@@ -49,7 +49,7 @@ func registerMockRouter(streamName string) {
 	mockRouter := getMockRouter()
 
 	mockConf := NewPluginConfig("", "mockRouter")
-	mockConf.Override("Stream", streamName)
+	mockConf.Override("Router", streamName)
 	mockConf.Override("Modulators", []interface{}{
 		"core.mockFormatter",
 	})
@@ -63,7 +63,7 @@ func TestRouterConfigureStream(t *testing.T) {
 	TypeRegistry.Register(mockFormatter{})
 
 	mockConf := NewPluginConfig("", "core.mockPlugin")
-	mockConf.Override("Stream", "testBoundStream")
+	mockConf.Override("Router", "testBoundStream")
 	mockConf.Override("Modulators", []interface{}{
 		"core.mockFormatter",
 	})

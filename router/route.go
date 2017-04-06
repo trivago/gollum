@@ -37,7 +37,7 @@ import (
 // When routing to multiple streams, the incoming stream has to be listed explicitly to be used.
 type Route struct {
 	Broadcast
-	streams []core.Stream
+	streams []core.Router
 }
 
 func init() {
@@ -57,7 +57,7 @@ func (router *Route) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-func (router *Route) route(msg *core.Message, route core.Stream) {
+func (router *Route) route(msg *core.Message, route core.Router) {
 	if router.StreamID() == router.StreamID() {
 		router.Broadcast.Enqueue(msg)
 	} else {

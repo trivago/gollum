@@ -63,7 +63,7 @@ func TestProducerConfigure(t *testing.T) {
 	mockConf.Override("streams", []string{"testBoundStream"})
 	mockConf.Override("DropToStream", "mockStream")
 
-	// Stream needs to be configured to avoid unknown class errors
+	// Router needs to be configured to avoid unknown class errors
 	registerMockRouter("mockStream")
 
 	err := mockProducer.Configure(NewPluginConfigReader(&mockConf))

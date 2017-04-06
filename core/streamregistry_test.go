@@ -23,7 +23,7 @@ import (
 
 func getMockStreamRegistry() streamRegistry {
 	return streamRegistry{
-		streams:     map[MessageStreamID]Stream{},
+		streams:     map[MessageStreamID]Router{},
 		name:        map[MessageStreamID]string{},
 		streamGuard: new(sync.Mutex),
 		nameGuard:   new(sync.Mutex),
@@ -75,7 +75,7 @@ func TestStreamRegistryForEachStream(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockSRegistry := getMockStreamRegistry()
 
-	callback := func(streamID MessageStreamID, stream Stream) {
+	callback := func(streamID MessageStreamID, stream Router) {
 		expect.Equal(streamID, StreamRegistry.GetStreamID("testRegistry"))
 	}
 

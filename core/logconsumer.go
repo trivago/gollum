@@ -26,7 +26,7 @@ import (
 type LogConsumer struct {
 	Consumer
 	control        chan PluginControl
-	logStream      Stream
+	logStream      Router
 	sequence       uint64
 	metric         string
 	lastCount      int64

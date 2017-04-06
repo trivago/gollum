@@ -201,7 +201,7 @@ func (co *Coordinator) configureStreams(conf *core.Config) {
 			continue // ### continue ###
 		}
 
-		streamPlugin := plugin.(core.Stream)
+		streamPlugin := plugin.(core.Router)
 
 		tlog.Debug.Printf("Instantiated %s (%s) as %s", config.ID, core.StreamRegistry.GetStreamName(streamPlugin.StreamID()), config.Typename)
 		core.StreamRegistry.Register(streamPlugin, streamPlugin.StreamID())

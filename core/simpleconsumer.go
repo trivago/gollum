@@ -33,7 +33,7 @@ import (
 //    ID: ""
 //    Fuse: ""
 //    ShutdownTimeoutMs: 1000
-//    Stream:
+//    Router:
 //      - "foo"
 //      - "bar"
 //
@@ -42,7 +42,7 @@ import (
 // ID allows this consumer to be found by other plugins by name. By default this
 // is set to "" which does not register this consumer.
 //
-// Stream contains either a single string or a list of strings defining the
+// Router contains either a single string or a list of strings defining the
 // message channels this consumer will produce. By default this is set to "*"
 // which means only producers set to consume "all streams" will get these
 // messages.
@@ -59,7 +59,7 @@ import (
 type SimpleConsumer struct {
 	id              string
 	control         chan PluginControl
-	streams         []Stream
+	streams         []Router
 	runState        *PluginRunState
 	fuse            *tsync.Fuse
 	shutdownTimeout time.Duration
