@@ -124,7 +124,6 @@ func (prod *Redis) Configure(conf core.PluginConfigReader) error {
 
 func (prod *Redis) getValueAndKey(msg *core.Message) (v []byte, k string) {
 	dataMsg := msg.Clone()
-	prod.Modulate(dataMsg)
 
 	key := prod.key
 	if len(prod.keyModulators) > 0 {
@@ -144,8 +143,6 @@ func (prod *Redis) getValueAndKey(msg *core.Message) (v []byte, k string) {
 
 func (prod *Redis) getValueFieldAndKey(msg *core.Message) (v []byte, f []byte, k string) {
 	dataMsg := msg.Clone()
-
-	prod.Modulate(dataMsg)
 
 	key := prod.key
 	if len(prod.keyModulators) > 0 {

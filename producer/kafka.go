@@ -387,7 +387,6 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 
 func (prod *Kafka) storeRTT(msg *core.Message) {
 	rtt := time.Since(msg.Created())
-	prod.Modulate(msg)
 
 	prod.topicGuard.RLock()
 	topic := prod.topic[msg.StreamID()]
@@ -473,7 +472,6 @@ func (prod *Kafka) registerNewTopic(topicName string, streamID core.MessageStrea
 
 func (prod *Kafka) produceMessage(msg *core.Message) {
 	originalMsg := msg.Clone()
-	prod.Modulate(msg)
 
 	if !prod.nilValueAllowed && msg.Len() == 0 {
 		streamName := core.StreamRegistry.GetStreamName(msg.StreamID())
@@ -514,11 +512,9 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 
 	if prod.keyFirst {
 		keyMsg := originalMsg.Clone()
-		prod.Modulate(keyMsg)
 		kafkaMsg.Key = kafka.ByteEncoder(keyMsg.Data())
 	} else {
 		keyMsg := msg.Clone()
-		prod.Modulate(keyMsg)
 		kafkaMsg.Key = kafka.ByteEncoder(keyMsg.Data())
 	}
 

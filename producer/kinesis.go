@@ -218,7 +218,6 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 	// Format and sort
 	for idx, msg := range messages {
 		currentMsg := msg.Clone()
-		prod.Modulate(currentMsg)
 		messageHash := fmt.Sprintf("%X-%d", currentMsg.StreamID(), currentMsg.Sequence())
 
 		// Fetch buffer for this stream

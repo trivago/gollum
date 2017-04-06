@@ -266,7 +266,6 @@ func (prod *ElasticSearch) getIndexType(streamID core.MessageStreamID) string {
 
 func (prod *ElasticSearch) sendMessage(msg *core.Message) {
 	originalMsg := msg.Clone()
-	prod.Modulate(msg)
 
 	index, indexMapped := prod.index[msg.StreamID()]
 	if !indexMapped {
