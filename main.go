@@ -186,16 +186,18 @@ func printModules() {
 	}
 
 	sort.Strings(allMods)
-	lastName := allMods[0]
+	lastCategory := ""
 
 	for _, name := range allMods {
 		pkgIdx := strings.LastIndex(name, ".")
-		if name[:pkgIdx] != lastName[:pkgIdx] {
-			fmt.Println()
+		category := name[:pkgIdx]
+
+		if category != lastCategory {
+			fmt.Printf("\n-- %s\n", category)
 		}
 
 		fmt.Println(name)
-		lastName = name
+		lastCategory = category
 	}
 }
 
