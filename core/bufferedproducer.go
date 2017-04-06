@@ -62,7 +62,7 @@ import (
 //
 // Router contains either a single string or a list of strings defining the
 // message channels this producer will consume. By default this is set to "*"
-// which means "listen to all streams but the internal".
+// which means "listen to all routers but the internal".
 //
 // DropToStream defines the stream used for messages that are dropped after
 // a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.

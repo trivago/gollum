@@ -66,7 +66,7 @@ import (
 //
 // Router contains either a single string or a list of strings defining the
 // message channels this producer will consume. By default this is set to "*"
-// which means "listen to all streams but the internal".
+// which means "listen to all routers but the internal".
 //
 // DropToStream defines the stream used for messages that are dropped after
 // a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
@@ -121,7 +121,7 @@ func (prod *SimpleProducer) Configure(conf PluginConfigReader) error {
 	prod.modulators = conf.GetModulatorArray("Modulators", prod.Log, ModulatorArray{})
 
 	dropStreamID := StreamRegistry.GetStreamID(conf.GetString("DropToStream", DroppedStream))
-	prod.dropStream = StreamRegistry.GetStreamOrFallback(dropStreamID)
+	prod.dropStream = StreamRegistry.GetRouterOrFallback(dropStreamID)
 
 	return conf.Errors.OrNil()
 }
@@ -131,7 +131,7 @@ func (prod *SimpleProducer) GetID() string {
 	return prod.id
 }
 
-// Streams returns the streams this producer is listening to.
+// Streams returns the routers this producer is listening to.
 func (prod *SimpleProducer) Streams() []MessageStreamID {
 	return prod.streams
 }

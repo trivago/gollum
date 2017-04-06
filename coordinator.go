@@ -91,7 +91,7 @@ func (co *Coordinator) Configure(conf *core.Config) {
 
 	// As consumers might create new fallback streams this is the first position
 	// where we can add the wildcard producers to all streams. No new streams
-	// created beyond this point must use StreamRegistry.AddWildcardProducersToStream.
+	// created beyond this point must use StreamRegistry.AddWildcardProducersToRouter.
 
 	core.StreamRegistry.AddAllWildcardProducersToAllStreams()
 }
@@ -214,7 +214,7 @@ func (co *Coordinator) configureProducers(conf *core.Config) {
 	// All producers are added to the wildcard stream so that consumers can send
 	// to all producers if required. The wildcard producer list is required
 	// to add producers listening to all streams to all streams that are used.
-	wildcardStream := core.StreamRegistry.GetStreamOrFallback(core.WildcardStreamID)
+	wildcardStream := core.StreamRegistry.GetRouterOrFallback(core.WildcardStreamID)
 	producerConfigs := conf.GetProducers()
 
 	for _, config := range producerConfigs {
@@ -244,8 +244,8 @@ func (co *Coordinator) configureProducers(conf *core.Config) {
 				if streamID == core.WildcardStreamID {
 					core.StreamRegistry.RegisterWildcardProducer(producer)
 				} else {
-					stream := core.StreamRegistry.GetStreamOrFallback(streamID)
-					stream.AddProducer(producer)
+					router := core.StreamRegistry.GetRouterOrFallback(streamID)
+					router.AddProducer(producer)
 				}
 			}
 

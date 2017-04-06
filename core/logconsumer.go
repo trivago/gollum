@@ -39,7 +39,7 @@ type LogConsumer struct {
 // Configure initializes this consumer with values from a plugin config.
 func (cons *LogConsumer) Configure(conf PluginConfigReader) error {
 	cons.control = make(chan PluginControl, 1)
-	cons.logStream = StreamRegistry.GetStream(LogInternalStreamID)
+	cons.logStream = StreamRegistry.GetRouter(LogInternalStreamID)
 	cons.metric = conf.GetString("MetricKey", "")
 
 	if cons.metric != "" {

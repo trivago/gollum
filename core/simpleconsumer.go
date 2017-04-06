@@ -44,7 +44,7 @@ import (
 //
 // Router contains either a single string or a list of strings defining the
 // message channels this consumer will produce. By default this is set to "*"
-// which means only producers set to consume "all streams" will get these
+// which means only producers set to consume "all routers" will get these
 // messages.
 //
 // Fuse defines the name of a fuse to observe for this consumer. Producer may
@@ -86,7 +86,7 @@ func (cons *SimpleConsumer) Configure(conf PluginConfigReader) error {
 	boundStreamIDs := conf.GetStreamArray("Streams", []MessageStreamID{defaultStreamID})
 
 	for _, streamID := range boundStreamIDs {
-		stream := StreamRegistry.GetStreamOrFallback(streamID)
+		stream := StreamRegistry.GetRouterOrFallback(streamID)
 		cons.streams = append(cons.streams, stream)
 	}
 
@@ -234,7 +234,7 @@ func (cons *SimpleConsumer) EnqueueWithSequence(data []byte, seq uint64) {
 		return
 	}
 
-	// Send message to all streams registered to this consumer
+	// Send message to all routers registered to this consumer
 	// Last message will not be cloned.
 
 	for streamIdx := 0; streamIdx < lastStreamIdx; streamIdx++ {

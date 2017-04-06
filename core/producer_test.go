@@ -60,7 +60,7 @@ func TestProducerConfigure(t *testing.T) {
 	mockProducer := mockProducer{}
 
 	mockConf := NewPluginConfig("", "mockProducer")
-	mockConf.Override("streams", []string{"testBoundStream"})
+	mockConf.Override("routers", []string{"testBoundStream"})
 	mockConf.Override("DropToStream", "mockStream")
 
 	// Router needs to be configured to avoid unknown class errors
@@ -117,7 +117,7 @@ func TestProducerWaitgroup(t *testing.T) {
 }
 
 func TestProducerEnqueue(t *testing.T) {
-	// TODO: distribute for drop route not called. Probably streams array contains soln
+	// TODO: distribute for drop route not called. Probably routers array contains soln
 	expect := ttesting.NewExpect(t)
 	mockP := getMockProducer()
 
@@ -125,7 +125,7 @@ func TestProducerEnqueue(t *testing.T) {
 	mockDropStream.streamID = 2
 	StreamRegistry.Register(&mockDropStream, 2)
 
-	mockP.dropStream = StreamRegistry.GetStream(2)
+	mockP.dropStream = StreamRegistry.GetRouter(2)
 
 	msg := NewMessage(nil, []byte("ProdEnqueueTest"), 4, 1)
 

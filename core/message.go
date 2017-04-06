@@ -130,14 +130,14 @@ func (msg *Message) PreviousStreamID() MessageStreamID {
 	return msg.prevStreamID
 }
 
-// GetStream returns the stream object behind the current StreamID.
+// GetRouter returns the stream object behind the current StreamID.
 func (msg *Message) GetStream() Router {
-	return StreamRegistry.GetStreamOrFallback(msg.streamID)
+	return StreamRegistry.GetRouterOrFallback(msg.streamID)
 }
 
 // GetPreviousStream returns the stream object behind the previous StreamID.
 func (msg *Message) GetPreviousStream() Router {
-	return StreamRegistry.GetStreamOrFallback(msg.prevStreamID)
+	return StreamRegistry.GetRouterOrFallback(msg.prevStreamID)
 }
 
 // SetStreamID sets a new stream and stores the current one in the previous

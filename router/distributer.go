@@ -18,14 +18,14 @@ import (
 	"github.com/trivago/gollum/core"
 )
 
-// Route stream plugin
+// Distribute stream plugin
 // Messages will be routed to all streams configured. Each target stream can
 // hold another stream configuration, too, so this is not directly sending to
 // the producers attached to the target streams.
 // Configuration example
 //
 // 	myrouter":
-//    Type: "router.Route"
+//    Type: "router.Distribute"
 //    Stream: "mystream"
 // 	  Routes:
 //      - "foo"
@@ -35,29 +35,29 @@ import (
 // Messages are reassigned to all of stream(s) in this list.
 // If no route is set messages are forwarded on the incoming router.
 // When routing to multiple streams, the incoming stream has to be listed explicitly to be used.
-type Route struct {
+type Distribute struct {
 	Broadcast
 	streams []core.Router
 }
 
 func init() {
-	core.TypeRegistry.Register(Route{})
+	core.TypeRegistry.Register(Distribute{})
 }
 
 // Configure initializes this distributor with values from a plugin config.
-func (router *Route) Configure(conf core.PluginConfigReader) error {
+func (router *Distribute) Configure(conf core.PluginConfigReader) error {
 	router.Broadcast.Configure(conf)
 
 	boundStreamIDs := conf.GetStreamArray("Streams", []core.MessageStreamID{})
 	for _, streamID := range boundStreamIDs {
-		route := core.StreamRegistry.GetStreamOrFallback(streamID)
+		route := core.StreamRegistry.GetRouterOrFallback(streamID)
 		router.streams = append(router.streams, route)
 	}
 
 	return conf.Errors.OrNil()
 }
 
-func (router *Route) route(msg *core.Message, route core.Router) {
+func (router *Distribute) route(msg *core.Message, route core.Router) {
 	if router.StreamID() == router.StreamID() {
 		router.Broadcast.Enqueue(msg)
 	} else {
@@ -67,7 +67,7 @@ func (router *Route) route(msg *core.Message, route core.Router) {
 }
 
 // Enqueue enques a message to the router
-func (router *Route) Enqueue(msg *core.Message) error {
+func (router *Distribute) Enqueue(msg *core.Message) error {
 	numStreams := len(router.streams)
 
 	switch numStreams {

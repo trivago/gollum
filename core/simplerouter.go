@@ -38,7 +38,7 @@ func (router *SimpleRouter) Configure(conf PluginConfigReader) error {
 	router.modulators = conf.GetModulatorArray("Modulators", router.Log, ModulatorArray{})
 
 	if router.streamID == WildcardStreamID {
-		router.Log.Note.Print("A wildcard stream configuration only affects the wildcard stream, not all streams")
+		router.Log.Note.Print("A wildcard stream configuration only affects the wildcard stream, not all routers")
 	}
 
 	if conf.HasValue("TimeoutMs") {
