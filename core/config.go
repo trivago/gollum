@@ -167,8 +167,8 @@ func (conf *Config) GetProducers() []PluginConfig {
 	return configs
 }
 
-// GetStreams returns all stream plugins from the config
-func (conf *Config) GetStreams() []PluginConfig {
+// GetRouters returns all stream plugins from the config
+func (conf *Config) GetRouters() []PluginConfig {
 	configs := []PluginConfig{}
 
 	for _, config := range conf.Plugins {
@@ -182,7 +182,7 @@ func (conf *Config) GetStreams() []PluginConfig {
 		}
 
 		if pluginType.Implements(streamInterface) {
-			tlog.Debug.Print("Found stream ", config.ID)
+			tlog.Debug.Printf("Found router '%s'", config.ID)
 			configs = append(configs, config)
 		}
 	}

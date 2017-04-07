@@ -211,8 +211,8 @@ func (registry streamRegistry) AddWildcardProducersToRouter(router Router) {
 // all currently registered routers
 func (registry *streamRegistry) AddAllWildcardProducersToAllStreams() {
 	registry.ForEachStream(
-		func(streamID MessageStreamID, stream Router) {
-			registry.AddWildcardProducersToRouter(stream)
+		func(streamID MessageStreamID, router Router) {
+			registry.AddWildcardProducersToRouter(router)
 		})
 }
 
