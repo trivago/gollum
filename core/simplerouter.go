@@ -34,7 +34,7 @@ func (router *SimpleRouter) Configure(conf PluginConfigReader) error {
 	router.id = conf.GetID()
 	router.Log = conf.GetLogScope()
 	router.Timeout = nil
-	router.streamID = conf.GetStreamID("Router", GetStreamID(conf.GetID()))
+	router.streamID = conf.GetStreamID("Stream", GetStreamID(conf.GetID()))
 	router.modulators = conf.GetModulatorArray("Modulators", router.Log, ModulatorArray{})
 
 	if router.streamID == WildcardStreamID {
