@@ -28,7 +28,7 @@ import (
 var (
 	consumerInterface = reflect.TypeOf((*Consumer)(nil)).Elem()
 	producerInterface = reflect.TypeOf((*Producer)(nil)).Elem()
-	streamInterface   = reflect.TypeOf((*Router)(nil)).Elem()
+	routerInterface   = reflect.TypeOf((*Router)(nil)).Elem()
 )
 
 // Config represents the top level config containing all plugin clonfigs
@@ -110,7 +110,7 @@ func (conf *Config) Validate() []error {
 		case pluginType.Implements(producerInterface):
 			continue
 
-		case pluginType.Implements(streamInterface):
+		case pluginType.Implements(routerInterface):
 			continue
 		}
 
@@ -181,7 +181,7 @@ func (conf *Config) GetRouters() []PluginConfig {
 			continue // ### continue, unknown type ###
 		}
 
-		if pluginType.Implements(streamInterface) {
+		if pluginType.Implements(routerInterface) {
 			tlog.Debug.Printf("Found router '%s'", config.ID)
 			configs = append(configs, config)
 		}
@@ -201,16 +201,16 @@ func newPluginConfigError(id string, typename string, reason string) PluginConfi
 func getClosestMatch(pluginType reflect.Type, errors *tgo.ErrorStack) {
 	consumerMatch, consumerMissing := treflect.GetMissingMethods(pluginType, consumerInterface)
 	producerMatch, producerMissing := treflect.GetMissingMethods(pluginType, producerInterface)
-	streamMatch, streamMissing := treflect.GetMissingMethods(pluginType, streamInterface)
+	routerMatch, streamMissing := treflect.GetMissingMethods(pluginType, routerInterface)
 
 	switch {
-	case consumerMatch > producerMatch && consumerMatch > streamMatch:
+	case consumerMatch > producerMatch && consumerMatch > routerMatch:
 		errors.Pushf("Plugin looks like a consumer")
 		for _, missing := range consumerMissing {
 			errors.Pushf(missing)
 		}
 
-	case producerMatch > consumerMatch && producerMatch > streamMatch:
+	case producerMatch > consumerMatch && producerMatch > routerMatch:
 		errors.Pushf("Plugin looks like a producer")
 		for _, missing := range producerMissing {
 			errors.Pushf(missing)
