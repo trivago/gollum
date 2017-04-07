@@ -24,11 +24,11 @@ import (
 // the producers attached to the target streams.
 // Configuration example
 //
-// 	myrouter":
+// "myrouter":
 //    Type: "router.Distribute"
 //    Stream: "mystream"
-// 	  Routes:
-//      - "foo"
+//    TargetStreams:
+//    	- "foo"
 //      - "bar"
 //
 // Routes defines a 1:n stream remapping.
@@ -48,28 +48,28 @@ func init() {
 func (router *Distribute) Configure(conf core.PluginConfigReader) error {
 	router.Broadcast.Configure(conf)
 
-	boundStreamIDs := conf.GetStreamArray("Streams", []core.MessageStreamID{})
+	boundStreamIDs := conf.GetStreamArray("TargetStreams", []core.MessageStreamID{})
 	for _, streamID := range boundStreamIDs {
-		route := core.StreamRegistry.GetRouterOrFallback(streamID)
-		router.streams = append(router.streams, route)
+		targetRouter := core.StreamRegistry.GetRouterOrFallback(streamID)
+		router.streams = append(router.streams, targetRouter)
 	}
 
 	return conf.Errors.OrNil()
 }
 
-func (router *Distribute) route(msg *core.Message, route core.Router) {
-	if router.StreamID() == router.StreamID() {
+func (router *Distribute) route(msg *core.Message, targetRouter core.Router) {
+	if router.StreamID() == targetRouter.StreamID() {
 		router.Broadcast.Enqueue(msg)
 	} else {
-		msg.SetStreamID(route.StreamID())
-		core.Route(msg, route)
+		msg.SetStreamID(targetRouter.StreamID())
+		core.Route(msg, targetRouter)
 	}
 }
 
 // Enqueue enques a message to the router
 func (router *Distribute) Enqueue(msg *core.Message) error {
 	numStreams := len(router.streams)
-
+	
 	switch numStreams {
 	case 0:
 		return core.NewModulateResultError("No producers configured for stream %s", router.GetID())
@@ -81,8 +81,10 @@ func (router *Distribute) Enqueue(msg *core.Message) error {
 		lastStreamIdx := numStreams - 1
 		for streamIdx := 0; streamIdx < lastStreamIdx; streamIdx++ {
 			router.route(msg.Clone(), router.streams[streamIdx])
+			router.Log.Debug.Printf("routed to StreamID '%v'", router.streams[streamIdx].StreamID())
 		}
 		router.route(msg, router.streams[lastStreamIdx])
+		router.Log.Debug.Printf("routed to StreamID '%v'", router.streams[lastStreamIdx].StreamID())
 	}
 
 	return nil
