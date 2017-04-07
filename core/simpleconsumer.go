@@ -59,7 +59,7 @@ import (
 type SimpleConsumer struct {
 	id              string
 	control         chan PluginControl
-	streams         []Router
+	routers         []Router
 	runState        *PluginRunState
 	fuse            *tsync.Fuse
 	shutdownTimeout time.Duration
@@ -87,7 +87,7 @@ func (cons *SimpleConsumer) Configure(conf PluginConfigReader) error {
 
 	for _, streamID := range boundStreamIDs {
 		stream := StreamRegistry.GetRouterOrFallback(streamID)
-		cons.streams = append(cons.streams, stream)
+		cons.routers = append(cons.routers, stream)
 	}
 
 	fuseName, err := conf.WithError.GetString("Fuse", "")
@@ -218,7 +218,7 @@ func (cons *SimpleConsumer) Enqueue(data []byte) {
 // EnqueueWithSequence works like Enqueue but allows to set a custom sequence
 // number. The internal sequence number is not incremented by this function.
 func (cons *SimpleConsumer) EnqueueWithSequence(data []byte, seq uint64) {
-	numStreams := len(cons.streams)
+	numStreams := len(cons.routers)
 	lastStreamIdx := numStreams - 1
 
 	msg := NewMessage(cons, data, seq, InvalidStreamID)
@@ -238,19 +238,19 @@ func (cons *SimpleConsumer) EnqueueWithSequence(data []byte, seq uint64) {
 	// Last message will not be cloned.
 
 	for streamIdx := 0; streamIdx < lastStreamIdx; streamIdx++ {
-		stream := cons.streams[streamIdx]
+		router := cons.routers[streamIdx]
 		msg := msg.Clone()
-		msg.SetStreamID(stream.StreamID())
+		msg.SetStreamID(router.StreamID())
 
-		if err := Route(msg, stream); err != nil {
+		if err := Route(msg, router); err != nil {
 			cons.Log.Error.Print(err)
 		}
 	}
 
-	stream := cons.streams[lastStreamIdx]
-	msg.SetStreamID(stream.StreamID())
+	router := cons.routers[lastStreamIdx]
+	msg.SetStreamID(router.StreamID())
 
-	if err := Route(msg, stream); err != nil {
+	if err := Route(msg, router); err != nil {
 		cons.Log.Error.Print(err)
 	}
 }
