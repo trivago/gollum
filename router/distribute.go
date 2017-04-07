@@ -69,7 +69,7 @@ func (router *Distribute) route(msg *core.Message, targetRouter core.Router) {
 // Enqueue enques a message to the router
 func (router *Distribute) Enqueue(msg *core.Message) error {
 	numStreams := len(router.streams)
-	
+
 	switch numStreams {
 	case 0:
 		return core.NewModulateResultError("No producers configured for stream %s", router.GetID())

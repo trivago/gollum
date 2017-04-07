@@ -6,7 +6,34 @@ import (
 	"github.com/trivago/tgo/ttesting"
 	"strings"
 	"testing"
+	"os"
 )
+
+var TmpTestFiles = []string{TmpTestFilePathDefault, TmpTestFilePathFoo, TmpTestFilePathBar}
+
+func setup() {
+	removeTestResultFile()
+}
+
+func teardown() {
+	removeTestResultFile()
+}
+
+func removeTestResultFile() {
+	for _, path := range TmpTestFiles {
+		if _, err := os.Stat(path); err == nil {
+			os.Remove(path)
+		}
+	}
+}
+
+func TestMain(m *testing.M) {
+	setup()
+	defer teardown() // only called if we panic
+	result := m.Run()
+	teardown()
+	os.Exit(result)
+}
 
 func TestRunableVersion(t *testing.T) {
 	expect := ttesting.NewExpect(t)
