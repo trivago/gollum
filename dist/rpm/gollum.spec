@@ -17,7 +17,7 @@ Requires:       systemd
 
 
 %description
-Gollum is a n:m multiplexer that gathers messages from different sources and broadcasts them to a set of destinations.
+Gollum is an n:m multiplexer that gathers messages from different sources and broadcasts them to a set of destinations.
 
 
 %prep

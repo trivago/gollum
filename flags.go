@@ -41,6 +41,6 @@ func parseFlags() {
 }
 
 func printFlags() {
-	helpMessageStr := fmt.Sprintf("Usage: gollum [OPTIONS]\n\nGollum - A n:m message multiplexer.\nVersion: %s\n\nOptions:", GetVersionString())
+	helpMessageStr := fmt.Sprintf("Usage: gollum [OPTIONS]\n\nGollum - An n:m message multiplexer.\nVersion: %s\n\nOptions:", GetVersionString())
 	tflag.PrintFlags(helpMessageStr)
 }
