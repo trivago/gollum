@@ -31,7 +31,7 @@ import (
 	_ "github.com/trivago/gollum/filter"
 	_ "github.com/trivago/gollum/format"
 	_ "github.com/trivago/gollum/producer"
-	_ "github.com/trivago/gollum/stream"
+	_ "github.com/trivago/gollum/router"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tstrings"
@@ -176,7 +176,7 @@ func printVersion() {
 }
 
 func printModules() {
-	namespaces := []string{"consumer", "producer", "filter", "format", "stream", "contrib"}
+	namespaces := []string{"consumer", "producer", "filter", "format", "router", "contrib"}
 	allMods := []string{}
 	for _, pkg := range namespaces {
 		modules := core.TypeRegistry.GetRegistered(pkg)
@@ -186,16 +186,18 @@ func printModules() {
 	}
 
 	sort.Strings(allMods)
-	lastName := allMods[0]
+	lastCategory := ""
 
 	for _, name := range allMods {
 		pkgIdx := strings.LastIndex(name, ".")
-		if name[:pkgIdx] != lastName[:pkgIdx] {
-			fmt.Println()
+		category := name[:pkgIdx]
+
+		if category != lastCategory {
+			fmt.Printf("\n-- %s\n", category)
 		}
 
 		fmt.Println(name)
-		lastName = name
+		lastCategory = category
 	}
 }
 

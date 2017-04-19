@@ -33,7 +33,7 @@ import (
 //    ID: ""
 //    Fuse: ""
 //    ShutdownTimeoutMs: 1000
-//    Stream:
+//    Router:
 //      - "foo"
 //      - "bar"
 //
@@ -42,9 +42,9 @@ import (
 // ID allows this consumer to be found by other plugins by name. By default this
 // is set to "" which does not register this consumer.
 //
-// Stream contains either a single string or a list of strings defining the
+// Router contains either a single string or a list of strings defining the
 // message channels this consumer will produce. By default this is set to "*"
-// which means only producers set to consume "all streams" will get these
+// which means only producers set to consume "all routers" will get these
 // messages.
 //
 // Fuse defines the name of a fuse to observe for this consumer. Producer may
@@ -59,7 +59,7 @@ import (
 type SimpleConsumer struct {
 	id              string
 	control         chan PluginControl
-	streams         []Stream
+	routers         []Router
 	runState        *PluginRunState
 	fuse            *tsync.Fuse
 	shutdownTimeout time.Duration
@@ -86,8 +86,8 @@ func (cons *SimpleConsumer) Configure(conf PluginConfigReader) error {
 	boundStreamIDs := conf.GetStreamArray("Streams", []MessageStreamID{defaultStreamID})
 
 	for _, streamID := range boundStreamIDs {
-		stream := StreamRegistry.GetStreamOrFallback(streamID)
-		cons.streams = append(cons.streams, stream)
+		stream := StreamRegistry.GetRouterOrFallback(streamID)
+		cons.routers = append(cons.routers, stream)
 	}
 
 	fuseName, err := conf.WithError.GetString("Fuse", "")
@@ -218,8 +218,8 @@ func (cons *SimpleConsumer) Enqueue(data []byte) {
 // EnqueueWithSequence works like Enqueue but allows to set a custom sequence
 // number. The internal sequence number is not incremented by this function.
 func (cons *SimpleConsumer) EnqueueWithSequence(data []byte, seq uint64) {
-	numStreams := len(cons.streams)
-	lastStreamIdx := numStreams - 1
+	numRouters := len(cons.routers)
+	lastStreamIdx := numRouters - 1
 
 	msg := NewMessage(cons, data, seq, InvalidStreamID)
 	switch cons.modulators.Modulate(msg) {
@@ -228,29 +228,29 @@ func (cons *SimpleConsumer) EnqueueWithSequence(data []byte, seq uint64) {
 		return
 
 	case ModulateResultRoute, ModulateResultDrop:
-		if err := Route(msg, msg.GetStream()); err != nil {
+		if err := Route(msg, msg.GetRouter()); err != nil {
 			cons.Log.Error.Print(err)
 		}
 		return
 	}
 
-	// Send message to all streams registered to this consumer
+	// Send message to all routers registered to this consumer
 	// Last message will not be cloned.
 
 	for streamIdx := 0; streamIdx < lastStreamIdx; streamIdx++ {
-		stream := cons.streams[streamIdx]
+		router := cons.routers[streamIdx]
 		msg := msg.Clone()
-		msg.SetStreamID(stream.StreamID())
+		msg.SetStreamID(router.StreamID())
 
-		if err := Route(msg, stream); err != nil {
+		if err := Route(msg, router); err != nil {
 			cons.Log.Error.Print(err)
 		}
 	}
 
-	stream := cons.streams[lastStreamIdx]
-	msg.SetStreamID(stream.StreamID())
+	router := cons.routers[lastStreamIdx]
+	msg.SetStreamID(router.StreamID())
 
-	if err := Route(msg, stream); err != nil {
+	if err := Route(msg, router); err != nil {
 		cons.Log.Error.Print(err)
 	}
 }

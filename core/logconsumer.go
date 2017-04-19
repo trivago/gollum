@@ -26,7 +26,7 @@ import (
 type LogConsumer struct {
 	Consumer
 	control        chan PluginControl
-	logStream      Stream
+	logRouter      Router
 	sequence       uint64
 	metric         string
 	lastCount      int64
@@ -39,7 +39,7 @@ type LogConsumer struct {
 // Configure initializes this consumer with values from a plugin config.
 func (cons *LogConsumer) Configure(conf PluginConfigReader) error {
 	cons.control = make(chan PluginControl, 1)
-	cons.logStream = StreamRegistry.GetStream(LogInternalStreamID)
+	cons.logRouter = StreamRegistry.GetRouter(LogInternalStreamID)
 	cons.metric = conf.GetString("MetricKey", "")
 
 	if cons.metric != "" {
@@ -94,7 +94,7 @@ func (cons *LogConsumer) updateMetric() {
 // Write fulfills the io.Writer interface
 func (cons *LogConsumer) Write(data []byte) (int, error) {
 	msg := NewMessage(cons, data, cons.sequence, LogInternalStreamID)
-	cons.logStream.Enqueue(msg)
+	cons.logRouter.Enqueue(msg)
 
 	if cons.metric != "" {
 		// HACK: Use different writers with the possibility to enable/disable metrics

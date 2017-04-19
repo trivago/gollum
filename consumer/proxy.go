@@ -55,7 +55,7 @@ const (
 // like "unix:///var/gollum.socket". By default this is set to ":5880".
 // UDP is not supported.
 //
-// Partitioner defines the algorithm used to read messages from the stream.
+// Partitioner defines the algorithm used to read messages from the router.
 // The messages will be sent as a whole, no cropping or removal will take place.
 // By default this is set to "delimiter".
 //  * "delimiter" separates messages by looking for a delimiter string.

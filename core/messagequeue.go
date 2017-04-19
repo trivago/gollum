@@ -30,7 +30,7 @@ const (
 	InvalidStream = ""
 	// LogInternalStream is the name of the internal message channel (logs)
 	LogInternalStream = "_GOLLUM_"
-	// WildcardStream is the name of the "all streams" channel
+	// WildcardStream is the name of the "all routers" channel
 	WildcardStream = "*"
 	// DroppedStream is the name of the stream used to store dropped messages
 	DroppedStream = "_DROPPED_"

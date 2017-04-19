@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package stream
+package router
 
 import (
 	"github.com/trivago/gollum/core"
@@ -20,10 +20,10 @@ import (
 )
 
 // Random stream plugin
-// Messages will be sent to one of the producers attached to this stream.
+// Messages will be sent to one of the producers attached to this router.
 // The concrete producer is chosen randomly with each message.
 type Random struct {
-	core.SimpleStream
+	core.SimpleRouter
 }
 
 func init() {
@@ -31,17 +31,18 @@ func init() {
 }
 
 // Configure initializes this distributor with values from a plugin config.
-func (stream *Random) Configure(conf core.PluginConfigReader) error {
-	return stream.SimpleStream.Configure(conf)
+func (router *Random) Configure(conf core.PluginConfigReader) error {
+	return router.SimpleRouter.Configure(conf)
 }
 
-func (stream *Random) Enqueue(msg *core.Message) error {
-	producers := stream.GetProducers()
+// Enqueue enques a message to the router
+func (router *Random) Enqueue(msg *core.Message) error {
+	producers := router.GetProducers()
 	if len(producers) == 0 {
-		return core.NewModulateResultError("No producers configured for stream %s", stream.GetID())
+		return core.NewModulateResultError("No producers configured for stream %s", router.GetID())
 	}
 
 	index := rand.Intn(len(producers))
-	producers[index].Enqueue(msg, stream.Timeout)
+	producers[index].Enqueue(msg, router.Timeout)
 	return nil
 }

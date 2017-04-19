@@ -23,7 +23,7 @@ import (
 
 func getMockStreamRegistry() streamRegistry {
 	return streamRegistry{
-		streams:     map[MessageStreamID]Stream{},
+		routers:     map[MessageStreamID]Router{},
 		name:        map[MessageStreamID]string{},
 		streamGuard: new(sync.Mutex),
 		nameGuard:   new(sync.Mutex),
@@ -50,13 +50,13 @@ func TestStreamRegistryGetStreamByName(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockSRegistry := getMockStreamRegistry()
 
-	streamName := mockSRegistry.GetStreamByName("testStream")
+	streamName := mockSRegistry.GetRouterByStreamName("testStream")
 	expect.Equal(streamName, nil)
 
 	mockStreamID := StreamRegistry.GetStreamID("testStream")
 	// TODO: Get a real stream and test with that
-	mockSRegistry.streams[mockStreamID] = &mockStream{}
-	expect.Equal(mockSRegistry.GetStreamByName("testStream"), &mockStream{})
+	mockSRegistry.routers[mockStreamID] = &mockRouter{}
+	expect.Equal(mockSRegistry.GetRouterByStreamName("testStream"), &mockRouter{})
 }
 
 func TestStreamRegistryIsStreamRegistered(t *testing.T) {
@@ -67,7 +67,7 @@ func TestStreamRegistryIsStreamRegistered(t *testing.T) {
 
 	expect.False(mockSRegistry.IsStreamRegistered(mockStreamID))
 	// TODO: Get a real stream and test with that
-	mockSRegistry.streams[mockStreamID] = &mockStream{}
+	mockSRegistry.routers[mockStreamID] = &mockRouter{}
 	expect.True(mockSRegistry.IsStreamRegistered(mockStreamID))
 }
 
@@ -75,11 +75,11 @@ func TestStreamRegistryForEachStream(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockSRegistry := getMockStreamRegistry()
 
-	callback := func(streamID MessageStreamID, stream Stream) {
+	callback := func(streamID MessageStreamID, stream Router) {
 		expect.Equal(streamID, StreamRegistry.GetStreamID("testRegistry"))
 	}
 
-	mockSRegistry.streams[StreamRegistry.GetStreamID("testRegistry")] = &mockStream{}
+	mockSRegistry.routers[StreamRegistry.GetStreamID("testRegistry")] = &mockRouter{}
 	mockSRegistry.ForEachStream(callback)
 }
 
@@ -102,17 +102,17 @@ func TestStreamRegistryAddWildcardProducersToStream(t *testing.T) {
 	mockSRegistry := getMockStreamRegistry()
 
 	// create stream to which wildcardProducer is to be added
-	mockStream := getMockStream()
+	mockRouter := getMockRouter()
 
 	// create wildcardProducer.
 	mProducer := new(mockProducer)
 	// adding dropStreamID to verify the producer later.
-	mProducer.dropStream = StreamRegistry.GetStream(StreamRegistry.GetStreamID("wildcardProducerDrop"))
+	mProducer.dropStream = StreamRegistry.GetRouter(StreamRegistry.GetStreamID("wildcardProducerDrop"))
 	mockSRegistry.RegisterWildcardProducer(mProducer)
 
-	mockSRegistry.AddWildcardProducersToStream(&mockStream)
+	mockSRegistry.AddWildcardProducersToRouter(&mockRouter)
 
-	streamsProducer := mockStream.GetProducers()
+	streamsProducer := mockRouter.GetProducers()
 	expect.Equal(len(streamsProducer), 1)
 
 	// GetDropStreamID removed from  Producer interface in v0.5.0
@@ -125,10 +125,10 @@ func TestStreamRegistryRegister(t *testing.T) {
 	mockSRegistry := getMockStreamRegistry()
 
 	streamName := "testStream"
-	mockStream := getMockStream()
-	mockSRegistry.Register(&mockStream, StreamRegistry.GetStreamID(streamName))
+	mockRouter := getMockRouter()
+	mockSRegistry.Register(&mockRouter, StreamRegistry.GetStreamID(streamName))
 
-	expect.NotNil(mockSRegistry.GetStream(StreamRegistry.GetStreamID(streamName)))
+	expect.NotNil(mockSRegistry.GetRouter(StreamRegistry.GetStreamID(streamName)))
 }
 
 func TestStreamRegistryGetStreamOrFallback(t *testing.T) {

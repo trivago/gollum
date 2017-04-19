@@ -23,18 +23,18 @@ import (
 	"github.com/trivago/tgo/ttesting"
 )
 
-type mockStream struct {
-	SimpleStream
+type mockRouter struct {
+	SimpleRouter
 }
 
-func (stream *mockStream) Enqueue(msg *Message) error {
+func (router *mockRouter) Enqueue(msg *Message) error {
 	return nil
 }
 
-func getMockStream() mockStream {
+func getMockRouter() mockRouter {
 	timeout := time.Second
-	return mockStream{
-		SimpleStream: SimpleStream{
+	return mockRouter{
+		SimpleRouter: SimpleRouter{
 			id:         "testStream",
 			modulators: ModulatorArray{},
 			Producers:  []Producer{},
@@ -45,32 +45,32 @@ func getMockStream() mockStream {
 	}
 }
 
-func registerMockStream(streamName string) {
-	mockStream := getMockStream()
+func registerMockRouter(streamName string) {
+	mockRouter := getMockRouter()
 
-	mockConf := NewPluginConfig("", "mockStream")
+	mockConf := NewPluginConfig("", "mockRouter")
 	mockConf.Override("Stream", streamName)
 	mockConf.Override("Modulators", []interface{}{
 		"core.mockFormatter",
 	})
 
-	mockStream.Configure(NewPluginConfigReader(&mockConf))
-	StreamRegistry.Register(&mockStream, mockStream.StreamID())
+	mockRouter.Configure(NewPluginConfigReader(&mockConf))
+	StreamRegistry.Register(&mockRouter, mockRouter.StreamID())
 }
 
-func TestStreamConfigureStream(t *testing.T) {
+func TestRouterConfigureStream(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	TypeRegistry.Register(mockFormatter{})
 
 	mockConf := NewPluginConfig("", "core.mockPlugin")
-	mockConf.Override("Stream", "testBoundStream")
+	mockConf.Override("Router", "testBoundStream")
 	mockConf.Override("Modulators", []interface{}{
 		"core.mockFormatter",
 	})
 	mockConf.Override("TimeoutMs", 100)
 
-	mockStream := getMockStream()
-	err := mockStream.Configure(NewPluginConfigReader(&mockConf))
+	mockRouter := getMockRouter()
+	err := mockRouter.Configure(NewPluginConfigReader(&mockConf))
 	expect.Equal(nil, err)
 }
 

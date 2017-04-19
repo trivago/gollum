@@ -49,7 +49,7 @@ func TestConsumerConfigure(t *testing.T) {
 
 	// Stream needs to be configured to avoid unknown class errors
 	//Default stream name is plugin id
-	registerMockStream("mockConsumer")
+	registerMockRouter("mockConsumer")
 
 	err := mockC.Configure(NewPluginConfigReader(&pluginCfg))
 	expect.NoError(err)

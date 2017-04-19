@@ -60,11 +60,11 @@ func TestProducerConfigure(t *testing.T) {
 	mockProducer := mockProducer{}
 
 	mockConf := NewPluginConfig("", "mockProducer")
-	mockConf.Override("streams", []string{"testBoundStream"})
+	mockConf.Override("routers", []string{"testBoundStream"})
 	mockConf.Override("DropToStream", "mockStream")
 
-	// Stream needs to be configured to avoid unknown class errors
-	registerMockStream("mockStream")
+	// Router needs to be configured to avoid unknown class errors
+	registerMockRouter("mockStream")
 
 	err := mockProducer.Configure(NewPluginConfigReader(&mockConf))
 	expect.NoError(err)
@@ -117,15 +117,15 @@ func TestProducerWaitgroup(t *testing.T) {
 }
 
 func TestProducerEnqueue(t *testing.T) {
-	// TODO: distribute for drop route not called. Probably streams array contains soln
+	// TODO: distribute for drop route not called. Probably routers array contains soln
 	expect := ttesting.NewExpect(t)
 	mockP := getMockProducer()
 
-	mockDropStream := getMockStream()
+	mockDropStream := getMockRouter()
 	mockDropStream.streamID = 2
 	StreamRegistry.Register(&mockDropStream, 2)
 
-	mockP.dropStream = StreamRegistry.GetStream(2)
+	mockP.dropStream = StreamRegistry.GetRouter(2)
 
 	msg := NewMessage(nil, []byte("ProdEnqueueTest"), 4, 1)
 
@@ -137,7 +137,7 @@ func TestProducerEnqueue(t *testing.T) {
 	mockP.setState(PluginStateActive)
 	mockP.Enqueue(msg, &enqTimeout)
 
-	mockStream := getMockStream()
+	mockStream := getMockRouter()
 	mockDropStream.streamID = 1
 	StreamRegistry.Register(&mockStream, 1)
 
@@ -167,7 +167,7 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 		expect.Equal("closeMessageChannel", msg.String())
 	}
 
-	mockDropStream := getMockStream()
+	mockDropStream := getMockRouter()
 	mockDropStream.AddProducer(&mockProducer{})
 	mockDropStream.streamID = 2
 

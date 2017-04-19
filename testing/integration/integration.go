@@ -13,6 +13,12 @@ import (
 	"time"
 )
 
+const (
+	TmpTestFilePathDefault  = "/tmp/gollum_test.log"
+	TmpTestFilePathFoo    	= "/tmp/gollum_test_foo.log"
+	TmpTestFilePathBar    	= "/tmp/gollum_test_bar.log"
+)
+
 // ExecuteGollum execute gollum binary for integration testing
 func ExecuteGollum(config string, inputs []string, arg ...string) (out bytes.Buffer, err error) {
 	if config != "" {
@@ -68,21 +74,67 @@ func GetGollumCmd(timeout time.Duration, arg ...string) *exec.Cmd {
 	return cmd
 }
 
-// GetFileContentAsString returns file content as a string
-func GetFileContentAsString(filepath string) (string, error) {
-	// read file
+type ResultFile struct {
+	content string
+	lines int
+}
+
+// GetResultFile returns file content as a string
+func GetResultFile(filepath string) (ResultFile, error) {
+	result := ResultFile{}
+
+	// open file
 	file, err := os.Open(filepath)
 	if err != nil {
-		return "", err
+		panic(err)
 	}
 	defer file.Close()
 
+	// read file
 	b, err := ioutil.ReadAll(file)
 	if err != nil {
-		return "", err
+		panic(err)
 	}
 
-	return string(b), nil
+	file.Seek(0, os.SEEK_SET)
+	lineCount, err := lineCounter(file)
+	if err != nil {
+		panic(err)
+	}
+
+	// create result
+	result.content = string(b)
+	result.lines = lineCount
+
+	return result, nil
+}
+
+func lineCounter(r io.Reader) (int, error) {
+	buf := make([]byte, 32*1024)
+	count := 0
+	lineSep := []byte{'\n'}
+	hasChars := false
+
+	for {
+		c, err := r.Read(buf)
+
+		if len(buf[:c]) > 0 {
+			hasChars = true
+		}
+
+		count += bytes.Count(buf[:c], lineSep)
+
+		switch {
+		case err == io.EOF:
+			if count == 0 && hasChars == true {
+				count += 1 // one line without "\n"
+			}
+			return count, nil
+
+		case err != nil:
+			return count, err
+		}
+	}
 }
 
 func getGollumPath() (pwd string) {

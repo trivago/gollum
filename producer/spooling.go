@@ -245,7 +245,7 @@ func (prod *Spooling) routeToOrigin(msg *core.Message) {
 	routeStart := time.Now()
 
 	msg.SetStreamID(msg.PreviousStreamID()) // Force PrevStreamID to be preserved in case message gets spooled again
-	stream := core.StreamRegistry.GetStream(msg.StreamID())
+	stream := core.StreamRegistry.GetRouter(msg.StreamID())
 	core.Route(msg, stream)
 
 	prod.outfileGuard.RLock()

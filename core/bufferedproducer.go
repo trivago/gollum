@@ -35,7 +35,7 @@ import (
 //    DropToStream: "_DROPPED_"
 //    Fuse: ""
 //    FuseTimeoutSec: 5
-//    Stream:
+//    Router:
 //      - "foo"
 //      - "bar"
 //
@@ -60,9 +60,9 @@ import (
 // Decreasing this value may lead to lost messages during shutdown. Increasing
 // this value will increase shutdown time.
 //
-// Stream contains either a single string or a list of strings defining the
+// Router contains either a single string or a list of strings defining the
 // message channels this producer will consume. By default this is set to "*"
-// which means "listen to all streams but the internal".
+// which means "listen to all routers but the internal".
 //
 // DropToStream defines the stream used for messages that are dropped after
 // a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
@@ -117,7 +117,7 @@ func (prod *BufferedProducer) Enqueue(msg *Message, timeout *time.Duration) {
 	defer func() {
 		if r := recover(); r != nil {
 			prod.Log.Error.Print("Recovered a panic during producer enqueue: ", r)
-			prod.Log.Error.Print("Producer: ", prod.id, "State: ", prod.GetState(), ", Stream: ", StreamRegistry.GetStreamName(msg.StreamID()))
+			prod.Log.Error.Print("Producer: ", prod.id, "State: ", prod.GetState(), ", Router: ", StreamRegistry.GetStreamName(msg.StreamID()))
 			prod.Drop(msg)
 		}
 	}()

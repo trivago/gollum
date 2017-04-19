@@ -35,7 +35,7 @@ type Producer interface {
 	// Produce is always called as a go routine.
 	Produce(workers *sync.WaitGroup)
 
-	// Streams returns the streams this producer is listening to.
+	// Streams returns the streamIDs this producer is listening to.
 	Streams() []MessageStreamID
 
 	// Control returns write access to this producer's control channel.

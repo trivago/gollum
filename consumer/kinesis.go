@@ -42,7 +42,7 @@ const (
 )
 
 // Kinesis consumer plugin
-// This consumer reads message from an AWS Kinesis stream.
+// This consumer reads message from an AWS Kinesis router.
 // When attached to a fuse, this consumer will stop processing messages in case
 // that fuse is burned.
 // Configuration example

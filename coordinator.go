@@ -82,18 +82,18 @@ func (co *Coordinator) Configure(conf *core.Config) {
 	})
 	defer logFallback.Stop()
 
-	// Initialize the plugins in the order of streams > producers > consumers
+	// Initialize the plugins in the order of routers > producers > consumers
 	// to match the order of reference between the different types.
 
-	co.configureStreams(conf)
+	co.configureRouters(conf)
 	co.configureProducers(conf)
 	co.configureConsumers(conf)
 
-	// As consumers might create new fallback streams this is the first position
-	// where we can add the wildcard producers to all streams. No new streams
-	// created beyond this point must use StreamRegistry.AddWildcardProducersToStream.
+	// As consumers might create new fallback router this is the first position
+	// where we can add the wildcard producers to all streams. No new routers
+	// created beyond this point must use StreamRegistry.AddWildcardProducersToRouter.
 
-	core.StreamRegistry.AddAllWildcardProducersToAllStreams()
+	core.StreamRegistry.AddAllWildcardProducersToAllRouters()
 }
 
 // StartPlugins starts all plugins in the correct order.
@@ -190,21 +190,21 @@ func (co *Coordinator) Shutdown() {
 	co.state = coordinatorStateStopped
 }
 
-func (co *Coordinator) configureStreams(conf *core.Config) {
-	streamConfigs := conf.GetStreams()
-	for _, config := range streamConfigs {
-		tlog.Debug.Print("Instantiating ", config.ID)
+func (co *Coordinator) configureRouters(conf *core.Config) {
+	routerConfigs := conf.GetRouters()
+	for _, config := range routerConfigs {
+		tlog.Debug.Printf("Instantiating router '%s'", config.ID)
 
 		plugin, err := core.NewPlugin(config)
 		if err != nil {
-			tlog.Error.Printf("Failed to instantiate stream %s: %s", config.ID, err)
+			tlog.Error.Printf("Failed to instantiate router %s: %s", config.ID, err)
 			continue // ### continue ###
 		}
 
-		streamPlugin := plugin.(core.Stream)
+		routerPlugin := plugin.(core.Router)
 
-		tlog.Debug.Printf("Instantiated %s (%s) as %s", config.ID, core.StreamRegistry.GetStreamName(streamPlugin.StreamID()), config.Typename)
-		core.StreamRegistry.Register(streamPlugin, streamPlugin.StreamID())
+		tlog.Debug.Printf("Instantiated '%s' (%s) as '%s'", config.ID, core.StreamRegistry.GetStreamName(routerPlugin.StreamID()), config.Typename)
+		core.StreamRegistry.Register(routerPlugin, routerPlugin.StreamID())
 	}
 }
 
@@ -213,8 +213,8 @@ func (co *Coordinator) configureProducers(conf *core.Config) {
 
 	// All producers are added to the wildcard stream so that consumers can send
 	// to all producers if required. The wildcard producer list is required
-	// to add producers listening to all streams to all streams that are used.
-	wildcardStream := core.StreamRegistry.GetStreamOrFallback(core.WildcardStreamID)
+	// to add producers listening to all routers to all streams that are used.
+	wildcardStream := core.StreamRegistry.GetRouterOrFallback(core.WildcardStreamID)
 	producerConfigs := conf.GetProducers()
 
 	for _, config := range producerConfigs {
@@ -244,19 +244,19 @@ func (co *Coordinator) configureProducers(conf *core.Config) {
 				if streamID == core.WildcardStreamID {
 					core.StreamRegistry.RegisterWildcardProducer(producer)
 				} else {
-					stream := core.StreamRegistry.GetStreamOrFallback(streamID)
-					stream.AddProducer(producer)
+					router := core.StreamRegistry.GetRouterOrFallback(streamID)
+					router.AddProducer(producer)
 				}
 			}
 
 			// Add producer to wildcard stream unless it only listens to internal streams
-
+			searchinternal:
 			for _, streamID := range streams {
 				switch streamID {
 				case core.LogInternalStreamID, core.DroppedStreamID:
 				default:
 					wildcardStream.AddProducer(producer)
-					return
+					break searchinternal
 				}
 			}
 		}
