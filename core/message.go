@@ -131,12 +131,12 @@ func (msg *Message) PreviousStreamID() MessageStreamID {
 }
 
 // GetRouter returns the stream object behind the current StreamID.
-func (msg *Message) GetStream() Router {
+func (msg *Message) GetRouter() Router {
 	return StreamRegistry.GetRouterOrFallback(msg.streamID)
 }
 
-// GetPreviousStream returns the stream object behind the previous StreamID.
-func (msg *Message) GetPreviousStream() Router {
+// GetPreviousRouter returns the stream object behind the previous StreamID.
+func (msg *Message) GetPreviousRouter() Router {
 	return StreamRegistry.GetRouterOrFallback(msg.prevStreamID)
 }
 

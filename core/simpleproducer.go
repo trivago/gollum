@@ -236,7 +236,7 @@ func (prod *SimpleProducer) Modulate(msg *Message) ModulateResult {
 	result := prod.modulators.Modulate(msg)
 	switch result {
 	case ModulateResultDrop:
-		Route(msg, msg.GetStream())
+		Route(msg, msg.GetRouter())
 		return ModulateResultHandled
 
 	case ModulateResultRoute:

@@ -93,7 +93,7 @@ func (co *Coordinator) Configure(conf *core.Config) {
 	// where we can add the wildcard producers to all streams. No new routers
 	// created beyond this point must use StreamRegistry.AddWildcardProducersToRouter.
 
-	core.StreamRegistry.AddAllWildcardProducersToAllStreams()
+	core.StreamRegistry.AddAllWildcardProducersToAllRouters()
 }
 
 // StartPlugins starts all plugins in the correct order.

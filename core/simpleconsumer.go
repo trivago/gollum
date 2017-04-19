@@ -218,8 +218,8 @@ func (cons *SimpleConsumer) Enqueue(data []byte) {
 // EnqueueWithSequence works like Enqueue but allows to set a custom sequence
 // number. The internal sequence number is not incremented by this function.
 func (cons *SimpleConsumer) EnqueueWithSequence(data []byte, seq uint64) {
-	numStreams := len(cons.routers)
-	lastStreamIdx := numStreams - 1
+	numRouters := len(cons.routers)
+	lastStreamIdx := numRouters - 1
 
 	msg := NewMessage(cons, data, seq, InvalidStreamID)
 	switch cons.modulators.Modulate(msg) {
@@ -228,7 +228,7 @@ func (cons *SimpleConsumer) EnqueueWithSequence(data []byte, seq uint64) {
 		return
 
 	case ModulateResultRoute, ModulateResultDrop:
-		if err := Route(msg, msg.GetStream()); err != nil {
+		if err := Route(msg, msg.GetRouter()); err != nil {
 			cons.Log.Error.Print(err)
 		}
 		return

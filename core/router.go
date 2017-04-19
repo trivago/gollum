@@ -51,7 +51,7 @@ func Route(msg *Message, router Router) error {
 			return NewModulateResultError("Routing loop detected for router %s (from %s)", streamName, prevStreamName)
 		}
 
-		return Route(msg, msg.GetStream())
+		return Route(msg, msg.GetRouter())
 	}
 
 	return NewModulateResultError("Unknown ModulateResult action: %d", action)
