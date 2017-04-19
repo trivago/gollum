@@ -26,19 +26,19 @@ import (
 //
 //  - "stream.Broadcast":
 //    Formatter: "format.Envelope"
-//    EnvelopeFormatter: "format.Forward"
-//    EnvelopePrefix: ""
-//    EnvelopePostfix: "\n"
+//    	Formatter: "format.Forward"
+//    	Prefix: ""
+//    	Postfix: "\n"
 //
-// EnvelopePrefix defines the message prefix. By default this is set to "".
+// Envelope\Prefix defines the message prefix. By default this is set to "".
 // Special characters like \n \r \t will be transformed into the actual control
 // characters.
 //
-// EnvelopePostfix defines the message postfix. By default this is set to "\n".
+// Envelope\Postfix defines the message postfix. By default this is set to "\n".
 // Special characters like \n \r \t will be transformed into the actual control
 // characters.
 //
-// EnvelopeFormatter defines the formatter for the data transferred as
+// Envelope\Formatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Envelope struct {
 	core.SimpleFormatter
