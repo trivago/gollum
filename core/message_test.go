@@ -60,3 +60,32 @@ func TestMessageEnqueue(t *testing.T) {
 	retMsg, _ = buffer.Pop()
 	expect.Equal(msgString, retMsg.String())
 }
+
+func TestMessageInstantiate(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+	msgString := "Test for instantiate"
+
+	msg := NewMessage(nil, []byte(msgString), 1, 1)
+
+	expect.Equal(msgString, string(msg.data.payload))
+	expect.Equal(MessageStreamID(1), msg.data.streamID)
+	expect.Equal(msgString, string(msg.orig.payload))
+	expect.Equal(MessageStreamID(1), msg.orig.streamID)
+}
+
+func TestMessageOriginalDataIntegrity(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+	msgString := "Test for original data integrity"
+	msgUpdateString := "Test for original data integrity - UPDATE"
+
+	msg := NewMessage(nil, []byte(msgString), 1, 1)
+
+	msg.SetStreamID(MessageStreamID(10))
+	msg.Store([]byte(msgUpdateString))
+
+	expect.Equal(msgUpdateString, string(msg.data.payload))
+	expect.Equal(MessageStreamID(10), msg.data.streamID)
+	expect.Equal(msgString, string(msg.orig.payload))
+	expect.Equal(MessageStreamID(1), msg.orig.streamID)
+	expect.Equal(MessageStreamID(1), msg.prevStreamID)
+}
