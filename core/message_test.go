@@ -22,14 +22,17 @@ import (
 )
 
 func getMockMessage(data string) *Message {
-	return &Message{
-		data:         []byte(data),
-		streamID:     1,
+	msg := &Message{
 		prevStreamID: 2,
 		source:       nil,
 		timestamp:    time.Now(),
 		sequence:     4,
 	}
+
+	msg.data.payload = []byte(data)
+	msg.data.streamID = 1
+
+	return msg
 }
 
 func TestMessageEnqueue(t *testing.T) {

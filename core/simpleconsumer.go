@@ -221,7 +221,7 @@ func (cons *SimpleConsumer) EnqueueWithSequence(data []byte, seq uint64) {
 	numRouters := len(cons.routers)
 	lastStreamIdx := numRouters - 1
 
-	msg := NewMessage(cons, data, seq, InvalidStreamID)
+	msg := NewMessage(cons, data, seq, GetStreamID(cons.id))
 	switch cons.modulators.Modulate(msg) {
 	case ModulateResultDiscard:
 		CountDiscardedMessage()

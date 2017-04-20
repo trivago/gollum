@@ -226,9 +226,8 @@ func TestProducerMessageLoop(t *testing.T) {
 	mockP.setState(PluginStateActive)
 	mockP.messages = NewMessageQueue(10)
 	msgData := "test Message loop"
-	msg := &Message{
-		data: []byte(msgData),
-	}
+	msg := new(Message)
+	msg.data.payload = []byte(msgData)
 
 	for i := 0; i < 9; i++ {
 		mockP.messages.Push(msg, -1)
