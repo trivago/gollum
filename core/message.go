@@ -250,8 +250,22 @@ func (msg *Message) Extend(size int) []byte {
 // The created timestamp is copied, too.
 func (msg *Message) Clone() *Message {
 	clone := *msg
+
 	clone.data.payload = MessageDataPool.Get(len(msg.data.payload))
 	copy(clone.data.payload, msg.data.payload)
+
+	return &clone
+}
+
+// CloneOriginal returns a copy of this message with the original payload and stream
+// The created timestamp is copied, too.
+func (msg *Message) CloneOriginal() *Message {
+	clone := *msg
+
+	clone.data.payload = MessageDataPool.Get(len(msg.orig.payload))
+	copy(clone.data.payload, msg.orig.payload)
+
+	clone.SetStreamID(msg.orig.streamID)
 
 	return &clone
 }

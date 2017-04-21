@@ -89,3 +89,37 @@ func TestMessageOriginalDataIntegrity(t *testing.T) {
 	expect.Equal(MessageStreamID(1), msg.orig.streamID)
 	expect.Equal(MessageStreamID(1), msg.prevStreamID)
 }
+
+func TestMessageClone(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+	msgString := "Test for clone"
+	msgUpdateString := "Test for clone - UPDATE"
+
+	msg := NewMessage(nil, []byte(msgString), 1, 1)
+	msg.SetStreamID(MessageStreamID(10))
+	msg.Store([]byte(msgUpdateString))
+
+	msgClone := msg.Clone()
+
+	expect.Equal(msgUpdateString, string(msgClone.data.payload))
+	expect.Equal(MessageStreamID(10), msgClone.data.streamID)
+	expect.Equal(msgString, string(msgClone.orig.payload))
+	expect.Equal(MessageStreamID(1), msgClone.orig.streamID)
+}
+
+func TestMessageCloneOriginal(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+	msgString := "Test for clone original"
+	msgUpdateString := "Test for clone original - UPDATE"
+
+	msg := NewMessage(nil, []byte(msgString), 1, 1)
+	msg.SetStreamID(MessageStreamID(10))
+	msg.Store([]byte(msgUpdateString))
+
+	msgClone := msg.CloneOriginal()
+
+	expect.Equal(msgString, string(msgClone.data.payload))
+	expect.Equal(MessageStreamID(1), msgClone.data.streamID)
+	expect.Equal(msgString, string(msgClone.orig.payload))
+	expect.Equal(MessageStreamID(1), msgClone.orig.streamID)
+}
