@@ -35,7 +35,8 @@ import (
 // then no further filters are checked. By default this list is empty.
 type Any struct {
 	core.SimpleFilter
-	modulators core.ModulatorArray
+	modulators 	core.ModulatorArray
+	modulateResult 	core.ModulateResult
 }
 
 func init() {
@@ -55,22 +56,24 @@ func (filter *Any) Configure(conf core.PluginConfigReader) error {
 // Accepts allows messages where at least one nested filter returns true
 // todo: review function!!!
 func (filter *Any) Modulate(msg *core.Message) core.ModulateResult {
-	for _, modulator := range filter.modulators {
-		if res := modulator.Modulate(msg); res != core.ModulateResultDiscard {
-			return res
+	filter.modulateResult = core.ModulateResultDiscard
+
+	hasToFilter, _ := filter.HasToFilter(msg)
+	if hasToFilter {
+		return filter.Drop(msg)
+	}
+
+	return filter.modulateResult
+}
+
+// HasToFilter check if the filter is positive or negative for message
+func (filter *Any) HasToFilter(msg *core.Message) (bool, error) {
+	for _, subfilter := range filter.modulators {
+		if res := subfilter.Modulate(msg); res != core.ModulateResultDiscard {
+			filter.modulateResult = res
+			return false, nil
 		}
 	}
 
-	return filter.Drop(msg)
-}
-
-func (filter *Any) HasToFilter(msg *core.Message) (bool, error) {
-	//for _, filter := range filter.modulators {
-	//	if res := filter.Has(msg); res != core.ModulateResultDiscard {
-	//		return res
-	//	}
-	//}
-	//
-	//return filter.Drop(msg)
-	return false, nil
+	return true, nil
 }

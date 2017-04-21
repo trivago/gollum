@@ -47,11 +47,12 @@ import (
 // By default this list is empty.
 type Sample struct {
 	core.SimpleFilter
-	rate         int64
-	group        int64
-	count        *int64
-	dropStreamID core.MessageStreamID
-	ignore       map[core.MessageStreamID]bool
+	rate         	int64
+	group        	int64
+	count        	*int64
+	dropStreamID 	core.MessageStreamID
+	ignore       	map[core.MessageStreamID]bool
+	modulateResult 	core.ModulateResult
 }
 
 func init() {
@@ -110,4 +111,39 @@ func (filter *Sample) Modulate(msg *core.Message) core.ModulateResult {
 	}
 
 	return core.ModulateResultContinue
+}
+
+// HasToFilter check if the filter is positive or negative for message
+func (filter *Sample) HasToFilter(msg *core.Message) (bool, error) {
+	// Ignore based on StreamID
+	if ignore, known := filter.ignore[msg.StreamID()]; known && ignore {
+		filter.modulateResult = core.ModulateResultContinue // ### return, do not limit ###
+		return false, nil
+	}
+
+	// Check if count needs to be reset
+	count := atomic.AddInt64(filter.count, 1)
+	if count > filter.group {
+		if count%filter.group == 1 {
+			// make sure we never overflow filter.count
+			count = atomic.AddInt64(filter.count, -(filter.group)) // TODO: filter.count can be != count here (!)
+		} else {
+			// range from 1 to filter.group
+			count = (count-1)%filter.group + 1
+		}
+	}
+
+	// Check if to be filtered
+	if count > filter.rate {
+		if filter.dropStreamID != core.InvalidStreamID {
+			msg.SetStreamID(filter.dropStreamID)
+			filter.modulateResult = core.ModulateResultRoute
+			return true, nil
+		}
+		filter.modulateResult = core.ModulateResultDiscard // ### return, filter ###
+		return true, nil
+	}
+
+	filter.modulateResult = core.ModulateResultContinue
+	return false, nil
 }
