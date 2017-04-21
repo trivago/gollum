@@ -20,6 +20,7 @@ import (
 	"github.com/trivago/tgo/tcontainer"
 	"regexp"
 	"strconv"
+	"github.com/trivago/gollum/core/modulator"
 )
 
 // JSON filter plugin
@@ -45,7 +46,7 @@ import (
 // given regular expression does not match.
 // Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
 type JSON struct {
-	core.SimpleFilter
+	modulator.SimpleFilter
 	rejectValues map[string]*regexp.Regexp
 	acceptValues map[string]*regexp.Regexp
 }

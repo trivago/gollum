@@ -16,6 +16,7 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/modulator"
 )
 
 // Stream filter plugin
@@ -39,7 +40,7 @@ import (
 // that are not in this list are blocked unless the list is empty. By default
 // this list is empty.
 type Stream struct {
-	core.SimpleFilter
+	modulator.SimpleFilter
 	blacklist []core.MessageStreamID
 	whitelist []core.MessageStreamID
 }

@@ -20,6 +20,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"github.com/trivago/gollum/core/modulator"
 )
 
 // Rate filter plugin
@@ -44,7 +45,7 @@ import (
 // rate limiting. This is useful for e.g. producers listeing to "*".
 // By default this list is empty.
 type Rate struct {
-	core.SimpleFilter
+	modulator.SimpleFilter
 	stateGuard *sync.RWMutex
 	state      map[core.MessageStreamID]*rateState
 	rateLimit  int64

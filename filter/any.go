@@ -16,6 +16,7 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/modulator"
 )
 
 // Any filter plugin
@@ -34,7 +35,7 @@ import (
 // a message. Filters are checked in order, and if the message passes
 // then no further filters are checked. By default this list is empty.
 type Any struct {
-	core.SimpleFilter
+	modulator.SimpleFilter
 	modulators core.ModulatorArray
 }
 

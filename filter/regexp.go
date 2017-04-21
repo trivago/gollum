@@ -17,6 +17,7 @@ package filter
 import (
 	"github.com/trivago/gollum/core"
 	"regexp"
+	"github.com/trivago/gollum/core/modulator"
 )
 
 // RegExp filter plugin
@@ -36,7 +37,7 @@ import (
 // the message payload. If the expression matches, the message is blocked.
 // FilterExpressionNot is evaluated before FilterExpression.
 type RegExp struct {
-	core.SimpleFilter
+	modulator.SimpleFilter
 	exp    *regexp.Regexp
 	expNot *regexp.Regexp
 }
