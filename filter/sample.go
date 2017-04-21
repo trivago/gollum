@@ -18,7 +18,6 @@ import (
 	"sync/atomic"
 
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/modulator"
 )
 
 // Sample filter plugin
@@ -47,7 +46,7 @@ import (
 // sampling. This is useful for e.g. producers listeing to "*".
 // By default this list is empty.
 type Sample struct {
-	modulator.SimpleFilter
+	core.SimpleFilter
 	rate         int64
 	group        int64
 	count        *int64

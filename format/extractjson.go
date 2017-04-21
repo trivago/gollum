@@ -71,11 +71,21 @@ func (format *ExtractJSON) Configure(conf core.PluginConfigReader) error {
 // Modulate extractes a given field from a JSON message. If the payload is no
 // valid JSON the message will be discarded.
 func (format *ExtractJSON) Modulate(msg *core.Message) core.ModulateResult {
+	err := format.ExecuteFormatter(msg)
+	if err != nil {
+		return core.ModulateResultDiscard // ### return, malformed data ###
+	}
+
+	return core.ModulateResultContinue
+}
+
+// ExecuteFormatter update message payload
+func (format *ExtractJSON) ExecuteFormatter(msg *core.Message) error {
 	values := tcontainer.NewMarshalMap()
 	err := json.Unmarshal(msg.Data(), &values)
 	if err != nil {
 		format.Log.Warning.Print("ExtractJSON failed to unmarshal a message: ", err)
-		return core.ModulateResultDiscard // ### return, malformed data ###
+		return err
 	}
 
 	if value, exists := values[format.field]; exists {
@@ -96,5 +106,5 @@ func (format *ExtractJSON) Modulate(msg *core.Message) core.ModulateResult {
 		msg.Resize(0)
 	}
 
-	return core.ModulateResultContinue
+	return nil
 }

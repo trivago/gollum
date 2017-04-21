@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package modulator
+package core
 
 import (
 	"github.com/trivago/tgo/tlog"
-	"github.com/trivago/gollum/core"
 )
 
 // SimpleFilter plugin base type
@@ -33,7 +32,7 @@ import (
 // You can disable this behavior by setting "". Set to "" by default.
 type SimpleFilter struct {
 	Log          tlog.LogScope
-	dropStreamID core.MessageStreamID
+	dropStreamID MessageStreamID
 }
 
 // SetLogScope sets the log scope to be used for this filter
@@ -42,18 +41,18 @@ func (filter *SimpleFilter) SetLogScope(log tlog.LogScope) {
 }
 
 // Configure sets up all values requred by SimpleFormatter.
-func (filter *SimpleFilter) Configure(conf core.PluginConfigReader) error {
+func (filter *SimpleFilter) Configure(conf PluginConfigReader) error {
 	filter.Log = conf.GetSubLogScope("Filter")
 
-	filter.dropStreamID = core.GetStreamID(conf.GetString("DropToStream", core.InvalidStream))
+	filter.dropStreamID = GetStreamID(conf.GetString("DropToStream", InvalidStream))
 	return nil
 }
 
 // Drop sends the given message to the stream configured with this filter.
-func (filter *SimpleFilter) Drop(msg *core.Message) core.ModulateResult {
-	if filter.dropStreamID != core.InvalidStreamID {
+func (filter *SimpleFilter) Drop(msg *Message) ModulateResult {
+	if filter.dropStreamID != InvalidStreamID {
 		msg.SetStreamID(filter.dropStreamID)
-		return core.ModulateResultDrop
+		return ModulateResultDrop
 	}
-	return core.ModulateResultDiscard
+	return ModulateResultDiscard
 }

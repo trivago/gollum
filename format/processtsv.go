@@ -236,8 +236,14 @@ func (format *ProcessTSV) processTSVDirective(directive tsvDirective, values []t
 
 // Format modifies the TSV payload of this message
 func (format *ProcessTSV) Modulate(msg *core.Message) core.ModulateResult {
+	format.ExecuteFormatter(msg)
+	return core.ModulateResultContinue
+}
+
+// ExecuteFormatter update message payload
+func (format *ProcessTSV) ExecuteFormatter(msg *core.Message) error {
 	if len(format.directives) == 0 {
-		return core.ModulateResultContinue
+		return nil // continue
 	}
 
 	values := make([]tsvValue, 0)
@@ -267,7 +273,7 @@ func (format *ProcessTSV) Modulate(msg *core.Message) core.ModulateResult {
 				if split[0][len(split[0])-1:] != `"` {
 					// unmatched quote, abort processing this message
 					format.Log.Warning.Print("ProcessTSV failed to parse a message: unmatched quote")
-					return core.ModulateResultContinue
+					return nil // continue
 				}
 				values = append(values, tsvValue{
 					quoted: true,
@@ -294,5 +300,5 @@ func (format *ProcessTSV) Modulate(msg *core.Message) core.ModulateResult {
 	}
 
 	msg.Store([]byte(strings.Join(stringValues, format.delimiter)))
-	return core.ModulateResultContinue
+	return nil // continue
 }

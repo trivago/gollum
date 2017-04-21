@@ -49,10 +49,20 @@ func (format *CollectdToInflux09) Configure(conf core.PluginConfigReader) error 
 // Modulate transforms collectd data to influx 0.9.x data
 // If the payload is not collectd compatible the message is discarded
 func (format *CollectdToInflux09) Modulate(msg *core.Message) core.ModulateResult {
+	err := format.ExecuteFormatter(msg)
+	if err != nil {
+		return core.ModulateResultDiscard // ### return, error ###
+	}
+
+	return core.ModulateResultContinue
+}
+
+// ExecuteFormatter update message payload
+func (format *CollectdToInflux09) ExecuteFormatter(msg *core.Message) error {
 	collectdData, err := parseCollectdPacket(msg.Data())
 	if err != nil {
 		format.Log.Error.Print("Collectd parser error: ", err)
-		return core.ModulateResultDiscard // ### return, error ###
+		return err
 	}
 
 	// Manually convert to JSON lines
@@ -77,5 +87,5 @@ func (format *CollectdToInflux09) Modulate(msg *core.Message) core.ModulateResul
 	}
 
 	msg.Store(influxData.Bytes())
-	return core.ModulateResultContinue
+	return nil
 }

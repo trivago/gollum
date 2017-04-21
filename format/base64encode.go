@@ -60,11 +60,17 @@ func (format *Base64Encode) Configure(conf core.PluginConfigReader) error {
 
 // Modulate encodes the current payload as base64
 func (format *Base64Encode) Modulate(msg *core.Message) core.ModulateResult {
+	format.ExecuteFormatter(msg)
+	return core.ModulateResultContinue
+}
+
+// ExecuteFormatter update message payload
+func (format *Base64Encode) ExecuteFormatter(msg *core.Message) error {
 	encodedLen := format.dictionary.EncodedLen(msg.Len())
 	encoded := core.MessageDataPool.Get(encodedLen)
 
 	format.dictionary.Encode(encoded, msg.Data())
 	msg.Store(encoded)
 
-	return core.ModulateResultContinue
+	return nil
 }

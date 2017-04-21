@@ -20,7 +20,6 @@ import (
 	"github.com/trivago/tgo/tcontainer"
 	"regexp"
 	"strconv"
-	"github.com/trivago/gollum/core/modulator"
 )
 
 // JSON filter plugin
@@ -46,7 +45,7 @@ import (
 // given regular expression does not match.
 // Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
 type JSON struct {
-	modulator.SimpleFilter
+	core.SimpleFilter
 	rejectValues map[string]*regexp.Regexp
 	acceptValues map[string]*regexp.Regexp
 }
@@ -103,16 +102,32 @@ func (filter *JSON) getValue(key string, values tcontainer.MarshalMap) (string, 
 // Modulate checks JSON field values and rejects messages after testing a
 // blacklist and a whitelist.
 func (filter *JSON) Modulate(msg *core.Message) core.ModulateResult {
+	hasToFilter, err := filter.HasToFilter(msg)
+
+	if err != nil {
+		return core.ModulateResultDiscard
+	}
+
+	// Check rejects
+	if hasToFilter {
+		return filter.Drop(msg)
+	}
+
+	return core.ModulateResultContinue
+}
+
+// HasToFilter check if the filter is positive or negative for message
+func (filter *JSON) HasToFilter(msg *core.Message) (bool, error) {
 	values := tcontainer.NewMarshalMap()
 	if err := json.Unmarshal(msg.Data(), &values); err != nil {
-		return core.ModulateResultDiscard
+		return false, err
 	}
 
 	// Check rejects
 	for key, exp := range filter.rejectValues {
 		if value, exists := filter.getValue(key, values); exists {
 			if exp.MatchString(value) {
-				return filter.Drop(msg)
+				return true, nil
 			}
 		}
 	}
@@ -121,10 +136,10 @@ func (filter *JSON) Modulate(msg *core.Message) core.ModulateResult {
 	for key, exp := range filter.acceptValues {
 		if value, exists := filter.getValue(key, values); exists {
 			if !exp.MatchString(value) {
-				return filter.Drop(msg)
+				return true, nil
 			}
 		}
 	}
 
-	return core.ModulateResultContinue
+	return false, nil
 }

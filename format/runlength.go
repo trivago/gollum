@@ -54,6 +54,12 @@ func (format *Runlength) Configure(conf core.PluginConfigReader) error {
 // Modulate prepends the length of the message (followed by ":") to the
 // message. The length prefix is not counted.
 func (format *Runlength) Modulate(msg *core.Message) core.ModulateResult {
+	format.ExecuteFormatter(msg)
+	return core.ModulateResultContinue
+}
+
+// ExecuteFormatter update message payload
+func (format *Runlength) ExecuteFormatter(msg *core.Message) error {
 	lengthStr := strconv.Itoa(msg.Len())
 
 	dataSize := len(lengthStr) + len(format.separator) + msg.Len()
@@ -64,5 +70,5 @@ func (format *Runlength) Modulate(msg *core.Message) core.ModulateResult {
 	copy(payload[offset:], msg.Data())
 
 	msg.Store(payload)
-	return core.ModulateResultContinue
+	return nil
 }

@@ -58,6 +58,12 @@ func (format *StreamName) Configure(conf core.PluginConfigReader) error {
 
 // Modulate prepends the StreamName of the message to the message.
 func (format *StreamName) Modulate(msg *core.Message) core.ModulateResult {
+	format.ExecuteFormatter(msg)
+	return core.ModulateResultContinue
+}
+
+// ExecuteFormatter update message payload
+func (format *StreamName) ExecuteFormatter(msg *core.Message) error {
 	var streamName string
 
 	switch {
@@ -75,5 +81,5 @@ func (format *StreamName) Modulate(msg *core.Message) core.ModulateResult {
 	copy(payload[offset:], msg.Data())
 
 	msg.Store(payload)
-	return core.ModulateResultContinue
+	return nil
 }

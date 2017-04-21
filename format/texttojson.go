@@ -419,6 +419,12 @@ func (format *TextToJSON) readEnd(data []byte, state tstrings.ParserStateID) {
 
 // Modulate parses an arbitrary text format and transforms it to JSON.
 func (format *TextToJSON) Modulate(msg *core.Message) core.ModulateResult {
+	format.ExecuteFormatter(msg)
+	return core.ModulateResultContinue
+}
+
+// ExecuteFormatter update message payload
+func (format *TextToJSON) ExecuteFormatter(msg *core.Message) error {
 	// The internal state is not threadsafe so we need to lock here
 	format.parseLock.Lock()
 	defer format.parseLock.Unlock()
@@ -443,5 +449,6 @@ func (format *TextToJSON) Modulate(msg *core.Message) core.ModulateResult {
 
 	format.message.WriteString("}\n")
 	msg.Store(bytes.TrimSpace(format.message.Bytes()))
-	return core.ModulateResultContinue
+
+	return nil
 }

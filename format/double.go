@@ -38,10 +38,11 @@ import (
 // streamID of this formatter. Set to false by default.
 type Double struct {
 	core.SimpleFormatter
-	separator    []byte
-	leftStreamID bool
-	left         core.ModulatorArray
-	right        core.ModulatorArray
+	separator    	[]byte
+	leftStreamID 	bool
+	left         	core.ModulatorArray
+	right        	core.ModulatorArray
+	modulateResult 	core.ModulateResult
 }
 
 func init() {
@@ -62,14 +63,24 @@ func (format *Double) Configure(conf core.PluginConfigReader) error {
 // them. If any modulate operation does not return "continue", the process
 // is stopped.
 func (format *Double) Modulate(msg *core.Message) core.ModulateResult {
+	format.modulateResult = core.ModulateResultContinue
+	format.ExecuteFormatter(msg)
+
+	return format.modulateResult
+}
+
+// ExecuteFormatter update message payload
+func (format *Double) ExecuteFormatter(msg *core.Message) error {
 	leftMsg := msg.Clone()
 	if result := format.left.Modulate(msg); result != core.ModulateResultContinue {
-		return result
+		format.modulateResult = result
+		return nil
 	}
 
 	rightMsg := msg.Clone()
 	if result := format.right.Modulate(msg); result != core.ModulateResultContinue {
-		return result
+		format.modulateResult = result
+		return nil
 	}
 
 	dataSize := leftMsg.Len() + len(format.separator) + rightMsg.Len()
@@ -84,5 +95,6 @@ func (format *Double) Modulate(msg *core.Message) core.ModulateResult {
 	} else {
 		msg.SetStreamID(rightMsg.StreamID())
 	}
-	return core.ModulateResultContinue
+
+	return nil
 }

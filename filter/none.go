@@ -16,7 +16,6 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/modulator"
 )
 
 // None filter plugin
@@ -27,7 +26,7 @@ import (
 //     Filter: "filter.None"
 //
 type None struct {
-	modulator.SimpleFilter
+	core.SimpleFilter
 }
 
 func init() {

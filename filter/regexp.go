@@ -17,7 +17,6 @@ package filter
 import (
 	"github.com/trivago/gollum/core"
 	"regexp"
-	"github.com/trivago/gollum/core/modulator"
 )
 
 // RegExp filter plugin
@@ -37,7 +36,7 @@ import (
 // the message payload. If the expression matches, the message is blocked.
 // FilterExpressionNot is evaluated before FilterExpression.
 type RegExp struct {
-	modulator.SimpleFilter
+	core.SimpleFilter
 	exp    *regexp.Regexp
 	expNot *regexp.Regexp
 }
@@ -68,14 +67,23 @@ func (filter *RegExp) Configure(conf core.PluginConfigReader) error {
 
 // Modulate drops messages if the don't match the given expressions
 func (filter *RegExp) Modulate(msg *core.Message) core.ModulateResult {
-	if filter.expNot != nil && filter.expNot.MatchString(string(msg.Data())) {
-		return filter.Drop(msg)
-	}
-
-	if filter.exp != nil && !filter.exp.MatchString(string(msg.Data())) {
+	hasToFilter, _ := filter.HasToFilter(msg)
+	if hasToFilter {
 		return filter.Drop(msg)
 	}
 
 	return core.ModulateResultContinue // ### return, pass everything ###
+}
 
+// HasToFilter check if the filter is positive or negative for message
+func (filter *RegExp) HasToFilter(msg *core.Message) (bool, error) {
+	if filter.expNot != nil && filter.expNot.MatchString(string(msg.Data())) {
+		return true, nil
+	}
+
+	if filter.exp != nil && !filter.exp.MatchString(string(msg.Data())) {
+		return true, nil
+	}
+
+	return false, nil
 }

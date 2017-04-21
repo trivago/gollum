@@ -60,20 +60,30 @@ func (format *TemplateJSON) Configure(conf core.PluginConfigReader) error {
 
 // Format executes the template against the JSON payload of this message
 func (format *TemplateJSON) Modulate(msg *core.Message) core.ModulateResult {
+	err := format.ExecuteFormatter(msg)
+	if err != nil {
+		return core.ModulateResultDiscard
+	}
+
+	return core.ModulateResultContinue
+}
+
+// ExecuteFormatter update message payload
+func (format *TemplateJSON) ExecuteFormatter(msg *core.Message) error {
 	values := tcontainer.NewMarshalMap()
 	err := json.Unmarshal(msg.Data(), &values)
 	if err != nil {
 		format.Log.Warning.Print("TemplateJSON failed to unmarshal a message: ", err)
-		return core.ModulateResultDiscard
+		return err
 	}
 
 	var templateData bytes.Buffer
 	err = format.template.Execute(&templateData, values)
 	if err != nil {
 		format.Log.Warning.Print("TemplateJSON failed to template a message: ", err)
-		return core.ModulateResultDiscard
+		return err
 	}
 	msg.Store(templateData.Bytes())
 
-	return core.ModulateResultContinue
+	return nil
 }

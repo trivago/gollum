@@ -42,6 +42,12 @@ func (format *SplitPick) Configure(conf core.PluginConfigReader) error {
 // part.
 // If the index is out of bound, an error is logged and the returned byte is empty.
 func (format *SplitPick) Modulate(msg *core.Message) core.ModulateResult {
+	format.ExecuteFormatter(msg)
+	return core.ModulateResultContinue
+}
+
+// ExecuteFormatter update message payload
+func (format *SplitPick) ExecuteFormatter(msg *core.Message) error {
 	parts := bytes.Split(msg.Data(), format.delimiter)
 
 	if format.index < len(parts) {
@@ -50,5 +56,5 @@ func (format *SplitPick) Modulate(msg *core.Message) core.ModulateResult {
 		msg.Store([]byte{})
 	}
 
-	return core.ModulateResultContinue
+	return nil
 }

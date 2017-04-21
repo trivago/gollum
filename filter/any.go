@@ -16,26 +16,25 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/modulator"
 )
 
 // Any filter plugin
 // This plugin blocks messages after a certain number of messages per second
 // has been reached.
 // Configuration example
-//	- "yourStreamId"
-//		type: "stream.Broadcast"
-//		filters:
-//			- "filter.Any"
-//				Any:
-//					- "filter.JSON"
-//					- "filter.RegEx"
+//	- "yourStreamId":
+//	  type: "stream.Broadcast"
+//	    filters:
+//	      - "filter.Any"
+//	      Any:
+//		- "filter.JSON"
+//		- "filter.RegEx"
 //
 // AnyFilter defines a list of filters that should be checked before dropping
 // a message. Filters are checked in order, and if the message passes
 // then no further filters are checked. By default this list is empty.
 type Any struct {
-	modulator.SimpleFilter
+	core.SimpleFilter
 	modulators core.ModulatorArray
 }
 
@@ -53,7 +52,8 @@ func (filter *Any) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Accepts allows messages where at least one nested filter reutrns true
+// Accepts allows messages where at least one nested filter returns true
+// todo: review function!!!
 func (filter *Any) Modulate(msg *core.Message) core.ModulateResult {
 	for _, modulator := range filter.modulators {
 		if res := modulator.Modulate(msg); res != core.ModulateResultDiscard {
@@ -62,4 +62,15 @@ func (filter *Any) Modulate(msg *core.Message) core.ModulateResult {
 	}
 
 	return filter.Drop(msg)
+}
+
+func (filter *Any) HasToFilter(msg *core.Message) (bool, error) {
+	//for _, filter := range filter.modulators {
+	//	if res := filter.Has(msg); res != core.ModulateResultDiscard {
+	//		return res
+	//	}
+	//}
+	//
+	//return filter.Drop(msg)
+	return false, nil
 }
