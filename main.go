@@ -35,6 +35,7 @@ import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tstrings"
+	"github.com/trivago/gollum/healthcheck"
 )
 
 func main() {
@@ -113,6 +114,15 @@ func main() {
 
 		go server.Start(address)
 		defer server.Stop()
+	}
+
+	// Health Check endpoint
+
+	if true {
+		// TODO: package, config
+		healthcheck.Configure(":8012")
+		go healthcheck.Start()
+		defer healthcheck.Stop()
 	}
 
 	// Profiling flags
