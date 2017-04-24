@@ -9,7 +9,7 @@ Please read the list of [breaking changes](https://github.com/trivago/gollum/wik
 [![Documentation Status](https://readthedocs.org/projects/gollum/badge/?version=latest)](http://gollum.readthedocs.org/en/latest/)
 [![Go Report Card](https://goreportcard.com/badge/github.com/trivago/gollum)](https://goreportcard.com/report/github.com/trivago/gollum)
 [![Build Status](https://travis-ci.org/trivago/gollum.svg?branch=v0.4.3dev)](https://travis-ci.org/trivago/gollum)
-[![License](https://img.shields.io/badge/license-apache%202.0-lightgrey.svg)](https://github.com/trivago/gollum/blob/master/LICENSE)
+[![Gitter](https://badges.gitter.im/trivago/gollum.svg)](https://gitter.im/trivago/gollum?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 Gollum is an n:m multiplexer that gathers messages from different sources and broadcasts them to a set of destinations.
 
@@ -27,6 +27,8 @@ Writing a custom plugin does not require you to change any additional code besid
 ## Documentation
 
 A how-to-use documentation can be found on [read the docs](http://gollum.readthedocs.org/en/latest/). Developers should use the [godoc pages](https://godoc.org/github.com/trivago/gollum) to get started. Plugin documentation is generated from the plugin source code. So if you feel that something is missing a look into the code may help.
+
+If you can't find your answer in the documentation or have other questions you can reach us on [gitter](https://gitter.im/trivago/gollum?utm_source=share-link&utm_medium=link&utm_campaign=share-link), too.
 
 ## Consumers (reading data)
 
