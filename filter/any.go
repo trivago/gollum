@@ -35,8 +35,7 @@ import (
 // then no further filters are checked. By default this list is empty.
 type Any struct {
 	core.SimpleFilter
-	modulators 	core.ModulatorArray
-	modulateResult 	core.ModulateResult
+	filters 	core.FilterArray
 }
 
 func init() {
@@ -47,33 +46,20 @@ func init() {
 func (filter *Any) Configure(conf core.PluginConfigReader) error {
 	filter.SimpleFilter.Configure(conf)
 
-	filter.modulators = conf.GetModulatorArray("Any",
-		filter.Log, core.ModulatorArray{})
+	filter.filters = conf.GetFilterArray("Any",
+		filter.Log, core.FilterArray{})
 
 	return conf.Errors.OrNil()
 }
 
-// Accepts allows messages where at least one nested filter returns true
-// todo: review function!!!
-func (filter *Any) Modulate(msg *core.Message) core.ModulateResult {
-	filter.modulateResult = core.ModulateResultDiscard
-
-	hasToFilter, _ := filter.HasToFilter(msg)
-	if hasToFilter {
-		return filter.Drop(msg)
-	}
-
-	return filter.modulateResult
-}
-
-// HasToFilter check if the filter is positive or negative for message
-func (filter *Any) HasToFilter(msg *core.Message) (bool, error) {
-	for _, subfilter := range filter.modulators {
-		if res := subfilter.Modulate(msg); res != core.ModulateResultDiscard {
-			filter.modulateResult = res
-			return false, nil
+// ApplyFilter check if all Filter wants to reject the message
+func (filter *Any) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
+	for _, subfilter := range filter.filters {
+		// all filter need to apply the message. if one filter not apply return FilterResultMessageAccept
+		if res, _ := subfilter.ApplyFilter(msg); res == core.FilterResultMessageAccept {
+			return core.FilterResultMessageAccept, nil
 		}
 	}
 
-	return true, nil
+	return core.FilterResultMessageReject, nil
 }

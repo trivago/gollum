@@ -38,13 +38,7 @@ func (filter *None) Configure(conf core.PluginConfigReader) error {
 	return filter.SimpleFilter.Configure(conf)
 }
 
-// Modulate drops all messages
-func (filter *None) Modulate(msg *core.Message) core.ModulateResult {
-	return filter.Drop(msg)
-
-}
-
-// HasToFilter check if the filter is positive or negative for message
-func (filter *None) HasToFilter(msg *core.Message) (bool, error) {
-	return true, nil
+// ApplyFilter calls the Filter.ApplyFilter method
+func (filter *None) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
+	return core.FilterResultMessageReject, nil
 }

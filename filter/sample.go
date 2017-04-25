@@ -52,7 +52,6 @@ type Sample struct {
 	count        	*int64
 	dropStreamID 	core.MessageStreamID
 	ignore       	map[core.MessageStreamID]bool
-	modulateResult 	core.ModulateResult
 }
 
 func init() {
@@ -82,11 +81,11 @@ func (filter *Sample) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Accepts allows message until a limit is hit
-func (filter *Sample) Modulate(msg *core.Message) core.ModulateResult {
+// ApplyFilter check if all Filter wants to reject the message
+func (filter *Sample) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	// Ignore based on StreamID
 	if ignore, known := filter.ignore[msg.StreamID()]; known && ignore {
-		return core.ModulateResultContinue // ### return, do not limit ###
+		return core.FilterResultMessageAccept, nil // ### return, do not limit ###
 	}
 
 	// Check if count needs to be reset
@@ -105,45 +104,11 @@ func (filter *Sample) Modulate(msg *core.Message) core.ModulateResult {
 	if count > filter.rate {
 		if filter.dropStreamID != core.InvalidStreamID {
 			msg.SetStreamID(filter.dropStreamID)
-			return core.ModulateResultRoute
+			//todo: move to framework!
+			// return core.ModulateResultRoute
 		}
-		return core.ModulateResultDiscard // ### return, filter ###
+		return core.FilterResultMessageReject, nil // ### return, filter ###
 	}
 
-	return core.ModulateResultContinue
-}
-
-// HasToFilter check if the filter is positive or negative for message
-func (filter *Sample) HasToFilter(msg *core.Message) (bool, error) {
-	// Ignore based on StreamID
-	if ignore, known := filter.ignore[msg.StreamID()]; known && ignore {
-		filter.modulateResult = core.ModulateResultContinue // ### return, do not limit ###
-		return false, nil
-	}
-
-	// Check if count needs to be reset
-	count := atomic.AddInt64(filter.count, 1)
-	if count > filter.group {
-		if count%filter.group == 1 {
-			// make sure we never overflow filter.count
-			count = atomic.AddInt64(filter.count, -(filter.group)) // TODO: filter.count can be != count here (!)
-		} else {
-			// range from 1 to filter.group
-			count = (count-1)%filter.group + 1
-		}
-	}
-
-	// Check if to be filtered
-	if count > filter.rate {
-		if filter.dropStreamID != core.InvalidStreamID {
-			msg.SetStreamID(filter.dropStreamID)
-			filter.modulateResult = core.ModulateResultRoute
-			return true, nil
-		}
-		filter.modulateResult = core.ModulateResultDiscard // ### return, filter ###
-		return true, nil
-	}
-
-	filter.modulateResult = core.ModulateResultContinue
-	return false, nil
+	return core.FilterResultMessageAccept, nil
 }

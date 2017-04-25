@@ -112,20 +112,8 @@ func (filter *Rate) updateMetrics() {
 	}
 }
 
-// Accepts allows all messages
-func (filter *Rate) Modulate(msg *core.Message) core.ModulateResult {
-	hasToFilter, _ := filter.HasToFilter(msg)
-
-	// Check rejects
-	if hasToFilter {
-		return filter.Drop(msg)
-	}
-
-	return core.ModulateResultContinue
-}
-
-// HasToFilter check if the filter is positive or negative for message
-func (filter *Rate) HasToFilter(msg *core.Message) (bool, error) {
+// ApplyFilter check if all Filter wants to reject the message
+func (filter *Rate) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	filter.stateGuard.RLock()
 	state, known := filter.state[msg.StreamID()]
 	filter.stateGuard.RUnlock()
@@ -148,7 +136,7 @@ func (filter *Rate) HasToFilter(msg *core.Message) (bool, error) {
 
 	// Ignore if set
 	if state.ignore {
-		return false, nil // ### return, do not limit ###
+		return core.FilterResultMessageAccept, nil // ### return, do not limit ###
 	}
 
 	// Reset if necessary
@@ -162,8 +150,8 @@ func (filter *Rate) HasToFilter(msg *core.Message) (bool, error) {
 
 	// Check if to be filtered
 	if atomic.AddInt64(state.count, 1) <= filter.rateLimit {
-		return false, nil // ### return, do not limit ###
+		return core.FilterResultMessageAccept, nil // ### return, do not limit ###
 	}
 
-	return true, nil
+	return core.FilterResultMessageReject, nil
 }

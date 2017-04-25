@@ -14,12 +14,63 @@
 
 package core
 
+import (
+	"github.com/trivago/tgo/tlog"
+)
+
+// FilterResult defines a set of results for filtering
+type FilterResult int
+
+const (
+	// FilterResultMessageReject indicates that a message is filtered and not pared along the stream
+	FilterResultMessageReject = FilterResult(iota)
+	// FilterResultMessageAccept indicates that a message can be passed along and continue
+	FilterResultMessageAccept = FilterResult(iota)
+)
+
 // FilterArray is a type wrapper to []Filter to make array of filters
 type FilterArray []Filter
 
 // A Filter defines an analysis step inside the message
 // A filter also have to implement the modulator interface
 type Filter interface {
-	Modulator
-	HasToFilter (msg *Message) (bool, error)
+	ApplyFilter (msg *Message) (FilterResult, error)
+}
+
+// FilterModulator is a wrapper to provide a Filter as a Modulator
+type FilterModulator struct {
+	Filter Filter
+}
+
+// NewFilterModulator return a instance of FilterModulator
+func NewFilterModulator(filter Filter) *FilterModulator {
+	return &FilterModulator{
+		Filter: filter,
+	}
+}
+
+// Modulate implementation for Filters
+func (filterModulator *FilterModulator) Modulate(msg *Message) ModulateResult {
+	result, err := filterModulator.ApplyFilter(msg)
+	if err != nil {
+		tlog.Warning.Print("FilterModulator with error:", err)
+		return ModulateResultDiscard
+	}
+
+	switch result {
+	case FilterResultMessageAccept:
+		return ModulateResultContinue
+	case FilterResultMessageReject:
+		// if not drop stream => discard | else drop
+		return ModulateResultDrop
+	default:
+		tlog.Error.Printf("FilterModulator '%T' with unknown return value:",
+			filterModulator.Filter, result)
+		return ModulateResultContinue
+	}
+}
+
+// ApplyFilter calls the Filter.ApplyFilter method
+func (filterModulator *FilterModulator) ApplyFilter (msg *Message) (FilterResult, error) {
+	return filterModulator.Filter.ApplyFilter(msg)
 }

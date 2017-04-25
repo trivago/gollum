@@ -291,21 +291,23 @@ func (reader PluginConfigReaderWithError) getModulatorArrays(key string, logScop
 	formatters := []Formatter{}
 
 	for _, plugin := range modPlugins {
-
-		modulator, isModulator := plugin.(Modulator)
-		if !isModulator {
-			errors.Pushf("Plugin is not a valid modulator")
-		} else {
+		if filter, isFilter := plugin.(Filter); isFilter {
+			FilterModulator := NewFilterModulator(filter)
+			modulators = append(modulators, FilterModulator)
+			filters = append(filters, filter)
+		} else if formatter, isFormatter := plugin.(Formatter); isFormatter {
+			formatterModulator := NewFormatterModulator(formatter)
+			modulators = append(modulators, formatterModulator)
+			formatters = append(formatters, formatter)
+		} else if modulator, isModulator := plugin.(Modulator); isModulator {
 			if modulator, isScopedModulator := plugin.(ScopedModulator); isScopedModulator {
 				modulator.SetLogScope(logScope)
 			}
-			modulators = append(modulators, modulator)
 
-			if filter, isFilter := plugin.(Filter); isFilter {
-				filters = append(filters, filter)
-			} else if formatter, isFormatter := plugin.(Formatter); isFormatter {
-				formatters = append(formatters, formatter)
-			}
+			modulators = append(modulators, modulator)
+		} else {
+			errors.Pushf("Plugin '%T' is not a valid modulator, filter or formatter", plugin)
+			panic(errors.Top())
 		}
 	}
 

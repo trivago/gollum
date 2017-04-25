@@ -58,36 +58,24 @@ func (filter *Stream) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Modulate filters by streamId using a black and whitelist
-func (filter *Stream) Modulate(msg *core.Message) core.ModulateResult {
-	hasToFilter, _ := filter.HasToFilter(msg)
-
-	// Check rejects
-	if hasToFilter {
-		return filter.Drop(msg)
-	}
-
-	return core.ModulateResultContinue
-}
-
-// HasToFilter check if the filter is positive or negative for message
-func (filter *Stream) HasToFilter(msg *core.Message) (bool, error) {
+// ApplyFilter check if all Filter wants to reject the message
+func (filter *Stream) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	for _, blockedID := range filter.blacklist {
 		if msg.StreamID() == blockedID {
-			return true, nil // ### return, explicitly blocked ###
+			return core.FilterResultMessageReject, nil // ### return, explicitly blocked ###
 		}
 	}
 
 	for _, allowedID := range filter.whitelist {
 		if msg.StreamID() == allowedID {
-			return false, nil // ### return, explicitly allowed ###
+			return core.FilterResultMessageAccept, nil // ### return, explicitly allowed ###
 		}
 	}
 
 	// Return true if no whitlist is given, false otherwise (must fulfill whitelist)
 	if len(filter.whitelist) > 0 {
-		return true, nil
+		return core.FilterResultMessageReject, nil
 	}
 
-	return false, nil
+	return core.FilterResultMessageAccept, nil
 }

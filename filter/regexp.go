@@ -65,25 +65,15 @@ func (filter *RegExp) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Modulate drops messages if the don't match the given expressions
-func (filter *RegExp) Modulate(msg *core.Message) core.ModulateResult {
-	hasToFilter, _ := filter.HasToFilter(msg)
-	if hasToFilter {
-		return filter.Drop(msg)
-	}
-
-	return core.ModulateResultContinue // ### return, pass everything ###
-}
-
-// HasToFilter check if the filter is positive or negative for message
-func (filter *RegExp) HasToFilter(msg *core.Message) (bool, error) {
+// ApplyFilter check if all Filter wants to reject the message
+func (filter *RegExp) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	if filter.expNot != nil && filter.expNot.MatchString(string(msg.Data())) {
-		return true, nil
+		return core.FilterResultMessageReject, nil
 	}
 
 	if filter.exp != nil && !filter.exp.MatchString(string(msg.Data())) {
-		return true, nil
+		return core.FilterResultMessageReject, nil
 	}
 
-	return false, nil
+	return core.FilterResultMessageAccept, nil
 }
