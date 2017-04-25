@@ -80,7 +80,7 @@ func (filterModulator *FilterModulator) Modulate(msg *Message) ModulateResult {
 		// if not drop stream => discard | else drop
 		return ModulateResultDrop
 	default:
-		tlog.Error.Printf("FilterModulator '%T' with unknown return value:",
+		tlog.Error.Printf("FilterModulator '%T' with unknown return value: %d",
 			filterModulator.Filter, result)
 		return ModulateResultContinue
 	}
