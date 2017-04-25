@@ -7,6 +7,10 @@
 // probes are executed by issuing requests to the endpoints' named
 // URL paths.
 //
+// GETing the "/" path provides a list of registered endpoints, one
+// per line. GETing "/_ALL_" probes each registered endpoint sequentially,
+// returning each endpoint's path, HTTP status code and body per line.
+//
 // The package works as a "singleton" with just one server in order to
 // avoid cluttering the main program by passing handles around.
 package healthcheck
@@ -109,27 +113,31 @@ func Configure(listenAddr string) {
 	})
 
 	// Debugging
-	//AddEndpoint("/ping", func()(code int, body string){
-	//	return 400, "FAILPONG\n"
-	//})
+	//AddEndpoint("/ping", func()(code int, body string){ return 400, "DUPLICATEPONG\n" })
+	//AddEndpoint("/fail", func()(code int, body string){ return 500, "FAIL\n" })
+	//AddEndpoint("", func()(code int, body string){ return 500, "EMPTYFAIL\n" })
+	//AddEndpoint("noprecedingslash", func()(code int, body string){ return 500, "FAIL\n" })
+	//AddEndpoint("/hasfinalslash/", func()(code int, body string){ return 500, "FAIL\n" })
 
-	// Debugging
-	//AddEndpoint("/fail", func()(code int, body string){
-	//	return 500, "FAIL\n"
-	//})
 }
 
 // Registers an endpoint with the health checker
 func AddEndpoint(urlPath string, callback CallbackFunc){
-	// Check parameters - reserved paths
-	for _, path := range []string{"", "/", "/_ALL_"} {
+	// Check parameters
+	// -syntax
+	if len(urlPath) == 0 || urlPath[:1] != "/" || urlPath[len(urlPath)-1:] == "/" {
+		panic(fmt.Sprintf(
+			"ERROR: Health check endpoint must begin and may not end with a slash: \"%s\"",
+			urlPath))
+	}
+	// - reserved paths
+	for _, path := range []string{"/", "/_ALL_"} {
 		if urlPath == path {
 			panic(fmt.Sprintf(
 				"ERROR: Health check path \"%s\" is reserved", path))
 		}
 	}
-
-	// Check parameters - registered paths
+	// - registered paths
 	_, exists := endpoints[urlPath]
 	if exists {
 		panic(fmt.Sprintf(
