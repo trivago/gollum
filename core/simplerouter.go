@@ -20,6 +20,16 @@ import (
 )
 
 // SimpleRouter router plugin
+// Configuration example:
+//
+//  MyRouter:
+//    Type: "router.Broadcast"
+//    Stream: "foo"
+//    TimeoutMs: 200
+//    Modulators:
+//	- filter.RegExp:
+// 	  Expression: "[a-zA-Z]+"
+//
 type SimpleRouter struct {
 	id         string
 	modulators ModulatorArray
