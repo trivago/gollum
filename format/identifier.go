@@ -94,14 +94,8 @@ func (format *Identifier) idSeqHex(msg *core.Message) []byte {
 	return []byte(strconv.FormatUint(msg.Sequence(), 16))
 }
 
-// Modulate generates a unique identifier from the message contents or metadata.
-func (format *Identifier) Modulate(msg *core.Message) core.ModulateResult {
-	format.ExecuteFormatter(msg)
-	return core.ModulateResultContinue
-}
-
-// ExecuteFormatter update message payload
-func (format *Identifier) ExecuteFormatter(msg *core.Message) error {
+// ApplyFormatter update message payload
+func (format *Identifier) ApplyFormatter(msg *core.Message) error {
 	msg.Store(format.hash(msg))
 	return nil
 }

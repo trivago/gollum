@@ -31,6 +31,22 @@ const (
 // FilterArray is a type wrapper to []Filter to make array of filters
 type FilterArray []Filter
 
+// ApplyFilter calls ApplyFilter on every filter
+// Return FilterResultMessageReject in case of an error or if one filter rejects
+func (filters FilterArray) ApplyFilter(msg *Message) (FilterResult, error) {
+	for _, filter := range filters {
+		result, err := filter.ApplyFilter(msg)
+		if err != nil {
+			return FilterResultMessageReject, err
+		}
+
+		if result == FilterResultMessageReject {
+			return FilterResultMessageReject, nil
+		}
+	}
+	return FilterResultMessageAccept, nil
+}
+
 // A Filter defines an analysis step inside the message
 // A filter also have to implement the modulator interface
 type Filter interface {

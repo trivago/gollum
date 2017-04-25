@@ -49,19 +49,8 @@ func (format *JSONToArray) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Modulate spilts a json struct to a csv. If the payload is not a valid JSON
-// the message will be discarded.
-func (format *JSONToArray) Modulate(msg *core.Message) core.ModulateResult {
-	err := format.ExecuteFormatter(msg)
-	if err != nil {
-		return core.ModulateResultDiscard // ### error ###
-	}
-
-	return core.ModulateResultContinue
-}
-
-// ExecuteFormatter update message payload
-func (format *JSONToArray) ExecuteFormatter(msg *core.Message) error {
+// ApplyFormatter update message payload
+func (format *JSONToArray) ApplyFormatter(msg *core.Message) error {
 	values := make(tcontainer.MarshalMap)
 	err := json.Unmarshal(msg.Data(), &values)
 	if err != nil {

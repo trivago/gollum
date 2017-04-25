@@ -14,12 +14,54 @@
 
 package core
 
-// FormatterArray is a type wrapper to []Formatter to make array of formatters
+import (
+	"github.com/trivago/tgo/tlog"
+)
+
+// FormatterArray is a type wrapper to []Formatter to make array of formatter
 type FormatterArray []Formatter
+
+// ApplyFormatter calls ApplyFormatter on every formatter
+func (formatters FormatterArray) ApplyFormatter(msg *Message) error {
+	for _, formatter := range formatters {
+		err := formatter.ApplyFormatter(msg)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 // A Formatter defines a modification step inside the message
 // A Formatter also have to implement the modulator interface
 type Formatter interface {
-	Modulator
-	ExecuteFormatter (msg *Message) (error)
+	ApplyFormatter (msg *Message) (error)
+}
+
+// FormatterModulator is a wrapper to provide a Formatter as a Modulator
+type FormatterModulator struct {
+	Formatter Formatter
+}
+
+// NewFormatterModulator return a instance of FormatterModulator
+func NewFormatterModulator(formatter Formatter) *FormatterModulator {
+	return &FormatterModulator{
+		Formatter: formatter,
+	}
+}
+
+//  Modulate implementation for Formatter
+func (formatterModulator *FormatterModulator) Modulate(msg *Message) ModulateResult {
+	err := formatterModulator.ApplyFormatter(msg)
+	if err != nil {
+		tlog.Warning.Print("FormatterModulator with error:", err)
+		return ModulateResultDiscard
+	}
+
+	return ModulateResultContinue
+}
+
+// ApplyFormatter calls the Formatter.ApplyFormatter method
+func (formatterModulator *FormatterModulator) ApplyFormatter(msg *Message) error {
+	return formatterModulator.Formatter.ApplyFormatter(msg)
 }

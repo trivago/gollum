@@ -68,19 +68,8 @@ func (format *ExtractJSON) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Modulate extractes a given field from a JSON message. If the payload is no
-// valid JSON the message will be discarded.
-func (format *ExtractJSON) Modulate(msg *core.Message) core.ModulateResult {
-	err := format.ExecuteFormatter(msg)
-	if err != nil {
-		return core.ModulateResultDiscard // ### return, malformed data ###
-	}
-
-	return core.ModulateResultContinue
-}
-
-// ExecuteFormatter update message payload
-func (format *ExtractJSON) ExecuteFormatter(msg *core.Message) error {
+// ApplyFormatter update message payload
+func (format *ExtractJSON) ApplyFormatter(msg *core.Message) error {
 	values := tcontainer.NewMarshalMap()
 	err := json.Unmarshal(msg.Data(), &values)
 	if err != nil {
