@@ -84,6 +84,7 @@ func Configure(listenAddr string) {
 
 			// Call all endpoints sequentially
 			// (TBD: if there were _a lot_ of these we could do them in parallel)
+			// TBD: Collate (output at least)
 			for endpointPath, callback := range endpoints {
 				// Call the callback
 				code, body := callback()
@@ -172,6 +173,21 @@ func AddEndpoint(urlPath string, callback CallbackFunc){
 
 	// Store the endpoint
 	endpoints[urlPath] = callback
+}
+
+// Registers an endpoint with the health checker.
+//
+// This is a convenience version of AddEndpoint() that takes
+// the urlPath's components as a list of strings and catenates
+// them.
+func AddEndpointPathArray(urlPath []string, callback CallbackFunc) {
+	// Catenate path
+	var cat bytes.Buffer
+	for _, pathComponent := range urlPath {
+		fmt.Fprintf(&cat, "/%s", pathComponent)
+	}
+	// Call it
+	AddEndpoint(cat.String(), callback)
 }
 
 // Starts the HTTP server
