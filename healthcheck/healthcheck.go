@@ -33,13 +33,18 @@ var serveMux *http.ServeMux
 // List of endpoints known by the server
 var endpoints map[string]CallbackFunc
 
+// Init
+func init() {
+	// Create the request multiplexer
+	serveMux = http.NewServeMux()
+	// Initialize the enpoint list
+	endpoints = make(map[string]CallbackFunc)
+}
+
 // Configures the health check server
 //
-// listenAddr: an address understood by http.ListenAndServe(), e.g. ":8008"
+//  listenAddr: an address understood by http.ListenAndServe(), e.g. ":8008"
 func Configure(listenAddr string) {
-	// Create our request multiplexer
-	serveMux = http.NewServeMux()
-
 	// Create the HTTP server
 	server = &http.Server{
 		Addr:    listenAddr,
@@ -84,7 +89,7 @@ func Configure(listenAddr string) {
 				code, body := callback()
 				// Append path, code, body to response body
 				fmt.Fprintf(&resultBody,
-					"%s %d %s",
+					"%s %d %s\n",
 					endpointPath,
 					code,
 					body,
@@ -104,24 +109,31 @@ func Configure(listenAddr string) {
 		},
 	)
 
-	// Initialize the enpoint list
-	endpoints = make(map[string]CallbackFunc)
-
 	// Add a static "ping" endpoint
 	AddEndpoint("/ping", func()(code int, body string){
-		return 200, "PONG\n"
+		return 200, "PONG"
 	})
 
 	// Debugging
-	//AddEndpoint("/ping", func()(code int, body string){ return 400, "DUPLICATEPONG\n" })
-	//AddEndpoint("/fail", func()(code int, body string){ return 500, "FAIL\n" })
-	//AddEndpoint("", func()(code int, body string){ return 500, "EMPTYFAIL\n" })
-	//AddEndpoint("noprecedingslash", func()(code int, body string){ return 500, "FAIL\n" })
-	//AddEndpoint("/hasfinalslash/", func()(code int, body string){ return 500, "FAIL\n" })
+	//AddEndpoint("/ping", func()(code int, body string){ return 400, "DUPLICATEPONG" })
+	//AddEndpoint("/fail", func()(code int, body string){ return 500, "FAIL" })
+	//AddEndpoint("", func()(code int, body string){ return 500, "EMPTYFAIL" })
+	//AddEndpoint("noprecedingslash", func()(code int, body string){ return 500, "FAIL" })
+	//AddEndpoint("/hasfinalslash/", func()(code int, body string){ return 500, "FAIL" })
 
 }
 
-// Registers an endpoint with the health checker
+// Registers an endpoint with the health checker.
+//
+// The urlPath must be unique. The callback must return an HTTP response code
+// and body text.
+//
+// Boilerplate:
+//
+//  healthcheck.AddEndpoint("/my/arbitrary/path" func()(code int, body string) {
+//      return 200, "Foobar Plugin is OK"
+//  })
+//
 func AddEndpoint(urlPath string, callback CallbackFunc){
 	// Check parameters
 	// -syntax
@@ -144,8 +156,9 @@ func AddEndpoint(urlPath string, callback CallbackFunc){
 			"ERROR: Health check endpoint \"%s\" already registered", urlPath))
 	}
 
-	// Register the HTTP route
-	serveMux.HandleFunc(urlPath,
+	// Register the HTTP route & handler
+	serveMux.HandleFunc(
+		urlPath,
 		func(responseWriter http.ResponseWriter, httpRequest *http.Request){
 			// Call the callback
 			code, body := callback()
@@ -153,6 +166,7 @@ func AddEndpoint(urlPath string, callback CallbackFunc){
 			responseWriter.WriteHeader(code)
 			// Write HTTP response body
 			fmt.Fprintf(responseWriter, body)
+			fmt.Fprintf(responseWriter, "\n")
 		},
 	)
 
@@ -161,6 +175,10 @@ func AddEndpoint(urlPath string, callback CallbackFunc){
 }
 
 // Starts the HTTP server
+//
+// Call this after Configure() and AddEndpoint() calls.
+//
+// TBD: is it possible to AddEndpoint() after Start()ing?
 func Start(){
 	err := server.ListenAndServe()
 
@@ -169,7 +187,7 @@ func Start(){
 	}
 }
 
-// Cleanup?
+// TBD: Cleanup?
 func Stop(){
 
 
