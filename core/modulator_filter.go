@@ -51,6 +51,7 @@ func (filters FilterArray) ApplyFilter(msg *Message) (FilterResult, error) {
 // A filter also have to implement the modulator interface
 type Filter interface {
 	ApplyFilter (msg *Message) (FilterResult, error)
+	GetDropStreamID() MessageStreamID
 }
 
 // FilterModulator is a wrapper to provide a Filter as a Modulator
@@ -70,15 +71,14 @@ func (filterModulator *FilterModulator) Modulate(msg *Message) ModulateResult {
 	result, err := filterModulator.ApplyFilter(msg)
 	if err != nil {
 		tlog.Warning.Print("FilterModulator with error:", err)
-		return ModulateResultDiscard
+		return filterModulator.drop(msg)
 	}
 
 	switch result {
 	case FilterResultMessageAccept:
 		return ModulateResultContinue
 	case FilterResultMessageReject:
-		// if not drop stream => discard | else drop
-		return ModulateResultDrop
+		return filterModulator.drop(msg)
 	default:
 		tlog.Error.Printf("FilterModulator '%T' with unknown return value: %d",
 			filterModulator.Filter, result)
@@ -89,4 +89,15 @@ func (filterModulator *FilterModulator) Modulate(msg *Message) ModulateResult {
 // ApplyFilter calls the Filter.ApplyFilter method
 func (filterModulator *FilterModulator) ApplyFilter (msg *Message) (FilterResult, error) {
 	return filterModulator.Filter.ApplyFilter(msg)
+}
+
+// drop set filter DropStreamID to message and returns ModulateResult
+func (filterModulator *FilterModulator) drop(msg *Message) ModulateResult {
+	// if not drop stream => discard | else drop
+	filterDropStreamID := filterModulator.Filter.GetDropStreamID()
+	if filterDropStreamID != InvalidStreamID {
+		msg.SetStreamID(filterDropStreamID)
+		return ModulateResultDrop
+	}
+	return ModulateResultDiscard
 }

@@ -48,11 +48,7 @@ func (filter *SimpleFilter) Configure(conf PluginConfigReader) error {
 	return nil
 }
 
-// Drop sends the given message to the stream configured with this filter.
-func (filter *SimpleFilter) Drop(msg *Message) ModulateResult {
-	if filter.dropStreamID != InvalidStreamID {
-		msg.SetStreamID(filter.dropStreamID)
-		return ModulateResultDrop
-	}
-	return ModulateResultDiscard
+// GetDropStreamID return the drop stream id
+func (filter *SimpleFilter) GetDropStreamID() MessageStreamID {
+	return filter.dropStreamID
 }
