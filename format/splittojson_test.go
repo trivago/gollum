@@ -38,8 +38,8 @@ func TestSplitToJSON(t *testing.T) {
 	msg := core.NewMessage(nil, []byte("test1,test2,{\"object\": true}"),
 		10, core.InvalidStreamID)
 
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	jsonData := tcontainer.NewMarshalMap()
 	err = json.Unmarshal(msg.Data(), &jsonData)
@@ -68,8 +68,8 @@ func TestSplitToJSONTooFew(t *testing.T) {
 	msg := core.NewMessage(nil, []byte("test1,test2,test3"),
 		10, core.InvalidStreamID)
 
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	jsonData := tcontainer.NewMarshalMap()
 	err = json.Unmarshal(msg.Data(), &jsonData)
@@ -96,8 +96,8 @@ func TestSplitToJSONTooMany(t *testing.T) {
 	msg := core.NewMessage(nil, []byte("test1,test2,test3"),
 		10, core.InvalidStreamID)
 
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	jsonData := tcontainer.NewMarshalMap()
 	err = json.Unmarshal(msg.Data(), &jsonData)

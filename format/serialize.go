@@ -45,15 +45,8 @@ func (format *Serialize) Configure(conf core.PluginConfigReader) error {
 	return format.SimpleFormatter.Configure(conf)
 }
 
-// Modulate serializes the current message and replaces it with the serialized
-// contents. If serialization fails the original message is kept.
-func (format *Serialize) Modulate(msg *core.Message) core.ModulateResult {
-	format.ExecuteFormatter(msg)
-	return core.ModulateResultContinue
-}
-
-// ExecuteFormatter update message payload
-func (format *Serialize) ExecuteFormatter(msg *core.Message) error {
+// ApplyFormatter update message payload
+func (format *Serialize) ApplyFormatter(msg *core.Message) error {
 	data, err := msg.Serialize()
 	if err != nil {
 		format.Log.Error.Print(err)

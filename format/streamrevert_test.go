@@ -36,8 +36,8 @@ func TestStreamRevert(t *testing.T) {
 	msg := core.NewMessage(nil, []byte("test"), 0, prevStreamID)
 	msg.SetStreamID(streamID)
 
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultRoute, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	expect.Equal("test", msg.String())
 	expect.Equal(prevStreamID, msg.StreamID())

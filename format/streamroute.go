@@ -50,7 +50,6 @@ type StreamRoute struct {
 	core.SimpleFormatter
 	streamModulators core.ModulatorArray
 	delimiter        []byte
-	modulateResult 	 core.ModulateResult
 }
 
 func init() {
@@ -67,17 +66,8 @@ func (format *StreamRoute) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Modulate searches for a stream prefix, removes it from the message and
-// routes the message to the given stream.
-func (format *StreamRoute) Modulate(msg *core.Message) core.ModulateResult {
-	format.modulateResult = core.ModulateResultContinue
-	format.ExecuteFormatter(msg)
-
-	return format.modulateResult
-}
-
-// ExecuteFormatter update message payload
-func (format *StreamRoute) ExecuteFormatter(msg *core.Message) error {
+// ApplyFormatter update message payload
+func (format *StreamRoute) ApplyFormatter(msg *core.Message) error {
 	delimiterIdx := bytes.Index(msg.Data(), format.delimiter)
 
 	switch delimiterIdx {
@@ -94,14 +84,12 @@ func (format *StreamRoute) ExecuteFormatter(msg *core.Message) error {
 		msg.Offset(delimiterIdx + len(format.delimiter))
 		switch result := format.streamModulators.Modulate(streamMsg); result {
 		case core.ModulateResultDiscard, core.ModulateResultDrop:
-			format.modulateResult = result
 			return nil // ### return, rule based early out ###
 		}
 
 		targetStreamID := core.GetStreamID(streamMsg.String())
 		if msg.StreamID() != targetStreamID {
 			msg.SetStreamID(targetStreamID)
-			format.modulateResult = core.ModulateResultRoute // ### return, rout message ###
 		}
 	}
 

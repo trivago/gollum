@@ -34,8 +34,8 @@ func TestTimestamp(t *testing.T) {
 	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
 	prefix := msg.Created().Format(formatter.timestampFormat)
 
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	expect.Equal(prefix+"test", msg.String())
 }

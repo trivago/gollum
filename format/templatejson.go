@@ -58,18 +58,8 @@ func (format *TemplateJSON) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Format executes the template against the JSON payload of this message
-func (format *TemplateJSON) Modulate(msg *core.Message) core.ModulateResult {
-	err := format.ExecuteFormatter(msg)
-	if err != nil {
-		return core.ModulateResultDiscard
-	}
-
-	return core.ModulateResultContinue
-}
-
-// ExecuteFormatter update message payload
-func (format *TemplateJSON) ExecuteFormatter(msg *core.Message) error {
+// ApplyFormatter update message payload
+func (format *TemplateJSON) ApplyFormatter(msg *core.Message) error {
 	values := tcontainer.NewMarshalMap()
 	err := json.Unmarshal(msg.Data(), &values)
 	if err != nil {

@@ -33,9 +33,9 @@ func TestProcessTSV(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("foo\tbar\tbaz"), 0, core.InvalidStreamID)
-	result := formatter.Modulate(msg)
+	err = formatter.ApplyFormatter(msg)
 
-	expect.Equal(core.ModulateResultContinue, result)
+	expect.NoError(err)
 	expect.Equal("foo\tbaz", msg.String())
 }
 
@@ -52,9 +52,9 @@ func TestProcessTSVDelimiter(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("foo,bar,baz"), 0, core.InvalidStreamID)
-	result := formatter.Modulate(msg)
+	err = formatter.ApplyFormatter(msg)
 
-	expect.Equal(core.ModulateResultContinue, result)
+	expect.NoError(err)
 	expect.Equal("foo,baz", msg.String())
 }
 
@@ -71,9 +71,9 @@ func TestProcessTSVQuotedValues(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("foo\t\"\tbar\t\"\tbaz"), 0, core.InvalidStreamID)
-	result := formatter.Modulate(msg)
+	err = formatter.ApplyFormatter(msg)
 
-	expect.Equal(core.ModulateResultContinue, result)
+	expect.NoError(err)
 	expect.Equal("foo\tbaz", msg.String())
 }
 
@@ -91,9 +91,9 @@ func TestProcessTSVDelimiterAndQuotedValues(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte(`foo,",bar,",baz`), 0, core.InvalidStreamID)
-	result := formatter.Modulate(msg)
+	err = formatter.ApplyFormatter(msg)
 
-	expect.Equal(core.ModulateResultContinue, result)
+	expect.NoError(err)
 	expect.Equal("foo,baz", msg.String())
 }
 
@@ -110,23 +110,23 @@ func TestProcessTSVQuotedValuesComplex(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("foo\t\"\tbar\t\"\tbaz"), 0, core.InvalidStreamID)
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 	expect.Equal("\"\tbar\t\"", msg.String())
 
 	msg = core.NewMessage(nil, []byte("\"foo\t\"\tbar\tbaz"), 0, core.InvalidStreamID)
-	result = formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 	expect.Equal("bar", msg.String())
 
 	msg = core.NewMessage(nil, []byte("foo\tbar\t\"\tbaz\t\""), 0, core.InvalidStreamID)
-	result = formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 	expect.Equal("bar", msg.String())
 
 	msg = core.NewMessage(nil, []byte("\"\tfoo\t\"\t\"bar\"\tbip\tbap\tbop\t\"\tbaz\t\""), 0, core.InvalidStreamID)
-	result = formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 	expect.Equal("\"bar\"\tbap\t\"\tbaz\t\"", msg.String())
 }
 
@@ -144,23 +144,23 @@ func TestProcessTSVDelimiterAndQuotedValuesComplex(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte(`foo,",bar,",baz`), 0, core.InvalidStreamID)
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 	expect.Equal(`",bar,"`, msg.String())
 
 	msg = core.NewMessage(nil, []byte(`"foo,",bar,baz`), 0, core.InvalidStreamID)
-	result = formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 	expect.Equal("bar", msg.String())
 
 	msg = core.NewMessage(nil, []byte(`foo,bar,",baz,"`), 0, core.InvalidStreamID)
-	result = formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 	expect.Equal("bar", msg.String())
 
 	msg = core.NewMessage(nil, []byte(`",foo,","bar",bip,bap,bop,",baz,"`), 0, core.InvalidStreamID)
-	result = formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 	expect.Equal(`"bar",bap,",baz,"`, msg.String())
 }
 
@@ -194,8 +194,8 @@ func TestProcessTSVDirectives(t *testing.T) {
 		0,
 		core.InvalidStreamID,
 	)
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	// TODO: "rv:48.0" is currently not parsed correctly by the client library (bug)
 	expect.Equal(
@@ -235,8 +235,8 @@ func TestProcessTSVDelimiterAndDirectives(t *testing.T) {
 		0,
 		core.InvalidStreamID,
 	)
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	expect.Equal(
 		`2016-08-19 17:10:53,"preyamlpost",Firefox,Windows 10,48.0,5.0,Windows,Windows 10,,Gecko,20100101,Firefox,48.0`,
@@ -276,8 +276,8 @@ func TestProcessTSVQuotedValuesAndDirectives(t *testing.T) {
 		0,
 		core.InvalidStreamID,
 	)
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	expect.Equal(
 		"\"2016-08-19 17:10:53\"\t\"pre\tyaml\tpost\"\tFirefox\tWindows 10\t48.0\t5.0\tWindows\tWindows 10\t\tGecko\t20100101\tFirefox\t48.0",
@@ -320,8 +320,8 @@ func TestProcessTSVDelimiterAndQuotedValuesAndDirectives(t *testing.T) {
 		0,
 		core.InvalidStreamID,
 	)
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	expect.Equal(
 		`"2016-08-19 17:10:53" "pre yaml post" Firefox "Windows 10" 48.0 5.0 Windows "Windows 10"  Gecko 20100101 Firefox 48.0`,

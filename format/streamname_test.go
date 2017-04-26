@@ -34,8 +34,8 @@ func TestStreamName(t *testing.T) {
 
 	msg := core.NewMessage(nil, []byte("test"), 0, core.DroppedStreamID)
 
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	expect.Equal(core.DroppedStream+":test", msg.String())
 }
@@ -55,8 +55,8 @@ func TestStreamNameHistory(t *testing.T) {
 	msg := core.NewMessage(nil, []byte("test"), 0, core.LogInternalStreamID)
 	msg.SetStreamID(core.DroppedStreamID)
 
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	expect.Equal(core.LogInternalStream+":test", msg.String())
 }

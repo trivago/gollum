@@ -51,14 +51,8 @@ func (format *Timestamp) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Modulate prepends the timestamp of the message to the message.
-func (format *Timestamp) Modulate(msg *core.Message) core.ModulateResult {
-	format.ExecuteFormatter(msg)
-	return core.ModulateResultContinue
-}
-
-// ExecuteFormatter update message payload
-func (format *Timestamp) ExecuteFormatter(msg *core.Message) error {
+// ApplyFormatter update message payload
+func (format *Timestamp) ApplyFormatter(msg *core.Message) error {
 	timestampStr := msg.Created().Format(format.timestampFormat)
 
 	dataSize := len(timestampStr) + msg.Len()

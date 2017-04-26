@@ -429,19 +429,8 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 	}
 }
 
-// Modulate modifies the JSON payload of this message. If the payload is not
-// valid JSON (before or after modification), the message is discarded.
-func (format *ProcessJSON) Modulate(msg *core.Message) core.ModulateResult {
-	err := format.ExecuteFormatter(msg)
-	if err != nil {
-		return core.ModulateResultDiscard // ### return, malformed data ###
-	}
-
-	return core.ModulateResultContinue
-}
-
-// ExecuteFormatter update message payload
-func (format *ProcessJSON) ExecuteFormatter(msg *core.Message) error {
+// ApplyFormatter update message payload
+func (format *ProcessJSON) ApplyFormatter(msg *core.Message) error {
 	if len(format.directives) == 0 {
 		return nil // ### return, no directives ###
 	}

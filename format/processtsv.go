@@ -234,14 +234,8 @@ func (format *ProcessTSV) processTSVDirective(directive tsvDirective, values []t
 	return values
 }
 
-// Format modifies the TSV payload of this message
-func (format *ProcessTSV) Modulate(msg *core.Message) core.ModulateResult {
-	format.ExecuteFormatter(msg)
-	return core.ModulateResultContinue
-}
-
-// ExecuteFormatter update message payload
-func (format *ProcessTSV) ExecuteFormatter(msg *core.Message) error {
+// ApplyFormatter update message payload
+func (format *ProcessTSV) ApplyFormatter(msg *core.Message) error {
 	if len(format.directives) == 0 {
 		return nil // continue
 	}
