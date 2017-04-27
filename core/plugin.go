@@ -85,6 +85,16 @@ var (
 		metricPluginsStopping,
 		metricPluginsDead,
 	}
+
+	// Has to be index parallel to PluginState*
+	stateToDescription = []string{
+		"Initializing",
+		"Waiting",
+		"Active",
+		"PrepareStop",
+		"Stopping",
+		"Dead",
+	}
 )
 
 // PluginRunState is used in some plugins to store information about the
