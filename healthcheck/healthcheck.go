@@ -21,6 +21,12 @@ import (
 	"bytes"
 )
 
+//
+const (
+	StatusOK = http.StatusOK
+	StatusServiceUnavailable = http.StatusServiceUnavailable
+)
+
 // Code wishing to get probed by the health-checker needs to provide this callback
 type CallbackFunc func () (code int, body string)
 
@@ -79,7 +85,7 @@ func Configure(listenAddr string) {
 		func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 			// Response code needs to be set before writing the response body,
 			// so we need to pool the body temporarily into resultBody
-			var resultCode = 200
+			var resultCode = StatusOK
 			var resultBody bytes.Buffer
 
 			// Call all endpoints sequentially
@@ -95,9 +101,9 @@ func Configure(listenAddr string) {
 					code,
 					body,
 				)
-				// Naive assumption: the bigger the code the more serious it is
-				if code > resultCode {
-					resultCode = code
+
+				if code != StatusOK {
+					resultCode = StatusServiceUnavailable
 				}
 			}
 
@@ -112,7 +118,7 @@ func Configure(listenAddr string) {
 
 	// Add a static "ping" endpoint
 	AddEndpoint("/ping", func()(code int, body string){
-		return 200, "PONG"
+		return StatusOK, "PONG"
 	})
 
 	// Debugging
