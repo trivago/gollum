@@ -106,7 +106,7 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 		}
 	} else {
 		// Convert to POST request
-		req, err = http.NewRequest("post", prod.address, requestData)
+		req, err = http.NewRequest("POST", prod.address, requestData)
 		if req != nil {
 			req.Header.Add("content-type", prod.encoding)
 		}
