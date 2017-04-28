@@ -185,12 +185,9 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 
 	go func() {
 		_, _, err := httpRequestWrapper(http.DefaultClient.Do(req))
-		prod.Log.Debug.Printf("lastError: %s", prod.lastError)
-
 		prod.lastError = err
-
-		// Fail
 		if err != nil {
+			// Fail
 			prod.Log.Error.Print("Send failed: ", err)
 			if !prod.isHostUp() {
 				prod.Control() <- core.PluginControlFuseBurn
