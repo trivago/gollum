@@ -13,4 +13,7 @@ vendor/**/*
 !vendor/**/LICENSE
 vendor/**/*_test.go
 **/.DS_Store
+contrib/**/*
+!contrib/native
+contrib_*.go
 .vscode

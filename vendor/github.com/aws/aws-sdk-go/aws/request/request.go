@@ -16,10 +16,23 @@ import (
 	"github.com/aws/aws-sdk-go/aws/client/metadata"
 )
 
-// CanceledErrorCode is the error code that will be returned by an
-// API request that was canceled. Requests given a aws.Context may
-// return this error when canceled.
-const CanceledErrorCode = "RequestCanceled"
+const (
+	// ErrCodeSerialization is the serialization error code that is received
+	// during protocol unmarshaling.
+	ErrCodeSerialization = "SerializationError"
+
+	// ErrCodeRead is an error that is returned during HTTP reads.
+	ErrCodeRead = "ReadError"
+
+	// ErrCodeResponseTimeout is the connection timeout error that is recieved
+	// during body reads.
+	ErrCodeResponseTimeout = "ResponseTimeout"
+
+	// CanceledErrorCode is the error code that will be returned by an
+	// API request that was canceled. Requests given a aws.Context may
+	// return this error when canceled.
+	CanceledErrorCode = "RequestCanceled"
+)
 
 // A Request is the service request to be made.
 type Request struct {
@@ -28,23 +41,24 @@ type Request struct {
 	Handlers   Handlers
 
 	Retryer
-	Time             time.Time
-	ExpireTime       time.Duration
-	Operation        *Operation
-	HTTPRequest      *http.Request
-	HTTPResponse     *http.Response
-	Body             io.ReadSeeker
-	BodyStart        int64 // offset from beginning of Body that the request body starts
-	Params           interface{}
-	Error            error
-	Data             interface{}
-	RequestID        string
-	RetryCount       int
-	Retryable        *bool
-	RetryDelay       time.Duration
-	NotHoist         bool
-	SignedHeaderVals http.Header
-	LastSignedAt     time.Time
+	Time                   time.Time
+	ExpireTime             time.Duration
+	Operation              *Operation
+	HTTPRequest            *http.Request
+	HTTPResponse           *http.Response
+	Body                   io.ReadSeeker
+	BodyStart              int64 // offset from beginning of Body that the request body starts
+	Params                 interface{}
+	Error                  error
+	Data                   interface{}
+	RequestID              string
+	RetryCount             int
+	Retryable              *bool
+	RetryDelay             time.Duration
+	NotHoist               bool
+	SignedHeaderVals       http.Header
+	LastSignedAt           time.Time
+	DisableFollowRedirects bool
 
 	context aws.Context
 
@@ -349,7 +363,7 @@ func (r *Request) ResetBody() {
 	// Related golang/go#18257
 	l, err := computeBodyLength(r.Body)
 	if err != nil {
-		r.Error = awserr.New("SerializationError", "failed to compute request body size", err)
+		r.Error = awserr.New(ErrCodeSerialization, "failed to compute request body size", err)
 		return
 	}
 

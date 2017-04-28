@@ -43,7 +43,7 @@ type Options struct {
 	ReadTimeout time.Duration
 	// Timeout for socket writes. If reached, commands will fail
 	// with a timeout instead of blocking.
-	// Default is 3 seconds.
+	// Default is ReadTimeout.
 	WriteTimeout time.Duration
 
 	// Maximum number of socket connections.
@@ -55,7 +55,7 @@ type Options struct {
 	PoolTimeout time.Duration
 	// Amount of time after which client closes idle connections.
 	// Should be less than server's timeout.
-	// Default is to not close idle connections.
+	// Default is 5 minutes.
 	IdleTimeout time.Duration
 	// Frequency of idle checks.
 	// Default is 1 minute.

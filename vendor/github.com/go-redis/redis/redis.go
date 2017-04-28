@@ -31,18 +31,20 @@ func (c *baseClient) conn() (*pool.Conn, bool, error) {
 	if err != nil {
 		return nil, false, err
 	}
+
 	if !cn.Inited {
 		if err := c.initConn(cn); err != nil {
-			_ = c.connPool.Remove(cn, err)
+			_ = c.connPool.Remove(cn)
 			return nil, false, err
 		}
 	}
+
 	return cn, isNew, nil
 }
 
-func (c *baseClient) putConn(cn *pool.Conn, err error, allowTimeout bool) bool {
-	if internal.IsBadConn(err, allowTimeout) {
-		_ = c.connPool.Remove(cn, err)
+func (c *baseClient) putConn(cn *pool.Conn, err error) bool {
+	if internal.IsBadConn(err, false) {
+		_ = c.connPool.Remove(cn)
 		return false
 	}
 
@@ -102,7 +104,7 @@ func (c *baseClient) defaultProcess(cmd Cmder) error {
 
 		cn.SetWriteTimeout(c.opt.WriteTimeout)
 		if err := writeCmd(cn, cmd); err != nil {
-			c.putConn(cn, err, false)
+			c.putConn(cn, err)
 			cmd.setErr(err)
 			if err != nil && internal.IsRetryableError(err) {
 				continue
@@ -112,7 +114,7 @@ func (c *baseClient) defaultProcess(cmd Cmder) error {
 
 		cn.SetReadTimeout(c.cmdTimeout(cmd))
 		err = cmd.readReply(cn)
-		c.putConn(cn, err, false)
+		c.putConn(cn, err)
 		if err != nil && internal.IsRetryableError(err) {
 			continue
 		}
@@ -165,7 +167,7 @@ func (c *baseClient) pipelineExecer(p pipelineProcessor) pipelineExecer {
 			}
 
 			canRetry, err := p(cn, cmds)
-			c.putConn(cn, err, false)
+			c.putConn(cn, err)
 			if err == nil {
 				return nil
 			}
@@ -205,7 +207,7 @@ func pipelineReadCmds(cn *pool.Conn, cmds []Cmder) (retry bool, firstErr error) 
 			firstErr = err
 		}
 	}
-	return false, firstErr
+	return
 }
 
 func (c *baseClient) txPipelineProcessCmds(cn *pool.Conn, cmds []Cmder) (bool, error) {
@@ -353,31 +355,25 @@ func (c *Client) pubSub() *PubSub {
 	return &PubSub{
 		base: baseClient{
 			opt:      c.opt,
-			connPool: pool.NewStickyConnPool(c.connPool.(*pool.ConnPool), false),
+			connPool: c.connPool,
 		},
 	}
 }
 
 // Subscribe subscribes the client to the specified channels.
-func (c *Client) Subscribe(channels ...string) (*PubSub, error) {
+func (c *Client) Subscribe(channels ...string) *PubSub {
 	pubsub := c.pubSub()
 	if len(channels) > 0 {
-		if err := pubsub.Subscribe(channels...); err != nil {
-			pubsub.Close()
-			return nil, err
-		}
+		_ = pubsub.Subscribe(channels...)
 	}
-	return pubsub, nil
+	return pubsub
 }
 
 // PSubscribe subscribes the client to the given patterns.
-func (c *Client) PSubscribe(channels ...string) (*PubSub, error) {
+func (c *Client) PSubscribe(channels ...string) *PubSub {
 	pubsub := c.pubSub()
 	if len(channels) > 0 {
-		if err := pubsub.PSubscribe(channels...); err != nil {
-			pubsub.Close()
-			return nil, err
-		}
+		_ = pubsub.PSubscribe(channels...)
 	}
-	return pubsub, nil
+	return pubsub
 }
