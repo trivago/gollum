@@ -1,10 +1,10 @@
-hash: 04c8ac3c1690b7cad71805a65e6436066d1c44f1c33af7ba4382b3c21d3a2e34
-updated: 2017-04-03T12:31:12.79028226+02:00
+hash: 7990ef005d70a988798d4189d1520189900cfe124392b96b5a07e83262f162c7
+updated: 2017-04-28T09:17:56.018060669+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
 - name: github.com/araddon/gou
-  version: 0ab1e8f997e35d27da012072dc531fcc0204da5a
+  version: 72037835efd2c3c7fdbdf82379ef20afbc8f1f07
 - name: github.com/artyom/fb303
   version: fa4a241cefb113c4981dbac51a8cfcb047efa079
 - name: github.com/artyom/scribe
@@ -12,7 +12,7 @@ imports:
 - name: github.com/artyom/thrift
   version: 388840a05deb9b7d85fdf6c225a2729fe1826cb7
 - name: github.com/aws/aws-sdk-go
-  version: 5ab6def9a2f0445ff22a47b16660fbb1ff919b16
+  version: 8cab5437f896c3048506422a6fb9f5a7f2df9944
   subpackages:
   - aws
   - aws/awserr
@@ -51,7 +51,7 @@ imports:
   subpackages:
   - sdjournal
 - name: github.com/coreos/pkg
-  version: 1c941d73110817a80b9fa6e14d5d2b00d977ce2a
+  version: 8dbaa491b063ed47e2474b5363de0c0db91cf9f2
   subpackages:
   - dlopen
 - name: github.com/davecgh/go-spew
@@ -69,7 +69,7 @@ imports:
 - name: github.com/go-ini/ini
   version: e7fea39b01aea8d5671f6858f0532f56e8bff3a5
 - name: github.com/go-redis/redis
-  version: c9fbe22817c5d1469397b3cfcfaa38ee1dbbab43
+  version: 4c6e2ad9a048b3e1fbf913497305da7076cccfa5
   subpackages:
   - internal
   - internal/consistenthash
@@ -79,6 +79,7 @@ imports:
 - name: github.com/golang/protobuf
   version: 2bba0603135d7d7f5cb73b2125beeda19c09f4ef
   subpackages:
+  - jsonpb
   - proto
 - name: github.com/golang/snappy
   version: 553a641470496b2327abcac10b36396bd98e45c9
@@ -89,7 +90,7 @@ imports:
 - name: github.com/klauspost/crc32
   version: 1bab8b35b6bb565f92cbc97939610af9369f942a
 - name: github.com/lytics/logrus
-  version: 59cd2e4a569b4494d9196bef82f0784e467adac9
+  version: 8d125bf3956de0f953620df54a1b95a52b55353b
 - name: github.com/mattbaird/elastigo
   version: 2fe47fd29e4b70353f852ede77a196830d2924ec
   subpackages:
@@ -97,11 +98,11 @@ imports:
 - name: github.com/miekg/pcap
   version: 51d9d986bf8d5f524d65bf31c353e10271d54aaa
 - name: github.com/mmcloughlin/geohash
-  version: d6857f9059874953ee09d6f2bd3cb878189a4f87
+  version: 33283639a13451aa23d02413884678abd4bdb1e7
 - name: github.com/mssola/user_agent
   version: 07efe2b857fb8c02d2dd85c12d0145f58554ec7c
 - name: github.com/oschwald/maxminddb-golang
-  version: 697da8075d2061aa8ed639346443f5d3e8c80b30
+  version: f6c93ffae8caa8c38fb52468c7af9006d7baeb8e
 - name: github.com/pierrec/lz4
   version: f5b77fd73d83122495309c0f459b810f83cc291f
 - name: github.com/pierrec/xxHash
@@ -117,16 +118,23 @@ imports:
 - name: github.com/Shopify/sarama
   version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
 - name: github.com/trivago/tgo
-  version: 29efc651bc8e40b607db4b7a6881614775c7f529
+  version: 018e3dbba8d0ff658547f89871455b9243d24a72
   subpackages:
+  - tcontainer
   - tflag
+  - treflect
+  - tstrings
 - name: golang.org/x/crypto
-  version: 88915ccf7aeb91e9324fe7cf3eddd1531ced61ea
+  version: c7af5bf2638a1164f2eb5467c39c6cffbd13a02e
   subpackages:
   - bcrypt
   - blowfish
+- name: golang.org/x/net
+  version: da118f7b8e5954f39d0d2130ab35d4bf0e3cb344
+  subpackages:
+  - context
 - name: golang.org/x/sys
-  version: 9a7256cb28ed514b4e1e5f68959914c4c28a92e0
+  version: 9ccfe848b9db8435a24c424abbc07a921adf1df5
   subpackages:
   - unix
   - windows
@@ -138,7 +146,7 @@ imports:
   - internal/syslogparser/rfc3164
   - internal/syslogparser/rfc5424
 - name: gopkg.in/oschwald/geoip2-golang.v1
-  version: 496a3cbcb65a3cb54497fe4ae2273319e85160a4
+  version: 5b1dc16861f81d05d9836bb21c2d0d65282fc0b8
 - name: gopkg.in/yaml.v2
-  version: a3f3340b5840cee44f372bddb5880fcbc419b46a
+  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
 testImports: []
