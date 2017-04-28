@@ -22,6 +22,9 @@ import (
 	"github.com/trivago/tgo/tnet"
 	"net/http"
 	"sync"
+	"github.com/trivago/gollum/healthcheck"
+	"io/ioutil"
+	"errors"
 )
 
 // HTTPRequest producer plugin
@@ -53,6 +56,7 @@ type HTTPRequest struct {
 	encoding   string
 	rawPackets bool
 	listen     *tnet.StopListener
+	lastError  error
 }
 
 func init() {
@@ -78,7 +82,67 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) error {
 	prod.encoding = conf.GetString("Encoding", "text/plain; charset=utf-8")
 	prod.rawPackets = conf.GetBool("RawData", true)
 
+	//prod.Log.Debug.Printf(
+	//"protocol=%s, host=%s, port=%s, address=%s, encoding=%s, rawPackets=%d",
+	//	prod.protocol, prod.host, prod.port, prod.address, prod.encoding, prod.rawPackets)
+
+	// Health check to ping the backend with an HTTP GET
+	healthcheck.AddEndpointPathArray(
+		[]string{conf.GetTypename(), prod.GetID(), "pingBackend"},
+		func()(int, string){
+			return prod.healthcheckPingBackend()
+		},
+	)
+
+	// Health check to check the last result
+	// TBD: This may be meaningless in a high-traffic environment; a statistics
+	// based check could make more sense.
+	healthcheck.AddEndpointPathArray(
+		[]string{conf.GetTypename(), prod.GetID(), "lastError"},
+		func()(int, string){
+			if prod.lastError == nil {
+				return healthcheck.StatusOK, "OK"
+			}
+			return healthcheck.StatusServiceUnavailable, fmt.Sprintf("ERROR: %s", prod.lastError)
+		},
+	)
+
 	return conf.Errors.OrNil()
+}
+
+func (prod *HTTPRequest) healthcheckPingBackend() (int, string) {
+	code, body, err := httpRequestWrapper(http.Get(prod.address))
+	if err != nil {
+		return code, fmt.Sprintf("%s", err)
+	}
+	return code, body
+}
+
+// Wrapper around the (*http.Response, error) values returned by HTTP clients.
+//
+// Reads the response body and code, returns (code int, body string err error).
+// If the query succeeded with HTTP 200, err == nil
+// If the query failed in some way, err contains a description of the error,
+// code and body are populated whenever possible.
+func httpRequestWrapper(resp *http.Response, err error) (int, string, error) {
+	if err != nil {
+		// Fail
+		return healthcheck.StatusServiceUnavailable, "", err
+	}
+
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		// Fail
+		return resp.StatusCode, "", err
+	}
+
+	respBodyString := fmt.Sprintf("%s", respBody)
+
+	err = nil
+	if resp.StatusCode != http.StatusOK {
+		err = errors.New(fmt.Sprintf("%d %s", resp.StatusCode, respBodyString))
+	}
+	return resp.StatusCode, respBodyString, err
 }
 
 func (prod *HTTPRequest) isHostUp() bool {
@@ -115,19 +179,27 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 	if err != nil {
 		prod.Log.Error.Print("Invalid request", err)
 		prod.Drop(originalMsg)
+		prod.lastError = err
 		return // ### return, malformed request ###
 	}
 
 	go func() {
-		if _, err := http.DefaultClient.Do(req); err != nil {
+		_, _, err := httpRequestWrapper(http.DefaultClient.Do(req))
+		prod.Log.Debug.Printf("lastError: %s", prod.lastError)
+
+		prod.lastError = err
+
+		// Fail
+		if err != nil {
 			prod.Log.Error.Print("Send failed: ", err)
 			if !prod.isHostUp() {
 				prod.Control() <- core.PluginControlFuseBurn
 			}
 			prod.Drop(originalMsg)
-		} else {
-			prod.Control() <- core.PluginControlFuseActive
+			return
 		}
+		// Success
+		prod.Control() <- core.PluginControlFuseActive
 	}()
 }
 
