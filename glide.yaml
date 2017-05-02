@@ -8,7 +8,8 @@ import:
 - package: github.com/artyom/scribe
 - package: github.com/artyom/thrift
 - package: github.com/aws/aws-sdk-go
-  version: ^1.8.2
+  #version: ^1.8.2
+  version: 06d3a0c37ae95ae040548a13952501261cb5fd2b
   subpackages:
   - aws
   - aws/awserr
