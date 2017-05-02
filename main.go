@@ -25,6 +25,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"errors"
 	_ "github.com/trivago/gollum/consumer"
 	"github.com/trivago/gollum/core"
 	_ "github.com/trivago/gollum/filter"
@@ -101,25 +102,24 @@ func main() {
 	setStaticMetrics()
 	if *flagMetricsAddress != "" {
 		server := tgo.NewMetricServer()
-		address := *flagMetricsAddress
-
-		if !strings.Contains(address, ":") {
-			if !tstrings.IsInt(address) {
-				fmt.Printf("Metrics address must be of the form \"host:port\" or \":port\" or \"port\".\n")
-				return
-			}
-			address = ":" + address
+		address, err := parseAddress(*flagMetricsAddress)
+		if err != nil {
+			fmt.Printf("%s", err)
+			return
 		}
-
 		go server.Start(address)
 		defer server.Stop()
 	}
 
 	// Health Check endpoint
 
-	if true {
-		// TODO: package, config
-		thealthcheck.Configure(":8012")
+	if *flagHealthCheck != "" {
+		address, err := parseAddress(*flagHealthCheck)
+		if err != nil {
+			fmt.Printf("%s", err)
+			return
+		}
+		thealthcheck.Configure(address)
 		go thealthcheck.Start()
 		defer thealthcheck.Stop()
 	}
@@ -167,6 +167,19 @@ func main() {
 	defer coordinater.Shutdown()
 	coordinater.StartPlugins()
 	coordinater.Run()
+}
+
+func parseAddress(address string) (string, error) {
+	if !strings.Contains(address, ":") {
+		if !tstrings.IsInt(address) {
+			return address,
+				errors.New(fmt.Sprintf(
+					"Address must be of the form \"host:port\" or \":port\" or \"port\", not \"%s\"\n",
+					address))
+		}
+		address = ":" + address
+	}
+	return address, nil
 }
 
 func dumpMemoryProfile() {
