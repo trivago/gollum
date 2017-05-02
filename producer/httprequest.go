@@ -82,30 +82,21 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) error {
 	prod.encoding = conf.GetString("Encoding", "text/plain; charset=utf-8")
 	prod.rawPackets = conf.GetBool("RawData", true)
 
-	//prod.Log.Debug.Printf(
-	//"protocol=%s, host=%s, port=%s, address=%s, encoding=%s, rawPackets=%d",
-	//	prod.protocol, prod.host, prod.port, prod.address, prod.encoding, prod.rawPackets)
+	// Default health check to ping the backend with an HTTP GET
+	prod.AddHealthCheck(func()(int, string){
+		return prod.healthcheckPingBackend()
+	})
 
-	// Health check to ping the backend with an HTTP GET
-	thealthcheck.AddEndpointPathArray(
-		[]string{conf.GetTypename(), prod.GetID(), "pingBackend"},
-		func()(int, string){
-			return prod.healthcheckPingBackend()
-		},
-	)
-
-	// Health check to check the last result
+	// Additional health check to check the last result
 	// TBD: This may be meaningless in a high-traffic environment; a statistics
 	// based check could make more sense.
-	thealthcheck.AddEndpointPathArray(
-		[]string{conf.GetTypename(), prod.GetID(), "lastError"},
-		func()(int, string){
-			if prod.lastError == nil {
-				return thealthcheck.StatusOK, "OK"
-			}
-			return thealthcheck.StatusServiceUnavailable, fmt.Sprintf("ERROR: %s", prod.lastError)
-		},
-	)
+	prod.AddHealthCheckAt("/lastError", func()(int, string){
+		if prod.lastError == nil {
+			return thealthcheck.StatusOK, "OK"
+		}
+		return thealthcheck.StatusServiceUnavailable, fmt.Sprintf("ERROR: %s", prod.lastError)
+	})
+
 
 	return conf.Errors.OrNil()
 }

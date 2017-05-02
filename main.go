@@ -120,8 +120,14 @@ func main() {
 			return
 		}
 		thealthcheck.Configure(address)
+
 		go thealthcheck.Start()
 		defer thealthcheck.Stop()
+
+		// Add a static "ping" endpoint
+		thealthcheck.AddEndpoint("/ping", func()(code int, body string){
+			return thealthcheck.StatusOK, "PONG"
+		})
 	}
 
 	// Profiling flags

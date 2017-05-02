@@ -115,19 +115,6 @@ func Configure(listenAddr string) {
 			fmt.Fprintf(responseWriter, resultBody.String())
 		},
 	)
-
-	// Add a static "ping" endpoint
-	AddEndpoint("/ping", func()(code int, body string){
-		return StatusOK, "PONG"
-	})
-
-	// Debugging
-	//AddEndpoint("/ping", func()(code int, body string){ return 400, "DUPLICATEPONG" })
-	//AddEndpoint("/fail", func()(code int, body string){ return 500, "FAIL" })
-	//AddEndpoint("", func()(code int, body string){ return 500, "EMPTYFAIL" })
-	//AddEndpoint("noprecedingslash", func()(code int, body string){ return 500, "FAIL" })
-	//AddEndpoint("/hasfinalslash/", func()(code int, body string){ return 500, "FAIL" })
-
 }
 
 // Registers an endpoint with the health checker.
