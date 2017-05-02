@@ -104,8 +104,6 @@ func (filter *Sample) ApplyFilter(msg *core.Message) (core.FilterResult, error) 
 	if count > filter.rate {
 		if filter.dropStreamID != core.InvalidStreamID {
 			msg.SetStreamID(filter.dropStreamID)
-			//todo: move to framework!
-			// return core.ModulateResultRoute
 		}
 		return core.FilterResultMessageReject, nil // ### return, filter ###
 	}

@@ -227,7 +227,7 @@ func (cons *SimpleConsumer) EnqueueWithSequence(data []byte, seq uint64) {
 		CountDiscardedMessage()
 		return
 
-	case ModulateResultRoute, ModulateResultDrop:
+	case ModulateResultDrop:
 		if err := Route(msg, msg.GetRouter()); err != nil {
 			cons.Log.Error.Print(err)
 		}
