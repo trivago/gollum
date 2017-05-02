@@ -50,10 +50,6 @@ const (
 	// ModulateResultDiscard indicates that a message should be discarded and
 	// that no further modulators should be called.
 	ModulateResultDiscard = ModulateResult(iota)
-	// ModulateResultHandled is used inside a Modulate chain call when a
-	// message has already been processed and does not require further
-	// processing (ignore)
-	ModulateResultHandled = ModulateResult(iota)
 )
 
 // ModulatorArray is a type wrapper to []Modulator to make array of modulators

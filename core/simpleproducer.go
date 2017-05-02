@@ -230,20 +230,9 @@ func (prod *SimpleProducer) GetShutdownTimeout() time.Duration {
 }
 
 // Modulate applies all modulators from this producer to a given message.
-// This impelementation handles dropping and discarding of messages.
+// This implementation handles dropping and discarding of messages.
 func (prod *SimpleProducer) Modulate(msg *Message) ModulateResult {
-	result := prod.modulators.Modulate(msg)
-	switch result {
-	case ModulateResultDrop:
-		Route(msg, msg.GetRouter())
-		return ModulateResultHandled
-
-	case ModulateResultDiscard:
-		CountDiscardedMessage()
-		return ModulateResultHandled
-	}
-
-	return result
+	return prod.modulators.Modulate(msg)
 }
 
 // Drop routes the message to the configured drop stream.
