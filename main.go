@@ -25,7 +25,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 	_ "github.com/trivago/gollum/consumer"
 	"github.com/trivago/gollum/core"
 	_ "github.com/trivago/gollum/filter"
@@ -35,7 +34,7 @@ import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tstrings"
-	"github.com/trivago/gollum/healthcheck"
+	"github.com/trivago/tgo/thealthcheck"
 )
 
 func main() {
@@ -120,9 +119,9 @@ func main() {
 
 	if true {
 		// TODO: package, config
-		healthcheck.Configure(":8012")
-		go healthcheck.Start()
-		defer healthcheck.Stop()
+		thealthcheck.Configure(":8012")
+		go thealthcheck.Start()
+		defer thealthcheck.Stop()
 	}
 
 	// Profiling flags

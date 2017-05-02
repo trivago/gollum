@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 	"fmt"
-	"github.com/trivago/gollum/healthcheck"
+	"github.com/trivago/tgo/thealthcheck"
 )
 
 // SimpleProducer plugin base type
@@ -127,13 +127,13 @@ func (prod *SimpleProducer) Configure(conf PluginConfigReader) error {
 
 	// Simple health check for the plugin state
 	//   Path: "/<plugin_class>/<plugin_id>/SimpleProducer/pluginstate"
-	healthcheck.AddEndpointPathArray(
+	thealthcheck.AddEndpointPathArray(
 		[]string{conf.GetTypename(), prod.GetID(), "SimpleProducer", "pluginstate"},
 		func()(code int, body string) {
 			if prod.IsActive() {
-				return healthcheck.StatusOK, fmt.Sprintf("ACTIVE: %s", prod.GetStateString())
+				return thealthcheck.StatusOK, fmt.Sprintf("ACTIVE: %s", prod.GetStateString())
 			}
-			return healthcheck.StatusServiceUnavailable,
+			return thealthcheck.StatusServiceUnavailable,
 				fmt.Sprintf("NOT_ACTIVE: %s", prod.GetStateString())
 		},
 	)
