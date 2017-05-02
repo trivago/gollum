@@ -37,8 +37,10 @@ import:
 - package: github.com/mssola/user_agent
 - package: github.com/quipo/statsd
 - package: github.com/trivago/tgo
+  version: thealthcheck
   subpackages:
   - tflag
+  - thealthcheck
 - package: gopkg.in/mcuadros/go-syslog.v2
   version: =2.2.1
   subpackages:

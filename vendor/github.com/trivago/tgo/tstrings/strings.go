@@ -203,3 +203,15 @@ func JoinStringers(a []fmt.Stringer, sep string) string {
 
 	return strings.Join(str, sep)
 }
+
+// TrimToNumber removes all characters from the left and right of the string
+// that are not in the set [\-0-9] on the left or [0-9] on the right
+func TrimToNumber(text string) string {
+	leftTrimmed := strings.TrimLeftFunc(text, func(r rune) bool {
+		return (r < '0' || r > '9') && r != '-'
+	})
+
+	return strings.TrimRightFunc(leftTrimmed, func(r rune) bool {
+		return r < '0' || r > '9'
+	})
+}

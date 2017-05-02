@@ -106,6 +106,16 @@ func Chmod(filePath string, mode os.FileMode) error {
 	return os.Chmod(filePath, mode)
 }
 
+// IsSymlink returns true if a file is a symlink
+func IsSymlink(file string) (bool, error) {
+	fileStat, err := os.Lstat(file)
+	if err != nil {
+		return false, err
+	}
+
+	return fileStat.Mode()&os.ModeSymlink != 0, nil
+}
+
 // Copy is a file copy helper. Files will be copied to their destination,
 // overwriting existing files. Already existing files that are not part of the
 // copy process will not be touched. If source is a directory it is walked
