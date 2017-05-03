@@ -82,9 +82,7 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) error {
 	prod.rawPackets = conf.GetBool("RawData", true)
 
 	// Default health check to ping the backend with an HTTP GET
-	prod.AddHealthCheck(func()(int, string){
-		return prod.healthcheckPingBackend()
-	})
+	prod.AddHealthCheck(prod.healthcheckPingBackend)
 
 	// Additional health check to check the last result
 	// TBD: This may be meaningless in a high-traffic environment; a statistics
