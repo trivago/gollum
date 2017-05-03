@@ -12,8 +12,6 @@ const (
 	TestConfigFilter = "test_regexp_filter.conf"
 )
 
-
-
 func TestRegexpFilter(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
@@ -24,15 +22,24 @@ func TestRegexpFilter(t *testing.T) {
 	expect.NoError(err)
 	expect.True(strings.Contains(out.String(), "(startup)"))
 
-	// get results from file target
-	ResultFile, err := GetResultFile(TmpTestFilePathDefault)
+	// get results from file targets
+	ResultFileFilterInRouter, err := GetResultFile(TmpTestFilePathFoo)
 	expect.NoError(err)
 
-	// final expectations
-	expect.True(strings.Contains(ResultFile.content, "abc"))
-	expect.False(strings.Contains(ResultFile.content, "123"))
-	expect.True(strings.Contains(ResultFile.content, "def"))
-	expect.Equal(2, ResultFile.lines)
+	ResultFileFilterInProducer, err := GetResultFile(TmpTestFilePathBar)
+	expect.NoError(err)
+
+	// final expectations filter in router
+	expect.True(strings.Contains(ResultFileFilterInRouter.content, "abc"))
+	expect.False(strings.Contains(ResultFileFilterInRouter.content, "123"))
+	expect.True(strings.Contains(ResultFileFilterInRouter.content, "def"))
+	expect.Equal(2, ResultFileFilterInRouter.lines)
+
+	// final expectations filter in producer
+	expect.True(strings.Contains(ResultFileFilterInProducer.content, "abc"))
+	expect.False(strings.Contains(ResultFileFilterInProducer.content, "123"))
+	expect.True(strings.Contains(ResultFileFilterInProducer.content, "def"))
+	expect.Equal(2, ResultFileFilterInProducer.lines)
 }
 
 
