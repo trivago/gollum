@@ -53,6 +53,9 @@ func ExecuteGollum(config string, inputs []string, arg ...string) (out bytes.Buf
 	// no error handling here because we will get a "signal killed" error
 	cmd.Wait()
 
+	// sleep for one second for slow disk io during testing
+	time.Sleep(1 * time.Second)
+
 	return
 }
 
