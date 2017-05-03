@@ -236,7 +236,7 @@ func (registry *streamRegistry) createFallback(streamID MessageStreamID) Router 
 	config := NewPluginConfig("_generated_stream_"+streamName, "router.Broadcast")
 	config.Override("stream", streamName)
 
-	plugin, err := NewPlugin(config)
+	plugin, err := NewPluginWithConfig(config)
 	if err != nil {
 		panic(err) // this has to always work, otherwise: panic
 	}

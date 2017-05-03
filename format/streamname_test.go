@@ -26,7 +26,7 @@ func TestStreamName(t *testing.T) {
 
 	config := core.NewPluginConfig("", "format.StreamName")
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*StreamName)
@@ -46,7 +46,7 @@ func TestStreamNameHistory(t *testing.T) {
 	config := core.NewPluginConfig("", "format.StreamName")
 	config.Override("UseHistory", true)
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*StreamName)

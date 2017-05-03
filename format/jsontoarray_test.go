@@ -17,7 +17,7 @@ func TestJSONToArray(t *testing.T) {
 		"bar",
 	})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*JSONToArray)

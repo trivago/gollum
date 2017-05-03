@@ -27,7 +27,7 @@ func TestFilterJSON(t *testing.T) {
 
 	conf.Override("Reject", map[string]string{"data": "^\\d"})
 	conf.Override("Accept", map[string]string{"data": "accept"})
-	plugin, err := core.NewPlugin(conf)
+	plugin, err := core.NewPluginWithConfig(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*JSON)
@@ -88,7 +88,7 @@ func TestFilterJSONFailure(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	conf := core.NewPluginConfig("", "filter.JSON")
 
-	plugin, err := core.NewPlugin(conf)
+	plugin, err := core.NewPluginWithConfig(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*JSON)

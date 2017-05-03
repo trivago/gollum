@@ -25,7 +25,7 @@ func TestFilterNone(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	conf := core.NewPluginConfig("", "filter.None")
 
-	plugin, err := core.NewPlugin(conf)
+	plugin, err := core.NewPluginWithConfig(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*None)

@@ -25,11 +25,11 @@ func TestBase64(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Base64Encode")
-	pluginEncode, err := core.NewPlugin(config)
+	pluginEncode, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	config = core.NewPluginConfig("", "format.Base64Decode")
-	pluginDecode, err := core.NewPlugin(config)
+	pluginDecode, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	encoder, castedEncoder := pluginEncode.(*Base64Encode)

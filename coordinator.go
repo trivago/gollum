@@ -195,7 +195,7 @@ func (co *Coordinator) configureRouters(conf *core.Config) {
 	for _, config := range routerConfigs {
 		tlog.Debug.Printf("Instantiating router '%s'", config.ID)
 
-		plugin, err := core.NewPlugin(config)
+		plugin, err := core.NewPluginWithConfig(config)
 		if err != nil {
 			tlog.Error.Printf("Failed to instantiate router %s: %s", config.ID, err)
 			continue // ### continue ###
@@ -221,7 +221,7 @@ func (co *Coordinator) configureProducers(conf *core.Config) {
 		for i := 0; i < config.Instances; i++ {
 			tlog.Debug.Print("Instantiating ", config.ID)
 
-			plugin, err := core.NewPlugin(config)
+			plugin, err := core.NewPluginWithConfig(config)
 			if err != nil {
 				tlog.Error.Printf("Failed to instantiate producer %s: %s", config.ID, err)
 				continue // ### continue ###
@@ -272,7 +272,7 @@ func (co *Coordinator) configureConsumers(conf *core.Config) {
 		for i := 0; i < config.Instances; i++ {
 			tlog.Debug.Print("Instantiating ", config.ID)
 
-			plugin, err := core.NewPlugin(config)
+			plugin, err := core.NewPluginWithConfig(config)
 			if err != nil {
 				tlog.Error.Printf("Failed to instantiate producer %s: %s", config.ID, err)
 				continue // ### continue ###

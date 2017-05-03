@@ -25,7 +25,7 @@ func TestSequence(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Sequence")
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*Sequence)

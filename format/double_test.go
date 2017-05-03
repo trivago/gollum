@@ -19,7 +19,7 @@ func TestDoubleFormatter(t *testing.T) {
 		"format.Base64Encode",
 	})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*Double)
@@ -38,7 +38,7 @@ func TestDoubleFormatterSeparator(t *testing.T) {
 	config := core.NewPluginConfig("", "format.Double")
 	config.Override("Separator", "-")
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*Double)

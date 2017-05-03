@@ -12,7 +12,7 @@ func TestFormatterSerialize(t *testing.T) {
 
 	config := core.NewPluginConfig("", "format.Serialize")
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*Serialize)

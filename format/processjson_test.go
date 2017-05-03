@@ -16,7 +16,7 @@ func TestProcessJSONRename(t *testing.T) {
 		"foo:rename:foobar",
 	})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*ProcessJSON)
@@ -42,7 +42,7 @@ func TestProcessJSONReplace(t *testing.T) {
 		"foo:replace:value:new",
 	})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*ProcessJSON)

@@ -15,7 +15,7 @@ func TestFormatterTrim(t *testing.T) {
 	config.Override("LeftSeparator", "|")
 	config.Override("RightSeparator", "|")
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*Trim)
@@ -38,7 +38,7 @@ func TestFormatterTrimWithSpaces(t *testing.T) {
 	config.Override("LeftSeparator", " ")
 	config.Override("RightSeparator", "  ")
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*Trim)
