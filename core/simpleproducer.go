@@ -20,6 +20,8 @@ import (
 	"github.com/trivago/tgo/tsync"
 	"sync"
 	"time"
+	"fmt"
+	"github.com/trivago/tgo/thealthcheck"
 )
 
 // SimpleProducer plugin base type
@@ -123,7 +125,26 @@ func (prod *SimpleProducer) Configure(conf PluginConfigReader) error {
 	dropStreamID := StreamRegistry.GetStreamID(conf.GetString("DropToStream", DroppedStream))
 	prod.dropStream = StreamRegistry.GetRouterOrFallback(dropStreamID)
 
+	// Simple health check for the plugin state
+	//   Path: "/<plugin_id>/SimpleProducer/pluginstate"
+	prod.AddHealthCheckAt("/pluginState", func()(code int, body string) {
+		if prod.IsActive() {
+			return thealthcheck.StatusOK, fmt.Sprintf("ACTIVE: %s", prod.GetStateString())
+		}
+		return thealthcheck.StatusServiceUnavailable,
+			fmt.Sprintf("NOT_ACTIVE: %s", prod.GetStateString())
+	})
 	return conf.Errors.OrNil()
+}
+
+// Adds a health check at the default URL (http://<addr>:<port>/<plugin_id>)
+func (prod *SimpleProducer) AddHealthCheck(callback thealthcheck.CallbackFunc) {
+	prod.AddHealthCheckAt("", callback)
+}
+
+// Adds a health check at a subpath (http://<addr>:<port>/<plugin_id><path>)
+func (prod *SimpleProducer) AddHealthCheckAt(path string, callback thealthcheck.CallbackFunc) {
+	thealthcheck.AddEndpoint("/" + prod.GetID() + path, callback)
 }
 
 // GetID returns the ID of this producer
@@ -154,6 +175,11 @@ func (prod *SimpleProducer) GetFuse() *tsync.Fuse {
 // GetState returns the state this plugin is currently in
 func (prod *SimpleProducer) GetState() PluginState {
 	return prod.runState.GetState()
+}
+
+// GetStateString returns the name of state this plugin is currently in
+func (prod *SimpleProducer) GetStateString() string {
+	return stateToDescription[prod.runState.GetState()]
 }
 
 // IsBlocked returns true if GetState() returns waiting
