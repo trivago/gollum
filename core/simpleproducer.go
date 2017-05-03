@@ -127,7 +127,7 @@ func (prod *SimpleProducer) Configure(conf PluginConfigReader) error {
 
 	// Simple health check for the plugin state
 	//   Path: "/<plugin_id>/SimpleProducer/pluginstate"
-	prod.AddHealthCheckAt("/SimpleProducer/pluginState", func()(code int, body string) {
+	prod.AddHealthCheckAt("/pluginState", func()(code int, body string) {
 		if prod.IsActive() {
 			return thealthcheck.StatusOK, fmt.Sprintf("ACTIVE: %s", prod.GetStateString())
 		}

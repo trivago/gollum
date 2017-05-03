@@ -24,7 +24,6 @@ import (
 	"sync"
 	"github.com/trivago/tgo/thealthcheck"
 	"io/ioutil"
-	"errors"
 )
 
 // HTTPRequest producer plugin
@@ -104,7 +103,7 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) error {
 func (prod *HTTPRequest) healthcheckPingBackend() (int, string) {
 	code, body, err := httpRequestWrapper(http.Get(prod.address))
 	if err != nil {
-		return code, fmt.Sprintf("%s", err)
+		return code, err.Error()
 	}
 	return code, body
 }
@@ -131,7 +130,7 @@ func httpRequestWrapper(resp *http.Response, err error) (int, string, error) {
 
 	err = nil
 	if resp.StatusCode != http.StatusOK {
-		err = errors.New(fmt.Sprintf("%d %s", resp.StatusCode, respBodyString))
+		err = fmt.Errorf("%d %s", resp.StatusCode, respBodyString)
 	}
 	return resp.StatusCode, respBodyString, err
 }

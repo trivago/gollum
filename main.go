@@ -36,6 +36,7 @@ import (
 	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tstrings"
 	"github.com/trivago/tgo/thealthcheck"
+	"net"
 )
 
 func main() {
@@ -125,7 +126,7 @@ func main() {
 		defer thealthcheck.Stop()
 
 		// Add a static "ping" endpoint
-		thealthcheck.AddEndpoint("/ping", func()(code int, body string){
+		thealthcheck.AddEndpoint("/_PING_", func()(code int, body string){
 			return thealthcheck.StatusOK, "PONG"
 		})
 	}
@@ -176,16 +177,17 @@ func main() {
 }
 
 func parseAddress(address string) (string, error) {
-	if !strings.Contains(address, ":") {
-		if !tstrings.IsInt(address) {
-			return address,
-				errors.New(fmt.Sprintf(
-					"Address must be of the form \"host:port\" or \":port\" or \"port\", not \"%s\"\n",
-					address))
-		}
+	// net.SplitHostPort() doesn't support plain port number
+	if tstrings.IsInt(address) {
 		address = ":" + address
 	}
-	return address, nil
+
+	host, port, err := net.SplitHostPort(address)
+	if err != nil {
+		return address, errors.New(fmt.Sprintf("Incorrect address %q: %s", address, err))
+	}
+	fmt.Printf("DEBUG: addr: %q, host: %q, port: %q", address, host, port)
+	return host + ":" + port, nil
 }
 
 func dumpMemoryProfile() {
