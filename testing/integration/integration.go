@@ -53,9 +53,6 @@ func ExecuteGollum(config string, inputs []string, arg ...string) (out bytes.Buf
 	// no error handling here because we will get a "signal killed" error
 	cmd.Wait()
 
-	// sleep for one second for slow disk io during testing
-	time.Sleep(1 * time.Second)
-
 	return
 }
 
@@ -84,32 +81,53 @@ type ResultFile struct {
 
 // GetResultFile returns file content as a string
 func GetResultFile(filepath string) (ResultFile, error) {
+	fileContent, lineCount := getResultFileData(filepath, 1)
+	
+	// create result
 	result := ResultFile{}
+	result.content = fileContent
+	result.lines = lineCount
 
+	return result, nil
+}
+
+func getResultFileData(filepath string, try int) (string, int) {
+	maxTry := 3
+
+	fileContent, lineCount, err := getResultFileDataWithError(filepath)
+	if err != nil {
+		if (try <= maxTry) {
+			time.Sleep(1 * time.Second)
+			try++
+			return getResultFileData(filepath, try)
+		}
+		panic(err)
+	}
+
+	return fileContent, lineCount
+}
+
+func getResultFileDataWithError(filepath string) (string, int, error) {
 	// open file
 	file, err := os.Open(filepath)
 	if err != nil {
-		panic(err)
+		return "", 0, err
 	}
 	defer file.Close()
 
 	// read file
 	b, err := ioutil.ReadAll(file)
 	if err != nil {
-		panic(err)
+		return "", 0, err
 	}
 
 	file.Seek(0, os.SEEK_SET)
 	lineCount, err := lineCounter(file)
 	if err != nil {
-		panic(err)
+		return "", 0, err
 	}
 
-	// create result
-	result.content = string(b)
-	result.lines = lineCount
-
-	return result, nil
+	return string(b), lineCount, nil
 }
 
 func lineCounter(r io.Reader) (int, error) {
