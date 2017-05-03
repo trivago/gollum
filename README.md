@@ -156,6 +156,10 @@ Set the loglevel [0-3]. Higher levels produce more messages as in 0=Errors, 1=Wa
 
 Port to use for metric queries. Set 0 to disable.
 
+#### `-hc` or `--healthcheck` <host:port|:port|port>
+
+Open a healthcheck HTTP endpoint at the specified listening address. Disabled by default.
+
 #### `-n` or `--numcpu` [number]
 
 Number of CPUs to use. Set 0 for all CPUs.
