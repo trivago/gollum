@@ -186,7 +186,7 @@ func parseAddress(address string) (string, error) {
 	if err != nil {
 		return address, errors.New(fmt.Sprintf("Incorrect address %q: %s", address, err))
 	}
-	fmt.Printf("DEBUG: addr: %q, host: %q, port: %q", address, host, port)
+
 	return host + ":" + port, nil
 }
 
