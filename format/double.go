@@ -20,16 +20,15 @@ import (
 
 // Double is a formatter that doubles the message and glues both parts
 // together by using a separator. Both parts of the new message may be
-// formatted differntly
+// formatted differently
 //
-//   - "<producer|stream>":
-//     Formatter: "format.Double"
-//	   Separator: ":"
-//     LeftStreamID: false
-//     LeftFormatters:
-//        - "format.Forward"
-//     RightFormatters:
-//        - "format.Forward"
+//   - format.Double:
+//	 Separator: ":"
+//       UseLeftStreamID: false
+//       Left:
+//         - "format.Forward"
+//       Right:
+//         - "format.Forward"
 //
 // Separator sets the separator string placed between both parts.
 // This is set to ":" by default.
@@ -38,10 +37,10 @@ import (
 // streamID of this formatter. Set to false by default.
 type Double struct {
 	core.SimpleFormatter
-	separator    []byte
-	leftStreamID bool
-	left         core.ModulatorArray
-	right        core.ModulatorArray
+	separator    	[]byte
+	leftStreamID 	bool
+	left         	core.FormatterArray
+	right        	core.FormatterArray
 }
 
 func init() {
@@ -51,25 +50,23 @@ func init() {
 // Configure initializes this formatter with values from a plugin config.
 func (format *Double) Configure(conf core.PluginConfigReader) error {
 	format.SimpleFormatter.Configure(conf)
-	format.left = conf.GetModulatorArray("Left", format.Log, core.ModulatorArray{})
-	format.right = conf.GetModulatorArray("Right", format.Log, core.ModulatorArray{})
+	format.left = conf.GetFormatterArray("Left", format.Log, core.FormatterArray{})
+	format.right = conf.GetFormatterArray("Right", format.Log, core.FormatterArray{})
 	format.separator = []byte(conf.GetString("Separator", ":"))
 	format.leftStreamID = conf.GetBool("UseLeftStreamID", false)
 	return conf.Errors.OrNil()
 }
 
-// Modulate duplicates the message and modulates both sides before merging
-// them. If any modulate operation does not return "continue", the process
-// is stopped.
-func (format *Double) Modulate(msg *core.Message) core.ModulateResult {
+// ApplyFormatter update message payload
+func (format *Double) ApplyFormatter(msg *core.Message) error {
 	leftMsg := msg.Clone()
-	if result := format.left.Modulate(msg); result != core.ModulateResultContinue {
-		return result
+	if err := format.left.ApplyFormatter(leftMsg); err != nil {
+		return err
 	}
 
 	rightMsg := msg.Clone()
-	if result := format.right.Modulate(msg); result != core.ModulateResultContinue {
-		return result
+	if err := format.right.ApplyFormatter(rightMsg); err != nil {
+		return err
 	}
 
 	dataSize := leftMsg.Len() + len(format.separator) + rightMsg.Len()
@@ -84,5 +81,6 @@ func (format *Double) Modulate(msg *core.Message) core.ModulateResult {
 	} else {
 		msg.SetStreamID(rightMsg.StreamID())
 	}
-	return core.ModulateResultContinue
+
+	return nil
 }

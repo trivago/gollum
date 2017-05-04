@@ -35,8 +35,8 @@ func TestEnvelope(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	expect.Equal("start test end", string(msg.Data()))
 }

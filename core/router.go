@@ -44,7 +44,7 @@ func Route(msg *Message, router Router) error {
 	case ModulateResultContinue:
 		return router.Enqueue(msg)
 
-	case ModulateResultRoute, ModulateResultDrop:
+	case ModulateResultDrop:
 		if msg.StreamID() == router.StreamID() {
 			streamName := StreamRegistry.GetStreamName(msg.StreamID())
 			prevStreamName := StreamRegistry.GetStreamName(msg.PreviousStreamID())

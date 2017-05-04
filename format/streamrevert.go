@@ -45,8 +45,8 @@ func (format *StreamRevert) Configure(conf core.PluginConfigReader) error {
 	return format.SimpleFormatter.Configure(conf)
 }
 
-// Modulate routes the message back to it's original stream
-func (format *StreamRevert) Modulate(msg *core.Message) core.ModulateResult {
+// ApplyFormatter update message payload
+func (format *StreamRevert) ApplyFormatter(msg *core.Message) error {
 	msg.SetStreamID(msg.PreviousStreamID())
-	return core.ModulateResultRoute
+	return nil
 }

@@ -22,20 +22,20 @@ import (
 // This plugin blocks messages after a certain number of messages per second
 // has been reached.
 // Configuration example
-//	- "yourStreamId"
-//		type: "stream.Broadcast"
-//		filters:
-//			- "filter.Any"
-//				Any:
-//					- "filter.JSON"
-//					- "filter.RegEx"
+//	- "yourStreamId":
+//	  type: "stream.Broadcast"
+//	    filters:
+//	      - "filter.Any"
+//	      Any:
+//		- "filter.JSON"
+//		- "filter.RegEx"
 //
 // AnyFilter defines a list of filters that should be checked before dropping
 // a message. Filters are checked in order, and if the message passes
 // then no further filters are checked. By default this list is empty.
 type Any struct {
 	core.SimpleFilter
-	modulators core.ModulatorArray
+	filters 	core.FilterArray
 }
 
 func init() {
@@ -46,19 +46,20 @@ func init() {
 func (filter *Any) Configure(conf core.PluginConfigReader) error {
 	filter.SimpleFilter.Configure(conf)
 
-	filter.modulators = conf.GetModulatorArray("Any",
-		filter.Log, core.ModulatorArray{})
+	filter.filters = conf.GetFilterArray("Any",
+		filter.Log, core.FilterArray{})
 
 	return conf.Errors.OrNil()
 }
 
-// Accepts allows messages where at least one nested filter reutrns true
-func (filter *Any) Modulate(msg *core.Message) core.ModulateResult {
-	for _, modulator := range filter.modulators {
-		if res := modulator.Modulate(msg); res != core.ModulateResultDiscard {
-			return res
+// ApplyFilter check if all Filter wants to reject the message
+func (filter *Any) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
+	for _, subfilter := range filter.filters {
+		// all filter need to apply the message. if one filter not apply return FilterResultMessageAccept
+		if res, _ := subfilter.ApplyFilter(msg); res == core.FilterResultMessageAccept {
+			return core.FilterResultMessageAccept, nil
 		}
 	}
 
-	return filter.Drop(msg)
+	return core.FilterResultMessageReject, nil
 }

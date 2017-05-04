@@ -33,6 +33,6 @@ func TestFilterNone(t *testing.T) {
 
 	msg := core.NewMessage(nil, []byte{}, 0, core.InvalidStreamID)
 
-	result := filter.Modulate(msg)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, _ := filter.ApplyFilter(msg)
+	expect.Equal(core.FilterResultMessageReject, result)
 }

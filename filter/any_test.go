@@ -34,11 +34,13 @@ func TestFilterAnyAllNone(t *testing.T) {
 
 	msg := core.NewMessage(nil, []byte{}, 0, core.InvalidStreamID)
 
-	result := filter.modulators[0].Modulate(msg)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, err := filter.filters[0].ApplyFilter(msg)
+	expect.Equal(core.FilterResultMessageReject, result)
+	expect.NoError(err)
 
-	result = filter.Modulate(msg)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, err = filter.ApplyFilter(msg)
+	expect.Equal(core.FilterResultMessageReject, result)
+	expect.NoError(err)
 }
 
 func TestFilterAnyJsonRegExp(t *testing.T) {
@@ -59,36 +61,40 @@ func TestFilterAnyJsonRegExp(t *testing.T) {
 	filter, casted := plugin.(*Any)
 	expect.True(casted)
 
+	// test case 1
 	msg := core.NewMessage(nil, []byte("ERROR"), 0, core.InvalidStreamID)
 
-	result := filter.modulators[0].Modulate(msg)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, _ := filter.filters[0].ApplyFilter(msg)
+	expect.Equal(core.FilterResultMessageReject, result)
 
-	result = filter.modulators[1].Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _ = filter.filters[1].ApplyFilter(msg)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result = filter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, err = filter.ApplyFilter(msg)
+	expect.Equal(core.FilterResultMessageAccept, result)
+	expect.NoError(err)
 
+	// test case 2
 	msg = core.NewMessage(nil, []byte("{}"), 0, core.InvalidStreamID)
 
-	result = filter.modulators[0].Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _ = filter.filters[0].ApplyFilter(msg)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result = filter.modulators[1].Modulate(msg)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, _ = filter.filters[1].ApplyFilter(msg)
+	expect.Equal(core.FilterResultMessageReject, result)
 
-	result = filter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _ = filter.ApplyFilter(msg)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
+	// test case 3
 	msg = core.NewMessage(nil, []byte("FAIL"), 0, core.InvalidStreamID)
 
-	result = filter.modulators[0].Modulate(msg)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, _ = filter.filters[0].ApplyFilter(msg)
+	expect.Equal(core.FilterResultMessageReject, result)
 
-	result = filter.modulators[1].Modulate(msg)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, _ = filter.filters[1].ApplyFilter(msg)
+	expect.Equal(core.FilterResultMessageReject, result)
 
-	result = filter.Modulate(msg)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, _ = filter.ApplyFilter(msg)
+	expect.Equal(core.FilterResultMessageReject, result)
 }

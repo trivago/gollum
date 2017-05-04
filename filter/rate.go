@@ -112,8 +112,8 @@ func (filter *Rate) updateMetrics() {
 	}
 }
 
-// Accepts allows all messages
-func (filter *Rate) Modulate(msg *core.Message) core.ModulateResult {
+// ApplyFilter check if all Filter wants to reject the message
+func (filter *Rate) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	filter.stateGuard.RLock()
 	state, known := filter.state[msg.StreamID()]
 	filter.stateGuard.RUnlock()
@@ -136,7 +136,7 @@ func (filter *Rate) Modulate(msg *core.Message) core.ModulateResult {
 
 	// Ignore if set
 	if state.ignore {
-		return core.ModulateResultContinue // ### return, do not limit ###
+		return core.FilterResultMessageAccept, nil // ### return, do not limit ###
 	}
 
 	// Reset if necessary
@@ -150,8 +150,8 @@ func (filter *Rate) Modulate(msg *core.Message) core.ModulateResult {
 
 	// Check if to be filtered
 	if atomic.AddInt64(state.count, 1) <= filter.rateLimit {
-		return core.ModulateResultContinue
+		return core.FilterResultMessageAccept, nil // ### return, do not limit ###
 	}
 
-	return filter.Drop(msg)
+	return core.FilterResultMessageReject, nil
 }

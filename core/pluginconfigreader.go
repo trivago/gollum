@@ -156,6 +156,20 @@ func (reader *PluginConfigReader) GetModulatorArray(key string, logScope tlog.Lo
 	return modulators
 }
 
+// GetFilterArray returns an array of filter plugins.
+func (reader *PluginConfigReader) GetFilterArray(key string, logScope tlog.LogScope, defaultValue FilterArray) FilterArray {
+	filters, err := reader.WithError.GetFilterArray(key, logScope, defaultValue)
+	reader.Errors.Push(err)
+	return filters
+}
+
+// GetFormatterArray returns an array of formatter plugins.
+func (reader *PluginConfigReader) GetFormatterArray(key string, logScope tlog.LogScope, defaultValue FormatterArray) FormatterArray {
+	formatter, err := reader.WithError.GetFormatterArray(key, logScope, defaultValue)
+	reader.Errors.Push(err)
+	return formatter
+}
+
 // GetStringArray tries to read a string array from a
 // PluginConfig. If that value is not found defaultValue is returned.
 func (reader *PluginConfigReader) GetStringArray(key string, defaultValue []string) []string {

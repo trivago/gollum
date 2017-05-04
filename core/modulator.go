@@ -44,18 +44,12 @@ type ModulateResult int
 const (
 	// ModulateResultContinue indicates that a message can be passed along.
 	ModulateResultContinue = ModulateResult(iota)
-	// ModulateResultRoute indicates that a message requires routing
-	ModulateResultRoute = ModulateResult(iota)
 	// ModulateResultDrop has to act like ModulateResultRoute but also
-	// indicates that no further modluators should be called.
+	// indicates that no further modulator should be called.
 	ModulateResultDrop = ModulateResult(iota)
 	// ModulateResultDiscard indicates that a message should be discarded and
 	// that no further modulators should be called.
 	ModulateResultDiscard = ModulateResult(iota)
-	// ModulateResultHandled is used inside a Modulate chain call when a
-	// message has already been processed and does not require further
-	// processing (ignore)
-	ModulateResultHandled = ModulateResult(iota)
 )
 
 // ModulatorArray is a type wrapper to []Modulator to make array of modulators
@@ -69,10 +63,8 @@ func (modulators ModulatorArray) Modulate(msg *Message) ModulateResult {
 	for _, modulator := range modulators {
 		switch modRes := modulator.Modulate(msg); modRes {
 		case ModulateResultDiscard, ModulateResultDrop:
+			// break modulator calls
 			return modRes
-
-		case ModulateResultRoute:
-			action = modRes
 		}
 	}
 	return action

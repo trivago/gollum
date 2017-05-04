@@ -53,8 +53,8 @@ func (format *Trim) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Modulate removes data from the front and/or back of the message.
-func (format *Trim) Modulate(msg *core.Message) core.ModulateResult {
+// ApplyFormatter update message payload
+func (format *Trim) ApplyFormatter(msg *core.Message) error {
 	offset := msg.Len()
 	if len(format.rightSeparator) > 0 {
 		rightIdx := bytes.LastIndex(msg.Data(), format.rightSeparator)
@@ -67,11 +67,11 @@ func (format *Trim) Modulate(msg *core.Message) core.ModulateResult {
 	offset = format.leftOffset
 	if len(format.leftSeparator) > 0 {
 		leftIdx := bytes.Index(msg.Data(), format.leftSeparator)
+		leftIdx += 1
 		if leftIdx > 0 {
 			offset += leftIdx
 		}
 	}
 	msg.Offset(offset)
-
-	return core.ModulateResultContinue
+	return nil
 }

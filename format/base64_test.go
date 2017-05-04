@@ -38,11 +38,12 @@ func TestBase64(t *testing.T) {
 	expect.True(castedDecoder)
 
 	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
-	result := encoder.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = encoder.ApplyFormatter(msg)
+	expect.NoError(err)
+	expect.Equal("dGVzdA==", string(msg.Data()))
 
-	result = decoder.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = decoder.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	expect.Equal("test", string(msg.Data()))
 }

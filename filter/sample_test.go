@@ -36,8 +36,8 @@ func TestFilterSample(t *testing.T) {
 
 	accept, deny := 0, 0
 	for i := 0; i < 10; i++ {
-		result := filter.Modulate(msg)
-		if result == core.ModulateResultContinue {
+		result, _ := filter.ApplyFilter(msg)
+		if result == core.FilterResultMessageAccept {
 			accept += 1
 		} else {
 			deny += 1
@@ -56,8 +56,8 @@ func TestFilterSample(t *testing.T) {
 
 	accept, deny = 0, 0
 	for i := 0; i < 10; i++ {
-		result := filter.Modulate(msg)
-		if result == core.ModulateResultContinue {
+		result, _ := filter.ApplyFilter(msg)
+		if result == core.FilterResultMessageAccept {
 			accept += 1
 		} else {
 			deny += 1
@@ -84,15 +84,15 @@ func TestFilterSampleIgnore(t *testing.T) {
 
 	accept1, accept2, deny1, deny2 := 0, 0, 0, 0
 	for i := 0; i < 10; i++ {
-		result1 := filter.Modulate(msg1)
-		result2 := filter.Modulate(msg2)
+		result1, _ := filter.ApplyFilter(msg1)
+		result2, _ := filter.ApplyFilter(msg2)
 
-		if result1 == core.ModulateResultContinue {
+		if result1 == core.FilterResultMessageAccept {
 			accept1 += 1
 		} else {
 			deny1 += 1
 		}
-		if result2 == core.ModulateResultContinue {
+		if result2 == core.FilterResultMessageAccept {
 			accept2 += 1
 		} else {
 			deny2 += 1
