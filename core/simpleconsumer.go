@@ -32,7 +32,6 @@ import (
 //  - "consumer.Foobar":
 //    Enable: true
 //    ID: ""
-//    Fuse: ""
 //    ShutdownTimeoutMs: 1000
 //    Router:
 //      - "foo"
@@ -48,13 +47,6 @@ import (
 // which means only producers set to consume "all routers" will get these
 // messages.
 //
-// Fuse defines the name of a fuse to observe for this consumer. Producer may
-// "burn" the fuse when they encounter errors. Consumers may react on this by
-// e.g. closing connections to notify any writing services of the problem.
-// Set to "" by default which disables the fuse feature for this consumer.
-// It is up to the consumer implementation to react on a broken fuse in an
-// appropriate manner.
-//
 // ShutdownTimeoutMs sets a timeout in milliseconds that will be used to detect
 // various timeouts during shutdown. By default this is set to 1 second.
 type SimpleConsumer struct {
@@ -62,15 +54,12 @@ type SimpleConsumer struct {
 	control         chan PluginControl
 	routers         []Router
 	runState        *PluginRunState
-	fuse            *tsync.Fuse
 	shutdownTimeout time.Duration
 	modulators      ModulatorArray
 	sequence        *uint64
 	onRoll          func()
 	onPrepareStop   func()
 	onStop          func()
-	onFuseBurned    func()
-	onFuseActive    func()
 	Log             tlog.LogScope
 }
 
@@ -89,11 +78,6 @@ func (cons *SimpleConsumer) Configure(conf PluginConfigReader) error {
 	for _, streamID := range boundStreamIDs {
 		stream := StreamRegistry.GetRouterOrFallback(streamID)
 		cons.routers = append(cons.routers, stream)
-	}
-
-	fuseName, err := conf.WithError.GetString("Fuse", "")
-	if !conf.Errors.Push(err) && fuseName != "" {
-		cons.fuse = FuseRegistry.GetFuse(fuseName)
 	}
 
 	cons.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 1000)) * time.Millisecond
@@ -169,16 +153,6 @@ func (cons *SimpleConsumer) SetStopCallback(onStop func()) {
 	cons.onStop = onStop
 }
 
-// SetFuseBurnedCallback sets the function to be called upon PluginControlFuseBurned
-func (cons *SimpleConsumer) SetFuseBurnedCallback(onFuseBurned func()) {
-	cons.onFuseBurned = onFuseBurned
-}
-
-// SetFuseActiveCallback sets the function to be called upon PluginControlFuseActive
-func (cons *SimpleConsumer) SetFuseActiveCallback(onFuseActive func()) {
-	cons.onFuseActive = onFuseActive
-}
-
 // SetWorkerWaitGroup forwards to Plugin.SetWorkerWaitGroup for this consumer's
 // internal plugin state. This method is also called by AddMainWorker.
 func (cons *SimpleConsumer) SetWorkerWaitGroup(workers *sync.WaitGroup) {
@@ -200,23 +174,6 @@ func (cons *SimpleConsumer) AddWorker() {
 // WorkerDone removes an additional worker to the waitgroup.
 func (cons *SimpleConsumer) WorkerDone() {
 	cons.runState.WorkerDone()
-}
-
-// WaitOnFuse blocks if the fuse linked to this consumer has been burned.
-// If no fuse is bound this function does nothing.
-func (cons *SimpleConsumer) WaitOnFuse() {
-	if cons.fuse != nil {
-		cons.fuse.Wait()
-	}
-}
-
-// IsFuseBurned returns true if the fuse linked to this consumer has been
-// burned. If no fuse is attached, false is returned.
-func (cons *SimpleConsumer) IsFuseBurned() bool {
-	if cons.fuse == nil {
-		return false
-	}
-	return cons.fuse.IsBurned()
 }
 
 // Enqueue creates a new message from a given byte slice and passes it to
@@ -273,8 +230,6 @@ func (cons *SimpleConsumer) ControlLoop() {
 	defer cons.setState(PluginStateDead)
 	defer cons.Log.Debug.Print("Stopped")
 
-	go cons.fuseControlLoop()
-
 	for {
 		command := <-cons.control
 		switch command {
@@ -307,18 +262,6 @@ func (cons *SimpleConsumer) ControlLoop() {
 			if cons.onRoll != nil {
 				cons.onRoll()
 			}
-
-		case PluginControlFuseBurn:
-			cons.Log.Debug.Print("Recieved fuse burned command")
-			if cons.onFuseBurned != nil {
-				cons.onFuseBurned()
-			}
-
-		case PluginControlFuseActive:
-			cons.Log.Debug.Print("Recieved fuse active command")
-			if cons.onFuseActive != nil {
-				cons.onFuseActive()
-			}
 		}
 	}
 }
@@ -350,23 +293,6 @@ func (cons *SimpleConsumer) tickerLoop(interval time.Duration, onTimeOut func())
 			go cons.tickerLoop(interval, onTimeOut)
 		} else {
 			time.AfterFunc(nextDelay, func() { cons.tickerLoop(interval, onTimeOut) })
-		}
-	}
-}
-
-func (cons *SimpleConsumer) fuseControlLoop() {
-	if cons.fuse == nil {
-		return // ### return, no fuse attached ###
-	}
-	spin := tsync.NewSpinner(tsync.SpinPrioritySuspend)
-	for cons.IsActive() {
-		// If the fuse is burned: callback, wait, callback
-		if cons.IsFuseBurned() {
-			cons.Control() <- PluginControlFuseBurn
-			cons.WaitOnFuse()
-			cons.Control() <- PluginControlFuseActive
-		} else {
-			spin.Yield()
 		}
 	}
 }
