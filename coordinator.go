@@ -112,10 +112,9 @@ func (co *Coordinator) StartPlugins() {
 		return // ### return, nothing to do ###
 	}
 
-	// Lunch routers
+	// Launch routers
 	for _, router := range co.routers {
-		err := router.Start()
-		if err != nil {
+		if err := router.Start(); err != nil {
 			tlog.Error.Print("Router was not able to start from type ", reflect.TypeOf(router), ": ", err)
 		} else {
 			tlog.Debug.Print("Starting ", reflect.TypeOf(router))
