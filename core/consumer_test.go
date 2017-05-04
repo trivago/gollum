@@ -74,8 +74,8 @@ func TestConsumerTickerLoop(t *testing.T) {
 	mockC := getMockConsumer()
 	mockC.setState(PluginStateActive)
 
-	// accept timeroff by abs( 8 ms)
-	tickThreshold := float64(10 * time.Millisecond)
+	// accept timeroff by abs( 15 ms)
+	tickThreshold := float64(15 * time.Millisecond)
 	tickerLoopTimeout := 20 * time.Millisecond
 	lastTick := time.Now()
 	counter := new(int32)
