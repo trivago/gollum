@@ -47,11 +47,11 @@ import (
 // By default this list is empty.
 type Sample struct {
 	core.SimpleFilter
-	rate         	int64
-	group        	int64
-	count        	*int64
-	dropStreamID 	core.MessageStreamID
-	ignore       	map[core.MessageStreamID]bool
+	rate         int64
+	group        int64
+	count        *int64
+	dropStreamID core.MessageStreamID
+	ignore       map[core.MessageStreamID]bool
 }
 
 func init() {
@@ -105,7 +105,7 @@ func (filter *Sample) ApplyFilter(msg *core.Message) (core.FilterResult, error) 
 		if filter.dropStreamID != core.InvalidStreamID {
 			msg.SetStreamID(filter.dropStreamID)
 		}
-		return core.FilterResultMessageReject, nil // ### return, filter ###
+		return filter.MessageRejectResult(), nil // ### return, filter ###
 	}
 
 	return core.FilterResultMessageAccept, nil

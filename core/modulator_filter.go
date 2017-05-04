@@ -19,14 +19,25 @@ import (
 )
 
 // FilterResult defines a set of results for filtering
-type FilterResult int
+type FilterResult uint64
 
 const (
-	// FilterResultMessageReject indicates that a message is filtered and not pared along the stream
-	FilterResultMessageReject = FilterResult(iota)
 	// FilterResultMessageAccept indicates that a message can be passed along and continue
-	FilterResultMessageAccept = FilterResult(iota)
+	FilterResultMessageAccept = FilterResult(0)
 )
+
+// FilterResultMessageReject indicates that a message is filtered and not pared along the stream
+func FilterResultMessageReject(stream MessageStreamID) FilterResult {
+	return FilterResult(stream)
+}
+
+// ToStreamID converts a FilterResult to a stream id
+func (f FilterResult) ToStreamID() MessageStreamID {
+	if f == FilterResultMessageAccept {
+		return InvalidStreamID
+	}
+	return MessageStreamID(f)
+}
 
 // FilterArray is a type wrapper to []Filter to make array of filters
 type FilterArray []Filter
@@ -37,11 +48,11 @@ func (filters FilterArray) ApplyFilter(msg *Message) (FilterResult, error) {
 	for _, filter := range filters {
 		result, err := filter.ApplyFilter(msg)
 		if err != nil {
-			return FilterResultMessageReject, err
+			return FilterResultMessageReject(filter.GetDropStreamID()), err
 		}
 
-		if result == FilterResultMessageReject {
-			return FilterResultMessageReject, nil
+		if result != FilterResultMessageAccept {
+			return result, nil
 		}
 	}
 	return FilterResultMessageAccept, nil
@@ -50,7 +61,7 @@ func (filters FilterArray) ApplyFilter(msg *Message) (FilterResult, error) {
 // A Filter defines an analysis step inside the message
 // A filter also have to implement the modulator interface
 type Filter interface {
-	ApplyFilter (msg *Message) (FilterResult, error)
+	ApplyFilter(msg *Message) (FilterResult, error)
 	GetDropStreamID() MessageStreamID
 }
 
@@ -77,17 +88,19 @@ func (filterModulator *FilterModulator) Modulate(msg *Message) ModulateResult {
 	switch result {
 	case FilterResultMessageAccept:
 		return ModulateResultContinue
-	case FilterResultMessageReject:
-		return filterModulator.drop(msg)
+
 	default:
-		tlog.Error.Printf("FilterModulator '%T' with unknown return value: %d",
-			filterModulator.Filter, result)
-		return ModulateResultContinue
+		filterDropStreamID := result.ToStreamID()
+		if filterDropStreamID != InvalidStreamID {
+			msg.SetStreamID(filterDropStreamID)
+			return ModulateResultDrop
+		}
+		return ModulateResultDiscard
 	}
 }
 
 // ApplyFilter calls the Filter.ApplyFilter method
-func (filterModulator *FilterModulator) ApplyFilter (msg *Message) (FilterResult, error) {
+func (filterModulator *FilterModulator) ApplyFilter(msg *Message) (FilterResult, error) {
 	return filterModulator.Filter.ApplyFilter(msg)
 }
 

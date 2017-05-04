@@ -38,9 +38,9 @@ func TestFilterSample(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		result, _ := filter.ApplyFilter(msg)
 		if result == core.FilterResultMessageAccept {
-			accept += 1
+			accept++
 		} else {
-			deny += 1
+			deny++
 		}
 	}
 	expect.Equal(accept, 4)
@@ -58,9 +58,9 @@ func TestFilterSample(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		result, _ := filter.ApplyFilter(msg)
 		if result == core.FilterResultMessageAccept {
-			accept += 1
+			accept++
 		} else {
-			deny += 1
+			deny++
 		}
 	}
 	expect.Equal(accept, 5)
@@ -88,14 +88,14 @@ func TestFilterSampleIgnore(t *testing.T) {
 		result2, _ := filter.ApplyFilter(msg2)
 
 		if result1 == core.FilterResultMessageAccept {
-			accept1 += 1
+			accept1++
 		} else {
-			deny1 += 1
+			deny1++
 		}
 		if result2 == core.FilterResultMessageAccept {
-			accept2 += 1
+			accept2++
 		} else {
-			deny2 += 1
+			deny2++
 		}
 	}
 	expect.Equal(accept1, 10)

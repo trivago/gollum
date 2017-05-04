@@ -103,14 +103,14 @@ func (filter *JSON) getValue(key string, values tcontainer.MarshalMap) (string, 
 func (filter *JSON) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	values := tcontainer.NewMarshalMap()
 	if err := json.Unmarshal(msg.Data(), &values); err != nil {
-		return core.FilterResultMessageReject, err
+		return filter.MessageRejectResult(), err
 	}
 
 	// Check rejects
 	for key, exp := range filter.rejectValues {
 		if value, exists := filter.getValue(key, values); exists {
 			if exp.MatchString(value) {
-				return core.FilterResultMessageReject, nil
+				return filter.MessageRejectResult(), nil
 			}
 		}
 	}
@@ -119,7 +119,7 @@ func (filter *JSON) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	for key, exp := range filter.acceptValues {
 		if value, exists := filter.getValue(key, values); exists {
 			if !exp.MatchString(value) {
-				return core.FilterResultMessageReject, nil
+				return filter.MessageRejectResult(), nil
 			}
 		}
 	}

@@ -52,3 +52,9 @@ func (filter *SimpleFilter) Configure(conf PluginConfigReader) error {
 func (filter *SimpleFilter) GetDropStreamID() MessageStreamID {
 	return filter.dropStreamID
 }
+
+// MessageRejectResult returns a FilterResultMessageReject with the stream set to
+// GetDropStreamID()
+func (filter *SimpleFilter) MessageRejectResult() FilterResult {
+	return FilterResultMessageReject(filter.dropStreamID)
+}

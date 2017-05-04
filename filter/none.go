@@ -40,5 +40,5 @@ func (filter *None) Configure(conf core.PluginConfigReader) error {
 
 // ApplyFilter calls the Filter.ApplyFilter method
 func (filter *None) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
-	return core.FilterResultMessageReject, nil
+	return filter.MessageRejectResult(), nil
 }

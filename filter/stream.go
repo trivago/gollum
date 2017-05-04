@@ -62,7 +62,7 @@ func (filter *Stream) Configure(conf core.PluginConfigReader) error {
 func (filter *Stream) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	for _, blockedID := range filter.blacklist {
 		if msg.StreamID() == blockedID {
-			return core.FilterResultMessageReject, nil // ### return, explicitly blocked ###
+			return filter.MessageRejectResult(), nil // ### return, explicitly blocked ###
 		}
 	}
 
@@ -74,7 +74,7 @@ func (filter *Stream) ApplyFilter(msg *core.Message) (core.FilterResult, error) 
 
 	// Return true if no whitlist is given, false otherwise (must fulfill whitelist)
 	if len(filter.whitelist) > 0 {
-		return core.FilterResultMessageReject, nil
+		return filter.MessageRejectResult(), nil
 	}
 
 	return core.FilterResultMessageAccept, nil
