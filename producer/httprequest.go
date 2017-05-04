@@ -28,9 +28,9 @@ import (
 )
 
 // HTTPRequest producer plugin
+//
 // The HTTPRequest producers sends messages as HTTP packet to a given webserver.
-// This producer uses a fuse breaker when a request fails with an error
-// code > 400 or the connection is down.
+//
 // Configuration example
 //
 //  - "producer.HTTPRequest":
@@ -68,7 +68,6 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) error {
 	var err error
 	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
-	prod.SetCheckFuseCallback(prod.isHostUp)
 
 	address := conf.GetString("Address", "localhost:80")
 	prod.protocol, prod.host, prod.port, err = tnet.SplitAddress(address, "http")
@@ -179,13 +178,13 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 			// Fail
 			prod.Log.Error.Print("Send failed: ", err)
 			if !prod.isHostUp() {
-				prod.Control() <- core.PluginControlFuseBurn
+				// TBD: health check? (ex-fuse breaker)
 			}
 			prod.Drop(originalMsg)
 			return
 		}
 		// Success
-		prod.Control() <- core.PluginControlFuseActive
+		// TBD: health check? (ex-fuse breaker)
 	}()
 }
 

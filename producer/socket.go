@@ -26,9 +26,10 @@ import (
 )
 
 // Socket producer plugin
+//
 // The socket producer connects to a service over a TCP, UDP or unix domain
 // socket based connection.
-// This producer uses a fuse breaker when the service to connect to goes down.
+//
 // Configuration example
 //
 //  - "producer.Socket":
@@ -95,7 +96,6 @@ func init() {
 func (prod *Socket) Configure(conf core.PluginConfigReader) error {
 	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
-	prod.SetCheckFuseCallback(prod.tryConnect)
 
 	prod.batchMaxCount = conf.GetInt("Batch/MaxCount", 8192)
 	prod.batchFlushCount = conf.GetInt("Batch/FlushCount", prod.batchMaxCount/2)
@@ -142,7 +142,6 @@ func (prod *Socket) tryConnect() bool {
 	conn.(bufferedConn).SetWriteBuffer(prod.bufferSizeByte)
 	prod.assembly.SetWriter(conn)
 	prod.connection = conn
-	prod.Control() <- core.PluginControlFuseActive
 	return true
 }
 
@@ -153,7 +152,7 @@ func (prod *Socket) closeConnection() error {
 		prod.connection = nil
 
 		if !prod.IsStopping() {
-			prod.Control() <- core.PluginControlFuseBurn
+			// TBD: action needed? (ex-fuse breaker)
 		}
 	}
 	return nil
