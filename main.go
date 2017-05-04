@@ -25,7 +25,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
+	"errors"
 	_ "github.com/trivago/gollum/consumer"
 	"github.com/trivago/gollum/core"
 	_ "github.com/trivago/gollum/filter"
@@ -35,6 +35,8 @@ import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tstrings"
+	"github.com/trivago/tgo/thealthcheck"
+	"net"
 )
 
 func main() {
@@ -101,18 +103,32 @@ func main() {
 	setStaticMetrics()
 	if *flagMetricsAddress != "" {
 		server := tgo.NewMetricServer()
-		address := *flagMetricsAddress
-
-		if !strings.Contains(address, ":") {
-			if !tstrings.IsInt(address) {
-				fmt.Printf("Metrics address must be of the form \"host:port\" or \":port\" or \"port\".\n")
-				return
-			}
-			address = ":" + address
+		address, err := parseAddress(*flagMetricsAddress)
+		if err != nil {
+			fmt.Printf("%s", err)
+			return
 		}
-
 		go server.Start(address)
 		defer server.Stop()
+	}
+
+	// Health Check endpoint
+
+	if *flagHealthCheck != "" {
+		address, err := parseAddress(*flagHealthCheck)
+		if err != nil {
+			fmt.Printf("%s", err)
+			return
+		}
+		thealthcheck.Configure(address)
+
+		go thealthcheck.Start()
+		defer thealthcheck.Stop()
+
+		// Add a static "ping" endpoint
+		thealthcheck.AddEndpoint("/_PING_", func()(code int, body string){
+			return thealthcheck.StatusOK, "PONG"
+		})
 	}
 
 	// Profiling flags
@@ -158,6 +174,20 @@ func main() {
 	defer coordinater.Shutdown()
 	coordinater.StartPlugins()
 	coordinater.Run()
+}
+
+func parseAddress(address string) (string, error) {
+	// net.SplitHostPort() doesn't support plain port number
+	if tstrings.IsInt(address) {
+		address = ":" + address
+	}
+
+	host, port, err := net.SplitHostPort(address)
+	if err != nil {
+		return address, errors.New(fmt.Sprintf("Incorrect address %q: %s", address, err))
+	}
+
+	return host + ":" + port, nil
 }
 
 func dumpMemoryProfile() {

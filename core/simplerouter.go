@@ -17,6 +17,7 @@ package core
 import (
 	"github.com/trivago/tgo/tlog"
 	"time"
+	"github.com/trivago/tgo/thealthcheck"
 )
 
 // SimpleRouter router plugin
@@ -63,6 +64,16 @@ func (router *SimpleRouter) Configure(conf PluginConfigReader) error {
 	}
 
 	return conf.Errors.OrNil()
+}
+
+// Adds a health check at the default URL (http://<addr>:<port>/<plugin_id>)
+func (router *SimpleRouter) AddHealthCheck(callback thealthcheck.CallbackFunc) {
+	router.AddHealthCheckAt("", callback)
+}
+
+// Adds a health check at a subpath (http://<addr>:<port>/<plugin_id><path>)
+func (router *SimpleRouter) AddHealthCheckAt(path string, callback thealthcheck.CallbackFunc) {
+	thealthcheck.AddEndpoint("/" + router.GetID() + path, callback)
 }
 
 // GetID returns the ID of this stream

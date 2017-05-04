@@ -39,6 +39,7 @@ import:
 - package: github.com/trivago/tgo
   subpackages:
   - tflag
+  - thealthcheck
 - package: gopkg.in/mcuadros/go-syslog.v2
   version: =2.2.1
   subpackages:

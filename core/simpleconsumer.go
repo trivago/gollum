@@ -21,6 +21,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"github.com/trivago/tgo/thealthcheck"
 )
 
 // SimpleConsumer plugin base type
@@ -98,6 +99,16 @@ func (cons *SimpleConsumer) Configure(conf PluginConfigReader) error {
 	cons.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 1000)) * time.Millisecond
 
 	return conf.Errors.OrNil()
+}
+
+// Adds a health check at the default URL (http://<addr>:<port>/<plugin_id>)
+func (cons *SimpleConsumer) AddHealthCheck(callback thealthcheck.CallbackFunc) {
+	cons.AddHealthCheckAt("", callback)
+}
+
+// Adds a health check at a subpath (http://<addr>:<port>/<plugin_id><path>)
+func (cons *SimpleConsumer) AddHealthCheckAt(path string, callback thealthcheck.CallbackFunc) {
+	thealthcheck.AddEndpoint("/" + cons.GetID() + path, callback)
 }
 
 // GetID returns the ID of this consumer

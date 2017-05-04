@@ -1,5 +1,5 @@
-hash: 9ebb326f8113881f3199a8c9821732dfefe6fe64eaf2b88622b62c14d43c019e
-updated: 2017-05-02T22:23:42.078357011+02:00
+hash: 62f85e10fc530e080fdcd8dabddff12f8ae05fb8d1ec1745c48cfbd0b50e8c4f
+updated: 2017-05-03T16:25:14.017737407+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -117,12 +117,13 @@ imports:
 - name: github.com/Shopify/sarama
   version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
 - name: github.com/trivago/tgo
-  version: 29efc651bc8e40b607db4b7a6881614775c7f529
+  version: a1acbb865039e2f828b942861ae66adff56748b9
   subpackages:
   - tcontainer
   - terrors
   - tflag
   - tfmt
+  - thealthcheck
   - tio
   - tlog
   - tmath
