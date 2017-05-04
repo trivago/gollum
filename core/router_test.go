@@ -31,6 +31,10 @@ func (router *mockRouter) Enqueue(msg *Message) error {
 	return nil
 }
 
+func (router *mockRouter) Start() error {
+	return nil
+}
+
 func getMockRouter() mockRouter {
 	timeout := time.Second
 	return mockRouter{

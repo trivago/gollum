@@ -25,7 +25,7 @@ func TestStreamInterface(t *testing.T) {
 	router := core.TypeRegistry.GetRegistered("router.")
 
 	if len(router) == 0 {
-		t.Error("No streams defined")
+		t.Error("No routers defined")
 	}
 
 	for _, name := range router {

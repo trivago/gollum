@@ -82,7 +82,7 @@ type ResultFile struct {
 // GetResultFile returns file content as a string
 func GetResultFile(filepath string) (ResultFile, error) {
 	fileContent, lineCount := getResultFileData(filepath, 1)
-	
+
 	// create result
 	result := ResultFile{}
 	result.content = fileContent

@@ -55,6 +55,7 @@ type signalType byte
 type Coordinator struct {
 	consumers      []core.Consumer
 	producers      []core.Producer
+	routers        []core.Router
 	consumerWorker *sync.WaitGroup
 	producerWorker *sync.WaitGroup
 	logConsumer    *core.LogConsumer
@@ -109,6 +110,16 @@ func (co *Coordinator) StartPlugins() {
 		tlog.Error.Print("No producers configured.")
 		tlog.SetWriter(os.Stdout)
 		return // ### return, nothing to do ###
+	}
+
+	// Lunch routers
+	for _, router := range co.routers {
+		err := router.Start()
+		if err != nil {
+			tlog.Error.Print("Router was not able to start from type ", reflect.TypeOf(router), ": ", err)
+		} else {
+			tlog.Debug.Print("Starting ", reflect.TypeOf(router))
+		}
 	}
 
 	// Launch producers
@@ -202,6 +213,7 @@ func (co *Coordinator) configureRouters(conf *core.Config) {
 		}
 
 		routerPlugin := plugin.(core.Router)
+		co.routers = append(co.routers, routerPlugin)
 
 		tlog.Debug.Printf("Instantiated '%s' (%s) as '%s'", config.ID, core.StreamRegistry.GetStreamName(routerPlugin.StreamID()), config.Typename)
 		core.StreamRegistry.Register(routerPlugin, routerPlugin.StreamID())

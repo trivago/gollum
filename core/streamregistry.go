@@ -253,14 +253,14 @@ func (registry *streamRegistry) GetRouterOrFallback(streamID MessageStreamID) Ro
 	registry.streamGuard.Lock()
 	defer registry.streamGuard.Unlock()
 
-	if stream, exists := registry.routers[streamID]; exists {
-		return stream
+	if router, exists := registry.routers[streamID]; exists {
+		return router
 	}
 
-	defaultStream := registry.createFallback(streamID)
-	registry.AddWildcardProducersToRouter(defaultStream)
+	defaultRouter := registry.createFallback(streamID)
+	registry.AddWildcardProducersToRouter(defaultRouter)
 
-	registry.routers[streamID] = defaultStream
+	registry.routers[streamID] = defaultRouter
 	tgo.Metric.Inc(metricStreams)
-	return defaultStream
+	return defaultRouter
 }

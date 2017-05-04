@@ -44,6 +44,11 @@ func (router *RoundRobin) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
+// Start the router
+func (router *RoundRobin) Start() error {
+	return nil
+}
+
 // Enqueue enques a message to the router
 func (router *RoundRobin) Enqueue(msg *core.Message) error {
 	producers := router.GetProducers()
