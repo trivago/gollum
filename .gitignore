@@ -1,6 +1,8 @@
-# IDE's / os related
-.vscode
+# IDEs / os related
 **/.DS_Store
+**/*~
+.vscode
+.idea
 
 # git
 .gitmodules
