@@ -1,10 +1,10 @@
 hash: 62f85e10fc530e080fdcd8dabddff12f8ae05fb8d1ec1745c48cfbd0b50e8c4f
-updated: 2017-05-03T16:25:14.017737407+02:00
+updated: 2017-05-04T13:37:48.759311429+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
 - name: github.com/araddon/gou
-  version: 0ab1e8f997e35d27da012072dc531fcc0204da5a
+  version: f94c6a9a3a93253d1a556bd4959dc6f0f5e67cb4
 - name: github.com/artyom/fb303
   version: fa4a241cefb113c4981dbac51a8cfcb047efa079
 - name: github.com/artyom/scribe
@@ -51,7 +51,7 @@ imports:
   subpackages:
   - sdjournal
 - name: github.com/coreos/pkg
-  version: 1c941d73110817a80b9fa6e14d5d2b00d977ce2a
+  version: 8dbaa491b063ed47e2474b5363de0c0db91cf9f2
   subpackages:
   - dlopen
 - name: github.com/davecgh/go-spew
@@ -77,7 +77,7 @@ imports:
   - internal/pool
   - internal/proto
 - name: github.com/golang/protobuf
-  version: 2bba0603135d7d7f5cb73b2125beeda19c09f4ef
+  version: 18c9bb3261723cd5401db4d0c9fbc5c3b6c70fe8
   subpackages:
   - proto
 - name: github.com/golang/snappy
@@ -89,7 +89,7 @@ imports:
 - name: github.com/klauspost/crc32
   version: 1bab8b35b6bb565f92cbc97939610af9369f942a
 - name: github.com/lytics/logrus
-  version: 59cd2e4a569b4494d9196bef82f0784e467adac9
+  version: 8d125bf3956de0f953620df54a1b95a52b55353b
 - name: github.com/mattbaird/elastigo
   version: 2fe47fd29e4b70353f852ede77a196830d2924ec
   subpackages:
@@ -97,11 +97,11 @@ imports:
 - name: github.com/miekg/pcap
   version: 51d9d986bf8d5f524d65bf31c353e10271d54aaa
 - name: github.com/mmcloughlin/geohash
-  version: d6857f9059874953ee09d6f2bd3cb878189a4f87
+  version: 33283639a13451aa23d02413884678abd4bdb1e7
 - name: github.com/mssola/user_agent
   version: 07efe2b857fb8c02d2dd85c12d0145f58554ec7c
 - name: github.com/oschwald/maxminddb-golang
-  version: 697da8075d2061aa8ed639346443f5d3e8c80b30
+  version: f6c93ffae8caa8c38fb52468c7af9006d7baeb8e
 - name: github.com/pierrec/lz4
   version: f5b77fd73d83122495309c0f459b810f83cc291f
 - name: github.com/pierrec/xxHash
@@ -117,7 +117,7 @@ imports:
 - name: github.com/Shopify/sarama
   version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
 - name: github.com/trivago/tgo
-  version: a1acbb865039e2f828b942861ae66adff56748b9
+  version: bb2a4435a07d5337d8f38ee95923f81cf66fba10
   subpackages:
   - tcontainer
   - terrors
@@ -133,12 +133,12 @@ imports:
   - tsync
   - ttesting
 - name: golang.org/x/crypto
-  version: 88915ccf7aeb91e9324fe7cf3eddd1531ced61ea
+  version: 04eae0b62feaaf659a0ce2c4e8dc70b6ae2fff67
   subpackages:
   - bcrypt
   - blowfish
 - name: golang.org/x/sys
-  version: 9a7256cb28ed514b4e1e5f68959914c4c28a92e0
+  version: 9ccfe848b9db8435a24c424abbc07a921adf1df5
   subpackages:
   - unix
   - windows
@@ -152,5 +152,5 @@ imports:
 - name: gopkg.in/oschwald/geoip2-golang.v1
   version: 496a3cbcb65a3cb54497fe4ae2273319e85160a4
 - name: gopkg.in/yaml.v2
-  version: a3f3340b5840cee44f372bddb5880fcbc419b46a
+  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
 testImports: []

@@ -20,7 +20,16 @@ import (
 	_ "github.com/trivago/gollum/format"
 	_ "github.com/trivago/gollum/router"
 	"testing"
+	"math/rand"
 )
+
+const (
+	letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	letterIdxBits = 6                    // 6 bits to represent a letter index
+	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+)
+
 
 func TestProducerInterface(t *testing.T) {
 	producers := core.TypeRegistry.GetRegistered("producer.")
@@ -30,10 +39,30 @@ func TestProducerInterface(t *testing.T) {
 	}
 
 	for _, name := range producers {
-		conf := core.NewPluginConfig("", name)
+		conf := core.NewPluginConfig(RandString(6), name)
 		_, err := core.NewPluginWithConfig(conf)
 		if err != nil {
 			t.Errorf("Failed to create producer %s: %s", name, err.Error())
 		}
 	}
+}
+
+// RandString generate a random string
+// src: http://stackoverflow.com/questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-golang
+func RandString(n int) string {
+	b := make([]byte, n)
+	// A rand.Int63() generates 63 random bits, enough for letterIdxMax letters!
+	for i, cache, remain := n-1, rand.Int63(), letterIdxMax; i >= 0; {
+		if remain == 0 {
+			cache, remain = rand.Int63(), letterIdxMax
+		}
+		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
+			b[i] = letterBytes[idx]
+			i--
+		}
+		cache >>= letterIdxBits
+		remain--
+	}
+
+	return string(b)
 }
