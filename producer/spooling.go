@@ -117,7 +117,7 @@ func (prod *Spooling) Configure(conf core.PluginConfigReader) error {
 	prod.SetStopCallback(prod.close)
 	prod.SetRollCallback(prod.onRoll)
 
-	serializePlugin, err := core.NewPlugin(core.NewPluginConfig("", "format.Serialize"))
+	serializePlugin, err := core.NewPluginWithConfig(core.NewPluginConfig("", "format.Serialize"))
 	conf.Errors.Push(err)
 	if serializeFormatter, isFormatter := serializePlugin.(core.Formatter); isFormatter {
 		prod.serialze = serializeFormatter

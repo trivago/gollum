@@ -23,7 +23,7 @@ func TestPluginRegistry(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	registered := len(PluginRegistry.plugins)
 
-	plugin, err := NewPlugin(NewPluginConfig("", "randomPlugin"))
+	plugin, err := NewPluginWithConfig(NewPluginConfig("", "randomPlugin"))
 	expect.NotNil(err)
 	expect.Equal(registered, len(PluginRegistry.plugins))
 

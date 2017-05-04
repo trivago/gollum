@@ -13,7 +13,7 @@ func TestFormatterHostname(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Hostname")
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*Hostname)
@@ -33,7 +33,7 @@ func TestFormatterHostnameSeperator(t *testing.T) {
 
 	config := core.NewPluginConfig("", "format.Hostname")
 	config.Override("Separator", "-")
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*Hostname)

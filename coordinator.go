@@ -55,6 +55,7 @@ type signalType byte
 type Coordinator struct {
 	consumers      []core.Consumer
 	producers      []core.Producer
+	routers        []core.Router
 	consumerWorker *sync.WaitGroup
 	producerWorker *sync.WaitGroup
 	logConsumer    *core.LogConsumer
@@ -109,6 +110,15 @@ func (co *Coordinator) StartPlugins() {
 		tlog.Error.Print("No producers configured.")
 		tlog.SetWriter(os.Stdout)
 		return // ### return, nothing to do ###
+	}
+
+	// Launch routers
+	for _, router := range co.routers {
+		if err := router.Start(); err != nil {
+			tlog.Error.Print("Router was not able to start from type ", reflect.TypeOf(router), ": ", err)
+		} else {
+			tlog.Debug.Print("Starting ", reflect.TypeOf(router))
+		}
 	}
 
 	// Launch producers
@@ -195,13 +205,14 @@ func (co *Coordinator) configureRouters(conf *core.Config) {
 	for _, config := range routerConfigs {
 		tlog.Debug.Printf("Instantiating router '%s'", config.ID)
 
-		plugin, err := core.NewPlugin(config)
+		plugin, err := core.NewPluginWithConfig(config)
 		if err != nil {
 			tlog.Error.Printf("Failed to instantiate router %s: %s", config.ID, err)
 			continue // ### continue ###
 		}
 
 		routerPlugin := plugin.(core.Router)
+		co.routers = append(co.routers, routerPlugin)
 
 		tlog.Debug.Printf("Instantiated '%s' (%s) as '%s'", config.ID, core.StreamRegistry.GetStreamName(routerPlugin.StreamID()), config.Typename)
 		core.StreamRegistry.Register(routerPlugin, routerPlugin.StreamID())
@@ -221,7 +232,7 @@ func (co *Coordinator) configureProducers(conf *core.Config) {
 		for i := 0; i < config.Instances; i++ {
 			tlog.Debug.Print("Instantiating ", config.ID)
 
-			plugin, err := core.NewPlugin(config)
+			plugin, err := core.NewPluginWithConfig(config)
 			if err != nil {
 				tlog.Error.Printf("Failed to instantiate producer %s: %s", config.ID, err)
 				continue // ### continue ###
@@ -272,7 +283,7 @@ func (co *Coordinator) configureConsumers(conf *core.Config) {
 		for i := 0; i < config.Instances; i++ {
 			tlog.Debug.Print("Instantiating ", config.ID)
 
-			plugin, err := core.NewPlugin(config)
+			plugin, err := core.NewPluginWithConfig(config)
 			if err != nil {
 				tlog.Error.Printf("Failed to instantiate producer %s: %s", config.ID, err)
 				continue // ### continue ###

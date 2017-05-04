@@ -27,7 +27,7 @@ func TestExtractJSON(t *testing.T) {
 	config := core.NewPluginConfig("", "format.ExtractJSON")
 	config.Override("Field", "test")
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 	formatter, casted := plugin.(*ExtractJSON)
 	expect.True(casted)
@@ -48,7 +48,7 @@ func TestExtractJSONPrecision(t *testing.T) {
 	config.Override("Field", "test")
 	config.Override("Precision", 0)
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 	formatter, casted := plugin.(*ExtractJSON)
 	expect.True(casted)

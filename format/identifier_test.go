@@ -12,7 +12,7 @@ func TestFormatterIdentifier(t *testing.T) {
 
 	config := core.NewPluginConfig("", "format.Identifier")
 	config.Override("Use", "hash")
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*Identifier)

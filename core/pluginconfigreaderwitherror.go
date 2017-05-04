@@ -152,7 +152,7 @@ func (reader PluginConfigReaderWithError) GetPlugin(key string, defaultType stri
 	if err != nil {
 		return nil, err
 	}
-	return NewPlugin(config)
+	return NewPluginWithConfig(config)
 }
 
 // GetArray tries to read a untyped array from a PluginConfig.
@@ -202,7 +202,7 @@ func (reader PluginConfigReaderWithError) GetPluginArray(key string, defaultValu
 
 			// Only string given, initialize with empty config
 			pluginConfig, _ := NewNestedPluginConfig(typeNameStr, tcontainer.NewMarshalMap())
-			plugin, err := NewPlugin(pluginConfig)
+			plugin, err := NewPluginWithConfig(pluginConfig)
 			if err != nil {
 				return nil, err
 			}
@@ -223,7 +223,7 @@ func (reader PluginConfigReaderWithError) GetPluginArray(key string, defaultValu
 			}
 
 			pluginConfig, err := NewNestedPluginConfig(typeNameStr, configMap)
-			plugin, err := NewPlugin(pluginConfig)
+			plugin, err := NewPluginWithConfig(pluginConfig)
 			if err != nil {
 				return pluginArray, err
 			}

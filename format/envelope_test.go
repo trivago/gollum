@@ -28,7 +28,7 @@ func TestEnvelope(t *testing.T) {
 	config.Override("Prefix", "start ")
 	config.Override("Postfix", " end")
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*Envelope)

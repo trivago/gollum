@@ -27,7 +27,7 @@ func TestFilterRegExp(t *testing.T) {
 
 	conf.Override("ExpressionNot", "^\\d")
 	conf.Override("Expression", "accept")
-	plugin, err := core.NewPlugin(conf)
+	plugin, err := core.NewPluginWithConfig(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*RegExp)

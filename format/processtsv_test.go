@@ -27,7 +27,7 @@ func TestProcessTSV(t *testing.T) {
 	config := core.NewPluginConfig("", "format.ProcessTSV")
 	config.Override("ProcessTSVDirectives", []string{"1:remove"})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 	formatter, casted := plugin.(*ProcessTSV)
 	expect.True(casted)
@@ -46,7 +46,7 @@ func TestProcessTSVDelimiter(t *testing.T) {
 	config.Override("ProcessTSVDelimiter", ",")
 	config.Override("ProcessTSVDirectives", []string{"1:remove"})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 	formatter, casted := plugin.(*ProcessTSV)
 	expect.True(casted)
@@ -65,7 +65,7 @@ func TestProcessTSVQuotedValues(t *testing.T) {
 	config.Override("ProcessTSVQuotedValues", true)
 	config.Override("ProcessTSVDirectives", []string{"1:remove"})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 	formatter, casted := plugin.(*ProcessTSV)
 	expect.True(casted)
@@ -85,7 +85,7 @@ func TestProcessTSVDelimiterAndQuotedValues(t *testing.T) {
 	config.Override("ProcessTSVDelimiter", ",")
 	config.Override("ProcessTSVDirectives", []string{"1:remove"})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 	formatter, casted := plugin.(*ProcessTSV)
 	expect.True(casted)
@@ -104,7 +104,7 @@ func TestProcessTSVQuotedValuesComplex(t *testing.T) {
 	config.Override("ProcessTSVQuotedValues", true)
 	config.Override("ProcessTSVDirectives", []string{"0:remove", "1:remove", "2:remove"})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 	formatter, casted := plugin.(*ProcessTSV)
 	expect.True(casted)
@@ -138,7 +138,7 @@ func TestProcessTSVDelimiterAndQuotedValuesComplex(t *testing.T) {
 	config.Override("ProcessTSVDelimiter", ",")
 	config.Override("ProcessTSVDirectives", []string{"0:remove", "1:remove", "2:remove"})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 	formatter, casted := plugin.(*ProcessTSV)
 	expect.True(casted)
@@ -181,7 +181,7 @@ func TestProcessTSVDirectives(t *testing.T) {
 		"2:remove",
 	})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 	formatter, casted := plugin.(*ProcessTSV)
 	expect.True(casted)
@@ -222,7 +222,7 @@ func TestProcessTSVDelimiterAndDirectives(t *testing.T) {
 		"2:remove",
 	})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 	formatter, casted := plugin.(*ProcessTSV)
 	expect.True(casted)
@@ -263,7 +263,7 @@ func TestProcessTSVQuotedValuesAndDirectives(t *testing.T) {
 		"2:remove",
 	})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 	formatter, casted := plugin.(*ProcessTSV)
 	expect.True(casted)
@@ -307,7 +307,7 @@ func TestProcessTSVDelimiterAndQuotedValuesAndDirectives(t *testing.T) {
 		"7:quote",
 	})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 	formatter, casted := plugin.(*ProcessTSV)
 	expect.True(casted)

@@ -26,7 +26,7 @@ func TestFilterAnyAllNone(t *testing.T) {
 	conf := core.NewPluginConfig("", "filter.Any")
 
 	conf.Override("Any", []interface{}{"filter.None"})
-	plugin, err := core.NewPlugin(conf)
+	plugin, err := core.NewPluginWithConfig(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*Any)
@@ -55,7 +55,7 @@ func TestFilterAnyJsonRegExp(t *testing.T) {
 			},
 		},
 	})
-	plugin, err := core.NewPlugin(conf)
+	plugin, err := core.NewPluginWithConfig(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*Any)

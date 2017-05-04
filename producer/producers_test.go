@@ -40,7 +40,7 @@ func TestProducerInterface(t *testing.T) {
 
 	for _, name := range producers {
 		conf := core.NewPluginConfig(RandString(6), name)
-		_, err := core.NewPlugin(conf)
+		_, err := core.NewPluginWithConfig(conf)
 		if err != nil {
 			t.Errorf("Failed to create producer %s: %s", name, err.Error())
 		}

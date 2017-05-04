@@ -28,7 +28,7 @@ func TestFilterSample(t *testing.T) {
 	conf := core.NewPluginConfig("", "filter.Sample")
 	conf.Override("SampleRatePerGroup", 2)
 	conf.Override("SampleGroupSize", 5)
-	plugin, err := core.NewPlugin(conf)
+	plugin, err := core.NewPluginWithConfig(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*Sample)
@@ -48,7 +48,7 @@ func TestFilterSample(t *testing.T) {
 
 	conf = core.NewPluginConfig("", "filter.Sample")
 	conf.Override("SampleGroupSize", 2)
-	plugin, err = core.NewPlugin(conf)
+	plugin, err = core.NewPluginWithConfig(conf)
 	expect.NoError(err)
 
 	filter, casted = plugin.(*Sample)
@@ -73,7 +73,7 @@ func TestFilterSampleIgnore(t *testing.T) {
 
 	conf.Override("SampleGroupSize", 2)
 	conf.Override("SampleIgnore", []string{core.LogInternalStream})
-	plugin, err := core.NewPlugin(conf)
+	plugin, err := core.NewPluginWithConfig(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*Sample)

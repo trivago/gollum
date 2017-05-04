@@ -27,7 +27,7 @@ func TestFilterRate(t *testing.T) {
 	conf := core.NewPluginConfig("", "filter.Rate")
 
 	conf.Override("MessagesPerSec", 100)
-	plugin, err := core.NewPlugin(conf)
+	plugin, err := core.NewPluginWithConfig(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*Rate)
@@ -72,7 +72,7 @@ func TestFilterRateIgnore(t *testing.T) {
 
 	conf.Override("MessagesPerSec", 100)
 	conf.Override("Ignore", []string{core.LogInternalStream})
-	plugin, err := core.NewPlugin(conf)
+	plugin, err := core.NewPluginWithConfig(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*Rate)

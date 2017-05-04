@@ -29,7 +29,7 @@ func TestSplitToJSON(t *testing.T) {
 	config.Override("SplitBy", ",")
 	config.Override("Keys", []string{"first", "second", "third"})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*SplitToJSON)
@@ -59,7 +59,7 @@ func TestSplitToJSONTooFew(t *testing.T) {
 	config.Override("SplitBy", ",")
 	config.Override("Keys", []string{"first", "second"})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*SplitToJSON)
@@ -87,7 +87,7 @@ func TestSplitToJSONTooMany(t *testing.T) {
 	config.Override("SplitBy", ",")
 	config.Override("Keys", []string{"first", "second", "third", "fourth"})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*SplitToJSON)

@@ -14,7 +14,7 @@ func TestFormatterRegExp(t *testing.T) {
 	config.Override("Expression", "([a-z]*)")
 	config.Override("Template", "${1}")
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*RegExp)

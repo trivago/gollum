@@ -29,6 +29,9 @@ type Router interface {
 	// This function is called by Route() which should be preferred over this
 	// function when sending messages.
 	Enqueue(msg *Message) error
+
+	// Start starts the router by the coordinator.StartPlugins() method
+	Start() error
 }
 
 // Route tries to enqueue a message to the given stream. This function also

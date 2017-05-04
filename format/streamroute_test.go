@@ -25,7 +25,7 @@ func TestStreamRoute(t *testing.T) {
 
 	config := core.NewPluginConfig("", "format.StreamRoute")
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*StreamRoute)
@@ -54,7 +54,7 @@ func TestStreamRouteFormat(t *testing.T) {
 		},
 	})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*StreamRoute)
