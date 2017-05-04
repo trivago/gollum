@@ -17,7 +17,6 @@ package core
 import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tlog"
-	"github.com/trivago/tgo/tsync"
 	"sync"
 	"sync/atomic"
 	"time"
