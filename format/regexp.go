@@ -54,11 +54,11 @@ func (format *RegExp) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Modulate applies a given regexp replacement to the message.
-func (format *RegExp) Modulate(msg *core.Message) core.ModulateResult {
+// ApplyFormatter update message payload
+func (format *RegExp) ApplyFormatter(msg *core.Message) error {
 	matches := format.expression.FindSubmatchIndex(msg.Data())
 	transformed := format.expression.Expand([]byte{}, format.template, msg.Data(), matches)
 
 	msg.Store(transformed)
-	return core.ModulateResultContinue
+	return nil
 }

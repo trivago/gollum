@@ -472,21 +472,34 @@ func DoLog(depth, logLvl int, msg string) {
 			logger.Output(depth, LogPrefix[logLvl]+msg+postFix)
 		}
 	} else {
+		// logrus does not get the line number for us, so add it manually
+		_, file, line, ok := runtime.Caller(depth - 1)
+		if !ok {
+			file = "???"
+			line = 0
+		}
+
+		entry := logrus.WithFields(logrus.Fields{
+			"file": file,
+			"line": line,
+		})
+
+		msg = fmt.Sprintf("%s:%d %s", file, line, msg)
 		// Write logs using Logrus logger
 		logrusLvl := logrus.Level(logLvl) + 1
 		switch logrusLvl {
 		case logrus.FatalLevel:
-			rus.Fatal(msg)
+			entry.Fatal(msg)
 		case logrus.ErrorLevel:
-			rus.Error(msg)
+			entry.Error(msg)
 		case logrus.WarnLevel:
-			rus.Warn(msg)
+			entry.Warn(msg)
 		case logrus.InfoLevel:
-			rus.Info(msg)
+			entry.Info(msg)
 		case logrus.DebugLevel:
-			rus.Debug(msg)
+			entry.Debug(msg)
 		default:
-			rus.Warn("!invalid log level! " + msg)
+			entry.Warn("!invalid log level! " + msg)
 		}
 	}
 }

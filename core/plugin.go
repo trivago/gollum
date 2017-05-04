@@ -173,9 +173,9 @@ func (state *PluginRunState) WorkerDone() {
 	tgo.Metric.Dec(metricActiveWorkers)
 }
 
-// NewPlugin creates a new plugin from the type information stored in its
+// NewPluginWithConfig creates a new plugin from the type information stored in its
 // config. This function internally calls NewPluginWithType.
-func NewPlugin(config PluginConfig) (Plugin, error) {
+func NewPluginWithConfig(config PluginConfig) (Plugin, error) {
 	obj, err := TypeRegistry.New(config.Typename)
 	if err != nil {
 		return nil, err
@@ -200,3 +200,5 @@ func NewPlugin(config PluginConfig) (Plugin, error) {
 
 	return plugin, err
 }
+
+

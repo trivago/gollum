@@ -25,12 +25,12 @@ func TestStreamInterface(t *testing.T) {
 	router := core.TypeRegistry.GetRegistered("router.")
 
 	if len(router) == 0 {
-		t.Error("No streams defined")
+		t.Error("No routers defined")
 	}
 
 	for _, name := range router {
 		conf := core.NewPluginConfig("", name)
-		_, err := core.NewPlugin(conf)
+		_, err := core.NewPluginWithConfig(conf)
 		if err != nil {
 			t.Errorf("Failed to create stream %s: %s", name, err.Error())
 		}

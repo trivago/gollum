@@ -15,7 +15,6 @@
 package tlog
 
 import (
-	"fmt"
 	"github.com/trivago/tgo/tfmt"
 	"io"
 	"log"
@@ -67,7 +66,7 @@ type LogScope struct {
 
 // NewLogScope creates a new LogScope with the given prefix string.
 func NewLogScope(name string) LogScope {
-	scopeMarker := fmt.Sprintf("%s[%s] ", tfmt.DarkGray, name)
+	scopeMarker := tfmt.Colorizef(tfmt.DarkGray, tfmt.NoBackground, "[%s] ", name)
 
 	return LogScope{
 		name:    name,
@@ -80,7 +79,7 @@ func NewLogScope(name string) LogScope {
 
 // NewSubScope creates a log scope inside an existing log scope.
 func (scope *LogScope) NewSubScope(name string) LogScope {
-	scopeMarker := fmt.Sprintf("%s[%s.%s] ", tfmt.DarkGray, scope.name, name)
+	scopeMarker := tfmt.Colorizef(tfmt.DarkGray, tfmt.NoBackground, "[%s.%s] ", scope.name, name)
 
 	return LogScope{
 		name:    name,

@@ -21,6 +21,16 @@ import (
 )
 
 // SimpleRouter router plugin
+// Configuration example:
+//
+//  MyRouter:
+//    Type: "router.Broadcast"
+//    Stream: "foo"
+//    TimeoutMs: 200
+//    Filters:
+//	- filter.RegExp:
+// 	  Expression: "[a-zA-Z]+"
+//
 type SimpleRouter struct {
 	id         string
 	modulators ModulatorArray
@@ -36,7 +46,13 @@ func (router *SimpleRouter) Configure(conf PluginConfigReader) error {
 	router.Log = conf.GetLogScope()
 	router.Timeout = nil
 	router.streamID = conf.GetStreamID("Stream", GetStreamID(conf.GetID()))
-	router.modulators = conf.GetModulatorArray("Modulators", router.Log, ModulatorArray{})
+
+	// init router.modulators with filters only
+	filters := conf.GetFilterArray("Filters", router.Log, FilterArray{})
+	for _, filter := range filters {
+		filterModulator := NewFilterModulator(filter)
+		router.modulators = append(router.modulators, filterModulator)
+	}
 
 	if router.streamID == WildcardStreamID {
 		router.Log.Note.Print("A wildcard stream configuration only affects the wildcard stream, not all routers")

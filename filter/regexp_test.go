@@ -27,7 +27,7 @@ func TestFilterRegExp(t *testing.T) {
 
 	conf.Override("ExpressionNot", "^\\d")
 	conf.Override("Expression", "accept")
-	plugin, err := core.NewPlugin(conf)
+	plugin, err := core.NewPluginWithConfig(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*RegExp)
@@ -37,46 +37,46 @@ func TestFilterRegExp(t *testing.T) {
 	msg2 := core.NewMessage(nil, ([]byte)("0accept"), 0, core.InvalidStreamID)
 	msg3 := core.NewMessage(nil, ([]byte)("reject"), 0, core.InvalidStreamID)
 
-	result := filter.Modulate(msg1)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _ := filter.ApplyFilter(msg1)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result = filter.Modulate(msg2)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, _  = filter.ApplyFilter(msg2)
+	expect.Equal(core.FilterResultMessageReject, result)
 
-	result = filter.Modulate(msg3)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, _  = filter.ApplyFilter(msg3)
+	expect.Equal(core.FilterResultMessageReject, result)
 
 	acceptExp := filter.exp
 	filter.exp = nil
 
-	result = filter.Modulate(msg1)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _  = filter.ApplyFilter(msg1)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result = filter.Modulate(msg2)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, _  = filter.ApplyFilter(msg2)
+	expect.Equal(core.FilterResultMessageReject, result)
 
-	result = filter.Modulate(msg3)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _  = filter.ApplyFilter(msg3)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
 	filter.expNot = nil
 
-	result = filter.Modulate(msg1)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _  = filter.ApplyFilter(msg1)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result = filter.Modulate(msg2)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _  = filter.ApplyFilter(msg2)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result = filter.Modulate(msg3)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _  = filter.ApplyFilter(msg3)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
 	filter.exp = acceptExp
 
-	result = filter.Modulate(msg1)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _  = filter.ApplyFilter(msg1)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result = filter.Modulate(msg2)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _  = filter.ApplyFilter(msg2)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result = filter.Modulate(msg3)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, _  = filter.ApplyFilter(msg3)
+	expect.Equal(core.FilterResultMessageReject, result)
 }

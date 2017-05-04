@@ -232,13 +232,13 @@ func (cons *SimpleConsumer) EnqueueWithSequence(data []byte, seq uint64) {
 	numRouters := len(cons.routers)
 	lastStreamIdx := numRouters - 1
 
-	msg := NewMessage(cons, data, seq, InvalidStreamID)
+	msg := NewMessage(cons, data, seq, GetStreamID(cons.id))
 	switch cons.modulators.Modulate(msg) {
 	case ModulateResultDiscard:
 		CountDiscardedMessage()
 		return
 
-	case ModulateResultRoute, ModulateResultDrop:
+	case ModulateResultDrop:
 		if err := Route(msg, msg.GetRouter()); err != nil {
 			cons.Log.Error.Print(err)
 		}

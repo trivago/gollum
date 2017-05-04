@@ -27,7 +27,7 @@ func TestExtractJSON(t *testing.T) {
 	config := core.NewPluginConfig("", "format.ExtractJSON")
 	config.Override("Field", "test")
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 	formatter, casted := plugin.(*ExtractJSON)
 	expect.True(casted)
@@ -35,8 +35,8 @@ func TestExtractJSON(t *testing.T) {
 	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"),
 		0, core.InvalidStreamID)
 
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	expect.Equal("valid", string(msg.Data()))
 }
@@ -48,7 +48,7 @@ func TestExtractJSONPrecision(t *testing.T) {
 	config.Override("Field", "test")
 	config.Override("Precision", 0)
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 	formatter, casted := plugin.(*ExtractJSON)
 	expect.True(casted)
@@ -56,8 +56,8 @@ func TestExtractJSONPrecision(t *testing.T) {
 	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":999999999}"),
 		0, core.InvalidStreamID)
 
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	expect.Equal("999999999", string(msg.Data()))
 }

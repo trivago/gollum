@@ -27,7 +27,7 @@ func TestFilterJSON(t *testing.T) {
 
 	conf.Override("Reject", map[string]string{"data": "^\\d"})
 	conf.Override("Accept", map[string]string{"data": "accept"})
-	plugin, err := core.NewPlugin(conf)
+	plugin, err := core.NewPluginWithConfig(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*JSON)
@@ -40,46 +40,64 @@ func TestFilterJSON(t *testing.T) {
 	msg3 := core.NewMessage(nil, ([]byte)("{\"data\":\"reject\"}"),
 		0, core.InvalidStreamID)
 
-	result := filter.Modulate(msg1)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _ := filter.ApplyFilter(msg1)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result = filter.Modulate(msg2)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, _ = filter.ApplyFilter(msg2)
+	expect.Equal(core.FilterResultMessageReject, result)
 
-	result = filter.Modulate(msg3)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, _ = filter.ApplyFilter(msg3)
+	expect.Equal(core.FilterResultMessageReject, result)
 
 	acceptExp := filter.acceptValues["data"]
 	delete(filter.acceptValues, "data")
 
-	result = filter.Modulate(msg1)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _ = filter.ApplyFilter(msg1)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result = filter.Modulate(msg2)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, _ = filter.ApplyFilter(msg2)
+	expect.Equal(core.FilterResultMessageReject, result)
 
-	result = filter.Modulate(msg3)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _ = filter.ApplyFilter(msg3)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
 	delete(filter.rejectValues, "data")
 
-	result = filter.Modulate(msg1)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _ = filter.ApplyFilter(msg1)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result = filter.Modulate(msg2)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _ = filter.ApplyFilter(msg2)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result = filter.Modulate(msg3)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _ = filter.ApplyFilter(msg3)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
 	filter.acceptValues["data"] = acceptExp
 
-	result = filter.Modulate(msg1)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _ = filter.ApplyFilter(msg1)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result = filter.Modulate(msg2)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _ = filter.ApplyFilter(msg2)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result = filter.Modulate(msg3)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, _ = filter.ApplyFilter(msg3)
+	expect.Equal(core.FilterResultMessageReject, result)
+}
+
+func TestFilterJSONFailure(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+	conf := core.NewPluginConfig("", "filter.JSON")
+
+	plugin, err := core.NewPluginWithConfig(conf)
+	expect.NoError(err)
+
+	filter, casted := plugin.(*JSON)
+	expect.True(casted)
+
+	msg1 := core.NewMessage(nil, ([]byte)("NO JSON"),
+		0, core.InvalidStreamID)
+
+	result, err := filter.ApplyFilter(msg1)
+	expect.Equal(core.FilterResultMessageReject, result)
+	expect.NotNil(err)
 }

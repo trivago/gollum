@@ -152,7 +152,7 @@ func (reader PluginConfigReaderWithError) GetPlugin(key string, defaultType stri
 	if err != nil {
 		return nil, err
 	}
-	return NewPlugin(config)
+	return NewPluginWithConfig(config)
 }
 
 // GetArray tries to read a untyped array from a PluginConfig.
@@ -202,7 +202,7 @@ func (reader PluginConfigReaderWithError) GetPluginArray(key string, defaultValu
 
 			// Only string given, initialize with empty config
 			pluginConfig, _ := NewNestedPluginConfig(typeNameStr, tcontainer.NewMarshalMap())
-			plugin, err := NewPlugin(pluginConfig)
+			plugin, err := NewPluginWithConfig(pluginConfig)
 			if err != nil {
 				return nil, err
 			}
@@ -223,7 +223,7 @@ func (reader PluginConfigReaderWithError) GetPluginArray(key string, defaultValu
 			}
 
 			pluginConfig, err := NewNestedPluginConfig(typeNameStr, configMap)
-			plugin, err := NewPlugin(pluginConfig)
+			plugin, err := NewPluginWithConfig(pluginConfig)
 			if err != nil {
 				return pluginArray, err
 			}
@@ -236,29 +236,89 @@ func (reader PluginConfigReaderWithError) GetPluginArray(key string, defaultValu
 
 // GetModulatorArray returns an array of modulator plugins.
 func (reader PluginConfigReaderWithError) GetModulatorArray(key string, logScope tlog.LogScope, defaultValue ModulatorArray) (ModulatorArray, error) {
+	modulators := []Modulator{}
+
 	modPlugins, err := reader.GetPluginArray(key, []Plugin{})
 	if err != nil {
-		return defaultValue, err
+		return modulators, err
 	}
 	if len(modPlugins) == 0 {
-		return defaultValue, nil
+		return modulators, nil
 	}
 
 	errors := tgo.NewErrorStack()
-	modulators := []Modulator{}
+
 	for _, plugin := range modPlugins {
-		modulator, isModulator := plugin.(Modulator)
-		if !isModulator {
-			errors.Pushf("Plugin is not a valid modulator")
-		} else {
+		if filter, isFilter := plugin.(Filter); isFilter {
+			filterModulator := NewFilterModulator(filter)
+			modulators = append(modulators, filterModulator)
+		} else if formatter, isFormatter := plugin.(Formatter); isFormatter {
+			formatterModulator := NewFormatterModulator(formatter)
+			modulators = append(modulators, formatterModulator)
+		} else if modulator, isModulator := plugin.(Modulator); isModulator {
 			if modulator, isScopedModulator := plugin.(ScopedModulator); isScopedModulator {
 				modulator.SetLogScope(logScope)
 			}
 			modulators = append(modulators, modulator)
+		} else {
+			errors.Pushf("Plugin '%T' is not a valid modulator", plugin)
+			panic(errors.Top())
 		}
 	}
 
 	return modulators, errors.OrNil()
+}
+
+// GetFilterArray returns an array of filter plugins.
+func (reader PluginConfigReaderWithError) GetFilterArray(key string, logScope tlog.LogScope, defaultValue FilterArray) (FilterArray, error) {
+	filters := []Filter{}
+
+	modPlugins, err := reader.GetPluginArray(key, []Plugin{})
+	if err != nil {
+		return filters, err
+	}
+	if len(modPlugins) == 0 {
+		return filters, nil
+	}
+
+	errors := tgo.NewErrorStack()
+
+	for _, plugin := range modPlugins {
+		if filter, isFilter := plugin.(Filter); isFilter {
+			filters = append(filters, filter)
+		} else {
+			errors.Pushf("Plugin '%T' is not a valid filter", plugin)
+			panic(errors.Top())
+		}
+	}
+
+	return filters, errors.OrNil()
+}
+
+// GetFormatterArray returns an array of formatter plugins.
+func (reader PluginConfigReaderWithError) GetFormatterArray(key string, logScope tlog.LogScope, defaultValue FormatterArray) (FormatterArray, error) {
+	formatters := []Formatter{}
+
+	modPlugins, err := reader.GetPluginArray(key, []Plugin{})
+	if err != nil {
+		return formatters, err
+	}
+	if len(modPlugins) == 0 {
+		return formatters, nil
+	}
+
+	errors := tgo.NewErrorStack()
+
+	for _, plugin := range modPlugins {
+		if formatter, isFormatter := plugin.(Formatter); isFormatter {
+			formatters = append(formatters, formatter)
+		} else {
+			errors.Pushf("Plugin '%T' is not a valid formatter", plugin)
+			panic(errors.Top())
+		}
+	}
+
+	return formatters, errors.OrNil()
 }
 
 // GetStringArray tries to read a string array from a

@@ -65,16 +65,15 @@ func (filter *RegExp) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Modulate drops messages if the don't match the given expressions
-func (filter *RegExp) Modulate(msg *core.Message) core.ModulateResult {
+// ApplyFilter check if all Filter wants to reject the message
+func (filter *RegExp) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	if filter.expNot != nil && filter.expNot.MatchString(string(msg.Data())) {
-		return filter.Drop(msg)
+		return core.FilterResultMessageReject, nil
 	}
 
 	if filter.exp != nil && !filter.exp.MatchString(string(msg.Data())) {
-		return filter.Drop(msg)
+		return core.FilterResultMessageReject, nil
 	}
 
-	return core.ModulateResultContinue // ### return, pass everything ###
-
+	return core.FilterResultMessageAccept, nil
 }

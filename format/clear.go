@@ -36,8 +36,8 @@ func (format *Clear) Configure(conf core.PluginConfigReader) error {
 	return nil
 }
 
-// Modulate replaces the current payload by an empty buffer
-func (format *Clear) Modulate(msg *core.Message) core.ModulateResult {
+// ApplyFormatter update message payload
+func (format *Clear) ApplyFormatter(msg *core.Message) error {
 	msg.Store([]byte{})
-	return core.ModulateResultContinue
+	return nil
 }

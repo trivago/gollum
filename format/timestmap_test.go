@@ -25,7 +25,7 @@ func TestTimestamp(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Timestamp")
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*Timestamp)
@@ -34,8 +34,8 @@ func TestTimestamp(t *testing.T) {
 	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
 	prefix := msg.Created().Format(formatter.timestampFormat)
 
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	expect.Equal(prefix+"test", msg.String())
 }

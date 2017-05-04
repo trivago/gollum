@@ -29,7 +29,7 @@ func TestSplitToJSON(t *testing.T) {
 	config.Override("SplitBy", ",")
 	config.Override("Keys", []string{"first", "second", "third"})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*SplitToJSON)
@@ -38,8 +38,8 @@ func TestSplitToJSON(t *testing.T) {
 	msg := core.NewMessage(nil, []byte("test1,test2,{\"object\": true}"),
 		10, core.InvalidStreamID)
 
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	jsonData := tcontainer.NewMarshalMap()
 	err = json.Unmarshal(msg.Data(), &jsonData)
@@ -59,7 +59,7 @@ func TestSplitToJSONTooFew(t *testing.T) {
 	config.Override("SplitBy", ",")
 	config.Override("Keys", []string{"first", "second"})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*SplitToJSON)
@@ -68,8 +68,8 @@ func TestSplitToJSONTooFew(t *testing.T) {
 	msg := core.NewMessage(nil, []byte("test1,test2,test3"),
 		10, core.InvalidStreamID)
 
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	jsonData := tcontainer.NewMarshalMap()
 	err = json.Unmarshal(msg.Data(), &jsonData)
@@ -87,7 +87,7 @@ func TestSplitToJSONTooMany(t *testing.T) {
 	config.Override("SplitBy", ",")
 	config.Override("Keys", []string{"first", "second", "third", "fourth"})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*SplitToJSON)
@@ -96,8 +96,8 @@ func TestSplitToJSONTooMany(t *testing.T) {
 	msg := core.NewMessage(nil, []byte("test1,test2,test3"),
 		10, core.InvalidStreamID)
 
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	jsonData := tcontainer.NewMarshalMap()
 	err = json.Unmarshal(msg.Data(), &jsonData)

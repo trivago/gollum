@@ -429,18 +429,17 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 	}
 }
 
-// Modulate modifies the JSON payload of this message. If the payload is not
-// valid JSON (before or after modification), the message is discarded.
-func (format *ProcessJSON) Modulate(msg *core.Message) core.ModulateResult {
+// ApplyFormatter update message payload
+func (format *ProcessJSON) ApplyFormatter(msg *core.Message) error {
 	if len(format.directives) == 0 {
-		return core.ModulateResultContinue // ### return, no directives ###
+		return nil // ### return, no directives ###
 	}
 
 	values := make(tcontainer.MarshalMap)
 	err := json.Unmarshal(msg.Data(), &values)
 	if err != nil {
 		format.Log.Warning.Print("ProcessJSON failed to unmarshal a message: ", err)
-		return core.ModulateResultDiscard // ### return, malformed data ###
+		return err
 	}
 
 	for _, directive := range format.directives {
@@ -459,9 +458,9 @@ func (format *ProcessJSON) Modulate(msg *core.Message) core.ModulateResult {
 	jsonData, err := json.Marshal(values)
 	if err != nil {
 		format.Log.Warning.Print("ProcessJSON failed to marshal a message: ", err)
-		return core.ModulateResultDiscard
+		return err
 	}
 
 	msg.Store(jsonData)
-	return core.ModulateResultContinue
+	return nil
 }

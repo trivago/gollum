@@ -61,13 +61,12 @@ func (format *CollectdToInflux10) escapeString(value string) string {
 	return format.stringString.Replace(value)
 }
 
-// Modulate transforms collectd data to influx 0.9.x data.
-// If the payload is not collectd compatible the message is discarded
-func (format *CollectdToInflux10) Modulate(msg *core.Message) core.ModulateResult {
+// ApplyFormatter update message payload
+func (format *CollectdToInflux10) ApplyFormatter(msg *core.Message) error {
 	collectdData, err := parseCollectdPacket(msg.Data())
 	if err != nil {
 		format.Log.Error.Print("Collectd parser error: ", err)
-		return core.ModulateResultDiscard // ### return, error ###
+		return err
 	}
 
 	// Manually convert to line protocol
@@ -93,5 +92,5 @@ func (format *CollectdToInflux10) Modulate(msg *core.Message) core.ModulateResul
 	}
 
 	msg.Store(influxData.Bytes())
-	return core.ModulateResultContinue
+	return nil
 }

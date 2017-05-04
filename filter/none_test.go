@@ -25,7 +25,7 @@ func TestFilterNone(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	conf := core.NewPluginConfig("", "filter.None")
 
-	plugin, err := core.NewPlugin(conf)
+	plugin, err := core.NewPluginWithConfig(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*None)
@@ -33,6 +33,6 @@ func TestFilterNone(t *testing.T) {
 
 	msg := core.NewMessage(nil, []byte{}, 0, core.InvalidStreamID)
 
-	result := filter.Modulate(msg)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, _ := filter.ApplyFilter(msg)
+	expect.Equal(core.FilterResultMessageReject, result)
 }

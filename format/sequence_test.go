@@ -25,15 +25,15 @@ func TestSequence(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Sequence")
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*Sequence)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("test"), 10, core.InvalidStreamID)
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	expect.Equal("10:test", string(msg.Data()))
 }

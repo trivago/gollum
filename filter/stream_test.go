@@ -25,7 +25,7 @@ func TestFilterStream(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	conf := core.NewPluginConfig("", "filter.Stream")
 
-	plugin, err := core.NewPlugin(conf)
+	plugin, err := core.NewPluginWithConfig(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*Stream)
@@ -36,25 +36,25 @@ func TestFilterStream(t *testing.T) {
 
 	filter.blacklist = []core.MessageStreamID{1}
 
-	result := filter.Modulate(msg1)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, _ := filter.ApplyFilter(msg1)
+	expect.Equal(core.FilterResultMessageReject, result)
 
-	result = filter.Modulate(msg2)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _ = filter.ApplyFilter(msg2)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
 	filter.whitelist = []core.MessageStreamID{1}
 
-	result = filter.Modulate(msg1)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, _ = filter.ApplyFilter(msg1)
+	expect.Equal(core.FilterResultMessageReject, result)
 
-	result = filter.Modulate(msg2)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, _ = filter.ApplyFilter(msg2)
+	expect.Equal(core.FilterResultMessageReject, result)
 
 	filter.blacklist = []core.MessageStreamID{}
 
-	result = filter.Modulate(msg1)
-	expect.Equal(core.ModulateResultContinue, result)
+	result, _ = filter.ApplyFilter(msg1)
+	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result = filter.Modulate(msg2)
-	expect.Equal(core.ModulateResultDiscard, result)
+	result, _ = filter.ApplyFilter(msg2)
+	expect.Equal(core.FilterResultMessageReject, result)
 }

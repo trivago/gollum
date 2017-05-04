@@ -47,11 +47,11 @@ import (
 // By default this list is empty.
 type Sample struct {
 	core.SimpleFilter
-	rate         int64
-	group        int64
-	count        *int64
-	dropStreamID core.MessageStreamID
-	ignore       map[core.MessageStreamID]bool
+	rate         	int64
+	group        	int64
+	count        	*int64
+	dropStreamID 	core.MessageStreamID
+	ignore       	map[core.MessageStreamID]bool
 }
 
 func init() {
@@ -81,11 +81,11 @@ func (filter *Sample) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Accepts allows message until a limit is hit
-func (filter *Sample) Modulate(msg *core.Message) core.ModulateResult {
+// ApplyFilter check if all Filter wants to reject the message
+func (filter *Sample) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	// Ignore based on StreamID
 	if ignore, known := filter.ignore[msg.StreamID()]; known && ignore {
-		return core.ModulateResultContinue // ### return, do not limit ###
+		return core.FilterResultMessageAccept, nil // ### return, do not limit ###
 	}
 
 	// Check if count needs to be reset
@@ -104,10 +104,9 @@ func (filter *Sample) Modulate(msg *core.Message) core.ModulateResult {
 	if count > filter.rate {
 		if filter.dropStreamID != core.InvalidStreamID {
 			msg.SetStreamID(filter.dropStreamID)
-			return core.ModulateResultRoute
 		}
-		return core.ModulateResultDiscard // ### return, filter ###
+		return core.FilterResultMessageReject, nil // ### return, filter ###
 	}
 
-	return core.ModulateResultContinue
+	return core.FilterResultMessageAccept, nil
 }

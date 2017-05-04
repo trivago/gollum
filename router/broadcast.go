@@ -33,6 +33,11 @@ func (router *Broadcast) Configure(conf core.PluginConfigReader) error {
 	return router.SimpleRouter.Configure(conf)
 }
 
+// Start the router
+func (router *Broadcast) Start() error {
+	return nil
+}
+
 // Enqueue enques a message to the router
 func (router *Broadcast) Enqueue(msg *core.Message) error {
 	producers := router.GetProducers()

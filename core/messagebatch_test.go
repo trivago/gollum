@@ -172,12 +172,13 @@ func TestMessageSerialize(t *testing.T) {
 	now := time.Now()
 
 	testMessage := Message{
-		streamID:     1,
 		prevStreamID: 2,
 		timestamp:    now,
 		sequence:     4,
-		data:         []byte("This is a\nteststring"),
 	}
+
+	testMessage.data.streamID = 1
+	testMessage.data.payload = []byte("This is a\nteststring")
 
 	data, err := testMessage.Serialize()
 	expect.NoError(err)
@@ -197,9 +198,9 @@ func TestMessageSerialize(t *testing.T) {
 	readMessage, err := DeserializeMessage(data)
 	expect.Nil(err)
 
-	expect.Equal(readMessage.streamID, testMessage.streamID)
+	expect.Equal(readMessage.data.streamID, testMessage.data.streamID)
 	expect.Equal(readMessage.prevStreamID, testMessage.prevStreamID)
 	expect.Equal(readMessage.timestamp, testMessage.timestamp)
 	expect.Equal(readMessage.sequence, testMessage.sequence)
-	expect.Equal(readMessage.data, testMessage.data)
+	expect.Equal(readMessage.data.payload, testMessage.data.payload)
 }

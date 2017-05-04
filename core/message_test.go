@@ -22,14 +22,17 @@ import (
 )
 
 func getMockMessage(data string) *Message {
-	return &Message{
-		data:         []byte(data),
-		streamID:     1,
+	msg := &Message{
 		prevStreamID: 2,
 		source:       nil,
 		timestamp:    time.Now(),
 		sequence:     4,
 	}
+
+	msg.data.payload = []byte(data)
+	msg.data.streamID = 1
+
+	return msg
 }
 
 func TestMessageEnqueue(t *testing.T) {
@@ -56,4 +59,67 @@ func TestMessageEnqueue(t *testing.T) {
 
 	retMsg, _ = buffer.Pop()
 	expect.Equal(msgString, retMsg.String())
+}
+
+func TestMessageInstantiate(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+	msgString := "Test for instantiate"
+
+	msg := NewMessage(nil, []byte(msgString), 1, 1)
+
+	expect.Equal(msgString, string(msg.data.payload))
+	expect.Equal(MessageStreamID(1), msg.data.streamID)
+	expect.Equal(msgString, string(msg.orig.payload))
+	expect.Equal(MessageStreamID(1), msg.orig.streamID)
+}
+
+func TestMessageOriginalDataIntegrity(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+	msgString := "Test for original data integrity"
+	msgUpdateString := "Test for original data integrity - UPDATE"
+
+	msg := NewMessage(nil, []byte(msgString), 1, 1)
+
+	msg.SetStreamID(MessageStreamID(10))
+	msg.Store([]byte(msgUpdateString))
+
+	expect.Equal(msgUpdateString, string(msg.data.payload))
+	expect.Equal(MessageStreamID(10), msg.data.streamID)
+	expect.Equal(msgString, string(msg.orig.payload))
+	expect.Equal(MessageStreamID(1), msg.orig.streamID)
+	expect.Equal(MessageStreamID(1), msg.prevStreamID)
+}
+
+func TestMessageClone(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+	msgString := "Test for clone"
+	msgUpdateString := "Test for clone - UPDATE"
+
+	msg := NewMessage(nil, []byte(msgString), 1, 1)
+	msg.SetStreamID(MessageStreamID(10))
+	msg.Store([]byte(msgUpdateString))
+
+	msgClone := msg.Clone()
+
+	expect.Equal(msgUpdateString, string(msgClone.data.payload))
+	expect.Equal(MessageStreamID(10), msgClone.data.streamID)
+	expect.Equal(msgString, string(msgClone.orig.payload))
+	expect.Equal(MessageStreamID(1), msgClone.orig.streamID)
+}
+
+func TestMessageCloneOriginal(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+	msgString := "Test for clone original"
+	msgUpdateString := "Test for clone original - UPDATE"
+
+	msg := NewMessage(nil, []byte(msgString), 1, 1)
+	msg.SetStreamID(MessageStreamID(10))
+	msg.Store([]byte(msgUpdateString))
+
+	msgClone := msg.CloneOriginal()
+
+	expect.Equal(msgString, string(msgClone.data.payload))
+	expect.Equal(MessageStreamID(1), msgClone.data.streamID)
+	expect.Equal(msgString, string(msgClone.orig.payload))
+	expect.Equal(MessageStreamID(1), msgClone.orig.streamID)
 }

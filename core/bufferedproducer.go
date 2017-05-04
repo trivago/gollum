@@ -125,8 +125,14 @@ func (prod *BufferedProducer) Enqueue(msg *Message, timeout *time.Duration) {
 	// Run modulators and drop message if necessary
 	result := prod.Modulate(msg)
 	switch result {
-	case ModulateResultHandled:
+	case ModulateResultDrop:
+		Route(msg, msg.GetRouter())
 		return
+
+	case ModulateResultDiscard:
+		CountDiscardedMessage()
+		return
+
 	case ModulateResultContinue:
 		// all fine - continue
 	default:

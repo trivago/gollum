@@ -28,7 +28,7 @@ func TestFormatters(t *testing.T) {
 
 	for _, name := range formatters {
 		conf := core.NewPluginConfig("", name)
-		_, err := core.NewPlugin(conf)
+		_, err := core.NewPluginWithConfig(conf)
 		if err != nil {
 			t.Errorf("Failed to create formatter %s: %s", name, err.Error())
 		}

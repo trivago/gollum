@@ -99,19 +99,18 @@ func (filter *JSON) getValue(key string, values tcontainer.MarshalMap) (string, 
 	return "", false
 }
 
-// Modulate checks JSON field values and rejects messages after testing a
-// blacklist and a whitelist.
-func (filter *JSON) Modulate(msg *core.Message) core.ModulateResult {
+// ApplyFilter check if all Filter wants to reject the message
+func (filter *JSON) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	values := tcontainer.NewMarshalMap()
 	if err := json.Unmarshal(msg.Data(), &values); err != nil {
-		return core.ModulateResultDiscard
+		return core.FilterResultMessageReject, err
 	}
 
 	// Check rejects
 	for key, exp := range filter.rejectValues {
 		if value, exists := filter.getValue(key, values); exists {
 			if exp.MatchString(value) {
-				return filter.Drop(msg)
+				return core.FilterResultMessageReject, nil
 			}
 		}
 	}
@@ -120,10 +119,10 @@ func (filter *JSON) Modulate(msg *core.Message) core.ModulateResult {
 	for key, exp := range filter.acceptValues {
 		if value, exists := filter.getValue(key, values); exists {
 			if !exp.MatchString(value) {
-				return filter.Drop(msg)
+				return core.FilterResultMessageReject, nil
 			}
 		}
 	}
 
-	return core.ModulateResultContinue
+	return core.FilterResultMessageAccept, nil
 }

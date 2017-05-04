@@ -51,9 +51,8 @@ func (format *Sequence) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Modulate prepends the sequence number of the message (followed by ":") to the
-// message.
-func (format *Sequence) Modulate(msg *core.Message) core.ModulateResult {
+// ApplyFormatter update message payload
+func (format *Sequence) ApplyFormatter(msg *core.Message) error {
 	sequenceStr := strconv.FormatUint(msg.Sequence(), 10)
 
 	dataSize := len(sequenceStr) + len(format.separator) + msg.Len()
@@ -64,5 +63,5 @@ func (format *Sequence) Modulate(msg *core.Message) core.ModulateResult {
 	copy(payload[offset:], msg.Data())
 
 	msg.Store(payload)
-	return core.ModulateResultContinue
+	return nil
 }

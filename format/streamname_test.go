@@ -26,7 +26,7 @@ func TestStreamName(t *testing.T) {
 
 	config := core.NewPluginConfig("", "format.StreamName")
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*StreamName)
@@ -34,8 +34,8 @@ func TestStreamName(t *testing.T) {
 
 	msg := core.NewMessage(nil, []byte("test"), 0, core.DroppedStreamID)
 
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	expect.Equal(core.DroppedStream+":test", msg.String())
 }
@@ -46,7 +46,7 @@ func TestStreamNameHistory(t *testing.T) {
 	config := core.NewPluginConfig("", "format.StreamName")
 	config.Override("UseHistory", true)
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*StreamName)
@@ -55,8 +55,8 @@ func TestStreamNameHistory(t *testing.T) {
 	msg := core.NewMessage(nil, []byte("test"), 0, core.LogInternalStreamID)
 	msg.SetStreamID(core.DroppedStreamID)
 
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	expect.Equal(core.LogInternalStream+":test", msg.String())
 }

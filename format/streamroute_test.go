@@ -25,7 +25,7 @@ func TestStreamRoute(t *testing.T) {
 
 	config := core.NewPluginConfig("", "format.StreamRoute")
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*StreamRoute)
@@ -34,35 +34,37 @@ func TestStreamRoute(t *testing.T) {
 	msg := core.NewMessage(nil, []byte(core.LogInternalStream+":test"),
 		0, core.DroppedStreamID)
 
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultRoute, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	expect.Equal("test", msg.String())
 	expect.Equal(core.LogInternalStreamID, msg.StreamID())
 }
 
-// TODO
-/*
 func TestStreamRouteFormat(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.StreamRoute")
-	config.Override("Formatter", map[string]string{"format.Envelope"})
-	config.Override("EnvelopePrefix", "_")
-	config.Override("EnvelopePostfix", "_")
-	config.Override("StreamRouteFormatStream", true)
+	config.Override("StreamModulator", []interface{}{
+		map[interface{}]interface{}{
+			"format.Envelope": map[string]string{
+				"Prefix": "_",
+				"Postfix": "_",
+			},
+		},
+	})
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*StreamRoute)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("GOLLUM:test"), 0)
-	msg.StreamID = core.DroppedStreamID
+	msg := core.NewMessage(nil, []byte("GOLLUM:test"), 0, core.DroppedStreamID)
 
-	formatter.Format(msg)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
-	expect.Equal("test", string(msg.Data))
-	expect.Equal(core.LogInternalStream, core.StreamRegistry.GetStreamName(msg.StreamID))
-}*/
+	expect.Equal("test", string(msg.Data()))
+	expect.Equal(core.LogInternalStream, core.StreamRegistry.GetStreamName(msg.StreamID()))
+}

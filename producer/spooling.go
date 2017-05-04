@@ -96,7 +96,7 @@ type Spooling struct {
 	bufferSizeByte  int
 	revertOnDrop    bool
 	spoolCheck      *time.Timer
-	serialze        core.Modulator
+	serialze        core.Formatter
 }
 
 const (
@@ -117,10 +117,10 @@ func (prod *Spooling) Configure(conf core.PluginConfigReader) error {
 	prod.SetStopCallback(prod.close)
 	prod.SetRollCallback(prod.onRoll)
 
-	serializePlugin, err := core.NewPlugin(core.NewPluginConfig("", "format.Serialize"))
+	serializePlugin, err := core.NewPluginWithConfig(core.NewPluginConfig("", "format.Serialize"))
 	conf.Errors.Push(err)
-	if serializeModulator, isModulator := serializePlugin.(core.Modulator); isModulator {
-		prod.serialze = serializeModulator
+	if serializeFormatter, isFormatter := serializePlugin.(core.Formatter); isFormatter {
+		prod.serialze = serializeFormatter
 	} else {
 		conf.Errors.Pushf("Failed to instantiate format.Serialize")
 	}
@@ -157,7 +157,7 @@ func (prod *Spooling) Configure(conf core.PluginConfigReader) error {
 
 func (prod *Spooling) Modulate(msg *core.Message) core.ModulateResult {
 	result := prod.BufferedProducer.Modulate(msg)
-	prod.serialze.Modulate(msg) // Ignore result
+	prod.serialze.ApplyFormatter(msg) // Ignore result
 	return result
 }
 

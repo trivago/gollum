@@ -35,6 +35,11 @@ func (router *Random) Configure(conf core.PluginConfigReader) error {
 	return router.SimpleRouter.Configure(conf)
 }
 
+// Start the router
+func (router *Random) Start() error {
+	return nil
+}
+
 // Enqueue enques a message to the router
 func (router *Random) Enqueue(msg *core.Message) error {
 	producers := router.GetProducers()

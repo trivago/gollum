@@ -25,15 +25,15 @@ func TestRunlength(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Runlength")
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*Runlength)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	expect.Equal("4:test", string(msg.Data()))
 }

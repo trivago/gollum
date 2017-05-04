@@ -28,15 +28,15 @@ func TestEnvelope(t *testing.T) {
 	config.Override("Prefix", "start ")
 	config.Override("Postfix", " end")
 
-	plugin, err := core.NewPlugin(config)
+	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
 	formatter, casted := plugin.(*Envelope)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
-	result := formatter.Modulate(msg)
-	expect.Equal(core.ModulateResultContinue, result)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
 
 	expect.Equal("start test end", string(msg.Data()))
 }

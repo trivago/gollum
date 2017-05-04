@@ -27,7 +27,7 @@ func TestFilterRate(t *testing.T) {
 	conf := core.NewPluginConfig("", "filter.Rate")
 
 	conf.Override("MessagesPerSec", 100)
-	plugin, err := core.NewPlugin(conf)
+	plugin, err := core.NewPluginWithConfig(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*Rate)
@@ -37,15 +37,15 @@ func TestFilterRate(t *testing.T) {
 	msg2 := core.NewMessage(nil, []byte{}, 0, 2)
 
 	for i := 0; i < 110; i++ {
-		result1 := filter.Modulate(msg1)
-		result2 := filter.Modulate(msg2)
+		result1, _ := filter.ApplyFilter(msg1)
+		result2, _ := filter.ApplyFilter(msg2)
 		if i < 100 {
-			expect.Equal(core.ModulateResultContinue, result1)
-			expect.Equal(core.ModulateResultContinue, result2)
+			expect.Equal(core.FilterResultMessageAccept, result1)
+			expect.Equal(core.FilterResultMessageAccept, result2)
 			time.Sleep(time.Millisecond)
 		} else {
-			expect.Equal(core.ModulateResultDiscard, result1)
-			expect.Equal(core.ModulateResultDiscard, result2)
+			expect.Equal(core.FilterResultMessageReject, result1)
+			expect.Equal(core.FilterResultMessageReject, result2)
 		}
 	}
 
@@ -53,15 +53,15 @@ func TestFilterRate(t *testing.T) {
 	time.Sleep(time.Second)
 
 	for i := 0; i < 110; i++ {
-		result1 := filter.Modulate(msg1)
-		result2 := filter.Modulate(msg2)
+		result1, _ := filter.ApplyFilter(msg1)
+		result2, _ := filter.ApplyFilter(msg2)
 		if i < 100 {
-			expect.Equal(core.ModulateResultContinue, result1)
-			expect.Equal(core.ModulateResultContinue, result2)
+			expect.Equal(core.FilterResultMessageAccept, result1)
+			expect.Equal(core.FilterResultMessageAccept, result2)
 			time.Sleep(time.Millisecond)
 		} else {
-			expect.Equal(core.ModulateResultDiscard, result1)
-			expect.Equal(core.ModulateResultDiscard, result2)
+			expect.Equal(core.FilterResultMessageReject, result1)
+			expect.Equal(core.FilterResultMessageReject, result2)
 		}
 	}
 }
@@ -72,7 +72,7 @@ func TestFilterRateIgnore(t *testing.T) {
 
 	conf.Override("MessagesPerSec", 100)
 	conf.Override("Ignore", []string{core.LogInternalStream})
-	plugin, err := core.NewPlugin(conf)
+	plugin, err := core.NewPluginWithConfig(conf)
 	expect.NoError(err)
 
 	filter, casted := plugin.(*Rate)
@@ -82,15 +82,15 @@ func TestFilterRateIgnore(t *testing.T) {
 	msg2 := core.NewMessage(nil, []byte{}, 0, 2)
 
 	for i := 0; i < 200; i++ {
-		result1 := filter.Modulate(msg1)
-		result2 := filter.Modulate(msg2)
+		result1, _ := filter.ApplyFilter(msg1)
+		result2, _ := filter.ApplyFilter(msg2)
 
-		expect.Equal(core.ModulateResultContinue, result1)
+		expect.Equal(core.FilterResultMessageAccept, result1)
 		if i < 100 {
-			expect.Equal(core.ModulateResultContinue, result2)
+			expect.Equal(core.FilterResultMessageAccept, result2)
 			time.Sleep(time.Millisecond)
 		} else {
-			expect.Equal(core.ModulateResultDiscard, result2)
+			expect.Equal(core.FilterResultMessageReject, result2)
 		}
 	}
 }

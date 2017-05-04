@@ -66,7 +66,7 @@ func TestNewPlugin(t *testing.T) {
 
 	// Check no type given
 	config, _ := NewNestedPluginConfig("", tcontainer.NewMarshalMap())
-	_, err := NewPlugin(config)
+	_, err := NewPluginWithConfig(config)
 	expect.NotNil(err) // No type used
 
 	// Check inavlid type given
@@ -75,11 +75,11 @@ func TestNewPlugin(t *testing.T) {
 	TypeRegistry.Register(notPlugin{})
 
 	config, _ = NewNestedPluginConfig("core.notPlugin", tcontainer.NewMarshalMap())
-	_, err = NewPlugin(config)
+	_, err = NewPluginWithConfig(config)
 	expect.NotNil(err)
 
 	// Check valid type and config
 	TypeRegistry.Register(mockPlugin{})
-	_, err = NewPlugin(NewPluginConfig("mockPluginConfig", "core.mockPlugin"))
+	_, err = NewPluginWithConfig(NewPluginConfig("mockPluginConfig", "core.mockPlugin"))
 	expect.NoError(err)
 }
