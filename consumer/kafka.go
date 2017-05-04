@@ -40,10 +40,10 @@ const (
 )
 
 // Kafka consumer plugin
+//
 // Thes consumer reads data from a given kafka topic. It is based on the sarama
 // library so most settings are mapped to the settings from this library.
-// When attached to a fuse, this consumer will stop processing messages in case
-// that fuse is burned.
+//
 // Configuration example
 //
 //  - "consumer.Kafka":
@@ -404,7 +404,6 @@ func (cons *Kafka) readFromGroup() {
 	spin := tsync.NewSpinner(tsync.SpinPriorityLow)
 
 	for !cons.groupClient.Closed() {
-		cons.WaitOnFuse()
 		select {
 		case event := <-consumer.Messages():
 			if cons.prependKey {
@@ -458,7 +457,6 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 	spin := tsync.NewSpinner(tsync.SpinPriorityLow)
 
 	for !cons.client.Closed() {
-		cons.WaitOnFuse()
 
 		select {
 		case event := <-partCons.Messages():
@@ -512,7 +510,6 @@ func (cons *Kafka) readPartitions(partitions []int32) {
 	spin := tsync.NewSpinner(tsync.SpinPriorityLow)
 	for !cons.client.Closed() {
 		for idx, consumer := range consumers {
-			cons.WaitOnFuse()
 			partition := partitions[idx]
 
 			select {

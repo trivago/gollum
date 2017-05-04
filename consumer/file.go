@@ -45,13 +45,13 @@ const (
 )
 
 // File consumer plugin
+//
 // The file consumer allows to read from files while looking for a delimiter
 // that marks the end of a message. If the file is part of e.g. a log rotation
 // the file consumer can be set to a symbolic link of the latest file and
 // (optionally) be told to reopen the file by sending a SIGHUP. A symlink to
 // a file will automatically be reopened if the underlying file is changed.
-// When attached to a fuse, this consumer will stop accepting messages in case
-// that fuse is burned.
+//
 // Configuration example
 //
 //  - "consumer.File":
@@ -227,7 +227,6 @@ func (cons *File) read() {
 		// Try to read from the file
 		if cons.state == fileStateRead && cons.file != nil {
 			err := buffer.ReadAll(cons.file, sendFunction)
-			cons.WaitOnFuse()
 
 			switch {
 			case err == nil: // ok

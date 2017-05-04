@@ -27,11 +27,11 @@ import (
 )
 
 // Profiler consumer plugin
+//
 // The profiler plugin generates Runs x Batches messages and send them to the
 // configured streams as fast as possible. This consumer can be used to profile
 // producers and/or configurations.
-// When attached to a fuse, this consumer will stop processing messages in case
-// that fuse is burned.
+//
 // Configuration example
 //
 //  - "consumer.Profile":
@@ -183,7 +183,6 @@ func (cons *Profiler) profile() {
 		start := time.Now()
 
 		for i := 0; i < cons.profileRuns && cons.IsActive(); i++ {
-			cons.WaitOnFuse()
 			template := cons.templates[rand.Intn(len(cons.templates))]
 			messageCount++
 
