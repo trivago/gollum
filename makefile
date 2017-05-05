@@ -66,7 +66,7 @@ unit:
 
 coverprofile:
 	@echo "go tests -covermode=count"
-	@$(BUILD_ENV) go test $(BUILD_FLAGS) -covermode=count -coverprofile=profile.cov -coverpkg=github.com/trivago/gollum/core,github.com/trivago/gollum/format,github.com/trivago/gollum/filter,github.com/trivago/gollum/router
+	@$(BUILD_ENV) go test $(BUILD_FLAGS) -v -covermode=count -coverprofile=profile.cov -coverpkg=github.com/trivago/gollum/core,github.com/trivago/gollum/format,github.com/trivago/gollum/filter,github.com/trivago/gollum/router ./...
 
 integration: current
 	@echo "go tests integration"
