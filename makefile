@@ -72,6 +72,7 @@ coverprofile:
 	@$(BUILD_ENV) go test $(BUILD_FLAGS) -covermode=count -coverprofile=router.cov ./router
 	@echo "mode: count" > profile.cov
 	@cat ./*.cov | grep -v "mode: " >> profile.cov
+	@rm core.cov format.cov filter.cov router.cov
 
 integration: current
 	@echo "go tests integration"
