@@ -96,7 +96,6 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) error {
 	}
 	prod.destinationUrl, err = url.Parse(address)
 	conf.Errors.Push(err)
-	prod.Log.Debug.Printf("destinationUrl: %s, err: %s", prod.destinationUrl, err)
 
 	prod.encoding = conf.GetString("Encoding", "text/plain; charset=utf-8")
 	prod.rawPackets = conf.GetBool("RawData", true)
