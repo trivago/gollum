@@ -70,7 +70,8 @@ coverprofile:
 	@$(BUILD_ENV) go test $(BUILD_FLAGS) -covermode=count -coverprofile=format.cov ./format
 	@$(BUILD_ENV) go test $(BUILD_FLAGS) -covermode=count -coverprofile=filter.cov ./filter
 	@$(BUILD_ENV) go test $(BUILD_FLAGS) -covermode=count -coverprofile=router.cov ./router
-	@cat ./*.cov | grep -v "mode: " > profile.cov
+	@echo "mode: count" > profile.cov
+	@cat ./*.cov | grep -v "mode: " >> profile.cov
 
 integration: current
 	@echo "go tests integration"
