@@ -48,11 +48,6 @@ func (filter *SimpleFilter) Configure(conf PluginConfigReader) error {
 	return nil
 }
 
-// GetDropStreamID return the drop stream id
-func (filter *SimpleFilter) GetDropStreamID() MessageStreamID {
-	return filter.dropStreamID
-}
-
 // GetFilterResultMessageReject returns a FilterResultMessageReject with the
 // stream set to GetDropStreamID()
 func (filter *SimpleFilter) GetFilterResultMessageReject() FilterResult {

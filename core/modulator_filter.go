@@ -27,7 +27,7 @@ func (filters FilterArray) ApplyFilter(msg *Message) (FilterResult, error) {
 	for _, filter := range filters {
 		result, err := filter.ApplyFilter(msg)
 		if err != nil {
-			return FilterResultMessageReject(filter.GetDropStreamID()), err
+			return result, err
 		}
 
 		if result != FilterResultMessageAccept {
@@ -41,7 +41,6 @@ func (filters FilterArray) ApplyFilter(msg *Message) (FilterResult, error) {
 // A filter also have to implement the modulator interface
 type Filter interface {
 	ApplyFilter(msg *Message) (FilterResult, error)
-	GetDropStreamID() MessageStreamID
 }
 
 // FilterModulator is a wrapper to provide a Filter as a Modulator
@@ -61,7 +60,6 @@ func (filterModulator *FilterModulator) Modulate(msg *Message) ModulateResult {
 	result, err := filterModulator.ApplyFilter(msg)
 	if err != nil {
 		tlog.Warning.Print("FilterModulator with error:", err)
-		result = FilterResultMessageReject(filterModulator.Filter.GetDropStreamID())
 	}
 
 	switch result {
