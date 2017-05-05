@@ -16,7 +16,6 @@ func setup() {
 }
 
 func teardown() {
-	removeTestResultFile()
 }
 
 func removeTestResultFile() {
