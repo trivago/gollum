@@ -66,10 +66,10 @@ unit:
 
 coverprofile:
 	@echo "go tests -covermode=count -coverprofile=profile.cov"
-	@$(BUILD_ENV) go test $(BUILD_FLAGS) -v -covermode=count -coverprofile=core.cov ./core
-	@$(BUILD_ENV) go test $(BUILD_FLAGS) -v -covermode=count -coverprofile=format.cov ./format
-	@$(BUILD_ENV) go test $(BUILD_FLAGS) -v -covermode=count -coverprofile=filter.cov ./filter
-	@$(BUILD_ENV) go test $(BUILD_FLAGS) -v -covermode=count -coverprofile=router.cov ./router
+	@$(BUILD_ENV) go test $(BUILD_FLAGS) -covermode=count -coverprofile=core.cov ./core
+	@$(BUILD_ENV) go test $(BUILD_FLAGS) -covermode=count -coverprofile=format.cov ./format
+	@$(BUILD_ENV) go test $(BUILD_FLAGS) -covermode=count -coverprofile=filter.cov ./filter
+	@$(BUILD_ENV) go test $(BUILD_FLAGS) -covermode=count -coverprofile=router.cov ./router
 	@cat ./*.cov | grep -v "mode: " > profile.cov
 
 integration: current
