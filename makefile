@@ -65,8 +65,12 @@ unit:
 	@$(BUILD_ENV) go test $(BUILD_FLAGS) -v -cover -timeout 10s -race -tags ${UNIT_TEST_TAGS} $(UNIT_TEST_ONLY_PKGS)
 
 coverprofile:
-	@echo "go tests -covermode=count"
-	@$(BUILD_ENV) go test $(BUILD_FLAGS) -v -covermode=count -coverprofile=profile.cov -coverpkg=github.com/trivago/gollum/core,github.com/trivago/gollum/format,github.com/trivago/gollum/filter,github.com/trivago/gollum/router ./...
+	@echo "go tests -covermode=count -coverprofile=profile.cov"
+	@$(BUILD_ENV) go test $(BUILD_FLAGS) -v -covermode=count -coverprofile=core.cov ./core
+	@$(BUILD_ENV) go test $(BUILD_FLAGS) -v -covermode=count -coverprofile=format.cov ./format
+	@$(BUILD_ENV) go test $(BUILD_FLAGS) -v -covermode=count -coverprofile=filter.cov ./filter
+	@$(BUILD_ENV) go test $(BUILD_FLAGS) -v -covermode=count -coverprofile=router.cov ./router
+	@cat ./*.cov | grep -v "mode: " > profile.cov
 
 integration: current
 	@echo "go tests integration"
