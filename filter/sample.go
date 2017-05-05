@@ -105,7 +105,7 @@ func (filter *Sample) ApplyFilter(msg *core.Message) (core.FilterResult, error) 
 		if filter.dropStreamID != core.InvalidStreamID {
 			msg.SetStreamID(filter.dropStreamID)
 		}
-		return filter.MessageRejectResult(), nil // ### return, filter ###
+		return filter.GetFilterResultMessageReject(), nil // ### return, filter ###
 	}
 
 	return core.FilterResultMessageAccept, nil

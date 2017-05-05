@@ -153,5 +153,5 @@ func (filter *Rate) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 		return core.FilterResultMessageAccept, nil // ### return, do not limit ###
 	}
 
-	return filter.MessageRejectResult(), nil
+	return filter.GetFilterResultMessageReject(), nil
 }

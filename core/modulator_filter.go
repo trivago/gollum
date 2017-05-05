@@ -18,27 +18,6 @@ import (
 	"github.com/trivago/tgo/tlog"
 )
 
-// FilterResult defines a set of results for filtering
-type FilterResult uint64
-
-const (
-	// FilterResultMessageAccept indicates that a message can be passed along and continue
-	FilterResultMessageAccept = FilterResult(0)
-)
-
-// FilterResultMessageReject indicates that a message is filtered and not pared along the stream
-func FilterResultMessageReject(stream MessageStreamID) FilterResult {
-	return FilterResult(stream)
-}
-
-// ToStreamID converts a FilterResult to a stream id
-func (f FilterResult) ToStreamID() MessageStreamID {
-	if f == FilterResultMessageAccept {
-		return InvalidStreamID
-	}
-	return MessageStreamID(f)
-}
-
 // FilterArray is a type wrapper to []Filter to make array of filters
 type FilterArray []Filter
 
@@ -82,7 +61,7 @@ func (filterModulator *FilterModulator) Modulate(msg *Message) ModulateResult {
 	result, err := filterModulator.ApplyFilter(msg)
 	if err != nil {
 		tlog.Warning.Print("FilterModulator with error:", err)
-		return filterModulator.drop(msg)
+		result = FilterResultMessageReject(filterModulator.Filter.GetDropStreamID())
 	}
 
 	switch result {
@@ -90,7 +69,7 @@ func (filterModulator *FilterModulator) Modulate(msg *Message) ModulateResult {
 		return ModulateResultContinue
 
 	default:
-		filterDropStreamID := result.ToStreamID()
+		filterDropStreamID := result.GetStreamID()
 		if filterDropStreamID != InvalidStreamID {
 			msg.SetStreamID(filterDropStreamID)
 			return ModulateResultDrop
@@ -102,15 +81,4 @@ func (filterModulator *FilterModulator) Modulate(msg *Message) ModulateResult {
 // ApplyFilter calls the Filter.ApplyFilter method
 func (filterModulator *FilterModulator) ApplyFilter(msg *Message) (FilterResult, error) {
 	return filterModulator.Filter.ApplyFilter(msg)
-}
-
-// drop set filter DropStreamID to message and returns ModulateResult
-func (filterModulator *FilterModulator) drop(msg *Message) ModulateResult {
-	// if not drop stream => discard | else drop
-	filterDropStreamID := filterModulator.Filter.GetDropStreamID()
-	if filterDropStreamID != InvalidStreamID {
-		msg.SetStreamID(filterDropStreamID)
-		return ModulateResultDrop
-	}
-	return ModulateResultDiscard
 }

@@ -53,8 +53,8 @@ func (filter *SimpleFilter) GetDropStreamID() MessageStreamID {
 	return filter.dropStreamID
 }
 
-// MessageRejectResult returns a FilterResultMessageReject with the stream set to
-// GetDropStreamID()
-func (filter *SimpleFilter) MessageRejectResult() FilterResult {
+// GetFilterResultMessageReject returns a FilterResultMessageReject with the
+//  stream set to GetDropStreamID()
+func (filter *SimpleFilter) GetFilterResultMessageReject() FilterResult {
 	return FilterResultMessageReject(filter.dropStreamID)
 }
