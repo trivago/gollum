@@ -48,7 +48,7 @@ func TestStreamRouteFormat(t *testing.T) {
 	config.Override("StreamModulator", []interface{}{
 		map[interface{}]interface{}{
 			"format.Envelope": map[string]string{
-				"Prefix": "_",
+				"Prefix":  "_",
 				"Postfix": "_",
 			},
 		},

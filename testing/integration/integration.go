@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	TmpTestFilePathDefault  = "/tmp/gollum_test.log"
-	TmpTestFilePathFoo    	= "/tmp/gollum_test_foo.log"
-	TmpTestFilePathBar    	= "/tmp/gollum_test_bar.log"
+	TmpTestFilePathDefault = "/tmp/gollum_test.log"
+	TmpTestFilePathFoo     = "/tmp/gollum_test_foo.log"
+	TmpTestFilePathBar     = "/tmp/gollum_test_bar.log"
 )
 
 // ExecuteGollum execute gollum binary for integration testing
@@ -76,7 +76,7 @@ func GetGollumCmd(timeout time.Duration, arg ...string) *exec.Cmd {
 
 type ResultFile struct {
 	content string
-	lines int
+	lines   int
 }
 
 // GetResultFile returns file content as a string
@@ -96,7 +96,7 @@ func getResultFileData(filepath string, try int) (string, int) {
 
 	fileContent, lineCount, err := getResultFileDataWithError(filepath)
 	if err != nil {
-		if (try <= maxTry) {
+		if try <= maxTry {
 			time.Sleep(1 * time.Second)
 			try++
 			return getResultFileData(filepath, try)

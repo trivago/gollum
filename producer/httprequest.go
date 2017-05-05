@@ -19,14 +19,14 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo/tnet"
-	"net/http"
-	"sync"
 	"github.com/trivago/tgo/thealthcheck"
+	"github.com/trivago/tgo/tnet"
 	"io/ioutil"
-	"strconv"
+	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
+	"sync"
 )
 
 // HTTPRequest producer plugin
@@ -72,11 +72,11 @@ import (
 type HTTPRequest struct {
 	core.BufferedProducer
 
-	destinationUrl  *url.URL
-	encoding        string
-	rawPackets      bool
-	listen          *tnet.StopListener
-	lastError       error
+	destinationUrl *url.URL
+	encoding       string
+	rawPackets     bool
+	listen         *tnet.StopListener
+	lastError      error
 }
 
 func init() {
@@ -105,13 +105,12 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) error {
 	// Additional health check to check the last result
 	// TBD: This may be meaningless in a high-traffic environment; a statistics
 	// based check could make more sense.
-	prod.AddHealthCheckAt("/lastError", func()(int, string){
+	prod.AddHealthCheckAt("/lastError", func() (int, string) {
 		if prod.lastError == nil {
 			return thealthcheck.StatusOK, "OK"
 		}
 		return thealthcheck.StatusServiceUnavailable, fmt.Sprintf("ERROR: %s", prod.lastError)
 	})
-
 
 	return conf.Errors.OrNil()
 }

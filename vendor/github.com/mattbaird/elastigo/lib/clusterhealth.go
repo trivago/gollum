@@ -54,7 +54,7 @@ func (c *Conn) WaitForStatus(status string, timeout int, indices ...string) (Clu
 
 	body, err := c.DoCommand("GET", url, map[string]interface{}{
 		"wait_for_status": status,
-		"timeout":          timeout,
+		"timeout":         timeout,
 	}, nil)
 
 	if err != nil {

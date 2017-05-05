@@ -37,10 +37,10 @@ import (
 // streamID of this formatter. Set to false by default.
 type Double struct {
 	core.SimpleFormatter
-	separator    	[]byte
-	leftStreamID 	bool
-	left         	core.FormatterArray
-	right        	core.FormatterArray
+	separator    []byte
+	leftStreamID bool
+	left         core.FormatterArray
+	right        core.FormatterArray
 }
 
 func init() {

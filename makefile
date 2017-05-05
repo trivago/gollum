@@ -1,4 +1,4 @@
-.PHONY: all clean docker docker-dev install freebsd linux mac pi win examples current vendor test unit integration example
+.PHONY: all clean docker docker-dev install freebsd linux mac pi win examples current vendor test unit coverprofile integration example
 .DEFAULT_GOAL := current
 
 VERSION=0.5.0
@@ -63,6 +63,16 @@ test: unit integration
 unit:
 	@echo "go tests SDK"
 	@$(BUILD_ENV) go test $(BUILD_FLAGS) -v -cover -timeout 10s -race -tags ${UNIT_TEST_TAGS} $(UNIT_TEST_ONLY_PKGS)
+
+coverprofile:
+	@echo "go tests -covermode=count -coverprofile=profile.cov"
+	@$(BUILD_ENV) go test $(BUILD_FLAGS) -covermode=count -coverprofile=core.cov ./core
+	@$(BUILD_ENV) go test $(BUILD_FLAGS) -covermode=count -coverprofile=format.cov ./format
+	@$(BUILD_ENV) go test $(BUILD_FLAGS) -covermode=count -coverprofile=filter.cov ./filter
+	@$(BUILD_ENV) go test $(BUILD_FLAGS) -covermode=count -coverprofile=router.cov ./router
+	@echo "mode: count" > profile.cov
+	@cat ./*.cov | grep -v "mode: " >> profile.cov
+	@rm core.cov format.cov filter.cov router.cov
 
 integration: current
 	@echo "go tests integration"

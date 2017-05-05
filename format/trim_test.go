@@ -3,9 +3,9 @@ package format
 import (
 	"testing"
 
+	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
-	"fmt"
 )
 
 func TestFormatterTrim(t *testing.T) {

@@ -15,8 +15,20 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	_ "github.com/trivago/gollum/consumer"
+	"github.com/trivago/gollum/core"
+	_ "github.com/trivago/gollum/filter"
+	_ "github.com/trivago/gollum/format"
+	_ "github.com/trivago/gollum/producer"
+	_ "github.com/trivago/gollum/router"
+	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/thealthcheck"
+	"github.com/trivago/tgo/tlog"
+	"github.com/trivago/tgo/tstrings"
 	"io/ioutil"
+	"net"
 	"os"
 	"runtime"
 	"runtime/pprof"
@@ -25,18 +37,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"errors"
-	_ "github.com/trivago/gollum/consumer"
-	"github.com/trivago/gollum/core"
-	_ "github.com/trivago/gollum/filter"
-	_ "github.com/trivago/gollum/format"
-	_ "github.com/trivago/gollum/producer"
-	_ "github.com/trivago/gollum/router"
-	"github.com/trivago/tgo"
-	"github.com/trivago/tgo/tlog"
-	"github.com/trivago/tgo/tstrings"
-	"github.com/trivago/tgo/thealthcheck"
-	"net"
 )
 
 func main() {
@@ -126,7 +126,7 @@ func main() {
 		defer thealthcheck.Stop()
 
 		// Add a static "ping" endpoint
-		thealthcheck.AddEndpoint("/_PING_", func()(code int, body string){
+		thealthcheck.AddEndpoint("/_PING_", func() (code int, body string) {
 			return thealthcheck.StatusOK, "PONG"
 		})
 	}

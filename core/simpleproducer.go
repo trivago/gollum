@@ -15,12 +15,12 @@
 package core
 
 import (
+	"fmt"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/thealthcheck"
 	"github.com/trivago/tgo/tlog"
 	"sync"
 	"time"
-	"fmt"
-	"github.com/trivago/tgo/thealthcheck"
 )
 
 // SimpleProducer plugin base type
@@ -80,17 +80,17 @@ import (
 // and where to format.
 //
 type SimpleProducer struct {
-	id               string
-	control          chan PluginControl
-	streams          []MessageStreamID
-	modulators       ModulatorArray
-	dropStream       Router
-	runState         *PluginRunState
-	shutdownTimeout  time.Duration
-	onRoll           func()
-	onPrepareStop    func()
-	onStop           func()
-	Log              tlog.LogScope
+	id              string
+	control         chan PluginControl
+	streams         []MessageStreamID
+	modulators      ModulatorArray
+	dropStream      Router
+	runState        *PluginRunState
+	shutdownTimeout time.Duration
+	onRoll          func()
+	onPrepareStop   func()
+	onStop          func()
+	Log             tlog.LogScope
 }
 
 // Configure initializes the standard producer config values.
@@ -108,7 +108,7 @@ func (prod *SimpleProducer) Configure(conf PluginConfigReader) error {
 
 	// Simple health check for the plugin state
 	//   Path: "/<plugin_id>/SimpleProducer/pluginstate"
-	prod.AddHealthCheckAt("/pluginState", func()(code int, body string) {
+	prod.AddHealthCheckAt("/pluginState", func() (code int, body string) {
 		if prod.IsActive() {
 			return thealthcheck.StatusOK, fmt.Sprintf("ACTIVE: %s", prod.GetStateString())
 		}
@@ -125,7 +125,7 @@ func (prod *SimpleProducer) AddHealthCheck(callback thealthcheck.CallbackFunc) {
 
 // Adds a health check at a subpath (http://<addr>:<port>/<plugin_id><path>)
 func (prod *SimpleProducer) AddHealthCheckAt(path string, callback thealthcheck.CallbackFunc) {
-	thealthcheck.AddEndpoint("/" + prod.GetID() + path, callback)
+	thealthcheck.AddEndpoint("/"+prod.GetID()+path, callback)
 }
 
 // GetID returns the ID of this producer

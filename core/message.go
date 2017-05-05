@@ -67,8 +67,8 @@ type LinkableMessageSource interface {
 // MessageData is a container for the message payload, streamID and an optional message key
 // The struct is used by Message.data for the current message data and orig for the original message data
 type MessageData struct {
-	key	 []byte
-	payload	 []byte
+	key      []byte
+	payload  []byte
 	streamID MessageStreamID
 }
 
@@ -76,11 +76,11 @@ type MessageData struct {
 // This struct is passed between consumers and producers.
 type Message struct {
 	data         MessageData
-	orig	     MessageData
+	orig         MessageData
 	prevStreamID MessageStreamID
 	source       MessageSource
 	timestamp    time.Time
-	sequence     uint64		//todo: check for removement
+	sequence     uint64 //todo: check for removement
 }
 
 var (

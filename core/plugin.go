@@ -196,5 +196,3 @@ func NewPluginWithConfig(config PluginConfig) (Plugin, error) {
 
 	return plugin, err
 }
-
-

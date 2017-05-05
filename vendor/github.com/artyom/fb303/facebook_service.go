@@ -28,18 +28,18 @@ type FacebookService interface { //Standard base service
 	// Gets the counters for this service
 	GetCounters() (r map[string]int64, err error)
 	// Gets the value of a single counter
-	// 
+	//
 	// Parameters:
 	//  - Key
 	GetCounter(key string) (r int64, err error)
 	// Sets an option
-	// 
+	//
 	// Parameters:
 	//  - Key
 	//  - Value
 	SetOption(key string, value string) (err error)
 	// Gets an option
-	// 
+	//
 	// Parameters:
 	//  - Key
 	GetOption(key string) (r string, err error)
@@ -47,7 +47,7 @@ type FacebookService interface { //Standard base service
 	GetOptions() (r map[string]string, err error)
 	// Returns a CPU profile over the given time interval (client and server
 	// must agree on the profile format).
-	// 
+	//
 	// Parameters:
 	//  - ProfileDurationInSec
 	GetCpuProfile(profileDurationInSec int32) (r string, err error)
@@ -373,7 +373,7 @@ func (p *FacebookServiceClient) recvGetCounters() (value map[string]int64, err e
 }
 
 // Gets the value of a single counter
-// 
+//
 // Parameters:
 //  - Key
 func (p *FacebookServiceClient) GetCounter(key string) (r int64, err error) {
@@ -434,7 +434,7 @@ func (p *FacebookServiceClient) recvGetCounter() (value int64, err error) {
 }
 
 // Sets an option
-// 
+//
 // Parameters:
 //  - Key
 //  - Value
@@ -496,7 +496,7 @@ func (p *FacebookServiceClient) recvSetOption() (err error) {
 }
 
 // Gets an option
-// 
+//
 // Parameters:
 //  - Key
 func (p *FacebookServiceClient) GetOption(key string) (r string, err error) {
@@ -615,7 +615,7 @@ func (p *FacebookServiceClient) recvGetOptions() (value map[string]string, err e
 
 // Returns a CPU profile over the given time interval (client and server
 // must agree on the profile format).
-// 
+//
 // Parameters:
 //  - ProfileDurationInSec
 func (p *FacebookServiceClient) GetCpuProfile(profileDurationInSec int32) (r string, err error) {

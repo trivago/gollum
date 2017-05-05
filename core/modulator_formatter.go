@@ -35,7 +35,7 @@ func (formatters FormatterArray) ApplyFormatter(msg *Message) error {
 // A Formatter defines a modification step inside the message
 // A Formatter also have to implement the modulator interface
 type Formatter interface {
-	ApplyFormatter (msg *Message) (error)
+	ApplyFormatter(msg *Message) error
 }
 
 // FormatterModulator is a wrapper to provide a Formatter as a Modulator
