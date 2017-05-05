@@ -61,7 +61,7 @@ func (format *Base64Decode) Configure(conf core.PluginConfigReader) error {
 }
 
 // ApplyFormatter execute the formatter
-func (format *Base64Decode) ApplyFormatter (msg *core.Message) (error) {
+func (format *Base64Decode) ApplyFormatter(msg *core.Message) error {
 	decodedLen := format.dictionary.DecodedLen(msg.Len())
 	decoded := core.MessageDataPool.Get(decodedLen)
 

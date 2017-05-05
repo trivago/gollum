@@ -28,7 +28,6 @@ func TestProcessJSONRename(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-
 	msgData := string(msg.Data())
 	expect.True(strings.Contains(msgData, "\"foobar\":\"value1\""))
 	expect.True(strings.Contains(msgData, "\"bar\":\"value2\""))
@@ -53,7 +52,6 @@ func TestProcessJSONReplace(t *testing.T) {
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
-
 
 	msgData := string(msg.Data())
 	expect.True(strings.Contains(msgData, "\"foo\":\"new1\""))

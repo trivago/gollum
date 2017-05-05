@@ -37,8 +37,8 @@ import (
 // When routing to multiple routers, the incoming stream has to be listed explicitly to be used.
 type Distribute struct {
 	Broadcast
-	routers 	[]core.Router
-	boundStreamIDs	[]core.MessageStreamID
+	routers        []core.Router
+	boundStreamIDs []core.MessageStreamID
 }
 
 func init() {

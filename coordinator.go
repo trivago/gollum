@@ -261,7 +261,7 @@ func (co *Coordinator) configureProducers(conf *core.Config) {
 			}
 
 			// Add producer to wildcard stream unless it only listens to internal streams
-			searchinternal:
+		searchinternal:
 			for _, streamID := range streams {
 				switch streamID {
 				case core.LogInternalStreamID, core.DroppedStreamID:

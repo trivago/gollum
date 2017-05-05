@@ -120,7 +120,7 @@ func (r *StandardRegistry) Unregister(name string) {
 func (r *StandardRegistry) UnregisterAll() {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
-	for name, _ := range r.metrics {
+	for name := range r.metrics {
 		delete(r.metrics, name)
 	}
 }

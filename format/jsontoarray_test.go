@@ -1,6 +1,5 @@
 package format
 
-
 import (
 	"testing"
 

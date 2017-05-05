@@ -40,43 +40,43 @@ func TestFilterRegExp(t *testing.T) {
 	result, _ := filter.ApplyFilter(msg1)
 	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result, _  = filter.ApplyFilter(msg2)
+	result, _ = filter.ApplyFilter(msg2)
 	expect.Equal(core.FilterResultMessageReject, result)
 
-	result, _  = filter.ApplyFilter(msg3)
+	result, _ = filter.ApplyFilter(msg3)
 	expect.Equal(core.FilterResultMessageReject, result)
 
 	acceptExp := filter.exp
 	filter.exp = nil
 
-	result, _  = filter.ApplyFilter(msg1)
+	result, _ = filter.ApplyFilter(msg1)
 	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result, _  = filter.ApplyFilter(msg2)
+	result, _ = filter.ApplyFilter(msg2)
 	expect.Equal(core.FilterResultMessageReject, result)
 
-	result, _  = filter.ApplyFilter(msg3)
+	result, _ = filter.ApplyFilter(msg3)
 	expect.Equal(core.FilterResultMessageAccept, result)
 
 	filter.expNot = nil
 
-	result, _  = filter.ApplyFilter(msg1)
+	result, _ = filter.ApplyFilter(msg1)
 	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result, _  = filter.ApplyFilter(msg2)
+	result, _ = filter.ApplyFilter(msg2)
 	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result, _  = filter.ApplyFilter(msg3)
+	result, _ = filter.ApplyFilter(msg3)
 	expect.Equal(core.FilterResultMessageAccept, result)
 
 	filter.exp = acceptExp
 
-	result, _  = filter.ApplyFilter(msg1)
+	result, _ = filter.ApplyFilter(msg1)
 	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result, _  = filter.ApplyFilter(msg2)
+	result, _ = filter.ApplyFilter(msg2)
 	expect.Equal(core.FilterResultMessageAccept, result)
 
-	result, _  = filter.ApplyFilter(msg3)
+	result, _ = filter.ApplyFilter(msg3)
 	expect.Equal(core.FilterResultMessageReject, result)
 }

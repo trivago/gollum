@@ -16,19 +16,19 @@
 package thealthcheck
 
 import (
-	"net/http"
-	"fmt"
 	"bytes"
+	"fmt"
+	"net/http"
 )
 
 //
 const (
-	StatusOK = http.StatusOK
+	StatusOK                 = http.StatusOK
 	StatusServiceUnavailable = http.StatusServiceUnavailable
 )
 
 // Code wishing to get probed by the health-checker needs to provide this callback
-type CallbackFunc func () (code int, body string)
+type CallbackFunc func() (code int, body string)
 
 // The HTTP server
 var server *http.Server
@@ -67,7 +67,7 @@ func Configure(listenAddr string) {
 				fmt.Fprintf(responseWriter, "/_ALL_\n")
 
 				// TBD: Collate
-				for endpointPath, _ := range endpoints {
+				for endpointPath := range endpoints {
 					fmt.Fprintf(responseWriter, "%s\n", endpointPath)
 				}
 				return
@@ -128,7 +128,7 @@ func Configure(listenAddr string) {
 //      return 200, "Foobar Plugin is OK"
 //  })
 //
-func AddEndpoint(urlPath string, callback CallbackFunc){
+func AddEndpoint(urlPath string, callback CallbackFunc) {
 	// Check parameters
 	// -syntax
 	if len(urlPath) == 0 || urlPath[:1] != "/" || urlPath[len(urlPath)-1:] == "/" {
@@ -153,7 +153,7 @@ func AddEndpoint(urlPath string, callback CallbackFunc){
 	// Register the HTTP route & handler
 	serveMux.HandleFunc(
 		urlPath,
-		func(responseWriter http.ResponseWriter, httpRequest *http.Request){
+		func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 			// Call the callback
 			code, body := callback()
 			// Set HTTP response code
@@ -188,7 +188,7 @@ func AddEndpointPathArray(urlPath []string, callback CallbackFunc) {
 // Call this after Configure() and AddEndpoint() calls.
 //
 // TBD: is it possible to AddEndpoint() after Start()ing?
-func Start(){
+func Start() {
 	err := server.ListenAndServe()
 
 	if err != nil {
@@ -197,7 +197,6 @@ func Start(){
 }
 
 // TBD: Cleanup?
-func Stop(){
-
+func Stop() {
 
 }

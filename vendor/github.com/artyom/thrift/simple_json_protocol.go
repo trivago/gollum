@@ -69,7 +69,7 @@ type TSimpleJSONProtocol struct {
 	trans TTransport
 
 	parseContextStack []int
-	dumpContext []int
+	dumpContext       []int
 
 	writer *bufio.Writer
 	reader *bufio.Reader

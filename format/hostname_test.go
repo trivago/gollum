@@ -3,10 +3,10 @@ package format
 import (
 	"testing"
 
+	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
 	"os"
-	"fmt"
 )
 
 func TestFormatterHostname(t *testing.T) {
@@ -18,7 +18,6 @@ func TestFormatterHostname(t *testing.T) {
 
 	formatter, casted := plugin.(*Hostname)
 	expect.True(casted)
-
 
 	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
@@ -38,7 +37,6 @@ func TestFormatterHostnameSeperator(t *testing.T) {
 
 	formatter, casted := plugin.(*Hostname)
 	expect.True(casted)
-
 
 	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)

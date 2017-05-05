@@ -41,5 +41,3 @@ func TestRegexpFilter(t *testing.T) {
 	expect.True(strings.Contains(ResultFileFilterInProducer.content, "def"))
 	expect.Equal(2, ResultFileFilterInProducer.lines)
 }
-
-

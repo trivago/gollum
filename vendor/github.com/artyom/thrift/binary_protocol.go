@@ -27,10 +27,10 @@ import (
 )
 
 type TBinaryProtocol struct {
-	trans           TTransport
-	strictRead      bool
-	strictWrite     bool
-	buffer          [8]byte
+	trans       TTransport
+	strictRead  bool
+	strictWrite bool
+	buffer      [8]byte
 }
 
 type TBinaryProtocolFactory struct {

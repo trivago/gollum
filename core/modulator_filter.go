@@ -50,7 +50,7 @@ func (filters FilterArray) ApplyFilter(msg *Message) (FilterResult, error) {
 // A Filter defines an analysis step inside the message
 // A filter also have to implement the modulator interface
 type Filter interface {
-	ApplyFilter (msg *Message) (FilterResult, error)
+	ApplyFilter(msg *Message) (FilterResult, error)
 	GetDropStreamID() MessageStreamID
 }
 
@@ -87,7 +87,7 @@ func (filterModulator *FilterModulator) Modulate(msg *Message) ModulateResult {
 }
 
 // ApplyFilter calls the Filter.ApplyFilter method
-func (filterModulator *FilterModulator) ApplyFilter (msg *Message) (FilterResult, error) {
+func (filterModulator *FilterModulator) ApplyFilter(msg *Message) (FilterResult, error) {
 	return filterModulator.Filter.ApplyFilter(msg)
 }
 

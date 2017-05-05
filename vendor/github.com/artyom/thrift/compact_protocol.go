@@ -364,7 +364,7 @@ func (p *TCompactProtocol) ReadFieldBegin() (name string, typeId TType, id int16
 
 	// if it's a stop, then we can return immediately, as the struct is over.
 	if (t & 0x0f) == STOP {
-		return "", STOP, 0,nil
+		return "", STOP, 0, nil
 	}
 
 	// mask off the 4 MSB of the type header. it could contain a field id delta.

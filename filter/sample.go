@@ -47,11 +47,11 @@ import (
 // By default this list is empty.
 type Sample struct {
 	core.SimpleFilter
-	rate         	int64
-	group        	int64
-	count        	*int64
-	dropStreamID 	core.MessageStreamID
-	ignore       	map[core.MessageStreamID]bool
+	rate         int64
+	group        int64
+	count        *int64
+	dropStreamID core.MessageStreamID
+	ignore       map[core.MessageStreamID]bool
 }
 
 func init() {

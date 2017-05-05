@@ -16,11 +16,11 @@ package core
 
 import (
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/thealthcheck"
 	"github.com/trivago/tgo/tlog"
 	"sync"
 	"sync/atomic"
 	"time"
-	"github.com/trivago/tgo/thealthcheck"
 )
 
 // SimpleConsumer plugin base type
@@ -91,7 +91,7 @@ func (cons *SimpleConsumer) AddHealthCheck(callback thealthcheck.CallbackFunc) {
 
 // Adds a health check at a subpath (http://<addr>:<port>/<plugin_id><path>)
 func (cons *SimpleConsumer) AddHealthCheckAt(path string, callback thealthcheck.CallbackFunc) {
-	thealthcheck.AddEndpoint("/" + cons.GetID() + path, callback)
+	thealthcheck.AddEndpoint("/"+cons.GetID()+path, callback)
 }
 
 // GetID returns the ID of this consumer

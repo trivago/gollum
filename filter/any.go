@@ -35,7 +35,7 @@ import (
 // then no further filters are checked. By default this list is empty.
 type Any struct {
 	core.SimpleFilter
-	filters 	core.FilterArray
+	filters core.FilterArray
 }
 
 func init() {

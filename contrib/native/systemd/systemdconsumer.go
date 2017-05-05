@@ -126,7 +126,7 @@ func (cons *SystemdConsumer) Configure(conf core.PluginConfigReader) error {
 		// start *after* the specified time
 		if _, err = cons.journal.Next(); err != nil {
 			return err
-	}
+		}
 	}
 
 	// Register close to the control message handler

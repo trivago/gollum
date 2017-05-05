@@ -4,9 +4,9 @@ package integration
 
 import (
 	"github.com/trivago/tgo/ttesting"
+	"os"
 	"strings"
 	"testing"
-	"os"
 )
 
 var TmpTestFiles = []string{TmpTestFilePathDefault, TmpTestFilePathFoo, TmpTestFilePathBar}

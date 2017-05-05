@@ -37,13 +37,13 @@ func getMockProducer() mockProducer {
 	return mockProducer{
 		BufferedProducer{
 			SimpleProducer: SimpleProducer{
-				control:          make(chan PluginControl),
-				streams:          []MessageStreamID{},
-				dropStream:       nil, //it must be set after registration of stream
-				runState:         new(PluginRunState),
-				modulators:       ModulatorArray{},
-				shutdownTimeout:  10 * time.Millisecond,
-				Log:              tlog.NewLogScope("test"),
+				control:         make(chan PluginControl),
+				streams:         []MessageStreamID{},
+				dropStream:      nil, //it must be set after registration of stream
+				runState:        new(PluginRunState),
+				modulators:      ModulatorArray{},
+				shutdownTimeout: 10 * time.Millisecond,
+				Log:             tlog.NewLogScope("test"),
 			},
 			messages:       NewMessageQueue(2),
 			channelTimeout: 500 * time.Millisecond,
