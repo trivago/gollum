@@ -43,9 +43,6 @@ func getMockProducer() mockProducer {
 				runState:         new(PluginRunState),
 				modulators:       ModulatorArray{},
 				shutdownTimeout:  10 * time.Millisecond,
-				fuseName:         "test",
-				fuseTimeout:      100 * time.Millisecond,
-				fuseControlGuard: new(sync.Mutex),
 				Log:              tlog.NewLogScope("test"),
 			},
 			messages:       NewMessageQueue(2),
@@ -271,46 +268,4 @@ func TestProducerControlLoop(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 	expect.Equal(atomic.LoadInt32(roll), int32(1))
 
-}
-
-func TestProducerFuse(t *testing.T) {
-	expect := ttesting.NewExpect(t)
-	activateFuse := new(int32)
-	checkCounter := new(int32)
-
-	mockP := getMockProducer()
-	mockP.SetCheckFuseCallback(func() bool {
-		atomic.AddInt32(checkCounter, 1)
-		return atomic.LoadInt32(activateFuse) == 1
-	})
-
-	fuse := FuseRegistry.GetFuse(mockP.fuseName)
-	expect.False(fuse.IsBurned())
-
-	go mockP.ControlLoop()
-
-	// Check basic functionality
-
-	expect.NonBlocking(time.Second, func() { mockP.Control() <- PluginControlFuseBurn })
-	time.Sleep(mockP.fuseTimeout)
-	expect.True(fuse.IsBurned())
-
-	time.Sleep(mockP.fuseTimeout * 2)
-	expect.True(fuse.IsBurned())
-	expect.Greater(atomic.LoadInt32(checkCounter), int32(0))
-
-	atomic.StoreInt32(activateFuse, 1)
-	time.Sleep(mockP.fuseTimeout * 2)
-	expect.False(fuse.IsBurned())
-
-	// Check double calls
-
-	atomic.StoreInt32(activateFuse, 0)
-	expect.NonBlocking(time.Second, func() { mockP.Control() <- PluginControlFuseBurn })
-	expect.NonBlocking(time.Second, func() { mockP.Control() <- PluginControlFuseBurn })
-	expect.True(fuse.IsBurned())
-
-	expect.NonBlocking(time.Second, func() { mockP.Control() <- PluginControlFuseActive })
-	expect.NonBlocking(time.Second, func() { mockP.Control() <- PluginControlFuseActive })
-	expect.False(fuse.IsBurned())
 }

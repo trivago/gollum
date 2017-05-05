@@ -23,9 +23,9 @@ import (
 )
 
 // Syslogd consumer plugin
+//
 // The syslogd consumer accepts messages from a syslogd compatible socket.
-// When attached to a fuse, this consumer will stop the syslogd service in case
-// that fuse is burned.
+//
 // Configuration example
 //
 //  - "consumer.Syslogd":
@@ -143,9 +143,6 @@ func (cons *Syslogd) Consume(workers *sync.WaitGroup) {
 	server.Boot()
 	defer server.Kill()
 
-	cons.SetFuseBurnedCallback(func() { server.Kill() })
-	cons.SetFuseActiveCallback(func() { server.Boot() })
 	cons.ControlLoop()
-
 	server.Wait()
 }

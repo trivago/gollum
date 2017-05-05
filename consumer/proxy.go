@@ -35,12 +35,12 @@ const (
 )
 
 // Proxy consumer plugin.
+//
 // The proxy consumer reads messages directly as-is from a given socket.
 // Messages are extracted by standard message size algorithms (see Partitioner).
 // This consumer can be used with any compatible proxy producer to establish
 // a two-way communication.
-// When attached to a fuse, this consumer will stop accepting new connections
-// and close all existing connections in case that fuse is burned.
+//
 // Configuration example
 //
 //  - "consumer.Proxy":
@@ -145,7 +145,6 @@ func (cons *Proxy) accept() {
 
 	listener := cons.listen.(net.Listener)
 	for cons.IsActive() {
-		cons.WaitOnFuse()
 
 		client, err := listener.Accept()
 		if err != nil {

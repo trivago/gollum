@@ -26,9 +26,10 @@ import (
 )
 
 // ElasticSearch producer plugin
+//
 // The ElasticSearch producer sends messages to elastic search using the bulk
-// http API. This producer uses a fuse breaker when cluster health reports a
-// "red" status or the connection is down.
+// http API.
+//
 // Configuration example
 //
 //  - "producer.ElasticSearch":
@@ -157,7 +158,6 @@ func makeElasticMapping() elasticMapping {
 func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) error {
 	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
-	prod.SetCheckFuseCallback(prod.isClusterUp)
 
 	defaultServer := []string{"localhost"}
 	numConnections := conf.GetInt("NumConnections", 6)
@@ -223,7 +223,6 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) error {
 		}
 	}
 
-	prod.SetCheckFuseCallback(prod.isClusterUp)
 	return conf.Errors.OrNil()
 }
 
@@ -291,12 +290,12 @@ func (prod *ElasticSearch) sendMessage(msg *core.Message) {
 	if err != nil {
 		prod.Log.Error.Print("Index error - ", err)
 		if !prod.isClusterUp() {
-			prod.Control() <- core.PluginControlFuseBurn
+			// TBD: health check? (prev. fuse breaker)
 		}
 		prod.Drop(originalMsg)
 	} else {
 		tgo.Metric.Inc(elasticMetricMessages + index)
-		prod.Control() <- core.PluginControlFuseActive
+		// TBD: health check? (prev. fuse breaker)
 	}
 }
 

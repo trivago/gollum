@@ -36,11 +36,10 @@ const (
 )
 
 // Socket consumer plugin
+//
 // The socket consumer reads messages directly as-is from a given socket.
 // Messages are separated from the stream by using a specific partitioner method.
-// When attached to a fuse, this consumer will stop accepting new connections
-// (closing the socket) and close all existing connections in case that fuse is
-// burned.
+//
 // Configuration example
 //
 //  - "consumer.Socket":
@@ -211,7 +210,7 @@ func (cons *Socket) processConnection(conn net.Conn) {
 
 	buffer := tio.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.offset, cons.delimiter)
 
-	for cons.IsActive() && !cons.IsFuseBurned() {
+	for cons.IsActive() {
 		conn.SetReadDeadline(time.Now().Add(cons.readTimeout))
 		err := buffer.ReadAll(conn, cons.Enqueue)
 		if err == nil {
@@ -257,9 +256,6 @@ func (cons *Socket) udpAccept() {
 	addr, _ := net.ResolveUDPAddr(cons.protocol, cons.address)
 
 	for cons.IsActive() {
-		// Prevent reconnection until fuse is active again
-		cons.WaitOnFuse()
-
 		// (re)open a tcp connection
 		for cons.listen == nil {
 			if listener, err := net.ListenUDP(cons.protocol, addr); err == nil {
@@ -281,9 +277,6 @@ func (cons *Socket) tcpAccept() {
 	defer cons.closeTCPConnection()
 
 	for cons.IsActive() {
-		// Prevent reconnection until fuse is active again
-		cons.WaitOnFuse()
-
 		// (re)open a tcp connection
 		for cons.listen == nil {
 			listener, err := net.Listen(cons.protocol, cons.address)
@@ -368,11 +361,9 @@ func (cons *Socket) Consume(workers *sync.WaitGroup) {
 
 	if cons.protocol == "udp" {
 		go tgo.WithRecoverShutdown(cons.udpAccept)
-		cons.SetFuseBurnedCallback(cons.closeConnection)
 		defer cons.closeConnection()
 	} else {
 		go tgo.WithRecoverShutdown(cons.tcpAccept)
-		cons.SetFuseBurnedCallback(cons.closeTCPConnection)
 		defer cons.closeTCPConnection()
 	}
 

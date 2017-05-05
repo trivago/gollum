@@ -2,8 +2,6 @@ Http
 ====
 
 This consumer opens up an HTTP 1.1 server and processes the contents of any incoming HTTP request.
-When attached to a fuse, this consumer will return error 503 in case that fuse is burned.
-
 
 Parameters
 ----------
@@ -19,13 +17,6 @@ Parameters
 **Stream**
   Stream contains either a single string or a list of strings defining the message channels this consumer will produce.
   By default this is set to "*" which means only producers set to consume "all streams" will get these messages.
-
-**Fuse**
-  Fuse defines the name of a fuse to observe for this consumer.
-  Producer may "burn" the fuse when they encounter errors.
-  Consumers may react on this by e.g. closing connections to notify any writing services of the problem.
-  Set to "" by default which disables the fuse feature for this consumer.
-  It is up to the consumer implementation to react on a broken fuse in an appropriate manner.
 
 **Address**
   Address stores the host and port to bind to.
@@ -64,7 +55,6 @@ Example
 	- "consumer.Http":
 	    Enable: true
 	    ID: ""
-	    Fuse: ""
 	    Stream:
 	        - "foo"
 	        - "bar"

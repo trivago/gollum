@@ -88,7 +88,6 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) error {
 	var err error
 	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
-	prod.SetCheckFuseCallback(prod.isHostUp)
 
 	address := conf.GetString("Address", "http://localhost:80")
 	if strings.Index(address, "://") == -1 {
@@ -198,13 +197,13 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 			// Fail
 			prod.Log.Error.Print("Send failed: ", err)
 			if !prod.isHostUp() {
-				prod.Control() <- core.PluginControlFuseBurn
+				// TBD: health check? (ex-fuse breaker)
 			}
 			prod.Drop(originalMsg)
 			return
 		}
 		// Success
-		prod.Control() <- core.PluginControlFuseActive
+		// TBD: health check? (ex-fuse breaker)
 	}()
 }
 

@@ -26,8 +26,9 @@ import (
 )
 
 // Websocket producer plugin
+//
 // The websocket producer opens up a websocket.
-// This producer does not implement a fuse breaker.
+//
 // Configuration example
 //
 //  - "producer.Websocket":

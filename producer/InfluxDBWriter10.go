@@ -70,7 +70,6 @@ func (writer *influxDBWriter10) configure(conf core.PluginConfigReader, prod *In
 	}
 
 	writer.writeURL = fmt.Sprintf("%s%cprecision=ms", writer.writeURL, writer.separator)
-	prod.SetCheckFuseCallback(writer.isConnectionUp)
 	return conf.Errors.OrNil()
 }
 
@@ -90,7 +89,6 @@ func (writer *influxDBWriter10) isConnectionUp() bool {
 		}
 	}
 
-	writer.Control() <- core.PluginControlFuseActive
 	return writer.connectionUp
 }
 
@@ -124,7 +122,7 @@ func (writer *influxDBWriter10) post() (int, error) {
 	response, err := writer.client.Post(writeURL, "text/plain; charset=utf-8", &writer.buffer)
 	if err != nil {
 		writer.connectionUp = false
-		writer.Control() <- core.PluginControlFuseBurn
+		// TBD: health check? (ex-fuse breaker)
 		return 0, err // ### return, failed to connect ###
 	}
 

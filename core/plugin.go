@@ -39,10 +39,6 @@ const (
 	PluginControlStopConsumer = PluginControl(iota)
 	// PluginControlRoll notifies the consumer/producer about a reconnect or reopen request
 	PluginControlRoll = PluginControl(iota)
-	// PluginControlFuseBurn notfies a producer to burn a fuse or a consumer that a fuse has been burned
-	PluginControlFuseBurn = PluginControl(iota)
-	// PluginControlFuseActive notfies a producer to activate a fuse or a consumer that a fuse has been activated
-	PluginControlFuseActive = PluginControl(iota)
 )
 
 const (

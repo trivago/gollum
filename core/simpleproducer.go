@@ -17,7 +17,6 @@ package core
 import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tlog"
-	"github.com/trivago/tgo/tsync"
 	"sync"
 	"time"
 	"fmt"
@@ -39,8 +38,6 @@ import (
 //    	- "filter.All"
 //    Formatter: "format.Forward"
 //    DropToStream: "_DROPPED_"
-//    Fuse: ""
-//    FuseTimeoutSec: 5
 //    Router:
 //      - "foo"
 //      - "bar"
@@ -82,14 +79,6 @@ import (
 // formatting it has to define a separate filter as the producer decides if
 // and where to format.
 //
-// Fuse defines the name of a fuse to burn if e.g. the producer encounteres a
-// lost connection. Each producer defines its own fuse breaking logic if
-// necessary / applyable. Disable fuse behavior for a producer by setting an
-// empty  name or a FuseTimeoutSec <= 0. By default this is set to "".
-//
-// FuseTimeoutSec defines the interval in seconds used to check if the fuse can
-// be recovered. Note that automatic fuse recovery logic depends on each
-// producer's implementation. By default this setting is set to 10.
 type SimpleProducer struct {
 	id               string
 	control          chan PluginControl
@@ -98,14 +87,9 @@ type SimpleProducer struct {
 	dropStream       Router
 	runState         *PluginRunState
 	shutdownTimeout  time.Duration
-	fuseTimeout      time.Duration
-	fuseControlGuard *sync.Mutex
-	fuseControl      *time.Timer
-	fuseName         string
 	onRoll           func()
 	onPrepareStop    func()
 	onStop           func()
-	onCheckFuse      func() bool
 	Log              tlog.LogScope
 }
 
@@ -117,9 +101,6 @@ func (prod *SimpleProducer) Configure(conf PluginConfigReader) error {
 	prod.control = make(chan PluginControl, 1)
 	prod.streams = conf.GetStreamArray("Streams", []MessageStreamID{WildcardStreamID})
 	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 1000)) * time.Millisecond
-	prod.fuseTimeout = time.Duration(conf.GetInt("FuseTimeoutSec", 10)) * time.Second
-	prod.fuseName = conf.GetString("Fuse", "")
-	prod.fuseControlGuard = new(sync.Mutex)
 	prod.modulators = conf.GetModulatorArray("Modulators", prod.Log, ModulatorArray{})
 
 	dropStreamID := StreamRegistry.GetStreamID(conf.GetString("DropToStream", DroppedStream))
@@ -161,15 +142,6 @@ func (prod *SimpleProducer) Streams() []MessageStreamID {
 // See PluginControl* constants.
 func (prod *SimpleProducer) Control() chan<- PluginControl {
 	return prod.control
-}
-
-// GetFuse returns the fuse bound to this producer or nil if no fuse name has
-// been set.
-func (prod *SimpleProducer) GetFuse() *tsync.Fuse {
-	if prod.fuseName == "" || prod.fuseTimeout <= 0 {
-		return nil
-	}
-	return FuseRegistry.GetFuse(prod.fuseName)
 }
 
 // GetState returns the state this plugin is currently in
@@ -216,14 +188,6 @@ func (prod *SimpleProducer) SetPrepareStopCallback(onPrepareStop func()) {
 // SetStopCallback sets the function to be called upon PluginControlStop
 func (prod *SimpleProducer) SetStopCallback(onStop func()) {
 	prod.onStop = onStop
-}
-
-// SetCheckFuseCallback sets the function to be called upon PluginControlCheckFuse.
-// The callback has to return true to trigger a fuse reactivation.
-// If nil is passed as a callback PluginControlCheckFuse will reactivate the
-// fuse immediately.
-func (prod *SimpleProducer) SetCheckFuseCallback(onCheckFuse func() bool) {
-	prod.onCheckFuse = onCheckFuse
 }
 
 // SetWorkerWaitGroup forwards to Plugin.SetWorkerWaitGroup for this consumer's
@@ -308,20 +272,6 @@ func (prod *SimpleProducer) ControlLoop() {
 			if prod.onRoll != nil {
 				prod.onRoll()
 			}
-
-		case PluginControlFuseBurn:
-			if fuse := prod.GetFuse(); fuse != nil && !fuse.IsBurned() {
-				fuse.Burn()
-				go prod.triggerCheckFuse()
-				prod.Log.Note.Print("Fuse burned")
-			}
-
-		case PluginControlFuseActive:
-			if fuse := prod.GetFuse(); fuse != nil && fuse.IsBurned() {
-				prod.setFuseControl(nil)
-				fuse.Activate()
-				prod.Log.Note.Print("Fuse reactivated")
-			}
 		}
 	}
 }
@@ -354,31 +304,6 @@ func (prod *SimpleProducer) tickerLoop(interval time.Duration, onTimeOut func())
 			go prod.tickerLoop(interval, onTimeOut)
 		} else {
 			time.AfterFunc(nextDelay, func() { prod.tickerLoop(interval, onTimeOut) })
-		}
-	}
-}
-
-func (prod *SimpleProducer) setFuseControl(callback func()) {
-	prod.fuseControlGuard.Lock()
-	defer prod.fuseControlGuard.Unlock()
-
-	if prod.fuseControl != nil {
-		prod.fuseControl.Stop()
-	}
-
-	if callback == nil {
-		prod.fuseControl = nil
-	} else {
-		prod.fuseControl = time.AfterFunc(prod.fuseTimeout, callback)
-	}
-}
-
-func (prod *SimpleProducer) triggerCheckFuse() {
-	if fuse := prod.GetFuse(); prod.onCheckFuse != nil && fuse.IsBurned() {
-		if prod.onCheckFuse() {
-			prod.Control() <- PluginControlFuseActive
-		} else {
-			prod.setFuseControl(prod.triggerCheckFuse)
 		}
 	}
 }

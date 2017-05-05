@@ -81,7 +81,6 @@ func (writer *influxDBWriter09) configure(conf core.PluginConfigReader, prod *In
 		writer.messageHeader = "{\"database\":\"%s\",\"points\":["
 	}
 
-	prod.SetCheckFuseCallback(writer.isConnectionUp)
 	return conf.Errors.OrNil()
 }
 
@@ -100,7 +99,7 @@ func (writer *influxDBWriter09) isConnectionUp() bool {
 			}
 		}
 	}
-	writer.Control() <- core.PluginControlFuseActive
+
 	return writer.connectionUp
 }
 
@@ -128,7 +127,7 @@ func (writer *influxDBWriter09) post(databaseName string) (int, error) {
 	response, err := writer.client.Post(writer.writeURL, "application/json", &writer.buffer)
 	if err != nil {
 		writer.connectionUp = false
-		writer.Control() <- core.PluginControlFuseBurn
+		// TBD: health check? (ex-fuse breaker)
 		return 0, err // ### return, failed to connect ###
 	}
 
