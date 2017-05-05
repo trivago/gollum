@@ -34,5 +34,5 @@ func TestFilterNone(t *testing.T) {
 	msg := core.NewMessage(nil, []byte{}, 0, core.InvalidStreamID)
 
 	result, _ := filter.ApplyFilter(msg)
-	expect.Equal(core.FilterResultMessageReject, result)
+	expect.Neq(core.FilterResultMessageAccept, result)
 }

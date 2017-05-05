@@ -54,7 +54,7 @@ func (filter *SimpleFilter) GetDropStreamID() MessageStreamID {
 }
 
 // GetFilterResultMessageReject returns a FilterResultMessageReject with the
-//  stream set to GetDropStreamID()
+// stream set to GetDropStreamID()
 func (filter *SimpleFilter) GetFilterResultMessageReject() FilterResult {
 	return FilterResultMessageReject(filter.dropStreamID)
 }
