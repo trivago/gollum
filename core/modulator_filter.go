@@ -18,6 +18,12 @@ import (
 	"github.com/trivago/tgo/tlog"
 )
 
+// A Filter defines an analysis step inside the message
+// A filter also have to implement the modulator interface
+type Filter interface {
+	ApplyFilter(msg *Message) (FilterResult, error)
+}
+
 // FilterArray is a type wrapper to []Filter to make array of filters
 type FilterArray []Filter
 
@@ -35,12 +41,6 @@ func (filters FilterArray) ApplyFilter(msg *Message) (FilterResult, error) {
 		}
 	}
 	return FilterResultMessageAccept, nil
-}
-
-// A Filter defines an analysis step inside the message
-// A filter also have to implement the modulator interface
-type Filter interface {
-	ApplyFilter(msg *Message) (FilterResult, error)
 }
 
 // FilterModulator is a wrapper to provide a Filter as a Modulator
@@ -62,18 +62,17 @@ func (filterModulator *FilterModulator) Modulate(msg *Message) ModulateResult {
 		tlog.Warning.Print("FilterModulator with error:", err)
 	}
 
-	switch result {
-	case FilterResultMessageAccept:
+	if result == FilterResultMessageAccept {
 		return ModulateResultContinue
+	}
 
-	default:
-		filterDropStreamID := result.GetStreamID()
-		if filterDropStreamID != InvalidStreamID {
-			msg.SetStreamID(filterDropStreamID)
-			return ModulateResultDrop
-		}
+	newStreamID := result.GetStreamID()
+	if newStreamID == InvalidStreamID {
 		return ModulateResultDiscard
 	}
+
+	msg.SetStreamID(newStreamID)
+	return ModulateResultDrop
 }
 
 // ApplyFilter calls the Filter.ApplyFilter method

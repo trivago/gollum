@@ -15,9 +15,9 @@
 package core
 
 import (
+	"github.com/trivago/tgo/thealthcheck"
 	"github.com/trivago/tgo/tlog"
 	"time"
-	"github.com/trivago/tgo/thealthcheck"
 )
 
 // SimpleRouter router plugin
@@ -32,12 +32,12 @@ import (
 // 	  Expression: "[a-zA-Z]+"
 //
 type SimpleRouter struct {
-	id         string
-	modulators ModulatorArray
-	Producers  []Producer
-	Timeout    *time.Duration
-	streamID   MessageStreamID
-	Log        tlog.LogScope
+	id        string
+	filters   FilterArray
+	Producers []Producer
+	Timeout   *time.Duration
+	streamID  MessageStreamID
+	Log       tlog.LogScope
 }
 
 // Configure sets up all values required by SimpleRouter.
@@ -47,12 +47,7 @@ func (router *SimpleRouter) Configure(conf PluginConfigReader) error {
 	router.Timeout = nil
 	router.streamID = conf.GetStreamID("Stream", GetStreamID(conf.GetID()))
 
-	// init router.modulators with filters only
-	filters := conf.GetFilterArray("Filters", router.Log, FilterArray{})
-	for _, filter := range filters {
-		filterModulator := NewFilterModulator(filter)
-		router.modulators = append(router.modulators, filterModulator)
-	}
+	router.filters = conf.GetFilterArray("Filters", router.Log, FilterArray{})
 
 	if router.streamID == WildcardStreamID {
 		router.Log.Note.Print("A wildcard stream configuration only affects the wildcard stream, not all routers")
@@ -66,14 +61,14 @@ func (router *SimpleRouter) Configure(conf PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Adds a health check at the default URL (http://<addr>:<port>/<plugin_id>)
+// AddHealthCheck adds a health check at the default URL (http://<addr>:<port>/<plugin_id>)
 func (router *SimpleRouter) AddHealthCheck(callback thealthcheck.CallbackFunc) {
 	router.AddHealthCheckAt("", callback)
 }
 
-// Adds a health check at a subpath (http://<addr>:<port>/<plugin_id><path>)
+// AddHealthCheckAt adds a health check at a subpath (http://<addr>:<port>/<plugin_id><path>)
 func (router *SimpleRouter) AddHealthCheckAt(path string, callback thealthcheck.CallbackFunc) {
-	thealthcheck.AddEndpoint("/" + router.GetID() + path, callback)
+	thealthcheck.AddEndpoint("/"+router.GetID()+path, callback)
 }
 
 // GetID returns the ID of this stream
@@ -106,5 +101,6 @@ func (router *SimpleRouter) GetProducers() []Producer {
 
 // Modulate calls all modulators in their order of definition
 func (router *SimpleRouter) Modulate(msg *Message) ModulateResult {
-	return router.modulators.Modulate(msg)
+	mod := NewFilterModulator(router.filters)
+	return mod.Modulate(msg)
 }
