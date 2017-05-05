@@ -55,15 +55,15 @@ import (
 //     Dummy test\n
 //     Request data\n
 //
-// In this mode the message's contents is parsed as an HTTP request and then
-// sent are sent to the destination server (virtually) unchanged. If the message
+// In this mode, the message's contents is parsed as an HTTP request and
+// sent to the destination server (virtually) unchanged. If the message
 // cannot be parsed as an HTTP request, an error is logged. Only the scheme,
 // host and port components of the "Address" URL are used; any path and query
 // parameters are ignored. The "Encoding" parameter is ignored.
 //
 // If RawData = false, a POST request is made to the destination server
-// for each incoming message instead, using the complete URL in "Address".
-// The incoming message's contents are delivered in the POST request's body
+// for each incoming message, using the complete URL in "Address". The
+// incoming message's contents are delivered in the POST request's body
 // and Content-type is set to the value of "Encoding"
 //
 // Encoding defines the payload encoding when RawData is set to false.
