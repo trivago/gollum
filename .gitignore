@@ -23,6 +23,7 @@ docs/_build
 *.prof
 *.tar.gz
 *.zip
+*.cov
 
 # debugging
 test

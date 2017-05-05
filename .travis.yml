@@ -22,7 +22,7 @@ script:
   - make unit #  go test
   - if [[ $TRAVIS_GO_VERSION == 1.7* ]]; then make integration || travis_terminate 1; fi
   - if [[ $TRAVIS_GO_VERSION == 1.8* ]]; then make integration || travis_terminate 1; fi
-  - if [[ $TRAVIS_GO_VERSION == 1.8* ]]; then $HOME/gopath/bin/goveralls -service=travis-ci -ignore=testing/integration/integration.go; fi
+  - if [[ $TRAVIS_GO_VERSION == 1.8* ]]; then make coverprofile && $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci; fi
 notifications:
   slack:
     secure: CZ2AgNM8p5Xft82XBiN+jwm5j0TvqRapMr95Umfda1x4xv6trBQvyDwIqNcxKRWdQbS0KycF1m+WL7UI6HR/8Iq3LxLm2S7u3wAfK9GhTyt5aqL7qcfSPOtXm5qx42z9+HaAN7z+GWOuuVZTQUL5Jk0uMr2mhZRUpkmb+apji7YdHZf8tUXmHoVAomR/B6dKtcQg74nifX+d5zKCK2AY0u3KeJuOk+q8gmqWQnSJem3d4uKcyEp7zblE3IIuf6XzEw2KCBWeO8Lua7Mg/bWb8VjIRUjzluL6zn2ITd39jgk6L4Q1W1exj0KBLU04O1O8u+Y2KbUHqAMj9y8NpH0kiadAjV6IPE3AYbqm4ZcnsQzH/HnT/cjZ4Q8p+iOQMMzdoN1yKTKPDRZW4qnqftH4j5M06qBCO/DAmnXQlJkDRfTGy3tOhtpI89uYKi3X2ew3QWhV4aoboOs3oFZoSkU5GB6lW6xzmwVFZ3tjjCUOWD0ydypWmggPPUi0QbBsOgG3e8WLRGXdpt6Mpbt2YJuvTkwfe90fjFv/w6SkjV3H8vACXT25g04q3DP4q0xK0+9m4tDmhei3iVjFC6ut9xMXjHrnkJ2IT91lvTmbr5tCpJa86Rl4nIMqJe/HpdC6nVx3Pw663z7Q+wM/TEx0lfgf+4+63D4YyRZQo+yFy0noDQ8=
