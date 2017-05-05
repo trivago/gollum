@@ -26,9 +26,9 @@ import (
 )
 
 // Scribe producer plugin
+///
 // The scribe producer allows sending messages to Facebook's scribe.
-// This producer uses a fuse breaker if the connection to the scribe server is
-// lost.
+//
 // Configuration example
 //
 //  - "producer.Scribe":
@@ -136,7 +136,6 @@ func (prod *Scribe) Configure(conf core.PluginConfigReader) error {
 		tgo.Metric.NewRate(metricName, scribeMetricMessagesSec+category, time.Second, 10, 3, true)
 	}
 
-	prod.SetCheckFuseCallback(prod.tryOpenConnection)
 	return conf.Errors.OrNil()
 }
 
@@ -159,7 +158,6 @@ func (prod *Scribe) tryOpenConnection() bool {
 		}
 
 		prod.socket.Conn().(bufferedConn).SetWriteBuffer(prod.bufferSizeByte)
-		prod.Control() <- core.PluginControlFuseActive
 		prod.lastHeartBeat = time.Now().Add(prod.heartBeatInterval)
 		prod.Log.Note.Print("Connection opened")
 	}
@@ -187,7 +185,7 @@ func (prod *Scribe) tryOpenConnection() bool {
 		}
 	}
 
-	prod.Control() <- core.PluginControlFuseBurn
+	// TBD: health check? (ex-fuse breaker)
 	prod.transport.Close()
 	return false
 }
@@ -257,7 +255,7 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 		if err != nil || resultCode != scribe.ResultCode_TRY_LATER {
 			prod.Log.Error.Printf("Log error %d: %s", resultCode, err.Error())
 
-			prod.Control() <- core.PluginControlFuseBurn
+			// TBD: health check? (ex-fuse breaker)
 			prod.transport.Close() // reconnect
 
 			prod.dropMessages(messages[idxStart:])

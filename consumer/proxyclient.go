@@ -88,7 +88,7 @@ func (client *proxyClient) sendMessage(data []byte) {
 func (client *proxyClient) read() {
 	buffer := tio.NewBufferedReader(proxyClientBufferGrowSize, client.proxy.flags, client.proxy.offset, client.proxy.delimiter)
 
-	for client.proxy.IsActive() && client.connected && !client.proxy.IsFuseBurned() {
+	for client.proxy.IsActive() && client.connected {
 		err := buffer.ReadAll(client.conn, client.sendMessage)
 
 		// Handle read errors

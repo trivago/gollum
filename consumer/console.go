@@ -32,9 +32,10 @@ const (
 )
 
 // Console consumer plugin
+//
 // This consumer reads from stdin. A message is generated after each newline
-// character. When attached to a fuse, this consumer will stop accepting
-// messages in case that fuse is burned.
+// character.
+//
 // Configuration example
 //
 //  - "consumer.Console":
@@ -102,7 +103,6 @@ func (cons *Console) readPipe() {
 	buffer := tio.NewBufferedReader(consoleBufferGrowSize, 0, 0, "\n")
 	for cons.IsActive() {
 		err := buffer.ReadAll(cons.pipe, cons.Enqueue)
-		cons.WaitOnFuse()
 		switch err {
 		case io.EOF:
 			if cons.autoexit {

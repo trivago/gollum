@@ -26,13 +26,14 @@ import (
 )
 
 // Spooling producer plugin
+//
 // The Spooling producer buffers messages and sends them again to the previous
 // stream stored in the message. This means the message must have been routed
 // at least once before reaching the spooling producer. If the previous and
 // current stream is identical the message is dropped.
 // The Formatter configuration value is forced to "format.Serialize" and
 // cannot be changed.
-// This producer does not implement a fuse breaker.
+//
 // Configuration example
 //
 //  - "producer.Spooling":

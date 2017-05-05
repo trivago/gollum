@@ -2,7 +2,6 @@ Scribe
 ======
 
 The scribe producer allows sending messages to Facebook's scribe.
-This producer uses a fuse breaker if the connection to the scribe server is lost.
 
 
 Parameters
@@ -51,17 +50,6 @@ Parameters
   Filter sets a filter that is applied before formatting, i.e. before a message is send to the message queue.
   If a producer requires filtering after formatting it has to define a separate filter as the producer decides if and where to format.
 
-**Fuse**
-  Fuse defines the name of a fuse to burn if e.g. the producer encounters a lost connection.
-  Each producer defines its own fuse breaking logic if necessary / applyable.
-  Disable fuse behavior for a producer by setting an empty  name or a FuseTimeoutSec <= 0.
-  By default this is set to "".
-
-**FuseTimeoutSec**
-  FuseTimeoutSec defines the interval in seconds used to check if the fuse can be recovered.
-  Note that automatic fuse recovery logic depends on each producer's implementation.
-  By default this setting is set to 10.
-
 **Address**
   Address defines the host and port to connect to.
   By default this is set to "localhost:1463".
@@ -109,8 +97,6 @@ Example
 	    Formatter: "format.Forward"
 	    Filter: "filter.All"
 	    DropToStream: "_DROPPED_"
-	    Fuse: ""
-	    FuseTimeoutSec: 5
 	    Stream:
 	        - "foo"
 	        - "bar"

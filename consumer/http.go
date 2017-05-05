@@ -28,10 +28,10 @@ import (
 )
 
 // Http consumer plugin
+//
 // This consumer opens up an HTTP 1.1 server and processes the contents of any
 // incoming HTTP request.
-// When attached to a fuse, this consumer will return error 503 in case that
-// fuse is burned.
+//
 // Configuration example
 //
 //  - "consumer.Http":
@@ -135,10 +135,6 @@ func (cons *Http) requestHandler(resp http.ResponseWriter, req *http.Request) {
 			resp.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-	}
-	if cons.IsFuseBurned() {
-		resp.WriteHeader(http.StatusServiceUnavailable)
-		return // ### return, service is down ###
 	}
 
 	if cons.withHeaders {

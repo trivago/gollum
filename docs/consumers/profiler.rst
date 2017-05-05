@@ -3,7 +3,6 @@ Profiler
 
 The profiler plugin generates Runs x Batches messages and send them to the configured streams as fast as possible.
 This consumer can be used to profile producers and/or configurations.
-When attached to a fuse, this consumer will stop processing messages in case that fuse is burned.
 
 
 Parameters
@@ -20,13 +19,6 @@ Parameters
 **Stream**
   Stream contains either a single string or a list of strings defining the message channels this consumer will produce.
   By default this is set to "*" which means only producers set to consume "all streams" will get these messages.
-
-**Fuse**
-  Fuse defines the name of a fuse to observe for this consumer.
-  Producer may "burn" the fuse when they encounter errors.
-  Consumers may react on this by e.g. closing connections to notify any writing services of the problem.
-  Set to "" by default which disables the fuse feature for this consumer.
-  It is up to the consumer implementation to react on a broken fuse in an appropriate manner.
 
 **Runs**
   Runs defines the number of messages per batch.
@@ -69,7 +61,6 @@ Example
 	- "consumer.Profile":
 	    Enable: true
 	    ID: ""
-	    Fuse: ""
 	    Stream:
 	        - "foo"
 	        - "bar"

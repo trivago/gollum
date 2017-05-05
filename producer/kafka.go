@@ -40,9 +40,10 @@ const (
 )
 
 // Kafka producer plugin
+//
 // The kafka producer writes messages to a kafka cluster. This producer is
 // backed by the sarama library so most settings relate to that library.
-// This producer uses a fuse breaker if any connection reports an error.
+//
 // Configuration example
 //
 //  - "producer.Kafka":
@@ -232,7 +233,6 @@ func init() {
 func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
-	prod.SetCheckFuseCallback(prod.checkAllTopics)
 
 	kafka.Logger = prod.Log.Note
 	prod.keyModulators = conf.GetModulatorArray("KeyModulators", prod.Log, core.ModulatorArray{})
@@ -500,7 +500,7 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 		if err != nil {
 			prod.Log.Error.Printf("%s is not connected: %s", topic.name, err.Error())
 		}
-		prod.Control() <- core.PluginControlFuseBurn
+		// TBD: health check? (ex-fuse breaker)
 		return // ### return, not connected ###
 	}
 

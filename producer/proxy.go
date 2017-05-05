@@ -30,7 +30,6 @@ import (
 // Responses to messages sent to the given address are sent back to the original
 // consumer of it is a compatible message source. As with consumer.proxy the
 // returned messages are partitioned by common message length algorithms.
-// This producer does not implement a fuse breaker.
 // Configuration example
 //
 //  - "producer.Proxy":
