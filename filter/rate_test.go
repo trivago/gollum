@@ -44,8 +44,8 @@ func TestFilterRate(t *testing.T) {
 			expect.Equal(core.FilterResultMessageAccept, result2)
 			time.Sleep(time.Millisecond)
 		} else {
-			expect.Equal(core.FilterResultMessageReject, result1)
-			expect.Equal(core.FilterResultMessageReject, result2)
+			expect.Neq(core.FilterResultMessageAccept, result1)
+			expect.Neq(core.FilterResultMessageAccept, result2)
 		}
 	}
 
@@ -60,8 +60,8 @@ func TestFilterRate(t *testing.T) {
 			expect.Equal(core.FilterResultMessageAccept, result2)
 			time.Sleep(time.Millisecond)
 		} else {
-			expect.Equal(core.FilterResultMessageReject, result1)
-			expect.Equal(core.FilterResultMessageReject, result2)
+			expect.Neq(core.FilterResultMessageAccept, result1)
+			expect.Neq(core.FilterResultMessageAccept, result2)
 		}
 	}
 }
@@ -90,7 +90,7 @@ func TestFilterRateIgnore(t *testing.T) {
 			expect.Equal(core.FilterResultMessageAccept, result2)
 			time.Sleep(time.Millisecond)
 		} else {
-			expect.Equal(core.FilterResultMessageReject, result2)
+			expect.Neq(core.FilterResultMessageAccept, result2)
 		}
 	}
 }

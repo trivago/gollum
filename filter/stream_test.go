@@ -37,7 +37,7 @@ func TestFilterStream(t *testing.T) {
 	filter.blacklist = []core.MessageStreamID{1}
 
 	result, _ := filter.ApplyFilter(msg1)
-	expect.Equal(core.FilterResultMessageReject, result)
+	expect.Neq(core.FilterResultMessageAccept, result)
 
 	result, _ = filter.ApplyFilter(msg2)
 	expect.Equal(core.FilterResultMessageAccept, result)
@@ -45,10 +45,10 @@ func TestFilterStream(t *testing.T) {
 	filter.whitelist = []core.MessageStreamID{1}
 
 	result, _ = filter.ApplyFilter(msg1)
-	expect.Equal(core.FilterResultMessageReject, result)
+	expect.Neq(core.FilterResultMessageAccept, result)
 
 	result, _ = filter.ApplyFilter(msg2)
-	expect.Equal(core.FilterResultMessageReject, result)
+	expect.Neq(core.FilterResultMessageAccept, result)
 
 	filter.blacklist = []core.MessageStreamID{}
 
@@ -56,5 +56,5 @@ func TestFilterStream(t *testing.T) {
 	expect.Equal(core.FilterResultMessageAccept, result)
 
 	result, _ = filter.ApplyFilter(msg2)
-	expect.Equal(core.FilterResultMessageReject, result)
+	expect.Neq(core.FilterResultMessageAccept, result)
 }

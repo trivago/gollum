@@ -39,12 +39,12 @@ func getMockRouter() mockRouter {
 	timeout := time.Second
 	return mockRouter{
 		SimpleRouter: SimpleRouter{
-			id:         "testStream",
-			modulators: ModulatorArray{},
-			Producers:  []Producer{},
-			Timeout:    &timeout,
-			streamID:   StreamRegistry.GetStreamID("testStream"),
-			Log:        tlog.NewLogScope("testStreamLogScope"),
+			id:        "testStream",
+			filters:   FilterArray{},
+			Producers: []Producer{},
+			Timeout:   &timeout,
+			streamID:  StreamRegistry.GetStreamID("testStream"),
+			Log:       tlog.NewLogScope("testStreamLogScope"),
 		},
 	}
 }

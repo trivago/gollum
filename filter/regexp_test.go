@@ -41,10 +41,10 @@ func TestFilterRegExp(t *testing.T) {
 	expect.Equal(core.FilterResultMessageAccept, result)
 
 	result, _ = filter.ApplyFilter(msg2)
-	expect.Equal(core.FilterResultMessageReject, result)
+	expect.Neq(core.FilterResultMessageAccept, result)
 
 	result, _ = filter.ApplyFilter(msg3)
-	expect.Equal(core.FilterResultMessageReject, result)
+	expect.Neq(core.FilterResultMessageAccept, result)
 
 	acceptExp := filter.exp
 	filter.exp = nil
@@ -53,7 +53,7 @@ func TestFilterRegExp(t *testing.T) {
 	expect.Equal(core.FilterResultMessageAccept, result)
 
 	result, _ = filter.ApplyFilter(msg2)
-	expect.Equal(core.FilterResultMessageReject, result)
+	expect.Neq(core.FilterResultMessageAccept, result)
 
 	result, _ = filter.ApplyFilter(msg3)
 	expect.Equal(core.FilterResultMessageAccept, result)
@@ -78,5 +78,5 @@ func TestFilterRegExp(t *testing.T) {
 	expect.Equal(core.FilterResultMessageAccept, result)
 
 	result, _ = filter.ApplyFilter(msg3)
-	expect.Equal(core.FilterResultMessageReject, result)
+	expect.Neq(core.FilterResultMessageAccept, result)
 }

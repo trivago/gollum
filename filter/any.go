@@ -61,5 +61,5 @@ func (filter *Any) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 		}
 	}
 
-	return core.FilterResultMessageReject, nil
+	return filter.GetFilterResultMessageReject(), nil
 }
