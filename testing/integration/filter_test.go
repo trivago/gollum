@@ -13,6 +13,7 @@ const (
 )
 
 func TestRegexpFilter(t *testing.T) {
+	setup()
 	expect := ttesting.NewExpect(t)
 
 	// execute gollum
