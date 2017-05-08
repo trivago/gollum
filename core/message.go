@@ -67,9 +67,30 @@ type LinkableMessageSource interface {
 // MessageData is a container for the message payload, streamID and an optional message key
 // The struct is used by Message.data for the current message data and orig for the original message data
 type MessageData struct {
-	key      []byte
 	payload  []byte
 	streamID MessageStreamID
+}
+
+// MetaData is a map for optional meta data which can set by consumers and modulators
+type MetaData map[string][]byte
+
+// SetValue set a key value pair at meta data
+func (meta MetaData) SetValue(key string, value []byte) {
+	meta[key] = value
+}
+
+// GetValue returns a meta data value by key
+func (meta MetaData) GetValue(key string, defaultValue []byte) []byte {
+	if value, isSet := meta[key]; isSet {
+		return value
+	}
+
+	return defaultValue
+}
+
+// ResetValue delete a meta data value by key
+func (meta MetaData) ResetValue(key string) {
+	delete(meta, key)
 }
 
 // Message is a container used for storing the internal state of messages.
@@ -81,6 +102,7 @@ type Message struct {
 	source       MessageSource
 	timestamp    time.Time
 	sequence     uint64 //todo: check for removement
+	MetaData     MetaData
 }
 
 var (
@@ -100,6 +122,7 @@ func NewMessage(source MessageSource, data []byte, sequence uint64, streamID Mes
 		prevStreamID: streamID,
 		timestamp:    time.Now(),
 		sequence:     sequence,
+		MetaData:     MetaData{},
 	}
 
 	message.data.payload = buffer
@@ -130,6 +153,7 @@ func NewMessageWithSize(source MessageSource, dataSize int, sequence uint64, str
 		prevStreamID: streamID,
 		timestamp:    time.Now(),
 		sequence:     sequence,
+		MetaData:     MetaData{},
 	}
 
 	message.data.payload = buffer
@@ -272,7 +296,6 @@ func (msg *Message) CloneOriginal() *Message {
 
 // Serialize generates a string containing all data that can be preserved over
 // shutdown (i.e. no data directly referencing runtime components).
-// todo: update SerializedMessage to handle orig MessageData?
 func (msg Message) Serialize() ([]byte, error) {
 	serializable := &SerializedMessage{
 		StreamID:     proto.Uint64(uint64(msg.data.streamID)),
@@ -280,6 +303,7 @@ func (msg Message) Serialize() ([]byte, error) {
 		Timestamp:    proto.Int64(msg.timestamp.UnixNano()),
 		Sequence:     proto.Uint64(msg.sequence),
 		Data:         msg.data.payload,
+		MetaData:     msg.MetaData,
 	}
 
 	return proto.Marshal(serializable)
@@ -299,6 +323,7 @@ func DeserializeMessage(data []byte) (Message, error) {
 
 	msg.data.streamID = MessageStreamID(serializable.GetStreamID())
 	msg.data.payload = serializable.GetData()
+	msg.MetaData = serializable.GetMetaData()
 
 	copy(msg.orig.payload, msg.data.payload)
 	msg.orig.streamID = msg.data.streamID
