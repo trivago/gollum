@@ -86,6 +86,18 @@ func (meta MetaData) ResetValue(key string) {
 	delete(meta, key)
 }
 
+// Clone MetaData byte values to new MetaData map
+func (meta MetaData) Clone() MetaData {
+	clone := MetaData{}
+	for k,v := range meta {
+		vCopy := make([]byte, len(v))
+		copy(vCopy, v)
+		clone[k] = vCopy
+	}
+
+	return clone
+}
+
 // MessageData is a container for the message payload, streamID and an optional message key
 // The struct is used by Message.data for the current message data and orig for the original message data
 type MessageData struct {
@@ -334,12 +346,7 @@ func DeserializeMessage(data []byte) (Message, error) {
 	copy(msg.orig.payload, msg.data.payload)
 
 	msg.data.MetaData = serializable.GetMetaData()
-	msg.orig.MetaData = MetaData{}
-
-	// copy msg.data.MetaData to msg.orig.MetaData
-	for k,v := range msg.data.MetaData {
-		msg.orig.MetaData[k] = v
-	}
+	msg.orig.MetaData = msg.data.MetaData.Clone()
 
 	return msg, err
 }

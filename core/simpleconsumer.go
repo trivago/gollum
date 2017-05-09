@@ -193,12 +193,9 @@ func (cons *SimpleConsumer) EnqueueWithSequence(data []byte, seq uint64) {
 func (cons *SimpleConsumer) EnqueueWithMetaData(data []byte, metaData MetaData) {
 	seq := atomic.AddUint64(cons.sequence, 1)
 	msg := NewMessage(cons, data, seq, GetStreamID(cons.id))
-	msg.data.MetaData = metaData
 
-	// copy msg.data.MetaData to msg.orig.MetaData
-	for k,v := range msg.data.MetaData {
-		msg.orig.MetaData[k] = v
-	}
+	msg.data.MetaData = metaData
+	msg.orig.MetaData = metaData.Clone()
 
 	cons.enqueueMessage(msg)
 }
