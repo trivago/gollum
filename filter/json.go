@@ -28,14 +28,14 @@ import (
 // testing of every message passing through it.
 // Configuration example
 //
-//  - "stream.Broadcast":
-//    Filter: "filter.JSON"
-//    FilterReject:
-//      "command" : "state\d\..*"
-//    FilterAccept:
-//      "args/results[0]value" : "true"
-//      "args/results[1]" : "true"
-//      "command" : "state\d\..*"
+//  - filter.JSON:
+//    	Reject:
+//        "command" : "state\d\..*"
+//    	Accept:
+//        "args/results[0]value" : "true"
+//        "args/results[1]" : "true"
+//        "command" : "state\d\..*"
+//    	ApplyTo: "payload" # [payload, meta:key]
 //
 // FilterReject defines fields that will cause a message to be rejected if the
 // given regular expression matches. Rejects are checked before Accepts.
@@ -48,6 +48,7 @@ type JSON struct {
 	core.SimpleFilter
 	rejectValues map[string]*regexp.Regexp
 	acceptValues map[string]*regexp.Regexp
+	getAppliedContent core.GetAppliedContent
 }
 
 func init() {
@@ -79,6 +80,8 @@ func (filter *JSON) Configure(conf core.PluginConfigReader) error {
 		}
 	}
 
+	filter.getAppliedContent = core.GetAppliedContentFunction(conf)
+
 	return conf.Errors.OrNil()
 }
 
@@ -102,7 +105,7 @@ func (filter *JSON) getValue(key string, values tcontainer.MarshalMap) (string, 
 // ApplyFilter check if all Filter wants to reject the message
 func (filter *JSON) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	values := tcontainer.NewMarshalMap()
-	if err := json.Unmarshal(msg.Data(), &values); err != nil {
+	if err := json.Unmarshal(filter.getAppliedContent(msg), &values); err != nil {
 		return core.FilterResultMessageReject, err
 	}
 
