@@ -95,7 +95,7 @@ func (filter *RegExp) setFilterByWithConf(conf core.PluginConfigReader) {
 	if parts[0] == "meta" {
 		filter.ApplyTo = APPLY_TO_METADATA
 		filter.filterValueFunc = func (msg *core.Message) string {
-			return string(msg.MetaData.GetValue(parts[1], []byte("")))
+			return string(msg.MetaData().GetValue(parts[1], []byte("")))
 		}
 
 		return

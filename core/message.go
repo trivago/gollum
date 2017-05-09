@@ -64,13 +64,6 @@ type LinkableMessageSource interface {
 	IsLinked() bool
 }
 
-// MessageData is a container for the message payload, streamID and an optional message key
-// The struct is used by Message.data for the current message data and orig for the original message data
-type MessageData struct {
-	payload  []byte
-	streamID MessageStreamID
-}
-
 // MetaData is a map for optional meta data which can set by consumers and modulators
 type MetaData map[string][]byte
 
@@ -93,6 +86,13 @@ func (meta MetaData) ResetValue(key string) {
 	delete(meta, key)
 }
 
+// MessageData is a container for the message payload, streamID and an optional message key
+// The struct is used by Message.data for the current message data and orig for the original message data
+type MessageData struct {
+	payload  []byte
+	streamID MessageStreamID
+	MetaData     MetaData
+}
 // Message is a container used for storing the internal state of messages.
 // This struct is passed between consumers and producers.
 type Message struct {
@@ -102,7 +102,6 @@ type Message struct {
 	source       MessageSource
 	timestamp    time.Time
 	sequence     uint64 //todo: check for removement
-	MetaData     MetaData
 }
 
 var (
@@ -122,14 +121,15 @@ func NewMessage(source MessageSource, data []byte, sequence uint64, streamID Mes
 		prevStreamID: streamID,
 		timestamp:    time.Now(),
 		sequence:     sequence,
-		MetaData:     MetaData{},
 	}
 
 	message.data.payload = buffer
 	message.data.streamID = streamID
+	message.data.MetaData = MetaData{}
 
 	message.orig.payload = origBuffer
 	message.orig.streamID = streamID
+	message.orig.MetaData = MetaData{}
 
 	return message
 }
@@ -153,14 +153,15 @@ func NewMessageWithSize(source MessageSource, dataSize int, sequence uint64, str
 		prevStreamID: streamID,
 		timestamp:    time.Now(),
 		sequence:     sequence,
-		MetaData:     MetaData{},
 	}
 
 	message.data.payload = buffer
 	message.data.streamID = streamID
+	message.data.MetaData = MetaData{}
 
 	message.orig.payload = origBuffer
 	message.orig.streamID = streamID
+	message.orig.MetaData = MetaData{}
 
 	return message
 }
@@ -225,6 +226,11 @@ func (msg *Message) Len() int {
 // Cap returns the capacity of the current data buffer
 func (msg *Message) Cap() int {
 	return cap(msg.data.payload)
+}
+
+// MetaData returns the current MetaData
+func (msg *Message) MetaData() *MetaData {
+	return &msg.data.MetaData
 }
 
 // Store copies data into the hold data buffer. If the buffer can hold data
@@ -303,7 +309,7 @@ func (msg Message) Serialize() ([]byte, error) {
 		Timestamp:    proto.Int64(msg.timestamp.UnixNano()),
 		Sequence:     proto.Uint64(msg.sequence),
 		Data:         msg.data.payload,
-		MetaData:     msg.MetaData,
+		MetaData:     msg.data.MetaData,
 	}
 
 	return proto.Marshal(serializable)
@@ -322,11 +328,18 @@ func DeserializeMessage(data []byte) (Message, error) {
 	}
 
 	msg.data.streamID = MessageStreamID(serializable.GetStreamID())
-	msg.data.payload = serializable.GetData()
-	msg.MetaData = serializable.GetMetaData()
-
-	copy(msg.orig.payload, msg.data.payload)
 	msg.orig.streamID = msg.data.streamID
+
+	msg.data.payload = serializable.GetData()
+	copy(msg.orig.payload, msg.data.payload)
+
+	msg.data.MetaData = serializable.GetMetaData()
+	msg.orig.MetaData = MetaData{}
+
+	// copy msg.data.MetaData to msg.orig.MetaData
+	for k,v := range msg.data.MetaData {
+		msg.orig.MetaData[k] = v
+	}
 
 	return msg, err
 }
