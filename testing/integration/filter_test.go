@@ -23,22 +23,30 @@ func TestRegexpFilter(t *testing.T) {
 	expect.NoError(err)
 	expect.True(strings.Contains(out.String(), "(startup)"))
 
-	// get results from file targets
+	// final expectations filter in router
 	ResultFileFilterInRouter, err := GetResultFile(TmpTestFilePathFoo)
 	expect.NoError(err)
 
-	ResultFileFilterInProducer, err := GetResultFile(TmpTestFilePathBar)
-	expect.NoError(err)
-
-	// final expectations filter in router
 	expect.True(strings.Contains(ResultFileFilterInRouter.content, "abc"))
 	expect.False(strings.Contains(ResultFileFilterInRouter.content, "123"))
 	expect.True(strings.Contains(ResultFileFilterInRouter.content, "def"))
 	expect.Equal(2, ResultFileFilterInRouter.lines)
 
 	// final expectations filter in producer
+	ResultFileFilterInProducer, err := GetResultFile(TmpTestFilePathBar)
+	expect.NoError(err)
+
 	expect.True(strings.Contains(ResultFileFilterInProducer.content, "abc"))
 	expect.False(strings.Contains(ResultFileFilterInProducer.content, "123"))
 	expect.True(strings.Contains(ResultFileFilterInProducer.content, "def"))
 	expect.Equal(2, ResultFileFilterInProducer.lines)
+
+	// final expectations filter in meta data
+	ResultFileFilterInMetaData, err := GetResultFile(TmpTestFilePathDefault)
+	expect.NoError(err)
+
+	expect.True(strings.Contains(ResultFileFilterInMetaData.content, "abc"))
+	expect.True(strings.Contains(ResultFileFilterInMetaData.content, "123"))
+	expect.True(strings.Contains(ResultFileFilterInMetaData.content, "def"))
+	expect.Equal(3, ResultFileFilterInMetaData.lines)
 }

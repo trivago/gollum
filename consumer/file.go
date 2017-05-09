@@ -119,6 +119,17 @@ func (cons *File) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
+// Enqueue creates a new message
+func (cons *File) Enqueue(data []byte) {
+	metaData := core.MetaData{}
+
+	dir, file := filepath.Split(cons.fileName)
+	metaData.SetValue("file", []byte(file))
+	metaData.SetValue("dir", []byte(dir))
+
+	cons.EnqueueWithMetaData(data, metaData)
+}
+
 func (cons *File) storeOffset() {
 	ioutil.WriteFile(cons.offsetFileName, []byte(strconv.FormatInt(cons.seekOffset, 10)), 0644)
 }

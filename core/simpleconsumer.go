@@ -185,10 +185,20 @@ func (cons *SimpleConsumer) Enqueue(data []byte) {
 // EnqueueWithSequence works like Enqueue but allows to set a custom sequence
 // number. The internal sequence number is not incremented by this function.
 func (cons *SimpleConsumer) EnqueueWithSequence(data []byte, seq uint64) {
-	numRouters := len(cons.routers)
-	lastStreamIdx := numRouters - 1
-
 	msg := NewMessage(cons, data, seq, GetStreamID(cons.id))
+	cons.enqueueMessage(msg)
+}
+
+// EnqueueWithMetaData works like EnqueueWithSequence and allows to set meta data directly
+func (cons *SimpleConsumer) EnqueueWithMetaData(data []byte, metaData MetaData) {
+	seq := atomic.AddUint64(cons.sequence, 1)
+	msg := NewMessage(cons, data, seq, GetStreamID(cons.id))
+	msg.MetaData = metaData
+	cons.enqueueMessage(msg)
+}
+
+func (cons *SimpleConsumer) enqueueMessage(msg *Message) {
+	// Execute configured modulators
 	switch cons.modulators.Modulate(msg) {
 	case ModulateResultDiscard:
 		CountDiscardedMessage()
@@ -203,6 +213,8 @@ func (cons *SimpleConsumer) EnqueueWithSequence(data []byte, seq uint64) {
 
 	// Send message to all routers registered to this consumer
 	// Last message will not be cloned.
+	numRouters := len(cons.routers)
+	lastStreamIdx := numRouters - 1
 
 	for streamIdx := 0; streamIdx < lastStreamIdx; streamIdx++ {
 		router := cons.routers[streamIdx]
@@ -223,7 +235,7 @@ func (cons *SimpleConsumer) EnqueueWithSequence(data []byte, seq uint64) {
 }
 
 // ControlLoop listens to the control channel and triggers callbacks for these
-// messags. Upon stop control message doExit will be set to true.
+// messages. Upon stop control message doExit will be set to true.
 func (cons *SimpleConsumer) ControlLoop() {
 	cons.setState(PluginStateActive)
 	defer cons.setState(PluginStateDead)

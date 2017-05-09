@@ -88,6 +88,20 @@ func (cons *Console) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
+// Enqueue creates a new message
+func (cons *Console) Enqueue(data []byte) {
+	metaData := core.MetaData{}
+	metaData.SetValue("pipename", []byte(cons.pipeName))
+
+	cons.EnqueueWithMetaData(data, metaData)
+}
+
+// Consume listens to stdin.
+func (cons *Console) Consume(workers *sync.WaitGroup) {
+	go cons.readPipe()
+	cons.ControlLoop()
+}
+
 func (cons *Console) readPipe() {
 	if cons.pipe == nil {
 		var err error
@@ -116,10 +130,4 @@ func (cons *Console) readPipe() {
 			cons.Log.Error.Print(err)
 		}
 	}
-}
-
-// Consume listens to stdin.
-func (cons *Console) Consume(workers *sync.WaitGroup) {
-	go cons.readPipe()
-	cons.ControlLoop()
 }
