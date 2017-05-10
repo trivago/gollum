@@ -80,7 +80,7 @@ const (
 //    KeyFormatterFirst: false
 //    Servers:
 //    	- "localhost:9092"
-//    Topic:
+//    Topics:
 //      "console" : "console"
 //
 // ClientId sets the client id of this producer. By default this is "gollum".
@@ -188,7 +188,7 @@ const (
 // Servers contains the list of all kafka servers to connect to.  By default this
 // is set to contain only "localhost:9092".
 //
-// Topic maps a stream to a specific kafka topic. You can define the
+// Topics maps a stream to a specific kafka topic. You can define the
 // wildcard stream (*) here, too. If defined, all streams that do not have a
 // specific mapping will go to this topic (including _GOLLUM_).
 // If no topic mappings are set the stream names will be used as topic.
