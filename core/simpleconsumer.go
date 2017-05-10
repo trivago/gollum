@@ -204,11 +204,11 @@ func (cons *SimpleConsumer) enqueueMessage(msg *Message) {
 	// Execute configured modulators
 	switch cons.modulators.Modulate(msg) {
 	case ModulateResultDiscard:
-		CountDiscardedMessage()
+		DiscardMessage(msg)
 		return
 
 	case ModulateResultDrop:
-		if err := Route(msg, msg.GetRouter()); err != nil {
+		if err := DropMessage(msg); err != nil {
 			cons.Log.Error.Print(err)
 		}
 		return
