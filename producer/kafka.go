@@ -233,7 +233,6 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 
 	kafka.Logger = prod.Log.Note
 
-
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.clientID = conf.GetString("ClientId", "gollum")
 	prod.gracePeriod = time.Duration(conf.GetInt("GracePeriodMs", 100)) * time.Millisecond

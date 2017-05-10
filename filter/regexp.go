@@ -38,8 +38,8 @@ import (
 
 type RegExp struct {
 	core.SimpleFilter
-	exp    *regexp.Regexp
-	expNot *regexp.Regexp
+	exp               *regexp.Regexp
+	expNot            *regexp.Regexp
 	getAppliedContent core.GetAppliedContent
 }
 

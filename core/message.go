@@ -89,7 +89,7 @@ func (meta MetaData) ResetValue(key string) {
 // Clone MetaData byte values to new MetaData map
 func (meta MetaData) Clone() MetaData {
 	clone := MetaData{}
-	for k,v := range meta {
+	for k, v := range meta {
 		vCopy := make([]byte, len(v))
 		copy(vCopy, v)
 		clone[k] = vCopy
@@ -103,8 +103,9 @@ func (meta MetaData) Clone() MetaData {
 type MessageData struct {
 	payload  []byte
 	streamID MessageStreamID
-	MetaData     MetaData
+	MetaData MetaData
 }
+
 // Message is a container used for storing the internal state of messages.
 // This struct is passed between consumers and producers.
 type Message struct {

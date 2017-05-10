@@ -1,19 +1,17 @@
 package core
 
 import (
-	"github.com/trivago/tgo/ttesting"
-	"testing"
-	"reflect"
-	"time"
-	"github.com/trivago/tgo/tlog"
 	"fmt"
+	"github.com/trivago/tgo/tlog"
+	"github.com/trivago/tgo/ttesting"
+	"reflect"
+	"testing"
+	"time"
 )
-
-
 
 type mockRouterMessageHelper struct {
 	SimpleRouter
-	messageEnqued bool
+	messageEnqued   bool
 	lastMessageData string
 }
 
@@ -127,7 +125,7 @@ func TestDropMessageByRouter(t *testing.T) {
 
 	err := DropMessageByRouter(msg, &mockRouterB)
 	expect.NoError(err)
-	
+
 	expect.False(mockRouterA.messageEnqued)
 	expect.Equal("", mockRouterA.lastMessageData)
 	expect.True(mockRouterB.messageEnqued)

@@ -46,8 +46,8 @@ import (
 // Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
 type JSON struct {
 	core.SimpleFilter
-	rejectValues map[string]*regexp.Regexp
-	acceptValues map[string]*regexp.Regexp
+	rejectValues      map[string]*regexp.Regexp
+	acceptValues      map[string]*regexp.Regexp
 	getAppliedContent core.GetAppliedContent
 }
 

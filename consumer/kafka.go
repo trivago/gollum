@@ -476,7 +476,6 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 			atomic.StoreInt64(cons.offsets[partitionID], event.Offset)
 			cons.enqueueEvent(event)
 
-
 		case err := <-partCons.Errors():
 			cons.Log.Error.Print("Kafka consumer error:", err)
 			if !cons.client.Closed() {
