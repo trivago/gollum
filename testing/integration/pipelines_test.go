@@ -4,7 +4,6 @@ package integration
 
 import (
 	"github.com/trivago/tgo/ttesting"
-	"strings"
 	"testing"
 )
 
@@ -42,8 +41,9 @@ func TestPipelineDrop(t *testing.T) {
 	out, err := ExecuteGollum(TestConfigDrop, input)
 
 	expect.NoError(err)
-	expect.True(strings.Contains(out.String(), "*"))
-	expect.Equal(2, strings.Count(out.String(), "fu"))
+	expect.Contains(out.String(), "A")
+	expect.Contains(out.String(), "B")
+	expect.ContainsN(out.String(), "fu", 2)
 }
 
 func TestPipelineWildcard(t *testing.T) {
