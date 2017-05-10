@@ -37,7 +37,7 @@ func getMockRouterMessageHelper(streamName string) mockRouterMessageHelper {
 	return mockRouterMessageHelper{
 		SimpleRouter: SimpleRouter{
 			id:         streamName,
-			modulators: ModulatorArray{},
+			filters:    FilterArray{},
 			Producers:  []Producer{},
 			Timeout:    &timeout,
 			streamID:   StreamRegistry.GetStreamID(streamName),

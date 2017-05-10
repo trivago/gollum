@@ -35,11 +35,11 @@ func TestFilterAnyAllNone(t *testing.T) {
 	msg := core.NewMessage(nil, []byte{}, 0, core.InvalidStreamID)
 
 	result, err := filter.filters[0].ApplyFilter(msg)
-	expect.Equal(core.FilterResultMessageReject, result)
+	expect.Neq(core.FilterResultMessageAccept, result)
 	expect.NoError(err)
 
 	result, err = filter.ApplyFilter(msg)
-	expect.Equal(core.FilterResultMessageReject, result)
+	expect.Neq(core.FilterResultMessageAccept, result)
 	expect.NoError(err)
 }
 
@@ -65,7 +65,7 @@ func TestFilterAnyJsonRegExp(t *testing.T) {
 	msg := core.NewMessage(nil, []byte("ERROR"), 0, core.InvalidStreamID)
 
 	result, _ := filter.filters[0].ApplyFilter(msg)
-	expect.Equal(core.FilterResultMessageReject, result)
+	expect.Neq(core.FilterResultMessageAccept, result)
 
 	result, _ = filter.filters[1].ApplyFilter(msg)
 	expect.Equal(core.FilterResultMessageAccept, result)
@@ -81,7 +81,7 @@ func TestFilterAnyJsonRegExp(t *testing.T) {
 	expect.Equal(core.FilterResultMessageAccept, result)
 
 	result, _ = filter.filters[1].ApplyFilter(msg)
-	expect.Equal(core.FilterResultMessageReject, result)
+	expect.Neq(core.FilterResultMessageAccept, result)
 
 	result, _ = filter.ApplyFilter(msg)
 	expect.Equal(core.FilterResultMessageAccept, result)
@@ -90,11 +90,11 @@ func TestFilterAnyJsonRegExp(t *testing.T) {
 	msg = core.NewMessage(nil, []byte("FAIL"), 0, core.InvalidStreamID)
 
 	result, _ = filter.filters[0].ApplyFilter(msg)
-	expect.Equal(core.FilterResultMessageReject, result)
+	expect.Neq(core.FilterResultMessageAccept, result)
 
 	result, _ = filter.filters[1].ApplyFilter(msg)
-	expect.Equal(core.FilterResultMessageReject, result)
+	expect.Neq(core.FilterResultMessageAccept, result)
 
 	result, _ = filter.ApplyFilter(msg)
-	expect.Equal(core.FilterResultMessageReject, result)
+	expect.Neq(core.FilterResultMessageAccept, result)
 }

@@ -72,11 +72,11 @@ func (filter *RegExp) Configure(conf core.PluginConfigReader) error {
 // ApplyFilter check if all Filter wants to reject the message
 func (filter *RegExp) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	if filter.expNot != nil && filter.expNot.MatchString(string(filter.getAppliedContent(msg))) {
-		return core.FilterResultMessageReject, nil
+		return filter.GetFilterResultMessageReject(), nil
 	}
 
 	if filter.exp != nil && !filter.exp.MatchString(string(filter.getAppliedContent(msg))) {
-		return core.FilterResultMessageReject, nil
+		return filter.GetFilterResultMessageReject(), nil
 	}
 
 	return core.FilterResultMessageAccept, nil

@@ -18,15 +18,11 @@ import (
 	"github.com/trivago/tgo/tlog"
 )
 
-// FilterResult defines a set of results for filtering
-type FilterResult int
-
-const (
-	// FilterResultMessageReject indicates that a message is filtered and not pared along the stream
-	FilterResultMessageReject = FilterResult(iota)
-	// FilterResultMessageAccept indicates that a message can be passed along and continue
-	FilterResultMessageAccept = FilterResult(iota)
-)
+// A Filter defines an analysis step inside the message
+// A filter also have to implement the modulator interface
+type Filter interface {
+	ApplyFilter(msg *Message) (FilterResult, error)
+}
 
 // FilterArray is a type wrapper to []Filter to make array of filters
 type FilterArray []Filter
@@ -37,21 +33,14 @@ func (filters FilterArray) ApplyFilter(msg *Message) (FilterResult, error) {
 	for _, filter := range filters {
 		result, err := filter.ApplyFilter(msg)
 		if err != nil {
-			return FilterResultMessageReject, err
+			return result, err
 		}
 
-		if result == FilterResultMessageReject {
-			return FilterResultMessageReject, nil
+		if result != FilterResultMessageAccept {
+			return result, nil
 		}
 	}
 	return FilterResultMessageAccept, nil
-}
-
-// A Filter defines an analysis step inside the message
-// A filter also have to implement the modulator interface
-type Filter interface {
-	ApplyFilter(msg *Message) (FilterResult, error)
-	GetDropStreamID() MessageStreamID
 }
 
 // FilterModulator is a wrapper to provide a Filter as a Modulator
@@ -71,33 +60,22 @@ func (filterModulator *FilterModulator) Modulate(msg *Message) ModulateResult {
 	result, err := filterModulator.ApplyFilter(msg)
 	if err != nil {
 		tlog.Warning.Print("FilterModulator with error:", err)
-		return filterModulator.drop(msg)
 	}
 
-	switch result {
-	case FilterResultMessageAccept:
-		return ModulateResultContinue
-	case FilterResultMessageReject:
-		return filterModulator.drop(msg)
-	default:
-		tlog.Error.Printf("FilterModulator '%T' with unknown return value: %d",
-			filterModulator.Filter, result)
+	if result == FilterResultMessageAccept {
 		return ModulateResultContinue
 	}
+
+	newStreamID := result.GetStreamID()
+	if newStreamID == InvalidStreamID {
+		return ModulateResultDiscard
+	}
+
+	msg.SetStreamID(newStreamID)
+	return ModulateResultDrop
 }
 
 // ApplyFilter calls the Filter.ApplyFilter method
 func (filterModulator *FilterModulator) ApplyFilter(msg *Message) (FilterResult, error) {
 	return filterModulator.Filter.ApplyFilter(msg)
-}
-
-// drop set filter DropStreamID to message and returns ModulateResult
-func (filterModulator *FilterModulator) drop(msg *Message) ModulateResult {
-	// if not drop stream => discard | else drop
-	filterDropStreamID := filterModulator.Filter.GetDropStreamID()
-	if filterDropStreamID != InvalidStreamID {
-		msg.SetStreamID(filterDropStreamID)
-		return ModulateResultDrop
-	}
-	return ModulateResultDiscard
 }
