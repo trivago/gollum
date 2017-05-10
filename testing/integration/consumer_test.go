@@ -5,10 +5,10 @@ package integration
 import (
 	"github.com/trivago/tgo/ttesting"
 
-	"testing"
 	"fmt"
 	"os"
 	"strings"
+	"testing"
 	"time"
 )
 
@@ -40,7 +40,6 @@ func TestFileConsumerDefault(t *testing.T) {
 
 	out := fmt.Sprint(cmd.Stdout)
 	expect.True(strings.Contains(out, "(startup)"))
-
 
 	// get results from file targets
 	ResultFile, err := GetResultFile(TmpTestFilePathDefault)

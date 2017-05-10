@@ -56,7 +56,7 @@ func ExecuteGollum(config string, inputs []string, arg ...string) (out bytes.Buf
 	return
 }
 
-func ExecuteGollumAndGetCmd(config string, inputs []string, arg ...string) (cmd *exec.Cmd)  {
+func ExecuteGollumAndGetCmd(config string, inputs []string, arg ...string) (cmd *exec.Cmd) {
 	if config != "" {
 		arg = append(arg, "-c="+getTestConfigPath(config))
 	}
