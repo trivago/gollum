@@ -46,38 +46,39 @@ const (
 //
 // Configuration example
 //
-//  - "consumer.Kafka":
-//    Topic: "default"
-//    ClientId: "gollum"
-//    Version: "0.8.2"
-//    GroupId: ""
-//    DefaultOffset: "newest"
-//    OffsetFile: ""
-//    FolderPermissions: "0755"
-//    Ordered: true
-//    MaxOpenRequests: 5
-//    ServerTimeoutSec: 30
-//    MaxFetchSizeByte: 0
-//    MinFetchSizeByte: 1
-//    FetchTimeoutMs: 250
-//    MessageBufferCount: 256
-//    PresistTimoutMs: 5000
-//    ElectRetries: 3
-//    ElectTimeoutMs: 250
-//    MetadataRefreshMs: 10000
-//    TlsEnabled: true
-//    TlsKeyLocation: ""
-//    TlsCertificateLocation: ""
-//    TlsCaLocation: ""
-//    TlsServerName: ""
-//    TlsInsecureSkipVerify: false
-//    SaslEnabled: false
-//    SaslUsername: "gollum"
-//    SaslPassword: ""
-//    PrependKey: false
-//    KeySeparator: ":"
-//    Servers:
-//      - "localhost:9092"
+//  consumerKafka:
+//  	type: consumer.Kafka
+//    	Topic: "default"
+//    	ClientId: "gollum"
+//    	Version: "0.8.2"
+//    	GroupId: ""
+//    	DefaultOffset: "newest"
+//    	OffsetFile: ""
+//    	FolderPermissions: "0755"
+//    	Ordered: true
+//    	MaxOpenRequests: 5
+//    	ServerTimeoutSec: 30
+//    	MaxFetchSizeByte: 0
+//    	MinFetchSizeByte: 1
+//    	FetchTimeoutMs: 250
+//    	MessageBufferCount: 256
+//    	PresistTimoutMs: 5000
+//    	ElectRetries: 3
+//    	ElectTimeoutMs: 250
+//    	MetadataRefreshMs: 10000
+//    	TlsEnabled: true
+//    	TlsKeyLocation: ""
+//    	TlsCertificateLocation: ""
+//    	TlsCaLocation: ""
+//    	TlsServerName: ""
+//    	TlsInsecureSkipVerify: false
+//    	SaslEnabled: false
+//    	SaslUsername: "gollum"
+//    	SaslPassword: ""
+//    	PrependKey: false #deprecated => use meta data `key`
+//    	KeySeparator: ":"
+//    	Servers:
+//        - "localhost:9092"
 //
 // Topic defines the kafka topic to read from. By default this is set to "default".
 //
@@ -215,6 +216,10 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 	cons.offsets = make(map[int32]*int64)
 	cons.MaxPartitionID = 0
 	cons.keySeparator = []byte(conf.GetString("KeySeparator", ":"))
+
+	if conf.HasValue("PrependKey") {
+		cons.Log.Warning.Print("Deprecated config value 'PrependKey' found. Update to meta data usage 'key' in the near future.")
+	}
 	cons.prependKey = conf.GetBool("PrependKey", false)
 
 	folderFlags, err := strconv.ParseInt(conf.GetString("FolderPermissions", "0755"), 8, 32)
@@ -406,11 +411,7 @@ func (cons *Kafka) readFromGroup() {
 	for !cons.groupClient.Closed() {
 		select {
 		case event := <-consumer.Messages():
-			if cons.prependKey {
-				cons.Enqueue(cons.keyedMessage(event.Key, event.Value))
-			} else {
-				cons.Enqueue(event.Value)
-			}
+			cons.enqueueEvent(event)
 
 		case err := <-consumer.Errors():
 			defer cons.restartGroup()
@@ -473,11 +474,8 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 			}
 
 			atomic.StoreInt64(cons.offsets[partitionID], event.Offset)
-			if cons.prependKey {
-				cons.Enqueue(cons.keyedMessage(event.Key, event.Value))
-			} else {
-				cons.Enqueue(event.Value)
-			}
+			cons.enqueueEvent(event)
+
 
 		case err := <-partCons.Errors():
 			cons.Log.Error.Print("Kafka consumer error:", err)
@@ -515,11 +513,7 @@ func (cons *Kafka) readPartitions(partitions []int32) {
 			select {
 			case event := <-consumer.Messages():
 				atomic.StoreInt64(cons.offsets[partition], event.Offset)
-				if cons.prependKey {
-					cons.Enqueue(cons.keyedMessage(event.Key, event.Value))
-				} else {
-					cons.Enqueue(event.Value)
-				}
+				cons.enqueueEvent(event)
 
 			case err := <-consumer.Errors():
 				cons.Log.Error.Print("Kafka consumer error:", err)
@@ -534,6 +528,19 @@ func (cons *Kafka) readPartitions(partitions []int32) {
 				spin.Yield()
 			}
 		}
+	}
+}
+
+func (cons *Kafka) enqueueEvent(event *kafka.ConsumerMessage) {
+	metaData := core.MetaData{}
+
+	metaData.SetValue("topic", []byte(event.Topic))
+	metaData.SetValue("key", event.Key)
+
+	if cons.prependKey {
+		cons.EnqueueWithMetaData(cons.keyedMessage(event.Key, event.Value), metaData)
+	} else {
+		cons.EnqueueWithMetaData(event.Value, metaData)
 	}
 }
 
