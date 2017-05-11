@@ -81,6 +81,7 @@ const (
 //    	  - "localhost:9092"
 //      Topic:
 //        "console" : "console"
+// 	KeyMetaField: ""
 //
 // ClientId sets the client id of this producer. By default this is "gollum".
 //
@@ -91,15 +92,6 @@ const (
 //
 // Partitioner sets the distribution algorithm to use. Valid values are:
 // "Random","Roundrobin" and "Hash". By default "Roundrobin" is set.
-//
-// KeyFormatter can define a formatter that extracts the key for a kafka message
-// from the message payload. By default this is an empty string, which disables
-// this feature. A good formatter for this can be format.Identifier.
-//
-// KeyFormatterFirst can be set to true to apply the key formatter to the
-// unformatted message. By default this is set to false, so that key formatter
-// uses the message after Formatter has been applied.
-// KeyFormatter does never affect the payload of the message sent to kafka.
 //
 // FilterAfterFormat behaves like Filter but allows filters to be executed
 // after the formatter has run. By default no such filter is set.
@@ -187,6 +179,8 @@ const (
 // Servers contains the list of all kafka servers to connect to.  By default this
 // is set to contain only "localhost:9092".
 //
+// KeyMetaField set the message meta data key to get the kafka key from the meta data.
+//
 // Topic maps a stream to a specific kafka topic. You can define the
 // wildcard stream (*) here, too. If defined, all streams that do not have a
 // specific mapping will go to this topic (including _GOLLUM_).
@@ -205,6 +199,7 @@ type Kafka struct {
 	missCount       int64
 	gracePeriod     time.Duration
 	nilValueAllowed bool
+	keyMetaField	string
 }
 
 type topicHandle struct {
@@ -377,6 +372,8 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 
 	}
 
+	prod.keyMetaField = conf.GetString("KeyMetaField", "")
+
 	return conf.Errors.OrNil()
 }
 
@@ -503,7 +500,7 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 		Metadata: &msg,
 	}
 
-	kafkaKey := msg.MetaData().GetValue("key", []byte{})
+	kafkaKey := prod.getKafkaMsgKey(msg)
 	if len(kafkaKey) > 0 {
 		kafkaMsg.Key = kafka.ByteEncoder(kafkaKey)
 	}
@@ -521,6 +518,15 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 		prod.Drop(msg)
 		tgo.Metric.Inc(kafkaMetricUnresponsive + topic.name)
 	}
+}
+
+func (prod *Kafka) getKafkaMsgKey(msg *core.Message) []byte {
+	if len(prod.keyMetaField) > 0 {
+		return msg.MetaData().GetValue(prod.keyMetaField, []byte{})
+	}
+
+	return []byte{}
+
 }
 
 func (prod *Kafka) checkAllTopics() bool {
