@@ -242,8 +242,8 @@ func (msg *Message) Cap() int {
 }
 
 // MetaData returns the current MetaData
-func (msg *Message) MetaData() *MetaData {
-	return &msg.data.MetaData
+func (msg *Message) MetaData() MetaData {
+	return msg.data.MetaData
 }
 
 // Store copies data into the hold data buffer. If the buffer can hold data

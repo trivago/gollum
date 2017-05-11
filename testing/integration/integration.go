@@ -68,7 +68,7 @@ func ExecuteGollumAndGetCmd(config string, inputs []string, arg ...string) (cmd 
 	hasInputValues := len(inputs) > 0
 
 	cmd = GetGollumCmd(timeout, arg...)
-	cmd.Stdout = bytes.NewBuffer([]byte(""))
+	cmd.Stdout = bytes.NewBuffer([]byte{})
 
 	if hasInputValues {
 		stdin, err = cmd.StdinPipe()

@@ -14,7 +14,7 @@ func GetAppliedContentFunction(applyTo string) GetAppliedContent {
 
 	if parts[0] == "meta" {
 		return func(msg *Message) []byte {
-			return msg.MetaData().GetValue(parts[1], []byte(""))
+			return msg.MetaData().GetValue(parts[1], []byte{})
 		}
 	}
 

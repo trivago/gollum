@@ -134,8 +134,8 @@ func TestMessageMetaData(t *testing.T) {
 	msg.MetaData().SetValue("key1", value1)
 	msg.MetaData().SetValue("key2", value2)
 
-	result1 := msg.MetaData().GetValue("key1", []byte(""))
-	result2 := msg.MetaData().GetValue("key2", []byte(""))
+	result1 := msg.MetaData().GetValue("key1", []byte{})
+	result2 := msg.MetaData().GetValue("key2", []byte{})
 
 	expect.Equal("value string", string(result1))
 	expect.Equal("100", string(result2))
@@ -149,7 +149,7 @@ func TestMessageMetaDataReset(t *testing.T) {
 
 	msg.MetaData().SetValue("key1", value)
 
-	result1 := msg.MetaData().GetValue("key1", []byte(""))
+	result1 := msg.MetaData().GetValue("key1", []byte{})
 
 	msg.MetaData().ResetValue("key1")
 	result2 := msg.MetaData().GetValue("key1", []byte("noValue"))

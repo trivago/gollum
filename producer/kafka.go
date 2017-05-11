@@ -503,7 +503,7 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 		Metadata: &msg,
 	}
 
-	kafkaKey := msg.MetaData().GetValue("key", []byte(""))
+	kafkaKey := msg.MetaData().GetValue("key", []byte{})
 	if len(kafkaKey) > 0 {
 		kafkaMsg.Key = kafka.ByteEncoder(kafkaKey)
 	}
