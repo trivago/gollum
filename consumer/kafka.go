@@ -46,38 +46,37 @@ const (
 //
 // Configuration example
 //
-//  - "consumer.Kafka":
-//    Topic: "default"
-//    ClientId: "gollum"
-//    Version: "0.8.2"
-//    GroupId: ""
-//    DefaultOffset: "newest"
-//    OffsetFile: ""
-//    FolderPermissions: "0755"
-//    Ordered: true
-//    MaxOpenRequests: 5
-//    ServerTimeoutSec: 30
-//    MaxFetchSizeByte: 0
-//    MinFetchSizeByte: 1
-//    FetchTimeoutMs: 250
-//    MessageBufferCount: 256
-//    PresistTimoutMs: 5000
-//    ElectRetries: 3
-//    ElectTimeoutMs: 250
-//    MetadataRefreshMs: 10000
-//    TlsEnabled: true
-//    TlsKeyLocation: ""
-//    TlsCertificateLocation: ""
-//    TlsCaLocation: ""
-//    TlsServerName: ""
-//    TlsInsecureSkipVerify: false
-//    SaslEnabled: false
-//    SaslUsername: "gollum"
-//    SaslPassword: ""
-//    PrependKey: false
-//    KeySeparator: ":"
-//    Servers:
-//      - "localhost:9092"
+//  consumerKafka:
+//  	type: consumer.Kafka
+//    	Topic: "default"
+//    	ClientId: "gollum"
+//    	Version: "0.8.2"
+//    	GroupId: ""
+//    	DefaultOffset: "newest"
+//    	OffsetFile: ""
+//    	FolderPermissions: "0755"
+//    	Ordered: true
+//    	MaxOpenRequests: 5
+//    	ServerTimeoutSec: 30
+//    	MaxFetchSizeByte: 0
+//    	MinFetchSizeByte: 1
+//    	FetchTimeoutMs: 250
+//    	MessageBufferCount: 256
+//    	PresistTimoutMs: 5000
+//    	ElectRetries: 3
+//    	ElectTimeoutMs: 250
+//    	MetadataRefreshMs: 10000
+//    	TlsEnabled: true
+//    	TlsKeyLocation: ""
+//    	TlsCertificateLocation: ""
+//    	TlsCaLocation: ""
+//    	TlsServerName: ""
+//    	TlsInsecureSkipVerify: false
+//    	SaslEnabled: false
+//    	SaslUsername: "gollum"
+//    	SaslPassword: ""
+//    	Servers:
+//        - "localhost:9092"
 //
 // Topic defines the kafka topic to read from. By default this is set to "default".
 //
@@ -108,13 +107,6 @@ const (
 // Ordered can be set to enforce partitions to be read one-by-one in a round robin
 // fashion instead of reading in parallel from all partitions.
 // Set to false by default. Ignored when using GroupId.
-//
-// PrependKey can be enabled to prefix the read message with the key from the
-// kafka message. A separator will ba appended to the key. See KeySeparator.
-// By default this is option set to false.
-//
-// KeySeparator defines the separator that is appended to the kafka message key
-// if PrependKey is set to true. Set to ":" by default.
 //
 // MaxOpenRequests defines the number of simultaneous connections are allowed.
 // By default this is set to 5.
@@ -193,8 +185,6 @@ type Kafka struct {
 	MaxPartitionID    int32
 	persistTimeout    time.Duration
 	orderedRead       bool
-	prependKey        bool
-	keySeparator      []byte
 	folderPermissions os.FileMode
 }
 
@@ -214,8 +204,6 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 	cons.orderedRead = conf.GetBool("Ordered", false)
 	cons.offsets = make(map[int32]*int64)
 	cons.MaxPartitionID = 0
-	cons.keySeparator = []byte(conf.GetString("KeySeparator", ":"))
-	cons.prependKey = conf.GetBool("PrependKey", false)
 
 	folderFlags, err := strconv.ParseInt(conf.GetString("FolderPermissions", "0755"), 8, 32)
 	cons.folderPermissions = os.FileMode(folderFlags)
@@ -374,14 +362,6 @@ func (cons *Kafka) restartGroup() {
 	cons.readFromGroup()
 }
 
-func (cons *Kafka) keyedMessage(key []byte, value []byte) []byte {
-	buffer := make([]byte, len(key)+len(cons.keySeparator)+len(value))
-	offset := copy(buffer, key)
-	offset += copy(buffer[offset:], cons.keySeparator)
-	copy(buffer[offset:], value)
-	return buffer
-}
-
 // Main fetch loop for kafka events
 func (cons *Kafka) readFromGroup() {
 	consumer, err := cluster.NewConsumerFromClient(cons.groupClient, cons.group, []string{cons.topic})
@@ -406,11 +386,7 @@ func (cons *Kafka) readFromGroup() {
 	for !cons.groupClient.Closed() {
 		select {
 		case event := <-consumer.Messages():
-			if cons.prependKey {
-				cons.Enqueue(cons.keyedMessage(event.Key, event.Value))
-			} else {
-				cons.Enqueue(event.Value)
-			}
+			cons.enqueueEvent(event)
 
 		case err := <-consumer.Errors():
 			defer cons.restartGroup()
@@ -473,11 +449,7 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 			}
 
 			atomic.StoreInt64(cons.offsets[partitionID], event.Offset)
-			if cons.prependKey {
-				cons.Enqueue(cons.keyedMessage(event.Key, event.Value))
-			} else {
-				cons.Enqueue(event.Value)
-			}
+			cons.enqueueEvent(event)
 
 		case err := <-partCons.Errors():
 			cons.Log.Error.Print("Kafka consumer error:", err)
@@ -515,11 +487,7 @@ func (cons *Kafka) readPartitions(partitions []int32) {
 			select {
 			case event := <-consumer.Messages():
 				atomic.StoreInt64(cons.offsets[partition], event.Offset)
-				if cons.prependKey {
-					cons.Enqueue(cons.keyedMessage(event.Key, event.Value))
-				} else {
-					cons.Enqueue(event.Value)
-				}
+				cons.enqueueEvent(event)
 
 			case err := <-consumer.Errors():
 				cons.Log.Error.Print("Kafka consumer error:", err)
@@ -535,6 +503,15 @@ func (cons *Kafka) readPartitions(partitions []int32) {
 			}
 		}
 	}
+}
+
+func (cons *Kafka) enqueueEvent(event *kafka.ConsumerMessage) {
+	metaData := core.MetaData{}
+
+	metaData.SetValue("topic", []byte(event.Topic))
+	metaData.SetValue("key", event.Key)
+
+	cons.EnqueueWithMetaData(event.Value, metaData)
 }
 
 func (cons *Kafka) startReadTopic(topic string) {

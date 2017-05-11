@@ -54,7 +54,7 @@ const (
 // (e.g. when a pipe is closed). This is set to false by default.
 type Console struct {
 	core.SimpleConsumer
-	autoexit bool
+	autoExit bool
 	pipe     *os.File
 	pipeName string
 	pipePerm uint32
@@ -67,7 +67,7 @@ func init() {
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Console) Configure(conf core.PluginConfigReader) error {
 	cons.SimpleConsumer.Configure(conf)
-	cons.autoexit = conf.GetBool("ExitOnEOF", false)
+	cons.autoExit = conf.GetBool("ExitOnEOF", false)
 	inputConsole := conf.GetString("Console", "stdin")
 
 	switch strings.ToLower(inputConsole) {
@@ -88,6 +88,20 @@ func (cons *Console) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
+// Enqueue creates a new message
+func (cons *Console) Enqueue(data []byte) {
+	metaData := core.MetaData{}
+	metaData.SetValue("pipename", []byte(cons.pipeName))
+
+	cons.EnqueueWithMetaData(data, metaData)
+}
+
+// Consume listens to stdin.
+func (cons *Console) Consume(workers *sync.WaitGroup) {
+	go cons.readPipe()
+	cons.ControlLoop()
+}
+
 func (cons *Console) readPipe() {
 	if cons.pipe == nil {
 		var err error
@@ -105,7 +119,7 @@ func (cons *Console) readPipe() {
 		err := buffer.ReadAll(cons.pipe, cons.Enqueue)
 		switch err {
 		case io.EOF:
-			if cons.autoexit {
+			if cons.autoExit {
 				cons.Log.Note.Print("Exit triggered by EOF.")
 				tgo.ShutdownCallback()
 			}
@@ -116,10 +130,4 @@ func (cons *Console) readPipe() {
 			cons.Log.Error.Print(err)
 		}
 	}
-}
-
-// Consume listens to stdin.
-func (cons *Console) Consume(workers *sync.WaitGroup) {
-	go cons.readPipe()
-	cons.ControlLoop()
 }

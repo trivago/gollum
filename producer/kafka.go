@@ -46,42 +46,42 @@ const (
 //
 // Configuration example
 //
-//  - "producer.Kafka":
-//    ClientId: "gollum"
-//    Version: "0.8.2"
-//    Partitioner: "Roundrobin"
-//    RequiredAcks: 1
-//    TimeoutMs: 1500
-//    GracePeriodMs: 10
-//    SendRetries: 0
-//    Compression: "None"
-//    MaxOpenRequests: 5
-//    MessageBufferCount: 256
-//    BatchMinCount: 1
-//    BatchMaxCount: 0
-//    BatchSizeByte: 8192
-//    BatchSizeMaxKB: 1024
-//    BatchTimeoutMs: 3000
-//    ServerTimeoutSec: 30
-//    SendTimeoutMs: 250
-//    ElectRetries: 3
-//    ElectTimeoutMs: 250
-//    MetadataRefreshMs: 10000
-//    TlsEnabled: true
-//    TlsKeyLocation: ""
-//    TlsCertificateLocation: ""
-//    TlsCaLocation: ""
-//    TlsServerName: ""
-//    TlsInsecureSkipVerify: false
-//    SaslEnabled: false
-//    SaslUsername: "gollum"
-//    SaslPassword: ""
-//    KeyFormatter: ""
-//    KeyFormatterFirst: false
-//    Servers:
-//    	- "localhost:9092"
-//    Topic:
-//      "console" : "console"
+//   producerKafka:
+//   	type: producer.Kafka
+//      ClientId: "gollum"
+//      Version: "0.8.2"
+//      Partitioner: "Roundrobin"
+//      RequiredAcks: 1
+//      TimeoutMs: 1500
+//      GracePeriodMs: 10
+//      SendRetries: 0
+//      Compression: "None"
+//      MaxOpenRequests: 5
+//      MessageBufferCount: 256
+//      BatchMinCount: 1
+//      BatchMaxCount: 0
+//      BatchSizeByte: 8192
+//      BatchSizeMaxKB: 1024
+//      BatchTimeoutMs: 3000
+//      ServerTimeoutSec: 30
+//      SendTimeoutMs: 250
+//      ElectRetries: 3
+//      ElectTimeoutMs: 250
+//      MetadataRefreshMs: 10000
+//      TlsEnabled: true
+//      TlsKeyLocation: ""
+//      TlsCertificateLocation: ""
+//      TlsCaLocation: ""
+//      TlsServerName: ""
+//      TlsInsecureSkipVerify: false
+//      SaslEnabled: false
+//      SaslUsername: "gollum"
+//      SaslPassword: ""
+//      Servers:
+//    	  - "localhost:9092"
+//      Topic:
+//        "console" : "console"
+// 	KeyMetaField: ""
 //
 // ClientId sets the client id of this producer. By default this is "gollum".
 //
@@ -92,15 +92,6 @@ const (
 //
 // Partitioner sets the distribution algorithm to use. Valid values are:
 // "Random","Roundrobin" and "Hash". By default "Roundrobin" is set.
-//
-// KeyFormatter can define a formatter that extracts the key for a kafka message
-// from the message payload. By default this is an empty string, which disables
-// this feature. A good formatter for this can be format.Identifier.
-//
-// KeyFormatterFirst can be set to true to apply the key formatter to the
-// unformatted message. By default this is set to false, so that key formatter
-// uses the message after Formatter has been applied.
-// KeyFormatter does never affect the payload of the message sent to kafka.
 //
 // FilterAfterFormat behaves like Filter but allows filters to be executed
 // after the formatter has run. By default no such filter is set.
@@ -188,6 +179,8 @@ const (
 // Servers contains the list of all kafka servers to connect to.  By default this
 // is set to contain only "localhost:9092".
 //
+// KeyMetaField set the message meta data key to get the kafka key from the meta data.
+//
 // Topic maps a stream to a specific kafka topic. You can define the
 // wildcard stream (*) here, too. If defined, all streams that do not have a
 // specific mapping will go to this topic (including _GOLLUM_).
@@ -205,9 +198,8 @@ type Kafka struct {
 	producer        kafka.AsyncProducer
 	missCount       int64
 	gracePeriod     time.Duration
-	keyModulators   core.ModulatorArray
-	keyFirst        bool
 	nilValueAllowed bool
+	keyMetaField    string
 }
 
 type topicHandle struct {
@@ -235,7 +227,6 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 	prod.SetStopCallback(prod.close)
 
 	kafka.Logger = prod.Log.Note
-	prod.keyModulators = conf.GetModulatorArray("KeyModulators", prod.Log, core.ModulatorArray{})
 
 	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	prod.clientID = conf.GetString("ClientId", "gollum")
@@ -244,7 +235,6 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 	prod.streamToTopic = conf.GetStreamMap("Topics", "")
 	prod.topic = make(map[core.MessageStreamID]*topicHandle)
 	prod.topicHandles = make(map[string]*topicHandle)
-	prod.keyFirst = conf.GetBool("KeyFormatterFirst", false)
 
 	prod.config = kafka.NewConfig()
 	prod.config.ClientID = conf.GetString("ClientId", "gollum")
@@ -382,6 +372,8 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 
 	}
 
+	prod.keyMetaField = conf.GetString("KeyMetaField", "")
+
 	return conf.Errors.OrNil()
 }
 
@@ -471,8 +463,6 @@ func (prod *Kafka) registerNewTopic(topicName string, streamID core.MessageStrea
 }
 
 func (prod *Kafka) produceMessage(msg *core.Message) {
-	originalMsg := msg.Clone()
-
 	if !prod.nilValueAllowed && msg.Len() == 0 {
 		streamName := core.StreamRegistry.GetStreamName(msg.StreamID())
 		prod.Log.Error.Printf("0 byte message detected on %s. Discarded", streamName)
@@ -496,7 +486,7 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	}
 
 	if isConnected, err := prod.isConnected(topic.name); !isConnected {
-		prod.Drop(originalMsg)
+		prod.Drop(msg)
 		if err != nil {
 			prod.Log.Error.Printf("%s is not connected: %s", topic.name, err.Error())
 		}
@@ -507,15 +497,12 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	kafkaMsg := &kafka.ProducerMessage{
 		Topic:    topic.name,
 		Value:    kafka.ByteEncoder(msg.Data()),
-		Metadata: &originalMsg,
+		Metadata: &msg,
 	}
 
-	if prod.keyFirst {
-		keyMsg := originalMsg.Clone()
-		kafkaMsg.Key = kafka.ByteEncoder(keyMsg.Data())
-	} else {
-		keyMsg := msg.Clone()
-		kafkaMsg.Key = kafka.ByteEncoder(keyMsg.Data())
+	kafkaKey := prod.getKafkaMsgKey(msg)
+	if len(kafkaKey) > 0 {
+		kafkaMsg.Key = kafka.ByteEncoder(kafkaKey)
 	}
 
 	// Sarama can block on single messages if all buffers are full.
@@ -528,9 +515,18 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 
 	case <-timeout.C:
 		// Sarama channels are full -> drop
-		prod.Drop(originalMsg)
+		prod.Drop(msg)
 		tgo.Metric.Inc(kafkaMetricUnresponsive + topic.name)
 	}
+}
+
+func (prod *Kafka) getKafkaMsgKey(msg *core.Message) []byte {
+	if len(prod.keyMetaField) > 0 {
+		return msg.MetaData().GetValue(prod.keyMetaField, []byte{})
+	}
+
+	return []byte{}
+
 }
 
 func (prod *Kafka) checkAllTopics() bool {

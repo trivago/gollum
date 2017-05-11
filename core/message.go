@@ -64,12 +64,46 @@ type LinkableMessageSource interface {
 	IsLinked() bool
 }
 
+// MetaData is a map for optional meta data which can set by consumers and modulators
+type MetaData map[string][]byte
+
+// SetValue set a key value pair at meta data
+func (meta MetaData) SetValue(key string, value []byte) {
+	meta[key] = value
+}
+
+// GetValue returns a meta data value by key
+func (meta MetaData) GetValue(key string, defaultValue []byte) []byte {
+	if value, isSet := meta[key]; isSet {
+		return value
+	}
+
+	return defaultValue
+}
+
+// ResetValue delete a meta data value by key
+func (meta MetaData) ResetValue(key string) {
+	delete(meta, key)
+}
+
+// Clone MetaData byte values to new MetaData map
+func (meta MetaData) Clone() MetaData {
+	clone := MetaData{}
+	for k, v := range meta {
+		vCopy := make([]byte, len(v))
+		copy(vCopy, v)
+		clone[k] = vCopy
+	}
+
+	return clone
+}
+
 // MessageData is a container for the message payload, streamID and an optional message key
 // The struct is used by Message.data for the current message data and orig for the original message data
 type MessageData struct {
-	key      []byte
 	payload  []byte
 	streamID MessageStreamID
+	MetaData MetaData
 }
 
 // Message is a container used for storing the internal state of messages.
@@ -104,9 +138,11 @@ func NewMessage(source MessageSource, data []byte, sequence uint64, streamID Mes
 
 	message.data.payload = buffer
 	message.data.streamID = streamID
+	message.data.MetaData = MetaData{}
 
 	message.orig.payload = origBuffer
 	message.orig.streamID = streamID
+	message.orig.MetaData = MetaData{}
 
 	return message
 }
@@ -134,9 +170,11 @@ func NewMessageWithSize(source MessageSource, dataSize int, sequence uint64, str
 
 	message.data.payload = buffer
 	message.data.streamID = streamID
+	message.data.MetaData = MetaData{}
 
 	message.orig.payload = origBuffer
 	message.orig.streamID = streamID
+	message.orig.MetaData = MetaData{}
 
 	return message
 }
@@ -201,6 +239,11 @@ func (msg *Message) Len() int {
 // Cap returns the capacity of the current data buffer
 func (msg *Message) Cap() int {
 	return cap(msg.data.payload)
+}
+
+// MetaData returns the current MetaData
+func (msg *Message) MetaData() MetaData {
+	return msg.data.MetaData
 }
 
 // Store copies data into the hold data buffer. If the buffer can hold data
@@ -272,7 +315,6 @@ func (msg *Message) CloneOriginal() *Message {
 
 // Serialize generates a string containing all data that can be preserved over
 // shutdown (i.e. no data directly referencing runtime components).
-// todo: update SerializedMessage to handle orig MessageData?
 func (msg Message) Serialize() ([]byte, error) {
 	serializable := &SerializedMessage{
 		StreamID:     proto.Uint64(uint64(msg.data.streamID)),
@@ -280,6 +322,7 @@ func (msg Message) Serialize() ([]byte, error) {
 		Timestamp:    proto.Int64(msg.timestamp.UnixNano()),
 		Sequence:     proto.Uint64(msg.sequence),
 		Data:         msg.data.payload,
+		MetaData:     msg.data.MetaData,
 	}
 
 	return proto.Marshal(serializable)
@@ -298,10 +341,13 @@ func DeserializeMessage(data []byte) (Message, error) {
 	}
 
 	msg.data.streamID = MessageStreamID(serializable.GetStreamID())
-	msg.data.payload = serializable.GetData()
-
-	copy(msg.orig.payload, msg.data.payload)
 	msg.orig.streamID = msg.data.streamID
+
+	msg.data.payload = serializable.GetData()
+	copy(msg.orig.payload, msg.data.payload)
+
+	msg.data.MetaData = serializable.GetMetaData()
+	msg.orig.MetaData = msg.data.MetaData.Clone()
 
 	return msg, err
 }

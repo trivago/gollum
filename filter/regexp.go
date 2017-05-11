@@ -23,10 +23,10 @@ import (
 // This plugin allows filtering messages using regular expressions.
 // Configuration example
 //
-//  - "stream.Broadcast":
-//    Filter: "filter.RegExp"
-//    FilterExpression: "\d+-.*"
-//    FilterExpressionNot: "\d+-.*"
+//  - filter.RegExp:
+//  	Expression: "\d+-.*"
+//	ExpressionNot: "\d+-.*"
+//	ApplyTo: "payload" # [payload, meta:key]
 //
 // FilterExpression defines the regular expression used for matching the message
 // payload. If the expression matches, the message is passed.
@@ -35,10 +35,12 @@ import (
 // FilterExpressionNot defines a negated regular expression used for matching
 // the message payload. If the expression matches, the message is blocked.
 // FilterExpressionNot is evaluated before FilterExpression.
+
 type RegExp struct {
 	core.SimpleFilter
-	exp    *regexp.Regexp
-	expNot *regexp.Regexp
+	exp               *regexp.Regexp
+	expNot            *regexp.Regexp
+	getAppliedContent core.GetAppliedContent
 }
 
 func init() {
@@ -62,16 +64,18 @@ func (filter *RegExp) Configure(conf core.PluginConfigReader) error {
 		conf.Errors.Push(err)
 	}
 
+	filter.getAppliedContent = core.GetAppliedContentFunction(conf.GetString("ApplyTo", ""))
+
 	return conf.Errors.OrNil()
 }
 
 // ApplyFilter check if all Filter wants to reject the message
 func (filter *RegExp) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
-	if filter.expNot != nil && filter.expNot.MatchString(string(msg.Data())) {
+	if filter.expNot != nil && filter.expNot.MatchString(string(filter.getAppliedContent(msg))) {
 		return filter.GetFilterResultMessageReject(), nil
 	}
 
-	if filter.exp != nil && !filter.exp.MatchString(string(msg.Data())) {
+	if filter.exp != nil && !filter.exp.MatchString(string(filter.getAppliedContent(msg))) {
 		return filter.GetFilterResultMessageReject(), nil
 	}
 

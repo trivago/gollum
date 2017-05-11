@@ -41,7 +41,7 @@ func Route(msg *Message, router Router) error {
 
 	switch action {
 	case ModulateResultDiscard:
-		CountDiscardedMessage()
+		DiscardMessage(msg)
 		return nil
 
 	case ModulateResultContinue:
@@ -54,7 +54,7 @@ func Route(msg *Message, router Router) error {
 			return NewModulateResultError("Routing loop detected for router %s (from %s)", streamName, prevStreamName)
 		}
 
-		return Route(msg, msg.GetRouter())
+		return DropMessage(msg)
 	}
 
 	return NewModulateResultError("Unknown ModulateResult action: %d", action)
