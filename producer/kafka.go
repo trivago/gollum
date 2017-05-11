@@ -199,7 +199,7 @@ type Kafka struct {
 	missCount       int64
 	gracePeriod     time.Duration
 	nilValueAllowed bool
-	keyMetaField	string
+	keyMetaField    string
 }
 
 type topicHandle struct {

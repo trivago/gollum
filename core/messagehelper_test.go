@@ -36,12 +36,12 @@ func getMockRouterMessageHelper(streamName string) mockRouterMessageHelper {
 	timeout := time.Second
 	return mockRouterMessageHelper{
 		SimpleRouter: SimpleRouter{
-			id:         streamName,
-			filters:    FilterArray{},
-			Producers:  []Producer{},
-			Timeout:    &timeout,
-			streamID:   StreamRegistry.GetStreamID(streamName),
-			Log:        tlog.NewLogScope("testStreamLogScope"),
+			id:        streamName,
+			filters:   FilterArray{},
+			Producers: []Producer{},
+			Timeout:   &timeout,
+			streamID:  StreamRegistry.GetStreamID(streamName),
+			Log:       tlog.NewLogScope("testStreamLogScope"),
 		},
 	}
 }
