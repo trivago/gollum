@@ -9,8 +9,8 @@ import (
 type GetAppliedContent func(msg *Message) []byte
 
 // GetAppliedContentFunction returns a GetAppliedContent function
-func GetAppliedContentFunction(conf PluginConfigReader) GetAppliedContent {
-	parts := strings.Split(conf.GetString("ApplyTo", ""), ":")
+func GetAppliedContentFunction(applyTo string) GetAppliedContent {
+	parts := strings.Split(applyTo, ":")
 
 	if parts[0] == "meta" {
 		return func(msg *Message) []byte {

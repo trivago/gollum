@@ -80,7 +80,7 @@ func (filter *JSON) Configure(conf core.PluginConfigReader) error {
 		}
 	}
 
-	filter.getAppliedContent = core.GetAppliedContentFunction(conf)
+	filter.getAppliedContent = core.GetAppliedContentFunction(conf.GetString("ApplyTo", ""))
 
 	return conf.Errors.OrNil()
 }

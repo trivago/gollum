@@ -48,14 +48,14 @@ func getMockRouterMessageHelper(streamName string) mockRouterMessageHelper {
 
 func TestGetAppliedContentFunction(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	resultFunc := getAppliedContentFunction("payload")
+	resultFunc := GetAppliedContentFunction("payload")
 
 	expect.Equal(reflect.Func, reflect.TypeOf(resultFunc).Kind())
 }
 
 func TestGetAppliedContentFromPayload(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	resultFunc := getAppliedContentFunction("payload")
+	resultFunc := GetAppliedContentFunction("payload")
 	msg := NewMessage(nil, []byte("message payload"), 1, 1)
 
 	expect.Equal("message payload", string(resultFunc(msg)))
@@ -63,20 +63,11 @@ func TestGetAppliedContentFromPayload(t *testing.T) {
 
 func TestGetAppliedContentFromMetaData(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	resultFunc := getAppliedContentFunction("meta:foo")
+	resultFunc := GetAppliedContentFunction("meta:foo")
 	msg := NewMessage(nil, []byte("message payload"), 1, 1)
 	msg.MetaData().SetValue("foo", []byte("foo content"))
 
 	expect.Equal("foo content", string(resultFunc(msg)))
-}
-
-func getAppliedContentFunction(applyTo string) GetAppliedContent {
-	mockConf := NewPluginConfig("", "mockPlugin")
-	mockConf.Override("ApplyTo", applyTo)
-
-	conf := NewPluginConfigReader(&mockConf)
-
-	return GetAppliedContentFunction(conf)
 }
 
 func TestDropMessage(t *testing.T) {
