@@ -2,6 +2,7 @@ package core
 
 import (
 	"strings"
+	"github.com/trivago/tgo/tlog"
 )
 
 // GetAppliedContent is a func() to get message content from payload or meta data
@@ -31,7 +32,13 @@ func DropMessage(msg *Message) error {
 // DropMessageByRouter restore the original message and "drops" they to specific router
 func DropMessageByRouter(msg *Message, router Router) error {
 	CountDroppedMessage()
-	return Route(msg.CloneOriginal(), router)
+	err := Route(msg.CloneOriginal(), router)
+	if err != nil {
+		tlog.Error.Printf("DropMessage error: Can't route message by '%T': %s",router, err.Error())
+
+	}
+
+	return err
 }
 
 // DiscardMessage count the discard statistic and stop msg handling
