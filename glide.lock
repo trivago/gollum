@@ -1,5 +1,5 @@
 hash: 62f85e10fc530e080fdcd8dabddff12f8ae05fb8d1ec1745c48cfbd0b50e8c4f
-updated: 2017-05-04T13:37:48.759311429+02:00
+updated: 2017-05-10T14:41:51.117118+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -77,7 +77,7 @@ imports:
   - internal/pool
   - internal/proto
 - name: github.com/golang/protobuf
-  version: 18c9bb3261723cd5401db4d0c9fbc5c3b6c70fe8
+  version: b50ceb1fa9818fa4d78b016c2d4ae025593a7ce3
   subpackages:
   - proto
 - name: github.com/golang/snappy
@@ -101,7 +101,7 @@ imports:
 - name: github.com/mssola/user_agent
   version: 07efe2b857fb8c02d2dd85c12d0145f58554ec7c
 - name: github.com/oschwald/maxminddb-golang
-  version: f6c93ffae8caa8c38fb52468c7af9006d7baeb8e
+  version: d19f6d453e836d12ee8fe895d0494421e93ef8c1
 - name: github.com/pierrec/lz4
   version: f5b77fd73d83122495309c0f459b810f83cc291f
 - name: github.com/pierrec/xxHash
@@ -117,7 +117,7 @@ imports:
 - name: github.com/Shopify/sarama
   version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
 - name: github.com/trivago/tgo
-  version: bb2a4435a07d5337d8f38ee95923f81cf66fba10
+  version: 1192e5a9a334564826b3184866db72284b7437ce
   subpackages:
   - tcontainer
   - terrors
@@ -133,7 +133,7 @@ imports:
   - tsync
   - ttesting
 - name: golang.org/x/crypto
-  version: 04eae0b62feaaf659a0ce2c4e8dc70b6ae2fff67
+  version: 122d919ec1efcfb58483215da23f815853e24b81
   subpackages:
   - bcrypt
   - blowfish

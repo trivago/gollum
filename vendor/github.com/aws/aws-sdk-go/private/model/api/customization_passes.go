@@ -17,11 +17,11 @@ type service struct {
 }
 
 var mergeServices = map[string]service{
-	"dynamodbstreams": {
+	"dynamodbstreams": service{
 		dstName: "dynamodb",
 		srcName: "streams.dynamodb",
 	},
-	"wafregional": {
+	"wafregional": service{
 		dstName:        "waf",
 		srcName:        "waf-regional",
 		serviceVersion: "2015-08-24",
@@ -41,7 +41,7 @@ func (a *API) customizationPasses() {
 		"iotdataplane":      disableEndpointResolving,
 	}
 
-	for k := range mergeServices {
+	for k, _ := range mergeServices {
 		svcCustomizations[k] = mergeServicesCustomizations
 	}
 
