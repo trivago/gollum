@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/ttesting"
 	"reflect"
@@ -21,8 +20,6 @@ func (router *mockRouterMessageHelper) init() {
 }
 
 func (router *mockRouterMessageHelper) Enqueue(msg *Message) error {
-	fmt.Println("message enqued")
-	fmt.Printf("%#v\n", msg)
 	router.messageEnqued = true
 	router.lastMessageData = msg.String()
 	return nil
