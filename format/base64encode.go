@@ -58,11 +58,16 @@ func (format *Base64Encode) Configure(conf core.PluginConfigReader) error {
 
 // ApplyFormatter update message payload
 func (format *Base64Encode) ApplyFormatter(msg *core.Message) error {
-	encodedLen := format.dictionary.EncodedLen(msg.Len())
-	encoded := core.MessageDataPool.Get(encodedLen)
-
-	format.dictionary.Encode(encoded, msg.Data())
-	msg.Store(encoded)
+	encoded := format.getEncodedContent(format.GetAppliedContent(msg))
+	format.SetAppliedContent(msg, encoded)
 
 	return nil
+}
+
+func (format *Base64Encode) getEncodedContent(content []byte) []byte  {
+	encodedLen := format.dictionary.EncodedLen(len(content))
+	encoded := core.MessageDataPool.Get(encodedLen)
+
+	format.dictionary.Encode(encoded, content)
+	return encoded
 }

@@ -67,3 +67,23 @@ func TestBase64DecodeApplyHandling(t *testing.T) {
 
 	expect.Equal("test", string(msg.MetaData().GetValueString("foo")))
 }
+
+func TestBase64EncodeApplyHandling(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.Base64Encode")
+	config.Override("ApplyTo", "meta:foo")
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	encoder, casted := plugin.(*Base64Encode)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte{}, 0, core.InvalidStreamID)
+	msg.MetaData().SetValue("foo", []byte("test"))
+
+	err = encoder.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("dGVzdA==", string(msg.MetaData().GetValueString("foo")))
+}
