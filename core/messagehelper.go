@@ -9,6 +9,9 @@ import (
 // for later handling by plugins
 type GetAppliedContent func(msg *Message) []byte
 
+// SetAppliedContent is a func() to store message content to payload or meta data
+type SetAppliedContent func(msg *Message, content []byte)
+
 // GetAppliedContentFunction returns a GetAppliedContent function
 func GetAppliedContentFunction(applyTo string) GetAppliedContent {
 	parts := strings.Split(applyTo, ":")
@@ -21,6 +24,23 @@ func GetAppliedContentFunction(applyTo string) GetAppliedContent {
 
 	return func(msg *Message) []byte {
 		return msg.Data()
+	}
+}
+
+// GetAppliedContentSetFunction returns SetAppliedContent function to store message content
+func GetAppliedContentSetFunction(applyTo string) SetAppliedContent {
+	parts := strings.Split(applyTo, ":")
+
+	if parts[0] == "meta" {
+		return func(msg *Message, content []byte) {
+			msg.MetaData().SetValue(parts[1], content)
+			return
+		}
+	}
+
+	return func(msg *Message, content []byte) {
+		msg.Store(content)
+		return
 	}
 }
 
