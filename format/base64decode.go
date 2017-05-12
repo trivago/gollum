@@ -25,10 +25,9 @@ import (
 // and the decoded part is returned. RFC 4648 is expected.
 // Configuration example
 //
-//  - "stream.Broadcast":
-//    Formatter: "format.Base64Decode"
-//    Base64Formatter: "format.Forward"
-//    Base64Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
+//  - format.Base64Decode:
+//      Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
+//      ApplyTo: "payload" # [payload, meta:key]
 //
 // Base64Dictionary defines the 64-character base64 lookup dictionary to use. When
 // left empty a dictionary as defined by RFC4648 is used. This is the default.
@@ -62,15 +61,24 @@ func (format *Base64Decode) Configure(conf core.PluginConfigReader) error {
 
 // ApplyFormatter execute the formatter
 func (format *Base64Decode) ApplyFormatter(msg *core.Message) error {
-	decodedLen := format.dictionary.DecodedLen(msg.Len())
-	decoded := core.MessageDataPool.Get(decodedLen)
-
-	if size, err := format.dictionary.Decode(decoded, msg.Data()); err != nil {
-		format.Log.Error.Print(err)
+	decoded, err := format.getDecodedContent(format.GetAppliedContent(msg))
+	if err != nil {
 		return err
-	} else {
-		msg.Store(decoded[:size])
 	}
 
+	format.SetAppliedContent(msg, decoded)
 	return nil
+}
+
+func (format *Base64Decode) getDecodedContent(content []byte) ([]byte, error)  {
+	decodedLen := format.dictionary.DecodedLen(len(content))
+	decoded := core.MessageDataPool.Get(decodedLen)
+
+	size, err := format.dictionary.Decode(decoded, content)
+	if err != nil {
+		format.Log.Error.Print(err)
+		return nil, err
+	}
+
+	return decoded[:size], nil
 }
