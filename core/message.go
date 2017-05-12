@@ -81,6 +81,11 @@ func (meta MetaData) GetValue(key string) []byte {
 	return []byte{}
 }
 
+// GetValueString returns the meta value by GetValue as string
+func (meta MetaData) GetValueString(key string) string {
+	return string(meta.GetValue(key))
+}
+
 // ResetValue delete a meta data value by key
 func (meta MetaData) ResetValue(key string) {
 	delete(meta, key)
