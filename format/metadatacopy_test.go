@@ -47,8 +47,8 @@ func TestMetaDataCopy(t *testing.T) {
 	}
 
 	expect.Equal("test payload", msg.String())
-	expect.True(strings.Contains(string(msg.MetaData().GetValue("foo", []byte{})), hostname))
-	expect.Equal("test payload", string(msg.MetaData().GetValue("bar", []byte{})))
+	expect.True(strings.Contains(string(msg.MetaData().GetValue("foo")), hostname))
+	expect.Equal("test payload", string(msg.MetaData().GetValue("bar")))
 }
 
 func TestMetaDataCopyApplyToHandling(t *testing.T) {
@@ -77,5 +77,5 @@ func TestMetaDataCopyApplyToHandling(t *testing.T) {
 	expect.NoError(err)
 
 	expect.Equal("test payload", msg.String())
-	expect.Equal("meta data string", string(msg.MetaData().GetValue("bar", []byte{})))
+	expect.Equal("meta data string", string(msg.MetaData().GetValue("bar")))
 }

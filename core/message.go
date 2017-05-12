@@ -73,12 +73,12 @@ func (meta MetaData) SetValue(key string, value []byte) {
 }
 
 // GetValue returns a meta data value by key
-func (meta MetaData) GetValue(key string, defaultValue []byte) []byte {
+func (meta MetaData) GetValue(key string) []byte {
 	if value, isSet := meta[key]; isSet {
 		return value
 	}
 
-	return defaultValue
+	return []byte{}
 }
 
 // ResetValue delete a meta data value by key
