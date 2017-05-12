@@ -54,9 +54,9 @@ func (filter *Any) Configure(conf core.PluginConfigReader) error {
 
 // ApplyFilter check if all Filter wants to reject the message
 func (filter *Any) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
-	for _, subfilter := range filter.filters {
+	for _, subFilter := range filter.filters {
 		// all filter need to apply the message. if one filter not apply return FilterResultMessageAccept
-		if res, _ := subfilter.ApplyFilter(msg); res == core.FilterResultMessageAccept {
+		if res, _ := subFilter.ApplyFilter(msg); res == core.FilterResultMessageAccept {
 			return core.FilterResultMessageAccept, nil
 		}
 	}
