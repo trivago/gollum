@@ -18,6 +18,7 @@ contrib_loader.go
 
 # docs
 docs/_build
+docs/generator/generator
 
 # files
 *.prof
