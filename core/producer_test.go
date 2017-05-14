@@ -187,8 +187,8 @@ func TestProducerTickerLoop(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockP := getMockProducer()
 	mockP.setState(PluginStateActive)
-	// accept timeroff by abs( 8 ms)
-	delta := float64(8 * time.Millisecond)
+	// accept timeroff by abs( 15ms)
+	delta := float64(15 * time.Millisecond)
 	counter := new(int32)
 	tickerLoopTimeout := 20 * time.Millisecond
 	var timeRecorded time.Time

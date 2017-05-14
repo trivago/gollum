@@ -320,7 +320,7 @@ func (p *ConnPool) reaper(frequency time.Duration) {
 	ticker := time.NewTicker(frequency)
 	defer ticker.Stop()
 
-	for range ticker.C {
+	for _ = range ticker.C {
 		if p.closed() {
 			break
 		}

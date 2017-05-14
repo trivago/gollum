@@ -56,6 +56,41 @@ func ExecuteGollum(config string, inputs []string, arg ...string) (out bytes.Buf
 	return
 }
 
+func ExecuteGollumAndGetCmd(config string, inputs []string, arg ...string) (cmd *exec.Cmd) {
+	if config != "" {
+		arg = append(arg, "-c="+getTestConfigPath(config))
+	}
+
+	var stdin io.WriteCloser
+	var err error
+
+	timeout := 10 * time.Second
+	hasInputValues := len(inputs) > 0
+
+	cmd = GetGollumCmd(timeout, arg...)
+	cmd.Stdout = bytes.NewBuffer([]byte{})
+
+	if hasInputValues {
+		stdin, err = cmd.StdinPipe()
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	err = cmd.Start()
+	if err != nil {
+		panic(err)
+	}
+
+	if hasInputValues {
+		for _, input := range inputs {
+			io.WriteString(stdin, input+"\n")
+		}
+	}
+
+	return cmd
+}
+
 // GetGollumCmd returns gollum Command
 func GetGollumCmd(timeout time.Duration, arg ...string) *exec.Cmd {
 	var cmd *exec.Cmd

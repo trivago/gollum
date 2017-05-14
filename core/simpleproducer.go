@@ -227,10 +227,7 @@ func (prod *SimpleProducer) Modulate(msg *Message) ModulateResult {
 
 // Drop routes the message to the configured drop stream.
 func (prod *SimpleProducer) Drop(msg *Message) {
-	CountDroppedMessage()
-
-	//Log.Debug.Print("Dropping message from ", StreamRegistry.GetStreamName(msg.StreamID))
-	Route(msg, prod.dropStream)
+	DropMessageByRouter(msg, prod.dropStream)
 }
 
 // ControlLoop listens to the control channel and triggers callbacks for these

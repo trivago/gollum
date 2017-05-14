@@ -119,6 +119,78 @@ func (e Expect) NoError(err error) bool {
 	return true
 }
 
+// Contains returns true if val1 contains val2
+func (e Expect) Contains(val1, val2 interface{}) bool {
+	val1Type := reflect.TypeOf(val1)
+	switch val1Type.Kind() {
+	case reflect.String:
+		str1 := val1.(string)
+		str2, isString := val2.(string)
+		if !isString {
+			e.errorf("Second argument to contains is no string")
+			return false
+		}
+		if !strings.Contains(str1, str2) {
+			e.errorf("Expected %s to contain %s", val1, val2)
+			return false
+		}
+		return true
+
+	case reflect.Array, reflect.Slice:
+		slice := reflect.ValueOf(val1)
+		for i := 0; i < slice.Len(); i++ {
+			item := slice.Index(i).Interface()
+			if reflect.DeepEqual(item, val2) {
+				return true
+			}
+		}
+		e.errorf("Expected %#v to contain %#v", val1, val2)
+		return false
+
+	default:
+		e.errorf("Contains expects a string or slice")
+		return false
+	}
+}
+
+// ContainsN returns true if val1 contains val2 count times
+func (e Expect) ContainsN(val1, val2 interface{}, count int) bool {
+	val1Type := reflect.TypeOf(val1)
+	switch val1Type.Kind() {
+	case reflect.String:
+		str1 := val1.(string)
+		str2, isString := val2.(string)
+		if !isString {
+			e.errorf("Second argument to contains is no string")
+			return false
+		}
+		if times := strings.Count(str1, str2); times != count {
+			e.errorf("Expected %s to contain %s %d times. Found %d occurences", val1, val2, count, times)
+			return false
+		}
+		return true
+
+	case reflect.Array, reflect.Slice:
+		slice := reflect.ValueOf(val1)
+		times := 0
+		for i := 0; i < slice.Len(); i++ {
+			item := slice.Index(i).Interface()
+			if reflect.DeepEqual(item, val2) {
+				times++
+			}
+		}
+		if times != count {
+			e.errorf("Expected %#v to contain %#v %d times. Found %d occurences", val1, val2, count, times)
+			return false
+		}
+		return true
+
+	default:
+		e.errorf("Contains expects a string or slice")
+		return false
+	}
+}
+
 // Equal does a deep equality check on both values and returns true if that test
 // yielded true (val1 == val2)
 func (e Expect) Equal(val1, val2 interface{}) bool {

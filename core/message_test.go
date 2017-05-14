@@ -123,3 +123,37 @@ func TestMessageCloneOriginal(t *testing.T) {
 	expect.Equal(msgString, string(msgClone.orig.payload))
 	expect.Equal(MessageStreamID(1), msgClone.orig.streamID)
 }
+
+func TestMessageMetaData(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	msg := NewMessage(nil, []byte("message payload"), 1, 1)
+	value1 := []byte("value string")
+	value2 := []byte("100")
+
+	msg.MetaData().SetValue("key1", value1)
+	msg.MetaData().SetValue("key2", value2)
+
+	result1 := msg.MetaData().GetValue("key1", []byte{})
+	result2 := msg.MetaData().GetValue("key2", []byte{})
+
+	expect.Equal("value string", string(result1))
+	expect.Equal("100", string(result2))
+}
+
+func TestMessageMetaDataReset(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	msg := NewMessage(nil, []byte("message payload"), 1, 1)
+	value := []byte("value string")
+
+	msg.MetaData().SetValue("key1", value)
+
+	result1 := msg.MetaData().GetValue("key1", []byte{})
+
+	msg.MetaData().ResetValue("key1")
+	result2 := msg.MetaData().GetValue("key1", []byte("noValue"))
+
+	expect.Equal("value string", string(result1))
+	expect.Equal("noValue", string(result2))
+}

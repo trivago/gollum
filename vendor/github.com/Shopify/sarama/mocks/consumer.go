@@ -244,7 +244,7 @@ func (pc *PartitionConsumer) Close() error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		for range pc.messages {
+		for _ = range pc.messages {
 			// drain
 		}
 	}()

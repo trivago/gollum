@@ -5,8 +5,8 @@ package scribe
 
 import (
 	"fmt"
-	"github.com/artyom/fb303"
 	"github.com/artyom/thrift"
+	"github.com/artyom/fb303"
 	"math"
 )
 

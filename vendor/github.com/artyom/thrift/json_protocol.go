@@ -445,6 +445,7 @@ func (p *TJSONProtocol) OutputElemListBegin(elemType TType, size int) error {
 	return nil
 }
 
+
 func (p *TJSONProtocol) ParseElemListBegin() (elemType TType, size int, e error) {
 	if isNull, e := p.ParseListBegin(); isNull || e != nil {
 		return VOID, 0, e

@@ -652,7 +652,7 @@ func (c *ClusterClient) reaper(idleCheckFrequency time.Duration) {
 	ticker := time.NewTicker(idleCheckFrequency)
 	defer ticker.Stop()
 
-	for range ticker.C {
+	for _ = range ticker.C {
 		nodes, err := c.nodes.All()
 		if err != nil {
 			break
