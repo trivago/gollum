@@ -54,8 +54,20 @@ func Route(msg *Message, router Router) error {
 			return NewModulateResultError("Routing loop detected for router %s (from %s)", streamName, prevStreamName)
 		}
 
-		return RouteOriginal(msg)
+		return RouteOriginal(msg, msg.GetRouter())
 	}
 
 	return NewModulateResultError("Unknown ModulateResult action: %d", action)
+}
+
+// RouteOriginal restores the original message and routes it by using a
+// a given router.
+func RouteOriginal(msg *Message, router Router) error {
+	return Route(msg.CloneOriginal(), router)
+}
+
+// DiscardMessage increases the discard statistic and discards the given
+// message.
+func DiscardMessage(msg *Message) {
+	CountDiscardedMessage()
 }

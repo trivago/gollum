@@ -227,7 +227,7 @@ func (prod *SimpleProducer) Modulate(msg *Message) ModulateResult {
 
 // TryFallback routes the message to the configured fallback stream.
 func (prod *SimpleProducer) TryFallback(msg *Message) {
-	RouteOriginalByRouter(msg, prod.fallbackStream)
+	RouteOriginal(msg, prod.fallbackStream)
 }
 
 // ControlLoop listens to the control channel and triggers callbacks for these

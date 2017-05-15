@@ -120,7 +120,7 @@ func (prod *BufferedProducer) Enqueue(msg *Message, timeout *time.Duration) {
 		return
 
 	case ModulateResultFallback:
-		RouteOriginal(msg)
+		RouteOriginal(msg, msg.GetRouter())
 		return
 
 	case ModulateResultContinue:
