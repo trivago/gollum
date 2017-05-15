@@ -60,7 +60,7 @@ func TestGetAppliedContentFromPayload(t *testing.T) {
 
 func TestGetAppliedContentFromMetaData(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	resultFunc := GetAppliedContentFunction("meta:foo")
+	resultFunc := GetAppliedContentFunction("foo")
 	msg := NewMessage(nil, []byte("message payload"), 1, 1)
 	msg.MetaData().SetValue("foo", []byte("foo content"))
 
