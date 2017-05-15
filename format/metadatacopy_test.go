@@ -14,12 +14,8 @@ func TestMetaDataCopy(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	// mock config
-	setupModulators, err := tcontainer.ConvertToMarshalMap(
-		map[string]interface{}{"Modulators": []string{"format.Hostname"}},
-		strings.ToLower)
-
 	setupConf, err := tcontainer.ConvertToMarshalMap(
-		map[string]interface{}{"foo": setupModulators},
+		map[string]interface{}{"foo": []string{"format.Hostname"}},
 		strings.ToLower)
 
 	config := core.NewPluginConfig("", "format.MetaDataCopy")
@@ -59,7 +55,7 @@ func TestMetaDataCopyApplyToHandling(t *testing.T) {
 	config.Override("WriteTo", []interface{}{
 		"bar",
 	})
-	config.Override("ApplyTo", "meta:foo")
+	config.Override("ApplyTo", "foo")
 	// --
 
 	plugin, err := core.NewPluginWithConfig(config)

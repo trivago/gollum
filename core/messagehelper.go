@@ -2,8 +2,9 @@ package core
 
 import (
 	"github.com/trivago/tgo/tlog"
-	"strings"
 )
+
+const APPLY_TO_PAYLOAD = "payload"
 
 // GetAppliedContent is a func() to get message content from payload or meta data
 // for later handling by plugins
@@ -14,11 +15,9 @@ type SetAppliedContent func(msg *Message, content []byte)
 
 // GetAppliedContentFunction returns a GetAppliedContent function
 func GetAppliedContentFunction(applyTo string) GetAppliedContent {
-	parts := strings.Split(applyTo, ":")
-
-	if parts[0] == "meta" {
+	if applyTo != "" && applyTo != APPLY_TO_PAYLOAD {
 		return func(msg *Message) []byte {
-			return msg.MetaData().GetValue(parts[1])
+			return msg.MetaData().GetValue(applyTo)
 		}
 	}
 

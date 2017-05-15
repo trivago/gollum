@@ -26,14 +26,12 @@ import (
 //
 // - format.MetaDataCopy:
 //   WriteTo:
-//     - hostname: 	# meta data key
-//       Modulators:	# further modulators
-//         - format.Hostname
+//     - hostname: 		# meta data key
+//       - format.Hostname	# further modulators
 //     - foo:
-//       Modulators:
-//         - format.Base64Encode
-//     - bar 		# 1:1 copy of the payload to meta:bar
-//   ApplyTo: "payload" # [payload, meta:key]
+//       - format.Base64Encode
+//     - bar 			# 1:1 copy of the "payload" to "bar"
+//   ApplyTo: "payload" # payload or <metaKey>
 //
 //
 type metaDataMap map[string]core.ModulatorArray
@@ -82,22 +80,23 @@ func (format *MetaDataCopy) getMetaDataMapFromArray(metaData []interface{}) meta
 	result := metaDataMap{}
 	writeToConfig := core.NewPluginConfig("", "format.MetaDataCopy.WriteTo")
 
-	for _, v := range metaData {
-		if converted, isMap := v.(tcontainer.MarshalMap); isMap {
-			for keyMetaData, valueMetaData := range converted {
+	for _, metaDataValue := range metaData {
+		if converted, isMap := metaDataValue.(tcontainer.MarshalMap); isMap {
+			writeToConfig.Read(converted)
+			reader := core.NewPluginConfigReaderWithError(&writeToConfig)
 
-				writeToConfig.Read(valueMetaData.(tcontainer.MarshalMap))
-				reader := core.NewPluginConfigReaderWithError(&writeToConfig)
+			for keyMetaData, _ := range converted {
 
-				modulator, err := reader.GetModulatorArray("Modulators", format.Log, core.ModulatorArray{})
+				modulator, err := reader.GetModulatorArray(keyMetaData, format.Log, core.ModulatorArray{})
 				if err != nil {
 					format.Log.Error.Print("Can't get mmodulators. Error message: ", err)
 					break
 				}
 
+
 				result[keyMetaData] = modulator
 			}
-		} else if keyMetaData, isString := v.(string); isString {
+		} else if keyMetaData, isString := metaDataValue.(string); isString {
 			// no modulator set => 1:1 copy to meta data key
 			result[keyMetaData] = core.ModulatorArray{}
 		}
