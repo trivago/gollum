@@ -106,6 +106,7 @@ type Kinesis struct {
 	sendTimeLimit     time.Duration
 	counters          map[string]*int64
 	lastMetricUpdate  time.Time
+	sequence          *int64
 }
 
 const (
@@ -137,6 +138,7 @@ func (prod *Kinesis) Configure(conf core.PluginConfigReader) error {
 	prod.lastSendTime = time.Now()
 	prod.counters = make(map[string]*int64)
 	prod.lastMetricUpdate = time.Now()
+	prod.sequence = new(int64)
 
 	if prod.recordMaxMessages < 1 {
 		prod.recordMaxMessages = 1
@@ -218,7 +220,7 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 	// Format and sort
 	for idx, msg := range messages {
 		currentMsg := msg.Clone()
-		messageHash := fmt.Sprintf("%X-%d", currentMsg.StreamID(), currentMsg.Sequence())
+		messageHash := fmt.Sprintf("%X-%d", currentMsg.StreamID(), atomic.AddInt64(prod.sequence, 1))
 
 		// Fetch buffer for this stream
 		records, recordsExists := streamRecords[currentMsg.StreamID()]

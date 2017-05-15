@@ -65,11 +65,11 @@ func (format *Base64Decode) ApplyFormatter(msg *core.Message) error {
 	decodedLen := format.dictionary.DecodedLen(msg.Len())
 	decoded := core.MessageDataPool.Get(decodedLen)
 
-	if size, err := format.dictionary.Decode(decoded, msg.Data()); err != nil {
+	if size, err := format.dictionary.Decode(decoded, msg.Data()); err == nil {
+		msg.Store(decoded[:size])
+	} else {
 		format.Log.Error.Print(err)
 		return err
-	} else {
-		msg.Store(decoded[:size])
 	}
 
 	return nil

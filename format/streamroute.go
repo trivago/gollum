@@ -79,7 +79,7 @@ func (format *StreamRoute) ApplyFormatter(msg *core.Message) error {
 
 	default:
 		streamName := msg.Data()[:delimiterIdx]
-		streamMsg := core.NewMessage(nil, []byte(streamName), 0, msg.StreamID())
+		streamMsg := core.NewMessage(nil, []byte(streamName), msg.StreamID())
 
 		msg.Offset(delimiterIdx + len(format.delimiter))
 		switch result := format.streamModulators.Modulate(streamMsg); result {

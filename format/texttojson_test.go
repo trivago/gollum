@@ -39,7 +39,7 @@ func TestTextToJSONFormatter1(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	testString := `{"a":123,"b":"string","c":[1,2,3],"d":[{"a":1}],"e":[[1,2]],"f":[{"a":1},{"b":2}],"g":[[1,2],[3,4]]}`
-	msg := core.NewMessage(nil, []byte(testString), 0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte(testString), core.InvalidStreamID)
 	test := newTestTextToJSONFormatter([]interface{}{
 		`findKey    :":  key        ::`,
 		`findKey    :}:             : pop  : end`,
@@ -88,7 +88,7 @@ func BenchmarkTextToJSONFormatter(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		testString := fmt.Sprintf(`{"a":%d23,"b":"string","c":[%d,2,3],"d":[{"a":%d}],"e":[[%d,2]],"f":[{"a":%d},{"b":2}],"g":[[%d,2],[3,4]]}`, i, i, i, i, i, i)
-		msg := core.NewMessage(nil, []byte(testString), 0, core.InvalidStreamID)
+		msg := core.NewMessage(nil, []byte(testString), core.InvalidStreamID)
 		test.ApplyFormatter(msg)
 	}
 }

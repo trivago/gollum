@@ -53,7 +53,7 @@ func TestGetAppliedContentFunction(t *testing.T) {
 func TestGetAppliedContentFromPayload(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	resultFunc := GetAppliedContentFunction("payload")
-	msg := NewMessage(nil, []byte("message payload"), 1, 1)
+	msg := NewMessage(nil, []byte("message payload"), 1)
 
 	expect.Equal("message payload", string(resultFunc(msg)))
 }
@@ -61,7 +61,7 @@ func TestGetAppliedContentFromPayload(t *testing.T) {
 func TestGetAppliedContentFromMetaData(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	resultFunc := GetAppliedContentFunction("foo")
-	msg := NewMessage(nil, []byte("message payload"), 1, 1)
+	msg := NewMessage(nil, []byte("message payload"), 1)
 	msg.MetaData().SetValue("foo", []byte("foo content"))
 
 	expect.Equal("foo content", string(resultFunc(msg)))
@@ -77,7 +77,7 @@ func TestDropMessage(t *testing.T) {
 	mockRouter.Configure(NewPluginConfigReader(&mockConf))
 	StreamRegistry.Register(&mockRouter, mockRouter.StreamID())
 
-	msg := NewMessage(nil, []byte("foo"), 0, mockRouter.StreamID())
+	msg := NewMessage(nil, []byte("foo"), mockRouter.StreamID())
 
 	err := DropMessage(msg)
 	expect.NoError(err)
@@ -109,7 +109,7 @@ func TestDropMessageByRouter(t *testing.T) {
 	StreamRegistry.Register(&mockRouterB, mockRouterB.StreamID())
 
 	// create message and test
-	msg := NewMessage(nil, []byte("foo"), 0, mockRouterA.StreamID())
+	msg := NewMessage(nil, []byte("foo"), mockRouterA.StreamID())
 
 	err := DropMessageByRouter(msg, &mockRouterB)
 	expect.NoError(err)

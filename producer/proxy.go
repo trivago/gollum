@@ -177,7 +177,7 @@ func (prod *Proxy) sendMessage(msg *core.Message) {
 	enqueueResponse := tio.BufferReadCallback(nil)
 	if processResponse {
 		enqueueResponse = func(data []byte) {
-			response := core.NewMessage(prod, data, msg.Sequence(), msg.StreamID())
+			response := core.NewMessage(prod, data, msg.StreamID())
 			responder.EnqueueResponse(response)
 		}
 	}

@@ -33,7 +33,7 @@ func TestTemplateJSON(t *testing.T) {
 	formatter, casted := plugin.(*TemplateJSON)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"), 0, core.DroppedStreamID)
+	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"), core.DroppedStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
