@@ -85,10 +85,10 @@ Table of contents
 .. toctree::
    :maxdepth: 1
 
-   consumers/index
-   streams/index
-   producers/index
-   filters/index
-   formatters/index
+   build/consumer/index
+   build/stream/index
+   build/producer/index
+   build/filter/index
+   build/format/index
    examples/index
    license/index
