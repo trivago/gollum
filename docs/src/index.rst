@@ -1,7 +1,5 @@
-.. gollum documentation master file, created by
-   sphinx-quickstart on Thu Mar  5 12:16:57 2015.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. gollum documentation master file
+
 
 Welcome to Gollum's documentation!
 ==================================
@@ -85,10 +83,10 @@ Table of contents
 .. toctree::
    :maxdepth: 1
 
-   build/consumer/index
-   build/stream/index
-   build/producer/index
-   build/filter/index
-   build/format/index
+   plugins/producer.rst
+   plugins/router.rst
+   plugins/consumer.rst
+   plugins/filter.rst
+   plugins/format.rst
    examples/index
    license/index
