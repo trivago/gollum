@@ -52,19 +52,31 @@ func (format *Hostname) Configure(conf core.PluginConfigReader) error {
 
 // ApplyFormatter update message payload
 func (format *Hostname) ApplyFormatter(msg *core.Message) error {
+	content := format.getFinalContent(format.GetAppliedContent(msg))
+	format.SetAppliedContent(msg, content)
+
+	return nil
+}
+
+func (format *Hostname) getFinalContent(content []byte) []byte {
 	hostname, err := os.Hostname()
 	if err != nil {
 		format.Log.Error.Print(err)
 		hostname = "unknown host"
 	}
 
-	dataSize := len(hostname) + len(format.separator) + msg.Len()
-	payload := core.MessageDataPool.Get(dataSize)
+	lenSeparator := len(format.separator)
+	if lenSeparator > 0 {
+		dataSize := len(hostname) + lenSeparator + len(content)
+		payload := core.MessageDataPool.Get(dataSize)
 
-	offset := copy(payload, []byte(hostname))
-	offset += copy(payload[offset:], format.separator)
-	copy(payload[offset:], msg.Data())
+		offset := copy(payload, []byte(hostname))
 
-	msg.Store(payload)
-	return nil
+		offset += copy(payload[offset:], format.separator)
+		copy(payload[offset:], content)
+
+		return payload
+	}
+
+	return []byte(hostname)
 }
