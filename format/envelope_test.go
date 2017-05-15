@@ -40,3 +40,26 @@ func TestEnvelope(t *testing.T) {
 
 	expect.Equal("start test end", string(msg.Data()))
 }
+
+func TestEnvelopeApplyTo(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.Envelope")
+	config.Override("ApplyTo", "foo")
+	config.Override("Prefix", "start ")
+	config.Override("Postfix", " end")
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*Envelope)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
+	msg.MetaData().SetValue("foo", []byte("bar"))
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("test", msg.String())
+	expect.Equal("start bar end", msg.MetaData().GetValueString("foo"))
+}
