@@ -26,12 +26,11 @@ import (
 // message.
 // Configuration example
 //
-//  - "stream.Broadcast":
-//    Formatter: "format.ExtractJSON"
-//    ExtractJSONdataFormatter: "format.Forward"
-//    ExtractJSONField: ""
-//    ExtractJSONTrimValues: true
-//    ExtractJSONPrecision: 0
+//  - format.ExtractJSON:
+//      Field: ""
+//      TrimValues: true
+//      Precision: 0
+//      ApplyTo: "payload" # payload or <metaKey>
 //
 // ExtractJSONDataFormatter formatter that will be applied before
 // the field is extracted. Set to format.Forward by default.
@@ -50,6 +49,7 @@ type ExtractJSON struct {
 	field        string
 	trimValues   bool
 	numberFormat string
+	applyTo	     string
 }
 
 func init() {
@@ -64,36 +64,59 @@ func (format *ExtractJSON) Configure(conf core.PluginConfigReader) error {
 	format.trimValues = conf.GetBool("TrimValues", true)
 	precision := conf.GetInt("Precision", 0)
 	format.numberFormat = fmt.Sprintf("%%.%df", precision)
+	format.applyTo = conf.GetString("ApplyTo", core.APPLY_TO_PAYLOAD)
 
 	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload
 func (format *ExtractJSON) ApplyFormatter(msg *core.Message) error {
+	content := format.GetAppliedContent(msg)
+
+	value, err := format.extractJson(content)
+	if err != nil {
+		return err
+	}
+
+	if value != nil {
+		format.SetAppliedContent(msg, value)
+	} else {
+		if format.applyTo == core.APPLY_TO_PAYLOAD {
+			msg.Resize(0)
+		} else {
+			msg.MetaData().ResetValue(format.applyTo)
+		}
+	}
+
+	return nil
+}
+
+func (format *ExtractJSON) extractJson(content []byte) ([]byte, error) {
 	values := tcontainer.NewMarshalMap()
-	err := json.Unmarshal(msg.Data(), &values)
+
+	err := json.Unmarshal(content, &values)
 	if err != nil {
 		format.Log.Warning.Print("ExtractJSON failed to unmarshal a message: ", err)
-		return err
+		return nil, err
 	}
 
 	if value, exists := values[format.field]; exists {
 		switch value.(type) {
 		case int64:
 			val, _ := value.(int64)
-			msg.Store([]byte(fmt.Sprintf("%d", val)))
+			return []byte(fmt.Sprintf("%d", val)), nil
 		case string:
 			val, _ := value.(string)
-			msg.Store([]byte(val))
+			return []byte(val), nil
 		case float64:
 			val, _ := value.(float64)
-			msg.Store([]byte(fmt.Sprintf(format.numberFormat, val)))
+			return []byte(fmt.Sprintf(format.numberFormat, val)), nil
 		default:
-			msg.Store([]byte(fmt.Sprintf("%v", value)))
+			return []byte(fmt.Sprintf("%v", value)), nil
 		}
-	} else {
-		msg.Resize(0)
 	}
 
-	return nil
+	format.Log.Warning.Print("ExtractJSON field not exists: ", format.field)
+
+	return nil, nil
 }
