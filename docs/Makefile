@@ -43,11 +43,11 @@ rsts_router    := $(shell find $(MODULES_DIR_ROUTER)    -type f -name '*.go' -no
 #
 # Targets
 #
-.PHONY: all generate_rst producers consumers filters formatters routers target_dir
+.PHONY: all plugin_rst producers consumers filters formatters routers prep_producers html
 
-all: clean generate_rst
+all: clean plugin_rst
 
-generate_rst: producers consumers filters formatters routers 
+plugin_rst: producers consumers filters formatters routers 
 
 clean:
 	rm -r $(BUILD_DIR) || true
@@ -60,42 +60,42 @@ $(RST_GENERATOR): $(BUILD_DIR)
 	cd $(RST_GENERATOR_DIR) ; go build -o ../$(RST_GENERATOR)
 
 # Subtargets
-producers:  $(TARGET_DIR_PRODUCER)  $(rsts_producer)
-consumers:  $(TARGET_DIR_CONSUMER)  $(rsts_consumer)
-filters:    $(TARGET_DIR_FILTER)    $(rsts_filter)
-formatters: $(TARGET_DIR_FORMATTER) $(rsts_formatter)
-routers:    $(TARGET_DIR_ROUTER)    $(rsts_router)
+producers:  prep_producers  $(rsts_producer)
+consumers:  prep_consumers  $(rsts_consumer)
+filters:    prep_filters    $(rsts_filter)
+formatters: prep_formatters $(rsts_formatter)
+routers:    prep_routers    $(rsts_router)
 
 # Prepare target dirs
-$(TARGET_DIR_PRODUCER):
-	mkdir -p $@
-	rm $@/_toc.rst || true
-	$(PRINTF) ".. toctree::\n"  >> $@/_toc.rst
-#	$(PRINTF) "\t:maxdepth: 1\n" >> $@/_toc.rst
+prep_producers:
+	mkdir -p $(TARGET_DIR_PRODUCER)
+	rm $(TARGET_DIR_PRODUCER)/_toc.rst || true
+	$(PRINTF) ".. toctree::\n"  >> $(TARGET_DIR_PRODUCER)/_toc.rst
+#	$(PRINTF) "\t:maxdepth: 1\n" >> $(TARGET_DIR_PRODUCER)/_toc.rst
 
-$(TARGET_DIR_CONSUMER): 
-	mkdir -p $@
-	rm $@/_toc.rst || true
-	$(PRINTF) ".. toctree::\n"  >> $@/_toc.rst
-#	$(PRINTF) "\t:maxdepth: 1\n" >> $@/_toc.rst
+prep_consumers:
+	mkdir -p $(TARGET_DIR_CONSUMER)
+	rm $(TARGET_DIR_CONSUMER)/_toc.rst || true
+	$(PRINTF) ".. toctree::\n"  >> $(TARGET_DIR_CONSUMER)/_toc.rst
+#	$(PRINTF) "\t:maxdepth: 1\n" >> $(TARGET_DIR_CONSUMER)/_toc.rst
 
-$(TARGET_DIR_FILTER):  
-	mkdir -p $@
-	rm $@/_toc.rst || true
-	$(PRINTF) ".. toctree::\n"  >> $@/_toc.rst
-#	$(PRINTF) "\t:maxdepth: 1\n" >> $@/_toc.rst
+prep_filters:
+	mkdir -p $(TARGET_DIR_FILTER)
+	rm $(TARGET_DIR_FILTER)/_toc.rst || true
+	$(PRINTF) ".. toctree::\n"  >> $(TARGET_DIR_FILTER)/_toc.rst
+#	$(PRINTF) "\t:maxdepth: 1\n" >> $(TARGET_DIR_FILTER)/_toc.rst
 
-$(TARGET_DIR_FORMATTER):  
-	mkdir -p $@
-	rm $@/_toc.rst || true
-	$(PRINTF) ".. toctree::\n"  >> $@/_toc.rst
-#	$(PRINTF) "\t:maxdepth: 1\n" >> $@/_toc.rst
+prep_formatters:
+	mkdir -p $(TARGET_DIR_FORMATTER)
+	rm $(TARGET_DIR_ROUTER)/_toc.rst || true
+	$(PRINTF) ".. toctree::\n"  >> $(TARGET_DIR_FORMATTER)/_toc.rst
+#	$(PRINTF) "\t:maxdepth: 1\n" >> $(TARGET_DIR_FORMATTER)/_toc.rst
 
-$(TARGET_DIR_ROUTER): 
-	mkdir -p $@
-	rm $@/_toc.rst || true
-	$(PRINTF) ".. toctree::\n"  >> $@/_toc.rst
-#	$(PRINTF) "\t:maxdepth: 1\n" >> $@/_toc.rst
+prep_routers:
+	mkdir -p $(TARGET_DIR_ROUTER)
+	rm $(TARGET_DIR_ROUTER)/_toc.rst || true
+	$(PRINTF) ".. toctree::\n"  >> $(TARGET_DIR_ROUTER)/_toc.rst
+#	$(PRINTF) "\t:maxdepth: 1\n" >> $(TARGET_DIR_ROUTER)/_toc.rst
 
 # Loop targets for the .rst files
 $(rsts_producer):  $(RST_GENERATOR)
