@@ -1,13 +1,7 @@
 Streams
 ############################
 
-.. toctree::
-	:maxdepth: 1
-
-	broadcast
-	random
-	roundrobin
-	route
+.. include:: ../gen/router/_toc.rst
 
 Streams manage the transfer of messages between  :doc:`consumers </consumers/index>` and :doc:`producers </producers/index>`.
 Streams can act as a kind of proxy that may filter, modify and define the distribution algorithm of messages.
