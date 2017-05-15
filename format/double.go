@@ -36,7 +36,7 @@ import (
 // LeftStreamID uses the stream name result of the left side as the
 // streamID of this formatter. Set to false by default.
 type Double struct {
-	core.SimpleFormatter
+	core.SimpleFormatter `gollumdoc:embed_type`
 	separator    []byte
 	leftStreamID bool
 	left         core.FormatterArray

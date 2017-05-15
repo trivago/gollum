@@ -83,7 +83,7 @@ import (
 // could not be spooled to stream separated files on disk. Set to false by
 // default.
 type Spooling struct {
-	core.BufferedProducer
+	core.BufferedProducer `gollumdoc:embed_type`
 	outfile         map[core.MessageStreamID]*spoolFile
 	outfileGuard    *sync.RWMutex
 	rotation        fileRotateConfig

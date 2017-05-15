@@ -46,7 +46,7 @@ import (
 // sampling. This is useful for e.g. producers listeing to "*".
 // By default this list is empty.
 type Sample struct {
-	core.SimpleFilter
+	core.SimpleFilter `gollumdoc:embed_type`
 	rate         int64
 	group        int64
 	count        *int64

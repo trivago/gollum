@@ -45,7 +45,7 @@ import (
 //  * RFC5424 (https://tools.ietf.org/html/rfc5424) udp only.
 //  * RFC6587 (https://tools.ietf.org/html/rfc6587) tcp or udp.
 type Syslogd struct {
-	core.SimpleConsumer
+	core.SimpleConsumer `gollumdoc:embed_type`
 	format   format.Format // RFC3164, RFC5424 or RFC6587?
 	protocol string
 	address  string

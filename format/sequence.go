@@ -35,7 +35,7 @@ import (
 // SequenceDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Sequence struct {
-	core.SimpleFormatter
+	core.SimpleFormatter `gollumdoc:embed_type`
 	separator []byte
 }
 

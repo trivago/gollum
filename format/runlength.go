@@ -35,7 +35,7 @@ import (
 // RunlengthDataFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Runlength struct {
-	core.SimpleFormatter
+	core.SimpleFormatter `gollumdoc:embed_type`
 	separator []byte
 }
 

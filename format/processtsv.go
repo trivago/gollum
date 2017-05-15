@@ -70,7 +70,7 @@ import (
 // contain ProcessTSVDelimiter without being split. Default is false.
 //
 type ProcessTSV struct {
-	core.SimpleFormatter
+	core.SimpleFormatter `gollumdoc:embed_type`
 	directives   []tsvDirective
 	delimiter    string
 	quotedValues bool

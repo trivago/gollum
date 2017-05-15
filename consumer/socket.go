@@ -101,7 +101,7 @@ const (
 // RemoveOldSocket toggles removing exisiting files with the same name as the
 // socket (unix://<path>) prior to connecting. Enabled by default.
 type Socket struct {
-	core.SimpleConsumer
+	core.SimpleConsumer `gollumdoc:embed_type`
 	listen        io.Closer
 	clientLock    *sync.Mutex
 	clients       *list.List

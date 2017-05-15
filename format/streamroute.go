@@ -47,7 +47,7 @@ import (
 // StreamRouteFormatStream can be set to true to apply StreamRouteFormatter to both
 // parts of the message (stream and data). Set to false by default.
 type StreamRoute struct {
-	core.SimpleFormatter
+	core.SimpleFormatter `gollumdoc:embed_type`
 	streamModulators core.ModulatorArray
 	delimiter        []byte
 }

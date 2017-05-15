@@ -70,7 +70,7 @@ import (
 // specific mapping will go to this category (including _GOLLUM_).
 // If no category mappings are set the stream name is used.
 type Scribe struct {
-	core.BufferedProducer
+	core.BufferedProducer `gollumdoc:embed_type`
 	scribe            *scribe.ScribeClient
 	transport         *thrift.TFramedTransport
 	socket            *thrift.TSocket

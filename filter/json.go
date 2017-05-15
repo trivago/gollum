@@ -45,7 +45,7 @@ import (
 // given regular expression does not match.
 // Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
 type JSON struct {
-	core.SimpleFilter
+	core.SimpleFilter `gollumdoc:embed_type`
 	rejectValues      map[string]*regexp.Regexp
 	acceptValues      map[string]*regexp.Regexp
 	getAppliedContent core.GetAppliedContent

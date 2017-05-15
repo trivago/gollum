@@ -53,7 +53,7 @@ const (
 // ExitOnEOF can be set to true to trigger an exit signal if StdIn is closed
 // (e.g. when a pipe is closed). This is set to false by default.
 type Console struct {
-	core.SimpleConsumer
+	core.SimpleConsumer `gollumdoc:embed_type`
 	autoExit bool
 	pipe     *os.File
 	pipeName string

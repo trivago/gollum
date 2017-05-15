@@ -30,7 +30,7 @@ import (
 //     Fields:
 //        - "a/b"
 type JSONToArray struct {
-	core.SimpleFormatter
+	core.SimpleFormatter `gollumdoc:embed_type`
 	separator string
 	fields    []string
 }

@@ -44,7 +44,7 @@ import (
 // IdentifierDataFormatter defines the formatter for the data that is used to
 // build the identifier from. By default this is set to "format.Forward"
 type Identifier struct {
-	core.SimpleFormatter
+	core.SimpleFormatter `gollumdoc:embed_type`
 	hash func(*core.Message) []byte
 }
 

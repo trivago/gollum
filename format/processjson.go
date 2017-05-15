@@ -95,7 +95,7 @@ import (
 // ProcessJSONTrimValues will trim whitspaces from all values if enabled.
 // Enabled by default.
 type ProcessJSON struct {
-	core.SimpleFormatter
+	core.SimpleFormatter `gollumdoc:embed_type`
 	directives []transformDirective
 	trimValues bool
 	db         *geoip2.Reader

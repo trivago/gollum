@@ -36,7 +36,7 @@ import (
 // If no route is set messages are forwarded on the incoming router.
 // When routing to multiple routers, the incoming stream has to be listed explicitly to be used.
 type Distribute struct {
-	Broadcast
+	Broadcast `gollumdoc:embed_type`
 	routers        []core.Router
 	boundStreamIDs []core.MessageStreamID
 }

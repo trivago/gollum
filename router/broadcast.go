@@ -21,7 +21,7 @@ import (
 // Broadcast stream plugin
 // Messages will be sent to all producers attached to this router.
 type Broadcast struct {
-	core.SimpleRouter
+	core.SimpleRouter `gollumdoc:embed_type`
 }
 
 func init() {

@@ -77,7 +77,7 @@ const (
 // Delimiter defines the end of a message inside the file. By default this is
 // set to "\n".
 type File struct {
-	core.SimpleConsumer
+	core.SimpleConsumer `gollumdoc:embed_type`
 	file           *os.File
 	fileName       string
 	offsetFileName string

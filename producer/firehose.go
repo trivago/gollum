@@ -94,7 +94,7 @@ const (
 // name. If no mapping is given the gollum stream name is used as firehose
 // stream name.
 type Firehose struct {
-	core.BufferedProducer
+	core.BufferedProducer `gollumdoc:embed_type`
 	client            *firehose.Firehose
 	config            *aws.Config
 	streamMap         map[core.MessageStreamID]string

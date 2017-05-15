@@ -19,7 +19,7 @@ import (
 //	By default, SplitPickIndex is 0.
 //	By default, SplitPickDelimiter is ":".
 type SplitPick struct {
-	core.SimpleFormatter
+	core.SimpleFormatter `gollumdoc:embed_type`
 	index     int
 	delimiter []byte
 }
