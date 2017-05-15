@@ -13,8 +13,8 @@ type GetAppliedContent func(msg *Message) []byte
 // SetAppliedContent is a func() to store message content to payload or meta data
 type SetAppliedContent func(msg *Message, content []byte)
 
-// GetAppliedContentFunction returns a GetAppliedContent function
-func GetAppliedContentFunction(applyTo string) GetAppliedContent {
+// GetAppliedContentGetFunction returns a GetAppliedContent function
+func GetAppliedContentGetFunction(applyTo string) GetAppliedContent {
 	if applyTo != "" && applyTo != APPLY_TO_PAYLOAD {
 		return func(msg *Message) []byte {
 			return msg.MetaData().GetValue(applyTo)

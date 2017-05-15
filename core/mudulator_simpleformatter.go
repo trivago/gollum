@@ -35,7 +35,7 @@ func (format *SimpleFormatter) Configure(conf PluginConfigReader) error {
 	format.Log = conf.GetSubLogScope("Formatter")
 
 	applyTo := conf.GetString("ApplyTo", "")
-	format.GetAppliedContent = GetAppliedContentFunction(applyTo)
+	format.GetAppliedContent = GetAppliedContentGetFunction(applyTo)
 	format.SetAppliedContent = GetAppliedContentSetFunction(applyTo)
 	return nil
 }
