@@ -59,7 +59,7 @@ func TestMetaDataCopyApplyToHandling(t *testing.T) {
 	config.Override("WriteTo", []interface{}{
 		"bar",
 	})
-	config.Override("ApplyTo", "meta:foo")
+	config.Override("ApplyTo", "foo")
 	// --
 
 	plugin, err := core.NewPluginWithConfig(config)

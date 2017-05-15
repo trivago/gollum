@@ -32,8 +32,8 @@ import (
 //     - foo:
 //       Modulators:
 //         - format.Base64Encode
-//     - bar 		# 1:1 copy of the payload to meta:bar
-//   ApplyTo: "payload" # [payload, meta:key]
+//     - bar 		# 1:1 copy of the "payload" to "bar"
+//   ApplyTo: "payload" # payload or <metaKey>
 //
 //
 type metaDataMap map[string]core.ModulatorArray
