@@ -10,4 +10,4 @@ Examples
 	producer
 	filter
 	formatter
-	stream
+	router

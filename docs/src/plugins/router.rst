@@ -1,13 +1,13 @@
-Streams
+Routers
 ############################
 
 .. include:: ../gen/router/_toc.rst
 
-Streams manage the transfer of messages between  :doc:`consumers </consumers/index>` and :doc:`producers </producers/index>`.
-Streams can act as a kind of proxy that may filter, modify and define the distribution algorithm of messages.
-Streams can be referred to by cleartext names. This names are free to choose but there are several reserved names for internal or special purpose streams:
+Routers manage the transfer of messages between  :doc:`consumers </src/plugins/consumer>` and :doc:`producers </src/plugins/producer>`.
+Routers can act as a kind of proxy that may filter, modify and define the distribution algorithm of messages.
+Routers can be referred to by cleartext names. This names are free to choose but there are several reserved names for internal or special purpose routers:
 
 - **"\_GOLLUM\_"** is used for internal log messages
 - **"\_DROPPED\_"** is used for messages that could not be sent, e.g. because of a channel timeout
-- **"*"** is a placeholder for "all streams but the internal streams".
-  In some cases "*" means "all streams" without exceptions. This is denoted in the corresponding documentations whenever this is the case.
+- **"*"** is a placeholder for "all routers but the internal routers".
+  In some cases "*" means "all routers" without exceptions. This is denoted in the corresponding documentations whenever this is the case.

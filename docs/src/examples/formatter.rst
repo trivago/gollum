@@ -6,7 +6,7 @@ Requirements
 
 All filters have to implement the "core/Formatter" as well as the "core/Plugin" interface.
 In addition to this, every plugin has to register at the plugin registry to be available as a config option.
-This is explained in the general :doc:`plugin section </examples/plugins>`.
+This is explained in the general :doc:`plugin section </src/examples/plugins>`.
 
 Attention
 ---------

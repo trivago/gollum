@@ -29,8 +29,8 @@ TARGET_DIR_ROUTER=$(TARGET_ROOT)/router
 EXCLUDE_NO_OP='^$$'
 EXCLUDE_PRODUCER='(InfluxDBWriter[0-9][0-9]|filestate|kafkaMurmur2HashPartitioner|s3buffer|spoolfile)'
 EXCLUDE_CONSUMER='proxyclient'
-EXCLUDE_FILTER=$(EXCLUDE_NO_OP)
-EXCLUDE_FORMATTER=$(EXCLUDE_NO_OP)
+EXCLUDE_FILTER='regexp'
+EXCLUDE_FORMATTER='collectddata'
 EXCLUDE_ROUTER=$(EXCLUDE_NO_OP)
 
 # Create lists of .rst files based on .go sources
