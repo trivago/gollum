@@ -32,7 +32,7 @@ import (
 //    ShutdownTimeoutMs: 1000
 //    Formatter: "format.Forward"
 //    Filter: "filter.All"
-//    DropToStream: "_DROPPED_"
+//    FallbackStream: "_DROPPED_"
 //    Router:
 //      - "foo"
 //      - "bar"
@@ -47,7 +47,7 @@ import (
 //
 // ChannelTimeoutMs sets a timeout in milliseconds for messages to wait if this
 // producer's queue is full.
-// A timeout of -1 or lower will drop the message without notice.
+// A timeout of -1 or lower will send the message the the fallback without notice.
 // A timeout of 0 will block until the queue is free. This is the default.
 // A timeout of 1 or higher will wait x milliseconds for the queues to become
 // available again. If this does not happen, the message will be send to the
@@ -62,7 +62,7 @@ import (
 // message channels this producer will consume. By default this is set to "*"
 // which means "listen to all routers but the internal".
 //
-// DropToStream defines the stream used for messages that are dropped after
+// FallbackStream defines the stream used for messages that are sent to the fallback after
 // a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
 //
 // Formatter sets a formatter to use. Each formatter has its own set of options
@@ -94,7 +94,7 @@ func (prod *BufferedProducer) Configure(conf PluginConfigReader) error {
 }
 
 // GetQueueTimeout returns the duration this producer will block before a
-// message is dropped. A value of -1 will cause the message to drop. A value
+// message is sent to the fallback. A value of -1 will cause the message to drop. A value
 // of 0 will cause the producer to always block.
 func (prod *BufferedProducer) GetQueueTimeout() time.Duration {
 	return prod.channelTimeout
@@ -108,30 +108,32 @@ func (prod *BufferedProducer) Enqueue(msg *Message, timeout *time.Duration) {
 		if r := recover(); r != nil {
 			prod.Log.Error.Print("Recovered a panic during producer enqueue: ", r)
 			prod.Log.Error.Print("Producer: ", prod.id, "State: ", prod.GetState(), ", Router: ", StreamRegistry.GetStreamName(msg.StreamID()))
-			prod.Drop(msg)
+			prod.TryFallback(msg)
 		}
 	}()
 
 	// Run modulators and drop message if necessary
 	result := prod.Modulate(msg)
 	switch result {
-	case ModulateResultDrop:
-		DropMessage(msg)
-		return
-
 	case ModulateResultDiscard:
 		DiscardMessage(msg)
 		return
 
+	case ModulateResultFallback:
+		RouteOriginal(msg)
+		return
+
 	case ModulateResultContinue:
-		// all fine - continue
+		// OK
+
 	default:
 		prod.Log.Error.Print("Modulator result not supported:", result)
+		return
 	}
 
 	// Don't accept messages if we are shutting down
 	if prod.GetState() >= PluginStateStopping {
-		prod.Drop(msg)
+		prod.TryFallback(msg)
 		return // ### return, closing down ###
 	}
 
@@ -143,7 +145,7 @@ func (prod *BufferedProducer) Enqueue(msg *Message, timeout *time.Duration) {
 
 	switch prod.messages.Push(msg, usedTimeout) {
 	case MessageStateTimeout:
-		prod.Drop(msg)
+		prod.TryFallback(msg)
 		prod.setState(PluginStateWaiting)
 
 	case MessageStateDiscard:

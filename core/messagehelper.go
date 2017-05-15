@@ -24,20 +24,19 @@ func GetAppliedContentFunction(applyTo string) GetAppliedContent {
 	}
 }
 
-// DropMessage restore the original message and "drops" they the active message stream router
-func DropMessage(msg *Message) error {
-	return DropMessageByRouter(msg, msg.GetRouter())
+// RouteOriginal restores the original message and routes it by using the
+// currently set stream.
+func RouteOriginal(msg *Message) error {
+	return RouteOriginalByRouter(msg, msg.GetRouter())
 }
 
-// DropMessageByRouter restore the original message and "drops" they to specific router
-func DropMessageByRouter(msg *Message, router Router) error {
-	CountDroppedMessage()
+// RouteOriginalByRouter restores the original message and routes it by using a
+// a given router.
+func RouteOriginalByRouter(msg *Message, router Router) error {
 	err := Route(msg.CloneOriginal(), router)
 	if err != nil {
-		tlog.Error.Printf("DropMessage error: Can't route message by '%T': %s", router, err.Error())
-
+		tlog.Error.Printf("Routing error: Can't route message by '%T': %s", router, err.Error())
 	}
-
 	return err
 }
 

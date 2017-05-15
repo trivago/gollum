@@ -122,12 +122,12 @@ func (batch *MessageBatch) AppendOrBlock(msg *Message) bool {
 // AppendOrFlush is a common combinatorial pattern of Append and AppendOrBlock.
 // If append fails, flush is called, followed by AppendOrBlock if blocking is
 // allowed. If AppendOrBlock fails (or blocking is not allowed) the message is
-// dropped.
-func (batch *MessageBatch) AppendOrFlush(msg *Message, flushBuffer func(), canBlock func() bool, drop func(*Message)) {
+// sent to the fallback.
+func (batch *MessageBatch) AppendOrFlush(msg *Message, flushBuffer func(), canBlock func() bool, tryFallback func(*Message)) {
 	if !batch.Append(msg) {
 		flushBuffer()
 		if !canBlock() || !batch.AppendOrBlock(msg) {
-			drop(msg)
+			tryFallback(msg)
 		}
 	}
 }

@@ -32,7 +32,7 @@ func TestStreamRevert(t *testing.T) {
 	formatter, casted := plugin.(*StreamRevert)
 	expect.True(casted)
 
-	streamID, prevStreamID := core.DroppedStreamID, core.LogInternalStreamID
+	streamID, prevStreamID := core.InvalidStreamID, core.LogInternalStreamID
 	msg := core.NewMessage(nil, []byte("test"), 0, prevStreamID)
 	msg.SetStreamID(streamID)
 

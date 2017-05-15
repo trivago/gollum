@@ -44,9 +44,9 @@ type ModulateResult int
 const (
 	// ModulateResultContinue indicates that a message can be passed along.
 	ModulateResultContinue = ModulateResult(iota)
-	// ModulateResultDrop has to act like ModulateResultRoute but also
-	// indicates that no further modulator should be called.
-	ModulateResultDrop = ModulateResult(iota)
+	// ModulateResultFallback indicates that a fallback path should be used and
+	// that no further modulator should be called.
+	ModulateResultFallback = ModulateResult(iota)
 	// ModulateResultDiscard indicates that a message should be discarded and
 	// that no further modulators should be called.
 	ModulateResultDiscard = ModulateResult(iota)
@@ -62,9 +62,8 @@ func (modulators ModulatorArray) Modulate(msg *Message) ModulateResult {
 	action := ModulateResultContinue
 	for _, modulator := range modulators {
 		switch modRes := modulator.Modulate(msg); modRes {
-		case ModulateResultDiscard, ModulateResultDrop:
-			// break modulator calls
-			return modRes
+		case ModulateResultDiscard, ModulateResultFallback:
+			return modRes // ### return, break modulator calls ###
 		}
 	}
 	return action

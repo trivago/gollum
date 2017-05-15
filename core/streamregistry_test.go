@@ -35,7 +35,6 @@ func TestStreamRegistryGetStreamName(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockSRegistry := getMockStreamRegistry()
 
-	expect.Equal(mockSRegistry.GetStreamName(DroppedStreamID), DroppedStream)
 	expect.Equal(mockSRegistry.GetStreamName(LogInternalStreamID), LogInternalStream)
 	expect.Equal(mockSRegistry.GetStreamName(WildcardStreamID), WildcardStream)
 
@@ -106,8 +105,8 @@ func TestStreamRegistryAddWildcardProducersToStream(t *testing.T) {
 
 	// create wildcardProducer.
 	mProducer := new(mockProducer)
-	// adding dropStreamID to verify the producer later.
-	mProducer.dropStream = StreamRegistry.GetRouter(StreamRegistry.GetStreamID("wildcardProducerDrop"))
+	// adding fallbackStreamID to verify the producer later.
+	mProducer.fallbackStream = StreamRegistry.GetRouter(StreamRegistry.GetStreamID("wildcardProducerDrop"))
 	mockSRegistry.RegisterWildcardProducer(mProducer)
 
 	mockSRegistry.AddWildcardProducersToRouter(&mockRouter)

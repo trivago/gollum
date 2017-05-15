@@ -79,7 +79,7 @@ func TestDropMessage(t *testing.T) {
 
 	msg := NewMessage(nil, []byte("foo"), 0, mockRouter.StreamID())
 
-	err := DropMessage(msg)
+	err := RouteOriginal(msg)
 	expect.NoError(err)
 
 	expect.True(mockRouter.messageEnqued)
@@ -111,7 +111,7 @@ func TestDropMessageByRouter(t *testing.T) {
 	// create message and test
 	msg := NewMessage(nil, []byte("foo"), 0, mockRouterA.StreamID())
 
-	err := DropMessageByRouter(msg, &mockRouterB)
+	err := RouteOriginalByRouter(msg, &mockRouterB)
 	expect.NoError(err)
 
 	expect.False(mockRouterA.messageEnqued)

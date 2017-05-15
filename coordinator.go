@@ -264,7 +264,7 @@ func (co *Coordinator) configureProducers(conf *core.Config) {
 		searchinternal:
 			for _, streamID := range streams {
 				switch streamID {
-				case core.LogInternalStreamID, core.DroppedStreamID:
+				case core.LogInternalStreamID:
 				default:
 					wildcardStream.AddProducer(producer)
 					break searchinternal

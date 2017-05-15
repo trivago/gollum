@@ -55,7 +55,7 @@ func newSpoolFile(prod *Spooling, streamName string, source core.MessageSource) 
 	spool := &spoolFile{
 		file:        nil,
 		batch:       core.NewMessageBatch(prod.batchMaxCount),
-		assembly:    core.NewWriterAssembly(nil, prod.Drop, prod),
+		assembly:    core.NewWriterAssembly(nil, prod.TryFallback, prod),
 		fileCreated: time.Now(),
 		streamName:  streamName,
 		basePath:    prod.path + "/" + streamName,
