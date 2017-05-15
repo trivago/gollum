@@ -7,7 +7,7 @@ import (
 // Returns an RST representation of this PluginDocument
 func PluginDocumentToRST(doc PluginDocument) string {
 	// Heading
-	result := doc.PackageName + "." + doc.PluginName
+	result := doc.PluginName
 	if doc.Comment != "" {
 		result += " " + doc.Comment
 	}
