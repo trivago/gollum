@@ -41,6 +41,7 @@ type Double struct {
 	leftStreamID bool
 	left         core.FormatterArray
 	right        core.FormatterArray
+	applyTo	     string
 }
 
 func init() {
@@ -54,33 +55,53 @@ func (format *Double) Configure(conf core.PluginConfigReader) error {
 	format.right = conf.GetFormatterArray("Right", format.Log, core.FormatterArray{})
 	format.separator = []byte(conf.GetString("Separator", ":"))
 	format.leftStreamID = conf.GetBool("UseLeftStreamID", false)
+	format.applyTo = conf.GetString("ApplyTo", core.APPLY_TO_PAYLOAD)
 	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload
 func (format *Double) ApplyFormatter(msg *core.Message) error {
 	leftMsg := msg.Clone()
+	rightMsg := msg.Clone()
+
+	// pre-process
+	if format.applyTo != core.APPLY_TO_PAYLOAD {
+		leftMsg.Store(format.GetAppliedContent(msg))
+		rightMsg.Store(format.GetAppliedContent(msg))
+	}
+
+	// apply sub-formatter
 	if err := format.left.ApplyFormatter(leftMsg); err != nil {
 		return err
 	}
 
-	rightMsg := msg.Clone()
+
 	if err := format.right.ApplyFormatter(rightMsg); err != nil {
 		return err
 	}
 
-	dataSize := leftMsg.Len() + len(format.separator) + rightMsg.Len()
-	payload := msg.Resize(dataSize)
+	// update content
+	format.SetAppliedContent(msg, format.getCombinedContent(leftMsg.Data(), rightMsg.Data()))
 
-	offset := copy(payload, leftMsg.Data())
-	offset += copy(payload[offset:], format.separator)
-	offset += copy(payload[offset:], rightMsg.Data())
-
+	// handle streamID
 	if format.leftStreamID {
 		msg.SetStreamID(leftMsg.StreamID())
 	} else {
 		msg.SetStreamID(rightMsg.StreamID())
 	}
 
+	// fin
 	return nil
+}
+
+func (format *Double) getCombinedContent(leftContent []byte, rightContent []byte) []byte {
+	size := len(leftContent) + len(format.separator) + len(rightContent)
+	content := make([]byte, 0, size)
+
+	content = append(content, leftContent ...)
+	content = append(content, format.separator ...)
+	content = append(content, rightContent ...)
+
+	return content
+
 }
