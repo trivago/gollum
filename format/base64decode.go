@@ -27,7 +27,7 @@ import (
 //
 //  - format.Base64Decode:
 //      Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
-//      ApplyTo: "payload" # [payload, meta:key]
+//      ApplyTo: "payload" # payload or <metaKey>
 //
 // Base64Dictionary defines the 64-character base64 lookup dictionary to use. When
 // left empty a dictionary as defined by RFC4648 is used. This is the default.

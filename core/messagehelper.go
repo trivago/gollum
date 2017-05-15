@@ -28,11 +28,9 @@ func GetAppliedContentFunction(applyTo string) GetAppliedContent {
 
 // GetAppliedContentSetFunction returns SetAppliedContent function to store message content
 func GetAppliedContentSetFunction(applyTo string) SetAppliedContent {
-	parts := strings.Split(applyTo, ":")
-
-	if parts[0] == "meta" {
+	if applyTo != "" && applyTo != APPLY_TO_PAYLOAD {
 		return func(msg *Message, content []byte) {
-			msg.MetaData().SetValue(parts[1], content)
+			msg.MetaData().SetValue(applyTo, content)
 			return
 		}
 	}

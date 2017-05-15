@@ -52,7 +52,7 @@ func TestBase64DecodeApplyHandling(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Base64Decode")
-	config.Override("ApplyTo", "meta:foo")
+	config.Override("ApplyTo", "foo")
 	pluginDecode, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
@@ -72,7 +72,7 @@ func TestBase64EncodeApplyHandling(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Base64Encode")
-	config.Override("ApplyTo", "meta:foo")
+	config.Override("ApplyTo", "foo")
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
