@@ -41,7 +41,7 @@ type Double struct {
 	leftStreamID bool
 	left         core.FormatterArray
 	right        core.FormatterArray
-	applyTo	     string
+	applyTo      string
 }
 
 func init() {
@@ -75,7 +75,6 @@ func (format *Double) ApplyFormatter(msg *core.Message) error {
 		return err
 	}
 
-
 	if err := format.right.ApplyFormatter(rightMsg); err != nil {
 		return err
 	}
@@ -98,9 +97,9 @@ func (format *Double) getCombinedContent(leftContent []byte, rightContent []byte
 	size := len(leftContent) + len(format.separator) + len(rightContent)
 	content := make([]byte, 0, size)
 
-	content = append(content, leftContent ...)
-	content = append(content, format.separator ...)
-	content = append(content, rightContent ...)
+	content = append(content, leftContent...)
+	content = append(content, format.separator...)
+	content = append(content, rightContent...)
 
 	return content
 

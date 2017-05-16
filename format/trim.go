@@ -64,7 +64,7 @@ func (format *Trim) ApplyFormatter(msg *core.Message) error {
 			offset = rightIdx
 		}
 	}
-	format.extendContent(&content, offset - format.rightOffset)
+	format.extendContent(&content, offset-format.rightOffset)
 
 	offset = format.leftOffset
 	if len(format.leftSeparator) > 0 {

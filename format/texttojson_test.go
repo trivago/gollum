@@ -129,7 +129,6 @@ func TestTextToJSONFormatterApplyTo(t *testing.T) {
 	msg := core.NewMessage(nil, []byte("payload"), core.InvalidStreamID)
 	msg.MetaData().SetValue("foo", []byte(testString))
 
-
 	err := format.ApplyFormatter(msg)
 	expect.NoError(err)
 

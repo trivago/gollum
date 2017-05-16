@@ -70,7 +70,7 @@ func (format *Base64Decode) ApplyFormatter(msg *core.Message) error {
 	return nil
 }
 
-func (format *Base64Decode) getDecodedContent(content []byte) ([]byte, error)  {
+func (format *Base64Decode) getDecodedContent(content []byte) ([]byte, error) {
 	decodedLen := format.dictionary.DecodedLen(len(content))
 	decoded := core.MessageDataPool.Get(decodedLen)
 

@@ -20,7 +20,7 @@ import (
 
 // SimpleFormatter defines the standard formatter implementation.
 type SimpleFormatter struct {
-	Log tlog.LogScope
+	Log               tlog.LogScope
 	GetAppliedContent GetAppliedContent
 	SetAppliedContent SetAppliedContent
 }

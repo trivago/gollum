@@ -49,7 +49,7 @@ type ExtractJSON struct {
 	field        string
 	trimValues   bool
 	numberFormat string
-	applyTo	     string
+	applyTo      string
 }
 
 func init() {
