@@ -39,3 +39,25 @@ func TestTimestamp(t *testing.T) {
 
 	expect.Equal(prefix+"test", msg.String())
 }
+
+func TestTimestampApplyTo(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.Timestamp")
+	config.Override("ApplyTo", "foo")
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*Timestamp)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
+	timestamp := msg.Created().Format(formatter.timestampFormat)
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("test", msg.String())
+	expect.Equal(timestamp, msg.MetaData().GetValueString("foo"))
+}
