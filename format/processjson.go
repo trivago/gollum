@@ -34,31 +34,26 @@ import (
 // JSON message. The message is modified and returned again as JSON.
 // Configuration example
 //
-//  - "stream.Broadcast":
-//    Formatter: "format.ProcessJSON"
-//    ProcessJSONDataFormatter: "format.Forward"
-//    ProcessJSONGeoIPFile: ""
-//    ProcessJSONDirectives:
-//      - "host:split: :host:@timestamp"
-//      - "@timestamp:time:20060102150405:2006-01-02 15\\:04\\:05"
-//      - "error:replace:°:\n"
-//      - "text:trim: \t"
-//      - "foo:rename:bar"
+//  - format.ProcessJSON:
+//      GeoIPFile: ""
+//      Directives:
+//        - "host:split: :host:@timestamp"
+//        - "@timestamp:time:20060102150405:2006-01-02 15\\:04\\:05"
+//        - "error:replace:°:\n"
+//        - "text:trim: \t"
+//        - "foo:rename:bar"
 //		- "foobar:remove"
-//      - "array:pick:0:firstOfArray"
+//        - "array:pick:0:firstOfArray"
 //		- "array:remove:foobar"
-//      - "user_agent:agent:browser:os:version"
-//      - "client:geoip:country:city:timezone:location"
-//    ProcessJSONTrimValues: true
+//        - "user_agent:agent:browser:os:version"
+//        - "client:geoip:country:city:timezone:location"
+//      TrimValues: true
 //
-// ProcessJSONDataFormatter formatter that will be applied before
-// ProcessJSONDirectives are processed.
-//
-// ProcessJSONGeoIPFile defines a GeoIP file to load. This enables the "geoip"
+// GeoIPFile defines a GeoIP file to load. This enables the "geoip"
 // directive. If no file is loaded IPs will not be resolved. Files can be
 // found e.g. at http://dev.maxmind.com/geoip/geoip2/geolite2/
 //
-// ProcessJSONDirectives defines the action to be applied to the json payload.
+// Directives defines the action to be applied to the json payload.
 // Directives are processed in order of appearance.
 // The directives have to be given in the form of key:operation:parameters, where
 // operation can be one of the following.
@@ -92,7 +87,7 @@ import (
 //    via geoip and produce new fields.
 //    Possible values are: "country", "city", "continent", "timezone", "proxy", "location"
 //
-// ProcessJSONTrimValues will trim whitspaces from all values if enabled.
+// TrimValues will trim whitspaces from all values if enabled.
 // Enabled by default.
 type ProcessJSON struct {
 	core.SimpleFormatter
@@ -115,10 +110,10 @@ func init() {
 func (format *ProcessJSON) Configure(conf core.PluginConfigReader) error {
 	format.SimpleFormatter.Configure(conf)
 
-	directives := conf.GetStringArray("ProcessJSONDirectives", []string{})
+	directives := conf.GetStringArray("Directives", []string{})
 	format.directives = make([]transformDirective, 0, len(directives))
-	format.trimValues = conf.GetBool("ProcessJSONTrimValues", true)
-	geoIPFile := conf.GetString("ProcessJSONGeoIPFile", "")
+	format.trimValues = conf.GetBool("TrimValues", true)
+	geoIPFile := conf.GetString("GeoIPFile", "")
 
 	if geoIPFile != "" {
 		var err error

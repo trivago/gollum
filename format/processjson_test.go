@@ -12,7 +12,7 @@ func TestProcessJSONRename(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.ProcessJSON")
-	config.Override("ProcessJSONDirectives", []interface{}{
+	config.Override("Directives", []interface{}{
 		"foo:rename:foobar",
 	})
 
@@ -37,7 +37,7 @@ func TestProcessJSONReplace(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.ProcessJSON")
-	config.Override("ProcessJSONDirectives", []interface{}{
+	config.Override("Directives", []interface{}{
 		"foo:replace:value:new",
 	})
 
@@ -55,4 +55,60 @@ func TestProcessJSONReplace(t *testing.T) {
 
 	msgData := string(msg.Data())
 	expect.True(strings.Contains(msgData, "\"foo\":\"new1\""))
+}
+
+func TestProcessJsonTrimValues(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.ProcessJSON")
+	config.Override("Directives", []interface{}{
+		"foo:rename:foo2",
+		"bar:rename:bar2",
+	})
+	config.Override("TrimValues", true)
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*ProcessJSON)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("{\"foo\":\"value1 \",\"bar\":\" value2\"}"),
+		0, core.InvalidStreamID)
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	msgData := string(msg.Data())
+
+	expect.True(strings.Contains(msgData, "\"foo2\":\"value1\""))
+	expect.True(strings.Contains(msgData, "\"bar2\":\"value2\""))
+}
+
+func TestProcessJsonTrimValuesFalse(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.ProcessJSON")
+	config.Override("Directives", []interface{}{
+		"foo:rename:foo2",
+		"bar:rename:bar2",
+	})
+	config.Override("TrimValues", false)
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*ProcessJSON)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("{\"foo\":\"value1 \",\"bar\":\" value2\"}"),
+		0, core.InvalidStreamID)
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	msgData := string(msg.Data())
+
+	expect.True(strings.Contains(msgData, "\"foo2\":\"value1 \""))
+	expect.True(strings.Contains(msgData, "\"bar2\":\" value2\""))
 }
