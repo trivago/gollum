@@ -31,7 +31,7 @@ func TestRunlength(t *testing.T) {
 	formatter, casted := plugin.(*Runlength)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
