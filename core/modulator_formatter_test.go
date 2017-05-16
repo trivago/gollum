@@ -97,6 +97,23 @@ func TestFormatterModulatorModulateError(t *testing.T) {
 	expect.True(formatter.ApplyFormatterHasCalled)
 }
 
+func TestFormatterArray(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	formatter, _ := getDummyFormatter()
+	secondFormatter, _ := getDummyFormatter()
+
+	formatterArray := FormatterArray{formatter,secondFormatter}
+	msg := NewMessage(nil, []byte("test"), InvalidStreamID)
+
+	expect.Nil(formatterArray.ApplyFormatter(msg))
+
+	expect.True(formatter.ConfigureHasCalled)
+	expect.True(formatter.ApplyFormatterHasCalled)
+	expect.True(secondFormatter.ConfigureHasCalled)
+	expect.True(secondFormatter.ApplyFormatterHasCalled)
+}
+
 func getDummyFormatter() (*dummyFormatter, error) {
 	TypeRegistry.Register(dummyFormatter{ConfigureHasCalled: false, ApplyFormatterHasCalled: false})
 	config := NewPluginConfig("", "core.dummyFormatter")
