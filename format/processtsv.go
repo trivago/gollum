@@ -237,7 +237,7 @@ func (format *ProcessTSV) ApplyFormatter(msg *core.Message) error {
 
 	values := make([]tsvValue, 0)
 	if format.quotedValues {
-		remainder := string(msg.Data())
+		remainder := string(format.GetAppliedContent(msg))
 		for true {
 			if remainder[:1] != `"` {
 				split := strings.SplitN(remainder, format.delimiter+`"`, 2)
@@ -272,7 +272,7 @@ func (format *ProcessTSV) ApplyFormatter(msg *core.Message) error {
 			}
 		}
 	} else {
-		values = stringsToTSVValues(strings.Split(string(msg.Data()), format.delimiter))
+		values = stringsToTSVValues(strings.Split(string(format.GetAppliedContent(msg)), format.delimiter))
 	}
 
 	for _, directive := range format.directives {
@@ -288,6 +288,6 @@ func (format *ProcessTSV) ApplyFormatter(msg *core.Message) error {
 		}
 	}
 
-	msg.Store([]byte(strings.Join(stringValues, format.delimiter)))
+	format.SetAppliedContent(msg, []byte(strings.Join(stringValues, format.delimiter)))
 	return nil // continue
 }

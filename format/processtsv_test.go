@@ -328,3 +328,24 @@ func TestProcessTSVDelimiterAndQuotedValuesAndDirectives(t *testing.T) {
 		msg.String(),
 	)
 }
+
+func TestProcessTSVApplyTo(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.ProcessTSV")
+	config.Override("Directives", []string{"1:remove"})
+	config.Override("ApplyTo", "foo")
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+	formatter, casted := plugin.(*ProcessTSV)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("PAYLOAD"), 0, core.InvalidStreamID)
+	msg.MetaData().SetValue("foo", []byte("foo\tbar\tbaz"))
+	err = formatter.ApplyFormatter(msg)
+
+	expect.NoError(err)
+	expect.Equal("PAYLOAD", msg.String())
+	expect.Equal("foo\tbaz", msg.MetaData().GetValueString("foo"))
+}
