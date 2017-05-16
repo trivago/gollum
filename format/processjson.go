@@ -431,7 +431,7 @@ func (format *ProcessJSON) ApplyFormatter(msg *core.Message) error {
 	}
 
 	values := make(tcontainer.MarshalMap)
-	err := json.Unmarshal(msg.Data(), &values)
+	err := json.Unmarshal(format.GetAppliedContent(msg), &values)
 	if err != nil {
 		format.Log.Warning.Print("ProcessJSON failed to unmarshal a message: ", err)
 		return err
@@ -456,6 +456,6 @@ func (format *ProcessJSON) ApplyFormatter(msg *core.Message) error {
 		return err
 	}
 
-	msg.Store(jsonData)
+	format.SetAppliedContent(msg, jsonData)
 	return nil
 }

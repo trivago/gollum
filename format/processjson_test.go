@@ -112,3 +112,30 @@ func TestProcessJsonTrimValuesFalse(t *testing.T) {
 	expect.True(strings.Contains(msgData, "\"foo2\":\"value1 \""))
 	expect.True(strings.Contains(msgData, "\"bar2\":\" value2\""))
 }
+
+func TestProcessJSONApplyTo(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.ProcessJSON")
+	config.Override("Directives", []interface{}{
+		"test:rename:foo",
+	})
+	config.Override("ApplyTo", "foo")
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*ProcessJSON)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("TEST PAYLOAD"),
+		0, core.InvalidStreamID)
+	msg.MetaData().SetValue("foo", []byte("{\"test\":\"foobar\"}"))
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	msgData := string(msg.Data())
+	expect.Equal(msgData, "TEST PAYLOAD")
+	expect.True(strings.Contains(msg.MetaData().GetValueString("foo"), "\"foo\":\"foobar\""))
+}
