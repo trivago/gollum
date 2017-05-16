@@ -54,10 +54,9 @@ func (format *Runlength) ApplyFormatter(msg *core.Message) error {
 	content := format.GetAppliedContent(msg)
 	contentLen := len(content)
 	separatorLen := len(format.separator)
-
 	lengthStr := strconv.Itoa(contentLen)
-	var payload []byte
 
+	var payload []byte
 	if separatorLen > 0 {
 		dataSize := len(lengthStr) + separatorLen + contentLen
 		payload = core.MessageDataPool.Get(dataSize)
