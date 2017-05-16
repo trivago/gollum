@@ -30,14 +30,14 @@ import (
 //   - "stream.Broadcast":
 //     Filter: "filter.Rate"
 //     RateLimitPerSec: 100
-//     RateLimitDropToStream: ""
+//     RateLimitFilteredStream: ""
 //     RateLimitIgnore:
 //       - "foo"
 //
 // RateLimitPerSec defines the maximum number of messages per second allowed
 // to pass through this filter. By default this is set to 100.
 //
-// RateLimitDropToStream is an optional stream messages are sent to when the
+// RateLimitFilteredStream is an optional stream messages are sent to when the
 // limit is reached. By default this is disabled and set to "".
 //
 // RateLimitIgnore defines a list of streams that should not be affected by

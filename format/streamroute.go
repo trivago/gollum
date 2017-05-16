@@ -83,7 +83,7 @@ func (format *StreamRoute) ApplyFormatter(msg *core.Message) error {
 
 		msg.Offset(delimiterIdx + len(format.delimiter))
 		switch result := format.streamModulators.Modulate(streamMsg); result {
-		case core.ModulateResultDiscard, core.ModulateResultDrop:
+		case core.ModulateResultDiscard, core.ModulateResultFallback:
 			return nil // ### return, rule based early out ###
 		}
 

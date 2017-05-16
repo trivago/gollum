@@ -31,7 +31,7 @@ func TestStreamRoute(t *testing.T) {
 	formatter, casted := plugin.(*StreamRoute)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte(core.LogInternalStream+":test"), core.DroppedStreamID)
+	msg := core.NewMessage(nil, []byte(core.LogInternalStream+":test"), core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -59,7 +59,7 @@ func TestStreamRouteFormat(t *testing.T) {
 	formatter, casted := plugin.(*StreamRoute)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("GOLLUM:test"), core.DroppedStreamID)
+	msg := core.NewMessage(nil, []byte("GOLLUM:test"), core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)

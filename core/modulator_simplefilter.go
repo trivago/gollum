@@ -26,13 +26,13 @@ import (
 //  - "plugin":
 //    Filters:
 //      - SomeFilter:
-//        DropToStream: ""
+//        FilteredStream: ""
 //
-// DropToStream defines a stream where filtered messages get sent to.
+// FilteredStream defines a stream where filtered messages get sent to.
 // You can disable this behavior by setting "". Set to "" by default.
 type SimpleFilter struct {
-	Log          tlog.LogScope
-	dropStreamID MessageStreamID
+	Log              tlog.LogScope
+	filteredStreamID MessageStreamID
 }
 
 // SetLogScope sets the log scope to be used for this filter
@@ -43,13 +43,12 @@ func (filter *SimpleFilter) SetLogScope(log tlog.LogScope) {
 // Configure sets up all values requred by SimpleFormatter.
 func (filter *SimpleFilter) Configure(conf PluginConfigReader) error {
 	filter.Log = conf.GetSubLogScope("Filter")
-
-	filter.dropStreamID = GetStreamID(conf.GetString("DropToStream", InvalidStream))
+	filter.filteredStreamID = GetStreamID(conf.GetString("FilteredStream", InvalidStream))
 	return nil
 }
 
 // GetFilterResultMessageReject returns a FilterResultMessageReject with the
-// stream set to GetDropStreamID()
+// stream set to GetfilteredStreamID()
 func (filter *SimpleFilter) GetFilterResultMessageReject() FilterResult {
-	return FilterResultMessageReject(filter.dropStreamID)
+	return FilterResultMessageReject(filter.filteredStreamID)
 }

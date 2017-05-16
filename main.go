@@ -15,7 +15,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	_ "github.com/trivago/gollum/consumer"
 	"github.com/trivago/gollum/core"
@@ -184,7 +183,7 @@ func parseAddress(address string) (string, error) {
 
 	host, port, err := net.SplitHostPort(address)
 	if err != nil {
-		return address, errors.New(fmt.Sprintf("Incorrect address %q: %s", address, err))
+		return address, fmt.Errorf("Incorrect address %q: %s", address, err)
 	}
 
 	return host + ":" + port, nil

@@ -120,7 +120,7 @@ func (prod *Socket) Configure(conf core.PluginConfigReader) error {
 	}
 
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
-	prod.assembly = core.NewWriterAssembly(nil, prod.Drop, prod)
+	prod.assembly = core.NewWriterAssembly(nil, prod.TryFallback, prod)
 	prod.assembly.SetValidator(prod.validate)
 	prod.assembly.SetErrorHandler(prod.onWriteError)
 
@@ -183,7 +183,7 @@ func (prod *Socket) onWriteError(err error) bool {
 }
 
 func (prod *Socket) sendMessage(msg *core.Message) {
-	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
+	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.TryFallback)
 }
 
 func (prod *Socket) sendBatch() {

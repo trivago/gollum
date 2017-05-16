@@ -197,8 +197,8 @@ func (cons *SimpleConsumer) enqueueMessage(msg *Message) {
 		DiscardMessage(msg)
 		return
 
-	case ModulateResultDrop:
-		if err := DropMessage(msg); err != nil {
+	case ModulateResultFallback:
+		if err := RouteOriginal(msg, msg.GetRouter()); err != nil {
 			cons.Log.Error.Print(err)
 		}
 		return

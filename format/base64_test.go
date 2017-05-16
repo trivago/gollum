@@ -15,10 +15,9 @@
 package format
 
 import (
-	"testing"
-
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
+	"testing"
 )
 
 func TestBase64(t *testing.T) {
