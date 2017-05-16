@@ -92,3 +92,47 @@ func BenchmarkTextToJSONFormatter(b *testing.B) {
 		test.ApplyFormatter(msg)
 	}
 }
+
+func TestTextToJSONFormatterApplyTo(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	format := TextToJSON{}
+	directives := []interface{}{
+		`findKey    :":  key        ::`,
+		`findKey    :}:             : pop  : end`,
+		`key        :":  findVal    :      : key`,
+		`findVal    :\:: value      ::`,
+		`value      :":  string     ::`,
+		`value      :[:  array      : push : arr`,
+		`value      :{:  findKey    : push : obj`,
+		`value      :,:  findKey    :      : val`,
+		`value      :}:             : pop  : val+end`,
+		`string     :":  findKey    :      : esc`,
+		`array      :[:  array      : push : arr`,
+		`array      :{:  findKey    : push : obj`,
+		`array      :]:             : pop  : val+end`,
+		`array      :,:  array      :      : val`,
+		`array      :":  arrString  ::`,
+		`arrString  :":  array      :      : esc`,
+	}
+
+	conf := core.NewPluginConfig("mockTextToJSONFormatter", "format.TextToJSON")
+	conf.Override("startstate", "findKey")
+	conf.Override("directives", directives)
+	conf.Override("ApplyTo", "foo")
+
+	if err := format.Configure(core.NewPluginConfigReader(&conf)); err != nil {
+		panic(err)
+	}
+
+	testString := `{"a":123,"b":"string","c":[1,2,3],"d":[{"a":1}],"e":[[1,2]],"f":[{"a":1},{"b":2}],"g":[[1,2],[3,4]]}`
+	msg := core.NewMessage(nil, []byte("payload"), core.InvalidStreamID)
+	msg.MetaData().SetValue("foo", []byte(testString))
+
+
+	err := format.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("payload", msg.String())
+	expect.Equal(testString, msg.MetaData().GetValueString("foo"))
+}
