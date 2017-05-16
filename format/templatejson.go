@@ -27,15 +27,12 @@ import (
 // of a JSON message.
 // Configuration example
 //
-//  - "stream.Broadcast":
-//    Formatter: "format.TemplateJSON"
-//    TemplateJSONFormatter: "format.Forward"
-//    TemplateJSONTemplate: ""
+//  - format.TemplateJSON:
+//      Template: ""
+//      ApplyTo: "payload" # payload or <metaKey>
 //
-// TemplateJSONFormatter formatter that will be applied before
-// the field is templated. Set to format.Forward by default.
 //
-// TemplateJSONTemplate defines the template to execute with text/template.
+// Template defines the template to execute with text/template.
 // This value is empty by default. If the template fails to execute the output
 // of TemplateJSONFormatter is returned.
 type TemplateJSON struct {
@@ -49,10 +46,12 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *TemplateJSON) Configure(conf core.PluginConfigReader) error {
+	format.SimpleFormatter.Configure(conf)
+
 	var err error
 
-	templ := conf.GetString("TemplateJSONTemplate", "")
-	format.template, err = template.New("TemplateJSON").Parse(templ)
+	tpl := conf.GetString("Template", "")
+	format.template, err = template.New("TemplateJSON").Parse(tpl)
 	conf.Errors.Push(err)
 
 	return conf.Errors.OrNil()
@@ -61,7 +60,7 @@ func (format *TemplateJSON) Configure(conf core.PluginConfigReader) error {
 // ApplyFormatter update message payload
 func (format *TemplateJSON) ApplyFormatter(msg *core.Message) error {
 	values := tcontainer.NewMarshalMap()
-	err := json.Unmarshal(msg.Data(), &values)
+	err := json.Unmarshal(format.GetAppliedContent(msg), &values)
 	if err != nil {
 		format.Log.Warning.Print("TemplateJSON failed to unmarshal a message: ", err)
 		return err
@@ -73,7 +72,8 @@ func (format *TemplateJSON) ApplyFormatter(msg *core.Message) error {
 		format.Log.Warning.Print("TemplateJSON failed to template a message: ", err)
 		return err
 	}
-	msg.Store(templateData.Bytes())
+
+	format.SetAppliedContent(msg, templateData.Bytes())
 
 	return nil
 }
