@@ -24,16 +24,14 @@ import (
 // a ":". The actual message is formatted by a nested formatter.
 // Configuration example
 //
-//  - "stream.Broadcast":
-//    Formatter: "format.Runlength"
-//    RunlengthSeparator: ":"
-//    RunlengthFormatter: "format.Envelope"
+//  - format.Runlength
+//      Separator: ":"
+//      ApplyTo: "payload" # payload or <metaKey>
 //
-// RunlengthSeparator sets the separator character placed after the runlength.
-// This is set to ":" by default.
+// Separator sets the separator character placed after the runlength.
+// This is set to ":" by default. If no separator is set the runlength will only set.
 //
-// RunlengthDataFormatter defines the formatter for the data transferred as
-// message. By default this is set to "format.Forward"
+// ApplyTo defines the formatter content for the data transferred
 type Runlength struct {
 	core.SimpleFormatter
 	separator []byte
@@ -53,15 +51,24 @@ func (format *Runlength) Configure(conf core.PluginConfigReader) error {
 
 // ApplyFormatter update message payload
 func (format *Runlength) ApplyFormatter(msg *core.Message) error {
-	lengthStr := strconv.Itoa(msg.Len())
+	content := format.GetAppliedContent(msg)
+	contentLen := len(content)
+	separatorLen := len(format.separator)
 
-	dataSize := len(lengthStr) + len(format.separator) + msg.Len()
-	payload := core.MessageDataPool.Get(dataSize)
+	lengthStr := strconv.Itoa(contentLen)
+	var payload []byte
 
-	offset := copy(payload, []byte(lengthStr))
-	offset += copy(payload[offset:], format.separator)
-	copy(payload[offset:], msg.Data())
+	if separatorLen > 0 {
+		dataSize := len(lengthStr) + separatorLen + contentLen
+		payload = core.MessageDataPool.Get(dataSize)
 
-	msg.Store(payload)
+		offset := copy(payload, []byte(lengthStr))
+		offset += copy(payload[offset:], format.separator)
+		copy(payload[offset:], content)
+	} else {
+		payload = []byte(lengthStr)
+	}
+
+	format.SetAppliedContent(msg, payload)
 	return nil
 }
