@@ -27,25 +27,22 @@ import (
 // is not changed.
 // Configuration example
 //
-//  - "stream.Broadcast":
-//    Formatter: "format.StreamRoute"
-//    StreamRouteFormatter: "format.Forward"
-//    StreamRouteStreamFormatter: "format.Forward"
-//    StreamRouteDelimiter: ":"
-//    StreamRouteFormatStream: false
+//  - format.StreamRoute:
+//    StreamModulator:
+//      - format.Forward
+//    Delimiter: ":"
+//    ApplyTo: "payload" # payload or <metaKey>
 //
-// StreamRouteFormatter defines the formatter applied after reading the stream.
-// This formatter is applied to the data after StreamRouteDelimiter.
-// By default this is set to "format.Forward"
+// StreamModulator is used when StreamRouteFormatStream is set to true.
+// By default this is empty.
 //
-// StreamRouteStreamFormatter is used when StreamRouteFormatStream is set to true.
-// By default this is the same value as StreamRouteFormatter.
-//
-// StreamRouteDelimiter defines the delimiter to search when extracting the stream
+// Delimiter defines the delimiter to search when extracting the stream
 // name. By default this is set to ":".
 //
 // StreamRouteFormatStream can be set to true to apply StreamRouteFormatter to both
 // parts of the message (stream and data). Set to false by default.
+//
+// ApplyTo defines the formatter content to use
 type StreamRoute struct {
 	core.SimpleFormatter
 	streamModulators core.ModulatorArray
@@ -68,20 +65,23 @@ func (format *StreamRoute) Configure(conf core.PluginConfigReader) error {
 
 // ApplyFormatter update message payload
 func (format *StreamRoute) ApplyFormatter(msg *core.Message) error {
-	delimiterIdx := bytes.Index(msg.Data(), format.delimiter)
+	content := format.GetAppliedContent(msg)
+	delimiterIdx := bytes.Index(content, format.delimiter)
 
 	switch delimiterIdx {
 	case 0:
-		msg.Offset(len(format.delimiter))
-
+		content = content[len(format.delimiter):]
+		format.SetAppliedContent(msg, content)
 	case -1:
 		// no prefix
 
 	default:
-		streamName := msg.Data()[:delimiterIdx]
+		streamName := content[:delimiterIdx]
 		streamMsg := core.NewMessage(nil, []byte(streamName), msg.StreamID())
 
-		msg.Offset(delimiterIdx + len(format.delimiter))
+		content = content[(delimiterIdx + len(format.delimiter)):]
+		format.SetAppliedContent(msg, content)
+
 		switch result := format.streamModulators.Modulate(streamMsg); result {
 		case core.ModulateResultDiscard, core.ModulateResultFallback:
 			return nil // ### return, rule based early out ###
