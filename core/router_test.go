@@ -81,3 +81,57 @@ func TestRouterConfigureStream(t *testing.T) {
 func TestStreamRoute(t *testing.T) {
 	// TODO
 }
+
+func TestRouteOriginalMessage(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+	mockRouter := getMockRouterMessageHelper("testStream")
+
+	mockConf := NewPluginConfig("", "mockRouter")
+	mockConf.Override("Stream", "messageDropStream")
+
+	mockRouter.Configure(NewPluginConfigReader(&mockConf))
+	StreamRegistry.Register(&mockRouter, mockRouter.StreamID())
+
+	msg := NewMessage(nil, []byte("foo"), mockRouter.StreamID())
+
+	err := RouteOriginal(msg, msg.GetRouter())
+	expect.NoError(err)
+
+	expect.True(mockRouter.messageEnqued)
+	expect.Equal("foo", mockRouter.lastMessageData)
+
+}
+
+func TestRouteOriginal(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	// create router mock A
+	mockRouterA := getMockRouterMessageHelper("testStreamA")
+
+	mockConfA := NewPluginConfig("mockA", "mockRouterA")
+	mockConfA.Override("Stream", "messageDropStreamA")
+
+	mockRouterA.Configure(NewPluginConfigReader(&mockConfA))
+	StreamRegistry.Register(&mockRouterA, mockRouterA.StreamID())
+
+	// create router mock B
+	mockRouterB := getMockRouterMessageHelper("testStreamB")
+
+	mockConfB := NewPluginConfig("mockB", "mockRouterB")
+	mockConfB.Override("Stream", "messageDropStreamB")
+
+	mockRouterB.Configure(NewPluginConfigReader(&mockConfB))
+	StreamRegistry.Register(&mockRouterB, mockRouterB.StreamID())
+
+	// create message and test
+	msg := NewMessage(nil, []byte("foo"), mockRouterA.StreamID())
+
+	err := RouteOriginal(msg, &mockRouterB)
+	expect.NoError(err)
+
+	expect.False(mockRouterA.messageEnqued)
+	expect.Equal("", mockRouterA.lastMessageData)
+	expect.True(mockRouterB.messageEnqued)
+	expect.Equal("foo", mockRouterB.lastMessageData)
+
+}
