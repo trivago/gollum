@@ -27,7 +27,6 @@ type LogConsumer struct {
 	Consumer
 	control        chan PluginControl
 	logRouter      Router
-	sequence       uint64
 	metric         string
 	lastCount      int64
 	lastCountWarn  int64
@@ -93,7 +92,7 @@ func (cons *LogConsumer) updateMetric() {
 
 // Write fulfills the io.Writer interface
 func (cons *LogConsumer) Write(data []byte) (int, error) {
-	msg := NewMessage(cons, data, cons.sequence, LogInternalStreamID)
+	msg := NewMessage(cons, data, LogInternalStreamID)
 	cons.logRouter.Enqueue(msg)
 
 	if cons.metric != "" {

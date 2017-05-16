@@ -33,12 +33,9 @@ func TestFilterJSON(t *testing.T) {
 	filter, casted := plugin.(*JSON)
 	expect.True(casted)
 
-	msg1 := core.NewMessage(nil, ([]byte)("{\"data\":\"accept\"}"),
-		0, core.InvalidStreamID)
-	msg2 := core.NewMessage(nil, ([]byte)("{\"data\":\"0accept\"}"),
-		0, core.InvalidStreamID)
-	msg3 := core.NewMessage(nil, ([]byte)("{\"data\":\"reject\"}"),
-		0, core.InvalidStreamID)
+	msg1 := core.NewMessage(nil, ([]byte)("{\"data\":\"accept\"}"), core.InvalidStreamID)
+	msg2 := core.NewMessage(nil, ([]byte)("{\"data\":\"0accept\"}"), core.InvalidStreamID)
+	msg3 := core.NewMessage(nil, ([]byte)("{\"data\":\"reject\"}"), core.InvalidStreamID)
 
 	result, _ := filter.ApplyFilter(msg1)
 	expect.Equal(core.FilterResultMessageAccept, result)
@@ -94,8 +91,7 @@ func TestFilterJSONFailure(t *testing.T) {
 	filter, casted := plugin.(*JSON)
 	expect.True(casted)
 
-	msg1 := core.NewMessage(nil, ([]byte)("NO JSON"),
-		0, core.InvalidStreamID)
+	msg1 := core.NewMessage(nil, ([]byte)("NO JSON"), core.InvalidStreamID)
 
 	result, err := filter.ApplyFilter(msg1)
 	expect.Neq(core.FilterResultMessageAccept, result)

@@ -31,8 +31,7 @@ func TestMetaDataCopy(t *testing.T) {
 	formatter, casted := plugin.(*MetaDataCopy)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test payload"),
-		0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test payload"), core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -64,8 +63,7 @@ func TestMetaDataCopyApplyToHandling(t *testing.T) {
 	formatter, casted := plugin.(*MetaDataCopy)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test payload"),
-		0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test payload"), core.InvalidStreamID)
 
 	msg.MetaData().SetValue("foo", []byte("meta data string"))
 

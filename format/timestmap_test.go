@@ -31,7 +31,7 @@ func TestTimestamp(t *testing.T) {
 	formatter, casted := plugin.(*Timestamp)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
 	prefix := msg.Created().Format(formatter.timestampFormat)
 
 	err = formatter.ApplyFormatter(msg)

@@ -124,7 +124,7 @@ func TestProducerEnqueue(t *testing.T) {
 
 	mockP.fallbackStream = StreamRegistry.GetRouter(2)
 
-	msg := NewMessage(nil, []byte("ProdEnqueueTest"), 4, 1)
+	msg := NewMessage(nil, []byte("ProdEnqueueTest"), 1)
 
 	enqTimeout := time.Second
 	mockP.setState(PluginStateStopping)
@@ -172,7 +172,7 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 	StreamRegistry.Register(&mockDropStream, 2)
 
 	mockP.streams = []MessageStreamID{2}
-	msgToSend := NewMessage(nil, []byte("closeMessageChannel"), 4, 2)
+	msgToSend := NewMessage(nil, []byte("closeMessageChannel"), 2)
 
 	mockP.Enqueue(msgToSend, nil)
 	mockP.Enqueue(msgToSend, nil)

@@ -32,12 +32,6 @@ func (bw *messageBatchWriter) hasData(messages []*Message) {
 	bw.expect.Greater(len(messages), 0)
 }
 
-func (bw *messageBatchWriter) checkOrder(messages []*Message) {
-	for i, msg := range messages {
-		bw.expect.Equal(uint64(i), msg.Sequence())
-	}
-}
-
 func (bw messageBatchWriter) Write(data []byte) (int, error) {
 	bw.expect.Equal("0123456789", string(data))
 	return len(data), nil
@@ -75,16 +69,17 @@ func TestMessageBatchAppendOrFlush(t *testing.T) {
 	}
 
 	for i := 0; i < 10; i++ {
-		batch.AppendOrFlush(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), uint64(i), InvalidStreamID),
+		batch.AppendOrFlush(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), InvalidStreamID),
 			flushBuffer,
 			dontBlock,
 			dropMsg)
 	}
 	// the buffer is full so it should be flushed and the new message queued
-	batch.AppendOrFlush(NewMessage(nil, []byte(fmt.Sprintf("%d", 10)), uint64(0), InvalidStreamID),
+	batch.AppendOrFlush(NewMessage(nil, []byte(fmt.Sprintf("%d", 10)), InvalidStreamID),
 		flushBuffer,
 		doBlock,
 		dropMsg)
+
 	expect.Equal(batch.getActiveBufferCount(), int(1))
 
 }
@@ -102,7 +97,7 @@ func TestMessageBatch(t *testing.T) {
 	expect.Equal(batch.Len(), 10)
 
 	// Append adds an item
-	batch.Append(NewMessage(nil, []byte("test"), 0, InvalidStreamID))
+	batch.Append(NewMessage(nil, []byte("test"), InvalidStreamID))
 	expect.False(batch.IsEmpty())
 
 	// Flush removes all items
@@ -114,9 +109,9 @@ func TestMessageBatch(t *testing.T) {
 
 	// Append fails if buffer is full
 	for i := 0; i < 10; i++ {
-		expect.True(batch.Append(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), uint64(i), InvalidStreamID)))
+		expect.True(batch.Append(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), InvalidStreamID)))
 	}
-	expect.False(batch.Append(NewMessage(nil, []byte("10"), 10, InvalidStreamID)))
+	expect.False(batch.Append(NewMessage(nil, []byte("10"), InvalidStreamID)))
 	expect.True(batch.ReachedSizeThreshold(10))
 
 	// Test writer assembly
@@ -125,7 +120,7 @@ func TestMessageBatch(t *testing.T) {
 	expect.True(batch.IsEmpty())
 
 	for i := 0; i < 10; i++ {
-		expect.True(batch.Append(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), uint64(i), InvalidStreamID)))
+		expect.True(batch.Append(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), InvalidStreamID)))
 	}
 
 	writer.counter = 0
@@ -139,7 +134,7 @@ func TestMessageBatch(t *testing.T) {
 
 	// Flush removes all items, also if closed
 	for i := 0; i < 5; i++ {
-		expect.True(batch.Append(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), uint64(i), InvalidStreamID)))
+		expect.True(batch.Append(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), InvalidStreamID)))
 	}
 
 	batch.Flush(assembly.Flush)
@@ -147,10 +142,10 @@ func TestMessageBatch(t *testing.T) {
 	// batch is not closed and message is appended
 
 	for i := 0; i < 10; i++ {
-		expect.True(batch.AppendOrBlock(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), uint64(i), InvalidStreamID)))
+		expect.True(batch.AppendOrBlock(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), InvalidStreamID)))
 	}
 	go func() {
-		expect.False(batch.AppendOrBlock(NewMessage(nil, []byte("10"), 10, InvalidStreamID)))
+		expect.False(batch.AppendOrBlock(NewMessage(nil, []byte("10"), InvalidStreamID)))
 	}()
 	//let above goroutine run so that spin can Yield atleast once
 	time.Sleep(1 * time.Second)
@@ -158,18 +153,18 @@ func TestMessageBatch(t *testing.T) {
 	expect.True(batch.ReachedTimeThreshold(100 * time.Millisecond))
 
 	//closing now will close the messageBatch and the goroutine will return false
-	batch.Close(writer.checkOrder, time.Second)
+	batch.Close(func([]*Message) {}, time.Second)
 	expect.True(batch.IsEmpty())
-	expect.False(batch.Append(NewMessage(nil, []byte("6"), 6, InvalidStreamID)))
+	expect.False(batch.Append(NewMessage(nil, []byte("6"), InvalidStreamID)))
 	expect.True(batch.IsEmpty())
 
-	expect.False(batch.Append(NewMessage(nil, nil, 0, InvalidStreamID)))
-	expect.False(batch.AppendOrBlock(NewMessage(nil, nil, 0, InvalidStreamID)))
+	expect.False(batch.Append(NewMessage(nil, nil, InvalidStreamID)))
+	expect.False(batch.AppendOrBlock(NewMessage(nil, nil, InvalidStreamID)))
 }
 
 func TestMessageSerialize(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	testMessage := NewMessage(nil, []byte("This is a\nteststring"), 1, 1)
+	testMessage := NewMessage(nil, []byte("This is a\nteststring"), 1)
 	testMessage.MetaData().SetValue("key", []byte("meta data value"))
 
 	data, err := testMessage.Serialize()
@@ -193,7 +188,6 @@ func TestMessageSerialize(t *testing.T) {
 	expect.Equal(readMessage.data.streamID, testMessage.data.streamID)
 	expect.Equal(readMessage.prevStreamID, testMessage.prevStreamID)
 	expect.Equal(readMessage.timestamp, testMessage.timestamp)
-	expect.Equal(readMessage.sequence, testMessage.sequence)
 	expect.Equal(readMessage.data.payload, testMessage.data.payload)
 	expect.Equal(readMessage.data.MetaData, testMessage.data.MetaData)
 }

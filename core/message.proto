@@ -5,7 +5,7 @@ message serializedMessage {
         required uint64 StreamID = 1;
         required uint64 PrevStreamID = 2;
         required int64 Timestamp = 3;
-        required uint64 Sequence = 4;
+        //required uint64 Sequence = 4;
         required bytes Data = 5;
         map<string, bytes> MetaData = 6;
 }

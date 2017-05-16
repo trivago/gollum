@@ -19,6 +19,7 @@ import (
 	"hash/fnv"
 	"strconv"
 	"strings"
+	"sync/atomic"
 )
 
 // Identifier formatter plugin
@@ -46,6 +47,7 @@ import (
 type Identifier struct {
 	core.SimpleFormatter
 	hash func(*core.Message) []byte
+	seq  *int64
 }
 
 func init() {
@@ -57,6 +59,7 @@ func (format *Identifier) Configure(conf core.PluginConfigReader) error {
 	format.SimpleFormatter.Configure(conf)
 
 	idType := strings.ToLower(conf.GetString("Use", "time"))
+	format.seq = new(int64)
 
 	switch idType {
 	case "hash":
@@ -83,15 +86,18 @@ func (format *Identifier) idHash(msg *core.Message) []byte {
 }
 
 func (format *Identifier) idTime(msg *core.Message) []byte {
-	return []byte(msg.Created().Format("060102150405") + strconv.FormatUint(msg.Sequence()%10000000, 10))
+	seq := atomic.AddInt64(format.seq, 1)
+	return []byte(msg.Created().Format("060102150405") + strconv.FormatInt(seq%10000000, 10))
 }
 
 func (format *Identifier) idSeq(msg *core.Message) []byte {
-	return []byte(strconv.FormatUint(msg.Sequence(), 10))
+	seq := atomic.AddInt64(format.seq, 1)
+	return []byte(strconv.FormatInt(seq, 10))
 }
 
 func (format *Identifier) idSeqHex(msg *core.Message) []byte {
-	return []byte(strconv.FormatUint(msg.Sequence(), 16))
+	seq := atomic.AddInt64(format.seq, 1)
+	return []byte(strconv.FormatInt(seq, 16))
 }
 
 // ApplyFormatter update message payload

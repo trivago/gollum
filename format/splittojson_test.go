@@ -35,8 +35,7 @@ func TestSplitToJSON(t *testing.T) {
 	formatter, casted := plugin.(*SplitToJSON)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test1,test2,{\"object\": true}"),
-		10, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test1,test2,{\"object\": true}"), core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -65,8 +64,7 @@ func TestSplitToJSONTooFew(t *testing.T) {
 	formatter, casted := plugin.(*SplitToJSON)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test1,test2,test3"),
-		10, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test1,test2,test3"), core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -93,8 +91,7 @@ func TestSplitToJSONTooMany(t *testing.T) {
 	formatter, casted := plugin.(*SplitToJSON)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test1,test2,test3"),
-		10, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test1,test2,test3"), core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)

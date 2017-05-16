@@ -31,7 +31,7 @@ func TestFilterNone(t *testing.T) {
 	filter, casted := plugin.(*None)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte{}, 0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte{}, core.InvalidStreamID)
 
 	result, _ := filter.ApplyFilter(msg)
 	expect.Neq(core.FilterResultMessageAccept, result)
