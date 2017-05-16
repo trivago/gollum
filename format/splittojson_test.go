@@ -104,3 +104,36 @@ func TestSplitToJSONTooMany(t *testing.T) {
 	expect.MapEqual(jsonData, "second", "test2")
 	expect.MapEqual(jsonData, "third", "test3")
 }
+
+func TestSplitToJSONApplyTo(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.SplitToJSON")
+	config.Override("SplitBy", ",")
+	config.Override("Keys", []string{"first", "second", "third"})
+	config.Override("ApplyTo", "foo")
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*SplitToJSON)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("payload"), core.InvalidStreamID)
+	msg.MetaData().SetValue("foo", []byte("test1,test2,{\"object\": true}"))
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	jsonData := tcontainer.NewMarshalMap()
+	err = json.Unmarshal(msg.MetaData().GetValue("foo"), &jsonData)
+	expect.NoError(err)
+
+	expect.MapEqual(jsonData, "first", "test1")
+	expect.MapEqual(jsonData, "second", "test2")
+	obj, err := jsonData.MarshalMap("third")
+	expect.NoError(err)
+	expect.MapEqual(obj, "object", true)
+
+	expect.Equal("payload", msg.String())
+}
