@@ -11,13 +11,15 @@ import (
 // and returns the given indexed message. The index are zero based.
 // Configuration example
 //
-//  - "stream.Broadcast":
-//    Formatter: "format.SplitPick"
-//	  SplitPickIndex: 0
-//	  SplitPickDelimiter: ":"
+//  - format.SplitPick:
+//	  Index: 0
+//	  Delimiter: ":"
+//	  ApplyTo: "payload" # payload or <metaKey>
 //
 //	By default, SplitPickIndex is 0.
 //	By default, SplitPickDelimiter is ":".
+//
+// ApplyTo defines the formatter content to use
 type SplitPick struct {
 	core.SimpleFormatter
 	index     int
@@ -32,20 +34,20 @@ func init() {
 func (format *SplitPick) Configure(conf core.PluginConfigReader) error {
 	format.SimpleFormatter.Configure(conf)
 
-	format.index = conf.GetInt("SplitPickIndex", 0)
-	format.delimiter = []byte(conf.GetString("SplitPickDelimiter", ":"))
+	format.index = conf.GetInt("Index", 0)
+	format.delimiter = []byte(conf.GetString("Delimiter", ":"))
 
 	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload
 func (format *SplitPick) ApplyFormatter(msg *core.Message) error {
-	parts := bytes.Split(msg.Data(), format.delimiter)
+	parts := bytes.Split(format.GetAppliedContent(msg), format.delimiter)
 
 	if format.index < len(parts) {
-		msg.Store(parts[format.index])
+		format.SetAppliedContent(msg, parts[format.index])
 	} else {
-		msg.Store([]byte{})
+		format.SetAppliedContent(msg, []byte{})
 	}
 
 	return nil
