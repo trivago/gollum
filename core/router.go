@@ -47,15 +47,27 @@ func Route(msg *Message, router Router) error {
 	case ModulateResultContinue:
 		return router.Enqueue(msg)
 
-	case ModulateResultDrop:
+	case ModulateResultFallback:
 		if msg.StreamID() == router.StreamID() {
 			streamName := StreamRegistry.GetStreamName(msg.StreamID())
 			prevStreamName := StreamRegistry.GetStreamName(msg.PreviousStreamID())
 			return NewModulateResultError("Routing loop detected for router %s (from %s)", streamName, prevStreamName)
 		}
 
-		return DropMessage(msg)
+		return RouteOriginal(msg, msg.GetRouter())
 	}
 
 	return NewModulateResultError("Unknown ModulateResult action: %d", action)
+}
+
+// RouteOriginal restores the original message and routes it by using a
+// a given router.
+func RouteOriginal(msg *Message, router Router) error {
+	return Route(msg.CloneOriginal(), router)
+}
+
+// DiscardMessage increases the discard statistic and discards the given
+// message.
+func DiscardMessage(msg *Message) {
+	CountDiscardedMessage()
 }

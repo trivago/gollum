@@ -33,8 +33,8 @@ func TestFilterRate(t *testing.T) {
 	filter, casted := plugin.(*Rate)
 	expect.True(casted)
 
-	msg1 := core.NewMessage(nil, []byte{}, 0, 1)
-	msg2 := core.NewMessage(nil, []byte{}, 0, 2)
+	msg1 := core.NewMessage(nil, []byte{}, 1)
+	msg2 := core.NewMessage(nil, []byte{}, 2)
 
 	for i := 0; i < 110; i++ {
 		result1, _ := filter.ApplyFilter(msg1)
@@ -78,8 +78,8 @@ func TestFilterRateIgnore(t *testing.T) {
 	filter, casted := plugin.(*Rate)
 	expect.True(casted)
 
-	msg1 := core.NewMessage(nil, []byte{}, 0, core.LogInternalStreamID)
-	msg2 := core.NewMessage(nil, []byte{}, 0, 2)
+	msg1 := core.NewMessage(nil, []byte{}, core.LogInternalStreamID)
+	msg2 := core.NewMessage(nil, []byte{}, 2)
 
 	for i := 0; i < 200; i++ {
 		result1, _ := filter.ApplyFilter(msg1)

@@ -88,7 +88,7 @@ func (prod *Statsd) Configure(conf core.PluginConfigReader) error {
 }
 
 func (prod *Statsd) bufferMessage(msg *core.Message) {
-	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
+	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.TryFallback)
 }
 
 func (prod *Statsd) sendBatchOnTimeOut() {
@@ -102,9 +102,9 @@ func (prod *Statsd) sendBatch() {
 	prod.batch.Flush(prod.transformMessages)
 }
 
-func (prod *Statsd) dropMessages(messages []*core.Message) {
+func (prod *Statsd) tryFallbackForMessages(messages []*core.Message) {
 	for _, msg := range messages {
-		prod.Drop(msg)
+		prod.TryFallback(msg)
 	}
 }
 

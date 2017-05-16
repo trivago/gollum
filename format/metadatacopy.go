@@ -38,7 +38,7 @@ type metaDataMap map[string]core.ModulatorArray
 
 type MetaDataCopy struct {
 	core.SimpleFormatter
-	metaData          metaDataMap
+	metaData metaDataMap
 }
 
 func init() {
@@ -65,7 +65,7 @@ func (format *MetaDataCopy) ApplyFormatter(msg *core.Message) error {
 
 // modulateMetaDataValue returns the final meta value
 func (format *MetaDataCopy) modulateMetaDataValue(msg *core.Message, modulators core.ModulatorArray) []byte {
-	modulationMsg := core.NewMessage(nil, format.GetAppliedContent(msg), 0, core.InvalidStreamID)
+	modulationMsg := core.NewMessage(nil, format.GetAppliedContent(msg), core.InvalidStreamID)
 
 	modulateResult := modulators.Modulate(modulationMsg)
 	if modulateResult == core.ModulateResultContinue {
@@ -85,14 +85,13 @@ func (format *MetaDataCopy) getMetaDataMapFromArray(metaData []interface{}) meta
 			writeToConfig.Read(converted)
 			reader := core.NewPluginConfigReaderWithError(&writeToConfig)
 
-			for keyMetaData, _ := range converted {
+			for keyMetaData := range converted {
 
 				modulator, err := reader.GetModulatorArray(keyMetaData, format.Log, core.ModulatorArray{})
 				if err != nil {
 					format.Log.Error.Print("Can't get mmodulators. Error message: ", err)
 					break
 				}
-
 
 				result[keyMetaData] = modulator
 			}

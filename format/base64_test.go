@@ -15,10 +15,9 @@
 package format
 
 import (
-	"testing"
-
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
+	"testing"
 )
 
 func TestBase64(t *testing.T) {
@@ -37,7 +36,7 @@ func TestBase64(t *testing.T) {
 	decoder, castedDecoder := pluginDecode.(*Base64Decode)
 	expect.True(castedDecoder)
 
-	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
 	err = encoder.ApplyFormatter(msg)
 	expect.NoError(err)
 	expect.Equal("dGVzdA==", string(msg.Data()))
@@ -59,7 +58,7 @@ func TestBase64DecodeApplyHandling(t *testing.T) {
 	decoder, castedDecoder := pluginDecode.(*Base64Decode)
 	expect.True(castedDecoder)
 
-	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
 	msg.MetaData().SetValue("foo", []byte("dGVzdA=="))
 
 	err = decoder.ApplyFormatter(msg)
@@ -79,7 +78,7 @@ func TestBase64EncodeApplyHandling(t *testing.T) {
 	encoder, casted := plugin.(*Base64Encode)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte{}, 0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte{}, core.InvalidStreamID)
 	msg.MetaData().SetValue("foo", []byte("test"))
 
 	err = encoder.ApplyFormatter(msg)

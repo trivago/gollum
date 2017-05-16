@@ -23,14 +23,13 @@ import (
 // WriterAssembly is a helper struct for io.Writer compatible classes that use
 // messagebatch.
 type WriterAssembly struct {
-	writer       io.Writer
-	flush        func(*Message)
-	modulator    Modulator
-	dropStreamID MessageStreamID
-	buffer       []byte
-	validate     func() bool
-	handleError  func(error) bool
-	writerGuard  *sync.Mutex
+	writer      io.Writer
+	flush       func(*Message)
+	modulator   Modulator
+	buffer      []byte
+	validate    func() bool
+	handleError func(error) bool
+	writerGuard *sync.Mutex
 }
 
 // NewWriterAssembly creates a new adapter between io.Writer and the MessageBatch

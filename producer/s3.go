@@ -337,7 +337,7 @@ func (prod *S3) newS3Buffer() (buffer s3Buffer, filename string, err error) {
 }
 
 func (prod *S3) bufferMessage(msg *core.Message) {
-	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
+	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.TryFallback)
 }
 
 func (prod *S3) sendBatchOnTimeOut() {
@@ -400,7 +400,7 @@ func (prod *S3) upload(object *objectData, needLock bool) error {
 		if err != nil {
 			return err
 		}
-		prefix := core.NewMessage(nil, data, uint64(0), core.InvalidStreamID)
+		prefix := core.NewMessage(nil, data, core.InvalidStreamID)
 		prod.pathFormat.Modulate(prefix)
 		key += prefix.String()
 	} else {
@@ -550,7 +550,7 @@ func (prod *S3) transformMessages(messages []*core.Message) {
 			// Create buffer for this s3 path
 			buffer, filename, err := prod.newS3Buffer()
 			if err != nil {
-				prod.Drop(msg)
+				prod.TryFallback(msg)
 				prod.objectsLock.Unlock()
 				continue
 			}
@@ -570,7 +570,7 @@ func (prod *S3) transformMessages(messages []*core.Message) {
 
 		err := prod.appendOrUpload(object, msg.Data())
 		if err != nil {
-			prod.Drop(originalMsg)
+			prod.TryFallback(originalMsg)
 			continue
 		}
 
@@ -581,9 +581,9 @@ func (prod *S3) transformMessages(messages []*core.Message) {
 	if !prod.useFiles {
 		err := prod.uploadAll()
 		if prod.closing && err != nil {
-			// that was the last chance to upload messages, so drop them
+			// that was the last chance to upload messages, so use the fallback
 			for _, msg := range bufferedMessages {
-				prod.Drop(msg)
+				prod.TryFallback(msg)
 			}
 		}
 	}

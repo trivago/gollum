@@ -39,7 +39,7 @@ func getMockProducer() mockProducer {
 			SimpleProducer: SimpleProducer{
 				control:         make(chan PluginControl),
 				streams:         []MessageStreamID{},
-				dropStream:      nil, //it must be set after registration of stream
+				fallbackStream:  nil, //it must be set after registration of stream
 				runState:        new(PluginRunState),
 				modulators:      ModulatorArray{},
 				shutdownTimeout: 10 * time.Millisecond,
@@ -58,7 +58,7 @@ func TestProducerConfigure(t *testing.T) {
 
 	mockConf := NewPluginConfig("", "mockProducer")
 	mockConf.Override("routers", []string{"testBoundStream"})
-	mockConf.Override("DropToStream", "mockStream")
+	mockConf.Override("FallbackStream", "mockStream")
 
 	// Router needs to be configured to avoid unknown class errors
 	registerMockRouter("mockStream")
@@ -122,13 +122,13 @@ func TestProducerEnqueue(t *testing.T) {
 	mockDropStream.streamID = 2
 	StreamRegistry.Register(&mockDropStream, 2)
 
-	mockP.dropStream = StreamRegistry.GetRouter(2)
+	mockP.fallbackStream = StreamRegistry.GetRouter(2)
 
-	msg := NewMessage(nil, []byte("ProdEnqueueTest"), 4, 1)
+	msg := NewMessage(nil, []byte("ProdEnqueueTest"), 1)
 
 	enqTimeout := time.Second
 	mockP.setState(PluginStateStopping)
-	// cause panic and check if message is dropped
+	// cause panic and check if message is sent to the fallback
 	mockP.Enqueue(msg, &enqTimeout)
 
 	mockP.setState(PluginStateActive)
@@ -172,7 +172,7 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 	StreamRegistry.Register(&mockDropStream, 2)
 
 	mockP.streams = []MessageStreamID{2}
-	msgToSend := NewMessage(nil, []byte("closeMessageChannel"), 4, 2)
+	msgToSend := NewMessage(nil, []byte("closeMessageChannel"), 2)
 
 	mockP.Enqueue(msgToSend, nil)
 	mockP.Enqueue(msgToSend, nil)

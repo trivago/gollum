@@ -23,7 +23,7 @@ func TestJSONToArray(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("{\"foo\":\"value1\",\"bar\":\"value2\"}"),
-		0, core.InvalidStreamID)
+		core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -47,8 +47,7 @@ func TestJSONToArrayApplyTo(t *testing.T) {
 	formatter, casted := plugin.(*JSONToArray)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("{\"test\":\"value\"}"),
-		0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("{\"test\":\"value\"}"), core.InvalidStreamID)
 	msg.MetaData().SetValue("foo", []byte("{\"foo\":\"value1\",\"bar\":\"value2\"}"))
 
 	err = formatter.ApplyFormatter(msg)

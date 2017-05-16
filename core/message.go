@@ -119,7 +119,6 @@ type Message struct {
 	prevStreamID MessageStreamID
 	source       MessageSource
 	timestamp    time.Time
-	sequence     uint64 //todo: check for removement
 }
 
 var (
@@ -130,7 +129,7 @@ var (
 )
 
 // NewMessage creates a new message from a given data stream by copying data.
-func NewMessage(source MessageSource, data []byte, sequence uint64, streamID MessageStreamID) *Message {
+func NewMessage(source MessageSource, data []byte, streamID MessageStreamID) *Message {
 	buffer := getPayloadCopy(data)
 	origBuffer := getPayloadCopy(data)
 
@@ -138,7 +137,6 @@ func NewMessage(source MessageSource, data []byte, sequence uint64, streamID Mes
 		source:       source,
 		prevStreamID: streamID,
 		timestamp:    time.Now(),
-		sequence:     sequence,
 	}
 
 	message.data.payload = buffer
@@ -170,7 +168,6 @@ func NewMessageWithSize(source MessageSource, dataSize int, sequence uint64, str
 		source:       source,
 		prevStreamID: streamID,
 		timestamp:    time.Now(),
-		sequence:     sequence,
 	}
 
 	message.data.payload = buffer
@@ -187,11 +184,6 @@ func NewMessageWithSize(source MessageSource, dataSize int, sequence uint64, str
 // Created returns the time when this message was created.
 func (msg *Message) Created() time.Time {
 	return msg.timestamp
-}
-
-// Sequence returns the message's sequence number.
-func (msg *Message) Sequence() uint64 {
-	return msg.sequence
 }
 
 // StreamID returns the stream this message is currently routed to.
@@ -325,7 +317,6 @@ func (msg Message) Serialize() ([]byte, error) {
 		StreamID:     proto.Uint64(uint64(msg.data.streamID)),
 		PrevStreamID: proto.Uint64(uint64(msg.prevStreamID)),
 		Timestamp:    proto.Int64(msg.timestamp.UnixNano()),
-		Sequence:     proto.Uint64(msg.sequence),
 		Data:         msg.data.payload,
 		MetaData:     msg.data.MetaData,
 	}
@@ -342,7 +333,6 @@ func DeserializeMessage(data []byte) (Message, error) {
 	msg := Message{
 		prevStreamID: MessageStreamID(serializable.GetPrevStreamID()),
 		timestamp:    time.Unix(0, serializable.GetTimestamp()),
-		sequence:     serializable.GetSequence(),
 	}
 
 	msg.data.streamID = MessageStreamID(serializable.GetStreamID())

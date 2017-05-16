@@ -18,8 +18,7 @@ func TestFormatterSerialize(t *testing.T) {
 	formatter, casted := plugin.(*Serialize)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("foo bar"),
-		0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("foo bar"), core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -42,8 +41,7 @@ func TestFormatterSerializeApplyTo(t *testing.T) {
 	formatter, casted := plugin.(*Serialize)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("foo bar"),
-		0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("foo bar"), core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)

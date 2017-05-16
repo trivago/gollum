@@ -37,7 +37,7 @@ import (
 // 	  Modulators:
 //    	- "filter.All"
 //    Formatter: "format.Forward"
-//    DropToStream: "_DROPPED_"
+//    FallbackStream: ""
 //    Router:
 //      - "foo"
 //      - "bar"
@@ -52,7 +52,7 @@ import (
 //
 // ChannelTimeoutMs sets a timeout in milliseconds for messages to wait if this
 // producer's queue is full.
-// A timeout of -1 or lower will drop the message without notice.
+// A timeout of -1 or lower will try the fallback route without notice.
 // A timeout of 0 will block until the queue is free. This is the default.
 // A timeout of 1 or higher will wait x milliseconds for the queues to become
 // available again. If this does not happen, the message will be send to the
@@ -67,8 +67,8 @@ import (
 // message channels this producer will consume. By default this is set to "*"
 // which means "listen to all routers but the internal".
 //
-// DropToStream defines the stream used for messages that are dropped after
-// a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
+// FallbackStream defines the stream used for messages that cannot be delivered
+// e.g. after a timeout (see ChannelTimeoutMs). By default this is "".
 //
 // Formatter sets a formatter to use. Each formatter has its own set of options
 // which can be set here, too. By default this is set to format.Forward.
@@ -84,7 +84,7 @@ type SimpleProducer struct {
 	control         chan PluginControl
 	streams         []MessageStreamID
 	modulators      ModulatorArray
-	dropStream      Router
+	fallbackStream  Router
 	runState        *PluginRunState
 	shutdownTimeout time.Duration
 	onRoll          func()
@@ -103,8 +103,8 @@ func (prod *SimpleProducer) Configure(conf PluginConfigReader) error {
 	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 1000)) * time.Millisecond
 	prod.modulators = conf.GetModulatorArray("Modulators", prod.Log, ModulatorArray{})
 
-	dropStreamID := StreamRegistry.GetStreamID(conf.GetString("DropToStream", DroppedStream))
-	prod.dropStream = StreamRegistry.GetRouterOrFallback(dropStreamID)
+	fallbackStreamID := StreamRegistry.GetStreamID(conf.GetString("FallbackStream", InvalidStream))
+	prod.fallbackStream = StreamRegistry.GetRouterOrFallback(fallbackStreamID)
 
 	// Simple health check for the plugin state
 	//   Path: "/<plugin_id>/SimpleProducer/pluginstate"
@@ -220,14 +220,14 @@ func (prod *SimpleProducer) GetShutdownTimeout() time.Duration {
 }
 
 // Modulate applies all modulators from this producer to a given message.
-// This implementation handles dropping and discarding of messages.
+// This implementation handles routing and discarding of messages.
 func (prod *SimpleProducer) Modulate(msg *Message) ModulateResult {
 	return prod.modulators.Modulate(msg)
 }
 
-// Drop routes the message to the configured drop stream.
-func (prod *SimpleProducer) Drop(msg *Message) {
-	DropMessageByRouter(msg, prod.dropStream)
+// TryFallback routes the message to the configured fallback stream.
+func (prod *SimpleProducer) TryFallback(msg *Message) {
+	RouteOriginal(msg, prod.fallbackStream)
 }
 
 // ControlLoop listens to the control channel and triggers callbacks for these

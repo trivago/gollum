@@ -30,7 +30,7 @@ import (
 // The Spooling producer buffers messages and sends them again to the previous
 // stream stored in the message. This means the message must have been routed
 // at least once before reaching the spooling producer. If the previous and
-// current stream is identical the message is dropped.
+// current stream is identical the message is sent to the fallback.
 // The Formatter configuration value is forced to "format.Serialize" and
 // cannot be changed.
 //
@@ -163,11 +163,11 @@ func (prod *Spooling) Modulate(msg *core.Message) core.ModulateResult {
 }
 
 // Drop reverts the message stream before dropping
-func (prod *Spooling) Drop(msg *core.Message) {
+func (prod *Spooling) TryFallback(msg *core.Message) {
 	if prod.revertOnDrop {
 		msg.SetStreamID(msg.PreviousStreamID())
 	}
-	prod.BufferedProducer.Drop(msg)
+	prod.BufferedProducer.TryFallback(msg)
 }
 
 func (prod *Spooling) writeToFile(msg *core.Message) {
@@ -193,18 +193,18 @@ func (prod *Spooling) writeToFile(msg *core.Message) {
 
 	if err := os.MkdirAll(spool.basePath, 0700); err != nil && !os.IsExist(err) {
 		prod.Log.Error.Printf("Spooling: Failed to create %s because of %s", spool.basePath, err.Error())
-		prod.Drop(msg)
+		prod.TryFallback(msg)
 		return // ### return, cannot write ###
 	}
 
 	// Open/rotate file if nnecessary
 	if !spool.openOrRotate(false) {
-		prod.Drop(msg)
+		prod.TryFallback(msg)
 		return // ### return, could not spool to disk ###
 	}
 
 	// Append to buffer
-	spool.batch.AppendOrFlush(msg, spool.flush, prod.IsActiveOrStopping, prod.Drop)
+	spool.batch.AppendOrFlush(msg, spool.flush, prod.IsActiveOrStopping, prod.TryFallback)
 	spool.countWrite()
 }
 

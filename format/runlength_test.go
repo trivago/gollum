@@ -31,7 +31,7 @@ func TestRunlength(t *testing.T) {
 	formatter, casted := plugin.(*Runlength)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
@@ -49,7 +49,7 @@ func TestRunlengthApplyTo(t *testing.T) {
 	formatter, casted := plugin.(*Runlength)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("PAYLOAD"), 0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("PAYLOAD"), core.InvalidStreamID)
 	msg.MetaData().SetValue("foo", []byte("test"))
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -70,7 +70,7 @@ func TestRunlengthApplyToWithoutSeperator(t *testing.T) {
 	formatter, casted := plugin.(*Runlength)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("PAYLOAD"), 0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("PAYLOAD"), core.InvalidStreamID)
 	msg.MetaData().SetValue("foo", []byte("test"))
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)

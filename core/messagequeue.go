@@ -32,8 +32,6 @@ const (
 	LogInternalStream = "_GOLLUM_"
 	// WildcardStream is the name of the "all routers" channel
 	WildcardStream = "*"
-	// DroppedStream is the name of the stream used to store dropped messages
-	DroppedStream = "_DROPPED_"
 	// MessageStateOk is returned if the message could be delivered
 	MessageStateOk = MessageState(iota)
 	// MessageStateTimeout is returned if a message timed out
@@ -49,8 +47,6 @@ var (
 	LogInternalStreamID = GetStreamID(LogInternalStream)
 	// WildcardStreamID is the ID of the "*" stream
 	WildcardStreamID = GetStreamID(WildcardStream)
-	// DroppedStreamID is the ID of the "_DROPPED_" stream
-	DroppedStreamID = GetStreamID(DroppedStream)
 )
 
 // NewMessageQueue creates a new message buffer of the given capacity
@@ -62,9 +58,9 @@ func NewMessageQueue(capacity int) MessageQueue {
 // waiting for a timeout instead of just blocking.
 // Passing a timeout of -1 will discard the message.
 // Passing a timout of 0 will always block.
-// Messages that time out will be passed to the dropped queue if a Dropped
+// Messages that time out will be passed to the sent to the fallback queue if a Dropped
 // consumer exists.
-// The source parameter is used when a message is dropped, i.e. it is passed
+// The source parameter is used when a message is sent to the fallback, i.e. it is passed
 // to the Drop function.
 func (channel MessageQueue) Push(msg *Message, timeout time.Duration) (state MessageState) {
 	defer func() {
@@ -98,7 +94,7 @@ func (channel MessageQueue) Push(msg *Message, timeout time.Duration) (state Mes
 
 			// Discard message after timeout
 			case time.Since(start) > timeout:
-				return MessageStateTimeout // ### return, drop and retry ###
+				return MessageStateTimeout // ### return, fallback ###
 
 			// Yield and try again
 			default:

@@ -29,7 +29,6 @@ import (
 //	   Filter: "filter.Sample"
 //	   SampleRatePerGroup: 1
 //	   SampleGroupSize: 1
-//	   SampleDropToStream: ""
 //	   SampleRateIgnore:
 //	     - "foo"
 //
@@ -37,21 +36,17 @@ import (
 // in each group. By default this is set to 1.
 //
 // SampleGroupSize defines how many messages make up a group. Messages over
-// SampleRatePerGroup within a group are dropped. By default this is set to 1.
-//
-// SampleDropToStream is an optional stream messages are sent to when they
-// are sampled. By default this is disabled and set to "".
+// SampleRatePerGroup within a group are filtered. By default this is set to 1.
 //
 // SampleRateIgnore defines a list of streams that should not be affected by
 // sampling. This is useful for e.g. producers listeing to "*".
 // By default this list is empty.
 type Sample struct {
 	core.SimpleFilter
-	rate         int64
-	group        int64
-	count        *int64
-	dropStreamID core.MessageStreamID
-	ignore       map[core.MessageStreamID]bool
+	rate   int64
+	group  int64
+	count  *int64
+	ignore map[core.MessageStreamID]bool
 }
 
 func init() {
@@ -64,13 +59,7 @@ func (filter *Sample) Configure(conf core.PluginConfigReader) error {
 
 	filter.rate = int64(conf.GetInt("SampleRatePerGroup", 1))
 	filter.group = int64(conf.GetInt("SampleGroupSize", 1))
-	filter.dropStreamID = core.InvalidStreamID
 	filter.count = new(int64)
-
-	dropToStream := conf.GetString("SampleDropToStream", "")
-	if dropToStream != "" {
-		filter.dropStreamID = core.GetStreamID(dropToStream)
-	}
 
 	filter.ignore = make(map[core.MessageStreamID]bool)
 	ignore := conf.GetStreamArray("SampleIgnore", []core.MessageStreamID{})
@@ -102,9 +91,6 @@ func (filter *Sample) ApplyFilter(msg *core.Message) (core.FilterResult, error) 
 
 	// Check if to be filtered
 	if count > filter.rate {
-		if filter.dropStreamID != core.InvalidStreamID {
-			msg.SetStreamID(filter.dropStreamID)
-		}
 		return filter.GetFilterResultMessageReject(), nil // ### return, filter ###
 	}
 

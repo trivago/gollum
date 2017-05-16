@@ -25,7 +25,7 @@ func TestDoubleFormatter(t *testing.T) {
 	formatter, casted := plugin.(*Double)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("TEST_VALUE"), 0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("TEST_VALUE"), core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
@@ -44,7 +44,7 @@ func TestDoubleFormatterSeparator(t *testing.T) {
 	formatter, casted := plugin.(*Double)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("TEST_VALUE"), 0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("TEST_VALUE"), core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
@@ -67,7 +67,7 @@ func TestDoubleFormatterApplyTo(t *testing.T) {
 	formatter, casted := plugin.(*Double)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("SOME_PAYLOAD_DATA"), 0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("SOME_PAYLOAD_DATA"), core.InvalidStreamID)
 	msg.MetaData().SetValue("foo", []byte("TEST_VALUE"))
 
 	err = formatter.ApplyFormatter(msg)

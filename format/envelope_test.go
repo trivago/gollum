@@ -34,7 +34,7 @@ func TestEnvelope(t *testing.T) {
 	formatter, casted := plugin.(*Envelope)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
@@ -55,7 +55,7 @@ func TestEnvelopeApplyTo(t *testing.T) {
 	formatter, casted := plugin.(*Envelope)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), 0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
 	msg.MetaData().SetValue("foo", []byte("bar"))
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
