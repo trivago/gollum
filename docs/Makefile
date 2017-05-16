@@ -5,9 +5,8 @@
 #
 
 # General stuff
-BUILD_DIR=_build
 RST_GENERATOR_DIR=./generator
-RST_GENERATOR=$(BUILD_DIR)/rst_generator
+RST_GENERATOR=$(RST_GENERATOR_DIR)/rst_generator
 PRINTF=/usr/bin/printf
 
 # Locations of module sources
@@ -40,17 +39,23 @@ rsts_filter    := $(shell find $(MODULES_DIR_FILTER)    -type f -name '*.go' -no
 rsts_formatter := $(shell find $(MODULES_DIR_FORMATTER) -type f -name '*.go' -not -name '*_test.go' | grep -vE $(EXCLUDE_FORMATTER) | sed s^$(MODULES_DIR_FORMATTER)^$(TARGET_DIR_FORMATTER)^ | sed 's|\.go$$|.rst|' | sort)
 rsts_router    := $(shell find $(MODULES_DIR_ROUTER)    -type f -name '*.go' -not -name '*_test.go' | grep -vE $(EXCLUDE_ROUTER)    | sed s^$(MODULES_DIR_ROUTER)^$(TARGET_DIR_ROUTER)^       | sed 's|\.go$$|.rst|' | sort)
 
+####################################################################################################
+
 #
 # Targets
 #
-.PHONY: all plugin_rst producers consumers filters formatters routers prep_producers html
+all_groups := producers consumers filters formatters routers
+all_preps  := prep_producers prep_consumers prep_filters prep_formatters prep_routers
 
-all: clean plugin_rst
+.PHONY: all plugin_rst $(all_groups) $(all_preps) html
 
-plugin_rst: producers consumers filters formatters routers 
+all: clean groups
+
+groups: $(all_groups)
+preps:  $(all_preps)
 
 clean:
-	rm -r $(BUILD_DIR) || true
+	rm $(RST_GENERATOR) || true
 	find $(TARGET_ROOT) -type f -name '*.rst' -print -delete
 
 $(BUILD_DIR):
@@ -71,31 +76,31 @@ prep_producers:
 	mkdir -p $(TARGET_DIR_PRODUCER)
 	rm $(TARGET_DIR_PRODUCER)/_toc.rst || true
 	$(PRINTF) ".. toctree::\n"  >> $(TARGET_DIR_PRODUCER)/_toc.rst
-#	$(PRINTF) "\t:maxdepth: 1\n" >> $(TARGET_DIR_PRODUCER)/_toc.rst
+	$(PRINTF) "\t:maxdepth: 1\n\n" >> $(TARGET_DIR_PRODUCER)/_toc.rst
 
 prep_consumers:
 	mkdir -p $(TARGET_DIR_CONSUMER)
 	rm $(TARGET_DIR_CONSUMER)/_toc.rst || true
 	$(PRINTF) ".. toctree::\n"  >> $(TARGET_DIR_CONSUMER)/_toc.rst
-#	$(PRINTF) "\t:maxdepth: 1\n" >> $(TARGET_DIR_CONSUMER)/_toc.rst
+	$(PRINTF) "\t:maxdepth: 1\n\n" >> $(TARGET_DIR_CONSUMER)/_toc.rst
 
 prep_filters:
 	mkdir -p $(TARGET_DIR_FILTER)
 	rm $(TARGET_DIR_FILTER)/_toc.rst || true
 	$(PRINTF) ".. toctree::\n"  >> $(TARGET_DIR_FILTER)/_toc.rst
-#	$(PRINTF) "\t:maxdepth: 1\n" >> $(TARGET_DIR_FILTER)/_toc.rst
+	$(PRINTF) "\t:maxdepth: 1\n\n" >> $(TARGET_DIR_FILTER)/_toc.rst
 
 prep_formatters:
 	mkdir -p $(TARGET_DIR_FORMATTER)
 	rm $(TARGET_DIR_ROUTER)/_toc.rst || true
 	$(PRINTF) ".. toctree::\n"  >> $(TARGET_DIR_FORMATTER)/_toc.rst
-#	$(PRINTF) "\t:maxdepth: 1\n" >> $(TARGET_DIR_FORMATTER)/_toc.rst
+	$(PRINTF) "\t:maxdepth: 1\n\n" >> $(TARGET_DIR_FORMATTER)/_toc.rst
 
 prep_routers:
 	mkdir -p $(TARGET_DIR_ROUTER)
 	rm $(TARGET_DIR_ROUTER)/_toc.rst || true
 	$(PRINTF) ".. toctree::\n"  >> $(TARGET_DIR_ROUTER)/_toc.rst
-#	$(PRINTF) "\t:maxdepth: 1\n" >> $(TARGET_DIR_ROUTER)/_toc.rst
+	$(PRINTF) "\t:maxdepth: 1\n\n" >> $(TARGET_DIR_ROUTER)/_toc.rst
 
 # Loop targets for the .rst files
 $(rsts_producer):  $(RST_GENERATOR)
@@ -118,6 +123,8 @@ $(rsts_router):  $(RST_GENERATOR)
 	$(RST_GENERATOR) $(MODULES_DIR_ROUTER)/$(shell basename $@ .rst).go $@
 	$(PRINTF) "\t%s\n" /$(TARGET_DIR_ROUTER)/$(shell basename $@) >> $(TARGET_DIR_ROUTER)/_toc.rst
 
+####################################################################################################
+
 #
 # Sphinx target for generating HTML docs from the .rst files
 #
@@ -129,6 +136,17 @@ $(rsts_router):  $(RST_GENERATOR)
 #   pip install -U Sphinx
 #   pip install sphinx_rtd_theme
 #
-html: $(BUILD_DIR)
-	mkdir -p $@ $@/doctrees $@/html
-	sphinx-build -b html -d _build/doctrees . _build/html
+
+HTML_BUILD_DIR=_build.html
+
+$(HTML_BUILD_DIR):
+	mkdir $(HTML_BUILD_DIR)
+	
+clean-html:
+	rm -r $(HTML_BUILD_DIR)
+
+html: $(HTML_BUILD_DIR)
+	mkdir -p $(HTML_BUILD_DIR)/doctrees $(HTML_BUILD_DIR)/html
+	sphinx-build -b html -d $(HTML_BUILD_DIR)/doctrees . $(HTML_BUILD_DIR)/html
+
+####################################################################################################
