@@ -72,7 +72,7 @@ func (format *StreamName) ApplyFormatter(msg *core.Message) error {
 	} else {
 		payload = []byte(streamName)
 	}
-	
+
 	format.SetAppliedContent(msg, payload)
 	return nil
 }
