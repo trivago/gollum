@@ -61,3 +61,25 @@ func TestExtractJSONPrecision(t *testing.T) {
 
 	expect.Equal("999999999", string(msg.Data()))
 }
+
+func TestExtractJSONApplyTo(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.ExtractJSON")
+	config.Override("ApplyTo", "foo")
+	config.Override("Field", "test")
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+	formatter, casted := plugin.(*ExtractJSON)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\"}"), core.InvalidStreamID)
+	msg.MetaData().SetValue("foo", []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"))
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("valid", msg.MetaData().GetValueString("foo"))
+	expect.Equal("{\"foo\":\"bar\"}", msg.String())
+}

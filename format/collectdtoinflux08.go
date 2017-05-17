@@ -57,14 +57,16 @@ func (format *CollectdToInflux08) createMetricName(plugin string, pluginInstance
 
 // ApplyFormatter update message payload
 func (format *CollectdToInflux08) ApplyFormatter(msg *core.Message) error {
-	collectdData, err := parseCollectdPacket(msg.Data())
+	contentData := format.GetAppliedContent(msg)
+
+	collectdData, err := parseCollectdPacket(contentData)
 	if err != nil {
 		format.Log.Error.Print("Collectd parser error: ", err)
 		return err
 	}
 
 	// Manually convert to JSON lines
-	influxData := tio.NewByteStream(msg.Len())
+	influxData := tio.NewByteStream(len(contentData))
 	name := format.createMetricName(collectdData.Plugin,
 		collectdData.PluginInstance,
 		collectdData.PluginType,
@@ -75,6 +77,6 @@ func (format *CollectdToInflux08) ApplyFormatter(msg *core.Message) error {
 		fmt.Fprintf(&influxData, `{"name": "%s", "columns": ["time", "value"], "points":[[%d, %f]]},`, name, int32(collectdData.Time), value)
 	}
 
-	msg.Store(influxData.Bytes())
+	format.SetAppliedContent(msg, influxData.Bytes())
 	return nil
 }

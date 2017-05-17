@@ -25,7 +25,7 @@ func TestProcessTSV(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.ProcessTSV")
-	config.Override("ProcessTSVDirectives", []string{"1:remove"})
+	config.Override("Directives", []string{"1:remove"})
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
@@ -43,8 +43,8 @@ func TestProcessTSVDelimiter(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.ProcessTSV")
-	config.Override("ProcessTSVDelimiter", ",")
-	config.Override("ProcessTSVDirectives", []string{"1:remove"})
+	config.Override("Delimiter", ",")
+	config.Override("Directives", []string{"1:remove"})
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
@@ -62,8 +62,8 @@ func TestProcessTSVQuotedValues(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.ProcessTSV")
-	config.Override("ProcessTSVQuotedValues", true)
-	config.Override("ProcessTSVDirectives", []string{"1:remove"})
+	config.Override("QuotedValues", true)
+	config.Override("Directives", []string{"1:remove"})
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
@@ -81,9 +81,9 @@ func TestProcessTSVDelimiterAndQuotedValues(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.ProcessTSV")
-	config.Override("ProcessTSVQuotedValues", true)
-	config.Override("ProcessTSVDelimiter", ",")
-	config.Override("ProcessTSVDirectives", []string{"1:remove"})
+	config.Override("QuotedValues", true)
+	config.Override("Delimiter", ",")
+	config.Override("Directives", []string{"1:remove"})
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
@@ -101,8 +101,8 @@ func TestProcessTSVQuotedValuesComplex(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.ProcessTSV")
-	config.Override("ProcessTSVQuotedValues", true)
-	config.Override("ProcessTSVDirectives", []string{"0:remove", "1:remove", "2:remove"})
+	config.Override("QuotedValues", true)
+	config.Override("Directives", []string{"0:remove", "1:remove", "2:remove"})
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
@@ -134,9 +134,9 @@ func TestProcessTSVDelimiterAndQuotedValuesComplex(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.ProcessTSV")
-	config.Override("ProcessTSVQuotedValues", true)
-	config.Override("ProcessTSVDelimiter", ",")
-	config.Override("ProcessTSVDirectives", []string{"0:remove", "1:remove", "2:remove"})
+	config.Override("QuotedValues", true)
+	config.Override("Delimiter", ",")
+	config.Override("Directives", []string{"0:remove", "1:remove", "2:remove"})
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
@@ -168,7 +168,7 @@ func TestProcessTSVDirectives(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.ProcessTSV")
-	config.Override("ProcessTSVDirectives", []string{
+	config.Override("Directives", []string{
 		"0:time:20060102150405:2006-01-02 15\\:04\\:05",
 		"1:replace:yml:yaml",
 		"1:trim:[]",
@@ -207,8 +207,8 @@ func TestProcessTSVDelimiterAndDirectives(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.ProcessTSV")
-	config.Override("ProcessTSVDelimiter", ",")
-	config.Override("ProcessTSVDirectives", []string{
+	config.Override("Delimiter", ",")
+	config.Override("Directives", []string{
 		"0:time:20060102150405:2006-01-02 15\\:04\\:05",
 		"1:replace:yml:yaml",
 		"1:trim:[]",
@@ -246,9 +246,9 @@ func TestProcessTSVQuotedValuesAndDirectives(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.ProcessTSV")
-	config.Override("ProcessTSVQuotedValues", true)
-	config.Override("ProcessTSVDirectives", []string{"1:remove"})
-	config.Override("ProcessTSVDirectives", []string{
+	config.Override("QuotedValues", true)
+	config.Override("Directives", []string{"1:remove"})
+	config.Override("Directives", []string{
 		"0:time:20060102150405:2006-01-02 15\\:04\\:05",
 		"0:quote",
 		"1:replace:yml:yaml",
@@ -286,9 +286,9 @@ func TestProcessTSVDelimiterAndQuotedValuesAndDirectives(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.ProcessTSV")
-	config.Override("ProcessTSVQuotedValues", true)
-	config.Override("ProcessTSVDelimiter", " ")
-	config.Override("ProcessTSVDirectives", []string{
+	config.Override("QuotedValues", true)
+	config.Override("Delimiter", " ")
+	config.Override("Directives", []string{
 		`0:time:20060102150405:2006-01-02 15\:04\:05`,
 		"0:quote",
 		"1:replace:yml:yaml",
@@ -323,4 +323,25 @@ func TestProcessTSVDelimiterAndQuotedValuesAndDirectives(t *testing.T) {
 		`"2016-08-19 17:10:53" "pre yaml post" Firefox "Windows 10" 48.0 5.0 Windows "Windows 10"  Gecko 20100101 Firefox 48.0`,
 		msg.String(),
 	)
+}
+
+func TestProcessTSVApplyTo(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.ProcessTSV")
+	config.Override("Directives", []string{"1:remove"})
+	config.Override("ApplyTo", "foo")
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+	formatter, casted := plugin.(*ProcessTSV)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("PAYLOAD"), core.InvalidStreamID)
+	msg.MetaData().SetValue("foo", []byte("foo\tbar\tbaz"))
+	err = formatter.ApplyFormatter(msg)
+
+	expect.NoError(err)
+	expect.Equal("PAYLOAD", msg.String())
+	expect.Equal("foo\tbaz", msg.MetaData().GetValueString("foo"))
 }

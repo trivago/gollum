@@ -1,0 +1,149 @@
+// Copyright 2015-2017 trivago GmbH
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package core
+
+import (
+	"testing"
+	"github.com/trivago/tgo/ttesting"
+	"errors"
+)
+
+type dummyFormatter struct {
+	SimpleFormatter
+	ConfigureHasCalled bool
+	ApplyFormatterHasCalled bool
+}
+
+func (format *dummyFormatter) Configure(conf PluginConfigReader) error {
+	format.ConfigureHasCalled = true
+	return format.SimpleFormatter.Configure(conf)
+}
+
+func (format *dummyFormatter) ApplyFormatter(msg *Message) error {
+	format.ApplyFormatterHasCalled = true
+	return nil
+}
+
+type dummyErrorFormatter struct {
+	SimpleFormatter
+	ConfigureHasCalled bool
+	ApplyFormatterHasCalled bool
+}
+
+func (format *dummyErrorFormatter) Configure(conf PluginConfigReader) error {
+	format.ConfigureHasCalled = true
+	return format.SimpleFormatter.Configure(conf)
+}
+
+func (format *dummyErrorFormatter) ApplyFormatter(msg *Message) error {
+	format.ApplyFormatterHasCalled = true
+	return errors.New("Dummy error")
+}
+
+func TestFormatterModulatorApplyFormatter(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	formatter, err := getDummyFormatter()
+	expect.NoError(err)
+
+	formatterModulator := NewFormatterModulator(formatter)
+
+	msg := NewMessage(nil, []byte("test"), InvalidStreamID)
+
+	expect.Nil(formatterModulator.ApplyFormatter(msg))
+	expect.True(formatter.ConfigureHasCalled)
+	expect.True(formatter.ApplyFormatterHasCalled)
+}
+
+func TestFormatterModulatorModulate(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	formatter, err := getDummyFormatter()
+	expect.NoError(err)
+
+	formatterModulator := NewFormatterModulator(formatter)
+
+	msg := NewMessage(nil, []byte("test"), InvalidStreamID)
+
+	expect.Equal(ModulateResultContinue, formatterModulator.Modulate(msg))
+	expect.True(formatter.ConfigureHasCalled)
+	expect.True(formatter.ApplyFormatterHasCalled)
+}
+
+func TestFormatterModulatorModulateError(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	formatter, err := getDummyErrorFormatter()
+	expect.NoError(err)
+
+	formatterModulator := NewFormatterModulator(formatter)
+
+	msg := NewMessage(nil, []byte("test"), InvalidStreamID)
+
+	expect.Equal(ModulateResultDiscard, formatterModulator.Modulate(msg))
+	expect.True(formatter.ConfigureHasCalled)
+	expect.True(formatter.ApplyFormatterHasCalled)
+}
+
+func TestFormatterArray(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	formatter, _ := getDummyFormatter()
+	secondFormatter, _ := getDummyFormatter()
+
+	formatterArray := FormatterArray{formatter,secondFormatter}
+	msg := NewMessage(nil, []byte("test"), InvalidStreamID)
+
+	expect.Nil(formatterArray.ApplyFormatter(msg))
+
+	expect.True(formatter.ConfigureHasCalled)
+	expect.True(formatter.ApplyFormatterHasCalled)
+	expect.True(secondFormatter.ConfigureHasCalled)
+	expect.True(secondFormatter.ApplyFormatterHasCalled)
+}
+
+func getDummyFormatter() (*dummyFormatter, error) {
+	TypeRegistry.Register(dummyFormatter{ConfigureHasCalled: false, ApplyFormatterHasCalled: false})
+	config := NewPluginConfig("", "core.dummyFormatter")
+
+	plugin, err := NewPluginWithConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	formatter, casted := plugin.(*dummyFormatter)
+	if casted != true {
+		return nil, errors.New("Could not carst to dummyFormatter")
+	}
+
+	return formatter, nil
+}
+
+func getDummyErrorFormatter() (*dummyErrorFormatter, error) {
+	TypeRegistry.Register(dummyErrorFormatter{ConfigureHasCalled: false, ApplyFormatterHasCalled: false})
+	config := NewPluginConfig("", "core.dummyErrorFormatter")
+
+	plugin, err := NewPluginWithConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	formatter, casted := plugin.(*dummyErrorFormatter)
+	if casted != true {
+		return nil, errors.New("Could not carst to dummyErrorFormatter")
+	}
+
+	return formatter, nil
+}

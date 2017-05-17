@@ -23,17 +23,15 @@ import (
 // (time of arrival at gollum) as well as postfixing it with a delimiter string.
 // Configuration example
 //
-//  - "stream.Broadcast":
-//    Formatter: "format.Timestamp"
-//    TimestampFormatter: "format.Envelope"
-//    Timestamp: "2006-01-02T15:04:05.000 MST | "
+//  - format.Timestamp:
+//      Timestamp: "2006-01-02T15:04:05.000 MST | "
+//      ApplyTo: "payload" # payload or <metaKey>
 //
 // Timestamp defines a Go time format string that is used to format the actual
 // timestamp that prefixes the message.
 // By default this is set to "2006-01-02 15:04:05 MST | "
 //
-// TimestampFormatter defines the formatter for the data transferred as
-// message. By default this is set to "format.Forward"
+// ApplyTo defines the formatter content to use
 type Timestamp struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	timestampFormat string
@@ -54,13 +52,14 @@ func (format *Timestamp) Configure(conf core.PluginConfigReader) error {
 // ApplyFormatter update message payload
 func (format *Timestamp) ApplyFormatter(msg *core.Message) error {
 	timestampStr := msg.Created().Format(format.timestampFormat)
+	content := format.GetAppliedContent(msg)
 
-	dataSize := len(timestampStr) + msg.Len()
+	dataSize := len(timestampStr) + len(content)
 	payload := core.MessageDataPool.Get(dataSize)
 
 	offset := copy(payload, []byte(timestampStr))
-	copy(payload[offset:], msg.Data())
+	copy(payload[offset:], content)
 
-	msg.Store(payload)
+	format.SetAppliedContent(msg, payload)
 	return nil
 }

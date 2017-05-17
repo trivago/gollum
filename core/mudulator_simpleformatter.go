@@ -20,7 +20,9 @@ import (
 
 // SimpleFormatter defines the standard formatter implementation.
 type SimpleFormatter struct {
-	Log tlog.LogScope
+	Log               tlog.LogScope
+	GetAppliedContent GetAppliedContent
+	SetAppliedContent SetAppliedContent
 }
 
 // SetLogScope sets the log scope to be used for this formatter
@@ -31,5 +33,9 @@ func (format *SimpleFormatter) SetLogScope(log tlog.LogScope) {
 // Configure sets up all values requred by SimpleFormatter.
 func (format *SimpleFormatter) Configure(conf PluginConfigReader) error {
 	format.Log = conf.GetSubLogScope("Formatter")
+
+	applyTo := conf.GetString("ApplyTo", "")
+	format.GetAppliedContent = GetAppliedContentGetFunction(applyTo)
+	format.SetAppliedContent = GetAppliedContentSetFunction(applyTo)
 	return nil
 }

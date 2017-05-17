@@ -51,11 +51,21 @@ func (format *JSONToArray) Configure(conf core.PluginConfigReader) error {
 
 // ApplyFormatter update message payload
 func (format *JSONToArray) ApplyFormatter(msg *core.Message) error {
+	content, err := format.getCsvContent(format.GetAppliedContent(msg))
+	if err != nil {
+		return err
+	}
+
+	format.SetAppliedContent(msg, content)
+	return nil
+}
+
+func (format *JSONToArray) getCsvContent(content []byte) ([]byte, error) {
 	values := make(tcontainer.MarshalMap)
-	err := json.Unmarshal(msg.Data(), &values)
+	err := json.Unmarshal(content, &values)
 	if err != nil {
 		format.Log.Error.Print("Json parsing error: ", err)
-		return err
+		return nil, err
 	}
 
 	csv := ""
@@ -84,6 +94,5 @@ func (format *JSONToArray) ApplyFormatter(msg *core.Message) error {
 		csv = csv[:len(csv)-len(format.separator)]
 	}
 
-	msg.Store([]byte(csv))
-	return nil
+	return []byte(csv), nil
 }

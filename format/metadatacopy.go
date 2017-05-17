@@ -36,8 +36,7 @@ type metaDataMap map[string]core.ModulatorArray
 //   ApplyTo: "payload" # payload or <metaKey>
 type MetaDataCopy struct {
 	core.SimpleFormatter
-	getAppliedContent core.GetAppliedContent
-	metaData          metaDataMap
+	metaData metaDataMap
 }
 
 func init() {
@@ -49,7 +48,6 @@ func (format *MetaDataCopy) Configure(conf core.PluginConfigReader) error {
 	format.SimpleFormatter.Configure(conf)
 
 	format.metaData = format.getMetaDataMapFromArray(conf.GetArray("WriteTo", []interface{}{}))
-	format.getAppliedContent = core.GetAppliedContentFunction(conf.GetString("ApplyTo", ""))
 
 	return conf.Errors.OrNil()
 }
@@ -65,7 +63,7 @@ func (format *MetaDataCopy) ApplyFormatter(msg *core.Message) error {
 
 // modulateMetaDataValue returns the final meta value
 func (format *MetaDataCopy) modulateMetaDataValue(msg *core.Message, modulators core.ModulatorArray) []byte {
-	modulationMsg := core.NewMessage(nil, format.getAppliedContent(msg), core.InvalidStreamID)
+	modulationMsg := core.NewMessage(nil, format.GetAppliedContent(msg), core.InvalidStreamID)
 
 	modulateResult := modulators.Modulate(modulationMsg)
 	if modulateResult == core.ModulateResultContinue {

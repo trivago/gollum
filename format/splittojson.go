@@ -27,29 +27,28 @@ import (
 // the result into a JSON object by using an array based mapping
 // Configuration example
 //
-//  - "stream.Broadcast":
-//    Formatter: "format.SplitToJSON"
-//    SplitToJSONDataFormatter: "format.Forward"
-//    SplitToJSONToken: "|"
-//    SplitToJSONKeys:
-//      - "timestamp"
-//      - "server"
-//      - "error"
+//  - format.SplitToJSON:
+//      SplitBy: "|"
+//      KeepJSON: true
+//      Keys:
+//        - "timestamp"
+//        - "server"
+//        - "error"
+//      ApplyTo: "payload" # payload or <metaKey>
 //
-// SplitToJSONDataFormatter defines the formatter to apply before executing
-// this formatter. Set to "format.Forward" by default.
-//
-// SplitToJSONToken defines the separator character to use when processing a
+// SplitBy defines the separator character to use when processing a
 // message. By default this is set to "|".
 //
-// SplitToJSONKeepJSON can be set to false to escape texts that are JSON
+// KeepJSON can be set to false to escape texts that are JSON
 // payloads as regualar strings. Otherwise JSON payload will be taken as-is and
 // set to the corresponding key. By default set to "true"
 //
-// SplitToJSONKeys defines an array of keys to apply to the tokens generated
+// Keys defines an array of keys to apply to the tokens generated
 // by splitting a message by SplitToJSONToken. The keys listed here are
 // applied to the resulting token array by index.
 // This list is empty by default.
+//
+// ApplyTo defines the formatter content to use
 type SplitToJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	token    []byte
@@ -74,7 +73,7 @@ func (format *SplitToJSON) Configure(conf core.PluginConfigReader) error {
 
 // ApplyFormatter update message payload
 func (format *SplitToJSON) ApplyFormatter(msg *core.Message) error {
-	components := bytes.Split(msg.Data(), format.token)
+	components := bytes.Split(format.GetAppliedContent(msg), format.token)
 	maxIdx := tmath.MinI(len(format.keys), len(components))
 	jsonData := ""
 
@@ -101,6 +100,6 @@ func (format *SplitToJSON) ApplyFormatter(msg *core.Message) error {
 		}
 	}
 
-	msg.Store([]byte(jsonData))
+	format.SetAppliedContent(msg, []byte(jsonData))
 	return nil
 }

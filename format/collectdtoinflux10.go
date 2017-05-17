@@ -63,14 +63,16 @@ func (format *CollectdToInflux10) escapeString(value string) string {
 
 // ApplyFormatter update message payload
 func (format *CollectdToInflux10) ApplyFormatter(msg *core.Message) error {
-	collectdData, err := parseCollectdPacket(msg.Data())
+	contentData := format.GetAppliedContent(msg)
+
+	collectdData, err := parseCollectdPacket(contentData)
 	if err != nil {
 		format.Log.Error.Print("Collectd parser error: ", err)
 		return err
 	}
 
 	// Manually convert to line protocol
-	influxData := tio.NewByteStream(msg.Len())
+	influxData := tio.NewByteStream(len(contentData))
 	timestamp := int64(collectdData.Time * 1000)
 	fixedPart := fmt.Sprintf(
 		`%s,plugin_instance=%s,type=%s,type_instance=%s,host=%s`,
@@ -91,6 +93,6 @@ func (format *CollectdToInflux10) ApplyFormatter(msg *core.Message) error {
 			timestamp)
 	}
 
-	msg.Store(influxData.Bytes())
+	format.SetAppliedContent(msg, influxData.Bytes())
 	return nil
 }

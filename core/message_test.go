@@ -106,6 +106,21 @@ func TestMessageClone(t *testing.T) {
 	expect.Equal(MessageStreamID(1), msgClone.orig.streamID)
 }
 
+func TestMessageCloneMetaData(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+	msgString := "Test for clone"
+	msgUpdateString := "Test for clone - UPDATE"
+
+	msg := NewMessage(nil, []byte(msgString), 1)
+	msg.SetStreamID(MessageStreamID(10))
+	msg.Store([]byte(msgUpdateString))
+	msg.MetaData().SetValue("foo", []byte("bar"))
+
+	msg.Clone()
+
+	expect.Equal("bar", msg.MetaData().GetValueString("foo"))
+}
+
 func TestMessageCloneOriginal(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	msgString := "Test for clone original"
@@ -121,6 +136,21 @@ func TestMessageCloneOriginal(t *testing.T) {
 	expect.Equal(MessageStreamID(1), msgClone.data.streamID)
 	expect.Equal(msgString, string(msgClone.orig.payload))
 	expect.Equal(MessageStreamID(1), msgClone.orig.streamID)
+}
+
+func TestMessageCloneOriginalMetaData(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+	msgString := "Test for clone original"
+	msgUpdateString := "Test for clone original - UPDATE"
+
+	msg := NewMessage(nil, []byte(msgString), 1)
+	msg.SetStreamID(MessageStreamID(10))
+	msg.Store([]byte(msgUpdateString))
+	msg.MetaData().SetValue("foo", []byte("bar"))
+
+	msg.CloneOriginal()
+
+	expect.Equal("bar", msg.MetaData().GetValueString("foo"))
 }
 
 func TestMessageMetaData(t *testing.T) {

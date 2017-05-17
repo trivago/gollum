@@ -42,45 +42,47 @@ const (
 // HTML escaped.
 // Configuration example
 //
-//  - "stream.Broadcast":
-//    Formatter: "format.JSON"
-//    JSONStartState: "findKey"
-//    JSONDirectives:
+//  - format.JSON:
+//      StartState: "findKey"
+//      Directives:
 //	    - 'findKey :":  key     ::'
 //	    - 'findKey :}:          : pop  : end'
 //	    - 'key     :":  findVal :      : key'
 //	    - 'findVal :\:: value   ::'
+//      ApplyTo: "payload" # payload or <metaKey>
 //
-// JSONStartState defines the initial parser state when parsing a message.
+// StartState defines the initial parser state when parsing a message.
 // By default this is set to "" which will fall back to the first state used in
 // the JSONDirectives array.
 //
-// JSONTimestampRead defines the go timestamp format expected from fields that
+// TimestampRead defines the go timestamp format expected from fields that
 // are parsed as "dat". When JSONUnixTimestampRead is not set, this is set to
 // "20060102150405" by default.
 //
-// JSONUnixTimestampRead defines the unix timestamp format expected from fields that
+// UnixTimestampRead defines the unix timestamp format expected from fields that
 // are parsed as "dat". May be "s", "ms", or "ns", and only accepts integer values.
 // When JSONTimestampRead is set, this is ignored.
 //
-// JSONTimestampWrite defines the go timestamp format that "dat" fields will be
+// TimestampWrite defines the go timestamp format that "dat" fields will be
 // converted to. By default this is set to "2006-01-02 15:04:05 MST".
 //
-// JSONDirectives defines an array of parser directives.
+// ApplyTo defines the formatter content to use
+//
+// Directives defines an array of parser directives.
 // This setting is mandatory and has no default value.
 // Each string must be of the following format: "State:Token:NextState:Flags:Function".
 // Spaces will be stripped from all fields but Token. If a fields requires a
 // colon it has to be escaped with a backslash. Other escape characters
 // supported are \n, \r and \t.
 //
-// Flags (JSONDirectives) can be a comma separated set of the following flags.
+// Flags (Directives) can be a comma separated set of the following flags.
 //  * continue -> Prepend the token to the next match.
 //  * append   -> Append the token to the current match and continue reading.
 //  * include  -> Append the token to the current match.
 //  * push     -> Push the current state to the stack.
 //  * pop      -> Pop the stack and use the returned state if possible.
 //
-// Function (JSONDirectives) can hold one of the following names.
+// Function (Directives) can hold one of the following names.
 //  * key     -> Write the current match as a key.
 //  * val     -> Write the current match as a value without quotes.
 //  * esc     -> Write the current match as a escaped string value.
@@ -95,7 +97,7 @@ const (
 //  * esc+end -> esc followed by end.
 //  * dat+end -> dat followed by end.
 //
-// Rules for storage (JSONDirectives): if a value is written without a previous key write, a key will be auto
+// Rules for storage (Directives): if a value is written without a previous key write, a key will be auto
 // generated from the current parser state name. This does not happen when
 // inside an array.
 // If key is written without a previous value write, a null value will be
@@ -427,7 +429,7 @@ func (format *TextToJSON) ApplyFormatter(msg *core.Message) error {
 	format.state = jsonReadObject
 
 	format.message.WriteString("{")
-	remains, state := format.parser.Parse(msg.Data(), format.initState)
+	remains, state := format.parser.Parse(format.GetAppliedContent(msg), format.initState)
 
 	// Write remains as string value
 	if remains != nil {
@@ -442,7 +444,7 @@ func (format *TextToJSON) ApplyFormatter(msg *core.Message) error {
 	}
 
 	format.message.WriteString("}\n")
-	msg.Store(bytes.TrimSpace(format.message.Bytes()))
+	format.SetAppliedContent(msg, bytes.TrimSpace(format.message.Bytes()))
 
 	return nil
 }
