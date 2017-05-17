@@ -57,15 +57,9 @@ func NewLogScope(conf *PluginConfig) tlog.LogScope {
 	return tlog.NewLogScope(conf.Typename + ":" + conf.ID)
 }
 
-// ReadConfig parses a YAML config file into a new Config struct.
-func ReadConfig(path string) (*Config, error) {
-	buffer, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
+func ReadConfig(buffer []byte) (*Config, error) {
 	config := new(Config)
-	err = yaml.Unmarshal(buffer, &config.Values)
+	err := yaml.Unmarshal(buffer, &config.Values)
 	if err != nil {
 		return nil, err
 	}
@@ -108,6 +102,16 @@ func ReadConfig(path string) (*Config, error) {
 	}
 
 	return config, err
+}
+
+// ReadConfigFromFile parses a YAML config file into a new Config struct.
+func ReadConfigFromFile(path string) (*Config, error) {
+	buffer, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return ReadConfig(buffer)
 }
 
 func (err PluginConfigError) Error() string {
