@@ -23,7 +23,10 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"reflect"
+	"strings"
 )
+
+const pluginAggregate =  "aggregate"
 
 var (
 	consumerInterface = reflect.TypeOf((*Consumer)(nil)).Elem()
@@ -54,15 +57,9 @@ func NewLogScope(conf *PluginConfig) tlog.LogScope {
 	return tlog.NewLogScope(conf.Typename + ":" + conf.ID)
 }
 
-// ReadConfig parses a YAML config file into a new Config struct.
-func ReadConfig(path string) (*Config, error) {
-	buffer, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
+func ReadConfig(buffer []byte) (*Config, error) {
 	config := new(Config)
-	err = yaml.Unmarshal(buffer, &config.Values)
+	err := yaml.Unmarshal(buffer, &config.Values)
 	if err != nil {
 		return nil, err
 	}
@@ -70,12 +67,52 @@ func ReadConfig(path string) (*Config, error) {
 	// As there might be multiple instances of the same plugin class we iterate
 	// over an array here.
 	for pluginID, configValues := range config.Values {
-		pluginConfig := NewPluginConfig(pluginID, "")
-		pluginConfig.Read(configValues)
-		config.Plugins = append(config.Plugins, pluginConfig)
+		if typeName, _ :=configValues.String("Type"); typeName == pluginAggregate {
+			// aggregate behavior
+			aggregateMap, err := configValues.MarshalMap("Aggregate")
+			if err != nil {
+				tlog.Error.Print("Can't read 'Aggregate' configuration: ", err)
+				continue
+			}
+
+			// loop through aggregated plugins and set them up
+			for subPluginId, subConfigValues := range aggregateMap {
+				subPluginsId := fmt.Sprintf("%s-%s", pluginID, subPluginId)
+				subConfig, err := tcontainer.ConvertToMarshalMap(subConfigValues, strings.ToLower)
+				if err != nil {
+					tlog.Error.Print("Error in plugin config ", subPluginsId, err)
+					continue
+				}
+
+				// set up sub-plugin
+				delete(configValues, "Type")
+				delete(configValues, "Aggregate")
+
+				pluginConfig := NewPluginConfig(subPluginsId, "")
+				pluginConfig.Read(configValues)
+				pluginConfig.Read(subConfig)
+
+				config.Plugins = append(config.Plugins, pluginConfig)
+			}
+		} else {
+			// default behavior
+			pluginConfig := NewPluginConfig(pluginID, "")
+			pluginConfig.Read(configValues)
+			config.Plugins = append(config.Plugins, pluginConfig)
+		}
 	}
 
 	return config, err
+}
+
+// ReadConfigFromFile parses a YAML config file into a new Config struct.
+func ReadConfigFromFile(path string) (*Config, error) {
+	buffer, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return ReadConfig(buffer)
 }
 
 func (err PluginConfigError) Error() string {
