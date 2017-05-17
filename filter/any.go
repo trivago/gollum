@@ -30,7 +30,7 @@ import (
 //		- "filter.JSON"
 //		- "filter.RegEx"
 //
-// AnyFilter defines a list of filters that should be checked before dropping
+// AnyFilter defines a list of filters that should be checked before filtering
 // a message. Filters are checked in order, and if the message passes
 // then no further filters are checked. By default this list is empty.
 type Any struct {

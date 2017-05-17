@@ -17,6 +17,7 @@ package format
 import (
 	"github.com/trivago/gollum/core"
 	"strconv"
+	"sync/atomic"
 )
 
 // Sequence formatter plugin
@@ -37,6 +38,7 @@ import (
 type Sequence struct {
 	core.SimpleFormatter `gollumdoc:embed_type`
 	separator []byte
+	seq       *int64
 }
 
 func init() {
@@ -48,12 +50,14 @@ func (format *Sequence) Configure(conf core.PluginConfigReader) error {
 	format.SimpleFormatter.Configure(conf)
 
 	format.separator = []byte(conf.GetString("Separator", ":"))
+	format.seq = new(int64)
 	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload
 func (format *Sequence) ApplyFormatter(msg *core.Message) error {
-	sequenceStr := strconv.FormatUint(msg.Sequence(), 10)
+	seq := atomic.AddInt64(format.seq, 1)
+	sequenceStr := strconv.FormatInt(seq, 10)
 
 	dataSize := len(sequenceStr) + len(format.separator) + msg.Len()
 	payload := core.MessageDataPool.Get(dataSize)

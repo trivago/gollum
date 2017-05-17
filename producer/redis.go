@@ -177,7 +177,7 @@ func (prod *Redis) storeHash(msg *core.Message) {
 	result := prod.client.HSet(key, string(field), string(value))
 	if result.Err() != nil {
 		prod.Log.Error.Print("Redis: ", result.Err())
-		prod.Drop(msg)
+		prod.TryFallback(msg)
 	}
 }
 
@@ -187,7 +187,7 @@ func (prod *Redis) storeList(msg *core.Message) {
 	result := prod.client.RPush(key, string(value))
 	if result.Err() != nil {
 		prod.Log.Error.Print("Redis: ", result.Err())
-		prod.Drop(msg)
+		prod.TryFallback(msg)
 	}
 }
 
@@ -197,7 +197,7 @@ func (prod *Redis) storeSet(msg *core.Message) {
 	result := prod.client.SAdd(key, string(value))
 	if result.Err() != nil {
 		prod.Log.Error.Print("Redis: ", result.Err())
-		prod.Drop(msg)
+		prod.TryFallback(msg)
 	}
 }
 
@@ -216,7 +216,7 @@ func (prod *Redis) storeSortedSet(msg *core.Message) {
 
 	if result.Err() != nil {
 		prod.Log.Error.Print("Redis: ", result.Err())
-		prod.Drop(msg)
+		prod.TryFallback(msg)
 	}
 }
 
@@ -226,7 +226,7 @@ func (prod *Redis) storeString(msg *core.Message) {
 	result := prod.client.Set(key, string(value), time.Duration(0))
 	if result.Err() != nil {
 		prod.Log.Error.Print("Redis: ", result.Err())
-		prod.Drop(msg)
+		prod.TryFallback(msg)
 	}
 }
 

@@ -184,7 +184,7 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 
 	if err != nil {
 		prod.Log.Error.Print("Invalid request: ", err)
-		prod.Drop(originalMsg)
+		prod.TryFallback(originalMsg)
 		prod.lastError = err
 		return // ### return, malformed request ###
 	}
@@ -198,7 +198,7 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 			if !prod.isHostUp() {
 				// TBD: health check? (ex-fuse breaker)
 			}
-			prod.Drop(originalMsg)
+			prod.TryFallback(originalMsg)
 			return
 		}
 		// Success

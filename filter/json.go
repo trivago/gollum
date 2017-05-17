@@ -35,7 +35,7 @@ import (
 //        "args/results[0]value" : "true"
 //        "args/results[1]" : "true"
 //        "command" : "state\d\..*"
-//    	ApplyTo: "payload" # [payload, meta:key]
+//    	ApplyTo: "payload" # payload or <metaKey>
 //
 // FilterReject defines fields that will cause a message to be rejected if the
 // given regular expression matches. Rejects are checked before Accepts.

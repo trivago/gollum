@@ -32,12 +32,12 @@ func TestStreamName(t *testing.T) {
 	formatter, casted := plugin.(*StreamName)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), 0, core.DroppedStreamID)
+	msg := core.NewMessage(nil, []byte("test"), core.LogInternalStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal(core.DroppedStream+":test", msg.String())
+	expect.Equal(core.LogInternalStream+":test", msg.String())
 }
 
 func TestStreamNameHistory(t *testing.T) {
@@ -52,8 +52,8 @@ func TestStreamNameHistory(t *testing.T) {
 	formatter, casted := plugin.(*StreamName)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), 0, core.LogInternalStreamID)
-	msg.SetStreamID(core.DroppedStreamID)
+	msg := core.NewMessage(nil, []byte("test"), core.LogInternalStreamID)
+	msg.SetStreamID(core.LogInternalStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)

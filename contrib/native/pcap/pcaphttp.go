@@ -54,7 +54,7 @@ import (
 // This setting is enabled by default.
 //
 // TimeoutMs defines a timeout after which a tcp session is considered to have
-// dropped, i.e. the (remaining) packages will be discarded. Every incoming
+// sent to the fallback, i.e. the (remaining) packages will be discarded. Every incoming
 // packet will restart the timer for the specific client session.
 // By default this is set to 3000, i.e. 3 seconds.
 type PcapHTTPConsumer struct {

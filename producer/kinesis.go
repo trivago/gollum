@@ -106,6 +106,7 @@ type Kinesis struct {
 	sendTimeLimit     time.Duration
 	counters          map[string]*int64
 	lastMetricUpdate  time.Time
+	sequence          *int64
 }
 
 const (
@@ -137,6 +138,7 @@ func (prod *Kinesis) Configure(conf core.PluginConfigReader) error {
 	prod.lastSendTime = time.Now()
 	prod.counters = make(map[string]*int64)
 	prod.lastMetricUpdate = time.Now()
+	prod.sequence = new(int64)
 
 	if prod.recordMaxMessages < 1 {
 		prod.recordMaxMessages = 1
@@ -192,7 +194,7 @@ func (prod *Kinesis) Configure(conf core.PluginConfigReader) error {
 }
 
 func (prod *Kinesis) bufferMessage(msg *core.Message) {
-	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
+	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.TryFallback)
 }
 
 func (prod *Kinesis) sendBatchOnTimeOut() {
@@ -206,9 +208,9 @@ func (prod *Kinesis) sendBatch() {
 	prod.batch.Flush(prod.transformMessages)
 }
 
-func (prod *Kinesis) dropMessages(messages []*core.Message) {
+func (prod *Kinesis) tryFallbackForMessages(messages []*core.Message) {
 	for _, msg := range messages {
-		prod.Drop(msg)
+		prod.TryFallback(msg)
 	}
 }
 
@@ -218,7 +220,7 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 	// Format and sort
 	for idx, msg := range messages {
 		currentMsg := msg.Clone()
-		messageHash := fmt.Sprintf("%X-%d", currentMsg.StreamID(), currentMsg.Sequence())
+		messageHash := fmt.Sprintf("%X-%d", currentMsg.StreamID(), atomic.AddInt64(prod.sequence, 1))
 
 		// Fetch buffer for this stream
 		records, recordsExists := streamRecords[currentMsg.StreamID()]
@@ -284,11 +286,11 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 		atomic.AddInt64(prod.counters[*records.content.StreamName], int64(len(records.content.Records)))
 
 		if err != nil {
-			// Batch failed, drop all
+			// Batch failed, fallback all
 			prod.Log.Error.Print("Write error: ", err)
 			for _, messages := range records.original {
 				for _, msg := range messages {
-					prod.Drop(msg)
+					prod.TryFallback(msg)
 				}
 			}
 		} else {
@@ -297,7 +299,7 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 				if record.ErrorMessage != nil {
 					prod.Log.Error.Print("Kinesis message write error: ", *record.ErrorMessage)
 					for _, msg := range records.original[msgIdx] {
-						prod.Drop(msg)
+						prod.TryFallback(msg)
 					}
 				}
 			}

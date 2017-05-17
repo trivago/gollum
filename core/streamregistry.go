@@ -28,7 +28,6 @@ const (
 	// MetricMessagesSec is used as a key for storing message throughput
 	MetricMessagesSec  = "MessagesPerSec"
 	metricDiscarded    = "DiscardedMessages"
-	metricDropped      = "DroppedMessages"
 	metricFiltered     = "Filtered"
 	metricNoRoute      = "DiscardedNoRoute"
 	metricDiscardedSec = "DiscardedMessagesSec"
@@ -60,11 +59,9 @@ func init() {
 	tgo.EnableGlobalMetrics()
 	tgo.Metric.New(metricStreams)
 	tgo.Metric.New(metricMessages)
-	tgo.Metric.New(metricDropped)
 	tgo.Metric.New(metricDiscarded)
 	tgo.Metric.New(metricNoRoute)
 	tgo.Metric.New(metricFiltered)
-	tgo.Metric.NewRate(metricDropped, metricDroppedSec, time.Second, 10, 3, true)
 	tgo.Metric.NewRate(metricMessages, MetricMessagesSec, time.Second, 10, 3, true)
 	tgo.Metric.NewRate(metricDiscarded, metricDiscardedSec, time.Second, 10, 3, true)
 	tgo.Metric.NewRate(metricNoRoute, metricNoRouteSec, time.Second, 10, 3, true)
@@ -74,11 +71,6 @@ func init() {
 // CountProcessedMessage increases the messages counter by 1
 func CountProcessedMessage() {
 	tgo.Metric.Inc(metricMessages)
-}
-
-// CountDroppedMessage increases the dropped messages counter by 1
-func CountDroppedMessage() {
-	tgo.Metric.Inc(metricDropped)
 }
 
 // CountDiscardedMessage increases the discarded messages counter by 1
@@ -119,9 +111,6 @@ func (registry *streamRegistry) GetStreamID(stream string) MessageStreamID {
 // string is returned.
 func (registry streamRegistry) GetStreamName(streamID MessageStreamID) string {
 	switch streamID {
-	case DroppedStreamID:
-		return DroppedStream
-
 	case LogInternalStreamID:
 		return LogInternalStream
 
@@ -202,7 +191,7 @@ nextProd:
 // phase.
 func (registry streamRegistry) AddWildcardProducersToRouter(router Router) {
 	streamID := router.StreamID()
-	if streamID != LogInternalStreamID && streamID != DroppedStreamID {
+	if streamID != LogInternalStreamID {
 		router.AddProducer(registry.wildcard...)
 	}
 }

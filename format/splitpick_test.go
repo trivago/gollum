@@ -20,7 +20,7 @@ func TestSplitPick_Success(t *testing.T) {
 	formatter, casted := plugin.(*SplitPick)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("MTIzNDU2#NjU0MzIx"), 0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("MTIzNDU2#NjU0MzIx"), core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 
 	expect.NoError(err)
@@ -40,7 +40,7 @@ func TestSplitPick_OutOfBoundIndex(t *testing.T) {
 	formatter, casted := plugin.(*SplitPick)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("MTIzNDU2:NjU0MzIx"), 0, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("MTIzNDU2:NjU0MzIx"), core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 
 	expect.NoError(err)

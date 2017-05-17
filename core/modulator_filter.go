@@ -72,7 +72,7 @@ func (filterModulator *FilterModulator) Modulate(msg *Message) ModulateResult {
 	}
 
 	msg.SetStreamID(newStreamID)
-	return ModulateResultDrop
+	return ModulateResultFallback
 }
 
 // ApplyFilter calls the Filter.ApplyFilter method

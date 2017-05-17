@@ -33,7 +33,7 @@ func TestExtractJSON(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"),
-		0, core.InvalidStreamID)
+		core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -54,7 +54,7 @@ func TestExtractJSONPrecision(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":999999999}"),
-		0, core.InvalidStreamID)
+		core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)

@@ -248,7 +248,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	state, stateExists := prod.files[logFileBasePath]
 	if !stateExists {
 		// state does not yet exist: create and map it
-		state = newFileState(prod.batchMaxCount, prod, prod.Drop, prod.flushTimeout, prod.Log)
+		state = newFileState(prod.batchMaxCount, prod, prod.TryFallback, prod.flushTimeout, prod.Log)
 		prod.files[logFileBasePath] = state
 		prod.filesByStream[streamID] = state
 	} else if _, mappingExists := prod.filesByStream[streamID]; !mappingExists {
@@ -377,11 +377,11 @@ func (prod *File) writeMessage(msg *core.Message) {
 	state, err := prod.getFileState(streamMsg.StreamID(), false)
 	if err != nil {
 		prod.Log.Error.Print("Write error: ", err)
-		prod.Drop(msg)
-		return // ### return, dropped ###
+		prod.TryFallback(msg)
+		return // ### return, fallback ###
 	}
 
-	state.batch.AppendOrFlush(msg, state.flush, prod.IsActiveOrStopping, prod.Drop)
+	state.batch.AppendOrFlush(msg, state.flush, prod.IsActiveOrStopping, prod.TryFallback)
 }
 
 func (prod *File) close() {

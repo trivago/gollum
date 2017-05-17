@@ -26,7 +26,6 @@ func getMockMessage(data string) *Message {
 		prevStreamID: 2,
 		source:       nil,
 		timestamp:    time.Now(),
-		sequence:     4,
 	}
 
 	msg.data.payload = []byte(data)
@@ -65,7 +64,7 @@ func TestMessageInstantiate(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	msgString := "Test for instantiate"
 
-	msg := NewMessage(nil, []byte(msgString), 1, 1)
+	msg := NewMessage(nil, []byte(msgString), 1)
 
 	expect.Equal(msgString, string(msg.data.payload))
 	expect.Equal(MessageStreamID(1), msg.data.streamID)
@@ -78,7 +77,7 @@ func TestMessageOriginalDataIntegrity(t *testing.T) {
 	msgString := "Test for original data integrity"
 	msgUpdateString := "Test for original data integrity - UPDATE"
 
-	msg := NewMessage(nil, []byte(msgString), 1, 1)
+	msg := NewMessage(nil, []byte(msgString), 1)
 
 	msg.SetStreamID(MessageStreamID(10))
 	msg.Store([]byte(msgUpdateString))
@@ -95,7 +94,7 @@ func TestMessageClone(t *testing.T) {
 	msgString := "Test for clone"
 	msgUpdateString := "Test for clone - UPDATE"
 
-	msg := NewMessage(nil, []byte(msgString), 1, 1)
+	msg := NewMessage(nil, []byte(msgString), 1)
 	msg.SetStreamID(MessageStreamID(10))
 	msg.Store([]byte(msgUpdateString))
 
@@ -112,7 +111,7 @@ func TestMessageCloneOriginal(t *testing.T) {
 	msgString := "Test for clone original"
 	msgUpdateString := "Test for clone original - UPDATE"
 
-	msg := NewMessage(nil, []byte(msgString), 1, 1)
+	msg := NewMessage(nil, []byte(msgString), 1)
 	msg.SetStreamID(MessageStreamID(10))
 	msg.Store([]byte(msgUpdateString))
 
@@ -127,15 +126,15 @@ func TestMessageCloneOriginal(t *testing.T) {
 func TestMessageMetaData(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	msg := NewMessage(nil, []byte("message payload"), 1, 1)
+	msg := NewMessage(nil, []byte("message payload"), 1)
 	value1 := []byte("value string")
 	value2 := []byte("100")
 
 	msg.MetaData().SetValue("key1", value1)
 	msg.MetaData().SetValue("key2", value2)
 
-	result1 := msg.MetaData().GetValue("key1", []byte{})
-	result2 := msg.MetaData().GetValue("key2", []byte{})
+	result1 := msg.MetaData().GetValue("key1")
+	result2 := msg.MetaData().GetValue("key2")
 
 	expect.Equal("value string", string(result1))
 	expect.Equal("100", string(result2))
@@ -144,16 +143,16 @@ func TestMessageMetaData(t *testing.T) {
 func TestMessageMetaDataReset(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	msg := NewMessage(nil, []byte("message payload"), 1, 1)
+	msg := NewMessage(nil, []byte("message payload"), 1)
 	value := []byte("value string")
 
 	msg.MetaData().SetValue("key1", value)
 
-	result1 := msg.MetaData().GetValue("key1", []byte{})
+	result1 := msg.MetaData().GetValue("key1")
 
 	msg.MetaData().ResetValue("key1")
-	result2 := msg.MetaData().GetValue("key1", []byte("noValue"))
+	result2 := msg.MetaData().GetValue("key1")
 
 	expect.Equal("value string", string(result1))
-	expect.Equal("noValue", string(result2))
+	expect.Equal([]byte{}, result2)
 }

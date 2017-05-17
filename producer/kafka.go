@@ -145,7 +145,7 @@ const (
 // elect a new leader. Defaults to 250.
 //
 // GracePeriodMs defines the number of milliseconds to wait for Sarama to
-// accept a single message. After this period a message is dropped.
+// accept a single message. After this period a message is sent to the fallback.
 // By default this is set to 100ms.
 //
 // MetadataRefreshMs set the interval in seconds for fetching cluster metadata.
@@ -410,7 +410,7 @@ func (prod *Kafka) pollResults() {
 						prod.Log.Error.Print("Message discarded as too large.")
 						core.CountDiscardedMessage()
 					} else {
-						prod.Drop(&msg)
+						prod.TryFallback(&msg)
 					}
 				}
 			}
@@ -486,7 +486,7 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	}
 
 	if isConnected, err := prod.isConnected(topic.name); !isConnected {
-		prod.Drop(msg)
+		prod.TryFallback(msg)
 		if err != nil {
 			prod.Log.Error.Printf("%s is not connected: %s", topic.name, err.Error())
 		}
@@ -514,15 +514,15 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 		tgo.Metric.Inc(kafkaMetricMessages + topic.name)
 
 	case <-timeout.C:
-		// Sarama channels are full -> drop
-		prod.Drop(msg)
+		// Sarama channels are full -> fallback
+		prod.TryFallback(msg)
 		tgo.Metric.Inc(kafkaMetricUnresponsive + topic.name)
 	}
 }
 
 func (prod *Kafka) getKafkaMsgKey(msg *core.Message) []byte {
 	if len(prod.keyMetaField) > 0 {
-		return msg.MetaData().GetValue(prod.keyMetaField, []byte{})
+		return msg.MetaData().GetValue(prod.keyMetaField)
 	}
 
 	return []byte{}

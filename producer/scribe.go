@@ -140,7 +140,7 @@ func (prod *Scribe) Configure(conf core.PluginConfigReader) error {
 }
 
 func (prod *Scribe) bufferMessage(msg *core.Message) {
-	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.Drop)
+	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.TryFallback)
 }
 
 func (prod *Scribe) sendBatchOnTimeOut() {
@@ -194,13 +194,13 @@ func (prod *Scribe) sendBatch() {
 	if prod.tryOpenConnection() {
 		prod.batch.Flush(prod.transformMessages)
 	} else if prod.IsStopping() {
-		prod.batch.Flush(prod.dropMessages)
+		prod.batch.Flush(prod.tryFallbackForMessages)
 	}
 }
 
-func (prod *Scribe) dropMessages(messages []*core.Message) {
+func (prod *Scribe) tryFallbackForMessages(messages []*core.Message) {
 	for _, msg := range messages {
-		prod.Drop(msg)
+		prod.TryFallback(msg)
 	}
 }
 
@@ -258,7 +258,7 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 			// TBD: health check? (ex-fuse breaker)
 			prod.transport.Close() // reconnect
 
-			prod.dropMessages(messages[idxStart:])
+			prod.tryFallbackForMessages(messages[idxStart:])
 			return // ### return, failure ###
 		}
 
@@ -269,7 +269,7 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 	}
 
 	prod.Log.Error.Printf("Server seems to be busy")
-	prod.dropMessages(messages[idxStart:])
+	prod.tryFallbackForMessages(messages[idxStart:])
 }
 
 func (prod *Scribe) close() {

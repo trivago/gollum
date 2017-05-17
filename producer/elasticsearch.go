@@ -292,7 +292,7 @@ func (prod *ElasticSearch) sendMessage(msg *core.Message) {
 		if !prod.isClusterUp() {
 			// TBD: health check? (prev. fuse breaker)
 		}
-		prod.Drop(originalMsg)
+		prod.TryFallback(originalMsg)
 	} else {
 		tgo.Metric.Inc(elasticMetricMessages + index)
 		// TBD: health check? (prev. fuse breaker)

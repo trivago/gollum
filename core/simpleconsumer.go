@@ -19,7 +19,6 @@ import (
 	"github.com/trivago/tgo/thealthcheck"
 	"github.com/trivago/tgo/tlog"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -55,7 +54,6 @@ type SimpleConsumer struct {
 	runState        *PluginRunState
 	shutdownTimeout time.Duration
 	modulators      ModulatorArray
-	sequence        *uint64
 	onRoll          func()
 	onPrepareStop   func()
 	onStop          func()
@@ -68,7 +66,6 @@ func (cons *SimpleConsumer) Configure(conf PluginConfigReader) error {
 	cons.Log = conf.GetLogScope()
 	cons.runState = NewPluginRunState()
 	cons.control = make(chan PluginControl, 1)
-	cons.sequence = new(uint64)
 	cons.modulators = conf.GetModulatorArray("Modulators", cons.Log, ModulatorArray{})
 
 	defaultStreamID := GetStreamID(conf.GetID())
@@ -84,12 +81,14 @@ func (cons *SimpleConsumer) Configure(conf PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Adds a health check at the default URL (http://<addr>:<port>/<plugin_id>)
+// AddHealthCheck a health check at the default URL
+// (http://<addr>:<port>/<plugin_id>)
 func (cons *SimpleConsumer) AddHealthCheck(callback thealthcheck.CallbackFunc) {
 	cons.AddHealthCheckAt("", callback)
 }
 
-// Adds a health check at a subpath (http://<addr>:<port>/<plugin_id><path>)
+// AddHealthCheckAt adds a health check at a subpath
+// (http://<addr>:<port>/<plugin_id><path>)
 func (cons *SimpleConsumer) AddHealthCheckAt(path string, callback thealthcheck.CallbackFunc) {
 	thealthcheck.AddEndpoint("/"+cons.GetID()+path, callback)
 }
@@ -178,25 +177,16 @@ func (cons *SimpleConsumer) WorkerDone() {
 // Enqueue creates a new message from a given byte slice and passes it to
 // EnqueueMessage. Data is copied to the message.
 func (cons *SimpleConsumer) Enqueue(data []byte) {
-	seq := atomic.AddUint64(cons.sequence, 1)
-	cons.EnqueueWithSequence(data, seq)
-}
-
-// EnqueueWithSequence works like Enqueue but allows to set a custom sequence
-// number. The internal sequence number is not incremented by this function.
-func (cons *SimpleConsumer) EnqueueWithSequence(data []byte, seq uint64) {
-	msg := NewMessage(cons, data, seq, GetStreamID(cons.id))
+	msg := NewMessage(cons, data, GetStreamID(cons.id))
 	cons.enqueueMessage(msg)
 }
 
 // EnqueueWithMetaData works like EnqueueWithSequence and allows to set meta data directly
 func (cons *SimpleConsumer) EnqueueWithMetaData(data []byte, metaData MetaData) {
-	seq := atomic.AddUint64(cons.sequence, 1)
-	msg := NewMessage(cons, data, seq, GetStreamID(cons.id))
+	msg := NewMessage(cons, data, GetStreamID(cons.id))
 
 	msg.data.MetaData = metaData
 	msg.orig.MetaData = metaData.Clone()
-
 	cons.enqueueMessage(msg)
 }
 
@@ -207,8 +197,8 @@ func (cons *SimpleConsumer) enqueueMessage(msg *Message) {
 		DiscardMessage(msg)
 		return
 
-	case ModulateResultDrop:
-		if err := DropMessage(msg); err != nil {
+	case ModulateResultFallback:
+		if err := RouteOriginal(msg, msg.GetRouter()); err != nil {
 			cons.Log.Error.Print(err)
 		}
 		return
