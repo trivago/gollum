@@ -51,6 +51,8 @@ all_preps  := prep_producers prep_consumers prep_filters prep_formatters prep_ro
 
 all: clean groups
 
+all-really: clean clean-html all html
+
 groups: $(all_groups)
 preps:  $(all_preps)
 

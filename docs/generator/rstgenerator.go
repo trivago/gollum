@@ -40,7 +40,7 @@ func PluginDocumentToRST(doc PluginDocument) string {
 			// Skip title for empty param sets
 			continue
 		}
-		head := "Parameters (from " + paramSetName + ")"
+		head := "Parameters (from " + strings.TrimPrefix(paramSetName, "core.") + ")"
 		result += head + "\n"
 		result += strings.Repeat("-", len(head)) + "\n\n"
 
