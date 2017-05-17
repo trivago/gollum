@@ -85,9 +85,10 @@ func ReadConfig(buffer []byte) (*Config, error) {
 				}
 
 				// set up sub-plugin
-				pluginConfig := NewPluginConfig(subPluginsId, "")
-
+				delete(configValues, "Type")
 				delete(configValues, "Aggregate")
+
+				pluginConfig := NewPluginConfig(subPluginsId, "")
 				pluginConfig.Read(configValues)
 				pluginConfig.Read(subConfig)
 
