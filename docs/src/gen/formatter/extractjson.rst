@@ -31,11 +31,10 @@ Example
 
 .. code-block:: yaml
 
-	- "stream.Broadcast":
-	    Formatter: "format.ExtractJSON"
-	    ExtractJSONdataFormatter: "format.Forward"
-	    ExtractJSONField: ""
-	    ExtractJSONTrimValues: true
-	    ExtractJSONPrecision: 0
+	- format.ExtractJSON:
+	        Field: ""
+	        TrimValues: true
+	        Precision: 0
+	        ApplyTo: "payload" # payload or <metaKey>
 
 

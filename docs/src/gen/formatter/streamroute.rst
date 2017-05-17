@@ -11,33 +11,30 @@ If no delimiter is found or the prefix is empty the message stream is not change
 Parameters
 ----------
 
-**StreamRouteFormatter**
-  StreamRouteFormatter defines the formatter applied after reading the stream.
-  This formatter is applied to the data after StreamRouteDelimiter.
-  By default this is set to "format.Forward".
+**StreamModulator**
+  StreamModulator is used when StreamRouteFormatStream is set to true.
+  By default this is empty.
 
-**StreamRouteStreamFormatter**
-  StreamRouteStreamFormatter is used when StreamRouteFormatStream is set to true.
-  By default this is the same value as StreamRouteFormatter.
-
-**StreamRouteDelimiter**
-  StreamRouteDelimiter defines the delimiter to search when extracting the stream name.
+**Delimiter**
+  Delimiter defines the delimiter to search when extracting the stream name.
   By default this is set to ":".
 
 **StreamRouteFormatStream**
   StreamRouteFormatStream can be set to true to apply StreamRouteFormatter to both parts of the message (stream and data).
   Set to false by default.
 
+**ApplyTo**
+  ApplyTo defines the formatter content to use .
+
 Example
 -------
 
 .. code-block:: yaml
 
-	- "stream.Broadcast":
-	    Formatter: "format.StreamRoute"
-	    StreamRouteFormatter: "format.Forward"
-	    StreamRouteStreamFormatter: "format.Forward"
-	    StreamRouteDelimiter: ":"
-	    StreamRouteFormatStream: false
+	- format.StreamRoute:
+	    StreamModulator:
+	        - format.Forward
+	    Delimiter: ":"
+	    ApplyTo: "payload" # payload or <metaKey>
 
 

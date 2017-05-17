@@ -10,11 +10,8 @@ The message is modified and returned again as TSV.
 Parameters
 ----------
 
-**ProcessTSVDataFormatter**
-  ProcessTSVDataFormatter formatter that will be applied before ProcessTSVDirectives are processed.
-
-**ProcessTSVDirectives**
-  ProcessTSVDirectives defines the action to be applied to the tsv payload.
+**Directives**
+  Directives defines the action to be applied to the tsv payload.
   Directives are processed in order of appearance.
   The directives have to be given in the form of key:operation:parameters, where operation can be one of the following.
    * `replace:<old>:<new>` replace a given string in the value with a new one. 
@@ -26,12 +23,12 @@ Parameters
    * remove remove the value. 
    * `agent{:<user_agent_field>:<user_agent_field>:...}` Parse the value as a user    agent string and extract the given fields into <key>_<user_agent_field>    ("ua:agent:browser:os" would create the new fields "ua_browser" and "ua_os"). 
 
-**ProcessTSVDelimiter**
-  ProcessTSVDelimiter defines what value separator to split on.
+**Delimiter**
+  Delimiter defines what value separator to split on.
   Defaults to tabs.
 
-**ProcessTSVQuotedValue**
-  ProcessTSVQuotedValue defines if a value that starts and ends with " may contain ProcessTSVDelimiter without being split.
+**QuotedValue**
+  QuotedValue defines if a value that starts and ends with " may contain ProcessTSVDelimiter without being split.
   Default is false.
 
 Example
@@ -39,19 +36,17 @@ Example
 
 .. code-block:: yaml
 
-	- "stream.Broadcast":
-	    Formatter: "format.processTSV"
-	    ProcessTSVDataFormatter: "format.Forward"
-	    ProcessTSVDelimiter: '\t'
-	    ProcessTSVQuotedValues: false
-	    ProcessTSVDirectives:
-	        - "0:time:20060102150405:2006-01-02 15\\:04\\:05"
-	        - "3:replace:°:\n"
-	        - "6:prefix:0."
-	        - "6:postfix:000"
-	        - "7:trim: "
-	        - "10:quote"
-	        - "11:remove"
-	        - "11:agent:browser:os:version"
+	- format.processTSV:
+	        Delimiter: '\t'
+	        QuotedValues: false
+	        Directives:
+	            - "0:time:20060102150405:2006-01-02 15\\:04\\:05"
+	            - "3:replace:°:\n"
+	            - "6:prefix:0."
+	            - "6:postfix:000"
+	            - "7:trim: "
+	            - "10:quote"
+	            - "11:remove"
+	            - "11:agent:browser:os:version"
 
 

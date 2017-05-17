@@ -9,28 +9,26 @@ StreamName is a formatter that prefixes a message with the StreamName.
 Parameters
 ----------
 
-**StreamNameFormatter**
-  StreamNameFormatter defines the formatter for the data transferred as message.
-  By default this is set to "format.Envelope".
-
-**StreamNameHistory**
-  StreamNameHistory can be set to true to not use the current but the previous stream name.
+**UseHistory**
+  UseHistory can be set to true to not use the current but the previous stream name.
   This can be useful to e.g. get the name of the stream messages were sent to the fallback from.
   By default this is set to false.
 
-**StreamNameSeparator**
-  StreamNameSeparator sets the separator character placed after the stream name.
+**Separator**
+  Separator sets the separator character placed after the stream name.
   This is set to " " by default.
+
+**ApplyTo**
+  ApplyTo defines the formatter content to use .
 
 Example
 -------
 
 .. code-block:: yaml
 
-	- "stream.Broadcast":
-	    Formatter: "format.StreamName"
-	    StreamNameFormatter: "format.Envelope"
-	    StreamNameSeparator: " "
-	    StreamNameHistory: false
+	- format.StreamName:
+	        Separator: " "
+	        UseHistory: false
+	        ApplyTo: "payload" # payload or <metaKey>
 
 

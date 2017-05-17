@@ -25,9 +25,8 @@ Example
 
 .. code-block:: yaml
 
-	- "stream.Broadcast":
-	    Formatter: "format.Base64Decode"
-	    Base64Formatter: "format.Forward"
-	    Base64Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
+	- format.Base64Decode:
+	        Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
+	        ApplyTo: "payload" # payload or <metaKey>
 
 

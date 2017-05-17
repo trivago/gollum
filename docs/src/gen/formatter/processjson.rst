@@ -10,17 +10,14 @@ The message is modified and returned again as JSON.
 Parameters
 ----------
 
-**ProcessJSONDataFormatter**
-  ProcessJSONDataFormatter formatter that will be applied before ProcessJSONDirectives are processed.
-
-**ProcessJSONGeoIPFile**
-  ProcessJSONGeoIPFile defines a GeoIP file to load.
+**GeoIPFile**
+  GeoIPFile defines a GeoIP file to load.
   This enables the "geoip" directive.
   If no file is loaded IPs will not be resolved.
   Files can be found e.g. at http://dev.maxmind.com/geoip/geoip2/geolite2/.
 
-**ProcessJSONDirectives**
-  ProcessJSONDirectives defines the action to be applied to the json payload.
+**Directives**
+  Directives defines the action to be applied to the json payload.
   Directives are processed in order of appearance.
   The directives have to be given in the form of key:operation:parameters, where operation can be one of the following.
    * `split:<string>{:<key>:<key>:...}` Split the value by a string and set the    resulting array elements to the given fields in order of appearance. 
@@ -31,8 +28,8 @@ Parameters
    * `ip` Parse the field as an array of strings and remove all values that cannot    be parsed as a valid IP. Single-string fields are supported, too, but will be    converted to an array. 
    * `geoip:{<field>:<field>:...}` like agent this directive will analyse an IP string    via geoip and produce new fields. Possible values are: "country", "city", "continent", "timezone", "proxy", "location". 
 
-**ProcessJSONTrimValues**
-  ProcessJSONTrimValues will trim whitspaces from all values if enabled.
+**TrimValues**
+  TrimValues will trim whitspaces from all values if enabled.
   Enabled by default.
 
 Example
@@ -40,21 +37,19 @@ Example
 
 .. code-block:: yaml
 
-	- "stream.Broadcast":
-	    Formatter: "format.ProcessJSON"
-	    ProcessJSONDataFormatter: "format.Forward"
-	    ProcessJSONGeoIPFile: ""
-	    ProcessJSONDirectives:
-	        - "host:split: :host:@timestamp"
-	        - "@timestamp:time:20060102150405:2006-01-02 15\\:04\\:05"
-	        - "error:replace:°:\n"
-	        - "text:trim: \t"
-	        - "foo:rename:bar"
+	- format.ProcessJSON:
+	        GeoIPFile: ""
+	        Directives:
+	            - "host:split: :host:@timestamp"
+	            - "@timestamp:time:20060102150405:2006-01-02 15\\:04\\:05"
+	            - "error:replace:°:\n"
+	            - "text:trim: \t"
+	            - "foo:rename:bar"
 	        - "foobar:remove"
-	        - "array:pick:0:firstOfArray"
+	            - "array:pick:0:firstOfArray"
 	        - "array:remove:foobar"
-	        - "user_agent:agent:browser:os:version"
-	        - "client:geoip:country:city:timezone:location"
-	    ProcessJSONTrimValues: true
+	            - "user_agent:agent:browser:os:version"
+	            - "client:geoip:country:city:timezone:location"
+	        TrimValues: true
 
 

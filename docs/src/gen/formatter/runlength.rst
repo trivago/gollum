@@ -10,22 +10,27 @@ The actual message is formatted by a nested formatter.
 Parameters
 ----------
 
-**RunlengthSeparator**
-  RunlengthSeparator sets the separator character placed after the runlength.
+**Separator**
+  Separator sets the separator character placed after the runlength.
   This is set to ":" by default.
+  If no separator is set the runlength will only set.
 
-**RunlengthDataFormatter**
-  RunlengthDataFormatter defines the formatter for the data transferred as message.
-  By default this is set to "format.Forward" .
+**StoreRunlengthOnly**
+  StoreRunlengthOnly is used to store the runlength only and overwrite the payload.
+  The value is `false` by default.
+  This option is useful to store the runlength only in a meta data field.
+
+**ApplyTo**
+  ApplyTo defines the formatter content for the data transferred .
 
 Example
 -------
 
 .. code-block:: yaml
 
-	- "stream.Broadcast":
-	    Formatter: "format.Runlength"
-	    RunlengthSeparator: ":"
-	    RunlengthFormatter: "format.Envelope"
+	- format.Runlength
+	        Separator: ":"
+	    StoreRunlengthOnly: false
+	        ApplyTo: "payload" # payload or <metaKey>
 
 

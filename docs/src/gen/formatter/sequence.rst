@@ -9,22 +9,21 @@ Sequence is a formatter that allows prefixing a message with the message's seque
 Parameters
 ----------
 
-**SequenceSeparator**
-  SequenceSeparator sets the separator character placed after the sequence number.
+**Separator**
+  Separator sets the separator character placed after the sequence number.
   This is set to ":" by default.
+  If no separator is set the sequence string will only set.
 
-**SequenceDataFormatter**
-  SequenceDataFormatter defines the formatter for the data transferred as message.
-  By default this is set to "format.Forward" .
+**ApplyTo**
+  ApplyTo defines the formatter content to use .
 
 Example
 -------
 
 .. code-block:: yaml
 
-	- "stream.Broadcast":
-	    Formatter: "format.Sequence"
-	    SequenceFormatter: "format.Envelope"
-	    SequenceSeparator: ":"
+	- format.Sequence:
+	        Separator: ":"
+	        ApplyTo: "payload" # payload or <metaKey>
 
 

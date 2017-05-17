@@ -4,7 +4,7 @@ RegExp
 ======================================================================
 
 returning the results.
-   - "<producer|stream>":     Formatter: "format.RegExp"     Expression: "(.*)"     Template: "${1}"     Posix: true .
+   - format.RegExp:       Expression: "(.*)"       Template: "${1}"       Posix: true       ApplyTo: "payload" # payload or <metaKey> .
 
 
 

@@ -14,14 +14,17 @@ Parameters
   	By default, SplitPickIndex is 0.
   	By default, SplitPickDelimiter is ":".
 
+**ApplyTo**
+  ApplyTo defines the formatter content to use .
+
 Example
 -------
 
 .. code-block:: yaml
 
-	- "stream.Broadcast":
-	    Formatter: "format.SplitPick"
-	        SplitPickIndex: 0
-	        SplitPickDelimiter: ":"
+	- format.SplitPick:
+	        Index: 0
+	        Delimiter: ":"
+	        ApplyTo: "payload" # payload or <metaKey>
 
 
