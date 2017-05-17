@@ -1,7 +1,7 @@
+.. This file is included by docs/src/gen/router/index.rst
+
 Routers
 ############################
-
-.. include:: ../gen/router/_toc.rst
 
 Routers manage the transfer of messages between  :doc:`consumers </src/plugins/consumer>` and :doc:`producers </src/plugins/producer>`.
 Routers can act as a kind of proxy that may filter, modify and define the distribution algorithm of messages.
