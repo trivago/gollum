@@ -25,16 +25,14 @@ import (
 // sequence number
 // Configuration example
 //
-//  - "stream.Broadcast":
-//    Formatter: "format.Sequence"
-//    SequenceFormatter: "format.Envelope"
-//    SequenceSeparator: ":"
+//  - format.Sequence:
+//      Separator: ":"
+//      ApplyTo: "payload" # payload or <metaKey>
 //
-// SequenceSeparator sets the separator character placed after the sequence
-// number. This is set to ":" by default.
+// Separator sets the separator character placed after the sequence
+// number. This is set to ":" by default. If no separator is set the sequence string will only set.
 //
-// SequenceDataFormatter defines the formatter for the data transferred as
-// message. By default this is set to "format.Forward"
+// ApplyTo defines the formatter content to use
 type Sequence struct {
 	core.SimpleFormatter
 	separator []byte
@@ -58,14 +56,15 @@ func (format *Sequence) Configure(conf core.PluginConfigReader) error {
 func (format *Sequence) ApplyFormatter(msg *core.Message) error {
 	seq := atomic.AddInt64(format.seq, 1)
 	sequenceStr := strconv.FormatInt(seq, 10)
+	content := format.GetAppliedContent(msg)
 
-	dataSize := len(sequenceStr) + len(format.separator) + msg.Len()
+	dataSize := len(sequenceStr) + len(format.separator) + len(content)
 	payload := core.MessageDataPool.Get(dataSize)
 
 	offset := copy(payload, []byte(sequenceStr))
 	offset += copy(payload[offset:], format.separator)
-	copy(payload[offset:], msg.Data())
+	copy(payload[offset:], content)
 
-	msg.Store(payload)
+	format.SetAppliedContent(msg, payload)
 	return nil
 }

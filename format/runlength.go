@@ -24,19 +24,22 @@ import (
 // a ":". The actual message is formatted by a nested formatter.
 // Configuration example
 //
-//  - "stream.Broadcast":
-//    Formatter: "format.Runlength"
-//    RunlengthSeparator: ":"
-//    RunlengthFormatter: "format.Envelope"
+//  - format.Runlength
+//      Separator: ":"
+// 	StoreRunlengthOnly: false
+//      ApplyTo: "payload" # payload or <metaKey>
 //
-// RunlengthSeparator sets the separator character placed after the runlength.
-// This is set to ":" by default.
+// Separator sets the separator character placed after the runlength.
+// This is set to ":" by default. If no separator is set the runlength will only set.
 //
-// RunlengthDataFormatter defines the formatter for the data transferred as
-// message. By default this is set to "format.Forward"
+// StoreRunlengthOnly is used to store the runlength only and overwrite the payload.
+// The value is `false` by default. This option is useful to store the runlength only in a meta data field.
+//
+// ApplyTo defines the formatter content for the data transferred
 type Runlength struct {
 	core.SimpleFormatter
 	separator []byte
+	storeRunlengthOnly bool
 }
 
 func init() {
@@ -48,20 +51,28 @@ func (format *Runlength) Configure(conf core.PluginConfigReader) error {
 	format.SimpleFormatter.Configure(conf)
 
 	format.separator = []byte(conf.GetString("Separator", ":"))
+	format.storeRunlengthOnly = conf.GetBool("StoreRunlengthOnly", false)
 	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload
 func (format *Runlength) ApplyFormatter(msg *core.Message) error {
-	lengthStr := strconv.Itoa(msg.Len())
+	content := format.GetAppliedContent(msg)
+	contentLen := len(content)
+	lengthStr := strconv.Itoa(contentLen)
 
-	dataSize := len(lengthStr) + len(format.separator) + msg.Len()
-	payload := core.MessageDataPool.Get(dataSize)
+	var payload []byte
+	if format.storeRunlengthOnly == false {
+		dataSize := len(lengthStr) + len(format.separator) + contentLen
+		payload = core.MessageDataPool.Get(dataSize)
 
-	offset := copy(payload, []byte(lengthStr))
-	offset += copy(payload[offset:], format.separator)
-	copy(payload[offset:], msg.Data())
+		offset := copy(payload, []byte(lengthStr))
+		offset += copy(payload[offset:], format.separator)
+		copy(payload[offset:], content)
+	} else {
+		payload = []byte(lengthStr)
+	}
 
-	msg.Store(payload)
+	format.SetAppliedContent(msg, payload)
 	return nil
 }

@@ -22,9 +22,10 @@ import (
 // Clear is a formatter that clears the message
 // Configuration example
 //
-//  - "stream.Broadcast":
-//    Formatter: "format.Clear"
+//  - format.Clear:
+//	ApplyTo: "payload" # payload or <metaKey>
 type Clear struct {
+	core.SimpleFormatter
 }
 
 func init() {
@@ -33,11 +34,11 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Clear) Configure(conf core.PluginConfigReader) error {
-	return nil
+	return format.SimpleFormatter.Configure(conf)
 }
 
 // ApplyFormatter update message payload
 func (format *Clear) ApplyFormatter(msg *core.Message) error {
-	msg.Store([]byte{})
+	format.SetAppliedContent(msg, []byte{})
 	return nil
 }

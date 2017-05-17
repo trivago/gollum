@@ -22,21 +22,19 @@ import (
 // StreamName is a formatter that prefixes a message with the StreamName.
 // Configuration example
 //
-//  - "stream.Broadcast":
-//    Formatter: "format.StreamName"
-//    StreamNameFormatter: "format.Envelope"
-//    StreamNameSeparator: " "
-//    StreamNameHistory: false
+//  - format.StreamName:
+//      Separator: " "
+//      UseHistory: false
+//      ApplyTo: "payload" # payload or <metaKey>
 //
-// StreamNameFormatter defines the formatter for the data transferred as
-// message. By default this is set to "format.Envelope"
-//
-// StreamNameHistory can be set to true to not use the current but the previous
+// UseHistory can be set to true to not use the current but the previous
 // stream name. This can be useful to e.g. get the name of the stream messages
 // were sent to the fallback from. By default this is set to false.
 //
-// StreamNameSeparator sets the separator character placed after the stream name.
+// Separator sets the separator character placed after the stream name.
 // This is set to " " by default.
+//
+// ApplyTo defines the formatter content to use
 type StreamName struct {
 	core.SimpleFormatter
 	separator   []byte
@@ -58,6 +56,21 @@ func (format *StreamName) Configure(conf core.PluginConfigReader) error {
 
 // ApplyFormatter update message payload
 func (format *StreamName) ApplyFormatter(msg *core.Message) error {
+	streamName := format.getStreamName(msg)
+	content := format.GetAppliedContent(msg)
+
+	dataSize := len(streamName) + len(format.separator) + len(content)
+	payload := core.MessageDataPool.Get(dataSize)
+
+	offset := copy(payload, []byte(streamName))
+	offset += copy(payload[offset:], format.separator)
+	copy(payload[offset:], content)
+
+	format.SetAppliedContent(msg, payload)
+	return nil
+}
+
+func (format *StreamName) getStreamName(msg *core.Message) string {
 	var streamName string
 
 	switch {
@@ -67,13 +80,5 @@ func (format *StreamName) ApplyFormatter(msg *core.Message) error {
 		streamName = core.StreamRegistry.GetStreamName(msg.PreviousStreamID())
 	}
 
-	dataSize := len(streamName) + len(format.separator) + msg.Len()
-	payload := core.MessageDataPool.Get(dataSize)
-
-	offset := copy(payload, []byte(streamName))
-	offset += copy(payload[offset:], format.separator)
-	copy(payload[offset:], msg.Data())
-
-	msg.Store(payload)
-	return nil
+	return streamName
 }

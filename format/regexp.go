@@ -22,11 +22,11 @@ import (
 // RegExp is a formatter that allows parsing a message via regular expression and
 // returning the results.
 //
-//   - "<producer|stream>":
-//     Formatter: "format.RegExp"
-//     Expression: "(.*)"
-//     Template: "${1}"
-//     Posix: true
+//   - format.RegExp:
+//       Expression: "(.*)"
+//       Template: "${1}"
+//       Posix: true
+//       ApplyTo: "payload" # payload or <metaKey>
 type RegExp struct {
 	core.SimpleFormatter
 	expression *regexp.Regexp
@@ -56,9 +56,10 @@ func (format *RegExp) Configure(conf core.PluginConfigReader) error {
 
 // ApplyFormatter update message payload
 func (format *RegExp) ApplyFormatter(msg *core.Message) error {
-	matches := format.expression.FindSubmatchIndex(msg.Data())
-	transformed := format.expression.Expand([]byte{}, format.template, msg.Data(), matches)
+	content := format.GetAppliedContent(msg)
+	matches := format.expression.FindSubmatchIndex(content)
+	transformed := format.expression.Expand([]byte{}, format.template, content, matches)
 
-	msg.Store(transformed)
+	format.SetAppliedContent(msg, transformed)
 	return nil
 }

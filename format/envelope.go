@@ -63,20 +63,21 @@ func (format *Envelope) Configure(conf core.PluginConfigReader) error {
 func (format *Envelope) ApplyFormatter(msg *core.Message) error {
 	prefixLen := len(format.prefix)
 	postfixLen := len(format.postfix)
+	content := format.GetAppliedContent(msg)
 	offset := 0
 
-	payload := core.MessageDataPool.Get(prefixLen + msg.Len() + postfixLen)
+	payload := core.MessageDataPool.Get(prefixLen + len(content) + postfixLen)
 
 	if prefixLen > 0 {
 		offset = copy(payload, format.prefix)
 	}
 
-	offset += copy(payload[offset:], msg.Data())
+	offset += copy(payload[offset:], content)
 
 	if postfixLen > 0 {
 		copy(payload[offset:], format.postfix)
 	}
 
-	msg.Store(payload)
+	format.SetAppliedContent(msg, payload)
 	return nil
 }

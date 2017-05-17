@@ -64,7 +64,7 @@ func (filter *RegExp) Configure(conf core.PluginConfigReader) error {
 		conf.Errors.Push(err)
 	}
 
-	filter.getAppliedContent = core.GetAppliedContentFunction(conf.GetString("ApplyTo", ""))
+	filter.getAppliedContent = core.GetAppliedContentGetFunction(conf.GetString("ApplyTo", ""))
 
 	return conf.Errors.OrNil()
 }

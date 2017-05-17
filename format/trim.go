@@ -22,13 +22,13 @@ import (
 // Trim is a formatter that removes part of the message.
 // Configuration example
 //
-//   - "<producer|stream>":
-//     Formatters:
-//       - "format.Trim"
-//          LeftSeparator: ""
-//          RightSeparator: ""
-//          LeftOffset: 0
-//          RightOffset: 0
+//    - format.Trim:
+//        LeftSeparator: ""
+//        RightSeparator: ""
+//        LeftOffset: 0
+//        RightOffset: 0
+//        ApplyTo: "payload" # payload or <metaKey>
+//
 type Trim struct {
 	core.SimpleFormatter
 	leftSeparator  []byte
@@ -55,14 +55,16 @@ func (format *Trim) Configure(conf core.PluginConfigReader) error {
 
 // ApplyFormatter update message payload
 func (format *Trim) ApplyFormatter(msg *core.Message) error {
-	offset := msg.Len()
+	content := format.GetAppliedContent(msg)
+	offset := len(content)
+
 	if len(format.rightSeparator) > 0 {
-		rightIdx := bytes.LastIndex(msg.Data(), format.rightSeparator)
+		rightIdx := bytes.LastIndex(content, format.rightSeparator)
 		if rightIdx > 0 {
 			offset = rightIdx
 		}
 	}
-	msg.Extend(offset - format.rightOffset)
+	format.extendContent(&content, offset-format.rightOffset)
 
 	offset = format.leftOffset
 	if len(format.leftSeparator) > 0 {
@@ -72,6 +74,22 @@ func (format *Trim) ApplyFormatter(msg *core.Message) error {
 			offset += leftIdx
 		}
 	}
-	msg.Offset(offset)
+	content = content[offset:]
+
+	format.SetAppliedContent(msg, content)
 	return nil
+}
+
+func (format *Trim) extendContent(content *[]byte, size int) {
+	switch {
+	case size == len(*content):
+	case size <= cap(*content):
+		*content = (*content)[:size]
+	default:
+		old := *content
+		*content = core.MessageDataPool.Get(size)
+		copy(*content, old)
+	}
+
+	return
 }

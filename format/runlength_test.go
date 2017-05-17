@@ -37,3 +37,46 @@ func TestRunlength(t *testing.T) {
 
 	expect.Equal("4:test", string(msg.Data()))
 }
+
+func TestRunlengthApplyTo(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.Runlength")
+	config.Override("ApplyTo", "foo")
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*Runlength)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("PAYLOAD"), core.InvalidStreamID)
+	msg.MetaData().SetValue("foo", []byte("test"))
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("PAYLOAD", string(msg.Data()))
+	expect.Equal("4:test", msg.MetaData().GetValueString("foo"))
+}
+
+func TestRunlengthApplyToAndStoreRunlengthOnly(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.Runlength")
+	config.Override("ApplyTo", "foo")
+	config.Override("StoreRunlengthOnly", true)
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*Runlength)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("PAYLOAD"), core.InvalidStreamID)
+	msg.MetaData().SetValue("foo", []byte("test"))
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("PAYLOAD", string(msg.Data()))
+	expect.Equal("4", msg.MetaData().GetValueString("foo"))
+}

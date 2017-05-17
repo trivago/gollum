@@ -22,16 +22,10 @@ import (
 // Serialize is a formatter that serializes a message for later retrieval.
 // Configuration example
 //
-//  - "stream.Broadcast":
-//    Formatter: "format.Serialize"
-//    SerializeFormatter: "format.Envelope"
-//    SerializeStringEncode: true
+//  - format.Serialize:
+//      ApplyTo: "payload" # payload or <metaKey>
 //
-// SerializeFormatter defines the formatter for the data transferred as
-// message. By default this is set to "format.Forward"
-//
-// SerializeStringEncode causes the serialized data to be base64 encoded and
-// newline separated. This is enabled by default.
+// ApplyTo defines the formatter content to use
 type Serialize struct {
 	core.SimpleFormatter
 }
@@ -53,6 +47,6 @@ func (format *Serialize) ApplyFormatter(msg *core.Message) error {
 		return err
 	}
 
-	msg.Store(data)
+	format.SetAppliedContent(msg, data)
 	return nil
 }

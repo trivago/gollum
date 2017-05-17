@@ -40,6 +40,26 @@ func TestStreamRoute(t *testing.T) {
 	expect.Equal(core.LogInternalStreamID, msg.StreamID())
 }
 
+func TestStreamRouteNoStreamName(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.StreamRoute")
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*StreamRoute)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte(":test"), core.InvalidStreamID)
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("test", msg.String())
+	expect.Equal(core.InvalidStreamID, msg.StreamID())
+}
+
 func TestStreamRouteFormat(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
@@ -66,4 +86,27 @@ func TestStreamRouteFormat(t *testing.T) {
 
 	expect.Equal("test", string(msg.Data()))
 	expect.Equal(core.LogInternalStream, core.StreamRegistry.GetStreamName(msg.StreamID()))
+}
+
+func TestStreamApplyTo(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.StreamRoute")
+	config.Override("ApplyTo", "foo")
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*StreamRoute)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("payload"), core.InvalidStreamID)
+	msg.MetaData().SetValue("foo", []byte(core.LogInternalStream+":test"))
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("payload", msg.String())
+	expect.Equal("test", msg.MetaData().GetValueString("foo"))
+	expect.Equal(core.LogInternalStreamID, msg.StreamID())
 }

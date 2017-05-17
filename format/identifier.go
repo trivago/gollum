@@ -81,7 +81,7 @@ func (format *Identifier) Configure(conf core.PluginConfigReader) error {
 
 func (format *Identifier) idHash(msg *core.Message) []byte {
 	hasher := fnv.New64a()
-	hasher.Write(msg.Data())
+	hasher.Write(format.GetAppliedContent(msg))
 	return []byte(strconv.FormatUint(hasher.Sum64(), 16))
 }
 
@@ -102,6 +102,6 @@ func (format *Identifier) idSeqHex(msg *core.Message) []byte {
 
 // ApplyFormatter update message payload
 func (format *Identifier) ApplyFormatter(msg *core.Message) error {
-	msg.Store(format.hash(msg))
+	format.SetAppliedContent(msg, format.hash(msg))
 	return nil
 }

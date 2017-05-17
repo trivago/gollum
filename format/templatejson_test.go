@@ -25,7 +25,7 @@ func TestTemplateJSON(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.TemplateJSON")
-	config.Override("TemplateJSONTemplate", "{{ .foo }} {{ .test }}")
+	config.Override("Template", "{{ .foo }} {{ .test }}")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
@@ -39,4 +39,27 @@ func TestTemplateJSON(t *testing.T) {
 	expect.NoError(err)
 
 	expect.Equal("bar valid", msg.String())
+}
+
+func TestTemplateJSONApplyTo(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.TemplateJSON")
+	config.Override("Template", "{{ .foo }} {{ .test }}")
+	config.Override("ApplyTo", "foo")
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*TemplateJSON)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("payload"), core.InvalidStreamID)
+	msg.MetaData().SetValue("foo", []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"))
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("payload", msg.String())
+	expect.Equal("bar valid", msg.MetaData().GetValueString("foo"))
 }

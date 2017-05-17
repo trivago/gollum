@@ -21,43 +21,40 @@ import (
 	"github.com/trivago/tgo/ttesting"
 )
 
-func TestTimestamp(t *testing.T) {
+func TestClearFormatter(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.Timestamp")
-	plugin, err := core.NewPluginWithConfig(config)
+	config := core.NewPluginConfig("", "format.Clear")
+	pluginConfig, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*Timestamp)
+	plugin, casted := pluginConfig.(*Clear)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
-	prefix := msg.Created().Format(formatter.timestampFormat)
-
-	err = formatter.ApplyFormatter(msg)
+	err = plugin.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal(prefix+"test", msg.String())
+	expect.Equal("", msg.String())
 }
 
-func TestTimestampApplyTo(t *testing.T) {
+func TestClearFormatterApplyHandling(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.Timestamp")
+	config := core.NewPluginConfig("", "format.Clear")
 	config.Override("ApplyTo", "foo")
-
-	plugin, err := core.NewPluginWithConfig(config)
+	pluginConfig, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*Timestamp)
+	plugin, casted := pluginConfig.(*Clear)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
-	timestamp := msg.Created().Format(formatter.timestampFormat)
+	msg.MetaData().SetValue("foo", []byte("bar"))
 
-	err = formatter.ApplyFormatter(msg)
+	err = plugin.ApplyFormatter(msg)
 	expect.NoError(err)
 
+	expect.Equal("", string(msg.MetaData().GetValueString("foo")))
 	expect.Equal("test", msg.String())
-	expect.Equal(timestamp, msg.MetaData().GetValueString("foo"))
 }

@@ -46,3 +46,43 @@ func TestBase64(t *testing.T) {
 
 	expect.Equal("test", string(msg.Data()))
 }
+
+func TestBase64DecodeApplyHandling(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.Base64Decode")
+	config.Override("ApplyTo", "foo")
+	pluginDecode, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	decoder, castedDecoder := pluginDecode.(*Base64Decode)
+	expect.True(castedDecoder)
+
+	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
+	msg.MetaData().SetValue("foo", []byte("dGVzdA=="))
+
+	err = decoder.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("test", string(msg.MetaData().GetValueString("foo")))
+}
+
+func TestBase64EncodeApplyHandling(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.Base64Encode")
+	config.Override("ApplyTo", "foo")
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	encoder, casted := plugin.(*Base64Encode)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte{}, core.InvalidStreamID)
+	msg.MetaData().SetValue("foo", []byte("test"))
+
+	err = encoder.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("dGVzdA==", string(msg.MetaData().GetValueString("foo")))
+}
