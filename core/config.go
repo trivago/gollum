@@ -23,7 +23,10 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"reflect"
+	"strings"
 )
+
+const pluginAggregate =  "aggregate"
 
 var (
 	consumerInterface = reflect.TypeOf((*Consumer)(nil)).Elem()
@@ -70,9 +73,38 @@ func ReadConfig(path string) (*Config, error) {
 	// As there might be multiple instances of the same plugin class we iterate
 	// over an array here.
 	for pluginID, configValues := range config.Values {
-		pluginConfig := NewPluginConfig(pluginID, "")
-		pluginConfig.Read(configValues)
-		config.Plugins = append(config.Plugins, pluginConfig)
+		if typeName, _ :=configValues.String("Type"); typeName == pluginAggregate {
+			// aggregate behavior
+			aggregateMap, err := configValues.MarshalMap("Aggregate")
+			if err != nil {
+				tlog.Error.Print("Can't read 'Aggregate' configuration: ", err)
+				continue
+			}
+
+			// loop through aggregated plugins and set them up
+			for subPluginId, subConfigValues := range aggregateMap {
+				subPluginsId := fmt.Sprintf("%s-%s", pluginID, subPluginId)
+				subConfig, err := tcontainer.ConvertToMarshalMap(subConfigValues, strings.ToLower)
+				if err != nil {
+					tlog.Error.Print("Error in plugin config ", subPluginsId, err)
+					continue
+				}
+
+				// set up sub-plugin
+				pluginConfig := NewPluginConfig(subPluginsId, "")
+
+				delete(configValues, "Aggregate")
+				pluginConfig.Read(configValues)
+				pluginConfig.Read(subConfig)
+
+				config.Plugins = append(config.Plugins, pluginConfig)
+			}
+		} else {
+			// default behavior
+			pluginConfig := NewPluginConfig(pluginID, "")
+			pluginConfig.Read(configValues)
+			config.Plugins = append(config.Plugins, pluginConfig)
+		}
 	}
 
 	return config, err
