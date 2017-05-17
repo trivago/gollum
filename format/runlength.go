@@ -26,15 +26,20 @@ import (
 //
 //  - format.Runlength
 //      Separator: ":"
+// 	StoreRunlengthOnly: false
 //      ApplyTo: "payload" # payload or <metaKey>
 //
 // Separator sets the separator character placed after the runlength.
 // This is set to ":" by default. If no separator is set the runlength will only set.
 //
+// StoreRunlengthOnly is used to store the runlength only and overwrite the payload.
+// The value is `false` by default. This option is useful to store the runlength only in a meta data field.
+//
 // ApplyTo defines the formatter content for the data transferred
 type Runlength struct {
 	core.SimpleFormatter
 	separator []byte
+	storeRunlengthOnly bool
 }
 
 func init() {
@@ -46,6 +51,7 @@ func (format *Runlength) Configure(conf core.PluginConfigReader) error {
 	format.SimpleFormatter.Configure(conf)
 
 	format.separator = []byte(conf.GetString("Separator", ":"))
+	format.storeRunlengthOnly = conf.GetBool("StoreRunlengthOnly", false)
 	return conf.Errors.OrNil()
 }
 
@@ -53,12 +59,11 @@ func (format *Runlength) Configure(conf core.PluginConfigReader) error {
 func (format *Runlength) ApplyFormatter(msg *core.Message) error {
 	content := format.GetAppliedContent(msg)
 	contentLen := len(content)
-	separatorLen := len(format.separator)
 	lengthStr := strconv.Itoa(contentLen)
 
 	var payload []byte
-	if separatorLen > 0 {
-		dataSize := len(lengthStr) + separatorLen + contentLen
+	if format.storeRunlengthOnly == false {
+		dataSize := len(lengthStr) + len(format.separator) + contentLen
 		payload = core.MessageDataPool.Get(dataSize)
 
 		offset := copy(payload, []byte(lengthStr))

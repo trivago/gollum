@@ -56,21 +56,14 @@ func (format *Sequence) Configure(conf core.PluginConfigReader) error {
 func (format *Sequence) ApplyFormatter(msg *core.Message) error {
 	seq := atomic.AddInt64(format.seq, 1)
 	sequenceStr := strconv.FormatInt(seq, 10)
-	separatorLen := len(format.separator)
+	content := format.GetAppliedContent(msg)
 
-	var payload []byte
-	if separatorLen > 0 {
-		content := format.GetAppliedContent(msg)
+	dataSize := len(sequenceStr) + len(format.separator) + len(content)
+	payload := core.MessageDataPool.Get(dataSize)
 
-		dataSize := len(sequenceStr) + separatorLen + len(content)
-		payload = core.MessageDataPool.Get(dataSize)
-
-		offset := copy(payload, []byte(sequenceStr))
-		offset += copy(payload[offset:], format.separator)
-		copy(payload[offset:], content)
-	} else {
-		payload = []byte(sequenceStr)
-	}
+	offset := copy(payload, []byte(sequenceStr))
+	offset += copy(payload[offset:], format.separator)
+	copy(payload[offset:], content)
 
 	format.SetAppliedContent(msg, payload)
 	return nil

@@ -65,18 +65,12 @@ func (format *Hostname) getFinalContent(content []byte) []byte {
 		hostname = "unknown host"
 	}
 
-	lenSeparator := len(format.separator)
-	if lenSeparator > 0 {
-		dataSize := len(hostname) + lenSeparator + len(content)
-		payload := core.MessageDataPool.Get(dataSize)
+	dataSize := len(hostname) + len(format.separator) + len(content)
+	payload := core.MessageDataPool.Get(dataSize)
 
-		offset := copy(payload, []byte(hostname))
+	offset := copy(payload, []byte(hostname))
+	offset += copy(payload[offset:], format.separator)
+	copy(payload[offset:], content)
 
-		offset += copy(payload[offset:], format.separator)
-		copy(payload[offset:], content)
-
-		return payload
-	}
-
-	return []byte(hostname)
+	return payload
 }

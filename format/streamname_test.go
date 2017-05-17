@@ -97,7 +97,6 @@ func TestStreamNameApplyToNoSeparator(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("payload"), core.LogInternalStreamID)
-	msg.MetaData().SetValue("foo", []byte("test"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)

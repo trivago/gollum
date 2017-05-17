@@ -56,22 +56,15 @@ func (format *StreamName) Configure(conf core.PluginConfigReader) error {
 
 // ApplyFormatter update message payload
 func (format *StreamName) ApplyFormatter(msg *core.Message) error {
-	separatorLen := len(format.separator)
 	streamName := format.getStreamName(msg)
+	content := format.GetAppliedContent(msg)
 
-	var payload []byte
-	if separatorLen > 0 {
-		content := format.GetAppliedContent(msg)
+	dataSize := len(streamName) + len(format.separator) + len(content)
+	payload := core.MessageDataPool.Get(dataSize)
 
-		dataSize := len(streamName) + separatorLen + len(content)
-		payload = core.MessageDataPool.Get(dataSize)
-
-		offset := copy(payload, []byte(streamName))
-		offset += copy(payload[offset:], format.separator)
-		copy(payload[offset:], content)
-	} else {
-		payload = []byte(streamName)
-	}
+	offset := copy(payload, []byte(streamName))
+	offset += copy(payload[offset:], format.separator)
+	copy(payload[offset:], content)
 
 	format.SetAppliedContent(msg, payload)
 	return nil

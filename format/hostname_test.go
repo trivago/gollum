@@ -62,7 +62,7 @@ func TestFormatterHostnameNoSeparator(t *testing.T) {
 	expect.NoError(err)
 
 	hostname, _ := os.Hostname()
-	expect.Equal(hostname, msg.String())
+	expect.Equal(fmt.Sprintf("%s%s", hostname, "test"), msg.String())
 }
 
 func TestFormatterHostnameApplyTo(t *testing.T) {
@@ -70,6 +70,8 @@ func TestFormatterHostnameApplyTo(t *testing.T) {
 
 	config := core.NewPluginConfig("", "format.Hostname")
 	config.Override("ApplyTo", "foo")
+	config.Override("Separator", "")
+
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
@@ -77,10 +79,10 @@ func TestFormatterHostnameApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
-	msg.MetaData().SetValue("foo", []byte("bar"))
+
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
 	hostname, _ := os.Hostname()
-	expect.Equal(fmt.Sprintf("%s:%s", hostname, "bar"), msg.MetaData().GetValueString("foo"))
+	expect.Equal(hostname, msg.MetaData().GetValueString("foo"))
 }

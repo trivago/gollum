@@ -58,12 +58,13 @@ func TestRunlengthApplyTo(t *testing.T) {
 	expect.Equal("4:test", msg.MetaData().GetValueString("foo"))
 }
 
-func TestRunlengthApplyToWithoutSeperator(t *testing.T) {
+func TestRunlengthApplyToAndStoreRunlengthOnly(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Runlength")
 	config.Override("ApplyTo", "foo")
-	config.Override("Separator", "")
+	config.Override("StoreRunlengthOnly", true)
+
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
@@ -72,6 +73,7 @@ func TestRunlengthApplyToWithoutSeperator(t *testing.T) {
 
 	msg := core.NewMessage(nil, []byte("PAYLOAD"), core.InvalidStreamID)
 	msg.MetaData().SetValue("foo", []byte("test"))
+
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
