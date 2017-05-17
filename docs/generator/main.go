@@ -23,7 +23,7 @@ import (
 	"strings"
 )
 
-const EMBED_TAG = "`gollumdoc:embed_type`"
+const EMBED_TAG = "`gollumdoc:\"embed_type\"`"
 
 // Represents a "type FooPlugin struct { .... }" declaration parsed from the
 // source and its immediately preceding comment block.

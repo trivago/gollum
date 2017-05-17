@@ -170,7 +170,7 @@ const (
 // Servers contains the list of all kafka servers to connect to. By default this
 // is set to contain only "localhost:9092".
 type Kafka struct {
-	core.SimpleConsumer `gollumdoc:embed_type`
+	core.SimpleConsumer `gollumdoc:"embed_type"`
 	servers           []string
 	topic             string
 	group             string

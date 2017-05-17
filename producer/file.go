@@ -123,7 +123,7 @@ import (
 // defined by "File" and are pruned by date (followed by name).
 // By default this is set to 0 which disables pruning.
 type File struct {
-	core.BufferedProducer `gollumdoc:embed_type`
+	core.BufferedProducer `gollumdoc:"embed_type"`
 	filesByStream     map[core.MessageStreamID]*fileState
 	files             map[string]*fileState
 	rotate            fileRotateConfig

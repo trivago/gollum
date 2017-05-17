@@ -94,7 +94,7 @@ const (
 // name. If no mapping is given the gollum stream name is used as kinesis
 // stream name.
 type Kinesis struct {
-	core.BufferedProducer `gollumdoc:embed_type`
+	core.BufferedProducer `gollumdoc:"embed_type"`
 	client            *kinesis.Kinesis
 	config            *aws.Config
 	streamMap         map[core.MessageStreamID]string

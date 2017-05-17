@@ -37,7 +37,7 @@ import (
 // FilterExpressionNot is evaluated before FilterExpression.
 
 type RegExp struct {
-	core.SimpleFilter `gollumdoc:embed_type`
+	core.SimpleFilter `gollumdoc:"embed_type"`
 	exp               *regexp.Regexp
 	expNot            *regexp.Regexp
 	getAppliedContent core.GetAppliedContent

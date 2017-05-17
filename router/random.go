@@ -23,7 +23,7 @@ import (
 // Messages will be sent to one of the producers attached to this router.
 // The concrete producer is chosen randomly with each message.
 type Random struct {
-	core.SimpleRouter `gollumdoc:embed_type`
+	core.SimpleRouter `gollumdoc:"embed_type"`
 }
 
 func init() {

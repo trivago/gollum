@@ -33,7 +33,7 @@ import (
 //
 // Console may either be "stdout" or "stderr". By default it is set to "stdout".
 type Console struct {
-	core.BufferedProducer `gollumdoc:embed_type`
+	core.BufferedProducer `gollumdoc:"embed_type"`
 	console *os.File
 }
 

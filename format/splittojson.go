@@ -51,7 +51,7 @@ import (
 // applied to the resulting token array by index.
 // This list is empty by default.
 type SplitToJSON struct {
-	core.SimpleFormatter `gollumdoc:embed_type`
+	core.SimpleFormatter `gollumdoc:"embed_type"`
 	token    []byte
 	keys     []string
 	keepJSON bool

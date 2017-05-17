@@ -158,7 +158,7 @@ import (
 // FilterAfterFormat behaves like Filter but allows filters to be executed
 // after the formatter has run. By default no such filter is set.
 type KafkaProducer struct {
-	core.BufferedProducer `gollumdoc:embed_type`
+	core.BufferedProducer `gollumdoc:"embed_type"`
 	servers           []string
 	clientID          string
 	keyModulators     core.ModulatorArray

@@ -34,7 +34,7 @@ import (
 // a message. Filters are checked in order, and if the message passes
 // then no further filters are checked. By default this list is empty.
 type Any struct {
-	core.SimpleFilter `gollumdoc:embed_type`
+	core.SimpleFilter `gollumdoc:"embed_type"`
 	filters core.FilterArray
 }
 

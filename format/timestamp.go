@@ -35,7 +35,7 @@ import (
 // TimestampFormatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Timestamp struct {
-	core.SimpleFormatter `gollumdoc:embed_type`
+	core.SimpleFormatter `gollumdoc:"embed_type"`
 	timestampFormat string
 }
 

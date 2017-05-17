@@ -24,7 +24,7 @@ import (
 // This producer does nothing and provides only bare-bone configuration (i.e.
 // enabled and streams). Use this producer to test consumer performance.
 type Null struct {
-	core.SimpleProducer `gollumdoc:embed_type`
+	core.SimpleProducer `gollumdoc:"embed_type"`
 	control chan core.PluginControl
 	streams []core.MessageStreamID
 }

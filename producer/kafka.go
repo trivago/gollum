@@ -186,7 +186,7 @@ const (
 // specific mapping will go to this topic (including _GOLLUM_).
 // If no topic mappings are set the stream names will be used as topic.
 type Kafka struct {
-	core.BufferedProducer `gollumdoc:embed_type`
+	core.BufferedProducer `gollumdoc:"embed_type"`
 	servers         []string
 	topicGuard      *sync.RWMutex
 	topic           map[core.MessageStreamID]*topicHandle

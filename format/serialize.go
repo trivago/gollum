@@ -33,7 +33,7 @@ import (
 // SerializeStringEncode causes the serialized data to be base64 encoded and
 // newline separated. This is enabled by default.
 type Serialize struct {
-	core.SimpleFormatter `gollumdoc:embed_type`
+	core.SimpleFormatter `gollumdoc:"embed_type"`
 }
 
 func init() {

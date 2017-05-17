@@ -46,7 +46,7 @@ import (
 // ReadTimeoutSec specifies the maximum duration in seconds before timing out
 // read of the request. By default this is set to 3 seconds.
 type Websocket struct {
-	core.BufferedProducer `gollumdoc:embed_type`
+	core.BufferedProducer `gollumdoc:"embed_type"`
 	address        string
 	path           string
 	listen         *tnet.StopListener

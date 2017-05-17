@@ -75,7 +75,7 @@ import (
 // and where to format.
 //
 type BufferedProducer struct {
-	SimpleProducer `gollumdoc:embed_type`
+	SimpleProducer `gollumdoc:"embed_type"`
 	messages       MessageQueue
 	channelTimeout time.Duration
 	onMessage      func(*Message)

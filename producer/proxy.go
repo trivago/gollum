@@ -74,7 +74,7 @@ import (
 // For binary this can be set to 1,2,4 or 8. By default 4 is chosen.
 // For fixed this defines the size of a message. By default 1 is chosen.
 type Proxy struct {
-	core.BufferedProducer `gollumdoc:embed_type`
+	core.BufferedProducer `gollumdoc:"embed_type"`
 	connection   net.Conn
 	protocol     string
 	address      string

@@ -70,7 +70,7 @@ import (
 // Set to "text/plain; charset=utf-8" by default.
 //
 type HTTPRequest struct {
-	core.BufferedProducer `gollumdoc:embed_type`
+	core.BufferedProducer `gollumdoc:"embed_type"`
 
 	destinationUrl *url.URL
 	encoding       string

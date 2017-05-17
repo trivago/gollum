@@ -103,7 +103,7 @@ const (
 // A key write inside an array will cause the array to be closed. If the array
 // is nested, all arrays will be closed.
 type TextToJSON struct {
-	core.SimpleFormatter `gollumdoc:embed_type`
+	core.SimpleFormatter `gollumdoc:"embed_type"`
 	message   *bytes.Buffer
 	parser    tstrings.TransitionParser
 	state     jsonReaderState

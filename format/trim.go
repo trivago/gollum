@@ -30,7 +30,7 @@ import (
 //          LeftOffset: 0
 //          RightOffset: 0
 type Trim struct {
-	core.SimpleFormatter `gollumdoc:embed_type`
+	core.SimpleFormatter `gollumdoc:"embed_type"`
 	leftSeparator  []byte
 	rightSeparator []byte
 	leftOffset     int

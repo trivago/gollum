@@ -28,7 +28,7 @@ import (
 //     Template: "${1}"
 //     Posix: true
 type RegExp struct {
-	core.SimpleFormatter `gollumdoc:embed_type`
+	core.SimpleFormatter `gollumdoc:"embed_type"`
 	expression *regexp.Regexp
 	template   []byte
 }

@@ -38,7 +38,7 @@ import (
 // StreamNameSeparator sets the separator character placed after the stream name.
 // This is set to " " by default.
 type StreamName struct {
-	core.SimpleFormatter `gollumdoc:embed_type`
+	core.SimpleFormatter `gollumdoc:"embed_type"`
 	separator   []byte
 	usePrevious bool
 }

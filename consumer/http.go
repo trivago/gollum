@@ -65,7 +65,7 @@ import (
 // Left empty by default (disabled).
 // If a Certificate is given, a PrivatKey must be given, too.
 type Http struct {
-	core.SimpleConsumer `gollumdoc:embed_type`
+	core.SimpleConsumer `gollumdoc:"embed_type"`
 	listen         *tnet.StopListener
 	address        string
 	readTimeoutSec time.Duration
