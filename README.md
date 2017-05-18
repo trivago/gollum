@@ -1,4 +1,4 @@
-![Gollum](docs/gollum.png)
+![Gollum](docs/src/gollum.png)
 
 ## Gollum v0.5.0
 
