@@ -4,23 +4,17 @@ package main
 import (
 	"strings"
 	"fmt"
+	"regexp"
 )
 
-const (
-	enumChar = '*'
-)
-
-
-// Represents the inline documentation from a Gollum plugins's source
+// Represents the inline documentation from a Gollum plugin's source
 type PluginDocument struct {
-	PluginName       string
-	PackageName      string
-	Comment          string
-	Description      string
-	Parameters       []PluginParameter
-	ParameterSets    map[string][]PluginParameter
-	ExampleFirstLine string
-	Example          []string
+	PackageName      string   // Name of Go package
+	PluginName       string   // Name of Go type
+	Description      string   // Description paragraph(s)
+	Example          string   // Config example paragraph
+	Parameters       []PluginParameter              // This plugin's own config parameters
+	ParameterSets    map[string][]PluginParameter   // Inherited config parameters
 }
 
 type PluginParameter struct {
@@ -28,7 +22,22 @@ type PluginParameter struct {
 	desc string
 }
 
-// Creates a new PluginDocument by parsing a string ( == comments without leading "//"s)
+// Parser state
+type parserState uint8
+const (
+	PARSER_STATE_TITLE            parserState = iota
+	PARSER_STATE_DESCRIPTION
+	PARSER_STATE_EXAMPLE
+	PARSER_STATE_PARAMETER_BEGIN
+	PARSER_STATE_PARAMETER_CONT
+)
+
+// Magics
+const (
+	PARSER_STANZA_EXAMPLE_RE string = "^configuration example(\\:|)$"
+)
+
+// Creates a new PluginDocument
 func NewPluginDocument(packageName string, pluginName string) PluginDocument {
 	pluginDocument := PluginDocument{
 		PackageName: packageName,
@@ -38,58 +47,103 @@ func NewPluginDocument(packageName string, pluginName string) PluginDocument {
 	return pluginDocument
 }
 
-func (doc *PluginDocument) ParseString(comment string) error {
-	remains, err := getNextLine(comment)
-	if err != nil {
-		return err
-	}
+// Parses and imports a string ( == contents of a comment block
+// without the leading "//"s) into this PluginDocument.
+//
+// Structure of comment block:
+//
+// // <TITLE (ignored)>
+// //
+// // <DESCRIPTION...>
+// // <DESCRIPTION...>
+// // * <DESC_BULLET1...>
+// //   <DESC_BULLET1...>
+// // * <DESC_BULLET2...>
+// //
+// // Configuration example
+// // <EXAMPLE...>
+// // <EXAMPLE...>
+// // <EXAMPLE...>
+// //
+// // <PARAM1_NAME> <PARAM1_TEXT....>t
+// // <PARAM1_TEXT ....>
+// // <PARAM1_TEXT ....>
+// // * <PARAM1_BULLET1 ....>
+// //   <PARAM1_BULLET1 ....>
+// // * <PARAM1_BULLET2 ....>
+// //
+// // <PARAM2_NAME> <PARAM2_TEXT....>
+// // <PARAM2_TEXT ....>
+// // <PARAM2_TEXT ....>
+//
+func (doc *PluginDocument) ParseString(comment string) {
 
-	exampleIdx := strings.Index(strings.ToLower(remains), "configuration example")
-	if exampleIdx == -1 {
-		doc.Description = strings.Replace(remains, "\n", " ", -1)
-		return nil // ### return, simple plugin ###
-	}
+	lines := strings.Split(comment, "\n")
 
-	doc.Description = strings.Replace(remains[:exampleIdx], "\n", " ", -1)
-	remains = remains[exampleIdx:]
+	state := PARSER_STATE_TITLE
+	for _, line := range lines {
+		// Trim whitespace
+		trimmedLine := strings.Trim(line, " \t")
 
-	exampleStartIdx := getNextBlockIdx(remains)
-	if exampleStartIdx == -1 {
-		return fmt.Errorf("Example start not found") // ### return, no example ###
-	}
-	remains = remains[exampleStartIdx+2:]
+		// Assign rows in their places
+		switch state {
+		case PARSER_STATE_TITLE:
+			// first line, ignored
+			state = PARSER_STATE_DESCRIPTION
 
-	exampleEndIdx := getNextBlockIdx(remains)
-	if exampleEndIdx == -1 {
-		return fmt.Errorf("Example end not found") // ### return, no example ###
-	}
-
-	doc.parseExample(remains[:exampleEndIdx])
-
-	remains = remains[exampleEndIdx+2:]
-	for len(remains) > 0 {
-		name := getFirstWord(remains)
-		descEndIdx := getNextBlockIdx(remains)
-		if descEndIdx > 0 {
-			p := PluginParameter{
-				name: name,
-				desc: strings.Replace(remains[:descEndIdx], "\n", " ", -1),
+		case PARSER_STATE_DESCRIPTION:
+			matched, err := regexp.MatchString(PARSER_STANZA_EXAMPLE_RE, strings.ToLower(trimmedLine))
+			if err != nil {
+				panic(err)
 			}
-			doc.Parameters = append(doc.Parameters, p)
-			remains = remains[descEndIdx+2:]
-		} else {
-			p := PluginParameter{
-				name: name,
-				desc: strings.Replace(remains, "\n", " ", -1),
+			if matched {
+				// magic string => start example section
+				state = PARSER_STATE_EXAMPLE
+				continue
 			}
-			doc.Parameters = append(doc.Parameters, p)
-			break // ### break, last PluginParameter ###
+			doc.Description += line + "\n"
+
+		case PARSER_STATE_EXAMPLE:
+			if trimmedLine == "" {
+				if doc.Example == "" {
+					// Allow empty line between "Configuration example" and the example
+					continue
+				}
+				// \n => start parameters section
+				state = PARSER_STATE_PARAMETER_BEGIN
+				continue
+			}
+			doc.Example += line + "\n"
+
+		case PARSER_STATE_PARAMETER_BEGIN:
+			if trimmedLine == "" {
+				// Avoid creating an empty parameter when comment has trailing lines
+				continue
+			}
+			tmp := strings.SplitN(trimmedLine, " ", 2)
+			doc.Parameters= append(doc.Parameters, PluginParameter{
+				name: tmp[0],
+				desc: tmp[1] + "\n",
+			})
+			state = PARSER_STATE_PARAMETER_CONT
+
+		case PARSER_STATE_PARAMETER_CONT:
+			if trimmedLine == "" {
+				// \n => start next parameter
+				state = PARSER_STATE_PARAMETER_BEGIN
+				continue
+			}
+			doc.Parameters[len(doc.Parameters)-1].desc += line + "\n"
+
+		default:
+			panic(fmt.Sprintf("Unknown state %d\n", state))
 		}
 	}
 
-	return nil
 }
 
+// Imports the .Parameters property of `document` into this document's
+// inherited param list at .ParameterSets[<document.package>.<document.name>]
 func (doc *PluginDocument) IncludeParameters(document PluginDocument) {
 	doc.ParameterSets[document.PackageName + "." + document.PluginName] = document.Parameters
 	for name, paramSet := range document.ParameterSets {
@@ -97,64 +151,91 @@ func (doc *PluginDocument) IncludeParameters(document PluginDocument) {
 	}
 }
 
-func (doc *PluginDocument) parseExample(comment string) {
-	var line string
-	remains := comment
+// This function prepends and appends "\n" to all "*" bullet list items.
+//
+// RST requires preceding and following "\n"s before bullet list items, but
+// Gollum's plugindoc format relies on "\n" to separate sections only, so this
+// transforms the latter to former.
+func docBulletsToRstBullets(text string) string {
+	result := ""
+	inBullet := false
+	for _, line := range strings.Split(text, "\n") {
+		if len(line) == 0 {
+			result += "\n"
+			continue
+		}
+		chr := line[0]
+		if inBullet {
+			if chr == " "[0] {
+				result += line + "\n"
+				continue
+			}
+			result += "\n" + line + "\n"
+			inBullet = false
 
-	for i := 0; ; i++ {
-		eolIdx := strings.Index(remains, "\n")
-		if eolIdx == -1 {
-			line = normalize(remains)
 		} else {
-			line = normalize(remains[:eolIdx])
+			if chr == "*"[0] {
+				result += "\n" + line + "\n"
+				inBullet = true
+				continue
+			}
+			result += line + "\n"
 		}
-
-		if i == 0 {
-			doc.ExampleFirstLine = line
-		} else {
-			doc.Example = append(doc.Example, line)
-		}
-
-		if eolIdx == -1 {
-			return // ### return, done ###
-		}
-		remains = remains[eolIdx+1:]
 	}
+	return result
 }
 
-func getFirstWord(sentence string) string {
-	trimmed := strings.Trim(sentence, "\n\t ")
-	if firstSpaceIdx := strings.Index(trimmed, " "); firstSpaceIdx > 0 {
-		return trimmed[:firstSpaceIdx]
-	}
-	return trimmed
-}
+// Returns an RST representation of this PluginDocument
+func (doc PluginDocument) GetRST() string {
+	result := ""
 
-func getNextLine(sentence string) (string, error) {
-	eolIdx := strings.IndexRune(sentence, '\n')
-	if eolIdx == -1 {
-		return "", fmt.Errorf("Could not find next line")
-	}
-	return sentence[eolIdx+1:], nil
-}
+	// Comment
+	result += ".. Autogenerated by Gollum RST generator (docs/generator/*.go)\n\n"
 
-func getNextBlockIdx(sentence string) int {
-	return strings.Index(sentence, "\n\n")
-}
+	// Heading
+	result += doc.PluginName + "\n"
 
-func normalize(sentence string) string {
-	indent := 0
-	for i := 0; i < len(sentence); i++ {
-		switch sentence[i] {
-		case '\t':
-			indent += 2
-		case ' ':
-			indent++
-		default:
-			indent /= 2
-			return strings.Repeat("    ", indent) + sentence[i:]
+	result += strings.Repeat("=", len(doc.PluginName)) + "\n"
+
+	//
+	result += "\n"
+	result += docBulletsToRstBullets(doc.Description) + "\n"
+	result += "\n"
+
+	//
+	if len(doc.Parameters) > 0 {
+		result += "Parameters\n----------\n\n"
+		for _, p := range doc.Parameters {
+			result += "**" + p.name + "**\n"
+			result += docBulletsToRstBullets(p.desc) + "\n"
 		}
 	}
 
-	return sentence
+	//
+	for paramSetName, paramSet := range doc.ParameterSets {
+		if len(paramSet) == 0 {
+			// Skip title for empty param sets
+			continue
+		}
+		head := "Parameters (from " + strings.TrimPrefix(paramSetName, "core.") + ")"
+		result += head + "\n"
+		result += strings.Repeat("-", len(head)) + "\n\n"
+
+		for _, p := range paramSet {
+			result += "**" + p.name + "**\n"
+			result += p.desc + "\n"
+			result += "\n"
+		}
+	}
+
+	//
+	if len(doc.Example) > 0 {
+		result += "Example\n-------\n\n"
+		result += ".. code-block:: yaml\n\n"
+		for _, line := range strings.Split(doc.Example, "\n") {
+			result += "\t" + line + "\n"
+		}
+	}
+
+	return result
 }

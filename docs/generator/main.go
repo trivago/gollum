@@ -72,7 +72,7 @@ func main() {
 
 	// Generate an RST file from the PluginDocuments
 	for _, doc := range docList {
-		io.WriteString(outFile, PluginDocumentToRST(doc))
+		io.WriteString(outFile, doc.GetRST())
 		io.WriteString(outFile, "\n\n")
 	}
 }
