@@ -59,7 +59,7 @@ import (
 //
 type DirectProducer struct {
 	SimpleProducer
-	onMessage      func(*Message)
+	onMessage func(*Message)
 }
 
 // Configure initializes the standard producer config values.
@@ -73,14 +73,14 @@ func (prod *DirectProducer) Configure(conf PluginConfigReader) error {
 func (prod *DirectProducer) Enqueue(msg *Message, timeout *time.Duration) {
 	defer prod.enqueuePanicHandling(msg)
 
-	if prod.modulateMessage(msg) != ModulateResultContinue {
-		return
-	}
-
 	// Don't accept messages if we are shutting down
 	if prod.GetState() >= PluginStateStopping {
 		prod.TryFallback(msg)
 		return // ### return, closing down ###
+	}
+
+	if prod.HasContinueAfterModulate(msg) == false {
+		return
 	}
 
 	prod.onMessage(msg)
@@ -102,27 +102,6 @@ func (prod *DirectProducer) TickerMessageControlLoop(onMessage func(*Message), i
 	prod.setState(PluginStateActive)
 	prod.onMessage = onMessage
 	prod.TickerControlLoop(interval, onTimeOut)
-}
-
-// default message modulation handling
-func (prod *DirectProducer) modulateMessage(msg *Message) ModulateResult {
-	// Run modulators and drop message if necessary
-	result := prod.Modulate(msg)
-	switch result {
-	case ModulateResultDiscard:
-		DiscardMessage(msg)
-
-	case ModulateResultFallback:
-		RouteOriginal(msg, msg.GetRouter())
-
-	case ModulateResultContinue:
-		// OK
-
-	default:
-		prod.Log.Error.Print("Modulator result not supported:", result)
-	}
-
-	return result
 }
 
 // default panic handling for Enqueue() function

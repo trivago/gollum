@@ -105,14 +105,14 @@ func (prod *BufferedProducer) GetQueueTimeout() time.Duration {
 func (prod *BufferedProducer) Enqueue(msg *Message, timeout *time.Duration) {
 	defer prod.enqueuePanicHandling(msg)
 
-	if prod.modulateMessage(msg) != ModulateResultContinue {
-		return
-	}
-
 	// Don't accept messages if we are shutting down
 	if prod.GetState() >= PluginStateStopping {
 		prod.TryFallback(msg)
 		return // ### return, closing down ###
+	}
+
+	if prod.HasContinueAfterModulate(msg) == false {
+		return
 	}
 
 	// Allow timeout overwrite
