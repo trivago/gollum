@@ -30,11 +30,11 @@ import (
 //        ApplyTo: "payload" # payload or <metaKey>
 //
 type Trim struct {
-	core.SimpleFormatter
-	leftSeparator  []byte
-	rightSeparator []byte
-	leftOffset     int
-	rightOffset    int
+	core.SimpleFormatter `gollumdoc:"embed_type"`
+	leftSeparator        []byte
+	rightSeparator       []byte
+	leftOffset           int
+	rightOffset          int
 }
 
 func init() {

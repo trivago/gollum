@@ -28,24 +28,26 @@ import (
 // testing of every message passing through it.
 // Configuration example
 //
-//  - filter.JSON:
-//    	Reject:
-//        "command" : "state\d\..*"
-//    	Accept:
-//        "args/results[0]value" : "true"
-//        "args/results[1]" : "true"
-//        "command" : "state\d\..*"
-//    	ApplyTo: "payload" # payload or <metaKey>
+//  - "filter.JSON":
+//    Reject: "foo"
+//      "command" : "state\d\..*"
+//    Accept:
+//      "args/results[0]value" : "true"
+//      "args/results[1]" : "true"
+//      "command" : "state\d\..*"
+//    ApplyTo: "payload" # payload or <metaKey>
 //
-// FilterReject defines fields that will cause a message to be rejected if the
+// Reject defines fields that will cause a message to be rejected if the
 // given regular expression matches. Rejects are checked before Accepts.
 // Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
 //
-// FilterAccept defines fields that will cause a message to be rejected if the
+// Accept defines fields that will cause a message to be rejected if the
 // given regular expression does not match.
 // Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
+//
+// ApplyTo (TBD)
 type JSON struct {
-	core.SimpleFilter
+	core.SimpleFilter `gollumdoc:"embed_type"`
 	rejectValues      map[string]*regexp.Regexp
 	acceptValues      map[string]*regexp.Regexp
 	getAppliedContent core.GetAppliedContent

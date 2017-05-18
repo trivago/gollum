@@ -37,9 +37,9 @@ import (
 //
 // ApplyTo defines the formatter content for the data transferred
 type Runlength struct {
-	core.SimpleFormatter
-	separator          []byte
-	storeRunlengthOnly bool
+	core.SimpleFormatter `gollumdoc:"embed_type"`
+	separator            []byte
+	storeRunlengthOnly   bool
 }
 
 func init() {

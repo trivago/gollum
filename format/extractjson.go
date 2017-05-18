@@ -45,11 +45,11 @@ import (
 // values. By default this is set to 0 i.e. all decimal places will be
 // omitted.
 type ExtractJSON struct {
-	core.SimpleFormatter
-	field        string
-	trimValues   bool
-	numberFormat string
-	applyTo      string
+	core.SimpleFormatter `gollumdoc:"embed_type"`
+	field                string
+	trimValues           bool
+	numberFormat         string
+	applyTo              string
 }
 
 func init() {
@@ -64,7 +64,7 @@ func (format *ExtractJSON) Configure(conf core.PluginConfigReader) error {
 	format.trimValues = conf.GetBool("TrimValues", true)
 	precision := conf.GetInt("Precision", 0)
 	format.numberFormat = fmt.Sprintf("%%.%df", precision)
-	format.applyTo = conf.GetString("ApplyTo", core.APPLY_TO_PAYLOAD)
+	format.applyTo = conf.GetString("ApplyTo", core.ApplyToPayloadString)
 
 	return conf.Errors.OrNil()
 }
@@ -73,7 +73,7 @@ func (format *ExtractJSON) Configure(conf core.PluginConfigReader) error {
 func (format *ExtractJSON) ApplyFormatter(msg *core.Message) error {
 	content := format.GetAppliedContent(msg)
 
-	value, err := format.extractJson(content)
+	value, err := format.extractJSON(content)
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func (format *ExtractJSON) ApplyFormatter(msg *core.Message) error {
 	if value != nil {
 		format.SetAppliedContent(msg, value)
 	} else {
-		if format.applyTo == core.APPLY_TO_PAYLOAD {
+		if format.applyTo == core.ApplyToPayloadString {
 			msg.Resize(0)
 		} else {
 			msg.MetaData().ResetValue(format.applyTo)
@@ -91,7 +91,7 @@ func (format *ExtractJSON) ApplyFormatter(msg *core.Message) error {
 	return nil
 }
 
-func (format *ExtractJSON) extractJson(content []byte) ([]byte, error) {
+func (format *ExtractJSON) extractJSON(content []byte) ([]byte, error) {
 	values := tcontainer.NewMarshalMap()
 
 	err := json.Unmarshal(content, &values)

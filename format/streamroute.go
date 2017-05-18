@@ -44,9 +44,9 @@ import (
 //
 // ApplyTo defines the formatter content to use
 type StreamRoute struct {
-	core.SimpleFormatter
-	streamModulators core.ModulatorArray
-	delimiter        []byte
+	core.SimpleFormatter `gollumdoc:"embed_type"`
+	streamModulators     core.ModulatorArray
+	delimiter            []byte
 }
 
 func init() {

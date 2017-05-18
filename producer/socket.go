@@ -70,18 +70,18 @@ import (
 // AckTimeoutMs defines the time in milliseconds to wait for a response from the
 // server. After this timeout the send is marked as failed. Defaults to 2000.
 type Socket struct {
-	core.BufferedProducer
-	connection      net.Conn
-	batch           core.MessageBatch
-	assembly        core.WriterAssembly
-	protocol        string
-	address         string
-	batchTimeout    time.Duration
-	ackTimeout      time.Duration
-	batchMaxCount   int
-	batchFlushCount int
-	bufferSizeByte  int
-	acknowledge     string
+	core.BufferedProducer `gollumdoc:"embed_type"`
+	connection            net.Conn
+	batch                 core.MessageBatch
+	assembly              core.WriterAssembly
+	protocol              string
+	address               string
+	batchTimeout          time.Duration
+	ackTimeout            time.Duration
+	batchMaxCount         int
+	batchFlushCount       int
+	bufferSizeByte        int
+	acknowledge           string
 }
 
 type bufferedConn interface {

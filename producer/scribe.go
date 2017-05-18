@@ -70,21 +70,21 @@ import (
 // specific mapping will go to this category (including _GOLLUM_).
 // If no category mappings are set the stream name is used.
 type Scribe struct {
-	core.BufferedProducer
-	scribe            *scribe.ScribeClient
-	transport         *thrift.TFramedTransport
-	socket            *thrift.TSocket
-	category          map[core.MessageStreamID]string
-	batch             core.MessageBatch
-	batchTimeout      time.Duration
-	lastHeartBeat     time.Time
-	heartBeatInterval time.Duration
-	batchMaxCount     int
-	batchFlushCount   int
-	bufferSizeByte    int
-	windowSize        int
-	counters          map[string]*int64
-	lastMetricUpdate  time.Time
+	core.BufferedProducer `gollumdoc:"embed_type"`
+	scribe                *scribe.ScribeClient
+	transport             *thrift.TFramedTransport
+	socket                *thrift.TSocket
+	category              map[core.MessageStreamID]string
+	batch                 core.MessageBatch
+	batchTimeout          time.Duration
+	lastHeartBeat         time.Time
+	heartBeatInterval     time.Duration
+	batchMaxCount         int
+	batchFlushCount       int
+	bufferSizeByte        int
+	windowSize            int
+	counters              map[string]*int64
+	lastMetricUpdate      time.Time
 }
 
 const (

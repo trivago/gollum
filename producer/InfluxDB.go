@@ -83,13 +83,13 @@ import (
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5.
 type InfluxDB struct {
-	core.BufferedProducer
-	writer          influxDBWriter
-	assembly        core.WriterAssembly
-	batch           core.MessageBatch
-	batchTimeout    time.Duration
-	batchMaxCount   int
-	batchFlushCount int
+	core.BufferedProducer `gollumdoc:"embed_type"`
+	writer                influxDBWriter
+	assembly              core.WriterAssembly
+	batch                 core.MessageBatch
+	batchTimeout          time.Duration
+	batchMaxCount         int
+	batchFlushCount       int
 }
 
 type influxDBWriter interface {

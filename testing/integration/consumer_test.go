@@ -21,7 +21,7 @@ func TestFileConsumerDefault(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	// create file
-	f, err := os.OpenFile(TmpTestFilePathFoo, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	f, err := os.OpenFile(tmpTestFilePathFoo, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	defer f.Close()
 	expect.NoError(err)
 
@@ -29,7 +29,7 @@ func TestFileConsumerDefault(t *testing.T) {
 	expect.NoError(err)
 
 	// execute gollum
-	cmd := ExecuteGollumAndGetCmd(TestConfigConsumer, []string{}, "-ll=3")
+	cmd := executeGollumAndGetCmd(TestConfigConsumer, []string{}, "-ll=3")
 	time.Sleep(2 * time.Second) // wait till gollum should booted
 
 	// write more to file - result for gollum
@@ -43,7 +43,7 @@ func TestFileConsumerDefault(t *testing.T) {
 	expect.True(strings.Contains(out, "(startup)"))
 
 	// get results from file targets
-	ResultFile, err := GetResultFile(TmpTestFilePathDefault)
+	ResultFile, err := getResultFile(tmpTestFilePathDefault)
 	expect.NoError(err)
 
 	// final expectations filter in producer

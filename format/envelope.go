@@ -41,9 +41,9 @@ import (
 // Envelope\Formatter defines the formatter for the data transferred as
 // message. By default this is set to "format.Forward"
 type Envelope struct {
-	core.SimpleFormatter
-	postfix string
-	prefix  string
+	core.SimpleFormatter `gollumdoc:"embed_type"`
+	postfix              string
+	prefix               string
 }
 
 func init() {

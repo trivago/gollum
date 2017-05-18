@@ -32,8 +32,8 @@ import (
 // This formatter is applied to the data after StreamRevertDelimiter.
 // By default this is set to "format.Forward"
 type StreamRevert struct {
-	core.SimpleFormatter
-	delimiter []byte
+	core.SimpleFormatter `gollumdoc:"embed_type"`
+	delimiter            []byte
 }
 
 func init() {

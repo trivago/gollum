@@ -36,8 +36,8 @@ import (
 // This value is empty by default. If the template fails to execute the output
 // of TemplateJSONFormatter is returned.
 type TemplateJSON struct {
-	core.SimpleFormatter
-	template *template.Template
+	core.SimpleFormatter `gollumdoc:"embed_type"`
+	template             *template.Template
 }
 
 func init() {

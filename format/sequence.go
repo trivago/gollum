@@ -34,9 +34,9 @@ import (
 //
 // ApplyTo defines the formatter content to use
 type Sequence struct {
-	core.SimpleFormatter
-	separator []byte
-	seq       *int64
+	core.SimpleFormatter `gollumdoc:"embed_type"`
+	separator            []byte
+	seq                  *int64
 }
 
 func init() {

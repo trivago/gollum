@@ -33,6 +33,27 @@ import (
 //
 // The HTTPRequest producer sends messages as HTTP requests to a given webserver.
 //
+// * If RawData = true, the incoming messages are expected to contain complete
+//   HTTP requests in "wire format", such as::
+//
+//     POST /foo/bar HTTP/1.0\n
+//     Content-type: text/plain\n
+//     Content-length: 24
+//     \n
+//     Dummy test\n
+//     Request data\n
+//
+//   In this mode, the message's contents is parsed as an HTTP request and
+//   sent to the destination server (virtually) unchanged. If the message
+//   cannot be parsed as an HTTP request, an error is logged. Only the scheme,
+//   host and port components of the "Address" URL are used; any path and query
+//   parameters are ignored. The "Encoding" parameter is ignored.
+//
+// * If RawData = false, a POST request is made to the destination server
+//   for each incoming message, using the complete URL in "Address". The
+//   incoming message's contents are delivered in the POST request's body
+//   and Content-type is set to the value of "Encoding"
+//
 // Configuration example
 //
 //  - "producer.HTTPRequest":
@@ -45,34 +66,15 @@ import (
 // it is prepended with "http://", so short forms like "localhost:8088"
 // are accepted.
 //
-// If RawData = true, the incoming messages are expected to contain complete
-// HTTP requests in "wire format", such as:
-//
-//     POST /foo/bar HTTP/1.0\n
-//     Content-type: text/plain\n
-//     Content-length: 24
-//     \n
-//     Dummy test\n
-//     Request data\n
-//
-// In this mode, the message's contents is parsed as an HTTP request and
-// sent to the destination server (virtually) unchanged. If the message
-// cannot be parsed as an HTTP request, an error is logged. Only the scheme,
-// host and port components of the "Address" URL are used; any path and query
-// parameters are ignored. The "Encoding" parameter is ignored.
-//
-// If RawData = false, a POST request is made to the destination server
-// for each incoming message, using the complete URL in "Address". The
-// incoming message's contents are delivered in the POST request's body
-// and Content-type is set to the value of "Encoding"
+// RawData chooses how to interpret and relay the incoming data
 //
 // Encoding defines the payload encoding when RawData is set to false.
 // Set to "text/plain; charset=utf-8" by default.
 //
 type HTTPRequest struct {
-	core.BufferedProducer
+	core.BufferedProducer `gollumdoc:"embed_type"`
 
-	destinationUrl *url.URL
+	destinationURL *url.URL
 	encoding       string
 	rawPackets     bool
 	listen         *tnet.StopListener
@@ -93,7 +95,7 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) error {
 	if strings.Index(address, "://") == -1 {
 		address = "http://" + address
 	}
-	prod.destinationUrl, err = url.Parse(address)
+	prod.destinationURL, err = url.Parse(address)
 	conf.Errors.Push(err)
 
 	prod.encoding = conf.GetString("Encoding", "text/plain; charset=utf-8")
@@ -116,7 +118,7 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) error {
 }
 
 func (prod *HTTPRequest) healthcheckPingBackend() (int, string) {
-	code, body, err := httpRequestWrapper(http.Get(prod.destinationUrl.String()))
+	code, body, err := httpRequestWrapper(http.Get(prod.destinationURL.String()))
 	if err != nil {
 		return code, strconv.Quote(err.Error())
 	}
@@ -151,7 +153,7 @@ func httpRequestWrapper(resp *http.Response, err error) (int, string, error) {
 }
 
 func (prod *HTTPRequest) isHostUp() bool {
-	resp, err := http.Get(prod.destinationUrl.String())
+	resp, err := http.Get(prod.destinationURL.String())
 	return err != nil && resp != nil && resp.StatusCode < 400
 }
 
@@ -170,13 +172,13 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 		// Create a Request object, override host, port and scheme, and send it out.
 		req, err = http.ReadRequest(bufio.NewReader(requestData))
 		if req != nil {
-			req.URL.Host = prod.destinationUrl.Host
-			req.URL.Scheme = prod.destinationUrl.Scheme
+			req.URL.Host = prod.destinationURL.Host
+			req.URL.Scheme = prod.destinationURL.Scheme
 			req.RequestURI = ""
 		}
 	} else {
 		// Encapsulate the message in a POST request
-		req, err = http.NewRequest("POST", prod.destinationUrl.String(), requestData)
+		req, err = http.NewRequest("POST", prod.destinationURL.String(), requestData)
 		if req != nil {
 			req.Header.Add("Content-type", prod.encoding)
 		}

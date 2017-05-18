@@ -33,8 +33,8 @@ import (
 //
 // ApplyTo defines the formatter content to use
 type Timestamp struct {
-	core.SimpleFormatter
-	timestampFormat string
+	core.SimpleFormatter `gollumdoc:"embed_type"`
+	timestampFormat      string
 }
 
 func init() {

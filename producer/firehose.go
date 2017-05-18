@@ -94,18 +94,18 @@ const (
 // name. If no mapping is given the gollum stream name is used as firehose
 // stream name.
 type Firehose struct {
-	core.BufferedProducer
-	client            *firehose.Firehose
-	config            *aws.Config
-	streamMap         map[core.MessageStreamID]string
-	batch             core.MessageBatch
-	recordMaxMessages int
-	delimiter         []byte
-	flushFrequency    time.Duration
-	lastSendTime      time.Time
-	sendTimeLimit     time.Duration
-	counters          map[string]*int64
-	lastMetricUpdate  time.Time
+	core.BufferedProducer `gollumdoc:"embed_type"`
+	client                *firehose.Firehose
+	config                *aws.Config
+	streamMap             map[core.MessageStreamID]string
+	batch                 core.MessageBatch
+	recordMaxMessages     int
+	delimiter             []byte
+	flushFrequency        time.Duration
+	lastSendTime          time.Time
+	sendTimeLimit         time.Duration
+	counters              map[string]*int64
+	lastMetricUpdate      time.Time
 }
 
 const (

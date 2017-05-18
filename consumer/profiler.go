@@ -69,14 +69,14 @@ import (
 // profiling is done. This can be used to e.g. read metrics after a profile run.
 // By default this is set to false.
 type Profiler struct {
-	core.SimpleConsumer
-	profileRuns int
-	batches     int
-	templates   [][]byte
-	chars       string
-	message     string
-	delay       time.Duration
-	keepRunning bool
+	core.SimpleConsumer `gollumdoc:"embed_type"`
+	profileRuns         int
+	batches             int
+	templates           [][]byte
+	chars               string
+	message             string
+	delay               time.Duration
+	keepRunning         bool
 }
 
 var profilerDefaultCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 "

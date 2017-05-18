@@ -83,21 +83,21 @@ import (
 // could not be spooled to stream separated files on disk. Set to false by
 // default.
 type Spooling struct {
-	core.BufferedProducer
-	outfile         map[core.MessageStreamID]*spoolFile
-	outfileGuard    *sync.RWMutex
-	rotation        fileRotateConfig
-	path            string
-	maxFileSize     int64
-	respoolDuration time.Duration
-	maxFileAge      time.Duration
-	batchTimeout    time.Duration
-	readDelay       time.Duration
-	batchMaxCount   int
-	bufferSizeByte  int
-	revertOnDrop    bool
-	spoolCheck      *time.Timer
-	serialze        core.Formatter
+	core.BufferedProducer `gollumdoc:"embed_type"`
+	outfile               map[core.MessageStreamID]*spoolFile
+	outfileGuard          *sync.RWMutex
+	rotation              fileRotateConfig
+	path                  string
+	maxFileSize           int64
+	respoolDuration       time.Duration
+	maxFileAge            time.Duration
+	batchTimeout          time.Duration
+	readDelay             time.Duration
+	batchMaxCount         int
+	bufferSizeByte        int
+	revertOnDrop          bool
+	spoolCheck            *time.Timer
+	serialze              core.Formatter
 }
 
 const (
@@ -156,13 +156,14 @@ func (prod *Spooling) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
+// Modulate enforces the serialize formatter at the end of the modulation chain
 func (prod *Spooling) Modulate(msg *core.Message) core.ModulateResult {
 	result := prod.BufferedProducer.Modulate(msg)
 	prod.serialze.ApplyFormatter(msg) // Ignore result
 	return result
 }
 
-// Drop reverts the message stream before dropping
+// TryFallback reverts the message stream before dropping
 func (prod *Spooling) TryFallback(msg *core.Message) {
 	if prod.revertOnDrop {
 		msg.SetStreamID(msg.PreviousStreamID())

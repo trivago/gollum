@@ -170,22 +170,22 @@ const (
 // Servers contains the list of all kafka servers to connect to. By default this
 // is set to contain only "localhost:9092".
 type Kafka struct {
-	core.SimpleConsumer
-	servers           []string
-	topic             string
-	group             string
-	groupClient       *cluster.Client
-	groupConfig       *cluster.Config
-	client            kafka.Client
-	config            *kafka.Config
-	consumer          kafka.Consumer
-	offsetFile        string
-	defaultOffset     int64
-	offsets           map[int32]*int64
-	MaxPartitionID    int32
-	persistTimeout    time.Duration
-	orderedRead       bool
-	folderPermissions os.FileMode
+	core.SimpleConsumer `gollumdoc:"embed_type"`
+	servers             []string
+	topic               string
+	group               string
+	groupClient         *cluster.Client
+	groupConfig         *cluster.Config
+	client              kafka.Client
+	config              *kafka.Config
+	consumer            kafka.Consumer
+	offsetFile          string
+	defaultOffset       int64
+	offsets             map[int32]*int64
+	MaxPartitionID      int32
+	persistTimeout      time.Duration
+	orderedRead         bool
+	folderPermissions   os.FileMode
 }
 
 func init() {

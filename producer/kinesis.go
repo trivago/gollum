@@ -94,19 +94,19 @@ const (
 // name. If no mapping is given the gollum stream name is used as kinesis
 // stream name.
 type Kinesis struct {
-	core.BufferedProducer
-	client            *kinesis.Kinesis
-	config            *aws.Config
-	streamMap         map[core.MessageStreamID]string
-	batch             core.MessageBatch
-	recordMaxMessages int
-	delimiter         []byte
-	flushFrequency    time.Duration
-	lastSendTime      time.Time
-	sendTimeLimit     time.Duration
-	counters          map[string]*int64
-	lastMetricUpdate  time.Time
-	sequence          *int64
+	core.BufferedProducer `gollumdoc:"embed_type"`
+	client                *kinesis.Kinesis
+	config                *aws.Config
+	streamMap             map[core.MessageStreamID]string
+	batch                 core.MessageBatch
+	recordMaxMessages     int
+	delimiter             []byte
+	flushFrequency        time.Duration
+	lastSendTime          time.Time
+	sendTimeLimit         time.Duration
+	counters              map[string]*int64
+	lastMetricUpdate      time.Time
+	sequence              *int64
 }
 
 const (

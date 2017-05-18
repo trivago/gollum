@@ -104,20 +104,20 @@ const (
 // RetrySleepTimeSec defines the number of seconds to wait after trying to
 // reconnect to a shard. By default this is set to 4.
 type Kinesis struct {
-	core.SimpleConsumer
-	client          *kinesis.Kinesis
-	config          *aws.Config
-	offsets         map[string]string
-	stream          string
-	offsetType      string
-	offsetFile      string
-	defaultOffset   string
-	recordsPerQuery int64
-	delimiter       []byte
-	sleepTime       time.Duration
-	retryTime       time.Duration
-	shardTime       time.Duration
-	running         bool
+	core.SimpleConsumer `gollumdoc:"embed_type"`
+	client              *kinesis.Kinesis
+	config              *aws.Config
+	offsets             map[string]string
+	stream              string
+	offsetType          string
+	offsetFile          string
+	defaultOffset       string
+	recordsPerQuery     int64
+	delimiter           []byte
+	sleepTime           time.Duration
+	retryTime           time.Duration
+	shardTime           time.Duration
+	running             bool
 }
 
 func init() {
@@ -319,13 +319,13 @@ func (cons *Kinesis) connect() error {
 	}
 
 	if streamInfo.StreamDescription == nil {
-		return fmt.Errorf("StreamDescription could not be retrieved.")
+		return fmt.Errorf("StreamDescription could not be retrieved")
 	}
 
 	cons.running = true
 	for _, shard := range streamInfo.StreamDescription.Shards {
 		if shard.ShardId == nil {
-			return fmt.Errorf("ShardId could not be retrieved.")
+			return fmt.Errorf("ShardId could not be retrieved")
 		}
 
 		if _, offsetStored := cons.offsets[*shard.ShardId]; !offsetStored {

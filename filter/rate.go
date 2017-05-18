@@ -44,10 +44,10 @@ import (
 // rate limiting. This is useful for e.g. producers listeing to "*".
 // By default this list is empty.
 type Rate struct {
-	core.SimpleFilter
-	stateGuard *sync.RWMutex
-	state      map[core.MessageStreamID]*rateState
-	rateLimit  int64
+	core.SimpleFilter `gollumdoc:"embed_type"`
+	stateGuard        *sync.RWMutex
+	state             map[core.MessageStreamID]*rateState
+	rateLimit         int64
 }
 
 const (

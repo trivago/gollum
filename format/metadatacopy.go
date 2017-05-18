@@ -19,6 +19,8 @@ import (
 	"github.com/trivago/tgo/tcontainer"
 )
 
+type metaDataMap map[string]core.ModulatorArray
+
 // MetaDataCopy formatter plugin
 // Copy data from defined payload or meta data to set meta data field
 //
@@ -32,10 +34,6 @@ import (
 //       - format.Base64Encode
 //     - bar 			# 1:1 copy of the "payload" to "bar"
 //   ApplyTo: "payload" # payload or <metaKey>
-//
-//
-type metaDataMap map[string]core.ModulatorArray
-
 type MetaDataCopy struct {
 	core.SimpleFormatter
 	metaData metaDataMap

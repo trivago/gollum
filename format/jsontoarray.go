@@ -24,15 +24,18 @@ import (
 // JSONToArray "flattens" a JSON object by selecting specific fields and putting
 // them into a token separated list.
 //
-//   - "<producer|stream>":
-//     Formatter: "format.JSONToArray"
-//     Separator: ","
-//     Fields:
-//        - "a/b"
+// Configuration example
+//
+// - "<producer|stream>":
+//   Formatter: "format.JSONToArray"
+//   Separator: ","
+//   Fields:
+//    - "a/b"
+//
 type JSONToArray struct {
-	core.SimpleFormatter
-	separator string
-	fields    []string
+	core.SimpleFormatter `gollumdoc:"embed_type"`
+	separator            string
+	fields               []string
 }
 
 func init() {

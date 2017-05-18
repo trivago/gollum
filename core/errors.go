@@ -18,14 +18,19 @@ import (
 	"fmt"
 )
 
+// ModulateResultError is used by modulators to return a problem that happened
+// during the modulation process, caused by the modulator.
 type ModulateResultError struct {
 	message string
 }
 
+// Error fullfills the golang error interface
 func (p ModulateResultError) Error() string {
 	return p.message
 }
 
+// NewModulateResultError creates a new ModulateResultError with the given
+// message.
 func NewModulateResultError(message string, values ...interface{}) ModulateResultError {
 	return ModulateResultError{
 		message: fmt.Sprintf(message, values),

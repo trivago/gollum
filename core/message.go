@@ -20,89 +20,6 @@ import (
 	"time"
 )
 
-// MessageState is used as a return value for the Enqueue method
-type MessageState int
-
-// MessageSource defines methods that are common to all message sources.
-// Currently this is only a placeholder.
-type MessageSource interface {
-	// IsActive returns true if the source can produce messages
-	IsActive() bool
-
-	// IsBlocked returns true if the source cannot produce messages
-	IsBlocked() bool
-}
-
-// AsyncMessageSource extends the MessageSource interface to allow a backchannel
-// that simply forwards any message coming from the producer.
-type AsyncMessageSource interface {
-	MessageSource
-
-	// EnqueueResponse sends a message to the source of another message.
-	EnqueueResponse(msg *Message)
-}
-
-// SerialMessageSource extends the AsyncMessageSource interface to allow waiting
-// for all parts of the response to be submitted.
-type SerialMessageSource interface {
-	AsyncMessageSource
-
-	// Notify the end of the response stream
-	ResponseDone()
-}
-
-// LinkableMessageSource extends the MessageSource interface to allow a pipe
-// like behaviour between two components that communicate messages.
-type LinkableMessageSource interface {
-	MessageSource
-	// Link the message source to the message receiver. This makes it possible
-	// to create stable "pipes" between e.g. a consumer and producer.
-	Link(pipe interface{})
-
-	// IsLinked has to return true if Link executed successful and does not
-	// need to be called again.
-	IsLinked() bool
-}
-
-// MetaData is a map for optional meta data which can set by consumers and modulators
-type MetaData map[string][]byte
-
-// SetValue set a key value pair at meta data
-func (meta MetaData) SetValue(key string, value []byte) {
-	meta[key] = value
-}
-
-// GetValue returns a meta data value by key
-func (meta MetaData) GetValue(key string) []byte {
-	if value, isSet := meta[key]; isSet {
-		return value
-	}
-
-	return []byte{}
-}
-
-// GetValueString returns the meta value by GetValue as string
-func (meta MetaData) GetValueString(key string) string {
-	return string(meta.GetValue(key))
-}
-
-// ResetValue delete a meta data value by key
-func (meta MetaData) ResetValue(key string) {
-	delete(meta, key)
-}
-
-// Clone MetaData byte values to new MetaData map
-func (meta MetaData) Clone() MetaData {
-	clone := MetaData{}
-	for k, v := range meta {
-		vCopy := make([]byte, len(v))
-		copy(vCopy, v)
-		clone[k] = vCopy
-	}
-
-	return clone
-}
-
 // MessageData is a container for the message payload, streamID and an optional message key
 // The struct is used by Message.data for the current message data and orig for the original message data
 type MessageData struct {
@@ -150,14 +67,6 @@ func NewMessage(source MessageSource, data []byte, streamID MessageStreamID) *Me
 	return message
 }
 
-// getPayloadCopy return a copy of the data byte array
-func getPayloadCopy(data []byte) []byte {
-	buffer := MessageDataPool.Get(len(data))
-	copy(buffer, data)
-
-	return buffer
-}
-
 // NewMessageWithSize creates a new message with a buffer of a given size.
 // The buffer may contain data from previous messages.
 func NewMessageWithSize(source MessageSource, dataSize int, sequence uint64, streamID MessageStreamID) *Message {
@@ -179,6 +88,14 @@ func NewMessageWithSize(source MessageSource, dataSize int, sequence uint64, str
 	message.orig.MetaData = MetaData{}
 
 	return message
+}
+
+// getPayloadCopy return a copy of the data byte array
+func getPayloadCopy(data []byte) []byte {
+	buffer := MessageDataPool.Get(len(data))
+	copy(buffer, data)
+
+	return buffer
 }
 
 // Created returns the time when this message was created.
@@ -313,7 +230,7 @@ func (msg *Message) CloneOriginal() *Message {
 // Serialize generates a string containing all data that can be preserved over
 // shutdown (i.e. no data directly referencing runtime components).
 func (msg Message) Serialize() ([]byte, error) {
-	serializable := &SerializedMessage{
+	serializable := &serializedMessage{
 		StreamID:     proto.Uint64(uint64(msg.data.streamID)),
 		PrevStreamID: proto.Uint64(uint64(msg.prevStreamID)),
 		Timestamp:    proto.Int64(msg.timestamp.UnixNano()),
@@ -327,7 +244,7 @@ func (msg Message) Serialize() ([]byte, error) {
 // DeserializeMessage generates a message from a string produced by
 // Message.Serialize.
 func DeserializeMessage(data []byte) (Message, error) {
-	serializable := new(SerializedMessage)
+	serializable := new(serializedMessage)
 	err := proto.Unmarshal(data, serializable)
 
 	msg := Message{

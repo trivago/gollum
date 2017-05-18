@@ -1,177 +1,179 @@
-# Makefile for Sphinx documentation
+# -*- makefile -*-
+
+#
+# Configuration
 #
 
-# You can set these variables from the command line.
-SPHINXOPTS    =
-SPHINXBUILD   = sphinx-build
-PAPER         =
-BUILDDIR      = _build
+# General stuff
+RST_GENERATOR_DIR=./generator
+RST_GENERATOR=$(RST_GENERATOR_DIR)/rst_generator
+PRINTF=/usr/bin/printf
 
-# User-friendly check for sphinx-build
-ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
-$(error The '$(SPHINXBUILD)' command was not found. Make sure you have Sphinx installed, then set the SPHINXBUILD environment variable to point to the full path of the '$(SPHINXBUILD)' executable. Alternatively you can add the directory with the executable to your PATH. If you don't have Sphinx installed, grab it from http://sphinx-doc.org/)
-endif
+# Locations of module sources
+MODULES_DIR_PRODUCER=../producer
+MODULES_DIR_CONSUMER=../consumer
+MODULES_DIR_FILTER=../filter
+MODULES_DIR_FORMATTER=../format
+MODULES_DIR_ROUTER=../router
 
-# Internal variables.
-PAPEROPT_a4     = -D latex_paper_size=a4
-PAPEROPT_letter = -D latex_paper_size=letter
-ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
-# the i18n builder cannot share the environment and doctrees with the others
-I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
+# Target directories for RST
+TARGET_ROOT=src/gen
+TARGET_DIR_PRODUCER=$(TARGET_ROOT)/producer
+TARGET_DIR_CONSUMER=$(TARGET_ROOT)/consumer
+TARGET_DIR_FILTER=$(TARGET_ROOT)/filter
+TARGET_DIR_FORMATTER=$(TARGET_ROOT)/formatter
+TARGET_DIR_ROUTER=$(TARGET_ROOT)/router
 
-.PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext
+# Excluded files
+EXCLUDE_NO_OP='^$$'
+EXCLUDE_PRODUCER='(InfluxDBWriter[0-9][0-9]|filestate|kafkaMurmur2HashPartitioner|s3buffer|spoolfile)'
+EXCLUDE_CONSUMER='proxyclient'
+EXCLUDE_FILTER='regexp'
+EXCLUDE_FORMATTER='collectddata'
+EXCLUDE_ROUTER=$(EXCLUDE_NO_OP)
 
-help:
-	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  html       to make standalone HTML files"
-	@echo "  dirhtml    to make HTML files named index.html in directories"
-	@echo "  singlehtml to make a single large HTML file"
-	@echo "  pickle     to make pickle files"
-	@echo "  json       to make JSON files"
-	@echo "  htmlhelp   to make HTML files and a HTML help project"
-	@echo "  qthelp     to make HTML files and a qthelp project"
-	@echo "  devhelp    to make HTML files and a Devhelp project"
-	@echo "  epub       to make an epub"
-	@echo "  latex      to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
-	@echo "  latexpdf   to make LaTeX files and run them through pdflatex"
-	@echo "  latexpdfja to make LaTeX files and run them through platex/dvipdfmx"
-	@echo "  text       to make text files"
-	@echo "  man        to make manual pages"
-	@echo "  texinfo    to make Texinfo files"
-	@echo "  info       to make Texinfo files and run them through makeinfo"
-	@echo "  gettext    to make PO message catalogs"
-	@echo "  changes    to make an overview of all changed/added/deprecated items"
-	@echo "  xml        to make Docutils-native XML files"
-	@echo "  pseudoxml  to make pseudoxml-XML files for display purposes"
-	@echo "  linkcheck  to check all external links for integrity"
-	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
+# Create lists of .rst files based on .go sources
+rsts_producer  := $(shell find $(MODULES_DIR_PRODUCER)  -type f -name '*.go' -not -name '*_test.go' | grep -vE $(EXCLUDE_PRODUCER)  | sed s^$(MODULES_DIR_PRODUCER)^$(TARGET_DIR_PRODUCER)^   | sed 's|\.go$$|.rst|' | sort)
+rsts_consumer  := $(shell find $(MODULES_DIR_CONSUMER)  -type f -name '*.go' -not -name '*_test.go' | grep -vE $(EXCLUDE_CONSUMER)  | sed s^$(MODULES_DIR_CONSUMER)^$(TARGET_DIR_CONSUMER)^   | sed 's|\.go$$|.rst|' | sort)
+rsts_filter    := $(shell find $(MODULES_DIR_FILTER)    -type f -name '*.go' -not -name '*_test.go' | grep -vE $(EXCLUDE_FILTER)    | sed s^$(MODULES_DIR_FILTER)^$(TARGET_DIR_FILTER)^       | sed 's|\.go$$|.rst|' | sort)
+rsts_formatter := $(shell find $(MODULES_DIR_FORMATTER) -type f -name '*.go' -not -name '*_test.go' | grep -vE $(EXCLUDE_FORMATTER) | sed s^$(MODULES_DIR_FORMATTER)^$(TARGET_DIR_FORMATTER)^ | sed 's|\.go$$|.rst|' | sort)
+rsts_router    := $(shell find $(MODULES_DIR_ROUTER)    -type f -name '*.go' -not -name '*_test.go' | grep -vE $(EXCLUDE_ROUTER)    | sed s^$(MODULES_DIR_ROUTER)^$(TARGET_DIR_ROUTER)^       | sed 's|\.go$$|.rst|' | sort)
+
+####################################################################################################
+
+#
+# Targets
+#
+all_groups := producers consumers filters formatters routers
+all_preps  := prep_producers prep_consumers prep_filters prep_formatters prep_routers
+
+.PHONY: all plugin_rst $(all_groups) $(all_preps) html
+
+all: clean groups
+
+all-really: clean clean-html all html
+
+groups: $(all_groups)
+preps:  $(all_preps)
 
 clean:
-	rm -rf $(BUILDDIR)/*
+	if [ -e $(RST_GENERATOR) ]; then rm $(RST_GENERATOR) ; fi
+	find $(TARGET_ROOT) -type f -name '*.rst' -print -delete
+
+$(BUILD_DIR):
+	mkdir $@
+
+$(RST_GENERATOR): $(BUILD_DIR)
+	cd $(RST_GENERATOR_DIR) ; go build -o ../$(RST_GENERATOR)
+
+# Subtargets
+producers:  prep_producers  $(rsts_producer)
+consumers:  prep_consumers  $(rsts_consumer)
+filters:    prep_filters    $(rsts_filter)
+formatters: prep_formatters $(rsts_formatter)
+routers:    prep_routers    $(rsts_router)
+
+# Prepare target dirs
+prep_producers:
+	mkdir -p $(TARGET_DIR_PRODUCER)
+	if [ -e $(TARGET_DIR_PRODUCER)/index.rst ]; then rm $(TARGET_DIR_PRODUCER)/index.rst ; fi
+
+	$(PRINTF) ".. Autogenerated by docs/Makefile\n"         >> $(TARGET_DIR_PRODUCER)/index.rst
+	$(PRINTF) ".. include:: ../../plugins/producer.rst\n" >> $(TARGET_DIR_PRODUCER)/index.rst
+	$(PRINTF) "\n"                 >> $(TARGET_DIR_PRODUCER)/index.rst
+	$(PRINTF) ".. toctree::\n"     >> $(TARGET_DIR_PRODUCER)/index.rst
+	$(PRINTF) "    :maxdepth: 9\n"  >> $(TARGET_DIR_PRODUCER)/index.rst
+	$(PRINTF) "\n"                 >> $(TARGET_DIR_PRODUCER)/index.rst
+
+prep_consumers:
+	mkdir -p $(TARGET_DIR_CONSUMER)
+	if [ -e $(TARGET_DIR_CONSUMER)/index.rst ]; then rm $(TARGET_DIR_CONSUMER)/index.rst ; fi
+
+	$(PRINTF) ".. Autogenerated by docs/Makefile\n"         >> $(TARGET_DIR_CONSUMER)/index.rst
+	$(PRINTF) ".. include:: ../../plugins/consumer.rst\n" >> $(TARGET_DIR_CONSUMER)/index.rst
+	$(PRINTF) "\n"                 >> $(TARGET_DIR_CONSUMER)/index.rst
+	$(PRINTF) ".. toctree::\n"     >> $(TARGET_DIR_CONSUMER)/index.rst
+	$(PRINTF) "    :maxdepth: 9\n"  >> $(TARGET_DIR_CONSUMER)/index.rst
+	$(PRINTF) "\n"                 >> $(TARGET_DIR_CONSUMER)/index.rst
+
+prep_filters:
+	mkdir -p $(TARGET_DIR_FILTER)
+	if [ -e $(TARGET_DIR_FILTER)/index.rst ]; then rm $(TARGET_DIR_FILTER)/index.rst ; fi
+
+	$(PRINTF) ".. Autogenerated by docs/Makefile\n"         >> $(TARGET_DIR_FILTER)/index.rst
+	$(PRINTF) ".. include:: ../../plugins/filter.rst\n" >> $(TARGET_DIR_FILTER)/index.rst
+	$(PRINTF) "\n"                 >> $(TARGET_DIR_FILTER)/index.rst
+	$(PRINTF) ".. toctree::\n"     >> $(TARGET_DIR_FILTER)/index.rst
+	$(PRINTF) "    :maxdepth: 9\n"  >> $(TARGET_DIR_FILTER)/index.rst
+	$(PRINTF) "\n"                 >> $(TARGET_DIR_FILTER)/index.rst
+
+prep_formatters:
+	mkdir -p $(TARGET_DIR_FORMATTER)
+	if [ -e $(TARGET_DIR_FORMATTER)/index.rst ]; then rm $(TARGET_DIR_FORMATTER)/index.rst ; fi
+
+	$(PRINTF) ".. Autogenerated by docs/Makefile\n"         >> $(TARGET_DIR_FORMATTER)/index.rst
+	$(PRINTF) ".. include:: ../../plugins/formatter.rst\n" >> $(TARGET_DIR_FORMATTER)/index.rst
+	$(PRINTF) "\n"                 >> $(TARGET_DIR_FORMATTER)/index.rst
+	$(PRINTF) ".. toctree::\n"     >> $(TARGET_DIR_FORMATTER)/index.rst
+	$(PRINTF) "    :maxdepth: 9\n"  >> $(TARGET_DIR_FORMATTER)/index.rst
+	$(PRINTF) "\n"                 >> $(TARGET_DIR_FORMATTER)/index.rst
+
+prep_routers:
+	mkdir -p $(TARGET_DIR_ROUTER)
+	if [ -e $(TARGET_DIR_ROUTER)/index.rst ]; then rm $(TARGET_DIR_ROUTER)/index.rst ; fi
+
+	$(PRINTF) ".. Autogenerated by docs/Makefile\n"         >> $(TARGET_DIR_ROUTER)/index.rst
+	$(PRINTF) ".. include:: ../../plugins/router.rst\n" >> $(TARGET_DIR_ROUTER)/index.rst
+	$(PRINTF) "\n"                 >> $(TARGET_DIR_ROUTER)/index.rst
+	$(PRINTF) ".. toctree::\n"     >> $(TARGET_DIR_ROUTER)/index.rst
+	$(PRINTF) "    :maxdepth: 9\n"  >> $(TARGET_DIR_ROUTER)/index.rst
+	$(PRINTF) "\n"                 >> $(TARGET_DIR_ROUTER)/index.rst
+
+# Loop targets for the .rst files
+$(rsts_producer):  $(RST_GENERATOR)
+	$(RST_GENERATOR) $(MODULES_DIR_PRODUCER)/$(shell basename $@ .rst).go $@
+	$(PRINTF) "    %s\n" /$(TARGET_DIR_PRODUCER)/$(shell basename $@) >> $(TARGET_DIR_PRODUCER)/index.rst
+
+$(rsts_consumer):  $(RST_GENERATOR)
+	$(RST_GENERATOR) $(MODULES_DIR_CONSUMER)/$(shell basename $@ .rst).go $@
+	$(PRINTF) "    %s\n" /$(TARGET_DIR_CONSUMER)/$(shell basename $@) >> $(TARGET_DIR_CONSUMER)/index.rst
+
+$(rsts_filter):  $(RST_GENERATOR)
+	$(RST_GENERATOR) $(MODULES_DIR_FILTER)/$(shell basename $@ .rst).go $@
+	$(PRINTF) "    %s\n" /$(TARGET_DIR_FILTER)/$(shell basename $@) >> $(TARGET_DIR_FILTER)/index.rst
+
+$(rsts_formatter):  $(RST_GENERATOR)
+	$(RST_GENERATOR) $(MODULES_DIR_FORMATTER)/$(shell basename $@ .rst).go $@
+	$(PRINTF) "    %s\n" /$(TARGET_DIR_FORMATTER)/$(shell basename $@) >> $(TARGET_DIR_FORMATTER)/index.rst
+
+$(rsts_router):  $(RST_GENERATOR)
+	$(RST_GENERATOR) $(MODULES_DIR_ROUTER)/$(shell basename $@ .rst).go $@
+	$(PRINTF) "    %s\n" /$(TARGET_DIR_ROUTER)/$(shell basename $@) >> $(TARGET_DIR_ROUTER)/index.rst
+
+####################################################################################################
+
+#
+# Sphinx target for generating HTML docs from the .rst files
+#
+# This is only needed for testing sphinx generation locally, e.g. to verify .rst syntax. Actual
+# documentation is generated from the .rst files in the github repository automatically by
+# readthedocs.org.
+#
+# To install Sphinx locally, do:
+#   pip install -U Sphinx
+#   pip install sphinx_rtd_theme
+#
+
+HTML_BUILD_DIR=_build.html
+
+$(HTML_BUILD_DIR):
+	mkdir $(HTML_BUILD_DIR)
 	
-html:
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
-	@echo
-	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+clean-html:
+	if [ -e $(HTML_BUILD_DIR) ]; then rm -r $(HTML_BUILD_DIR) ; fi
 
-dirhtml:
-	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml
-	@echo
-	@echo "Build finished. The HTML pages are in $(BUILDDIR)/dirhtml."
+html: $(HTML_BUILD_DIR)
+	mkdir -p $(HTML_BUILD_DIR)/doctrees $(HTML_BUILD_DIR)/html
+	sphinx-build -b html -d $(HTML_BUILD_DIR)/doctrees . $(HTML_BUILD_DIR)/html
 
-singlehtml:
-	$(SPHINXBUILD) -b singlehtml $(ALLSPHINXOPTS) $(BUILDDIR)/singlehtml
-	@echo
-	@echo "Build finished. The HTML page is in $(BUILDDIR)/singlehtml."
-
-pickle:
-	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) $(BUILDDIR)/pickle
-	@echo
-	@echo "Build finished; now you can process the pickle files."
-
-json:
-	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(BUILDDIR)/json
-	@echo
-	@echo "Build finished; now you can process the JSON files."
-
-htmlhelp:
-	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) $(BUILDDIR)/htmlhelp
-	@echo
-	@echo "Build finished; now you can run HTML Help Workshop with the" \
-	      ".hhp project file in $(BUILDDIR)/htmlhelp."
-
-qthelp:
-	$(SPHINXBUILD) -b qthelp $(ALLSPHINXOPTS) $(BUILDDIR)/qthelp
-	@echo
-	@echo "Build finished; now you can run "qcollectiongenerator" with the" \
-	      ".qhcp project file in $(BUILDDIR)/qthelp, like this:"
-	@echo "# qcollectiongenerator $(BUILDDIR)/qthelp/gollum.qhcp"
-	@echo "To view the help file:"
-	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/gollum.qhc"
-
-devhelp:
-	$(SPHINXBUILD) -b devhelp $(ALLSPHINXOPTS) $(BUILDDIR)/devhelp
-	@echo
-	@echo "Build finished."
-	@echo "To view the help file:"
-	@echo "# mkdir -p $$HOME/.local/share/devhelp/gollum"
-	@echo "# ln -s $(BUILDDIR)/devhelp $$HOME/.local/share/devhelp/gollum"
-	@echo "# devhelp"
-
-epub:
-	$(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(BUILDDIR)/epub
-	@echo
-	@echo "Build finished. The epub file is in $(BUILDDIR)/epub."
-
-latex:
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
-	@echo
-	@echo "Build finished; the LaTeX files are in $(BUILDDIR)/latex."
-	@echo "Run \`make' in that directory to run these through (pdf)latex" \
-	      "(use \`make latexpdf' here to do that automatically)."
-
-latexpdf:
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
-	@echo "Running LaTeX files through pdflatex..."
-	$(MAKE) -C $(BUILDDIR)/latex all-pdf
-	@echo "pdflatex finished; the PDF files are in $(BUILDDIR)/latex."
-
-latexpdfja:
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
-	@echo "Running LaTeX files through platex and dvipdfmx..."
-	$(MAKE) -C $(BUILDDIR)/latex all-pdf-ja
-	@echo "pdflatex finished; the PDF files are in $(BUILDDIR)/latex."
-
-text:
-	$(SPHINXBUILD) -b text $(ALLSPHINXOPTS) $(BUILDDIR)/text
-	@echo
-	@echo "Build finished. The text files are in $(BUILDDIR)/text."
-
-man:
-	$(SPHINXBUILD) -b man $(ALLSPHINXOPTS) $(BUILDDIR)/man
-	@echo
-	@echo "Build finished. The manual pages are in $(BUILDDIR)/man."
-
-texinfo:
-	$(SPHINXBUILD) -b texinfo $(ALLSPHINXOPTS) $(BUILDDIR)/texinfo
-	@echo
-	@echo "Build finished. The Texinfo files are in $(BUILDDIR)/texinfo."
-	@echo "Run \`make' in that directory to run these through makeinfo" \
-	      "(use \`make info' here to do that automatically)."
-
-info:
-	$(SPHINXBUILD) -b texinfo $(ALLSPHINXOPTS) $(BUILDDIR)/texinfo
-	@echo "Running Texinfo files through makeinfo..."
-	make -C $(BUILDDIR)/texinfo info
-	@echo "makeinfo finished; the Info files are in $(BUILDDIR)/texinfo."
-
-gettext:
-	$(SPHINXBUILD) -b gettext $(I18NSPHINXOPTS) $(BUILDDIR)/locale
-	@echo
-	@echo "Build finished. The message catalogs are in $(BUILDDIR)/locale."
-
-changes:
-	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(BUILDDIR)/changes
-	@echo
-	@echo "The overview file is in $(BUILDDIR)/changes."
-
-linkcheck:
-	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(BUILDDIR)/linkcheck
-	@echo
-	@echo "Link check complete; look for any errors in the above output " \
-	      "or in $(BUILDDIR)/linkcheck/output.txt."
-
-doctest:
-	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
-	@echo "Testing of doctests in the sources finished, look at the " \
-	      "results in $(BUILDDIR)/doctest/output.txt."
-
-xml:
-	$(SPHINXBUILD) -b xml $(ALLSPHINXOPTS) $(BUILDDIR)/xml
-	@echo
-	@echo "Build finished. The XML files are in $(BUILDDIR)/xml."
-
-pseudoxml:
-	$(SPHINXBUILD) -b pseudoxml $(ALLSPHINXOPTS) $(BUILDDIR)/pseudoxml
-	@echo
-	@echo "Build finished. The pseudo-XML files are in $(BUILDDIR)/pseudoxml."
+####################################################################################################

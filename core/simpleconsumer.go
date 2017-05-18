@@ -238,7 +238,7 @@ func (cons *SimpleConsumer) ControlLoop() {
 		command := <-cons.control
 		switch command {
 		default:
-			cons.Log.Debug.Print("Recieved untracked command")
+			cons.Log.Debug.Print("Received untracked command")
 			// Do nothing
 
 		case PluginControlStopConsumer:
@@ -262,7 +262,7 @@ func (cons *SimpleConsumer) ControlLoop() {
 			return // ### return ###
 
 		case PluginControlRoll:
-			cons.Log.Debug.Print("Recieved roll command")
+			cons.Log.Debug.Print("Received roll command")
 			if cons.onRoll != nil {
 				cons.onRoll()
 			}

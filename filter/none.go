@@ -26,7 +26,7 @@ import (
 //     Filter: "filter.None"
 //
 type None struct {
-	core.SimpleFilter
+	core.SimpleFilter `gollumdoc:"embed_type"`
 }
 
 func init() {

@@ -123,25 +123,25 @@ import (
 // defined by "File" and are pruned by date (followed by name).
 // By default this is set to 0 which disables pruning.
 type File struct {
-	core.BufferedProducer
-	filesByStream     map[core.MessageStreamID]*fileState
-	files             map[string]*fileState
-	rotate            fileRotateConfig
-	timestamp         string
-	fileDir           string
-	fileName          string
-	fileExt           string
-	batchTimeout      time.Duration
-	flushTimeout      time.Duration
-	batchMaxCount     int
-	batchFlushCount   int
-	pruneCount        int
-	pruneHours        int
-	pruneSize         int64
-	wildcardPath      bool
-	overwriteFile     bool
-	filePermissions   os.FileMode
-	folderPermissions os.FileMode
+	core.BufferedProducer `gollumdoc:"embed_type"`
+	filesByStream         map[core.MessageStreamID]*fileState
+	files                 map[string]*fileState
+	rotate                fileRotateConfig
+	timestamp             string
+	fileDir               string
+	fileName              string
+	fileExt               string
+	batchTimeout          time.Duration
+	flushTimeout          time.Duration
+	batchMaxCount         int
+	batchFlushCount       int
+	pruneCount            int
+	pruneHours            int
+	pruneSize             int64
+	wildcardPath          bool
+	overwriteFile         bool
+	filePermissions       os.FileMode
+	folderPermissions     os.FileMode
 }
 
 func init() {

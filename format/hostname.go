@@ -34,8 +34,8 @@ import (
 // HostnameSeparator sets the separator character placed after the hostname.
 // This is set to " " by default.
 type Hostname struct {
-	core.SimpleFormatter
-	separator []byte
+	core.SimpleFormatter `gollumdoc:"embed_type"`
+	separator            []byte
 }
 
 func init() {

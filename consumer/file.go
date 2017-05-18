@@ -77,15 +77,15 @@ const (
 // Delimiter defines the end of a message inside the file. By default this is
 // set to "\n".
 type File struct {
-	core.SimpleConsumer
-	file           *os.File
-	fileName       string
-	offsetFileName string
-	delimiter      string
-	seek           int
-	seekOnRotate   int
-	seekOffset     int64
-	state          fileState
+	core.SimpleConsumer `gollumdoc:"embed_type"`
+	file                *os.File
+	fileName            string
+	offsetFileName      string
+	delimiter           string
+	seek                int
+	seekOnRotate        int
+	seekOffset          int64
+	state               fileState
 }
 
 func init() {

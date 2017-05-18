@@ -22,13 +22,15 @@ import (
 // together by using a separator. Both parts of the new message may be
 // formatted differently
 //
-//   - format.Double:
+// Configuration example
+//
+// - format.Double:
 //	 Separator: ":"
-//       UseLeftStreamID: false
-//       Left:
-//         - "format.Forward"
-//       Right:
-//         - "format.Forward"
+//   UseLeftStreamID: false
+//   Left:
+//   - "format.Forward"
+//   Right:
+//   - "format.Forward"
 //
 // Separator sets the separator string placed between both parts.
 // This is set to ":" by default.
@@ -36,12 +38,12 @@ import (
 // LeftStreamID uses the stream name result of the left side as the
 // streamID of this formatter. Set to false by default.
 type Double struct {
-	core.SimpleFormatter
-	separator    []byte
-	leftStreamID bool
-	left         core.FormatterArray
-	right        core.FormatterArray
-	applyTo      string
+	core.SimpleFormatter `gollumdoc:"embed_type"`
+	separator            []byte
+	leftStreamID         bool
+	left                 core.FormatterArray
+	right                core.FormatterArray
+	applyTo              string
 }
 
 func init() {
@@ -55,7 +57,7 @@ func (format *Double) Configure(conf core.PluginConfigReader) error {
 	format.right = conf.GetFormatterArray("Right", format.Log, core.FormatterArray{})
 	format.separator = []byte(conf.GetString("Separator", ":"))
 	format.leftStreamID = conf.GetBool("UseLeftStreamID", false)
-	format.applyTo = conf.GetString("ApplyTo", core.APPLY_TO_PAYLOAD)
+	format.applyTo = conf.GetString("ApplyTo", core.ApplyToPayloadString)
 	return conf.Errors.OrNil()
 }
 
@@ -65,7 +67,7 @@ func (format *Double) ApplyFormatter(msg *core.Message) error {
 	rightMsg := msg.Clone()
 
 	// pre-process
-	if format.applyTo != core.APPLY_TO_PAYLOAD {
+	if format.applyTo != core.ApplyToPayloadString {
 		leftMsg.Store(format.GetAppliedContent(msg))
 		rightMsg.Store(format.GetAppliedContent(msg))
 	}

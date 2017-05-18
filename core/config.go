@@ -57,6 +57,7 @@ func NewLogScope(conf *PluginConfig) tlog.LogScope {
 	return tlog.NewLogScope(conf.Typename + ":" + conf.ID)
 }
 
+// ReadConfig creates a config from a yaml byte stream.
 func ReadConfig(buffer []byte) (*Config, error) {
 	config := new(Config)
 	err := yaml.Unmarshal(buffer, &config.Values)
@@ -76,11 +77,11 @@ func ReadConfig(buffer []byte) (*Config, error) {
 			}
 
 			// loop through aggregated plugins and set them up
-			for subPluginId, subConfigValues := range aggregateMap {
-				subPluginsId := fmt.Sprintf("%s-%s", pluginID, subPluginId)
+			for subPluginID, subConfigValues := range aggregateMap {
+				subPluginsID := fmt.Sprintf("%s-%s", pluginID, subPluginID)
 				subConfig, err := tcontainer.ConvertToMarshalMap(subConfigValues, strings.ToLower)
 				if err != nil {
-					tlog.Error.Print("Error in plugin config ", subPluginsId, err)
+					tlog.Error.Print("Error in plugin config ", subPluginsID, err)
 					continue
 				}
 
@@ -88,7 +89,7 @@ func ReadConfig(buffer []byte) (*Config, error) {
 				delete(configValues, "Type")
 				delete(configValues, "Aggregate")
 
-				pluginConfig := NewPluginConfig(subPluginsId, "")
+				pluginConfig := NewPluginConfig(subPluginsID, "")
 				pluginConfig.Read(configValues)
 				pluginConfig.Read(subConfig)
 

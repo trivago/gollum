@@ -70,14 +70,14 @@ const (
 //
 // Partitioner defines the algorithm used to read messages from the router.
 // By default this is set to "delimiter".
-//  * "delimiter" separates messages by looking for a delimiter string.
-//    The delimiter is removed from the message.
-//  * "ascii" reads an ASCII number at a given offset until a given delimiter is found.
-//    Everything to the right of and including the delimiter is removed from the message.
-//  * "binary" reads a binary number at a given offset and size.
-//  * "binary_le" is an alias for "binary".
-//  * "binary_be" is the same as "binary" but uses big endian encoding.
-//  * "fixed" assumes fixed size messages.
+// * "delimiter" separates messages by looking for a delimiter string.
+//   The delimiter is removed from the message.
+// * "ascii" reads an ASCII number at a given offset until a given delimiter is found.
+//   Everything to the right of and including the delimiter is removed from the message.
+// * "binary" reads a binary number at a given offset and size.
+// * "binary_le" is an alias for "binary".
+// * "binary_be" is the same as "binary" but uses big endian encoding.
+// * "fixed" assumes fixed size messages.
 //
 // Delimiter defines the delimiter used by the text and delimiter partitioner.
 // By default this is set to "\n".
@@ -101,21 +101,21 @@ const (
 // RemoveOldSocket toggles removing exisiting files with the same name as the
 // socket (unix://<path>) prior to connecting. Enabled by default.
 type Socket struct {
-	core.SimpleConsumer
-	listen        io.Closer
-	clientLock    *sync.Mutex
-	clients       *list.List
-	protocol      string
-	address       string
-	delimiter     string
-	acknowledge   string
-	reconnectTime time.Duration
-	ackTimeout    time.Duration
-	readTimeout   time.Duration
-	flags         tio.BufferedReaderFlags
-	fileFlags     os.FileMode
-	offset        int
-	clearSocket   bool
+	core.SimpleConsumer `gollumdoc:"embed_type"`
+	listen              io.Closer
+	clientLock          *sync.Mutex
+	clients             *list.List
+	protocol            string
+	address             string
+	delimiter           string
+	acknowledge         string
+	reconnectTime       time.Duration
+	ackTimeout          time.Duration
+	readTimeout         time.Duration
+	flags               tio.BufferedReaderFlags
+	fileFlags           os.FileMode
+	offset              int
+	clearSocket         bool
 }
 
 func init() {
