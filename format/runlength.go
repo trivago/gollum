@@ -38,7 +38,7 @@ import (
 // ApplyTo defines the formatter content for the data transferred
 type Runlength struct {
 	core.SimpleFormatter
-	separator []byte
+	separator          []byte
 	storeRunlengthOnly bool
 }
 

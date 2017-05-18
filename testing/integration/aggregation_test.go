@@ -3,12 +3,12 @@
 package integration
 
 import (
+	"fmt"
 	"github.com/trivago/tgo/ttesting"
+	"os"
 	"strings"
 	"testing"
-	"os"
 	"time"
-	"fmt"
 )
 
 const (

@@ -15,14 +15,14 @@
 package core
 
 import (
-	"testing"
-	"github.com/trivago/tgo/ttesting"
 	"errors"
+	"github.com/trivago/tgo/ttesting"
+	"testing"
 )
 
 type dummyFormatter struct {
 	SimpleFormatter
-	ConfigureHasCalled bool
+	ConfigureHasCalled      bool
 	ApplyFormatterHasCalled bool
 }
 
@@ -38,7 +38,7 @@ func (format *dummyFormatter) ApplyFormatter(msg *Message) error {
 
 type dummyErrorFormatter struct {
 	SimpleFormatter
-	ConfigureHasCalled bool
+	ConfigureHasCalled      bool
 	ApplyFormatterHasCalled bool
 }
 
@@ -103,7 +103,7 @@ func TestFormatterArray(t *testing.T) {
 	formatter, _ := getDummyFormatter()
 	secondFormatter, _ := getDummyFormatter()
 
-	formatterArray := FormatterArray{formatter,secondFormatter}
+	formatterArray := FormatterArray{formatter, secondFormatter}
 	msg := NewMessage(nil, []byte("test"), InvalidStreamID)
 
 	expect.Nil(formatterArray.ApplyFormatter(msg))

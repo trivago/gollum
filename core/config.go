@@ -26,7 +26,7 @@ import (
 	"strings"
 )
 
-const pluginAggregate =  "aggregate"
+const pluginAggregate = "aggregate"
 
 var (
 	consumerInterface = reflect.TypeOf((*Consumer)(nil)).Elem()
@@ -67,7 +67,7 @@ func ReadConfig(buffer []byte) (*Config, error) {
 	// As there might be multiple instances of the same plugin class we iterate
 	// over an array here.
 	for pluginID, configValues := range config.Values {
-		if typeName, _ :=configValues.String("Type"); typeName == pluginAggregate {
+		if typeName, _ := configValues.String("Type"); typeName == pluginAggregate {
 			// aggregate behavior
 			aggregateMap, err := configValues.MarshalMap("Aggregate")
 			if err != nil {
