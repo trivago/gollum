@@ -55,14 +55,14 @@ import (
 // Partitioner defines the algorithm used to read messages from the stream.
 // The messages will be sent as a whole, no cropping or removal will take place.
 // By default this is set to "delimiter".
-//  - "delimiter" separates messages by looking for a delimiter string. The
-//    delimiter is included into the left hand message.
-//  - "ascii" reads an ASCII encoded number at a given offset until a given
-//    delimiter is found.
-//  - "binary" reads a binary number at a given offset and size
-//  - "binary_le" is an alias for "binary"
-//  - "binary_be" is the same as "binary" but uses big endian encoding
-//  - "fixed" assumes fixed size messages
+// * "delimiter" separates messages by looking for a delimiter string. The
+//   delimiter is included into the left hand message.
+// * "ascii" reads an ASCII encoded number at a given offset until a given
+//   delimiter is found.
+// * "binary" reads a binary number at a given offset and size
+// * "binary_le" is an alias for "binary"
+// * "binary_be" is the same as "binary" but uses big endian encoding
+// * "fixed" assumes fixed size messages
 //
 // Delimiter defines the delimiter used by the text and delimiter partitioner.
 // By default this is set to "\n".

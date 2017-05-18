@@ -41,9 +41,9 @@ import (
 //
 // Format defines the syslog standard to expect for message encoding.
 // Three standards are currently supported, by default this is set to "RFC6587".
-//  * RFC3164 (https://tools.ietf.org/html/rfc3164) udp only.
-//  * RFC5424 (https://tools.ietf.org/html/rfc5424) udp only.
-//  * RFC6587 (https://tools.ietf.org/html/rfc6587) tcp or udp.
+// * RFC3164 (https://tools.ietf.org/html/rfc3164) udp only.
+// * RFC5424 (https://tools.ietf.org/html/rfc5424) udp only.
+// * RFC6587 (https://tools.ietf.org/html/rfc6587) tcp or udp.
 type Syslogd struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 	format   format.Format // RFC3164, RFC5424 or RFC6587?

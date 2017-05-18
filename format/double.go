@@ -22,13 +22,15 @@ import (
 // together by using a separator. Both parts of the new message may be
 // formatted differently
 //
-//   - format.Double:
+// Configuration example
+//
+// - format.Double:
 //	 Separator: ":"
-//       UseLeftStreamID: false
-//       Left:
-//         - "format.Forward"
-//       Right:
-//         - "format.Forward"
+//   UseLeftStreamID: false
+//   Left:
+//   - "format.Forward"
+//   Right:
+//   - "format.Forward"
 //
 // Separator sets the separator string placed between both parts.
 // This is set to ":" by default.

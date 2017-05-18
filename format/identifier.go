@@ -36,11 +36,11 @@ import (
 // IdentifierType defines the algorithm used to generate the message id.
 // This my be one of the following: "hash", "time", "seq", "seqhex".
 // By default this is set to "time".
-//  * When using "hash" the message payload will be hashed using fnv1a and returned as hex.
-//  * When using "time" the id will be formatted YYMMDDHHmmSSxxxxxxx where x denotes the sequence number modulo 10000000.
-//    I.e. 10mil messages per second are possible before there is a collision.
-//  * When using "seq" the id will be returned as the integer representation of the sequence number.
-//  * When using "seqhex" the id will be returned as the hex representation of the sequence number.
+// * When using "hash" the message payload will be hashed using fnv1a and returned as hex.
+// * When using "time" the id will be formatted YYMMDDHHmmSSxxxxxxx where x denotes the sequence number modulo 10000000.
+//   I.e. 10mil messages per second are possible before there is a collision.
+// * When using "seq" the id will be returned as the integer representation of the sequence number.
+// * When using "seqhex" the id will be returned as the hex representation of the sequence number.
 //
 // IdentifierDataFormatter defines the formatter for the data that is used to
 // build the identifier from. By default this is set to "format.Forward"

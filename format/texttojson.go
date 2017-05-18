@@ -37,9 +37,11 @@ const (
 )
 
 // TextToJSON formatter plugin
+//
 // TextToJSON is a formatter that passes a message encapsulated as JSON in the form
 // {"message":"..."}. The actual message is formatted by a nested formatter and
 // HTML escaped.
+//
 // Configuration example
 //
 //  - format.JSON:
@@ -74,36 +76,34 @@ const (
 // Spaces will be stripped from all fields but Token. If a fields requires a
 // colon it has to be escaped with a backslash. Other escape characters
 // supported are \n, \r and \t.
-//
 // Flags (Directives) can be a comma separated set of the following flags.
-//  * continue -> Prepend the token to the next match.
-//  * append   -> Append the token to the current match and continue reading.
-//  * include  -> Append the token to the current match.
-//  * push     -> Push the current state to the stack.
-//  * pop      -> Pop the stack and use the returned state if possible.
-//
+// * continue -> Prepend the token to the next match.
+// * append   -> Append the token to the current match and continue reading.
+// * include  -> Append the token to the current match.
+// * push     -> Push the current state to the stack.
+// * pop      -> Pop the stack and use the returned state if possible.
 // Function (Directives) can hold one of the following names.
-//  * key     -> Write the current match as a key.
-//  * val     -> Write the current match as a value without quotes.
-//  * esc     -> Write the current match as a escaped string value.
-//  * dat     -> Write the current match as a timestamp value.
-//  * arr     -> Start a new array.
-//  * obj     -> Start a new object.
-//  * end     -> Close an array or object.
-//  * arr+val -> arr followed by val.
-//  * arr+esc -> arr followed by esc.
-//  * arr+dat -> arr followed by dat.
-//  * val+end -> val followed by end.
-//  * esc+end -> esc followed by end.
-//  * dat+end -> dat followed by end.
-//
-// Rules for storage (Directives): if a value is written without a previous key write, a key will be auto
-// generated from the current parser state name. This does not happen when
-// inside an array.
-// If key is written without a previous value write, a null value will be
-// written. This does not happen after an object has been started.
-// A key write inside an array will cause the array to be closed. If the array
-// is nested, all arrays will be closed.
+// * key     -> Write the current match as a key.
+// * val     -> Write the current match as a value without quotes.
+// * esc     -> Write the current match as a escaped string value.
+// * dat     -> Write the current match as a timestamp value.
+// * arr     -> Start a new array.
+// * obj     -> Start a new object.
+// * end     -> Close an array or object.
+// * arr+val -> arr followed by val.
+// * arr+esc -> arr followed by esc.
+// * arr+dat -> arr followed by dat.
+// * val+end -> val followed by end.
+// * esc+end -> esc followed by end.
+// * dat+end -> dat followed by end.
+// Rules for storage (Directives):
+// * if a value is written without a previous key write, a key will be auto
+//   generated from the current parser state name. This does not happen when
+//   inside an array.
+// * If key is written without a previous value write, a null value will be
+//   written. This does not happen after an object has been started.
+// * A key write inside an array will cause the array to be closed. If the array
+//   is nested, all arrays will be closed.
 type TextToJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	message   *bytes.Buffer
