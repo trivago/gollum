@@ -132,7 +132,6 @@ func parseSourcePath(sourcePath string) (*ast.Package, *token.FileSet) {
 // https://groups.google.com/forum/#!topic/golang-nuts/iv63CKEG2do
 func getImportDir(packageName string) string {
 	packagePath, found := globalImportMap[packageName]
-	fmt.Printf("globalImportMap[%q]==%q (found: %d)", packageName, packagePath, found)
 	if ! found {
 		return ""
 	}
