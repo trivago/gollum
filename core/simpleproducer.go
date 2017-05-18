@@ -241,7 +241,7 @@ func (prod *SimpleProducer) ControlLoop() {
 		command := <-prod.control
 		switch command {
 		default:
-			prod.Log.Debug.Print("Recieved untracked command")
+			prod.Log.Debug.Print("Received untracked command")
 			// Do nothing
 
 		case PluginControlStopProducer:
@@ -265,7 +265,7 @@ func (prod *SimpleProducer) ControlLoop() {
 			return // ### return ###
 
 		case PluginControlRoll:
-			prod.Log.Debug.Print("Recieved roll command")
+			prod.Log.Debug.Print("Received roll command")
 			if prod.onRoll != nil {
 				prod.onRoll()
 			}

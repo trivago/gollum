@@ -122,7 +122,7 @@ func (channel MessageQueue) Pop() (*Message, bool) {
 	return msg, more
 }
 
-// Close stops the buffer from being able to recieve messages
+// Close stops the buffer from being able to receive messages
 func (channel MessageQueue) Close() {
 	close(channel)
 }

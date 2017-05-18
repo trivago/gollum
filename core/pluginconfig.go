@@ -55,7 +55,7 @@ func NewNestedPluginConfig(defaultTypename string, values tcontainer.MarshalMap)
 	return conf, err
 }
 
-// registerKey registeres a key to the validKeys map as lowercase and returns
+// registerKey registers a key to the validKeys map as lowercase and returns
 // the lowercase key
 func (conf *PluginConfig) registerKey(key string) string {
 	lowerCaseKey := strings.ToLower(key)

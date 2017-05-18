@@ -167,12 +167,12 @@ func main() {
 
 	// Start the coordinator
 
-	coordinater := NewCoordinator()
-	coordinater.Configure(config)
+	coordinator := NewCoordinator()
+	coordinator.Configure(config)
 
-	defer coordinater.Shutdown()
-	coordinater.StartPlugins()
-	coordinater.Run()
+	defer coordinator.Shutdown()
+	coordinator.StartPlugins()
+	coordinator.Run()
 }
 
 func parseAddress(address string) (string, error) {

@@ -129,7 +129,7 @@ func (reader PluginConfigReaderWithError) GetStreamID(key string, defaultValue M
 }
 
 // GetPlugin creates a nested plugin from a config map. The default type has
-// to be passed and is overriden if the config specifies a type.
+// to be passed and is overridden if the config specifies a type.
 // The value stored in the config can either be a string or a map. If a map
 // is found it is used to override defaultConfig. If a string is found it is
 // used to override defaultType.

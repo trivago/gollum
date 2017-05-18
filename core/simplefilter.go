@@ -40,7 +40,7 @@ func (filter *SimpleFilter) SetLogScope(log tlog.LogScope) {
 	filter.Log = log
 }
 
-// Configure sets up all values requred by SimpleFormatter.
+// Configure sets up all values required by SimpleFormatter.
 func (filter *SimpleFilter) Configure(conf PluginConfigReader) error {
 	filter.Log = conf.GetSubLogScope("Filter")
 	filter.filteredStreamID = GetStreamID(conf.GetString("FilteredStream", InvalidStream))
