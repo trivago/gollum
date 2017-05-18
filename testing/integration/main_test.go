@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-var TmpTestFiles = []string{TmpTestFilePathDefault, TmpTestFilePathFoo, TmpTestFilePathBar}
+var TmpTestFiles = []string{tmpTestFilePathDefault, tmpTestFilePathFoo, tmpTestFilePathBar}
 
 func setup() {
 	removeTestResultFile()
