@@ -200,7 +200,7 @@ func getPackageImportMap(astPackage *ast.Package) map[string]string {
 			result[packageName] = packagePath
 		}
 
-		// Add this file's local path to import list - there may not be other refernces to this package
+		// Add this file's local path to import list - there may not be other references to this package
 		tmp, exists := result[file.Name.Name]
 		if exists && tmp != path.Dir(fileName) {
 			fmt.Printf("WARNING: Possible package naming conflict in file %q: package %q references both importdir %q and relative dir %q\n",

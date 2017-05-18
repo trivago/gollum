@@ -35,7 +35,6 @@ import (
 // FilterExpressionNot defines a negated regular expression used for matching
 // the message payload. If the expression matches, the message is blocked.
 // FilterExpressionNot is evaluated before FilterExpression.
-
 type RegExp struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
 	exp               *regexp.Regexp

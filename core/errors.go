@@ -18,7 +18,7 @@ import (
 	"fmt"
 )
 
-// ModulateResultError is used by modulators to return a problem that happend
+// ModulateResultError is used by modulators to return a problem that happened
 // during the modulation process, caused by the modulator.
 type ModulateResultError struct {
 	message string

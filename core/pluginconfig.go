@@ -149,7 +149,7 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
 	}
 
 	if !TypeRegistry.IsTypeRegistered(conf.Typename) {
-		errors.Pushf("Plugin %s is using an unkown type %s", conf.ID, conf.Typename)
+		errors.Pushf("Plugin %s is using an unknown type %s", conf.ID, conf.Typename)
 	}
 
 	if conf.Instances <= 0 {
