@@ -71,30 +71,9 @@ func (prod *DirectProducer) Configure(conf PluginConfigReader) error {
 // by the producer main loop. A timeout value != nil will overwrite the channel
 // timeout value for this call.
 func (prod *DirectProducer) Enqueue(msg *Message, timeout *time.Duration) {
-	defer func() {
-		if r := recover(); r != nil {
-			prod.Log.Error.Print("Recovered a panic during producer enqueue: ", r)
-			prod.Log.Error.Print("Producer: ", prod.id, "State: ", prod.GetState(), ", Router: ", StreamRegistry.GetStreamName(msg.StreamID()))
-			prod.TryFallback(msg)
-		}
-	}()
+	defer prod.enqueuePanicHandling(msg)
 
-	// Run modulators and drop message if necessary
-	result := prod.Modulate(msg)
-	switch result {
-	case ModulateResultDiscard:
-		DiscardMessage(msg)
-		return
-
-	case ModulateResultFallback:
-		RouteOriginal(msg, msg.GetRouter())
-		return
-
-	case ModulateResultContinue:
-		// OK
-
-	default:
-		prod.Log.Error.Print("Modulator result not supported:", result)
+	if prod.modulateMessage(msg) != ModulateResultContinue {
 		return
 	}
 
@@ -123,4 +102,34 @@ func (prod *DirectProducer) TickerMessageControlLoop(onMessage func(*Message), i
 	prod.setState(PluginStateActive)
 	prod.onMessage = onMessage
 	prod.TickerControlLoop(interval, onTimeOut)
+}
+
+// default message modulation handling
+func (prod *DirectProducer) modulateMessage(msg *Message) ModulateResult {
+	// Run modulators and drop message if necessary
+	result := prod.Modulate(msg)
+	switch result {
+	case ModulateResultDiscard:
+		DiscardMessage(msg)
+
+	case ModulateResultFallback:
+		RouteOriginal(msg, msg.GetRouter())
+
+	case ModulateResultContinue:
+		// OK
+
+	default:
+		prod.Log.Error.Print("Modulator result not supported:", result)
+	}
+
+	return result
+}
+
+// default panic handling for Enqueue() function
+func (prod *DirectProducer) enqueuePanicHandling(msg *Message) {
+	if r := recover(); r != nil {
+		prod.Log.Error.Print("Recovered a panic during producer enqueue: ", r)
+		prod.Log.Error.Print("Producer: ", prod.id, "State: ", prod.GetState(), ", Router: ", StreamRegistry.GetStreamName(msg.StreamID()))
+		prod.TryFallback(msg)
+	}
 }
