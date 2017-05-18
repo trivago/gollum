@@ -25,8 +25,8 @@ import (
 // enabled and streams). Use this producer to test consumer performance.
 type Null struct {
 	core.DirectProducer `gollumdoc:"embed_type"`
-	control chan core.PluginControl
-	streams []core.MessageStreamID
+	control             chan core.PluginControl
+	streams             []core.MessageStreamID
 }
 
 func init() {
