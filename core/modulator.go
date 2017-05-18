@@ -27,6 +27,10 @@ type Modulator interface {
 	Modulate(msg *Message) ModulateResult
 }
 
+// ModulatorArray is a type wrapper to []Modulator to make array of modulators
+// compatible with the modulator interface
+type ModulatorArray []Modulator
+
 // ScopedModulator extends the Modulator interface by adding a log scope.
 // This interface is implemented by modulators that are embedded in plugins
 // that already have their own scope.
@@ -51,10 +55,6 @@ const (
 	// that no further modulators should be called.
 	ModulateResultDiscard = ModulateResult(iota)
 )
-
-// ModulatorArray is a type wrapper to []Modulator to make array of modulators
-// compatible with the modulator interface
-type ModulatorArray []Modulator
 
 // Modulate calls Modulate on every Modulator in the array and react according
 // to the definition of each ModulateResult state.

@@ -36,7 +36,7 @@ If you can't find your answer in the documentation or have other questions you c
 
 * `Console` read from stdin.
 * `File` read from a file (like tail).
-* `Http` read http requests.
+* `HTTP` read http requests.
 * `Kafka` read from a [Kafka](http://kafka.apache.org/) topic.
 * `Kinesis` read from a [Kinesis](https://aws.amazon.com/de/kinesis/) stream.
 * `Profiler` Generate profiling messages.

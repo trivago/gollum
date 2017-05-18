@@ -19,34 +19,19 @@ import (
 	"time"
 )
 
-// MessageStreamID is the "compiled name" of a stream
-type MessageStreamID uint64
-
 // MessageQueue is the type used for transferring messages between plugins
 type MessageQueue chan *Message
 
-const (
-	// InvalidStream is used for invalid stream handling and maps to ""
-	InvalidStream = ""
-	// LogInternalStream is the name of the internal message channel (logs)
-	LogInternalStream = "_GOLLUM_"
-	// WildcardStream is the name of the "all routers" channel
-	WildcardStream = "*"
-	// MessageStateOk is returned if the message could be delivered
-	MessageStateOk = MessageState(iota)
-	// MessageStateTimeout is returned if a message timed out
-	MessageStateTimeout = MessageState(iota)
-	// MessageStateDiscard is returned if a message should be discarded
-	MessageStateDiscard = MessageState(iota)
-)
+// MessageQueueResult is used as a return value for the Enqueue method
+type MessageQueueResult int
 
-var (
-	// InvalidStreamID denotes an invalid stream for function returing stream IDs
-	InvalidStreamID = GetStreamID(InvalidStream)
-	// LogInternalStreamID is the ID of the "_GOLLUM_" stream
-	LogInternalStreamID = GetStreamID(LogInternalStream)
-	// WildcardStreamID is the ID of the "*" stream
-	WildcardStreamID = GetStreamID(WildcardStream)
+const (
+	// MessageQueueOk is returned if the message could be delivered
+	MessageQueueOk = MessageQueueResult(iota)
+	// MessageQueueTimeout is returned if a message timed out
+	MessageQueueTimeout = MessageQueueResult(iota)
+	// MessageQueueDiscard is returned if a message should be discarded
+	MessageQueueDiscard = MessageQueueResult(iota)
 )
 
 // NewMessageQueue creates a new message buffer of the given capacity
@@ -62,17 +47,17 @@ func NewMessageQueue(capacity int) MessageQueue {
 // consumer exists.
 // The source parameter is used when a message is sent to the fallback, i.e. it is passed
 // to the Drop function.
-func (channel MessageQueue) Push(msg *Message, timeout time.Duration) (state MessageState) {
+func (channel MessageQueue) Push(msg *Message, timeout time.Duration) (state MessageQueueResult) {
 	defer func() {
 		// Treat closed channels like timeouts
 		if recover() != nil {
-			state = MessageStateTimeout
+			state = MessageQueueTimeout
 		}
 	}()
 
 	if timeout == 0 {
 		channel <- msg
-		return MessageStateOk // ### return, done ###
+		return MessageQueueOk // ### return, done ###
 	}
 
 	start := time.Time{}
@@ -80,21 +65,21 @@ func (channel MessageQueue) Push(msg *Message, timeout time.Duration) (state Mes
 	for {
 		select {
 		case channel <- msg:
-			return MessageStateOk // ### return, done ###
+			return MessageQueueOk // ### return, done ###
 
 		default:
 			switch {
 			// Start timeout based retries
 			case start.IsZero():
 				if timeout < 0 {
-					return MessageStateDiscard // ### return, discard and ignore ###
+					return MessageQueueDiscard // ### return, discard and ignore ###
 				}
 				start = time.Now()
 				spin = tsync.NewSpinner(tsync.SpinPriorityHigh)
 
 			// Discard message after timeout
 			case time.Since(start) > timeout:
-				return MessageStateTimeout // ### return, fallback ###
+				return MessageQueueTimeout // ### return, fallback ###
 
 			// Yield and try again
 			default:
@@ -124,6 +109,7 @@ func (channel MessageQueue) PopWithTimeout(maxDuration time.Duration) (*Message,
 	timeout := time.NewTimer(maxDuration)
 	select {
 	case msg, more := <-channel:
+		timeout.Stop()
 		return msg, more
 	case <-timeout.C:
 		return nil, false

@@ -108,11 +108,11 @@ func (prod *BufferedProducer) Enqueue(msg *Message, timeout *time.Duration) {
 	}
 
 	switch prod.messages.Push(msg, usedTimeout) {
-	case MessageStateTimeout:
+	case MessageQueueTimeout:
 		prod.TryFallback(msg)
 		prod.setState(PluginStateWaiting)
 
-	case MessageStateDiscard:
+	case MessageQueueDiscard:
 		CountDiscardedMessage()
 		prod.setState(PluginStateWaiting)
 

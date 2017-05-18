@@ -18,26 +18,6 @@ import (
 	"github.com/trivago/tgo/tlog"
 )
 
-// FormatterArray is a type wrapper to []Formatter to make array of formatter
-type FormatterArray []Formatter
-
-// ApplyFormatter calls ApplyFormatter on every formatter
-func (formatters FormatterArray) ApplyFormatter(msg *Message) error {
-	for _, formatter := range formatters {
-		err := formatter.ApplyFormatter(msg)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// A Formatter defines a modification step inside the message
-// A Formatter also have to implement the modulator interface
-type Formatter interface {
-	ApplyFormatter(msg *Message) error
-}
-
 // FormatterModulator is a wrapper to provide a Formatter as a Modulator
 type FormatterModulator struct {
 	Formatter Formatter
@@ -50,7 +30,7 @@ func NewFormatterModulator(formatter Formatter) *FormatterModulator {
 	}
 }
 
-//  Modulate implementation for Formatter
+// Modulate implementation for Formatter
 func (formatterModulator *FormatterModulator) Modulate(msg *Message) ModulateResult {
 	err := formatterModulator.ApplyFormatter(msg)
 	if err != nil {
