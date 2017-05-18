@@ -66,9 +66,9 @@ import (
 //
 type ProcessTSV struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	directives   []tsvDirective
-	delimiter    string
-	quotedValues bool
+	directives           []tsvDirective
+	delimiter            string
+	quotedValues         bool
 }
 
 type tsvDirective struct {

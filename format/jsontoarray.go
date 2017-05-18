@@ -34,8 +34,8 @@ import (
 //
 type JSONToArray struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	separator string
-	fields    []string
+	separator            string
+	fields               []string
 }
 
 func init() {

@@ -36,8 +36,8 @@ import (
 // from Collectd to InfluxDB. By default this is set to format.Forward.
 type CollectdToInflux10 struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	tagString    *strings.Replacer
-	stringString *strings.Replacer
+	tagString            *strings.Replacer
+	stringString         *strings.Replacer
 }
 
 func init() {

@@ -25,9 +25,9 @@ import (
 // Producers will be switched one-by-one.
 type RoundRobin struct {
 	core.SimpleRouter `gollumdoc:"embed_type"`
-	index         int32
-	indexByStream map[core.MessageStreamID]*int32
-	mapInitLock   *sync.Mutex
+	index             int32
+	indexByStream     map[core.MessageStreamID]*int32
+	mapInitLock       *sync.Mutex
 }
 
 func init() {

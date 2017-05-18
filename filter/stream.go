@@ -40,8 +40,8 @@ import (
 // this list is empty.
 type Stream struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
-	blacklist []core.MessageStreamID
-	whitelist []core.MessageStreamID
+	blacklist         []core.MessageStreamID
+	whitelist         []core.MessageStreamID
 }
 
 func init() {

@@ -46,8 +46,8 @@ import (
 // build the identifier from. By default this is set to "format.Forward"
 type Identifier struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	hash func(*core.Message) []byte
-	seq  *int64
+	hash                 func(*core.Message) []byte
+	seq                  *int64
 }
 
 func init() {

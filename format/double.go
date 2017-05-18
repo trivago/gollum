@@ -39,11 +39,11 @@ import (
 // streamID of this formatter. Set to false by default.
 type Double struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	separator    []byte
-	leftStreamID bool
-	left         core.FormatterArray
-	right        core.FormatterArray
-	applyTo      string
+	separator            []byte
+	leftStreamID         bool
+	left                 core.FormatterArray
+	right                core.FormatterArray
+	applyTo              string
 }
 
 func init() {

@@ -42,8 +42,8 @@ import (
 // message. By default this is set to "format.Forward"
 type Envelope struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	postfix string
-	prefix  string
+	postfix              string
+	prefix               string
 }
 
 func init() {

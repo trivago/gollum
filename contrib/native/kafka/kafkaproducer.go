@@ -159,19 +159,19 @@ import (
 // after the formatter has run. By default no such filter is set.
 type KafkaProducer struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
-	servers           []string
-	clientID          string
-	keyModulators     core.ModulatorArray
-	client            *kafka.Client
-	config            kafka.Config
-	topicRequiredAcks int
-	topicTimeoutMs    int
-	pollInterval      time.Duration
-	topic             map[core.MessageStreamID]*topicHandle
-	topicHandles      map[string]*topicHandle
-	streamToTopic     map[core.MessageStreamID]string
-	topicGuard        *sync.RWMutex
-	keyFirst          bool
+	servers               []string
+	clientID              string
+	keyModulators         core.ModulatorArray
+	client                *kafka.Client
+	config                kafka.Config
+	topicRequiredAcks     int
+	topicTimeoutMs        int
+	pollInterval          time.Duration
+	topic                 map[core.MessageStreamID]*topicHandle
+	topicHandles          map[string]*topicHandle
+	streamToTopic         map[core.MessageStreamID]string
+	topicGuard            *sync.RWMutex
+	keyFirst              bool
 }
 
 type messageWrapper struct {

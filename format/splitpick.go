@@ -24,8 +24,8 @@ import (
 // ApplyTo defines the formatter content to use
 type SplitPick struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	index     int
-	delimiter []byte
+	index                int
+	delimiter            []byte
 }
 
 func init() {

@@ -78,14 +78,14 @@ const (
 // set to "\n".
 type File struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	file           *os.File
-	fileName       string
-	offsetFileName string
-	delimiter      string
-	seek           int
-	seekOnRotate   int
-	seekOffset     int64
-	state          fileState
+	file                *os.File
+	fileName            string
+	offsetFileName      string
+	delimiter           string
+	seek                int
+	seekOnRotate        int
+	seekOffset          int64
+	state               fileState
 }
 
 func init() {

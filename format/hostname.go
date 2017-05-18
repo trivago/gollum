@@ -35,7 +35,7 @@ import (
 // This is set to " " by default.
 type Hostname struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	separator []byte
+	separator            []byte
 }
 
 func init() {

@@ -95,18 +95,18 @@ const (
 // stream name.
 type Kinesis struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
-	client            *kinesis.Kinesis
-	config            *aws.Config
-	streamMap         map[core.MessageStreamID]string
-	batch             core.MessageBatch
-	recordMaxMessages int
-	delimiter         []byte
-	flushFrequency    time.Duration
-	lastSendTime      time.Time
-	sendTimeLimit     time.Duration
-	counters          map[string]*int64
-	lastMetricUpdate  time.Time
-	sequence          *int64
+	client                *kinesis.Kinesis
+	config                *aws.Config
+	streamMap             map[core.MessageStreamID]string
+	batch                 core.MessageBatch
+	recordMaxMessages     int
+	delimiter             []byte
+	flushFrequency        time.Duration
+	lastSendTime          time.Time
+	sendTimeLimit         time.Duration
+	counters              map[string]*int64
+	lastMetricUpdate      time.Time
+	sequence              *int64
 }
 
 const (

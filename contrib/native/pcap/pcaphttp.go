@@ -59,13 +59,13 @@ import (
 // By default this is set to 3000, i.e. 3 seconds.
 type PcapHTTPConsumer struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	netInterface   string
-	filter         string
-	promiscuous    bool
-	handle         *pcap.Pcap
-	sessions       pcapSessionMap
-	sessionTimeout time.Duration
-	sessionGuard   *sync.Mutex
+	netInterface        string
+	filter              string
+	promiscuous         bool
+	handle              *pcap.Pcap
+	sessions            pcapSessionMap
+	sessionTimeout      time.Duration
+	sessionGuard        *sync.Mutex
 }
 
 type pcapSessionMap map[uint32]*pcapSession

@@ -78,12 +78,12 @@ const (
 // For fixed this defines the size of a message. By default 1 is chosen.
 type Proxy struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	listen    io.Closer
-	protocol  string
-	address   string
-	flags     tio.BufferedReaderFlags
-	delimiter string
-	offset    int
+	listen              io.Closer
+	protocol            string
+	address             string
+	flags               tio.BufferedReaderFlags
+	delimiter           string
+	offset              int
 }
 
 func init() {

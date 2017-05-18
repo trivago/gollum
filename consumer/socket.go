@@ -102,20 +102,20 @@ const (
 // socket (unix://<path>) prior to connecting. Enabled by default.
 type Socket struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	listen        io.Closer
-	clientLock    *sync.Mutex
-	clients       *list.List
-	protocol      string
-	address       string
-	delimiter     string
-	acknowledge   string
-	reconnectTime time.Duration
-	ackTimeout    time.Duration
-	readTimeout   time.Duration
-	flags         tio.BufferedReaderFlags
-	fileFlags     os.FileMode
-	offset        int
-	clearSocket   bool
+	listen              io.Closer
+	clientLock          *sync.Mutex
+	clients             *list.List
+	protocol            string
+	address             string
+	delimiter           string
+	acknowledge         string
+	reconnectTime       time.Duration
+	ackTimeout          time.Duration
+	readTimeout         time.Duration
+	flags               tio.BufferedReaderFlags
+	fileFlags           os.FileMode
+	offset              int
+	clearSocket         bool
 }
 
 func init() {

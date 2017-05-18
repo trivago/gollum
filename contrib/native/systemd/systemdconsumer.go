@@ -54,10 +54,10 @@ import (
 // default this is set to "" which disables the offset file.
 type SystemdConsumer struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	journal    *sdjournal.Journal
-	offset     uint64
-	offsetFile string
-	running    bool
+	journal             *sdjournal.Journal
+	offset              uint64
+	offsetFile          string
+	running             bool
 }
 
 const (

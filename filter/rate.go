@@ -45,9 +45,9 @@ import (
 // By default this list is empty.
 type Rate struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
-	stateGuard *sync.RWMutex
-	state      map[core.MessageStreamID]*rateState
-	rateLimit  int64
+	stateGuard        *sync.RWMutex
+	state             map[core.MessageStreamID]*rateState
+	rateLimit         int64
 }
 
 const (

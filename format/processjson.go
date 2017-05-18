@@ -91,9 +91,9 @@ import (
 // Enabled by default.
 type ProcessJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	directives []transformDirective
-	trimValues bool
-	db         *geoip2.Reader
+	directives           []transformDirective
+	trimValues           bool
+	db                   *geoip2.Reader
 }
 
 type transformDirective struct {
