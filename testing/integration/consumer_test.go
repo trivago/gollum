@@ -17,6 +17,7 @@ const (
 )
 
 func TestFileConsumerDefault(t *testing.T) {
+	setup()
 	expect := ttesting.NewExpect(t)
 
 	// create file

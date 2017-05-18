@@ -65,7 +65,7 @@ func main() {
 		configFile = *flagConfigFile
 	}
 
-	config, err := core.ReadConfig(*flagConfigFile)
+	config, err := core.ReadConfigFromFile(*flagConfigFile)
 	if err != nil {
 		fmt.Printf("Config: %s\n", err.Error())
 		return // ### return, config error ###
