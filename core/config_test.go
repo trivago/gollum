@@ -15,10 +15,10 @@
 package core
 
 import (
-	"testing"
 	"github.com/trivago/tgo/ttesting"
 	"strings"
 	"sync"
+	"testing"
 )
 
 type TypeMockA struct {
@@ -40,7 +40,6 @@ func (router *TypeMockB) Start() error {
 func (router *TypeMockB) Enqueue(msg *Message) error {
 	return nil
 }
-
 
 func TestReadConfig(t *testing.T) {
 	expect := ttesting.NewExpect(t)
