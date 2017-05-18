@@ -58,7 +58,7 @@ import (
 // packet will restart the timer for the specific client session.
 // By default this is set to 3000, i.e. 3 seconds.
 type PcapHTTPConsumer struct {
-	core.SimpleConsumer
+	core.SimpleConsumer `gollumdoc:"embed_type"`
 	netInterface   string
 	filter         string
 	promiscuous    bool

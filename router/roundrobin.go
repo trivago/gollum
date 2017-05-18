@@ -24,7 +24,7 @@ import (
 // Messages will be sent to one of the producers attached to this router.
 // Producers will be switched one-by-one.
 type RoundRobin struct {
-	core.SimpleRouter
+	core.SimpleRouter `gollumdoc:"embed_type"`
 	index         int32
 	indexByStream map[core.MessageStreamID]*int32
 	mapInitLock   *sync.Mutex

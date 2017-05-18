@@ -30,7 +30,7 @@ import (
 //        ApplyTo: "payload" # payload or <metaKey>
 //
 type Trim struct {
-	core.SimpleFormatter
+	core.SimpleFormatter `gollumdoc:"embed_type"`
 	leftSeparator  []byte
 	rightSeparator []byte
 	leftOffset     int

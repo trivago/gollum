@@ -53,7 +53,7 @@ import (
 // the consumer is restarted that offset is used to continue reading. By
 // default this is set to "" which disables the offset file.
 type SystemdConsumer struct {
-	core.SimpleConsumer
+	core.SimpleConsumer `gollumdoc:"embed_type"`
 	journal    *sdjournal.Journal
 	offset     uint64
 	offsetFile string

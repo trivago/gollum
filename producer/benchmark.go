@@ -22,7 +22,7 @@ import (
 // Benchmark producer plugin
 // The producer is used to benchmark the core system.
 type Benchmark struct {
-	core.BufferedProducer
+	core.BufferedProducer `gollumdoc:"embed_type"`
 }
 
 func init() {

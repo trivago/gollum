@@ -69,7 +69,7 @@ import (
 // profiling is done. This can be used to e.g. read metrics after a profile run.
 // By default this is set to false.
 type Profiler struct {
-	core.SimpleConsumer
+	core.SimpleConsumer `gollumdoc:"embed_type"`
 	profileRuns int
 	batches     int
 	templates   [][]byte

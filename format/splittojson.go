@@ -50,7 +50,7 @@ import (
 //
 // ApplyTo defines the formatter content to use
 type SplitToJSON struct {
-	core.SimpleFormatter
+	core.SimpleFormatter `gollumdoc:"embed_type"`
 	token    []byte
 	keys     []string
 	keepJSON bool

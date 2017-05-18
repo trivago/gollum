@@ -45,7 +45,7 @@ import (
 // values. By default this is set to 0 i.e. all decimal places will be
 // omitted.
 type ExtractJSON struct {
-	core.SimpleFormatter
+	core.SimpleFormatter `gollumdoc:"embed_type"`
 	field        string
 	trimValues   bool
 	numberFormat string

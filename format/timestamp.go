@@ -33,7 +33,7 @@ import (
 //
 // ApplyTo defines the formatter content to use
 type Timestamp struct {
-	core.SimpleFormatter
+	core.SimpleFormatter `gollumdoc:"embed_type"`
 	timestampFormat string
 }
 

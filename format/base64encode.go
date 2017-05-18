@@ -32,7 +32,7 @@ import (
 // Base64DataFormatter defines a formatter that is applied before the base64
 // encoding takes place. By default this is set to "format.Forward"
 type Base64Encode struct {
-	core.SimpleFormatter
+	core.SimpleFormatter `gollumdoc:"embed_type"`
 	dictionary *base64.Encoding
 }
 

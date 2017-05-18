@@ -104,7 +104,7 @@ const (
 // RetrySleepTimeSec defines the number of seconds to wait after trying to
 // reconnect to a shard. By default this is set to 4.
 type Kinesis struct {
-	core.SimpleConsumer
+	core.SimpleConsumer `gollumdoc:"embed_type"`
 	client          *kinesis.Kinesis
 	config          *aws.Config
 	offsets         map[string]string

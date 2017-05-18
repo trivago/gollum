@@ -106,7 +106,7 @@ import (
 // BatchTimeoutSec defines the time in seconds after which a flush will be
 // triggered. By default this is set to 5.
 type ElasticSearch struct {
-	core.BufferedProducer
+	core.BufferedProducer `gollumdoc:"embed_type"`
 	conn               *elastigo.Conn
 	indexer            *elastigo.BulkIndexer
 	index              map[core.MessageStreamID]string

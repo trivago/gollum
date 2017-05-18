@@ -57,7 +57,7 @@ import (
 // name. If no mapping is given the gollum stream name is used as the
 // metric name.
 type Statsd struct {
-	core.BufferedProducer
+	core.BufferedProducer `gollumdoc:"embed_type"`
 	streamMap      map[core.MessageStreamID]string
 	client         *statsd.StatsdClient
 	batch          core.MessageBatch

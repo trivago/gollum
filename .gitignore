@@ -17,7 +17,8 @@ contrib/*
 contrib_loader.go
 
 # docs
-docs/_build
+docs/_build.html
+docs/generator/rst_generator
 
 # files
 *.prof

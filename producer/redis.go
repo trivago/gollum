@@ -70,7 +70,7 @@ import (
 // to true. If this is set to false the message will be send to the keyFormatter
 // before it has been formatted. By default this is set to false.
 type Redis struct {
-	core.BufferedProducer
+	core.BufferedProducer `gollumdoc:"embed_type"`
 	address         string
 	protocol        string
 	password        string

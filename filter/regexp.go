@@ -24,9 +24,9 @@ import (
 // Configuration example
 //
 //  - filter.RegExp:
-//  	Expression: "\d+-.*"
-//	ExpressionNot: "\d+-.*"
-//	ApplyTo: "payload" # payload or <metaKey>
+//    Expression: "\d+-.*"
+//	  ExpressionNot: "\d+-.*"
+//	  ApplyTo: "payload" # payload or <metaKey>
 //
 // FilterExpression defines the regular expression used for matching the message
 // payload. If the expression matches, the message is passed.
@@ -37,7 +37,7 @@ import (
 // FilterExpressionNot is evaluated before FilterExpression.
 
 type RegExp struct {
-	core.SimpleFilter
+	core.SimpleFilter `gollumdoc:"embed_type"`
 	exp               *regexp.Regexp
 	expNot            *regexp.Regexp
 	getAppliedContent core.GetAppliedContent

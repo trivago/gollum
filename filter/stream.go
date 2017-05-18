@@ -39,7 +39,7 @@ import (
 // that are not in this list are blocked unless the list is empty. By default
 // this list is empty.
 type Stream struct {
-	core.SimpleFilter
+	core.SimpleFilter `gollumdoc:"embed_type"`
 	blacklist []core.MessageStreamID
 	whitelist []core.MessageStreamID
 }

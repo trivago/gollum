@@ -137,7 +137,7 @@ const (
 // where Timestamp is time the object is written formatted with TimestampWrite,
 // and PathFormat is the output of PathFormatter when passed the object data.
 type S3 struct {
-	core.BufferedProducer
+	core.BufferedProducer `gollumdoc:"embed_type"`
 	client            *s3.S3
 	config            *aws.Config
 	storageClass      string
