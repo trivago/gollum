@@ -31,10 +31,10 @@ import (
 //
 type Trim struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	leftSeparator  []byte
-	rightSeparator []byte
-	leftOffset     int
-	rightOffset    int
+	leftSeparator        []byte
+	rightSeparator       []byte
+	leftOffset           int
+	rightOffset          int
 }
 
 func init() {

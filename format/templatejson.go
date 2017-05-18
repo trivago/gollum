@@ -37,7 +37,7 @@ import (
 // of TemplateJSONFormatter is returned.
 type TemplateJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	template *template.Template
+	template             *template.Template
 }
 
 func init() {

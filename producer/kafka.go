@@ -187,19 +187,19 @@ const (
 // If no topic mappings are set the stream names will be used as topic.
 type Kafka struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
-	servers         []string
-	topicGuard      *sync.RWMutex
-	topic           map[core.MessageStreamID]*topicHandle
-	topicHandles    map[string]*topicHandle
-	streamToTopic   map[core.MessageStreamID]string
-	clientID        string
-	client          kafka.Client
-	config          *kafka.Config
-	producer        kafka.AsyncProducer
-	missCount       int64
-	gracePeriod     time.Duration
-	nilValueAllowed bool
-	keyMetaField    string
+	servers               []string
+	topicGuard            *sync.RWMutex
+	topic                 map[core.MessageStreamID]*topicHandle
+	topicHandles          map[string]*topicHandle
+	streamToTopic         map[core.MessageStreamID]string
+	clientID              string
+	client                kafka.Client
+	config                *kafka.Config
+	producer              kafka.AsyncProducer
+	missCount             int64
+	gracePeriod           time.Duration
+	nilValueAllowed       bool
+	keyMetaField          string
 }
 
 type topicHandle struct {

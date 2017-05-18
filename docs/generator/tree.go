@@ -32,17 +32,17 @@ import (
 
 // One node in a tree
 type TreeNode struct {
-	AstNode     ast.Node
-	Depth       int
-	Parent      *TreeNode
-	Children    []*TreeNode
+	AstNode  ast.Node
+	Depth    int
+	Parent   *TreeNode
+	Children []*TreeNode
 }
 
 // One node in a search pattern tree
 type PatternNode struct {
-    Comparison  string
-	Callback    func(ast.Node) bool
-	Children    []PatternNode
+	Comparison string
+	Callback   func(ast.Node) bool
+	Children   []PatternNode
 }
 
 // A cursor for generating a tree of TreeNodes
@@ -58,7 +58,7 @@ func NewTree(rootAstNode ast.Node) *TreeNode {
 	treeCursor := treeCursor{}
 
 	// Stub root
-	treeCursor.root = &TreeNode {
+	treeCursor.root = &TreeNode{
 		AstNode:  nil,
 		Parent:   nil,
 		Children: []*TreeNode{},
@@ -132,7 +132,7 @@ func (treeNode *TreeNode) compare(pattern PatternNode) bool {
 	if treeNode.getComparison() != pattern.Comparison {
 		return false
 	}
-	if pattern.Callback != nil && ! pattern.Callback(treeNode.AstNode) {
+	if pattern.Callback != nil && !pattern.Callback(treeNode.AstNode) {
 		return false
 	}
 
@@ -148,7 +148,7 @@ func (treeNode *TreeNode) compare(pattern PatternNode) bool {
 
 	// Check children; assume same order
 	for i := 0; i < len(treeNode.Children); i++ {
-		if ! treeNode.Children[i].compare(pattern.Children[i]) {
+		if !treeNode.Children[i].compare(pattern.Children[i]) {
 			return false
 		}
 	}
@@ -165,7 +165,7 @@ func (treeNode *TreeNode) getComparison() string {
 
 // Prints a dump of the tree rooted at `treeNode` to stdout
 func (treeNode *TreeNode) Dump() {
-	fmt.Printf("%s<%p>%q\n", strings.Repeat(" ", 4 * treeNode.Depth), treeNode, treeNode.astNodeDump())
+	fmt.Printf("%s<%p>%q\n", strings.Repeat(" ", 4*treeNode.Depth), treeNode, treeNode.astNodeDump())
 	for _, child := range treeNode.Children {
 		child.Dump()
 	}

@@ -75,12 +75,12 @@ import (
 // For fixed this defines the size of a message. By default 1 is chosen.
 type Proxy struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
-	connection   net.Conn
-	protocol     string
-	address      string
-	bufferSizeKB int
-	reader       *tio.BufferedReader
-	timeout      time.Duration
+	connection            net.Conn
+	protocol              string
+	address               string
+	bufferSizeKB          int
+	reader                *tio.BufferedReader
+	timeout               time.Duration
 }
 
 func init() {

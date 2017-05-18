@@ -205,7 +205,7 @@ func (registry *streamRegistry) AddAllWildcardProducersToAllRouters() {
 		})
 }
 
-// Register registeres a router plugin to a given stream id
+// Register registers a router plugin to a given stream id
 func (registry *streamRegistry) Register(router Router, streamID MessageStreamID) {
 	registry.streamGuard.Lock()
 	defer registry.streamGuard.Unlock()

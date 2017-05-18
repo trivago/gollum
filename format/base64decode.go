@@ -36,7 +36,7 @@ import (
 // decoding takes place. By default this is set to "format.Forward"
 type Base64Decode struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	dictionary *base64.Encoding
+	dictionary           *base64.Encoding
 }
 
 func init() {

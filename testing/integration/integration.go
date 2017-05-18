@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	TmpTestFilePathDefault = "/tmp/gollum_test.log"
-	TmpTestFilePathFoo     = "/tmp/gollum_test_foo.log"
-	TmpTestFilePathBar     = "/tmp/gollum_test_bar.log"
+	tmpTestFilePathDefault = "/tmp/gollum_test.log"
+	tmpTestFilePathFoo     = "/tmp/gollum_test_foo.log"
+	tmpTestFilePathBar     = "/tmp/gollum_test_bar.log"
 )
 
 // ExecuteGollum execute gollum binary for integration testing
@@ -56,7 +56,7 @@ func ExecuteGollum(config string, inputs []string, arg ...string) (out bytes.Buf
 	return
 }
 
-func ExecuteGollumAndGetCmd(config string, inputs []string, arg ...string) (cmd *exec.Cmd) {
+func executeGollumAndGetCmd(config string, inputs []string, arg ...string) (cmd *exec.Cmd) {
 	if config != "" {
 		arg = append(arg, "-c="+getTestConfigPath(config))
 	}
@@ -96,8 +96,8 @@ func GetGollumCmd(timeout time.Duration, arg ...string) *exec.Cmd {
 	var cmd *exec.Cmd
 
 	if timeout > 0 {
-		ctx, _ := context.WithTimeout(context.Background(), timeout)
-		//defer cancel()
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		time.AfterFunc(timeout, cancel)
 
 		cmd = exec.CommandContext(ctx, "./gollum", arg...)
 	} else {
@@ -109,17 +109,17 @@ func GetGollumCmd(timeout time.Duration, arg ...string) *exec.Cmd {
 	return cmd
 }
 
-type ResultFile struct {
+type resultFile struct {
 	content string
 	lines   int
 }
 
-// GetResultFile returns file content as a string
-func GetResultFile(filepath string) (ResultFile, error) {
+// getResultFile returns file content as a string
+func getResultFile(filepath string) (resultFile, error) {
 	fileContent, lineCount := getResultFileData(filepath, 1)
 
 	// create result
-	result := ResultFile{}
+	result := resultFile{}
 	result.content = fileContent
 	result.lines = lineCount
 
@@ -183,7 +183,7 @@ func lineCounter(r io.Reader) (int, error) {
 		switch {
 		case err == io.EOF:
 			if count == 0 && hasChars == true {
-				count += 1 // one line without "\n"
+				count++ // one line without "\n"
 			}
 			return count, nil
 

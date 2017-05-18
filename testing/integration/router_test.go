@@ -24,7 +24,7 @@ func TestDefaultRouter(t *testing.T) {
 	expect.True(strings.Contains(out.String(), "(startup)"))
 
 	// get results from file target
-	ResultFile, err := GetResultFile(TmpTestFilePathDefault)
+	ResultFile, err := getResultFile(tmpTestFilePathDefault)
 	expect.NoError(err)
 
 	// final expectations
@@ -46,10 +46,10 @@ func TestDistributeRouter(t *testing.T) {
 	expect.True(strings.Contains(out.String(), "(startup)"))
 
 	// get results from file target
-	ResultFileFoo, err := GetResultFile(TmpTestFilePathFoo)
+	ResultFileFoo, err := getResultFile(tmpTestFilePathFoo)
 	expect.NoError(err)
 
-	ResultFileBar, err := GetResultFile(TmpTestFilePathBar)
+	ResultFileBar, err := getResultFile(tmpTestFilePathBar)
 	expect.NoError(err)
 
 	// final expectations

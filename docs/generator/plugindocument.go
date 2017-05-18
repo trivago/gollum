@@ -2,19 +2,19 @@
 package main
 
 import (
-	"strings"
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 // Represents the inline documentation from a Gollum plugin's source
 type PluginDocument struct {
-	PackageName      string   // Name of Go package
-	PluginName       string   // Name of Go type
-	Description      string   // Description paragraph(s)
-	Example          string   // Config example paragraph
-	Parameters       []PluginParameter              // This plugin's own config parameters
-	ParameterSets    map[string][]PluginParameter   // Inherited config parameters
+	PackageName   string                       // Name of Go package
+	PluginName    string                       // Name of Go type
+	Description   string                       // Description paragraph(s)
+	Example       string                       // Config example paragraph
+	Parameters    []PluginParameter            // This plugin's own config parameters
+	ParameterSets map[string][]PluginParameter // Inherited config parameters
 }
 
 type PluginParameter struct {
@@ -24,8 +24,9 @@ type PluginParameter struct {
 
 // Parser state
 type parserState uint8
+
 const (
-	PARSER_STATE_TITLE            parserState = iota
+	PARSER_STATE_TITLE parserState = iota
 	PARSER_STATE_DESCRIPTION
 	PARSER_STATE_EXAMPLE
 	PARSER_STATE_PARAMETER_BEGIN
@@ -40,8 +41,8 @@ const (
 // Creates a new PluginDocument
 func NewPluginDocument(packageName string, pluginName string) PluginDocument {
 	pluginDocument := PluginDocument{
-		PackageName: packageName,
-		PluginName: pluginName,
+		PackageName:   packageName,
+		PluginName:    pluginName,
 		ParameterSets: make(map[string][]PluginParameter),
 	}
 	return pluginDocument
@@ -121,7 +122,7 @@ func (doc *PluginDocument) ParseString(comment string) {
 				continue
 			}
 			tmp := strings.SplitN(trimmedLine, " ", 2)
-			doc.Parameters= append(doc.Parameters, PluginParameter{
+			doc.Parameters = append(doc.Parameters, PluginParameter{
 				name: tmp[0],
 				desc: tmp[1] + "\n",
 			})
@@ -145,7 +146,7 @@ func (doc *PluginDocument) ParseString(comment string) {
 // Imports the .Parameters property of `document` into this document's
 // inherited param list at .ParameterSets[<document.package>.<document.name>]
 func (doc *PluginDocument) IncludeParameters(document PluginDocument) {
-	doc.ParameterSets[document.PackageName + "." + document.PluginName] = document.Parameters
+	doc.ParameterSets[document.PackageName+"."+document.PluginName] = document.Parameters
 	for name, paramSet := range document.ParameterSets {
 		doc.ParameterSets[name] = paramSet
 	}

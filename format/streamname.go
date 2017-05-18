@@ -37,8 +37,8 @@ import (
 // ApplyTo defines the formatter content to use
 type StreamName struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	separator   []byte
-	usePrevious bool
+	separator            []byte
+	usePrevious          bool
 }
 
 func init() {

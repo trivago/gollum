@@ -41,16 +41,3 @@ type SerialMessageSource interface {
 	// Notify the end of the response stream
 	ResponseDone()
 }
-
-// LinkableMessageSource extends the MessageSource interface to allow a pipe
-// like behaviour between two components that communicate messages.
-type LinkableMessageSource interface {
-	MessageSource
-	// Link the message source to the message receiver. This makes it possible
-	// to create stable "pipes" between e.g. a consumer and producer.
-	Link(pipe interface{})
-
-	// IsLinked has to return true if Link executed successful and does not
-	// need to be called again.
-	IsLinked() bool
-}

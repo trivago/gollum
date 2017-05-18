@@ -40,20 +40,20 @@ func TestMessageEnqueue(t *testing.T) {
 	msg := getMockMessage(msgString)
 	buffer := NewMessageQueue(0)
 
-	expect.Equal(MessageStateDiscard, buffer.Push(msg, -1))
+	expect.Equal(MessageQueueDiscard, buffer.Push(msg, -1))
 
 	go func() {
-		expect.Equal(MessageStateOk, buffer.Push(msg, 0))
+		expect.Equal(MessageQueueOk, buffer.Push(msg, 0))
 	}()
 
 	retMsg, _ := buffer.Pop()
 	expect.Equal(msgString, retMsg.String())
 
 	retStatus := buffer.Push(msg, 10*time.Millisecond)
-	expect.Equal(MessageStateTimeout, retStatus)
+	expect.Equal(MessageQueueTimeout, retStatus)
 
 	go func() {
-		expect.Equal(MessageStateOk, buffer.Push(msg, 1*time.Second))
+		expect.Equal(MessageQueueOk, buffer.Push(msg, 1*time.Second))
 	}()
 
 	retMsg, _ = buffer.Pop()

@@ -54,10 +54,10 @@ const (
 // (e.g. when a pipe is closed). This is set to false by default.
 type Console struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	autoExit bool
-	pipe     *os.File
-	pipeName string
-	pipePerm uint32
+	autoExit            bool
+	pipe                *os.File
+	pipeName            string
+	pipePerm            uint32
 }
 
 func init() {

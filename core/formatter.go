@@ -14,25 +14,22 @@
 
 package core
 
-import (
-	"fmt"
-)
-
-// ModulateResultError is used by modulators to return a problem that happend
-// during the modulation process, caused by the modulator.
-type ModulateResultError struct {
-	message string
+// A Formatter defines a modification step inside the message
+// A Formatter also have to implement the modulator interface
+type Formatter interface {
+	ApplyFormatter(msg *Message) error
 }
 
-// Error fullfills the golang error interface
-func (p ModulateResultError) Error() string {
-	return p.message
-}
+// FormatterArray is a type wrapper to []Formatter to make array of formatter
+type FormatterArray []Formatter
 
-// NewModulateResultError creates a new ModulateResultError with the given
-// message.
-func NewModulateResultError(message string, values ...interface{}) ModulateResultError {
-	return ModulateResultError{
-		message: fmt.Sprintf(message, values),
+// ApplyFormatter calls ApplyFormatter on every formatter
+func (formatters FormatterArray) ApplyFormatter(msg *Message) error {
+	for _, formatter := range formatters {
+		err := formatter.ApplyFormatter(msg)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }

@@ -27,14 +27,14 @@ import (
 	"time"
 )
 
-// Http consumer plugin
+// HTTP consumer plugin
 //
 // This consumer opens up an HTTP 1.1 server and processes the contents of any
 // incoming HTTP request.
 //
 // Configuration example
 //
-//  - "consumer.Http":
+//  - "consumer.HTTP":
 //    Address: ":80"
 //    ReadTimeoutSec: 3
 //    WithHeaders: true
@@ -64,24 +64,24 @@ import (
 // PrivateKey defines a path to the private key used for HTTPS connections.
 // Left empty by default (disabled).
 // If a Certificate is given, a PrivatKey must be given, too.
-type Http struct {
+type HTTP struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	listen         *tnet.StopListener
-	address        string
-	readTimeoutSec time.Duration
-	withHeaders    bool
-	htpasswd       string
-	secrets        auth.SecretProvider
-	basicRealm     string
-	certificate    *tls.Config
+	listen              *tnet.StopListener
+	address             string
+	readTimeoutSec      time.Duration
+	withHeaders         bool
+	htpasswd            string
+	secrets             auth.SecretProvider
+	basicRealm          string
+	certificate         *tls.Config
 }
 
 func init() {
-	core.TypeRegistry.Register(Http{})
+	core.TypeRegistry.Register(HTTP{})
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Http) Configure(conf core.PluginConfigReader) error {
+func (cons *HTTP) Configure(conf core.PluginConfigReader) error {
 	cons.SimpleConsumer.Configure(conf)
 
 	cons.address = conf.GetString("Address", ":80")
@@ -120,7 +120,7 @@ func (cons *Http) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-func (cons *Http) checkAuth(r *http.Request) bool {
+func (cons *HTTP) checkAuth(r *http.Request) bool {
 	a := &auth.BasicAuth{Realm: cons.basicRealm, Secrets: cons.secrets}
 	if a.CheckAuth(r) == "" {
 		return false
@@ -129,7 +129,7 @@ func (cons *Http) checkAuth(r *http.Request) bool {
 }
 
 // requestHandler will handle a single web request.
-func (cons *Http) requestHandler(resp http.ResponseWriter, req *http.Request) {
+func (cons *HTTP) requestHandler(resp http.ResponseWriter, req *http.Request) {
 	if cons.htpasswd != "" {
 		if !cons.checkAuth(req) {
 			resp.WriteHeader(http.StatusUnauthorized)
@@ -168,7 +168,7 @@ func (cons *Http) requestHandler(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (cons *Http) serve() {
+func (cons *HTTP) serve() {
 	defer cons.WorkerDone()
 
 	srv := http.Server{
@@ -185,7 +185,7 @@ func (cons *Http) serve() {
 }
 
 // Consume opens a new http server listen on specified ip and port (address)
-func (cons Http) Consume(workers *sync.WaitGroup) {
+func (cons HTTP) Consume(workers *sync.WaitGroup) {
 	listen, err := tnet.NewStopListener(cons.address)
 	if err != nil {
 		cons.Log.Error.Print(err)

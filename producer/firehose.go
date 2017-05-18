@@ -95,17 +95,17 @@ const (
 // stream name.
 type Firehose struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
-	client            *firehose.Firehose
-	config            *aws.Config
-	streamMap         map[core.MessageStreamID]string
-	batch             core.MessageBatch
-	recordMaxMessages int
-	delimiter         []byte
-	flushFrequency    time.Duration
-	lastSendTime      time.Time
-	sendTimeLimit     time.Duration
-	counters          map[string]*int64
-	lastMetricUpdate  time.Time
+	client                *firehose.Firehose
+	config                *aws.Config
+	streamMap             map[core.MessageStreamID]string
+	batch                 core.MessageBatch
+	recordMaxMessages     int
+	delimiter             []byte
+	flushFrequency        time.Duration
+	lastSendTime          time.Time
+	sendTimeLimit         time.Duration
+	counters              map[string]*int64
+	lastMetricUpdate      time.Time
 }
 
 const (

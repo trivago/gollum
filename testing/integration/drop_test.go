@@ -25,10 +25,10 @@ func TestDropProducerFilter(t *testing.T) {
 	expect.NoError(err)
 	expect.True(strings.Contains(out.String(), "(startup)"))
 
-	ResultFileDefault, err := GetResultFile(TmpTestFilePathDefault)
+	ResultFileDefault, err := getResultFile(tmpTestFilePathDefault)
 	expect.NoError(err)
 
-	ResultFileDrops, err := GetResultFile(TmpTestFilePathFoo)
+	ResultFileDrops, err := getResultFile(tmpTestFilePathFoo)
 	expect.NoError(err)
 
 	// final expectations
@@ -51,10 +51,10 @@ func TestDropRouterFilter(t *testing.T) {
 	expect.NoError(err)
 	expect.True(strings.Contains(out.String(), "(startup)"))
 
-	ResultFileDefault, err := GetResultFile(TmpTestFilePathDefault)
+	ResultFileDefault, err := getResultFile(tmpTestFilePathDefault)
 	expect.NoError(err)
 
-	ResultFileDrops, err := GetResultFile(TmpTestFilePathFoo)
+	ResultFileDrops, err := getResultFile(tmpTestFilePathFoo)
 	expect.NoError(err)
 
 	// final expectations
@@ -78,10 +78,10 @@ func TestDropConsumerFilter(t *testing.T) {
 	expect.NoError(err)
 	expect.True(strings.Contains(out.String(), "(startup)"))
 
-	ResultFileDefault, err := GetResultFile(TmpTestFilePathDefault)
+	ResultFileDefault, err := getResultFile(tmpTestFilePathDefault)
 	expect.NoError(err)
 
-	ResultFileDrops, err := GetResultFile(TmpTestFilePathFoo)
+	ResultFileDrops, err := getResultFile(tmpTestFilePathFoo)
 	expect.NoError(err)
 
 	// final expectations

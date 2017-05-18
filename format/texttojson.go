@@ -106,15 +106,15 @@ const (
 //   is nested, all arrays will be closed.
 type TextToJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	message   *bytes.Buffer
-	parser    tstrings.TransitionParser
-	state     jsonReaderState
-	stack     []jsonReaderState
-	parseLock *sync.Mutex
-	initState string
-	timeRead  string
-	timeWrite string
-	timeParse func(string, string) (time.Time, error)
+	message              *bytes.Buffer
+	parser               tstrings.TransitionParser
+	state                jsonReaderState
+	stack                []jsonReaderState
+	parseLock            *sync.Mutex
+	initState            string
+	timeRead             string
+	timeWrite            string
+	timeParse            func(string, string) (time.Time, error)
 }
 
 func init() {

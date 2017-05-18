@@ -27,10 +27,10 @@ func TestProducerAggregation(t *testing.T) {
 	expect.NoError(err)
 	expect.True(strings.Contains(out.String(), "(startup)"))
 
-	resultFileProducer1, err := GetResultFile(TmpTestFilePathFoo)
+	resultFileProducer1, err := getResultFile(tmpTestFilePathFoo)
 	expect.NoError(err)
 
-	resultFileProducer2, err := GetResultFile(TmpTestFilePathBar)
+	resultFileProducer2, err := getResultFile(tmpTestFilePathBar)
 	expect.NoError(err)
 
 	// final expectations
@@ -46,14 +46,14 @@ func TestProducerAggregationPipeline(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	// create files
-	fileFoo, err := os.OpenFile(TmpTestFilePathFoo, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	fileFoo, err := os.OpenFile(tmpTestFilePathFoo, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	defer fileFoo.Close()
 	expect.NoError(err)
 
 	_, err = fileFoo.Write([]byte("hello\ngo\n"))
 	expect.NoError(err)
 
-	fileBar, err := os.OpenFile(TmpTestFilePathBar, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	fileBar, err := os.OpenFile(tmpTestFilePathBar, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	defer fileBar.Close()
 	expect.NoError(err)
 
@@ -61,7 +61,7 @@ func TestProducerAggregationPipeline(t *testing.T) {
 	expect.NoError(err)
 
 	// execute gollum
-	cmd := ExecuteGollumAndGetCmd(testPipelineAggregationConfig, []string{}, "-ll=2")
+	cmd := executeGollumAndGetCmd(testPipelineAggregationConfig, []string{}, "-ll=2")
 	time.Sleep(2 * time.Second) // wait till gollum should booted
 
 	// write more to files - result for gollum
@@ -78,7 +78,7 @@ func TestProducerAggregationPipeline(t *testing.T) {
 	expect.True(strings.Contains(out, "(startup)"))
 
 	// get results from file targets
-	ResultFile, err := GetResultFile(TmpTestFilePathDefault)
+	ResultFile, err := getResultFile(tmpTestFilePathDefault)
 	expect.NoError(err)
 
 	// final expectations filter in producer

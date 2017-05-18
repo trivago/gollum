@@ -14,10 +14,6 @@
 
 package core
 
-import (
-	"github.com/trivago/tgo/tlog"
-)
-
 // A Filter defines an analysis step inside the message
 // A filter also have to implement the modulator interface
 type Filter interface {
@@ -41,41 +37,4 @@ func (filters FilterArray) ApplyFilter(msg *Message) (FilterResult, error) {
 		}
 	}
 	return FilterResultMessageAccept, nil
-}
-
-// FilterModulator is a wrapper to provide a Filter as a Modulator
-type FilterModulator struct {
-	Filter Filter
-}
-
-// NewFilterModulator return a instance of FilterModulator
-func NewFilterModulator(filter Filter) *FilterModulator {
-	return &FilterModulator{
-		Filter: filter,
-	}
-}
-
-// Modulate implementation for Filters
-func (filterModulator *FilterModulator) Modulate(msg *Message) ModulateResult {
-	result, err := filterModulator.ApplyFilter(msg)
-	if err != nil {
-		tlog.Warning.Print("FilterModulator with error:", err)
-	}
-
-	if result == FilterResultMessageAccept {
-		return ModulateResultContinue
-	}
-
-	newStreamID := result.GetStreamID()
-	if newStreamID == InvalidStreamID {
-		return ModulateResultDiscard
-	}
-
-	msg.SetStreamID(newStreamID)
-	return ModulateResultFallback
-}
-
-// ApplyFilter calls the Filter.ApplyFilter method
-func (filterModulator *FilterModulator) ApplyFilter(msg *Message) (FilterResult, error) {
-	return filterModulator.Filter.ApplyFilter(msg)
 }

@@ -155,7 +155,7 @@ func TestPluginConfigGetString(t *testing.T) {
 	mockPluginCfg := NewPluginConfig("", "mockPlugin")
 	mockPluginCfgReader := NewPluginConfigReaderWithError(&mockPluginCfg)
 
-	//check for non-existant key
+	//check for non-existent key
 	value, err := mockPluginCfgReader.GetString("akey", "default")
 	expect.NoError(err)
 	expect.Equal(value, "default")

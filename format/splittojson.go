@@ -51,9 +51,9 @@ import (
 // ApplyTo defines the formatter content to use
 type SplitToJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	token    []byte
-	keys     []string
-	keepJSON bool
+	token                []byte
+	keys                 []string
+	keepJSON             bool
 }
 
 func init() {
@@ -85,7 +85,7 @@ func (format *SplitToJSON) ApplyFormatter(msg *core.Message) error {
 		for i := 0; i < maxIdx; i++ {
 			key := tstrings.EscapeJSON(format.keys[i])
 			value := string(components[i])
-			if isJson, _, _ := tstrings.IsJSON(components[i]); !format.keepJSON || !isJson {
+			if isJSON, _, _ := tstrings.IsJSON(components[i]); !format.keepJSON || !isJSON {
 				value = "\"" + tstrings.EscapeJSON(value) + "\""
 			}
 

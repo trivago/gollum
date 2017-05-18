@@ -46,9 +46,9 @@ import (
 // * RFC6587 (https://tools.ietf.org/html/rfc6587) tcp or udp.
 type Syslogd struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	format   format.Format // RFC3164, RFC5424 or RFC6587?
-	protocol string
-	address  string
+	format              format.Format // RFC3164, RFC5424 or RFC6587?
+	protocol            string
+	address             string
 }
 
 func init() {

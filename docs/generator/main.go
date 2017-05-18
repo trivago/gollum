@@ -18,10 +18,10 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"os"
 	"io"
-	"strings"
+	"os"
 	"path"
+	"strings"
 )
 
 const EMBED_TAG = "`gollumdoc:\"embed_type\"`"
@@ -29,13 +29,13 @@ const EMBED_TAG = "`gollumdoc:\"embed_type\"`"
 // Represents a "type FooPlugin struct { .... }" declaration parsed from the
 // source and its immediately preceding comment block.
 type pluginStructType struct {
-	Pkg         string
-	Name        string
-	Comment     string
-	Embeds      []typeEmbed
+	Pkg     string
+	Name    string
+	Comment string
+	Embeds  []typeEmbed
 }
 type typeEmbed struct {
-	pkg string
+	pkg  string
 	name string
 }
 
@@ -97,14 +97,14 @@ func parseSourcePath(sourcePath string) (*ast.Package, *token.FileSet) {
 	// Always ignore *_test.go files to avoid unexpected "foo_test" packages.
 	parseDir := sourcePath
 	parseFilter := func(filterStat os.FileInfo) bool {
-		return ! strings.HasSuffix(filterStat.Name(), "_test.go")
+		return !strings.HasSuffix(filterStat.Name(), "_test.go")
 	}
 
-	if ! sourceFileStat.IsDir() {
-		parseDir = strings.TrimSuffix(sourcePath, "/" + sourceFileStat.Name())
+	if !sourceFileStat.IsDir() {
+		parseDir = strings.TrimSuffix(sourcePath, "/"+sourceFileStat.Name())
 		parseFilter = func(filterStat os.FileInfo) bool {
 			return filterStat.Name() == sourceFileStat.Name() &&
-				! strings.HasSuffix(filterStat.Name(), "_test.go")
+				!strings.HasSuffix(filterStat.Name(), "_test.go")
 		}
 	}
 
@@ -132,7 +132,7 @@ func parseSourcePath(sourcePath string) (*ast.Package, *token.FileSet) {
 // https://groups.google.com/forum/#!topic/golang-nuts/iv63CKEG2do
 func getImportDir(packageName string) string {
 	packagePath, found := globalImportMap[packageName]
-	if ! found {
+	if !found {
 		return ""
 	}
 
@@ -153,7 +153,7 @@ func getImportDir(packageName string) string {
 		if err != nil {
 			continue
 		}
-		if ! stat.IsDir() {
+		if !stat.IsDir() {
 			continue
 		}
 
@@ -176,7 +176,7 @@ func getPackageImportMap(astPackage *ast.Package) map[string]string {
 		// Iterate imports in this file
 		for _, importSpec := range file.Imports {
 			// Remove quotes
-			packagePath := importSpec.Path.Value[1:len(importSpec.Path.Value)-1]
+			packagePath := importSpec.Path.Value[1 : len(importSpec.Path.Value)-1]
 
 			// Determine package name
 			var packageName string
@@ -240,9 +240,9 @@ func getPluginStructTypes(pkgRoot *ast.Package) []pluginStructType {
 	**/
 
 	// Search pattern
-	pattern := PatternNode {
+	pattern := PatternNode{
 		Comparison: "*ast.GenDecl",
-        Children: []PatternNode {
+		Children: []PatternNode{
 			{
 				Comparison: "*ast.CommentGroup",
 				// Note: there are N pcs of "*ast.Comment" children
@@ -250,17 +250,17 @@ func getPluginStructTypes(pkgRoot *ast.Package) []pluginStructType {
 			},
 			{
 				Comparison: "*ast.TypeSpec",
-				Children: []PatternNode {
+				Children: []PatternNode{
 					{
 						Comparison: "*ast.Ident",
-						Callback:   func(astNode ast.Node) bool {
+						Callback: func(astNode ast.Node) bool {
 							// Checks that the name starts with a capital letter
 							return ast.IsExported(astNode.(*ast.Ident).Name)
 						},
 					},
 					{
 						Comparison: "*ast.StructType",
-						Children: []PatternNode {
+						Children: []PatternNode{
 							{
 								Comparison: "*ast.FieldList",
 								// There are N pcs of "*ast.Field" children here
@@ -276,11 +276,11 @@ func getPluginStructTypes(pkgRoot *ast.Package) []pluginStructType {
 	results := []pluginStructType{}
 	for _, genDecl := range tree.Search(pattern) {
 		pst := pluginStructType{
-			Pkg:     pkgRoot.Name,
+			Pkg: pkgRoot.Name,
 			// Indexes assumed based on the search pattern above
 			Name:    genDecl.Children[1].Children[0].AstNode.(*ast.Ident).Name,
 			Comment: genDecl.Children[0].AstNode.(*ast.CommentGroup).Text(),
-			Embeds:  getStructTypeEmbedList(pkgRoot.Name,
+			Embeds: getStructTypeEmbedList(pkgRoot.Name,
 				genDecl.Children[1].Children[1].Children[0].AstNode.(*ast.FieldList),
 			),
 		}

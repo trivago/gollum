@@ -29,8 +29,8 @@ import (
 //       ApplyTo: "payload" # payload or <metaKey>
 type RegExp struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	expression *regexp.Regexp
-	template   []byte
+	expression           *regexp.Regexp
+	template             []byte
 }
 
 func init() {

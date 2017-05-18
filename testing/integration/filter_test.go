@@ -24,7 +24,7 @@ func TestRegexpFilter(t *testing.T) {
 	expect.True(strings.Contains(out.String(), "(startup)"))
 
 	// final expectations filter in router
-	ResultFileFilterInRouter, err := GetResultFile(TmpTestFilePathFoo)
+	ResultFileFilterInRouter, err := getResultFile(tmpTestFilePathFoo)
 	expect.NoError(err)
 
 	expect.True(strings.Contains(ResultFileFilterInRouter.content, "abc"))
@@ -33,7 +33,7 @@ func TestRegexpFilter(t *testing.T) {
 	expect.Equal(2, ResultFileFilterInRouter.lines)
 
 	// final expectations filter in producer
-	ResultFileFilterInProducer, err := GetResultFile(TmpTestFilePathBar)
+	ResultFileFilterInProducer, err := getResultFile(tmpTestFilePathBar)
 	expect.NoError(err)
 
 	expect.True(strings.Contains(ResultFileFilterInProducer.content, "abc"))
@@ -42,7 +42,7 @@ func TestRegexpFilter(t *testing.T) {
 	expect.Equal(2, ResultFileFilterInProducer.lines)
 
 	// final expectations filter in meta data
-	ResultFileFilterInMetaData, err := GetResultFile(TmpTestFilePathDefault)
+	ResultFileFilterInMetaData, err := getResultFile(tmpTestFilePathDefault)
 	expect.NoError(err)
 
 	expect.True(strings.Contains(ResultFileFilterInMetaData.content, "abc"))

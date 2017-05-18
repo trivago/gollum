@@ -70,13 +70,13 @@ import (
 // By default this is set to false.
 type Profiler struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	profileRuns int
-	batches     int
-	templates   [][]byte
-	chars       string
-	message     string
-	delay       time.Duration
-	keepRunning bool
+	profileRuns         int
+	batches             int
+	templates           [][]byte
+	chars               string
+	message             string
+	delay               time.Duration
+	keepRunning         bool
 }
 
 var profilerDefaultCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 "

@@ -138,31 +138,31 @@ const (
 // and PathFormat is the output of PathFormatter when passed the object data.
 type S3 struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
-	client            *s3.S3
-	config            *aws.Config
-	storageClass      string
-	streamMap         map[core.MessageStreamID]string
-	pathFormat        core.Modulator
-	batch             core.MessageBatch
-	objectMaxMessages int
-	delimiter         []byte
-	flushFrequency    time.Duration
-	timeWrite         string
-	lastSendTime      time.Time
-	sendTimeLimit     time.Duration
-	counters          map[string]*int64
-	lastMetricUpdate  time.Time
-	closing           bool
-	compress          bool
-	fileMaxAge        time.Duration
-	fileMaxSize       int
-	localPath         string
-	nextFile          int64
-	objects           map[string]*objectData
-	objectsLock       *sync.Mutex
-	stateFile         string
-	uploadOnShutdown  bool
-	useFiles          bool
+	client                *s3.S3
+	config                *aws.Config
+	storageClass          string
+	streamMap             map[core.MessageStreamID]string
+	pathFormat            core.Modulator
+	batch                 core.MessageBatch
+	objectMaxMessages     int
+	delimiter             []byte
+	flushFrequency        time.Duration
+	timeWrite             string
+	lastSendTime          time.Time
+	sendTimeLimit         time.Duration
+	counters              map[string]*int64
+	lastMetricUpdate      time.Time
+	closing               bool
+	compress              bool
+	fileMaxAge            time.Duration
+	fileMaxSize           int
+	localPath             string
+	nextFile              int64
+	objects               map[string]*objectData
+	objectsLock           *sync.Mutex
+	stateFile             string
+	uploadOnShutdown      bool
+	useFiles              bool
 }
 
 const (

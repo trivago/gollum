@@ -71,17 +71,17 @@ import (
 // before it has been formatted. By default this is set to false.
 type Redis struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
-	address         string
-	protocol        string
-	password        string
-	database        int
-	key             string
-	client          *redis.Client
-	store           func(msg *core.Message)
-	fieldModulators core.ModulatorArray
-	keyModulators   core.ModulatorArray
-	fieldFromParsed bool
-	keyFromParsed   bool
+	address               string
+	protocol              string
+	password              string
+	database              int
+	key                   string
+	client                *redis.Client
+	store                 func(msg *core.Message)
+	fieldModulators       core.ModulatorArray
+	keyModulators         core.ModulatorArray
+	fieldFromParsed       bool
+	keyFromParsed         bool
 }
 
 func init() {
