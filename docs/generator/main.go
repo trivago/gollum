@@ -21,6 +21,7 @@ import (
 	"os"
 	"io"
 	"strings"
+	"path"
 )
 
 const EMBED_TAG = "`gollumdoc:\"embed_type\"`"
@@ -131,12 +132,15 @@ func parseSourcePath(sourcePath string) (*ast.Package, *token.FileSet) {
 // https://groups.google.com/forum/#!topic/golang-nuts/iv63CKEG2do
 func getImportDir(packageName string) string {
 	packagePath, found := globalImportMap[packageName]
+	fmt.Printf("globalImportMap[%q]==%q (found: %d)", packageName, packagePath, found)
 	if ! found {
 		return ""
 	}
 
+	// ./<packagePath> is needed to resolve references to plugin's own package
 	searchList := []string{
 		"./" + packageName,
+		"./" + packagePath,
 		"./vendor/" + packagePath,
 		os.Getenv("GOPATH") + "/src/" + packagePath,
 	}
@@ -170,8 +174,6 @@ func getPackageImportMap(astPackage *ast.Package) map[string]string {
 	// Iterate files in this package
 	// (There's also an *ast.Package.Imports property but it seems to be empty)
 	for fileName, file := range astPackage.Files {
-		//fmt.Printf("filename=%s\n", fileName)
-
 		// Iterate imports in this file
 		for _, importSpec := range file.Imports {
 			// Remove quotes
@@ -198,6 +200,14 @@ func getPackageImportMap(astPackage *ast.Package) map[string]string {
 
 			result[packageName] = packagePath
 		}
+
+		// Add this file's local path to import list - there may not be other refernces to this package
+		tmp, exists := result[file.Name.Name]
+		if exists && tmp != path.Dir(fileName) {
+			fmt.Printf("WARNING: Possible package naming conflict in file %q: package %q references both importdir %q and relative dir %q\n",
+				fileName, file.Name.Name, tmp, path.Dir(fileName))
+		}
+		result[file.Name.Name] = path.Dir(fileName)
 	}
 
 	return result
@@ -330,6 +340,7 @@ func (pst pluginStructType) createPluginDocument() PluginDocument {
 	// in this plugin's document.
 	for _, embed := range pst.Embeds {
 		importDir := getImportDir(embed.pkg)
+		fmt.Printf("importdir(%s): %s\n", embed.pkg, importDir)
 		astPackage, _ := parseSourcePath(importDir)
 		for _, embedPst := range getPluginStructTypes(astPackage) {
 			if embedPst.Pkg == embed.pkg && embedPst.Name == embed.name {
