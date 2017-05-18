@@ -1,6 +1,6 @@
-![Gollum](docs/src/gollum.png)
+# Gollum v0.5.0
 
-## Gollum v0.5.0
+![Gollum](docs/src/gollum.png)
 
 ***This is a DEVELOPMENT branch.***
 Please read the list of [breaking changes](https://github.com/trivago/gollum/wiki/Breaking050) from 0.4.x to 0.5.0.
@@ -111,28 +111,28 @@ If you can't find your answer in the documentation or have other questions you c
 
 ### From source
 
-Installation from source requires the installation of the [Go toolchain](http://golang.org/).  
+Installation from source requires the installation of the [Go toolchain](http://golang.org/).
 Gollum supports the Go 1.5 vendor experiment that is automatically enabled when using the provided makefile.
 With Go 1.6 and later you can also use `go build` directly without additional modifications.
 Builds with Go 1.4 or earlier versions are not officially supported and might require additional steps and modifications.
 
-```
-$ make
-$ ./gollum --help
+```bash
+make
+./gollum --help
 ```
 
-You can use the make file coming with gollum to trigger cross platform builds.  
+You can use the make file coming with gollum to trigger cross platform builds.
 Make will produce ready to deploy .zip files with the corresponding platform builds inside the dist folder.
 
 ## Usage
 
 To test gollum you can make a local profiler run with a predefined configuration:
 
-```
-$ gollum -c config/profile.conf -ps -ll 3
+```bash
+gollum -c config/profile.conf -ps -ll 3
 ```
 
-By default this test profiles the theoretic maximum throughput of 256 Byte messages.  
+By default this test profiles the theoretic maximum throughput of 256 Byte messages.
 You can enable different producers in that config to test the write performance of these producers, too.
 
 ## Configuration
@@ -202,27 +202,32 @@ Print version information and quit.
 
 ### Mac OS X
 
-The easiest way to install go is by using homebrew:  
-`brew install go`
+The easiest way to install go is by using homebrew:
+
+```bash
+brew install go
+```
 
 ### Linux
 
-Download Go from the [golang website](https://golang.org/dl/) and unzip it to e.g. /usr/local/go.  
-You have to set the GOROOT environment variable to the folder you chose:  
+Download Go from the [golang website](https://golang.org/dl/) and unzip it to e.g. /usr/local/go.
+You have to set the GOROOT environment variable to the folder you chose:
 `export GOROOT=/usr/local/go`
 
 ### Prerequisites
 
-If you do not already have a GOPATH set up you need to create one.  
+If you do not already have a GOPATH set up you need to create one.
 The location is free of choice, we prefer to put it into each users home folder:
-```
+
+```bash
 mkdir -p ~/go
 export GOPATH=$(HOME)/go
 ```
 
-You can download gollum via `go get github.com/trivago/gollum` or clone it directly into your GOPATH.  
+You can download gollum via `go get github.com/trivago/gollum` or clone it directly into your GOPATH.
 If you choose this way you need to download your dependencies directly from that folder
-```
+
+```bash
 mkdir -p $(GOPATH)/src/github.com/trivago
 cd $(GOPATH)/src/github.com/trivago
 git clone https://github.com/trivago/gollum.git
@@ -234,19 +239,21 @@ cd gollum
 Building gollum is as easy as `make` or `go build`.
 When using Go 1.5 make sure to enable the go vendor experiment by setting `export GO15VENDOREXPERIMENT=1` or use `make`.
 If you want to do cross platform builds use `make all` or specify one of the following platforms instead of "all":
- * `current` build for current OS (default)
- * `freebsd` build for FreeBSD 
- * `linux` build for Linux x64
- * `mac` build for MacOS X
- * `pi` build for Linux ARM
- * `win` build for Windows
- 
+
+* `current` build for current OS (default)
+* `freebsd` build for FreeBSD
+* `linux` build for Linux x64
+* `mac` build for MacOS X
+* `pi` build for Linux ARM
+* `win` build for Windows
+
 There are also supplementary targets for make:
- * `clean` clean all artifacts created by the build process
- * `test` run unittests
- * `vendor` install [Glide](https://github.com/Masterminds/glide) and update all dependencies
- * `aws` build for Linux x64 and generate an [Elastic Beanstalk](https://aws.amazon.com/de/elasticbeanstalk/) package
- 
+
+* `clean` clean all artifacts created by the build process
+* `test` run unittests
+* `vendor` install [Glide](https://github.com/Masterminds/glide) and update all dependencies
+* `aws` build for Linux x64 and generate an [Elastic Beanstalk](https://aws.amazon.com/de/elasticbeanstalk/) package
+
 If you want to use native plugins (contrib/native) or self provided you will have to enable the corresponding imports in the file `contrib_loader.go`. You can copy the `contrib_loader.go.dist` file here and active the plugins you want to use.
 
 Doing so will disable the possibility to do cross-platform builds for most users.
@@ -256,15 +263,15 @@ Please check also the requirements for each plugin.
 
 The repository contains a `Dockerfile` which enables you to build and run gollum inside a Docker container.
 
-```
-$ docker build -t trivago/gollum .
-$ docker run -it --rm trivago/gollum -c config/profile.conf -ps -ll 3
+```bash
+docker build -t trivago/gollum .
+docker run -it --rm trivago/gollum -c config/profile.conf -ps -ll 3
 ```
 
 To use your own configuration you could run:
 
-```sh
-$ docker run -it --rm -v /path/to/config.conf:/etc/gollum/gollum.conf:ro trivago/gollum -c /etc/gollum/gollum.conf
+```bash
+docker run -it --rm -v /path/to/config.conf:/etc/gollum/gollum.conf:ro trivago/gollum -c /etc/gollum/gollum.conf
 ```
 
 ## Best practice
@@ -273,7 +280,7 @@ $ docker run -it --rm -v /path/to/config.conf:/etc/gollum/gollum.conf:ro trivago
 
 You can add a own plugin module by simple using `git submodule`:
 
-```sh
+```bash
 git submodule add -f https://github.com/YOUR_NAMESPACE/YOUR_REPO.git contrib/namespace
 ```
 

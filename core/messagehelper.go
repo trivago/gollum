@@ -1,6 +1,10 @@
 package core
 
-const ApplyToPayloadString = "payload"
+const (
+	// ApplyToPayloadString defines the reserved word denoting the payload field
+	// when using the parameter "ApplyTo" in formatters
+	ApplyToPayloadString = "payload"
+)
 
 // GetAppliedContent is a func() to get message content from payload or meta data
 // for later handling by plugins

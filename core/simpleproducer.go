@@ -118,12 +118,12 @@ func (prod *SimpleProducer) Configure(conf PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-// Adds a health check at the default URL (http://<addr>:<port>/<plugin_id>)
+// AddHealthCheck adds a health check at the default URL (http://<addr>:<port>/<plugin_id>)
 func (prod *SimpleProducer) AddHealthCheck(callback thealthcheck.CallbackFunc) {
 	prod.AddHealthCheckAt("", callback)
 }
 
-// Adds a health check at a subpath (http://<addr>:<port>/<plugin_id><path>)
+// AddHealthCheckAt adds a health check at a subpath (http://<addr>:<port>/<plugin_id><path>)
 func (prod *SimpleProducer) AddHealthCheckAt(path string, callback thealthcheck.CallbackFunc) {
 	thealthcheck.AddEndpoint("/"+prod.GetID()+path, callback)
 }
