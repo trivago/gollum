@@ -39,15 +39,14 @@ import (
 //      - "bar"
 //
 type BufferedProducer struct {
-	SimpleProducer `gollumdoc:"embed_type"`
+	DirectProducer `gollumdoc:"embed_type"`
 	messages       MessageQueue
 	channelTimeout time.Duration
-	onMessage      func(*Message)
 }
 
 // Configure initializes the standard producer config values.
 func (prod *BufferedProducer) Configure(conf PluginConfigReader) error {
-	prod.SimpleProducer.Configure(conf)
+	prod.DirectProducer.Configure(conf)
 	prod.onPrepareStop = prod.DefaultDrain
 	prod.onStop = prod.DefaultClose
 
@@ -68,37 +67,16 @@ func (prod *BufferedProducer) GetQueueTimeout() time.Duration {
 // by the producer main loop. A timeout value != nil will overwrite the channel
 // timeout value for this call.
 func (prod *BufferedProducer) Enqueue(msg *Message, timeout *time.Duration) {
-	defer func() {
-		if r := recover(); r != nil {
-			prod.Log.Error.Print("Recovered a panic during producer enqueue: ", r)
-			prod.Log.Error.Print("Producer: ", prod.id, "State: ", prod.GetState(), ", Router: ", StreamRegistry.GetStreamName(msg.StreamID()))
-			prod.TryFallback(msg)
-		}
-	}()
-
-	// Run modulators and drop message if necessary
-	result := prod.Modulate(msg)
-	switch result {
-	case ModulateResultDiscard:
-		DiscardMessage(msg)
-		return
-
-	case ModulateResultFallback:
-		RouteOriginal(msg, msg.GetRouter())
-		return
-
-	case ModulateResultContinue:
-		// OK
-
-	default:
-		prod.Log.Error.Print("Modulator result not supported:", result)
-		return
-	}
+	defer prod.enqueuePanicHandling(msg)
 
 	// Don't accept messages if we are shutting down
 	if prod.GetState() >= PluginStateStopping {
 		prod.TryFallback(msg)
 		return // ### return, closing down ###
+	}
+
+	if prod.HasContinueAfterModulate(msg) == false {
+		return
 	}
 
 	// Allow timeout overwrite
@@ -182,8 +160,8 @@ func (prod *BufferedProducer) CloseMessageChannel(handleMessage func(*Message)) 
 	}
 }
 
-// MessageControlLoop provides a producer mainloop that is sufficient for most
-// usecases. ControlLoop will be called in a separate go routine.
+// MessageControlLoop provides a producer main loop that is sufficient for most
+// use cases. ControlLoop will be called in a separate go routine.
 // This function will block until a stop signal is received.
 func (prod *BufferedProducer) MessageControlLoop(onMessage func(*Message)) {
 	prod.setState(PluginStateActive)

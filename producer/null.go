@@ -24,7 +24,7 @@ import (
 // This producer does nothing and provides only bare-bone configuration (i.e.
 // enabled and streams). Use this producer to test consumer performance.
 type Null struct {
-	core.SimpleProducer `gollumdoc:"embed_type"`
+	core.DirectProducer `gollumdoc:"embed_type"`
 	control             chan core.PluginControl
 	streams             []core.MessageStreamID
 }
@@ -35,7 +35,7 @@ func init() {
 
 // Configure initializes the basic members
 func (prod *Null) Configure(conf core.PluginConfigReader) error {
-	return prod.SimpleProducer.Configure(conf)
+	return prod.DirectProducer.Configure(conf)
 }
 
 // Enqueue simply ignores the message

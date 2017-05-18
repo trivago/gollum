@@ -36,14 +36,16 @@ func (prod *mockProducer) Produce(workers *sync.WaitGroup) {
 func getMockProducer() mockProducer {
 	return mockProducer{
 		BufferedProducer{
-			SimpleProducer: SimpleProducer{
-				control:         make(chan PluginControl),
-				streams:         []MessageStreamID{},
-				fallbackStream:  nil, //it must be set after registration of stream
-				runState:        new(PluginRunState),
-				modulators:      ModulatorArray{},
-				shutdownTimeout: 10 * time.Millisecond,
-				Log:             tlog.NewLogScope("test"),
+			DirectProducer: DirectProducer{
+				SimpleProducer: SimpleProducer{
+					control:         make(chan PluginControl),
+					streams:         []MessageStreamID{},
+					fallbackStream:  nil, //it must be set after registration of stream
+					runState:        new(PluginRunState),
+					modulators:      ModulatorArray{},
+					shutdownTimeout: 10 * time.Millisecond,
+					Log:             tlog.NewLogScope("test"),
+				},
 			},
 			messages:       NewMessageQueue(2),
 			channelTimeout: 500 * time.Millisecond,

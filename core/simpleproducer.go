@@ -225,6 +225,29 @@ func (prod *SimpleProducer) Modulate(msg *Message) ModulateResult {
 	return prod.modulators.Modulate(msg)
 }
 
+// HasContinueAfterModulate applies all modulators by Modulate, handle the ModulateResult
+// and return if you have to continue the message process.
+// This method is a default producer modulate handling.
+func (prod *SimpleProducer) HasContinueAfterModulate(msg *Message) bool {
+	switch result := prod.Modulate(msg); result {
+	case ModulateResultDiscard:
+		DiscardMessage(msg)
+		return false
+
+	case ModulateResultFallback:
+		RouteOriginal(msg, msg.GetRouter())
+		return false
+
+	case ModulateResultContinue:
+		// OK
+		return true
+
+	default:
+		prod.Log.Error.Print("Modulator result not supported:", result)
+		return false
+	}
+}
+
 // TryFallback routes the message to the configured fallback stream.
 func (prod *SimpleProducer) TryFallback(msg *Message) {
 	RouteOriginal(msg, prod.fallbackStream)

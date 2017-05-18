@@ -22,7 +22,7 @@ import (
 // Benchmark producer plugin
 // The producer is used to benchmark the core system.
 type Benchmark struct {
-	core.BufferedProducer `gollumdoc:"embed_type"`
+	core.DirectProducer `gollumdoc:"embed_type"`
 }
 
 func init() {
@@ -31,8 +31,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Benchmark) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
-	return conf.Errors.OrNil()
+	return prod.DirectProducer.Configure(conf)
 }
 
 func (prod *Benchmark) null(msg *core.Message) {
