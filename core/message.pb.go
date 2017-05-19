@@ -8,7 +8,7 @@ It is generated from these files:
 	message.proto
 
 It has these top-level messages:
-	serializedMessage
+	SerializedMessage
 */
 package core
 
@@ -27,50 +27,50 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
-type serializedMessage struct {
+type SerializedMessage struct {
 	StreamID     *uint64 `protobuf:"varint,1,req,name=StreamID" json:"StreamID,omitempty"`
 	PrevStreamID *uint64 `protobuf:"varint,2,req,name=PrevStreamID" json:"PrevStreamID,omitempty"`
 	Timestamp    *int64  `protobuf:"varint,3,req,name=Timestamp" json:"Timestamp,omitempty"`
 	// required uint64 Sequence = 4;
-	Data         []byte            `protobuf:"bytes,5,req,name=Data" json:"Data,omitempty"`
-	MetaData     map[string][]byte `protobuf:"bytes,6,rep,name=MetaData" json:"MetaData,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Unrecognized []byte            `json:"-"`
+	Data             []byte            `protobuf:"bytes,5,req,name=Data" json:"Data,omitempty"`
+	MetaData         map[string][]byte `protobuf:"bytes,6,rep,name=MetaData" json:"MetaData,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	XXX_unrecognized []byte            `json:"-"`
 }
 
-func (m *serializedMessage) Reset()                    { *m = serializedMessage{} }
-func (m *serializedMessage) String() string            { return proto.CompactTextString(m) }
-func (*serializedMessage) ProtoMessage()               {}
-func (*serializedMessage) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
+func (m *SerializedMessage) Reset()                    { *m = SerializedMessage{} }
+func (m *SerializedMessage) String() string            { return proto.CompactTextString(m) }
+func (*SerializedMessage) ProtoMessage()               {}
+func (*SerializedMessage) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
 
-func (m *serializedMessage) GetStreamID() uint64 {
+func (m *SerializedMessage) GetStreamID() uint64 {
 	if m != nil && m.StreamID != nil {
 		return *m.StreamID
 	}
 	return 0
 }
 
-func (m *serializedMessage) GetPrevStreamID() uint64 {
+func (m *SerializedMessage) GetPrevStreamID() uint64 {
 	if m != nil && m.PrevStreamID != nil {
 		return *m.PrevStreamID
 	}
 	return 0
 }
 
-func (m *serializedMessage) GetTimestamp() int64 {
+func (m *SerializedMessage) GetTimestamp() int64 {
 	if m != nil && m.Timestamp != nil {
 		return *m.Timestamp
 	}
 	return 0
 }
 
-func (m *serializedMessage) GetData() []byte {
+func (m *SerializedMessage) GetData() []byte {
 	if m != nil {
 		return m.Data
 	}
 	return nil
 }
 
-func (m *serializedMessage) GetMetaData() map[string][]byte {
+func (m *SerializedMessage) GetMetaData() map[string][]byte {
 	if m != nil {
 		return m.MetaData
 	}
@@ -78,7 +78,7 @@ func (m *serializedMessage) GetMetaData() map[string][]byte {
 }
 
 func init() {
-	proto.RegisterType((*serializedMessage)(nil), "serializedMessage")
+	proto.RegisterType((*SerializedMessage)(nil), "serializedMessage")
 }
 
 func init() { proto.RegisterFile("message.proto", fileDescriptor0) }

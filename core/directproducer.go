@@ -18,7 +18,7 @@ import (
 	"time"
 )
 
-// BufferedProducer plugin base type
+// DirectProducer plugin base type
 // This type defines a common baseclass for producers. All producers should
 // derive from this class, but not necessarily need to.
 // Configuration example:
