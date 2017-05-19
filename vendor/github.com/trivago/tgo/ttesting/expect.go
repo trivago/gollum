@@ -19,6 +19,7 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -684,14 +685,22 @@ func (e Expect) MapGeq(data interface{}, key interface{}, value interface{}) boo
 // timed out it is an error.
 func (e Expect) NonBlocking(t time.Duration, routine func()) bool {
 	cmd := make(chan struct{})
+
+	started := new(sync.WaitGroup)
+	started.Add(1)
+
 	go func() {
+		started.Done()
 		routine()
 		close(cmd)
 	}()
 
+	started.Wait() // wait for go routine to get scheduled
+
 	select {
 	case <-cmd:
 		return true
+
 	case <-time.After(t):
 		e.errorf("Evaluation timed out.")
 		return false

@@ -258,16 +258,27 @@ func TestProducerControlLoop(t *testing.T) {
 		atomic.StoreInt32(roll, 1)
 	}
 
-	go expect.NonBlocking(2*time.Second, mockP.ControlLoop)
-	time.Sleep(50 * time.Millisecond)
-	mockP.control <- PluginControlStopProducer // trigger stopLoop (stop expect.NonBlocking)
-	time.Sleep(50 * time.Millisecond)
+	waitForTest := new(sync.WaitGroup)
+	waitForTest.Add(1)
+	go func() {
+		defer waitForTest.Done()
+		expect.NonBlocking(2*time.Second, mockP.ControlLoop)
+	}()
+
+	mockP.Control() <- PluginControlStopProducer // trigger stopLoop (stop expect.NonBlocking)
+	waitForTest.Wait()
 	expect.Equal(atomic.LoadInt32(stop), int32(1))
 
-	go expect.NonBlocking(2*time.Second, mockP.ControlLoop)
-	time.Sleep(50 * time.Millisecond)
-	mockP.control <- PluginControlRoll // trigger rollLoop (stop expect.NonBlocking)
-	time.Sleep(50 * time.Millisecond)
+	waitForTest.Add(1)
+	go func() {
+		defer waitForTest.Done()
+		expect.NonBlocking(2*time.Second, mockP.ControlLoop)
+	}()
+
+	mockP.Control() <- PluginControlRoll // trigger rollLoop
+	mockP.Control() <- PluginControlStopProducer
+
+	waitForTest.Wait()
 	expect.Equal(atomic.LoadInt32(roll), int32(1))
 
 }
