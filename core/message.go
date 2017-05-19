@@ -230,7 +230,7 @@ func (msg *Message) CloneOriginal() *Message {
 // Serialize generates a string containing all data that can be preserved over
 // shutdown (i.e. no data directly referencing runtime components).
 func (msg Message) Serialize() ([]byte, error) {
-	serializable := &serializedMessage{
+	serializable := &SerializedMessage{
 		StreamID:     proto.Uint64(uint64(msg.data.streamID)),
 		PrevStreamID: proto.Uint64(uint64(msg.prevStreamID)),
 		Timestamp:    proto.Int64(msg.timestamp.UnixNano()),
@@ -244,7 +244,7 @@ func (msg Message) Serialize() ([]byte, error) {
 // DeserializeMessage generates a message from a string produced by
 // Message.Serialize.
 func DeserializeMessage(data []byte) (Message, error) {
-	serializable := new(serializedMessage)
+	serializable := new(SerializedMessage)
 	err := proto.Unmarshal(data, serializable)
 
 	msg := Message{

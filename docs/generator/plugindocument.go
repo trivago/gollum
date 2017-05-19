@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// Represents the inline documentation from a Gollum plugin's source
+// PluginDocument represents the inline documentation from a Gollum plugin's source
 type PluginDocument struct {
 	PackageName   string                       // Name of Go package
 	PluginName    string                       // Name of Go type
@@ -17,6 +17,7 @@ type PluginDocument struct {
 	ParameterSets map[string][]PluginParameter // Inherited config parameters
 }
 
+// PluginParameter represents a single configuration parameter in a Gollum plugin
 type PluginParameter struct {
 	name string
 	desc string
@@ -26,19 +27,19 @@ type PluginParameter struct {
 type parserState uint8
 
 const (
-	PARSER_STATE_TITLE parserState = iota
-	PARSER_STATE_DESCRIPTION
-	PARSER_STATE_EXAMPLE
-	PARSER_STATE_PARAMETER_BEGIN
-	PARSER_STATE_PARAMETER_CONT
+	parserStateTitle          parserState = iota
+	parserStateDescription
+	parserStateExample
+	parserStateParameterBegin
+	parserStateParameterCont
 )
 
 // Magics
 const (
-	PARSER_STANZA_EXAMPLE_RE string = "^configuration example(\\:|)$"
+	parserStanzaExampleRe string = "^configuration example(\\:|)$"
 )
 
-// Creates a new PluginDocument
+// NewPluginDocument creates a new PluginDocument object for the named plugin
 func NewPluginDocument(packageName string, pluginName string) PluginDocument {
 	pluginDocument := PluginDocument{
 		PackageName:   packageName,
@@ -48,8 +49,10 @@ func NewPluginDocument(packageName string, pluginName string) PluginDocument {
 	return pluginDocument
 }
 
-// Parses and imports a string ( == contents of a comment block
-// without the leading "//"s) into this PluginDocument.
+// ParseString parses and imports a string into this PluginDocument. The string
+// should be the text of the comment block preceding the the plugin's
+// `type FooBar struct { ... }` declaration, without the preceding `// `s. The
+// comment block is assumed to have the following syntax:
 //
 // Structure of comment block:
 //
@@ -81,42 +84,42 @@ func (doc *PluginDocument) ParseString(comment string) {
 
 	lines := strings.Split(comment, "\n")
 
-	state := PARSER_STATE_TITLE
+	state := parserStateTitle
 	for _, line := range lines {
 		// Trim whitespace
 		trimmedLine := strings.Trim(line, " \t")
 
 		// Assign rows in their places
 		switch state {
-		case PARSER_STATE_TITLE:
+		case parserStateTitle:
 			// first line, ignored
-			state = PARSER_STATE_DESCRIPTION
+			state = parserStateDescription
 
-		case PARSER_STATE_DESCRIPTION:
-			matched, err := regexp.MatchString(PARSER_STANZA_EXAMPLE_RE, strings.ToLower(trimmedLine))
+		case parserStateDescription:
+			matched, err := regexp.MatchString(parserStanzaExampleRe, strings.ToLower(trimmedLine))
 			if err != nil {
 				panic(err)
 			}
 			if matched {
 				// magic string => start example section
-				state = PARSER_STATE_EXAMPLE
+				state = parserStateExample
 				continue
 			}
 			doc.Description += line + "\n"
 
-		case PARSER_STATE_EXAMPLE:
+		case parserStateExample:
 			if trimmedLine == "" {
 				if doc.Example == "" {
 					// Allow empty line between "Configuration example" and the example
 					continue
 				}
 				// \n => start parameters section
-				state = PARSER_STATE_PARAMETER_BEGIN
+				state = parserStateParameterBegin
 				continue
 			}
 			doc.Example += line + "\n"
 
-		case PARSER_STATE_PARAMETER_BEGIN:
+		case parserStateParameterBegin:
 			if trimmedLine == "" {
 				// Avoid creating an empty parameter when comment has trailing lines
 				continue
@@ -126,12 +129,12 @@ func (doc *PluginDocument) ParseString(comment string) {
 				name: tmp[0],
 				desc: tmp[1] + "\n",
 			})
-			state = PARSER_STATE_PARAMETER_CONT
+			state = parserStateParameterCont
 
-		case PARSER_STATE_PARAMETER_CONT:
+		case parserStateParameterCont:
 			if trimmedLine == "" {
 				// \n => start next parameter
-				state = PARSER_STATE_PARAMETER_BEGIN
+				state = parserStateParameterBegin
 				continue
 			}
 			doc.Parameters[len(doc.Parameters)-1].desc += line + "\n"
@@ -143,7 +146,7 @@ func (doc *PluginDocument) ParseString(comment string) {
 
 }
 
-// Imports the .Parameters property of `document` into this document's
+// IncludeParameters imports the .Parameters property of `document` into this document's
 // inherited param list at .ParameterSets[<document.package>.<document.name>]
 func (doc *PluginDocument) IncludeParameters(document PluginDocument) {
 	doc.ParameterSets[document.PackageName+"."+document.PluginName] = document.Parameters
@@ -186,7 +189,7 @@ func docBulletsToRstBullets(text string) string {
 	return result
 }
 
-// Returns an RST representation of this PluginDocument
+// GetRST returns an RST representation of this PluginDocument.
 func (doc PluginDocument) GetRST() string {
 	result := ""
 

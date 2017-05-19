@@ -24,7 +24,7 @@ import (
 	"strings"
 )
 
-const EMBED_TAG = "`gollumdoc:\"embed_type\"`"
+const embedTag = "`gollumdoc:\"embed_type\"`"
 
 // Represents a "type FooPlugin struct { .... }" declaration parsed from the
 // source and its immediately preceding comment block.
@@ -291,13 +291,13 @@ func getPluginStructTypes(pkgRoot *ast.Package) []pluginStructType {
 	return results
 }
 
-// Returns a list of type embeds in fieldList marked with EMBED_TAG for getPluginStructTypes()
+// Returns a list of type embeds in fieldList marked with embedTag for getPluginStructTypes()
 func getStructTypeEmbedList(packageName string, fieldList *ast.FieldList) []typeEmbed {
 	results := []typeEmbed{}
 	for _, field := range fieldList.List {
 		if field.Tag == nil ||
 			field.Tag.Kind != token.STRING ||
-			field.Tag.Value != EMBED_TAG {
+			field.Tag.Value != embedTag {
 			continue
 		}
 
@@ -320,7 +320,7 @@ func getStructTypeEmbedList(packageName string, fieldList *ast.FieldList) []type
 
 		default:
 			_ = t
-			fmt.Printf("WARNING: struct tag %s in unexpected location\n", EMBED_TAG)
+			fmt.Printf("WARNING: struct tag %s in unexpected location\n", embedTag)
 			continue
 		}
 	}
@@ -335,7 +335,7 @@ func (pst pluginStructType) createPluginDocument() PluginDocument {
 	pluginDocument.ParseString(pst.Comment)
 
 	// Recursively generate PluginDocuments for all embedded types (SimpleProducer etc.)
-	// with EMBED_TAG in this plugin's embed declaration and include their parameter lists
+	// with embedTag in this plugin's embed declaration and include their parameter lists
 	// in this plugin's document.
 	for _, embed := range pst.Embeds {
 		importDir := getImportDir(embed.pkg)
