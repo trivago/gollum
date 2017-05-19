@@ -50,6 +50,7 @@ type BatchedProducer struct {
 // Configure initializes the standard producer config values.
 func (prod *BatchedProducer) Configure(conf PluginConfigReader) error {
 	prod.DirectProducer.Configure(conf)
+	prod.SetStopCallback(prod.DefaultClose)
 
 	prod.batchMaxCount = conf.GetInt("Batch/MaxCount", 8192)
 	prod.batchFlushCount = conf.GetInt("Batch/FlushCount", prod.batchMaxCount/2)
@@ -103,4 +104,10 @@ func (prod *BatchedProducer) BatchMessageLoop(workers *sync.WaitGroup, onBatchFl
 
 	prod.AddMainWorker(workers)
 	prod.TickerMessageControlLoop(prod.appendMessage, prod.batchTimeout, prod.flushBatchOnTimeOut)
+}
+
+// DefaultClose defines the default closing process
+func (prod *BatchedProducer) DefaultClose() {
+	defer prod.WorkerDone()
+	prod.Batch.Close(prod.onBatchFlush(), prod.GetShutdownTimeout())
 }

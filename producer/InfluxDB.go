@@ -101,7 +101,6 @@ func init() {
 // Configure initializes this producer with values from a plugin config.
 func (prod *InfluxDB) Configure(conf core.PluginConfigReader) error {
 	prod.BatchedProducer.Configure(conf)
-	prod.SetStopCallback(prod.close)
 
 	version := conf.GetInt("Version", 100)
 	if conf.GetBool("UseVersion08", false) {
@@ -137,11 +136,6 @@ func (prod *InfluxDB) sendBatch() core.AssemblyFunc {
 	}
 
 	return nil
-}
-
-func (prod *InfluxDB) close() {
-	defer prod.WorkerDone()
-	prod.Batch.Close(prod.assembly.Write, prod.GetShutdownTimeout())
 }
 
 // Produce starts a bulk producer which will collect datapoints until either the buffer is full or a timeout has been reached.
