@@ -33,8 +33,9 @@ func init() {
 
 // Expect is a helper construct for unittesting
 type Expect struct {
-	scope string
-	t     *testing.T
+	scope  string
+	t      *testing.T
+	silent bool
 }
 
 // NewExpect creates an Expect helper struct with scope set to the name of the
@@ -45,22 +46,47 @@ func NewExpect(t *testing.T) Expect {
 	funcName := caller.Name()
 
 	return Expect{
-		scope: funcName[strings.LastIndex(funcName, ".")+1:],
-		t:     t,
+		scope:  funcName[strings.LastIndex(funcName, ".")+1:],
+		t:      t,
+		silent: false,
+	}
+}
+
+// NewSilentExpect works like NewExpect but surpresses fails and error messages.
+// This is usefull to do inverse testing, i.e. checking if a check fails.
+func NewSilentExpect(t *testing.T) Expect {
+	pc, _, _, _ := runtime.Caller(1)
+	caller := runtime.FuncForPC(pc)
+	funcName := caller.Name()
+
+	return Expect{
+		scope:  funcName[strings.LastIndex(funcName, ".")+1:],
+		t:      t,
+		silent: true,
 	}
 }
 
 func (e Expect) error(message string) {
+	if e.silent {
+		return
+	}
 	_, file, line, _ := runtime.Caller(2)
-	file = file[strings.Index(file, expectBasePath)+len(expectBasePath):]
+	if basePathIdx := strings.Index(file, expectBasePath); basePathIdx > -1 {
+		file = file[basePathIdx+len(expectBasePath):]
+	}
 
 	fmt.Printf("\t%s:%d: %s -> %s\n", file, line, e.scope, message)
 	e.t.Fail()
 }
 
 func (e Expect) errorf(format string, args ...interface{}) {
+	if e.silent {
+		return
+	}
 	_, file, line, _ := runtime.Caller(2)
-	file = file[strings.Index(file, expectBasePath)+len(expectBasePath):]
+	if basePathIdx := strings.Index(file, expectBasePath); basePathIdx > -1 {
+		file = file[basePathIdx+len(expectBasePath):]
+	}
 
 	fmt.Printf(fmt.Sprintf("\t%s:%d: %s -> %s\n", file, line, e.scope, format), args...)
 	e.t.Fail()
@@ -92,19 +118,37 @@ func (e Expect) False(val bool) bool {
 // Nil tests if the given value is nil
 func (e Expect) Nil(val interface{}) bool {
 	rval := reflect.ValueOf(val)
-	if val != nil && rval.Kind() != reflect.Struct && !rval.IsNil() {
-		e.error("Expected nil")
-		return false
+	switch rval.Kind() {
+	case reflect.Array, reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
+		if !rval.IsNil() {
+			e.error("Expected nil")
+			return false
+		}
+
+	default:
+		if val != nil {
+			e.error("Expected nil")
+			return false
+		}
 	}
+
 	return true
 }
 
 // NotNil tests if the given value is not nil
 func (e Expect) NotNil(val interface{}) bool {
-	rval := reflect.ValueOf(val)
-	if val == nil || rval.Kind() == reflect.Struct || rval.IsNil() {
+	if val == nil {
 		e.error("Expected not nil")
 		return false
+	}
+
+	rval := reflect.ValueOf(val)
+	switch rval.Kind() {
+	case reflect.Array, reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
+		if rval.IsNil() {
+			e.error("Expected not nil")
+			return false
+		}
 	}
 	return true
 }

@@ -479,12 +479,11 @@ func DoLog(depth, logLvl int, msg string) {
 			line = 0
 		}
 
-		entry := logrus.WithFields(logrus.Fields{
+		entry := rus.WithFields(logrus.Fields{
 			"file": file,
 			"line": line,
 		})
 
-		msg = fmt.Sprintf("%s:%d %s", file, line, msg)
 		// Write logs using Logrus logger
 		logrusLvl := logrus.Level(logLvl) + 1
 		switch logrusLvl {
