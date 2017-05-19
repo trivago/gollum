@@ -1,4 +1,4 @@
-.PHONY: all clean docker docker-dev install freebsd linux mac pi win examples current vendor test unit coverprofile integration example
+.PHONY: all clean docker docker-dev install freebsd linux mac pi win examples current vendor test unit coverprofile integration example pre-commit vet lint fmt
 .DEFAULT_GOAL := current
 
 VERSION=0.5.0
@@ -10,6 +10,7 @@ INTEGRATION_TEST_TAGS="integration"
 
 UNIT_TEST_ONLY_PKGS=$(shell go list -tags ${UNIT_TEST_TAGS} ./... | grep -v "/vendor/" | grep -v "/contrib/" | grep -v "/testing/integration" )
 INTEGRATION_TEST_ONLY_PKGS=$(shell go list -tags ${INTEGRATION_TEST_TAGS} ./testing/integration/...)
+CHECK_PKGS=$(shell go list ./... | grep -vE '^github.com/trivago/gollum/vendor/')
 
 all: clean vendor test freebsd linux docker mac pi win examples current
 
@@ -77,6 +78,20 @@ coverprofile:
 integration: current
 	@echo "go tests integration"
 	@$(BUILD_ENV) go test $(BUILD_FLAGS) -v -tags="integration" $(INTEGRATION_TEST_ONLY_PKGS)
+
+pre-commit: vet lint fmt
+
+vet:
+	@echo "Running go vet"
+	@go vet $(CHECK_PKGS)
+
+lint:
+	@echo "Running golint"
+	@golint -set_exit_status $(CHECK_PKGS)
+
+fmt:
+	@echo "Running go fmt"
+	@go fmt $(CHECK_PKGS)
 
 clean:
 	@rm -f ./gollum
