@@ -27,7 +27,7 @@ type PluginParameter struct {
 type parserState uint8
 
 const (
-	parserStateTitle          parserState = iota
+	parserStateTitle parserState = iota
 	parserStateDescription
 	parserStateExample
 	parserStateParameterBegin
