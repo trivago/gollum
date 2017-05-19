@@ -83,9 +83,8 @@ import (
 // set to 5.
 type InfluxDB struct {
 	core.BatchedProducer `gollumdoc:"embed_type"`
-	writer                influxDBWriter
-	assembly              core.WriterAssembly
-
+	writer               influxDBWriter
+	assembly             core.WriterAssembly
 }
 
 type influxDBWriter interface {
