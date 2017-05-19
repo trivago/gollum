@@ -179,7 +179,7 @@ func (cons *Profiler) profile() {
 	messageCount := 0
 
 	for batchIdx = 0; batchIdx < cons.batches && cons.IsActive(); batchIdx++ {
-		cons.Log.Note.Print(fmt.Sprintf("run %d/%d", batchIdx, cons.batches))
+		cons.Log.Note.Print(fmt.Sprintf("batch %d/%d", batchIdx, cons.batches))
 		start := time.Now()
 
 		for i := 0; i < cons.profileRuns && cons.IsActive(); i++ {
