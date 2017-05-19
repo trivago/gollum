@@ -30,7 +30,8 @@ import (
         [....[
 **/
 
-// One node in a tree
+// TreeNode represents one node in a tree and links to its parent and children.
+// Trees of TreeNodes are used to represent the AST returned by the go/ast package.
 type TreeNode struct {
 	AstNode  ast.Node
 	Depth    int
@@ -38,7 +39,8 @@ type TreeNode struct {
 	Children []*TreeNode
 }
 
-// One node in a search pattern tree
+// PatternNode represents one node in a search pattern tree. Pattern trees are used
+// to search for subtrees in TreeNode trees.
 type PatternNode struct {
 	Comparison string
 	Callback   func(ast.Node) bool
@@ -52,7 +54,7 @@ type treeCursor struct {
 	currentDepth int
 }
 
-// Creates a new tree of TreeNodes from the contents of the Go AST rooted at rootAstNode.
+// NewTree creates a new tree of TreeNodes from the contents of the Go AST rooted at rootAstNode.
 // Returns a pointer to the root TreeNode.
 func NewTree(rootAstNode ast.Node) *TreeNode {
 	treeCursor := treeCursor{}
@@ -99,9 +101,8 @@ func (treeCursor *treeCursor) insert(astNode ast.Node) bool {
 	return true
 }
 
-// Search function.
-// Iterates recursively through all subtrees of TreeNode and compares them to
-// the pattern three rooted at patternNode. Returns a flat list containing the
+// Search iterates recursively through all subtrees of TreeNode and compares them to
+// the pattern three rooted at patternNode. It returns a flat list containing the
 // matching subtrees' roots.
 func (treeNode *TreeNode) Search(patternNode PatternNode) []*TreeNode {
 	results := []*TreeNode{}
@@ -163,7 +164,7 @@ func (treeNode *TreeNode) getComparison() string {
 	return reflect.TypeOf(treeNode.AstNode).String()
 }
 
-// Prints a dump of the tree rooted at `treeNode` to stdout
+// Dump prints a dump of the tree rooted at `treeNode` to stdout
 func (treeNode *TreeNode) Dump() {
 	fmt.Printf("%s<%p>%q\n", strings.Repeat(" ", 4*treeNode.Depth), treeNode, treeNode.astNodeDump())
 	for _, child := range treeNode.Children {
