@@ -40,11 +40,11 @@ import (
 //
 type BatchedProducer struct {
 	DirectProducer  `gollumdoc:"embed_type"`
-	batch           MessageBatch
+	Batch           MessageBatch
 	batchTimeout    time.Duration
 	batchMaxCount   int
 	batchFlushCount int
-	onBatchFlush    AssemblyFunc
+	onBatchFlush    func() AssemblyFunc
 }
 
 // Configure initializes the standard producer config values.
@@ -56,7 +56,7 @@ func (prod *BatchedProducer) Configure(conf PluginConfigReader) error {
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.batchTimeout = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
 
-	prod.batch = NewMessageBatch(prod.batchMaxCount)
+	prod.Batch = NewMessageBatch(prod.batchMaxCount)
 
 	return conf.Errors.OrNil()
 }
@@ -82,23 +82,23 @@ func (prod *BatchedProducer) Enqueue(msg *Message, timeout *time.Duration) {
 
 // appendMessage append a message to the batch at enqueuing
 func (prod *BatchedProducer) appendMessage(msg *Message) {
-	prod.batch.AppendOrFlush(msg, prod.flushBatch, prod.IsActiveOrStopping, prod.TryFallback)
+	prod.Batch.AppendOrFlush(msg, prod.flushBatch, prod.IsActiveOrStopping, prod.TryFallback)
 }
 
 // flushBatch is the used function pointer to flush the batch
 func (prod *BatchedProducer) flushBatch() {
-	prod.batch.Flush(prod.onBatchFlush)
+	prod.Batch.Flush(prod.onBatchFlush())
 }
 
 // flushBatchOnTimeOut is the used function pointer to flush the batch on timeout or reached max size
 func (prod *BatchedProducer) flushBatchOnTimeOut() {
-	if prod.batch.ReachedTimeThreshold(prod.batchTimeout) || prod.batch.ReachedSizeThreshold(prod.batchFlushCount) {
+	if prod.Batch.ReachedTimeThreshold(prod.batchTimeout) || prod.Batch.ReachedSizeThreshold(prod.batchFlushCount) {
 		prod.flushBatch()
 	}
 }
 
 // BatchMessageLoop start the TickerMessageControlLoop() for batch producer
-func (prod *BatchedProducer) BatchMessageLoop(workers *sync.WaitGroup, onBatchFlush AssemblyFunc) {
+func (prod *BatchedProducer) BatchMessageLoop(workers *sync.WaitGroup, onBatchFlush func() AssemblyFunc) {
 	prod.onBatchFlush = onBatchFlush
 
 	prod.AddMainWorker(workers)

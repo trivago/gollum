@@ -16,10 +16,8 @@ package producer
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo/tmath"
 	"io"
 	"sync"
-	"time"
 )
 
 // InfluxDB producer plugin
@@ -41,9 +39,10 @@ import (
 //    UseVersion08: false
 //    Version: 100
 //    RetentionPolicy: ""
-//    BatchMaxCount: 8192
-//    BatchFlushCount: 4096
-//    BatchTimeoutSec: 5
+//    Batch
+//      - MaxCount: 8192
+//      - FlushCount: 4096
+//      - TimeoutSec: 5
 //
 // Host defines the host (and port) of the InfluxDB server.
 // Defaults to "localhost:8086".
@@ -83,13 +82,10 @@ import (
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5.
 type InfluxDB struct {
-	core.BufferedProducer `gollumdoc:"embed_type"`
+	core.BatchedProducer `gollumdoc:"embed_type"`
 	writer                influxDBWriter
 	assembly              core.WriterAssembly
-	batch                 core.MessageBatch
-	batchTimeout          time.Duration
-	batchMaxCount         int
-	batchFlushCount       int
+
 }
 
 type influxDBWriter interface {
@@ -104,7 +100,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *InfluxDB) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
+	prod.BatchedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
 
 	version := conf.GetInt("Version", 100)
@@ -128,46 +124,28 @@ func (prod *InfluxDB) Configure(conf core.PluginConfigReader) error {
 		return err
 	}
 
-	prod.batchMaxCount = conf.GetInt("Batch/MaxCount", 8192)
-	prod.batchFlushCount = conf.GetInt("Batch/FlushCount", prod.batchMaxCount/2)
-	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
-	prod.batchTimeout = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
-
-	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
 	prod.assembly = core.NewWriterAssembly(prod.writer, prod.TryFallback, prod)
 	return conf.Errors.OrNil()
 }
 
-// Flush flushes the content of the buffer into the influxdb
-func (prod *InfluxDB) sendBatch() {
+// sendBatch returns core.AssemblyFunc to flush batch
+func (prod *InfluxDB) sendBatch() core.AssemblyFunc {
 	if prod.writer.isConnectionUp() {
-		prod.batch.Flush(prod.assembly.Write)
+		return prod.assembly.Write
 	} else if prod.IsStopping() {
-		prod.batch.Flush(prod.assembly.Flush)
+		return prod.assembly.Flush
 	}
-}
 
-// Threshold based flushing
-func (prod *InfluxDB) sendBatchOnTimeOut() {
-	if prod.batch.ReachedTimeThreshold(prod.batchTimeout) || prod.batch.ReachedSizeThreshold(prod.batchFlushCount) {
-		prod.sendBatch()
-	}
-}
-
-func (prod *InfluxDB) bufferMessage(msg *core.Message) {
-	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.TryFallback)
+	return nil
 }
 
 func (prod *InfluxDB) close() {
 	defer prod.WorkerDone()
-
-	prod.DefaultClose()
-	prod.batch.Close(prod.assembly.Write, prod.GetShutdownTimeout())
+	prod.Batch.Close(prod.assembly.Write, prod.GetShutdownTimeout())
 }
 
 // Produce starts a bulk producer which will collect datapoints until either the buffer is full or a timeout has been reached.
 // The buffer limit does not describe the number of messages received from kafka but the size of the buffer content in KB.
 func (prod *InfluxDB) Produce(workers *sync.WaitGroup) {
-	prod.AddMainWorker(workers)
-	prod.TickerMessageControlLoop(prod.bufferMessage, prod.batchTimeout, prod.sendBatchOnTimeOut)
+	prod.BatchMessageLoop(workers, prod.sendBatch)
 }
