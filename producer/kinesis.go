@@ -94,19 +94,18 @@ const (
 // name. If no mapping is given the gollum stream name is used as kinesis
 // stream name.
 type Kinesis struct {
-	core.BufferedProducer `gollumdoc:"embed_type"`
-	client                *kinesis.Kinesis
-	config                *aws.Config
-	streamMap             map[core.MessageStreamID]string
-	batch                 core.MessageBatch
-	recordMaxMessages     int
-	delimiter             []byte
-	flushFrequency        time.Duration
-	lastSendTime          time.Time
-	sendTimeLimit         time.Duration
-	counters              map[string]*int64
-	lastMetricUpdate      time.Time
-	sequence              *int64
+	core.BatchedProducer `gollumdoc:"embed_type"`
+	client               *kinesis.Kinesis
+	config               *aws.Config
+	streamMap            map[core.MessageStreamID]string
+	recordMaxMessages    int
+	delimiter            []byte
+	flushFrequency       time.Duration
+	lastSendTime         time.Time
+	sendTimeLimit        time.Duration
+	counters             map[string]*int64
+	lastMetricUpdate     time.Time
+	sequence             *int64
 }
 
 const (
@@ -126,15 +125,13 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Kinesis) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
-	prod.SetStopCallback(prod.close)
+	prod.BatchedProducer.Configure(conf)
 
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "")
-	prod.batch = core.NewMessageBatch(conf.GetInt("Batch/MaxMessages", 500))
 	prod.recordMaxMessages = conf.GetInt("RecordMaxMessages", 1)
 	prod.delimiter = []byte(conf.GetString("RecordMessageDelimiter", "\n"))
-	prod.flushFrequency = time.Duration(conf.GetInt("Batch/TimeoutSec", 3)) * time.Second
 	prod.sendTimeLimit = time.Duration(conf.GetInt("SendTimeframeMs", 1000)) * time.Millisecond
+
 	prod.lastSendTime = time.Now()
 	prod.counters = make(map[string]*int64)
 	prod.lastMetricUpdate = time.Now()
@@ -193,25 +190,8 @@ func (prod *Kinesis) Configure(conf core.PluginConfigReader) error {
 	return conf.Errors.OrNil()
 }
 
-func (prod *Kinesis) bufferMessage(msg *core.Message) {
-	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.TryFallback)
-}
-
-func (prod *Kinesis) sendBatchOnTimeOut() {
-	// Flush if necessary
-	if prod.batch.ReachedTimeThreshold(prod.flushFrequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2) {
-		prod.sendBatch()
-	}
-}
-
-func (prod *Kinesis) sendBatch() {
-	prod.batch.Flush(prod.transformMessages)
-}
-
-func (prod *Kinesis) tryFallbackForMessages(messages []*core.Message) {
-	for _, msg := range messages {
-		prod.TryFallback(msg)
-	}
+func (prod *Kinesis) sendBatch() core.AssemblyFunc {
+	return prod.transformMessages
 }
 
 func (prod *Kinesis) transformMessages(messages []*core.Message) {
@@ -307,16 +287,8 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 	}
 }
 
-func (prod *Kinesis) close() {
-	defer prod.WorkerDone()
-	prod.DefaultClose()
-	prod.batch.Close(prod.transformMessages, prod.GetShutdownTimeout())
-}
-
 // Produce writes to stdout or stderr.
 func (prod *Kinesis) Produce(workers *sync.WaitGroup) {
-	prod.AddMainWorker(workers)
-
 	prod.client = kinesis.New(session.New(prod.config))
-	prod.TickerMessageControlLoop(prod.bufferMessage, prod.flushFrequency, prod.sendBatchOnTimeOut)
+	prod.BatchMessageLoop(workers, prod.sendBatch)
 }
