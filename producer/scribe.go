@@ -106,15 +106,15 @@ func (prod *Scribe) Configure(conf core.PluginConfigReader) error {
 	prod.SetStopCallback(prod.close)
 	host := conf.GetString("Address", "localhost:1463")
 
-	prod.batchMaxCount = conf.GetInt("Batch/MaxCount", 8192)
+	prod.batchMaxCount = int(conf.GetInt("Batch/MaxCount", 8192))
 	prod.windowSize = prod.batchMaxCount
-	prod.batchFlushCount = conf.GetInt("Batch/FlushCount", prod.batchMaxCount/2)
+	prod.batchFlushCount = int(conf.GetInt("Batch/FlushCount", int64(prod.batchMaxCount/2)))
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.batchTimeout = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
 	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
 	prod.heartBeatInterval = time.Duration(conf.GetInt("HeartBeatIntervalSec", 5)) * time.Second
 
-	prod.bufferSizeByte = conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10 // 1 MB
+	prod.bufferSizeByte = int(conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10) // 1 MB
 	prod.category = conf.GetStreamMap("Categories", "")
 
 	// Initialize scribe connection

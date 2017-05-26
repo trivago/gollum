@@ -70,16 +70,16 @@ import (
 // By default this is set to false.
 type Profiler struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	profileRuns         int
-	batches             int
+	profileRuns         int           `config:"Runs" default:"10000"`
+	batches             int           `config:"Batches" default:"10"`
+	chars               string        `config:"Characters" default:"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"`
+	message             string        `config:"Message" default:"%# %256s"`
+	delay               time.Duration `config:"DelayMs" default:"0" metric:"ms"`
+	keepRunning         bool          `config:"KeepRunning"`
 	templates           [][]byte
-	chars               string
-	message             string
-	delay               time.Duration
-	keepRunning         bool
 }
 
-var profilerDefaultCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 "
+//var profilerDefaultCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 "
 
 func init() {
 	core.TypeRegistry.Register(Profiler{})
@@ -88,15 +88,16 @@ func init() {
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Profiler) Configure(conf core.PluginConfigReader) error {
 	cons.SimpleConsumer.Configure(conf)
+	conf.Configure(cons, cons.Log)
 
 	numTemplates := conf.GetInt("TemplateCount", 10)
-	cons.profileRuns = conf.GetInt("Runs", 10000)
-	cons.batches = conf.GetInt("Batches", 10)
-	cons.chars = conf.GetString("Characters", profilerDefaultCharacters)
-	cons.message = conf.GetString("Message", "%# %256s")
 	cons.templates = make([][]byte, numTemplates)
-	cons.keepRunning = conf.GetBool("KeepRunning", false)
-	cons.delay = time.Duration(conf.GetInt("DelayMs", 0)) * time.Millisecond
+	//cons.profileRuns = conf.GetInt("Runs", 10000)
+	//cons.batches = conf.GetInt("Batches", 10)
+	//cons.chars = conf.GetString("Characters", profilerDefaultCharacters)
+	//cons.message = conf.GetString("Message", "%# %256s")
+	//cons.keepRunning = conf.GetBool("KeepRunning", false)
+	//cons.delay = time.Duration(conf.GetInt("DelayMs", 0)) * time.Millisecond
 
 	return conf.Errors.OrNil()
 }

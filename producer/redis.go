@@ -97,7 +97,7 @@ func (prod *Redis) Configure(conf core.PluginConfigReader) error {
 	prod.keyModulators = conf.GetModulatorArray("FieldModulators", prod.Log, core.ModulatorArray{})
 
 	prod.password = conf.GetString("Password", "")
-	prod.database = conf.GetInt("Database", 0)
+	prod.database = int(conf.GetInt("Database", 0))
 	prod.key = conf.GetString("Key", "default")
 	prod.fieldFromParsed = conf.GetBool("FieldAfterFormat", false)
 	prod.keyFromParsed = conf.GetBool("KeyAfterFormat", false)

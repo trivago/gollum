@@ -129,8 +129,8 @@ func (prod *Firehose) Configure(conf core.PluginConfigReader) error {
 	prod.SetStopCallback(prod.close)
 
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "default")
-	prod.batch = core.NewMessageBatch(conf.GetInt("BatchMaxMessages", 500))
-	prod.recordMaxMessages = conf.GetInt("RecordMaxMessages", 1)
+	prod.batch = core.NewMessageBatch(int(conf.GetInt("BatchMaxMessages", 500)))
+	prod.recordMaxMessages = int(conf.GetInt("RecordMaxMessages", 1))
 	prod.delimiter = []byte(conf.GetString("RecordMessageDelimiter", "\n"))
 	prod.flushFrequency = time.Duration(conf.GetInt("BatchTimeoutSec", 3)) * time.Second
 	prod.sendTimeLimit = time.Duration(conf.GetInt("SendTimeframeMs", 1000)) * time.Millisecond

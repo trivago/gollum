@@ -192,8 +192,8 @@ func (prod *S3) Configure(conf core.PluginConfigReader) error {
 
 	prod.storageClass = conf.GetString("StorageClass", "STANDARD")
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "default")
-	prod.batch = core.NewMessageBatch(conf.GetInt("BatchMaxMessages", 5000))
-	prod.objectMaxMessages = conf.GetInt("ObjectMaxMessages", 5000)
+	prod.batch = core.NewMessageBatch(int(conf.GetInt("BatchMaxMessages", 5000)))
+	prod.objectMaxMessages = int(conf.GetInt("ObjectMaxMessages", 5000))
 	prod.delimiter = []byte(conf.GetString("ObjectMessageDelimiter", "\n"))
 	prod.flushFrequency = time.Duration(conf.GetInt("BatchTimeoutSec", 30)) * time.Second
 	prod.sendTimeLimit = time.Duration(conf.GetInt("SendTimeframeMs", 10000)) * time.Millisecond
@@ -206,7 +206,7 @@ func (prod *S3) Configure(conf core.PluginConfigReader) error {
 	prod.objects = make(map[string]*objectData)
 	prod.objectsLock = new(sync.Mutex)
 	prod.uploadOnShutdown = conf.GetBool("UploadOnShutdown", false)
-	prod.fileMaxSize = conf.GetInt("FileMaxMB", 1000) * 1000000
+	prod.fileMaxSize = int(conf.GetInt("FileMaxMB", 1000) * 1000000)
 	prod.fileMaxAge = time.Duration(conf.GetInt("FileMaxAgeSec", 3600)) * time.Second
 
 	for _, s3Path := range prod.streamMap {

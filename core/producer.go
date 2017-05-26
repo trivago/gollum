@@ -27,7 +27,7 @@ type Producer interface {
 
 	// Enqueue sends a message to the producer. The producer may reject
 	// the message or try a fallback after a given timeout. Enqueue can block.
-	Enqueue(msg *Message, timeout *time.Duration)
+	Enqueue(msg *Message, timeout time.Duration)
 
 	// Produce should implement a main loop that passes messages from the
 	// message channel to some other service like the console.

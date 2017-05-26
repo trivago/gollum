@@ -238,7 +238,7 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 
 	prod.config = kafka.NewConfig()
 	prod.config.ClientID = conf.GetString("ClientId", "gollum")
-	prod.config.ChannelBufferSize = conf.GetInt("MessageBufferCount", 8192)
+	prod.config.ChannelBufferSize = int(conf.GetInt("MessageBufferCount", 8192))
 
 	switch ver := conf.GetString("Version", "0.8.2"); ver {
 	case "0.8.2.0":
@@ -271,8 +271,8 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 		}
 	}
 
-	prod.config.Net.MaxOpenRequests = conf.GetInt("MaxOpenRequests", 5)
-	prod.config.Net.DialTimeout = time.Duration(conf.GetInt("ServerTimeoutSec", 30)) * time.Second
+	prod.config.Net.MaxOpenRequests = int(conf.GetInt("MaxOpenRequests", 5))
+	prod.config.Net.DialTimeout = time.Duration(int(conf.GetInt("ServerTimeoutSec", 30))) * time.Second
 	prod.config.Net.ReadTimeout = prod.config.Net.DialTimeout
 	prod.config.Net.WriteTimeout = prod.config.Net.DialTimeout
 
@@ -322,18 +322,18 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 		prod.config.Net.SASL.Password = conf.GetString("SaslPassword", "")
 	}
 
-	prod.config.Metadata.Retry.Max = conf.GetInt("ElectRetries", 3)
+	prod.config.Metadata.Retry.Max = int(conf.GetInt("ElectRetries", 3))
 	prod.config.Metadata.Retry.Backoff = time.Duration(conf.GetInt("ElectTimeoutMs", 250)) * time.Millisecond
 	prod.config.Metadata.RefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshMs", 600000)) * time.Millisecond
 
-	prod.config.Producer.MaxMessageBytes = conf.GetInt("Batch/SizeMaxKB", 1<<10) << 10
-	prod.config.Producer.RequiredAcks = kafka.RequiredAcks(conf.GetInt("RequiredAcks", int(kafka.WaitForLocal)))
+	prod.config.Producer.MaxMessageBytes = int(conf.GetInt("Batch/SizeMaxKB", 1<<10)) << 10
+	prod.config.Producer.RequiredAcks = kafka.RequiredAcks(conf.GetInt("RequiredAcks", int64(kafka.WaitForLocal)))
 	prod.config.Producer.Timeout = time.Duration(conf.GetInt("TimoutMs", 10000)) * time.Millisecond
-	prod.config.Producer.Flush.Bytes = conf.GetInt("Batch/SizeByte", 8192)
-	prod.config.Producer.Flush.Messages = conf.GetInt("Batch/MinCount", 1)
+	prod.config.Producer.Flush.Bytes = int(conf.GetInt("Batch/SizeByte", 8192))
+	prod.config.Producer.Flush.Messages = int(conf.GetInt("Batch/MinCount", 1))
 	prod.config.Producer.Flush.Frequency = time.Duration(conf.GetInt("Batch/TimeoutMs", 3000)) * time.Millisecond
-	prod.config.Producer.Flush.MaxMessages = conf.GetInt("Batch/MaxCount", 0)
-	prod.config.Producer.Retry.Max = conf.GetInt("SendRetries", 1)
+	prod.config.Producer.Flush.MaxMessages = int(conf.GetInt("Batch/MaxCount", 0))
+	prod.config.Producer.Retry.Max = int(conf.GetInt("SendRetries", 1))
 	prod.config.Producer.Retry.Backoff = time.Duration(conf.GetInt("SendTimeoutMs", 100)) * time.Millisecond
 
 	prod.config.Producer.Return.Successes = true

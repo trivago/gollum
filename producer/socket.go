@@ -97,11 +97,11 @@ func (prod *Socket) Configure(conf core.PluginConfigReader) error {
 	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
 
-	prod.batchMaxCount = conf.GetInt("Batch/MaxCount", 8192)
-	prod.batchFlushCount = conf.GetInt("Batch/FlushCount", prod.batchMaxCount/2)
+	prod.batchMaxCount = int(conf.GetInt("Batch/MaxCount", 8192))
+	prod.batchFlushCount = int(conf.GetInt("Batch/FlushCount", int64(prod.batchMaxCount/2)))
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.batchTimeout = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
-	prod.bufferSizeByte = conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10 // 1 MB
+	prod.bufferSizeByte = int(conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10) // 1 MB
 
 	prod.acknowledge = tstrings.Unescape(conf.GetString("Acknowledge", ""))
 	prod.ackTimeout = time.Duration(conf.GetInt("AckTimeoutMs", 2000)) * time.Millisecond

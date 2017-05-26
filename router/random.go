@@ -48,6 +48,6 @@ func (router *Random) Enqueue(msg *core.Message) error {
 	}
 
 	index := rand.Intn(len(producers))
-	producers[index].Enqueue(msg, router.Timeout)
+	producers[index].Enqueue(msg, router.GetTimeout())
 	return nil
 }

@@ -130,11 +130,11 @@ func (prod *Spooling) Configure(conf core.PluginConfigReader) error {
 
 	prod.maxFileSize = int64(conf.GetInt("MaxFileSizeMB", 512)) << 20
 	prod.maxFileAge = time.Duration(conf.GetInt("MaxFileAgeMin", 1)) * time.Minute
-	prod.batchMaxCount = conf.GetInt("Batch/MaxCount", 100)
+	prod.batchMaxCount = int(conf.GetInt("Batch/MaxCount", 100))
 	prod.batchTimeout = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
 	prod.outfile = make(map[core.MessageStreamID]*spoolFile)
 	prod.respoolDuration = time.Duration(conf.GetInt("RespoolDelaySec", 10)) * time.Second
-	prod.bufferSizeByte = conf.GetInt("BufferSizeByte", 8192)
+	prod.bufferSizeByte = int(conf.GetInt("BufferSizeByte", 8192))
 	prod.outfileGuard = new(sync.RWMutex)
 	prod.revertOnDrop = conf.GetBool("RevertStreamOnDrop", false)
 

@@ -70,7 +70,7 @@ func (prod *DirectProducer) Configure(conf PluginConfigReader) error {
 // Enqueue will add the message to the internal channel so it can be processed
 // by the producer main loop. A timeout value != nil will overwrite the channel
 // timeout value for this call.
-func (prod *DirectProducer) Enqueue(msg *Message, timeout *time.Duration) {
+func (prod *DirectProducer) Enqueue(msg *Message, timeout time.Duration) {
 	defer prod.enqueuePanicHandling(msg)
 
 	// Don't accept messages if we are shutting down

@@ -48,14 +48,14 @@ func (router *Broadcast) Enqueue(msg *core.Message) error {
 		return core.NewModulateResultError("No producers configured for stream %s", router.GetID())
 
 	case 1:
-		producers[0].Enqueue(msg, router.Timeout)
+		producers[0].Enqueue(msg, router.GetTimeout())
 
 	default:
 		lastProdIdx := numProducers - 1
 		for prodIdx := 0; prodIdx < lastProdIdx; prodIdx++ {
-			producers[prodIdx].Enqueue(msg.Clone(), router.Timeout)
+			producers[prodIdx].Enqueue(msg.Clone(), router.GetTimeout())
 		}
-		producers[lastProdIdx].Enqueue(msg, router.Timeout)
+		producers[lastProdIdx].Enqueue(msg, router.GetTimeout())
 	}
 
 	return nil

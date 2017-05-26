@@ -128,7 +128,7 @@ func (prod *Kinesis) Configure(conf core.PluginConfigReader) error {
 	prod.BatchedProducer.Configure(conf)
 
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "")
-	prod.recordMaxMessages = conf.GetInt("RecordMaxMessages", 1)
+	prod.recordMaxMessages = int(conf.GetInt("RecordMaxMessages", 1))
 	prod.delimiter = []byte(conf.GetString("RecordMessageDelimiter", "\n"))
 	prod.sendTimeLimit = time.Duration(conf.GetInt("SendTimeframeMs", 1000)) * time.Millisecond
 

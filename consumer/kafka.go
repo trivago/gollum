@@ -171,21 +171,21 @@ const (
 // is set to contain only "localhost:9092".
 type Kafka struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	servers             []string
-	topic               string
-	group               string
-	groupClient         *cluster.Client
-	groupConfig         *cluster.Config
+	servers             []string      `config:"Servers" default:"localhost:9092"`
+	topic               string        `config:"Topic" default:"default"`
+	group               string        `config:"GroupId"`
+	offsetFile          string        `config:"OffsetFile"`
+	persistTimeout      time.Duration `config:"PresistTimoutMs" default:"5000" metric:"ms"`
+	orderedRead         bool          `config:"Ordered"`
+	folderPermissions   os.FileMode   `config:"FolderPermissions" default:"0755"`
 	client              kafka.Client
 	config              *kafka.Config
+	groupClient         *cluster.Client
+	groupConfig         *cluster.Config
 	consumer            kafka.Consumer
-	offsetFile          string
 	defaultOffset       int64
 	offsets             map[int32]*int64
 	MaxPartitionID      int32
-	persistTimeout      time.Duration
-	orderedRead         bool
-	folderPermissions   os.FileMode
 }
 
 func init() {
@@ -195,25 +195,26 @@ func init() {
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 	cons.SimpleConsumer.Configure(conf)
+	conf.Configure(cons, cons.Log)
 
 	cons.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
-	cons.topic = conf.GetString("Topic", "default")
-	cons.group = conf.GetString("GroupId", "")
-	cons.offsetFile = conf.GetString("OffsetFile", "")
-	cons.persistTimeout = time.Duration(conf.GetInt("PresistTimoutMs", 5000)) * time.Millisecond
-	cons.orderedRead = conf.GetBool("Ordered", false)
+	//cons.topic = conf.GetString("Topic", "default")
+	//cons.group = conf.GetString("GroupId", "")
+	//cons.offsetFile = conf.GetString("OffsetFile", "")
+	//cons.persistTimeout = time.Duration(conf.GetInt("PresistTimoutMs", 5000)) * time.Millisecond
+	//cons.orderedRead = conf.GetBool("Ordered", false)
 	cons.offsets = make(map[int32]*int64)
 	cons.MaxPartitionID = 0
 
-	folderFlags, err := strconv.ParseInt(conf.GetString("FolderPermissions", "0755"), 8, 32)
-	cons.folderPermissions = os.FileMode(folderFlags)
-	if err != nil {
-		return err
-	}
+	//folderFlags, err := strconv.ParseInt(conf.GetString("FolderPermissions", "0755"), 8, 32)
+	//cons.folderPermissions = os.FileMode(folderFlags)
+	//if err != nil {
+	//	return err
+	//}
 
 	cons.config = kafka.NewConfig()
 	cons.config.ClientID = conf.GetString("ClientId", "gollum")
-	cons.config.ChannelBufferSize = conf.GetInt("MessageBufferCount", 8192)
+	cons.config.ChannelBufferSize = int(conf.GetInt("MessageBufferCount", 8192))
 
 	switch ver := conf.GetString("Version", "0.8.2"); ver {
 	case "0.8.2.0":
@@ -246,7 +247,7 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 		}
 	}
 
-	cons.config.Net.MaxOpenRequests = conf.GetInt("MaxOpenRequests", 5)
+	cons.config.Net.MaxOpenRequests = int(conf.GetInt("MaxOpenRequests", 5))
 	cons.config.Net.DialTimeout = time.Duration(conf.GetInt("ServerTimeoutSec", 30)) * time.Second
 	cons.config.Net.ReadTimeout = cons.config.Net.DialTimeout
 	cons.config.Net.WriteTimeout = cons.config.Net.DialTimeout
@@ -297,7 +298,7 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 		cons.config.Net.SASL.Password = conf.GetString("SaslPassword", "")
 	}
 
-	cons.config.Metadata.Retry.Max = conf.GetInt("ElectRetries", 3)
+	cons.config.Metadata.Retry.Max = int(conf.GetInt("ElectRetries", 3))
 	cons.config.Metadata.Retry.Backoff = time.Duration(conf.GetInt("ElectTimeoutMs", 250)) * time.Millisecond
 	cons.config.Metadata.RefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshMs", 10000)) * time.Millisecond
 

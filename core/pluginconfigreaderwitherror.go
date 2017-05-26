@@ -85,10 +85,20 @@ func (reader PluginConfigReaderWithError) GetString(key string, defaultValue str
 
 // GetInt tries to read a integer value from a PluginConfig.
 // If that value is not found defaultValue is returned.
-func (reader PluginConfigReaderWithError) GetInt(key string, defaultValue int) (int, error) {
+func (reader PluginConfigReaderWithError) GetInt(key string, defaultValue int64) (int64, error) {
 	key = reader.config.registerKey(key)
 	if reader.HasValue(key) {
-		return reader.config.Settings.Int(key)
+		return reader.config.Settings.Int64(key)
+	}
+	return defaultValue, nil
+}
+
+// GetUint tries to read an unsigned integer value from a PluginConfig.
+// If that value is not found defaultValue is returned.
+func (reader PluginConfigReaderWithError) GetUint(key string, defaultValue uint64) (uint64, error) {
+	key = reader.config.registerKey(key)
+	if reader.HasValue(key) {
+		return reader.config.Settings.Uint64(key)
 	}
 	return defaultValue, nil
 }

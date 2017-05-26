@@ -75,7 +75,7 @@ func (prod *Statsd) Configure(conf core.PluginConfigReader) error {
 	prod.SetStopCallback(prod.close)
 
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "")
-	prod.batch = core.NewMessageBatch(conf.GetInt("BatchMaxMessages", 500))
+	prod.batch = core.NewMessageBatch(int(conf.GetInt("BatchMaxMessages", 500)))
 	prod.flushFrequency = time.Duration(conf.GetInt("BatchTimeoutSec", 10)) * time.Second
 	prod.useMessage = conf.GetBool("UseMessage", false)
 

@@ -56,6 +56,6 @@ func (router *RoundRobin) Enqueue(msg *core.Message) error {
 		return core.NewModulateResultError("No producers configured for stream %s", router.GetID())
 	}
 	index := atomic.AddInt32(&router.index, 1) % int32(len(producers))
-	producers[index].Enqueue(msg, router.Timeout)
+	producers[index].Enqueue(msg, router.GetTimeout())
 	return nil
 }

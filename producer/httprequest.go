@@ -75,8 +75,8 @@ type HTTPRequest struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 
 	destinationURL *url.URL
-	encoding       string
-	rawPackets     bool
+	encoding       string `config:"Encoding" default:"text/plain; charset=utf-8"`
+	rawPackets     bool   `config:"RawData" default:"true"`
 	listen         *tnet.StopListener
 	lastError      error
 }
@@ -98,8 +98,8 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) error {
 	prod.destinationURL, err = url.Parse(address)
 	conf.Errors.Push(err)
 
-	prod.encoding = conf.GetString("Encoding", "text/plain; charset=utf-8")
-	prod.rawPackets = conf.GetBool("RawData", true)
+	//prod.encoding = conf.GetString("Encoding", "text/plain; charset=utf-8")
+	//prod.rawPackets = conf.GetBool("RawData", true)
 
 	// Default health check to ping the backend with an HTTP GET
 	prod.AddHealthCheck(prod.healthcheckPingBackend)

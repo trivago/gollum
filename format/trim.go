@@ -31,10 +31,10 @@ import (
 //
 type Trim struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	leftSeparator        []byte
-	rightSeparator       []byte
-	leftOffset           int
-	rightOffset          int
+	leftSeparator        []byte `config:"LeftSeparator"`
+	rightSeparator       []byte `config:"RightSeparator"`
+	leftOffset           int    `config:"LeftOffset" default:"0"`
+	rightOffset          int    `config:"RightOffset" default:"0"`
 }
 
 func init() {
@@ -44,11 +44,12 @@ func init() {
 // Configure initializes this formatter with values from a plugin config.
 func (format *Trim) Configure(conf core.PluginConfigReader) error {
 	format.SimpleFormatter.Configure(conf)
+	conf.Configure(format, format.Log)
 
-	format.leftSeparator = []byte(conf.GetString("LeftSeparator", ""))
-	format.rightSeparator = []byte(conf.GetString("RightSeparator", ""))
-	format.leftOffset = conf.GetInt("LeftOffset", 0)
-	format.rightOffset = conf.GetInt("RightOffset", 0)
+	//format.leftSeparator = []byte(conf.GetString("LeftSeparator", ""))
+	//format.rightSeparator = []byte(conf.GetString("RightSeparator", ""))
+	//format.leftOffset = conf.GetInt("LeftOffset", 0)
+	//format.rightOffset = conf.GetInt("RightOffset", 0)
 
 	return conf.Errors.OrNil()
 }

@@ -118,7 +118,7 @@ func (msg *Message) GetRouter() Router {
 	return StreamRegistry.GetRouterOrFallback(msg.GetStreamID())
 }
 
-// GetPreviousRouter returns the stream object behind the previous StreamID.
+// GetPrevRouter returns the stream object behind the previous StreamID.
 func (msg *Message) GetPrevRouter() Router {
 	return StreamRegistry.GetRouterOrFallback(msg.prevStreamID)
 }
@@ -140,7 +140,7 @@ func (msg *Message) String() string {
 	return string(msg.data.payload)
 }
 
-// Data returns the stored data
+// GetPayload returns the stored data
 func (msg *Message) GetPayload() []byte {
 	return msg.data.payload
 }

@@ -148,7 +148,7 @@ func (cons *Socket) Configure(conf core.PluginConfigReader) error {
 	}
 
 	cons.delimiter = tstrings.Unescape(conf.GetString("Delimiter", "\n"))
-	cons.offset = conf.GetInt("Offset", 0)
+	cons.offset = int(conf.GetInt("Offset", 0))
 	cons.flags = 0
 
 	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))
@@ -174,7 +174,7 @@ func (cons *Socket) Configure(conf core.PluginConfigReader) error {
 
 	case "fixed":
 		cons.flags |= tio.BufferedReaderFlagMLEFixed
-		cons.offset = conf.GetInt("Size", 1)
+		cons.offset = int(conf.GetInt("Size", 1))
 
 	case "ascii":
 		cons.flags |= tio.BufferedReaderFlagMLE

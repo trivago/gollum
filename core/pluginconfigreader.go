@@ -18,6 +18,10 @@ import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/tlog"
+	"reflect"
+	"strconv"
+	"strings"
+	"time"
 )
 
 // PluginConfigReader provides another convenience wrapper on top of
@@ -86,8 +90,16 @@ func (reader *PluginConfigReader) GetString(key string, defaultValue string) str
 
 // GetInt tries to read a integer value from a PluginConfig.
 // If that value is not found defaultValue is returned.
-func (reader *PluginConfigReader) GetInt(key string, defaultValue int) int {
+func (reader *PluginConfigReader) GetInt(key string, defaultValue int64) int64 {
 	value, err := reader.WithError.GetInt(key, defaultValue)
+	reader.Errors.Push(err)
+	return value
+}
+
+// GetUint tries to read an unsigned integer value from a PluginConfig.
+// If that value is not found defaultValue is returned.
+func (reader *PluginConfigReader) GetUint(key string, defaultValue uint64) uint64 {
+	value, err := reader.WithError.GetUint(key, defaultValue)
 	reader.Errors.Push(err)
 	return value
 }
@@ -210,4 +222,163 @@ func (reader *PluginConfigReader) GetStreamRoutes(key string, defaultValue map[M
 	value, err := reader.WithError.GetStreamRoutes(key, defaultValue)
 	reader.Errors.Push(err)
 	return value
+}
+
+// Configure reads struct tags from the given plugin and sets the tagged values
+// according to config and/or defaults.
+// Avaiable tags: "config" holds the config key, "default" holds the default
+// value, "metric" may store metric quantity information like "kb" or "sec".
+func (reader *PluginConfigReader) Configure(plugin interface{}, log tlog.LogScope) {
+	pluginType := reflect.TypeOf(plugin)
+	pluginValue := reflect.ValueOf(plugin)
+	numFields := pluginType.NumField()
+
+	for i := 0; i < numFields; i++ {
+		field := pluginType.Field(i)
+		if key, haskey := field.Tag.Lookup("config"); haskey {
+			defaultTag, _ := field.Tag.Lookup("default")
+			metric, _ := field.Tag.Lookup("metric")
+
+			switch field.Type.Kind() {
+			case reflect.Bool:
+				defaultValue, err := strconv.ParseBool(defaultTag)
+				reader.Errors.Push(err)
+				pluginValue.SetBool(reader.GetBool(key, defaultValue))
+
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				base := 10
+				if len(defaultTag) > 0 && defaultTag[0] == '0' {
+					base = 8
+				}
+				defaultValue, err := strconv.ParseInt(defaultTag, base, 64)
+				reader.Errors.Push(err)
+				value := metricScale(metric) * reader.GetInt(key, defaultValue)
+				pluginValue.SetInt(value)
+
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				var value uint64
+				if field.Type.Name() == "MessageStreamID" {
+					value = uint64(GetStreamID(defaultTag))
+				} else {
+					base := 10
+					if len(defaultTag) > 0 && defaultTag[0] == '0' {
+						base = 8
+					}
+					defaultValue, err := strconv.ParseUint(defaultTag, base, 64)
+					reader.Errors.Push(err)
+					value = uint64(metricScale(metric)) * reader.GetUint(key, defaultValue)
+				}
+				pluginValue.SetUint(value)
+
+			case reflect.String:
+				pluginValue.SetString(reader.GetString(key, defaultTag))
+
+			case reflect.Array, reflect.Slice:
+				reader.readArray(key, pluginValue, field.Type.Elem(), log, defaultTag)
+
+			case reflect.Interface:
+				reader.readInterface(key, pluginValue, field.Type, log, defaultTag)
+			}
+		}
+	}
+}
+
+func (reader *PluginConfigReader) readArray(key string, pluginValue reflect.Value, arrayType reflect.Type, log tlog.LogScope, defaultTag string) {
+	elements := strings.Split(defaultTag, ",")
+	switch arrayType.Kind() {
+	case reflect.String:
+		defaultValue := make([]string, 0, len(elements))
+		for _, e := range elements {
+			defaultValue = append(defaultValue, e)
+		}
+		arrayValue := reflect.ValueOf(reader.GetStringArray(key, defaultValue))
+		pluginValue.Set(arrayValue)
+
+	case reflect.Int8, reflect.Uint8:
+		defaultValue := reader.GetString(key, defaultTag)
+		byteArray := []byte(defaultValue)
+		pluginValue.Set(reflect.ValueOf(byteArray))
+
+	case reflect.Uint64:
+		if arrayType.Name() == "MessageStreamID" {
+			defaultValue := make([]MessageStreamID, 0, len(elements))
+			for _, e := range elements {
+				defaultValue = append(defaultValue, GetStreamID(e))
+			}
+			arrayValue := reflect.ValueOf(reader.GetStreamArray(key, defaultValue))
+			pluginValue.Set(arrayValue)
+		}
+
+	case reflect.Interface:
+		switch arrayType.Name() {
+		case "Router":
+			defaultStreams := []MessageStreamID{GetStreamID(defaultTag)}
+			streams := reader.GetStreamArray(key, defaultStreams)
+			router := make([]Router, 0, len(streams))
+			for _, streamID := range streams {
+				if streamID != InvalidStreamID {
+					router = append(router, StreamRegistry.GetRouterOrFallback(streamID))
+				}
+			}
+			pluginValue.Set(reflect.ValueOf(router))
+
+		case "Modulator":
+			modulators := reader.GetModulatorArray(key, log, ModulatorArray{})
+			pluginValue.Set(reflect.ValueOf(modulators))
+
+		case "Filter":
+			filters := reader.GetFilterArray(key, log, FilterArray{})
+			pluginValue.Set(reflect.ValueOf(filters))
+
+		case "Formatter":
+			formatters := reader.GetFormatterArray(key, log, FormatterArray{})
+			pluginValue.Set(reflect.ValueOf(formatters))
+		}
+	}
+}
+
+func (reader *PluginConfigReader) readInterface(key string, pluginValue reflect.Value, fieldType reflect.Type, log tlog.LogScope, defaultTag string) {
+	switch fieldType.Name() {
+	case "Router":
+		streamID := reader.GetStreamID(key, GetStreamID(defaultTag))
+		if streamID != InvalidStreamID {
+			router := StreamRegistry.GetRouterOrFallback(streamID)
+			pluginValue.Set(reflect.ValueOf(router))
+		}
+	}
+}
+
+func metricScale(metric string) int64 {
+	switch strings.ToLower(metric) {
+	case "b", "byte", "bytes":
+		return 1
+	case "kb", "kilobyte", "kilobytes":
+		return 1 << 10
+	case "mb", "megabyte", "megabytes":
+		return 1 << 20
+	case "gb", "gigabyte", "gigabytes":
+		return 1 << 30
+	case "tb", "terrabyte", "terrabytes":
+		return 1 << 40
+
+	case "ns", "nanosecond", "nanoseconds":
+		return 1
+	case "µs", "mcs", "microsecond", "microseconds":
+		return int64(time.Microsecond)
+	case "ms", "millisecond", "milliseconds":
+		return int64(time.Millisecond)
+	case "s", "sec", "second", "seconds":
+		return int64(time.Second)
+	case "m", "min", "minute", "minutes":
+		return int64(time.Minute)
+	case "h", "hour", "hours":
+		return int64(time.Hour)
+	case "d", "day", "days":
+		return 24 * int64(time.Hour)
+	case "w", "week", "weeks":
+		return 7 * 24 * int64(time.Hour)
+
+	default:
+		return 1
+	}
 }

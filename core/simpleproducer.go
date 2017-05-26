@@ -82,11 +82,11 @@ import (
 type SimpleProducer struct {
 	id              string
 	control         chan PluginControl
-	streams         []MessageStreamID
-	modulators      ModulatorArray
-	fallbackStream  Router
 	runState        *PluginRunState
-	shutdownTimeout time.Duration
+	streams         []MessageStreamID `config:"Streams" default:"*"`
+	modulators      ModulatorArray    `config:"Modulators"`
+	fallbackStream  Router            `config:"FallbackStream" default:""`
+	shutdownTimeout time.Duration     `config:"ShutdownTimeoutMs" default:"1000" metric:"ms"`
 	onRoll          func()
 	onPrepareStop   func()
 	onStop          func()
@@ -95,16 +95,18 @@ type SimpleProducer struct {
 
 // Configure initializes the standard producer config values.
 func (prod *SimpleProducer) Configure(conf PluginConfigReader) error {
+	conf.Configure(prod, prod.Log)
+
 	prod.id = conf.GetID()
 	prod.Log = conf.GetLogScope()
 	prod.runState = NewPluginRunState()
 	prod.control = make(chan PluginControl, 1)
-	prod.streams = conf.GetStreamArray("Streams", []MessageStreamID{WildcardStreamID})
-	prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 1000)) * time.Millisecond
-	prod.modulators = conf.GetModulatorArray("Modulators", prod.Log, ModulatorArray{})
+	//prod.streams = conf.GetStreamArray("Streams", []MessageStreamID{WildcardStreamID})
+	//prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 1000)) * time.Millisecond
+	//prod.modulators = conf.GetModulatorArray("Modulators", prod.Log, ModulatorArray{})
 
-	fallbackStreamID := StreamRegistry.GetStreamID(conf.GetString("FallbackStream", InvalidStream))
-	prod.fallbackStream = StreamRegistry.GetRouterOrFallback(fallbackStreamID)
+	//fallbackStreamID := StreamRegistry.GetStreamID(conf.GetString("FallbackStream", InvalidStream))
+	//prod.fallbackStream = StreamRegistry.GetRouterOrFallback(fallbackStreamID)
 
 	// Simple health check for the plugin state
 	//   Path: "/<plugin_id>/SimpleProducer/pluginstate"

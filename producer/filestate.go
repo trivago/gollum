@@ -39,13 +39,13 @@ type fileState struct {
 }
 
 type fileRotateConfig struct {
-	timeout  time.Duration
-	sizeByte int64
+	timeout  time.Duration `config:"Rotation/TimeoutMin" default:"1440" metric:"min"`
+	sizeByte int64         `config:"Rotation/SizeMB" default:"1024" metric:"mb"`
+	zeroPad  int           `config:"Rotation/ZeroPadding" default:"0"`
+	enabled  bool          `config:"Rotation/Enable" default:"false"`
+	compress bool          `config:"Rotation/Compress" default:"false"`
 	atHour   int
 	atMinute int
-	zeroPad  int
-	enabled  bool
-	compress bool
 }
 
 func newFileState(maxMessageCount int, modulator core.Modulator, tryFallback func(*core.Message), timeout time.Duration, logScope tlog.LogScope) *fileState {

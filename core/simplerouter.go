@@ -33,30 +33,32 @@ import (
 //
 type SimpleRouter struct {
 	id        string
-	filters   FilterArray
 	Producers []Producer
-	Timeout   *time.Duration
-	streamID  MessageStreamID
+	filters   FilterArray     `config:"Filters"`
+	timeout   time.Duration   `config:"TimeoutMs" default:"0" metric:"ms"`
+	streamID  MessageStreamID `config:"Stream"`
 	Log       tlog.LogScope
 }
 
 // Configure sets up all values required by SimpleRouter.
 func (router *SimpleRouter) Configure(conf PluginConfigReader) error {
+	conf.Configure(router, router.Log)
+
 	router.id = conf.GetID()
 	router.Log = conf.GetLogScope()
-	router.Timeout = nil
-	router.streamID = conf.GetStreamID("Stream", GetStreamID(conf.GetID()))
+	//router.Timeout = nil
+	//router.streamID = conf.GetStreamID("Stream", GetStreamID(conf.GetID()))
 
-	router.filters = conf.GetFilterArray("Filters", router.Log, FilterArray{})
+	//router.filters = conf.GetFilterArray("Filters", router.Log, FilterArray{})
 
 	if router.streamID == WildcardStreamID {
 		router.Log.Note.Print("A wildcard stream configuration only affects the wildcard stream, not all routers")
 	}
 
-	if conf.HasValue("TimeoutMs") {
-		timeout := time.Duration(conf.GetInt("TimeoutMs", 0)) * time.Millisecond
-		router.Timeout = &timeout
-	}
+	//if conf.HasValue("TimeoutMs") {
+	//	timeout := time.Duration(conf.GetInt("TimeoutMs", 0)) * time.Millisecond
+	//	router.Timeout = &timeout
+	//}
 
 	return conf.Errors.OrNil()
 }
@@ -79,6 +81,11 @@ func (router *SimpleRouter) GetID() string {
 // GetStreamID returns the id of the stream this plugin is bound to.
 func (router *SimpleRouter) GetStreamID() MessageStreamID {
 	return router.streamID
+}
+
+// GetTimeout returns the timeout set for this router
+func (router *SimpleRouter) GetTimeout() time.Duration {
+	return router.timeout
 }
 
 // AddProducer adds all producers to the list of known producers.
