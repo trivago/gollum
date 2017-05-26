@@ -506,12 +506,12 @@ func (cons *Kafka) readPartitions(partitions []int32) {
 }
 
 func (cons *Kafka) enqueueEvent(event *kafka.ConsumerMessage) {
-	metaData := core.MetaData{}
+	metaData := core.Metadata{}
 
 	metaData.SetValue("topic", []byte(event.Topic))
 	metaData.SetValue("key", event.Key)
 
-	cons.EnqueueWithMetaData(event.Value, metaData)
+	cons.EnqueueWithMetadata(event.Value, metaData)
 }
 
 func (cons *Kafka) startReadTopic(topic string) {

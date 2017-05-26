@@ -115,7 +115,7 @@ func (filter *Rate) updateMetrics() {
 // ApplyFilter check if all Filter wants to reject the message
 func (filter *Rate) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	filter.stateGuard.RLock()
-	state, known := filter.state[msg.StreamID()]
+	state, known := filter.state[msg.GetStreamID()]
 	filter.stateGuard.RUnlock()
 
 	// Add stream if necessary
@@ -127,8 +127,8 @@ func (filter *Rate) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 			ignore:    false,
 			lastReset: time.Now(),
 		}
-		streamName := core.StreamRegistry.GetStreamName(msg.StreamID())
-		filter.state[msg.StreamID()] = state
+		streamName := core.StreamRegistry.GetStreamName(msg.GetStreamID())
+		filter.state[msg.GetStreamID()] = state
 		tgo.Metric.New(metricLimit + streamName)
 		tgo.Metric.New(metricLimitAgo + streamName)
 		filter.stateGuard.Unlock()

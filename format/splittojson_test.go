@@ -41,7 +41,7 @@ func TestSplitToJSON(t *testing.T) {
 	expect.NoError(err)
 
 	jsonData := tcontainer.NewMarshalMap()
-	err = json.Unmarshal(msg.Data(), &jsonData)
+	err = json.Unmarshal(msg.GetPayload(), &jsonData)
 	expect.NoError(err)
 
 	expect.MapEqual(jsonData, "first", "test1")
@@ -70,7 +70,7 @@ func TestSplitToJSONTooFew(t *testing.T) {
 	expect.NoError(err)
 
 	jsonData := tcontainer.NewMarshalMap()
-	err = json.Unmarshal(msg.Data(), &jsonData)
+	err = json.Unmarshal(msg.GetPayload(), &jsonData)
 	expect.NoError(err)
 
 	expect.MapEqual(jsonData, "first", "test1")
@@ -97,7 +97,7 @@ func TestSplitToJSONTooMany(t *testing.T) {
 	expect.NoError(err)
 
 	jsonData := tcontainer.NewMarshalMap()
-	err = json.Unmarshal(msg.Data(), &jsonData)
+	err = json.Unmarshal(msg.GetPayload(), &jsonData)
 	expect.NoError(err)
 
 	expect.MapEqual(jsonData, "first", "test1")
@@ -120,13 +120,13 @@ func TestSplitToJSONApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("payload"), core.InvalidStreamID)
-	msg.MetaData().SetValue("foo", []byte("test1,test2,{\"object\": true}"))
+	msg.GetMetadata().SetValue("foo", []byte("test1,test2,{\"object\": true}"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
 	jsonData := tcontainer.NewMarshalMap()
-	err = json.Unmarshal(msg.MetaData().GetValue("foo"), &jsonData)
+	err = json.Unmarshal(msg.GetMetadata().GetValue("foo"), &jsonData)
 	expect.NoError(err)
 
 	expect.MapEqual(jsonData, "first", "test1")

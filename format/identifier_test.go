@@ -22,7 +22,7 @@ func TestFormatterIdentifier(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("f9e6e6ef197c2b25", string(msg.Data()))
+	expect.Equal("f9e6e6ef197c2b25", string(msg.GetPayload()))
 }
 
 func TestFormatterIdentifierApplyTo(t *testing.T) {
@@ -38,10 +38,10 @@ func TestFormatterIdentifierApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("payload"), core.InvalidStreamID)
-	msg.MetaData().SetValue("foo", []byte("test"))
+	msg.GetMetadata().SetValue("foo", []byte("test"))
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("f9e6e6ef197c2b25", msg.MetaData().GetValueString("foo"))
+	expect.Equal("f9e6e6ef197c2b25", msg.GetMetadata().GetValueString("foo"))
 	expect.Equal("payload", msg.String())
 }

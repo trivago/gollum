@@ -47,6 +47,6 @@ func (format *StreamRevert) Configure(conf core.PluginConfigReader) error {
 
 // ApplyFormatter update message payload
 func (format *StreamRevert) ApplyFormatter(msg *core.Message) error {
-	msg.SetStreamID(msg.PreviousStreamID())
+	msg.SetStreamID(msg.GetPrevStreamID())
 	return nil
 }

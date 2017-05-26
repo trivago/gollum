@@ -64,10 +64,10 @@ func (router *Distribute) Start() error {
 }
 
 func (router *Distribute) route(msg *core.Message, targetRouter core.Router) {
-	if router.StreamID() == targetRouter.StreamID() {
+	if router.GetStreamID() == targetRouter.GetStreamID() {
 		router.Broadcast.Enqueue(msg)
 	} else {
-		msg.SetStreamID(targetRouter.StreamID())
+		msg.SetStreamID(targetRouter.GetStreamID())
 		core.Route(msg, targetRouter)
 	}
 }
@@ -87,10 +87,10 @@ func (router *Distribute) Enqueue(msg *core.Message) error {
 		lastStreamIdx := numStreams - 1
 		for streamIdx := 0; streamIdx < lastStreamIdx; streamIdx++ {
 			router.route(msg.Clone(), router.routers[streamIdx])
-			router.Log.Debug.Printf("routed to StreamID '%v'", router.routers[streamIdx].StreamID())
+			router.Log.Debug.Printf("routed to StreamID '%v'", router.routers[streamIdx].GetStreamID())
 		}
 		router.route(msg, router.routers[lastStreamIdx])
-		router.Log.Debug.Printf("routed to StreamID '%v'", router.routers[lastStreamIdx].StreamID())
+		router.Log.Debug.Printf("routed to StreamID '%v'", router.routers[lastStreamIdx].GetStreamID())
 	}
 
 	return nil

@@ -87,7 +87,7 @@ func (format *Identifier) idHash(msg *core.Message) []byte {
 
 func (format *Identifier) idTime(msg *core.Message) []byte {
 	seq := atomic.AddInt64(format.seq, 1)
-	return []byte(msg.Created().Format("060102150405") + strconv.FormatInt(seq%10000000, 10))
+	return []byte(msg.GetCreationTime().Format("060102150405") + strconv.FormatInt(seq%10000000, 10))
 }
 
 func (format *Identifier) idSeq(msg *core.Message) []byte {

@@ -37,7 +37,7 @@ func TestStreamRoute(t *testing.T) {
 	expect.NoError(err)
 
 	expect.Equal("test", msg.String())
-	expect.Equal(core.LogInternalStreamID, msg.StreamID())
+	expect.Equal(core.LogInternalStreamID, msg.GetStreamID())
 }
 
 func TestStreamRouteNoStreamName(t *testing.T) {
@@ -57,7 +57,7 @@ func TestStreamRouteNoStreamName(t *testing.T) {
 	expect.NoError(err)
 
 	expect.Equal("test", msg.String())
-	expect.Equal(core.InvalidStreamID, msg.StreamID())
+	expect.Equal(core.InvalidStreamID, msg.GetStreamID())
 }
 
 func TestStreamRouteFormat(t *testing.T) {
@@ -84,8 +84,8 @@ func TestStreamRouteFormat(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("test", string(msg.Data()))
-	expect.Equal(core.LogInternalStream, core.StreamRegistry.GetStreamName(msg.StreamID()))
+	expect.Equal("test", string(msg.GetPayload()))
+	expect.Equal(core.LogInternalStream, core.StreamRegistry.GetStreamName(msg.GetStreamID()))
 }
 
 func TestStreamApplyTo(t *testing.T) {
@@ -101,12 +101,12 @@ func TestStreamApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("payload"), core.InvalidStreamID)
-	msg.MetaData().SetValue("foo", []byte(core.LogInternalStream+":test"))
+	msg.GetMetadata().SetValue("foo", []byte(core.LogInternalStream+":test"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
 	expect.Equal("payload", msg.String())
-	expect.Equal("test", msg.MetaData().GetValueString("foo"))
-	expect.Equal(core.LogInternalStreamID, msg.StreamID())
+	expect.Equal("test", msg.GetMetadata().GetValueString("foo"))
+	expect.Equal(core.LogInternalStreamID, msg.GetStreamID())
 }

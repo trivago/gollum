@@ -82,9 +82,9 @@ func (format *ExtractJSON) ApplyFormatter(msg *core.Message) error {
 		format.SetAppliedContent(msg, value)
 	} else {
 		if format.applyTo == core.ApplyToPayloadString {
-			msg.Resize(0)
+			msg.ResizePayload(0)
 		} else {
-			msg.MetaData().ResetValue(format.applyTo)
+			msg.GetMetadata().ResetValue(format.applyTo)
 		}
 	}
 

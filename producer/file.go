@@ -374,7 +374,7 @@ func (prod *File) writeBatchOnTimeOut() {
 func (prod *File) writeMessage(msg *core.Message) {
 	streamMsg := msg.Clone()
 
-	state, err := prod.getFileState(streamMsg.StreamID(), false)
+	state, err := prod.getFileState(streamMsg.GetStreamID(), false)
 	if err != nil {
 		prod.Log.Error.Print("Write error: ", err)
 		prod.TryFallback(msg)

@@ -343,25 +343,25 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 	originalMsg := msg.Clone()
 
 	if msg.Len() == 0 {
-		streamName := core.StreamRegistry.GetStreamName(msg.StreamID())
+		streamName := core.StreamRegistry.GetStreamName(msg.GetStreamID())
 		prod.Log.Error.Printf("0 byte message detected on %s. Discarded", streamName)
 		core.CountDiscardedMessage()
 		return // ### return, invalid data ###
 	}
 
 	prod.topicGuard.RLock()
-	topic, topicRegistered := prod.topic[msg.StreamID()]
+	topic, topicRegistered := prod.topic[msg.GetStreamID()]
 	prod.topicGuard.RUnlock()
 
 	if !topicRegistered {
 		wildcardSet := false
-		topicName, isMapped := prod.streamToTopic[msg.StreamID()]
+		topicName, isMapped := prod.streamToTopic[msg.GetStreamID()]
 		if !isMapped {
 			if topicName, wildcardSet = prod.streamToTopic[core.WildcardStreamID]; !wildcardSet {
-				topicName = core.StreamRegistry.GetStreamName(msg.StreamID())
+				topicName = core.StreamRegistry.GetStreamName(msg.GetStreamID())
 			}
 		}
-		topic = prod.registerNewTopic(topicName, msg.StreamID())
+		topic = prod.registerNewTopic(topicName, msg.GetStreamID())
 	}
 
 	serializedOriginal, err := originalMsg.Serialize()
@@ -371,18 +371,18 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 
 	kafkaMsg := &messageWrapper{
 		key:   []byte{},
-		value: msg.Data(),
+		value: msg.GetPayload(),
 		user:  serializedOriginal,
 	}
 
 	if prod.keyFirst {
 		keyMsg := originalMsg.Clone()
 		prod.keyModulators.Modulate(keyMsg)
-		kafkaMsg.key = keyMsg.Data()
+		kafkaMsg.key = keyMsg.GetPayload()
 	} else {
 		keyMsg := msg.Clone()
 		prod.keyModulators.Modulate(keyMsg)
-		kafkaMsg.key = keyMsg.Data()
+		kafkaMsg.key = keyMsg.GetPayload()
 	}
 
 	if err := topic.handle.Produce(kafkaMsg); err != nil {
@@ -398,7 +398,7 @@ func (prod *KafkaProducer) storeRTT(msg *core.Message) {
 	prod.Modulate(msg)
 
 	prod.topicGuard.RLock()
-	topic := prod.topic[msg.StreamID()]
+	topic := prod.topic[msg.GetStreamID()]
 	prod.topicGuard.RUnlock()
 
 	atomic.AddInt64(&topic.rttSum, rtt.Nanoseconds()/1000)

@@ -338,10 +338,10 @@ func TestProcessTSVApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("PAYLOAD"), core.InvalidStreamID)
-	msg.MetaData().SetValue("foo", []byte("foo\tbar\tbaz"))
+	msg.GetMetadata().SetValue("foo", []byte("foo\tbar\tbaz"))
 	err = formatter.ApplyFormatter(msg)
 
 	expect.NoError(err)
 	expect.Equal("PAYLOAD", msg.String())
-	expect.Equal("foo\tbaz", msg.MetaData().GetValueString("foo"))
+	expect.Equal("foo\tbaz", msg.GetMetadata().GetValueString("foo"))
 }

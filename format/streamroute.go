@@ -77,7 +77,7 @@ func (format *StreamRoute) ApplyFormatter(msg *core.Message) error {
 
 	default:
 		streamName := content[:delimiterIdx]
-		streamMsg := core.NewMessage(nil, []byte(streamName), msg.StreamID())
+		streamMsg := core.NewMessage(nil, []byte(streamName), msg.GetStreamID())
 
 		content = content[(delimiterIdx + len(format.delimiter)):]
 		format.SetAppliedContent(msg, content)
@@ -88,7 +88,7 @@ func (format *StreamRoute) ApplyFormatter(msg *core.Message) error {
 		}
 
 		targetStreamID := core.GetStreamID(streamMsg.String())
-		if msg.StreamID() != targetStreamID {
+		if msg.GetStreamID() != targetStreamID {
 			msg.SetStreamID(targetStreamID)
 		}
 	}

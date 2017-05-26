@@ -72,7 +72,7 @@ func (client *proxyClient) hasDisconnected(err error) bool {
 }
 
 func (client *proxyClient) EnqueueResponse(msg core.Message) {
-	_, err := client.conn.Write(msg.Data())
+	_, err := client.conn.Write(msg.GetPayload())
 	if err != nil && err != io.EOF {
 		if client.hasDisconnected(err) {
 			client.connected = false // ### return, connection closed ###

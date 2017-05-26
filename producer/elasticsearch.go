@@ -266,23 +266,23 @@ func (prod *ElasticSearch) getIndexType(streamID core.MessageStreamID) string {
 func (prod *ElasticSearch) sendMessage(msg *core.Message) {
 	originalMsg := msg.Clone()
 
-	index, indexMapped := prod.index[msg.StreamID()]
+	index, indexMapped := prod.index[msg.GetStreamID()]
 	if !indexMapped {
 		index, indexMapped = prod.index[core.WildcardStreamID]
 		if !indexMapped {
-			index = core.StreamRegistry.GetStreamName(msg.StreamID())
+			index = core.StreamRegistry.GetStreamName(msg.GetStreamID())
 		}
 		metricName := elasticMetricMessages + index
 		tgo.Metric.New(metricName)
 		tgo.Metric.NewRate(metricName, elasticMetricMessagesSec+index, time.Second, 10, 3, true)
-		prod.index[msg.StreamID()] = index
+		prod.index[msg.GetStreamID()] = index
 	}
 
-	indexType := prod.getIndexType(msg.StreamID())
+	indexType := prod.getIndexType(msg.GetStreamID())
 
 	sendIndex := index
 	if prod.dayBasedIndex {
-		sendIndex += msg.Created().Format("_2006-01-02")
+		sendIndex += msg.GetCreationTime().Format("_2006-01-02")
 	}
 	prod.createIndex(index, sendIndex, indexType)
 

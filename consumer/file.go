@@ -121,13 +121,13 @@ func (cons *File) Configure(conf core.PluginConfigReader) error {
 
 // Enqueue creates a new message
 func (cons *File) Enqueue(data []byte) {
-	metaData := core.MetaData{}
+	metaData := core.Metadata{}
 
 	dir, file := filepath.Split(cons.fileName)
 	metaData.SetValue("file", []byte(file))
 	metaData.SetValue("dir", []byte(dir))
 
-	cons.EnqueueWithMetaData(data, metaData)
+	cons.EnqueueWithMetadata(data, metaData)
 }
 
 func (cons *File) storeOffset() {

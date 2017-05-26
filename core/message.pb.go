@@ -33,7 +33,7 @@ type SerializedMessage struct {
 	Timestamp    *int64  `protobuf:"varint,3,req,name=Timestamp" json:"Timestamp,omitempty"`
 	// required uint64 Sequence = 4;
 	Data             []byte            `protobuf:"bytes,5,req,name=Data" json:"Data,omitempty"`
-	MetaData         map[string][]byte `protobuf:"bytes,6,rep,name=MetaData" json:"MetaData,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Metadata         map[string][]byte `protobuf:"bytes,6,rep,name=Metadata" json:"Metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	XXX_unrecognized []byte            `json:"-"`
 }
 
@@ -70,9 +70,9 @@ func (m *SerializedMessage) GetData() []byte {
 	return nil
 }
 
-func (m *SerializedMessage) GetMetaData() map[string][]byte {
+func (m *SerializedMessage) GetMetadata() map[string][]byte {
 	if m != nil {
-		return m.MetaData
+		return m.Metadata
 	}
 	return nil
 }

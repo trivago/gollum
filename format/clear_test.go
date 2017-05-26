@@ -50,11 +50,11 @@ func TestClearFormatterApplyHandling(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
-	msg.MetaData().SetValue("foo", []byte("bar"))
+	msg.GetMetadata().SetValue("foo", []byte("bar"))
 
 	err = plugin.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("", string(msg.MetaData().GetValueString("foo")))
+	expect.Equal("", string(msg.GetMetadata().GetValueString("foo")))
 	expect.Equal("test", msg.String())
 }

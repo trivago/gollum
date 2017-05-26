@@ -58,11 +58,11 @@ func TestGetAppliedContentFromPayload(t *testing.T) {
 	expect.Equal("message payload", string(resultFunc(msg)))
 }
 
-func TestGetAppliedContentFromMetaData(t *testing.T) {
+func TestGetAppliedContentFromMetadata(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	resultFunc := GetAppliedContentGetFunction("foo")
 	msg := NewMessage(nil, []byte("message payload"), 1)
-	msg.MetaData().SetValue("foo", []byte("foo content"))
+	msg.GetMetadata().SetValue("foo", []byte("foo content"))
 
 	expect.Equal("foo content", string(resultFunc(msg)))
 }

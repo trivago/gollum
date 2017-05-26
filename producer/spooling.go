@@ -166,14 +166,14 @@ func (prod *Spooling) Modulate(msg *core.Message) core.ModulateResult {
 // TryFallback reverts the message stream before dropping
 func (prod *Spooling) TryFallback(msg *core.Message) {
 	if prod.revertOnDrop {
-		msg.SetStreamID(msg.PreviousStreamID())
+		msg.SetStreamID(msg.GetPrevStreamID())
 	}
 	prod.BufferedProducer.TryFallback(msg)
 }
 
 func (prod *Spooling) writeToFile(msg *core.Message) {
 	// Get the correct file state for this stream
-	streamID := msg.PreviousStreamID()
+	streamID := msg.GetPrevStreamID()
 
 	prod.outfileGuard.RLock()
 	spool, exists := prod.outfile[streamID]
@@ -181,12 +181,12 @@ func (prod *Spooling) writeToFile(msg *core.Message) {
 
 	if !exists {
 		streamName := core.StreamRegistry.GetStreamName(streamID)
-		spool = newSpoolFile(prod, streamName, msg.Source())
+		spool = newSpoolFile(prod, streamName, msg.GetSource())
 
 		prod.outfileGuard.Lock()
 		// Recheck to avoid races
 		if spool, exists = prod.outfile[streamID]; !exists {
-			spool = newSpoolFile(prod, streamName, msg.Source())
+			spool = newSpoolFile(prod, streamName, msg.GetSource())
 			prod.outfile[streamID] = spool
 		}
 		prod.outfileGuard.Unlock()
@@ -246,12 +246,12 @@ func (prod *Spooling) onRoll() {
 func (prod *Spooling) routeToOrigin(msg *core.Message) {
 	routeStart := time.Now()
 
-	msg.SetStreamID(msg.PreviousStreamID()) // Force PrevStreamID to be preserved in case message gets spooled again
-	stream := core.StreamRegistry.GetRouter(msg.StreamID())
+	msg.SetStreamID(msg.GetPrevStreamID()) // Force PrevStreamID to be preserved in case message gets spooled again
+	stream := core.StreamRegistry.GetRouter(msg.GetStreamID())
 	core.Route(msg, stream)
 
 	prod.outfileGuard.RLock()
-	if spool, exists := prod.outfile[msg.PreviousStreamID()]; exists {
+	if spool, exists := prod.outfile[msg.GetPrevStreamID()]; exists {
 		spool.countRead()
 	}
 	prod.outfileGuard.RUnlock()

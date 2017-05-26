@@ -24,7 +24,7 @@ func TestFormatterHostname(t *testing.T) {
 	expect.NoError(err)
 
 	hostname, _ := os.Hostname()
-	expect.Equal(fmt.Sprintf("%s:%s", hostname, "test"), string(msg.Data()))
+	expect.Equal(fmt.Sprintf("%s:%s", hostname, "test"), string(msg.GetPayload()))
 }
 
 func TestFormatterHostnameSeparator(t *testing.T) {
@@ -43,7 +43,7 @@ func TestFormatterHostnameSeparator(t *testing.T) {
 	expect.NoError(err)
 
 	hostname, _ := os.Hostname()
-	expect.Equal(fmt.Sprintf("%s-%s", hostname, "test"), string(msg.Data()))
+	expect.Equal(fmt.Sprintf("%s-%s", hostname, "test"), string(msg.GetPayload()))
 }
 
 func TestFormatterHostnameNoSeparator(t *testing.T) {
@@ -84,5 +84,5 @@ func TestFormatterHostnameApplyTo(t *testing.T) {
 	expect.NoError(err)
 
 	hostname, _ := os.Hostname()
-	expect.Equal(hostname, msg.MetaData().GetValueString("foo"))
+	expect.Equal(hostname, msg.GetMetadata().GetValueString("foo"))
 }

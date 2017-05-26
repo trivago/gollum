@@ -181,12 +181,12 @@ func (cons *SimpleConsumer) Enqueue(data []byte) {
 	cons.enqueueMessage(msg)
 }
 
-// EnqueueWithMetaData works like EnqueueWithSequence and allows to set meta data directly
-func (cons *SimpleConsumer) EnqueueWithMetaData(data []byte, metaData MetaData) {
+// EnqueueWithMetadata works like EnqueueWithSequence and allows to set meta data directly
+func (cons *SimpleConsumer) EnqueueWithMetadata(data []byte, metaData Metadata) {
 	msg := NewMessage(cons, data, GetStreamID(cons.id))
 
-	msg.data.MetaData = metaData
-	msg.orig.MetaData = metaData.Clone()
+	msg.data.Metadata = metaData
+	msg.orig.Metadata = metaData.Clone()
 	cons.enqueueMessage(msg)
 }
 
@@ -212,7 +212,7 @@ func (cons *SimpleConsumer) enqueueMessage(msg *Message) {
 	for streamIdx := 0; streamIdx < lastStreamIdx; streamIdx++ {
 		router := cons.routers[streamIdx]
 		msg := msg.Clone()
-		msg.SetStreamID(router.StreamID())
+		msg.SetStreamID(router.GetStreamID())
 
 		if err := Route(msg, router); err != nil {
 			cons.Log.Error.Print(err)
@@ -220,7 +220,7 @@ func (cons *SimpleConsumer) enqueueMessage(msg *Message) {
 	}
 
 	router := cons.routers[lastStreamIdx]
-	msg.SetStreamID(router.StreamID())
+	msg.SetStreamID(router.GetStreamID())
 
 	if err := Route(msg, router); err != nil {
 		cons.Log.Error.Print(err)

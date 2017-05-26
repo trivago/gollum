@@ -43,7 +43,7 @@ func TestSplitPick_OutOfBoundIndex(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 
 	expect.NoError(err)
-	expect.Equal(0, len(msg.Data()))
+	expect.Equal(0, len(msg.GetPayload()))
 }
 
 func TestSplitPickApplyTo(t *testing.T) {
@@ -61,10 +61,10 @@ func TestSplitPickApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("PAYLOAD"), core.InvalidStreamID)
-	msg.MetaData().SetValue("foo", []byte("MTIzNDU2#NjU0MzIx"))
+	msg.GetMetadata().SetValue("foo", []byte("MTIzNDU2#NjU0MzIx"))
 	err = formatter.ApplyFormatter(msg)
 
 	expect.NoError(err)
 	expect.Equal("PAYLOAD", msg.String())
-	expect.Equal("MTIzNDU2", msg.MetaData().GetValueString("foo"))
+	expect.Equal("MTIzNDU2", msg.GetMetadata().GetValueString("foo"))
 }

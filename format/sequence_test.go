@@ -35,13 +35,13 @@ func TestSequence(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("1:test", string(msg.Data()))
+	expect.Equal("1:test", string(msg.GetPayload()))
 
 	msg = core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("2:test", string(msg.Data()))
+	expect.Equal("2:test", string(msg.GetPayload()))
 }
 
 func TestSequenceApplyTo(t *testing.T) {
@@ -56,13 +56,13 @@ func TestSequenceApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("PAYLOAD"), core.InvalidStreamID)
-	msg.MetaData().SetValue("foo", []byte("test"))
+	msg.GetMetadata().SetValue("foo", []byte("test"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("PAYLOAD", string(msg.Data()))
-	expect.Equal("1:test", msg.MetaData().GetValueString("foo"))
+	expect.Equal("PAYLOAD", string(msg.GetPayload()))
+	expect.Equal("1:test", msg.GetMetadata().GetValueString("foo"))
 }
 
 func TestSequenceApplyToNoSeparator(t *testing.T) {
@@ -82,6 +82,6 @@ func TestSequenceApplyToNoSeparator(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("PAYLOAD", string(msg.Data()))
-	expect.Equal("1", msg.MetaData().GetValueString("foo"))
+	expect.Equal("PAYLOAD", string(msg.GetPayload()))
+	expect.Equal("1", msg.GetMetadata().GetValueString("foo"))
 }

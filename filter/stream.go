@@ -61,13 +61,13 @@ func (filter *Stream) Configure(conf core.PluginConfigReader) error {
 // ApplyFilter check if all Filter wants to reject the message
 func (filter *Stream) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	for _, blockedID := range filter.blacklist {
-		if msg.StreamID() == blockedID {
+		if msg.GetStreamID() == blockedID {
 			return filter.GetFilterResultMessageReject(), nil // ### return, explicitly blocked ###
 		}
 	}
 
 	for _, allowedID := range filter.whitelist {
-		if msg.StreamID() == allowedID {
+		if msg.GetStreamID() == allowedID {
 			return core.FilterResultMessageAccept, nil // ### return, explicitly allowed ###
 		}
 	}

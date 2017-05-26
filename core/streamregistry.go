@@ -190,7 +190,7 @@ nextProd:
 // router. The state of the wildcard list is undefined during the configuration
 // phase.
 func (registry streamRegistry) AddWildcardProducersToRouter(router Router) {
-	streamID := router.StreamID()
+	streamID := router.GetStreamID()
 	if streamID != LogInternalStreamID {
 		router.AddProducer(registry.wildcard...)
 	}

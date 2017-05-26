@@ -55,11 +55,11 @@ func TestTemplateJSONApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("payload"), core.InvalidStreamID)
-	msg.MetaData().SetValue("foo", []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"))
+	msg.GetMetadata().SetValue("foo", []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
 	expect.Equal("payload", msg.String())
-	expect.Equal("bar valid", msg.MetaData().GetValueString("foo"))
+	expect.Equal("bar valid", msg.GetMetadata().GetValueString("foo"))
 }

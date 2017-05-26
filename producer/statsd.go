@@ -116,12 +116,12 @@ func (prod *Statsd) transformMessages(messages []*core.Message) {
 		msgCopy := msg.Clone()
 
 		// Select the correct statsd metric
-		metricName, streamMapped := prod.streamMap[msgCopy.StreamID()]
+		metricName, streamMapped := prod.streamMap[msgCopy.GetStreamID()]
 		if !streamMapped {
 			metricName, streamMapped = prod.streamMap[core.WildcardStreamID]
 			if !streamMapped {
-				metricName = core.StreamRegistry.GetStreamName(msgCopy.StreamID())
-				prod.streamMap[msgCopy.StreamID()] = metricName
+				metricName = core.StreamRegistry.GetStreamName(msgCopy.GetStreamID())
+				prod.streamMap[msgCopy.GetStreamID()] = metricName
 			}
 		}
 

@@ -157,16 +157,16 @@ func (prod *Proxy) sendMessage(msg *core.Message) {
 	}
 
 	// Check if and how to work with the message source
-	responder, processResponse := msg.Source().(core.AsyncMessageSource)
+	responder, processResponse := msg.GetSource().(core.AsyncMessageSource)
 	if processResponse {
-		if serialResponder, isSerial := msg.Source().(core.SerialMessageSource); isSerial {
+		if serialResponder, isSerial := msg.GetSource().(core.SerialMessageSource); isSerial {
 			defer serialResponder.ResponseDone()
 		}
 	}
 
 	// Write data
 	prod.connection.SetWriteDeadline(time.Now().Add(prod.timeout))
-	if _, err := prod.connection.Write(msg.Data()); err != nil {
+	if _, err := prod.connection.Write(msg.GetPayload()); err != nil {
 		prod.Log.Error.Print("Write error: ", err)
 		prod.connection.Close()
 		prod.connection = nil
@@ -177,7 +177,7 @@ func (prod *Proxy) sendMessage(msg *core.Message) {
 	enqueueResponse := tio.BufferReadCallback(nil)
 	if processResponse {
 		enqueueResponse = func(data []byte) {
-			response := core.NewMessage(prod, data, msg.StreamID())
+			response := core.NewMessage(prod, data, msg.GetStreamID())
 			responder.EnqueueResponse(response)
 		}
 	}

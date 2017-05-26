@@ -59,5 +59,5 @@ func TestTimestampApplyTo(t *testing.T) {
 	expect.NoError(err)
 
 	expect.Equal("test", msg.String())
-	expect.Equal(timestamp, msg.MetaData().GetValueString("foo"))
+	expect.Equal(timestamp, msg.GetMetadata().GetValueString("foo"))
 }

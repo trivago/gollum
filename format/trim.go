@@ -68,7 +68,7 @@ func (format *Trim) ApplyFormatter(msg *core.Message) error {
 
 	offset = format.leftOffset
 	if len(format.leftSeparator) > 0 {
-		leftIdx := bytes.Index(msg.Data(), format.leftSeparator)
+		leftIdx := bytes.Index(msg.GetPayload(), format.leftSeparator)
 		leftIdx++
 		if leftIdx > 0 {
 			offset += leftIdx

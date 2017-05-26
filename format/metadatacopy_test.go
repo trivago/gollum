@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func TestMetaDataCopy(t *testing.T) {
+func TestMetadataCopy(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	// mock config
@@ -18,7 +18,7 @@ func TestMetaDataCopy(t *testing.T) {
 		map[string]interface{}{"foo": []string{"format.Hostname"}},
 		strings.ToLower)
 
-	config := core.NewPluginConfig("", "format.MetaDataCopy")
+	config := core.NewPluginConfig("", "format.MetadataCopy")
 	config.Override("WriteTo", []interface{}{
 		setupConf,
 		"bar",
@@ -28,7 +28,7 @@ func TestMetaDataCopy(t *testing.T) {
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*MetaDataCopy)
+	formatter, casted := plugin.(*MetadataCopy)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("test payload"), core.InvalidStreamID)
@@ -42,15 +42,15 @@ func TestMetaDataCopy(t *testing.T) {
 	}
 
 	expect.Equal("test payload", msg.String())
-	expect.True(strings.Contains(string(msg.MetaData().GetValue("foo")), hostname))
-	expect.Equal("test payload", string(msg.MetaData().GetValue("bar")))
+	expect.True(strings.Contains(string(msg.GetMetadata().GetValue("foo")), hostname))
+	expect.Equal("test payload", string(msg.GetMetadata().GetValue("bar")))
 }
 
-func TestMetaDataCopyApplyToHandling(t *testing.T) {
+func TestMetadataCopyApplyToHandling(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	// mock config
-	config := core.NewPluginConfig("", "format.MetaDataCopy")
+	config := core.NewPluginConfig("", "format.MetadataCopy")
 	config.Override("WriteTo", []interface{}{
 		"bar",
 	})
@@ -60,16 +60,16 @@ func TestMetaDataCopyApplyToHandling(t *testing.T) {
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*MetaDataCopy)
+	formatter, casted := plugin.(*MetadataCopy)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("test payload"), core.InvalidStreamID)
 
-	msg.MetaData().SetValue("foo", []byte("meta data string"))
+	msg.GetMetadata().SetValue("foo", []byte("meta data string"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
 	expect.Equal("test payload", msg.String())
-	expect.Equal("meta data string", string(msg.MetaData().GetValue("bar")))
+	expect.Equal("meta data string", string(msg.GetMetadata().GetValue("bar")))
 }

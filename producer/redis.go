@@ -137,7 +137,7 @@ func (prod *Redis) getValueAndKey(msg *core.Message) (v []byte, k string) {
 		key = keyMsg.String()
 	}
 
-	return dataMsg.Data(), key
+	return dataMsg.GetPayload(), key
 }
 
 func (prod *Redis) getValueFieldAndKey(msg *core.Message) (v []byte, f []byte, k string) {
@@ -166,10 +166,10 @@ func (prod *Redis) getValueFieldAndKey(msg *core.Message) (v []byte, f []byte, k
 		}
 
 		prod.fieldModulators.Modulate(fieldMsg)
-		field = fieldMsg.Data()
+		field = fieldMsg.GetPayload()
 	}
 
-	return dataMsg.Data(), field, key
+	return dataMsg.GetPayload(), field, key
 }
 
 func (prod *Redis) storeHash(msg *core.Message) {

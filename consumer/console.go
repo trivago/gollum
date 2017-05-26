@@ -90,10 +90,10 @@ func (cons *Console) Configure(conf core.PluginConfigReader) error {
 
 // Enqueue creates a new message
 func (cons *Console) Enqueue(data []byte) {
-	metaData := core.MetaData{}
+	metaData := core.Metadata{}
 	metaData.SetValue("pipename", []byte(cons.pipeName))
 
-	cons.EnqueueWithMetaData(data, metaData)
+	cons.EnqueueWithMetadata(data, metaData)
 }
 
 // Consume listens to stdin.

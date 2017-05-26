@@ -40,5 +40,5 @@ func TestStreamRevert(t *testing.T) {
 	expect.NoError(err)
 
 	expect.Equal("test", msg.String())
-	expect.Equal(prevStreamID, msg.StreamID())
+	expect.Equal(prevStreamID, msg.GetStreamID())
 }

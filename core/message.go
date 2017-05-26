@@ -25,7 +25,7 @@ import (
 type MessageData struct {
 	payload  []byte
 	streamID MessageStreamID
-	MetaData MetaData
+	Metadata Metadata
 }
 
 // Message is a container used for storing the internal state of messages.
@@ -58,11 +58,11 @@ func NewMessage(source MessageSource, data []byte, streamID MessageStreamID) *Me
 
 	message.data.payload = buffer
 	message.data.streamID = streamID
-	message.data.MetaData = MetaData{}
+	message.data.Metadata = Metadata{}
 
 	message.orig.payload = origBuffer
 	message.orig.streamID = streamID
-	message.orig.MetaData = MetaData{}
+	message.orig.Metadata = Metadata{}
 
 	return message
 }
@@ -81,11 +81,11 @@ func NewMessageWithSize(source MessageSource, dataSize int, sequence uint64, str
 
 	message.data.payload = buffer
 	message.data.streamID = streamID
-	message.data.MetaData = MetaData{}
+	message.data.Metadata = Metadata{}
 
 	message.orig.payload = origBuffer
 	message.orig.streamID = streamID
-	message.orig.MetaData = MetaData{}
+	message.orig.Metadata = Metadata{}
 
 	return message
 }
@@ -98,40 +98,40 @@ func getPayloadCopy(data []byte) []byte {
 	return buffer
 }
 
-// Created returns the time when this message was created.
-func (msg *Message) Created() time.Time {
+// GetCreationTime returns the time when this message was created.
+func (msg *Message) GetCreationTime() time.Time {
 	return msg.timestamp
 }
 
-// StreamID returns the stream this message is currently routed to.
-func (msg *Message) StreamID() MessageStreamID {
+// GetStreamID returns the stream this message is currently routed to.
+func (msg *Message) GetStreamID() MessageStreamID {
 	return msg.data.streamID
 }
 
-// PreviousStreamID returns the last "hop" of this message.
-func (msg *Message) PreviousStreamID() MessageStreamID {
+// GetPrevStreamID returns the last "hop" of this message.
+func (msg *Message) GetPrevStreamID() MessageStreamID {
 	return msg.prevStreamID
 }
 
 // GetRouter returns the stream object behind the current StreamID.
 func (msg *Message) GetRouter() Router {
-	return StreamRegistry.GetRouterOrFallback(msg.StreamID())
+	return StreamRegistry.GetRouterOrFallback(msg.GetStreamID())
 }
 
 // GetPreviousRouter returns the stream object behind the previous StreamID.
-func (msg *Message) GetPreviousRouter() Router {
+func (msg *Message) GetPrevRouter() Router {
 	return StreamRegistry.GetRouterOrFallback(msg.prevStreamID)
 }
 
 // SetStreamID sets a new stream and stores the current one in the previous
 // stream field.
 func (msg *Message) SetStreamID(streamID MessageStreamID) {
-	msg.prevStreamID = msg.StreamID()
+	msg.prevStreamID = msg.GetStreamID()
 	msg.data.streamID = streamID
 }
 
-// Source returns the message's source (can be nil).
-func (msg *Message) Source() MessageSource {
+// GetSource returns the message's source (can be nil).
+func (msg *Message) GetSource() MessageSource {
 	return msg.source
 }
 
@@ -141,41 +141,24 @@ func (msg *Message) String() string {
 }
 
 // Data returns the stored data
-func (msg *Message) Data() []byte {
+func (msg *Message) GetPayload() []byte {
 	return msg.data.payload
 }
 
-// Len returns the length of the current data buffer
-func (msg *Message) Len() int {
-	return len(msg.data.payload)
+// GetMetadata returns the current Metadata
+func (msg *Message) GetMetadata() Metadata {
+	return msg.data.Metadata
 }
 
-// Cap returns the capacity of the current data buffer
-func (msg *Message) Cap() int {
-	return cap(msg.data.payload)
+// StorePayload copies data into the hold data buffer. If the buffer can hold
+// data it is resized, otherwise a new buffer will be allocated.
+func (msg *Message) StorePayload(data []byte) {
+	copy(msg.ResizePayload(len(data)), data)
 }
 
-// MetaData returns the current MetaData
-func (msg *Message) MetaData() MetaData {
-	return msg.data.MetaData
-}
-
-// Store copies data into the hold data buffer. If the buffer can hold data
-// it is resized, otherwise a new buffer will be allocated.
-func (msg *Message) Store(data []byte) {
-	copy(msg.Resize(len(data)), data)
-}
-
-// Offset moves the slice start offset of the currently stored data to the
-// given position. This can be used to e.g. efficiently crop of the beginning
-// of a message.
-func (msg *Message) Offset(offset int) {
-	msg.data.payload = msg.data.payload[offset:]
-}
-
-// Resize changes the size of the stored buffer. The current content is not
-// guaranteed to be preserved. If content needs to be preserved use Extend.
-func (msg *Message) Resize(size int) []byte {
+// ResizePayload changes the size of the stored buffer. The current content is
+// not guaranteed to be preserved. If content needs to be preserved use Extend.
+func (msg *Message) ResizePayload(size int) []byte {
 	switch {
 	case size == len(msg.data.payload):
 	case size <= cap(msg.data.payload):
@@ -187,9 +170,9 @@ func (msg *Message) Resize(size int) []byte {
 	return msg.data.payload
 }
 
-// Extend changes the size of the stored buffer. The current content will be
-// preserved. If content does not need to be preserved use Resize.
-func (msg *Message) Extend(size int) []byte {
+// ExtendPayload changes the size of the stored buffer. The current content will
+// be preserved. If content does not need to be preserved use Resize.
+func (msg *Message) ExtendPayload(size int) []byte {
 	switch {
 	case size == len(msg.data.payload):
 	case size <= cap(msg.data.payload):
@@ -235,7 +218,7 @@ func (msg Message) Serialize() ([]byte, error) {
 		PrevStreamID: proto.Uint64(uint64(msg.prevStreamID)),
 		Timestamp:    proto.Int64(msg.timestamp.UnixNano()),
 		Data:         msg.data.payload,
-		MetaData:     msg.data.MetaData,
+		Metadata:     msg.data.Metadata,
 	}
 
 	return proto.Marshal(serializable)
@@ -258,8 +241,8 @@ func DeserializeMessage(data []byte) (Message, error) {
 	msg.data.payload = serializable.GetData()
 	copy(msg.orig.payload, msg.data.payload)
 
-	msg.data.MetaData = serializable.GetMetaData()
-	msg.orig.MetaData = msg.data.MetaData.Clone()
+	msg.data.Metadata = serializable.GetMetadata()
+	msg.orig.Metadata = msg.data.Metadata.Clone()
 
 	return msg, err
 }

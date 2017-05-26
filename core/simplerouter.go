@@ -76,8 +76,8 @@ func (router *SimpleRouter) GetID() string {
 	return router.id
 }
 
-// StreamID returns the id of the stream this plugin is bound to.
-func (router *SimpleRouter) StreamID() MessageStreamID {
+// GetStreamID returns the id of the stream this plugin is bound to.
+func (router *SimpleRouter) GetStreamID() MessageStreamID {
 	return router.streamID
 }
 

@@ -27,7 +27,7 @@ func TestProcessJSONRename(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	msgData := string(msg.Data())
+	msgData := string(msg.GetPayload())
 	expect.True(strings.Contains(msgData, "\"foobar\":\"value1\""))
 	expect.True(strings.Contains(msgData, "\"bar\":\"value2\""))
 }
@@ -51,7 +51,7 @@ func TestProcessJSONReplace(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	msgData := string(msg.Data())
+	msgData := string(msg.GetPayload())
 	expect.True(strings.Contains(msgData, "\"foo\":\"new1\""))
 }
 
@@ -76,7 +76,7 @@ func TestProcessJsonTrimValues(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	msgData := string(msg.Data())
+	msgData := string(msg.GetPayload())
 
 	expect.True(strings.Contains(msgData, "\"foo2\":\"value1\""))
 	expect.True(strings.Contains(msgData, "\"bar2\":\"value2\""))
@@ -103,7 +103,7 @@ func TestProcessJsonTrimValuesFalse(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	msgData := string(msg.Data())
+	msgData := string(msg.GetPayload())
 
 	expect.True(strings.Contains(msgData, "\"foo2\":\"value1 \""))
 	expect.True(strings.Contains(msgData, "\"bar2\":\" value2\""))
@@ -125,12 +125,12 @@ func TestProcessJSONApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("TEST PAYLOAD"), core.InvalidStreamID)
-	msg.MetaData().SetValue("foo", []byte("{\"test\":\"foobar\"}"))
+	msg.GetMetadata().SetValue("foo", []byte("{\"test\":\"foobar\"}"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	msgData := string(msg.Data())
+	msgData := string(msg.GetPayload())
 	expect.Equal(msgData, "TEST PAYLOAD")
-	expect.True(strings.Contains(msg.MetaData().GetValueString("foo"), "\"foo\":\"foobar\""))
+	expect.True(strings.Contains(msg.GetMetadata().GetValueString("foo"), "\"foo\":\"foobar\""))
 }

@@ -165,7 +165,7 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 	)
 
 	originalMsg := msg.Clone()
-	requestData := bytes.NewBuffer(msg.Data())
+	requestData := bytes.NewBuffer(msg.GetPayload())
 
 	if prod.rawPackets {
 		// Assume the message already contains an HTTP request in wire format.

@@ -165,7 +165,7 @@ func TestMessageBatch(t *testing.T) {
 func TestMessageSerialize(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	testMessage := NewMessage(nil, []byte("This is a\nteststring"), 1)
-	testMessage.MetaData().SetValue("key", []byte("meta data value"))
+	testMessage.GetMetadata().SetValue("key", []byte("meta data value"))
 
 	data, err := testMessage.Serialize()
 	expect.NoError(err)
@@ -189,5 +189,5 @@ func TestMessageSerialize(t *testing.T) {
 	expect.Equal(readMessage.prevStreamID, testMessage.prevStreamID)
 	expect.Equal(readMessage.timestamp, testMessage.timestamp)
 	expect.Equal(readMessage.data.payload, testMessage.data.payload)
-	expect.Equal(readMessage.data.MetaData, testMessage.data.MetaData)
+	expect.Equal(readMessage.data.Metadata, testMessage.data.Metadata)
 }

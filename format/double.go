@@ -68,8 +68,8 @@ func (format *Double) ApplyFormatter(msg *core.Message) error {
 
 	// pre-process
 	if format.applyTo != core.ApplyToPayloadString {
-		leftMsg.Store(format.GetAppliedContent(msg))
-		rightMsg.Store(format.GetAppliedContent(msg))
+		leftMsg.StorePayload(format.GetAppliedContent(msg))
+		rightMsg.StorePayload(format.GetAppliedContent(msg))
 	}
 
 	// apply sub-formatter
@@ -82,13 +82,13 @@ func (format *Double) ApplyFormatter(msg *core.Message) error {
 	}
 
 	// update content
-	format.SetAppliedContent(msg, format.getCombinedContent(leftMsg.Data(), rightMsg.Data()))
+	format.SetAppliedContent(msg, format.getCombinedContent(leftMsg.GetPayload(), rightMsg.GetPayload()))
 
 	// handle streamID
 	if format.leftStreamID {
-		msg.SetStreamID(leftMsg.StreamID())
+		msg.SetStreamID(leftMsg.GetStreamID())
 	} else {
-		msg.SetStreamID(rightMsg.StreamID())
+		msg.SetStreamID(rightMsg.GetStreamID())
 	}
 
 	// fin

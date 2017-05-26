@@ -229,13 +229,13 @@ func (prod *Firehose) transformMessages(messages []*core.Message) {
 	for idx, msg := range messages {
 
 		// Fetch buffer for this stream
-		records, recordsExists := streamRecords[msg.StreamID()]
+		records, recordsExists := streamRecords[msg.GetStreamID()]
 		if !recordsExists {
 			// Select the correct firehose stream
-			streamName, streamMapped := prod.streamMap[msg.StreamID()]
+			streamName, streamMapped := prod.streamMap[msg.GetStreamID()]
 			if !streamMapped {
-				streamName = core.StreamRegistry.GetStreamName(msg.StreamID())
-				prod.streamMap[msg.StreamID()] = streamName
+				streamName = core.StreamRegistry.GetStreamName(msg.GetStreamID())
+				prod.streamMap[msg.GetStreamID()] = streamName
 
 				tgo.Metric.New(firehoseMetricMessages + streamName)
 				tgo.Metric.New(firehoseMetricMessagesSec + streamName)
@@ -252,7 +252,7 @@ func (prod *Firehose) transformMessages(messages []*core.Message) {
 				original:           make([][]*core.Message, 0, maxLength),
 				lastRecordMessages: 0,
 			}
-			streamRecords[msg.StreamID()] = records
+			streamRecords[msg.GetStreamID()] = records
 		}
 
 		// Fetch record for this buffer
@@ -261,7 +261,7 @@ func (prod *Firehose) transformMessages(messages []*core.Message) {
 		if !recordExists || records.lastRecordMessages+1 > prod.recordMaxMessages {
 			// Append record to stream
 			record = &firehose.Record{
-				Data: make([]byte, 0, len(msg.Data())),
+				Data: make([]byte, 0, len(msg.GetPayload())),
 			}
 			records.content.Records = append(records.content.Records, record)
 			records.original = append(records.original, make([]*core.Message, 0, prod.recordMaxMessages))
@@ -272,7 +272,7 @@ func (prod *Firehose) transformMessages(messages []*core.Message) {
 		}
 
 		// Append message to record
-		record.Data = append(record.Data, msg.Data()...)
+		record.Data = append(record.Data, msg.GetPayload()...)
 		records.lastRecordMessages++
 		records.original[len(records.original)-1] = append(records.original[len(records.original)-1], messages[idx])
 	}

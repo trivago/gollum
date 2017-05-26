@@ -530,12 +530,12 @@ func (prod *S3) transformMessages(messages []*core.Message) {
 		originalMsg := msg.Clone()
 
 		// Select the correct s3 path
-		s3Path, streamMapped := prod.streamMap[msg.StreamID()]
+		s3Path, streamMapped := prod.streamMap[msg.GetStreamID()]
 		if !streamMapped {
 			s3Path, streamMapped = prod.streamMap[core.WildcardStreamID]
 			if !streamMapped {
-				s3Path = core.StreamRegistry.GetStreamName(msg.StreamID())
-				prod.streamMap[msg.StreamID()] = s3Path
+				s3Path = core.StreamRegistry.GetStreamName(msg.GetStreamID())
+				prod.streamMap[msg.GetStreamID()] = s3Path
 				metricName := s3MetricMessages + s3Path
 				tgo.Metric.New(metricName)
 				tgo.Metric.NewRate(metricName, s3MetricMessagesSec+s3Path, time.Second, 10, 3, true)
@@ -568,7 +568,7 @@ func (prod *S3) transformMessages(messages []*core.Message) {
 		}
 		prod.objectsLock.Unlock()
 
-		err := prod.appendOrUpload(object, msg.Data())
+		err := prod.appendOrUpload(object, msg.GetPayload())
 		if err != nil {
 			prod.TryFallback(originalMsg)
 			continue

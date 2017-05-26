@@ -17,12 +17,12 @@ type SetAppliedContent func(msg *Message, content []byte)
 func GetAppliedContentGetFunction(applyTo string) GetAppliedContent {
 	if applyTo != "" && applyTo != ApplyToPayloadString {
 		return func(msg *Message) []byte {
-			return msg.MetaData().GetValue(applyTo)
+			return msg.GetMetadata().GetValue(applyTo)
 		}
 	}
 
 	return func(msg *Message) []byte {
-		return msg.Data()
+		return msg.GetPayload()
 	}
 }
 
@@ -30,13 +30,13 @@ func GetAppliedContentGetFunction(applyTo string) GetAppliedContent {
 func GetAppliedContentSetFunction(applyTo string) SetAppliedContent {
 	if applyTo != "" && applyTo != ApplyToPayloadString {
 		return func(msg *Message, content []byte) {
-			msg.MetaData().SetValue(applyTo, content)
+			msg.GetMetadata().SetValue(applyTo, content)
 			return
 		}
 	}
 
 	return func(msg *Message, content []byte) {
-		msg.Store(content)
+		msg.StorePayload(content)
 		return
 	}
 }

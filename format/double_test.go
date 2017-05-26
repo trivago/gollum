@@ -29,7 +29,7 @@ func TestDoubleFormatter(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("TEST_VALUE:VEVTVF9WQUxVRQ==", string(msg.Data()))
+	expect.Equal("TEST_VALUE:VEVTVF9WQUxVRQ==", string(msg.GetPayload()))
 }
 
 func TestDoubleFormatterSeparator(t *testing.T) {
@@ -48,7 +48,7 @@ func TestDoubleFormatterSeparator(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("TEST_VALUE-TEST_VALUE", string(msg.Data()))
+	expect.Equal("TEST_VALUE-TEST_VALUE", string(msg.GetPayload()))
 }
 
 func TestDoubleFormatterApplyTo(t *testing.T) {
@@ -68,11 +68,11 @@ func TestDoubleFormatterApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("SOME_PAYLOAD_DATA"), core.InvalidStreamID)
-	msg.MetaData().SetValue("foo", []byte("TEST_VALUE"))
+	msg.GetMetadata().SetValue("foo", []byte("TEST_VALUE"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("TEST_VALUE:VEVTVF9WQUxVRQ==", msg.MetaData().GetValueString("foo"))
+	expect.Equal("TEST_VALUE:VEVTVF9WQUxVRQ==", msg.GetMetadata().GetValueString("foo"))
 	expect.Equal("SOME_PAYLOAD_DATA", msg.String())
 }

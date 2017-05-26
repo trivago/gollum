@@ -75,9 +75,9 @@ func (format *StreamName) getStreamName(msg *core.Message) string {
 
 	switch {
 	case !format.usePrevious:
-		streamName = core.StreamRegistry.GetStreamName(msg.StreamID())
+		streamName = core.StreamRegistry.GetStreamName(msg.GetStreamID())
 	default:
-		streamName = core.StreamRegistry.GetStreamName(msg.PreviousStreamID())
+		streamName = core.StreamRegistry.GetStreamName(msg.GetPrevStreamID())
 	}
 
 	return streamName

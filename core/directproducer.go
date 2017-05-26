@@ -108,7 +108,7 @@ func (prod *DirectProducer) TickerMessageControlLoop(onMessage func(*Message), i
 func (prod *DirectProducer) enqueuePanicHandling(msg *Message) {
 	if r := recover(); r != nil {
 		prod.Log.Error.Print("Recovered a panic during producer enqueue: ", r)
-		prod.Log.Error.Print("Producer: ", prod.id, "State: ", prod.GetState(), ", Router: ", StreamRegistry.GetStreamName(msg.StreamID()))
+		prod.Log.Error.Print("Producer: ", prod.id, "State: ", prod.GetState(), ", Router: ", StreamRegistry.GetStreamName(msg.GetStreamID()))
 		prod.TryFallback(msg)
 	}
 }

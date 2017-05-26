@@ -64,11 +64,11 @@ func TestFormatterTrimApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("|foo bar foobar|"), core.InvalidStreamID)
-	msg.MetaData().SetValue("foo", []byte("|foo bar foobar|second foo bar|"))
+	msg.GetMetadata().SetValue("foo", []byte("|foo bar foobar|second foo bar|"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
 	expect.Equal("|foo bar foobar|", msg.String())
-	expect.Equal("foo bar foobar|second foo bar", msg.MetaData().GetValueString("foo"))
+	expect.Equal("foo bar foobar|second foo bar", msg.GetMetadata().GetValueString("foo"))
 }

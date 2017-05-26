@@ -14,16 +14,16 @@
 
 package core
 
-// MetaData is a map for optional meta data which can set by consumers and modulators
-type MetaData map[string][]byte
+// Metadata is a map for optional meta data which can set by consumers and modulators
+type Metadata map[string][]byte
 
 // SetValue set a key value pair at meta data
-func (meta MetaData) SetValue(key string, value []byte) {
+func (meta Metadata) SetValue(key string, value []byte) {
 	meta[key] = value
 }
 
 // GetValue returns a meta data value by key
-func (meta MetaData) GetValue(key string) []byte {
+func (meta Metadata) GetValue(key string) []byte {
 	if value, isSet := meta[key]; isSet {
 		return value
 	}
@@ -32,18 +32,18 @@ func (meta MetaData) GetValue(key string) []byte {
 }
 
 // GetValueString returns the meta value by GetValue as string
-func (meta MetaData) GetValueString(key string) string {
+func (meta Metadata) GetValueString(key string) string {
 	return string(meta.GetValue(key))
 }
 
 // ResetValue delete a meta data value by key
-func (meta MetaData) ResetValue(key string) {
+func (meta Metadata) ResetValue(key string) {
 	delete(meta, key)
 }
 
-// Clone MetaData byte values to new MetaData map
-func (meta MetaData) Clone() MetaData {
-	clone := MetaData{}
+// Clone Metadata byte values to new Metadata map
+func (meta Metadata) Clone() Metadata {
+	clone := Metadata{}
 	for k, v := range meta {
 		vCopy := make([]byte, len(v))
 		copy(vCopy, v)

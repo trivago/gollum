@@ -378,10 +378,10 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 }
 
 func (prod *Kafka) storeRTT(msg *core.Message) {
-	rtt := time.Since(msg.Created())
+	rtt := time.Since(msg.GetCreationTime())
 
 	prod.topicGuard.RLock()
-	topic := prod.topic[msg.StreamID()]
+	topic := prod.topic[msg.GetStreamID()]
 	prod.topicGuard.RUnlock()
 
 	atomic.AddInt64(&topic.rttSum, rtt.Nanoseconds()/1000) // microseconds
@@ -463,26 +463,26 @@ func (prod *Kafka) registerNewTopic(topicName string, streamID core.MessageStrea
 }
 
 func (prod *Kafka) produceMessage(msg *core.Message) {
-	if !prod.nilValueAllowed && msg.Len() == 0 {
-		streamName := core.StreamRegistry.GetStreamName(msg.StreamID())
+	if !prod.nilValueAllowed && len(msg.GetPayload()) == 0 {
+		streamName := core.StreamRegistry.GetStreamName(msg.GetStreamID())
 		prod.Log.Error.Printf("0 byte message detected on %s. Discarded", streamName)
 		core.CountDiscardedMessage()
 		return // ### return, invalid data ###
 	}
 
 	prod.topicGuard.RLock()
-	topic, topicRegistered := prod.topic[msg.StreamID()]
+	topic, topicRegistered := prod.topic[msg.GetStreamID()]
 	prod.topicGuard.RUnlock()
 
 	if !topicRegistered {
 		wildcardSet := false
-		topicName, isMapped := prod.streamToTopic[msg.StreamID()]
+		topicName, isMapped := prod.streamToTopic[msg.GetStreamID()]
 		if !isMapped {
 			if topicName, wildcardSet = prod.streamToTopic[core.WildcardStreamID]; !wildcardSet {
-				topicName = core.StreamRegistry.GetStreamName(msg.StreamID())
+				topicName = core.StreamRegistry.GetStreamName(msg.GetStreamID())
 			}
 		}
-		topic = prod.registerNewTopic(topicName, msg.StreamID())
+		topic = prod.registerNewTopic(topicName, msg.GetStreamID())
 	}
 
 	if isConnected, err := prod.isConnected(topic.name); !isConnected {
@@ -496,7 +496,7 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 
 	kafkaMsg := &kafka.ProducerMessage{
 		Topic:    topic.name,
-		Value:    kafka.ByteEncoder(msg.Data()),
+		Value:    kafka.ByteEncoder(msg.GetPayload()),
 		Metadata: &msg,
 	}
 
@@ -522,7 +522,7 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 
 func (prod *Kafka) getKafkaMsgKey(msg *core.Message) []byte {
 	if len(prod.keyMetaField) > 0 {
-		return msg.MetaData().GetValue(prod.keyMetaField)
+		return msg.GetMetadata().GetValue(prod.keyMetaField)
 	}
 
 	return []byte{}

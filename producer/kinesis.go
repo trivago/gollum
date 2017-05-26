@@ -200,18 +200,18 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 	// Format and sort
 	for idx, msg := range messages {
 		currentMsg := msg.Clone()
-		messageHash := fmt.Sprintf("%X-%d", currentMsg.StreamID(), atomic.AddInt64(prod.sequence, 1))
+		messageHash := fmt.Sprintf("%X-%d", currentMsg.GetStreamID(), atomic.AddInt64(prod.sequence, 1))
 
 		// Fetch buffer for this stream
-		records, recordsExists := streamRecords[currentMsg.StreamID()]
+		records, recordsExists := streamRecords[currentMsg.GetStreamID()]
 		if !recordsExists {
 			// Select the correct kinesis stream
-			streamName, streamMapped := prod.streamMap[currentMsg.StreamID()]
+			streamName, streamMapped := prod.streamMap[currentMsg.GetStreamID()]
 			if !streamMapped {
 				streamName, streamMapped = prod.streamMap[core.WildcardStreamID]
 				if !streamMapped {
-					streamName = core.StreamRegistry.GetStreamName(currentMsg.StreamID())
-					prod.streamMap[currentMsg.StreamID()] = streamName
+					streamName = core.StreamRegistry.GetStreamName(currentMsg.GetStreamID())
+					prod.streamMap[currentMsg.GetStreamID()] = streamName
 
 					metricName := kinesisMetricMessages + streamName
 					tgo.Metric.New(metricName)
@@ -229,7 +229,7 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 				original:           make([][]*core.Message, 0, maxLength),
 				lastRecordMessages: 0,
 			}
-			streamRecords[currentMsg.StreamID()] = records
+			streamRecords[currentMsg.GetStreamID()] = records
 		}
 
 		// Fetch record for this buffer
@@ -238,7 +238,7 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 		if !recordExists || records.lastRecordMessages+1 > prod.recordMaxMessages {
 			// Append record to stream
 			record := &kinesis.PutRecordsRequestEntry{
-				Data:         currentMsg.Data(),
+				Data:         currentMsg.GetPayload(),
 				PartitionKey: aws.String(messageHash),
 			}
 			records.content.Records = append(records.content.Records, record)
@@ -250,7 +250,7 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 		}
 
 		// Append message to record
-		record.Data = append(record.Data, msg.Data()...)
+		record.Data = append(record.Data, msg.GetPayload()...)
 		records.lastRecordMessages++
 		records.original[len(records.original)-1] = append(records.original[len(records.original)-1], messages[idx])
 	}

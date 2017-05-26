@@ -21,12 +21,12 @@ import (
 
 type metaDataMap map[string]core.ModulatorArray
 
-// MetaDataCopy formatter plugin
+// MetadataCopy formatter plugin
 // Copy data from defined payload or meta data to set meta data field
 //
 // Configuration example
 //
-// - format.MetaDataCopy:
+// - format.MetadataCopy:
 //   WriteTo:
 //     - hostname: 		# meta data key
 //       - format.Hostname	# further modulators
@@ -34,68 +34,68 @@ type metaDataMap map[string]core.ModulatorArray
 //       - format.Base64Encode
 //     - bar 			# 1:1 copy of the "payload" to "bar"
 //   ApplyTo: "payload" # payload or <metaKey>
-type MetaDataCopy struct {
+type MetadataCopy struct {
 	core.SimpleFormatter
 	metaData metaDataMap
 }
 
 func init() {
-	core.TypeRegistry.Register(MetaDataCopy{})
+	core.TypeRegistry.Register(MetadataCopy{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *MetaDataCopy) Configure(conf core.PluginConfigReader) error {
+func (format *MetadataCopy) Configure(conf core.PluginConfigReader) error {
 	format.SimpleFormatter.Configure(conf)
 
-	format.metaData = format.getMetaDataMapFromArray(conf.GetArray("WriteTo", []interface{}{}))
+	format.metaData = format.getMetadataMapFromArray(conf.GetArray("WriteTo", []interface{}{}))
 
 	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload
-func (format *MetaDataCopy) ApplyFormatter(msg *core.Message) error {
+func (format *MetadataCopy) ApplyFormatter(msg *core.Message) error {
 	for metaDataKey, modulators := range format.metaData {
-		msg.MetaData().SetValue(metaDataKey, format.modulateMetaDataValue(msg, modulators))
+		msg.GetMetadata().SetValue(metaDataKey, format.modulateMetadataValue(msg, modulators))
 	}
 
 	return nil
 }
 
-// modulateMetaDataValue returns the final meta value
-func (format *MetaDataCopy) modulateMetaDataValue(msg *core.Message, modulators core.ModulatorArray) []byte {
+// modulateMetadataValue returns the final meta value
+func (format *MetadataCopy) modulateMetadataValue(msg *core.Message, modulators core.ModulatorArray) []byte {
 	modulationMsg := core.NewMessage(nil, format.GetAppliedContent(msg), core.InvalidStreamID)
 
 	modulateResult := modulators.Modulate(modulationMsg)
 	if modulateResult == core.ModulateResultContinue {
-		return modulationMsg.Data()
+		return modulationMsg.GetPayload()
 	}
 
 	return []byte{}
 }
 
-// getMetaDataMapFromArray returns a map of meta keys to core.ModulatorArray
-func (format *MetaDataCopy) getMetaDataMapFromArray(metaData []interface{}) metaDataMap {
+// getMetadataMapFromArray returns a map of meta keys to core.ModulatorArray
+func (format *MetadataCopy) getMetadataMapFromArray(metaData []interface{}) metaDataMap {
 	result := metaDataMap{}
-	writeToConfig := core.NewPluginConfig("", "format.MetaDataCopy.WriteTo")
+	writeToConfig := core.NewPluginConfig("", "format.MetadataCopy.WriteTo")
 
 	for _, metaDataValue := range metaData {
 		if converted, isMap := metaDataValue.(tcontainer.MarshalMap); isMap {
 			writeToConfig.Read(converted)
 			reader := core.NewPluginConfigReaderWithError(&writeToConfig)
 
-			for keyMetaData := range converted {
+			for keyMetadata := range converted {
 
-				modulator, err := reader.GetModulatorArray(keyMetaData, format.Log, core.ModulatorArray{})
+				modulator, err := reader.GetModulatorArray(keyMetadata, format.Log, core.ModulatorArray{})
 				if err != nil {
 					format.Log.Error.Print("Can't get mmodulators. Error message: ", err)
 					break
 				}
 
-				result[keyMetaData] = modulator
+				result[keyMetadata] = modulator
 			}
-		} else if keyMetaData, isString := metaDataValue.(string); isString {
+		} else if keyMetadata, isString := metaDataValue.(string); isString {
 			// no modulator set => 1:1 copy to meta data key
-			result[keyMetaData] = core.ModulatorArray{}
+			result[keyMetadata] = core.ModulatorArray{}
 		}
 	}
 

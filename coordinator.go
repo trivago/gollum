@@ -214,8 +214,8 @@ func (co *Coordinator) configureRouters(conf *core.Config) {
 		routerPlugin := plugin.(core.Router)
 		co.routers = append(co.routers, routerPlugin)
 
-		tlog.Debug.Printf("Instantiated '%s' (%s) as '%s'", config.ID, core.StreamRegistry.GetStreamName(routerPlugin.StreamID()), config.Typename)
-		core.StreamRegistry.Register(routerPlugin, routerPlugin.StreamID())
+		tlog.Debug.Printf("Instantiated '%s' (%s) as '%s'", config.ID, core.StreamRegistry.GetStreamName(routerPlugin.GetStreamID()), config.Typename)
+		core.StreamRegistry.Register(routerPlugin, routerPlugin.GetStreamID())
 	}
 }
 

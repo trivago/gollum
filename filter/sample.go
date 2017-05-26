@@ -73,7 +73,7 @@ func (filter *Sample) Configure(conf core.PluginConfigReader) error {
 // ApplyFilter check if all Filter wants to reject the message
 func (filter *Sample) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	// Ignore based on StreamID
-	if ignore, known := filter.ignore[msg.StreamID()]; known && ignore {
+	if ignore, known := filter.ignore[msg.GetStreamID()]; known && ignore {
 		return core.FilterResultMessageAccept, nil // ### return, do not limit ###
 	}
 

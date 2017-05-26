@@ -38,7 +38,7 @@ func TestEnvelope(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("start test end", string(msg.Data()))
+	expect.Equal("start test end", string(msg.GetPayload()))
 }
 
 func TestEnvelopeApplyTo(t *testing.T) {
@@ -56,10 +56,10 @@ func TestEnvelopeApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
-	msg.MetaData().SetValue("foo", []byte("bar"))
+	msg.GetMetadata().SetValue("foo", []byte("bar"))
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
 	expect.Equal("test", msg.String())
-	expect.Equal("start bar end", msg.MetaData().GetValueString("foo"))
+	expect.Equal("start bar end", msg.GetMetadata().GetValueString("foo"))
 }

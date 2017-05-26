@@ -19,7 +19,7 @@ type Router interface {
 	Modulator
 
 	// StreamID returns the stream id this plugin is bound to.
-	StreamID() MessageStreamID
+	GetStreamID() MessageStreamID
 
 	// AddProducer adds one or more producers to this stream, i.e. the producers
 	// listening to messages on this stream.
@@ -48,9 +48,9 @@ func Route(msg *Message, router Router) error {
 		return router.Enqueue(msg)
 
 	case ModulateResultFallback:
-		if msg.StreamID() == router.StreamID() {
-			streamName := StreamRegistry.GetStreamName(msg.StreamID())
-			prevStreamName := StreamRegistry.GetStreamName(msg.PreviousStreamID())
+		if msg.GetStreamID() == router.GetStreamID() {
+			streamName := StreamRegistry.GetStreamName(msg.GetStreamID())
+			prevStreamName := StreamRegistry.GetStreamName(msg.GetPrevStreamID())
 			return NewModulateResultError("Routing loop detected for router %s (from %s)", streamName, prevStreamName)
 		}
 

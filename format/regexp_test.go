@@ -25,7 +25,7 @@ func TestFormatterRegExp(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("test", string(msg.Data()))
+	expect.Equal("test", string(msg.GetPayload()))
 }
 
 func TestFormatterRegExpApplyTo(t *testing.T) {
@@ -43,11 +43,11 @@ func TestFormatterRegExpApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("PAYLOAD"), core.InvalidStreamID)
-	msg.MetaData().SetValue("foo", []byte("test 123"))
+	msg.GetMetadata().SetValue("foo", []byte("test 123"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("PAYLOAD", string(msg.Data()))
-	expect.Equal("test", msg.MetaData().GetValueString("foo"))
+	expect.Equal("PAYLOAD", string(msg.GetPayload()))
+	expect.Equal("test", msg.GetMetadata().GetValueString("foo"))
 }

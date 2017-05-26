@@ -23,10 +23,10 @@ func TestFormatterSerialize(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	controlMsg, err := core.DeserializeMessage(msg.Data())
+	controlMsg, err := core.DeserializeMessage(msg.GetPayload())
 	expect.NoError(err)
 
-	expect.Equal("foo bar", string(controlMsg.Data()))
+	expect.Equal("foo bar", string(controlMsg.GetPayload()))
 }
 
 func TestFormatterSerializeApplyTo(t *testing.T) {
@@ -46,7 +46,7 @@ func TestFormatterSerializeApplyTo(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	controlMsg, err := core.DeserializeMessage(msg.MetaData().GetValue("foo"))
+	controlMsg, err := core.DeserializeMessage(msg.GetMetadata().GetValue("foo"))
 	expect.NoError(err)
 
 	expect.Equal("foo bar", controlMsg.String())

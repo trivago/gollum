@@ -42,11 +42,11 @@ func TestRegexpFilter(t *testing.T) {
 	expect.Equal(2, ResultFileFilterInProducer.lines)
 
 	// final expectations filter in meta data
-	ResultFileFilterInMetaData, err := getResultFile(tmpTestFilePathDefault)
+	ResultFileFilterInMetadata, err := getResultFile(tmpTestFilePathDefault)
 	expect.NoError(err)
 
-	expect.True(strings.Contains(ResultFileFilterInMetaData.content, "abc"))
-	expect.True(strings.Contains(ResultFileFilterInMetaData.content, "123"))
-	expect.True(strings.Contains(ResultFileFilterInMetaData.content, "def"))
-	expect.Equal(3, ResultFileFilterInMetaData.lines)
+	expect.True(strings.Contains(ResultFileFilterInMetadata.content, "abc"))
+	expect.True(strings.Contains(ResultFileFilterInMetadata.content, "123"))
+	expect.True(strings.Contains(ResultFileFilterInMetadata.content, "def"))
+	expect.Equal(3, ResultFileFilterInMetadata.lines)
 }
