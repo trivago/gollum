@@ -2,6 +2,8 @@
 
 ![Gollum](docs/src/gollum.png)
 
+[![Join the chat at https://gitter.im/trivago/gollum](https://badges.gitter.im/trivago/gollum.svg)](https://gitter.im/trivago/gollum?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ***This is a DEVELOPMENT branch.***
 Please read the list of [breaking changes](https://github.com/trivago/gollum/wiki/Breaking050) from 0.4.x to 0.5.0.
 
