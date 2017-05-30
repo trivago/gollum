@@ -15,10 +15,9 @@
 package core
 
 import (
+	"github.com/trivago/tgo/ttesting"
 	"sync"
 	"testing"
-
-	"github.com/trivago/tgo/ttesting"
 )
 
 func getMockStreamRegistry() streamRegistry {

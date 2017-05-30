@@ -229,55 +229,66 @@ func (reader *PluginConfigReader) GetStreamRoutes(key string, defaultValue map[M
 // Avaiable tags: "config" holds the config key, "default" holds the default
 // value, "metric" may store metric quantity information like "kb" or "sec".
 func (reader *PluginConfigReader) Configure(plugin interface{}, log tlog.LogScope) {
-	pluginType := reflect.TypeOf(plugin)
-	pluginValue := reflect.ValueOf(plugin)
+	pluginType := reflect.TypeOf(plugin).Elem()
+	pluginValue := reflect.ValueOf(plugin).Elem()
 	numFields := pluginType.NumField()
 
 	for i := 0; i < numFields; i++ {
 		field := pluginType.Field(i)
+		fielValue := pluginValue.Field(i)
+
 		if key, haskey := field.Tag.Lookup("config"); haskey {
 			defaultTag, _ := field.Tag.Lookup("default")
 			metric, _ := field.Tag.Lookup("metric")
 
 			switch field.Type.Kind() {
 			case reflect.Bool:
+				if defaultTag == "" {
+					defaultTag = "false"
+				}
 				defaultValue, err := strconv.ParseBool(defaultTag)
 				reader.Errors.Push(err)
-				pluginValue.SetBool(reader.GetBool(key, defaultValue))
+				fielValue.SetBool(reader.GetBool(key, defaultValue))
 
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				if defaultTag == "" {
+					defaultTag = "0"
+				}
 				base := 10
-				if len(defaultTag) > 0 && defaultTag[0] == '0' {
+				if len(defaultTag) > 1 && defaultTag[0] == '0' {
 					base = 8
 				}
 				defaultValue, err := strconv.ParseInt(defaultTag, base, 64)
 				reader.Errors.Push(err)
 				value := metricScale(metric) * reader.GetInt(key, defaultValue)
-				pluginValue.SetInt(value)
+				fielValue.SetInt(value)
 
 			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 				var value uint64
 				if field.Type.Name() == "MessageStreamID" {
-					value = uint64(GetStreamID(defaultTag))
+					value = uint64(GetStreamID(reader.GetString(key, defaultTag)))
 				} else {
+					if defaultTag == "" {
+						defaultTag = "0"
+					}
 					base := 10
-					if len(defaultTag) > 0 && defaultTag[0] == '0' {
+					if len(defaultTag) > 1 && defaultTag[0] == '0' {
 						base = 8
 					}
 					defaultValue, err := strconv.ParseUint(defaultTag, base, 64)
 					reader.Errors.Push(err)
 					value = uint64(metricScale(metric)) * reader.GetUint(key, defaultValue)
 				}
-				pluginValue.SetUint(value)
+				fielValue.SetUint(value)
 
 			case reflect.String:
-				pluginValue.SetString(reader.GetString(key, defaultTag))
+				fielValue.SetString(reader.GetString(key, defaultTag))
 
 			case reflect.Array, reflect.Slice:
-				reader.readArray(key, pluginValue, field.Type.Elem(), log, defaultTag)
+				reader.readArray(key, fielValue, field.Type.Elem(), log, defaultTag)
 
 			case reflect.Interface:
-				reader.readInterface(key, pluginValue, field.Type, log, defaultTag)
+				reader.readInterface(key, fielValue, field.Type, log, defaultTag)
 			}
 		}
 	}

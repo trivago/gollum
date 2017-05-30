@@ -131,17 +131,17 @@ func TestProducerEnqueue(t *testing.T) {
 	enqTimeout := time.Second
 	mockP.setState(PluginStateStopping)
 	// cause panic and check if message is sent to the fallback
-	mockP.Enqueue(msg, &enqTimeout)
+	mockP.Enqueue(msg, enqTimeout)
 
 	mockP.setState(PluginStateActive)
-	mockP.Enqueue(msg, &enqTimeout)
+	mockP.Enqueue(msg, enqTimeout)
 
 	mockStream := getMockRouter()
 	mockDropStream.streamID = 1
 	StreamRegistry.Register(&mockStream, 1)
 
 	go func() {
-		mockP.Enqueue(msg, &enqTimeout)
+		mockP.Enqueue(msg, enqTimeout)
 	}()
 	//give time for message to enqueue in the channel
 	time.Sleep(200 * time.Millisecond)
@@ -176,12 +176,12 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 	mockP.streams = []MessageStreamID{2}
 	msgToSend := NewMessage(nil, []byte("closeMessageChannel"), 2)
 
-	mockP.Enqueue(msgToSend, nil)
-	mockP.Enqueue(msgToSend, nil)
+	mockP.Enqueue(msgToSend, time.Duration(0))
+	mockP.Enqueue(msgToSend, time.Duration(0))
 	mockP.CloseMessageChannel(handleMessageFail)
 
 	mockP.messages = NewMessageQueue(2)
-	mockP.Enqueue(msgToSend, nil)
+	mockP.Enqueue(msgToSend, time.Duration(0))
 	mockP.CloseMessageChannel(handleMessage)
 }
 

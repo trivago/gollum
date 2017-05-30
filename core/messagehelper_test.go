@@ -36,7 +36,7 @@ func getMockRouterMessageHelper(streamName string) mockRouterMessageHelper {
 			id:        streamName,
 			filters:   FilterArray{},
 			Producers: []Producer{},
-			Timeout:   &timeout,
+			timeout:   timeout,
 			streamID:  StreamRegistry.GetStreamID(streamName),
 			Log:       tlog.NewLogScope("testStreamLogScope"),
 		},

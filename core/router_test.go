@@ -42,7 +42,7 @@ func getMockRouter() mockRouter {
 			id:        "testStream",
 			filters:   FilterArray{},
 			Producers: []Producer{},
-			Timeout:   &timeout,
+			timeout:   timeout,
 			streamID:  StreamRegistry.GetStreamID("testStream"),
 			Log:       tlog.NewLogScope("testStreamLogScope"),
 		},
