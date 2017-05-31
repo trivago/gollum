@@ -130,7 +130,7 @@ func LastIndexN(s, sep string, n int) int {
 // The string must contain no whitespaces.
 func IsInt(s string) bool {
 	for i, c := range s {
-		if (c <= '0' || c >= '9') && (c != '-' || i != 0) {
+		if (c < '0' || c > '9') && (c != '-' || i != 0) {
 			return false
 		}
 	}

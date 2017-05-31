@@ -91,8 +91,6 @@ func cmdFirstKeyPos(cmd Cmder, info *CommandInfo) int {
 		} else {
 			return -1
 		}
-	case "publish":
-		return 1
 	}
 	if info == nil {
 		internal.Logf("info for cmd=%s not found", cmd.name())
@@ -111,7 +109,10 @@ type baseCmd struct {
 }
 
 func (cmd *baseCmd) Err() error {
-	return cmd.err
+	if cmd.err != nil {
+		return cmd.err
+	}
+	return nil
 }
 
 func (cmd *baseCmd) args() []interface{} {
@@ -146,6 +147,14 @@ func (cmd *baseCmd) setReadTimeout(d time.Duration) {
 
 func (cmd *baseCmd) setErr(e error) {
 	cmd.err = e
+}
+
+func newBaseCmd(args []interface{}) baseCmd {
+	if len(args) > 0 {
+		// Cmd name is expected to be in lower case.
+		args[0] = internal.ToLower(args[0].(string))
+	}
+	return baseCmd{_args: args}
 }
 
 //------------------------------------------------------------------------------
@@ -831,8 +840,9 @@ func NewGeoLocationCmd(q *GeoRadiusQuery, args ...interface{}) *GeoLocationCmd {
 	if q.Sort != "" {
 		args = append(args, q.Sort)
 	}
+	cmd := newBaseCmd(args)
 	return &GeoLocationCmd{
-		baseCmd: baseCmd{_args: args},
+		baseCmd: cmd,
 		q:       q,
 	}
 }

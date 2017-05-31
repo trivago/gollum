@@ -1,10 +1,10 @@
-hash: 7990ef005d70a988798d4189d1520189900cfe124392b96b5a07e83262f162c7
-updated: 2017-04-28T09:17:56.018060669+02:00
+hash: 04c8ac3c1690b7cad71805a65e6436066d1c44f1c33af7ba4382b3c21d3a2e34
+updated: 2017-05-31T11:58:42.959295791+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
 - name: github.com/araddon/gou
-  version: 72037835efd2c3c7fdbdf82379ef20afbc8f1f07
+  version: 9a11413ad5023f3b138f313727f35468591ff73b
 - name: github.com/artyom/fb303
   version: fa4a241cefb113c4981dbac51a8cfcb047efa079
 - name: github.com/artyom/scribe
@@ -12,7 +12,7 @@ imports:
 - name: github.com/artyom/thrift
   version: 388840a05deb9b7d85fdf6c225a2729fe1826cb7
 - name: github.com/aws/aws-sdk-go
-  version: 8cab5437f896c3048506422a6fb9f5a7f2df9944
+  version: a479673916dcc0f62674f085bb4112272b8d8560
   subpackages:
   - aws
   - aws/awserr
@@ -45,7 +45,7 @@ imports:
 - name: github.com/bitly/go-hostpool
   version: c32c3660406ef1ea14936cc9282e174fe8508c42
 - name: github.com/bsm/sarama-cluster
-  version: e92a2f7a82a6f2bbdd2f7305b8a833fa22eb2138
+  version: ccdc0803695fbce22f1706d04ded46cd518fd832
 - name: github.com/coreos/go-systemd
   version: 48702e0da86bd25e76cfef347e2adeb434a0d0a6
   subpackages:
@@ -67,9 +67,9 @@ imports:
 - name: github.com/eapache/queue
   version: 44cc805cf13205b55f69e14bcb69867d1ae92f98
 - name: github.com/go-ini/ini
-  version: e7fea39b01aea8d5671f6858f0532f56e8bff3a5
+  version: afbc45e87f3ba324c532d12c71918ef52e0fb194
 - name: github.com/go-redis/redis
-  version: 4c6e2ad9a048b3e1fbf913497305da7076cccfa5
+  version: 2cf5af9928978bbef8d1076607022403439e177c
   subpackages:
   - internal
   - internal/consistenthash
@@ -77,9 +77,8 @@ imports:
   - internal/pool
   - internal/proto
 - name: github.com/golang/protobuf
-  version: 2bba0603135d7d7f5cb73b2125beeda19c09f4ef
+  version: 6e4cc92cc905d5f4a73041c1b8228ea08f4c6147
   subpackages:
-  - jsonpb
   - proto
 - name: github.com/golang/snappy
   version: 553a641470496b2327abcac10b36396bd98e45c9
@@ -87,10 +86,8 @@ imports:
   version: 3ab3a8b8831546bd18fd182c20687ca853b2bb13
 - name: github.com/jmespath/go-jmespath
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
-- name: github.com/klauspost/crc32
-  version: 1bab8b35b6bb565f92cbc97939610af9369f942a
 - name: github.com/lytics/logrus
-  version: 8d125bf3956de0f953620df54a1b95a52b55353b
+  version: 4389a17ed024d8d196b5541116151f378705b0cc
 - name: github.com/mattbaird/elastigo
   version: 2fe47fd29e4b70353f852ede77a196830d2924ec
   subpackages:
@@ -98,13 +95,13 @@ imports:
 - name: github.com/miekg/pcap
   version: 51d9d986bf8d5f524d65bf31c353e10271d54aaa
 - name: github.com/mmcloughlin/geohash
-  version: 33283639a13451aa23d02413884678abd4bdb1e7
+  version: 8996844d73442e90a5663feb8d7983b2c54571aa
 - name: github.com/mssola/user_agent
   version: 07efe2b857fb8c02d2dd85c12d0145f58554ec7c
 - name: github.com/oschwald/maxminddb-golang
-  version: f6c93ffae8caa8c38fb52468c7af9006d7baeb8e
+  version: d19f6d453e836d12ee8fe895d0494421e93ef8c1
 - name: github.com/pierrec/lz4
-  version: f5b77fd73d83122495309c0f459b810f83cc291f
+  version: 5a3d2245f97fc249850e7802e3c01fad02a1c316
 - name: github.com/pierrec/xxHash
   version: 5a004441f897722c627870a981d02b29924215fa
   subpackages:
@@ -116,25 +113,18 @@ imports:
 - name: github.com/rcrowley/go-metrics
   version: 1f30fe9094a513ce4c700b9a54458bbb0c96996c
 - name: github.com/Shopify/sarama
-  version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
+  version: c01858abb625b73a3af51d0798e4ad42c8147093
 - name: github.com/trivago/tgo
-  version: 018e3dbba8d0ff658547f89871455b9243d24a72
+  version: 6fd3ff0f33848d5b5aefbfd202e577053a6baae0
   subpackages:
-  - tcontainer
   - tflag
-  - treflect
-  - tstrings
 - name: golang.org/x/crypto
-  version: c7af5bf2638a1164f2eb5467c39c6cffbd13a02e
+  version: 080743b21912ae11ad9222778a048b795a5aae00
   subpackages:
   - bcrypt
   - blowfish
-- name: golang.org/x/net
-  version: da118f7b8e5954f39d0d2130ab35d4bf0e3cb344
-  subpackages:
-  - context
 - name: golang.org/x/sys
-  version: 9ccfe848b9db8435a24c424abbc07a921adf1df5
+  version: b90f89a1e7a9c1f6b918820b3daa7f08488c8594
   subpackages:
   - unix
   - windows

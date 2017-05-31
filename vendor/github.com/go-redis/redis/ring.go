@@ -177,34 +177,6 @@ func (c *Ring) PoolStats() *PoolStats {
 	return &acc
 }
 
-// Subscribe subscribes the client to the specified channels.
-func (c *Ring) Subscribe(channels ...string) *PubSub {
-	if len(channels) == 0 {
-		panic("at least one channel is required")
-	}
-
-	shard, err := c.shardByKey(channels[0])
-	if err != nil {
-		// TODO: return PubSub with sticky error
-		panic(err)
-	}
-	return shard.Client.Subscribe(channels...)
-}
-
-// PSubscribe subscribes the client to the given patterns.
-func (c *Ring) PSubscribe(channels ...string) *PubSub {
-	if len(channels) == 0 {
-		panic("at least one channel is required")
-	}
-
-	shard, err := c.shardByKey(channels[0])
-	if err != nil {
-		// TODO: return PubSub with sticky error
-		panic(err)
-	}
-	return shard.Client.PSubscribe(channels...)
-}
-
 // ForEachShard concurrently calls the fn on each live shard in the ring.
 // It returns the first error if any.
 func (c *Ring) ForEachShard(fn func(client *Client) error) error {
@@ -330,7 +302,7 @@ func (c *Ring) rebalance() {
 func (c *Ring) heartbeat() {
 	ticker := time.NewTicker(c.opt.HeartbeatFrequency)
 	defer ticker.Stop()
-	for range ticker.C {
+	for _ = range ticker.C {
 		var rebalance bool
 
 		c.mu.RLock()
@@ -428,7 +400,7 @@ func (c *Ring) pipelineExec(cmds []Cmder) (firstErr error) {
 			}
 
 			canRetry, err := shard.Client.pipelineProcessCmds(cn, cmds)
-			shard.Client.putConn(cn, err)
+			shard.Client.putConn(cn, err, false)
 			if err == nil {
 				continue
 			}

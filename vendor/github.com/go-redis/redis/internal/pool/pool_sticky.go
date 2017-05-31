@@ -1,6 +1,9 @@
 package pool
 
-import "sync"
+import (
+	"errors"
+	"sync"
+)
 
 type StickyConnPool struct {
 	pool     *ConnPool
@@ -18,14 +21,6 @@ func NewStickyConnPool(pool *ConnPool, reusable bool) *StickyConnPool {
 		pool:     pool,
 		reusable: reusable,
 	}
-}
-
-func (p *StickyConnPool) NewConn() (*Conn, error) {
-	panic("not implemented")
-}
-
-func (p *StickyConnPool) CloseConn(*Conn) error {
-	panic("not implemented")
 }
 
 func (p *StickyConnPool) Get() (*Conn, bool, error) {
@@ -63,20 +58,20 @@ func (p *StickyConnPool) Put(cn *Conn) error {
 	return nil
 }
 
-func (p *StickyConnPool) removeUpstream() error {
-	err := p.pool.Remove(p.cn)
+func (p *StickyConnPool) removeUpstream(reason error) error {
+	err := p.pool.Remove(p.cn, reason)
 	p.cn = nil
 	return err
 }
 
-func (p *StickyConnPool) Remove(cn *Conn) error {
+func (p *StickyConnPool) Remove(cn *Conn, reason error) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
 	if p.closed {
 		return nil
 	}
-	return p.removeUpstream()
+	return p.removeUpstream(reason)
 }
 
 func (p *StickyConnPool) Len() int {
@@ -116,7 +111,8 @@ func (p *StickyConnPool) Close() error {
 		if p.reusable {
 			err = p.putUpstream()
 		} else {
-			err = p.removeUpstream()
+			reason := errors.New("redis: unreusable sticky connection")
+			err = p.removeUpstream(reason)
 		}
 	}
 	return err

@@ -338,6 +338,8 @@ type ClusterClient struct {
 
 	// Reports where slots reloading is in progress.
 	reloading uint32
+
+	closed bool
 }
 
 // NewClusterClient returns a Redis Cluster client as described in
@@ -650,7 +652,7 @@ func (c *ClusterClient) reaper(idleCheckFrequency time.Duration) {
 	ticker := time.NewTicker(idleCheckFrequency)
 	defer ticker.Stop()
 
-	for range ticker.C {
+	for _ = range ticker.C {
 		nodes, err := c.nodes.All()
 		if err != nil {
 			break
@@ -704,7 +706,7 @@ func (c *ClusterClient) pipelineExec(cmds []Cmder) error {
 			}
 
 			err = c.pipelineProcessCmds(cn, cmds, failedCmds)
-			node.Client.putConn(cn, err)
+			node.Client.putConn(cn, err, false)
 		}
 
 		if len(failedCmds) == 0 {
@@ -807,7 +809,7 @@ func (c *ClusterClient) TxPipeline() *Pipeline {
 }
 
 func (c *ClusterClient) TxPipelined(fn func(*Pipeline) error) ([]Cmder, error) {
-	return c.TxPipeline().pipelined(fn)
+	return c.Pipeline().pipelined(fn)
 }
 
 func (c *ClusterClient) txPipelineExec(cmds []Cmder) error {
@@ -840,7 +842,7 @@ func (c *ClusterClient) txPipelineExec(cmds []Cmder) error {
 				}
 
 				err = c.txPipelineProcessCmds(node, cn, cmds, failedCmds)
-				node.Client.putConn(cn, err)
+				node.Client.putConn(cn, err, false)
 			}
 
 			if len(failedCmds) == 0 {

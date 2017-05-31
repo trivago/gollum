@@ -2,6 +2,7 @@ package redis
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"strings"
 	"sync"
@@ -110,7 +111,7 @@ func (c *sentinelClient) PubSub() *PubSub {
 	return &PubSub{
 		base: baseClient{
 			opt:      c.opt,
-			connPool: c.connPool,
+			connPool: pool.NewStickyConnPool(c.connPool.(*pool.ConnPool), false),
 		},
 	}
 }
@@ -267,11 +268,12 @@ func (d *sentinelFailover) closeOldConns(newMaster string) {
 			break
 		}
 		if cn.RemoteAddr().String() != newMaster {
-			internal.Logf(
+			err := fmt.Errorf(
 				"sentinel: closing connection to the old master %s",
 				cn.RemoteAddr(),
 			)
-			d.pool.Remove(cn)
+			internal.Logf(err.Error())
+			d.pool.Remove(cn, err)
 		} else {
 			cnsToPut = append(cnsToPut, cn)
 		}
