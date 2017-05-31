@@ -100,7 +100,7 @@ clean:
 
 docker: linux
 	@echo "Building docker image"
-	@docker build --squash -t trivago/gollum:$(VERSION)-latest .
+	@docker build --squash -t trivago/gollum:$(VERSION) .
 
 docker-dev:
 	@echo "Building development docker image"

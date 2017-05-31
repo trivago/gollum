@@ -1,10 +1,10 @@
 hash: 62f85e10fc530e080fdcd8dabddff12f8ae05fb8d1ec1745c48cfbd0b50e8c4f
-updated: 2017-05-26T11:24:19.010748634+02:00
+updated: 2017-05-30T14:58:43.904561732+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
 - name: github.com/araddon/gou
-  version: 6d4a4b331485b29d768c61c48293326e16179f87
+  version: 9a11413ad5023f3b138f313727f35468591ff73b
 - name: github.com/artyom/fb303
   version: fa4a241cefb113c4981dbac51a8cfcb047efa079
 - name: github.com/artyom/scribe
@@ -77,7 +77,7 @@ imports:
   - internal/pool
   - internal/proto
 - name: github.com/golang/protobuf
-  version: 7b8002443fd4a3ce5f25ef93087c524546799a56
+  version: 9f174c986221c608fb5143bd623b6076a71feae3
   subpackages:
   - proto
 - name: github.com/golang/snappy
@@ -89,7 +89,7 @@ imports:
 - name: github.com/klauspost/crc32
   version: 1bab8b35b6bb565f92cbc97939610af9369f942a
 - name: github.com/lytics/logrus
-  version: 8d125bf3956de0f953620df54a1b95a52b55353b
+  version: 4389a17ed024d8d196b5541116151f378705b0cc
 - name: github.com/mattbaird/elastigo
   version: 2fe47fd29e4b70353f852ede77a196830d2924ec
   subpackages:
@@ -97,7 +97,7 @@ imports:
 - name: github.com/miekg/pcap
   version: 51d9d986bf8d5f524d65bf31c353e10271d54aaa
 - name: github.com/mmcloughlin/geohash
-  version: 33283639a13451aa23d02413884678abd4bdb1e7
+  version: 8996844d73442e90a5663feb8d7983b2c54571aa
 - name: github.com/mssola/user_agent
   version: 07efe2b857fb8c02d2dd85c12d0145f58554ec7c
 - name: github.com/oschwald/maxminddb-golang
@@ -117,7 +117,7 @@ imports:
 - name: github.com/Shopify/sarama
   version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
 - name: github.com/trivago/tgo
-  version: d9e59a3b2b19ba09c4f968fa0cc48d30b93892d1
+  version: 6fd3ff0f33848d5b5aefbfd202e577053a6baae0
   subpackages:
   - tcontainer
   - terrors
@@ -138,7 +138,7 @@ imports:
   - bcrypt
   - blowfish
 - name: golang.org/x/sys
-  version: a55a76086885b80f79961eacb876ebd8caf3868d
+  version: b90f89a1e7a9c1f6b918820b3daa7f08488c8594
   subpackages:
   - unix
   - windows
