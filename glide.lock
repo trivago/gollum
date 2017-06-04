@@ -1,10 +1,10 @@
 hash: 04c8ac3c1690b7cad71805a65e6436066d1c44f1c33af7ba4382b3c21d3a2e34
-updated: 2017-04-03T12:31:12.79028226+02:00
+updated: 2017-05-31T11:58:42.959295791+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
 - name: github.com/araddon/gou
-  version: 0ab1e8f997e35d27da012072dc531fcc0204da5a
+  version: 9a11413ad5023f3b138f313727f35468591ff73b
 - name: github.com/artyom/fb303
   version: fa4a241cefb113c4981dbac51a8cfcb047efa079
 - name: github.com/artyom/scribe
@@ -12,7 +12,7 @@ imports:
 - name: github.com/artyom/thrift
   version: 388840a05deb9b7d85fdf6c225a2729fe1826cb7
 - name: github.com/aws/aws-sdk-go
-  version: 5ab6def9a2f0445ff22a47b16660fbb1ff919b16
+  version: a479673916dcc0f62674f085bb4112272b8d8560
   subpackages:
   - aws
   - aws/awserr
@@ -45,13 +45,13 @@ imports:
 - name: github.com/bitly/go-hostpool
   version: c32c3660406ef1ea14936cc9282e174fe8508c42
 - name: github.com/bsm/sarama-cluster
-  version: e92a2f7a82a6f2bbdd2f7305b8a833fa22eb2138
+  version: ccdc0803695fbce22f1706d04ded46cd518fd832
 - name: github.com/coreos/go-systemd
   version: 48702e0da86bd25e76cfef347e2adeb434a0d0a6
   subpackages:
   - sdjournal
 - name: github.com/coreos/pkg
-  version: 1c941d73110817a80b9fa6e14d5d2b00d977ce2a
+  version: 8dbaa491b063ed47e2474b5363de0c0db91cf9f2
   subpackages:
   - dlopen
 - name: github.com/davecgh/go-spew
@@ -67,9 +67,9 @@ imports:
 - name: github.com/eapache/queue
   version: 44cc805cf13205b55f69e14bcb69867d1ae92f98
 - name: github.com/go-ini/ini
-  version: e7fea39b01aea8d5671f6858f0532f56e8bff3a5
+  version: afbc45e87f3ba324c532d12c71918ef52e0fb194
 - name: github.com/go-redis/redis
-  version: c9fbe22817c5d1469397b3cfcfaa38ee1dbbab43
+  version: 2cf5af9928978bbef8d1076607022403439e177c
   subpackages:
   - internal
   - internal/consistenthash
@@ -77,7 +77,7 @@ imports:
   - internal/pool
   - internal/proto
 - name: github.com/golang/protobuf
-  version: 2bba0603135d7d7f5cb73b2125beeda19c09f4ef
+  version: 6e4cc92cc905d5f4a73041c1b8228ea08f4c6147
   subpackages:
   - proto
 - name: github.com/golang/snappy
@@ -86,10 +86,8 @@ imports:
   version: 3ab3a8b8831546bd18fd182c20687ca853b2bb13
 - name: github.com/jmespath/go-jmespath
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
-- name: github.com/klauspost/crc32
-  version: 1bab8b35b6bb565f92cbc97939610af9369f942a
 - name: github.com/lytics/logrus
-  version: 59cd2e4a569b4494d9196bef82f0784e467adac9
+  version: 4389a17ed024d8d196b5541116151f378705b0cc
 - name: github.com/mattbaird/elastigo
   version: 2fe47fd29e4b70353f852ede77a196830d2924ec
   subpackages:
@@ -97,13 +95,13 @@ imports:
 - name: github.com/miekg/pcap
   version: 51d9d986bf8d5f524d65bf31c353e10271d54aaa
 - name: github.com/mmcloughlin/geohash
-  version: d6857f9059874953ee09d6f2bd3cb878189a4f87
+  version: 8996844d73442e90a5663feb8d7983b2c54571aa
 - name: github.com/mssola/user_agent
   version: 07efe2b857fb8c02d2dd85c12d0145f58554ec7c
 - name: github.com/oschwald/maxminddb-golang
-  version: 697da8075d2061aa8ed639346443f5d3e8c80b30
+  version: d19f6d453e836d12ee8fe895d0494421e93ef8c1
 - name: github.com/pierrec/lz4
-  version: f5b77fd73d83122495309c0f459b810f83cc291f
+  version: 5a3d2245f97fc249850e7802e3c01fad02a1c316
 - name: github.com/pierrec/xxHash
   version: 5a004441f897722c627870a981d02b29924215fa
   subpackages:
@@ -115,18 +113,18 @@ imports:
 - name: github.com/rcrowley/go-metrics
   version: 1f30fe9094a513ce4c700b9a54458bbb0c96996c
 - name: github.com/Shopify/sarama
-  version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
+  version: c01858abb625b73a3af51d0798e4ad42c8147093
 - name: github.com/trivago/tgo
-  version: 29efc651bc8e40b607db4b7a6881614775c7f529
+  version: 6fd3ff0f33848d5b5aefbfd202e577053a6baae0
   subpackages:
   - tflag
 - name: golang.org/x/crypto
-  version: 88915ccf7aeb91e9324fe7cf3eddd1531ced61ea
+  version: 080743b21912ae11ad9222778a048b795a5aae00
   subpackages:
   - bcrypt
   - blowfish
 - name: golang.org/x/sys
-  version: 9a7256cb28ed514b4e1e5f68959914c4c28a92e0
+  version: b90f89a1e7a9c1f6b918820b3daa7f08488c8594
   subpackages:
   - unix
   - windows
@@ -138,7 +136,7 @@ imports:
   - internal/syslogparser/rfc3164
   - internal/syslogparser/rfc5424
 - name: gopkg.in/oschwald/geoip2-golang.v1
-  version: 496a3cbcb65a3cb54497fe4ae2273319e85160a4
+  version: 5b1dc16861f81d05d9836bb21c2d0d65282fc0b8
 - name: gopkg.in/yaml.v2
-  version: a3f3340b5840cee44f372bddb5880fcbc419b46a
+  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
 testImports: []

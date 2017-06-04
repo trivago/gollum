@@ -60,6 +60,7 @@ const (
 //    ServerTimeoutSec: 30
 //    MaxFetchSizeByte: 0
 //    MinFetchSizeByte: 1
+//    DefaultFetchSizeByte: 32768
 //    FetchTimeoutMs: 250
 //    MessageBufferCount: 256
 //    PresistTimoutMs: 5000
@@ -135,6 +136,9 @@ const (
 // MinFetchSizeByte defines the minimum amout of data to fetch from Kafka per
 // request. If less data is available the broker will wait. By default this is
 // set to 1.
+//
+// DefaultFetchSizeByte sets the default size of a message to fetch. This may
+// differ from MaxFetchSizeByte. By default this is set to 32768.
 //
 // FetchTimeoutMs defines the time in milliseconds the broker will wait for
 // MinFetchSizeByte to be reached before processing data anyway. By default this
@@ -329,7 +333,7 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 
 	cons.config.Consumer.Fetch.Min = int32(conf.GetInt("MinFetchSizeByte", 1))
 	cons.config.Consumer.Fetch.Max = int32(conf.GetInt("MaxFetchSizeByte", 0))
-	cons.config.Consumer.Fetch.Default = int32(conf.GetInt("MaxFetchSizeByte", 32768))
+	cons.config.Consumer.Fetch.Default = int32(conf.GetInt("DefaultFetchSizeByte", 32768))
 	cons.config.Consumer.MaxWaitTime = time.Duration(conf.GetInt("FetchTimeoutMs", 250)) * time.Millisecond
 
 	if cons.group != "" {

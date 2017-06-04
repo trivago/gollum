@@ -1,6 +1,7 @@
 package gou
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -60,6 +61,7 @@ var (
 		INFO:  "[INFO] ",
 		DEBUG: "[DEBUG] ",
 	}
+	logContextKey                 = "log_prefix"
 	escapeNewlines bool           = false
 	postFix                       = "" //\033[0m
 	LogLevelWords  map[string]int = map[string]int{"fatal": 0, "error": 1, "warn": 2, "info": 3, "debug": 4, "none": -1}
@@ -170,6 +172,17 @@ func LogLevelSet(levelWord string) {
 	if lvl, ok := LogLevelWords[levelWord]; ok {
 		LogLevel = lvl
 	}
+}
+
+// NewContext returns a new Context carrying Log context prefix.
+func NewContext(ctx context.Context, msg string) context.Context {
+	return context.WithValue(ctx, logContextKey, msg)
+}
+
+// FromContext extracts the Log Context prefix from context
+func FromContext(ctx context.Context) string {
+	logContext, _ := ctx.Value(logContextKey).(string)
+	return logContext
 }
 
 // Log at debug level
@@ -472,21 +485,33 @@ func DoLog(depth, logLvl int, msg string) {
 			logger.Output(depth, LogPrefix[logLvl]+msg+postFix)
 		}
 	} else {
+		// logrus does not get the line number for us, so add it manually
+		_, file, line, ok := runtime.Caller(depth - 1)
+		if !ok {
+			file = "???"
+			line = 0
+		}
+
+		entry := rus.WithFields(logrus.Fields{
+			"file": file,
+			"line": line,
+		})
+
 		// Write logs using Logrus logger
 		logrusLvl := logrus.Level(logLvl) + 1
 		switch logrusLvl {
 		case logrus.FatalLevel:
-			rus.Fatal(msg)
+			entry.Fatal(msg)
 		case logrus.ErrorLevel:
-			rus.Error(msg)
+			entry.Error(msg)
 		case logrus.WarnLevel:
-			rus.Warn(msg)
+			entry.Warn(msg)
 		case logrus.InfoLevel:
-			rus.Info(msg)
+			entry.Info(msg)
 		case logrus.DebugLevel:
-			rus.Debug(msg)
+			entry.Debug(msg)
 		default:
-			rus.Warn("!invalid log level! " + msg)
+			entry.Warn("!invalid log level! " + msg)
 		}
 	}
 }
@@ -502,7 +527,7 @@ const (
 	_TIOCGWINSZ = 0x5413 // OSX 1074295912
 )
 
-//http://play.golang.org/p/5LIA41Iqfp
+// http://play.golang.org/p/5LIA41Iqfp
 // Dummy discard, satisfies io.Writer without importing io or os.
 type DevNull struct{}
 
@@ -510,8 +535,8 @@ func (DevNull) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-//Replace standard newline characters with escaped newlines so long msgs will
-//remain one line.
+// Replace standard newline characters with escaped newlines so long msgs will
+// remain one line.
 func EscapeNewlines(str string) string {
 	return strings.Replace(str, "\n", "\\n", -1)
 }

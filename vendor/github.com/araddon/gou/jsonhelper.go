@@ -47,7 +47,6 @@ func firstNonWsRune(by []byte) (r rune, ok bool) {
 		}
 		return r, true
 	}
-	return 0, false
 }
 
 // Determines if the bytes is a json array, only looks at prefix
@@ -259,6 +258,9 @@ func jsonEntry(name string, v interface{}) (interface{}, bool) {
 //    jh.Get("name.arrayname[1]")
 //    jh.Get("name.arrayname[]")
 func (j JsonHelper) Get(n string) interface{} {
+	if len(j) == 0 {
+		return nil
+	}
 	var parts []string
 	if strings.Contains(n, "/") {
 		parts = strings.Split(n, "/")
@@ -286,7 +288,6 @@ func (j JsonHelper) Get(n string) interface{} {
 		} else {
 			root, ok = jsonEntry(name, root)
 		}
-		//Debug(isList, listEntry, " ", name, " ", root, " ", ok, err)
 		if !ok {
 			if len(parts) > 0 {
 				// lets ensure the actual json-value doesn't have period in key
@@ -294,7 +295,6 @@ func (j JsonHelper) Get(n string) interface{} {
 				if !ok {
 					return nil
 				} else {
-					//Warnf("returning root %T %#v", root, root)
 					return root
 				}
 			} else {

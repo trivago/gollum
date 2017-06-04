@@ -17,6 +17,7 @@ package treflect
 import (
 	"fmt"
 	"reflect"
+	"unsafe"
 )
 
 // GetMissingMethods checks if a given object implements all methods of a
@@ -61,4 +62,113 @@ func GetMissingMethods(objType reflect.Type, ifaceType reflect.Type) (float32, [
 	}
 
 	return float32(methodCount-len(missing)) / float32(methodCount), missing
+}
+
+// SetMemberByName sets member name of the given pointer-to-struct to the data
+// passed to this function. The member may be private, too.
+func SetMemberByName(ptrToStruct interface{}, name string, data interface{}) {
+	structVal := reflect.Indirect(reflect.ValueOf(ptrToStruct))
+	member := structVal.FieldByName(name)
+
+	SetValue(member, data)
+}
+
+// SetMemberByIndex sets member idx of the given pointer-to-struct to the data
+// passed to this function. The member may be private, too.
+func SetMemberByIndex(ptrToStruct interface{}, idx int, data interface{}) {
+	structVal := reflect.Indirect(reflect.ValueOf(ptrToStruct))
+	member := structVal.Field(idx)
+
+	SetValue(member, data)
+}
+
+// SetValue sets an addressable value to the data passed to this function.
+// In contrast to golangs reflect package this will also work with private
+// variables. Please note that this function may not support all types, yet.
+func SetValue(member reflect.Value, data interface{}) {
+	if member.CanSet() {
+		member.Set(reflect.ValueOf(data))
+		return // ### return, easy way ###
+	}
+
+	if !member.CanAddr() {
+		panic("SetValue requires addressable member type")
+	}
+
+	ptrToMember := unsafe.Pointer(member.UnsafeAddr())
+	dataValue := reflect.ValueOf(data)
+
+	switch member.Kind() {
+	case reflect.Bool:
+		*(*bool)(ptrToMember) = dataValue.Bool()
+
+	case reflect.Uint:
+		*(*uint)(ptrToMember) = uint(dataValue.Uint())
+
+	case reflect.Uint8:
+		*(*uint8)(ptrToMember) = uint8(dataValue.Uint())
+
+	case reflect.Uint16:
+		*(*uint16)(ptrToMember) = uint16(dataValue.Uint())
+
+	case reflect.Uint32:
+		*(*uint32)(ptrToMember) = uint32(dataValue.Uint())
+
+	case reflect.Uint64:
+		*(*uint64)(ptrToMember) = dataValue.Uint()
+
+	case reflect.Int:
+		*(*int)(ptrToMember) = int(dataValue.Int())
+
+	case reflect.Int8:
+		*(*int8)(ptrToMember) = int8(dataValue.Int())
+
+	case reflect.Int16:
+		*(*int16)(ptrToMember) = int16(dataValue.Int())
+
+	case reflect.Int32:
+		*(*int32)(ptrToMember) = int32(dataValue.Int())
+
+	case reflect.Int64:
+		*(*int64)(ptrToMember) = dataValue.Int()
+
+	case reflect.Float32:
+		*(*float32)(ptrToMember) = float32(dataValue.Float())
+
+	case reflect.Float64:
+		*(*float64)(ptrToMember) = dataValue.Float()
+
+	case reflect.String:
+		*(*string)(ptrToMember) = dataValue.String()
+
+	case reflect.Slice:
+		// Trick the reflection to return a value of interface{} and not a value
+		// of the actual type. This way we can retrieve a pointer to the source
+		// array and copy over the contents
+		interfaceData := reflect.ValueOf(&data).Elem().InterfaceData()
+		slicePtr := unsafe.Pointer(interfaceData[1])
+
+		// Note: Crossing fingers that this does not break the GC
+		*(*reflect.SliceHeader)(ptrToMember) = *(*reflect.SliceHeader)(slicePtr)
+
+	case reflect.Map:
+		// Exploit the fact that "map"" is actually "*runtime.hmap"" and force
+		// overwrite that pointer in the passed struct.
+
+		// Note: Assigning a map to another variable does NOT copy the contents
+		// so copying the pointer follows go's standard behavior.
+		dataAsPtr := unsafe.Pointer(dataValue.Pointer())
+
+		/*mapCopy := reflect.MakeMap(dataValue.Type())
+		for _, key := range dataValue.MapKeys() {
+			mapCopy.SetMapIndex(key, dataValue.MapIndex(key))
+		}
+		dataAsPtr := unsafe.Pointer(mapCopy.Pointer())*/
+
+		// Note: Crossing fingers that this does not break the GC
+		*(**uintptr)(ptrToMember) = (*uintptr)(dataAsPtr)
+
+	default:
+		panic("Unsupported member type")
+	}
 }

@@ -3,6 +3,7 @@ package redis
 import (
 	"fmt"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/go-redis/redis/internal"
@@ -16,6 +17,7 @@ type PubSub struct {
 	base baseClient
 	cmd  *Cmd
 
+	mu       sync.Mutex
 	channels []string
 	patterns []string
 }

@@ -65,6 +65,7 @@ type ConnPool struct {
 	stats Stats
 
 	_closed int32 // atomic
+	lastErr atomic.Value
 }
 
 var _ Pooler = (*ConnPool)(nil)
@@ -319,7 +320,7 @@ func (p *ConnPool) reaper(frequency time.Duration) {
 	ticker := time.NewTicker(frequency)
 	defer ticker.Stop()
 
-	for range ticker.C {
+	for _ = range ticker.C {
 		if p.closed() {
 			break
 		}

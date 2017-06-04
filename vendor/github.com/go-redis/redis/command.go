@@ -149,6 +149,14 @@ func (cmd *baseCmd) setErr(e error) {
 	cmd.err = e
 }
 
+func newBaseCmd(args []interface{}) baseCmd {
+	if len(args) > 0 {
+		// Cmd name is expected to be in lower case.
+		args[0] = internal.ToLower(args[0].(string))
+	}
+	return baseCmd{_args: args}
+}
+
 //------------------------------------------------------------------------------
 
 type Cmd struct {
@@ -832,8 +840,9 @@ func NewGeoLocationCmd(q *GeoRadiusQuery, args ...interface{}) *GeoLocationCmd {
 	if q.Sort != "" {
 		args = append(args, q.Sort)
 	}
+	cmd := newBaseCmd(args)
 	return &GeoLocationCmd{
-		baseCmd: baseCmd{_args: args},
+		baseCmd: cmd,
 		q:       q,
 	}
 }

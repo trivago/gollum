@@ -6,6 +6,8 @@ import (
 	"strconv"
 )
 
+const bufferSize = 4096
+
 type WriteBuffer struct {
 	b []byte
 }
