@@ -32,6 +32,8 @@ const (
 	fileBufferGrowSize = 1024
 	fileOffsetStart    = "oldest"
 	fileOffsetEnd      = "newest"
+	prioritySuspend    = "slow"
+	priorityLow        = "fast"
 )
 
 type fileState int32
@@ -57,6 +59,7 @@ const (
 //    DefaultOffset: "Newest"
 //    OffsetFile: ""
 //    Delimiter: "\n"
+//    EOFCheckSpeed: "fast"
 //
 // File is a mandatory setting and contains the file to read. The file will be
 // read from beginning to end and the reader will stay attached until the
@@ -74,6 +77,11 @@ const (
 //
 // Delimiter defines the end of a message inside the file. By default this is
 // set to "\n".
+//
+// EOFCheckSpeed defines how often to check for file updates after hitting EOF.
+// Setting this to "fast" will sleep for 200ms every 100 times polling
+// consecutively gets EOF. Setting this to "slow" will sleep for 1s every time
+// polling gets EOF. By default this is set to "fast".
 type File struct {
 	core.ConsumerBase
 	file           *os.File
@@ -84,6 +92,7 @@ type File struct {
 	seekOnRotate   int
 	seekOffset     int64
 	state          fileState
+	priority       shared.SpinPriority
 }
 
 func init() {
@@ -116,6 +125,16 @@ func (cons *File) Configure(conf core.PluginConfig) error {
 		cons.seek = 1
 		cons.seekOnRotate = 1
 		cons.seekOffset = 0
+	}
+
+	switch strings.ToLower(conf.GetString("EOFCheckSpeed", priorityLow)) {
+	default:
+		fallthrough
+	case priorityLow:
+		cons.priority = shared.SpinPriorityLow
+
+	case prioritySuspend:
+		cons.priority = shared.SpinPrioritySuspend
 	}
 
 	return nil
@@ -190,7 +209,7 @@ func (cons *File) read() {
 		sendFunction = cons.enqueueAndPersist
 	}
 
-	spin := shared.NewSpinner(shared.SpinPriorityLow)
+	spin := shared.NewSpinner(cons.priority)
 	buffer := shared.NewBufferedReader(fileBufferGrowSize, 0, 0, cons.delimiter)
 	printFileOpenError := true
 
