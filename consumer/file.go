@@ -54,6 +54,7 @@ const (
 //
 //  - "consumer.File":
 //    File: "/var/run/system.log"
+//    UseRelativePath: false
 //    DefaultOffset: "Newest"
 //    OffsetFile: ""
 //    Delimiter: "\n"
@@ -62,6 +63,10 @@ const (
 // read from beginning to end and the reader will stay attached until the
 // consumer is stopped. I.e. appends to the attached file will be recognized
 // automatically.
+//
+// UseRelativePath defines whether to access File using the name as given, or
+// first resolve symlinks and make the path absolute. By default this is false
+// which resolves symlinks and makes the path absolute.
 //
 // DefaultOffset defines where to start reading the file. Valid values are
 // "oldest" and "newest". If OffsetFile is defined the DefaultOffset setting
@@ -78,6 +83,7 @@ type File struct {
 	core.ConsumerBase
 	file           *os.File
 	fileName       string
+	relativePath   bool
 	offsetFileName string
 	delimiter      string
 	seek           int
@@ -103,6 +109,7 @@ func (cons *File) Configure(conf core.PluginConfig) error {
 	cons.fileName = conf.GetString("File", "/var/run/system.log")
 	cons.offsetFileName = conf.GetString("OffsetFile", "")
 	cons.delimiter = shared.Unescape(conf.GetString("Delimiter", "\n"))
+	cons.relativePath = conf.GetBool("UseRelativePath", false)
 
 	switch strings.ToLower(conf.GetString("DefaultOffset", fileOffsetEnd)) {
 	default:
@@ -132,6 +139,10 @@ func (cons *File) enqueueAndPersist(data []byte, sequence uint64) {
 }
 
 func (cons *File) realFileName() string {
+	if cons.relativePath {
+		return cons.fileName
+	}
+
 	baseFileName, err := filepath.EvalSymlinks(cons.fileName)
 	if err != nil {
 		baseFileName = cons.fileName
