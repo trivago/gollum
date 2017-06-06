@@ -22,9 +22,9 @@ matrix:
       env: TEST_SUITE=integration
   include:
     - go: 1.8
-      env: TEST_SUITE="vet lint fmt-check" # go vet, golint, gofmt -s -l
+      env: TEST_SUITE="vet lint fmt-check ineffassign" # go vet, golint, gofmt -s -l, ineffassign
     - go: 1.8
-      env: TEST_SUITE=coverprofile         # go tests -coverprofile
+      env: TEST_SUITE=coverprofile                     # go tests -coverprofile
 
 before_install:
   - sudo apt-get install -y libpcap-dev

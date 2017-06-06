@@ -1,4 +1,4 @@
-.PHONY: all clean docker docker-dev install freebsd linux mac pi win examples current vendor test unit coverprofile integration example pre-commit vet lint fmt fmt-check
+.PHONY: all clean docker docker-dev install freebsd linux mac pi win examples current vendor test unit coverprofile integration example pre-commit vet lint fmt fmt-check ineffassign
 .DEFAULT_GOAL := current
 
 VERSION=0.5.0
@@ -98,6 +98,11 @@ ifneq ($(shell gofmt -s -l ./ |grep -vE '^vendor/' |wc -l | tr -d "[:blank:]"), 
 	$(error gofmt returns more than one line.)
 endif
 	@echo "Running go fmt check"
+
+ineffassign:
+	@echo "Running ineffassign"
+	@go get -u github.com/gordonklaus/ineffassign
+	@ineffassign ./
 
 clean:
 	@rm -f ./gollum
