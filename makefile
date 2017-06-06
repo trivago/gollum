@@ -59,7 +59,7 @@ vendor:
 	@glide cc
 	@glide update
 
-test: unit integration
+test: pre-commit unit integration
 
 unit:
 	@echo "go tests SDK"
