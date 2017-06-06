@@ -35,7 +35,7 @@ before_install:
   - sudo apt-get install -y libsystemd-journal-dev
 install:
   - go get github.com/mattn/goveralls
-  - go get github.com/golang/lint/golint
+  - if [[ $TRAVIS_GO_VERSION != 1.5* ]]; then go get github.com/golang/lint/golint; fi
 
 before_script:
   - GO15VENDOREXPERIMENT=1
