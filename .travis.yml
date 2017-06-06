@@ -5,10 +5,10 @@ git:
   depth: 3
 
 go:
-  - 1.5
-  - 1.6
-  - 1.7
   - 1.8
+  - 1.7
+  - 1.6
+  - 1.5
 env:
   - TEST_SUITE=current      # go build
   - TEST_SUITE=unit         # go test
@@ -16,9 +16,9 @@ env:
 
 matrix:
   exclude:
-    - go: 1.5
-      env: TEST_SUITE=integration
     - go: 1.6
+      env: TEST_SUITE=integration
+    - go: 1.5
       env: TEST_SUITE=integration
   include:
     - go: 1.8
