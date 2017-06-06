@@ -10,8 +10,9 @@ go:
   - 1.7
   - 1.8
 env:
-  - TEST_SUITE=unit
-  - TEST_SUITE=integration
+  - TEST_SUITE=current      # go build
+  - TEST_SUITE=unit         # go test
+  - TEST_SUITE=integration  # go test -tags="integration"
 
 matrix:
   exclude:
@@ -21,7 +22,9 @@ matrix:
       env: TEST_SUITE=integration
   include:
     - go: 1.8
-      env: TEST_SUITE=coverprofile
+      env:
+        - TEST_SUITE=pre-commit   # go vet, golint, go fmt
+        - TEST_SUITE=coverprofile # go tests -coverprofile
 
 before_install:
   - sudo apt-get install -y libpcap-dev
@@ -36,9 +39,7 @@ install:
 before_script:
   - GO15VENDOREXPERIMENT=1
 script:
-  - make current # go build
-  - go vet -v $(go list ./...|grep -v vendor|grep -v testing)
-  - make $TEST_SUITE #  go test
+  - make $TEST_SUITE
 after_success:
   - if [[ $TEST_SUITE == "coverprofile" ]]; then $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci; fi
 
