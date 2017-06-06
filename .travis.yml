@@ -35,6 +35,7 @@ before_install:
   - sudo apt-get install -y libsystemd-journal-dev
 install:
   - go get github.com/mattn/goveralls
+  - go get github.com/golang/lint/golint
 
 before_script:
   - GO15VENDOREXPERIMENT=1
