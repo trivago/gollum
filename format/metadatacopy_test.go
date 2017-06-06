@@ -14,7 +14,7 @@ func TestMetadataCopy(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	// mock config
-	setupConf, err := tcontainer.ConvertToMarshalMap(
+	setupConf, _ := tcontainer.ConvertToMarshalMap(
 		map[string]interface{}{"foo": []string{"format.Hostname"}},
 		strings.ToLower)
 

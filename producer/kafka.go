@@ -475,7 +475,7 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	prod.topicGuard.RUnlock()
 
 	if !topicRegistered {
-		wildcardSet := false
+		var wildcardSet bool
 		topicName, isMapped := prod.streamToTopic[msg.GetStreamID()]
 		if !isMapped {
 			if topicName, wildcardSet = prod.streamToTopic[core.WildcardStreamID]; !wildcardSet {
