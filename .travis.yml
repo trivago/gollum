@@ -39,7 +39,8 @@ script:
   - make current # go build
   - go vet -v $(go list ./...|grep -v vendor|grep -v testing)
   - make $TEST_SUITE #  go test
-  - if [[ $TEST_SUITE == "coverprofile" ]]; then $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci || travis_terminate 1; fi
+after_success:
+  - if [[ $TEST_SUITE == "coverprofile" ]]; then $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci; fi
 
 notifications:
   slack:
