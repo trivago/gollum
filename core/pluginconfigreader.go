@@ -18,6 +18,7 @@ import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/tlog"
+	"github.com/trivago/tgo/treflect"
 	"reflect"
 	"strconv"
 	"strings"
@@ -235,7 +236,7 @@ func (reader *PluginConfigReader) Configure(plugin interface{}, log tlog.LogScop
 
 	for i := 0; i < numFields; i++ {
 		field := pluginType.Field(i)
-		fielValue := pluginValue.Field(i)
+		fieldValue := pluginValue.Field(i)
 
 		if key, haskey := field.Tag.Lookup("config"); haskey {
 			defaultTag, _ := field.Tag.Lookup("default")
@@ -248,7 +249,7 @@ func (reader *PluginConfigReader) Configure(plugin interface{}, log tlog.LogScop
 				}
 				defaultValue, err := strconv.ParseBool(defaultTag)
 				reader.Errors.Push(err)
-				fielValue.SetBool(reader.GetBool(key, defaultValue))
+				treflect.SetValue(fieldValue, reader.GetBool(key, defaultValue))
 
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 				if defaultTag == "" {
@@ -261,7 +262,7 @@ func (reader *PluginConfigReader) Configure(plugin interface{}, log tlog.LogScop
 				defaultValue, err := strconv.ParseInt(defaultTag, base, 64)
 				reader.Errors.Push(err)
 				value := metricScale(metric) * reader.GetInt(key, defaultValue)
-				fielValue.SetInt(value)
+				treflect.SetValue(fieldValue, value)
 
 			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 				var value uint64
@@ -279,16 +280,16 @@ func (reader *PluginConfigReader) Configure(plugin interface{}, log tlog.LogScop
 					reader.Errors.Push(err)
 					value = uint64(metricScale(metric)) * reader.GetUint(key, defaultValue)
 				}
-				fielValue.SetUint(value)
+				treflect.SetValue(fieldValue, value)
 
 			case reflect.String:
-				fielValue.SetString(reader.GetString(key, defaultTag))
+				treflect.SetValue(fieldValue, reader.GetString(key, defaultTag))
 
 			case reflect.Array, reflect.Slice:
-				reader.readArray(key, fielValue, field.Type.Elem(), log, defaultTag)
+				reader.readArray(key, fieldValue, field.Type.Elem(), log, defaultTag)
 
 			case reflect.Interface:
-				reader.readInterface(key, fielValue, field.Type, log, defaultTag)
+				reader.readInterface(key, fieldValue, field.Type, log, defaultTag)
 			}
 		}
 	}
@@ -303,12 +304,12 @@ func (reader *PluginConfigReader) readArray(key string, pluginValue reflect.Valu
 			defaultValue = append(defaultValue, e)
 		}
 		arrayValue := reflect.ValueOf(reader.GetStringArray(key, defaultValue))
-		pluginValue.Set(arrayValue)
+		treflect.SetValue(pluginValue, arrayValue)
 
 	case reflect.Int8, reflect.Uint8:
 		defaultValue := reader.GetString(key, defaultTag)
 		byteArray := []byte(defaultValue)
-		pluginValue.Set(reflect.ValueOf(byteArray))
+		treflect.SetValue(pluginValue, byteArray)
 
 	case reflect.Uint64:
 		if arrayType.Name() == "MessageStreamID" {
@@ -317,7 +318,7 @@ func (reader *PluginConfigReader) readArray(key string, pluginValue reflect.Valu
 				defaultValue = append(defaultValue, GetStreamID(e))
 			}
 			arrayValue := reflect.ValueOf(reader.GetStreamArray(key, defaultValue))
-			pluginValue.Set(arrayValue)
+			treflect.SetValue(pluginValue, arrayValue)
 		}
 
 	case reflect.Interface:
@@ -331,19 +332,22 @@ func (reader *PluginConfigReader) readArray(key string, pluginValue reflect.Valu
 					router = append(router, StreamRegistry.GetRouterOrFallback(streamID))
 				}
 			}
-			pluginValue.Set(reflect.ValueOf(router))
+			treflect.SetValue(pluginValue, router)
 
 		case "Modulator":
 			modulators := reader.GetModulatorArray(key, log, ModulatorArray{})
-			pluginValue.Set(reflect.ValueOf(modulators))
+			treflect.SetValue(pluginValue, modulators)
 
 		case "Filter":
 			filters := reader.GetFilterArray(key, log, FilterArray{})
-			pluginValue.Set(reflect.ValueOf(filters))
+			treflect.SetValue(pluginValue, filters)
 
 		case "Formatter":
 			formatters := reader.GetFormatterArray(key, log, FormatterArray{})
-			pluginValue.Set(reflect.ValueOf(formatters))
+			treflect.SetValue(pluginValue, formatters)
+
+		default:
+			panic("Unsupported array interface type: " + arrayType.Name())
 		}
 	}
 }
@@ -354,8 +358,10 @@ func (reader *PluginConfigReader) readInterface(key string, pluginValue reflect.
 		streamID := reader.GetStreamID(key, GetStreamID(defaultTag))
 		if streamID != InvalidStreamID {
 			router := StreamRegistry.GetRouterOrFallback(streamID)
-			pluginValue.Set(reflect.ValueOf(router))
+			treflect.SetValue(pluginValue, router)
 		}
+	default:
+		panic("Unsupported interface type: " + fieldType.Name())
 	}
 }
 
