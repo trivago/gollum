@@ -17,6 +17,7 @@ package consumer
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	kafka "github.com/Shopify/sarama"
@@ -114,6 +115,12 @@ const (
 // kafka message. A separator will ba appended to the key. See KeySeparator.
 // By default this is option set to false.
 //
+// EncodeKey can be enabled to encode the key of kafka message before prepending.
+// It uses base64 with dictionary of "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
+// to encode the key. It might be useful when the key of the message is in binary
+// format. By default this option is set to false. You must first enable PrependKey
+// to use this option.
+//
 // KeySeparator defines the separator that is appended to the kafka message key
 // if PrependKey is set to true. Set to ":" by default.
 //
@@ -198,6 +205,7 @@ type Kafka struct {
 	persistTimeout    time.Duration
 	orderedRead       bool
 	prependKey        bool
+	encodeKey         bool
 	keySeparator      []byte
 	sequence          *uint64
 	folderPermissions os.FileMode
@@ -224,6 +232,7 @@ func (cons *Kafka) Configure(conf core.PluginConfig) error {
 	cons.MaxPartitionID = 0
 	cons.keySeparator = []byte(conf.GetString("KeySeparator", ":"))
 	cons.prependKey = conf.GetBool("PrependKey", false)
+	cons.encodeKey = conf.GetBool("EncodeKey", false)
 	cons.sequence = new(uint64)
 
 	folderFlags, err := strconv.ParseInt(conf.GetString("FolderPermissions", "0755"), 8, 32)
@@ -384,6 +393,12 @@ func (cons *Kafka) restartGroup() {
 }
 
 func (cons *Kafka) keyedMessage(key []byte, value []byte) []byte {
+	if cons.encodeKey {
+		encodedKey := make([]byte, base64.StdEncoding.EncodedLen(len(key)))
+		base64.StdEncoding.Encode(encodedKey, key)
+		key = encodedKey
+	}
+
 	buffer := make([]byte, len(key)+len(cons.keySeparator)+len(value))
 	offset := copy(buffer, key)
 	offset += copy(buffer[offset:], cons.keySeparator)
