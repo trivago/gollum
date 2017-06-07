@@ -1,5 +1,5 @@
 hash: 62f85e10fc530e080fdcd8dabddff12f8ae05fb8d1ec1745c48cfbd0b50e8c4f
-updated: 2017-05-30T14:58:43.904561732+02:00
+updated: 2017-06-07T12:00:31.864204437+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -67,7 +67,7 @@ imports:
 - name: github.com/eapache/queue
   version: 44cc805cf13205b55f69e14bcb69867d1ae92f98
 - name: github.com/go-ini/ini
-  version: afbc45e87f3ba324c532d12c71918ef52e0fb194
+  version: d3de07a94d22b4a0972deb4b96d790c2c0ce8333
 - name: github.com/go-redis/redis
   version: 2cf5af9928978bbef8d1076607022403439e177c
   subpackages:
@@ -77,7 +77,7 @@ imports:
   - internal/pool
   - internal/proto
 - name: github.com/golang/protobuf
-  version: 9f174c986221c608fb5143bd623b6076a71feae3
+  version: 5a0f697c9ed9d68fef0116532c6e05cfeae00e55
   subpackages:
   - proto
 - name: github.com/golang/snappy
@@ -97,7 +97,7 @@ imports:
 - name: github.com/miekg/pcap
   version: 51d9d986bf8d5f524d65bf31c353e10271d54aaa
 - name: github.com/mmcloughlin/geohash
-  version: 8996844d73442e90a5663feb8d7983b2c54571aa
+  version: 525f3a7fc47c279c04049e07697970039310755d
 - name: github.com/mssola/user_agent
   version: 07efe2b857fb8c02d2dd85c12d0145f58554ec7c
 - name: github.com/oschwald/maxminddb-golang
@@ -117,7 +117,7 @@ imports:
 - name: github.com/Shopify/sarama
   version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
 - name: github.com/trivago/tgo
-  version: 6fd3ff0f33848d5b5aefbfd202e577053a6baae0
+  version: bd2d63b499c21a5058d2533571a1099971b14203
   subpackages:
   - tcontainer
   - terrors
@@ -133,7 +133,7 @@ imports:
   - tsync
   - ttesting
 - name: golang.org/x/crypto
-  version: 7e9105388ebff089b3f99f0ef676ea55a6da3a7e
+  version: e7ba82683099cae71475961448ab8f903ea77c26
   subpackages:
   - bcrypt
   - blowfish

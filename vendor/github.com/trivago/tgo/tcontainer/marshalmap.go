@@ -105,60 +105,94 @@ func (mmap MarshalMap) Bool(key string) (bool, error) {
 	return boolValue, nil
 }
 
-// Int returns a value at key that is expected to be an int
-func (mmap MarshalMap) Int(key string) (int, error) {
+// Uint returns a value at key that is expected to be an uint64 or compatible
+// integer value.
+func (mmap MarshalMap) Uint(key string) (uint64, error) {
 	val, exists := mmap.Value(key)
 	if !exists {
 		return 0, fmt.Errorf(`"%s" is not set`, key)
 	}
 
-	intValue, isInt := val.(int)
-	if !isInt {
-		return 0, fmt.Errorf(`"%s" is expected to be an integer`, key)
-	}
-	return intValue, nil
-}
+	switch val.(type) {
+	case uint:
+		intVal := val.(uint)
+		return uint64(intVal), nil
 
-// Uint64 returns a value at key that is expected to be an uint64
-func (mmap MarshalMap) Uint64(key string) (uint64, error) {
-	val, exists := mmap.Value(key)
-	if !exists {
-		return 0, fmt.Errorf(`"%s" is not set`, key)
-	}
+	case uint8:
+		intVal := val.(uint8)
+		return uint64(intVal), nil
 
-	intValue, isInt := val.(uint64)
-	if !isInt {
+	case uint16:
+		intVal := val.(uint16)
+		return uint64(intVal), nil
+
+	case uint32:
+		intVal := val.(uint32)
+		return uint64(intVal), nil
+
+	case uint64:
+		intVal := val.(uint64)
+		return intVal, nil
+
+	default:
 		return 0, fmt.Errorf(`"%s" is expected to be an unsigned integer`, key)
 	}
-	return intValue, nil
 }
 
-// Int64 returns a value at key that is expected to be an int64
-func (mmap MarshalMap) Int64(key string) (int64, error) {
+// Int returns a value at key that is expected to be an int64 or compatible
+// integer value.
+func (mmap MarshalMap) Int(key string) (int64, error) {
 	val, exists := mmap.Value(key)
 	if !exists {
 		return 0, fmt.Errorf(`"%s" is not set`, key)
 	}
 
-	intValue, isInt := val.(int64)
-	if !isInt {
+	switch val.(type) {
+	case int:
+		intVal := val.(int)
+		return int64(intVal), nil
+
+	case int8:
+		intVal := val.(int8)
+		return int64(intVal), nil
+
+	case int16:
+		intVal := val.(int16)
+		return int64(intVal), nil
+
+	case int32:
+		intVal := val.(int32)
+		return int64(intVal), nil
+
+	case int64:
+		intVal := val.(int64)
+		return intVal, nil
+
+	default:
 		return 0, fmt.Errorf(`"%s" is expected to be an integer`, key)
 	}
-	return intValue, nil
 }
 
-// Float64 returns a value at key that is expected to be a float64
-func (mmap MarshalMap) Float64(key string) (float64, error) {
+// Float returns a value at key that is expected to be a float64 or compatible
+// float value.
+func (mmap MarshalMap) Float(key string) (float64, error) {
 	val, exists := mmap.Value(key)
 	if !exists {
 		return 0, fmt.Errorf(`"%s" is not set`, key)
 	}
 
-	floatValue, isFloat := val.(float64)
-	if !isFloat {
+	switch val.(type) {
+	case float32:
+		floatVal := val.(float32)
+		return float64(floatVal), nil
+
+	case float64:
+		floatVal := val.(float64)
+		return floatVal, nil
+
+	default:
 		return 0, fmt.Errorf(`"%s" is expected to be a float64`, key)
 	}
-	return floatValue, nil
 }
 
 // Duration returns a value at key that is expected to be a string

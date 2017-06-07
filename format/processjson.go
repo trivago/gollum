@@ -175,7 +175,7 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 			}
 
 		case "unixtimestamp":
-			floatValue, err := values.Float64(directive.key)
+			floatValue, err := values.Float(directive.key)
 			if err != nil {
 				format.Log.Warning.Print(err.Error())
 				return

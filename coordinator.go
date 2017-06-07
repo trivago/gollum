@@ -229,7 +229,7 @@ func (co *Coordinator) configureProducers(conf *core.Config) {
 	producerConfigs := conf.GetProducers()
 
 	for _, config := range producerConfigs {
-		for i := 0; i < config.Instances; i++ {
+		for i := uint64(0); i < config.Instances; i++ {
 			tlog.Debug.Print("Instantiating ", config.ID)
 
 			plugin, err := core.NewPluginWithConfig(config)
@@ -280,7 +280,7 @@ func (co *Coordinator) configureConsumers(conf *core.Config) {
 
 	consumerConfigs := conf.GetConsumers()
 	for _, config := range consumerConfigs {
-		for i := 0; i < config.Instances; i++ {
+		for i := uint64(0); i < config.Instances; i++ {
 			tlog.Debug.Print("Instantiating ", config.ID)
 
 			plugin, err := core.NewPluginWithConfig(config)
