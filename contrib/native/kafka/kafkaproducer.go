@@ -345,7 +345,7 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 	if msg.Len() == 0 {
 		streamName := core.StreamRegistry.GetStreamName(msg.GetStreamID())
 		prod.Log.Error.Printf("0 byte message detected on %s. Discarded", streamName)
-		core.CountDiscardedMessage()
+		core.CountMessageDiscarded()
 		return // ### return, invalid data ###
 	}
 

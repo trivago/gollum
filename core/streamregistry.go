@@ -19,22 +19,8 @@ import (
 	"github.com/trivago/tgo/tlog"
 	"hash/fnv"
 	"sync"
-	"time"
 )
 
-const (
-	metricStreams  = "Streams"
-	metricMessages = "Messages"
-	// MetricMessagesSec is used as a key for storing message throughput
-	MetricMessagesSec  = "MessagesPerSec"
-	metricDiscarded    = "DiscardedMessages"
-	metricFiltered     = "Filtered"
-	metricNoRoute      = "DiscardedNoRoute"
-	metricDiscardedSec = "DiscardedMessagesSec"
-	metricDroppedSec   = "DroppedMessagesSec"
-	metricFilteredSec  = "FilteredSec"
-	metricNoRouteSec   = "DiscardedNoRouteSec"
-)
 
 // streamRegistry holds routers mapped by their MessageStreamID as well as a
 // reverse lookup of MessageStreamID to stream name.
@@ -53,39 +39,6 @@ var StreamRegistry = streamRegistry{
 	streamGuard: new(sync.Mutex),
 	name:        make(map[MessageStreamID]string),
 	nameGuard:   new(sync.Mutex),
-}
-
-func init() {
-	tgo.EnableGlobalMetrics()
-	tgo.Metric.New(metricStreams)
-	tgo.Metric.New(metricMessages)
-	tgo.Metric.New(metricDiscarded)
-	tgo.Metric.New(metricNoRoute)
-	tgo.Metric.New(metricFiltered)
-	tgo.Metric.NewRate(metricMessages, MetricMessagesSec, time.Second, 10, 3, true)
-	tgo.Metric.NewRate(metricDiscarded, metricDiscardedSec, time.Second, 10, 3, true)
-	tgo.Metric.NewRate(metricNoRoute, metricNoRouteSec, time.Second, 10, 3, true)
-	tgo.Metric.NewRate(metricFiltered, metricFilteredSec, time.Second, 10, 3, true)
-}
-
-// CountProcessedMessage increases the messages counter by 1
-func CountProcessedMessage() {
-	tgo.Metric.Inc(metricMessages)
-}
-
-// CountDiscardedMessage increases the discarded messages counter by 1
-func CountDiscardedMessage() {
-	tgo.Metric.Inc(metricDiscarded)
-}
-
-// CountFilteredMessage increases the filtered messages counter by 1
-func CountFilteredMessage() {
-	tgo.Metric.Inc(metricFiltered)
-}
-
-// CountNoRouteForMessage increases the "no route" counter by 1
-func CountNoRouteForMessage() {
-	tgo.Metric.Inc(metricNoRoute)
 }
 
 // GetStreamID is deprecated
