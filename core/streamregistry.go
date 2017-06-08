@@ -21,7 +21,6 @@ import (
 	"sync"
 )
 
-
 // streamRegistry holds routers mapped by their MessageStreamID as well as a
 // reverse lookup of MessageStreamID to stream name.
 type streamRegistry struct {
