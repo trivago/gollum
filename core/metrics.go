@@ -21,10 +21,11 @@ import (
 )
 
 const (
-	metricStreams        = "Streams"
-	metricCons  = "Consumers"
-	metricProds = "Producers"
-	metricVersion = "Version"
+	metricRouters         = "Routers"
+	metricFallbackRouters = "Routers:Fallback"
+	metricCons            = "Consumers"
+	metricProds           = "Producers"
+	metricVersion         = "Version"
 
 	metricMessagesRouted = "Messages:Routed"
 	// MetricMessagesRoutedAvg is used as a key for storing message throughput
@@ -57,7 +58,8 @@ func init() {
 	tgo.Metric.New(metricVersion)
 	tgo.Metric.Set(metricVersion, GetVersionNumber())
 
-	tgo.Metric.New(metricStreams)
+	tgo.Metric.New(metricRouters)
+	tgo.Metric.New(metricFallbackRouters)
 	tgo.Metric.New(metricCons)
 	tgo.Metric.New(metricProds)
 
@@ -100,6 +102,16 @@ func CountProducers() {
 // CountConsumers increases the consumer counter by 1
 func CountConsumers() {
 	tgo.Metric.Inc(metricCons)
+}
+
+// CountRouters increases the stream counter by 1
+func CountRouters() {
+	tgo.Metric.Inc(metricRouters)
+}
+
+// CountFallbackRouters increases the fallback stream counter by 1
+func CountFallbackRouters() {
+	tgo.Metric.Inc(metricFallbackRouters)
 }
 
 var streamMetrics = map[MessageStreamID]StreamMetric{}

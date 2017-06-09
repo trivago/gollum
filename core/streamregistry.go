@@ -15,7 +15,6 @@
 package core
 
 import (
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tlog"
 	"hash/fnv"
 	"sync"
@@ -165,7 +164,7 @@ func (registry *streamRegistry) Register(router Router, streamID MessageStreamID
 	if _, exists := registry.routers[streamID]; exists {
 		tlog.Warning.Printf("%T attaches to an already occupied router (%s)", router, registry.GetStreamName(streamID))
 	} else {
-		tgo.Metric.Inc(metricStreams)
+		CountRouters()
 	}
 	registry.routers[streamID] = router
 }
@@ -202,6 +201,11 @@ func (registry *streamRegistry) GetRouterOrFallback(streamID MessageStreamID) Ro
 	registry.AddWildcardProducersToRouter(defaultRouter)
 
 	registry.routers[streamID] = defaultRouter
-	tgo.Metric.Inc(metricStreams)
+
+	CountRouters()
+	if streamID != InvalidStreamID && streamID != WildcardStreamID {
+		CountFallbackRouters()
+	}
+
 	return defaultRouter
 }
