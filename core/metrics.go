@@ -26,15 +26,18 @@ const (
 	metricCons            = "Consumers"
 	metricProds           = "Producers"
 	metricVersion         = "Version"
+)
 
-	metricMessagesRouted = "Messages:Routed"
-	// MetricMessagesRoutedAvg is used as a key for storing message throughput
+const (
+	metricMessagesRouted       = "Messages:Routed"
 	MetricMessagesRoutedAvg    = "Messages:Routed:AvgPerSec"
 	metricMessagesEnqued       = "Messages:Enqueued"
 	metricMessagesEnquedAvg    = "Messages:Enqueued:AvgPerSec"
 	metricMessagesDiscarded    = "Messages:Discarded"
 	metricMessagesDiscardedSec = "Messages:Discarded:AvgPerSec"
+)
 
+const (
 	metricStreamMessagesRouted       = "Stream:%s:Messages:Routed"
 	metricStreamMessagesRoutedAvg    = "Stream:%s:Messages:Routed:AvgPerSec"
 	metricStreamMessagesDiscarded    = "Stream:%s:Messages:Discarded"
@@ -163,7 +166,6 @@ func (metric *StreamMetric) getMetricKey(format string) string {
 
 // PluginMetric class for plugin based metrics
 type PluginMetric struct {
-
 }
 
 // Init increase the plugin state init count

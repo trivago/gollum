@@ -16,8 +16,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/trivago/tgo/tflag"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tflag"
 )
 
 var (

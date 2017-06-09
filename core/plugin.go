@@ -89,7 +89,7 @@ var (
 type PluginRunState struct {
 	workers *sync.WaitGroup
 	state   int32 // Pluginstate
-	metric	PluginMetric
+	metric  PluginMetric
 }
 
 // Plugin is the base class for any runtime class that can be configured and
