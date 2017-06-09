@@ -26,11 +26,6 @@ import (
 )
 
 const (
-	metricCons  = "Consumers"
-	metricProds = "Producers"
-)
-
-const (
 	coordinatorStateConfigure      = coordinatorState(iota)
 	coordinatorStateStartProducers = coordinatorState(iota)
 	coordinatorStateStartConsumers = coordinatorState(iota)
@@ -65,9 +60,6 @@ type Coordinator struct {
 
 // NewCoordinator creates a new multplexer
 func NewCoordinator() Coordinator {
-	tgo.Metric.New(metricCons)
-	tgo.Metric.New(metricProds)
-
 	return Coordinator{
 		consumerWorker: new(sync.WaitGroup),
 		producerWorker: new(sync.WaitGroup),
@@ -247,7 +239,7 @@ func (co *Coordinator) configureProducers(conf *core.Config) {
 			}
 
 			co.producers = append(co.producers, producer)
-			tgo.Metric.Inc(metricProds)
+			core.CountProducers()
 
 			// Attach producer to streams
 
@@ -291,7 +283,7 @@ func (co *Coordinator) configureConsumers(conf *core.Config) {
 
 			consumer, _ := plugin.(core.Consumer)
 			co.consumers = append(co.consumers, consumer)
-			tgo.Metric.Inc(metricCons)
+			core.CountConsumers()
 		}
 	}
 }

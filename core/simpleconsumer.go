@@ -204,6 +204,8 @@ func (cons *SimpleConsumer) enqueueMessage(msg *Message) {
 		return
 	}
 
+	CountMessagesEnqueued()
+
 	// Send message to all routers registered to this consumer
 	// Last message will not be cloned.
 	numRouters := len(cons.routers)

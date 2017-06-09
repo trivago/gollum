@@ -37,19 +37,27 @@ type Router interface {
 // Route tries to enqueue a message to the given stream. This function also
 // handles redirections enforced by formatters.
 func Route(msg *Message, router Router) error {
+
 	action := router.Modulate(msg)
+
+	streamName := StreamRegistry.GetStreamName(msg.GetStreamID())
+	streamMetric := GetSteamMetric(msg.GetStreamID())
 
 	switch action {
 	case ModulateResultDiscard:
+		streamMetric.CountMessageDiscarded()
 		DiscardMessage(msg)
 		return nil
 
 	case ModulateResultContinue:
+		streamMetric.CountMessageRouted()
+		CountMessageRouted()
+
 		return router.Enqueue(msg)
 
 	case ModulateResultFallback:
 		if msg.GetStreamID() == router.GetStreamID() {
-			streamName := StreamRegistry.GetStreamName(msg.GetStreamID())
+
 			prevStreamName := StreamRegistry.GetStreamName(msg.GetPrevStreamID())
 			return NewModulateResultError("Routing loop detected for router %s (from %s)", streamName, prevStreamName)
 		}
@@ -69,5 +77,5 @@ func RouteOriginal(msg *Message, router Router) error {
 // DiscardMessage increases the discard statistic and discards the given
 // message.
 func DiscardMessage(msg *Message) {
-	CountDiscardedMessage()
+	CountMessageDiscarded()
 }
