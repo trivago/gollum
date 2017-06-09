@@ -115,9 +115,101 @@ const (
 )
 
 type streamData struct {
-	content            *kinesis.PutRecordsInput
-	original           [][]*core.Message
+	content            []*kinesis.PutRecordsInput
+	original           [][][]*core.Message
+	streamName         string
 	lastRecordMessages int
+	lastRequestSize    int
+	recordMaxMessages  int
+	recordMaxSize      int
+	requestMaxSize     int
+	requestMaxRecords  int
+}
+
+func newStreamData(streamName string, recordMaxMessages int) *streamData {
+	return &streamData{
+		content: make([]*kinesis.PutRecordsInput, 0, 1),
+		original: make([][][]*core.Message, 0, 1),
+		streamName: streamName,
+		lastRecordMessages: 0,
+		lastRequestSize: 0,
+		recordMaxMessages: recordMaxMessages,
+		recordMaxSize: 1<<20, // 1 MB per record is the api limit
+		requestMaxSize: 5<<20, // 5 MB per request is the api limit
+		requestMaxRecords: 500, // 500 records per request is the api limit
+	}
+}
+
+func (sd *streamData) AddPutRecordsInput() *kinesis.PutRecordsInput {
+	input := &kinesis.PutRecordsInput{
+		Records:    make([]*kinesis.PutRecordsRequestEntry, 0, sd.requestMaxRecords),
+		StreamName: aws.String(sd.streamName),
+	}
+	sd.content = append(sd.content, input)
+	sd.original = append(sd.original, make([][]*core.Message, 0, sd.requestMaxRecords))
+	sd.lastRequestSize = 0
+	return input
+}
+
+func (sd *streamData) GetPutRecordsInput() (*kinesis.PutRecordsInput) {
+	if len(sd.content) == 0 {
+		return sd.AddPutRecordsInput()
+	} else {
+		return sd.content[len(sd.content)-1]
+	}
+}
+
+func (sd *streamData) AddRecord() *kinesis.PutRecordsRequestEntry {
+	input := sd.GetPutRecordsInput()
+	record := &kinesis.PutRecordsRequestEntry{
+		Data: make([]byte, 0, 0),
+	}
+	if len(input.Records) + 1 > sd.requestMaxRecords {
+		input = sd.AddPutRecordsInput()
+	}
+	input.Records = append(input.Records, record)
+	sd.original[len(sd.original)-1] = append(sd.original[len(sd.original)-1], make([]*core.Message, 0, sd.recordMaxMessages))
+	sd.lastRecordMessages = 0
+	return record
+}
+
+func (sd *streamData) GetRecord() *kinesis.PutRecordsRequestEntry {
+	input := sd.GetPutRecordsInput()
+	if len(input.Records) == 0 {
+		return sd.AddRecord()
+	} else {
+		return input.Records[len(input.Records)-1]
+	}
+}
+
+func (sd *streamData) AddMessage(delimiter []byte, data []byte, streamID core.MessageStreamID, msg *core.Message) {
+	record := sd.GetRecord()
+	if len(record.Data) > 0 {
+		addSize := len(delimiter) + len(data)
+		createRecord := false
+		if addSize + len(record.Data) > sd.recordMaxSize || sd.lastRecordMessages + 1 > sd.recordMaxMessages {
+			createRecord = true
+			addSize = len(data)
+		}
+		if addSize + sd.lastRequestSize > sd.requestMaxSize {
+			sd.AddPutRecordsInput()
+			record = sd.GetRecord()
+		} else if createRecord {
+			record = sd.AddRecord()
+		}
+	}
+	if len(record.Data) > 0 {
+		record.Data = append(record.Data, delimiter...)
+		sd.lastRequestSize = sd.lastRequestSize + len(delimiter)
+	} else {
+		record.PartitionKey = aws.String(fmt.Sprintf("%X-%d", streamID, msg.Sequence))
+	}
+	record.Data = append(record.Data, data...)
+	sd.lastRequestSize = sd.lastRequestSize + len(data)
+	requests := len(sd.original)
+	records := len(sd.original[requests-1])
+	sd.original[requests-1][records-1] = append(sd.original[requests-1][records-1], msg)
+	sd.lastRecordMessages++
 }
 
 func init() {
@@ -232,11 +324,10 @@ func (prod *Kinesis) transformMessages(messages []core.Message) {
 	// Format and sort
 	for idx, msg := range messages {
 		msgData, streamID := prod.ProducerBase.Format(msg)
-		messageHash := fmt.Sprintf("%X-%d", streamID, msg.Sequence)
 
 		// Fetch buffer for this stream
-		records, recordsExists := streamRecords[streamID]
-		if !recordsExists {
+		requests, requestsExists := streamRecords[streamID]
+		if !requestsExists {
 			// Select the correct kinesis stream
 			streamName, streamMapped := prod.streamMap[streamID]
 			if !streamMapped {
@@ -250,41 +341,11 @@ func (prod *Kinesis) transformMessages(messages []core.Message) {
 					prod.counters[streamName] = new(int64)
 				}
 			}
-
-			// Create buffers for this kinesis stream
-			maxLength := len(messages)/prod.recordMaxMessages + 1
-			records = &streamData{
-				content: &kinesis.PutRecordsInput{
-					Records:    make([]*kinesis.PutRecordsRequestEntry, 0, maxLength),
-					StreamName: aws.String(streamName),
-				},
-				original:           make([][]*core.Message, 0, maxLength),
-				lastRecordMessages: 0,
-			}
-			streamRecords[streamID] = records
+			requests = newStreamData(streamName, prod.recordMaxMessages)
+			streamRecords[streamID] = requests
 		}
 
-		// Fetch record for this buffer
-		var record *kinesis.PutRecordsRequestEntry
-		recordExists := len(records.content.Records) > 0
-		if !recordExists || records.lastRecordMessages+1 > prod.recordMaxMessages {
-			// Append record to stream
-			record = &kinesis.PutRecordsRequestEntry{
-				Data:         make([]byte, 0, len(msgData)),
-				PartitionKey: aws.String(messageHash),
-			}
-			records.content.Records = append(records.content.Records, record)
-			records.original = append(records.original, make([]*core.Message, 0, prod.recordMaxMessages))
-			records.lastRecordMessages = 0
-		} else {
-			record = records.content.Records[len(records.content.Records)-1]
-			record.Data = append(record.Data, prod.delimiter...)
-		}
-
-		// Append message to record
-		record.Data = append(record.Data, msgData...)
-		records.lastRecordMessages++
-		records.original[len(records.original)-1] = append(records.original[len(records.original)-1], &messages[idx])
+		requests.AddMessage(prod.delimiter, msgData, streamID, &messages[idx])
 	}
 
 	sleepDuration := prod.sendTimeLimit - time.Since(prod.lastSendTime)
@@ -293,25 +354,28 @@ func (prod *Kinesis) transformMessages(messages []core.Message) {
 	}
 
 	// Send to Kinesis
-	for _, records := range streamRecords {
-		result, err := prod.client.PutRecords(records.content)
-		atomic.AddInt64(prod.counters[*records.content.StreamName], int64(len(records.content.Records)))
+	for _, requests := range streamRecords {
+		for reqIdx, request := range requests.content {
+			result, err := prod.client.PutRecords(request)
+			atomic.AddInt64(prod.counters[requests.streamName], int64(len(request.Records)))
 
-		if err != nil {
-			// Batch failed, drop all
-			Log.Error.Print("Kinesis write error: ", err)
-			for _, messages := range records.original {
-				for _, msg := range messages {
-					prod.Drop(*msg)
-				}
-			}
-		} else {
-			// Check each message for errors
-			for msgIdx, record := range result.Records {
-				if record.ErrorMessage != nil {
-					Log.Error.Print("Kinesis message write error: ", *record.ErrorMessage)
-					for _, msg := range records.original[msgIdx] {
+			if err != nil {
+				// request failed, drop all messages in request
+				Log.Error.Print("Kinesis write error: ", err)
+				for _, messages := range requests.original[reqIdx] {
+					for _, msg := range messages {
 						prod.Drop(*msg)
+					}
+				}
+			} else {
+				// Check each record for errors
+				for recIdx, record := range result.Records {
+					if record.ErrorMessage != nil {
+						// record failed, drop all messages in record
+						Log.Error.Print("Kinesis record write error: ", *record.ErrorMessage)
+						for _, msg := range requests.original[reqIdx][recIdx] {
+							prod.Drop(*msg)
+						}
 					}
 				}
 			}
