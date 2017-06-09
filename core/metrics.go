@@ -28,6 +28,7 @@ const (
 	metricVersion         = "Version"
 )
 
+// MetricMessagesRoutedAvg is used as a key for storing message throughput
 const (
 	metricMessagesRouted       = "Messages:Routed"
 	MetricMessagesRoutedAvg    = "Messages:Routed:AvgPerSec"
@@ -44,6 +45,13 @@ const (
 	metricStreamMessagesDiscardedAvg = "Stream:%s:Messages:Discarded:AvgPerSec"
 )
 
+// MetricActiveWorkers metric string
+// MetricPluginsInit metric string
+// MetricPluginsActive metric string
+// MetricPluginsWaiting metric string
+// MetricPluginsPrepareStop metric string
+// MetricPluginsStopping metric string
+// MetricPluginsDead metric string
 const (
 	MetricActiveWorkers      = "Plugins:ActiveWorkers"
 	MetricPluginsInit        = "Plugins:State:Initializing"
