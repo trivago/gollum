@@ -99,7 +99,6 @@ func main() {
 
 	// Metrics server start
 
-	setStaticMetrics()
 	if *flagMetricsAddress != "" {
 		server := tgo.NewMetricServer()
 		address, err := parseAddress(*flagMetricsAddress)
@@ -199,8 +198,8 @@ func dumpMemoryProfile() {
 }
 
 func printVersion() {
-	fmt.Printf("Gollum: %s\n", GetVersionString())
-	fmt.Printf("Version: %d\n", GetVersionNumber())
+	fmt.Printf("Gollum: %s\n", core.GetVersionString())
+	fmt.Printf("Version: %d\n", core.GetVersionNumber())
 	fmt.Println(runtime.Version())
 }
 
@@ -231,16 +230,9 @@ func printModules() {
 }
 
 func printProfile() {
-	msgSec, err := tgo.Metric.Get(core.MetricMessagesSec)
+	msgSec, err := tgo.Metric.Get(core.MetricMessagesRoutedAvg)
 	if err == nil {
 		fmt.Printf("Processed %d msg/sec\n", msgSec)
 	}
 	time.AfterFunc(time.Second*3, printProfile)
-}
-
-func setStaticMetrics() {
-	metricVersion := "Version"
-	tgo.Metric.New(metricVersion)
-	tgo.Metric.InitSystemMetrics()
-	tgo.Metric.Set(metricVersion, GetVersionNumber())
 }

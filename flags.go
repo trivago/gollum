@@ -17,6 +17,7 @@ package main
 import (
 	"fmt"
 	"github.com/trivago/tgo/tflag"
+	"github.com/trivago/gollum/core"
 )
 
 var (
@@ -42,6 +43,6 @@ func parseFlags() {
 }
 
 func printFlags() {
-	helpMessageStr := fmt.Sprintf("Usage: gollum [OPTIONS]\n\nGollum - An n:m message multiplexer.\nVersion: %s\n\nOptions:", GetVersionString())
+	helpMessageStr := fmt.Sprintf("Usage: gollum [OPTIONS]\n\nGollum - An n:m message multiplexer.\nVersion: %s\n\nOptions:", core.GetVersionString())
 	tflag.PrintFlags(helpMessageStr)
 }

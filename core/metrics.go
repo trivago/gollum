@@ -22,30 +22,41 @@ import (
 
 const (
 	metricStreams        = "Streams"
-	metricMessagesRouted = "Messages:Routed"
-	// MetricMessagesSec is used as a key for storing message throughput
-	MetricMessagesSec       = "Messages:Routed:AvgPerSec"
-	metricMessagesEnqued    = "Messages:Enqueued"
-	metricMessagesEnquedAvg = "Messages:Enqueued:AvgPerSec"
-	metricDiscarded         = "Messages:Discarded"
-	metricDiscardedSec      = "Messages:Discarded:AvgPerSec"
+	metricCons  = "Consumers"
+	metricProds = "Producers"
+	metricVersion = "Version"
 
-	metricStreamMessagesRouted    = "Stream:%s:Messages:Routed"
-	metricStreamMessagesRoutedAvg = "Stream:%s:Messages:Routed:AvgPerSec"
-	metricStreamDiscarded         = "Stream:%s:Messages:Discarded"
-	metricStreamDiscardedAvg      = "Stream:%s:Messages:Discarded:AvgPerSec"
+	metricMessagesRouted = "Messages:Routed"
+	// MetricMessagesRoutedAvg is used as a key for storing message throughput
+	MetricMessagesRoutedAvg    = "Messages:Routed:AvgPerSec"
+	metricMessagesEnqued       = "Messages:Enqueued"
+	metricMessagesEnquedAvg    = "Messages:Enqueued:AvgPerSec"
+	metricMessagesDiscarded    = "Messages:Discarded"
+	metricMessagesDiscardedSec = "Messages:Discarded:AvgPerSec"
+
+	metricStreamMessagesRouted       = "Stream:%s:Messages:Routed"
+	metricStreamMessagesRoutedAvg    = "Stream:%s:Messages:Routed:AvgPerSec"
+	metricStreamMessagesDiscarded    = "Stream:%s:Messages:Discarded"
+	metricStreamMessagesDiscardedAvg = "Stream:%s:Messages:Discarded:AvgPerSec"
 )
 
 func init() {
 	tgo.EnableGlobalMetrics()
+	tgo.Metric.InitSystemMetrics()
+
+	tgo.Metric.New(metricVersion)
+	tgo.Metric.Set(metricVersion, GetVersionNumber())
 
 	tgo.Metric.New(metricStreams)
+	tgo.Metric.New(metricCons)
+	tgo.Metric.New(metricProds)
+
 	tgo.Metric.New(metricMessagesRouted)
 	tgo.Metric.New(metricMessagesEnqued)
-	tgo.Metric.New(metricDiscarded)
-	tgo.Metric.NewRate(metricMessagesRouted, MetricMessagesSec, time.Second, 10, 3, true)
+	tgo.Metric.New(metricMessagesDiscarded)
+	tgo.Metric.NewRate(metricMessagesRouted, MetricMessagesRoutedAvg, time.Second, 10, 3, true)
 	tgo.Metric.NewRate(metricMessagesEnqued, metricMessagesEnquedAvg, time.Second, 10, 3, true)
-	tgo.Metric.NewRate(metricDiscarded, metricDiscardedSec, time.Second, 10, 3, true)
+	tgo.Metric.NewRate(metricMessagesDiscarded, metricMessagesDiscardedSec, time.Second, 10, 3, true)
 }
 
 // CountMessageRouted increases the messages counter by 1
@@ -55,12 +66,22 @@ func CountMessageRouted() {
 
 // CountMessageDiscarded increases the discarded messages counter by 1
 func CountMessageDiscarded() {
-	tgo.Metric.Inc(metricDiscarded)
+	tgo.Metric.Inc(metricMessagesDiscarded)
 }
 
 // CountMessagesEnqueued increases the enqueued messages counter by 1
 func CountMessagesEnqueued() {
 	tgo.Metric.Inc(metricMessagesEnqued)
+}
+
+// CountProducers increases the producer counter by 1
+func CountProducers() {
+	tgo.Metric.Inc(metricProds)
+}
+
+// CountConsumers increases the consumer counter by 1
+func CountConsumers() {
+	tgo.Metric.Inc(metricCons)
 }
 
 var streamMetrics = map[MessageStreamID]StreamMetric{}
@@ -87,13 +108,13 @@ type StreamMetric struct {
 
 func (metric *StreamMetric) init() {
 	keyRouted := metric.getMetricKey(metricStreamMessagesRouted)
-	keyDiscarded := metric.getMetricKey(metricStreamDiscarded)
+	keyDiscarded := metric.getMetricKey(metricStreamMessagesDiscarded)
 
 	tgo.Metric.New(keyRouted)
 	tgo.Metric.New(keyDiscarded)
 
 	tgo.Metric.NewRate(keyRouted, metric.getMetricKey(metricStreamMessagesRoutedAvg), time.Second, 10, 3, true)
-	tgo.Metric.NewRate(keyDiscarded, metric.getMetricKey(metricStreamDiscardedAvg), time.Second, 10, 3, true)
+	tgo.Metric.NewRate(keyDiscarded, metric.getMetricKey(metricStreamMessagesDiscardedAvg), time.Second, 10, 3, true)
 }
 
 // CountMessageRouted increases the messages counter by 1
@@ -103,7 +124,7 @@ func (metric *StreamMetric) CountMessageRouted() {
 
 // CountMessageDiscarded increases the discarded messages counter by 1
 func (metric *StreamMetric) CountMessageDiscarded() {
-	tgo.Metric.Inc(metric.getMetricKey(metricStreamDiscarded))
+	tgo.Metric.Inc(metric.getMetricKey(metricStreamMessagesDiscarded))
 }
 
 func (metric *StreamMetric) getMetricKey(format string) string {
