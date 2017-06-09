@@ -40,6 +40,16 @@ const (
 	metricStreamMessagesDiscardedAvg = "Stream:%s:Messages:Discarded:AvgPerSec"
 )
 
+const (
+	MetricActiveWorkers      = "Plugins:ActiveWorkers"
+	MetricPluginsInit        = "Plugins:State:Initializing"
+	MetricPluginsActive      = "Plugins:State:Active"
+	MetricPluginsWaiting     = "Plugins:State:Waiting"
+	MetricPluginsPrepareStop = "Plugins:State:PrepareStop"
+	MetricPluginsStopping    = "Plugins:State:Stopping"
+	MetricPluginsDead        = "Plugins:State:Dead"
+)
+
 func init() {
 	tgo.EnableGlobalMetrics()
 	tgo.Metric.InitSystemMetrics()
@@ -50,6 +60,14 @@ func init() {
 	tgo.Metric.New(metricStreams)
 	tgo.Metric.New(metricCons)
 	tgo.Metric.New(metricProds)
+
+	tgo.Metric.New(MetricPluginsInit)
+	tgo.Metric.New(MetricPluginsWaiting)
+	tgo.Metric.New(MetricPluginsActive)
+	tgo.Metric.New(MetricPluginsPrepareStop)
+	tgo.Metric.New(MetricPluginsStopping)
+	tgo.Metric.New(MetricPluginsDead)
+	tgo.Metric.New(MetricActiveWorkers)
 
 	tgo.Metric.New(metricMessagesRouted)
 	tgo.Metric.New(metricMessagesEnqued)
@@ -129,4 +147,30 @@ func (metric *StreamMetric) CountMessageDiscarded() {
 
 func (metric *StreamMetric) getMetricKey(format string) string {
 	return fmt.Sprintf(format, StreamRegistry.GetStreamName(metric.messageStreamID))
+}
+
+// PluginMetric class for plugin based metrics
+type PluginMetric struct {
+
+}
+
+// Init increase the plugin state init count
+func (metric *PluginMetric) Init() {
+	tgo.Metric.Inc(MetricPluginsInit)
+}
+
+// UpdateStateMetric decrease the prev plugin state and increase the next plugin state
+func (metric *PluginMetric) UpdateStateMetric(prevState, nextState string) {
+	tgo.Metric.Dec(prevState)
+	tgo.Metric.Inc(nextState)
+}
+
+// IncWorker increase the active worker count
+func (metric *PluginMetric) IncWorker() {
+	tgo.Metric.Inc(MetricActiveWorkers)
+}
+
+// DecWorker decrease the active worker count
+func (metric *PluginMetric) DecWorker() {
+	tgo.Metric.Dec(MetricActiveWorkers)
 }
