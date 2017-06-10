@@ -284,9 +284,17 @@ You can add a own plugin module by simple using `git submodule`:
 git submodule add -f https://github.com/YOUR_NAMESPACE/YOUR_REPO.git contrib/namespace
 ```
 
-The from git created `.gitmodules` will be ignored by the gollum repository.
+The by git created `.gitmodules` will be ignored by the gollum repository.
 
-After activating of your plugin in the `contrib_loader.go` file you are able to compile gollum with your own provided plugins.
+To activate your plugin you need to create a `contrib_loader.go` to be able to compile gollum with your own provided plugins.
+You can copy the existing `contrib_loader.go.dist` to `contrib_loader.go` and update the import path to your package:
+
+```bash
+cp contrib_loader.go.dist contrib_loader.go
+# open contrib_loader.go with an editor
+# update package path
+make current
+```
 
 ## License
 
