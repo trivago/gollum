@@ -152,7 +152,7 @@ func init() {
 func (prod *File) Configure(conf core.PluginConfigReader) error {
 	prod.BufferedProducer.Configure(conf)
 	conf.Configure(prod, prod.Log)
-	conf.Configure(prod.rotate, prod.Log)
+	conf.Configure(&prod.rotate, prod.Log)
 
 	prod.SetRollCallback(prod.rotateLog)
 	prod.SetStopCallback(prod.close)

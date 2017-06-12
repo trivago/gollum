@@ -15,6 +15,7 @@
 package core
 
 import (
+	"fmt"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/tlog"
@@ -230,9 +231,16 @@ func (reader *PluginConfigReader) GetStreamRoutes(key string, defaultValue map[M
 // Avaiable tags: "config" holds the config key, "default" holds the default
 // value, "metric" may store metric quantity information like "kb" or "sec".
 func (reader *PluginConfigReader) Configure(plugin interface{}, log tlog.LogScope) {
-	pluginType := reflect.TypeOf(plugin).Elem()
-	pluginValue := reflect.ValueOf(plugin).Elem()
+	pluginType := treflect.RemovePtrFromType(plugin)
+	pluginValue := treflect.RemovePtrFromValue(plugin)
 	numFields := pluginType.NumField()
+
+	fieldName := ""
+	defer func() {
+		if r := recover(); r != nil {
+			panic(fmt.Sprintf("\"%s\": %v", fieldName, r))
+		}
+	}()
 
 	for i := 0; i < numFields; i++ {
 		field := pluginType.Field(i)
@@ -241,6 +249,7 @@ func (reader *PluginConfigReader) Configure(plugin interface{}, log tlog.LogScop
 		if key, haskey := field.Tag.Lookup("config"); haskey {
 			defaultTag, _ := field.Tag.Lookup("default")
 			metric, _ := field.Tag.Lookup("metric")
+			fieldName = field.Name
 
 			switch field.Type.Kind() {
 			case reflect.Bool:

@@ -20,6 +20,7 @@ import (
 	_ "github.com/trivago/gollum/format"
 	_ "github.com/trivago/gollum/router"
 	"math/rand"
+	"runtime/debug"
 	"testing"
 )
 
@@ -32,12 +33,18 @@ const (
 
 func TestProducerInterface(t *testing.T) {
 	producers := core.TypeRegistry.GetRegistered("producer.")
-
 	if len(producers) == 0 {
 		t.Error("No producers defined")
 	}
 
-	for _, name := range producers {
+	name := ""
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Panic while testing %s\n%v\n\n%s", name, r, string(debug.Stack()))
+		}
+	}()
+
+	for _, name = range producers {
 		conf := core.NewPluginConfig(RandString(6), name)
 		_, err := core.NewPluginWithConfig(conf)
 		if err != nil {

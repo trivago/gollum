@@ -178,6 +178,26 @@ func Float64(v interface{}) (float64, bool) {
 	return 0, false
 }
 
+// RemovePtrFromType will return the type of t and strips away any pointer(s)
+// in front of the actual type.
+func RemovePtrFromType(t interface{}) reflect.Type {
+	v := reflect.TypeOf(t)
+	for v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	return v
+}
+
+// RemovePtrFromValue will return the value of t and strips away any pointer(s)
+// in front of the actual type.
+func RemovePtrFromValue(t interface{}) reflect.Value {
+	v := reflect.ValueOf(t)
+	for v.Type().Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	return v
+}
+
 // UnsafeCopy will copy data from src to dst while ignoring type information.
 // Both types need to be of the same size and dst and src have to be pointers.
 // UnsafeCopy will panic if these requirements are not met.
