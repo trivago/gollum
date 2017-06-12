@@ -1,5 +1,5 @@
-hash: c717fe73d35c74e301787793dd52dd579bd76d72baa9e2c5ee64f522443cc4bc
-updated: 2017-06-12T13:58:02.592651463+02:00
+hash: b2221ea1922ba9874bf23976d60dd055eb658a563a375dd75bec384b2bfb3d5f
+updated: 2017-06-12T14:47:30.751017743+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -100,6 +100,8 @@ imports:
   version: 5a004441f897722c627870a981d02b29924215fa
   subpackages:
   - xxHash32
+- name: github.com/pkg/errors
+  version: c605e284fe17294bda444b34710735b29d1a9d90
 - name: github.com/quipo/statsd
   version: 39c3fe59a6c334d5aefddf41f3c16595301c80e1
   subpackages:
@@ -141,6 +143,10 @@ imports:
   - internal/syslogparser
   - internal/syslogparser/rfc3164
   - internal/syslogparser/rfc5424
+- name: gopkg.in/olivere/elastic.v5
+  version: f1fd7305d0b6270192b27010fe1193568b18e4b6
+  subpackages:
+  - uritemplates
 - name: gopkg.in/oschwald/geoip2-golang.v1
   version: 496a3cbcb65a3cb54497fe4ae2273319e85160a4
 - name: gopkg.in/yaml.v2
