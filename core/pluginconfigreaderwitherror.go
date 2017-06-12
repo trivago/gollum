@@ -242,7 +242,7 @@ func (reader PluginConfigReaderWithError) GetPluginArray(key string, defaultValu
 				return nil, fmt.Errorf("%s section is malformed (config for %s is not a map but %T)", key, typeNameStr, config)
 			}
 
-			pluginConfig, err := NewNestedPluginConfig(typeNameStr, configMap)
+			pluginConfig, _ := NewNestedPluginConfig(typeNameStr, configMap)
 			plugin, err := NewPluginWithConfig(pluginConfig)
 			if err != nil {
 				return pluginArray, err

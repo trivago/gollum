@@ -1,4 +1,4 @@
-.PHONY: all clean docker docker-dev install freebsd linux mac pi win examples current vendor test unit coverprofile integration example pre-commit vet lint fmt
+.PHONY: all clean docker docker-dev install freebsd linux mac pi win examples current vendor test unit coverprofile integration example pre-commit vet lint fmt fmt-check ineffassign
 .DEFAULT_GOAL := current
 
 VERSION=0.5.0
@@ -59,7 +59,7 @@ vendor:
 	@glide cc
 	@glide update
 
-test: unit integration
+test: vet lint fmt-check unit integration
 
 unit:
 	@echo "go tests SDK"
@@ -92,6 +92,17 @@ lint:
 fmt:
 	@echo "Running go fmt"
 	@go fmt $(CHECK_PKGS)
+
+fmt-check:
+ifneq ($(shell gofmt -s -l ./ |grep -vE '^vendor/' |wc -l | tr -d "[:blank:]"), 0)
+	$(error gofmt returns more than one line.)
+endif
+	@echo "Running go fmt check"
+
+ineffassign:
+	@echo "Running ineffassign"
+	@go get -u github.com/gordonklaus/ineffassign
+	@ineffassign ./
 
 clean:
 	@rm -f ./gollum

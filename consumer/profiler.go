@@ -176,10 +176,9 @@ func (cons *Profiler) profile() {
 	testStart := time.Now()
 	minTime := math.MaxFloat64
 	maxTime := 0.0
-	batchIdx := 0
 	messageCount := 0
 
-	for batchIdx = 0; batchIdx < cons.batches && cons.IsActive(); batchIdx++ {
+	for batchIdx := 0; batchIdx < cons.batches && cons.IsActive(); batchIdx++ {
 		cons.Log.Note.Print(fmt.Sprintf("batch %d/%d", batchIdx, cons.batches))
 		start := time.Now()
 

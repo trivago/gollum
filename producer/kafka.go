@@ -211,10 +211,7 @@ type topicHandle struct {
 }
 
 const (
-	kafkaMetricMessages     = "Kafka:Messages-"
-	kafkaMetricMessagesSec  = "Kafka:MessagesSec-"
-	kafkaMetricRoundtrip    = "Kafka:AvgRoundtripMs-"
-	kafkaMetricUnresponsive = "Kafka:Unresponsive-"
+	kafkaMetricRoundtrip = "Kafka:AvgRoundtripMs-"
 )
 
 func init() {
@@ -408,7 +405,7 @@ func (prod *Kafka) pollResults() {
 					prod.storeRTT(&msg)
 					if err == kafka.ErrMessageTooLarge {
 						prod.Log.Error.Print("Message discarded as too large.")
-						core.CountDiscardedMessage()
+						core.CountMessageDiscarded()
 					} else {
 						prod.TryFallback(&msg)
 					}
@@ -454,9 +451,6 @@ func (prod *Kafka) registerNewTopic(topicName string, streamID core.MessageStrea
 	prod.topicHandles[topicName] = topic
 	prod.topic[streamID] = topic
 
-	tgo.Metric.New(kafkaMetricMessages + topicName)
-	tgo.Metric.New(kafkaMetricMessagesSec + topicName)
-	tgo.Metric.New(kafkaMetricUnresponsive + topicName)
 	tgo.Metric.New(kafkaMetricRoundtrip + topicName)
 
 	return topic
@@ -466,7 +460,7 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	if !prod.nilValueAllowed && len(msg.GetPayload()) == 0 {
 		streamName := core.StreamRegistry.GetStreamName(msg.GetStreamID())
 		prod.Log.Error.Printf("0 byte message detected on %s. Discarded", streamName)
-		core.CountDiscardedMessage()
+		core.CountMessageDiscarded()
 		return // ### return, invalid data ###
 	}
 
@@ -475,7 +469,7 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	prod.topicGuard.RUnlock()
 
 	if !topicRegistered {
-		wildcardSet := false
+		var wildcardSet bool
 		topicName, isMapped := prod.streamToTopic[msg.GetStreamID()]
 		if !isMapped {
 			if topicName, wildcardSet = prod.streamToTopic[core.WildcardStreamID]; !wildcardSet {
@@ -511,12 +505,10 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	select {
 	case prod.producer.Input() <- kafkaMsg:
 		timeout.Stop()
-		tgo.Metric.Inc(kafkaMetricMessages + topic.name)
 
 	case <-timeout.C:
 		// Sarama channels are full -> fallback
 		prod.TryFallback(msg)
-		tgo.Metric.Inc(kafkaMetricUnresponsive + topic.name)
 	}
 }
 

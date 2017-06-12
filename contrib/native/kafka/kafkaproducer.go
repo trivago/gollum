@@ -345,7 +345,7 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 	if msg.Len() == 0 {
 		streamName := core.StreamRegistry.GetStreamName(msg.GetStreamID())
 		prod.Log.Error.Printf("0 byte message detected on %s. Discarded", streamName)
-		core.CountDiscardedMessage()
+		core.CountMessageDiscarded()
 		return // ### return, invalid data ###
 	}
 
@@ -354,7 +354,7 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 	prod.topicGuard.RUnlock()
 
 	if !topicRegistered {
-		wildcardSet := false
+		var wildcardSet bool
 		topicName, isMapped := prod.streamToTopic[msg.GetStreamID()]
 		if !isMapped {
 			if topicName, wildcardSet = prod.streamToTopic[core.WildcardStreamID]; !wildcardSet {

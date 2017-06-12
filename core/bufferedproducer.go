@@ -93,7 +93,7 @@ func (prod *BufferedProducer) Enqueue(msg *Message, timeout time.Duration) {
 		prod.setState(PluginStateWaiting)
 
 	case MessageQueueDiscard:
-		CountDiscardedMessage()
+		CountMessageDiscarded()
 		prod.setState(PluginStateWaiting)
 
 	default:
