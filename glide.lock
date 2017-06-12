@@ -1,5 +1,5 @@
-hash: 593bd6b23f33a05235c1d6e227f8fb39b23a4153bf0d9e69b958c0810a698565
-updated: 2017-06-12T13:50:33.231012456+02:00
+hash: c717fe73d35c74e301787793dd52dd579bd76d72baa9e2c5ee64f522443cc4bc
+updated: 2017-06-12T13:58:02.592651463+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -90,6 +90,8 @@ imports:
   version: 33283639a13451aa23d02413884678abd4bdb1e7
 - name: github.com/mssola/user_agent
   version: 07efe2b857fb8c02d2dd85c12d0145f58554ec7c
+- name: github.com/olivere/elastic
+  version: f1fd7305d0b6270192b27010fe1193568b18e4b6
 - name: github.com/oschwald/maxminddb-golang
   version: d19f6d453e836d12ee8fe895d0494421e93ef8c1
 - name: github.com/pierrec/lz4

@@ -45,3 +45,5 @@ import:
 - package: gopkg.in/yaml.v2
 - package: github.com/go-redis/redis
   version: =6.0.0
+- package: github.com/olivere/elastic
+  version: ~5.0.39
