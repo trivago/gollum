@@ -303,7 +303,7 @@ func (reader *PluginConfigReader) readArray(key string, pluginValue reflect.Valu
 		for _, e := range elements {
 			defaultValue = append(defaultValue, e)
 		}
-		arrayValue := reflect.ValueOf(reader.GetStringArray(key, defaultValue))
+		arrayValue := reader.GetStringArray(key, defaultValue)
 		treflect.SetValue(pluginValue, arrayValue)
 
 	case reflect.Int8, reflect.Uint8:
@@ -317,7 +317,7 @@ func (reader *PluginConfigReader) readArray(key string, pluginValue reflect.Valu
 			for _, e := range elements {
 				defaultValue = append(defaultValue, GetStreamID(e))
 			}
-			arrayValue := reflect.ValueOf(reader.GetStreamArray(key, defaultValue))
+			arrayValue := reader.GetStreamArray(key, defaultValue)
 			treflect.SetValue(pluginValue, arrayValue)
 		}
 

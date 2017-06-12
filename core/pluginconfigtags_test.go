@@ -84,8 +84,8 @@ func TestConfigReaderAutoConfig(t *testing.T) {
 
 	expect.NoError(reader.Errors.OrNil())
 	expect.True(myStruct.BoolValue)
-	expect.Equal(-1, myStruct.IntValue)
-	expect.Equal(uint(2), myStruct.UintValue)
+	expect.Equal(int64(-1), myStruct.IntValue)
+	expect.Equal(uint64(2), myStruct.UintValue)
 	expect.Equal(3*time.Second, myStruct.DurationValue)
 	expect.Equal(int64(4096), myStruct.MbValue)
 	expect.Equal("test", myStruct.StringValue)

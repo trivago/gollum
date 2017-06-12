@@ -178,6 +178,53 @@ func Float64(v interface{}) (float64, bool) {
 	return 0, false
 }
 
+// UnsafeCopy will copy data from src to dst while ignoring type information.
+// Both types need to be of the same size and dst and src have to be pointers.
+// UnsafeCopy will panic if these requirements are not met.
+func UnsafeCopy(dst, src interface{}) {
+	dstValue := reflect.ValueOf(dst)
+	srcValue := reflect.ValueOf(src)
+	UnsafeCopyValue(dstValue, srcValue)
+}
+
+// UnsafeCopyValue will copy data from src to dst while ignoring type
+// information. Both types need to be of the same size or this function will
+// panic. Also both types must support dereferencing via reflect.Elem()
+func UnsafeCopyValue(dstValue reflect.Value, srcValue reflect.Value) {
+	dstType := dstValue.Elem().Type()
+	srcType := srcValue.Type()
+
+	var srcPtr uintptr
+	if srcValue.Kind() != reflect.Ptr {
+		// If we don't get a pointer to our source data we need to forcefully
+		// retrieve it by accessing the interface pointer. This is ok as we
+		// only read from it.
+		iface := srcValue.Interface()
+		srcPtr = reflect.ValueOf(&iface).Elem().InterfaceData()[1] // Pointer to data
+	} else {
+		srcType = srcValue.Elem().Type()
+		srcPtr = srcValue.Pointer()
+	}
+
+	if dstType.Size() != srcType.Size() {
+		panic("Type size mismatch between " + dstType.String() + " and " + srcType.String())
+	}
+
+	dstAsSlice := *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
+		Data: dstValue.Pointer(),
+		Len:  int(dstType.Size()),
+		Cap:  int(dstType.Size()),
+	}))
+
+	srcAsSlice := *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
+		Data: srcPtr,
+		Len:  int(srcType.Size()),
+		Cap:  int(srcType.Size()),
+	}))
+
+	copy(dstAsSlice, srcAsSlice)
+}
+
 // SetMemberByName sets member name of the given pointer-to-struct to the data
 // passed to this function. The member may be private, too.
 func SetMemberByName(ptrToStruct interface{}, name string, data interface{}) {
@@ -201,7 +248,7 @@ func SetMemberByIndex(ptrToStruct interface{}, idx int, data interface{}) {
 // variables. Please note that this function may not support all types, yet.
 func SetValue(member reflect.Value, data interface{}) {
 	if member.CanSet() {
-		member.Set(reflect.ValueOf(data))
+		member.Set(reflect.ValueOf(data).Convert(member.Type()))
 		return // ### return, easy way ###
 	}
 
@@ -252,37 +299,45 @@ func SetValue(member reflect.Value, data interface{}) {
 	case reflect.Float64:
 		*(*float64)(ptrToMember) = dataValue.Float()
 
+	case reflect.Complex64:
+		*(*complex64)(ptrToMember) = complex64(dataValue.Complex())
+
+	case reflect.Complex128:
+		*(*complex128)(ptrToMember) = dataValue.Complex()
+
 	case reflect.String:
 		*(*string)(ptrToMember) = dataValue.String()
 
-	case reflect.Slice:
-		// Trick the reflection to return a value of interface{} and not a value
-		// of the actual type. This way we can retrieve a pointer to the source
-		// array and copy over the contents
-		interfaceData := reflect.ValueOf(&data).Elem().InterfaceData()
-		slicePtr := unsafe.Pointer(interfaceData[1])
-
-		// Note: Crossing fingers that this does not break the GC
-		*(*reflect.SliceHeader)(ptrToMember) = *(*reflect.SliceHeader)(slicePtr)
-
-	case reflect.Map:
-		// Exploit the fact that "map"" is actually "*runtime.hmap"" and force
+	case reflect.Map, reflect.Chan:
+		// Exploit the fact that "map" is actually "*runtime.hmap" and force
 		// overwrite that pointer in the passed struct.
+		// Same foes for "chan" which is actually "*runtime.hchan".
 
-		// Note: Assigning a map to another variable does NOT copy the contents
-		// so copying the pointer follows go's standard behavior.
+		// Note: Assigning a map or channel to another variable does NOT copy
+		// the contents so copying the pointer follows go's standard behavior.
 		dataAsPtr := unsafe.Pointer(dataValue.Pointer())
-
-		/*mapCopy := reflect.MakeMap(dataValue.Type())
-		for _, key := range dataValue.MapKeys() {
-			mapCopy.SetMapIndex(key, dataValue.MapIndex(key))
-		}
-		dataAsPtr := unsafe.Pointer(mapCopy.Pointer())*/
-
-		// Note: Crossing fingers that this does not break the GC
 		*(**uintptr)(ptrToMember) = (*uintptr)(dataAsPtr)
 
+	case reflect.Interface:
+		// Interfaces are basically two pointers, see runtime.iface.
+		// We want to modify exactly that data, which is returned by
+		// the InterfaceData() method.
+
+		if dataValue.Kind() != reflect.Interface {
+			// A type reference was passed. In order to overwrite the memory
+			// Representation of an interface we need to generate it first.
+			// Reflect does not allow us to do that unless we use the
+			// InterfaceData method which exposes the internal representation
+			// of an interface.
+			interfaceData := reflect.ValueOf(&data).Elem().InterfaceData()
+			dataValue = reflect.ValueOf(interfaceData)
+		}
+		fallthrough
+
 	default:
-		panic("Unsupported member type")
+		// Complex types are assigned memcpy style.
+		// Note: This should not break the garbage collector although we cannot
+		// be 100% sure on this.
+		UnsafeCopyValue(member.Addr(), dataValue)
 	}
 }

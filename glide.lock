@@ -1,5 +1,5 @@
 hash: 62f85e10fc530e080fdcd8dabddff12f8ae05fb8d1ec1745c48cfbd0b50e8c4f
-updated: 2017-06-08T14:22:50.548152936+02:00
+updated: 2017-06-12T16:09:58.97445615+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -117,7 +117,7 @@ imports:
 - name: github.com/Shopify/sarama
   version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
 - name: github.com/trivago/tgo
-  version: 34144b0e5cec794c26a1c652129146a96a3ea9c2
+  version: b46ea91896f5ab0fe43462eb31f9d3fcf5da393e
   subpackages:
   - tcontainer
   - terrors
