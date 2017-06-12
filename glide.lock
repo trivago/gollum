@@ -1,10 +1,8 @@
-hash: 62f85e10fc530e080fdcd8dabddff12f8ae05fb8d1ec1745c48cfbd0b50e8c4f
-updated: 2017-05-26T11:24:19.010748634+02:00
+hash: 593bd6b23f33a05235c1d6e227f8fb39b23a4153bf0d9e69b958c0810a698565
+updated: 2017-06-12T13:50:33.231012456+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
-- name: github.com/araddon/gou
-  version: 6d4a4b331485b29d768c61c48293326e16179f87
 - name: github.com/artyom/fb303
   version: fa4a241cefb113c4981dbac51a8cfcb047efa079
 - name: github.com/artyom/scribe
@@ -42,8 +40,6 @@ imports:
   - service/kinesis
   - service/s3
   - service/sts
-- name: github.com/bitly/go-hostpool
-  version: c32c3660406ef1ea14936cc9282e174fe8508c42
 - name: github.com/bsm/sarama-cluster
   version: e92a2f7a82a6f2bbdd2f7305b8a833fa22eb2138
 - name: github.com/coreos/go-systemd
@@ -88,12 +84,6 @@ imports:
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
 - name: github.com/klauspost/crc32
   version: 1bab8b35b6bb565f92cbc97939610af9369f942a
-- name: github.com/lytics/logrus
-  version: 8d125bf3956de0f953620df54a1b95a52b55353b
-- name: github.com/mattbaird/elastigo
-  version: 2fe47fd29e4b70353f852ede77a196830d2924ec
-  subpackages:
-  - lib
 - name: github.com/miekg/pcap
   version: 51d9d986bf8d5f524d65bf31c353e10271d54aaa
 - name: github.com/mmcloughlin/geohash

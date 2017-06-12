@@ -15,14 +15,8 @@
 package producer
 
 import (
-	"bytes"
-	elastigo "github.com/mattbaird/elastigo/lib"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
-	"github.com/trivago/tgo/tcontainer"
-	"strconv"
 	"sync"
-	"time"
 )
 
 // ElasticSearch producer plugin
@@ -107,16 +101,6 @@ import (
 // triggered. By default this is set to 5.
 type ElasticSearch struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
-	conn                  *elastigo.Conn
-	indexer               *elastigo.BulkIndexer
-	index                 map[core.MessageStreamID]string
-	msgType               map[core.MessageStreamID]string
-	msgTTL                string
-	dayBasedIndex         bool
-	indexSettings         map[string]*elasticSettings
-	indexSettingsSent     map[string]string
-	indexSettingsGuard    *sync.Mutex
-	lastMetricUpdate      time.Time
 }
 
 type elasticType struct {
@@ -157,158 +141,11 @@ func makeElasticMapping() elasticMapping {
 // Configure initializes this producer with values from a plugin config.
 func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) error {
 	prod.BufferedProducer.Configure(conf)
-	prod.SetStopCallback(prod.close)
-
-	defaultServer := []string{"localhost"}
-	numConnections := conf.GetInt("NumConnections", 6)
-	retrySec := conf.GetInt("RetrySec", 5)
-
-	prod.conn = elastigo.NewConn()
-	prod.conn.Hosts = conf.GetStringArray("Servers", defaultServer)
-	prod.conn.Domain = conf.GetString("Domain", prod.conn.Hosts[0])
-	prod.conn.ClusterDomains = prod.conn.Hosts
-	prod.conn.Port = strconv.Itoa(conf.GetInt("Port", 9200))
-	prod.conn.Username = conf.GetString("User", "")
-	prod.conn.Password = conf.GetString("Password", "")
-
-	prod.indexer = prod.conn.NewBulkIndexerErrors(numConnections, retrySec)
-	prod.indexer.BufferDelayMax = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
-	prod.indexer.BulkMaxBuffer = conf.GetInt("Batch/SizeByte", 32768)
-	prod.indexer.BulkMaxDocs = conf.GetInt("Batch/MaxCount", 128)
-
-	prod.indexer.Sender = func(buf *bytes.Buffer) error {
-		_, err := prod.conn.DoCommand("POST", "/_bulk", nil, buf)
-		return err
-	}
-
-	prod.index = conf.GetStreamMap("Indexes", "")
-	prod.msgType = conf.GetStreamMap("Types", "log")
-	prod.msgTTL = conf.GetString("TTL", "")
-	prod.dayBasedIndex = conf.GetBool("DayBasedIndex", false)
-
-	for _, index := range prod.index {
-		metricName := elasticMetricMessages + index
-		tgo.Metric.New(metricName)
-		tgo.Metric.NewRate(metricName, elasticMetricMessagesSec+index, time.Second, 10, 3, true)
-	}
-
-	prod.indexSettingsGuard = new(sync.Mutex)
-	prod.indexSettingsSent = make(map[string]string)
-	prod.indexSettings = make(map[string]*elasticSettings)
-
-	indexTypes := conf.GetMap("DataTypes", tcontainer.NewMarshalMap())
-	for index := range indexTypes {
-		mappings := makeElasticMapping()
-		types, _ := indexTypes.MarshalMap(index)
-		for name := range types {
-			typeName, _ := types.String(name)
-			mappings.Properties[name] = elasticType{TypeName: typeName}
-		}
-
-		indexType := prod.getIndexType(core.StreamRegistry.GetStreamID(index))
-		settings := makeElasticSettings()
-		settings.Mappings[indexType] = mappings
-		prod.indexSettings[index] = settings
-	}
-
-	indexSettings := conf.GetMap("Settings", tcontainer.NewMarshalMap())
-	if indexSettings != nil {
-		for index := range indexSettings {
-			mappings, exist := prod.indexSettings[index]
-			if !exist {
-				mappings = makeElasticSettings()
-				prod.indexSettings[index] = mappings
-			}
-			mappings.Settings, _ = indexSettings.MarshalMap(index)
-		}
-	}
 
 	return conf.Errors.OrNil()
 }
 
-func (prod *ElasticSearch) isClusterUp() bool {
-	cluster, err := prod.conn.Health()
-	if err != nil {
-		return false
-	}
-
-	return !cluster.TimedOut && cluster.Status != "red"
-}
-
-func (prod *ElasticSearch) createIndex(index string, sendIndex string, indexType string) {
-	prod.indexSettingsGuard.Lock()
-	defer prod.indexSettingsGuard.Unlock()
-	if value, isSet := prod.indexSettingsSent[index]; isSet && value == sendIndex {
-		return
-	}
-	if settings, exist := prod.indexSettings[index]; exist {
-		if onServer, _ := prod.conn.ExistsIndex(sendIndex, indexType, make(map[string]interface{})); !onServer {
-			if _, err := prod.conn.CreateIndexWithSettings(sendIndex, *settings); err != nil {
-				prod.Log.Error.Print("Index creation error: ", err.Error())
-			}
-		}
-	}
-	prod.indexSettingsSent[index] = sendIndex
-}
-
-func (prod *ElasticSearch) getIndexType(streamID core.MessageStreamID) string {
-	indexType, typeMapped := prod.msgType[streamID]
-	if typeMapped {
-		return indexType
-	}
-	indexType, typeMapped = prod.msgType[core.WildcardStreamID]
-	if typeMapped {
-		return indexType
-	}
-	return core.StreamRegistry.GetStreamName(streamID)
-}
-
-func (prod *ElasticSearch) sendMessage(msg *core.Message) {
-	originalMsg := msg.Clone()
-
-	index, indexMapped := prod.index[msg.GetStreamID()]
-	if !indexMapped {
-		index, indexMapped = prod.index[core.WildcardStreamID]
-		if !indexMapped {
-			index = core.StreamRegistry.GetStreamName(msg.GetStreamID())
-		}
-		metricName := elasticMetricMessages + index
-		tgo.Metric.New(metricName)
-		tgo.Metric.NewRate(metricName, elasticMetricMessagesSec+index, time.Second, 10, 3, true)
-		prod.index[msg.GetStreamID()] = index
-	}
-
-	indexType := prod.getIndexType(msg.GetStreamID())
-
-	sendIndex := index
-	if prod.dayBasedIndex {
-		sendIndex += msg.GetCreationTime().Format("_2006-01-02")
-	}
-	prod.createIndex(index, sendIndex, indexType)
-
-	err := prod.indexer.Index(index, indexType, "", "", prod.msgTTL, nil, msg.String())
-	if err != nil {
-		prod.Log.Error.Print("Index error - ", err)
-		if !prod.isClusterUp() {
-			// TBD: health check? (prev. fuse breaker)
-		}
-		prod.TryFallback(originalMsg)
-	} else {
-		tgo.Metric.Inc(elasticMetricMessages + index)
-		// TBD: health check? (prev. fuse breaker)
-	}
-}
-
-func (prod *ElasticSearch) close() {
-	defer prod.WorkerDone()
-	prod.DefaultClose()
-	prod.indexer.Flush()
-	prod.indexer.Stop()
-}
-
 // Produce starts a bluk indexer
 func (prod *ElasticSearch) Produce(workers *sync.WaitGroup) {
-	prod.indexer.Start()
-	prod.AddMainWorker(workers)
-	prod.MessageControlLoop(prod.sendMessage)
+
 }
