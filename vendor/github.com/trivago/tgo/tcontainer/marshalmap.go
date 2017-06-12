@@ -16,6 +16,7 @@ package tcontainer
 
 import (
 	"fmt"
+	"github.com/trivago/tgo/treflect"
 	"reflect"
 	"strconv"
 	"strings"
@@ -113,30 +114,11 @@ func (mmap MarshalMap) Uint(key string) (uint64, error) {
 		return 0, fmt.Errorf(`"%s" is not set`, key)
 	}
 
-	switch val.(type) {
-	case uint:
-		intVal := val.(uint)
-		return uint64(intVal), nil
-
-	case uint8:
-		intVal := val.(uint8)
-		return uint64(intVal), nil
-
-	case uint16:
-		intVal := val.(uint16)
-		return uint64(intVal), nil
-
-	case uint32:
-		intVal := val.(uint32)
-		return uint64(intVal), nil
-
-	case uint64:
-		intVal := val.(uint64)
+	if intVal, isNumber := treflect.Uint64(val); isNumber {
 		return intVal, nil
-
-	default:
-		return 0, fmt.Errorf(`"%s" is expected to be an unsigned integer`, key)
 	}
+
+	return 0, fmt.Errorf(`"%s" is expected to be an unsigned number type`, key)
 }
 
 // Int returns a value at key that is expected to be an int64 or compatible
@@ -147,30 +129,11 @@ func (mmap MarshalMap) Int(key string) (int64, error) {
 		return 0, fmt.Errorf(`"%s" is not set`, key)
 	}
 
-	switch val.(type) {
-	case int:
-		intVal := val.(int)
-		return int64(intVal), nil
-
-	case int8:
-		intVal := val.(int8)
-		return int64(intVal), nil
-
-	case int16:
-		intVal := val.(int16)
-		return int64(intVal), nil
-
-	case int32:
-		intVal := val.(int32)
-		return int64(intVal), nil
-
-	case int64:
-		intVal := val.(int64)
+	if intVal, isNumber := treflect.Int64(val); isNumber {
 		return intVal, nil
-
-	default:
-		return 0, fmt.Errorf(`"%s" is expected to be an integer`, key)
 	}
+
+	return 0, fmt.Errorf(`"%s" is expected to be a signed number type`, key)
 }
 
 // Float returns a value at key that is expected to be a float64 or compatible
@@ -181,18 +144,11 @@ func (mmap MarshalMap) Float(key string) (float64, error) {
 		return 0, fmt.Errorf(`"%s" is not set`, key)
 	}
 
-	switch val.(type) {
-	case float32:
-		floatVal := val.(float32)
-		return float64(floatVal), nil
-
-	case float64:
-		floatVal := val.(float64)
+	if floatVal, isNumber := treflect.Float64(val); isNumber {
 		return floatVal, nil
-
-	default:
-		return 0, fmt.Errorf(`"%s" is expected to be a float64`, key)
 	}
+
+	return 0, fmt.Errorf(`"%s" is expected to be a signed number type`, key)
 }
 
 // Duration returns a value at key that is expected to be a string

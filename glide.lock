@@ -1,5 +1,5 @@
 hash: 62f85e10fc530e080fdcd8dabddff12f8ae05fb8d1ec1745c48cfbd0b50e8c4f
-updated: 2017-06-07T12:00:31.864204437+02:00
+updated: 2017-06-08T14:22:50.548152936+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -59,7 +59,7 @@ imports:
   subpackages:
   - spew
 - name: github.com/eapache/go-resiliency
-  version: b86b1ec0dd4209a588dc1285cdd471e73525c0b3
+  version: b1fe83b5b03f624450823b751b662259ffc6af70
   subpackages:
   - breaker
 - name: github.com/eapache/go-xerial-snappy
@@ -117,7 +117,7 @@ imports:
 - name: github.com/Shopify/sarama
   version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
 - name: github.com/trivago/tgo
-  version: bd2d63b499c21a5058d2533571a1099971b14203
+  version: 34144b0e5cec794c26a1c652129146a96a3ea9c2
   subpackages:
   - tcontainer
   - terrors
@@ -138,7 +138,7 @@ imports:
   - bcrypt
   - blowfish
 - name: golang.org/x/sys
-  version: b90f89a1e7a9c1f6b918820b3daa7f08488c8594
+  version: b9e8d468b01f806830d387bd9a1fe96dc68129d1
   subpackages:
   - unix
   - windows

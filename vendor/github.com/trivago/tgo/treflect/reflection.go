@@ -64,6 +64,120 @@ func GetMissingMethods(objType reflect.Type, ifaceType reflect.Type) (float32, [
 	return float32(methodCount-len(missing)) / float32(methodCount), missing
 }
 
+// Int64 converts any signed number type to an int64.
+// The second parameter is returned as false if a non-number type was given.
+func Int64(v interface{}) (int64, bool) {
+
+	switch reflect.TypeOf(v).Kind() {
+	case reflect.Int:
+		return int64(v.(int)), true
+	case reflect.Int8:
+		return int64(v.(int8)), true
+	case reflect.Int16:
+		return int64(v.(int16)), true
+	case reflect.Int32:
+		return int64(v.(int32)), true
+	case reflect.Int64:
+		return v.(int64), true
+	case reflect.Float32:
+		return int64(v.(float32)), true
+	case reflect.Float64:
+		return int64(v.(float64)), true
+	}
+
+	fmt.Printf("%t\n%#v\n%#v\n", v, v, reflect.TypeOf(v).Kind())
+
+	return 0, false
+}
+
+// Uint64 converts any unsigned number type to an uint64.
+// The second parameter is returned as false if a non-number type was given.
+func Uint64(v interface{}) (uint64, bool) {
+
+	switch reflect.TypeOf(v).Kind() {
+	case reflect.Uint:
+		return uint64(v.(uint)), true
+	case reflect.Uint8:
+		return uint64(v.(uint8)), true
+	case reflect.Uint16:
+		return uint64(v.(uint16)), true
+	case reflect.Uint32:
+		return uint64(v.(uint32)), true
+	case reflect.Uint64:
+		return v.(uint64), true
+	}
+
+	return 0, false
+}
+
+// Float32 converts any number type to an float32.
+// The second parameter is returned as false if a non-number type was given.
+func Float32(v interface{}) (float32, bool) {
+
+	switch reflect.TypeOf(v).Kind() {
+	case reflect.Int:
+		return float32(v.(int)), true
+	case reflect.Uint:
+		return float32(v.(uint)), true
+	case reflect.Int8:
+		return float32(v.(int8)), true
+	case reflect.Uint8:
+		return float32(v.(uint8)), true
+	case reflect.Int16:
+		return float32(v.(int16)), true
+	case reflect.Uint16:
+		return float32(v.(uint16)), true
+	case reflect.Int32:
+		return float32(v.(int32)), true
+	case reflect.Uint32:
+		return float32(v.(uint32)), true
+	case reflect.Int64:
+		return float32(v.(int64)), true
+	case reflect.Uint64:
+		return float32(v.(uint64)), true
+	case reflect.Float32:
+		return v.(float32), true
+	case reflect.Float64:
+		return float32(v.(float64)), true
+	}
+
+	return 0, false
+}
+
+// Float64 converts any number type to an float64.
+// The second parameter is returned as false if a non-number type was given.
+func Float64(v interface{}) (float64, bool) {
+
+	switch reflect.TypeOf(v).Kind() {
+	case reflect.Int:
+		return float64(v.(int)), true
+	case reflect.Uint:
+		return float64(v.(uint)), true
+	case reflect.Int8:
+		return float64(v.(int8)), true
+	case reflect.Uint8:
+		return float64(v.(uint8)), true
+	case reflect.Int16:
+		return float64(v.(int16)), true
+	case reflect.Uint16:
+		return float64(v.(uint16)), true
+	case reflect.Int32:
+		return float64(v.(int32)), true
+	case reflect.Uint32:
+		return float64(v.(uint32)), true
+	case reflect.Int64:
+		return float64(v.(int64)), true
+	case reflect.Uint64:
+		return float64(v.(uint64)), true
+	case reflect.Float32:
+		return float64(v.(float32)), true
+	case reflect.Float64:
+		return v.(float64), true
+	}
+
+	return 0, false
+}
+
 // SetMemberByName sets member name of the given pointer-to-struct to the data
 // passed to this function. The member may be private, too.
 func SetMemberByName(ptrToStruct interface{}, name string, data interface{}) {

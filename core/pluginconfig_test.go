@@ -44,7 +44,7 @@ func TestPluginConfigValidate(t *testing.T) {
 	// access second one
 	iValue, err := mockPluginCfgReader.GetInt("number", 0)
 	expect.NoError(err)
-	expect.Equal(iValue, 1)
+	expect.Equal(iValue, int64(1))
 	expect.True(mockPluginCfg.Validate())
 }
 
@@ -61,7 +61,7 @@ func TestPluginConfigRead(t *testing.T) {
 
 	// create a mock MarshalMap
 	testMarshalMap := tcontainer.NewMarshalMap()
-	testMarshalMap["Instances"] = 0
+	testMarshalMap["Instances"] = uint(0)
 
 	err := mockPluginCfg.Read(testMarshalMap)
 	expect.NoError(err)
@@ -73,7 +73,7 @@ func TestPluginConfigRead(t *testing.T) {
 	mockPluginCfg = NewPluginConfig("", "mockPlugin")
 	mockPluginCfgReader = NewPluginConfigReaderWithError(&mockPluginCfg)
 	testMarshalMap["Enable"] = true
-	testMarshalMap["Instances"] = 2
+	testMarshalMap["Instances"] = uint(2)
 	testMarshalMap["Host"] = "someHost"
 	testMarshalMap["Database"] = "someDatabase"
 
@@ -81,7 +81,7 @@ func TestPluginConfigRead(t *testing.T) {
 
 	// Check for the bundled config options
 	expect.True(mockPluginCfg.Enable)
-	expect.Equal(mockPluginCfg.Instances, 2)
+	expect.Equal(uint64(2), mockPluginCfg.Instances)
 
 	// check for the miscelleneous settings key added
 	host, err := mockPluginCfgReader.GetString("host", "")
@@ -343,12 +343,12 @@ func TestPluginConfigGetInt(t *testing.T) {
 
 	value, err := mockPluginCfgReader.GetInt("intkey", 0)
 	expect.NoError(err)
-	expect.Equal(value, 0)
+	expect.Equal(int64(0), value)
 
 	mockPluginCfg.Override("intkey", 2)
 	value, err = mockPluginCfgReader.GetInt("intkey", 0)
 	expect.NoError(err)
-	expect.Equal(value, 2)
+	expect.Equal(int64(2), value)
 }
 
 // Function gets an bool value for a key or default if non-existent

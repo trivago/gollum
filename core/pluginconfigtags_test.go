@@ -24,8 +24,8 @@ import (
 
 type testPluginAutoConfig struct {
 	BoolValue      bool              `config:"boolValue"`
-	IntValue       int               `config:"intValue"`
-	UintValue      uint              `config:"uintValue"`
+	IntValue       int64             `config:"intValue"`
+	UintValue      uint64            `config:"uintValue"`
 	DurationValue  time.Duration     `config:"durationValue" metric:"sec"`
 	MbValue        int64             `config:"mbValue" metric:"kb"`
 	StringValue    string            `config:"stringValue"`
