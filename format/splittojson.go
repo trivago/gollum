@@ -51,20 +51,13 @@ import (
 // ApplyTo defines the formatter content to use
 type SplitToJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	token                []byte
-	keys                 []string
-	keepJSON             bool
+	token                []byte   `config:"SplitBy" default:"|"`
+	keys                 []string `config:"Keys"`
+	keepJSON             bool     `config:"KeepJSON" default:"true"`
 }
 
 func init() {
 	core.TypeRegistry.Register(SplitToJSON{})
-}
-
-// Configure initializes this formatter with values from a plugin config.
-func (format *SplitToJSON) Configure(conf core.PluginConfigReader) {
-	format.keepJSON = conf.GetBool("KeepJSON", true)
-	format.token = []byte(conf.GetString("SplitBy", "|"))
-	format.keys = conf.GetStringArray("Keys", []string{})
 }
 
 // ApplyFormatter update message payload

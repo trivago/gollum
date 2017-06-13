@@ -78,9 +78,9 @@ type Proxy struct {
 	connection            net.Conn
 	protocol              string
 	address               string
-	bufferSizeKB          int
+	bufferSizeKB          int           `config:"ConnectionBufferSizeKB" default:"1024" metric:"mb"`
+	timeout               time.Duration `config:"TimeoutSec" default:"1" metric:"sec"`
 	reader                *tio.BufferedReader
-	timeout               time.Duration
 }
 
 func init() {
@@ -91,13 +91,10 @@ func init() {
 func (prod *Proxy) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
-	prod.bufferSizeKB = int(conf.GetInt("ConnectionBufferSizeKB", 1<<10)) // 1 MB
 	prod.protocol, prod.address = tnet.ParseAddress(conf.GetString("Address", ":5880"), "tcp")
 	if prod.protocol == "udp" {
 		conf.Errors.Pushf("Proxy does not support UDP")
 	}
-
-	prod.timeout = time.Duration(conf.GetInt("TimeoutSec", 1)) * time.Second
 
 	delimiter := tstrings.Unescape(conf.GetString("Delimiter", "\n"))
 	offset := int(conf.GetInt("Offset", 0))

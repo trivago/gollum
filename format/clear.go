@@ -32,10 +32,6 @@ func init() {
 	core.TypeRegistry.Register(Clear{})
 }
 
-// Configure initializes this formatter with values from a plugin config.
-func (format *Clear) Configure(conf core.PluginConfigReader) {
-}
-
 // ApplyFormatter update message payload
 func (format *Clear) ApplyFormatter(msg *core.Message) error {
 	format.SetAppliedContent(msg, []byte{})

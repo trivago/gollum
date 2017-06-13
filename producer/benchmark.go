@@ -29,10 +29,6 @@ func init() {
 	core.TypeRegistry.Register(Benchmark{})
 }
 
-// Configure initializes this producer with values from a plugin config.
-func (prod *Benchmark) Configure(conf core.PluginConfigReader) {
-}
-
 func (prod *Benchmark) null(msg *core.Message) {
 }
 

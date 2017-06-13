@@ -92,7 +92,7 @@ import (
 type ProcessJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	directives           []transformDirective
-	trimValues           bool
+	trimValues           bool `config:"TrimValues" default:"true"`
 	db                   *geoip2.Reader
 }
 
@@ -110,7 +110,6 @@ func init() {
 func (format *ProcessJSON) Configure(conf core.PluginConfigReader) {
 	directives := conf.GetStringArray("Directives", []string{})
 	format.directives = make([]transformDirective, 0, len(directives))
-	format.trimValues = conf.GetBool("TrimValues", true)
 	geoIPFile := conf.GetString("GeoIPFile", "")
 
 	if geoIPFile != "" {

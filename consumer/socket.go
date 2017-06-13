@@ -21,7 +21,6 @@ import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tnet"
-	"github.com/trivago/tgo/tstrings"
 	"io"
 	"net"
 	"os"
@@ -107,15 +106,15 @@ type Socket struct {
 	clients             *list.List
 	protocol            string
 	address             string
-	delimiter           string
-	acknowledge         string
-	reconnectTime       time.Duration
-	ackTimeout          time.Duration
-	readTimeout         time.Duration
+	acknowledge         string        `config:"Acknowledge"`
+	delimiter           string        `config:"Delimiter" default:"\n"`
+	reconnectTime       time.Duration `config:"ReconnectAfterSec" default:"2" metric:"sec"`
+	ackTimeout          time.Duration `config:"AckTimoutSec" default:"2" metric:"sec"`
+	readTimeout         time.Duration `config:"ReadTimoutSec" default:"5" metric:"sec"`
+	fileFlags           os.FileMode   `config:"Permissions" default:"0770"`
+	clearSocket         bool          `config:"RemoveOldSocket" default:"true"`
+	offset              int           `config:"Offset"`
 	flags               tio.BufferedReaderFlags
-	fileFlags           os.FileMode
-	offset              int
-	clearSocket         bool
 }
 
 func init() {
@@ -130,12 +129,7 @@ func (cons *Socket) Configure(conf core.PluginConfigReader) {
 
 	cons.clients = list.New()
 	cons.clientLock = new(sync.Mutex)
-	cons.acknowledge = tstrings.Unescape(conf.GetString("Acknowledge", ""))
 	cons.protocol, cons.address = tnet.ParseAddress(conf.GetString("Address", ":5880"), "tcp")
-	cons.reconnectTime = time.Duration(conf.GetInt("ReconnectAfterSec", 2)) * time.Second
-	cons.ackTimeout = time.Duration(conf.GetInt("AckTimoutSec", 2)) * time.Second
-	cons.readTimeout = time.Duration(conf.GetInt("ReadTimoutSec", 5)) * time.Second
-	cons.clearSocket = conf.GetBool("RemoveOldSocket", true)
 
 	if cons.protocol != "unix" {
 		if cons.acknowledge != "" {
@@ -145,8 +139,6 @@ func (cons *Socket) Configure(conf core.PluginConfigReader) {
 		}
 	}
 
-	cons.delimiter = tstrings.Unescape(conf.GetString("Delimiter", "\n"))
-	cons.offset = int(conf.GetInt("Offset", 0))
 	cons.flags = 0
 
 	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))

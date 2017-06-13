@@ -45,18 +45,12 @@ import (
 // ApplyTo defines the formatter content to use
 type StreamRoute struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	streamModulators     core.ModulatorArray
-	delimiter            []byte
+	streamModulators     core.ModulatorArray `config:"StreamModulator"`
+	delimiter            []byte              `config:"Delimiter" default:":"`
 }
 
 func init() {
 	core.TypeRegistry.Register(StreamRoute{})
-}
-
-// Configure initializes this formatter with values from a plugin config.
-func (format *StreamRoute) Configure(conf core.PluginConfigReader) {
-	format.delimiter = []byte(conf.GetString("Delimiter", ":"))
-	format.streamModulators = conf.GetModulatorArray("StreamModulator", format.Log, core.ModulatorArray{})
 }
 
 // ApplyFormatter update message payload

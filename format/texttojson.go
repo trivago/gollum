@@ -111,9 +111,9 @@ type TextToJSON struct {
 	state                jsonReaderState
 	stack                []jsonReaderState
 	parseLock            *sync.Mutex
-	initState            string
-	timeRead             string
-	timeWrite            string
+	initState            string `config:"StartState"`
+	timeRead             string `config:"TimestampRead"`
+	timeWrite            string `config:"TimestampWrite" default:"2006-01-02 15:04:05 MST"`
 	timeParse            func(string, string) (time.Time, error)
 }
 
@@ -150,9 +150,6 @@ func parseUnix(layout, value string) (time.Time, error) {
 func (format *TextToJSON) Configure(conf core.PluginConfigReader) {
 	format.parser = tstrings.NewTransitionParser()
 	format.state = jsonReadObject
-	format.initState = conf.GetString("StartState", "")
-	format.timeRead = conf.GetString("TimestampRead", "")
-	format.timeWrite = conf.GetString("TimestampWrite", "2006-01-02 15:04:05 MST")
 	format.timeParse = time.Parse
 	format.parseLock = new(sync.Mutex)
 

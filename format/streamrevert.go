@@ -40,10 +40,6 @@ func init() {
 	core.TypeRegistry.Register(StreamRevert{})
 }
 
-// Configure initializes this formatter with values from a plugin config.
-func (format *StreamRevert) Configure(conf core.PluginConfigReader) {
-}
-
 // ApplyFormatter update message payload
 func (format *StreamRevert) ApplyFormatter(msg *core.Message) error {
 	msg.SetStreamID(msg.GetPrevStreamID())

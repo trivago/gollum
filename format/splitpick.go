@@ -32,10 +32,6 @@ func init() {
 	core.TypeRegistry.Register(SplitPick{})
 }
 
-// Configure initializes the SplitPick formatter plugin
-func (format *SplitPick) Configure(conf core.PluginConfigReader) {
-}
-
 // ApplyFormatter update message payload
 func (format *SplitPick) ApplyFormatter(msg *core.Message) error {
 	parts := bytes.Split(format.GetAppliedContent(msg), format.delimiter)

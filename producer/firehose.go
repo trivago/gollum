@@ -96,15 +96,15 @@ type Firehose struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 	client                *firehose.Firehose
 	config                *aws.Config
-	streamMap             map[core.MessageStreamID]string
 	batch                 core.MessageBatch
-	recordMaxMessages     int
-	delimiter             []byte
-	flushFrequency        time.Duration
+	streamMap             map[core.MessageStreamID]string `config:"StreamMapping" default:"default"`
+	recordMaxMessages     int                             `config:"RecordMaxMessages" default:"1"`
+	delimiter             []byte                          `config:"RecordMessageDelimiter" default:"\n"`
+	flushFrequency        time.Duration                   `config:"BatchTimeoutSec" default:"3" metric:"sec"`
+	sendTimeLimit         time.Duration                   `config:"SendTimeframeMs" default:"1000" metric:"ms"`
 	lastSendTime          time.Time
-	sendTimeLimit         time.Duration
-	counters              map[string]*int64
 	lastMetricUpdate      time.Time
+	counters              map[string]*int64
 }
 
 const (
@@ -126,12 +126,7 @@ func init() {
 func (prod *Firehose) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
-	prod.streamMap = conf.GetStreamMap("StreamMapping", "default")
 	prod.batch = core.NewMessageBatch(int(conf.GetInt("BatchMaxMessages", 500)))
-	prod.recordMaxMessages = int(conf.GetInt("RecordMaxMessages", 1))
-	prod.delimiter = []byte(conf.GetString("RecordMessageDelimiter", "\n"))
-	prod.flushFrequency = time.Duration(conf.GetInt("BatchTimeoutSec", 3)) * time.Second
-	prod.sendTimeLimit = time.Duration(conf.GetInt("SendTimeframeMs", 1000)) * time.Millisecond
 	prod.lastSendTime = time.Now()
 	prod.counters = make(map[string]*int64)
 	prod.lastMetricUpdate = time.Now()

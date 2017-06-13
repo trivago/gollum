@@ -16,7 +16,6 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo/tstrings"
 )
 
 // Envelope formatter plugin
@@ -42,18 +41,12 @@ import (
 // message. By default this is set to "format.Forward"
 type Envelope struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	postfix              string
-	prefix               string
+	postfix              string `config:"Prefix"`
+	prefix               string `config:"Postfix" default:"\n"`
 }
 
 func init() {
 	core.TypeRegistry.Register(Envelope{})
-}
-
-// Configure initializes this formatter with values from a plugin config.
-func (format *Envelope) Configure(conf core.PluginConfigReader) {
-	format.prefix = tstrings.Unescape(conf.GetString("Prefix", ""))
-	format.postfix = tstrings.Unescape(conf.GetString("Postfix", "\n"))
 }
 
 // ApplyFormatter update message payload

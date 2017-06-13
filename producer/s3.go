@@ -139,28 +139,28 @@ type S3 struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 	client                *s3.S3
 	config                *aws.Config
-	storageClass          string
 	streamMap             map[core.MessageStreamID]string
 	pathFormat            core.Modulator
 	batch                 core.MessageBatch
-	objectMaxMessages     int
-	delimiter             []byte
-	flushFrequency        time.Duration
-	timeWrite             string
-	lastSendTime          time.Time
-	sendTimeLimit         time.Duration
+	storageClass          string        `config:"StorageClass" default:"STANDARD"`
+	objectMaxMessages     int           `config:"ObjectMaxMessages" default:"500"`
+	delimiter             []byte        `config:"ObjectMessageDelimiter" default:"\n"`
+	timeWrite             string        `config:"TimestampWrite" default:"2006-01-02T15:04:05"`
+	compress              bool          `config:"Compress"`
+	flushFrequency        time.Duration `config:"BatchTimeoutSec" default:"3" metric:"sec"`
+	sendTimeLimit         time.Duration `config:"SendTimeframeMs" default:"1000" metric:"ms"`
+	fileMaxAge            time.Duration `config:"FileMaxAgeSec" default:"360" metric:"sec"`
+	fileMaxSize           int           `config:"FileMaxMB" default:"1024" metric:"mb"`
+	localPath             string        `config:"LocalPath"`
+	uploadOnShutdown      bool          `config:"UploadOnShutdown"`
 	counters              map[string]*int64
+	lastSendTime          time.Time
 	lastMetricUpdate      time.Time
 	closing               bool
-	compress              bool
-	fileMaxAge            time.Duration
-	fileMaxSize           int
-	localPath             string
 	nextFile              int64
 	objects               map[string]*objectData
 	objectsLock           *sync.Mutex
 	stateFile             string
-	uploadOnShutdown      bool
 	useFiles              bool
 }
 
@@ -188,24 +188,15 @@ func init() {
 func (prod *S3) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
-	prod.storageClass = conf.GetString("StorageClass", "STANDARD")
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "default")
 	prod.batch = core.NewMessageBatch(int(conf.GetInt("BatchMaxMessages", 5000)))
-	prod.objectMaxMessages = int(conf.GetInt("ObjectMaxMessages", 5000))
-	prod.delimiter = []byte(conf.GetString("ObjectMessageDelimiter", "\n"))
-	prod.flushFrequency = time.Duration(conf.GetInt("BatchTimeoutSec", 30)) * time.Second
-	prod.sendTimeLimit = time.Duration(conf.GetInt("SendTimeframeMs", 10000)) * time.Millisecond
-	prod.timeWrite = conf.GetString("TimestampWrite", "2006-01-02T15:04:05")
+
 	prod.lastSendTime = time.Now()
 	prod.counters = make(map[string]*int64)
 	prod.lastMetricUpdate = time.Now()
 	prod.closing = false
-	prod.compress = conf.GetBool("Compress", false)
 	prod.objects = make(map[string]*objectData)
 	prod.objectsLock = new(sync.Mutex)
-	prod.uploadOnShutdown = conf.GetBool("UploadOnShutdown", false)
-	prod.fileMaxSize = int(conf.GetInt("FileMaxMB", 1000) * 1000000)
-	prod.fileMaxAge = time.Duration(conf.GetInt("FileMaxAgeSec", 3600)) * time.Second
 
 	for _, s3Path := range prod.streamMap {
 		metricName := s3MetricMessages + s3Path
@@ -214,7 +205,6 @@ func (prod *S3) Configure(conf core.PluginConfigReader) {
 		prod.counters[s3Path] = new(int64)
 	}
 
-	prod.localPath = conf.GetString("LocalPath", "")
 	prod.useFiles = prod.localPath != ""
 	if prod.useFiles {
 		if err := os.MkdirAll(prod.localPath, 0700); err != nil {

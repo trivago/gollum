@@ -67,8 +67,8 @@ import (
 type ProcessTSV struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	directives           []tsvDirective
-	delimiter            string
-	quotedValues         bool
+	delimiter            string `config:"Delimiter" default:"\t"`
+	quotedValues         bool   `config:"QuotedValues"`
 }
 
 type tsvDirective struct {
@@ -91,9 +91,6 @@ func (format *ProcessTSV) Configure(conf core.PluginConfigReader) {
 	directives := conf.GetStringArray("Directives", []string{})
 
 	format.directives = make([]tsvDirective, 0, len(directives))
-	format.delimiter = conf.GetString("Delimiter", "\t")
-	format.quotedValues = conf.GetBool("QuotedValues", false)
-
 	for _, directive := range directives {
 		directive := strings.Replace(directive, "\\:", "\r", -1)
 		parts := strings.Split(directive, ":")

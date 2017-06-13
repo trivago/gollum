@@ -108,15 +108,15 @@ type Kinesis struct {
 	client              *kinesis.Kinesis
 	config              *aws.Config
 	offsets             map[string]string
-	stream              string
 	offsetType          string
-	offsetFile          string
 	defaultOffset       string
-	recordsPerQuery     int64
-	delimiter           []byte
-	sleepTime           time.Duration
-	retryTime           time.Duration
-	shardTime           time.Duration
+	stream              string        `config:"KinesisStream" default:"default"`
+	offsetFile          string        `config:"OffsetFile"`
+	recordsPerQuery     int64         `config:"RecordsPerQuery" default:"1000"`
+	delimiter           []byte        `config:"RecordMessageDelimiter"`
+	sleepTime           time.Duration `config:"QuerySleepTimeMs" default:"1000" metric:"ms"`
+	retryTime           time.Duration `config:"RetrySleepTimeSec" default:"4" metric:"sec"`
+	shardTime           time.Duration `config:"CheckNewShardsSec" default:"0" metric:"sec"`
 	running             bool
 }
 
@@ -127,14 +127,6 @@ func init() {
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Kinesis) Configure(conf core.PluginConfigReader) {
 	cons.offsets = make(map[string]string)
-	cons.stream = conf.GetString("KinesisStream", "default")
-	cons.offsetFile = conf.GetString("OffsetFile", "")
-	cons.recordsPerQuery = int64(conf.GetInt("RecordsPerQuery", 1000))
-	cons.delimiter = []byte(conf.GetString("RecordMessageDelimiter", ""))
-	cons.sleepTime = time.Duration(conf.GetInt("QuerySleepTimeMs", 1000)) * time.Millisecond
-	cons.retryTime = time.Duration(conf.GetInt("RetrySleepTimeSec", 4)) * time.Second
-	// 0 means don't
-	cons.shardTime = time.Duration(conf.GetInt("CheckNewShardsSec", 0)) * time.Second
 
 	// Config
 	cons.config = aws.NewConfig()

@@ -34,18 +34,12 @@ import (
 //
 type JSONToArray struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	separator            string
-	fields               []string
+	separator            string   `config:"Separator" default:","`
+	fields               []string `config:"Fields"`
 }
 
 func init() {
 	core.TypeRegistry.Register(JSONToArray{})
-}
-
-// Configure initializes this formatter with values from a plugin config.
-func (format *JSONToArray) Configure(conf core.PluginConfigReader) {
-	format.separator = conf.GetString("Separator", ",")
-	format.fields = conf.GetStringArray("Fields", []string{})
 }
 
 // ApplyFormatter update message payload

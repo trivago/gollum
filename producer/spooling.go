@@ -87,15 +87,15 @@ type Spooling struct {
 	outfile               map[core.MessageStreamID]*spoolFile
 	outfileGuard          *sync.RWMutex
 	rotation              fileRotateConfig
-	path                  string
-	maxFileSize           int64
-	respoolDuration       time.Duration
-	maxFileAge            time.Duration
-	batchTimeout          time.Duration
+	path                  string        `config:"Path" default:"/var/run/gollum/spooling"`
+	maxFileSize           int64         `config:"MaxFileSizeMB" default:"512" metric:"mb"`
+	batchMaxCount         int           `config:"Batch/MaxCount" default:"100"`
+	bufferSizeByte        int           `config:"BufferSizeByte" default:"8192"`
+	revertOnDrop          bool          `config:"RevertStreamOnDrop"`
+	respoolDuration       time.Duration `config:"RespoolDelaySec" default:"10" metric:"sec"`
+	maxFileAge            time.Duration `config:"MaxFileAgeMin" default:"1" metric:"min"`
+	batchTimeout          time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
 	readDelay             time.Duration
-	batchMaxCount         int
-	bufferSizeByte        int
-	revertOnDrop          bool
 	spoolCheck            *time.Timer
 	serialze              core.Formatter
 }
@@ -125,17 +125,8 @@ func (prod *Spooling) Configure(conf core.PluginConfigReader) {
 		conf.Errors.Pushf("Failed to instantiate format.Serialize")
 	}
 
-	prod.path = conf.GetString("Path", "/var/run/gollum/spooling")
-
-	prod.maxFileSize = int64(conf.GetInt("MaxFileSizeMB", 512)) << 20
-	prod.maxFileAge = time.Duration(conf.GetInt("MaxFileAgeMin", 1)) * time.Minute
-	prod.batchMaxCount = int(conf.GetInt("Batch/MaxCount", 100))
-	prod.batchTimeout = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
-	prod.outfile = make(map[core.MessageStreamID]*spoolFile)
-	prod.respoolDuration = time.Duration(conf.GetInt("RespoolDelaySec", 10)) * time.Second
-	prod.bufferSizeByte = int(conf.GetInt("BufferSizeByte", 8192))
 	prod.outfileGuard = new(sync.RWMutex)
-	prod.revertOnDrop = conf.GetBool("RevertStreamOnDrop", false)
+	prod.outfile = make(map[core.MessageStreamID]*spoolFile)
 
 	if maxMsgSec := time.Duration(conf.GetInt("MaxMessagesSec", 100)); maxMsgSec > 0 {
 		prod.readDelay = time.Second / maxMsgSec

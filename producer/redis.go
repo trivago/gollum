@@ -73,9 +73,9 @@ type Redis struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 	address               string
 	protocol              string
-	password              string
-	database              int
-	key                   string
+	password              string `config:"Password"`
+	database              int    `config:"Database" default:"0"`
+	key                   string `config:"Key" default:"default"`
 	client                *redis.Client
 	store                 func(msg *core.Message)
 	fieldModulators       core.ModulatorArray
@@ -95,11 +95,8 @@ func (prod *Redis) Configure(conf core.PluginConfigReader) {
 	prod.fieldModulators = conf.GetModulatorArray("FieldModulators", prod.Log, core.ModulatorArray{})
 	prod.keyModulators = conf.GetModulatorArray("FieldModulators", prod.Log, core.ModulatorArray{})
 
-	prod.password = conf.GetString("Password", "")
-	prod.database = int(conf.GetInt("Database", 0))
-	prod.key = conf.GetString("Key", "default")
-	prod.fieldFromParsed = conf.GetBool("FieldAfterFormat", false)
-	prod.keyFromParsed = conf.GetBool("KeyAfterFormat", false)
+	prod.fieldFromParsed = conf.GetBool("FieldAfterFormat", false) // TODO: deprecated
+	prod.keyFromParsed = conf.GetBool("KeyAfterFormat", false)     // TODO: deprecated
 	prod.protocol, prod.address = tnet.ParseAddress(conf.GetString("Address", ":6379"), "tcp")
 
 	switch strings.ToLower(conf.GetString("Storage", "hash")) {

@@ -41,10 +41,6 @@ func init() {
 	core.TypeRegistry.Register(CollectdToInflux09{})
 }
 
-// Configure initializes this formatter with values from a plugin config.
-func (format *CollectdToInflux09) Configure(conf core.PluginConfigReader) {
-}
-
 // ApplyFormatter update message payload
 func (format *CollectdToInflux09) ApplyFormatter(msg *core.Message) error {
 	contentData := format.GetAppliedContent(msg)

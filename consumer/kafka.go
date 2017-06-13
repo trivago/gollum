@@ -193,7 +193,6 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Kafka) Configure(conf core.PluginConfigReader) {
-	cons.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
 	cons.offsets = make(map[int32]*int64)
 	cons.MaxPartitionID = 0
 

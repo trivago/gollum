@@ -35,7 +35,7 @@ import (
 // ApplyTo defines the formatter content to use
 type Sequence struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	separator            []byte
+	separator            []byte `config:"Separator" default:":"`
 	seq                  *int64
 }
 
@@ -45,7 +45,6 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Sequence) Configure(conf core.PluginConfigReader) {
-	format.separator = []byte(conf.GetString("Separator", ":"))
 	format.seq = new(int64)
 }
 

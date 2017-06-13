@@ -41,10 +41,6 @@ func init() {
 	core.TypeRegistry.Register(Trim{})
 }
 
-// Configure initializes this formatter with values from a plugin config.
-func (format *Trim) Configure(conf core.PluginConfigReader) {
-}
-
 // ApplyFormatter update message payload
 func (format *Trim) ApplyFormatter(msg *core.Message) error {
 	content := format.GetAppliedContent(msg)

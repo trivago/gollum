@@ -15,6 +15,7 @@
 package core
 
 import (
+	"github.com/trivago/tgo/tstrings"
 	"reflect"
 	"strconv"
 	"strings"
@@ -103,7 +104,7 @@ func (tag PluginStructTag) GetString() string {
 	if !tagSet {
 		return ""
 	}
-	return tagValue
+	return tstrings.Unescape(tagValue)
 }
 
 // GetStream returns the default message stream value for an auto configured

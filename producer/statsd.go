@@ -61,8 +61,8 @@ type Statsd struct {
 	streamMap             map[core.MessageStreamID]string
 	client                *statsd.StatsdClient
 	batch                 core.MessageBatch
-	flushFrequency        time.Duration
-	useMessage            bool
+	flushFrequency        time.Duration `config:"BatchTimeoutSec" default:"10" metric:"sec"`
+	useMessage            bool          `config:"UseMessage"`
 }
 
 func init() {
@@ -75,8 +75,6 @@ func (prod *Statsd) Configure(conf core.PluginConfigReader) {
 
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "")
 	prod.batch = core.NewMessageBatch(int(conf.GetInt("BatchMaxMessages", 500)))
-	prod.flushFrequency = time.Duration(conf.GetInt("BatchTimeoutSec", 10)) * time.Second
-	prod.useMessage = conf.GetBool("UseMessage", false)
 
 	server := conf.GetString("Server", "localhost:8125")
 	prefix := conf.GetString("Prefix", "gollum.")

@@ -186,17 +186,17 @@ const (
 // If no topic mappings are set the stream names will be used as topic.
 type Kafka struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
-	servers               []string
 	topicGuard            *sync.RWMutex
 	topic                 map[core.MessageStreamID]*topicHandle
 	topicHandles          map[string]*topicHandle
 	streamToTopic         map[core.MessageStreamID]string
-	clientID              string
+	servers               []string      `config:"Servers" default:"localhost:9092"`
+	clientID              string        `config:"ClientId" default:"gollum"`
+	gracePeriod           time.Duration `config:"GracePeriodMs" default:"100" metric:"ms"`
 	client                kafka.Client
 	config                *kafka.Config
 	producer              kafka.AsyncProducer
 	missCount             int64
-	gracePeriod           time.Duration
 	nilValueAllowed       bool
 	keyMetaField          string
 }
@@ -223,16 +223,13 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) {
 
 	kafka.Logger = prod.Log.Note
 
-	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
-	prod.clientID = conf.GetString("ClientId", "gollum")
-	prod.gracePeriod = time.Duration(conf.GetInt("GracePeriodMs", 100)) * time.Millisecond
 	prod.topicGuard = new(sync.RWMutex)
 	prod.streamToTopic = conf.GetStreamMap("Topics", "")
 	prod.topic = make(map[core.MessageStreamID]*topicHandle)
 	prod.topicHandles = make(map[string]*topicHandle)
 
 	prod.config = kafka.NewConfig()
-	prod.config.ClientID = conf.GetString("ClientId", "gollum")
+	prod.config.ClientID = prod.clientID
 	prod.config.ChannelBufferSize = int(conf.GetInt("MessageBufferCount", 8192))
 
 	switch ver := conf.GetString("Version", "0.8.2"); ver {

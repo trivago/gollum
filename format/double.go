@@ -39,10 +39,10 @@ import (
 // streamID of this formatter. Set to false by default.
 type Double struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	separator            []byte
-	leftStreamID         bool
-	left                 core.FormatterArray
-	right                core.FormatterArray
+	separator            []byte              `config:"Separator" default:":"`
+	leftStreamID         bool                `config:"UseLeftStreamID"`
+	left                 core.FormatterArray `config:"Left"`
+	right                core.FormatterArray `config:"Right"`
 	applyTo              string
 }
 
@@ -52,10 +52,6 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Double) Configure(conf core.PluginConfigReader) {
-	format.left = conf.GetFormatterArray("Left", format.Log, core.FormatterArray{})
-	format.right = conf.GetFormatterArray("Right", format.Log, core.FormatterArray{})
-	format.separator = []byte(conf.GetString("Separator", ":"))
-	format.leftStreamID = conf.GetBool("UseLeftStreamID", false)
 	format.applyTo = conf.GetString("ApplyTo", core.ApplyToPayloadString)
 }
 

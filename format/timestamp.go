@@ -41,10 +41,6 @@ func init() {
 	core.TypeRegistry.Register(Timestamp{})
 }
 
-// Configure initializes this formatter with values from a plugin config.
-func (format *Timestamp) Configure(conf core.PluginConfigReader) {
-}
-
 // ApplyFormatter update message payload
 func (format *Timestamp) ApplyFormatter(msg *core.Message) error {
 	timestampStr := msg.GetCreationTime().Format(format.timestampFormat)

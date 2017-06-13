@@ -19,7 +19,6 @@ import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tnet"
-	"github.com/trivago/tgo/tstrings"
 	"io"
 	"net"
 	"strings"
@@ -82,8 +81,8 @@ type Proxy struct {
 	protocol            string
 	address             string
 	flags               tio.BufferedReaderFlags
-	delimiter           string
-	offset              int
+	delimiter           string `config:"Delimiter" default:"\n"`
+	offset              int    `config:"Offset" default:"0"`
 }
 
 func init() {
@@ -97,8 +96,6 @@ func (cons *Proxy) Configure(conf core.PluginConfigReader) {
 		conf.Errors.Pushf("UDP is not supported")
 	}
 
-	cons.delimiter = tstrings.Unescape(conf.GetString("Delimiter", "\n"))
-	cons.offset = int(conf.GetInt("Offset", 0))
 	cons.flags = tio.BufferedReaderFlagEverything
 
 	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))

@@ -33,10 +33,6 @@ func init() {
 	core.TypeRegistry.Register(Null{})
 }
 
-// Configure initializes the basic members
-func (prod *Null) Configure(conf core.PluginConfigReader) {
-}
-
 // Enqueue simply ignores the message
 func (prod *Null) Enqueue(msg core.Message, timeout *time.Duration) {
 }

@@ -98,11 +98,11 @@ type Kinesis struct {
 	client               *kinesis.Kinesis
 	config               *aws.Config
 	streamMap            map[core.MessageStreamID]string
-	recordMaxMessages    int
-	delimiter            []byte
+	recordMaxMessages    int           `config:"RecordMaxMessages" default:"1"`
+	delimiter            []byte        `config:"RecordMessageDelimiter" default:"\n"`
+	sendTimeLimit        time.Duration `config:"SendTimeframeMs" default:"1000" metric:"ms"`
 	flushFrequency       time.Duration
 	lastSendTime         time.Time
-	sendTimeLimit        time.Duration
 	counters             map[string]*int64
 	lastMetricUpdate     time.Time
 	sequence             *int64
@@ -125,11 +125,6 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Kinesis) Configure(conf core.PluginConfigReader) {
-	prod.streamMap = conf.GetStreamMap("StreamMapping", "")
-	prod.recordMaxMessages = int(conf.GetInt("RecordMaxMessages", 1))
-	prod.delimiter = []byte(conf.GetString("RecordMessageDelimiter", "\n"))
-	prod.sendTimeLimit = time.Duration(conf.GetInt("SendTimeframeMs", 1000)) * time.Millisecond
-
 	prod.lastSendTime = time.Now()
 	prod.counters = make(map[string]*int64)
 	prod.lastMetricUpdate = time.Now()

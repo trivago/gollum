@@ -18,7 +18,6 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
-	"github.com/trivago/tgo/tstrings"
 	"github.com/trivago/tgo/tsync"
 	"io"
 	"io/ioutil"
@@ -79,9 +78,9 @@ const (
 type File struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 	file                *os.File
-	fileName            string
-	offsetFileName      string
-	delimiter           string
+	fileName            string `config:"File" default:"/var/run/system.log"`
+	offsetFileName      string `config:"OffsetFile"`
+	delimiter           string `config:"Delimiter" default:"\n"`
 	seek                int
 	seekOnRotate        int
 	seekOffset          int64
@@ -95,11 +94,6 @@ func init() {
 // Configure initializes this consumer with values from a plugin config.
 func (cons *File) Configure(conf core.PluginConfigReader) {
 	cons.SetRollCallback(cons.onRoll)
-
-	cons.file = nil
-	cons.fileName = conf.GetString("File", "/var/run/system.log")
-	cons.offsetFileName = conf.GetString("OffsetFile", "")
-	cons.delimiter = tstrings.Unescape(conf.GetString("Delimiter", "\n"))
 
 	switch strings.ToLower(conf.GetString("DefaultOffset", fileOffsetEnd)) {
 	default:
