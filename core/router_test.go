@@ -58,7 +58,10 @@ func registerMockRouter(streamName string) {
 		"core.mockFormatter",
 	})
 
-	mockRouter.Configure(NewPluginConfigReader(&mockConf))
+	reader := NewPluginConfigReader(&mockConf)
+	if err := reader.Configure(&mockRouter); err != nil {
+		panic(err)
+	}
 	StreamRegistry.Register(&mockRouter, mockRouter.GetStreamID())
 }
 
@@ -90,7 +93,8 @@ func TestRouteOriginalMessage(t *testing.T) {
 	mockConf := NewPluginConfig("", "mockRouter")
 	mockConf.Override("Stream", "messageDropStream")
 
-	mockRouter.Configure(NewPluginConfigReader(&mockConf))
+	reader := NewPluginConfigReader(&mockConf)
+	reader.Configure(&mockRouter)
 	StreamRegistry.Register(&mockRouter, mockRouter.GetStreamID())
 
 	msg := NewMessage(nil, []byte("foo"), mockRouter.GetStreamID())
@@ -112,7 +116,8 @@ func TestRouteOriginal(t *testing.T) {
 	mockConfA := NewPluginConfig("mockA", "mockRouterA")
 	mockConfA.Override("Stream", "messageDropStreamA")
 
-	mockRouterA.Configure(NewPluginConfigReader(&mockConfA))
+	reader := NewPluginConfigReader(&mockConfA)
+	reader.Configure(&mockRouterA)
 	StreamRegistry.Register(&mockRouterA, mockRouterA.GetStreamID())
 
 	// create router mock B
@@ -121,7 +126,8 @@ func TestRouteOriginal(t *testing.T) {
 	mockConfB := NewPluginConfig("mockB", "mockRouterB")
 	mockConfB.Override("Stream", "messageDropStreamB")
 
-	mockRouterB.Configure(NewPluginConfigReader(&mockConfB))
+	reader = NewPluginConfigReader(&mockConfB)
+	reader.Configure(&mockRouterB)
 	StreamRegistry.Register(&mockRouterB, mockRouterB.GetStreamID())
 
 	// create message and test
