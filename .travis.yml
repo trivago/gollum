@@ -13,11 +13,6 @@ env:
   - TEST_SUITE=integration  # go test -tags="integration"
 
 matrix:
-  exclude:
-    - go: 1.6
-      env: TEST_SUITE=integration
-    - go: 1.5
-      env: TEST_SUITE=integration
   include:
     - go: 1.8
       env: TEST_SUITE="vet lint fmt-check ineffassign" # go vet, golint, gofmt -s -l, ineffassign
@@ -35,8 +30,6 @@ install:
   - go get github.com/mattn/goveralls
   - if [[ $TRAVIS_GO_VERSION != 1.5* ]]; then go get github.com/golang/lint/golint; fi
 
-before_script:
-  - GO15VENDOREXPERIMENT=1
 script:
   - make $TEST_SUITE
 after_success:
