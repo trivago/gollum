@@ -26,6 +26,13 @@ import (
 	"time"
 )
 
+// Configureable defines an interface for structs that can be configured using
+// a PluginConfigReader.
+type Configureable interface {
+	// Configure is called during NewPluginWithType
+	Configure(PluginConfigReader) error
+}
+
 // PluginConfigReader provides another convenience wrapper on top of
 // a PluginConfigReaderWithError. All functions of this reader are stripped
 // from returning errors. Errors from calls are collected internally
@@ -226,13 +233,33 @@ func (reader *PluginConfigReader) GetStreamRoutes(key string, defaultValue map[M
 	return value
 }
 
+/*func (reader *PluginConfigReader) Configure(item Configureable) {
+	itemValue := reflect.ValueOf(item)
+	if !itemValue.CanAddr() {
+		panic("Configure requires addressable item")
+	}
+
+	configureFields(itemValue)
+	item.Configure(reader)
+}*/
+
 // Configure reads struct tags from the given plugin and sets the tagged values
 // according to config and/or defaults.
 // Avaiable tags: "config" holds the config key, "default" holds the default
 // value, "metric" may store metric quantity information like "kb" or "sec".
 func (reader *PluginConfigReader) Configure(plugin interface{}, log tlog.LogScope) {
-	pluginType := treflect.RemovePtrFromType(plugin)
-	pluginValue := treflect.RemovePtrFromValue(plugin)
+	var (
+		pluginType  reflect.Type
+		pluginValue reflect.Value
+	)
+
+	if val, isVal := plugin.(reflect.Value); isVal {
+		pluginType = treflect.RemovePtrFromType(val.Type())
+		pluginValue = val
+	} else {
+		pluginType = treflect.RemovePtrFromType(plugin)
+		pluginValue = reflect.ValueOf(plugin)
+	}
 	numFields := pluginType.NumField()
 
 	fieldName := ""
@@ -244,12 +271,17 @@ func (reader *PluginConfigReader) Configure(plugin interface{}, log tlog.LogScop
 
 	for i := 0; i < numFields; i++ {
 		field := pluginType.Field(i)
-		fieldValue := pluginValue.Field(i)
+		fieldValue := pluginValue.Elem().Field(i)
+		fieldName = field.Name
+
+		if field.Type.Kind() == reflect.Struct {
+			reader.Configure(fieldValue.Addr(), log)
+			continue
+		}
 
 		if key, haskey := field.Tag.Lookup("config"); haskey {
 			defaultTag, _ := field.Tag.Lookup("default")
 			metric, _ := field.Tag.Lookup("metric")
-			fieldName = field.Name
 
 			switch field.Type.Kind() {
 			case reflect.Bool:

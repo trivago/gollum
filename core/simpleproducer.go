@@ -95,7 +95,7 @@ type SimpleProducer struct {
 
 // Configure initializes the standard producer config values.
 func (prod *SimpleProducer) Configure(conf PluginConfigReader) error {
-	conf.Configure(prod, prod.Log)
+	//conf.Configure(prod, prod.Log)
 
 	prod.id = conf.GetID()
 	prod.Log = conf.GetLogScope()

@@ -181,7 +181,12 @@ func Float64(v interface{}) (float64, bool) {
 // RemovePtrFromType will return the type of t and strips away any pointer(s)
 // in front of the actual type.
 func RemovePtrFromType(t interface{}) reflect.Type {
-	v := reflect.TypeOf(t)
+	var v reflect.Type
+	if rt, isType := t.(reflect.Type); isType {
+		v = rt
+	} else {
+		v = reflect.TypeOf(t)
+	}
 	for v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
@@ -191,7 +196,12 @@ func RemovePtrFromType(t interface{}) reflect.Type {
 // RemovePtrFromValue will return the value of t and strips away any pointer(s)
 // in front of the actual type.
 func RemovePtrFromValue(t interface{}) reflect.Value {
-	v := reflect.ValueOf(t)
+	var v reflect.Value
+	if rv, isValue := t.(reflect.Value); isValue {
+		v = rv
+	} else {
+		v = reflect.ValueOf(t)
+	}
 	for v.Type().Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
