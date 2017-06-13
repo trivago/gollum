@@ -97,11 +97,11 @@ type Firehose struct {
 	client                *firehose.Firehose
 	config                *aws.Config
 	batch                 core.MessageBatch
-	streamMap             map[core.MessageStreamID]string `config:"StreamMapping" default:"default"`
-	recordMaxMessages     int                             `config:"RecordMaxMessages" default:"1"`
-	delimiter             []byte                          `config:"RecordMessageDelimiter" default:"\n"`
-	flushFrequency        time.Duration                   `config:"BatchTimeoutSec" default:"3" metric:"sec"`
-	sendTimeLimit         time.Duration                   `config:"SendTimeframeMs" default:"1000" metric:"ms"`
+	streamMap             map[core.MessageStreamID]string
+	recordMaxMessages     int           `config:"RecordMaxMessages" default:"1"`
+	delimiter             []byte        `config:"RecordMessageDelimiter" default:"\n"`
+	flushFrequency        time.Duration `config:"BatchTimeoutSec" default:"3" metric:"sec"`
+	sendTimeLimit         time.Duration `config:"SendTimeframeMs" default:"1000" metric:"ms"`
 	lastSendTime          time.Time
 	lastMetricUpdate      time.Time
 	counters              map[string]*int64
@@ -126,6 +126,7 @@ func init() {
 func (prod *Firehose) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
+	prod.streamMap = conf.GetStreamMap("StreamMapping", "default")
 	prod.batch = core.NewMessageBatch(int(conf.GetInt("BatchMaxMessages", 500)))
 	prod.lastSendTime = time.Now()
 	prod.counters = make(map[string]*int64)
