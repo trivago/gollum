@@ -149,29 +149,13 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *File) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
-	conf.Configure(prod, prod.Log)
-	//conf.Configure(&prod.rotate, prod.Log)
-
+func (prod *File) Configure(conf core.PluginConfigReader) {
 	prod.SetRollCallback(prod.rotateLog)
 	prod.SetStopCallback(prod.close)
 
 	prod.filesByStream = make(map[core.MessageStreamID]*fileState)
 	prod.files = make(map[string]*fileState)
-	//prod.batchMaxCount = conf.GetInt("Batch/MaxCount", 8192)
-	//prod.batchFlushCount = conf.GetInt("Batch/FlushCount", prod.batchMaxCount/2)
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
-	//prod.batchTimeout = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
-	//prod.overwriteFile = conf.GetBool("FileOverwrite", false)
-
-	//fileFlags, err := strconv.ParseInt(conf.GetString("Permissions", "0664"), 8, 32)
-	//conf.Errors.Push(err)
-	//prod.filePermissions = os.FileMode(fileFlags)
-
-	//folderFlags, err := strconv.ParseInt(conf.GetString("FolderPermissions", "0755"), 8, 32)
-	//conf.Errors.Push(err)
-	//prod.folderPermissions = os.FileMode(folderFlags)
 
 	logFile := conf.GetString("File", "/var/log/gollum.log")
 	prod.wildcardPath = strings.IndexByte(logFile, '*') != -1
@@ -180,20 +164,6 @@ func (prod *File) Configure(conf core.PluginConfigReader) error {
 	prod.fileExt = filepath.Ext(logFile)
 	prod.fileName = filepath.Base(logFile)
 	prod.fileName = prod.fileName[:len(prod.fileName)-len(prod.fileExt)]
-	//prod.flushTimeout = time.Duration(conf.GetInt("FlushTimeoutSec", 5)) * time.Second
-
-	//prod.timestamp = conf.GetString("Rotation/Timestamp", "2006-01-02_15")
-	//prod.rotate.enabled = conf.GetBool("Rotation/Enable", false)
-	//prod.rotate.timeout = time.Duration(conf.GetInt("Rotation/TimeoutMin", 1440)) * time.Minute
-	//prod.rotate.sizeByte = int64(conf.GetInt("Rotation/SizeMB", 1024)) << 20
-	//pprod.rotate.compress = conf.GetBool("Rotation/Compress", false)
-	//prod.rotate.zeroPad = conf.GetInt("Rotation/ZeroPadding", 0)
-	prod.rotate.atHour = -1
-	prod.rotate.atMinute = -1
-
-	//prod.pruneCount = conf.GetInt("Prune/Count", 0)
-	//prod.pruneHours = conf.GetInt("Prune/AfterHours", 0)
-	//prod.pruneSize = int64(conf.GetInt("Prune/TotalSizeMB", 0)) << 20
 
 	if prod.pruneSize > 0 && prod.rotate.sizeByte > 0 {
 		prod.pruneSize -= prod.rotate.sizeByte >> 20
@@ -204,6 +174,8 @@ func (prod *File) Configure(conf core.PluginConfigReader) error {
 	}
 
 	rotateAt := conf.GetString("Rotation/At", "")
+	prod.rotate.atHour = -1
+	prod.rotate.atMinute = -1
 	if rotateAt != "" {
 		parts := strings.Split(rotateAt, ":")
 		rotateAtHour, _ := strconv.ParseInt(parts[0], 10, 8)
@@ -212,8 +184,6 @@ func (prod *File) Configure(conf core.PluginConfigReader) error {
 		prod.rotate.atHour = int(rotateAtHour)
 		prod.rotate.atMinute = int(rotateAtMin)
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) (*fileState, error) {

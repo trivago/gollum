@@ -100,9 +100,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Scribe) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
-
+func (prod *Scribe) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 	host := conf.GetString("Address", "localhost:1463")
 
@@ -135,8 +133,6 @@ func (prod *Scribe) Configure(conf core.PluginConfigReader) error {
 		tgo.Metric.New(metricName)
 		tgo.Metric.NewRate(metricName, scribeMetricMessagesSec+category, time.Second, 10, 3, true)
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func (prod *Scribe) bufferMessage(msg *core.Message) {

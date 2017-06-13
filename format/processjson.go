@@ -107,9 +107,7 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *ProcessJSON) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
+func (format *ProcessJSON) Configure(conf core.PluginConfigReader) {
 	directives := conf.GetStringArray("Directives", []string{})
 	format.directives = make([]transformDirective, 0, len(directives))
 	format.trimValues = conf.GetBool("TrimValues", true)
@@ -144,8 +142,6 @@ func (format *ProcessJSON) Configure(conf core.PluginConfigReader) error {
 			}
 		}
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func (format *ProcessJSON) processDirective(directive transformDirective, values *tcontainer.MarshalMap) {

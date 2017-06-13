@@ -15,7 +15,6 @@
 package producer
 
 import (
-	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -124,8 +123,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Firehose) Configure(conf core.PluginConfigReader) error {
-	prod.SimpleProducer.Configure(conf)
+func (prod *Firehose) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "default")
@@ -179,7 +177,8 @@ func (prod *Firehose) Configure(conf core.PluginConfigReader) error {
 		// Nothing
 
 	default:
-		return fmt.Errorf("Unknown CredentialType: %s", credentialType)
+		conf.Errors.Pushf("Unknown CredentialType: %s", credentialType)
+		return
 	}
 
 	for _, streamName := range prod.streamMap {
@@ -187,8 +186,6 @@ func (prod *Firehose) Configure(conf core.PluginConfigReader) error {
 		tgo.Metric.New(firehoseMetricMessagesSec + streamName)
 		prod.counters[streamName] = new(int64)
 	}
-
-	return nil
 }
 
 func (prod *Firehose) bufferMessage(msg *core.Message) {

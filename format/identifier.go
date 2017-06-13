@@ -55,9 +55,7 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Identifier) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
+func (format *Identifier) Configure(conf core.PluginConfigReader) {
 	idType := strings.ToLower(conf.GetString("Use", "time"))
 	format.seq = new(int64)
 
@@ -75,8 +73,6 @@ func (format *Identifier) Configure(conf core.PluginConfigReader) error {
 			return []byte(idType)
 		}
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func (format *Identifier) idHash(msg *core.Message) []byte {

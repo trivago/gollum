@@ -47,12 +47,9 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Runlength) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
+func (format *Runlength) Configure(conf core.PluginConfigReader) {
 	format.separator = []byte(conf.GetString("Separator", ":"))
 	format.storeRunlengthOnly = conf.GetBool("StoreRunlengthOnly", false)
-	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload

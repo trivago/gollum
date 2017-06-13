@@ -44,12 +44,9 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Sequence) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
+func (format *Sequence) Configure(conf core.PluginConfigReader) {
 	format.separator = []byte(conf.GetString("Separator", ":"))
 	format.seq = new(int64)
-	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload

@@ -93,8 +93,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Socket) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
+func (prod *Socket) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
 	prod.batchMaxCount = int(conf.GetInt("Batch/MaxCount", 8192))
@@ -123,8 +122,6 @@ func (prod *Socket) Configure(conf core.PluginConfigReader) error {
 	prod.assembly = core.NewWriterAssembly(nil, prod.TryFallback, prod)
 	prod.assembly.SetValidator(prod.validate)
 	prod.assembly.SetErrorHandler(prod.onWriteError)
-
-	return conf.Errors.OrNil()
 }
 
 func (prod *Socket) tryConnect() bool {

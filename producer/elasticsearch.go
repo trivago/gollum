@@ -155,8 +155,7 @@ func makeElasticMapping() elasticMapping {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
+func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
 	defaultServer := []string{"localhost"}
@@ -222,8 +221,6 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) error {
 			mappings.Settings, _ = indexSettings.MarshalMap(index)
 		}
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func (prod *ElasticSearch) isClusterUp() bool {

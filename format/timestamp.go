@@ -34,7 +34,7 @@ import (
 // ApplyTo defines the formatter content to use
 type Timestamp struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	timestampFormat      string
+	timestampFormat      string `config:"Timestamp" default:"2006-01-02 15:04:05 MST | "`
 }
 
 func init() {
@@ -42,11 +42,7 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Timestamp) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
-	format.timestampFormat = conf.GetString("Timestamp", "2006-01-02 15:04:05 MST | ")
-	return conf.Errors.OrNil()
+func (format *Timestamp) Configure(conf core.PluginConfigReader) {
 }
 
 // ApplyFormatter update message payload

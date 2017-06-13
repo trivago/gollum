@@ -125,9 +125,7 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Kinesis) Configure(conf core.PluginConfigReader) error {
-	cons.SimpleConsumer.Configure(conf)
-
+func (cons *Kinesis) Configure(conf core.PluginConfigReader) {
 	cons.offsets = make(map[string]string)
 	cons.stream = conf.GetString("KinesisStream", "default")
 	cons.offsetFile = conf.GetString("OffsetFile", "")
@@ -169,7 +167,8 @@ func (cons *Kinesis) Configure(conf core.PluginConfigReader) error {
 		// Nothing
 
 	default:
-		return fmt.Errorf("Unknown CredentialType: %s", credentialType)
+		conf.Errors.Pushf("Unknown CredentialType: %s", credentialType)
+		return
 	}
 
 	// Offset
@@ -202,7 +201,6 @@ func (cons *Kinesis) Configure(conf core.PluginConfigReader) error {
 			conf.Errors.Push(json.Unmarshal(fileContents, &cons.offsets))
 		}
 	}
-	return conf.Errors.OrNil()
 }
 
 func (cons *Kinesis) storeOffsets() {

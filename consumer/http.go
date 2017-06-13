@@ -81,9 +81,7 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *HTTP) Configure(conf core.PluginConfigReader) error {
-	cons.SimpleConsumer.Configure(conf)
-
+func (cons *HTTP) Configure(conf core.PluginConfigReader) {
 	cons.address = conf.GetString("Address", ":80")
 	cons.readTimeoutSec = time.Duration(conf.GetInt("ReadTimeoutSec", 3)) * time.Second
 	cons.withHeaders = conf.GetBool("WithHeaders", true)
@@ -116,8 +114,6 @@ func (cons *HTTP) Configure(conf core.PluginConfigReader) error {
 			}
 		}
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func (cons *HTTP) checkAuth(r *http.Request) bool {

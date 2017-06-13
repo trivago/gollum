@@ -91,9 +91,7 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Proxy) Configure(conf core.PluginConfigReader) error {
-	cons.SimpleConsumer.Configure(conf)
-
+func (cons *Proxy) Configure(conf core.PluginConfigReader) {
 	cons.protocol, cons.address = tnet.ParseAddress(conf.GetString("Address", ":5880"), "tcp")
 	if cons.protocol == "udp" {
 		conf.Errors.Pushf("UDP is not supported")
@@ -136,8 +134,6 @@ func (cons *Proxy) Configure(conf core.PluginConfigReader) error {
 	default:
 		conf.Errors.Pushf("Unknown partitioner: %s", partitioner)
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func (cons *Proxy) accept() {

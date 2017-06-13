@@ -57,16 +57,12 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *ExtractJSON) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
+func (format *ExtractJSON) Configure(conf core.PluginConfigReader) {
 	format.field = conf.GetString("Field", "")
 	format.trimValues = conf.GetBool("TrimValues", true)
 	precision := conf.GetInt("Precision", 0)
 	format.numberFormat = fmt.Sprintf("%%.%df", precision)
 	format.applyTo = conf.GetString("ApplyTo", core.ApplyToPayloadString)
-
-	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload

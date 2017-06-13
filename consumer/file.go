@@ -93,8 +93,7 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *File) Configure(conf core.PluginConfigReader) error {
-	cons.SimpleConsumer.Configure(conf)
+func (cons *File) Configure(conf core.PluginConfigReader) {
 	cons.SetRollCallback(cons.onRoll)
 
 	cons.file = nil
@@ -115,8 +114,6 @@ func (cons *File) Configure(conf core.PluginConfigReader) error {
 		cons.seekOnRotate = 1
 		cons.seekOffset = 0
 	}
-
-	return conf.Errors.OrNil()
 }
 
 // Enqueue creates a new message

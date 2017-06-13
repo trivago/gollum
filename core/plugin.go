@@ -96,6 +96,7 @@ type PluginRunState struct {
 // instantiated during runtim.
 type Plugin interface {
 	Configureable
+	ScopedLogger
 }
 
 // PluginWithState allows certain plugins to give information about their runstate
@@ -162,7 +163,8 @@ func NewPluginWithConfig(config PluginConfig) (Plugin, error) {
 		return nil, fmt.Errorf("%s is not a plugin type", config.Typename)
 	}
 
-	err = plugin.Configure(NewPluginConfigReader(&config))
+	reader := NewPluginConfigReader(&config)
+	err = reader.Configure(plugin)
 	if err == nil {
 		if config.ID != "" {
 			// If an id is set it must be unique

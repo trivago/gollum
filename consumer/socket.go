@@ -123,9 +123,7 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Socket) Configure(conf core.PluginConfigReader) error {
-	cons.SimpleConsumer.Configure(conf)
-
+func (cons *Socket) Configure(conf core.PluginConfigReader) {
 	flags, err := strconv.ParseInt(conf.GetString("Permissions", "0770"), 8, 32)
 	conf.Errors.Push(err)
 	cons.fileFlags = os.FileMode(flags)
@@ -185,8 +183,6 @@ func (cons *Socket) Configure(conf core.PluginConfigReader) error {
 	default:
 		conf.Errors.Pushf("Unknown partitioner: %s", partitioner)
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func (cons *Socket) sendAck(conn net.Conn, success bool) error {

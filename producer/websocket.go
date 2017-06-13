@@ -67,8 +67,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Websocket) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
+func (prod *Websocket) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
 	prod.address = conf.GetString("Address", ":81")
@@ -78,8 +77,6 @@ func (prod *Websocket) Configure(conf core.PluginConfigReader) error {
 	prod.upgrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool { return prod.ignoreOrigin },
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func (prod *Websocket) handleConnection(conn *websocket.Conn) {

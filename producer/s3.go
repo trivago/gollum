@@ -16,7 +16,6 @@ package producer
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -186,8 +185,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *S3) Configure(conf core.PluginConfigReader) error {
-	prod.SimpleProducer.Configure(conf)
+func (prod *S3) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
 	prod.storageClass = conf.GetString("StorageClass", "STANDARD")
@@ -220,16 +218,17 @@ func (prod *S3) Configure(conf core.PluginConfigReader) error {
 	prod.useFiles = prod.localPath != ""
 	if prod.useFiles {
 		if err := os.MkdirAll(prod.localPath, 0700); err != nil {
-			return fmt.Errorf("Failed to create %s because of %s", prod.localPath, err.Error()) // ### return, missing directory ###
+			conf.Errors.Pushf("Failed to create %s because of %s", prod.localPath, err.Error())
+			return // ### return, missing directory ###
 		}
 		prod.stateFile = path.Join(prod.localPath, "state")
 		if _, err := os.Stat(prod.stateFile); !os.IsNotExist(err) {
 			data, err := ioutil.ReadFile(prod.stateFile)
-			if err != nil {
-				return err
+			if conf.Errors.Push(err) {
+				return
 			}
-			if err := json.Unmarshal(data, &prod.objects); err != nil {
-				return err
+			if err := json.Unmarshal(data, &prod.objects); conf.Errors.Push(err) {
+				return
 			}
 			for s3Path, object := range prod.objects {
 				filename := object.Filename
@@ -241,8 +240,8 @@ func (prod *S3) Configure(conf core.PluginConfigReader) error {
 					filename += ".gz"
 				}
 				buffer, err := newS3FileBuffer(filename, prod.Log.NewSubScope("fileBuffer"))
-				if err != nil {
-					return err
+				if conf.Errors.Push(err) {
+					return
 				}
 				object.buffer = buffer
 				object.lock = new(sync.Mutex)
@@ -310,8 +309,6 @@ func (prod *S3) Configure(conf core.PluginConfigReader) error {
 	default:
 		conf.Errors.Pushf("Unknown CredentialType: %s", credentialType)
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func (prod *S3) storeState() {

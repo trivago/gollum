@@ -86,9 +86,8 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) error {
+func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) {
 	var err error
-	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
 
 	address := conf.GetString("Address", "http://localhost:80")
@@ -113,8 +112,6 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) error {
 		}
 		return thealthcheck.StatusServiceUnavailable, fmt.Sprintf("ERROR: %s", prod.lastError)
 	})
-
-	return conf.Errors.OrNil()
 }
 
 func (prod *HTTPRequest) healthcheckPingBackend() (int, string) {

@@ -43,13 +43,9 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *JSONToArray) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
+func (format *JSONToArray) Configure(conf core.PluginConfigReader) {
 	format.separator = conf.GetString("Separator", ",")
 	format.fields = conf.GetStringArray("Fields", []string{})
-
-	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload

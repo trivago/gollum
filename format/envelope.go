@@ -51,12 +51,9 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Envelope) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
+func (format *Envelope) Configure(conf core.PluginConfigReader) {
 	format.prefix = tstrings.Unescape(conf.GetString("Prefix", ""))
 	format.postfix = tstrings.Unescape(conf.GetString("Postfix", "\n"))
-	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload

@@ -30,8 +30,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Benchmark) Configure(conf core.PluginConfigReader) error {
-	return prod.DirectProducer.Configure(conf)
+func (prod *Benchmark) Configure(conf core.PluginConfigReader) {
 }
 
 func (prod *Benchmark) null(msg *core.Message) {

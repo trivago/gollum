@@ -63,8 +63,7 @@ type DirectProducer struct {
 }
 
 // Configure initializes the standard producer config values.
-func (prod *DirectProducer) Configure(conf PluginConfigReader) error {
-	return prod.SimpleProducer.Configure(conf)
+func (prod *DirectProducer) Configure(conf PluginConfigReader) {
 }
 
 // Enqueue will add the message to the internal channel so it can be processed

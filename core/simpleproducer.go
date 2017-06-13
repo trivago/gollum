@@ -95,8 +95,6 @@ type SimpleProducer struct {
 
 // Configure initializes the standard producer config values.
 func (prod *SimpleProducer) Configure(conf PluginConfigReader) error {
-	//conf.Configure(prod, prod.Log)
-
 	prod.id = conf.GetID()
 	prod.Log = conf.GetLogScope()
 	prod.runState = NewPluginRunState()
@@ -118,6 +116,11 @@ func (prod *SimpleProducer) Configure(conf PluginConfigReader) error {
 			fmt.Sprintf("NOT_ACTIVE: %s", prod.GetStateString())
 	})
 	return conf.Errors.OrNil()
+}
+
+// GetLogScope returns the logging scope of this plugin
+func (prod *SimpleProducer) GetLogScope() tlog.LogScope {
+	return prod.Log
 }
 
 // AddHealthCheck adds a health check at the default URL (http://<addr>:<port>/<plugin_id>)

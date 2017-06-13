@@ -224,8 +224,6 @@ func (m *messageWrapper) GetUserdata() []byte {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
-
 	prod.SetStopCallback(prod.close)
 	kafka.Log = prod.Log.Error
 	prod.keyModulators = conf.GetModulatorArray("KeyModulators", prod.Log, core.ModulatorArray{})

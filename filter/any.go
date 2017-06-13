@@ -43,13 +43,8 @@ func init() {
 }
 
 // Configure initializes this filter with values from a plugin config.
-func (filter *Any) Configure(conf core.PluginConfigReader) error {
-	filter.SimpleFilter.Configure(conf)
-
-	filter.filters = conf.GetFilterArray("Any",
-		filter.Log, core.FilterArray{})
-
-	return conf.Errors.OrNil()
+func (filter *Any) Configure(conf core.PluginConfigReader) {
+	filter.filters = conf.GetFilterArray("Any", filter.Log, core.FilterArray{})
 }
 
 // ApplyFilter check if all Filter wants to reject the message

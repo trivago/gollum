@@ -70,8 +70,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Statsd) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
+func (prod *Statsd) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "")
@@ -83,8 +82,6 @@ func (prod *Statsd) Configure(conf core.PluginConfigReader) error {
 	prefix := conf.GetString("Prefix", "gollum.")
 	prod.client = statsd.NewStatsdClient(server, prefix)
 	conf.Errors.Push(prod.client.CreateSocket())
-
-	return conf.Errors.OrNil()
 }
 
 func (prod *Statsd) bufferMessage(msg *core.Message) {

@@ -42,8 +42,7 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *CollectdToInflux09) Configure(conf core.PluginConfigReader) error {
-	return format.SimpleFormatter.Configure(conf)
+func (format *CollectdToInflux09) Configure(conf core.PluginConfigReader) {
 }
 
 // ApplyFormatter update message payload

@@ -17,7 +17,6 @@ package producer
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -219,8 +218,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
+func (prod *Kafka) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
 	kafka.Logger = prod.Log.Note
@@ -281,24 +279,26 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 		certFile := conf.GetString("TlsCertificateLocation", "")
 		if keyFile != "" && certFile != "" {
 			cert, err := tls.LoadX509KeyPair(certFile, keyFile)
-			if err != nil {
-				return err
+			if conf.Errors.Push(err) {
+				return
 			}
 			prod.config.Net.TLS.Config.Certificates = []tls.Certificate{cert}
 		} else if certFile == "" {
-			return fmt.Errorf("Cannot specify TlsKeyLocation without TlsCertificateLocation")
+			conf.Errors.Pushf("Cannot specify TlsKeyLocation without TlsCertificateLocation")
+			return
 		} else if keyFile == "" {
-			return fmt.Errorf("Cannot specify TlsCertificateLocation without TlsKeyLocation")
+			conf.Errors.Pushf("Cannot specify TlsCertificateLocation without TlsKeyLocation")
+			return
 		}
 
 		caFile := conf.GetString("TlsCaLocation", "")
 		if caFile == "" {
-			return fmt.Errorf("TlsEnable is set to true, but no TlsCaLocation was specified")
+			conf.Errors.Pushf("TlsEnable is set to true, but no TlsCaLocation was specified")
+			return
 		}
-
 		caCert, err := ioutil.ReadFile(caFile)
-		if err != nil {
-			return err
+		if conf.Errors.Push(err) {
+			return
 		}
 
 		caCertPool := x509.NewCertPool()
@@ -311,6 +311,7 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 		}
 
 		prod.config.Net.TLS.Config.InsecureSkipVerify = conf.GetBool("TlsInsecureSkipVerify", false)
+
 	}
 
 	prod.config.Net.SASL.Enable = conf.GetBool("SaslEnable", false)
@@ -370,8 +371,6 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 	}
 
 	prod.keyMetaField = conf.GetString("KeyMetaField", "")
-
-	return conf.Errors.OrNil()
 }
 
 func (prod *Kafka) storeRTT(msg *core.Message) {

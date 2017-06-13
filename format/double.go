@@ -51,14 +51,12 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Double) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
+func (format *Double) Configure(conf core.PluginConfigReader) {
 	format.left = conf.GetFormatterArray("Left", format.Log, core.FormatterArray{})
 	format.right = conf.GetFormatterArray("Right", format.Log, core.FormatterArray{})
 	format.separator = []byte(conf.GetString("Separator", ":"))
 	format.leftStreamID = conf.GetBool("UseLeftStreamID", false)
 	format.applyTo = conf.GetString("ApplyTo", core.ApplyToPayloadString)
-	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload

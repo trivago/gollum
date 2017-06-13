@@ -88,8 +88,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Proxy) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
+func (prod *Proxy) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
 	prod.bufferSizeKB = int(conf.GetInt("ConnectionBufferSizeKB", 1<<10)) // 1 MB
@@ -139,7 +138,6 @@ func (prod *Proxy) Configure(conf core.PluginConfigReader) error {
 	}
 
 	prod.reader = tio.NewBufferedReader(prod.bufferSizeKB, flags, offset, delimiter)
-	return conf.Errors.OrNil()
 }
 
 func (prod *Proxy) sendMessage(msg *core.Message) {

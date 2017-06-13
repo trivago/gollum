@@ -61,14 +61,10 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *SplitToJSON) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
+func (format *SplitToJSON) Configure(conf core.PluginConfigReader) {
 	format.keepJSON = conf.GetBool("KeepJSON", true)
 	format.token = []byte(conf.GetString("SplitBy", "|"))
 	format.keys = conf.GetStringArray("Keys", []string{})
-
-	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload

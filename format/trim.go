@@ -42,16 +42,7 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Trim) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-	conf.Configure(format, format.Log)
-
-	//format.leftSeparator = []byte(conf.GetString("LeftSeparator", ""))
-	//format.rightSeparator = []byte(conf.GetString("RightSeparator", ""))
-	//format.leftOffset = conf.GetInt("LeftOffset", 0)
-	//format.rightOffset = conf.GetInt("RightOffset", 0)
-
-	return conf.Errors.OrNil()
+func (format *Trim) Configure(conf core.PluginConfigReader) {
 }
 
 // ApplyFormatter update message payload

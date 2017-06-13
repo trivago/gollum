@@ -112,8 +112,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Spooling) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
+func (prod *Spooling) Configure(conf core.PluginConfigReader) {
 	prod.SetPrepareStopCallback(prod.waitForReader)
 	prod.SetStopCallback(prod.close)
 	prod.SetRollCallback(prod.onRoll)
@@ -152,8 +151,6 @@ func (prod *Spooling) Configure(conf core.PluginConfigReader) error {
 		enabled:  true,
 		compress: false,
 	}
-
-	return conf.Errors.OrNil()
 }
 
 // Modulate enforces the serialize formatter at the end of the modulation chain

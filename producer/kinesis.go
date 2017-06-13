@@ -124,9 +124,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Kinesis) Configure(conf core.PluginConfigReader) error {
-	prod.BatchedProducer.Configure(conf)
-
+func (prod *Kinesis) Configure(conf core.PluginConfigReader) {
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "")
 	prod.recordMaxMessages = int(conf.GetInt("RecordMaxMessages", 1))
 	prod.delimiter = []byte(conf.GetString("RecordMessageDelimiter", "\n"))
@@ -178,7 +176,8 @@ func (prod *Kinesis) Configure(conf core.PluginConfigReader) error {
 		// Nothing
 
 	default:
-		return fmt.Errorf("Unknown credential type: %s", credentialType)
+		conf.Errors.Pushf("Unknown credential type: %s", credentialType)
+		return
 	}
 
 	for _, streamName := range prod.streamMap {
@@ -186,8 +185,6 @@ func (prod *Kinesis) Configure(conf core.PluginConfigReader) error {
 		tgo.Metric.New(metricName)
 		tgo.Metric.NewRate(metricName, kinesisMetricMessagesSec+streamName, time.Second, 10, 3, true)
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func (prod *Kinesis) sendBatch() core.AssemblyFunc {

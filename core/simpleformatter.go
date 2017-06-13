@@ -30,6 +30,11 @@ func (format *SimpleFormatter) SetLogScope(log tlog.LogScope) {
 	format.Log = log
 }
 
+// GetLogScope returns the logging scope of this plugin
+func (format *SimpleFormatter) GetLogScope() tlog.LogScope {
+	return format.Log
+}
+
 // Configure sets up all values required by SimpleFormatter.
 func (format *SimpleFormatter) Configure(conf PluginConfigReader) error {
 	format.Log = conf.GetSubLogScope("Formatter")

@@ -46,9 +46,6 @@ type BufferedProducer struct {
 
 // Configure initializes the standard producer config values.
 func (prod *BufferedProducer) Configure(conf PluginConfigReader) error {
-	prod.DirectProducer.Configure(conf)
-	//conf.Configure(prod, prod.Log)
-
 	prod.onPrepareStop = prod.DefaultDrain
 	prod.onStop = prod.DefaultClose
 

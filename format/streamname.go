@@ -46,12 +46,9 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *StreamName) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
+func (format *StreamName) Configure(conf core.PluginConfigReader) {
 	format.separator = []byte(conf.GetString("Separator", ":"))
 	format.usePrevious = conf.GetBool("UseHistory", false)
-	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload

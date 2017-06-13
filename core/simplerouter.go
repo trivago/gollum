@@ -42,8 +42,6 @@ type SimpleRouter struct {
 
 // Configure sets up all values required by SimpleRouter.
 func (router *SimpleRouter) Configure(conf PluginConfigReader) error {
-	conf.Configure(router, router.Log)
-
 	router.id = conf.GetID()
 	router.Log = conf.GetLogScope()
 	//router.Timeout = nil
@@ -61,6 +59,11 @@ func (router *SimpleRouter) Configure(conf PluginConfigReader) error {
 	//}
 
 	return conf.Errors.OrNil()
+}
+
+// GetLogScope returns the logging scope of this plugin
+func (router *SimpleRouter) GetLogScope() tlog.LogScope {
+	return router.Log
 }
 
 // AddHealthCheck adds a health check at the default URL (http://<addr>:<port>/<plugin_id>)

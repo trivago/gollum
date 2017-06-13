@@ -42,10 +42,14 @@ func (filter *SimpleFilter) SetLogScope(log tlog.LogScope) {
 
 // Configure sets up all values required by SimpleFormatter.
 func (filter *SimpleFilter) Configure(conf PluginConfigReader) error {
-	conf.Configure(filter, filter.Log)
 	filter.Log = conf.GetSubLogScope("Filter")
 	//filter.filteredStreamID = GetStreamID(conf.GetString("FilteredStream", InvalidStream))
 	return nil
+}
+
+// GetLogScope returns the logging scope of this plugin
+func (filter *SimpleFilter) GetLogScope() tlog.LogScope {
+	return filter.Log
 }
 
 // GetFilterResultMessageReject returns a FilterResultMessageReject with the

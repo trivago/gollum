@@ -31,8 +31,7 @@ func init() {
 }
 
 // Configure initializes this distributor with values from a plugin config.
-func (router *Random) Configure(conf core.PluginConfigReader) error {
-	return router.SimpleRouter.Configure(conf)
+func (router *Random) Configure(conf core.PluginConfigReader) {
 }
 
 // Start the router

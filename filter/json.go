@@ -58,9 +58,7 @@ func init() {
 }
 
 // Configure initializes this filter with values from a plugin config.
-func (filter *JSON) Configure(conf core.PluginConfigReader) error {
-	filter.SimpleFilter.Configure(conf)
-
+func (filter *JSON) Configure(conf core.PluginConfigReader) {
 	rejectValues := conf.GetStringMap("Reject", make(map[string]string))
 	acceptValues := conf.GetStringMap("Accept", make(map[string]string))
 
@@ -83,8 +81,6 @@ func (filter *JSON) Configure(conf core.PluginConfigReader) error {
 	}
 
 	filter.getAppliedContent = core.GetAppliedContentGetFunction(conf.GetString("ApplyTo", ""))
-
-	return conf.Errors.OrNil()
 }
 
 func (filter *JSON) getValue(key string, values tcontainer.MarshalMap) (string, bool) {

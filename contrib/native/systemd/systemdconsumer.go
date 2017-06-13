@@ -71,8 +71,6 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *SystemdConsumer) Configure(conf core.PluginConfigReader) error {
-	cons.SimpleConsumer.Configure(conf)
-
 	var err error
 	cons.journal, err = sdjournal.NewJournal()
 	if err != nil {

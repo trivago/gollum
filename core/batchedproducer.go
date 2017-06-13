@@ -49,9 +49,6 @@ type BatchedProducer struct {
 
 // Configure initializes the standard producer config values.
 func (prod *BatchedProducer) Configure(conf PluginConfigReader) error {
-	prod.DirectProducer.Configure(conf)
-	//conf.Configure(prod, prod.Log)
-
 	prod.SetStopCallback(prod.DefaultClose)
 
 	//prod.batchMaxCount = conf.GetInt("Batch/MaxCount", 8192)

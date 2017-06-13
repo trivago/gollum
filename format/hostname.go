@@ -43,11 +43,8 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Hostname) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
+func (format *Hostname) Configure(conf core.PluginConfigReader) {
 	format.separator = []byte(conf.GetString("Separator", ":"))
-	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload

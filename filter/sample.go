@@ -54,9 +54,7 @@ func init() {
 }
 
 // Configure initializes this filter with values from a plugin config.
-func (filter *Sample) Configure(conf core.PluginConfigReader) error {
-	filter.SimpleFilter.Configure(conf)
-
+func (filter *Sample) Configure(conf core.PluginConfigReader) {
 	filter.rate = int64(conf.GetInt("SampleRatePerGroup", 1))
 	filter.group = int64(conf.GetInt("SampleGroupSize", 1))
 	filter.count = new(int64)
@@ -66,8 +64,6 @@ func (filter *Sample) Configure(conf core.PluginConfigReader) error {
 	for _, stream := range ignore {
 		filter.ignore[stream] = true
 	}
-
-	return conf.Errors.OrNil()
 }
 
 // ApplyFilter check if all Filter wants to reject the message

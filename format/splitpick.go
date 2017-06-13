@@ -24,8 +24,8 @@ import (
 // ApplyTo defines the formatter content to use
 type SplitPick struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	index                int `config:"Index" default:"0"`
-	delimiter            []byte
+	index                int    `config:"Index" default:"0"`
+	delimiter            []byte `config:"Delimiter" default:":"`
 }
 
 func init() {
@@ -33,14 +33,7 @@ func init() {
 }
 
 // Configure initializes the SplitPick formatter plugin
-func (format *SplitPick) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-	conf.Configure(format, format.Log)
-
-	//format.index = conf.GetInt("Index", 0)
-	format.delimiter = []byte(conf.GetString("Delimiter", ":"))
-
-	return conf.Errors.OrNil()
+func (format *SplitPick) Configure(conf core.PluginConfigReader) {
 }
 
 // ApplyFormatter update message payload

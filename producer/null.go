@@ -34,8 +34,7 @@ func init() {
 }
 
 // Configure initializes the basic members
-func (prod *Null) Configure(conf core.PluginConfigReader) error {
-	return prod.DirectProducer.Configure(conf)
+func (prod *Null) Configure(conf core.PluginConfigReader) {
 }
 
 // Enqueue simply ignores the message

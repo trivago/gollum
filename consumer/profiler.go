@@ -86,20 +86,9 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Profiler) Configure(conf core.PluginConfigReader) error {
-	cons.SimpleConsumer.Configure(conf)
-	conf.Configure(cons, cons.Log)
-
+func (cons *Profiler) Configure(conf core.PluginConfigReader) {
 	numTemplates := conf.GetInt("TemplateCount", 10)
 	cons.templates = make([][]byte, numTemplates)
-	//cons.profileRuns = conf.GetInt("Runs", 10000)
-	//cons.batches = conf.GetInt("Batches", 10)
-	//cons.chars = conf.GetString("Characters", profilerDefaultCharacters)
-	//cons.message = conf.GetString("Message", "%# %256s")
-	//cons.keepRunning = conf.GetBool("KeepRunning", false)
-	//cons.delay = time.Duration(conf.GetInt("DelayMs", 0)) * time.Millisecond
-
-	return conf.Errors.OrNil()
 }
 
 func (cons *Profiler) generateString(size int) string {

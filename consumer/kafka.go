@@ -18,7 +18,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -193,24 +192,10 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
-	cons.SimpleConsumer.Configure(conf)
-	conf.Configure(cons, cons.Log)
-
+func (cons *Kafka) Configure(conf core.PluginConfigReader) {
 	cons.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
-	//cons.topic = conf.GetString("Topic", "default")
-	//cons.group = conf.GetString("GroupId", "")
-	//cons.offsetFile = conf.GetString("OffsetFile", "")
-	//cons.persistTimeout = time.Duration(conf.GetInt("PresistTimoutMs", 5000)) * time.Millisecond
-	//cons.orderedRead = conf.GetBool("Ordered", false)
 	cons.offsets = make(map[int32]*int64)
 	cons.MaxPartitionID = 0
-
-	//folderFlags, err := strconv.ParseInt(conf.GetString("FolderPermissions", "0755"), 8, 32)
-	//cons.folderPermissions = os.FileMode(folderFlags)
-	//if err != nil {
-	//	return err
-	//}
 
 	cons.config = kafka.NewConfig()
 	cons.config.ClientID = conf.GetString("ClientId", "gollum")
@@ -260,24 +245,27 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 		certFile := conf.GetString("TlsCertificateLocation", "")
 		if keyFile != "" && certFile != "" {
 			cert, err := tls.LoadX509KeyPair(certFile, keyFile)
-			if err != nil {
-				return err
+			if conf.Errors.Push(err) {
+				return
 			}
 			cons.config.Net.TLS.Config.Certificates = []tls.Certificate{cert}
 		} else if certFile == "" {
-			return fmt.Errorf("Cannot specify TlsKeyLocation without TlsCertificateLocation")
+			conf.Errors.Pushf("Cannot specify TlsKeyLocation without TlsCertificateLocation")
+			return
 		} else if keyFile == "" {
-			return fmt.Errorf("Cannot specify TlsCertificateLocation without TlsKeyLocation")
+			conf.Errors.Pushf("Cannot specify TlsCertificateLocation without TlsKeyLocation")
+			return
 		}
 
 		caFile := conf.GetString("TlsCaLocation", "")
 		if caFile == "" {
-			return fmt.Errorf("TlsEnable is set to true, but no TlsCaLocation was specified")
+			conf.Errors.Pushf("TlsEnable is set to true, but no TlsCaLocation was specified")
+			return
 		}
 
 		caCert, err := ioutil.ReadFile(caFile)
-		if err != nil {
-			return err
+		if conf.Errors.Push(err) {
+			return
 		}
 
 		caCertPool := x509.NewCertPool()
@@ -339,14 +327,14 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 			// Decode the JSON file into the partition -> offset map
 			encodedOffsets := make(map[string]int64)
 			err = json.Unmarshal(fileContents, &encodedOffsets)
-			if err != nil {
-				return err
+			if conf.Errors.Push(err) {
+				return
 			}
 
 			for k, v := range encodedOffsets {
 				id, err := strconv.Atoi(k)
-				if err != nil {
-					return err
+				if conf.Errors.Push(err) {
+					return
 				}
 				startOffset := v
 				cons.offsets[int32(id)] = &startOffset
@@ -355,7 +343,6 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 	}
 
 	kafka.Logger = cons.Log.Note
-	return conf.Errors.OrNil()
 }
 
 func (cons *Kafka) restartGroup() {

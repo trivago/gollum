@@ -65,8 +65,7 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Console) Configure(conf core.PluginConfigReader) error {
-	cons.SimpleConsumer.Configure(conf)
+func (cons *Console) Configure(conf core.PluginConfigReader) {
 	cons.autoExit = conf.GetBool("ExitOnEOF", false)
 	inputConsole := conf.GetString("Console", "stdin")
 
@@ -84,8 +83,6 @@ func (cons *Console) Configure(conf core.PluginConfigReader) error {
 			cons.pipePerm = uint32(perm)
 		}
 	}
-
-	return conf.Errors.OrNil()
 }
 
 // Enqueue creates a new message

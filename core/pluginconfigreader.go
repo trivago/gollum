@@ -21,16 +21,18 @@ import (
 	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/treflect"
 	"reflect"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // Configureable defines an interface for structs that can be configured using
 // a PluginConfigReader.
 type Configureable interface {
 	// Configure is called during NewPluginWithType
-	Configure(PluginConfigReader) error
+	Configure(PluginConfigReader)
+}
+
+// ScopedLogger defines an interface for structs that have a log scope attached
+type ScopedLogger interface {
+	GetLogScope() tlog.LogScope
 }
 
 // PluginConfigReader provides another convenience wrapper on top of
@@ -233,210 +235,147 @@ func (reader *PluginConfigReader) GetStreamRoutes(key string, defaultValue map[M
 	return value
 }
 
-/*func (reader *PluginConfigReader) Configure(item Configureable) {
+// Configure will configure a given item by scanning for plugin struct tags and
+// calling the Configure method. Nested types will be traversed automatically.
+func (reader *PluginConfigReader) Configure(item Configureable) error {
 	itemValue := reflect.ValueOf(item)
 	if !itemValue.CanAddr() {
 		panic("Configure requires addressable item")
 	}
 
-	configureFields(itemValue)
-	item.Configure(reader)
-}*/
-
-// Configure reads struct tags from the given plugin and sets the tagged values
-// according to config and/or defaults.
-// Avaiable tags: "config" holds the config key, "default" holds the default
-// value, "metric" may store metric quantity information like "kb" or "sec".
-func (reader *PluginConfigReader) Configure(plugin interface{}, log tlog.LogScope) {
-	var (
-		pluginType  reflect.Type
-		pluginValue reflect.Value
-	)
-
-	if val, isVal := plugin.(reflect.Value); isVal {
-		pluginType = treflect.RemovePtrFromType(val.Type())
-		pluginValue = val
-	} else {
-		pluginType = treflect.RemovePtrFromType(plugin)
-		pluginValue = reflect.ValueOf(plugin)
+	var logScope tlog.LogScope
+	if logable, isScoped := item.(ScopedLogger); isScoped {
+		logScope = logable.GetLogScope()
 	}
-	numFields := pluginType.NumField()
 
-	fieldName := ""
+	reader.configureStruct(itemValue, logScope)
+	item.Configure(*reader)
+
+	return reader.Errors.OrNil()
+}
+
+func (reader *PluginConfigReader) configureStruct(structVal reflect.Value, scope tlog.LogScope) {
+	structType := treflect.RemovePtrFromType(structVal.Type())
+	field := reflect.StructField{}
+
+	// Reflection methods might panic. This hook provides context.
 	defer func() {
 		if r := recover(); r != nil {
-			panic(fmt.Sprintf("\"%s\": %v", fieldName, r))
+			panic(fmt.Sprintf("\"%v\": %v", field, r))
 		}
 	}()
 
-	for i := 0; i < numFields; i++ {
-		field := pluginType.Field(i)
-		fieldValue := pluginValue.Elem().Field(i)
-		fieldName = field.Name
+	for fieldIdx := 0; fieldIdx < structType.NumField(); fieldIdx++ {
+		field = structType.Field(fieldIdx)
+		fieldVal := structVal.Elem().Field(fieldIdx)
 
-		if field.Type.Kind() == reflect.Struct {
-			reader.Configure(fieldValue.Addr(), log)
+		if key, hasFieldConfig := field.Tag.Lookup("config"); hasFieldConfig {
+			reader.configureField(fieldVal, key, PluginStructTag(field.Tag), scope)
 			continue
 		}
 
-		if key, haskey := field.Tag.Lookup("config"); haskey {
-			defaultTag, _ := field.Tag.Lookup("default")
-			metric, _ := field.Tag.Lookup("metric")
+		if field.Type.Kind() != reflect.Struct {
+			continue
+		}
 
-			switch field.Type.Kind() {
-			case reflect.Bool:
-				if defaultTag == "" {
-					defaultTag = "false"
-				}
-				defaultValue, err := strconv.ParseBool(defaultTag)
-				reader.Errors.Push(err)
-				treflect.SetValue(fieldValue, reader.GetBool(key, defaultValue))
+		reader.configureStruct(fieldVal.Addr(), scope)
+		if !fieldVal.CanInterface() {
+			continue
+		}
 
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				if defaultTag == "" {
-					defaultTag = "0"
-				}
-				base := 10
-				if len(defaultTag) > 1 && defaultTag[0] == '0' {
-					base = 8
-				}
-				defaultValue, err := strconv.ParseInt(defaultTag, base, 64)
-				reader.Errors.Push(err)
-				value := metricScale(metric) * reader.GetInt(key, defaultValue)
-				treflect.SetValue(fieldValue, value)
-
-			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-				var value uint64
-				if field.Type.Name() == "MessageStreamID" {
-					value = uint64(GetStreamID(reader.GetString(key, defaultTag)))
-				} else {
-					if defaultTag == "" {
-						defaultTag = "0"
-					}
-					base := 10
-					if len(defaultTag) > 1 && defaultTag[0] == '0' {
-						base = 8
-					}
-					defaultValue, err := strconv.ParseUint(defaultTag, base, 64)
-					reader.Errors.Push(err)
-					value = uint64(metricScale(metric)) * reader.GetUint(key, defaultValue)
-				}
-				treflect.SetValue(fieldValue, value)
-
-			case reflect.String:
-				treflect.SetValue(fieldValue, reader.GetString(key, defaultTag))
-
-			case reflect.Array, reflect.Slice:
-				reader.readArray(key, fieldValue, field.Type.Elem(), log, defaultTag)
-
-			case reflect.Interface:
-				reader.readInterface(key, fieldValue, field.Type, log, defaultTag)
-			}
+		if item, isConfigurable := fieldVal.Interface().(Configureable); isConfigurable {
+			item.Configure(*reader)
 		}
 	}
 }
 
-func (reader *PluginConfigReader) readArray(key string, pluginValue reflect.Value, arrayType reflect.Type, log tlog.LogScope, defaultTag string) {
-	elements := strings.Split(defaultTag, ",")
-	switch arrayType.Kind() {
+func (reader *PluginConfigReader) configureField(fieldVal reflect.Value, key string, tags PluginStructTag, scope tlog.LogScope) {
+	switch fieldVal.Kind() {
+	case reflect.Bool:
+		treflect.SetValue(fieldVal, reader.GetBool(key, tags.GetBool()))
+
 	case reflect.String:
-		defaultValue := make([]string, 0, len(elements))
-		for _, e := range elements {
-			defaultValue = append(defaultValue, e)
+		treflect.SetValue(fieldVal, reader.GetString(key, tags.GetString()))
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		treflect.SetValue(fieldVal, reader.GetInt(key, tags.GetInt())*tags.GetMetricScale())
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		var value uint64
+		if fieldVal.Type().Name() == "MessageStreamID" {
+			value = uint64(reader.GetStreamID(key, tags.GetStream()))
+		} else {
+			scalar := uint64(tags.GetMetricScale())
+			value = reader.GetUint(key, tags.GetUint()) * scalar
 		}
-		arrayValue := reader.GetStringArray(key, defaultValue)
-		treflect.SetValue(pluginValue, arrayValue)
+		treflect.SetValue(fieldVal, value)
+
+	case reflect.Array, reflect.Slice:
+		reader.configureArrayField(fieldVal, key, tags, scope)
+
+	case reflect.Interface:
+		reader.configureInterfaceField(fieldVal, key, tags, scope)
+
+	default:
+		panic("Field type not supported")
+	}
+}
+
+func (reader *PluginConfigReader) configureArrayField(fieldVal reflect.Value, key string, tags PluginStructTag, scope tlog.LogScope) {
+	switch fieldVal.Elem().Kind() {
+	case reflect.String:
+		treflect.SetValue(fieldVal, reader.GetStringArray(key, tags.GetStringArray()))
+		return
 
 	case reflect.Int8, reflect.Uint8:
-		defaultValue := reader.GetString(key, defaultTag)
-		byteArray := []byte(defaultValue)
-		treflect.SetValue(pluginValue, byteArray)
+		treflect.SetValue(fieldVal, tags.GetByteArray())
+		return
 
 	case reflect.Uint64:
-		if arrayType.Name() == "MessageStreamID" {
-			defaultValue := make([]MessageStreamID, 0, len(elements))
-			for _, e := range elements {
-				defaultValue = append(defaultValue, GetStreamID(e))
-			}
-			arrayValue := reader.GetStreamArray(key, defaultValue)
-			treflect.SetValue(pluginValue, arrayValue)
+		elementType := fieldVal.Elem().Type()
+		if elementType.Name() == "MessageStreamID" {
+			treflect.SetValue(fieldVal, reader.GetStreamArray(key, tags.GetStreamArray()))
+			return
 		}
 
 	case reflect.Interface:
-		switch arrayType.Name() {
+		elementType := fieldVal.Elem().Type()
+		switch elementType.Name() {
 		case "Router":
-			defaultStreams := []MessageStreamID{GetStreamID(defaultTag)}
-			streams := reader.GetStreamArray(key, defaultStreams)
-			router := make([]Router, 0, len(streams))
+			streams := reader.GetStreamArray(key, tags.GetStreamArray())
+			routers := make([]Router, 0, len(streams))
 			for _, streamID := range streams {
 				if streamID != InvalidStreamID {
-					router = append(router, StreamRegistry.GetRouterOrFallback(streamID))
+					routers = append(routers, StreamRegistry.GetRouterOrFallback(streamID))
 				}
 			}
-			treflect.SetValue(pluginValue, router)
+			treflect.SetValue(fieldVal, routers)
 
 		case "Modulator":
-			modulators := reader.GetModulatorArray(key, log, ModulatorArray{})
-			treflect.SetValue(pluginValue, modulators)
+			modulators := reader.GetModulatorArray(key, scope, ModulatorArray{})
+			treflect.SetValue(fieldVal, modulators)
 
 		case "Filter":
-			filters := reader.GetFilterArray(key, log, FilterArray{})
-			treflect.SetValue(pluginValue, filters)
+			filters := reader.GetFilterArray(key, scope, FilterArray{})
+			treflect.SetValue(fieldVal, filters)
 
 		case "Formatter":
-			formatters := reader.GetFormatterArray(key, log, FormatterArray{})
-			treflect.SetValue(pluginValue, formatters)
-
-		default:
-			panic("Unsupported array interface type: " + arrayType.Name())
+			formatters := reader.GetFormatterArray(key, scope, FormatterArray{})
+			treflect.SetValue(fieldVal, formatters)
 		}
 	}
+
+	panic("Field type not supported")
 }
 
-func (reader *PluginConfigReader) readInterface(key string, pluginValue reflect.Value, fieldType reflect.Type, log tlog.LogScope, defaultTag string) {
+func (reader *PluginConfigReader) configureInterfaceField(fieldVal reflect.Value, key string, tags PluginStructTag, scope tlog.LogScope) {
+	fieldType := treflect.RemovePtrFromType(fieldVal.Type())
 	switch fieldType.Name() {
 	case "Router":
-		streamID := reader.GetStreamID(key, GetStreamID(defaultTag))
-		if streamID != InvalidStreamID {
-			router := StreamRegistry.GetRouterOrFallback(streamID)
-			treflect.SetValue(pluginValue, router)
-		}
-	default:
-		panic("Unsupported interface type: " + fieldType.Name())
-	}
-}
-
-func metricScale(metric string) int64 {
-	switch strings.ToLower(metric) {
-	case "b", "byte", "bytes":
-		return 1
-	case "kb", "kilobyte", "kilobytes":
-		return 1 << 10
-	case "mb", "megabyte", "megabytes":
-		return 1 << 20
-	case "gb", "gigabyte", "gigabytes":
-		return 1 << 30
-	case "tb", "terrabyte", "terrabytes":
-		return 1 << 40
-
-	case "ns", "nanosecond", "nanoseconds":
-		return 1
-	case "µs", "mcs", "microsecond", "microseconds":
-		return int64(time.Microsecond)
-	case "ms", "millisecond", "milliseconds":
-		return int64(time.Millisecond)
-	case "s", "sec", "second", "seconds":
-		return int64(time.Second)
-	case "m", "min", "minute", "minutes":
-		return int64(time.Minute)
-	case "h", "hour", "hours":
-		return int64(time.Hour)
-	case "d", "day", "days":
-		return 24 * int64(time.Hour)
-	case "w", "week", "weeks":
-		return 7 * 24 * int64(time.Hour)
+		streamID := reader.GetStreamID(key, tags.GetStream())
+		treflect.SetValue(fieldVal, StreamRegistry.GetRouterOrFallback(streamID))
 
 	default:
-		return 1
+		panic("Field type not supported")
 	}
 }

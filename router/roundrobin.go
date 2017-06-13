@@ -35,13 +35,10 @@ func init() {
 }
 
 // Configure initializes this distributor with values from a plugin config.
-func (router *RoundRobin) Configure(conf core.PluginConfigReader) error {
-	router.SimpleRouter.Configure(conf)
-
+func (router *RoundRobin) Configure(conf core.PluginConfigReader) {
 	router.index = 0
 	router.indexByStream = make(map[core.MessageStreamID]*int32)
 	router.mapInitLock = new(sync.Mutex)
-	return conf.Errors.OrNil()
 }
 
 // Start the router

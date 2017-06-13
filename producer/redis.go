@@ -89,8 +89,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Redis) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
+func (prod *Redis) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
 	prod.fieldModulators = conf.GetModulatorArray("FieldModulators", prod.Log, core.ModulatorArray{})
@@ -117,8 +116,6 @@ func (prod *Redis) Configure(conf core.PluginConfigReader) error {
 	case "string":
 		prod.store = prod.storeString
 	}
-
-	return nil
 }
 
 func (prod *Redis) getValueAndKey(msg *core.Message) (v []byte, k string) {

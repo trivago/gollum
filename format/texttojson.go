@@ -147,9 +147,7 @@ func parseUnix(layout, value string) (time.Time, error) {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *TextToJSON) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
+func (format *TextToJSON) Configure(conf core.PluginConfigReader) {
 	format.parser = tstrings.NewTransitionParser()
 	format.state = jsonReadObject
 	format.initState = conf.GetString("StartState", "")
@@ -173,7 +171,7 @@ func (format *TextToJSON) Configure(conf core.PluginConfigReader) error {
 
 	if !conf.HasValue("Directives") {
 		format.Log.Warning.Print("JSON formatter has no directives setting")
-		return nil // ### return, no directives ###
+		return // ### return, no directives ###
 	}
 
 	directiveStrings := conf.GetStringArray("Directives", []string{})
@@ -230,8 +228,6 @@ func (format *TextToJSON) Configure(conf core.PluginConfigReader) error {
 			}
 		}
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func (format *TextToJSON) writeKey(key []byte) {
