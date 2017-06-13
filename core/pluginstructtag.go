@@ -56,7 +56,7 @@ func (tag PluginStructTag) GetInt() int64 {
 
 	var base int
 	switch {
-	case tagValue[0] == '0' && tagValue[1] == 'x':
+	case len(tagValue) > 1 && tagValue[0] == '0' && tagValue[1] == 'x':
 		base = 16
 	case tagValue[0] == '0':
 		base = 8
@@ -81,7 +81,7 @@ func (tag PluginStructTag) GetUint() uint64 {
 
 	var base int
 	switch {
-	case tagValue[0] == '0' && tagValue[1] == 'x':
+	case len(tagValue) > 1 && tagValue[0] == '0' && tagValue[1] == 'x':
 		base = 16
 	case tagValue[0] == '0':
 		base = 8

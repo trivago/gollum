@@ -74,7 +74,8 @@ func TestRouterConfigureStream(t *testing.T) {
 	mockConf.Override("TimeoutMs", 100)
 
 	mockRouter := getMockRouter()
-	err := mockRouter.Configure(NewPluginConfigReader(&mockConf))
+	reader := NewPluginConfigReader(&mockConf)
+	err := reader.Configure(&mockRouter)
 	expect.Equal(nil, err)
 }
 

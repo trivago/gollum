@@ -41,24 +41,13 @@ type SimpleRouter struct {
 }
 
 // Configure sets up all values required by SimpleRouter.
-func (router *SimpleRouter) Configure(conf PluginConfigReader) error {
+func (router *SimpleRouter) Configure(conf PluginConfigReader) {
 	router.id = conf.GetID()
 	router.Log = conf.GetLogScope()
-	//router.Timeout = nil
-	//router.streamID = conf.GetStreamID("Stream", GetStreamID(conf.GetID()))
-
-	//router.filters = conf.GetFilterArray("Filters", router.Log, FilterArray{})
 
 	if router.streamID == WildcardStreamID {
 		router.Log.Note.Print("A wildcard stream configuration only affects the wildcard stream, not all routers")
 	}
-
-	//if conf.HasValue("TimeoutMs") {
-	//	timeout := time.Duration(conf.GetInt("TimeoutMs", 0)) * time.Millisecond
-	//	router.Timeout = &timeout
-	//}
-
-	return conf.Errors.OrNil()
 }
 
 // GetLogScope returns the logging scope of this plugin

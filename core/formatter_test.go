@@ -16,6 +16,7 @@ package core
 
 import (
 	"errors"
+	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/ttesting"
 	"testing"
 )
@@ -26,9 +27,12 @@ type dummyFormatter struct {
 	ApplyFormatterHasCalled bool
 }
 
-func (format *dummyFormatter) Configure(conf PluginConfigReader) error {
+func (format *dummyFormatter) Configure(conf PluginConfigReader) {
 	format.ConfigureHasCalled = true
-	return format.SimpleFormatter.Configure(conf)
+}
+
+func (format *dummyFormatter) GetLogScope() tlog.LogScope {
+	return tlog.LogScope{}
 }
 
 func (format *dummyFormatter) ApplyFormatter(msg *Message) error {
@@ -42,9 +46,12 @@ type dummyErrorFormatter struct {
 	ApplyFormatterHasCalled bool
 }
 
-func (format *dummyErrorFormatter) Configure(conf PluginConfigReader) error {
+func (format *dummyErrorFormatter) Configure(conf PluginConfigReader) {
 	format.ConfigureHasCalled = true
-	return format.SimpleFormatter.Configure(conf)
+}
+
+func (format *dummyErrorFormatter) GetLogScope() tlog.LogScope {
+	return tlog.LogScope{}
 }
 
 func (format *dummyErrorFormatter) ApplyFormatter(msg *Message) error {

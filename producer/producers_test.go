@@ -15,7 +15,6 @@
 package producer
 
 import (
-	"fmt"
 	"github.com/trivago/gollum/core"
 	_ "github.com/trivago/gollum/filter"
 	_ "github.com/trivago/gollum/format"

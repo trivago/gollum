@@ -25,8 +25,7 @@ import (
 
 type mockPlugin struct{}
 
-func (m *mockPlugin) Configure(config PluginConfigReader) error {
-	return nil
+func (m *mockPlugin) Configure(config PluginConfigReader) {
 }
 
 func TestPluginRunState(t *testing.T) {

@@ -61,13 +61,11 @@ type SimpleConsumer struct {
 }
 
 // Configure initializes standard consumer values from a plugin config.
-func (cons *SimpleConsumer) Configure(conf PluginConfigReader) error {
+func (cons *SimpleConsumer) Configure(conf PluginConfigReader) {
 	cons.id = conf.GetID()
 	cons.Log = conf.GetLogScope()
 	cons.runState = NewPluginRunState()
 	cons.control = make(chan PluginControl, 1)
-
-	return conf.Errors.OrNil()
 }
 
 // GetLogScope returns the logging scope of this plugin

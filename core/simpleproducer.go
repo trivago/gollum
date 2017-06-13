@@ -94,17 +94,11 @@ type SimpleProducer struct {
 }
 
 // Configure initializes the standard producer config values.
-func (prod *SimpleProducer) Configure(conf PluginConfigReader) error {
+func (prod *SimpleProducer) Configure(conf PluginConfigReader) {
 	prod.id = conf.GetID()
 	prod.Log = conf.GetLogScope()
 	prod.runState = NewPluginRunState()
 	prod.control = make(chan PluginControl, 1)
-	//prod.streams = conf.GetStreamArray("Streams", []MessageStreamID{WildcardStreamID})
-	//prod.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 1000)) * time.Millisecond
-	//prod.modulators = conf.GetModulatorArray("Modulators", prod.Log, ModulatorArray{})
-
-	//fallbackStreamID := StreamRegistry.GetStreamID(conf.GetString("FallbackStream", InvalidStream))
-	//prod.fallbackStream = StreamRegistry.GetRouterOrFallback(fallbackStreamID)
 
 	// Simple health check for the plugin state
 	//   Path: "/<plugin_id>/SimpleProducer/pluginstate"
@@ -115,7 +109,6 @@ func (prod *SimpleProducer) Configure(conf PluginConfigReader) error {
 		return thealthcheck.StatusServiceUnavailable,
 			fmt.Sprintf("NOT_ACTIVE: %s", prod.GetStateString())
 	})
-	return conf.Errors.OrNil()
 }
 
 // GetLogScope returns the logging scope of this plugin

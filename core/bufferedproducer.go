@@ -45,14 +45,10 @@ type BufferedProducer struct {
 }
 
 // Configure initializes the standard producer config values.
-func (prod *BufferedProducer) Configure(conf PluginConfigReader) error {
+func (prod *BufferedProducer) Configure(conf PluginConfigReader) {
 	prod.onPrepareStop = prod.DefaultDrain
 	prod.onStop = prod.DefaultClose
-
 	prod.messages = NewMessageQueue(int(conf.GetInt("Channel", 8192)))
-	//prod.channelTimeout = time.Duration(conf.GetInt("ChannelTimeoutMs", 0)) * time.Millisecond
-
-	return conf.Errors.OrNil()
 }
 
 // GetQueueTimeout returns the duration this producer will block before a

@@ -237,10 +237,10 @@ func (reader *PluginConfigReader) GetStreamRoutes(key string, defaultValue map[M
 
 // Configure will configure a given item by scanning for plugin struct tags and
 // calling the Configure method. Nested types will be traversed automatically.
-func (reader *PluginConfigReader) Configure(item Configureable) error {
+func (reader *PluginConfigReader) Configure(item interface{}) error {
 	itemValue := reflect.ValueOf(item)
-	if !itemValue.CanAddr() {
-		panic("Configure requires addressable item")
+	if itemValue.Kind() != reflect.Ptr {
+		panic("Configure requires reference")
 	}
 
 	var logScope tlog.LogScope
@@ -249,7 +249,9 @@ func (reader *PluginConfigReader) Configure(item Configureable) error {
 	}
 
 	reader.configureStruct(itemValue, logScope)
-	item.Configure(*reader)
+	if confItem, isConfigurable := item.(Configureable); isConfigurable {
+		confItem.Configure(*reader)
+	}
 
 	return reader.Errors.OrNil()
 }
@@ -261,30 +263,36 @@ func (reader *PluginConfigReader) configureStruct(structVal reflect.Value, scope
 	// Reflection methods might panic. This hook provides context.
 	defer func() {
 		if r := recover(); r != nil {
-			panic(fmt.Sprintf("\"%v\": %v", field, r))
+			panic(fmt.Sprintf("\"%s\": %v", field.Name, r))
 		}
 	}()
 
 	for fieldIdx := 0; fieldIdx < structType.NumField(); fieldIdx++ {
 		field = structType.Field(fieldIdx)
-		fieldVal := structVal.Elem().Field(fieldIdx)
+		fieldVal := treflect.RemovePtrFromValue(structVal).Field(fieldIdx)
 
 		if key, hasFieldConfig := field.Tag.Lookup("config"); hasFieldConfig {
 			reader.configureField(fieldVal, key, PluginStructTag(field.Tag), scope)
-			continue
+			continue // ### continue, configured by tag ###
 		}
 
-		if field.Type.Kind() != reflect.Struct {
-			continue
+		fieldType := treflect.RemovePtrFromType(field.Type)
+		if fieldType.Kind() != reflect.Struct {
+			continue // ### continue, no nesting ###
 		}
 
-		reader.configureStruct(fieldVal.Addr(), scope)
-		if !fieldVal.CanInterface() {
-			continue
+		if field.Type.Kind() == reflect.Ptr && fieldVal.IsNil() {
+			continue // ### continue, ptr-to-nil struct ###
 		}
 
-		if item, isConfigurable := fieldVal.Interface().(Configureable); isConfigurable {
-			item.Configure(*reader)
+		fieldValPtr := fieldVal.Addr()
+		reader.configureStruct(fieldValPtr, scope)
+		if !fieldValPtr.CanInterface() {
+			continue // ### continue, cannot cast ###
+		}
+
+		if confItem, isConfigurable := fieldValPtr.Interface().(Configureable); isConfigurable {
+			confItem.Configure(*reader)
 		}
 	}
 }
@@ -322,24 +330,23 @@ func (reader *PluginConfigReader) configureField(fieldVal reflect.Value, key str
 }
 
 func (reader *PluginConfigReader) configureArrayField(fieldVal reflect.Value, key string, tags PluginStructTag, scope tlog.LogScope) {
-	switch fieldVal.Elem().Kind() {
+	elementType := fieldVal.Type().Elem()
+
+	switch elementType.Kind() {
 	case reflect.String:
 		treflect.SetValue(fieldVal, reader.GetStringArray(key, tags.GetStringArray()))
-		return
 
 	case reflect.Int8, reflect.Uint8:
-		treflect.SetValue(fieldVal, tags.GetByteArray())
-		return
+		treflect.SetValue(fieldVal, []byte(reader.GetString(key, tags.GetString())))
 
 	case reflect.Uint64:
-		elementType := fieldVal.Elem().Type()
 		if elementType.Name() == "MessageStreamID" {
 			treflect.SetValue(fieldVal, reader.GetStreamArray(key, tags.GetStreamArray()))
-			return
+		} else {
+			panic("Field type not supported")
 		}
 
 	case reflect.Interface:
-		elementType := fieldVal.Elem().Type()
 		switch elementType.Name() {
 		case "Router":
 			streams := reader.GetStreamArray(key, tags.GetStreamArray())
@@ -363,9 +370,11 @@ func (reader *PluginConfigReader) configureArrayField(fieldVal reflect.Value, ke
 			formatters := reader.GetFormatterArray(key, scope, FormatterArray{})
 			treflect.SetValue(fieldVal, formatters)
 		}
+
+	default:
+		panic("Field type not supported")
 	}
 
-	panic("Field type not supported")
 }
 
 func (reader *PluginConfigReader) configureInterfaceField(fieldVal reflect.Value, key string, tags PluginStructTag, scope tlog.LogScope) {

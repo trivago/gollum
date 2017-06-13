@@ -16,7 +16,6 @@ package core
 
 import (
 	"github.com/trivago/tgo/tcontainer"
-	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/ttesting"
 	"testing"
 	"time"
@@ -38,6 +37,9 @@ type testPluginAutoConfig struct {
 	ModulatorArray ModulatorArray    `config:"modulatorArray"`
 	FilterArray    FilterArray       `config:"filterArray"`
 	FormatterArray FormatterArray    `config:"formatterArray"`
+}
+
+func (t *testPluginAutoConfig) Configure(conf PluginConfigReader) {
 }
 
 func TestConfigReaderAutoConfig(t *testing.T) {
@@ -80,7 +82,8 @@ func TestConfigReaderAutoConfig(t *testing.T) {
 
 	reader := NewPluginConfigReader(&config)
 	myStruct := testPluginAutoConfig{}
-	reader.Configure(&myStruct, tlog.NewLogScope("test"))
+	reader.Configure(&myStruct)
+	//reader.Configure(&myStruct, tlog.NewLogScope("test"))
 
 	expect.NoError(reader.Errors.OrNil())
 	expect.True(myStruct.BoolValue)

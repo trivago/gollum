@@ -48,17 +48,11 @@ type BatchedProducer struct {
 }
 
 // Configure initializes the standard producer config values.
-func (prod *BatchedProducer) Configure(conf PluginConfigReader) error {
+func (prod *BatchedProducer) Configure(conf PluginConfigReader) {
 	prod.SetStopCallback(prod.DefaultClose)
 
-	//prod.batchMaxCount = conf.GetInt("Batch/MaxCount", 8192)
-	//prod.batchFlushCount = conf.GetInt("Batch/FlushCount", prod.batchMaxCount/2)
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
-	//prod.batchTimeout = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
-
 	prod.Batch = NewMessageBatch(prod.batchMaxCount)
-
-	return conf.Errors.OrNil()
 }
 
 // Enqueue will add the message to the internal channel so it can be processed

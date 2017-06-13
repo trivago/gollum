@@ -15,14 +15,13 @@
 package core
 
 import (
+	"github.com/trivago/tgo/tlog"
+	"github.com/trivago/tgo/ttesting"
 	"math"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
-
-	"github.com/trivago/tgo/tlog"
-	"github.com/trivago/tgo/ttesting"
 )
 
 type mockProducer struct {
@@ -65,7 +64,8 @@ func TestProducerConfigure(t *testing.T) {
 	// Router needs to be configured to avoid unknown class errors
 	registerMockRouter("mockStream")
 
-	err := mockProducer.Configure(NewPluginConfigReader(&mockConf))
+	reader := NewPluginConfigReader(&mockConf)
+	err := reader.Configure(&mockProducer)
 	expect.NoError(err)
 }
 

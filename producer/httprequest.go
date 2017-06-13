@@ -97,9 +97,6 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) {
 	prod.destinationURL, err = url.Parse(address)
 	conf.Errors.Push(err)
 
-	//prod.encoding = conf.GetString("Encoding", "text/plain; charset=utf-8")
-	//prod.rawPackets = conf.GetBool("RawData", true)
-
 	// Default health check to ping the backend with an HTTP GET
 	prod.AddHealthCheck(prod.healthcheckPingBackend)
 

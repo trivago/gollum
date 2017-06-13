@@ -16,6 +16,7 @@ package filter
 
 import (
 	"github.com/trivago/gollum/core"
+	"runtime/debug"
 	"testing"
 )
 
@@ -26,7 +27,14 @@ func TestFilterInterface(t *testing.T) {
 		t.Error("No filters defined")
 	}
 
-	for _, name := range filters {
+	name := ""
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Panic while testing %s\n%v\n\n%s", name, r, string(debug.Stack()))
+		}
+	}()
+
+	for _, name = range filters {
 		conf := core.NewPluginConfig("", name)
 		_, err := core.NewPluginWithConfig(conf)
 		if err != nil {
