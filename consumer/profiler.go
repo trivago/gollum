@@ -79,8 +79,6 @@ type Profiler struct {
 	templates           [][]byte
 }
 
-//var profilerDefaultCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 "
-
 func init() {
 	core.TypeRegistry.Register(Profiler{})
 }
