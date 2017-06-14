@@ -95,7 +95,7 @@ type PluginRunState struct {
 // Plugin is the base class for any runtime class that can be configured and
 // instantiated during runtime.
 type Plugin interface {
-	Configureable
+	Configurable
 }
 
 // PluginWithState allows certain plugins to give information about their runstate

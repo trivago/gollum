@@ -23,9 +23,9 @@ import (
 	"reflect"
 )
 
-// Configureable defines an interface for structs that can be configured using
+// Configurable defines an interface for structs that can be configured using
 // a PluginConfigReader.
-type Configureable interface {
+type Configurable interface {
 	// Configure is called during NewPluginWithType
 	Configure(PluginConfigReader)
 }
@@ -249,7 +249,7 @@ func (reader *PluginConfigReader) Configure(item interface{}) error {
 	}
 
 	reader.configureStruct(itemValue, logScope)
-	if confItem, isConfigurable := item.(Configureable); isConfigurable {
+	if confItem, isConfigurable := item.(Configurable); isConfigurable {
 		confItem.Configure(*reader)
 	}
 
@@ -291,7 +291,7 @@ func (reader *PluginConfigReader) configureStruct(structVal reflect.Value, scope
 			continue // ### continue, cannot cast ###
 		}
 
-		if confItem, isConfigurable := fieldValPtr.Interface().(Configureable); isConfigurable {
+		if confItem, isConfigurable := fieldValPtr.Interface().(Configurable); isConfigurable {
 			confItem.Configure(*reader)
 		}
 	}

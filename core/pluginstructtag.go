@@ -172,9 +172,9 @@ var metricScale = map[string]int64{
 	"gigabyte":  metricScaleGB,
 	"gigabytes": metricScaleGB,
 
-	"tb":         metricScaleTB,
-	"terrabyte":  metricScaleTB,
-	"terrabytes": metricScaleTB,
+	"tb":        metricScaleTB,
+	"terabyte":  metricScaleTB,
+	"terabytes": metricScaleTB,
 
 	"ns":          metricScaleNs,
 	"nanosecond":  metricScaleNs,
