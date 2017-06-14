@@ -63,9 +63,9 @@ type DirectProducer struct {
 }
 
 // Configure initializes the standard producer config values.
-func (prod *DirectProducer) Configure(conf PluginConfigReader) {
-	// Required override of the inherited configure method
-}
+//func (prod *DirectProducer) Configure(conf PluginConfigReader) {
+//	// Required override of the inherited configure method
+//}
 
 // Enqueue will add the message to the internal channel so it can be processed
 // by the producer main loop. A timeout value != nil will overwrite the channel

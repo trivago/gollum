@@ -250,7 +250,10 @@ func (reader *PluginConfigReader) Configure(item interface{}) error {
 
 	reader.configureStruct(itemValue, logScope)
 	if confItem, isConfigurable := item.(Configureable); isConfigurable {
-		confItem.Configure(*reader)
+		itemType := reflect.TypeOf(item)
+		if _, methodNotInherited := itemType.MethodByName("Configure"); methodNotInherited {
+			confItem.Configure(*reader)
+		}
 	}
 
 	return reader.Errors.OrNil()
@@ -292,7 +295,9 @@ func (reader *PluginConfigReader) configureStruct(structVal reflect.Value, scope
 		}
 
 		if confItem, isConfigurable := fieldValPtr.Interface().(Configureable); isConfigurable {
-			confItem.Configure(*reader)
+			if _, methodNotInherited := fieldType.MethodByName("Configure"); methodNotInherited {
+				confItem.Configure(*reader)
+			}
 		}
 	}
 }
