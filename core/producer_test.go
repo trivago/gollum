@@ -28,6 +28,9 @@ type mockProducer struct {
 	BufferedProducer
 }
 
+func (prod *mockProducer) Configure(conf PluginConfigReader) {
+}
+
 func (prod *mockProducer) Produce(workers *sync.WaitGroup) {
 	// does something.
 }

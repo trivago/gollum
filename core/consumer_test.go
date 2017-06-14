@@ -29,6 +29,9 @@ type mockConsumer struct {
 	SimpleConsumer
 }
 
+func (mc *mockConsumer) Configure(conf PluginConfigReader) {
+}
+
 func (mc *mockConsumer) Consume(wg *sync.WaitGroup) {
 	// consumes something
 }

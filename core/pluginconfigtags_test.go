@@ -73,6 +73,10 @@ func TestConfigReaderAutoConfig(t *testing.T) {
 		map[interface{}]interface{}{"core.mockFilter": tcontainer.NewMarshalMap()},
 	}
 	values["modulatorArray"] = []interface{}{
+		map[interface{}]interface{}{"core.mockFilter": tcontainer.NewMarshalMap()},
+		map[interface{}]interface{}{"core.mockFormatter": tcontainer.NewMarshalMap()},
+	}
+	values["formatterArray"] = []interface{}{
 		map[interface{}]interface{}{"core.mockFormatter": tcontainer.NewMarshalMap()},
 		map[interface{}]interface{}{"core.mockFormatter": tcontainer.NewMarshalMap()},
 	}
@@ -83,7 +87,6 @@ func TestConfigReaderAutoConfig(t *testing.T) {
 	reader := NewPluginConfigReader(&config)
 	myStruct := testPluginAutoConfig{}
 	reader.Configure(&myStruct)
-	//reader.Configure(&myStruct, tlog.NewLogScope("test"))
 
 	expect.NoError(reader.Errors.OrNil())
 	expect.True(myStruct.BoolValue)
@@ -106,6 +109,6 @@ func TestConfigReaderAutoConfig(t *testing.T) {
 	}
 
 	expect.Equal(2, len(myStruct.FilterArray))
-	//expect.Equal(2, len(myStruct.FormatterArray))
-	//expect.Equal(2, len(myStruct.ModulatorArray))
+	expect.Equal(2, len(myStruct.FormatterArray))
+	expect.Equal(2, len(myStruct.ModulatorArray))
 }

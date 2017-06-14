@@ -40,6 +40,10 @@ func init() {
 	core.TypeRegistry.Register(CollectdToInflux08{})
 }
 
+// Configure initializes this formatter with values from a plugin config.
+func (format *CollectdToInflux08) Configure(conf core.PluginConfigReader) {
+}
+
 func (format *CollectdToInflux08) createMetricName(plugin string, pluginInstance string, pluginType string, pluginTypeInstance string, host string) string {
 	if pluginInstance != "" {
 		pluginInstance = "-" + pluginInstance

@@ -46,6 +46,10 @@ func init() {
 	core.TypeRegistry.Register(Runlength{})
 }
 
+// Configure initializes this formatter with values from a plugin config.
+func (format *Runlength) Configure(conf core.PluginConfigReader) {
+}
+
 // ApplyFormatter update message payload
 func (format *Runlength) ApplyFormatter(msg *core.Message) error {
 	content := format.GetAppliedContent(msg)

@@ -42,6 +42,10 @@ func init() {
 	core.TypeRegistry.Register(JSONToArray{})
 }
 
+// Configure initializes this formatter with values from a plugin config.
+func (format *JSONToArray) Configure(conf core.PluginConfigReader) {
+}
+
 // ApplyFormatter update message payload
 func (format *JSONToArray) ApplyFormatter(msg *core.Message) error {
 	content, err := format.getCsvContent(format.GetAppliedContent(msg))

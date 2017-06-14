@@ -60,6 +60,10 @@ func init() {
 	core.TypeRegistry.Register(SplitToJSON{})
 }
 
+// Configure initializes this formatter with values from a plugin config.
+func (format *SplitToJSON) Configure(conf core.PluginConfigReader) {
+}
+
 // ApplyFormatter update message payload
 func (format *SplitToJSON) ApplyFormatter(msg *core.Message) error {
 	components := bytes.Split(format.GetAppliedContent(msg), format.token)

@@ -53,6 +53,10 @@ func init() {
 	core.TypeRegistry.Register(StreamRoute{})
 }
 
+// Configure initializes this formatter with values from a plugin config.
+func (format *StreamRoute) Configure(conf core.PluginConfigReader) {
+}
+
 // ApplyFormatter update message payload
 func (format *StreamRoute) ApplyFormatter(msg *core.Message) error {
 	content := format.GetAppliedContent(msg)

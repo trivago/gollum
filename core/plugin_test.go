@@ -68,17 +68,14 @@ func TestNewPlugin(t *testing.T) {
 	_, err := NewPluginWithConfig(config)
 	expect.NotNil(err) // No type used
 
-	// DISABLED: Currently the plugin interface is empty as configuration
-	//           does not need a Configure method anymore.
-	//           Code left in place so we can reactivate it if necessary.
-	// Check inavlid type given
-	//type notPlugin struct {
-	//}
-	//TypeRegistry.Register(notPlugin{})
+	// Check missing configure method
+	type notPlugin struct {
+	}
+	TypeRegistry.Register(notPlugin{})
 
-	//config, _ = NewNestedPluginConfig("core.notPlugin", tcontainer.NewMarshalMap())
-	//_, err = NewPluginWithConfig(config)
-	//expect.NotNil(err)
+	config, _ = NewNestedPluginConfig("core.notPlugin", tcontainer.NewMarshalMap())
+	_, err = NewPluginWithConfig(config)
+	expect.NotNil(err)
 
 	// Check valid type and config
 	TypeRegistry.Register(mockPlugin{})

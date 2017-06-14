@@ -45,6 +45,10 @@ func init() {
 	core.TypeRegistry.Register(StreamName{})
 }
 
+// Configure initializes this formatter with values from a plugin config.
+func (format *StreamName) Configure(conf core.PluginConfigReader) {
+}
+
 // ApplyFormatter update message payload
 func (format *StreamName) ApplyFormatter(msg *core.Message) error {
 	streamName := format.getStreamName(msg)

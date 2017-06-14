@@ -18,6 +18,9 @@ type mockFilter struct {
 	SimpleFilter
 }
 
+func (filter *mockFilter) Configure(config PluginConfigReader) {
+}
+
 func (filter *mockFilter) ApplyFilter(msg *Message) (FilterResult, error) {
 	return FilterResultMessageAccept, nil
 }

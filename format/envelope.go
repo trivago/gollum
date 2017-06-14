@@ -49,6 +49,10 @@ func init() {
 	core.TypeRegistry.Register(Envelope{})
 }
 
+// Configure initializes this formatter with values from a plugin config.
+func (format *Envelope) Configure(conf core.PluginConfigReader) {
+}
+
 // ApplyFormatter update message payload
 func (format *Envelope) ApplyFormatter(msg *core.Message) error {
 	prefixLen := len(format.prefix)

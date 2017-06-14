@@ -34,6 +34,10 @@ func init() {
 	core.TypeRegistry.Register(Serialize{})
 }
 
+// Configure initializes this formatter with values from a plugin config.
+func (format *Serialize) Configure(conf core.PluginConfigReader) {
+}
+
 // ApplyFormatter update message payload
 func (format *Serialize) ApplyFormatter(msg *core.Message) error {
 	data, err := msg.Serialize()

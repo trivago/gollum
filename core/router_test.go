@@ -27,6 +27,9 @@ type mockRouter struct {
 	SimpleRouter
 }
 
+func (router *mockRouter) Configure(config PluginConfigReader) {
+}
+
 func (router *mockRouter) Enqueue(msg *Message) error {
 	return nil
 }

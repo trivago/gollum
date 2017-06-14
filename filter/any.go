@@ -42,6 +42,10 @@ func init() {
 	core.TypeRegistry.Register(Any{})
 }
 
+// Configure initializes this filter with values from a plugin config.
+func (filter *Any) Configure(conf core.PluginConfigReader) {
+}
+
 // ApplyFilter check if all Filter wants to reject the message
 func (filter *Any) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	for _, subFilter := range filter.filters {

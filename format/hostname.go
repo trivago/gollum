@@ -42,6 +42,10 @@ func init() {
 	core.TypeRegistry.Register(Hostname{})
 }
 
+// Configure initializes this formatter with values from a plugin config.
+func (format *Hostname) Configure(conf core.PluginConfigReader) {
+}
+
 // ApplyFormatter update message payload
 func (format *Hostname) ApplyFormatter(msg *core.Message) error {
 	content := format.getFinalContent(format.GetAppliedContent(msg))
