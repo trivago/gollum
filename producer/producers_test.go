@@ -44,7 +44,7 @@ func TestProducerInterface(t *testing.T) {
 		}
 	}()
 
-	idx := 0
+	var idx int
 	for idx, name = range producers {
 		conf := core.NewPluginConfig(fmt.Sprintf("prod%d", idx), name)
 		_, err := core.NewPluginWithConfig(conf)
