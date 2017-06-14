@@ -78,9 +78,9 @@ type Proxy struct {
 	connection            net.Conn
 	protocol              string
 	address               string
-	bufferSizeKB          int
+	bufferSizeKB          int           `config:"ConnectionBufferSizeKB" default:"1024" metric:"mb"`
+	timeout               time.Duration `config:"TimeoutSec" default:"1" metric:"sec"`
 	reader                *tio.BufferedReader
-	timeout               time.Duration
 }
 
 func init() {
@@ -88,20 +88,16 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Proxy) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
+func (prod *Proxy) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
-	prod.bufferSizeKB = conf.GetInt("ConnectionBufferSizeKB", 1<<10) // 1 MB
 	prod.protocol, prod.address = tnet.ParseAddress(conf.GetString("Address", ":5880"), "tcp")
 	if prod.protocol == "udp" {
 		conf.Errors.Pushf("Proxy does not support UDP")
 	}
 
-	prod.timeout = time.Duration(conf.GetInt("TimeoutSec", 1)) * time.Second
-
 	delimiter := tstrings.Unescape(conf.GetString("Delimiter", "\n"))
-	offset := conf.GetInt("Offset", 0)
+	offset := int(conf.GetInt("Offset", 0))
 	flags := tio.BufferedReaderFlagEverything // pass all messages as-is
 
 	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))
@@ -126,7 +122,7 @@ func (prod *Proxy) Configure(conf core.PluginConfigReader) error {
 
 	case "fixed":
 		flags |= tio.BufferedReaderFlagMLEFixed
-		offset = conf.GetInt("Size", 1)
+		offset = int(conf.GetInt("Size", 1))
 
 	case "ascii":
 		flags |= tio.BufferedReaderFlagMLE
@@ -139,7 +135,6 @@ func (prod *Proxy) Configure(conf core.PluginConfigReader) error {
 	}
 
 	prod.reader = tio.NewBufferedReader(prod.bufferSizeKB, flags, offset, delimiter)
-	return conf.Errors.OrNil()
 }
 
 func (prod *Proxy) sendMessage(msg *core.Message) {

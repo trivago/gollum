@@ -12,27 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package producer
+package core
 
-import (
-	"github.com/trivago/gollum/core"
-	"sync"
-)
-
-// Benchmark producer plugin
-// The producer is used to benchmark the core system.
-type Benchmark struct {
-	core.DirectProducer `gollumdoc:"embed_type"`
+type mockFilter struct {
+	SimpleFilter
 }
 
-func init() {
-	core.TypeRegistry.Register(Benchmark{})
+func (filter *mockFilter) Configure(config PluginConfigReader) {
 }
 
-func (prod *Benchmark) null(msg *core.Message) {
-}
-
-// Produce writes to stdout or stderr.
-func (prod *Benchmark) Produce(workers *sync.WaitGroup) {
-	prod.MessageControlLoop(prod.null)
+func (filter *mockFilter) ApplyFilter(msg *Message) (FilterResult, error) {
+	return FilterResultMessageAccept, nil
 }

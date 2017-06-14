@@ -45,16 +45,11 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *TemplateJSON) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
+func (format *TemplateJSON) Configure(conf core.PluginConfigReader) {
 	var err error
-
 	tpl := conf.GetString("Template", "")
 	format.template, err = template.New("TemplateJSON").Parse(tpl)
 	conf.Errors.Push(err)
-
-	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload

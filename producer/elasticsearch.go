@@ -155,26 +155,25 @@ func makeElasticMapping() elasticMapping {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
+func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
 	defaultServer := []string{"localhost"}
-	numConnections := conf.GetInt("NumConnections", 6)
-	retrySec := conf.GetInt("RetrySec", 5)
+	numConnections := int(conf.GetInt("NumConnections", 6))
+	retrySec := int(conf.GetInt("RetrySec", 5))
 
 	prod.conn = elastigo.NewConn()
 	prod.conn.Hosts = conf.GetStringArray("Servers", defaultServer)
 	prod.conn.Domain = conf.GetString("Domain", prod.conn.Hosts[0])
 	prod.conn.ClusterDomains = prod.conn.Hosts
-	prod.conn.Port = strconv.Itoa(conf.GetInt("Port", 9200))
+	prod.conn.Port = strconv.Itoa(int(conf.GetInt("Port", 9200)))
 	prod.conn.Username = conf.GetString("User", "")
 	prod.conn.Password = conf.GetString("Password", "")
 
 	prod.indexer = prod.conn.NewBulkIndexerErrors(numConnections, retrySec)
 	prod.indexer.BufferDelayMax = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
-	prod.indexer.BulkMaxBuffer = conf.GetInt("Batch/SizeByte", 32768)
-	prod.indexer.BulkMaxDocs = conf.GetInt("Batch/MaxCount", 128)
+	prod.indexer.BulkMaxBuffer = int(conf.GetInt("Batch/SizeByte", 32768))
+	prod.indexer.BulkMaxDocs = int(conf.GetInt("Batch/MaxCount", 128))
 
 	prod.indexer.Sender = func(buf *bytes.Buffer) error {
 		_, err := prod.conn.DoCommand("POST", "/_bulk", nil, buf)
@@ -222,8 +221,6 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) error {
 			mappings.Settings, _ = indexSettings.MarshalMap(index)
 		}
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func (prod *ElasticSearch) isClusterUp() bool {

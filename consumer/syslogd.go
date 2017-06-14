@@ -56,9 +56,7 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Syslogd) Configure(conf core.PluginConfigReader) error {
-	cons.SimpleConsumer.Configure(conf)
-
+func (cons *Syslogd) Configure(conf core.PluginConfigReader) {
 	cons.protocol, cons.address = tnet.ParseAddress(conf.GetString("Address", "udp://0.0.0.0:514"), "tcp")
 	format := conf.GetString("Format", "RFC6587")
 
@@ -92,8 +90,6 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) error {
 	default:
 		conf.Errors.Pushf("Format %s is not supported", format)
 	}
-
-	return conf.Errors.OrNil()
 }
 
 // Handle implements the syslog handle interface

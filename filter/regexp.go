@@ -47,10 +47,8 @@ func init() {
 }
 
 // Configure initializes this filter with values from a plugin config.
-func (filter *RegExp) Configure(conf core.PluginConfigReader) error {
+func (filter *RegExp) Configure(conf core.PluginConfigReader) {
 	var err error
-	filter.SimpleFilter.Configure(conf)
-
 	exp := conf.GetString("Expression", "")
 	if exp != "" {
 		filter.exp, err = regexp.Compile(exp)
@@ -64,8 +62,6 @@ func (filter *RegExp) Configure(conf core.PluginConfigReader) error {
 	}
 
 	filter.getAppliedContent = core.GetAppliedContentGetFunction(conf.GetString("ApplyTo", ""))
-
-	return conf.Errors.OrNil()
 }
 
 // ApplyFilter check if all Filter wants to reject the message

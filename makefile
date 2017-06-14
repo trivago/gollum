@@ -2,7 +2,7 @@
 .DEFAULT_GOAL := current
 
 VERSION=0.5.0
-BUILD_ENV=GO15VENDOREXPERIMENT=1 GORACE="halt_on_error=0"
+BUILD_ENV=GORACE="halt_on_error=0"
 BUILD_FLAGS=-ldflags=-s
 
 UNIT_TEST_TAGS="unit"
@@ -111,7 +111,7 @@ clean:
 
 docker: linux
 	@echo "Building docker image"
-	@docker build --squash -t trivago/gollum:$(VERSION)-latest .
+	@docker build --squash -t trivago/gollum:$(VERSION) .
 
 docker-dev:
 	@echo "Building development docker image"

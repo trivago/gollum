@@ -19,7 +19,6 @@ import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tnet"
-	"github.com/trivago/tgo/tstrings"
 	"io"
 	"net"
 	"strings"
@@ -82,8 +81,8 @@ type Proxy struct {
 	protocol            string
 	address             string
 	flags               tio.BufferedReaderFlags
-	delimiter           string
-	offset              int
+	delimiter           string `config:"Delimiter" default:"\n"`
+	offset              int    `config:"Offset" default:"0"`
 }
 
 func init() {
@@ -91,16 +90,12 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Proxy) Configure(conf core.PluginConfigReader) error {
-	cons.SimpleConsumer.Configure(conf)
-
+func (cons *Proxy) Configure(conf core.PluginConfigReader) {
 	cons.protocol, cons.address = tnet.ParseAddress(conf.GetString("Address", ":5880"), "tcp")
 	if cons.protocol == "udp" {
 		conf.Errors.Pushf("UDP is not supported")
 	}
 
-	cons.delimiter = tstrings.Unescape(conf.GetString("Delimiter", "\n"))
-	cons.offset = conf.GetInt("Offset", 0)
 	cons.flags = tio.BufferedReaderFlagEverything
 
 	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))
@@ -125,7 +120,7 @@ func (cons *Proxy) Configure(conf core.PluginConfigReader) error {
 
 	case "fixed":
 		cons.flags |= tio.BufferedReaderFlagMLEFixed
-		cons.offset = conf.GetInt("Size", 1)
+		cons.offset = int(conf.GetInt("Size", 1))
 
 	case "ascii":
 		cons.flags |= tio.BufferedReaderFlagMLE
@@ -136,8 +131,6 @@ func (cons *Proxy) Configure(conf core.PluginConfigReader) error {
 	default:
 		conf.Errors.Pushf("Unknown partitioner: %s", partitioner)
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func (cons *Proxy) accept() {

@@ -17,7 +17,6 @@ package producer
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -187,17 +186,17 @@ const (
 // If no topic mappings are set the stream names will be used as topic.
 type Kafka struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
-	servers               []string
 	topicGuard            *sync.RWMutex
 	topic                 map[core.MessageStreamID]*topicHandle
 	topicHandles          map[string]*topicHandle
 	streamToTopic         map[core.MessageStreamID]string
-	clientID              string
+	servers               []string      `config:"Servers" default:"localhost:9092"`
+	clientID              string        `config:"ClientId" default:"gollum"`
+	gracePeriod           time.Duration `config:"GracePeriodMs" default:"100" metric:"ms"`
 	client                kafka.Client
 	config                *kafka.Config
 	producer              kafka.AsyncProducer
 	missCount             int64
-	gracePeriod           time.Duration
 	nilValueAllowed       bool
 	keyMetaField          string
 }
@@ -219,23 +218,19 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
+func (prod *Kafka) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
 	kafka.Logger = prod.Log.Note
 
-	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
-	prod.clientID = conf.GetString("ClientId", "gollum")
-	prod.gracePeriod = time.Duration(conf.GetInt("GracePeriodMs", 100)) * time.Millisecond
 	prod.topicGuard = new(sync.RWMutex)
 	prod.streamToTopic = conf.GetStreamMap("Topics", "")
 	prod.topic = make(map[core.MessageStreamID]*topicHandle)
 	prod.topicHandles = make(map[string]*topicHandle)
 
 	prod.config = kafka.NewConfig()
-	prod.config.ClientID = conf.GetString("ClientId", "gollum")
-	prod.config.ChannelBufferSize = conf.GetInt("MessageBufferCount", 8192)
+	prod.config.ClientID = prod.clientID
+	prod.config.ChannelBufferSize = int(conf.GetInt("MessageBufferCount", 8192))
 
 	switch ver := conf.GetString("Version", "0.8.2"); ver {
 	case "0.8.2.0":
@@ -268,8 +263,8 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 		}
 	}
 
-	prod.config.Net.MaxOpenRequests = conf.GetInt("MaxOpenRequests", 5)
-	prod.config.Net.DialTimeout = time.Duration(conf.GetInt("ServerTimeoutSec", 30)) * time.Second
+	prod.config.Net.MaxOpenRequests = int(conf.GetInt("MaxOpenRequests", 5))
+	prod.config.Net.DialTimeout = time.Duration(int(conf.GetInt("ServerTimeoutSec", 30))) * time.Second
 	prod.config.Net.ReadTimeout = prod.config.Net.DialTimeout
 	prod.config.Net.WriteTimeout = prod.config.Net.DialTimeout
 
@@ -281,24 +276,26 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 		certFile := conf.GetString("TlsCertificateLocation", "")
 		if keyFile != "" && certFile != "" {
 			cert, err := tls.LoadX509KeyPair(certFile, keyFile)
-			if err != nil {
-				return err
+			if conf.Errors.Push(err) {
+				return
 			}
 			prod.config.Net.TLS.Config.Certificates = []tls.Certificate{cert}
 		} else if certFile == "" {
-			return fmt.Errorf("Cannot specify TlsKeyLocation without TlsCertificateLocation")
+			conf.Errors.Pushf("Cannot specify TlsKeyLocation without TlsCertificateLocation")
+			return
 		} else if keyFile == "" {
-			return fmt.Errorf("Cannot specify TlsCertificateLocation without TlsKeyLocation")
+			conf.Errors.Pushf("Cannot specify TlsCertificateLocation without TlsKeyLocation")
+			return
 		}
 
 		caFile := conf.GetString("TlsCaLocation", "")
 		if caFile == "" {
-			return fmt.Errorf("TlsEnable is set to true, but no TlsCaLocation was specified")
+			conf.Errors.Pushf("TlsEnable is set to true, but no TlsCaLocation was specified")
+			return
 		}
-
 		caCert, err := ioutil.ReadFile(caFile)
-		if err != nil {
-			return err
+		if conf.Errors.Push(err) {
+			return
 		}
 
 		caCertPool := x509.NewCertPool()
@@ -311,6 +308,7 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 		}
 
 		prod.config.Net.TLS.Config.InsecureSkipVerify = conf.GetBool("TlsInsecureSkipVerify", false)
+
 	}
 
 	prod.config.Net.SASL.Enable = conf.GetBool("SaslEnable", false)
@@ -319,18 +317,18 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 		prod.config.Net.SASL.Password = conf.GetString("SaslPassword", "")
 	}
 
-	prod.config.Metadata.Retry.Max = conf.GetInt("ElectRetries", 3)
+	prod.config.Metadata.Retry.Max = int(conf.GetInt("ElectRetries", 3))
 	prod.config.Metadata.Retry.Backoff = time.Duration(conf.GetInt("ElectTimeoutMs", 250)) * time.Millisecond
 	prod.config.Metadata.RefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshMs", 600000)) * time.Millisecond
 
-	prod.config.Producer.MaxMessageBytes = conf.GetInt("Batch/SizeMaxKB", 1<<10) << 10
-	prod.config.Producer.RequiredAcks = kafka.RequiredAcks(conf.GetInt("RequiredAcks", int(kafka.WaitForLocal)))
+	prod.config.Producer.MaxMessageBytes = int(conf.GetInt("Batch/SizeMaxKB", 1<<10)) << 10
+	prod.config.Producer.RequiredAcks = kafka.RequiredAcks(conf.GetInt("RequiredAcks", int64(kafka.WaitForLocal)))
 	prod.config.Producer.Timeout = time.Duration(conf.GetInt("TimoutMs", 10000)) * time.Millisecond
-	prod.config.Producer.Flush.Bytes = conf.GetInt("Batch/SizeByte", 8192)
-	prod.config.Producer.Flush.Messages = conf.GetInt("Batch/MinCount", 1)
+	prod.config.Producer.Flush.Bytes = int(conf.GetInt("Batch/SizeByte", 8192))
+	prod.config.Producer.Flush.Messages = int(conf.GetInt("Batch/MinCount", 1))
 	prod.config.Producer.Flush.Frequency = time.Duration(conf.GetInt("Batch/TimeoutMs", 3000)) * time.Millisecond
-	prod.config.Producer.Flush.MaxMessages = conf.GetInt("Batch/MaxCount", 0)
-	prod.config.Producer.Retry.Max = conf.GetInt("SendRetries", 1)
+	prod.config.Producer.Flush.MaxMessages = int(conf.GetInt("Batch/MaxCount", 0))
+	prod.config.Producer.Retry.Max = int(conf.GetInt("SendRetries", 1))
 	prod.config.Producer.Retry.Backoff = time.Duration(conf.GetInt("SendTimeoutMs", 100)) * time.Millisecond
 
 	prod.config.Producer.Return.Successes = true
@@ -370,8 +368,6 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) error {
 	}
 
 	prod.keyMetaField = conf.GetString("KeyMetaField", "")
-
-	return conf.Errors.OrNil()
 }
 
 func (prod *Kafka) storeRTT(msg *core.Message) {

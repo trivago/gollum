@@ -25,17 +25,21 @@ type SimpleFormatter struct {
 	SetAppliedContent SetAppliedContent
 }
 
-// SetLogScope sets the log scope to be used for this formatter
-func (format *SimpleFormatter) SetLogScope(log tlog.LogScope) {
-	format.Log = log
-}
-
 // Configure sets up all values required by SimpleFormatter.
-func (format *SimpleFormatter) Configure(conf PluginConfigReader) error {
+func (format *SimpleFormatter) Configure(conf PluginConfigReader) {
 	format.Log = conf.GetSubLogScope("Formatter")
 
 	applyTo := conf.GetString("ApplyTo", "")
 	format.GetAppliedContent = GetAppliedContentGetFunction(applyTo)
 	format.SetAppliedContent = GetAppliedContentSetFunction(applyTo)
-	return nil
+}
+
+// SetLogScope sets the log scope to be used for this formatter
+func (format *SimpleFormatter) SetLogScope(log tlog.LogScope) {
+	format.Log = log
+}
+
+// GetLogScope returns the logging scope of this plugin
+func (format *SimpleFormatter) GetLogScope() tlog.LogScope {
+	return format.Log
 }

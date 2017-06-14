@@ -47,7 +47,7 @@ type Rate struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
 	stateGuard        *sync.RWMutex
 	state             map[core.MessageStreamID]*rateState
-	rateLimit         int64
+	rateLimit         int64 `config:"MessagesPerSec" default:"100"`
 }
 
 const (
@@ -70,9 +70,7 @@ func init() {
 }
 
 // Configure initializes this filter with values from a plugin config.
-func (filter *Rate) Configure(conf core.PluginConfigReader) error {
-	filter.SimpleFilter.Configure(conf)
-	filter.rateLimit = int64(conf.GetInt("MessagesPerSec", 100))
+func (filter *Rate) Configure(conf core.PluginConfigReader) {
 	filter.stateGuard = new(sync.RWMutex)
 	filter.state = make(map[core.MessageStreamID]*rateState)
 
@@ -87,7 +85,6 @@ func (filter *Rate) Configure(conf core.PluginConfigReader) error {
 	}
 
 	time.AfterFunc(rateLimitUpdateIntervalSec*time.Second, filter.updateMetrics)
-	return conf.Errors.OrNil()
 }
 
 func (filter *Rate) updateMetrics() {

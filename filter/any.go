@@ -35,7 +35,7 @@ import (
 // then no further filters are checked. By default this list is empty.
 type Any struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
-	filters           core.FilterArray
+	filters           core.FilterArray `config:"Any"`
 }
 
 func init() {
@@ -43,13 +43,7 @@ func init() {
 }
 
 // Configure initializes this filter with values from a plugin config.
-func (filter *Any) Configure(conf core.PluginConfigReader) error {
-	filter.SimpleFilter.Configure(conf)
-
-	filter.filters = conf.GetFilterArray("Any",
-		filter.Log, core.FilterArray{})
-
-	return conf.Errors.OrNil()
+func (filter *Any) Configure(conf core.PluginConfigReader) {
 }
 
 // ApplyFilter check if all Filter wants to reject the message

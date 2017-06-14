@@ -45,12 +45,9 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *CollectdToInflux10) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
+func (format *CollectdToInflux10) Configure(conf core.PluginConfigReader) {
 	format.tagString = strings.NewReplacer(",", "\\,", " ", "\\ ")
 	format.stringString = strings.NewReplacer("\"", "\\\"")
-	return conf.Errors.OrNil()
 }
 
 func (format *CollectdToInflux10) escapeTag(value string) string {

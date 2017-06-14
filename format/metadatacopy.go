@@ -44,12 +44,8 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *MetadataCopy) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
+func (format *MetadataCopy) Configure(conf core.PluginConfigReader) {
 	format.metaData = format.getMetadataMapFromArray(conf.GetArray("WriteTo", []interface{}{}))
-
-	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload

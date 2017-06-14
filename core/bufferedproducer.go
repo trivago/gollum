@@ -41,19 +41,14 @@ import (
 type BufferedProducer struct {
 	DirectProducer `gollumdoc:"embed_type"`
 	messages       MessageQueue
-	channelTimeout time.Duration
+	channelTimeout time.Duration `config:"ChannelTimeoutMs" default:"0" metric:"ms"`
 }
 
 // Configure initializes the standard producer config values.
-func (prod *BufferedProducer) Configure(conf PluginConfigReader) error {
-	prod.DirectProducer.Configure(conf)
+func (prod *BufferedProducer) Configure(conf PluginConfigReader) {
 	prod.onPrepareStop = prod.DefaultDrain
 	prod.onStop = prod.DefaultClose
-
-	prod.messages = NewMessageQueue(conf.GetInt("Channel", 8192))
-	prod.channelTimeout = time.Duration(conf.GetInt("ChannelTimeoutMs", 0)) * time.Millisecond
-
-	return conf.Errors.OrNil()
+	prod.messages = NewMessageQueue(int(conf.GetInt("Channel", 8192)))
 }
 
 // GetQueueTimeout returns the duration this producer will block before a
@@ -66,7 +61,7 @@ func (prod *BufferedProducer) GetQueueTimeout() time.Duration {
 // Enqueue will add the message to the internal channel so it can be processed
 // by the producer main loop. A timeout value != nil will overwrite the channel
 // timeout value for this call.
-func (prod *BufferedProducer) Enqueue(msg *Message, timeout *time.Duration) {
+func (prod *BufferedProducer) Enqueue(msg *Message, timeout time.Duration) {
 	defer prod.enqueuePanicHandling(msg)
 
 	// Don't accept messages if we are shutting down
@@ -81,8 +76,8 @@ func (prod *BufferedProducer) Enqueue(msg *Message, timeout *time.Duration) {
 
 	// Allow timeout overwrite
 	usedTimeout := prod.channelTimeout
-	if timeout != nil {
-		usedTimeout = *timeout
+	if timeout != 0 {
+		usedTimeout = timeout
 	}
 
 	switch prod.messages.Push(msg, usedTimeout) {

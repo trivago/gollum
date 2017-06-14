@@ -37,8 +37,8 @@ import (
 // ApplyTo defines the formatter content to use
 type StreamName struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	separator            []byte
-	usePrevious          bool
+	separator            []byte `config:"Separator" default:":"`
+	usePrevious          bool   `config:"UseHistory"`
 }
 
 func init() {
@@ -46,12 +46,7 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *StreamName) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
-	format.separator = []byte(conf.GetString("Separator", ":"))
-	format.usePrevious = conf.GetBool("UseHistory", false)
-	return conf.Errors.OrNil()
+func (format *StreamName) Configure(conf core.PluginConfigReader) {
 }
 
 // ApplyFormatter update message payload

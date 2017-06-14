@@ -41,31 +41,24 @@ import (
 type BatchedProducer struct {
 	DirectProducer  `gollumdoc:"embed_type"`
 	Batch           MessageBatch
-	batchTimeout    time.Duration
-	batchMaxCount   int
-	batchFlushCount int
+	batchMaxCount   int           `config:"Batch/MaxCount" default:"8192"`
+	batchFlushCount int           `config:"Batch/FlushCount" default:"4096"`
+	batchTimeout    time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
 	onBatchFlush    func() AssemblyFunc
 }
 
 // Configure initializes the standard producer config values.
-func (prod *BatchedProducer) Configure(conf PluginConfigReader) error {
-	prod.DirectProducer.Configure(conf)
+func (prod *BatchedProducer) Configure(conf PluginConfigReader) {
 	prod.SetStopCallback(prod.DefaultClose)
 
-	prod.batchMaxCount = conf.GetInt("Batch/MaxCount", 8192)
-	prod.batchFlushCount = conf.GetInt("Batch/FlushCount", prod.batchMaxCount/2)
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
-	prod.batchTimeout = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
-
 	prod.Batch = NewMessageBatch(prod.batchMaxCount)
-
-	return conf.Errors.OrNil()
 }
 
 // Enqueue will add the message to the internal channel so it can be processed
 // by the producer main loop. A timeout value != nil will overwrite the channel
 // timeout value for this call.
-func (prod *BatchedProducer) Enqueue(msg *Message, timeout *time.Duration) {
+func (prod *BatchedProducer) Enqueue(msg *Message, timeout time.Duration) {
 	defer prod.enqueuePanicHandling(msg)
 
 	// Don't accept messages if we are shutting down

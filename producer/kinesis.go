@@ -98,11 +98,11 @@ type Kinesis struct {
 	client               *kinesis.Kinesis
 	config               *aws.Config
 	streamMap            map[core.MessageStreamID]string
-	recordMaxMessages    int
-	delimiter            []byte
+	recordMaxMessages    int           `config:"RecordMaxMessages" default:"1"`
+	delimiter            []byte        `config:"RecordMessageDelimiter" default:"\n"`
+	sendTimeLimit        time.Duration `config:"SendTimeframeMs" default:"1000" metric:"ms"`
 	flushFrequency       time.Duration
 	lastSendTime         time.Time
-	sendTimeLimit        time.Duration
 	counters             map[string]*int64
 	lastMetricUpdate     time.Time
 	sequence             *int64
@@ -124,14 +124,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Kinesis) Configure(conf core.PluginConfigReader) error {
-	prod.BatchedProducer.Configure(conf)
-
-	prod.streamMap = conf.GetStreamMap("StreamMapping", "")
-	prod.recordMaxMessages = conf.GetInt("RecordMaxMessages", 1)
-	prod.delimiter = []byte(conf.GetString("RecordMessageDelimiter", "\n"))
-	prod.sendTimeLimit = time.Duration(conf.GetInt("SendTimeframeMs", 1000)) * time.Millisecond
-
+func (prod *Kinesis) Configure(conf core.PluginConfigReader) {
 	prod.lastSendTime = time.Now()
 	prod.counters = make(map[string]*int64)
 	prod.lastMetricUpdate = time.Now()
@@ -178,7 +171,8 @@ func (prod *Kinesis) Configure(conf core.PluginConfigReader) error {
 		// Nothing
 
 	default:
-		return fmt.Errorf("Unknown credential type: %s", credentialType)
+		conf.Errors.Pushf("Unknown credential type: %s", credentialType)
+		return
 	}
 
 	for _, streamName := range prod.streamMap {
@@ -186,8 +180,6 @@ func (prod *Kinesis) Configure(conf core.PluginConfigReader) error {
 		tgo.Metric.New(metricName)
 		tgo.Metric.NewRate(metricName, kinesisMetricMessagesSec+streamName, time.Second, 10, 3, true)
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func (prod *Kinesis) sendBatch() core.AssemblyFunc {

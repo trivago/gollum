@@ -75,8 +75,8 @@ type HTTPRequest struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 
 	destinationURL *url.URL
-	encoding       string
-	rawPackets     bool
+	encoding       string `config:"Encoding" default:"text/plain; charset=utf-8"`
+	rawPackets     bool   `config:"RawData" default:"true"`
 	listen         *tnet.StopListener
 	lastError      error
 }
@@ -86,9 +86,8 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) error {
+func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) {
 	var err error
-	prod.BufferedProducer.Configure(conf)
 	prod.SetStopCallback(prod.close)
 
 	address := conf.GetString("Address", "http://localhost:80")
@@ -97,9 +96,6 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) error {
 	}
 	prod.destinationURL, err = url.Parse(address)
 	conf.Errors.Push(err)
-
-	prod.encoding = conf.GetString("Encoding", "text/plain; charset=utf-8")
-	prod.rawPackets = conf.GetBool("RawData", true)
 
 	// Default health check to ping the backend with an HTTP GET
 	prod.AddHealthCheck(prod.healthcheckPingBackend)
@@ -113,8 +109,6 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) error {
 		}
 		return thealthcheck.StatusServiceUnavailable, fmt.Sprintf("ERROR: %s", prod.lastError)
 	})
-
-	return conf.Errors.OrNil()
 }
 
 func (prod *HTTPRequest) healthcheckPingBackend() (int, string) {

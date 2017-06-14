@@ -31,8 +31,7 @@ func init() {
 }
 
 // Configure initializes this distributor with values from a plugin config.
-func (router *Random) Configure(conf core.PluginConfigReader) error {
-	return router.SimpleRouter.Configure(conf)
+func (router *Random) Configure(conf core.PluginConfigReader) {
 }
 
 // Start the router
@@ -48,6 +47,6 @@ func (router *Random) Enqueue(msg *core.Message) error {
 	}
 
 	index := rand.Intn(len(producers))
-	producers[index].Enqueue(msg, router.Timeout)
+	producers[index].Enqueue(msg, router.GetTimeout())
 	return nil
 }

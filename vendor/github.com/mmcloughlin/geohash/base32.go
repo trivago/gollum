@@ -32,12 +32,12 @@ func (e *encoding) Decode(s string) uint64 {
 
 // Encode bits of 64-bit word into a string.
 func (e *encoding) Encode(x uint64) string {
-	s := ""
-	for x != 0 {
-		s = string(e.encode[x&0x1f]) + s
+	b := [12]byte{}
+	for i := 0; i < 12; i++ {
+		b[11-i] = e.encode[x&0x1f]
 		x >>= 5
 	}
-	return s
+	return string(b[:])
 }
 
 // Base32Encoding with the Geohash alphabet.

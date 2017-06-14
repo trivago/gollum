@@ -190,6 +190,10 @@ func (registry *streamRegistry) createFallback(streamID MessageStreamID) Router 
 // The default router is equivalent to an unconfigured router.Broadcast with
 // all wildcard producers already added.
 func (registry *streamRegistry) GetRouterOrFallback(streamID MessageStreamID) Router {
+	if streamID == InvalidStreamID {
+		return nil
+	}
+
 	registry.streamGuard.Lock()
 	defer registry.streamGuard.Unlock()
 

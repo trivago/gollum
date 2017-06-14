@@ -35,7 +35,7 @@ import (
 // This is set to " " by default.
 type Hostname struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	separator            []byte
+	separator            []byte `config:"Separator" default:":"`
 }
 
 func init() {
@@ -43,11 +43,7 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Hostname) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
-	format.separator = []byte(conf.GetString("Separator", ":"))
-	return conf.Errors.OrNil()
+func (format *Hostname) Configure(conf core.PluginConfigReader) {
 }
 
 // ApplyFormatter update message payload

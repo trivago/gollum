@@ -17,6 +17,7 @@ package consumer
 import (
 	"github.com/trivago/gollum/core"
 	_ "github.com/trivago/gollum/router"
+	"runtime/debug"
 	"testing"
 )
 
@@ -27,7 +28,14 @@ func TestConsumerInterface(t *testing.T) {
 		t.Error("No consumers defined")
 	}
 
-	for _, name := range consumers {
+	name := ""
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Panic while testing %s\n%v\n\n%s", name, r, string(debug.Stack()))
+		}
+	}()
+
+	for _, name = range consumers {
 		conf := core.NewPluginConfig("", name)
 		_, err := core.NewPluginWithConfig(conf)
 		if err != nil {

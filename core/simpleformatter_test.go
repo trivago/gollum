@@ -18,6 +18,10 @@ type mockFormatter struct {
 	SimpleFormatter
 }
 
+func (formatter *mockFormatter) ApplyFormatter(msg *Message) error {
+	return nil
+}
+
 func (formatter *mockFormatter) Modulate(msg *Message) ModulateResult {
 	return ModulateResultContinue
 }

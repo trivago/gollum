@@ -15,18 +15,20 @@
 package core
 
 import (
+	"github.com/trivago/tgo/tlog"
+	"github.com/trivago/tgo/ttesting"
 	"math"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
-
-	"github.com/trivago/tgo/tlog"
-	"github.com/trivago/tgo/ttesting"
 )
 
 type mockProducer struct {
 	BufferedProducer
+}
+
+func (prod *mockProducer) Configure(conf PluginConfigReader) {
 }
 
 func (prod *mockProducer) Produce(workers *sync.WaitGroup) {
@@ -58,14 +60,15 @@ func TestProducerConfigure(t *testing.T) {
 
 	mockProducer := mockProducer{}
 
-	mockConf := NewPluginConfig("", "mockProducer")
+	mockConf := NewPluginConfig("mock", "mockProducer")
 	mockConf.Override("routers", []string{"testBoundStream"})
 	mockConf.Override("FallbackStream", "mockStream")
 
 	// Router needs to be configured to avoid unknown class errors
 	registerMockRouter("mockStream")
 
-	err := mockProducer.Configure(NewPluginConfigReader(&mockConf))
+	reader := NewPluginConfigReader(&mockConf)
+	err := reader.Configure(&mockProducer)
 	expect.NoError(err)
 }
 
@@ -131,17 +134,17 @@ func TestProducerEnqueue(t *testing.T) {
 	enqTimeout := time.Second
 	mockP.setState(PluginStateStopping)
 	// cause panic and check if message is sent to the fallback
-	mockP.Enqueue(msg, &enqTimeout)
+	mockP.Enqueue(msg, enqTimeout)
 
 	mockP.setState(PluginStateActive)
-	mockP.Enqueue(msg, &enqTimeout)
+	mockP.Enqueue(msg, enqTimeout)
 
 	mockStream := getMockRouter()
 	mockDropStream.streamID = 1
 	StreamRegistry.Register(&mockStream, 1)
 
 	go func() {
-		mockP.Enqueue(msg, &enqTimeout)
+		mockP.Enqueue(msg, enqTimeout)
 	}()
 	//give time for message to enqueue in the channel
 	time.Sleep(200 * time.Millisecond)
@@ -176,12 +179,12 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 	mockP.streams = []MessageStreamID{2}
 	msgToSend := NewMessage(nil, []byte("closeMessageChannel"), 2)
 
-	mockP.Enqueue(msgToSend, nil)
-	mockP.Enqueue(msgToSend, nil)
+	mockP.Enqueue(msgToSend, time.Duration(0))
+	mockP.Enqueue(msgToSend, time.Duration(0))
 	mockP.CloseMessageChannel(handleMessageFail)
 
 	mockP.messages = NewMessageQueue(2)
-	mockP.Enqueue(msgToSend, nil)
+	mockP.Enqueue(msgToSend, time.Duration(0))
 	mockP.CloseMessageChannel(handleMessage)
 }
 

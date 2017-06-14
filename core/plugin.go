@@ -93,10 +93,9 @@ type PluginRunState struct {
 }
 
 // Plugin is the base class for any runtime class that can be configured and
-// instantiated during runtim.
+// instantiated during runtime.
 type Plugin interface {
-	// Configure is called during NewPluginWithType
-	Configure(conf PluginConfigReader) error
+	Configureable
 }
 
 // PluginWithState allows certain plugins to give information about their runstate
@@ -163,7 +162,8 @@ func NewPluginWithConfig(config PluginConfig) (Plugin, error) {
 		return nil, fmt.Errorf("%s is not a plugin type", config.Typename)
 	}
 
-	err = plugin.Configure(NewPluginConfigReader(&config))
+	reader := NewPluginConfigReader(&config)
+	err = reader.Configure(plugin)
 	if err == nil {
 		if config.ID != "" {
 			// If an id is set it must be unique
