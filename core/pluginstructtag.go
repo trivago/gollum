@@ -51,21 +51,11 @@ func (tag PluginStructTag) GetBool() bool {
 // When not set, 0 is returned. Metrics are not applied to this value.
 func (tag PluginStructTag) GetInt() int64 {
 	tagValue, tagSet := reflect.StructTag(tag).Lookup(PluginStructTagDefault)
-	if !tagSet || tagValue == "" {
+	if !tagSet || len(tagValue) == 0 {
 		return 0
 	}
 
-	var base int
-	switch {
-	case len(tagValue) > 1 && tagValue[0] == '0' && tagValue[1] == 'x':
-		base = 16
-	case tagValue[0] == '0':
-		base = 8
-	default:
-		base = 10
-	}
-
-	value, err := strconv.ParseInt(tagValue, base, 64)
+	value, err := tstrings.AtoI64(tagValue)
 	if err != nil {
 		panic(err)
 	}
@@ -76,21 +66,11 @@ func (tag PluginStructTag) GetInt() int64 {
 // field. When not set, 0 is returned. Metrics are not applied to this value.
 func (tag PluginStructTag) GetUint() uint64 {
 	tagValue, tagSet := reflect.StructTag(tag).Lookup(PluginStructTagDefault)
-	if !tagSet || tagValue == "" {
+	if !tagSet || len(tagValue) == 0 {
 		return 0
 	}
 
-	var base int
-	switch {
-	case len(tagValue) > 1 && tagValue[0] == '0' && tagValue[1] == 'x':
-		base = 16
-	case tagValue[0] == '0':
-		base = 8
-	default:
-		base = 10
-	}
-
-	value, err := strconv.ParseUint(tagValue, base, 64)
+	value, err := tstrings.AtoU64(tagValue)
 	if err != nil {
 		panic(err)
 	}
@@ -156,36 +136,78 @@ func (tag PluginStructTag) GetMetricScale() int64 {
 		return 1
 	}
 
-	switch strings.ToLower(tagValue) {
-	case "b", "byte", "bytes":
-		return 1
-	case "kb", "kilobyte", "kilobytes":
-		return 1 << 10
-	case "mb", "megabyte", "megabytes":
-		return 1 << 20
-	case "gb", "gigabyte", "gigabytes":
-		return 1 << 30
-	case "tb", "terrabyte", "terrabytes":
-		return 1 << 40
+	return metricScale[strings.ToLower(tagValue)]
+}
 
-	case "ns", "nanosecond", "nanoseconds":
-		return 1
-	case "µs", "mcs", "microsecond", "microseconds":
-		return int64(time.Microsecond)
-	case "ms", "millisecond", "milliseconds":
-		return int64(time.Millisecond)
-	case "s", "sec", "second", "seconds":
-		return int64(time.Second)
-	case "m", "min", "minute", "minutes":
-		return int64(time.Minute)
-	case "h", "hour", "hours":
-		return int64(time.Hour)
-	case "d", "day", "days":
-		return 24 * int64(time.Hour)
-	case "w", "week", "weeks":
-		return 7 * 24 * int64(time.Hour)
+const (
+	metricScaleB   = int64(1)
+	metricScaleKB  = int64(1) << 10
+	metricScaleMB  = int64(1) << 20
+	metricScaleGB  = int64(1) << 30
+	metricScaleTB  = int64(1) << 40
+	metricScaleNs  = int64(time.Nanosecond)
+	metricScaleMcs = int64(time.Microsecond)
+	metricScaleMs  = int64(time.Millisecond)
+	metricScaleS   = int64(time.Second)
+	metricScaleM   = int64(time.Minute)
+	metricScaleH   = int64(time.Hour)
+	metricScaleD   = 24 * int64(time.Hour)
+	metricScaleW   = 7 * 24 * int64(time.Hour)
+)
 
-	default:
-		return 1
-	}
+var metricScale = map[string]int64{
+	"b":     metricScaleB,
+	"byte":  metricScaleB,
+	"bytes": metricScaleB,
+
+	"kb":        metricScaleKB,
+	"kilobyte":  metricScaleKB,
+	"kilobytes": metricScaleKB,
+
+	"mb":        metricScaleMB,
+	"megabyte":  metricScaleMB,
+	"megabytes": metricScaleMB,
+
+	"gb":        metricScaleGB,
+	"gigabyte":  metricScaleGB,
+	"gigabytes": metricScaleGB,
+
+	"tb":         metricScaleTB,
+	"terrabyte":  metricScaleTB,
+	"terrabytes": metricScaleTB,
+
+	"ns":          metricScaleNs,
+	"nanosecond":  metricScaleNs,
+	"nanoseconds": metricScaleNs,
+
+	"µs":           metricScaleMcs,
+	"mcs":          metricScaleMcs,
+	"microsecond":  metricScaleMcs,
+	"microseconds": metricScaleMcs,
+
+	"ms":           metricScaleMs,
+	"millisecond":  metricScaleMs,
+	"milliseconds": metricScaleMs,
+
+	"s":       metricScaleS,
+	"sec":     metricScaleS,
+	"second":  metricScaleS,
+	"seconds": metricScaleS,
+
+	"m":       metricScaleM,
+	"min":     metricScaleM,
+	"minute":  metricScaleM,
+	"minutes": metricScaleM,
+
+	"h":     metricScaleH,
+	"hour":  metricScaleH,
+	"hours": metricScaleH,
+
+	"d":    metricScaleD,
+	"day":  metricScaleD,
+	"days": metricScaleD,
+
+	"w":     metricScaleW,
+	"week":  metricScaleW,
+	"weeks": metricScaleW,
 }

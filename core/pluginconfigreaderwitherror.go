@@ -19,6 +19,7 @@ import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/tlog"
+	"github.com/trivago/tgo/tstrings"
 )
 
 // PluginConfigReaderWithError is a read-only wrapper on top of a plugin config
@@ -78,7 +79,8 @@ func (reader PluginConfigReaderWithError) HasValue(key string) bool {
 func (reader PluginConfigReaderWithError) GetString(key string, defaultValue string) (string, error) {
 	key = reader.config.registerKey(key)
 	if reader.HasValue(key) {
-		return reader.config.Settings.String(key)
+		value, err := reader.config.Settings.String(key)
+		return tstrings.Unescape(value), err
 	}
 	return defaultValue, nil
 }
@@ -88,6 +90,9 @@ func (reader PluginConfigReaderWithError) GetString(key string, defaultValue str
 func (reader PluginConfigReaderWithError) GetInt(key string, defaultValue int64) (int64, error) {
 	key = reader.config.registerKey(key)
 	if reader.HasValue(key) {
+		if strVal, err := reader.config.Settings.String(key); err == nil {
+			return tstrings.AtoI64(strVal) // Allow string to number conversion
+		}
 		return reader.config.Settings.Int(key)
 	}
 	return defaultValue, nil
@@ -98,6 +103,9 @@ func (reader PluginConfigReaderWithError) GetInt(key string, defaultValue int64)
 func (reader PluginConfigReaderWithError) GetUint(key string, defaultValue uint64) (uint64, error) {
 	key = reader.config.registerKey(key)
 	if reader.HasValue(key) {
+		if strVal, err := reader.config.Settings.String(key); err == nil {
+			return tstrings.AtoU64(strVal) // Allow string to number conversion
+		}
 		return reader.config.Settings.Uint(key)
 	}
 	return defaultValue, nil

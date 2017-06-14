@@ -57,7 +57,7 @@ func TestProducerConfigure(t *testing.T) {
 
 	mockProducer := mockProducer{}
 
-	mockConf := NewPluginConfig("", "mockProducer")
+	mockConf := NewPluginConfig("mock", "mockProducer")
 	mockConf.Override("routers", []string{"testBoundStream"})
 	mockConf.Override("FallbackStream", "mockStream")
 
