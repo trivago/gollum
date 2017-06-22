@@ -31,7 +31,7 @@ func (f *SeverityFormatter) Format(entry *Entry) ([]byte, error) {
 	}
 
 	data["time"] = entry.Time.Format(timestampFormat)
-	data["msg"] = entry.Message
+	data["message"] = entry.Message
 	data["level"] = entry.Level.String()
 	data["severity"] = strings.ToUpper(entry.Level.String())
 
