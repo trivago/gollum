@@ -40,6 +40,7 @@ import (
 //    Retry:
 //		Count: 3
 //		TimeToWaitSec: 3
+//	  SetGzip: true
 //    #TTL: ""
 //
 //    User: ""
@@ -67,6 +68,8 @@ import (
 //
 // Connections defines the number of simultaneous connections allowed to a
 // elasticsearch server. This is set to 6 by default.
+//
+// SetGzip enables or disables gzip compression (disabled by default).
 //
 // TTL defines the TTL set in elasticsearch messages. By default this is set to
 // "" which means no TTL.
@@ -125,6 +128,7 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) {
 	prod.connection.servers = conf.GetStringArray("Servers", []string{"http://127.0.0.1:9200"})
 	prod.connection.user = conf.GetString("User", "")
 	prod.connection.password = conf.GetString("Password", "")
+	prod.connection.setGzip = conf.GetBool("SetGzip", false)
 	prod.connection.isConnectedStatus = false
 
 	prod.configureIndexSettings(conf.GetMap("StreamProperties", tcontainer.NewMarshalMap()))
@@ -322,6 +326,7 @@ type elasticConnection struct {
 	servers           []string
 	user              string
 	password          string
+	setGzip			  bool
 	client            *elastic.Client
 	isConnectedStatus bool
 	retrier           retrier
@@ -332,7 +337,7 @@ func (conn *elasticConnection) isConnected() bool {
 }
 
 func (conn *elasticConnection) connect() error {
-	conf := []elastic.ClientOptionFunc{elastic.SetURL(conn.servers...), elastic.SetSniff(false)}
+	conf := []elastic.ClientOptionFunc{elastic.SetURL(conn.servers...), elastic.SetSniff(false), elastic.SetGzip(conn.setGzip)}
 	if len(conn.user) > 0 {
 		conf = append(conf, elastic.SetBasicAuth(conn.user, conn.password))
 	}
