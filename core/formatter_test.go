@@ -16,7 +16,7 @@ package core
 
 import (
 	"errors"
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/ttesting"
 	"testing"
 )
@@ -31,8 +31,8 @@ func (format *dummyFormatter) Configure(conf PluginConfigReader) {
 	format.ConfigureHasCalled = true
 }
 
-func (format *dummyFormatter) GetLogScope() tlog.LogScope {
-	return tlog.LogScope{}
+func (format *dummyFormatter) GetLogger() logrus.FieldLogger {
+	return logrus
 }
 
 func (format *dummyFormatter) ApplyFormatter(msg *Message) error {
@@ -50,8 +50,8 @@ func (format *dummyErrorFormatter) Configure(conf PluginConfigReader) {
 	format.ConfigureHasCalled = true
 }
 
-func (format *dummyErrorFormatter) GetLogScope() tlog.LogScope {
-	return tlog.LogScope{}
+func (format *dummyErrorFormatter) GetLogger() logrus.FieldLogger {
+	return logrus
 }
 
 func (format *dummyErrorFormatter) ApplyFormatter(msg *Message) error {

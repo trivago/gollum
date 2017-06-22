@@ -18,7 +18,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/ttesting"
 )
 
@@ -56,7 +56,7 @@ func TestWriterAssemblySetValidator(t *testing.T) {
 func TestWriterAssemblySetErrorHandler(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockIo := mockIoWrite{expect}
-	tlog.SetCacheWriter()
+	//TODO tlog.SetCacheWriter() => ?
 	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, &mockFormatter{})
 	handler := func(e error) bool {
 		if e.Error() == "abc" {
