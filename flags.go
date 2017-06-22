@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tflag"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -27,7 +28,7 @@ var (
 	flagModules        = tflag.Switch("l", "list", "Print plugin information and quit.")
 	flagConfigFile     = tflag.String("c", "config", "", "Use a given configuration file.")
 	flagTestConfigFile = tflag.String("tc", "testconfig", "", "Test the given configuration file and exit.")
-	flagLoglevel       = tflag.Int("ll", "loglevel", 1, "Set the loglevel [0-3] as in {0=Errors, 1=+Warnings, 2=+Notes, 3=+Debug}.")
+	flagLoglevel       = tflag.Int("ll", "loglevel", 1, "Set the loglevel [0-3] as in {0=Error, 1=+Warning, 2=+Info, 3=+Debug}.")
 	flagNumCPU         = tflag.Int("n", "numcpu", 0, "Number of CPUs to use. Set 0 for all CPUs.")
 	flagPidFile        = tflag.String("p", "pidfile", "", "Write the process id into a given file.")
 	flagMetricsAddress = tflag.String("m", "metrics", "", "Address to use for metric queries. Disabled by default.")
@@ -45,4 +46,14 @@ func parseFlags() {
 func printFlags() {
 	helpMessageStr := fmt.Sprintf("Usage: gollum [OPTIONS]\n\nGollum - An n:m message multiplexer.\nVersion: %s\n\nOptions:", core.GetVersionString())
 	tflag.PrintFlags(helpMessageStr)
+}
+
+func getLogrusLevel(intLevel int) logrus.Level {
+	switch intLevel {
+	case 0: return logrus.ErrorLevel
+	case 1: return logrus.WarnLevel
+	case 2: return logrus.InfoLevel
+	case 3: return logrus.DebugLevel
+	}
+	return logrus.DebugLevel
 }

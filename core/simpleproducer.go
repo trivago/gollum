@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/thealthcheck"
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 	"sync"
 	"time"
 )
@@ -90,13 +90,13 @@ type SimpleProducer struct {
 	onRoll          func()
 	onPrepareStop   func()
 	onStop          func()
-	Log             tlog.LogScope
+	Logger          logrus.FieldLogger
 }
 
 // Configure initializes the standard producer config values.
 func (prod *SimpleProducer) Configure(conf PluginConfigReader) {
 	prod.id = conf.GetID()
-	prod.Log = conf.GetLogScope()
+	prod.Logger = conf.GetLogger()
 	prod.runState = NewPluginRunState()
 	prod.control = make(chan PluginControl, 1)
 
@@ -112,8 +112,8 @@ func (prod *SimpleProducer) Configure(conf PluginConfigReader) {
 }
 
 // GetLogScope returns the logging scope of this plugin
-func (prod *SimpleProducer) GetLogScope() tlog.LogScope {
-	return prod.Log
+func (prod *SimpleProducer) GetLogger() logrus.FieldLogger {
+	return prod.Logger
 }
 
 // AddHealthCheck adds a health check at the default URL (http://<addr>:<port>/<plugin_id>)
@@ -241,7 +241,7 @@ func (prod *SimpleProducer) HasContinueAfterModulate(msg *Message) bool {
 		return true
 
 	default:
-		prod.Log.Error.Print("Modulator result not supported:", result)
+		prod.Logger.Error("Modulator result not supported:", result)
 		return false
 	}
 }
@@ -256,37 +256,37 @@ func (prod *SimpleProducer) TryFallback(msg *Message) {
 func (prod *SimpleProducer) ControlLoop() {
 	prod.setState(PluginStateActive)
 	defer prod.setState(PluginStateDead)
-	defer prod.Log.Debug.Print("Stopped")
+	defer prod.Logger.Debug("Stopped")
 
 	for {
 		command := <-prod.control
 		switch command {
 		default:
-			prod.Log.Debug.Print("Received untracked command")
+			prod.Logger.Debug("Received untracked command")
 			// Do nothing
 
 		case PluginControlStopProducer:
-			prod.Log.Debug.Print("Preparing for stop")
+			prod.Logger.Debug("Preparing for stop")
 			prod.setState(PluginStatePrepareStop)
 
 			if prod.onPrepareStop != nil {
 				if !tgo.ReturnAfter(prod.shutdownTimeout*5, prod.onPrepareStop) {
-					prod.Log.Error.Print("Timeout during onPrepareStop.")
+					prod.Logger.Error("Timeout during onPrepareStop.")
 				}
 			}
 
-			prod.Log.Debug.Print("Executing stop command")
+			prod.Logger.Debug("Executing stop command")
 			prod.setState(PluginStateStopping)
 
 			if prod.onStop != nil {
 				if !tgo.ReturnAfter(prod.shutdownTimeout*5, prod.onStop) {
-					prod.Log.Error.Print("Timeout during onStop.")
+					prod.Logger.Error("Timeout during onStop.")
 				}
 			}
 			return // ### return ###
 
 		case PluginControlRoll:
-			prod.Log.Debug.Print("Received roll command")
+			prod.Logger.Debug("Received roll command")
 			if prod.onRoll != nil {
 				prod.onRoll()
 			}

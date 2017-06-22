@@ -24,7 +24,6 @@ import (
 	_ "github.com/trivago/gollum/router"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/thealthcheck"
-	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tstrings"
 	"io/ioutil"
 	"net"
@@ -36,12 +35,13 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	tlog.SetCacheWriter()
+	// TODO: tlog.SetCacheWriter() ?
 	parseFlags()
-	tlog.SetVerbosity(tlog.Verbosity(*flagLoglevel))
+	logrus.SetLevel(getLogrusLevel(*flagLoglevel))
 
 	if *flagVersion {
 		printVersion()

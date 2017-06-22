@@ -16,7 +16,7 @@ package core
 
 import (
 	"github.com/trivago/tgo/thealthcheck"
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -37,22 +37,22 @@ type SimpleRouter struct {
 	filters   FilterArray     `config:"Filters"`
 	timeout   time.Duration   `config:"TimeoutMs" default:"0" metric:"ms"`
 	streamID  MessageStreamID `config:"Stream"`
-	Log       tlog.LogScope
+	Logger    logrus.FieldLogger
 }
 
 // Configure sets up all values required by SimpleRouter.
 func (router *SimpleRouter) Configure(conf PluginConfigReader) {
 	router.id = conf.GetID()
-	router.Log = conf.GetLogScope()
+	router.Logger = conf.GetLogger()
 
 	if router.streamID == WildcardStreamID {
-		router.Log.Note.Print("A wildcard stream configuration only affects the wildcard stream, not all routers")
+		router.Logger.Info("A wildcard stream configuration only affects the wildcard stream, not all routers")
 	}
 }
 
 // GetLogScope returns the logging scope of this plugin
-func (router *SimpleRouter) GetLogScope() tlog.LogScope {
-	return router.Log
+func (router *SimpleRouter) GetLogger() logrus.FieldLogger {
+	return router.Logger
 }
 
 // AddHealthCheck adds a health check at the default URL (http://<addr>:<port>/<plugin_id>)
