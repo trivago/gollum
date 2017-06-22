@@ -16,11 +16,15 @@ package producer
 
 import (
 	"context"
-	"fmt"
+	"github.com/pkg/errors"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tcontainer"
+	"github.com/trivago/tgo/tlog"
 	"gopkg.in/olivere/elastic.v5"
+	"net/http"
 	"sync"
+	"syscall"
+	"time"
 )
 
 // ElasticSearch producer plugin
@@ -32,20 +36,20 @@ import (
 //
 //  producerElasticSearch:
 // 	  Type: producer.ElasticSearch
-//    Connections: 6
-//    #RetrySec: 5
-//    TTL: ""
-//    DayBasedIndex: false
+//    #Connections: 6
+//    Retry:
+//		Count: 3
+//		TimeToWaitSec: 3
+//    #TTL: ""
+//
 //    User: ""
 //    Password: ""
-//    BatchSizeByte: 32768
-//    BatchMaxCount: 256
-//    BatchTimeoutSec: 5
 //    Servers:
 //      - http://127.0.0.1:9200
 //    StreamProperties:
-//		write:
+//		<streamName>:
 //			Index: twitter
+// 			#DayBasedIndex: false
 //			Type: tweet
 //
 // 			# see: https://www.elastic.co/guide/en/elasticsearch/reference/5.4/indices-create-index.html#mappings
@@ -91,51 +95,12 @@ import (
 // StreamProperties/<streamName>/Settings is a map which is used for the index settings.
 // See https://www.elastic.co/guide/en/elasticsearch/reference/5.4/indices-create-index.html#mappings
 //
-// BatchSizeByte defines the size in bytes required to trigger a flush.
-// By default this is set to 32768 (32KB).
-//
-// BatchMaxCount defines the number of documents required to trigger a flush.
-// By default this is set to 256.
-//
-// BatchTimeoutSec defines the time in seconds after which a flush will be
-// triggered. By default this is set to 5.
 type ElasticSearch struct {
-	core.BufferedProducer `gollumdoc:"embed_type"`
-	connection            elasticConnection
-
-	indexSettings map[string]*elasticIndex
-
-	indexMap map[core.MessageStreamID]string
-	typeMap  map[core.MessageStreamID]string
-}
-
-type elasticConnection struct {
-	servers           []string
-	user              string
-	password          string
-	client            *elastic.Client
-	isConnectedStatus bool
-}
-
-func (conn *elasticConnection) isConnected() bool {
-	return conn.isConnectedStatus
-}
-
-func (conn *elasticConnection) connect() error {
-	conf := []elastic.ClientOptionFunc{elastic.SetURL(conn.servers...), elastic.SetSniff(false)}
-	if len(conn.user) > 0 {
-		conf = append(conf, elastic.SetBasicAuth(conn.user, conn.password))
-	}
-
-	client, err := elastic.NewClient(conf...)
-	if err != nil {
-		return err
-	}
-
-	conn.client = client
-	conn.isConnectedStatus = true
-
-	return nil
+	core.BatchedProducer `gollumdoc:"embed_type"`
+	connection           elasticConnection
+	indexSettings        map[string]*elasticIndex
+	indexMap             map[core.MessageStreamID]string
+	typeMap              map[core.MessageStreamID]string
 }
 
 type elasticIndex struct {
@@ -157,7 +122,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
+	prod.BatchedProducer.Configure(conf)
 
 	prod.connection.servers = conf.GetStringArray("Servers", []string{"http://127.0.0.1:9200"})
 	prod.connection.user = conf.GetString("User", "")
@@ -165,8 +130,17 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) error {
 	prod.connection.isConnectedStatus = false
 
 	prod.configureIndexSettings(conf.GetMap("StreamProperties", tcontainer.NewMarshalMap()))
+	prod.configureRetrySettings(conf.GetInt("Retry/Count", 3), conf.GetInt("Retry/TimeToWaitSec", 3))
 
 	return conf.Errors.OrNil()
+}
+
+func (prod *ElasticSearch) configureRetrySettings(retry, timeToWaitSec int) {
+	prod.connection.retrier.retry = retry
+	prod.connection.retrier.backoff = elastic.NewConstantBackoff(time.Duration(timeToWaitSec) * time.Second)
+	prod.connection.retrier.log = &prod.Log
+
+	prod.Log.Debug.Printf("Using retrier with a retry count of '%d' and a time to wait of '%d' sec", retry, timeToWaitSec)
 }
 
 func (prod *ElasticSearch) configureIndexSettings(properties tcontainer.MarshalMap) {
@@ -235,7 +209,7 @@ func (prod *ElasticSearch) newElasticIndex(property tcontainer.MarshalMap) *elas
 func (prod *ElasticSearch) Produce(workers *sync.WaitGroup) {
 	prod.initIndex()
 	prod.AddMainWorker(workers)
-	prod.MessageControlLoop(prod.sendMessage)
+	prod.BatchMessageLoop(workers, prod.submitMessages)
 }
 
 func (prod *ElasticSearch) getClient() (*elastic.Client, error) {
@@ -287,40 +261,127 @@ func (prod *ElasticSearch) createIndex(indexName string, elIndex *elasticIndex) 
 		json := map[string]interface{}{typeName: properties}
 		mapping.BodyJson(json)
 
-		rsp, err := mapping.Do(ctx)
+		_, err := mapping.Do(ctx)
 		if err != nil {
 			prod.Log.Error.Println("Issue during creating index mapping: ", err)
 		}
-		fmt.Println("map result: ", rsp)
 	}
 
 	return err
 }
 
-func (prod *ElasticSearch) sendMessage(msg *core.Message) {
-	client, err := prod.getClient()
-	if err != nil {
-		prod.Log.Error.Print("Sending messages failed: ", err)
-		return
+func (prod *ElasticSearch) submitMessages() core.AssemblyFunc {
+	return func(messages []*core.Message) {
+		client, err := prod.getClient()
+		if err != nil {
+			prod.Log.Error.Print("Sending messages failed: ", err)
+			return
+		}
+
+		bulkRequest := client.Bulk()
+		ctx := context.Background()
+
+		for _, msg := range messages {
+			index := prod.indexMap[msg.GetStreamID()]
+			typeName := prod.typeMap[msg.GetStreamID()]
+
+			bulkIndexRequest := elastic.NewBulkIndexRequest()
+			bulkIndexRequest.Index(index).
+				Type(typeName).
+				Doc(msg.String())
+
+			bulkRequest.Add(bulkIndexRequest)
+		}
+
+		// NumberOfActions contains the number of requests in a bulk
+		prod.Log.Debug.Printf("bulkRequest.NumberOfActions: %d", bulkRequest.NumberOfActions())
+
+		// Do sends the bulk requests to Elasticsearch
+		bulkResponse, err := bulkRequest.Do(ctx)
+		if err != nil {
+			prod.Log.Error.Print(err)
+		}
+
+		// Bulk request actions get cleared
+		numberOfActionsAfter := bulkRequest.NumberOfActions()
+		if numberOfActionsAfter != 0 {
+			prod.Log.Error.Printf("Could not send '%d' messages to Elasticsearch", numberOfActionsAfter)
+		}
+
+		if bulkResponse != nil {
+			// Indexed returns information abount indexed documents
+			indexed := bulkResponse.Indexed()
+			prod.Log.Debug.Printf("%d messages indexed successfully in Elasticsearch", len(indexed))
+
+			// Created returns information about created documents
+			created := bulkResponse.Created()
+			prod.Log.Debug.Printf("%d messages created successfully in Elasticsearch", len(created))
+		}
+	}
+}
+
+// -- elasticConnection --
+
+type elasticConnection struct {
+	servers           []string
+	user              string
+	password          string
+	client            *elastic.Client
+	isConnectedStatus bool
+	retrier           retrier
+}
+
+func (conn *elasticConnection) isConnected() bool {
+	return conn.isConnectedStatus
+}
+
+func (conn *elasticConnection) connect() error {
+	conf := []elastic.ClientOptionFunc{elastic.SetURL(conn.servers...), elastic.SetSniff(false)}
+	if len(conn.user) > 0 {
+		conf = append(conf, elastic.SetBasicAuth(conn.user, conn.password))
 	}
 
-	ctx := context.Background()
-
-	index := prod.indexMap[msg.GetStreamID()]
-	typeName := prod.typeMap[msg.GetStreamID()]
-
-	fmt.Println("Index: ", index)
-	fmt.Println("typeName: ", typeName)
-
-	put, err := client.
-		Index().
-		Index(index).
-		Type(typeName).
-		BodyString(msg.String()).
-		Do(ctx)
-	if err != nil {
-		prod.Log.Error.Println("Can not add document to elastic: ", err)
-		return
+	if conn.retrier.retry > 0 {
+		conf = append(conf, elastic.SetRetrier(&conn.retrier))
 	}
-	fmt.Printf("Indexed tweet %s to index %s, type %s\n", put.Id, put.Index, put.Type)
+
+	client, err := elastic.NewClient(conf...)
+	if err != nil {
+		return err
+	}
+
+	conn.client = client
+	conn.isConnectedStatus = true
+
+	return nil
+}
+
+// -- retrier --
+
+type retrier struct {
+	retry   int
+	backoff elastic.Backoff
+	log     *tlog.LogScope
+}
+
+// Retry implements type Retrier interface
+// see: https://github.com/olivere/elastic/wiki/Retrier-and-Backoff
+func (r *retrier) Retry(ctx context.Context, retry int, req *http.Request, resp *http.Response, err error) (time.Duration, bool, error) {
+	// Fail hard on a specific error
+	if err == syscall.ECONNREFUSED {
+		err = errors.New("Elasticsearch or network down")
+		r.log.Error.Print(err)
+		return 0, false, err
+	}
+
+	// Stop after n retries
+	if retry >= r.retry {
+		r.log.Debug.Printf("Stop retrying after '%d' retries", retry)
+		return 0, false, nil
+	}
+
+	// Let the backoff strategy decide how long to wait and whether to stop
+	r.log.Debug.Println("Retry to connect to Elasticsearch")
+	wait, stop := r.backoff.Next(retry)
+	return wait, stop, nil
 }
