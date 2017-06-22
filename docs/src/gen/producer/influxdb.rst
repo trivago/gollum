@@ -76,7 +76,7 @@ message arrived before a batch is flushed automatically. By default this is
 set to 5.
 
 
-Parameters (from SimpleProducer)
+Parameters (from DirectProducer)
 --------------------------------
 
 **Enable**
@@ -88,21 +88,6 @@ allows this producer to be found by other plugins by name. By default this
 is set to "" which does not register this producer.
 
 
-**Channel**
-sets the size of the channel used to communicate messages. By default
-this value is set to 8192.
-
-
-**ChannelTimeoutMs**
-sets a timeout in milliseconds for messages to wait if this
-producer's queue is full.
-A timeout of -1 or lower will try the fallback route without notice.
-A timeout of 0 will block until the queue is free. This is the default.
-A timeout of 1 or higher will wait x milliseconds for the queues to become
-available again. If this does not happen, the message will be send to the
-retry channel.
-
-
 **ShutdownTimeoutMs**
 sets a timeout in milliseconds that will be used to detect
 a blocking producer during shutdown. By default this is set to 1 second.
@@ -110,28 +95,21 @@ Decreasing this value may lead to lost messages during shutdown. Increasing
 this value will increase shutdown time.
 
 
-**Router**
+**Streams**
 contains either a single string or a list of strings defining the
 message channels this producer will consume. By default this is set to "*"
 which means "listen to all routers but the internal".
 
 
 **FallbackStream**
-defines the stream used for messages that cannot be delivered
-e.g. after a timeout (see ChannelTimeoutMs). By default this is "".
+defines the stream used for messages that are sent to the fallback after
+a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
 
 
-**Formatter**
-sets a formatter to use. Each formatter has its own set of options
+**Modulators**
+sets formatter and filter to use. Each formatter has its own set of options
 which can be set here, too. By default this is set to format.Forward.
 Each producer decides if and when to use a Formatter.
-
-
-**Filter**
-sets a filter that is applied before formatting, i.e. before a message
-is send to the message queue. If a producer requires filtering after
-formatting it has to define a separate filter as the producer decides if
-and where to format.
 
 
 Example
@@ -148,9 +126,10 @@ Example
 	   UseVersion08: false
 	   Version: 100
 	   RetentionPolicy: ""
-	   BatchMaxCount: 8192
-	   BatchFlushCount: 4096
-	   BatchTimeoutSec: 5
+	   Batch
+	     - MaxCount: 8192
+	     - FlushCount: 4096
+	     - TimeoutSec: 5
 	
 
 
