@@ -81,7 +81,7 @@ type Profiler struct {
 	profileRuns         int           `config:"Runs" default:"10000"`
 	batches             int           `config:"Batches" default:"10"`
 	chars               string        `config:"Characters" default:"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"`
-	message             string        `config:"Message" default:"%# %256s"`
+	message             string        `config:"Message" default:"%256s"`
 	delay               time.Duration `config:"DelayMs" default:"0" metric:"ms"`
 	keepRunning         bool          `config:"KeepRunning"`
 	templates           [][]byte
