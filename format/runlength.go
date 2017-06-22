@@ -38,8 +38,8 @@ import (
 // ApplyTo defines the formatter content for the data transferred
 type Runlength struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	separator            []byte
-	storeRunlengthOnly   bool
+	separator            []byte `config:"Separator" default:":"`
+	storeRunlengthOnly   bool   `config:"StoreRunlengthOnly"`
 }
 
 func init() {
@@ -47,12 +47,7 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Runlength) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
-	format.separator = []byte(conf.GetString("Separator", ":"))
-	format.storeRunlengthOnly = conf.GetBool("StoreRunlengthOnly", false)
-	return conf.Errors.OrNil()
+func (format *Runlength) Configure(conf core.PluginConfigReader) {
 }
 
 // ApplyFormatter update message payload

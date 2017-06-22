@@ -29,15 +29,20 @@ type mockConsumer struct {
 	SimpleConsumer
 }
 
+func (mc *mockConsumer) Configure(conf PluginConfigReader) {
+}
+
 func (mc *mockConsumer) Consume(wg *sync.WaitGroup) {
 	// consumes something
 }
 
-func getMockConsumer() SimpleConsumer {
-	return SimpleConsumer{
-		control:  make(chan PluginControl),
-		runState: NewPluginRunState(),
-		Log:      tlog.NewLogScope("test"),
+func getMockConsumer() mockConsumer {
+	return mockConsumer{
+		SimpleConsumer: SimpleConsumer{
+			control:  make(chan PluginControl),
+			runState: NewPluginRunState(),
+			Log:      tlog.NewLogScope("test"),
+		},
 	}
 }
 
@@ -51,7 +56,8 @@ func TestConsumerConfigure(t *testing.T) {
 	//Default stream name is plugin id
 	registerMockRouter("mockConsumer")
 
-	err := mockC.Configure(NewPluginConfigReader(&pluginCfg))
+	reader := NewPluginConfigReader(&pluginCfg)
+	err := reader.Configure(&mockC)
 	expect.NoError(err)
 }
 

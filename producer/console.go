@@ -42,9 +42,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Console) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
-
+func (prod *Console) Configure(conf core.PluginConfigReader) {
 	console := conf.GetString("Console", "stdout")
 
 	switch strings.ToLower(console) {
@@ -55,8 +53,6 @@ func (prod *Console) Configure(conf core.PluginConfigReader) error {
 	case "stderr":
 		prod.console = os.Stderr
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func (prod *Console) printMessage(msg *core.Message) {

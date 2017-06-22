@@ -67,8 +67,8 @@ import (
 type ProcessTSV struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	directives           []tsvDirective
-	delimiter            string
-	quotedValues         bool
+	delimiter            string `config:"Delimiter" default:"\t"`
+	quotedValues         bool   `config:"QuotedValues"`
 }
 
 type tsvDirective struct {
@@ -87,15 +87,10 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *ProcessTSV) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
+func (format *ProcessTSV) Configure(conf core.PluginConfigReader) {
 	directives := conf.GetStringArray("Directives", []string{})
 
 	format.directives = make([]tsvDirective, 0, len(directives))
-	format.delimiter = conf.GetString("Delimiter", "\t")
-	format.quotedValues = conf.GetBool("QuotedValues", false)
-
 	for _, directive := range directives {
 		directive := strings.Replace(directive, "\\:", "\r", -1)
 		parts := strings.Split(directive, ":")
@@ -105,9 +100,7 @@ func (format *ProcessTSV) Configure(conf core.PluginConfigReader) error {
 
 		if len(parts) >= 2 {
 			index, err := strconv.Atoi(parts[0])
-			if err != nil {
-				return err
-			}
+			conf.Errors.Push(err)
 
 			newDirective := tsvDirective{
 				index:     index,
@@ -121,8 +114,6 @@ func (format *ProcessTSV) Configure(conf core.PluginConfigReader) error {
 			format.directives = append(format.directives, newDirective)
 		}
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func stringsToTSVValues(values []string) []tsvValue {

@@ -29,8 +29,7 @@ func init() {
 }
 
 // Configure initializes this distributor with values from a plugin config.
-func (router *Broadcast) Configure(conf core.PluginConfigReader) error {
-	return router.SimpleRouter.Configure(conf)
+func (router *Broadcast) Configure(conf core.PluginConfigReader) {
 }
 
 // Start the router
@@ -41,22 +40,18 @@ func (router *Broadcast) Start() error {
 // Enqueue enques a message to the router
 func (router *Broadcast) Enqueue(msg *core.Message) error {
 	producers := router.GetProducers()
-	numProducers := len(producers)
-
-	switch numProducers {
-	case 0:
-		return core.NewModulateResultError("No producers configured for stream %s", router.GetID())
+	switch len(producers) {
+	default:
+		for prodIdx := 1; prodIdx < len(producers); prodIdx++ {
+			producers[prodIdx].Enqueue(msg.Clone(), router.GetTimeout())
+		}
+		fallthrough
 
 	case 1:
-		producers[0].Enqueue(msg, router.Timeout)
+		producers[0].Enqueue(msg, router.GetTimeout())
+		return nil
 
-	default:
-		lastProdIdx := numProducers - 1
-		for prodIdx := 0; prodIdx < lastProdIdx; prodIdx++ {
-			producers[prodIdx].Enqueue(msg.Clone(), router.Timeout)
-		}
-		producers[lastProdIdx].Enqueue(msg, router.Timeout)
+	case 0:
+		return core.NewModulateResultError("No producers configured for stream %s", router.GetID())
 	}
-
-	return nil
 }

@@ -25,8 +25,7 @@ import (
 
 type mockPlugin struct{}
 
-func (m *mockPlugin) Configure(config PluginConfigReader) error {
-	return nil
+func (m *mockPlugin) Configure(config PluginConfigReader) {
 }
 
 func TestPluginRunState(t *testing.T) {
@@ -69,7 +68,7 @@ func TestNewPlugin(t *testing.T) {
 	_, err := NewPluginWithConfig(config)
 	expect.NotNil(err) // No type used
 
-	// Check inavlid type given
+	// Check missing configure method
 	type notPlugin struct {
 	}
 	TypeRegistry.Register(notPlugin{})

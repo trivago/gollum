@@ -36,7 +36,7 @@ type LogConsumer struct {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *LogConsumer) Configure(conf PluginConfigReader) error {
+func (cons *LogConsumer) Configure(conf PluginConfigReader) {
 	cons.control = make(chan PluginControl, 1)
 	cons.logRouter = StreamRegistry.GetRouter(LogInternalStreamID)
 	cons.metric = conf.GetString("MetricKey", "")
@@ -50,7 +50,6 @@ func (cons *LogConsumer) Configure(conf PluginConfigReader) error {
 		tgo.Metric.New(cons.metric + "WarningSec")
 		cons.updateTimer = time.AfterFunc(time.Second*5, cons.updateMetric)
 	}
-	return nil
 }
 
 // GetState always returns PluginStateActive

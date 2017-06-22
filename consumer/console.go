@@ -54,7 +54,7 @@ const (
 // (e.g. when a pipe is closed). This is set to false by default.
 type Console struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	autoExit            bool
+	autoExit            bool `config:"ExitOnEOF"`
 	pipe                *os.File
 	pipeName            string
 	pipePerm            uint32
@@ -65,9 +65,7 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Console) Configure(conf core.PluginConfigReader) error {
-	cons.SimpleConsumer.Configure(conf)
-	cons.autoExit = conf.GetBool("ExitOnEOF", false)
+func (cons *Console) Configure(conf core.PluginConfigReader) {
 	inputConsole := conf.GetString("Console", "stdin")
 
 	switch strings.ToLower(inputConsole) {
@@ -84,8 +82,6 @@ func (cons *Console) Configure(conf core.PluginConfigReader) error {
 			cons.pipePerm = uint32(perm)
 		}
 	}
-
-	return conf.Errors.OrNil()
 }
 
 // Enqueue creates a new message

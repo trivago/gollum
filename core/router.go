@@ -14,6 +14,10 @@
 
 package core
 
+import (
+	"time"
+)
+
 // Router defines the interface for all stream plugins
 type Router interface {
 	Modulator
@@ -29,6 +33,9 @@ type Router interface {
 	// This function is called by Route() which should be preferred over this
 	// function when sending messages.
 	Enqueue(msg *Message) error
+
+	// GetTimeout returns the timeout configured for this router
+	GetTimeout() time.Duration
 
 	// Start starts the router by the coordinator.StartPlugins() method
 	Start() error

@@ -46,11 +46,8 @@ func init() {
 }
 
 // Configure initializes this distributor with values from a plugin config.
-func (router *Distribute) Configure(conf core.PluginConfigReader) error {
-	router.Broadcast.Configure(conf)
+func (router *Distribute) Configure(conf core.PluginConfigReader) {
 	router.boundStreamIDs = conf.GetStreamArray("TargetStreams", []core.MessageStreamID{})
-
-	return conf.Errors.OrNil()
 }
 
 // Start the router

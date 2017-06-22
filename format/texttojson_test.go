@@ -29,7 +29,8 @@ func newTestTextToJSONFormatter(directives []interface{}, start string) *TextToJ
 	conf.Override("startstate", start)
 	conf.Override("directives", directives)
 
-	if err := format.Configure(core.NewPluginConfigReader(&conf)); err != nil {
+	reader := core.NewPluginConfigReader(&conf)
+	if err := reader.Configure(&format); err != nil {
 		panic(err)
 	}
 	return &format
@@ -121,7 +122,8 @@ func TestTextToJSONFormatterApplyTo(t *testing.T) {
 	conf.Override("directives", directives)
 	conf.Override("ApplyTo", "foo")
 
-	if err := format.Configure(core.NewPluginConfigReader(&conf)); err != nil {
+	reader := core.NewPluginConfigReader(&conf)
+	if err := reader.Configure(&format); err != nil {
 		panic(err)
 	}
 

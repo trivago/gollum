@@ -15,14 +15,12 @@
 package producer
 
 import (
-	"net"
-	"sync"
-	"time"
-
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tnet"
-	"github.com/trivago/tgo/tstrings"
+	"net"
+	"sync"
+	"time"
 )
 
 // Socket producer plugin
@@ -76,12 +74,12 @@ type Socket struct {
 	assembly              core.WriterAssembly
 	protocol              string
 	address               string
-	batchTimeout          time.Duration
-	ackTimeout            time.Duration
-	batchMaxCount         int
-	batchFlushCount       int
-	bufferSizeByte        int
-	acknowledge           string
+	batchTimeout          time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
+	ackTimeout            time.Duration `config:"AckTimeoutMs" default:"2000" metric:"ms"`
+	batchMaxCount         int           `config:"Batch/MaxCount" default:"8192"`
+	batchFlushCount       int           `config:"Batch/FlushCount" default:"4096"`
+	bufferSizeByte        int           `config:"ConnectionBufferSizeKB" default:"1024" metric:"kb"`
+	acknowledge           string        `config:"Acknowledge"`
 }
 
 type bufferedConn interface {
@@ -93,19 +91,11 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Socket) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
+func (prod *Socket) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
-	prod.batchMaxCount = conf.GetInt("Batch/MaxCount", 8192)
-	prod.batchFlushCount = conf.GetInt("Batch/FlushCount", prod.batchMaxCount/2)
-	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
-	prod.batchTimeout = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
-	prod.bufferSizeByte = conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10 // 1 MB
-
-	prod.acknowledge = tstrings.Unescape(conf.GetString("Acknowledge", ""))
-	prod.ackTimeout = time.Duration(conf.GetInt("AckTimeoutMs", 2000)) * time.Millisecond
 	prod.protocol, prod.address = tnet.ParseAddress(conf.GetString("Address", ":5880"), "tcp")
+	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
 
 	switch prod.protocol {
 	case "udp":
@@ -123,8 +113,6 @@ func (prod *Socket) Configure(conf core.PluginConfigReader) error {
 	prod.assembly = core.NewWriterAssembly(nil, prod.TryFallback, prod)
 	prod.assembly.SetValidator(prod.validate)
 	prod.assembly.SetErrorHandler(prod.onWriteError)
-
-	return conf.Errors.OrNil()
 }
 
 func (prod *Socket) tryConnect() bool {

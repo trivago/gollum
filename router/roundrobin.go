@@ -35,13 +35,10 @@ func init() {
 }
 
 // Configure initializes this distributor with values from a plugin config.
-func (router *RoundRobin) Configure(conf core.PluginConfigReader) error {
-	router.SimpleRouter.Configure(conf)
-
+func (router *RoundRobin) Configure(conf core.PluginConfigReader) {
 	router.index = 0
 	router.indexByStream = make(map[core.MessageStreamID]*int32)
 	router.mapInitLock = new(sync.Mutex)
-	return conf.Errors.OrNil()
 }
 
 // Start the router
@@ -56,6 +53,6 @@ func (router *RoundRobin) Enqueue(msg *core.Message) error {
 		return core.NewModulateResultError("No producers configured for stream %s", router.GetID())
 	}
 	index := atomic.AddInt32(&router.index, 1) % int32(len(producers))
-	producers[index].Enqueue(msg, router.Timeout)
+	producers[index].Enqueue(msg, router.GetTimeout())
 	return nil
 }

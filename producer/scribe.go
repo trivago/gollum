@@ -76,12 +76,12 @@ type Scribe struct {
 	socket                *thrift.TSocket
 	category              map[core.MessageStreamID]string
 	batch                 core.MessageBatch
-	batchTimeout          time.Duration
 	lastHeartBeat         time.Time
-	heartBeatInterval     time.Duration
-	batchMaxCount         int
-	batchFlushCount       int
-	bufferSizeByte        int
+	batchTimeout          time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
+	heartBeatInterval     time.Duration `config:"HeartBeatIntervalSec" default:"5" metric:"sec"`
+	batchMaxCount         int           `config:"Batch/MaxCount" default:"8192"`
+	batchFlushCount       int           `config:"Batch/FlushCount" default:"4096"`
+	bufferSizeByte        int           `config:"ConnectionBufferSizeKB" default:"1024" metric:"kb"`
 	windowSize            int
 	counters              map[string]*int64
 	lastMetricUpdate      time.Time
@@ -100,22 +100,15 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Scribe) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
-
+func (prod *Scribe) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 	host := conf.GetString("Address", "localhost:1463")
 
-	prod.batchMaxCount = conf.GetInt("Batch/MaxCount", 8192)
-	prod.windowSize = prod.batchMaxCount
-	prod.batchFlushCount = conf.GetInt("Batch/FlushCount", prod.batchMaxCount/2)
-	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
-	prod.batchTimeout = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
-	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
-	prod.heartBeatInterval = time.Duration(conf.GetInt("HeartBeatIntervalSec", 5)) * time.Second
-
-	prod.bufferSizeByte = conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10 // 1 MB
+	prod.bufferSizeByte = int(conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10) // 1 MB
 	prod.category = conf.GetStreamMap("Categories", "")
+	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
+	prod.windowSize = prod.batchMaxCount
+	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
 
 	// Initialize scribe connection
 
@@ -135,8 +128,6 @@ func (prod *Scribe) Configure(conf core.PluginConfigReader) error {
 		tgo.Metric.New(metricName)
 		tgo.Metric.NewRate(metricName, scribeMetricMessagesSec+category, time.Second, 10, 3, true)
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func (prod *Scribe) bufferMessage(msg *core.Message) {

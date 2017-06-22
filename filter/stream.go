@@ -49,13 +49,9 @@ func init() {
 }
 
 // Configure initializes this filter with values from a plugin config.
-func (filter *Stream) Configure(conf core.PluginConfigReader) error {
-	filter.SimpleFilter.Configure(conf)
-
+func (filter *Stream) Configure(conf core.PluginConfigReader) {
 	filter.blacklist = conf.GetStreamArray("Block", []core.MessageStreamID{})
 	filter.whitelist = conf.GetStreamArray("Only", []core.MessageStreamID{})
-
-	return conf.Errors.OrNil()
 }
 
 // ApplyFilter check if all Filter wants to reject the message

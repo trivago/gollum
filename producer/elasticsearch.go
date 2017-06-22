@@ -121,9 +121,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) error {
-	prod.BatchedProducer.Configure(conf)
-
+func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) {
 	prod.connection.servers = conf.GetStringArray("Servers", []string{"http://127.0.0.1:9200"})
 	prod.connection.user = conf.GetString("User", "")
 	prod.connection.password = conf.GetString("Password", "")
@@ -131,12 +129,10 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) error {
 
 	prod.configureIndexSettings(conf.GetMap("StreamProperties", tcontainer.NewMarshalMap()))
 	prod.configureRetrySettings(conf.GetInt("Retry/Count", 3), conf.GetInt("Retry/TimeToWaitSec", 3))
-
-	return conf.Errors.OrNil()
 }
 
-func (prod *ElasticSearch) configureRetrySettings(retry, timeToWaitSec int) {
-	prod.connection.retrier.retry = retry
+func (prod *ElasticSearch) configureRetrySettings(retry, timeToWaitSec int64) {
+	prod.connection.retrier.retry = int(retry)
 	prod.connection.retrier.backoff = elastic.NewConstantBackoff(time.Duration(timeToWaitSec) * time.Second)
 	prod.connection.retrier.log = &prod.Log
 

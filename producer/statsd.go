@@ -61,8 +61,8 @@ type Statsd struct {
 	streamMap             map[core.MessageStreamID]string
 	client                *statsd.StatsdClient
 	batch                 core.MessageBatch
-	flushFrequency        time.Duration
-	useMessage            bool
+	flushFrequency        time.Duration `config:"BatchTimeoutSec" default:"10" metric:"sec"`
+	useMessage            bool          `config:"UseMessage"`
 }
 
 func init() {
@@ -70,21 +70,16 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Statsd) Configure(conf core.PluginConfigReader) error {
-	prod.BufferedProducer.Configure(conf)
+func (prod *Statsd) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "")
-	prod.batch = core.NewMessageBatch(conf.GetInt("BatchMaxMessages", 500))
-	prod.flushFrequency = time.Duration(conf.GetInt("BatchTimeoutSec", 10)) * time.Second
-	prod.useMessage = conf.GetBool("UseMessage", false)
+	prod.batch = core.NewMessageBatch(int(conf.GetInt("BatchMaxMessages", 500)))
 
 	server := conf.GetString("Server", "localhost:8125")
 	prefix := conf.GetString("Prefix", "gollum.")
 	prod.client = statsd.NewStatsdClient(server, prefix)
 	conf.Errors.Push(prod.client.CreateSocket())
-
-	return conf.Errors.OrNil()
 }
 
 func (prod *Statsd) bufferMessage(msg *core.Message) {

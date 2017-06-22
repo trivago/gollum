@@ -50,10 +50,10 @@ import (
 type SimpleConsumer struct {
 	id              string
 	control         chan PluginControl
-	routers         []Router
 	runState        *PluginRunState
-	shutdownTimeout time.Duration
-	modulators      ModulatorArray
+	routers         []Router       `config:"Streams"`
+	shutdownTimeout time.Duration  `config:"ShutdownTimeoutMs" default:"1000" metric:"ms"`
+	modulators      ModulatorArray `config:"Modulators"`
 	onRoll          func()
 	onPrepareStop   func()
 	onStop          func()
@@ -61,24 +61,16 @@ type SimpleConsumer struct {
 }
 
 // Configure initializes standard consumer values from a plugin config.
-func (cons *SimpleConsumer) Configure(conf PluginConfigReader) error {
+func (cons *SimpleConsumer) Configure(conf PluginConfigReader) {
 	cons.id = conf.GetID()
 	cons.Log = conf.GetLogScope()
 	cons.runState = NewPluginRunState()
 	cons.control = make(chan PluginControl, 1)
-	cons.modulators = conf.GetModulatorArray("Modulators", cons.Log, ModulatorArray{})
+}
 
-	defaultStreamID := GetStreamID(conf.GetID())
-	boundStreamIDs := conf.GetStreamArray("Streams", []MessageStreamID{defaultStreamID})
-
-	for _, streamID := range boundStreamIDs {
-		stream := StreamRegistry.GetRouterOrFallback(streamID)
-		cons.routers = append(cons.routers, stream)
-	}
-
-	cons.shutdownTimeout = time.Duration(conf.GetInt("ShutdownTimeoutMs", 1000)) * time.Millisecond
-
-	return conf.Errors.OrNil()
+// GetLogScope returns the logging scope of this plugin
+func (cons *SimpleConsumer) GetLogScope() tlog.LogScope {
+	return cons.Log
 }
 
 // AddHealthCheck a health check at the default URL

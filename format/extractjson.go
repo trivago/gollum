@@ -46,8 +46,8 @@ import (
 // omitted.
 type ExtractJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	field                string
-	trimValues           bool
+	field                string `config:"Field"`
+	trimValues           bool   `config:"TrimValues" default:"true"`
 	numberFormat         string
 	applyTo              string
 }
@@ -57,16 +57,10 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *ExtractJSON) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
-	format.field = conf.GetString("Field", "")
-	format.trimValues = conf.GetBool("TrimValues", true)
+func (format *ExtractJSON) Configure(conf core.PluginConfigReader) {
 	precision := conf.GetInt("Precision", 0)
 	format.numberFormat = fmt.Sprintf("%%.%df", precision)
 	format.applyTo = conf.GetString("ApplyTo", core.ApplyToPayloadString)
-
-	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload

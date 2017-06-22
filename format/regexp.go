@@ -30,7 +30,7 @@ import (
 type RegExp struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	expression           *regexp.Regexp
-	template             []byte
+	template             []byte `config:"Template" default:"${1}"`
 }
 
 func init() {
@@ -38,20 +38,14 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *RegExp) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
+func (format *RegExp) Configure(conf core.PluginConfigReader) {
 	var err error
 	if conf.GetBool("Posix", true) {
 		format.expression, err = regexp.CompilePOSIX(conf.GetString("Expression", "(.*)"))
 	} else {
 		format.expression, err = regexp.Compile(conf.GetString("Expression", "(.*)"))
 	}
-
 	conf.Errors.Push(err)
-	format.template = []byte(conf.GetString("Template", "${1}"))
-
-	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload

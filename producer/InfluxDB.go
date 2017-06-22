@@ -98,9 +98,7 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *InfluxDB) Configure(conf core.PluginConfigReader) error {
-	prod.BatchedProducer.Configure(conf)
-
+func (prod *InfluxDB) Configure(conf core.PluginConfigReader) {
 	version := conf.GetInt("Version", 100)
 	if conf.GetBool("UseVersion08", false) {
 		version = 80
@@ -118,12 +116,11 @@ func (prod *InfluxDB) Configure(conf core.PluginConfigReader) error {
 		prod.writer = new(influxDBWriter10)
 	}
 
-	if err := prod.writer.configure(conf, prod); err != nil {
-		return err
+	if err := prod.writer.configure(conf, prod); conf.Errors.Push(err) {
+		return
 	}
 
 	prod.assembly = core.NewWriterAssembly(prod.writer, prod.TryFallback, prod)
-	return conf.Errors.OrNil()
 }
 
 // sendBatch returns core.AssemblyFunc to flush batch

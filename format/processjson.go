@@ -92,7 +92,7 @@ import (
 type ProcessJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	directives           []transformDirective
-	trimValues           bool
+	trimValues           bool `config:"TrimValues" default:"true"`
 	db                   *geoip2.Reader
 }
 
@@ -107,12 +107,9 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *ProcessJSON) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
+func (format *ProcessJSON) Configure(conf core.PluginConfigReader) {
 	directives := conf.GetStringArray("Directives", []string{})
 	format.directives = make([]transformDirective, 0, len(directives))
-	format.trimValues = conf.GetBool("TrimValues", true)
 	geoIPFile := conf.GetString("GeoIPFile", "")
 
 	if geoIPFile != "" {
@@ -144,8 +141,6 @@ func (format *ProcessJSON) Configure(conf core.PluginConfigReader) error {
 			}
 		}
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func (format *ProcessJSON) processDirective(directive transformDirective, values *tcontainer.MarshalMap) {
@@ -175,7 +170,7 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 			}
 
 		case "unixtimestamp":
-			floatValue, err := values.Float64(directive.key)
+			floatValue, err := values.Float(directive.key)
 			if err != nil {
 				format.Log.Warning.Print(err.Error())
 				return

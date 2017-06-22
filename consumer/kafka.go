@@ -18,7 +18,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -171,21 +170,21 @@ const (
 // is set to contain only "localhost:9092".
 type Kafka struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	servers             []string
-	topic               string
-	group               string
-	groupClient         *cluster.Client
-	groupConfig         *cluster.Config
+	servers             []string      `config:"Servers" default:"localhost:9092"`
+	topic               string        `config:"Topic" default:"default"`
+	group               string        `config:"GroupId"`
+	offsetFile          string        `config:"OffsetFile"`
+	persistTimeout      time.Duration `config:"PresistTimoutMs" default:"5000" metric:"ms"`
+	orderedRead         bool          `config:"Ordered"`
+	folderPermissions   os.FileMode   `config:"FolderPermissions" default:"0755"`
 	client              kafka.Client
 	config              *kafka.Config
+	groupClient         *cluster.Client
+	groupConfig         *cluster.Config
 	consumer            kafka.Consumer
-	offsetFile          string
 	defaultOffset       int64
 	offsets             map[int32]*int64
 	MaxPartitionID      int32
-	persistTimeout      time.Duration
-	orderedRead         bool
-	folderPermissions   os.FileMode
 }
 
 func init() {
@@ -193,27 +192,13 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
-	cons.SimpleConsumer.Configure(conf)
-
-	cons.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
-	cons.topic = conf.GetString("Topic", "default")
-	cons.group = conf.GetString("GroupId", "")
-	cons.offsetFile = conf.GetString("OffsetFile", "")
-	cons.persistTimeout = time.Duration(conf.GetInt("PresistTimoutMs", 5000)) * time.Millisecond
-	cons.orderedRead = conf.GetBool("Ordered", false)
+func (cons *Kafka) Configure(conf core.PluginConfigReader) {
 	cons.offsets = make(map[int32]*int64)
 	cons.MaxPartitionID = 0
 
-	folderFlags, err := strconv.ParseInt(conf.GetString("FolderPermissions", "0755"), 8, 32)
-	cons.folderPermissions = os.FileMode(folderFlags)
-	if err != nil {
-		return err
-	}
-
 	cons.config = kafka.NewConfig()
 	cons.config.ClientID = conf.GetString("ClientId", "gollum")
-	cons.config.ChannelBufferSize = conf.GetInt("MessageBufferCount", 8192)
+	cons.config.ChannelBufferSize = int(conf.GetInt("MessageBufferCount", 8192))
 
 	switch ver := conf.GetString("Version", "0.8.2"); ver {
 	case "0.8.2.0":
@@ -246,7 +231,7 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 		}
 	}
 
-	cons.config.Net.MaxOpenRequests = conf.GetInt("MaxOpenRequests", 5)
+	cons.config.Net.MaxOpenRequests = int(conf.GetInt("MaxOpenRequests", 5))
 	cons.config.Net.DialTimeout = time.Duration(conf.GetInt("ServerTimeoutSec", 30)) * time.Second
 	cons.config.Net.ReadTimeout = cons.config.Net.DialTimeout
 	cons.config.Net.WriteTimeout = cons.config.Net.DialTimeout
@@ -259,24 +244,27 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 		certFile := conf.GetString("TlsCertificateLocation", "")
 		if keyFile != "" && certFile != "" {
 			cert, err := tls.LoadX509KeyPair(certFile, keyFile)
-			if err != nil {
-				return err
+			if conf.Errors.Push(err) {
+				return
 			}
 			cons.config.Net.TLS.Config.Certificates = []tls.Certificate{cert}
 		} else if certFile == "" {
-			return fmt.Errorf("Cannot specify TlsKeyLocation without TlsCertificateLocation")
+			conf.Errors.Pushf("Cannot specify TlsKeyLocation without TlsCertificateLocation")
+			return
 		} else if keyFile == "" {
-			return fmt.Errorf("Cannot specify TlsCertificateLocation without TlsKeyLocation")
+			conf.Errors.Pushf("Cannot specify TlsCertificateLocation without TlsKeyLocation")
+			return
 		}
 
 		caFile := conf.GetString("TlsCaLocation", "")
 		if caFile == "" {
-			return fmt.Errorf("TlsEnable is set to true, but no TlsCaLocation was specified")
+			conf.Errors.Pushf("TlsEnable is set to true, but no TlsCaLocation was specified")
+			return
 		}
 
 		caCert, err := ioutil.ReadFile(caFile)
-		if err != nil {
-			return err
+		if conf.Errors.Push(err) {
+			return
 		}
 
 		caCertPool := x509.NewCertPool()
@@ -297,7 +285,7 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 		cons.config.Net.SASL.Password = conf.GetString("SaslPassword", "")
 	}
 
-	cons.config.Metadata.Retry.Max = conf.GetInt("ElectRetries", 3)
+	cons.config.Metadata.Retry.Max = int(conf.GetInt("ElectRetries", 3))
 	cons.config.Metadata.Retry.Backoff = time.Duration(conf.GetInt("ElectTimeoutMs", 250)) * time.Millisecond
 	cons.config.Metadata.RefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshMs", 10000)) * time.Millisecond
 
@@ -338,14 +326,14 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 			// Decode the JSON file into the partition -> offset map
 			encodedOffsets := make(map[string]int64)
 			err = json.Unmarshal(fileContents, &encodedOffsets)
-			if err != nil {
-				return err
+			if conf.Errors.Push(err) {
+				return
 			}
 
 			for k, v := range encodedOffsets {
 				id, err := strconv.Atoi(k)
-				if err != nil {
-					return err
+				if conf.Errors.Push(err) {
+					return
 				}
 				startOffset := v
 				cons.offsets[int32(id)] = &startOffset
@@ -354,7 +342,6 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) error {
 	}
 
 	kafka.Logger = cons.Log.Note
-	return conf.Errors.OrNil()
 }
 
 func (cons *Kafka) restartGroup() {

@@ -66,13 +66,13 @@ import (
 // If a Certificate is given, a PrivatKey must be given, too.
 type HTTP struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	listen              *tnet.StopListener
-	address             string
-	readTimeoutSec      time.Duration
-	withHeaders         bool
-	htpasswd            string
+	address             string        `config:"Address" default:":80"`
+	readTimeoutSec      time.Duration `config:"ReadTimeoutSec" default:"3" metric:"sec"`
+	withHeaders         bool          `config:"WithHeaders" default:"true"`
+	htpasswd            string        `config:"Htpasswd"`
+	basicRealm          string        `config:"BasicRealm"`
 	secrets             auth.SecretProvider
-	basicRealm          string
+	listen              *tnet.StopListener
 	certificate         *tls.Config
 }
 
@@ -81,16 +81,7 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *HTTP) Configure(conf core.PluginConfigReader) error {
-	cons.SimpleConsumer.Configure(conf)
-
-	cons.address = conf.GetString("Address", ":80")
-	cons.readTimeoutSec = time.Duration(conf.GetInt("ReadTimeoutSec", 3)) * time.Second
-	cons.withHeaders = conf.GetBool("WithHeaders", true)
-
-	cons.htpasswd = conf.GetString("Htpasswd", "")
-	cons.basicRealm = conf.GetString("BasicRealm", "")
-
+func (cons *HTTP) Configure(conf core.PluginConfigReader) {
 	if cons.htpasswd != "" {
 		if _, fileErr := os.Stat(cons.htpasswd); os.IsNotExist(fileErr) {
 			conf.Errors.Pushf("htpasswd file does not exist: %s", cons.htpasswd)
@@ -116,8 +107,6 @@ func (cons *HTTP) Configure(conf core.PluginConfigReader) error {
 			}
 		}
 	}
-
-	return conf.Errors.OrNil()
 }
 
 func (cons *HTTP) checkAuth(r *http.Request) bool {

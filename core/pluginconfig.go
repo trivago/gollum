@@ -26,7 +26,7 @@ type PluginConfig struct {
 	ID        string
 	Typename  string
 	Enable    bool
-	Instances int
+	Instances uint64
 	Settings  tcontainer.MarshalMap
 	validKeys map[string]bool
 }
@@ -125,7 +125,7 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
 			errors.Push(err)
 
 		case "instances":
-			conf.Instances, err = values.Int(key)
+			conf.Instances, err = values.Uint(key)
 			errors.Push(err)
 
 		default:

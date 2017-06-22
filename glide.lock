@@ -1,5 +1,5 @@
 hash: b2221ea1922ba9874bf23976d60dd055eb658a563a375dd75bec384b2bfb3d5f
-updated: 2017-06-12T14:47:30.751017743+02:00
+updated: 2017-06-22T13:52:46.903825065+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -55,7 +55,7 @@ imports:
   subpackages:
   - spew
 - name: github.com/eapache/go-resiliency
-  version: b86b1ec0dd4209a588dc1285cdd471e73525c0b3
+  version: b1fe83b5b03f624450823b751b662259ffc6af70
   subpackages:
   - breaker
 - name: github.com/eapache/go-xerial-snappy
@@ -63,7 +63,7 @@ imports:
 - name: github.com/eapache/queue
   version: 44cc805cf13205b55f69e14bcb69867d1ae92f98
 - name: github.com/go-ini/ini
-  version: afbc45e87f3ba324c532d12c71918ef52e0fb194
+  version: d3de07a94d22b4a0972deb4b96d790c2c0ce8333
 - name: github.com/go-redis/redis
   version: 2cf5af9928978bbef8d1076607022403439e177c
   subpackages:
@@ -73,7 +73,7 @@ imports:
   - internal/pool
   - internal/proto
 - name: github.com/golang/protobuf
-  version: 7b8002443fd4a3ce5f25ef93087c524546799a56
+  version: 1fb8fd32a09087bcd727225167edd31e1b9ceb24
   subpackages:
   - proto
 - name: github.com/golang/snappy
@@ -87,11 +87,9 @@ imports:
 - name: github.com/miekg/pcap
   version: 51d9d986bf8d5f524d65bf31c353e10271d54aaa
 - name: github.com/mmcloughlin/geohash
-  version: 33283639a13451aa23d02413884678abd4bdb1e7
+  version: 525f3a7fc47c279c04049e07697970039310755d
 - name: github.com/mssola/user_agent
   version: 07efe2b857fb8c02d2dd85c12d0145f58554ec7c
-- name: github.com/olivere/elastic
-  version: f1fd7305d0b6270192b27010fe1193568b18e4b6
 - name: github.com/oschwald/maxminddb-golang
   version: d19f6d453e836d12ee8fe895d0494421e93ef8c1
 - name: github.com/pierrec/lz4
@@ -111,7 +109,7 @@ imports:
 - name: github.com/Shopify/sarama
   version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
 - name: github.com/trivago/tgo
-  version: d9e59a3b2b19ba09c4f968fa0cc48d30b93892d1
+  version: c787d684e0a8d84d70a3199b01262c80b8afaf3a
   subpackages:
   - tcontainer
   - terrors
@@ -127,12 +125,12 @@ imports:
   - tsync
   - ttesting
 - name: golang.org/x/crypto
-  version: 7e9105388ebff089b3f99f0ef676ea55a6da3a7e
+  version: adbae1b6b6fb4b02448a0fc0dbbc9ba2b95b294d
   subpackages:
   - bcrypt
   - blowfish
 - name: golang.org/x/sys
-  version: a55a76086885b80f79961eacb876ebd8caf3868d
+  version: fb4cac33e3196ff7f507ab9b2d2a44b0142f5b5a
   subpackages:
   - unix
   - windows
@@ -144,7 +142,7 @@ imports:
   - internal/syslogparser/rfc3164
   - internal/syslogparser/rfc5424
 - name: gopkg.in/olivere/elastic.v5
-  version: f1fd7305d0b6270192b27010fe1193568b18e4b6
+  version: 3113f9b9ad37509fe5f8a0e5e91c96fdc4435e26
   subpackages:
   - uritemplates
 - name: gopkg.in/oschwald/geoip2-golang.v1

@@ -41,9 +41,7 @@ func init() {
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Base64Encode) Configure(conf core.PluginConfigReader) error {
-	format.SimpleFormatter.Configure(conf)
-
+func (format *Base64Encode) Configure(conf core.PluginConfigReader) {
 	dict := conf.GetString("Dictionary", "")
 	if dict == "" {
 		format.dictionary = base64.StdEncoding
@@ -53,7 +51,6 @@ func (format *Base64Encode) Configure(conf core.PluginConfigReader) error {
 		}
 		format.dictionary = base64.NewEncoding(dict)
 	}
-	return conf.Errors.OrNil()
 }
 
 // ApplyFormatter update message payload

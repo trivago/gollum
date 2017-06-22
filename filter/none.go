@@ -34,8 +34,7 @@ func init() {
 }
 
 // Configure initializes this filter with values from a plugin config.
-func (filter *None) Configure(conf core.PluginConfigReader) error {
-	return filter.SimpleFilter.Configure(conf)
+func (filter *None) Configure(conf core.PluginConfigReader) {
 }
 
 // ApplyFilter calls the Filter.ApplyFilter method

@@ -84,8 +84,6 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *PcapHTTPConsumer) Configure(conf core.PluginConfigReader) error {
-	cons.SimpleConsumer.Configure(conf)
-
 	cons.netInterface = conf.GetString("Interface", "eth0")
 	cons.promiscuous = conf.GetBool("Promiscuous", true)
 	cons.filter = conf.GetString("Filter", "dst port 80 and dst host 127.0.0.1")

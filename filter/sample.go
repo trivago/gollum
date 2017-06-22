@@ -43,8 +43,8 @@ import (
 // By default this list is empty.
 type Sample struct {
 	core.SimpleFilter
-	rate   int64
-	group  int64
+	rate   int64 `config:"SampleRatePerGroup" default:"1"`
+	group  int64 `config:"SampleGroupSize" default:"1"`
 	count  *int64
 	ignore map[core.MessageStreamID]bool
 }
@@ -54,20 +54,13 @@ func init() {
 }
 
 // Configure initializes this filter with values from a plugin config.
-func (filter *Sample) Configure(conf core.PluginConfigReader) error {
-	filter.SimpleFilter.Configure(conf)
-
-	filter.rate = int64(conf.GetInt("SampleRatePerGroup", 1))
-	filter.group = int64(conf.GetInt("SampleGroupSize", 1))
+func (filter *Sample) Configure(conf core.PluginConfigReader) {
 	filter.count = new(int64)
-
 	filter.ignore = make(map[core.MessageStreamID]bool)
 	ignore := conf.GetStreamArray("SampleIgnore", []core.MessageStreamID{})
 	for _, stream := range ignore {
 		filter.ignore[stream] = true
 	}
-
-	return conf.Errors.OrNil()
 }
 
 // ApplyFilter check if all Filter wants to reject the message
