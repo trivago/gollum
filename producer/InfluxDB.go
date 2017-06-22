@@ -106,13 +106,13 @@ func (prod *InfluxDB) Configure(conf core.PluginConfigReader) {
 
 	switch {
 	case version < 90:
-		prod.Log.Debug.Print("Using InfluxDB 0.8.x format")
+		prod.Logger.Debug("Using InfluxDB 0.8.x format")
 		prod.writer = new(influxDBWriter08)
 	case version == 90:
-		prod.Log.Debug.Print("Using InfluxDB 0.9.0 format")
+		prod.Logger.Debug("Using InfluxDB 0.9.0 format")
 		prod.writer = new(influxDBWriter09)
 	default:
-		prod.Log.Debug.Print("Using InfluxDB 0.9.1+ format")
+		prod.Logger.Debug("Using InfluxDB 0.9.1+ format")
 		prod.writer = new(influxDBWriter10)
 	}
 

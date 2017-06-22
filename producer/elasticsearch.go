@@ -241,7 +241,7 @@ func (prod *ElasticSearch) createIndex(index string, sendIndex string, indexType
 	if settings, exist := prod.indexSettings[index]; exist {
 		if onServer, _ := prod.conn.ExistsIndex(sendIndex, indexType, make(map[string]interface{})); !onServer {
 			if _, err := prod.conn.CreateIndexWithSettings(sendIndex, *settings); err != nil {
-				prod.Log.Error.Print("Index creation error: ", err.Error())
+				prod.Logger.Error("Index creation error: ", err.Error())
 			}
 		}
 	}
@@ -285,7 +285,7 @@ func (prod *ElasticSearch) sendMessage(msg *core.Message) {
 
 	err := prod.indexer.Index(index, indexType, "", "", prod.msgTTL, nil, msg.String())
 	if err != nil {
-		prod.Log.Error.Print("Index error - ", err)
+		prod.Logger.Error("Index error - ", err)
 		if !prod.isClusterUp() {
 			// TBD: health check? (prev. fuse breaker)
 		}

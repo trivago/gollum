@@ -181,7 +181,7 @@ func (prod *Spooling) writeToFile(msg *core.Message) {
 	}
 
 	if err := os.MkdirAll(spool.basePath, 0700); err != nil && !os.IsExist(err) {
-		prod.Log.Error.Printf("Spooling: Failed to create %s because of %s", spool.basePath, err.Error())
+		prod.Logger.Errorf("Spooling: Failed to create %s because of %s", spool.basePath, err.Error())
 		prod.TryFallback(msg)
 		return // ### return, cannot write ###
 	}
@@ -279,7 +279,7 @@ func (prod *Spooling) close() {
 // As we might share spooling folders with different instances we only read
 // streams that we actually care about.
 func (prod *Spooling) openExistingFiles() {
-	prod.Log.Debug.Print("Looking for spool files to read")
+	prod.Logger.Debug("Looking for spool files to read")
 	files, _ := ioutil.ReadDir(prod.path)
 	for _, file := range files {
 		if file.IsDir() {
@@ -289,7 +289,7 @@ func (prod *Spooling) openExistingFiles() {
 			// Only create a new spooler if the stream is registered by this instance
 			prod.outfileGuard.Lock()
 			if _, exists := prod.outfile[streamID]; !exists && core.StreamRegistry.IsStreamRegistered(streamID) {
-				prod.Log.Note.Printf("Found existing spooling folders for %s", streamName)
+				prod.Logger.Infof("Found existing spooling folders for %s", streamName)
 				prod.outfile[streamID] = newSpoolFile(prod, streamName, nil)
 			}
 			prod.outfileGuard.Unlock()

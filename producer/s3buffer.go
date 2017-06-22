@@ -19,7 +19,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/tsync"
 	"io"
 	"os"
@@ -40,14 +40,14 @@ type s3Buffer interface {
 type s3ByteBuffer struct {
 	bytes    []byte
 	position int64
-	log      tlog.LogScope
+	logger   logrus.FieldLogger
 }
 
-func newS3ByteBuffer(log tlog.LogScope) *s3ByteBuffer {
+func newS3ByteBuffer(logger logrus.FieldLogger) *s3ByteBuffer {
 	return &s3ByteBuffer{
 		bytes:    make([]byte, 0),
 		position: int64(0),
-		log:      log,
+		logger:   logger,
 	}
 }
 
@@ -103,12 +103,12 @@ func (buf *s3ByteBuffer) Sha1() (string, error) {
 }
 
 func (buf *s3ByteBuffer) Compress() error {
-	compressed := newS3ByteBuffer(buf.log)
+	compressed := newS3ByteBuffer(buf.logger)
 	gzipWriter := gzip.NewWriter(compressed)
 	_, err := gzipWriter.Write(buf.bytes)
 	gzipWriter.Close()
 	if err != nil {
-		buf.log.Warning.Print("Compression failed:", err)
+		buf.logger.Warning("Compression failed:", err)
 		return err
 	}
 	buf.bytes = compressed.bytes
@@ -119,18 +119,18 @@ func (buf *s3ByteBuffer) Compress() error {
 // s3 buffer backed with a file
 type s3FileBuffer struct {
 	file *os.File
-	log  tlog.LogScope
+	logger logrus.FieldLogger
 }
 
-func newS3FileBuffer(filename string, log tlog.LogScope) (*s3FileBuffer, error) {
+func newS3FileBuffer(filename string, logger logrus.FieldLogger) (*s3FileBuffer, error) {
 	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
-		log.Error.Print("s3FileBuffer could not open file:", err)
+		logger.Error("s3FileBuffer could not open file:", err)
 		return nil, err
 	}
 	return &s3FileBuffer{
 		file: file,
-		log:  log,
+		logger:  logger,
 	}, nil
 }
 
@@ -142,7 +142,7 @@ func (buf *s3FileBuffer) Bytes() ([]byte, error) {
 	bytes := make([]byte, size)
 	_, err = buf.Read(bytes)
 	if err != nil && err != io.EOF {
-		buf.log.Error.Print("s3FileBuffer.Bytes() read error: ", err)
+		buf.logger.Error("s3FileBuffer.Bytes() read error: ", err)
 		return nil, err
 	}
 	return bytes, nil
@@ -151,11 +151,11 @@ func (buf *s3FileBuffer) Bytes() ([]byte, error) {
 func (buf *s3FileBuffer) CloseAndDelete() error {
 	filename := buf.file.Name()
 	if err := buf.file.Close(); err != nil {
-		buf.log.Error.Print("s3FileBuffer.CloseAndDelete() failed to close file:", err)
+		buf.logger.Error("s3FileBuffer.CloseAndDelete() failed to close file:", err)
 		return err
 	}
 	if err := os.Remove(filename); err != nil {
-		buf.log.Error.Print("s3FileBuffer.CloseAndDelete() failed to rm file:", err)
+		buf.logger.Error("s3FileBuffer.CloseAndDelete() failed to rm file:", err)
 		return err
 	}
 	return nil
@@ -178,7 +178,7 @@ func (buf *s3FileBuffer) Sha1() (string, error) {
 	buf.file.Seek(0, 0)
 	_, err := io.Copy(hasher, buf.file)
 	if err != nil {
-		buf.log.Error.Print("s3FileBuffer.Sha1() hashing error: ", err)
+		buf.logger.Error("s3FileBuffer.Sha1() hashing error: ", err)
 		return "", err
 	}
 	return hex.EncodeToString(hasher.Sum(nil)[:]), nil
@@ -187,7 +187,7 @@ func (buf *s3FileBuffer) Sha1() (string, error) {
 func (buf *s3FileBuffer) Size() (int, error) {
 	stats, err := buf.file.Stat()
 	if err != nil {
-		buf.log.Error.Print("s3FileBuffer.Size() could not stat file:", err)
+		buf.logger.Error("s3FileBuffer.Size() could not stat file:", err)
 		return 0, err
 	}
 	return int(stats.Size()), err
@@ -198,7 +198,7 @@ func (buf *s3FileBuffer) Compress() error {
 	filename := buf.file.Name() + ".gz"
 	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		buf.log.Error.Print("s3FileBuffer.Compress() could not open file:", err)
+		buf.logger.Error("s3FileBuffer.Compress() could not open file:", err)
 		return err
 	}
 
@@ -213,10 +213,10 @@ func (buf *s3FileBuffer) Compress() error {
 	gzipWriter.Close()
 
 	if err != nil && err != io.EOF {
-		buf.log.Warning.Print("s3FileBuffer.Compress() failed to compress file:", err)
+		buf.logger.Warning("s3FileBuffer.Compress() failed to compress file:", err)
 		file.Close()
 		if err2 := os.Remove(filename); err2 != nil {
-			buf.log.Error.Print("s3FileBuffer.Compress() failed to rm compressed file:", err)
+			buf.logger.Error("s3FileBuffer.Compress() failed to rm compressed file:", err)
 		}
 		return err
 	}
@@ -226,7 +226,7 @@ func (buf *s3FileBuffer) Compress() error {
 	err = os.Remove(buf.file.Name())
 	if err != nil {
 		// don't return this error, because compression succeeded
-		buf.log.Warning.Print("s3FileBuffer.Compress() failed to rm original file:", err)
+		buf.logger.Warning("s3FileBuffer.Compress() failed to rm original file:", err)
 	}
 
 	buf.file = file

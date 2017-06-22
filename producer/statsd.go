@@ -130,7 +130,7 @@ func (prod *Statsd) transformMessages(messages []*core.Message) {
 			if val, err := strconv.ParseInt(msgCopy.String(), 10, 64); err == nil {
 				metricValues[metricName] += val
 			} else {
-				prod.Log.Warning.Print("message was skipped")
+				prod.Logger.Warning("message was skipped")
 			}
 		} else {
 			metricValues[metricName] += int64(1)
