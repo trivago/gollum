@@ -16,36 +16,37 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
+	"fmt"
 )
 
-// Serialize formatter plugin
-// Serialize is a formatter that serializes a message for later retrieval.
-// Configuration example
+// SetValue formatter plugin
 //
-//  - format.Serialize:
-//      ApplyTo: "payload" # payload or <metaKey>
+// SetValue sets a single metadata key, or the payload itself, to a static value
 //
-// ApplyTo defines the formatter content to use
-type Serialize struct {
-	core.SimpleFormatter `gollumdoc:"embed_type"`
+// Configuration example:
+//
+// - format.SetValue:
+//   # payload or <metaKey>
+//   ApplyTo: "payload"
+//   Value: "some static string"
+//
+type SetValue struct {
+	core.SimpleFormatter
+	value string
 }
 
 func init() {
-	core.TypeRegistry.Register(Serialize{})
+	core.TypeRegistry.Register(SetValue{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Serialize) Configure(conf core.PluginConfigReader) {
+func (format *SetValue) Configure(conf core.PluginConfigReader) {
+	format.value = conf.GetString("Value", "")
 }
 
-// ApplyFormatter update message payload
-func (format *Serialize) ApplyFormatter(msg *core.Message) error {
-	data, err := msg.Serialize()
-	if err != nil {
-		format.Logger.Error(err)
-		return err
-	}
-
-	format.SetAppliedContent(msg, data)
+// ApplyFormatter sets value of the the payload or metadata key
+func (format *SetValue) ApplyFormatter(msg *core.Message) error {
+	fmt.Printf("setvalue: ApplyFormatter(): message: %s, value: %s\n", msg.String(), format.value)
+	format.SetAppliedContent(msg, []byte(format.value))
 	return nil
 }
