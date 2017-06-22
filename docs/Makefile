@@ -176,4 +176,7 @@ html: $(HTML_BUILD_DIR)
 	mkdir -p $(HTML_BUILD_DIR)/doctrees $(HTML_BUILD_DIR)/html
 	sphinx-build -b html -d $(HTML_BUILD_DIR)/doctrees . $(HTML_BUILD_DIR)/html
 
+open-html:
+	open $(HTML_BUILD_DIR)/html/index.html
+
 ####################################################################################################

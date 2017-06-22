@@ -28,11 +28,19 @@ import (
 
 // Profiler consumer plugin
 //
-// The profiler plugin generates Runs x Batches messages and send them to the
-// configured streams as fast as possible. This consumer can be used to profile
-// producers and/or configurations.
+// The "Profiler" consumer plugin autogenerates messages in user-defined quantity,
+// size and density. It can be used to profile producers and configurations and to
+// provide a message source for testing.
 //
-// Configuration example
+// Before startup, [TemplateCount] template payloads are generated based on the
+// format specifier [Message], using characters from [Characters]. The length of
+// each template is determined by format size specifier(s) in [Message].
+//
+// During execution, [Batches] batches of [Runs] messages are generated, with a
+// [DelayMs] ms delay between each message. Each message's payload is randomly
+// selected from the set of template payloads above.
+//
+// Configuration example:
 //
 //  - "consumer.Profile":
 //    Runs: 10000
@@ -56,8 +64,8 @@ import (
 // Characters defines the characters to be used in generated strings. By default
 // these are "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 ".
 //
-// Message defines a go format string to be used to generate the message payloads.
-// The length of the values generated will be deducted from the format size
+// Message defines a go format string to be used to generate the message templates.
+// The length of the values generated will be deduced from the format size
 // parameter. I.e. "%200d" will generate a digit between 0 and 200, "%10s" will
 // generate a string with 10 characters, etc..
 // By default this is set to "%256s".
@@ -65,9 +73,9 @@ import (
 // DelayMs defines the number of milliseconds of sleep between messages.
 // By default this is set to 0.
 //
-// KeepRunning can be set to true to disable automatic shutdown of gollum after
+// KeepRunning can be set to `true` to disable automatic shutdown of gollum after
 // profiling is done. This can be used to e.g. read metrics after a profile run.
-// By default this is set to false.
+// By default this is set to `false`.
 type Profiler struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 	profileRuns         int           `config:"Runs" default:"10000"`
@@ -156,9 +164,13 @@ func (cons *Profiler) profile() {
 
 	for i := 0; i < len(cons.templates); i++ {
 		cons.templates[i] = cons.generateTemplate()
+		cons.Log.Debug.Printf("Template %d/%d: '%s' (%d bytes)\n",
+			i, len(cons.templates), string(cons.templates[i]), len(cons.templates[i]))
 	}
 
-	cons.Log.Debug.Printf("Started profiling with %d byte messages", len(cons.templates[0]))
+	cons.Log.Debug.Printf("Start profiling with %d templates of %d bytes each",
+		len(cons.templates),
+		len(cons.templates[0]))
 
 	testStart := time.Now()
 	minTime := math.MaxFloat64
@@ -171,6 +183,7 @@ func (cons *Profiler) profile() {
 
 		for i := 0; i < cons.profileRuns && cons.IsActive(); i++ {
 			template := cons.templates[rand.Intn(len(cons.templates))]
+			cons.Log.Debug.Printf("Enqueuing message: '%s'\n", template)
 			messageCount++
 
 			cons.Enqueue(template)
