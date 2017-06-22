@@ -42,15 +42,27 @@ import (
 //
 // Configuration example:
 //
-//  - "consumer.Profile":
-//    Runs: 10000
-//    Batches: 10
-//    TemplateCount: 10
-//    Characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
-//    Message: "%256s"
-//	  DelayMs: 0
-//    KeepRunning: false
-//
+// # Generate 10 x 10000 messages of 256 bytes
+// MyProfiler:
+//   Type: "consumer.Profiler" 
+//   Runs: 10000
+//   Batches: 10
+//   TemplateCount: 10
+//   Characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
+//   Message: "%256s"
+//	 DelayMs: 0
+//   KeepRunning: false
+// # Generate a short message every 0.5s, useful for testing and debugging
+// JunkGenerator:
+//   Type: "consumer.Profiler"
+//   Message: "%20s"
+//   Streams: "junkstream"
+//   Characters: "abcdefghijklmZ"
+//   KeepRunning: true
+//   Runs: 10000
+//   Batches: 3000000
+//   DelayMs: 500
+// 
 // Runs defines the number of messages per batch. By default this is set to
 // 10000.
 //
