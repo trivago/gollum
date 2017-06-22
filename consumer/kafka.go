@@ -214,7 +214,7 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) {
 	case "0.10", "0.10.0", "0.10.0.0":
 		cons.config.Version = kafka.V0_10_0_0
 	default:
-		cons.Log.Warning.Print("Unknown kafka version given: ", ver)
+		cons.Logger.Warning("Unknown kafka version given: ", ver)
 		parts := strings.Split(ver, ".")
 		if len(parts) < 2 {
 			cons.config.Version = kafka.V0_8_2_2
@@ -298,7 +298,7 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) {
 		cons.offsetFile = "" // forcibly ignore this option
 		switch cons.config.Version {
 		case kafka.V0_8_2_0, kafka.V0_8_2_1, kafka.V0_8_2_2:
-			cons.Log.Warning.Print("Invalid kafka version 0.8.x given, minimum is 0.9 for consumer groups, defaulting to 0.9.0.1")
+			cons.Logger.Warning("Invalid kafka version 0.8.x given, minimum is 0.9 for consumer groups, defaulting to 0.9.0.1")
 			cons.config.Version = kafka.V0_9_0_1
 		}
 
@@ -321,7 +321,7 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) {
 	if cons.offsetFile != "" {
 		fileContents, err := ioutil.ReadFile(cons.offsetFile)
 		if err != nil {
-			cons.Log.Error.Printf("Failed to open kafka offset file: %s", err.Error())
+			cons.Logger.Errorf("Failed to open kafka offset file: %s", err.Error())
 		} else {
 			// Decode the JSON file into the partition -> offset map
 			encodedOffsets := make(map[string]int64)
@@ -341,7 +341,7 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) {
 		}
 	}
 
-	kafka.Logger = cons.Log.Note
+	kafka.Logger = cons.Logger // TODO: kafka.logger = cons.Log.Note => ?
 }
 
 func (cons *Kafka) restartGroup() {
@@ -354,7 +354,7 @@ func (cons *Kafka) readFromGroup() {
 	consumer, err := cluster.NewConsumerFromClient(cons.groupClient, cons.group, []string{cons.topic})
 	if err != nil {
 		defer cons.restartGroup()
-		cons.Log.Error.Printf("Restarting kafka consumer (%s:%s) - %s", cons.topic, cons.group, err.Error())
+		cons.Logger.Errorf("Restarting kafka consumer (%s:%s) - %s", cons.topic, cons.group, err.Error())
 		return // ### return, stop and retry ###
 	}
 
@@ -377,7 +377,7 @@ func (cons *Kafka) readFromGroup() {
 
 		case err := <-consumer.Errors():
 			defer cons.restartGroup()
-			cons.Log.Error.Print("Kafka consumer error:", err)
+			cons.Logger.Error("Kafka consumer error:", err)
 			return // ### return, try reconnect ###
 
 		default:
@@ -394,7 +394,7 @@ func (cons *Kafka) startConsumerForPartition(partitionID int32) kafka.PartitionC
 			return consumer // ### return, success ###
 		}
 
-		cons.Log.Error.Printf("Failed to start kafka consumer (%s:%d) - %s", cons.topic, startOffset, err.Error())
+		cons.Logger.Errorf("Failed to start kafka consumer (%s:%d) - %s", cons.topic, startOffset, err.Error())
 
 		// Reset offset to default value if we have an offset error
 		if err == kafka.ErrOffsetOutOfRange {
@@ -427,7 +427,7 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 			//exception. Probably it might happen when sarama close the channel
 			//so we will get nil message from the channel.
 			if event == nil || cons.offsets == nil || cons.offsets[partitionID] == nil {
-				cons.Log.Error.Printf("Kafka consumer failed to store offset. Trace : event : %+v, cons.partCons: %+v, partitionID: %d\n",
+				cons.Logger.Errorf("Kafka consumer failed to store offset. Trace : event : %+v, cons.partCons: %+v, partitionID: %d\n",
 					event, cons.offsets, partitionID)
 
 				partCons.Close()
@@ -439,7 +439,7 @@ func (cons *Kafka) readFromPartition(partitionID int32) {
 			cons.enqueueEvent(event)
 
 		case err := <-partCons.Errors():
-			cons.Log.Error.Print("Kafka consumer error:", err)
+			cons.Logger.Error("Kafka consumer error:", err)
 			if !cons.client.Closed() {
 				partCons.Close()
 			}
@@ -477,7 +477,7 @@ func (cons *Kafka) readPartitions(partitions []int32) {
 				cons.enqueueEvent(event)
 
 			case err := <-consumer.Errors():
-				cons.Log.Error.Print("Kafka consumer error:", err)
+				cons.Logger.Error("Kafka consumer error:", err)
 				if !cons.client.Closed() {
 					consumer.Close()
 				}
@@ -504,7 +504,7 @@ func (cons *Kafka) enqueueEvent(event *kafka.ConsumerMessage) {
 func (cons *Kafka) startReadTopic(topic string) {
 	partitions, err := cons.client.Partitions(topic)
 	if err != nil {
-		cons.Log.Error.Print(err)
+		cons.Logger.Error(err)
 		time.AfterFunc(cons.persistTimeout, func() { cons.startReadTopic(topic) })
 		return
 	}
@@ -567,11 +567,11 @@ func (cons *Kafka) dumpIndex() {
 
 		data, err := json.Marshal(encodedOffsets)
 		if err != nil {
-			cons.Log.Error.Print("Kafka index file write error - ", err)
+			cons.Logger.Error("Kafka index file write error - ", err)
 		} else {
 			fileDir := path.Dir(cons.offsetFile)
 			if err := os.MkdirAll(fileDir, 0755); err != nil {
-				cons.Log.Error.Printf("Failed to create %s because of %s", fileDir, err.Error())
+				cons.Logger.Errorf("Failed to create %s because of %s", fileDir, err.Error())
 			} else {
 				ioutil.WriteFile(cons.offsetFile, data, 0644)
 			}
@@ -584,7 +584,7 @@ func (cons *Kafka) Consume(workers *sync.WaitGroup) {
 	cons.SetWorkerWaitGroup(workers)
 
 	if err := cons.startAllConsumers(); err != nil {
-		cons.Log.Error.Print("Kafka client error - ", err)
+		cons.Logger.Error("Kafka client error - ", err)
 		time.AfterFunc(cons.config.Net.DialTimeout, func() { cons.Consume(workers) })
 		return
 	}
