@@ -9,7 +9,6 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
-	"math"
 	"sync"
 
 	_ "crypto/sha1"
@@ -187,7 +186,7 @@ type Config struct {
 
 	// The maximum number of bytes sent or received after which a
 	// new key is negotiated. It must be at least 256. If
-	// unspecified, a size suitable for the chosen cipher is used.
+	// unspecified, 1 gigabyte is used.
 	RekeyThreshold uint64
 
 	// The allowed key exchanges algorithms. If unspecified then a
@@ -231,12 +230,11 @@ func (c *Config) SetDefaults() {
 	}
 
 	if c.RekeyThreshold == 0 {
-		// cipher specific default
-	} else if c.RekeyThreshold < minRekeyThreshold {
+		// RFC 4253, section 9 suggests rekeying after 1G.
+		c.RekeyThreshold = 1 << 30
+	}
+	if c.RekeyThreshold < minRekeyThreshold {
 		c.RekeyThreshold = minRekeyThreshold
-	} else if c.RekeyThreshold >= math.MaxInt64 {
-		// Avoid weirdness if somebody uses -1 as a threshold.
-		c.RekeyThreshold = math.MaxInt64
 	}
 }
 

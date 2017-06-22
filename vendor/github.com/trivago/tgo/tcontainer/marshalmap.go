@@ -16,7 +16,6 @@ package tcontainer
 
 import (
 	"fmt"
-	"github.com/trivago/tgo/treflect"
 	"reflect"
 	"strconv"
 	"strings"
@@ -106,49 +105,60 @@ func (mmap MarshalMap) Bool(key string) (bool, error) {
 	return boolValue, nil
 }
 
-// Uint returns a value at key that is expected to be an uint64 or compatible
-// integer value.
-func (mmap MarshalMap) Uint(key string) (uint64, error) {
+// Int returns a value at key that is expected to be an int
+func (mmap MarshalMap) Int(key string) (int, error) {
 	val, exists := mmap.Value(key)
 	if !exists {
 		return 0, fmt.Errorf(`"%s" is not set`, key)
 	}
 
-	if intVal, isNumber := treflect.Uint64(val); isNumber {
-		return intVal, nil
+	intValue, isInt := val.(int)
+	if !isInt {
+		return 0, fmt.Errorf(`"%s" is expected to be an integer`, key)
 	}
-
-	return 0, fmt.Errorf(`"%s" is expected to be an unsigned number type`, key)
+	return intValue, nil
 }
 
-// Int returns a value at key that is expected to be an int64 or compatible
-// integer value.
-func (mmap MarshalMap) Int(key string) (int64, error) {
+// Uint64 returns a value at key that is expected to be an uint64
+func (mmap MarshalMap) Uint64(key string) (uint64, error) {
 	val, exists := mmap.Value(key)
 	if !exists {
 		return 0, fmt.Errorf(`"%s" is not set`, key)
 	}
 
-	if intVal, isNumber := treflect.Int64(val); isNumber {
-		return intVal, nil
+	intValue, isInt := val.(uint64)
+	if !isInt {
+		return 0, fmt.Errorf(`"%s" is expected to be an unsigned integer`, key)
 	}
-
-	return 0, fmt.Errorf(`"%s" is expected to be a signed number type`, key)
+	return intValue, nil
 }
 
-// Float returns a value at key that is expected to be a float64 or compatible
-// float value.
-func (mmap MarshalMap) Float(key string) (float64, error) {
+// Int64 returns a value at key that is expected to be an int64
+func (mmap MarshalMap) Int64(key string) (int64, error) {
 	val, exists := mmap.Value(key)
 	if !exists {
 		return 0, fmt.Errorf(`"%s" is not set`, key)
 	}
 
-	if floatVal, isNumber := treflect.Float64(val); isNumber {
-		return floatVal, nil
+	intValue, isInt := val.(int64)
+	if !isInt {
+		return 0, fmt.Errorf(`"%s" is expected to be an integer`, key)
+	}
+	return intValue, nil
+}
+
+// Float64 returns a value at key that is expected to be a float64
+func (mmap MarshalMap) Float64(key string) (float64, error) {
+	val, exists := mmap.Value(key)
+	if !exists {
+		return 0, fmt.Errorf(`"%s" is not set`, key)
 	}
 
-	return 0, fmt.Errorf(`"%s" is expected to be a signed number type`, key)
+	floatValue, isFloat := val.(float64)
+	if !isFloat {
+		return 0, fmt.Errorf(`"%s" is expected to be a float64`, key)
+	}
+	return floatValue, nil
 }
 
 // Duration returns a value at key that is expected to be a string

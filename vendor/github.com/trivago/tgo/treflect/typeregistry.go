@@ -16,6 +16,7 @@ package treflect
 
 import (
 	"fmt"
+	"github.com/trivago/tgo/tstrings"
 	"reflect"
 	"strings"
 )
@@ -40,14 +41,13 @@ func (registry TypeRegistry) Register(typeInstance interface{}) {
 	packageName := structType.PkgPath()
 	typeName := structType.Name()
 
-	pathTokens := strings.Split(packageName, "/")
-	maxDepth := 3
-	if len(pathTokens) < maxDepth {
-		maxDepth = len(pathTokens)
-	}
-
-	for n := 1; n <= maxDepth; n++ {
-		shortTypeName := strings.Join(pathTokens[len(pathTokens)-n:], ".") + "." + typeName
+	for n := 1; n < 5; n++ {
+		pathIdx := tstrings.LastIndexN(packageName, "/", n)
+		if pathIdx == -1 {
+			return // ### return, full path stored ###
+		}
+		shortPath := strings.Replace(packageName[pathIdx+1:], "/", ".", -1)
+		shortTypeName := shortPath + "." + typeName
 		registry.namedType[shortTypeName] = structType
 	}
 }

@@ -250,7 +250,6 @@ func (z *Writer) compressBlock(zb block) block {
 		zb.compressed = true
 		zb.zdata = zbuf[:n]
 	} else {
-		zb.compressed = false
 		zb.zdata = zb.data[zb.offset:]
 	}
 

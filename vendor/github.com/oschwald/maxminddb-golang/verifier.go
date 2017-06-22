@@ -134,7 +134,7 @@ func (v *verifier) verifyDataSection(offsets map[uint]bool) error {
 	for offset < bufferLen {
 		var data interface{}
 		rv := reflect.ValueOf(&data)
-		newOffset, err := decoder.decode(offset, rv, 0)
+		newOffset, err := decoder.decode(offset, rv)
 		if err != nil {
 			return newInvalidDatabaseError("received decoding error (%v) at offset of %v", err, offset)
 		}
