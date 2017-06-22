@@ -41,7 +41,6 @@ import (
 //		Count: 3
 //		TimeToWaitSec: 3
 //	  SetGzip: true
-//    #TTL: ""
 //
 //    User: ""
 //    Password: ""
@@ -70,9 +69,6 @@ import (
 // elasticsearch server. This is set to 6 by default.
 //
 // SetGzip enables or disables gzip compression (disabled by default).
-//
-// TTL defines the TTL set in elasticsearch messages. By default this is set to
-// "" which means no TTL.
 //
 // DayBasedIndex can be set to true to append the date of the message to the
 // index as in "<index>_YYYY-MM-DD". By default this is set to false.
