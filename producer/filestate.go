@@ -17,9 +17,9 @@ package producer
 import (
 	"compress/gzip"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tio"
-	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/tsync"
 	"io"
 	"os"

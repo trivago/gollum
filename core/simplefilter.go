@@ -31,7 +31,7 @@ import (
 // FilteredStream defines a stream where filtered messages get sent to.
 // You can disable this behavior by setting "". Set to "" by default.
 type SimpleFilter struct {
-	Logger          logrus.FieldLogger
+	Logger           logrus.FieldLogger
 	filteredStreamID MessageStreamID `config:"FilteredStream"`
 }
 

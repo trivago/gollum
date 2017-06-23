@@ -15,9 +15,9 @@
 package core
 
 import (
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/thealthcheck"
-	"github.com/sirupsen/logrus"
 	"sync"
 	"time"
 )

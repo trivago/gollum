@@ -16,10 +16,10 @@ package core
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/treflect"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"reflect"

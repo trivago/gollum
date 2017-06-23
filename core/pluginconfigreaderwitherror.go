@@ -16,9 +16,9 @@ package core
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
-	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/tstrings"
 )
 
@@ -41,8 +41,8 @@ func NewPluginConfigReaderWithError(config *PluginConfig) PluginConfigReaderWith
 // GetLogger creates a logger scoped for the plugin contained in this config.
 func (reader PluginConfigReaderWithError) GetLogger() logrus.FieldLogger {
 	return logrus.WithFields(logrus.Fields{
-		"PluginType":    reader.config.Typename,
-		"PluginID":      reader.config.ID,
+		"PluginType": reader.config.Typename,
+		"PluginID":   reader.config.ID,
 	})
 }
 

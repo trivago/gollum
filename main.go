@@ -16,6 +16,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	_ "github.com/trivago/gollum/consumer"
 	"github.com/trivago/gollum/core"
 	_ "github.com/trivago/gollum/filter"
@@ -35,7 +36,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"github.com/sirupsen/logrus"
 )
 
 func main() {

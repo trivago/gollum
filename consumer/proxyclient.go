@@ -15,10 +15,10 @@
 package consumer
 
 import (
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
-	"github.com/sirupsen/logrus"
 	"io"
 	"net"
 	"syscall"

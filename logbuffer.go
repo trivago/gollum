@@ -1,10 +1,10 @@
 package main
 
 import (
-	"os"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"io"
-	"fmt"
+	"os"
 )
 
 // fallbackLogDevice defines the fallback destination for when _GOLLUM_ is unavailable / not used
@@ -31,7 +31,7 @@ func (lhb *LogrusHookBuffer) Levels() []logrus.Level {
 func (lhb *LogrusHookBuffer) Fire(logrusEntry *logrus.Entry) error {
 	if lhb.targetHook == nil && lhb.targetWriter == nil {
 		// Store entry in buffer and return
-		lhb.buffer= append(lhb.buffer, logrusEntry)
+		lhb.buffer = append(lhb.buffer, logrusEntry)
 		return nil
 	}
 
@@ -40,7 +40,7 @@ func (lhb *LogrusHookBuffer) Fire(logrusEntry *logrus.Entry) error {
 }
 
 // SetTargetHook sets the logrus hook to whose .Fire() method messages should be relayed
-func (lhb *LogrusHookBuffer) SetTargetHook(hook logrus.Hook){
+func (lhb *LogrusHookBuffer) SetTargetHook(hook logrus.Hook) {
 	lhb.targetHook = hook
 }
 
@@ -80,7 +80,7 @@ func (lhb *LogrusHookBuffer) relayEntry(entry *logrus.Entry) error {
 
 		_, err = lhb.targetWriter.Write(serialized)
 		if err != nil {
-			_= fmt.Errorf("failed to write log entry %s: %s", serialized, err.Error())
+			_ = fmt.Errorf("failed to write log entry %s: %s", serialized, err.Error())
 			return err
 		}
 	}

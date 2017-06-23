@@ -16,9 +16,9 @@ package producer
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tio"
-	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"net/url"

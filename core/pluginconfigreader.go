@@ -16,9 +16,9 @@ package core
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
-	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/treflect"
 	"reflect"
 )

@@ -15,11 +15,11 @@
 package core
 
 import (
+	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"sync"
 	"time"
-	"fmt"
-	"github.com/sirupsen/logrus"
 )
 
 // LogConsumer is an internal consumer plugin used indirectly by the gollum log

@@ -118,7 +118,7 @@ func (buf *s3ByteBuffer) Compress() error {
 
 // s3 buffer backed with a file
 type s3FileBuffer struct {
-	file *os.File
+	file   *os.File
 	logger logrus.FieldLogger
 }
 
@@ -129,8 +129,8 @@ func newS3FileBuffer(filename string, logger logrus.FieldLogger) (*s3FileBuffer,
 		return nil, err
 	}
 	return &s3FileBuffer{
-		file: file,
-		logger:  logger,
+		file:   file,
+		logger: logger,
 	}, nil
 }
 

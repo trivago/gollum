@@ -15,6 +15,7 @@
 package main
 
 import (
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
 	"os"
@@ -22,7 +23,6 @@ import (
 	"reflect"
 	"sync"
 	"time"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -132,7 +132,7 @@ func (co *Coordinator) StartPlugins() {
 		// The _GOLLUM_ stream has listeners, so use LogConsumer to write to it
 		if *flagLogColors == "always" {
 			logrus.SetFormatter(&logrus.TextFormatter{
-				ForceColors: true,
+				ForceColors:   true,
 				FullTimestamp: true,
 			})
 		}
@@ -145,7 +145,7 @@ func (co *Coordinator) StartPlugins() {
 			(*flagLogColors == "auto" && logrus.IsTerminal(fallbackLogDevice)) {
 			// Logrus doesn't know the final log device, so we hint the color option here
 			logrus.SetFormatter(&logrus.TextFormatter{
-				ForceColors: true,
+				ForceColors:   true,
 				FullTimestamp: true,
 			})
 		}

@@ -317,11 +317,11 @@ func (prod *S3) newS3Buffer() (buffer s3Buffer, filename string, err error) {
 	if prod.useFiles {
 		basename := atomic.AddInt64(&prod.nextFile, 1)
 		filename := path.Join(prod.localPath, strconv.FormatInt(basename, 10))
-		buffer, err := newS3FileBuffer(filename, prod.Logger.WithField("Scope","fileBuffer"))
+		buffer, err := newS3FileBuffer(filename, prod.Logger.WithField("Scope", "fileBuffer"))
 		return buffer, filename, err
 	}
 
-	return newS3ByteBuffer(prod.Logger.WithField("Scope","byteBuffer")), "", nil
+	return newS3ByteBuffer(prod.Logger.WithField("Scope", "byteBuffer")), "", nil
 }
 
 func (prod *S3) bufferMessage(msg *core.Message) {

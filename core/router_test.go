@@ -47,7 +47,7 @@ func getMockRouter() mockRouter {
 			Producers: []Producer{},
 			timeout:   timeout,
 			streamID:  StreamRegistry.GetStreamID("testStream"),
-			Logger:    logrus.WithField("Scope","testStreamLogScope"),
+			Logger:    logrus.WithField("Scope", "testStreamLogScope"),
 		},
 	}
 }
