@@ -63,8 +63,10 @@ import (
 //				number_of_shards: 5
 //				number_of_replicas: 1
 //
-// RetrySec denotes the time in seconds after which a failed dataset will be
-// transmitted again. By default this is set to 5.
+// Retry/Count set the amount of retries before a Elasticsearch request fail finally
+//
+// Retry/TimeToWaitSec denotes the time in seconds after which a failed dataset will be
+// transmitted again. By default this is set to 3.
 //
 // Connections defines the number of simultaneous connections allowed to a
 // elasticsearch server. This is set to 6 by default.
@@ -108,6 +110,15 @@ type indexMapItem struct {
 	useDayIndex bool
 }
 
+func newIndexMapItem() *indexMapItem {
+	return &indexMapItem{
+		"",
+		"",
+		nil,
+		false,
+	}
+}
+
 type elasticIndex struct {
 	Settings map[string]interface{}    `json:"settings,omitempty"`
 	Mappings map[string]elasticMapping `json:"mappings,omitempty"`
@@ -119,6 +130,32 @@ type elasticMapping struct {
 
 type elasticType struct {
 	TypeName interface{} `json:"type"`
+}
+
+func newElasticIndex(property tcontainer.MarshalMap) *elasticIndex {
+	elType, _ := property.String("type")
+	mapping, _ := property.MarshalMap("mapping")
+	settings, _ := property.MarshalMap("settings")
+
+	elMappings := elasticMapping{
+		Properties: make(map[string]elasticType),
+	}
+
+	for fieldName := range mapping {
+		typeName, _ := mapping.String(fieldName)
+		elMappings.Properties[fieldName] = elasticType{TypeName: typeName}
+	}
+
+	// init elasticIndex instance
+	elIndex := elasticIndex{
+		Settings: make(map[string]interface{}),
+		Mappings: make(map[string]elasticMapping),
+	}
+
+	elIndex.Mappings[elType] = elMappings
+	elIndex.Settings = settings
+
+	return &elIndex
 }
 
 type indexExists uint8
@@ -145,21 +182,19 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) {
 	prod.configureRetrySettings(conf.GetInt("Retry/Count", 3), conf.GetInt("Retry/TimeToWaitSec", 3))
 }
 
+// Produce starts the producer
+func (prod *ElasticSearch) Produce(workers *sync.WaitGroup) {
+	prod.initIndex()
+	prod.AddMainWorker(workers)
+	prod.BatchMessageLoop(workers, prod.submitMessages)
+}
+
 func (prod *ElasticSearch) configureRetrySettings(retry, timeToWaitSec int64) {
 	prod.connection.retrier.retry = int(retry)
 	prod.connection.retrier.backoff = elastic.NewConstantBackoff(time.Duration(timeToWaitSec) * time.Second)
 	prod.connection.retrier.log = &prod.Log
 
 	prod.Log.Debug.Printf("Using retrier with a retry count of '%d' and a time to wait of '%d' sec", retry, timeToWaitSec)
-}
-
-func (prod *ElasticSearch) newIndexMapItem() *indexMapItem {
-	return &indexMapItem{
-		"",
-		"",
-		nil,
-		false,
-	}
 }
 
 func (prod *ElasticSearch) configureIndexSettings(properties tcontainer.MarshalMap, errors *tgo.ErrorStack) {
@@ -172,7 +207,7 @@ func (prod *ElasticSearch) configureIndexSettings(properties tcontainer.MarshalM
 
 	for streamName := range properties {
 		streamID := core.GetStreamID(streamName)
-		indexMapItem := prod.newIndexMapItem()
+		indexMapItem := newIndexMapItem()
 
 		property, err := properties.MarshalMap(streamName)
 		if err != nil {
@@ -200,45 +235,12 @@ func (prod *ElasticSearch) configureIndexSettings(properties tcontainer.MarshalM
 			prod.Log.Error.Printf("no data type configured for stream '%s'. Please check your config.", streamName)
 		}
 
-		indexMapItem.settings = prod.newElasticIndex(property)
+		indexMapItem.settings = newElasticIndex(property)
 		indexMapItem.typeName = typeName
 		indexMapItem.name = indexName
 
 		prod.indexMap[streamID] = indexMapItem
 	}
-}
-
-func (prod *ElasticSearch) newElasticIndex(property tcontainer.MarshalMap) *elasticIndex {
-	elType, _ := property.String("type")
-	mapping, _ := property.MarshalMap("mapping")
-	settings, _ := property.MarshalMap("settings")
-
-	elMappings := elasticMapping{
-		Properties: make(map[string]elasticType),
-	}
-
-	for fieldName := range mapping {
-		typeName, _ := mapping.String(fieldName)
-		elMappings.Properties[fieldName] = elasticType{TypeName: typeName}
-	}
-
-	// init elasticIndex instance
-	elIndex := elasticIndex{
-		Settings: make(map[string]interface{}),
-		Mappings: make(map[string]elasticMapping),
-	}
-
-	elIndex.Mappings[elType] = elMappings
-	elIndex.Settings = settings
-
-	return &elIndex
-}
-
-// Produce starts the producer
-func (prod *ElasticSearch) Produce(workers *sync.WaitGroup) {
-	prod.initIndex()
-	prod.AddMainWorker(workers)
-	prod.BatchMessageLoop(workers, prod.submitMessages)
 }
 
 func (prod *ElasticSearch) getClient() (*elastic.Client, error) {
@@ -277,7 +279,7 @@ func (prod *ElasticSearch) createIndex(indexName string, elIndex *elasticIndex, 
 		exists = false
 		break
 	case indexExistsAuto:
-		exists, err = prod.isIndexExists(indexName, client, ctx)
+		exists, err = prod.isIndexExists(ctx, indexName, client)
 		if err != nil {
 			return err
 		}
@@ -310,7 +312,7 @@ func (prod *ElasticSearch) createIndex(indexName string, elIndex *elasticIndex, 
 	return err
 }
 
-func (prod *ElasticSearch) isIndexExists(indexName string, client *elastic.Client, ctx context.Context) (bool, error) {
+func (prod *ElasticSearch) isIndexExists(ctx context.Context, indexName string, client *elastic.Client) (bool, error) {
 	exists, err := client.IndexExists(indexName).Do(ctx)
 	prod.Log.Debug.Printf("Index %s exists: %v", indexName, exists)
 	if err != nil {
@@ -337,7 +339,7 @@ func (prod *ElasticSearch) submitMessages() core.AssemblyFunc {
 
 			if indexMapItem.useDayIndex {
 				// create daily index ...
-				indexExists, _ := prod.isIndexExists(indexMapItem.name, client, ctx)
+				indexExists, _ := prod.isIndexExists(ctx, indexMapItem.name, client)
 				if !indexExists {
 					prod.createIndex(indexMapItem.name, indexMapItem.settings, indexExistsFalse)
 				}
