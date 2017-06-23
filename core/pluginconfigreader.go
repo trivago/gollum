@@ -79,7 +79,7 @@ func (reader *PluginConfigReader) GetLogger() logrus.FieldLogger {
 	return reader.WithError.GetLogger()
 }
 
-// GetSubLogScope creates a new sub-scoped logger (logrus.FieldLogger) for the
+// GetSubLogger creates a new sub-scoped logger (logrus.FieldLogger) for the
 // plugin contained in this config
 func (reader *PluginConfigReader) GetSubLogger(subScope string) logrus.FieldLogger {
 	return reader.WithError.GetSubLogger(subScope)

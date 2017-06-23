@@ -50,7 +50,7 @@ func (router *SimpleRouter) Configure(conf PluginConfigReader) {
 	}
 }
 
-// GetLogScope returns the logging scope of this plugin
+// GetLogger returns the logging scope of this plugin
 func (router *SimpleRouter) GetLogger() logrus.FieldLogger {
 	return router.Logger
 }

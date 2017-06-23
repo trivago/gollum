@@ -39,10 +39,12 @@ func (lhb *LogrusHookBuffer) Fire(logrusEntry *logrus.Entry) error {
 	return lhb.relayEntry(logrusEntry)
 }
 
+// SetTargetHook sets the logrus hook to whose .Fire() method messages should be relayed
 func (lhb *LogrusHookBuffer) SetTargetHook(hook logrus.Hook){
 	lhb.targetHook = hook
 }
 
+// SetTargetWriter sets the io.Writer where messages should be written
 func (lhb *LogrusHookBuffer) SetTargetWriter(writer io.Writer) {
 	lhb.targetWriter = writer
 }
@@ -72,13 +74,13 @@ func (lhb *LogrusHookBuffer) relayEntry(entry *logrus.Entry) error {
 	if lhb.targetWriter != nil {
 		serialized, err := entry.Logger.Formatter.Format(entry)
 		if err != nil {
-			fmt.Errorf("Failed to serialize log entry: %s\n", err.Error())
+			_ = fmt.Errorf("failed to serialize log entry: %s", err.Error())
 			return err
 		}
 
 		_, err = lhb.targetWriter.Write(serialized)
 		if err != nil {
-			fmt.Errorf("Failed to write log entry %s: %s\n", serialized, err.Error())
+			_= fmt.Errorf("failed to write log entry %s: %s", serialized, err.Error())
 			return err
 		}
 	}

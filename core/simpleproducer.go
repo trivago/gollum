@@ -111,7 +111,7 @@ func (prod *SimpleProducer) Configure(conf PluginConfigReader) {
 	})
 }
 
-// GetLogScope returns the logging scope of this plugin
+// GetLogger returns the logging scope of this plugin
 func (prod *SimpleProducer) GetLogger() logrus.FieldLogger {
 	return prod.Logger
 }

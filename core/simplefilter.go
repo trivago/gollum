@@ -35,7 +35,7 @@ type SimpleFilter struct {
 	filteredStreamID MessageStreamID `config:"FilteredStream"`
 }
 
-// SetLogScope sets the log scope to be used for this filter
+// SetLogger sets the scoped logger to be used for this filter
 func (filter *SimpleFilter) SetLogger(logger logrus.FieldLogger) {
 	filter.Logger = logger
 }
@@ -47,7 +47,7 @@ func (filter *SimpleFilter) Configure(conf PluginConfigReader) error {
 	return nil
 }
 
-// GetLogScope returns the logging scope of this plugin
+// GetLogger returns this plugin's scoped logger
 func (filter *SimpleFilter) GetLogger() logrus.FieldLogger {
 	return filter.Logger
 }

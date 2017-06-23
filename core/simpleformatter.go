@@ -34,12 +34,12 @@ func (format *SimpleFormatter) Configure(conf PluginConfigReader) {
 	format.SetAppliedContent = GetAppliedContentSetFunction(applyTo)
 }
 
-// SetLogScope sets the log scope to be used for this formatter
+// SetLogger sets the scoped logger to be used for this formatter
 func (format *SimpleFormatter) SetLogger(logger logrus.FieldLogger) {
 	format.Logger = logger
 }
 
-// GetLogScope returns the logging scope of this plugin
+// GetLogger returns the scoped logger of this plugin
 func (format *SimpleFormatter) GetLogger() logrus.FieldLogger {
 	return format.Logger
 }
