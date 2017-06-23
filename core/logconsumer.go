@@ -121,7 +121,12 @@ func (cons *LogConsumer) Consume(threads *sync.WaitGroup) {
 		command := <-cons.control
 		if command == PluginControlStopConsumer {
 			cons.stopped = true
-			cons.updateTimer.Stop()
+
+			// only is use for active metrics
+			if cons.updateTimer != nil {
+				cons.updateTimer.Stop()
+			}
+
 			return // ### return ###
 		}
 	}
