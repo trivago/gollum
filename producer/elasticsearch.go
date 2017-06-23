@@ -18,6 +18,7 @@ import (
 	"context"
 	"github.com/pkg/errors"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/tlog"
 	"gopkg.in/olivere/elastic.v5"
@@ -49,7 +50,7 @@ import (
 //    StreamProperties:
 //		<streamName>:
 //			Index: twitter
-// 			#DayBasedIndex: false
+// 			DayBasedIndex: false
 //			Type: tweet
 //
 // 			# see: https://www.elastic.co/guide/en/elasticsearch/reference/5.4/indices-create-index.html#mappings
@@ -97,9 +98,14 @@ import (
 type ElasticSearch struct {
 	core.BatchedProducer `gollumdoc:"embed_type"`
 	connection           elasticConnection
-	indexSettings        map[string]*elasticIndex
-	indexMap             map[core.MessageStreamID]string
-	typeMap              map[core.MessageStreamID]string
+	indexMap             map[core.MessageStreamID]*indexMapItem
+}
+
+type indexMapItem struct {
+	name        string
+	typeName    string
+	settings    *elasticIndex
+	useDayIndex bool
 }
 
 type elasticIndex struct {
@@ -115,6 +121,14 @@ type elasticType struct {
 	TypeName interface{} `json:"type"`
 }
 
+type indexExists uint8
+
+const (
+	indexExistsFalse indexExists = iota
+	indexExistsTrue
+	indexExistsAuto
+)
+
 func init() {
 	core.TypeRegistry.Register(ElasticSearch{})
 }
@@ -127,7 +141,7 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) {
 	prod.connection.setGzip = conf.GetBool("SetGzip", false)
 	prod.connection.isConnectedStatus = false
 
-	prod.configureIndexSettings(conf.GetMap("StreamProperties", tcontainer.NewMarshalMap()))
+	prod.configureIndexSettings(conf.GetMap("StreamProperties", tcontainer.NewMarshalMap()), conf.Errors)
 	prod.configureRetrySettings(conf.GetInt("Retry/Count", 3), conf.GetInt("Retry/TimeToWaitSec", 3))
 }
 
@@ -139,10 +153,17 @@ func (prod *ElasticSearch) configureRetrySettings(retry, timeToWaitSec int64) {
 	prod.Log.Debug.Printf("Using retrier with a retry count of '%d' and a time to wait of '%d' sec", retry, timeToWaitSec)
 }
 
-func (prod *ElasticSearch) configureIndexSettings(properties tcontainer.MarshalMap) {
-	prod.indexSettings = map[string]*elasticIndex{}
-	prod.indexMap = map[core.MessageStreamID]string{}
-	prod.typeMap = map[core.MessageStreamID]string{}
+func (prod *ElasticSearch) newIndexMapItem() *indexMapItem {
+	return &indexMapItem{
+		"",
+		"",
+		nil,
+		false,
+	}
+}
+
+func (prod *ElasticSearch) configureIndexSettings(properties tcontainer.MarshalMap, errors *tgo.ErrorStack) {
+	prod.indexMap = map[core.MessageStreamID]*indexMapItem{}
 
 	if len(properties) <= 0 {
 		prod.Log.Error.Print("No stream configuration found. Please check your config.")
@@ -151,27 +172,39 @@ func (prod *ElasticSearch) configureIndexSettings(properties tcontainer.MarshalM
 
 	for streamName := range properties {
 		streamID := core.GetStreamID(streamName)
+		indexMapItem := prod.newIndexMapItem()
 
 		property, err := properties.MarshalMap(streamName)
 		if err != nil {
 			prod.Log.Error.Printf("no configuration found for stream '%s'. Please check your config.", streamName)
+			errors.Push(err)
+			continue
 		}
 
 		indexName, err := property.String("index")
 		if err != nil {
 			prod.Log.Error.Printf("no index configured for stream '%s'. Please check your config.", streamName)
+			errors.Push(err)
+			continue
 		}
 
-		elType, err := property.String("type")
+		dayBasedIndex, _ := property.Bool("daybasedindex")
+		if dayBasedIndex {
+			currentTime := time.Now()
+			indexName += currentTime.Format("_2006-01-02")
+			indexMapItem.useDayIndex = true
+		}
+
+		typeName, err := property.String("type")
 		if err != nil {
 			prod.Log.Error.Printf("no data type configured for stream '%s'. Please check your config.", streamName)
 		}
 
-		// set class properties
-		prod.indexSettings[indexName] = prod.newElasticIndex(property)
+		indexMapItem.settings = prod.newElasticIndex(property)
+		indexMapItem.typeName = typeName
+		indexMapItem.name = indexName
 
-		prod.typeMap[streamID] = elType
-		prod.indexMap[streamID] = indexName
+		prod.indexMap[streamID] = indexMapItem
 	}
 }
 
@@ -221,12 +254,12 @@ func (prod *ElasticSearch) getClient() (*elastic.Client, error) {
 }
 
 func (prod *ElasticSearch) initIndex() {
-	for indexName, elIndex := range prod.indexSettings {
-		prod.createIndex(indexName, elIndex)
+	for _, indexMapItem := range prod.indexMap {
+		prod.createIndex(indexMapItem.name, indexMapItem.settings, indexExistsAuto)
 	}
 }
 
-func (prod *ElasticSearch) createIndex(indexName string, elIndex *elasticIndex) error {
+func (prod *ElasticSearch) createIndex(indexName string, elIndex *elasticIndex, indexExistsCheck indexExists) error {
 	client, err := prod.getClient()
 	if err != nil {
 		return err
@@ -234,11 +267,22 @@ func (prod *ElasticSearch) createIndex(indexName string, elIndex *elasticIndex) 
 
 	ctx := context.Background()
 
-	exists, err := client.IndexExists(indexName).Do(ctx)
-	if err != nil {
-		prod.Log.Error.Println("Issue during checking index: ", err)
-		return err
+	// avoid unnecessary request for checking index (see submitMessage())
+	var exists bool
+	switch indexExistsCheck {
+	case indexExistsTrue:
+		exists = true
+		break
+	case indexExistsFalse:
+		exists = false
+		break
+	case indexExistsAuto:
+		exists, err = prod.isIndexExists(indexName, client, ctx)
+		if err != nil {
+			return err
+		}
 	}
+
 	if !exists {
 		_, err = client.CreateIndex(indexName).Do(ctx)
 		if err != nil {
@@ -266,6 +310,17 @@ func (prod *ElasticSearch) createIndex(indexName string, elIndex *elasticIndex) 
 	return err
 }
 
+func (prod *ElasticSearch) isIndexExists(indexName string, client *elastic.Client, ctx context.Context) (bool, error) {
+	exists, err := client.IndexExists(indexName).Do(ctx)
+	prod.Log.Debug.Printf("Index %s exists: %v", indexName, exists)
+	if err != nil {
+		prod.Log.Error.Println("Issue during checking index: ", err)
+		return false, err
+	}
+
+	return exists, nil
+}
+
 func (prod *ElasticSearch) submitMessages() core.AssemblyFunc {
 	return func(messages []*core.Message) {
 		client, err := prod.getClient()
@@ -278,12 +333,19 @@ func (prod *ElasticSearch) submitMessages() core.AssemblyFunc {
 		ctx := context.Background()
 
 		for _, msg := range messages {
-			index := prod.indexMap[msg.GetStreamID()]
-			typeName := prod.typeMap[msg.GetStreamID()]
+			indexMapItem := prod.indexMap[msg.GetStreamID()]
+
+			if indexMapItem.useDayIndex {
+				// create daily index ...
+				indexExists, _ := prod.isIndexExists(indexMapItem.name, client, ctx)
+				if !indexExists {
+					prod.createIndex(indexMapItem.name, indexMapItem.settings, indexExistsFalse)
+				}
+			}
 
 			bulkIndexRequest := elastic.NewBulkIndexRequest()
-			bulkIndexRequest.Index(index).
-				Type(typeName).
+			bulkIndexRequest.Index(indexMapItem.name).
+				Type(indexMapItem.typeName).
 				Doc(msg.String())
 
 			bulkRequest.Add(bulkIndexRequest)
@@ -322,7 +384,7 @@ type elasticConnection struct {
 	servers           []string
 	user              string
 	password          string
-	setGzip			  bool
+	setGzip           bool
 	client            *elastic.Client
 	isConnectedStatus bool
 	retrier           retrier
