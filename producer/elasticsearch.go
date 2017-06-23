@@ -181,6 +181,8 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) {
 
 // Produce starts the producer
 func (prod *ElasticSearch) Produce(workers *sync.WaitGroup) {
+	defer prod.WorkerDone()
+
 	prod.initIndex()
 	prod.AddMainWorker(workers)
 	prod.BatchMessageLoop(workers, prod.submitMessages)
