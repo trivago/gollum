@@ -30,7 +30,7 @@ var (
 	flagTestConfigFile = tflag.String("tc", "testconfig", "", "Test the given configuration file and exit.")
 	flagLoglevel       = tflag.Int("ll", "loglevel", 1, "Set the loglevel [0-3] as in {0=Error, 1=+Warning, 2=+Info, 3=+Debug}.")
 	flagNumCPU         = tflag.Int("n", "numcpu", 0, "Number of CPUs to use. Set 0 for all CPUs.")
-	flagPidFile        = tflag.String("p", "pidfile", "", "Write the relayEntry id into a given file.")
+	flagPidFile        = tflag.String("p", "pidfile", "", "Write the process id into a given file.")
 	flagMetricsAddress = tflag.String("m", "metrics", "", "Address to use for metric queries. Disabled by default.")
 	flagHealthCheck    = tflag.String("hc", "healthcheck", "", "Listening address ([IP]:PORT) to use for healthcheck HTTP endpoint. Disabled by default.")
 	flagCPUProfile     = tflag.String("pc", "profilecpu", "", "Write CPU profiler results to a given file.")
