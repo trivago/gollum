@@ -127,14 +127,28 @@ func (co *Coordinator) StartPlugins() {
 		})
 	}
 
-	// If there are intenal log listeners switch to stream mode
+	// Set final log target and purge the intermediate buffer
 	if core.StreamRegistry.IsStreamRegistered(core.LogInternalStreamID) {
-		//logrus.AddHook(co.logConsumer)
-		//logrus.SetOutput(ioutil.Discard)
+		// The _GOLLUM_ stream has listeners, so use LogConsumer to write to it
+		if *flagLogColors == "always" {
+			logrus.SetFormatter(&logrus.TextFormatter{
+				ForceColors: true,
+				FullTimestamp: true,
+			})
+		}
 		logrusHookBuffer.SetTargetHook(co.logConsumer)
 		logrusHookBuffer.Purge()
 
 	} else {
+		// _GOLLUM_ not used, so write to the fallback device
+		if *flagLogColors == "always" ||
+			(*flagLogColors == "auto" && logrus.IsTerminal(fallbackLogDevice)) {
+			// Logrus doesn't know the final log device, so we hint the color option here
+			logrus.SetFormatter(&logrus.TextFormatter{
+				ForceColors: true,
+				FullTimestamp: true,
+			})
+		}
 		logrusHookBuffer.SetTargetWriter(fallbackLogDevice)
 		logrusHookBuffer.Purge()
 	}

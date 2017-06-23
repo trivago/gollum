@@ -49,6 +49,15 @@ func main() {
 	logrus.SetLevel(getLogrusLevel(*flagLoglevel))
 	logrus.Debug("GOLLUM STARTING")
 
+	switch *flagLogColors {
+	case "never":
+	case "auto":
+	case "always":
+	default:
+		fmt.Printf("Invalid parameter for -log-colors: '%s'\n", *flagLogColors)
+		return
+	}
+
 	// Handle special execution modes
 	if *flagVersion {
 		printVersion()
