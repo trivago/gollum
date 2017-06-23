@@ -16,7 +16,6 @@ package core
 
 import (
 	"github.com/trivago/tgo"
-	"strings"
 	"sync"
 	"time"
 	"fmt"

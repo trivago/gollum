@@ -39,10 +39,17 @@ import (
 )
 
 func main() {
-	// TODO: tlog.SetCacheWriter() ?
+	// Parse command line flags
 	parseFlags()
-	logrus.SetLevel(getLogrusLevel(*flagLoglevel))
 
+	// Initialize logging. All logging is done via logrusHookBuffer;
+	// logrus's output writer is always set to ioutil.Discard.
+	logrus.AddHook(&logrusHookBuffer)
+	logrus.SetOutput(ioutil.Discard)
+	logrus.SetLevel(getLogrusLevel(*flagLoglevel))
+	logrus.Debug("GOLLUM STARTING")
+
+	// Handle special execution modes
 	if *flagVersion {
 		printVersion()
 		return // ### return, version only ###

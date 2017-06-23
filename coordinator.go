@@ -23,7 +23,6 @@ import (
 	"sync"
 	"time"
 	"github.com/sirupsen/logrus"
-	"io/ioutil"
 )
 
 const (
@@ -72,7 +71,9 @@ func NewCoordinator() Coordinator {
 func (co *Coordinator) Configure(conf *core.Config) {
 	// Make sure the log is printed to stderr if we are stuck here
 	logFallback := time.AfterFunc(time.Duration(3)*time.Second, func() {
-		logrus.SetOutput(os.Stderr)
+		//logrus.SetOutput(os.Stderr)
+		logrusHookBuffer.SetTargetWriter(fallbackLogDevice)
+		logrusHookBuffer.Purge()
 	})
 	defer logFallback.Stop()
 
@@ -95,13 +96,15 @@ func (co *Coordinator) StartPlugins() {
 
 	if len(co.consumers) == 0 {
 		logrus.Error("No consumers configured.")
-		logrus.SetOutput(os.Stdout)
+		logrusHookBuffer.SetTargetWriter(fallbackLogDevice)
+		logrusHookBuffer.Purge()
 		return // ### return, nothing to do ###
 	}
 
 	if len(co.producers) == 0 {
 		logrus.Error("No producers configured.")
-		logrus.SetOutput(os.Stdout)
+		logrusHookBuffer.SetTargetWriter(fallbackLogDevice)
+		logrusHookBuffer.Purge()
 		return // ### return, nothing to do ###
 	}
 
@@ -126,13 +129,15 @@ func (co *Coordinator) StartPlugins() {
 
 	// If there are intenal log listeners switch to stream mode
 	if core.StreamRegistry.IsStreamRegistered(core.LogInternalStreamID) {
-		logrus.AddHook(co.logConsumer)
-		logrus.SetOutput(ioutil.Discard)
+		//logrus.AddHook(co.logConsumer)
+		//logrus.SetOutput(ioutil.Discard)
+		logrusHookBuffer.SetTargetHook(co.logConsumer)
+		logrusHookBuffer.Purge()
 
 	} else {
-		logrus.SetOutput(os.Stdout)
+		logrusHookBuffer.SetTargetWriter(fallbackLogDevice)
+		logrusHookBuffer.Purge()
 	}
-
 
 	// Launch consumers
 	co.state = coordinatorStateStartConsumers
@@ -187,9 +192,10 @@ func (co *Coordinator) Shutdown() {
 	co.shutdownConsumers(stateAtShutdown)
 
 	// Make sure remaining warning / errors are written to stderr
-	// TODO: flush logrus
 	logrus.Info("I'm not listening... I'm not listening... (flushing)")
-	logrus.SetOutput(os.Stdout)
+	//logrus.SetOutput(fallbackLogDevice)
+	logrusHookBuffer.SetTargetWriter(fallbackLogDevice)
+	logrusHookBuffer.SetTargetHook(nil)
 
 	// Shutdown producers
 	co.shutdownProducers(stateAtShutdown)
