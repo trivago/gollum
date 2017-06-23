@@ -341,7 +341,7 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) {
 		}
 	}
 
-	kafka.Logger = cons.Logger // TODO: kafka.logger = cons.Log.Note => ?
+	kafka.Logger = cons.Logger.WithField("Scope", "Sarama")
 }
 
 func (cons *Kafka) restartGroup() {

@@ -221,7 +221,7 @@ func init() {
 func (prod *Kafka) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
-	kafka.Logger = prod.Logger // TODO: kafka.Logger = prod.Log.Note => ?
+	kafka.Logger = prod.Logger.WithField("Scope", "Sarama")
 
 	prod.topicGuard = new(sync.RWMutex)
 	prod.streamToTopic = conf.GetStreamMap("Topics", "")
