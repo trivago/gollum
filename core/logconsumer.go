@@ -136,7 +136,6 @@ func (cons *LogConsumer) Fire(logrusEntry *logrus.Entry) error {
 	metadata.SetValue("Time", []byte(logrusEntry.Time.String()))
 	//  string,    interface{}
 	for fieldName, fieldValue := range logrusEntry.Data {
-		// TODO: reflect & handle type of fieldValue?
 		metadata.SetValue(fieldName, []byte(fmt.Sprintf("%v", fieldValue)))
 	}
 

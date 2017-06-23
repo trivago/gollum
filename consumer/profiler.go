@@ -172,7 +172,7 @@ func (cons *Profiler) profile() {
 		for i := 0; i < cons.profileRuns && cons.IsActive(); i++ {
 			template := cons.templates[rand.Intn(len(cons.templates))]
 			messageCount++
-			cons.Logger.Errorf("Enqueuing template: '%s'", template)
+			cons.Logger.Debugf("Enqueuing template: '%s'", template)
 			cons.Enqueue(template)
 
 			if cons.delay > 0 && cons.IsActive() {
