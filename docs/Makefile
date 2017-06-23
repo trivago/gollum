@@ -24,11 +24,11 @@ TARGET_DIR_FILTER=$(TARGET_ROOT)/filter
 TARGET_DIR_FORMATTER=$(TARGET_ROOT)/formatter
 TARGET_DIR_ROUTER=$(TARGET_ROOT)/router
 
-# Excluded files
+# Excluded files (regexps, use $(EXCLUDE_NO_OP) to include everything)
 EXCLUDE_NO_OP='^$$'
 EXCLUDE_PRODUCER='(InfluxDBWriter[0-9][0-9]|filestate|kafkaMurmur2HashPartitioner|s3buffer|spoolfile)'
 EXCLUDE_CONSUMER='proxyclient'
-EXCLUDE_FILTER='regexp'
+EXCLUDE_FILTER=$(EXCLUDE_NO_OP)
 EXCLUDE_FORMATTER='collectddata'
 EXCLUDE_ROUTER=$(EXCLUDE_NO_OP)
 

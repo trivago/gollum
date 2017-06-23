@@ -20,14 +20,31 @@ import (
 )
 
 // RegExp filter plugin
-// This plugin allows filtering messages using regular expressions.
+//
+// This plugin filters messages using regular expressions.
+//
 // Configuration example
 //
-//  - filter.RegExp:
-//    Expression: "\d+-.*"
-//	  ExpressionNot: "\d+-.*"
-//	  ApplyTo: "payload" # payload or <metaKey>
-//
+// # Generate junk
+// JunkGenerator:
+//   Type: "consumer.Profiler"
+//   Message: "%20s"
+//   Streams: "junkstream"
+//   Characters: "abcdefghijklmZ"
+//   KeepRunning: true
+//   Runs: 10000
+//   Batches: 3000000
+//   DelayMs: 500
+// # Produce junk
+// JunkProd00:
+//   Type: "producer.Console"
+//   Streams: "junkstream"
+//   Modulators:
+//     - "filter.RegExp":
+//         Expression: "Z"
+//     - "format.Envelope":
+//         Prefix: "[junk_00] "
+// 
 // FilterExpression defines the regular expression used for matching the message
 // payload. If the expression matches, the message is passed.
 // FilterExpression is evaluated after FilterExpressionNot.
