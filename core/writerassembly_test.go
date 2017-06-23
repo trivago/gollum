@@ -20,6 +20,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/ttesting"
+	"io/ioutil"
 )
 
 type mockIoWrite struct {
@@ -56,7 +57,10 @@ func TestWriterAssemblySetValidator(t *testing.T) {
 func TestWriterAssemblySetErrorHandler(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockIo := mockIoWrite{expect}
-	//TODO tlog.SetCacheWriter() => ?
+
+	// Was tlog.SetCacheWriter() previously. Needed?
+	logrus.SetOutput(ioutil.Discard)
+
 	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, &mockFormatter{})
 	handler := func(e error) bool {
 		if e.Error() == "abc" {
