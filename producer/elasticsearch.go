@@ -37,7 +37,6 @@ import (
 //
 //  producerElasticSearch:
 // 	  Type: producer.ElasticSearch
-//    #Connections: 6
 //    Retry:
 //		Count: 3
 //		TimeToWaitSec: 3
@@ -67,9 +66,6 @@ import (
 //
 // Retry/TimeToWaitSec denotes the time in seconds after which a failed dataset will be
 // transmitted again. By default this is set to 3.
-//
-// Connections defines the number of simultaneous connections allowed to a
-// elasticsearch server. This is set to 6 by default.
 //
 // SetGzip enables or disables gzip compression (disabled by default).
 //
