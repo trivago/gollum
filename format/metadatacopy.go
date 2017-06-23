@@ -35,7 +35,7 @@ type metaDataMap map[string]core.ModulatorArray
 //     - bar 			# 1:1 copy of the "payload" to "bar"
 //   ApplyTo: "payload" # payload or <metaKey>
 type MetadataCopy struct {
-	core.SimpleFormatter
+	core.SimpleFormatter  `gollumdoc:"embed_type"`
 	metaData metaDataMap
 }
 
