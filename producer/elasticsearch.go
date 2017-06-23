@@ -69,9 +69,6 @@ import (
 //
 // SetGzip enables or disables gzip compression (disabled by default).
 //
-// DayBasedIndex can be set to true to append the date of the message to the
-// index as in "<index>_YYYY-MM-DD". By default this is set to false.
-//
 // Servers defines a list of servers to connect to.
 //
 // User and Password can be used to pass credentials to the elasticsearch server.
@@ -85,6 +82,10 @@ import (
 //
 // StreamProperties/<streamName>/Type
 // Document type which used for the stream.
+//
+// StreamProperties/<streamName>/DayBasedIndex can be set to true to append the date of the message to the
+// index as in "<index>_YYYY-MM-DD". By default this is set to false.
+// NOTE: This setting need more performance because it is necessary to check if an index exist for each message!
 //
 // StreamProperties/<streamName>/Mapping is a map which used for the document field mapping.
 // As document type the already definded type is reused for the field mapping
