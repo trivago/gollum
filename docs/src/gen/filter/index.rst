@@ -8,5 +8,6 @@
     /src/gen/filter/json.rst
     /src/gen/filter/none.rst
     /src/gen/filter/rate.rst
+    /src/gen/filter/regexp.rst
     /src/gen/filter/sample.rst
     /src/gen/filter/stream.rst

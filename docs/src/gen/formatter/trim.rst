@@ -6,6 +6,16 @@ Trim
 
 
 
+Parameters (from SimpleFormatter)
+---------------------------------
+
+**ApplyTo**
+chooses the part of the message the formatting should be
+applied to. Use "payload"  or "" to target the message payload;
+othe values specify the name of a metadata field to target.
+Default "".
+
+
 Example
 -------
 
