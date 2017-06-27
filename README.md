@@ -304,10 +304,10 @@ If you want to use [Delve](https://github.com/derekparker/delve) for debugging y
 go build -ldflags='-s -linkmode=internal' -gcflags='-N -l'
 ```
 
-With this debug build you are able to start a Delve remote debugger:
+With this debug build you are able to start a [Delve](https://github.com/derekparker/delve) remote debugger:
 
 ```bash
-# for the gollum arguments pls use this format: ./gollum -- -c my/config.conf 
+# for the gollum arguments pls use this format: ./gollum -- -c my/config.conf
 dlv --listen=:2345 --headless=true --api-version=2 --log exec ./gollum -- -c testing/configs/test_router.conf -ll 3
 ```
 
