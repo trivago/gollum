@@ -135,12 +135,12 @@ gollum -c config/profile.conf -ps -ll 3
 By default this test profiles the theoretic maximum throughput of 256 Byte messages.
 You can enable different producers in that config to test the write performance of these producers, too.
 
-## Configuration
+### Configuration
 
 Configuration files are written in the YAML format and have to be loaded via command line switch.
 Each plugin has a different set of configuration options which are currently described in the plugin itself, i.e. you can find examples in the GoDocs.
 
-## Commandline
+### Commandline
 
 #### `-c` or `--config` [file]
 
