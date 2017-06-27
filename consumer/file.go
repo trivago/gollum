@@ -53,11 +53,13 @@ const (
 //
 // Configuration example
 //
-//  - "consumer.File":
-//    File: "/var/run/system.log"
-//    DefaultOffset: "Newest"
-//    OffsetFile: ""
-//    Delimiter: "\n"
+// myConsumer:
+//   Type: consumer.File
+//   File: /var/run/system.log
+//   DefaultOffset: newest
+//   OffsetFile: ""
+//   Delimiter: "\n"
+//   PollingDelay: 100
 //
 // File is a mandatory setting and contains the file to read. The file will be
 // read from beginning to end and the reader will stay attached until the
@@ -75,12 +77,17 @@ const (
 //
 // Delimiter defines the end of a message inside the file. By default this is
 // set to "\n".
+//
+// PollingDelay defines the time duration how long the consumer will wait to check a file for new content
+// after hitting the end of file (EOF) in milliseconds (ms).
+// By default this time duration is set to "100" milliseconds.
 type File struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 	file                *os.File
-	fileName            string `config:"File" default:"/var/run/system.log"`
-	offsetFileName      string `config:"OffsetFile"`
-	delimiter           string `config:"Delimiter" default:"\n"`
+	fileName            string        `config:"File" default:"/var/run/system.log"`
+	offsetFileName      string        `config:"OffsetFile"`
+	delimiter           string        `config:"Delimiter" default:"\n"`
+	pollingDelay        time.Duration `config:"PollingDelay" default:"100" metric:"ms"`
 	seek                int
 	seekOnRotate        int
 	seekOffset          int64
@@ -190,7 +197,7 @@ func (cons *File) read() {
 		sendFunction = cons.enqueueAndPersist
 	}
 
-	spin := tsync.NewSpinner(tsync.SpinPriorityLow)
+	spin := tsync.NewCustomSpinner(cons.pollingDelay)
 	buffer := tio.NewBufferedReader(fileBufferGrowSize, 0, 0, cons.delimiter)
 	printFileOpenError := true
 
