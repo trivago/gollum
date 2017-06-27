@@ -83,15 +83,18 @@ const (
 // By default this time duration is set to "100" milliseconds.
 type File struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	file                *os.File
-	fileName            string        `config:"File" default:"/var/run/system.log"`
-	offsetFileName      string        `config:"OffsetFile"`
-	delimiter           string        `config:"Delimiter" default:"\n"`
-	pollingDelay        time.Duration `config:"PollingDelay" default:"100" metric:"ms"`
-	seek                int
-	seekOnRotate        int
-	seekOffset          int64
-	state               fileState
+
+	fileName       string        `config:"File" default:"/var/run/system.log"`
+	offsetFileName string        `config:"OffsetFile"`
+	delimiter      string        `config:"Delimiter" default:"\n"`
+	pollingDelay   time.Duration `config:"PollingDelay" default:"100" metric:"ms"`
+
+	file         *os.File
+	realFileName string
+	seek         int
+	seekOnRotate int
+	seekOffset   int64
+	state        fileState
 }
 
 func init() {
@@ -101,6 +104,7 @@ func init() {
 // Configure initializes this consumer with values from a plugin config.
 func (cons *File) Configure(conf core.PluginConfigReader) {
 	cons.SetRollCallback(cons.onRoll)
+	cons.realFileName = cons.getRealFileName()
 
 	switch strings.ToLower(conf.GetString("DefaultOffset", fileOffsetEnd)) {
 	default:
@@ -121,7 +125,7 @@ func (cons *File) Configure(conf core.PluginConfigReader) {
 func (cons *File) Enqueue(data []byte) {
 	metaData := core.Metadata{}
 
-	dir, file := filepath.Split(cons.fileName)
+	dir, file := filepath.Split(cons.realFileName)
 	metaData.SetValue("file", []byte(file))
 	metaData.SetValue("dir", []byte(dir))
 
@@ -138,7 +142,7 @@ func (cons *File) enqueueAndPersist(data []byte) {
 	cons.storeOffset()
 }
 
-func (cons *File) realFileName() string {
+func (cons *File) getRealFileName() string {
 	baseFileName, err := filepath.EvalSymlinks(cons.fileName)
 	if err != nil {
 		baseFileName = cons.fileName
@@ -215,7 +219,7 @@ func (cons *File) read() {
 
 		// Try to open the file to read from
 		if cons.state == fileStateRead && cons.file == nil {
-			file, err := os.OpenFile(cons.realFileName(), os.O_RDONLY, 0666)
+			file, err := os.OpenFile(cons.realFileName, os.O_RDONLY, 0666)
 
 			switch {
 			case err != nil:
@@ -242,11 +246,11 @@ func (cons *File) read() {
 				spin.Reset()
 
 			case err == io.EOF:
-				if cons.file.Name() != cons.realFileName() {
+				if cons.file.Name() != cons.realFileName {
 					cons.Log.Note.Print("Rotation detected")
 					cons.onRoll()
 				} else {
-					newStat, newStatErr := os.Stat(cons.realFileName())
+					newStat, newStatErr := os.Stat(cons.realFileName)
 					oldStat, oldStatErr := cons.file.Stat()
 
 					if newStatErr == nil && oldStatErr == nil && !os.SameFile(newStat, oldStat) {
