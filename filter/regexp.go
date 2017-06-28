@@ -44,7 +44,7 @@ import (
 //         Expression: "Z"
 //     - "format.Envelope":
 //         Prefix: "[junk_00] "
-// 
+//
 // FilterExpression defines the regular expression used for matching the message
 // payload. If the expression matches, the message is passed.
 // FilterExpression is evaluated after FilterExpressionNot.

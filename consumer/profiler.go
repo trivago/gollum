@@ -44,7 +44,7 @@ import (
 //
 // # Generate 10 x 10000 messages of 256 bytes
 // MyProfiler:
-//   Type: "consumer.Profiler" 
+//   Type: "consumer.Profiler"
 //   Runs: 10000
 //   Batches: 10
 //   TemplateCount: 10
@@ -62,7 +62,7 @@ import (
 //   Runs: 10000
 //   Batches: 3000000
 //   DelayMs: 500
-// 
+//
 // Runs defines the number of messages per batch. By default this is set to
 // 10000.
 //

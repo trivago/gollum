@@ -52,7 +52,7 @@ func (router *SimpleRouter) Configure(conf PluginConfigReader) {
 
 	if router.streamID == WildcardStreamID {
 		router.Log.Note.Printf(
-		"%s[%s]: A wildcard stream configuration only affects the wildcard stream, not all routers",
+			"%s[%s]: A wildcard stream configuration only affects the wildcard stream, not all routers",
 			conf.GetValue("Type:", ""),
 			router.id,
 		)
