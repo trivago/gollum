@@ -135,7 +135,7 @@ gollum -c config/profile.conf -ps -ll 3
 By default this test profiles the theoretic maximum throughput of 256 Byte messages.
 You can enable different producers in that config to test the write performance of these producers, too.
 
-## Configuration
+### Configuration
 
 Configuration files are written in the YAML format and have to be loaded via command line switch.
 Each plugin has a different set of configuration options which are currently described in the plugin itself, i.e. you can find examples in the GoDocs.
@@ -294,6 +294,21 @@ cp contrib_loader.go.dist contrib_loader.go
 # open contrib_loader.go with an editor
 # update package path
 make current
+```
+
+## Debugging
+
+If you want to use [Delve](https://github.com/derekparker/delve) for debugging you need to build gollum with some additional flags:
+
+```bash
+go build -ldflags='-s -linkmode=internal' -gcflags='-N -l'
+```
+
+With this debug build you are able to start a [Delve](https://github.com/derekparker/delve) remote debugger:
+
+```bash
+# for the gollum arguments pls use this format: ./gollum -- -c my/config.conf
+dlv --listen=:2345 --headless=true --api-version=2 --log exec ./gollum -- -c testing/configs/test_router.conf -ll 3
 ```
 
 ## License

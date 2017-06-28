@@ -15,297 +15,435 @@
 package producer
 
 import (
-	"bytes"
-	elastigo "github.com/mattbaird/elastigo/lib"
+	"context"
+	"github.com/pkg/errors"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
-	"strconv"
+	"github.com/trivago/tgo/tlog"
+	"gopkg.in/olivere/elastic.v5"
+	"net/http"
 	"sync"
+	"syscall"
 	"time"
 )
 
 // ElasticSearch producer plugin
 //
 // The ElasticSearch producer sends messages to elastic search using the bulk
-// http API.
+// http API. The producer expects a json payload.
 //
 // Configuration example
 //
-//  - "producer.ElasticSearch":
-//    Connections: 6
-//    RetrySec: 5
-//    TTL: ""
-//    DayBasedIndex: false
+//  producerElasticSearch:
+// 	  Type: producer.ElasticSearch
+//    Retry:
+//		Count: 3
+//		TimeToWaitSec: 3
+//	  SetGzip: true
+//
 //    User: ""
 //    Password: ""
-//    BatchSizeByte: 32768
-//    BatchMaxCount: 256
-//    BatchTimeoutSec: 5
-//    Port: 9200
 //    Servers:
-//      - "localhost"
-//    Index:
-//      "console" : "console"
-//      "_GOLLUM_"  : "_GOLLUM_"
-//    Settings:
-//      "console":
-//        "number_of_shards": 1
-//    DataTypes:
-//      "console":
-//        "source": "ip"
-//    Type:
-//      "console" : "log"
-//      "_GOLLUM_"  : "log"
+//      - http://127.0.0.1:9200
+//    StreamProperties:
+//		<streamName>:
+//			Index: twitter
+// 			DayBasedIndex: false
+//			Type: tweet
 //
-// RetrySec denotes the time in seconds after which a failed dataset will be
-// transmitted again. By default this is set to 5.
+// 			# see: https://www.elastic.co/guide/en/elasticsearch/reference/5.4/indices-create-index.html#mappings
+//			Mapping:
+//				# index mapping for payload
+// 				user: keyword
+//				message: text
+//			Settings:
+//				# settings used for mapping
+//				number_of_shards: 5
+//				number_of_replicas: 1
 //
-// Connections defines the number of simultaneous connections allowed to a
-// elasticsearch server. This is set to 6 by default.
+// Retry/Count set the amount of retries before a Elasticsearch request fail finally
 //
-// TTL defines the TTL set in elasticsearch messages. By default this is set to
-// "" which means no TTL.
+// Retry/TimeToWaitSec denotes the time in seconds after which a failed dataset will be
+// transmitted again. By default this is set to 3.
 //
-// DayBasedIndex can be set to true to append the date of the message to the
-// index as in "<index>_YYYY-MM-DD". By default this is set to false.
+// SetGzip enables or disables gzip compression for Elasticsearch requests (disabled by default).
+// This option is used one to one for the library package.
+// See: http://godoc.org/gopkg.in/olivere/elastic.v5#SetGzip
 //
-// Servers defines a list of servers to connect to. The first server in the list
-// is used as the server passed to the "Domain" setting. The Domain setting can
-// be overwritten, too.
-//
-// Port defines the elasticsearch port, which has to be the same for all servers.
-// By default this is set to 9200.
+// Servers defines a list of servers to connect to.
 //
 // User and Password can be used to pass credentials to the elasticsearch server.
 // By default both settings are empty.
 //
-// Index maps a stream to a specific index. You can define the
-// wildcard stream (*) here, too. If set all streams that do not have a specific
-// mapping will go to this stream (including _GOLLUM_).
-// If no category mappings are set the stream name is used.
+// StreamProperties defines the mapping and settings for each stream.
+// As index use the stream name here.
 //
-// Type maps a stream to a specific type. This behaves like the index map and
-// is used to assign a _type to an elasticsearch message. By default the type
-// "log" is used.
+// StreamProperties/<streamName>/Index
+// Elasticsearch index which used for the stream.
 //
-// DataTypes allows to define elasticsearch type mappings for indexes that are
-// being created by this producer (e.g. day based indexes). You can define
-// mappings per index.
+// StreamProperties/<streamName>/Type
+// Document type which used for the stream.
 //
-// Settings allows to define elasticsearch index settings for indexes that are
-// being created by this producer (e.g. day based indexes). You can define
-// settings per index.
+// StreamProperties/<streamName>/DayBasedIndex can be set to true to append the date of the message to the
+// index as in "<index>_YYYY-MM-DD". By default this is set to false.
+// NOTE: This setting need more performance because it is necessary to check if an index exist for each message!
 //
-// BatchSizeByte defines the size in bytes required to trigger a flush.
-// By default this is set to 32768 (32KB).
+// StreamProperties/<streamName>/Mapping is a map which used for the document field mapping.
+// As document type the already definded type is reused for the field mapping
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.4/indices-create-index.html#mappings
 //
-// BatchMaxCount defines the number of documents required to trigger a flush.
-// By default this is set to 256.
+// StreamProperties/<streamName>/Settings is a map which is used for the index settings.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.4/indices-create-index.html#mappings
 //
-// BatchTimeoutSec defines the time in seconds after which a flush will be
-// triggered. By default this is set to 5.
 type ElasticSearch struct {
-	core.BufferedProducer `gollumdoc:"embed_type"`
-	conn                  *elastigo.Conn
-	indexer               *elastigo.BulkIndexer
-	index                 map[core.MessageStreamID]string
-	msgType               map[core.MessageStreamID]string
-	msgTTL                string
-	dayBasedIndex         bool
-	indexSettings         map[string]*elasticSettings
-	indexSettingsSent     map[string]string
-	indexSettingsGuard    *sync.Mutex
-	lastMetricUpdate      time.Time
+	core.BatchedProducer `gollumdoc:"embed_type"`
+	connection           elasticConnection
+	indexMap             map[core.MessageStreamID]*indexMapItem
 }
 
-type elasticType struct {
-	TypeName interface{} `json:"type"`
+type indexMapItem struct {
+	name        string
+	typeName    string
+	settings    *elasticIndex
+	useDayIndex bool
+}
+
+func newIndexMapItem() *indexMapItem {
+	return &indexMapItem{
+		"",
+		"",
+		nil,
+		false,
+	}
+}
+
+type elasticIndex struct {
+	Settings map[string]interface{}    `json:"settings,omitempty"`
+	Mappings map[string]elasticMapping `json:"mappings,omitempty"`
 }
 
 type elasticMapping struct {
 	Properties map[string]elasticType `json:"properties,omitempty"`
 }
 
-type elasticSettings struct {
-	Settings map[string]interface{}    `json:"settings,omitempty"`
-	Mappings map[string]elasticMapping `json:"mappings,omitempty"`
+type elasticType struct {
+	TypeName interface{} `json:"type"`
 }
 
+func newElasticIndex(property tcontainer.MarshalMap) *elasticIndex {
+	elType, _ := property.String("type")
+	mapping, _ := property.MarshalMap("mapping")
+	settings, _ := property.MarshalMap("settings")
+
+	elMappings := elasticMapping{
+		Properties: make(map[string]elasticType),
+	}
+
+	for fieldName := range mapping {
+		typeName, _ := mapping.String(fieldName)
+		elMappings.Properties[fieldName] = elasticType{TypeName: typeName}
+	}
+
+	// init elasticIndex instance
+	elIndex := elasticIndex{
+		Settings: make(map[string]interface{}),
+		Mappings: make(map[string]elasticMapping),
+	}
+
+	elIndex.Mappings[elType] = elMappings
+	elIndex.Settings = settings
+
+	return &elIndex
+}
+
+type indexExists uint8
+
 const (
-	elasticMetricMessages    = "Elastic:Messages-"
-	elasticMetricMessagesSec = "Elastic:MessagesSec-"
+	indexExistsFalse indexExists = iota
+	indexExistsTrue
+	indexExistsAuto
 )
 
 func init() {
 	core.TypeRegistry.Register(ElasticSearch{})
 }
 
-func makeElasticSettings() *elasticSettings {
-	return &elasticSettings{
-		Settings: make(map[string]interface{}),
-		Mappings: make(map[string]elasticMapping),
-	}
-}
-
-func makeElasticMapping() elasticMapping {
-	return elasticMapping{
-		Properties: make(map[string]elasticType),
-	}
-}
-
 // Configure initializes this producer with values from a plugin config.
 func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) {
-	prod.SetStopCallback(prod.close)
+	prod.connection.servers = conf.GetStringArray("Servers", []string{"http://127.0.0.1:9200"})
+	prod.connection.user = conf.GetString("User", "")
+	prod.connection.password = conf.GetString("Password", "")
+	prod.connection.setGzip = conf.GetBool("SetGzip", false)
+	prod.connection.isConnectedStatus = false
 
-	defaultServer := []string{"localhost"}
-	numConnections := int(conf.GetInt("NumConnections", 6))
-	retrySec := int(conf.GetInt("RetrySec", 5))
+	prod.configureIndexSettings(conf.GetMap("StreamProperties", tcontainer.NewMarshalMap()), conf.Errors)
+	prod.configureRetrySettings(conf.GetInt("Retry/Count", 3), conf.GetInt("Retry/TimeToWaitSec", 3))
+}
 
-	prod.conn = elastigo.NewConn()
-	prod.conn.Hosts = conf.GetStringArray("Servers", defaultServer)
-	prod.conn.Domain = conf.GetString("Domain", prod.conn.Hosts[0])
-	prod.conn.ClusterDomains = prod.conn.Hosts
-	prod.conn.Port = strconv.Itoa(int(conf.GetInt("Port", 9200)))
-	prod.conn.Username = conf.GetString("User", "")
-	prod.conn.Password = conf.GetString("Password", "")
+// Produce starts the producer
+func (prod *ElasticSearch) Produce(workers *sync.WaitGroup) {
+	defer prod.WorkerDone()
 
-	prod.indexer = prod.conn.NewBulkIndexerErrors(numConnections, retrySec)
-	prod.indexer.BufferDelayMax = time.Duration(conf.GetInt("Batch/TimeoutSec", 5)) * time.Second
-	prod.indexer.BulkMaxBuffer = int(conf.GetInt("Batch/SizeByte", 32768))
-	prod.indexer.BulkMaxDocs = int(conf.GetInt("Batch/MaxCount", 128))
+	prod.initIndex()
+	prod.AddMainWorker(workers)
+	prod.BatchMessageLoop(workers, prod.submitMessages)
+}
 
-	prod.indexer.Sender = func(buf *bytes.Buffer) error {
-		_, err := prod.conn.DoCommand("POST", "/_bulk", nil, buf)
+func (prod *ElasticSearch) configureRetrySettings(retry, timeToWaitSec int64) {
+	prod.connection.retrier.retry = int(retry)
+	prod.connection.retrier.backoff = elastic.NewConstantBackoff(time.Duration(timeToWaitSec) * time.Second)
+	prod.connection.retrier.log = &prod.Log
+
+	prod.Log.Debug.Printf("Using retrier with a retry count of '%d' and a time to wait of '%d' sec", retry, timeToWaitSec)
+}
+
+func (prod *ElasticSearch) configureIndexSettings(properties tcontainer.MarshalMap, errors *tgo.ErrorStack) {
+	prod.indexMap = map[core.MessageStreamID]*indexMapItem{}
+
+	if len(properties) <= 0 {
+		prod.Log.Error.Print("No stream configuration found. Please check your config.")
+		return
+	}
+
+	for streamName := range properties {
+		streamID := core.GetStreamID(streamName)
+		indexMapItem := newIndexMapItem()
+
+		property, err := properties.MarshalMap(streamName)
+		if err != nil {
+			prod.Log.Error.Printf("no configuration found for stream '%s'. Please check your config.", streamName)
+			errors.Push(err)
+			continue
+		}
+
+		indexName, err := property.String("index")
+		if err != nil {
+			prod.Log.Error.Printf("no index configured for stream '%s'. Please check your config.", streamName)
+			errors.Push(err)
+			continue
+		}
+
+		dayBasedIndex, _ := property.Bool("daybasedindex")
+		if dayBasedIndex {
+			currentTime := time.Now()
+			indexName += currentTime.Format("_2006-01-02")
+			indexMapItem.useDayIndex = true
+		}
+
+		typeName, err := property.String("type")
+		if err != nil {
+			prod.Log.Error.Printf("no data type configured for stream '%s'. Please check your config.", streamName)
+		}
+
+		indexMapItem.settings = newElasticIndex(property)
+		indexMapItem.typeName = typeName
+		indexMapItem.name = indexName
+
+		prod.indexMap[streamID] = indexMapItem
+	}
+}
+
+func (prod *ElasticSearch) getClient() (*elastic.Client, error) {
+	if !prod.connection.isConnected() {
+		err := prod.connection.connect()
+		if err != nil {
+			prod.Log.Error.Print("Error during connection: ", err)
+			return nil, err
+		}
+	}
+
+	return prod.connection.client, nil
+}
+
+func (prod *ElasticSearch) initIndex() {
+	for _, indexMapItem := range prod.indexMap {
+		prod.createIndex(indexMapItem.name, indexMapItem.settings, indexExistsAuto)
+	}
+}
+
+func (prod *ElasticSearch) createIndex(indexName string, elIndex *elasticIndex, indexExistsCheck indexExists) error {
+	client, err := prod.getClient()
+	if err != nil {
 		return err
 	}
 
-	prod.index = conf.GetStreamMap("Indexes", "")
-	prod.msgType = conf.GetStreamMap("Types", "log")
-	prod.msgTTL = conf.GetString("TTL", "")
-	prod.dayBasedIndex = conf.GetBool("DayBasedIndex", false)
+	ctx := context.Background()
 
-	for _, index := range prod.index {
-		metricName := elasticMetricMessages + index
-		tgo.Metric.New(metricName)
-		tgo.Metric.NewRate(metricName, elasticMetricMessagesSec+index, time.Second, 10, 3, true)
-	}
-
-	prod.indexSettingsGuard = new(sync.Mutex)
-	prod.indexSettingsSent = make(map[string]string)
-	prod.indexSettings = make(map[string]*elasticSettings)
-
-	indexTypes := conf.GetMap("DataTypes", tcontainer.NewMarshalMap())
-	for index := range indexTypes {
-		mappings := makeElasticMapping()
-		types, _ := indexTypes.MarshalMap(index)
-		for name := range types {
-			typeName, _ := types.String(name)
-			mappings.Properties[name] = elasticType{TypeName: typeName}
-		}
-
-		indexType := prod.getIndexType(core.StreamRegistry.GetStreamID(index))
-		settings := makeElasticSettings()
-		settings.Mappings[indexType] = mappings
-		prod.indexSettings[index] = settings
-	}
-
-	indexSettings := conf.GetMap("Settings", tcontainer.NewMarshalMap())
-	if indexSettings != nil {
-		for index := range indexSettings {
-			mappings, exist := prod.indexSettings[index]
-			if !exist {
-				mappings = makeElasticSettings()
-				prod.indexSettings[index] = mappings
-			}
-			mappings.Settings, _ = indexSettings.MarshalMap(index)
+	// avoid unnecessary request for checking index (see submitMessage())
+	var exists bool
+	switch indexExistsCheck {
+	case indexExistsTrue:
+		exists = true
+		break
+	case indexExistsFalse:
+		exists = false
+		break
+	case indexExistsAuto:
+		exists, err = prod.isIndexExists(ctx, indexName, client)
+		if err != nil {
+			return err
 		}
 	}
+
+	if !exists {
+		_, err = client.CreateIndex(indexName).Do(ctx)
+		if err != nil {
+			prod.Log.Error.Println("Issue during creating index: ", err)
+			return err
+		}
+
+		prod.Log.Debug.Printf("Created index '%s'\n", indexName)
+	}
+
+	for typeName, properties := range elIndex.Mappings {
+		mapping := client.PutMapping()
+		mapping.Index(indexName)
+		mapping.Type(typeName)
+
+		json := map[string]interface{}{typeName: properties}
+		mapping.BodyJson(json)
+
+		_, err := mapping.Do(ctx)
+		if err != nil {
+			prod.Log.Error.Println("Issue during creating index mapping: ", err)
+		}
+	}
+
+	return err
 }
 
-func (prod *ElasticSearch) isClusterUp() bool {
-	cluster, err := prod.conn.Health()
+func (prod *ElasticSearch) isIndexExists(ctx context.Context, indexName string, client *elastic.Client) (bool, error) {
+	exists, err := client.IndexExists(indexName).Do(ctx)
+	prod.Log.Debug.Printf("Index %s exists: %v", indexName, exists)
 	if err != nil {
-		return false
+		prod.Log.Error.Println("Issue during checking index: ", err)
+		return false, err
 	}
 
-	return !cluster.TimedOut && cluster.Status != "red"
+	return exists, nil
 }
 
-func (prod *ElasticSearch) createIndex(index string, sendIndex string, indexType string) {
-	prod.indexSettingsGuard.Lock()
-	defer prod.indexSettingsGuard.Unlock()
-	if value, isSet := prod.indexSettingsSent[index]; isSet && value == sendIndex {
-		return
-	}
-	if settings, exist := prod.indexSettings[index]; exist {
-		if onServer, _ := prod.conn.ExistsIndex(sendIndex, indexType, make(map[string]interface{})); !onServer {
-			if _, err := prod.conn.CreateIndexWithSettings(sendIndex, *settings); err != nil {
-				prod.Log.Error.Print("Index creation error: ", err.Error())
+func (prod *ElasticSearch) submitMessages() core.AssemblyFunc {
+	return func(messages []*core.Message) {
+		client, err := prod.getClient()
+		if err != nil {
+			prod.Log.Error.Print("Sending messages failed: ", err)
+			return
+		}
+
+		bulkRequest := client.Bulk()
+		ctx := context.Background()
+
+		for _, msg := range messages {
+			indexMapItem := prod.indexMap[msg.GetStreamID()]
+
+			if indexMapItem.useDayIndex {
+				// create daily index ...
+				indexExists, _ := prod.isIndexExists(ctx, indexMapItem.name, client)
+				if !indexExists {
+					prod.createIndex(indexMapItem.name, indexMapItem.settings, indexExistsFalse)
+				}
 			}
+
+			bulkIndexRequest := elastic.NewBulkIndexRequest()
+			bulkIndexRequest.Index(indexMapItem.name).
+				Type(indexMapItem.typeName).
+				Doc(msg.String())
+
+			bulkRequest.Add(bulkIndexRequest)
+		}
+
+		// NumberOfActions contains the number of requests in a bulk
+		prod.Log.Debug.Printf("bulkRequest.NumberOfActions: %d", bulkRequest.NumberOfActions())
+
+		// Do sends the bulk requests to Elasticsearch
+		bulkResponse, err := bulkRequest.Do(ctx)
+		if err != nil {
+			prod.Log.Error.Print(err)
+		}
+
+		// Bulk request actions get cleared
+		numberOfActionsAfter := bulkRequest.NumberOfActions()
+		if numberOfActionsAfter != 0 {
+			prod.Log.Error.Printf("Could not send '%d' messages to Elasticsearch", numberOfActionsAfter)
+		}
+
+		if bulkResponse != nil {
+			// Indexed returns information abount indexed documents
+			indexed := bulkResponse.Indexed()
+			prod.Log.Debug.Printf("%d messages indexed successfully in Elasticsearch", len(indexed))
+
+			// Created returns information about created documents
+			created := bulkResponse.Created()
+			prod.Log.Debug.Printf("%d messages created successfully in Elasticsearch", len(created))
 		}
 	}
-	prod.indexSettingsSent[index] = sendIndex
 }
 
-func (prod *ElasticSearch) getIndexType(streamID core.MessageStreamID) string {
-	indexType, typeMapped := prod.msgType[streamID]
-	if typeMapped {
-		return indexType
-	}
-	indexType, typeMapped = prod.msgType[core.WildcardStreamID]
-	if typeMapped {
-		return indexType
-	}
-	return core.StreamRegistry.GetStreamName(streamID)
+// -- elasticConnection --
+
+type elasticConnection struct {
+	servers           []string
+	user              string
+	password          string
+	setGzip           bool
+	client            *elastic.Client
+	isConnectedStatus bool
+	retrier           retrier
 }
 
-func (prod *ElasticSearch) sendMessage(msg *core.Message) {
-	originalMsg := msg.Clone()
+func (conn *elasticConnection) isConnected() bool {
+	return conn.isConnectedStatus
+}
 
-	index, indexMapped := prod.index[msg.GetStreamID()]
-	if !indexMapped {
-		index, indexMapped = prod.index[core.WildcardStreamID]
-		if !indexMapped {
-			index = core.StreamRegistry.GetStreamName(msg.GetStreamID())
-		}
-		metricName := elasticMetricMessages + index
-		tgo.Metric.New(metricName)
-		tgo.Metric.NewRate(metricName, elasticMetricMessagesSec+index, time.Second, 10, 3, true)
-		prod.index[msg.GetStreamID()] = index
+func (conn *elasticConnection) connect() error {
+	conf := []elastic.ClientOptionFunc{elastic.SetURL(conn.servers...), elastic.SetSniff(false), elastic.SetGzip(conn.setGzip)}
+	if len(conn.user) > 0 {
+		conf = append(conf, elastic.SetBasicAuth(conn.user, conn.password))
 	}
 
-	indexType := prod.getIndexType(msg.GetStreamID())
-
-	sendIndex := index
-	if prod.dayBasedIndex {
-		sendIndex += msg.GetCreationTime().Format("_2006-01-02")
+	if conn.retrier.retry > 0 {
+		conf = append(conf, elastic.SetRetrier(&conn.retrier))
 	}
-	prod.createIndex(index, sendIndex, indexType)
 
-	err := prod.indexer.Index(index, indexType, "", "", prod.msgTTL, nil, msg.String())
+	client, err := elastic.NewClient(conf...)
 	if err != nil {
-		prod.Log.Error.Print("Index error - ", err)
-		if !prod.isClusterUp() {
-			// TBD: health check? (prev. fuse breaker)
-		}
-		prod.TryFallback(originalMsg)
-	} else {
-		tgo.Metric.Inc(elasticMetricMessages + index)
-		// TBD: health check? (prev. fuse breaker)
+		return err
 	}
+
+	conn.client = client
+	conn.isConnectedStatus = true
+
+	return nil
 }
 
-func (prod *ElasticSearch) close() {
-	defer prod.WorkerDone()
-	prod.DefaultClose()
-	prod.indexer.Flush()
-	prod.indexer.Stop()
+// -- retrier --
+
+type retrier struct {
+	retry   int
+	backoff elastic.Backoff
+	log     *tlog.LogScope
 }
 
-// Produce starts a bluk indexer
-func (prod *ElasticSearch) Produce(workers *sync.WaitGroup) {
-	prod.indexer.Start()
-	prod.AddMainWorker(workers)
-	prod.MessageControlLoop(prod.sendMessage)
+// Retry implements type Retrier interface
+// see: https://github.com/olivere/elastic/wiki/Retrier-and-Backoff
+func (r *retrier) Retry(ctx context.Context, retry int, req *http.Request, resp *http.Response, err error) (time.Duration, bool, error) {
+	// Fail hard on a specific error
+	if err == syscall.ECONNREFUSED {
+		err = errors.New("Elasticsearch or network down")
+		r.log.Error.Print(err)
+		return 0, false, err
+	}
+
+	// Stop after n retries
+	if retry >= r.retry {
+		r.log.Debug.Printf("Stop retrying after '%d' retries", retry)
+		return 0, false, nil
+	}
+
+	// Let the backoff strategy decide how long to wait and whether to stop
+	r.log.Debug.Println("Retry to connect to Elasticsearch")
+	wait, stop := r.backoff.Next(retry)
+	return wait, stop, nil
 }
