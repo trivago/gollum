@@ -12,6 +12,9 @@ UNIT_TEST_ONLY_PKGS=$(shell go list -tags ${UNIT_TEST_TAGS} ./... | grep -v "/ve
 INTEGRATION_TEST_ONLY_PKGS=$(shell go list -tags ${INTEGRATION_TEST_TAGS} ./testing/integration/...)
 CHECK_PKGS=$(shell go list ./... | grep -vE '^github.com/trivago/gollum/vendor/')
 
+LINT_PKGS=$(shell go list ./... | grep -vE '^github.com/trivago/gollum/(core$$|vendor/)')
+LINT_FILES_CORE=$(shell find core -type f -name '*.go' -not -name '*.pb.go')
+
 all: clean vendor test freebsd linux docker mac pi win examples current
 
 freebsd:
@@ -86,8 +89,10 @@ vet:
 	@go vet $(CHECK_PKGS)
 
 lint:
-	@echo "Running golint"
-	@golint -set_exit_status $(CHECK_PKGS)
+	@echo "Running golint against core"
+	golint -set_exit_status $(LINT_FILES_CORE)
+	@echo "Running golint against other packages"
+	golint -set_exit_status $(LINT_PKGS)
 
 fmt:
 	@echo "Running go fmt"
