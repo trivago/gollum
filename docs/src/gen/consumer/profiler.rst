@@ -4,9 +4,17 @@ Profiler
 ========
 
 
-The profiler plugin generates Runs x Batches messages and send them to the
-configured streams as fast as possible. This consumer can be used to profile
-producers and/or configurations.
+The "Profiler" consumer plugin autogenerates messages in user-defined quantity,
+size and density. It can be used to profile producers and configurations and to
+provide a message source for testing.
+
+Before startup, [TemplateCount] template payloads are generated based on the
+format specifier [Message], using characters from [Characters]. The length of
+each template is determined by format size specifier(s) in [Message].
+
+During execution, [Batches] batches of [Runs] messages are generated, with a
+[DelayMs] ms delay between each message. Each message's payload is randomly
+selected from the set of template payloads above.
 
 
 
@@ -36,8 +44,8 @@ these are "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 ".
 
 
 **Message**
-defines a go format string to be used to generate the message payloads.
-The length of the values generated will be deducted from the format size
+defines a go format string to be used to generate the message templates.
+The length of the values generated will be deduced from the format size
 parameter. I.e. "%200d" will generate a digit between 0 and 200, "%10s" will
 generate a string with 10 characters, etc..
 By default this is set to "%256s".
@@ -49,9 +57,9 @@ By default this is set to 0.
 
 
 **KeepRunning**
-can be set to true to disable automatic shutdown of gollum after
+can be set to `true` to disable automatic shutdown of gollum after
 profiling is done. This can be used to e.g. read metrics after a profile run.
-By default this is set to false.
+By default this is set to `false`.
 
 
 Parameters (from SimpleConsumer)
@@ -66,10 +74,10 @@ allows this consumer to be found by other plugins by name. By default this
 is set to "" which does not register this consumer.
 
 
-**Router**
+**Streams**
 contains either a single string or a list of strings defining the
 message channels this consumer will produce. By default this is set to "*"
-which means only producers set to consume "all routers" will get these
+which means only producers set to consume "all streams" will get these
 messages.
 
 
@@ -83,14 +91,26 @@ Example
 
 .. code-block:: yaml
 
-	 - "consumer.Profile":
-	   Runs: 10000
-	   Batches: 10
-	   TemplateCount: 10
-	   Characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
-	   Message: "%256s"
-		  DelayMs: 0
-	   KeepRunning: false
+	# Generate 10 x 10000 messages of 256 bytes
+	MyProfiler:
+	  Type: "consumer.Profiler"
+	  Runs: 10000
+	  Batches: 10
+	  TemplateCount: 10
+	  Characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
+	  Message: "%256s"
+		 DelayMs: 0
+	  KeepRunning: false
+	# Generate a short message every 0.5s, useful for testing and debugging
+	JunkGenerator:
+	  Type: "consumer.Profiler"
+	  Message: "%20s"
+	  Streams: "junkstream"
+	  Characters: "abcdefghijklmZ"
+	  KeepRunning: true
+	  Runs: 10000
+	  Batches: 3000000
+	  DelayMs: 500
 	
 
 
