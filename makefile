@@ -131,3 +131,6 @@ docker: linux
 docker-dev:
 	@echo "Building development docker image"
 	@docker build -t trivago/gollum:$(VERSION)-dev -f Dockerfile-dev .
+
+listsrc:
+	@find . -mindepth 1 -maxdepth 1 -not -name vendor -not -name debug -not -name docs -not -name .git -not -name .idea

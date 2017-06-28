@@ -53,8 +53,8 @@ const (
 //    RecordMessageDelimiter: "\n"
 //    SendTimeframeSec: 1
 //    BatchTimeoutSec: 3
-//    StreamMapping:
-//      "*" : "default"
+//    #StreamMapping:
+//    #  "*" : "default"
 //
 // KinesisStream defines the stream to read from.
 // By default this is set to "default"
@@ -90,9 +90,9 @@ const (
 // BatchTimeoutSec defines the number of seconds after which a batch is
 // flushed automatically. By default this is set to 3.
 //
-// StreamMapping defines a translation from gollum stream to kinesis stream
-// name. If no mapping is given the gollum stream name is used as kinesis
-// stream name.
+// StreamMapping * not implemented * defines a translation from gollum stream
+// to kinesis stream name. If no mapping is given the gollum stream name is
+// used as kinesis stream name.
 type Kinesis struct {
 	core.BatchedProducer `gollumdoc:"embed_type"`
 	client               *kinesis.Kinesis
