@@ -27,6 +27,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"github.com/fsnotify/fsnotify"
 )
 
 const (
@@ -186,6 +187,7 @@ func (cons *File) initFile() {
 }
 
 func (cons *File) close() {
+	cons.Log.Warning.Println("DEFER close()")
 	if cons.file != nil {
 		cons.file.Close()
 	}
@@ -193,7 +195,7 @@ func (cons *File) close() {
 	cons.WorkerDone()
 }
 
-func (cons *File) read() {
+func (cons *File) observe() {
 	defer cons.close()
 
 	sendFunction := cons.Enqueue
@@ -201,70 +203,129 @@ func (cons *File) read() {
 		sendFunction = cons.enqueueAndPersist
 	}
 
-	spin := tsync.NewCustomSpinner(cons.pollingDelay)
 	buffer := tio.NewBufferedReader(fileBufferGrowSize, 0, 0, cons.delimiter)
+
+	//cons.poll(buffer, sendFunction)
+	cons.watch(buffer, sendFunction)
+}
+
+func (cons *File) poll(buffer *tio.BufferedReader, sendFunction func(data []byte)) {
+	spin := tsync.NewCustomSpinner(cons.pollingDelay)
 	printFileOpenError := true
 
 	for cons.state != fileStateDone {
+		cons.read(buffer, sendFunction, &printFileOpenError, spin.Yield, spin.Reset)
+	}
+}
 
-		// Initialize the seek state if requested
-		// Try to read the remains of the file first
-		if cons.state == fileStateOpen {
-			if cons.file != nil {
-				buffer.ReadAll(cons.file, sendFunction)
-			}
-			cons.initFile()
-			buffer.Reset(uint64(cons.seekOffset))
-		}
+func (cons *File) watchClose(watcher *fsnotify.Watcher) {
+	cons.Log.Warning.Println("DEFER watchClose()")
+	cons.close()
+	err := watcher.Close()
+	cons.Log.Debug.Printf("close result: %#v\n", err)
+}
 
-		// Try to open the file to read from
-		if cons.state == fileStateRead && cons.file == nil {
-			file, err := os.OpenFile(cons.realFileName, os.O_RDONLY, 0666)
+func (cons *File) watch(buffer *tio.BufferedReader, sendFunction func(data []byte)) {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		cons.Log.Error.Fatal(err)
+	}
+	//defer watcher.Close()
+	defer cons.watchClose(watcher)
 
-			switch {
-			case err != nil:
-				if printFileOpenError {
-					cons.Log.Warning.Print("Open failed: ", err)
-					printFileOpenError = false
+	printFileOpenError := true // DUPLICATE
+
+	// read current file state before watching
+	cons.read(buffer, sendFunction, &printFileOpenError, func(){}, func(){})
+
+	done := make(chan bool)
+
+	go tgo.WithRecoverShutdown(func() {
+		for cons.state != fileStateDone {
+			select {
+			case event := <-watcher.Events:
+				cons.Log.Debug.Println("event:", event)
+				if event.Op&fsnotify.Write == fsnotify.Write {
+					cons.Log.Debug.Println("modified file:", event.Name)
+					cons.read(buffer, sendFunction, &printFileOpenError, func(){}, func(){})
 				}
-				time.Sleep(3 * time.Second)
-				continue // ### continue, retry ###
-
-			default:
-				cons.file = file
-				cons.seekOffset, _ = cons.file.Seek(cons.seekOffset, cons.seek)
-				printFileOpenError = true
+			case err := <-watcher.Errors:
+				cons.Log.Error.Println("error:", err)
 			}
 		}
+	})
 
-		// Try to read from the file
-		if cons.state == fileStateRead && cons.file != nil {
-			err := buffer.ReadAll(cons.file, sendFunction)
+	//go func() {
+	//
+	//}()
 
-			switch {
-			case err == nil: // ok
-				spin.Reset()
+	err = watcher.Add(cons.realFileName)
+	if err != nil {
+		cons.Log.Error.Fatal(err)
+	}
+	<-done
+}
 
-			case err == io.EOF:
-				if cons.file.Name() != cons.realFileName {
+func (cons *File) read(buffer *tio.BufferedReader, sendFunction func(data []byte), printFileOpenError *bool, onEOF func(), onAfterRead func()) {
+	// Initialize the seek state if requested
+	// Try to read the remains of the file first
+	if cons.state == fileStateOpen {
+		if cons.file != nil {
+			buffer.ReadAll(cons.file, sendFunction)
+		}
+		cons.initFile()
+		buffer.Reset(uint64(cons.seekOffset))
+	}
+
+	// Try to open the file to read from
+	if cons.state == fileStateRead && cons.file == nil {
+		file, err := os.OpenFile(cons.realFileName, os.O_RDONLY, 0666)
+
+		switch {
+		case err != nil:
+			if *printFileOpenError {
+				cons.Log.Warning.Print("Open failed: ", err)
+				*printFileOpenError = false
+			}
+			time.Sleep(3 * time.Second)
+			return // ### continue, retry ###
+
+		default:
+			cons.file = file
+			cons.seekOffset, _ = cons.file.Seek(cons.seekOffset, cons.seek)
+			*printFileOpenError = true
+		}
+	}
+
+	// Try to read from the file
+	if cons.state == fileStateRead && cons.file != nil {
+		err := buffer.ReadAll(cons.file, sendFunction)
+
+		switch {
+		case err == nil: // ok
+			//spin.Reset()
+			onAfterRead()
+
+		case err == io.EOF:
+			if cons.file.Name() != cons.realFileName {
+				cons.Log.Note.Print("Rotation detected")
+				cons.onRoll()
+			} else {
+				newStat, newStatErr := os.Stat(cons.realFileName)
+				oldStat, oldStatErr := cons.file.Stat()
+
+				if newStatErr == nil && oldStatErr == nil && !os.SameFile(newStat, oldStat) {
 					cons.Log.Note.Print("Rotation detected")
 					cons.onRoll()
-				} else {
-					newStat, newStatErr := os.Stat(cons.realFileName)
-					oldStat, oldStatErr := cons.file.Stat()
-
-					if newStatErr == nil && oldStatErr == nil && !os.SameFile(newStat, oldStat) {
-						cons.Log.Note.Print("Rotation detected")
-						cons.onRoll()
-					}
 				}
-				spin.Yield()
-
-			case cons.state == fileStateRead:
-				cons.Log.Error.Print("Reading failed: ", err)
-				cons.file.Close()
-				cons.file = nil
 			}
+			//spin.Yield()
+			onEOF()
+
+		case cons.state == fileStateRead:
+			cons.Log.Error.Print("Reading failed: ", err)
+			cons.file.Close()
+			cons.file = nil
 		}
 	}
 }
@@ -272,15 +333,19 @@ func (cons *File) read() {
 func (cons *File) onRoll() {
 	cons.setState(fileStateOpen)
 }
-
+var activeWorkers *sync.WaitGroup
 // Consume listens to stdin.
 func (cons *File) Consume(workers *sync.WaitGroup) {
 	cons.setState(fileStateOpen)
 	defer cons.setState(fileStateDone)
 
+	activeWorkers = workers
+
 	go tgo.WithRecoverShutdown(func() {
 		cons.AddMainWorker(workers)
-		cons.read()
+		//cons.poll()
+		//cons.watch()
+		cons.observe()
 	})
 
 	cons.ControlLoop()
