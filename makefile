@@ -94,9 +94,9 @@ vet:
 
 lint:
 	@echo "Running golint against core"
-	golint -set_exit_status $(LINT_FILES_CORE)
+	@golint -set_exit_status $(LINT_FILES_CORE)
 	@echo "Running golint against other packages"
-	golint -set_exit_status $(LINT_PKGS)
+	@golint -set_exit_status $(LINT_PKGS)
 
 fmt:
 	@echo "Running go fmt"
