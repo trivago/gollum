@@ -67,7 +67,9 @@ import (
 // Retry/TimeToWaitSec denotes the time in seconds after which a failed dataset will be
 // transmitted again. By default this is set to 3.
 //
-// SetGzip enables or disables gzip compression (disabled by default).
+// SetGzip enables or disables gzip compression for Elasticsearch requests (disabled by default).
+// This option is used one to one for the library package. 
+// See: http://godoc.org/gopkg.in/olivere/elastic.v5#SetGzip
 //
 // Servers defines a list of servers to connect to.
 //
