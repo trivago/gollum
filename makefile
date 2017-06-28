@@ -80,6 +80,8 @@ clean:
 	@rm -f ./dist/gollum_*.zip
 	@go clean
 
+listsrc:
+	@find . -mindepth 1 -maxdepth 1 -not -name vendor -not -name debug -not -name docs -not -name .git -not -name .idea
 
 # Lists directories / files present in the filesystem which are ignored by git (via .gitignore et al). For
 # completely ignored subtrees, only the topmost directory is listed.
