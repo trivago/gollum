@@ -34,7 +34,7 @@ var (
 		"Use a given configuration file.")
 	flagTestConfigFile = tflag.String("tc", "testconfig", "",
 		"Test the given configuration file and exit.")
-	flagLoglevel = tflag.Int("ll", "loglevel", 1,
+	flagLoglevel = tflag.Int("ll", "loglevel", 2,
 		"Set the loglevel [0-3] as in {0=Error, 1=+Warning, 2=+Info, 3=+Debug}.")
 	flagLogColors = tflag.String("lc", "log-colors", "auto",
 		"Use Logrus's \"colored\" log format. One of \"never\", \"auto\" (default), \"always\"")
