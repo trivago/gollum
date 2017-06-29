@@ -8,7 +8,7 @@ import (
 )
 
 // fallbackLogDevice defines the fallback destination for when _GOLLUM_ is unavailable / not used
-var fallbackLogDevice = os.Stderr
+var fallbackLogDevice = os.Stdout
 
 // logrusHookBuffer is our single instance of LogrusHookBuffer
 var logrusHookBuffer = LogrusHookBuffer{}
