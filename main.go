@@ -21,6 +21,7 @@ import (
 	"github.com/trivago/gollum/core"
 	_ "github.com/trivago/gollum/filter"
 	_ "github.com/trivago/gollum/format"
+	"github.com/trivago/gollum/logger"
 	_ "github.com/trivago/gollum/producer"
 	_ "github.com/trivago/gollum/router"
 	"github.com/trivago/tgo"
@@ -38,9 +39,15 @@ import (
 	"time"
 )
 
+// logrusHookBuffer is our single instance of LogrusHookBuffer
+var logrusHookBuffer logger.LogrusHookBuffer
+
 func main() {
 	// Parse command line flags
 	parseFlags()
+
+	// Initialize logger.LogrusHookBuffer
+	logrusHookBuffer = logger.NewLogrusHookBuffer()
 
 	// Initialize logging. All logging is done via logrusHookBuffer;
 	// logrus's output writer is always set to ioutil.Discard.

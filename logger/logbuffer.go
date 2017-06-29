@@ -1,4 +1,18 @@
-package main
+// Copyright 2015-2017 trivago GmbH
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package logger
 
 import (
 	"fmt"
@@ -7,11 +21,8 @@ import (
 	"os"
 )
 
-// fallbackLogDevice defines the fallback destination for when _GOLLUM_ is unavailable / not used
-var fallbackLogDevice = os.Stdout
-
-// logrusHookBuffer is our single instance of LogrusHookBuffer
-var logrusHookBuffer = LogrusHookBuffer{}
+// FallbackLogDevice defines the fallback destination for when _GOLLUM_ is unavailable / not used
+var FallbackLogDevice = os.Stdout
 
 // LogrusHookBuffer implements logrus.Hook and is used to pools log messages during startup
 // when the desired log destination (_GOLLUM_ stream or fallbackLogDevice) is not yet available
@@ -20,6 +31,11 @@ type LogrusHookBuffer struct {
 	targetHook   logrus.Hook
 	targetWriter io.Writer
 	buffer       []*logrus.Entry
+}
+
+// NewLogrusHookBuffer returns a LogrusHookBuffer instance
+func NewLogrusHookBuffer() LogrusHookBuffer {
+	return LogrusHookBuffer{}
 }
 
 // Levels and Fire() implement the logrus.Hook interface

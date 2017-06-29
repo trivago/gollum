@@ -17,6 +17,7 @@ package main
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/logger"
 	"github.com/trivago/tgo"
 	"os"
 	"os/signal"
@@ -72,7 +73,7 @@ func (co *Coordinator) Configure(conf *core.Config) {
 	// Make sure the log is printed to stderr if we are stuck here
 	logFallback := time.AfterFunc(time.Duration(3)*time.Second, func() {
 		//logrus.SetOutput(os.Stderr)
-		logrusHookBuffer.SetTargetWriter(fallbackLogDevice)
+		logrusHookBuffer.SetTargetWriter(logger.FallbackLogDevice)
 		logrusHookBuffer.Purge()
 	})
 	defer logFallback.Stop()
@@ -96,14 +97,14 @@ func (co *Coordinator) StartPlugins() {
 
 	if len(co.consumers) == 0 {
 		logrus.Error("No consumers configured.")
-		logrusHookBuffer.SetTargetWriter(fallbackLogDevice)
+		logrusHookBuffer.SetTargetWriter(logger.FallbackLogDevice)
 		logrusHookBuffer.Purge()
 		return // ### return, nothing to do ###
 	}
 
 	if len(co.producers) == 0 {
 		logrus.Error("No producers configured.")
-		logrusHookBuffer.SetTargetWriter(fallbackLogDevice)
+		logrusHookBuffer.SetTargetWriter(logger.FallbackLogDevice)
 		logrusHookBuffer.Purge()
 		return // ### return, nothing to do ###
 	}
@@ -131,10 +132,7 @@ func (co *Coordinator) StartPlugins() {
 	if core.StreamRegistry.IsStreamRegistered(core.LogInternalStreamID) {
 		// The _GOLLUM_ stream has listeners, so use LogConsumer to write to it
 		if *flagLogColors == "always" {
-			logrus.SetFormatter(&logrus.TextFormatter{
-				ForceColors:   true,
-				FullTimestamp: true,
-			})
+			logrus.SetFormatter(logger.NewConsoleFormatter())
 		}
 		logrusHookBuffer.SetTargetHook(co.logConsumer)
 		logrusHookBuffer.Purge()
@@ -142,14 +140,11 @@ func (co *Coordinator) StartPlugins() {
 	} else {
 		// _GOLLUM_ not used, so write to the fallback device
 		if *flagLogColors == "always" ||
-			(*flagLogColors == "auto" && logrus.IsTerminal(fallbackLogDevice)) {
+			(*flagLogColors == "auto" && logrus.IsTerminal(logger.FallbackLogDevice)) {
 			// Logrus doesn't know the final log device, so we hint the color option here
-			logrus.SetFormatter(&logrus.TextFormatter{
-				ForceColors:   true,
-				FullTimestamp: true,
-			})
+			logrus.SetFormatter(logger.NewConsoleFormatter())
 		}
-		logrusHookBuffer.SetTargetWriter(fallbackLogDevice)
+		logrusHookBuffer.SetTargetWriter(logger.FallbackLogDevice)
 		logrusHookBuffer.Purge()
 	}
 
@@ -208,7 +203,7 @@ func (co *Coordinator) Shutdown() {
 	// Make sure remaining warning / errors are written to stderr
 	logrus.Info("I'm not listening... I'm not listening... (flushing)")
 	//logrus.SetOutput(fallbackLogDevice)
-	logrusHookBuffer.SetTargetWriter(fallbackLogDevice)
+	logrusHookBuffer.SetTargetWriter(logger.FallbackLogDevice)
 	logrusHookBuffer.SetTargetHook(nil)
 
 	// Shutdown producers
