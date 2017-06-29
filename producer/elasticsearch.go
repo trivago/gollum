@@ -17,6 +17,7 @@ package producer
 import (
 	"context"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
@@ -25,7 +26,6 @@ import (
 	"sync"
 	"syscall"
 	"time"
-	"github.com/sirupsen/logrus"
 )
 
 // ElasticSearch producer plugin
@@ -423,7 +423,7 @@ func (conn *elasticConnection) connect() error {
 type retrier struct {
 	retry   int
 	backoff elastic.Backoff
-	logger   logrus.FieldLogger
+	logger  logrus.FieldLogger
 }
 
 // Retry implements type Retrier interface
