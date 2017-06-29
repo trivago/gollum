@@ -8,9 +8,16 @@ BUILD_FLAGS=-ldflags=-s
 UNIT_TEST_TAGS="unit"
 INTEGRATION_TEST_TAGS="integration"
 
+GOFMT_OPTIONS=-s
+
 UNIT_TEST_ONLY_PKGS=$(shell go list -tags ${UNIT_TEST_TAGS} ./... | grep -v "/vendor/" | grep -v "/contrib/" | grep -v "/testing/integration" )
 INTEGRATION_TEST_ONLY_PKGS=$(shell go list -tags ${INTEGRATION_TEST_TAGS} ./testing/integration/...)
+
 CHECK_PKGS=$(shell go list ./... | grep -vE '^github.com/trivago/gollum/vendor/')
+CHECK_FILES=$(shell find . -type f -name '*.go' | grep -vE '^\./vendor/')
+
+LINT_PKGS=$(shell go list ./... | grep -vE '^github.com/trivago/gollum/(core$$|vendor/)')
+LINT_FILES_CORE=$(shell find core -type f -name '*.go' -not -name '*.pb.go')
 
 LINT_PKGS=$(shell go list ./... | grep -vE '^github.com/trivago/gollum/(core$$|vendor/)')
 LINT_FILES_CORE=$(shell find core -type f -name '*.go' -not -name '*.pb.go')
@@ -22,7 +29,7 @@ freebsd:
 	@GOOS=freebsd GOARCH=amd64 $(BUILD_ENV) go build $(BUILD_FLAGS) -o gollum
 	@rm -f dist/gollum-$(VERSION)-FreeBSD_x64.zip
 	@zip dist/gollum-$(VERSION)-FreeBSD_x64.zip gollum
-    
+
 linux:
 	@echo "Building for Linux/x64"
 	@GOOS=linux GOARCH=amd64 $(BUILD_ENV) go build $(BUILD_FLAGS) -o gollum
@@ -90,19 +97,25 @@ vet:
 
 lint:
 	@echo "Running golint against core"
-	golint -set_exit_status $(LINT_FILES_CORE)
+	@golint -set_exit_status $(LINT_FILES_CORE)
 	@echo "Running golint against other packages"
-	golint -set_exit_status $(LINT_PKGS)
+	@golint -set_exit_status $(LINT_PKGS)
 
 fmt:
 	@echo "Running go fmt"
 	@go fmt $(CHECK_PKGS)
 
+fmt-list:
+	@gofmt $(GOFMT_OPTIONS) -l $(CHECK_FILES)
+
+fmt-diff:
+	@gofmt $(GOFMT_OPTIONS) -d $(CHECK_FILES)
+
 fmt-check:
-ifneq ($(shell gofmt -s -l ./ |grep -vE '^vendor/' |wc -l | tr -d "[:blank:]"), 0)
-	$(error gofmt returns more than one line.)
+ifneq ($(shell gofmt $(GOFMT_OPTIONS) -l $(CHECK_FILES) | wc -l | tr -d "[:blank:]"), 0)
+	$(error gofmt returns more than one line, run 'make fmt-check' or 'make fmt-diff' for details, 'make fmt' to fix)
 endif
-	@echo "Running go fmt check"
+	@echo "gofmt check successful"
 
 ineffassign:
 	@echo "Running ineffassign"
@@ -121,3 +134,6 @@ docker: linux
 docker-dev:
 	@echo "Building development docker image"
 	@docker build -t trivago/gollum:$(VERSION)-dev -f Dockerfile-dev .
+
+listsrc:
+	@find . -mindepth 1 -maxdepth 1 -not -name vendor -not -name debug -not -name docs -not -name .git -not -name .idea

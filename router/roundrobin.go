@@ -20,9 +20,47 @@ import (
 	"sync/atomic"
 )
 
-// RoundRobin stream plugin
+// RoundRobin router plugin
+//
 // Messages will be sent to one of the producers attached to this router.
 // Producers will be switched one-by-one.
+//
+// The "RoundRobin" router relays each message sent to the stream [Stream] to
+// exactly one of the producers connected to [Stream]. The producer is selected
+// by rotating the connected producers in sequence, one producer per received
+// message.
+//
+// Configuration example:
+//
+// # Generate junk
+// JunkGenerator:
+//   Type: "consumer.Profiler"
+//   Message: "%20s"
+//   Streams: "junkstream"
+//   Characters: "abcdefghijklmZ"
+//   KeepRunning: true
+//   Runs: 10000
+//   Batches: 3000000
+//   DelayMs: 500
+// # Spread messages to connected producers in round-robin
+// JunkRouterRoundRob:
+//   Type: "router.RoundRobin"
+//   Stream: "junkstream"
+// # Produce messages to stdout
+// JunkPrinter00:
+//   Type: "producer.Console"
+//   Streams: "junkstream"
+//   Modulators:
+//     - "format.Envelope":
+//         Prefix: "[junk_00] "
+// # Produce messages to stdout
+// JunkPrinter01:
+//   Type: "producer.Console"
+//   Streams: "junkstream"
+//   Modulators:
+//     - "format.Envelope":
+//         Prefix: "[junk_01] "
+//
 type RoundRobin struct {
 	core.SimpleRouter `gollumdoc:"embed_type"`
 	index             int32

@@ -100,10 +100,10 @@ allows this consumer to be found by other plugins by name. By default this
 is set to "" which does not register this consumer.
 
 
-**Router**
+**Streams**
 contains either a single string or a list of strings defining the
 message channels this consumer will produce. By default this is set to "*"
-which means only producers set to consume "all routers" will get these
+which means only producers set to consume "all streams" will get these
 messages.
 
 

@@ -3,11 +3,63 @@
 Random
 ======
 
-Messages will be sent to one of the producers attached to this router.
-The concrete producer is chosen randomly with each message.
+
+The "Random" router relays each message sent to the stream [Stream] to
+exactly one of the producers connected to [Stream]. The receiving producer
+is chosen randomly for each message.
 
 
 
 
+Parameters (from SimpleRouter)
+------------------------------
+
+**Stream**
+Specifies the name of the stream this plugin is supposed to
+read messages from.
+
+
+**Filters**
+A list of zero or more Filter plugins to connect to this router.
+
+
+**TimeoutMs**
+... (default: 0, metric: ms)
+
+
+Example
+-------
+
+.. code-block:: yaml
+
+	# Generate junk
+	JunkGenerator:
+	  Type: "consumer.Profiler"
+	  Message: "%20s"
+	  Streams: "junkstream"
+	  Characters: "abcdefghijklmZ"
+	  KeepRunning: true
+	  Runs: 10000
+	  Batches: 3000000
+	  DelayMs: 500
+	# Randomly assign messages to connected producers
+	JunkRouterRand:
+	  Type: "router.Random"
+	  Stream: "junkstream"
+	# Produce messages to stdout
+	JunkPrinter00:
+	  Type: "producer.Console"
+	  Streams: "junkstream"
+	  Modulators:
+	    - "format.Envelope":
+	        Prefix: "[junk_00] "
+	# Produce messages to stdout
+	JunkPrinter01:
+	  Type: "producer.Console"
+	  Streams: "junkstream"
+	  Modulators:
+	    - "format.Envelope":
+	        Prefix: "[junk_01] "
+	
 
 

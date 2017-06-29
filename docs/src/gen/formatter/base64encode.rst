@@ -20,6 +20,16 @@ defines a formatter that is applied before the base64
 encoding takes place. By default this is set to "format.Forward"
 
 
+Parameters (from SimpleFormatter)
+---------------------------------
+
+**ApplyTo**
+chooses the part of the message the formatting should be
+applied to. Use "payload"  or "" to target the message payload;
+othe values specify the name of a metadata field to target.
+Default "".
+
+
 Example
 -------
 

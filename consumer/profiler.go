@@ -28,20 +28,40 @@ import (
 
 // Profiler consumer plugin
 //
-// The profiler plugin generates Runs x Batches messages and send them to the
-// configured streams as fast as possible. This consumer can be used to profile
-// producers and/or configurations.
+// The "Profiler" consumer plugin autogenerates messages in user-defined quantity,
+// size and density. It can be used to profile producers and configurations and to
+// provide a message source for testing.
 //
-// Configuration example
+// Before startup, [TemplateCount] template payloads are generated based on the
+// format specifier [Message], using characters from [Characters]. The length of
+// each template is determined by format size specifier(s) in [Message].
 //
-//  - "consumer.Profile":
-//    Runs: 10000
-//    Batches: 10
-//    TemplateCount: 10
-//    Characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
-//    Message: "%256s"
-//	  DelayMs: 0
-//    KeepRunning: false
+// During execution, [Batches] batches of [Runs] messages are generated, with a
+// [DelayMs] ms delay between each message. Each message's payload is randomly
+// selected from the set of template payloads above.
+//
+// Configuration example:
+//
+// # Generate 10 x 10000 messages of 256 bytes
+// MyProfiler:
+//   Type: "consumer.Profiler"
+//   Runs: 10000
+//   Batches: 10
+//   TemplateCount: 10
+//   Characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
+//   Message: "%256s"
+//	 DelayMs: 0
+//   KeepRunning: false
+// # Generate a short message every 0.5s, useful for testing and debugging
+// JunkGenerator:
+//   Type: "consumer.Profiler"
+//   Message: "%20s"
+//   Streams: "junkstream"
+//   Characters: "abcdefghijklmZ"
+//   KeepRunning: true
+//   Runs: 10000
+//   Batches: 3000000
+//   DelayMs: 500
 //
 // Runs defines the number of messages per batch. By default this is set to
 // 10000.
@@ -56,8 +76,8 @@ import (
 // Characters defines the characters to be used in generated strings. By default
 // these are "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 ".
 //
-// Message defines a go format string to be used to generate the message payloads.
-// The length of the values generated will be deducted from the format size
+// Message defines a go format string to be used to generate the message templates.
+// The length of the values generated will be deduced from the format size
 // parameter. I.e. "%200d" will generate a digit between 0 and 200, "%10s" will
 // generate a string with 10 characters, etc..
 // By default this is set to "%256s".
@@ -65,15 +85,15 @@ import (
 // DelayMs defines the number of milliseconds of sleep between messages.
 // By default this is set to 0.
 //
-// KeepRunning can be set to true to disable automatic shutdown of gollum after
+// KeepRunning can be set to `true` to disable automatic shutdown of gollum after
 // profiling is done. This can be used to e.g. read metrics after a profile run.
-// By default this is set to false.
+// By default this is set to `false`.
 type Profiler struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 	profileRuns         int           `config:"Runs" default:"10000"`
 	batches             int           `config:"Batches" default:"10"`
 	chars               string        `config:"Characters" default:"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"`
-	message             string        `config:"Message" default:"%# %256s"`
+	message             string        `config:"Message" default:"%256s"`
 	delay               time.Duration `config:"DelayMs" default:"0" metric:"ms"`
 	keepRunning         bool          `config:"KeepRunning"`
 	templates           [][]byte
@@ -156,9 +176,13 @@ func (cons *Profiler) profile() {
 
 	for i := 0; i < len(cons.templates); i++ {
 		cons.templates[i] = cons.generateTemplate()
+		cons.Logger.Debugf("Template %d/%d: '%s' (%d bytes)\n",
+			i, len(cons.templates), string(cons.templates[i]), len(cons.templates[i]))
 	}
 
-	cons.Logger.Debugf("Started profiling with %d byte messages", len(cons.templates[0]))
+	cons.Logger.Debugf("Start profiling with %d templates of %d bytes each",
+		len(cons.templates),
+		len(cons.templates[0]))
 
 	testStart := time.Now()
 	minTime := math.MaxFloat64

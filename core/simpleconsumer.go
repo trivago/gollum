@@ -31,7 +31,7 @@ import (
 //    Enable: true
 //    ID: ""
 //    ShutdownTimeoutMs: 1000
-//    Router:
+//    Streams:
 //      - "foo"
 //      - "bar"
 //
@@ -40,9 +40,9 @@ import (
 // ID allows this consumer to be found by other plugins by name. By default this
 // is set to "" which does not register this consumer.
 //
-// Router contains either a single string or a list of strings defining the
+// Streams contains either a single string or a list of strings defining the
 // message channels this consumer will produce. By default this is set to "*"
-// which means only producers set to consume "all routers" will get these
+// which means only producers set to consume "all streams" will get these
 // messages.
 //
 // ShutdownTimeoutMs sets a timeout in milliseconds that will be used to detect

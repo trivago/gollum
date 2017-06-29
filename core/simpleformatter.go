@@ -19,6 +19,14 @@ import (
 )
 
 // SimpleFormatter defines the standard formatter implementation.
+//
+// Configuration example:
+//   N/A - placeholder for docs generator
+//
+// ApplyTo chooses the part of the message the formatting should be
+// applied to. Use "payload"  or "" to target the message payload;
+// othe values specify the name of a metadata field to target.
+// Default "".
 type SimpleFormatter struct {
 	Logger            logrus.FieldLogger
 	GetAppliedContent GetAppliedContent

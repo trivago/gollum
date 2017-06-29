@@ -1,10 +1,8 @@
-hash: 1ccf32c565eaef96fb87e861d4c52316e6a670ebe73f698c6574cb6b8da0d272
-updated: 2017-06-22T16:01:02.497536005+02:00
+hash: 75d0f1a865f7743607ada00168a105a828591dfbd9652c0cc0fe091f1b3b23d3
+updated: 2017-06-29T02:28:02.736915702+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
-- name: github.com/araddon/gou
-  version: 9a11413ad5023f3b138f313727f35468591ff73b
 - name: github.com/artyom/fb303
   version: fa4a241cefb113c4981dbac51a8cfcb047efa079
 - name: github.com/artyom/scribe
@@ -42,8 +40,6 @@ imports:
   - service/kinesis
   - service/s3
   - service/sts
-- name: github.com/bitly/go-hostpool
-  version: c32c3660406ef1ea14936cc9282e174fe8508c42
 - name: github.com/bsm/sarama-cluster
   version: e92a2f7a82a6f2bbdd2f7305b8a833fa22eb2138
 - name: github.com/coreos/go-systemd
@@ -67,7 +63,7 @@ imports:
 - name: github.com/eapache/queue
   version: 44cc805cf13205b55f69e14bcb69867d1ae92f98
 - name: github.com/go-ini/ini
-  version: d3de07a94d22b4a0972deb4b96d790c2c0ce8333
+  version: 3d73f4b845efdf9989fffd4b4e562727744a34ba
 - name: github.com/go-redis/redis
   version: 2cf5af9928978bbef8d1076607022403439e177c
   subpackages:
@@ -77,7 +73,7 @@ imports:
   - internal/pool
   - internal/proto
 - name: github.com/golang/protobuf
-  version: 1fb8fd32a09087bcd727225167edd31e1b9ceb24
+  version: 6a1fa9404c0aebf36c879bc50152edcc953910d2
   subpackages:
   - proto
 - name: github.com/golang/snappy
@@ -87,13 +83,7 @@ imports:
 - name: github.com/jmespath/go-jmespath
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
 - name: github.com/klauspost/crc32
-  version: 1bab8b35b6bb565f92cbc97939610af9369f942a
-- name: github.com/lytics/logrus
-  version: 4389a17ed024d8d196b5541116151f378705b0cc
-- name: github.com/mattbaird/elastigo
-  version: 2fe47fd29e4b70353f852ede77a196830d2924ec
-  subpackages:
-  - lib
+  version: bab58d77464aa9cf4e84200c3276da0831fe0c03
 - name: github.com/miekg/pcap
   version: 51d9d986bf8d5f524d65bf31c353e10271d54aaa
 - name: github.com/mmcloughlin/geohash
@@ -108,6 +98,8 @@ imports:
   version: 5a004441f897722c627870a981d02b29924215fa
   subpackages:
   - xxHash32
+- name: github.com/pkg/errors
+  version: c605e284fe17294bda444b34710735b29d1a9d90
 - name: github.com/quipo/statsd
   version: 39c3fe59a6c334d5aefddf41f3c16595301c80e1
   subpackages:
@@ -135,12 +127,12 @@ imports:
   - tsync
   - ttesting
 - name: golang.org/x/crypto
-  version: adbae1b6b6fb4b02448a0fc0dbbc9ba2b95b294d
+  version: 84f24dfdf3c414ed893ca1b318d0045ef5a1f607
   subpackages:
   - bcrypt
   - blowfish
 - name: golang.org/x/sys
-  version: fb4cac33e3196ff7f507ab9b2d2a44b0142f5b5a
+  version: 90796e5a05ce440b41c768bd9af257005e470461
   subpackages:
   - unix
   - windows
@@ -151,6 +143,10 @@ imports:
   - internal/syslogparser
   - internal/syslogparser/rfc3164
   - internal/syslogparser/rfc5424
+- name: gopkg.in/olivere/elastic.v5
+  version: 3113f9b9ad37509fe5f8a0e5e91c96fdc4435e26
+  subpackages:
+  - uritemplates
 - name: gopkg.in/oschwald/geoip2-golang.v1
   version: 496a3cbcb65a3cb54497fe4ae2273319e85160a4
 - name: gopkg.in/yaml.v2
