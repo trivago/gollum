@@ -32,7 +32,7 @@ func (format *dummyFormatter) Configure(conf PluginConfigReader) {
 }
 
 func (format *dummyFormatter) GetLogger() logrus.FieldLogger {
-	return logrus
+	return logrus.WithField("Scope", "dummyFormatter")
 }
 
 func (format *dummyFormatter) ApplyFormatter(msg *Message) error {
@@ -51,7 +51,7 @@ func (format *dummyErrorFormatter) Configure(conf PluginConfigReader) {
 }
 
 func (format *dummyErrorFormatter) GetLogger() logrus.FieldLogger {
-	return logrus
+	return logrus.WithField("Scope", "dummyErrorFormatter")
 }
 
 func (format *dummyErrorFormatter) ApplyFormatter(msg *Message) error {
