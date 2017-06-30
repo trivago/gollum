@@ -137,7 +137,7 @@ func (format *ProcessTSV) processTSVDirective(directive tsvDirective, values []t
 			if numParameters == 2 {
 
 				if timestamp, err := time.Parse(directive.parameters[0], value[:len(directive.parameters[0])]); err != nil {
-					format.Log.Warning.Print("ProcessTSV failed to parse a timestamp: ", err)
+					format.Logger.Warning("ProcessTSV failed to parse a timestamp: ", err)
 				} else {
 					values[directive.index].value = timestamp.Format(directive.parameters[1])
 				}
@@ -252,7 +252,7 @@ func (format *ProcessTSV) ApplyFormatter(msg *core.Message) error {
 			} else {
 				if split[0][len(split[0])-1:] != `"` {
 					// unmatched quote, abort processing this message
-					format.Log.Warning.Print("ProcessTSV failed to parse a message: unmatched quote")
+					format.Logger.Warning("ProcessTSV failed to parse a message: unmatched quote")
 					return nil // continue
 				}
 				values = append(values, tsvValue{

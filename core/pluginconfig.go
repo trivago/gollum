@@ -15,9 +15,9 @@
 package core
 
 import (
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
-	"github.com/trivago/tgo/tlog"
 	"strings"
 )
 
@@ -100,7 +100,7 @@ func (conf PluginConfig) Validate() bool {
 	for key := range conf.Settings {
 		if _, exists := conf.validKeys[key]; !exists {
 			valid = false
-			tlog.Warning.Printf("Unknown configuration key in %s: %s", conf.Typename, key)
+			logrus.Warningf("Unknown configuration key in %s: %s", conf.Typename, key)
 		}
 	}
 	return valid
@@ -154,11 +154,11 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
 
 	if conf.Instances <= 0 {
 		conf.Enable = false
-		tlog.Warning.Printf("Plugin %s has been disabled (0 instances)", conf.ID)
+		logrus.Warningf("Plugin %s has been disabled (0 instances)", conf.ID)
 	}
 
 	if !conf.Enable {
-		tlog.Note.Printf("Plugin %s has been disabled", conf.ID)
+		logrus.Infof("Plugin %s has been disabled", conf.ID)
 	}
 
 	return errors.OrNil()

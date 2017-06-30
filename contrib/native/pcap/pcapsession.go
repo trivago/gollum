@@ -20,7 +20,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/miekg/pcap"
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"strconv"
@@ -32,7 +32,7 @@ type pcapSession struct {
 	timer     *time.Timer
 	packets   packetList
 	lastError error
-	log       tlog.LogScope
+	logger    logrus.FieldLogger
 }
 
 type packetList []*pcap.Packet
@@ -51,10 +51,10 @@ func tcpFromPcap(pkt *pcap.Packet) (*pcap.Tcphdr, bool) {
 }
 
 // create a new TCP session buffer
-func newPcapSession(client string, log tlog.LogScope) *pcapSession {
+func newPcapSession(client string, logger logrus.FieldLogger) *pcapSession {
 	return &pcapSession{
 		client: client,
-		log:    log,
+		logger: logger,
 	}
 }
 
@@ -292,7 +292,7 @@ func (session *pcapSession) addPacket(cons *PcapHTTPConsumer, pkt *pcap.Packet) 
 					return // ### return, invalid request: packets pending? ###
 				}
 				// Error: ignore this request
-				session.log.Error.Print("PcapHTTPConsumer request writer: ", err)
+				session.logger.Error("PcapHTTPConsumer request writer: ", err)
 			} else {
 				// Enqueue this request
 				cons.enqueueBuffer(extPayload.Bytes())

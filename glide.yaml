@@ -45,5 +45,12 @@ import:
 - package: gopkg.in/yaml.v2
 - package: github.com/go-redis/redis
   version: ~6.0.0
+- package: github.com/sirupsen/logrus
+  version: ~1.0.0
 - package: gopkg.in/olivere/elastic.v5
   version: ~5.0.39
+  # pinned version because import bug in v0.4.0
+  # see: https://github.com/x-cray/logrus-prefixed-formatter/issues/18
+- package: github.com/x-cray/logrus-prefixed-formatter
+  version: ~0.5
+- package: github.com/mgutz/ansi

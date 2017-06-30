@@ -73,7 +73,7 @@ func (format *Base64Decode) getDecodedContent(content []byte) ([]byte, error) {
 
 	size, err := format.dictionary.Decode(decoded, content)
 	if err != nil {
-		format.Log.Error.Print(err)
+		format.Logger.Error(err)
 		return nil, err
 	}
 

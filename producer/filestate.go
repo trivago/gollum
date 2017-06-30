@@ -17,9 +17,9 @@ package producer
 import (
 	"compress/gzip"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tio"
-	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tsync"
 	"io"
 	"os"
@@ -35,7 +35,7 @@ type fileState struct {
 	assembly     core.WriterAssembly
 	fileCreated  time.Time
 	flushTimeout time.Duration
-	log          tlog.LogScope
+	logger       logrus.FieldLogger
 }
 
 type fileRotateConfig struct {
@@ -48,13 +48,14 @@ type fileRotateConfig struct {
 	atMinute int
 }
 
-func newFileState(maxMessageCount int, modulator core.Modulator, tryFallback func(*core.Message), timeout time.Duration, logScope tlog.LogScope) *fileState {
+func newFileState(maxMessageCount int, modulator core.Modulator, tryFallback func(*core.Message),
+	timeout time.Duration, logger logrus.FieldLogger) *fileState {
 	return &fileState{
 		batch:        core.NewMessageBatch(maxMessageCount),
 		bgWriter:     new(sync.WaitGroup),
 		flushTimeout: timeout,
 		assembly:     core.NewWriterAssembly(nil, tryFallback, modulator),
-		log:          logScope,
+		logger:       logger,
 	}
 }
 
@@ -89,13 +90,13 @@ func (state *fileState) compressAndCloseLog(sourceFile *os.File) {
 
 	targetFile, err := os.OpenFile(targetFileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
-		state.log.Error.Print("Compress error:", err)
+		state.logger.Error("Compress error:", err)
 		sourceFile.Close()
 		return
 	}
 
 	// Create zipfile and compress data
-	state.log.Note.Print("Compressing " + sourceFileName)
+	state.logger.Info("Compressing " + sourceFileName)
 
 	sourceFile.Seek(0, 0)
 	targetWriter := gzip.NewWriter(targetFile)
@@ -112,10 +113,10 @@ func (state *fileState) compressAndCloseLog(sourceFile *os.File) {
 	targetFile.Close()
 
 	if err != nil && err != io.EOF {
-		state.log.Warning.Print("Compression failed:", err)
+		state.logger.Warning("Compression failed:", err)
 		err = os.Remove(targetFileName)
 		if err != nil {
-			state.log.Error.Print("Compressed file remove failed:", err)
+			state.logger.Error("Compressed file remove failed:", err)
 		}
 		return
 	}
@@ -123,7 +124,7 @@ func (state *fileState) compressAndCloseLog(sourceFile *os.File) {
 	// Remove original log
 	err = os.Remove(sourceFileName)
 	if err != nil {
-		state.log.Error.Print("Uncompressed file remove failed:", err)
+		state.logger.Error("Uncompressed file remove failed:", err)
 	}
 }
 
@@ -133,7 +134,7 @@ func (state *fileState) pruneByHour(baseFilePath string, hours int) {
 
 	files, err := tio.ListFilesByDateMatching(baseDir, baseName+".*")
 	if err != nil {
-		state.log.Error.Print("Error pruning files: ", err)
+		state.logger.Error("Error pruning files: ", err)
 		return // ### return, error ###
 	}
 
@@ -142,9 +143,9 @@ func (state *fileState) pruneByHour(baseFilePath string, hours int) {
 	for i := 0; i < len(files) && files[i].ModTime().Before(pruneDate); i++ {
 		filePath := fmt.Sprintf("%s/%s", baseDir, files[i].Name())
 		if err := os.Remove(filePath); err != nil {
-			state.log.Error.Printf("Failed to prune \"%s\": %s", filePath, err.Error())
+			state.logger.Errorf("Failed to prune \"%s\": %s", filePath, err.Error())
 		} else {
-			state.log.Note.Printf("Pruned \"%s\"", filePath)
+			state.logger.Infof("Pruned \"%s\"", filePath)
 		}
 	}
 }
@@ -155,7 +156,7 @@ func (state *fileState) pruneByCount(baseFilePath string, count int) {
 
 	files, err := tio.ListFilesByDateMatching(baseDir, baseName+".*")
 	if err != nil {
-		state.log.Error.Print("Error pruning files: ", err)
+		state.logger.Error("Error pruning files: ", err)
 		return // ### return, error ###
 	}
 
@@ -167,9 +168,9 @@ func (state *fileState) pruneByCount(baseFilePath string, count int) {
 	for i := 0; i < numFilesToPrune; i++ {
 		filePath := fmt.Sprintf("%s/%s", baseDir, files[i].Name())
 		if err := os.Remove(filePath); err != nil {
-			state.log.Error.Printf("Failed to prune \"%s\": %s", filePath, err.Error())
+			state.logger.Errorf("Failed to prune \"%s\": %s", filePath, err.Error())
 		} else {
-			state.log.Note.Printf("Pruned \"%s\"", filePath)
+			state.logger.Infof("Pruned \"%s\"", filePath)
 		}
 	}
 }
@@ -180,7 +181,7 @@ func (state *fileState) pruneToSize(baseFilePath string, maxSize int64) {
 
 	files, err := tio.ListFilesByDateMatching(baseDir, baseName+".*")
 	if err != nil {
-		state.log.Error.Print("Error pruning files: ", err)
+		state.logger.Error("Error pruning files: ", err)
 		return // ### return, error ###
 	}
 
@@ -195,9 +196,9 @@ func (state *fileState) pruneToSize(baseFilePath string, maxSize int64) {
 		}
 		filePath := fmt.Sprintf("%s/%s", baseDir, file.Name())
 		if err := os.Remove(filePath); err != nil {
-			state.log.Error.Printf("Failed to prune \"%s\": %s", filePath, err.Error())
+			state.logger.Errorf("Failed to prune \"%s\": %s", filePath, err.Error())
 		} else {
-			state.log.Note.Printf("Pruned \"%s\"", filePath)
+			state.logger.Infof("Pruned \"%s\"", filePath)
 			totalSize -= file.Size()
 		}
 	}

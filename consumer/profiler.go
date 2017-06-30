@@ -176,11 +176,11 @@ func (cons *Profiler) profile() {
 
 	for i := 0; i < len(cons.templates); i++ {
 		cons.templates[i] = cons.generateTemplate()
-		cons.Log.Debug.Printf("Template %d/%d: '%s' (%d bytes)\n",
+		cons.Logger.Debugf("Template %d/%d: '%s' (%d bytes)\n",
 			i, len(cons.templates), string(cons.templates[i]), len(cons.templates[i]))
 	}
 
-	cons.Log.Debug.Printf("Start profiling with %d templates of %d bytes each",
+	cons.Logger.Debugf("Start profiling with %d templates of %d bytes each",
 		len(cons.templates),
 		len(cons.templates[0]))
 
@@ -190,14 +190,13 @@ func (cons *Profiler) profile() {
 	messageCount := 0
 
 	for batchIdx := 0; batchIdx < cons.batches && cons.IsActive(); batchIdx++ {
-		cons.Log.Note.Print(fmt.Sprintf("batch %d/%d", batchIdx, cons.batches))
+		cons.Logger.Info(fmt.Sprintf("batch %d/%d", batchIdx, cons.batches))
 		start := time.Now()
 
 		for i := 0; i < cons.profileRuns && cons.IsActive(); i++ {
 			template := cons.templates[rand.Intn(len(cons.templates))]
-			cons.Log.Debug.Printf("Enqueuing message: '%s'\n", template)
 			messageCount++
-
+			cons.Logger.Debugf("Enqueuing template: '%s'", template)
 			cons.Enqueue(template)
 
 			if cons.delay > 0 && cons.IsActive() {
@@ -214,23 +213,23 @@ func (cons *Profiler) profile() {
 
 	runTime := time.Since(testStart)
 
-	cons.Log.Note.Printf("Overview: %d messages sent in %.4f seconds",
+	cons.Logger.Infof("Overview: %d messages sent in %.4f seconds",
 		messageCount,
 		runTime.Seconds())
 
-	cons.Log.Note.Printf("Avg: %4.f msg/sec",
+	cons.Logger.Infof("Avg: %4.f msg/sec",
 		float64(messageCount)/runTime.Seconds())
 
-	cons.Log.Note.Printf("Best: %.4f sec = %4.f msg/sec",
+	cons.Logger.Infof("Best: %.4f sec = %4.f msg/sec",
 		minTime,
 		float64(cons.profileRuns)/minTime)
 
-	cons.Log.Note.Printf("Worst: %.4f sec = %4.f msg/sec",
+	cons.Logger.Infof("Worst: %.4f sec = %4.f msg/sec",
 		maxTime,
 		float64(cons.profileRuns)/maxTime)
 
 	if cons.IsActive() {
-		cons.Log.Debug.Print("Profiler done.")
+		cons.Logger.Debug("Profiler done.")
 		// Automatically shut down when done
 		// TODO: Hack
 		if !cons.keepRunning {

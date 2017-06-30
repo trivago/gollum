@@ -134,12 +134,12 @@ func (prod *Firehose) Configure(conf core.PluginConfigReader) {
 
 	if prod.recordMaxMessages < 1 {
 		prod.recordMaxMessages = 1
-		prod.Log.Warning.Print("RecordMaxMessages was < 1. Defaulting to 1.")
+		prod.Logger.Warning("RecordMaxMessages was < 1. Defaulting to 1.")
 	}
 
 	if prod.recordMaxMessages > 1 && len(prod.delimiter) == 0 {
 		prod.delimiter = []byte("\n")
-		prod.Log.Warning.Print("RecordMessageDelimiter was empty. Defaulting to \"\\n\".")
+		prod.Logger.Warning("RecordMessageDelimiter was empty. Defaulting to \"\\n\".")
 	}
 
 	// Config
@@ -282,7 +282,7 @@ func (prod *Firehose) transformMessages(messages []*core.Message) {
 
 		if err != nil {
 			// Batch failed, fallback all
-			prod.Log.Error.Print("Firehose write error: ", err)
+			prod.Logger.Error("Firehose write error: ", err)
 			for _, messages := range records.original {
 				for _, msg := range messages {
 					prod.TryFallback(msg)
@@ -292,7 +292,7 @@ func (prod *Firehose) transformMessages(messages []*core.Message) {
 			// Check each message for errors
 			for msgIdx, record := range result.RequestResponses {
 				if record.ErrorMessage != nil {
-					prod.Log.Error.Print("Firehose message write error: ", *record.ErrorMessage)
+					prod.Logger.Error("Firehose message write error: ", *record.ErrorMessage)
 					for _, msg := range records.original[msgIdx] {
 						prod.TryFallback(msg)
 					}

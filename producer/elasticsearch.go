@@ -17,10 +17,10 @@ package producer
 import (
 	"context"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
-	"github.com/trivago/tgo/tlog"
 	"gopkg.in/olivere/elastic.v5"
 	"net/http"
 	"sync"
@@ -193,16 +193,16 @@ func (prod *ElasticSearch) Produce(workers *sync.WaitGroup) {
 func (prod *ElasticSearch) configureRetrySettings(retry, timeToWaitSec int64) {
 	prod.connection.retrier.retry = int(retry)
 	prod.connection.retrier.backoff = elastic.NewConstantBackoff(time.Duration(timeToWaitSec) * time.Second)
-	prod.connection.retrier.log = &prod.Log
+	prod.connection.retrier.logger = prod.Logger.WithField("Scope", "connection.retrier")
 
-	prod.Log.Debug.Printf("Using retrier with a retry count of '%d' and a time to wait of '%d' sec", retry, timeToWaitSec)
+	prod.Logger.Debugf("Using retrier with a retry count of '%d' and a time to wait of '%d' sec", retry, timeToWaitSec)
 }
 
 func (prod *ElasticSearch) configureIndexSettings(properties tcontainer.MarshalMap, errors *tgo.ErrorStack) {
 	prod.indexMap = map[core.MessageStreamID]*indexMapItem{}
 
 	if len(properties) <= 0 {
-		prod.Log.Error.Print("No stream configuration found. Please check your config.")
+		prod.Logger.Error("No stream configuration found. Please check your config.")
 		return
 	}
 
@@ -212,14 +212,14 @@ func (prod *ElasticSearch) configureIndexSettings(properties tcontainer.MarshalM
 
 		property, err := properties.MarshalMap(streamName)
 		if err != nil {
-			prod.Log.Error.Printf("no configuration found for stream '%s'. Please check your config.", streamName)
+			prod.Logger.Errorf("no configuration found for stream '%s'. Please check your config.", streamName)
 			errors.Push(err)
 			continue
 		}
 
 		indexName, err := property.String("index")
 		if err != nil {
-			prod.Log.Error.Printf("no index configured for stream '%s'. Please check your config.", streamName)
+			prod.Logger.Errorf("no index configured for stream '%s'. Please check your config.", streamName)
 			errors.Push(err)
 			continue
 		}
@@ -233,7 +233,7 @@ func (prod *ElasticSearch) configureIndexSettings(properties tcontainer.MarshalM
 
 		typeName, err := property.String("type")
 		if err != nil {
-			prod.Log.Error.Printf("no data type configured for stream '%s'. Please check your config.", streamName)
+			prod.Logger.Errorf("no data type configured for stream '%s'. Please check your config.", streamName)
 		}
 
 		indexMapItem.settings = newElasticIndex(property)
@@ -248,7 +248,7 @@ func (prod *ElasticSearch) getClient() (*elastic.Client, error) {
 	if !prod.connection.isConnected() {
 		err := prod.connection.connect()
 		if err != nil {
-			prod.Log.Error.Print("Error during connection: ", err)
+			prod.Logger.Error("Error during connection: ", err)
 			return nil, err
 		}
 	}
@@ -289,11 +289,11 @@ func (prod *ElasticSearch) createIndex(indexName string, elIndex *elasticIndex, 
 	if !exists {
 		_, err = client.CreateIndex(indexName).Do(ctx)
 		if err != nil {
-			prod.Log.Error.Println("Issue during creating index: ", err)
+			prod.Logger.Errorln("Issue during creating index: ", err)
 			return err
 		}
 
-		prod.Log.Debug.Printf("Created index '%s'\n", indexName)
+		prod.Logger.Debugf("Created index '%s'\n", indexName)
 	}
 
 	for typeName, properties := range elIndex.Mappings {
@@ -306,7 +306,7 @@ func (prod *ElasticSearch) createIndex(indexName string, elIndex *elasticIndex, 
 
 		_, err := mapping.Do(ctx)
 		if err != nil {
-			prod.Log.Error.Println("Issue during creating index mapping: ", err)
+			prod.Logger.Errorln("Issue during creating index mapping: ", err)
 		}
 	}
 
@@ -315,9 +315,9 @@ func (prod *ElasticSearch) createIndex(indexName string, elIndex *elasticIndex, 
 
 func (prod *ElasticSearch) isIndexExists(ctx context.Context, indexName string, client *elastic.Client) (bool, error) {
 	exists, err := client.IndexExists(indexName).Do(ctx)
-	prod.Log.Debug.Printf("Index %s exists: %v", indexName, exists)
+	prod.Logger.Debugf("Index %s exists: %v", indexName, exists)
 	if err != nil {
-		prod.Log.Error.Println("Issue during checking index: ", err)
+		prod.Logger.Errorln("Issue during checking index: ", err)
 		return false, err
 	}
 
@@ -328,7 +328,7 @@ func (prod *ElasticSearch) submitMessages() core.AssemblyFunc {
 	return func(messages []*core.Message) {
 		client, err := prod.getClient()
 		if err != nil {
-			prod.Log.Error.Print("Sending messages failed: ", err)
+			prod.Logger.Error("Sending messages failed: ", err)
 			return
 		}
 
@@ -355,28 +355,28 @@ func (prod *ElasticSearch) submitMessages() core.AssemblyFunc {
 		}
 
 		// NumberOfActions contains the number of requests in a bulk
-		prod.Log.Debug.Printf("bulkRequest.NumberOfActions: %d", bulkRequest.NumberOfActions())
+		prod.Logger.Debugf("bulkRequest.NumberOfActions: %d", bulkRequest.NumberOfActions())
 
 		// Do sends the bulk requests to Elasticsearch
 		bulkResponse, err := bulkRequest.Do(ctx)
 		if err != nil {
-			prod.Log.Error.Print(err)
+			prod.Logger.Error(err)
 		}
 
 		// Bulk request actions get cleared
 		numberOfActionsAfter := bulkRequest.NumberOfActions()
 		if numberOfActionsAfter != 0 {
-			prod.Log.Error.Printf("Could not send '%d' messages to Elasticsearch", numberOfActionsAfter)
+			prod.Logger.Errorf("Could not send '%d' messages to Elasticsearch", numberOfActionsAfter)
 		}
 
 		if bulkResponse != nil {
 			// Indexed returns information abount indexed documents
 			indexed := bulkResponse.Indexed()
-			prod.Log.Debug.Printf("%d messages indexed successfully in Elasticsearch", len(indexed))
+			prod.Logger.Debugf("%d messages indexed successfully in Elasticsearch", len(indexed))
 
 			// Created returns information about created documents
 			created := bulkResponse.Created()
-			prod.Log.Debug.Printf("%d messages created successfully in Elasticsearch", len(created))
+			prod.Logger.Debugf("%d messages created successfully in Elasticsearch", len(created))
 		}
 	}
 }
@@ -423,7 +423,7 @@ func (conn *elasticConnection) connect() error {
 type retrier struct {
 	retry   int
 	backoff elastic.Backoff
-	log     *tlog.LogScope
+	logger  logrus.FieldLogger
 }
 
 // Retry implements type Retrier interface
@@ -432,18 +432,18 @@ func (r *retrier) Retry(ctx context.Context, retry int, req *http.Request, resp 
 	// Fail hard on a specific error
 	if err == syscall.ECONNREFUSED {
 		err = errors.New("Elasticsearch or network down")
-		r.log.Error.Print(err)
+		r.logger.Error(err)
 		return 0, false, err
 	}
 
 	// Stop after n retries
 	if retry >= r.retry {
-		r.log.Debug.Printf("Stop retrying after '%d' retries", retry)
+		r.logger.Debugf("Stop retrying after '%d' retries", retry)
 		return 0, false, nil
 	}
 
 	// Let the backoff strategy decide how long to wait and whether to stop
-	r.log.Debug.Println("Retry to connect to Elasticsearch")
+	r.logger.Debugln("Retry to connect to Elasticsearch")
 	wait, stop := r.backoff.Next(retry)
 	return wait, stop, nil
 }

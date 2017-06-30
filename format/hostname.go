@@ -57,7 +57,7 @@ func (format *Hostname) ApplyFormatter(msg *core.Message) error {
 func (format *Hostname) getFinalContent(content []byte) []byte {
 	hostname, err := os.Hostname()
 	if err != nil {
-		format.Log.Error.Print(err)
+		format.Logger.Error(err)
 		hostname = "unknown host"
 	}
 

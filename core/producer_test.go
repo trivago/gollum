@@ -15,7 +15,7 @@
 package core
 
 import (
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/ttesting"
 	"math"
 	"sync"
@@ -46,7 +46,7 @@ func getMockProducer() mockProducer {
 					runState:        new(PluginRunState),
 					modulators:      ModulatorArray{},
 					shutdownTimeout: 10 * time.Millisecond,
-					Log:             tlog.NewLogScope("test"),
+					Logger:          logrus.WithField("Scope", "test"),
 				},
 			},
 			messages:       NewMessageQueue(2),

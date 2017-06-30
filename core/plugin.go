@@ -171,7 +171,7 @@ func NewPluginWithConfig(config PluginConfig) (Plugin, error) {
 		}
 		// Check for errors (log as warning)
 		if config.Validate() {
-			//tlog.Debug.Printf("%#v", plugin)
+			//logrus.Debugf("%#v", plugin)
 		}
 	}
 

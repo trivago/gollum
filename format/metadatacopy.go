@@ -81,9 +81,9 @@ func (format *MetadataCopy) getMetadataMapFromArray(metaData []interface{}) meta
 
 			for keyMetadata := range converted {
 
-				modulator, err := reader.GetModulatorArray(keyMetadata, format.Log, core.ModulatorArray{})
+				modulator, err := reader.GetModulatorArray(keyMetadata, format.Logger, core.ModulatorArray{})
 				if err != nil {
-					format.Log.Error.Print("Can't get mmodulators. Error message: ", err)
+					format.Logger.Error("Can't get mmodulators. Error message: ", err)
 					break
 				}
 

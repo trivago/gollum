@@ -42,7 +42,7 @@ func (format *Serialize) Configure(conf core.PluginConfigReader) {
 func (format *Serialize) ApplyFormatter(msg *core.Message) error {
 	data, err := msg.Serialize()
 	if err != nil {
-		format.Log.Error.Print(err)
+		format.Logger.Error(err)
 		return err
 	}
 

@@ -178,7 +178,7 @@ func (cons *Kinesis) Configure(conf core.PluginConfigReader) {
 		cons.offsetType = kinesis.ShardIteratorTypeAtSequenceNumber
 		_, err := strconv.ParseUint(offsetValue, 10, 64)
 		if err != nil {
-			cons.Log.Error.Printf("Default offset must be \"%s\", \"%s\" or a number. %s given", kinesisOffsetNewest, kinesisOffsetOldest, offsetValue)
+			cons.Logger.Errorf("Default offset must be \"%s\", \"%s\" or a number. %s given", kinesisOffsetNewest, kinesisOffsetOldest, offsetValue)
 			offsetValue = "0"
 		}
 		cons.defaultOffset = offsetValue
@@ -187,7 +187,7 @@ func (cons *Kinesis) Configure(conf core.PluginConfigReader) {
 	if cons.offsetFile != "" {
 		fileContents, err := ioutil.ReadFile(cons.offsetFile)
 		if err != nil {
-			cons.Log.Error.Printf("Failed to open kinesis offset file: %s", err.Error())
+			cons.Logger.Errorf("Failed to open kinesis offset file: %s", err.Error())
 		} else {
 			cons.offsetType = kinesis.ShardIteratorTypeAfterSequenceNumber
 			conf.Errors.Push(json.Unmarshal(fileContents, &cons.offsets))
@@ -199,12 +199,12 @@ func (cons *Kinesis) storeOffsets() {
 	if cons.offsetFile != "" {
 		fileContents, err := json.Marshal(cons.offsets)
 		if err != nil {
-			cons.Log.Error.Printf("Failed to marshal kinesis offsets: %s", err.Error())
+			cons.Logger.Errorf("Failed to marshal kinesis offsets: %s", err.Error())
 			return
 		}
 
 		if err := ioutil.WriteFile(cons.offsetFile, fileContents, 0644); err != nil {
-			cons.Log.Error.Printf("Failed to write kinesis offsets: %s", err.Error())
+			cons.Logger.Errorf("Failed to write kinesis offsets: %s", err.Error())
 		}
 	}
 }
@@ -233,7 +233,7 @@ func (cons *Kinesis) createShardIteratorConfig(shardID string) *kinesis.GetRecor
 			}
 		}
 
-		cons.Log.Error.Printf("Failed to iterate shard %s:%s - %s", *iteratorConfig.StreamName, *iteratorConfig.ShardId, err.Error())
+		cons.Logger.Errorf("Failed to iterate shard %s:%s - %s", *iteratorConfig.StreamName, *iteratorConfig.ShardId, err.Error())
 		time.Sleep(3 * time.Second)
 	}
 
@@ -252,7 +252,7 @@ func (cons *Kinesis) processShard(shardID string) {
 
 		result, err := cons.client.GetRecords(recordConfig)
 		if err != nil {
-			cons.Log.Error.Printf("Failed to get records from shard %s:%s - %s", cons.stream, shardID, err.Error())
+			cons.Logger.Errorf("Failed to get records from shard %s:%s - %s", cons.stream, shardID, err.Error())
 
 			if AWSerr, isAWSerr := err.(awserr.Error); isAWSerr {
 				switch AWSerr.Code() {
@@ -269,7 +269,7 @@ func (cons *Kinesis) processShard(shardID string) {
 		}
 
 		if result.NextShardIterator == nil {
-			cons.Log.Warning.Printf("Shard %s:%s has been closed", cons.stream, shardID)
+			cons.Logger.Warningf("Shard %s:%s has been closed", cons.stream, shardID)
 			return // ### return, closed ###
 		}
 
@@ -324,7 +324,7 @@ func (cons *Kinesis) connect() error {
 	}
 
 	for shardID := range cons.offsets {
-		cons.Log.Debug.Printf("Starting consumer for %s:%s", cons.stream, shardID)
+		cons.Logger.Debugf("Starting consumer for %s:%s", cons.stream, shardID)
 		go cons.processShard(shardID)
 	}
 
@@ -346,24 +346,24 @@ func (cons *Kinesis) updateShards() {
 	for cons.running {
 		streamInfo, err := cons.client.DescribeStream(streamQuery)
 		if err != nil {
-			cons.Log.Warning.Printf("StreamInfo could not be retrieved.")
+			cons.Logger.Warningf("StreamInfo could not be retrieved.")
 		}
 
 		if streamInfo.StreamDescription == nil {
-			cons.Log.Warning.Printf("StreamDescription could not be retrieved.")
+			cons.Logger.Warningf("StreamDescription could not be retrieved.")
 			continue
 		}
 
 		cons.running = true
 		for _, shard := range streamInfo.StreamDescription.Shards {
 			if shard.ShardId == nil {
-				cons.Log.Warning.Printf("ShardId could not be retrieved.")
+				cons.Logger.Warningf("ShardId could not be retrieved.")
 				continue
 			}
 
 			if _, offsetStored := cons.offsets[*shard.ShardId]; !offsetStored {
 				cons.offsets[*shard.ShardId] = cons.defaultOffset
-				cons.Log.Debug.Printf("Starting kinesis consumer for %s:%s", cons.stream, *shard.ShardId)
+				cons.Logger.Debugf("Starting kinesis consumer for %s:%s", cons.stream, *shard.ShardId)
 				go cons.processShard(*shard.ShardId)
 			}
 		}
@@ -382,7 +382,7 @@ func (cons *Kinesis) Consume(workers *sync.WaitGroup) {
 	defer cons.close()
 
 	if err := cons.connect(); err != nil {
-		cons.Log.Error.Print("Connection error: ", err)
+		cons.Logger.Error("Connection error: ", err)
 	} else {
 		cons.ControlLoop()
 	}

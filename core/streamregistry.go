@@ -15,7 +15,7 @@
 package core
 
 import (
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 	"hash/fnv"
 	"sync"
 )
@@ -162,7 +162,7 @@ func (registry *streamRegistry) Register(router Router, streamID MessageStreamID
 	defer registry.streamGuard.Unlock()
 
 	if _, exists := registry.routers[streamID]; exists {
-		tlog.Warning.Printf("%T attaches to an already occupied router (%s)", router, registry.GetStreamName(streamID))
+		logrus.Warningf("%T attaches to an already occupied router (%s)", router, registry.GetStreamName(streamID))
 	} else {
 		CountRouters()
 	}
@@ -171,7 +171,7 @@ func (registry *streamRegistry) Register(router Router, streamID MessageStreamID
 
 func (registry *streamRegistry) createFallback(streamID MessageStreamID) Router {
 	streamName := registry.GetStreamName(streamID)
-	tlog.Debug.Print("Creating fallback stream for ", streamName)
+	logrus.Debug("Creating fallback stream for ", streamName)
 
 	config := NewPluginConfig("_generated_stream_"+streamName, "router.Broadcast")
 	config.Override("stream", streamName)

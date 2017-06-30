@@ -15,7 +15,7 @@
 package core
 
 import (
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 )
 
 // A Modulator defines a modification or analysis step inside the message
@@ -37,8 +37,8 @@ type ModulatorArray []Modulator
 type ScopedModulator interface {
 	Modulator
 
-	// SetLogScope defines the log scope for this modulator.
-	SetLogScope(log tlog.LogScope)
+	// SetLogger defines the log scope for this modulator.
+	SetLogger(logger logrus.FieldLogger)
 }
 
 // ModulateResult defines a set of results used to control the message flow
