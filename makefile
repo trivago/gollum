@@ -24,6 +24,9 @@ LINT_FILES_CORE=$(shell find core -type f -name '*.go' -not -name '*.pb.go')
 
 all: clean vendor test freebsd linux docker mac pi win examples current
 
+#############################################################################################################
+# Build targets
+
 freebsd:
 	@echo "Building for FreeBSD/x64"
 	@GOOS=freebsd GOARCH=amd64 $(BUILD_ENV) go build $(BUILD_FLAGS) -o gollum
@@ -64,10 +67,72 @@ examples:
 	@echo "Building Examples"
 	@zip -j dist/gollum-$(VERSION)-Examples.zip config/*.conf
 
+docker: linux
+	@echo "Building docker image"
+	@docker build --squash -t trivago/gollum:$(VERSION) .
+
+docker-dev:
+	@echo "Building development docker image"
+	@docker build -t trivago/gollum:$(VERSION)-dev -f Dockerfile-dev .
+
+#############################################################################################################
+# Administrivia
+
+clean:
+	@rm -f ./gollum
+	@rm -f ./dist/gollum_*.zip
+	@go clean
+
+listsrc:
+	@find . -mindepth 1 -maxdepth 1 -not -name vendor -not -name debug -not -name docs -not -name .git -not -name .idea
+
+# Lists directories / files present in the filesystem which are ignored by git (via .gitignore et al). For
+# completely ignored subtrees, only the topmost directory is listed.
+list-gitignored:
+	@sh -c 'function find_ignores_rec() { find "$$1" -mindepth 1 -maxdepth 1 -not -name .git | while read e ; do if git check-ignore --quiet "$$e" ; then echo "$$e" ; elif [ -d "$$e" ]; then find_ignores_rec "$$e" ; fi ; done ; }; find_ignores_rec .'
+
+# Recursive make implementation - slow!
+#LISTIGNORED_ROOT = .
+#list-gitignored:
+#	@find $(LISTIGNORED_ROOT) -mindepth 1 -maxdepth 1 -not -name .git | while read e ; do if git check-ignore --quiet "$$e" ; then echo "$$e" ; elif [ -d "$$e" ]; then make list-gitignored LISTIGNORED_ROOT="$$e" ; fi ; done
+
+#############################################################################################################
+# Vendor management
+
 vendor:
 	@go get -u github.com/Masterminds/glide
 	@glide cc
 	@glide update
+
+# Runs "glide install" in a managed way - clears glide's cache and removes git-ignored stuff from ./vendor.
+# This leaves ./vendor in the same state it would be when checked out with git.
+vendor-install: _vendor-install vendor-rm-ignored
+
+_vendor-install:
+	glide cache-clear
+	rm -rf vendor
+	glide install
+
+# Runs "glide update" in a managed way - clears glide's cache and removes ignored stuff from ./vendor
+# This leaves ./vendor in the same state it would be when checked out with git.
+vendor-update: _vendor-update vendor-rm-ignored
+
+_vendor-update:
+	glide cache-clear
+	rm -rf vendor
+	rm glide.lock
+	glide update
+
+# Lists files & directories under ./vendor that are ignored by git.
+vendor-list-ignored:
+	@find vendor | git check-ignore --stdin || true
+
+# Removes files & directories under ./vendor that are ignored by git
+vendor-rm-ignored:
+	$(MAKE) vendor-list-ignored |  while read f ; do rm -vrf "$$f" ; done
+
+#############################################################################################################
+# Tests
 
 test: vet lint fmt-check unit integration
 
@@ -121,19 +186,3 @@ ineffassign:
 	@echo "Running ineffassign"
 	@go get -u github.com/gordonklaus/ineffassign
 	@ineffassign ./
-
-clean:
-	@rm -f ./gollum
-	@rm -f ./dist/gollum_*.zip
-	@go clean
-
-docker: linux
-	@echo "Building docker image"
-	@docker build --squash -t trivago/gollum:$(VERSION) .
-
-docker-dev:
-	@echo "Building development docker image"
-	@docker build -t trivago/gollum:$(VERSION)-dev -f Dockerfile-dev .
-
-listsrc:
-	@find . -mindepth 1 -maxdepth 1 -not -name vendor -not -name debug -not -name docs -not -name .git -not -name .idea
