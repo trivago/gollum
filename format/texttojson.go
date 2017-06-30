@@ -163,11 +163,11 @@ func (format *TextToJSON) Configure(conf core.PluginConfigReader) {
 			format.timeParse = parseUnix
 		}
 	} else if unixRead != "" {
-		format.Log.Warning.Print("Cannot use both JSONTimestampRead and JSONUnixTimestampRead, defaulting to JSONTimestampRead")
+		format.Logger.Warning("Cannot use both JSONTimestampRead and JSONUnixTimestampRead, defaulting to JSONTimestampRead")
 	}
 
 	if !conf.HasValue("Directives") {
-		format.Log.Warning.Print("JSON formatter has no directives setting")
+		format.Logger.Warning("JSON formatter has no directives setting")
 		return // ### return, no directives ###
 	}
 
@@ -221,7 +221,7 @@ func (format *TextToJSON) Configure(conf core.PluginConfigReader) {
 				nextStateValid = dir.NextState == directives[i].State
 			}
 			if !nextStateValid {
-				format.Log.Warning.Printf("State \"%s\" has a transition to \"%s\" which does not exist in directives", dir.State, dir.NextState)
+				format.Logger.Warningf("State \"%s\" has a transition to \"%s\" which does not exist in directives", dir.State, dir.NextState)
 			}
 		}
 	}

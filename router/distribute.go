@@ -119,10 +119,10 @@ func (router *Distribute) Enqueue(msg *core.Message) error {
 		lastStreamIdx := numStreams - 1
 		for streamIdx := 0; streamIdx < lastStreamIdx; streamIdx++ {
 			router.route(msg.Clone(), router.routers[streamIdx])
-			router.Log.Debug.Printf("routed to StreamID '%v'", router.routers[streamIdx].GetStreamID())
+			router.Logger.Debugf("routed to StreamID '%v'", router.routers[streamIdx].GetStreamID())
 		}
 		router.route(msg, router.routers[lastStreamIdx])
-		router.Log.Debug.Printf("routed to StreamID '%v'", router.routers[lastStreamIdx].GetStreamID())
+		router.Logger.Debugf("routed to StreamID '%v'", router.routers[lastStreamIdx].GetStreamID())
 	}
 
 	return nil

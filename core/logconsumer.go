@@ -15,8 +15,9 @@
 package core
 
 import (
+	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
-	"strings"
 	"sync"
 	"time"
 )
@@ -89,26 +90,6 @@ func (cons *LogConsumer) updateMetric() {
 	cons.updateTimer = time.AfterFunc(time.Second*5, cons.updateMetric)
 }
 
-// Write fulfills the io.Writer interface
-func (cons *LogConsumer) Write(data []byte) (int, error) {
-	msg := NewMessage(cons, data, LogInternalStreamID)
-	cons.logRouter.Enqueue(msg)
-
-	if cons.metric != "" {
-		// HACK: Use different writers with the possibility to enable/disable metrics
-		switch {
-		case strings.HasPrefix(string(data), "ERROR"):
-			tgo.Metric.Inc(cons.metric + "Error")
-		case strings.HasPrefix(string(data), "Warning"):
-			tgo.Metric.Inc(cons.metric + "Warning")
-		default:
-			tgo.Metric.Inc(cons.metric)
-		}
-	}
-
-	return len(data), nil
-}
-
 // Control returns a handle to the control channel
 func (cons *LogConsumer) Control() chan<- PluginControl {
 	return cons.control
@@ -130,4 +111,56 @@ func (cons *LogConsumer) Consume(threads *sync.WaitGroup) {
 			return // ### return ###
 		}
 	}
+}
+
+// Levels and Fire() implement the logrus.Hook interface
+func (cons *LogConsumer) Levels() []logrus.Level {
+	return logrus.AllLevels
+}
+
+// Fire and Levels() implement the logrus.Hook interface
+func (cons *LogConsumer) Fire(logrusEntry *logrus.Entry) error {
+	// Have Logrus format the log entry
+	formattedMessage, err := logrusEntry.String()
+	if err != nil {
+		return err
+	}
+
+	// The formatter adds an unnecessary linefeed, strip it out
+	if formattedMessage[len(formattedMessage)-1] == '\n' {
+		formattedMessage = formattedMessage[:len(formattedMessage)-2]
+	}
+
+	// Wrap it in a Gollum message
+	msg := NewMessage(cons, []byte(formattedMessage), LogInternalStreamID)
+
+	// Set message metadata: level, time and logrus's ad-hoc fields. The fields
+	// also contain the plugin-specific log scope.
+	metadata := msg.GetMetadata()
+	metadata.SetValue("Level", []byte(logrusEntry.Level.String()))
+	metadata.SetValue("Time", []byte(logrusEntry.Time.String()))
+	//  string,    interface{}
+	for fieldName, fieldValue := range logrusEntry.Data {
+		metadata.SetValue(fieldName, []byte(fmt.Sprintf("%v", fieldValue)))
+	}
+
+	// Enqueue the message to _GOLLUM_
+	cons.logRouter.Enqueue(msg)
+
+	// Metrics handling from .Write() (TODO: support all message levels?)
+	if cons.metric != "" {
+		switch logrusEntry.Level {
+		case logrus.ErrorLevel:
+			tgo.Metric.Inc(cons.metric + "Error")
+
+		case logrus.WarnLevel:
+			tgo.Metric.Inc(cons.metric + "Warning")
+
+		default:
+			tgo.Metric.Inc(cons.metric)
+		}
+	}
+
+	// Success
+	return nil
 }

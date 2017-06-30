@@ -16,9 +16,9 @@ package core
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
-	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tstrings"
 )
 
@@ -38,22 +38,18 @@ func NewPluginConfigReaderWithError(config *PluginConfig) PluginConfigReaderWith
 	}
 }
 
-// GetLogScope creates a new tlog.LogScope for the plugin contained in this
-// config.
-func (reader PluginConfigReaderWithError) GetLogScope() tlog.LogScope {
-	if reader.config.ID == "" {
-		return tlog.NewLogScope(reader.config.Typename)
-	}
-	return tlog.NewLogScope(reader.config.Typename + ":" + reader.config.ID)
+// GetLogger creates a logger scoped for the plugin contained in this config.
+func (reader PluginConfigReaderWithError) GetLogger() logrus.FieldLogger {
+	return logrus.WithFields(logrus.Fields{
+		"PluginType": reader.config.Typename,
+		"PluginID":   reader.config.ID,
+	})
 }
 
-// GetSubLogScope creates a new sub scope tlog.LogScope for the plugin contained
-// in this config.
-func (reader PluginConfigReaderWithError) GetSubLogScope(subScope string) tlog.LogScope {
-	if reader.config.ID == "" {
-		return tlog.NewLogScope(reader.config.Typename + ":" + subScope)
-	}
-	return tlog.NewLogScope(reader.config.Typename + ":" + reader.config.ID + ":" + subScope)
+// GetSubLogger creates a logger scoped gor the plugin contained in this config,
+// with an additional subscope.
+func (reader PluginConfigReaderWithError) GetSubLogger(subScope string) logrus.FieldLogger {
+	return reader.GetLogger().WithField("Scope", subScope)
 }
 
 // GetID returns the plugin's id
@@ -263,7 +259,8 @@ func (reader PluginConfigReaderWithError) GetPluginArray(key string, defaultValu
 }
 
 // GetModulatorArray returns an array of modulator plugins.
-func (reader PluginConfigReaderWithError) GetModulatorArray(key string, logScope tlog.LogScope, defaultValue ModulatorArray) (ModulatorArray, error) {
+func (reader PluginConfigReaderWithError) GetModulatorArray(key string, logger logrus.FieldLogger,
+	defaultValue ModulatorArray) (ModulatorArray, error) {
 	modulators := []Modulator{}
 
 	modPlugins, err := reader.GetPluginArray(key, []Plugin{})
@@ -285,7 +282,7 @@ func (reader PluginConfigReaderWithError) GetModulatorArray(key string, logScope
 			modulators = append(modulators, formatterModulator)
 		} else if modulator, isModulator := plugin.(Modulator); isModulator {
 			if modulator, isScopedModulator := plugin.(ScopedModulator); isScopedModulator {
-				modulator.SetLogScope(logScope)
+				modulator.SetLogger(logger)
 			}
 			modulators = append(modulators, modulator)
 		} else {
@@ -298,7 +295,8 @@ func (reader PluginConfigReaderWithError) GetModulatorArray(key string, logScope
 }
 
 // GetFilterArray returns an array of filter plugins.
-func (reader PluginConfigReaderWithError) GetFilterArray(key string, logScope tlog.LogScope, defaultValue FilterArray) (FilterArray, error) {
+func (reader PluginConfigReaderWithError) GetFilterArray(key string, logger logrus.FieldLogger,
+	defaultValue FilterArray) (FilterArray, error) {
 	filters := []Filter{}
 
 	modPlugins, err := reader.GetPluginArray(key, []Plugin{})
@@ -324,7 +322,7 @@ func (reader PluginConfigReaderWithError) GetFilterArray(key string, logScope tl
 }
 
 // GetFormatterArray returns an array of formatter plugins.
-func (reader PluginConfigReaderWithError) GetFormatterArray(key string, logScope tlog.LogScope, defaultValue FormatterArray) (FormatterArray, error) {
+func (reader PluginConfigReaderWithError) GetFormatterArray(key string, logger logrus.FieldLogger, defaultValue FormatterArray) (FormatterArray, error) {
 	formatters := []Formatter{}
 
 	modPlugins, err := reader.GetPluginArray(key, []Plugin{})

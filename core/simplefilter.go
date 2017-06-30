@@ -15,7 +15,7 @@
 package core
 
 import (
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 )
 
 // SimpleFilter plugin base type
@@ -31,25 +31,25 @@ import (
 // FilteredStream defines a stream where filtered messages get sent to.
 // You can disable this behavior by setting "". Set to "" by default.
 type SimpleFilter struct {
-	Log              tlog.LogScope
+	Logger           logrus.FieldLogger
 	filteredStreamID MessageStreamID `config:"FilteredStream"`
 }
 
-// SetLogScope sets the log scope to be used for this filter
-func (filter *SimpleFilter) SetLogScope(log tlog.LogScope) {
-	filter.Log = log
+// SetLogger sets the scoped logger to be used for this filter
+func (filter *SimpleFilter) SetLogger(logger logrus.FieldLogger) {
+	filter.Logger = logger
 }
 
 // Configure sets up all values required by SimpleFormatter.
 func (filter *SimpleFilter) Configure(conf PluginConfigReader) error {
-	filter.Log = conf.GetSubLogScope("Filter")
+	filter.Logger = conf.GetSubLogger("Filter")
 	//filter.filteredStreamID = GetStreamID(conf.GetString("FilteredStream", InvalidStream))
 	return nil
 }
 
-// GetLogScope returns the logging scope of this plugin
-func (filter *SimpleFilter) GetLogScope() tlog.LogScope {
-	return filter.Log
+// GetLogger returns this plugin's scoped logger
+func (filter *SimpleFilter) GetLogger() logrus.FieldLogger {
+	return filter.Logger
 }
 
 // GetFilterResultMessageReject returns a FilterResultMessageReject with the

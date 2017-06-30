@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/ttesting"
 )
 
@@ -47,7 +47,7 @@ func getMockRouter() mockRouter {
 			Producers: []Producer{},
 			timeout:   timeout,
 			streamID:  StreamRegistry.GetStreamID("testStream"),
-			Log:       tlog.NewLogScope("testStreamLogScope"),
+			Logger:    logrus.WithField("Scope", "testStreamLogScope"),
 		},
 	}
 }

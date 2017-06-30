@@ -15,7 +15,7 @@
 package core
 
 import (
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 	"io"
 	"sync"
 )
@@ -81,7 +81,7 @@ func (asm *WriterAssembly) Write(messages []*Message) {
 	writer := asm.getWriter()
 
 	if writer == nil {
-		tlog.Warning.Print("No writer assigned to writer assembly")
+		logrus.Warning("No writer assigned to writer assembly")
 		asm.Flush(messages)
 		return // ### return, cannot write ###
 	}
@@ -106,7 +106,7 @@ func (asm *WriterAssembly) Write(messages []*Message) {
 				asm.Flush(messages)
 			}
 		} else {
-			tlog.Error.Print("Stream write error:", err)
+			logrus.Error("Stream write error:", err)
 		}
 		return // ### return, error handled ###
 	}

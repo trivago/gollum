@@ -61,7 +61,7 @@ func (format *JSONToArray) getCsvContent(content []byte) ([]byte, error) {
 	values := make(tcontainer.MarshalMap)
 	err := json.Unmarshal(content, &values)
 	if err != nil {
-		format.Log.Error.Print("Json parsing error: ", err)
+		format.Logger.Error("Json parsing error: ", err)
 		return nil, err
 	}
 
@@ -77,12 +77,12 @@ func (format *JSONToArray) getCsvContent(content []byte) ([]byte, error) {
 			case string:
 				csv = fmt.Sprintf("%s%s%s", csv, value.(string), format.separator)
 			default:
-				format.Log.Warning.Print("Field ", field, " uses an unsupported datatype")
+				format.Logger.Warning("Field ", field, " uses an unsupported datatype")
 				csv = format.separator
 			}
 		} else {
 			// Not parsable = empty value
-			format.Log.Warning.Print("Field ", field, " not found")
+			format.Logger.Warning("Field ", field, " not found")
 			csv += format.separator
 		}
 	}

@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/ttesting"
 )
 
@@ -41,7 +41,7 @@ func getMockConsumer() mockConsumer {
 		SimpleConsumer: SimpleConsumer{
 			control:  make(chan PluginControl),
 			runState: NewPluginRunState(),
-			Log:      tlog.NewLogScope("test"),
+			Logger:   logrus.WithField("Scope", "test"),
 		},
 	}
 }

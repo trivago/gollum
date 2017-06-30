@@ -16,15 +16,16 @@ package main
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	_ "github.com/trivago/gollum/consumer"
 	"github.com/trivago/gollum/core"
 	_ "github.com/trivago/gollum/filter"
 	_ "github.com/trivago/gollum/format"
+	"github.com/trivago/gollum/logger"
 	_ "github.com/trivago/gollum/producer"
 	_ "github.com/trivago/gollum/router"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/thealthcheck"
-	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/tstrings"
 	"io/ioutil"
 	"net"
@@ -38,11 +39,33 @@ import (
 	"time"
 )
 
-func main() {
-	tlog.SetCacheWriter()
-	parseFlags()
-	tlog.SetVerbosity(tlog.Verbosity(*flagLoglevel))
+// logrusHookBuffer is our single instance of LogrusHookBuffer
+var logrusHookBuffer logger.LogrusHookBuffer
 
+func main() {
+	// Parse command line flags
+	parseFlags()
+
+	// Initialize logger.LogrusHookBuffer
+	logrusHookBuffer = logger.NewLogrusHookBuffer()
+
+	// Initialize logging. All logging is done via logrusHookBuffer;
+	// logrus's output writer is always set to ioutil.Discard.
+	logrus.AddHook(&logrusHookBuffer)
+	logrus.SetOutput(ioutil.Discard)
+	logrus.SetLevel(getLogrusLevel(*flagLoglevel))
+	logrus.Debug("GOLLUM STARTING")
+
+	switch *flagLogColors {
+	case "never":
+	case "auto":
+	case "always":
+	default:
+		fmt.Printf("Invalid parameter for -log-colors: '%s'\n", *flagLogColors)
+		return
+	}
+
+	// Handle special execution modes
 	if *flagVersion {
 		printVersion()
 		return // ### return, version only ###

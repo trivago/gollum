@@ -100,15 +100,15 @@ func (cons *PcapHTTPConsumer) enqueueBuffer(data []byte) {
 
 func (cons *PcapHTTPConsumer) getStreamKey(pkt *pcap.Packet) (uint32, string, bool) {
 	if len(pkt.Headers) != 2 {
-		cons.Log.Debug.Printf("Invalid number of headers: %d", len(pkt.Headers))
-		cons.Log.Debug.Printf("Not a TCP/IP packet: %#v", pkt)
+		cons.Logger.Debugf("Invalid number of headers: %d", len(pkt.Headers))
+		cons.Logger.Debug("Not a TCP/IP packet: %#v", pkt)
 		return 0, "", false
 	}
 
 	ipHeader, isIPHeader := ipFromPcap(pkt)
 	tcpHeader, isTCPHeader := tcpFromPcap(pkt)
 	if !isIPHeader || !isTCPHeader {
-		cons.Log.Debug.Printf("Not a TCP/IP packet: %#v", pkt)
+		cons.Logger.Debugf("Not a TCP/IP packet: %#v", pkt)
 		return 0, "", false
 	}
 
@@ -129,7 +129,7 @@ func (cons *PcapHTTPConsumer) readPackets() {
 		cons.handle.Close()
 		if panicMessage := recover(); panicMessage != nil {
 			// try again
-			cons.Log.Error.Print("[PANIC] PcapHTTPConsumer: ", panicMessage)
+			cons.Logger.Error("[PANIC] PcapHTTPConsumer: ", panicMessage)
 			cons.initPcap()
 			go cons.readPackets()
 		} else {
@@ -144,11 +144,11 @@ func (cons *PcapHTTPConsumer) readPackets() {
 		switch resultCode {
 		case pcapNextExEOF:
 			cons.Control() <- core.PluginControlStopConsumer
-			cons.Log.Note.Print("PcapHTTPConsumer: End of file, stopping.")
+			cons.Logger.Info("PcapHTTPConsumer: End of file, stopping.")
 			continue
 
 		case pcapNextExError:
-			cons.Log.Error.Print("PcapHTTPConsumer: ", cons.handle.Geterror())
+			cons.Logger.Error("PcapHTTPConsumer: ", cons.handle.Geterror())
 			continue
 
 		case pcapNextExTimeout:
@@ -165,7 +165,7 @@ func (cons *PcapHTTPConsumer) readPackets() {
 			if sessionExists {
 				session.timer.Reset(cons.sessionTimeout)
 			} else {
-				session = newPcapSession(client, cons.Log)
+				session = newPcapSession(client, cons.Logger)
 				cons.setSession(key, session)
 
 				session.timer = time.AfterFunc(cons.sessionTimeout, func() {
@@ -175,7 +175,7 @@ func (cons *PcapHTTPConsumer) readPackets() {
 						}
 						// TODO: Try to recover io.ErrUnexpectedEOF by adding \r\n
 						//       Generate the missing package (seq + payload)
-						cons.Log.Debug.Printf("PcapHTTPConsumer: Incomplete session 0x%X timed out: \"%s\" %s", key, session.lastError, session)
+						cons.Logger.Debugf("PcapHTTPConsumer: Incomplete session 0x%X timed out: \"%s\" %s", key, session.lastError, session)
 					}
 					cons.clearSession(key)
 				})
@@ -219,14 +219,14 @@ func (cons *PcapHTTPConsumer) initPcap() {
 	// device, snaplen, promisc, read timeout ms
 	cons.handle, err = pcap.OpenLive(cons.netInterface, int32(1<<16), cons.promiscuous, 500)
 	if err != nil {
-		cons.Log.Error.Print("PcapHTTPConsumer: ", err)
+		cons.Logger.Error("PcapHTTPConsumer: ", err)
 		return
 	}
 
 	err = cons.handle.SetFilter(cons.filter)
 	if err != nil {
 		cons.handle.Close()
-		cons.Log.Error.Print("PcapHTTPConsumer: ", err)
+		cons.Logger.Error("PcapHTTPConsumer: ", err)
 		return
 	}
 }

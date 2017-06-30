@@ -15,9 +15,9 @@
 package core
 
 import (
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/thealthcheck"
-	"github.com/trivago/tgo/tlog"
 	"sync"
 	"time"
 )
@@ -57,20 +57,20 @@ type SimpleConsumer struct {
 	onRoll          func()
 	onPrepareStop   func()
 	onStop          func()
-	Log             tlog.LogScope
+	Logger          logrus.FieldLogger
 }
 
 // Configure initializes standard consumer values from a plugin config.
 func (cons *SimpleConsumer) Configure(conf PluginConfigReader) {
 	cons.id = conf.GetID()
-	cons.Log = conf.GetLogScope()
+	cons.Logger = conf.GetLogger()
 	cons.runState = NewPluginRunState()
 	cons.control = make(chan PluginControl, 1)
 }
 
-// GetLogScope returns the logging scope of this plugin
-func (cons *SimpleConsumer) GetLogScope() tlog.LogScope {
-	return cons.Log
+// GetLogger returns the logger scoped to this plugin
+func (cons *SimpleConsumer) GetLogger() logrus.FieldLogger {
+	return cons.Logger
 }
 
 // AddHealthCheck a health check at the default URL
@@ -191,7 +191,7 @@ func (cons *SimpleConsumer) enqueueMessage(msg *Message) {
 
 	case ModulateResultFallback:
 		if err := RouteOriginal(msg, msg.GetRouter()); err != nil {
-			cons.Log.Error.Print(err)
+			cons.Logger.Error(err)
 		}
 		return
 	}
@@ -209,7 +209,7 @@ func (cons *SimpleConsumer) enqueueMessage(msg *Message) {
 		msg.SetStreamID(router.GetStreamID())
 
 		if err := Route(msg, router); err != nil {
-			cons.Log.Error.Print(err)
+			cons.Logger.Error(err)
 		}
 	}
 
@@ -217,7 +217,7 @@ func (cons *SimpleConsumer) enqueueMessage(msg *Message) {
 	msg.SetStreamID(router.GetStreamID())
 
 	if err := Route(msg, router); err != nil {
-		cons.Log.Error.Print(err)
+		cons.Logger.Error(err)
 	}
 }
 
@@ -226,37 +226,37 @@ func (cons *SimpleConsumer) enqueueMessage(msg *Message) {
 func (cons *SimpleConsumer) ControlLoop() {
 	cons.setState(PluginStateActive)
 	defer cons.setState(PluginStateDead)
-	defer cons.Log.Debug.Print("Stopped")
+	defer cons.Logger.Debug("Stopped")
 
 	for {
 		command := <-cons.control
 		switch command {
 		default:
-			cons.Log.Debug.Print("Received untracked command")
+			cons.Logger.Debug("Received untracked command")
 			// Do nothing
 
 		case PluginControlStopConsumer:
-			cons.Log.Debug.Print("Preparing for stop")
+			cons.Logger.Debug("Preparing for stop")
 			cons.setState(PluginStatePrepareStop)
 
 			if cons.onPrepareStop != nil {
 				if !tgo.ReturnAfter(cons.shutdownTimeout*5, cons.onPrepareStop) {
-					cons.Log.Error.Print("Timeout during onPrepareStop")
+					cons.Logger.Error("Timeout during onPrepareStop")
 				}
 			}
 
-			cons.Log.Debug.Print("Executing stop command")
+			cons.Logger.Debug("Executing stop command")
 			cons.setState(PluginStateStopping)
 
 			if cons.onStop != nil {
 				if !tgo.ReturnAfter(cons.shutdownTimeout*5, cons.onStop) {
-					cons.Log.Error.Printf("Timeout during onStop")
+					cons.Logger.Errorf("Timeout during onStop")
 				}
 			}
 			return // ### return ###
 
 		case PluginControlRoll:
-			cons.Log.Debug.Print("Received roll command")
+			cons.Logger.Debug("Received roll command")
 			if cons.onRoll != nil {
 				cons.onRoll()
 			}

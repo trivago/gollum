@@ -151,14 +151,14 @@ func (spool *spoolFile) openOrRotate(force bool) bool {
 
 			spool.file = newFile
 			spool.fileCreated = time.Now()
-			spool.prod.Log.Debug.Print("Opened ", spoolFileName, " for writing")
+			spool.prod.Logger.Debug("Opened ", spoolFileName, " for writing")
 		}
 
 		return nil
 	})
 
 	if err != nil {
-		spool.prod.Log.Error.Print(err)
+		spool.prod.Logger.Error(err)
 		return false // ### return, could not open file ###
 	}
 
@@ -170,9 +170,9 @@ func (spool *spoolFile) decode(data []byte) {
 	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(data)))
 
 	if size, err := base64.StdEncoding.Decode(decoded, data); err != nil {
-		spool.prod.Log.Error.Print("File read: ", err)
+		spool.prod.Logger.Error("File read: ", err)
 	} else if msg, err := core.DeserializeMessage(decoded[:size]); err != nil {
-		spool.prod.Log.Error.Print("File read: ", err)
+		spool.prod.Logger.Error("File read: ", err)
 	} else {
 		spool.prod.routeToOrigin(&msg)
 	}
@@ -194,9 +194,9 @@ func (spool *spoolFile) read() {
 		spoolFileName := fmt.Sprintf(spoolFileFormatString, spool.basePath, minSuffix)
 		if minSuffix == 0 || minSuffix > maxSpoolFileNumber || (spool.file != nil && spool.file.Name() == spoolFileName) {
 			if minSuffix > maxSpoolFileNumber {
-				spool.prod.Log.Debug.Print("Read sleeps (no file)")
+				spool.prod.Logger.Debug("Read sleeps (no file)")
 			} else {
-				spool.prod.Log.Debug.Printf("Read waits for %s", spoolFileName)
+				spool.prod.Logger.Debugf("Read waits for %s", spoolFileName)
 			}
 
 			spool.prod.WorkerDone() // to avoid being stuck during shutdown
@@ -213,11 +213,11 @@ func (spool *spoolFile) read() {
 
 		file, err := os.OpenFile(spoolFileName, os.O_RDONLY, 0600)
 		if err != nil {
-			spool.prod.Log.Error.Print("Read open error ", err)
+			spool.prod.Logger.Error("Read open error ", err)
 			continue // ### continue, try again ###
 		}
 
-		spool.prod.Log.Debug.Print("Opened ", spoolFileName, " for reading")
+		spool.prod.Logger.Debug("Opened ", spoolFileName, " for reading")
 		spool.reader.Reset(0)
 		readFailed := false
 
@@ -232,22 +232,22 @@ func (spool *spoolFile) read() {
 			if err := spool.reader.ReadAll(file, spool.decode); err != nil {
 				if err != io.EOF {
 					readFailed = true
-					spool.prod.Log.Error.Print("Read error: ", err)
+					spool.prod.Logger.Error("Read error: ", err)
 				}
 				break // ### break, read error or EOF ###
 			}
 		}
 
 		// Close and remove file
-		spool.prod.Log.Debug.Print("Removing ", spoolFileName)
+		spool.prod.Logger.Debug("Removing ", spoolFileName)
 		file.Close()
 		if readFailed {
 			// Rename file for future processing
-			spool.prod.Log.Debug.Print("Renaming ", spoolFileName)
+			spool.prod.Logger.Debug("Renaming ", spoolFileName)
 			os.Rename(spoolFileName, spoolFileName+".failed")
 		} else {
 			// Delete file
-			spool.prod.Log.Debug.Print("Removing ", spoolFileName)
+			spool.prod.Logger.Debug("Removing ", spoolFileName)
 			os.Remove(spoolFileName)
 		}
 	}

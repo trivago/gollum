@@ -57,14 +57,14 @@ func (format *TemplateJSON) ApplyFormatter(msg *core.Message) error {
 	values := tcontainer.NewMarshalMap()
 	err := json.Unmarshal(format.GetAppliedContent(msg), &values)
 	if err != nil {
-		format.Log.Warning.Print("TemplateJSON failed to unmarshal a message: ", err)
+		format.Logger.Warning("TemplateJSON failed to unmarshal a message: ", err)
 		return err
 	}
 
 	var templateData bytes.Buffer
 	err = format.template.Execute(&templateData, values)
 	if err != nil {
-		format.Log.Warning.Print("TemplateJSON failed to template a message: ", err)
+		format.Logger.Warning("TemplateJSON failed to template a message: ", err)
 		return err
 	}
 
