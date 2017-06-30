@@ -1,5 +1,5 @@
-hash: 54501114571c706d8fd1ea476c8301cd318fdbc172560092d65ef3051b5cafa3
-updated: 2017-06-30T12:35:48.636355984+02:00
+hash: c86ab655c5028444ab0002cd5d7a7a0c9f6a1498474fb580cde5fafbf98103a8
+updated: 2017-06-30T15:58:42.704068446+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -10,7 +10,7 @@ imports:
 - name: github.com/artyom/thrift
   version: 388840a05deb9b7d85fdf6c225a2729fe1826cb7
 - name: github.com/aws/aws-sdk-go
-  version: 06d3a0c37ae95ae040548a13952501261cb5fd2b
+  version: 96358b8282b1a3aa66836d2f2fe66216cc419668
   subpackages:
   - aws
   - aws/awserr
@@ -28,6 +28,7 @@ imports:
   - aws/request
   - aws/session
   - aws/signer/v4
+  - internal/shareddefaults
   - private/protocol
   - private/protocol/json/jsonutil
   - private/protocol/jsonrpc
@@ -41,7 +42,7 @@ imports:
   - service/s3
   - service/sts
 - name: github.com/bsm/sarama-cluster
-  version: e92a2f7a82a6f2bbdd2f7305b8a833fa22eb2138
+  version: ccdc0803695fbce22f1706d04ded46cd518fd832
 - name: github.com/coreos/go-systemd
   version: 48702e0da86bd25e76cfef347e2adeb434a0d0a6
   subpackages:
@@ -51,7 +52,7 @@ imports:
   subpackages:
   - dlopen
 - name: github.com/davecgh/go-spew
-  version: 346938d642f2ec3594ed81d874461961cd0faa76
+  version: 782f4967f2dc4564575ca782fe2d04090b5faca8
   subpackages:
   - spew
 - name: github.com/eapache/go-resiliency
@@ -63,7 +64,7 @@ imports:
 - name: github.com/eapache/queue
   version: 44cc805cf13205b55f69e14bcb69867d1ae92f98
 - name: github.com/go-ini/ini
-  version: d3de07a94d22b4a0972deb4b96d790c2c0ce8333
+  version: 3d73f4b845efdf9989fffd4b4e562727744a34ba
 - name: github.com/go-redis/redis
   version: 2cf5af9928978bbef8d1076607022403439e177c
   subpackages:
@@ -73,7 +74,7 @@ imports:
   - internal/pool
   - internal/proto
 - name: github.com/golang/protobuf
-  version: 1fb8fd32a09087bcd727225167edd31e1b9ceb24
+  version: 6a1fa9404c0aebf36c879bc50152edcc953910d2
   subpackages:
   - proto
 - name: github.com/golang/snappy
@@ -83,7 +84,7 @@ imports:
 - name: github.com/jmespath/go-jmespath
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
 - name: github.com/klauspost/crc32
-  version: 1bab8b35b6bb565f92cbc97939610af9369f942a
+  version: bab58d77464aa9cf4e84200c3276da0831fe0c03
 - name: github.com/mattn/go-colorable
   version: 941b50ebc6efddf4c41c8e4537a5f68a4e686b24
 - name: github.com/mattn/go-isatty
@@ -131,14 +132,14 @@ imports:
   - tsync
   - ttesting
 - name: github.com/x-cray/logrus-prefixed-formatter
-  version: 31b341217ca8d2c6958611c89032550fcd015df8
+  version: 0b2c791a02f18788b281dc30e243a0632dad695b
 - name: golang.org/x/crypto
-  version: adbae1b6b6fb4b02448a0fc0dbbc9ba2b95b294d
+  version: 5ef0053f77724838734b6945dd364d3847e5de1d
   subpackages:
   - bcrypt
   - blowfish
 - name: golang.org/x/sys
-  version: fb4cac33e3196ff7f507ab9b2d2a44b0142f5b5a
+  version: 90796e5a05ce440b41c768bd9af257005e470461
   subpackages:
   - unix
   - windows

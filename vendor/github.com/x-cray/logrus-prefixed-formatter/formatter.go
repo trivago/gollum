@@ -156,6 +156,7 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	for k := range entry.Data {
 		keys = append(keys, k)
 	}
+	lastKeyIdx := len(keys) - 1
 
 	if !f.DisableSorting {
 		sort.Strings(keys)
@@ -194,11 +195,11 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 			f.appendKeyValue(b, "time", entry.Time.Format(timestampFormat), true)
 		}
 		f.appendKeyValue(b, "level", entry.Level.String(), true)
-		for _, key := range keys {
-			f.appendKeyValue(b, key, entry.Data[key], true)
-		}
 		if entry.Message != "" {
-			f.appendKeyValue(b, "msg", entry.Message, false)
+			f.appendKeyValue(b, "msg", entry.Message, lastKeyIdx >= 0)
+		}
+		for i, key := range keys {
+			f.appendKeyValue(b, key, entry.Data[key], lastKeyIdx != i)
 		}
 	}
 
