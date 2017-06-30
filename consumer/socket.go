@@ -217,7 +217,7 @@ func (cons *Socket) processConnection(conn net.Conn) {
 			continue // ### return, ignore timeouts ###
 		}
 
-		cons.Log.Error.Print("Transfer failed: ", err)
+		cons.Logger.Error("Transfer failed: ", err)
 		cons.sendAck(conn, false)
 
 		// Parser errors do not drop the connection
@@ -249,7 +249,7 @@ func (cons *Socket) udpAccept() {
 			if listener, err := net.ListenUDP(cons.protocol, addr); err == nil {
 				cons.listen = listener
 			} else {
-				cons.Log.Error.Print("Connection error: ", err)
+				cons.Logger.Error("Connection error: ", err)
 				time.Sleep(cons.reconnectTime)
 			}
 		}
@@ -275,24 +275,24 @@ func (cons *Socket) tcpAccept() {
 			if err == nil {
 				cons.listen = listener
 			} else {
-				cons.Log.Error.Print("Connection error: ", err)
+				cons.Logger.Error("Connection error: ", err)
 
 				// Clear socket if necessary
 				if cons.protocol == "unix" && cons.clearSocket {
 					// Try to create the socket file to check if it exists
 					if socketFile, err := os.Create(cons.address); os.IsExist(err) {
-						cons.Log.Warning.Print("Found existing socket ", cons.address, ". Removing.")
+						cons.Logger.Warning("Found existing socket ", cons.address, ". Removing.")
 
 						if err := os.Remove(cons.address); err != nil {
-							cons.Log.Warning.Print("Found existing socket ", cons.address, ". Removing.")
+							cons.Logger.Warning("Found existing socket ", cons.address, ". Removing.")
 						} else {
-							cons.Log.Error.Printf("Socket %s cleared", cons.address)
+							cons.Logger.Errorf("Socket %s cleared", cons.address)
 						}
 					} else {
-						cons.Log.Error.Printf("Existing socket %s was removed by third party", cons.address)
+						cons.Logger.Errorf("Existing socket %s was removed by third party", cons.address)
 						socketFile.Close()
 						if err := os.Remove(cons.address); err != nil {
-							cons.Log.Error.Print("Could not remove test socket ", cons.address)
+							cons.Logger.Error("Could not remove test socket ", cons.address)
 						}
 					}
 				}
@@ -301,12 +301,12 @@ func (cons *Socket) tcpAccept() {
 			}
 		}
 
-		//cons.Log.Note.Print("Listening to open: ", cons.address)
+		//cons.Logger.Info("Listening to open: ", cons.address)
 		listener := cons.listen.(net.Listener)
 		if client, err := listener.Accept(); err != nil {
 			// Trigger full reconnect (suppress errors during shutdown)
 			if cons.IsActive() {
-				cons.Log.Error.Print("Accept failed: ", err)
+				cons.Logger.Error("Accept failed: ", err)
 			}
 			cons.closeTCPConnection()
 		} else {

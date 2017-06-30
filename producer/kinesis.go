@@ -53,8 +53,8 @@ const (
 //    RecordMessageDelimiter: "\n"
 //    SendTimeframeSec: 1
 //    BatchTimeoutSec: 3
-//    StreamMapping:
-//      "*" : "default"
+//    #StreamMapping:
+//    #  "*" : "default"
 //
 // KinesisStream defines the stream to read from.
 // By default this is set to "default"
@@ -90,9 +90,9 @@ const (
 // BatchTimeoutSec defines the number of seconds after which a batch is
 // flushed automatically. By default this is set to 3.
 //
-// StreamMapping defines a translation from gollum stream to kinesis stream
-// name. If no mapping is given the gollum stream name is used as kinesis
-// stream name.
+// StreamMapping * not implemented * defines a translation from gollum stream
+// to kinesis stream name. If no mapping is given the gollum stream name is
+// used as kinesis stream name.
 type Kinesis struct {
 	core.BatchedProducer `gollumdoc:"embed_type"`
 	client               *kinesis.Kinesis
@@ -132,12 +132,12 @@ func (prod *Kinesis) Configure(conf core.PluginConfigReader) {
 
 	if prod.recordMaxMessages < 1 {
 		prod.recordMaxMessages = 1
-		prod.Log.Warning.Print("RecordMaxMessages was < 1. Defaulting to 1.")
+		prod.Logger.Warning("RecordMaxMessages was < 1. Defaulting to 1.")
 	}
 
 	if prod.recordMaxMessages > 1 && len(prod.delimiter) == 0 {
 		prod.delimiter = []byte("\n")
-		prod.Log.Warning.Print("RecordMessageDelimiter was empty. Defaulting to \"\\n\".")
+		prod.Logger.Warning("RecordMessageDelimiter was empty. Defaulting to \"\\n\".")
 	}
 
 	// Config
@@ -259,7 +259,7 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 
 		if err != nil {
 			// Batch failed, fallback all
-			prod.Log.Error.Print("Write error: ", err)
+			prod.Logger.Error("Write error: ", err)
 			for _, messages := range records.original {
 				for _, msg := range messages {
 					prod.TryFallback(msg)
@@ -269,7 +269,7 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 			// Check each message for errors
 			for msgIdx, record := range result.Records {
 				if record.ErrorMessage != nil {
-					prod.Log.Error.Print("Kinesis message write error: ", *record.ErrorMessage)
+					prod.Logger.Error("Kinesis message write error: ", *record.ErrorMessage)
 					for _, msg := range records.original[msgIdx] {
 						prod.TryFallback(msg)
 					}

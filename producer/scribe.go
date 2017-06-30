@@ -144,13 +144,13 @@ func (prod *Scribe) sendBatchOnTimeOut() {
 func (prod *Scribe) tryOpenConnection() bool {
 	if !prod.transport.IsOpen() {
 		if err := prod.transport.Open(); err != nil {
-			prod.Log.Error.Print("Connection error:", err)
+			prod.Logger.Error("Connection error:", err)
 			return false // ### return, cannot connect ###
 		}
 
 		prod.socket.Conn().(bufferedConn).SetWriteBuffer(prod.bufferSizeByte)
 		prod.lastHeartBeat = time.Now().Add(prod.heartBeatInterval)
-		prod.Log.Note.Print("Connection opened")
+		prod.Logger.Info("Connection opened")
 	}
 
 	if time.Since(prod.lastHeartBeat) < prod.heartBeatInterval {
@@ -162,15 +162,15 @@ func (prod *Scribe) tryOpenConnection() bool {
 	prod.batch.WaitForFlush(0)
 
 	if status, err := prod.scribe.GetStatus(); err != nil {
-		prod.Log.Error.Print("Status error:", err)
+		prod.Logger.Error("Status error:", err)
 	} else {
 		switch status {
 		case fb303.FbStatus_DEAD:
-			prod.Log.Warning.Print("Status reported as dead.")
+			prod.Logger.Warning("Status reported as dead.")
 		case fb303.FbStatus_STOPPING:
-			prod.Log.Warning.Print("Status reported as stopping.")
+			prod.Logger.Warning("Status reported as stopping.")
 		case fb303.FbStatus_STOPPED:
-			prod.Log.Warning.Print("Status reported as stopped.")
+			prod.Logger.Warning("Status reported as stopped.")
 		default:
 			return true // ### return, all is well ###
 		}
@@ -244,7 +244,7 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 		}
 
 		if err != nil || resultCode != scribe.ResultCode_TRY_LATER {
-			prod.Log.Error.Printf("Log error %d: %s", resultCode, err.Error())
+			prod.Logger.Errorf("Log error %d: %s", resultCode, err.Error())
 
 			// TBD: health check? (ex-fuse breaker)
 			prod.transport.Close() // reconnect
@@ -259,7 +259,7 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 		time.Sleep(time.Duration(scribeMaxSleepTimeMs/scribeMaxRetries) * time.Millisecond)
 	}
 
-	prod.Log.Error.Printf("Server seems to be busy")
+	prod.Logger.Errorf("Server seems to be busy")
 	prod.tryFallbackForMessages(messages[idxStart:])
 }
 

@@ -71,7 +71,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) {
 	case "RFC3164":
 		cons.format = syslog.RFC3164
 		if cons.protocol == "tcp" {
-			cons.Log.Warning.Print("RFC3164 demands UDP")
+			cons.Logger.Warning("RFC3164 demands UDP")
 			cons.protocol = "udp"
 		}
 
@@ -79,7 +79,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) {
 	case "RFC5424":
 		cons.format = syslog.RFC5424
 		if cons.protocol == "tcp" {
-			cons.Log.Warning.Print("RFC5424 demands UDP")
+			cons.Logger.Warning("RFC5424 demands UDP")
 			cons.protocol = "udp"
 		}
 
@@ -103,11 +103,11 @@ func (cons *Syslogd) Handle(parts format.LogParts, code int64, err error) {
 	case syslog.RFC5424, syslog.RFC6587:
 		content, isString = parts["message"].(string)
 	default:
-		cons.Log.Error.Print("Could not determine the format to retrieve message/content")
+		cons.Logger.Error("Could not determine the format to retrieve message/content")
 	}
 
 	if !isString {
-		cons.Log.Error.Print("Message/Content is not a string")
+		cons.Logger.Error("Message/Content is not a string")
 		return
 	}
 
@@ -124,15 +124,15 @@ func (cons *Syslogd) Consume(workers *sync.WaitGroup) {
 	switch cons.protocol {
 	case "unix":
 		if err := server.ListenUnixgram(cons.address); err != nil {
-			cons.Log.Error.Print("Failed to open unix://", cons.address)
+			cons.Logger.Error("Failed to open unix://", cons.address)
 		}
 	case "udp":
 		if err := server.ListenUDP(cons.address); err != nil {
-			cons.Log.Error.Print("Failed to open udp://", cons.address)
+			cons.Logger.Error("Failed to open udp://", cons.address)
 		}
 	case "tcp":
 		if err := server.ListenTCP(cons.address); err != nil {
-			cons.Log.Error.Print("Failed to open tcp://", cons.address)
+			cons.Logger.Error("Failed to open tcp://", cons.address)
 		}
 	}
 

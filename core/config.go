@@ -16,9 +16,9 @@ package core
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
-	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/treflect"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -47,16 +47,6 @@ type PluginConfigError struct {
 	reason   string
 }
 
-// NewLogScope creates a new tlog.LogScope for the plugin contained in this
-// config.
-func NewLogScope(conf *PluginConfig) tlog.LogScope {
-	if conf.ID != "" {
-		return tlog.NewLogScope(conf.Typename)
-	}
-
-	return tlog.NewLogScope(conf.Typename + ":" + conf.ID)
-}
-
 // ReadConfig creates a config from a yaml byte stream.
 func ReadConfig(buffer []byte) (*Config, error) {
 	config := new(Config)
@@ -72,7 +62,7 @@ func ReadConfig(buffer []byte) (*Config, error) {
 			// aggregate behavior
 			aggregateMap, err := configValues.MarshalMap("Aggregate")
 			if err != nil {
-				tlog.Error.Print("Can't read 'Aggregate' configuration: ", err)
+				logrus.Error("Can't read 'Aggregate' configuration: ", err)
 				continue
 			}
 
@@ -81,7 +71,7 @@ func ReadConfig(buffer []byte) (*Config, error) {
 				subPluginsID := fmt.Sprintf("%s-%s", pluginID, subPluginID)
 				subConfig, err := tcontainer.ConvertToMarshalMap(subConfigValues, strings.ToLower)
 				if err != nil {
-					tlog.Error.Print("Error in plugin config ", subPluginsID, err)
+					logrus.Error("Error in plugin config ", subPluginsID, err)
 					continue
 				}
 
@@ -174,7 +164,7 @@ func (conf *Config) GetConsumers() []PluginConfig {
 		}
 
 		if pluginType.Implements(consumerInterface) {
-			tlog.Debug.Print("Found consumer ", config.ID)
+			logrus.Debug("Found consumer ", config.ID)
 			configs = append(configs, config)
 		}
 	}
@@ -197,7 +187,7 @@ func (conf *Config) GetProducers() []PluginConfig {
 		}
 
 		if pluginType.Implements(producerInterface) {
-			tlog.Debug.Print("Found producer ", config.ID)
+			logrus.Debug("Found producer ", config.ID)
 			configs = append(configs, config)
 		}
 	}
@@ -220,7 +210,7 @@ func (conf *Config) GetRouters() []PluginConfig {
 		}
 
 		if pluginType.Implements(routerInterface) {
-			tlog.Debug.Printf("Found router '%s'", config.ID)
+			logrus.Debugf("Found router '%s'", config.ID)
 			configs = append(configs, config)
 		}
 	}

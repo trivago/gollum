@@ -25,6 +25,16 @@ The value is `false` by default. This option is useful to store the runlength on
 defines the formatter content for the data transferred
 
 
+Parameters (from SimpleFormatter)
+---------------------------------
+
+**ApplyTo**
+chooses the part of the message the formatting should be
+applied to. Use "payload"  or "" to target the message payload;
+othe values specify the name of a metadata field to target.
+Default "".
+
+
 Example
 -------
 

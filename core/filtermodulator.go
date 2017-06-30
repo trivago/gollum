@@ -15,7 +15,7 @@
 package core
 
 import (
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 )
 
 // FilterModulator is a wrapper to provide a Filter as a Modulator
@@ -34,7 +34,7 @@ func NewFilterModulator(filter Filter) *FilterModulator {
 func (filterModulator *FilterModulator) Modulate(msg *Message) ModulateResult {
 	result, err := filterModulator.ApplyFilter(msg)
 	if err != nil {
-		tlog.Warning.Print("FilterModulator with error:", err)
+		logrus.Warning("FilterModulator with error:", err)
 	}
 
 	if result == FilterResultMessageAccept {

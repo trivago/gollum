@@ -15,31 +15,39 @@
 package core
 
 import (
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 )
 
 // SimpleFormatter defines the standard formatter implementation.
+//
+// Configuration example:
+//   N/A - placeholder for docs generator
+//
+// ApplyTo chooses the part of the message the formatting should be
+// applied to. Use "payload"  or "" to target the message payload;
+// othe values specify the name of a metadata field to target.
+// Default "".
 type SimpleFormatter struct {
-	Log               tlog.LogScope
+	Logger            logrus.FieldLogger
 	GetAppliedContent GetAppliedContent
 	SetAppliedContent SetAppliedContent
 }
 
 // Configure sets up all values required by SimpleFormatter.
 func (format *SimpleFormatter) Configure(conf PluginConfigReader) {
-	format.Log = conf.GetSubLogScope("Formatter")
+	format.Logger = conf.GetSubLogger("Formatter")
 
 	applyTo := conf.GetString("ApplyTo", "")
 	format.GetAppliedContent = GetAppliedContentGetFunction(applyTo)
 	format.SetAppliedContent = GetAppliedContentSetFunction(applyTo)
 }
 
-// SetLogScope sets the log scope to be used for this formatter
-func (format *SimpleFormatter) SetLogScope(log tlog.LogScope) {
-	format.Log = log
+// SetLogger sets the scoped logger to be used for this formatter
+func (format *SimpleFormatter) SetLogger(logger logrus.FieldLogger) {
+	format.Logger = logger
 }
 
-// GetLogScope returns the logging scope of this plugin
-func (format *SimpleFormatter) GetLogScope() tlog.LogScope {
-	return format.Log
+// GetLogger returns the scoped logger of this plugin
+func (format *SimpleFormatter) GetLogger() logrus.FieldLogger {
+	return format.Logger
 }

@@ -77,7 +77,7 @@ func (cons *Console) Configure(conf core.PluginConfigReader) {
 		cons.pipeName = inputConsole
 
 		if perm, err := strconv.ParseInt(conf.GetString("Permissions", "0664"), 8, 32); err != nil {
-			cons.Log.Error.Printf("Error parsing named pipe permissions: %s", err)
+			cons.Logger.Errorf("Error parsing named pipe permissions: %s", err)
 		} else {
 			cons.pipePerm = uint32(perm)
 		}
@@ -102,7 +102,7 @@ func (cons *Console) readPipe() {
 	if cons.pipe == nil {
 		var err error
 		if cons.pipe, err = tio.OpenNamedPipe(cons.pipeName, cons.pipePerm); err != nil {
-			cons.Log.Error.Print(err)
+			cons.Logger.Error(err)
 			time.AfterFunc(3*time.Second, cons.readPipe)
 			return // ### return, try again ###
 		}
@@ -116,14 +116,14 @@ func (cons *Console) readPipe() {
 		switch err {
 		case io.EOF:
 			if cons.autoExit {
-				cons.Log.Note.Print("Exit triggered by EOF.")
+				cons.Logger.Info("Exit triggered by EOF.")
 				tgo.ShutdownCallback()
 			}
 
 		case nil:
 			// ignore
 		default:
-			cons.Log.Error.Print(err)
+			cons.Logger.Error(err)
 		}
 	}
 }

@@ -25,7 +25,7 @@ import (
 //  - format.Clear:
 //	ApplyTo: "payload" # payload or <metaKey>
 type Clear struct {
-	core.SimpleFormatter
+	core.SimpleFormatter `gollumdoc:"embed_type"`
 }
 
 func init() {

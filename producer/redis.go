@@ -92,8 +92,8 @@ func init() {
 func (prod *Redis) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
-	prod.fieldModulators = conf.GetModulatorArray("FieldModulators", prod.Log, core.ModulatorArray{})
-	prod.keyModulators = conf.GetModulatorArray("FieldModulators", prod.Log, core.ModulatorArray{})
+	prod.fieldModulators = conf.GetModulatorArray("FieldModulators", prod.Logger, core.ModulatorArray{})
+	prod.keyModulators = conf.GetModulatorArray("FieldModulators", prod.Logger, core.ModulatorArray{})
 
 	prod.fieldFromParsed = conf.GetBool("FieldAfterFormat", false) // TODO: deprecated
 	prod.keyFromParsed = conf.GetBool("KeyAfterFormat", false)     // TODO: deprecated
@@ -170,7 +170,7 @@ func (prod *Redis) storeHash(msg *core.Message) {
 	value, field, key := prod.getValueFieldAndKey(msg)
 	result := prod.client.HSet(key, string(field), string(value))
 	if result.Err() != nil {
-		prod.Log.Error.Print("Redis: ", result.Err())
+		prod.Logger.Error("Redis: ", result.Err())
 		prod.TryFallback(msg)
 	}
 }
@@ -180,7 +180,7 @@ func (prod *Redis) storeList(msg *core.Message) {
 
 	result := prod.client.RPush(key, string(value))
 	if result.Err() != nil {
-		prod.Log.Error.Print("Redis: ", result.Err())
+		prod.Logger.Error("Redis: ", result.Err())
 		prod.TryFallback(msg)
 	}
 }
@@ -190,7 +190,7 @@ func (prod *Redis) storeSet(msg *core.Message) {
 
 	result := prod.client.SAdd(key, string(value))
 	if result.Err() != nil {
-		prod.Log.Error.Print("Redis: ", result.Err())
+		prod.Logger.Error("Redis: ", result.Err())
 		prod.TryFallback(msg)
 	}
 }
@@ -199,7 +199,7 @@ func (prod *Redis) storeSortedSet(msg *core.Message) {
 	value, scoreValue, key := prod.getValueFieldAndKey(msg)
 	score, err := strconv.ParseFloat(string(scoreValue), 64)
 	if err != nil {
-		prod.Log.Error.Print("Redis: ", err)
+		prod.Logger.Error("Redis: ", err)
 		return // ### return, no valid score ###
 	}
 
@@ -209,7 +209,7 @@ func (prod *Redis) storeSortedSet(msg *core.Message) {
 	})
 
 	if result.Err() != nil {
-		prod.Log.Error.Print("Redis: ", result.Err())
+		prod.Logger.Error("Redis: ", result.Err())
 		prod.TryFallback(msg)
 	}
 }
@@ -219,7 +219,7 @@ func (prod *Redis) storeString(msg *core.Message) {
 
 	result := prod.client.Set(key, string(value), time.Duration(0))
 	if result.Err() != nil {
-		prod.Log.Error.Print("Redis: ", result.Err())
+		prod.Logger.Error("Redis: ", result.Err())
 		prod.TryFallback(msg)
 	}
 }
@@ -239,7 +239,7 @@ func (prod *Redis) Produce(workers *sync.WaitGroup) {
 	})
 
 	if _, err := prod.client.Ping().Result(); err != nil {
-		prod.Log.Error.Print("Redis: ", err)
+		prod.Logger.Error("Redis: ", err)
 	}
 
 	prod.AddMainWorker(workers)
