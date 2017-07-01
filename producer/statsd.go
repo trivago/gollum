@@ -111,6 +111,8 @@ func (prod *Statsd) sendBatchOnTimeOut() {
 	// Flush if necessary
 	if prod.batch.ReachedTimeThreshold(prod.flushFrequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2) {
 		prod.sendBatch()
+	} else if prod.useGauge && prod.batch.IsEmpty() {
+		prod.transformMessages(make([]core.Message, 0))
 	}
 }
 
