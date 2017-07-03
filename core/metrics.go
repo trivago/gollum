@@ -17,6 +17,7 @@ package core
 import (
 	"fmt"
 	"github.com/trivago/tgo"
+	"sync"
 	"time"
 )
 
@@ -126,9 +127,12 @@ func CountFallbackRouters() {
 }
 
 var streamMetrics = map[MessageStreamID]StreamMetric{}
+var streamMetricsGuard = new(sync.Mutex)
 
-// GetSteamMetric return a StreamMetric instance for the given MessageStreamID
-func GetSteamMetric(streamID MessageStreamID) StreamMetric {
+// GetStreamMetric return a StreamMetric instance for the given MessageStreamID
+func GetStreamMetric(streamID MessageStreamID) StreamMetric {
+	streamMetricsGuard.Lock()
+	defer streamMetricsGuard.Unlock()
 	if metric, isSet := streamMetrics[streamID]; isSet {
 		return metric
 	}
