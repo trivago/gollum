@@ -1,0 +1,183 @@
+// Copyright 2015-2017 trivago GmbH
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package format
+
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tcontainer"
+	"strconv"
+	"strings"
+	"time"
+)
+
+// JSONToInflux10 formatter plugin
+// JSONToInflux10 provides a transformation from JSON data to
+// InfluxDB 0.9.1+ compatible line protocol data.
+// Configuration example
+//
+//  Formatter: "format.JSONToInflux10"
+//  TimeField: time
+//  Measurement: measurement
+//  Tags:
+//    - datacenter
+//    - service
+//    - host
+//    - application
+//
+// TimeField specifies the JSON field that holds the Unix timestamp of the message.
+// The precision is seconds.
+// By default, the field is named `time`. If such a key does not exist in the
+// message, the current Unix timestamp at the time of parsing the message is used.
+//
+// Measurement specifies the JSON field that holds the measurement of the message.
+// By default, the field is named `measurement`. This field MUST exist in the message.
+// If it does not exist in the message, an error will be thrown.
+//
+// Tags lists all names of fields to send to Influxdb as tags.
+// The Influxdb 0.9 convention is that values that do not change every
+// request should be considered metadata and given as tags.
+//
+// JsonToInfluxFormatter defines the formatter applied before the conversion
+// from Json to InfluxDB. By default this is set to format.Forward.
+type JSONToInflux10 struct {
+	core.SimpleFormatter `gollumdoc:"embed_type"`
+	metadataEscape       *strings.Replacer
+	measurementEscape    *strings.Replacer
+	fieldValueEscape     *strings.Replacer
+	timeField            string
+	measurement          string
+	tags                 map[string]bool
+	ignore               map[string]bool
+}
+
+func init() {
+	core.TypeRegistry.Register(JSONToInflux10{})
+}
+
+// Configure initializes this formatter with values from a plugin config.
+func (format *JSONToInflux10) Configure(conf core.PluginConfigReader) {
+	format.SimpleFormatter.Configure(conf)
+
+	format.metadataEscape = strings.NewReplacer(",", "\\,", "=", "\\=", " ", "\\ ")
+	format.measurementEscape = strings.NewReplacer(",", "\\,", " ", "\\ ")
+	format.fieldValueEscape = strings.NewReplacer("\"", "\\\"")
+
+	format.timeField = conf.GetString("TimeField", "time")
+	format.measurement = conf.GetString("Measurement", "measurement")
+
+	// Create a set from the tags array for O(1) lookup
+	tagsArray := conf.GetStringArray("Tags", []string{})
+	format.tags = map[string]bool{}
+	for _, v := range tagsArray {
+		format.tags[v] = true
+	}
+
+	// Create a set from the ignore array for O(1) lookup
+	ignoreArray := conf.GetStringArray("Ignore", []string{})
+	format.ignore = map[string]bool{}
+	for _, v := range ignoreArray {
+		format.ignore[v] = true
+	}
+}
+
+func (format *JSONToInflux10) escapeMeasurment(value string) string {
+	return format.measurementEscape.Replace(value)
+}
+
+func (format *JSONToInflux10) escapeMetadata(value string) string {
+	return format.metadataEscape.Replace(value)
+}
+
+func (format *JSONToInflux10) escapeFieldValue(value string) string {
+	return format.fieldValueEscape.Replace(value)
+}
+
+func (format *JSONToInflux10) joinMap(m map[string]interface{}) string {
+	var tokens []string
+	for k, v := range m {
+		tokens = append(tokens, fmt.Sprintf(`%s=%s`, k, v))
+	}
+	return fmt.Sprintf(strings.Join(tokens, ","))
+}
+
+// ApplyFormatter update message payload
+func (format *JSONToInflux10) ApplyFormatter(msg *core.Message) error {
+	content := format.GetAppliedContent(msg)
+
+	values := make(tcontainer.MarshalMap)
+	err := json.Unmarshal(content, &values)
+
+	if err != nil {
+		format.Log.Warning.Printf("JSON parser error: %s, Message: %s", err, content)
+		return err
+	}
+
+	var timestamp int64
+	if val, ok := values[format.timeField]; ok {
+		timestamp, err = strconv.ParseInt(val.(string), 10, 64)
+		if err != nil {
+			format.Log.Error.Print("Invalid time format in message:", err)
+		}
+		delete(values, format.timeField)
+	} else {
+		timestamp = time.Now().Unix()
+	}
+
+	var measurement string
+	if val, ok := values[format.measurement]; ok {
+		measurement = val.(string)
+		delete(values, format.measurement)
+	} else {
+		return fmt.Errorf("Required field for measurement (%s) not found in payload. Check config.", format.measurement)
+	}
+
+	fields := make(map[string]interface{})
+	tags := make(map[string]interface{})
+	for k, v := range values {
+		_, ignore := format.ignore[k]
+		if ignore {
+			continue
+		}
+		_, isTag := format.tags[k]
+		if isTag {
+			tags[format.escapeMetadata(k)] = format.escapeMetadata(v.(string))
+			continue
+		}
+		fields[format.escapeMetadata(k)] = format.escapeFieldValue(v.(string))
+	}
+
+	line := fmt.Sprintf(
+		`%s,%s %s %d`,
+		format.escapeMeasurment(measurement),
+		format.joinMap(tags),
+		format.joinMap(fields),
+		timestamp)
+
+	// setSize := tmath.Min3I(len(collectdData.Dstypes), len(collectdData.Dsnames), len(collectdData.Values))
+	// for i := 0; i < setSize; i++ {
+	// 	fmt.Fprintf(&influxData,
+	// 		`%s,dstype=%s,dsname=%s value=%f %d\n`,
+	// 		fixedPart,
+	// 		format.escapeTag(collectdData.Dstypes[i]),
+	// 		format.escapeTag(collectdData.Dsnames[i]),
+	// 		collectdData.Values[i],
+	// 		timestamp)
+	// }
+
+	format.SetAppliedContent(msg, []byte(line))
+	return nil
+}
