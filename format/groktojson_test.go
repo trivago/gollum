@@ -25,13 +25,13 @@ import (
 func TestPatternToJSON(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.Grok")
+	config := core.NewPluginConfig("", "format.GrokToJSON")
 	config.Override("Patterns", []string{`(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value:float}\s%{INT:time}`})
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*Grok)
+	formatter, casted := plugin.(*GrokToJSON)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("us-west.servicename.webserver0.this.is.the.measurement 12.0 1497003802\r"), core.InvalidStreamID)
@@ -55,7 +55,7 @@ func TestPatternToJSON(t *testing.T) {
 func TestMultiplePatternsOrder(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.Grok")
+	config := core.NewPluginConfig("", "format.GrokToJSON")
 	config.Override("Patterns", []string{
 		`(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.gauge-(?P<nomatch>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_gauge:float}\s*%{INT:time}.*`,
 		`(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.latency-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_latency:float}\s*%{INT:time}.*`,
@@ -65,7 +65,7 @@ func TestMultiplePatternsOrder(t *testing.T) {
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*Grok)
+	formatter, casted := plugin.(*GrokToJSON)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("us-east.www.webserver1.statsd.latency-appname.another.test-measurement 42.1 1497005802\r"), core.InvalidStreamID)
@@ -90,7 +90,7 @@ func TestMultiplePatternsOrder(t *testing.T) {
 func TestNoMatch(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.Grok")
+	config := core.NewPluginConfig("", "format.GrokToJSON")
 	config.Override("Patterns", []string{
 		`%{INT:random}`,
 	})
@@ -98,7 +98,7 @@ func TestNoMatch(t *testing.T) {
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*Grok)
+	formatter, casted := plugin.(*GrokToJSON)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("nonumber"), core.InvalidStreamID)

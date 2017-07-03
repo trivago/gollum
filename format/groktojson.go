@@ -26,7 +26,7 @@ import (
 // It works by combining text patterns into something that matches your logs.
 // Configuration example
 //
-// - format.Grok:
+// - format.GrokToJSON:
 //     Patterns:
 //       - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.gauge-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_gauge:float}\s*%{INT:time}
 //       - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.latency-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_latency:float}\s*%{INT:time}
@@ -48,18 +48,18 @@ import (
 // }
 // Patterns is a list of grok patterns that will be executed on the given message.
 // The first matching pattern will be used to parse the message.
-type Grok struct {
+type GrokToJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	grok                 *grok.Grok
 	patterns             []string `config:"Patterns"`
 }
 
 func init() {
-	core.TypeRegistry.Register(Grok{})
+	core.TypeRegistry.Register(GrokToJSON{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Grok) Configure(conf core.PluginConfigReader) {
+func (format *GrokToJSON) Configure(conf core.PluginConfigReader) {
 	grok, err := grok.NewWithConfig(&grok.Config{RemoveEmptyValues: true})
 	if err != nil {
 		conf.Errors.Push(err)
@@ -69,7 +69,7 @@ func (format *Grok) Configure(conf core.PluginConfigReader) {
 }
 
 // ApplyFormatter update message payload
-func (format *Grok) ApplyFormatter(msg *core.Message) error {
+func (format *GrokToJSON) ApplyFormatter(msg *core.Message) error {
 	content := format.GetAppliedContent(msg)
 
 	values, err := format.applyGrok(string(content[:]))
@@ -88,7 +88,7 @@ func (format *Grok) ApplyFormatter(msg *core.Message) error {
 
 // grok iterates over all defined patterns and parses the content based on the first match.
 // It returns a map of the defined values.
-func (format *Grok) applyGrok(content string) (map[string]string, error) {
+func (format *GrokToJSON) applyGrok(content string) (map[string]string, error) {
 	for _, pattern := range format.patterns {
 		values, err := format.grok.Parse(pattern, content)
 
