@@ -100,11 +100,15 @@ type File struct {
 
 	file               *os.File
 	realFileName       string
-	seek               int
-	seekOnRotate       int
-	seekOffset         int64
 	state              fileState
+	seeker             seeker
 	printFileOpenError bool
+}
+
+type seeker struct {
+	seek     int
+	onRotate int
+	offset   int64
 }
 
 const (
@@ -125,14 +129,18 @@ func (cons *File) Configure(conf core.PluginConfigReader) {
 	default:
 		fallthrough
 	case fileOffsetEnd:
-		cons.seek = 2
-		cons.seekOnRotate = 2
-		cons.seekOffset = 0
+		cons.seeker = seeker{
+			seek:     2,
+			onRotate: 2,
+			offset:   0,
+		}
 
 	case fileOffsetStart:
-		cons.seek = 1
-		cons.seekOnRotate = 1
-		cons.seekOffset = 0
+		cons.seeker = seeker{
+			seek:     1,
+			onRotate: 1,
+			offset:   0,
+		}
 	}
 
 	cons.printFileOpenError = true
@@ -156,11 +164,11 @@ func (cons *File) Enqueue(data []byte) {
 }
 
 func (cons *File) storeOffset() {
-	ioutil.WriteFile(cons.offsetFileName, []byte(strconv.FormatInt(cons.seekOffset, 10)), 0644)
+	ioutil.WriteFile(cons.offsetFileName, []byte(strconv.FormatInt(cons.seeker.offset, 10)), 0644)
 }
 
 func (cons *File) enqueueAndPersist(data []byte) {
-	cons.seekOffset, _ = cons.file.Seek(0, 1)
+	cons.seeker.offset, _ = cons.file.Seek(0, 1)
 	cons.Enqueue(data)
 	cons.storeOffset()
 }
@@ -189,8 +197,8 @@ func (cons *File) initFile() {
 	if cons.file != nil {
 		cons.file.Close()
 		cons.file = nil
-		cons.seek = cons.seekOnRotate
-		cons.seekOffset = 0
+		cons.seeker.seek = cons.seeker.onRotate
+		cons.seeker.offset = 0
 		if cons.offsetFileName != "" {
 			cons.storeOffset()
 		}
@@ -199,8 +207,8 @@ func (cons *File) initFile() {
 	if cons.offsetFileName != "" {
 		fileContents, err := ioutil.ReadFile(cons.offsetFileName)
 		if err == nil {
-			cons.seek = 1
-			cons.seekOffset, err = strconv.ParseInt(string(fileContents), 10, 64)
+			cons.seeker.seek = 1
+			cons.seeker.offset, err = strconv.ParseInt(string(fileContents), 10, 64)
 			if err != nil {
 				cons.Logger.Error("Error reading offset file: ", err)
 			}
@@ -295,7 +303,7 @@ func (cons *File) read(buffer *tio.BufferedReader, sendFunction func(data []byte
 			buffer.ReadAll(cons.file, sendFunction)
 		}
 		cons.initFile()
-		buffer.Reset(uint64(cons.seekOffset))
+		buffer.Reset(uint64(cons.seeker.offset))
 	}
 
 	// Try to open the file to read from
@@ -313,7 +321,7 @@ func (cons *File) read(buffer *tio.BufferedReader, sendFunction func(data []byte
 
 		default:
 			cons.file = file
-			cons.seekOffset, _ = cons.file.Seek(cons.seekOffset, cons.seek)
+			cons.seeker.offset, _ = cons.file.Seek(cons.seeker.offset, cons.seeker.seek)
 			cons.printFileOpenError = true
 		}
 	}
