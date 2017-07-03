@@ -1,5 +1,5 @@
 hash: c86ab655c5028444ab0002cd5d7a7a0c9f6a1498474fb580cde5fafbf98103a8
-updated: 2017-06-30T15:58:42.704068446+02:00
+updated: 2017-07-03T10:00:53.674320348+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -139,7 +139,7 @@ imports:
   - bcrypt
   - blowfish
 - name: golang.org/x/sys
-  version: 90796e5a05ce440b41c768bd9af257005e470461
+  version: 0e0164865330d5cf1c00247be08330bf96e2f87c
   subpackages:
   - unix
   - windows

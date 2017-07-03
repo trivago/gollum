@@ -102,7 +102,7 @@ list-gitignored:
 vendor:
 	@go get -u github.com/Masterminds/glide
 	@glide cc
-	@glide update
+	@glide update --strip-vendor
 
 # Runs "glide install" in a managed way - clears glide's cache and removes git-ignored stuff from ./vendor.
 # This leaves ./vendor in the same state it would be when checked out with git.
@@ -121,7 +121,7 @@ _vendor-update:
 	glide cache-clear
 	rm -rf vendor
 	rm glide.lock
-	glide update
+	glide update --strip-vendor
 
 # Lists files & directories under ./vendor that are ignored by git.
 vendor-list-ignored:
