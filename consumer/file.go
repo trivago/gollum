@@ -60,6 +60,7 @@ const (
 //   DefaultOffset: newest
 //   OffsetFile: ""
 //   Delimiter: "\n"
+//	 ObserveMode: poll
 //   PollingDelay: 100
 //
 // File is a mandatory setting and contains the file to read. The file will be
@@ -79,24 +80,37 @@ const (
 // Delimiter defines the end of a message inside the file. By default this is
 // set to "\n".
 //
+// ObserveMode defines the mode how to observe the target file. You can decide between `poll` and `watch`.
+// By default this is set to `poll`.
+// Note: The watch implementation uses [fsnotify/fsnotify](https://github.com/fsnotify/fsnotify) package.
+// Please check for rotating files (like log rotation) if your system supports continue watching on moved files.
+//
 // PollingDelay defines the time duration how long the consumer will wait to check a file for new content
 // after hitting the end of file (EOF) in milliseconds (ms).
 // By default this time duration is set to "100" milliseconds.
+// Note: This settings take only an effect if the consumer is running in `poll` mode!
 type File struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 
 	fileName       string        `config:"File" default:"/var/run/system.log"`
 	offsetFileName string        `config:"OffsetFile"`
 	delimiter      string        `config:"Delimiter" default:"\n"`
+	observeMode    string        `config:"ObserveMode" default:"poll"`
 	pollingDelay   time.Duration `config:"PollingDelay" default:"100" metric:"ms"`
 
-	file         *os.File
-	realFileName string
-	seek         int
-	seekOnRotate int
-	seekOffset   int64
-	state        fileState
+	file               *os.File
+	realFileName       string
+	seek               int
+	seekOnRotate       int
+	seekOffset         int64
+	state              fileState
+	printFileOpenError bool
 }
+
+const (
+	observeModePoll  = "poll"
+	observeModeWatch = "watch"
+)
 
 func init() {
 	core.TypeRegistry.Register(File{})
@@ -119,6 +133,14 @@ func (cons *File) Configure(conf core.PluginConfigReader) {
 		cons.seek = 1
 		cons.seekOnRotate = 1
 		cons.seekOffset = 0
+	}
+
+	cons.printFileOpenError = true
+
+	// restore default observer mode for invalid config settings
+	if cons.observeMode != observeModePoll && cons.observeMode != observeModeWatch {
+		cons.Logger.WithField("observeMode", cons.observeMode).Errorf("Unknown observe mode '%s'", cons.observeMode)
+		cons.observeMode = observeModePoll
 	}
 }
 
@@ -204,24 +226,27 @@ func (cons *File) observe() {
 
 	buffer := tio.NewBufferedReader(fileBufferGrowSize, 0, 0, cons.delimiter)
 
-	//cons.poll(buffer, sendFunction)
-	cons.watch(buffer, sendFunction)
+	cons.Logger.WithField("observerMode", cons.observeMode).Debugf("Use observe mode '%s'", cons.observeMode)
+	if cons.observeMode == observeModeWatch {
+		cons.watch(buffer, sendFunction)
+	} else {
+		cons.poll(buffer, sendFunction)
+	}
 }
 
 func (cons *File) poll(buffer *tio.BufferedReader, sendFunction func(data []byte)) {
 	spin := tsync.NewCustomSpinner(cons.pollingDelay)
-	printFileOpenError := true
 
 	for cons.state != fileStateDone {
-		cons.read(buffer, sendFunction, &printFileOpenError, spin.Yield, spin.Reset)
+		cons.read(buffer, sendFunction, spin.Yield, spin.Reset)
 	}
 }
 
 func (cons *File) watchClose(watcher *fsnotify.Watcher) {
-	cons.Logger.Warning("DEFER watchClose()")
-	cons.close()
 	err := watcher.Close()
-	cons.Logger.Debugf("close result: %#v\n", err)
+	if err != nil {
+		cons.Logger.Fatal(err)
+	}
 }
 
 func (cons *File) watch(buffer *tio.BufferedReader, sendFunction func(data []byte)) {
@@ -229,43 +254,40 @@ func (cons *File) watch(buffer *tio.BufferedReader, sendFunction func(data []byt
 	if err != nil {
 		cons.Logger.Fatal(err)
 	}
-	//defer watcher.Close()
 	defer cons.watchClose(watcher)
 
-	printFileOpenError := true // DUPLICATE
-
 	// read current file state before watching
-	cons.read(buffer, sendFunction, &printFileOpenError, func() {}, func() {})
-
-	done := make(chan bool)
-
-	go tgo.WithRecoverShutdown(func() {
-		for cons.state != fileStateDone {
-			select {
-			case event := <-watcher.Events:
-				cons.Logger.Debug("event:", event)
-				if event.Op&fsnotify.Write == fsnotify.Write {
-					cons.Logger.Debug("modified file:", event.Name)
-					cons.read(buffer, sendFunction, &printFileOpenError, func() {}, func() {})
-				}
-			case err := <-watcher.Errors:
-				cons.Logger.Error("error:", err)
-			}
-		}
-	})
-
-	//go func() {
-	//
-	//}()
+	cons.read(buffer, sendFunction, func() {}, func() {})
 
 	err = watcher.Add(cons.realFileName)
 	if err != nil {
 		cons.Logger.Fatal(err)
 	}
-	<-done
+
+	done := make(chan int)
+	go func() {
+		for {
+			select {
+			case event := <-watcher.Events:
+				if event.Op&fsnotify.Write == fsnotify.Write {
+					cons.Logger.Debug("modified file: ", event.Name)
+					cons.read(buffer, sendFunction, func() {}, func() {})
+				}
+			case err := <-watcher.Errors:
+				cons.Logger.Error("error:", err)
+			case <-done:
+				return
+			}
+		}
+	}()
+
+	for cons.state != fileStateDone {
+		time.Sleep(time.Second)
+	}
+	close(done)
 }
 
-func (cons *File) read(buffer *tio.BufferedReader, sendFunction func(data []byte), printFileOpenError *bool, onEOF func(), onAfterRead func()) {
+func (cons *File) read(buffer *tio.BufferedReader, sendFunction func(data []byte), onEOF func(), onAfterRead func()) {
 	// Initialize the seek state if requested
 	// Try to read the remains of the file first
 	if cons.state == fileStateOpen {
@@ -282,9 +304,9 @@ func (cons *File) read(buffer *tio.BufferedReader, sendFunction func(data []byte
 
 		switch {
 		case err != nil:
-			if *printFileOpenError {
+			if cons.printFileOpenError {
 				cons.Logger.Warning("Open failed: ", err)
-				*printFileOpenError = false
+				cons.printFileOpenError = false
 			}
 			time.Sleep(3 * time.Second)
 			return // ### continue, retry ###
@@ -292,7 +314,7 @@ func (cons *File) read(buffer *tio.BufferedReader, sendFunction func(data []byte
 		default:
 			cons.file = file
 			cons.seekOffset, _ = cons.file.Seek(cons.seekOffset, cons.seek)
-			*printFileOpenError = true
+			cons.printFileOpenError = true
 		}
 	}
 
@@ -302,7 +324,6 @@ func (cons *File) read(buffer *tio.BufferedReader, sendFunction func(data []byte
 
 		switch {
 		case err == nil: // ok
-			//spin.Reset()
 			onAfterRead()
 
 		case err == io.EOF:
@@ -318,7 +339,6 @@ func (cons *File) read(buffer *tio.BufferedReader, sendFunction func(data []byte
 					cons.onRoll()
 				}
 			}
-			//spin.Yield()
 			onEOF()
 
 		case cons.state == fileStateRead:
@@ -333,19 +353,13 @@ func (cons *File) onRoll() {
 	cons.setState(fileStateOpen)
 }
 
-var activeWorkers *sync.WaitGroup
-
 // Consume listens to stdin.
 func (cons *File) Consume(workers *sync.WaitGroup) {
 	cons.setState(fileStateOpen)
 	defer cons.setState(fileStateDone)
 
-	activeWorkers = workers
-
 	go tgo.WithRecoverShutdown(func() {
 		cons.AddMainWorker(workers)
-		//cons.poll()
-		//cons.watch()
 		cons.observe()
 	})
 
