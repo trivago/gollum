@@ -269,7 +269,7 @@ func (met *Metrics) Get(name string) (int64, error) {
 	}
 
 	// Neither rate nor metric found
-	return 0, fmt.Errorf("Metric %s not found.", name)
+	return 0, fmt.Errorf("Metric %s not found", name)
 }
 
 // Dump creates a JSON string from all stored metrics.
@@ -409,36 +409,34 @@ func (met *Metrics) updateRate(r *rate) {
 }
 
 func (met *Metrics) new(name string) *int64 {
-	var (
-		value  *int64
-		exists bool
-	)
-
 	met.storeGuard.Lock()
-	defer met.storeGuard.Unlock()
-
-	if value, exists = met.store[name]; !exists {
+	value, exists := met.store[name]
+	if !exists {
 		value = new(int64)
 		met.store[name] = value
 	}
+	met.storeGuard.Unlock()
 
 	return value
 }
 
 func (met *Metrics) get(name string) *int64 {
 	met.storeGuard.RLock()
-	if v, exists := met.store[name]; exists {
-		met.storeGuard.RUnlock()
+	v, exists := met.store[name]
+	met.storeGuard.RUnlock()
+
+	if exists {
 		return v // ### return, exists ###
 	}
-	met.storeGuard.RUnlock()
 	return met.new(name)
 }
 
 func (met *Metrics) tryGetMetric(name string) *int64 {
 	met.storeGuard.RLock()
-	defer met.storeGuard.RUnlock()
-	if v, exists := met.store[name]; exists {
+	v, exists := met.store[name]
+	met.storeGuard.RUnlock()
+
+	if exists {
 		return v // ### return, exists ###
 	}
 	return nil
@@ -446,8 +444,10 @@ func (met *Metrics) tryGetMetric(name string) *int64 {
 
 func (met *Metrics) tryGetRate(name string) *int64 {
 	met.rateGuard.RLock()
-	defer met.rateGuard.RUnlock()
-	if r, exists := met.rates[name]; exists {
+	r, exists := met.rates[name]
+	met.rateGuard.RUnlock()
+
+	if exists {
 		return &r.value // ### return, exists ###
 	}
 	return nil
