@@ -126,8 +126,12 @@ func CountFallbackRouters() {
 }
 
 var streamMetrics = map[MessageStreamID]StreamMetric{}
-var streamMetricsGuard = new(sync.Mutex)
 
+<<<<<<< Updated upstream
+// GetSteamMetric return a StreamMetric instance for the given MessageStreamID
+func GetSteamMetric(streamID MessageStreamID) StreamMetric {
+	if metric, isSet := streamMetrics[streamID]; isSet {
+=======
 // GetStreamMetric return a StreamMetric instance for the given MessageStreamID
 func GetStreamMetric(streamID MessageStreamID) StreamMetric {
 	streamMetricsGuard.Lock()
@@ -135,6 +139,7 @@ func GetStreamMetric(streamID MessageStreamID) StreamMetric {
 	streamMetricsGuard.Unlock()
 
 	if isSet {
+>>>>>>> Stashed changes
 		return metric
 	}
 
