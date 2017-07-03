@@ -1,5 +1,5 @@
-hash: 3568d2c32ed348c932b06851b89b13076273af9d83535c704a50a66d9f40cca1
-updated: 2017-06-28T11:52:08.469529363+02:00
+hash: 46888cadc5eaad94ecd30502ecbca20d3bfb6644c7e6270f5fa9b322a04a9c5e
+updated: 2017-07-03T11:23:25.710766273+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -10,7 +10,7 @@ imports:
 - name: github.com/artyom/thrift
   version: 388840a05deb9b7d85fdf6c225a2729fe1826cb7
 - name: github.com/aws/aws-sdk-go
-  version: 06d3a0c37ae95ae040548a13952501261cb5fd2b
+  version: 96358b8282b1a3aa66836d2f2fe66216cc419668
   subpackages:
   - aws
   - aws/awserr
@@ -28,6 +28,7 @@ imports:
   - aws/request
   - aws/session
   - aws/signer/v4
+  - internal/shareddefaults
   - private/protocol
   - private/protocol/json/jsonutil
   - private/protocol/jsonrpc
@@ -41,7 +42,7 @@ imports:
   - service/s3
   - service/sts
 - name: github.com/bsm/sarama-cluster
-  version: e92a2f7a82a6f2bbdd2f7305b8a833fa22eb2138
+  version: ccdc0803695fbce22f1706d04ded46cd518fd832
 - name: github.com/coreos/go-systemd
   version: 48702e0da86bd25e76cfef347e2adeb434a0d0a6
   subpackages:
@@ -51,7 +52,7 @@ imports:
   subpackages:
   - dlopen
 - name: github.com/davecgh/go-spew
-  version: 346938d642f2ec3594ed81d874461961cd0faa76
+  version: 782f4967f2dc4564575ca782fe2d04090b5faca8
   subpackages:
   - spew
 - name: github.com/eapache/go-resiliency
@@ -86,6 +87,12 @@ imports:
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
 - name: github.com/klauspost/crc32
   version: bab58d77464aa9cf4e84200c3276da0831fe0c03
+- name: github.com/mattn/go-colorable
+  version: 941b50ebc6efddf4c41c8e4537a5f68a4e686b24
+- name: github.com/mattn/go-isatty
+  version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
+- name: github.com/mgutz/ansi
+  version: 9520e82c474b0a04dd04f8a40959027271bab992
 - name: github.com/miekg/pcap
   version: 51d9d986bf8d5f524d65bf31c353e10271d54aaa
 - name: github.com/mmcloughlin/geohash
@@ -110,29 +117,31 @@ imports:
   version: 1f30fe9094a513ce4c700b9a54458bbb0c96996c
 - name: github.com/Shopify/sarama
   version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
+- name: github.com/sirupsen/logrus
+  version: 202f25545ea4cf9b191ff7f846df5d87c9382c2b
 - name: github.com/trivago/tgo
   version: c787d684e0a8d84d70a3199b01262c80b8afaf3a
   subpackages:
   - tcontainer
   - terrors
   - tflag
-  - tfmt
   - thealthcheck
   - tio
-  - tlog
   - tmath
   - tnet
   - treflect
   - tstrings
   - tsync
   - ttesting
+- name: github.com/x-cray/logrus-prefixed-formatter
+  version: 0b2c791a02f18788b281dc30e243a0632dad695b
 - name: golang.org/x/crypto
-  version: adbae1b6b6fb4b02448a0fc0dbbc9ba2b95b294d
+  version: 368a6044bc0e88e78f6dd705a6c8eb1fd69b6676
   subpackages:
   - bcrypt
   - blowfish
 - name: golang.org/x/sys
-  version: 90796e5a05ce440b41c768bd9af257005e470461
+  version: 0e0164865330d5cf1c00247be08330bf96e2f87c
   subpackages:
   - unix
   - windows

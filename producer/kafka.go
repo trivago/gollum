@@ -221,7 +221,7 @@ func init() {
 func (prod *Kafka) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
-	kafka.Logger = prod.Log.Note
+	kafka.Logger = prod.Logger.WithField("Scope", "Sarama")
 
 	prod.topicGuard = new(sync.RWMutex)
 	prod.streamToTopic = conf.GetStreamMap("Topics", "")
@@ -246,7 +246,7 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) {
 	case "0.10", "0.10.0", "0.10.0.0":
 		prod.config.Version = kafka.V0_10_0_0
 	default:
-		prod.Log.Warning.Print("Unknown kafka version given: ", ver)
+		prod.Logger.Warning("Unknown kafka version given: ", ver)
 		parts := strings.Split(ver, ".")
 		if len(parts) < 2 {
 			prod.config.Version = kafka.V0_8_2_2
@@ -397,10 +397,10 @@ func (prod *Kafka) pollResults() {
 		case err, hasMore := <-prod.producer.Errors():
 			if hasMore {
 				if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
-					prod.Log.Warning.Print("Kafka producer error on return: ", err)
+					prod.Logger.Warning("Kafka producer error on return: ", err)
 					prod.storeRTT(&msg)
 					if err == kafka.ErrMessageTooLarge {
-						prod.Log.Error.Print("Message discarded as too large.")
+						prod.Logger.Error("Message discarded as too large.")
 						core.CountMessageDiscarded()
 					} else {
 						prod.TryFallback(&msg)
@@ -455,7 +455,7 @@ func (prod *Kafka) registerNewTopic(topicName string, streamID core.MessageStrea
 func (prod *Kafka) produceMessage(msg *core.Message) {
 	if !prod.nilValueAllowed && len(msg.GetPayload()) == 0 {
 		streamName := core.StreamRegistry.GetStreamName(msg.GetStreamID())
-		prod.Log.Error.Printf("0 byte message detected on %s. Discarded", streamName)
+		prod.Logger.Errorf("0 byte message detected on %s. Discarded", streamName)
 		core.CountMessageDiscarded()
 		return // ### return, invalid data ###
 	}
@@ -478,7 +478,7 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	if isConnected, err := prod.isConnected(topic.name); !isConnected {
 		prod.TryFallback(msg)
 		if err != nil {
-			prod.Log.Error.Printf("%s is not connected: %s", topic.name, err.Error())
+			prod.Logger.Errorf("%s is not connected: %s", topic.name, err.Error())
 		}
 		// TBD: health check? (ex-fuse breaker)
 		return // ### return, not connected ###
@@ -520,7 +520,7 @@ func (prod *Kafka) getKafkaMsgKey(msg *core.Message) []byte {
 func (prod *Kafka) checkAllTopics() bool {
 	topics, err := prod.client.Topics()
 	if err != nil {
-		prod.Log.Error.Print("Failed to get topics ", err.Error())
+		prod.Logger.Error("Failed to get topics ", err.Error())
 	}
 
 	for _, topic := range topics {
@@ -565,7 +565,7 @@ func (prod *Kafka) isConnected(topic string) (bool, error) {
 			if connected, _ := broker.Connected(); connected {
 				req := &kafka.MetadataRequest{Topics: []string{topic}}
 				if _, err := broker.GetMetadata(req); err != nil {
-					prod.Log.Debug.Print("Broker ", broker.Addr(), " found to have an invalid connection: ", err)
+					prod.Logger.Debug("Broker ", broker.Addr(), " found to have an invalid connection: ", err)
 					broker.Close()
 				}
 			}
@@ -588,7 +588,7 @@ func (prod *Kafka) tryOpenConnection() bool {
 		if client, err := kafka.NewClient(prod.servers, prod.config); err == nil {
 			prod.client = client
 		} else {
-			prod.Log.Error.Print("Client initialization error:", err)
+			prod.Logger.Error("Client initialization error:", err)
 			return false // ### return, connection failed ###
 		}
 	}
@@ -598,7 +598,7 @@ func (prod *Kafka) tryOpenConnection() bool {
 		if producer, err := kafka.NewAsyncProducerFromClient(prod.client); err == nil {
 			prod.producer = producer
 		} else {
-			prod.Log.Error.Print("Producer initialization error:", err)
+			prod.Logger.Error("Producer initialization error:", err)
 			return false // ### return, connection failed ###
 		}
 	}

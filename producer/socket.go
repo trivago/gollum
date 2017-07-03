@@ -100,7 +100,7 @@ func (prod *Socket) Configure(conf core.PluginConfigReader) {
 	switch prod.protocol {
 	case "udp":
 		if prod.acknowledge != "" {
-			prod.Log.Warning.Print("Acknowledge is only supported for TCP connections. TCP connection forced.")
+			prod.Logger.Warning("Acknowledge is only supported for TCP connections. TCP connection forced.")
 			prod.protocol = "tcp"
 		}
 	case "unix", "tcp":
@@ -122,7 +122,7 @@ func (prod *Socket) tryConnect() bool {
 
 	conn, err := net.DialTimeout(prod.protocol, prod.address, prod.ackTimeout)
 	if err != nil {
-		prod.Log.Error.Print("Connection error: ", err)
+		prod.Logger.Error("Connection error: ", err)
 		prod.closeConnection()
 		return false // ### return, connection failed ###
 	}
@@ -155,7 +155,7 @@ func (prod *Socket) validate() bool {
 	prod.connection.SetReadDeadline(time.Now().Add(prod.ackTimeout))
 	_, err := prod.connection.Read(response)
 	if err != nil {
-		prod.Log.Error.Print("Response error: ", err)
+		prod.Logger.Error("Response error: ", err)
 		if tnet.IsDisconnectedError(err) {
 			prod.closeConnection()
 		}
@@ -165,7 +165,7 @@ func (prod *Socket) validate() bool {
 }
 
 func (prod *Socket) onWriteError(err error) bool {
-	prod.Log.Error.Print("Write error: ", err)
+	prod.Logger.Error("Write error: ", err)
 	prod.closeConnection()
 	return false
 }

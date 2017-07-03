@@ -15,21 +15,26 @@
 package core
 
 import (
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/thealthcheck"
-	"github.com/trivago/tgo/tlog"
 	"time"
 )
 
-// SimpleRouter router plugin
-// Configuration example:
+// SimpleRouter plugin base type
 //
-//  MyRouter:
-//    Type: "router.Broadcast"
-//    Stream: "foo"
-//    TimeoutMs: 200
-//    Filters:
-//	- filter.RegExp:
-// 	  Expression: "[a-zA-Z]+"
+// This type defines a common baseclass for routers. All routers should
+// derive from this class, but not necessarily need to.
+//
+// Configuration example:
+// [N/A - placeholder needed for doc generator]
+//
+// Stream Specifies the name of the stream this plugin is supposed to
+// read messages from.
+//
+// Filters A list of zero or more Filter plugins to connect to this router.
+//
+// TimeoutMs ... (default: 0, metric: ms)
+//
 //
 type SimpleRouter struct {
 	id        string
@@ -37,22 +42,22 @@ type SimpleRouter struct {
 	filters   FilterArray     `config:"Filters"`
 	timeout   time.Duration   `config:"TimeoutMs" default:"0" metric:"ms"`
 	streamID  MessageStreamID `config:"Stream"`
-	Log       tlog.LogScope
+	Logger    logrus.FieldLogger
 }
 
 // Configure sets up all values required by SimpleRouter.
 func (router *SimpleRouter) Configure(conf PluginConfigReader) {
 	router.id = conf.GetID()
-	router.Log = conf.GetLogScope()
+	router.Logger = conf.GetLogger()
 
 	if router.streamID == WildcardStreamID {
-		router.Log.Note.Print("A wildcard stream configuration only affects the wildcard stream, not all routers")
+		router.Logger.Info("A wildcard stream configuration only affects the wildcard stream, not all routers")
 	}
 }
 
-// GetLogScope returns the logging scope of this plugin
-func (router *SimpleRouter) GetLogScope() tlog.LogScope {
-	return router.Log
+// GetLogger returns the logging scope of this plugin
+func (router *SimpleRouter) GetLogger() logrus.FieldLogger {
+	return router.Logger
 }
 
 // AddHealthCheck adds a health check at the default URL (http://<addr>:<port>/<plugin_id>)
@@ -65,7 +70,7 @@ func (router *SimpleRouter) AddHealthCheckAt(path string, callback thealthcheck.
 	thealthcheck.AddEndpoint("/"+router.GetID()+path, callback)
 }
 
-// GetID returns the ID of this stream
+// GetID returns the ID of this router
 func (router *SimpleRouter) GetID() string {
 	return router.id
 }

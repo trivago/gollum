@@ -100,6 +100,10 @@ type ELBV2API interface {
 	DeregisterTargetsWithContext(aws.Context, *elbv2.DeregisterTargetsInput, ...request.Option) (*elbv2.DeregisterTargetsOutput, error)
 	DeregisterTargetsRequest(*elbv2.DeregisterTargetsInput) (*request.Request, *elbv2.DeregisterTargetsOutput)
 
+	DescribeAccountLimits(*elbv2.DescribeAccountLimitsInput) (*elbv2.DescribeAccountLimitsOutput, error)
+	DescribeAccountLimitsWithContext(aws.Context, *elbv2.DescribeAccountLimitsInput, ...request.Option) (*elbv2.DescribeAccountLimitsOutput, error)
+	DescribeAccountLimitsRequest(*elbv2.DescribeAccountLimitsInput) (*request.Request, *elbv2.DescribeAccountLimitsOutput)
+
 	DescribeListeners(*elbv2.DescribeListenersInput) (*elbv2.DescribeListenersOutput, error)
 	DescribeListenersWithContext(aws.Context, *elbv2.DescribeListenersInput, ...request.Option) (*elbv2.DescribeListenersOutput, error)
 	DescribeListenersRequest(*elbv2.DescribeListenersInput) (*request.Request, *elbv2.DescribeListenersOutput)
@@ -194,6 +198,9 @@ type ELBV2API interface {
 
 	WaitUntilLoadBalancerExists(*elbv2.DescribeLoadBalancersInput) error
 	WaitUntilLoadBalancerExistsWithContext(aws.Context, *elbv2.DescribeLoadBalancersInput, ...request.WaiterOption) error
+
+	WaitUntilLoadBalancersDeleted(*elbv2.DescribeLoadBalancersInput) error
+	WaitUntilLoadBalancersDeletedWithContext(aws.Context, *elbv2.DescribeLoadBalancersInput, ...request.WaiterOption) error
 }
 
 var _ ELBV2API = (*elbv2.ELBV2)(nil)

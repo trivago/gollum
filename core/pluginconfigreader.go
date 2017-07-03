@@ -16,9 +16,9 @@ package core
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
-	"github.com/trivago/tgo/tlog"
 	"github.com/trivago/tgo/treflect"
 	"reflect"
 )
@@ -32,7 +32,7 @@ type Configurable interface {
 
 // ScopedLogger defines an interface for structs that have a log scope attached
 type ScopedLogger interface {
-	GetLogScope() tlog.LogScope
+	GetLogger() logrus.FieldLogger
 }
 
 // PluginConfigReader provides another convenience wrapper on top of
@@ -73,16 +73,16 @@ func (reader *PluginConfigReader) GetTypename() string {
 	return reader.WithError.GetTypename()
 }
 
-// GetLogScope creates a new tlog.LogScope for the plugin contained in this
-// config.
-func (reader *PluginConfigReader) GetLogScope() tlog.LogScope {
-	return reader.WithError.GetLogScope()
+// GetLogger creates a new scoped logger (logrus.FieldLogger) for the plugin
+// contained in this config.
+func (reader *PluginConfigReader) GetLogger() logrus.FieldLogger {
+	return reader.WithError.GetLogger()
 }
 
-// GetSubLogScope creates a new sub scope tlog.LogScope for the plugin contained
-// in this config.
-func (reader *PluginConfigReader) GetSubLogScope(subScope string) tlog.LogScope {
-	return reader.WithError.GetSubLogScope(subScope)
+// GetSubLogger creates a new sub-scoped logger (logrus.FieldLogger) for the
+// plugin contained in this config
+func (reader *PluginConfigReader) GetSubLogger(subScope string) logrus.FieldLogger {
+	return reader.WithError.GetSubLogger(subScope)
 }
 
 // HasValue returns true if the given key has been set as a config option.
@@ -173,22 +173,22 @@ func (reader *PluginConfigReader) GetPluginArray(key string, defaultValue []Plug
 }
 
 // GetModulatorArray reads an array of modulator plugins
-func (reader *PluginConfigReader) GetModulatorArray(key string, logScope tlog.LogScope, defaultValue ModulatorArray) ModulatorArray {
-	modulators, err := reader.WithError.GetModulatorArray(key, logScope, defaultValue)
+func (reader *PluginConfigReader) GetModulatorArray(key string, logger logrus.FieldLogger, defaultValue ModulatorArray) ModulatorArray {
+	modulators, err := reader.WithError.GetModulatorArray(key, logger, defaultValue)
 	reader.Errors.Push(err)
 	return modulators
 }
 
 // GetFilterArray returns an array of filter plugins.
-func (reader *PluginConfigReader) GetFilterArray(key string, logScope tlog.LogScope, defaultValue FilterArray) FilterArray {
-	filters, err := reader.WithError.GetFilterArray(key, logScope, defaultValue)
+func (reader *PluginConfigReader) GetFilterArray(key string, logger logrus.FieldLogger, defaultValue FilterArray) FilterArray {
+	filters, err := reader.WithError.GetFilterArray(key, logger, defaultValue)
 	reader.Errors.Push(err)
 	return filters
 }
 
 // GetFormatterArray returns an array of formatter plugins.
-func (reader *PluginConfigReader) GetFormatterArray(key string, logScope tlog.LogScope, defaultValue FormatterArray) FormatterArray {
-	formatter, err := reader.WithError.GetFormatterArray(key, logScope, defaultValue)
+func (reader *PluginConfigReader) GetFormatterArray(key string, logger logrus.FieldLogger, defaultValue FormatterArray) FormatterArray {
+	formatter, err := reader.WithError.GetFormatterArray(key, logger, defaultValue)
 	reader.Errors.Push(err)
 	return formatter
 }
@@ -243,12 +243,12 @@ func (reader *PluginConfigReader) Configure(item interface{}) error {
 		panic("Configure requires reference")
 	}
 
-	var logScope tlog.LogScope
-	if logable, isScoped := item.(ScopedLogger); isScoped {
-		logScope = logable.GetLogScope()
+	var logger logrus.FieldLogger
+	if loggable, isScoped := item.(ScopedLogger); isScoped {
+		logger = loggable.GetLogger()
 	}
 
-	reader.configureStruct(itemValue, logScope)
+	reader.configureStruct(itemValue, logger)
 	if confItem, isConfigurable := item.(Configurable); isConfigurable {
 		confItem.Configure(*reader)
 	}
@@ -256,7 +256,7 @@ func (reader *PluginConfigReader) Configure(item interface{}) error {
 	return reader.Errors.OrNil()
 }
 
-func (reader *PluginConfigReader) configureStruct(structVal reflect.Value, scope tlog.LogScope) {
+func (reader *PluginConfigReader) configureStruct(structVal reflect.Value, logger logrus.FieldLogger) {
 	structType := treflect.RemovePtrFromType(structVal.Type())
 	field := reflect.StructField{}
 
@@ -272,7 +272,7 @@ func (reader *PluginConfigReader) configureStruct(structVal reflect.Value, scope
 		fieldVal := treflect.RemovePtrFromValue(structVal).Field(fieldIdx)
 
 		if key, hasFieldConfig := field.Tag.Lookup("config"); hasFieldConfig {
-			reader.configureField(fieldVal, key, PluginStructTag(field.Tag), scope)
+			reader.configureField(fieldVal, key, PluginStructTag(field.Tag), logger)
 			continue // ### continue, configured by tag ###
 		}
 
@@ -286,7 +286,7 @@ func (reader *PluginConfigReader) configureStruct(structVal reflect.Value, scope
 		}
 
 		fieldValPtr := fieldVal.Addr()
-		reader.configureStruct(fieldValPtr, scope)
+		reader.configureStruct(fieldValPtr, logger)
 		if !fieldValPtr.CanInterface() {
 			continue // ### continue, cannot cast ###
 		}
@@ -297,7 +297,8 @@ func (reader *PluginConfigReader) configureStruct(structVal reflect.Value, scope
 	}
 }
 
-func (reader *PluginConfigReader) configureField(fieldVal reflect.Value, key string, tags PluginStructTag, scope tlog.LogScope) {
+func (reader *PluginConfigReader) configureField(fieldVal reflect.Value, key string, tags PluginStructTag,
+	logger logrus.FieldLogger) {
 	switch fieldVal.Kind() {
 	case reflect.Bool:
 		treflect.SetValue(fieldVal, reader.GetBool(key, tags.GetBool()))
@@ -319,17 +320,18 @@ func (reader *PluginConfigReader) configureField(fieldVal reflect.Value, key str
 		treflect.SetValue(fieldVal, value)
 
 	case reflect.Array, reflect.Slice:
-		reader.configureArrayField(fieldVal, key, tags, scope)
+		reader.configureArrayField(fieldVal, key, tags, logger)
 
 	case reflect.Interface:
-		reader.configureInterfaceField(fieldVal, key, tags, scope)
+		reader.configureInterfaceField(fieldVal, key, tags, logger)
 
 	default:
 		panic("Field type not supported")
 	}
 }
 
-func (reader *PluginConfigReader) configureArrayField(fieldVal reflect.Value, key string, tags PluginStructTag, scope tlog.LogScope) {
+func (reader *PluginConfigReader) configureArrayField(fieldVal reflect.Value, key string, tags PluginStructTag,
+	logger logrus.FieldLogger) {
 	elementType := fieldVal.Type().Elem()
 
 	switch elementType.Kind() {
@@ -359,15 +361,15 @@ func (reader *PluginConfigReader) configureArrayField(fieldVal reflect.Value, ke
 			treflect.SetValue(fieldVal, routers)
 
 		case "Modulator":
-			modulators := reader.GetModulatorArray(key, scope, ModulatorArray{})
+			modulators := reader.GetModulatorArray(key, logger, ModulatorArray{})
 			treflect.SetValue(fieldVal, modulators)
 
 		case "Filter":
-			filters := reader.GetFilterArray(key, scope, FilterArray{})
+			filters := reader.GetFilterArray(key, logger, FilterArray{})
 			treflect.SetValue(fieldVal, filters)
 
 		case "Formatter":
-			formatters := reader.GetFormatterArray(key, scope, FormatterArray{})
+			formatters := reader.GetFormatterArray(key, logger, FormatterArray{})
 			treflect.SetValue(fieldVal, formatters)
 		}
 
@@ -377,7 +379,8 @@ func (reader *PluginConfigReader) configureArrayField(fieldVal reflect.Value, ke
 
 }
 
-func (reader *PluginConfigReader) configureInterfaceField(fieldVal reflect.Value, key string, tags PluginStructTag, scope tlog.LogScope) {
+func (reader *PluginConfigReader) configureInterfaceField(fieldVal reflect.Value, key string, tags PluginStructTag,
+	logger logrus.FieldLogger) {
 	fieldType := treflect.RemovePtrFromType(fieldVal.Type())
 	switch fieldType.Name() {
 	case "Router":

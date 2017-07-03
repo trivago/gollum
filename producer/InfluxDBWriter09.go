@@ -17,9 +17,9 @@ package producer
 import (
 	"bytes"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tio"
-	"github.com/trivago/tgo/tlog"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -48,7 +48,7 @@ type influxDBWriter09 struct {
 	timeBasedDBName  bool
 	Control          func() chan<- core.PluginControl
 	buffer           tio.ByteStream
-	log              tlog.LogScope
+	logger           logrus.FieldLogger
 }
 
 // Configure sets the database connection values
@@ -60,7 +60,7 @@ func (writer *influxDBWriter09) configure(conf core.PluginConfigReader, prod *In
 	writer.buffer = tio.NewByteStream(4096)
 	writer.connectionUp = false
 	writer.Control = prod.Control
-	writer.log = prod.Log
+	writer.logger = prod.Logger
 
 	writer.writeURL = fmt.Sprintf("http://%s/write", writer.host)
 	writer.queryURL = fmt.Sprintf("http://%s/query", writer.host)
@@ -95,7 +95,7 @@ func (writer *influxDBWriter09) isConnectionUp() bool {
 		case "200", "204":
 			if _, hasInfluxHeader := response.Header["X-Influxdb-Version"]; hasInfluxHeader {
 				writer.connectionUp = true
-				writer.log.Note.Print("Connected to " + writer.host)
+				writer.logger.Info("Connected to " + writer.host)
 			}
 		}
 	}
@@ -114,7 +114,7 @@ func (writer *influxDBWriter09) createDatabase(database string) error {
 	defer response.Body.Close()
 	switch response.Status[:3] {
 	case "200", "201":
-		writer.log.Note.Printf("Created database %s", database)
+		writer.logger.Infof("Created database %s", database)
 		return nil
 
 	default:

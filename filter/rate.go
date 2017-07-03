@@ -102,7 +102,7 @@ func (filter *Rate) updateMetrics() {
 		tgo.Metric.Add(metricLimit+streamName, numFiltered)
 		if numFiltered > 0 {
 			state.lastLimit = time.Now()
-			filter.Log.Warning.Printf("Ratelimit reached for %s: %d filtered in %d seconds", streamName, numFiltered, rateLimitUpdateIntervalSec)
+			filter.Logger.Warningf("Ratelimit reached for %s: %d filtered in %d seconds", streamName, numFiltered, rateLimitUpdateIntervalSec)
 		}
 
 		tgo.Metric.SetF(metricLimitAgo+streamName, time.Since(state.lastLimit).Seconds())

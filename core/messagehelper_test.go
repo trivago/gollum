@@ -1,7 +1,7 @@
 package core
 
 import (
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/ttesting"
 	"reflect"
 	"testing"
@@ -38,7 +38,7 @@ func getMockRouterMessageHelper(streamName string) mockRouterMessageHelper {
 			Producers: []Producer{},
 			timeout:   timeout,
 			streamID:  StreamRegistry.GetStreamID(streamName),
-			Log:       tlog.NewLogScope("testStreamLogScope"),
+			Logger:    logrus.WithField("Scope", "testStreamLogScope"),
 		},
 	}
 }

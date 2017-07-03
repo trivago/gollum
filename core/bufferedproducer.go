@@ -140,7 +140,7 @@ func (prod *BufferedProducer) CloseMessageChannel(handleMessage func(*Message)) 
 
 	defer func() {
 		if !prod.messages.IsEmpty() {
-			prod.Log.Error.Printf("%d messages left after closing.", prod.messages.GetNumQueued())
+			prod.Logger.Errorf("%d messages left after closing.", prod.messages.GetNumQueued())
 		}
 	}()
 

@@ -15,7 +15,7 @@
 package core
 
 import (
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 )
 
 // FormatterModulator is a wrapper to provide a Formatter as a Modulator
@@ -34,7 +34,7 @@ func NewFormatterModulator(formatter Formatter) *FormatterModulator {
 func (formatterModulator *FormatterModulator) Modulate(msg *Message) ModulateResult {
 	err := formatterModulator.ApplyFormatter(msg)
 	if err != nil {
-		tlog.Warning.Print("FormatterModulator with error:", err)
+		logrus.Warning("FormatterModulator with error:", err)
 		return ModulateResultDiscard
 	}
 

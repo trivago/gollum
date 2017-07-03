@@ -90,7 +90,7 @@ func (format *ExtractJSON) extractJSON(content []byte) ([]byte, error) {
 
 	err := json.Unmarshal(content, &values)
 	if err != nil {
-		format.Log.Warning.Print("ExtractJSON failed to unmarshal a message: ", err)
+		format.Logger.Warning("ExtractJSON failed to unmarshal a message: ", err)
 		return nil, err
 	}
 
@@ -110,7 +110,7 @@ func (format *ExtractJSON) extractJSON(content []byte) ([]byte, error) {
 		}
 	}
 
-	format.Log.Warning.Print("ExtractJSON field not exists: ", format.field)
+	format.Logger.Warning("ExtractJSON field not exists: ", format.field)
 
 	return nil, nil
 }

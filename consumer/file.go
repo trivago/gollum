@@ -15,6 +15,7 @@
 package consumer
 
 import (
+	"github.com/fsnotify/fsnotify"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
@@ -27,7 +28,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"github.com/fsnotify/fsnotify"
 )
 
 const (
@@ -180,14 +180,13 @@ func (cons *File) initFile() {
 			cons.seek = 1
 			cons.seekOffset, err = strconv.ParseInt(string(fileContents), 10, 64)
 			if err != nil {
-				cons.Log.Error.Print("Error reading offset file: ", err)
+				cons.Logger.Error("Error reading offset file: ", err)
 			}
 		}
 	}
 }
 
 func (cons *File) close() {
-	cons.Log.Warning.Println("DEFER close()")
 	if cons.file != nil {
 		cons.file.Close()
 	}
@@ -219,16 +218,16 @@ func (cons *File) poll(buffer *tio.BufferedReader, sendFunction func(data []byte
 }
 
 func (cons *File) watchClose(watcher *fsnotify.Watcher) {
-	cons.Log.Warning.Println("DEFER watchClose()")
+	cons.Logger.Warning("DEFER watchClose()")
 	cons.close()
 	err := watcher.Close()
-	cons.Log.Debug.Printf("close result: %#v\n", err)
+	cons.Logger.Debugf("close result: %#v\n", err)
 }
 
 func (cons *File) watch(buffer *tio.BufferedReader, sendFunction func(data []byte)) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		cons.Log.Error.Fatal(err)
+		cons.Logger.Fatal(err)
 	}
 	//defer watcher.Close()
 	defer cons.watchClose(watcher)
@@ -236,7 +235,7 @@ func (cons *File) watch(buffer *tio.BufferedReader, sendFunction func(data []byt
 	printFileOpenError := true // DUPLICATE
 
 	// read current file state before watching
-	cons.read(buffer, sendFunction, &printFileOpenError, func(){}, func(){})
+	cons.read(buffer, sendFunction, &printFileOpenError, func() {}, func() {})
 
 	done := make(chan bool)
 
@@ -244,13 +243,13 @@ func (cons *File) watch(buffer *tio.BufferedReader, sendFunction func(data []byt
 		for cons.state != fileStateDone {
 			select {
 			case event := <-watcher.Events:
-				cons.Log.Debug.Println("event:", event)
+				cons.Logger.Debug("event:", event)
 				if event.Op&fsnotify.Write == fsnotify.Write {
-					cons.Log.Debug.Println("modified file:", event.Name)
-					cons.read(buffer, sendFunction, &printFileOpenError, func(){}, func(){})
+					cons.Logger.Debug("modified file:", event.Name)
+					cons.read(buffer, sendFunction, &printFileOpenError, func() {}, func() {})
 				}
 			case err := <-watcher.Errors:
-				cons.Log.Error.Println("error:", err)
+				cons.Logger.Error("error:", err)
 			}
 		}
 	})
@@ -261,7 +260,7 @@ func (cons *File) watch(buffer *tio.BufferedReader, sendFunction func(data []byt
 
 	err = watcher.Add(cons.realFileName)
 	if err != nil {
-		cons.Log.Error.Fatal(err)
+		cons.Logger.Fatal(err)
 	}
 	<-done
 }
@@ -284,7 +283,7 @@ func (cons *File) read(buffer *tio.BufferedReader, sendFunction func(data []byte
 		switch {
 		case err != nil:
 			if *printFileOpenError {
-				cons.Log.Warning.Print("Open failed: ", err)
+				cons.Logger.Warning("Open failed: ", err)
 				*printFileOpenError = false
 			}
 			time.Sleep(3 * time.Second)
@@ -308,14 +307,14 @@ func (cons *File) read(buffer *tio.BufferedReader, sendFunction func(data []byte
 
 		case err == io.EOF:
 			if cons.file.Name() != cons.realFileName {
-				cons.Log.Note.Print("Rotation detected")
+				cons.Logger.Info("Rotation detected")
 				cons.onRoll()
 			} else {
 				newStat, newStatErr := os.Stat(cons.realFileName)
 				oldStat, oldStatErr := cons.file.Stat()
 
 				if newStatErr == nil && oldStatErr == nil && !os.SameFile(newStat, oldStat) {
-					cons.Log.Note.Print("Rotation detected")
+					cons.Logger.Info("Rotation detected")
 					cons.onRoll()
 				}
 			}
@@ -323,7 +322,7 @@ func (cons *File) read(buffer *tio.BufferedReader, sendFunction func(data []byte
 			onEOF()
 
 		case cons.state == fileStateRead:
-			cons.Log.Error.Print("Reading failed: ", err)
+			cons.Logger.Error("Reading failed: ", err)
 			cons.file.Close()
 			cons.file = nil
 		}
@@ -333,7 +332,9 @@ func (cons *File) read(buffer *tio.BufferedReader, sendFunction func(data []byte
 func (cons *File) onRoll() {
 	cons.setState(fileStateOpen)
 }
+
 var activeWorkers *sync.WaitGroup
+
 // Consume listens to stdin.
 func (cons *File) Consume(workers *sync.WaitGroup) {
 	cons.setState(fileStateOpen)
