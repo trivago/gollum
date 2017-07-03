@@ -21,8 +21,8 @@ import (
 	"github.com/vjeantet/grok"
 )
 
-// Grok formatter plugin
-// Grok is a formatter that applies regex filters on messages.
+// GrokToJSON formatter plugin
+// GrokToJSON is a formatter that applies regex filters on messages.
 // It works by combining text patterns into something that matches your logs.
 // Configuration example
 //
