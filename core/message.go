@@ -59,7 +59,7 @@ func NewMessage(source MessageSource, data []byte, metadata Metadata, streamID M
 	message.data.payload = buffer
 	message.data.streamID = streamID
 	if metadata == nil {
-		message.data.Metadata = Metadata{}
+		message.data.Metadata = make(Metadata)
 	} else {
 		message.data.Metadata = metadata
 	}
