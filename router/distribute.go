@@ -101,29 +101,25 @@ func (router *Distribute) route(msg *core.Message, targetRouter core.Router) {
 	} else {
 		msg.SetStreamID(targetRouter.GetStreamID())
 		core.Route(msg, targetRouter)
+		router.Logger.Debugf("routed to StreamID '%v'", targetRouter.GetStreamID())
 	}
 }
 
 // Enqueue enques a message to the router
 func (router *Distribute) Enqueue(msg *core.Message) error {
-	numStreams := len(router.routers)
-
-	switch numStreams {
-	case 0:
-		return core.NewModulateResultError("No producers configured for stream %s", router.GetID())
-
-	case 1:
-		router.route(msg, router.routers[0])
-
-	default:
-		lastStreamIdx := numStreams - 1
-		for streamIdx := 0; streamIdx < lastStreamIdx; streamIdx++ {
-			router.route(msg.Clone(), router.routers[streamIdx])
-			router.Logger.Debugf("routed to StreamID '%v'", router.routers[streamIdx].GetStreamID())
-		}
-		router.route(msg, router.routers[lastStreamIdx])
-		router.Logger.Debugf("routed to StreamID '%v'", router.routers[lastStreamIdx].GetStreamID())
+	routers := router.routers
+	if len(routers) == 0 {
+		return core.NewModulateResultError(
+			"Router %s: no streams configured", router.GetID())
 	}
 
+	lastRouterIdx := len(routers) - 1
+	for _, targetRouter := range routers[:lastRouterIdx] {
+		router.route(msg.Clone(), targetRouter)
+	}
+
+	// Cloning is a rather expensive operation, so skip cloning for the last
+	// message (not required)
+	router.route(msg, routers[lastRouterIdx])
 	return nil
 }
