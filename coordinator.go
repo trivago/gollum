@@ -241,46 +241,44 @@ func (co *Coordinator) configureProducers(conf *core.Config) {
 	producerConfigs := conf.GetProducers()
 
 	for _, config := range producerConfigs {
-		for i := uint64(0); i < config.Instances; i++ {
-			logrus.Debug("Instantiating ", config.ID)
+		logrus.Debug("Instantiating ", config.ID)
 
-			plugin, err := core.NewPluginWithConfig(config)
-			if err != nil {
-				logrus.Errorf("Failed to instantiate producer %s: %s", config.ID, err)
-				continue // ### continue ###
+		plugin, err := core.NewPluginWithConfig(config)
+		if err != nil {
+			logrus.Errorf("Failed to instantiate producer %s: %s", config.ID, err)
+			continue // ### continue ###
+		}
+
+		producer, _ := plugin.(core.Producer)
+		streams := producer.Streams()
+
+		if len(streams) == 0 {
+			logrus.Error("Producer ", config.ID, " has no streams set")
+			continue // ### continue ###
+		}
+
+		co.producers = append(co.producers, producer)
+		core.CountProducers()
+
+		// Attach producer to streams
+
+		for _, streamID := range streams {
+			if streamID == core.WildcardStreamID {
+				core.StreamRegistry.RegisterWildcardProducer(producer)
+			} else {
+				router := core.StreamRegistry.GetRouterOrFallback(streamID)
+				router.AddProducer(producer)
 			}
+		}
 
-			producer, _ := plugin.(core.Producer)
-			streams := producer.Streams()
-
-			if len(streams) == 0 {
-				logrus.Error("Producer ", config.ID, " has no streams set")
-				continue // ### continue ###
-			}
-
-			co.producers = append(co.producers, producer)
-			core.CountProducers()
-
-			// Attach producer to streams
-
-			for _, streamID := range streams {
-				if streamID == core.WildcardStreamID {
-					core.StreamRegistry.RegisterWildcardProducer(producer)
-				} else {
-					router := core.StreamRegistry.GetRouterOrFallback(streamID)
-					router.AddProducer(producer)
-				}
-			}
-
-			// Add producer to wildcard stream unless it only listens to internal streams
-		searchinternal:
-			for _, streamID := range streams {
-				switch streamID {
-				case core.LogInternalStreamID:
-				default:
-					wildcardStream.AddProducer(producer)
-					break searchinternal
-				}
+		// Add producer to wildcard stream unless it only listens to internal streams
+	searchinternal:
+		for _, streamID := range streams {
+			switch streamID {
+			case core.LogInternalStreamID:
+			default:
+				wildcardStream.AddProducer(producer)
+				break searchinternal
 			}
 		}
 	}
@@ -292,19 +290,17 @@ func (co *Coordinator) configureConsumers(conf *core.Config) {
 
 	consumerConfigs := conf.GetConsumers()
 	for _, config := range consumerConfigs {
-		for i := uint64(0); i < config.Instances; i++ {
-			logrus.Debug("Instantiating ", config.ID)
+		logrus.Debug("Instantiating ", config.ID)
 
-			plugin, err := core.NewPluginWithConfig(config)
-			if err != nil {
-				logrus.Errorf("Failed to instantiate producer %s: %s", config.ID, err)
-				continue // ### continue ###
-			}
-
-			consumer, _ := plugin.(core.Consumer)
-			co.consumers = append(co.consumers, consumer)
-			core.CountConsumers()
+		plugin, err := core.NewPluginWithConfig(config)
+		if err != nil {
+			logrus.Errorf("Failed to instantiate producer %s: %s", config.ID, err)
+			continue // ### continue ###
 		}
+
+		consumer, _ := plugin.(core.Consumer)
+		co.consumers = append(co.consumers, consumer)
+		core.CountConsumers()
 	}
 }
 
