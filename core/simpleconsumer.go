@@ -44,13 +44,13 @@ import (
 // is set to "" which does not register this consumer.
 //
 // ModulatorQueues defines the number of modulators that are run in parallel.
-// When set to <= 1, messages will be enqueued directly, every other value will
-// pass the message to separate go routines in a round-robin fashin.
+// When set to 0, messages will be enqueued directly, every other value will
+// pass the message to separate go routines in a round-robin fashion.
 // By default this is set to 0.
 //
 // ModulatorQueueSize defines the size of the channels used to pass messages to
 // the go routine spawned by ModulatorQueues. This setting has no effect if
-// ModulatorQueues is set to > 1. By default the queue size is set to 1024
+// ModulatorQueues is set to 0. By default the queue size is set to 1024
 //
 // Streams contains either a single string or a list of strings defining the
 // message channels this consumer will produce. By default this is set to "*"
@@ -86,7 +86,7 @@ func (cons *SimpleConsumer) Configure(conf PluginConfigReader) {
 	numQueues := conf.GetInt("ModulatorQueues", 0)
 	queueSize := conf.GetInt("ModulatorQueueSize", 1024)
 
-	if numQueues > 1 {
+	if numQueues > 0 {
 		cons.Logger.Debugf("Using %d modulator queues", numQueues)
 		cons.modulatorQueue = make([]chan (*Message), numQueues)
 		for i := range cons.modulatorQueue {
