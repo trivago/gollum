@@ -68,11 +68,11 @@ func TestJSONToLineProtocol(t *testing.T) {
 	}
 }
 
-func TestJSONToLineProtocolReal(t *testing.T) {
+func TestJSONToLineProtocolIgnoreTag(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.JSONToInflux10")
-	config.Override("Tags", []string{"datacenter", "service", "host", "application"})
+	config.Override("Tags", []string{"foo"})
 	config.Override("Ignore", []string{"BASE10NUM"})
 
 	plugin, err := core.NewPluginWithConfig(config)
@@ -81,7 +81,7 @@ func TestJSONToLineProtocolReal(t *testing.T) {
 	formatter, casted := plugin.(*JSONToInflux10)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("{\"BASE10NUM\":\"0.099972\",\"datacenter\":\"sfo\",\"host\":\"www14-sfo\",\"measurement\":\"statsd.derive-webservice_hotelsearch.memcached.tw_data_item.set_multi\",\"service\":\"www\",\"time\":\"1497606215\",\"value\":\"0.099972\"}"),
+	msg := core.NewMessage(nil, []byte("{\"BASE10NUM\":\"0.099972\",\"foo\":\"bar\",\"measurement\":\"baz\",\"time\":\"1497606216\",\"value\":\"42\"}"),
 		core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
@@ -97,23 +97,14 @@ func TestJSONToLineProtocolReal(t *testing.T) {
 	fields := parts[1]
 	timestamp := parts[2]
 
-	expect.Equal(fields, "value=0.099972")
-	expect.Equal(timestamp, "1497606215")
+	expect.Equal(fields, "value=42")
+	expect.Equal(timestamp, "1497606216")
 
 	tags := strings.Split(meta, ",")
 	expect.Equal(len(tags), 4)
 	measurement := tags[0]
-	expect.Equal(measurement, "statsd.derive-webservice_hotelsearch.memcached.tw_data_item.set_multi")
-
-	remainingTags := tags[1:]
-	declaredTags := make(map[string]bool)
-	declaredTags["datacenter=sfo"] = true
-	declaredTags["host=www14-sfo"] = true
-	declaredTags["service=www"] = true
-	for _, t := range remainingTags {
-		_, ok := declaredTags[t]
-		expect.True(ok)
-	}
+	expect.Equal(measurement, "baz")
+	expect.Equal(tags[1:], "[foo=bar]")
 }
 
 func TestJSONToLineProtocolMissingMeasurement(t *testing.T) {

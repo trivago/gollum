@@ -122,7 +122,7 @@ func (format *JSONToInflux10) ApplyFormatter(msg *core.Message) error {
 	err := json.Unmarshal(content, &values)
 
 	if err != nil {
-		format.Log.Warning.Printf("JSON parser error: %s, Message: %s", err, content)
+		format.Logger.Warningf("JSON parser error: %s, Message: %s", err, content)
 		return err
 	}
 
@@ -130,7 +130,7 @@ func (format *JSONToInflux10) ApplyFormatter(msg *core.Message) error {
 	if val, ok := values[format.timeField]; ok {
 		timestamp, err = strconv.ParseInt(val.(string), 10, 64)
 		if err != nil {
-			format.Log.Error.Print("Invalid time format in message:", err)
+			format.Logger.Error("Invalid time format in message:", err)
 		}
 		delete(values, format.timeField)
 	} else {
@@ -166,17 +166,6 @@ func (format *JSONToInflux10) ApplyFormatter(msg *core.Message) error {
 		format.joinMap(tags),
 		format.joinMap(fields),
 		timestamp)
-
-	// setSize := tmath.Min3I(len(collectdData.Dstypes), len(collectdData.Dsnames), len(collectdData.Values))
-	// for i := 0; i < setSize; i++ {
-	// 	fmt.Fprintf(&influxData,
-	// 		`%s,dstype=%s,dsname=%s value=%f %d\n`,
-	// 		fixedPart,
-	// 		format.escapeTag(collectdData.Dstypes[i]),
-	// 		format.escapeTag(collectdData.Dsnames[i]),
-	// 		collectdData.Values[i],
-	// 		timestamp)
-	// }
 
 	format.SetAppliedContent(msg, []byte(line))
 	return nil
