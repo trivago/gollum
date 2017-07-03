@@ -139,10 +139,7 @@ func GetStreamMetric(streamID MessageStreamID) StreamMetric {
 		return metric
 	}
 
-	metric = StreamMetric{
-		streamID,
-	}
-	metric.init()
+	metric = newStreamMetric(streamID)
 
 	streamMetricsGuard.Lock()
 	if racedMetric, isSet := streamMetrics[streamID]; isSet {
@@ -157,32 +154,37 @@ func GetStreamMetric(streamID MessageStreamID) StreamMetric {
 
 // StreamMetric class for stream based metrics
 type StreamMetric struct {
-	messageStreamID MessageStreamID
+	keyRouted    string
+	keyDiscarded string
 }
 
-func (metric *StreamMetric) init() {
-	keyRouted := metric.getMetricKey(metricStreamMessagesRouted)
-	keyDiscarded := metric.getMetricKey(metricStreamMessagesDiscarded)
+func newStreamMetric(streamID MessageStreamID) StreamMetric {
+	streamName := StreamRegistry.GetStreamName(streamID)
 
-	tgo.Metric.New(keyRouted)
-	tgo.Metric.New(keyDiscarded)
+	metric := StreamMetric{
+		keyRouted:    fmt.Sprintf(metricStreamMessagesRouted, streamName),
+		keyDiscarded: fmt.Sprintf(metricStreamMessagesDiscarded, streamName),
+	}
 
-	tgo.Metric.NewRate(keyRouted, metric.getMetricKey(metricStreamMessagesRoutedAvg), time.Second, 10, 3, true)
-	tgo.Metric.NewRate(keyDiscarded, metric.getMetricKey(metricStreamMessagesDiscardedAvg), time.Second, 10, 3, true)
+	keyRoutedAvg := fmt.Sprintf(metricStreamMessagesRoutedAvg, streamName)
+	keyDiscardedAvg := fmt.Sprintf(metricStreamMessagesDiscardedAvg, streamName)
+
+	tgo.Metric.New(metric.keyRouted)
+	tgo.Metric.New(metric.keyDiscarded)
+	tgo.Metric.NewRate(metric.keyRouted, keyRoutedAvg, time.Second, 10, 3, true)
+	tgo.Metric.NewRate(metric.keyDiscarded, keyDiscardedAvg, time.Second, 10, 3, true)
+
+	return metric
 }
 
 // CountMessageRouted increases the messages counter by 1
 func (metric *StreamMetric) CountMessageRouted() {
-	tgo.Metric.Inc(metric.getMetricKey(metricStreamMessagesRouted))
+	tgo.Metric.Inc(metric.keyRouted)
 }
 
 // CountMessageDiscarded increases the discarded messages counter by 1
 func (metric *StreamMetric) CountMessageDiscarded() {
-	tgo.Metric.Inc(metric.getMetricKey(metricStreamMessagesDiscarded))
-}
-
-func (metric *StreamMetric) getMetricKey(format string) string {
-	return fmt.Sprintf(format, StreamRegistry.GetStreamName(metric.messageStreamID))
+	tgo.Metric.Inc(metric.keyDiscarded)
 }
 
 // PluginMetric class for plugin based metrics
