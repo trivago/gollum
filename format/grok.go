@@ -26,10 +26,12 @@ import (
 // It works by combining text patterns into something that matches your logs.
 // Configuration example
 //
-//  Formatter: "format.Grok"
-//  Patterns:
-//    - (?<datacenter>[^\.]+?)\.(?<service>[^\.]+?)\.(?<host>[^\.]+?)\.(?<measurement>[^\s]+?)\s%{NUMBER:value:float}\s%{INT:time}
-//    - (?<datacenter>[^\.]+?)\.(?<service>[^\.]+?)\.(?<host>[^\.]+?)\.(?<application>twemproxy[^\.]+?)_(?<instance>[^\.]+?)\.(?<measurement>[^\s]+?)\s%{NUMBER:value:float}\s%{INT:time}
+// - format.Grok:
+//     Patterns:
+//       - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.gauge-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_gauge:float}\s*%{INT:time}
+//       - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.latency-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_latency:float}\s*%{INT:time}
+//       - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.derive-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_derive:float}\s*%{INT:time}
+//       - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value:float}\s*%{INT:time}
 //
 // The output format is JSON.
 // For example, if using the example configuration from above and the following line as input
@@ -49,7 +51,7 @@ import (
 type Grok struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	grok                 *grok.Grok
-	patterns             []string
+	patterns             []string `config:"Patterns"`
 }
 
 func init() {
@@ -58,11 +60,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Grok) Configure(conf core.PluginConfigReader) {
-	format.SimpleFormatter.Configure(conf)
-	format.patterns = conf.GetStringArray("Patterns", []string{})
-
 	grok, err := grok.NewWithConfig(&grok.Config{RemoveEmptyValues: true})
-
 	if err != nil {
 		conf.Errors.Push(err)
 	}
@@ -98,5 +96,6 @@ func (format *Grok) applyGrok(content string) (map[string]string, error) {
 			return values, nil
 		}
 	}
-	return nil, fmt.Errorf("Message does not match any grok pattern: %s", content)
+	format.Logger.Errorf("Message does not match any pattern: %s", content)
+	return nil, fmt.Errorf("Grok parsing error")
 }
