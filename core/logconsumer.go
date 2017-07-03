@@ -32,7 +32,6 @@ type LogConsumer struct {
 	lastCount      int64
 	lastCountWarn  int64
 	lastCountError int64
-	updateTimer    *time.Timer
 	stopped        bool
 }
 
@@ -46,10 +45,9 @@ func (cons *LogConsumer) Configure(conf PluginConfigReader) {
 		tgo.Metric.New(cons.metric)
 		tgo.Metric.New(cons.metric + "Error")
 		tgo.Metric.New(cons.metric + "Warning")
-		tgo.Metric.New(cons.metric + "Sec")
-		tgo.Metric.New(cons.metric + "ErrorSec")
-		tgo.Metric.New(cons.metric + "WarningSec")
-		cons.updateTimer = time.AfterFunc(time.Second*5, cons.updateMetric)
+		tgo.Metric.NewRate(cons.metric, cons.metric+"Sec", time.Second, 10, 3, true)
+		tgo.Metric.NewRate(cons.metric+"Error", cons.metric+"ErrorSec", time.Second, 10, 3, true)
+		tgo.Metric.NewRate(cons.metric+"Warning", cons.metric+"WarningSec", time.Second, 10, 3, true)
 	}
 }
 
@@ -76,20 +74,6 @@ func (cons *LogConsumer) GetShutdownTimeout() time.Duration {
 	return time.Millisecond
 }
 
-func (cons *LogConsumer) updateMetric() {
-	currentCount, _ := tgo.Metric.Get(cons.metric)
-	currentCountWarn, _ := tgo.Metric.Get(cons.metric + "Warning")
-	currentCountError, _ := tgo.Metric.Get(cons.metric + "Error")
-
-	tgo.Metric.Set(cons.metric+"Sec", (currentCount-cons.lastCount)/5)
-	tgo.Metric.Set(cons.metric+"WarningSec", (currentCountWarn-cons.lastCountWarn)/5)
-	tgo.Metric.Set(cons.metric+"ErrorSec", (currentCountError-cons.lastCountError)/5)
-	cons.lastCount = currentCount
-	cons.lastCountWarn = currentCountWarn
-	cons.lastCountError = currentCountError
-	cons.updateTimer = time.AfterFunc(time.Second*5, cons.updateMetric)
-}
-
 // Control returns a handle to the control channel
 func (cons *LogConsumer) Control() chan<- PluginControl {
 	return cons.control
@@ -102,12 +86,6 @@ func (cons *LogConsumer) Consume(threads *sync.WaitGroup) {
 		command := <-cons.control
 		if command == PluginControlStopConsumer {
 			cons.stopped = true
-
-			// only is use for active metrics
-			if cons.updateTimer != nil {
-				cons.updateTimer.Stop()
-			}
-
 			return // ### return ###
 		}
 	}
