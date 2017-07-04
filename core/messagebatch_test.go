@@ -69,13 +69,13 @@ func TestMessageBatchAppendOrFlush(t *testing.T) {
 	}
 
 	for i := 0; i < 10; i++ {
-		batch.AppendOrFlush(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), InvalidStreamID),
+		batch.AppendOrFlush(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), nil, InvalidStreamID),
 			flushBuffer,
 			dontBlock,
 			dropMsg)
 	}
 	// the buffer is full so it should be flushed and the new message queued
-	batch.AppendOrFlush(NewMessage(nil, []byte(fmt.Sprintf("%d", 10)), InvalidStreamID),
+	batch.AppendOrFlush(NewMessage(nil, []byte(fmt.Sprintf("%d", 10)), nil, InvalidStreamID),
 		flushBuffer,
 		doBlock,
 		dropMsg)
@@ -97,7 +97,7 @@ func TestMessageBatch(t *testing.T) {
 	expect.Equal(batch.Len(), 10)
 
 	// Append adds an item
-	batch.Append(NewMessage(nil, []byte("test"), InvalidStreamID))
+	batch.Append(NewMessage(nil, []byte("test"), nil, InvalidStreamID))
 	expect.False(batch.IsEmpty())
 
 	// Flush removes all items
@@ -109,9 +109,9 @@ func TestMessageBatch(t *testing.T) {
 
 	// Append fails if buffer is full
 	for i := 0; i < 10; i++ {
-		expect.True(batch.Append(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), InvalidStreamID)))
+		expect.True(batch.Append(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), nil, InvalidStreamID)))
 	}
-	expect.False(batch.Append(NewMessage(nil, []byte("10"), InvalidStreamID)))
+	expect.False(batch.Append(NewMessage(nil, []byte("10"), nil, InvalidStreamID)))
 	expect.True(batch.ReachedSizeThreshold(10))
 
 	// Test writer assembly
@@ -120,7 +120,7 @@ func TestMessageBatch(t *testing.T) {
 	expect.True(batch.IsEmpty())
 
 	for i := 0; i < 10; i++ {
-		expect.True(batch.Append(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), InvalidStreamID)))
+		expect.True(batch.Append(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), nil, InvalidStreamID)))
 	}
 
 	writer.counter = 0
@@ -134,7 +134,7 @@ func TestMessageBatch(t *testing.T) {
 
 	// Flush removes all items, also if closed
 	for i := 0; i < 5; i++ {
-		expect.True(batch.Append(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), InvalidStreamID)))
+		expect.True(batch.Append(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), nil, InvalidStreamID)))
 	}
 
 	batch.Flush(assembly.Flush)
@@ -142,10 +142,10 @@ func TestMessageBatch(t *testing.T) {
 	// batch is not closed and message is appended
 
 	for i := 0; i < 10; i++ {
-		expect.True(batch.AppendOrBlock(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), InvalidStreamID)))
+		expect.True(batch.AppendOrBlock(NewMessage(nil, []byte(fmt.Sprintf("%d", i)), nil, InvalidStreamID)))
 	}
 	go func() {
-		expect.False(batch.AppendOrBlock(NewMessage(nil, []byte("10"), InvalidStreamID)))
+		expect.False(batch.AppendOrBlock(NewMessage(nil, []byte("10"), nil, InvalidStreamID)))
 	}()
 	//let above goroutine run so that spin can Yield atleast once
 	time.Sleep(1 * time.Second)
@@ -155,16 +155,16 @@ func TestMessageBatch(t *testing.T) {
 	//closing now will close the messageBatch and the goroutine will return false
 	batch.Close(func([]*Message) {}, time.Second)
 	expect.True(batch.IsEmpty())
-	expect.False(batch.Append(NewMessage(nil, []byte("6"), InvalidStreamID)))
+	expect.False(batch.Append(NewMessage(nil, []byte("6"), nil, InvalidStreamID)))
 	expect.True(batch.IsEmpty())
 
-	expect.False(batch.Append(NewMessage(nil, nil, InvalidStreamID)))
-	expect.False(batch.AppendOrBlock(NewMessage(nil, nil, InvalidStreamID)))
+	expect.False(batch.Append(NewMessage(nil, nil, nil, InvalidStreamID)))
+	expect.False(batch.AppendOrBlock(NewMessage(nil, nil, nil, InvalidStreamID)))
 }
 
 func TestMessageSerialize(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	testMessage := NewMessage(nil, []byte("This is a\nteststring"), 1)
+	testMessage := NewMessage(nil, []byte("This is a\nteststring"), nil, 1)
 	testMessage.GetMetadata().SetValue("key", []byte("meta data value"))
 
 	data, err := testMessage.Serialize()

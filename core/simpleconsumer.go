@@ -195,16 +195,12 @@ func (cons *SimpleConsumer) WorkerDone() {
 // Enqueue creates a new message from a given byte slice and passes it to
 // EnqueueMessage. Data is copied to the message.
 func (cons *SimpleConsumer) Enqueue(data []byte) {
-	msg := NewMessage(cons, data, GetStreamID(cons.id))
-	cons.enqueueMessage(msg)
+	cons.EnqueueWithMetadata(data, nil)
 }
 
 // EnqueueWithMetadata works like EnqueueWithSequence and allows to set meta data directly
 func (cons *SimpleConsumer) EnqueueWithMetadata(data []byte, metaData Metadata) {
-	msg := NewMessage(cons, data, GetStreamID(cons.id))
-
-	msg.data.Metadata = metaData
-	msg.orig.Metadata = metaData.Clone()
+	msg := NewMessage(cons, data, metaData, GetStreamID(cons.id))
 	cons.enqueueMessage(msg)
 }
 

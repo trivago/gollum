@@ -32,7 +32,7 @@ func TestStreamName(t *testing.T) {
 	formatter, casted := plugin.(*StreamName)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), core.LogInternalStreamID)
+	msg := core.NewMessage(nil, []byte("test"), nil, core.LogInternalStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -52,7 +52,7 @@ func TestStreamNameHistory(t *testing.T) {
 	formatter, casted := plugin.(*StreamName)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), core.LogInternalStreamID)
+	msg := core.NewMessage(nil, []byte("test"), nil, core.LogInternalStreamID)
 	msg.SetStreamID(core.LogInternalStreamID)
 
 	err = formatter.ApplyFormatter(msg)
@@ -73,7 +73,7 @@ func TestStreamNameApplyTo(t *testing.T) {
 	formatter, casted := plugin.(*StreamName)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("payload"), core.LogInternalStreamID)
+	msg := core.NewMessage(nil, []byte("payload"), nil, core.LogInternalStreamID)
 	msg.GetMetadata().SetValue("foo", []byte("test"))
 
 	err = formatter.ApplyFormatter(msg)
@@ -96,7 +96,7 @@ func TestStreamNameApplyToNoSeparator(t *testing.T) {
 	formatter, casted := plugin.(*StreamName)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("payload"), core.LogInternalStreamID)
+	msg := core.NewMessage(nil, []byte("payload"), nil, core.LogInternalStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
