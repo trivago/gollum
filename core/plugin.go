@@ -169,10 +169,9 @@ func NewPluginWithConfig(config PluginConfig) (Plugin, error) {
 			// If an id is set it must be unique
 			PluginRegistry.RegisterUnique(plugin, config.ID)
 		}
+
 		// Check for errors (log as warning)
-		if config.Validate() {
-			//logrus.Debugf("%#v", plugin)
-		}
+		config.Validate()
 	}
 
 	return plugin, err
