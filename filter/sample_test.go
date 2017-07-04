@@ -23,7 +23,7 @@ import (
 
 func TestFilterSample(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	msg := core.NewMessage(nil, []byte{}, 1)
+	msg := core.NewMessage(nil, []byte{}, nil, 1)
 
 	conf := core.NewPluginConfig("", "filter.Sample")
 	conf.Override("SampleRatePerGroup", 2)
@@ -79,8 +79,8 @@ func TestFilterSampleIgnore(t *testing.T) {
 	filter, casted := plugin.(*Sample)
 	expect.True(casted)
 
-	msg1 := core.NewMessage(nil, []byte{}, core.LogInternalStreamID)
-	msg2 := core.NewMessage(nil, []byte{}, 2)
+	msg1 := core.NewMessage(nil, []byte{}, nil, core.LogInternalStreamID)
+	msg2 := core.NewMessage(nil, []byte{}, nil, 2)
 
 	accept1, accept2, deny1, deny2 := 0, 0, 0, 0
 	for i := 0; i < 10; i++ {

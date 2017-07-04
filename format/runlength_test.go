@@ -31,7 +31,7 @@ func TestRunlength(t *testing.T) {
 	formatter, casted := plugin.(*Runlength)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), nil, core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
@@ -49,7 +49,7 @@ func TestRunlengthApplyTo(t *testing.T) {
 	formatter, casted := plugin.(*Runlength)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("PAYLOAD"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("PAYLOAD"), nil, core.InvalidStreamID)
 	msg.GetMetadata().SetValue("foo", []byte("test"))
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -71,7 +71,7 @@ func TestRunlengthApplyToAndStoreRunlengthOnly(t *testing.T) {
 	formatter, casted := plugin.(*Runlength)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("PAYLOAD"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("PAYLOAD"), nil, core.InvalidStreamID)
 	msg.GetMetadata().SetValue("foo", []byte("test"))
 
 	err = formatter.ApplyFormatter(msg)
