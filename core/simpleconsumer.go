@@ -19,7 +19,6 @@ import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/thealthcheck"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -43,14 +42,13 @@ import (
 // ID allows this consumer to be found by other plugins by name. By default this
 // is set to "" which does not register this consumer.
 //
-// ModulatorQueues defines the number of modulators that are run in parallel.
-// When set to 0, messages will be enqueued directly, every other value will
-// pass the message to separate go routines in a round-robin fashion.
-// By default this is set to 0.
+// ModulatorRoutines defines the number of go routines processing modulators.
+// When set to 0, messages will be enqueued synchronously, every other value
+// will pass the message to any of the given go routines via a shared channel.
 //
-// ModulatorQueueSize defines the size of the channels used to pass messages to
-// the go routine spawned by ModulatorQueues. This setting has no effect if
-// ModulatorQueues is set to 0. By default the queue size is set to 1024
+// ModulatorQueueSize defines the size of the channel used to pass messages to
+// the go routines spawned by ModulatorRoutines. This setting has no effect if
+// ModulatorRoutines is set to 0. By default the queue size is set to 1024
 //
 // Streams contains either a single string or a list of strings defining the
 // message channels this consumer will produce. By default this is set to "*"
@@ -70,8 +68,7 @@ type SimpleConsumer struct {
 	onPrepareStop   func()
 	onStop          func()
 	enqueueMessage  func(*Message)
-	modulatorQueue  []chan (*Message)
-	queueIdx        *uint32
+	modulatorQueue  MessageQueue
 	Logger          logrus.FieldLogger
 }
 
@@ -81,17 +78,15 @@ func (cons *SimpleConsumer) Configure(conf PluginConfigReader) {
 	cons.Logger = conf.GetLogger()
 	cons.runState = NewPluginRunState()
 	cons.control = make(chan PluginControl, 1)
-	cons.queueIdx = new(uint32)
 
-	numQueues := conf.GetInt("ModulatorQueues", 0)
+	numRoutines := conf.GetInt("ModulatorRoutines", 0)
 	queueSize := conf.GetInt("ModulatorQueueSize", 1024)
 
-	if numQueues > 0 {
-		cons.Logger.Debugf("Using %d modulator queues", numQueues)
-		cons.modulatorQueue = make([]chan (*Message), numQueues)
-		for i := range cons.modulatorQueue {
-			cons.modulatorQueue[i] = make(chan (*Message), queueSize)
-			go cons.processQueue(cons.modulatorQueue[i])
+	if numRoutines > 0 {
+		cons.Logger.Debugf("Using %d modulator routines", numRoutines)
+		cons.modulatorQueue = NewMessageQueue(int(queueSize))
+		for i := 0; i < int(numRoutines); i++ {
+			go cons.processQueue()
 		}
 		cons.enqueueMessage = cons.parallelEnqueue
 	} else {
@@ -214,13 +209,12 @@ func (cons *SimpleConsumer) EnqueueWithMetadata(data []byte, metaData Metadata) 
 }
 
 func (cons *SimpleConsumer) parallelEnqueue(msg *Message) {
-	queueIdx := atomic.AddUint32(cons.queueIdx, 1) % uint32(len(cons.modulatorQueue))
-	cons.modulatorQueue[queueIdx] <- msg
+	cons.modulatorQueue.Push(msg, 0)
 }
 
-func (cons *SimpleConsumer) processQueue(queue <-chan (*Message)) {
+func (cons *SimpleConsumer) processQueue() {
 loop:
-	if msg, hasMore := <-queue; hasMore {
+	if msg, hasMore := cons.modulatorQueue.Pop(); hasMore {
 		cons.directEnqueue(msg)
 		goto loop
 	}
@@ -298,10 +292,7 @@ func (cons *SimpleConsumer) ControlLoop() {
 				}
 			}
 
-			// Close all modulator queues = stop processing routines
-			for _, queue := range cons.modulatorQueue {
-				close(queue)
-			}
+			close(cons.modulatorQueue)
 			return // ### return ###
 
 		case PluginControlRoll:
