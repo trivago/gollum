@@ -42,11 +42,11 @@ var (
 	// MessageDataPool is the pool used for message payloads.
 	// This pool should be used to allocate temporary buffers for e.g.
 	// formatters.
-	MessageDataPool = tcontainer.NewBytePool()
+	MessageDataPool = tcontainer.NewBytePoolWithSize(2)
 )
 
 // NewMessage creates a new message from a given data stream by copying data.
-func NewMessage(source MessageSource, data []byte, streamID MessageStreamID) *Message {
+func NewMessage(source MessageSource, data []byte, metadata Metadata, streamID MessageStreamID) *Message {
 	buffer := getPayloadCopy(data)
 	origBuffer := getPayloadCopy(data)
 
@@ -58,44 +58,24 @@ func NewMessage(source MessageSource, data []byte, streamID MessageStreamID) *Me
 
 	message.data.payload = buffer
 	message.data.streamID = streamID
-	message.data.Metadata = Metadata{}
-
-	message.orig.payload = origBuffer
-	message.orig.streamID = streamID
-	message.orig.Metadata = Metadata{}
-
-	return message
-}
-
-// NewMessageWithSize creates a new message with a buffer of a given size.
-// The buffer may contain data from previous messages.
-func NewMessageWithSize(source MessageSource, dataSize int, sequence uint64, streamID MessageStreamID) *Message {
-	buffer := MessageDataPool.Get(dataSize)
-	origBuffer := getPayloadCopy(buffer)
-
-	message := &Message{
-		source:       source,
-		prevStreamID: streamID,
-		timestamp:    time.Now(),
+	if metadata == nil {
+		message.data.Metadata = make(Metadata)
+	} else {
+		message.data.Metadata = metadata
 	}
 
-	message.data.payload = buffer
-	message.data.streamID = streamID
-	message.data.Metadata = Metadata{}
-
 	message.orig.payload = origBuffer
 	message.orig.streamID = streamID
-	message.orig.Metadata = Metadata{}
+	message.orig.Metadata = message.data.Metadata.Clone()
 
 	return message
 }
 
 // getPayloadCopy return a copy of the data byte array
-func getPayloadCopy(data []byte) []byte {
-	buffer := MessageDataPool.Get(len(data))
+func getPayloadCopy(data []byte) (buffer []byte) {
+	buffer = MessageDataPool.Get(len(data))
 	copy(buffer, data)
-
-	return buffer
+	return
 }
 
 // GetCreationTime returns the time when this message was created.

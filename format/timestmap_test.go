@@ -31,7 +31,7 @@ func TestTimestamp(t *testing.T) {
 	formatter, casted := plugin.(*Timestamp)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), nil, core.InvalidStreamID)
 	prefix := msg.GetCreationTime().Format(formatter.timestampFormat)
 
 	err = formatter.ApplyFormatter(msg)
@@ -52,7 +52,7 @@ func TestTimestampApplyTo(t *testing.T) {
 	formatter, casted := plugin.(*Timestamp)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), nil, core.InvalidStreamID)
 	timestamp := msg.GetCreationTime().Format(formatter.timestampFormat)
 
 	err = formatter.ApplyFormatter(msg)

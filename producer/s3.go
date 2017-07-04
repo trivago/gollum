@@ -388,7 +388,7 @@ func (prod *S3) upload(object *objectData, needLock bool) error {
 		if err != nil {
 			return err
 		}
-		prefix := core.NewMessage(nil, data, core.InvalidStreamID)
+		prefix := core.NewMessage(nil, data, nil, core.InvalidStreamID)
 		prod.pathFormat.Modulate(prefix)
 		key += prefix.String()
 	} else {

@@ -59,7 +59,7 @@ func (format *MetadataCopy) ApplyFormatter(msg *core.Message) error {
 
 // modulateMetadataValue returns the final meta value
 func (format *MetadataCopy) modulateMetadataValue(msg *core.Message, modulators core.ModulatorArray) []byte {
-	modulationMsg := core.NewMessage(nil, format.GetAppliedContent(msg), core.InvalidStreamID)
+	modulationMsg := core.NewMessage(nil, format.GetAppliedContent(msg), nil, core.InvalidStreamID)
 
 	modulateResult := modulators.Modulate(modulationMsg)
 	if modulateResult == core.ModulateResultContinue {

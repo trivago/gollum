@@ -67,7 +67,7 @@ func TestFormatterModulatorApplyFormatter(t *testing.T) {
 
 	formatterModulator := NewFormatterModulator(formatter)
 
-	msg := NewMessage(nil, []byte("test"), InvalidStreamID)
+	msg := NewMessage(nil, []byte("test"), nil, InvalidStreamID)
 
 	expect.Nil(formatterModulator.ApplyFormatter(msg))
 	expect.True(formatter.ConfigureHasCalled)
@@ -82,7 +82,7 @@ func TestFormatterModulatorModulate(t *testing.T) {
 
 	formatterModulator := NewFormatterModulator(formatter)
 
-	msg := NewMessage(nil, []byte("test"), InvalidStreamID)
+	msg := NewMessage(nil, []byte("test"), nil, InvalidStreamID)
 
 	expect.Equal(ModulateResultContinue, formatterModulator.Modulate(msg))
 	expect.True(formatter.ConfigureHasCalled)
@@ -97,7 +97,7 @@ func TestFormatterModulatorModulateError(t *testing.T) {
 
 	formatterModulator := NewFormatterModulator(formatter)
 
-	msg := NewMessage(nil, []byte("test"), InvalidStreamID)
+	msg := NewMessage(nil, []byte("test"), nil, InvalidStreamID)
 
 	expect.Equal(ModulateResultDiscard, formatterModulator.Modulate(msg))
 	expect.True(formatter.ConfigureHasCalled)
@@ -111,7 +111,7 @@ func TestFormatterArray(t *testing.T) {
 	secondFormatter, _ := getDummyFormatter()
 
 	formatterArray := FormatterArray{formatter, secondFormatter}
-	msg := NewMessage(nil, []byte("test"), InvalidStreamID)
+	msg := NewMessage(nil, []byte("test"), nil, InvalidStreamID)
 
 	expect.Nil(formatterArray.ApplyFormatter(msg))
 

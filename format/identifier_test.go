@@ -18,7 +18,7 @@ func TestFormatterIdentifier(t *testing.T) {
 	formatter, casted := plugin.(*Identifier)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), nil, core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
@@ -37,7 +37,7 @@ func TestFormatterIdentifierApplyTo(t *testing.T) {
 	formatter, casted := plugin.(*Identifier)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("payload"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("payload"), nil, core.InvalidStreamID)
 	msg.GetMetadata().SetValue("foo", []byte("test"))
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)

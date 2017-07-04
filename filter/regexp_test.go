@@ -33,9 +33,9 @@ func TestFilterRegExp(t *testing.T) {
 	filter, casted := plugin.(*RegExp)
 	expect.True(casted)
 
-	msg1 := core.NewMessage(nil, ([]byte)("accept"), core.InvalidStreamID)
-	msg2 := core.NewMessage(nil, ([]byte)("0accept"), core.InvalidStreamID)
-	msg3 := core.NewMessage(nil, ([]byte)("reject"), core.InvalidStreamID)
+	msg1 := core.NewMessage(nil, ([]byte)("accept"), nil, core.InvalidStreamID)
+	msg2 := core.NewMessage(nil, ([]byte)("0accept"), nil, core.InvalidStreamID)
+	msg3 := core.NewMessage(nil, ([]byte)("reject"), nil, core.InvalidStreamID)
 
 	result, _ := filter.ApplyFilter(msg1)
 	expect.Equal(core.FilterResultMessageAccept, result)
