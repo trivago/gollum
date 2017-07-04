@@ -42,7 +42,7 @@ var (
 	// MessageDataPool is the pool used for message payloads.
 	// This pool should be used to allocate temporary buffers for e.g.
 	// formatters.
-	MessageDataPool = tcontainer.NewBytePool()
+	MessageDataPool = tcontainer.NewBytePoolWithSize(2)
 )
 
 // NewMessage creates a new message from a given data stream by copying data.
