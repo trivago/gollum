@@ -1,5 +1,5 @@
 hash: c86ab655c5028444ab0002cd5d7a7a0c9f6a1498474fb580cde5fafbf98103a8
-updated: 2017-07-04T14:49:23.21422107+02:00
+updated: 2017-07-04T16:00:29.779403756+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -118,7 +118,7 @@ imports:
 - name: github.com/sirupsen/logrus
   version: 202f25545ea4cf9b191ff7f846df5d87c9382c2b
 - name: github.com/trivago/tgo
-  version: cfb04ad6fd89f0fe7ff4ad230373e4bf4e36624a
+  version: bdfa63d0265af496c5bc30356dc31b19aa71447e
   subpackages:
   - tcontainer
   - terrors
@@ -134,7 +134,7 @@ imports:
 - name: github.com/x-cray/logrus-prefixed-formatter
   version: 0b2c791a02f18788b281dc30e243a0632dad695b
 - name: golang.org/x/crypto
-  version: 69be088f860613049aa58c65154d1b1d32bbdf90
+  version: 51714a8c4ac1764f07ab4127d7f739351ced4759
   subpackages:
   - bcrypt
   - blowfish
