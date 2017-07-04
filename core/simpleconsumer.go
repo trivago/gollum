@@ -292,7 +292,9 @@ func (cons *SimpleConsumer) ControlLoop() {
 				}
 			}
 
-			close(cons.modulatorQueue)
+			if cons.modulatorQueue != nil {
+				close(cons.modulatorQueue)
+			}
 			return // ### return ###
 
 		case PluginControlRoll:
