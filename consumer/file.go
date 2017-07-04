@@ -197,7 +197,7 @@ func (cons *File) observe() {
 
 	buffer := tio.NewBufferedReader(fileBufferGrowSize, 0, 0, cons.delimiter)
 
-	cons.Logger.WithField("observerMode", cons.observeMode).Debugf("Use observe mode '%s'", cons.observeMode)
+	cons.Logger.WithField("file", cons.source.realFileName).Debugf("Use observe mode '%s'", cons.observeMode)
 	if cons.observeMode == observeModeWatch {
 		cons.watcher = newWatcher(cons.Logger, &cons.source, func() { cons.read(buffer, sendFunction, func() {}, func() {}) })
 		cons.watcher.Watch(buffer, sendFunction)
@@ -350,7 +350,7 @@ func newSeeker(conf core.PluginConfigReader) seeker {
 	case fileOffsetEnd:
 		return seeker{
 			seek:     2,
-			onRotate: 2,
+			onRotate: 1,
 			offset:   0,
 		}
 
@@ -428,7 +428,6 @@ func (w *watcher) Watch(buffer *tio.BufferedReader, sendFunction func(data []byt
 			// handle channel operations 'retry' and 'done'
 			select {
 			case <-w.retry:
-				w.logger.Debug("RETRY NOW")
 				watcher.Remove(w.source.realFileName)
 				//todo: reset reader?
 
