@@ -42,13 +42,13 @@ func (meta Metadata) ResetValue(key string) {
 }
 
 // Clone Metadata byte values to new Metadata map
-func (meta Metadata) Clone() Metadata {
-	clone := Metadata{}
+func (meta Metadata) Clone() (clone Metadata) {
+	clone = Metadata{}
 	for k, v := range meta {
 		vCopy := make([]byte, len(v))
 		copy(vCopy, v)
 		clone[k] = vCopy
 	}
 
-	return clone
+	return
 }

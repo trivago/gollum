@@ -20,7 +20,7 @@ func TestFormatterRegExp(t *testing.T) {
 	formatter, casted := plugin.(*RegExp)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test 123"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test 123"), nil, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -42,7 +42,7 @@ func TestFormatterRegExpApplyTo(t *testing.T) {
 	formatter, casted := plugin.(*RegExp)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("PAYLOAD"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("PAYLOAD"), nil, core.InvalidStreamID)
 	msg.GetMetadata().SetValue("foo", []byte("test 123"))
 
 	err = formatter.ApplyFormatter(msg)
