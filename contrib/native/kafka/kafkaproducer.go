@@ -16,13 +16,13 @@ package native
 
 import (
 	"fmt"
+	kafka "github.com/trivago/gollum/contrib/native/kafka/librdkafka"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
-	kafka "github.com/trivago/gollum/contrib/native/kafka/librdkafka"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 )
 
 // KafkaProducer librdkafka producer plugin
@@ -163,9 +163,9 @@ type KafkaProducer struct {
 	keyModulators         core.ModulatorArray
 	client                *kafka.Client
 	config                kafka.Config
-	topicRequiredAcks     int `config:"RequiredAcks" default:"1"`
-	topicTimeoutMs        int `config:"TimeoutMs" default:"100" metric:"ms"`
-	pollInterval          time.Duration
+	topicRequiredAcks     int           `config:"RequiredAcks" default:"1"`
+	topicTimeoutMs        int           `config:"TimeoutMs" default:"100" metric:"ms"`
+	pollInterval          time.Duration `config:"BatchTimeoutMs" default:"1000" metric:"ms"`
 	topic                 map[core.MessageStreamID]*topicHandle
 	topicHandles          map[string]*topicHandle
 	streamToTopic         map[core.MessageStreamID]string
@@ -224,23 +224,16 @@ func (m *messageWrapper) GetUserdata() []byte {
 // Configure initializes this producer with values from a plugin config.
 func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
 	prod.SetStopCallback(prod.close)
-	//kafka.Log = prod.Log.Error
+
 	prod.keyModulators = conf.GetModulatorArray("KeyModulators", prod.Logger, core.ModulatorArray{})
 
-	//prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
-	//prod.clientID = conf.GetString("ClientId", "gollum")
 	prod.streamToTopic = conf.GetStreamMap("Topic", "default")
 	prod.topic = make(map[core.MessageStreamID]*topicHandle)
 
-	//prod.topicRequiredAcks = conf.GetInt("RequiredAcks", 1)
-	//prod.topicTimeoutMs = conf.GetInt("TimeoutMs", 1)
 	prod.topicGuard = new(sync.RWMutex)
 	prod.streamToTopic = conf.GetStreamMap("Topic", "default")
-	//prod.keyFirst = conf.GetBool("KeyFormatterFirst", false)
-	prod.topicHandles = make(map[string]*topicHandle)
 
-	batchIntervalMs := int(conf.GetInt("BatchTimeoutMs", 1000))
-	prod.pollInterval = time.Millisecond * time.Duration(batchIntervalMs)
+	prod.topicHandles = make(map[string]*topicHandle)
 
 	// Init librdkafka
 	prod.config = kafka.NewConfig()
@@ -274,7 +267,7 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
 	prod.config.SetB("socket.keepalive.enable", true)
 	prod.config.SetI("message.send.max.retries", int(conf.GetInt("SendRetries", 0)))
 	prod.config.SetI("queue.buffering.max.messages", int(conf.GetInt("BatchMaxMessages", 100000)))
-	prod.config.SetI("queue.buffering.max.ms", batchIntervalMs)
+	prod.config.SetI("queue.buffering.max.ms", int(conf.GetInt("BatchTimeoutMs", 1000)))
 	prod.config.SetI("batch.num.messages", int(conf.GetInt("BatchMinMessages", 1000)))
 	//prod.config.SetI("protocol.version", verNumber)
 
