@@ -154,7 +154,7 @@ func executeFileRotationTest(sourceFile string, targetFile string) (resultFile, 
 		return resultFile{}, "", err
 	}
 
-	time.Sleep(time.Second * 3)
+	time.Sleep(time.Second * 5)
 
 	// add new content
 	_, err = f.Write([]byte("bar\n"))
@@ -171,7 +171,6 @@ func executeFileRotationTest(sourceFile string, targetFile string) (resultFile, 
 	cmd.Wait()
 
 	out := fmt.Sprint(cmd.Stdout)
-	//expect.True(strings.Contains(out, "(startup)"))
 
 	// get results from file targets
 	result, err := getResultFile(targetFile)
