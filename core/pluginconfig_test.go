@@ -59,21 +59,12 @@ func TestPluginConfigRead(t *testing.T) {
 	mockPluginCfg := NewPluginConfig("", "core.mockPlugin")
 	mockPluginCfgReader := NewPluginConfigReaderWithError(&mockPluginCfg)
 
-	// create a mock MarshalMap
-	testMarshalMap := tcontainer.NewMarshalMap()
-	testMarshalMap["Instances"] = uint(0)
-
-	err := mockPluginCfg.Read(testMarshalMap)
-	expect.NoError(err)
-
-	// with 0 instance, plugin should be disabled
-	expect.False(mockPluginCfg.Enable)
-
 	//reset mockPluginCfg
 	mockPluginCfg = NewPluginConfig("", "mockPlugin")
 	mockPluginCfgReader = NewPluginConfigReaderWithError(&mockPluginCfg)
+
+	testMarshalMap := tcontainer.NewMarshalMap()
 	testMarshalMap["Enable"] = true
-	testMarshalMap["Instances"] = uint(2)
 	testMarshalMap["Host"] = "someHost"
 	testMarshalMap["Database"] = "someDatabase"
 
@@ -81,7 +72,6 @@ func TestPluginConfigRead(t *testing.T) {
 
 	// Check for the bundled config options
 	expect.True(mockPluginCfg.Enable)
-	expect.Equal(uint64(2), mockPluginCfg.Instances)
 
 	// check for the miscelleneous settings key added
 	host, err := mockPluginCfgReader.GetString("host", "")
