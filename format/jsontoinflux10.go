@@ -29,14 +29,18 @@ import (
 // InfluxDB 0.9.1+ compatible line protocol data.
 // Configuration example
 //
-//  Formatter: "format.JSONToInflux10"
-//  TimeField: time
-//  Measurement: measurement
-//  Tags:
-//    - datacenter
-//    - service
-//    - host
-//    - application
+//  - format.JSONToInflux10
+//      TimeField: time
+//      Measurement: measurement
+//      Ignore:
+//        - ignore
+//        - these
+//        - tags
+//      Tags:
+//        - datacenter
+//        - service
+//        - host
+//        - application
 //
 // TimeField specifies the JSON field that holds the Unix timestamp of the message.
 // The precision is seconds.
@@ -47,7 +51,9 @@ import (
 // By default, the field is named `measurement`. This field MUST exist in the message.
 // If it does not exist in the message, an error will be thrown.
 //
-// Tags lists all names of fields to send to Influxdb as tags.
+// Ignore lists all JSON fields that will be ignored and not sent to InfluxDB.
+//
+// Tags lists all names of JSON fields to send to Influxdb as tags.
 // The Influxdb 0.9 convention is that values that do not change every
 // request should be considered metadata and given as tags.
 //
@@ -58,8 +64,8 @@ type JSONToInflux10 struct {
 	metadataEscape       *strings.Replacer
 	measurementEscape    *strings.Replacer
 	fieldValueEscape     *strings.Replacer
-	timeField            string
-	measurement          string
+	timeField            string `config:"Timefield" default:"time"`
+	measurement          string `config:"Measurement" default:"measurement"`
 	tags                 map[string]bool
 	ignore               map[string]bool
 }
@@ -75,9 +81,6 @@ func (format *JSONToInflux10) Configure(conf core.PluginConfigReader) {
 	format.metadataEscape = strings.NewReplacer(",", "\\,", "=", "\\=", " ", "\\ ")
 	format.measurementEscape = strings.NewReplacer(",", "\\,", " ", "\\ ")
 	format.fieldValueEscape = strings.NewReplacer("\"", "\\\"")
-
-	format.timeField = conf.GetString("TimeField", "time")
-	format.measurement = conf.GetString("Measurement", "measurement")
 
 	// Create a set from the tags array for O(1) lookup
 	tagsArray := conf.GetStringArray("Tags", []string{})
@@ -114,7 +117,7 @@ func (format *JSONToInflux10) joinMap(m map[string]interface{}) string {
 	return fmt.Sprintf(strings.Join(tokens, ","))
 }
 
-// ApplyFormatter update message payload
+// ApplyFormatter updates the message payload
 func (format *JSONToInflux10) ApplyFormatter(msg *core.Message) error {
 	content := format.GetAppliedContent(msg)
 
