@@ -34,7 +34,7 @@ func TestJSONToLineProtocol(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("{\"time\":\"1320969600\",\"datacenter\":\"us-west\",\"host\":\"webserver0\",\"application\":\"myapp\",\"measurement\":\"users.checkout\",\"value\":\"1000\"}"),
-		core.InvalidStreamID)
+		nil, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -82,7 +82,7 @@ func TestJSONToLineProtocolIgnoreTag(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("{\"BASE10NUM\":\"0.099972\",\"foo\":\"bar\",\"measurement\":\"baz\",\"time\":\"1497606216\",\"value\":\"42\"}"),
-		core.InvalidStreamID)
+		nil, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -101,10 +101,10 @@ func TestJSONToLineProtocolIgnoreTag(t *testing.T) {
 	expect.Equal(timestamp, "1497606216")
 
 	tags := strings.Split(meta, ",")
-	expect.Equal(len(tags), 4)
+	expect.Equal(len(tags), 2)
 	measurement := tags[0]
 	expect.Equal(measurement, "baz")
-	expect.Equal(tags[1:], "[foo=bar]")
+	expect.Equal(tags[1], "foo=bar")
 }
 
 func TestJSONToLineProtocolMissingMeasurement(t *testing.T) {
@@ -120,7 +120,7 @@ func TestJSONToLineProtocolMissingMeasurement(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("{\"time\":\"1320969600\",\"datacenter\":\"us-west\",\"host\":\"webserver0\",\"application\":\"myapp\",\"something_else\":\"users.checkout\",\"value\":\"1000\"}"),
-		core.InvalidStreamID)
+		nil, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NotNil(err)
@@ -140,7 +140,7 @@ func TestJSONToLineProtocolAlternativeMeasurement(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("{\"time\":\"1320969600\",\"datacenter\":\"us-west\",\"value-derive\":\"0.22\",\"application\":\"myapp\",\"hans\":\"users.checkout\",\"value\":\"1000\"}"),
-		core.InvalidStreamID)
+		nil, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -155,7 +155,15 @@ func TestJSONToLineProtocolAlternativeMeasurement(t *testing.T) {
 	fields := parts[1]
 	timestamp := parts[2]
 
-	expect.Equal(fields, "value-derive=0.22,value=1000")
+	remainingFields := strings.Split(fields, ",")
+	declaredFields := make(map[string]bool)
+	declaredFields["value-derive=0.22"] = true
+	declaredFields["value=1000"] = true
+	for _, t := range remainingFields {
+		_, ok := declaredFields[t]
+		expect.True(ok)
+	}
+
 	expect.Equal(timestamp, "1320969600")
 
 	tags := strings.Split(meta, ",")
