@@ -145,7 +145,7 @@ func (cons *File) storeOffset() {
 }
 
 func (cons *File) enqueueAndPersist(data []byte) {
-	cons.seeker.offset, _ = cons.source.file.Seek(0, 1)
+	cons.seeker.offset, _ = cons.source.file.Seek(io.SeekStart, io.SeekCurrent)
 	cons.Enqueue(data)
 	cons.storeOffset()
 }
@@ -254,17 +254,9 @@ func (cons *File) read(buffer *tio.BufferedReader, sendFunction func(data []byte
 			onAfterRead()
 
 		case err == io.EOF:
-			if cons.source.file.Name() != cons.source.realFileName {
+			if cons.source.isRotated() {
 				cons.Logger.Info("Rotation detected")
 				cons.onRoll()
-			} else {
-				newStat, newStatErr := os.Stat(cons.source.realFileName)
-				oldStat, oldStatErr := cons.source.file.Stat()
-
-				if newStatErr == nil && oldStatErr == nil && !os.SameFile(newStat, oldStat) {
-					cons.Logger.Info("Rotation detected")
-					cons.onRoll()
-				}
 			}
 			onEOF()
 
@@ -274,6 +266,23 @@ func (cons *File) read(buffer *tio.BufferedReader, sendFunction func(data []byte
 			cons.source.file = nil
 		}
 	}
+}
+
+func (source *sourceFile) isRotated() bool {
+	if source.file.Name() != source.realFileName {
+		return true
+	} else if time.Since(source.lastStatCheck) > time.Second {
+		newStat, newStatErr := os.Stat(source.realFileName)
+		oldStat, oldStatErr := source.file.Stat()
+
+		source.lastStatCheck = time.Now()
+
+		if newStatErr == nil && oldStatErr == nil && !os.SameFile(newStat, oldStat) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (cons *File) onRoll() {
@@ -304,10 +313,12 @@ type sourceFile struct {
 	realFileName       string
 	state              fileState
 	printFileOpenError bool
+	lastStatCheck      time.Time
 }
 
 func (source *sourceFile) Configure(conf core.PluginConfigReader) {
 	source.realFileName = source.getRealFileName()
+
 	source.printFileOpenError = true
 }
 
