@@ -17,7 +17,6 @@ package producer
 import (
 	"github.com/trivago/gollum/core"
 	"sync"
-	"time"
 )
 
 // Null producer plugin
@@ -33,11 +32,7 @@ func init() {
 	core.TypeRegistry.Register(Null{})
 }
 
-// Enqueue simply ignores the message
-func (prod *Null) Enqueue(msg core.Message, timeout *time.Duration) {
-}
-
 // Produce starts a control loop only
 func (prod *Null) Produce(threads *sync.WaitGroup) {
-	prod.ControlLoop()
+	prod.MessageControlLoop(func(*core.Message) {})
 }

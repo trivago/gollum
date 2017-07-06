@@ -31,6 +31,8 @@ import (
 //    Enable: true
 //    ID: ""
 //    ShutdownTimeoutMs: 1000
+//    ModulatorRoutines: 0
+//    ModulatorQueueSize: 1024
 //    Streams:
 //      - "foo"
 //      - "bar"
@@ -39,6 +41,14 @@ import (
 //
 // ID allows this consumer to be found by other plugins by name. By default this
 // is set to "" which does not register this consumer.
+//
+// ModulatorRoutines defines the number of go routines processing modulators.
+// When set to 0, messages will be enqueued synchronously, every other value
+// will pass the message to any of the given go routines via a shared channel.
+//
+// ModulatorQueueSize defines the size of the channel used to pass messages to
+// the go routines spawned by ModulatorRoutines. This setting has no effect if
+// ModulatorRoutines is set to 0. By default the queue size is set to 1024
 //
 // Streams contains either a single string or a list of strings defining the
 // message channels this consumer will produce. By default this is set to "*"
@@ -57,6 +67,8 @@ type SimpleConsumer struct {
 	onRoll          func()
 	onPrepareStop   func()
 	onStop          func()
+	enqueueMessage  func(*Message)
+	modulatorQueue  MessageQueue
 	Logger          logrus.FieldLogger
 }
 
@@ -66,6 +78,20 @@ func (cons *SimpleConsumer) Configure(conf PluginConfigReader) {
 	cons.Logger = conf.GetLogger()
 	cons.runState = NewPluginRunState()
 	cons.control = make(chan PluginControl, 1)
+
+	numRoutines := conf.GetInt("ModulatorRoutines", 0)
+	queueSize := conf.GetInt("ModulatorQueueSize", 1024)
+
+	if numRoutines > 0 {
+		cons.Logger.Debugf("Using %d modulator routines", numRoutines)
+		cons.modulatorQueue = NewMessageQueue(int(queueSize))
+		for i := 0; i < int(numRoutines); i++ {
+			go cons.processQueue()
+		}
+		cons.enqueueMessage = cons.parallelEnqueue
+	} else {
+		cons.enqueueMessage = cons.directEnqueue
+	}
 }
 
 // GetLogger returns the logger scoped to this plugin
@@ -178,7 +204,19 @@ func (cons *SimpleConsumer) EnqueueWithMetadata(data []byte, metaData Metadata) 
 	cons.enqueueMessage(msg)
 }
 
-func (cons *SimpleConsumer) enqueueMessage(msg *Message) {
+func (cons *SimpleConsumer) parallelEnqueue(msg *Message) {
+	cons.modulatorQueue.Push(msg, 0)
+}
+
+func (cons *SimpleConsumer) processQueue() {
+loop:
+	if msg, hasMore := cons.modulatorQueue.Pop(); hasMore {
+		cons.directEnqueue(msg)
+		goto loop
+	}
+}
+
+func (cons *SimpleConsumer) directEnqueue(msg *Message) {
 	// Execute configured modulators
 	switch cons.modulators.Modulate(msg) {
 	case ModulateResultDiscard:
@@ -248,6 +286,10 @@ func (cons *SimpleConsumer) ControlLoop() {
 				if !tgo.ReturnAfter(cons.shutdownTimeout*5, cons.onStop) {
 					cons.Logger.Errorf("Timeout during onStop")
 				}
+			}
+
+			if cons.modulatorQueue != nil {
+				close(cons.modulatorQueue)
 			}
 			return // ### return ###
 

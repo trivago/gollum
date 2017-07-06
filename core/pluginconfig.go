@@ -26,7 +26,6 @@ type PluginConfig struct {
 	ID        string
 	Typename  string
 	Enable    bool
-	Instances uint64
 	Settings  tcontainer.MarshalMap
 	validKeys map[string]bool
 }
@@ -38,7 +37,6 @@ type PluginConfig struct {
 func NewPluginConfig(pluginID string, defaultTypename string) PluginConfig {
 	return PluginConfig{
 		Enable:    true,
-		Instances: 1,
 		ID:        pluginID,
 		Typename:  defaultTypename,
 		Settings:  tcontainer.NewMarshalMap(),
@@ -124,10 +122,6 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
 			conf.Enable, err = values.Bool(key)
 			errors.Push(err)
 
-		case "instances":
-			conf.Instances, err = values.Uint(key)
-			errors.Push(err)
-
 		default:
 			// If the value is a marshalmap candidate -> convert it
 			switch settingValue.(type) {
@@ -150,11 +144,6 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
 
 	if !TypeRegistry.IsTypeRegistered(conf.Typename) {
 		errors.Pushf("Plugin %s is using an unknown type %s", conf.ID, conf.Typename)
-	}
-
-	if conf.Instances <= 0 {
-		conf.Enable = false
-		logrus.Warningf("Plugin %s has been disabled (0 instances)", conf.ID)
 	}
 
 	if !conf.Enable {
