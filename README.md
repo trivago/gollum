@@ -83,6 +83,7 @@ If you can't find your answer in the documentation or have other questions you c
 * `ExtractJSON` extracts a single field from a JSON object.
 * `Envelope` add a prefix and/or postfix string to a message.
 * `Forward` write the message without modifying it.
+* `GrokToJSON` parse grok patterns into JSON fields.
 * `Hostname` prepend the current machine's hostname to a message.
 * `Identifier` hash the message to generate a (mostly) unique id.
 * `JSON` write the message as a JSON object. Messages can be parsed to generate fields.

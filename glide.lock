@@ -1,5 +1,5 @@
-hash: 46888cadc5eaad94ecd30502ecbca20d3bfb6644c7e6270f5fa9b322a04a9c5e
-updated: 2017-07-05T16:49:08.843907028+02:00
+hash: e635dc10e8cd5355c55e6f78c0e099384e9db52b76ee6be711b6cda35528b4d9
+updated: 2017-07-06T15:53:59.647249732+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -133,6 +133,8 @@ imports:
   - tstrings
   - tsync
   - ttesting
+- name: github.com/vjeantet/grok
+  version: d73e972b60935c7fec0b4ffbc904ed39ecaf7efe
 - name: github.com/x-cray/logrus-prefixed-formatter
   version: 0b2c791a02f18788b281dc30e243a0632dad695b
 - name: golang.org/x/crypto

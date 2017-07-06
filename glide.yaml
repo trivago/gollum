@@ -54,3 +54,4 @@ import:
 - package: github.com/mgutz/ansi
 - package: github.com/fsnotify/fsnotify
   version: master #~1.4.2
+- package: github.com/vjeantet/grok

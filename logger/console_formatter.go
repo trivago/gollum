@@ -14,7 +14,9 @@
 
 package logger
 
-import "github.com/x-cray/logrus-prefixed-formatter"
+import (
+	"github.com/x-cray/logrus-prefixed-formatter"
+)
 
 // NewConsoleFormatter returns a a ConsoleFormatter reference
 func NewConsoleFormatter() *prefixed.TextFormatter {
@@ -23,6 +25,7 @@ func NewConsoleFormatter() *prefixed.TextFormatter {
 	f.ForceColors = true
 	f.FullTimestamp = true
 	f.ForceFormatting = true
+	f.TimestampFormat = "2006-01-02 15:04:05 MST"
 
 	f.SetColorScheme(&prefixed.ColorScheme{
 		PrefixStyle:     "blue+h",
