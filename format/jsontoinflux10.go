@@ -145,7 +145,7 @@ func (format *JSONToInflux10) ApplyFormatter(msg *core.Message) error {
 		measurement = val.(string)
 		delete(values, format.measurement)
 	} else {
-		return fmt.Errorf("Required field for measurement (%s) not found in payload. Check config.", format.measurement)
+		return fmt.Errorf("Required field for measurement (%s) not found in payload", format.measurement)
 	}
 
 	fields := make(map[string]interface{})
