@@ -370,8 +370,7 @@ type watcher struct {
 	source *sourceFile
 	read   func()
 
-	done  chan int
-	retry chan int
+	done chan int
 }
 
 func newWatcher(logger logrus.FieldLogger, source *sourceFile, readFunction func()) *watcher {
@@ -394,7 +393,6 @@ func (w *watcher) close(watcher *fsnotify.Watcher) {
 func (w *watcher) Watch(buffer *tio.BufferedReader, sendFunction func(data []byte)) {
 	// init
 	w.done = make(chan int)
-	w.retry = make(chan int)
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -402,41 +400,8 @@ func (w *watcher) Watch(buffer *tio.BufferedReader, sendFunction func(data []byt
 	}
 	defer w.close(watcher)
 
-	// watcher init loop
-	go func() {
-		for {
-			if _, err := os.Stat(w.source.realFileName); os.IsNotExist(err) {
-				w.logger.WithField("file", w.source.realFileName).
-					Warning("watched file not exists. retry in 3sec ..")
-				time.Sleep(3 * time.Second)
-				continue // retry
-			}
-
-			// read current file state before watching
-			w.read()
-
-			err = watcher.Add(w.source.realFileName)
-			if err != nil {
-				w.logger.Error("error during adding watcher: ", err)
-				time.Sleep(3 * time.Second)
-				continue // retry
-			}
-
-			// start watch loop to handle file events
-			go w.watchLoop(watcher)
-
-			// handle channel operations 'retry' and 'done'
-			select {
-			case <-w.retry:
-				watcher.Remove(w.source.realFileName)
-				//todo: reset reader?
-
-				continue
-			case <-w.done:
-				return
-			}
-		}
-	}()
+	// watcher loop in subroutine
+	go w.watchLoop(watcher)
 
 	// busy loop for shutdown
 	for w.source.state != fileStateDone {
@@ -448,25 +413,44 @@ func (w *watcher) Watch(buffer *tio.BufferedReader, sendFunction func(data []byt
 }
 
 func (w *watcher) watchLoop(watcher *fsnotify.Watcher) {
+outerLoop:
 	for {
-		select {
-		case event := <-watcher.Events:
-			if event.Op&fsnotify.Write == fsnotify.Write {
-				w.logger.Debug("modified file: ", event.Name)
-				w.read()
-				break
-			}
+		if _, err := os.Stat(w.source.realFileName); os.IsNotExist(err) {
+			w.logger.WithField("file", w.source.realFileName).
+				Warning("watched file not exists. retry in 3sec ..")
+			time.Sleep(3 * time.Second)
+			continue outerLoop // retry
+		}
 
-			if event.Op&fsnotify.Rename == fsnotify.Rename || event.Op&fsnotify.Remove == fsnotify.Remove {
-				w.logger.WithField("event", event).Debug("file renamed/removed: ", event.Name)
+		// read current file state before watching
+		w.read()
 
-				w.retry <- 1
+		err := watcher.Add(w.source.realFileName)
+		if err != nil {
+			w.logger.Error("error during adding watcher: ", err)
+			time.Sleep(3 * time.Second)
+			continue outerLoop // retry
+		}
+
+	innerLoop:
+		for {
+			select {
+			case event := <-watcher.Events:
+				if event.Op&fsnotify.Write == fsnotify.Write {
+					w.logger.Debug("modified file: ", event.Name)
+					w.read()
+					break
+				}
+
+				if event.Op&fsnotify.Rename == fsnotify.Rename || event.Op&fsnotify.Remove == fsnotify.Remove {
+					w.logger.WithField("event", event).Debug("file renamed/removed: ", event.Name)
+					break innerLoop
+				}
+			case err := <-watcher.Errors:
+				w.logger.Error("Error during watch loop: ", err)
+			case <-w.done:
 				return
 			}
-		case err := <-watcher.Errors:
-			w.logger.Error("Error during watch loop: ", err)
-		case <-w.done:
-			return
 		}
 	}
 }
