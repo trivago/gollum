@@ -31,7 +31,7 @@ func TestClearFormatter(t *testing.T) {
 	plugin, casted := pluginConfig.(*Clear)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), nil, core.InvalidStreamID)
 	err = plugin.ApplyFormatter(msg)
 	expect.NoError(err)
 
@@ -49,7 +49,7 @@ func TestClearFormatterApplyHandling(t *testing.T) {
 	plugin, casted := pluginConfig.(*Clear)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), nil, core.InvalidStreamID)
 	msg.GetMetadata().SetValue("foo", []byte("bar"))
 
 	err = plugin.ApplyFormatter(msg)

@@ -82,20 +82,19 @@ func (router *Broadcast) Start() error {
 // Enqueue enques a message to the router
 func (router *Broadcast) Enqueue(msg *core.Message) error {
 	producers := router.GetProducers()
-
-	switch len(producers) {
-	default:
-		for prodIdx := 1; prodIdx < len(producers); prodIdx++ {
-			producers[prodIdx].Enqueue(msg.Clone(), router.GetTimeout())
-		}
-		fallthrough
-
-	case 1:
-		producers[0].Enqueue(msg, router.GetTimeout())
-		return nil
-
-	case 0:
+	if len(producers) == 0 {
 		return core.NewModulateResultError(
 			"Router %s: no producers configured", router.GetID())
 	}
+
+	timeout := router.GetTimeout()
+	lastProdIdx := len(producers) - 1
+	for _, prod := range producers[:lastProdIdx] {
+		prod.Enqueue(msg.Clone(), timeout)
+	}
+
+	// Cloning is a rather expensive operation, so skip cloning for the last
+	// message (not required)
+	producers[lastProdIdx].Enqueue(msg, timeout)
+	return nil
 }

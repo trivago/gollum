@@ -32,7 +32,7 @@ func TestProcessTSV(t *testing.T) {
 	formatter, casted := plugin.(*ProcessTSV)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("foo\tbar\tbaz"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("foo\tbar\tbaz"), nil, core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 
 	expect.NoError(err)
@@ -51,7 +51,7 @@ func TestProcessTSVDelimiter(t *testing.T) {
 	formatter, casted := plugin.(*ProcessTSV)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("foo,bar,baz"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("foo,bar,baz"), nil, core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 
 	expect.NoError(err)
@@ -70,7 +70,7 @@ func TestProcessTSVQuotedValues(t *testing.T) {
 	formatter, casted := plugin.(*ProcessTSV)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("foo\t\"\tbar\t\"\tbaz"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("foo\t\"\tbar\t\"\tbaz"), nil, core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 
 	expect.NoError(err)
@@ -90,7 +90,7 @@ func TestProcessTSVDelimiterAndQuotedValues(t *testing.T) {
 	formatter, casted := plugin.(*ProcessTSV)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte(`foo,",bar,",baz`), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte(`foo,",bar,",baz`), nil, core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 
 	expect.NoError(err)
@@ -109,22 +109,22 @@ func TestProcessTSVQuotedValuesComplex(t *testing.T) {
 	formatter, casted := plugin.(*ProcessTSV)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("foo\t\"\tbar\t\"\tbaz"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("foo\t\"\tbar\t\"\tbaz"), nil, core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 	expect.Equal("\"\tbar\t\"", msg.String())
 
-	msg = core.NewMessage(nil, []byte("\"foo\t\"\tbar\tbaz"), core.InvalidStreamID)
+	msg = core.NewMessage(nil, []byte("\"foo\t\"\tbar\tbaz"), nil, core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 	expect.Equal("bar", msg.String())
 
-	msg = core.NewMessage(nil, []byte("foo\tbar\t\"\tbaz\t\""), core.InvalidStreamID)
+	msg = core.NewMessage(nil, []byte("foo\tbar\t\"\tbaz\t\""), nil, core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 	expect.Equal("bar", msg.String())
 
-	msg = core.NewMessage(nil, []byte("\"\tfoo\t\"\t\"bar\"\tbip\tbap\tbop\t\"\tbaz\t\""), core.InvalidStreamID)
+	msg = core.NewMessage(nil, []byte("\"\tfoo\t\"\t\"bar\"\tbip\tbap\tbop\t\"\tbaz\t\""), nil, core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 	expect.Equal("\"bar\"\tbap\t\"\tbaz\t\"", msg.String())
@@ -143,22 +143,22 @@ func TestProcessTSVDelimiterAndQuotedValuesComplex(t *testing.T) {
 	formatter, casted := plugin.(*ProcessTSV)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte(`foo,",bar,",baz`), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte(`foo,",bar,",baz`), nil, core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 	expect.Equal(`",bar,"`, msg.String())
 
-	msg = core.NewMessage(nil, []byte(`"foo,",bar,baz`), core.InvalidStreamID)
+	msg = core.NewMessage(nil, []byte(`"foo,",bar,baz`), nil, core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 	expect.Equal("bar", msg.String())
 
-	msg = core.NewMessage(nil, []byte(`foo,bar,",baz,"`), core.InvalidStreamID)
+	msg = core.NewMessage(nil, []byte(`foo,bar,",baz,"`), nil, core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 	expect.Equal("bar", msg.String())
 
-	msg = core.NewMessage(nil, []byte(`",foo,","bar",bip,bap,bop,",baz,"`), core.InvalidStreamID)
+	msg = core.NewMessage(nil, []byte(`",foo,","bar",bip,bap,bop,",baz,"`), nil, core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 	expect.Equal(`"bar",bap,",baz,"`, msg.String())
@@ -191,7 +191,7 @@ func TestProcessTSVDirectives(t *testing.T) {
 		[]byte(
 			"20160819171053\t[yml]\tremoveme\tMozilla/5.0 (Windows NT 10.0; Win64; x64; rv:48.0) Gecko/20100101 Firefox/48.0",
 		),
-		core.InvalidStreamID,
+		nil, core.InvalidStreamID,
 	)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -231,7 +231,7 @@ func TestProcessTSVDelimiterAndDirectives(t *testing.T) {
 		[]byte(
 			"20160819171053,[yml],removeme,Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:48.0) Gecko/20100101 Firefox/48.0",
 		),
-		core.InvalidStreamID,
+		nil, core.InvalidStreamID,
 	)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -271,7 +271,7 @@ func TestProcessTSVQuotedValuesAndDirectives(t *testing.T) {
 		[]byte(
 			"20160819171053\t\"[\tyml\t]\"\tremoveme\tMozilla/5.0 (Windows NT 10.0; Win64; x64; rv:48.0) Gecko/20100101 Firefox/48.0",
 		),
-		core.InvalidStreamID,
+		nil, core.InvalidStreamID,
 	)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -314,7 +314,7 @@ func TestProcessTSVDelimiterAndQuotedValuesAndDirectives(t *testing.T) {
 		[]byte(
 			`20160819171053 [yml] removeme "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:48.0) Gecko/20100101 Firefox/48.0"`,
 		),
-		core.InvalidStreamID,
+		nil, core.InvalidStreamID,
 	)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -337,7 +337,7 @@ func TestProcessTSVApplyTo(t *testing.T) {
 	formatter, casted := plugin.(*ProcessTSV)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("PAYLOAD"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("PAYLOAD"), nil, core.InvalidStreamID)
 	msg.GetMetadata().SetValue("foo", []byte("foo\tbar\tbaz"))
 	err = formatter.ApplyFormatter(msg)
 

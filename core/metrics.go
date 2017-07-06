@@ -17,6 +17,7 @@ package core
 import (
 	"fmt"
 	"github.com/trivago/tgo"
+	"sync"
 	"time"
 )
 
@@ -126,50 +127,64 @@ func CountFallbackRouters() {
 }
 
 var streamMetrics = map[MessageStreamID]StreamMetric{}
+var streamMetricsGuard = new(sync.Mutex)
 
-// GetSteamMetric return a StreamMetric instance for the given MessageStreamID
-func GetSteamMetric(streamID MessageStreamID) StreamMetric {
-	if metric, isSet := streamMetrics[streamID]; isSet {
+// GetStreamMetric return a StreamMetric instance for the given MessageStreamID
+func GetStreamMetric(streamID MessageStreamID) StreamMetric {
+	streamMetricsGuard.Lock()
+	metric, isSet := streamMetrics[streamID]
+	streamMetricsGuard.Unlock()
+
+	if isSet {
 		return metric
 	}
 
-	metric := StreamMetric{
-		streamID,
+	metric = newStreamMetric(streamID)
+
+	streamMetricsGuard.Lock()
+	if racedMetric, isSet := streamMetrics[streamID]; isSet {
+		metric = racedMetric
+	} else {
+		streamMetrics[streamID] = metric
 	}
-	metric.init()
-	streamMetrics[streamID] = metric
+	streamMetricsGuard.Unlock()
 
 	return metric
 }
 
 // StreamMetric class for stream based metrics
 type StreamMetric struct {
-	messageStreamID MessageStreamID
+	keyRouted    string
+	keyDiscarded string
 }
 
-func (metric *StreamMetric) init() {
-	keyRouted := metric.getMetricKey(metricStreamMessagesRouted)
-	keyDiscarded := metric.getMetricKey(metricStreamMessagesDiscarded)
+func newStreamMetric(streamID MessageStreamID) StreamMetric {
+	streamName := StreamRegistry.GetStreamName(streamID)
 
-	tgo.Metric.New(keyRouted)
-	tgo.Metric.New(keyDiscarded)
+	metric := StreamMetric{
+		keyRouted:    fmt.Sprintf(metricStreamMessagesRouted, streamName),
+		keyDiscarded: fmt.Sprintf(metricStreamMessagesDiscarded, streamName),
+	}
 
-	tgo.Metric.NewRate(keyRouted, metric.getMetricKey(metricStreamMessagesRoutedAvg), time.Second, 10, 3, true)
-	tgo.Metric.NewRate(keyDiscarded, metric.getMetricKey(metricStreamMessagesDiscardedAvg), time.Second, 10, 3, true)
+	keyRoutedAvg := fmt.Sprintf(metricStreamMessagesRoutedAvg, streamName)
+	keyDiscardedAvg := fmt.Sprintf(metricStreamMessagesDiscardedAvg, streamName)
+
+	tgo.Metric.New(metric.keyRouted)
+	tgo.Metric.New(metric.keyDiscarded)
+	tgo.Metric.NewRate(metric.keyRouted, keyRoutedAvg, time.Second, 10, 3, true)
+	tgo.Metric.NewRate(metric.keyDiscarded, keyDiscardedAvg, time.Second, 10, 3, true)
+
+	return metric
 }
 
 // CountMessageRouted increases the messages counter by 1
 func (metric *StreamMetric) CountMessageRouted() {
-	tgo.Metric.Inc(metric.getMetricKey(metricStreamMessagesRouted))
+	tgo.Metric.Inc(metric.keyRouted)
 }
 
 // CountMessageDiscarded increases the discarded messages counter by 1
 func (metric *StreamMetric) CountMessageDiscarded() {
-	tgo.Metric.Inc(metric.getMetricKey(metricStreamMessagesDiscarded))
-}
-
-func (metric *StreamMetric) getMetricKey(format string) string {
-	return fmt.Sprintf(format, StreamRegistry.GetStreamName(metric.messageStreamID))
+	tgo.Metric.Inc(metric.keyDiscarded)
 }
 
 // PluginMetric class for plugin based metrics

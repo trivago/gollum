@@ -32,7 +32,7 @@ func TestFilterAnyAllNone(t *testing.T) {
 	filter, casted := plugin.(*Any)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte{}, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte{}, nil, core.InvalidStreamID)
 
 	result, err := filter.filters[0].ApplyFilter(msg)
 	expect.Neq(core.FilterResultMessageAccept, result)
@@ -62,7 +62,7 @@ func TestFilterAnyJsonRegExp(t *testing.T) {
 	expect.True(casted)
 
 	// test case 1
-	msg := core.NewMessage(nil, []byte("ERROR"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("ERROR"), nil, core.InvalidStreamID)
 
 	result, _ := filter.filters[0].ApplyFilter(msg)
 	expect.Neq(core.FilterResultMessageAccept, result)
@@ -75,7 +75,7 @@ func TestFilterAnyJsonRegExp(t *testing.T) {
 	expect.NoError(err)
 
 	// test case 2
-	msg = core.NewMessage(nil, []byte("{}"), core.InvalidStreamID)
+	msg = core.NewMessage(nil, []byte("{}"), nil, core.InvalidStreamID)
 
 	result, _ = filter.filters[0].ApplyFilter(msg)
 	expect.Equal(core.FilterResultMessageAccept, result)
@@ -87,7 +87,7 @@ func TestFilterAnyJsonRegExp(t *testing.T) {
 	expect.Equal(core.FilterResultMessageAccept, result)
 
 	// test case 3
-	msg = core.NewMessage(nil, []byte("FAIL"), core.InvalidStreamID)
+	msg = core.NewMessage(nil, []byte("FAIL"), nil, core.InvalidStreamID)
 
 	result, _ = filter.filters[0].ApplyFilter(msg)
 	expect.Neq(core.FilterResultMessageAccept, result)

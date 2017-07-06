@@ -164,6 +164,18 @@ func (e Expect) NoError(err error) bool {
 	return true
 }
 
+// NoPanic tests if the given function panics. If it does, the panic will be
+// logged.
+func (e Expect) NoPanic(callback func()) {
+	defer func() {
+		if r := recover(); r != nil {
+			e.errorf("Expected no panic, got %#v", r)
+		}
+	}()
+
+	callback()
+}
+
 // Contains returns true if val1 contains val2
 func (e Expect) Contains(val1, val2 interface{}) bool {
 	val1Type := reflect.TypeOf(val1)

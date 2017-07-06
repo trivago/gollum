@@ -64,7 +64,7 @@ func TestMessageInstantiate(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	msgString := "Test for instantiate"
 
-	msg := NewMessage(nil, []byte(msgString), 1)
+	msg := NewMessage(nil, []byte(msgString), nil, 1)
 
 	expect.Equal(msgString, string(msg.data.payload))
 	expect.Equal(MessageStreamID(1), msg.data.streamID)
@@ -77,7 +77,7 @@ func TestMessageOriginalDataIntegrity(t *testing.T) {
 	msgString := "Test for original data integrity"
 	msgUpdateString := "Test for original data integrity - UPDATE"
 
-	msg := NewMessage(nil, []byte(msgString), 1)
+	msg := NewMessage(nil, []byte(msgString), nil, 1)
 
 	msg.SetStreamID(MessageStreamID(10))
 	msg.StorePayload([]byte(msgUpdateString))
@@ -94,7 +94,7 @@ func TestMessageClone(t *testing.T) {
 	msgString := "Test for clone"
 	msgUpdateString := "Test for clone - UPDATE"
 
-	msg := NewMessage(nil, []byte(msgString), 1)
+	msg := NewMessage(nil, []byte(msgString), nil, 1)
 	msg.SetStreamID(MessageStreamID(10))
 	msg.StorePayload([]byte(msgUpdateString))
 
@@ -111,7 +111,7 @@ func TestMessageCloneMetadata(t *testing.T) {
 	msgString := "Test for clone"
 	msgUpdateString := "Test for clone - UPDATE"
 
-	msg := NewMessage(nil, []byte(msgString), 1)
+	msg := NewMessage(nil, []byte(msgString), nil, 1)
 	msg.SetStreamID(MessageStreamID(10))
 	msg.StorePayload([]byte(msgUpdateString))
 	msg.GetMetadata().SetValue("foo", []byte("bar"))
@@ -126,7 +126,7 @@ func TestMessageCloneOriginal(t *testing.T) {
 	msgString := "Test for clone original"
 	msgUpdateString := "Test for clone original - UPDATE"
 
-	msg := NewMessage(nil, []byte(msgString), 1)
+	msg := NewMessage(nil, []byte(msgString), nil, 1)
 	msg.SetStreamID(MessageStreamID(10))
 	msg.StorePayload([]byte(msgUpdateString))
 
@@ -143,7 +143,7 @@ func TestMessageCloneOriginalMetadata(t *testing.T) {
 	msgString := "Test for clone original"
 	msgUpdateString := "Test for clone original - UPDATE"
 
-	msg := NewMessage(nil, []byte(msgString), 1)
+	msg := NewMessage(nil, []byte(msgString), nil, 1)
 	msg.SetStreamID(MessageStreamID(10))
 	msg.StorePayload([]byte(msgUpdateString))
 	msg.GetMetadata().SetValue("foo", []byte("bar"))
@@ -156,7 +156,7 @@ func TestMessageCloneOriginalMetadata(t *testing.T) {
 func TestMessageMetadata(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	msg := NewMessage(nil, []byte("message payload"), 1)
+	msg := NewMessage(nil, []byte("message payload"), nil, 1)
 	value1 := []byte("value string")
 	value2 := []byte("100")
 
@@ -173,7 +173,7 @@ func TestMessageMetadata(t *testing.T) {
 func TestMessageMetadataReset(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	msg := NewMessage(nil, []byte("message payload"), 1)
+	msg := NewMessage(nil, []byte("message payload"), nil, 1)
 	value := []byte("value string")
 
 	msg.GetMetadata().SetValue("key1", value)

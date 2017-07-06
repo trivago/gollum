@@ -109,18 +109,18 @@ func (cons *LogConsumer) Fire(logrusEntry *logrus.Entry) error {
 		formattedMessage = formattedMessage[:len(formattedMessage)-2]
 	}
 
-	// Wrap it in a Gollum message
-	msg := NewMessage(cons, []byte(formattedMessage), LogInternalStreamID)
-
 	// Set message metadata: level, time and logrus's ad-hoc fields. The fields
 	// also contain the plugin-specific log scope.
-	metadata := msg.GetMetadata()
+	metadata := Metadata{}
 	metadata.SetValue("Level", []byte(logrusEntry.Level.String()))
 	metadata.SetValue("Time", []byte(logrusEntry.Time.String()))
 	//  string,    interface{}
 	for fieldName, fieldValue := range logrusEntry.Data {
 		metadata.SetValue(fieldName, []byte(fmt.Sprintf("%v", fieldValue)))
 	}
+
+	// Wrap it in a Gollum message
+	msg := NewMessage(cons, []byte(formattedMessage), metadata, LogInternalStreamID)
 
 	// Enqueue the message to _GOLLUM_
 	cons.logRouter.Enqueue(msg)
