@@ -349,16 +349,16 @@ func newSeeker(conf core.PluginConfigReader) seeker {
 		fallthrough
 	case fileOffsetEnd:
 		return seeker{
-			seek:     2,
-			onRotate: 1,
-			offset:   0,
+			seek:     io.SeekEnd,
+			onRotate: io.SeekCurrent,
+			offset:   io.SeekStart,
 		}
 
 	case fileOffsetStart:
 		return seeker{
-			seek:     1,
-			onRotate: 1,
-			offset:   0,
+			seek:     io.SeekCurrent,
+			onRotate: io.SeekCurrent,
+			offset:   io.SeekStart,
 		}
 	}
 }
