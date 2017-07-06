@@ -31,8 +31,8 @@ func TestFilterStream(t *testing.T) {
 	filter, casted := plugin.(*Stream)
 	expect.True(casted)
 
-	msg1 := core.NewMessage(nil, []byte{}, 1)
-	msg2 := core.NewMessage(nil, []byte{}, 2)
+	msg1 := core.NewMessage(nil, []byte{}, nil, 1)
+	msg2 := core.NewMessage(nil, []byte{}, nil, 2)
 
 	filter.blacklist = []core.MessageStreamID{1}
 

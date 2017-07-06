@@ -19,7 +19,7 @@ func TestFormatterHostname(t *testing.T) {
 	formatter, casted := plugin.(*Hostname)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), nil, core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
@@ -38,7 +38,7 @@ func TestFormatterHostnameSeparator(t *testing.T) {
 	formatter, casted := plugin.(*Hostname)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), nil, core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
@@ -57,7 +57,7 @@ func TestFormatterHostnameNoSeparator(t *testing.T) {
 	formatter, casted := plugin.(*Hostname)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), nil, core.InvalidStreamID)
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
@@ -78,7 +78,7 @@ func TestFormatterHostnameApplyTo(t *testing.T) {
 	formatter, casted := plugin.(*Hostname)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), nil, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)

@@ -88,7 +88,7 @@ func TestWriterAssemblyWrite(t *testing.T) {
 	mockIo := mockIoWrite{expect}
 	wa := NewWriterAssembly(nil, mockIo.mockFlush, &mockFormatter{})
 
-	msg1 := NewMessage(nil, []byte("abcde"), InvalidStreamID)
+	msg1 := NewMessage(nil, []byte("abcde"), nil, InvalidStreamID)
 
 	// should give error msg and flush msg as there writer is not available yet
 	// test here is done in mockIo.mockFlush

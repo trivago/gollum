@@ -100,7 +100,7 @@ func TestRouteOriginalMessage(t *testing.T) {
 	reader.Configure(&mockRouter)
 	StreamRegistry.Register(&mockRouter, mockRouter.GetStreamID())
 
-	msg := NewMessage(nil, []byte("foo"), mockRouter.GetStreamID())
+	msg := NewMessage(nil, []byte("foo"), nil, mockRouter.GetStreamID())
 
 	err := RouteOriginal(msg, msg.GetRouter())
 	expect.NoError(err)
@@ -134,7 +134,7 @@ func TestRouteOriginal(t *testing.T) {
 	StreamRegistry.Register(&mockRouterB, mockRouterB.GetStreamID())
 
 	// create message and test
-	msg := NewMessage(nil, []byte("foo"), mockRouterA.GetStreamID())
+	msg := NewMessage(nil, []byte("foo"), nil, mockRouterA.GetStreamID())
 
 	err := RouteOriginal(msg, &mockRouterB)
 	expect.NoError(err)
