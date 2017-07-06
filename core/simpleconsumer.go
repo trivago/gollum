@@ -31,7 +31,7 @@ import (
 //    Enable: true
 //    ID: ""
 //    ShutdownTimeoutMs: 1000
-//    ModulatorQueues: 0
+//    ModulatorRoutines: 0
 //    ModulatorQueueSize: 1024
 //    Streams:
 //      - "foo"
