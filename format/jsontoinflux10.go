@@ -58,7 +58,7 @@ import (
 // request should be considered metadata and given as tags.
 //
 // JsonToInfluxFormatter defines the formatter applied before the conversion
-// from Json to InfluxDB. By default this is set to format.Forward.
+// from JSON to InfluxDB. By default this is set to format.Forward.
 type JSONToInflux10 struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	metadataEscape       *strings.Replacer
