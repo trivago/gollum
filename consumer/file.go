@@ -271,7 +271,9 @@ func (cons *File) read(buffer *tio.BufferedReader, sendFunction func(data []byte
 func (source *sourceFile) isRotated() bool {
 	if source.file.Name() != source.realFileName {
 		return true
-	} else if time.Since(source.lastStatCheck) > time.Second {
+	}
+
+	if time.Since(source.lastStatCheck) > time.Second {
 		newStat, newStatErr := os.Stat(source.realFileName)
 		oldStat, oldStatErr := source.file.Stat()
 
@@ -424,13 +426,12 @@ func (w *watcher) Watch(buffer *tio.BufferedReader, sendFunction func(data []byt
 }
 
 func (w *watcher) watchLoop(watcher *fsnotify.Watcher) {
-outerLoop:
 	for {
 		if _, err := os.Stat(w.source.realFileName); os.IsNotExist(err) {
 			w.logger.WithField("file", w.source.realFileName).
 				Warning("watched file not exists. retry in 3sec ..")
 			time.Sleep(3 * time.Second)
-			continue outerLoop // retry
+			continue // retry
 		}
 
 		// read current file state before watching
@@ -440,22 +441,22 @@ outerLoop:
 		if err != nil {
 			w.logger.Error("error during adding watcher: ", err)
 			time.Sleep(3 * time.Second)
-			continue outerLoop // retry
+			continue // retry
 		}
 
-	innerLoop:
+	fileEvent:
 		for {
 			select {
 			case event := <-watcher.Events:
 				if event.Op&fsnotify.Write == fsnotify.Write {
 					w.logger.Debug("modified file: ", event.Name)
 					w.read()
-					break
+					continue fileEvent //break select
 				}
 
 				if event.Op&fsnotify.Rename == fsnotify.Rename || event.Op&fsnotify.Remove == fsnotify.Remove {
 					w.logger.WithField("event", event).Debug("file renamed/removed: ", event.Name)
-					break innerLoop
+					break fileEvent
 				}
 			case err := <-watcher.Errors:
 				w.logger.Error("Error during watch loop: ", err)
