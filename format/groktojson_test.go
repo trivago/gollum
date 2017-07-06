@@ -34,7 +34,7 @@ func TestPatternToJSON(t *testing.T) {
 	formatter, casted := plugin.(*GrokToJSON)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("us-west.servicename.webserver0.this.is.the.measurement 12.0 1497003802\r"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("us-west.servicename.webserver0.this.is.the.measurement 12.0 1497003802\r"), nil, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -68,7 +68,7 @@ func TestMultiplePatternsOrder(t *testing.T) {
 	formatter, casted := plugin.(*GrokToJSON)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("us-east.www.webserver1.statsd.latency-appname.another.test-measurement 42.1 1497005802\r"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("us-east.www.webserver1.statsd.latency-appname.another.test-measurement 42.1 1497005802\r"), nil, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -101,7 +101,7 @@ func TestNoMatch(t *testing.T) {
 	formatter, casted := plugin.(*GrokToJSON)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("nonumber"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("nonumber"), nil, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	if err == nil {
