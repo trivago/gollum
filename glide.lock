@@ -1,10 +1,8 @@
-hash: 62f85e10fc530e080fdcd8dabddff12f8ae05fb8d1ec1745c48cfbd0b50e8c4f
-updated: 2017-06-14T17:18:13.788468084+02:00
+hash: 7a736d6711ec06bdfa0f57572febcf08dbf26866a7fde9ca15e37c9f396de150
+updated: 2017-07-06T14:44:00.899617778+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
-- name: github.com/araddon/gou
-  version: 9a11413ad5023f3b138f313727f35468591ff73b
 - name: github.com/artyom/fb303
   version: fa4a241cefb113c4981dbac51a8cfcb047efa079
 - name: github.com/artyom/scribe
@@ -12,7 +10,7 @@ imports:
 - name: github.com/artyom/thrift
   version: 388840a05deb9b7d85fdf6c225a2729fe1826cb7
 - name: github.com/aws/aws-sdk-go
-  version: 06d3a0c37ae95ae040548a13952501261cb5fd2b
+  version: 96358b8282b1a3aa66836d2f2fe66216cc419668
   subpackages:
   - aws
   - aws/awserr
@@ -30,6 +28,7 @@ imports:
   - aws/request
   - aws/session
   - aws/signer/v4
+  - internal/shareddefaults
   - private/protocol
   - private/protocol/json/jsonutil
   - private/protocol/jsonrpc
@@ -42,10 +41,8 @@ imports:
   - service/kinesis
   - service/s3
   - service/sts
-- name: github.com/bitly/go-hostpool
-  version: c32c3660406ef1ea14936cc9282e174fe8508c42
 - name: github.com/bsm/sarama-cluster
-  version: e92a2f7a82a6f2bbdd2f7305b8a833fa22eb2138
+  version: ccdc0803695fbce22f1706d04ded46cd518fd832
 - name: github.com/coreos/go-systemd
   version: 48702e0da86bd25e76cfef347e2adeb434a0d0a6
   subpackages:
@@ -55,7 +52,7 @@ imports:
   subpackages:
   - dlopen
 - name: github.com/davecgh/go-spew
-  version: 346938d642f2ec3594ed81d874461961cd0faa76
+  version: 782f4967f2dc4564575ca782fe2d04090b5faca8
   subpackages:
   - spew
 - name: github.com/eapache/go-resiliency
@@ -67,7 +64,7 @@ imports:
 - name: github.com/eapache/queue
   version: 44cc805cf13205b55f69e14bcb69867d1ae92f98
 - name: github.com/go-ini/ini
-  version: d3de07a94d22b4a0972deb4b96d790c2c0ce8333
+  version: 3d73f4b845efdf9989fffd4b4e562727744a34ba
 - name: github.com/go-redis/redis
   version: 2cf5af9928978bbef8d1076607022403439e177c
   subpackages:
@@ -77,7 +74,7 @@ imports:
   - internal/pool
   - internal/proto
 - name: github.com/golang/protobuf
-  version: e325f446bebc2998605911c0a2650d9920361d4a
+  version: 6a1fa9404c0aebf36c879bc50152edcc953910d2
   subpackages:
   - proto
 - name: github.com/golang/snappy
@@ -87,13 +84,13 @@ imports:
 - name: github.com/jmespath/go-jmespath
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
 - name: github.com/klauspost/crc32
-  version: 1bab8b35b6bb565f92cbc97939610af9369f942a
-- name: github.com/lytics/logrus
-  version: 4389a17ed024d8d196b5541116151f378705b0cc
-- name: github.com/mattbaird/elastigo
-  version: 2fe47fd29e4b70353f852ede77a196830d2924ec
-  subpackages:
-  - lib
+  version: bab58d77464aa9cf4e84200c3276da0831fe0c03
+- name: github.com/mattn/go-colorable
+  version: 941b50ebc6efddf4c41c8e4537a5f68a4e686b24
+- name: github.com/mattn/go-isatty
+  version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
+- name: github.com/mgutz/ansi
+  version: 9520e82c474b0a04dd04f8a40959027271bab992
 - name: github.com/miekg/pcap
   version: 51d9d986bf8d5f524d65bf31c353e10271d54aaa
 - name: github.com/mmcloughlin/geohash
@@ -108,6 +105,8 @@ imports:
   version: 5a004441f897722c627870a981d02b29924215fa
   subpackages:
   - xxHash32
+- name: github.com/pkg/errors
+  version: c605e284fe17294bda444b34710735b29d1a9d90
 - name: github.com/quipo/statsd
   version: 39c3fe59a6c334d5aefddf41f3c16595301c80e1
   subpackages:
@@ -116,29 +115,33 @@ imports:
   version: 1f30fe9094a513ce4c700b9a54458bbb0c96996c
 - name: github.com/Shopify/sarama
   version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
+- name: github.com/sirupsen/logrus
+  version: 202f25545ea4cf9b191ff7f846df5d87c9382c2b
 - name: github.com/trivago/tgo
-  version: c787d684e0a8d84d70a3199b01262c80b8afaf3a
+  version: bdfa63d0265af496c5bc30356dc31b19aa71447e
   subpackages:
   - tcontainer
   - terrors
   - tflag
-  - tfmt
   - thealthcheck
   - tio
-  - tlog
   - tmath
   - tnet
   - treflect
   - tstrings
   - tsync
   - ttesting
+- name: github.com/vjeantet/grok
+  version: d73e972b60935c7fec0b4ffbc904ed39ecaf7efe
+- name: github.com/x-cray/logrus-prefixed-formatter
+  version: 0b2c791a02f18788b281dc30e243a0632dad695b
 - name: golang.org/x/crypto
-  version: 850760c427c516be930bc91280636328f1a62286
+  version: 51714a8c4ac1764f07ab4127d7f739351ced4759
   subpackages:
   - bcrypt
   - blowfish
 - name: golang.org/x/sys
-  version: 0b25a408a50076fbbcae6b7ac0ea5fbb0b085e79
+  version: 94b76065f2d2081d0fef24a6e67c571f51a6408a
   subpackages:
   - unix
   - windows
@@ -149,6 +152,10 @@ imports:
   - internal/syslogparser
   - internal/syslogparser/rfc3164
   - internal/syslogparser/rfc5424
+- name: gopkg.in/olivere/elastic.v5
+  version: 3113f9b9ad37509fe5f8a0e5e91c96fdc4435e26
+  subpackages:
+  - uritemplates
 - name: gopkg.in/oschwald/geoip2-golang.v1
   version: 496a3cbcb65a3cb54497fe4ae2273319e85160a4
 - name: gopkg.in/yaml.v2

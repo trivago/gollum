@@ -35,8 +35,8 @@ type metaDataMap map[string]core.ModulatorArray
 //     - bar 			# 1:1 copy of the "payload" to "bar"
 //   ApplyTo: "payload" # payload or <metaKey>
 type MetadataCopy struct {
-	core.SimpleFormatter
-	metaData metaDataMap
+	core.SimpleFormatter `gollumdoc:"embed_type"`
+	metaData             metaDataMap
 }
 
 func init() {
@@ -59,7 +59,7 @@ func (format *MetadataCopy) ApplyFormatter(msg *core.Message) error {
 
 // modulateMetadataValue returns the final meta value
 func (format *MetadataCopy) modulateMetadataValue(msg *core.Message, modulators core.ModulatorArray) []byte {
-	modulationMsg := core.NewMessage(nil, format.GetAppliedContent(msg), core.InvalidStreamID)
+	modulationMsg := core.NewMessage(nil, format.GetAppliedContent(msg), nil, core.InvalidStreamID)
 
 	modulateResult := modulators.Modulate(modulationMsg)
 	if modulateResult == core.ModulateResultContinue {
@@ -81,9 +81,9 @@ func (format *MetadataCopy) getMetadataMapFromArray(metaData []interface{}) meta
 
 			for keyMetadata := range converted {
 
-				modulator, err := reader.GetModulatorArray(keyMetadata, format.Log, core.ModulatorArray{})
+				modulator, err := reader.GetModulatorArray(keyMetadata, format.Logger, core.ModulatorArray{})
 				if err != nil {
-					format.Log.Error.Print("Can't get mmodulators. Error message: ", err)
+					format.Logger.Error("Can't get mmodulators. Error message: ", err)
 					break
 				}
 

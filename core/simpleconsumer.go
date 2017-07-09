@@ -15,9 +15,9 @@
 package core
 
 import (
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/thealthcheck"
-	"github.com/trivago/tgo/tlog"
 	"sync"
 	"time"
 )
@@ -31,7 +31,9 @@ import (
 //    Enable: true
 //    ID: ""
 //    ShutdownTimeoutMs: 1000
-//    Router:
+//    ModulatorRoutines: 0
+//    ModulatorQueueSize: 1024
+//    Streams:
 //      - "foo"
 //      - "bar"
 //
@@ -40,9 +42,17 @@ import (
 // ID allows this consumer to be found by other plugins by name. By default this
 // is set to "" which does not register this consumer.
 //
-// Router contains either a single string or a list of strings defining the
+// ModulatorRoutines defines the number of go routines processing modulators.
+// When set to 0, messages will be enqueued synchronously, every other value
+// will pass the message to any of the given go routines via a shared channel.
+//
+// ModulatorQueueSize defines the size of the channel used to pass messages to
+// the go routines spawned by ModulatorRoutines. This setting has no effect if
+// ModulatorRoutines is set to 0. By default the queue size is set to 1024
+//
+// Streams contains either a single string or a list of strings defining the
 // message channels this consumer will produce. By default this is set to "*"
-// which means only producers set to consume "all routers" will get these
+// which means only producers set to consume "all streams" will get these
 // messages.
 //
 // ShutdownTimeoutMs sets a timeout in milliseconds that will be used to detect
@@ -57,20 +67,36 @@ type SimpleConsumer struct {
 	onRoll          func()
 	onPrepareStop   func()
 	onStop          func()
-	Log             tlog.LogScope
+	enqueueMessage  func(*Message)
+	modulatorQueue  MessageQueue
+	Logger          logrus.FieldLogger
 }
 
 // Configure initializes standard consumer values from a plugin config.
 func (cons *SimpleConsumer) Configure(conf PluginConfigReader) {
 	cons.id = conf.GetID()
-	cons.Log = conf.GetLogScope()
+	cons.Logger = conf.GetLogger()
 	cons.runState = NewPluginRunState()
 	cons.control = make(chan PluginControl, 1)
+
+	numRoutines := conf.GetInt("ModulatorRoutines", 0)
+	queueSize := conf.GetInt("ModulatorQueueSize", 1024)
+
+	if numRoutines > 0 {
+		cons.Logger.Debugf("Using %d modulator routines", numRoutines)
+		cons.modulatorQueue = NewMessageQueue(int(queueSize))
+		for i := 0; i < int(numRoutines); i++ {
+			go cons.processQueue()
+		}
+		cons.enqueueMessage = cons.parallelEnqueue
+	} else {
+		cons.enqueueMessage = cons.directEnqueue
+	}
 }
 
-// GetLogScope returns the logging scope of this plugin
-func (cons *SimpleConsumer) GetLogScope() tlog.LogScope {
-	return cons.Log
+// GetLogger returns the logger scoped to this plugin
+func (cons *SimpleConsumer) GetLogger() logrus.FieldLogger {
+	return cons.Logger
 }
 
 // AddHealthCheck a health check at the default URL
@@ -169,20 +195,28 @@ func (cons *SimpleConsumer) WorkerDone() {
 // Enqueue creates a new message from a given byte slice and passes it to
 // EnqueueMessage. Data is copied to the message.
 func (cons *SimpleConsumer) Enqueue(data []byte) {
-	msg := NewMessage(cons, data, GetStreamID(cons.id))
-	cons.enqueueMessage(msg)
+	cons.EnqueueWithMetadata(data, nil)
 }
 
 // EnqueueWithMetadata works like EnqueueWithSequence and allows to set meta data directly
 func (cons *SimpleConsumer) EnqueueWithMetadata(data []byte, metaData Metadata) {
-	msg := NewMessage(cons, data, GetStreamID(cons.id))
-
-	msg.data.Metadata = metaData
-	msg.orig.Metadata = metaData.Clone()
+	msg := NewMessage(cons, data, metaData, GetStreamID(cons.id))
 	cons.enqueueMessage(msg)
 }
 
-func (cons *SimpleConsumer) enqueueMessage(msg *Message) {
+func (cons *SimpleConsumer) parallelEnqueue(msg *Message) {
+	cons.modulatorQueue.Push(msg, 0)
+}
+
+func (cons *SimpleConsumer) processQueue() {
+loop:
+	if msg, hasMore := cons.modulatorQueue.Pop(); hasMore {
+		cons.directEnqueue(msg)
+		goto loop
+	}
+}
+
+func (cons *SimpleConsumer) directEnqueue(msg *Message) {
 	// Execute configured modulators
 	switch cons.modulators.Modulate(msg) {
 	case ModulateResultDiscard:
@@ -191,7 +225,7 @@ func (cons *SimpleConsumer) enqueueMessage(msg *Message) {
 
 	case ModulateResultFallback:
 		if err := RouteOriginal(msg, msg.GetRouter()); err != nil {
-			cons.Log.Error.Print(err)
+			cons.Logger.Error(err)
 		}
 		return
 	}
@@ -209,7 +243,7 @@ func (cons *SimpleConsumer) enqueueMessage(msg *Message) {
 		msg.SetStreamID(router.GetStreamID())
 
 		if err := Route(msg, router); err != nil {
-			cons.Log.Error.Print(err)
+			cons.Logger.Error(err)
 		}
 	}
 
@@ -217,7 +251,7 @@ func (cons *SimpleConsumer) enqueueMessage(msg *Message) {
 	msg.SetStreamID(router.GetStreamID())
 
 	if err := Route(msg, router); err != nil {
-		cons.Log.Error.Print(err)
+		cons.Logger.Error(err)
 	}
 }
 
@@ -226,37 +260,41 @@ func (cons *SimpleConsumer) enqueueMessage(msg *Message) {
 func (cons *SimpleConsumer) ControlLoop() {
 	cons.setState(PluginStateActive)
 	defer cons.setState(PluginStateDead)
-	defer cons.Log.Debug.Print("Stopped")
+	defer cons.Logger.Debug("Stopped")
 
 	for {
 		command := <-cons.control
 		switch command {
 		default:
-			cons.Log.Debug.Print("Received untracked command")
+			cons.Logger.Debug("Received untracked command")
 			// Do nothing
 
 		case PluginControlStopConsumer:
-			cons.Log.Debug.Print("Preparing for stop")
+			cons.Logger.Debug("Preparing for stop")
 			cons.setState(PluginStatePrepareStop)
 
 			if cons.onPrepareStop != nil {
 				if !tgo.ReturnAfter(cons.shutdownTimeout*5, cons.onPrepareStop) {
-					cons.Log.Error.Print("Timeout during onPrepareStop")
+					cons.Logger.Error("Timeout during onPrepareStop")
 				}
 			}
 
-			cons.Log.Debug.Print("Executing stop command")
+			cons.Logger.Debug("Executing stop command")
 			cons.setState(PluginStateStopping)
 
 			if cons.onStop != nil {
 				if !tgo.ReturnAfter(cons.shutdownTimeout*5, cons.onStop) {
-					cons.Log.Error.Printf("Timeout during onStop")
+					cons.Logger.Errorf("Timeout during onStop")
 				}
+			}
+
+			if cons.modulatorQueue != nil {
+				close(cons.modulatorQueue)
 			}
 			return // ### return ###
 
 		case PluginControlRoll:
-			cons.Log.Debug.Print("Received roll command")
+			cons.Logger.Debug("Received roll command")
 			if cons.onRoll != nil {
 				cons.onRoll()
 			}

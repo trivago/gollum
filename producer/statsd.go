@@ -32,6 +32,7 @@ import (
 //    Prefix: "gollum."
 //    Server: "localhost:8125"
 //    UseMessage: false
+//    UseGauge: false
 //    StreamMapping:
 //      "*" : "default"
 //
@@ -53,6 +54,11 @@ import (
 // to false then each message will increment by 1. By default this is set
 // to false.
 //
+// UseGauge defines whether to send gauge metrics instead of counter
+// metrics. If this is set to true then every stream in streamMap that
+// does not receive any messages in a batch will have a gauge value of 0
+// sent for that batch. By default this is set to false.
+//
 // StreamMapping defines a translation from gollum stream to statsd metric
 // name. If no mapping is given the gollum stream name is used as the
 // metric name.
@@ -63,6 +69,7 @@ type Statsd struct {
 	batch                 core.MessageBatch
 	flushFrequency        time.Duration `config:"BatchTimeoutSec" default:"10" metric:"sec"`
 	useMessage            bool          `config:"UseMessage"`
+	useGauge              bool          `config:"UseGauge"`
 }
 
 func init() {
@@ -90,6 +97,8 @@ func (prod *Statsd) sendBatchOnTimeOut() {
 	// Flush if necessary
 	if prod.batch.ReachedTimeThreshold(prod.flushFrequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2) {
 		prod.sendBatch()
+	} else if prod.useGauge && prod.batch.IsEmpty() {
+		prod.transformMessages(make([]*core.Message, 0))
 	}
 }
 
@@ -130,16 +139,29 @@ func (prod *Statsd) transformMessages(messages []*core.Message) {
 			if val, err := strconv.ParseInt(msgCopy.String(), 10, 64); err == nil {
 				metricValues[metricName] += val
 			} else {
-				prod.Log.Warning.Print("message was skipped")
+				prod.Logger.Warning("message was skipped")
 			}
 		} else {
 			metricValues[metricName] += int64(1)
 		}
 	}
 
+	if prod.useGauge {
+		// add a 0 for all mapped streams with no value
+		for _, metricName := range prod.streamMap {
+			if _, metricMapped := metricValues[metricName]; !metricMapped {
+				metricValues[metricName] = int64(0)
+			}
+		}
+	}
+
 	// Send to Statsd
 	for metric, val := range metricValues {
-		prod.client.Incr(metric, val)
+		if prod.useGauge {
+			prod.client.Gauge(metric, val)
+		} else {
+			prod.client.Incr(metric, val)
+		}
 	}
 }
 

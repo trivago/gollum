@@ -16,7 +16,7 @@ package core
 
 import (
 	"errors"
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/ttesting"
 	"testing"
 )
@@ -31,8 +31,8 @@ func (format *dummyFormatter) Configure(conf PluginConfigReader) {
 	format.ConfigureHasCalled = true
 }
 
-func (format *dummyFormatter) GetLogScope() tlog.LogScope {
-	return tlog.LogScope{}
+func (format *dummyFormatter) GetLogger() logrus.FieldLogger {
+	return logrus.WithField("Scope", "dummyFormatter")
 }
 
 func (format *dummyFormatter) ApplyFormatter(msg *Message) error {
@@ -50,8 +50,8 @@ func (format *dummyErrorFormatter) Configure(conf PluginConfigReader) {
 	format.ConfigureHasCalled = true
 }
 
-func (format *dummyErrorFormatter) GetLogScope() tlog.LogScope {
-	return tlog.LogScope{}
+func (format *dummyErrorFormatter) GetLogger() logrus.FieldLogger {
+	return logrus.WithField("Scope", "dummyErrorFormatter")
 }
 
 func (format *dummyErrorFormatter) ApplyFormatter(msg *Message) error {
@@ -67,7 +67,7 @@ func TestFormatterModulatorApplyFormatter(t *testing.T) {
 
 	formatterModulator := NewFormatterModulator(formatter)
 
-	msg := NewMessage(nil, []byte("test"), InvalidStreamID)
+	msg := NewMessage(nil, []byte("test"), nil, InvalidStreamID)
 
 	expect.Nil(formatterModulator.ApplyFormatter(msg))
 	expect.True(formatter.ConfigureHasCalled)
@@ -82,7 +82,7 @@ func TestFormatterModulatorModulate(t *testing.T) {
 
 	formatterModulator := NewFormatterModulator(formatter)
 
-	msg := NewMessage(nil, []byte("test"), InvalidStreamID)
+	msg := NewMessage(nil, []byte("test"), nil, InvalidStreamID)
 
 	expect.Equal(ModulateResultContinue, formatterModulator.Modulate(msg))
 	expect.True(formatter.ConfigureHasCalled)
@@ -97,7 +97,7 @@ func TestFormatterModulatorModulateError(t *testing.T) {
 
 	formatterModulator := NewFormatterModulator(formatter)
 
-	msg := NewMessage(nil, []byte("test"), InvalidStreamID)
+	msg := NewMessage(nil, []byte("test"), nil, InvalidStreamID)
 
 	expect.Equal(ModulateResultDiscard, formatterModulator.Modulate(msg))
 	expect.True(formatter.ConfigureHasCalled)
@@ -111,7 +111,7 @@ func TestFormatterArray(t *testing.T) {
 	secondFormatter, _ := getDummyFormatter()
 
 	formatterArray := FormatterArray{formatter, secondFormatter}
-	msg := NewMessage(nil, []byte("test"), InvalidStreamID)
+	msg := NewMessage(nil, []byte("test"), nil, InvalidStreamID)
 
 	expect.Nil(formatterArray.ApplyFormatter(msg))
 

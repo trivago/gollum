@@ -156,14 +156,14 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 		case "time":
 			stringValue, err := values.String(directive.key)
 			if err != nil {
-				format.Log.Warning.Print(err.Error())
+				format.Logger.Warning(err.Error())
 				return
 			}
 
 			if numParameters == 2 {
 
 				if timestamp, err := time.Parse(directive.parameters[0], stringValue[:len(directive.parameters[0])]); err != nil {
-					format.Log.Warning.Print("ProcessJSON failed to parse a timestamp: ", err)
+					format.Logger.Warning("ProcessJSON failed to parse a timestamp: ", err)
 				} else {
 					(*values)[directive.key] = timestamp.Format(directive.parameters[1])
 				}
@@ -172,7 +172,7 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 		case "unixtimestamp":
 			floatValue, err := values.Float(directive.key)
 			if err != nil {
-				format.Log.Warning.Print(err.Error())
+				format.Logger.Warning(err.Error())
 				return
 			}
 			intValue := int64(floatValue)
@@ -194,7 +194,7 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 		case "split":
 			stringValue, err := values.String(directive.key)
 			if err != nil {
-				format.Log.Warning.Print(err.Error())
+				format.Logger.Warning(err.Error())
 				return
 			}
 			if numParameters > 1 {
@@ -221,7 +221,7 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 			if index < 0 || index >= len(array) {
 				if len(array) > 0 {
 					// Don't log if array is empty
-					format.Log.Warning.Printf("Array index %d out of bounds: %#v", index, array)
+					format.Logger.Warningf("Array index %d out of bounds: %#v", index, array)
 				}
 				return
 			}
@@ -253,7 +253,7 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 		case "replace":
 			stringValue, err := values.String(directive.key)
 			if err != nil {
-				format.Log.Warning.Print(err.Error())
+				format.Logger.Warning(err.Error())
 				return
 			}
 			if numParameters == 2 {
@@ -263,7 +263,7 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 		case "trim":
 			stringValue, err := values.String(directive.key)
 			if err != nil {
-				format.Log.Warning.Print(err.Error())
+				format.Logger.Warning(err.Error())
 				return
 			}
 			switch {
@@ -288,7 +288,7 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 					(*values)[keyPrefix+strconv.Itoa(index)] = val
 				}
 			} else {
-				format.Log.Warning.Print("key was not a JSON array or object: " + directive.key)
+				format.Logger.Warning("key was not a JSON array or object: " + directive.key)
 				return
 			}
 			delete(*values, directive.key)
@@ -296,7 +296,7 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 		case "agent":
 			stringValue, err := values.String(directive.key)
 			if err != nil {
-				format.Log.Warning.Print(err.Error())
+				format.Logger.Warning(err.Error())
 				return
 			}
 			fields := []string{
@@ -337,7 +337,7 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 		case "ip":
 			ipArray, err := (*values).Array(directive.key)
 			if err != nil {
-				format.Log.Warning.Print(err.Error())
+				format.Logger.Warning(err.Error())
 				return
 			}
 
@@ -357,7 +357,7 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 
 			ipString, err := (*values).String(directive.key)
 			if err != nil {
-				format.Log.Warning.Print(err.Error())
+				format.Logger.Warning(err.Error())
 				return
 			}
 
@@ -376,8 +376,8 @@ func (format *ProcessJSON) processDirective(directive transformDirective, values
 			ip := net.ParseIP(ipString)
 			record, err := format.db.City(ip)
 			if err != nil {
-				format.Log.Warning.Printf("IP \"%s\" could not be resolved: %s", ipString, err.Error())
-				format.Log.Debug.Printf("%#v", values)
+				format.Logger.Warningf("IP \"%s\" could not be resolved: %s", ipString, err.Error())
+				format.Logger.Debugf("%#v", values)
 				return
 			}
 
@@ -428,7 +428,7 @@ func (format *ProcessJSON) ApplyFormatter(msg *core.Message) error {
 	values := make(tcontainer.MarshalMap)
 	err := json.Unmarshal(format.GetAppliedContent(msg), &values)
 	if err != nil {
-		format.Log.Warning.Print("ProcessJSON failed to unmarshal a message: ", err)
+		format.Logger.Warning("ProcessJSON failed to unmarshal a message: ", err)
 		return err
 	}
 
@@ -447,7 +447,7 @@ func (format *ProcessJSON) ApplyFormatter(msg *core.Message) error {
 
 	jsonData, err := json.Marshal(values)
 	if err != nil {
-		format.Log.Warning.Print("ProcessJSON failed to marshal a message: ", err)
+		format.Logger.Warning("ProcessJSON failed to marshal a message: ", err)
 		return err
 	}
 

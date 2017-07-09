@@ -143,7 +143,7 @@ func (prod *Proxy) sendMessage(msg *core.Message) {
 		conn, err := net.DialTimeout(prod.protocol, prod.address, prod.timeout)
 
 		if err != nil {
-			prod.Log.Error.Print("Connection error - ", err)
+			prod.Logger.Error("Connection error - ", err)
 			<-time.After(time.Second)
 		} else {
 			conn.(bufferedConn).SetWriteBuffer(prod.bufferSizeKB << 10)
@@ -162,7 +162,7 @@ func (prod *Proxy) sendMessage(msg *core.Message) {
 	// Write data
 	prod.connection.SetWriteDeadline(time.Now().Add(prod.timeout))
 	if _, err := prod.connection.Write(msg.GetPayload()); err != nil {
-		prod.Log.Error.Print("Write error: ", err)
+		prod.Logger.Error("Write error: ", err)
 		prod.connection.Close()
 		prod.connection = nil
 		return // ### return, connection closed ###
@@ -172,7 +172,7 @@ func (prod *Proxy) sendMessage(msg *core.Message) {
 	enqueueResponse := tio.BufferReadCallback(nil)
 	if processResponse {
 		enqueueResponse = func(data []byte) {
-			response := core.NewMessage(prod, data, msg.GetStreamID())
+			response := core.NewMessage(prod, data, nil, msg.GetStreamID())
 			responder.EnqueueResponse(response)
 		}
 	}
@@ -180,7 +180,7 @@ func (prod *Proxy) sendMessage(msg *core.Message) {
 	// Read response
 	prod.connection.SetReadDeadline(time.Now().Add(prod.timeout))
 	if err := prod.reader.ReadAll(prod.connection, enqueueResponse); err != nil {
-		prod.Log.Error.Print("Read error: ", err)
+		prod.Logger.Error("Read error: ", err)
 		prod.connection.Close()
 		prod.connection = nil
 		return // ### return, connection closed ###

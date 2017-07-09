@@ -16,14 +16,13 @@ package native
 
 import (
 	"fmt"
+	kafka "github.com/trivago/gollum/contrib/native/kafka/librdkafka"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
-
-	kafka "github.com/trivago/gollum/contrib/native/kafka/librdkafka"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 )
 
 // KafkaProducer librdkafka producer plugin
@@ -159,19 +158,19 @@ import (
 // after the formatter has run. By default no such filter is set.
 type KafkaProducer struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
-	servers               []string
-	clientID              string
+	servers               []string `config:"Servers" default:"localhost:9092"`
+	clientID              string   `config:"ClientId" default:"gollum"`
 	keyModulators         core.ModulatorArray
 	client                *kafka.Client
 	config                kafka.Config
-	topicRequiredAcks     int
-	topicTimeoutMs        int
-	pollInterval          time.Duration
+	topicRequiredAcks     int           `config:"RequiredAcks" default:"1"`
+	topicTimeoutMs        int           `config:"TimeoutMs" default:"100" metric:"ms"`
+	pollInterval          time.Duration `config:"BatchTimeoutMs" default:"1000" metric:"ms"`
 	topic                 map[core.MessageStreamID]*topicHandle
 	topicHandles          map[string]*topicHandle
 	streamToTopic         map[core.MessageStreamID]string
 	topicGuard            *sync.RWMutex
-	keyFirst              bool
+	keyFirst              bool `config:"KeyFormatterFirst"`
 }
 
 type messageWrapper struct {
@@ -225,22 +224,16 @@ func (m *messageWrapper) GetUserdata() []byte {
 // Configure initializes this producer with values from a plugin config.
 func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
 	prod.SetStopCallback(prod.close)
-	kafka.Log = prod.Log.Error
-	prod.keyModulators = conf.GetModulatorArray("KeyModulators", prod.Log, core.ModulatorArray{})
 
-	prod.servers = conf.GetStringArray("Servers", []string{"localhost:9092"})
-	prod.clientID = conf.GetString("ClientId", "gollum")
+	prod.keyModulators = conf.GetModulatorArray("KeyModulators", prod.Logger, core.ModulatorArray{})
+
 	prod.streamToTopic = conf.GetStreamMap("Topic", "default")
 	prod.topic = make(map[core.MessageStreamID]*topicHandle)
-	prod.topicRequiredAcks = conf.GetInt("RequiredAcks", 1)
-	prod.topicTimeoutMs = conf.GetInt("TimeoutMs", 1)
+
 	prod.topicGuard = new(sync.RWMutex)
 	prod.streamToTopic = conf.GetStreamMap("Topic", "default")
-	prod.keyFirst = conf.GetBool("KeyFormatterFirst", false)
-	prod.topicHandles = make(map[string]*topicHandle)
 
-	batchIntervalMs := conf.GetInt("BatchTimeoutMs", 1000)
-	prod.pollInterval = time.Millisecond * time.Duration(batchIntervalMs)
+	prod.topicHandles = make(map[string]*topicHandle)
 
 	// Init librdkafka
 	prod.config = kafka.NewConfig()
@@ -266,16 +259,16 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
 	prod.config.Set("ssl.crl.location", conf.GetString("SslCrlLocation", ""))
 	prod.config.Set("ssl.key.location", conf.GetString("SslKeyLocation", ""))
 	prod.config.Set("ssl.key.password", conf.GetString("SslKeyPassword", ""))
-	prod.config.SetI("message.max.bytes", conf.GetInt("BatchSizeMaxKB", 1<<10)<<10)
+	prod.config.SetI("message.max.bytes", int(conf.GetInt("BatchSizeMaxKB", 1<<10))<<10)
 	prod.config.SetI("metadata.request.timeout.ms", int(conf.GetInt("MetadataTimeoutMs", 1500)))
 	prod.config.SetI("topic.metadata.refresh.interval.ms", int(conf.GetInt("MetadataRefreshMs", 300000)))
 	prod.config.SetI("socket.max.fails", int(conf.GetInt("ServerMaxFails", 3)))
 	prod.config.SetI("socket.timeout.ms", int(conf.GetInt("ServerTimeoutSec", 60)*1000))
 	prod.config.SetB("socket.keepalive.enable", true)
-	prod.config.SetI("message.send.max.retries", conf.GetInt("SendRetries", 0))
-	prod.config.SetI("queue.buffering.max.messages", conf.GetInt("BatchMaxMessages", 100000))
-	prod.config.SetI("queue.buffering.max.ms", batchIntervalMs)
-	prod.config.SetI("batch.num.messages", conf.GetInt("BatchMinMessages", 1000))
+	prod.config.SetI("message.send.max.retries", int(conf.GetInt("SendRetries", 0)))
+	prod.config.SetI("queue.buffering.max.messages", int(conf.GetInt("BatchMaxMessages", 100000)))
+	prod.config.SetI("queue.buffering.max.ms", int(conf.GetInt("BatchTimeoutMs", 1000)))
+	prod.config.SetI("batch.num.messages", int(conf.GetInt("BatchMinMessages", 1000)))
 	//prod.config.SetI("protocol.version", verNumber)
 
 	securityProtocol := strings.ToLower(conf.GetString("SecurityProtocol", protocolPlaintext))
@@ -340,9 +333,9 @@ func (prod *KafkaProducer) registerNewTopic(topicName string, streamID core.Mess
 func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 	originalMsg := msg.Clone()
 
-	if msg.Len() == 0 {
+	if len(msg.GetPayload()) == 0 {
 		streamName := core.StreamRegistry.GetStreamName(msg.GetStreamID())
-		prod.Log.Error.Printf("0 byte message detected on %s. Discarded", streamName)
+		prod.Logger.Errorf("0 byte message detected on %s. Discarded", streamName)
 		core.CountMessageDiscarded()
 		return // ### return, invalid data ###
 	}
@@ -364,7 +357,7 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 
 	serializedOriginal, err := originalMsg.Serialize()
 	if err != nil {
-		prod.Log.Error.Print(err)
+		prod.Logger.Error(err)
 	}
 
 	kafkaMsg := &messageWrapper{
@@ -384,15 +377,16 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 	}
 
 	if err := topic.handle.Produce(kafkaMsg); err != nil {
-		prod.Log.Error.Print("Message produce failed:", err)
-		prod.Drop(originalMsg)
+		prod.Logger.Error("Message produce failed:", err)
+		prod.TryFallback(msg)
+
 	} else {
 		tgo.Metric.Inc(kafkaMetricMessages + topic.handle.GetName())
 	}
 }
 
 func (prod *KafkaProducer) storeRTT(msg *core.Message) {
-	rtt := time.Since(msg.Created())
+	rtt := time.Since(msg.GetCreationTime())
 	prod.Modulate(msg)
 
 	prod.topicGuard.RLock()
@@ -408,18 +402,18 @@ func (prod *KafkaProducer) OnMessageDelivered(userdata []byte) {
 	if msg, err := core.DeserializeMessage(userdata); err == nil {
 		prod.storeRTT(&msg)
 	} else {
-		prod.Log.Error.Print(err)
+		prod.Logger.Error(err)
 	}
 }
 
 // OnMessageError gets called by librdkafka on message delivery failure
 func (prod *KafkaProducer) OnMessageError(reason string, userdata []byte) {
-	prod.Log.Error.Print("Message delivery failed:", reason)
+	prod.Logger.Error("Message delivery failed:", reason)
 	if msg, err := core.DeserializeMessage(userdata); err == nil {
 		prod.storeRTT(&msg)
-		prod.Drop(&msg)
+		prod.TryFallback(&msg)
 	} else {
-		prod.Log.Error.Print(err)
+		prod.Logger.Error(err)
 	}
 }
 
@@ -455,7 +449,7 @@ func (prod *KafkaProducer) tryConnect() bool {
 
 	client, err := kafka.NewProducer(prod.config, prod)
 	if err != nil {
-		prod.Log.Error.Print(err)
+		prod.Logger.Error(err)
 		return false
 	}
 

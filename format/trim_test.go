@@ -20,7 +20,7 @@ func TestFormatterTrim(t *testing.T) {
 	formatter, casted := plugin.(*Trim)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("|foo bar foobar|"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("|foo bar foobar|"), nil, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -41,7 +41,7 @@ func TestFormatterTrimWithSpaces(t *testing.T) {
 	formatter, casted := plugin.(*Trim)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte(" foo bar foobar  "), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte(" foo bar foobar  "), nil, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -63,7 +63,7 @@ func TestFormatterTrimApplyTo(t *testing.T) {
 	formatter, casted := plugin.(*Trim)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("|foo bar foobar|"), core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("|foo bar foobar|"), nil, core.InvalidStreamID)
 	msg.GetMetadata().SetValue("foo", []byte("|foo bar foobar|second foo bar|"))
 
 	err = formatter.ApplyFormatter(msg)

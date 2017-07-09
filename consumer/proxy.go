@@ -142,7 +142,7 @@ func (cons *Proxy) accept() {
 		client, err := listener.Accept()
 		if err != nil {
 			if cons.IsActive() {
-				cons.Log.Error.Print("Listen failed: ", err)
+				cons.Logger.Error("Listen failed: ", err)
 			}
 			break // ### break ###
 		}
@@ -156,7 +156,7 @@ func (cons *Proxy) Consume(workers *sync.WaitGroup) {
 	var err error
 
 	if cons.listen, err = net.Listen(cons.protocol, cons.address); err != nil {
-		cons.Log.Error.Print("Connection error: ", err)
+		cons.Logger.Error("Connection error: ", err)
 		return
 	}
 

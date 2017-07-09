@@ -15,9 +15,10 @@
 package main
 
 import (
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/logger"
 	"github.com/trivago/tgo"
-	"github.com/trivago/tgo/tlog"
 	"os"
 	"os/signal"
 	"reflect"
@@ -71,7 +72,9 @@ func NewCoordinator() Coordinator {
 func (co *Coordinator) Configure(conf *core.Config) {
 	// Make sure the log is printed to stderr if we are stuck here
 	logFallback := time.AfterFunc(time.Duration(3)*time.Second, func() {
-		tlog.SetWriter(os.Stderr)
+		//logrus.SetOutput(os.Stderr)
+		logrusHookBuffer.SetTargetWriter(logger.FallbackLogDevice)
+		logrusHookBuffer.Purge()
 	})
 	defer logFallback.Stop()
 
@@ -93,23 +96,25 @@ func (co *Coordinator) Configure(conf *core.Config) {
 func (co *Coordinator) StartPlugins() {
 
 	if len(co.consumers) == 0 {
-		tlog.Error.Print("No consumers configured.")
-		tlog.SetWriter(os.Stdout)
+		logrus.Error("No consumers configured.")
+		logrusHookBuffer.SetTargetWriter(logger.FallbackLogDevice)
+		logrusHookBuffer.Purge()
 		return // ### return, nothing to do ###
 	}
 
 	if len(co.producers) == 0 {
-		tlog.Error.Print("No producers configured.")
-		tlog.SetWriter(os.Stdout)
+		logrus.Error("No producers configured.")
+		logrusHookBuffer.SetTargetWriter(logger.FallbackLogDevice)
+		logrusHookBuffer.Purge()
 		return // ### return, nothing to do ###
 	}
 
 	// Launch routers
 	for _, router := range co.routers {
 		if err := router.Start(); err != nil {
-			tlog.Error.Print("Router was not able to start from type ", reflect.TypeOf(router), ": ", err)
+			logrus.Error("Router was not able to start from type ", reflect.TypeOf(router), ": ", err)
 		} else {
-			tlog.Debug.Print("Starting ", reflect.TypeOf(router))
+			logrus.Debug("Starting ", reflect.TypeOf(router))
 		}
 	}
 
@@ -118,16 +123,29 @@ func (co *Coordinator) StartPlugins() {
 	for _, producer := range co.producers {
 		producer := producer
 		go tgo.WithRecoverShutdown(func() {
-			tlog.Debug.Print("Starting ", reflect.TypeOf(producer))
+			logrus.Debug("Starting ", reflect.TypeOf(producer))
 			producer.Produce(co.producerWorker)
 		})
 	}
 
-	// If there are intenal log listeners switch to stream mode
+	// Set final log target and purge the intermediate buffer
 	if core.StreamRegistry.IsStreamRegistered(core.LogInternalStreamID) {
-		tlog.SetWriter(co.logConsumer)
+		// The _GOLLUM_ stream has listeners, so use LogConsumer to write to it
+		if *flagLogColors == "always" {
+			logrus.SetFormatter(logger.NewConsoleFormatter())
+		}
+		logrusHookBuffer.SetTargetHook(co.logConsumer)
+		logrusHookBuffer.Purge()
+
 	} else {
-		tlog.SetWriter(os.Stdout)
+		// _GOLLUM_ not used, so write to the fallback device
+		if *flagLogColors == "always" ||
+			(*flagLogColors == "auto" && logrus.IsTerminal(logger.FallbackLogDevice)) {
+			// Logrus doesn't know the final log device, so we hint the color option here
+			logrus.SetFormatter(logger.NewConsoleFormatter())
+		}
+		logrusHookBuffer.SetTargetWriter(logger.FallbackLogDevice)
+		logrusHookBuffer.Purge()
 	}
 
 	// Launch consumers
@@ -135,7 +153,7 @@ func (co *Coordinator) StartPlugins() {
 	for _, consumer := range co.consumers {
 		consumer := consumer
 		go tgo.WithRecoverShutdown(func() {
-			tlog.Debug.Print("Starting ", reflect.TypeOf(consumer))
+			logrus.Debug("Starting ", reflect.TypeOf(consumer))
 			consumer.Consume(co.consumerWorker)
 		})
 	}
@@ -147,13 +165,13 @@ func (co *Coordinator) Run() {
 	co.signal = newSignalHandler()
 	defer signal.Stop(co.signal)
 
-	tlog.Note.Print("We be nice to them, if they be nice to us. (startup)")
+	logrus.Info("We be nice to them, if they be nice to us. (startup)")
 
 	for {
 		sig := <-co.signal
 		switch translateSignal(sig) {
 		case signalExit:
-			tlog.Note.Print("Master betrayed us. Wicked. Tricksy, False. (signal)")
+			logrus.Info("Master betrayed us. Wicked. Tricksy, False. (signal)")
 			return // ### return, exit requested ###
 
 		case signalRoll:
@@ -175,7 +193,7 @@ func (co *Coordinator) Run() {
 // Producers are flushed after flushing the log, so producer related shutdown
 // messages will be posted to stdout
 func (co *Coordinator) Shutdown() {
-	tlog.Note.Print("Filthy little hobbites. They stole it from us. (shutdown)")
+	logrus.Info("Filthy little hobbites. They stole it from us. (shutdown)")
 
 	stateAtShutdown := co.state
 	co.state = coordinatorStateShutdown
@@ -183,8 +201,10 @@ func (co *Coordinator) Shutdown() {
 	co.shutdownConsumers(stateAtShutdown)
 
 	// Make sure remaining warning / errors are written to stderr
-	tlog.Note.Print("I'm not listening... I'm not listening... (flushing)")
-	tlog.SetWriter(os.Stdout)
+	logrus.Info("I'm not listening... I'm not listening... (flushing)")
+	//logrus.SetOutput(fallbackLogDevice)
+	logrusHookBuffer.SetTargetWriter(logger.FallbackLogDevice)
+	logrusHookBuffer.SetTargetHook(nil)
 
 	// Shutdown producers
 	co.shutdownProducers(stateAtShutdown)
@@ -195,18 +215,18 @@ func (co *Coordinator) Shutdown() {
 func (co *Coordinator) configureRouters(conf *core.Config) {
 	routerConfigs := conf.GetRouters()
 	for _, config := range routerConfigs {
-		tlog.Debug.Printf("Instantiating router '%s'", config.ID)
+		logrus.Debugf("Instantiating router '%s'", config.ID)
 
 		plugin, err := core.NewPluginWithConfig(config)
 		if err != nil {
-			tlog.Error.Printf("Failed to instantiate router %s: %s", config.ID, err)
+			logrus.Errorf("Failed to instantiate router %s: %s", config.ID, err)
 			continue // ### continue ###
 		}
 
 		routerPlugin := plugin.(core.Router)
 		co.routers = append(co.routers, routerPlugin)
 
-		tlog.Debug.Printf("Instantiated '%s' (%s) as '%s'", config.ID, core.StreamRegistry.GetStreamName(routerPlugin.GetStreamID()), config.Typename)
+		logrus.Debugf("Instantiated '%s' (%s) as '%s'", config.ID, core.StreamRegistry.GetStreamName(routerPlugin.GetStreamID()), config.Typename)
 		core.StreamRegistry.Register(routerPlugin, routerPlugin.GetStreamID())
 	}
 }
@@ -221,46 +241,44 @@ func (co *Coordinator) configureProducers(conf *core.Config) {
 	producerConfigs := conf.GetProducers()
 
 	for _, config := range producerConfigs {
-		for i := uint64(0); i < config.Instances; i++ {
-			tlog.Debug.Print("Instantiating ", config.ID)
+		logrus.Debug("Instantiating ", config.ID)
 
-			plugin, err := core.NewPluginWithConfig(config)
-			if err != nil {
-				tlog.Error.Printf("Failed to instantiate producer %s: %s", config.ID, err)
-				continue // ### continue ###
+		plugin, err := core.NewPluginWithConfig(config)
+		if err != nil {
+			logrus.Errorf("Failed to instantiate producer %s: %s", config.ID, err)
+			continue // ### continue ###
+		}
+
+		producer, _ := plugin.(core.Producer)
+		streams := producer.Streams()
+
+		if len(streams) == 0 {
+			logrus.Error("Producer ", config.ID, " has no streams set")
+			continue // ### continue ###
+		}
+
+		co.producers = append(co.producers, producer)
+		core.CountProducers()
+
+		// Attach producer to streams
+
+		for _, streamID := range streams {
+			if streamID == core.WildcardStreamID {
+				core.StreamRegistry.RegisterWildcardProducer(producer)
+			} else {
+				router := core.StreamRegistry.GetRouterOrFallback(streamID)
+				router.AddProducer(producer)
 			}
+		}
 
-			producer, _ := plugin.(core.Producer)
-			streams := producer.Streams()
-
-			if len(streams) == 0 {
-				tlog.Error.Print("Producer ", config.ID, " has no streams set")
-				continue // ### continue ###
-			}
-
-			co.producers = append(co.producers, producer)
-			core.CountProducers()
-
-			// Attach producer to streams
-
-			for _, streamID := range streams {
-				if streamID == core.WildcardStreamID {
-					core.StreamRegistry.RegisterWildcardProducer(producer)
-				} else {
-					router := core.StreamRegistry.GetRouterOrFallback(streamID)
-					router.AddProducer(producer)
-				}
-			}
-
-			// Add producer to wildcard stream unless it only listens to internal streams
-		searchinternal:
-			for _, streamID := range streams {
-				switch streamID {
-				case core.LogInternalStreamID:
-				default:
-					wildcardStream.AddProducer(producer)
-					break searchinternal
-				}
+		// Add producer to wildcard stream unless it only listens to internal streams
+	searchinternal:
+		for _, streamID := range streams {
+			switch streamID {
+			case core.LogInternalStreamID:
+			default:
+				wildcardStream.AddProducer(producer)
+				break searchinternal
 			}
 		}
 	}
@@ -272,19 +290,17 @@ func (co *Coordinator) configureConsumers(conf *core.Config) {
 
 	consumerConfigs := conf.GetConsumers()
 	for _, config := range consumerConfigs {
-		for i := uint64(0); i < config.Instances; i++ {
-			tlog.Debug.Print("Instantiating ", config.ID)
+		logrus.Debug("Instantiating ", config.ID)
 
-			plugin, err := core.NewPluginWithConfig(config)
-			if err != nil {
-				tlog.Error.Printf("Failed to instantiate producer %s: %s", config.ID, err)
-				continue // ### continue ###
-			}
-
-			consumer, _ := plugin.(core.Consumer)
-			co.consumers = append(co.consumers, consumer)
-			core.CountConsumers()
+		plugin, err := core.NewPluginWithConfig(config)
+		if err != nil {
+			logrus.Errorf("Failed to instantiate producer %s: %s", config.ID, err)
+			continue // ### continue ###
 		}
+
+		consumer, _ := plugin.(core.Consumer)
+		co.consumers = append(co.consumers, consumer)
+		core.CountConsumers()
 	}
 }
 
@@ -302,7 +318,7 @@ func (co *Coordinator) shutdownConsumers(stateAtShutdown coordinatorState) {
 		co.state = coordinatorStateStopConsumers
 		waitTimeout := time.Duration(0)
 
-		tlog.Debug.Print("Telling consumers to stop")
+		logrus.Debug("Telling consumers to stop")
 		for _, cons := range co.consumers {
 			timeout := cons.GetShutdownTimeout()
 			if timeout > waitTimeout {
@@ -312,9 +328,9 @@ func (co *Coordinator) shutdownConsumers(stateAtShutdown coordinatorState) {
 		}
 
 		waitTimeout *= 10
-		tlog.Debug.Printf("Waiting for consumers to stop. Forced shutdown after %.2f seconds.", waitTimeout.Seconds())
+		logrus.Debugf("Waiting for consumers to stop. Forced shutdown after %.2f seconds.", waitTimeout.Seconds())
 		if !tgo.ReturnAfter(waitTimeout, co.consumerWorker.Wait) {
-			tlog.Error.Print("At least one consumer found to be blocking.")
+			logrus.Error("At least one consumer found to be blocking.")
 		}
 	}
 }
@@ -324,7 +340,7 @@ func (co *Coordinator) shutdownProducers(stateAtShutdown coordinatorState) {
 		co.state = coordinatorStateStopProducers
 		waitTimeout := time.Duration(0)
 
-		tlog.Debug.Print("Telling producers to stop")
+		logrus.Debug("Telling producers to stop")
 		for _, prod := range co.producers {
 			timeout := prod.GetShutdownTimeout()
 			if timeout > waitTimeout {
@@ -334,9 +350,9 @@ func (co *Coordinator) shutdownProducers(stateAtShutdown coordinatorState) {
 		}
 
 		waitTimeout *= 10
-		tlog.Debug.Printf("Waiting for producers to stop. Forced shutdown after %.2f seconds.", waitTimeout.Seconds())
+		logrus.Debugf("Waiting for producers to stop. Forced shutdown after %.2f seconds.", waitTimeout.Seconds())
 		if !tgo.ReturnAfter(waitTimeout, co.producerWorker.Wait) {
-			tlog.Error.Print("At least one producer found to be blocking.")
+			logrus.Error("At least one producer found to be blocking.")
 		}
 	}
 }

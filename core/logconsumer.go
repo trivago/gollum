@@ -15,8 +15,9 @@
 package core
 
 import (
+	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
-	"strings"
 	"sync"
 	"time"
 )
@@ -31,7 +32,6 @@ type LogConsumer struct {
 	lastCount      int64
 	lastCountWarn  int64
 	lastCountError int64
-	updateTimer    *time.Timer
 	stopped        bool
 }
 
@@ -45,10 +45,9 @@ func (cons *LogConsumer) Configure(conf PluginConfigReader) {
 		tgo.Metric.New(cons.metric)
 		tgo.Metric.New(cons.metric + "Error")
 		tgo.Metric.New(cons.metric + "Warning")
-		tgo.Metric.New(cons.metric + "Sec")
-		tgo.Metric.New(cons.metric + "ErrorSec")
-		tgo.Metric.New(cons.metric + "WarningSec")
-		cons.updateTimer = time.AfterFunc(time.Second*5, cons.updateMetric)
+		tgo.Metric.NewRate(cons.metric, cons.metric+"Sec", time.Second, 10, 3, true)
+		tgo.Metric.NewRate(cons.metric+"Error", cons.metric+"ErrorSec", time.Second, 10, 3, true)
+		tgo.Metric.NewRate(cons.metric+"Warning", cons.metric+"WarningSec", time.Second, 10, 3, true)
 	}
 }
 
@@ -75,40 +74,6 @@ func (cons *LogConsumer) GetShutdownTimeout() time.Duration {
 	return time.Millisecond
 }
 
-func (cons *LogConsumer) updateMetric() {
-	currentCount, _ := tgo.Metric.Get(cons.metric)
-	currentCountWarn, _ := tgo.Metric.Get(cons.metric + "Warning")
-	currentCountError, _ := tgo.Metric.Get(cons.metric + "Error")
-
-	tgo.Metric.Set(cons.metric+"Sec", (currentCount-cons.lastCount)/5)
-	tgo.Metric.Set(cons.metric+"WarningSec", (currentCountWarn-cons.lastCountWarn)/5)
-	tgo.Metric.Set(cons.metric+"ErrorSec", (currentCountError-cons.lastCountError)/5)
-	cons.lastCount = currentCount
-	cons.lastCountWarn = currentCountWarn
-	cons.lastCountError = currentCountError
-	cons.updateTimer = time.AfterFunc(time.Second*5, cons.updateMetric)
-}
-
-// Write fulfills the io.Writer interface
-func (cons *LogConsumer) Write(data []byte) (int, error) {
-	msg := NewMessage(cons, data, LogInternalStreamID)
-	cons.logRouter.Enqueue(msg)
-
-	if cons.metric != "" {
-		// HACK: Use different writers with the possibility to enable/disable metrics
-		switch {
-		case strings.HasPrefix(string(data), "ERROR"):
-			tgo.Metric.Inc(cons.metric + "Error")
-		case strings.HasPrefix(string(data), "Warning"):
-			tgo.Metric.Inc(cons.metric + "Warning")
-		default:
-			tgo.Metric.Inc(cons.metric)
-		}
-	}
-
-	return len(data), nil
-}
-
 // Control returns a handle to the control channel
 func (cons *LogConsumer) Control() chan<- PluginControl {
 	return cons.control
@@ -121,8 +86,59 @@ func (cons *LogConsumer) Consume(threads *sync.WaitGroup) {
 		command := <-cons.control
 		if command == PluginControlStopConsumer {
 			cons.stopped = true
-			cons.updateTimer.Stop()
 			return // ### return ###
 		}
 	}
+}
+
+// Levels and Fire() implement the logrus.Hook interface
+func (cons *LogConsumer) Levels() []logrus.Level {
+	return logrus.AllLevels
+}
+
+// Fire and Levels() implement the logrus.Hook interface
+func (cons *LogConsumer) Fire(logrusEntry *logrus.Entry) error {
+	// Have Logrus format the log entry
+	formattedMessage, err := logrusEntry.String()
+	if err != nil {
+		return err
+	}
+
+	// The formatter adds an unnecessary linefeed, strip it out
+	if formattedMessage[len(formattedMessage)-1] == '\n' {
+		formattedMessage = formattedMessage[:len(formattedMessage)-2]
+	}
+
+	// Set message metadata: level, time and logrus's ad-hoc fields. The fields
+	// also contain the plugin-specific log scope.
+	metadata := Metadata{}
+	metadata.SetValue("Level", []byte(logrusEntry.Level.String()))
+	metadata.SetValue("Time", []byte(logrusEntry.Time.String()))
+	//  string,    interface{}
+	for fieldName, fieldValue := range logrusEntry.Data {
+		metadata.SetValue(fieldName, []byte(fmt.Sprintf("%v", fieldValue)))
+	}
+
+	// Wrap it in a Gollum message
+	msg := NewMessage(cons, []byte(formattedMessage), metadata, LogInternalStreamID)
+
+	// Enqueue the message to _GOLLUM_
+	cons.logRouter.Enqueue(msg)
+
+	// Metrics handling from .Write() (TODO: support all message levels?)
+	if cons.metric != "" {
+		switch logrusEntry.Level {
+		case logrus.ErrorLevel:
+			tgo.Metric.Inc(cons.metric + "Error")
+
+		case logrus.WarnLevel:
+			tgo.Metric.Inc(cons.metric + "Warning")
+
+		default:
+			tgo.Metric.Inc(cons.metric)
+		}
+	}
+
+	// Success
+	return nil
 }

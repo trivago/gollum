@@ -48,7 +48,7 @@ func Route(msg *Message, router Router) error {
 	action := router.Modulate(msg)
 
 	streamName := StreamRegistry.GetStreamName(msg.GetStreamID())
-	streamMetric := GetSteamMetric(msg.GetStreamID())
+	streamMetric := GetStreamMetric(msg.GetStreamID())
 
 	switch action {
 	case ModulateResultDiscard:

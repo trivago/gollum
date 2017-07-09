@@ -15,9 +15,9 @@
 package core
 
 import (
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
-	"github.com/trivago/tgo/tlog"
 	"strings"
 )
 
@@ -26,7 +26,6 @@ type PluginConfig struct {
 	ID        string
 	Typename  string
 	Enable    bool
-	Instances uint64
 	Settings  tcontainer.MarshalMap
 	validKeys map[string]bool
 }
@@ -38,7 +37,6 @@ type PluginConfig struct {
 func NewPluginConfig(pluginID string, defaultTypename string) PluginConfig {
 	return PluginConfig{
 		Enable:    true,
-		Instances: 1,
 		ID:        pluginID,
 		Typename:  defaultTypename,
 		Settings:  tcontainer.NewMarshalMap(),
@@ -100,7 +98,7 @@ func (conf PluginConfig) Validate() bool {
 	for key := range conf.Settings {
 		if _, exists := conf.validKeys[key]; !exists {
 			valid = false
-			tlog.Warning.Printf("Unknown configuration key in %s: %s", conf.Typename, key)
+			logrus.Warningf("Unknown configuration key in %s: %s", conf.Typename, key)
 		}
 	}
 	return valid
@@ -122,10 +120,6 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
 
 		case "enable":
 			conf.Enable, err = values.Bool(key)
-			errors.Push(err)
-
-		case "instances":
-			conf.Instances, err = values.Uint(key)
 			errors.Push(err)
 
 		default:
@@ -152,13 +146,8 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
 		errors.Pushf("Plugin %s is using an unknown type %s", conf.ID, conf.Typename)
 	}
 
-	if conf.Instances <= 0 {
-		conf.Enable = false
-		tlog.Warning.Printf("Plugin %s has been disabled (0 instances)", conf.ID)
-	}
-
 	if !conf.Enable {
-		tlog.Note.Printf("Plugin %s has been disabled", conf.ID)
+		logrus.Infof("Plugin %s has been disabled", conf.ID)
 	}
 
 	return errors.OrNil()

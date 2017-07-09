@@ -229,7 +229,8 @@ func (prod *S3) Configure(conf core.PluginConfigReader) {
 				if object.Compressed {
 					filename += ".gz"
 				}
-				buffer, err := newS3FileBuffer(filename, prod.Log.NewSubScope("fileBuffer"))
+				buffer, err := newS3FileBuffer(filename,
+					prod.Logger.WithField("Scope", "fileBuffer"))
 				if conf.Errors.Push(err) {
 					return
 				}
@@ -254,12 +255,12 @@ func (prod *S3) Configure(conf core.PluginConfigReader) {
 
 	if prod.objectMaxMessages < 1 {
 		prod.objectMaxMessages = 1
-		prod.Log.Warning.Print("ObjectMaxMessages was < 1. Defaulting to 1.")
+		prod.Logger.Warning("ObjectMaxMessages was < 1. Defaulting to 1.")
 	}
 
 	if prod.objectMaxMessages > 1 && len(prod.delimiter) == 0 {
 		prod.delimiter = []byte("\n")
-		prod.Log.Warning.Print("ObjectMessageDelimiter was empty. Defaulting to \"\\n\".")
+		prod.Logger.Warning("ObjectMessageDelimiter was empty. Defaulting to \"\\n\".")
 	}
 
 	// Config
@@ -316,11 +317,11 @@ func (prod *S3) newS3Buffer() (buffer s3Buffer, filename string, err error) {
 	if prod.useFiles {
 		basename := atomic.AddInt64(&prod.nextFile, 1)
 		filename := path.Join(prod.localPath, strconv.FormatInt(basename, 10))
-		buffer, err := newS3FileBuffer(filename, prod.Log.NewSubScope("fileBuffer"))
+		buffer, err := newS3FileBuffer(filename, prod.Logger.WithField("Scope", "fileBuffer"))
 		return buffer, filename, err
 	}
 
-	return newS3ByteBuffer(prod.Log.NewSubScope("byteBuffer")), "", nil
+	return newS3ByteBuffer(prod.Logger.WithField("Scope", "byteBuffer")), "", nil
 }
 
 func (prod *S3) bufferMessage(msg *core.Message) {
@@ -387,7 +388,7 @@ func (prod *S3) upload(object *objectData, needLock bool) error {
 		if err != nil {
 			return err
 		}
-		prefix := core.NewMessage(nil, data, core.InvalidStreamID)
+		prefix := core.NewMessage(nil, data, nil, core.InvalidStreamID)
 		prod.pathFormat.Modulate(prefix)
 		key += prefix.String()
 	} else {
@@ -413,7 +414,7 @@ func (prod *S3) upload(object *objectData, needLock bool) error {
 	_, err := prod.client.PutObject(params)
 	atomic.AddInt64(prod.counters[object.S3Path], int64(1))
 	if err != nil {
-		prod.Log.Error.Print("S3.upload() PutObject ", bucket+key, " error:", err)
+		prod.Logger.Error("S3.upload() PutObject ", bucket+key, " error:", err)
 		return err
 	}
 
@@ -503,7 +504,7 @@ func (prod *S3) appendOrUpload(object *objectData, p []byte) error {
 
 	// append
 	if _, err = object.buffer.Write(data); err != nil {
-		prod.Log.Error.Print("S3.appendOrUpload() buffer.Write() error:", err)
+		prod.Logger.Error("S3.appendOrUpload() buffer.Write() error:", err)
 		return err
 	}
 	object.Messages++

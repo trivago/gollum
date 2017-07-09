@@ -18,8 +18,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/ttesting"
+	"io/ioutil"
 )
 
 type mockIoWrite struct {
@@ -56,7 +57,10 @@ func TestWriterAssemblySetValidator(t *testing.T) {
 func TestWriterAssemblySetErrorHandler(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	mockIo := mockIoWrite{expect}
-	tlog.SetCacheWriter()
+
+	// Was tlog.SetCacheWriter() previously. Needed?
+	logrus.SetOutput(ioutil.Discard)
+
 	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, &mockFormatter{})
 	handler := func(e error) bool {
 		if e.Error() == "abc" {
@@ -84,7 +88,7 @@ func TestWriterAssemblyWrite(t *testing.T) {
 	mockIo := mockIoWrite{expect}
 	wa := NewWriterAssembly(nil, mockIo.mockFlush, &mockFormatter{})
 
-	msg1 := NewMessage(nil, []byte("abcde"), InvalidStreamID)
+	msg1 := NewMessage(nil, []byte("abcde"), nil, InvalidStreamID)
 
 	// should give error msg and flush msg as there writer is not available yet
 	// test here is done in mockIo.mockFlush

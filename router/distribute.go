@@ -18,23 +18,58 @@ import (
 	"github.com/trivago/gollum/core"
 )
 
-// Distribute stream plugin
-// Messages will be routed to all routers configured. Each target stream can
-// hold another stream configuration, too, so this is not directly sending to
-// the producers attached to the target routers.
-// Configuration example
+// Distribute router plugin
 //
-// "myrouter":
-//    Type: "router.Distribute"
-//    Stream: "mystream"
-//    TargetStreams:
-//    	- "foo"
-//      - "bar"
+// The "Distribute" plugin provides 1:n stream remapping by duplicating
+// messages.
 //
-// Routes defines a 1:n stream remapping.
-// Messages are reassigned to all of stream(s) in this list.
-// If no route is set messages are forwarded on the incoming router.
-// When routing to multiple routers, the incoming stream has to be listed explicitly to be used.
+// During startup, it creates a set of streams with names listed
+// in [TargetStreams]. During execution, it consumes messages from
+// the stream [Stream] and enqueues copies of these messages onto
+// each of the streams listed in [TargetStreams].
+//
+// When routing to multiple routers, the incoming stream has to be listed
+// explicitly to be used.
+//
+// Configuration example:
+//
+// # Generate junk
+// JunkGenerator:
+//   Type: "consumer.Profiler"
+//   Message: "%20s"
+//   Streams: "junkstream"
+//   Characters: "abcdefghijklmZ"
+//   KeepRunning: true
+//   Runs: 10000
+//   Batches: 3000000
+//   DelayMs: 500
+// # Filter messages and distribute them to 2 new streams
+// JunkRouterDist:
+//   Type: "router.Distribute"
+//   Stream: "junkstream"
+//   TargetStreams:
+//     - "junkdist_00"
+//     - "junkdist_01"
+//   Filters:
+//     - JunkRegexp:
+//         Type: "filter.RegExp"
+//         Expression: "Z"
+// # Print messages from junkdist_00
+// JunkDistPrinter00:
+//   Type: "producer.Console"
+//   Streams: "junkdist_00"
+//   Modulators:
+//     - "format.Envelope":
+//         Prefix: "[junk_00] "
+// # Print messages from junkdist_01
+// JunkDistPrinter01:
+//   Type: "producer.Console"
+//   Streams: "junkdist_01"
+//   Modulators:
+//     - "format.Envelope":
+//         Prefix: "[junk_01] "
+//
+// TargetStreams Specifies names of the streams to create.
 type Distribute struct {
 	Broadcast      `gollumdoc:"embed_type"`
 	routers        []core.Router
@@ -66,29 +101,25 @@ func (router *Distribute) route(msg *core.Message, targetRouter core.Router) {
 	} else {
 		msg.SetStreamID(targetRouter.GetStreamID())
 		core.Route(msg, targetRouter)
+		router.Logger.Debugf("routed to StreamID '%v'", targetRouter.GetStreamID())
 	}
 }
 
 // Enqueue enques a message to the router
 func (router *Distribute) Enqueue(msg *core.Message) error {
-	numStreams := len(router.routers)
-
-	switch numStreams {
-	case 0:
-		return core.NewModulateResultError("No producers configured for stream %s", router.GetID())
-
-	case 1:
-		router.route(msg, router.routers[0])
-
-	default:
-		lastStreamIdx := numStreams - 1
-		for streamIdx := 0; streamIdx < lastStreamIdx; streamIdx++ {
-			router.route(msg.Clone(), router.routers[streamIdx])
-			router.Log.Debug.Printf("routed to StreamID '%v'", router.routers[streamIdx].GetStreamID())
-		}
-		router.route(msg, router.routers[lastStreamIdx])
-		router.Log.Debug.Printf("routed to StreamID '%v'", router.routers[lastStreamIdx].GetStreamID())
+	routers := router.routers
+	if len(routers) == 0 {
+		return core.NewModulateResultError(
+			"Router %s: no streams configured", router.GetID())
 	}
 
+	lastRouterIdx := len(routers) - 1
+	for _, targetRouter := range routers[:lastRouterIdx] {
+		router.route(msg.Clone(), targetRouter)
+	}
+
+	// Cloning is a rather expensive operation, so skip cloning for the last
+	// message (not required)
+	router.route(msg, routers[lastRouterIdx])
 	return nil
 }

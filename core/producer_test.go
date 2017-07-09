@@ -15,7 +15,7 @@
 package core
 
 import (
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/ttesting"
 	"math"
 	"sync"
@@ -46,7 +46,7 @@ func getMockProducer() mockProducer {
 					runState:        new(PluginRunState),
 					modulators:      ModulatorArray{},
 					shutdownTimeout: 10 * time.Millisecond,
-					Log:             tlog.NewLogScope("test"),
+					Logger:          logrus.WithField("Scope", "test"),
 				},
 			},
 			messages:       NewMessageQueue(2),
@@ -129,7 +129,7 @@ func TestProducerEnqueue(t *testing.T) {
 
 	mockP.fallbackStream = StreamRegistry.GetRouter(2)
 
-	msg := NewMessage(nil, []byte("ProdEnqueueTest"), 1)
+	msg := NewMessage(nil, []byte("ProdEnqueueTest"), nil, 1)
 
 	enqTimeout := time.Second
 	mockP.setState(PluginStateStopping)
@@ -177,7 +177,7 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 	StreamRegistry.Register(&mockDropStream, 2)
 
 	mockP.streams = []MessageStreamID{2}
-	msgToSend := NewMessage(nil, []byte("closeMessageChannel"), 2)
+	msgToSend := NewMessage(nil, []byte("closeMessageChannel"), nil, 2)
 
 	mockP.Enqueue(msgToSend, time.Duration(0))
 	mockP.Enqueue(msgToSend, time.Duration(0))

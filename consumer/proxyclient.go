@@ -15,10 +15,10 @@
 package consumer
 
 import (
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
-	"github.com/trivago/tgo/tlog"
 	"io"
 	"net"
 	"syscall"
@@ -35,7 +35,7 @@ type proxyClient struct {
 	proxy     *Proxy
 	conn      net.Conn
 	connected bool
-	log       tlog.LogScope
+	logger    logrus.FieldLogger
 }
 
 func listenToProxyClient(conn net.Conn, proxy *Proxy) {
@@ -48,7 +48,7 @@ func listenToProxyClient(conn net.Conn, proxy *Proxy) {
 		proxy:     proxy,
 		conn:      conn,
 		connected: true,
-		log:       proxy.Log,
+		logger:    proxy.Logger,
 	}
 
 	client.read()
@@ -77,7 +77,7 @@ func (client *proxyClient) EnqueueResponse(msg core.Message) {
 		if client.hasDisconnected(err) {
 			client.connected = false // ### return, connection closed ###
 		}
-		client.log.Error.Print("Write failed: ", err)
+		client.logger.Error("Write failed: ", err)
 	}
 }
 
@@ -96,7 +96,7 @@ func (client *proxyClient) read() {
 			if client.hasDisconnected(err) {
 				return // ### return, connection closed ###
 			}
-			client.log.Error.Print("Read failed: ", err)
+			client.logger.Error("Read failed: ", err)
 		}
 	}
 }

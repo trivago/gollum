@@ -60,7 +60,7 @@ func (format *CollectdToInflux08) ApplyFormatter(msg *core.Message) error {
 
 	collectdData, err := parseCollectdPacket(contentData)
 	if err != nil {
-		format.Log.Error.Print("Collectd parser error: ", err)
+		format.Logger.Error("Collectd parser error: ", err)
 		return err
 	}
 

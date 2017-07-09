@@ -1,7 +1,7 @@
 package core
 
 import (
-	"github.com/trivago/tgo/tlog"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/ttesting"
 	"reflect"
 	"testing"
@@ -38,7 +38,7 @@ func getMockRouterMessageHelper(streamName string) mockRouterMessageHelper {
 			Producers: []Producer{},
 			timeout:   timeout,
 			streamID:  StreamRegistry.GetStreamID(streamName),
-			Log:       tlog.NewLogScope("testStreamLogScope"),
+			Logger:    logrus.WithField("Scope", "testStreamLogScope"),
 		},
 	}
 }
@@ -53,7 +53,7 @@ func TestGetAppliedContentFunction(t *testing.T) {
 func TestGetAppliedContentFromPayload(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	resultFunc := GetAppliedContentGetFunction("payload")
-	msg := NewMessage(nil, []byte("message payload"), 1)
+	msg := NewMessage(nil, []byte("message payload"), nil, 1)
 
 	expect.Equal("message payload", string(resultFunc(msg)))
 }
@@ -61,7 +61,7 @@ func TestGetAppliedContentFromPayload(t *testing.T) {
 func TestGetAppliedContentFromMetadata(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	resultFunc := GetAppliedContentGetFunction("foo")
-	msg := NewMessage(nil, []byte("message payload"), 1)
+	msg := NewMessage(nil, []byte("message payload"), nil, 1)
 	msg.GetMetadata().SetValue("foo", []byte("foo content"))
 
 	expect.Equal("foo content", string(resultFunc(msg)))

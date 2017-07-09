@@ -3,20 +3,42 @@
 Distribute
 ==========
 
-Messages will be routed to all routers configured. Each target stream can
-hold another stream configuration, too, so this is not directly sending to
-the producers attached to the target routers.
+
+The "Distribute" plugin provides 1:n stream remapping by duplicating
+messages.
+
+During startup, it creates a set of streams with names listed
+in [TargetStreams]. During execution, it consumes messages from
+the stream [Stream] and enqueues copies of these messages onto
+each of the streams listed in [TargetStreams].
+
+When routing to multiple routers, the incoming stream has to be listed
+explicitly to be used.
+
 
 
 
 Parameters
 ----------
 
-**Routes**
-defines a 1:n stream remapping.
-Messages are reassigned to all of stream(s) in this list.
-If no route is set messages are forwarded on the incoming router.
-When routing to multiple routers, the incoming stream has to be listed explicitly to be used.
+**TargetStreams**
+Specifies names of the streams to create.
+
+
+Parameters (from SimpleRouter)
+------------------------------
+
+**Stream**
+Specifies the name of the stream this plugin is supposed to
+read messages from.
+
+
+**Filters**
+A list of zero or more Filter plugins to connect to this router.
+
+
+**TimeoutMs**
+... (default: 0, metric: ms)
 
 
 Example
@@ -24,12 +46,41 @@ Example
 
 .. code-block:: yaml
 
-	"myrouter":
-	   Type: "router.Distribute"
-	   Stream: "mystream"
-	   TargetStreams:
-	   	- "foo"
-	     - "bar"
+	# Generate junk
+	JunkGenerator:
+	  Type: "consumer.Profiler"
+	  Message: "%20s"
+	  Streams: "junkstream"
+	  Characters: "abcdefghijklmZ"
+	  KeepRunning: true
+	  Runs: 10000
+	  Batches: 3000000
+	  DelayMs: 500
+	# Filter messages and distribute them to 2 new streams
+	JunkRouterDist:
+	  Type: "router.Distribute"
+	  Stream: "junkstream"
+	  TargetStreams:
+	    - "junkdist_00"
+	    - "junkdist_01"
+	  Filters:
+	    - JunkRegexp:
+	        Type: "filter.RegExp"
+	        Expression: "Z"
+	# Print messages from junkdist_00
+	JunkDistPrinter00:
+	  Type: "producer.Console"
+	  Streams: "junkdist_00"
+	  Modulators:
+	    - "format.Envelope":
+	        Prefix: "[junk_00] "
+	# Print messages from junkdist_01
+	JunkDistPrinter01:
+	  Type: "producer.Console"
+	  Streams: "junkdist_01"
+	  Modulators:
+	    - "format.Envelope":
+	        Prefix: "[junk_01] "
 	
 
 
