@@ -116,13 +116,11 @@ func findToken(prod *CloudwatchLogs, page *cloudwatchlogs.DescribeLogStreamsOutp
 }
 
 // Create log group and stream. If an error is returned, PutLogEvents cannot succeed.
-func (prod *CloudwatchLogs) create() (err error) {
-	err = prod.createGroup()
-	if err != nil {
-		return
+func (prod *CloudwatchLogs) create() error {
+	if err = prod.createGroup(); err != nil {
+		return err
 	}
-	err = prod.createStream()
-	return
+	return prod.createStream()
 }
 
 // http://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateLogGroup.html
