@@ -140,32 +140,30 @@ func (format *JSONToInflux10) ApplyFormatter(msg *core.Message) error {
 		timestamp = time.Now().Unix()
 	}
 
-	var measurement string
-	if val, ok := values[format.measurement]; ok {
-		measurement = val.(string)
-		delete(values, format.measurement)
-	} else {
+	measurement, measurementFound := values[format.measurement]
+	if !measurementFound {
 		return fmt.Errorf("Required field for measurement (%s) not found in payload", format.measurement)
 	}
+
+	delete(values, format.measurement)
 
 	fields := make(map[string]interface{})
 	tags := make(map[string]interface{})
 	for k, v := range values {
-		_, ignore := format.ignore[k]
-		if ignore {
+		if _, ignore := format.ignore[k]; ignore {
 			continue
 		}
-		_, isTag := format.tags[k]
-		if isTag {
-			tags[format.escapeMetadata(k)] = format.escapeMetadata(v.(string))
-			continue
+		key := format.escapeMetadata(k)
+		if _, isTag := format.tags[k]; isTag {
+			tags[key] = format.escapeMetadata(v.(string))
+		} else {
+			fields[key] = format.escapeFieldValue(v.(string))
 		}
-		fields[format.escapeMetadata(k)] = format.escapeFieldValue(v.(string))
 	}
 
 	line := fmt.Sprintf(
 		`%s,%s %s %d`,
-		format.escapeMeasurement(measurement),
+		format.escapeMeasurement(measurement.(string)),
 		format.joinMap(tags),
 		format.joinMap(fields),
 		timestamp)
