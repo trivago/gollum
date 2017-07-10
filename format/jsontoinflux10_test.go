@@ -180,3 +180,25 @@ func TestJSONToLineProtocolAlternativeMeasurement(t *testing.T) {
 		expect.True(ok)
 	}
 }
+
+func TestCustomTimeFormat(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.JSONToInflux10")
+
+	config.Override("TimeFormat", "Jan 2, 2006 at 3:04pm (MST)")
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*JSONToInflux10)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("{\"time\":\"Feb 3, 2013 at 7:54pm (PST)\",\"measurement\":\"m\",\"value\":\"0\"}"),
+		nil, core.InvalidStreamID)
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	payload := string(msg.GetPayload())
+	expect.Equal(payload, "m value=0 1359921240")
+}

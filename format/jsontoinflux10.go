@@ -31,6 +31,7 @@ import (
 //
 //  - format.JSONToInflux10
 //      TimeField: time
+//      TimeFormat: unix
 //      Measurement: measurement
 //      Ignore:
 //        - ignore
@@ -46,6 +47,10 @@ import (
 // The precision is seconds.
 // By default, the field is named `time`. If such a key does not exist in the
 // message, the current Unix timestamp at the time of parsing the message is used.
+//
+// TimeFormat defines the format of the time field. Possible values are
+// a format string accepted by time.Parse() (see https://golang.org/pkg/time/#Parse)
+// or `unix` for the Unix timestamp format
 //
 // Measurement specifies the JSON field that holds the measurement of the message.
 // By default, the field is named `measurement`. This field MUST exist in the message.
@@ -65,6 +70,7 @@ type JSONToInflux10 struct {
 	measurementEscape    *strings.Replacer
 	fieldValueEscape     *strings.Replacer
 	timeField            string `config:"Timefield" default:"time"`
+	timeFormat           string `config:"Timeformat" default:"unix"`
 	measurement          string `config:"Measurement" default:"measurement"`
 	tags                 map[string]bool
 	ignore               map[string]bool
@@ -117,6 +123,18 @@ func (format *JSONToInflux10) joinMap(m map[string]interface{}) string {
 	return fmt.Sprintf(strings.Join(tokens, ","))
 }
 
+// Return the time field as a unix timestamp
+func (format *JSONToInflux10) toUnixTime(timeString string) (int64, error) {
+	if format.timeFormat == "unix" {
+		return strconv.ParseInt(timeString, 10, 64)
+	}
+	t, err := time.Parse(format.timeFormat, timeString)
+	if err != nil {
+		return 0, err
+	}
+	return t.Unix(), nil
+}
+
 // ApplyFormatter updates the message payload
 func (format *JSONToInflux10) ApplyFormatter(msg *core.Message) error {
 	content := format.GetAppliedContent(msg)
@@ -131,7 +149,7 @@ func (format *JSONToInflux10) ApplyFormatter(msg *core.Message) error {
 
 	var timestamp int64
 	if val, ok := values[format.timeField]; ok {
-		timestamp, err = strconv.ParseInt(val.(string), 10, 64)
+		timestamp, err = format.toUnixTime(val.(string))
 		if err != nil {
 			format.Logger.Error("Invalid time format in message:", err)
 		}
