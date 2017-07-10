@@ -97,7 +97,7 @@ func (format *JSONToInflux10) Configure(conf core.PluginConfigReader) {
 	}
 }
 
-func (format *JSONToInflux10) escapeMeasurment(value string) string {
+func (format *JSONToInflux10) escapeMeasurement(value string) string {
 	return format.measurementEscape.Replace(value)
 }
 
@@ -165,7 +165,7 @@ func (format *JSONToInflux10) ApplyFormatter(msg *core.Message) error {
 
 	line := fmt.Sprintf(
 		`%s,%s %s %d`,
-		format.escapeMeasurment(measurement),
+		format.escapeMeasurement(measurement),
 		format.joinMap(tags),
 		format.joinMap(fields),
 		timestamp)
