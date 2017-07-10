@@ -21,10 +21,8 @@ import (
 	"time"
 )
 
-/*
-AWS CloudWatch specific constants.
-Also see http://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch_limits_cwl.html
-*/
+// AWS CloudWatch specific constants.
+// Also see http://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch_limits_cwl.html
 const (
 	// Maximum number of log events in a batch.
 	maxBatchEvents = 10000
