@@ -41,8 +41,8 @@ const (
 
 type CloudwatchLogs struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
-	stream                *string
-	group                 *string
+	stream                string `config:"Stream" default:""`
+	group                 string `config:"Group" default:""`
 	token                 *string
 	service               *cloudwatchlogs.CloudWatchLogs
 }
@@ -53,16 +53,12 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *CloudwatchLogs) Configure(conf core.PluginConfigReader) {
-	stream := conf.GetString("stream", "")
-	if stream == "" {
+	if conf.GetString("stream", "") == "" {
 		prod.Logger.Error("stream name can not be empty")
 	}
-	group := conf.GetString("group", "")
-	if group == "" {
+	if conf.GetString("group", "") == "" {
 		prod.Logger.Error("group name can not be empty")
 	}
-	prod.stream = &stream
-	prod.group = &group
 }
 
 // Put log events and update sequence token.
@@ -71,8 +67,8 @@ func (prod *CloudwatchLogs) upload(msg *core.Message) {
 	logevents := make([]*cloudwatchlogs.InputLogEvent, 0)
 	params := &cloudwatchlogs.PutLogEventsInput{
 		LogEvents:     logevents,
-		LogGroupName:  prod.group,
-		LogStreamName: prod.stream,
+		LogGroupName:  &prod.group,
+		LogStreamName: &prod.stream,
 		SequenceToken: prod.token,
 	}
 	// When rejectedLogEventsInfo is not empty, app can not
@@ -93,8 +89,8 @@ func (prod *CloudwatchLogs) Produce(workers *sync.WaitGroup) {
 // For newly created log streams, token is an empty string.
 func (prod *CloudwatchLogs) setToken() error {
 	params := &cloudwatchlogs.DescribeLogStreamsInput{
-		LogGroupName:        prod.group,
-		LogStreamNamePrefix: prod.stream,
+		LogGroupName:        &prod.group,
+		LogStreamNamePrefix: &prod.stream,
 	}
 
 	return prod.service.DescribeLogStreamsPages(params,
@@ -105,7 +101,7 @@ func (prod *CloudwatchLogs) setToken() error {
 
 func findToken(prod *CloudwatchLogs, page *cloudwatchlogs.DescribeLogStreamsOutput) bool {
 	for _, row := range page.LogStreams {
-		if *prod.stream == *row.LogStreamName {
+		if prod.stream == *row.LogStreamName {
 			prod.token = row.UploadSequenceToken
 			return true
 		}
@@ -124,7 +120,7 @@ func (prod *CloudwatchLogs) create() error {
 // http://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateLogGroup.html
 func (prod *CloudwatchLogs) createGroup() error {
 	params := &cloudwatchlogs.CreateLogGroupInput{
-		LogGroupName: prod.group,
+		LogGroupName: &prod.group,
 	}
 	_, err := prod.service.CreateLogGroup(params)
 	if err, ok := err.(awserr.Error); ok {
@@ -138,8 +134,8 @@ func (prod *CloudwatchLogs) createGroup() error {
 // http://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateLogStream.html
 func (prod *CloudwatchLogs) createStream() error {
 	params := &cloudwatchlogs.CreateLogStreamInput{
-		LogGroupName:  prod.group,
-		LogStreamName: prod.stream,
+		LogGroupName:  &prod.group,
+		LogStreamName: &prod.stream,
 	}
 	_, err := prod.service.CreateLogStream(params)
 	if err, ok := err.(awserr.Error); ok {
