@@ -13,11 +13,10 @@
 package producer
 
 import (
-	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/trivago/gollum/core"
+	"sync"
 	"time"
 )
 
@@ -53,24 +52,23 @@ func init() {
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *CloudwatchLogs) Configure(conf core.PluginConfigReader) error {
-	prod.SetStopCallback(prod.flush)
+func (prod *CloudwatchLogs) Configure(conf core.PluginConfigReader) {
 	stream := conf.GetString("stream", "")
 	if stream == "" {
-		return fmt.Errorf("stream name can not be empty")
+		prod.Logger.Error("stream name can not be empty")
 	}
 	group := conf.GetString("group", "")
 	if group == "" {
-		return fmt.Errorf("group name can not be empty")
+		prod.Logger.Error("group name can not be empty")
 	}
 	prod.stream = &stream
-	prog.group = &group
-	return nil
+	prod.group = &group
 }
 
 // Put log events and update sequence token.
 // Possible errors http://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutLogEvents.html
-func (prod *CloudwatchLogs) upload() {
+func (prod *CloudwatchLogs) upload(msg *core.Message) {
+	logevents := make([]*cloudwatchlogs.InputLogEvent, 0)
 	params := &cloudwatchlogs.PutLogEventsInput{
 		LogEvents:     logevents,
 		LogGroupName:  prod.group,
@@ -80,9 +78,9 @@ func (prod *CloudwatchLogs) upload() {
 	// When rejectedLogEventsInfo is not empty, app can not
 	// do anything reasonable with rejected logs. Ignore it.
 	// Meybe expose some statistics for rejected counters.
-	resp, err := dst.svc.PutLogEvents(prod.cloudwatchLogsParams)
+	resp, err := prod.service.PutLogEvents(params)
 	if err == nil {
-		prod.cloudwatchLogsParams.SequenceToken = resp.NextSequenceToken
+		prod.token = resp.NextSequenceToken
 	}
 }
 
@@ -117,7 +115,7 @@ func findToken(prod *CloudwatchLogs, page *cloudwatchlogs.DescribeLogStreamsOutp
 
 // Create log group and stream. If an error is returned, PutLogEvents cannot succeed.
 func (prod *CloudwatchLogs) create() error {
-	if err = prod.createGroup(); err != nil {
+	if err := prod.createGroup(); err != nil {
 		return err
 	}
 	return prod.createStream()
@@ -126,7 +124,7 @@ func (prod *CloudwatchLogs) create() error {
 // http://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateLogGroup.html
 func (prod *CloudwatchLogs) createGroup() error {
 	params := &cloudwatchlogs.CreateLogGroupInput{
-		LogGroupName: &prod.group,
+		LogGroupName: prod.group,
 	}
 	_, err := prod.service.CreateLogGroup(params)
 	if err, ok := err.(awserr.Error); ok {
@@ -140,8 +138,8 @@ func (prod *CloudwatchLogs) createGroup() error {
 // http://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateLogStream.html
 func (prod *CloudwatchLogs) createStream() error {
 	params := &cloudwatchlogs.CreateLogStreamInput{
-		LogGroupName:  &prod.group,
-		LogStreamName: &prod.stream,
+		LogGroupName:  prod.group,
+		LogStreamName: prod.stream,
 	}
 	_, err := prod.service.CreateLogStream(params)
 	if err, ok := err.(awserr.Error); ok {
