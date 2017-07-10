@@ -86,10 +86,10 @@ func (prod *CloudwatchLogs) upload() {
 	}
 }
 
-func (prod *Console) Produce(workers *sync.WaitGroup) {
+func (prod *CloudwatchLogs) Produce(workers *sync.WaitGroup) {
 	defer prod.WorkerDone()
 	prod.AddMainWorker(workers)
-	prod.MessageControlLoop(prod.printMessage)
+	prod.MessageControlLoop(prod.upload)
 }
 
 // For newly created log streams, token is an empty string.
