@@ -179,11 +179,22 @@ func (format *JSONToInflux10) ApplyFormatter(msg *core.Message) error {
 		}
 	}
 
+	measurementString := format.escapeMeasurement(measurement.(string))
+
+	tagsString := format.joinMap(tags)
+	if len(tagsString) > 0 {
+		// Only add comma between measurement and tags if tags are not empty.
+		// See https://docs.influxdata.com/influxdb/v1.2/write_protocols/line_protocol_reference/
+		tagsString = "," + tagsString
+	}
+
+	fieldsString := format.joinMap(fields)
+
 	line := fmt.Sprintf(
-		`%s,%s %s %d`,
-		format.escapeMeasurement(measurement.(string)),
-		format.joinMap(tags),
-		format.joinMap(fields),
+		`%s%s %s %d`,
+		measurementString,
+		tagsString,
+		fieldsString,
 		timestamp)
 
 	format.SetAppliedContent(msg, []byte(line))
