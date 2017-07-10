@@ -71,13 +71,6 @@ func (prod *CloudwatchLogs) Configure(conf core.PluginConfigReader) error {
 // Put log events and update sequence token.
 // Possible errors http://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutLogEvents.html
 func (prod *CloudwatchLogs) upload() {
-	logevents := make([]*cloudwatchlogs.InputLogEvent, 0, len(events))
-	for _, elem := range events {
-		logevents = append(logevents, &cloudwatchlogs.InputLogEvent{
-			Message:   aws.String(elem.msg),
-			Timestamp: aws.Int64(elem.timestamp),
-		})
-	}
 	params := &cloudwatchlogs.PutLogEventsInput{
 		LogEvents:     logevents,
 		LogGroupName:  prod.group,
