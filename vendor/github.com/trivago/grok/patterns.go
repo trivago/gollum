@@ -1,6 +1,8 @@
 package grok
 
-var patterns = map[string]string{
+// DefaultPatterns is a collection of patterns that are added to each Grok
+// instance if not explicitly disabled.
+var DefaultPatterns = map[string]string{
 	"USERNAME":           `[a-zA-Z0-9._-]+`,
 	"USER":               `%{USERNAME}`,
 	"EMAILLOCALPART":     `[a-zA-Z][a-zA-Z0-9_.+-=:]+`,

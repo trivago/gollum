@@ -52,6 +52,7 @@ import:
 - package: github.com/x-cray/logrus-prefixed-formatter
   version: ~0.5
 - package: github.com/mgutz/ansi
+- package: github.com/trivago/grok
+  version: ~1.0
 - package: github.com/fsnotify/fsnotify
   version: master #~1.4.2
-- package: github.com/vjeantet/grok

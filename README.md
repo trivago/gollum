@@ -255,7 +255,7 @@ There are also supplementary targets for make:
 * `vendor` install [Glide](https://github.com/Masterminds/glide) and update all dependencies
 * `aws` build for Linux x64 and generate an [Elastic Beanstalk](https://aws.amazon.com/de/elasticbeanstalk/) package
 
-If you want to use native plugins (contrib/native) or self provided you will have to enable the corresponding imports in the file `contrib_loader.go`. You can copy the `contrib_loader.go.dist` file here and active the plugins you want to use.
+If you want to use native plugins (contrib/native) or self provided you will have to enable the corresponding imports in the file `contrib_loader.go`. You can copy the `contrib_loader.go.dist` file here and activate the plugins you want to use.
 
 Doing so will disable the possibility to do cross-platform builds for most users.
 Please check also the requirements for each plugin.
