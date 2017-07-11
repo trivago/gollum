@@ -65,7 +65,10 @@ func TestFileConsumerPollWithMove(t *testing.T) {
 	expect.Equal(1, resultFile.lines)
 }
 
-func TestFileConsumerWatchWithMove(t *testing.T) {
+// NOTE:
+// 	This integration test is now located under testing/integration/noLinux_test.go
+//	Reasons are unsupported /unstable file events in fsnotify under linux
+/*func TestFileConsumerWatchWithMove(t *testing.T) {
 	setup()
 	expect := ttesting.NewExpect(t)
 
@@ -79,7 +82,7 @@ func TestFileConsumerWatchWithMove(t *testing.T) {
 	expect.True(strings.Contains(resultFile.content, "bar"))
 	expect.True(strings.Contains(resultFile.content, "test"))
 	expect.Equal(1, resultFile.lines)
-}
+}*/
 
 func executeDefaultTest(sourceFile string, targetFile string) (resultFile, string, error) {
 	// init

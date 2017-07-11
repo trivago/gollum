@@ -88,8 +88,9 @@ const (
 //
 // ObserveMode defines the mode how to observe the target file. You can decide between `poll` and `watch`.
 // By default this is set to `poll`.
-// Note: The watch implementation uses [fsnotify/fsnotify](https://github.com/fsnotify/fsnotify) package.
-// Please check for rotating files (like log rotation) if your system supports continue watching on moved files.
+// NOTE: The watch implementation uses [fsnotify/fsnotify](https://github.com/fsnotify/fsnotify) package.
+// If your source file is rotating (moving or removing) please check carefully if your file system and distribution supports
+// the `RENAME` and `REMOVE` events which are mandatory for stable consuming.
 //
 // PollingDelay defines the time duration how long the consumer will wait to check a file for new content
 // after hitting the end of file (EOF) in milliseconds (ms).
@@ -407,14 +408,8 @@ func (w *watcher) Watch(buffer *tio.BufferedReader, sendFunction func(data []byt
 	// init
 	w.done = make(chan int)
 
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		w.logger.Fatal(err)
-	}
-	defer w.close(watcher)
-
 	// watcher loop in subroutine
-	go w.watchLoop(watcher)
+	go w.watchLoop()
 
 	// busy loop for shutdown
 	for w.source.state != fileStateDone {
@@ -425,7 +420,13 @@ func (w *watcher) Watch(buffer *tio.BufferedReader, sendFunction func(data []byt
 	close(w.done)
 }
 
-func (w *watcher) watchLoop(watcher *fsnotify.Watcher) {
+func (w *watcher) watchLoop() {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		w.logger.Fatal(err)
+	}
+	defer w.close(watcher)
+
 	for {
 		if _, err := os.Stat(w.source.realFileName); os.IsNotExist(err) {
 			w.logger.WithField("file", w.source.realFileName).
@@ -456,6 +457,7 @@ func (w *watcher) watchLoop(watcher *fsnotify.Watcher) {
 
 				if event.Op&fsnotify.Rename == fsnotify.Rename || event.Op&fsnotify.Remove == fsnotify.Remove {
 					w.logger.WithField("event", event).Debug("file renamed/removed: ", event.Name)
+					watcher.Remove(w.source.realFileName)
 					break fileEvent
 				}
 			case err := <-watcher.Errors:
