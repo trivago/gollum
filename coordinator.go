@@ -324,11 +324,20 @@ func (co *Coordinator) shutdownConsumers(stateAtShutdown coordinatorState) {
 			if timeout > waitTimeout {
 				waitTimeout = timeout
 			}
-			cons.Control() <- core.PluginControlStopConsumer
+
+			// Skip log consumer so we get clean log messages for all consumers
+			if cons != co.logConsumer {
+				cons.Control() <- core.PluginControlStopConsumer
+			}
 		}
 
 		waitTimeout *= 10
 		logrus.Debugf("Waiting for consumers to stop. Forced shutdown after %.2f seconds.", waitTimeout.Seconds())
+		if co.logConsumer != nil {
+			co.logConsumer.Control() <- core.PluginControlStopConsumer
+			// No logs in _GOLLUM_ after this point
+		}
+
 		if !tgo.ReturnAfter(waitTimeout, co.consumerWorker.Wait) {
 			logrus.Error("At least one consumer found to be blocking.")
 		}
