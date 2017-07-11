@@ -281,6 +281,14 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 
 // Produce writes to stdout or stderr.
 func (prod *Kinesis) Produce(workers *sync.WaitGroup) {
-	prod.client = kinesis.New(session.New(prod.config))
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Config:            *prod.config,
+		SharedConfigState: session.SharedConfigEnable,
+	})
+	if err != nil {
+		prod.Logger.WithError(err).Error("Failed to create session")
+	}
+
+	prod.client = kinesis.New(sess)
 	prod.BatchMessageLoop(workers, prod.sendBatch)
 }

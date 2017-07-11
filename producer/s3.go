@@ -591,7 +591,14 @@ func (prod *S3) close() {
 // Produce writes to a buffer that is sent to amazon s3.
 func (prod *S3) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Config:            *prod.config,
+		SharedConfigState: session.SharedConfigEnable,
+	})
+	if err != nil {
+		prod.Logger.WithError(err).Error("Failed to create session")
+	}
 
-	prod.client = s3.New(session.New(prod.config))
+	prod.client = s3.New(sess)
 	prod.TickerMessageControlLoop(prod.bufferMessage, prod.flushFrequency, prod.sendBatchOnTimeOut)
 }

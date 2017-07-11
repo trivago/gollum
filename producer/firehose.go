@@ -311,7 +311,14 @@ func (prod *Firehose) close() {
 // Produce writes to stdout or stderr.
 func (prod *Firehose) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Config:            *prod.config,
+		SharedConfigState: session.SharedConfigEnable,
+	})
+	if err != nil {
+		prod.Logger.WithError(err).Error("Failed to create session")
+	}
 
-	prod.client = firehose.New(session.New(prod.config))
+	prod.client = firehose.New(sess)
 	prod.TickerMessageControlLoop(prod.bufferMessage, prod.flushFrequency, prod.sendBatchOnTimeOut)
 }

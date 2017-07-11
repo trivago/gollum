@@ -296,7 +296,14 @@ func (cons *Kinesis) processShard(shardID string) {
 }
 
 func (cons *Kinesis) connect() error {
-	cons.client = kinesis.New(session.New(cons.config))
+	session, err := session.NewSessionWithOptions(session.Options{
+		Config:            *cons.config,
+		SharedConfigState: session.SharedConfigEnable,
+	})
+	if err != nil {
+		return err
+	}
+	cons.client = kinesis.New(session)
 
 	// Get shard ids for stream
 	streamQuery := &kinesis.DescribeStreamInput{
