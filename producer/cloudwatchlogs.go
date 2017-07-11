@@ -39,10 +39,33 @@ const (
 	putLogEventsDelay = 200 * time.Millisecond
 )
 
+// CloudwatchLogs producer plugin
+//
+// The CloudwatchLogs producer plugin sends messages to
+// AWS Cloudwatch Logs service.
+//
+// Configuration example
+//
+//  - "producer.CloudwatchLogs":
+//    Stream: stream_name
+//    Group: group_name
+//    LogFormat: {{.Facility}} {{.Severity}} {{.Hostname}} {{.Syslogtag}} {{.Message}}
+//
+// Stream is a destination stream name. It must be set. Can contain following variables
+// {{.InstanceId}} AWS instance id if launched on EC2
+// {{.Hostname}} Hostname of machine on which is executed
+// LogFormat format in which messages will be sent to Cloud Watch. Available variables
+// {{.Facility}} Syslog facility as uppercase string
+// {{.Severity}} Syslog severity as uppercase string
+// {{.Hostname}} Syslog hostname
+// {{.Syslogtag}} Syslog tag
+// {{.Message}} Syslog message
+// Timestamps are not available since they are available as a separate field in cloudwatch logs
 type CloudwatchLogs struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 	stream                string `config:"Stream" default:""`
 	group                 string `config:"Group" default:""`
+	format                string `config:"LogFormat" default:"{{.Facility}} {{.Severity}} {{.Hostname}} {{.Syslogtag}} {{.Message}}"`
 	token                 *string
 	service               *cloudwatchlogs.CloudWatchLogs
 }
@@ -59,6 +82,7 @@ func (prod *CloudwatchLogs) Configure(conf core.PluginConfigReader) {
 	if conf.GetString("group", "") == "" {
 		prod.Logger.Error("group name can not be empty")
 	}
+	prod.format = conf.GetString("format", "{{.Facility}} {{.Severity}} {{.Hostname}} {{.Syslogtag}} {{.Message}}")
 }
 
 // Put log events and update sequence token.
@@ -80,6 +104,7 @@ func (prod *CloudwatchLogs) upload(msg *core.Message) {
 	}
 }
 
+// Produce starts the producer
 func (prod *CloudwatchLogs) Produce(workers *sync.WaitGroup) {
 	defer prod.WorkerDone()
 	prod.AddMainWorker(workers)
