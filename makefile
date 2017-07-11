@@ -100,7 +100,6 @@ list-gitignored:
 # Vendor management
 
 vendor:
-	@go get -u github.com/Masterminds/glide
 	@glide cc
 	@glide update --strip-vendor
 
