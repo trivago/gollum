@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/vjeantet/grok"
+	"github.com/trivago/grok"
 )
 
 // GrokToJSON formatter plugin
@@ -50,8 +50,7 @@ import (
 // The first matching pattern will be used to parse the message.
 type GrokToJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	grok                 *grok.Grok
-	patterns             []string `config:"Patterns"`
+	exp                  []*grok.CompiledGrok
 }
 
 func init() {
@@ -60,12 +59,20 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *GrokToJSON) Configure(conf core.PluginConfigReader) {
-	grok, err := grok.NewWithConfig(&grok.Config{RemoveEmptyValues: true})
+	grok, err := grok.New(grok.Config{RemoveEmptyValues: true})
 	if err != nil {
 		conf.Errors.Push(err)
 	}
 
-	format.grok = grok
+	//format.grok = grok
+	patterns := conf.GetStringArray("Patterns", []string{})
+	for _, p := range patterns {
+		exp, err := grok.Compile(p)
+		if err != nil {
+			conf.Errors.Push(err)
+		}
+		format.exp = append(format.exp, exp)
+	}
 }
 
 // ApplyFormatter update message payload
@@ -89,10 +96,9 @@ func (format *GrokToJSON) ApplyFormatter(msg *core.Message) error {
 // grok iterates over all defined patterns and parses the content based on the first match.
 // It returns a map of the defined values.
 func (format *GrokToJSON) applyGrok(content string) (map[string]string, error) {
-	for _, pattern := range format.patterns {
-		values, err := format.grok.Parse(pattern, content)
-
-		if err == nil && len(values) > 0 {
+	for _, exp := range format.exp {
+		values := exp.ParseString(content)
+		if len(values) > 0 {
 			return values, nil
 		}
 	}

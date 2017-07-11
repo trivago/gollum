@@ -1,5 +1,5 @@
 hash: 7a736d6711ec06bdfa0f57572febcf08dbf26866a7fde9ca15e37c9f396de150
-updated: 2017-07-06T14:44:00.899617778+02:00
+updated: 2017-07-11T13:44:47.221103219+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -86,7 +86,7 @@ imports:
 - name: github.com/klauspost/crc32
   version: bab58d77464aa9cf4e84200c3276da0831fe0c03
 - name: github.com/mattn/go-colorable
-  version: 941b50ebc6efddf4c41c8e4537a5f68a4e686b24
+  version: 3fa8c76f9daed4067e4a806fb7e4dc86455c6d6a
 - name: github.com/mattn/go-isatty
   version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
 - name: github.com/mgutz/ansi
@@ -116,7 +116,9 @@ imports:
 - name: github.com/Shopify/sarama
   version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
 - name: github.com/sirupsen/logrus
-  version: 202f25545ea4cf9b191ff7f846df5d87c9382c2b
+  version: 7f976d3a76720c4c27af2ba716b85d2e0a7e38b1
+- name: github.com/trivago/grok
+  version: af18cdd9faf3e06aedce0974c7e4012efc87658e
 - name: github.com/trivago/tgo
   version: bdfa63d0265af496c5bc30356dc31b19aa71447e
   subpackages:
@@ -136,12 +138,12 @@ imports:
 - name: github.com/x-cray/logrus-prefixed-formatter
   version: 0b2c791a02f18788b281dc30e243a0632dad695b
 - name: golang.org/x/crypto
-  version: 51714a8c4ac1764f07ab4127d7f739351ced4759
+  version: 3627ff35f31987174dbee61d9d1dcc1c643e7174
   subpackages:
   - bcrypt
   - blowfish
 - name: golang.org/x/sys
-  version: 94b76065f2d2081d0fef24a6e67c571f51a6408a
+  version: abf9c25f54453410d0c6668e519582a9e1115027
   subpackages:
   - unix
   - windows

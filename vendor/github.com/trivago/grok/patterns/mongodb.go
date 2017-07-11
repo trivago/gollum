@@ -1,0 +1,12 @@
+package patterns
+
+// MongoDB is a collection of common patterns for MongoDB related logs.
+var MongoDB = map[string]string{
+	"MONGO_LOG":        `%{SYSLOGTIMESTAMP:timestamp} \[%{WORD:component}\] %{GREEDYDATA:message}`,
+	"MONGO_QUERY":      `\{ (?<={ ).*(?= } ntoreturn:) \}`,
+	"MONGO_SLOWQUERY":  `%{WORD} %{MONGO_WORDDASH:database}\.%{MONGO_WORDDASH:collection} %{WORD}: %{MONGO_QUERY:query} %{WORD}:%{NONNEGINT:ntoreturn} %{WORD}:%{NONNEGINT:ntoskip} %{WORD}:%{NONNEGINT:nscanned}.*nreturned:%{NONNEGINT:nreturned}..+ (?<duration>[0-9]+)ms`,
+	"MONGO_WORDDASH":   `\b[\w-]+\b`,
+	"MONGO3_SEVERITY":  `\w`,
+	"MONGO3_COMPONENT": `%{WORD}|-`,
+	"MONGO3_LOG":       `%{TIMESTAMP_ISO8601:timestamp} %{MONGO3_SEVERITY:severity} %{MONGO3_COMPONENT:component}%{SPACE}(?:\[%{DATA:context}\])? %{GREEDYDATA:message}`,
+}
