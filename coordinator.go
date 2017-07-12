@@ -15,6 +15,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/logger"
@@ -69,7 +70,7 @@ func NewCoordinator() Coordinator {
 }
 
 // Configure processes the config and instantiates all valid plugins
-func (co *Coordinator) Configure(conf *core.Config) {
+func (co *Coordinator) Configure(conf *core.Config) error {
 	// Make sure the log is printed to stderr if we are stuck here
 	logFallback := time.AfterFunc(time.Duration(3)*time.Second, func() {
 		//logrus.SetOutput(os.Stderr)
@@ -82,39 +83,32 @@ func (co *Coordinator) Configure(conf *core.Config) {
 	// to match the order of reference between the different types.
 
 	co.configureRouters(conf)
+
 	co.configureProducers(conf)
+	if len(co.producers) == 0 {
+		return fmt.Errorf("No valid producers found")
+	}
+
 	co.configureConsumers(conf)
+	if len(co.consumers) <= 1 {
+		return fmt.Errorf("No valid consumers found")
+	}
 
 	// As consumers might create new fallback router this is the first position
 	// where we can add the wildcard producers to all streams. No new routers
 	// created beyond this point must use StreamRegistry.AddWildcardProducersToRouter.
 
 	core.StreamRegistry.AddAllWildcardProducersToAllRouters()
+	return nil
 }
 
 // StartPlugins starts all plugins in the correct order.
 func (co *Coordinator) StartPlugins() {
-
-	if len(co.consumers) == 0 {
-		logrus.Error("No consumers configured.")
-		logrusHookBuffer.SetTargetWriter(logger.FallbackLogDevice)
-		logrusHookBuffer.Purge()
-		return // ### return, nothing to do ###
-	}
-
-	if len(co.producers) == 0 {
-		logrus.Error("No producers configured.")
-		logrusHookBuffer.SetTargetWriter(logger.FallbackLogDevice)
-		logrusHookBuffer.Purge()
-		return // ### return, nothing to do ###
-	}
-
 	// Launch routers
 	for _, router := range co.routers {
+		logrus.Debug("Starting ", reflect.TypeOf(router))
 		if err := router.Start(); err != nil {
-			logrus.Error("Router was not able to start from type ", reflect.TypeOf(router), ": ", err)
-		} else {
-			logrus.Debug("Starting ", reflect.TypeOf(router))
+			logrus.WithError(err).Errorf("Failed to start router of type '%s'", reflect.TypeOf(router))
 		}
 	}
 
@@ -131,19 +125,13 @@ func (co *Coordinator) StartPlugins() {
 	// Set final log target and purge the intermediate buffer
 	if core.StreamRegistry.IsStreamRegistered(core.LogInternalStreamID) {
 		// The _GOLLUM_ stream has listeners, so use LogConsumer to write to it
-		if *flagLogColors == "always" {
-			logrus.SetFormatter(logger.NewConsoleFormatter())
+		if *flagLogColors != "always" {
+			logrus.SetFormatter(&logrus.TextFormatter{})
 		}
 		logrusHookBuffer.SetTargetHook(co.logConsumer)
 		logrusHookBuffer.Purge()
 
 	} else {
-		// _GOLLUM_ not used, so write to the fallback device
-		if *flagLogColors == "always" ||
-			(*flagLogColors == "auto" && logrus.IsTerminal(logger.FallbackLogDevice)) {
-			// Logrus doesn't know the final log device, so we hint the color option here
-			logrus.SetFormatter(logger.NewConsoleFormatter())
-		}
 		logrusHookBuffer.SetTargetWriter(logger.FallbackLogDevice)
 		logrusHookBuffer.Purge()
 	}
@@ -202,9 +190,9 @@ func (co *Coordinator) Shutdown() {
 
 	// Make sure remaining warning / errors are written to stderr
 	logrus.Info("I'm not listening... I'm not listening... (flushing)")
-	//logrus.SetOutput(fallbackLogDevice)
 	logrusHookBuffer.SetTargetWriter(logger.FallbackLogDevice)
 	logrusHookBuffer.SetTargetHook(nil)
+	logrusHookBuffer.Purge()
 
 	// Shutdown producers
 	co.shutdownProducers(stateAtShutdown)
@@ -219,7 +207,7 @@ func (co *Coordinator) configureRouters(conf *core.Config) {
 
 		plugin, err := core.NewPluginWithConfig(config)
 		if err != nil {
-			logrus.Errorf("Failed to instantiate router %s: %s", config.ID, err)
+			logrus.WithError(err).Errorf("Failed to instantiate router '%s'", config.ID)
 			continue // ### continue ###
 		}
 
@@ -241,27 +229,24 @@ func (co *Coordinator) configureProducers(conf *core.Config) {
 	producerConfigs := conf.GetProducers()
 
 	for _, config := range producerConfigs {
-		logrus.Debug("Instantiating ", config.ID)
+		if _, hasStreams := config.Settings.Value("streams"); !hasStreams {
+			logrus.Errorf("Producer '%s' has no streams set", config.ID)
+			continue // ### continue ###
+		}
 
+		logrus.Debug("Instantiating ", config.ID)
 		plugin, err := core.NewPluginWithConfig(config)
 		if err != nil {
-			logrus.Errorf("Failed to instantiate producer %s: %s", config.ID, err)
+			logrus.WithError(err).Errorf("Failed to instantiate producer '%s'", config.ID)
 			continue // ### continue ###
 		}
 
 		producer, _ := plugin.(core.Producer)
-		streams := producer.Streams()
-
-		if len(streams) == 0 {
-			logrus.Error("Producer ", config.ID, " has no streams set")
-			continue // ### continue ###
-		}
-
 		co.producers = append(co.producers, producer)
 		core.CountProducers()
 
 		// Attach producer to streams
-
+		streams := producer.Streams()
 		for _, streamID := range streams {
 			if streamID == core.WildcardStreamID {
 				core.StreamRegistry.RegisterWildcardProducer(producer)
@@ -290,11 +275,15 @@ func (co *Coordinator) configureConsumers(conf *core.Config) {
 
 	consumerConfigs := conf.GetConsumers()
 	for _, config := range consumerConfigs {
-		logrus.Debug("Instantiating ", config.ID)
+		if _, hasStreams := config.Settings.Value("streams"); !hasStreams {
+			logrus.Errorf("Consumer '%s' has no streams set", config.ID)
+			continue
+		}
 
+		logrus.Debug("Instantiating ", config.ID)
 		plugin, err := core.NewPluginWithConfig(config)
 		if err != nil {
-			logrus.Errorf("Failed to instantiate producer %s: %s", config.ID, err)
+			logrus.WithError(err).Errorf("Failed to instantiate producer '%s'", config.ID)
 			continue // ### continue ###
 		}
 

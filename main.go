@@ -45,25 +45,14 @@ var logrusHookBuffer logger.LogrusHookBuffer
 func main() {
 	// Parse command line flags
 	parseFlags()
+	initLogrus()
 
-	// Initialize logger.LogrusHookBuffer
-	logrusHookBuffer = logger.NewLogrusHookBuffer()
-
-	// Initialize logging. All logging is done via logrusHookBuffer;
-	// logrus's output writer is always set to ioutil.Discard.
-	logrus.AddHook(&logrusHookBuffer)
-	logrus.SetOutput(ioutil.Discard)
-	logrus.SetLevel(getLogrusLevel(*flagLoglevel))
 	logrus.Debug("GOLLUM STARTING")
-
-	switch *flagLogColors {
-	case "never":
-	case "auto":
-	case "always":
-	default:
-		fmt.Printf("Invalid parameter for -log-colors: '%s'\n", *flagLogColors)
-		return
-	}
+	defer func() {
+		logrus.Debug("GOLLUM STOPPED")
+		logrusHookBuffer.SetTargetWriter(logger.FallbackLogDevice)
+		logrusHookBuffer.Purge()
+	}()
 
 	// Handle special execution modes
 	if *flagVersion {
@@ -90,21 +79,17 @@ func main() {
 
 	config, err := core.ReadConfigFromFile(configFile)
 	if err != nil {
-		fmt.Printf("Config: %s\n", err.Error())
+		logrus.WithError(err).Error("Failed to read config")
 		return // ### return, config error ###
 	}
 
-	errors := config.Validate()
-	for _, err := range errors {
-		fmt.Print(err.Error())
+	if err := config.Validate(); err != nil {
+		logrus.WithError(err).Error("Config validation failed")
+		return
 	}
 
 	if *flagTestConfigFile != "" {
-		if len(errors) == 0 {
-			fmt.Print("Config check passed.")
-		} else {
-			fmt.Print("Config check FAILED.")
-		}
+		fmt.Println("Config OK.")
 		return // ### return, only test config ###
 	}
 
@@ -126,7 +111,7 @@ func main() {
 		server := tgo.NewMetricServer()
 		address, err := parseAddress(*flagMetricsAddress)
 		if err != nil {
-			fmt.Printf("%s", err)
+			logrus.WithError(err).Error("Failed to start metrics service")
 			return
 		}
 		go server.Start(address)
@@ -138,7 +123,7 @@ func main() {
 	if *flagHealthCheck != "" {
 		address, err := parseAddress(*flagHealthCheck)
 		if err != nil {
-			fmt.Printf("%s", err)
+			logrus.WithError(err).Error("Failed to start health check service")
 			return
 		}
 		thealthcheck.Configure(address)
@@ -190,11 +175,39 @@ func main() {
 	// Start the coordinator
 
 	coordinator := NewCoordinator()
-	coordinator.Configure(config)
+	if err := coordinator.Configure(config); err != nil {
+		logrus.WithError(err).Error("Configure pass failed.")
+		coordinator.Shutdown()
+		return
+	}
 
 	defer coordinator.Shutdown()
 	coordinator.StartPlugins()
 	coordinator.Run()
+}
+
+func initLogrus() {
+	// Initialize logger.LogrusHookBuffer
+	logrusHookBuffer = logger.NewLogrusHookBuffer()
+
+	// Initialize logging. All logging is done via logrusHookBuffer;
+	// logrus's output writer is always set to ioutil.Discard.
+	logrus.AddHook(&logrusHookBuffer)
+	logrus.SetOutput(ioutil.Discard)
+	logrus.SetLevel(getLogrusLevel(*flagLoglevel))
+
+	switch *flagLogColors {
+	case "never", "auto", "always":
+	default:
+		fmt.Printf("Invalid parameter for -log-colors: '%s'\n", *flagLogColors)
+		*flagLogColors = "auto"
+	}
+
+	if *flagLogColors == "always" ||
+		(*flagLogColors == "auto" && logrus.IsTerminal(logger.FallbackLogDevice)) {
+		// Logrus doesn't know the final log device, so we hint the color option here
+		logrus.SetFormatter(logger.NewConsoleFormatter())
+	}
 }
 
 func parseAddress(address string) (string, error) {

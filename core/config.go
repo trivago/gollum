@@ -116,18 +116,19 @@ func (err PluginConfigError) Error() string {
 // Validate checks all plugin configs and plugins on validity. I.e. it checks
 // on mandatory fields and correct implementation of consumer, producer or
 // stream interface. It does NOT call configure for each plugin.
-func (conf *Config) Validate() []error {
+func (conf *Config) Validate() error {
 	errors := tgo.NewErrorStack()
+	errors.SetFormat(tgo.ErrorStackFormatCSV)
 
 	for _, config := range conf.Plugins {
 		if config.Typename == "" {
-			errors.Push(newPluginConfigError(config.ID, "", "Plugin type is not set."))
+			errors.Push(newPluginConfigError(config.ID, "", "Plugin type is not set"))
 			continue
 		}
 
 		pluginType := TypeRegistry.GetTypeOf(config.Typename)
 		if pluginType == nil {
-			errors.Push(newPluginConfigError(config.ID, config.Typename, "Type not registered. Please check compiled plugins."))
+			errors.Push(newPluginConfigError(config.ID, config.Typename, "Type not registered. Please check compiled plugins"))
 			continue // ### continue ###
 		}
 
@@ -142,11 +143,11 @@ func (conf *Config) Validate() []error {
 			continue
 		}
 
-		errors.Push(newPluginConfigError(config.ID, config.Typename, "Type does not implement a common interface."))
+		errors.Push(newPluginConfigError(config.ID, config.Typename, "Type does not implement a common interface"))
 		getClosestMatch(pluginType, &errors)
 	}
 
-	return errors.Errors()
+	return errors.OrNil()
 }
 
 // GetConsumers returns all consumer plugins from the config
