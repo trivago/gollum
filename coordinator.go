@@ -71,9 +71,8 @@ func NewCoordinator() Coordinator {
 
 // Configure processes the config and instantiates all valid plugins
 func (co *Coordinator) Configure(conf *core.Config) error {
-	// Make sure the log is printed to stderr if we are stuck here
+	// Make sure the log is printed to the fallback device if we are stuck here
 	logFallback := time.AfterFunc(time.Duration(3)*time.Second, func() {
-		//logrus.SetOutput(os.Stderr)
 		logrusHookBuffer.SetTargetWriter(logger.FallbackLogDevice)
 		logrusHookBuffer.Purge()
 	})

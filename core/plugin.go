@@ -152,7 +152,6 @@ func (state *PluginRunState) WorkerDone() {
 // NewPluginWithConfig creates a new plugin from the type information stored in its
 // config. This function internally calls NewPluginWithType.
 func NewPluginWithConfig(config PluginConfig) (Plugin, error) {
-	fmt.Println(config.ID, config.Typename)
 	if config.Typename == "" {
 		return nil, fmt.Errorf("Plugin '%s' has no type set", config.ID)
 	}
