@@ -1,5 +1,5 @@
-hash: 5eb007dd561560d240b81e5cd4de58e70b837abb7c335387783b0370c1ca7d0c
-updated: 2017-07-11T13:49:07.927754151+02:00
+hash: c3caa5c87d435351e40681b598bb94c31c14f4fe190e0d95035f303aaff9697a
+updated: 2017-07-11T14:41:18.165906696+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -63,6 +63,8 @@ imports:
   version: bb955e01b9346ac19dc29eb16586c90ded99a98c
 - name: github.com/eapache/queue
   version: 44cc805cf13205b55f69e14bcb69867d1ae92f98
+- name: github.com/fsnotify/fsnotify
+  version: 4da3e2cfbabc9f751898f250b49f2439785783a1
 - name: github.com/go-ini/ini
   version: 3d73f4b845efdf9989fffd4b4e562727744a34ba
 - name: github.com/go-redis/redis

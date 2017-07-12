@@ -110,7 +110,7 @@ vendor-install: _vendor-install vendor-rm-ignored
 _vendor-install:
 	glide cache-clear
 	rm -rf vendor
-	glide install
+	glide install --strip-vendor
 
 # Runs "glide update" in a managed way - clears glide's cache and removes ignored stuff from ./vendor
 # This leaves ./vendor in the same state it would be when checked out with git.

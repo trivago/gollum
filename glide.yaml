@@ -54,3 +54,5 @@ import:
 - package: github.com/mgutz/ansi
 - package: github.com/trivago/grok
   version: ~1.0
+- package: github.com/fsnotify/fsnotify
+  version: master #~1.4.2
