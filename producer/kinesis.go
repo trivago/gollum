@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/trivago/gollum/core"
@@ -101,6 +102,7 @@ type Kinesis struct {
 	recordMaxMessages    int           `config:"RecordMaxMessages" default:"1"`
 	delimiter            []byte        `config:"RecordMessageDelimiter" default:"\n"`
 	sendTimeLimit        time.Duration `config:"SendTimeframeMs" default:"1000" metric:"ms"`
+	assumeRole           string        `config:"Credential/AssumeRole"`
 	flushFrequency       time.Duration
 	lastSendTime         time.Time
 	counters             map[string]*int64
@@ -289,6 +291,12 @@ func (prod *Kinesis) Produce(workers *sync.WaitGroup) {
 		prod.Logger.WithError(err).Error("Failed to create session")
 	}
 
-	prod.client = kinesis.New(sess)
+	if prod.assumeRole != "" {
+		creds := stscreds.NewCredentials(sess, prod.assumeRole)
+		prod.client = kinesis.New(sess, &aws.Config{Credentials: creds})
+	} else {
+		prod.client = kinesis.New(sess)
+	}
+
 	prod.BatchMessageLoop(workers, prod.sendBatch)
 }

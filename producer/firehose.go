@@ -17,6 +17,7 @@ package producer
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/firehose"
 	"github.com/trivago/gollum/core"
@@ -102,6 +103,7 @@ type Firehose struct {
 	delimiter             []byte        `config:"RecordMessageDelimiter" default:"\n"`
 	flushFrequency        time.Duration `config:"BatchTimeoutSec" default:"3" metric:"sec"`
 	sendTimeLimit         time.Duration `config:"SendTimeframeMs" default:"1000" metric:"ms"`
+	assumeRole            string        `config:"Credential/AssumeRole"`
 	lastSendTime          time.Time
 	lastMetricUpdate      time.Time
 	counters              map[string]*int64
@@ -153,20 +155,20 @@ func (prod *Firehose) Configure(conf core.PluginConfigReader) {
 	}
 
 	// Credentials
-	credentialType := strings.ToLower(conf.GetString("CredentialType", firehoseCredentialNone))
+	credentialType := strings.ToLower(conf.GetString("Credential/Type", firehoseCredentialNone))
 	switch credentialType {
 	case firehoseCredentialEnv:
 		prod.config.WithCredentials(credentials.NewEnvCredentials())
 
 	case firehoseCredentialStatic:
-		id := conf.GetString("CredentialId", "")
-		token := conf.GetString("CredentialToken", "")
-		secret := conf.GetString("CredentialSecret", "")
+		id := conf.GetString("Credential/Id", "")
+		token := conf.GetString("Credential/Token", "")
+		secret := conf.GetString("Credential/Secret", "")
 		prod.config.WithCredentials(credentials.NewStaticCredentials(id, secret, token))
 
 	case firehoseCredentialShared:
-		filename := conf.GetString("CredentialFile", "")
-		profile := conf.GetString("CredentialProfile", "")
+		filename := conf.GetString("Credential/File", "")
+		profile := conf.GetString("Credential/Profile", "")
 		prod.config.WithCredentials(credentials.NewSharedCredentials(filename, profile))
 
 	case firehoseCredentialNone:
@@ -319,6 +321,12 @@ func (prod *Firehose) Produce(workers *sync.WaitGroup) {
 		prod.Logger.WithError(err).Error("Failed to create session")
 	}
 
-	prod.client = firehose.New(sess)
+	if prod.assumeRole != "" {
+		creds := stscreds.NewCredentials(sess, prod.assumeRole)
+		prod.client = firehose.New(sess, &aws.Config{Credentials: creds})
+	} else {
+		prod.client = firehose.New(sess)
+	}
+
 	prod.TickerMessageControlLoop(prod.bufferMessage, prod.flushFrequency, prod.sendBatchOnTimeOut)
 }

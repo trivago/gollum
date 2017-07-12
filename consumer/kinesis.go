@@ -27,6 +27,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/trivago/gollum/core"
@@ -117,6 +118,7 @@ type Kinesis struct {
 	sleepTime           time.Duration `config:"QuerySleepTimeMs" default:"1000" metric:"ms"`
 	retryTime           time.Duration `config:"RetrySleepTimeSec" default:"4" metric:"sec"`
 	shardTime           time.Duration `config:"CheckNewShardsSec" default:"0" metric:"sec"`
+	assumeRole          string        `config:"Credential/AssumeRole"`
 	running             bool
 }
 
@@ -145,7 +147,7 @@ func (cons *Kinesis) Configure(conf core.PluginConfigReader) {
 		cons.config.WithCredentials(credentials.NewEnvCredentials())
 
 	case kinesisCredentialStatic:
-		id := conf.GetString("Credentia/lId", "")
+		id := conf.GetString("Credential/Id", "")
 		token := conf.GetString("Credential/Token", "")
 		secret := conf.GetString("Credential/Secret", "")
 		cons.config.WithCredentials(credentials.NewStaticCredentials(id, secret, token))
@@ -296,14 +298,20 @@ func (cons *Kinesis) processShard(shardID string) {
 }
 
 func (cons *Kinesis) connect() error {
-	session, err := session.NewSessionWithOptions(session.Options{
+	sess, err := session.NewSessionWithOptions(session.Options{
 		Config:            *cons.config,
 		SharedConfigState: session.SharedConfigEnable,
 	})
 	if err != nil {
 		return err
 	}
-	cons.client = kinesis.New(session)
+
+	if cons.assumeRole != "" {
+		creds := stscreds.NewCredentials(sess, cons.assumeRole)
+		cons.client = kinesis.New(sess, &aws.Config{Credentials: creds})
+	} else {
+		cons.client = kinesis.New(sess)
+	}
 
 	// Get shard ids for stream
 	streamQuery := &kinesis.DescribeStreamInput{
