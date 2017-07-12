@@ -202,8 +202,12 @@ func (co *Coordinator) Shutdown() {
 func (co *Coordinator) configureRouters(conf *core.Config) {
 	routerConfigs := conf.GetRouters()
 	for _, config := range routerConfigs {
-		logrus.Debugf("Instantiating router '%s'", config.ID)
+		if _, hasStreams := config.Settings.Value("stream"); !hasStreams {
+			logrus.Errorf("Router '%s' has no stream set", config.ID)
+			continue // ### continue ###
+		}
 
+		logrus.Debugf("Instantiating router '%s'", config.ID)
 		plugin, err := core.NewPluginWithConfig(config)
 		if err != nil {
 			logrus.WithError(err).Errorf("Failed to instantiate router '%s'", config.ID)
