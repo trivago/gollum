@@ -13,7 +13,9 @@
 package producer
 
 import (
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/trivago/gollum/core"
 	"sync"
@@ -63,9 +65,9 @@ const (
 // Timestamps are not available since they are available as a separate field in cloudwatch logs
 type CloudwatchLogs struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
-	stream                string `config:"Stream" default:""`
-	group                 string `config:"Group" default:""`
-	format                string `config:"LogFormat" default:"{{.Facility}} {{.Severity}} {{.Hostname}} {{.Syslogtag}} {{.Message}}"`
+	stream                string `config:"LogStream" default:""`
+	group                 string `config:"LogGroup" default:""`
+	config                *aws.Config
 	token                 *string
 	service               *cloudwatchlogs.CloudWatchLogs
 }
@@ -76,19 +78,22 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *CloudwatchLogs) Configure(conf core.PluginConfigReader) {
-	if conf.GetString("stream", "") == "" {
-		prod.Logger.Error("stream name can not be empty")
+	if prod.stream == "" {
+		prod.Logger.Error("LogStream can not be empty")
 	}
-	if conf.GetString("group", "") == "" {
-		prod.Logger.Error("group name can not be empty")
+	if prod.group == "" {
+		prod.Logger.Error("LogGroup can not be empty")
 	}
-	prod.format = conf.GetString("format", "{{.Facility}} {{.Severity}} {{.Hostname}} {{.Syslogtag}} {{.Message}}")
 }
 
 // Put log events and update sequence token.
 // Possible errors http://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutLogEvents.html
 func (prod *CloudwatchLogs) upload(msg *core.Message) {
 	logevents := make([]*cloudwatchlogs.InputLogEvent, 0)
+	logevents = append(logevents, &cloudwatchlogs.InputLogEvent{
+		Message:   aws.String(msg.String()),
+		Timestamp: aws.Int64(time.Now().Unix() * 1000),
+	})
 	params := &cloudwatchlogs.PutLogEventsInput{
 		LogEvents:     logevents,
 		LogGroupName:  &prod.group,
@@ -97,10 +102,11 @@ func (prod *CloudwatchLogs) upload(msg *core.Message) {
 	}
 	// When rejectedLogEventsInfo is not empty, app can not
 	// do anything reasonable with rejected logs. Ignore it.
-	// Meybe expose some statistics for rejected counters.
 	resp, err := prod.service.PutLogEvents(params)
 	if err == nil {
 		prod.token = resp.NextSequenceToken
+	} else {
+		prod.Logger.Errorf("failed to send message batch: %s", err)
 	}
 }
 
@@ -108,6 +114,12 @@ func (prod *CloudwatchLogs) upload(msg *core.Message) {
 func (prod *CloudwatchLogs) Produce(workers *sync.WaitGroup) {
 	defer prod.WorkerDone()
 	prod.AddMainWorker(workers)
+	prod.setServices()
+	if err := prod.create(); err != nil {
+		prod.Logger.Errorf("could not create group:%q stream:%q error was: %s", prod.group, prod.stream, err)
+	} else {
+		prod.setToken()
+	}
 	prod.MessageControlLoop(prod.upload)
 }
 
@@ -169,4 +181,14 @@ func (prod *CloudwatchLogs) createStream() error {
 		}
 	}
 	return err
+}
+
+func (prod *CloudwatchLogs) setServices() {
+	sess, err := session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	})
+	if err != nil {
+		prod.Logger.Error(err)
+	}
+	prod.service = cloudwatchlogs.New(sess)
 }
