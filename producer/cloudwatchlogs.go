@@ -115,7 +115,7 @@ func (prod *CloudwatchLogs) upload(msg *core.Message) {
 func (prod *CloudwatchLogs) Produce(workers *sync.WaitGroup) {
 	defer prod.WorkerDone()
 	prod.AddMainWorker(workers)
-	prod.setServices()
+	prod.service = cloudwatchlogs.New(session.New(prod.config))
 	if err := prod.create(); err != nil {
 		prod.Logger.Errorf("could not create group:%q stream:%q error was: %s", prod.group, prod.stream, err)
 	} else {
@@ -182,14 +182,4 @@ func (prod *CloudwatchLogs) createStream() error {
 		}
 	}
 	return err
-}
-
-func (prod *CloudwatchLogs) setServices() {
-	sess, err := session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	})
-	if err != nil {
-		prod.Logger.Error(err)
-	}
-	prod.service = cloudwatchlogs.New(sess)
 }
