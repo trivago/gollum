@@ -36,7 +36,8 @@ import (
 //
 // Configuration example
 //
-//  - "producer.File":
+//  myProducer:
+//    Type: producer.File
 //    File: "/var/log/gollum.log"
 //    FileOverwrite: false
 //    Permissions: "0664"
@@ -123,7 +124,7 @@ import (
 // defined by "File" and are pruned by date (followed by name).
 // By default this is set to 0 which disables pruning.
 type File struct {
-	core.BufferedProducer `gollumdoc:"embed_type"`
+	core.DirectProducer  `gollumdoc:"embed_type"`
 	filesByStream         map[core.MessageStreamID]*fileState
 	files                 map[string]*fileState
 	rotate                fileRotateConfig
@@ -360,7 +361,6 @@ func (prod *File) writeMessage(msg *core.Message) {
 func (prod *File) close() {
 	defer prod.WorkerDone()
 
-	prod.DefaultClose()
 	for _, state := range prod.files {
 		state.close()
 	}
