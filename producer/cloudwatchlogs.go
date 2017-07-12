@@ -56,13 +56,11 @@ const (
 // Stream is a destination stream name. It must be set. Can contain following variables
 // {{.InstanceId}} AWS instance id if launched on EC2
 // {{.Hostname}} Hostname of machine on which is executed
-// LogFormat format in which messages will be sent to Cloud Watch. Available variables
-// {{.Facility}} Syslog facility as uppercase string
-// {{.Severity}} Syslog severity as uppercase string
-// {{.Hostname}} Syslog hostname
-// {{.Syslogtag}} Syslog tag
-// {{.Message}} Syslog message
-// Timestamps are not available since they are available as a separate field in cloudwatch logs
+
+// Region defines the amazon region of your kinesis stream.
+// By default this is set to "eu-west-1".
+//
+// Credentials are obtained by gollum automaticly.
 type CloudwatchLogs struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 	stream                string `config:"LogStream" default:""`
