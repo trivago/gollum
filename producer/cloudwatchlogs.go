@@ -82,6 +82,9 @@ func (prod *CloudwatchLogs) Configure(conf core.PluginConfigReader) {
 	if prod.group == "" {
 		prod.Logger.Error("LogGroup can not be empty")
 	}
+	// Set aws config
+	prod.config = aws.NewConfig()
+	prod.config.WithRegion(conf.GetString("Region", "eu-west-1"))
 }
 
 // Put log events and update sequence token.
