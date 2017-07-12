@@ -15,10 +15,15 @@
 package producer
 
 import (
+	"compress/gzip"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"
+	"github.com/trivago/tgo/tsync"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -124,25 +129,25 @@ import (
 // defined by "File" and are pruned by date (followed by name).
 // By default this is set to 0 which disables pruning.
 type File struct {
-	core.DirectProducer  `gollumdoc:"embed_type"`
-	filesByStream         map[core.MessageStreamID]*fileState
-	files                 map[string]*fileState
-	rotate                fileRotateConfig
-	timestamp             string `config:"Rotation/Timestamp" default:"2006-01-02_15"`
-	fileDir               string
-	fileName              string
-	fileExt               string
-	batchTimeout          time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
-	flushTimeout          time.Duration `config:"FlushTimeoutSec" default:"5" metric:"sec"`
-	batchMaxCount         int           `config:"Batch/MaxCount" default:"8192"`
-	batchFlushCount       int           `config:"Batch/FlushCount" default:"4096"`
-	pruneCount            int           `config:"Prune/Count" default:"0"`
-	pruneHours            int           `config:"Prune/AfterHours" default:"0"`
-	pruneSize             int64         `config:"Prune/TotalSizeMB" default:"0" metric:"mb"`
-	wildcardPath          bool
-	overwriteFile         bool        `config:"FileOverwrite"`
-	filePermissions       os.FileMode `config:"Permissions" default:"0644"`
-	folderPermissions     os.FileMode `config:"FolderPermissions" default:"0755"`
+	core.DirectProducer `gollumdoc:"embed_type"`
+	filesByStream       map[core.MessageStreamID]*fileState
+	files               map[string]*fileState
+	rotate              fileRotateConfig
+	timestamp           string `config:"Rotation/Timestamp" default:"2006-01-02_15"`
+	fileDir             string
+	fileName            string
+	fileExt             string
+	batchTimeout        time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
+	flushTimeout        time.Duration `config:"FlushTimeoutSec" default:"5" metric:"sec"`
+	batchMaxCount       int           `config:"Batch/MaxCount" default:"8192"`
+	batchFlushCount     int           `config:"Batch/FlushCount" default:"4096"`
+	pruneCount          int           `config:"Prune/Count" default:"0"`
+	pruneHours          int           `config:"Prune/AfterHours" default:"0"`
+	pruneSize           int64         `config:"Prune/TotalSizeMB" default:"0" metric:"mb"`
+	wildcardPath        bool
+	overwriteFile       bool        `config:"FileOverwrite"`
+	filePermissions     os.FileMode `config:"Permissions" default:"0644"`
+	folderPermissions   os.FileMode `config:"FolderPermissions" default:"0755"`
 }
 
 func init() {
@@ -278,16 +283,12 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	logFilePath := fmt.Sprintf("%s/%s", fileDir, logFileName)
 
 	// Close existing log
-	if state.file != nil {
-		currentLog := state.file
-		state.file = nil
+	if state.writer != nil {
+		currentLog := state.writer
+		state.writer = nil
 
-		if prod.rotate.compress {
-			go state.compressAndCloseLog(currentLog)
-		} else {
-			prod.Logger.Info("Rotated ", currentLog.Name(), " -> ", logFilePath)
-			currentLog.Close()
-		}
+		prod.Logger.Info("Rotated ", currentLog.Name(), " -> ", logFilePath)
+		go currentLog.Close() // close in subroutine for eventually compression in the background
 	}
 
 	// (Re)open logfile
@@ -299,10 +300,12 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		openFlags |= os.O_APPEND
 	}
 
-	state.file, err = os.OpenFile(logFilePath, openFlags, prod.filePermissions)
+	stateFile, err := os.OpenFile(logFilePath, openFlags, prod.filePermissions)
 	if err != nil {
 		return state, err // ### return error ###
 	}
+
+	state.writer = prod.newFileStateWriterDisk(stateFile)
 
 	// Create "current" symlink
 	state.fileCreated = time.Now()
@@ -327,6 +330,16 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	}()
 
 	return state, err
+}
+
+func (prod *File) newFileStateWriterDisk(file *os.File) *fileStateWriterDisk {
+	obj := fileStateWriterDisk{
+		file,
+		prod.rotate.compress,
+		nil,
+		prod.Logger,
+	}
+	return &obj
 }
 
 func (prod *File) rotateLog() {
@@ -362,7 +375,7 @@ func (prod *File) close() {
 	defer prod.WorkerDone()
 
 	for _, state := range prod.files {
-		state.close()
+		state.Close()
 	}
 }
 
@@ -370,4 +383,119 @@ func (prod *File) close() {
 func (prod *File) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
 	prod.TickerMessageControlLoop(prod.writeMessage, prod.batchTimeout, prod.writeBatchOnTimeOut)
+}
+
+// -- fileStateWriterDisk --
+
+type fileStateWriterDisk struct {
+	file            *os.File
+	compressOnClose bool
+	stats           os.FileInfo
+	logger          logrus.FieldLogger
+}
+
+// Write is part of the FileStateWriter interface and wraps the file.Write() implementation
+func (w *fileStateWriterDisk) Write(p []byte) (n int, err error) {
+	return w.file.Write(p)
+}
+
+// Name is part of the FileStateWriter interface and wraps the file.Name() implementation
+func (w *fileStateWriterDisk) Name() string {
+	return w.file.Name()
+}
+
+// Size is part of the FileStateWriter interface and wraps the file.Stat().Size() implementation
+func (w *fileStateWriterDisk) Size() int64 {
+	stats, err := w.getStats()
+	if err != nil {
+		return 0
+	}
+	return stats.Size()
+}
+
+//func (w *fileStateWriterDisk) Created() time.Time {
+//	return w.file.
+//}
+
+// Size is part of the FileStateWriter interface and check if the writer can access his file
+func (w *fileStateWriterDisk) IsAccessible() bool {
+	_, err := w.getStats()
+	if err != nil {
+		return false
+	}
+
+	return true
+}
+
+// Size is part of the Close interface and handle the file close or compression call
+func (w *fileStateWriterDisk) Close() error {
+	if w.compressOnClose {
+		return w.compressAndCloseLog()
+	}
+
+	return w.file.Close()
+}
+
+func (w *fileStateWriterDisk) getStats() (os.FileInfo, error) {
+	if w.stats != nil {
+		return w.stats, nil
+	}
+
+	stats, err := w.file.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	w.stats = stats
+	return w.stats, nil
+}
+
+func (w *fileStateWriterDisk) compressAndCloseLog() error {
+	// Generate file to zip into
+	sourceFileName := w.Name()
+	sourceDir, sourceBase, _ := tio.SplitPath(sourceFileName)
+
+	targetFileName := fmt.Sprintf("%s/%s.gz", sourceDir, sourceBase)
+
+	targetFile, err := os.OpenFile(targetFileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		w.logger.Error("Compress error:", err)
+		w.file.Close()
+		return err
+	}
+
+	// Create zipfile and compress data
+	w.logger.Info("Compressing " + sourceFileName)
+
+	w.file.Seek(0, 0)
+	targetWriter := gzip.NewWriter(targetFile)
+	spin := tsync.NewSpinner(tsync.SpinPriorityHigh)
+
+	for err == nil {
+		_, err = io.CopyN(targetWriter, w.file, 1<<20) // 1 MB chunks
+		spin.Yield()                                   // Be async!
+	}
+
+	// Cleanup
+	w.file.Close()
+	targetWriter.Close()
+	targetFile.Close()
+
+	if err != nil && err != io.EOF {
+		w.logger.Warning("Compression failed:", err)
+		err = os.Remove(targetFileName)
+		if err != nil {
+			w.logger.Error("Compressed file remove failed:", err)
+		}
+		return err
+	}
+
+	// Remove original log
+	err = os.Remove(sourceFileName)
+	if err != nil {
+		w.logger.Error("Uncompressed file remove failed:", err)
+		return err
+	}
+
+	return nil
 }

@@ -15,27 +15,33 @@
 package producer
 
 import (
-	"compress/gzip"
+	"errors"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tio"
-	"github.com/trivago/tgo/tsync"
 	"io"
 	"os"
-	"sync"
 	"time"
 )
 
 type fileState struct {
-	file         *os.File
-	bgWriter     *sync.WaitGroup
+	writer       FileStateWriter
 	batch        core.MessageBatch
 	buffer       []byte
 	assembly     core.WriterAssembly
 	fileCreated  time.Time
 	flushTimeout time.Duration
 	logger       logrus.FieldLogger
+}
+
+// FileStateWriter is an interface for different file writer like disk, s3, etc.
+type FileStateWriter interface {
+	io.WriteCloser
+	Name() string // base name of the file
+	Size() int64  // length in bytes for regular files; system-dependent for others
+	//Created() time.Time
+	IsAccessible() bool
 }
 
 type fileRotateConfig struct {
@@ -52,7 +58,6 @@ func newFileState(maxMessageCount int, modulator core.Modulator, tryFallback fun
 	timeout time.Duration, logger logrus.FieldLogger) *fileState {
 	return &fileState{
 		batch:        core.NewMessageBatch(maxMessageCount),
-		bgWriter:     new(sync.WaitGroup),
 		flushTimeout: timeout,
 		assembly:     core.NewWriterAssembly(nil, tryFallback, modulator),
 		logger:       logger,
@@ -60,76 +65,25 @@ func newFileState(maxMessageCount int, modulator core.Modulator, tryFallback fun
 }
 
 func (state *fileState) flush() {
-	if state.file != nil {
-		state.assembly.SetWriter(state.file)
+	if state.writer != nil {
+		state.assembly.SetWriter(state.writer)
 		state.batch.Flush(state.assembly.Write)
 	} else {
 		state.batch.Flush(state.assembly.Flush)
 	}
 }
 
-func (state *fileState) close() {
-	if state.file != nil {
-		state.assembly.SetWriter(state.file)
+func (state *fileState) Close() {
+	if state.writer != nil {
+		state.assembly.SetWriter(state.writer)
 		state.batch.Close(state.assembly.Write, state.flushTimeout)
 	} else {
 		state.batch.Close(state.assembly.Flush, state.flushTimeout)
 	}
-	state.bgWriter.Wait()
-}
-
-func (state *fileState) compressAndCloseLog(sourceFile *os.File) {
-	state.bgWriter.Add(1)
-	defer state.bgWriter.Done()
-
-	// Generate file to zip into
-	sourceFileName := sourceFile.Name()
-	sourceDir, sourceBase, _ := tio.SplitPath(sourceFileName)
-
-	targetFileName := fmt.Sprintf("%s/%s.gz", sourceDir, sourceBase)
-
-	targetFile, err := os.OpenFile(targetFileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
-	if err != nil {
-		state.logger.Error("Compress error:", err)
-		sourceFile.Close()
-		return
-	}
-
-	// Create zipfile and compress data
-	state.logger.Info("Compressing " + sourceFileName)
-
-	sourceFile.Seek(0, 0)
-	targetWriter := gzip.NewWriter(targetFile)
-	spin := tsync.NewSpinner(tsync.SpinPriorityHigh)
-
-	for err == nil {
-		_, err = io.CopyN(targetWriter, sourceFile, 1<<20) // 1 MB chunks
-		spin.Yield()                                       // Be async!
-	}
-
-	// Cleanup
-	sourceFile.Close()
-	targetWriter.Close()
-	targetFile.Close()
-
-	if err != nil && err != io.EOF {
-		state.logger.Warning("Compression failed:", err)
-		err = os.Remove(targetFileName)
-		if err != nil {
-			state.logger.Error("Compressed file remove failed:", err)
-		}
-		return
-	}
-
-	// Remove original log
-	err = os.Remove(sourceFileName)
-	if err != nil {
-		state.logger.Error("Uncompressed file remove failed:", err)
-	}
+	state.writer.Close()
 }
 
 func (state *fileState) pruneByHour(baseFilePath string, hours int) {
-	state.bgWriter.Wait()
 	baseDir, baseName, _ := tio.SplitPath(baseFilePath)
 
 	files, err := tio.ListFilesByDateMatching(baseDir, baseName+".*")
@@ -151,7 +105,6 @@ func (state *fileState) pruneByHour(baseFilePath string, hours int) {
 }
 
 func (state *fileState) pruneByCount(baseFilePath string, count int) {
-	state.bgWriter.Wait()
 	baseDir, baseName, _ := tio.SplitPath(baseFilePath)
 
 	files, err := tio.ListFilesByDateMatching(baseDir, baseName+".*")
@@ -176,7 +129,6 @@ func (state *fileState) pruneByCount(baseFilePath string, count int) {
 }
 
 func (state *fileState) pruneToSize(baseFilePath string, maxSize int64) {
-	state.bgWriter.Wait()
 	baseDir, baseName, _ := tio.SplitPath(baseFilePath)
 
 	files, err := tio.ListFilesByDateMatching(baseDir, baseName+".*")
@@ -206,14 +158,13 @@ func (state *fileState) pruneToSize(baseFilePath string, maxSize int64) {
 
 func (state *fileState) needsRotate(rotate fileRotateConfig, forceRotate bool) (bool, error) {
 	// File does not exist?
-	if state.file == nil {
+	if state.writer == nil {
 		return true, nil
 	}
 
 	// File can be accessed?
-	stats, err := state.file.Stat()
-	if err != nil {
-		return false, err
+	if state.writer.IsAccessible() == false {
+		return false, errors.New("Can' access file to rotate")
 	}
 
 	// File needs rotation?
@@ -226,7 +177,7 @@ func (state *fileState) needsRotate(rotate fileRotateConfig, forceRotate bool) (
 	}
 
 	// File is too large?
-	if stats.Size() >= rotate.sizeByte {
+	if state.writer.Size() >= rotate.sizeByte {
 		return true, nil // ### return, too large ###
 	}
 
