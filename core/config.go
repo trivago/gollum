@@ -40,13 +40,6 @@ type Config struct {
 	Plugins []PluginConfig
 }
 
-// PluginConfigError is a container for errors produced by Config.Validate
-type PluginConfigError struct {
-	id       string
-	typename string
-	reason   string
-}
-
 // ReadConfig creates a config from a yaml byte stream.
 func ReadConfig(buffer []byte) (*Config, error) {
 	config := new(Config)
@@ -106,13 +99,6 @@ func ReadConfigFromFile(path string) (*Config, error) {
 	return ReadConfig(buffer)
 }
 
-func (err PluginConfigError) Error() string {
-	if err.typename == "" {
-		return fmt.Sprintf("%s: %s", err.id, err.reason)
-	}
-	return fmt.Sprintf("%s (%s): %s", err.id, err.typename, err.reason)
-}
-
 // Validate checks all plugin configs and plugins on validity. I.e. it checks
 // on mandatory fields and correct implementation of consumer, producer or
 // stream interface. It does NOT call configure for each plugin.
@@ -122,13 +108,13 @@ func (conf *Config) Validate() error {
 
 	for _, config := range conf.Plugins {
 		if config.Typename == "" {
-			errors.Push(newPluginConfigError(config.ID, "", "Plugin type is not set"))
+			errors.Pushf("Plugin type is not set for '%s'", config.ID)
 			continue
 		}
 
 		pluginType := TypeRegistry.GetTypeOf(config.Typename)
 		if pluginType == nil {
-			errors.Push(newPluginConfigError(config.ID, config.Typename, "Type not registered. Please check compiled plugins"))
+			errors.Pushf("Type '%s' used for '%s' not found", config.Typename, config.ID)
 			continue // ### continue ###
 		}
 
@@ -143,7 +129,7 @@ func (conf *Config) Validate() error {
 			continue
 		}
 
-		errors.Push(newPluginConfigError(config.ID, config.Typename, "Type does not implement a common interface"))
+		errors.Pushf("Type '%s' used for '%s' does not implement a common interface", config.Typename, config.ID)
 		getClosestMatch(pluginType, &errors)
 	}
 
@@ -217,14 +203,6 @@ func (conf *Config) GetRouters() []PluginConfig {
 	}
 
 	return configs
-}
-
-func newPluginConfigError(id string, typename string, reason string) PluginConfigError {
-	return PluginConfigError{
-		id:       id,
-		typename: typename,
-		reason:   reason,
-	}
 }
 
 func getClosestMatch(pluginType reflect.Type, errors *tgo.ErrorStack) {

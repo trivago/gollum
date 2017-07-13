@@ -45,10 +45,12 @@ func (registry *pluginRegistry) Register(plugin Plugin, ID string) string {
 
 // RegisterUnique stores a plugin by its ID (a string) for later retrieval.
 // Name collisions are not resolved, duplicated names will not be registered.
-func (registry *pluginRegistry) RegisterUnique(plugin Plugin, ID string) {
+func (registry *pluginRegistry) RegisterUnique(plugin Plugin, ID string) bool {
 	if _, exists := registry.plugins[ID]; !exists {
 		registry.plugins[ID] = plugin
+		return true
 	}
+	return false
 }
 
 // GetPlugin returns a plugin by name or nil if not found.

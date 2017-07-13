@@ -15,7 +15,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/logger"
@@ -80,17 +79,23 @@ func (co *Coordinator) Configure(conf *core.Config) error {
 
 	// Initialize the plugins in the order of routers > producers > consumers
 	// to match the order of reference between the different types.
+	errors := tgo.NewErrorStack()
+	errors.SetFormat(tgo.ErrorStackFormatCSV)
 
-	co.configureRouters(conf)
-
-	co.configureProducers(conf)
-	if len(co.producers) == 0 {
-		return fmt.Errorf("No valid producers found")
+	if !co.configureRouters(conf) {
+		errors.Pushf("At least one router failed to be configured")
 	}
-
-	co.configureConsumers(conf)
+	if !co.configureProducers(conf) {
+		errors.Pushf("At least one producer failed to be configured")
+	}
+	if !co.configureConsumers(conf) {
+		errors.Pushf("At least one consumer failed to be configured")
+	}
+	if len(co.producers) == 0 {
+		errors.Pushf("No valid producers found")
+	}
 	if len(co.consumers) <= 1 {
-		return fmt.Errorf("No valid consumers found")
+		errors.Pushf("No valid consumers found")
 	}
 
 	// As consumers might create new fallback router this is the first position
@@ -98,7 +103,7 @@ func (co *Coordinator) Configure(conf *core.Config) error {
 	// created beyond this point must use StreamRegistry.AddWildcardProducersToRouter.
 
 	core.StreamRegistry.AddAllWildcardProducersToAllRouters()
-	return nil
+	return errors.OrNil()
 }
 
 // StartPlugins starts all plugins in the correct order.
@@ -199,11 +204,13 @@ func (co *Coordinator) Shutdown() {
 	co.state = coordinatorStateStopped
 }
 
-func (co *Coordinator) configureRouters(conf *core.Config) {
+func (co *Coordinator) configureRouters(conf *core.Config) bool {
+	allFine := true
 	routerConfigs := conf.GetRouters()
 	for _, config := range routerConfigs {
 		if _, hasStreams := config.Settings.Value("stream"); !hasStreams {
 			logrus.Errorf("Router '%s' has no stream set", config.ID)
+			allFine = false
 			continue // ### continue ###
 		}
 
@@ -211,6 +218,7 @@ func (co *Coordinator) configureRouters(conf *core.Config) {
 		plugin, err := core.NewPluginWithConfig(config)
 		if err != nil {
 			logrus.WithError(err).Errorf("Failed to instantiate router '%s'", config.ID)
+			allFine = false
 			continue // ### continue ###
 		}
 
@@ -220,10 +228,13 @@ func (co *Coordinator) configureRouters(conf *core.Config) {
 		logrus.Debugf("Instantiated '%s' (%s) as '%s'", config.ID, core.StreamRegistry.GetStreamName(routerPlugin.GetStreamID()), config.Typename)
 		core.StreamRegistry.Register(routerPlugin, routerPlugin.GetStreamID())
 	}
+
+	return allFine
 }
 
-func (co *Coordinator) configureProducers(conf *core.Config) {
+func (co *Coordinator) configureProducers(conf *core.Config) bool {
 	co.state = coordinatorStateStartProducers
+	allFine := true
 
 	// All producers are added to the wildcard stream so that consumers can send
 	// to all producers if required. The wildcard producer list is required
@@ -234,6 +245,7 @@ func (co *Coordinator) configureProducers(conf *core.Config) {
 	for _, config := range producerConfigs {
 		if _, hasStreams := config.Settings.Value("streams"); !hasStreams {
 			logrus.Errorf("Producer '%s' has no streams set", config.ID)
+			allFine = false
 			continue // ### continue ###
 		}
 
@@ -241,6 +253,7 @@ func (co *Coordinator) configureProducers(conf *core.Config) {
 		plugin, err := core.NewPluginWithConfig(config)
 		if err != nil {
 			logrus.WithError(err).Errorf("Failed to instantiate producer '%s'", config.ID)
+			allFine = false
 			continue // ### continue ###
 		}
 
@@ -270,16 +283,19 @@ func (co *Coordinator) configureProducers(conf *core.Config) {
 			}
 		}
 	}
+
+	return allFine
 }
 
-func (co *Coordinator) configureConsumers(conf *core.Config) {
+func (co *Coordinator) configureConsumers(conf *core.Config) bool {
 	co.state = coordinatorStateStartConsumers
-	co.configureLogConsumer()
+	allFine := co.configureLogConsumer()
 
 	consumerConfigs := conf.GetConsumers()
 	for _, config := range consumerConfigs {
 		if _, hasStreams := config.Settings.Value("streams"); !hasStreams {
 			logrus.Errorf("Consumer '%s' has no streams set", config.ID)
+			allFine = false
 			continue
 		}
 
@@ -287,6 +303,7 @@ func (co *Coordinator) configureConsumers(conf *core.Config) {
 		plugin, err := core.NewPluginWithConfig(config)
 		if err != nil {
 			logrus.WithError(err).Errorf("Failed to instantiate producer '%s'", config.ID)
+			allFine = false
 			continue // ### continue ###
 		}
 
@@ -294,15 +311,21 @@ func (co *Coordinator) configureConsumers(conf *core.Config) {
 		co.consumers = append(co.consumers, consumer)
 		core.CountConsumers()
 	}
+
+	return allFine
 }
 
-func (co *Coordinator) configureLogConsumer() {
+func (co *Coordinator) configureLogConsumer() bool {
 	config := core.NewPluginConfig("", "core.LogConsumer")
 	configReader := core.NewPluginConfigReader(&config)
 
 	co.logConsumer = new(core.LogConsumer)
 	co.logConsumer.Configure(configReader)
-	co.consumers = append(co.consumers, co.logConsumer)
+	if configReader.Errors.Len() == 0 {
+		co.consumers = append(co.consumers, co.logConsumer)
+		return true
+	}
+	return false
 }
 
 func (co *Coordinator) shutdownConsumers(stateAtShutdown coordinatorState) {
