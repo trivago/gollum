@@ -130,7 +130,7 @@ func (co *Coordinator) StartPlugins() {
 	if core.StreamRegistry.IsStreamRegistered(core.LogInternalStreamID) {
 		// The _GOLLUM_ stream has listeners, so use LogConsumer to write to it
 		if *flagLogColors != "always" {
-			logrus.SetFormatter(&logrus.TextFormatter{})
+			logrus.SetFormatter(logger.NewConsoleFormatter())
 		}
 		logrusHookBuffer.SetTargetHook(co.logConsumer)
 		logrusHookBuffer.Purge()
