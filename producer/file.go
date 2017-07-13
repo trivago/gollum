@@ -138,16 +138,16 @@ type File struct {
 	fileName            string
 	fileExt             string
 	batchTimeout        time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
-	flushTimeout        time.Duration `config:"FlushTimeoutSec" default:"5" metric:"sec"`
 	batchMaxCount       int           `config:"Batch/MaxCount" default:"8192"`
 	batchFlushCount     int           `config:"Batch/FlushCount" default:"4096"`
-	pruneCount          int           `config:"Prune/Count" default:"0"`
-	pruneHours          int           `config:"Prune/AfterHours" default:"0"`
-	pruneSize           int64         `config:"Prune/TotalSizeMB" default:"0" metric:"mb"`
+	flushTimeout        time.Duration `config:"FlushTimeoutSec" default:"5" metric:"sec"`
 	wildcardPath        bool
 	overwriteFile       bool        `config:"FileOverwrite"`
 	filePermissions     os.FileMode `config:"Permissions" default:"0644"`
 	folderPermissions   os.FileMode `config:"FolderPermissions" default:"0755"`
+
+	// Prune is public to make Pruner.Configure() callable (bug in treflect package)
+	Pruner filePruner `gollumdoc:"embed_type"`
 }
 
 func init() {
@@ -156,6 +156,8 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *File) Configure(conf core.PluginConfigReader) {
+	prod.Pruner.logger = prod.Logger
+
 	prod.SetRollCallback(prod.rotateLog)
 	prod.SetStopCallback(prod.close)
 
@@ -170,14 +172,6 @@ func (prod *File) Configure(conf core.PluginConfigReader) {
 	prod.fileExt = filepath.Ext(logFile)
 	prod.fileName = filepath.Base(logFile)
 	prod.fileName = prod.fileName[:len(prod.fileName)-len(prod.fileExt)]
-
-	if prod.pruneSize > 0 && prod.rotate.sizeByte > 0 {
-		prod.pruneSize -= prod.rotate.sizeByte >> 20
-		if prod.pruneSize <= 0 {
-			prod.pruneCount = 1
-			prod.pruneSize = 0
-		}
-	}
 
 	rotateAt := conf.GetString("Rotation/At", "")
 	prod.rotate.atHour = -1
@@ -317,17 +311,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	}
 
 	// Prune old logs if requested
-	go func() {
-		if prod.pruneHours > 0 {
-			state.pruneByHour(logFileBasePath, prod.pruneHours)
-		}
-		if prod.pruneCount > 0 {
-			state.pruneByCount(logFileBasePath, prod.pruneCount)
-		}
-		if prod.pruneSize > 0 {
-			state.pruneToSize(logFileBasePath, prod.pruneSize)
-		}
-	}()
+	go prod.Pruner.Prune(logFileBasePath)
 
 	return state, err
 }
@@ -498,4 +482,111 @@ func (w *fileStateWriterDisk) compressAndCloseLog() error {
 	}
 
 	return nil
+}
+
+// -- filePruner --
+
+type filePruner struct {
+	pruneCount int   `config:"Prune/Count" default:"0"`
+	pruneHours int   `config:"Prune/AfterHours" default:"0"`
+	pruneSize  int64 `config:"Prune/TotalSizeMB" default:"0" metric:"mb"`
+	rotate     fileRotateConfig
+	logger     logrus.FieldLogger
+}
+
+// Configure initializes this object with values from a plugin config.
+func (pruner *filePruner) Configure(conf core.PluginConfigReader) {
+	if pruner.pruneSize > 0 && pruner.rotate.sizeByte > 0 {
+		pruner.pruneSize -= pruner.rotate.sizeByte >> 20
+		if pruner.pruneSize <= 0 {
+			pruner.pruneCount = 1
+			pruner.pruneSize = 0
+		}
+	}
+}
+
+// Prune starts prune methods by hours, by count and by size
+func (pruner *filePruner) Prune(baseFilePath string) {
+	if pruner.pruneHours > 0 {
+		pruner.pruneByHour(baseFilePath, pruner.pruneHours)
+	}
+	if pruner.pruneCount > 0 {
+		pruner.pruneByCount(baseFilePath, pruner.pruneCount)
+	}
+	if pruner.pruneSize > 0 {
+		pruner.pruneToSize(baseFilePath, pruner.pruneSize)
+	}
+}
+
+func (pruner *filePruner) pruneByHour(baseFilePath string, hours int) {
+	baseDir, baseName, _ := tio.SplitPath(baseFilePath)
+
+	files, err := tio.ListFilesByDateMatching(baseDir, baseName+".*")
+	if err != nil {
+		pruner.logger.Error("Error pruning files: ", err)
+		return // ### return, error ###
+	}
+
+	pruneDate := time.Now().Add(time.Duration(-hours) * time.Hour)
+
+	for i := 0; i < len(files) && files[i].ModTime().Before(pruneDate); i++ {
+		filePath := fmt.Sprintf("%s/%s", baseDir, files[i].Name())
+		if err := os.Remove(filePath); err != nil {
+			pruner.logger.Errorf("Failed to prune \"%s\": %s", filePath, err.Error())
+		} else {
+			pruner.logger.Infof("Pruned \"%s\"", filePath)
+		}
+	}
+}
+
+func (pruner *filePruner) pruneByCount(baseFilePath string, count int) {
+	baseDir, baseName, _ := tio.SplitPath(baseFilePath)
+
+	files, err := tio.ListFilesByDateMatching(baseDir, baseName+".*")
+	if err != nil {
+		pruner.logger.Error("Error pruning files: ", err)
+		return // ### return, error ###
+	}
+
+	numFilesToPrune := len(files) - count
+	if numFilesToPrune < 1 {
+		return // ## return, nothing to prune ###
+	}
+
+	for i := 0; i < numFilesToPrune; i++ {
+		filePath := fmt.Sprintf("%s/%s", baseDir, files[i].Name())
+		if err := os.Remove(filePath); err != nil {
+			pruner.logger.Errorf("Failed to prune \"%s\": %s", filePath, err.Error())
+		} else {
+			pruner.logger.Infof("Pruned \"%s\"", filePath)
+		}
+	}
+}
+
+func (pruner *filePruner) pruneToSize(baseFilePath string, maxSize int64) {
+	baseDir, baseName, _ := tio.SplitPath(baseFilePath)
+
+	files, err := tio.ListFilesByDateMatching(baseDir, baseName+".*")
+	if err != nil {
+		pruner.logger.Error("Error pruning files: ", err)
+		return // ### return, error ###
+	}
+
+	totalSize := int64(0)
+	for _, file := range files {
+		totalSize += file.Size()
+	}
+
+	for _, file := range files {
+		if totalSize <= maxSize {
+			return // ### return, done ###
+		}
+		filePath := fmt.Sprintf("%s/%s", baseDir, file.Name())
+		if err := os.Remove(filePath); err != nil {
+			pruner.logger.Errorf("Failed to prune \"%s\": %s", filePath, err.Error())
+		} else {
+			pruner.logger.Infof("Pruned \"%s\"", filePath)
+			totalSize -= file.Size()
+		}
+	}
 }

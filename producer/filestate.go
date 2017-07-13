@@ -16,12 +16,9 @@ package producer
 
 import (
 	"errors"
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo/tio"
 	"io"
-	"os"
 	"time"
 )
 
@@ -81,79 +78,6 @@ func (state *fileState) Close() {
 		state.batch.Close(state.assembly.Flush, state.flushTimeout)
 	}
 	state.writer.Close()
-}
-
-func (state *fileState) pruneByHour(baseFilePath string, hours int) {
-	baseDir, baseName, _ := tio.SplitPath(baseFilePath)
-
-	files, err := tio.ListFilesByDateMatching(baseDir, baseName+".*")
-	if err != nil {
-		state.logger.Error("Error pruning files: ", err)
-		return // ### return, error ###
-	}
-
-	pruneDate := time.Now().Add(time.Duration(-hours) * time.Hour)
-
-	for i := 0; i < len(files) && files[i].ModTime().Before(pruneDate); i++ {
-		filePath := fmt.Sprintf("%s/%s", baseDir, files[i].Name())
-		if err := os.Remove(filePath); err != nil {
-			state.logger.Errorf("Failed to prune \"%s\": %s", filePath, err.Error())
-		} else {
-			state.logger.Infof("Pruned \"%s\"", filePath)
-		}
-	}
-}
-
-func (state *fileState) pruneByCount(baseFilePath string, count int) {
-	baseDir, baseName, _ := tio.SplitPath(baseFilePath)
-
-	files, err := tio.ListFilesByDateMatching(baseDir, baseName+".*")
-	if err != nil {
-		state.logger.Error("Error pruning files: ", err)
-		return // ### return, error ###
-	}
-
-	numFilesToPrune := len(files) - count
-	if numFilesToPrune < 1 {
-		return // ## return, nothing to prune ###
-	}
-
-	for i := 0; i < numFilesToPrune; i++ {
-		filePath := fmt.Sprintf("%s/%s", baseDir, files[i].Name())
-		if err := os.Remove(filePath); err != nil {
-			state.logger.Errorf("Failed to prune \"%s\": %s", filePath, err.Error())
-		} else {
-			state.logger.Infof("Pruned \"%s\"", filePath)
-		}
-	}
-}
-
-func (state *fileState) pruneToSize(baseFilePath string, maxSize int64) {
-	baseDir, baseName, _ := tio.SplitPath(baseFilePath)
-
-	files, err := tio.ListFilesByDateMatching(baseDir, baseName+".*")
-	if err != nil {
-		state.logger.Error("Error pruning files: ", err)
-		return // ### return, error ###
-	}
-
-	totalSize := int64(0)
-	for _, file := range files {
-		totalSize += file.Size()
-	}
-
-	for _, file := range files {
-		if totalSize <= maxSize {
-			return // ### return, done ###
-		}
-		filePath := fmt.Sprintf("%s/%s", baseDir, file.Name())
-		if err := os.Remove(filePath); err != nil {
-			state.logger.Errorf("Failed to prune \"%s\": %s", filePath, err.Error())
-		} else {
-			state.logger.Infof("Pruned \"%s\"", filePath)
-			totalSize -= file.Size()
-		}
-	}
 }
 
 func (state *fileState) needsRotate(rotate fileRotateConfig, forceRotate bool) (bool, error) {
