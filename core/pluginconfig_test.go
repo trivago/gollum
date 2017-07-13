@@ -39,13 +39,15 @@ func TestPluginConfigValidate(t *testing.T) {
 	sValue, err := mockPluginCfgReader.GetString("stringKey", "")
 	expect.NoError(err)
 	expect.Equal(sValue, "value")
-	expect.True(mockPluginCfg.Validate())
+	err = mockPluginCfg.Validate()
+	expect.NoError(err)
 
 	// access second one
 	iValue, err := mockPluginCfgReader.GetInt("number", 0)
 	expect.NoError(err)
 	expect.Equal(iValue, int64(1))
-	expect.True(mockPluginCfg.Validate())
+	err = mockPluginCfg.Validate()
+	expect.NoError(err)
 }
 
 // Function reads initializes pluginConfig with predefined values and
