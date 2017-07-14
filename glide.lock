@@ -1,5 +1,5 @@
 hash: c3caa5c87d435351e40681b598bb94c31c14f4fe190e0d95035f303aaff9697a
-updated: 2017-07-11T14:41:18.165906696+02:00
+updated: 2017-07-14T15:51:01.717198289+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -52,7 +52,7 @@ imports:
   subpackages:
   - dlopen
 - name: github.com/davecgh/go-spew
-  version: 782f4967f2dc4564575ca782fe2d04090b5faca8
+  version: adab96458c51a58dc1783b3335dcce5461522e75
   subpackages:
   - spew
 - name: github.com/eapache/go-resiliency
@@ -76,7 +76,7 @@ imports:
   - internal/pool
   - internal/proto
 - name: github.com/golang/protobuf
-  version: 6a1fa9404c0aebf36c879bc50152edcc953910d2
+  version: 0a4f71a498b7c4812f64969510bcb4eca251e33a
   subpackages:
   - proto
 - name: github.com/golang/snappy
@@ -104,7 +104,7 @@ imports:
 - name: github.com/pierrec/lz4
   version: 5a3d2245f97fc249850e7802e3c01fad02a1c316
 - name: github.com/pierrec/xxHash
-  version: 5a004441f897722c627870a981d02b29924215fa
+  version: a0006b13c722f7f12368c00a3d3c2ae8a999a0c6
   subpackages:
   - xxHash32
 - name: github.com/pkg/errors
@@ -118,11 +118,11 @@ imports:
 - name: github.com/Shopify/sarama
   version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
 - name: github.com/sirupsen/logrus
-  version: 7f976d3a76720c4c27af2ba716b85d2e0a7e38b1
+  version: a3f95b5c423586578a4e099b11a46c2479628cac
 - name: github.com/trivago/grok
   version: af18cdd9faf3e06aedce0974c7e4012efc87658e
 - name: github.com/trivago/tgo
-  version: bdfa63d0265af496c5bc30356dc31b19aa71447e
+  version: 8a6fc6a04f07d8623086322a7b8d805ddf7263eb
   subpackages:
   - tcontainer
   - terrors
@@ -131,6 +131,7 @@ imports:
   - tio
   - tmath
   - tnet
+  - tos
   - treflect
   - tstrings
   - tsync
@@ -138,7 +139,7 @@ imports:
 - name: github.com/x-cray/logrus-prefixed-formatter
   version: 0b2c791a02f18788b281dc30e243a0632dad695b
 - name: golang.org/x/crypto
-  version: 3627ff35f31987174dbee61d9d1dcc1c643e7174
+  version: dd85ac7e6a88fc6ca420478e934de5f1a42dd3c6
   subpackages:
   - bcrypt
   - blowfish
@@ -161,5 +162,5 @@ imports:
 - name: gopkg.in/oschwald/geoip2-golang.v1
   version: 496a3cbcb65a3cb54497fe4ae2273319e85160a4
 - name: gopkg.in/yaml.v2
-  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
+  version: 3b4ad1db5b2a649883ff3782f5f9f6fb52be71af
 testImports: []

@@ -15,6 +15,7 @@
 package tnet
 
 import (
+	"github.com/trivago/tgo/tstrings"
 	"io"
 	"net"
 	"strings"
@@ -25,27 +26,38 @@ import (
 // Protocols may be prepended by the "protocol://" notation.
 // If no protocol is given, defaultProtocol is returned.
 // The first parameter returned is the address, the second denotes the protocol.
-// The protocol is allways returned as lowercase string.
+// The protocol is allways returned as lowercase string. If only a number is
+// given as an address the number is assumed to be a port. As of this "80" and
+// ":80" will return ":80" as the address.
 func ParseAddress(addressString string, defaultProtocol string) (protocol, address string) {
 	protocolIdx := strings.Index(addressString, "://")
 	if protocolIdx == -1 {
-		return strings.ToLower(defaultProtocol), addressString
+		protocol = strings.ToLower(defaultProtocol)
+		address = addressString
+	} else {
+		protocol = strings.ToLower(addressString[:protocolIdx])
+		address = addressString[protocolIdx+3:]
 	}
 
-	return strings.ToLower(addressString[:protocolIdx]), addressString[protocolIdx+3:]
+	// Allow sole numbers as a synonym for ":port"
+	if tstrings.IsInt(address) {
+		address = ":" + address
+	}
+
+	return
 }
 
 // SplitAddress splits an address of the form "protocol://host:port" into its
 // components. If no protocol is given, defaultProtocol is used.
 // This function uses net.SplitHostPort and ParseAddress.
 func SplitAddress(addressString string, defaultProtocol string) (protocol, host, port string, err error) {
-	proto, address := ParseAddress(addressString, defaultProtocol)
-	if proto == "unix" || proto == "unixgram" || proto == "unixpacket" {
-		return proto, address, "", nil
+	protocol, host = ParseAddress(addressString, defaultProtocol)
+	if protocol == "unix" || protocol == "unixgram" || protocol == "unixpacket" {
+		return
 	}
 
-	host, port, err = net.SplitHostPort(address)
-	return proto, host, port, err
+	host, port, err = net.SplitHostPort(host)
+	return
 }
 
 // IsDisconnectedError returns true if the given error is related to a

@@ -86,14 +86,12 @@ func (slab *byteSlab) getSlice(size int) (chunk []byte) {
 
 		case nextPtr == basePtr:
 			// Last item: realloc
-			buffer := make([]byte, slab.bufferSize)
-			dataPtr := (*reflect.SliceHeader)(unsafe.Pointer(&buffer)).Data
+			slab.buffer = make([]byte, slab.bufferSize)
+			dataPtr := (*reflect.SliceHeader)(unsafe.Pointer(&slab.buffer)).Data
 
 			// WARNING: The following two lines are order sensitive
 			atomic.StoreUintptr(slab.nextPtr, dataPtr+slab.bufferSize)
 			atomic.StoreUintptr(slab.basePtr, dataPtr)
-
-			slab.buffer = buffer // hold the buffer so that GC does not collect
 			fallthrough
 
 		default:
