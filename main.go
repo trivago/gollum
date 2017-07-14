@@ -28,9 +28,7 @@ import (
 	"github.com/trivago/tgo/thealthcheck"
 	"github.com/trivago/tgo/tnet"
 	"github.com/trivago/tgo/tos"
-	"github.com/trivago/tgo/tstrings"
 	"io/ioutil"
-	"net"
 	"os"
 	"runtime"
 	"runtime/pprof"
@@ -216,6 +214,8 @@ func startMetricsService() func() {
 		logrus.WithError(err).Error("Failed to start metrics service")
 		return nil
 	}
+
+	logrus.WithField("address", address).Info("Starting metric service")
 	go server.Start(address)
 	return server.Stop
 }
@@ -233,7 +233,9 @@ func startHealthCheckService() func() {
 	}
 	thealthcheck.Configure(address)
 
+	logrus.WithField("address", address).Info("Starting health check service")
 	go thealthcheck.Start()
+
 	// Add a static "ping" endpoint
 	thealthcheck.AddEndpoint("/_PING_", func() (code int, body string) {
 		return thealthcheck.StatusOK, "PONG"
@@ -261,6 +263,8 @@ func startCPUProfiler() func() {
 		return nil
 	}
 
+	logrus.WithField("file", *flagCPUProfile).Info("Started CPU profiling")
+
 	return func() {
 		pprof.StopCPUProfile()
 		file.Close()
@@ -281,6 +285,8 @@ func startMemoryProfiler() func() {
 			return
 		}
 		defer file.Close()
+
+		logrus.WithField("file", *flagMemProfile).Info("Dumping memory profile")
 		if err := pprof.WriteHeapProfile(file); err != nil {
 			logrus.WithError(err).Error("Failed to write heap profile")
 		}
@@ -316,12 +322,7 @@ func startTracer() func() {
 }
 
 func parseAddress(address string) (string, error) {
-	// net.SplitHostPort() doesn't support plain port number
-	if tstrings.IsInt(address) {
-		address = ":" + address
-	}
-
-	host, port, err := net.SplitHostPort(address)
+	_, host, port, err := tnet.SplitAddress(address, "")
 	if err != nil {
 		return address, fmt.Errorf("Incorrect address %q: %s", address, err)
 	}
@@ -330,9 +331,7 @@ func parseAddress(address string) (string, error) {
 }
 
 func printVersion() {
-	fmt.Printf("Gollum: %s\n", core.GetVersionString())
-	fmt.Printf("Version: %d\n", core.GetVersionNumber())
-	fmt.Println(runtime.Version())
+	fmt.Println(core.GetVersionString())
 }
 
 func printModules() {
