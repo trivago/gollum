@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/configs"
 	"github.com/trivago/tgo"
 )
 
@@ -86,15 +87,15 @@ type Spooling struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 	outfile               map[core.MessageStreamID]*spoolFile
 	outfileGuard          *sync.RWMutex
-	rotation              FileRotateConfig
-	path                  string        `config:"Path" default:"/var/run/gollum/spooling"`
-	maxFileSize           int64         `config:"MaxFileSizeMB" default:"512" metric:"mb"`
-	batchMaxCount         int           `config:"Batch/MaxCount" default:"100"`
-	bufferSizeByte        int           `config:"BufferSizeByte" default:"8192"`
-	revertOnDrop          bool          `config:"RevertStreamOnDrop"`
-	respoolDuration       time.Duration `config:"RespoolDelaySec" default:"10" metric:"sec"`
-	maxFileAge            time.Duration `config:"MaxFileAgeMin" default:"1" metric:"min"`
-	batchTimeout          time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
+	rotation              configs.RotateConfig `gollumdoc:"embed_type"`
+	path                  string               `config:"Path" default:"/var/run/gollum/spooling"`
+	maxFileSize           int64                `config:"MaxFileSizeMB" default:"512" metric:"mb"`
+	batchMaxCount         int                  `config:"Batch/MaxCount" default:"100"`
+	bufferSizeByte        int                  `config:"BufferSizeByte" default:"8192"`
+	revertOnDrop          bool                 `config:"RevertStreamOnDrop"`
+	respoolDuration       time.Duration        `config:"RespoolDelaySec" default:"10" metric:"sec"`
+	maxFileAge            time.Duration        `config:"MaxFileAgeMin" default:"1" metric:"min"`
+	batchTimeout          time.Duration        `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
 	readDelay             time.Duration
 	spoolCheck            *time.Timer
 	serialze              core.Formatter
@@ -134,14 +135,11 @@ func (prod *Spooling) Configure(conf core.PluginConfigReader) {
 		prod.readDelay = 0
 	}
 
-	prod.rotation = FileRotateConfig{
-		timeout:  prod.maxFileAge,
-		sizeByte: prod.maxFileSize,
-		atHour:   -1,
-		atMinute: -1,
-		enabled:  true,
-		compress: false,
-	}
+	//TODO: check if rotation is still in use
+	prod.rotation = configs.NewRotateConfig()
+	prod.rotation.Enabled = true
+	prod.rotation.Timeout = prod.maxFileAge
+	prod.rotation.SizeByte = prod.maxFileSize
 }
 
 // Modulate enforces the serialize formatter at the end of the modulation chain

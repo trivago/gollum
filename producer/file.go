@@ -16,9 +16,11 @@ package producer
 
 import (
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/configs"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"
@@ -94,28 +96,6 @@ import (
 // aborted during shutdown. By default this is set to 0, which does not abort
 // the flushing procedure.
 //
-// Rotation/Enable if set to true the logs will rotate after reaching certain thresholds.
-// By default this is set to false.
-//
-// Rotation/TimeoutMin defines a timeout in minutes that will cause the logs to
-// rotate. Can be set in parallel with RotateSizeMB. By default this is set to
-// 1440 (i.e. 1 Day).
-//
-// Rotation/SizeMB defines the maximum file size in MB that triggers a file rotate.
-// Files can get bigger than this size. By default this is set to 1024.
-//
-// Rotation/Timestamp sets the timestamp added to the filename when file rotation
-// is enabled. The format is based on Go's time.Format function and set to
-// "2006-01-02_15" by default.
-//
-// Rotation/ZeroPadding sets the number of leading zeros when rotating files with
-// an existing name. Setting this setting to 0 won't add zeros, every other
-// number defines the number of leading zeros to be used. By default this is
-// set to 0.
-//
-// Rotation/Compress defines if a rotated logfile is to be gzip compressed or not.
-// By default this is set to false.
-//
 // Prune/Count removes old logfiles upon rotate so that only the given
 // number of logfiles remain. Logfiles are located by the name defined by "File"
 // and are pruned by date (followed by name).
@@ -135,8 +115,8 @@ type File struct {
 	//
 	// Rotate is public to make Pruner.Configure() callable (bug in treflect package)
 	// Prune is public to make FileRotateConfig.Configure() callable (bug in treflect package)
-	Rotate FileRotateConfig `gollumdoc:"embed_type"`
-	Pruner filePruner       `gollumdoc:"embed_type"`
+	Rotate configs.RotateConfig `gollumdoc:"embed_type"`
+	Pruner filePruner           `gollumdoc:"embed_type"`
 
 	// configuration
 	batchTimeout      time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
@@ -191,7 +171,7 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 
 	// get batchedFile from filesByStream[streamID] map
 	if batchedFile, fileExists := prod.filesByStream[streamID]; fileExists {
-		if rotate, err := batchedFile.NeedsRotate(prod.Rotate, forceRotate); !rotate {
+		if rotate, err := prod.needsRotate(batchedFile, forceRotate); !rotate {
 			return batchedFile, err // ### return, already open or error ###
 		}
 	}
@@ -218,7 +198,7 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 	} else if _, mappingExists := prod.filesByStream[streamID]; !mappingExists {
 		// batchedFile exists but is not mapped: map it and see if we need to Rotate
 		prod.filesByStream[streamID] = batchedFile
-		if rotate, err := batchedFile.NeedsRotate(prod.Rotate, forceRotate); !rotate {
+		if rotate, err := prod.needsRotate(batchedFile, forceRotate); !rotate {
 			return batchedFile, err // ### return, already open or error ###
 		}
 	}
@@ -249,7 +229,7 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 	batchedFile.created = time.Now()
 
 	// Create "current" symlink
-	if prod.Rotate.enabled {
+	if prod.Rotate.Enabled {
 		prod.createCurrentSymlink(finalPath, streamFile.GetSymlinkPath())
 	}
 
@@ -259,6 +239,51 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 	return batchedFile, err
 }
 
+// NeedsRotate evaluate if the BatchedWriterAssembly need to rotate by the FileRotateConfig
+func (prod *File) needsRotate(batchFile *BatchedWriterAssembly, forceRotate bool) (bool, error) {
+	// File does not exist?
+	if batchFile.writer == nil {
+		return true, nil
+	}
+
+	// File can be accessed?
+	if batchFile.writer.IsAccessible() == false {
+		return false, errors.New("Can' access file to rotate")
+	}
+
+	// File needs rotation?
+	if !prod.Rotate.Enabled {
+		return false, nil
+	}
+
+	if forceRotate {
+		return true, nil
+	}
+
+	// File is too large?
+	if batchFile.writer.Size() >= prod.Rotate.SizeByte {
+		return true, nil // ### return, too large ###
+	}
+
+	// File is too old?
+	if time.Since(batchFile.created) >= prod.Rotate.Timeout {
+		return true, nil // ### return, too old ###
+	}
+
+	// RotateAt crossed?
+	if prod.Rotate.AtHour > -1 && prod.Rotate.AtMinute > -1 {
+		now := time.Now()
+		rotateAt := time.Date(now.Year(), now.Month(), now.Day(), prod.Rotate.AtHour, prod.Rotate.AtMinute, 0, 0, now.Location())
+
+		if batchFile.created.Sub(rotateAt).Minutes() < 0 {
+			return true, nil // ### return, too old ###
+		}
+	}
+
+	// nope, everything is ok
+	return false, nil
+}
+
 func (prod *File) createCurrentSymlink(source, target string) {
 	symLinkNameTemporary := fmt.Sprintf("%s.tmp", target)
 
@@ -266,7 +291,7 @@ func (prod *File) createCurrentSymlink(source, target string) {
 	os.Rename(symLinkNameTemporary, target)
 }
 
-func (prod *File) newFileStateWriterDisk(path string) (*fileStateWriterDisk, error) {
+func (prod *File) newFileStateWriterDisk(path string) (*batchedFileWriter, error) {
 	openFlags := os.O_RDWR | os.O_CREATE | os.O_APPEND
 	if prod.overwriteFile {
 		openFlags |= os.O_TRUNC
@@ -279,9 +304,9 @@ func (prod *File) newFileStateWriterDisk(path string) (*fileStateWriterDisk, err
 		return nil, err // ### return error ###
 	}
 
-	obj := fileStateWriterDisk{
+	obj := batchedFileWriter{
 		file,
-		prod.Rotate.compress,
+		prod.Rotate.Compress,
 		nil,
 		prod.Logger,
 	}
@@ -336,9 +361,7 @@ func (prod *File) writeBatchOnTimeOut() {
 }
 
 func (prod *File) writeMessage(msg *core.Message) {
-	streamMsg := msg.Clone()
-
-	batchedFile, err := prod.getBatchedFile(streamMsg.GetStreamID(), false)
+	batchedFile, err := prod.getBatchedFile(msg.GetOrigStreamID(), false)
 	if err != nil {
 		prod.Logger.Error("Write error: ", err)
 		prod.TryFallback(msg)
@@ -372,19 +395,19 @@ func (streamFile *streamFile) GetOriginalPath() string {
 }
 
 // GetFinalPath returns the final file path with possible rotations
-func (streamFile *streamFile) GetFinalPath(rotate FileRotateConfig) string {
+func (streamFile *streamFile) GetFinalPath(rotate configs.RotateConfig) string {
 	return fmt.Sprintf("%s/%s", streamFile.dir, streamFile.GetFinalName(rotate))
 }
 
 // GetFinalName returns the final file name with possible rotations
-func (streamFile *streamFile) GetFinalName(rotate FileRotateConfig) string {
+func (streamFile *streamFile) GetFinalName(rotate configs.RotateConfig) string {
 	var logFileName string
 
 	// Generate the log filename based on rotation, existing files, etc.
-	if !rotate.enabled {
+	if !rotate.Enabled {
 		logFileName = fmt.Sprintf("%s%s", streamFile.name, streamFile.ext)
 	} else {
-		timestamp := time.Now().Format(rotate.timestamp)
+		timestamp := time.Now().Format(rotate.Timestamp)
 		signature := fmt.Sprintf("%s_%s", streamFile.name, timestamp)
 		maxSuffix := uint64(0)
 
@@ -410,8 +433,8 @@ func (streamFile *streamFile) GetFinalName(rotate FileRotateConfig) string {
 			logFileName = fmt.Sprintf("%s%s", signature, streamFile.ext)
 		} else {
 			formatString := "%s_%d%s"
-			if rotate.zeroPad > 0 {
-				formatString = fmt.Sprintf("%%s_%%0%dd%%s", rotate.zeroPad)
+			if rotate.ZeroPad > 0 {
+				formatString = fmt.Sprintf("%%s_%%0%dd%%s", rotate.ZeroPad)
 			}
 			logFileName = fmt.Sprintf(formatString, signature, int(maxSuffix), streamFile.ext)
 		}
@@ -435,9 +458,9 @@ func (streamFile *streamFile) GetSymlinkPath() string {
 	return fmt.Sprintf("%s/%s_current%s", streamFile.dir, streamFile.name, streamFile.ext)
 }
 
-// -- fileStateWriterDisk --
+// -- batchedFileWriter --
 
-type fileStateWriterDisk struct {
+type batchedFileWriter struct {
 	file            *os.File
 	compressOnClose bool
 	stats           os.FileInfo
@@ -445,17 +468,17 @@ type fileStateWriterDisk struct {
 }
 
 // Write is part of the BatchedWriter interface and wraps the file.Write() implementation
-func (w *fileStateWriterDisk) Write(p []byte) (n int, err error) {
+func (w *batchedFileWriter) Write(p []byte) (n int, err error) {
 	return w.file.Write(p)
 }
 
 // Name is part of the BatchedWriter interface and wraps the file.Name() implementation
-func (w *fileStateWriterDisk) Name() string {
+func (w *batchedFileWriter) Name() string {
 	return w.file.Name()
 }
 
 // Size is part of the BatchedWriter interface and wraps the file.Stat().Size() implementation
-func (w *fileStateWriterDisk) Size() int64 {
+func (w *batchedFileWriter) Size() int64 {
 	stats, err := w.getStats()
 	if err != nil {
 		return 0
@@ -463,12 +486,12 @@ func (w *fileStateWriterDisk) Size() int64 {
 	return stats.Size()
 }
 
-//func (w *fileStateWriterDisk) Created() time.Time {
+//func (w *batchedFileWriter) Created() time.Time {
 //	return w.file.
 //}
 
 // Size is part of the BatchedWriter interface and check if the writer can access his file
-func (w *fileStateWriterDisk) IsAccessible() bool {
+func (w *batchedFileWriter) IsAccessible() bool {
 	_, err := w.getStats()
 	if err != nil {
 		return false
@@ -478,7 +501,7 @@ func (w *fileStateWriterDisk) IsAccessible() bool {
 }
 
 // Size is part of the Close interface and handle the file close or compression call
-func (w *fileStateWriterDisk) Close() error {
+func (w *batchedFileWriter) Close() error {
 	if w.compressOnClose {
 		return w.compressAndCloseLog()
 	}
@@ -486,7 +509,7 @@ func (w *fileStateWriterDisk) Close() error {
 	return w.file.Close()
 }
 
-func (w *fileStateWriterDisk) getStats() (os.FileInfo, error) {
+func (w *batchedFileWriter) getStats() (os.FileInfo, error) {
 	if w.stats != nil {
 		return w.stats, nil
 	}
@@ -500,7 +523,7 @@ func (w *fileStateWriterDisk) getStats() (os.FileInfo, error) {
 	return w.stats, nil
 }
 
-func (w *fileStateWriterDisk) compressAndCloseLog() error {
+func (w *batchedFileWriter) compressAndCloseLog() error {
 	// Generate file to zip into
 	sourceFileName := w.Name()
 	sourceDir, sourceBase, _ := tio.SplitPath(sourceFileName)
@@ -556,14 +579,14 @@ type filePruner struct {
 	pruneCount int   `config:"Prune/Count" default:"0"`
 	pruneHours int   `config:"Prune/AfterHours" default:"0"`
 	pruneSize  int64 `config:"Prune/TotalSizeMB" default:"0" metric:"mb"`
-	rotate     FileRotateConfig
+	rotate     configs.RotateConfig
 	logger     logrus.FieldLogger
 }
 
 // Configure initializes this object with values from a plugin config.
 func (pruner *filePruner) Configure(conf core.PluginConfigReader) {
-	if pruner.pruneSize > 0 && pruner.rotate.sizeByte > 0 {
-		pruner.pruneSize -= pruner.rotate.sizeByte >> 20
+	if pruner.pruneSize > 0 && pruner.rotate.SizeByte > 0 {
+		pruner.pruneSize -= pruner.rotate.SizeByte >> 20
 		if pruner.pruneSize <= 0 {
 			pruner.pruneCount = 1
 			pruner.pruneSize = 0
