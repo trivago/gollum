@@ -86,7 +86,7 @@ type Spooling struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 	outfile               map[core.MessageStreamID]*spoolFile
 	outfileGuard          *sync.RWMutex
-	rotation              fileRotateConfig
+	rotation              FileRotateConfig
 	path                  string        `config:"Path" default:"/var/run/gollum/spooling"`
 	maxFileSize           int64         `config:"MaxFileSizeMB" default:"512" metric:"mb"`
 	batchMaxCount         int           `config:"Batch/MaxCount" default:"100"`
@@ -134,7 +134,7 @@ func (prod *Spooling) Configure(conf core.PluginConfigReader) {
 		prod.readDelay = 0
 	}
 
-	prod.rotation = fileRotateConfig{
+	prod.rotation = FileRotateConfig{
 		timeout:  prod.maxFileAge,
 		sizeByte: prod.maxFileSize,
 		atHour:   -1,

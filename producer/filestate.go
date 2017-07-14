@@ -19,13 +19,14 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 	"io"
+	"strconv"
+	"strings"
 	"time"
 )
 
 type fileState struct {
 	writer       FileStateWriter
 	batch        core.MessageBatch
-	buffer       []byte
 	assembly     core.WriterAssembly
 	fileCreated  time.Time
 	flushTimeout time.Duration
@@ -41,14 +42,29 @@ type FileStateWriter interface {
 	IsAccessible() bool
 }
 
-type fileRotateConfig struct {
-	timeout  time.Duration `config:"Rotation/TimeoutMin" default:"1440" metric:"min"`
-	sizeByte int64         `config:"Rotation/SizeMB" default:"1024" metric:"mb"`
-	zeroPad  int           `config:"Rotation/ZeroPadding" default:"0"`
-	enabled  bool          `config:"Rotation/Enable" default:"false"`
-	compress bool          `config:"Rotation/Compress" default:"false"`
-	atHour   int
-	atMinute int
+// FileRotateConfig defines the rotation settings
+type FileRotateConfig struct {
+	timeout   time.Duration `config:"Rotation/TimeoutMin" default:"1440" metric:"min"`
+	sizeByte  int64         `config:"Rotation/SizeMB" default:"1024" metric:"mb"`
+	zeroPad   int           `config:"Rotation/ZeroPadding" default:"0"`
+	enabled   bool          `config:"Rotation/Enable" default:"false"`
+	compress  bool          `config:"Rotation/Compress" default:"false"`
+	timestamp string        `config:"Rotation/Timestamp" default:"2006-01-02_15"`
+	atHour    int           `config:"Rotation/AtHour" default:"-1"`
+	atMinute  int           `config:"Rotation/AtMin" default:"-1"`
+}
+
+// Configure method for interface implementation
+func (rotate *FileRotateConfig) Configure(conf core.PluginConfigReader) {
+	rotateAt := conf.GetString("Rotation/At", "")
+	if rotateAt != "" {
+		parts := strings.Split(rotateAt, ":")
+		rotateAtHour, _ := strconv.ParseInt(parts[0], 10, 8)
+		rotateAtMin, _ := strconv.ParseInt(parts[1], 10, 8)
+
+		rotate.atHour = int(rotateAtHour)
+		rotate.atMinute = int(rotateAtMin)
+	}
 }
 
 func newFileState(maxMessageCount int, modulator core.Modulator, tryFallback func(*core.Message),
@@ -80,7 +96,7 @@ func (state *fileState) Close() {
 	state.writer.Close()
 }
 
-func (state *fileState) needsRotate(rotate fileRotateConfig, forceRotate bool) (bool, error) {
+func (state *fileState) needsRotate(rotate FileRotateConfig, forceRotate bool) (bool, error) {
 	// File does not exist?
 	if state.writer == nil {
 		return true, nil
