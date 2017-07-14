@@ -26,6 +26,8 @@ import (
 	_ "github.com/trivago/gollum/router"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/thealthcheck"
+	"github.com/trivago/tgo/tnet"
+	"github.com/trivago/tgo/tos"
 	"github.com/trivago/tgo/tstrings"
 	"io/ioutil"
 	"net"
@@ -43,150 +45,72 @@ import (
 var logrusHookBuffer logger.LogrusHookBuffer
 
 func main() {
-	// Parse command line flags
+	exitCode := mainWithExitCode()
+	os.Exit(exitCode)
+}
+
+func mainWithExitCode() int {
 	parseFlags()
-	initLogrus()
 
-	logrus.Debug("GOLLUM STARTING")
-	defer func() {
-		logrus.Debug("GOLLUM STOPPED")
-		logrusHookBuffer.SetTargetWriter(logger.FallbackLogDevice)
-		logrusHookBuffer.Purge()
-	}()
-
-	// Handle special execution modes
 	if *flagVersion {
 		printVersion()
-		return // ### return, version only ###
+		return tos.ExitSuccess // ### return, version only ###
 	}
 
 	if *flagModules {
 		printModules()
-		return // ### return, modules only ###
+		return tos.ExitSuccess // ### return, modules only ###
 	}
 
-	if *flagHelp || *flagConfigFile == "" {
-		printFlags()
-		return // ### return, nothing to do ###
+	if stop := initLogrus(); stop != nil {
+		defer stop()
 	}
 
-	// Read and test config
+	logrus.Debug("GOLLUM STARTING")
+	defer logrus.Debug("GOLLUM STOPPED")
 
-	configFile := *flagTestConfigFile
-	if configFile == "" {
-		configFile = *flagConfigFile
+	config := readConfig()
+	if config == nil {
+		return tos.ExitError // ### exit, config failed to parse ###
 	}
 
-	config, err := core.ReadConfigFromFile(configFile)
-	if err != nil {
-		logrus.WithError(err).Error("Failed to read config")
-		return // ### return, config error ###
+	configureRuntime()
+
+	if stop := startMetricsService(); stop != nil {
+		defer stop()
 	}
 
-	if err := config.Validate(); err != nil {
-		logrus.WithError(err).Error("Config validation failed")
-		return
+	if stop := startHealthCheckService(); stop != nil {
+		defer stop()
 	}
 
-	if *flagTestConfigFile != "" {
-		fmt.Println("Config OK.")
-		return // ### return, only test config ###
+	if stop := startCPUProfiler(); stop != nil {
+		defer stop()
 	}
 
-	// Configure runtime
-
-	if *flagPidFile != "" {
-		ioutil.WriteFile(*flagPidFile, []byte(strconv.Itoa(os.Getpid())), 0644)
+	if stop := startMemoryProfiler(); stop != nil {
+		defer stop()
 	}
 
-	if *flagNumCPU == 0 {
-		runtime.GOMAXPROCS(runtime.NumCPU())
-	} else {
-		runtime.GOMAXPROCS(*flagNumCPU)
+	if stop := startTracer(); stop != nil {
+		defer stop()
 	}
-
-	// Metrics server start
-
-	if *flagMetricsAddress != "" {
-		server := tgo.NewMetricServer()
-		address, err := parseAddress(*flagMetricsAddress)
-		if err != nil {
-			logrus.WithError(err).Error("Failed to start metrics service")
-			return
-		}
-		go server.Start(address)
-		defer server.Stop()
-	}
-
-	// Health Check endpoint
-
-	if *flagHealthCheck != "" {
-		address, err := parseAddress(*flagHealthCheck)
-		if err != nil {
-			logrus.WithError(err).Error("Failed to start health check service")
-			return
-		}
-		thealthcheck.Configure(address)
-
-		go thealthcheck.Start()
-		defer thealthcheck.Stop()
-
-		// Add a static "ping" endpoint
-		thealthcheck.AddEndpoint("/_PING_", func() (code int, body string) {
-			return thealthcheck.StatusOK, "PONG"
-		})
-	}
-
-	// Profiling flags
-
-	if *flagCPUProfile != "" {
-		if file, err := os.Create(*flagCPUProfile); err != nil {
-			panic(err)
-		} else {
-			defer file.Close()
-			if err := pprof.StartCPUProfile(file); err != nil {
-				panic(err)
-			}
-			defer pprof.StopCPUProfile()
-		}
-	}
-
-	if *flagProfile {
-		time.AfterFunc(time.Second*3, printProfile)
-	}
-
-	if *flagTrace != "" {
-		traceFile, err := os.OpenFile(*flagTrace, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
-		if err != nil {
-			panic(err)
-		}
-		defer traceFile.Close()
-
-		if err := trace.Start(traceFile); err != nil {
-			panic(err)
-		}
-		defer trace.Stop()
-	}
-
-	if *flagMemProfile != "" {
-		defer dumpMemoryProfile()
-	}
-
-	// Start the coordinator
 
 	coordinator := NewCoordinator()
+	defer coordinator.Shutdown()
+
 	if err := coordinator.Configure(config); err != nil {
-		logrus.WithError(err).Error("Configure pass failed.")
-		coordinator.Shutdown()
-		return
+		logrus.WithError(err).Error("Config validation failed")
+		return tos.ExitError // ### exit, config failed to parse ###
 	}
 
-	defer coordinator.Shutdown()
 	coordinator.StartPlugins()
 	coordinator.Run()
+	return tos.ExitSuccess
 }
 
-func initLogrus() {
+// initLogrus initializes the logging framework
+func initLogrus() func() {
 	// Initialize logger.LogrusHookBuffer
 	logrusHookBuffer = logger.NewLogrusHookBuffer()
 
@@ -208,6 +132,187 @@ func initLogrus() {
 		// Logrus doesn't know the final log device, so we hint the color option here
 		logrus.SetFormatter(logger.NewConsoleFormatter())
 	}
+
+	// make sure logs are purged at exit
+	return func() {
+		logrusHookBuffer.SetTargetWriter(logger.FallbackLogDevice)
+		logrusHookBuffer.Purge()
+	}
+}
+
+// readConfig reads and checks the config file for errors.
+func readConfig() *core.Config {
+	configFile := *flagConfigFile
+	testAndExit := false
+
+	if *flagTestConfigFile != "" {
+		configFile = *flagTestConfigFile
+		testAndExit = true
+	}
+
+	if *flagHelp || configFile == "" {
+		logrus.Error("Please provide a config file")
+		return nil
+	}
+
+	if testAndExit {
+		logrus.SetLevel(logrus.WarnLevel)
+		fmt.Println("Testing config", configFile)
+	}
+
+	config, err := core.ReadConfigFromFile(configFile)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to read config")
+		return nil
+	}
+
+	if err := config.Validate(); err != nil {
+		logrus.WithError(err).Error("Config validation failed")
+		return nil
+	}
+
+	if testAndExit {
+		coordinator := NewCoordinator()
+		if err := coordinator.Configure(config); err != nil {
+			logrus.WithError(err).Error("Configure pass failed.")
+		} else {
+			fmt.Println("Config OK.")
+		}
+		coordinator.Shutdown()
+		return nil
+	}
+
+	return config
+}
+
+// configureRuntime does various different settings that affect runtime
+// behavior or enables global functionality
+func configureRuntime() {
+	if *flagPidFile != "" {
+		ioutil.WriteFile(*flagPidFile, []byte(strconv.Itoa(os.Getpid())), 0644)
+	}
+
+	if *flagNumCPU == 0 {
+		runtime.GOMAXPROCS(runtime.NumCPU())
+	} else {
+		runtime.GOMAXPROCS(*flagNumCPU)
+	}
+
+	if *flagProfile {
+		time.AfterFunc(time.Second*3, printProfile)
+	}
+}
+
+// startMetricsService creates a metric endpoint if requested.
+// The returned function should be deferred if not nil.
+func startMetricsService() func() {
+	if *flagMetricsAddress == "" {
+		return nil
+	}
+
+	server := tgo.NewMetricServer()
+	address, err := parseAddress(*flagMetricsAddress)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to start metrics service")
+		return nil
+	}
+	go server.Start(address)
+	return server.Stop
+}
+
+// startHealthCheckService creates a health check endpoint if requested.
+// The returned function should be deferred if not nil.
+func startHealthCheckService() func() {
+	if *flagHealthCheck == "" {
+		return nil
+	}
+	address, err := parseAddress(*flagHealthCheck)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to start health check service")
+		return nil
+	}
+	thealthcheck.Configure(address)
+
+	go thealthcheck.Start()
+	// Add a static "ping" endpoint
+	thealthcheck.AddEndpoint("/_PING_", func() (code int, body string) {
+		return thealthcheck.StatusOK, "PONG"
+	})
+	return thealthcheck.Stop
+}
+
+// startCPUProfiler enables the golang CPU profiling process.
+// The resulting file can be viewed with `go tool pprof ./gollum file`.
+// The returned function should be deferred if not nil.
+func startCPUProfiler() func() {
+	if *flagCPUProfile == "" {
+		return nil
+	}
+
+	file, err := os.Create(*flagCPUProfile)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to create profiling results file")
+		return nil
+	}
+
+	if err := pprof.StartCPUProfile(file); err != nil {
+		file.Close()
+		logrus.WithError(err).Error("Failed to start CPU profler")
+		return nil
+	}
+
+	return func() {
+		pprof.StopCPUProfile()
+		file.Close()
+	}
+}
+
+// startMemoryProfile enables the golang heap profiling process.
+// The returned function should be deferred if not nil.
+func startMemoryProfiler() func() {
+	if *flagMemProfile == "" {
+		return nil
+	}
+
+	return func() {
+		file, err := os.Create(*flagMemProfile)
+		if err != nil {
+			logrus.WithError(err).Error("Failed to create memory profile results file")
+			return
+		}
+		defer file.Close()
+		if err := pprof.WriteHeapProfile(file); err != nil {
+			logrus.WithError(err).Error("Failed to write heap profile")
+		}
+	}
+}
+
+// startTracer enables the golang tracing process.
+// The resulting file can be viewed with `go tool trace -http=':3333' file` or
+// converted to pprof with `go tool trace -pprof=TYPE trace.out > TYPE.pprof`
+// where TYPE can be net, sync, syscall or sched.
+// The returned function should be deferred if not nil.
+func startTracer() func() {
+	if *flagTrace == "" {
+		return nil
+	}
+
+	file, err := os.Create(*flagTrace)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to create tracing results file")
+		return nil
+	}
+
+	if err := trace.Start(file); err != nil {
+		file.Close()
+		logrus.WithError(err).Error("Failed to start tracer")
+		return nil
+	}
+
+	return func() {
+		trace.Stop()
+		file.Close()
+	}
 }
 
 func parseAddress(address string) (string, error) {
@@ -222,15 +327,6 @@ func parseAddress(address string) (string, error) {
 	}
 
 	return host + ":" + port, nil
-}
-
-func dumpMemoryProfile() {
-	if file, err := os.Create(*flagMemProfile); err != nil {
-		panic(err)
-	} else {
-		defer file.Close()
-		pprof.WriteHeapProfile(file)
-	}
 }
 
 func printVersion() {

@@ -22,38 +22,21 @@ import (
 )
 
 var (
-	flagHelp = tflag.Switch("h", "help",
-		"Print this help message.")
-	flagVersion = tflag.Switch("v", "version",
-		"Print version information and quit.")
-	//flagReport         = tflag.Switch("r", "report",
-	//	"Print detailed version report and quit.")
-	flagModules = tflag.Switch("l", "list",
-		"Print plugin information and quit.")
-	flagConfigFile = tflag.String("c", "config", "",
-		"Use a given configuration file.")
-	flagTestConfigFile = tflag.String("tc", "testconfig", "",
-		"Test the given configuration file and exit.")
-	flagLoglevel = tflag.Int("ll", "loglevel", 2,
-		"Set the loglevel [0-3] as in {0=Error, 1=+Warning, 2=+Info, 3=+Debug}.")
-	flagLogColors = tflag.String("lc", "log-colors", "auto",
-		"Use Logrus's \"colored\" log format. One of \"never\", \"auto\" (default), \"always\"")
-	flagNumCPU = tflag.Int("n", "numcpu", 0,
-		"Number of CPUs to use. Set 0 for all CPUs.")
-	flagPidFile = tflag.String("p", "pidfile", "",
-		"Write the process id into a given file.")
-	flagMetricsAddress = tflag.String("m", "metrics", "",
-		"Address to use for metric queries. Disabled by default.")
-	flagHealthCheck = tflag.String("hc", "healthcheck", "",
-		"Listening address ([IP]:PORT) to use for healthcheck HTTP endpoint. Disabled by default.")
-	flagCPUProfile = tflag.String("pc", "profilecpu", "",
-		"Write CPU profiler results to a given file.")
-	flagMemProfile = tflag.String("pm", "profilemem", "",
-		"Write heap profile results to a given file.")
-	flagProfile = tflag.Switch("ps", "profilespeed",
-		"Write msg/sec measurements to log.")
-	flagTrace = tflag.String("tr", "trace", "",
-		"Write trace results to a given file.")
+	flagHelp           = tflag.Switch("h", "help", "Print this help message.")
+	flagVersion        = tflag.Switch("v", "version", "Print version information and quit.")
+	flagModules        = tflag.Switch("l", "list", "Print plugin information and quit.")
+	flagConfigFile     = tflag.String("c", "config", "", "Use a given configuration file.")
+	flagTestConfigFile = tflag.String("tc", "testconfig", "", "Test the given configuration file and exit.")
+	flagLoglevel       = tflag.Int("ll", "loglevel", 2, "Set the loglevel [0-3] as in {0=Error, 1=+Warning, 2=+Info, 3=+Debug}.")
+	flagLogColors      = tflag.String("lc", "log-colors", "auto", "Use Logrus's \"colored\" log format. One of \"never\", \"auto\" (default), \"always\"")
+	flagNumCPU         = tflag.Int("n", "numcpu", 0, "Number of CPUs to use. Set 0 for all CPUs.")
+	flagPidFile        = tflag.String("p", "pidfile", "", "Write the process id into a given file.")
+	flagMetricsAddress = tflag.String("m", "metrics", "", "Address to use for metric queries. Disabled by default.")
+	flagHealthCheck    = tflag.String("hc", "healthcheck", "", "Listening address ([IP]:PORT) to use for healthcheck HTTP endpoint. Disabled by default.")
+	flagCPUProfile     = tflag.String("pc", "profilecpu", "", "Write CPU profiler results to a given file.")
+	flagMemProfile     = tflag.String("pm", "profilemem", "", "Write heap profile results to a given file.")
+	flagProfile        = tflag.Switch("ps", "profilespeed", "Write msg/sec measurements to log.")
+	flagTrace          = tflag.String("tr", "trace", "", "Write trace results to a given file.")
 )
 
 func parseFlags() {
