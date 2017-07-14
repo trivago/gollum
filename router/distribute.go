@@ -91,7 +91,6 @@ func (router *Distribute) Start() error {
 		targetRouter := core.StreamRegistry.GetRouterOrFallback(streamID)
 		router.routers = append(router.routers, targetRouter)
 	}
-
 	return nil
 }
 
@@ -101,7 +100,6 @@ func (router *Distribute) route(msg *core.Message, targetRouter core.Router) {
 	} else {
 		msg.SetStreamID(targetRouter.GetStreamID())
 		core.Route(msg, targetRouter)
-		router.Logger.Debugf("routed to StreamID '%v'", targetRouter.GetStreamID())
 	}
 }
 

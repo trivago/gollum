@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/trivago/gollum/core"
@@ -153,6 +154,7 @@ type S3 struct {
 	fileMaxSize           int           `config:"FileMaxMB" default:"1024" metric:"mb"`
 	localPath             string        `config:"LocalPath"`
 	uploadOnShutdown      bool          `config:"UploadOnShutdown"`
+	assumeRole            string        `config:"Credential/AssumeRole"`
 	counters              map[string]*int64
 	lastSendTime          time.Time
 	lastMetricUpdate      time.Time
@@ -278,20 +280,21 @@ func (prod *S3) Configure(conf core.PluginConfigReader) {
 	}
 
 	// Credentials
-	credentialType := strings.ToLower(conf.GetString("CredentialType", s3CredentialNone))
+	prod.config.CredentialsChainVerboseErrors = aws.Bool(true)
+	credentialType := strings.ToLower(conf.GetString("Credential/Type", s3CredentialNone))
 	switch credentialType {
 	case s3CredentialEnv:
 		prod.config.WithCredentials(credentials.NewEnvCredentials())
 
 	case s3CredentialStatic:
-		id := conf.GetString("CredentialId", "")
-		token := conf.GetString("CredentialToken", "")
-		secret := conf.GetString("CredentialSecret", "")
+		id := conf.GetString("Credential/Id", "")
+		token := conf.GetString("Credential/Token", "")
+		secret := conf.GetString("Credential/Secret", "")
 		prod.config.WithCredentials(credentials.NewStaticCredentials(id, secret, token))
 
 	case s3CredentialShared:
-		filename := conf.GetString("CredentialFile", "")
-		profile := conf.GetString("CredentialProfile", "")
+		filename := conf.GetString("Credential/File", "")
+		profile := conf.GetString("Credential/Profile", "")
 		prod.config.WithCredentials(credentials.NewSharedCredentials(filename, profile))
 
 	case s3CredentialNone:
@@ -405,18 +408,20 @@ func (prod *S3) upload(object *objectData, needLock bool) error {
 	}
 
 	// upload object.buffer
-	params := &s3.PutObjectInput{
+	param := &s3.PutObjectInput{
 		Bucket:       aws.String(bucket),
 		Key:          aws.String(key),
 		Body:         object.buffer,
 		StorageClass: aws.String(prod.storageClass),
 	}
-	_, err := prod.client.PutObject(params)
-	atomic.AddInt64(prod.counters[object.S3Path], int64(1))
+
+	rsp, err := prod.client.PutObject(param)
 	if err != nil {
-		prod.Logger.Error("S3.upload() PutObject ", bucket+key, " error:", err)
+		prod.Logger.WithField("response", rsp.GoString()).WithError(err).Errorf("Failed to put object %s/%s", bucket, key)
 		return err
 	}
+
+	atomic.AddInt64(prod.counters[object.S3Path], int64(1))
 
 	// mark this object complete
 	object.Uploaded = true
@@ -591,7 +596,20 @@ func (prod *S3) close() {
 // Produce writes to a buffer that is sent to amazon s3.
 func (prod *S3) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Config:            *prod.config,
+		SharedConfigState: session.SharedConfigEnable,
+	})
+	if err != nil {
+		prod.Logger.WithError(err).Error("Failed to create session")
+	}
 
-	prod.client = s3.New(session.New(prod.config))
+	if prod.assumeRole != "" {
+		creds := stscreds.NewCredentials(sess, prod.assumeRole)
+		prod.client = s3.New(sess, &aws.Config{Credentials: creds})
+	} else {
+		prod.client = s3.New(sess)
+	}
+
 	prod.TickerMessageControlLoop(prod.bufferMessage, prod.flushFrequency, prod.sendBatchOnTimeOut)
 }
