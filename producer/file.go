@@ -148,8 +148,8 @@ type File struct {
 	folderPermissions os.FileMode   `config:"FolderPermissions" default:"0755"`
 
 	// properties
-	filesByStream map[core.MessageStreamID]*fileState
-	files         map[string]*fileState
+	filesByStream map[core.MessageStreamID]*FileState
+	files         map[string]*FileState
 	fileDir       string
 	fileName      string
 	fileExt       string
@@ -167,8 +167,8 @@ func (prod *File) Configure(conf core.PluginConfigReader) {
 	prod.SetRollCallback(prod.rotateLog)
 	prod.SetStopCallback(prod.close)
 
-	prod.filesByStream = make(map[core.MessageStreamID]*fileState)
-	prod.files = make(map[string]*fileState)
+	prod.filesByStream = make(map[core.MessageStreamID]*FileState)
+	prod.files = make(map[string]*FileState)
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
 
 	logFile := conf.GetString("File", "/var/log/gollum.log")
@@ -186,12 +186,12 @@ func (prod *File) Produce(workers *sync.WaitGroup) {
 	prod.TickerMessageControlLoop(prod.writeMessage, prod.batchTimeout, prod.writeBatchOnTimeOut)
 }
 
-func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) (*fileState, error) {
+func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) (*FileState, error) {
 	var err error
 
 	// get state from filesByStream[streamID] map
 	if state, stateExists := prod.filesByStream[streamID]; stateExists {
-		if rotate, err := state.needsRotate(prod.Rotate, forceRotate); !rotate {
+		if rotate, err := state.NeedsRotate(prod.Rotate, forceRotate); !rotate {
 			return state, err // ### return, already open or error ###
 		}
 	}
@@ -203,14 +203,14 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	state, stateExists := prod.files[streamFile.GetOriginalPath()]
 	if !stateExists {
 		// state does not yet exist: create and map it
-		state = newFileState(prod.batchMaxCount, prod, prod.TryFallback, prod.flushTimeout, prod.Logger)
+		state = NewFileState(prod.batchMaxCount, prod, prod.TryFallback, prod.flushTimeout, prod.Logger)
 
 		prod.files[streamFile.GetOriginalPath()] = state
 		prod.filesByStream[streamID] = state
 	} else if _, mappingExists := prod.filesByStream[streamID]; !mappingExists {
 		// state exists but is not mapped: map it and see if we need to Rotate
 		prod.filesByStream[streamID] = state
-		if rotate, err := state.needsRotate(prod.Rotate, forceRotate); !rotate {
+		if rotate, err := state.NeedsRotate(prod.Rotate, forceRotate); !rotate {
 			return state, err // ### return, already open or error ###
 		}
 	}
@@ -232,7 +232,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		go currentLog.Close() // close in subroutine for eventually compression in the background
 	}
 
-	// Update fileState writer and creation time
+	// Update FileState writer and creation time
 	state.writer, err = prod.newFileStateWriterDisk(finalPath)
 	if err != nil {
 		return state, err // ### return error ###
@@ -324,7 +324,7 @@ func (prod *File) rotateLog() {
 func (prod *File) writeBatchOnTimeOut() {
 	for _, state := range prod.files {
 		if state.batch.ReachedTimeThreshold(prod.batchTimeout) || state.batch.ReachedSizeThreshold(prod.batchFlushCount) {
-			state.flush()
+			state.Flush()
 		}
 	}
 }
@@ -339,7 +339,7 @@ func (prod *File) writeMessage(msg *core.Message) {
 		return // ### return, fallback ###
 	}
 
-	state.batch.AppendOrFlush(msg, state.flush, prod.IsActiveOrStopping, prod.TryFallback)
+	state.batch.AppendOrFlush(msg, state.Flush, prod.IsActiveOrStopping, prod.TryFallback)
 }
 
 func (prod *File) close() {

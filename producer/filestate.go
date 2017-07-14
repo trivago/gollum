@@ -24,7 +24,8 @@ import (
 	"time"
 )
 
-type fileState struct {
+// FileState is a helper struct for io.Writer compatible classes that use batch directly for resources
+type FileState struct {
 	writer       FileStateWriter
 	batch        core.MessageBatch
 	assembly     core.WriterAssembly
@@ -42,34 +43,10 @@ type FileStateWriter interface {
 	IsAccessible() bool
 }
 
-// FileRotateConfig defines the rotation settings
-type FileRotateConfig struct {
-	timeout   time.Duration `config:"Rotation/TimeoutMin" default:"1440" metric:"min"`
-	sizeByte  int64         `config:"Rotation/SizeMB" default:"1024" metric:"mb"`
-	zeroPad   int           `config:"Rotation/ZeroPadding" default:"0"`
-	enabled   bool          `config:"Rotation/Enable" default:"false"`
-	compress  bool          `config:"Rotation/Compress" default:"false"`
-	timestamp string        `config:"Rotation/Timestamp" default:"2006-01-02_15"`
-	atHour    int           `config:"Rotation/AtHour" default:"-1"`
-	atMinute  int           `config:"Rotation/AtMin" default:"-1"`
-}
-
-// Configure method for interface implementation
-func (rotate *FileRotateConfig) Configure(conf core.PluginConfigReader) {
-	rotateAt := conf.GetString("Rotation/At", "")
-	if rotateAt != "" {
-		parts := strings.Split(rotateAt, ":")
-		rotateAtHour, _ := strconv.ParseInt(parts[0], 10, 8)
-		rotateAtMin, _ := strconv.ParseInt(parts[1], 10, 8)
-
-		rotate.atHour = int(rotateAtHour)
-		rotate.atMinute = int(rotateAtMin)
-	}
-}
-
-func newFileState(maxMessageCount int, modulator core.Modulator, tryFallback func(*core.Message),
-	timeout time.Duration, logger logrus.FieldLogger) *fileState {
-	return &fileState{
+// NewFileState returns a new FileState instance
+func NewFileState(maxMessageCount int, modulator core.Modulator, tryFallback func(*core.Message),
+	timeout time.Duration, logger logrus.FieldLogger) *FileState {
+	return &FileState{
 		batch:        core.NewMessageBatch(maxMessageCount),
 		flushTimeout: timeout,
 		assembly:     core.NewWriterAssembly(nil, tryFallback, modulator),
@@ -77,7 +54,8 @@ func newFileState(maxMessageCount int, modulator core.Modulator, tryFallback fun
 	}
 }
 
-func (state *fileState) flush() {
+// Flush flush the batch
+func (state *FileState) Flush() {
 	if state.writer != nil {
 		state.assembly.SetWriter(state.writer)
 		state.batch.Flush(state.assembly.Write)
@@ -86,7 +64,8 @@ func (state *fileState) flush() {
 	}
 }
 
-func (state *fileState) Close() {
+// Close closes batch and writer
+func (state *FileState) Close() {
 	if state.writer != nil {
 		state.assembly.SetWriter(state.writer)
 		state.batch.Close(state.assembly.Write, state.flushTimeout)
@@ -96,7 +75,8 @@ func (state *fileState) Close() {
 	state.writer.Close()
 }
 
-func (state *fileState) needsRotate(rotate FileRotateConfig, forceRotate bool) (bool, error) {
+// NeedsRotate evaluate if the FileState need to rotate by the FileRotateConfig
+func (state *FileState) NeedsRotate(rotate FileRotateConfig, forceRotate bool) (bool, error) {
 	// File does not exist?
 	if state.writer == nil {
 		return true, nil
@@ -138,4 +118,31 @@ func (state *fileState) needsRotate(rotate FileRotateConfig, forceRotate bool) (
 
 	// nope, everything is ok
 	return false, nil
+}
+
+// -- FileRotateConfig --
+
+// FileRotateConfig defines the rotation settings
+type FileRotateConfig struct {
+	timeout   time.Duration `config:"Rotation/TimeoutMin" default:"1440" metric:"min"`
+	sizeByte  int64         `config:"Rotation/SizeMB" default:"1024" metric:"mb"`
+	zeroPad   int           `config:"Rotation/ZeroPadding" default:"0"`
+	enabled   bool          `config:"Rotation/Enable" default:"false"`
+	compress  bool          `config:"Rotation/Compress" default:"false"`
+	timestamp string        `config:"Rotation/Timestamp" default:"2006-01-02_15"`
+	atHour    int           `config:"Rotation/AtHour" default:"-1"`
+	atMinute  int           `config:"Rotation/AtMin" default:"-1"`
+}
+
+// Configure method for interface implementation
+func (rotate *FileRotateConfig) Configure(conf core.PluginConfigReader) {
+	rotateAt := conf.GetString("Rotation/At", "")
+	if rotateAt != "" {
+		parts := strings.Split(rotateAt, ":")
+		rotateAtHour, _ := strconv.ParseInt(parts[0], 10, 8)
+		rotateAtMin, _ := strconv.ParseInt(parts[1], 10, 8)
+
+		rotate.atHour = int(rotateAtHour)
+		rotate.atMinute = int(rotateAtMin)
+	}
 }
