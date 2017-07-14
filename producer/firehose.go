@@ -17,6 +17,7 @@ package producer
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/firehose"
 	"github.com/trivago/gollum/core"
@@ -102,6 +103,7 @@ type Firehose struct {
 	delimiter             []byte        `config:"RecordMessageDelimiter" default:"\n"`
 	flushFrequency        time.Duration `config:"BatchTimeoutSec" default:"3" metric:"sec"`
 	sendTimeLimit         time.Duration `config:"SendTimeframeMs" default:"1000" metric:"ms"`
+	assumeRole            string        `config:"Credential/AssumeRole"`
 	lastSendTime          time.Time
 	lastMetricUpdate      time.Time
 	counters              map[string]*int64
@@ -153,20 +155,21 @@ func (prod *Firehose) Configure(conf core.PluginConfigReader) {
 	}
 
 	// Credentials
-	credentialType := strings.ToLower(conf.GetString("CredentialType", firehoseCredentialNone))
+	prod.config.CredentialsChainVerboseErrors = aws.Bool(true)
+	credentialType := strings.ToLower(conf.GetString("Credential/Type", firehoseCredentialNone))
 	switch credentialType {
 	case firehoseCredentialEnv:
 		prod.config.WithCredentials(credentials.NewEnvCredentials())
 
 	case firehoseCredentialStatic:
-		id := conf.GetString("CredentialId", "")
-		token := conf.GetString("CredentialToken", "")
-		secret := conf.GetString("CredentialSecret", "")
+		id := conf.GetString("Credential/Id", "")
+		token := conf.GetString("Credential/Token", "")
+		secret := conf.GetString("Credential/Secret", "")
 		prod.config.WithCredentials(credentials.NewStaticCredentials(id, secret, token))
 
 	case firehoseCredentialShared:
-		filename := conf.GetString("CredentialFile", "")
-		profile := conf.GetString("CredentialProfile", "")
+		filename := conf.GetString("Credential/File", "")
+		profile := conf.GetString("Credential/Profile", "")
 		prod.config.WithCredentials(credentials.NewSharedCredentials(filename, profile))
 
 	case firehoseCredentialNone:
@@ -277,12 +280,12 @@ func (prod *Firehose) transformMessages(messages []*core.Message) {
 
 	// Send to Firehose
 	for _, records := range streamRecords {
-		result, err := prod.client.PutRecordBatch(records.content)
+		rsp, err := prod.client.PutRecordBatch(records.content)
 		atomic.AddInt64(prod.counters[*records.content.DeliveryStreamName], int64(len(records.content.Records)))
 
 		if err != nil {
 			// Batch failed, fallback all
-			prod.Logger.Error("Firehose write error: ", err)
+			prod.Logger.WithError(err).Error("Failed to put record batch")
 			for _, messages := range records.original {
 				for _, msg := range messages {
 					prod.TryFallback(msg)
@@ -290,7 +293,7 @@ func (prod *Firehose) transformMessages(messages []*core.Message) {
 			}
 		} else {
 			// Check each message for errors
-			for msgIdx, record := range result.RequestResponses {
+			for msgIdx, record := range rsp.RequestResponses {
 				if record.ErrorMessage != nil {
 					prod.Logger.Error("Firehose message write error: ", *record.ErrorMessage)
 					for _, msg := range records.original[msgIdx] {
@@ -311,7 +314,20 @@ func (prod *Firehose) close() {
 // Produce writes to stdout or stderr.
 func (prod *Firehose) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Config:            *prod.config,
+		SharedConfigState: session.SharedConfigEnable,
+	})
+	if err != nil {
+		prod.Logger.WithError(err).Error("Failed to create session")
+	}
 
-	prod.client = firehose.New(session.New(prod.config))
+	if prod.assumeRole != "" {
+		creds := stscreds.NewCredentials(sess, prod.assumeRole)
+		prod.client = firehose.New(sess, &aws.Config{Credentials: creds})
+	} else {
+		prod.client = firehose.New(sess)
+	}
+
 	prod.TickerMessageControlLoop(prod.bufferMessage, prod.flushFrequency, prod.sendBatchOnTimeOut)
 }
