@@ -128,8 +128,8 @@ type File struct {
 	folderPermissions os.FileMode   `config:"FolderPermissions" default:"0755"`
 
 	// properties
-	filesByStream map[core.MessageStreamID]*BatchedWriterAssembly
-	files         map[string]*BatchedWriterAssembly
+	filesByStream map[core.MessageStreamID]*core.BatchedWriterAssembly
+	files         map[string]*core.BatchedWriterAssembly
 	fileDir       string
 	fileName      string
 	fileExt       string
@@ -147,8 +147,8 @@ func (prod *File) Configure(conf core.PluginConfigReader) {
 	prod.SetRollCallback(prod.rotateLog)
 	prod.SetStopCallback(prod.close)
 
-	prod.filesByStream = make(map[core.MessageStreamID]*BatchedWriterAssembly)
-	prod.files = make(map[string]*BatchedWriterAssembly)
+	prod.filesByStream = make(map[core.MessageStreamID]*core.BatchedWriterAssembly)
+	prod.files = make(map[string]*core.BatchedWriterAssembly)
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
 
 	logFile := conf.GetString("File", "/var/log/gollum.log")
@@ -166,7 +166,7 @@ func (prod *File) Produce(workers *sync.WaitGroup) {
 	prod.TickerMessageControlLoop(prod.writeMessage, prod.batchTimeout, prod.writeBatchOnTimeOut)
 }
 
-func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool) (*BatchedWriterAssembly, error) {
+func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool) (*core.BatchedWriterAssembly, error) {
 	var err error
 
 	// get batchedFile from filesByStream[streamID] map
@@ -183,7 +183,7 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 	batchedFile, fileExists := prod.files[streamFile.GetOriginalPath()]
 	if !fileExists {
 		// batchedFile does not yet exist: create and map it
-		batchedFile = NewBatchedWriterAssembly(
+		batchedFile = core.NewBatchedWriterAssembly(
 			prod.batchMaxCount,
 			prod.batchTimeout,
 			prod.batchFlushCount,
@@ -212,21 +212,20 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 	finalPath := streamFile.GetFinalPath(prod.Rotate)
 
 	// Close existing batchedFile.writer
-	if batchedFile.writer != nil {
-		currentLog := batchedFile.writer
-		batchedFile.writer = nil
+	if batchedFile.HasWriter() {
+		currentLog := batchedFile.GetWriterAndUnset()
 
 		prod.Logger.Info("Rotated ", currentLog.Name(), " -> ", finalPath)
 		go currentLog.Close() // close in subroutine for eventually compression in the background
 	}
 
 	// Update BatchedWriterAssembly writer and creation time
-	batchedFile.writer, err = prod.newFileStateWriterDisk(finalPath)
+	fileWriter, err := prod.newFileStateWriterDisk(finalPath)
 	if err != nil {
 		return batchedFile, err // ### return error ###
 	}
 
-	batchedFile.created = time.Now()
+	batchedFile.SetWriter(fileWriter)
 
 	// Create "current" symlink
 	if prod.Rotate.Enabled {
@@ -240,14 +239,14 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 }
 
 // NeedsRotate evaluate if the BatchedWriterAssembly need to rotate by the FileRotateConfig
-func (prod *File) needsRotate(batchFile *BatchedWriterAssembly, forceRotate bool) (bool, error) {
+func (prod *File) needsRotate(batchFile *core.BatchedWriterAssembly, forceRotate bool) (bool, error) {
 	// File does not exist?
-	if batchFile.writer == nil {
+	if !batchFile.HasWriter() {
 		return true, nil
 	}
 
 	// File can be accessed?
-	if batchFile.writer.IsAccessible() == false {
+	if batchFile.GetWriter().IsAccessible() == false {
 		return false, errors.New("Can' access file to rotate")
 	}
 
@@ -261,12 +260,12 @@ func (prod *File) needsRotate(batchFile *BatchedWriterAssembly, forceRotate bool
 	}
 
 	// File is too large?
-	if batchFile.writer.Size() >= prod.Rotate.SizeByte {
+	if batchFile.GetWriter().Size() >= prod.Rotate.SizeByte {
 		return true, nil // ### return, too large ###
 	}
 
 	// File is too old?
-	if time.Since(batchFile.created) >= prod.Rotate.Timeout {
+	if time.Since(batchFile.Created) >= prod.Rotate.Timeout {
 		return true, nil // ### return, too old ###
 	}
 
@@ -275,7 +274,7 @@ func (prod *File) needsRotate(batchFile *BatchedWriterAssembly, forceRotate bool
 		now := time.Now()
 		rotateAt := time.Date(now.Year(), now.Month(), now.Day(), prod.Rotate.AtHour, prod.Rotate.AtMinute, 0, 0, now.Location())
 
-		if batchFile.created.Sub(rotateAt).Minutes() < 0 {
+		if batchFile.Created.Sub(rotateAt).Minutes() < 0 {
 			return true, nil // ### return, too old ###
 		}
 	}
@@ -368,7 +367,7 @@ func (prod *File) writeMessage(msg *core.Message) {
 		return // ### return, fallback ###
 	}
 
-	batchedFile.batch.AppendOrFlush(msg, batchedFile.Flush, prod.IsActiveOrStopping, prod.TryFallback)
+	batchedFile.Batch.AppendOrFlush(msg, batchedFile.Flush, prod.IsActiveOrStopping, prod.TryFallback)
 }
 
 func (prod *File) close() {
