@@ -142,7 +142,7 @@ type File struct {
 	batchTimeout      time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
 	batchMaxCount     int           `config:"Batch/MaxCount" default:"8192"`
 	batchFlushCount   int           `config:"Batch/FlushCount" default:"4096"`
-	flushTimeout      time.Duration `config:"FlushTimeoutSec" default:"5" metric:"sec"`
+	flushTimeout      time.Duration `config:"FlushTimeoutSec" default:"0" metric:"sec"`
 	overwriteFile     bool          `config:"FileOverwrite"`
 	filePermissions   os.FileMode   `config:"Permissions" default:"0644"`
 	folderPermissions os.FileMode   `config:"FolderPermissions" default:"0755"`
