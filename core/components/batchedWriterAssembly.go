@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package core
+package components
 
 import (
 	"github.com/sirupsen/logrus"
+	"github.com/trivago/gollum/core"
 	"io"
 	"time"
 )
 
 // BatchedWriterAssembly is a helper struct for io.Writer compatible classes that use batch directly for resources
 type BatchedWriterAssembly struct {
-	Batch           MessageBatch // Batch contains the MessageBatch
-	Created         time.Time    // Created contains the creation time from the writer was set
+	Batch           core.MessageBatch // Batch contains the MessageBatch
+	Created         time.Time         // Created contains the creation time from the writer was set
 	writer          BatchedWriter
-	assembly        WriterAssembly
+	assembly        core.WriterAssembly
 	flushTimeout    time.Duration // max sec to wait before a flush is aborted
 	batchTimeout    time.Duration // max sec to wait before batch will flushed
 	batchFlushCount int
@@ -42,11 +43,11 @@ type BatchedWriter interface {
 }
 
 // NewBatchedWriterAssembly returns a new BatchedWriterAssembly instance
-func NewBatchedWriterAssembly(batchMaxCount int, batchTimeout time.Duration, batchFlushCount int, modulator Modulator, tryFallback func(*Message),
+func NewBatchedWriterAssembly(batchMaxCount int, batchTimeout time.Duration, batchFlushCount int, modulator core.Modulator, tryFallback func(*core.Message),
 	timeout time.Duration, logger logrus.FieldLogger) *BatchedWriterAssembly {
 	return &BatchedWriterAssembly{
-		Batch:           NewMessageBatch(batchMaxCount),
-		assembly:        NewWriterAssembly(nil, tryFallback, modulator),
+		Batch:           core.NewMessageBatch(batchMaxCount),
+		assembly:        core.NewWriterAssembly(nil, tryFallback, modulator),
 		flushTimeout:    timeout,
 		batchTimeout:    batchTimeout,
 		batchFlushCount: batchFlushCount,
@@ -65,7 +66,7 @@ func (bwa *BatchedWriterAssembly) SetWriter(writer BatchedWriter) {
 	bwa.Created = time.Now()
 }
 
-// ResetWriter unset the current writer
+// UnsetWriter unset the current writer
 func (bwa *BatchedWriterAssembly) UnsetWriter() {
 	bwa.writer = nil
 }

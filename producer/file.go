@@ -116,7 +116,7 @@ type File struct {
 	// Rotate is public to make Pruner.Configure() callable (bug in treflect package)
 	// Prune is public to make FileRotateConfig.Configure() callable (bug in treflect package)
 	Rotate components.RotateConfig `gollumdoc:"embed_type"`
-	Pruner filePruner           `gollumdoc:"embed_type"`
+	Pruner filePruner              `gollumdoc:"embed_type"`
 
 	// configuration
 	batchTimeout      time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
@@ -128,8 +128,8 @@ type File struct {
 	folderPermissions os.FileMode   `config:"FolderPermissions" default:"0755"`
 
 	// properties
-	filesByStream map[core.MessageStreamID]*core.BatchedWriterAssembly
-	files         map[string]*core.BatchedWriterAssembly
+	filesByStream map[core.MessageStreamID]*components.BatchedWriterAssembly
+	files         map[string]*components.BatchedWriterAssembly
 	fileDir       string
 	fileName      string
 	fileExt       string
@@ -147,8 +147,8 @@ func (prod *File) Configure(conf core.PluginConfigReader) {
 	prod.SetRollCallback(prod.rotateLog)
 	prod.SetStopCallback(prod.close)
 
-	prod.filesByStream = make(map[core.MessageStreamID]*core.BatchedWriterAssembly)
-	prod.files = make(map[string]*core.BatchedWriterAssembly)
+	prod.filesByStream = make(map[core.MessageStreamID]*components.BatchedWriterAssembly)
+	prod.files = make(map[string]*components.BatchedWriterAssembly)
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
 
 	logFile := conf.GetString("File", "/var/log/gollum.log")
@@ -166,7 +166,7 @@ func (prod *File) Produce(workers *sync.WaitGroup) {
 	prod.TickerMessageControlLoop(prod.writeMessage, prod.batchTimeout, prod.writeBatchOnTimeOut)
 }
 
-func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool) (*core.BatchedWriterAssembly, error) {
+func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool) (*components.BatchedWriterAssembly, error) {
 	var err error
 
 	// get batchedFile from filesByStream[streamID] map
@@ -183,7 +183,7 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 	batchedFile, fileExists := prod.files[streamFile.GetOriginalPath()]
 	if !fileExists {
 		// batchedFile does not yet exist: create and map it
-		batchedFile = core.NewBatchedWriterAssembly(
+		batchedFile = components.NewBatchedWriterAssembly(
 			prod.batchMaxCount,
 			prod.batchTimeout,
 			prod.batchFlushCount,
@@ -239,7 +239,7 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 }
 
 // NeedsRotate evaluate if the BatchedWriterAssembly need to rotate by the FileRotateConfig
-func (prod *File) needsRotate(batchFile *core.BatchedWriterAssembly, forceRotate bool) (bool, error) {
+func (prod *File) needsRotate(batchFile *components.BatchedWriterAssembly, forceRotate bool) (bool, error) {
 	// File does not exist?
 	if !batchFile.HasWriter() {
 		return true, nil

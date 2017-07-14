@@ -85,17 +85,17 @@ import (
 // default.
 type Spooling struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
-	outfile         map[core.MessageStreamID]*spoolFile
-	outfileGuard    *sync.RWMutex
-	rotation        components.RotateConfig `gollumdoc:"embed_type"`
-	path            string               `config:"Path" default:"/var/run/gollum/spooling"`
-	maxFileSize     int64                `config:"MaxFileSizeMB" default:"512" metric:"mb"`
-	batchMaxCount   int                  `config:"Batch/MaxCount" default:"100"`
-	bufferSizeByte  int                  `config:"BufferSizeByte" default:"8192"`
-	revertOnDrop    bool                 `config:"RevertStreamOnDrop"`
-	respoolDuration time.Duration        `config:"RespoolDelaySec" default:"10" metric:"sec"`
-	maxFileAge            time.Duration        `config:"MaxFileAgeMin" default:"1" metric:"min"`
-	batchTimeout          time.Duration        `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
+	outfile               map[core.MessageStreamID]*spoolFile
+	outfileGuard          *sync.RWMutex
+	rotation              components.RotateConfig `gollumdoc:"embed_type"`
+	path                  string                  `config:"Path" default:"/var/run/gollum/spooling"`
+	maxFileSize           int64                   `config:"MaxFileSizeMB" default:"512" metric:"mb"`
+	batchMaxCount         int                     `config:"Batch/MaxCount" default:"100"`
+	bufferSizeByte        int                     `config:"BufferSizeByte" default:"8192"`
+	revertOnDrop          bool                    `config:"RevertStreamOnDrop"`
+	respoolDuration       time.Duration           `config:"RespoolDelaySec" default:"10" metric:"sec"`
+	maxFileAge            time.Duration           `config:"MaxFileAgeMin" default:"1" metric:"min"`
+	batchTimeout          time.Duration           `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
 	readDelay             time.Duration
 	spoolCheck            *time.Timer
 	serialze              core.Formatter
