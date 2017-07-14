@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/configs"
+	"github.com/trivago/gollum/core/components"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"
@@ -115,7 +115,7 @@ type File struct {
 	//
 	// Rotate is public to make Pruner.Configure() callable (bug in treflect package)
 	// Prune is public to make FileRotateConfig.Configure() callable (bug in treflect package)
-	Rotate configs.RotateConfig `gollumdoc:"embed_type"`
+	Rotate components.RotateConfig `gollumdoc:"embed_type"`
 	Pruner filePruner           `gollumdoc:"embed_type"`
 
 	// configuration
@@ -394,12 +394,12 @@ func (streamFile *streamFile) GetOriginalPath() string {
 }
 
 // GetFinalPath returns the final file path with possible rotations
-func (streamFile *streamFile) GetFinalPath(rotate configs.RotateConfig) string {
+func (streamFile *streamFile) GetFinalPath(rotate components.RotateConfig) string {
 	return fmt.Sprintf("%s/%s", streamFile.dir, streamFile.GetFinalName(rotate))
 }
 
 // GetFinalName returns the final file name with possible rotations
-func (streamFile *streamFile) GetFinalName(rotate configs.RotateConfig) string {
+func (streamFile *streamFile) GetFinalName(rotate components.RotateConfig) string {
 	var logFileName string
 
 	// Generate the log filename based on rotation, existing files, etc.
@@ -578,7 +578,7 @@ type filePruner struct {
 	pruneCount int   `config:"Prune/Count" default:"0"`
 	pruneHours int   `config:"Prune/AfterHours" default:"0"`
 	pruneSize  int64 `config:"Prune/TotalSizeMB" default:"0" metric:"mb"`
-	rotate     configs.RotateConfig
+	rotate     components.RotateConfig
 	logger     logrus.FieldLogger
 }
 
