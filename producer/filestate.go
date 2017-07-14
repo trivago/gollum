@@ -34,11 +34,11 @@ type BatchedWriterAssembly struct {
 }
 
 // BatchedWriter is an interface for different file writer like disk, s3, etc.
+// TODO: Replace methods with os.FileInfo interface
 type BatchedWriter interface {
 	io.WriteCloser
 	Name() string // base name of the file/resource
 	Size() int64  // length in bytes for regular files; system-dependent for others
-	//Created() time.Time
 	IsAccessible() bool
 }
 
