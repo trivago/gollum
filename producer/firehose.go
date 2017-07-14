@@ -155,6 +155,7 @@ func (prod *Firehose) Configure(conf core.PluginConfigReader) {
 	}
 
 	// Credentials
+	prod.config.CredentialsChainVerboseErrors = aws.Bool(true)
 	credentialType := strings.ToLower(conf.GetString("Credential/Type", firehoseCredentialNone))
 	switch credentialType {
 	case firehoseCredentialEnv:
@@ -279,12 +280,12 @@ func (prod *Firehose) transformMessages(messages []*core.Message) {
 
 	// Send to Firehose
 	for _, records := range streamRecords {
-		result, err := prod.client.PutRecordBatch(records.content)
+		rsp, err := prod.client.PutRecordBatch(records.content)
 		atomic.AddInt64(prod.counters[*records.content.DeliveryStreamName], int64(len(records.content.Records)))
 
 		if err != nil {
 			// Batch failed, fallback all
-			prod.Logger.Error("Firehose write error: ", err)
+			prod.Logger.WithError(err).Error("Failed to put record batch")
 			for _, messages := range records.original {
 				for _, msg := range messages {
 					prod.TryFallback(msg)
@@ -292,7 +293,7 @@ func (prod *Firehose) transformMessages(messages []*core.Message) {
 			}
 		} else {
 			// Check each message for errors
-			for msgIdx, record := range result.RequestResponses {
+			for msgIdx, record := range rsp.RequestResponses {
 				if record.ErrorMessage != nil {
 					prod.Logger.Error("Firehose message write error: ", *record.ErrorMessage)
 					for _, msg := range records.original[msgIdx] {

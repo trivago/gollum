@@ -153,6 +153,7 @@ func (prod *Kinesis) Configure(conf core.PluginConfigReader) {
 	}
 
 	// Credentials
+	prod.config.CredentialsChainVerboseErrors = aws.Bool(true)
 	credentialType := strings.ToLower(conf.GetString("Credential/Type", kinesisCredentialNone))
 	switch credentialType {
 	case kinesisCredentialEnv:
@@ -261,7 +262,7 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 
 		if err != nil {
 			// Batch failed, fallback all
-			prod.Logger.Error("Write error: ", err)
+			prod.Logger.WithError(err).Error("Failed to put records")
 			for _, messages := range records.original {
 				for _, msg := range messages {
 					prod.TryFallback(msg)

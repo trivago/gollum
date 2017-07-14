@@ -280,6 +280,7 @@ func (prod *S3) Configure(conf core.PluginConfigReader) {
 	}
 
 	// Credentials
+	prod.config.CredentialsChainVerboseErrors = aws.Bool(true)
 	credentialType := strings.ToLower(conf.GetString("Credential/Type", s3CredentialNone))
 	switch credentialType {
 	case s3CredentialEnv:
@@ -407,18 +408,20 @@ func (prod *S3) upload(object *objectData, needLock bool) error {
 	}
 
 	// upload object.buffer
-	params := &s3.PutObjectInput{
+	param := &s3.PutObjectInput{
 		Bucket:       aws.String(bucket),
 		Key:          aws.String(key),
 		Body:         object.buffer,
 		StorageClass: aws.String(prod.storageClass),
 	}
-	_, err := prod.client.PutObject(params)
-	atomic.AddInt64(prod.counters[object.S3Path], int64(1))
+
+	rsp, err := prod.client.PutObject(param)
 	if err != nil {
-		prod.Logger.Error("S3.upload() PutObject ", bucket+key, " error:", err)
+		prod.Logger.WithField("response", rsp.GoString()).WithError(err).Errorf("Failed to put object %s/%s", bucket, key)
 		return err
 	}
+
+	atomic.AddInt64(prod.counters[object.S3Path], int64(1))
 
 	// mark this object complete
 	object.Uploaded = true

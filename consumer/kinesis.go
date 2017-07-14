@@ -141,6 +141,7 @@ func (cons *Kinesis) Configure(conf core.PluginConfigReader) {
 	}
 
 	// Credentials
+	cons.config.CredentialsChainVerboseErrors = aws.Bool(true)
 	credentialType := strings.ToLower(conf.GetString("Credential/Type", kinesisCredentialNone))
 	switch credentialType {
 	case kinesisCredentialEnv:
