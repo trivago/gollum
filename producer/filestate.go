@@ -24,66 +24,78 @@ import (
 	"time"
 )
 
-// FileState is a helper struct for io.Writer compatible classes that use batch directly for resources
-type FileState struct {
-	writer       FileStateWriter
+// BatchedWriterAssembly is a helper struct for io.Writer compatible classes that use batch directly for resources
+type BatchedWriterAssembly struct {
+	writer       BatchedWriter
 	batch        core.MessageBatch
 	assembly     core.WriterAssembly
-	fileCreated  time.Time
+	created      time.Time
 	flushTimeout time.Duration
 	logger       logrus.FieldLogger
+
+	batchTimeout    time.Duration
+	batchFlushCount int
 }
 
-// FileStateWriter is an interface for different file writer like disk, s3, etc.
-type FileStateWriter interface {
+// BatchedWriter is an interface for different file writer like disk, s3, etc.
+type BatchedWriter interface {
 	io.WriteCloser
-	Name() string // base name of the file
+	Name() string // base name of the file/resource
 	Size() int64  // length in bytes for regular files; system-dependent for others
 	//Created() time.Time
 	IsAccessible() bool
 }
 
-// NewFileState returns a new FileState instance
-func NewFileState(maxMessageCount int, modulator core.Modulator, tryFallback func(*core.Message),
-	timeout time.Duration, logger logrus.FieldLogger) *FileState {
-	return &FileState{
-		batch:        core.NewMessageBatch(maxMessageCount),
-		flushTimeout: timeout,
-		assembly:     core.NewWriterAssembly(nil, tryFallback, modulator),
-		logger:       logger,
+// NewBatchedWriterAssembly returns a new BatchedWriterAssembly instance
+func NewBatchedWriterAssembly(batchMaxCount int, batchTimeout time.Duration, batchFlushCount int, modulator core.Modulator, tryFallback func(*core.Message),
+	timeout time.Duration, logger logrus.FieldLogger) *BatchedWriterAssembly {
+	return &BatchedWriterAssembly{
+		batch:           core.NewMessageBatch(batchMaxCount),
+		assembly:        core.NewWriterAssembly(nil, tryFallback, modulator),
+		flushTimeout:    timeout,
+		batchTimeout:    batchTimeout,
+		batchFlushCount: batchFlushCount,
+		logger:          logger,
 	}
 }
 
 // Flush flush the batch
-func (state *FileState) Flush() {
-	if state.writer != nil {
-		state.assembly.SetWriter(state.writer)
-		state.batch.Flush(state.assembly.Write)
+func (bwa *BatchedWriterAssembly) Flush() {
+	if bwa.writer != nil {
+		bwa.assembly.SetWriter(bwa.writer)
+		bwa.batch.Flush(bwa.assembly.Write)
 	} else {
-		state.batch.Flush(state.assembly.Flush)
+		bwa.batch.Flush(bwa.assembly.Flush)
 	}
 }
 
 // Close closes batch and writer
-func (state *FileState) Close() {
-	if state.writer != nil {
-		state.assembly.SetWriter(state.writer)
-		state.batch.Close(state.assembly.Write, state.flushTimeout)
+func (bwa *BatchedWriterAssembly) Close() {
+	if bwa.writer != nil {
+		bwa.assembly.SetWriter(bwa.writer)
+		bwa.batch.Close(bwa.assembly.Write, bwa.flushTimeout)
 	} else {
-		state.batch.Close(state.assembly.Flush, state.flushTimeout)
+		bwa.batch.Close(bwa.assembly.Flush, bwa.flushTimeout)
 	}
-	state.writer.Close()
+	bwa.writer.Close()
 }
 
-// NeedsRotate evaluate if the FileState need to rotate by the FileRotateConfig
-func (state *FileState) NeedsRotate(rotate FileRotateConfig, forceRotate bool) (bool, error) {
+// FlushOnTimeOut checks if timeout or slush count reached and flush in this case
+func (bwa *BatchedWriterAssembly) FlushOnTimeOut() {
+	if bwa.batch.ReachedTimeThreshold(bwa.batchTimeout) || bwa.batch.ReachedSizeThreshold(bwa.batchFlushCount) {
+		bwa.Flush()
+	}
+}
+
+// NeedsRotate evaluate if the BatchedWriterAssembly need to rotate by the FileRotateConfig
+func (bwa *BatchedWriterAssembly) NeedsRotate(rotate FileRotateConfig, forceRotate bool) (bool, error) {
 	// File does not exist?
-	if state.writer == nil {
+	if bwa.writer == nil {
 		return true, nil
 	}
 
 	// File can be accessed?
-	if state.writer.IsAccessible() == false {
+	if bwa.writer.IsAccessible() == false {
 		return false, errors.New("Can' access file to rotate")
 	}
 
@@ -97,12 +109,12 @@ func (state *FileState) NeedsRotate(rotate FileRotateConfig, forceRotate bool) (
 	}
 
 	// File is too large?
-	if state.writer.Size() >= rotate.sizeByte {
+	if bwa.writer.Size() >= rotate.sizeByte {
 		return true, nil // ### return, too large ###
 	}
 
 	// File is too old?
-	if time.Since(state.fileCreated) >= rotate.timeout {
+	if time.Since(bwa.created) >= rotate.timeout {
 		return true, nil // ### return, too old ###
 	}
 
@@ -111,7 +123,7 @@ func (state *FileState) NeedsRotate(rotate FileRotateConfig, forceRotate bool) (
 		now := time.Now()
 		rotateAt := time.Date(now.Year(), now.Month(), now.Day(), rotate.atHour, rotate.atMinute, 0, 0, now.Location())
 
-		if state.fileCreated.Sub(rotateAt).Minutes() < 0 {
+		if bwa.created.Sub(rotateAt).Minutes() < 0 {
 			return true, nil // ### return, too old ###
 		}
 	}

@@ -148,8 +148,8 @@ type File struct {
 	folderPermissions os.FileMode   `config:"FolderPermissions" default:"0755"`
 
 	// properties
-	filesByStream map[core.MessageStreamID]*FileState
-	files         map[string]*FileState
+	filesByStream map[core.MessageStreamID]*BatchedWriterAssembly
+	files         map[string]*BatchedWriterAssembly
 	fileDir       string
 	fileName      string
 	fileExt       string
@@ -167,8 +167,8 @@ func (prod *File) Configure(conf core.PluginConfigReader) {
 	prod.SetRollCallback(prod.rotateLog)
 	prod.SetStopCallback(prod.close)
 
-	prod.filesByStream = make(map[core.MessageStreamID]*FileState)
-	prod.files = make(map[string]*FileState)
+	prod.filesByStream = make(map[core.MessageStreamID]*BatchedWriterAssembly)
+	prod.files = make(map[string]*BatchedWriterAssembly)
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
 
 	logFile := conf.GetString("File", "/var/log/gollum.log")
@@ -186,32 +186,40 @@ func (prod *File) Produce(workers *sync.WaitGroup) {
 	prod.TickerMessageControlLoop(prod.writeMessage, prod.batchTimeout, prod.writeBatchOnTimeOut)
 }
 
-func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) (*FileState, error) {
+func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool) (*BatchedWriterAssembly, error) {
 	var err error
 
-	// get state from filesByStream[streamID] map
-	if state, stateExists := prod.filesByStream[streamID]; stateExists {
-		if rotate, err := state.NeedsRotate(prod.Rotate, forceRotate); !rotate {
-			return state, err // ### return, already open or error ###
+	// get batchedFile from filesByStream[streamID] map
+	if batchedFile, fileExists := prod.filesByStream[streamID]; fileExists {
+		if rotate, err := batchedFile.NeedsRotate(prod.Rotate, forceRotate); !rotate {
+			return batchedFile, err // ### return, already open or error ###
 		}
 	}
 
 	// todo: naming
 	streamFile := prod.newStreamFile(streamID)
 
-	// get state from files[path] and assure the file is correctly mapped
-	state, stateExists := prod.files[streamFile.GetOriginalPath()]
-	if !stateExists {
-		// state does not yet exist: create and map it
-		state = NewFileState(prod.batchMaxCount, prod, prod.TryFallback, prod.flushTimeout, prod.Logger)
+	// get batchedFile from files[path] and assure the file is correctly mapped
+	batchedFile, fileExists := prod.files[streamFile.GetOriginalPath()]
+	if !fileExists {
+		// batchedFile does not yet exist: create and map it
+		batchedFile = NewBatchedWriterAssembly(
+			prod.batchMaxCount,
+			prod.batchTimeout,
+			prod.batchFlushCount,
+			prod,
+			prod.TryFallback,
+			prod.flushTimeout,
+			prod.Logger,
+		)
 
-		prod.files[streamFile.GetOriginalPath()] = state
-		prod.filesByStream[streamID] = state
+		prod.files[streamFile.GetOriginalPath()] = batchedFile
+		prod.filesByStream[streamID] = batchedFile
 	} else if _, mappingExists := prod.filesByStream[streamID]; !mappingExists {
-		// state exists but is not mapped: map it and see if we need to Rotate
-		prod.filesByStream[streamID] = state
-		if rotate, err := state.NeedsRotate(prod.Rotate, forceRotate); !rotate {
-			return state, err // ### return, already open or error ###
+		// batchedFile exists but is not mapped: map it and see if we need to Rotate
+		prod.filesByStream[streamID] = batchedFile
+		if rotate, err := batchedFile.NeedsRotate(prod.Rotate, forceRotate); !rotate {
+			return batchedFile, err // ### return, already open or error ###
 		}
 	}
 
@@ -223,22 +231,22 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	//todo: naming
 	finalPath := streamFile.GetFinalPath(prod.Rotate)
 
-	// Close existing state.writer
-	if state.writer != nil {
-		currentLog := state.writer
-		state.writer = nil
+	// Close existing batchedFile.writer
+	if batchedFile.writer != nil {
+		currentLog := batchedFile.writer
+		batchedFile.writer = nil
 
 		prod.Logger.Info("Rotated ", currentLog.Name(), " -> ", finalPath)
 		go currentLog.Close() // close in subroutine for eventually compression in the background
 	}
 
-	// Update FileState writer and creation time
-	state.writer, err = prod.newFileStateWriterDisk(finalPath)
+	// Update BatchedWriterAssembly writer and creation time
+	batchedFile.writer, err = prod.newFileStateWriterDisk(finalPath)
 	if err != nil {
-		return state, err // ### return error ###
+		return batchedFile, err // ### return error ###
 	}
 
-	state.fileCreated = time.Now()
+	batchedFile.created = time.Now()
 
 	// Create "current" symlink
 	if prod.Rotate.enabled {
@@ -248,7 +256,7 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 	// Prune old logs if requested
 	go prod.Pruner.Prune(streamFile.GetOriginalPath())
 
-	return state, err
+	return batchedFile, err
 }
 
 func (prod *File) createCurrentSymlink(source, target string) {
@@ -315,38 +323,36 @@ func (prod *File) newStreamFile(streamID core.MessageStreamID) streamFile {
 
 func (prod *File) rotateLog() {
 	for streamID := range prod.filesByStream {
-		if _, err := prod.getFileState(streamID, true); err != nil {
+		if _, err := prod.getBatchedFile(streamID, true); err != nil {
 			prod.Logger.Error("Rotate error: ", err)
 		}
 	}
 }
 
 func (prod *File) writeBatchOnTimeOut() {
-	for _, state := range prod.files {
-		if state.batch.ReachedTimeThreshold(prod.batchTimeout) || state.batch.ReachedSizeThreshold(prod.batchFlushCount) {
-			state.Flush()
-		}
+	for _, batchedFile := range prod.files {
+		batchedFile.FlushOnTimeOut()
 	}
 }
 
 func (prod *File) writeMessage(msg *core.Message) {
 	streamMsg := msg.Clone()
 
-	state, err := prod.getFileState(streamMsg.GetStreamID(), false)
+	batchedFile, err := prod.getBatchedFile(streamMsg.GetStreamID(), false)
 	if err != nil {
 		prod.Logger.Error("Write error: ", err)
 		prod.TryFallback(msg)
 		return // ### return, fallback ###
 	}
 
-	state.batch.AppendOrFlush(msg, state.Flush, prod.IsActiveOrStopping, prod.TryFallback)
+	batchedFile.batch.AppendOrFlush(msg, batchedFile.Flush, prod.IsActiveOrStopping, prod.TryFallback)
 }
 
 func (prod *File) close() {
 	defer prod.WorkerDone()
 
-	for _, state := range prod.files {
-		state.Close()
+	for _, batchedFile := range prod.files {
+		batchedFile.Close()
 	}
 }
 
@@ -438,17 +444,17 @@ type fileStateWriterDisk struct {
 	logger          logrus.FieldLogger
 }
 
-// Write is part of the FileStateWriter interface and wraps the file.Write() implementation
+// Write is part of the BatchedWriter interface and wraps the file.Write() implementation
 func (w *fileStateWriterDisk) Write(p []byte) (n int, err error) {
 	return w.file.Write(p)
 }
 
-// Name is part of the FileStateWriter interface and wraps the file.Name() implementation
+// Name is part of the BatchedWriter interface and wraps the file.Name() implementation
 func (w *fileStateWriterDisk) Name() string {
 	return w.file.Name()
 }
 
-// Size is part of the FileStateWriter interface and wraps the file.Stat().Size() implementation
+// Size is part of the BatchedWriter interface and wraps the file.Stat().Size() implementation
 func (w *fileStateWriterDisk) Size() int64 {
 	stats, err := w.getStats()
 	if err != nil {
@@ -461,7 +467,7 @@ func (w *fileStateWriterDisk) Size() int64 {
 //	return w.file.
 //}
 
-// Size is part of the FileStateWriter interface and check if the writer can access his file
+// Size is part of the BatchedWriter interface and check if the writer can access his file
 func (w *fileStateWriterDisk) IsAccessible() bool {
 	_, err := w.getStats()
 	if err != nil {
