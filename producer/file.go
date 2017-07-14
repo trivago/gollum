@@ -15,18 +15,12 @@
 package producer
 
 import (
-	"compress/gzip"
 	"errors"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/components"
-	"github.com/trivago/tgo/tio"
+	"github.com/trivago/gollum/producer/file"
 	"github.com/trivago/tgo/tmath"
-	"github.com/trivago/tgo/tstrings"
-	"github.com/trivago/tgo/tsync"
-	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -96,27 +90,13 @@ import (
 // aborted during shutdown. By default this is set to 0, which does not abort
 // the flushing procedure.
 //
-// Prune/Count removes old logfiles upon rotate so that only the given
-// number of logfiles remain. Logfiles are located by the name defined by "File"
-// and are pruned by date (followed by name).
-// By default this is set to 0 which disables pruning.
-//
-// Prune/AfterHours removes old logfiles that are older than a given number
-// of hours. By default this is set to 0 which disables pruning.
-//
-// Prune/TotalSizeMB removes old logfiles upon rotate so that only the
-// given number of MBs are used by logfiles. Logfiles are located by the name
-// defined by "File" and are pruned by date (followed by name).
-// By default this is set to 0 which disables pruning.
 type File struct {
 	core.DirectProducer `gollumdoc:"embed_type"`
 
-	// Public properties
-	//
 	// Rotate is public to make Pruner.Configure() callable (bug in treflect package)
 	// Prune is public to make FileRotateConfig.Configure() callable (bug in treflect package)
 	Rotate components.RotateConfig `gollumdoc:"embed_type"`
-	Pruner filePruner              `gollumdoc:"embed_type"`
+	Pruner file.Pruner             `gollumdoc:"embed_type"`
 
 	// configuration
 	batchTimeout      time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
@@ -142,7 +122,7 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *File) Configure(conf core.PluginConfigReader) {
-	prod.Pruner.logger = prod.Logger
+	prod.Pruner.Logger = prod.Logger
 
 	prod.SetRollCallback(prod.rotateLog)
 	prod.SetStopCallback(prod.close)
@@ -176,11 +156,10 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 		}
 	}
 
-	// todo: naming
-	streamFile := prod.newStreamFile(streamID)
+	streamTargetFile := prod.newStreamTargetFile(streamID)
 
 	// get batchedFile from files[path] and assure the file is correctly mapped
-	batchedFile, fileExists := prod.files[streamFile.GetOriginalPath()]
+	batchedFile, fileExists := prod.files[streamTargetFile.GetOriginalPath()]
 	if !fileExists {
 		// batchedFile does not yet exist: create and map it
 		batchedFile = components.NewBatchedWriterAssembly(
@@ -193,7 +172,7 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 			prod.Logger,
 		)
 
-		prod.files[streamFile.GetOriginalPath()] = batchedFile
+		prod.files[streamTargetFile.GetOriginalPath()] = batchedFile
 		prod.filesByStream[streamID] = batchedFile
 	} else if _, mappingExists := prod.filesByStream[streamID]; !mappingExists {
 		// batchedFile exists but is not mapped: map it and see if we need to Rotate
@@ -204,12 +183,11 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 	}
 
 	// Assure directory is existing
-	if _, err = streamFile.GetDir(); err != nil {
+	if _, err = streamTargetFile.GetDir(); err != nil {
 		return nil, err // ### return, missing directory ###
 	}
 
-	//todo: naming
-	finalPath := streamFile.GetFinalPath(prod.Rotate)
+	finalPath := streamTargetFile.GetFinalPath(prod.Rotate)
 
 	// Close existing batchedFile.writer
 	if batchedFile.HasWriter() {
@@ -229,11 +207,11 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 
 	// Create "current" symlink
 	if prod.Rotate.Enabled {
-		prod.createCurrentSymlink(finalPath, streamFile.GetSymlinkPath())
+		prod.createCurrentSymlink(finalPath, streamTargetFile.GetSymlinkPath())
 	}
 
 	// Prune old logs if requested
-	go prod.Pruner.Prune(streamFile.GetOriginalPath())
+	go prod.Pruner.Prune(streamTargetFile.GetOriginalPath())
 
 	return batchedFile, err
 }
@@ -290,7 +268,7 @@ func (prod *File) createCurrentSymlink(source, target string) {
 	os.Rename(symLinkNameTemporary, target)
 }
 
-func (prod *File) newFileStateWriterDisk(path string) (*batchedFileWriter, error) {
+func (prod *File) newFileStateWriterDisk(path string) (*file.BatchedFileWriter, error) {
 	openFlags := os.O_RDWR | os.O_CREATE | os.O_APPEND
 	if prod.overwriteFile {
 		openFlags |= os.O_TRUNC
@@ -298,22 +276,16 @@ func (prod *File) newFileStateWriterDisk(path string) (*batchedFileWriter, error
 		openFlags |= os.O_APPEND
 	}
 
-	file, err := os.OpenFile(path, openFlags, prod.filePermissions)
+	fileHandler, err := os.OpenFile(path, openFlags, prod.filePermissions)
 	if err != nil {
 		return nil, err // ### return error ###
 	}
 
-	obj := batchedFileWriter{
-		file,
-		prod.Rotate.Compress,
-		nil,
-		prod.Logger,
-	}
-
-	return &obj, nil
+	batchedFileWriter := file.NewBatchedFileWriter(fileHandler, prod.Rotate.Compress, prod.Logger)
+	return &batchedFileWriter, nil
 }
 
-func (prod *File) newStreamFile(streamID core.MessageStreamID) streamFile {
+func (prod *File) newStreamTargetFile(streamID core.MessageStreamID) file.TargetFile {
 	var fileDir, fileName, fileExt string
 
 	if prod.wildcardPath {
@@ -336,13 +308,7 @@ func (prod *File) newStreamFile(streamID core.MessageStreamID) streamFile {
 		fileExt = prod.fileExt
 	}
 
-	return streamFile{
-		fileDir,
-		fileName,
-		fileExt,
-		fmt.Sprintf("%s/%s%s", fileDir, fileName, fileExt),
-		prod.folderPermissions,
-	}
+	return file.NewTargetFile(fileDir, fileName, fileExt, prod.folderPermissions)
 }
 
 func (prod *File) rotateLog() {
@@ -375,306 +341,5 @@ func (prod *File) close() {
 
 	for _, batchedFile := range prod.files {
 		batchedFile.Close()
-	}
-}
-
-// -- streamFile --
-
-type streamFile struct {
-	dir               string
-	name              string
-	ext               string
-	originalPath      string
-	folderPermissions os.FileMode
-}
-
-// GetOriginalPath returns the base path from instantiation
-func (streamFile *streamFile) GetOriginalPath() string {
-	return streamFile.originalPath
-}
-
-// GetFinalPath returns the final file path with possible rotations
-func (streamFile *streamFile) GetFinalPath(rotate components.RotateConfig) string {
-	return fmt.Sprintf("%s/%s", streamFile.dir, streamFile.GetFinalName(rotate))
-}
-
-// GetFinalName returns the final file name with possible rotations
-func (streamFile *streamFile) GetFinalName(rotate components.RotateConfig) string {
-	var logFileName string
-
-	// Generate the log filename based on rotation, existing files, etc.
-	if !rotate.Enabled {
-		logFileName = fmt.Sprintf("%s%s", streamFile.name, streamFile.ext)
-	} else {
-		timestamp := time.Now().Format(rotate.Timestamp)
-		signature := fmt.Sprintf("%s_%s", streamFile.name, timestamp)
-		maxSuffix := uint64(0)
-
-		files, _ := ioutil.ReadDir(streamFile.dir)
-		for _, file := range files {
-			if strings.HasPrefix(file.Name(), signature) {
-				// Special case.
-				// If there is no extension, counter stays at 0
-				// If there is an extension (and no count), parsing the "." will yield a counter of 0
-				// If there is a count, parsing it will work as intended
-				counter := uint64(0)
-				if len(file.Name()) > len(signature) {
-					counter, _ = tstrings.Btoi([]byte(file.Name()[len(signature)+1:]))
-				}
-
-				if maxSuffix <= counter {
-					maxSuffix = counter + 1
-				}
-			}
-		}
-
-		if maxSuffix == 0 {
-			logFileName = fmt.Sprintf("%s%s", signature, streamFile.ext)
-		} else {
-			formatString := "%s_%d%s"
-			if rotate.ZeroPad > 0 {
-				formatString = fmt.Sprintf("%%s_%%0%dd%%s", rotate.ZeroPad)
-			}
-			logFileName = fmt.Sprintf(formatString, signature, int(maxSuffix), streamFile.ext)
-		}
-	}
-
-	return logFileName
-}
-
-// GetDir create file directory if it not exists and returns the dir name
-func (streamFile *streamFile) GetDir() (string, error) {
-	// Assure path is existing
-	if err := os.MkdirAll(streamFile.dir, streamFile.folderPermissions); err != nil {
-		return "", fmt.Errorf("Failed to create %s because of %s", streamFile.dir, err.Error())
-	}
-
-	return streamFile.dir, nil
-}
-
-// GetSymlinkPath returns a symlink path for the current file
-func (streamFile *streamFile) GetSymlinkPath() string {
-	return fmt.Sprintf("%s/%s_current%s", streamFile.dir, streamFile.name, streamFile.ext)
-}
-
-// -- batchedFileWriter --
-
-type batchedFileWriter struct {
-	file            *os.File
-	compressOnClose bool
-	stats           os.FileInfo
-	logger          logrus.FieldLogger
-}
-
-// Write is part of the BatchedWriter interface and wraps the file.Write() implementation
-func (w *batchedFileWriter) Write(p []byte) (n int, err error) {
-	return w.file.Write(p)
-}
-
-// Name is part of the BatchedWriter interface and wraps the file.Name() implementation
-func (w *batchedFileWriter) Name() string {
-	return w.file.Name()
-}
-
-// Size is part of the BatchedWriter interface and wraps the file.Stat().Size() implementation
-func (w *batchedFileWriter) Size() int64 {
-	stats, err := w.getStats()
-	if err != nil {
-		return 0
-	}
-	return stats.Size()
-}
-
-//func (w *batchedFileWriter) Created() time.Time {
-//	return w.file.
-//}
-
-// Size is part of the BatchedWriter interface and check if the writer can access his file
-func (w *batchedFileWriter) IsAccessible() bool {
-	_, err := w.getStats()
-	if err != nil {
-		return false
-	}
-
-	return true
-}
-
-// Size is part of the Close interface and handle the file close or compression call
-func (w *batchedFileWriter) Close() error {
-	if w.compressOnClose {
-		return w.compressAndCloseLog()
-	}
-
-	return w.file.Close()
-}
-
-func (w *batchedFileWriter) getStats() (os.FileInfo, error) {
-	if w.stats != nil {
-		return w.stats, nil
-	}
-
-	stats, err := w.file.Stat()
-	if err != nil {
-		return nil, err
-	}
-
-	w.stats = stats
-	return w.stats, nil
-}
-
-func (w *batchedFileWriter) compressAndCloseLog() error {
-	// Generate file to zip into
-	sourceFileName := w.Name()
-	sourceDir, sourceBase, _ := tio.SplitPath(sourceFileName)
-
-	targetFileName := fmt.Sprintf("%s/%s.gz", sourceDir, sourceBase)
-
-	targetFile, err := os.OpenFile(targetFileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
-	if err != nil {
-		w.logger.Error("Compress error:", err)
-		w.file.Close()
-		return err
-	}
-
-	// Create zipfile and compress data
-	w.logger.Info("Compressing " + sourceFileName)
-
-	w.file.Seek(0, 0)
-	targetWriter := gzip.NewWriter(targetFile)
-	spin := tsync.NewSpinner(tsync.SpinPriorityHigh)
-
-	for err == nil {
-		_, err = io.CopyN(targetWriter, w.file, 1<<20) // 1 MB chunks
-		spin.Yield()                                   // Be async!
-	}
-
-	// Cleanup
-	w.file.Close()
-	targetWriter.Close()
-	targetFile.Close()
-
-	if err != nil && err != io.EOF {
-		w.logger.Warning("Compression failed:", err)
-		err = os.Remove(targetFileName)
-		if err != nil {
-			w.logger.Error("Compressed file remove failed:", err)
-		}
-		return err
-	}
-
-	// Remove original log
-	err = os.Remove(sourceFileName)
-	if err != nil {
-		w.logger.Error("Uncompressed file remove failed:", err)
-		return err
-	}
-
-	return nil
-}
-
-// -- filePruner --
-
-type filePruner struct {
-	pruneCount int   `config:"Prune/Count" default:"0"`
-	pruneHours int   `config:"Prune/AfterHours" default:"0"`
-	pruneSize  int64 `config:"Prune/TotalSizeMB" default:"0" metric:"mb"`
-	rotate     components.RotateConfig
-	logger     logrus.FieldLogger
-}
-
-// Configure initializes this object with values from a plugin config.
-func (pruner *filePruner) Configure(conf core.PluginConfigReader) {
-	if pruner.pruneSize > 0 && pruner.rotate.SizeByte > 0 {
-		pruner.pruneSize -= pruner.rotate.SizeByte >> 20
-		if pruner.pruneSize <= 0 {
-			pruner.pruneCount = 1
-			pruner.pruneSize = 0
-		}
-	}
-}
-
-// Prune starts prune methods by hours, by count and by size
-func (pruner *filePruner) Prune(baseFilePath string) {
-	if pruner.pruneHours > 0 {
-		pruner.pruneByHour(baseFilePath, pruner.pruneHours)
-	}
-	if pruner.pruneCount > 0 {
-		pruner.pruneByCount(baseFilePath, pruner.pruneCount)
-	}
-	if pruner.pruneSize > 0 {
-		pruner.pruneToSize(baseFilePath, pruner.pruneSize)
-	}
-}
-
-func (pruner *filePruner) pruneByHour(baseFilePath string, hours int) {
-	baseDir, baseName, _ := tio.SplitPath(baseFilePath)
-
-	files, err := tio.ListFilesByDateMatching(baseDir, baseName+".*")
-	if err != nil {
-		pruner.logger.Error("Error pruning files: ", err)
-		return // ### return, error ###
-	}
-
-	pruneDate := time.Now().Add(time.Duration(-hours) * time.Hour)
-
-	for i := 0; i < len(files) && files[i].ModTime().Before(pruneDate); i++ {
-		filePath := fmt.Sprintf("%s/%s", baseDir, files[i].Name())
-		if err := os.Remove(filePath); err != nil {
-			pruner.logger.Errorf("Failed to prune \"%s\": %s", filePath, err.Error())
-		} else {
-			pruner.logger.Infof("Pruned \"%s\"", filePath)
-		}
-	}
-}
-
-func (pruner *filePruner) pruneByCount(baseFilePath string, count int) {
-	baseDir, baseName, _ := tio.SplitPath(baseFilePath)
-
-	files, err := tio.ListFilesByDateMatching(baseDir, baseName+".*")
-	if err != nil {
-		pruner.logger.Error("Error pruning files: ", err)
-		return // ### return, error ###
-	}
-
-	numFilesToPrune := len(files) - count
-	if numFilesToPrune < 1 {
-		return // ## return, nothing to prune ###
-	}
-
-	for i := 0; i < numFilesToPrune; i++ {
-		filePath := fmt.Sprintf("%s/%s", baseDir, files[i].Name())
-		if err := os.Remove(filePath); err != nil {
-			pruner.logger.Errorf("Failed to prune \"%s\": %s", filePath, err.Error())
-		} else {
-			pruner.logger.Infof("Pruned \"%s\"", filePath)
-		}
-	}
-}
-
-func (pruner *filePruner) pruneToSize(baseFilePath string, maxSize int64) {
-	baseDir, baseName, _ := tio.SplitPath(baseFilePath)
-
-	files, err := tio.ListFilesByDateMatching(baseDir, baseName+".*")
-	if err != nil {
-		pruner.logger.Error("Error pruning files: ", err)
-		return // ### return, error ###
-	}
-
-	totalSize := int64(0)
-	for _, file := range files {
-		totalSize += file.Size()
-	}
-
-	for _, file := range files {
-		if totalSize <= maxSize {
-			return // ### return, done ###
-		}
-		filePath := fmt.Sprintf("%s/%s", baseDir, file.Name())
-		if err := os.Remove(filePath); err != nil {
-			pruner.logger.Errorf("Failed to prune \"%s\": %s", filePath, err.Error())
-		} else {
-			pruner.logger.Infof("Pruned \"%s\"", filePath)
-			totalSize -= file.Size()
-		}
 	}
 }
