@@ -48,7 +48,6 @@ var (
 // NewMessage creates a new message from a given data stream by copying data.
 func NewMessage(source MessageSource, data []byte, metadata Metadata, streamID MessageStreamID) *Message {
 	buffer := getPayloadCopy(data)
-	origBuffer := getPayloadCopy(data)
 
 	message := &Message{
 		source:       source,
@@ -63,10 +62,6 @@ func NewMessage(source MessageSource, data []byte, metadata Metadata, streamID M
 	} else {
 		message.data.Metadata = metadata
 	}
-
-	message.orig.payload = origBuffer
-	message.orig.streamID = streamID
-	message.orig.Metadata = message.data.Metadata.Clone()
 
 	return message
 }
@@ -193,6 +188,13 @@ func (msg *Message) CloneOriginal() *Message {
 	clone.SetStreamID(msg.orig.streamID)
 
 	return &clone
+}
+
+// FreezeOriginal set the original data and freeze the message
+func (msg *Message) FreezeOriginal() {
+	msg.orig.payload = getPayloadCopy(msg.data.payload)
+	msg.orig.streamID = msg.data.streamID
+	msg.orig.Metadata = msg.data.Metadata.Clone()
 }
 
 // Serialize generates a string containing all data that can be preserved over
