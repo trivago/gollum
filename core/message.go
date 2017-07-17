@@ -88,6 +88,11 @@ func (msg *Message) GetStreamID() MessageStreamID {
 	return msg.data.streamID
 }
 
+// GetOrigStreamID returns the original/first streamID
+func (msg *Message) GetOrigStreamID() MessageStreamID {
+	return msg.orig.streamID
+}
+
 // GetPrevStreamID returns the last "hop" of this message.
 func (msg *Message) GetPrevStreamID() MessageStreamID {
 	return msg.prevStreamID
