@@ -151,7 +151,7 @@ coverprofile:
 
 integration: current
 	@echo "go tests integration"
-	$(BUILD_ENV) go test $(BUILD_FLAGS) -v -tags="integration" $(INTEGRATION_TEST_ONLY_PKGS)
+	$(BUILD_ENV) go test $(BUILD_FLAGS) -v -race -tags="integration" $(INTEGRATION_TEST_ONLY_PKGS)
 
 pre-commit: vet lint fmt
 
