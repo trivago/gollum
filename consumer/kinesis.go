@@ -120,6 +120,7 @@ type Kinesis struct {
 	shardTime           time.Duration `config:"CheckNewShardsSec" default:"0" metric:"sec"`
 	assumeRole          string        `config:"Credential/AssumeRole"`
 	running             bool
+	offsetsGuard        *sync.RWMutex
 }
 
 func init() {
@@ -129,6 +130,7 @@ func init() {
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Kinesis) Configure(conf core.PluginConfigReader) {
 	cons.offsets = make(map[string]string)
+	cons.offsetsGuard = new(sync.RWMutex)
 
 	// Config
 	cons.config = aws.NewConfig()
@@ -198,9 +200,15 @@ func (cons *Kinesis) Configure(conf core.PluginConfigReader) {
 	}
 }
 
+func (cons *Kinesis) marshalOffsets() ([]byte, error) {
+	cons.offsetsGuard.RLock()
+	defer cons.offsetsGuard.RUnlock()
+	return json.Marshal(cons.offsets)
+}
+
 func (cons *Kinesis) storeOffsets() {
 	if cons.offsetFile != "" {
-		fileContents, err := json.Marshal(cons.offsets)
+		fileContents, err := cons.marshalOffsets()
 		if err != nil {
 			cons.Logger.Errorf("Failed to marshal kinesis offsets: %s", err.Error())
 			return
@@ -214,11 +222,15 @@ func (cons *Kinesis) storeOffsets() {
 
 func (cons *Kinesis) createShardIteratorConfig(shardID string) *kinesis.GetRecordsInput {
 	for cons.running {
+		cons.offsetsGuard.RLock()
+		offset := cons.offsets[shardID]
+		cons.offsetsGuard.RUnlock()
+
 		iteratorConfig := kinesis.GetShardIteratorInput{
 			ShardId:                aws.String(shardID),
 			ShardIteratorType:      aws.String(cons.offsetType),
 			StreamName:             aws.String(cons.stream),
-			StartingSequenceNumber: aws.String(cons.offsets[shardID]),
+			StartingSequenceNumber: aws.String(offset),
 		}
 
 		if *iteratorConfig.StartingSequenceNumber == "" {
@@ -289,7 +301,16 @@ func (cons *Kinesis) processShard(shardID string) {
 			} else {
 				cons.Enqueue(record.Data)
 			}
+
+			// Why not an exclusive lock here?
+			// - the map already has an entry for the shardID at this point.
+			// - we are the only one writing to this field
+			// - reading an offset is always a race as it can change at any time
+			// - performance is crucial here
+			// If we could be sure this actually IS a number, we could use atomic.Store here
+			cons.offsetsGuard.RLock()
 			cons.offsets[shardID] = *record.SequenceNumber
+			cons.offsetsGuard.RUnlock()
 		}
 
 		cons.storeOffsets()
@@ -334,11 +355,14 @@ func (cons *Kinesis) connect() error {
 			return fmt.Errorf("ShardId could not be retrieved")
 		}
 
+		// No locks required here as connect is called only once on start
 		if _, offsetStored := cons.offsets[*shard.ShardId]; !offsetStored {
 			cons.offsets[*shard.ShardId] = cons.defaultOffset
 		}
 	}
 
+	// No locks required here updateShards is not yet running and processShard
+	// does not change the offsets structure.
 	for shardID := range cons.offsets {
 		cons.Logger.Debugf("Starting consumer for %s:%s", cons.stream, shardID)
 		go cons.processShard(shardID)
@@ -377,11 +401,13 @@ func (cons *Kinesis) updateShards() {
 				continue
 			}
 
+			cons.offsetsGuard.Lock()
 			if _, offsetStored := cons.offsets[*shard.ShardId]; !offsetStored {
 				cons.offsets[*shard.ShardId] = cons.defaultOffset
 				cons.Logger.Debugf("Starting kinesis consumer for %s:%s", cons.stream, *shard.ShardId)
 				go cons.processShard(*shard.ShardId)
 			}
+			cons.offsetsGuard.Unlock()
 		}
 		time.Sleep(cons.shardTime)
 	}
