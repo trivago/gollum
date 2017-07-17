@@ -114,6 +114,7 @@ type File struct {
 	fileName      string
 	fileExt       string
 	wildcardPath  bool
+	batchedFileGuard   *sync.RWMutex
 }
 
 func init() {
@@ -138,6 +139,8 @@ func (prod *File) Configure(conf core.PluginConfigReader) {
 	prod.fileExt = filepath.Ext(logFile)
 	prod.fileName = filepath.Base(logFile)
 	prod.fileName = prod.fileName[:len(prod.fileName)-len(prod.fileExt)]
+
+	prod.batchedFileGuard = new(sync.RWMutex)
 }
 
 // Produce writes to a buffer that is dumped to a file.
@@ -150,6 +153,19 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 	var err error
 
 	// get batchedFile from filesByStream[streamID] map
+	prod.batchedFileGuard.RLock()
+	batchedFile, fileExists := prod.filesByStream[streamID]
+	prod.batchedFileGuard.RUnlock()
+	if fileExists {
+		if rotate, err := prod.needsRotate(batchedFile, forceRotate); !rotate {
+			return batchedFile, err // ### return, already open or error ###
+		}
+	}
+
+	prod.batchedFileGuard.Lock()
+	defer prod.batchedFileGuard.Unlock()
+
+	// check again to avoid race conditions
 	if batchedFile, fileExists := prod.filesByStream[streamID]; fileExists {
 		if rotate, err := prod.needsRotate(batchedFile, forceRotate); !rotate {
 			return batchedFile, err // ### return, already open or error ###
@@ -159,7 +175,7 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 	streamTargetFile := prod.newStreamTargetFile(streamID)
 
 	// get batchedFile from files[path] and assure the file is correctly mapped
-	batchedFile, fileExists := prod.files[streamTargetFile.GetOriginalPath()]
+	batchedFile, fileExists = prod.files[streamTargetFile.GetOriginalPath()]
 	if !fileExists {
 		// batchedFile does not yet exist: create and map it
 		batchedFile = components.NewBatchedWriterAssembly(
