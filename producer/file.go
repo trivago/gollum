@@ -108,13 +108,13 @@ type File struct {
 	folderPermissions os.FileMode   `config:"FolderPermissions" default:"0755"`
 
 	// properties
-	filesByStream map[core.MessageStreamID]*components.BatchedWriterAssembly
-	files         map[string]*components.BatchedWriterAssembly
-	fileDir       string
-	fileName      string
-	fileExt       string
-	wildcardPath  bool
-	batchedFileGuard   *sync.RWMutex
+	filesByStream    map[core.MessageStreamID]*components.BatchedWriterAssembly
+	files            map[string]*components.BatchedWriterAssembly
+	fileDir          string
+	fileName         string
+	fileExt          string
+	wildcardPath     bool
+	batchedFileGuard *sync.RWMutex
 }
 
 func init() {
