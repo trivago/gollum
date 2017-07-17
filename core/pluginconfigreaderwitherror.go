@@ -272,6 +272,7 @@ func (reader PluginConfigReaderWithError) GetModulatorArray(key string, logger l
 	}
 
 	errors := tgo.NewErrorStack()
+	errors.SetFormat(tgo.ErrorStackFormatCSV)
 
 	for _, plugin := range modPlugins {
 		if filter, isFilter := plugin.(Filter); isFilter {
@@ -308,6 +309,7 @@ func (reader PluginConfigReaderWithError) GetFilterArray(key string, logger logr
 	}
 
 	errors := tgo.NewErrorStack()
+	errors.SetFormat(tgo.ErrorStackFormatCSV)
 
 	for _, plugin := range modPlugins {
 		if filter, isFilter := plugin.(Filter); isFilter {
@@ -334,6 +336,7 @@ func (reader PluginConfigReaderWithError) GetFormatterArray(key string, logger l
 	}
 
 	errors := tgo.NewErrorStack()
+	errors.SetFormat(tgo.ErrorStackFormatCSV)
 
 	for _, plugin := range modPlugins {
 		if formatter, isFormatter := plugin.(Formatter); isFormatter {
