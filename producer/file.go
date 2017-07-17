@@ -342,7 +342,7 @@ func (prod *File) writeBatchOnTimeOut() {
 }
 
 func (prod *File) writeMessage(msg *core.Message) {
-	batchedFile, err := prod.getBatchedFile(msg.GetOrigStreamID(), false)
+	batchedFile, err := prod.getBatchedFile(msg.GetStreamID(), false)
 	if err != nil {
 		prod.Logger.Error("Write error: ", err)
 		prod.TryFallback(msg)
