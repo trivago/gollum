@@ -50,6 +50,16 @@ func main() {
 func mainWithExitCode() int {
 	parseFlags()
 
+	if *flagHelp || len(os.Args) == 1 {
+		printFlags()
+		return tos.ExitSuccess // ### return, help screen ###
+	}
+
+	if *flagExtVersion {
+		printExtVersion()
+		return tos.ExitSuccess // ### return, version only ###
+	}
+
 	if *flagVersion {
 		printVersion()
 		return tos.ExitSuccess // ### return, version only ###
@@ -332,6 +342,12 @@ func parseAddress(address string) (string, error) {
 
 func printVersion() {
 	fmt.Println(core.GetVersionString())
+}
+
+func printExtVersion() {
+	fmt.Printf("%6s: %s\n", "Gollum", core.GetVersionString()[1:])
+	fmt.Printf("%6s: %s\n", "Go", runtime.Version()[2:])
+	fmt.Printf("%6s: %s\n", "Arch", runtime.GOARCH)
 }
 
 func printModules() {

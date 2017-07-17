@@ -24,6 +24,7 @@ import (
 var (
 	flagHelp           = tflag.Switch("h", "help", "Print this help message.")
 	flagVersion        = tflag.Switch("v", "version", "Print version information and quit.")
+	flagExtVersion     = tflag.Switch("r", "runtime", "Print runtime information and quit.")
 	flagModules        = tflag.Switch("l", "list", "Print plugin information and quit.")
 	flagConfigFile     = tflag.String("c", "config", "", "Use a given configuration file.")
 	flagTestConfigFile = tflag.String("tc", "testconfig", "", "Test the given configuration file and exit.")
