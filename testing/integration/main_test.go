@@ -39,7 +39,7 @@ func TestRunableVersion(t *testing.T) {
 	out, err := ExecuteGollum("", nil, "-v")
 
 	expect.NoError(err)
-	expect.True(strings.Contains(out.String(), "Gollum: v"))
+	expect.Equal(0, strings.Index(out.String(), "v"))
 }
 
 func TestRunableList(t *testing.T) {

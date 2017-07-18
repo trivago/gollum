@@ -20,6 +20,11 @@ import (
 	"sync"
 )
 
+var (
+	// GeneratedRouterPrefix is prepended to all generated routers
+	GeneratedRouterPrefix = "_GENERATED_"
+)
+
 // streamRegistry holds routers mapped by their MessageStreamID as well as a
 // reverse lookup of MessageStreamID to stream name.
 type streamRegistry struct {
@@ -180,7 +185,7 @@ func (registry *streamRegistry) createFallback(streamID MessageStreamID) Router 
 	streamName := registry.GetStreamName(streamID)
 	logrus.Debug("Creating fallback stream for ", streamName)
 
-	config := NewPluginConfig("_generated_stream_"+streamName, "router.Broadcast")
+	config := NewPluginConfig(GeneratedRouterPrefix+streamName, "router.Broadcast")
 	config.Override("stream", streamName)
 
 	plugin, err := NewPluginWithConfig(config)
