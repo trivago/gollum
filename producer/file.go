@@ -15,7 +15,6 @@
 package producer
 
 import (
-	"errors"
 	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/components"
@@ -157,7 +156,7 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 	batchedFile, fileExists := prod.filesByStream[streamID]
 	prod.batchedFileGuard.RUnlock()
 	if fileExists {
-		if rotate, err := prod.needsRotate(batchedFile, forceRotate); !rotate {
+		if rotate, err := batchedFile.NeedsRotate(prod.Rotate, forceRotate); !rotate {
 			return batchedFile, err // ### return, already open or error ###
 		}
 	}
@@ -167,7 +166,7 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 
 	// check again to avoid race conditions
 	if batchedFile, fileExists := prod.filesByStream[streamID]; fileExists {
-		if rotate, err := prod.needsRotate(batchedFile, forceRotate); !rotate {
+		if rotate, err := batchedFile.NeedsRotate(prod.Rotate, forceRotate); !rotate {
 			return batchedFile, err // ### return, already open or error ###
 		}
 	}
@@ -193,7 +192,7 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 	} else if _, mappingExists := prod.filesByStream[streamID]; !mappingExists {
 		// batchedFile exists but is not mapped: map it and see if we need to Rotate
 		prod.filesByStream[streamID] = batchedFile
-		if rotate, err := prod.needsRotate(batchedFile, forceRotate); !rotate {
+		if rotate, err := batchedFile.NeedsRotate(prod.Rotate, forceRotate); !rotate {
 			return batchedFile, err // ### return, already open or error ###
 		}
 	}
@@ -230,51 +229,6 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 	go prod.Pruner.Prune(streamTargetFile.GetOriginalPath())
 
 	return batchedFile, err
-}
-
-// NeedsRotate evaluate if the BatchedWriterAssembly need to rotate by the FileRotateConfig
-func (prod *File) needsRotate(batchFile *components.BatchedWriterAssembly, forceRotate bool) (bool, error) {
-	// File does not exist?
-	if !batchFile.HasWriter() {
-		return true, nil
-	}
-
-	// File can be accessed?
-	if batchFile.GetWriter().IsAccessible() == false {
-		return false, errors.New("Can' access file to rotate")
-	}
-
-	// File needs rotation?
-	if !prod.Rotate.Enabled {
-		return false, nil
-	}
-
-	if forceRotate {
-		return true, nil
-	}
-
-	// File is too large?
-	if batchFile.GetWriter().Size() >= prod.Rotate.SizeByte {
-		return true, nil // ### return, too large ###
-	}
-
-	// File is too old?
-	if time.Since(batchFile.Created) >= prod.Rotate.Timeout {
-		return true, nil // ### return, too old ###
-	}
-
-	// RotateAt crossed?
-	if prod.Rotate.AtHour > -1 && prod.Rotate.AtMinute > -1 {
-		now := time.Now()
-		rotateAt := time.Date(now.Year(), now.Month(), now.Day(), prod.Rotate.AtHour, prod.Rotate.AtMinute, 0, 0, now.Location())
-
-		if batchFile.Created.Sub(rotateAt).Minutes() < 0 {
-			return true, nil // ### return, too old ###
-		}
-	}
-
-	// nope, everything is ok
-	return false, nil
 }
 
 func (prod *File) createCurrentSymlink(source, target string) {

@@ -15,6 +15,7 @@
 package components
 
 import (
+	"errors"
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 	"io"
@@ -108,4 +109,49 @@ func (bwa *BatchedWriterAssembly) FlushOnTimeOut() {
 	if bwa.Batch.ReachedTimeThreshold(bwa.batchTimeout) || bwa.Batch.ReachedSizeThreshold(bwa.batchFlushCount) {
 		bwa.Flush()
 	}
+}
+
+// NeedsRotate evaluate if the BatchedWriterAssembly need to rotate by the FileRotateConfig
+func (bwa *BatchedWriterAssembly) NeedsRotate(rotate RotateConfig, forceRotate bool) (bool, error) {
+	// File does not exist?
+	if !bwa.HasWriter() {
+		return true, nil
+	}
+
+	// File can be accessed?
+	if bwa.GetWriter().IsAccessible() == false {
+		return false, errors.New("Can' access file to rotate")
+	}
+
+	// File needs rotation?
+	if !rotate.Enabled {
+		return false, nil
+	}
+
+	if forceRotate {
+		return true, nil
+	}
+
+	// File is too large?
+	if bwa.GetWriter().Size() >= rotate.SizeByte {
+		return true, nil // ### return, too large ###
+	}
+
+	// File is too old?
+	if time.Since(bwa.Created) >= rotate.Timeout {
+		return true, nil // ### return, too old ###
+	}
+
+	// RotateAt crossed?
+	if rotate.AtHour > -1 && rotate.AtMinute > -1 {
+		now := time.Now()
+		rotateAt := time.Date(now.Year(), now.Month(), now.Day(), rotate.AtHour, rotate.AtMinute, 0, 0, now.Location())
+
+		if bwa.Created.Sub(rotateAt).Minutes() < 0 {
+			return true, nil // ### return, too old ###
+		}
+	}
+
+	// nope, everything is ok
+	return false, nil
 }
