@@ -97,8 +97,8 @@ func TestValidate(t *testing.T) {
 	conf, err := ReadConfig(testConfig)
 	expect.NoError(err)
 
-	errors := conf.Validate()
-	expect.Equal(0, len(errors))
+	err = conf.Validate()
+	expect.NoError(err)
 }
 
 func TestValidateFailure(t *testing.T) {
@@ -109,6 +109,6 @@ func TestValidateFailure(t *testing.T) {
 	conf, err := ReadConfig(testConfig)
 	expect.NoError(err)
 
-	errors := conf.Validate()
-	expect.Equal(1, len(errors))
+	err = conf.Validate()
+	expect.NotNil(err)
 }

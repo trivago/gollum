@@ -92,16 +92,16 @@ func (conf *PluginConfig) registerKey(key string) string {
 
 // Validate should be called after a configuration has been processed. It will
 // check the keys read from the config files against the keys requested up to
-// this point. Unknown keys will be written to the error log.
-func (conf PluginConfig) Validate() bool {
-	valid := true
+// this point. Unknown keys will be returned as errors
+func (conf PluginConfig) Validate() error {
+	errors := tgo.NewErrorStack()
+	errors.SetFormat(tgo.ErrorStackFormatCSV)
 	for key := range conf.Settings {
 		if _, exists := conf.validKeys[key]; !exists {
-			valid = false
-			logrus.Warningf("Unknown configuration key in %s: %s", conf.Typename, key)
+			errors.Pushf("Unknown configuration key in %s: %s", conf.Typename, key)
 		}
 	}
-	return valid
+	return errors.OrNil()
 }
 
 // Read analyzes a given key/value map to extract the configuration values valid
@@ -110,6 +110,7 @@ func (conf PluginConfig) Validate() bool {
 func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
 	var err error
 	errors := tgo.NewErrorStack()
+	errors.SetFormat(tgo.ErrorStackFormatCSV)
 	for key, settingValue := range values {
 		lowerCaseKey := strings.ToLower(key)
 

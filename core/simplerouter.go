@@ -17,6 +17,7 @@ package core
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/thealthcheck"
+	"strings"
 	"time"
 )
 
@@ -50,7 +51,7 @@ func (router *SimpleRouter) Configure(conf PluginConfigReader) {
 	router.id = conf.GetID()
 	router.Logger = conf.GetLogger()
 
-	if router.streamID == WildcardStreamID {
+	if router.streamID == WildcardStreamID && strings.Index(router.id, GeneratedRouterPrefix) != 0 {
 		router.Logger.Info("A wildcard stream configuration only affects the wildcard stream, not all routers")
 	}
 }

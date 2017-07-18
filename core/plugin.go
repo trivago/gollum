@@ -152,6 +152,10 @@ func (state *PluginRunState) WorkerDone() {
 // NewPluginWithConfig creates a new plugin from the type information stored in its
 // config. This function internally calls NewPluginWithType.
 func NewPluginWithConfig(config PluginConfig) (Plugin, error) {
+	if len(config.Typename) == 0 {
+		return nil, fmt.Errorf("Plugin '%s' has no type set", config.ID)
+	}
+
 	obj, err := TypeRegistry.New(config.Typename)
 	if err != nil {
 		return nil, err
@@ -159,20 +163,23 @@ func NewPluginWithConfig(config PluginConfig) (Plugin, error) {
 
 	plugin, isPlugin := obj.(Plugin)
 	if !isPlugin {
-		return nil, fmt.Errorf("%s is not a plugin type", config.Typename)
+		return nil, fmt.Errorf("'%s' is not a plugin type", config.Typename)
 	}
 
 	reader := NewPluginConfigReader(&config)
-	err = reader.Configure(plugin)
-	if err == nil {
-		if config.ID != "" {
-			// If an id is set it must be unique
-			PluginRegistry.RegisterUnique(plugin, config.ID)
-		}
-
-		// Check for errors (log as warning)
-		config.Validate()
+	if err := reader.Configure(plugin); err != nil {
+		return nil, err
 	}
 
-	return plugin, err
+	// Note: The current YAML format does actually prevent this, but left here
+	//       as a precaution.
+	if len(config.ID) > 0 && !PluginRegistry.RegisterUnique(plugin, config.ID) {
+		return nil, fmt.Errorf("Plugin id '%s' must be unique", config.ID)
+	}
+
+	if err := config.Validate(); err != nil {
+		return nil, err
+	}
+
+	return plugin, nil
 }
