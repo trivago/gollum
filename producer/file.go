@@ -15,14 +15,14 @@
 package producer
 
 import (
+	"errors"
 	"fmt"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/components"
+	"github.com/trivago/gollum/producer/file"
 	"github.com/trivago/tgo/tmath"
-	"github.com/trivago/tgo/tstrings"
-	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -36,7 +36,8 @@ import (
 //
 // Configuration example
 //
-//  - "producer.File":
+//  myProducer:
+//    Type: producer.File
 //    File: "/var/log/gollum.log"
 //    FileOverwrite: false
 //    Permissions: "0664"
@@ -53,6 +54,7 @@ import (
 //    	SizeMB: 1024
 // 		Compress: false
 // 		ZeroPadding: 0
+// 		At: 13:05
 // 	  Prune:
 //    	Count: 0
 //    	AfterHours: 0
@@ -88,60 +90,31 @@ import (
 // aborted during shutdown. By default this is set to 0, which does not abort
 // the flushing procedure.
 //
-// Rotation/Enable if set to true the logs will rotate after reaching certain thresholds.
-// By default this is set to false.
-//
-// Rotation/TimeoutMin defines a timeout in minutes that will cause the logs to
-// rotate. Can be set in parallel with RotateSizeMB. By default this is set to
-// 1440 (i.e. 1 Day).
-//
-// Rotation/SizeMB defines the maximum file size in MB that triggers a file rotate.
-// Files can get bigger than this size. By default this is set to 1024.
-//
-// Rotation/Timestamp sets the timestamp added to the filename when file rotation
-// is enabled. The format is based on Go's time.Format function and set to
-// "2006-01-02_15" by default.
-//
-// Rotation/ZeroPadding sets the number of leading zeros when rotating files with
-// an existing name. Setting this setting to 0 won't add zeros, every other
-// number defines the number of leading zeros to be used. By default this is
-// set to 0.
-//
-// Rotation/Compress defines if a rotated logfile is to be gzip compressed or not.
-// By default this is set to false.
-//
-// Prune/Count removes old logfiles upon rotate so that only the given
-// number of logfiles remain. Logfiles are located by the name defined by "File"
-// and are pruned by date (followed by name).
-// By default this is set to 0 which disables pruning.
-//
-// Prune/AfterHours removes old logfiles that are older than a given number
-// of hours. By default this is set to 0 which disables pruning.
-//
-// Prune/TotalSizeMB removes old logfiles upon rotate so that only the
-// given number of MBs are used by logfiles. Logfiles are located by the name
-// defined by "File" and are pruned by date (followed by name).
-// By default this is set to 0 which disables pruning.
 type File struct {
-	core.BufferedProducer `gollumdoc:"embed_type"`
-	filesByStream         map[core.MessageStreamID]*fileState
-	files                 map[string]*fileState
-	rotate                fileRotateConfig
-	timestamp             string `config:"Rotation/Timestamp" default:"2006-01-02_15"`
-	fileDir               string
-	fileName              string
-	fileExt               string
-	batchTimeout          time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
-	flushTimeout          time.Duration `config:"FlushTimeoutSec" default:"5" metric:"sec"`
-	batchMaxCount         int           `config:"Batch/MaxCount" default:"8192"`
-	batchFlushCount       int           `config:"Batch/FlushCount" default:"4096"`
-	pruneCount            int           `config:"Prune/Count" default:"0"`
-	pruneHours            int           `config:"Prune/AfterHours" default:"0"`
-	pruneSize             int64         `config:"Prune/TotalSizeMB" default:"0" metric:"mb"`
-	wildcardPath          bool
-	overwriteFile         bool        `config:"FileOverwrite"`
-	filePermissions       os.FileMode `config:"Permissions" default:"0644"`
-	folderPermissions     os.FileMode `config:"FolderPermissions" default:"0755"`
+	core.DirectProducer `gollumdoc:"embed_type"`
+
+	// Rotate is public to make Pruner.Configure() callable (bug in treflect package)
+	// Prune is public to make FileRotateConfig.Configure() callable (bug in treflect package)
+	Rotate components.RotateConfig `gollumdoc:"embed_type"`
+	Pruner file.Pruner             `gollumdoc:"embed_type"`
+
+	// configuration
+	batchTimeout      time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
+	batchMaxCount     int           `config:"Batch/MaxCount" default:"8192"`
+	batchFlushCount   int           `config:"Batch/FlushCount" default:"4096"`
+	flushTimeout      time.Duration `config:"FlushTimeoutSec" default:"0" metric:"sec"`
+	overwriteFile     bool          `config:"FileOverwrite"`
+	filePermissions   os.FileMode   `config:"Permissions" default:"0644"`
+	folderPermissions os.FileMode   `config:"FolderPermissions" default:"0755"`
+
+	// properties
+	filesByStream    map[core.MessageStreamID]*components.BatchedWriterAssembly
+	files            map[string]*components.BatchedWriterAssembly
+	fileDir          string
+	fileName         string
+	fileExt          string
+	wildcardPath     bool
+	batchedFileGuard *sync.RWMutex
 }
 
 func init() {
@@ -150,11 +123,13 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *File) Configure(conf core.PluginConfigReader) {
+	prod.Pruner.Logger = prod.Logger
+
 	prod.SetRollCallback(prod.rotateLog)
 	prod.SetStopCallback(prod.close)
 
-	prod.filesByStream = make(map[core.MessageStreamID]*fileState)
-	prod.files = make(map[string]*fileState)
+	prod.filesByStream = make(map[core.MessageStreamID]*components.BatchedWriterAssembly)
+	prod.files = make(map[string]*components.BatchedWriterAssembly)
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
 
 	logFile := conf.GetString("File", "/var/log/gollum.log")
@@ -165,35 +140,169 @@ func (prod *File) Configure(conf core.PluginConfigReader) {
 	prod.fileName = filepath.Base(logFile)
 	prod.fileName = prod.fileName[:len(prod.fileName)-len(prod.fileExt)]
 
-	if prod.pruneSize > 0 && prod.rotate.sizeByte > 0 {
-		prod.pruneSize -= prod.rotate.sizeByte >> 20
-		if prod.pruneSize <= 0 {
-			prod.pruneCount = 1
-			prod.pruneSize = 0
-		}
-	}
-
-	rotateAt := conf.GetString("Rotation/At", "")
-	prod.rotate.atHour = -1
-	prod.rotate.atMinute = -1
-	if rotateAt != "" {
-		parts := strings.Split(rotateAt, ":")
-		rotateAtHour, _ := strconv.ParseInt(parts[0], 10, 8)
-		rotateAtMin, _ := strconv.ParseInt(parts[1], 10, 8)
-
-		prod.rotate.atHour = int(rotateAtHour)
-		prod.rotate.atMinute = int(rotateAtMin)
-	}
+	prod.batchedFileGuard = new(sync.RWMutex)
 }
 
-func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) (*fileState, error) {
-	if state, stateExists := prod.filesByStream[streamID]; stateExists {
-		if rotate, err := state.needsRotate(prod.rotate, forceRotate); !rotate {
-			return state, err // ### return, already open or error ###
+// Produce writes to a buffer that is dumped to a file.
+func (prod *File) Produce(workers *sync.WaitGroup) {
+	prod.AddMainWorker(workers)
+	prod.TickerMessageControlLoop(prod.writeMessage, prod.batchTimeout, prod.writeBatchOnTimeOut)
+}
+
+func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool) (*components.BatchedWriterAssembly, error) {
+	var err error
+
+	// get batchedFile from filesByStream[streamID] map
+	prod.batchedFileGuard.RLock()
+	batchedFile, fileExists := prod.filesByStream[streamID]
+	prod.batchedFileGuard.RUnlock()
+	if fileExists {
+		if rotate, err := prod.needsRotate(batchedFile, forceRotate); !rotate {
+			return batchedFile, err // ### return, already open or error ###
 		}
 	}
 
-	var logFileName, fileDir, fileName, fileExt string
+	prod.batchedFileGuard.Lock()
+	defer prod.batchedFileGuard.Unlock()
+
+	// check again to avoid race conditions
+	if batchedFile, fileExists := prod.filesByStream[streamID]; fileExists {
+		if rotate, err := prod.needsRotate(batchedFile, forceRotate); !rotate {
+			return batchedFile, err // ### return, already open or error ###
+		}
+	}
+
+	streamTargetFile := prod.newStreamTargetFile(streamID)
+
+	// get batchedFile from files[path] and assure the file is correctly mapped
+	batchedFile, fileExists = prod.files[streamTargetFile.GetOriginalPath()]
+	if !fileExists {
+		// batchedFile does not yet exist: create and map it
+		batchedFile = components.NewBatchedWriterAssembly(
+			prod.batchMaxCount,
+			prod.batchTimeout,
+			prod.batchFlushCount,
+			prod,
+			prod.TryFallback,
+			prod.flushTimeout,
+			prod.Logger,
+		)
+
+		prod.files[streamTargetFile.GetOriginalPath()] = batchedFile
+		prod.filesByStream[streamID] = batchedFile
+	} else if _, mappingExists := prod.filesByStream[streamID]; !mappingExists {
+		// batchedFile exists but is not mapped: map it and see if we need to Rotate
+		prod.filesByStream[streamID] = batchedFile
+		if rotate, err := prod.needsRotate(batchedFile, forceRotate); !rotate {
+			return batchedFile, err // ### return, already open or error ###
+		}
+	}
+
+	// Assure directory is existing
+	if _, err = streamTargetFile.GetDir(); err != nil {
+		return nil, err // ### return, missing directory ###
+	}
+
+	finalPath := streamTargetFile.GetFinalPath(prod.Rotate)
+
+	// Close existing batchedFile.writer
+	if batchedFile.HasWriter() {
+		currentLog := batchedFile.GetWriterAndUnset()
+
+		prod.Logger.Info("Rotated ", currentLog.Name(), " -> ", finalPath)
+		go currentLog.Close() // close in subroutine for eventually compression in the background
+	}
+
+	// Update BatchedWriterAssembly writer and creation time
+	fileWriter, err := prod.newFileStateWriterDisk(finalPath)
+	if err != nil {
+		return batchedFile, err // ### return error ###
+	}
+
+	batchedFile.SetWriter(fileWriter)
+
+	// Create "current" symlink
+	if prod.Rotate.Enabled {
+		prod.createCurrentSymlink(finalPath, streamTargetFile.GetSymlinkPath())
+	}
+
+	// Prune old logs if requested
+	go prod.Pruner.Prune(streamTargetFile.GetOriginalPath())
+
+	return batchedFile, err
+}
+
+// NeedsRotate evaluate if the BatchedWriterAssembly need to rotate by the FileRotateConfig
+func (prod *File) needsRotate(batchFile *components.BatchedWriterAssembly, forceRotate bool) (bool, error) {
+	// File does not exist?
+	if !batchFile.HasWriter() {
+		return true, nil
+	}
+
+	// File can be accessed?
+	if batchFile.GetWriter().IsAccessible() == false {
+		return false, errors.New("Can' access file to rotate")
+	}
+
+	// File needs rotation?
+	if !prod.Rotate.Enabled {
+		return false, nil
+	}
+
+	if forceRotate {
+		return true, nil
+	}
+
+	// File is too large?
+	if batchFile.GetWriter().Size() >= prod.Rotate.SizeByte {
+		return true, nil // ### return, too large ###
+	}
+
+	// File is too old?
+	if time.Since(batchFile.Created) >= prod.Rotate.Timeout {
+		return true, nil // ### return, too old ###
+	}
+
+	// RotateAt crossed?
+	if prod.Rotate.AtHour > -1 && prod.Rotate.AtMinute > -1 {
+		now := time.Now()
+		rotateAt := time.Date(now.Year(), now.Month(), now.Day(), prod.Rotate.AtHour, prod.Rotate.AtMinute, 0, 0, now.Location())
+
+		if batchFile.Created.Sub(rotateAt).Minutes() < 0 {
+			return true, nil // ### return, too old ###
+		}
+	}
+
+	// nope, everything is ok
+	return false, nil
+}
+
+func (prod *File) createCurrentSymlink(source, target string) {
+	symLinkNameTemporary := fmt.Sprintf("%s.tmp", target)
+
+	os.Symlink(source, symLinkNameTemporary)
+	os.Rename(symLinkNameTemporary, target)
+}
+
+func (prod *File) newFileStateWriterDisk(path string) (*file.BatchedFileWriter, error) {
+	openFlags := os.O_RDWR | os.O_CREATE | os.O_APPEND
+	if prod.overwriteFile {
+		openFlags |= os.O_TRUNC
+	} else {
+		openFlags |= os.O_APPEND
+	}
+
+	fileHandler, err := os.OpenFile(path, openFlags, prod.filePermissions)
+	if err != nil {
+		return nil, err // ### return error ###
+	}
+
+	batchedFileWriter := file.NewBatchedFileWriter(fileHandler, prod.Rotate.Compress, prod.Logger)
+	return &batchedFileWriter, nil
+}
+
+func (prod *File) newStreamTargetFile(streamID core.MessageStreamID) file.TargetFile {
+	var fileDir, fileName, fileExt string
 
 	if prod.wildcardPath {
 		// Get state from filename (without timestamp, etc.)
@@ -215,159 +324,38 @@ func (prod *File) getFileState(streamID core.MessageStreamID, forceRotate bool) 
 		fileExt = prod.fileExt
 	}
 
-	logFileBasePath := fmt.Sprintf("%s/%s%s", fileDir, fileName, fileExt)
-
-	// Assure the file is correctly mapped
-	state, stateExists := prod.files[logFileBasePath]
-	if !stateExists {
-		// state does not yet exist: create and map it
-		state = newFileState(prod.batchMaxCount, prod, prod.TryFallback, prod.flushTimeout, prod.Logger)
-		prod.files[logFileBasePath] = state
-		prod.filesByStream[streamID] = state
-	} else if _, mappingExists := prod.filesByStream[streamID]; !mappingExists {
-		// state exists but is not mapped: map it and see if we need to rotate
-		prod.filesByStream[streamID] = state
-		if rotate, err := state.needsRotate(prod.rotate, forceRotate); !rotate {
-			return state, err // ### return, already open or error ###
-		}
-	}
-
-	// Assure path is existing
-	if err := os.MkdirAll(fileDir, prod.folderPermissions); err != nil {
-		return nil, fmt.Errorf("Failed to create %s because of %s", fileDir, err.Error()) // ### return, missing directory ###
-	}
-
-	// Generate the log filename based on rotation, existing files, etc.
-	if !prod.rotate.enabled {
-		logFileName = fmt.Sprintf("%s%s", fileName, fileExt)
-	} else {
-		timestamp := time.Now().Format(prod.timestamp)
-		signature := fmt.Sprintf("%s_%s", fileName, timestamp)
-		maxSuffix := uint64(0)
-
-		files, _ := ioutil.ReadDir(fileDir)
-		for _, file := range files {
-			if strings.HasPrefix(file.Name(), signature) {
-				// Special case.
-				// If there is no extension, counter stays at 0
-				// If there is an extension (and no count), parsing the "." will yield a counter of 0
-				// If there is a count, parsing it will work as intended
-				counter := uint64(0)
-				if len(file.Name()) > len(signature) {
-					counter, _ = tstrings.Btoi([]byte(file.Name()[len(signature)+1:]))
-				}
-
-				if maxSuffix <= counter {
-					maxSuffix = counter + 1
-				}
-			}
-		}
-
-		if maxSuffix == 0 {
-			logFileName = fmt.Sprintf("%s%s", signature, fileExt)
-		} else {
-			formatString := "%s_%d%s"
-			if prod.rotate.zeroPad > 0 {
-				formatString = fmt.Sprintf("%%s_%%0%dd%%s", prod.rotate.zeroPad)
-			}
-			logFileName = fmt.Sprintf(formatString, signature, int(maxSuffix), fileExt)
-		}
-	}
-
-	logFilePath := fmt.Sprintf("%s/%s", fileDir, logFileName)
-
-	// Close existing log
-	if state.file != nil {
-		currentLog := state.file
-		state.file = nil
-
-		if prod.rotate.compress {
-			go state.compressAndCloseLog(currentLog)
-		} else {
-			prod.Logger.Info("Rotated ", currentLog.Name(), " -> ", logFilePath)
-			currentLog.Close()
-		}
-	}
-
-	// (Re)open logfile
-	var err error
-	openFlags := os.O_RDWR | os.O_CREATE | os.O_APPEND
-	if prod.overwriteFile {
-		openFlags |= os.O_TRUNC
-	} else {
-		openFlags |= os.O_APPEND
-	}
-
-	state.file, err = os.OpenFile(logFilePath, openFlags, prod.filePermissions)
-	if err != nil {
-		return state, err // ### return error ###
-	}
-
-	// Create "current" symlink
-	state.fileCreated = time.Now()
-	if prod.rotate.enabled {
-		symLinkName := fmt.Sprintf("%s/%s_current%s", fileDir, fileName, fileExt)
-		symLinkNameTemporary := fmt.Sprintf("%s.tmp", symLinkName)
-		os.Symlink(logFileName, symLinkNameTemporary)
-		os.Rename(symLinkNameTemporary, symLinkName)
-	}
-
-	// Prune old logs if requested
-	go func() {
-		if prod.pruneHours > 0 {
-			state.pruneByHour(logFileBasePath, prod.pruneHours)
-		}
-		if prod.pruneCount > 0 {
-			state.pruneByCount(logFileBasePath, prod.pruneCount)
-		}
-		if prod.pruneSize > 0 {
-			state.pruneToSize(logFileBasePath, prod.pruneSize)
-		}
-	}()
-
-	return state, err
+	return file.NewTargetFile(fileDir, fileName, fileExt, prod.folderPermissions)
 }
 
 func (prod *File) rotateLog() {
 	for streamID := range prod.filesByStream {
-		if _, err := prod.getFileState(streamID, true); err != nil {
+		if _, err := prod.getBatchedFile(streamID, true); err != nil {
 			prod.Logger.Error("Rotate error: ", err)
 		}
 	}
 }
 
 func (prod *File) writeBatchOnTimeOut() {
-	for _, state := range prod.files {
-		if state.batch.ReachedTimeThreshold(prod.batchTimeout) || state.batch.ReachedSizeThreshold(prod.batchFlushCount) {
-			state.flush()
-		}
+	for _, batchedFile := range prod.files {
+		batchedFile.FlushOnTimeOut()
 	}
 }
 
 func (prod *File) writeMessage(msg *core.Message) {
-	streamMsg := msg.Clone()
-
-	state, err := prod.getFileState(streamMsg.GetStreamID(), false)
+	batchedFile, err := prod.getBatchedFile(msg.GetStreamID(), false)
 	if err != nil {
 		prod.Logger.Error("Write error: ", err)
 		prod.TryFallback(msg)
 		return // ### return, fallback ###
 	}
 
-	state.batch.AppendOrFlush(msg, state.flush, prod.IsActiveOrStopping, prod.TryFallback)
+	batchedFile.Batch.AppendOrFlush(msg, batchedFile.Flush, prod.IsActiveOrStopping, prod.TryFallback)
 }
 
 func (prod *File) close() {
 	defer prod.WorkerDone()
 
-	prod.DefaultClose()
-	for _, state := range prod.files {
-		state.close()
+	for _, batchedFile := range prod.files {
+		batchedFile.Close()
 	}
-}
-
-// Produce writes to a buffer that is dumped to a file.
-func (prod *File) Produce(workers *sync.WaitGroup) {
-	prod.AddMainWorker(workers)
-	prod.TickerMessageControlLoop(prod.writeMessage, prod.batchTimeout, prod.writeBatchOnTimeOut)
 }

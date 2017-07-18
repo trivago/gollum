@@ -101,6 +101,7 @@ func TestRouteOriginalMessage(t *testing.T) {
 	StreamRegistry.Register(&mockRouter, mockRouter.GetStreamID())
 
 	msg := NewMessage(nil, []byte("foo"), nil, mockRouter.GetStreamID())
+	msg.FreezeOriginal()
 
 	err := RouteOriginal(msg, msg.GetRouter())
 	expect.NoError(err)
@@ -135,6 +136,7 @@ func TestRouteOriginal(t *testing.T) {
 
 	// create message and test
 	msg := NewMessage(nil, []byte("foo"), nil, mockRouterA.GetStreamID())
+	msg.FreezeOriginal()
 
 	err := RouteOriginal(msg, &mockRouterB)
 	expect.NoError(err)

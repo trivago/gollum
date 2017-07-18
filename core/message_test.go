@@ -65,6 +65,7 @@ func TestMessageInstantiate(t *testing.T) {
 	msgString := "Test for instantiate"
 
 	msg := NewMessage(nil, []byte(msgString), nil, 1)
+	msg.FreezeOriginal()
 
 	expect.Equal(msgString, string(msg.data.payload))
 	expect.Equal(MessageStreamID(1), msg.data.streamID)
@@ -78,6 +79,7 @@ func TestMessageOriginalDataIntegrity(t *testing.T) {
 	msgUpdateString := "Test for original data integrity - UPDATE"
 
 	msg := NewMessage(nil, []byte(msgString), nil, 1)
+	msg.FreezeOriginal()
 
 	msg.SetStreamID(MessageStreamID(10))
 	msg.StorePayload([]byte(msgUpdateString))
@@ -95,6 +97,8 @@ func TestMessageClone(t *testing.T) {
 	msgUpdateString := "Test for clone - UPDATE"
 
 	msg := NewMessage(nil, []byte(msgString), nil, 1)
+	msg.FreezeOriginal()
+
 	msg.SetStreamID(MessageStreamID(10))
 	msg.StorePayload([]byte(msgUpdateString))
 
@@ -127,6 +131,8 @@ func TestMessageCloneOriginal(t *testing.T) {
 	msgUpdateString := "Test for clone original - UPDATE"
 
 	msg := NewMessage(nil, []byte(msgString), nil, 1)
+	msg.FreezeOriginal()
+
 	msg.SetStreamID(MessageStreamID(10))
 	msg.StorePayload([]byte(msgUpdateString))
 
@@ -144,6 +150,8 @@ func TestMessageCloneOriginalMetadata(t *testing.T) {
 	msgUpdateString := "Test for clone original - UPDATE"
 
 	msg := NewMessage(nil, []byte(msgString), nil, 1)
+	msg.FreezeOriginal()
+
 	msg.SetStreamID(MessageStreamID(10))
 	msg.StorePayload([]byte(msgUpdateString))
 	msg.GetMetadata().SetValue("foo", []byte("bar"))
