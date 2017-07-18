@@ -45,7 +45,7 @@ import (
 // 		MaxCount: 8192
 //    	FlushCount: 4096
 //    	TimeoutSec: 5
-//    FlushTimeoutSec: 5
+//      FlushTimeoutSec: 5
 //    Rotation:
 //		Enable: false
 // 		Timestamp: 2006-01-02_15
@@ -85,7 +85,7 @@ import (
 // message arrived before a batch is flushed automatically. By default this is
 // set to 5.
 //
-// FlushTimeoutSec sets the maximum number of seconds to wait before a flush is
+// Batch/FlushTimeoutSec sets the maximum number of seconds to wait before a flush is
 // aborted during shutdown. By default this is set to 0, which does not abort
 // the flushing procedure.
 //
@@ -101,7 +101,7 @@ type File struct {
 	batchTimeout      time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
 	batchMaxCount     int           `config:"Batch/MaxCount" default:"8192"`
 	batchFlushCount   int           `config:"Batch/FlushCount" default:"4096"`
-	flushTimeout      time.Duration `config:"FlushTimeoutSec" default:"0" metric:"sec"`
+	batchFlushTimeout time.Duration `config:"Batch/FlushTimeoutSec" default:"0" metric:"sec"`
 	overwriteFile     bool          `config:"FileOverwrite"`
 	filePermissions   os.FileMode   `config:"Permissions" default:"0644"`
 	folderPermissions os.FileMode   `config:"FolderPermissions" default:"0755"`
@@ -183,7 +183,7 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 			prod.batchFlushCount,
 			prod,
 			prod.TryFallback,
-			prod.flushTimeout,
+			prod.batchFlushTimeout,
 			prod.Logger,
 		)
 
