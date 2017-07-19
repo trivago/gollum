@@ -15,7 +15,9 @@
 package producer
 
 import (
+	"errors"
 	"fmt"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/components"
 	"github.com/trivago/gollum/producer/awsS3"
@@ -24,7 +26,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"github.com/aws/aws-sdk-go/service/s3"
 )
 
 // AwsS3 producer plugin
@@ -44,8 +45,8 @@ import (
 //   File: gollum_*.log
 //   Batch:
 //     TimeoutSec: 5
-//     MaxCount: 8192
-//     FlushCount: 4096
+//     MaxCount: 1000
+//     FlushCount: 500
 //     FlushTimeoutSec: 0
 //   Rotation:
 //     TimestampFormat: 2006-01-02_15
@@ -66,8 +67,8 @@ type AwsS3 struct {
 
 	// configuration
 	batchTimeout      time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
-	batchMaxCount     int           `config:"Batch/MaxCount" default:"8192"`
-	batchFlushCount   int           `config:"Batch/FlushCount" default:"4096"`
+	batchMaxCount     int           `config:"Batch/MaxCount" default:"1000"`
+	batchFlushCount   int           `config:"Batch/FlushCount" default:"500"`
 	batchFlushTimeout time.Duration `config:"Batch/FlushTimeoutSec" default:"0" metric:"sec"`
 	bucket            string        `config:"Bucket" default:""`
 
@@ -79,7 +80,7 @@ type AwsS3 struct {
 	fileNamePattern string `config:"File" default:"gollum_*.log"`
 
 	batchedFileGuard *sync.RWMutex
-	s3Client *s3.S3
+	s3Client         *s3.S3
 }
 
 func init() {
@@ -99,6 +100,20 @@ func (prod *AwsS3) Configure(conf core.PluginConfigReader) {
 	prod.Rotate.Enabled = true
 
 	prod.batchedFileGuard = new(sync.RWMutex)
+
+	// validate settings
+	prod.validate(conf)
+
+}
+
+func (prod *AwsS3) validate(conf core.PluginConfigReader) (err error) {
+	// @see http://docs.aws.amazon.com/AmazonS3/latest/dev/mpuoverview.html
+	if prod.batchMaxCount > 1000 {
+		err = errors.New("Batch/MaxCount can't be greater than 1000 for awsS3 multipart uploads.")
+		conf.Errors.Push(err)
+	}
+
+	return
 }
 
 // Produce writes to a buffer that is dumped to a file.
@@ -151,14 +166,6 @@ func (prod *AwsS3) getBatchedFile(streamID core.MessageStreamID, forceRotate boo
 		prod.filesByStream[streamID] = batchedFile
 		prod.files[baseFileName] = batchedFile
 	}
-	//TODO: not necessary!? remove this part also from file producer?
-	/*else if _, mappingExists := prod.filesByStream[streamID]; !mappingExists {
-		// batchedFile exists but is not mapped: map it and see if we need to Rotate
-		prod.filesByStream[streamID] = batchedFile
-		if rotate, err := batchedFile.NeedsRotate(prod.Rotate, forceRotate); !rotate {
-			return batchedFile, err // ### return, already open or error ###
-		}
-	}*/
 
 	// Close existing batchedFile.writer
 	if batchedFile.HasWriter() {

@@ -20,7 +20,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/sirupsen/logrus"
 	"strings"
+	"sync"
 )
+
+const minUploadPartSize = 5 * 1024 * 1024
 
 // BatchedFileWriter is the file producer core.BatchedWriter implementation for the core.BatchedWriterAssembly
 type BatchedFileWriter struct {
@@ -29,6 +32,18 @@ type BatchedFileWriter struct {
 	s3SubFolder string
 	fileName    string
 	logger      logrus.FieldLogger
+
+	currentMultiPart int64               // current multipart count
+	s3UploadId       *string             // upload id from s3 for active file
+	totalSize        int                 // total size off all writes to this writer (need for rotations)
+	completedParts   []*s3.CompletedPart // collection of uploaded parts
+
+	// need separate byte buffer for min 5mb part uploads.
+	// @see http://docs.aws.amazon.com/AmazonS3/latest/API/mpUploadComplete.html
+	activeBuffer *s3ByteBuffer
+
+	//todo: check necessity
+	writeGuard *sync.Mutex
 }
 
 // NewBatchedFileWriter returns a BatchedFileWriter instance
@@ -43,42 +58,49 @@ func NewBatchedFileWriter(s3Client *s3.S3, bucket string, fileName string, logge
 		s3SubFolder = ""
 	}
 
-	return BatchedFileWriter{
-		s3Client,
-		s3Bucket,
-		s3SubFolder,
-		fileName,
-		logger,
+	batchedFileWriter := BatchedFileWriter{
+		s3Client:    s3Client,
+		s3Bucket:    s3Bucket,
+		s3SubFolder: s3SubFolder,
+		fileName:    fileName,
+		logger:      logger,
 	}
 
 	// CreateMultipartUpload (init)
+	batchedFileWriter.init()
+	//batchedFileWriter.createMultipartUpload()
+
 	// UploadPart .. UploadPart .. UploadPart (write)
 	// CompleteMultipartUpload (close)
+
+	return batchedFileWriter
+}
+
+func (w *BatchedFileWriter) init() {
+	w.totalSize = 0
+	w.currentMultiPart = 0
+	w.completedParts = []*s3.CompletedPart{}
+	w.writeGuard = new(sync.Mutex)
+
+	w.activeBuffer = newS3ByteBuffer()
+
+	w.createMultipartUpload()
 }
 
 // Write is part of the BatchedWriter interface and wraps the file.Write() implementation
 func (w *BatchedFileWriter) Write(p []byte) (n int, err error) {
-	w.logger.Warning("START MULTI UPLOAD AND WRITE TO AWS")
+	w.activeBuffer.Write(p)
 
-	byteBuffer := newS3ByteBuffer()
-	byteBuffer.Write(p)
-
-	param := &s3.PutObjectInput{
-		Bucket:       aws.String(w.s3Bucket),
-		Key:          aws.String(w.getS3Path()),
-		Body:         byteBuffer,
-		StorageClass: aws.String("STANDARD"), //TODO: make StorageClass configurable
+	if size, _ := w.activeBuffer.Size(); size >= minUploadPartSize {
+		w.logger.WithField("size", size).Debug("Buffer size ready for request")
+		w.uploadPartInput()
+	} else {
+		w.logger.WithField("size", size).Debug("Buffer size not big enough vor request")
 	}
 
-	rsp, err := w.s3Client.PutObject(param)
-	if err != nil {
-		w.logger.WithField("response", rsp.GoString()).WithError(err).Errorf("Failed to put object %s/%s", w.s3Bucket, w.Name())
-		return 0, err
-	}
-
-	//todo: save size to property
-
-	return len(p), nil
+	length := len(p)
+	w.totalSize += length
+	return length, nil
 }
 
 // Name is part of the BatchedWriter interface and wraps the file.Name() implementation
@@ -88,23 +110,22 @@ func (w *BatchedFileWriter) Name() string {
 
 // Size is part of the BatchedWriter interface and wraps the file.Stat().Size() implementation
 func (w *BatchedFileWriter) Size() int64 {
-	w.logger.Warning("GET SIZE OF ALL BYTE WHICH UPLOADED")
-	return 1000
+	return int64(w.totalSize)
 }
 
 // IsAccessible is part of the BatchedWriter interface and check if the writer can access his file
 func (w *BatchedFileWriter) IsAccessible() bool {
-	w.logger.Warning("CHECK FILE ACCESS")
-
-	return true
+	return w.s3UploadId != nil
 }
 
 // Close is part of the Close interface and handle the file close or compression call
 func (w *BatchedFileWriter) Close() error {
-	w.logger.Warning("CLOSE MULTI UPLOAD")
-	w.logger.Warning("CLOSE CONNECTION")
+	// flush upload buffer
+	err := w.uploadPartInput()
 
-	return nil
+	w.completeMultipartUpload()
+
+	return err
 }
 
 func (w *BatchedFileWriter) getS3Path() string {
@@ -113,4 +134,95 @@ func (w *BatchedFileWriter) getS3Path() string {
 	}
 
 	return w.Name()
+}
+
+func (w *BatchedFileWriter) uploadPartInput() (err error) {
+	if size, _ := w.activeBuffer.Size(); size < 1 {
+		w.logger.Warning("uploadPartInput(): empty buffer - no upload necessary")
+		return
+	}
+
+	//todo: check guard necessity
+	//w.writeGuard.Lock()
+	//defer w.writeGuard.Unlock()
+
+	// increase and get currentMultiPart count
+	w.currentMultiPart++
+	currentMultiPart := w.currentMultiPart
+
+	// get and reset active buffer
+	buffer := w.activeBuffer
+	w.activeBuffer = newS3ByteBuffer()
+	//w.writeGuard.Unlock()
+
+	input := &s3.UploadPartInput{
+		Body:       buffer,
+		Bucket:     aws.String(w.s3Bucket),
+		Key:        aws.String(w.getS3Path()),
+		PartNumber: aws.Int64(currentMultiPart),
+		UploadId:   w.s3UploadId,
+	}
+
+	result, err := w.s3Client.UploadPart(input)
+	if err != nil {
+		w.logger.WithError(err).WithField("input", input).Errorf("Can't upload part '%d'", currentMultiPart)
+		return
+	}
+
+	w.logger.
+		WithField("part", currentMultiPart).
+		WithField("result", result).
+		Debug("upload part successfully send")
+
+	completedPart := s3.CompletedPart{}
+	completedPart.SetETag(*result.ETag)
+	completedPart.SetPartNumber(currentMultiPart)
+
+	w.completedParts = append(w.completedParts, &completedPart)
+
+	return
+}
+
+func (w *BatchedFileWriter) createMultipartUpload() {
+	input := &s3.CreateMultipartUploadInput{
+		Bucket: aws.String(w.s3Bucket),
+		Key:    aws.String(w.getS3Path()),
+	}
+
+	result, err := w.s3Client.CreateMultipartUpload(input)
+	if err != nil {
+		w.logger.WithError(err).WithField("file", w.Name()).Error("Can't create multipart upload")
+		return
+	}
+
+	w.s3UploadId = result.UploadId
+	w.logger.WithField("uploadId", result.UploadId).Debug("successfully created MultipartUpload")
+}
+
+func (w *BatchedFileWriter) completeMultipartUpload() {
+	if w.currentMultiPart < 1 {
+		w.logger.Warning("No completeMultipartUpload request necessary for zero parts")
+		return
+	}
+
+	input := &s3.CompleteMultipartUploadInput{
+		Bucket:   aws.String(w.s3Bucket),
+		Key:      aws.String(w.getS3Path()),
+		UploadId: w.s3UploadId,
+		MultipartUpload: &s3.CompletedMultipartUpload{
+			Parts: w.completedParts,
+		},
+	}
+
+	result, err := w.s3Client.CompleteMultipartUpload(input)
+	if err != nil {
+		w.logger.WithError(err).
+			WithField("input", input).
+			WithField("response", result).
+			Error("Can't complete multipart upload")
+		return
+	}
+
+	w.logger.WithField("location", result.Location).Debug("successfully completed MultipartUpload")
+	w.s3UploadId = nil // reset upload id
 }
