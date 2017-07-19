@@ -189,12 +189,6 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 
 		prod.files[streamTargetFile.GetOriginalPath()] = batchedFile
 		prod.filesByStream[streamID] = batchedFile
-	} else if _, mappingExists := prod.filesByStream[streamID]; !mappingExists {
-		// batchedFile exists but is not mapped: map it and see if we need to Rotate
-		prod.filesByStream[streamID] = batchedFile
-		if rotate, err := batchedFile.NeedsRotate(prod.Rotate, forceRotate); !rotate {
-			return batchedFile, err // ### return, already open or error ###
-		}
 	}
 
 	// Assure directory is existing
