@@ -145,9 +145,9 @@ import (
 // Topic defines a stream to topic mapping.
 // If a stream is not mapped a topic named like the stream is assumed.
 //
-// KeyFormatter can define a formatter that extracts the key for a kafka message
-// from the message payload. By default this is an empty string, which disables
-// this feature. A good formatter for this can be format.Identifier.
+// KeyFrom defines the metadata field that contains the string to be used as
+// the key passed to kafka. By default KeyField contains an empty string which
+// sends no key to kafka.
 //
 // KeyFormatterFirst can be set to true to apply the key formatter to the
 // unformatted message. By default this is set to false, so that key formatter
@@ -160,17 +160,16 @@ type KafkaProducer struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 	servers               []string `config:"Servers" default:"localhost:9092"`
 	clientID              string   `config:"ClientId" default:"gollum"`
-	keyModulators         core.ModulatorArray
 	client                *kafka.Client
 	config                kafka.Config
 	topicRequiredAcks     int           `config:"RequiredAcks" default:"1"`
 	topicTimeoutMs        int           `config:"TimeoutMs" default:"100" metric:"ms"`
 	pollInterval          time.Duration `config:"BatchTimeoutMs" default:"1000" metric:"ms"`
+	keyField              string        `config:"KeyFrom"`
 	topic                 map[core.MessageStreamID]*topicHandle
 	topicHandles          map[string]*topicHandle
 	streamToTopic         map[core.MessageStreamID]string
 	topicGuard            *sync.RWMutex
-	keyFirst              bool `config:"KeyFormatterFirst"`
 }
 
 type messageWrapper struct {
@@ -224,8 +223,6 @@ func (m *messageWrapper) GetUserdata() []byte {
 // Configure initializes this producer with values from a plugin config.
 func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
 	prod.SetStopCallback(prod.close)
-
-	prod.keyModulators = conf.GetModulatorArray("KeyModulators", prod.Logger, core.ModulatorArray{})
 
 	prod.streamToTopic = conf.GetStreamMap("Topic", "default")
 	prod.topic = make(map[core.MessageStreamID]*topicHandle)
@@ -331,8 +328,6 @@ func (prod *KafkaProducer) registerNewTopic(topicName string, streamID core.Mess
 }
 
 func (prod *KafkaProducer) produceMessage(msg *core.Message) {
-	originalMsg := msg.Clone()
-
 	if len(msg.GetPayload()) == 0 {
 		streamName := core.StreamRegistry.GetStreamName(msg.GetStreamID())
 		prod.Logger.Errorf("0 byte message detected on %s. Discarded", streamName)
@@ -355,25 +350,16 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 		topic = prod.registerNewTopic(topicName, msg.GetStreamID())
 	}
 
-	serializedOriginal, err := originalMsg.Serialize()
+	serializedOriginal, err := msg.SerializeOriginal()
 	if err != nil {
 		prod.Logger.Error(err)
 	}
 
+	metadata := msg.GetMetadata()
 	kafkaMsg := &messageWrapper{
-		key:   []byte{},
+		key:   metadata.GetValue(prod.keyField),
 		value: msg.GetPayload(),
 		user:  serializedOriginal,
-	}
-
-	if prod.keyFirst {
-		keyMsg := originalMsg.Clone()
-		prod.keyModulators.Modulate(keyMsg)
-		kafkaMsg.key = keyMsg.GetPayload()
-	} else {
-		keyMsg := msg.Clone()
-		prod.keyModulators.Modulate(keyMsg)
-		kafkaMsg.key = keyMsg.GetPayload()
 	}
 
 	if err := topic.handle.Produce(kafkaMsg); err != nil {

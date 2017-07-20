@@ -178,7 +178,9 @@ const (
 // Servers contains the list of all kafka servers to connect to.  By default this
 // is set to contain only "localhost:9092".
 //
-// KeyMetaField set the message meta data key to get the kafka key from the meta data.
+// KeyFrom defines the name of the metadata field used as a key for messages
+// sent to kafka. If the name is an empty string no key is sent. By default
+// this value is set to an empty string.
 //
 // Topic maps a stream to a specific kafka topic. You can define the
 // wildcard stream (*) here, too. If defined, all streams that do not have a
@@ -198,7 +200,7 @@ type Kafka struct {
 	producer              kafka.AsyncProducer
 	missCount             int64
 	nilValueAllowed       bool
-	keyMetaField          string
+	keyField              string `config:"KeyFrom"`
 }
 
 type topicHandle struct {
@@ -366,8 +368,6 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) {
 		}
 
 	}
-
-	prod.keyMetaField = conf.GetString("KeyMetaField", "")
 }
 
 func (prod *Kafka) storeRTT(msg *core.Message) {
@@ -509,8 +509,8 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 }
 
 func (prod *Kafka) getKafkaMsgKey(msg *core.Message) []byte {
-	if len(prod.keyMetaField) > 0 {
-		return msg.GetMetadata().GetValue(prod.keyMetaField)
+	if len(prod.keyField) > 0 {
+		return msg.GetMetadata().GetValue(prod.keyField)
 	}
 
 	return []byte{}
