@@ -19,11 +19,18 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/sirupsen/logrus"
+	"github.com/trivago/gollum/core/components"
 	"strings"
 	"sync"
 )
 
 const minUploadPartSize = 5 * 1024 * 1024
+
+// BatchedFileWriterInterface extends the components.BatchedWriter interface for rotation checks
+type BatchedFileWriterInterface interface {
+	components.BatchedWriter
+	GetUploadCount() int
+}
 
 // BatchedFileWriter is the file producer core.BatchedWriter implementation for the core.BatchedWriterAssembly
 type BatchedFileWriter struct {
@@ -34,7 +41,7 @@ type BatchedFileWriter struct {
 	logger      logrus.FieldLogger
 
 	currentMultiPart int64               // current multipart count
-	s3UploadId       *string             // upload id from s3 for active file
+	s3UploadID       *string             // upload id from s3 for active file
 	totalSize        int                 // total size off all writes to this writer (need for rotations)
 	completedParts   []*s3.CompletedPart // collection of uploaded parts
 
@@ -66,22 +73,16 @@ func NewBatchedFileWriter(s3Client *s3.S3, bucket string, fileName string, logge
 		logger:      logger,
 	}
 
-	// CreateMultipartUpload (init)
 	batchedFileWriter.init()
-	//batchedFileWriter.createMultipartUpload()
-
-	// UploadPart .. UploadPart .. UploadPart (write)
-	// CompleteMultipartUpload (close)
-
 	return batchedFileWriter
 }
 
+// init BatchedFileWriter struct
 func (w *BatchedFileWriter) init() {
 	w.totalSize = 0
 	w.currentMultiPart = 0
 	w.completedParts = []*s3.CompletedPart{}
 	w.writeGuard = new(sync.Mutex)
-
 	w.activeBuffer = newS3ByteBuffer()
 
 	w.createMultipartUpload()
@@ -115,7 +116,7 @@ func (w *BatchedFileWriter) Size() int64 {
 
 // IsAccessible is part of the BatchedWriter interface and check if the writer can access his file
 func (w *BatchedFileWriter) IsAccessible() bool {
-	return w.s3UploadId != nil
+	return w.s3UploadID != nil
 }
 
 // Close is part of the Close interface and handle the file close or compression call
@@ -126,6 +127,11 @@ func (w *BatchedFileWriter) Close() error {
 	w.completeMultipartUpload()
 
 	return err
+}
+
+// GetUploadCount returns the count of completed part uploads
+func (w *BatchedFileWriter) GetUploadCount() int {
+	return len(w.completedParts)
 }
 
 func (w *BatchedFileWriter) getS3Path() string {
@@ -160,7 +166,7 @@ func (w *BatchedFileWriter) uploadPartInput() (err error) {
 		Bucket:     aws.String(w.s3Bucket),
 		Key:        aws.String(w.getS3Path()),
 		PartNumber: aws.Int64(currentMultiPart),
-		UploadId:   w.s3UploadId,
+		UploadId:   w.s3UploadID,
 	}
 
 	result, err := w.s3Client.UploadPart(input)
@@ -195,8 +201,8 @@ func (w *BatchedFileWriter) createMultipartUpload() {
 		return
 	}
 
-	w.s3UploadId = result.UploadId
-	w.logger.WithField("uploadId", result.UploadId).Debug("successfully created MultipartUpload")
+	w.s3UploadID = result.UploadId
+	w.logger.WithField("uploadId", result.UploadId).Debug("successfully created multipart upload")
 }
 
 func (w *BatchedFileWriter) completeMultipartUpload() {
@@ -208,7 +214,7 @@ func (w *BatchedFileWriter) completeMultipartUpload() {
 	input := &s3.CompleteMultipartUploadInput{
 		Bucket:   aws.String(w.s3Bucket),
 		Key:      aws.String(w.getS3Path()),
-		UploadId: w.s3UploadId,
+		UploadId: w.s3UploadID,
 		MultipartUpload: &s3.CompletedMultipartUpload{
 			Parts: w.completedParts,
 		},
@@ -223,6 +229,9 @@ func (w *BatchedFileWriter) completeMultipartUpload() {
 		return
 	}
 
-	w.logger.WithField("location", result.Location).Debug("successfully completed MultipartUpload")
-	w.s3UploadId = nil // reset upload id
+	w.logger.
+		WithField("location", *result.Location).
+		WithField("parts", len(w.completedParts)).
+		Debug("successfully completed MultipartUpload")
+	w.s3UploadID = nil // reset upload id
 }

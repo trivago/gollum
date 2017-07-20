@@ -15,7 +15,6 @@
 package producer
 
 import (
-	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/trivago/gollum/core"
@@ -97,23 +96,9 @@ func (prod *AwsS3) Configure(conf core.PluginConfigReader) {
 
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.hasWildcard = strings.IndexByte(prod.fileNamePattern, '*') != -1
-	prod.Rotate.Enabled = true
+	prod.Rotate.Enabled = true // force rotation
 
 	prod.batchedFileGuard = new(sync.RWMutex)
-
-	// validate settings
-	prod.validate(conf)
-
-}
-
-func (prod *AwsS3) validate(conf core.PluginConfigReader) (err error) {
-	// @see http://docs.aws.amazon.com/AmazonS3/latest/dev/mpuoverview.html
-	if prod.batchMaxCount > 1000 {
-		err = errors.New("Batch/MaxCount can't be greater than 1000 for awsS3 multipart uploads.")
-		conf.Errors.Push(err)
-	}
-
-	return
 }
 
 // Produce writes to a buffer that is dumped to a file.
@@ -128,7 +113,7 @@ func (prod *AwsS3) initS3Client() error {
 	var err error
 	prod.s3Client, err = prod.AwsMultiClient.GetS3Client()
 	if err != nil {
-		prod.Logger.WithError(err)
+		prod.Logger.WithError(err).Error("Can't instantiate S3 client")
 		return err
 	}
 
@@ -141,7 +126,7 @@ func (prod *AwsS3) getBatchedFile(streamID core.MessageStreamID, forceRotate boo
 	batchedFile, fileExists := prod.filesByStream[streamID]
 	prod.batchedFileGuard.RUnlock()
 	if fileExists {
-		if rotate, err := batchedFile.NeedsRotate(prod.Rotate, forceRotate); !rotate {
+		if rotate, err := prod.needsRotate(batchedFile, forceRotate); !rotate {
 			return batchedFile, err // ### return, already open or error ###
 		}
 	}
@@ -151,7 +136,7 @@ func (prod *AwsS3) getBatchedFile(streamID core.MessageStreamID, forceRotate boo
 
 	// check again to avoid race conditions
 	if batchedFile, fileExists := prod.filesByStream[streamID]; fileExists {
-		if rotate, err := batchedFile.NeedsRotate(prod.Rotate, forceRotate); !rotate {
+		if rotate, err := prod.needsRotate(batchedFile, forceRotate); !rotate {
 			return batchedFile, err // ### return, already open or error ###
 		}
 	}
@@ -180,6 +165,24 @@ func (prod *AwsS3) getBatchedFile(streamID core.MessageStreamID, forceRotate boo
 	batchedFile.SetWriter(&writer)
 
 	return batchedFile, nil
+}
+
+func (prod *AwsS3) needsRotate(batchedFile *components.BatchedWriterAssembly, forceRotate bool) (bool, error) {
+	// run default rotation checks
+	if needUpload, err := batchedFile.NeedsRotate(prod.Rotate, forceRotate); needUpload {
+		return true, err
+	}
+
+	// check if max multipart uploads of 1000 reached
+	// @see: http://docs.aws.amazon.com/AmazonS3/latest/dev/mpuoverview.html
+	// we use 995 to have a small buffer to the limit and need at least +1 upload part for the last flush
+	writer, ok := batchedFile.GetWriter().(awsS3.BatchedFileWriterInterface)
+	if ok && writer.GetUploadCount() > 995 {
+		prod.Logger.Debug("Rotate true: ", "upload count reached limit of 1000")
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func (prod *AwsS3) getBaseFileName(streamID core.MessageStreamID) string {
