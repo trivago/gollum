@@ -45,16 +45,18 @@ const (
 // This producer sends data to an AWS S3 Bucket.
 // Configuration example
 //
-//  - "producer.S3":
+// S3OutDeprecated:
+//    Type: deprecated.producer.S3
 //    Region: "eu-west-1"
 //    Endpoint: "s3-eu-west-1.amazonaws.com"
 //    StorageClass: "STANDARD"
-//    CredentialType: "none"
-//    CredentialId: ""
-//    CredentialToken: ""
-//    CredentialSecret: ""
-//    CredentialFile: ""
-//    CredentialProfile: ""
+//    Credential:
+//      Type: "none"
+//      Id: ""
+//      Token: ""
+//      Secret: ""
+//      File: ""
+//      Profile: ""
 //    BatchMaxMessages: 5000
 //    ObjectMaxMessages: 5000
 //    ObjectMessageDelimiter: "\n"
@@ -183,7 +185,7 @@ type objectData struct {
 }
 
 func init() {
-	core.TypeRegistry.Register(S3{})
+	core.TypeRegistry.RegisterWithDepth(S3{}, 2)
 }
 
 // Configure initializes this producer with values from a plugin config.
