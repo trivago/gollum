@@ -520,8 +520,6 @@ func (prod *S3) transformMessages(messages []*core.Message) {
 	bufferedMessages := []*core.Message{}
 	// Format and sort
 	for _, msg := range messages {
-		originalMsg := msg.Clone()
-
 		// Select the correct s3 path
 		s3Path, streamMapped := prod.streamMap[msg.GetStreamID()]
 		if !streamMapped {
@@ -563,7 +561,7 @@ func (prod *S3) transformMessages(messages []*core.Message) {
 
 		err := prod.appendOrUpload(object, msg.GetPayload())
 		if err != nil {
-			prod.TryFallback(originalMsg)
+			prod.TryFallback(msg)
 			continue
 		}
 
