@@ -30,12 +30,19 @@ const (
 )
 
 const (
-	CredentialTypeEnv    = "environment"
-	CredentialTypeStatic = "static"
-	CredentialTypeShared = "shared"
-	CredentialTypeNone   = "none"
+	credentialTypeEnv    = "environment"
+	credentialTypeStatic = "static"
+	credentialTypeShared = "shared"
+	credentialTypeNone   = "none"
 )
 
+// AwsMultiClient is a helper component to handle aws access and client instantiation
+//
+// Region defines the used aws region. By default this is set to "us-east-1"
+//
+// Endpoint defines the used aws api endpoint. By default this is set to "" and the client
+// tries to get the right endpoint for the used region.
+//
 type AwsMultiClient struct {
 	Credentials AwsCredentials
 
@@ -45,6 +52,7 @@ type AwsMultiClient struct {
 	config *aws.Config
 }
 
+// Configure method
 func (client *AwsMultiClient) Configure(conf core.PluginConfigReader) {
 	if client.endpoint == "" {
 		if client.region != defaultRegion {
@@ -63,6 +71,7 @@ func (client *AwsMultiClient) Configure(conf core.PluginConfigReader) {
 	client.config.WithCredentials(client.Credentials.CreateAwsCredentials())
 }
 
+// GetS3Client returns a s3.S3 client
 func (client *AwsMultiClient) GetS3Client() (*s3.S3, error) {
 	sess, err := client.newSessionWithOptions()
 	if err != nil {
@@ -79,6 +88,24 @@ func (client *AwsMultiClient) newSessionWithOptions() (*session.Session, error) 
 	})
 }
 
+// AwsCredentials is a config struct for aws credential handling
+//
+// Credential/Type defines the credentials that are to be used when
+// connecting to s3. This can be one of the following: "environment",
+// "static", "shared" and "none". By default this is set to "none".
+// See https://docs.aws.amazon.com/sdk-for-go/api/aws/credentials/#Credentials for more information
+//
+// Credential/Id is used for "static" type and is used as the AccessKeyID
+//
+// Credential/Token is used for "static" type and is used as the SessionToken
+//
+// Credential/Secret is used for "static" type and is used as the SecretAccessKey
+//
+// Credential/File is used for "shared" type and is used as the path to your
+// shared Credentials file (~/.aws/credentials)
+//
+// Credential/Profile is used for "shared" type and is used for the profile
+//
 type AwsCredentials struct {
 	credentialType string `config:"Credential/Type" default:"none"`
 	staticID       string `config:"Credential/Id" default:""`
@@ -88,18 +115,19 @@ type AwsCredentials struct {
 	sharedProfile  string `config:"Credential/Profile" default:"default"`
 }
 
+// CreateAwsCredentials returns aws credentials.Credentials for active settings
 func (cred *AwsCredentials) CreateAwsCredentials() *credentials.Credentials {
 	switch cred.credentialType {
-	case CredentialTypeEnv:
+	case credentialTypeEnv:
 		return credentials.NewEnvCredentials()
 
-	case CredentialTypeStatic:
+	case credentialTypeStatic:
 		return credentials.NewStaticCredentials(cred.staticID, cred.staticSecret, cred.staticToken)
 
-	case CredentialTypeShared:
+	case credentialTypeShared:
 		return credentials.NewSharedCredentials(cred.sharedFile, cred.sharedProfile)
 
-	case CredentialTypeNone:
+	case credentialTypeNone:
 		return credentials.AnonymousCredentials
 
 	default:
