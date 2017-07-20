@@ -115,30 +115,36 @@ func (bwa *BatchedWriterAssembly) FlushOnTimeOut() {
 func (bwa *BatchedWriterAssembly) NeedsRotate(rotate RotateConfig, forceRotate bool) (bool, error) {
 	// File does not exist?
 	if !bwa.HasWriter() {
+		bwa.logger.Debug("Rotate true: ", "no writer")
 		return true, nil
 	}
 
 	// File can be accessed?
 	if bwa.GetWriter().IsAccessible() == false {
+		bwa.logger.Debug("Rotate false: ", "no access")
 		return false, errors.New("Can' access file to rotate")
 	}
 
 	// File needs rotation?
 	if !rotate.Enabled {
+		bwa.logger.Debug("Rotate false: ", "not active")
 		return false, nil
 	}
 
 	if forceRotate {
+		bwa.logger.Debug("Rotate true: ", "forced")
 		return true, nil
 	}
 
 	// File is too large?
 	if bwa.GetWriter().Size() >= rotate.SizeByte {
+		bwa.logger.Debug("Rotate true: ", "size > rotation size")
 		return true, nil // ### return, too large ###
 	}
 
 	// File is too old?
 	if time.Since(bwa.Created) >= rotate.Timeout {
+		bwa.logger.Debug("Rotate true: ", "lifetime > timeout setting")
 		return true, nil // ### return, too old ###
 	}
 
@@ -147,7 +153,8 @@ func (bwa *BatchedWriterAssembly) NeedsRotate(rotate RotateConfig, forceRotate b
 		now := time.Now()
 		rotateAt := time.Date(now.Year(), now.Month(), now.Day(), rotate.AtHour, rotate.AtMinute, 0, 0, now.Location())
 
-		if bwa.Created.Sub(rotateAt).Minutes() < 0 {
+		if rotateAt.Unix() <= bwa.Created.Unix() && bwa.Created.Sub(rotateAt).Minutes() <= 0 {
+			bwa.logger.Debug("Rotate true: ", "rotateAt reached")
 			return true, nil // ### return, too old ###
 		}
 	}
