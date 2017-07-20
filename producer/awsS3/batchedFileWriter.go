@@ -21,7 +21,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core/components"
 	"strings"
-	"sync"
 )
 
 const minUploadPartSize = 5 * 1024 * 1024
@@ -48,9 +47,6 @@ type BatchedFileWriter struct {
 	// need separate byte buffer for min 5mb part uploads.
 	// @see http://docs.aws.amazon.com/AmazonS3/latest/API/mpUploadComplete.html
 	activeBuffer *s3ByteBuffer
-
-	//todo: check necessity
-	writeGuard *sync.Mutex
 }
 
 // NewBatchedFileWriter returns a BatchedFileWriter instance
@@ -82,7 +78,6 @@ func (w *BatchedFileWriter) init() {
 	w.totalSize = 0
 	w.currentMultiPart = 0
 	w.completedParts = []*s3.CompletedPart{}
-	w.writeGuard = new(sync.Mutex)
 	w.activeBuffer = newS3ByteBuffer()
 
 	w.createMultipartUpload()
@@ -148,10 +143,6 @@ func (w *BatchedFileWriter) uploadPartInput() (err error) {
 		return
 	}
 
-	//todo: check guard necessity
-	//w.writeGuard.Lock()
-	//defer w.writeGuard.Unlock()
-
 	// increase and get currentMultiPart count
 	w.currentMultiPart++
 	currentMultiPart := w.currentMultiPart
@@ -159,7 +150,6 @@ func (w *BatchedFileWriter) uploadPartInput() (err error) {
 	// get and reset active buffer
 	buffer := w.activeBuffer
 	w.activeBuffer = newS3ByteBuffer()
-	//w.writeGuard.Unlock()
 
 	input := &s3.UploadPartInput{
 		Body:       buffer,
