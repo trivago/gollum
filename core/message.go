@@ -197,8 +197,9 @@ func (msg *Message) FreezeOriginal() {
 	msg.orig.Metadata = msg.data.Metadata.Clone()
 }
 
-// Serialize generates a string containing all data that can be preserved over
-// shutdown (i.e. no data directly referencing runtime components).
+// Serialize generates a new payload containing all data that can be preserved
+// over shutdown (i.e. no data directly referencing runtime components). The
+// serialized data is based on the current message state.
 func (msg Message) Serialize() ([]byte, error) {
 	serializable := &SerializedMessage{
 		StreamID:     proto.Uint64(uint64(msg.data.streamID)),
@@ -206,6 +207,21 @@ func (msg Message) Serialize() ([]byte, error) {
 		Timestamp:    proto.Int64(msg.timestamp.UnixNano()),
 		Data:         msg.data.payload,
 		Metadata:     msg.data.Metadata,
+	}
+
+	return proto.Marshal(serializable)
+}
+
+// SerializeOriginal generates a new payload containing all data that can be
+// preserved over shutdown (i.e. no data directly referencing runtime c
+// omponents). The serialized data is based on the original message
+func (msg *Message) SerializeOriginal() ([]byte, error) {
+	serializable := &SerializedMessage{
+		StreamID:     proto.Uint64(uint64(msg.orig.streamID)),
+		PrevStreamID: proto.Uint64(uint64(msg.data.streamID)),
+		Timestamp:    proto.Int64(msg.timestamp.UnixNano()),
+		Data:         msg.orig.payload,
+		Metadata:     msg.orig.Metadata,
 	}
 
 	return proto.Marshal(serializable)
@@ -223,13 +239,9 @@ func DeserializeMessage(data []byte) (Message, error) {
 	}
 
 	msg.data.streamID = MessageStreamID(serializable.GetStreamID())
-	msg.orig.streamID = msg.data.streamID
-
 	msg.data.payload = serializable.GetData()
-	copy(msg.orig.payload, msg.data.payload)
-
 	msg.data.Metadata = serializable.GetMetadata()
-	msg.orig.Metadata = msg.data.Metadata.Clone()
 
+	msg.FreezeOriginal()
 	return msg, err
 }
