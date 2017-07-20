@@ -19,15 +19,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/trivago/gollum/core"
 )
 
-//TODO: check and handle endpoint for other aws services
-const (
-	defaultEndpoint = "s3.amazonaws.com"
-	defaultRegion   = "us-east-1"
-)
+// DefaultAwsRegion defines the default region to use
+const DefaultAwsRegion = "us-east-1"
 
 const (
 	credentialTypeEnv    = "environment"
@@ -54,34 +50,27 @@ type AwsMultiClient struct {
 
 // Configure method
 func (client *AwsMultiClient) Configure(conf core.PluginConfigReader) {
-	if client.endpoint == "" {
-		if client.region != defaultRegion {
-			client.endpoint = fmt.Sprintf("s3-%s.amazonaws.com", client.region)
-		} else {
-			client.endpoint = defaultEndpoint
-		}
-	}
-
 	client.config = aws.NewConfig()
 
 	client.config.WithRegion(client.region)
 	client.config.WithEndpoint(client.endpoint)
 
-	client.config.CredentialsChainVerboseErrors = aws.Bool(true)
-	client.config.WithCredentials(client.Credentials.CreateAwsCredentials())
-}
-
-// GetS3Client returns a s3.S3 client
-func (client *AwsMultiClient) GetS3Client() (*s3.S3, error) {
-	sess, err := client.newSessionWithOptions()
+	credentials, err := client.Credentials.CreateAwsCredentials()
 	if err != nil {
-		return nil, err
+		conf.Errors.Push(err)
 	}
 
-	return s3.New(sess, client.config), nil
+	client.config.WithCredentials(credentials)
+	client.config.CredentialsChainVerboseErrors = aws.Bool(true)
 }
 
-func (client *AwsMultiClient) newSessionWithOptions() (*session.Session, error) {
+// GetConfig returns set *aws.Config
+func (client *AwsMultiClient) GetConfig() *aws.Config {
+	return client.config
+}
+
+// NewSessionWithOptions returns a instantiated asw session
+func (client *AwsMultiClient) NewSessionWithOptions() (*session.Session, error) {
 	return session.NewSessionWithOptions(session.Options{
 		Config:            *client.config,
 		SharedConfigState: session.SharedConfigEnable,
@@ -116,21 +105,21 @@ type AwsCredentials struct {
 }
 
 // CreateAwsCredentials returns aws credentials.Credentials for active settings
-func (cred *AwsCredentials) CreateAwsCredentials() *credentials.Credentials {
+func (cred *AwsCredentials) CreateAwsCredentials() (*credentials.Credentials, error) {
 	switch cred.credentialType {
 	case credentialTypeEnv:
-		return credentials.NewEnvCredentials()
+		return credentials.NewEnvCredentials(), nil
 
 	case credentialTypeStatic:
-		return credentials.NewStaticCredentials(cred.staticID, cred.staticSecret, cred.staticToken)
+		return credentials.NewStaticCredentials(cred.staticID, cred.staticSecret, cred.staticToken), nil
 
 	case credentialTypeShared:
-		return credentials.NewSharedCredentials(cred.sharedFile, cred.sharedProfile)
+		return credentials.NewSharedCredentials(cred.sharedFile, cred.sharedProfile), nil
 
 	case credentialTypeNone:
-		return credentials.AnonymousCredentials
+		return credentials.AnonymousCredentials, nil
 
 	default:
-		panic(fmt.Sprintf("Unknown CredentialType: %s", cred.credentialType))
+		return credentials.AnonymousCredentials, fmt.Errorf("Unknown CredentialType: %s", cred.credentialType)
 	}
 }

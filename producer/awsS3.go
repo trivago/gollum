@@ -27,6 +27,8 @@ import (
 	"time"
 )
 
+const defaultAwsEndpoint = "s3.amazonaws.com"
+
 // AwsS3 producer plugin
 //
 // Configuration example
@@ -109,15 +111,24 @@ func (prod *AwsS3) Produce(workers *sync.WaitGroup) {
 	prod.TickerMessageControlLoop(prod.writeMessage, prod.batchTimeout, prod.writeBatchOnTimeOut)
 }
 
-func (prod *AwsS3) initS3Client() error {
-	var err error
-	prod.s3Client, err = prod.AwsMultiClient.GetS3Client()
+func (prod *AwsS3) initS3Client() {
+	sess, err := prod.AwsMultiClient.NewSessionWithOptions()
 	if err != nil {
-		prod.Logger.WithError(err).Error("Can't instantiate S3 client")
-		return err
+		prod.Logger.WithError(err).Error("Can't get proper aws config")
 	}
 
-	return nil
+	awsConfig := prod.AwsMultiClient.GetConfig()
+
+	// set auto endpoint to s3 if setting is empty
+	if awsConfig.Endpoint == nil || *awsConfig.Endpoint == "" {
+		if *awsConfig.Region != components.DefaultAwsRegion {
+			awsConfig.WithEndpoint(fmt.Sprintf("s3-%s.amazonaws.com", *awsConfig.Region))
+		} else {
+			awsConfig.WithEndpoint(defaultAwsEndpoint)
+		}
+	}
+
+	prod.s3Client = s3.New(sess, awsConfig)
 }
 
 func (prod *AwsS3) getBatchedFile(streamID core.MessageStreamID, forceRotate bool) (*components.BatchedWriterAssembly, error) {
