@@ -25,6 +25,10 @@ Structure
 3) Keyed enumerations
    Keyed enumartions start with a "- " followed by the key, followed by a colon and end with a blank line.
 
+4) Nested enumerations
+   When nesting enumerations, each level is preceded by an additional space.
+   Avoid enumerations that are nested deeper than one level.
+
 Sections
 --------
 
