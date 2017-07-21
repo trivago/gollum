@@ -30,16 +30,16 @@ const (
 	consoleBufferGrowSize = 256
 )
 
-// Console consumer:
+// Console consumer
 //
 // This consumer reads from stdin or a named pipe. A message is generated after
 // each newline character.
 //
-// Metadata:
+// Metadata
 //
 // - pipe: name of the pipe the message was received on
 //
-// Parameters:
+// Parameters
 //
 // - Pipe: Defines the pipe to read from. This can be "stdin" or the path
 // to a named pipe. If the named pipe is not existing it will be creared.
@@ -53,7 +53,7 @@ const (
 // i.e. when EOF is detected.
 // By default this paramater is set to "true".
 //
-// Configuration example:
+// Configuration example
 //
 //  ConsoleIn:
 //    Type: consumer.Console
