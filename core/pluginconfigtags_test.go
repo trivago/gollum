@@ -25,6 +25,7 @@ type testPluginAutoConfig struct {
 	BoolValue      bool              `config:"boolValue"`
 	IntValue       int64             `config:"intValue"`
 	UintValue      uint64            `config:"uintValue"`
+	OctValue       int64             `config:"octValue"`
 	DurationValue  time.Duration     `config:"durationValue" metric:"sec"`
 	MbValue        int64             `config:"mbValue" metric:"kb"`
 	StringValue    string            `config:"stringValue"`
@@ -59,6 +60,7 @@ func TestConfigReaderAutoConfig(t *testing.T) {
 	values["boolValue"] = true
 	values["intValue"] = int64(-1)
 	values["uintValue"] = uint64(2)
+	values["octValue"] = "017"
 	values["durationValue"] = int64(3)
 	values["mbValue"] = int64(4)
 	values["stringValue"] = "test"
@@ -92,6 +94,7 @@ func TestConfigReaderAutoConfig(t *testing.T) {
 	expect.True(myStruct.BoolValue)
 	expect.Equal(int64(-1), myStruct.IntValue)
 	expect.Equal(uint64(2), myStruct.UintValue)
+	expect.Equal(int64(15), myStruct.OctValue)
 	expect.Equal(3*time.Second, myStruct.DurationValue)
 	expect.Equal(int64(4096), myStruct.MbValue)
 	expect.Equal("test", myStruct.StringValue)
