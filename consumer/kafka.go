@@ -173,8 +173,8 @@ const (
 // This config reads the topic "logs" from a cluster with 4 brokers.
 //
 //  kafkaIn:
-//  	type: consumer.Kafka
-//      streams: logs
+//  	Type: consumer.Kafka
+//      Streams: logs
 //    	Topic: logs
 //    	ClientId: "gollum log reader"
 //    	DefaultOffset: newest
