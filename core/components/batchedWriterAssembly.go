@@ -15,22 +15,54 @@
 package components
 
 import (
+	"errors"
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tmath"
 	"io"
 	"time"
 )
 
+// BatchedWriterConfig defines batch configurations
+//
+// Params:
+//
+// Batch/TimeoutSec: Defines the maximum number of seconds to wait after the last
+// message arrived before a batch is flushed automatically. By default this is set to "5".
+//
+// Batch/MaxCount: defines the maximum number of messages that can be buffered
+// before a flush is mandatory. If the buffer is full and a flush is still
+// underway or cannot be triggered out of other reasons, the producer will
+// block. By default this is set to "8192".
+//
+// Batch/FlushCount: defines the number of messages to be buffered before they are
+// written to disk. This setting is clamped to "BatchMaxCount".
+// By default this is set to "BatchMaxCount / 2".
+//
+// Batch/FlushTimeoutSec: defines the maximum number of seconds to wait before a flush is
+// aborted during shutdown. By default this is set to "0", which does not abort
+// the flushing procedure.
+//
+type BatchedWriterConfig struct {
+	BatchTimeout      time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
+	BatchMaxCount     int           `config:"Batch/MaxCount" default:"8192"`
+	BatchFlushCount   int           `config:"Batch/FlushCount" default:"4096"`
+	BatchFlushTimeout time.Duration `config:"Batch/FlushTimeoutSec" default:"0" metric:"sec"`
+}
+
+// Configure interface implementation
+func (c *BatchedWriterConfig) Configure(conf core.PluginConfigReader) {
+	c.BatchFlushCount = tmath.MinI(c.BatchFlushCount, c.BatchMaxCount)
+}
+
 // BatchedWriterAssembly is a helper struct for io.Writer compatible classes that use batch directly for resources
 type BatchedWriterAssembly struct {
-	Batch           core.MessageBatch // Batch contains the MessageBatch
-	Created         time.Time         // Created contains the creation time from the writer was set
-	writer          BatchedWriter
-	assembly        core.WriterAssembly
-	flushTimeout    time.Duration // max sec to wait before a flush is aborted
-	batchTimeout    time.Duration // max sec to wait before batch will flushed
-	batchFlushCount int
-	logger          logrus.FieldLogger
+	Batch    core.MessageBatch // Batch contains the MessageBatch
+	Created  time.Time         // Created contains the creation time from the writer was set
+	config   BatchedWriterConfig
+	writer   BatchedWriter
+	assembly core.WriterAssembly
+	logger   logrus.FieldLogger
 }
 
 // BatchedWriter is an interface for different file writer like disk, s3, etc.
@@ -42,15 +74,12 @@ type BatchedWriter interface {
 }
 
 // NewBatchedWriterAssembly returns a new BatchedWriterAssembly instance
-func NewBatchedWriterAssembly(batchMaxCount int, batchTimeout time.Duration, batchFlushCount int, modulator core.Modulator, tryFallback func(*core.Message),
-	timeout time.Duration, logger logrus.FieldLogger) *BatchedWriterAssembly {
+func NewBatchedWriterAssembly(config BatchedWriterConfig, modulator core.Modulator, tryFallback func(*core.Message), logger logrus.FieldLogger) *BatchedWriterAssembly {
 	return &BatchedWriterAssembly{
-		Batch:           core.NewMessageBatch(batchMaxCount),
-		assembly:        core.NewWriterAssembly(nil, tryFallback, modulator),
-		flushTimeout:    timeout,
-		batchTimeout:    batchTimeout,
-		batchFlushCount: batchFlushCount,
-		logger:          logger,
+		Batch:    core.NewMessageBatch(config.BatchMaxCount),
+		assembly: core.NewWriterAssembly(nil, tryFallback, modulator),
+		config:   config,
+		logger:   logger,
 	}
 }
 
@@ -96,16 +125,73 @@ func (bwa *BatchedWriterAssembly) Flush() {
 func (bwa *BatchedWriterAssembly) Close() {
 	if bwa.writer != nil {
 		bwa.assembly.SetWriter(bwa.writer)
-		bwa.Batch.Close(bwa.assembly.Write, bwa.flushTimeout)
+		bwa.Batch.Close(bwa.assembly.Write, bwa.config.BatchFlushTimeout)
 	} else {
-		bwa.Batch.Close(bwa.assembly.Flush, bwa.flushTimeout)
+		bwa.Batch.Close(bwa.assembly.Flush, bwa.config.BatchFlushTimeout)
 	}
 	bwa.writer.Close()
 }
 
 // FlushOnTimeOut checks if timeout or slush count reached and flush in this case
 func (bwa *BatchedWriterAssembly) FlushOnTimeOut() {
-	if bwa.Batch.ReachedTimeThreshold(bwa.batchTimeout) || bwa.Batch.ReachedSizeThreshold(bwa.batchFlushCount) {
+	if bwa.Batch.ReachedTimeThreshold(bwa.config.BatchTimeout) || bwa.Batch.ReachedSizeThreshold(bwa.config.BatchFlushCount) {
 		bwa.Flush()
 	}
+}
+
+// NeedsRotate evaluate if the BatchedWriterAssembly need to rotate by the FileRotateConfig
+func (bwa *BatchedWriterAssembly) NeedsRotate(rotate RotateConfig, forceRotate bool) (bool, error) {
+	// File does not exist?
+	if !bwa.HasWriter() {
+		bwa.logger.Debug("Rotate true: ", "no writer")
+		return true, nil
+	}
+
+	// File can be accessed?
+	if bwa.GetWriter().IsAccessible() == false {
+		bwa.logger.Debug("Rotate false: ", "no access")
+		return false, errors.New("Can' access file to rotate")
+	}
+
+	// File needs rotation?
+	if !rotate.Enabled {
+		bwa.logger.Debug("Rotate false: ", "not active")
+		return false, nil
+	}
+
+	if forceRotate {
+		bwa.logger.Debug("Rotate true: ", "forced")
+		return true, nil
+	}
+
+	// File is too large?
+	if bwa.GetWriter().Size() >= rotate.SizeByte {
+		bwa.logger.Debug("Rotate true: ", "size > rotation size")
+		return true, nil // ### return, too large ###
+	}
+
+	// File is too old?
+	if time.Since(bwa.Created) >= rotate.Timeout {
+		bwa.logger.Debug("Rotate true: ", "lifetime > timeout setting")
+		return true, nil // ### return, too old ###
+	}
+
+	// RotateAt crossed?
+	if rotate.AtHour > -1 && rotate.AtMinute > -1 {
+		now := time.Now()
+		rotateAt := time.Date(now.Year(), now.Month(), now.Day(), rotate.AtHour, rotate.AtMinute, 0, 0, now.Location())
+
+		if rotateAt.Before(bwa.Created) {
+			bwa.logger.Debug("Rotate false: ", "rotateAt time located in the past")
+			return false, nil
+		}
+
+		if now.After(rotateAt) {
+			bwa.logger.Debug("Rotate true: ", "rotateAt time reached")
+			return true, nil // ### return, too old ###
+		}
+	}
+
+	// nope, everything is ok
+	return false, nil
 }
