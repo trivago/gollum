@@ -86,14 +86,14 @@ const (
 //
 // Examples
 //
-// This example will accepts 32bit length encoded data on TCP port 5880.
+// This example will accepts 64bit length encoded data on TCP port 5880.
 //
 //  proxyReceive:
 //    Type: consumer.Proxy
 //    Streams: proxyData
 //    Address: ":5880"
 //    Partitioner: binary
-//    Size: 4
+//    Size: 8
 type Proxy struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 	listen              io.Closer
