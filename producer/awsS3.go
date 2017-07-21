@@ -152,7 +152,12 @@ func (prod *AwsS3) getBatchedFile(streamID core.MessageStreamID, forceRotate boo
 	// get batchedFile from files[path] and assure the file is correctly mapped
 	batchedFile, fileExists = prod.files[baseFileName]
 	if !fileExists {
-		batchedFile = prod.newBatchedWriterAssembly()
+		batchedFile = components.NewBatchedWriterAssembly(
+			prod.BatchConfig,
+			prod,
+			prod.TryFallback,
+			prod.Logger,
+		)
 
 		prod.filesByStream[streamID] = batchedFile
 		prod.files[baseFileName] = batchedFile
@@ -200,54 +205,16 @@ func (prod *AwsS3) getBaseFileName(streamID core.MessageStreamID) string {
 	return prod.fileNamePattern
 }
 
+//todo: introduce padding functionality (get list from aws)
 func (prod *AwsS3) getFinalFileName(baseFileName string) string {
 	fileExt := filepath.Ext(baseFileName)
 	fileName := baseFileName[:len(baseFileName)-len(fileExt)]
 
 	timestamp := time.Now().Format(prod.Rotate.Timestamp)
 	signature := fmt.Sprintf("%s_%s", fileName, timestamp)
-	maxSuffix := uint64(0)
 
-	//todo: get list from aws?
-	/*files, _ := ioutil.ReadDir(streamFile.dir)
-	for _, f := range files {
-		if strings.HasPrefix(f.Name(), signature) {
-			// Special case.
-			// If there is no extension, counter stays at 0
-			// If there is an extension (and no count), parsing the "." will yield a counter of 0
-			// If there is a count, parsing it will work as intended
-			counter := uint64(0)
-			if len(f.Name()) > len(signature) {
-				counter, _ = tstrings.Btoi([]byte(f.Name()[len(signature)+1:]))
-			}
+	return fmt.Sprintf("%s%s", signature, fileExt)
 
-			if maxSuffix <= counter {
-				maxSuffix = counter + 1
-			}
-		}
-	}*/
-
-	if maxSuffix == 0 {
-		return fmt.Sprintf("%s%s", signature, fileExt)
-	}
-
-	formatString := "%s_%d%s"
-	if prod.Rotate.ZeroPad > 0 {
-		formatString = fmt.Sprintf("%%s_%%0%dd%%s", prod.Rotate.ZeroPad)
-	}
-	return fmt.Sprintf(formatString, signature, int(maxSuffix), fileExt)
-
-}
-
-func (prod *AwsS3) newBatchedWriterAssembly() *components.BatchedWriterAssembly {
-	batchedFile := components.NewBatchedWriterAssembly(
-		prod.BatchConfig,
-		prod,
-		prod.TryFallback,
-		prod.Logger,
-	)
-
-	return batchedFile
 }
 
 func (prod *AwsS3) writeMessage(msg *core.Message) {
