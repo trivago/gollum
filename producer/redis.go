@@ -64,8 +64,8 @@ type Redis struct {
 	protocol              string
 	password              string `config:"Password"`
 	database              int    `config:"Database" default:"0"`
-	keyField              string `config:"KeyFrom"`
-	fieldField            string `config:"FieldFrom"`
+	key                   string `config:"KeyFrom"`
+	field                 string `config:"FieldFrom"`
 	client                *redis.Client
 	store                 func(msg *core.Message)
 }
@@ -98,15 +98,15 @@ func (prod *Redis) Configure(conf core.PluginConfigReader) {
 
 func (prod *Redis) getValueAndKey(msg *core.Message) (v, k []byte) {
 	meta := msg.GetMetadata()
-	key := meta.GetValue(prod.keyField)
+	key := meta.GetValue(prod.key)
 
 	return msg.GetPayload(), key
 }
 
 func (prod *Redis) getValueFieldAndKey(msg *core.Message) (v, f, k []byte) {
 	meta := msg.GetMetadata()
-	key := meta.GetValue(prod.keyField)
-	field := meta.GetValue(prod.fieldField)
+	key := meta.GetValue(prod.key)
+	field := meta.GetValue(prod.field)
 
 	return msg.GetPayload(), field, key
 }
