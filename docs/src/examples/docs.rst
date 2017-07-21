@@ -17,6 +17,7 @@ Structure
 1) Heading
    A heading is defined by text that is surrounded by blank lines.
    If a heading is starting a documentation block, the preceding blank line is omitted.
+   Please note that a heading is only detected as heading by godoc if there is regular text following the blank line after the heading.
 
 2) Enumeration
    An enumeration starts with a "- " and ends with a blank line.
@@ -50,7 +51,7 @@ A plugin documentation is separated into 4 parts.
 
 4) Giving examples
    The heading of this section is "Examples".
-   This section should contain at least one configuration example.
+   This section should contain at least one configuration example and a short description for each example provided.
    The example has to be meaningful and does not need to contain all parameters.
    The example has to be working, i.e. a user could copy-paste this to a config and it would work.
    The example is not complete, i.e. it only contains a configuration for this plugin not other plugins.
@@ -68,16 +69,16 @@ Example
 
 ::
 
-  // Console consumer:
+  // Console consumer
   //
   // This consumer reads from stdin or a named pipe. A message is generated after
   // each newline character.
   //
-  // Metadata:
+  // Metadata
   //
   // - pipe: name of the pipe the message was received on
   //
-  // Parameters:
+  // Parameters
   //
   // - Pipe: Defines the pipe to read from. This can be "stdin" or the path
   // of a named pipe. A named pipe is creared if not existing.
@@ -90,11 +91,11 @@ Example
   // - ExitOnEOF: Can be set to true to trigger an exit signal if the pipe is closed
   // i.e. when EOF is detected. This is set to true by default.
   //
-  // Configuration example:
+  // Examples
+  //
+  // This configuration reads data from standard-in.
   //
   //  ConsoleIn:
   //    Type: consumer.Console
   //    Streams: console
-  //    Pipe: /tmp/namedpipe
-  //    Permissions: "0664"
-  //    ExitOnEOF: false
+  //    Pipe: stdin
