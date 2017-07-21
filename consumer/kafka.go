@@ -168,7 +168,9 @@ const (
 // - SaslPassword: Defines the password used with SASL/PLAIN authentication.
 // By default this parameter is set to "".
 //
-// Example
+// Examples
+//
+// This config reads the topic "logs" from a cluster with 4 brokers.
 //
 //  kafkaIn:
 //  	type: consumer.Kafka

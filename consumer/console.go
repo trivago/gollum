@@ -53,14 +53,14 @@ const (
 // i.e. when EOF is detected.
 // By default this paramater is set to "true".
 //
-// Configuration example
+// Examples
+//
+// This config reads data from stdin e.g. when starting gollum via unix pipe.
 //
 //  ConsoleIn:
 //    Type: consumer.Console
 //    Streams: console
-//    Pipe: /tmp/namedpipe
-//    Permissions: "0664"
-//    ExitOnEOF: false
+//    Pipe: stdin
 type Console struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 	autoExit            bool   `config:"ExitOnEOF" default:"true"`
