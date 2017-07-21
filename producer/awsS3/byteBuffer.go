@@ -1,3 +1,17 @@
+// Copyright 2015-2017 trivago GmbH
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package awsS3
 
 import (
@@ -5,21 +19,18 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	//"github.com/sirupsen/logrus"
 )
 
+// s3ByteBuffer is a byte buffer used for s3 target objects
 type s3ByteBuffer struct {
 	bytes    []byte
 	position int64
-	//logger   logrus.FieldLogger
 }
 
-//func newS3ByteBuffer(logger logrus.FieldLogger) *s3ByteBuffer {
 func newS3ByteBuffer() *s3ByteBuffer {
 	return &s3ByteBuffer{
 		bytes:    make([]byte, 0),
 		position: int64(0),
-		//logger:   logger,
 	}
 }
 
@@ -73,17 +84,3 @@ func (buf *s3ByteBuffer) Sha1() (string, error) {
 	hash := sha1.Sum(buf.bytes)
 	return hex.EncodeToString(hash[:]), nil
 }
-
-/*func (buf *s3ByteBuffer) Compress() error {
-	compressed := newS3ByteBuffer(buf.logger)
-	gzipWriter := gzip.NewWriter(compressed)
-	_, err := gzipWriter.Write(buf.bytes)
-	gzipWriter.Close()
-	if err != nil {
-		buf.logger.Warning("Compression failed:", err)
-		return err
-	}
-	buf.bytes = compressed.bytes
-	buf.position = compressed.position
-	return nil
-}*/
