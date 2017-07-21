@@ -74,23 +74,26 @@ const (
 // length if partitioner is set to "ascii".
 // By default this parameter is set to "\n".
 //
-// - Offset: Defines the message offset used by partitioner binary and ascii.
+// - Offset: Defines an offset in bytes used to read the length provided for
+// partitioner "binary" and "ascii".
 // By default this parameter is set to 0.
 //
 // - Size: Defines the size of the length prefix used by partitioner "binary"
 // or the message total size when using partitioner "fixed".
 // When using partitioner "binary" this parameter can be set to 1,2,4 or 8 when
 // using uint8,uint16,uint32 or uint64 length prefixes.
-// By default this parameter is set to 1.
+// By default this parameter is set to 4.
 //
 // Examples
 //
-// This example will accepts newline separated data on TCP port 5880.
+// This example will accepts 32bit length encoded data on TCP port 5880.
 //
 //  proxyReceive:
 //    Type: consumer.Proxy
 //    Streams: proxyData
 //    Address: ":5880"
+//    Partitioner: binary
+//    Size: 4
 type Proxy struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 	listen              io.Closer
@@ -99,6 +102,7 @@ type Proxy struct {
 	flags               tio.BufferedReaderFlags
 	delimiter           string `config:"Delimiter" default:"\n"`
 	offset              int    `config:"Offset" default:"0"`
+	size                int    `config:"Size" default:"4"`
 }
 
 func init() {
@@ -121,7 +125,7 @@ func (cons *Proxy) Configure(conf core.PluginConfigReader) {
 		fallthrough
 
 	case "binary", "binary_le":
-		switch conf.GetInt("Size", 4) {
+		switch cons.size {
 		case 1:
 			cons.flags |= tio.BufferedReaderFlagMLE8
 		case 2:
@@ -136,7 +140,7 @@ func (cons *Proxy) Configure(conf core.PluginConfigReader) {
 
 	case "fixed":
 		cons.flags |= tio.BufferedReaderFlagMLEFixed
-		cons.offset = int(conf.GetInt("Size", 1))
+		cons.offset = cons.size
 
 	case "ascii":
 		cons.flags |= tio.BufferedReaderFlagMLE
