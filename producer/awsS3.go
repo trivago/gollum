@@ -30,33 +30,47 @@ const defaultAwsEndpoint = "s3.amazonaws.com"
 
 // AwsS3 producer plugin
 //
-// Configuration example
+// This producer sends messages to Amazon S3.
+// Each "file" use a configurable batch and sends the content by a multipart upload to s3.
+// This principle avoid temporary storage on disk.
 //
-// myProducer:
-//   Type: producer.AwsS3
-//   Credentials:
-//     Type: shared
-//     File: /Users/$MYUSER/.aws/credentials
-//     Profile: default
-//   Region: eu-west-1
-//   Bucket: my-s3-bucket/subfolder/
-//   Streams:
-//     - "*"
-//   File: gollum_*.log
-//   Batch:
-//     TimeoutSec: 5
-//     MaxCount: 1000
-//     FlushCount: 500
-//     FlushTimeoutSec: 0
-//   Rotation:
-//     TimestampFormat: 2006-01-02_15
-//     TimeoutMin: 1440
-//     SizeMB: 1024
-// 	   ZeroPadding: 0
-// 	   At: 13:05
-//   Modulators:
-//     - format.Envelope:
-//       Postfix: "\n"
+// Please keep in mind that Amazon S3 do not support appending to existing objects. Because of that a rotation is
+// mandatory in this producer.
+//
+// Parameters
+//
+// - Bucket: Your S3 bucket where you want to upload.
+//
+// - File: This value is used as a base file pattern for you final file names.
+// The " * " will parsed to the active stream name. By default this is set to "gollum_*.log"
+//
+// Examples
+//
+// This example will send all received message from all stream to S3
+// and create a own file for each stream:
+//
+//  S3Out:
+//    Type: producer.AwsS3
+//    Credential:
+//      Type: shared
+//      File: /Users/<USERNAME>/.aws/credentials
+//      Profile: default
+//    Region: eu-west-1
+//    Bucket: gollum-s3-test
+//    Streams:
+//      - "*"
+//    Batch:
+//      TimeoutSec: 60
+//      MaxCount: 1000
+//      FlushCount: 500
+//      FlushTimeoutSec: 0
+//    Rotation:
+//      Timestamp: 2006-01-02T15:04:05.999999999Z07:00
+//      TimeoutMin: 1
+//      SizeMB: 20
+//    Modulators:
+//      - format.Envelope:
+//        Postfix: "\n"
 //
 type AwsS3 struct {
 	core.DirectProducer `gollumdoc:"embed_type"`
@@ -98,7 +112,7 @@ func (prod *AwsS3) Configure(conf core.PluginConfigReader) {
 	prod.batchedFileGuard = new(sync.RWMutex)
 }
 
-// Produce writes to a buffer that is dumped to a file.
+// Produce writes to a buffer that is send to S3 as a multipart upload.
 func (prod *AwsS3) Produce(workers *sync.WaitGroup) {
 	prod.initS3Client()
 
