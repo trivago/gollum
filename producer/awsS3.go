@@ -20,7 +20,6 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/components"
 	"github.com/trivago/gollum/producer/awsS3"
-	"github.com/trivago/tgo/tmath"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -63,23 +62,20 @@ type AwsS3 struct {
 	core.DirectProducer `gollumdoc:"embed_type"`
 
 	// Rotate is public to make Pruner.Configure() callable (bug in treflect package)
-	Rotate         components.RotateConfig   `gollumdoc:"embed_type"`
-	AwsMultiClient components.AwsMultiClient `gollumdoc:"embed_type"`
+	// AwsMultiClient is public to make AwsMultiClient.Configure() callable (bug in treflect package)
+	// BatchConfig is public to make BatchedWriterConfig.Configure() callable (bug in treflect package)
+	Rotate         components.RotateConfig        `gollumdoc:"embed_type"`
+	AwsMultiClient components.AwsMultiClient      `gollumdoc:"embed_type"`
+	BatchConfig    components.BatchedWriterConfig `gollumdoc:"embed_type"`
 
-	// configuration
-	batchTimeout      time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
-	batchMaxCount     int           `config:"Batch/MaxCount" default:"1000"`
-	batchFlushCount   int           `config:"Batch/FlushCount" default:"500"`
-	batchFlushTimeout time.Duration `config:"Batch/FlushTimeoutSec" default:"0" metric:"sec"`
-	bucket            string        `config:"Bucket" default:""`
-
-	// properties
-	filesByStream map[core.MessageStreamID]*components.BatchedWriterAssembly
-	files         map[string]*components.BatchedWriterAssembly
-
-	hasWildcard     bool
+	// configurations
+	bucket          string `config:"Bucket" default:""`
 	fileNamePattern string `config:"File" default:"gollum_*.log"`
 
+	// properties
+	filesByStream    map[core.MessageStreamID]*components.BatchedWriterAssembly
+	files            map[string]*components.BatchedWriterAssembly
+	hasWildcard      bool
 	batchedFileGuard *sync.RWMutex
 	s3Client         *s3.S3
 }
@@ -96,7 +92,6 @@ func (prod *AwsS3) Configure(conf core.PluginConfigReader) {
 	prod.filesByStream = make(map[core.MessageStreamID]*components.BatchedWriterAssembly)
 	prod.files = make(map[string]*components.BatchedWriterAssembly)
 
-	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.hasWildcard = strings.IndexByte(prod.fileNamePattern, '*') != -1
 	prod.Rotate.Enabled = true // force rotation
 
@@ -108,7 +103,7 @@ func (prod *AwsS3) Produce(workers *sync.WaitGroup) {
 	prod.initS3Client()
 
 	prod.AddMainWorker(workers)
-	prod.TickerMessageControlLoop(prod.writeMessage, prod.batchTimeout, prod.writeBatchOnTimeOut)
+	prod.TickerMessageControlLoop(prod.writeMessage, prod.BatchConfig.BatchTimeout, prod.writeBatchOnTimeOut)
 }
 
 func (prod *AwsS3) initS3Client() {
@@ -246,12 +241,9 @@ func (prod *AwsS3) getFinalFileName(baseFileName string) string {
 
 func (prod *AwsS3) newBatchedWriterAssembly() *components.BatchedWriterAssembly {
 	batchedFile := components.NewBatchedWriterAssembly(
-		prod.batchMaxCount,
-		prod.batchTimeout,
-		prod.batchFlushCount,
+		prod.BatchConfig,
 		prod,
 		prod.TryFallback,
-		prod.batchFlushTimeout,
 		prod.Logger,
 	)
 

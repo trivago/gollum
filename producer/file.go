@@ -19,12 +19,10 @@ import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/components"
 	"github.com/trivago/gollum/producer/file"
-	"github.com/trivago/tgo/tmath"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
-	"time"
 )
 
 // File producer plugin
@@ -72,39 +70,20 @@ import (
 // FolderPermissions accepts an octal number string that contains the unix file
 // permissions used when creating a folder. By default this is set to "0755".
 //
-// Batch/MaxCount defines the maximum number of messages that can be buffered
-// before a flush is mandatory. If the buffer is full and a flush is still
-// underway or cannot be triggered out of other reasons, the producer will
-// block. By default this is set to 8192.
-//
-// Batch/FlushCount defines the number of messages to be buffered before they are
-// written to disk. This setting is clamped to BatchMaxCount.
-// By default this is set to BatchMaxCount / 2.
-//
-// Batch/TimeoutSec defines the maximum number of seconds to wait after the last
-// message arrived before a batch is flushed automatically. By default this is
-// set to 5.
-//
-// Batch/FlushTimeoutSec sets the maximum number of seconds to wait before a flush is
-// aborted during shutdown. By default this is set to 0, which does not abort
-// the flushing procedure.
-//
 type File struct {
 	core.DirectProducer `gollumdoc:"embed_type"`
 
 	// Rotate is public to make Pruner.Configure() callable (bug in treflect package)
 	// Prune is public to make FileRotateConfig.Configure() callable (bug in treflect package)
-	Rotate components.RotateConfig `gollumdoc:"embed_type"`
-	Pruner file.Pruner             `gollumdoc:"embed_type"`
+	// BatchConfig is public to make BatchedWriterConfig.Configure() callable (bug in treflect package)
+	Rotate      components.RotateConfig        `gollumdoc:"embed_type"`
+	Pruner      file.Pruner                    `gollumdoc:"embed_type"`
+	BatchConfig components.BatchedWriterConfig `gollumdoc:"embed_type"`
 
 	// configuration
-	batchTimeout      time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
-	batchMaxCount     int           `config:"Batch/MaxCount" default:"8192"`
-	batchFlushCount   int           `config:"Batch/FlushCount" default:"4096"`
-	batchFlushTimeout time.Duration `config:"Batch/FlushTimeoutSec" default:"0" metric:"sec"`
-	overwriteFile     bool          `config:"FileOverwrite"`
-	filePermissions   os.FileMode   `config:"Permissions" default:"0644"`
-	folderPermissions os.FileMode   `config:"FolderPermissions" default:"0755"`
+	overwriteFile     bool        `config:"FileOverwrite"`
+	filePermissions   os.FileMode `config:"Permissions" default:"0644"`
+	folderPermissions os.FileMode `config:"FolderPermissions" default:"0755"`
 
 	// properties
 	filesByStream    map[core.MessageStreamID]*components.BatchedWriterAssembly
@@ -129,7 +108,6 @@ func (prod *File) Configure(conf core.PluginConfigReader) {
 
 	prod.filesByStream = make(map[core.MessageStreamID]*components.BatchedWriterAssembly)
 	prod.files = make(map[string]*components.BatchedWriterAssembly)
-	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
 
 	logFile := conf.GetString("File", "/var/log/gollum.log")
 	prod.wildcardPath = strings.IndexByte(logFile, '*') != -1
@@ -145,7 +123,7 @@ func (prod *File) Configure(conf core.PluginConfigReader) {
 // Produce writes to a buffer that is dumped to a file.
 func (prod *File) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.TickerMessageControlLoop(prod.writeMessage, prod.batchTimeout, prod.writeBatchOnTimeOut)
+	prod.TickerMessageControlLoop(prod.writeMessage, prod.BatchConfig.BatchTimeout, prod.writeBatchOnTimeOut)
 }
 
 func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool) (*components.BatchedWriterAssembly, error) {
@@ -176,14 +154,10 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 	// get batchedFile from files[path] and assure the file is correctly mapped
 	batchedFile, fileExists = prod.files[streamTargetFile.GetOriginalPath()]
 	if !fileExists {
-		// batchedFile does not yet exist: create and map it
 		batchedFile = components.NewBatchedWriterAssembly(
-			prod.batchMaxCount,
-			prod.batchTimeout,
-			prod.batchFlushCount,
+			prod.BatchConfig,
 			prod,
 			prod.TryFallback,
-			prod.batchFlushTimeout,
 			prod.Logger,
 		)
 
