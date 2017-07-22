@@ -46,7 +46,7 @@ var globalImportMap map[string]string
 func main() {
 	// Args
 	if len(os.Args) != 3 {
-		fmt.Printf("Usage: %s <source.gp> <destination.rst>\n", os.Args[0])
+		fmt.Printf("Usage: %s <source.go> <destination.rst>\n", os.Args[0])
 		os.Exit(1)
 	}
 	sourcePath, destFilePath := os.Args[1], os.Args[2]
@@ -200,7 +200,8 @@ func getPackageImportMap(astPackage *ast.Package) map[string]string {
 			result[packageName] = packagePath
 		}
 
-		// Add this file's local path to import list - there may not be other references to this package
+		// Add this file's local path to import list
+		// - there may not be other references to this package
 		tmp, exists := result[file.Name.Name]
 		if exists && tmp != path.Dir(fileName) {
 			fmt.Printf("WARNING: Possible package naming conflict in file %q: package %q references both importdir %q and relative dir %q\n",
@@ -334,18 +335,19 @@ func (pst pluginStructType) createPluginDocument() PluginDocument {
 	pluginDocument := NewPluginDocument(pst.Pkg, pst.Name)
 	pluginDocument.ParseString(pst.Comment)
 
-	// Recursively generate PluginDocuments for all embedded types (SimpleProducer etc.)
-	// with embedTag in this plugin's embed declaration and include their parameter lists
-	// in this plugin's document.
+	// - Recursively generate PluginDocuments for all embedded types (SimpleProducer etc.)
+	//   with embedTag in this plugin's embed declaration
+	// - Include their parameter lists in this doc
+	// - Include their metadata lists in this doc
 	for _, embed := range pst.Embeds {
 		importDir := getImportDir(embed.pkg)
-		fmt.Printf("importdir(%s): %s\n", embed.pkg, importDir)
 		astPackage, _ := parseSourcePath(importDir)
 		for _, embedPst := range getPluginStructTypes(astPackage) {
 			if embedPst.Pkg == embed.pkg && embedPst.Name == embed.name {
 				// Recursion
 				doc := embedPst.createPluginDocument()
-				pluginDocument.IncludeParameters(doc)
+				pluginDocument.InheritParameters(doc)
+				pluginDocument.InheritMetadata(doc)
 			}
 		}
 	}
