@@ -24,33 +24,21 @@ import (
 )
 
 // SimpleProducer plugin base type
+//
 // This type defines a common baseclass for producers. All producers should
 // derive from this class, but not necessarily need to.
-// Configuration example:
 //
-//  - "producer.Foobar":
-//    Enable: true
-//    ID: ""
-//    Channel: 8192
-//    ChannelTimeoutMs: 0
-//    ShutdownTimeoutMs: 1000
-// 	  Modulators:
-//    	- "filter.All"
-//    Formatter: "format.Forward"
-//    FallbackStream: ""
-//    Router:
-//      - "foo"
-//      - "bar"
+// Parameters
 //
-// Enable switches the consumer on or off. By default this value is set to true.
+// - Enable: switches the consumer on or off. By default this value is set to true.
 //
-// ID allows this producer to be found by other plugins by name. By default this
+// - ID: allows this producer to be found by other plugins by name. By default this
 // is set to "" which does not register this producer.
 //
-// Channel sets the size of the channel used to communicate messages. By default
+// - Channel: sets the size of the channel used to communicate messages. By default
 // this value is set to 8192.
 //
-// ChannelTimeoutMs sets a timeout in milliseconds for messages to wait if this
+// - ChannelTimeoutMs: sets a timeout in milliseconds for messages to wait if this
 // producer's queue is full.
 // A timeout of -1 or lower will try the fallback route without notice.
 // A timeout of 0 will block until the queue is free. This is the default.
@@ -58,23 +46,23 @@ import (
 // available again. If this does not happen, the message will be send to the
 // retry channel.
 //
-// ShutdownTimeoutMs sets a timeout in milliseconds that will be used to detect
+// - ShutdownTimeoutMs: sets a timeout in milliseconds that will be used to detect
 // a blocking producer during shutdown. By default this is set to 1 second.
 // Decreasing this value may lead to lost messages during shutdown. Increasing
 // this value will increase shutdown time.
 //
-// Router contains either a single string or a list of strings defining the
+// - Router: contains either a single string or a list of strings defining the
 // message channels this producer will consume. By default this is set to "*"
 // which means "listen to all routers but the internal".
 //
-// FallbackStream defines the stream used for messages that cannot be delivered
+// - FallbackStream: defines the stream used for messages that cannot be delivered
 // e.g. after a timeout (see ChannelTimeoutMs). By default this is "".
 //
-// Formatter sets a formatter to use. Each formatter has its own set of options
+// - Formatter: sets a formatter to use. Each formatter has its own set of options
 // which can be set here, too. By default this is set to format.Forward.
 // Each producer decides if and when to use a Formatter.
 //
-// Filter sets a filter that is applied before formatting, i.e. before a message
+// - Filter: sets a filter that is applied before formatting, i.e. before a message
 // is send to the message queue. If a producer requires filtering after
 // formatting it has to define a separate filter as the producer decides if
 // and where to format.
