@@ -227,7 +227,7 @@ func parseDefinitionList(text string) map[string]Definition {
 			}
 		} else if defName == "" {
 			panic(fmt.Sprintf(
-				"Definition list input looks malformed, cannot parse name around \"%s\"",
+				"Definition list input looks malformed, cannot parse name of config parameter or metadata field around \"%s\"",
 				trimmedLine))
 		} else {
 			// append to old one

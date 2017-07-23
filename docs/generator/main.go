@@ -27,29 +27,13 @@ import (
 
 const embedTag = "`gollumdoc:\"embed_type\"`"
 
-// Represents a "type FooPlugin struct { .... }" declaration parsed from the
-// source and its immediately preceding comment block.
-type pluginStructType struct {
-	Pkg     string
-	Name    string
-
-	// Comment block immediately preceding this struct
-	Comment string
-
-	// Struct types embedded (inherited) by this struct
-	Embeds  []typeEmbed
-
-	// Config parameters marked with struct tags (`config:"ParamName" ....`)
-	Params  map[string]Definition
-}
+// Map of imported package names => package paths
+var globalImportMap map[string]string
 
 type typeEmbed struct {
 	pkg  string
 	name string
 }
-
-// Map of imported package names => package paths
-var globalImportMap map[string]string
 
 // Main
 func main() {
@@ -68,7 +52,7 @@ func main() {
 	}
 
 	// Read .go sources from file|directory sourcePath
-	sourcePackage, _ := parseSourcePath(sourcePath)
+	sourcePackage := parseSourcePath(sourcePath)
 	globalImportMap = getPackageImportMap(sourcePackage)
 
 	// Search for "type FooPlugin struct { ... }" declarations
@@ -90,7 +74,7 @@ func main() {
 // Parses the .go sourcers in the file|directory `sourcePath ` into an ast.Package object.
 // This lets us blindly accept files and directories as input. Expects to find exactly one
 // package under sourcePath. Returns (*ast.Package, *token.FileSet). Panics on errors.
-func parseSourcePath(sourcePath string) (*ast.Package, *token.FileSet) {
+func parseSourcePath(sourcePath string) *ast.Package {
 	// stat() the sourcePath
 	sourceFileHandle, err := os.Open(sourcePath)
 	if err != nil {
@@ -129,7 +113,7 @@ func parseSourcePath(sourcePath string) (*ast.Package, *token.FileSet) {
 	}
 
 	for _, packageAst := range packageMap {
-		return packageAst, fileSet
+		return packageAst
 	}
 	panic("Not reached")
 }
@@ -293,7 +277,7 @@ func getPluginStructTypes(pkgRoot *ast.Package) []pluginStructType {
 			Embeds: getStructTypeEmbedList(pkgRoot.Name,
 					genDecl.Children[1].Children[1].Children[0].AstNode.(*ast.FieldList),
 				),
-			Params: getStructTypeParamList(pkgRoot.Name,
+			Params: getStructTypeConfigParams(
 					genDecl.Children[1].Children[1].Children[0].AstNode.(*ast.FieldList),
 				),
 		}
@@ -341,15 +325,16 @@ func getStructTypeEmbedList(packageName string, fieldList *ast.FieldList) []type
 	return results
 }
 
-//
-func getStructTypeParamList(packageName string, fieldList *ast.FieldList) map[string]Definition {
+// getStructTypeConfigParams scans the strcut for properties that map directly
+// to config params (identified by tags like `config:"TimeoutMs" default:"0" metric:"ms"`)
+// and returns a map of Definitions with the value of "config" as key.
+func getStructTypeConfigParams(fieldList *ast.FieldList) map[string]Definition {
 	results := make(map[string]Definition)
 
 	for _, field := range fieldList.List {
 		if field.Tag == nil || field.Tag.Kind != token.STRING {
 			continue
 		}
-		//fmt.Printf("params: field.Tag.Value: \"%s\"\n", field.Tag.Value)
 		tags := parseStructTag(field.Tag.Value)
 		if paramName, found := tags["config"]; found {
 			results[paramName] = Definition {
@@ -362,7 +347,6 @@ func getStructTypeParamList(packageName string, fieldList *ast.FieldList) map[st
 
 	return results
 }
-
 // parseStructTag parses a string like
 //
 //   `config:"ReadTimeoutSec" default:"3" metric:"sec"`
@@ -379,6 +363,7 @@ func parseStructTag(tag string) map[string]string {
 	parseStructTagInner(re, result, tag[1:len(tag)-1])
 	return result
 }
+// Recursive component of parseStructTag()
 func parseStructTagInner(re *regexp.Regexp, result map[string]string, tag string) {
 	if tag == "" || re.FindString(tag) == "" {
 		return
@@ -388,48 +373,7 @@ func parseStructTagInner(re *regexp.Regexp, result map[string]string, tag string
 	tagValue := re.ReplaceAllString(tag, "$2")
 	rest     := re.ReplaceAllString(tag, "$3")
 
-	//fmt.Printf("Found tagName=\"%s\", tagValue=\"%s\", rest=\"%s\"\n",
-	// 	tagName, tagValue, rest)
-
 	result[tagName] = tagValue
-
 	parseStructTagInner(re, result, rest)
 }
 
-// Generates a PluginDocument from the pluginStructType
-func (pst pluginStructType) createPluginDocument() PluginDocument {
-	// Create PluginDocument
-	pluginDocument := NewPluginDocument(pst.Pkg, pst.Name)
-
-	// Parse the comment string
-	pluginDocument.ParseString(pst.Comment)
-
-	// Set Param values from struct tags
-	for paramName, paramDef := range pst.Params {
-
-		if docParamDef, found := pluginDocument.Parameters[paramName]; found {
-			paramDef.desc = docParamDef.desc
-		}
-
-		pluginDocument.Parameters[paramName] = paramDef
-	}
-
-	// - Recursively generate PluginDocuments for all embedded types (SimpleProducer etc.)
-	//   with embedTag in this plugin's embed declaration
-	// - Include their parameter lists in this doc
-	// - Include their metadata lists in this doc
-	for _, embed := range pst.Embeds {
-		importDir := getImportDir(embed.pkg)
-		astPackage, _ := parseSourcePath(importDir)
-		for _, embedPst := range getPluginStructTypes(astPackage) {
-			if embedPst.Pkg == embed.pkg && embedPst.Name == embed.name {
-				// Recursion
-				doc := embedPst.createPluginDocument()
-				pluginDocument.InheritParameters(doc)
-				pluginDocument.InheritMetadata(doc)
-			}
-		}
-	}
-
-	return pluginDocument
-}
