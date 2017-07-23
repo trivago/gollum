@@ -22,6 +22,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"regexp"
 )
 
 const embedTag = "`gollumdoc:\"embed_type\"`"
@@ -31,9 +32,17 @@ const embedTag = "`gollumdoc:\"embed_type\"`"
 type pluginStructType struct {
 	Pkg     string
 	Name    string
+
+	// Comment block immediately preceding this struct
 	Comment string
+
+	// Struct types embedded (inherited) by this struct
 	Embeds  []typeEmbed
+
+	// Config parameters marked with struct tags (`config:"ParamName" ....`)
+	Params  map[string]Definition
 }
+
 type typeEmbed struct {
 	pkg  string
 	name string
@@ -282,8 +291,11 @@ func getPluginStructTypes(pkgRoot *ast.Package) []pluginStructType {
 			Name:    genDecl.Children[1].Children[0].AstNode.(*ast.Ident).Name,
 			Comment: genDecl.Children[0].AstNode.(*ast.CommentGroup).Text(),
 			Embeds: getStructTypeEmbedList(pkgRoot.Name,
-				genDecl.Children[1].Children[1].Children[0].AstNode.(*ast.FieldList),
-			),
+					genDecl.Children[1].Children[1].Children[0].AstNode.(*ast.FieldList),
+				),
+			Params: getStructTypeParamList(pkgRoot.Name,
+					genDecl.Children[1].Children[1].Children[0].AstNode.(*ast.FieldList),
+				),
 		}
 
 		results = append(results, pst)
@@ -329,11 +341,78 @@ func getStructTypeEmbedList(packageName string, fieldList *ast.FieldList) []type
 	return results
 }
 
+//
+func getStructTypeParamList(packageName string, fieldList *ast.FieldList) map[string]Definition {
+	results := make(map[string]Definition)
+
+	for _, field := range fieldList.List {
+		if field.Tag == nil || field.Tag.Kind != token.STRING {
+			continue
+		}
+		//fmt.Printf("params: field.Tag.Value: \"%s\"\n", field.Tag.Value)
+		tags := parseStructTag(field.Tag.Value)
+		if paramName, found := tags["config"]; found {
+			results[paramName] = Definition {
+				desc: "(parsed from struct tags, no description)",
+				dfl: tags["default"],
+				unit: tags["metric"],
+			}
+		}
+	}
+
+	return results
+}
+
+// parseStructTag parses a string like
+//
+//   `config:"ReadTimeoutSec" default:"3" metric:"sec"`
+//
+// into a map of tag names and values
+func parseStructTag(tag string) map[string]string {
+	re := regexp.MustCompile("^([^:\"]+):\"([^\"]*)\" *(.*)")
+	result := map[string]string{}
+
+	if tag[0] != '`' || tag[len(tag)-1] != '`' {
+		panic(fmt.Sprintf("Expected tag to begin and end with `, got: \"%s\"", tag))
+	}
+
+	parseStructTagInner(re, result, tag[1:len(tag)-1])
+	return result
+}
+func parseStructTagInner(re *regexp.Regexp, result map[string]string, tag string) {
+	if tag == "" || re.FindString(tag) == "" {
+		return
+	}
+
+	tagName  := re.ReplaceAllString(tag, "$1")
+	tagValue := re.ReplaceAllString(tag, "$2")
+	rest     := re.ReplaceAllString(tag, "$3")
+
+	//fmt.Printf("Found tagName=\"%s\", tagValue=\"%s\", rest=\"%s\"\n",
+	// 	tagName, tagValue, rest)
+
+	result[tagName] = tagValue
+
+	parseStructTagInner(re, result, rest)
+}
+
 // Generates a PluginDocument from the pluginStructType
 func (pst pluginStructType) createPluginDocument() PluginDocument {
-	// Create PluginDocument and parse the comment string
+	// Create PluginDocument
 	pluginDocument := NewPluginDocument(pst.Pkg, pst.Name)
+
+	// Parse the comment string
 	pluginDocument.ParseString(pst.Comment)
+
+	// Set Param values from struct tags
+	for paramName, paramDef := range pst.Params {
+
+		if docParamDef, found := pluginDocument.Parameters[paramName]; found {
+			paramDef.desc = docParamDef.desc
+		}
+
+		pluginDocument.Parameters[paramName] = paramDef
+	}
 
 	// - Recursively generate PluginDocuments for all embedded types (SimpleProducer etc.)
 	//   with embedTag in this plugin's embed declaration

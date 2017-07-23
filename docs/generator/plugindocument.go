@@ -358,8 +358,20 @@ func (doc PluginDocument) GetRST() string {
 		result += getRstHeading("Parameters")
 		for name, def := range doc.Parameters {
 			result += "**" + name + "**\n"
-			result += docBulletsToRstBullets(def.desc) + "\n"
-			// FIXME: add default value & unit
+			result += docBulletsToRstBullets(def.desc)
+			// FIXME: cleaner formatting
+			if def.dfl != "" {
+				result += fmt.Sprintf("Default: %s", def.dfl)
+			}
+			if def.dfl != "" && def.unit != "" {
+				result += ", "
+			}
+			if def.unit != "" {
+				result += fmt.Sprintf("Unit: %s", def.unit)
+			}
+			if def.unit != "" || def.dfl != "" {
+				result += "\n\n"
+			}
 		}
 	}
 
@@ -376,6 +388,19 @@ func (doc PluginDocument) GetRST() string {
 		for name, def := range definitions {
 			result += "**" + name + "**\n"
 			result += def.desc + "\n"
+			// FIXME: cleaner formatting
+			if def.dfl != "" {
+				result += fmt.Sprintf("Default: %s", def.dfl)
+			}
+			if def.dfl != "" && def.unit != "" {
+				result += ", "
+			}
+			if def.unit != "" {
+				result += fmt.Sprintf("Unit: %s", def.unit)
+			}
+			if def.unit != "" || def.dfl != "" {
+				result += "\n"
+			}
 			result += "\n"
 		}
 	}
