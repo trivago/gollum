@@ -182,3 +182,11 @@ ineffassign:
 	@echo "Running ineffassign"
 	@go get -u github.com/gordonklaus/ineffassign
 	@ineffassign ./
+
+# .git/hooks/pre-commit
+#
+# #!/bin/bash
+# # Run tests
+# make vet lint fmt-check ineffassign >&2
+# exit $?
+
