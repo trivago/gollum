@@ -23,55 +23,43 @@ import (
 	"time"
 )
 
-// SimpleProducer plugin base type
+// SimpleProducer producer
 //
-// This type defines a common baseclass for producers. All producers should
-// derive from this class, but not necessarily need to.
+// This type defines a common baseclass for all producers. All producer plugins
+// should derive from this class as all required basic functions are already
+// implemented in a general way.
 //
 // Parameters
 //
-// - Enable: switches the consumer on or off. By default this value is set to true.
+// - Enable: switches the producer on or off.
+// By default this parameter is set to true.
 //
-// - ID: allows this producer to be found by other plugins by name. By default this
-// is set to "" which does not register this producer.
+// - Streams: Defines a list of streams a producer will receive from. This
+// parameter is mandatory. When using "*" the producer will receive messages
+// from all streams but the internal streams (e.g. _GOLLUM_).
+// By default this parameter is set to an empty list".
 //
-// - Channel: sets the size of the channel used to communicate messages. By default
-// this value is set to 8192.
+// - FallbackStream: Defines a stream to route messages to when delivery failed.
+// The message is reset to its original state before being routed, i.e. all
+// modifications done to the message after leaving the consumer are removed.
+// Setting this paramater to "" will cause messages to be discared when delivery
+// fails.
+// By default this parameter is set tot "".
 //
-// - ChannelTimeoutMs: sets a timeout in milliseconds for messages to wait if this
-// producer's queue is full.
-// A timeout of -1 or lower will try the fallback route without notice.
-// A timeout of 0 will block until the queue is free. This is the default.
-// A timeout of 1 or higher will wait x milliseconds for the queues to become
-// available again. If this does not happen, the message will be send to the
-// retry channel.
+// - ShutdownTimeoutMs: Defines the maximum time in milliseconds a producer is
+// allowed to take to shut down. After this timeout the producer is always
+// considered to have shut down.
+// By default this parameter is set to 1000.
 //
-// - ShutdownTimeoutMs: sets a timeout in milliseconds that will be used to detect
-// a blocking producer during shutdown. By default this is set to 1 second.
-// Decreasing this value may lead to lost messages during shutdown. Increasing
-// this value will increase shutdown time.
-//
-// - Router: contains either a single string or a list of strings defining the
-// message channels this producer will consume. By default this is set to "*"
-// which means "listen to all routers but the internal".
-//
-// - FallbackStream: defines the stream used for messages that cannot be delivered
-// e.g. after a timeout (see ChannelTimeoutMs). By default this is "".
-//
-// - Formatter: sets a formatter to use. Each formatter has its own set of options
-// which can be set here, too. By default this is set to format.Forward.
-// Each producer decides if and when to use a Formatter.
-//
-// - Filter: sets a filter that is applied before formatting, i.e. before a message
-// is send to the message queue. If a producer requires filtering after
-// formatting it has to define a separate filter as the producer decides if
-// and where to format.
-//
+// - Modulators: Defines a list of modulators to be applied to a message when
+// it arrives at this producer. If a modulator changes the stream of a message
+// the message is NOT routed to this stream anymore.
+// By default this parameter is set to an empty list.
 type SimpleProducer struct {
 	id              string
 	control         chan PluginControl
 	runState        *PluginRunState
-	streams         []MessageStreamID `config:"Streams" default:"*"`
+	streams         []MessageStreamID `config:"Streams"`
 	modulators      ModulatorArray    `config:"Modulators"`
 	fallbackStream  Router            `config:"FallbackStream" default:""`
 	shutdownTimeout time.Duration     `config:"ShutdownTimeoutMs" default:"1000" metric:"ms"`
