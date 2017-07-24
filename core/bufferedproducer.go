@@ -20,23 +20,17 @@ import (
 )
 
 // BufferedProducer plugin base type
-// This type defines a common BufferedProducer baseclass. Producers may
-// derive from this class.
 //
-// Configuration example:
+// This type defines a common BufferedProducer base class.
+// Producers may derive from this class.
 //
-//  - "producer.Foobar":
-//    Enable: true
-//    ID: ""
-//    Channel: 8192
-//    ChannelTimeoutMs: 0
-//    ShutdownTimeoutMs: 1000
-//    Formatter: "format.Forward"
-//    Filter: "filter.All"
-//    FallbackStream: "_DROPPED_"
-//    Router:
-//      - "foo"
-//      - "bar"
+// Parameters
+//
+// - Channel: This value defines the capacity of the message buffer. By default this is set to "8192".
+//
+// - ChannelTimeoutMs: This value defines a timeout for each message before the message will discarded.
+// By default this is set to "0",  i.e. messages will have no timeout.
+//
 //
 type BufferedProducer struct {
 	DirectProducer `gollumdoc:"embed_type"`
