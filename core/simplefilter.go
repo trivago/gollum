@@ -26,8 +26,8 @@ import (
 // Parameters
 //
 // - FilteredStream: This value defines a stream where filtered messages get sent to.
-// You can disable this behavior by setting "". Set to "" by default.
-// By default this is set to "",  i.e. messages will not sent to a separate stream.
+// You can disable this behavior by setting "".
+// By default this parameter is set to "".
 //
 type SimpleFilter struct {
 	Logger           logrus.FieldLogger
