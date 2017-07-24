@@ -17,7 +17,6 @@ package consumer
 import (
 	"io"
 	"os"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -31,33 +30,43 @@ const (
 	consoleBufferGrowSize = 256
 )
 
-// Console consumer plugin
+// Console consumer
 //
-// This consumer reads from stdin. A message is generated after each newline
-// character.
+// This consumer reads from stdin or a named pipe. A message is generated after
+// each newline character.
 //
-// Configuration example
+// Metadata
 //
-//  - "consumer.Console":
-//    Console: "stdin"
-//    Permissions: "0664"
-//    ExitOnEOF: false
+// - pipe: name of the pipe the message was received on
 //
-// Console defines the pipe to read from. This can be "stdin" or the name
-// of a named pipe that is created if not existing. The default is "stdin"
+// Parameters
 //
-// Permissions accepts an octal number string that contains the unix file
+// - Pipe: Defines the pipe to read from. This can be "stdin" or the path
+// to a named pipe. If the named pipe is not existing it will be creared.
+// By default this paramater is set to "stdin".
+//
+// - Permissions: Accepts an octal number string containing the unix file
 // permissions used when creating a named pipe.
-// By default this is set to "0664".
+// By default this paramater is set to "0664".
 //
-// ExitOnEOF can be set to true to trigger an exit signal if StdIn is closed
-// (e.g. when a pipe is closed). This is set to false by default.
+// - ExitOnEOF: Can be set to true to trigger an exit signal if the pipe is closed
+// i.e. when EOF is detected.
+// By default this paramater is set to "true".
+//
+// Examples
+//
+// This config reads data from stdin e.g. when starting gollum via unix pipe.
+//
+//  ConsoleIn:
+//    Type: consumer.Console
+//    Streams: console
+//    Pipe: stdin
 type Console struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	autoExit            bool `config:"ExitOnEOF"`
+	autoExit            bool   `config:"ExitOnEOF" default:"true"`
+	pipeName            string `config:"Pipe" default:"stdin"`
+	pipePerm            uint32 `config:"Permissions" default:"0644"`
 	pipe                *os.File
-	pipeName            string
-	pipePerm            uint32
 }
 
 func init() {
@@ -66,28 +75,19 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Console) Configure(conf core.PluginConfigReader) {
-	inputConsole := conf.GetString("Console", "stdin")
-
-	switch strings.ToLower(inputConsole) {
+	switch strings.ToLower(cons.pipeName) {
 	case "stdin":
 		cons.pipe = os.Stdin
 		cons.pipeName = "stdin"
 	default:
 		cons.pipe = nil
-		cons.pipeName = inputConsole
-
-		if perm, err := strconv.ParseInt(conf.GetString("Permissions", "0664"), 8, 32); err != nil {
-			cons.Logger.Errorf("Error parsing named pipe permissions: %s", err)
-		} else {
-			cons.pipePerm = uint32(perm)
-		}
 	}
 }
 
 // Enqueue creates a new message
 func (cons *Console) Enqueue(data []byte) {
 	metaData := core.Metadata{}
-	metaData.SetValue("pipename", []byte(cons.pipeName))
+	metaData.SetValue("pipe", []byte(cons.pipeName))
 
 	cons.EnqueueWithMetadata(data, metaData)
 }

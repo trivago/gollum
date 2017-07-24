@@ -48,6 +48,7 @@ If you can't find your answer in the documentation or have other questions you c
 
 ## Producers (writing data)
 
+* `AwsS3` write data to [Amazon S3](https://aws.amazon.com/de/s3/) stream.
 * `Console` write to stdin or stdout.
 * `ElasticSearch` write to [elasticsearch](http://www.elasticsearch.org/) via http/bulk.
 * `File` write to a file. Supports log rotation and compression.
@@ -59,7 +60,6 @@ If you can't find your answer in the documentation or have other questions you c
 * `Null` like /dev/null.
 * `Proxy` two-way communication proxy for simple protocols.
 * `Redis` write data to [Redis](https://redis.io).
-* `S3` write data to [Amazon S3](https://aws.amazon.com/de/s3/) stream.
 * `Scribe` send messages to a [Facebook scribe](https://github.com/facebookarchive/scribe) server.
 * `Socket` send messages to a socket (gollum specific protocol).
 * `Spooling` write messages to disk and retry them later.
