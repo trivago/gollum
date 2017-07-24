@@ -41,30 +41,36 @@ const (
 //
 // Parameters
 //
-// - KinesisStream: THis value defines the stream to read from. By default this is set to "default".
+// - KinesisStream: THis value defines the stream to read from.
+// By default this parameter is set to "default".
 //
 // - OffsetFile: This value defines a file to store the current offset per shard.
-// By default this is set to "", i.e. it is disabled. If a file is set and found consuming will start
+// You can set this parameter to "" for disabling. If a file is set and found consuming will start
 // after the stored offset.
+// By default this parameter is set to "".
 //
 // - RecordsPerQuery: This value defines the number of records to pull per query.
-// By default this is set to "100".
+// By default this parameter is set to "100".
 //
 // - RecordMessageDelimiter: This value defines the string to delimit messages within a
-// record. By default this is set to "", i.e. it is disabled.
+// record. You can set this parameter to "" for disabling.
+// By default this parameter is set to "".
 //
 // - QuerySleepTimeMs: This value defines the number of milliseconds to sleep before
 // trying to pull new records from a shard that did not return any records.
-// By default this is set to "1000".
+// By default this parameter is set to "1000".
 //
 // - RetrySleepTimeSec: This value defines the number of seconds to wait after trying to
-// reconnect to a shard. By default this is set to "4".
+// reconnect to a shard.
+// By default this parameter is set to "4".
 //
 // - CheckNewShardsSec: This value set a timer to update shards in Kinesis.
-// By default this is set to "0", i.e. it is disabled.
+// You can set this parameter to "0" for disabling.
+// By default this parameter is set to "0".
 //
 // - DefaultOffset: This value defines the message index to start reading from.
-// Valid values are either "Newest", "Oldest", or a number. By default this is set to "Newest".
+// Valid values are either "newest", "oldest", or a number.
+// By default this parameter is set to "newest".
 //
 // Examples
 //

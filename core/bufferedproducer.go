@@ -26,10 +26,12 @@ import (
 //
 // Parameters
 //
-// - Channel: This value defines the capacity of the message buffer. By default this is set to "8192".
+// - Channel: This value defines the capacity of the message buffer.
+// By default this parameter is set to "8192".
 //
 // - ChannelTimeoutMs: This value defines a timeout for each message before the message will discarded.
-// By default this is set to "0",  i.e. messages will have no timeout.
+// You can set this parameter to "0" for disabling the timeout.
+// By default this parameter is set to "0".
 //
 //
 type BufferedProducer struct {

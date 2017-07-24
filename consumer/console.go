@@ -37,7 +37,7 @@ const (
 //
 // Metadata
 //
-// - pipe: name of the pipe the message was received on
+// - pipe: name of the pipe the message was received on (set)
 //
 // Parameters
 //
