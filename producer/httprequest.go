@@ -158,7 +158,6 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 		err error
 	)
 
-	originalMsg := msg.Clone()
 	requestData := bytes.NewBuffer(msg.GetPayload())
 
 	if prod.rawPackets {
@@ -180,7 +179,7 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 
 	if err != nil {
 		prod.Logger.Error("Invalid request: ", err)
-		prod.TryFallback(originalMsg)
+		prod.TryFallback(msg)
 		prod.lastError = err
 		return // ### return, malformed request ###
 	}
@@ -194,7 +193,7 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 			if !prod.isHostUp() {
 				// TBD: health check? (ex-fuse breaker)
 			}
-			prod.TryFallback(originalMsg)
+			prod.TryFallback(msg)
 			return
 		}
 		// Success

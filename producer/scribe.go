@@ -200,22 +200,20 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 
 	// Convert messages to scribe log format
 	for idx, msg := range messages {
-		currentMsg := msg.Clone()
-
-		category, exists := prod.category[currentMsg.GetStreamID()]
+		category, exists := prod.category[msg.GetStreamID()]
 		if !exists {
 			if category, exists = prod.category[core.WildcardStreamID]; !exists {
-				category = core.StreamRegistry.GetStreamName(currentMsg.GetStreamID())
+				category = core.StreamRegistry.GetStreamName(msg.GetStreamID())
 			}
 			metricName := scribeMetricMessages + category
 			tgo.Metric.New(metricName)
 			tgo.Metric.NewRate(metricName, scribeMetricMessagesSec+category, time.Second, 10, 3, true)
-			prod.category[currentMsg.GetStreamID()] = category
+			prod.category[msg.GetStreamID()] = category
 		}
 
 		logBuffer[idx] = &scribe.LogEntry{
 			Category: category,
-			Message:  string(currentMsg.GetPayload()),
+			Message:  string(msg.GetPayload()),
 		}
 
 		tgo.Metric.Inc(scribeMetricMessages + category)
