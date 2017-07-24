@@ -33,11 +33,12 @@ EXCLUDE_FORMATTER='collectddata'
 EXCLUDE_ROUTER=$(EXCLUDE_NO_OP)
 
 # Create lists of .rst files based on .go sources
-rsts_producer  := $(shell find $(MODULES_DIR_PRODUCER)  -type f -name '*.go' -not -name '*_test.go' | grep -vE $(EXCLUDE_PRODUCER)  | sed s^$(MODULES_DIR_PRODUCER)^$(TARGET_DIR_PRODUCER)^   | sed 's|\.go$$|.rst|' | sort)
-rsts_consumer  := $(shell find $(MODULES_DIR_CONSUMER)  -type f -name '*.go' -not -name '*_test.go' | grep -vE $(EXCLUDE_CONSUMER)  | sed s^$(MODULES_DIR_CONSUMER)^$(TARGET_DIR_CONSUMER)^   | sed 's|\.go$$|.rst|' | sort)
-rsts_filter    := $(shell find $(MODULES_DIR_FILTER)    -type f -name '*.go' -not -name '*_test.go' | grep -vE $(EXCLUDE_FILTER)    | sed s^$(MODULES_DIR_FILTER)^$(TARGET_DIR_FILTER)^       | sed 's|\.go$$|.rst|' | sort)
-rsts_formatter := $(shell find $(MODULES_DIR_FORMATTER) -type f -name '*.go' -not -name '*_test.go' | grep -vE $(EXCLUDE_FORMATTER) | sed s^$(MODULES_DIR_FORMATTER)^$(TARGET_DIR_FORMATTER)^ | sed 's|\.go$$|.rst|' | sort)
-rsts_router    := $(shell find $(MODULES_DIR_ROUTER)    -type f -name '*.go' -not -name '*_test.go' | grep -vE $(EXCLUDE_ROUTER)    | sed s^$(MODULES_DIR_ROUTER)^$(TARGET_DIR_ROUTER)^       | sed 's|\.go$$|.rst|' | sort)
+
+rsts_producer  := $(shell ./make_listrsttargets.sh $(MODULES_DIR_PRODUCER)  $(TARGET_DIR_PRODUCER)  $(EXCLUDE_PRODUCER))
+rsts_consumer  := $(shell ./make_listrsttargets.sh $(MODULES_DIR_CONSUMER)  $(TARGET_DIR_CONSUMER)  $(EXCLUDE_CONSUMER))
+rsts_filter    := $(shell ./make_listrsttargets.sh $(MODULES_DIR_FILTER)    $(TARGET_DIR_FILTER)    $(EXCLUDE_FILTER))
+rsts_formatter := $(shell ./make_listrsttargets.sh $(MODULES_DIR_FORMATTER) $(TARGET_DIR_FORMATTER) $(EXCLUDE_FORMATTER))
+rsts_router    := $(shell ./make_listrsttargets.sh $(MODULES_DIR_ROUTER)    $(TARGET_DIR_ROUTER)    $(EXCLUDE_ROUTER))
 
 ####################################################################################################
 
@@ -131,23 +132,28 @@ prep_routers:
 
 # Loop targets for the .rst files
 $(rsts_producer):  $(RST_GENERATOR)
-	$(RST_GENERATOR) $(MODULES_DIR_PRODUCER)/$(shell basename $@ .rst).go $@
+	#$(RST_GENERATOR) $(MODULES_DIR_PRODUCER)/$(shell basename $@ .rst).go $@
+	$(RST_GENERATOR) $(MODULES_DIR_PRODUCER)/$(shell basename $@ .rst).go $@ || echo ERROR > $@
 	$(PRINTF) "    %s\n" /$(TARGET_DIR_PRODUCER)/$(shell basename $@) >> $(TARGET_DIR_PRODUCER)/index.rst
 
 $(rsts_consumer):  $(RST_GENERATOR)
-	$(RST_GENERATOR) $(MODULES_DIR_CONSUMER)/$(shell basename $@ .rst).go $@
+	#$(RST_GENERATOR) $(MODULES_DIR_CONSUMER)/$(shell basename $@ .rst).go $@
+	$(RST_GENERATOR) $(MODULES_DIR_CONSUMER)/$(shell basename $@ .rst).go $@ || echo ERROR > $@
 	$(PRINTF) "    %s\n" /$(TARGET_DIR_CONSUMER)/$(shell basename $@) >> $(TARGET_DIR_CONSUMER)/index.rst
 
 $(rsts_filter):  $(RST_GENERATOR)
-	$(RST_GENERATOR) $(MODULES_DIR_FILTER)/$(shell basename $@ .rst).go $@
+	#$(RST_GENERATOR) $(MODULES_DIR_FILTER)/$(shell basename $@ .rst).go $@
+	$(RST_GENERATOR) $(MODULES_DIR_FILTER)/$(shell basename $@ .rst).go $@ || echo ERROR > $@
 	$(PRINTF) "    %s\n" /$(TARGET_DIR_FILTER)/$(shell basename $@) >> $(TARGET_DIR_FILTER)/index.rst
 
 $(rsts_formatter):  $(RST_GENERATOR)
-	$(RST_GENERATOR) $(MODULES_DIR_FORMATTER)/$(shell basename $@ .rst).go $@
+	#$(RST_GENERATOR) $(MODULES_DIR_FORMATTER)/$(shell basename $@ .rst).go $@
+	$(RST_GENERATOR) $(MODULES_DIR_FORMATTER)/$(shell basename $@ .rst).go $@ || echo ERROR > $@
 	$(PRINTF) "    %s\n" /$(TARGET_DIR_FORMATTER)/$(shell basename $@) >> $(TARGET_DIR_FORMATTER)/index.rst
 
 $(rsts_router):  $(RST_GENERATOR)
-	$(RST_GENERATOR) $(MODULES_DIR_ROUTER)/$(shell basename $@ .rst).go $@
+	#$(RST_GENERATOR) $(MODULES_DIR_ROUTER)/$(shell basename $@ .rst).go $@ 
+	$(RST_GENERATOR) $(MODULES_DIR_ROUTER)/$(shell basename $@ .rst).go $@ || echo ERROR > $@
 	$(PRINTF) "    %s\n" /$(TARGET_DIR_ROUTER)/$(shell basename $@) >> $(TARGET_DIR_ROUTER)/index.rst
 
 ####################################################################################################
