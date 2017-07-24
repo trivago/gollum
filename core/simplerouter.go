@@ -26,16 +26,15 @@ import (
 // This type defines a common baseclass for routers. All routers should
 // derive from this class, but not necessarily need to.
 //
-// Configuration example:
-// [N/A - placeholder needed for doc generator]
+// Parameters
 //
-// Stream Specifies the name of the stream this plugin is supposed to
+// - Stream: This value specify the name of the stream this plugin is supposed to
 // read messages from.
 //
-// Filters A list of zero or more Filter plugins to connect to this router.
+// - Filters: A list of zero or more Filter plugins to connect to this router.
 //
-// TimeoutMs ... (default: 0, metric: ms)
-//
+// - TimeoutMs: This value set a timeout in milliseconds until a message should handled by the router.
+// By default this is set to "0",  i.e. messages will have no timeout.
 //
 type SimpleRouter struct {
 	id        string
