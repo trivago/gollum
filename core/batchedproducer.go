@@ -20,19 +20,28 @@ import (
 	"time"
 )
 
-// BatchedProducer plugin base type
+// BatchedProducer producer
 //
-// This type defines a common BatchedProducer base class. Producers may
-// derive from this class.
+// This type defines a common base type that can be used by producers that work
+// better when sending batches of messages instead of single ones. Batched
+// producers will collect messages and flush them after certain limits have
+// been reached. The flush process will be done in the background. Message
+// collection continues non-blocking unless flushing takes longer than filling
+// up the internal buffer again.
 //
 // Parameters
 //
-// - Batch/MaxCount: (TBD)
+// - Batch/MaxCount: Defines the maximum number of messages per batch. If this
+// limit is reached a flush is always triggered.
+// By default this parameter is set to 8192.
 //
-// - Batch/FlushCount: (TBD)
+// - Batch/FlushCount: Defines the minimum number of messages required to flush
+// a batch. If this limit is reached a flush might be triggered.
+// By default this parameter is set to 4096.
 //
-// - Batch/TimeoutSec: (TBD)
-//
+// - Batch/TimeoutSec: Defines the maximum time in seconds messages can stay in
+// the internal buffer before being flushed.
+// By default this parameter is set to 5.
 type BatchedProducer struct {
 	DirectProducer  `gollumdoc:"embed_type"`
 	Batch           MessageBatch
