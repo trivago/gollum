@@ -21,26 +21,39 @@ import (
 )
 
 // Sample filter plugin
+//
 // This plugin blocks messages after a certain number of messages per second
 // has been reached.
-// Configuration example
 //
-//   - "stream.Broadcast":
-//	   Filter: "filter.Sample"
-//	   SampleRatePerGroup: 1
-//	   SampleGroupSize: 1
-//	   SampleRateIgnore:
-//	     - "foo"
+// Parameters
 //
-// SampleRatePerGroup defines how many messages are passed through the filter
-// in each group. By default this is set to 1.
+// - SampleRatePerGroup: This value defines how many messages are passed through
+// the filter in each group.
+// By default this parameter is set to "1".
 //
-// SampleGroupSize defines how many messages make up a group. Messages over
-// SampleRatePerGroup within a group are filtered. By default this is set to 1.
+// - SampleGroupSize: This value defines how many messages make up a group. Messages over
+// SampleRatePerGroup within a group are filtered.
+// By default this parameter is set to "1".
 //
-// SampleRateIgnore defines a list of streams that should not be affected by
+// - SampleRateIgnore: This value defines a list of streams that should not be affected by
 // sampling. This is useful for e.g. producers listeing to "*".
-// By default this list is empty.
+// By default this parameter is set to "empty list".
+//
+// Examples
+//
+// This example ...
+//
+//  exampleConsumer:
+//    Type: consumer.Console
+//    Streams: "*"
+//    Modulators:
+//      - filter.Sample:
+//        SampleRatePerGroup: 512
+//        SampleGroupSize: 1024
+//        SampleIgnore:
+//          - foo
+//          - bar
+//
 type Sample struct {
 	core.SimpleFilter
 	rate   int64 `config:"SampleRatePerGroup" default:"1"`
