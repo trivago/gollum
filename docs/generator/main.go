@@ -21,8 +21,8 @@ import (
 	"io"
 	"os"
 	"path"
-	"strings"
 	"regexp"
+	"strings"
 )
 
 const embedTag = "`gollumdoc:\"embed_type\"`"
@@ -275,11 +275,11 @@ func getPluginStructTypes(pkgRoot *ast.Package) []pluginStructType {
 			Name:    genDecl.Children[1].Children[0].AstNode.(*ast.Ident).Name,
 			Comment: genDecl.Children[0].AstNode.(*ast.CommentGroup).Text(),
 			Embeds: getStructTypeEmbedList(pkgRoot.Name,
-					genDecl.Children[1].Children[1].Children[0].AstNode.(*ast.FieldList),
-				),
+				genDecl.Children[1].Children[1].Children[0].AstNode.(*ast.FieldList),
+			),
 			Params: getStructTypeConfigParams(
-					genDecl.Children[1].Children[1].Children[0].AstNode.(*ast.FieldList),
-				),
+				genDecl.Children[1].Children[1].Children[0].AstNode.(*ast.FieldList),
+			),
 		}
 
 		results = append(results, pst)
@@ -337,9 +337,9 @@ func getStructTypeConfigParams(fieldList *ast.FieldList) map[string]Definition {
 		}
 		tags := parseStructTag(field.Tag.Value)
 		if paramName, found := tags["config"]; found {
-			results[paramName] = Definition {
+			results[paramName] = Definition{
 				desc: "(parsed from struct tags, no description)",
-				dfl: tags["default"],
+				dfl:  tags["default"],
 				unit: tags["metric"],
 			}
 		}
@@ -347,6 +347,7 @@ func getStructTypeConfigParams(fieldList *ast.FieldList) map[string]Definition {
 
 	return results
 }
+
 // parseStructTag parses a string like
 //
 //   `config:"ReadTimeoutSec" default:"3" metric:"sec"`
@@ -363,17 +364,17 @@ func parseStructTag(tag string) map[string]string {
 	parseStructTagInner(re, result, tag[1:len(tag)-1])
 	return result
 }
+
 // Recursive component of parseStructTag()
 func parseStructTagInner(re *regexp.Regexp, result map[string]string, tag string) {
 	if tag == "" || re.FindString(tag) == "" {
 		return
 	}
 
-	tagName  := re.ReplaceAllString(tag, "$1")
+	tagName := re.ReplaceAllString(tag, "$1")
 	tagValue := re.ReplaceAllString(tag, "$2")
-	rest     := re.ReplaceAllString(tag, "$3")
+	rest := re.ReplaceAllString(tag, "$3")
 
 	result[tagName] = tagValue
 	parseStructTagInner(re, result, rest)
 }
-

@@ -1,20 +1,19 @@
 package main
 
-
 // Represents a "type FooPlugin struct { .... }" declaration parsed from the
 // source and its immediately preceding comment block.
 type pluginStructType struct {
-	Pkg     string
-	Name    string
+	Pkg  string
+	Name string
 
 	// Comment block immediately preceding this struct
 	Comment string
 
 	// Struct types embedded (inherited) by this struct
-	Embeds  []typeEmbed
+	Embeds []typeEmbed
 
 	// Config parameters marked with struct tags (`config:"ParamName" ....`)
-	Params  map[string]Definition
+	Params map[string]Definition
 }
 
 // Generates a PluginDocument from the pluginStructType
@@ -54,4 +53,3 @@ func (pst pluginStructType) createPluginDocument() PluginDocument {
 
 	return pluginDocument
 }
-
