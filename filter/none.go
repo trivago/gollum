@@ -19,11 +19,18 @@ import (
 )
 
 // None filter plugin
-// This plugin blocks all messages.
-// Configuration example
 //
-//   - "stream.Broadcast":
-//     Filter: "filter.None"
+// This filter blocks all messages.
+//
+// Example
+//
+// This example will start a cosole consumer and block all incoming messages:
+//
+//  exampleConsumer:
+//    Type: consumer.Console
+//    Streams: console
+//    Modulators:
+//      - filter.None
 //
 type None struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
