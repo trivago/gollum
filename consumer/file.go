@@ -58,44 +58,48 @@ const (
 // (optionally) be told to reopen the file by sending a SIGHUP. A symlink to
 // a file will automatically be reopened if the underlying file is changed.
 //
-// Configuration example
+// Parameters
 //
-// myConsumer:
-//   Type: consumer.File
-//   File: /var/run/system.log
-//   DefaultOffset: newest
-//   OffsetFile: ""
-//   Delimiter: "\n"
-//   ObserveMode: poll
-//   PollingDelay: 100
-//
-// File is a mandatory setting and contains the file to read. The file will be
+// - File: This value is a mandatory setting and contains the file to read. The file will be
 // read from beginning to end and the reader will stay attached until the
 // consumer is stopped. I.e. appends to the attached file will be recognized
 // automatically.
 //
-// DefaultOffset defines where to start reading the file. Valid values are
-// "oldest" and "newest". If OffsetFile is defined the DefaultOffset setting
-// will be ignored unless the file does not exist.
-// By default this is set to "newest".
-//
-// OffsetFile defines the path to a file that stores the current offset inside
+// - OffsetFile: This value defines the path to a file that stores the current offset inside
 // the given file. If the consumer is restarted that offset is used to continue
 // reading. By default this is set to "" which disables the offset file.
 //
-// Delimiter defines the end of a message inside the file. By default this is
+// - Delimiter: This value defines the end of a message inside the file. By default this is
 // set to "\n".
 //
-// ObserveMode defines the mode how to observe the target file. You can decide between `poll` and `watch`.
-// By default this is set to `poll`.
+// - ObserveMode: This value defines the mode how to observe the target file.
+// You can decide between `poll` and `watch`. By default this is set to `poll`.
 // NOTE: The watch implementation uses [fsnotify/fsnotify](https://github.com/fsnotify/fsnotify) package.
-// If your source file is rotating (moving or removing) please check carefully if your file system and distribution supports
-// the `RENAME` and `REMOVE` events which are mandatory for stable consuming.
+// If your source file is rotating (moving or removing) please check carefully if your file system and
+// distribution supports the `RENAME` and `REMOVE` events which are mandatory for stable consuming.
 //
-// PollingDelay defines the time duration how long the consumer will wait to check a file for new content
+// - DefaultOffset: This value defines where to start reading the file. Valid values are
+// "oldest" and "newest". If OffsetFile is defined the DefaultOffset setting
+// will be ignored unless the file does not exist. By default this is set to "newest".
+//
+// - PollingDelay: This value defines the time duration how long the consumer will wait to check a file for new content
 // after hitting the end of file (EOF) in milliseconds (ms).
 // By default this time duration is set to "100" milliseconds.
 // Note: This settings take only an effect if the consumer is running in `poll` mode!
+//
+// Examples
+//
+// This example will read the `/var/log/system.log` file and create a message for each new entry.
+//
+//  FileIn:
+//    Type: consumer.File
+//    File: /var/log/system.log
+//    DefaultOffset: newest
+//    OffsetFile: ""
+//    Delimiter: "\n"
+//    ObserveMode: poll
+//    PollingDelay: 100
+//
 type File struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 
