@@ -142,10 +142,14 @@ func (doc *PluginDocument) ParseString(comment string) {
 	}
 
 	section := sectionStart
-	line, trimmedLine, lineNr := "", "", 0
 
-	metadataText := ""
-	parametersText := ""
+	var (
+		metadataText   string
+		parametersText string
+		line           string
+		trimmedLine    string
+		lineNr         int
+	)
 
 	for {
 		prevTrimmedLine := trimmedLine
