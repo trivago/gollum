@@ -4,8 +4,8 @@ package main
 import (
 	"fmt"
 	"regexp"
-	"strings"
 	"sort"
+	"strings"
 )
 
 // PluginDocument represents the inline documentation from a Gollum plugin's source

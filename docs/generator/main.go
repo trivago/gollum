@@ -197,7 +197,7 @@ func getPackageImportMap(astPackage *ast.Package) map[string]string {
 		// - there may not be other references to this package
 		tmp, exists := result[file.Name.Name]
 		if exists && tmp != path.Dir(fileName) {
-			fmt.Printf("WARNING: Possible package naming conflict in file %q: package %q " +
+			fmt.Printf("WARNING: Possible package naming conflict in file %q: package %q "+
 				"references both importdir %q and relative dir %q\n",
 				fileName, file.Name.Name, tmp, path.Dir(fileName))
 		}
@@ -338,7 +338,7 @@ func getStructTypeConfigParams(fieldList *ast.FieldList) map[string]Definition {
 		}
 		tags := parseStructTag(field.Tag.Value)
 		if paramName, found := tags["config"]; found {
-			results[paramName] = Definition {
+			results[paramName] = Definition{
 				// Default description if not overriden in the plugin's comment block
 				desc: "(no documentation available)",
 				dfl:  tags["default"],
