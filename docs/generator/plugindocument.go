@@ -39,7 +39,7 @@ func (iter *sliceIterator) next() (string, string, int) {
 		return "", "", -1
 	}
 	position := iter.position
-	iter.position += 1
+	iter.position++
 	return iter.slice[position], strings.Trim(iter.slice[position], " \t"), position
 }
 
@@ -81,7 +81,7 @@ func NewPluginDocument(packageName string, pluginName string) PluginDocument {
 	return pluginDocument
 }
 
-// DumpString() returns a human-readable string dump of this object
+// DumpString returns a human-readable string dump of this object
 func (doc *PluginDocument) DumpString() string {
 	str := ""
 	str += "==================== START DUMP ============================\n"
