@@ -3,8 +3,8 @@
 Syslogd
 =======
 
-
-The syslogd consumer accepts messages from a syslogd compatible socket.
+The syslogd consumer creates a syslogd-compatible log server and
+receives messages on a TCP or UDP port or a UNIX filesystem socket.
 
 
 
@@ -13,57 +13,113 @@ Parameters
 ----------
 
 **Address**
-defines the protocol, host and port or socket to bind to.
-This can either be any ip address and port like "localhost:5880" or a file
-like "unix:///var/gollum.socket". By default this is set to "udp://0.0.0.0:514".
-The protocol can be defined along with the address, e.g. "tcp://..." but
-this may be ignored if a certain protocol format does not support the desired
-transport protocol.
 
+  Defines the IP address or UNIX socket to listen to.
+  This can take one of four forms, to listen on a TCP, UDP or UNIX domain
+  socket:
+  
+  * [hostname|ip]:<tcp-port>
+  
+  * tcp://<hostname|ip>:<tcp-port>
+  
+  * udp://<hostname|ip>:<udp-port>
+  
+  * unix://<filesystem-path>
+  However, see the "Format" option for details on transport support by different
+  formats. Default: "udp://0.0.0.0:514"
+  
+  
 
 **Format**
-defines the syslog standard to expect for message encoding.
-Three standards are currently supported, by default this is set to "RFC6587".
 
-* RFC3164 (https://tools.ietf.org/html/rfc3164) udp only.
-
-* RFC5424 (https://tools.ietf.org/html/rfc5424) udp only.
-
-* RFC6587 (https://tools.ietf.org/html/rfc6587) tcp or udp.
-
+  Defines which syslog the server will support. Three standards are
+  currently available:
+  
+  * RFC3164 (https://tools.ietf.org/html/rfc3164) - unix, udp
+  
+  * RFC5424 (https://tools.ietf.org/html/rfc5424) - unix, udp
+  
+  * RFC6587 (https://tools.ietf.org/html/rfc6587) - unix, upd, tcp
+  
+  All of the formats support listening to UDP and UNIX domain sockets. RFC6587
+  additionally supports TCP sockets. Default: "RFC6587".
+  
+  
 
 Parameters (from SimpleConsumer)
 --------------------------------
 
 **Enable**
-switches the consumer on or off. By default this value is set to true.
 
+  switches the consumer on or off.
+  By default this parameter is set to true.
+  
+  
 
-**ID**
-allows this consumer to be found by other plugins by name. By default this
-is set to "" which does not register this consumer.
+**ModulatorQueueSize**
 
+  Defines the size of the channel used to buffer messages
+  before they are fetched by the next free modulator go routine. If the
+  ModulatorRoutines parameter is set to 0 this parameter is ignored.
+  By default this parameter is set to 1024.
+  
+  
+
+**ModulatorRoutines**
+
+  Defines the number of go routines reserved for
+  modulating messages. Setting this parameter to 0 will use as many go routines
+  as the specific consumer plugin is using for fetching data. Any other value
+  will force the given number fo go routines to be used.
+  By default this parameter is set to 0
+  
+  
+
+**Modulators**
+
+  Defines a list of modulators to be applied to a message before
+  it is sent to the list of streams. If a modulator specifies a stream, the
+  message is only sent to that specific stream. A message is saved as original
+  after all modulators have been applied.
+  By default this parameter is set to an empty list.
+  
+  
+
+**ShutdownTimeoutMs** (default: 1000, unit: ms)
+
+  Defines the maximum time in milliseconds a consumer is
+  allowed to take to shut down. After this timeout the consumer is always
+  considered to have shut down.
+  By default this parameter is set to 1000.
+  
+  
 
 **Streams**
-contains either a single string or a list of strings defining the
-message channels this consumer will produce. By default this is set to "*"
-which means only producers set to consume "all streams" will get these
-messages.
 
+  Defines a list of streams a consumer will send to. This parameter
+  is mandatory. When using "*" messages will be sent only to the internal "*"
+  stream. It will NOT send messages to all streams.
+  By default this parameter is set to an empty list.
+  
+  
 
-**ShutdownTimeoutMs**
-sets a timeout in milliseconds that will be used to detect
-various timeouts during shutdown. By default this is set to 1 second.
-
-
-Example
--------
+Examples
+--------
 
 .. code-block:: yaml
 
-	 - "consumer.Syslogd":
-	   Address: "udp://0.0.0.0:514"
+	 # Replace the system's standard syslogd with Gollum
+	 "SyslogdSocketConsumer":
+	   Streams: "system_syslog"
+	   Address: "unix:///dev/log"
+	   Format: "RFC3164"
+	
+	 # Listen on a TCP socket
+	 "SyslogdTCPSocketConsumer":
+	   Streams: "tcp_syslog"
+	   Address: "tcp://0.0.0.0:5599"
 	   Format: "RFC6587"
+	
 	
 
 

@@ -3,158 +3,149 @@
 ElasticSearch
 =============
 
-
 The ElasticSearch producer sends messages to elastic search using the bulk
-http API.
+http API. The producer expects a json payload.
 
+Configuration example
 
+ producerElasticSearch:
+	  Type: producer.ElasticSearch
+   Retry:
+		Count: 3
+		TimeToWaitSec: 3
+	  SetGzip: true
 
+   User: ""
+   Password: ""
+   Servers:
+     - http://127.0.0.1:9200
+   StreamProperties:
+		<streamName>:
+			Index: twitter
+			DayBasedIndex: false
+			Type: tweet
 
-Parameters
-----------
+			# see: https://www.elastic.co/guide/en/elasticsearch/reference/5.4/indices-create-index.html#mappings
+			Mapping:
+				# index mapping for payload
+				user: keyword
+				message: text
+			Settings:
+				# settings used for mapping
+				number_of_shards: 5
+				number_of_replicas: 1
 
-**RetrySec**
-denotes the time in seconds after which a failed dataset will be
-transmitted again. By default this is set to 5.
+Retry/Count set the amount of retries before a Elasticsearch request fail finally
 
+Retry/TimeToWaitSec denotes the time in seconds after which a failed dataset will be
+transmitted again. By default this is set to 3.
 
-**Connections**
-defines the number of simultaneous connections allowed to a
-elasticsearch server. This is set to 6 by default.
+SetGzip enables or disables gzip compression for Elasticsearch requests (disabled by default).
+This option is used one to one for the library package.
+See: http://godoc.org/gopkg.in/olivere/elastic.v5#SetGzip
 
+Servers defines a list of servers to connect to.
 
-**TTL**
-defines the TTL set in elasticsearch messages. By default this is set to
-"" which means no TTL.
-
-
-**DayBasedIndex**
-can be set to true to append the date of the message to the
-index as in "<index>_YYYY-MM-DD". By default this is set to false.
-
-
-**Servers**
-defines a list of servers to connect to. The first server in the list
-is used as the server passed to the "Domain" setting. The Domain setting can
-be overwritten, too.
-
-
-**Port**
-defines the elasticsearch port, which has to be the same for all servers.
-By default this is set to 9200.
-
-
-**User**
-and Password can be used to pass credentials to the elasticsearch server.
+User and Password can be used to pass credentials to the elasticsearch server.
 By default both settings are empty.
 
+StreamProperties defines the mapping and settings for each stream.
+As index use the stream name here.
 
-**Index**
-maps a stream to a specific index. You can define the
-wildcard stream (*) here, too. If set all streams that do not have a specific
-mapping will go to this stream (including _GOLLUM_).
-If no category mappings are set the stream name is used.
+StreamProperties/<streamName>/Index
+Elasticsearch index which used for the stream.
 
+StreamProperties/<streamName>/Type
+Document type which used for the stream.
 
-**Type**
-maps a stream to a specific type. This behaves like the index map and
-is used to assign a _type to an elasticsearch message. By default the type
-"log" is used.
+StreamProperties/<streamName>/DayBasedIndex can be set to true to append the date of the message to the
+index as in "<index>_YYYY-MM-DD". By default this is set to false.
+NOTE: This setting need more performance because it is necessary to check if an index exist for each message!
 
+StreamProperties/<streamName>/Mapping is a map which used for the document field mapping.
+As document type the already definded type is reused for the field mapping
+See https://www.elastic.co/guide/en/elasticsearch/reference/5.4/indices-create-index.html#mappings
 
-**DataTypes**
-allows to define elasticsearch type mappings for indexes that are
-being created by this producer (e.g. day based indexes). You can define
-mappings per index.
-
-
-**Settings**
-allows to define elasticsearch index settings for indexes that are
-being created by this producer (e.g. day based indexes). You can define
-settings per index.
+StreamProperties/<streamName>/Settings is a map which is used for the index settings.
+See https://www.elastic.co/guide/en/elasticsearch/reference/5.4/indices-create-index.html#mappings
 
 
-**BatchSizeByte**
-defines the size in bytes required to trigger a flush.
-By default this is set to 32768 (32KB).
 
 
-**BatchMaxCount**
-defines the number of documents required to trigger a flush.
-By default this is set to 256.
+Parameters (from BatchedProducer)
+---------------------------------
 
+**Batch/FlushCount** (default: 4096)
 
-**BatchTimeoutSec**
-defines the time in seconds after which a flush will be
-triggered. By default this is set to 5.
+  Defines the minimum number of messages required to flush
+  a batch. If this limit is reached a flush might be triggered.
+  By default this parameter is set to 4096.
+  
+  
 
+**Batch/MaxCount** (default: 8192)
+
+  Defines the maximum number of messages per batch. If this
+  limit is reached a flush is always triggered.
+  By default this parameter is set to 8192.
+  
+  
+
+**Batch/TimeoutSec** (default: 5, unit: sec)
+
+  Defines the maximum time in seconds messages can stay in
+  the internal buffer before being flushed.
+  By default this parameter is set to 5.
+  
+  
 
 Parameters (from DirectProducer)
 --------------------------------
 
 **Enable**
-switches the consumer on or off. By default this value is set to true.
 
-
-**ID**
-allows this producer to be found by other plugins by name. By default this
-is set to "" which does not register this producer.
-
-
-**ShutdownTimeoutMs**
-sets a timeout in milliseconds that will be used to detect
-a blocking producer during shutdown. By default this is set to 1 second.
-Decreasing this value may lead to lost messages during shutdown. Increasing
-this value will increase shutdown time.
-
-
-**Streams**
-contains either a single string or a list of strings defining the
-message channels this producer will consume. By default this is set to "*"
-which means "listen to all routers but the internal".
-
+  switches the consumer on or off. By default this value is set to true.
+  
+  
 
 **FallbackStream**
-defines the stream used for messages that are sent to the fallback after
-a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
 
+  defines the stream used for messages that are sent to the fallback after
+  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
+  
+  
+
+**ID**
+
+  allows this producer to be found by other plugins by name. By default this
+  is set to "" which does not register this producer.
+  
+  
 
 **Modulators**
-sets formatter and filter to use. Each formatter has its own set of options
-which can be set here, too. By default this is set to format.Forward.
-Each producer decides if and when to use a Formatter.
 
+  sets formatter and filter to use. Each formatter has its own set of options
+  which can be set here, too. By default this is set to format.Forward.
+  Each producer decides if and when to use a Formatter.
+  
+  
 
-Example
--------
+**ShutdownTimeoutMs**
 
-.. code-block:: yaml
+  sets a timeout in milliseconds that will be used to detect
+  a blocking producer during shutdown. By default this is set to 1 second.
+  Decreasing this value may lead to lost messages during shutdown. Increasing
+  this value will increase shutdown time.
+  
+  
 
-	 - "producer.ElasticSearch":
-	   Connections: 6
-	   RetrySec: 5
-	   TTL: ""
-	   DayBasedIndex: false
-	   User: ""
-	   Password: ""
-	   BatchSizeByte: 32768
-	   BatchMaxCount: 256
-	   BatchTimeoutSec: 5
-	   Port: 9200
-	   Servers:
-	     - "localhost"
-	   Index:
-	     "console" : "console"
-	     "_GOLLUM_"  : "_GOLLUM_"
-	   Settings:
-	     "console":
-	       "number_of_shards": 1
-	   DataTypes:
-	     "console":
-	       "source": "ip"
-	   Type:
-	     "console" : "log"
-	     "_GOLLUM_"  : "log"
-	
+**Streams**
+
+  contains either a single string or a list of strings defining the
+  message channels this producer will consume. By default this is set to "*"
+  which means "listen to all routers but the internal".
+  
+  
+
 
 

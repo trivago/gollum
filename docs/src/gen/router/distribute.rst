@@ -3,7 +3,6 @@
 Distribute
 ==========
 
-
 The "Distribute" plugin provides 1:n stream remapping by duplicating
 messages.
 
@@ -15,72 +14,72 @@ each of the streams listed in [TargetStreams].
 When routing to multiple routers, the incoming stream has to be listed
 explicitly to be used.
 
+Configuration example:
+
+# Generate junk
+JunkGenerator:
+  Type: "consumer.Profiler"
+  Message: "%20s"
+  Streams: "junkstream"
+  Characters: "abcdefghijklmZ"
+  KeepRunning: true
+  Runs: 10000
+  Batches: 3000000
+  DelayMs: 500
+# Filter messages and distribute them to 2 new streams
+JunkRouterDist:
+  Type: "router.Distribute"
+  Stream: "junkstream"
+  TargetStreams:
+    - "junkdist_00"
+    - "junkdist_01"
+  Filters:
+    - JunkRegexp:
+        Type: "filter.RegExp"
+        Expression: "Z"
+# Print messages from junkdist_00
+JunkDistPrinter00:
+  Type: "producer.Console"
+  Streams: "junkdist_00"
+  Modulators:
+    - "format.Envelope":
+        Prefix: "[junk_00] "
+# Print messages from junkdist_01
+JunkDistPrinter01:
+  Type: "producer.Console"
+  Streams: "junkdist_01"
+  Modulators:
+    - "format.Envelope":
+        Prefix: "[junk_01] "
+
+TargetStreams Specifies names of the streams to create.
 
 
-
-Parameters
-----------
-
-**TargetStreams**
-Specifies names of the streams to create.
 
 
 Parameters (from SimpleRouter)
 ------------------------------
 
-**Stream**
-Specifies the name of the stream this plugin is supposed to
-read messages from.
-
-
 **Filters**
-A list of zero or more Filter plugins to connect to this router.
 
+  A optional list of zero or more Filter plugins to connect to this router.
+  
+  
 
-**TimeoutMs**
-... (default: 0, metric: ms)
+**Stream**
 
+  This value specifies the name of the stream this plugin is supposed to
+  read messages from.
+  
+  
 
-Example
--------
+**TimeoutMs** (default: 0, unit: ms)
 
-.. code-block:: yaml
+  This value set a timeout in milliseconds until a message should handled by the router.
+  You can disable this behavior by setting "0".
+  By default this parameter is set to "0".
+  
+  
 
-	# Generate junk
-	JunkGenerator:
-	  Type: "consumer.Profiler"
-	  Message: "%20s"
-	  Streams: "junkstream"
-	  Characters: "abcdefghijklmZ"
-	  KeepRunning: true
-	  Runs: 10000
-	  Batches: 3000000
-	  DelayMs: 500
-	# Filter messages and distribute them to 2 new streams
-	JunkRouterDist:
-	  Type: "router.Distribute"
-	  Stream: "junkstream"
-	  TargetStreams:
-	    - "junkdist_00"
-	    - "junkdist_01"
-	  Filters:
-	    - JunkRegexp:
-	        Type: "filter.RegExp"
-	        Expression: "Z"
-	# Print messages from junkdist_00
-	JunkDistPrinter00:
-	  Type: "producer.Console"
-	  Streams: "junkdist_00"
-	  Modulators:
-	    - "format.Envelope":
-	        Prefix: "[junk_00] "
-	# Print messages from junkdist_01
-	JunkDistPrinter01:
-	  Type: "producer.Console"
-	  Streams: "junkdist_01"
-	  Modulators:
-	    - "format.Envelope":
-	        Prefix: "[junk_01] "
-	
 
 

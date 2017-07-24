@@ -3,7 +3,6 @@
 Broadcast
 =========
 
-
 The "Broadcast" plugin relays all messages sent to [Stream]  to all
 produces connected to [Stream].
 
@@ -11,62 +10,67 @@ With the default options, this plugin has no practical effect. Using
 the Filters and TimeoutMs options, it is possible to restrict and control
 the messages being passed.
 
+Configuration example:
+
+# Generate junk messages
+JunkGenerator:
+  Type: "consumer.Profiler"
+  Message: "%20s"
+  Streams: "junkstream"
+  Characters: "abcdefghijklmZ"
+  KeepRunning: true
+  Runs: 10000
+  Batches: 3000000
+  DelayMs: 500
+# Filter out messsages including 'Z' and broadcast them
+JunkRouterBroad:
+  Type: "router.Broadcast"
+  Stream: "junkstream"
+  Filters:
+    - JunkRegexp:
+        Type: "filter.RegExp"
+        Expression: "Z"
+# Produce filtered messages from 'junkstream' to stdout
+JunkPrinter00:
+  Type: "producer.Console"
+  Streams: "junkstream"
+  Modulators:
+    - "format.Envelope":
+        Prefix: "[junkdist_00] "
+# Produce filtered messages from 'junkstream' to stdout
+JunkPrinter01:
+  Type: "producer.Console"
+  Streams: "junkstream"
+  Modulators:
+    - "format.Envelope":
+        Prefix: "[junkdist_01] "
+
 
 
 
 Parameters (from SimpleRouter)
 ------------------------------
 
-**Stream**
-Specifies the name of the stream this plugin is supposed to
-read messages from.
-
-
 **Filters**
-A list of zero or more Filter plugins to connect to this router.
 
+  A optional list of zero or more Filter plugins to connect to this router.
+  
+  
 
-**TimeoutMs**
-... (default: 0, metric: ms)
+**Stream**
 
+  This value specifies the name of the stream this plugin is supposed to
+  read messages from.
+  
+  
 
-Example
--------
+**TimeoutMs** (default: 0, unit: ms)
 
-.. code-block:: yaml
+  This value set a timeout in milliseconds until a message should handled by the router.
+  You can disable this behavior by setting "0".
+  By default this parameter is set to "0".
+  
+  
 
-	# Generate junk messages
-	JunkGenerator:
-	  Type: "consumer.Profiler"
-	  Message: "%20s"
-	  Streams: "junkstream"
-	  Characters: "abcdefghijklmZ"
-	  KeepRunning: true
-	  Runs: 10000
-	  Batches: 3000000
-	  DelayMs: 500
-	# Filter out messsages including 'Z' and broadcast them
-	JunkRouterBroad:
-	  Type: "router.Broadcast"
-	  Stream: "junkstream"
-	  Filters:
-	    - JunkRegexp:
-	        Type: "filter.RegExp"
-	        Expression: "Z"
-	# Produce filtered messages from 'junkstream' to stdout
-	JunkPrinter00:
-	  Type: "producer.Console"
-	  Streams: "junkstream"
-	  Modulators:
-	    - "format.Envelope":
-	        Prefix: "[junkdist_00] "
-	# Produce filtered messages from 'junkstream' to stdout
-	JunkPrinter01:
-	  Type: "producer.Console"
-	  Streams: "junkstream"
-	  Modulators:
-	    - "format.Envelope":
-	        Prefix: "[junkdist_01] "
-	
 
 

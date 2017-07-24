@@ -3,7 +3,6 @@
 Kinesis
 =======
 
-
 This consumer reads message from an AWS Kinesis router.
 
 
@@ -12,111 +11,148 @@ This consumer reads message from an AWS Kinesis router.
 Parameters
 ----------
 
-**KinesisStream**
-defines the stream to read from.
-By default this is set to "default"
+**CheckNewShardsSec** (default: 0, unit: sec)
 
-
-**Region**
-defines the amazon region of your kinesis stream.
-By default this is set to "eu-west-1".
-
-
-**Endpoint**
-defines the amazon endpoint for your kinesis stream.
-By default this is et to "kinesis.eu-west-1.amazonaws.com"
-
-
-**CredentialType**
-defines the credentials that are to be used when
-connecting to kensis. This can be one of the following: environment,
-static, shared, none.
-Static enables the parameters CredentialId, CredentialToken and
-CredentialSecretm shared enables the parameters CredentialFile and
-CredentialProfile. None will not use any credentials and environment
-will pull the credentials from environmental settings.
-By default this is set to none.
-
+  This value set a timer to update shards in Kinesis.
+  You can set this parameter to "0" for disabling.
+  By default this parameter is set to "0".
+  
+  
 
 **DefaultOffset**
-defines the message index to start reading from.
-Valid values are either "Newest", "Oldest", or a number.
-The default value is "Newest".
 
+  This value defines the message index to start reading from.
+  Valid values are either "newest", "oldest", or a number.
+  By default this parameter is set to "newest".
+  Examples
+  This example consume a kinesis stream "myStream" and create messages:
+  KinesisIn:
+  Type: consumer.Kinesis
+  Credential:
+  Type: shared
+  File: /Users/<USERNAME>/.aws/credentials
+  Profile: default
+  Region: "eu-west-1"
+  KinesisStream: myStream
+  
+  
+
+**KinesisStream** (default: default)
+
+  THis value defines the stream to read from.
+  By default this parameter is set to "default".
+  
+  
 
 **OffsetFile**
-defines a file to store the current offset per shard.
-By default this is set to "", i.e. it is disabled.
-If a file is set and found consuming will start after the stored
-offset.
 
+  This value defines a file to store the current offset per shard.
+  You can set this parameter to "" for disabling. If a file is set and found consuming will start
+  after the stored offset.
+  By default this parameter is set to "".
+  
+  
 
-**RecordsPerQuery**
-defines the number of records to pull per query.
-By default this is set to 100.
+**QuerySleepTimeMs** (default: 1000, unit: ms)
 
+  This value defines the number of milliseconds to sleep before
+  trying to pull new records from a shard that did not return any records.
+  By default this parameter is set to "1000".
+  
+  
 
 **RecordMessageDelimiter**
-defines the string to delimit messages within a
-record. By default this is set to "", i.e. it is disabled.
 
+  This value defines the string to delimit messages within a
+  record. You can set this parameter to "" for disabling.
+  By default this parameter is set to "".
+  
+  
 
-**QuerySleepTimeMs**
-defines the number of milliseconds to sleep before
-trying to pull new records from a shard that did not return any records.
-By default this is set to 1000.
+**RecordsPerQuery** (default: 100)
 
+  This value defines the number of records to pull per query.
+  By default this parameter is set to "100".
+  
+  
 
-**RetrySleepTimeSec**
-defines the number of seconds to wait after trying to
-reconnect to a shard. By default this is set to 4.
+**RetrySleepTimeSec** (default: 4, unit: sec)
 
+  This value defines the number of seconds to wait after trying to
+  reconnect to a shard.
+  By default this parameter is set to "4".
+  
+  
 
 Parameters (from SimpleConsumer)
 --------------------------------
 
 **Enable**
-switches the consumer on or off. By default this value is set to true.
 
+  switches the consumer on or off.
+  By default this parameter is set to true.
+  
+  
 
-**ID**
-allows this consumer to be found by other plugins by name. By default this
-is set to "" which does not register this consumer.
+**ModulatorQueueSize**
 
+  Defines the size of the channel used to buffer messages
+  before they are fetched by the next free modulator go routine. If the
+  ModulatorRoutines parameter is set to 0 this parameter is ignored.
+  By default this parameter is set to 1024.
+  
+  
+
+**ModulatorRoutines**
+
+  Defines the number of go routines reserved for
+  modulating messages. Setting this parameter to 0 will use as many go routines
+  as the specific consumer plugin is using for fetching data. Any other value
+  will force the given number fo go routines to be used.
+  By default this parameter is set to 0
+  
+  
+
+**Modulators**
+
+  Defines a list of modulators to be applied to a message before
+  it is sent to the list of streams. If a modulator specifies a stream, the
+  message is only sent to that specific stream. A message is saved as original
+  after all modulators have been applied.
+  By default this parameter is set to an empty list.
+  
+  
+
+**ShutdownTimeoutMs** (default: 1000, unit: ms)
+
+  Defines the maximum time in milliseconds a consumer is
+  allowed to take to shut down. After this timeout the consumer is always
+  considered to have shut down.
+  By default this parameter is set to 1000.
+  
+  
 
 **Streams**
-contains either a single string or a list of strings defining the
-message channels this consumer will produce. By default this is set to "*"
-which means only producers set to consume "all streams" will get these
-messages.
 
+  Defines a list of streams a consumer will send to. This parameter
+  is mandatory. When using "*" messages will be sent only to the internal "*"
+  stream. It will NOT send messages to all streams.
+  By default this parameter is set to an empty list.
+  
+  
 
-**ShutdownTimeoutMs**
-sets a timeout in milliseconds that will be used to detect
-various timeouts during shutdown. By default this is set to 1 second.
+Parameters (from components.AwsMultiClient)
+-------------------------------------------
 
+**Endpoint**
 
-Example
--------
+  (no documentation available)
+  
 
-.. code-block:: yaml
+**Region** (default: us-east-1)
 
-	 - "consumer.Kinesis":
-	   KinesisStream: "default"
-	   Region: "eu-west-1"
-	   Endpoint: "kinesis.eu-west-1.amazonaws.com"
-	   DefaultOffset: "Newest"
-	   OffsetFile: ""
-	   RecordsPerQuery: 100
-	   RecordMessageDelimiter: ""
-	   QuerySleepTimeMs: 1000
-	   RetrySleepTimeSec: 4
-	   CredentialType: "none"
-	   CredentialId: ""
-	   CredentialToken: ""
-	   CredentialSecret: ""
-	   CredentialFile: ""
-	   CredentialProfile: ""
-	
+  (no documentation available)
+  
+
 
 

@@ -3,11 +3,10 @@
 Proxy
 =====
 
-
-The proxy consumer reads messages directly as-is from a given socket.
-Messages are extracted by standard message size algorithms (see Partitioner).
-This consumer can be used with any compatible proxy producer to establish
-a two-way communication.
+This consumer reads messages from a given socket like consumer.Socket but
+allows reverse communication, too. Producers which require this kind of
+communication can access message.GetSource to write data back to the client
+sending the message. See producer.Proxy as an example target producer.
 
 
 
@@ -16,83 +15,154 @@ Parameters
 ----------
 
 **Address**
-defines the protocol, host and port or socket to bind to.
-This can either be any ip address and port like "localhost:5880" or a file
-like "unix:///var/gollum.socket". By default this is set to ":5880".
-UDP is not supported.
 
+  Defines the protocol, host and port or the unix domain socket to
+  listen to. This can either be any ip address and port like "localhost:5880"
+  or a file like "unix:///var/gollum.socket". Only unix and tcp protocols are
+  supported.
+  By default this parameter is set to ":5880".
+  
+  
+
+**Delimiter** (default: \n)
+
+  Defines the delimiter string used to separate messages if
+  partitioner is set to "delimiter" or the string used to separate the message
+  length if partitioner is set to "ascii".
+  By default this parameter is set to "\n".
+  
+  
+
+**Offset** (default: 0)
+
+  Defines an offset in bytes used to read the length provided for
+  partitioner "binary" and "ascii".
+  By default this parameter is set to 0.
+  
+  
 
 **Partitioner**
-defines the algorithm used to read messages from the router.
-The messages will be sent as a whole, no cropping or removal will take place.
-By default this is set to "delimiter".
 
-* "delimiter" separates messages by looking for a delimiter string.
-  The delimiter is included into the left hand message.
+  Defines the algorithm used to read messages from the router.
+  The messages will be sent as a whole, no cropping or removal will take place.
+  By default this parameter is set to "delimiter".
+  
+  
 
-* "ascii" reads an ASCII number at a given offset until a given delimiter is found.
-  Everything to the right of and including the delimiter is removed from the message.
+**Size** (default: 4)
 
-* "binary" reads a binary number at a given offset and size.
+  Defines the size of the length prefix used by partitioner "binary"
+  or the message total size when using partitioner "fixed".
+  When using partitioner "binary" this parameter can be set to 1,2,4 or 8 when
+  using uint8,uint16,uint32 or uint64 length prefixes.
+  By default this parameter is set to 4.
+  Examples
+  This example will accepts 64bit length encoded data on TCP port 5880.
+  proxyReceive:
+  Type: consumer.Proxy
+  Streams: proxyData
+  Address: ":5880"
+  Partitioner: binary
+  Size: 8
+  
+  
 
-* "binary_le" is an alias for "binary".
+**ascii**
 
-* "binary_be" is the same as "binary" but uses big endian encoding.
+  Reads an ASCII number at a given offset until a given delimiter is
+  found. Everything to the left of and including the delimiter is removed
+  from the message.
+  
+  
 
-* "fixed" assumes fixed size messages.
+**binary**
 
+  reads a binary number at a given offset and size.
+  The number is removed from the message.
+  
+  
 
-**Delimiter**
-defines the delimiter used by the text and delimiter partitioner.
-By default this is set to "\n".
+**binary_be**
 
+  acts like "binary"_le but uses big endian encoding.
+  
+  
 
-**Offset**
-defines the offset used by the binary and text partitioner.
-By default this is set to 0. This setting is ignored by the fixed partitioner.
+**binary_le**
 
+  is an alias for "binary".
+  
+  
 
-**Size**
-defines the size in bytes used by the binary or fixed partitioner.
-For binary this can be set to 1,2,4 or 8. By default 4 is chosen.
-For fixed this defines the size of a message. By default 1 is chosen.
+**delimiter**
 
+  Separates messages by looking for a delimiter string.
+  The delimiter is removed from the message.
+  
+  
+
+**fixed**
+
+  assumes fixed size messages.
+  
+  
 
 Parameters (from SimpleConsumer)
 --------------------------------
 
 **Enable**
-switches the consumer on or off. By default this value is set to true.
 
+  switches the consumer on or off.
+  By default this parameter is set to true.
+  
+  
 
-**ID**
-allows this consumer to be found by other plugins by name. By default this
-is set to "" which does not register this consumer.
+**ModulatorQueueSize**
 
+  Defines the size of the channel used to buffer messages
+  before they are fetched by the next free modulator go routine. If the
+  ModulatorRoutines parameter is set to 0 this parameter is ignored.
+  By default this parameter is set to 1024.
+  
+  
+
+**ModulatorRoutines**
+
+  Defines the number of go routines reserved for
+  modulating messages. Setting this parameter to 0 will use as many go routines
+  as the specific consumer plugin is using for fetching data. Any other value
+  will force the given number fo go routines to be used.
+  By default this parameter is set to 0
+  
+  
+
+**Modulators**
+
+  Defines a list of modulators to be applied to a message before
+  it is sent to the list of streams. If a modulator specifies a stream, the
+  message is only sent to that specific stream. A message is saved as original
+  after all modulators have been applied.
+  By default this parameter is set to an empty list.
+  
+  
+
+**ShutdownTimeoutMs** (default: 1000, unit: ms)
+
+  Defines the maximum time in milliseconds a consumer is
+  allowed to take to shut down. After this timeout the consumer is always
+  considered to have shut down.
+  By default this parameter is set to 1000.
+  
+  
 
 **Streams**
-contains either a single string or a list of strings defining the
-message channels this consumer will produce. By default this is set to "*"
-which means only producers set to consume "all streams" will get these
-messages.
 
+  Defines a list of streams a consumer will send to. This parameter
+  is mandatory. When using "*" messages will be sent only to the internal "*"
+  stream. It will NOT send messages to all streams.
+  By default this parameter is set to an empty list.
+  
+  
 
-**ShutdownTimeoutMs**
-sets a timeout in milliseconds that will be used to detect
-various timeouts during shutdown. By default this is set to 1 second.
-
-
-Example
--------
-
-.. code-block:: yaml
-
-	 - "consumer.Proxy":
-	   Address: ":5880"
-	   Partitioner: "delimiter"
-	   Delimiter: "\n"
-	   Offset: 0
-	   Size: 1
-	
 
 
