@@ -28,7 +28,7 @@ import (
 //
 // Parameters
 //
-// - Stream: This value specify the name of the stream this plugin is supposed to
+// - Stream: This value specifies the name of the stream this plugin is supposed to
 // read messages from.
 //
 // - Filters: A list of zero or more Filter plugins to connect to this router.

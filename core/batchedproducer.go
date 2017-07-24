@@ -21,22 +21,17 @@ import (
 )
 
 // BatchedProducer plugin base type
+//
 // This type defines a common BatchedProducer base class. Producers may
 // derive from this class.
 //
-// Configuration example:
+// Parameters
 //
-//  - producer.Foobar:
-//      Streams:
-//        - "foo"
-//        - "bar"
-//      Enable: true
-//      ShutdownTimeoutMs: 1000
-//      FallbackStream: "_DROPPED_"
-//      Batch:
-//        MaxCount: 8192
-//    	  FlushCount: 4096
-//    	  TimeoutSec: 5
+// - Batch/MaxCount: (TBD)
+//
+// - Batch/FlushCount: (TBD)
+//
+// - Batch/TimeoutSec: (TBD)
 //
 type BatchedProducer struct {
 	DirectProducer  `gollumdoc:"embed_type"`

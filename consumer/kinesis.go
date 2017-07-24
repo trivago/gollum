@@ -18,109 +18,87 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/kinesis"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/components"
 	"io/ioutil"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/kinesis"
-	"github.com/trivago/gollum/core"
 )
 
 const (
-	kinesisCredentialEnv    = "environment"
-	kinesisCredentialStatic = "static"
-	kinesisCredentialShared = "shared"
-	kinesisCredentialNone   = "none"
-	kinesisOffsetNewest     = "newest"
-	kinesisOffsetOldest     = "oldest"
+	kinesisOffsetNewest = "newest"
+	kinesisOffsetOldest = "oldest"
 )
 
 // Kinesis consumer plugin
 //
 // This consumer reads message from an AWS Kinesis router.
 //
-// Configuration example
+// Parameters
 //
-//  - "consumer.Kinesis":
-//    KinesisStream: "default"
-//    Region: "eu-west-1"
-//    Endpoint: "kinesis.eu-west-1.amazonaws.com"
-//    DefaultOffset: "Newest"
-//    OffsetFile: ""
-//    RecordsPerQuery: 100
-//    RecordMessageDelimiter: ""
-//    QuerySleepTimeMs: 1000
-//    RetrySleepTimeSec: 4
-//    CredentialType: "none"
-//    CredentialId: ""
-//    CredentialToken: ""
-//    CredentialSecret: ""
-//    CredentialFile: ""
-//    CredentialProfile: ""
+// - KinesisStream: THis value defines the stream to read from. By default this is set to "default".
 //
-// KinesisStream defines the stream to read from.
-// By default this is set to "default"
+// - OffsetFile: This value defines a file to store the current offset per shard.
+// By default this is set to "", i.e. it is disabled. If a file is set and found consuming will start
+// after the stored offset.
 //
-// Region defines the amazon region of your kinesis stream.
-// By default this is set to "eu-west-1".
+// - RecordsPerQuery: This value defines the number of records to pull per query.
+// By default this is set to "100".
 //
-// Endpoint defines the amazon endpoint for your kinesis stream.
-// By default this is et to "kinesis.eu-west-1.amazonaws.com"
-//
-// CredentialType defines the credentials that are to be used when
-// connecting to kensis. This can be one of the following: environment,
-// static, shared, none.
-// Static enables the parameters CredentialId, CredentialToken and
-// CredentialSecretm shared enables the parameters CredentialFile and
-// CredentialProfile. None will not use any credentials and environment
-// will pull the credentials from environmental settings.
-// By default this is set to none.
-//
-// DefaultOffset defines the message index to start reading from.
-// Valid values are either "Newest", "Oldest", or a number.
-// The default value is "Newest".
-//
-// OffsetFile defines a file to store the current offset per shard.
-// By default this is set to "", i.e. it is disabled.
-// If a file is set and found consuming will start after the stored
-// offset.
-//
-// RecordsPerQuery defines the number of records to pull per query.
-// By default this is set to 100.
-//
-// RecordMessageDelimiter defines the string to delimit messages within a
+// - RecordMessageDelimiter: This value defines the string to delimit messages within a
 // record. By default this is set to "", i.e. it is disabled.
 //
-// QuerySleepTimeMs defines the number of milliseconds to sleep before
+// - QuerySleepTimeMs: This value defines the number of milliseconds to sleep before
 // trying to pull new records from a shard that did not return any records.
-// By default this is set to 1000.
+// By default this is set to "1000".
 //
-// RetrySleepTimeSec defines the number of seconds to wait after trying to
-// reconnect to a shard. By default this is set to 4.
+// - RetrySleepTimeSec: This value defines the number of seconds to wait after trying to
+// reconnect to a shard. By default this is set to "4".
+//
+// - CheckNewShardsSec: This value set a timer to update shards in Kinesis.
+// By default this is set to "0", i.e. it is disabled.
+//
+// - DefaultOffset: This value defines the message index to start reading from.
+// Valid values are either "Newest", "Oldest", or a number. By default this is set to "Newest".
+//
+// Examples
+//
+// This example consume a kinesis stream "myStream" and create messages:
+//
+//  KinesisIn:
+//    Type: consumer.Kinesis
+//    Credential:
+//      Type: shared
+//      File: /Users/<USERNAME>/.aws/credentials
+//      Profile: default
+//    Region: "eu-west-1"
+//    KinesisStream: myStream
+//
 type Kinesis struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	client              *kinesis.Kinesis
-	config              *aws.Config
-	offsets             map[string]string
-	offsetType          string
-	defaultOffset       string
-	stream              string        `config:"KinesisStream" default:"default"`
-	offsetFile          string        `config:"OffsetFile"`
-	recordsPerQuery     int64         `config:"RecordsPerQuery" default:"1000"`
-	delimiter           []byte        `config:"RecordMessageDelimiter"`
-	sleepTime           time.Duration `config:"QuerySleepTimeMs" default:"1000" metric:"ms"`
-	retryTime           time.Duration `config:"RetrySleepTimeSec" default:"4" metric:"sec"`
-	shardTime           time.Duration `config:"CheckNewShardsSec" default:"0" metric:"sec"`
-	assumeRole          string        `config:"Credential/AssumeRole"`
-	running             bool
-	offsetsGuard        *sync.RWMutex
+
+	// AwsMultiClient is public to make AwsMultiClient.Configure() callable
+	AwsMultiClient components.AwsMultiClient `gollumdoc:"embed_type"`
+
+	stream          string        `config:"KinesisStream" default:"default"`
+	offsetFile      string        `config:"OffsetFile"`
+	recordsPerQuery int64         `config:"RecordsPerQuery" default:"100"`
+	delimiter       []byte        `config:"RecordMessageDelimiter"`
+	sleepTime       time.Duration `config:"QuerySleepTimeMs" default:"1000" metric:"ms"`
+	retryTime       time.Duration `config:"RetrySleepTimeSec" default:"4" metric:"sec"`
+	shardTime       time.Duration `config:"CheckNewShardsSec" default:"0" metric:"sec"`
+
+	client        *kinesis.Kinesis
+	offsets       map[string]string
+	offsetType    string
+	defaultOffset string
+	running       bool
+	offsetsGuard  *sync.RWMutex
 }
 
 func init() {
@@ -131,42 +109,6 @@ func init() {
 func (cons *Kinesis) Configure(conf core.PluginConfigReader) {
 	cons.offsets = make(map[string]string)
 	cons.offsetsGuard = new(sync.RWMutex)
-
-	// Config
-	cons.config = aws.NewConfig()
-	if endpoint := conf.GetString("Endpoint", "kinesis.eu-west-1.amazonaws.com"); endpoint != "" {
-		cons.config.WithEndpoint(endpoint)
-	}
-
-	if region := conf.GetString("Region", "eu-west-1"); region != "" {
-		cons.config.WithRegion(region)
-	}
-
-	// Credentials
-	cons.config.CredentialsChainVerboseErrors = aws.Bool(true)
-	credentialType := strings.ToLower(conf.GetString("Credential/Type", kinesisCredentialNone))
-	switch credentialType {
-	case kinesisCredentialEnv:
-		cons.config.WithCredentials(credentials.NewEnvCredentials())
-
-	case kinesisCredentialStatic:
-		id := conf.GetString("Credential/Id", "")
-		token := conf.GetString("Credential/Token", "")
-		secret := conf.GetString("Credential/Secret", "")
-		cons.config.WithCredentials(credentials.NewStaticCredentials(id, secret, token))
-
-	case kinesisCredentialShared:
-		filename := conf.GetString("Credential/File", "")
-		profile := conf.GetString("Credential/Profile", "")
-		cons.config.WithCredentials(credentials.NewSharedCredentials(filename, profile))
-
-	case kinesisCredentialNone:
-		// Nothing
-
-	default:
-		conf.Errors.Pushf("Unknown CredentialType: %s", credentialType)
-		return
-	}
 
 	// Offset
 	offsetValue := strings.ToLower(conf.GetString("DefaultOffset", kinesisOffsetNewest))
@@ -319,21 +261,24 @@ func (cons *Kinesis) processShard(shardID string) {
 	}
 }
 
-func (cons *Kinesis) connect() error {
-	sess, err := session.NewSessionWithOptions(session.Options{
-		Config:            *cons.config,
-		SharedConfigState: session.SharedConfigEnable,
-	})
+func (cons *Kinesis) initKinesisClient() {
+	sess, err := cons.AwsMultiClient.NewSessionWithOptions()
 	if err != nil {
-		return err
+		cons.Logger.WithError(err).Error("Can't get proper aws config")
 	}
 
-	if cons.assumeRole != "" {
-		creds := stscreds.NewCredentials(sess, cons.assumeRole)
-		cons.client = kinesis.New(sess, &aws.Config{Credentials: creds})
-	} else {
-		cons.client = kinesis.New(sess)
+	awsConfig := cons.AwsMultiClient.GetConfig()
+
+	// set auto endpoint to s3 if setting is empty
+	if awsConfig.Endpoint == nil || *awsConfig.Endpoint == "" {
+		awsConfig.WithEndpoint(fmt.Sprintf("kinesis.%s.amazonaws.com", *awsConfig.Region))
 	}
+
+	cons.client = kinesis.New(sess, awsConfig)
+}
+
+func (cons *Kinesis) connect() error {
+	cons.initKinesisClient()
 
 	// Get shard ids for stream
 	streamQuery := &kinesis.DescribeStreamInput{

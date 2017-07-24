@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/trivago/gollum/core"
 )
@@ -32,12 +33,16 @@ const (
 	credentialTypeNone   = "none"
 )
 
-// AwsMultiClient is a helper component to handle aws access and client instantiation
+// AwsMultiClient
+
+// The AwsMultiClient is a helper component to handle aws access and client instantiation
 //
-// Region defines the used aws region. By default this is set to "us-east-1"
+// Parameters:
 //
-// Endpoint defines the used aws api endpoint. By default this is set to "" and the client
-// tries to get the right endpoint for the used region.
+// - Region: defines the used aws region. By default this is set to "us-east-1"
+//
+// - Endpoint: defines the used aws api endpoint. By default this is set to "".
+// If no endpoint is set the client needs to set the right endpoint for the used region.
 //
 type AwsMultiClient struct {
 	Credentials AwsCredentials
@@ -71,10 +76,21 @@ func (client *AwsMultiClient) GetConfig() *aws.Config {
 
 // NewSessionWithOptions returns a instantiated asw session
 func (client *AwsMultiClient) NewSessionWithOptions() (*session.Session, error) {
-	return session.NewSessionWithOptions(session.Options{
+	sess, err := session.NewSessionWithOptions(session.Options{
 		Config:            *client.config,
 		SharedConfigState: session.SharedConfigEnable,
 	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if client.Credentials.assumeRole != "" {
+		credentials := stscreds.NewCredentials(sess, client.Credentials.assumeRole)
+		client.config.WithCredentials(credentials)
+	}
+
+	return sess, err
 }
 
 // AwsCredentials is a config struct for aws credential handling
@@ -84,16 +100,20 @@ func (client *AwsMultiClient) NewSessionWithOptions() (*session.Session, error) 
 // "static", "shared" and "none". By default this is set to "none".
 // See https://docs.aws.amazon.com/sdk-for-go/api/aws/credentials/#Credentials for more information
 //
-// Credential/Id is used for "static" type and is used as the AccessKeyID
+// Parameters
 //
-// Credential/Token is used for "static" type and is used as the SessionToken
+// - Credential/Id: is used for "static" type and is used as the AccessKeyID
 //
-// Credential/Secret is used for "static" type and is used as the SecretAccessKey
+// - Credential/Token: is used for "static" type and is used as the SessionToken
 //
-// Credential/File is used for "shared" type and is used as the path to your
+// - Credential/Secret: is used for "static" type and is used as the SecretAccessKey
+//
+// - Credential/File: is used for "shared" type and is used as the path to your
 // shared Credentials file (~/.aws/credentials)
 //
-// Credential/Profile is used for "shared" type and is used for the profile
+// - Credential/Profile: is used for "shared" type and is used for the profile
+//
+// - Credential/AssumeRole: This value is used to assume an IAM role using. By default this is set to "".
 //
 type AwsCredentials struct {
 	credentialType string `config:"Credential/Type" default:"none"`
@@ -102,6 +122,7 @@ type AwsCredentials struct {
 	staticSecret   string `config:"Credential/Secret" default:""`
 	sharedFile     string `config:"Credential/File" default:""`
 	sharedProfile  string `config:"Credential/Profile" default:"default"`
+	assumeRole     string `config:"Credential/AssumeRole" default:""`
 }
 
 // CreateAwsCredentials returns aws credentials.Credentials for active settings

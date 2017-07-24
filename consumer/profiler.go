@@ -40,54 +40,41 @@ import (
 // [DelayMs] ms delay between each message. Each message's payload is randomly
 // selected from the set of template payloads above.
 //
-// Configuration example:
+// Example:
 //
-// # Generate 10 x 10000 messages of 256 bytes
-// MyProfiler:
-//   Type: "consumer.Profiler"
-//   Runs: 10000
-//   Batches: 10
-//   TemplateCount: 10
-//   Characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
-//   Message: "%256s"
-//	 DelayMs: 0
-//   KeepRunning: false
-// # Generate a short message every 0.5s, useful for testing and debugging
-// JunkGenerator:
-//   Type: "consumer.Profiler"
-//   Message: "%20s"
-//   Streams: "junkstream"
-//   Characters: "abcdefghijklmZ"
-//   KeepRunning: true
-//   Runs: 10000
-//   Batches: 3000000
-//   DelayMs: 500
+//   # Generate a short message every 0.5s, useful for testing and debugging
+//   JunkGenerator:
+//     Type: "consumer.Profiler"
+//     Message: "%20s"
+//     Streams: "junkstream"
+//     Characters: "abcdefghijklmZ"
+//     KeepRunning: true
+//     Runs: 10000
+//     Batches: 3000000
+//     DelayMs: 500
 //
-// Runs defines the number of messages per batch. By default this is set to
-// 10000.
+// Parameters
 //
-// Batches defines the number of measurement runs to do. By default this is set
-// to 10.
+// - Runs: Defines the number of messages per batch.
 //
-// TemplateCount defines the number of message templates to be generated.
-// A random message template will be chosen when a message is sent. Templates
-// are generated in advance. By default this is set to 10.
+// - Batches: Defines the number of batches to generate.
 //
-// Characters defines the characters to be used in generated strings. By default
-// these are "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 ".
+// - TemplateCount: Defines the number of message templates to generate.
+// Templates are generated in advance and a random message template is chosen
+// from this set every time a message is sent.
 //
-// Message defines a go format string to be used to generate the message templates.
-// The length of the values generated will be deduced from the format size
-// parameter. I.e. "%200d" will generate a digit between 0 and 200, "%10s" will
-// generate a string with 10 characters, etc..
-// By default this is set to "%256s".
+// - Characters: Defines the set of characters use when generated templates.
 //
-// DelayMs defines the number of milliseconds of sleep between messages.
-// By default this is set to 0.
+// - Message: Defines a go format string to use for generating the message
+// templaets. The length of the values generated will be deduced from the
+// format size parameter - "%200d" will generate a digit between 0 and 200,
+// "%10s" will  generate a string with 10 characters, etc.
 //
-// KeepRunning can be set to `true` to disable automatic shutdown of gollum after
-// profiling is done. This can be used to e.g. read metrics after a profile run.
-// By default this is set to `false`.
+// - DelayMs: Defines the number of milliseconds to sleep between messages.
+//
+// - KeepRunning: If set to true, shuts down Gollum after Batches * Runs messages
+// have been generated. This can be used to e.g. read metrics after a profile run.
+//
 type Profiler struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 	profileRuns         int           `config:"Runs" default:"10000"`

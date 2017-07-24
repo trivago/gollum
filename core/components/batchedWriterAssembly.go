@@ -182,7 +182,6 @@ func (bwa *BatchedWriterAssembly) NeedsRotate(rotate RotateConfig, forceRotate b
 		rotateAt := time.Date(now.Year(), now.Month(), now.Day(), rotate.AtHour, rotate.AtMinute, 0, 0, now.Location())
 
 		if rotateAt.Before(bwa.Created) {
-			bwa.logger.Debug("Rotate false: ", "rotateAt time located in the past")
 			return false, nil
 		}
 

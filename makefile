@@ -17,7 +17,7 @@ CHECK_PKGS=$(shell go list ./... | grep -vE '^github.com/trivago/gollum/vendor/'
 CHECK_FILES=$(shell find . -type f -name '*.go' | grep -vE '^\./vendor/')
 
 LINT_PKGS=$(shell go list ./... | grep -vE '^github.com/trivago/gollum/(core$$|vendor/)')
-LINT_FILES_CORE=$(shell find core -type f -name '*.go' -not -name '*.pb.go')
+LINT_FILES_CORE=$(shell find core -maxdepth 1 -type f -name '*.go' -not -name '*.pb.go')
 
 all: clean vendor test freebsd linux docker mac pi win examples current
 
