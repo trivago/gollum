@@ -33,48 +33,67 @@ const (
 	proxyPartText      = proxyPartitioner(iota)
 )
 
-// Proxy consumer plugin.
+// Proxy consumer
 //
-// The proxy consumer reads messages directly as-is from a given socket.
-// Messages are extracted by standard message size algorithms (see Partitioner).
-// This consumer can be used with any compatible proxy producer to establish
-// a two-way communication.
+// This consumer reads messages from a given socket like consumer.Socket but
+// allows reverse communication, too. Producers which require this kind of
+// communication can access message.GetSource to write data back to the client
+// sending the message. See producer.Proxy as an example target producer.
 //
-// Configuration example
+// Parameters
 //
-//  - "consumer.Proxy":
-//    Address: ":5880"
-//    Partitioner: "delimiter"
-//    Delimiter: "\n"
-//    Offset: 0
-//    Size: 1
+// - Address: Defines the protocol, host and port or the unix domain socket to
+// listen to. This can either be any ip address and port like "localhost:5880"
+// or a file like "unix:///var/gollum.socket". Only unix and tcp protocols are
+// supported.
+// By default this parameter is set to ":5880".
 //
-// Address defines the protocol, host and port or socket to bind to.
-// This can either be any ip address and port like "localhost:5880" or a file
-// like "unix:///var/gollum.socket". By default this is set to ":5880".
-// UDP is not supported.
 //
-// Partitioner defines the algorithm used to read messages from the router.
+// - Partitioner: Defines the algorithm used to read messages from the router.
 // The messages will be sent as a whole, no cropping or removal will take place.
-// By default this is set to "delimiter".
-// * "delimiter" separates messages by looking for a delimiter string.
-//   The delimiter is included into the left hand message.
-// * "ascii" reads an ASCII number at a given offset until a given delimiter is found.
-//   Everything to the right of and including the delimiter is removed from the message.
-// * "binary" reads a binary number at a given offset and size.
-// * "binary_le" is an alias for "binary".
-// * "binary_be" is the same as "binary" but uses big endian encoding.
-// * "fixed" assumes fixed size messages.
+// By default this parameter is set to "delimiter".
 //
-// Delimiter defines the delimiter used by the text and delimiter partitioner.
-// By default this is set to "\n".
+//  - delimiter: Separates messages by looking for a delimiter string.
+//    The delimiter is removed from the message.
 //
-// Offset defines the offset used by the binary and text partitioner.
-// By default this is set to 0. This setting is ignored by the fixed partitioner.
+//  - ascii: Reads an ASCII number at a given offset until a given delimiter is
+//    found. Everything to the left of and including the delimiter is removed
+//    from the message.
 //
-// Size defines the size in bytes used by the binary or fixed partitioner.
-// For binary this can be set to 1,2,4 or 8. By default 4 is chosen.
-// For fixed this defines the size of a message. By default 1 is chosen.
+//  - binary: reads a binary number at a given offset and size.
+//    The number is removed from the message.
+//
+//  - binary_le: is an alias for "binary".
+//
+//  - binary_be: acts like "binary"_le but uses big endian encoding.
+//
+//  - fixed: assumes fixed size messages.
+//
+// - Delimiter: Defines the delimiter string used to separate messages if
+// partitioner is set to "delimiter" or the string used to separate the message
+// length if partitioner is set to "ascii".
+// By default this parameter is set to "\n".
+//
+// - Offset: Defines an offset in bytes used to read the length provided for
+// partitioner "binary" and "ascii".
+// By default this parameter is set to 0.
+//
+// - Size: Defines the size of the length prefix used by partitioner "binary"
+// or the message total size when using partitioner "fixed".
+// When using partitioner "binary" this parameter can be set to 1,2,4 or 8 when
+// using uint8,uint16,uint32 or uint64 length prefixes.
+// By default this parameter is set to 4.
+//
+// Examples
+//
+// This example will accepts 64bit length encoded data on TCP port 5880.
+//
+//  proxyReceive:
+//    Type: consumer.Proxy
+//    Streams: proxyData
+//    Address: ":5880"
+//    Partitioner: binary
+//    Size: 8
 type Proxy struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 	listen              io.Closer
@@ -83,6 +102,7 @@ type Proxy struct {
 	flags               tio.BufferedReaderFlags
 	delimiter           string `config:"Delimiter" default:"\n"`
 	offset              int    `config:"Offset" default:"0"`
+	size                int    `config:"Size" default:"4"`
 }
 
 func init() {
@@ -105,7 +125,7 @@ func (cons *Proxy) Configure(conf core.PluginConfigReader) {
 		fallthrough
 
 	case "binary", "binary_le":
-		switch conf.GetInt("Size", 4) {
+		switch cons.size {
 		case 1:
 			cons.flags |= tio.BufferedReaderFlagMLE8
 		case 2:
@@ -120,7 +140,7 @@ func (cons *Proxy) Configure(conf core.PluginConfigReader) {
 
 	case "fixed":
 		cons.flags |= tio.BufferedReaderFlagMLEFixed
-		cons.offset = int(conf.GetInt("Size", 1))
+		cons.offset = cons.size
 
 	case "ascii":
 		cons.flags |= tio.BufferedReaderFlagMLE

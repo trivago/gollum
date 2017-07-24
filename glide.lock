@@ -1,5 +1,5 @@
 hash: c3caa5c87d435351e40681b598bb94c31c14f4fe190e0d95035f303aaff9697a
-updated: 2017-07-14T15:51:01.717198289+02:00
+updated: 2017-07-20T14:33:23.250022994+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -122,7 +122,7 @@ imports:
 - name: github.com/trivago/grok
   version: af18cdd9faf3e06aedce0974c7e4012efc87658e
 - name: github.com/trivago/tgo
-  version: 8a6fc6a04f07d8623086322a7b8d805ddf7263eb
+  version: 92b6796af0cd3e2434e28816e07ae6d12c4233cc
   subpackages:
   - tcontainer
   - terrors
@@ -139,12 +139,12 @@ imports:
 - name: github.com/x-cray/logrus-prefixed-formatter
   version: 0b2c791a02f18788b281dc30e243a0632dad695b
 - name: golang.org/x/crypto
-  version: dd85ac7e6a88fc6ca420478e934de5f1a42dd3c6
+  version: 4bc1c249b153ce1da9f55437759cec51fe6acabb
   subpackages:
   - bcrypt
   - blowfish
 - name: golang.org/x/sys
-  version: abf9c25f54453410d0c6668e519582a9e1115027
+  version: 7a4fde3fda8ef580a89dbae8138c26041be14299
   subpackages:
   - unix
   - windows
@@ -156,8 +156,9 @@ imports:
   - internal/syslogparser/rfc3164
   - internal/syslogparser/rfc5424
 - name: gopkg.in/olivere/elastic.v5
-  version: 3113f9b9ad37509fe5f8a0e5e91c96fdc4435e26
+  version: f5030c016b49a6fb0e1958bc765562246c0a912c
   subpackages:
+  - config
   - uritemplates
 - name: gopkg.in/oschwald/geoip2-golang.v1
   version: 496a3cbcb65a3cb54497fe4ae2273319e85160a4

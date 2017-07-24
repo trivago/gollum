@@ -23,40 +23,33 @@ import (
 )
 
 // SimpleConsumer plugin base type
+//
 // This type defines a common baseclass for all consumers. All consumer plugins
 // should derive from this class but don't necessarily need to.
-// Configuration example:
 //
-//  - "consumer.Foobar":
-//    Enable: true
-//    ID: ""
-//    ShutdownTimeoutMs: 1000
-//    ModulatorRoutines: 0
-//    ModulatorQueueSize: 1024
-//    Streams:
-//      - "foo"
-//      - "bar"
+// Parameters
 //
-// Enable switches the consumer on or off. By default this value is set to true.
+// - Enable: switches the consumer on or off. By default this value is set to true.
 //
-// ID allows this consumer to be found by other plugins by name. By default this
+// - ID: allows this consumer to be found by other plugins by name. By default this
 // is set to "" which does not register this consumer.
 //
-// ModulatorRoutines defines the number of go routines processing modulators.
+// - ModulatorRoutines: defines the number of go routines processing modulators.
 // When set to 0, messages will be enqueued synchronously, every other value
 // will pass the message to any of the given go routines via a shared channel.
 //
-// ModulatorQueueSize defines the size of the channel used to pass messages to
+// - ModulatorQueueSize: defines the size of the channel used to pass messages to
 // the go routines spawned by ModulatorRoutines. This setting has no effect if
 // ModulatorRoutines is set to 0. By default the queue size is set to 1024
 //
-// Streams contains either a single string or a list of strings defining the
+// - Streams: contains either a single string or a list of strings defining the
 // message channels this consumer will produce. By default this is set to "*"
 // which means only producers set to consume "all streams" will get these
 // messages.
 //
-// ShutdownTimeoutMs sets a timeout in milliseconds that will be used to detect
+// - ShutdownTimeoutMs: sets a timeout in milliseconds that will be used to detect
 // various timeouts during shutdown. By default this is set to 1 second.
+//
 type SimpleConsumer struct {
 	id              string
 	control         chan PluginControl

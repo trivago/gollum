@@ -14,6 +14,7 @@ gollum.exe
 
 contrib/*
 !contrib/native
+!contrib/deprecated
 contrib_*.go
 
 # docs
