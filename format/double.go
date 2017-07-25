@@ -52,7 +52,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Double) Configure(conf core.PluginConfigReader) {
-	format.applyTo = conf.GetString("ApplyTo", core.ApplyToPayloadString)
+	format.applyTo = conf.GetString("ApplyTo", "")
 }
 
 // ApplyFormatter update message payload
@@ -61,7 +61,7 @@ func (format *Double) ApplyFormatter(msg *core.Message) error {
 	rightMsg := msg.Clone()
 
 	// pre-process
-	if format.applyTo != core.ApplyToPayloadString {
+	if format.applyTo != "" {
 		leftMsg.StorePayload(format.GetAppliedContent(msg))
 		rightMsg.StorePayload(format.GetAppliedContent(msg))
 	}

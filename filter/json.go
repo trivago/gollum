@@ -22,30 +22,40 @@ import (
 	"strconv"
 )
 
-// JSON filter plugin
-// This plugin allows filtering of JSON messages by looking at certain fields.
-// Note that this filter is quite expensive due to JSON marshaling and regexp
-// testing of every message passing through it.
-// Configuration example
+// JSON filter
 //
-//  - "filter.JSON":
-//    Reject: "foo"
-//      "command" : "state\d\..*"
-//    Accept:
-//      "args/results[0]value" : "true"
-//      "args/results[1]" : "true"
-//      "command" : "state\d\..*"
-//    ApplyTo: "payload" # payload or <metaKey>
+// This filter allows inspecting fields of JSON encoded datasets and accepting
+// or rejecting messages based on their contents.
 //
-// Reject defines fields that will cause a message to be rejected if the
-// given regular expression matches. Rejects are checked before Accepts.
+// Parameters
+//
+// - Reject: Defines fields that will cause a message to be rejected if the
+// given regular expression matches. Reject is checked before Accept.
 // Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
+// By default this parameter is set to an empty list.
 //
-// Accept defines fields that will cause a message to be rejected if the
-// given regular expression does not match.
+// - Accept: Defines fields that will cause a message to be rejected if the
+// given regular expression does not match. Accept is checked after Reject.
 // Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
+// By default this parameter is set to an empty list.
 //
-// ApplyTo (TBD)
+// - ApplyTo: Defines which part of the message is affected by the filter.
+// When setting this parameter to "" this filter is applied to the
+// message payload. Every other value denotes a metadata key.
+// By default this parameter is set to "".
+//
+// Examples
+//
+//  ExampleConsumer:
+//    Type: consumer.Console
+//    Streams: console
+//    Modulators:
+//      - filter.JSON
+//        Reject:
+//          "type" : "^log\."
+//        Accept:
+//          "source" : "^www\d+\."
+//          "data/active" : "true"
 type JSON struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
 	rejectValues      map[string]*regexp.Regexp
@@ -80,7 +90,8 @@ func (filter *JSON) Configure(conf core.PluginConfigReader) {
 		}
 	}
 
-	filter.getAppliedContent = core.GetAppliedContentGetFunction(conf.GetString("ApplyTo", ""))
+	applyTo := conf.GetString("ApplyTo", "")
+	filter.getAppliedContent = core.GetAppliedContentGetFunction(applyTo)
 }
 
 func (filter *JSON) getValue(key string, values tcontainer.MarshalMap) (string, bool) {
