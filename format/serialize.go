@@ -19,13 +19,20 @@ import (
 )
 
 // Serialize formatter plugin
+//
 // Serialize is a formatter that serializes a message for later retrieval.
-// Configuration example
+// The formatter use the internal protobuf based function from msg.Serialize().
 //
-//  - format.Serialize:
-//      ApplyTo: "payload" # payload or <metaKey>
+// Examples
 //
-// ApplyTo defines the formatter content to use
+// This example serialize all consumed messages:
+//
+//  exampleConsumer:
+//    Type: consumer.Console
+//    Streams: "*"
+//    Modulators:
+//      - format.Serialize
+//
 type Serialize struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 }
