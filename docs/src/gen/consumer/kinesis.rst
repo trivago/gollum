@@ -24,16 +24,6 @@ Parameters
   This value defines the message index to start reading from.
   Valid values are either "newest", "oldest", or a number.
   By default this parameter is set to "newest".
-  Examples
-  This example consume a kinesis stream "myStream" and create messages:
-  KinesisIn:
-  Type: consumer.Kinesis
-  Credential:
-  Type: shared
-  File: /Users/<USERNAME>/.aws/credentials
-  Profile: default
-  Region: "eu-west-1"
-  KinesisStream: myStream
   
   
 
@@ -199,5 +189,22 @@ Parameters (from components.AwsCredentials)
   (no documentation available)
   
 
+Examples
+--------
+
+.. code-block:: yaml
+
+	This example consume a kinesis stream "myStream" and create messages:
+	
+	 KinesisIn:
+	   Type: consumer.Kinesis
+	   Credential:
+	     Type: shared
+	     File: /Users/<USERNAME>/.aws/credentials
+	     Profile: default
+	   Region: "eu-west-1"
+	   KinesisStream: myStream
+	
+	
 
 

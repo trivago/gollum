@@ -157,16 +157,6 @@ Parameters
 
   Defines the password used with SASL/PLAIN authentication.
   By default this parameter is set to "".
-  Examples
-  This config reads the topic "logs" from a cluster with 4 brokers.
-  kafkaIn:
-  Type: consumer.Kafka
-  Streams: logs
-  Topic: logs
-  ClientId: "gollum log reader"
-  DefaultOffset: newest
-  OffsetFile: /var/gollum/logs.offset
-  Servers: ["kafka0:9092","kafka1:9092","kafka2:9092","kafka3:9092"]
   
   
 
@@ -318,5 +308,22 @@ Parameters (from SimpleConsumer)
   
   
 
+Examples
+--------
+
+.. code-block:: yaml
+
+	This config reads the topic "logs" from a cluster with 4 brokers.
+	
+	 kafkaIn:
+	 	Type: consumer.Kafka
+	     Streams: logs
+	   	Topic: logs
+	   	ClientId: "gollum log reader"
+	   	DefaultOffset: newest
+	   	OffsetFile: /var/gollum/logs.offset
+	   	Servers: ["kafka0:9092","kafka1:9092","kafka2:9092","kafka3:9092"]
+	
+	
 
 

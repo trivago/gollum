@@ -26,12 +26,6 @@ Parameters
   Can be set to true to trigger an exit signal if the pipe is closed
   i.e. when EOF is detected.
   By default this paramater is set to "true".
-  Examples
-  This config reads data from stdin e.g. when starting gollum via unix pipe.
-  ConsoleIn:
-  Type: consumer.Console
-  Streams: console
-  Pipe: stdin
   
   
 
@@ -108,5 +102,18 @@ Parameters (from SimpleConsumer)
   
   
 
+Examples
+--------
+
+.. code-block:: yaml
+
+	This config reads data from stdin e.g. when starting gollum via unix pipe.
+	
+	 ConsoleIn:
+	   Type: consumer.Console
+	   Streams: console
+	   Pipe: stdin
+	
+	
 
 

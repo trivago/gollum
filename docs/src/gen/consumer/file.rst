@@ -81,16 +81,6 @@ Parameters
   after hitting the end of file (EOF) in milliseconds (ms).
   Note: This settings take only an effect if the consumer is running in `poll` mode!
   By default this parameter is set to "100".
-  Examples
-  This example will read the `/var/log/system.log` file and create a message for each new entry.
-  FileIn:
-  Type: consumer.File
-  File: /var/log/system.log
-  DefaultOffset: newest
-  OffsetFile: ""
-  Delimiter: "\n"
-  ObserveMode: poll
-  PollingDelay: 100
   
   
 
@@ -151,5 +141,22 @@ Parameters (from SimpleConsumer)
   
   
 
+Examples
+--------
+
+.. code-block:: yaml
+
+	This example will read the `/var/log/system.log` file and create a message for each new entry.
+	
+	 FileIn:
+	   Type: consumer.File
+	   File: /var/log/system.log
+	   DefaultOffset: newest
+	   OffsetFile: ""
+	   Delimiter: "\n"
+	   ObserveMode: poll
+	   PollingDelay: 100
+	
+	
 
 

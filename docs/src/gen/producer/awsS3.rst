@@ -25,32 +25,56 @@ Parameters
 **File** (default: gollum_*.log)
 
   This value is used as a base file pattern for you final file names.
-  The " * " will parsed to the active stream name. By default this is set to "gollum_*.log"
-  Examples
-  This example will send all received message from all stream to S3
-  and create a own file for each stream:
-  S3Out:
-  Type: producer.AwsS3
-  Credential:
-  Type: shared
-  File: /Users/<USERNAME>/.aws/credentials
-  Profile: default
-  Region: eu-west-1
-  Bucket: gollum-s3-test
-  Streams:
-  - "*"
-  Batch:
-  TimeoutSec: 60
-  MaxCount: 1000
-  FlushCount: 500
-  FlushTimeoutSec: 0
-  Rotation:
-  Timestamp: 2006-01-02T15:04:05.999999999Z07:00
-  TimeoutMin: 1
-  SizeMB: 20
-  Modulators:
-  - format.Envelope:
-  Postfix: "\n"
+  The " * " will parsed to the active stream name.
+  By default this parameter is set to "gollum_*.log"
+  
+  
+
+Parameters (from DirectProducer)
+--------------------------------
+
+**Enable**
+
+  switches the consumer on or off. By default this value is set to true.
+  
+  
+
+**FallbackStream**
+
+  defines the stream used for messages that are sent to the fallback after
+  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
+  
+  
+
+**ID**
+
+  allows this producer to be found by other plugins by name. By default this
+  is set to "" which does not register this producer.
+  
+  
+
+**Modulators**
+
+  sets formatter and filter to use. Each formatter has its own set of options
+  which can be set here, too. By default this is set to format.Forward.
+  Each producer decides if and when to use a Formatter.
+  
+  
+
+**ShutdownTimeoutMs**
+
+  sets a timeout in milliseconds that will be used to detect
+  a blocking producer during shutdown. By default this is set to 1 second.
+  Decreasing this value may lead to lost messages during shutdown. Increasing
+  this value will increase shutdown time.
+  
+  
+
+**Streams**
+
+  contains either a single string or a list of strings defining the
+  message channels this producer will consume. By default this is set to "*"
+  which means "listen to all routers but the internal".
   
   
 
@@ -178,53 +202,37 @@ Parameters (from components.BatchedWriterConfig)
   (no documentation available)
   
 
-Parameters (from DirectProducer)
---------------------------------
+Examples
+--------
 
-**Enable**
+.. code-block:: yaml
 
-  switches the consumer on or off. By default this value is set to true.
-  
-  
-
-**FallbackStream**
-
-  defines the stream used for messages that are sent to the fallback after
-  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
-  
-  
-
-**ID**
-
-  allows this producer to be found by other plugins by name. By default this
-  is set to "" which does not register this producer.
-  
-  
-
-**Modulators**
-
-  sets formatter and filter to use. Each formatter has its own set of options
-  which can be set here, too. By default this is set to format.Forward.
-  Each producer decides if and when to use a Formatter.
-  
-  
-
-**ShutdownTimeoutMs**
-
-  sets a timeout in milliseconds that will be used to detect
-  a blocking producer during shutdown. By default this is set to 1 second.
-  Decreasing this value may lead to lost messages during shutdown. Increasing
-  this value will increase shutdown time.
-  
-  
-
-**Streams**
-
-  contains either a single string or a list of strings defining the
-  message channels this producer will consume. By default this is set to "*"
-  which means "listen to all routers but the internal".
-  
-  
-
+	This example will send all received message from all stream to S3
+	and create a own file for each stream:
+	
+	 S3Out:
+	   Type: producer.AwsS3
+	   Credential:
+	     Type: shared
+	     File: /Users/<USERNAME>/.aws/credentials
+	     Profile: default
+	   Region: eu-west-1
+	   Bucket: gollum-s3-test
+	   Streams:
+	     - "*"
+	   Batch:
+	     TimeoutSec: 60
+	     MaxCount: 1000
+	     FlushCount: 500
+	     FlushTimeoutSec: 0
+	   Rotation:
+	     Timestamp: 2006-01-02T15:04:05.999999999Z07:00
+	     TimeoutMin: 1
+	     SizeMB: 20
+	   Modulators:
+	     - format.Envelope:
+	       Postfix: "\n"
+	
+	
 
 
