@@ -24,13 +24,21 @@ func GetAppliedContentGetFunction(applyTo string) GetAppliedContent {
 func GetAppliedContentSetFunction(applyTo string) SetAppliedContent {
 	if applyTo != "" {
 		return func(msg *Message, content []byte) {
-			msg.GetMetadata().SetValue(applyTo, content)
+			if content == nil {
+				msg.GetMetadata().Delete(applyTo)
+			} else {
+				msg.GetMetadata().SetValue(applyTo, content)
+			}
 			return
 		}
 	}
 
 	return func(msg *Message, content []byte) {
-		msg.StorePayload(content)
+		if content == nil {
+			msg.ResizePayload(0)
+		} else {
+			msg.StorePayload(content)
+		}
 		return
 	}
 }

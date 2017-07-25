@@ -36,8 +36,8 @@ func (meta Metadata) GetValueString(key string) string {
 	return string(meta.GetValue(key))
 }
 
-// ResetValue delete a meta data value by key
-func (meta Metadata) ResetValue(key string) {
+// Delete delete a meta data value by key
+func (meta Metadata) Delete(key string) {
 	delete(meta, key)
 }
 
