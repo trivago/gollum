@@ -22,18 +22,30 @@ import (
 type metaDataMap map[string]core.ModulatorArray
 
 // MetadataCopy formatter plugin
-// Copy data from defined payload or meta data to set meta data field
 //
-// Configuration example
+// Copy data from defined payload or meta data to set meta data field(s).
 //
-// - format.MetadataCopy:
-//   WriteTo:
-//     - hostname: 		# meta data key
-//       - format.Hostname	# further modulators
-//     - foo:
-//       - format.Base64Encode
-//     - bar 			# 1:1 copy of the "payload" to "bar"
-//   ApplyTo: "payload" # payload or <metaKey>
+// Parameters
+//
+// - WriteTo: A named list of meta data keys. Each entry can contain further modulators
+// to change or filter the message content before setting the meta data value.
+//
+// Examples
+//
+// This example sets the meta fields `hostname`, `base64Value` and `foo` of each message:
+//
+//  exampleConsumer:
+//    Type: consumer.Console
+//    Streams: "*"
+//    Modulators:
+//      - format.MetadataCopy:
+//          WriteTo:
+//            - hostname:             # meta data key
+//              - format.Hostname     # further modulators
+//            - base64Value:
+//              - format.Base64Encode
+//            - payloadCopy           # 1:1 copy of the "payload" to "bar"
+//
 type MetadataCopy struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	metaData             metaDataMap
