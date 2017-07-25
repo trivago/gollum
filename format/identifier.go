@@ -22,32 +22,44 @@ import (
 	"sync/atomic"
 )
 
-// Identifier formatter plugin
-// Identifier is a formatter that will generate a (mostly) unique 64 bit
-// identifier number from the message timestamp and sequence number. The message
-// payload will not be encoded.
-// Configuration example
+// Identifier formatter
 //
-//  - "stream.Broadcast":
-//    Formatter: "format.Identifier"
-//    IdentifierType: "hash"
-//    IdentifierDataFormatter: "format.Forward"
+// This formatter can be used to generate a (mostly) unique 64 bit identifier
+// number from the message payload, timestamp and/or sequence number. The number
+// will be converted to a human readable form.
 //
-// IdentifierType defines the algorithm used to generate the message id.
-// This my be one of the following: "hash", "time", "seq", "seqhex".
-// By default this is set to "time".
-// * When using "hash" the message payload will be hashed using fnv1a and returned as hex.
-// * When using "time" the id will be formatted YYMMDDHHmmSSxxxxxxx where x denotes the sequence number modulo 10000000.
-//   I.e. 10mil messages per second are possible before there is a collision.
-// * When using "seq" the id will be returned as the integer representation of the sequence number.
-// * When using "seqhex" the id will be returned as the hex representation of the sequence number.
+// Parameters
 //
-// IdentifierDataFormatter defines the formatter for the data that is used to
-// build the identifier from. By default this is set to "format.Forward"
+// - Generator: Defines which algorithm to use when generating the identifier.
+// This my be one of the following values.
+// By default this parameter is set to "time"
+//
+//  - hash: The message payload will be hashed using fnv1a and returned as hex.
+//
+//  - time: The id will be formatted YYMMDDHHmmSSxxxxxxx where x denotes the
+//  current sequence number modulo 10000000. I.e. 10.000.000 messages per second
+//  are possible before a collision occurs.
+//
+//  - seq: The sequence number will be used.
+//
+//  - seqhex: The hex encoded sequence number will be used.
+//
+// Examples
+//
+// This example will generate a payload checksum and store it to a metadata
+// field called "checksum".
+//
+//  ExampleConsumer:
+//    Type: consumer.Console
+//    Streams: console
+//    Modulators:
+//      - formatter.Identifier
+//        Generator: hash
+//        ApplyTo: checksum
 type Identifier struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	hash                 func(*core.Message) []byte
-	seq                  *int64
+	seq                  *uint64
 }
 
 func init() {
@@ -56,8 +68,8 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Identifier) Configure(conf core.PluginConfigReader) {
-	idType := strings.ToLower(conf.GetString("Use", "time"))
-	format.seq = new(int64)
+	idType := strings.ToLower(conf.GetString("Generator", "time"))
+	format.seq = new(uint64)
 
 	switch idType {
 	case "hash":
@@ -77,23 +89,23 @@ func (format *Identifier) Configure(conf core.PluginConfigReader) {
 
 func (format *Identifier) idHash(msg *core.Message) []byte {
 	hasher := fnv.New64a()
-	hasher.Write(format.GetAppliedContent(msg))
+	hasher.Write(msg.GetPayload())
 	return []byte(strconv.FormatUint(hasher.Sum64(), 16))
 }
 
 func (format *Identifier) idTime(msg *core.Message) []byte {
-	seq := atomic.AddInt64(format.seq, 1)
-	return []byte(msg.GetCreationTime().Format("060102150405") + strconv.FormatInt(seq%10000000, 10))
+	seq := atomic.AddUint64(format.seq, 1)
+	return []byte(msg.GetCreationTime().Format("060102150405") + strconv.FormatUint(seq%10000000, 10))
 }
 
 func (format *Identifier) idSeq(msg *core.Message) []byte {
-	seq := atomic.AddInt64(format.seq, 1)
-	return []byte(strconv.FormatInt(seq, 10))
+	seq := atomic.AddUint64(format.seq, 1)
+	return []byte(strconv.FormatUint(seq, 10))
 }
 
 func (format *Identifier) idSeqHex(msg *core.Message) []byte {
-	seq := atomic.AddInt64(format.seq, 1)
-	return []byte(strconv.FormatInt(seq, 16))
+	seq := atomic.AddUint64(format.seq, 1)
+	return []byte(strconv.FormatUint(seq, 16))
 }
 
 // ApplyFormatter update message payload
