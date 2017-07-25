@@ -33,16 +33,18 @@ const (
 	credentialTypeNone   = "none"
 )
 
-// AwsMultiClient
-
+// AwsMultiClient component
+//
 // The AwsMultiClient is a helper component to handle aws access and client instantiation
 //
-// Parameters:
+// Parameters
 //
-// - Region: defines the used aws region. By default this is set to "us-east-1"
+// - Region: This value defines the used aws region.
+// By default this is set to "us-east-1"
 //
-// - Endpoint: defines the used aws api endpoint. By default this is set to "".
-// If no endpoint is set the client needs to set the right endpoint for the used region.
+// - Endpoint: This value defines the used aws api endpoint. If no endpoint is set
+// the client needs to set the right endpoint for the used region.
+// By default this is set to "".
 //
 type AwsMultiClient struct {
 	Credentials AwsCredentials `gollumdoc:"embed_type"`
@@ -93,12 +95,16 @@ func (client *AwsMultiClient) NewSessionWithOptions() (*session.Session, error) 
 
 // AwsCredentials is a config struct for aws credential handling
 //
-// Credential/Type defines the credentials that are to be used when
-// connecting to s3. This can be one of the following: "environment",
-// "static", "shared" and "none". By default this is set to "none".
-// See https://docs.aws.amazon.com/sdk-for-go/api/aws/credentials/#Credentials for more information
-//
 // Parameters
+//
+// - Credential/Type: This value defines the credentials that are to be used when
+// connecting to aws. This can be one of the following:
+//  * environment: Retrieves credentials from the environment variables of the running process
+//  * static: Retrieves credentials value for individual credential fields
+//  * shared: Retrieves credentials from the current user's home directory
+//  * none: Use a anonymous login to aws
+// See https://docs.aws.amazon.com/sdk-for-go/api/aws/credentials/#Credentials for more information
+// By default this parameter is set to "none".
 //
 // - Credential/Id: is used for "static" type and is used as the AccessKeyID
 //

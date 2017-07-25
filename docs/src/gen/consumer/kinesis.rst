@@ -29,7 +29,7 @@ Parameters
 
 **KinesisStream** (default: default)
 
-  THis value defines the stream to read from.
+  This value defines the stream to read from.
   By default this parameter is set to "default".
   
   
@@ -136,12 +136,17 @@ Parameters (from components.AwsMultiClient)
 
 **Endpoint**
 
-  (no documentation available)
+  This value defines the used aws api endpoint. If no endpoint is set
+  the client needs to set the right endpoint for the used region.
+  By default this is set to "".
+  
   
 
 **Region** (default: us-east-1)
 
-  (no documentation available)
+  This value defines the used aws region.
+  By default this is set to "us-east-1"
+  
   
 
 Parameters (from components.AwsCredentials)
@@ -186,7 +191,19 @@ Parameters (from components.AwsCredentials)
 
 **Credential/Type** (default: none)
 
-  (no documentation available)
+  This value defines the credentials that are to be used when
+  connecting to aws. This can be one of the following:
+  
+  * environment: Retrieves credentials from the environment variables of the running process
+  
+  * static: Retrieves credentials value for individual credential fields
+  
+  * shared: Retrieves credentials from the current user's home directory
+  
+  * none: Use a anonymous login to aws
+  See https://docs.aws.amazon.com/sdk-for-go/api/aws/credentials/#Credentials for more information
+  By default this parameter is set to "none".
+  
   
 
 Examples
