@@ -20,29 +20,38 @@ import (
 )
 
 // StreamRoute formatter plugin
+//
 // StreamRoute is a formatter that modifies a message's stream by reading a
 // prefix from the message's data (and discarding it).
 // The prefix is defined by everything before a given delimiter in the
 // message. If no delimiter is found or the prefix is empty the message stream
 // is not changed.
-// Configuration example
 //
-//  - format.StreamRoute:
-//    StreamModulator:
-//      - format.Forward
-//    Delimiter: ":"
-//    ApplyTo: "payload" # payload or <metaKey>
+// Parameters
 //
-// StreamModulator is used when StreamRouteFormatStream is set to true.
-// By default this is empty.
+// - Delimiter: This value defines the delimiter to search when extracting the stream name.
+// By default this parameter is set to ":".
 //
-// Delimiter defines the delimiter to search when extracting the stream
-// name. By default this is set to ":".
+// - StreamModulator: A list of further modulators to format and filter the extracted stream name.
+// By default this parameter is "empty".
 //
-// StreamRouteFormatStream can be set to true to apply StreamRouteFormatter to both
-// parts of the message (stream and data). Set to false by default.
+// Examples
 //
-// ApplyTo defines the formatter content to use
+// This example will set the stream name for messages like `<error>:a message string` to `error`
+// and `a message string` as payload:
+//
+//  exampleConsumer:
+//    Type: consumer.Console
+//    Streams: "*"
+//    Modulators:
+//      - format.StreamRoute:
+//          Delimiter: ":"
+//          StreamModulator:
+//            - format.Trim:
+//                LeftSeparator: <
+//                RightSeparator: >
+//
+//
 type StreamRoute struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	streamModulators     core.ModulatorArray `config:"StreamModulator"`
