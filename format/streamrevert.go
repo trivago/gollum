@@ -18,19 +18,18 @@ import (
 	"github.com/trivago/gollum/core"
 )
 
-// StreamRevert formatter plugin
-// StreamRevert is a formatter that recovers the last used stream from a message
-// and sets it as a new target stream. Streams change whenever the Stream.Route
-// or Message.Route function is used. This e.g. happens after a Drop call.
-// Configuration example
+// StreamRevert formatter
 //
-//  - "stream.Broadcast":
-//    Formatter: "format.StreamRevert"
-//    StreamRevertFormatter: "format.Forward"
+// This formatter gets the previously used stream from a message and sets it as
+// the new target stream.
 //
-// StreamRevertFormatter defines the formatter applied after reading the stream.
-// This formatter is applied to the data after StreamRevertDelimiter.
-// By default this is set to "format.Forward"
+// Examples
+//
+//  ExampleConsumer:
+//    Type: consumer.Console
+//    Streams: console
+//    Modulators:
+//      - format.StreamRevert
 type StreamRevert struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	delimiter            []byte
