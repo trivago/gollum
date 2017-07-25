@@ -51,7 +51,7 @@ import (
 // All of the formats support listening to UDP and UNIX domain sockets. RFC6587
 // additionally supports TCP sockets. Default: "RFC6587".
 //
-// Example
+// Examples
 //
 //  # Replace the system's standard syslogd with Gollum
 //  "SyslogdSocketConsumer":
