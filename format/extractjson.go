@@ -60,7 +60,7 @@ func init() {
 func (format *ExtractJSON) Configure(conf core.PluginConfigReader) {
 	precision := conf.GetInt("Precision", 0)
 	format.numberFormat = fmt.Sprintf("%%.%df", precision)
-	format.applyTo = conf.GetString("ApplyTo", core.ApplyToPayloadString)
+	format.applyTo = conf.GetString("ApplyTo", "")
 }
 
 // ApplyFormatter update message payload
@@ -75,7 +75,7 @@ func (format *ExtractJSON) ApplyFormatter(msg *core.Message) error {
 	if value != nil {
 		format.SetAppliedContent(msg, value)
 	} else {
-		if format.applyTo == core.ApplyToPayloadString {
+		if format.applyTo == "" {
 			msg.ResizePayload(0)
 		} else {
 			msg.GetMetadata().ResetValue(format.applyTo)
