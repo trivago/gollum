@@ -37,8 +37,8 @@ import (
 //
 // Examples
 //
-// This example get the 'foo' and 'bar' fields from a json document
-// and create a payload of 'foo_value:bar_value':
+// This example get the `foo` and `bar` fields from a json document
+// and create a payload of `foo_value:bar_value`:
 //
 //  exampleConsumer:
 //    Type: consumer.Console
