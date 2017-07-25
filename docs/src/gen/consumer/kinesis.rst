@@ -74,6 +74,63 @@ Parameters
   
   
 
+Parameters (from components.AwsCredentials)
+-------------------------------------------
+
+**Credential/AssumeRole**
+
+  This value is used to assume an IAM role using. By default this is set to "".
+  
+  
+
+**Credential/File**
+
+  is used for "shared" type and is used as the path to your
+  shared Credentials file (~/.aws/credentials)
+  
+  
+
+**Credential/Id**
+
+  is used for "static" type and is used as the AccessKeyID
+  
+  
+
+**Credential/Profile** (default: default)
+
+  is used for "shared" type and is used for the profile
+  
+  
+
+**Credential/Secret**
+
+  is used for "static" type and is used as the SecretAccessKey
+  
+  
+
+**Credential/Token**
+
+  is used for "static" type and is used as the SessionToken
+  
+  
+
+**Credential/Type** (default: none)
+
+  This value defines the credentials that are to be used when
+  connecting to aws. This can be one of the following:
+  
+  * environment: Retrieves credentials from the environment variables of the running process
+  
+  * static: Retrieves credentials value for individual credential fields
+  
+  * shared: Retrieves credentials from the current user's home directory
+  
+  * none: Use a anonymous login to aws
+  See https://docs.aws.amazon.com/sdk-for-go/api/aws/credentials/#Credentials for more information.
+  By default this parameter is set to "none".
+  
+  
+
 Parameters (from SimpleConsumer)
 --------------------------------
 
@@ -146,63 +203,6 @@ Parameters (from components.AwsMultiClient)
 
   This value defines the used aws region.
   By default this is set to "us-east-1"
-  
-  
-
-Parameters (from components.AwsCredentials)
--------------------------------------------
-
-**Credential/AssumeRole**
-
-  This value is used to assume an IAM role using. By default this is set to "".
-  
-  
-
-**Credential/File**
-
-  is used for "shared" type and is used as the path to your
-  shared Credentials file (~/.aws/credentials)
-  
-  
-
-**Credential/Id**
-
-  is used for "static" type and is used as the AccessKeyID
-  
-  
-
-**Credential/Profile** (default: default)
-
-  is used for "shared" type and is used for the profile
-  
-  
-
-**Credential/Secret**
-
-  is used for "static" type and is used as the SecretAccessKey
-  
-  
-
-**Credential/Token**
-
-  is used for "static" type and is used as the SessionToken
-  
-  
-
-**Credential/Type** (default: none)
-
-  This value defines the credentials that are to be used when
-  connecting to aws. This can be one of the following:
-  
-  * environment: Retrieves credentials from the environment variables of the running process
-  
-  * static: Retrieves credentials value for individual credential fields
-  
-  * shared: Retrieves credentials from the current user's home directory
-  
-  * none: Use a anonymous login to aws
-  See https://docs.aws.amazon.com/sdk-for-go/api/aws/credentials/#Credentials for more information.
-  By default this parameter is set to "none".
   
   
 

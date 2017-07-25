@@ -66,33 +66,6 @@ set to 5.
 
 
 
-Parameters (from BatchedProducer)
----------------------------------
-
-**Batch/FlushCount** (default: 4096)
-
-  Defines the minimum number of messages required to flush
-  a batch. If this limit is reached a flush might be triggered.
-  By default this parameter is set to 4096.
-  
-  
-
-**Batch/MaxCount** (default: 8192)
-
-  Defines the maximum number of messages per batch. If this
-  limit is reached a flush is always triggered.
-  By default this parameter is set to 8192.
-  
-  
-
-**Batch/TimeoutSec** (default: 5, unit: sec)
-
-  Defines the maximum time in seconds messages can stay in
-  the internal buffer before being flushed.
-  By default this parameter is set to 5.
-  
-  
-
 Parameters (from DirectProducer)
 --------------------------------
 
@@ -138,6 +111,33 @@ Parameters (from DirectProducer)
   contains either a single string or a list of strings defining the
   message channels this producer will consume. By default this is set to "*"
   which means "listen to all routers but the internal".
+  
+  
+
+Parameters (from BatchedProducer)
+---------------------------------
+
+**Batch/FlushCount** (default: 4096)
+
+  Defines the minimum number of messages required to flush
+  a batch. If this limit is reached a flush might be triggered.
+  By default this parameter is set to 4096.
+  
+  
+
+**Batch/MaxCount** (default: 8192)
+
+  Defines the maximum number of messages per batch. If this
+  limit is reached a flush is always triggered.
+  By default this parameter is set to 8192.
+  
+  
+
+**Batch/TimeoutSec** (default: 5, unit: sec)
+
+  Defines the maximum time in seconds messages can stay in
+  the internal buffer before being flushed.
+  By default this parameter is set to 5.
   
   
 
