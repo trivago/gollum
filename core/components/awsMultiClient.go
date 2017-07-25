@@ -103,7 +103,7 @@ func (client *AwsMultiClient) NewSessionWithOptions() (*session.Session, error) 
 //  * static: Retrieves credentials value for individual credential fields
 //  * shared: Retrieves credentials from the current user's home directory
 //  * none: Use a anonymous login to aws
-// See https://docs.aws.amazon.com/sdk-for-go/api/aws/credentials/#Credentials for more information
+// See https://docs.aws.amazon.com/sdk-for-go/api/aws/credentials/#Credentials for more information.
 // By default this parameter is set to "none".
 //
 // - Credential/Id: is used for "static" type and is used as the AccessKeyID
