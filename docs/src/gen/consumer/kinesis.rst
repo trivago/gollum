@@ -154,5 +154,50 @@ Parameters (from components.AwsMultiClient)
   (no documentation available)
   
 
+Parameters (from components.AwsCredentials)
+-------------------------------------------
+
+**Credential/AssumeRole**
+
+  This value is used to assume an IAM role using. By default this is set to "".
+  
+  
+
+**Credential/File**
+
+  is used for "shared" type and is used as the path to your
+  shared Credentials file (~/.aws/credentials)
+  
+  
+
+**Credential/Id**
+
+  is used for "static" type and is used as the AccessKeyID
+  
+  
+
+**Credential/Profile** (default: default)
+
+  is used for "shared" type and is used for the profile
+  
+  
+
+**Credential/Secret**
+
+  is used for "static" type and is used as the SecretAccessKey
+  
+  
+
+**Credential/Token**
+
+  is used for "static" type and is used as the SessionToken
+  
+  
+
+**Credential/Type** (default: none)
+
+  (no documentation available)
+  
+
 
 

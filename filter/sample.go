@@ -22,8 +22,9 @@ import (
 
 // Sample filter plugin
 //
-// This plugin blocks messages after a certain number of messages per second
-// has been reached.
+// This plugin can be used to get n out of m messages (downsample).
+// By this you can reduce the amount of messages and the plugin start blocking
+// after a certain number of messages has been reached.
 //
 // Parameters
 //
@@ -33,32 +34,32 @@ import (
 //
 // - SampleGroupSize: This value defines how many messages make up a group. Messages over
 // SampleRatePerGroup within a group are filtered.
-// By default this parameter is set to "1".
+// By default this parameter is set to "2".
 //
 // - SampleRateIgnore: This value defines a list of streams that should not be affected by
-// sampling. This is useful for e.g. producers listeing to "*".
+// sampling. This is useful for e.g. producers listening to "*".
 // By default this parameter is set to "empty list".
 //
 // Examples
 //
-// This example ...
+// This example will block 8 from 10 messages:
 //
 //  exampleConsumer:
 //    Type: consumer.Console
 //    Streams: "*"
 //    Modulators:
 //      - filter.Sample:
-//        SampleRatePerGroup: 512
-//        SampleGroupSize: 1024
+//        SampleRatePerGroup: 2
+//        SampleGroupSize: 10
 //        SampleIgnore:
 //          - foo
 //          - bar
 //
 type Sample struct {
 	core.SimpleFilter
-	rate   int64 `config:"SampleRatePerGroup" default:"1"`
-	group  int64 `config:"SampleGroupSize" default:"1"`
-	count  *int64
+	rate   uint64 `config:"SampleRatePerGroup" default:"1"`
+	group  uint64 `config:"SampleGroupSize" default:"2"`
+	count  *uint64
 	ignore map[core.MessageStreamID]bool
 }
 
@@ -68,7 +69,7 @@ func init() {
 
 // Configure initializes this filter with values from a plugin config.
 func (filter *Sample) Configure(conf core.PluginConfigReader) {
-	filter.count = new(int64)
+	filter.count = new(uint64)
 	filter.ignore = make(map[core.MessageStreamID]bool)
 	ignore := conf.GetStreamArray("SampleIgnore", []core.MessageStreamID{})
 	for _, stream := range ignore {
@@ -83,22 +84,12 @@ func (filter *Sample) ApplyFilter(msg *core.Message) (core.FilterResult, error) 
 		return core.FilterResultMessageAccept, nil // ### return, do not limit ###
 	}
 
-	// Check if count needs to be reset
-	count := atomic.AddInt64(filter.count, 1)
-	if count > filter.group {
-		if count%filter.group == 1 {
-			// make sure we never overflow filter.count
-			count = atomic.AddInt64(filter.count, -(filter.group)) // TODO: filter.count can be != count here (!)
-		} else {
-			// range from 1 to filter.group
-			count = (count-1)%filter.group + 1
-		}
+	// Accept the first n messages of each group, reject the rest
+	// Overflow is not really an issue here as it will take years to get one
+	index := (atomic.AddUint64(filter.count, 1) - 1) % filter.group
+	if index < filter.rate {
+		return core.FilterResultMessageAccept, nil // ### return, ok ###
 	}
 
-	// Check if to be filtered
-	if count > filter.rate {
-		return filter.GetFilterResultMessageReject(), nil // ### return, filter ###
-	}
-
-	return core.FilterResultMessageAccept, nil
+	return filter.GetFilterResultMessageReject(), nil
 }

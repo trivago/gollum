@@ -54,6 +54,107 @@ Parameters
   
   
 
+Parameters (from components.RotateConfig)
+-----------------------------------------
+
+**Rotation/AtHour** (default: -1)
+
+  (no documentation available)
+  
+
+**Rotation/AtMin** (default: -1)
+
+  (no documentation available)
+  
+
+**Rotation/Compress** (default: false)
+
+  (no documentation available)
+  
+
+**Rotation/Enable** (default: false)
+
+  (no documentation available)
+  
+
+**Rotation/SizeMB** (default: 1024, unit: mb)
+
+  (no documentation available)
+  
+
+**Rotation/TimeoutMin** (default: 1440, unit: min)
+
+  (no documentation available)
+  
+
+**Rotation/Timestamp** (default: 2006-01-02_15)
+
+  (no documentation available)
+  
+
+**Rotation/ZeroPadding** (default: 0)
+
+  (no documentation available)
+  
+
+Parameters (from components.AwsMultiClient)
+-------------------------------------------
+
+**Endpoint**
+
+  (no documentation available)
+  
+
+**Region** (default: us-east-1)
+
+  (no documentation available)
+  
+
+Parameters (from components.AwsCredentials)
+-------------------------------------------
+
+**Credential/AssumeRole**
+
+  This value is used to assume an IAM role using. By default this is set to "".
+  
+  
+
+**Credential/File**
+
+  is used for "shared" type and is used as the path to your
+  shared Credentials file (~/.aws/credentials)
+  
+  
+
+**Credential/Id**
+
+  is used for "static" type and is used as the AccessKeyID
+  
+  
+
+**Credential/Profile** (default: default)
+
+  is used for "shared" type and is used for the profile
+  
+  
+
+**Credential/Secret**
+
+  is used for "static" type and is used as the SecretAccessKey
+  
+  
+
+**Credential/Token**
+
+  is used for "static" type and is used as the SessionToken
+  
+  
+
+**Credential/Type** (default: none)
+
+  (no documentation available)
+  
+
 Parameters (from components.BatchedWriterConfig)
 ------------------------------------------------
 
@@ -123,62 +224,6 @@ Parameters (from DirectProducer)
   message channels this producer will consume. By default this is set to "*"
   which means "listen to all routers but the internal".
   
-  
-
-Parameters (from components.RotateConfig)
------------------------------------------
-
-**Rotation/AtHour** (default: -1)
-
-  (no documentation available)
-  
-
-**Rotation/AtMin** (default: -1)
-
-  (no documentation available)
-  
-
-**Rotation/Compress** (default: false)
-
-  (no documentation available)
-  
-
-**Rotation/Enable** (default: false)
-
-  (no documentation available)
-  
-
-**Rotation/SizeMB** (default: 1024, unit: mb)
-
-  (no documentation available)
-  
-
-**Rotation/TimeoutMin** (default: 1440, unit: min)
-
-  (no documentation available)
-  
-
-**Rotation/Timestamp** (default: 2006-01-02_15)
-
-  (no documentation available)
-  
-
-**Rotation/ZeroPadding** (default: 0)
-
-  (no documentation available)
-  
-
-Parameters (from components.AwsMultiClient)
--------------------------------------------
-
-**Endpoint**
-
-  (no documentation available)
-  
-
-**Region** (default: us-east-1)
-
-  (no documentation available)
   
 
 

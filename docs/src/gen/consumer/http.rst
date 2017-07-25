@@ -15,8 +15,8 @@ Parameters
 **Address** (default: :80)
 
   Defines the TCP port and optional IP address to listen on.
-  Sets http.Server.Addr; for defails, see its Go documentation.
-  Syntax: [hostname|address]:<port>
+  Syntax: [hostname|address]:<port>. Sets http.Server.Addr; for defails,
+  see its Go documentation.
   
   
 
@@ -126,8 +126,6 @@ Examples
 
 .. code-block:: yaml
 
-	This example listens on port 9090 and writes to the stream "http_in_00".
-	
 	  "HttpIn00":
 	    Type: "consumer.HTTP"
 	    Streams: "http_in_00"

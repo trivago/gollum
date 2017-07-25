@@ -67,29 +67,6 @@ Parameters
   (no documentation available)
   
 
-Parameters (from components.BatchedWriterConfig)
-------------------------------------------------
-
-**Batch/FlushCount** (default: 4096)
-
-  (no documentation available)
-  
-
-**Batch/FlushTimeoutSec** (default: 0, unit: sec)
-
-  (no documentation available)
-  
-
-**Batch/MaxCount** (default: 8192)
-
-  (no documentation available)
-  
-
-**Batch/TimeoutSec** (default: 5, unit: sec)
-
-  (no documentation available)
-  
-
 Parameters (from DirectProducer)
 --------------------------------
 
@@ -195,6 +172,29 @@ Parameters (from file.Pruner)
   
 
 **Prune/TotalSizeMB** (default: 0, unit: mb)
+
+  (no documentation available)
+  
+
+Parameters (from components.BatchedWriterConfig)
+------------------------------------------------
+
+**Batch/FlushCount** (default: 4096)
+
+  (no documentation available)
+  
+
+**Batch/FlushTimeoutSec** (default: 0, unit: sec)
+
+  (no documentation available)
+  
+
+**Batch/MaxCount** (default: 8192)
+
+  (no documentation available)
+  
+
+**Batch/TimeoutSec** (default: 5, unit: sec)
 
   (no documentation available)
   
