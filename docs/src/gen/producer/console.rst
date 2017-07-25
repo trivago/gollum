@@ -15,24 +15,6 @@ Console may either be "stdout" or "stderr". By default it is set to "stdout".
 
 
 
-Parameters (from BufferedProducer)
-----------------------------------
-
-**Channel**
-
-  This value defines the capacity of the message buffer.
-  By default this parameter is set to "8192".
-  
-  
-
-**ChannelTimeoutMs** (default: 0, unit: ms)
-
-  This value defines a timeout for each message before the message will discarded.
-  You can set this parameter to "0" for disabling the timeout.
-  By default this parameter is set to "0".
-  
-  
-
 Parameters (from DirectProducer)
 --------------------------------
 
@@ -78,6 +60,24 @@ Parameters (from DirectProducer)
   contains either a single string or a list of strings defining the
   message channels this producer will consume. By default this is set to "*"
   which means "listen to all routers but the internal".
+  
+  
+
+Parameters (from BufferedProducer)
+----------------------------------
+
+**Channel**
+
+  This value defines the capacity of the message buffer.
+  By default this parameter is set to "8192".
+  
+  
+
+**ChannelTimeoutMs** (default: 0, unit: ms)
+
+  This value defines a timeout for each message before the message will discarded.
+  You can set this parameter to "0" for disabling the timeout.
+  By default this parameter is set to "0".
   
   
 
