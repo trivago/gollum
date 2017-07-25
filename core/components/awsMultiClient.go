@@ -34,7 +34,7 @@ const (
 )
 
 // AwsMultiClient
-
+//
 // The AwsMultiClient is a helper component to handle aws access and client instantiation
 //
 // Parameters:
