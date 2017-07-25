@@ -29,7 +29,7 @@ Parameters
 
 **KinesisStream** (default: default)
 
-  THis value defines the stream to read from.
+  This value defines the stream to read from.
   By default this parameter is set to "default".
   
   
@@ -71,6 +71,63 @@ Parameters
   This value defines the number of seconds to wait after trying to
   reconnect to a shard.
   By default this parameter is set to "4".
+  
+  
+
+Parameters (from SimpleConsumer)
+--------------------------------
+
+**Enable**
+
+  switches the consumer on or off.
+  By default this parameter is set to true.
+  
+  
+
+**ModulatorQueueSize**
+
+  Defines the size of the channel used to buffer messages
+  before they are fetched by the next free modulator go routine. If the
+  ModulatorRoutines parameter is set to 0 this parameter is ignored.
+  By default this parameter is set to 1024.
+  
+  
+
+**ModulatorRoutines**
+
+  Defines the number of go routines reserved for
+  modulating messages. Setting this parameter to 0 will use as many go routines
+  as the specific consumer plugin is using for fetching data. Any other value
+  will force the given number fo go routines to be used.
+  By default this parameter is set to 0
+  
+  
+
+**Modulators**
+
+  Defines a list of modulators to be applied to a message before
+  it is sent to the list of streams. If a modulator specifies a stream, the
+  message is only sent to that specific stream. A message is saved as original
+  after all modulators have been applied.
+  By default this parameter is set to an empty list.
+  
+  
+
+**ShutdownTimeoutMs** (default: 1000, unit: ms)
+
+  Defines the maximum time in milliseconds a consumer is
+  allowed to take to shut down. After this timeout the consumer is always
+  considered to have shut down.
+  By default this parameter is set to 1000.
+  
+  
+
+**Streams**
+
+  Defines a list of streams a consumer will send to. This parameter
+  is mandatory. When using "*" messages will be sent only to the internal "*"
+  stream. It will NOT send messages to all streams.
+  By default this parameter is set to an empty list.
   
   
 
@@ -134,63 +191,18 @@ Parameters (from components.AwsCredentials)
 
 **Credential/Type** (default: none)
 
-  (no documentation available)
+  This value defines the credentials that are to be used when
+  connecting to aws. This can be one of the following:
   
-
-Parameters (from SimpleConsumer)
---------------------------------
-
-**Enable**
-
-  switches the consumer on or off.
-  By default this parameter is set to true.
+  * environment: Retrieves credentials from the environment variables of the running process
   
+  * static: Retrieves credentials value for individual credential fields
   
-
-**ModulatorQueueSize**
-
-  Defines the size of the channel used to buffer messages
-  before they are fetched by the next free modulator go routine. If the
-  ModulatorRoutines parameter is set to 0 this parameter is ignored.
-  By default this parameter is set to 1024.
+  * shared: Retrieves credentials from the current user's home directory
   
-  
-
-**ModulatorRoutines**
-
-  Defines the number of go routines reserved for
-  modulating messages. Setting this parameter to 0 will use as many go routines
-  as the specific consumer plugin is using for fetching data. Any other value
-  will force the given number fo go routines to be used.
-  By default this parameter is set to 0
-  
-  
-
-**Modulators**
-
-  Defines a list of modulators to be applied to a message before
-  it is sent to the list of streams. If a modulator specifies a stream, the
-  message is only sent to that specific stream. A message is saved as original
-  after all modulators have been applied.
-  By default this parameter is set to an empty list.
-  
-  
-
-**ShutdownTimeoutMs** (default: 1000, unit: ms)
-
-  Defines the maximum time in milliseconds a consumer is
-  allowed to take to shut down. After this timeout the consumer is always
-  considered to have shut down.
-  By default this parameter is set to 1000.
-  
-  
-
-**Streams**
-
-  Defines a list of streams a consumer will send to. This parameter
-  is mandatory. When using "*" messages will be sent only to the internal "*"
-  stream. It will NOT send messages to all streams.
-  By default this parameter is set to an empty list.
+  * none: Use a anonymous login to aws
+  See https://docs.aws.amazon.com/sdk-for-go/api/aws/credentials/#Credentials for more information
+  By default this parameter is set to "none".
   
   
 

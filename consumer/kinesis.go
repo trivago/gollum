@@ -41,7 +41,7 @@ const (
 //
 // Parameters
 //
-// - KinesisStream: THis value defines the stream to read from.
+// - KinesisStream: This value defines the stream to read from.
 // By default this parameter is set to "default".
 //
 // - OffsetFile: This value defines a file to store the current offset per shard.
