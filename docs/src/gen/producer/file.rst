@@ -3,10 +3,48 @@
 File
 ====
 
-
 The file producer writes messages to a file. This producer also allows log
 rotation and compression of the rotated logs. Folders in the file path will
 be created if necessary.
+
+Configuration example
+
+ myProducer:
+   Type: producer.File
+   File: "/var/log/gollum.log"
+   FileOverwrite: false
+   Permissions: "0664"
+   FolderPermissions: "0755"
+   Batch:
+		MaxCount: 8192
+   	FlushCount: 4096
+   	TimeoutSec: 5
+     FlushTimeoutSec: 5
+   Rotation:
+		Enable: false
+		Timestamp: 2006-01-02_15
+   	TimeoutMin: 1440
+   	SizeMB: 1024
+		Compress: false
+		ZeroPadding: 0
+		At: 13:05
+	  Prune:
+   	Count: 0
+   	AfterHours: 0
+   	TotalSizeMB: 0
+
+File contains the path to the log file to write. The wildcard character "*"
+can be used as a placeholder for the stream name.
+By default this is set to /var/log/gollum.log.
+
+FileOverwrite enables files to be overwritten instead of appending new data
+to it. This is set to false by default.
+
+Permissions accepts an octal number string that contains the unix file
+permissions used when creating a file. By default this is set to "0664".
+
+FolderPermissions accepts an octal number string that contains the unix file
+permissions used when creating a folder. By default this is set to "0755".
 
 
 
@@ -14,167 +52,152 @@ be created if necessary.
 Parameters
 ----------
 
-**File**
-contains the path to the log file to write. The wildcard character "*"
-can be used as a placeholder for the stream name.
-By default this is set to /var/log/gollum.log.
-
-
 **FileOverwrite**
-enables files to be overwritten instead of appending new data
-to it. This is set to false by default.
 
+  (no documentation available)
+  
 
-**Permissions**
-accepts an octal number string that contains the unix file
-permissions used when creating a file. By default this is set to "0664".
+**FolderPermissions** (default: 0755)
 
+  (no documentation available)
+  
 
-**FolderPermissions**
-accepts an octal number string that contains the unix file
-permissions used when creating a folder. By default this is set to "0755".
+**Permissions** (default: 0644)
 
-
-**Batch/MaxCount**
-defines the maximum number of messages that can be buffered
-before a flush is mandatory. If the buffer is full and a flush is still
-underway or cannot be triggered out of other reasons, the producer will
-block. By default this is set to 8192.
-
-
-**Batch/FlushCount**
-defines the number of messages to be buffered before they are
-written to disk. This setting is clamped to BatchMaxCount.
-By default this is set to BatchMaxCount / 2.
-
-
-**Batch/TimeoutSec**
-defines the maximum number of seconds to wait after the last
-message arrived before a batch is flushed automatically. By default this is
-set to 5.
-
-
-**FlushTimeoutSec**
-sets the maximum number of seconds to wait before a flush is
-aborted during shutdown. By default this is set to 0, which does not abort
-the flushing procedure.
-
-
-**Rotation/Enable**
-if set to true the logs will rotate after reaching certain thresholds.
-By default this is set to false.
-
-
-**Rotation/TimeoutMin**
-defines a timeout in minutes that will cause the logs to
-rotate. Can be set in parallel with RotateSizeMB. By default this is set to
-1440 (i.e. 1 Day).
-
-
-**Rotation/SizeMB**
-defines the maximum file size in MB that triggers a file rotate.
-Files can get bigger than this size. By default this is set to 1024.
-
-
-**Rotation/Timestamp**
-sets the timestamp added to the filename when file rotation
-is enabled. The format is based on Go's time.Format function and set to
-"2006-01-02_15" by default.
-
-
-**Rotation/ZeroPadding**
-sets the number of leading zeros when rotating files with
-an existing name. Setting this setting to 0 won't add zeros, every other
-number defines the number of leading zeros to be used. By default this is
-set to 0.
-
-
-**Rotation/Compress**
-defines if a rotated logfile is to be gzip compressed or not.
-By default this is set to false.
-
-
-**Prune/Count**
-removes old logfiles upon rotate so that only the given
-number of logfiles remain. Logfiles are located by the name defined by "File"
-and are pruned by date (followed by name).
-By default this is set to 0 which disables pruning.
-
-
-**Prune/AfterHours**
-removes old logfiles that are older than a given number
-of hours. By default this is set to 0 which disables pruning.
-
-
-**Prune/TotalSizeMB**
-removes old logfiles upon rotate so that only the
-given number of MBs are used by logfiles. Logfiles are located by the name
-defined by "File" and are pruned by date (followed by name).
-By default this is set to 0 which disables pruning.
-
+  (no documentation available)
+  
 
 Parameters (from DirectProducer)
 --------------------------------
 
 **Enable**
-switches the consumer on or off. By default this value is set to true.
 
-
-**ID**
-allows this producer to be found by other plugins by name. By default this
-is set to "" which does not register this producer.
-
-
-**ShutdownTimeoutMs**
-sets a timeout in milliseconds that will be used to detect
-a blocking producer during shutdown. By default this is set to 1 second.
-Decreasing this value may lead to lost messages during shutdown. Increasing
-this value will increase shutdown time.
-
-
-**Streams**
-contains either a single string or a list of strings defining the
-message channels this producer will consume. By default this is set to "*"
-which means "listen to all routers but the internal".
-
+  switches the consumer on or off. By default this value is set to true.
+  
+  
 
 **FallbackStream**
-defines the stream used for messages that are sent to the fallback after
-a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
 
+  defines the stream used for messages that are sent to the fallback after
+  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
+  
+  
+
+**ID**
+
+  allows this producer to be found by other plugins by name. By default this
+  is set to "" which does not register this producer.
+  
+  
 
 **Modulators**
-sets formatter and filter to use. Each formatter has its own set of options
-which can be set here, too. By default this is set to format.Forward.
-Each producer decides if and when to use a Formatter.
 
+  sets formatter and filter to use. Each formatter has its own set of options
+  which can be set here, too. By default this is set to format.Forward.
+  Each producer decides if and when to use a Formatter.
+  
+  
 
-Example
--------
+**ShutdownTimeoutMs**
 
-.. code-block:: yaml
+  sets a timeout in milliseconds that will be used to detect
+  a blocking producer during shutdown. By default this is set to 1 second.
+  Decreasing this value may lead to lost messages during shutdown. Increasing
+  this value will increase shutdown time.
+  
+  
 
-	 - "producer.File":
-	   File: "/var/log/gollum.log"
-	   FileOverwrite: false
-	   Permissions: "0664"
-	   FolderPermissions: "0755"
-	   Batch:
-			MaxCount: 8192
-	   	FlushCount: 4096
-	   	TimeoutSec: 5
-	   FlushTimeoutSec: 5
-	   Rotation:
-			Enable: false
-			Timestamp: 2006-01-02_15
-	   	TimeoutMin: 1440
-	   	SizeMB: 1024
-			Compress: false
-			ZeroPadding: 0
-		  Prune:
-	   	Count: 0
-	   	AfterHours: 0
-	   	TotalSizeMB: 0
-	
+**Streams**
+
+  contains either a single string or a list of strings defining the
+  message channels this producer will consume. By default this is set to "*"
+  which means "listen to all routers but the internal".
+  
+  
+
+Parameters (from components.RotateConfig)
+-----------------------------------------
+
+**Rotation/AtHour** (default: -1)
+
+  (no documentation available)
+  
+
+**Rotation/AtMin** (default: -1)
+
+  (no documentation available)
+  
+
+**Rotation/Compress** (default: false)
+
+  (no documentation available)
+  
+
+**Rotation/Enable** (default: false)
+
+  (no documentation available)
+  
+
+**Rotation/SizeMB** (default: 1024, unit: mb)
+
+  (no documentation available)
+  
+
+**Rotation/TimeoutMin** (default: 1440, unit: min)
+
+  (no documentation available)
+  
+
+**Rotation/Timestamp** (default: 2006-01-02_15)
+
+  (no documentation available)
+  
+
+**Rotation/ZeroPadding** (default: 0)
+
+  (no documentation available)
+  
+
+Parameters (from file.Pruner)
+-----------------------------
+
+**Prune/AfterHours** (default: 0)
+
+  (no documentation available)
+  
+
+**Prune/Count** (default: 0)
+
+  (no documentation available)
+  
+
+**Prune/TotalSizeMB** (default: 0, unit: mb)
+
+  (no documentation available)
+  
+
+Parameters (from components.BatchedWriterConfig)
+------------------------------------------------
+
+**Batch/FlushCount** (default: 4096)
+
+  (no documentation available)
+  
+
+**Batch/FlushTimeoutSec** (default: 0, unit: sec)
+
+  (no documentation available)
+  
+
+**Batch/MaxCount** (default: 8192)
+
+  (no documentation available)
+  
+
+**Batch/TimeoutSec** (default: 5, unit: sec)
+
+  (no documentation available)
+  
+
 
 

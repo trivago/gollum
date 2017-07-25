@@ -43,17 +43,19 @@ const (
 //
 // - Address: This value defines the protocol, host and port or socket to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
-// like "unix:///var/gollum.socket". By default this is set to ":5880".
+// like "unix:///var/gollum.socket".
+// By default this parameter is set to ":5880".
 //
 // - Permissions: This value sets the file permissions for "unix://" based connections as an
-// four digit octal number string. By default this is set to "0770".
+// four digit octal number string.
+// By default this parameter is set to "0770".
 //
 // - Acknowledge: This value can be set to a non-empty value to inform the writer on success
 // or error. On success the given string is send. Any error will close the
 // connection. If Acknowledge is enabled and a IP-Address is given to Address, TCP is
 // used to open the connection, otherwise UDP is used.
-// If an error occurs during write "NOT <Acknowledge>" is returned.
-// By default this is set to "", i.e. it is disabled.
+// If an error occurs during write "NOT <Acknowledge>" is returned. You can set this parameter to "" for disabling.
+// By default this parameter is set to "".
 //
 // - Partitioner: This value defines the algorithm used to read messages from the router.
 // The following options are available:
@@ -68,26 +70,30 @@ const (
 // By default this is set to "delimiter".
 //
 // - Delimiter: This value defines the delimiter used by the text and delimiter partitioner.
-// By default this is set to "\n".
+// By default this parameter is set to "\n".
 //
 // - Offset: This value defines the offset used by the binary and text partitioner.
-// By default this is set to "0". This setting is ignored by the fixed partitioner.
+// This setting is ignored by the fixed partitioner.
+// By default this parameter is set to "0".
 //
 // - Size: This value defines the size in bytes used by the binary or fixed partitioner.
 // For binary this can be set to 1,2,4 or 8. By default 4 is chosen.
-// For fixed this defines the size of a message. By default this is set to "1".
+// For fixed this defines the size of a message.
+// By default this parameter is set to "1".
 //
 // - ReconnectAfterSec: This value defines the number of seconds to wait before a connection
-// is tried to be reopened again. By default this is set to "2".
+// is tried to be reopened again.
+// By default this parameter is set to "2".
 //
-// - AckTimoutSec: This value defines the number of seconds waited for an acknowledge to
-// succeed. By default this is set to "2".
+// - AckTimoutSec: This value defines the number of seconds waited for an acknowledge to succeed.
+// By default this parameter is set to "2".
 //
-// - ReadTimoutSec: This value defines the number of seconds that waited for data to be
-// received. By default this is set to "5".
+// - ReadTimoutSec: This value defines the number of seconds that waited for data to be received.
+// By default this parameter is set to "5".
 //
 // - RemoveOldSocket: This value toggles removing existing files with the same name as the
-// socket (unix://<path>) prior to connecting. By default this is set to "true".
+// socket (unix://<path>) prior to connecting.
+// By default this parameter is set to "true".
 //
 //
 // Examples

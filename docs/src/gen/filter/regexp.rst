@@ -3,59 +3,51 @@
 RegExp
 ======
 
-
 This plugin filters messages using regular expressions.
 
+Configuration example
 
+# Generate junk
+JunkGenerator:
+  Type: "consumer.Profiler"
+  Message: "%20s"
+  Streams: "junkstream"
+  Characters: "abcdefghijklmZ"
+  KeepRunning: true
+  Runs: 10000
+  Batches: 3000000
+  DelayMs: 500
+# Produce junk
+JunkProd00:
+  Type: "producer.Console"
+  Streams: "junkstream"
+  Modulators:
+    - "filter.RegExp":
+        Expression: "Z"
+    - "format.Envelope":
+        Prefix: "[junk_00] "
 
-
-Parameters
-----------
-
-**FilterExpression**
-defines the regular expression used for matching the message
+FilterExpression defines the regular expression used for matching the message
 payload. If the expression matches, the message is passed.
 FilterExpression is evaluated after FilterExpressionNot.
 
-
-**FilterExpressionNot**
-defines a negated regular expression used for matching
+FilterExpressionNot defines a negated regular expression used for matching
 the message payload. If the expression matches, the message is blocked.
 FilterExpressionNot is evaluated before FilterExpression.
+
+
 
 
 Parameters (from SimpleFilter)
 ------------------------------
 
 **FilteredStream**
-defines a stream where filtered messages get sent to.
-You can disable this behavior by setting "". Set to "" by default.
 
+  This value defines a stream where filtered messages get sent to.
+  You can disable this behavior by setting "".
+  By default this parameter is set to "".
+  
+  
 
-Example
--------
-
-.. code-block:: yaml
-
-	# Generate junk
-	JunkGenerator:
-	  Type: "consumer.Profiler"
-	  Message: "%20s"
-	  Streams: "junkstream"
-	  Characters: "abcdefghijklmZ"
-	  KeepRunning: true
-	  Runs: 10000
-	  Batches: 3000000
-	  DelayMs: 500
-	# Produce junk
-	JunkProd00:
-	  Type: "producer.Console"
-	  Streams: "junkstream"
-	  Modulators:
-	    - "filter.RegExp":
-	        Expression: "Z"
-	    - "format.Envelope":
-	        Prefix: "[junk_00] "
-	
 
 

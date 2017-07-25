@@ -3,7 +3,6 @@
 Profiler
 ========
 
-
 The "Profiler" consumer plugin autogenerates messages in user-defined quantity,
 size and density. It can be used to profile producers and configurations and to
 provide a message source for testing.
@@ -16,101 +15,129 @@ During execution, [Batches] batches of [Runs] messages are generated, with a
 [DelayMs] ms delay between each message. Each message's payload is randomly
 selected from the set of template payloads above.
 
+Example:
+
+  # Generate a short message every 0.5s, useful for testing and debugging
+  JunkGenerator:
+    Type: "consumer.Profiler"
+    Message: "%20s"
+    Streams: "junkstream"
+    Characters: "abcdefghijklmZ"
+    KeepRunning: true
+    Runs: 10000
+    Batches: 3000000
+    DelayMs: 500
+
 
 
 
 Parameters
 ----------
 
-**Runs**
-defines the number of messages per batch. By default this is set to
-10000.
+**Batches** (default: 10)
 
+  Defines the number of batches to generate.
+  
+  
 
-**Batches**
-defines the number of measurement runs to do. By default this is set
-to 10.
+**Characters** (default: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890)
 
+  Defines the set of characters use when generated templates.
+  
+  
 
-**TemplateCount**
-defines the number of message templates to be generated.
-A random message template will be chosen when a message is sent. Templates
-are generated in advance. By default this is set to 10.
+**DelayMs** (default: 0, unit: ms)
 
-
-**Characters**
-defines the characters to be used in generated strings. By default
-these are "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 ".
-
-
-**Message**
-defines a go format string to be used to generate the message templates.
-The length of the values generated will be deduced from the format size
-parameter. I.e. "%200d" will generate a digit between 0 and 200, "%10s" will
-generate a string with 10 characters, etc..
-By default this is set to "%256s".
-
-
-**DelayMs**
-defines the number of milliseconds of sleep between messages.
-By default this is set to 0.
-
+  Defines the number of milliseconds to sleep between messages.
+  
+  
 
 **KeepRunning**
-can be set to `true` to disable automatic shutdown of gollum after
-profiling is done. This can be used to e.g. read metrics after a profile run.
-By default this is set to `false`.
 
+  If set to true, shuts down Gollum after Batches * Runs messages
+  have been generated. This can be used to e.g. read metrics after a profile run.
+  
+  
+
+**Message** (default: %256s)
+
+  Defines a go format string to use for generating the message
+  templaets. The length of the values generated will be deduced from the
+  format size parameter - "%200d" will generate a digit between 0 and 200,
+  "%10s" will  generate a string with 10 characters, etc.
+  
+  
+
+**Runs** (default: 10000)
+
+  Defines the number of messages per batch.
+  
+  
+
+**TemplateCount**
+
+  Defines the number of message templates to generate.
+  Templates are generated in advance and a random message template is chosen
+  from this set every time a message is sent.
+  
+  
 
 Parameters (from SimpleConsumer)
 --------------------------------
 
 **Enable**
-switches the consumer on or off. By default this value is set to true.
 
+  switches the consumer on or off.
+  By default this parameter is set to true.
+  
+  
 
-**ID**
-allows this consumer to be found by other plugins by name. By default this
-is set to "" which does not register this consumer.
+**ModulatorQueueSize**
 
+  Defines the size of the channel used to buffer messages
+  before they are fetched by the next free modulator go routine. If the
+  ModulatorRoutines parameter is set to 0 this parameter is ignored.
+  By default this parameter is set to 1024.
+  
+  
+
+**ModulatorRoutines**
+
+  Defines the number of go routines reserved for
+  modulating messages. Setting this parameter to 0 will use as many go routines
+  as the specific consumer plugin is using for fetching data. Any other value
+  will force the given number fo go routines to be used.
+  By default this parameter is set to 0
+  
+  
+
+**Modulators**
+
+  Defines a list of modulators to be applied to a message before
+  it is sent to the list of streams. If a modulator specifies a stream, the
+  message is only sent to that specific stream. A message is saved as original
+  after all modulators have been applied.
+  By default this parameter is set to an empty list.
+  
+  
+
+**ShutdownTimeoutMs** (default: 1000, unit: ms)
+
+  Defines the maximum time in milliseconds a consumer is
+  allowed to take to shut down. After this timeout the consumer is always
+  considered to have shut down.
+  By default this parameter is set to 1000.
+  
+  
 
 **Streams**
-contains either a single string or a list of strings defining the
-message channels this consumer will produce. By default this is set to "*"
-which means only producers set to consume "all streams" will get these
-messages.
 
+  Defines a list of streams a consumer will send to. This parameter
+  is mandatory. When using "*" messages will be sent only to the internal "*"
+  stream. It will NOT send messages to all streams.
+  By default this parameter is set to an empty list.
+  
+  
 
-**ShutdownTimeoutMs**
-sets a timeout in milliseconds that will be used to detect
-various timeouts during shutdown. By default this is set to 1 second.
-
-
-Example
--------
-
-.. code-block:: yaml
-
-	# Generate 10 x 10000 messages of 256 bytes
-	MyProfiler:
-	  Type: "consumer.Profiler"
-	  Runs: 10000
-	  Batches: 10
-	  TemplateCount: 10
-	  Characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
-	  Message: "%256s"
-		 DelayMs: 0
-	  KeepRunning: false
-	# Generate a short message every 0.5s, useful for testing and debugging
-	JunkGenerator:
-	  Type: "consumer.Profiler"
-	  Message: "%20s"
-	  Streams: "junkstream"
-	  Characters: "abcdefghijklmZ"
-	  KeepRunning: true
-	  Runs: 10000
-	  Batches: 3000000
-	  DelayMs: 500
-	
 
 

@@ -45,12 +45,10 @@ const (
 // If no endpoint is set the client needs to set the right endpoint for the used region.
 //
 type AwsMultiClient struct {
-	Credentials AwsCredentials
-
-	region   string `config:"Region" default:"us-east-1"`
-	endpoint string `config:"Endpoint" default:""`
-
-	config *aws.Config
+	Credentials AwsCredentials `gollumdoc:"embed_type"`
+	region      string         `config:"Region" default:"us-east-1"`
+	endpoint    string         `config:"Endpoint" default:""`
+	config      *aws.Config
 }
 
 // Configure method

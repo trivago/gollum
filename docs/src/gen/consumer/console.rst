@@ -3,65 +3,110 @@
 Console
 =======
 
-
-This consumer reads from stdin. A message is generated after each newline
-character.
-
+This consumer reads from stdin or a named pipe. A message is generated after
+each newline character.
 
 
+
+
+Metadata
+--------
+
+**pipe**
+
+  name of the pipe the message was received on (set)
+  
+  
 
 Parameters
 ----------
 
-**Console**
-defines the pipe to read from. This can be "stdin" or the name
-of a named pipe that is created if not existing. The default is "stdin"
+**ExitOnEOF** (default: true)
 
+  Can be set to true to trigger an exit signal if the pipe is closed
+  i.e. when EOF is detected.
+  By default this paramater is set to "true".
+  Examples
+  This config reads data from stdin e.g. when starting gollum via unix pipe.
+  ConsoleIn:
+  Type: consumer.Console
+  Streams: console
+  Pipe: stdin
+  
+  
 
-**Permissions**
-accepts an octal number string that contains the unix file
-permissions used when creating a named pipe.
-By default this is set to "0664".
+**Permissions** (default: 0644)
 
+  Accepts an octal number string containing the unix file
+  permissions used when creating a named pipe.
+  By default this paramater is set to "0664".
+  
+  
 
-**ExitOnEOF**
-can be set to true to trigger an exit signal if StdIn is closed
-(e.g. when a pipe is closed). This is set to false by default.
+**Pipe** (default: stdin)
 
+  Defines the pipe to read from. This can be "stdin" or the path
+  to a named pipe. If the named pipe is not existing it will be creared.
+  By default this paramater is set to "stdin".
+  
+  
 
 Parameters (from SimpleConsumer)
 --------------------------------
 
 **Enable**
-switches the consumer on or off. By default this value is set to true.
 
+  switches the consumer on or off.
+  By default this parameter is set to true.
+  
+  
 
-**ID**
-allows this consumer to be found by other plugins by name. By default this
-is set to "" which does not register this consumer.
+**ModulatorQueueSize**
 
+  Defines the size of the channel used to buffer messages
+  before they are fetched by the next free modulator go routine. If the
+  ModulatorRoutines parameter is set to 0 this parameter is ignored.
+  By default this parameter is set to 1024.
+  
+  
+
+**ModulatorRoutines**
+
+  Defines the number of go routines reserved for
+  modulating messages. Setting this parameter to 0 will use as many go routines
+  as the specific consumer plugin is using for fetching data. Any other value
+  will force the given number fo go routines to be used.
+  By default this parameter is set to 0
+  
+  
+
+**Modulators**
+
+  Defines a list of modulators to be applied to a message before
+  it is sent to the list of streams. If a modulator specifies a stream, the
+  message is only sent to that specific stream. A message is saved as original
+  after all modulators have been applied.
+  By default this parameter is set to an empty list.
+  
+  
+
+**ShutdownTimeoutMs** (default: 1000, unit: ms)
+
+  Defines the maximum time in milliseconds a consumer is
+  allowed to take to shut down. After this timeout the consumer is always
+  considered to have shut down.
+  By default this parameter is set to 1000.
+  
+  
 
 **Streams**
-contains either a single string or a list of strings defining the
-message channels this consumer will produce. By default this is set to "*"
-which means only producers set to consume "all streams" will get these
-messages.
 
+  Defines a list of streams a consumer will send to. This parameter
+  is mandatory. When using "*" messages will be sent only to the internal "*"
+  stream. It will NOT send messages to all streams.
+  By default this parameter is set to an empty list.
+  
+  
 
-**ShutdownTimeoutMs**
-sets a timeout in milliseconds that will be used to detect
-various timeouts during shutdown. By default this is set to 1 second.
-
-
-Example
--------
-
-.. code-block:: yaml
-
-	 - "consumer.Console":
-	   Console: "stdin"
-	   Permissions: "0664"
-	   ExitOnEOF: false
-	
 
 

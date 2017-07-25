@@ -3,46 +3,39 @@
 TextToJSON
 ==========
 
-
 TextToJSON is a formatter that passes a message encapsulated as JSON in the form
 {"message":"..."}. The actual message is formatted by a nested formatter and
 HTML escaped.
 
+Configuration example
 
+ - format.JSON:
+     StartState: "findKey"
+     Directives:
+	    - 'findKey :":  key     ::'
+	    - 'findKey :}:          : pop  : end'
+	    - 'key     :":  findVal :      : key'
+	    - 'findVal :\:: value   ::'
+     ApplyTo: "payload" # payload or <metaKey>
 
-
-Parameters
-----------
-
-**StartState**
-defines the initial parser state when parsing a message.
+StartState defines the initial parser state when parsing a message.
 By default this is set to "" which will fall back to the first state used in
 the JSONDirectives array.
 
-
-**TimestampRead**
-defines the go timestamp format expected from fields that
+TimestampRead defines the go timestamp format expected from fields that
 are parsed as "dat". When JSONUnixTimestampRead is not set, this is set to
 "20060102150405" by default.
 
-
-**UnixTimestampRead**
-defines the unix timestamp format expected from fields that
+UnixTimestampRead defines the unix timestamp format expected from fields that
 are parsed as "dat". May be "s", "ms", or "ns", and only accepts integer values.
 When JSONTimestampRead is set, this is ignored.
 
-
-**TimestampWrite**
-defines the go timestamp format that "dat" fields will be
+TimestampWrite defines the go timestamp format that "dat" fields will be
 converted to. By default this is set to "2006-01-02 15:04:05 MST".
 
+ApplyTo defines the formatter content to use
 
-**ApplyTo**
-defines the formatter content to use
-
-
-**Directives**
-defines an array of parser directives.
+Directives defines an array of parser directives.
 This setting is mandatory and has no default value.
 Each string must be of the following format: "State:Token:NextState:Flags:Function".
 Spaces will be stripped from all fields but Token. If a fields requires a
@@ -101,29 +94,25 @@ Rules for storage (Directives):
   is nested, all arrays will be closed.
 
 
-Parameters (from SimpleFormatter)
----------------------------------
-
-**ApplyTo**
-chooses the part of the message the formatting should be
-applied to. Use "payload"  or "" to target the message payload;
-othe values specify the name of a metadata field to target.
-Default "".
 
 
-Example
--------
+Parameters
+----------
 
-.. code-block:: yaml
+**StartState**
 
-	 - format.JSON:
-	     StartState: "findKey"
-	     Directives:
-		    - 'findKey :":  key     ::'
-		    - 'findKey :}:          : pop  : end'
-		    - 'key     :":  findVal :      : key'
-		    - 'findVal :\:: value   ::'
-	     ApplyTo: "payload" # payload or <metaKey>
-	
+  (no documentation available)
+  
+
+**TimestampRead**
+
+  (no documentation available)
+  
+
+**TimestampWrite** (default: 2006-01-02 15:04:05 MST)
+
+  (no documentation available)
+  
+
 
 

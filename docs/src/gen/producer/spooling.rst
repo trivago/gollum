@@ -3,7 +3,6 @@
 Spooling
 ========
 
-
 The Spooling producer buffers messages and sends them again to the previous
 stream stored in the message. This means the message must have been routed
 at least once before reaching the spooling producer. If the previous and
@@ -11,117 +10,209 @@ current stream is identical the message is sent to the fallback.
 The Formatter configuration value is forced to "format.Serialize" and
 cannot be changed.
 
+Configuration example
+
+ - "producer.Spooling":
+   Path: "/var/run/gollum/spooling"
+   BatchMaxCount: 100
+   BatchTimeoutSec: 5
+   MaxFileSizeMB: 512
+   MaxFileAgeMin: 1
+   MessageSizeByte: 8192
+   RespoolDelaySec: 10
+   MaxMessagesSec: 100
+   RevertStreamOnDrop: false
+
+Path sets the output directory for spooling files. Spooling files will
+Files will be stored as "<path>/<stream>/<number>.spl". By default this is
+set to "/var/run/gollum/spooling".
+
+BatchMaxCount defines the maximum number of messages stored in memory before
+a write to file is triggered. Set to 100 by default.
+
+BatchTimeoutSec defines the maximum number of seconds to wait after the last
+message arrived before a batch is flushed automatically. By default this is
+set to 5.
+
+MaxFileSizeMB sets the size in MB when a spooling file is rotated. Reading
+will start only after a file is rotated. Set to 512 MB by default.
+
+MaxFileAgeMin defines the time in minutes after a spooling file is rotated.
+Reading will start only after a file is rotated. This setting divided by two
+will be used to define the wait time for reading, too.
+Set to 1 minute by default.
+
+BufferSizeByte defines the initial size of the buffer that is used to parse
+messages from a spool file. If a message is larger than this size, the buffer
+will be resized. By default this is set to 8192.
+
+RespoolDelaySec sets the number of seconds to wait before trying to load
+existing spool files after a restart. This is useful for configurations that
+contain dynamic streams. By default this is set to 10.
+
+MaxMessagesSec sets the maximum number of messages that can be respooled per
+second. By default this is set to 100. Setting this value to 0 will cause
+respooling to work as fast as possible.
+
+RevertStreamOnDrop can be used to revert the message stream before dropping
+the message. This can be useful if you e.g. want to write messages that
+could not be spooled to stream separated files on disk. Set to false by
+default.
+
 
 
 
 Parameters
 ----------
 
-**Path**
-sets the output directory for spooling files. Spooling files will
-Files will be stored as "<path>/<stream>/<number>.spl". By default this is
-set to "/var/run/gollum/spooling".
+**Batch/MaxCount** (default: 100)
 
+  (no documentation available)
+  
 
-**BatchMaxCount**
-defines the maximum number of messages stored in memory before
-a write to file is triggered. Set to 100 by default.
+**Batch/TimeoutSec** (default: 5, unit: sec)
 
+  (no documentation available)
+  
 
-**BatchTimeoutSec**
-defines the maximum number of seconds to wait after the last
-message arrived before a batch is flushed automatically. By default this is
-set to 5.
+**BufferSizeByte** (default: 8192)
 
+  (no documentation available)
+  
 
-**MaxFileSizeMB**
-sets the size in MB when a spooling file is rotated. Reading
-will start only after a file is rotated. Set to 512 MB by default.
+**MaxFileAgeMin** (default: 1, unit: min)
 
+  (no documentation available)
+  
 
-**MaxFileAgeMin**
-defines the time in minutes after a spooling file is rotated.
-Reading will start only after a file is rotated. This setting divided by two
-will be used to define the wait time for reading, too.
-Set to 1 minute by default.
+**MaxFileSizeMB** (default: 512, unit: mb)
 
+  (no documentation available)
+  
 
-**BufferSizeByte**
-defines the initial size of the buffer that is used to parse
-messages from a spool file. If a message is larger than this size, the buffer
-will be resized. By default this is set to 8192.
+**Path** (default: /var/run/gollum/spooling)
 
+  (no documentation available)
+  
 
-**RespoolDelaySec**
-sets the number of seconds to wait before trying to load
-existing spool files after a restart. This is useful for configurations that
-contain dynamic streams. By default this is set to 10.
+**RespoolDelaySec** (default: 10, unit: sec)
 
-
-**MaxMessagesSec**
-sets the maximum number of messages that can be respooled per
-second. By default this is set to 100. Setting this value to 0 will cause
-respooling to work as fast as possible.
-
+  (no documentation available)
+  
 
 **RevertStreamOnDrop**
-can be used to revert the message stream before dropping
-the message. This can be useful if you e.g. want to write messages that
-could not be spooled to stream separated files on disk. Set to false by
-default.
 
+  (no documentation available)
+  
+
+Parameters (from components.RotateConfig)
+-----------------------------------------
+
+**Rotation/AtHour** (default: -1)
+
+  (no documentation available)
+  
+
+**Rotation/AtMin** (default: -1)
+
+  (no documentation available)
+  
+
+**Rotation/Compress** (default: false)
+
+  (no documentation available)
+  
+
+**Rotation/Enable** (default: false)
+
+  (no documentation available)
+  
+
+**Rotation/SizeMB** (default: 1024, unit: mb)
+
+  (no documentation available)
+  
+
+**Rotation/TimeoutMin** (default: 1440, unit: min)
+
+  (no documentation available)
+  
+
+**Rotation/Timestamp** (default: 2006-01-02_15)
+
+  (no documentation available)
+  
+
+**Rotation/ZeroPadding** (default: 0)
+
+  (no documentation available)
+  
+
+Parameters (from BufferedProducer)
+----------------------------------
+
+**Channel**
+
+  This value defines the capacity of the message buffer.
+  By default this parameter is set to "8192".
+  
+  
+
+**ChannelTimeoutMs** (default: 0, unit: ms)
+
+  This value defines a timeout for each message before the message will discarded.
+  You can set this parameter to "0" for disabling the timeout.
+  By default this parameter is set to "0".
+  
+  
 
 Parameters (from DirectProducer)
 --------------------------------
 
 **Enable**
-switches the consumer on or off. By default this value is set to true.
 
-
-**ID**
-allows this producer to be found by other plugins by name. By default this
-is set to "" which does not register this producer.
-
-
-**ShutdownTimeoutMs**
-sets a timeout in milliseconds that will be used to detect
-a blocking producer during shutdown. By default this is set to 1 second.
-Decreasing this value may lead to lost messages during shutdown. Increasing
-this value will increase shutdown time.
-
-
-**Streams**
-contains either a single string or a list of strings defining the
-message channels this producer will consume. By default this is set to "*"
-which means "listen to all routers but the internal".
-
+  switches the consumer on or off. By default this value is set to true.
+  
+  
 
 **FallbackStream**
-defines the stream used for messages that are sent to the fallback after
-a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
 
+  defines the stream used for messages that are sent to the fallback after
+  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
+  
+  
+
+**ID**
+
+  allows this producer to be found by other plugins by name. By default this
+  is set to "" which does not register this producer.
+  
+  
 
 **Modulators**
-sets formatter and filter to use. Each formatter has its own set of options
-which can be set here, too. By default this is set to format.Forward.
-Each producer decides if and when to use a Formatter.
 
+  sets formatter and filter to use. Each formatter has its own set of options
+  which can be set here, too. By default this is set to format.Forward.
+  Each producer decides if and when to use a Formatter.
+  
+  
 
-Example
--------
+**ShutdownTimeoutMs**
 
-.. code-block:: yaml
+  sets a timeout in milliseconds that will be used to detect
+  a blocking producer during shutdown. By default this is set to 1 second.
+  Decreasing this value may lead to lost messages during shutdown. Increasing
+  this value will increase shutdown time.
+  
+  
 
-	 - "producer.Spooling":
-	   Path: "/var/run/gollum/spooling"
-	   BatchMaxCount: 100
-	   BatchTimeoutSec: 5
-	   MaxFileSizeMB: 512
-	   MaxFileAgeMin: 1
-	   MessageSizeByte: 8192
-	   RespoolDelaySec: 10
-	   MaxMessagesSec: 100
-	   RevertStreamOnDrop: false
-	
+**Streams**
+
+  contains either a single string or a list of strings defining the
+  message channels this producer will consume. By default this is set to "*"
+  which means "listen to all routers but the internal".
+  
+  
+
 
 
