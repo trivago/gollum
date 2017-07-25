@@ -29,66 +29,106 @@ import (
 	"time"
 )
 
-// ProcessJSON formatter plugin
-// ProcessJSON is a formatter that allows modifications to fields of a given
-// JSON message. The message is modified and returned again as JSON.
-// Configuration example
+// ProcessJSON formatter
 //
-//  - format.ProcessJSON:
-//    GeoIPFile: ""
-//    Directives:
-//    - "host:split: :host:@timestamp"
-//    - "@timestamp:time:20060102150405:2006-01-02 15\\:04\\:05"
-//    - "error:replace:°:\n"
-//    - "text:trim: \t"
-//    - "foo:rename:bar"
-//    - "foobar:remove"
-//      - "array:pick:0:firstOfArray"
-//    - "array:remove:foobar"
-//      - "user_agent:agent:browser:os:version"
-//      - "client:geoip:country:city:timezone:location"
-//    TrimValues: true
+// This formatter allows modification of JSON encoded data. Each field can be
+// processed by different directives and the result of all directives will be
+// stored back to the original location.
 //
-// GeoIPFile defines a GeoIP file to load. This enables the "geoip"
+// Parameters
+//
+// - GeoIPFile: Defines a GeoIP file to load. This enables the "geoip"
 // directive. If no file is loaded IPs will not be resolved. Files can be
-// found e.g. at http://dev.maxmind.com/geoip/geoip2/geolite2/
+// found e.g. at http://dev.maxmind.com/geoip/geoip2/geolite2/.
+// By default this parameter is set to "".
 //
-// Directives defines the action to be applied to the json payload.
-// Directives are processed in order of appearance.
-// The directives have to be given in the form of key:operation:parameters, where
-// operation can be one of the following.
-// * `split:<string>{:<key>:<key>:...}` Split the value by a string and set the
-//   resulting array elements to the given fields in order of appearance.
-// * `replace:<old>:<new>` replace a given string in the value with a new one
-// * `trim:<characters>` remove the given characters (not string!) from the start
-//   and end of the value
-// * `rename:<old>:<new>` rename a given field
-// * `remove{:<string>:<string>...}` remove a given field. If additional parameters are
-//   given, an array is expected. Strings given as additional parameters will be removed
-//   from that array
-// * `pick:<key>:<index>:<name>` Pick a specific index from an array and store it
-//   in a new field.
-// * `time:<read>:<write>` read a timestamp and transform it into another
-//   format
-// * `unixtimestamp:<read>:<write>` read a unix timestamp and transform it into another
-//   format. valid read formats are s, ms, and ns.
-// * `flatten{:<delimiter>}` create new fields from the values in field, with new
-//   fields named field + delimiter + subfield. Delimiter defaults to ".".
-//   Removes the original field.
-// * `agent:<key>{:<field>:<field>:...}` Parse the value as a user agent string and
-//   extract the given fields into <key>_<field>.
-//   ("ua:agent:browser:os" would create the new fields "ua_browser" and "ua_os").
-//   Possible values are: "mozilla", "platform", "os", "localization", "engine",
-//   "engine_version", "browser", "version".
-// * `ip` Parse the field as an array of strings and remove all values that cannot
-//   be parsed as a valid IP. Single-string fields are supported, too, but will be
-//   converted to an array.
-// * `geoip:{<field>:<field>:...}` like agent this directive will analyse an IP string
-//   via geoip and produce new fields.
-//   Possible values are: "country", "city", "continent", "timezone", "proxy", "location"
+// - TrimValues: Allows trimming of whitespaces from the beggining and end of
+// each value after processing took place.
+// By default this parameter is set to true.
 //
-// TrimValues will trim whitspaces from all values if enabled.
-// Enabled by default.
+// - Directives: Defines an array of action to be applied to the JSON encoded
+// data. Directives are processed in order of their appearance. Directives start
+// with the name of the field, followed by an actionm followed by additional
+// parameters if necessary. Parameters, key and action are separated by using
+// the ":" character.
+// By default this parameter is set to an empty list.
+//
+//  - split: <delimiter> {<key>, <key>, ...}
+//  Split the field's value by the given delimiter, store the results to the
+//  fields listed after the delimiter.
+//
+//  - replace: <string>  <new string>
+//  Replace a given string inside the field's value with a new one.
+//
+//  - trim: <characters>
+//  Remove the given characters from the start and end of the field's value.
+//
+//  - rename: <new key>
+//  Rename a given field
+//
+//  - remove: {<value>, <value>, ...}`
+//  Remove a given field. If additional parameters are given, the value is
+//  expected to be an array. The given strings will be removed from that array.
+//
+//  - pick: <index> <key>
+//  Pick a specific index from an array and store it to the given field.
+//
+//  - time: <from fromat> <to format>
+//  Read a timestamp with a given format compatible to time.Parse and transform
+//  it into another format compatible with time.Format.
+//
+//  - unixtimestamp: <unit> <to format>
+//  Read a unix timestamp with a given unit ("s","ms" or "ns") and transform it
+//  it into another format compatible with time.Format.
+//
+//  - flatten: {<delimiter>}
+//  Move all keys from a nested object to new fields named
+//  field + delimiter + subfield. If no delimiter is given "." will be used.
+//
+//  - agent: <prefix> {<field>, <field>, ...}
+//  Parse the field's value as a user agent string and extract the given fields
+//  into new fields named prefix + "_" + field.
+//  If no fields are given all fields are returned.
+//
+//   - mozilla: mozilla version
+//   - platform: the platform used
+//   - os: the operating system used
+//   - localization: the language used
+//   - engine: codename of the browser engine
+//   - engine_version: version of the browser engine
+//   - browser: name of the browser
+//   - version: version of the browser
+//
+//  - ip:
+//  Parse the field as an array of strings and remove all values that cannot be
+//  parsed as a valid IP. Single-string fields are supported, too, but will be
+//  converted to an array.
+//
+//  - geoip: {<field>, <field>, ...}
+//  Parse the field as an IP and extract the given fields into new fields named
+//  prefix + "_" + field. This action requires a valid GeoIP file to be loaded.
+//  If no fields are given all fields are returned.
+//
+//   - country: the contry code of the IP. Generates country, countryCode.
+//   - city: the city of the IP
+//   - continent: the continent of the IP. Generates continent, continentCode.
+//   - timezone: the timezome of the IP
+//   - proxy: name of the proxy if applying Generates proxy, satellite.
+//   - location: the geolocation of this IP. Generates geocoord, geohash.
+//
+// Examples
+//
+//  ExampleConsumer:
+//    Type: consumer.Console
+//    Streams: console
+//    Modulators:
+//      - format.ProcessJSON:
+//        Directives:
+//          - "host:split: :host:@timestamp"
+//          - "@timestamp:time:20060102150405:2006-01-02 15\\:04\\:05"
+//          - "client:ip"
+//          - "client:geoip:location:country"
+//          - "ua:agent:ua:os:engine:engine_version"
 type ProcessJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	directives           []transformDirective
