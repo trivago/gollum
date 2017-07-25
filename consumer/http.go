@@ -32,19 +32,12 @@ import (
 // This consumer opens up an HTTP 1.1 server and processes the contents of any
 // incoming HTTP request.
 //
-// Example
-//
-//   "HttpIn00":
-//     Type: "consumer.HTTP"
-//     Streams: "http_in_00"
-//     Address: "localhost:9090"
-//     WithHeaders: false
-//
 // Parameters
 //
 // - Address: Defines the TCP port and optional IP address to listen on.
-// Syntax: [hostname|address]:<port>. Sets http.Server.Addr; for defails,
-// see its Go documentation.
+//  Sets http.Server.Addr; for defails, see its Go documentation.
+//
+// Syntax: [hostname|address]:<port>
 //
 // - ReadTimeoutSec: Defines the maximum duration in seconds before timing out
 // the HTTP read request. Sets  http.Server.ReadTimeout; for details, see its
@@ -66,6 +59,15 @@ import (
 // - PrivateKey: Path to an X509 formatted private key file. Meaningful only in
 // conjunction with Certificate.
 //
+// Examples
+//
+// This example listens on port 9090 and writes to the stream "http_in_00".
+//
+//   "HttpIn00":
+//     Type: "consumer.HTTP"
+//     Streams: "http_in_00"
+//     Address: "localhost:9090"
+//     WithHeaders: false
 //
 type HTTP struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`

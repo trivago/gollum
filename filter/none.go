@@ -22,7 +22,7 @@ import (
 //
 // This filter blocks all messages.
 //
-// Example
+// Examples
 //
 // This example will start a cosole consumer and block all incoming messages:
 //

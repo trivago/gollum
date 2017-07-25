@@ -69,7 +69,7 @@ const (
 const (
 	headingMetadata             string = "Metadata"
 	headingParameters           string = "Parameters"
-	headingConfigurationExample string = "Example"
+	headingConfigurationExample string = "Examples"
 )
 
 // NewPluginDocument creates a new PluginDocument object for the named plugin

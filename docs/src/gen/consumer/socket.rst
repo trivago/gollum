@@ -106,13 +106,6 @@ Parameters
   This value toggles removing existing files with the same name as the
   socket (unix://<path>) prior to connecting.
   By default this parameter is set to "true".
-  Examples
-  This example open a socket and expect messages with a fixed length of 256 bytes:
-  socketIn:
-  Type: consumer.Socket
-  Address: unix:///var/gollum.socket
-  Partitioner: fixed
-  Size: 256
   
   
 
@@ -182,5 +175,19 @@ Parameters (from SimpleConsumer)
   
   
 
+Examples
+--------
+
+.. code-block:: yaml
+
+	This example open a socket and expect messages with a fixed length of 256 bytes:
+	
+	 socketIn:
+	   Type: consumer.Socket
+	   Address: unix:///var/gollum.socket
+	   Partitioner: fixed
+	   Size: 256
+	
+	
 
 

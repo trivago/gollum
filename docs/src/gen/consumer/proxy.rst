@@ -56,14 +56,6 @@ Parameters
   When using partitioner "binary" this parameter can be set to 1,2,4 or 8 when
   using uint8,uint16,uint32 or uint64 length prefixes.
   By default this parameter is set to 4.
-  Examples
-  This example will accepts 64bit length encoded data on TCP port 5880.
-  proxyReceive:
-  Type: consumer.Proxy
-  Streams: proxyData
-  Address: ":5880"
-  Partitioner: binary
-  Size: 8
   
   
 
@@ -164,5 +156,20 @@ Parameters (from SimpleConsumer)
   
   
 
+Examples
+--------
+
+.. code-block:: yaml
+
+	This example will accepts 64bit length encoded data on TCP port 5880.
+	
+	 proxyReceive:
+	   Type: consumer.Proxy
+	   Streams: proxyData
+	   Address: ":5880"
+	   Partitioner: binary
+	   Size: 8
+	
+	
 
 

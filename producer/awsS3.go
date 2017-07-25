@@ -42,7 +42,8 @@ const defaultAwsEndpoint = "s3.amazonaws.com"
 // - Bucket: Your S3 bucket where you want to upload.
 //
 // - File: This value is used as a base file pattern for you final file names.
-// The " * " will parsed to the active stream name. By default this is set to "gollum_*.log"
+// The " * " will parsed to the active stream name.
+// By default this parameter is set to "gollum_*.log"
 //
 // Examples
 //
