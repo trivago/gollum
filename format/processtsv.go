@@ -24,46 +24,78 @@ import (
 	"github.com/trivago/tgo/tstrings"
 )
 
-// ProcessTSV formatter plugin
-// ProcessTSV is a formatter that allows modifications to fields of a given
-// TSV message. The message is modified and returned again as TSV.
-// Configuration example
+// ProcessTSV formatter
 //
-//  - format.processTSV:
-//      Delimiter: '\t'
-//      QuotedValues: false
-//      Directives:
-//        - "0:time:20060102150405:2006-01-02 15\\:04\\:05"
-//        - "3:replace:°:\n"
-//        - "6:prefix:0."
-//        - "6:postfix:000"
-//        - "7:trim: "
-//        - "10:quote"
-//        - "11:remove"
-//        - "11:agent:browser:os:version"
+// This formatter allows modification of TSV encoded data. Each field can be
+// processed by different directives and the result of all directives will be
+// stored back to the original location.
 //
-// Directives defines the action to be applied to the tsv payload.
-// Directives are processed in order of appearance.
-// The directives have to be given in the form of key:operation:parameters, where
-// operation can be one of the following.
-// * `replace:<old>:<new>` replace a given string in the value with a new one.
-// * `prefix:<string>` add a given string to the start of the value.
-// * `postfix:<string>` add a given string to the end of the value.
-// * `trim:<characters>` remove the given characters (not string!) from the start
-//   and end of the value.
-// * quote add a " to the start and end of the value after processing.
-// * `timestamp:<read>:<write>` read a timestamp and transform it into another
-//   format.
-// * remove remove the value.
-// * `agent{:<user_agent_field>:<user_agent_field>:...}` Parse the value as a user
-//   agent string and extract the given fields into <key>_<user_agent_field>
-//   ("ua:agent:browser:os" would create the new fields "ua_browser" and "ua_os").
+// Parameters
 //
-// Delimiter defines what value separator to split on. Defaults to tabs.
+// - Delimiter: Defines the separator used to split values.
+// By default this parameter is set to "\t".
 //
-// QuotedValue defines if a value that starts and ends with " may
-// contain ProcessTSVDelimiter without being split. Default is false.
+// - QuotedValue: When set to true values that start and end with a quotation
+// mark are not scanned for delimiter characters. I.e. those values will not be
+// splitted when containing a delimiter character.
+// By default this parameter is set to false.
 //
+// - Directives: Defines an array of actions to be applied to the TSV encoded
+// data. Directives are processed in order of their appearance. Directives start
+// with the index of the field, followed by an action followed by additional
+// parameters if necessary. Parameters, key and action are separated by using
+// the ":" character.
+// By default this parameter is set to an empty list.
+//
+//  - replace: <string>  <new string>
+//  Replace a given string inside the field's value with a new one.
+//
+//  - prefix: <string>
+//  Prepend the given string to the field's value
+//
+//  - postfix: <string>
+//  Append the given string to the field's value
+//
+//  - trim: <characters>
+//  Remove the given characters from the start and end of the field's value.
+//
+//  - quote:
+//  Put the field's value into quotation marks after all directives have been
+//  processed.
+//
+//  - time: <from fromat> <to format>
+//  Read a timestamp with a given format compatible to time.Parse and transform
+//  it into another format compatible with time.Format.
+//
+//  - remove
+//  Removes the field from the result
+//
+//  - agent: {<field>, <field>, ...}
+//  Parse the field's value as a user agent string and insert the given fields
+//  into the TSV after the given index.
+//  If no fields are given all fields are returned.
+//
+//   - mozilla: mozilla version
+//   - platform: the platform used
+//   - os: the operating system used
+//   - localization: the language used
+//   - engine: codename of the browser engine
+//   - engine_version: version of the browser engine
+//   - browser: name of the browser
+//   - version: version of the browser
+//
+// Examples
+//
+//  ExampleConsumer:
+//    Type: consumer.Console
+//    Streams: console
+//    Modulators:
+//      - format.processTSV:
+//        Delimiter: ","
+//        Directives:
+//          - "0:time:20060102150405:2006-01-02 15\\:04\\:05"
+//          - "2:remove"
+//          - "11:agent:os:engine:engine_version"
 type ProcessTSV struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	directives           []tsvDirective

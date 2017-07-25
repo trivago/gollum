@@ -46,9 +46,9 @@ import (
 // each value after processing took place.
 // By default this parameter is set to true.
 //
-// - Directives: Defines an array of action to be applied to the JSON encoded
+// - Directives: Defines an array of actions to be applied to the JSON encoded
 // data. Directives are processed in order of their appearance. Directives start
-// with the name of the field, followed by an actionm followed by additional
+// with the name of the field, followed by an action followed by additional
 // parameters if necessary. Parameters, key and action are separated by using
 // the ":" character.
 // By default this parameter is set to an empty list.
