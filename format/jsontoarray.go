@@ -21,16 +21,34 @@ import (
 	"github.com/trivago/tgo/tcontainer"
 )
 
+// JSONToArray formatter plugin
+//
 // JSONToArray "flattens" a JSON object by selecting specific fields and putting
-// them into a token separated list.
+// the values of them into a separated list.
 //
-// Configuration example
+// An json input of `{"foo":"value1","bar":"value2"}` can be transformed in a list like `value1,value2`.
 //
-// - "<producer|stream>":
-//   Formatter: "format.JSONToArray"
-//   Separator: ","
-//   Fields:
-//    - "a/b"
+// Parameters
+//
+// - Fields: The list of all keys which used to create the final text list.
+//
+// - Separator: This value used as separator for the final text list.
+// By default this parameter is set to ",".
+//
+// Examples
+//
+// This example get the 'foo' and 'bar' fields from a json document
+// and create a payload of 'foo_value:bar_value':
+//
+//  exampleConsumer:
+//    Type: consumer.Console
+//    Streams: "*"
+//    Modulators:
+//      - format.JSONToArray
+//          Fields:
+//            - foo
+//            - bar
+//          Separator: ;
 //
 type JSONToArray struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
