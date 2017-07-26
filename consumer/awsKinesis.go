@@ -35,7 +35,7 @@ const (
 	kinesisOffsetOldest = "oldest"
 )
 
-// Kinesis consumer plugin
+// AwsKinesis consumer plugin
 //
 // This consumer reads message from an AWS Kinesis router.
 //
@@ -77,7 +77,7 @@ const (
 // This example consume a kinesis stream "myStream" and create messages:
 //
 //  KinesisIn:
-//    Type: consumer.Kinesis
+//    Type: consumer.AwsKinesis
 //    Credential:
 //      Type: shared
 //      File: /Users/<USERNAME>/.aws/credentials
@@ -85,7 +85,7 @@ const (
 //    Region: "eu-west-1"
 //    KinesisStream: myStream
 //
-type Kinesis struct {
+type AwsKinesis struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 
 	// AwsMultiClient is public to make AwsMultiClient.Configure() callable
@@ -108,11 +108,11 @@ type Kinesis struct {
 }
 
 func init() {
-	core.TypeRegistry.Register(Kinesis{})
+	core.TypeRegistry.Register(AwsKinesis{})
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *Kinesis) Configure(conf core.PluginConfigReader) {
+func (cons *AwsKinesis) Configure(conf core.PluginConfigReader) {
 	cons.offsets = make(map[string]string)
 	cons.offsetsGuard = new(sync.RWMutex)
 
@@ -148,13 +148,13 @@ func (cons *Kinesis) Configure(conf core.PluginConfigReader) {
 	}
 }
 
-func (cons *Kinesis) marshalOffsets() ([]byte, error) {
+func (cons *AwsKinesis) marshalOffsets() ([]byte, error) {
 	cons.offsetsGuard.RLock()
 	defer cons.offsetsGuard.RUnlock()
 	return json.Marshal(cons.offsets)
 }
 
-func (cons *Kinesis) storeOffsets() {
+func (cons *AwsKinesis) storeOffsets() {
 	if cons.offsetFile != "" {
 		fileContents, err := cons.marshalOffsets()
 		if err != nil {
@@ -168,7 +168,7 @@ func (cons *Kinesis) storeOffsets() {
 	}
 }
 
-func (cons *Kinesis) createShardIteratorConfig(shardID string) *kinesis.GetRecordsInput {
+func (cons *AwsKinesis) createShardIteratorConfig(shardID string) *kinesis.GetRecordsInput {
 	for cons.running {
 		cons.offsetsGuard.RLock()
 		offset := cons.offsets[shardID]
@@ -203,7 +203,7 @@ func (cons *Kinesis) createShardIteratorConfig(shardID string) *kinesis.GetRecor
 	return nil
 }
 
-func (cons *Kinesis) processShard(shardID string) {
+func (cons *AwsKinesis) processShard(shardID string) {
 	cons.AddWorker()
 	defer cons.WorkerDone()
 	recordConfig := (*kinesis.GetRecordsInput)(nil)
@@ -267,7 +267,7 @@ func (cons *Kinesis) processShard(shardID string) {
 	}
 }
 
-func (cons *Kinesis) initKinesisClient() {
+func (cons *AwsKinesis) initKinesisClient() {
 	sess, err := cons.AwsMultiClient.NewSessionWithOptions()
 	if err != nil {
 		cons.Logger.WithError(err).Error("Can't get proper aws config")
@@ -283,7 +283,7 @@ func (cons *Kinesis) initKinesisClient() {
 	cons.client = kinesis.New(sess, awsConfig)
 }
 
-func (cons *Kinesis) connect() error {
+func (cons *AwsKinesis) connect() error {
 	cons.initKinesisClient()
 
 	// Get shard ids for stream
@@ -327,7 +327,7 @@ func (cons *Kinesis) connect() error {
 	return nil
 }
 
-func (cons *Kinesis) updateShards() {
+func (cons *AwsKinesis) updateShards() {
 	defer cons.WorkerDone()
 
 	streamQuery := &kinesis.DescribeStreamInput{
@@ -364,13 +364,13 @@ func (cons *Kinesis) updateShards() {
 	}
 }
 
-func (cons *Kinesis) close() {
+func (cons *AwsKinesis) close() {
 	cons.running = false
 	cons.WorkerDone()
 }
 
 // Consume listens to stdin.
-func (cons *Kinesis) Consume(workers *sync.WaitGroup) {
+func (cons *AwsKinesis) Consume(workers *sync.WaitGroup) {
 	cons.AddMainWorker(workers)
 	defer cons.close()
 

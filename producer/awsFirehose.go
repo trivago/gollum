@@ -26,7 +26,7 @@ import (
 	"time"
 )
 
-// Firehose producer plugin
+// AwsFirehose producer plugin
 //
 // This producer sends data to an AWS Firehose stream.
 //
@@ -53,7 +53,7 @@ import (
 // This example set up a simple aws firehose producer:
 //
 //  firehoseOut:
-//    Type: producer.Firehose
+//    Type: producer.AwsFirehose
 //    Credential:
 //      Type: shared
 //      File: /Users/<USERNAME>/.aws/credentials
@@ -65,7 +65,7 @@ import (
 //    RecordMessageDelimiter: "\n"
 //    SendTimeframeSec: 1
 //
-type Firehose struct {
+type AwsFirehose struct {
 	core.BatchedProducer `gollumdoc:"embed_type"`
 
 	// AwsMultiClient is public to make AwsMultiClient.Configure() callable (bug in treflect package)
@@ -84,8 +84,8 @@ type Firehose struct {
 }
 
 const (
-	firehoseMetricMessages    = "Firehose:Messages-"
-	firehoseMetricMessagesSec = "Firehose:MessagesSec-"
+	firehoseMetricMessages    = "AwsFirehose:Messages-"
+	firehoseMetricMessagesSec = "AwsFirehose:MessagesSec-"
 )
 
 type firehoseData struct {
@@ -95,11 +95,11 @@ type firehoseData struct {
 }
 
 func init() {
-	core.TypeRegistry.Register(Firehose{})
+	core.TypeRegistry.Register(AwsFirehose{})
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Firehose) Configure(conf core.PluginConfigReader) {
+func (prod *AwsFirehose) Configure(conf core.PluginConfigReader) {
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "default")
 
 	prod.lastSendTime = time.Now()
@@ -124,7 +124,7 @@ func (prod *Firehose) Configure(conf core.PluginConfigReader) {
 }
 
 // Produce writes to stdout or stderr.
-func (prod *Firehose) Produce(workers *sync.WaitGroup) {
+func (prod *AwsFirehose) Produce(workers *sync.WaitGroup) {
 	defer prod.WorkerDone()
 
 	prod.AddMainWorker(workers)
@@ -132,7 +132,7 @@ func (prod *Firehose) Produce(workers *sync.WaitGroup) {
 	prod.BatchMessageLoop(workers, prod.sendBatch)
 }
 
-func (prod *Firehose) initFirehoseClient() {
+func (prod *AwsFirehose) initFirehoseClient() {
 	sess, err := prod.AwsMultiClient.NewSessionWithOptions()
 	if err != nil {
 		prod.Logger.WithError(err).Error("Can't get proper aws config")
@@ -148,11 +148,11 @@ func (prod *Firehose) initFirehoseClient() {
 	prod.client = firehose.New(sess, awsConfig)
 }
 
-func (prod *Firehose) sendBatch() core.AssemblyFunc {
+func (prod *AwsFirehose) sendBatch() core.AssemblyFunc {
 	return prod.transformMessages
 }
 
-func (prod *Firehose) transformMessages(messages []*core.Message) {
+func (prod *AwsFirehose) transformMessages(messages []*core.Message) {
 	streamRecords := make(map[core.MessageStreamID]*firehoseData)
 
 	// Format and sort
@@ -212,7 +212,7 @@ func (prod *Firehose) transformMessages(messages []*core.Message) {
 		time.Sleep(sleepDuration)
 	}
 
-	// Send to Firehose
+	// Send to AwsFirehose
 	for _, records := range streamRecords {
 		rsp, err := prod.client.PutRecordBatch(records.content)
 		atomic.AddInt64(prod.counters[*records.content.DeliveryStreamName], int64(len(records.content.Records)))
@@ -229,7 +229,7 @@ func (prod *Firehose) transformMessages(messages []*core.Message) {
 			// Check each message for errors
 			for msgIdx, record := range rsp.RequestResponses {
 				if record.ErrorMessage != nil {
-					prod.Logger.Error("Firehose message write error: ", *record.ErrorMessage)
+					prod.Logger.Error("AwsFirehose message write error: ", *record.ErrorMessage)
 					for _, msg := range records.original[msgIdx] {
 						prod.TryFallback(msg)
 					}

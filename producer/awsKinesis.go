@@ -26,7 +26,7 @@ import (
 	"time"
 )
 
-// Kinesis producer plugin
+// AwsKinesis producer plugin
 //
 // This producer sends data to an AWS kinesis stream.
 // Configuration example
@@ -54,7 +54,7 @@ import (
 // This example set up a simple aws Kinesis producer:
 //
 //  KinesisOut:
-//    Type: producer.Kinesis
+//    Type: producer.AwsKinesis
 //    Credential:
 //      Type: shared
 //      File: /Users/<USERNAME>/.aws/credentials
@@ -66,7 +66,7 @@ import (
 //    RecordMessageDelimiter: "\n"
 //    SendTimeframeSec: 1
 //
-type Kinesis struct {
+type AwsKinesis struct {
 	core.BatchedProducer `gollumdoc:"embed_type"`
 
 	// AwsMultiClient is public to make AwsMultiClient.Configure() callable (bug in treflect package)
@@ -85,8 +85,8 @@ type Kinesis struct {
 }
 
 const (
-	kinesisMetricMessages    = "Kinesis:Messages-"
-	kinesisMetricMessagesSec = "Kinesis:MessagesSec-"
+	kinesisMetricMessages    = "AwsKinesis:Messages-"
+	kinesisMetricMessagesSec = "AwsKinesis:MessagesSec-"
 )
 
 type streamData struct {
@@ -96,11 +96,11 @@ type streamData struct {
 }
 
 func init() {
-	core.TypeRegistry.Register(Kinesis{})
+	core.TypeRegistry.Register(AwsKinesis{})
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Kinesis) Configure(conf core.PluginConfigReader) {
+func (prod *AwsKinesis) Configure(conf core.PluginConfigReader) {
 	prod.lastSendTime = time.Now()
 	prod.counters = make(map[string]*int64)
 	prod.lastMetricUpdate = time.Now()
@@ -125,7 +125,7 @@ func (prod *Kinesis) Configure(conf core.PluginConfigReader) {
 }
 
 // Produce writes to stdout or stderr.
-func (prod *Kinesis) Produce(workers *sync.WaitGroup) {
+func (prod *AwsKinesis) Produce(workers *sync.WaitGroup) {
 	defer prod.WorkerDone()
 
 	prod.AddMainWorker(workers)
@@ -133,7 +133,7 @@ func (prod *Kinesis) Produce(workers *sync.WaitGroup) {
 	prod.BatchMessageLoop(workers, prod.sendBatch)
 }
 
-func (prod *Kinesis) initKinesisClient() {
+func (prod *AwsKinesis) initKinesisClient() {
 	sess, err := prod.AwsMultiClient.NewSessionWithOptions()
 	if err != nil {
 		prod.Logger.WithError(err).Error("Can't get proper aws config")
@@ -149,11 +149,11 @@ func (prod *Kinesis) initKinesisClient() {
 	prod.client = kinesis.New(sess, awsConfig)
 }
 
-func (prod *Kinesis) sendBatch() core.AssemblyFunc {
+func (prod *AwsKinesis) sendBatch() core.AssemblyFunc {
 	return prod.transformMessages
 }
 
-func (prod *Kinesis) transformMessages(messages []*core.Message) {
+func (prod *AwsKinesis) transformMessages(messages []*core.Message) {
 	streamRecords := make(map[core.MessageStreamID]*streamData)
 
 	// Format and sort
@@ -218,7 +218,7 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 		time.Sleep(sleepDuration)
 	}
 
-	// Send to Kinesis
+	// Send to AwsKinesis
 	for _, records := range streamRecords {
 		result, err := prod.client.PutRecords(records.content)
 		atomic.AddInt64(prod.counters[*records.content.StreamName], int64(len(records.content.Records)))
@@ -235,7 +235,7 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 			// Check each message for errors
 			for msgIdx, record := range result.Records {
 				if record.ErrorMessage != nil {
-					prod.Logger.Error("Kinesis message write error: ", *record.ErrorMessage)
+					prod.Logger.Error("AwsKinesis message write error: ", *record.ErrorMessage)
 					for _, msg := range records.original[msgIdx] {
 						prod.TryFallback(msg)
 					}
