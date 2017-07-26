@@ -26,18 +26,23 @@ import (
 
 // Pruner file producer pruning component
 //
-// Prune/Count removes old logfiles upon rotate so that only the given
+// Parameters
+//
+// - Prune/Count: this value removes old logfiles upon rotate so that only the given
 // number of logfiles remain. Logfiles are located by the name defined by "File"
-// and are pruned by date (followed by name).
-// By default this is set to 0 which disables pruning.
+// and are pruned by date (followed by name). Set this value to "0" to disable pruning by count.
+// By default this parameter is set to "0".
 //
-// Prune/AfterHours removes old logfiles that are older than a given number
-// of hours. By default this is set to 0 which disables pruning.
+// - Prune/AfterHours: This value removes old logfiles that are older than a given number
+// of hours. Set this value to "0" to disable pruning by lifetime.
+// By default this parameter is set to "0".
 //
-// Prune/TotalSizeMB removes old logfiles upon rotate so that only the
+// - Prune/TotalSizeMB: This value removes old logfiles upon rotate so that only the
 // given number of MBs are used by logfiles. Logfiles are located by the name
 // defined by "File" and are pruned by date (followed by name).
-// By default this is set to 0 which disables pruning.
+// Set this value to "0" to disable pruning by file size.
+// By default this parameter is set to "0".
+//
 type Pruner struct {
 	pruneCount int   `config:"Prune/Count" default:"0"`
 	pruneHours int   `config:"Prune/AfterHours" default:"0"`

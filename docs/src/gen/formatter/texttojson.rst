@@ -3,95 +3,8 @@
 TextToJSON
 ==========
 
-TextToJSON is a formatter that passes a message encapsulated as JSON in the form
-{"message":"..."}. The actual message is formatted by a nested formatter and
-HTML escaped.
-
-Configuration example
-
- - format.JSON:
-     StartState: "findKey"
-     Directives:
-	    - 'findKey :":  key     ::'
-	    - 'findKey :}:          : pop  : end'
-	    - 'key     :":  findVal :      : key'
-	    - 'findVal :\:: value   ::'
-     ApplyTo: "payload" # payload or <metaKey>
-
-StartState defines the initial parser state when parsing a message.
-By default this is set to "" which will fall back to the first state used in
-the JSONDirectives array.
-
-TimestampRead defines the go timestamp format expected from fields that
-are parsed as "dat". When JSONUnixTimestampRead is not set, this is set to
-"20060102150405" by default.
-
-UnixTimestampRead defines the unix timestamp format expected from fields that
-are parsed as "dat". May be "s", "ms", or "ns", and only accepts integer values.
-When JSONTimestampRead is set, this is ignored.
-
-TimestampWrite defines the go timestamp format that "dat" fields will be
-converted to. By default this is set to "2006-01-02 15:04:05 MST".
-
-ApplyTo defines the formatter content to use
-
-Directives defines an array of parser directives.
-This setting is mandatory and has no default value.
-Each string must be of the following format: "State:Token:NextState:Flags:Function".
-Spaces will be stripped from all fields but Token. If a fields requires a
-colon it has to be escaped with a backslash. Other escape characters
-supported are \n, \r and \t.
-Flags (Directives) can be a comma separated set of the following flags.
-
-* continue -> Prepend the token to the next match.
-
-* append   -> Append the token to the current match and continue reading.
-
-* include  -> Append the token to the current match.
-
-* push     -> Push the current state to the stack.
-
-* pop      -> Pop the stack and use the returned state if possible.
-
-Function (Directives) can hold one of the following names.
-
-* key     -> Write the current match as a key.
-
-* val     -> Write the current match as a value without quotes.
-
-* esc     -> Write the current match as a escaped string value.
-
-* dat     -> Write the current match as a timestamp value.
-
-* arr     -> Start a new array.
-
-* obj     -> Start a new object.
-
-* end     -> Close an array or object.
-
-* arr+val -> arr followed by val.
-
-* arr+esc -> arr followed by esc.
-
-* arr+dat -> arr followed by dat.
-
-* val+end -> val followed by end.
-
-* esc+end -> esc followed by end.
-
-* dat+end -> dat followed by end.
-
-Rules for storage (Directives):
-
-* if a value is written without a previous key write, a key will be auto
-  generated from the current parser state name. This does not happen when
-  inside an array.
-
-* If key is written without a previous value write, a null value will be
-  written. This does not happen after an object has been started.
-
-* A key write inside an array will cause the array to be closed. If the array
-  is nested, all arrays will be closed.
+This formatter uses a state machine to parse arbitrary text data and
+transform it to JSON.
 
 
 
@@ -99,19 +12,188 @@ Rules for storage (Directives):
 Parameters
 ----------
 
+**Directive actions**
+
+  Actions are used to write  text read since the last
+  transition to the JSON object.
+  
+  
+
+**Directive flags**
+
+  Flags can modify the parser behavior and can be used to
+  store values on a stack accross multiple directives.
+  
+  
+
+**Directive rules**
+
+  There are some special cases which will cause the parser
+  to do additional actions.
+  - When writing a value without a key, the state name will become the key.
+  - If two keys are written in a row the first key will hold a null value.
+  - Writing a key while writing array elements will close the array.
+  
+  
+
+**Directives**
+
+  Defines an array of directives used to parse text data.
+  Each entry must be of the format: "State:Token:NextState:Flags:Function".
+  State denotes the name of the state owning this entry. Multiple entries per
+  state are allowed. Token holds a string that triggers a state transition.
+  NextState holds the target of the state transition. Flags is an optional
+  field and is used to trigger special parser behavior. Flags can be comma
+  separated if you need to use more than one.
+  Function defines an action that is triggered upon state transition.
+  Spaces will be stripped from all fields but Token. If a fields requires a
+  colon it has to be escaped with a backslash. Other escape characters
+  supported are \n, \r and \t.
+  By default this parameter is set to an empty list.
+  
+  
+
 **StartState**
 
-  (no documentation available)
+  Defines the name of the initial state when parsing a message.
+  When set to an empty string the first state from the directives array will
+  be used.
+  By default this parameter is set to "".
+  
   
 
 **TimestampRead**
 
-  (no documentation available)
+  Defines a time.Parse compatible format string used to read
+  time fields when using the "dat" directive.
+  By default this parameter is set to "20060102150405".
+  
   
 
 **TimestampWrite** (default: 2006-01-02 15:04:05 MST)
 
-  (no documentation available)
+  Defines a time.Format compatible format string used to
+  write time fields when using the "dat" directive.
+  By default this parameter is set to "2006-01-02 15:04:05 MST".
+  
+  
+
+**UnixTimestampRead**
+
+  Defines the unix timestamp format expected from fields
+  that are parsed using the "dat" directive. Valid valies are "s" for seconds,
+  "ms" for milliseconds, or "ns" for nanoseconds. This parameter is ignored
+  unless TimestampRead is set to "".
+  By default this parameter is set to "".
+  
+  
+
+**append**
+
+  Append the token to the current match and continue reading.
+  
+  
+
+**arr**
+
+  Start a new array.
+  
+  
+
+**arr+dat**
+
+  arr followed by dat.
+  
+  
+
+**arr+esc**
+
+  arr followed by esc.
+  
+  
+
+**arr+val**
+
+  arr followed by val.
+  
+  
+
+**continue**
+
+  Prepend the token to the next match.
+  
+  
+
+**dat**
+
+  Write the parsed section as a timestamp value.
+  
+  
+
+**dat+end**
+
+  dat followed by end.
+  
+  
+
+**end**
+
+  Close an array or object.
+  
+  
+
+**esc**
+
+  Write the parsed section as a escaped string value.
+  
+  
+
+**esc+end**
+
+  esc followed by end.
+  
+  
+
+**include**
+
+  Append the token to the current match.
+  
+  
+
+**key**
+
+  Write the parsed section as a key.
+  
+  
+
+**obj**
+
+  Start a new object.
+  
+  
+
+**pop**
+
+  Pop the stack and use the returned state if possible.
+  
+  
+
+**push**
+
+  Push the current state to the stack.
+  
+  
+
+**val**
+
+  Write the parsed section as a value without quotes.
+  
+  
+
+**val+end**
+
+  val followed by end.
+  
   
 
 Parameters (from SimpleFormatter)
@@ -125,5 +207,36 @@ Parameters (from SimpleFormatter)
   
   
 
+Examples
+--------
+
+.. code-block:: yaml
+
+	The following example parses JSON data.
+	
+	 ExampleConsumer:
+	   Type: consumer.Console
+	   Streams: console
+	   Modulators:
+	     - format.JSON:
+	       Directives:
+	         - "findKey   :\":  key       :      :        "
+	         - "findKey   :}:             : pop  : end    "
+	         - "key       :\":  findVal   :      : key    "
+	         - "findVal   :\\:: value     :      :        "
+	         - "value     :\":  string    :      :        "
+	         - "value     :[:   array     : push : arr    "
+	         - "value     :{:   findKey   : push : obj    "
+	         - "value     :,:   findKey   :      : val    "
+	         - "value     :}:             : pop  : val+end"
+	         - "string    :\":  findKey   :      : esc    "
+	         - "array     :[:   array     : push : arr    "
+	         - "array     :{:   findKey   : push : obj    "
+	         - "array     :]:             : pop  : val+end"
+	         - "array     :,:   array     :      : val    "
+	         - "array     :\":  arrString :      :        "
+	         - "arrString :\":  array     :      : esc    "
+	
+	
 
 

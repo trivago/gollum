@@ -47,61 +47,6 @@ Parameters
   
   
 
-Parameters (from file.Pruner)
------------------------------
-
-**Prune/AfterHours** (default: 0)
-
-  (no documentation available)
-  
-
-**Prune/Count** (default: 0)
-
-  (no documentation available)
-  
-
-**Prune/TotalSizeMB** (default: 0, unit: mb)
-
-  (no documentation available)
-  
-
-Parameters (from components.BatchedWriterConfig)
-------------------------------------------------
-
-**Batch/FlushCount** (default: 4096)
-
-  This value defines the number of messages to be buffered before they are
-  written to disk. This setting is clamped to "BatchMaxCount".
-  By default this parameter is set to "`BatchMaxCount` / 2".
-  
-  
-
-**Batch/FlushTimeoutSec** (default: 0, unit: sec)
-
-  This value defines the maximum number of seconds to wait before
-  a flush is aborted during shutdown. Set this parameter to "0" which does not abort
-  the flushing procedure.
-  By default this parameter is set to "0".
-  
-  
-
-**Batch/MaxCount** (default: 8192)
-
-  This value defines the maximum number of messages that can be buffered
-  before a flush is mandatory. If the buffer is full and a flush is still
-  underway or cannot be triggered out of other reasons, the producer will block.
-  By default this parameter is set to "8192".
-  
-  
-
-**Batch/TimeoutSec** (default: 5, unit: sec)
-
-  This value defines the maximum number of seconds to wait after the last
-  message arrived before a batch is flushed automatically.
-  By default this parameter is set to "5".
-  
-  
-
 Parameters (from DirectProducer)
 --------------------------------
 
@@ -214,6 +159,73 @@ Parameters (from components.RotateConfig)
   an existing name. Setting this setting to 0 won't add zeros, every other
   number defines the number of leading zeros to be used.
   By default this parameter is set to "0".
+  
+  
+
+Parameters (from file.Pruner)
+-----------------------------
+
+**Prune/AfterHours** (default: 0)
+
+  This value removes old logfiles that are older than a given number
+  of hours. Set this value to "0" to disable pruning by lifetime.
+  By default this parameter is set to "0".
+  
+  
+
+**Prune/Count** (default: 0)
+
+  this value removes old logfiles upon rotate so that only the given
+  number of logfiles remain. Logfiles are located by the name defined by "File"
+  and are pruned by date (followed by name). Set this value to "0" to disable pruning by count.
+  By default this parameter is set to "0".
+  
+  
+
+**Prune/TotalSizeMB** (default: 0, unit: mb)
+
+  This value removes old logfiles upon rotate so that only the
+  given number of MBs are used by logfiles. Logfiles are located by the name
+  defined by "File" and are pruned by date (followed by name).
+  Set this value to "0" to disable pruning by file size.
+  By default this parameter is set to "0".
+  
+  
+
+Parameters (from components.BatchedWriterConfig)
+------------------------------------------------
+
+**Batch/FlushCount** (default: 4096)
+
+  This value defines the number of messages to be buffered before they are
+  written to disk. This setting is clamped to "BatchMaxCount".
+  By default this parameter is set to "`BatchMaxCount` / 2".
+  
+  
+
+**Batch/FlushTimeoutSec** (default: 0, unit: sec)
+
+  This value defines the maximum number of seconds to wait before
+  a flush is aborted during shutdown. Set this parameter to "0" which does not abort
+  the flushing procedure.
+  By default this parameter is set to "0".
+  
+  
+
+**Batch/MaxCount** (default: 8192)
+
+  This value defines the maximum number of messages that can be buffered
+  before a flush is mandatory. If the buffer is full and a flush is still
+  underway or cannot be triggered out of other reasons, the producer will block.
+  By default this parameter is set to "8192".
+  
+  
+
+**Batch/TimeoutSec** (default: 5, unit: sec)
+
+  This value defines the maximum number of seconds to wait after the last
+  message arrived before a batch is flushed automatically.
+  By default this parameter is set to "5".
   
   
 
