@@ -17,97 +17,71 @@ package producer
 import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/components"
 	"github.com/trivago/tgo"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 )
 
-const (
-	kinesisCredentialEnv    = "environment"
-	kinesisCredentialStatic = "static"
-	kinesisCredentialShared = "shared"
-	kinesisCredentialNone   = "none"
-)
-
 // Kinesis producer plugin
+//
 // This producer sends data to an AWS kinesis stream.
 // Configuration example
 //
-//  - "producer.Kinesis":
-//    Region: "eu-west-1"
-//    Endpoint: "kinesis.eu-west-1.amazonaws.com"
-//    CredentialType: "none"
-//    CredentialId: ""
-//    CredentialToken: ""
-//    CredentialSecret: ""
-//    CredentialFile: ""
-//    CredentialProfile: ""
-//    BatchMaxMessages: 500
+// Parameters
+//
+// - StreamMapping: This value defines a translation from gollum stream to kinesis stream
+// name. If no mapping is given the gollum stream name is used as kinesis stream name.
+// By default this parameter is set to "empty"
+//
+// - RecordMaxMessages: This value defines the maximum number of messages to join into
+// a kinesis record.
+// By default this parameter is set to "500".
+//
+// - RecordMessageDelimiter: This value defines the string to delimit messages within
+// a kinesis record.
+// By default this parameter is set to "\n".
+//
+// - SendTimeframeMs: This value defines the timeframe in milliseconds in which a second
+// batch send can be triggered.
+// By default this parameter is set to "1000".
+//
+// Examples
+//
+// This example set up a simple aws Kinesis producer:
+//
+//  KinesisOut:
+//    Type: producer.Kinesis
+//    Credential:
+//      Type: shared
+//      File: /Users/<USERNAME>/.aws/credentials
+//      Profile: default
+//    Region: eu-west-1
+//    StreamMapping:
+//      "*": default
 //    RecordMaxMessages: 1
 //    RecordMessageDelimiter: "\n"
 //    SendTimeframeSec: 1
-//    BatchTimeoutSec: 3
-//    StreamMapping:
-//      "*" : "default"
 //
-// KinesisStream defines the stream to read from.
-// By default this is set to "default"
-//
-// Region defines the amazon region of your kinesis stream.
-// By default this is set to "eu-west-1".
-//
-// Endpoint defines the amazon endpoint for your kinesis stream.
-// By default this is et to "kinesis.eu-west-1.amazonaws.com"
-//
-// CredentialType defines the credentials that are to be used when
-// connecting to kensis. This can be one of the following: environment,
-// static, shared, none.
-// Static enables the parameters CredentialId, CredentialToken and
-// CredentialSecret shared enables the parameters CredentialFile and
-// CredentialProfile. None will not use any credentials and environment
-// will pull the credentials from environmental settings.
-// By default this is set to none.
-//
-// BatchMaxMessages defines the maximum number of messages to send per
-// batch. By default this is set to 500.
-//
-// RecordMaxMessages defines the maximum number of messages to join into
-// a kinesis record. By default this is set to 500.
-//
-// RecordMessageDelimiter defines the string to delimit messages within
-// a kinesis record. By default this is set to "\n".
-//
-// SendTimeframeMs defines the timeframe in milliseconds in which a second
-// batch send can be triggered. By default this is set to 1000, i.e. one
-// send operation per second.
-//
-// BatchTimeoutSec defines the number of seconds after which a batch is
-// flushed automatically. By default this is set to 3.
-//
-// StreamMapping defines a translation from gollum stream to kinesis stream
-// name. If no mapping is given the gollum stream name is used as kinesis stream
-// name.
 type Kinesis struct {
 	core.BatchedProducer `gollumdoc:"embed_type"`
-	client               *kinesis.Kinesis
-	config               *aws.Config
-	streamMap            map[core.MessageStreamID]string
-	recordMaxMessages    int           `config:"RecordMaxMessages" default:"1"`
-	delimiter            []byte        `config:"RecordMessageDelimiter" default:"\n"`
-	sendTimeLimit        time.Duration `config:"SendTimeframeMs" default:"1000" metric:"ms"`
-	assumeRole           string        `config:"Credential/AssumeRole"`
-	flushFrequency       time.Duration
-	lastSendTime         time.Time
-	counters             map[string]*int64
-	lastMetricUpdate     time.Time
-	sequence             *int64
+
+	// AwsMultiClient is public to make AwsMultiClient.Configure() callable (bug in treflect package)
+	AwsMultiClient components.AwsMultiClient `gollumdoc:"embed_type"`
+
+	recordMaxMessages int           `config:"RecordMaxMessages" default:"1"`
+	delimiter         []byte        `config:"RecordMessageDelimiter" default:"\n"`
+	sendTimeLimit     time.Duration `config:"SendTimeframeMs" default:"1000" metric:"ms"`
+
+	streamMap        map[core.MessageStreamID]string
+	client           *kinesis.Kinesis
+	lastSendTime     time.Time
+	counters         map[string]*int64
+	lastMetricUpdate time.Time
+	sequence         *int64
 }
 
 const (
@@ -142,48 +116,37 @@ func (prod *Kinesis) Configure(conf core.PluginConfigReader) {
 		prod.Logger.Warning("RecordMessageDelimiter was empty. Defaulting to \"\\n\".")
 	}
 
-	// Config
-	prod.config = aws.NewConfig()
-	if endpoint := conf.GetString("Endpoint", "kinesis.eu-west-1.amazonaws.com"); endpoint != "" {
-		prod.config.WithEndpoint(endpoint)
-	}
-
-	if region := conf.GetString("Region", "eu-west-1"); region != "" {
-		prod.config.WithRegion(region)
-	}
-
-	// Credentials
-	prod.config.CredentialsChainVerboseErrors = aws.Bool(true)
-	credentialType := strings.ToLower(conf.GetString("Credential/Type", kinesisCredentialNone))
-	switch credentialType {
-	case kinesisCredentialEnv:
-		prod.config.WithCredentials(credentials.NewEnvCredentials())
-
-	case kinesisCredentialStatic:
-		id := conf.GetString("Credential/Id", "")
-		token := conf.GetString("Credential/Token", "")
-		secret := conf.GetString("Credential/Secret", "")
-		prod.config.WithCredentials(credentials.NewStaticCredentials(id, secret, token))
-
-	case kinesisCredentialShared:
-		filename := conf.GetString("Credential/File", "")
-		profile := conf.GetString("Credential/Profile", "")
-		prod.config.WithCredentials(credentials.NewSharedCredentials(filename, profile))
-
-	case kinesisCredentialNone:
-		// Nothing
-
-	default:
-		conf.Errors.Pushf("Unknown credential type: %s", credentialType)
-		return
-	}
-
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "")
 	for _, streamName := range prod.streamMap {
 		metricName := kinesisMetricMessages + streamName
 		tgo.Metric.New(metricName)
 		tgo.Metric.NewRate(metricName, kinesisMetricMessagesSec+streamName, time.Second, 10, 3, true)
 	}
+}
+
+// Produce writes to stdout or stderr.
+func (prod *Kinesis) Produce(workers *sync.WaitGroup) {
+	defer prod.WorkerDone()
+
+	prod.AddMainWorker(workers)
+	prod.initKinesisClient()
+	prod.BatchMessageLoop(workers, prod.sendBatch)
+}
+
+func (prod *Kinesis) initKinesisClient() {
+	sess, err := prod.AwsMultiClient.NewSessionWithOptions()
+	if err != nil {
+		prod.Logger.WithError(err).Error("Can't get proper aws config")
+	}
+
+	awsConfig := prod.AwsMultiClient.GetConfig()
+
+	// set auto endpoint to firehose if setting is empty
+	if awsConfig.Endpoint == nil || *awsConfig.Endpoint == "" {
+		awsConfig.WithEndpoint(fmt.Sprintf("kinesis.%s.amazonaws.com", *awsConfig.Region))
+	}
+
+	prod.client = kinesis.New(sess, awsConfig)
 }
 
 func (prod *Kinesis) sendBatch() core.AssemblyFunc {
@@ -280,24 +243,4 @@ func (prod *Kinesis) transformMessages(messages []*core.Message) {
 			}
 		}
 	}
-}
-
-// Produce writes to stdout or stderr.
-func (prod *Kinesis) Produce(workers *sync.WaitGroup) {
-	sess, err := session.NewSessionWithOptions(session.Options{
-		Config:            *prod.config,
-		SharedConfigState: session.SharedConfigEnable,
-	})
-	if err != nil {
-		prod.Logger.WithError(err).Error("Failed to create session")
-	}
-
-	if prod.assumeRole != "" {
-		creds := stscreds.NewCredentials(sess, prod.assumeRole)
-		prod.client = kinesis.New(sess, &aws.Config{Credentials: creds})
-	} else {
-		prod.client = kinesis.New(sess)
-	}
-
-	prod.BatchMessageLoop(workers, prod.sendBatch)
 }
