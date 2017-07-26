@@ -59,6 +59,7 @@ import (
 //
 //  interceptHTTP:
 //    Type: native.PcapHTTPConsumer
+//    Streams: http
 //    Interface: eth1
 //    Filter: "dst port 80"
 //    Promiscuous: true
