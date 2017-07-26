@@ -33,31 +33,35 @@ import (
 // you need to trigger a custom build with native plugins enabled.
 // The systemd consumer allows to read from the systemd journal.
 //
-// Configuration example
+// Parameters
 //
-//  - "native.Systemd":
-//    SystemdUnit: "sshd.service"
-//    DefaultOffset: "Newest"
-//    OffsetFile: ""
+// - SystemdUnit: This value defines what journal will be followed. This uses
+// journal.add_match with _SYSTEMD_UNIT. If this value is set to "",  the filter is disabled.
+// By default this parameter is set to "".
 //
-// SystemdUnit defines what journal will be followed. This uses
-// journal.add_match with _SYSTEMD_UNIT. By default this is set to "", which
-// disables the filter.
-//
-// DefaultOffset defines where to start reading the file. Valid values are
+// - DefaultOffset: This value defines where to start reading the file. Valid values are
 // "oldest" and "newest". If OffsetFile is defined the DefaultOffset setting
 // will be ignored unless the file does not exist.
-// By default this is set to "newest".
+// By default this parameter is set to "newest".
 //
-// OffsetFile defines the path to a file that stores the current offset. If
-// the consumer is restarted that offset is used to continue reading. By
-// default this is set to "" which disables the offset file.
+// - OffsetFile: This value defines the path to a file that stores the current offset. If
+// the consumer is restarted that offset is used to continue reading. Set this value to ""
+// which disables the offset file.
+// By default this parameter is set to "".
+//
+// Examples
+//
+// This example set up a basic systemd consumer:
+//
+//  exampleConsumer:
+//    Type: native.Systemd
+//    Streams: "*"
+//    SystemdUnit: sshd.service
+//
 type SystemdConsumer struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
+	offsetFile          string `config:"OffsetFile" default:""`
 	journal             *sdjournal.Journal
-	offset              uint64
-	offsetFile          string
-	running             bool
 }
 
 const (
@@ -87,7 +91,6 @@ func (cons *SystemdConsumer) Configure(conf core.PluginConfigReader) error {
 	// Offset
 	offsetValue := strings.ToLower(conf.GetString("DefaultOffset", sdOffsetTail))
 
-	cons.offsetFile = conf.GetString("OffsetFile", "")
 	if cons.offsetFile != "" {
 		fileContents, err := ioutil.ReadFile(cons.offsetFile)
 		if err != nil {
