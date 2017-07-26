@@ -22,41 +22,43 @@ import (
 	"time"
 )
 
-// SimpleConsumer plugin base type
+// SimpleConsumer consumer
+//
 // This type defines a common baseclass for all consumers. All consumer plugins
-// should derive from this class but don't necessarily need to.
-// Configuration example:
+// should derive from this class as all required basic functions are already
+// implemented in a general way.
 //
-//  - "consumer.Foobar":
-//    Enable: true
-//    ID: ""
-//    ShutdownTimeoutMs: 1000
-//    ModulatorRoutines: 0
-//    ModulatorQueueSize: 1024
-//    Streams:
-//      - "foo"
-//      - "bar"
+// Parameters
 //
-// Enable switches the consumer on or off. By default this value is set to true.
+// - Enable: switches the consumer on or off.
+// By default this parameter is set to true.
 //
-// ID allows this consumer to be found by other plugins by name. By default this
-// is set to "" which does not register this consumer.
+// - Streams: Defines a list of streams a consumer will send to. This parameter
+// is mandatory. When using "*" messages will be sent only to the internal "*"
+// stream. It will NOT send messages to all streams.
+// By default this parameter is set to an empty list.
 //
-// ModulatorRoutines defines the number of go routines processing modulators.
-// When set to 0, messages will be enqueued synchronously, every other value
-// will pass the message to any of the given go routines via a shared channel.
+// - ShutdownTimeoutMs: Defines the maximum time in milliseconds a consumer is
+// allowed to take to shut down. After this timeout the consumer is always
+// considered to have shut down.
+// By default this parameter is set to 1000.
 //
-// ModulatorQueueSize defines the size of the channel used to pass messages to
-// the go routines spawned by ModulatorRoutines. This setting has no effect if
-// ModulatorRoutines is set to 0. By default the queue size is set to 1024
+// - Modulators: Defines a list of modulators to be applied to a message before
+// it is sent to the list of streams. If a modulator specifies a stream, the
+// message is only sent to that specific stream. A message is saved as original
+// after all modulators have been applied.
+// By default this parameter is set to an empty list.
 //
-// Streams contains either a single string or a list of strings defining the
-// message channels this consumer will produce. By default this is set to "*"
-// which means only producers set to consume "all streams" will get these
-// messages.
+// - ModulatorRoutines: Defines the number of go routines reserved for
+// modulating messages. Setting this parameter to 0 will use as many go routines
+// as the specific consumer plugin is using for fetching data. Any other value
+// will force the given number fo go routines to be used.
+// By default this parameter is set to 0
 //
-// ShutdownTimeoutMs sets a timeout in milliseconds that will be used to detect
-// various timeouts during shutdown. By default this is set to 1 second.
+// - ModulatorQueueSize: Defines the size of the channel used to buffer messages
+// before they are fetched by the next free modulator go routine. If the
+// ModulatorRoutines parameter is set to 0 this parameter is ignored.
+// By default this parameter is set to 1024.
 type SimpleConsumer struct {
 	id              string
 	control         chan PluginControl
@@ -200,7 +202,7 @@ func (cons *SimpleConsumer) Enqueue(data []byte) {
 
 // EnqueueWithMetadata works like EnqueueWithSequence and allows to set meta data directly
 func (cons *SimpleConsumer) EnqueueWithMetadata(data []byte, metaData Metadata) {
-	msg := NewMessage(cons, data, metaData, GetStreamID(cons.id))
+	msg := NewMessage(cons, data, metaData, InvalidStreamID)
 	cons.enqueueMessage(msg)
 }
 
@@ -241,6 +243,7 @@ func (cons *SimpleConsumer) directEnqueue(msg *Message) {
 		router := cons.routers[streamIdx]
 		msg := msg.Clone()
 		msg.SetStreamID(router.GetStreamID())
+		msg.FreezeOriginal()
 
 		if err := Route(msg, router); err != nil {
 			cons.Logger.Error(err)
@@ -249,6 +252,7 @@ func (cons *SimpleConsumer) directEnqueue(msg *Message) {
 
 	router := cons.routers[lastStreamIdx]
 	msg.SetStreamID(router.GetStreamID())
+	msg.FreezeOriginal()
 
 	if err := Route(msg, router); err != nil {
 		cons.Logger.Error(err)

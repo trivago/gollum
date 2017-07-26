@@ -3,55 +3,65 @@
 ExtractJSON
 ===========
 
-ExtractJSON is a formatter that extracts a single value from a JSON
-message.
+This formatter extracts a specific value from a JSON payload and writes it
+back as a new payload or as a metadata field.
+
 
 
 
 Parameters
 ----------
 
-**ExtractJSONDataFormatter**
-formatter that will be applied before
-the field is extracted. Set to format.Forward by default.
+**Field**
 
+  Defines the JSON key to extract.If the field does not exist an
+  empty string is returned. Field paths can be defined in a format accepted by
+  tgo.MarshalMap.Path.
+  By default this parameter is set to "".
+  
+  
 
-**ExtractJSONField**
-defines the field to extract. This value is empty by
-default. If the field does not exist an empty string is returned.
+**Precision**
 
+  Defines the number of decimal places to use when converting
+  Numbers into strings. If this parameter is set to 0 no restrictions will
+  apply.
+  By default this parameter is set to 0.
+  
+  
 
-**ExtractJSONTrimValues**
-will trim whitspaces from the value if enabled.
-Enabled by default.
+**TrimValues** (default: true)
 
-
-**ExtractJSONPrecision**
-defines the floating point precision of number
-values. By default this is set to 0 i.e. all decimal places will be
-omitted.
-
+  Enables trimming of whitespaces at the beginning and end of the
+  extracted value.
+  By default this parameter is set to true.
+  
+  
 
 Parameters (from SimpleFormatter)
 ---------------------------------
 
 **ApplyTo**
-chooses the part of the message the formatting should be
-applied to. Use "payload"  or "" to target the message payload;
-othe values specify the name of a metadata field to target.
-Default "".
 
+  This value chooses the part of the message the formatting should be
+  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  By default this parameter is set to "".
+  
+  
 
-Example
--------
+Examples
+--------
 
 .. code-block:: yaml
 
-	 - format.ExtractJSON:
-	     Field: ""
-	     TrimValues: true
-	     Precision: 0
-	     ApplyTo: "payload" # payload or <metaKey>
+	 ExampleConsumer:
+	   Type: consumer.Console
+	   Streams: console
+	   Modulators:
+	     - formatter.ExtractJSON
+	       Field: host
+	       ApplyTo: host
+	
 	
 
 

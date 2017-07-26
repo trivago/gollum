@@ -35,10 +35,7 @@ import (
 //    Database: 0
 //    Key: "default"
 //    Storage: "hash"
-//    FieldFormatter: "format.Identifier"
-//    FieldAfterFormat: false
-//    KeyFormatter: "format.Forward"
-//    KeyAfterFormat: false
+//    KeyField: ""
 //
 // Address stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:6379" or a file
@@ -54,34 +51,23 @@ import (
 // Storage defines the type of the storage to use. Valid values are: "hash",
 // "list", "set", "sortedset", "string". By default this is set to "hash".
 //
-// FieldFormatter defines an extra formatter used to define an additional field or
-// score value if required by the storage type. If no field value is required
-// this value is ignored. By default this is set to "format.Identifier".
+// KeyFrom defines the name of the metadata field used as a key for messages
+// sent to redis. If the name is an empty string no key is sent. By default
+// this value is set to an empty string.
 //
-// FieldAfterFormat will send the formatted message to the FieldFormatter if set
-// to true. If this is set to false the message will be send to the FieldFormatter
-// before it has been formatted. By default this is set to false.
-//
-// KeyFormatter defines an extra formatter used to allow generating the key from
-// a message. If this value is set the "Key" field will be ignored. By default
-// this field is not used.
-//
-// KeyAfterFormat will send the formatted message to the keyFormatter if set
-// to true. If this is set to false the message will be send to the keyFormatter
-// before it has been formatted. By default this is set to false.
+// FieldFrom defines the name of the metadata field used as a field for messages
+// sent to redis. If the name is an empty string no key is sent. By default
+// this value is set to an empty string.
 type Redis struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 	address               string
 	protocol              string
 	password              string `config:"Password"`
 	database              int    `config:"Database" default:"0"`
-	key                   string `config:"Key" default:"default"`
+	key                   string `config:"KeyFrom"`
+	field                 string `config:"FieldFrom"`
 	client                *redis.Client
 	store                 func(msg *core.Message)
-	fieldModulators       core.ModulatorArray
-	keyModulators         core.ModulatorArray
-	fieldFromParsed       bool
-	keyFromParsed         bool
 }
 
 func init() {
@@ -92,11 +78,6 @@ func init() {
 func (prod *Redis) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
-	prod.fieldModulators = conf.GetModulatorArray("FieldModulators", prod.Logger, core.ModulatorArray{})
-	prod.keyModulators = conf.GetModulatorArray("FieldModulators", prod.Logger, core.ModulatorArray{})
-
-	prod.fieldFromParsed = conf.GetBool("FieldAfterFormat", false) // TODO: deprecated
-	prod.keyFromParsed = conf.GetBool("KeyAfterFormat", false)     // TODO: deprecated
 	prod.protocol, prod.address = tnet.ParseAddress(conf.GetString("Address", ":6379"), "tcp")
 
 	switch strings.ToLower(conf.GetString("Storage", "hash")) {
@@ -115,60 +96,24 @@ func (prod *Redis) Configure(conf core.PluginConfigReader) {
 	}
 }
 
-func (prod *Redis) getValueAndKey(msg *core.Message) (v []byte, k string) {
-	dataMsg := msg.Clone()
+func (prod *Redis) getValueAndKey(msg *core.Message) (v, k []byte) {
+	meta := msg.GetMetadata()
+	key := meta.GetValue(prod.key)
 
-	key := prod.key
-	if len(prod.keyModulators) > 0 {
-		var keyMsg *core.Message
-		if prod.keyFromParsed {
-			keyMsg = dataMsg.Clone()
-		} else {
-			keyMsg = msg.Clone()
-		}
-
-		prod.keyModulators.Modulate(keyMsg)
-		key = keyMsg.String()
-	}
-
-	return dataMsg.GetPayload(), key
+	return msg.GetPayload(), key
 }
 
-func (prod *Redis) getValueFieldAndKey(msg *core.Message) (v []byte, f []byte, k string) {
-	dataMsg := msg.Clone()
+func (prod *Redis) getValueFieldAndKey(msg *core.Message) (v, f, k []byte) {
+	meta := msg.GetMetadata()
+	key := meta.GetValue(prod.key)
+	field := meta.GetValue(prod.field)
 
-	key := prod.key
-	if len(prod.keyModulators) > 0 {
-		var keyMsg *core.Message
-		if prod.keyFromParsed {
-			keyMsg = dataMsg.Clone()
-		} else {
-			keyMsg = msg.Clone()
-		}
-
-		prod.keyModulators.Modulate(keyMsg)
-		key = keyMsg.String()
-	}
-
-	field := []byte{}
-	if len(prod.fieldModulators) > 0 {
-		var fieldMsg *core.Message
-		if prod.fieldFromParsed {
-			fieldMsg = dataMsg.Clone()
-		} else {
-			fieldMsg = msg.Clone()
-		}
-
-		prod.fieldModulators.Modulate(fieldMsg)
-		field = fieldMsg.GetPayload()
-	}
-
-	return dataMsg.GetPayload(), field, key
+	return msg.GetPayload(), field, key
 }
 
 func (prod *Redis) storeHash(msg *core.Message) {
 	value, field, key := prod.getValueFieldAndKey(msg)
-	result := prod.client.HSet(key, string(field), string(value))
+	result := prod.client.HSet(string(key), string(field), string(value))
 	if result.Err() != nil {
 		prod.Logger.Error("Redis: ", result.Err())
 		prod.TryFallback(msg)
@@ -178,7 +123,7 @@ func (prod *Redis) storeHash(msg *core.Message) {
 func (prod *Redis) storeList(msg *core.Message) {
 	value, key := prod.getValueAndKey(msg)
 
-	result := prod.client.RPush(key, string(value))
+	result := prod.client.RPush(string(key), string(value))
 	if result.Err() != nil {
 		prod.Logger.Error("Redis: ", result.Err())
 		prod.TryFallback(msg)
@@ -188,7 +133,7 @@ func (prod *Redis) storeList(msg *core.Message) {
 func (prod *Redis) storeSet(msg *core.Message) {
 	value, key := prod.getValueAndKey(msg)
 
-	result := prod.client.SAdd(key, string(value))
+	result := prod.client.SAdd(string(key), string(value))
 	if result.Err() != nil {
 		prod.Logger.Error("Redis: ", result.Err())
 		prod.TryFallback(msg)
@@ -203,10 +148,11 @@ func (prod *Redis) storeSortedSet(msg *core.Message) {
 		return // ### return, no valid score ###
 	}
 
-	result := prod.client.ZAdd(key, redis.Z{
-		Score:  score,
-		Member: string(value),
-	})
+	result := prod.client.ZAdd(string(key),
+		redis.Z{
+			Score:  score,
+			Member: string(value),
+		})
 
 	if result.Err() != nil {
 		prod.Logger.Error("Redis: ", result.Err())
@@ -217,7 +163,7 @@ func (prod *Redis) storeSortedSet(msg *core.Message) {
 func (prod *Redis) storeString(msg *core.Message) {
 	value, key := prod.getValueAndKey(msg)
 
-	result := prod.client.Set(key, string(value), time.Duration(0))
+	result := prod.client.Set(string(key), string(value), time.Duration(0))
 	if result.Err() != nil {
 		prod.Logger.Error("Redis: ", result.Err())
 		prod.TryFallback(msg)

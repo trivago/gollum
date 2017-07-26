@@ -3,8 +3,9 @@
 SplitPick
 =========
 
-SplitPick separates value of messages according to a specified delimiter
-and returns the given indexed message. The index are zero based.
+This formatter splits data into an array by using a given delimiter and
+extracts a given index out of that array. The value of that index will be
+written back.
 
 
 
@@ -12,37 +13,44 @@ and returns the given indexed message. The index are zero based.
 Parameters
 ----------
 
-**SplitPickIndex**
-defaults to 0.
+**Delimiter** (default: :)
 
+  Defines the delimiter to use when splitting the data.
+  By default this parameter is set to ":"
+  
+  
 
-**SplitPickDelimiter**
-defaults to  ":".
+**Index** (default: 0)
 
-
-**ApplyTo**
-defines the formatter content to use
-
+  Defines the index to pick.
+  By default this parameter is set to 0.
+  
+  
 
 Parameters (from SimpleFormatter)
 ---------------------------------
 
 **ApplyTo**
-chooses the part of the message the formatting should be
-applied to. Use "payload"  or "" to target the message payload;
-othe values specify the name of a metadata field to target.
-Default "".
 
+  This value chooses the part of the message the formatting should be
+  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  By default this parameter is set to "".
+  
+  
 
-Example
--------
+Examples
+--------
 
 .. code-block:: yaml
 
-	 - format.SplitPick:
-		  Index: 0
-		  Delimiter: ":"
-		  ApplyTo: "payload" # payload or <metaKey>
+	 ExampleConsumer:
+	   Type: consumer.Console
+	   Streams: console
+	   Modulators:
+	     - format.SplitPick:
+	       Index: 2
+	       Delimiter: ":"
+	
 	
 
 

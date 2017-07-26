@@ -6,22 +6,29 @@ import (
 	"github.com/trivago/gollum/core"
 )
 
-// SplitPick formatter plugin
-// SplitPick separates value of messages according to a specified delimiter
-// and returns the given indexed message. The index are zero based.
+// SplitPick formatter
 //
-// Configuration example
+// This formatter splits data into an array by using a given delimiter and
+// extracts a given index out of that array. The value of that index will be
+// written back.
 //
-//  - format.SplitPick:
-//	  Index: 0
-//	  Delimiter: ":"
-//	  ApplyTo: "payload" # payload or <metaKey>
+// Parameters
 //
-// SplitPickIndex defaults to 0.
+// - Delimiter: Defines the delimiter to use when splitting the data.
+// By default this parameter is set to ":"
 //
-// SplitPickDelimiter defaults to  ":".
+// - Index: Defines the index to pick.
+// By default this parameter is set to 0.
 //
-// ApplyTo defines the formatter content to use
+// Examples
+//
+//  ExampleConsumer:
+//    Type: consumer.Console
+//    Streams: console
+//    Modulators:
+//      - format.SplitPick:
+//        Index: 2
+//        Delimiter: ":"
 type SplitPick struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	index                int    `config:"Index" default:"0"`

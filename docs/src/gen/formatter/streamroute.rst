@@ -11,48 +11,54 @@ is not changed.
 
 
 
+
 Parameters
 ----------
 
+**Delimiter** (default: :)
+
+  This value defines the delimiter to search when extracting the stream name.
+  By default this parameter is set to ":".
+  
+  
+
 **StreamModulator**
-is used when StreamRouteFormatStream is set to true.
-By default this is empty.
 
-
-**Delimiter**
-defines the delimiter to search when extracting the stream
-name. By default this is set to ":".
-
-
-**StreamRouteFormatStream**
-can be set to true to apply StreamRouteFormatter to both
-parts of the message (stream and data). Set to false by default.
-
-
-**ApplyTo**
-defines the formatter content to use
-
+  A list of further modulators to format and filter the extracted stream name.
+  By default this parameter is "empty".
+  
+  
 
 Parameters (from SimpleFormatter)
 ---------------------------------
 
 **ApplyTo**
-chooses the part of the message the formatting should be
-applied to. Use "payload"  or "" to target the message payload;
-othe values specify the name of a metadata field to target.
-Default "".
 
+  This value chooses the part of the message the formatting should be
+  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  By default this parameter is set to "".
+  
+  
 
-Example
--------
+Examples
+--------
 
 .. code-block:: yaml
 
-	 - format.StreamRoute:
-	   StreamModulator:
-	     - format.Forward
-	   Delimiter: ":"
-	   ApplyTo: "payload" # payload or <metaKey>
+	This example will set the stream name for messages like `<error>:a message string` to `error`
+	and `a message string` as payload:
+	
+	 exampleConsumer:
+	   Type: consumer.Console
+	   Streams: "*"
+	   Modulators:
+	     - format.StreamRoute:
+	         Delimiter: ":"
+	         StreamModulator:
+	           - format.Trim:
+	               LeftSeparator: <
+	               RightSeparator: >
+	
 	
 
 

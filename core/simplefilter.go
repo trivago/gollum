@@ -19,17 +19,16 @@ import (
 )
 
 // SimpleFilter plugin base type
-// This type defines a common baseclass for all Filters. All filter plugins
+//
+// This type defines a common base class for all Filters. All filter plugins
 // should derive from this class but don't necessarily need to.
-// Configuration example:
 //
-//  - "plugin":
-//    Filters:
-//      - SomeFilter:
-//        FilteredStream: ""
+// Parameters
 //
-// FilteredStream defines a stream where filtered messages get sent to.
-// You can disable this behavior by setting "". Set to "" by default.
+// - FilteredStream: This value defines a stream where filtered messages get sent to.
+// You can disable this behavior by setting "".
+// By default this parameter is set to "".
+//
 type SimpleFilter struct {
 	Logger           logrus.FieldLogger
 	filteredStreamID MessageStreamID `config:"FilteredStream"`

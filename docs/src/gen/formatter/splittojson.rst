@@ -8,54 +8,62 @@ the result into a JSON object by using an array based mapping
 
 
 
+
 Parameters
 ----------
 
-**SplitBy**
-defines the separator character to use when processing a
-message. By default this is set to "|".
+**KeepJSON** (default: true)
 
-
-**KeepJSON**
-can be set to false to escape texts that are JSON
-payloads as regualar strings. Otherwise JSON payload will be taken as-is and
-set to the corresponding key. By default set to "true"
-
+  This value can be set to "false" to escape texts that are JSON
+  payloads as regualar strings. Otherwise JSON payload will be taken as-is and
+  set to the corresponding key.
+  By default this parameter is set to "true".
+  
+  
 
 **Keys**
-defines an array of keys to apply to the tokens generated
-by splitting a message by SplitToJSONToken. The keys listed here are
-applied to the resulting token array by index.
-This list is empty by default.
 
+  This value defines an array of keys to apply to the tokens generated
+  by splitting a message by `SplitBy`. The keys listed here are applied to the resulting
+  token array by index.
+  
+  
 
-**ApplyTo**
-defines the formatter content to use
+**SplitBy** (default: |)
 
+  This value defines the separator character to use when processing a message.
+  By default this parameter is set to "|".
+  
+  
 
 Parameters (from SimpleFormatter)
 ---------------------------------
 
 **ApplyTo**
-chooses the part of the message the formatting should be
-applied to. Use "payload"  or "" to target the message payload;
-othe values specify the name of a metadata field to target.
-Default "".
 
+  This value chooses the part of the message the formatting should be
+  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  By default this parameter is set to "".
+  
+  
 
-Example
--------
+Examples
+--------
 
 .. code-block:: yaml
 
-	 - format.SplitToJSON:
-	     SplitBy: "|"
-	     KeepJSON: true
-	     Keys:
-	       - "timestamp"
-	       - "server"
-	       - "error"
-	     ApplyTo: "payload" # payload or <metaKey>
+	This example will format a input of `value1,value2,value3` to a json string of `{"foo":"value1", "bar":"value2"}`:
+	
+	 exampleConsumer:
+	   Type: consumer.Console
+	   Streams: "*"
+	   Modulators:
+	     - format.SplitToJSON:
+	         SplitBy: ","
+	         Keys:
+	           - foo
+	           - bar
+	
 	
 
 

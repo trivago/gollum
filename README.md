@@ -48,6 +48,7 @@ If you can't find your answer in the documentation or have other questions you c
 
 ## Producers (writing data)
 
+* `AwsS3` write data to [Amazon S3](https://aws.amazon.com/de/s3/) stream.
 * `Console` write to stdin or stdout.
 * `ElasticSearch` write to [elasticsearch](http://www.elasticsearch.org/) via http/bulk.
 * `File` write to a file. Supports log rotation and compression.
@@ -59,7 +60,6 @@ If you can't find your answer in the documentation or have other questions you c
 * `Null` like /dev/null.
 * `Proxy` two-way communication proxy for simple protocols.
 * `Redis` write data to [Redis](https://redis.io).
-* `S3` write data to [Amazon S3](https://aws.amazon.com/de/s3/) stream.
 * `Scribe` send messages to a [Facebook scribe](https://github.com/facebookarchive/scribe) server.
 * `Socket` send messages to a socket (gollum specific protocol).
 * `Spooling` write messages to disk and retry them later.
@@ -255,7 +255,7 @@ There are also supplementary targets for make:
 * `vendor` install [Glide](https://github.com/Masterminds/glide) and update all dependencies
 * `aws` build for Linux x64 and generate an [Elastic Beanstalk](https://aws.amazon.com/de/elasticbeanstalk/) package
 
-If you want to use native plugins (contrib/native) or self provided you will have to enable the corresponding imports in the file `contrib_loader.go`. You can copy the `contrib_loader.go.dist` file here and active the plugins you want to use.
+If you want to use native plugins (contrib/native) or self provided you will have to enable the corresponding imports in the file `contrib_loader.go`. You can copy the `contrib_loader.go.dist` file here and activate the plugins you want to use.
 
 Doing so will disable the possibility to do cross-platform builds for most users.
 Please check also the requirements for each plugin.

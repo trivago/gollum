@@ -39,82 +39,91 @@ const (
 // The socket consumer reads messages directly as-is from a given socket.
 // Messages are separated from the stream by using a specific partitioner method.
 //
-// Configuration example
+// Parameters
 //
-//  - "consumer.Socket":
-//    Address: ":5880"
-//    Permissions: "0770"
-//    Acknowledge: ""
-//    Partitioner: "delimiter"
-//    Delimiter: "\n"
-//    Offset: 0
-//    Size: 1
-//    ReconnectAfterSec: 2
-//    AckTimoutSec: 2
-//    ReadTimeoutSec: 5
-//
-// Address defines the protocol, host and port or socket to bind to.
+// - Address: This value defines the protocol, host and port or socket to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
-// like "unix:///var/gollum.socket". By default this is set to ":5880".
+// like "unix:///var/gollum.socket".
+// By default this parameter is set to ":5880".
 //
-// Permissions sets the file permissions for "unix://" based connections as an
-// four digit octal number string. By default this is set to "0770".
+// - Permissions: This value sets the file permissions for "unix://" based connections as an
+// four digit octal number string.
+// By default this parameter is set to "0770".
 //
-// Acknowledge can be set to a non-empty value to inform the writer on success
+// - Acknowledge: This value can be set to a non-empty value to inform the writer on success
 // or error. On success the given string is send. Any error will close the
-// connection. This setting is disabled by default, i.e. set to "".
-// If Acknowledge is enabled and a IP-Address is given to Address, TCP is
+// connection. If Acknowledge is enabled and a IP-Address is given to Address, TCP is
 // used to open the connection, otherwise UDP is used.
-// If an error occurs during write "NOT <Acknowledge>" is returned.
+// If an error occurs during write "NOT <Acknowledge>" is returned. You can set this parameter to "" for disabling.
+// By default this parameter is set to "".
 //
-// Partitioner defines the algorithm used to read messages from the router.
-// By default this is set to "delimiter".
-// * "delimiter" separates messages by looking for a delimiter string.
+// - Partitioner: This value defines the algorithm used to read messages from the router.
+// The following options are available:
+//   * "delimiter" separates messages by looking for a delimiter string.
 //   The delimiter is removed from the message.
-// * "ascii" reads an ASCII number at a given offset until a given delimiter is found.
+//   * "ascii" reads an ASCII number at a given offset until a given delimiter is found.
 //   Everything to the right of and including the delimiter is removed from the message.
-// * "binary" reads a binary number at a given offset and size.
-// * "binary_le" is an alias for "binary".
-// * "binary_be" is the same as "binary" but uses big endian encoding.
-// * "fixed" assumes fixed size messages.
+//   * "binary" reads a binary number at a given offset and size.
+//   * "binary_le" is an alias for "binary".
+//   * "binary_be" is the same as "binary" but uses big endian encoding.
+//   * "fixed" assumes fixed size messages.
+// By default this is set to "delimiter".
 //
-// Delimiter defines the delimiter used by the text and delimiter partitioner.
-// By default this is set to "\n".
+// - Delimiter: This value defines the delimiter used by the text and delimiter partitioner.
+// By default this parameter is set to "\n".
 //
-// Offset defines the offset used by the binary and text partitioner.
-// By default this is set to 0. This setting is ignored by the fixed partitioner.
+// - Offset: This value defines the offset used by the binary and text partitioner.
+// This setting is ignored by the fixed partitioner.
+// By default this parameter is set to "0".
 //
-// Size defines the size in bytes used by the binary or fixed partitioner.
+// - Size: This value defines the size in bytes used by the binary or fixed partitioner.
 // For binary this can be set to 1,2,4 or 8. By default 4 is chosen.
-// For fixed this defines the size of a message. By default 1 is chosen.
+// For fixed this defines the size of a message.
+// By default this parameter is set to "1".
 //
-// ReconnectAfterSec defines the number of seconds to wait before a connection
-// is tried to be reopened again. By default this is set to 2.
+// - ReconnectAfterSec: This value defines the number of seconds to wait before a connection
+// is tried to be reopened again.
+// By default this parameter is set to "2".
 //
-// AckTimoutSec defines the number of seconds waited for an acknowledge to
-// succeed. Set to 2 by default.
+// - AckTimoutSec: This value defines the number of seconds waited for an acknowledge to succeed.
+// By default this parameter is set to "2".
 //
-// ReadTimoutSec defines the number of seconds that waited for data to be
-// received. Set to 5 by default.
+// - ReadTimoutSec: This value defines the number of seconds that waited for data to be received.
+// By default this parameter is set to "5".
 //
-// RemoveOldSocket toggles removing exisiting files with the same name as the
-// socket (unix://<path>) prior to connecting. Enabled by default.
+// - RemoveOldSocket: This value toggles removing existing files with the same name as the
+// socket (unix://<path>) prior to connecting.
+// By default this parameter is set to "true".
+//
+//
+// Examples
+//
+// This example open a socket and expect messages with a fixed length of 256 bytes:
+//
+//  socketIn:
+//    Type: consumer.Socket
+//    Address: unix:///var/gollum.socket
+//    Partitioner: fixed
+//    Size: 256
+//
 type Socket struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	listen              io.Closer
-	clientLock          *sync.Mutex
-	clients             *list.List
-	protocol            string
-	address             string
-	acknowledge         string        `config:"Acknowledge"`
-	delimiter           string        `config:"Delimiter" default:"\n"`
-	reconnectTime       time.Duration `config:"ReconnectAfterSec" default:"2" metric:"sec"`
-	ackTimeout          time.Duration `config:"AckTimoutSec" default:"2" metric:"sec"`
-	readTimeout         time.Duration `config:"ReadTimoutSec" default:"5" metric:"sec"`
-	fileFlags           os.FileMode   `config:"Permissions" default:"0770"`
-	clearSocket         bool          `config:"RemoveOldSocket" default:"true"`
-	offset              int           `config:"Offset"`
-	flags               tio.BufferedReaderFlags
+
+	acknowledge   string        `config:"Acknowledge" default:""`
+	delimiter     string        `config:"Delimiter" default:"\n"`
+	reconnectTime time.Duration `config:"ReconnectAfterSec" default:"2" metric:"sec"`
+	ackTimeout    time.Duration `config:"AckTimoutSec" default:"2" metric:"sec"`
+	readTimeout   time.Duration `config:"ReadTimoutSec" default:"5" metric:"sec"`
+	fileFlags     os.FileMode   `config:"Permissions" default:"0770"`
+	clearSocket   bool          `config:"RemoveOldSocket" default:"true"`
+	offset        int           `config:"Offset" default:"0"`
+
+	listen     io.Closer
+	clientLock *sync.Mutex
+	clients    *list.List
+	protocol   string
+	address    string
+	flags      tio.BufferedReaderFlags
 }
 
 func init() {

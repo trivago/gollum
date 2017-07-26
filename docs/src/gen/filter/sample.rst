@@ -3,41 +3,58 @@
 Sample
 ======
 
-This plugin blocks messages after a certain number of messages per second
-has been reached.
+This plugin can be used to get n out of m messages (downsample).
+By this you can reduce the amount of messages and the plugin start blocking
+after a certain number of messages has been reached.
+
 
 
 
 Parameters
 ----------
 
-**SampleRatePerGroup**
-defines how many messages are passed through the filter
-in each group. By default this is set to 1.
+**SampleGroupSize** (default: 2)
 
-
-**SampleGroupSize**
-defines how many messages make up a group. Messages over
-SampleRatePerGroup within a group are filtered. By default this is set to 1.
-
+  This value defines how many messages make up a group. Messages over
+  SampleRatePerGroup within a group are filtered.
+  By default this parameter is set to "2".
+  
+  
 
 **SampleRateIgnore**
-defines a list of streams that should not be affected by
-sampling. This is useful for e.g. producers listeing to "*".
-By default this list is empty.
 
+  This value defines a list of streams that should not be affected by
+  sampling. This is useful for e.g. producers listening to "*".
+  By default this parameter is set to "empty list".
+  
+  
 
-Example
--------
+**SampleRatePerGroup** (default: 1)
+
+  This value defines how many messages are passed through
+  the filter in each group.
+  By default this parameter is set to "1".
+  
+  
+
+Examples
+--------
 
 .. code-block:: yaml
 
-	  - "stream.Broadcast":
-		   Filter: "filter.Sample"
-		   SampleRatePerGroup: 1
-		   SampleGroupSize: 1
-		   SampleRateIgnore:
-		     - "foo"
+	This example will block 8 from 10 messages:
+	
+	 exampleConsumer:
+	   Type: consumer.Console
+	   Streams: "*"
+	   Modulators:
+	     - filter.Sample:
+	       SampleRatePerGroup: 2
+	       SampleGroupSize: 10
+	       SampleIgnore:
+	         - foo
+	         - bar
+	
 	
 
 

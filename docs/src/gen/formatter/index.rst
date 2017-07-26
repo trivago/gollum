@@ -13,9 +13,11 @@
     /src/gen/formatter/double.rst
     /src/gen/formatter/envelope.rst
     /src/gen/formatter/extractjson.rst
+    /src/gen/formatter/groktojson.rst
     /src/gen/formatter/hostname.rst
     /src/gen/formatter/identifier.rst
     /src/gen/formatter/jsontoarray.rst
+    /src/gen/formatter/jsontoinflux10.rst
     /src/gen/formatter/metadatacopy.rst
     /src/gen/formatter/processjson.rst
     /src/gen/formatter/processtsv.rst

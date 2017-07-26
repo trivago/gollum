@@ -17,6 +17,7 @@ package core
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/thealthcheck"
+	"strings"
 	"time"
 )
 
@@ -25,16 +26,16 @@ import (
 // This type defines a common baseclass for routers. All routers should
 // derive from this class, but not necessarily need to.
 //
-// Configuration example:
-// [N/A - placeholder needed for doc generator]
+// Parameters
 //
-// Stream Specifies the name of the stream this plugin is supposed to
+// - Stream: This value specifies the name of the stream this plugin is supposed to
 // read messages from.
 //
-// Filters A list of zero or more Filter plugins to connect to this router.
+// - Filters: A optional list of zero or more Filter plugins to connect to this router.
 //
-// TimeoutMs ... (default: 0, metric: ms)
-//
+// - TimeoutMs: This value set a timeout in milliseconds until a message should handled by the router.
+// You can disable this behavior by setting "0".
+// By default this parameter is set to "0".
 //
 type SimpleRouter struct {
 	id        string
@@ -50,7 +51,7 @@ func (router *SimpleRouter) Configure(conf PluginConfigReader) {
 	router.id = conf.GetID()
 	router.Logger = conf.GetLogger()
 
-	if router.streamID == WildcardStreamID {
+	if router.streamID == WildcardStreamID && strings.Index(router.id, GeneratedRouterPrefix) != 0 {
 		router.Logger.Info("A wildcard stream configuration only affects the wildcard stream, not all routers")
 	}
 }

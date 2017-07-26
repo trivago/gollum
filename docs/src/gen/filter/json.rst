@@ -3,52 +3,69 @@
 JSON
 ====
 
-This plugin allows filtering of JSON messages by looking at certain fields.
-Note that this filter is quite expensive due to JSON marshaling and regexp
-testing of every message passing through it.
+This filter allows inspecting fields of JSON encoded datasets and accepting
+or rejecting messages based on their contents.
+
 
 
 
 Parameters
 ----------
 
-**Reject**
-defines fields that will cause a message to be rejected if the
-given regular expression matches. Rejects are checked before Accepts.
-Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
-
-
 **Accept**
-defines fields that will cause a message to be rejected if the
-given regular expression does not match.
-Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
 
+  Defines fields that will cause a message to be rejected if the
+  given regular expression does not match. Accept is checked after Reject.
+  Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
+  By default this parameter is set to an empty list.
+  
+  
 
 **ApplyTo**
-(TBD)
 
+  Defines which part of the message is affected by the filter.
+  When setting this parameter to "" this filter is applied to the
+  message payload. Every other value denotes a metadata key.
+  By default this parameter is set to "".
+  
+  
+
+**Reject**
+
+  Defines fields that will cause a message to be rejected if the
+  given regular expression matches. Reject is checked before Accept.
+  Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
+  By default this parameter is set to an empty list.
+  
+  
 
 Parameters (from SimpleFilter)
 ------------------------------
 
 **FilteredStream**
-defines a stream where filtered messages get sent to.
-You can disable this behavior by setting "". Set to "" by default.
 
+  This value defines a stream where filtered messages get sent to.
+  You can disable this behavior by setting "".
+  By default this parameter is set to "".
+  
+  
 
-Example
--------
+Examples
+--------
 
 .. code-block:: yaml
 
-	 - "filter.JSON":
-	   Reject: "foo"
-	     "command" : "state\d\..*"
-	   Accept:
-	     "args/results[0]value" : "true"
-	     "args/results[1]" : "true"
-	     "command" : "state\d\..*"
-	   ApplyTo: "payload" # payload or <metaKey>
+	 ExampleConsumer:
+	   Type: consumer.Console
+	   Streams: console
+	   Modulators:
+	     - filter.JSON
+	       Reject:
+	         "type" : "^log\."
+	       Accept:
+	         "source" : "^www\d+\."
+	         "data/active" : "true"
+	
 	
 
 

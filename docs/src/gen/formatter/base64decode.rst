@@ -9,37 +9,42 @@ and the decoded part is returned. RFC 4648 is expected.
 
 
 
+
 Parameters
 ----------
 
 **Base64Dictionary**
-defines the 64-character base64 lookup dictionary to use. When
-left empty a dictionary as defined by RFC4648 is used. This is the default.
 
-
-**Base64DataFormatter**
-defines a formatter that is applied before the base64
-decoding takes place. By default this is set to "format.Forward"
-
+  This value defines the 64-character base64 lookup dictionary to use.
+  When left empty a dictionary as defined by RFC4648 is used.
+  By default this parameter is set to "".
+  
+  
 
 Parameters (from SimpleFormatter)
 ---------------------------------
 
 **ApplyTo**
-chooses the part of the message the formatting should be
-applied to. Use "payload"  or "" to target the message payload;
-othe values specify the name of a metadata field to target.
-Default "".
 
+  This value chooses the part of the message the formatting should be
+  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  By default this parameter is set to "".
+  
+  
 
-Example
--------
+Examples
+--------
 
 .. code-block:: yaml
 
-	 - format.Base64Decode:
-	     Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
-	     ApplyTo: "payload" # payload or <metaKey>
+	This example expect a base64 string inout to the console and decode this for the message payload.
+	
+	 exampleConsumer:
+	   Type: consumer.Console
+	   Streams: "*"
+	   Modulators:
+	     - format.Base64Decode
+	
 	
 
 

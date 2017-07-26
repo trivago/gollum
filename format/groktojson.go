@@ -18,40 +18,53 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/trivago/gollum/core"
-	"github.com/vjeantet/grok"
+	"github.com/trivago/grok"
 )
 
 // GrokToJSON formatter plugin
+//
 // GrokToJSON is a formatter that applies regex filters on messages.
 // It works by combining text patterns into something that matches your logs.
-// Configuration example
-//
-// - format.GrokToJSON:
-//     Patterns:
-//       - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.gauge-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_gauge:float}\s*%{INT:time}
-//       - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.latency-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_latency:float}\s*%{INT:time}
-//       - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.derive-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_derive:float}\s*%{INT:time}
-//       - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value:float}\s*%{INT:time}
+// See https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html#_grok_basics to get
+// more information about grok basics.
 //
 // The output format is JSON.
-// For example, if using the example configuration from above and the following line as input
-// `us-west.servicename.webserver0.this.is.the.measurement 12.0 1497003802`
 //
-// the output will be as follows:
-// {
-//   "datacenter": "us-west",
-//   "service": "servicename",
-//   "host": "webserver0",
-//   "measurement": "this.is.the.measurement",
-//   "value": "12.0",
-//   "time": "1497003802"
-// }
-// Patterns is a list of grok patterns that will be executed on the given message.
+// Parameters
+//
+// - Patterns: A a list of grok patterns that will be executed on the given message.
 // The first matching pattern will be used to parse the message.
+//
+// Examples
+//
+// This example will transform the an unstructured input to a structured json output.
+// Example input:
+//  us-west.servicename.webserver0.this.is.the.measurement 12.0 1497003802
+// Output:
+//  {
+//    "datacenter": "us-west",
+//    "service": "servicename",
+//    "host": "webserver0",
+//    "measurement": "this.is.the.measurement",
+//    "value": "12.0",
+//    "time": "1497003802"
+//  }
+//
+// Config:
+//  exampleConsumer:
+//    Type: consumer.Console
+//    Streams: "*"
+//    Modulators:
+//      - format.GrokToJSON:
+//          Patterns:
+//            - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.gauge-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_gauge:float}\s*%{INT:time}
+//            - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.latency-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_latency:float}\s*%{INT:time}
+//            - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.derive-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_derive:float}\s*%{INT:time}
+//            - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value:float}\s*%{INT:time}
+//
 type GrokToJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	grok                 *grok.Grok
-	patterns             []string `config:"Patterns"`
+	exp                  []*grok.CompiledGrok
 }
 
 func init() {
@@ -60,12 +73,20 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *GrokToJSON) Configure(conf core.PluginConfigReader) {
-	grok, err := grok.NewWithConfig(&grok.Config{RemoveEmptyValues: true})
+	grokParser, err := grok.New(grok.Config{RemoveEmptyValues: true})
 	if err != nil {
 		conf.Errors.Push(err)
 	}
 
-	format.grok = grok
+	//format.grok = grok
+	patterns := conf.GetStringArray("Patterns", []string{})
+	for _, p := range patterns {
+		exp, err := grokParser.Compile(p)
+		if err != nil {
+			conf.Errors.Push(err)
+		}
+		format.exp = append(format.exp, exp)
+	}
 }
 
 // ApplyFormatter update message payload
@@ -89,13 +110,12 @@ func (format *GrokToJSON) ApplyFormatter(msg *core.Message) error {
 // grok iterates over all defined patterns and parses the content based on the first match.
 // It returns a map of the defined values.
 func (format *GrokToJSON) applyGrok(content string) (map[string]string, error) {
-	for _, pattern := range format.patterns {
-		values, err := format.grok.Parse(pattern, content)
-
-		if err == nil && len(values) > 0 {
+	for _, exp := range format.exp {
+		values := exp.ParseString(content)
+		if len(values) > 0 {
 			return values, nil
 		}
 	}
-	format.Logger.Errorf("Message does not match any pattern: %s", content)
+	format.Logger.Warningf("Message does not match any pattern: %s", content)
 	return nil, fmt.Errorf("Grok parsing error")
 }

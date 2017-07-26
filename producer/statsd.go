@@ -117,15 +117,14 @@ func (prod *Statsd) transformMessages(messages []*core.Message) {
 
 	// Format and sort
 	for _, msg := range messages {
-		msgCopy := msg.Clone()
 
 		// Select the correct statsd metric
-		metricName, streamMapped := prod.streamMap[msgCopy.GetStreamID()]
+		metricName, streamMapped := prod.streamMap[msg.GetStreamID()]
 		if !streamMapped {
 			metricName, streamMapped = prod.streamMap[core.WildcardStreamID]
 			if !streamMapped {
-				metricName = core.StreamRegistry.GetStreamName(msgCopy.GetStreamID())
-				prod.streamMap[msgCopy.GetStreamID()] = metricName
+				metricName = core.StreamRegistry.GetStreamName(msg.GetStreamID())
+				prod.streamMap[msg.GetStreamID()] = metricName
 			}
 		}
 
@@ -136,7 +135,7 @@ func (prod *Statsd) transformMessages(messages []*core.Message) {
 
 		if prod.useMessage {
 			// case msgData to int
-			if val, err := strconv.ParseInt(msgCopy.String(), 10, 64); err == nil {
+			if val, err := strconv.ParseInt(msg.String(), 10, 64); err == nil {
 				metricValues[metricName] += val
 			} else {
 				prod.Logger.Warning("message was skipped")

@@ -19,13 +19,18 @@ import (
 	"sync"
 )
 
-// Null producer plugin
-// This producer does nothing and provides only bare-bone configuration (i.e.
-// enabled and streams). Use this producer to test consumer performance.
+// Null producer
+//
+// This producer is meant to be used as a sink for data. It will throw away all
+// messages without notice.
+//
+// Examples:
+//
+//  TrashCan:
+//    Type: producer.Null
+//    Streams: trash
 type Null struct {
 	core.DirectProducer `gollumdoc:"embed_type"`
-	control             chan core.PluginControl
-	streams             []core.MessageStreamID
 }
 
 func init() {

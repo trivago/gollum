@@ -17,10 +17,7 @@ CHECK_PKGS=$(shell go list ./... | grep -vE '^github.com/trivago/gollum/vendor/'
 CHECK_FILES=$(shell find . -type f -name '*.go' | grep -vE '^\./vendor/')
 
 LINT_PKGS=$(shell go list ./... | grep -vE '^github.com/trivago/gollum/(core$$|vendor/)')
-LINT_FILES_CORE=$(shell find core -type f -name '*.go' -not -name '*.pb.go')
-
-LINT_PKGS=$(shell go list ./... | grep -vE '^github.com/trivago/gollum/(core$$|vendor/)')
-LINT_FILES_CORE=$(shell find core -type f -name '*.go' -not -name '*.pb.go')
+LINT_FILES_CORE=$(shell find core -maxdepth 1 -type f -name '*.go' -not -name '*.pb.go')
 
 all: clean vendor test freebsd linux docker mac pi win examples current
 
@@ -100,9 +97,8 @@ list-gitignored:
 # Vendor management
 
 vendor:
-	@go get -u github.com/Masterminds/glide
 	@glide cc
-	@glide update --strip-vendor
+	glide update --strip-vendor
 
 # Runs "glide install" in a managed way - clears glide's cache and removes git-ignored stuff from ./vendor.
 # This leaves ./vendor in the same state it would be when checked out with git.
@@ -111,7 +107,7 @@ vendor-install: _vendor-install vendor-rm-ignored
 _vendor-install:
 	glide cache-clear
 	rm -rf vendor
-	glide install
+	glide install --strip-vendor
 
 # Runs "glide update" in a managed way - clears glide's cache and removes ignored stuff from ./vendor
 # This leaves ./vendor in the same state it would be when checked out with git.
@@ -138,7 +134,7 @@ test: vet lint fmt-check unit integration
 
 unit:
 	@echo "go tests SDK"
-	@$(BUILD_ENV) go test $(BUILD_FLAGS) -v -cover -timeout 10s -race -tags ${UNIT_TEST_TAGS} $(UNIT_TEST_ONLY_PKGS)
+	$(BUILD_ENV) go test $(BUILD_FLAGS) -v -cover -timeout 10s -race -tags ${UNIT_TEST_TAGS} $(UNIT_TEST_ONLY_PKGS)
 
 coverprofile:
 	@echo "go tests -covermode=count -coverprofile=profile.cov"
@@ -152,7 +148,7 @@ coverprofile:
 
 integration: current
 	@echo "go tests integration"
-	@$(BUILD_ENV) go test $(BUILD_FLAGS) -v -tags="integration" $(INTEGRATION_TEST_ONLY_PKGS)
+	$(BUILD_ENV) go test $(BUILD_FLAGS) -v -race -tags="integration" $(INTEGRATION_TEST_ONLY_PKGS)
 
 pre-commit: vet lint fmt
 
@@ -186,3 +182,11 @@ ineffassign:
 	@echo "Running ineffassign"
 	@go get -u github.com/gordonklaus/ineffassign
 	@ineffassign ./
+
+# .git/hooks/pre-commit
+#
+# #!/bin/bash
+# # Run tests
+# make vet lint fmt-check ineffassign >&2
+# exit $?
+

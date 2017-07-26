@@ -19,43 +19,32 @@ import (
 )
 
 // DirectProducer plugin base type
+//
 // This type defines a common baseclass for producers. All producers should
 // derive from this class, but not necessarily need to.
-// Configuration example:
 //
-//  - "producer.Foobar":
-//    Enable: true
-//    ID: ""
-//    ShutdownTimeoutMs: 1000
-//    Modulators:
-//      - format.Forward
-//      - filter.All
-//    FallbackStream: "_DROPPED_"
-//    Streams:
-//      - "foo"
-//      - "bar"
+// Parameters
 //
-// Enable switches the consumer on or off. By default this value is set to true.
+// - Enable: switches the consumer on or off. By default this value is set to true.
 //
-// ID allows this producer to be found by other plugins by name. By default this
+// - ID: allows this producer to be found by other plugins by name. By default this
 // is set to "" which does not register this producer.
 //
-// ShutdownTimeoutMs sets a timeout in milliseconds that will be used to detect
+// - ShutdownTimeoutMs: sets a timeout in milliseconds that will be used to detect
 // a blocking producer during shutdown. By default this is set to 1 second.
 // Decreasing this value may lead to lost messages during shutdown. Increasing
 // this value will increase shutdown time.
 //
-// Streams contains either a single string or a list of strings defining the
+// - Streams: contains either a single string or a list of strings defining the
 // message channels this producer will consume. By default this is set to "*"
 // which means "listen to all routers but the internal".
 //
-// FallbackStream defines the stream used for messages that are sent to the fallback after
+// - FallbackStream: defines the stream used for messages that are sent to the fallback after
 // a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
 //
-// Modulators sets formatter and filter to use. Each formatter has its own set of options
+// - Modulators: sets formatter and filter to use. Each formatter has its own set of options
 // which can be set here, too. By default this is set to format.Forward.
 // Each producer decides if and when to use a Formatter.
-//
 //
 type DirectProducer struct {
 	SimpleProducer

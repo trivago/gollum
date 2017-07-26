@@ -5,18 +5,18 @@
     :maxdepth: 9
 
     /src/gen/producer/InfluxDB.rst
+    /src/gen/producer/awsFirehose.rst
+    /src/gen/producer/awsKinesis.rst
+    /src/gen/producer/awsS3.rst
     /src/gen/producer/benchmark.rst
     /src/gen/producer/console.rst
     /src/gen/producer/elasticsearch.rst
     /src/gen/producer/file.rst
-    /src/gen/producer/firehose.rst
     /src/gen/producer/httprequest.rst
     /src/gen/producer/kafka.rst
-    /src/gen/producer/kinesis.rst
     /src/gen/producer/null.rst
     /src/gen/producer/proxy.rst
     /src/gen/producer/redis.rst
-    /src/gen/producer/s3.rst
     /src/gen/producer/scribe.rst
     /src/gen/producer/socket.rst
     /src/gen/producer/spooling.rst

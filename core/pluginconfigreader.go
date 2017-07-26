@@ -46,20 +46,22 @@ type PluginConfigReader struct {
 
 // NewPluginConfigReader creates a new reader on top of a given config.
 func NewPluginConfigReader(config *PluginConfig) PluginConfigReader {
-	errorStack := tgo.NewErrorStack()
+	errors := tgo.NewErrorStack()
+	errors.SetFormat(tgo.ErrorStackFormatCSV)
 	return PluginConfigReader{
 		WithError: NewPluginConfigReaderWithError(config),
-		Errors:    &errorStack,
+		Errors:    &errors,
 	}
 }
 
 // NewPluginConfigReaderFromReader encapsulates a WithError reader that
 // is already attached to a config to read from.
 func NewPluginConfigReaderFromReader(reader PluginConfigReaderWithError) PluginConfigReader {
-	errorStack := tgo.NewErrorStack()
+	errors := tgo.NewErrorStack()
+	errors.SetFormat(tgo.ErrorStackFormatCSV)
 	return PluginConfigReader{
 		WithError: reader,
-		Errors:    &errorStack,
+		Errors:    &errors,
 	}
 }
 

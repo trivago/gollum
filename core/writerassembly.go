@@ -21,7 +21,7 @@ import (
 )
 
 // WriterAssembly is a helper struct for io.Writer compatible classes that use
-// messagebatch.
+// message batch.
 type WriterAssembly struct {
 	writer      io.Writer
 	flush       func(*Message)
@@ -89,14 +89,12 @@ func (asm *WriterAssembly) Write(messages []*Message) {
 	// Format all messages
 	contentLen := 0
 	for _, msg := range messages {
-		msgCopy := msg.Clone()
-
-		if contentLen+len(msgCopy.GetPayload()) > len(asm.buffer) {
-			asm.buffer = append(asm.buffer[:contentLen], msgCopy.GetPayload()...)
+		if contentLen+len(msg.GetPayload()) > len(asm.buffer) {
+			asm.buffer = append(asm.buffer[:contentLen], msg.GetPayload()...)
 		} else {
-			copy(asm.buffer[contentLen:], msgCopy.GetPayload())
+			copy(asm.buffer[contentLen:], msg.GetPayload())
 		}
-		contentLen += len(msgCopy.GetPayload())
+		contentLen += len(msg.GetPayload())
 	}
 
 	// Route all messages if they could not be written

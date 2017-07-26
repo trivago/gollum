@@ -19,39 +19,39 @@ import (
 	"regexp"
 )
 
-// RegExp filter plugin
+// RegExp filter
 //
-// This plugin filters messages using regular expressions.
+// This filter allows to reject or accept messages based on regular expressions.
 //
-// Configuration example
+// Parameters
 //
-// # Generate junk
-// JunkGenerator:
-//   Type: "consumer.Profiler"
-//   Message: "%20s"
-//   Streams: "junkstream"
-//   Characters: "abcdefghijklmZ"
-//   KeepRunning: true
-//   Runs: 10000
-//   Batches: 3000000
-//   DelayMs: 500
-// # Produce junk
-// JunkProd00:
-//   Type: "producer.Console"
-//   Streams: "junkstream"
-//   Modulators:
-//     - "filter.RegExp":
-//         Expression: "Z"
-//     - "format.Envelope":
-//         Prefix: "[junk_00] "
+// - FilterExpression: Defines a regular expression that will allow a message to
+// pass on if it is matched. This parameter is ignored when set to "".
+// FilterExpression will be checked after FilterExpressionNot.
+// By default this parameter is set to "".
 //
-// FilterExpression defines the regular expression used for matching the message
-// payload. If the expression matches, the message is passed.
-// FilterExpression is evaluated after FilterExpressionNot.
+// - FilterExpressionNot: Defines a regular expression that will allow a message
+// to pass on if it is not matched. This parameter is ignored when set to "".
+// FilterExpressionNot will be checked before FilterExpression.
+// By default this parameter is set to "".
 //
-// FilterExpressionNot defines a negated regular expression used for matching
-// the message payload. If the expression matches, the message is blocked.
-// FilterExpressionNot is evaluated before FilterExpression.
+// - ApplyTo: Defines which part of the message is affected by the filter.
+// When setting this parameter to "" this filter is applied to the
+// message payload. Every other value denotes a metadata key.
+// By default this parameter is set to "".
+//
+// Examples
+//
+// This example accepts only accesslog entries that returned status 2xx or 3xx
+// and were not coming from staging systems.
+//
+//  ExampleConsumer:
+//    Type: consumer.Console
+//    Streams: console
+//    Modulators:
+//      - filter.RegExp
+//        FilterExpressionNot: " stage\."
+//        FilterExpression: "HTTP/1\.1\" [23]\d\d"
 type RegExp struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
 	exp               *regexp.Regexp

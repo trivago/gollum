@@ -23,32 +23,38 @@ import (
 )
 
 // SplitToJSON formatter plugin
+//
 // SplitToJSON is a formatter that splits a message by a given token and puts
 // the result into a JSON object by using an array based mapping
-// Configuration example
 //
-//  - format.SplitToJSON:
-//      SplitBy: "|"
-//      KeepJSON: true
-//      Keys:
-//        - "timestamp"
-//        - "server"
-//        - "error"
-//      ApplyTo: "payload" # payload or <metaKey>
+// Parameters
 //
-// SplitBy defines the separator character to use when processing a
-// message. By default this is set to "|".
+// - Keys: This value defines an array of keys to apply to the tokens generated
+// by splitting a message by `SplitBy`. The keys listed here are applied to the resulting
+// token array by index.
 //
-// KeepJSON can be set to false to escape texts that are JSON
+// - SplitBy: This value defines the separator character to use when processing a message.
+// By default this parameter is set to "|".
+//
+// - KeepJSON: This value can be set to "false" to escape texts that are JSON
 // payloads as regualar strings. Otherwise JSON payload will be taken as-is and
-// set to the corresponding key. By default set to "true"
+// set to the corresponding key.
+// By default this parameter is set to "true".
 //
-// Keys defines an array of keys to apply to the tokens generated
-// by splitting a message by SplitToJSONToken. The keys listed here are
-// applied to the resulting token array by index.
-// This list is empty by default.
+// Examples
 //
-// ApplyTo defines the formatter content to use
+// This example will format a input of `value1,value2,value3` to a json string of `{"foo":"value1", "bar":"value2"}`:
+//
+//  exampleConsumer:
+//    Type: consumer.Console
+//    Streams: "*"
+//    Modulators:
+//      - format.SplitToJSON:
+//          SplitBy: ","
+//          Keys:
+//            - foo
+//            - bar
+//
 type SplitToJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	token                []byte   `config:"SplitBy" default:"|"`

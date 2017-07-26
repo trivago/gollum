@@ -1,11 +1,5 @@
 package core
 
-const (
-	// ApplyToPayloadString defines the reserved word denoting the payload field
-	// when using the parameter "ApplyTo" in formatters
-	ApplyToPayloadString = "payload"
-)
-
 // GetAppliedContent is a func() to get message content from payload or meta data
 // for later handling by plugins
 type GetAppliedContent func(msg *Message) []byte
@@ -15,7 +9,7 @@ type SetAppliedContent func(msg *Message, content []byte)
 
 // GetAppliedContentGetFunction returns a GetAppliedContent function
 func GetAppliedContentGetFunction(applyTo string) GetAppliedContent {
-	if applyTo != "" && applyTo != ApplyToPayloadString {
+	if applyTo != "" {
 		return func(msg *Message) []byte {
 			return msg.GetMetadata().GetValue(applyTo)
 		}
@@ -28,15 +22,23 @@ func GetAppliedContentGetFunction(applyTo string) GetAppliedContent {
 
 // GetAppliedContentSetFunction returns SetAppliedContent function to store message content
 func GetAppliedContentSetFunction(applyTo string) SetAppliedContent {
-	if applyTo != "" && applyTo != ApplyToPayloadString {
+	if applyTo != "" {
 		return func(msg *Message, content []byte) {
-			msg.GetMetadata().SetValue(applyTo, content)
+			if content == nil {
+				msg.GetMetadata().Delete(applyTo)
+			} else {
+				msg.GetMetadata().SetValue(applyTo, content)
+			}
 			return
 		}
 	}
 
 	return func(msg *Message, content []byte) {
-		msg.StorePayload(content)
+		if content == nil {
+			msg.ResizePayload(0)
+		} else {
+			msg.StorePayload(content)
+		}
 		return
 	}
 }

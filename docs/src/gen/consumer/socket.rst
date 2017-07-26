@@ -3,7 +3,6 @@
 Socket
 ======
 
-
 The socket consumer reads messages directly as-is from a given socket.
 Messages are separated from the stream by using a specific partitioner method.
 
@@ -13,121 +12,182 @@ Messages are separated from the stream by using a specific partitioner method.
 Parameters
 ----------
 
-**Address**
-defines the protocol, host and port or socket to bind to.
-This can either be any ip address and port like "localhost:5880" or a file
-like "unix:///var/gollum.socket". By default this is set to ":5880".
+**AckTimoutSec** (default: 2, unit: sec)
 
-
-**Permissions**
-sets the file permissions for "unix://" based connections as an
-four digit octal number string. By default this is set to "0770".
-
+  This value defines the number of seconds waited for an acknowledge to succeed.
+  By default this parameter is set to "2".
+  
+  
 
 **Acknowledge**
-can be set to a non-empty value to inform the writer on success
-or error. On success the given string is send. Any error will close the
-connection. This setting is disabled by default, i.e. set to "".
-If Acknowledge is enabled and a IP-Address is given to Address, TCP is
-used to open the connection, otherwise UDP is used.
-If an error occurs during write "NOT <Acknowledge>" is returned.
 
+  This value can be set to a non-empty value to inform the writer on success
+  or error. On success the given string is send. Any error will close the
+  connection. If Acknowledge is enabled and a IP-Address is given to Address, TCP is
+  used to open the connection, otherwise UDP is used.
+  If an error occurs during write "NOT <Acknowledge>" is returned. You can set this parameter to "" for disabling.
+  By default this parameter is set to "".
+  
+  
+
+**Address**
+
+  This value defines the protocol, host and port or socket to bind to.
+  This can either be any ip address and port like "localhost:5880" or a file
+  like "unix:///var/gollum.socket".
+  By default this parameter is set to ":5880".
+  
+  
+
+**Delimiter** (default: \n)
+
+  This value defines the delimiter used by the text and delimiter partitioner.
+  By default this parameter is set to "\n".
+  
+  
+
+**Offset** (default: 0)
+
+  This value defines the offset used by the binary and text partitioner.
+  This setting is ignored by the fixed partitioner.
+  By default this parameter is set to "0".
+  
+  
 
 **Partitioner**
-defines the algorithm used to read messages from the router.
-By default this is set to "delimiter".
 
-* "delimiter" separates messages by looking for a delimiter string.
+  This value defines the algorithm used to read messages from the router.
+  The following options are available:
+  
+  * "delimiter" separates messages by looking for a delimiter string.
+  
   The delimiter is removed from the message.
-
-* "ascii" reads an ASCII number at a given offset until a given delimiter is found.
+  
+  * "ascii" reads an ASCII number at a given offset until a given delimiter is found.
+  
   Everything to the right of and including the delimiter is removed from the message.
+  
+  * "binary" reads a binary number at a given offset and size.
+  
+  * "binary_le" is an alias for "binary".
+  
+  * "binary_be" is the same as "binary" but uses big endian encoding.
+  
+  * "fixed" assumes fixed size messages.
+  By default this is set to "delimiter".
+  
+  
 
-* "binary" reads a binary number at a given offset and size.
+**Permissions** (default: 0770)
 
-* "binary_le" is an alias for "binary".
+  This value sets the file permissions for "unix://" based connections as an
+  four digit octal number string.
+  By default this parameter is set to "0770".
+  
+  
 
-* "binary_be" is the same as "binary" but uses big endian encoding.
+**ReadTimoutSec** (default: 5, unit: sec)
 
-* "fixed" assumes fixed size messages.
+  This value defines the number of seconds that waited for data to be received.
+  By default this parameter is set to "5".
+  
+  
 
+**ReconnectAfterSec** (default: 2, unit: sec)
 
-**Delimiter**
-defines the delimiter used by the text and delimiter partitioner.
-By default this is set to "\n".
+  This value defines the number of seconds to wait before a connection
+  is tried to be reopened again.
+  By default this parameter is set to "2".
+  
+  
 
+**RemoveOldSocket** (default: true)
 
-**Offset**
-defines the offset used by the binary and text partitioner.
-By default this is set to 0. This setting is ignored by the fixed partitioner.
-
+  This value toggles removing existing files with the same name as the
+  socket (unix://<path>) prior to connecting.
+  By default this parameter is set to "true".
+  
+  
 
 **Size**
-defines the size in bytes used by the binary or fixed partitioner.
-For binary this can be set to 1,2,4 or 8. By default 4 is chosen.
-For fixed this defines the size of a message. By default 1 is chosen.
 
-
-**ReconnectAfterSec**
-defines the number of seconds to wait before a connection
-is tried to be reopened again. By default this is set to 2.
-
-
-**AckTimoutSec**
-defines the number of seconds waited for an acknowledge to
-succeed. Set to 2 by default.
-
-
-**ReadTimoutSec**
-defines the number of seconds that waited for data to be
-received. Set to 5 by default.
-
-
-**RemoveOldSocket**
-toggles removing exisiting files with the same name as the
-socket (unix://<path>) prior to connecting. Enabled by default.
-
+  This value defines the size in bytes used by the binary or fixed partitioner.
+  For binary this can be set to 1,2,4 or 8. By default 4 is chosen.
+  For fixed this defines the size of a message.
+  By default this parameter is set to "1".
+  
+  
 
 Parameters (from SimpleConsumer)
 --------------------------------
 
 **Enable**
-switches the consumer on or off. By default this value is set to true.
 
+  switches the consumer on or off.
+  By default this parameter is set to true.
+  
+  
 
-**ID**
-allows this consumer to be found by other plugins by name. By default this
-is set to "" which does not register this consumer.
+**ModulatorQueueSize**
 
+  Defines the size of the channel used to buffer messages
+  before they are fetched by the next free modulator go routine. If the
+  ModulatorRoutines parameter is set to 0 this parameter is ignored.
+  By default this parameter is set to 1024.
+  
+  
+
+**ModulatorRoutines**
+
+  Defines the number of go routines reserved for
+  modulating messages. Setting this parameter to 0 will use as many go routines
+  as the specific consumer plugin is using for fetching data. Any other value
+  will force the given number fo go routines to be used.
+  By default this parameter is set to 0
+  
+  
+
+**Modulators**
+
+  Defines a list of modulators to be applied to a message before
+  it is sent to the list of streams. If a modulator specifies a stream, the
+  message is only sent to that specific stream. A message is saved as original
+  after all modulators have been applied.
+  By default this parameter is set to an empty list.
+  
+  
+
+**ShutdownTimeoutMs** (default: 1000, unit: ms)
+
+  Defines the maximum time in milliseconds a consumer is
+  allowed to take to shut down. After this timeout the consumer is always
+  considered to have shut down.
+  By default this parameter is set to 1000.
+  
+  
 
 **Streams**
-contains either a single string or a list of strings defining the
-message channels this consumer will produce. By default this is set to "*"
-which means only producers set to consume "all streams" will get these
-messages.
 
+  Defines a list of streams a consumer will send to. This parameter
+  is mandatory. When using "*" messages will be sent only to the internal "*"
+  stream. It will NOT send messages to all streams.
+  By default this parameter is set to an empty list.
+  
+  
 
-**ShutdownTimeoutMs**
-sets a timeout in milliseconds that will be used to detect
-various timeouts during shutdown. By default this is set to 1 second.
-
-
-Example
--------
+Examples
+--------
 
 .. code-block:: yaml
 
-	 - "consumer.Socket":
-	   Address: ":5880"
-	   Permissions: "0770"
-	   Acknowledge: ""
-	   Partitioner: "delimiter"
-	   Delimiter: "\n"
-	   Offset: 0
-	   Size: 1
-	   ReconnectAfterSec: 2
-	   AckTimoutSec: 2
-	   ReadTimeoutSec: 5
+	This example open a socket and expect messages with a fixed length of 256 bytes:
+	
+	 socketIn:
+	   Type: consumer.Socket
+	   Address: unix:///var/gollum.socket
+	   Partitioner: fixed
+	   Size: 256
+	
 	
 
 

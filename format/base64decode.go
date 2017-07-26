@@ -20,20 +20,28 @@ import (
 )
 
 // Base64Decode formatter plugin
+//
 // Base64Decode is a formatter that decodes a base64 message.
 // If a message is not or only partly base64 encoded an error will be logged
 // and the decoded part is returned. RFC 4648 is expected.
-// Configuration example
 //
-//  - format.Base64Decode:
-//      Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
-//      ApplyTo: "payload" # payload or <metaKey>
+// Parameters
 //
-// Base64Dictionary defines the 64-character base64 lookup dictionary to use. When
-// left empty a dictionary as defined by RFC4648 is used. This is the default.
+// - Base64Dictionary: This value defines the 64-character base64 lookup dictionary to use.
+// When left empty a dictionary as defined by RFC4648 is used.
+// By default this parameter is set to "".
 //
-// Base64DataFormatter defines a formatter that is applied before the base64
-// decoding takes place. By default this is set to "format.Forward"
+// Examples
+//
+// This example expect a base64 string inout to the console and decode this for the message payload.
+//
+//  exampleConsumer:
+//    Type: consumer.Console
+//    Streams: "*"
+//    Modulators:
+//      - format.Base64Decode
+//
+//
 type Base64Decode struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	dictionary           *base64.Encoding

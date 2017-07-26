@@ -3,34 +3,51 @@
 MetadataCopy
 ============
 
-Copy data from defined payload or meta data to set meta data field
+Copy data from defined payload or meta data to set meta data field(s).
 
 
 
+
+Parameters
+----------
+
+**WriteTo**
+
+  A named list of meta data keys. Each entry can contain further modulators
+  to change or filter the message content before setting the meta data value.
+  
+  
 
 Parameters (from SimpleFormatter)
 ---------------------------------
 
 **ApplyTo**
-chooses the part of the message the formatting should be
-applied to. Use "payload"  or "" to target the message payload;
-othe values specify the name of a metadata field to target.
-Default "".
 
+  This value chooses the part of the message the formatting should be
+  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  By default this parameter is set to "".
+  
+  
 
-Example
--------
+Examples
+--------
 
 .. code-block:: yaml
 
-	- format.MetadataCopy:
-	  WriteTo:
-	    - hostname: 		# meta data key
-	      - format.Hostname	# further modulators
-	    - foo:
-	      - format.Base64Encode
-	    - bar 			# 1:1 copy of the "payload" to "bar"
-	  ApplyTo: "payload" # payload or <metaKey>
+	This example sets the meta fields `hostname`, `base64Value` and `foo` of each message:
+	
+	 exampleConsumer:
+	   Type: consumer.Console
+	   Streams: "*"
+	   Modulators:
+	     - format.MetadataCopy:
+	         WriteTo:
+	           - hostname:             # meta data key
+	             - format.Hostname     # further modulators
+	           - base64Value:
+	             - format.Base64Encode
+	           - payloadCopy           # 1:1 copy of the "payload" to "bar"
+	
 	
 
 

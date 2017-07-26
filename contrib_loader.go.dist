@@ -21,6 +21,7 @@ import (
 	_ "github.com/trivago/gollum/contrib/native/pcap" // plugins using cgo native bindings
 	_ "github.com/trivago/gollum/contrib/native/kafka" // plugins using cgo native bindings
 	//_ "github.com/trivago/gollum/contrib/native/systemd" // plugins using cgo native bindings
+	_ "github.com/trivago/gollum/contrib/deprecated/producer"
 	//_ "github.com/trivago/gollum/contrib/myPackage"
 )
 

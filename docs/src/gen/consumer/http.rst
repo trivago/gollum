@@ -3,7 +3,6 @@
 HTTP
 ====
 
-
 This consumer opens up an HTTP 1.1 server and processes the contents of any
 incoming HTTP request.
 
@@ -13,79 +12,128 @@ incoming HTTP request.
 Parameters
 ----------
 
-**Address**
-stores the host and port to bind to.
-This is allowed be any ip address/dns and port like "localhost:5880".
-By default this is set to ":80".
+**Address** (default: :80)
 
-
-**ReadTimeoutSec**
-specifies the maximum duration in seconds before timing out
-the HTTP read request. By default this is set to 3 seconds.
-
-
-**WithHeaders**
-can be set to false to only read the HTTP body instead of passing
-the whole HTTP message. By default this setting is set to true.
-
-
-**Htpasswd**
-can be set to the htpasswd formatted file to enable HTTP BasicAuth
-
+  Defines the TCP port and optional IP address to listen on.
+  Sets http.Server.Addr; for defails, see its Go documentation.
+  Syntax: [hostname|address]:<port>
+  
+  
 
 **BasicRealm**
-can be set for HTTP BasicAuth
 
+  Defines the Authentication Realm for HTTP Basic Authentication.
+  Meaningful only in conjunction with Htpasswd.
+  
+  
 
 **Certificate**
-defines a path to a root certificate file to make this consumer
-handle HTTPS connections. Left empty by default (disabled).
-If a Certificate is given, a PrivateKey must be given, too.
 
+  Path to an X509 formatted certificate file. If defined, turns on
+  SSL/TLS  support in the HTTP server. Requires PrivateKey to be set.
+  
+  
+
+**Htpasswd**
+
+  Path to an htpasswd-formatted password file. If defined, turns
+  on HTTP Basic Authentication in the server.
+  
+  
 
 **PrivateKey**
-defines a path to the private key used for HTTPS connections.
-Left empty by default (disabled).
-If a Certificate is given, a PrivatKey must be given, too.
 
+  Path to an X509 formatted private key file. Meaningful only in
+  conjunction with Certificate.
+  
+  
+
+**ReadTimeoutSec** (default: 3, unit: sec)
+
+  Defines the maximum duration in seconds before timing out
+  the HTTP read request. Sets  http.Server.ReadTimeout; for details, see its
+  Go documentation.
+  
+  
+
+**WithHeaders** (default: true)
+
+  If true, relays the complete HTTP request to the generated
+  Gollum message. If false, relays only the HTTP request body and ignores
+  headers.
+  
+  
 
 Parameters (from SimpleConsumer)
 --------------------------------
 
 **Enable**
-switches the consumer on or off. By default this value is set to true.
 
+  switches the consumer on or off.
+  By default this parameter is set to true.
+  
+  
 
-**ID**
-allows this consumer to be found by other plugins by name. By default this
-is set to "" which does not register this consumer.
+**ModulatorQueueSize**
 
+  Defines the size of the channel used to buffer messages
+  before they are fetched by the next free modulator go routine. If the
+  ModulatorRoutines parameter is set to 0 this parameter is ignored.
+  By default this parameter is set to 1024.
+  
+  
+
+**ModulatorRoutines**
+
+  Defines the number of go routines reserved for
+  modulating messages. Setting this parameter to 0 will use as many go routines
+  as the specific consumer plugin is using for fetching data. Any other value
+  will force the given number fo go routines to be used.
+  By default this parameter is set to 0
+  
+  
+
+**Modulators**
+
+  Defines a list of modulators to be applied to a message before
+  it is sent to the list of streams. If a modulator specifies a stream, the
+  message is only sent to that specific stream. A message is saved as original
+  after all modulators have been applied.
+  By default this parameter is set to an empty list.
+  
+  
+
+**ShutdownTimeoutMs** (default: 1000, unit: ms)
+
+  Defines the maximum time in milliseconds a consumer is
+  allowed to take to shut down. After this timeout the consumer is always
+  considered to have shut down.
+  By default this parameter is set to 1000.
+  
+  
 
 **Streams**
-contains either a single string or a list of strings defining the
-message channels this consumer will produce. By default this is set to "*"
-which means only producers set to consume "all streams" will get these
-messages.
 
+  Defines a list of streams a consumer will send to. This parameter
+  is mandatory. When using "*" messages will be sent only to the internal "*"
+  stream. It will NOT send messages to all streams.
+  By default this parameter is set to an empty list.
+  
+  
 
-**ShutdownTimeoutMs**
-sets a timeout in milliseconds that will be used to detect
-various timeouts during shutdown. By default this is set to 1 second.
-
-
-Example
--------
+Examples
+--------
 
 .. code-block:: yaml
 
-	 - "consumer.HTTP":
-	   Address: ":80"
-	   ReadTimeoutSec: 3
-	   WithHeaders: true
-	   Htpasswd: ""
-	   BasicRealm: ""
-	   Certificate: ""
-	   PrivateKey: ""
+	This example listens on port 9090 and writes to the stream "http_in_00".
+	
+	  "HttpIn00":
+	    Type: "consumer.HTTP"
+	    Streams: "http_in_00"
+	    Address: "localhost:9090"
+	    WithHeaders: false
+	
 	
 
 

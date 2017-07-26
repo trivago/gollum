@@ -3,7 +3,6 @@
 File
 ====
 
-
 The file consumer allows to read from files while looking for a delimiter
 that marks the end of a message. If the file is part of e.g. a log rotation
 the file consumer can be set to a symbolic link of the latest file and
@@ -13,68 +12,151 @@ a file will automatically be reopened if the underlying file is changed.
 
 
 
+Metadata
+--------
+
+**dir**
+
+  The directory of the consumed file (set)
+  
+  
+
+**file**
+
+  The file name of the consumed file (set)
+  
+  
+
 Parameters
 ----------
 
-**File**
-is a mandatory setting and contains the file to read. The file will be
-read from beginning to end and the reader will stay attached until the
-consumer is stopped. I.e. appends to the attached file will be recognized
-automatically.
-
-
 **DefaultOffset**
-defines where to start reading the file. Valid values are
-"oldest" and "newest". If OffsetFile is defined the DefaultOffset setting
-will be ignored unless the file does not exist.
-By default this is set to "newest".
 
+  This value defines where to start reading the file. Valid values are
+  "oldest" and "newest". If OffsetFile is defined the DefaultOffset setting
+  will be ignored unless the file does not exist.
+  By default this parameter is set to "newest".
+  
+  
+
+**Delimiter** (default: \n)
+
+  This value defines the end of a message inside the file.
+  By default this parameter is set to "\n".
+  
+  
+
+**File**
+
+  This value is a mandatory setting and contains the file to read. The file will be
+  read from beginning to end and the reader will stay attached until the
+  consumer is stopped. I.e. appends to the attached file will be recognized
+  automatically.
+  
+  
+
+**ObserveMode** (default: poll)
+
+  This value defines the mode how to observe the target file.
+  You can decide between `poll` and `watch`.
+  NOTE: The watch implementation uses [fsnotify/fsnotify](https://github.com/fsnotify/fsnotify) package.
+  If your source file is rotating (moving or removing) please check carefully if your file system and
+  distribution supports the `RENAME` and `REMOVE` events which are mandatory for stable consuming.
+  By default this parameter is set to `poll`.
+  
+  
 
 **OffsetFile**
-defines the path to a file that stores the current offset inside
-the given file. If the consumer is restarted that offset is used to continue
-reading. By default this is set to "" which disables the offset file.
 
+  This value defines the path to a file that stores the current offset inside
+  the given file. If the consumer is restarted that offset is used to continue
+  reading. You can set this parameter to "" for disabling.
+  By default this parameter is set to "".
+  
+  
 
-**Delimiter**
-defines the end of a message inside the file. By default this is
-set to "\n".
+**PollingDelay**
 
+  This value defines the time duration how long the consumer will wait to check a file for new content
+  after hitting the end of file (EOF) in milliseconds (ms).
+  Note: This settings take only an effect if the consumer is running in `poll` mode!
+  By default this parameter is set to "100".
+  
+  
 
 Parameters (from SimpleConsumer)
 --------------------------------
 
 **Enable**
-switches the consumer on or off. By default this value is set to true.
 
+  switches the consumer on or off.
+  By default this parameter is set to true.
+  
+  
 
-**ID**
-allows this consumer to be found by other plugins by name. By default this
-is set to "" which does not register this consumer.
+**ModulatorQueueSize**
 
+  Defines the size of the channel used to buffer messages
+  before they are fetched by the next free modulator go routine. If the
+  ModulatorRoutines parameter is set to 0 this parameter is ignored.
+  By default this parameter is set to 1024.
+  
+  
+
+**ModulatorRoutines**
+
+  Defines the number of go routines reserved for
+  modulating messages. Setting this parameter to 0 will use as many go routines
+  as the specific consumer plugin is using for fetching data. Any other value
+  will force the given number fo go routines to be used.
+  By default this parameter is set to 0
+  
+  
+
+**Modulators**
+
+  Defines a list of modulators to be applied to a message before
+  it is sent to the list of streams. If a modulator specifies a stream, the
+  message is only sent to that specific stream. A message is saved as original
+  after all modulators have been applied.
+  By default this parameter is set to an empty list.
+  
+  
+
+**ShutdownTimeoutMs** (default: 1000, unit: ms)
+
+  Defines the maximum time in milliseconds a consumer is
+  allowed to take to shut down. After this timeout the consumer is always
+  considered to have shut down.
+  By default this parameter is set to 1000.
+  
+  
 
 **Streams**
-contains either a single string or a list of strings defining the
-message channels this consumer will produce. By default this is set to "*"
-which means only producers set to consume "all streams" will get these
-messages.
 
+  Defines a list of streams a consumer will send to. This parameter
+  is mandatory. When using "*" messages will be sent only to the internal "*"
+  stream. It will NOT send messages to all streams.
+  By default this parameter is set to an empty list.
+  
+  
 
-**ShutdownTimeoutMs**
-sets a timeout in milliseconds that will be used to detect
-various timeouts during shutdown. By default this is set to 1 second.
-
-
-Example
--------
+Examples
+--------
 
 .. code-block:: yaml
 
-	 - "consumer.File":
-	   File: "/var/run/system.log"
-	   DefaultOffset: "Newest"
+	This example will read the `/var/log/system.log` file and create a message for each new entry.
+	
+	 FileIn:
+	   Type: consumer.File
+	   File: /var/log/system.log
+	   DefaultOffset: newest
 	   OffsetFile: ""
 	   Delimiter: "\n"
+	   ObserveMode: poll
+	   PollingDelay: 100
+	
 	
 
 

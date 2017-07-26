@@ -24,26 +24,47 @@ import (
 
 // Syslogd consumer plugin
 //
-// The syslogd consumer accepts messages from a syslogd compatible socket.
+// The syslogd consumer creates a syslogd-compatible log server and
+// receives messages on a TCP or UDP port or a UNIX filesystem socket.
 //
-// Configuration example
+// Parameters
 //
-//  - "consumer.Syslogd":
-//    Address: "udp://0.0.0.0:514"
+// - Address: Defines the IP address or UNIX socket to listen to.
+// This can take one of four forms, to listen on a TCP, UDP or UNIX domain
+// socket:
+//
+// * [hostname|ip]:<tcp-port>
+// * tcp://<hostname|ip>:<tcp-port>
+// * udp://<hostname|ip>:<udp-port>
+// * unix://<filesystem-path>
+//
+// However, see the "Format" option for details on transport support by different
+// formats. Default: "udp://0.0.0.0:514"
+//
+// - Format: Defines which syslog the server will support. Three standards are
+// currently available:
+//
+// * RFC3164 (https://tools.ietf.org/html/rfc3164) - unix, udp
+// * RFC5424 (https://tools.ietf.org/html/rfc5424) - unix, udp
+// * RFC6587 (https://tools.ietf.org/html/rfc6587) - unix, upd, tcp
+//
+// All of the formats support listening to UDP and UNIX domain sockets. RFC6587
+// additionally supports TCP sockets. Default: "RFC6587".
+//
+// Examples
+//
+//  # Replace the system's standard syslogd with Gollum
+//  "SyslogdSocketConsumer":
+//    Streams: "system_syslog"
+//    Address: "unix:///dev/log"
+//    Format: "RFC3164"
+//
+//  # Listen on a TCP socket
+//  "SyslogdTCPSocketConsumer":
+//    Streams: "tcp_syslog"
+//    Address: "tcp://0.0.0.0:5599"
 //    Format: "RFC6587"
 //
-// Address defines the protocol, host and port or socket to bind to.
-// This can either be any ip address and port like "localhost:5880" or a file
-// like "unix:///var/gollum.socket". By default this is set to "udp://0.0.0.0:514".
-// The protocol can be defined along with the address, e.g. "tcp://..." but
-// this may be ignored if a certain protocol format does not support the desired
-// transport protocol.
-//
-// Format defines the syslog standard to expect for message encoding.
-// Three standards are currently supported, by default this is set to "RFC6587".
-// * RFC3164 (https://tools.ietf.org/html/rfc3164) udp only.
-// * RFC5424 (https://tools.ietf.org/html/rfc5424) udp only.
-// * RFC6587 (https://tools.ietf.org/html/rfc6587) tcp or udp.
 type Syslogd struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 	format              format.Format // RFC3164, RFC5424 or RFC6587?
@@ -57,7 +78,9 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Syslogd) Configure(conf core.PluginConfigReader) {
-	cons.protocol, cons.address = tnet.ParseAddress(conf.GetString("Address", "udp://0.0.0.0:514"), "tcp")
+	cons.protocol, cons.address = tnet.ParseAddress(
+		conf.GetString("Address", "udp://0.0.0.0:514"), "tcp")
+
 	format := conf.GetString("Format", "RFC6587")
 
 	switch cons.protocol {

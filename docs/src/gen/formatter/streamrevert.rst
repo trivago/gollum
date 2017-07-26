@@ -3,39 +3,34 @@
 StreamRevert
 ============
 
-StreamRevert is a formatter that recovers the last used stream from a message
-and sets it as a new target stream. Streams change whenever the Stream.Route
-or Message.Route function is used. This e.g. happens after a Drop call.
+This formatter gets the previously used stream from a message and sets it as
+the new target stream.
 
 
-
-Parameters
-----------
-
-**StreamRevertFormatter**
-defines the formatter applied after reading the stream.
-This formatter is applied to the data after StreamRevertDelimiter.
-By default this is set to "format.Forward"
 
 
 Parameters (from SimpleFormatter)
 ---------------------------------
 
 **ApplyTo**
-chooses the part of the message the formatting should be
-applied to. Use "payload"  or "" to target the message payload;
-othe values specify the name of a metadata field to target.
-Default "".
 
+  This value chooses the part of the message the formatting should be
+  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  By default this parameter is set to "".
+  
+  
 
-Example
--------
+Examples
+--------
 
 .. code-block:: yaml
 
-	 - "stream.Broadcast":
-	   Formatter: "format.StreamRevert"
-	   StreamRevertFormatter: "format.Forward"
+	 ExampleConsumer:
+	   Type: consumer.Console
+	   Streams: console
+	   Modulators:
+	     - format.StreamRevert
+	
 	
 
 

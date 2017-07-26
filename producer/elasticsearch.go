@@ -33,68 +33,69 @@ import (
 // The ElasticSearch producer sends messages to elastic search using the bulk
 // http API. The producer expects a json payload.
 //
-// Configuration example
+// Parameters
+//
+// - Retry/Count: Set the amount of retries before a Elasticsearch request fail finally.
+// By default this parameter is set to "3".
+//
+// - Retry/TimeToWaitSec: This value denotes the time in seconds after which a failed dataset will be
+// transmitted again.
+// By default this parameter is set to "3".
+//
+// - SetGzip: This value enables or disables gzip compression for Elasticsearch
+// requests (disabled by default). This option is used one to one for the library package.
+// See: http://godoc.org/gopkg.in/olivere/elastic.v5#SetGzip
+// By default this parameter is set to "false".
+//
+// - Servers: This value defines a list of servers to connect to.
+//
+// - User: This value used as username credential for the elasticsearch server.
+// By default this parameter is set to "".
+//
+// - Password: This value used as password credential for the elasticsearch server.
+// By default both settings is set to "".
+//
+// - StreamProperties: This value defines the mapping and settings for each stream.
+// As index use the stream name here.
+//
+// - StreamProperties/<streamName>/Index: The value defines the Elasticsearch index which used for the stream.
+//
+// - StreamProperties/<streamName>/Type: This value defines the document type which used for the stream.
+//
+// - StreamProperties/<streamName>/DayBasedIndex: This value can be set to "true" to append the date of the message to the
+// index as in "<index>_YYYY-MM-DD".
+// NOTE: This setting need more performance because it is necessary to check if an index exist for each message!
+// By default this parameter is set to "false".
+//
+// - StreamProperties/<streamName>/Mapping: This value is a map which used for the document field mapping.
+// As document type the already definded type is reused for the field mapping
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.4/indices-create-index.html#mappings
+//
+// - StreamProperties/<streamName>/Settings: This value is a map which is used for the index settings.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.4/indices-create-index.html#mappings
+//
+// Examples
+//
+// This example starts a simple twitter example producer for local running ElasticSearch:
 //
 //  producerElasticSearch:
 // 	  Type: producer.ElasticSearch
-//    Retry:
-//		Count: 3
-//		TimeToWaitSec: 3
+//    Streams: tweets_stream
 //	  SetGzip: true
-//
-//    User: ""
-//    Password: ""
 //    Servers:
 //      - http://127.0.0.1:9200
 //    StreamProperties:
-//		<streamName>:
+//		tweets_stream:
 //			Index: twitter
-// 			DayBasedIndex: false
+// 			DayBasedIndex: true
 //			Type: tweet
-//
-// 			# see: https://www.elastic.co/guide/en/elasticsearch/reference/5.4/indices-create-index.html#mappings
 //			Mapping:
 //				# index mapping for payload
 // 				user: keyword
 //				message: text
 //			Settings:
-//				# settings used for mapping
-//				number_of_shards: 5
+//				number_of_shards: 1
 //				number_of_replicas: 1
-//
-// Retry/Count set the amount of retries before a Elasticsearch request fail finally
-//
-// Retry/TimeToWaitSec denotes the time in seconds after which a failed dataset will be
-// transmitted again. By default this is set to 3.
-//
-// SetGzip enables or disables gzip compression for Elasticsearch requests (disabled by default).
-// This option is used one to one for the library package.
-// See: http://godoc.org/gopkg.in/olivere/elastic.v5#SetGzip
-//
-// Servers defines a list of servers to connect to.
-//
-// User and Password can be used to pass credentials to the elasticsearch server.
-// By default both settings are empty.
-//
-// StreamProperties defines the mapping and settings for each stream.
-// As index use the stream name here.
-//
-// StreamProperties/<streamName>/Index
-// Elasticsearch index which used for the stream.
-//
-// StreamProperties/<streamName>/Type
-// Document type which used for the stream.
-//
-// StreamProperties/<streamName>/DayBasedIndex can be set to true to append the date of the message to the
-// index as in "<index>_YYYY-MM-DD". By default this is set to false.
-// NOTE: This setting need more performance because it is necessary to check if an index exist for each message!
-//
-// StreamProperties/<streamName>/Mapping is a map which used for the document field mapping.
-// As document type the already definded type is reused for the field mapping
-// See https://www.elastic.co/guide/en/elasticsearch/reference/5.4/indices-create-index.html#mappings
-//
-// StreamProperties/<streamName>/Settings is a map which is used for the index settings.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/5.4/indices-create-index.html#mappings
 //
 type ElasticSearch struct {
 	core.BatchedProducer `gollumdoc:"embed_type"`

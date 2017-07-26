@@ -17,6 +17,7 @@ package core
 import (
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"github.com/trivago/gollum/logger"
 	"github.com/trivago/tgo"
 	"sync"
 	"time"
@@ -33,6 +34,7 @@ type LogConsumer struct {
 	lastCountWarn  int64
 	lastCountError int64
 	stopped        bool
+	queue          MessageQueue
 }
 
 // Configure initializes this consumer with values from a plugin config.
@@ -40,6 +42,7 @@ func (cons *LogConsumer) Configure(conf PluginConfigReader) {
 	cons.control = make(chan PluginControl, 1)
 	cons.logRouter = StreamRegistry.GetRouter(LogInternalStreamID)
 	cons.metric = conf.GetString("MetricKey", "")
+	cons.queue = NewMessageQueue(1024)
 
 	if cons.metric != "" {
 		tgo.Metric.New(cons.metric)
@@ -83,10 +86,19 @@ func (cons *LogConsumer) Control() chan<- PluginControl {
 func (cons *LogConsumer) Consume(threads *sync.WaitGroup) {
 	// Wait for control statements
 	for {
-		command := <-cons.control
-		if command == PluginControlStopConsumer {
-			cons.stopped = true
-			return // ### return ###
+		select {
+		case msg := <-cons.queue:
+			cons.logRouter.Enqueue(msg)
+
+		case command := <-cons.control:
+			if command == PluginControlStopConsumer {
+				cons.queue.Close()
+				for msg := range cons.queue {
+					cons.logRouter.Enqueue(msg)
+				}
+				cons.stopped = true
+				return // ### return ###
+			}
 		}
 	}
 }
@@ -122,8 +134,12 @@ func (cons *LogConsumer) Fire(logrusEntry *logrus.Entry) error {
 	// Wrap it in a Gollum message
 	msg := NewMessage(cons, []byte(formattedMessage), metadata, LogInternalStreamID)
 
-	// Enqueue the message to _GOLLUM_
-	cons.logRouter.Enqueue(msg)
+	// Push it to a channel to allow logging while logging
+	// In case Push fails, fallback to stdout.
+	result := cons.queue.Push(msg, time.Second)
+	if result != MessageQueueOk {
+		fmt.Fprintln(logger.FallbackLogDevice, msg.String())
+	}
 
 	// Metrics handling from .Write() (TODO: support all message levels?)
 	if cons.metric != "" {

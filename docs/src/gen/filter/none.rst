@@ -3,7 +3,8 @@
 None
 ====
 
-This plugin blocks all messages.
+This filter blocks all messages.
+
 
 
 
@@ -11,17 +12,26 @@ Parameters (from SimpleFilter)
 ------------------------------
 
 **FilteredStream**
-defines a stream where filtered messages get sent to.
-You can disable this behavior by setting "". Set to "" by default.
 
+  This value defines a stream where filtered messages get sent to.
+  You can disable this behavior by setting "".
+  By default this parameter is set to "".
+  
+  
 
-Example
--------
+Examples
+--------
 
 .. code-block:: yaml
 
-	  - "stream.Broadcast":
-	    Filter: "filter.None"
+	This example will start a cosole consumer and block all incoming messages:
+	
+	 exampleConsumer:
+	   Type: consumer.Console
+	   Streams: console
+	   Modulators:
+	     - filter.None
+	
 	
 
 

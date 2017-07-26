@@ -17,15 +17,15 @@ package core
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/trivago/tgo/ttesting"
 	"testing"
 	"time"
-
-	"github.com/trivago/tgo/ttesting"
 )
 
 type messageBatchWriter struct {
 	expect  ttesting.Expect
 	counter int
+	data    []byte
 }
 
 func (bw *messageBatchWriter) hasData(messages []*Message) {
@@ -34,6 +34,11 @@ func (bw *messageBatchWriter) hasData(messages []*Message) {
 
 func (bw messageBatchWriter) Write(data []byte) (int, error) {
 	bw.expect.Equal("0123456789", string(data))
+	return len(data), nil
+}
+
+func (bw *messageBatchWriter) AppendData(data []byte) (int, error) {
+	bw.data = append(bw.data, data...)
 	return len(data), nil
 }
 
@@ -47,12 +52,15 @@ func (bw *messageBatchWriter) Count(msg *Message) {
 
 func TestMessageBatchAppendOrFlush(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	writer := messageBatchWriter{expect, 0}
+	writer := messageBatchWriter{expect, 0, []byte{}}
 	batch := NewMessageBatch(10)
-	assembly := NewWriterAssembly(writer, writer.Flush, &mockFormatter{})
 
 	flushBuffer := func() {
-		batch.Flush(assembly.Write)
+		batch.Flush(func(a []*Message) {
+			for _, msg := range a {
+				writer.AppendData(msg.GetPayload())
+			}
+		})
 		batch.WaitForFlush(time.Second)
 		expect.True(batch.IsEmpty())
 	}
@@ -81,12 +89,13 @@ func TestMessageBatchAppendOrFlush(t *testing.T) {
 		dropMsg)
 
 	expect.Equal(batch.getActiveBufferCount(), int(1))
+	expect.Equal("0123456789", string(writer.data))
 
 }
 
 func TestMessageBatch(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	writer := messageBatchWriter{expect, 0}
+	writer := messageBatchWriter{expect, 0, []byte{}}
 	assembly := NewWriterAssembly(writer, writer.Flush, &mockFormatter{})
 
 	batch := NewMessageBatch(10)

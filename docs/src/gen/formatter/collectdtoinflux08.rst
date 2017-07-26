@@ -3,38 +3,34 @@
 CollectdToInflux08
 ==================
 
-CollectdToInflux08 provides a transformation from collectd JSON data to
-InfluxDB 0.8.x compatible JSON data. Trailing and leading commas are removed
-from the Collectd message beforehand.
+This formatter transforms JSON data produced by collectd to InfluxDB 0.8.x.
+Trailing and leading commas are removed from the Collectd message.
 
 
-
-Parameters
-----------
-
-**CollectdToInfluxFormatter**
-defines the formatter applied before the conversion
-from Collectd to InfluxDB. By default this is set to format.Forward.
 
 
 Parameters (from SimpleFormatter)
 ---------------------------------
 
 **ApplyTo**
-chooses the part of the message the formatting should be
-applied to. Use "payload"  or "" to target the message payload;
-othe values specify the name of a metadata field to target.
-Default "".
 
+  This value chooses the part of the message the formatting should be
+  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  By default this parameter is set to "".
+  
+  
 
-Example
--------
+Examples
+--------
 
 .. code-block:: yaml
 
-	 - "stream.Broadcast":
-	   Formatter: "format.CollectdToInflux08"
-	   CollectdToInfluxFormatter: "format.Forward"
+	 ExampleConsumer:
+	   Type: consumer.Console
+	   Streams: console
+	   Modulators:
+	     - formatter.CollectdToInflux08
+	
 	
 
 

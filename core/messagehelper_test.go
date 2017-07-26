@@ -45,14 +45,14 @@ func getMockRouterMessageHelper(streamName string) mockRouterMessageHelper {
 
 func TestGetAppliedContentFunction(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	resultFunc := GetAppliedContentGetFunction("payload")
+	resultFunc := GetAppliedContentGetFunction("")
 
 	expect.Equal(reflect.Func, reflect.TypeOf(resultFunc).Kind())
 }
 
 func TestGetAppliedContentFromPayload(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	resultFunc := GetAppliedContentGetFunction("payload")
+	resultFunc := GetAppliedContentGetFunction("")
 	msg := NewMessage(nil, []byte("message payload"), nil, 1)
 
 	expect.Equal("message payload", string(resultFunc(msg)))

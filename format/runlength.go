@@ -20,26 +20,40 @@ import (
 )
 
 // Runlength formatter plugin
+//
 // Runlength is a formatter that prepends the length of the message, followed by
 // a ":". The actual message is formatted by a nested formatter.
-// Configuration example
 //
-//  - format.Runlength
-//      Separator: ":"
-// 	StoreRunlengthOnly: false
-//      ApplyTo: "payload" # payload or <metaKey>
+// Parameters
 //
-// Separator sets the separator character placed after the runlength.
-// This is set to ":" by default. If no separator is set the runlength will only set.
+// - Separator: This value is used as separator.
+// By default this parameter is set to ":".
 //
-// StoreRunlengthOnly is used to store the runlength only and overwrite the payload.
-// The value is `false` by default. This option is useful to store the runlength only in a meta data field.
+// - StoreRunlengthOnly: If this value is set to "true" the runlength only will stored.
+// This option is useful to store the runlength only in a meta data field by the `ApplyTo` parameter.
+// By default this parameter is set to "false".
 //
-// ApplyTo defines the formatter content for the data transferred
+// Examples
+//
+// In this example is the `format.Runlength` used as "subformatter" from the `format.MetadataCopy`.
+// The `format.MetadataCopy` formatter copies the payload to the defined meta data field.
+// At the end the `format.Runlength` formatter will transform the meta data value to the length.
+//
+//  exampleConsumer:
+//    Type: consumer.Console
+//    Streams: "*"
+//    Modulators:
+//      - format.MetadataCopy:
+//          WriteTo:
+//            - original_length:
+//              - format.Runlength:
+//                  Separator: ""
+// 	                StoreRunlengthOnly: true
+//
 type Runlength struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	separator            []byte `config:"Separator" default:":"`
-	storeRunlengthOnly   bool   `config:"StoreRunlengthOnly"`
+	storeRunlengthOnly   bool   `config:"StoreRunlengthOnly" default:"false"`
 }
 
 func init() {

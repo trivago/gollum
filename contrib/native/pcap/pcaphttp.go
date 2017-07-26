@@ -24,47 +24,53 @@ import (
 	"github.com/trivago/gollum/core"
 )
 
-// PcapHTTPConsumer consumer plugin
+// PcapHTTPConsumer consumer
+//
 // NOTICE: This producer is not included in standard builds. To enable it
 // you need to trigger a custom build with native plugins enabled.
 // This plugin utilizes libpcap to listen for network traffic and reassamble
 // http requests from it. As it uses a CGO based library it will break cross
 // platform builds (i.e. you will have to compile it on the correct platform).
-// Configuration example
 //
-//  - "native.PcapHTTPConsumer":
-//    Enable: true
-//    Interface: eth0
-//    Filter: "dst port 80 and dst host 127.0.0.1"
+// Parameters
+//
+// - Interface: Defines the name of the network interface to listen on. You can
+// get valid values from the ifconfig shell command.
+// By default this parameter is set to "eth0".
+//
+// - Filter: Defines a libpcap compatible filter for the incoming packages. You
+// can filter for specific ports, portocols, ips, etc.. The documentation can be
+// found here: http://www.tcpdump.org/manpages/pcap-filter.7.txt
+// By default this parameter is set to "dst port 80 and dst host 127.0.0.1".
+//
+// - Promiscuous: Switches the network interface into promiscuous mode. This is
+// required if you want to listen for all packages coming from the network, even
+// those that were not meant for the ip bound to the interface you listen on.
+// Enabling this can increase your CPU load.
+// By default this parameter is set to false.
+//
+// - TimeoutMs: Defines a timeout in milliseconds after which a tcp session is
+// considered to have sent to the fallback, i.e. the (remaining) packages will
+// be discarded. Every incoming packet will restart the timer for the specific
+// client session.
+// By default this parameter is set to 3000.
+//
+// Examples
+//
+//  interceptHTTP:
+//    Type: native.PcapHTTPConsumer
+//    Streams: http
+//    Interface: eth1
+//    Filter: "dst port 80"
 //    Promiscuous: true
-//    TimeoutMs: 3000
-//
-// Interface defines the network interface to listen on. By default this is set
-// to eth0, get your specific value from ifconfig.
-//
-// Filter defines a libpcap filter for the incoming packages. You can filter for
-// specific ports, portocols, ips, etc.. The documentation can be found here:
-// http://www.tcpdump.org/manpages/pcap-filter.7.txt (manpage).
-// By default this is set to listen on port 80 for localhost packages.
-//
-// Promiscuous switches the network interface defined by Interface into
-// promiscuous mode. This is required if you want to listen for all packages
-// coming from the network, even those that were not meant for the ip bound
-// to the interface you listen on. Enabling this can increase your CPU load.
-// This setting is enabled by default.
-//
-// TimeoutMs defines a timeout after which a tcp session is considered to have
-// sent to the fallback, i.e. the (remaining) packages will be discarded. Every incoming
-// packet will restart the timer for the specific client session.
-// By default this is set to 3000, i.e. 3 seconds.
 type PcapHTTPConsumer struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	netInterface        string
-	filter              string
-	promiscuous         bool
+	netInterface        string        `config:"Interface" default:"eth0"`
+	filter              string        `config:"Filter" default:"dst port 80 and dst host 127.0.0.1"`
+	promiscuous         bool          `config:"Promiscuous" default:"false"`
+	sessionTimeout      time.Duration `config:"TimeoutMs" default:"3000" metric:"ms"`
 	handle              *pcap.Pcap
 	sessions            pcapSessionMap
-	sessionTimeout      time.Duration
 	sessionGuard        *sync.Mutex
 }
 
@@ -83,15 +89,9 @@ func init() {
 }
 
 // Configure initializes this consumer with values from a plugin config.
-func (cons *PcapHTTPConsumer) Configure(conf core.PluginConfigReader) error {
-	cons.netInterface = conf.GetString("Interface", "eth0")
-	cons.promiscuous = conf.GetBool("Promiscuous", true)
-	cons.filter = conf.GetString("Filter", "dst port 80 and dst host 127.0.0.1")
+func (cons *PcapHTTPConsumer) Configure(conf core.PluginConfigReader) {
 	cons.sessions = make(pcapSessionMap)
-	cons.sessionTimeout = time.Duration(conf.GetInt("TimeoutMs", 3000)) * time.Millisecond
 	cons.sessionGuard = new(sync.Mutex)
-
-	return conf.Errors.OrNil()
 }
 
 func (cons *PcapHTTPConsumer) enqueueBuffer(data []byte) {

@@ -10,111 +10,161 @@ returned messages are partitioned by common message length algorithms.
 
 
 
+
 Parameters
 ----------
 
 **Address**
-stores the identifier to connect to.
-This can either be any ip address and port like "localhost:5880" or a file
-like "unix:///var/gollum.Proxy". By default this is set to ":5880".
 
+  This value stores the identifier to connect to.
+  This can either be any ip address and port like "localhost:5880" or a file
+  like "unix:///var/gollum.Proxy".
+  By default this parameter is set to ":5880".
+  
+  
 
-**ConnectionBufferSizeKB**
-sets the connection buffer size in KB.
-This also defines the size of the buffer used by the message parser.
-By default this is set to 1024, i.e. 1 MB buffer.
+**ConnectionBufferSizeKB** (default: 1024, unit: mb)
 
-
-**TimeoutSec**
-defines the maximum time in seconds a client is allowed to take
-for a response. By default this is set to 1.
-
-
-**Partitioner**
-defines the algorithm used to read messages from the stream.
-The messages will be sent as a whole, no cropping or removal will take place.
-By default this is set to "delimiter".
-
-* "delimiter" separates messages by looking for a delimiter string. The
-  delimiter is included into the left hand message.
-
-* "ascii" reads an ASCII encoded number at a given offset until a given
-  delimiter is found.
-
-* "binary" reads a binary number at a given offset and size
-
-* "binary_le" is an alias for "binary"
-
-* "binary_be" is the same as "binary" but uses big endian encoding
-
-* "fixed" assumes fixed size messages
-
+  This value sets the connection buffer size in KB.
+  This also defines the size of the buffer used by the message parser.
+  By default this parameter is set to "1024".
+  
+  
 
 **Delimiter**
-defines the delimiter used by the text and delimiter partitioner.
-By default this is set to "\n".
 
+  This value defines the delimiter used by the text and delimiter partitioner.
+  By default this parameter is set to "\n".
+  
+  
 
 **Offset**
-defines the offset used by the binary and text partitioner.
-By default this is set to 0. This setting is ignored by the fixed partitioner.
 
+  This value defines the offset used by the binary and text partitioner.
+  This setting is ignored by the fixed partitioner.
+  By default this paramter is set to "0".
+  
+  
+
+**Partitioner**
+
+  This value defines the algorithm used to read messages from the stream.
+  The messages will be sent as a whole, no cropping or removal will take place.
+  By default this parameter is set to "delimiter".
+  
+  * delimiter: separates messages by looking for a delimiter string. The
+  
+  delimiter is included into the left hand message.
+  
+  * ascii: reads an ASCII encoded number at a given offset until a given
+  
+  delimiter is found.
+  
+  * binary: reads a binary number at a given offset and size
+  
+  * binary_le: is an alias for "binary"
+  
+  * binary_be: is the same as "binary" but uses big endian encoding
+  
+  * fixed: assumes fixed size messages
+  
+  
 
 **Size**
-defines the size in bytes used by the binary or fixed partitioner.
-For binary this can be set to 1,2,4 or 8. By default 4 is chosen.
-For fixed this defines the size of a message. By default 1 is chosen.
 
+  This value defines the size in bytes used by the binary or fixed partitioner.
+  For `binary` this can be set to 1,2,4 or 8,  for `fixed` this defines the size of a message.
+  BY default this paramter is set to "4" for `binary` or "1" for `fixed` partitioner.
+  
+  
+
+**TimeoutSec** (default: 1, unit: sec)
+
+  This value defines the maximum time in seconds a client is allowed to take
+  for a response.
+  By default this parameter is set to "1".
+  
+  
+
+Parameters (from BufferedProducer)
+----------------------------------
+
+**Channel**
+
+  This value defines the capacity of the message buffer.
+  By default this parameter is set to "8192".
+  
+  
+
+**ChannelTimeoutMs** (default: 0, unit: ms)
+
+  This value defines a timeout for each message before the message will discarded.
+  You can set this parameter to "0" for disabling the timeout.
+  By default this parameter is set to "0".
+  
+  
 
 Parameters (from DirectProducer)
 --------------------------------
 
 **Enable**
-switches the consumer on or off. By default this value is set to true.
 
-
-**ID**
-allows this producer to be found by other plugins by name. By default this
-is set to "" which does not register this producer.
-
-
-**ShutdownTimeoutMs**
-sets a timeout in milliseconds that will be used to detect
-a blocking producer during shutdown. By default this is set to 1 second.
-Decreasing this value may lead to lost messages during shutdown. Increasing
-this value will increase shutdown time.
-
-
-**Streams**
-contains either a single string or a list of strings defining the
-message channels this producer will consume. By default this is set to "*"
-which means "listen to all routers but the internal".
-
+  switches the consumer on or off. By default this value is set to true.
+  
+  
 
 **FallbackStream**
-defines the stream used for messages that are sent to the fallback after
-a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
 
+  defines the stream used for messages that are sent to the fallback after
+  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
+  
+  
+
+**ID**
+
+  allows this producer to be found by other plugins by name. By default this
+  is set to "" which does not register this producer.
+  
+  
 
 **Modulators**
-sets formatter and filter to use. Each formatter has its own set of options
-which can be set here, too. By default this is set to format.Forward.
-Each producer decides if and when to use a Formatter.
 
+  sets formatter and filter to use. Each formatter has its own set of options
+  which can be set here, too. By default this is set to format.Forward.
+  Each producer decides if and when to use a Formatter.
+  
+  
 
-Example
--------
+**ShutdownTimeoutMs**
+
+  sets a timeout in milliseconds that will be used to detect
+  a blocking producer during shutdown. By default this is set to 1 second.
+  Decreasing this value may lead to lost messages during shutdown. Increasing
+  this value will increase shutdown time.
+  
+  
+
+**Streams**
+
+  contains either a single string or a list of strings defining the
+  message channels this producer will consume. By default this is set to "*"
+  which means "listen to all routers but the internal".
+  
+  
+
+Examples
+--------
 
 .. code-block:: yaml
 
-	 - "producer.Proxy":
+	This example will send 64bit length encoded data on TCP port 5880.
+	
+	 proxyOut:
+	   Type: producer.Proxy
 	   Address: ":5880"
-	   ConnectionBufferSizeKB: 1024
-	   TimeoutSec: 1
-	   Partitioner: "delimiter"
-	   Delimiter: "\n"
-	   Offset: 0
-	   Size: 1
+	   Partitioner: binary
+	   Size: 8
+	
 	
 
 

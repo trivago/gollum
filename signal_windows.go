@@ -15,6 +15,7 @@
 package main
 
 import (
+	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"
@@ -29,6 +30,7 @@ func newSignalHandler() chan os.Signal {
 func translateSignal(sig os.Signal) signalType {
 	switch sig {
 	case syscall.SIGINT, syscall.SIGTERM:
+		logrus.Warning("Got exit signal")
 		return signalExit
 
 	case syscall.SIGHUP:

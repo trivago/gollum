@@ -32,38 +32,43 @@ import (
 // This consumer opens up an HTTP 1.1 server and processes the contents of any
 // incoming HTTP request.
 //
-// Configuration example
+// Parameters
 //
-//  - "consumer.HTTP":
-//    Address: ":80"
-//    ReadTimeoutSec: 3
-//    WithHeaders: true
-//    Htpasswd: ""
-//    BasicRealm: ""
-//    Certificate: ""
-//    PrivateKey: ""
+// - Address: Defines the TCP port and optional IP address to listen on.
+//  Sets http.Server.Addr; for defails, see its Go documentation.
 //
-// Address stores the host and port to bind to.
-// This is allowed be any ip address/dns and port like "localhost:5880".
-// By default this is set to ":80".
+// Syntax: [hostname|address]:<port>
 //
-// ReadTimeoutSec specifies the maximum duration in seconds before timing out
-// the HTTP read request. By default this is set to 3 seconds.
+// - ReadTimeoutSec: Defines the maximum duration in seconds before timing out
+// the HTTP read request. Sets  http.Server.ReadTimeout; for details, see its
+// Go documentation.
 //
-// WithHeaders can be set to false to only read the HTTP body instead of passing
-// the whole HTTP message. By default this setting is set to true.
+// - WithHeaders: If true, relays the complete HTTP request to the generated
+// Gollum message. If false, relays only the HTTP request body and ignores
+// headers.
 //
-// Htpasswd can be set to the htpasswd formatted file to enable HTTP BasicAuth
+// - Htpasswd: Path to an htpasswd-formatted password file. If defined, turns
+// on HTTP Basic Authentication in the server.
 //
-// BasicRealm can be set for HTTP BasicAuth
+// - BasicRealm: Defines the Authentication Realm for HTTP Basic Authentication.
+// Meaningful only in conjunction with Htpasswd.
 //
-// Certificate defines a path to a root certificate file to make this consumer
-// handle HTTPS connections. Left empty by default (disabled).
-// If a Certificate is given, a PrivateKey must be given, too.
+// - Certificate: Path to an X509 formatted certificate file. If defined, turns on
+// SSL/TLS  support in the HTTP server. Requires PrivateKey to be set.
 //
-// PrivateKey defines a path to the private key used for HTTPS connections.
-// Left empty by default (disabled).
-// If a Certificate is given, a PrivatKey must be given, too.
+// - PrivateKey: Path to an X509 formatted private key file. Meaningful only in
+// conjunction with Certificate.
+//
+// Examples
+//
+// This example listens on port 9090 and writes to the stream "http_in_00".
+//
+//   "HttpIn00":
+//     Type: "consumer.HTTP"
+//     Streams: "http_in_00"
+//     Address: "localhost:9090"
+//     WithHeaders: false
+//
 type HTTP struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 	address             string        `config:"Address" default:":80"`

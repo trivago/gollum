@@ -4,11 +4,11 @@
 .. toctree::
     :maxdepth: 9
 
+    /src/gen/consumer/awsKinesis.rst
     /src/gen/consumer/console.rst
     /src/gen/consumer/file.rst
     /src/gen/consumer/http.rst
     /src/gen/consumer/kafka.rst
-    /src/gen/consumer/kinesis.rst
     /src/gen/consumer/profiler.rst
     /src/gen/consumer/proxy.rst
     /src/gen/consumer/socket.rst

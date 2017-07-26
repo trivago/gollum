@@ -19,18 +19,27 @@ import (
 	"github.com/trivago/gollum/core"
 )
 
-// Base64Encode formatter plugin
-// Base64Encode is a formatter that encodes a message as base64.
-// Configuration example
+// Base64Encode formatter
 //
-//  - format.Base64Encode:
-//      Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/"
+// Base64Encode allows to convert data into a Base64 string. Custom dictionaries
+// are supported, by default RFC 4648 standard encoding is used.
 //
-// Base64Dictionary defines the 64-character base64 lookup dictionary to use.
-// When left empty a dictionary as defined by RFC4648 is used. This is the default.
+// Parameters:
 //
-// Base64DataFormatter defines a formatter that is applied before the base64
-// encoding takes place. By default this is set to "format.Forward"
+// - Base64Dictionary: Defines the 64-character base64 lookup dictionary to use.
+// When left empty a RFC 4648 standard encoding is used.
+// By default this parameter is set to "".
+//
+// Examples
+//
+// This example uses RFC 4648 URL encoding to format incoming data.
+//
+//  ExampleConsumer:
+//    Type: consumer.Console
+//    Streams: console
+//    Modulators:
+//      - formatter.Base64Encode
+//        Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 type Base64Encode struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	dictionary           *base64.Encoding

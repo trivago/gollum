@@ -3,6 +3,7 @@
 Double
 ======
 
+Double is a formatter that doubles the message and glues both parts
 together by using a separator. Both parts of the new message may be
 formatted differently
 
@@ -12,38 +13,62 @@ formatted differently
 Parameters
 ----------
 
-**Separator**
-sets the separator string placed between both parts.
-This is set to ":" by default.
+**Left**
 
+  A optional formatter list which are used for the left side.
+  This parameter is set to "empty list" by default.
+  
+  
 
-**LeftStreamID**
-uses the stream name result of the left side as the
-streamID of this formatter. Set to false by default.
+**Right**
 
+  A optional formatter list which are used for the right side.
+  This parameter is set to "empty list" by default.
+  
+  
+
+**Separator** (default: :)
+
+  This value sets the separator string placed between both parts.
+  This parameter is set to ":" by default.
+  
+  
+
+**UseLeftStreamID** (default: false)
+
+  Use the stream id of the left side as the final stream id
+  for the message if this value is "true".
+  This parameter is set to "false" by default.
+  
+  
 
 Parameters (from SimpleFormatter)
 ---------------------------------
 
 **ApplyTo**
-chooses the part of the message the formatting should be
-applied to. Use "payload"  or "" to target the message payload;
-othe values specify the name of a metadata field to target.
-Default "".
 
+  This value chooses the part of the message the formatting should be
+  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  By default this parameter is set to "".
+  
+  
 
-Example
--------
+Examples
+--------
 
 .. code-block:: yaml
 
-	- format.Double:
-		 Separator: ":"
-	  UseLeftStreamID: false
-	  Left:
-	  - "format.Forward"
-	  Right:
-	  - "format.Forward"
+	This example create a message where you find a "input|base64" pair of the original console input:
+	
+	 exampleConsumer:
+	   Type: consumer.Console
+	   Streams: "*"
+	   Modulators:
+	     - format.Double:
+		      Separator: "|"
+	   	  Right:
+	         - format.Base64Encode
+	
 	
 
 

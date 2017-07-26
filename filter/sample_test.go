@@ -26,8 +26,8 @@ func TestFilterSample(t *testing.T) {
 	msg := core.NewMessage(nil, []byte{}, nil, 1)
 
 	conf := core.NewPluginConfig("", "filter.Sample")
-	conf.Override("SampleRatePerGroup", 2)
-	conf.Override("SampleGroupSize", 5)
+	conf.Override("SampleRatePerGroup", uint64(2))
+	conf.Override("SampleGroupSize", uint64(5))
 	plugin, err := core.NewPluginWithConfig(conf)
 	expect.NoError(err)
 
@@ -47,7 +47,7 @@ func TestFilterSample(t *testing.T) {
 	expect.Equal(deny, 6)
 
 	conf = core.NewPluginConfig("", "filter.Sample")
-	conf.Override("SampleGroupSize", 2)
+	conf.Override("SampleGroupSize", uint64(2))
 	plugin, err = core.NewPluginWithConfig(conf)
 	expect.NoError(err)
 
@@ -71,7 +71,7 @@ func TestFilterSampleIgnore(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	conf := core.NewPluginConfig("", "filter.Sample")
 
-	conf.Override("SampleGroupSize", 2)
+	conf.Override("SampleGroupSize", uint64(2))
 	conf.Override("SampleIgnore", []string{core.LogInternalStream})
 	plugin, err := core.NewPluginWithConfig(conf)
 	expect.NoError(err)
