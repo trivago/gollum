@@ -18,6 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/trivago/gollum/core"
+	"sort"
 	"sync"
 	"time"
 )
@@ -62,12 +63,12 @@ const (
 //
 // Credentials are obtained by gollum automaticly.
 type CloudwatchLogs struct {
-	core.BufferedProducer `gollumdoc:"embed_type"`
-	stream                string `config:"LogStream" default:""`
-	group                 string `config:"LogGroup" default:""`
-	config                *aws.Config
-	token                 *string
-	service               *cloudwatchlogs.CloudWatchLogs
+	core.BatchedProducer `gollumdoc:"embed_type"`
+	stream               string `config:"LogStream" default:""`
+	group                string `config:"LogGroup" default:""`
+	config               *aws.Config
+	token                *string
+	service              *cloudwatchlogs.CloudWatchLogs
 }
 
 func init() {
@@ -77,28 +78,100 @@ func init() {
 // Configure initializes this producer with values from a plugin config.
 func (prod *CloudwatchLogs) Configure(conf core.PluginConfigReader) {
 	if prod.stream == "" {
-		prod.Logger.Error("LogStream can not be empty")
+		conf.Errors.Pushf("LogStream can not be empty")
 	}
 	if prod.group == "" {
-		prod.Logger.Error("LogGroup can not be empty")
+		conf.Errors.Pushf("LogGroup can not be empty")
+	}
+	if conf.GetInt("Batch/MaxCount", maxBatchEvents) > maxBatchEvents {
+		conf.Errors.Pushf("Batch/MaxCount must be below %d", maxBatchEvents)
 	}
 	// Set aws config
 	prod.config = aws.NewConfig()
 	prod.config.WithRegion(conf.GetString("Region", "eu-west-1"))
 }
 
+func (m ByTimestamp) Len() int {
+	return len(m)
+}
+
+func (m ByTimestamp) Swap(i, j int) {
+	m[i], m[j] = m[j], m[i]
+}
+
+func (m ByTimestamp) Less(i, j int) bool {
+	return m[i].GetCreationTime().Unix() < m[j].GetCreationTime().Unix()
+}
+
+type ByTimestamp []*core.Message
+
+// Return lowest index based on all check functions
+// This function assumes that messages are sorted by timestamp in ascending order
+func (prod *CloudwatchLogs) numEvents(messages []*core.Message, checkFn ...indexNumFn) int {
+	index := maxBatchEvents
+	for _, fn := range checkFn {
+		result := fn(messages)
+		if result < index {
+			index = result
+		}
+	}
+	return index
+}
+
+type indexNumFn func(messages []*core.Message) int
+
+// Return lowest index based on message size
+func (prod *CloudwatchLogs) sizeIndex(messages []*core.Message) int {
+	size, index := 0, 0
+	for i, message := range messages {
+		size += len(message.String()) + eventSizeOverhead
+		if size > maxBatchSize {
+			break
+		}
+		index = i + 1
+	}
+	return index
+}
+
+// Return lowest index based on timespan
+// This function assumes that messages are sorted by timestamp in ascending order
+func (prod *CloudwatchLogs) timeIndex(messages []*core.Message) (index int) {
+	if len(messages) == 0 {
+		return 0
+	}
+	firstTimestamp := messages[0].GetCreationTime().Unix()
+	for i, message := range messages {
+		if (message.GetCreationTime().Unix() - firstTimestamp) > int64(maxBatchTimeSpan) {
+			break
+		}
+		index = i + 1
+	}
+	return index
+}
+
+func (prod *CloudwatchLogs) processBatch(messages []*core.Message) []*core.Message {
+	sort.Sort(ByTimestamp(messages))
+	return messages[:prod.numEvents(messages, prod.sizeIndex, prod.timeIndex)]
+}
+
 // Put log events and update sequence token.
 // Possible errors http://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutLogEvents.html
-func (prod *CloudwatchLogs) upload(msg *core.Message) {
-	logevents := make([]*cloudwatchlogs.InputLogEvent, 0)
-	logevents = append(logevents, &cloudwatchlogs.InputLogEvent{
-		Message:   aws.String(msg.String()),
-		Timestamp: aws.Int64(time.Now().Unix() * 1000),
-	})
+func (prod *CloudwatchLogs) upload(messages []*core.Message) {
+	messages = prod.processBatch(messages)
+	if len(messages) == 0 {
+		return
+	}
+	logevents := make([]*cloudwatchlogs.InputLogEvent, 0, len(messages))
+	for _, msg := range messages {
+		logevents = append(logevents, &cloudwatchlogs.InputLogEvent{
+			Message:   aws.String(msg.String()),
+			Timestamp: aws.Int64(msg.GetCreationTime().Unix() * 1000),
+		})
+	}
 	params := &cloudwatchlogs.PutLogEventsInput{
 		LogEvents:     logevents,
-		LogGroupName:  &prod.group,
-		LogStreamName: &prod.stream,
+		LogGroupName:  aws.String(prod.group),
+		LogStreamName: aws.String(prod.stream),
 		SequenceToken: prod.token,
 	}
 	// When rejectedLogEventsInfo is not empty, app can not
@@ -107,21 +180,23 @@ func (prod *CloudwatchLogs) upload(msg *core.Message) {
 	if err == nil {
 		prod.token = resp.NextSequenceToken
 	} else {
-		prod.Logger.Errorf("failed to send message batch: %s", err)
+		prod.Logger.Errorf("error while sending message batch: %q", err)
 	}
+}
+
+func (prod *CloudwatchLogs) sendBatch() core.AssemblyFunc {
+	return prod.upload
 }
 
 // Produce starts the producer
 func (prod *CloudwatchLogs) Produce(workers *sync.WaitGroup) {
-	defer prod.WorkerDone()
-	prod.AddMainWorker(workers)
 	prod.service = cloudwatchlogs.New(session.New(prod.config))
 	if err := prod.create(); err != nil {
-		prod.Logger.Errorf("could not create group:%q stream:%q error was: %s", prod.group, prod.stream, err)
+		prod.Logger.Errorf("could not create group:%q stream:%q error was: %q", prod.group, prod.stream, err)
 	} else {
 		prod.setToken()
 	}
-	prod.MessageControlLoop(prod.upload)
+	prod.BatchMessageLoop(workers, prod.sendBatch)
 }
 
 // For newly created log streams, token is an empty string.
