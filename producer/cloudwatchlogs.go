@@ -52,12 +52,7 @@ const (
 //  - "producer.CloudwatchLogs":
 //    Stream: stream_name
 //    Group: group_name
-//    LogFormat: {{.Facility}} {{.Severity}} {{.Hostname}} {{.Syslogtag}} {{.Message}}
 //
-// Stream is a destination stream name. It must be set. Can contain following variables
-// {{.InstanceId}} AWS instance id if launched on EC2
-// {{.Hostname}} Hostname of machine on which is executed
-
 // Region defines the amazon region of your kinesis stream.
 // By default this is set to "eu-west-1".
 //
