@@ -86,19 +86,19 @@ func (prod *CloudwatchLogs) Configure(conf core.PluginConfigReader) {
 	prod.config.WithRegion(conf.GetString("Region", "eu-west-1"))
 }
 
-func (m ByTimestamp) Len() int {
+func (m byTimestamp) Len() int {
 	return len(m)
 }
 
-func (m ByTimestamp) Swap(i, j int) {
+func (m byTimestamp) Swap(i, j int) {
 	m[i], m[j] = m[j], m[i]
 }
 
-func (m ByTimestamp) Less(i, j int) bool {
+func (m byTimestamp) Less(i, j int) bool {
 	return m[i].GetCreationTime().Unix() < m[j].GetCreationTime().Unix()
 }
 
-type ByTimestamp []*core.Message
+type byTimestamp []*core.Message
 
 // Return lowest index based on all check functions
 // This function assumes that messages are sorted by timestamp in ascending order
@@ -145,7 +145,7 @@ func (prod *CloudwatchLogs) timeIndex(messages []*core.Message) (index int) {
 }
 
 func (prod *CloudwatchLogs) processBatch(messages []*core.Message) []*core.Message {
-	sort.Sort(ByTimestamp(messages))
+	sort.Sort(byTimestamp(messages))
 	return messages[:prod.numEvents(messages, prod.sizeIndex, prod.timeIndex)]
 }
 
