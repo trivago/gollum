@@ -19,10 +19,18 @@ import (
 	"sync"
 )
 
-// Benchmark producer plugin
-// The producer is used to benchmark the core system.
+// Benchmark producer
+//
+// This producer is meant to give more meaningful results in benchmark
+// situations than producer.Null as it is based on a buffered producers.
+//
+// Examples:
+//
+//  benchmark:
+//    Type: producer.Benchmark
+//    Streams: "*"
 type Benchmark struct {
-	core.DirectProducer `gollumdoc:"embed_type"`
+	core.BufferedProducer `gollumdoc:"embed_type"`
 }
 
 func init() {
