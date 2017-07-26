@@ -23,29 +23,34 @@ import (
 
 // RotateConfig defines rotation settings
 //
-// Rotation/Enable if set to true the logs will rotate after reaching certain thresholds.
-// By default this is set to false.
+// Parameters
 //
-// Rotation/TimeoutMin defines a timeout in minutes that will cause the logs to
-// rotate. Can be set in parallel with RotateSizeMB. By default this is set to
-// 1440 (i.e. 1 Day).
+// - Rotation/Enable: If this value is set to "true" the logs will rotate after reaching certain thresholds.
+// By default this parameter is set to "false".
 //
-// Rotation/SizeMB defines the maximum file size in MB that triggers a file rotate.
-// Files can get bigger than this size. By default this is set to 1024.
+// - Rotation/TimeoutMin: This value defines a timeout in minutes that will cause the logs to
+// rotate. Can be set in parallel with RotateSizeMB.
+// By default this parameter is set to "1440".
 //
-// Rotation/Timestamp sets the timestamp added to the filename when file rotation
-// is enabled. The format is based on Go's time.Format function and set to
-// "2006-01-02_15" by default.
+// - Rotation/SizeMB: This value defines the maximum file size in MB that triggers a file rotate.
+// Files can get bigger than this size.
+// By default this parameter is set to "1024".
 //
-// Rotation/ZeroPadding sets the number of leading zeros when rotating files with
+// - Rotation/Timestamp: This value sets the timestamp added to the filename when file rotation
+// is enabled. The format is based on Go's time.Format function.
+// By default this parameter is to to "2006-01-02_15".
+//
+// - Rotation/ZeroPadding: This value sets the number of leading zeros when rotating files with
 // an existing name. Setting this setting to 0 won't add zeros, every other
-// number defines the number of leading zeros to be used. By default this is
-// set to 0.
+// number defines the number of leading zeros to be used.
+// By default this parameter is set to "0".
 //
-// Rotation/Compress defines if a rotated logfile is to be gzip compressed or not.
-// By default this is set to false.
+// - Rotation/Compress: This value defines if a rotated logfile is to be gzip compressed or not.
+// By default this parameter is set to "false".
 //
-// Rotation/At defines a specific time for rotation in hh:mm format. Default is "".
+// - Rotation/At: This value defines a specific time for rotation in hh:mm format.
+// By default this parameter is set to "".
+//
 type RotateConfig struct {
 	Enabled   bool          `config:"Rotation/Enable" default:"false"`
 	Timeout   time.Duration `config:"Rotation/TimeoutMin" default:"1440" metric:"min"`

@@ -30,6 +30,43 @@ Parameters
   
   
 
+Parameters (from components.BatchedWriterConfig)
+------------------------------------------------
+
+**Batch/FlushCount** (default: 4096)
+
+  This value defines the number of messages to be buffered before they are
+  written to disk. This setting is clamped to "BatchMaxCount".
+  By default this parameter is set to "`BatchMaxCount` / 2".
+  
+  
+
+**Batch/FlushTimeoutSec** (default: 0, unit: sec)
+
+  This value defines the maximum number of seconds to wait before
+  a flush is aborted during shutdown. Set this parameter to "0" which does not abort
+  the flushing procedure.
+  By default this parameter is set to "0".
+  
+  
+
+**Batch/MaxCount** (default: 8192)
+
+  This value defines the maximum number of messages that can be buffered
+  before a flush is mandatory. If the buffer is full and a flush is still
+  underway or cannot be triggered out of other reasons, the producer will block.
+  By default this parameter is set to "8192".
+  
+  
+
+**Batch/TimeoutSec** (default: 5, unit: sec)
+
+  This value defines the maximum number of seconds to wait after the last
+  message arrived before a batch is flushed automatically.
+  By default this parameter is set to "5".
+  
+  
+
 Parameters (from DirectProducer)
 --------------------------------
 
@@ -81,6 +118,13 @@ Parameters (from DirectProducer)
 Parameters (from components.RotateConfig)
 -----------------------------------------
 
+**Rotation/At**
+
+  This value defines a specific time for rotation in hh:mm format.
+  By default this parameter is set to "".
+  
+  
+
 **Rotation/AtHour** (default: -1)
 
   (no documentation available)
@@ -93,32 +137,49 @@ Parameters (from components.RotateConfig)
 
 **Rotation/Compress** (default: false)
 
-  (no documentation available)
+  This value defines if a rotated logfile is to be gzip compressed or not.
+  By default this parameter is set to "false".
+  
   
 
 **Rotation/Enable** (default: false)
 
-  (no documentation available)
+  If this value is set to "true" the logs will rotate after reaching certain thresholds.
+  By default this parameter is set to "false".
+  
   
 
 **Rotation/SizeMB** (default: 1024, unit: mb)
 
-  (no documentation available)
+  This value defines the maximum file size in MB that triggers a file rotate.
+  Files can get bigger than this size.
+  By default this parameter is set to "1024".
+  
   
 
 **Rotation/TimeoutMin** (default: 1440, unit: min)
 
-  (no documentation available)
+  This value defines a timeout in minutes that will cause the logs to
+  rotate. Can be set in parallel with RotateSizeMB.
+  By default this parameter is set to "1440".
+  
   
 
 **Rotation/Timestamp** (default: 2006-01-02_15)
 
-  (no documentation available)
+  This value sets the timestamp added to the filename when file rotation
+  is enabled. The format is based on Go's time.Format function.
+  By default this parameter is to to "2006-01-02_15".
+  
   
 
 **Rotation/ZeroPadding** (default: 0)
 
-  (no documentation available)
+  This value sets the number of leading zeros when rotating files with
+  an existing name. Setting this setting to 0 won't add zeros, every other
+  number defines the number of leading zeros to be used.
+  By default this parameter is set to "0".
+  
   
 
 Parameters (from components.AwsMultiClient)
@@ -194,29 +255,6 @@ Parameters (from components.AwsCredentials)
   See https://docs.aws.amazon.com/sdk-for-go/api/aws/credentials/#Credentials for more information.
   By default this parameter is set to "none".
   
-  
-
-Parameters (from components.BatchedWriterConfig)
-------------------------------------------------
-
-**Batch/FlushCount** (default: 4096)
-
-  (no documentation available)
-  
-
-**Batch/FlushTimeoutSec** (default: 0, unit: sec)
-
-  (no documentation available)
-  
-
-**Batch/MaxCount** (default: 8192)
-
-  (no documentation available)
-  
-
-**Batch/TimeoutSec** (default: 5, unit: sec)
-
-  (no documentation available)
   
 
 Examples

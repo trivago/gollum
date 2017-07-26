@@ -25,23 +25,25 @@ import (
 
 // BatchedWriterConfig defines batch configurations
 //
-// Params:
+// Parameters
 //
-// Batch/TimeoutSec: Defines the maximum number of seconds to wait after the last
-// message arrived before a batch is flushed automatically. By default this is set to "5".
+// - Batch/TimeoutSec: This value defines the maximum number of seconds to wait after the last
+// message arrived before a batch is flushed automatically.
+// By default this parameter is set to "5".
 //
-// Batch/MaxCount: defines the maximum number of messages that can be buffered
+// - Batch/MaxCount: This value defines the maximum number of messages that can be buffered
 // before a flush is mandatory. If the buffer is full and a flush is still
-// underway or cannot be triggered out of other reasons, the producer will
-// block. By default this is set to "8192".
+// underway or cannot be triggered out of other reasons, the producer will block.
+// By default this parameter is set to "8192".
 //
-// Batch/FlushCount: defines the number of messages to be buffered before they are
+// - Batch/FlushCount: This value defines the number of messages to be buffered before they are
 // written to disk. This setting is clamped to "BatchMaxCount".
-// By default this is set to "BatchMaxCount / 2".
+// By default this parameter is set to "`BatchMaxCount` / 2".
 //
-// Batch/FlushTimeoutSec: defines the maximum number of seconds to wait before a flush is
-// aborted during shutdown. By default this is set to "0", which does not abort
+// - Batch/FlushTimeoutSec: This value defines the maximum number of seconds to wait before
+// a flush is aborted during shutdown. Set this parameter to "0" which does not abort
 // the flushing procedure.
+// By default this parameter is set to "0".
 //
 type BatchedWriterConfig struct {
 	BatchTimeout      time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`

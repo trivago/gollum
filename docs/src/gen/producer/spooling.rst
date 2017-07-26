@@ -105,6 +105,24 @@ Parameters
   (no documentation available)
   
 
+Parameters (from BufferedProducer)
+----------------------------------
+
+**Channel**
+
+  This value defines the capacity of the message buffer.
+  By default this parameter is set to "8192".
+  
+  
+
+**ChannelTimeoutMs** (default: 0, unit: ms)
+
+  This value defines a timeout for each message before the message will discarded.
+  You can set this parameter to "0" for disabling the timeout.
+  By default this parameter is set to "0".
+  
+  
+
 Parameters (from DirectProducer)
 --------------------------------
 
@@ -156,6 +174,13 @@ Parameters (from DirectProducer)
 Parameters (from components.RotateConfig)
 -----------------------------------------
 
+**Rotation/At**
+
+  This value defines a specific time for rotation in hh:mm format.
+  By default this parameter is set to "".
+  
+  
+
 **Rotation/AtHour** (default: -1)
 
   (no documentation available)
@@ -168,48 +193,47 @@ Parameters (from components.RotateConfig)
 
 **Rotation/Compress** (default: false)
 
-  (no documentation available)
+  This value defines if a rotated logfile is to be gzip compressed or not.
+  By default this parameter is set to "false".
+  
   
 
 **Rotation/Enable** (default: false)
 
-  (no documentation available)
+  If this value is set to "true" the logs will rotate after reaching certain thresholds.
+  By default this parameter is set to "false".
+  
   
 
 **Rotation/SizeMB** (default: 1024, unit: mb)
 
-  (no documentation available)
+  This value defines the maximum file size in MB that triggers a file rotate.
+  Files can get bigger than this size.
+  By default this parameter is set to "1024".
+  
   
 
 **Rotation/TimeoutMin** (default: 1440, unit: min)
 
-  (no documentation available)
+  This value defines a timeout in minutes that will cause the logs to
+  rotate. Can be set in parallel with RotateSizeMB.
+  By default this parameter is set to "1440".
+  
   
 
 **Rotation/Timestamp** (default: 2006-01-02_15)
 
-  (no documentation available)
+  This value sets the timestamp added to the filename when file rotation
+  is enabled. The format is based on Go's time.Format function.
+  By default this parameter is to to "2006-01-02_15".
+  
   
 
 **Rotation/ZeroPadding** (default: 0)
 
-  (no documentation available)
-  
-
-Parameters (from BufferedProducer)
-----------------------------------
-
-**Channel**
-
-  This value defines the capacity of the message buffer.
-  By default this parameter is set to "8192".
-  
-  
-
-**ChannelTimeoutMs** (default: 0, unit: ms)
-
-  This value defines a timeout for each message before the message will discarded.
-  You can set this parameter to "0" for disabling the timeout.
+  This value sets the number of leading zeros when rotating files with
+  an existing name. Setting this setting to 0 won't add zeros, every other
+  number defines the number of leading zeros to be used.
   By default this parameter is set to "0".
   
   
