@@ -15,98 +15,72 @@
 package producer
 
 import (
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/firehose"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/components"
 	"github.com/trivago/tgo"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 )
 
-const (
-	firehoseCredentialEnv    = "environment"
-	firehoseCredentialStatic = "static"
-	firehoseCredentialShared = "shared"
-	firehoseCredentialNone   = "none"
-)
-
 // Firehose producer plugin
-// This producer sends data to an AWS Firehose stream.
-// Configuration example
 //
-//  - "producer.Firehose":
-//    Region: "eu-west-1"
-//    Endpoint: "firehose.eu-west-1.amazonaws.com"
-//    CredentialType: "none"
-//    CredentialId: ""
-//    CredentialToken: ""
-//    CredentialSecret: ""
-//    CredentialFile: ""
-//    CredentialProfile: ""
-//    BatchMaxMessages: 500
+// This producer sends data to an AWS Firehose stream.
+//
+// Parameters
+//
+// - StreamMapping: This value defines a translation from gollum stream to firehose stream
+// name. If no mapping is given the gollum stream name is used as firehose
+// stream name.
+// By default this parameter is set to "empty"
+//
+// - RecordMaxMessages: This value defines the number of messages which send in one record to aws firehose.
+// By default this parameter is set to "1".
+//
+// - RecordMessageDelimiter: This value defines the string to delimit messages within
+// a firehose record.
+// By default this parameter is set to "\n".
+//
+// - SendTimeframeMs: This value defines the timeframe in milliseconds in which a second
+// batch send can be triggered.
+// By default this parameter is set to "1000".
+//
+// Examples
+//
+// This example set up a simple aws firehose producer:
+//
+//  firehoseOut:
+//    Type: producer.Firehose
+//    Credential:
+//      Type: shared
+//      File: /Users/<USERNAME>/.aws/credentials
+//      Profile: default
+//    Region: eu-west-1
+//    StreamMapping:
+//      "*": default
 //    RecordMaxMessages: 1
 //    RecordMessageDelimiter: "\n"
 //    SendTimeframeSec: 1
-//    BatchTimeoutSec: 3
-//    StreamMapping:
-//      "*" : "default"
 //
-// Firehose defines the stream to read from.
-// By default this is set to "default"
-//
-// Region defines the amazon region of your firehose stream.
-// By default this is set to "eu-west-1".
-//
-// Endpoint defines the amazon endpoint for your firehose stream.
-// By default this is set to "firehose.eu-west-1.amazonaws.com"
-//
-// CredentialType defines the credentials that are to be used when
-// connecting to firehose. This can be one of the following: environment,
-// static, shared, none.
-// Static enables the parameters CredentialId, CredentialToken and
-// CredentialSecret shared enables the parameters CredentialFile and
-// CredentialProfile. None will not use any credentials and environment
-// will pull the credentials from environmental settings.
-// By default this is set to none.
-//
-// BatchMaxMessages defines the maximum number of messages to send per
-// batch. By default this is set to 500.
-//
-// RecordMaxMessages defines the maximum number of messages to join into
-// a firehose record. By default this is set to 500.
-//
-// RecordMessageDelimiter defines the string to delimit messages within
-// a firehose record. By default this is set to "\n".
-//
-// SendTimeframeMs defines the timeframe in milliseconds in which a second
-// batch send can be triggered. By default this is set to 1000, i.e. one
-// send operation per second.
-//
-// BatchTimeoutSec defines the number of seconds after which a batch is
-// flushed automatically. By default this is set to 3.
-//
-// StreamMapping defines a translation from gollum stream to firehose stream
-// name. If no mapping is given the gollum stream name is used as firehose
-// stream name.
 type Firehose struct {
-	core.BufferedProducer `gollumdoc:"embed_type"`
-	client                *firehose.Firehose
-	config                *aws.Config
-	batch                 core.MessageBatch
-	streamMap             map[core.MessageStreamID]string
-	recordMaxMessages     int           `config:"RecordMaxMessages" default:"1"`
-	delimiter             []byte        `config:"RecordMessageDelimiter" default:"\n"`
-	flushFrequency        time.Duration `config:"BatchTimeoutSec" default:"3" metric:"sec"`
-	sendTimeLimit         time.Duration `config:"SendTimeframeMs" default:"1000" metric:"ms"`
-	assumeRole            string        `config:"Credential/AssumeRole"`
-	lastSendTime          time.Time
-	lastMetricUpdate      time.Time
-	counters              map[string]*int64
+	core.BatchedProducer `gollumdoc:"embed_type"`
+
+	// AwsMultiClient is public to make AwsMultiClient.Configure() callable (bug in treflect package)
+	AwsMultiClient components.AwsMultiClient `gollumdoc:"embed_type"`
+
+	recordMaxMessages int           `config:"RecordMaxMessages" default:"1"`
+	delimiter         []byte        `config:"RecordMessageDelimiter" default:"\n"`
+	sendTimeLimit     time.Duration `config:"SendTimeframeMs" default:"1000" metric:"ms"`
+
+	client           *firehose.Firehose
+	batch            core.MessageBatch
+	streamMap        map[core.MessageStreamID]string
+	lastSendTime     time.Time
+	lastMetricUpdate time.Time
+	counters         map[string]*int64
 }
 
 const (
@@ -126,10 +100,8 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *Firehose) Configure(conf core.PluginConfigReader) {
-	prod.SetStopCallback(prod.close)
-
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "default")
-	prod.batch = core.NewMessageBatch(int(conf.GetInt("BatchMaxMessages", 500)))
+
 	prod.lastSendTime = time.Now()
 	prod.counters = make(map[string]*int64)
 	prod.lastMetricUpdate = time.Now()
@@ -144,42 +116,6 @@ func (prod *Firehose) Configure(conf core.PluginConfigReader) {
 		prod.Logger.Warning("RecordMessageDelimiter was empty. Defaulting to \"\\n\".")
 	}
 
-	// Config
-	prod.config = aws.NewConfig()
-	if endpoint := conf.GetString("Endpoint", "firehose.eu-west-1.amazonaws.com"); endpoint != "" {
-		prod.config.WithEndpoint(endpoint)
-	}
-
-	if region := conf.GetString("Region", "eu-west-1"); region != "" {
-		prod.config.WithRegion(region)
-	}
-
-	// Credentials
-	prod.config.CredentialsChainVerboseErrors = aws.Bool(true)
-	credentialType := strings.ToLower(conf.GetString("Credential/Type", firehoseCredentialNone))
-	switch credentialType {
-	case firehoseCredentialEnv:
-		prod.config.WithCredentials(credentials.NewEnvCredentials())
-
-	case firehoseCredentialStatic:
-		id := conf.GetString("Credential/Id", "")
-		token := conf.GetString("Credential/Token", "")
-		secret := conf.GetString("Credential/Secret", "")
-		prod.config.WithCredentials(credentials.NewStaticCredentials(id, secret, token))
-
-	case firehoseCredentialShared:
-		filename := conf.GetString("Credential/File", "")
-		profile := conf.GetString("Credential/Profile", "")
-		prod.config.WithCredentials(credentials.NewSharedCredentials(filename, profile))
-
-	case firehoseCredentialNone:
-		// Nothing
-
-	default:
-		conf.Errors.Pushf("Unknown CredentialType: %s", credentialType)
-		return
-	}
-
 	for _, streamName := range prod.streamMap {
 		tgo.Metric.New(firehoseMetricMessages + streamName)
 		tgo.Metric.New(firehoseMetricMessagesSec + streamName)
@@ -187,35 +123,33 @@ func (prod *Firehose) Configure(conf core.PluginConfigReader) {
 	}
 }
 
-func (prod *Firehose) bufferMessage(msg *core.Message) {
-	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.TryFallback)
+// Produce writes to stdout or stderr.
+func (prod *Firehose) Produce(workers *sync.WaitGroup) {
+	defer prod.WorkerDone()
+
+	prod.AddMainWorker(workers)
+	prod.initFirehoseClient()
+	prod.BatchMessageLoop(workers, prod.sendBatch)
 }
 
-func (prod *Firehose) sendBatchOnTimeOut() {
-	// Flush if necessary
-	if prod.batch.ReachedTimeThreshold(prod.flushFrequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2) {
-		prod.sendBatch()
+func (prod *Firehose) initFirehoseClient() {
+	sess, err := prod.AwsMultiClient.NewSessionWithOptions()
+	if err != nil {
+		prod.Logger.WithError(err).Error("Can't get proper aws config")
 	}
 
-	duration := time.Since(prod.lastMetricUpdate)
-	prod.lastMetricUpdate = time.Now()
+	awsConfig := prod.AwsMultiClient.GetConfig()
 
-	for streamName, counter := range prod.counters {
-		count := atomic.SwapInt64(counter, 0)
-
-		tgo.Metric.Add(firehoseMetricMessages+streamName, count)
-		tgo.Metric.SetF(firehoseMetricMessagesSec+streamName, float64(count)/duration.Seconds())
+	// set auto endpoint to firehose if setting is empty
+	if awsConfig.Endpoint == nil || *awsConfig.Endpoint == "" {
+		awsConfig.WithEndpoint(fmt.Sprintf("firehose.%s.amazonaws.com", *awsConfig.Region))
 	}
+
+	prod.client = firehose.New(sess, awsConfig)
 }
 
-func (prod *Firehose) sendBatch() {
-	prod.batch.Flush(prod.transformMessages)
-}
-
-func (prod *Firehose) tryFallbackForMessages(messages []*core.Message) {
-	for _, msg := range messages {
-		prod.TryFallback(msg)
-	}
+func (prod *Firehose) sendBatch() core.AssemblyFunc {
+	return prod.transformMessages
 }
 
 func (prod *Firehose) transformMessages(messages []*core.Message) {
@@ -303,31 +237,4 @@ func (prod *Firehose) transformMessages(messages []*core.Message) {
 			}
 		}
 	}
-}
-
-func (prod *Firehose) close() {
-	defer prod.WorkerDone()
-	prod.CloseMessageChannel(prod.bufferMessage)
-	prod.batch.Close(prod.transformMessages, prod.GetShutdownTimeout())
-}
-
-// Produce writes to stdout or stderr.
-func (prod *Firehose) Produce(workers *sync.WaitGroup) {
-	prod.AddMainWorker(workers)
-	sess, err := session.NewSessionWithOptions(session.Options{
-		Config:            *prod.config,
-		SharedConfigState: session.SharedConfigEnable,
-	})
-	if err != nil {
-		prod.Logger.WithError(err).Error("Failed to create session")
-	}
-
-	if prod.assumeRole != "" {
-		creds := stscreds.NewCredentials(sess, prod.assumeRole)
-		prod.client = firehose.New(sess, &aws.Config{Credentials: creds})
-	} else {
-		prod.client = firehose.New(sess)
-	}
-
-	prod.TickerMessageControlLoop(prod.bufferMessage, prod.flushFrequency, prod.sendBatchOnTimeOut)
 }
