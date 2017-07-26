@@ -31,44 +31,40 @@ import (
 // rotation and compression of the rotated logs. Folders in the file path will
 // be created if necessary.
 //
-// Configuration example
+// Each target file will handled with separated batch processing.
 //
-//  myProducer:
-//    Type: producer.File
-//    File: "/var/log/gollum.log"
-//    FileOverwrite: false
-//    Permissions: "0664"
-//    FolderPermissions: "0755"
-//    Batch:
-// 		MaxCount: 8192
-//    	FlushCount: 4096
-//    	TimeoutSec: 5
-//      FlushTimeoutSec: 5
-//    Rotation:
-//		Enable: false
-// 		Timestamp: 2006-01-02_15
-//    	TimeoutMin: 1440
-//    	SizeMB: 1024
-// 		Compress: false
-// 		ZeroPadding: 0
-// 		At: 13:05
-// 	  Prune:
-//    	Count: 0
-//    	AfterHours: 0
-//    	TotalSizeMB: 0
+// Parameters
 //
-// File contains the path to the log file to write. The wildcard character "*"
+// - File: This value contains the path to the log file to write. The wildcard character "*"
 // can be used as a placeholder for the stream name.
-// By default this is set to /var/log/gollum.log.
+// By default this parameter is set to "/var/log/gollum.log".
 //
-// FileOverwrite enables files to be overwritten instead of appending new data
-// to it. This is set to false by default.
+// - FileOverwrite: This value enables files to be overwritten instead of appending new data
+// to it.
+// By default this parameter is set to "false".
 //
-// Permissions accepts an octal number string that contains the unix file
-// permissions used when creating a file. By default this is set to "0664".
+// - Permissions: This value accepts an octal number string that contains the unix file
+// permissions used when creating a file.
+// By default this parameter is set to "0664".
 //
-// FolderPermissions accepts an octal number string that contains the unix file
-// permissions used when creating a folder. By default this is set to "0755".
+// - FolderPermissions: This value accepts an octal number string that contains the unix file
+// permissions used when creating a folder.
+// By default this parameter is set to "0755".
+//
+// Examples
+//
+// This example will write the messages from all streams to `/tmp/gollum.log`
+// after every 64 message or after 60sec:
+//
+//  fileOut:
+//    Type: producer.File
+//    Streams: "*"
+//    File: /tmp/gollum.log
+//    Batch:
+// 		MaxCount: 128
+//    	FlushCount: 64
+//    	TimeoutSec: 60
+//      FlushTimeoutSec: 3
 //
 type File struct {
 	core.DirectProducer `gollumdoc:"embed_type"`

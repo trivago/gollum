@@ -7,44 +7,7 @@ The file producer writes messages to a file. This producer also allows log
 rotation and compression of the rotated logs. Folders in the file path will
 be created if necessary.
 
-Configuration example
-
- myProducer:
-   Type: producer.File
-   File: "/var/log/gollum.log"
-   FileOverwrite: false
-   Permissions: "0664"
-   FolderPermissions: "0755"
-   Batch:
-		MaxCount: 8192
-   	FlushCount: 4096
-   	TimeoutSec: 5
-     FlushTimeoutSec: 5
-   Rotation:
-		Enable: false
-		Timestamp: 2006-01-02_15
-   	TimeoutMin: 1440
-   	SizeMB: 1024
-		Compress: false
-		ZeroPadding: 0
-		At: 13:05
-	  Prune:
-   	Count: 0
-   	AfterHours: 0
-   	TotalSizeMB: 0
-
-File contains the path to the log file to write. The wildcard character "*"
-can be used as a placeholder for the stream name.
-By default this is set to /var/log/gollum.log.
-
-FileOverwrite enables files to be overwritten instead of appending new data
-to it. This is set to false by default.
-
-Permissions accepts an octal number string that contains the unix file
-permissions used when creating a file. By default this is set to "0664".
-
-FolderPermissions accepts an octal number string that contains the unix file
-permissions used when creating a folder. By default this is set to "0755".
+Each target file will handled with separated batch processing.
 
 
 
@@ -52,17 +15,52 @@ permissions used when creating a folder. By default this is set to "0755".
 Parameters
 ----------
 
+**File**
+
+  This value contains the path to the log file to write. The wildcard character "*"
+  can be used as a placeholder for the stream name.
+  By default this parameter is set to "/var/log/gollum.log".
+  
+  
+
 **FileOverwrite**
 
-  (no documentation available)
+  This value enables files to be overwritten instead of appending new data
+  to it.
+  By default this parameter is set to "false".
+  
   
 
 **FolderPermissions** (default: 0755)
 
-  (no documentation available)
+  This value accepts an octal number string that contains the unix file
+  permissions used when creating a folder.
+  By default this parameter is set to "0755".
+  
   
 
 **Permissions** (default: 0644)
+
+  This value accepts an octal number string that contains the unix file
+  permissions used when creating a file.
+  By default this parameter is set to "0664".
+  
+  
+
+Parameters (from file.Pruner)
+-----------------------------
+
+**Prune/AfterHours** (default: 0)
+
+  (no documentation available)
+  
+
+**Prune/Count** (default: 0)
+
+  (no documentation available)
+  
+
+**Prune/TotalSizeMB** (default: 0, unit: mb)
 
   (no documentation available)
   
@@ -181,23 +179,24 @@ Parameters (from components.RotateConfig)
   (no documentation available)
   
 
-Parameters (from file.Pruner)
------------------------------
+Examples
+--------
 
-**Prune/AfterHours** (default: 0)
+.. code-block:: yaml
 
-  (no documentation available)
-  
-
-**Prune/Count** (default: 0)
-
-  (no documentation available)
-  
-
-**Prune/TotalSizeMB** (default: 0, unit: mb)
-
-  (no documentation available)
-  
-
+	This example will write the messages from all streams to `/tmp/gollum.log`
+	after every 64 message or after 60sec:
+	
+	 fileOut:
+	   Type: producer.File
+	   Streams: "*"
+	   File: /tmp/gollum.log
+	   Batch:
+			MaxCount: 128
+	   	FlushCount: 64
+	   	TimeoutSec: 60
+	     FlushTimeoutSec: 3
+	
+	
 
 
