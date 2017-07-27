@@ -1,5 +1,3 @@
-# Gollum - n:m multiplexer
-
 [![GoDoc](https://godoc.org/github.com/trivago/gollum?status.svg)](https://godoc.org/github.com/trivago/gollum)
 [![Documentation Status](https://readthedocs.org/projects/gollum/badge/?version=latest)](http://gollum.readthedocs.org/en/latest/)
 [![Go Report Card](https://goreportcard.com/badge/github.com/trivago/gollum)](https://goreportcard.com/report/github.com/trivago/gollum)
@@ -10,103 +8,38 @@
 
 ![Gollum](docs/src/gollum.png)
 
+# What is Gollum?
+
 Gollum is an n:m multiplexer that gathers messages from different sources and broadcasts them to a set of destinations.
 
-## Documentation
+## Gollum Documentation
 
-A how-to-use documentation can be found on [read the docs](http://gollum.readthedocs.org/en/latest/).
+How-to-use, installation instructions, getting started guides, and in-depth plugin documentation.
 
-There is also a go documentation available under [godoc pages](https://godoc.org/github.com/trivago/gollum), which is more relevant for developers.
-
-The documentation is generated from the plugin source code. So if you feel that something is missing a look into the code may help and feel free to contribute.
-
-If you can't find your answer in the documentation or have other questions you can reach us on [gitter](https://gitter.im/trivago/gollum?utm_source=share-link&utm_medium=link&utm_campaign=share-link), too.
+* [read the docs](http://gollum.readthedocs.org/en/latest/)
+* [godoc pages](https://godoc.org/github.com/trivago/gollum)
 
 
 ## Installation
 
-### Latest Release
+Gollum is tested and packaged to run on FreeBSD, Debian, Ubuntu, Windows and MacOS. Download Gollum and get started now.
 
-You can download the a compressed pre-compiled binary from [github releases](https://github.com/trivago/gollum/releases)
+https://github.com/trivago/gollum/releases
 
-```bash
-# linux bases example
-curl -L https://github.com/trivago/gollum/releases/download/v0.4.5/gollum-0.4.5-Linux_x64.zip -o gollum.zip
-unzip -o gollum.zip
-chmod 0755 gollum
-
-./gollum --help
-```
-
-### From source
-
-Installation from source requires the installation of the [Go toolchain](http://golang.org/).
-
-Gollum need a least go version 1.7 or higher and supports the Go 1.5 vendor experiment that is automatically enabled when using the provided makefile.
-With Go 1.7 and later you can also use `go build` directly without additional modifications.
-Builds with Go 1.6 or earlier versions are not officially supported and might require additional steps and modifications.
-
-```bash
-# checkout
-git clone git@github.com:trivago/gollum.git
-cd gollum
-
-# compile
-make test
-./gollum --help
-```
-
-You can use the make file coming with gollum to trigger cross platform builds.
-Make will produce ready to deploy .zip files with the corresponding platform builds inside the dist folder.
+[Installation Instructions](http://gollum.readthedocs.io/en/latest/index.html)
 
 
-## Usage
+## Get Gollum Support and Help
 
-By default you start gollum with your config file of your defined pipeline.
+*gitter chat*: If you can't find your answer in the documentation or have other questions you can reach us on [gitter](https://gitter.im/trivago/gollum?utm_source=share-link&utm_medium=link&utm_campaign=share-link), too.
 
-Configuration files are written in the YAML format and have to be loaded via command line switch.
-Each plugin has a different set of configuration options which are currently described in the plugin itself, i.e. you can find examples in the [Wiki](https://github.com/trivago/gollum/wiki).
+*Reporting Issues*: To report an issue with Gollum, please create an Issue here on github: https://github.com/trivago/gollum/issues
 
-```sh
-# starts a gollum process
-gollum -c path/to/your/config.yaml
-```
 
-Here is a minimal console example to run gollum:
 
-```sh
-# create a minimal config
-echo \
-{StdIn: {Type: consumer.Console, Streams: console}, StdOut: {Type: producer.Console, Streams: console}} \
-> example_conf.yaml
 
-# starts a gollum process
-gollum -c example_conf.yaml -ll 3
-```
+# OLD - HAVE TO MOVE
 
-### Commandline
-
-```sh
-./gollum -h
-
-Usage: gollum [OPTIONS]
-
-Options:
--h, -help         	default: false	Print this help message.
--v, -version      	default: false	Print version information and quit.
--r, -report       	default: false	Print detailed version report and quit.
--l, -list         	default: false	Print plugin information and quit.
--c, -config       	default:      	Use a given configuration file.
--tc, -testconfig  	default:      	Test the given configuration file and exit.
--ll, -loglevel    	default: 1    	Set the loglevel [0-3] as in {0=Errors, 1=+Warnings, 2=+Notes, 3=+Debug}.
--n, -numcpu       	default: 0    	Number of CPUs to use. Set 0 for all CPUs.
--p, -pidfile      	default:      	Write the process id into a given file.
--m, -metrics      	default: 0    	Address to use for metric queries. Disabled by default.
--pc, -profilecpu  	default:      	Write CPU profiler results to a given file.
--pm, -profilemem  	default:      	Write heap profile results to a given file.
--ps, -profilespeed	default: false	Write msg/sec measurements to log.
--tr, -trace       	default:      	Write trace results to a given file.
-```
 
 ## Building
 
