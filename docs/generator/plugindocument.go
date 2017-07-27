@@ -3,29 +3,20 @@ package main
 
 import (
 	"fmt"
-	"regexp"
-	"sort"
 	"strings"
 )
 
 // PluginDocument represents the inline documentation from a Gollum plugin's source
 type PluginDocument struct {
-	PackageName         string                           // Name of Go package
-	PluginName          string                           // Name of Go type
-	BlockHeading        string                           // Contents of the main header
-	Description         string                           // Description paragraph(s)
-	Parameters          map[string]Definition            // This plugin's own config parameters
-	InheritedParameters map[string]map[string]Definition // Inherited config parameters
-	Metadata            map[string]Definition            // This plugin's own metadata fields
-	InheritedMetadata   map[string]map[string]Definition // Inherited metadata fields
-	Example             string                           // Config example paragraph
-}
-
-// Definition represents a single metadata or configuration parameter definition
-type Definition struct {
-	desc string
-	dfl  string
-	unit string
+	PackageName         string                    // Name of Go package
+	PluginName          string                    // Name of Go type
+	BlockHeading        string                    // Contents of the main header
+	Description         string                    // Description paragraph(s)
+	Parameters          DefinitionList            // This plugin's own config parameters
+	InheritedParameters map[string]DefinitionList // Inherited config parameters
+	Metadata            DefinitionList            // This plugin's own metadata fields
+	InheritedMetadata   map[string]DefinitionList // Inherited metadata fields
+	Example             string                    // Config example paragraph
 }
 
 // sliceIterator lets us iterate traverse through a bunch of strings conveniently
@@ -82,7 +73,7 @@ func NewPluginDocument(packageName string, pluginName string) PluginDocument {
 	return pluginDocument
 }
 
-// DumpString returns a human-readable string dump of this object
+// DumpString returns a human-readable string dumpString of this object
 func (doc *PluginDocument) DumpString() string {
 	str := ""
 	str += "==================== START DUMP ============================\n"
@@ -91,38 +82,22 @@ func (doc *PluginDocument) DumpString() string {
 	str += "BlockHeading: [" + doc.BlockHeading + "]\n"
 	str += "Description: [" + doc.Description + "]\n\n"
 	str += "Parameters: [" + "\n"
-	str += dumpDefinitionMap(doc.Parameters) + "\n"
+	str += doc.Parameters.dumpString() + "\n"
 	str += "]\n\n"
 	for parentName, defMap := range doc.InheritedParameters {
 		str += "Parameters (from " + parentName + ")[\n"
-		str += dumpDefinitionMap(defMap) + "\n"
+		str += defMap.dumpString() + "\n"
 		str += "]\n\n"
 	}
 	str += "Metadata: [" + "\n"
-	str += dumpDefinitionMap(doc.Metadata) + "\n"
+	str += doc.Metadata.dumpString() + "\n"
 	for parentName, defMap := range doc.InheritedMetadata {
 		str += "Metadata (from " + parentName + ")[\n"
-		str += dumpDefinitionMap(defMap) + "\n"
+		str += defMap.dumpString() + "\n"
 		str += "]\n\n"
 	}
 	str += "Example: [" + "\n------------\n" + doc.Example + "\n----------]\n"
 	str += "==================== END DUMP ============================\n"
-	return str
-}
-
-func dumpDefinitionMap(defMap map[string]Definition) string {
-	str := ""
-	for name, def := range defMap {
-		str += "- " + name + "\n" + def.dump() + "\n"
-	}
-	return str
-}
-
-func (def *Definition) dump() string {
-	str := ""
-	str += "    desc: " + def.desc + "\n"
-	str += "    dfl:  " + def.dfl + "\n"
-	str += "    unit: " + def.unit + "\n"
 	return str
 }
 
@@ -136,6 +111,10 @@ func (doc *PluginDocument) ParseString(comment string) {
 		slice:    strings.Split(comment, "\n"),
 		position: 0,
 	}
+
+	// This parses the comment block into 5 strings:
+	// doc.BlockHeading, doc.Description, doc.Example,
+	// metadataText, parametersText
 
 	_, doc.BlockHeading, _ = lines.next()
 	if _, tmp, _ := lines.next(); tmp != "" {
@@ -203,55 +182,17 @@ func (doc *PluginDocument) ParseString(comment string) {
 		}
 	}
 
-	doc.Metadata = parseDefinitionList(metadataText)
-	doc.Parameters = parseDefinitionList(parametersText)
-}
-
-func parseDefinitionList(text string) map[string]Definition {
-	startDefRE := regexp.MustCompile("^- ([^:]+): (.*)")
-	definitions := make(map[string]Definition)
-
-	def := Definition{}
-	defName := ""
-	for _, line := range strings.Split(text, "\n") {
-		trimmedLine := strings.Trim(line, " \t")
-		if trimmedLine == "" {
-			continue
-		}
-
-		if startDefRE.FindString(trimmedLine) != "" {
-			// RE matches, store old one
-			if defName != "" {
-				definitions[defName] = def
-			}
-
-			// start new one
-			defName = startDefRE.ReplaceAllString(trimmedLine, "$1")
-			def = Definition{
-				desc: startDefRE.ReplaceAllString(trimmedLine, "$2\n"),
-			}
-		} else if defName == "" {
-			panic(fmt.Sprintf(
-				"Definition list input looks malformed, cannot parse name of config parameter or metadata field around \"%s\"",
-				trimmedLine))
-		} else {
-			// append to old one
-			def.desc += trimmedLine + "\n"
-		}
-	}
-
-	if defName != "" {
-		definitions[defName] = def
-	}
-
-	return definitions
+	// Metadata and Parameters sections are assumed to contain (recursive) definition lists
+	// Description and Examples are taken as-is
+	doc.Metadata = newDefinitionListFromString(metadataText)
+	doc.Parameters = newDefinitionListFromString(parametersText)
 }
 
 // InheritMetadata imports the .Metadata property of `document` into this document's
 // inherited metadata list
 func (doc *PluginDocument) InheritMetadata(parentDoc PluginDocument) {
 	if doc.InheritedMetadata == nil {
-		doc.InheritedMetadata = make(map[string]map[string]Definition)
+		doc.InheritedMetadata = make(map[string]DefinitionList)
 	}
 
 	doc.InheritedMetadata[parentDoc.PackageName+"."+parentDoc.PluginName] =
@@ -266,7 +207,7 @@ func (doc *PluginDocument) InheritMetadata(parentDoc PluginDocument) {
 // inherited param list
 func (doc *PluginDocument) InheritParameters(parentDoc PluginDocument) {
 	if doc.InheritedParameters == nil {
-		doc.InheritedParameters = make(map[string]map[string]Definition)
+		doc.InheritedParameters = make(map[string]DefinitionList)
 	}
 
 	doc.InheritedParameters[parentDoc.PackageName+"."+parentDoc.PluginName] =
@@ -330,7 +271,7 @@ func (doc PluginDocument) GetRST() string {
 	// Print native metadata
 	if len(doc.Metadata) > 0 {
 		result += formatRstHeading("Metadata")
-		result += formatRstDefinitionMap(doc.Metadata, false)
+		result += doc.Metadata.getRST(false, 0)
 	}
 
 	// Print inherited metadata
@@ -341,13 +282,13 @@ func (doc PluginDocument) GetRST() string {
 		}
 		result += formatRstHeading(
 			"Metadata (from " + strings.TrimPrefix(parentName, "core.") + ")")
-		result += formatRstDefinitionMap(definitions, false)
+		result += definitions.getRST(false, 0)
 	}
 
 	// Print native parameters
 	if len(doc.Parameters) > 0 {
 		result += formatRstHeading("Parameters")
-		result += formatRstDefinitionMap(doc.Parameters, true)
+		result += doc.Parameters.getRST(true, 0)
 	}
 
 	// Print inherited parameters
@@ -358,7 +299,7 @@ func (doc PluginDocument) GetRST() string {
 		}
 		result += formatRstHeading(
 			"Parameters (from " + strings.TrimPrefix(parentName, "core.") + ")")
-		result += formatRstDefinitionMap(definitions, true)
+		result += definitions.getRST(true, 0)
 	}
 
 	// Print config example
@@ -376,50 +317,4 @@ func (doc PluginDocument) GetRST() string {
 // Returns str as an RST heading
 func formatRstHeading(str string) string {
 	return str + "\n" + strings.Repeat("-", len(str)) + "\n\n"
-}
-
-// Returns defMap as an RST list. This is used to format Parameter and Metadata lists.
-// FIXME: create a proper RST definition list instead of blockquotes
-func formatRstDefinitionMap(defMap map[string]Definition, paramFields bool) string {
-	// List items in alphabetical order
-	var sorted []string
-	for name := range defMap {
-		sorted = append(sorted, name)
-	}
-	sort.Strings(sorted)
-
-	result := ""
-	for _, name := range sorted {
-		// Heading
-		result += "**" + name + "**"
-
-		// Optional default value and unit
-		if paramFields && (defMap[name].unit != "" || defMap[name].dfl != "") {
-			// TODO: cleaner formatting
-			result += " ("
-			if defMap[name].dfl != "" {
-				result += fmt.Sprintf("default: %s", defMap[name].dfl)
-			}
-			if defMap[name].dfl != "" && defMap[name].unit != "" {
-				result += ", "
-			}
-			if defMap[name].unit != "" {
-				result += fmt.Sprintf("unit: %s", defMap[name].unit)
-			}
-			result += ")"
-		}
-		result += "\n\n"
-
-		// Body
-		result += formatRstBlockQuote(docBulletsToRstBullets(defMap[name].desc))
-		result += "\n\n"
-
-	}
-
-	return result
-}
-
-// Inserts two spaces at the beginning of each line, making the string a blockquote in RST
-func formatRstBlockQuote(source string) string {
-	return regexp.MustCompile("(?m:(^))").ReplaceAllString(source, "  ")
 }
