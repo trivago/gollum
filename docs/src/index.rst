@@ -18,20 +18,20 @@ Terminology
 
 The main components of Gollum are consumers, streams and producers. To explain these it helps imagineing to look at Gollum "from the outside".
 
-- A consumer "consumes" message, i.e. it reads data from some external service or e.g. listens to a port.
-- A producer "produces" messages, i.e. it writes data to some external service or e.g. to disk.
-- A stream defines a path between one or more consumers and one or more producers.
-- A single set of data passing over a stream is called a message.
+:Message: A single set of data passing over a `stream` is called a message.
+:Stream: A stream defines a path between one or more `consumers`, `routers` and `producers`.
+:Consumer: The consumer create messages by "consuming" a specific data source. This can be everything like files, ports, external services and so on.
+:Producer: The producer processed receiving message and "produce" something with it. That can be writing to files or ports, sending to external services and so on.
+:Router:  The router get and forward messages from specific source- to target-stream(s).
+:Modulator: A modulator can be a `Filter` or `Formatter` which "modulate" a message.
+:Formatter: A formatter can modulate the payload of a message like convert a plain-text to JSON.
+:Filter: A filter can inspect a message to decide wether to drop the message or to let it pass.
 
-.. image:: /src/flow.png
+.. image:: /src/flow_800w.png
 
-These main components, consumers, producers and streams are build upon a plugin architecture.
-This allows each component to be exchanged and configured individually.
-Every plugin has a different sets of options.
-Streams for example may define filters that can inspect a message to decide wether to drop the message or to let it pass.
-Producers and streams may use formatters to modify a message's content and e.g. convert a plain-text log to JSON.
-Filters and Formatters are plugins, too, but can only be configured in context of another plugin like a stream.
-As of this they are called "nested plugins". These plugins have access to all configuration options of their "host" plugin.
+These main components, `consumers`, `routers`, `producers`, `filters` and `formatters`
+are build upon a plugin architecture.
+This allows each component to be exchanged and configured individually with a different sets of options.
 
 
 Configuration
@@ -48,34 +48,26 @@ Running Gollum
 
 Gollum goes into an infinte loop once started.
 You can shutdown gollum by sending a SIG_INT, i.e. Ctrl+C, SIG_TERM or SIG_KILL.
+
 Gollum has several commandline options that can be accessed by starting Gollum without any paramters:
 
-**-c, --config=""**
-   Use a given configuration file.
-**-h, --help**
-  Print this help message.
-**-ll, --loglevel=0**
-  Set the loglevel [0-3]. Higher levels produce more messages.
-**-m, --metrics=0**
-  Port to use for metric queries. Set 0 to disable.
-**-n, --numcpu=0**
-  Number of CPUs to use. Set 0 for all CPUs.
-**-p, --pidfile=""**
-  Write the process id into a given file.
-**-pc, --profilecpu=""**
-  Write CPU profiler results to a given file.
-**-pm, --profilemem=""**
-  Write heap profile results to a given file.
-**-ps, --profilespeed**
-  Write msg/sec measurements to log.
-**-r, --report**
-  Print detailed version report and exit.
-**-tc, --testconfig=""**
-  Test a given configuration file and exit.
-**-tr, --trace**
-  Write trace results to a given file.
-**-v, --version**
-  Print version information and exit.
+-h, -help           Print this help message.
+-v, -version        Print version information and quit.
+-r, -runtime        Print runtime information and quit.
+-l, -list           Print plugin information and quit.
+-c, -config         Use a given configuration file.
+-tc, -testconfig    Test the given configuration file and exit.
+-ll, -loglevel      Set the loglevel [0-3] as in {0=Error, 1=+Warning, 2=+Info, 3=+Debug}.
+-lc, -log-colors    Use Logrus's "colored" log format. One of "never", "auto" (default), "always"
+-n, -numcpu         Number of CPUs to use. Set 0 for all CPUs.
+-p, -pidfile        Write the process id into a given file.
+-m, -metrics        Address to use for metric queries. Disabled by default.
+-hc, -healthcheck   Listening address ([IP]:PORT) to use for healthcheck HTTP endpoint. Disabled by default.
+-pc, -profilecpu    Write CPU profiler results to a given file.
+-pm, -profilemem    Write heap profile results to a given file.
+-ps, -profilespeed  Write msg/sec measurements to log.
+-tr, -trace       	Write trace results to a given file.
+
 
 Table of contents
 -----------------
