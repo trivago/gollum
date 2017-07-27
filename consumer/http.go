@@ -35,7 +35,7 @@ import (
 // Parameters
 //
 // - Address: Defines the TCP port and optional IP address to listen on.
-//  Sets http.Server.Addr; for defails, see its Go documentation.
+// Sets http.Server.Addr; for defails, see its Go documentation.
 //
 // Syntax: [hostname|address]:<port>
 //

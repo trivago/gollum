@@ -53,21 +53,21 @@ const (
 // The messages will be sent as a whole, no cropping or removal will take place.
 // By default this parameter is set to "delimiter".
 //
-//  * delimiter: Separates messages by looking for a delimiter string.
-//    The delimiter is removed from the message.
+//  - delimiter: Separates messages by looking for a delimiter string.
+//  The delimiter is removed from the message.
 //
-//  * ascii: Reads an ASCII number at a given offset until a given delimiter is
-//    found. Everything to the left of and including the delimiter is removed
-//    from the message.
+//  - ascii: Reads an ASCII number at a given offset until a given delimiter is
+//  found. Everything to the left of and including the delimiter is removed
+//  from the message.
 //
-//  * binary: reads a binary number at a given offset and size.
-//    The number is removed from the message.
+//  - binary: reads a binary number at a given offset and size.
+//  The number is removed from the message.
 //
-//  * binary_le: is an alias for "binary".
+//  - binary_le: is an alias for "binary".
 //
-//  * binary_be: acts like "binary"_le but uses big endian encoding.
+//  - binary_be: acts like "binary"_le but uses big endian encoding.
 //
-//  * fixed: assumes fixed size messages.
+//  - fixed: assumes fixed size messages.
 //
 // - Delimiter: Defines the delimiter string used to separate messages if
 // partitioner is set to "delimiter" or the string used to separate the message

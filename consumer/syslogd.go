@@ -30,26 +30,21 @@ import (
 // Parameters
 //
 // - Address: Defines the IP address or UNIX socket to listen to.
-// This can take one of four forms, to listen on a TCP, UDP or UNIX domain
-// socket:
+// This can take one of the four forms below, to listen on a TCP, UDP
+// or UNIX domain socket. However, see the "Format" option for details on
+// transport support by different formats. Default: "udp://0.0.0.0:514"
+//  - [hostname|ip]:<tcp-port>
+//  - tcp://<hostname|ip>:<tcp-port>
+//  - udp://<hostname|ip>:<udp-port>
+//  - unix://<filesystem-path>
 //
-// * [hostname|ip]:<tcp-port>
-// * tcp://<hostname|ip>:<tcp-port>
-// * udp://<hostname|ip>:<udp-port>
-// * unix://<filesystem-path>
-//
-// However, see the "Format" option for details on transport support by different
-// formats. Default: "udp://0.0.0.0:514"
-//
-// - Format: Defines which syslog the server will support. Three standards are
-// currently available:
-//
-// * RFC3164 (https://tools.ietf.org/html/rfc3164) - unix, udp
-// * RFC5424 (https://tools.ietf.org/html/rfc5424) - unix, udp
-// * RFC6587 (https://tools.ietf.org/html/rfc6587) - unix, upd, tcp
-//
-// All of the formats support listening to UDP and UNIX domain sockets. RFC6587
-// additionally supports TCP sockets. Default: "RFC6587".
+// - Format: Defines which syslog standard the server will support.
+// Three standards, listed below, are currently available.  All
+// standards support listening to UDP and UNIX domain sockets.
+// RFC6587 additionally supports TCP sockets. Default: "RFC6587".
+//  - RFC3164 (https://tools.ietf.org/html/rfc3164) - unix, udp
+//  - RFC5424 (https://tools.ietf.org/html/rfc5424) - unix, udp
+//  - RFC6587 (https://tools.ietf.org/html/rfc6587) - unix, upd, tcp
 //
 // Examples
 //
