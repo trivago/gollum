@@ -71,7 +71,11 @@ func newDefinitionListFromString(text string) DefinitionList {
 
 			} else if newDepth < currentDepth {
 				// One up
-				currentList = &currentItem.parent.parent.children
+				if currentItem.parent.parent != nil {
+					currentList = &currentItem.parent.parent.children
+				} else {
+					currentList = &topList
+				}
 			}
 
 			if _, found := (*currentList)[newName]; found {
@@ -126,7 +130,7 @@ func (list DefinitionList) getRST(paramFields bool, depth int) string {
 	result := ""
 	for _, name := range sorted {
 		// Heading
-		result +=  indentLines("**" + name + "**", 2 * depth)
+		result += indentLines("**"+name+"**", 2*depth)
 
 		// Optional default value and unit
 		if paramFields && (list[name].unit != "" || list[name].dfl != "") {
@@ -146,7 +150,7 @@ func (list DefinitionList) getRST(paramFields bool, depth int) string {
 		result += "\n\n"
 
 		// Body
-		result += indentLines(docBulletsToRstBullets(list[name].desc), 2 * (depth + 1))
+		result += indentLines(docBulletsToRstBullets(list[name].desc), 2*(depth+1))
 		//result += list[name].desc
 		result += "\n\n"
 
