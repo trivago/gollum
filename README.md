@@ -47,12 +47,12 @@ With Go 1.7 and later you can also use `go build` directly without additional mo
 Builds with Go 1.6 or earlier versions are not officially supported and might require additional steps and modifications.
 
 ```bash
-# checout
+# checkout
 git clone git@github.com:trivago/gollum.git
 cd gollum
 
 # compile
-make
+make test
 ./gollum --help
 ```
 
@@ -75,10 +75,12 @@ gollum -c path/to/your/config.yaml
 Here is a minimal console example to run gollum:
 
 ```sh
+# create a minimal config
 echo \
 {StdIn: {Type: consumer.Console, Streams: console}, StdOut: {Type: producer.Console, Streams: console}} \
 > example_conf.yaml
 
+# starts a gollum process
 gollum -c example_conf.yaml -ll 3
 ```
 
