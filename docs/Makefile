@@ -34,11 +34,18 @@ EXCLUDE_ROUTER=$(EXCLUDE_NO_OP)
 
 # Create lists of .rst files based on .go sources
 
-rsts_producer  := $(shell ./make_listrsttargets.sh $(MODULES_DIR_PRODUCER)  $(TARGET_DIR_PRODUCER)  $(EXCLUDE_PRODUCER))
-rsts_consumer  := $(shell ./make_listrsttargets.sh $(MODULES_DIR_CONSUMER)  $(TARGET_DIR_CONSUMER)  $(EXCLUDE_CONSUMER))
-rsts_filter    := $(shell ./make_listrsttargets.sh $(MODULES_DIR_FILTER)    $(TARGET_DIR_FILTER)    $(EXCLUDE_FILTER))
-rsts_formatter := $(shell ./make_listrsttargets.sh $(MODULES_DIR_FORMATTER) $(TARGET_DIR_FORMATTER) $(EXCLUDE_FORMATTER))
-rsts_router    := $(shell ./make_listrsttargets.sh $(MODULES_DIR_ROUTER)    $(TARGET_DIR_ROUTER)    $(EXCLUDE_ROUTER))
+#rsts_producer  := $(shell ./make_listrsttargets.sh $(MODULES_DIR_PRODUCER)  $(TARGET_DIR_PRODUCER)  $(EXCLUDE_PRODUCER))
+#rsts_consumer  := $(shell ./make_listrsttargets.sh $(MODULES_DIR_CONSUMER)  $(TARGET_DIR_CONSUMER)  $(EXCLUDE_CONSUMER))
+#rsts_filter    := $(shell ./make_listrsttargets.sh $(MODULES_DIR_FILTER)    $(TARGET_DIR_FILTER)    $(EXCLUDE_FILTER))
+#rsts_formatter := $(shell ./make_listrsttargets.sh $(MODULES_DIR_FORMATTER) $(TARGET_DIR_FORMATTER) $(EXCLUDE_FORMATTER))
+#rsts_router    := $(shell ./make_listrsttargets.sh $(MODULES_DIR_ROUTER)    $(TARGET_DIR_ROUTER)    $(EXCLUDE_ROUTER))
+
+rsts_producer  := $(shell ./make_listrsttargets_edit.sh producer producer)
+rsts_consumer  := $(shell ./make_listrsttargets_edit.sh consumer consumer)
+rsts_filter    := $(shell ./make_listrsttargets_edit.sh filter   filter)
+rsts_formatter := $(shell ./make_listrsttargets_edit.sh format   formatter)
+rsts_router    := $(shell ./make_listrsttargets_edit.sh router   router)
+
 
 ####################################################################################################
 
@@ -132,28 +139,23 @@ prep_routers:
 
 # Loop targets for the .rst files
 $(rsts_producer):  $(RST_GENERATOR)
-	#$(RST_GENERATOR) $(MODULES_DIR_PRODUCER)/$(shell basename $@ .rst).go $@
-	$(RST_GENERATOR) $(MODULES_DIR_PRODUCER)/$(shell basename $@ .rst).go $@ || echo ERROR > $@
+	$(RST_GENERATOR) $(MODULES_DIR_PRODUCER)/$(shell basename $@ .rst).go $@
 	$(PRINTF) "    %s\n" /$(TARGET_DIR_PRODUCER)/$(shell basename $@) >> $(TARGET_DIR_PRODUCER)/index.rst
 
 $(rsts_consumer):  $(RST_GENERATOR)
-	#$(RST_GENERATOR) $(MODULES_DIR_CONSUMER)/$(shell basename $@ .rst).go $@
-	$(RST_GENERATOR) $(MODULES_DIR_CONSUMER)/$(shell basename $@ .rst).go $@ || echo ERROR > $@
+	$(RST_GENERATOR) $(MODULES_DIR_CONSUMER)/$(shell basename $@ .rst).go $@
 	$(PRINTF) "    %s\n" /$(TARGET_DIR_CONSUMER)/$(shell basename $@) >> $(TARGET_DIR_CONSUMER)/index.rst
 
 $(rsts_filter):  $(RST_GENERATOR)
-	#$(RST_GENERATOR) $(MODULES_DIR_FILTER)/$(shell basename $@ .rst).go $@
-	$(RST_GENERATOR) $(MODULES_DIR_FILTER)/$(shell basename $@ .rst).go $@ || echo ERROR > $@
+	$(RST_GENERATOR) $(MODULES_DIR_FILTER)/$(shell basename $@ .rst).go $@
 	$(PRINTF) "    %s\n" /$(TARGET_DIR_FILTER)/$(shell basename $@) >> $(TARGET_DIR_FILTER)/index.rst
 
 $(rsts_formatter):  $(RST_GENERATOR)
-	#$(RST_GENERATOR) $(MODULES_DIR_FORMATTER)/$(shell basename $@ .rst).go $@
-	$(RST_GENERATOR) $(MODULES_DIR_FORMATTER)/$(shell basename $@ .rst).go $@ || echo ERROR > $@
+	$(RST_GENERATOR) $(MODULES_DIR_FORMATTER)/$(shell basename $@ .rst).go $@
 	$(PRINTF) "    %s\n" /$(TARGET_DIR_FORMATTER)/$(shell basename $@) >> $(TARGET_DIR_FORMATTER)/index.rst
 
 $(rsts_router):  $(RST_GENERATOR)
-	#$(RST_GENERATOR) $(MODULES_DIR_ROUTER)/$(shell basename $@ .rst).go $@ 
-	$(RST_GENERATOR) $(MODULES_DIR_ROUTER)/$(shell basename $@ .rst).go $@ || echo ERROR > $@
+	$(RST_GENERATOR) $(MODULES_DIR_ROUTER)/$(shell basename $@ .rst).go $@
 	$(PRINTF) "    %s\n" /$(TARGET_DIR_ROUTER)/$(shell basename $@) >> $(TARGET_DIR_ROUTER)/index.rst
 
 ####################################################################################################
