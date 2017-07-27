@@ -36,6 +36,9 @@ https://github.com/trivago/gollum/releases
 **Reporting Issues**: To report an issue with Gollum, please create an Issue here on github: https://github.com/trivago/gollum/issues
 
 
+## License
+
+This project is released under the terms of the [Apache 2.0 license](http://www.apache.org/licenses/LICENSE-2.0).
 
 
 # OLD - HAVE TO MOVE
@@ -154,11 +157,7 @@ With this debug build you are able to start a [Delve](https://github.com/derekpa
 dlv --listen=:2345 --headless=true --api-version=2 --log exec ./gollum -- -c testing/configs/test_router.conf -ll 3
 ```
 
-## License
-
-This project is released under the terms of the [Apache 2.0 license](http://www.apache.org/licenses/LICENSE-2.0).
-
-## TODO
+## ???
 ***This is a DEVELOPMENT branch.***
 Please read the list of [breaking changes](https://github.com/trivago/gollum/wiki/Breaking050) from 0.4.x to 0.5.0.
 
