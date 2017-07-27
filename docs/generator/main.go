@@ -330,7 +330,7 @@ func getStructTypeEmbedList(packageName string, fieldList *ast.FieldList) []type
 // to config params (identified by tags like `config:"TimeoutMs" default:"0" metric:"ms"`)
 // and returns a map of Definitions with the value of "config" as key.
 func getStructTypeConfigParams(fieldList *ast.FieldList) DefinitionList {
-	results := make(DefinitionList)
+	results := DefinitionList{}
 
 	for _, field := range fieldList.List {
 		if field.Tag == nil || field.Tag.Kind != token.STRING {
@@ -338,7 +338,8 @@ func getStructTypeConfigParams(fieldList *ast.FieldList) DefinitionList {
 		}
 		tags := parseStructTag(field.Tag.Value)
 		if paramName, found := tags["config"]; found {
-			results.set(paramName, &Definition{
+			results.add(&Definition{
+				name: paramName,
 				// Default description if not overriden in the plugin's comment block
 				desc: "(no documentation available)",
 				dfl:  tags["default"],

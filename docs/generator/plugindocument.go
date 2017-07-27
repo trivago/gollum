@@ -269,14 +269,14 @@ func (doc PluginDocument) GetRST() string {
 	result += "\n"
 
 	// Print native metadata
-	if len(doc.Metadata) > 0 {
+	if len(doc.Metadata.slice) > 0 {
 		result += formatRstHeading("Metadata")
 		result += doc.Metadata.getRST(false, 0)
 	}
 
 	// Print inherited metadata
 	for parentName, definitions := range doc.InheritedMetadata {
-		if len(definitions) == 0 {
+		if len(definitions.slice) == 0 {
 			// Skip title for empty sets
 			continue
 		}
@@ -286,14 +286,14 @@ func (doc PluginDocument) GetRST() string {
 	}
 
 	// Print native parameters
-	if len(doc.Parameters) > 0 {
+	if len(doc.Parameters.slice) > 0 {
 		result += formatRstHeading("Parameters")
 		result += doc.Parameters.getRST(true, 0)
 	}
 
 	// Print inherited parameters
 	for parentName, definitions := range doc.InheritedParameters {
-		if len(definitions) == 0 {
+		if len(definitions.slice) == 0 {
 			// Skip title for empty param sets
 			continue
 		}

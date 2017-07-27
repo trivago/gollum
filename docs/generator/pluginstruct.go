@@ -25,16 +25,16 @@ func (pst pluginStructType) createPluginDocument() PluginDocument {
 	pluginDocument.ParseString(pst.Comment)
 
 	// Set Param values from struct tags
-	for stParamName, stParamDef := range pst.StructTagParams {
+	for _, stParamDef := range pst.StructTagParams.slice {
 
-		if docParamDef, found := pluginDocument.Parameters[stParamName]; found {
+		if docParamDef, found := pluginDocument.Parameters.findByName(stParamDef.name); found {
 			// Parameter is already documented, add values from struct tags
 			docParamDef.unit = stParamDef.unit
 			docParamDef.dfl = stParamDef.dfl
 
 		} else {
 			// Undocumented parameter
-			pluginDocument.Parameters[stParamName] = stParamDef
+			pluginDocument.Parameters.add(stParamDef)
 		}
 	}
 

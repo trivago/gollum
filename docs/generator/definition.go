@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"regexp"
-	"sort"
 	"strings"
 )
 
@@ -11,6 +10,7 @@ import (
 // with optional nested definitions
 type Definition struct {
 	desc     string
+	name     string
 	dfl      string
 	unit     string
 	parent   *Definition
@@ -26,13 +26,17 @@ func (def *Definition) dumpString() string {
 }
 
 // DefinitionList contains a map of definitions
-type DefinitionList map[string]*Definition
+type DefinitionList struct {
+	slice []*Definition
+}
 
 // newDefinitionListFromString parses the input string and creates a (nested) DefinitionList object
 func newDefinitionListFromString(text string) DefinitionList {
 	emptyLineRE := regexp.MustCompile("^[[:space:]]*$")
 	depthRE := regexp.MustCompile("^( *)(.*)")
-	startDefRE := regexp.MustCompile("^( *)- ([^:]+):[[:space:]]*(.*)")
+
+	startDefRE := regexp.MustCompile("^ *- (.*)")
+	keyedDefRE := regexp.MustCompile("^([^:]+):[[:space:]]*(.*)")
 
 	var (
 		currentList  *DefinitionList
@@ -52,9 +56,16 @@ func newDefinitionListFromString(text string) DefinitionList {
 
 		if startDefRE.MatchString(line) {
 			// Start new definition
-			newName := startDefRE.ReplaceAllString(line, "$2")
-			newItem := &Definition{
-				desc: startDefRE.ReplaceAllString(line, "$3\n"),
+			start := startDefRE.ReplaceAllString(line, "$1")
+
+			newItem := &Definition{}
+			if keyedDefRE.MatchString(start) {
+				newItem.name = keyedDefRE.ReplaceAllString(start, "$1")
+				newItem.desc = keyedDefRE.ReplaceAllString(start, "$2") + "\n"
+
+			} else {
+				newItem.name = ""
+				newItem.desc = start + "\n"
 			}
 
 			if newDepth == currentDepth {
@@ -78,12 +89,7 @@ func newDefinitionListFromString(text string) DefinitionList {
 				}
 			}
 
-			if _, found := (*currentList)[newName]; found {
-				panic(fmt.Sprintf("Comment line %d: Duplicate key \"%s\" near \"%s\"\n",
-					lineNo, newName, line))
-			}
-			(*currentList)[newName] = newItem
-
+			currentList.add(newItem)
 			currentItem = newItem
 			currentDepth = newDepth
 
@@ -106,56 +112,72 @@ func newDefinitionListFromString(text string) DefinitionList {
 	return topList
 }
 
-func (list *DefinitionList) set(name string, def *Definition) {
-	(*list)[name] = def
+func (list *DefinitionList) add(def *Definition) {
+	list.slice = append(list.slice, def)
+}
+
+func (list *DefinitionList) findByName(name string) (*Definition, bool) {
+	for _, def := range list.slice {
+		if def.name == name {
+			return def, true
+		}
+	}
+	return nil, false
 }
 
 func (list *DefinitionList) dumpString() string {
 	str := ""
-	for name, def := range *list {
-		str += "- " + name + "\n" + def.dumpString() + "\n"
+	for _, def := range list.slice {
+		str += "- " + def.name + "\n" + def.dumpString() + "\n"
 	}
 	return str
 }
 
 // getRST formats the DefinitionList as ReStructuredText
 func (list DefinitionList) getRST(paramFields bool, depth int) string {
+	/***
 	// List items in alphabetical order
 	var sorted []string
-	for name := range list {
-		sorted = append(sorted, name)
+	for _, def := range list.slice {
+		sorted = append(sorted, def.name)
 	}
 	sort.Strings(sorted)
+	***/
 
 	result := ""
-	for _, name := range sorted {
+	for _, def := range list.slice {
 		// Heading
-		result += indentLines("**"+name+"**", 2*depth)
+		if strings.Trim(def.name, " \t") != "" {
+			result += indentLines("**"+def.name+"**", 2*depth)
+		} else {
+			// FIXME: bullet lists or something
+			result += "** ... **"
+		}
 
 		// Optional default value and unit
-		if paramFields && (list[name].unit != "" || list[name].dfl != "") {
+		if paramFields && (def.unit != "" || def.dfl != "") {
 			// TODO: cleaner formatting
 			result += " ("
-			if list[name].dfl != "" {
-				result += fmt.Sprintf("default: %s", list[name].dfl)
+			if def.dfl != "" {
+				result += fmt.Sprintf("default: %s", def.dfl)
 			}
-			if list[name].dfl != "" && list[name].unit != "" {
+			if def.dfl != "" && def.unit != "" {
 				result += ", "
 			}
-			if list[name].unit != "" {
-				result += fmt.Sprintf("unit: %s", list[name].unit)
+			if def.unit != "" {
+				result += fmt.Sprintf("unit: %s", def.unit)
 			}
 			result += ")"
 		}
 		result += "\n\n"
 
 		// Body
-		result += indentLines(docBulletsToRstBullets(list[name].desc), 2*(depth+1))
-		//result += list[name].desc
+		result += indentLines(docBulletsToRstBullets(def.desc), 2*(depth+1))
+		//result += def.desc
 		result += "\n\n"
 
 		// Children
-		result += list[name].children.getRST(paramFields, depth+1)
+		result += def.children.getRST(paramFields, depth+1)
 	}
 
 	//return indentLines(result, 2 * (depth + 1))
