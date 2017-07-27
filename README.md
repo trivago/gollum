@@ -16,8 +16,8 @@ Gollum is an n:m multiplexer that gathers messages from different sources and br
 
 How-to-use, installation instructions, getting started guides, and in-depth plugin documentation.
 
-* [read the docs](http://gollum.readthedocs.org/en/latest/)
-* [godoc pages](https://godoc.org/github.com/trivago/gollum)
+* [read the docs - http://gollum.readthedocs.org/en/latest/](http://gollum.readthedocs.org/en/latest/)
+* [godoc pages - https://godoc.org/github.com/trivago/gollum](https://godoc.org/github.com/trivago/gollum)
 
 
 ## Installation
@@ -31,9 +31,9 @@ https://github.com/trivago/gollum/releases
 
 ## Get Gollum Support and Help
 
-*gitter chat*: If you can't find your answer in the documentation or have other questions you can reach us on [gitter](https://gitter.im/trivago/gollum?utm_source=share-link&utm_medium=link&utm_campaign=share-link), too.
+**gitter Chat**: If you can't find your answer in the documentation or have other questions you can reach us on [gitter](https://gitter.im/trivago/gollum?utm_source=share-link&utm_medium=link&utm_campaign=share-link), too.
 
-*Reporting Issues*: To report an issue with Gollum, please create an Issue here on github: https://github.com/trivago/gollum/issues
+**Reporting Issues**: To report an issue with Gollum, please create an Issue here on github: https://github.com/trivago/gollum/issues
 
 
 
