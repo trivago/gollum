@@ -1,9 +1,4 @@
-# Gollum v0.5.0
-
-![Gollum](docs/src/gollum.png)
-
-***This is a DEVELOPMENT branch.***
-Please read the list of [breaking changes](https://github.com/trivago/gollum/wiki/Breaking050) from 0.4.x to 0.5.0.
+# Gollum - n:m multiplexer
 
 [![GoDoc](https://godoc.org/github.com/trivago/gollum?status.svg)](https://godoc.org/github.com/trivago/gollum)
 [![Documentation Status](https://readthedocs.org/projects/gollum/badge/?version=latest)](http://gollum.readthedocs.org/en/latest/)
@@ -13,111 +8,50 @@ Please read the list of [breaking changes](https://github.com/trivago/gollum/wik
 [![Gitter](https://badges.gitter.im/trivago/gollum.svg)](https://gitter.im/trivago/gollum?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Apache V2 License](http://img.shields.io/badge/license-Apache%20V2-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
+![Gollum](docs/src/gollum.png)
+
 Gollum is an n:m multiplexer that gathers messages from different sources and broadcasts them to a set of destinations.
-
-There are a few basic terms used throughout Gollum:
-
-* "Consumers" read data from other services
-* "Producers" write data to other services
-* "Streams" route data between consumers and producers
-* A "message" is a set of data passed between consumers and producers
-* "Formatters" can transform the content of messages
-* "Filters" can block/pass messages based on their content
-
-Writing a custom plugin does not require you to change any additional code besides your new plugin file.
 
 ## Documentation
 
-A how-to-use documentation can be found on [read the docs](http://gollum.readthedocs.org/en/latest/). Developers should use the [godoc pages](https://godoc.org/github.com/trivago/gollum) to get started. Plugin documentation is generated from the plugin source code. So if you feel that something is missing a look into the code may help.
+A how-to-use documentation can be found on [read the docs](http://gollum.readthedocs.org/en/latest/).
+
+There is also a go documentation available under [godoc pages](https://godoc.org/github.com/trivago/gollum), which is more relevant for developers.
+
+The documentation is generated from the plugin source code. So if you feel that something is missing a look into the code may help and feel free to contribute.
 
 If you can't find your answer in the documentation or have other questions you can reach us on [gitter](https://gitter.im/trivago/gollum?utm_source=share-link&utm_medium=link&utm_campaign=share-link), too.
 
-## Consumers (reading data)
-
-* `Console` read from stdin.
-* `File` read from a file (like tail).
-* `HTTP` read http requests.
-* `Kafka` read from a [Kafka](http://kafka.apache.org/) topic.
-* `Kinesis` read from a [Kinesis](https://aws.amazon.com/de/kinesis/) stream.
-* `Profiler` Generate profiling messages.
-* `Proxy` use in combination with a proxy producer to enable two-way communication.
-* `PcapHTTP` to read http traffic from libpcap, e.g. for traffic forwarding.
-* `Socket` read from a socket (gollum specific protocol).
-* `Syslogd` read from a socket (syslogd protocol).
-* `SystemD` read from the SystemD journal.
-
-## Producers (writing data)
-
-* `AwsS3` write data to [Amazon S3](https://aws.amazon.com/de/s3/) stream.
-* `Console` write to stdin or stdout.
-* `ElasticSearch` write to [elasticsearch](http://www.elasticsearch.org/) via http/bulk.
-* `File` write to a file. Supports log rotation and compression.
-* `Firehose` write data to a [Firehose](https://aws.amazon.com/de/firehose/) stream.
-* `HTTPRequest` HTTP request forwarder.
-* `InfluxDB` send data to an [InfluxDB](https://influxdb.com) server.
-* `Kafka` write to a [Kafka](http://kafka.apache.org/) topic.
-* `Kinesis` write data to a [Kinesis](https://aws.amazon.com/de/kinesis/) stream.
-* `Null` like /dev/null.
-* `Proxy` two-way communication proxy for simple protocols.
-* `Redis` write data to [Redis](https://redis.io).
-* `Scribe` send messages to a [Facebook scribe](https://github.com/facebookarchive/scribe) server.
-* `Socket` send messages to a socket (gollum specific protocol).
-* `Spooling` write messages to disk and retry them later.
-* `Websocket` send messages to a websocket.
-
-## Streams (multiplexing)
-
-* `Broadcast` send to all producers in a stream.
-* `Random` send to a random producer in a stream.
-* `RoundRobin` switch the producer after each send in a round robin fashion.
-* `Route` convert streams to one or multiple others
-
-## Formatters (modifying data)
-
-* `Base64Encode` encode messages to base64.
-* `Base64Decode` decode messages from base64.
-* `Clear` clears a message
-* `CollectdToInflux08` convert [CollectD](https://collectd.org) 0.8 data to [InfluxDB](https://influxdb.com) compatible values.
-* `CollectdToInflux09` convert [CollectD](https://collectd.org) 0.9 data to [InfluxDB](https://influxdb.com) compatible values.
-* `CollectdToInflux10` convert [CollectD](https://collectd.org) 0.10 data to [InfluxDB](https://influxdb.com) compatible values.
-* `ExtractJSON` extracts a single field from a JSON object.
-* `Envelope` add a prefix and/or postfix string to a message.
-* `Forward` write the message without modifying it.
-* `GrokToJSON` parse grok patterns into JSON fields.
-* `Hostname` prepend the current machine's hostname to a message.
-* `Identifier` hash the message to generate a (mostly) unique id.
-* `JSON` write the message as a JSON object. Messages can be parsed to generate fields.
-* `ProcessJSON` Modify fields of a JSON encoded message.
-* `ProcessTSV` Modify fields of a TSV encoded message.
-* `Runlength` prepend the length of the message.
-* `Sequence` prepend the sequence number of the message.
-* `SplitPick` split a message by token and pick a specific one by index.
-* `SplitToJSON` tokenize a message and put the values into JSON fields.
-* `StreamName` prepend the name of a stream to the payload.
-* `StreamRevert` route a message to the previous stream (e.g. after it has been routed).
-* `StreamRoute` route a message to another stream by reading a prefix.
-* `TemplateJSON` run JSON data through golangs text/templat mechanism.
-* `Timestamp` prepend a timestamp to the message.
-
-## Filters (filtering data)
-
-* `All` lets all message pass.
-* `JSON` blocks or lets json messages pass based on their content.
-* `None` blocks all messages.
-* `Rate` blocks messages that go over a given messages per second rate.
-* `RegExp` blocks or lets messages pass based on a regular expression.
-* `Stream` blocks or lets messages pass based on their stream name.
 
 ## Installation
+
+### Latest Release
+
+You can download the a compressed pre-compiled binary from [github releases](https://github.com/trivago/gollum/releases)
+
+```bash
+# linux bases example
+curl -L https://github.com/trivago/gollum/releases/download/v0.4.5/gollum-0.4.5-Linux_x64.zip -o gollum.zip
+unzip -o gollum.zip
+chmod 0755 gollum
+
+./gollum --help
+```
 
 ### From source
 
 Installation from source requires the installation of the [Go toolchain](http://golang.org/).
-Gollum supports the Go 1.5 vendor experiment that is automatically enabled when using the provided makefile.
-With Go 1.6 and later you can also use `go build` directly without additional modifications.
-Builds with Go 1.4 or earlier versions are not officially supported and might require additional steps and modifications.
+
+Gollum need a least go version 1.7 or higher and supports the Go 1.5 vendor experiment that is automatically enabled when using the provided makefile.
+With Go 1.7 and later you can also use `go build` directly without additional modifications.
+Builds with Go 1.6 or earlier versions are not officially supported and might require additional steps and modifications.
 
 ```bash
+# checout
+git clone git@github.com:trivago/gollum.git
+cd gollum
+
+# compile
 make
 ./gollum --help
 ```
@@ -125,79 +59,52 @@ make
 You can use the make file coming with gollum to trigger cross platform builds.
 Make will produce ready to deploy .zip files with the corresponding platform builds inside the dist folder.
 
+
 ## Usage
 
-To test gollum you can make a local profiler run with a predefined configuration:
-
-```bash
-gollum -c config/profile.conf -ps -ll 3
-```
-
-By default this test profiles the theoretic maximum throughput of 256 Byte messages.
-You can enable different producers in that config to test the write performance of these producers, too.
-
-### Configuration
+By default you start gollum with your config file of your defined pipeline.
 
 Configuration files are written in the YAML format and have to be loaded via command line switch.
-Each plugin has a different set of configuration options which are currently described in the plugin itself, i.e. you can find examples in the GoDocs.
+Each plugin has a different set of configuration options which are currently described in the plugin itself, i.e. you can find examples in the [Wiki](https://github.com/trivago/gollum/wiki).
+
+```sh
+# starts a gollum process
+gollum -c path/to/your/config.yaml
+```
+
+Here is a minimal console example to run gollum:
+
+```sh
+echo \
+{StdIn: {Type: consumer.Console, Streams: console}, StdOut: {Type: producer.Console, Streams: console}} \
+> example_conf.yaml
+
+gollum -c example_conf.yaml -ll 3
+```
 
 ### Commandline
 
-#### `-c` or `--config` [file]
+```sh
+./gollum -h
 
-Use a given configuration file.
+Usage: gollum [OPTIONS]
 
-#### `-h` or `--help`
-
-Print this help message.
-
-#### `-ll` or `--loglevel` [0-3]
-
-Set the loglevel [0-3]. Higher levels produce more messages as in 0=Errors, 1=Warnings, 2=Notes, 3=Debug.
-
-#### `-m` or `--metrics` [port]
-
-Port to use for metric queries. Set 0 to disable.
-
-#### `-hc` or `--healthcheck` <host:port|:port|port>
-
-Open a healthcheck HTTP endpoint at the specified listening address. Disabled by default.
-
-#### `-n` or `--numcpu` [number]
-
-Number of CPUs to use. Set 0 for all CPUs.
-
-#### `-p` or `--pidfile` [file]
-
-Write the process id into a given file.
-
-#### `-pc` or `--profilecpu` [file]
-
-Write CPU profiler results to a given file.
-
-#### `-pm` or `--profilemem` [file]
-
-Write heap profile results to a given file.
-
-#### `-ps` or `--profilespeed`
-
-Write msg/sec measurements to log.
-
-#### `-r` or `--report`
-
-Print detailed version report and quit.
-
-#### `-tc` or `--testconfig` [file]
-
-Test a given configuration file and exit.
-
-#### `-tr` or `--trace` [file]
-
-Write trace results to a given file.
-
-#### `-v` or `--version`
-
-Print version information and quit.
+Options:
+-h, -help         	default: false	Print this help message.
+-v, -version      	default: false	Print version information and quit.
+-r, -report       	default: false	Print detailed version report and quit.
+-l, -list         	default: false	Print plugin information and quit.
+-c, -config       	default:      	Use a given configuration file.
+-tc, -testconfig  	default:      	Test the given configuration file and exit.
+-ll, -loglevel    	default: 1    	Set the loglevel [0-3] as in {0=Errors, 1=+Warnings, 2=+Notes, 3=+Debug}.
+-n, -numcpu       	default: 0    	Number of CPUs to use. Set 0 for all CPUs.
+-p, -pidfile      	default:      	Write the process id into a given file.
+-m, -metrics      	default: 0    	Address to use for metric queries. Disabled by default.
+-pc, -profilecpu  	default:      	Write CPU profiler results to a given file.
+-pm, -profilemem  	default:      	Write heap profile results to a given file.
+-ps, -profilespeed	default: false	Write msg/sec measurements to log.
+-tr, -trace       	default:      	Write trace results to a given file.
+```
 
 ## Building
 
@@ -315,3 +222,19 @@ dlv --listen=:2345 --headless=true --api-version=2 --log exec ./gollum -- -c tes
 ## License
 
 This project is released under the terms of the [Apache 2.0 license](http://www.apache.org/licenses/LICENSE-2.0).
+
+## TODO
+***This is a DEVELOPMENT branch.***
+Please read the list of [breaking changes](https://github.com/trivago/gollum/wiki/Breaking050) from 0.4.x to 0.5.0.
+
+Writing a custom plugin does not require you to change any additional code besides your new plugin file.
+
+
+To test gollum you can make a local profiler run with a predefined configuration:
+
+```bash
+gollum -c config/profile.conf -ps -ll 3
+```
+
+By default this test profiles the theoretic maximum throughput of 256 Byte messages.
+You can enable different producers in that config to test the write performance of these producers, too.
