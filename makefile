@@ -1,9 +1,10 @@
-.PHONY: all clean docker docker-dev install freebsd linux mac pi win examples current vendor test unit coverprofile integration example pre-commit vet lint fmt fmt-check ineffassign
+.PHONY: all clean docker docker-dev install freebsd linux mac pi win current debug vendor test unit coverprofile integration example pre-commit vet lint fmt fmt-check ineffassign
 .DEFAULT_GOAL := current
 
 VERSION=0.5.0
 BUILD_ENV=GORACE="halt_on_error=0"
 BUILD_FLAGS=-ldflags=-s
+BUILD_DEBUG_FLAGS=-ldflags='-s -linkmode=internal' -gcflags='-N -l'
 
 UNIT_TEST_TAGS="unit"
 INTEGRATION_TEST_TAGS="integration"
@@ -19,10 +20,10 @@ CHECK_FILES=$(shell find . -type f -name '*.go' | grep -vE '^\./vendor/')
 LINT_PKGS=$(shell go list ./... | grep -vE '^github.com/trivago/gollum/(core$$|vendor/)')
 LINT_FILES_CORE=$(shell find core -maxdepth 1 -type f -name '*.go' -not -name '*.pb.go')
 
-all: clean vendor test freebsd linux docker mac pi win examples current
-
 #############################################################################################################
 # Build targets
+
+all: clean test freebsd linux docker mac pi win
 
 freebsd:
 	@echo "Building for FreeBSD/x64"
@@ -57,12 +58,11 @@ win:
 current:
 	@$(BUILD_ENV) go build $(BUILD_FLAGS)
 
+debug:
+	@$(BUILD_ENV) go build $(BUILD_DEBUG_FLAGS)
+
 install: current
 	@go install
-
-examples:
-	@echo "Building Examples"
-	@zip -j dist/gollum-$(VERSION)-Examples.zip config/*.conf
 
 docker: linux
 	@echo "Building docker image"
