@@ -1,0 +1,340 @@
+v0.5.0
+==================================
+
+Breaking changes 0.4.x to 0.5.0
+--------------------------------
+
+
+Configuration
+`````````````
+
+The goal of this breaking change was to make Gollum configuration files
+easier to maintain and easier to merge. In addition to that several
+quirks and inconsistencies have been resolved.
+
+Plugin header
+~~~~~~~~~~~~~
+
+| This change allows configs to be easier to merge which is requirement
+  for future features.
+| As of this change a new, mandatory field “Type” has been added.
+
+**From**
+
+.. code:: yaml
+
+    - "plugin.Type":
+        ID: "pluginId"
+
+**To**
+
+.. code:: yaml
+
+    "pluginId":
+        Type: "plugin.Type"
+
+Plural form and case sensitivity
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In previous versions fields did not follow a rule when to use plural or
+singular. In 0.5.0 plural means “one or more values” while singular
+means “only one value”. In addition to that all names are now case
+insensitive.
+
+**From**
+
+.. code:: yaml
+
+    - "plugin.Type":
+        ID: "pluginId"
+        Category:
+            - "Foo"
+            - "Bar"
+        Streams:
+            - "foo"
+            - "bar"
+
+**To**
+
+.. code:: yaml
+
+    "pluginId":
+        type: "plugin.Type"
+        categories:
+            - "Foo"
+            - "Bar"
+        streams:
+            - "foo"
+            - "bar"
+
+Formatters and filters are now modulators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In earlier versions chaining formatters was done by nesting them via
+options. This was confusing as the order was “upside down”. In addition
+to that you could use every formatter only once. The new modulator
+concept introduces a more natural order and allows formatters to be
+reused as often as necessary. In addition to that, filter and formatters
+have been merged into the same list. This fixes the problem of applying
+filters before or after formatters that was previously fixed by adding
+e.g. a “FilterAfterFormat” field.
+
+**From**
+
+.. code:: yaml
+
+    - "plugin.Type":
+        ID: "pluginId"
+        Filter: "filter.Before"
+        FilterAfterFormat: "filter.After"
+        Formatter: "format.SECOND"
+        SECONDOption: "foobar"
+        SECONDFormatter: "format.FIRST"
+
+**To**
+
+.. code:: yaml
+
+    "pluginId":
+        Type: "plugin.Type"
+        Modulators:
+            - "filter.Before"
+            - "format.FIRST"
+            - "format.SECOND"
+                Option: "foobar"
+            - "filter.After"
+
+Nested options
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some plugins had a set of options starting with the same prefix
+(e.g. file.Producer). These options have now been grouped.
+
+**From**
+
+.. code:: yaml
+
+    - "plugin.Type":
+        ID: "pluginId"
+        RotateAfterHours: 10
+        RotateSizeMB: 1024
+        RotateAt: "00:00"
+
+**To**
+
+.. code:: yaml
+
+    "pluginId":
+        Type: "plugin.Type"
+        Rotate:
+            AfterHours: 10
+            SizeMB: 1024
+            At: "00:00"
+
+Plugins
+`````````````
+
+| The plugin system has been refactored to make plugins more consistent
+  and to reduce the amount of work required to write a new plugin. This
+  change introduced new subclasses and changed some of the basic
+  interfaces.
+| The shutdown process has been revamped to give plugins a better chance
+  to cleanly shut down and to get rid of all their messages without the
+  system having to care about stream loops.
+
+Renaming of streams to routers
+`````````````
+
+| A “stream” in 0.4.x has a double meaning. It denotes a stream of data,
+  as well as a type of plugin that is used to route messages from one
+  stream to another or simply to configure a certain stream of data in
+  terms of formatting.
+| To make it easier to talk about these to things the
+  routing/configuring part (the plugins) are renamed to “router”.
+
+**From**
+
+.. code:: yaml
+
+    - "stream.Broadcast":
+        ID: "Splitter"
+        Stream: "foo"
+
+**To**
+
+.. code:: yaml
+
+    "Splitter":
+        Type: "router.Broadcast"
+        Stream: "foo"
+
+Removal of gollum/shared
+``````````````````````````
+
+All types from the ``github.com/trivago/gollum/shared`` package have
+been moved to the new ``github.com/trivago/tgo`` package and
+subpackages. This allows us to re-use these types in other projects more
+easily and introduces a better structure. This package is meant to be an
+extension to the Golang standard library and follows a “t-prefix” naming
+convention. Everything that you would expect in e.g. the ``sync``
+package will be placed in ``tgo/tsync``.
+
+**From**
+
+.. code:: golang
+
+    c := shared.MaxI(a,b)
+    spin := shared.NewSpinner(shared.SpinPriorityLow)
+
+**To**
+
+.. code:: golang
+
+    c := tmath.MaxI(a,b)
+    spin := tsync.NewSpinner(tsync.SpinPriorityLow)
+
+Base classes
+`````````````
+
+In version 0.4.x and earlier not all plugins had a base class. In 0.5.0
+all plugins have base classes and existing base classes have been
+renamed.
+
+**renamed**
+
+::
+
+    core.ConsumerBase -> core.SimpleConsumer
+    core.ProducerBase -> core.BufferedProducer
+    core.StreamBase   -> core.SimpleRouter
+
+**new**
+
+::
+
+    core.SimpleConsumer     Consumer base class
+    core.SimpleFilter       Filter base class
+    core.SimpleFormatter    Formatter base class
+    core.SimpleProducer     Producer base class
+    core.SimpleRouter       Router base class
+    core.DirectProducer     A producer that directly accepts messages without buffering
+    core.BufferedProducer   A producer that reads messages from a channel
+    core.BatchedProducer    A producer that collects messages and processes them in a batch
+
+Metrics
+`````````````
+
+| Metrics have been moved from gollum/shared to the tgo package. As of
+  this ``shared.Metric.*`` has to be replaced by ``tgo.Metric.*`` and
+  the package “github.com/trivago/tgo” has to be imported instead of
+  “github.com/trivago/gollum/shared”.
+| Please note that “per second” metrics can now be added without
+  additional overhead by using
+  ``tgo.Metric.NewRate(metricName, rateMetricName, time.Second, 10, 3, true)``.
+  All custom “per second” metrics should be replaced with this function.
+
+Logging
+`````````````
+
+Version 0.5.0 introduces logrus based scoped logging to give error
+messages a clearer context. As of this every plugin has a “Logger”
+member in its base class.
+
+**From**
+
+.. code:: go
+
+    Log.Error.Print("MyPlugin: Something's wrong", err)
+
+**To**
+
+.. code:: go
+
+    plugin.Logger.WithError(err).Error("Something's wrong")
+
+Configure
+`````````````
+
+Error handling has been improved so that a plugin automatically reacts
+on missing or invalid values. Errors are now collected in a stack
+attached to the config reader and processed as a batch after configure
+returns. In addition to that, simple types can now be configured using
+struct tags.
+
+**From**
+
+.. code:: go
+
+    type Console struct {
+        core.ConsumerBase
+        autoExit bool
+        pipeName string
+        pipePerm uint32
+        pipe     *os.File
+    }
+
+    func (cons *Console) Configure(conf core.PluginConfig) error {
+        cons.autoexit = conf.GetBool("ExitOnEOF", true)
+        inputConsole := conf.GetString("Console", "stdin")
+
+        switch strings.ToLower(inputConsole) {
+        case "stdin":
+            cons.pipe = os.Stdin
+            cons.pipeName = "stdin"
+        case "stdin":
+            return fmt.Errorf("Cannot read from stderr")
+        default:
+            cons.pipe = nil
+            cons.pipeName = inputConsole
+
+            if perm, err := strconv.ParseInt(conf.GetString("Permissions", "0664"), 8, 32); err != nil {
+                Log.Error.Printf("Error parsing named pipe permissions: %s", err)
+            } else {
+                cons.pipePerm = uint32(perm)
+            }
+        }
+
+        return cons.ConsumerBase.Configure(conf)
+    }
+
+**To**
+
+.. code:: go
+
+    type Console struct {
+        core.SimpleConsumer
+        autoExit            bool   `config:"ExitOnEOF" default:"true"`
+        pipeName            string `config:"Pipe" default:"stdin"`
+        pipePerm            uint32 `config:"Permissions" default:"0644"`
+        pipe                *os.File
+    }
+
+    func (cons *Console) Configure(conf core.PluginConfigReader) {
+        switch strings.ToLower(cons.pipeName) {
+        case "stdin":
+            cons.pipe = os.Stdin
+            cons.pipeName = "stdin"
+        case "stderr":
+            conf.Errors.Pushf("Cannot read from stderr")
+        default:
+            cons.pipe = nil
+        }
+    }
+
+
+New features
+----------------
+
+- updated index.rst `[view commit] <http://github.com/trivago/gollum/commit/bfd219a6879f656b58f8f92d5345a85edbd67336>`__
+- fixed copyright `[view commit] <http://github.com/trivago/gollum/commit/329dac003ef6bdc84fbd3154d5be4a8d6f49b013>`__
+- updated docs `[view commit] <http://github.com/trivago/gollum/commit/2a6667648b8e5278b0f445e3c8c0a8fd207cbf65>`__
+- ...
+
+
+Fixed
+----------------
+
+- updated index.rst `[view commit] <http://github.com/trivago/gollum/commit/bfd219a6879f656b58f8f92d5345a85edbd67336>`__
+- fixed copyright `[view commit] <http://github.com/trivago/gollum/commit/329dac003ef6bdc84fbd3154d5be4a8d6f49b013>`__
+- updated docs `[view commit] <http://github.com/trivago/gollum/commit/2a6667648b8e5278b0f445e3c8c0a8fd207cbf65>`__
+- ...

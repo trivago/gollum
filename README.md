@@ -39,35 +39,3 @@ https://github.com/trivago/gollum/releases
 ## License
 
 This project is released under the terms of the [Apache 2.0 license](http://www.apache.org/licenses/LICENSE-2.0).
-
-
-
-# OLD - HAVE TO MOVE
-
-
-### Build
-
-
-
-There are also supplementary targets for make:
-
-
-* `vendor` install [Glide](https://github.com/Masterminds/glide) and update all dependencies
-* `aws` build for Linux x64 and generate an [Elastic Beanstalk](https://aws.amazon.com/de/elasticbeanstalk/) package
-
-If you want to use native plugins (contrib/native) or self provided you will have to enable the corresponding imports in the file `contrib_loader.go`. You can copy the `contrib_loader.go.dist` file here and activate the plugins you want to use.
-
-Doing so will disable the possibility to do cross-platform builds for most users.
-Please check also the requirements for each plugin.
-
-
-
-
-
-## ???
-***This is a DEVELOPMENT branch.***
-Please read the list of [breaking changes](https://github.com/trivago/gollum/wiki/Breaking050) from 0.4.x to 0.5.0.
-
-Writing a custom plugin does not require you to change any additional code besides your new plugin file.
-
-

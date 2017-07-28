@@ -55,4 +55,5 @@ Table of contents
     /src/instructions/index
     /src/plugins/index
     /src/examples/index
+    /src/releaseNotes/index
     /src/license/index
