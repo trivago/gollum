@@ -10,7 +10,7 @@ Requirements
 All producers have to implement the "core/Producer" as well as the "core/Plugin" interface.
 The most convenient way to do this is to derive from the "core/ProducerBase" type as it will provide implementations of the most common methods required.
 In addition to this, every plugin has to register at the plugin registry to be available as a config option.
-This is explained in the general :doc:`plugin section </src/examples/plugins>`.
+This is explained in the general :doc:`plugin section </src/instructions/writingPlugins>`.
 
 ProducerBase
 ------------
@@ -75,7 +75,7 @@ Configuration
 -------------
 
 If your producer requires additonal configuration options you should implement the Configure method.
-Please refer to the :doc:`Plugin documentation </src/examples/plugins>` for further details.
+Please refer to the :doc:`Plugin documentation </src/instructions/writingPlugins>` for further details.
 
 Working with slow services
 --------------------------

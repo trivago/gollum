@@ -8,9 +8,9 @@ Examples
 -----------
 
 .. toctree::
-	:maxdepth: 1
+    :maxdepth: 1
 
-	helloWorld
+    helloWorld
 
 
 
@@ -18,8 +18,8 @@ Cookbooks
 -----------
 
 .. toctree::
-	:maxdepth: 1
-	:titlesonly:
+    :maxdepth: 1
+    :titlesonly:
 
     socketToKafka
     kafkaRoundtrip

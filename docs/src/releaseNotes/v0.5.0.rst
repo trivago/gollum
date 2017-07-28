@@ -143,7 +143,7 @@ Plugins
   system having to care about stream loops.
 
 Renaming of streams to routers
-`````````````
+``````````````````````````````
 
 | A “stream” in 0.4.x has a double meaning. It denotes a stream of data,
   as well as a type of plugin that is used to route messages from one
