@@ -20,17 +20,16 @@ Gollum is written in Go to make it scalable and easy to extend without the need 
 
 How-to-use, installation instructions, getting started guides, and in-depth plugin documentation:
 
-* [read the docs](http://gollum.readthedocs.org/en/latest/) user documentation
-* [godoc](https://godoc.org/github.com/trivago/gollum) pages for go developers
+* [read the docs user documentation](http://gollum.readthedocs.org/en/latest/)
+* [godoc pages for go developers](https://godoc.org/github.com/trivago/gollum)
 
 
 ## Installation
 
 Gollum is tested and packaged to run on FreeBSD, Debian, Ubuntu, Windows and MacOS. Download Gollum and get started now.
 
-[Installation Instructions](http://gollum.readthedocs.io/en/latest/index.html)
-
-[Releases on github.com](https://github.com/trivago/gollum/releases)
+* [Installation Instructions](http://gollum.readthedocs.io/en/latest/index.html)
+* [Releases on github.com](https://github.com/trivago/gollum/releases)
 
 
 ## Get Gollum Support and Help
