@@ -1,13 +1,26 @@
-Examples
+Examples and Cookbooks
 #########################
+
+Here you can find some examples and cookbooks how you can run Gollum.
+
+
+Examples
+-----------
 
 .. toctree::
 	:maxdepth: 1
 
-	config
-	plugins
-	consumer
-	producer
-	filter
-	formatter
-	router
+	helloWorld
+
+
+
+Cookbooks
+-----------
+
+.. toctree::
+	:maxdepth: 1
+	:titlesonly:
+
+    socketToKafka
+    kafkaRoundtrip
+    writeToElasticSearch

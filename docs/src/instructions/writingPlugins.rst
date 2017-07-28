@@ -79,6 +79,15 @@ The plugins can be instantiated by using the type registry and passing the confi
   }
 
 
+How to document plugins
+--------------------------
+
+.. toctree::
+	:maxdepth: 1
+
+	writingPlugins/docs
+
+
 Plugin types
 -----------------
 
