@@ -12,26 +12,30 @@
 
 Gollum is an n:m multiplexer that gathers messages from different sources and broadcasts them to a set of destinations.
 
+Gollum originally started as a tool to **MUL**-tiplex **LOG**-files (read it backwards to get the name).
+It quickly evolved to a one-way router for all kinds of messages, not limited to just logs.
+Gollum is written in Go to make it scalable and easy to extend without the need to use a scripting language.
+
 ## Gollum Documentation
 
-How-to-use, installation instructions, getting started guides, and in-depth plugin documentation.
+How-to-use, installation instructions, getting started guides, and in-depth plugin documentation:
 
-* [read the docs - http://gollum.readthedocs.org/en/latest/](http://gollum.readthedocs.org/en/latest/)
-* [godoc pages - https://godoc.org/github.com/trivago/gollum](https://godoc.org/github.com/trivago/gollum)
+* [read the docs] user documentation (http://gollum.readthedocs.org/en/latest/)
+* [godoc] pages for go developers (https://godoc.org/github.com/trivago/gollum)
 
 
 ## Installation
 
 Gollum is tested and packaged to run on FreeBSD, Debian, Ubuntu, Windows and MacOS. Download Gollum and get started now.
 
-https://github.com/trivago/gollum/releases
-
 [Installation Instructions](http://gollum.readthedocs.io/en/latest/index.html)
+
+[Releases on github.com] (https://github.com/trivago/gollum/releases)
 
 
 ## Get Gollum Support and Help
 
-**gitter Chat**: If you can't find your answer in the documentation or have other questions you can reach us on [gitter](https://gitter.im/trivago/gollum?utm_source=share-link&utm_medium=link&utm_campaign=share-link), too.
+**gitter**: If you can't find your answer in the documentation or have other questions you can reach us on [gitter](https://gitter.im/trivago/gollum?utm_source=share-link&utm_medium=link&utm_campaign=share-link), too.
 
 **Reporting Issues**: To report an issue with Gollum, please create an Issue here on github: https://github.com/trivago/gollum/issues
 
