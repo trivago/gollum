@@ -8,3 +8,4 @@ Instructions
 	usage
 	bestPractice
 	developing
+	writingPlugins

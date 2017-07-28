@@ -77,3 +77,16 @@ The plugins can be instantiated by using the type registry and passing the confi
     // ... do something with your formatter ...
     return nil
   }
+
+
+Plugin types
+-----------------
+
+.. toctree::
+	:maxdepth: 1
+
+	writingPlugins/consumer
+	writingPlugins/producer
+	writingPlugins/filter
+	writingPlugins/formatter
+	writingPlugins/router
