@@ -24,7 +24,7 @@ import (
 // This producer is meant to be used as a sink for data. It will throw away all
 // messages without notice.
 //
-// Examples:
+// Examples
 //
 //  TrashCan:
 //    Type: producer.Null
