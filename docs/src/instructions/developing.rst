@@ -1,6 +1,38 @@
 Developing
 ==================================
 
+Testing
+---------------
+
+Gollum provides unit-, integrations- and a couple of linter tests which also runs regulary on travis-ci_.
+
+.. _travis-ci: https://travis-ci.org/trivago/gollum
+
+You can run the test by:
+
+.. code-block:: bash
+
+    # run tests
+    make test
+
+    # run unit-test only
+    make unit
+
+    # run integration-test only
+    make integration
+
+Here an overview of all provided tests by the Makefile:
+
+:make test:        Run `go vet`, `golint`, `gofmt` and `go test`
+:make unit:        Run `go test -tags unit`
+:make integration: Run `go test -tags integration`
+:make vet:         Run `go vet`
+:make lint:        Run `golint`
+:make fmt-check:   Run `gofmt -l`
+:make ineffassign: Install and run `ineffassign`_
+
+.. _ineffassign: https://github.com/gordonklaus/ineffassign
+
 Debugging
 ---------------
 

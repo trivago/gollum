@@ -58,6 +58,7 @@ If you want to do cross platform builds use `make all` or specify one of the fol
 :pi:      build for Linux ARM
 :win:     build for Windows
 :debug:   build for current OS with debug compiler flags
+:clean:   clean all artifacts created by the build process
 
 
 Docker

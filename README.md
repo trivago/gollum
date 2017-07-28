@@ -51,8 +51,7 @@ This project is released under the terms of the [Apache 2.0 license](http://www.
 
 There are also supplementary targets for make:
 
-* `clean` clean all artifacts created by the build process
-* `test` run unittests
+
 * `vendor` install [Glide](https://github.com/Masterminds/glide) and update all dependencies
 * `aws` build for Linux x64 and generate an [Elastic Beanstalk](https://aws.amazon.com/de/elasticbeanstalk/) package
 
