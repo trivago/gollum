@@ -21,31 +21,31 @@ Parameters
   
   
 
-**hash**
+  **hash**
 
-  The message payload will be hashed using fnv1a and returned as hex.
-  
-  
+    The message payload will be hashed using fnv1a and returned as hex.
+    
+    
 
-**seq**
+  **time**
 
-  The sequence number will be used.
-  
-  
+    The id will be formatted YYMMDDHHmmSSxxxxxxx where x denotes the
+    current sequence number modulo 10000000. I.e. 10.000.000 messages per second
+    are possible before a collision occurs.
+    
+    
 
-**seqhex**
+  **seq**
 
-  The hex encoded sequence number will be used.
-  
-  
+    The sequence number will be used.
+    
+    
 
-**time**
+  **seqhex**
 
-  The id will be formatted YYMMDDHHmmSSxxxxxxx where x denotes the
-  current sequence number modulo 10000000. I.e. 10.000.000 messages per second
-  are possible before a collision occurs.
-  
-  
+    The hex encoded sequence number will be used.
+    
+    
 
 Parameters (from SimpleFormatter)
 ---------------------------------

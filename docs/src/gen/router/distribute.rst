@@ -29,16 +29,16 @@ Parameters
 Parameters (from SimpleRouter)
 ------------------------------
 
-**Filters**
-
-  A optional list of zero or more Filter plugins to connect to this router.
-  
-  
-
 **Stream**
 
   This value specifies the name of the stream this plugin is supposed to
   read messages from.
+  
+  
+
+**Filters**
+
+  A optional list of zero or more Filter plugins to connect to this router.
   
   
 

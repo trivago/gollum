@@ -31,19 +31,19 @@ Parameters
   
   
 
-**FolderPermissions** (default: 0755)
-
-  This value accepts an octal number string that contains the unix file
-  permissions used when creating a folder.
-  By default this parameter is set to "0755".
-  
-  
-
 **Permissions** (default: 0644)
 
   This value accepts an octal number string that contains the unix file
   permissions used when creating a file.
   By default this parameter is set to "0664".
+  
+  
+
+**FolderPermissions** (default: 0755)
+
+  This value accepts an octal number string that contains the unix file
+  permissions used when creating a folder.
+  By default this parameter is set to "0755".
   
   
 
@@ -56,25 +56,10 @@ Parameters (from DirectProducer)
   
   
 
-**FallbackStream**
-
-  defines the stream used for messages that are sent to the fallback after
-  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
-  
-  
-
 **ID**
 
   allows this producer to be found by other plugins by name. By default this
   is set to "" which does not register this producer.
-  
-  
-
-**Modulators**
-
-  sets formatter and filter to use. Each formatter has its own set of options
-  which can be set here, too. By default this is set to format.Forward.
-  Each producer decides if and when to use a Formatter.
   
   
 
@@ -95,32 +80,23 @@ Parameters (from DirectProducer)
   
   
 
+**FallbackStream**
+
+  defines the stream used for messages that are sent to the fallback after
+  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
+  
+  
+
+**Modulators**
+
+  sets formatter and filter to use. Each formatter has its own set of options
+  which can be set here, too. By default this is set to format.Forward.
+  Each producer decides if and when to use a Formatter.
+  
+  
+
 Parameters (from components.RotateConfig)
 -----------------------------------------
-
-**Rotation/At**
-
-  This value defines a specific time for rotation in hh:mm format.
-  By default this parameter is set to "".
-  
-  
-
-**Rotation/AtHour** (default: -1)
-
-  (no documentation available)
-  
-
-**Rotation/AtMin** (default: -1)
-
-  (no documentation available)
-  
-
-**Rotation/Compress** (default: false)
-
-  This value defines if a rotated logfile is to be gzip compressed or not.
-  By default this parameter is set to "false".
-  
-  
 
 **Rotation/Enable** (default: false)
 
@@ -129,19 +105,19 @@ Parameters (from components.RotateConfig)
   
   
 
-**Rotation/SizeMB** (default: 1024, unit: mb)
-
-  This value defines the maximum file size in MB that triggers a file rotate.
-  Files can get bigger than this size.
-  By default this parameter is set to "1024".
-  
-  
-
 **Rotation/TimeoutMin** (default: 1440, unit: min)
 
   This value defines a timeout in minutes that will cause the logs to
   rotate. Can be set in parallel with RotateSizeMB.
   By default this parameter is set to "1440".
+  
+  
+
+**Rotation/SizeMB** (default: 1024, unit: mb)
+
+  This value defines the maximum file size in MB that triggers a file rotate.
+  Files can get bigger than this size.
+  By default this parameter is set to "1024".
   
   
 
@@ -162,22 +138,46 @@ Parameters (from components.RotateConfig)
   
   
 
+**Rotation/Compress** (default: false)
+
+  This value defines if a rotated logfile is to be gzip compressed or not.
+  By default this parameter is set to "false".
+  
+  
+
+**Rotation/At**
+
+  This value defines a specific time for rotation in hh:mm format.
+  By default this parameter is set to "".
+  
+  
+
+**Rotation/AtHour** (default: -1)
+
+  (no documentation available)
+  
+
+**Rotation/AtMin** (default: -1)
+
+  (no documentation available)
+  
+
 Parameters (from file.Pruner)
 -----------------------------
-
-**Prune/AfterHours** (default: 0)
-
-  This value removes old logfiles that are older than a given number
-  of hours. Set this value to "0" to disable pruning by lifetime.
-  By default this parameter is set to "0".
-  
-  
 
 **Prune/Count** (default: 0)
 
   this value removes old logfiles upon rotate so that only the given
   number of logfiles remain. Logfiles are located by the name defined by "File"
   and are pruned by date (followed by name). Set this value to "0" to disable pruning by count.
+  By default this parameter is set to "0".
+  
+  
+
+**Prune/AfterHours** (default: 0)
+
+  This value removes old logfiles that are older than a given number
+  of hours. Set this value to "0" to disable pruning by lifetime.
   By default this parameter is set to "0".
   
   
@@ -195,6 +195,23 @@ Parameters (from file.Pruner)
 Parameters (from components.BatchedWriterConfig)
 ------------------------------------------------
 
+**Batch/TimeoutSec** (default: 5, unit: sec)
+
+  This value defines the maximum number of seconds to wait after the last
+  message arrived before a batch is flushed automatically.
+  By default this parameter is set to "5".
+  
+  
+
+**Batch/MaxCount** (default: 8192)
+
+  This value defines the maximum number of messages that can be buffered
+  before a flush is mandatory. If the buffer is full and a flush is still
+  underway or cannot be triggered out of other reasons, the producer will block.
+  By default this parameter is set to "8192".
+  
+  
+
 **Batch/FlushCount** (default: 4096)
 
   This value defines the number of messages to be buffered before they are
@@ -209,23 +226,6 @@ Parameters (from components.BatchedWriterConfig)
   a flush is aborted during shutdown. Set this parameter to "0" which does not abort
   the flushing procedure.
   By default this parameter is set to "0".
-  
-  
-
-**Batch/MaxCount** (default: 8192)
-
-  This value defines the maximum number of messages that can be buffered
-  before a flush is mandatory. If the buffer is full and a flush is still
-  underway or cannot be triggered out of other reasons, the producer will block.
-  By default this parameter is set to "8192".
-  
-  
-
-**Batch/TimeoutSec** (default: 5, unit: sec)
-
-  This value defines the maximum number of seconds to wait after the last
-  message arrived before a batch is flushed automatically.
-  By default this parameter is set to "5".
   
   
 

@@ -31,6 +31,60 @@ Parameters
   
   
 
+**TimeoutSec** (default: 1, unit: sec)
+
+  This value defines the maximum time in seconds a client is allowed to take
+  for a response.
+  By default this parameter is set to "1".
+  
+  
+
+**Partitioner**
+
+  This value defines the algorithm used to read messages from the stream.
+  The messages will be sent as a whole, no cropping or removal will take place.
+  By default this parameter is set to "delimiter".
+  
+  
+
+  **delimiter**
+
+    separates messages by looking for a delimiter string. The
+    delimiter is included into the left hand message.
+    
+    
+
+  **ascii**
+
+    reads an ASCII encoded number at a given offset until a given
+    delimiter is found.
+    
+    
+
+  **binary**
+
+    reads a binary number at a given offset and size
+    
+    
+
+  **binary_le**
+
+    is an alias for "binary"
+    
+    
+
+  **binary_be**
+
+    is the same as "binary" but uses big endian encoding
+    
+    
+
+  **fixed**
+
+    assumes fixed size messages
+    
+    
+
 **Delimiter**
 
   This value defines the delimiter used by the text and delimiter partitioner.
@@ -46,43 +100,11 @@ Parameters
   
   
 
-**Partitioner**
-
-  This value defines the algorithm used to read messages from the stream.
-  The messages will be sent as a whole, no cropping or removal will take place.
-  By default this parameter is set to "delimiter".
-  
-  * delimiter: separates messages by looking for a delimiter string. The
-  
-  delimiter is included into the left hand message.
-  
-  * ascii: reads an ASCII encoded number at a given offset until a given
-  
-  delimiter is found.
-  
-  * binary: reads a binary number at a given offset and size
-  
-  * binary_le: is an alias for "binary"
-  
-  * binary_be: is the same as "binary" but uses big endian encoding
-  
-  * fixed: assumes fixed size messages
-  
-  
-
 **Size**
 
   This value defines the size in bytes used by the binary or fixed partitioner.
   For `binary` this can be set to 1,2,4 or 8,  for `fixed` this defines the size of a message.
   BY default this paramter is set to "4" for `binary` or "1" for `fixed` partitioner.
-  
-  
-
-**TimeoutSec** (default: 1, unit: sec)
-
-  This value defines the maximum time in seconds a client is allowed to take
-  for a response.
-  By default this parameter is set to "1".
   
   
 
@@ -113,25 +135,10 @@ Parameters (from DirectProducer)
   
   
 
-**FallbackStream**
-
-  defines the stream used for messages that are sent to the fallback after
-  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
-  
-  
-
 **ID**
 
   allows this producer to be found by other plugins by name. By default this
   is set to "" which does not register this producer.
-  
-  
-
-**Modulators**
-
-  sets formatter and filter to use. Each formatter has its own set of options
-  which can be set here, too. By default this is set to format.Forward.
-  Each producer decides if and when to use a Formatter.
   
   
 
@@ -149,6 +156,21 @@ Parameters (from DirectProducer)
   contains either a single string or a list of strings defining the
   message channels this producer will consume. By default this is set to "*"
   which means "listen to all routers but the internal".
+  
+  
+
+**FallbackStream**
+
+  defines the stream used for messages that are sent to the fallback after
+  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
+  
+  
+
+**Modulators**
+
+  sets formatter and filter to use. Each formatter has its own set of options
+  which can be set here, too. By default this is set to format.Forward.
+  Each producer decides if and when to use a Formatter.
   
   
 

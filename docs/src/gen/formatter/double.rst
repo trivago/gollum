@@ -13,20 +13,6 @@ formatted differently
 Parameters
 ----------
 
-**Left**
-
-  A optional formatter list which are used for the left side.
-  This parameter is set to "empty list" by default.
-  
-  
-
-**Right**
-
-  A optional formatter list which are used for the right side.
-  This parameter is set to "empty list" by default.
-  
-  
-
 **Separator** (default: :)
 
   This value sets the separator string placed between both parts.
@@ -39,6 +25,20 @@ Parameters
   Use the stream id of the left side as the final stream id
   for the message if this value is "true".
   This parameter is set to "false" by default.
+  
+  
+
+**Left**
+
+  A optional formatter list which are used for the left side.
+  This parameter is set to "empty list" by default.
+  
+  
+
+**Right**
+
+  A optional formatter list which are used for the right side.
+  This parameter is set to "empty list" by default.
   
   
 

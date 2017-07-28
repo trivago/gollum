@@ -12,6 +12,15 @@ or rejecting messages based on their contents.
 Parameters
 ----------
 
+**Reject**
+
+  Defines fields that will cause a message to be rejected if the
+  given regular expression matches. Reject is checked before Accept.
+  Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
+  By default this parameter is set to an empty list.
+  
+  
+
 **Accept**
 
   Defines fields that will cause a message to be rejected if the
@@ -27,15 +36,6 @@ Parameters
   When setting this parameter to "" this filter is applied to the
   message payload. Every other value denotes a metadata key.
   By default this parameter is set to "".
-  
-  
-
-**Reject**
-
-  Defines fields that will cause a message to be rejected if the
-  given regular expression matches. Reject is checked before Accept.
-  Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
-  By default this parameter is set to an empty list.
   
   
 

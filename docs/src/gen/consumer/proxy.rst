@@ -24,6 +24,54 @@ Parameters
   
   
 
+**Partitioner**
+
+  Defines the algorithm used to read messages from the router.
+  The messages will be sent as a whole, no cropping or removal will take place.
+  By default this parameter is set to "delimiter".
+  
+  
+
+  **delimiter**
+
+    Separates messages by looking for a delimiter string.
+    The delimiter is removed from the message.
+    
+    
+
+  **ascii**
+
+    Reads an ASCII number at a given offset until a given delimiter is
+    found. Everything to the left of and including the delimiter is removed
+    from the message.
+    
+    
+
+  **binary**
+
+    reads a binary number at a given offset and size.
+    The number is removed from the message.
+    
+    
+
+  **binary_le**
+
+    is an alias for "binary".
+    
+    
+
+  **binary_be**
+
+    acts like "binary"_le but uses big endian encoding.
+    
+    
+
+  **fixed**
+
+    assumes fixed size messages.
+    
+    
+
 **Delimiter** (default: \n)
 
   Defines the delimiter string used to separate messages if
@@ -38,33 +86,6 @@ Parameters
   Defines an offset in bytes used to read the length provided for
   partitioner "binary" and "ascii".
   By default this parameter is set to 0.
-  
-  
-
-**Partitioner**
-
-  Defines the algorithm used to read messages from the router.
-  The messages will be sent as a whole, no cropping or removal will take place.
-  By default this parameter is set to "delimiter".
-  
-  * delimiter: Separates messages by looking for a delimiter string.
-  
-  The delimiter is removed from the message.
-  
-  * ascii: Reads an ASCII number at a given offset until a given delimiter is
-  
-  found. Everything to the left of and including the delimiter is removed
-  from the message.
-  
-  * binary: reads a binary number at a given offset and size.
-  
-  The number is removed from the message.
-  
-  * binary_le: is an alias for "binary".
-  
-  * binary_be: acts like "binary"_le but uses big endian encoding.
-  
-  * fixed: assumes fixed size messages.
   
   
 
@@ -88,31 +109,11 @@ Parameters (from SimpleConsumer)
   
   
 
-**ModulatorQueueSize**
+**Streams**
 
-  Defines the size of the channel used to buffer messages
-  before they are fetched by the next free modulator go routine. If the
-  ModulatorRoutines parameter is set to 0 this parameter is ignored.
-  By default this parameter is set to 1024.
-  
-  
-
-**ModulatorRoutines**
-
-  Defines the number of go routines reserved for
-  modulating messages. Setting this parameter to 0 will use as many go routines
-  as the specific consumer plugin is using for fetching data. Any other value
-  will force the given number fo go routines to be used.
-  By default this parameter is set to 0
-  
-  
-
-**Modulators**
-
-  Defines a list of modulators to be applied to a message before
-  it is sent to the list of streams. If a modulator specifies a stream, the
-  message is only sent to that specific stream. A message is saved as original
-  after all modulators have been applied.
+  Defines a list of streams a consumer will send to. This parameter
+  is mandatory. When using "*" messages will be sent only to the internal "*"
+  stream. It will NOT send messages to all streams.
   By default this parameter is set to an empty list.
   
   
@@ -126,12 +127,32 @@ Parameters (from SimpleConsumer)
   
   
 
-**Streams**
+**Modulators**
 
-  Defines a list of streams a consumer will send to. This parameter
-  is mandatory. When using "*" messages will be sent only to the internal "*"
-  stream. It will NOT send messages to all streams.
+  Defines a list of modulators to be applied to a message before
+  it is sent to the list of streams. If a modulator specifies a stream, the
+  message is only sent to that specific stream. A message is saved as original
+  after all modulators have been applied.
   By default this parameter is set to an empty list.
+  
+  
+
+**ModulatorRoutines**
+
+  Defines the number of go routines reserved for
+  modulating messages. Setting this parameter to 0 will use as many go routines
+  as the specific consumer plugin is using for fetching data. Any other value
+  will force the given number fo go routines to be used.
+  By default this parameter is set to 0
+  
+  
+
+**ModulatorQueueSize**
+
+  Defines the size of the channel used to buffer messages
+  before they are fetched by the next free modulator go routine. If the
+  ModulatorRoutines parameter is set to 0 this parameter is ignored.
+  By default this parameter is set to 1024.
   
   
 

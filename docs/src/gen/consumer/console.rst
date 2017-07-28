@@ -21,11 +21,11 @@ Metadata
 Parameters
 ----------
 
-**ExitOnEOF** (default: true)
+**Pipe** (default: stdin)
 
-  Can be set to true to trigger an exit signal if the pipe is closed
-  i.e. when EOF is detected.
-  By default this paramater is set to "true".
+  Defines the pipe to read from. This can be "stdin" or the path
+  to a named pipe. If the named pipe is not existing it will be creared.
+  By default this paramater is set to "stdin".
   
   
 
@@ -37,11 +37,11 @@ Parameters
   
   
 
-**Pipe** (default: stdin)
+**ExitOnEOF** (default: true)
 
-  Defines the pipe to read from. This can be "stdin" or the path
-  to a named pipe. If the named pipe is not existing it will be creared.
-  By default this paramater is set to "stdin".
+  Can be set to true to trigger an exit signal if the pipe is closed
+  i.e. when EOF is detected.
+  By default this paramater is set to "true".
   
   
 
@@ -55,31 +55,11 @@ Parameters (from SimpleConsumer)
   
   
 
-**ModulatorQueueSize**
+**Streams**
 
-  Defines the size of the channel used to buffer messages
-  before they are fetched by the next free modulator go routine. If the
-  ModulatorRoutines parameter is set to 0 this parameter is ignored.
-  By default this parameter is set to 1024.
-  
-  
-
-**ModulatorRoutines**
-
-  Defines the number of go routines reserved for
-  modulating messages. Setting this parameter to 0 will use as many go routines
-  as the specific consumer plugin is using for fetching data. Any other value
-  will force the given number fo go routines to be used.
-  By default this parameter is set to 0
-  
-  
-
-**Modulators**
-
-  Defines a list of modulators to be applied to a message before
-  it is sent to the list of streams. If a modulator specifies a stream, the
-  message is only sent to that specific stream. A message is saved as original
-  after all modulators have been applied.
+  Defines a list of streams a consumer will send to. This parameter
+  is mandatory. When using "*" messages will be sent only to the internal "*"
+  stream. It will NOT send messages to all streams.
   By default this parameter is set to an empty list.
   
   
@@ -93,12 +73,32 @@ Parameters (from SimpleConsumer)
   
   
 
-**Streams**
+**Modulators**
 
-  Defines a list of streams a consumer will send to. This parameter
-  is mandatory. When using "*" messages will be sent only to the internal "*"
-  stream. It will NOT send messages to all streams.
+  Defines a list of modulators to be applied to a message before
+  it is sent to the list of streams. If a modulator specifies a stream, the
+  message is only sent to that specific stream. A message is saved as original
+  after all modulators have been applied.
   By default this parameter is set to an empty list.
+  
+  
+
+**ModulatorRoutines**
+
+  Defines the number of go routines reserved for
+  modulating messages. Setting this parameter to 0 will use as many go routines
+  as the specific consumer plugin is using for fetching data. Any other value
+  will force the given number fo go routines to be used.
+  By default this parameter is set to 0
+  
+  
+
+**ModulatorQueueSize**
+
+  Defines the size of the channel used to buffer messages
+  before they are fetched by the next free modulator go routine. If the
+  ModulatorRoutines parameter is set to 0 this parameter is ignored.
+  By default this parameter is set to 1024.
   
   
 

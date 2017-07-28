@@ -11,6 +11,15 @@ This producer sends data to an AWS Firehose stream.
 Parameters
 ----------
 
+**StreamMapping**
+
+  This value defines a translation from gollum stream to firehose stream
+  name. If no mapping is given the gollum stream name is used as firehose
+  stream name.
+  By default this parameter is set to "empty"
+  
+  
+
 **RecordMaxMessages** (default: 1)
 
   This value defines the number of messages which send in one record to aws firehose.
@@ -34,31 +43,22 @@ Parameters
   
   
 
-**StreamMapping**
-
-  This value defines a translation from gollum stream to firehose stream
-  name. If no mapping is given the gollum stream name is used as firehose
-  stream name.
-  By default this parameter is set to "empty"
-  
-  
-
 Parameters (from BatchedProducer)
 ---------------------------------
-
-**Batch/FlushCount** (default: 4096)
-
-  Defines the minimum number of messages required to flush
-  a batch. If this limit is reached a flush might be triggered.
-  By default this parameter is set to 4096.
-  
-  
 
 **Batch/MaxCount** (default: 8192)
 
   Defines the maximum number of messages per batch. If this
   limit is reached a flush is always triggered.
   By default this parameter is set to 8192.
+  
+  
+
+**Batch/FlushCount** (default: 4096)
+
+  Defines the minimum number of messages required to flush
+  a batch. If this limit is reached a flush might be triggered.
+  By default this parameter is set to 4096.
   
   
 
@@ -79,25 +79,10 @@ Parameters (from DirectProducer)
   
   
 
-**FallbackStream**
-
-  defines the stream used for messages that are sent to the fallback after
-  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
-  
-  
-
 **ID**
 
   allows this producer to be found by other plugins by name. By default this
   is set to "" which does not register this producer.
-  
-  
-
-**Modulators**
-
-  sets formatter and filter to use. Each formatter has its own set of options
-  which can be set here, too. By default this is set to format.Forward.
-  Each producer decides if and when to use a Formatter.
   
   
 
@@ -118,8 +103,30 @@ Parameters (from DirectProducer)
   
   
 
+**FallbackStream**
+
+  defines the stream used for messages that are sent to the fallback after
+  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
+  
+  
+
+**Modulators**
+
+  sets formatter and filter to use. Each formatter has its own set of options
+  which can be set here, too. By default this is set to format.Forward.
+  Each producer decides if and when to use a Formatter.
+  
+  
+
 Parameters (from components.AwsMultiClient)
 -------------------------------------------
+
+**Region** (default: us-east-1)
+
+  This value defines the used aws region.
+  By default this is set to "us-east-1"
+  
+  
 
 **Endpoint**
 
@@ -129,19 +136,58 @@ Parameters (from components.AwsMultiClient)
   
   
 
-**Region** (default: us-east-1)
-
-  This value defines the used aws region.
-  By default this is set to "us-east-1"
-  
-  
-
 Parameters (from components.AwsCredentials)
 -------------------------------------------
 
-**Credential/AssumeRole**
+**Credential/Type** (default: none)
 
-  This value is used to assume an IAM role using. By default this is set to "".
+  This value defines the credentials that are to be used when
+  connecting to aws. Available values are listed below. See
+  https://docs.aws.amazon.com/sdk-for-go/api/aws/credentials/#Credentials
+  for more information.
+  
+  
+
+  **environment**
+
+    Retrieves credentials from the environment variables of
+    the running process
+    
+    
+
+  **static**
+
+    Retrieves credentials value for individual credential fields
+    
+    
+
+  **shared**
+
+    Retrieves credentials from the current user's home directory
+    
+    
+
+  **none**
+
+    Use a anonymous login to aws
+    
+    
+
+**Credential/Id**
+
+  is used for "static" type and is used as the AccessKeyID
+  
+  
+
+**Credential/Token**
+
+  is used for "static" type and is used as the SessionToken
+  
+  
+
+**Credential/Secret**
+
+  is used for "static" type and is used as the SecretAccessKey
   
   
 
@@ -152,44 +198,16 @@ Parameters (from components.AwsCredentials)
   
   
 
-**Credential/Id**
-
-  is used for "static" type and is used as the AccessKeyID
-  
-  
-
 **Credential/Profile** (default: default)
 
   is used for "shared" type and is used for the profile
   
   
 
-**Credential/Secret**
+**Credential/AssumeRole**
 
-  is used for "static" type and is used as the SecretAccessKey
-  
-  
-
-**Credential/Token**
-
-  is used for "static" type and is used as the SessionToken
-  
-  
-
-**Credential/Type** (default: none)
-
-  This value defines the credentials that are to be used when
-  connecting to aws. This can be one of the following:
-  
-  * environment: Retrieves credentials from the environment variables of the running process
-  
-  * static: Retrieves credentials value for individual credential fields
-  
-  * shared: Retrieves credentials from the current user's home directory
-  
-  * none: Use a anonymous login to aws
-  See https://docs.aws.amazon.com/sdk-for-go/api/aws/credentials/#Credentials for more information.
-  By default this parameter is set to "none".
+  This value is used to assume an IAM role using.
+  By default this is set to "".
   
   
 

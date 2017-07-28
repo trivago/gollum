@@ -20,6 +20,15 @@ Parameters
   
   
 
+**QuotedValue**
+
+  When set to true values that start and end with a quotation
+  mark are not scanned for delimiter characters. I.e. those values will not be
+  splitted when containing a delimiter character.
+  By default this parameter is set to false.
+  
+  
+
 **Directives**
 
   Defines an array of actions to be applied to the TSV encoded
@@ -31,116 +40,117 @@ Parameters
   
   
 
-**QuotedValue**
+  **replace**
 
-  When set to true values that start and end with a quotation
-  mark are not scanned for delimiter characters. I.e. those values will not be
-  splitted when containing a delimiter character.
-  By default this parameter is set to false.
-  
-  
+    <string>  <new string>
+    Replace a given string inside the field's value with a new one.
+    
+    
+
+  **prefix**
+
+    <string>
+    Prepend the given string to the field's value
+    
+    
+
+  **postfix**
+
+    <string>
+    Append the given string to the field's value
+    
+    
+
+  **trim**
+
+    <characters>
+    Remove the given characters from the start and end of the field's value.
+    
+    
+
+  **quote**
+
+    
+    Put the field's value into quotation marks after all directives have been
+    processed.
+    
+    
+
+  **time**
+
+    <from fromat> <to format>
+    Read a timestamp with a given format compatible to time.Parse and transform
+    it into another format compatible with time.Format.
+    
+    
+
+** ... **
+
+    remove
+    Removes the field from the result
+    
+    
+
+  **agent**
+
+    {<field>, <field>, ...}
+    Parse the field's value as a user agent string and insert the given fields
+    into the TSV after the given index.
+    If no fields are given all fields are returned.
+    
+    
+
+    **mozilla**
+
+      mozilla version
+      
+      
+
+    **platform**
+
+      the platform used
+      
+      
+
+    **os**
+
+      the operating system used
+      
+      
+
+    **localization**
+
+      the language used
+      
+      
+
+    **engine**
+
+      codename of the browser engine
+      
+      
+
+    **engine_version**
+
+      version of the browser engine
+      
+      
+
+    **browser**
+
+      name of the browser
+      
+      
+
+    **version**
+
+      version of the browser
+      
+      
 
 **QuotedValues**
 
   (no documentation available)
-  
-
-**agent**
-
-  {<field>, <field>, ...}
-  Parse the field's value as a user agent string and insert the given fields
-  into the TSV after the given index.
-  If no fields are given all fields are returned.
-  
-  
-
-**browser**
-
-  name of the browser
-  
-  
-
-**engine**
-
-  codename of the browser engine
-  
-  
-
-**engine_version**
-
-  version of the browser engine
-  
-  
-
-**localization**
-
-  the language used
-  
-  
-
-**mozilla**
-
-  mozilla version
-  
-  
-
-**os**
-
-  the operating system used
-  
-  
-
-**platform**
-
-  the platform used
-  
-  
-
-**postfix**
-
-  <string>
-  Append the given string to the field's value
-  
-  
-
-**prefix**
-
-  <string>
-  Prepend the given string to the field's value
-  
-  
-
-**replace**
-
-  <string>  <new string>
-  Replace a given string inside the field's value with a new one.
-  
-  
-
-**time**
-
-  <from fromat> <to format>
-  Read a timestamp with a given format compatible to time.Parse and transform
-  it into another format compatible with time.Format.
-  - remove
-  Removes the field from the result
-  
-  
-
-**trim**
-
-  <characters>
-  Remove the given characters from the start and end of the field's value.
-  - quote:
-  Put the field's value into quotation marks after all directives have been
-  processed.
-  
-  
-
-**version**
-
-  version of the browser
-  
   
 
 Parameters (from SimpleFormatter)

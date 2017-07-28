@@ -12,47 +12,6 @@ transform it to JSON.
 Parameters
 ----------
 
-**Directive actions**
-
-  Actions are used to write  text read since the last
-  transition to the JSON object.
-  
-  
-
-**Directive flags**
-
-  Flags can modify the parser behavior and can be used to
-  store values on a stack accross multiple directives.
-  
-  
-
-**Directive rules**
-
-  There are some special cases which will cause the parser
-  to do additional actions.
-  - When writing a value without a key, the state name will become the key.
-  - If two keys are written in a row the first key will hold a null value.
-  - Writing a key while writing array elements will close the array.
-  
-  
-
-**Directives**
-
-  Defines an array of directives used to parse text data.
-  Each entry must be of the format: "State:Token:NextState:Flags:Function".
-  State denotes the name of the state owning this entry. Multiple entries per
-  state are allowed. Token holds a string that triggers a state transition.
-  NextState holds the target of the state transition. Flags is an optional
-  field and is used to trigger special parser behavior. Flags can be comma
-  separated if you need to use more than one.
-  Function defines an action that is triggered upon state transition.
-  Spaces will be stripped from all fields but Token. If a fields requires a
-  colon it has to be escaped with a backslash. Other escape characters
-  supported are \n, \r and \t.
-  By default this parameter is set to an empty list.
-  
-  
-
 **StartState**
 
   Defines the name of the initial state when parsing a message.
@@ -88,113 +47,169 @@ Parameters
   
   
 
-**append**
+**Directives**
 
-  Append the token to the current match and continue reading.
-  
-  
-
-**arr**
-
-  Start a new array.
-  
-  
-
-**arr+dat**
-
-  arr followed by dat.
-  
-  
-
-**arr+esc**
-
-  arr followed by esc.
+  Defines an array of directives used to parse text data.
+  Each entry must be of the format: "State:Token:NextState:Flags:Function".
+  State denotes the name of the state owning this entry. Multiple entries per
+  state are allowed. Token holds a string that triggers a state transition.
+  NextState holds the target of the state transition. Flags is an optional
+  field and is used to trigger special parser behavior. Flags can be comma
+  separated if you need to use more than one.
+  Function defines an action that is triggered upon state transition.
+  Spaces will be stripped from all fields but Token. If a fields requires a
+  colon it has to be escaped with a backslash. Other escape characters
+  supported are \n, \r and \t.
+  By default this parameter is set to an empty list.
   
   
 
-**arr+val**
+**Directive rules**
 
-  arr followed by val.
-  
-  
-
-**continue**
-
-  Prepend the token to the next match.
+  There are some special cases which will cause the parser
+  to do additional actions.
   
   
 
-**dat**
+** ... **
 
-  Write the parsed section as a timestamp value.
-  
-  
+    When writing a value without a key, the state name will become the key.
+    
+    
 
-**dat+end**
+** ... **
 
-  dat followed by end.
-  
-  
+    If two keys are written in a row the first key will hold a null value.
+    
+    
 
-**end**
+** ... **
 
-  Close an array or object.
-  
-  
+    Writing a key while writing array elements will close the array.
+    
+    
 
-**esc**
+**Directive flags**
 
-  Write the parsed section as a escaped string value.
-  
-  
-
-**esc+end**
-
-  esc followed by end.
+  Flags can modify the parser behavior and can be used to
+  store values on a stack accross multiple directives.
   
   
 
-**include**
+  **continue**
 
-  Append the token to the current match.
+    Prepend the token to the next match.
+    
+    
+
+  **append**
+
+    Append the token to the current match and continue reading.
+    
+    
+
+  **include**
+
+    Append the token to the current match.
+    
+    
+
+  **push**
+
+    Push the current state to the stack.
+    
+    
+
+  **pop**
+
+    Pop the stack and use the returned state if possible.
+    
+    
+
+**Directive actions**
+
+  Actions are used to write  text read since the last
+  transition to the JSON object.
   
   
 
-**key**
+  **key**
 
-  Write the parsed section as a key.
-  
-  
+    Write the parsed section as a key.
+    
+    
 
-**obj**
+  **val**
 
-  Start a new object.
-  
-  
+    Write the parsed section as a value without quotes.
+    
+    
 
-**pop**
+  **esc**
 
-  Pop the stack and use the returned state if possible.
-  
-  
+    Write the parsed section as a escaped string value.
+    
+    
 
-**push**
+  **dat**
 
-  Push the current state to the stack.
-  
-  
+    Write the parsed section as a timestamp value.
+    
+    
 
-**val**
+  **arr**
 
-  Write the parsed section as a value without quotes.
-  
-  
+    Start a new array.
+    
+    
 
-**val+end**
+  **obj**
 
-  val followed by end.
-  
-  
+    Start a new object.
+    
+    
+
+  **end**
+
+    Close an array or object.
+    
+    
+
+  **arr+val**
+
+    arr followed by val.
+    
+    
+
+  **arr+esc**
+
+    arr followed by esc.
+    
+    
+
+  **arr+dat**
+
+    arr followed by dat.
+    
+    
+
+  **val+end**
+
+    val followed by end.
+    
+    
+
+  **esc+end**
+
+    esc followed by end.
+    
+    
+
+  **dat+end**
+
+    dat followed by end.
+    
+    
 
 Parameters (from SimpleFormatter)
 ---------------------------------

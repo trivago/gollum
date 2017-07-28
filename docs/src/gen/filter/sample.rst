@@ -13,6 +13,14 @@ after a certain number of messages has been reached.
 Parameters
 ----------
 
+**SampleRatePerGroup** (default: 1)
+
+  This value defines how many messages are passed through
+  the filter in each group.
+  By default this parameter is set to "1".
+  
+  
+
 **SampleGroupSize** (default: 2)
 
   This value defines how many messages make up a group. Messages over
@@ -26,14 +34,6 @@ Parameters
   This value defines a list of streams that should not be affected by
   sampling. This is useful for e.g. producers listening to "*".
   By default this parameter is set to "empty list".
-  
-  
-
-**SampleRatePerGroup** (default: 1)
-
-  This value defines how many messages are passed through
-  the filter in each group.
-  By default this parameter is set to "1".
   
   
 

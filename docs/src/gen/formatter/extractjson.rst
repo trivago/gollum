@@ -21,20 +21,20 @@ Parameters
   
   
 
+**TrimValues** (default: true)
+
+  Enables trimming of whitespaces at the beginning and end of the
+  extracted value.
+  By default this parameter is set to true.
+  
+  
+
 **Precision**
 
   Defines the number of decimal places to use when converting
   Numbers into strings. If this parameter is set to 0 no restrictions will
   apply.
   By default this parameter is set to 0.
-  
-  
-
-**TrimValues** (default: true)
-
-  Enables trimming of whitespaces at the beginning and end of the
-  extracted value.
-  By default this parameter is set to true.
   
   
 

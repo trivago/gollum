@@ -6,12 +6,6 @@ Benchmark
 This producer is meant to give more meaningful results in benchmark
 situations than producer.Null as it is based on a buffered producers.
 
-Examples:
-
- benchmark:
-   Type: producer.Benchmark
-   Streams: "*"
-
 
 
 
@@ -42,25 +36,10 @@ Parameters (from DirectProducer)
   
   
 
-**FallbackStream**
-
-  defines the stream used for messages that are sent to the fallback after
-  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
-  
-  
-
 **ID**
 
   allows this producer to be found by other plugins by name. By default this
   is set to "" which does not register this producer.
-  
-  
-
-**Modulators**
-
-  sets formatter and filter to use. Each formatter has its own set of options
-  which can be set here, too. By default this is set to format.Forward.
-  Each producer decides if and when to use a Formatter.
   
   
 
@@ -81,5 +60,30 @@ Parameters (from DirectProducer)
   
   
 
+**FallbackStream**
+
+  defines the stream used for messages that are sent to the fallback after
+  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
+  
+  
+
+**Modulators**
+
+  sets formatter and filter to use. Each formatter has its own set of options
+  which can be set here, too. By default this is set to format.Forward.
+  Each producer decides if and when to use a Formatter.
+  
+  
+
+Examples
+--------
+
+.. code-block:: yaml
+
+	 benchmark:
+	   Type: producer.Benchmark
+	   Streams: "*"
+	
+	
 
 
