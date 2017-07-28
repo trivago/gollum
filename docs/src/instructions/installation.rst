@@ -57,3 +57,22 @@ If you want to do cross platform builds use `make all` or specify one of the fol
 :mac:     build for MacOS X
 :pi:      build for Linux ARM
 :win:     build for Windows
+:debug:   build for current OS with debug compiler flags
+
+
+Docker
+---------------
+
+The repository contains a `Dockerfile` which enables you to build and run gollum inside a Docker container.
+
+.. code-block:: bash
+
+    docker build -t trivago/gollum .
+    docker run -it --rm trivago/gollum -c config/profile.conf -ps -ll 3
+
+
+To use your own configuration you could run:
+
+.. code-block:: bash
+
+    docker run -it --rm -v /path/to/config.conf:/etc/gollum/gollum.conf:ro trivago/gollum -c /etc/gollum/gollum.conf

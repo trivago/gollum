@@ -1,9 +1,10 @@
-.PHONY: all clean docker docker-dev install freebsd linux mac pi win current vendor test unit coverprofile integration example pre-commit vet lint fmt fmt-check ineffassign
+.PHONY: all clean docker docker-dev install freebsd linux mac pi win current debug vendor test unit coverprofile integration example pre-commit vet lint fmt fmt-check ineffassign
 .DEFAULT_GOAL := current
 
 VERSION=0.5.0
 BUILD_ENV=GORACE="halt_on_error=0"
 BUILD_FLAGS=-ldflags=-s
+BUILD_DEBUG_FLAGS=-ldflags='-s -linkmode=internal' -gcflags='-N -l'
 
 UNIT_TEST_TAGS="unit"
 INTEGRATION_TEST_TAGS="integration"
@@ -56,6 +57,9 @@ win:
 
 current:
 	@$(BUILD_ENV) go build $(BUILD_FLAGS)
+
+debug:
+	@$(BUILD_ENV) go build $(BUILD_DEBUG_FLAGS)
 
 install: current
 	@go install

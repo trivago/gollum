@@ -6,6 +6,5 @@ Instructions
 
 	installation
 	usage
-	building
 	bestPractice
 	developing
