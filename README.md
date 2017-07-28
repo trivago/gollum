@@ -44,54 +44,9 @@ This project is released under the terms of the [Apache 2.0 license](http://www.
 # OLD - HAVE TO MOVE
 
 
-## Building
-
-### Mac OS X
-
-The easiest way to install go is by using homebrew:
-
-```bash
-brew install go
-```
-
-### Linux
-
-Download Go from the [golang website](https://golang.org/dl/) and unzip it to e.g. /usr/local/go.
-You have to set the GOROOT environment variable to the folder you chose:
-`export GOROOT=/usr/local/go`
-
-### Prerequisites
-
-If you do not already have a GOPATH set up you need to create one.
-The location is free of choice, we prefer to put it into each users home folder:
-
-```bash
-mkdir -p ~/go
-export GOPATH=$(HOME)/go
-```
-
-You can download gollum via `go get github.com/trivago/gollum` or clone it directly into your GOPATH.
-If you choose this way you need to download your dependencies directly from that folder
-
-```bash
-mkdir -p $(GOPATH)/src/github.com/trivago
-cd $(GOPATH)/src/github.com/trivago
-git clone https://github.com/trivago/gollum.git
-cd gollum
-```
-
 ### Build
 
-Building gollum is as easy as `make` or `go build`.
-When using Go 1.5 make sure to enable the go vendor experiment by setting `export GO15VENDOREXPERIMENT=1` or use `make`.
-If you want to do cross platform builds use `make all` or specify one of the following platforms instead of "all":
 
-* `current` build for current OS (default)
-* `freebsd` build for FreeBSD
-* `linux` build for Linux x64
-* `mac` build for MacOS X
-* `pi` build for Linux ARM
-* `win` build for Windows
 
 There are also supplementary targets for make:
 

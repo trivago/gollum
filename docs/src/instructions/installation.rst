@@ -32,12 +32,28 @@ Builds with Go 1.6 or earlier versions are not officially supported and might re
 .. code-block:: bash
 
     # checkout
+    mkdir -p $(GOPATH)/src/github.com/trivago
+    cd $(GOPATH)/src/github.com/trivago
     git clone git@github.com:trivago/gollum.git
     cd gollum
 
-    # compile
+    # run tests and compile
     make test
     ./gollum --help
 
 You can use the make file coming with gollum to trigger cross platform builds.
 Make will produce ready to deploy .zip files with the corresponding platform builds inside the dist folder.
+
+
+Build
+`````````````
+
+Building gollum is as easy as `make` or `go build`.
+If you want to do cross platform builds use `make all` or specify one of the following platforms instead of "all":
+
+:current: build for current OS (default)
+:freebsd: build for FreeBSD
+:linux:   build for Linux x64
+:mac:     build for MacOS X
+:pi:      build for Linux ARM
+:win:     build for Windows
