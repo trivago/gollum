@@ -150,7 +150,7 @@ integration: current
 	@echo "go tests integration"
 	$(BUILD_ENV) go test $(BUILD_FLAGS) -v -race -tags="integration" $(INTEGRATION_TEST_ONLY_PKGS)
 
-pre-commit: vet lint fmt
+pre-commit: vet lint fmt ineffassign
 
 vet:
 	@echo "Running go vet"
@@ -187,6 +187,6 @@ ineffassign:
 #
 # #!/bin/bash
 # # Run tests
-# make vet lint fmt-check ineffassign >&2
+# make pre-commit
 # exit $?
 
