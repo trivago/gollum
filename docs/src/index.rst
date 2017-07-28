@@ -9,9 +9,11 @@ Welcome to Gollum's documentation!
 What is Gollum?
 ---------------
 
+Gollum is an n:m multiplexer that gathers messages from different sources and broadcasts them to a set of destinations.
+
 Gollum originally started as a tool to **MUL**-tiplex **LOG**-files (read it backwards to get the name).
 It quickly evolved to a one-way router for all kinds of messages, not limited to just logs.
-Gollum is written in Go to make it scaleable and easy to extend without the need to use a scripting language.
+Gollum is written in Go to make it scalable and easy to extend without the need to use a scripting language.
 
 Terminology
 -----------

@@ -10,7 +10,7 @@
 
 # What is Gollum?
 
-Gollum is an n:m multiplexer that gathers messages from different sources and broadcasts them to a set of destinations.
+Gollum is an **n:m multiplexer** that gathers messages from different sources and broadcasts them to a set of destinations.
 
 Gollum originally started as a tool to **MUL**-tiplex **LOG**-files (read it backwards to get the name).
 It quickly evolved to a one-way router for all kinds of messages, not limited to just logs.
@@ -20,8 +20,8 @@ Gollum is written in Go to make it scalable and easy to extend without the need 
 
 How-to-use, installation instructions, getting started guides, and in-depth plugin documentation:
 
-* [read the docs] user documentation (http://gollum.readthedocs.org/en/latest/)
-* [godoc] pages for go developers (https://godoc.org/github.com/trivago/gollum)
+* [read the docs](http://gollum.readthedocs.org/en/latest/) user documentation
+* [godoc](https://godoc.org/github.com/trivago/gollum) pages for go developers
 
 
 ## Installation
@@ -30,7 +30,7 @@ Gollum is tested and packaged to run on FreeBSD, Debian, Ubuntu, Windows and Mac
 
 [Installation Instructions](http://gollum.readthedocs.io/en/latest/index.html)
 
-[Releases on github.com] (https://github.com/trivago/gollum/releases)
+[Releases on github.com](https://github.com/trivago/gollum/releases)
 
 
 ## Get Gollum Support and Help
