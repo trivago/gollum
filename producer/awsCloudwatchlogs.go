@@ -15,9 +15,10 @@ package producer
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/components"
 	"sort"
 	"sync"
 	"time"
@@ -58,6 +59,7 @@ const (
 //
 // Credentials are obtained by gollum automaticly.
 type AwsCloudwatchLogs struct {
+	AwsMultiClient       components.AwsMultiClient `gollumdoc:"embed_type"`
 	core.BatchedProducer `gollumdoc:"embed_type"`
 	stream               string `config:"LogStream" default:""`
 	group                string `config:"LogGroup" default:""`
@@ -81,9 +83,6 @@ func (prod *AwsCloudwatchLogs) Configure(conf core.PluginConfigReader) {
 	if conf.GetInt("Batch/MaxCount", maxBatchEvents) > maxBatchEvents {
 		conf.Errors.Pushf("Batch/MaxCount must be below %d", maxBatchEvents)
 	}
-	// Set aws config
-	prod.config = aws.NewConfig()
-	prod.config.WithRegion(conf.GetString("Region", "eu-west-1"))
 }
 
 func (m byTimestamp) Len() int {
@@ -185,13 +184,32 @@ func (prod *AwsCloudwatchLogs) sendBatch() core.AssemblyFunc {
 
 // Produce starts the producer
 func (prod *AwsCloudwatchLogs) Produce(workers *sync.WaitGroup) {
-	prod.service = cloudwatchlogs.New(session.New(prod.config))
+	prod.initService()
 	if err := prod.create(); err != nil {
 		prod.Logger.Errorf("could not create group:%q stream:%q error was: %q", prod.group, prod.stream, err)
 	} else {
 		prod.setToken()
 	}
 	prod.BatchMessageLoop(workers, prod.sendBatch)
+}
+
+func (prod *AwsCloudwatchLogs) initService() {
+	sess, err := prod.AwsMultiClient.NewSessionWithOptions()
+	if err != nil {
+		prod.Logger.WithError(err).Error("Can't get proper aws config")
+	}
+
+	awsConfig := prod.AwsMultiClient.GetConfig()
+	// Fill in nedpoint URL if not provided
+	if awsConfig.Endpoint == nil || *awsConfig.Endpoint == "" {
+		resolver := endpoints.DefaultResolver()
+		endpoint, err := resolver.EndpointFor(endpoints.LogsServiceID, *awsConfig.Region)
+		if err != nil {
+			prod.Logger.WithError(err).Error("Can't resolve cloudwatch logs endpoint URL")
+		}
+		awsConfig.WithEndpoint(endpoint.URL)
+	}
+	prod.service = cloudwatchlogs.New(sess, awsConfig)
 }
 
 // For newly created log streams, token is an empty string.
