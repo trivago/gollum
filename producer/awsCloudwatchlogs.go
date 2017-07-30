@@ -50,9 +50,12 @@ const (
 //
 // Configuration example
 //
-//  - "producer.AwsCloudwatchLogs":
-//    Stream: stream_name
-//    Group: group_name
+//	CwLogs:
+//		Type: AwsCloudwatchLogs:
+//			LogStream: stream_name
+//			LogGroup: group_name
+//    Credential:
+//      Type: shared
 //
 // Region defines the amazon region of your kinesis stream.
 // By default this is set to "eu-west-1".
