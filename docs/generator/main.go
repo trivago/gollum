@@ -278,7 +278,7 @@ func getPluginStructTypes(pkgRoot *ast.Package) []pluginStructType {
 			Embeds: getStructTypeEmbedList(pkgRoot.Name,
 				genDecl.Children[1].Children[1].Children[0].AstNode.(*ast.FieldList),
 			),
-			Params: getStructTypeConfigParams(
+			StructTagParams: getStructTypeConfigParams(
 				genDecl.Children[1].Children[1].Children[0].AstNode.(*ast.FieldList),
 			),
 		}
@@ -329,8 +329,8 @@ func getStructTypeEmbedList(packageName string, fieldList *ast.FieldList) []type
 // getStructTypeConfigParams scans the strcut for properties that map directly
 // to config params (identified by tags like `config:"TimeoutMs" default:"0" metric:"ms"`)
 // and returns a map of Definitions with the value of "config" as key.
-func getStructTypeConfigParams(fieldList *ast.FieldList) map[string]Definition {
-	results := make(map[string]Definition)
+func getStructTypeConfigParams(fieldList *ast.FieldList) DefinitionList {
+	results := DefinitionList{}
 
 	for _, field := range fieldList.List {
 		if field.Tag == nil || field.Tag.Kind != token.STRING {
@@ -338,12 +338,13 @@ func getStructTypeConfigParams(fieldList *ast.FieldList) map[string]Definition {
 		}
 		tags := parseStructTag(field.Tag.Value)
 		if paramName, found := tags["config"]; found {
-			results[paramName] = Definition{
+			results.add(&Definition{
+				name: paramName,
 				// Default description if not overriden in the plugin's comment block
 				desc: "(no documentation available)",
 				dfl:  tags["default"],
 				unit: tags["metric"],
-			}
+			})
 		}
 	}
 

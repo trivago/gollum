@@ -6,14 +6,19 @@ Base64Encode
 Base64Encode allows to convert data into a Base64 string. Custom dictionaries
 are supported, by default RFC 4648 standard encoding is used.
 
-Parameters:
-
-- Base64Dictionary: Defines the 64-character base64 lookup dictionary to use.
-When left empty a RFC 4648 standard encoding is used.
-By default this parameter is set to "".
 
 
 
+Parameters
+----------
+
+**Base64Dictionary**
+
+  Defines the 64-character base64 lookup dictionary to use.
+  When left empty a RFC 4648 standard encoding is used.
+  By default this parameter is set to "".
+  
+  
 
 Parameters (from SimpleFormatter)
 ---------------------------------

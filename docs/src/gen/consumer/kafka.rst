@@ -12,25 +12,59 @@ library so most settings are mapped to the settings from this library.
 Metadata
 --------
 
-**key**
-
-  Contains the key of the kafka message
-  
-  
-
 **topic**
 
   Contains the name of the kafka topic
   
   
 
+**key**
+
+  Contains the key of the kafka message
+  
+  
+
 Parameters
 ----------
+
+**Servers** (default: localhost:9092)
+
+  Defines the list of all kafka brokers to initally connect to when
+  querying topic metadata. This list requires at least one borker to work and
+  ideally contains all the brokers in the cluster.
+  By default this parameter is set to ["localhost:9092"].
+  
+  
+
+**Topic** (default: default)
+
+  Defines the kafka topic to read from.
+  By default this parameter is set to "default".
+  
+  
 
 **ClientId**
 
   Sets the client id used in requests by this consumer.
   By default this parameter is set to "gollum".
+  
+  
+
+**GroupId**
+
+  Sets the consumer group of this consumer. When left empty consumer
+  groups are not used. This setting requires Version Kafka version >= 0.9.
+  By default this parameter is set to "".
+  
+  
+
+**Version**
+
+  Defines the kafka protocol version to use. Common values are 0.8.2,
+  0.9.0 or 0.10.0. Values of the form "A.B" are allowed as well as "A.B.C"
+  and "A.B.C.D". If the version given is not known, the closest possible
+  version is chosen. If GroupId is set to a value < "0.9", "0.9.0.1" will be used.
+  By default this parameter is set to "0.8.2".
   
   
 
@@ -41,6 +75,90 @@ Parameters
   DefaultOffset setting will only be used in case the file does not exist.
   If GroupId is defined this setting will only be used for the first request.
   By default this parameter is set to "newest".
+  
+  
+
+**OffsetFile**
+
+  Defines the path to a file that holds the current offset of a
+  given partition. If the consumer is restarted that offset is used to continue
+  reading. This setting is disabled when using "". Please note that offsets
+  stored in the file might be outdated. In that case DefaultOffset "oldest"
+  will be used.
+  By default this parameter is set to "".
+  
+  
+
+**FolderPermissions** (default: 0755)
+
+  Used to create the path to the offset file if necessary.
+  By default this parameter is set to "0755".
+  
+  
+
+**Ordered**
+
+  Forces partitions to be read one-by-one in a round robin fashion
+  instead of reading them all in parallel. Please note that this can restore
+  the original ordering but does not necessarily do. The term ordered refers
+  to an ordered reading of all partitions instead of reading them randomly.
+  By default this parameter is set to false.
+  
+  
+
+**MaxOpenRequests**
+
+  Defines the number of simultaneous connections to a
+  broker at a time.
+  By default this parameter is set to 5.
+  
+  
+
+**ServerTimeoutSec**
+
+  Defines the time after which a connection will time out.
+  By default this parameter is set to 30.
+  
+  
+
+**MaxFetchSizeByte**
+
+  Sets the maximum size of a message to fetch. Larger
+  messages will be ignored. When set to 0 size of the messages is ignored.
+  By default this parameter is set to 0.
+  
+  
+
+**MinFetchSizeByte**
+
+  Defines the minimum amout of data to fetch from Kafka per
+  request. If less data is available the broker will wait.
+  By default this parameter is set to 1.
+  
+  
+
+**FetchTimeoutMs**
+
+  Defines the time in milliseconds to wait on reaching
+  MinFetchSizeByte before fetching new data regardless of size.
+  By default this parameter is set to 250.
+  
+  
+
+**MessageBufferCount**
+
+  Sets the internal channel size for the kafka client.
+  By default this parameter is set to 8192.
+  
+  
+
+**PresistTimoutMs** (default: 5000, unit: ms)
+
+  Defines the interval in milliseconds in which data is
+  written to the OffsetFile. Short durations reduce the amount of duplicate
+  messages after a crash but increases I/O. When using GroupId this setting
+  controls the pause time after receiving errors.
+  By default this parameter is set to 5000.
   
   
 
@@ -60,52 +178,6 @@ Parameters
   
   
 
-**FetchTimeoutMs**
-
-  Defines the time in milliseconds to wait on reaching
-  MinFetchSizeByte before fetching new data regardless of size.
-  By default this parameter is set to 250.
-  
-  
-
-**FolderPermissions** (default: 0755)
-
-  Used to create the path to the offset file if necessary.
-  By default this parameter is set to "0755".
-  
-  
-
-**GroupId**
-
-  Sets the consumer group of this consumer. When left empty consumer
-  groups are not used. This setting requires Version Kafka version >= 0.9.
-  By default this parameter is set to "".
-  
-  
-
-**MaxFetchSizeByte**
-
-  Sets the maximum size of a message to fetch. Larger
-  messages will be ignored. When set to 0 size of the messages is ignored.
-  By default this parameter is set to 0.
-  
-  
-
-**MaxOpenRequests**
-
-  Defines the number of simultaneous connections to a
-  broker at a time.
-  By default this parameter is set to 5.
-  
-  
-
-**MessageBufferCount**
-
-  Sets the internal channel size for the kafka client.
-  By default this parameter is set to 8192.
-  
-  
-
 **MetadataRefreshMs**
 
   Defines the interval in milliseconds used for fetching
@@ -114,105 +186,9 @@ Parameters
   
   
 
-**MinFetchSizeByte**
-
-  Defines the minimum amout of data to fetch from Kafka per
-  request. If less data is available the broker will wait.
-  By default this parameter is set to 1.
-  
-  
-
-**OffsetFile**
-
-  Defines the path to a file that holds the current offset of a
-  given partition. If the consumer is restarted that offset is used to continue
-  reading. This setting is disabled when using "". Please note that offsets
-  stored in the file might be outdated. In that case DefaultOffset "oldest"
-  will be used.
-  By default this parameter is set to "".
-  
-  
-
-**Ordered**
-
-  Forces partitions to be read one-by-one in a round robin fashion
-  instead of reading them all in parallel. Please note that this can restore
-  the original ordering but does not necessarily do. The term ordered refers
-  to an ordered reading of all partitions instead of reading them randomly.
-  By default this parameter is set to false.
-  
-  
-
-**PresistTimoutMs** (default: 5000, unit: ms)
-
-  Defines the interval in milliseconds in which data is
-  written to the OffsetFile. Short durations reduce the amount of duplicate
-  messages after a crash but increases I/O. When using GroupId this setting
-  controls the pause time after receiving errors.
-  By default this parameter is set to 5000.
-  
-  
-
-**SaslPassword**
-
-  Defines the password used with SASL/PLAIN authentication.
-  By default this parameter is set to "".
-  
-  
-
-**SaslUsername**
-
-  Defines the username used with SASL/PLAIN authentication.
-  By default this parameter is set to "gollum".
-  
-  
-
-**ServerTimeoutSec**
-
-  Defines the time after which a connection will time out.
-  By default this parameter is set to 30.
-  
-  
-
-**Servers** (default: localhost:9092)
-
-  Defines the list of all kafka brokers to initally connect to when
-  querying topic metadata. This list requires at least one borker to work and
-  ideally contains all the brokers in the cluster.
-  By default this parameter is set to ["localhost:9092"].
-  
-  
-
-**TlsCaLocation**
-
-  Defines the path to the CA certificate(s) for verifying a
-  broker's key when using TLS based authentication.
-  By default this parameter is set to "".
-  
-  
-
-**TlsCertificateLocation**
-
-  Defines the path to the client's public key (PEM)
-  used for TLS based authentication.
-  By default this parameter is set to "".
-  
-  
-
 **TlsEnable**
 
   Defines whether to use TLS based authentication when
-  communicating with brokers.
-  By default this parameter is set to false.
-  
-  
-
-**TlsInsecureSkipVerify**
-
-  Enables verification of the server's certificate
-  chain and host name.
-  By default this parameter is set to false.
-  - SaslEnable:Defines whether to use SASL based authentication when
   communicating with brokers.
   By default this parameter is set to false.
   
@@ -226,6 +202,22 @@ Parameters
   
   
 
+**TlsCertificateLocation**
+
+  Defines the path to the client's public key (PEM)
+  used for TLS based authentication.
+  By default this parameter is set to "".
+  
+  
+
+**TlsCaLocation**
+
+  Defines the path to the CA certificate(s) for verifying a
+  broker's key when using TLS based authentication.
+  By default this parameter is set to "".
+  
+  
+
 **TlsServerName**
 
   Defines the expected hostname used by hostname verification
@@ -234,20 +226,33 @@ Parameters
   
   
 
-**Topic** (default: default)
+**TlsInsecureSkipVerify**
 
-  Defines the kafka topic to read from.
-  By default this parameter is set to "default".
+  Enables verification of the server's certificate
+  chain and host name.
+  By default this parameter is set to false.
   
   
 
-**Version**
+**SaslEnable**
 
-  Defines the kafka protocol version to use. Common values are 0.8.2,
-  0.9.0 or 0.10.0. Values of the form "A.B" are allowed as well as "A.B.C"
-  and "A.B.C.D". If the version given is not known, the closest possible
-  version is chosen. If GroupId is set to a value < "0.9", "0.9.0.1" will be used.
-  By default this parameter is set to "0.8.2".
+  Defines whether to use SASL based authentication when
+  communicating with brokers.
+  By default this parameter is set to false.
+  
+  
+
+**SaslUsername**
+
+  Defines the username used with SASL/PLAIN authentication.
+  By default this parameter is set to "gollum".
+  
+  
+
+**SaslPassword**
+
+  Defines the password used with SASL/PLAIN authentication.
+  By default this parameter is set to "".
   
   
 
@@ -261,31 +266,11 @@ Parameters (from SimpleConsumer)
   
   
 
-**ModulatorQueueSize**
+**Streams**
 
-  Defines the size of the channel used to buffer messages
-  before they are fetched by the next free modulator go routine. If the
-  ModulatorRoutines parameter is set to 0 this parameter is ignored.
-  By default this parameter is set to 1024.
-  
-  
-
-**ModulatorRoutines**
-
-  Defines the number of go routines reserved for
-  modulating messages. Setting this parameter to 0 will use as many go routines
-  as the specific consumer plugin is using for fetching data. Any other value
-  will force the given number fo go routines to be used.
-  By default this parameter is set to 0
-  
-  
-
-**Modulators**
-
-  Defines a list of modulators to be applied to a message before
-  it is sent to the list of streams. If a modulator specifies a stream, the
-  message is only sent to that specific stream. A message is saved as original
-  after all modulators have been applied.
+  Defines a list of streams a consumer will send to. This parameter
+  is mandatory. When using "*" messages will be sent only to the internal "*"
+  stream. It will NOT send messages to all streams.
   By default this parameter is set to an empty list.
   
   
@@ -299,12 +284,32 @@ Parameters (from SimpleConsumer)
   
   
 
-**Streams**
+**Modulators**
 
-  Defines a list of streams a consumer will send to. This parameter
-  is mandatory. When using "*" messages will be sent only to the internal "*"
-  stream. It will NOT send messages to all streams.
+  Defines a list of modulators to be applied to a message before
+  it is sent to the list of streams. If a modulator specifies a stream, the
+  message is only sent to that specific stream. A message is saved as original
+  after all modulators have been applied.
   By default this parameter is set to an empty list.
+  
+  
+
+**ModulatorRoutines**
+
+  Defines the number of go routines reserved for
+  modulating messages. Setting this parameter to 0 will use as many go routines
+  as the specific consumer plugin is using for fetching data. Any other value
+  will force the given number fo go routines to be used.
+  By default this parameter is set to 0
+  
+  
+
+**ModulatorQueueSize**
+
+  Defines the size of the channel used to buffer messages
+  before they are fetched by the next free modulator go routine. If the
+  ModulatorRoutines parameter is set to 0 this parameter is ignored.
+  By default this parameter is set to 1024.
   
   
 

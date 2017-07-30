@@ -12,15 +12,6 @@ the result into a JSON object by using an array based mapping
 Parameters
 ----------
 
-**KeepJSON** (default: true)
-
-  This value can be set to "false" to escape texts that are JSON
-  payloads as regualar strings. Otherwise JSON payload will be taken as-is and
-  set to the corresponding key.
-  By default this parameter is set to "true".
-  
-  
-
 **Keys**
 
   This value defines an array of keys to apply to the tokens generated
@@ -33,6 +24,15 @@ Parameters
 
   This value defines the separator character to use when processing a message.
   By default this parameter is set to "|".
+  
+  
+
+**KeepJSON** (default: true)
+
+  This value can be set to "false" to escape texts that are JSON
+  payloads as regualar strings. Otherwise JSON payload will be taken as-is and
+  set to the corresponding key.
+  By default this parameter is set to "true".
   
   
 

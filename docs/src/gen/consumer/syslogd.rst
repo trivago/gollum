@@ -15,36 +15,62 @@ Parameters
 **Address**
 
   Defines the IP address or UNIX socket to listen to.
-  This can take one of four forms, to listen on a TCP, UDP or UNIX domain
-  socket:
-  
-  * [hostname|ip]:<tcp-port>
-  
-  * tcp://<hostname|ip>:<tcp-port>
-  
-  * udp://<hostname|ip>:<udp-port>
-  
-  * unix://<filesystem-path>
-  However, see the "Format" option for details on transport support by different
-  formats. Default: "udp://0.0.0.0:514"
+  This can take one of the four forms below, to listen on a TCP, UDP
+  or UNIX domain socket. However, see the "Format" option for details on
+  transport support by different formats. Default: "udp://0.0.0.0:514"
   
   
+
+  **[hostname|ip]**
+
+    <tcp-port>
+    
+    
+
+  **tcp**
+
+    //<hostname|ip>:<tcp-port>
+    
+    
+
+  **udp**
+
+    //<hostname|ip>:<udp-port>
+    
+    
+
+  **unix**
+
+    //<filesystem-path>
+    
+    
 
 **Format**
 
-  Defines which syslog the server will support. Three standards are
-  currently available:
-  
-  * RFC3164 (https://tools.ietf.org/html/rfc3164) - unix, udp
-  
-  * RFC5424 (https://tools.ietf.org/html/rfc5424) - unix, udp
-  
-  * RFC6587 (https://tools.ietf.org/html/rfc6587) - unix, upd, tcp
-  
-  All of the formats support listening to UDP and UNIX domain sockets. RFC6587
-  additionally supports TCP sockets. Default: "RFC6587".
+  Defines which syslog standard the server will support.
+  Three standards, listed below, are currently available.  All
+  standards support listening to UDP and UNIX domain sockets.
+  RFC6587 additionally supports TCP sockets. Default: "RFC6587".
   
   
+
+  **RFC3164 (https**
+
+    //tools.ietf.org/html/rfc3164) - unix, udp
+    
+    
+
+  **RFC5424 (https**
+
+    //tools.ietf.org/html/rfc5424) - unix, udp
+    
+    
+
+  **RFC6587 (https**
+
+    //tools.ietf.org/html/rfc6587) - unix, upd, tcp
+    
+    
 
 Parameters (from SimpleConsumer)
 --------------------------------
@@ -56,31 +82,11 @@ Parameters (from SimpleConsumer)
   
   
 
-**ModulatorQueueSize**
+**Streams**
 
-  Defines the size of the channel used to buffer messages
-  before they are fetched by the next free modulator go routine. If the
-  ModulatorRoutines parameter is set to 0 this parameter is ignored.
-  By default this parameter is set to 1024.
-  
-  
-
-**ModulatorRoutines**
-
-  Defines the number of go routines reserved for
-  modulating messages. Setting this parameter to 0 will use as many go routines
-  as the specific consumer plugin is using for fetching data. Any other value
-  will force the given number fo go routines to be used.
-  By default this parameter is set to 0
-  
-  
-
-**Modulators**
-
-  Defines a list of modulators to be applied to a message before
-  it is sent to the list of streams. If a modulator specifies a stream, the
-  message is only sent to that specific stream. A message is saved as original
-  after all modulators have been applied.
+  Defines a list of streams a consumer will send to. This parameter
+  is mandatory. When using "*" messages will be sent only to the internal "*"
+  stream. It will NOT send messages to all streams.
   By default this parameter is set to an empty list.
   
   
@@ -94,12 +100,32 @@ Parameters (from SimpleConsumer)
   
   
 
-**Streams**
+**Modulators**
 
-  Defines a list of streams a consumer will send to. This parameter
-  is mandatory. When using "*" messages will be sent only to the internal "*"
-  stream. It will NOT send messages to all streams.
+  Defines a list of modulators to be applied to a message before
+  it is sent to the list of streams. If a modulator specifies a stream, the
+  message is only sent to that specific stream. A message is saved as original
+  after all modulators have been applied.
   By default this parameter is set to an empty list.
+  
+  
+
+**ModulatorRoutines**
+
+  Defines the number of go routines reserved for
+  modulating messages. Setting this parameter to 0 will use as many go routines
+  as the specific consumer plugin is using for fetching data. Any other value
+  will force the given number fo go routines to be used.
+  By default this parameter is set to 0
+  
+  
+
+**ModulatorQueueSize**
+
+  Defines the size of the channel used to buffer messages
+  before they are fetched by the next free modulator go routine. If the
+  ModulatorRoutines parameter is set to 0 this parameter is ignored.
+  By default this parameter is set to 1024.
   
   
 

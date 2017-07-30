@@ -10,7 +10,7 @@ Requirements
 All routers have to implement the "core/Router" as well as the "core/Plugin" interface.
 The most convenient way to do this is to derive from the "core/RouterBase" type as it will provide implementations of the most common methods required as well as message metrics.
 In addition to this, every plugin has to register at the plugin registry to be available as a config option.
-This is explained in the general :doc:`plugin section </src/examples/plugins>`.
+This is explained in the general :doc:`plugin section </src/instructions/writingPlugins>`.
 
 RouterBase
 ------------

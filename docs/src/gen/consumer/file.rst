@@ -15,36 +15,20 @@ a file will automatically be reopened if the underlying file is changed.
 Metadata
 --------
 
-**dir**
-
-  The directory of the consumed file (set)
-  
-  
-
 **file**
 
   The file name of the consumed file (set)
   
   
 
+**dir**
+
+  The directory of the consumed file (set)
+  
+  
+
 Parameters
 ----------
-
-**DefaultOffset**
-
-  This value defines where to start reading the file. Valid values are
-  "oldest" and "newest". If OffsetFile is defined the DefaultOffset setting
-  will be ignored unless the file does not exist.
-  By default this parameter is set to "newest".
-  
-  
-
-**Delimiter** (default: \n)
-
-  This value defines the end of a message inside the file.
-  By default this parameter is set to "\n".
-  
-  
 
 **File**
 
@@ -52,6 +36,22 @@ Parameters
   read from beginning to end and the reader will stay attached until the
   consumer is stopped. I.e. appends to the attached file will be recognized
   automatically.
+  
+  
+
+**OffsetFile**
+
+  This value defines the path to a file that stores the current offset inside
+  the given file. If the consumer is restarted that offset is used to continue
+  reading. You can set this parameter to "" for disabling.
+  By default this parameter is set to "".
+  
+  
+
+**Delimiter** (default: \n)
+
+  This value defines the end of a message inside the file.
+  By default this parameter is set to "\n".
   
   
 
@@ -66,12 +66,12 @@ Parameters
   
   
 
-**OffsetFile**
+**DefaultOffset**
 
-  This value defines the path to a file that stores the current offset inside
-  the given file. If the consumer is restarted that offset is used to continue
-  reading. You can set this parameter to "" for disabling.
-  By default this parameter is set to "".
+  This value defines where to start reading the file. Valid values are
+  "oldest" and "newest". If OffsetFile is defined the DefaultOffset setting
+  will be ignored unless the file does not exist.
+  By default this parameter is set to "newest".
   
   
 
@@ -94,31 +94,11 @@ Parameters (from SimpleConsumer)
   
   
 
-**ModulatorQueueSize**
+**Streams**
 
-  Defines the size of the channel used to buffer messages
-  before they are fetched by the next free modulator go routine. If the
-  ModulatorRoutines parameter is set to 0 this parameter is ignored.
-  By default this parameter is set to 1024.
-  
-  
-
-**ModulatorRoutines**
-
-  Defines the number of go routines reserved for
-  modulating messages. Setting this parameter to 0 will use as many go routines
-  as the specific consumer plugin is using for fetching data. Any other value
-  will force the given number fo go routines to be used.
-  By default this parameter is set to 0
-  
-  
-
-**Modulators**
-
-  Defines a list of modulators to be applied to a message before
-  it is sent to the list of streams. If a modulator specifies a stream, the
-  message is only sent to that specific stream. A message is saved as original
-  after all modulators have been applied.
+  Defines a list of streams a consumer will send to. This parameter
+  is mandatory. When using "*" messages will be sent only to the internal "*"
+  stream. It will NOT send messages to all streams.
   By default this parameter is set to an empty list.
   
   
@@ -132,12 +112,32 @@ Parameters (from SimpleConsumer)
   
   
 
-**Streams**
+**Modulators**
 
-  Defines a list of streams a consumer will send to. This parameter
-  is mandatory. When using "*" messages will be sent only to the internal "*"
-  stream. It will NOT send messages to all streams.
+  Defines a list of modulators to be applied to a message before
+  it is sent to the list of streams. If a modulator specifies a stream, the
+  message is only sent to that specific stream. A message is saved as original
+  after all modulators have been applied.
   By default this parameter is set to an empty list.
+  
+  
+
+**ModulatorRoutines**
+
+  Defines the number of go routines reserved for
+  modulating messages. Setting this parameter to 0 will use as many go routines
+  as the specific consumer plugin is using for fetching data. Any other value
+  will force the given number fo go routines to be used.
+  By default this parameter is set to 0
+  
+  
+
+**ModulatorQueueSize**
+
+  Defines the size of the channel used to buffer messages
+  before they are fetched by the next free modulator go routine. If the
+  ModulatorRoutines parameter is set to 0 this parameter is ignored.
+  By default this parameter is set to 1024.
   
   
 

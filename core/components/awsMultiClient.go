@@ -98,13 +98,14 @@ func (client *AwsMultiClient) NewSessionWithOptions() (*session.Session, error) 
 // Parameters
 //
 // - Credential/Type: This value defines the credentials that are to be used when
-// connecting to aws. This can be one of the following:
-//  * environment: Retrieves credentials from the environment variables of the running process
-//  * static: Retrieves credentials value for individual credential fields
-//  * shared: Retrieves credentials from the current user's home directory
-//  * none: Use a anonymous login to aws
-// See https://docs.aws.amazon.com/sdk-for-go/api/aws/credentials/#Credentials for more information.
-// By default this parameter is set to "none".
+// connecting to aws. Available values are listed below. See
+// https://docs.aws.amazon.com/sdk-for-go/api/aws/credentials/#Credentials
+// for more information.
+//  - environment: Retrieves credentials from the environment variables of
+//  the running process
+//  - static: Retrieves credentials value for individual credential fields
+//  - shared: Retrieves credentials from the current user's home directory
+//  - none: Use a anonymous login to aws
 //
 // - Credential/Id: is used for "static" type and is used as the AccessKeyID
 //
@@ -117,7 +118,8 @@ func (client *AwsMultiClient) NewSessionWithOptions() (*session.Session, error) 
 //
 // - Credential/Profile: is used for "shared" type and is used for the profile
 //
-// - Credential/AssumeRole: This value is used to assume an IAM role using. By default this is set to "".
+// - Credential/AssumeRole: This value is used to assume an IAM role using.
+// By default this is set to "".
 //
 type AwsCredentials struct {
 	credentialType string `config:"Credential/Type" default:"none"`

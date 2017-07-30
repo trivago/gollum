@@ -20,34 +20,6 @@ Parameters
   
   
 
-**BasicRealm**
-
-  Defines the Authentication Realm for HTTP Basic Authentication.
-  Meaningful only in conjunction with Htpasswd.
-  
-  
-
-**Certificate**
-
-  Path to an X509 formatted certificate file. If defined, turns on
-  SSL/TLS  support in the HTTP server. Requires PrivateKey to be set.
-  
-  
-
-**Htpasswd**
-
-  Path to an htpasswd-formatted password file. If defined, turns
-  on HTTP Basic Authentication in the server.
-  
-  
-
-**PrivateKey**
-
-  Path to an X509 formatted private key file. Meaningful only in
-  conjunction with Certificate.
-  
-  
-
 **ReadTimeoutSec** (default: 3, unit: sec)
 
   Defines the maximum duration in seconds before timing out
@@ -64,6 +36,34 @@ Parameters
   
   
 
+**Htpasswd**
+
+  Path to an htpasswd-formatted password file. If defined, turns
+  on HTTP Basic Authentication in the server.
+  
+  
+
+**BasicRealm**
+
+  Defines the Authentication Realm for HTTP Basic Authentication.
+  Meaningful only in conjunction with Htpasswd.
+  
+  
+
+**Certificate**
+
+  Path to an X509 formatted certificate file. If defined, turns on
+  SSL/TLS  support in the HTTP server. Requires PrivateKey to be set.
+  
+  
+
+**PrivateKey**
+
+  Path to an X509 formatted private key file. Meaningful only in
+  conjunction with Certificate.
+  
+  
+
 Parameters (from SimpleConsumer)
 --------------------------------
 
@@ -74,31 +74,11 @@ Parameters (from SimpleConsumer)
   
   
 
-**ModulatorQueueSize**
+**Streams**
 
-  Defines the size of the channel used to buffer messages
-  before they are fetched by the next free modulator go routine. If the
-  ModulatorRoutines parameter is set to 0 this parameter is ignored.
-  By default this parameter is set to 1024.
-  
-  
-
-**ModulatorRoutines**
-
-  Defines the number of go routines reserved for
-  modulating messages. Setting this parameter to 0 will use as many go routines
-  as the specific consumer plugin is using for fetching data. Any other value
-  will force the given number fo go routines to be used.
-  By default this parameter is set to 0
-  
-  
-
-**Modulators**
-
-  Defines a list of modulators to be applied to a message before
-  it is sent to the list of streams. If a modulator specifies a stream, the
-  message is only sent to that specific stream. A message is saved as original
-  after all modulators have been applied.
+  Defines a list of streams a consumer will send to. This parameter
+  is mandatory. When using "*" messages will be sent only to the internal "*"
+  stream. It will NOT send messages to all streams.
   By default this parameter is set to an empty list.
   
   
@@ -112,12 +92,32 @@ Parameters (from SimpleConsumer)
   
   
 
-**Streams**
+**Modulators**
 
-  Defines a list of streams a consumer will send to. This parameter
-  is mandatory. When using "*" messages will be sent only to the internal "*"
-  stream. It will NOT send messages to all streams.
+  Defines a list of modulators to be applied to a message before
+  it is sent to the list of streams. If a modulator specifies a stream, the
+  message is only sent to that specific stream. A message is saved as original
+  after all modulators have been applied.
   By default this parameter is set to an empty list.
+  
+  
+
+**ModulatorRoutines**
+
+  Defines the number of go routines reserved for
+  modulating messages. Setting this parameter to 0 will use as many go routines
+  as the specific consumer plugin is using for fetching data. Any other value
+  will force the given number fo go routines to be used.
+  By default this parameter is set to 0
+  
+  
+
+**ModulatorQueueSize**
+
+  Defines the size of the channel used to buffer messages
+  before they are fetched by the next free modulator go routine. If the
+  ModulatorRoutines parameter is set to 0 this parameter is ignored.
+  By default this parameter is set to 1024.
   
   
 

@@ -10,7 +10,7 @@ Requirements
 All consumers have to implement the "core/Consumer" as well as the "core/Plugin" interface.
 The most convenient way to do this is to derive from the "core/ConsumerBase" type as it will provide implementations of the most common methods required.
 In addition to this, every plugin has to register at the plugin registry to be available as a config option.
-This is explained in the general :doc:`plugin section </src/examples/plugins>`.
+This is explained in the general :doc:`plugin section </src/instructions/writingPlugins>`.
 
 ConsumerBase
 ------------
@@ -72,7 +72,7 @@ Configuration
 -------------
 
 If your consumer requires additonal configuration options you should implement the Configure method.
-Please refer to the :doc:`Plugin documentation </src/examples/plugins>` for further details.
+Please refer to the :doc:`Plugin documentation </src/instructions/writingPlugins>` for further details.
 
 Sending messages
 ----------------

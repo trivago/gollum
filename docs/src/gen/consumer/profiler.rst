@@ -34,15 +34,38 @@ Example:
 Parameters
 ----------
 
+**Runs** (default: 10000)
+
+  Defines the number of messages per batch.
+  
+  
+
 **Batches** (default: 10)
 
   Defines the number of batches to generate.
   
   
 
+**TemplateCount**
+
+  Defines the number of message templates to generate.
+  Templates are generated in advance and a random message template is chosen
+  from this set every time a message is sent.
+  
+  
+
 **Characters** (default: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890)
 
   Defines the set of characters use when generated templates.
+  
+  
+
+**Message** (default: %256s)
+
+  Defines a go format string to use for generating the message
+  templaets. The length of the values generated will be deduced from the
+  format size parameter - "%200d" will generate a digit between 0 and 200,
+  "%10s" will  generate a string with 10 characters, etc.
   
   
 
@@ -59,29 +82,6 @@ Parameters
   
   
 
-**Message** (default: %256s)
-
-  Defines a go format string to use for generating the message
-  templaets. The length of the values generated will be deduced from the
-  format size parameter - "%200d" will generate a digit between 0 and 200,
-  "%10s" will  generate a string with 10 characters, etc.
-  
-  
-
-**Runs** (default: 10000)
-
-  Defines the number of messages per batch.
-  
-  
-
-**TemplateCount**
-
-  Defines the number of message templates to generate.
-  Templates are generated in advance and a random message template is chosen
-  from this set every time a message is sent.
-  
-  
-
 Parameters (from SimpleConsumer)
 --------------------------------
 
@@ -92,31 +92,11 @@ Parameters (from SimpleConsumer)
   
   
 
-**ModulatorQueueSize**
+**Streams**
 
-  Defines the size of the channel used to buffer messages
-  before they are fetched by the next free modulator go routine. If the
-  ModulatorRoutines parameter is set to 0 this parameter is ignored.
-  By default this parameter is set to 1024.
-  
-  
-
-**ModulatorRoutines**
-
-  Defines the number of go routines reserved for
-  modulating messages. Setting this parameter to 0 will use as many go routines
-  as the specific consumer plugin is using for fetching data. Any other value
-  will force the given number fo go routines to be used.
-  By default this parameter is set to 0
-  
-  
-
-**Modulators**
-
-  Defines a list of modulators to be applied to a message before
-  it is sent to the list of streams. If a modulator specifies a stream, the
-  message is only sent to that specific stream. A message is saved as original
-  after all modulators have been applied.
+  Defines a list of streams a consumer will send to. This parameter
+  is mandatory. When using "*" messages will be sent only to the internal "*"
+  stream. It will NOT send messages to all streams.
   By default this parameter is set to an empty list.
   
   
@@ -130,12 +110,32 @@ Parameters (from SimpleConsumer)
   
   
 
-**Streams**
+**Modulators**
 
-  Defines a list of streams a consumer will send to. This parameter
-  is mandatory. When using "*" messages will be sent only to the internal "*"
-  stream. It will NOT send messages to all streams.
+  Defines a list of modulators to be applied to a message before
+  it is sent to the list of streams. If a modulator specifies a stream, the
+  message is only sent to that specific stream. A message is saved as original
+  after all modulators have been applied.
   By default this parameter is set to an empty list.
+  
+  
+
+**ModulatorRoutines**
+
+  Defines the number of go routines reserved for
+  modulating messages. Setting this parameter to 0 will use as many go routines
+  as the specific consumer plugin is using for fetching data. Any other value
+  will force the given number fo go routines to be used.
+  By default this parameter is set to 0
+  
+  
+
+**ModulatorQueueSize**
+
+  Defines the size of the channel used to buffer messages
+  before they are fetched by the next free modulator go routine. If the
+  ModulatorRoutines parameter is set to 0 this parameter is ignored.
+  By default this parameter is set to 1024.
   
   
 

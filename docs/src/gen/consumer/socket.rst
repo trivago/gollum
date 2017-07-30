@@ -12,10 +12,20 @@ Messages are separated from the stream by using a specific partitioner method.
 Parameters
 ----------
 
-**AckTimoutSec** (default: 2, unit: sec)
+**Address**
 
-  This value defines the number of seconds waited for an acknowledge to succeed.
-  By default this parameter is set to "2".
+  This value defines the protocol, host and port or socket to bind to.
+  This can either be any ip address and port like "localhost:5880" or a file
+  like "unix:///var/gollum.socket".
+  By default this parameter is set to ":5880".
+  
+  
+
+**Permissions** (default: 0770)
+
+  This value sets the file permissions for "unix://" based connections as an
+  four digit octal number string.
+  By default this parameter is set to "0770".
   
   
 
@@ -30,14 +40,50 @@ Parameters
   
   
 
-**Address**
+**Partitioner**
 
-  This value defines the protocol, host and port or socket to bind to.
-  This can either be any ip address and port like "localhost:5880" or a file
-  like "unix:///var/gollum.socket".
-  By default this parameter is set to ":5880".
+  This value defines the algorithm used to read messages from the router.
+  By default this is set to "delimiter". The following options are available:
   
   
+
+  **"delimiter"**
+
+    separates messages by looking for a delimiter string.
+    The delimiter is removed from the message.
+    
+    
+
+  **"ascii"**
+
+    reads an ASCII number at a given offset until a given delimiter is found.
+    Everything to the right of and including the delimiter is removed from the message.
+    
+    
+
+  **"binary"**
+
+    reads a binary number at a given offset and size.
+    
+    
+
+  **"binary_le"**
+
+    is an alias for "binary".
+    
+    
+
+  **"binary_be"**
+
+    is the same as "binary" but uses big endian encoding.
+    
+    
+
+  **"fixed"**
+
+    assumes fixed size messages.
+    
+    
 
 **Delimiter** (default: \n)
 
@@ -54,42 +100,12 @@ Parameters
   
   
 
-**Partitioner**
+**Size**
 
-  This value defines the algorithm used to read messages from the router.
-  The following options are available:
-  
-  * "delimiter" separates messages by looking for a delimiter string.
-  
-  The delimiter is removed from the message.
-  
-  * "ascii" reads an ASCII number at a given offset until a given delimiter is found.
-  
-  Everything to the right of and including the delimiter is removed from the message.
-  
-  * "binary" reads a binary number at a given offset and size.
-  
-  * "binary_le" is an alias for "binary".
-  
-  * "binary_be" is the same as "binary" but uses big endian encoding.
-  
-  * "fixed" assumes fixed size messages.
-  By default this is set to "delimiter".
-  
-  
-
-**Permissions** (default: 0770)
-
-  This value sets the file permissions for "unix://" based connections as an
-  four digit octal number string.
-  By default this parameter is set to "0770".
-  
-  
-
-**ReadTimoutSec** (default: 5, unit: sec)
-
-  This value defines the number of seconds that waited for data to be received.
-  By default this parameter is set to "5".
+  This value defines the size in bytes used by the binary or fixed partitioner.
+  For binary this can be set to 1,2,4 or 8. By default 4 is chosen.
+  For fixed this defines the size of a message.
+  By default this parameter is set to "1".
   
   
 
@@ -101,20 +117,25 @@ Parameters
   
   
 
+**AckTimoutSec** (default: 2, unit: sec)
+
+  This value defines the number of seconds waited for an acknowledge to succeed.
+  By default this parameter is set to "2".
+  
+  
+
+**ReadTimoutSec** (default: 5, unit: sec)
+
+  This value defines the number of seconds that waited for data to be received.
+  By default this parameter is set to "5".
+  
+  
+
 **RemoveOldSocket** (default: true)
 
   This value toggles removing existing files with the same name as the
   socket (unix://<path>) prior to connecting.
   By default this parameter is set to "true".
-  
-  
-
-**Size**
-
-  This value defines the size in bytes used by the binary or fixed partitioner.
-  For binary this can be set to 1,2,4 or 8. By default 4 is chosen.
-  For fixed this defines the size of a message.
-  By default this parameter is set to "1".
   
   
 
@@ -128,31 +149,11 @@ Parameters (from SimpleConsumer)
   
   
 
-**ModulatorQueueSize**
+**Streams**
 
-  Defines the size of the channel used to buffer messages
-  before they are fetched by the next free modulator go routine. If the
-  ModulatorRoutines parameter is set to 0 this parameter is ignored.
-  By default this parameter is set to 1024.
-  
-  
-
-**ModulatorRoutines**
-
-  Defines the number of go routines reserved for
-  modulating messages. Setting this parameter to 0 will use as many go routines
-  as the specific consumer plugin is using for fetching data. Any other value
-  will force the given number fo go routines to be used.
-  By default this parameter is set to 0
-  
-  
-
-**Modulators**
-
-  Defines a list of modulators to be applied to a message before
-  it is sent to the list of streams. If a modulator specifies a stream, the
-  message is only sent to that specific stream. A message is saved as original
-  after all modulators have been applied.
+  Defines a list of streams a consumer will send to. This parameter
+  is mandatory. When using "*" messages will be sent only to the internal "*"
+  stream. It will NOT send messages to all streams.
   By default this parameter is set to an empty list.
   
   
@@ -166,12 +167,32 @@ Parameters (from SimpleConsumer)
   
   
 
-**Streams**
+**Modulators**
 
-  Defines a list of streams a consumer will send to. This parameter
-  is mandatory. When using "*" messages will be sent only to the internal "*"
-  stream. It will NOT send messages to all streams.
+  Defines a list of modulators to be applied to a message before
+  it is sent to the list of streams. If a modulator specifies a stream, the
+  message is only sent to that specific stream. A message is saved as original
+  after all modulators have been applied.
   By default this parameter is set to an empty list.
+  
+  
+
+**ModulatorRoutines**
+
+  Defines the number of go routines reserved for
+  modulating messages. Setting this parameter to 0 will use as many go routines
+  as the specific consumer plugin is using for fetching data. Any other value
+  will force the given number fo go routines to be used.
+  By default this parameter is set to 0
+  
+  
+
+**ModulatorQueueSize**
+
+  Defines the size of the channel used to buffer messages
+  before they are fetched by the next free modulator go routine. If the
+  ModulatorRoutines parameter is set to 0 this parameter is ignored.
+  By default this parameter is set to 1024.
   
   
 

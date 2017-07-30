@@ -24,11 +24,12 @@ import (
 // This producer is meant to give more meaningful results in benchmark
 // situations than producer.Null as it is based on a buffered producers.
 //
-// Examples:
+// Examples
 //
 //  benchmark:
 //    Type: producer.Benchmark
 //    Streams: "*"
+//
 type Benchmark struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 }

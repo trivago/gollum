@@ -13,17 +13,6 @@ stored back to the original location.
 Parameters
 ----------
 
-**Directives**
-
-  Defines an array of actions to be applied to the JSON encoded
-  data. Directives are processed in order of their appearance. Directives start
-  with the name of the field, followed by an action followed by additional
-  parameters if necessary. Parameters, key and action are separated by using
-  the ":" character.
-  By default this parameter is set to an empty list.
-  
-  
-
 **GeoIPFile**
 
   Defines a GeoIP file to load. This enables the "geoip"
@@ -41,179 +30,195 @@ Parameters
   
   
 
-**agent**
+**Directives**
 
-  <prefix> {<field>, <field>, ...}
-  Parse the field's value as a user agent string and extract the given fields
-  into new fields named prefix + "_" + field.
-  If no fields are given all fields are returned.
-  
-  
-
-**browser**
-
-  name of the browser
+  Defines an array of actions to be applied to the JSON encoded
+  data. Directives are processed in order of their appearance. Directives start
+  with the name of the field, followed by an action followed by additional
+  parameters if necessary. Parameters, key and action are separated by using
+  the ":" character.
+  By default this parameter is set to an empty list.
   
   
 
-**city**
+  **split**
 
-  the city of the IP
-  
-  
+    <delimiter> {<key>, <key>, ...}
+    Split the field's value by the given delimiter, store the results to the
+    fields listed after the delimiter.
+    
+    
 
-**continent**
+  **replace**
 
-  the continent of the IP. Generates continent, continentCode.
-  
-  
+    <string>  <new string>
+    Replace a given string inside the field's value with a new one.
+    
+    
 
-**country**
+  **trim**
 
-  the contry code of the IP. Generates country, countryCode.
-  
-  
+    <characters>
+    Remove the given characters from the start and end of the field's value.
+    
+    
 
-**engine**
+  **rename**
 
-  codename of the browser engine
-  
-  
+    <new key>
+    Rename a given field
+    
+    
 
-**engine_version**
+  **remove**
 
-  version of the browser engine
-  
-  
+    {<value>, <value>, ...}`
+    Remove a given field. If additional parameters are given, the value is
+    expected to be an array. The given strings will be removed from that array.
+    
+    
 
-**flatten**
+  **pick**
 
-  {<delimiter>}
-  Move all keys from a nested object to new fields named
-  field + delimiter + subfield. If no delimiter is given "." will be used.
-  
-  
+    <index> <key>
+    Pick a specific index from an array and store it to the given field.
+    
+    
 
-**geoip**
+  **time**
 
-  {<field>, <field>, ...}
-  Parse the field as an IP and extract the given fields into new fields named
-  prefix + "_" + field. This action requires a valid GeoIP file to be loaded.
-  If no fields are given all fields are returned.
-  
-  
+    <from fromat> <to format>
+    Read a timestamp with a given format compatible to time.Parse and transform
+    it into another format compatible with time.Format.
+    
+    
 
-**localization**
+  **unixtimestamp**
 
-  the language used
-  
-  
+    <unit> <to format>
+    Read a unix timestamp with a given unit ("s","ms" or "ns") and transform it
+    it into another format compatible with time.Format.
+    
+    
 
-**location**
+  **flatten**
 
-  the geolocation of this IP. Generates geocoord, geohash.
-  
-  
+    {<delimiter>}
+    Move all keys from a nested object to new fields named
+    field + delimiter + subfield. If no delimiter is given "." will be used.
+    
+    
 
-**mozilla**
+  **agent**
 
-  mozilla version
-  
-  
+    <prefix> {<field>, <field>, ...}
+    Parse the field's value as a user agent string and extract the given fields
+    into new fields named prefix + "_" + field.
+    If no fields are given all fields are returned.
+    
+    
 
-**os**
+    **mozilla**
 
-  the operating system used
-  
-  
+      mozilla version
+      
+      
 
-**pick**
+    **platform**
 
-  <index> <key>
-  Pick a specific index from an array and store it to the given field.
-  
-  
+      the platform used
+      
+      
 
-**platform**
+    **os**
 
-  the platform used
-  
-  
+      the operating system used
+      
+      
 
-**proxy**
+    **localization**
 
-  name of the proxy if applying Generates proxy, satellite.
-  
-  
+      the language used
+      
+      
 
-**remove**
+    **engine**
 
-  {<value>, <value>, ...}`
-  Remove a given field. If additional parameters are given, the value is
-  expected to be an array. The given strings will be removed from that array.
-  
-  
+      codename of the browser engine
+      
+      
 
-**rename**
+    **engine_version**
 
-  <new key>
-  Rename a given field
-  
-  
+      version of the browser engine
+      
+      
 
-**replace**
+    **browser**
 
-  <string>  <new string>
-  Replace a given string inside the field's value with a new one.
-  
-  
+      name of the browser
+      
+      
 
-**split**
+    **version**
 
-  <delimiter> {<key>, <key>, ...}
-  Split the field's value by the given delimiter, store the results to the
-  fields listed after the delimiter.
-  
-  
+      version of the browser
+      
+      
 
-**time**
+  **ip**
 
-  <from fromat> <to format>
-  Read a timestamp with a given format compatible to time.Parse and transform
-  it into another format compatible with time.Format.
-  
-  
+    
+    Parse the field as an array of strings and remove all values that cannot be
+    parsed as a valid IP. Single-string fields are supported, too, but will be
+    converted to an array.
+    
+    
 
-**timezone**
+  **geoip**
 
-  the timezome of the IP
-  
-  
+    {<field>, <field>, ...}
+    Parse the field as an IP and extract the given fields into new fields named
+    prefix + "_" + field. This action requires a valid GeoIP file to be loaded.
+    If no fields are given all fields are returned.
+    
+    
 
-**trim**
+    **country**
 
-  <characters>
-  Remove the given characters from the start and end of the field's value.
-  
-  
+      the contry code of the IP. Generates country, countryCode.
+      
+      
 
-**unixtimestamp**
+    **city**
 
-  <unit> <to format>
-  Read a unix timestamp with a given unit ("s","ms" or "ns") and transform it
-  it into another format compatible with time.Format.
-  
-  
+      the city of the IP
+      
+      
 
-**version**
+    **continent**
 
-  version of the browser
-  - ip:
-  Parse the field as an array of strings and remove all values that cannot be
-  parsed as a valid IP. Single-string fields are supported, too, but will be
-  converted to an array.
-  
-  
+      the continent of the IP. Generates continent, continentCode.
+      
+      
+
+    **timezone**
+
+      the timezome of the IP
+      
+      
+
+    **proxy**
+
+      name of the proxy if applying Generates proxy, satellite.
+      
+      
+
+    **location**
+
+      the geolocation of this IP. Generates geocoord, geohash.
+      
+      
 
 Parameters (from SimpleFormatter)
 ---------------------------------

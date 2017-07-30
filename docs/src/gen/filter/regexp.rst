@@ -11,15 +11,6 @@ This filter allows to reject or accept messages based on regular expressions.
 Parameters
 ----------
 
-**ApplyTo**
-
-  Defines which part of the message is affected by the filter.
-  When setting this parameter to "" this filter is applied to the
-  message payload. Every other value denotes a metadata key.
-  By default this parameter is set to "".
-  
-  
-
 **FilterExpression**
 
   Defines a regular expression that will allow a message to
@@ -34,6 +25,15 @@ Parameters
   Defines a regular expression that will allow a message
   to pass on if it is not matched. This parameter is ignored when set to "".
   FilterExpressionNot will be checked before FilterExpression.
+  By default this parameter is set to "".
+  
+  
+
+**ApplyTo**
+
+  Defines which part of the message is affected by the filter.
+  When setting this parameter to "" this filter is applied to the
+  message payload. Every other value denotes a metadata key.
   By default this parameter is set to "".
   
   

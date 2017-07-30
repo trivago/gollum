@@ -164,7 +164,7 @@ func (treeNode *TreeNode) getComparison() string {
 	return reflect.TypeOf(treeNode.AstNode).String()
 }
 
-// Dump prints a dump of the tree rooted at `treeNode` to stdout
+// Dump prints a dumpString of the tree rooted at `treeNode` to stdout
 func (treeNode *TreeNode) Dump() {
 	fmt.Printf("%s<%p>%q\n", strings.Repeat(" ", 4*treeNode.Depth), treeNode, treeNode.astNodeDump())
 	for _, child := range treeNode.Children {

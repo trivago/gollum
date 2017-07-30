@@ -12,8 +12,8 @@ type pluginStructType struct {
 	// Struct types embedded (inherited) by this struct
 	Embeds []typeEmbed
 
-	// Config parameters marked with struct tags (`config:"ParamName" ....`)
-	Params map[string]Definition
+	// Config parameters parsed from struct tags (`config:"ParamName" ....`)
+	StructTagParams DefinitionList
 }
 
 // Generates a PluginDocument from the pluginStructType
@@ -25,13 +25,17 @@ func (pst pluginStructType) createPluginDocument() PluginDocument {
 	pluginDocument.ParseString(pst.Comment)
 
 	// Set Param values from struct tags
-	for paramName, paramDef := range pst.Params {
+	for _, stParamDef := range pst.StructTagParams.slice {
 
-		if docParamDef, found := pluginDocument.Parameters[paramName]; found {
-			paramDef.desc = docParamDef.desc
+		if docParamDef, found := pluginDocument.Parameters.findByName(stParamDef.name); found {
+			// Parameter is already documented, add values from struct tags
+			docParamDef.unit = stParamDef.unit
+			docParamDef.dfl = stParamDef.dfl
+
+		} else {
+			// Undocumented parameter
+			pluginDocument.Parameters.add(stParamDef)
 		}
-
-		pluginDocument.Parameters[paramName] = paramDef
 	}
 
 	// - Recursively generate PluginDocuments for all embedded types (SimpleProducer etc.)

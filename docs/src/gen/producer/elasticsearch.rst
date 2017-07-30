@@ -12,13 +12,6 @@ http API. The producer expects a json payload.
 Parameters
 ----------
 
-**Password**
-
-  This value used as password credential for the elasticsearch server.
-  By default both settings is set to "".
-  
-  
-
 **Retry/Count**
 
   Set the amount of retries before a Elasticsearch request fail finally.
@@ -34,18 +27,32 @@ Parameters
   
   
 
-**Servers**
-
-  This value defines a list of servers to connect to.
-  
-  
-
 **SetGzip**
 
   This value enables or disables gzip compression for Elasticsearch
   requests (disabled by default). This option is used one to one for the library package.
   See: http://godoc.org/gopkg.in/olivere/elastic.v5#SetGzip
   By default this parameter is set to "false".
+  
+  
+
+**Servers**
+
+  This value defines a list of servers to connect to.
+  
+  
+
+**User**
+
+  This value used as username credential for the elasticsearch server.
+  By default this parameter is set to "".
+  
+  
+
+**Password**
+
+  This value used as password credential for the elasticsearch server.
+  By default both settings is set to "".
   
   
 
@@ -56,18 +63,24 @@ Parameters
   
   
 
+**StreamProperties/<streamName>/Index**
+
+  The value defines the Elasticsearch index which used for the stream.
+  
+  
+
+**StreamProperties/<streamName>/Type**
+
+  This value defines the document type which used for the stream.
+  
+  
+
 **StreamProperties/<streamName>/DayBasedIndex**
 
   This value can be set to "true" to append the date of the message to the
   index as in "<index>_YYYY-MM-DD".
   NOTE: This setting need more performance because it is necessary to check if an index exist for each message!
   By default this parameter is set to "false".
-  
-  
-
-**StreamProperties/<streamName>/Index**
-
-  The value defines the Elasticsearch index which used for the stream.
   
   
 
@@ -86,35 +99,22 @@ Parameters
   
   
 
-**StreamProperties/<streamName>/Type**
-
-  This value defines the document type which used for the stream.
-  
-  
-
-**User**
-
-  This value used as username credential for the elasticsearch server.
-  By default this parameter is set to "".
-  
-  
-
 Parameters (from BatchedProducer)
 ---------------------------------
-
-**Batch/FlushCount** (default: 4096)
-
-  Defines the minimum number of messages required to flush
-  a batch. If this limit is reached a flush might be triggered.
-  By default this parameter is set to 4096.
-  
-  
 
 **Batch/MaxCount** (default: 8192)
 
   Defines the maximum number of messages per batch. If this
   limit is reached a flush is always triggered.
   By default this parameter is set to 8192.
+  
+  
+
+**Batch/FlushCount** (default: 4096)
+
+  Defines the minimum number of messages required to flush
+  a batch. If this limit is reached a flush might be triggered.
+  By default this parameter is set to 4096.
   
   
 
@@ -135,25 +135,10 @@ Parameters (from DirectProducer)
   
   
 
-**FallbackStream**
-
-  defines the stream used for messages that are sent to the fallback after
-  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
-  
-  
-
 **ID**
 
   allows this producer to be found by other plugins by name. By default this
   is set to "" which does not register this producer.
-  
-  
-
-**Modulators**
-
-  sets formatter and filter to use. Each formatter has its own set of options
-  which can be set here, too. By default this is set to format.Forward.
-  Each producer decides if and when to use a Formatter.
   
   
 
@@ -171,6 +156,21 @@ Parameters (from DirectProducer)
   contains either a single string or a list of strings defining the
   message channels this producer will consume. By default this is set to "*"
   which means "listen to all routers but the internal".
+  
+  
+
+**FallbackStream**
+
+  defines the stream used for messages that are sent to the fallback after
+  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
+  
+  
+
+**Modulators**
+
+  sets formatter and filter to use. Each formatter has its own set of options
+  which can be set here, too. By default this is set to format.Forward.
+  Each producer decides if and when to use a Formatter.
   
   
 

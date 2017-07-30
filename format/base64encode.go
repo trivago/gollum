@@ -16,6 +16,7 @@ package format
 
 import (
 	"encoding/base64"
+
 	"github.com/trivago/gollum/core"
 )
 
@@ -24,7 +25,7 @@ import (
 // Base64Encode allows to convert data into a Base64 string. Custom dictionaries
 // are supported, by default RFC 4648 standard encoding is used.
 //
-// Parameters:
+// Parameters
 //
 // - Base64Dictionary: Defines the 64-character base64 lookup dictionary to use.
 // When left empty a RFC 4648 standard encoding is used.
@@ -40,6 +41,7 @@ import (
 //    Modulators:
 //      - formatter.Base64Encode
 //        Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+//
 type Base64Encode struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	dictionary           *base64.Encoding
