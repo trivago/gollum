@@ -61,9 +61,9 @@ Examples
 	   Type: consumer.Console
 	   Streams: console
 	   Modulators:
-	     - filter.RegExp
-	       FilterExpressionNot: " stage\."
-	       FilterExpression: "HTTP/1\.1\" [23]\d\d"
+	     - filter.RegExp:
+	         FilterExpressionNot: " stage\\."
+	         FilterExpression: "HTTP/1\\.1\\\" [23]\\d\\d"
 	
 	
 
