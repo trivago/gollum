@@ -9,3 +9,4 @@
     /src/gen/filter/none.rst
     /src/gen/filter/sample.rst
     /src/gen/filter/any.rst
+    /src/gen/filter/rate.rst
