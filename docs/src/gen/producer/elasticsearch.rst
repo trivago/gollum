@@ -99,33 +99,6 @@ Parameters
   
   
 
-Parameters (from BatchedProducer)
----------------------------------
-
-**Batch/MaxCount** (default: 8192)
-
-  Defines the maximum number of messages per batch. If this
-  limit is reached a flush is always triggered.
-  By default this parameter is set to 8192.
-  
-  
-
-**Batch/FlushCount** (default: 4096)
-
-  Defines the minimum number of messages required to flush
-  a batch. If this limit is reached a flush might be triggered.
-  By default this parameter is set to 4096.
-  
-  
-
-**Batch/TimeoutSec** (default: 5, unit: sec)
-
-  Defines the maximum time in seconds messages can stay in
-  the internal buffer before being flushed.
-  By default this parameter is set to 5.
-  
-  
-
 Parameters (from DirectProducer)
 --------------------------------
 
@@ -171,6 +144,33 @@ Parameters (from DirectProducer)
   sets formatter and filter to use. Each formatter has its own set of options
   which can be set here, too. By default this is set to format.Forward.
   Each producer decides if and when to use a Formatter.
+  
+  
+
+Parameters (from BatchedProducer)
+---------------------------------
+
+**Batch/MaxCount** (default: 8192)
+
+  Defines the maximum number of messages per batch. If this
+  limit is reached a flush is always triggered.
+  By default this parameter is set to 8192.
+  
+  
+
+**Batch/FlushCount** (default: 4096)
+
+  Defines the minimum number of messages required to flush
+  a batch. If this limit is reached a flush might be triggered.
+  By default this parameter is set to 4096.
+  
+  
+
+**Batch/TimeoutSec** (default: 5, unit: sec)
+
+  Defines the maximum time in seconds messages can stay in
+  the internal buffer before being flushed.
+  By default this parameter is set to 5.
   
   
 

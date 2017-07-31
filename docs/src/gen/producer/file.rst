@@ -47,6 +47,43 @@ Parameters
   
   
 
+Parameters (from components.BatchedWriterConfig)
+------------------------------------------------
+
+**Batch/TimeoutSec** (default: 5, unit: sec)
+
+  This value defines the maximum number of seconds to wait after the last
+  message arrived before a batch is flushed automatically.
+  By default this parameter is set to "5".
+  
+  
+
+**Batch/MaxCount** (default: 8192)
+
+  This value defines the maximum number of messages that can be buffered
+  before a flush is mandatory. If the buffer is full and a flush is still
+  underway or cannot be triggered out of other reasons, the producer will block.
+  By default this parameter is set to "8192".
+  
+  
+
+**Batch/FlushCount** (default: 4096)
+
+  This value defines the number of messages to be buffered before they are
+  written to disk. This setting is clamped to "BatchMaxCount".
+  By default this parameter is set to "`BatchMaxCount` / 2".
+  
+  
+
+**Batch/FlushTimeoutSec** (default: 0, unit: sec)
+
+  This value defines the maximum number of seconds to wait before
+  a flush is aborted during shutdown. Set this parameter to "0" which does not abort
+  the flushing procedure.
+  By default this parameter is set to "0".
+  
+  
+
 Parameters (from DirectProducer)
 --------------------------------
 
@@ -188,43 +225,6 @@ Parameters (from file.Pruner)
   given number of MBs are used by logfiles. Logfiles are located by the name
   defined by "File" and are pruned by date (followed by name).
   Set this value to "0" to disable pruning by file size.
-  By default this parameter is set to "0".
-  
-  
-
-Parameters (from components.BatchedWriterConfig)
-------------------------------------------------
-
-**Batch/TimeoutSec** (default: 5, unit: sec)
-
-  This value defines the maximum number of seconds to wait after the last
-  message arrived before a batch is flushed automatically.
-  By default this parameter is set to "5".
-  
-  
-
-**Batch/MaxCount** (default: 8192)
-
-  This value defines the maximum number of messages that can be buffered
-  before a flush is mandatory. If the buffer is full and a flush is still
-  underway or cannot be triggered out of other reasons, the producer will block.
-  By default this parameter is set to "8192".
-  
-  
-
-**Batch/FlushCount** (default: 4096)
-
-  This value defines the number of messages to be buffered before they are
-  written to disk. This setting is clamped to "BatchMaxCount".
-  By default this parameter is set to "`BatchMaxCount` / 2".
-  
-  
-
-**Batch/FlushTimeoutSec** (default: 0, unit: sec)
-
-  This value defines the maximum number of seconds to wait before
-  a flush is aborted during shutdown. Set this parameter to "0" which does not abort
-  the flushing procedure.
   By default this parameter is set to "0".
   
   

@@ -30,6 +30,24 @@ Parameters
   
   
 
+Parameters (from components.AwsMultiClient)
+-------------------------------------------
+
+**Region** (default: us-east-1)
+
+  This value defines the used aws region.
+  By default this is set to "us-east-1"
+  
+  
+
+**Endpoint**
+
+  This value defines the used aws api endpoint. If no endpoint is set
+  the client needs to set the right endpoint for the used region.
+  By default this is set to "".
+  
+  
+
 Parameters (from components.AwsCredentials)
 -------------------------------------------
 
@@ -255,24 +273,6 @@ Parameters (from components.RotateConfig)
 **Rotation/AtMin** (default: -1)
 
   (no documentation available)
-  
-
-Parameters (from components.AwsMultiClient)
--------------------------------------------
-
-**Region** (default: us-east-1)
-
-  This value defines the used aws region.
-  By default this is set to "us-east-1"
-  
-  
-
-**Endpoint**
-
-  This value defines the used aws api endpoint. If no endpoint is set
-  the client needs to set the right endpoint for the used region.
-  By default this is set to "".
-  
   
 
 Examples

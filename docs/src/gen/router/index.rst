@@ -4,4 +4,6 @@
 .. toctree::
     :maxdepth: 9
 
+    /src/gen/router/broadcast.rst
+    /src/gen/router/roundrobin.rst
     /src/gen/router/distribute.rst
