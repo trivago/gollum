@@ -20,67 +20,53 @@ import (
 	"sync"
 )
 
-// InfluxDB producer plugin
+// InfluxDB producer
 //
-// This producer writes data to an influxDB cluster. The data is expected to be
-// of a valid influxDB format. As the data format changed between influxDB
-// versions it is advisable to use a formatter for the specific influxDB version
-// you want to write to. There are collectd to influxDB formatters available
-// that can be used (as an example).
+// This producer writes data to an influxDB endpoint. Data is not converted to
+// the correct influxDB format automatically. Proper formatting might be
+// required.
 //
-// Configuration example
+// Parameters
 //
-//  - "producer.InfluxDB":
-//    Host: "localhost:8086"
-//    User: ""
-//    Password: ""
-//    Database: "default"
-//    TimeBasedName: true
-//    UseVersion08: false
-//    Version: 100
-//    RetentionPolicy: ""
-//    Batch
-//      - MaxCount: 8192
-//      - FlushCount: 4096
-//      - TimeoutSec: 5
+// - Version: Defines the InfluxDB protocol version to use. This can either be
+// 80-89 for 0.8.x, 90 for 0.9.0 or 91-100 for 0.9.1 or later.
+// Be default this parameter is set to 100.
 //
-// Host defines the host (and port) of the InfluxDB server.
-// Defaults to "localhost:8086".
+// - Host: Defines the host (and port) of the InfluxDB master.
+// Be default this parameter is set to "localhost:8086".
 //
-// User defines the InfluxDB username to use to login. If this name is
-// left empty credentials are assumed to be disabled. Defaults to empty.
+// - User: Defines the InfluxDB username to use. If this name is left empty
+// credentials are assumed to be disabled.
+// Be default this parameter is set to "".
 //
-// Password defines the user's password. Defaults to empty.
+// - Password: Defines the password to be used for the set User.
+// Be default this parameter is set to "".
 //
-// Database sets the InfluxDB database to write to. By default this is
-// is set to "default".
+// - Database: Sets the InfluxDB database to write to.
+// Be default this parameter is set to "default".
 //
-// TimeBasedName enables using time.Format based formatting of databse names.
-// I.e. you can use something like "metrics-2006-01-02" to switch databases for
-// each day. This setting is enabled by default.
+// - TimeBasedName: Enables time based of databse names and rotation.
+// When setting this parameter to true the Database parameter is treated as a
+// template for time.Format, i.e. you can use "default-2006-01-02" to switch
+// databases each day.
+// By default this parameter is set to "true".
 //
-// RetentionPolicy correlates to the InfluxDB retention policy setting.
-// This is left empty by default (no retention policy used)
+// - RetentionPolicy: Only avaialble for Version 90. This setting defines the
+// InfluxDB retention policy allowed with this protocol version.
+// By default this parameter is set to "".
 //
-// UseVersion08 has to be set to true when writing data to InfluxDB 0.8.x.
-// By default this is set to false. DEPRECATED. Use Version instead.
+// Examples
 //
-// Version defines the InfluxDB version to use as in Mmp (Major, minor, patch).
-// For version 0.8.x use 80, for version 0.9.0 use 90, for version 1.0.0 use
-// use 100 and so on. Defaults to 100.
-//
-// BatchMaxCount defines the maximum number of messages that can be buffered
-// before a flush is mandatory. If the buffer is full and a flush is still
-// underway or cannot be triggered out of other reasons, the producer will
-// block. By default this is set to 8192.
-//
-// BatchFlushCount defines the number of messages to be buffered before they are
-// written to InfluxDB. This setting is clamped to BatchMaxCount.
-// By default this is set to BatchMaxCount / 2.
-//
-// BatchTimeoutSec defines the maximum number of seconds to wait after the last
-// message arrived before a batch is flushed automatically. By default this is
-// set to 5.
+//  metricsToInflux:
+//    Type: producer.InfluxDB
+//    Streams: metrics
+//    Host: "influx01:8086"
+//    Database: "metrics"
+//    TimeBasedName: false
+//    Batch:
+// 		MaxCount: 2000
+//    	FlushCount: 100
+//    	TimeoutSec: 5
 type InfluxDB struct {
 	core.BatchedProducer `gollumdoc:"embed_type"`
 	writer               influxDBWriter
@@ -100,19 +86,16 @@ func init() {
 // Configure initializes this producer with values from a plugin config.
 func (prod *InfluxDB) Configure(conf core.PluginConfigReader) {
 	version := conf.GetInt("Version", 100)
-	if conf.GetBool("UseVersion08", false) {
-		version = 80
-	}
 
 	switch {
 	case version < 90:
-		prod.Logger.Debug("Using InfluxDB 0.8.x format")
+		prod.Logger.Debug("Using InfluxDB 0.8.x protocol")
 		prod.writer = new(influxDBWriter08)
 	case version == 90:
-		prod.Logger.Debug("Using InfluxDB 0.9.0 format")
+		prod.Logger.Debug("Using InfluxDB 0.9.0 protocol")
 		prod.writer = new(influxDBWriter09)
 	default:
-		prod.Logger.Debug("Using InfluxDB 0.9.1+ format")
+		prod.Logger.Debug("Using InfluxDB 1.0.0 protocol")
 		prod.writer = new(influxDBWriter10)
 	}
 
