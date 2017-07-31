@@ -13,10 +13,8 @@ The stream names can be referred to by cleartext names. This stream names are fr
 :\*:           is a placeholder for "all routers but the internal routers". In some cases "*" means "all routers" without exceptions. This is denoted in the corresponding documentations whenever this is the case.
 
 
-Basics router setups
---------------------
+**Basics router setups:**
 
 .. image:: /src/router_800w.png
 
-Router types
---------------------
+**List of available Router:**
