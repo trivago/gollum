@@ -8,3 +8,4 @@
     /src/gen/filter/regexp.rst
     /src/gen/filter/none.rst
     /src/gen/filter/sample.rst
+    /src/gen/filter/any.rst

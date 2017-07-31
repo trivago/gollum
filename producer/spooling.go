@@ -79,7 +79,7 @@ import (
 // message arrived before a batch is flushed automatically.
 // By default this parameter is set to 5.
 //
-// Examples:
+// Examples
 //
 // This example will collect messages from the fallback stream and buffer them
 // for 10 minutes. After 10 minutes the first messages will be written back to
@@ -90,6 +90,7 @@ import (
 //    Stream: fallback
 //    MaxMessagesSec: 0
 //    MaxFileAgeMin: 10
+//
 type Spooling struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 	outfile               map[core.MessageStreamID]*spoolFile
