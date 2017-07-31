@@ -40,7 +40,7 @@ Examples
 	
 	 ExampleConsumer:
 	   Type: consumer.Console
-	   Streams: *
+	   Streams: "*"
 	   Modulators:
 	     - filter.Any:
 	         AnyFilters:

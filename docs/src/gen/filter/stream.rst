@@ -48,7 +48,7 @@ Examples
 	
 	 ExampleConsumer:
 	   Type: consumer.Console
-	   Streams: *
+	   Streams: "*"
 	   Modulators:
 	     - filter.Stream:
 	         Block:
@@ -58,7 +58,7 @@ Examples
 	
 	 ExampleConsumer:
 	   Type: consumer.Console
-	   Streams: *
+	   Streams: "*"
 	   Modulators:
 	     - filter.Stream:
 	         Only:
