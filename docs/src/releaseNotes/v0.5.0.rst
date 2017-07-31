@@ -181,14 +181,14 @@ package will be placed in ``tgo/tsync``.
 
 **From**
 
-.. code:: golang
+.. code:: go
 
     c := shared.MaxI(a,b)
     spin := shared.NewSpinner(shared.SpinPriorityLow)
 
 **To**
 
-.. code:: golang
+.. code:: go
 
     c := tmath.MaxI(a,b)
     spin := tsync.NewSpinner(tsync.SpinPriorityLow)

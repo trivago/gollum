@@ -40,19 +40,6 @@ import (
 // [DelayMs] ms delay between each message. Each message's payload is randomly
 // selected from the set of template payloads above.
 //
-// Example:
-//
-//   # Generate a short message every 0.5s, useful for testing and debugging
-//   JunkGenerator:
-//     Type: "consumer.Profiler"
-//     Message: "%20s"
-//     Streams: "junkstream"
-//     Characters: "abcdefghijklmZ"
-//     KeepRunning: true
-//     Runs: 10000
-//     Batches: 3000000
-//     DelayMs: 500
-//
 // Parameters
 //
 // - Runs: Defines the number of messages per batch.
@@ -74,6 +61,19 @@ import (
 //
 // - KeepRunning: If set to true, shuts down Gollum after Batches * Runs messages
 // have been generated. This can be used to e.g. read metrics after a profile run.
+//
+// Examples
+//
+//   # Generate a short message every 0.5s, useful for testing and debugging
+//   JunkGenerator:
+//     Type: "consumer.Profiler"
+//     Message: "%20s"
+//     Streams: "junkstream"
+//     Characters: "abcdefghijklmZ"
+//     KeepRunning: true
+//     Runs: 10000
+//     Batches: 3000000
+//     DelayMs: 500
 //
 type Profiler struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`

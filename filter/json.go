@@ -50,12 +50,13 @@ import (
 //    Type: consumer.Console
 //    Streams: console
 //    Modulators:
-//      - filter.JSON
-//        Reject:
-//          "type" : "^log\."
-//        Accept:
-//          "source" : "^www\d+\."
-//          "data/active" : "true"
+//      - filter.JSON:
+//          Reject:
+//            type: ^log\.
+//          Accept:
+//            source: ^www\d+\.
+//            data/active: true
+//
 type JSON struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
 	rejectValues      map[string]*regexp.Regexp

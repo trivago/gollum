@@ -20,7 +20,7 @@ import (
 
 // Broadcast router plugin
 //
-// The "Broadcast" plugin relays all messages sent to [Stream]  to all
+// The "Broadcast" plugin relays all messages sent to [Stream] to all
 // produces connected to [Stream].
 //
 // With the default options, this plugin has no practical effect. Using

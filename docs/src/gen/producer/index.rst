@@ -5,7 +5,9 @@
     :maxdepth: 9
 
     /src/gen/producer/benchmark.rst
+    /src/gen/producer/InfluxDB.rst
     /src/gen/producer/null.rst
+    /src/gen/producer/scribe.rst
     /src/gen/producer/elasticsearch.rst
     /src/gen/producer/file.rst
     /src/gen/producer/awsFirehose.rst
