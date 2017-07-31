@@ -25,50 +25,39 @@ import (
 	"time"
 )
 
-// Scribe producer plugin
-///
-// The scribe producer allows sending messages to Facebook's scribe.
+// Scribe producer
 //
-// Configuration example
+// This producer allows sending messages to Facebook's scribe service.
 //
-//  - "producer.Scribe":
-//    Address: "localhost:1463"
-//    ConnectionBufferSizeKB: 1024
-//    BatchMaxCount: 8192
-//    BatchFlushCount: 4096
-//    BatchTimeoutSec: 5
-//	  HeartBeatIntervalSec: 5
+// Parameters
+//
+// - Address: Defines the host and port of a scrive endpoint.
+// By default this parameter is set to "localhost:1463".
+//
+// - ConnectionBufferSizeKB: Sets the connection socket buffer size in KB.
+// By default this parameter is set to 1024.
+//
+// - HeartBeatIntervalSec: Defines the interval in seconds used to query scribe
+// for status updates.
+// By default this parameter is set to 1.
+//
+// Category maps a stream to a scribe category. You can define the wildcard
+// stream (*) here, too. When set, all streams that do not have a specific
+// mapping will go to this category (including reserved streams like _GOLLUM_).
+// If no category mappings are set the stream name is used as category.
+// By default this parameter is set to an empty list.
+//
+// Examples
+//
+//  logs:
+//    Type: producer.Scribe"
+//    Stream: ["*", "_GOLLUM"]
+//    Address: "scribe01:1463"
+//	  HeartBeatIntervalSec: 10
 //    Category:
-//      "console" : "console"
-//      "_GOLLUM_"  : "_GOLLUM_"
-//
-// Address defines the host and port to connect to.
-// By default this is set to "localhost:1463".
-//
-// ConnectionBufferSizeKB sets the connection buffer size in KB. By default this
-// is set to 1024, i.e. 1 MB buffer.
-//
-// BatchMaxCount defines the maximum number of messages that can be buffered
-// before a flush is mandatory. If the buffer is full and a flush is still
-// underway or cannot be triggered out of other reasons, the producer will
-// block. By default this is set to 8192.
-//
-// BatchFlushCount defines the number of messages to be buffered before they are
-// written to disk. This setting is clamped to BatchMaxCount.
-// By default this is set to BatchMaxCount / 2.
-//
-// BatchTimeoutSec defines the maximum number of seconds to wait after the last
-// message arrived before a batch is flushed automatically. By default this is
-// set to 5. This also defines the maximum time allowed for messages to be
-// sent to the server.
-//
-// HeartBeatIntervalSec defines the interval used to query scribe for status
-// updates. By default this is set to 5sec.
-//
-// Category maps a stream to a specific scribe category. You can define the
-// wildcard stream (*) here, too. When set, all streams that do not have a
-// specific mapping will go to this category (including _GOLLUM_).
-// If no category mappings are set the stream name is used.
+//      "access"   : "accesslogs"
+//      "error"    : "errorlogs"
+//      "_GOLLUM_" : "gollumlogs"
 type Scribe struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 	scribe                *scribe.ScribeClient
@@ -77,11 +66,11 @@ type Scribe struct {
 	category              map[core.MessageStreamID]string
 	batch                 core.MessageBatch
 	lastHeartBeat         time.Time
-	batchTimeout          time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
+	bufferSizeByte        int           `config:"ConnectionBufferSizeKB" default:"1024" metric:"kb"`
 	heartBeatInterval     time.Duration `config:"HeartBeatIntervalSec" default:"5" metric:"sec"`
+	batchTimeout          time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
 	batchMaxCount         int           `config:"Batch/MaxCount" default:"8192"`
 	batchFlushCount       int           `config:"Batch/FlushCount" default:"4096"`
-	bufferSizeByte        int           `config:"ConnectionBufferSizeKB" default:"1024" metric:"kb"`
 	windowSize            int
 	counters              map[string]*int64
 	lastMetricUpdate      time.Time
@@ -104,7 +93,6 @@ func (prod *Scribe) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 	host := conf.GetString("Address", "localhost:1463")
 
-	prod.bufferSizeByte = int(conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10) // 1 MB
 	prod.category = conf.GetStreamMap("Categories", "")
 	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
 	prod.windowSize = prod.batchMaxCount
