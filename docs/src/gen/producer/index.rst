@@ -9,6 +9,7 @@
     /src/gen/producer/null.rst
     /src/gen/producer/scribe.rst
     /src/gen/producer/spooling.rst
+    /src/gen/producer/statsdmetrics.rst
     /src/gen/producer/elasticsearch.rst
     /src/gen/producer/file.rst
     /src/gen/producer/awsFirehose.rst
