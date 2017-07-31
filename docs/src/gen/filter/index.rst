@@ -10,3 +10,4 @@
     /src/gen/filter/sample.rst
     /src/gen/filter/any.rst
     /src/gen/filter/rate.rst
+    /src/gen/filter/stream.rst

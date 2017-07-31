@@ -19,25 +19,43 @@ import (
 )
 
 // Stream filter plugin
+//
 // This plugin filters messages by stream based on a black and a whitelist.
 // The blacklist is checked first.
-// Configuration example
 //
-//  - "stream.Broadcast":
-//    Filter: "filter.Stream"
-//    FilterBlockStreams:
-//      - "foo"
-//    FilterOnlyStreams:
-//      - "test1"
-//      - "test2"
+// Parameters
 //
-// FilterBlockStreams sets a list of streams that are blocked. If a message's
-// stream is not in that list, the OnlyStreams list is tested. This list ist
-// empty by default.
+// - Block: Sets a list of streams that are blocked. If a message's
+// stream is not in that list, the OnlyStreams list is tested.
+// By default this parameter is set to "empty".
 //
-// FilterOnlyStreams sets a list of streams that may pass. Messages from streams
-// that are not in this list are blocked unless the list is empty. By default
-// this list is empty.
+// - Only: Sets a list of streams that may pass. Messages from streams
+// that are not in this list are blocked unless the list is empty.
+// By default this parameter is set to "empty".
+//
+//
+// Examples
+//
+// This example accept ALL messages except ones from stream "foo":
+//
+//  ExampleConsumer:
+//    Type: consumer.Console
+//    Streams: *
+//    Modulators:
+//      - filter.Stream:
+//          Block:
+//            - foo
+//
+// This example accept NO messages except ones from stream "foo":
+//
+//  ExampleConsumer:
+//    Type: consumer.Console
+//    Streams: *
+//    Modulators:
+//      - filter.Stream:
+//          Only:
+//            - foo
+//
 type Stream struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
 	blacklist         []core.MessageStreamID
