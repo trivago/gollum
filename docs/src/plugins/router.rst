@@ -9,7 +9,6 @@ Routers can act as a kind of proxy that may filter and define the distribution a
 The stream names can be referred to by cleartext names. This stream names are free to choose but there are several reserved names for internal or special purpose:
 
 :_GOLLUM_:     is used for internal log messages
-:_DROPPED_:    is used for messages that could not be sent, e.g. because of a channel timeout
 :\*:           is a placeholder for "all routers but the internal routers". In some cases "*" means "all routers" without exceptions. This is denoted in the corresponding documentations whenever this is the case.
 
 
