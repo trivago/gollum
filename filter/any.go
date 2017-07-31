@@ -25,7 +25,7 @@ import (
 //
 // Parameters
 //
-// - AnyFilter: Defines a list of filters that should be checked before filtering
+// - AnyFilters: Defines a list of filters that should be checked before filtering
 // a message. Filters are checked in order, and if the message passes
 // then no further filters are checked.
 //
@@ -38,7 +38,7 @@ import (
 //    Streams: *
 //    Modulators:
 //      - filter.Any:
-// 		    AnyFilters:
+//          AnyFilters:
 //            - filter.JSON
 //            - filter.Stream:
 //                Only: exceptionStream

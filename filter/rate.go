@@ -23,26 +23,33 @@ import (
 )
 
 // Rate filter plugin
+//
 // This plugin blocks messages after a certain number of messages per second
 // has been reached.
-// Configuration example
 //
-//   - "stream.Broadcast":
-//     Filter: "filter.Rate"
-//     RateLimitPerSec: 100
-//     RateLimitFilteredStream: ""
-//     RateLimitIgnore:
-//       - "foo"
+// Parameters
 //
-// RateLimitPerSec defines the maximum number of messages per second allowed
-// to pass through this filter. By default this is set to 100.
+// - MessagesPerSec: This value defines the maximum number of messages per second allowed
+// to pass through this filter.
+// By default this parameter is set to "100".
 //
-// RateLimitFilteredStream is an optional stream messages are sent to when the
-// limit is reached. By default this is disabled and set to "".
-//
-// RateLimitIgnore defines a list of streams that should not be affected by
+// - Ignore:  Defines a list of streams that should not be affected by
 // rate limiting. This is useful for e.g. producers listeing to "*".
-// By default this list is empty.
+// By default this parameter is set to "empty".
+//
+// Examples
+//
+// This example accept ~10 messages in a second except the "noLimit" stream:
+//
+//  ExampleConsumer:
+//    Type: consumer.Console
+//    Streams: "*"
+//    Modulators:
+//      - filter.Rate:
+//          MessagesPerSec: 10
+//          Ignore:
+//            - noLimit
+//
 type Rate struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
 	stateGuard        *sync.RWMutex
