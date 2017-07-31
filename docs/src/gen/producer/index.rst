@@ -9,4 +9,6 @@
     /src/gen/producer/elasticsearch.rst
     /src/gen/producer/file.rst
     /src/gen/producer/awsFirehose.rst
+    /src/gen/producer/awsKinesis.rst
     /src/gen/producer/proxy.rst
+    /src/gen/producer/awsS3.rst
