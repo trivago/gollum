@@ -51,7 +51,7 @@ const (
 //
 // Parameters
 //
-// - Servers: Defines the list of all kafka brokers to initally connect to when
+// - Brokers: Defines the list of all kafka brokers to initally connect to when
 // querying topic metadata. This list requires at least one borker to work and
 // ideally contains all the brokers in the cluster.
 // By default this parameter is set to ["localhost:9092"].
@@ -98,7 +98,7 @@ const (
 // broker at a time.
 // By default this parameter is set to 5.
 //
-// - ServerTimeoutSec: Defines the time after which a connection will time out.
+// - BrokerTimeoutSec: Defines the time after which a connection will time out.
 // By default this parameter is set to 30.
 //
 // - MaxFetchSizeByte: Sets the maximum size of a message to fetch. Larger
@@ -179,10 +179,10 @@ const (
 //    	ClientId: "gollum log reader"
 //    	DefaultOffset: newest
 //    	OffsetFile: /var/gollum/logs.offset
-//    	Servers: ["kafka0:9092","kafka1:9092","kafka2:9092","kafka3:9092"]
+//    	Brokers: ["kafka0:9092","kafka1:9092","kafka2:9092","kafka3:9092"]
 type Kafka struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	servers             []string      `config:"Servers" default:"localhost:9092"`
+	servers             []string      `config:"Brokers" default:"localhost:9092"`
 	topic               string        `config:"Topic" default:"default"`
 	group               string        `config:"GroupId"`
 	offsetFile          string        `config:"OffsetFile"`
@@ -244,7 +244,7 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) {
 	}
 
 	cons.config.Net.MaxOpenRequests = int(conf.GetInt("MaxOpenRequests", 5))
-	cons.config.Net.DialTimeout = time.Duration(conf.GetInt("ServerTimeoutSec", 30)) * time.Second
+	cons.config.Net.DialTimeout = time.Duration(conf.GetInt("BrokerTimeoutSec", 30)) * time.Second
 	cons.config.Net.ReadTimeout = cons.config.Net.DialTimeout
 	cons.config.Net.WriteTimeout = cons.config.Net.DialTimeout
 
