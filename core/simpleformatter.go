@@ -18,12 +18,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// SimpleFormatter defines the standard formatter implementation.
+// SimpleFormatter formatter
+//
+// This type defines a common baseclass for formatters. Formatter plugins
+// may derive from this class.
 //
 // Parameters
 //
-// - ApplyTo: This value chooses the part of the message the formatting should be
-// applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+// - ApplyTo: This value chooses the part of the message the formatting
+// should be applied to. Use "" to target the message payload; other values
+// specify the name of a metadata field to target.
 // By default this parameter is set to "".
 //
 type SimpleFormatter struct {

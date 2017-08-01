@@ -71,19 +71,19 @@ Parameters
   
   
 
-** ... **
+** (unnamed) **
 
     When writing a value without a key, the state name will become the key.
     
     
 
-** ... **
+** (unnamed) **
 
     If two keys are written in a row the first key will hold a null value.
     
     
 
-** ... **
+** (unnamed) **
 
     Writing a key while writing array elements will close the array.
     
@@ -211,13 +211,14 @@ Parameters
     
     
 
-Parameters (from SimpleFormatter)
----------------------------------
+Parameters (from core.SimpleFormatter)
+--------------------------------------
 
 **ApplyTo**
 
-  This value chooses the part of the message the formatting should be
-  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  This value chooses the part of the message the formatting
+  should be applied to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
   By default this parameter is set to "".
   
   

@@ -25,13 +25,14 @@ func (def *Definition) dumpString() string {
 	return str
 }
 
-// DefinitionList contains a map of definitions
+// DefinitionList contains a list of definitions
 type DefinitionList struct {
 	slice []*Definition
 }
 
-// newDefinitionListFromString parses the input string and creates a (nested) DefinitionList object
-func newDefinitionListFromString(text string) DefinitionList {
+// parseAndAppendString parses the input string for (nested) definition lists
+// and appends the results to this object
+func (list *DefinitionList) parseAndAppendString(text string) {
 	emptyLineRE := regexp.MustCompile("^[[:space:]]*$")
 	depthRE := regexp.MustCompile("^( *)(.*)")
 
@@ -44,8 +45,7 @@ func newDefinitionListFromString(text string) DefinitionList {
 		currentDepth int
 	)
 
-	topList := DefinitionList{}
-	currentList = &topList
+	currentList = list
 
 	for lineNo, line := range strings.Split(text, "\n") {
 		// nesting depth == nr. of indentation spaces
@@ -85,7 +85,7 @@ func newDefinitionListFromString(text string) DefinitionList {
 				if currentItem.parent.parent != nil {
 					currentList = &currentItem.parent.parent.children
 				} else {
-					currentList = &topList
+					currentList = list
 				}
 			}
 
@@ -108,12 +108,31 @@ func newDefinitionListFromString(text string) DefinitionList {
 			currentItem.desc += depthRE.ReplaceAllString(line, "$2") + "\n"
 		}
 	}
-
-	return topList
 }
 
+// add appends the definition pointed to by `def` to this list
 func (list *DefinitionList) add(def *Definition) {
 	list.slice = append(list.slice, def)
+}
+
+// subtractList returns a copy of this list, with the Definitions in
+// `list2` (if any) removed, in other words (list \ list2).
+//
+// Definitions are identified by their `name` property. As a special case,
+// empty strings (.name == "") are not considered equal. This lets us handle
+// nameless entries (e.g. metadata with variable keys) correctly.
+func (list DefinitionList) subtractList(list2 DefinitionList) DefinitionList {
+	result := DefinitionList{}
+outer:
+	for _, sourceItem := range list.slice {
+		for _, subtractItem := range list2.slice {
+			if sourceItem.name == subtractItem.name && sourceItem.name != "" {
+				continue outer
+			}
+		}
+		result.add(sourceItem)
+	}
+	return result
 }
 
 func (list *DefinitionList) findByName(name string) (*Definition, bool) {
@@ -135,23 +154,16 @@ func (list *DefinitionList) dumpString() string {
 
 // getRST formats the DefinitionList as ReStructuredText
 func (list DefinitionList) getRST(paramFields bool, depth int) string {
-	/***
-	// List items in alphabetical order
-	var sorted []string
-	for _, def := range list.slice {
-		sorted = append(sorted, def.name)
-	}
-	sort.Strings(sorted)
-	***/
-
 	result := ""
 	for _, def := range list.slice {
 		// Heading
 		if strings.Trim(def.name, " \t") != "" {
 			result += indentLines("**"+def.name+"**", 2*depth)
+
 		} else {
+			// Nameless definition
 			// FIXME: bullet lists or something
-			result += "** ... **"
+			result += "** (unnamed) **"
 		}
 
 		// Optional default value and unit

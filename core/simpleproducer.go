@@ -37,19 +37,18 @@ import (
 // - Streams: Defines a list of streams a producer will receive from. This
 // parameter is mandatory. When using "*" the producer will receive messages
 // from all streams but the internal streams (e.g. _GOLLUM_).
-// By default this parameter is set to an empty list".
+// By default this parameter is set to an empty list.
 //
 // - FallbackStream: Defines a stream to route messages to when delivery failed.
 // The message is reset to its original state before being routed, i.e. all
 // modifications done to the message after leaving the consumer are removed.
 // Setting this paramater to "" will cause messages to be discared when delivery
 // fails.
-// By default this parameter is set tot "".
 //
 // - ShutdownTimeoutMs: Defines the maximum time in milliseconds a producer is
 // allowed to take to shut down. After this timeout the producer is always
-// considered to have shut down.
-// By default this parameter is set to 1000.
+// considered to have shut down.  Decreasing this value may lead to lost
+// messages during shutdown. Raising it may increase shutdown time.
 //
 // - Modulators: Defines a list of modulators to be applied to a message when
 // it arrives at this producer. If a modulator changes the stream of a message

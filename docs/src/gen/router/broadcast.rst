@@ -9,8 +9,8 @@ producers registered to the configured stream.
 
 
 
-Parameters (from SimpleRouter)
-------------------------------
+Parameters (from core.SimpleRouter)
+-----------------------------------
 
 **Enable**
 

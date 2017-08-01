@@ -7,7 +7,7 @@
 //
 //   *.go sources
 //     -> ast.Node/ast.Package/etc objects
-//       -> pluginStructType objects
+//       -> GollumPlugin objects
 //          -> PluginDocument objects [recursively process embedded types' sources]
 //             -> RST strings
 //
@@ -21,7 +21,6 @@ import (
 	"io"
 	"os"
 	"path"
-	"regexp"
 	"strings"
 )
 
@@ -56,12 +55,12 @@ func main() {
 	globalImportMap = getPackageImportMap(sourcePackage)
 
 	// Search for "type FooPlugin struct { ... }" declarations
-	pstList := getPluginStructTypes(sourcePackage)
+	pluginList := findGollumPlugins(sourcePackage)
 
 	// Parse struct declarations into PluginDocument objects
 	docList := []PluginDocument{}
-	for _, pst := range pstList {
-		docList = append(docList, pst.createPluginDocument())
+	for _, plugin := range pluginList {
+		docList = append(docList, NewPluginDocument(plugin))
 	}
 
 	// Generate an RST file from the PluginDocuments
@@ -156,7 +155,7 @@ func getImportDir(packageName string) string {
 	return ""
 }
 
-// Returns a map package names and their paths imported by astPackage:
+// Returns a map of package names and their paths imported by astPackage:
 //   packagename => package path
 //    "foo"      => "github.com/bar/foo"
 func getPackageImportMap(astPackage *ast.Package) map[string]string {
@@ -205,179 +204,4 @@ func getPackageImportMap(astPackage *ast.Package) map[string]string {
 	}
 
 	return result
-}
-
-// Searches the AST rooted at `pkgRoot` for struct types representing Gollum plugins
-func getPluginStructTypes(pkgRoot *ast.Package) []pluginStructType {
-	// Generate a tree structure from the parse results returned by AST
-	tree := NewTree(pkgRoot)
-
-	// The tree looks like this:
-	/**
-		*ast.Package
-		    *ast.File
-		        *ast.Ident
-		        *ast.GenDecl
-		            *ast.ImportSpec
-		                *ast.BasicLit
-		        [....]
-		        *ast.GenDecl
-		            *ast.CommentGroup
-		                *ast.Comment
-		            *ast.TypeSpec
-		                *ast.Ident
-		                *ast.StructType
-		                    *ast.FieldList
-		                        *ast.Field
-		                            *ast.Ident
-		                            *ast.Ident
-		        [....[
-	**/
-
-	// Search pattern
-	pattern := PatternNode{
-		Comparison: "*ast.GenDecl",
-		Children: []PatternNode{
-			{
-				Comparison: "*ast.CommentGroup",
-				// Note: there are N pcs of "*ast.Comment" children
-				// here but we don't need to match them
-			},
-			{
-				Comparison: "*ast.TypeSpec",
-				Children: []PatternNode{
-					{
-						Comparison: "*ast.Ident",
-						Callback: func(astNode ast.Node) bool {
-							// Checks that the name starts with a capital letter
-							return ast.IsExported(astNode.(*ast.Ident).Name)
-						},
-					},
-					{
-						Comparison: "*ast.StructType",
-						Children: []PatternNode{
-							{
-								Comparison: "*ast.FieldList",
-								// There are N pcs of "*ast.Field" children here
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	// Search the tree
-	results := []pluginStructType{}
-	for _, genDecl := range tree.Search(pattern) {
-		pst := pluginStructType{
-			Pkg: pkgRoot.Name,
-			// Indexes assumed based on the search pattern above
-			Name:    genDecl.Children[1].Children[0].AstNode.(*ast.Ident).Name,
-			Comment: genDecl.Children[0].AstNode.(*ast.CommentGroup).Text(),
-			Embeds: getStructTypeEmbedList(pkgRoot.Name,
-				genDecl.Children[1].Children[1].Children[0].AstNode.(*ast.FieldList),
-			),
-			StructTagParams: getStructTypeConfigParams(
-				genDecl.Children[1].Children[1].Children[0].AstNode.(*ast.FieldList),
-			),
-		}
-
-		results = append(results, pst)
-	}
-
-	return results
-}
-
-// Returns a list of type embeds in fieldList marked with embedTag for getPluginStructTypes()
-func getStructTypeEmbedList(packageName string, fieldList *ast.FieldList) []typeEmbed {
-	results := []typeEmbed{}
-	for _, field := range fieldList.List {
-		if field.Tag == nil ||
-			field.Tag.Kind != token.STRING ||
-			field.Tag.Value != embedTag {
-			continue
-		}
-
-		switch t := field.Type.(type) {
-		case *ast.Ident:
-			// Relative reference within the same package ("SimpleConsumer")
-			results = append(results, typeEmbed{
-				pkg:  packageName,
-				name: field.Type.(*ast.Ident).Name,
-			})
-
-		case *ast.SelectorExpr:
-			// Reference to another package ("core.SimpleConsumer")
-			sel := field.Type.(*ast.SelectorExpr)
-
-			results = append(results, typeEmbed{
-				pkg:  sel.X.(*ast.Ident).Name,
-				name: sel.Sel.Name,
-			})
-
-		default:
-			_ = t
-			fmt.Printf("WARNING: struct tag %s in unexpected location\n", embedTag)
-			continue
-		}
-	}
-
-	return results
-}
-
-// getStructTypeConfigParams scans the strcut for properties that map directly
-// to config params (identified by tags like `config:"TimeoutMs" default:"0" metric:"ms"`)
-// and returns a map of Definitions with the value of "config" as key.
-func getStructTypeConfigParams(fieldList *ast.FieldList) DefinitionList {
-	results := DefinitionList{}
-
-	for _, field := range fieldList.List {
-		if field.Tag == nil || field.Tag.Kind != token.STRING {
-			continue
-		}
-		tags := parseStructTag(field.Tag.Value)
-		if paramName, found := tags["config"]; found {
-			results.add(&Definition{
-				name: paramName,
-				// Default description if not overriden in the plugin's comment block
-				desc: "(no documentation available)",
-				dfl:  tags["default"],
-				unit: tags["metric"],
-			})
-		}
-	}
-
-	return results
-}
-
-// parseStructTag parses a string like
-//
-//   `config:"ReadTimeoutSec" default:"3" metric:"sec"`
-//
-// into a map of tag names and values
-func parseStructTag(tag string) map[string]string {
-	re := regexp.MustCompile("^([^:\"]+):\"([^\"]*)\" *(.*)")
-	result := map[string]string{}
-
-	if tag[0] != '`' || tag[len(tag)-1] != '`' {
-		panic(fmt.Sprintf("Expected tag to begin and end with `, got: \"%s\"", tag))
-	}
-
-	parseStructTagInner(re, result, tag[1:len(tag)-1])
-	return result
-}
-
-// Recursive component of parseStructTag()
-func parseStructTagInner(re *regexp.Regexp, result map[string]string, tag string) {
-	if tag == "" || re.FindString(tag) == "" {
-		return
-	}
-
-	tagName := re.ReplaceAllString(tag, "$1")
-	tagValue := re.ReplaceAllString(tag, "$2")
-	rest := re.ReplaceAllString(tag, "$3")
-
-	result[tagName] = tagValue
-	parseStructTagInner(re, result, rest)
 }

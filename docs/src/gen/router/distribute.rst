@@ -26,8 +26,8 @@ Parameters
   
   
 
-Parameters (from SimpleRouter)
-------------------------------
+Parameters (from core.SimpleRouter)
+-----------------------------------
 
 **Enable**
 

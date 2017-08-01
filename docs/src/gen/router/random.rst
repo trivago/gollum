@@ -10,8 +10,8 @@ is chosen randomly for each message.
 
 
 
-Parameters (from SimpleRouter)
-------------------------------
+Parameters (from core.SimpleRouter)
+-----------------------------------
 
 **Enable**
 

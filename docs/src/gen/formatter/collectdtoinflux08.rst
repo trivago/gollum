@@ -9,13 +9,14 @@ Trailing and leading commas are removed from the Collectd message.
 
 
 
-Parameters (from SimpleFormatter)
----------------------------------
+Parameters (from core.SimpleFormatter)
+--------------------------------------
 
 **ApplyTo**
 
-  This value chooses the part of the message the formatting should be
-  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  This value chooses the part of the message the formatting
+  should be applied to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
   By default this parameter is set to "".
   
   
