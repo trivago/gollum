@@ -28,6 +28,8 @@
     /src/gen/formatter/clear.rst
     /src/gen/formatter/envelope.rst
     /src/gen/formatter/hostname.rst
+    /src/gen/formatter/jsontoinflux10.rst
+    /src/gen/formatter/regexp.rst
     /src/gen/formatter/sequence.rst
     /src/gen/formatter/streamname.rst
     /src/gen/formatter/templatejson.rst
