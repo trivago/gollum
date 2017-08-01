@@ -32,7 +32,7 @@ Parameters
   Switches this plugin on or off.
   
 
-**Servers** (default: localhost:9092)
+**Brokers** (default: localhost:9092)
 
   Defines the list of all kafka brokers to initally connect to when
   querying topic metadata. This list requires at least one borker to work and
@@ -119,7 +119,7 @@ Parameters
   
   
 
-**ServerTimeoutSec**
+**BrokerTimeoutSec**
 
   Defines the time after which a connection will time out.
   By default this parameter is set to 30.
@@ -325,7 +325,7 @@ Examples
 	   	ClientId: "gollum log reader"
 	   	DefaultOffset: newest
 	   	OffsetFile: /var/gollum/logs.offset
-	   	Servers: ["kafka0:9092","kafka1:9092","kafka2:9092","kafka3:9092"]
+	   	Brokers: ["kafka0:9092","kafka1:9092","kafka2:9092","kafka3:9092"]
 	
 	
 

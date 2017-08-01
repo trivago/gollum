@@ -18,6 +18,7 @@
     /src/gen/producer/awsS3.rst
     /src/gen/producer/console.rst
     /src/gen/producer/httprequest.rst
+    /src/gen/producer/kafka.rst
     /src/gen/producer/redis.rst
     /src/gen/producer/socket.rst
     /src/gen/producer/websocket.rst
