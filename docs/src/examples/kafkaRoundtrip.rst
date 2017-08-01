@@ -28,7 +28,7 @@ gollum >= v0.5.0
         Compression: "zip"
         Topics:
             "write" : "test"
-        Servers:
+        Brokers:
             - kafka0:9092
             - kafka1:9093
             - kafka2:9094
@@ -39,7 +39,7 @@ gollum >= v0.5.0
         Topic: "test"
         DefaultOffset: "Oldest"
         MaxFetchSizeByte: 100
-        Servers:
+        Brokers:
             - kafka0:9092
             - kafka1:9093
             - kafka2:9094

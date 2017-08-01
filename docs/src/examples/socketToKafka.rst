@@ -34,7 +34,7 @@ rate limiting per topic.
         Filter: "filter.Rate"
         RateLimitPerSec: 100
         ChannelTimeoutMs: 10
-        Servers:
+        Brokers:
             - "kafka1:9092"
             - "kafka2:9092"
             - "kafka3:9092"
