@@ -24,46 +24,50 @@ import (
 	"time"
 )
 
-// JSONToInflux10 formatter plugin
-// JSONToInflux10 provides a transformation from JSON data to
+// JSONToInflux10 formatter
+//
+// JSONToInflux10 provides a transformation from arbitrary JSON data to
 // InfluxDB 0.9.1+ compatible line protocol data.
-// Configuration example
 //
-//  - format.JSONToInflux10
-//      TimeField: time
-//      TimeFormat: unix
-//      Measurement: measurement
-//      Ignore:
-//        - ignore
-//        - these
-//        - tags
-//      Tags:
-//        - datacenter
-//        - service
-//        - host
-//        - application
+// Parameters
 //
-// TimeField specifies the JSON field that holds the Unix timestamp of the message.
-// The precision is seconds.
-// By default, the field is named `time`. If such a key does not exist in the
-// message, the current Unix timestamp at the time of parsing the message is used.
+// - TimeField: Specifies the JSON field that holds the timestamp of the message.
+// The timestamp is formatted as defined by TimeFormat. If the field is not
+// found the current timestamp is assumed.
+// By default this parameter is set to "time".
 //
-// TimeFormat defines the format of the time field. Possible values are
-// a format string accepted by time.Parse() (see https://golang.org/pkg/time/#Parse)
-// or `unix` for the Unix timestamp format
+// - TimeFormat: Specifices the format of the time field as in go's time.Parse
+// or "unix" if the field contains a valid unix timestamp.
+// By default this parameter is set to "unix".
 //
-// Measurement specifies the JSON field that holds the measurement of the message.
-// By default, the field is named `measurement`. This field MUST exist in the message.
-// If it does not exist in the message, an error will be thrown.
+// - Measurement: Specifies the JSON field that holds the measurements in this
+// message. If the field is not existing the message will be discarded.
+// By default this parameter is set to "measurement".
 //
-// Ignore lists all JSON fields that will be ignored and not sent to InfluxDB.
+// - Ignore: May contain a list of all JSON fields that will be ignored and not
+// sent to InfluxDB.
+// By default this parameter is set to an empty list.
 //
-// Tags lists all names of JSON fields to send to Influxdb as tags.
-// The Influxdb 0.9 convention is that values that do not change every
-// request should be considered metadata and given as tags.
+// - Tags: May contain a list of all JSON fields to send to InfluxDB as tags.
+// The InfluxDB 0.9 convention is that values that do not change by every
+// request are to be considered metadata and given as tags.
 //
-// JsonToInfluxFormatter defines the formatter applied before the conversion
-// from JSON to InfluxDB. By default this is set to format.Forward.
+// Examples
+//
+//  metricsToInflux:
+//    Type: producer.InfluxDB
+//    Streams: metrics
+//    Host: "influx01:8086"
+//    Database: "metrics"
+//    Modulators:
+//      - format.JSONToInflux10
+//        TimeField: timestamp
+//        Measurement: metrics
+//        Tags:
+//          - tags
+//          - service
+//          - host
+//          - application
 type JSONToInflux10 struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	metadataEscape       *strings.Replacer
