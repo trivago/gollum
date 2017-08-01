@@ -4,7 +4,6 @@
 .. toctree::
     :maxdepth: 9
 
-    /src/gen/producer/InfluxDB.rst
     /src/gen/producer/awsFirehose.rst
     /src/gen/producer/awsKinesis.rst
     /src/gen/producer/awsS3.rst
@@ -13,6 +12,7 @@
     /src/gen/producer/elasticsearch.rst
     /src/gen/producer/file.rst
     /src/gen/producer/httprequest.rst
+    /src/gen/producer/InfluxDB.rst
     /src/gen/producer/kafka.rst
     /src/gen/producer/null.rst
     /src/gen/producer/proxy.rst
