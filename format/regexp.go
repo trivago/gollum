@@ -47,8 +47,9 @@ import (
 //    Streams: stding
 //    Modulators:
 //      - format.RegExp:
-//	      Separator: "^(\d+) (\w+): "
-//        Template: "time: ${1}, host: ${2}"
+//          Separator: "^(\\d+) (\\w+): "
+//          Template: "time: ${1}, host: ${2}"
+//
 type RegExp struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	expression           *regexp.Regexp

@@ -27,7 +27,7 @@ import (
 // will get a unique number. The number is not persisted, i.e. it restarts at 0
 // after each restart of gollum.
 //
-// Parameters:
+// Parameters
 //
 // - Separator: Defines the separator string placed between number and data.
 // By default this parameter is set to ":".

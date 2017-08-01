@@ -60,8 +60,8 @@ Examples
 	   Streams: stding
 	   Modulators:
 	     - format.RegExp:
-		      Separator: "^(\d+) (\w+): "
-	       Template: "time: ${1}, host: ${2}"
+	         Separator: "^(\\d+) (\\w+): "
+	         Template: "time: ${1}, host: ${2}"
 	
 	
 

@@ -8,11 +8,6 @@ formatter. I.e. all messages passing through an instance of this formatter
 will get a unique number. The number is not persisted, i.e. it restarts at 0
 after each restart of gollum.
 
-Parameters:
-
-- Separator: Defines the separator string placed between number and data.
-By default this parameter is set to ":".
-
 
 
 
@@ -21,7 +16,9 @@ Parameters
 
 **Separator** (default: :)
 
-  (no documentation available)
+  Defines the separator string placed between number and data.
+  By default this parameter is set to ":".
+  
   
 
 Parameters (from core.SimpleFormatter)
