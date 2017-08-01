@@ -34,7 +34,7 @@ import (
 // - Template: Defines the go template to execute with the received JSON data.
 // If the template cannot be parsed or the JSON payload could not be unmarshaled
 // the incoming JSON data is preserved.
-//  By default this parameter is set to "".
+// By default this parameter is set to "".
 //
 // Examples
 //

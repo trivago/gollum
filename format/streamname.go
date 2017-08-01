@@ -22,7 +22,7 @@ import (
 //
 // This formatter prefixes data with the name of the current or previous stream.
 //
-// Parameters:
+// Parameters
 //
 // - UsePrevious: Set to true to use the name of the previous stream.
 // By default this parameter is set to false.
