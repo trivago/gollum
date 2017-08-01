@@ -44,7 +44,7 @@ func TestStreamNameHistory(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.StreamName")
-	config.Override("UseHistory", true)
+	config.Override("UsePrevious", true)
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
