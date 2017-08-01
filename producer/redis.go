@@ -24,40 +24,45 @@ import (
 	"time"
 )
 
-// Redis producer plugin
-// This producer sends data to a redis server. Different redis storage types
+// Redis producer
+//
+// This producer sends messages to a redis server. Different redis storage types
 // and database indexes are supported. This producer does not implement support
 // for redis 3.0 cluster.
-// Configuration example
 //
-//  - "producer.Redis":
-//    Address: ":6379"
-//    Database: 0
-//    Key: "default"
-//    Storage: "hash"
-//    KeyField: ""
+// Parameters
 //
-// Address stores the identifier to connect to.
+// - Address: Stores the identifier to connect to.
 // This can either be any ip address and port like "localhost:6379" or a file
 // like "unix:///var/redis.socket". By default this is set to ":6379".
 //
-// Database defines the redis database to connect to.
-// By default this is set to 0.
+// - Database: Defines the redis database to connect to.
 //
-// Key defines the redis key to store the values in.
+// - Key: Defines the redis key to store the values in.
 // This field is ignored when "KeyFormatter" is set.
 // By default this is set to "default".
 //
-// Storage defines the type of the storage to use. Valid values are: "hash",
+// - Storage: Defines the type of the storage to use. Valid values are: "hash",
 // "list", "set", "sortedset", "string". By default this is set to "hash".
 //
-// KeyFrom defines the name of the metadata field used as a key for messages
+// - KeyFrom: Defines the name of the metadata field used as a key for messages
 // sent to redis. If the name is an empty string no key is sent. By default
 // this value is set to an empty string.
 //
-// FieldFrom defines the name of the metadata field used as a field for messages
+// - FieldFrom: Defines the name of the metadata field used as a field for messages
 // sent to redis. If the name is an empty string no key is sent. By default
 // this value is set to an empty string.
+//
+// Examples
+//
+// .
+//
+//   RedisProducer00:
+//     Type: producer.Redis
+//     Address: ":6379"
+//     Key: "mykey"
+//     Storage: "hash"
+//
 type Redis struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 	address               string
