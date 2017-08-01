@@ -28,9 +28,6 @@ import (
 //
 // Parameters
 //
-// - Enable: switches the router on or off.
-// By default this parameter is set to true.
-//
 // - Stream: This value specifies the name of the stream this plugin is supposed to
 // read messages from.
 //

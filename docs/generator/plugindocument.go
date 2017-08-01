@@ -71,6 +71,20 @@ func NewPluginDocument(plugin GollumPlugin) PluginDocument {
 		PluginName:  plugin.Name,
 	}
 
+	// The "Enable" parameter is implemented in the coordinator / plugonconfig
+	// and not inherited from simple*** types. Documentation for this option is
+	// hardcoded here, becacuse inheriting from the simple*** types is voluntary,
+	// and it would be counterproductive to contrive support in the RST generaotor
+	// just for fishing this parameter from the core.
+	switch plugin.Pkg {
+	case "consumer", "producer", "router":
+		pluginDocument.Parameters.add(&Definition{
+			name: "Enable",
+			desc: "Switches this plugin on or off.",
+			dfl:  "true",
+		})
+	}
+
 	// Parse the comment string
 	pluginDocument.ParseString(plugin.Comment)
 
