@@ -19,14 +19,36 @@ import (
 	"regexp"
 )
 
-// RegExp is a formatter that allows parsing a message via regular expression and
-// returning the results.
+// RegExp formatter
 //
-//   - format.RegExp:
-//       Expression: "(.*)"
-//       Template: "${1}"
-//       Posix: true
-//       ApplyTo: "payload" # payload or <metaKey>
+// This formatter parses a message using regular expressions and returns the
+// result.
+//
+// Parameters
+//
+// - Posix: Set to true to compile the regular expression using posix semantics.
+// By default this parameter is set to true.
+//
+// - Expression: Defines the regular expression used for parsing.
+// For details on the regexp syntax see https://golang.org/pkg/regexp/syntax.
+// By default this parameter is set to "(.*)"
+//
+// - Template: Defines the result string. Regexp groups can be addressed by
+// using "${n}" with n being the index of the group. For other possible
+// reference semantics see https://golang.org/pkg/regexp/#Regexp.Expand.
+// By default this parameter is set to "${1}"
+//
+// Examples
+//
+// This example extracts time and host from an imaginary log message format.
+//
+//  exampleConsumer:
+//    Type: consumer.Console
+//    Streams: stding
+//    Modulators:
+//      - format.RegExp:
+//	      Separator: "^(\d+) (\w+): "
+//        Template: "time: ${1}, host: ${2}"
 type RegExp struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	expression           *regexp.Regexp
