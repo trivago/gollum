@@ -39,8 +39,8 @@ Parameters
   
   
 
-Parameters (from SimpleFilter)
-------------------------------
+Parameters (from core.SimpleFilter)
+-----------------------------------
 
 **FilteredStream**
 

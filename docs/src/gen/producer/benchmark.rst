@@ -9,8 +9,8 @@ situations than producer.Null as it is based on a buffered producers.
 
 
 
-Parameters (from BufferedProducer)
-----------------------------------
+Parameters (from core.BufferedProducer)
+---------------------------------------
 
 **Channel**
 
@@ -24,54 +24,6 @@ Parameters (from BufferedProducer)
   This value defines a timeout for each message before the message will discarded.
   You can set this parameter to "0" for disabling the timeout.
   By default this parameter is set to "0".
-  
-  
-
-Parameters (from DirectProducer)
---------------------------------
-
-**Enable**
-
-  switches the consumer on or off. By default this value is set to true.
-  
-  
-
-**ID**
-
-  allows this producer to be found by other plugins by name. By default this
-  is set to "" which does not register this producer.
-  
-  
-
-**ShutdownTimeoutMs**
-
-  sets a timeout in milliseconds that will be used to detect
-  a blocking producer during shutdown. By default this is set to 1 second.
-  Decreasing this value may lead to lost messages during shutdown. Increasing
-  this value will increase shutdown time.
-  
-  
-
-**Streams**
-
-  contains either a single string or a list of strings defining the
-  message channels this producer will consume. By default this is set to "*"
-  which means "listen to all routers but the internal".
-  
-  
-
-**FallbackStream**
-
-  defines the stream used for messages that are sent to the fallback after
-  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
-  
-  
-
-**Modulators**
-
-  sets formatter and filter to use. Each formatter has its own set of options
-  which can be set here, too. By default this is set to format.Forward.
-  Each producer decides if and when to use a Formatter.
   
   
 

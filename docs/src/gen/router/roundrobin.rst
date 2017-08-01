@@ -12,8 +12,8 @@ does not support sharding by itself.
 
 
 
-Parameters (from SimpleRouter)
-------------------------------
+Parameters (from core.SimpleRouter)
+-----------------------------------
 
 **Enable**
 

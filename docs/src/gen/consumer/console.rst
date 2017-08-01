@@ -45,8 +45,8 @@ Parameters
   
   
 
-Parameters (from SimpleConsumer)
---------------------------------
+Parameters (from core.SimpleConsumer)
+-------------------------------------
 
 **Enable**
 
