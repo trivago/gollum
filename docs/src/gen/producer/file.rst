@@ -15,6 +15,11 @@ Each target file will handled with separated batch processing.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **File**
 
   This value contains the path to the log file to write. The wildcard character "*"

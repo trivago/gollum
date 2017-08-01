@@ -12,6 +12,11 @@ http API. The producer expects a json payload.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Retry/Count**
 
   Set the amount of retries before a Elasticsearch request fail finally.

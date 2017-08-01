@@ -12,6 +12,11 @@ Configuration example
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **StreamMapping**
 
   This value defines a translation from gollum stream to kinesis stream

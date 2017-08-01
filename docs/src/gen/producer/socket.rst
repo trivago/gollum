@@ -12,6 +12,11 @@ socket based connection.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Address**
 
   This value stores the identifier to connect to.

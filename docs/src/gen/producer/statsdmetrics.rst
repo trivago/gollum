@@ -12,6 +12,11 @@ to statsd.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Server**
 
   Defines the server and port to send statsd metrics to.

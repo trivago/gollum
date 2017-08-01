@@ -30,6 +30,11 @@ Metadata
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **File**
 
   This value is a mandatory setting and contains the file to read. The file will be
@@ -86,13 +91,6 @@ Parameters
 
 Parameters (from core.SimpleConsumer)
 -------------------------------------
-
-**Enable**
-
-  switches the consumer on or off.
-  By default this parameter is set to true.
-  
-  
 
 **Streams**
 

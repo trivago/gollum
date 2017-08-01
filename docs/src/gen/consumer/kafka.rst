@@ -27,6 +27,11 @@ Metadata
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Servers** (default: localhost:9092)
 
   Defines the list of all kafka brokers to initally connect to when
@@ -258,13 +263,6 @@ Parameters
 
 Parameters (from core.SimpleConsumer)
 -------------------------------------
-
-**Enable**
-
-  switches the consumer on or off.
-  By default this parameter is set to true.
-  
-  
 
 **Streams**
 

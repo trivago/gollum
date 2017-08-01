@@ -9,15 +9,16 @@ producers registered to the configured stream.
 
 
 
+Parameters
+----------
+
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 Parameters (from core.SimpleRouter)
 -----------------------------------
-
-**Enable**
-
-  switches the router on or off.
-  By default this parameter is set to true.
-  
-  
 
 **Stream**
 

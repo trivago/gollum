@@ -14,6 +14,11 @@ sending the message. See producer.Proxy as an example target producer.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Address**
 
   Defines the protocol, host and port or the unix domain socket to
@@ -101,13 +106,6 @@ Parameters
 
 Parameters (from core.SimpleConsumer)
 -------------------------------------
-
-**Enable**
-
-  switches the consumer on or off.
-  By default this parameter is set to true.
-  
-  
 
 **Streams**
 

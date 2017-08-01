@@ -11,6 +11,11 @@ The websocket producer opens up a websocket.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Address** (default: :81)
 
   This value defines the host and port to bind to.

@@ -20,6 +20,11 @@ explicitly to be used.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **TargetStreams**
 
   List of streams to route the incoming messages to.
@@ -28,13 +33,6 @@ Parameters
 
 Parameters (from core.SimpleRouter)
 -----------------------------------
-
-**Enable**
-
-  switches the router on or off.
-  By default this parameter is set to true.
-  
-  
 
 **Stream**
 
