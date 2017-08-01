@@ -12,6 +12,11 @@ receives messages on a TCP or UDP port or a UNIX filesystem socket.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Address**
 
   Defines the IP address or UNIX socket to listen to.
@@ -74,13 +79,6 @@ Parameters
 
 Parameters (from core.SimpleConsumer)
 -------------------------------------
-
-**Enable**
-
-  switches the consumer on or off.
-  By default this parameter is set to true.
-  
-  
 
 **Streams**
 

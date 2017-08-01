@@ -13,6 +13,11 @@ required.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Version**
 
   Defines the InfluxDB protocol version to use. This can either be

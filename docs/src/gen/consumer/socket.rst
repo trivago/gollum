@@ -12,6 +12,11 @@ Messages are separated from the stream by using a specific partitioner method.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Address**
 
   This value defines the protocol, host and port or socket to bind to.
@@ -141,13 +146,6 @@ Parameters
 
 Parameters (from core.SimpleConsumer)
 -------------------------------------
-
-**Enable**
-
-  switches the consumer on or off.
-  By default this parameter is set to true.
-  
-  
 
 **Streams**
 

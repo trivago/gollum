@@ -14,6 +14,11 @@ returned messages are partitioned by common message length algorithms.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Address**
 
   This value stores the identifier to connect to.

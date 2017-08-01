@@ -21,6 +21,11 @@ Metadata
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Pipe** (default: stdin)
 
   Defines the pipe to read from. This can be "stdin" or the path
@@ -47,13 +52,6 @@ Parameters
 
 Parameters (from core.SimpleConsumer)
 -------------------------------------
-
-**Enable**
-
-  switches the consumer on or off.
-  By default this parameter is set to true.
-  
-  
 
 **Streams**
 

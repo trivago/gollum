@@ -9,6 +9,14 @@ situations than producer.Null as it is based on a buffered producers.
 
 
 
+Parameters
+----------
+
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 Parameters (from core.BufferedProducer)
 ---------------------------------------
 

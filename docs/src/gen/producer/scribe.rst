@@ -11,6 +11,11 @@ This producer allows sending messages to Facebook's scribe service.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Address**
 
   Defines the host and port of a scrive endpoint.

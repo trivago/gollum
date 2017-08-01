@@ -16,6 +16,11 @@ mandatory in this producer.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Bucket**
 
   Your S3 bucket where you want to upload.

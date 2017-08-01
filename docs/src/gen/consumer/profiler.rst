@@ -21,6 +21,11 @@ selected from the set of template payloads above.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Runs** (default: 10000)
 
   Defines the number of messages per batch.
@@ -71,13 +76,6 @@ Parameters
 
 Parameters (from core.SimpleConsumer)
 -------------------------------------
-
-**Enable**
-
-  switches the consumer on or off.
-  By default this parameter is set to true.
-  
-  
 
 **Streams**
 

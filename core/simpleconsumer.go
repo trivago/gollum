@@ -30,9 +30,6 @@ import (
 //
 // Parameters
 //
-// - Enable: switches the consumer on or off.
-// By default this parameter is set to true.
-//
 // - Streams: Defines a list of streams a consumer will send to. This parameter
 // is mandatory. When using "*" messages will be sent only to the internal "*"
 // stream. It will NOT send messages to all streams.

@@ -9,6 +9,14 @@ messages without notice.
 
 
 
+Parameters
+----------
+
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 Examples
 --------
 

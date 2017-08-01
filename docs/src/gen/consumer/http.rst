@@ -12,6 +12,11 @@ incoming HTTP request.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Address** (default: :80)
 
   Defines the TCP port and optional IP address to listen on.
@@ -66,13 +71,6 @@ Parameters
 
 Parameters (from core.SimpleConsumer)
 -------------------------------------
-
-**Enable**
-
-  switches the consumer on or off.
-  By default this parameter is set to true.
-  
-  
 
 **Streams**
 

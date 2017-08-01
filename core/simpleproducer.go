@@ -31,9 +31,6 @@ import (
 //
 // Parameters
 //
-// - Enable: switches the producer on or off.
-// By default this parameter is set to true.
-//
 // - Streams: Defines a list of streams a producer will receive from. This
 // parameter is mandatory. When using "*" the producer will receive messages
 // from all streams but the internal streams (e.g. _GOLLUM_).

@@ -14,6 +14,11 @@ and inserts them back to the system after this period.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Path** (default: /var/run/gollum/spooling)
 
   Sets the output directory for spooling files. Spooling files will
