@@ -19,20 +19,32 @@ import (
 	"os"
 )
 
-// Hostname formatter plugin
-// Hostname is a formatter that prefixes a message with the hostname.
-// Configuration example
+// Hostname formatter
 //
-//  - "stream.Broadcast":
-//    Formatter: "format.Hostname"
-//    HostnameFormatter: "format.Envelope"
-//    HostnameSeparator: " "
+// This formatter prefixes the message or metadata with the name of the current
+// host.
 //
-// HostnameDataFormatter defines the formatter for the data transferred as
-// message. By default this is set to "format.Envelope"
+// Parameters
 //
-// HostnameSeparator sets the separator character placed after the hostname.
-// This is set to " " by default.
+// - Separator: Defines the separator string placed between hostname and data.
+// By default this parameter is set to ":".
+//
+// Examples
+//
+// This example will insert the hostname into an existing JSON payload.
+//
+//  exampleProducer:
+//    Type: producer.Console
+//    Streams: "*"
+//    Modulators:
+//      - format.Trim:
+//        LeftSeparator: "{"
+//        RightSeparator: "}"
+//      - format.Hostname
+//        Separator: ","
+//      - format.Envelope:
+//        Prefix: "{\"host\":"
+//        Postfix: "}"
 type Hostname struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	separator            []byte `config:"Separator" default:":"`
