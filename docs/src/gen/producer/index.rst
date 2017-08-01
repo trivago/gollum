@@ -16,3 +16,5 @@
     /src/gen/producer/awsKinesis.rst
     /src/gen/producer/proxy.rst
     /src/gen/producer/awsS3.rst
+    /src/gen/producer/socket.rst
+    /src/gen/producer/websocket.rst

@@ -25,36 +25,27 @@ import (
 // exactly one of the producers connected to [Stream]. The receiving producer
 // is chosen randomly for each message.
 //
-// Configuration example:
+// Examples
 //
-// # Generate junk
-// JunkGenerator:
-//   Type: "consumer.Profiler"
-//   Message: "%20s"
-//   Streams: "junkstream"
-//   Characters: "abcdefghijklmZ"
-//   KeepRunning: true
-//   Runs: 10000
-//   Batches: 3000000
-//   DelayMs: 500
-// # Randomly assign messages to connected producers
-// JunkRouterRand:
-//   Type: "router.Random"
-//   Stream: "junkstream"
-// # Produce messages to stdout
-// JunkPrinter00:
-//   Type: "producer.Console"
-//   Streams: "junkstream"
-//   Modulators:
-//     - "format.Envelope":
-//         Prefix: "[junk_00] "
-// # Produce messages to stdout
-// JunkPrinter01:
-//   Type: "producer.Console"
-//   Streams: "junkstream"
-//   Modulators:
-//     - "format.Envelope":
-//         Prefix: "[junk_01] "
+// This example ..
+//
+//  randomRouter:
+//    Type: router.Random
+//    Stream: randomStream
+//
+//  JunkPrinter00:
+//    Type: producer.Console
+//    Streams: randomStream
+//    Modulators:
+//      - format.Envelope:
+//          Prefix: "[junk_00] "
+//
+//  JunkPrinter01:
+//    Type: producer.Console
+//    Streams: randomStream
+//    Modulators:
+//      - format.Envelope:
+//          Prefix: "[junk_01] "
 //
 type Random struct {
 	core.SimpleRouter `gollumdoc:"embed_type"`

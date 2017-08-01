@@ -29,28 +29,36 @@ import (
 //
 // The websocket producer opens up a websocket.
 //
-// Configuration example
+// Parameters
 //
-//  - "producer.Websocket":
-//    Address: ":81"
-//    Path:    "/"
-//    ReadTimeoutSec: 3
-//
-// Address defines the host and port to bind to.
+// - Address: This value defines the host and port to bind to.
 // This is allowed be any ip address/dns and port like "localhost:5880".
-// By default this is set to ":81".
+// By default this parameter is set to ":81".
 //
-// Path defines the url path to listen for.
-// By default this is set to "/"
+// - Path: This value defines the url path to listen for.
+// By default this parameter is set to "/"
 //
-// ReadTimeoutSec specifies the maximum duration in seconds before timing out
-// read of the request. By default this is set to 3 seconds.
+// - ReadTimeoutSec: This value specifies the maximum duration in seconds before timing out
+// read of the request.
+// By default this parameter is set to "3" seconds.
+//
+// - IgnoreOrigin: Ignore origin check from websocket server.
+// By default this parameter is set to "false".
+//
+// Examples
+//
+// This example starts a default Websocket producer on port 8080:
+//
+//  WebsocketOut:
+//    Type: producer.Websocket
+//    Address: ":8080"
+//
 type Websocket struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 	address               string        `config:"Address" default:":81"`
 	path                  string        `config:"Path" default:"/"`
 	readTimeoutSec        time.Duration `config:"ReadTimeoutSec" default:"3" metric:"sec"`
-	ignoreOrigin          bool          `config:"IgnoreOrigin"`
+	ignoreOrigin          bool          `config:"IgnoreOrigin" default:"false"`
 	listen                *tnet.StopListener
 	clients               [2]clientList
 	clientIdx             uint32
@@ -70,8 +78,10 @@ func init() {
 func (prod *Websocket) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
-	prod.upgrader = websocket.Upgrader{
-		CheckOrigin: func(r *http.Request) bool { return prod.ignoreOrigin },
+	prod.upgrader = websocket.Upgrader{}
+
+	if prod.ignoreOrigin {
+		prod.upgrader.CheckOrigin = func(r *http.Request) bool { return prod.ignoreOrigin }
 	}
 }
 

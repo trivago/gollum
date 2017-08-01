@@ -40,7 +40,7 @@ import (
 //
 //  ExampleConsumer:
 //    Type: consumer.Console
-//    Streams: *
+//    Streams: "*"
 //    Modulators:
 //      - filter.Stream:
 //          Block:
@@ -50,7 +50,7 @@ import (
 //
 //  ExampleConsumer:
 //    Type: consumer.Console
-//    Streams: *
+//    Streams: "*"
 //    Modulators:
 //      - filter.Stream:
 //          Only:
