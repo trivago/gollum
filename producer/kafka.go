@@ -183,7 +183,7 @@ const (
 // MessageBufferCount sets the internal channel size for the kafka client.
 // By default this is set to 8192.
 //
-// Examples:
+// Examples
 //
 //  kafkaWriter:
 //    Type: producer.Kafka
