@@ -19,16 +19,39 @@ import (
 	"github.com/trivago/gollum/core"
 )
 
-// Trim is a formatter that removes part of the message.
-// Configuration example
+// Trim formatter
 //
-//    - format.Trim:
-//        LeftSeparator: ""
-//        RightSeparator: ""
-//        LeftOffset: 0
-//        RightOffset: 0
-//        ApplyTo: "payload" # payload or <metaKey>
+// This formatter searches for separator strings and removes all data left or
+// right of this separator.
 //
+// Parameters
+//
+// - LeftSeparator: The string to search for. Searching starts from the left
+// side of the data. If an empty string is given this parameter is ignored.
+// By default this parameter is set to "".
+//
+// - RightSeparator: The string to search for. Searching starts from the right
+// side of the data. If an empty string is given this parameter is ignored.
+// By default this parameter is set to "".
+//
+// - LeftOffset: Defines the search start index when using LeftSeparator.
+// By default this parameter is set to 0.
+//
+// - RightOffset: Defines the search start index when using RightSeparator.
+// Counting starts from the right side of the message.
+// By default this parameter is set to 0.
+//
+// Examples
+//
+// This example will reduce data like "foo[bar[foo]bar]foo" to "bar[foo]bar".
+//
+//  exampleConsumer:
+//    Type: consumer.Console
+//    Streams: "*"
+//    Modulators:
+//      - format.Trim:
+//	      LeftSeparator: "["
+//	      RightSeparator: "]"
 type Trim struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	leftSeparator        []byte `config:"LeftSeparator"`
