@@ -25,6 +25,10 @@
     /src/gen/formatter/splittojson.rst
     /src/gen/formatter/streamroute.rst
     /src/gen/formatter/timestamp.rst
+    /src/gen/formatter/clear.rst
+    /src/gen/formatter/envelope.rst
+    /src/gen/formatter/hostname.rst
+    /src/gen/formatter/sequence.rst
     /src/gen/formatter/streamname.rst
     /src/gen/formatter/templatejson.rst
     /src/gen/formatter/trim.rst
