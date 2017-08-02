@@ -2,11 +2,69 @@
 
 ## 0.5.0
 
-Gollum 0.5.0 contains major breaking changes in almost all areas.
+Gollum 0.5.0 contains major breaking changes in all areas.
 Configuration files working with Gollum 0.4.x will not work with this verison unless changed.
-Please have a look at the [transition guide](https://github.com/trivago/gollum/wiki/Breaking050) for details.
+Please have a look at the [transition guide](http://gollum.readthedocs.io/en/latest/src/releaseNotes/v0.5.0.html#breaking-changes-0-4-x-to-0-5-0) for details.
 
-### Breaking changes
+### New with 0.5.0
+
+* Filters and Formatters have been merged into one list
+* You can now use a filter or formatter more than once in the same plugin
+* Consumers can now do filtering and formatting, too
+* Messages can now store metadata. Formatters can affect the payload or a metadata field
+* All plugins now have an automatic log scope
+* Message payloads are now backed by a memory pool
+* Messages now store the original message, i.e. a backup of the payload state after consumer processing
+* Gollum now provides per-stream metrics
+* Plugins are now able to implement health checks that can be queried via http
+* New base types for producers: Direct, Buffered, Batched
+* Plugin configurations now support nested structures
+* The configuration process has been simplified a lot by adding automatic error handling and struct tags
+* All plugin configuration keys are now case insensitive
+* Added a new formatter format.GrokToJSON
+* Added a new formatter format.JSONToInflux10
+* Added a new formatter format.Double
+* Added a new formatter format.MetadataCopy
+* Added a new formatter format.Trim
+* Consumer.File now supports filesystem events
+* Consumers can now define the number of go routines used for formatting/filtering
+* All AWS plugins now support role switching
+* All AWS plugins are now based on the same credentials code
+
+### Fixed with 0.5.0
+
+* The plugin lifecycle has been reimplemented to avoid gollum being stuck waiting for plugins to change state
+* Integration test suite added
+* Producer.HTTPRequest port handling fixed
+* The test-config command will now produce more meaningful results
+* Duplicating messages now properly duplicates the whole message and not just the struct
+* Several race conditions have been fixed
+* Producer.ElasticSearch is now based on a more up-to-date library
+* Producer.AwsS3 is now behaving more like producer.File
+
+### Breaking changes with 0.5.0
+
+* The config format has changed to improve automatic processing
+* A lot of plugins have been renamed to avoid confusion and to better reflect their behavior
+* A lot of plugins parameters have been renamed
+* The instances plugin parameter has been removed
+* Most of gollum's metrics have been renamed
+* Plugin base types have been renamed
+* All message handling function signatures have changed to use pointers
+* All formatters don't daisy chain anymore as they can now be listed in proper order
+* Stream plugins have been renamed to Router plugins
+* Routers are not allowed to modify message content anymore
+* filter.All and format.Forward have been removed as they are not required anymore
+* Producer formatter listss dedicated to format a key or similar constructs have been removed
+* Logging framework switched to logrus
+* The package gollum.shared has been removed in favor of trivago.tgo
+* Fuses have been removed from all plugins
+* The general message sequence number has been removed
+* The term "drop" has been replaced by the term "fallback" to emphasise it's use
+* The \_DROPPED\_ stream has been removed. Messages are discarded if no fallback is set
+* Formatters can still the stream of a message but cannot trigger routing by themselves
+* Compiling contrib plugins now requires a specific loader.go to be added
+* The docker file on docker hub is now a lot smaller and only contains the gollum binary
 
 ## 0.4.5
 
