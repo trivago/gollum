@@ -51,9 +51,9 @@ This example accept ~10 messages in a second except the "noLimit" stream:
 	   Streams: "*"
 	   Modulators:
 	     - filter.Rate:
-	         MessagesPerSec: 10
-	         Ignore:
-	           - noLimit
+	       MessagesPerSec: 10
+	       Ignore:
+	         - noLimit
 
 
 

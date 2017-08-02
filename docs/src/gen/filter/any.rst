@@ -44,10 +44,10 @@ This example will accept valid json or messages from "exceptionStream":
 	   Streams: "*"
 	   Modulators:
 	     - filter.Any:
-	         AnyFilters:
-	           - filter.JSON
-	           - filter.Stream:
-	               Only: exceptionStream
+	       AnyFilters:
+	         - filter.JSON
+	         - filter.Stream:
+	           Only: exceptionStream
 
 
 

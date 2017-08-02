@@ -74,11 +74,8 @@ the original console input and <base64> its Base64-encoded equivalent.
 	   Streams: "*"
 	   Modulators:
 	     - format.Double:
-
-	      Separator: "|"
-.. code-block:: yaml
-
-	   	  Right:
+	       Separator: "|"
+	       Right:
 	         - format.Base64Encode
 
 

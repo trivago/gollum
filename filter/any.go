@@ -39,11 +39,10 @@ import (
 //    Streams: "*"
 //    Modulators:
 //      - filter.Any:
-//          AnyFilters:
-//            - filter.JSON
-//            - filter.Stream:
-//                Only: exceptionStream
-//
+//        AnyFilters:
+//          - filter.JSON
+//          - filter.Stream:
+//            Only: exceptionStream
 type Any struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
 	filters           core.FilterArray `config:"AnyFilters"`

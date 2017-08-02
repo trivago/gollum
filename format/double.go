@@ -51,10 +51,9 @@ import (
 //    Streams: "*"
 //    Modulators:
 //      - format.Double:
-//	      Separator: "|"
-//    	  Right:
+//        Separator: "|"
+//        Right:
 //          - format.Base64Encode
-//
 type Double struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	separator            []byte              `config:"Separator" default:":"`

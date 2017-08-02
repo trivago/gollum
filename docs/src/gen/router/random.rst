@@ -46,7 +46,7 @@ Parameters (from core.SimpleRouter)
 Examples
 --------
 
-This example ..
+This example will randomly send messages to one of the two console producers.
 
 .. code-block:: yaml
 

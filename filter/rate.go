@@ -46,10 +46,9 @@ import (
 //    Streams: "*"
 //    Modulators:
 //      - filter.Rate:
-//          MessagesPerSec: 10
-//          Ignore:
-//            - noLimit
-//
+//        MessagesPerSec: 10
+//        Ignore:
+//          - noLimit
 type Rate struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
 	stateGuard        *sync.RWMutex

@@ -62,8 +62,8 @@ This example accepts only accesslog entries with a return status of
 	   Streams: console
 	   Modulators:
 	     - filter.RegExp:
-	         FilterExpressionNot: " stage\\."
-	         FilterExpression: "HTTP/1\\.1\\\" [23]\\d\\d"
+	       FilterExpressionNot: " stage\\."
+	       FilterExpression: "HTTP/1\\.1\\\" [23]\\d\\d"
 
 
 

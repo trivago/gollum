@@ -50,9 +50,8 @@ import (
 //    Streams: console
 //    Modulators:
 //      - filter.RegExp:
-//          FilterExpressionNot: " stage\\."
-//          FilterExpression: "HTTP/1\\.1\\\" [23]\\d\\d"
-//
+//        FilterExpressionNot: " stage\\."
+//        FilterExpression: "HTTP/1\\.1\\\" [23]\\d\\d"
 type RegExp struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
 	exp               *regexp.Regexp

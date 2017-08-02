@@ -30,9 +30,26 @@ import (
 //
 // Examples
 //
+// This example will send message to the two console producers in an alternating
+// fashin.
+//
 //  loadBalancer:
 //    Type: router.RoundRobin
 //    Stream: logs
+//
+//  JunkPrinter00:
+//    Type: producer.Console
+//    Streams: randomStream
+//    Modulators:
+//      - format.Envelope:
+//          Prefix: "[junk_00] "
+//
+//  JunkPrinter01:
+//    Type: producer.Console
+//    Streams: randomStream
+//    Modulators:
+//      - format.Envelope:
+//          Prefix: "[junk_01] "
 type RoundRobin struct {
 	core.SimpleRouter `gollumdoc:"embed_type"`
 	index             int32

@@ -48,11 +48,34 @@ Parameters (from core.SimpleRouter)
 Examples
 --------
 
+This example will send message to the two console producers in an alternating
+fashin.
+
 .. code-block:: yaml
 
 	 loadBalancer:
 	   Type: router.RoundRobin
 	   Stream: logs
+
+
+.. code-block:: yaml
+
+	 JunkPrinter00:
+	   Type: producer.Console
+	   Streams: randomStream
+	   Modulators:
+	     - format.Envelope:
+	         Prefix: "[junk_00] "
+
+
+.. code-block:: yaml
+
+	 JunkPrinter01:
+	   Type: producer.Console
+	   Streams: randomStream
+	   Modulators:
+	     - format.Envelope:
+	         Prefix: "[junk_01] "
 
 
 

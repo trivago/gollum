@@ -62,11 +62,11 @@ Examples
 	   Streams: console
 	   Modulators:
 	     - filter.JSON:
-	         Reject:
-	           type: ^log\.
-	         Accept:
-	           source: ^www\d+\.
-	           data/active: true
+	       Reject:
+	         type: ^log\.
+	       Accept:
+	         source: ^www\d+\.
+	         data/active: true
 
 
 
