@@ -20,14 +20,15 @@ Terminology
 
 The main components of Gollum are consumers, streams and producers. To explain these it helps imagineing to look at Gollum "from the outside".
 
-:Message: A single set of data passing over a `stream` is called a message.
-:Stream: A stream defines a path between one or more `consumers`, `routers` and `producers`.
-:Consumer: The consumer create messages by "consuming" a specific data source. This can be everything like files, ports, external services and so on.
-:Producer: The producer processed receiving message and "produce" something with it. That can be writing to files or ports, sending to external services and so on.
-:Router:  The router get and forward messages from specific source- to target-stream(s).
-:Modulator: A modulator can be a `Filter` or `Formatter` which "modulate" a message.
+:Message:   A single set of data passing over a `stream` is called a message.
+:Metadata:  A optional part of messages. These can contain key/value pairs with additional information or content.
+:Stream:    A stream defines a path between one or more `consumers`, `routers` and `producers`.
+:Consumer:  The consumer create messages by "consuming" a specific data source. This can be everything like files, ports, external services and so on.
+:Producer:  The producer processed receiving message and "produce" something with it. That can be writing to files or ports, sending to external services and so on.
+:Router:    The router get and forward messages from specific source- to target-stream(s).
+:Modulator: A modulator can be a `Filter` or `Formatter` which "modulates" a message.
 :Formatter: A formatter can modulate the payload of a message like convert a plain-text to JSON.
-:Filter: A filter can inspect a message to decide wether to drop the message or to let it pass.
+:Filter:    A filter can inspect a message to decide wether to drop the message or to let it pass.
 
 .. image:: /src/flow_800w.png
 
