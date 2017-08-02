@@ -150,7 +150,7 @@ import (
 //    	- "kafka04:9092"
 type KafkaProducer struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
-	servers               []string `config:"Servers" default:"localhost:9092"`
+	servers               []string `config:"Servers"`
 	clientID              string   `config:"ClientId" default:"gollum"`
 	client                *kafka.Client
 	config                kafka.Config

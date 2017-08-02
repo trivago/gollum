@@ -200,7 +200,7 @@ type Kafka struct {
 	topic                 map[core.MessageStreamID]*topicHandle
 	topicHandles          map[string]*topicHandle
 	streamToTopic         map[core.MessageStreamID]string
-	servers               []string      `config:"Servers" default:"localhost:9092"`
+	servers               []string      `config:"Servers"`
 	clientID              string        `config:"ClientId" default:"gollum"`
 	gracePeriod           time.Duration `config:"GracePeriodMs" default:"100" metric:"ms"`
 	client                kafka.Client

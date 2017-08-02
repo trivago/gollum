@@ -182,7 +182,7 @@ const (
 //    	Servers: ["kafka0:9092","kafka1:9092","kafka2:9092","kafka3:9092"]
 type Kafka struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	servers             []string      `config:"Servers" default:"localhost:9092"`
+	servers             []string      `config:"Servers"`
 	topic               string        `config:"Topic" default:"default"`
 	group               string        `config:"GroupId"`
 	offsetFile          string        `config:"OffsetFile"`
