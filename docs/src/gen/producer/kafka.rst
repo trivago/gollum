@@ -18,7 +18,7 @@ Parameters
   Switches this plugin on or off.
   
 
-**Brokers** (default: localhost:9092)
+**Servers** (default: localhost:9092)
 
   Defines a list of ideally all brokers in the cluster. At least one
   broker is required.
@@ -119,7 +119,7 @@ Parameters
   
   
 
-**BrokerTimeoutSec**
+**ServerTimeoutSec**
 
   Defines the time after which a connection is set to timed
   out.
@@ -314,7 +314,7 @@ Examples
 	   Type: producer.Kafka
 	   Streams: logs
 	   Compression: zip
-	   Brokers:
+	   Servers:
 	   	- "kafka01:9092"
 	   	- "kafka02:9092"
 	   	- "kafka03:9092"

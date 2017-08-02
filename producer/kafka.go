@@ -46,7 +46,7 @@ const (
 //
 // Parameters
 //
-// - Brokers: Defines a list of ideally all brokers in the cluster. At least one
+// - Servers: Defines a list of ideally all brokers in the cluster. At least one
 // broker is required.
 // By default this parameter is set to an empty list.
 //
@@ -99,7 +99,7 @@ const (
 // opened to a single broker at a time.
 // By default this parameter is set to 5.
 //
-// - BrokerTimeoutSec: Defines the time after which a connection is set to timed
+// - ServerTimeoutSec: Defines the time after which a connection is set to timed
 // out.
 // By default this parameter is set to 30.
 //
@@ -189,7 +189,7 @@ const (
 //    Type: producer.Kafka
 //    Streams: logs
 //    Compression: zip
-//    Brokers:
+//    Servers:
 //    	- "kafka01:9092"
 //    	- "kafka02:9092"
 //    	- "kafka03:9092"
@@ -200,7 +200,7 @@ type Kafka struct {
 	topic                 map[core.MessageStreamID]*topicHandle
 	topicHandles          map[string]*topicHandle
 	streamToTopic         map[core.MessageStreamID]string
-	servers               []string      `config:"Brokers" default:"localhost:9092"`
+	servers               []string      `config:"Servers" default:"localhost:9092"`
 	clientID              string        `config:"ClientId" default:"gollum"`
 	gracePeriod           time.Duration `config:"GracePeriodMs" default:"100" metric:"ms"`
 	client                kafka.Client
@@ -274,7 +274,7 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) {
 	}
 
 	prod.config.Net.MaxOpenRequests = int(conf.GetInt("MaxOpenRequests", 5))
-	prod.config.Net.DialTimeout = time.Duration(int(conf.GetInt("BrokerTimeoutSec", 30))) * time.Second
+	prod.config.Net.DialTimeout = time.Duration(int(conf.GetInt("ServerTimeoutSec", 30))) * time.Second
 	prod.config.Net.ReadTimeout = prod.config.Net.DialTimeout
 	prod.config.Net.WriteTimeout = prod.config.Net.DialTimeout
 
@@ -572,7 +572,7 @@ func (prod *Kafka) isConnected(topic string) (bool, error) {
 			if connected, _ := broker.Connected(); connected {
 				req := &kafka.MetadataRequest{Topics: []string{topic}}
 				if _, err := broker.GetMetadata(req); err != nil {
-					prod.Logger.Debug("Broker ", broker.Addr(), " found to have an invalid connection: ", err)
+					prod.Logger.Debug("Server ", broker.Addr(), " found to have an invalid connection: ", err)
 					broker.Close()
 				}
 			}

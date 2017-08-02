@@ -35,7 +35,7 @@ import (
 //
 // Parameters
 //
-// - Brokers: Defines a list of ideally all brokers in the cluster. At least one
+// - Servers: Defines a list of ideally all brokers in the cluster. At least one
 // broker is required.
 // By default this parameter is set to an empty list.
 //
@@ -54,11 +54,11 @@ import (
 // message is marked as "sent".
 // By default this parameter is set to 1.
 //
-// - BrokerTimeoutSec: Defines the time in seconds after which a server is
+// - ServerTimeoutSec: Defines the time in seconds after which a server is
 // defined as "not reachable".
 // By default this parameter is set to 1.
 //
-// - BrokerMaxFails: Defines the number of retries after which a server is
+// - ServerMaxFails: Defines the number of retries after which a server is
 // marked as "failing".
 // By default this parameter is set to 3.
 //
@@ -143,14 +143,14 @@ import (
 //    Type: native.KafkaProducer
 //    Streams: logs
 //    Compression: zip
-//    Brokers:
+//    Servers:
 //    	- "kafka01:9092"
 //    	- "kafka02:9092"
 //    	- "kafka03:9092"
 //    	- "kafka04:9092"
 type KafkaProducer struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
-	servers               []string `config:"Brokers" default:"localhost:9092"`
+	servers               []string `config:"Servers" default:"localhost:9092"`
 	clientID              string   `config:"ClientId" default:"gollum"`
 	client                *kafka.Client
 	config                kafka.Config
@@ -250,8 +250,8 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
 	prod.config.SetI("message.max.bytes", int(conf.GetInt("Batch/SizeMaxKB", 1<<10))<<10)
 	prod.config.SetI("metadata.request.timeout.ms", int(conf.GetInt("MetadataTimeoutMs", 1500)))
 	prod.config.SetI("topic.metadata.refresh.interval.ms", int(conf.GetInt("MetadataRefreshMs", 300000)))
-	prod.config.SetI("socket.max.fails", int(conf.GetInt("BrokerMaxFails", 3)))
-	prod.config.SetI("socket.timeout.ms", int(conf.GetInt("BrokerTimeoutSec", 60)*1000))
+	prod.config.SetI("socket.max.fails", int(conf.GetInt("ServerMaxFails", 3)))
+	prod.config.SetI("socket.timeout.ms", int(conf.GetInt("ServerTimeoutSec", 60)*1000))
 	prod.config.SetB("socket.keepalive.enable", true)
 	prod.config.SetI("message.send.max.retries", int(conf.GetInt("SendRetries", 0)))
 	prod.config.SetI("queue.buffering.max.messages", int(conf.GetInt("Batch/MaxMessages", 100000)))
