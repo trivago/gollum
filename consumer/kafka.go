@@ -173,13 +173,17 @@ const (
 // This config reads the topic "logs" from a cluster with 4 brokers.
 //
 //  kafkaIn:
-//  	Type: consumer.Kafka
-//      Streams: logs
-//    	Topic: logs
-//    	ClientId: "gollum log reader"
-//    	DefaultOffset: newest
-//    	OffsetFile: /var/gollum/logs.offset
-//    	Servers: ["kafka0:9092","kafka1:9092","kafka2:9092","kafka3:9092"]
+//    Type: consumer.Kafka
+//    Streams: logs
+//    Topic: logs
+//    ClientId: "gollum log reader"
+//    DefaultOffset: newest
+//    OffsetFile: /var/gollum/logs.offset
+//    Servers:
+//      - "kafka0:9092"
+//      - "kafka1:9092"
+//      - "kafka2:9092"
+//      - "kafka3:9092"
 type Kafka struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 	servers             []string      `config:"Servers"`

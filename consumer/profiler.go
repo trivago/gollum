@@ -64,7 +64,8 @@ import (
 //
 // Examples
 //
-//   # Generate a short message every 0.5s, useful for testing and debugging
+// Generate a short message every 0.5s, useful for testing and debugging
+//
 //   JunkGenerator:
 //     Type: "consumer.Profiler"
 //     Message: "%20s"

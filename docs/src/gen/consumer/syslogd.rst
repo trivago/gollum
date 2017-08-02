@@ -26,27 +26,27 @@ Parameters
   
   
 
-  **[hostname|ip]**
+  **default**
 
-    <tcp-port>
+    [hostname|ip]:<tcp-port>
     
     
 
   **tcp**
 
-    //<hostname|ip>:<tcp-port>
+    tcp://<hostname|ip>:<tcp-port>
     
     
 
   **udp**
 
-    //<hostname|ip>:<udp-port>
+    udp://<hostname|ip>:<udp-port>
     
     
 
-  **unix**
+  **uds**
 
-    //<filesystem-path>
+    unix://<filesystem-path>
     
     
 
@@ -59,21 +59,21 @@ Parameters
   
   
 
-  **RFC3164 (https**
+  **RFC3164**
 
-    //tools.ietf.org/html/rfc3164) - unix, udp
+    (https://tools.ietf.org/html/rfc3164) - unix, udp
     
     
 
-  **RFC5424 (https**
+  **RFC5424**
 
-    //tools.ietf.org/html/rfc5424) - unix, udp
+    (https://tools.ietf.org/html/rfc5424) - unix, udp
     
     
 
-  **RFC6587 (https**
+  **RFC6587**
 
-    //tools.ietf.org/html/rfc6587) - unix, upd, tcp
+    (https://tools.ietf.org/html/rfc6587) - unix, upd, tcp
     
     
 
@@ -134,7 +134,8 @@ Replace the system's standard syslogd with Gollum
 
 .. code-block:: yaml
 
-	 "SyslogdSocketConsumer":
+	 SyslogdSocketConsumer:
+	   Type: consumer.Syslogd
 	   Streams: "system_syslog"
 	   Address: "unix:///dev/log"
 	   Format: "RFC3164"
@@ -144,7 +145,8 @@ Listen on a TCP socket
 
 .. code-block:: yaml
 
-	 "SyslogdTCPSocketConsumer":
+	 SyslogdTCPSocketConsumer:
+	   Type: consumer.Syslogd
 	   Streams: "tcp_syslog"
 	   Address: "tcp://0.0.0.0:5599"
 	   Format: "RFC6587"

@@ -3,7 +3,7 @@
 AwsKinesis
 ==========
 
-This consumer reads message from an AWS Kinesis router.
+This consumer reads a message from an AWS Kinesis router.
 
 
 
@@ -27,7 +27,7 @@ Parameters
 
   This value defines a file to store the current offset per shard.
   To disable this parameter, set it to "". If the parameter is set and the file
-  found, consuming will start after the stored offset.
+  is found, consuming will start after the offset stored in the file.
   By default this parameter is set to "".
   
   
@@ -41,24 +41,24 @@ Parameters
 
 **RecordMessageDelimiter**
 
-  This value defines the string to delimit messages within a
-  record. To disable this parameter, set it to "".
+  This value defines the string to delimit messages
+  within a record. To disable this parameter, set it to "".
   By default this parameter is set to "".
   
   
 
 **QuerySleepTimeMs** (default: 1000, unit: ms)
 
-  This value defines the number of milliseconds to sleep before
-  trying to pull new records from a shard that did not return any records.
+  This value defines the number of milliseconds to sleep
+  before trying to pull new records from a shard that did not return any records.
   By default this parameter is set to "1000".
   
   
 
 **RetrySleepTimeSec** (default: 4, unit: sec)
 
-  This value defines the number of seconds to wait after trying to
-  reconnect to a shard.
+  This value defines the number of seconds to wait after
+  trying to reconnect to a shard.
   By default this parameter is set to "4".
   
   
@@ -225,7 +225,7 @@ Parameters (from core.SimpleConsumer)
 Examples
 --------
 
-This example consume a kinesis stream "myStream" and create messages:
+This example consumes a kinesis stream "myStream" and create messages:
 
 .. code-block:: yaml
 

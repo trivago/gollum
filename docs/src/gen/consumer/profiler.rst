@@ -127,9 +127,10 @@ Parameters (from core.SimpleConsumer)
 Examples
 --------
 
+Generate a short message every 0.5s, useful for testing and debugging
+
 .. code-block:: yaml
 
-	  # Generate a short message every 0.5s, useful for testing and debugging
 	  JunkGenerator:
 	    Type: "consumer.Profiler"
 	    Message: "%20s"
