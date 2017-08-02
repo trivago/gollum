@@ -367,12 +367,14 @@ All this is reflected in new function signatures and new message member function
     }
 
 This example shows most of the changes related to the new message structure.
+
 1. As the sequence number has been removed from the message struct, plugins relying on it need to implement it themselves.
 2. As messages now support metadata, you need to specify whether you want to affect metadata or the payload.
    In formatter plugins this is reflected by the GetAppliedContent method, which is backed by the "ApplyTo" config parameter.
 3. If you require a new payload buffer you should now utilize core.MessageDataPool.
 
 Things that you don't see in this example are the following:
+
 1. Buffers returned by core.MessageDataPool tend to be overallocated, i.e. they can be resized without reallocation in most cases.
    As of this methods to resize the payload have been added.
 2. If you need to create a copy of the complete message use the Clone() method
