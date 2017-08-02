@@ -188,18 +188,19 @@ Parameters (from core.BufferedProducer)
 Examples
 --------
 
+This example will collect messages from the fallback stream and buffer them
+for 10 minutes. After 10 minutes the first messages will be written back to
+the system as fast as possible.
+
 .. code-block:: yaml
 
-	This example will collect messages from the fallback stream and buffer them
-	for 10 minutes. After 10 minutes the first messages will be written back to
-	the system as fast as possible.
-	
 	 spooling:
 	   Type: producer.Spooling
 	   Stream: fallback
 	   MaxMessagesSec: 0
 	   MaxFileAgeMin: 10
-	
-	
+
+
+
 
 

@@ -172,10 +172,10 @@ Parameters (from core.BatchedProducer)
 Examples
 --------
 
+This example set up a simple aws firehose producer:
+
 .. code-block:: yaml
 
-	This example set up a simple aws firehose producer:
-	
 	 firehoseOut:
 	   Type: producer.AwsFirehose
 	   Credential:
@@ -188,7 +188,8 @@ Examples
 	   RecordMaxMessages: 1
 	   RecordMessageDelimiter: "\n"
 	   SendTimeframeSec: 1
-	
-	
+
+
+
 
 

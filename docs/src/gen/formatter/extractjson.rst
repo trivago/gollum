@@ -62,7 +62,8 @@ Examples
 	     - formatter.ExtractJSON
 	       Field: host
 	       ApplyTo: host
-	
-	
+
+
+
 
 

@@ -35,17 +35,18 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
+This example uses RFC 4648 URL encoding to format incoming data.
+
 .. code-block:: yaml
 
-	This example uses RFC 4648 URL encoding to format incoming data.
-	
 	 ExampleConsumer:
 	   Type: consumer.Console
 	   Streams: console
 	   Modulators:
 	     - formatter.Base64Encode
 	       Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
-	
-	
+
+
+
 
 

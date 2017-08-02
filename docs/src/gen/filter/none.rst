@@ -22,16 +22,17 @@ Parameters (from core.SimpleFilter)
 Examples
 --------
 
+This example starts a Console consumer and blocks all incoming messages:
+
 .. code-block:: yaml
 
-	This example starts a Console consumer and blocks all incoming messages:
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: console
 	   Modulators:
 	     - filter.None
-	
-	
+
+
+
 
 

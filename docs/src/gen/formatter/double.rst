@@ -64,20 +64,24 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
+This example creates a message of the form "<orig>|<base64>", where <orig> is
+the original console input and <base64> its Base64-encoded equivalent.
+
 .. code-block:: yaml
 
-	This example creates a message of the form "<orig>|<base64>", where <orig> is
-	the original console input and <base64> its Base64-encoded equivalent.
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
 	   Modulators:
 	     - format.Double:
-		      Separator: "|"
+
+	      Separator: "|"
+.. code-block:: yaml
+
 	   	  Right:
 	         - format.Base64Encode
-	
-	
+
+
+
 
 

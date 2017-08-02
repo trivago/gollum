@@ -135,16 +135,17 @@ Parameters (from core.BufferedProducer)
 Examples
 --------
 
+This example will send 64bit length encoded data on TCP port 5880.
+
 .. code-block:: yaml
 
-	This example will send 64bit length encoded data on TCP port 5880.
-	
 	 proxyOut:
 	   Type: producer.Proxy
 	   Address: ":5880"
 	   Partitioner: binary
 	   Size: 8
-	
-	
+
+
+
 
 

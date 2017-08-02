@@ -359,9 +359,27 @@ func (doc PluginDocument) GetRST() string {
 	// Print config example
 	if len(doc.Example) > 0 {
 		result += formatRstHeading("Examples")
-		result += ".. code-block:: yaml\n\n"
+		codeBlock := false
+
 		for _, line := range strings.Split(doc.Example, "\n") {
-			result += "\t" + line + "\n"
+
+			if strings.Index(line, " ") == 0 {
+				if !codeBlock {
+					result += ".. code-block:: yaml\n\n"
+					codeBlock = true
+				}
+			} else {
+				if codeBlock {
+					result += "\n"
+					codeBlock = false
+				}
+			}
+
+			if codeBlock {
+				result += "\t" + line + "\n"
+			} else {
+				result += line + "\n"
+			}
 		}
 	}
 

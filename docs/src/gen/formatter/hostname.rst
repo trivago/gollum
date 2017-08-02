@@ -34,10 +34,10 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
+This example inserts the hostname into an existing JSON payload.
+
 .. code-block:: yaml
 
-	This example inserts the hostname into an existing JSON payload.
-	
 	 exampleProducer:
 	   Type: producer.Console
 	   Streams: "*"
@@ -50,7 +50,8 @@ Examples
 	     - format.Envelope:
 	       Prefix: "{\"host\":"
 	       Postfix: "}"
-	
-	
+
+
+
 
 

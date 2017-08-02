@@ -173,10 +173,10 @@ Parameters (from core.BatchedProducer)
 Examples
 --------
 
+This example set up a simple aws Kinesis producer:
+
 .. code-block:: yaml
 
-	This example set up a simple aws Kinesis producer:
-	
 	 KinesisOut:
 	   Type: producer.AwsKinesis
 	   Credential:
@@ -189,7 +189,8 @@ Examples
 	   RecordMaxMessages: 1
 	   RecordMessageDelimiter: "\n"
 	   SendTimeframeSec: 1
-	
-	
+
+
+
 
 

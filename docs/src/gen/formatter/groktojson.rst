@@ -38,14 +38,17 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
+This example transforms unstructured input into a structured json output.
+
+Example input:
 .. code-block:: yaml
 
-	This example transforms unstructured input into a structured json output.
-	
-	Example input:
 	 us-west.servicename.webserver0.this.is.the.measurement 12.0 1497003802
-	
-	Output:
+
+
+Output:
+.. code-block:: yaml
+
 	 {
 	   "datacenter": "us-west",
 	   "service": "servicename",
@@ -54,8 +57,11 @@ Examples
 	   "value": "12.0",
 	   "time": "1497003802"
 	 }
-	
-	Config:
+
+
+Config:
+.. code-block:: yaml
+
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
@@ -66,7 +72,8 @@ Examples
 	           - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.latency-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_latency:float}\s*%{INT:time}
 	           - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.derive-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_derive:float}\s*%{INT:time}
 	           - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value:float}\s*%{INT:time}
-	
-	
+
+
+
 
 

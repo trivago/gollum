@@ -58,7 +58,6 @@ import (
 //          Accept:
 //            source: ^www\d+\.
 //            data/active: true
-//
 type JSON struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
 	rejectValues      map[string]*regexp.Regexp

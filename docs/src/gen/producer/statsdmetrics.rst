@@ -97,12 +97,12 @@ Parameters (from core.BufferedProducer)
 Examples
 --------
 
+This example will collect all messages going through gollum and sending
+metrics about the different datastreams to statsd at least every 5 seconds.
+Metrics will be send as "logs.streamName".
+
 .. code-block:: yaml
 
-	This example will collect all messages going through gollum and sending
-	metrics about the different datastreams to statsd at least every 5 seconds.
-	Metrics will be send as "logs.streamName".
-	
 	 metricsCollector:
 	   Type: producer.StatsdMetrics
 	   Stream: "*"
@@ -110,7 +110,8 @@ Examples
 	   BatchTimeoutSec: 5
 	   Prefix: "logs."
 	   UseGauge: true
-	
-	
+
+
+
 
 

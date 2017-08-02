@@ -48,13 +48,15 @@ import (
 //
 // Examples
 //
-//  # Replace the system's standard syslogd with Gollum
+// Replace the system's standard syslogd with Gollum
+//
 //  "SyslogdSocketConsumer":
 //    Streams: "system_syslog"
 //    Address: "unix:///dev/log"
 //    Format: "RFC3164"
 //
-//  # Listen on a TCP socket
+// Listen on a TCP socket
+//
 //  "SyslogdTCPSocketConsumer":
 //    Streams: "tcp_syslog"
 //    Address: "tcp://0.0.0.0:5599"

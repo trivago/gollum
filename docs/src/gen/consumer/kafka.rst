@@ -32,7 +32,7 @@ Parameters
   Switches this plugin on or off.
   
 
-**Servers** (default: localhost:9092)
+**Servers**
 
   Defines the list of all kafka brokers to initally connect to when
   querying topic metadata. This list requires at least one borker to work and
@@ -314,10 +314,10 @@ Parameters (from core.SimpleConsumer)
 Examples
 --------
 
+This config reads the topic "logs" from a cluster with 4 brokers.
+
 .. code-block:: yaml
 
-	This config reads the topic "logs" from a cluster with 4 brokers.
-	
 	 kafkaIn:
 	 	Type: consumer.Kafka
 	     Streams: logs
@@ -326,7 +326,8 @@ Examples
 	   	DefaultOffset: newest
 	   	OffsetFile: /var/gollum/logs.offset
 	   	Servers: ["kafka0:9092","kafka1:9092","kafka2:9092","kafka3:9092"]
-	
-	
+
+
+
 
 

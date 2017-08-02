@@ -35,10 +35,10 @@ Parameters (from core.SimpleFilter)
 Examples
 --------
 
+This example will accept valid json or messages from "exceptionStream":
+
 .. code-block:: yaml
 
-	This example will accept valid json or messages from "exceptionStream":
-	
 	 ExampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
@@ -48,7 +48,8 @@ Examples
 	           - filter.JSON
 	           - filter.Stream:
 	               Only: exceptionStream
-	
-	
+
+
+
 
 

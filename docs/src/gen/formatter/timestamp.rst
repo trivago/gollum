@@ -36,10 +36,10 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
+This example will set a time string to the meta data field `time`:
+
 .. code-block:: yaml
 
-	This example will set a time string to the meta data field `time`:
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
@@ -47,7 +47,8 @@ Examples
 	     - format.Timestamp:
 	         Timestamp: "2006-01-02T15:04:05.000 MST"
 	         ApplyTo: time
-	
-	
+
+
+
 
 

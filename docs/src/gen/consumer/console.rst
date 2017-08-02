@@ -103,15 +103,16 @@ Parameters (from core.SimpleConsumer)
 Examples
 --------
 
+This config reads data from stdin e.g. when starting gollum via unix pipe.
+
 .. code-block:: yaml
 
-	This config reads data from stdin e.g. when starting gollum via unix pipe.
-	
 	 ConsoleIn:
 	   Type: consumer.Console
 	   Streams: console
 	   Pipe: stdin
-	
-	
+
+
+
 
 

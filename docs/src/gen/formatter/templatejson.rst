@@ -38,18 +38,19 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
+This example extracts the fields "Name" and "Surname" from a JSON encoded
+payload and writes them both back as a plain text result.
+
 .. code-block:: yaml
 
-	This example extracts the fields "Name" and "Surname" from a JSON encoded
-	payload and writes them both back as a plain text result.
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
 	   Modulators:
 	     - format.TemplateJSON:
-		      Template: "{{.Name}} {{.Surname}}"
-	
-	
+
+	      Template: "{{.Name}} {{.Surname}}"
+
+
 
 

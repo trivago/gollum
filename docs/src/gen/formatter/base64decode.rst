@@ -36,17 +36,18 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
+This example expects base64 strings from the console and decodes them before
+transmitting the message payload.
+
 .. code-block:: yaml
 
-	This example expects base64 strings from the console and decodes them before
-	transmitting the message payload.
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
 	   Modulators:
 	     - format.Base64Decode
-	
-	
+
+
+
 
 

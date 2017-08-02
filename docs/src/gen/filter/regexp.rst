@@ -52,11 +52,11 @@ Parameters (from core.SimpleFilter)
 Examples
 --------
 
+This example accepts only accesslog entries with a return status of
+2xx or 3xx not originated from staging systems.
+
 .. code-block:: yaml
 
-	This example accepts only accesslog entries with a return status of
-	2xx or 3xx not originated from staging systems.
-	
 	 ExampleConsumer:
 	   Type: consumer.Console
 	   Streams: console
@@ -64,7 +64,8 @@ Examples
 	     - filter.RegExp:
 	         FilterExpressionNot: " stage\\."
 	         FilterExpression: "HTTP/1\\.1\\\" [23]\\d\\d"
-	
-	
+
+
+
 
 

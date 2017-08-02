@@ -42,10 +42,10 @@ Parameters (from core.SimpleFilter)
 Examples
 --------
 
+This example accept ~10 messages in a second except the "noLimit" stream:
+
 .. code-block:: yaml
 
-	This example accept ~10 messages in a second except the "noLimit" stream:
-	
 	 ExampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
@@ -54,7 +54,8 @@ Examples
 	         MessagesPerSec: 10
 	         Ignore:
 	           - noLimit
-	
-	
+
+
+
 
 

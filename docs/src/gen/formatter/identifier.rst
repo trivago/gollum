@@ -62,11 +62,11 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
+This example will generate a payload checksum and store it to a metadata
+field called "checksum".
+
 .. code-block:: yaml
 
-	This example will generate a payload checksum and store it to a metadata
-	field called "checksum".
-	
 	 ExampleConsumer:
 	   Type: consumer.Console
 	   Streams: console
@@ -74,7 +74,8 @@ Examples
 	     - formatter.Identifier
 	       Generator: hash
 	       ApplyTo: checksum
-	
-	
+
+
+
 
 

@@ -59,17 +59,18 @@ Parameters (from core.SimpleRouter)
 Examples
 --------
 
+This example route incoming messages from `streamA` to `streamB` and `streamC` (duplication):
+
 .. code-block:: yaml
 
-	This example route incoming messages from `streamA` to `streamB` and `streamC` (duplication):
-	
 	 JunkRouterDist:
 	   Type: router.Distribute
 	   Stream: streamA
 	   TargetStreams:
 	     - streamB
 	     - streamC
-	
-	
+
+
+
 
 

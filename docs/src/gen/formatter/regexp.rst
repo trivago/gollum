@@ -51,10 +51,10 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
+This example extracts time and host from an imaginary log message format.
+
 .. code-block:: yaml
 
-	This example extracts time and host from an imaginary log message format.
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: stding
@@ -62,7 +62,8 @@ Examples
 	     - format.RegExp:
 	         Expression: "^(\\d+) (\\w+): "
 	         Template: "time: ${1}, host: ${2}"
-	
-	
+
+
+
 
 

@@ -42,12 +42,12 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
+In this example is the `format.Runlength` used as "subformatter" from the `format.MetadataCopy`.
+The `format.MetadataCopy` formatter copies the payload to the defined meta data field.
+At the end the `format.Runlength` formatter will transform the meta data value to the length.
+
 .. code-block:: yaml
 
-	In this example is the `format.Runlength` used as "subformatter" from the `format.MetadataCopy`.
-	The `format.MetadataCopy` formatter copies the payload to the defined meta data field.
-	At the end the `format.Runlength` formatter will transform the meta data value to the length.
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
@@ -57,8 +57,9 @@ Examples
 	           - original_length:
 	             - format.Runlength:
 	                 Separator: ""
-		                StoreRunlengthOnly: true
-	
-	
+
+	                StoreRunlengthOnly: true
+
+
 
 

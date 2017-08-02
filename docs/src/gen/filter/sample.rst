@@ -40,10 +40,10 @@ Parameters
 Examples
 --------
 
+This example will block 8 from 10 messages:
+
 .. code-block:: yaml
 
-	This example will block 8 from 10 messages:
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
@@ -54,7 +54,8 @@ Examples
 	       SampleIgnore:
 	         - foo
 	         - bar
-	
-	
+
+
+
 
 

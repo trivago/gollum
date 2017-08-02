@@ -18,7 +18,7 @@ Parameters
   Switches this plugin on or off.
   
 
-**Servers** (default: localhost:9092)
+**Servers**
 
   Defines a list of ideally all brokers in the cluster. At least one
   broker is required.
@@ -319,7 +319,8 @@ Examples
 	   	- "kafka02:9092"
 	   	- "kafka03:9092"
 	   	- "kafka04:9092"
-	
-	
+
+
+
 
 

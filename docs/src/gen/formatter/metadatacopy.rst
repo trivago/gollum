@@ -34,10 +34,10 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
+This example sets the meta fields `hostname`, `base64Value` and `foo` of each message:
+
 .. code-block:: yaml
 
-	This example sets the meta fields `hostname`, `base64Value` and `foo` of each message:
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
@@ -49,7 +49,8 @@ Examples
 	           - base64Value:
 	             - format.Base64Encode
 	           - payloadCopy           # 1:1 copy of the "payload" to "bar"
-	
-	
+
+
+
 
 

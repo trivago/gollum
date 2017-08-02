@@ -44,11 +44,11 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
+This example sets the stream name for messages like `<error>:a message string` to `error`
+and `a message string` as payload:
+
 .. code-block:: yaml
 
-	This example sets the stream name for messages like `<error>:a message string` to `error`
-	and `a message string` as payload:
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
@@ -59,7 +59,8 @@ Examples
 	           - format.Trim:
 	               LeftSeparator: <
 	               RightSeparator: >
-	
-	
+
+
+
 
 

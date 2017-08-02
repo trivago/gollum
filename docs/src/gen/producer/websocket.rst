@@ -68,14 +68,15 @@ Parameters (from core.BufferedProducer)
 Examples
 --------
 
+This example starts a default Websocket producer on port 8080:
+
 .. code-block:: yaml
 
-	This example starts a default Websocket producer on port 8080:
-	
 	 WebsocketOut:
 	   Type: producer.Websocket
 	   Address: ":8080"
-	
-	
+
+
+
 
 

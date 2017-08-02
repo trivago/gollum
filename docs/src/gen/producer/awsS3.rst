@@ -236,11 +236,11 @@ Parameters (from components.RotateConfig)
 Examples
 --------
 
+This example sends all received messages from all streams to S3, creating
+a separate file for each stream:
+
 .. code-block:: yaml
 
-	This example sends all received messages from all streams to S3, creating
-	a separate file for each stream:
-	
 	 S3Out:
 	   Type: producer.AwsS3
 	   Credential:
@@ -263,7 +263,8 @@ Examples
 	   Modulators:
 	     - format.Envelope:
 	       Postfix: "\n"
-	
-	
+
+
+
 
 

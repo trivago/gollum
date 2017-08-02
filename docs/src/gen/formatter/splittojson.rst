@@ -50,11 +50,11 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
+This example will format a input of `value1,value2,value3` to a json
+string of `{"foo":"value1", "bar":"value2"}`:
+
 .. code-block:: yaml
 
-	This example will format a input of `value1,value2,value3` to a json
-	string of `{"foo":"value1", "bar":"value2"}`:
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
@@ -64,7 +64,8 @@ Examples
 	         Keys:
 	           - foo
 	           - bar
-	
-	
+
+
+
 
 

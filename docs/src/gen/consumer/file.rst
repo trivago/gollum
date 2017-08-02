@@ -147,10 +147,10 @@ Parameters (from core.SimpleConsumer)
 Examples
 --------
 
+This example will read the `/var/log/system.log` file and create a message for each new entry.
+
 .. code-block:: yaml
 
-	This example will read the `/var/log/system.log` file and create a message for each new entry.
-	
 	 FileIn:
 	   Type: consumer.File
 	   File: /var/log/system.log
@@ -159,7 +159,8 @@ Examples
 	   Delimiter: "\n"
 	   ObserveMode: poll
 	   PollingDelay: 100
-	
-	
+
+
+
 
 

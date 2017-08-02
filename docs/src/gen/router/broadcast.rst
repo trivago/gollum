@@ -53,7 +53,8 @@ Examples
 	   Filters:
 	     - filter.Rate:
 	       MessagesPerSec: 200
-	
-	
+
+
+
 
 

@@ -46,10 +46,10 @@ Parameters (from core.SimpleFilter)
 Examples
 --------
 
+This example accepts ALL messages except ones from stream "foo":
+
 .. code-block:: yaml
 
-	This example accepts ALL messages except ones from stream "foo":
-	
 	 ExampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
@@ -57,9 +57,12 @@ Examples
 	     - filter.Stream:
 	         Block:
 	           - foo
-	
-	This example only accepts messages from stream "foo":
-	
+
+
+This example only accepts messages from stream "foo":
+
+.. code-block:: yaml
+
 	 ExampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
@@ -67,7 +70,8 @@ Examples
 	     - filter.Stream:
 	         Only:
 	           - foo
-	
-	
+
+
+
 
 

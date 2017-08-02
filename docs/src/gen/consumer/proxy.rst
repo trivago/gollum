@@ -157,17 +157,18 @@ Parameters (from core.SimpleConsumer)
 Examples
 --------
 
+This example will accepts 64bit length encoded data on TCP port 5880.
+
 .. code-block:: yaml
 
-	This example will accepts 64bit length encoded data on TCP port 5880.
-	
 	 proxyReceive:
 	   Type: consumer.Proxy
 	   Streams: proxyData
 	   Address: ":5880"
 	   Partitioner: binary
 	   Size: 8
-	
-	
+
+
+
 
 

@@ -202,16 +202,17 @@ Parameters (from core.SimpleConsumer)
 Examples
 --------
 
+This example open a socket and expect messages with a fixed length of 256 bytes:
+
 .. code-block:: yaml
 
-	This example open a socket and expect messages with a fixed length of 256 bytes:
-	
 	 socketIn:
 	   Type: consumer.Socket
 	   Address: unix:///var/gollum.socket
 	   Partitioner: fixed
 	   Size: 256
-	
-	
+
+
+
 
 

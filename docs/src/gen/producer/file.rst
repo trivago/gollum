@@ -189,21 +189,25 @@ Parameters (from file.Pruner)
 Examples
 --------
 
+This example will write the messages from all streams to `/tmp/gollum.log`
+after every 64 message or after 60sec:
+
 .. code-block:: yaml
 
-	This example will write the messages from all streams to `/tmp/gollum.log`
-	after every 64 message or after 60sec:
-	
 	 fileOut:
 	   Type: producer.File
 	   Streams: "*"
 	   File: /tmp/gollum.log
 	   Batch:
-			MaxCount: 128
+
+		MaxCount: 128
+.. code-block:: yaml
+
 	   	FlushCount: 64
 	   	TimeoutSec: 60
 	     FlushTimeoutSec: 3
-	
-	
+
+
+
 
 

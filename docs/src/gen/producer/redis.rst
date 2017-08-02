@@ -90,16 +90,17 @@ Parameters (from core.BufferedProducer)
 Examples
 --------
 
+.
+
 .. code-block:: yaml
 
-	.
-	
 	  RedisProducer00:
 	    Type: producer.Redis
 	    Address: ":6379"
 	    Key: "mykey"
 	    Storage: "hash"
-	
-	
+
+
+
 
 

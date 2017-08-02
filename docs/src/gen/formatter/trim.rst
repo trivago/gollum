@@ -58,18 +58,19 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
+This example will reduce data like "foo[bar[foo]bar]foo" to "bar[foo]bar".
+
 .. code-block:: yaml
 
-	This example will reduce data like "foo[bar[foo]bar]foo" to "bar[foo]bar".
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
 	   Modulators:
 	     - format.Trim:
-		      LeftSeparator: "["
-		      RightSeparator: "]"
-	
-	
+
+	      LeftSeparator: "["
+	      RightSeparator: "]"
+
+
 
 

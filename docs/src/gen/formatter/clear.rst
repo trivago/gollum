@@ -23,18 +23,19 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
+This example removes the "pipe" key from the metadata produced by
+consumer.Console.
+
 .. code-block:: yaml
 
-	This example removes the "pipe" key from the metadata produced by
-	consumer.Console.
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: stdin
 	   Modulators:
 	     - format.Clear
 	       ApplyTo: pipe
-	
-	
+
+
+
 
 

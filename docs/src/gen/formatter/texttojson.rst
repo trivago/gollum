@@ -226,10 +226,10 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
+The following example parses JSON data.
+
 .. code-block:: yaml
 
-	The following example parses JSON data.
-	
 	 ExampleConsumer:
 	   Type: consumer.Console
 	   Streams: console
@@ -252,7 +252,8 @@ Examples
 	         - "array     :,:   array     :      : val    "
 	         - "array     :\":  arrString :      :        "
 	         - "arrString :\":  array     :      : esc    "
-	
-	
+
+
+
 
 

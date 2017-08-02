@@ -31,7 +31,8 @@ Examples
 	   Streams: console
 	   Modulators:
 	     - formatter.CollectdToInflux09
-	
-	
+
+
+
 
 

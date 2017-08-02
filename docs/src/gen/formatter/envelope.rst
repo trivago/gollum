@@ -42,18 +42,19 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
+This example adds a line number and a newline character to each message
+printed to the console.
+
 .. code-block:: yaml
 
-	This example adds a line number and a newline character to each message
-	printed to the console.
-	
 	 exampleProducer:
 	   Type: producer.Console
 	   Streams: "*"
 	   Modulators:
 	     - format.Sequence
 	     - format.Envelope
-	
-	
+
+
+
 
 

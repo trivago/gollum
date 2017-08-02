@@ -24,16 +24,17 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
+This example serializes all consumed messages:
+
 .. code-block:: yaml
 
-	This example serializes all consumed messages:
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
 	   Modulators:
 	     - format.Serialize
-	
-	
+
+
+
 
 

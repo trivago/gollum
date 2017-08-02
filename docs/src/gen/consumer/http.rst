@@ -122,16 +122,17 @@ Parameters (from core.SimpleConsumer)
 Examples
 --------
 
+This example listens on port 9090 and writes to the stream "http_in_00".
+
 .. code-block:: yaml
 
-	This example listens on port 9090 and writes to the stream "http_in_00".
-	
 	  "HttpIn00":
 	    Type: "consumer.HTTP"
 	    Streams: "http_in_00"
 	    Address: "localhost:9090"
 	    WithHeaders: false
-	
-	
+
+
+
 
 

@@ -40,20 +40,24 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
+This example prefixes the message with the most recent routing history.
+
 .. code-block:: yaml
 
-	This example prefixes the message with the most recent routing history.
-	
 	 exampleProducer:
 	   Type: producer.Console
 	   Streams: "*"
 	   Modulators:
 	     - format.StreamName:
-		      Separator: ", "
+
+	      Separator: ", "
+.. code-block:: yaml
+
 	       UsePrevious: true
 	     - format.StreamName:
-		      Separator: ": "
-	
-	
+
+	      Separator: ": "
+
+
 
 

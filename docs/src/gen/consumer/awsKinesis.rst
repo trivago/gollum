@@ -225,10 +225,10 @@ Parameters (from core.SimpleConsumer)
 Examples
 --------
 
+This example consume a kinesis stream "myStream" and create messages:
+
 .. code-block:: yaml
 
-	This example consume a kinesis stream "myStream" and create messages:
-	
 	 KinesisIn:
 	   Type: consumer.AwsKinesis
 	   Credential:
@@ -237,7 +237,8 @@ Examples
 	     Profile: default
 	   Region: "eu-west-1"
 	   KinesisStream: myStream
-	
-	
+
+
+
 
 

@@ -97,10 +97,10 @@ Parameters (from core.BufferedProducer)
 Examples
 --------
 
+This example starts a socket producer on localhost port 5880:
+
 .. code-block:: yaml
 
-	This example starts a socket producer on localhost port 5880:
-	
 	 SocketOut:
 	   Type: producer.Socket
 	   Address: ":5880"
@@ -109,7 +109,8 @@ Examples
 	     FlushCount: 512
 	     TimeoutSec: 3
 	   AckTimeoutMs: 1000
-	
-	
+
+
+
 
 
