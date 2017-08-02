@@ -322,6 +322,125 @@ struct tags.
     }
 
 
+Message handling
+`````````````````
+
+Message handling has changed from the way 0.4.x does it.
+Messages now support MetaData and contain a copy of the "original" data next to the actual payload.
+In addition to this, messages are now backed by a memory pool and are passed around using pointers.
+All this is reflected in new function signatures and new message member functions.
+
+**From**
+
+.. code:: go
+
+    func (format *Sequence) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+        basePayload, stream := format.base.Format(msg)
+        baseLength := len(basePayload)
+        sequenceStr := strconv.FormatUint(msg.Sequence, 10) + format.separator
+
+        payload := make([]byte, len(sequenceStr)+baseLength)
+        len := copy(payload, []byte(sequenceStr))
+        copy(payload[len:], basePayload)
+
+        return payload, stream
+    }
+
+**To**
+
+.. code:: go
+
+    func (format *Sequence) ApplyFormatter(msg *core.Message) error {
+        seq := atomic.AddInt64(format.seq, 1)
+        sequenceStr := strconv.FormatInt(seq, 10)
+        content := format.GetAppliedContent(msg)
+
+        dataSize := len(sequenceStr) + len(format.separator) + len(content)
+        payload := core.MessageDataPool.Get(dataSize)
+
+        offset := copy(payload, []byte(sequenceStr))
+        offset += copy(payload[offset:], format.separator)
+        copy(payload[offset:], content)
+
+        format.SetAppliedContent(msg, payload)
+        return nil
+    }
+
+This example shows most of the changes related to the new message structure.
+1. As the sequence number has been removed from the message struct, plugins relying on it need to implement it themselves.
+2. As messages now support metadata, you need to specify whether you want to affect metadata or the payload.
+   In formatter plugins this is reflected by the GetAppliedContent method, which is backed by the "ApplyTo" config parameter.
+3. If you require a new payload buffer you should now utilize core.MessageDataPool.
+
+Things that you don't see in this example are the following:
+1. Buffers returned by core.MessageDataPool tend to be overallocated, i.e. they can be resized without reallocation in most cases.
+   As of this methods to resize the payload have been added.
+2. If you need to create a copy of the complete message use the Clone() method
+
+Formatting pipeline
+````````````````````
+
+In version 0.4.x you had to take care about message changes by yourself on many different occasions.
+With 0.5.0 the message flow has been moved completely to the core framework.
+As of this you don't need to worry about routing, or resetting data to it's original state. The framework will do this for you.
+
+**From**
+
+.. code:: go
+
+    func (prod *Redis) getValueAndKey(msg core.Message) (v []byte, k string) {
+        value, _ := prod.Format(msg) // Creates a copy and we must not forget this step
+
+        if prod.keyFormat == nil {
+            return value, prod.key
+        }
+
+        if prod.keyFromParsed {     // Ordering is crucial here
+            keyMsg := msg
+            keyMsg.Data = value
+            key, _ := prod.keyFormat.Format(keyMsg)
+            return value, string(key)
+        }
+
+        key, _ := prod.keyFormat.Format(msg)
+        return value, string(key)
+    }
+
+
+    func (prod *Redis) storeString(msg core.Message) {
+        value, key := prod.getValueAndKey(msg)
+
+        result := prod.client.Set(key, string(value), 0)
+        if result.Err() != nil {
+            Log.Error.Print("Redis: ", result.Err())
+            prod.Drop(msg) // Good thing we stored a copy of the message ...
+        }
+    }
+
+**To**
+
+.. code:: go
+
+    func (prod *Redis) getValueFieldAndKey(msg *core.Message) (v, f, k []byte) {
+        meta := msg.GetMetadata()
+        key := meta.GetValue(prod.key)     // Due to metadata fields...
+        field := meta.GetValue(prod.field) // ... this is now a lot easier
+
+        return msg.GetPayload(), field, key
+    }
+
+    func (prod *Redis) storeString(msg *core.Message) {
+        // The message arrives here after formatting
+        value, key := prod.getValueAndKey(msg)
+
+        result := prod.client.Set(string(key), string(value), time.Duration(0))
+        if result.Err() != nil {
+            prod.Logger.WithError(result.Err()).Error("Failed to set value")
+            prod.TryFallback(msg)          // Will send the original (unformatted) message. Always.
+        }
+    }
+
+
 New features
 ----------------
 
