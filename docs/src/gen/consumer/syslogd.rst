@@ -24,31 +24,15 @@ Parameters
   or UNIX domain socket. However, see the "Format" option for details on
   transport support by different formats. Default: "udp://0.0.0.0:514"
   
+  * [hostname|ip]:<tcp-port>
   
-
-  **default**
-
-    [hostname|ip]:<tcp-port>
-    
-    
-
-  **tcp**
-
-    tcp://<hostname|ip>:<tcp-port>
-    
-    
-
-  **udp**
-
-    udp://<hostname|ip>:<udp-port>
-    
-    
-
-  **uds**
-
-    unix://<filesystem-path>
-    
-    
+  * tcp://<hostname|ip>:<tcp-port>
+  
+  * udp://<hostname|ip>:<udp-port>
+  
+  * unix://<filesystem-path>
+  
+  
 
 **Format**
 
@@ -57,25 +41,13 @@ Parameters
   standards support listening to UDP and UNIX domain sockets.
   RFC6587 additionally supports TCP sockets. Default: "RFC6587".
   
+  * RFC3164 (https://tools.ietf.org/html/rfc3164) - unix, udp
   
-
-  **RFC3164**
-
-    (https://tools.ietf.org/html/rfc3164) - unix, udp
-    
-    
-
-  **RFC5424**
-
-    (https://tools.ietf.org/html/rfc5424) - unix, udp
-    
-    
-
-  **RFC6587**
-
-    (https://tools.ietf.org/html/rfc6587) - unix, upd, tcp
-    
-    
+  * RFC5424 (https://tools.ietf.org/html/rfc5424) - unix, udp
+  
+  * RFC6587 (https://tools.ietf.org/html/rfc6587) - unix, upd, tcp
+  
+  
 
 Parameters (from core.SimpleConsumer)
 -------------------------------------
