@@ -33,7 +33,7 @@ type metaDataMap map[string]core.ModulatorArray
 //
 // Examples
 //
-// This example sets the meta fields `hostname`, `base64Value` and `foo` of each message:
+// This example sets the meta fields `hostname`, `base64Value` and `payloadCopy` of each message:
 //
 //  exampleConsumer:
 //    Type: consumer.Console
@@ -41,11 +41,12 @@ type metaDataMap map[string]core.ModulatorArray
 //    Modulators:
 //      - format.MetadataCopy:
 //        WriteTo:
-//          - hostname:             # meta data key
+//          hostname:               # meta data key
 //            - format.Hostname     # further modulators
-//          - base64Value:
+//          base64Value:
 //            - format.Base64Encode
-//          - payloadCopy           # 1:1 copy of the "payload" to "bar"
+//          payloadCopy: []         # 1:1 copy without modulators
+//
 type MetadataCopy struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	metaData             metaDataMap
@@ -57,7 +58,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *MetadataCopy) Configure(conf core.PluginConfigReader) {
-	format.metaData = format.getMetadataMapFromArray(conf.GetArray("WriteTo", []interface{}{}))
+	format.metaData = format.newMetaDataMap(conf.GetMap("WriteTo", tcontainer.MarshalMap{}))
 }
 
 // ApplyFormatter update message payload
@@ -81,30 +82,23 @@ func (format *MetadataCopy) modulateMetadataValue(msg *core.Message, modulators 
 	return []byte{}
 }
 
-// getMetadataMapFromArray returns a map of meta keys to core.ModulatorArray
-func (format *MetadataCopy) getMetadataMapFromArray(metaData []interface{}) metaDataMap {
+func (format *MetadataCopy) newMetaDataMap(metaData tcontainer.MarshalMap) metaDataMap {
 	result := metaDataMap{}
 	writeToConfig := core.NewPluginConfig("", "format.MetadataCopy.WriteTo")
+	reader := core.NewPluginConfigReaderWithError(&writeToConfig)
 
-	for _, metaDataValue := range metaData {
-		if converted, isMap := metaDataValue.(tcontainer.MarshalMap); isMap {
-			writeToConfig.Read(converted)
-			reader := core.NewPluginConfigReaderWithError(&writeToConfig)
+	for keyMetadata, metaDataValue := range metaData {
+		tempMap := tcontainer.NewMarshalMap()
+		tempMap[keyMetadata] = metaDataValue
 
-			for keyMetadata := range converted {
-
-				modulator, err := reader.GetModulatorArray(keyMetadata, format.Logger, core.ModulatorArray{})
-				if err != nil {
-					format.Logger.Error("Can't get mmodulators. Error message: ", err)
-					break
-				}
-
-				result[keyMetadata] = modulator
-			}
-		} else if keyMetadata, isString := metaDataValue.(string); isString {
-			// no modulator set => 1:1 copy to meta data key
-			result[keyMetadata] = core.ModulatorArray{}
+		writeToConfig.Read(tempMap)
+		modulator, err := reader.GetModulatorArray(keyMetadata, format.Logger, core.ModulatorArray{})
+		if err != nil {
+			format.Logger.Error("Can't get mmodulators. Error message: ", err)
+			break
 		}
+
+		result[keyMetadata] = modulator
 	}
 
 	return result
