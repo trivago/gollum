@@ -46,7 +46,7 @@ import (
 //    Streams: "*"
 //    Modulators:
 //      - format.TemplateJSON:
-//	      Template: "{{.Name}} {{.Surname}}"
+//        Template: "{{.Name}} {{.Surname}}"
 type TemplateJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	template             *template.Template

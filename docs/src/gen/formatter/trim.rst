@@ -67,9 +67,9 @@ This example will reduce data like "foo[bar[foo]bar]foo" to "bar[foo]bar".
 	   Streams: "*"
 	   Modulators:
 	     - format.Trim:
+	       LeftSeparator: "["
+	       RightSeparator: "]"
 
-	      LeftSeparator: "["
-	      RightSeparator: "]"
 
 
 

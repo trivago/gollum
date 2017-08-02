@@ -50,8 +50,8 @@ import (
 //    Streams: "*"
 //    Modulators:
 //      - format.Trim:
-//	      LeftSeparator: "["
-//	      RightSeparator: "]"
+//        LeftSeparator: "["
+//        RightSeparator: "]"
 type Trim struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	leftSeparator        []byte `config:"LeftSeparator"`

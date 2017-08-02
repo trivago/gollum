@@ -40,13 +40,12 @@ type metaDataMap map[string]core.ModulatorArray
 //    Streams: "*"
 //    Modulators:
 //      - format.MetadataCopy:
-//          WriteTo:
-//            - hostname:             # meta data key
-//              - format.Hostname     # further modulators
-//            - base64Value:
-//              - format.Base64Encode
-//            - payloadCopy           # 1:1 copy of the "payload" to "bar"
-//
+//        WriteTo:
+//          - hostname:             # meta data key
+//            - format.Hostname     # further modulators
+//          - base64Value:
+//            - format.Base64Encode
+//          - payloadCopy           # 1:1 copy of the "payload" to "bar"
 type MetadataCopy struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	metaData             metaDataMap

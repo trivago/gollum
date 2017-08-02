@@ -49,14 +49,11 @@ This example prefixes the message with the most recent routing history.
 	   Streams: "*"
 	   Modulators:
 	     - format.StreamName:
-
-	      Separator: ", "
-.. code-block:: yaml
-
+	       Separator: ", "
 	       UsePrevious: true
 	     - format.StreamName:
+	       Separator: ": "
 
-	      Separator: ": "
 
 
 

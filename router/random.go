@@ -46,7 +46,6 @@ import (
 //    Modulators:
 //      - format.Envelope:
 //          Prefix: "[junk_01] "
-//
 type Random struct {
 	core.SimpleRouter `gollumdoc:"embed_type"`
 }

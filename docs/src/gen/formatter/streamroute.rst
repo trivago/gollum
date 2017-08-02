@@ -54,11 +54,11 @@ and `a message string` as payload:
 	   Streams: "*"
 	   Modulators:
 	     - format.StreamRoute:
-	         Delimiter: ":"
-	         StreamModulator:
-	           - format.Trim:
-	               LeftSeparator: <
-	               RightSeparator: >
+	       Delimiter: ":"
+	       StreamModulator:
+	         - format.Trim:
+	           LeftSeparator: <
+	           RightSeparator: >
 
 
 

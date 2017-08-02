@@ -60,8 +60,8 @@ This example extracts time and host from an imaginary log message format.
 	   Streams: stding
 	   Modulators:
 	     - format.RegExp:
-	         Expression: "^(\\d+) (\\w+): "
-	         Template: "time: ${1}, host: ${2}"
+	       Expression: "^(\\d+) (\\w+): "
+	       Template: "time: ${1}, host: ${2}"
 
 
 

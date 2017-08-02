@@ -48,8 +48,8 @@ payload and writes them both back as a plain text result.
 	   Streams: "*"
 	   Modulators:
 	     - format.TemplateJSON:
+	       Template: "{{.Name}} {{.Surname}}"
 
-	      Template: "{{.Name}} {{.Surname}}"
 
 
 

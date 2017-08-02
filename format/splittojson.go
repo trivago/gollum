@@ -50,11 +50,10 @@ import (
 //    Streams: "*"
 //    Modulators:
 //      - format.SplitToJSON:
-//          SplitBy: ","
-//          Keys:
-//            - foo
-//            - bar
-//
+//        SplitBy: ","
+//        Keys:
+//          - foo
+//          - bar
 type SplitToJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	token                []byte   `config:"SplitBy" default:"|"`

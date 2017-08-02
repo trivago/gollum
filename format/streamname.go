@@ -39,10 +39,10 @@ import (
 //    Streams: "*"
 //    Modulators:
 //      - format.StreamName:
-//	      Separator: ", "
+//        Separator: ", "
 //        UsePrevious: true
 //      - format.StreamName:
-//	      Separator: ": "
+//        Separator: ": "
 type StreamName struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	separator            []byte `config:"Separator" default:":"`

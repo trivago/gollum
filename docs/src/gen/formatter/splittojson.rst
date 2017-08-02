@@ -60,10 +60,10 @@ string of `{"foo":"value1", "bar":"value2"}`:
 	   Streams: "*"
 	   Modulators:
 	     - format.SplitToJSON:
-	         SplitBy: ","
-	         Keys:
-	           - foo
-	           - bar
+	       SplitBy: ","
+	       Keys:
+	         - foo
+	         - bar
 
 
 

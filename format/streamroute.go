@@ -45,13 +45,11 @@ import (
 //    Streams: "*"
 //    Modulators:
 //      - format.StreamRoute:
-//          Delimiter: ":"
-//          StreamModulator:
-//            - format.Trim:
-//                LeftSeparator: <
-//                RightSeparator: >
-//
-//
+//        Delimiter: ":"
+//        StreamModulator:
+//          - format.Trim:
+//            LeftSeparator: <
+//            RightSeparator: >
 type StreamRoute struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	streamModulators     core.ModulatorArray `config:"StreamModulator"`

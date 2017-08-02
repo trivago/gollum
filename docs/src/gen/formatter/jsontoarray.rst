@@ -54,10 +54,10 @@ and create a payload of `foo_value:bar_value`:
 	   Streams: "*"
 	   Modulators:
 	     - format.JSONToArray
-	         Fields:
-	           - foo
-	           - bar
-	         Separator: ;
+	       Separator: ;
+	       Fields:
+	         - foo
+	         - bar
 
 
 

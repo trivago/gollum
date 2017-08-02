@@ -39,9 +39,8 @@ import (
 //    Streams: "*"
 //    Modulators:
 //      - format.Timestamp:
-//          Timestamp: "2006-01-02T15:04:05.000 MST"
-//          ApplyTo: time
-//
+//        Timestamp: "2006-01-02T15:04:05.000 MST"
+//        ApplyTo: time
 type Timestamp struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	timestampFormat      string `config:"Timestamp" default:"2006-01-02 15:04:05 MST | "`

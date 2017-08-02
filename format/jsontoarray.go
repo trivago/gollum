@@ -47,11 +47,10 @@ import (
 //    Streams: "*"
 //    Modulators:
 //      - format.JSONToArray
-//          Fields:
-//            - foo
-//            - bar
-//          Separator: ;
-//
+//        Separator: ;
+//        Fields:
+//          - foo
+//          - bar
 type JSONToArray struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	separator            string   `config:"Separator" default:","`

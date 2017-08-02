@@ -43,12 +43,12 @@ This example sets the meta fields `hostname`, `base64Value` and `foo` of each me
 	   Streams: "*"
 	   Modulators:
 	     - format.MetadataCopy:
-	         WriteTo:
-	           - hostname:             # meta data key
-	             - format.Hostname     # further modulators
-	           - base64Value:
-	             - format.Base64Encode
-	           - payloadCopy           # 1:1 copy of the "payload" to "bar"
+	       WriteTo:
+	         - hostname:             # meta data key
+	           - format.Hostname     # further modulators
+	         - base64Value:
+	           - format.Base64Encode
+	         - payloadCopy           # 1:1 copy of the "payload" to "bar"
 
 
 
