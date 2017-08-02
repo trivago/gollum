@@ -20,8 +20,9 @@ import (
 
 // Any filter plugin
 //
-// This filter is a "OR" filter combination. If one of the set sub-filters will accept the
-// message, this filter also accept the message and continue.
+// This plugin takes a list of filters and applies each of them to incoming
+// messages until a an accepting filter is found. If any of the listed filters
+// accept the message, it is passed through, otherwise, the message is dropper.
 //
 // Parameters
 //

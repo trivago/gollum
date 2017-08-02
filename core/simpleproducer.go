@@ -27,16 +27,16 @@ import (
 //
 // This type defines a common baseclass for all producers. All producer plugins
 // should derive from this class as all required basic functions are already
-// implemented in a general way.
+// implemented here in a general way.
 //
 // Parameters
 //
-// - Streams: Defines a list of streams a producer will receive from. This
-// parameter is mandatory. When using "*" the producer will receive messages
-// from all streams but the internal streams (e.g. _GOLLUM_).
+// - Streams: Defines a list of streams the producer will receive from. This
+// parameter is mandatory. Specifying "*" causes the producer to receive messages
+// from all streams except internal internal ones (e.g. _GOLLUM_).
 // By default this parameter is set to an empty list.
 //
-// - FallbackStream: Defines a stream to route messages to when delivery failed.
+// - FallbackStream: Defines a stream to route messages to if delivery fails.
 // The message is reset to its original state before being routed, i.e. all
 // modifications done to the message after leaving the consumer are removed.
 // Setting this paramater to "" will cause messages to be discared when delivery

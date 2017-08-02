@@ -21,19 +21,20 @@ import (
 
 // Base64Decode formatter plugin
 //
-// Base64Decode is a formatter that decodes a base64 message.
+// Base64Decode is a formatter that decodes base64 encoded messages.
 // If a message is not or only partly base64 encoded an error will be logged
 // and the decoded part is returned. RFC 4648 is expected.
 //
 // Parameters
 //
-// - Base64Dictionary: This value defines the 64-character base64 lookup dictionary to use.
-// When left empty a dictionary as defined by RFC4648 is used.
+// - Base64Dictionary: This value defines the 64-character base64 lookup
+// dictionary to use. When left empty, a dictionary as defined by RFC4648 is used.
 // By default this parameter is set to "".
 //
 // Examples
 //
-// This example expect a base64 string inout to the console and decode this for the message payload.
+// This example expects base64 strings from the console and decodes them before
+// transmitting the message payload.
 //
 //  exampleConsumer:
 //    Type: consumer.Console

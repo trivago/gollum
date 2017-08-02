@@ -33,16 +33,17 @@ import (
 //
 // Parameters
 //
-// - StreamMapping: This value defines a translation from gollum stream to kinesis stream
-// name. If no mapping is given the gollum stream name is used as kinesis stream name.
+// - StreamMapping: This value defines a translation from gollum stream names
+// to kinesis stream names. If no mapping is given the gollum stream name is
+// used as the kinesis stream name.
 // By default this parameter is set to "empty"
 //
 // - RecordMaxMessages: This value defines the maximum number of messages to join into
 // a kinesis record.
 // By default this parameter is set to "500".
 //
-// - RecordMessageDelimiter: This value defines the string to delimit messages within
-// a kinesis record.
+// - RecordMessageDelimiter: This value defines the delimiter string to use between
+// messages within a kinesis record.
 // By default this parameter is set to "\n".
 //
 // - SendTimeframeMs: This value defines the timeframe in milliseconds in which a second

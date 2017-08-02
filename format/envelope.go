@@ -34,7 +34,7 @@ import (
 //
 // Examples
 //
-// This example will add a line number and a newline character to each message
+// This example adds a line number and a newline character to each message
 // printed to the console.
 //
 //  exampleProducer:

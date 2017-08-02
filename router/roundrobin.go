@@ -22,8 +22,8 @@ import (
 
 // RoundRobin router
 //
-// This router implements round robin routing. Messages will always be routed to
-// only and exactly one of the producers registered to the given stream. The
+// This router implements round robin routing. Messages are routed to
+// exactly one of the producers registered to the given stream. The
 // producer is switched in a round robin fashin after each message.
 // This producer can be useful for load balancing, e.g. when the target service
 // does not support sharding by itself.

@@ -23,23 +23,25 @@ import (
 
 // GrokToJSON formatter plugin
 //
-// GrokToJSON is a formatter that applies regex filters on messages.
+// GrokToJSON is a formatter that applies regex filters to messages.
 // It works by combining text patterns into something that matches your logs.
-// See https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html#_grok_basics to get
-// more information about grok basics.
+// See https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html#_grok_basics
+// for more information about Grok.
 //
 // The output format is JSON.
 //
 // Parameters
 //
-// - Patterns: A a list of grok patterns that will be executed on the given message.
+// - Patterns: A list of grok patterns that will be applied to messages.
 // The first matching pattern will be used to parse the message.
 //
 // Examples
 //
-// This example will transform the an unstructured input to a structured json output.
+// This example transforms unstructured input into a structured json output.
+//
 // Example input:
 //  us-west.servicename.webserver0.this.is.the.measurement 12.0 1497003802
+//
 // Output:
 //  {
 //    "datacenter": "us-west",

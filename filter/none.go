@@ -24,7 +24,7 @@ import (
 //
 // Examples
 //
-// This example will start a cosole consumer and block all incoming messages:
+// This example starts a Console consumer and blocks all incoming messages:
 //
 //  exampleConsumer:
 //    Type: consumer.Console

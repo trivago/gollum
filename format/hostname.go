@@ -21,8 +21,8 @@ import (
 
 // Hostname formatter
 //
-// This formatter prefixes the message or metadata with the name of the current
-// host.
+// This formatter prefixes the message or metadata with the hostname of
+// the machine gollum is running on.
 //
 // Parameters
 //
@@ -31,7 +31,7 @@ import (
 //
 // Examples
 //
-// This example will insert the hostname into an existing JSON payload.
+// This example inserts the hostname into an existing JSON payload.
 //
 //  exampleProducer:
 //    Type: producer.Console

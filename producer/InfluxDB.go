@@ -35,20 +35,19 @@ import (
 // - Host: Defines the host (and port) of the InfluxDB master.
 // Be default this parameter is set to "localhost:8086".
 //
-// - User: Defines the InfluxDB username to use. If this name is left empty
-// credentials are assumed to be disabled.
+// - User: Defines the InfluxDB username to use. If this is empty,
+// credentials are not used.
 // Be default this parameter is set to "".
 //
-// - Password: Defines the password to be used for the set User.
+// - Password: Defines the InfluxDB password to use.
 // Be default this parameter is set to "".
 //
 // - Database: Sets the InfluxDB database to write to.
 // Be default this parameter is set to "default".
 //
-// - TimeBasedName: Enables time based of databse names and rotation.
-// When setting this parameter to true the Database parameter is treated as a
-// template for time.Format, i.e. you can use "default-2006-01-02" to switch
-// databases each day.
+// - TimeBasedName: When set to true, the Database parameter is treated as a
+// template for time.Format and the resulting string is used as the database
+// name. You can e.g. use "default-2006-01-02" to switch databases each day.
 // By default this parameter is set to "true".
 //
 // - RetentionPolicy: Only avaialble for Version 90. This setting defines the

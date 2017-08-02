@@ -28,7 +28,7 @@ import (
 //
 // Parameters
 //
-// - Field: Defines the JSON key to extract.If the field does not exist an
+// - Field: Defines the JSON key to extract. If the field does not exist an
 // empty string is returned. Field paths can be defined in a format accepted by
 // tgo.MarshalMap.Path.
 // By default this parameter is set to "".

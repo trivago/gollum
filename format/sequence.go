@@ -22,10 +22,10 @@ import (
 
 // Sequence formatter
 //
-// This formatter prefixes data with a sequence number managed by this
-// formatter. I.e. all messages passing through an instance of this formatter
-// will get a unique number. The number is not persisted, i.e. it restarts at 0
-// after each restart of gollum.
+// This formatter prefixes data with a sequence number managed by the
+// formatter. All messages passing through an instance of the
+// formatter will get a unique number. The number is not persisted,
+// i.e. it restarts at 0 after each restart of gollum.
 //
 // Parameters
 //

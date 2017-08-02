@@ -32,16 +32,17 @@ import (
 //
 // Parameters
 //
-// - StreamMapping: This value defines a translation from gollum stream to firehose stream
-// name. If no mapping is given the gollum stream name is used as firehose
-// stream name.
+// - StreamMapping: This value defines a translation from gollum stream names
+// to firehose stream names. If no mapping is given, the gollum stream name is
+// used as the firehose stream name.
 // By default this parameter is set to "empty"
 //
-// - RecordMaxMessages: This value defines the number of messages which send in one record to aws firehose.
+// - RecordMaxMessages: This value defines the number of messages to send
+// in one record to aws firehose.
 // By default this parameter is set to "1".
 //
-// - RecordMessageDelimiter: This value defines the string to delimit messages within
-// a firehose record.
+// - RecordMessageDelimiter: This value defines the delimiter string to use between
+// messages within a firehose record.
 // By default this parameter is set to "\n".
 //
 // - SendTimeframeMs: This value defines the timeframe in milliseconds in which a second
